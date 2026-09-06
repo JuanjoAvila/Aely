@@ -31,23 +31,33 @@ function t(name, fn) {
 
 console.log("invest-category");
 
-const today = new Date().toISOString().slice(0, 10);
-/* Ancla de mes relativa al reloj real (B03, 2026-09). Un `trAnchor` fijo en julio hacía que
-   `reconcileTR` cerrara TODOS los meses hasta el actual y el aporte simulado se aplicara N veces
-   (en septiembre: 10 → 11 en vez de 10.5). La intención del test es UN mes cerrado sin OB. */
-function prevMonthKey(d) {
-  d = d || new Date();
-  const x = new Date(d.getFullYear(), d.getMonth() - 1, 1);
-  return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0");
-}
-function dayAt(offset) {
-  const d = new Date();
-  d.setDate(d.getDate() + offset);
+/* Reloj único local (B03). La app construye fechas de OB como `ymd + "T12:00:00"` (hora local)
+   y las guarda con `.toISOString()`. Mezclar `toISOString().slice(0,10)` (día UTC) con
+   `getFullYear/getMonth/getDate` (calendario local) o sufijo `Z` rompe en husos extremos. */
+const NOW = new Date();
+function ymdLocal(d) {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
-function dayAtIso(offset) {
-  return dayAt(offset) + "T12:00:00.000Z";
+function dayAt(offset, from) {
+  from = from || NOW;
+  const d = new Date(from.getFullYear(), from.getMonth(), from.getDate() + offset);
+  return ymdLocal(d);
 }
+function dayAtStored(offset, from) {
+  // Misma convención que importObExpenses al materializar la fila.
+  return new Date(dayAt(offset, from) + "T12:00:00").toISOString();
+}
+function prevMonthKey(from) {
+  from = from || NOW;
+  const x = new Date(from.getFullYear(), from.getMonth() - 1, 1);
+  return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0");
+}
+const today = dayAt(0);
+
+t("prevMonthKey cruza el año de forma determinista (sin reloj real)", () => {
+  assert.equal(prevMonthKey(new Date(2026, 0, 15)), "2025-12");
+  assert.equal(prevMonthKey(new Date(2026, 8, 6)), "2026-08");
+});
 
 t("importObExpenses etiqueta 'inversion' SOLO el importe exacto de monthlyInvest", () => {
   const s = {
@@ -212,8 +222,8 @@ function estadoConMacroDroid(extra) {
     investments: [{ id: "inv1", cur: "EUR", shares: 10, value: 1000, cost: 900 }],
     settings: {},
     expenses: [
-      { id: "m1", date: dayAtIso(-5), amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
-      { id: "m2", date: dayAtIso(-5), amount: -34.7, merchant: "Bizum recibido", category: "ingreso", source: "macrodroid" },
+      { id: "m1", date: dayAtStored(-5), amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
+      { id: "m2", date: dayAtStored(-5), amount: -34.7, merchant: "Bizum recibido", category: "ingreso", source: "macrodroid" },
     ].concat(extra || []),
   };
 }
@@ -264,10 +274,10 @@ t("fixMovInvasion retira los duplicados que YA estaban guardados, y deja el del 
     investments: [{ id: "inv1", cur: "EUR", shares: 10, value: 1000, cost: 900 }],
     catOverrides: {}, deleted: [],
     expenses: [
-      { id: "m1", date: dayAtIso(-5), amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
-      { id: "o1", date: dayAtIso(-4), amount: 88.11, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
-      { id: "o2", date: dayAtIso(-4), amount: 50, merchant: "Movimiento", category: "inversion", source: "ob", ent: "trade_republic" },
-      { id: "o3", date: dayAtIso(-4), amount: 22.62, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
+      { id: "m1", date: dayAtStored(-5), amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
+      { id: "o1", date: dayAtStored(-4), amount: 88.11, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
+      { id: "o2", date: dayAtStored(-4), amount: 50, merchant: "Movimiento", category: "inversion", source: "ob", ent: "trade_republic" },
+      { id: "o3", date: dayAtStored(-4), amount: 22.62, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
     ],
   };
   const ns = ctx.fixMovInvasion(s);
@@ -284,8 +294,8 @@ t("un gasto viejo del mismo importe (fuera de la ventana de 3 días) no tapa uno
   // Macro hace 20 días; banco hoy (>3 días) → no es gemelo. La fecha del banco sigue dentro
   // de la ventana de import (día 1 − 8 días), porque es "hoy".
   s.expenses = [
-    { id: "m1", date: dayAtIso(-20), amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
-    { id: "m2", date: dayAtIso(-20), amount: -34.7, merchant: "Bizum recibido", category: "ingreso", source: "macrodroid" },
+    { id: "m1", date: dayAtStored(-20), amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
+    { id: "m2", date: dayAtStored(-20), amount: -34.7, merchant: "Bizum recibido", category: "ingreso", source: "macrodroid" },
   ];
   const txs = [{ ent: "trade_republic", id: null, date: dayAt(0), amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" }];
   const add = ctx.importObExpenses(s, txs);
