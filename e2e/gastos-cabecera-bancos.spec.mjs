@@ -5,12 +5,9 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
    a que un sync mute `expenses`. En 4.18.6 el useMemo de monthSummary omitía accounts/settings
    aunque monthBudgetStats los lee — la cifra se quedaba alta hasta sincronizar. */
 
-const d = (n) => {
-  const x = new Date();
-  x.setDate(x.getDate() - n);
-  x.setHours(12, 0, 0, 0);
-  return x.toISOString();
-};
+// Reloj y movimientos del mismo mes: restar días a hoy falla al empezar un mes.
+const now = new Date("2026-09-15T12:00:00Z");
+const d = (n) => new Date(now.getTime() - n * 86400000).toISOString();
 
 const accounts = [
   { id: "tr", ent: "trade_republic", name: "Efectivo", value: 6300, role: "diario", spendFrom: true },
@@ -39,11 +36,13 @@ async function abreGastos(page) {
 }
 
 test("cabecera Gastos baja al quitar un banco de gasto diario sin sync", async ({ page }) => {
+  await page.clock.install({ time: now });
   await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
   await abreGastos(page);
 
   const bar = page.locator('.v4-gastos-progress[role="progressbar"]');
   await expect(bar).toHaveAttribute("aria-valuenow", "100");
+  const expensesBefore = await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]"));
 
   // Bloquear el resync automático de rol: en e2e no hay banco real y un bankSync podría
   // tocar `expenses`, enmascarando el bug de memo que queremos cazar.
@@ -62,11 +61,8 @@ test("cabecera Gastos baja al quitar un banco de gasto diario sin sync", async (
   await expect(page.locator(".v4-gastos-summary")).toBeVisible();
 
   // Misma lista de gastos en disco; solo cambió qué bancos cuentan.
-  const expLen = await page.evaluate(() => {
-    try { return JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]").length; }
-    catch (e) { return -1; }
-  });
-  expect(expLen, "expenses no deben mutar para esta prueba").toBe(2);
+  const expensesAfter = await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]"));
+  expect(expensesAfter, "expenses no deben mutar para esta prueba").toEqual(expensesBefore);
 
   await expect(bar, "sin el fix la cabecera se quedaría en 100 hasta un sync").toHaveAttribute("aria-valuenow", "30");
 });
