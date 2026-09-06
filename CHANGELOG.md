@@ -2,6 +2,22 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.18.7] — 2026-09-06
+### Cabecera de Gastos: deps de bancos/rol (B09-A)
+
+`monthSummary` en `04-tab-gastos.js` memorizaba `monthBudgetStats(state)` sin depender de
+`state.accounts` ni `state.settings`, aunque la cifra lee `expenseBankEnts` (rol diario +
+`expenseBanks`). Cambiar bancos de gasto diario dejaba el total del mes alto hasta que un sync
+mutaba `expenses`.
+
+**Por qué:** el listado filtrado ya invalidaba bien; la cabecera no. Familia: «gastado de más y
+se corrige al sincronizar». Auditoría: `diarioEnts` / `bankOpts` / `filtered` ya traían
+accounts+settings; solo faltaba `monthSummary` (ahora `state.settings` entero, no solo
+`gTotalMode`).
+
+Guardián: `e2e/gastos-cabecera-bancos.spec.mjs` (quita Revolut de gasto diario sin sync →
+`aria-valuenow` 100→30). OTA; sin Android. B09-B/C (UTC, widget) fuera.
+
 ## [4.18.6] — 2026-09-06
 ### Contención: sin DELETE/lápidas automáticas por similitud (1d-CONTENCION-A)
 
