@@ -1424,6 +1424,18 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.6", d:"6 sep 2026",
+   t:{es:"La app ya no borra movimientos por parecerse",
+      en:"The app no longer deletes look-alike movements",
+      ca:"L'app ja no esborra moviments per assemblar-se"},
+   tandas:[
+     {id:"contencion-dupes", t:"🧾 Movimientos que se parecían", items:[
+       "Si el banco y el móvil apuntaban lo mismo con nombres distintos, la app ya no borra uno de los dos por su cuenta.",
+       "Puede que veas alguna fila de más mientras afinamos el criterio; el total del mes puede subir un poco hasta entonces.",
+       "Lo que tú borres a mano sigue borrado.",
+     ]},
+   ],
+  },
   {v:"4.18.5", d:"18 ago 2026",
    t:{es:"El fondo ya no parpadea al cambiar de pestaña",
       en:"No more flicker when switching tabs",

@@ -614,61 +614,38 @@ function esTraspasoPropio(s, tx){
    Esta corre SIEMPRE y es idempotente: cuando no queda nada que arreglar no toca nada y devuelve el
    MISMO objeto (cero renders de más). Y devuelve lo que hay que borrar/recategorizar EN LA NUBE
    para que quien la llama lo haga de verdad — ver `syncCloudExpenses` en 11-app-main.js.
-   Devuelve {state, borrar:[gastos], recat:[{expense,cat}]}. */
+/* CONTENCIÓN 4.18.6: ya no borra por similitud; puede recategorizar cashback sin borrar.
+   Devuelve {state, borrar:[], recat:[{expense,cat}]}. `borrar` queda vacío a propósito. */
 function reconcileObDupes(state){
   const exps=(state&&state.expenses)||[];
   if(!exps.length) return { state:state, borrar:[], recat:[] };
   const esOb=function(e){ return e && (e.source==="ob" || e.source==="ob-hist"); };
   const sinNombre=function(e){ const m=String((e&&e.merchant)||"").trim(); return !m || m==="Movimiento" || m==="Ingreso"; };
-  const otrasVias=exps.filter(function(e){ return !esOb(e); });
-  // (a) DUPLICADOS: un apunte de Open Banking sin nombre que repite algo que ya entró por otra vía
-  // (los avisos del móvil, con el comercio de verdad). Emparejamiento 1 a 1 y ±3 días: el banco
-  // contabiliza uno o dos días después de la compra. El que se queda es SIEMPRE el que tiene nombre.
-  const usado={}, borrar=[];
-  exps.forEach(function(e){
-    if(!esOb(e) || !sinNombre(e)) return;
-    const acc=(state.accounts||[]).find(function(a){ return a.ent===e.ent; });
-    if(acc && acc.monthlyInvest>0 && Math.abs(Math.abs(e.amount)-acc.monthlyInvest)<0.01) return;   // el aporte real no se toca
-    const ms=dateMs(e.date);
-    const j=otrasVias.findIndex(function(o,k){
-      return !usado[k] && Math.abs((o.amount||0)-(e.amount||0))<=0.005 && Math.abs(dateMs(o.date)-ms)<=3*86400000;
-    });
-    if(j>=0){ usado[j]=1; borrar.push(e); }
-  });
-  const fuera={}; borrar.forEach(function(e){ fuera[e.id]=1; });
-  let quedan=borrar.length ? exps.filter(function(e){ return !fuera[e.id]; }) : exps;
-  /* (b) EL PAR DEL CASHBACK ES UN SOLO MOVIMIENTO, Y SE VE UNA SOLA VEZ (2026-08-04, corrección
-     suya: «del cashback solo debe haber 1, solo pagan 1 vez al mes»). El banco lo apunta dos veces
-     —entra al efectivo con fecha del día 1 y sale hacia el fondo el día 3, el primer día laborable—
-     pero es el mismo dinero yendo a un sitio. Se deja UNA línea: la SALIDA, marcada «Inversión»
-     (es la que refleja dónde acabó el dinero), y la entrada se borra como el duplicado que es.
-     Solo en la cuenta que TIENE fondo enlazado (`rewardInv`): sin destino declarado esto no es el
-     round-up/cashback de nadie y no se toca. */
+  /* CONTENCIÓN 4.18.6 (1d-CONTENCION-A): ya NO se borra ni se entierra por similitud
+     (importe ±3 días entre OB sin nombre y otra vía). Eso confundía operaciones distintas y
+     llegaba a `cloud.deleteExpense` + lápidas día|importe|comercio. Conservar ambas filas;
+     la resolución no destructiva y el contrato de identidad van en tickets siguientes.
+     Puede hacer visibles gemelos reales Wallet/TR de forma temporal: se declara en beta. */
+  /* Cashback/round-up: el banco apunta entrada + salida. Solo se RECATEGORIZA la salida a
+     «Inversión» (neutra en presupuesto). No se borra la entrada ni se crea lápida.
+     Solo si la cuenta tiene `rewardInv`. `setExpenseCat` aún empareja por atributos — migrar a
+     ID de fila antes de tocar el índice (ticket posterior). */
   const recat=[];
   const usadoTwin={};
-  quedan.forEach(function(g){
+  exps.forEach(function(g){
     if(!esOb(g) || !(g.amount>0) || !sinNombre(g)) return;
     const acc=(state.accounts||[]).find(function(a){ return a.ent===g.ent && a.rewardInv; });
     if(!acc) return;
     if(acc.monthlyInvest>0 && Math.abs(g.amount-acc.monthlyInvest)<0.01) return;   // el aporte fijo va aparte
-    const i=findCashbackTwin(quedan, g);
-    if(i<0 || usadoTwin[quedan[i].id]) return;
-    usadoTwin[quedan[i].id]=1;
+    const i=findCashbackTwin(exps, g);
+    if(i<0 || usadoTwin[exps[i].id]) return;
+    usadoTwin[exps[i].id]=1;
     if(g.category!=="inversion") recat.push({ expense:g, cat:"inversion" });
-    borrar.push(quedan[i]);                                  // la entrada: mismo movimiento, una sola línea
   });
-  if(usadoTwin && borrar.length){
-    const fuera2={}; borrar.forEach(function(e){ fuera2[e.id]=1; });
-    quedan=exps.filter(function(e){ return !fuera2[e.id]; });
-  }
-  if(!borrar.length && !recat.length) return { state:state, borrar:[], recat:[] };
-  if(recat.length){
-    const nuevaCat={}; recat.forEach(function(r){ nuevaCat[r.expense.id]=r.cat; });
-    quedan=quedan.map(function(e){ return nuevaCat[e.id] ? Object.assign({},e,{category:nuevaCat[e.id]}) : e; });
-  }
-  let del=state.deleted||[];
-  borrar.forEach(function(e){ del=pushDeleted(del, String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.merchant||"")); });
-  return { state:Object.assign({},state,{expenses:quedan, deleted:del}), borrar:borrar, recat:recat };
+  if(!recat.length) return { state:state, borrar:[], recat:[] };
+  const nuevaCat={}; recat.forEach(function(r){ nuevaCat[r.expense.id]=r.cat; });
+  const quedan=exps.map(function(e){ return nuevaCat[e.id] ? Object.assign({},e,{category:nuevaCat[e.id]}) : e; });
+  return { state:Object.assign({},state,{expenses:quedan}), borrar:[], recat:recat };
 }
 
 function findCashbackTwin(expenses, gasto){

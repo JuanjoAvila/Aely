@@ -323,11 +323,11 @@ function App(){
         // limpiezas anteriores se quedaron bloqueadas por el suyo) y es idempotente.
         const base=Object.assign({},prev,{expenses: igual?prev.expenses:next, lastSync:Date.now()});
         const rec=reconcileObDupes(fixMovInvasion(base));
-        // Y se aplica TAMBIÉN en la nube: quitar la fila del array local no basta, la de la tabla
-        // seguía viva y volvía en el siguiente pull o al reconectar el banco.
-        if(rec.borrar.length || rec.recat.length){
+        // 4.18.6: reconcileObDupes ya no propone DELETE/lápidas por similitud (`borrar` vacío).
+        // Solo persiste recategorizaciones seguras (p.ej. salida de cashback → inversión).
+        // Borrado manual del usuario sigue otro camino; no mezclar.
+        if(rec.recat.length){
           setTimeout(function(){
-            rec.borrar.forEach(function(e){ cloud.deleteExpense(e).catch(function(){}); });
             rec.recat.forEach(function(r){ cloud.setExpenseCat(r.expense, r.cat).catch(function(){}); });
           },0);
         }

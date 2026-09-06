@@ -2,6 +2,23 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.18.6] — 2026-09-06
+### Contención: sin DELETE/lápidas automáticas por similitud (1d-CONTENCION-A)
+
+`reconcileObDupes` ya no marca para borrar ni entierra (lápida `día|importe|comercio`) los
+apuntes OB sin nombre que casan importe ±3 días con otra vía. `fixMovInvasion` deja de hacer la
+misma limpieza histórica. El caller de `syncCloudExpenses` ya no llama `cloud.deleteExpense` por
+esos candidatos; solo persiste recategorizaciones (salida de cashback → `inversion`).
+
+**Por qué:** esa heurística confundía operaciones distintas (incluso entre bancos) y podía borrar
+evidencia en la nube. No cierra el contrato de identidad ni recupera filas ya ausentes; gemelos
+reales Wallet/TR pueden verse/contarse temporalmente. `importObExpenses` / `mergeExpenses` /
+índice / migraciones quedan para tickets siguientes. Nota: `setExpenseCat` aún empareja por
+atributos — migrar a ID de fila antes de tocar el índice.
+
+Guardianes: tests en `invest-category` (cruce bancos, cashback conservado, cero `borrar`) y
+`presupuesto-servidor` (app = servidor en fixture cross-source). OTA; sin Android.
+
 ## [4.18.5] — 2026-08-18
 ### El fondo dejó de parpadear al cambiar de pestaña (y los gestos de quien estrena la app)
 
