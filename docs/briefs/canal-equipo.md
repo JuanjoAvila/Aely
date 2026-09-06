@@ -3,6 +3,9 @@
 Acuerdo solicitado por el dueño el 2026-09-06. Este documento define el transporte de encargos;
 el estado de producto sigue en `plan-vuelta-crucero.md` y cada incidencia tiene su brief.
 
+Para retomar desde una conversación nueva, leer primero [REANUDAR-CODEX.md](REANUDAR-CODEX.md).
+Cada beta se anuncia con versión, pasos de prueba, resultados esperados y límites antes de pedir veredicto.
+
 ## Roles y límites
 
 - Codex recibe las peticiones del dueño, prioriza, diagnostica, dirige arquitectura y decide
