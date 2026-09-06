@@ -1434,17 +1434,17 @@ var RELEASE_NOTES=[
         es:[
           "Si el banco y el móvil apuntaban lo mismo con nombres distintos, la app ya no borra uno de los dos por su cuenta.",
           "Puede que veas alguna fila de más mientras afinamos el criterio; el total del mes puede subir un poco hasta entonces.",
-          "Lo que tú borres a mano sigue borrado.",
+          "Los movimientos borrados a mano siguen borrados.",
         ],
         en:[
           "If the bank and your phone logged the same payment under different names, the app no longer deletes one of them on its own.",
           "You may see an extra row for a while while we refine the match; the monthly total may rise a little until then.",
-          "Anything you delete yourself stays deleted.",
+          "Movements deleted by hand stay deleted.",
         ],
         ca:[
           "Si el banc i el mòbil apuntaven el mateix amb noms diferents, l'app ja no n'esborra un pel seu compte.",
           "Pot ser que vegis alguna fila de més mentre afinem el criteri; el total del mes pot pujar una mica fins aleshores.",
-          "El que esborris a mà segueix esborrat.",
+          "Els moviments esborrats a mà segueixen esborrats.",
         ],
       }},
    ],
@@ -1452,17 +1452,17 @@ var RELEASE_NOTES=[
      es:[
        "Si el banco y el móvil apuntaban lo mismo con nombres distintos, la app ya no borra uno de los dos por su cuenta.",
        "Puede que veas alguna fila de más mientras afinamos el criterio; el total del mes puede subir un poco hasta entonces.",
-       "Lo que tú borres a mano sigue borrado.",
+       "Los movimientos borrados a mano siguen borrados.",
      ],
      en:[
        "If the bank and your phone logged the same payment under different names, the app no longer deletes one of them on its own.",
        "You may see an extra row for a while while we refine the match; the monthly total may rise a little until then.",
-       "Anything you delete yourself stays deleted.",
+       "Movements deleted by hand stay deleted.",
      ],
      ca:[
        "Si el banc i el mòbil apuntaven el mateix amb noms diferents, l'app ja no n'esborra un pel seu compte.",
        "Pot ser que vegis alguna fila de més mentre afinem el criteri; el total del mes pot pujar una mica fins aleshores.",
-       "El que esborris a mà segueix esborrat.",
+       "Els moviments esborrats a mà segueixen esborrats.",
      ],
    }},
   {v:"4.18.5", d:"18 ago 2026",
