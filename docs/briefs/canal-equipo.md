@@ -92,8 +92,12 @@ el móvil ni cuando se cierra la sesión de otro agente. Referencia de la automa
 - Cursor entrega commit/PR, diff, comandos y resultados reales, limitaciones y pendientes.
 - Claude revisa el commit entregado de manera independiente; Codex resuelve técnicamente los
   desacuerdos con evidencia. Un cambio posterior invalida el visto bueno de lo afectado.
-- CI/tests → revisión de Claude + revisión final de Codex → beta autorizada → validación del
-  dueño. No automatizar el pase a producción. Referencias Git inequívocas; no borrar el tag beta.
+- Pruebas locales completas → revisión de Claude + revisión final de Codex → merge a `beta` →
+  CI/publicación de beta → validación del dueño. Hoy los PR cuyo destino es `beta` no disparan
+  Actions: el workflow corre después del merge. Por eso nadie puede presentar un check inexistente
+  como puerta previa; antes de fusionar se ejecuta localmente el plan que el workflow seleccionaría.
+  Si el CI posterior falla, la beta queda bloqueada y se corrige o revierte antes de probarla.
+  No automatizar el pase a producción. Referencias Git inequívocas; no borrar el tag beta.
 - Decisiones duraderas y cambios de estado se incorporan al repo por PR, ya saneados. El buzón
   conserva el intercambio operativo, no sustituye a la documentación compartida.
 
@@ -110,5 +114,7 @@ verificada bajo ese límite. El sondeo de Codex está verificado en disco cada d
 el mismo intervalo a los otros dos. No existe un disparador inmediato de Codex Desktop por cambios
 en una carpeta local: durante una conversación activa, Codex comprueba el buzón entre decisiones;
 la tarea programada cubre los periodos inactivos.
-Encargo financiero vigente: plan de contención derivado de
-`incidencias-integridad-2026-09-06.md`, sin modificar la app ni datos remotos.
+El encargo inicial fue diagnóstico sin tocar la app ni datos remotos. Después, el dueño autorizó
+ejecutar el backlog por tickets y publicar en beta lo terminado tras pruebas y doble revisión.
+La autorización no incluye producción ni convierte migraciones, sincronización bancaria,
+autenticación, permisos o despliegues en cambios rutinarios: conservan su plan y aprobación humana.
