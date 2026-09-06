@@ -69,7 +69,7 @@ No borrar mensajes ni reservas automáticamente por tiempo transcurrido.
 
 1. Cada agente lee AGENTS, EMPIEZA-AQUI, este protocolo y su encargo inicial. Publica un acuse
    real indicando su mecanismo de watcher/loop, periodicidad y límites de sesión.
-2. Codex usa una tarea programada de esta conversación para revisar el buzón cada treinta minutos.
+2. Codex usa una tarea programada de esta conversación para revisar el buzón cada diez minutos.
    Los otros dos agentes habilitan el mecanismo disponible en SUS sesiones y lo describen;
    si no tienen autoactivación, lo comunican. No basta con escribir «watcher activo» en un archivo.
 3. La primera respuesta acredita lectura manual/actual. Para acreditar reactivación, Codex envía
@@ -106,7 +106,7 @@ del repo; los informes distinguen observación, hipótesis y reproducción sint�
 El 2026-09-06 se recibieron acuses e informes de Cursor y Claude personal. Cursor declara un shell
 monitorizado en su sesión; Claude declara `/loop`. Ambos requieren sus sesiones abiertas. Codex
 envió un desafío posterior: la reactivación autónoma aún necesita esa respuesta. El sondeo de Codex
-se redujo de cinco a treinta minutos para moderar el consumo; se pidió el mismo cambio a los otros
+se ajustó a diez minutos para reducir la espera; se pidió el mismo cambio a los otros
 dos. Sus acuses iniciales acreditan lectura, no todavía el intervalo nuevo ni servicio permanente.
 Encargo financiero vigente: plan de contención derivado de
 `incidencias-integridad-2026-09-06.md`, sin modificar la app ni datos remotos.
