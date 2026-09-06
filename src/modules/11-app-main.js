@@ -318,14 +318,10 @@ function App(){
         // varias veces al día, y cada vez más caro según crecía el histórico (2026-07-24).
         const next=keep.concat(add);
         const igual = next.length===prev.expenses.length && next.every(function(e,i){ return e===prev.expenses[i]; });
-        // Los gastos llegan AQUÍ, no al cargar el estado, así que es el único punto donde se les
-        // puede pasar revista de verdad. `reconcileObDupes` corre SIEMPRE (sin flag: las dos
-        // limpiezas anteriores se quedaron bloqueadas por el suyo) y es idempotente.
+        // Call site 3/3 de fixMovInvasion (tras pull expenses). Contención 4.18.6: sin bloque (b).
         const base=Object.assign({},prev,{expenses: igual?prev.expenses:next, lastSync:Date.now()});
         const rec=reconcileObDupes(fixMovInvasion(base));
-        // 4.18.6: reconcileObDupes ya no propone DELETE/lápidas por similitud (`borrar` vacío).
-        // Solo persiste recategorizaciones seguras (p.ej. salida de cashback → inversión).
-        // Borrado manual del usuario sigue otro camino; no mezclar.
+        // reconcileObDupes: solo recat (cashback); nunca DELETE automático por similitud.
         if(rec.recat.length){
           setTimeout(function(){
             rec.recat.forEach(function(r){ cloud.setExpenseCat(r.expense, r.cat).catch(function(){}); });
@@ -359,6 +355,7 @@ function App(){
           // Usuario que ya tenía cartera en la nube: no repetir onboarding en otro dispositivo.
           if(freshLogin && (cloudState.accounts||[]).length) baseObj.onboarded=true;
           if(freshLogin && ((cloudState.accounts||[]).length || (cloudState.monthStartNet||0)>0)) baseObj.setupHint=false;
+          // Call site 2/3 de fixMovInvasion (syncFromCloud). Contención dentro de la fn, no aquí.
           return seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR(baseObj))))));
         });
       } else if(cloudState){

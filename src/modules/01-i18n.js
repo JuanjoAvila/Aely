@@ -2590,14 +2590,16 @@ function fixRevoDupes(s){
   s._invFixRevoDupes = true;
   return s;
 }
-// Limpieza única del bug de `setCat` (2026-08-04): "Movimiento" es el hueco que deja un banco sin
-// datos (Trade Republic por Open Banking) — no es un comercio de verdad, pero `setCat` lo trataba
-// como si todos los gastos con ese mismo texto fueran el MISMO comercio: al marcar UNO como
-// Inversión, recategorizaba TODOS los demás también (con su propia compra de participaciones cada
-// uno) y aprendía "movimiento"→inversion como override para siempre. Deshace el destrozo: borra
-// ese override envenenado y devuelve a su categoría normal (deshaciendo la compra) cualquier gasto
-// "Movimiento"/Inversión que NO sea el aporte automático real (`monthlyInvest`, el único legítimo,
-// ver `importObExpenses`). Idempotente con flag, como fixInvSold/fixInvAuto/fixRevoDupes.
+// Limpieza del bug de `setCat` (2026-08-04) + contención 4.18.6.
+// Call sites (los tres pasan por ESTA función; la contención no se duplica en cada uno):
+//   1) loadState (arranque en frío) — 01-i18n.js
+//   2) syncFromCloud (adopta nube) — 11-app-main.js
+//   3) syncCloudExpenses (tras pull de la tabla) — 11-app-main.js
+// (a) OVERRIDE + compras falsas: borra catOverrides «movimiento»→inversión y deshace
+//     reverseInvestBuy en «Movimiento»/Inversión que NO sea el aporte monthlyInvest.
+// (b) DEDUP/LÁPIDAS por similitud: ELIMINADO en 4.18.6. No reintroducir. No subir/renombrar
+//     `_fixMovInvasion2`: quien ya tiene el flag no reejecuta (a); quien no, (a) corre una vez
+//     y (b) ya no existe.
 function fixMovInvasion(state){
   // ⚠ EL FLAG VA POR VERSIÓN (`_fixMovInvasion2`), y este es el motivo exacto: la PRIMERA versión de
   // esta limpieza corría con la lista de gastos todavía vacía y aun así se marcaba como hecha. Ese
@@ -2791,6 +2793,7 @@ function loadState(){
     // Capturar ANTES de seedFlows (muta in-place): evita stringify de toda la cartera en cada
     // apertura fría — feedback 2026-07-16.
     var writeBack=!(saved._dataVer>=6) || !saved._dynBalAnchored;
+    // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
     const s = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
     if(writeBack) mcSaveRaw(mcStateKey(), s);
     applyTheme(s.settings&&s.settings.theme);

@@ -213,6 +213,46 @@ t("fixMovInvasion es idempotente (no repite la limpieza en la siguiente carga)",
   assert.strictEqual(twice, once, "con el flag puesto, la segunda vuelta no toca nada");
 });
 
+t("fixMovInvasion con _fixMovInvasion2=true: mismo objeto aunque haya gemelos por similitud", () => {
+  const s = {
+    _fixMovInvasion2: true,
+    deleted: [],
+    accounts: [{ id: "acc1", ent: "trade_republic", monthlyInvest: 50, rewardInv: "inv1" }],
+    investments: [{ id: "inv1", cur: "EUR", shares: 10, value: 1000, cost: 900 }],
+    expenses: [
+      { id: "m1", date: dayAtStored(-5), amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
+      { id: "o1", date: dayAtStored(-4), amount: 88.11, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
+    ],
+  };
+  const ns = ctx.fixMovInvasion(s);
+  assert.strictEqual(ns, s, "flag true → no reentra (a) ni inventa (b)");
+  assert.equal(ns.expenses.length, 2);
+  assert.equal((ns.deleted || []).length, 0);
+});
+
+t("fixMovInvasion sin flag: ejecuta (a) y cero lápida/supresión por similitud (cubre los 3 call sites)", () => {
+  // Los tres call sites (loadState, syncFromCloud, syncCloudExpenses) invocan la misma función;
+  // si aquí no hay deleted por similitud, ninguno de los tres lo genera.
+  const s = {
+    catOverrides: { movimiento: "inversion" },
+    deleted: [],
+    accounts: [{ id: "acc1", ent: "trade_republic", monthlyInvest: 50, rewardInv: "inv1" }],
+    investments: [{ id: "inv1", cur: "EUR", shares: 10, value: 1000, cost: 900 }],
+    expenses: [
+      { id: "m1", date: dayAtStored(-5), amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
+      { id: "o1", date: dayAtStored(-4), amount: 88.11, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
+      { id: "fake", date: dayAtStored(-4), amount: 8.38, merchant: "Movimiento", category: "inversion", source: "ob", ent: "trade_republic",
+        investInvId: "inv1", investShares: 0.08, investCInv: 8.38, investAmountEur: 8.38 },
+    ],
+  };
+  const ns = ctx.fixMovInvasion(s);
+  assert.equal(ns.catOverrides.movimiento, undefined, "(a) limpia override");
+  assert.notEqual(ns.expenses.find((e) => e.id === "fake").category, "inversion", "(a) deshace compra falsa");
+  assert.ok(ns.expenses.some((e) => e.id === "o1"), "sin (b): gemelo OB se conserva");
+  assert.equal((ns.deleted || []).length, 0, "cero lápidas por similitud");
+  assert.ok(ns._fixMovInvasion2);
+});
+
 /* EL MISMO GASTO POR DOS CAMINOS (2026-08-04, medido en sus datos reales): sus compras de TR ya
  * entran por las notificaciones del móvil con el comercio de verdad; Open Banking las repite 1-2
  * días después y sin ningún dato. 9 de sus 22 movimientos de TR eran gemelos exactos. */
