@@ -32,6 +32,22 @@ function t(name, fn) {
 console.log("invest-category");
 
 const today = new Date().toISOString().slice(0, 10);
+/* Ancla de mes relativa al reloj real (B03, 2026-09). Un `trAnchor` fijo en julio hacía que
+   `reconcileTR` cerrara TODOS los meses hasta el actual y el aporte simulado se aplicara N veces
+   (en septiembre: 10 → 11 en vez de 10.5). La intención del test es UN mes cerrado sin OB. */
+function prevMonthKey(d) {
+  d = d || new Date();
+  const x = new Date(d.getFullYear(), d.getMonth() - 1, 1);
+  return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0");
+}
+function dayAt(offset) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function dayAtIso(offset) {
+  return dayAt(offset) + "T12:00:00.000Z";
+}
 
 t("importObExpenses etiqueta 'inversion' SOLO el importe exacto de monthlyInvest", () => {
   const s = {
@@ -101,7 +117,7 @@ t("reverseInvestBuy deshace EXACTAMENTE lo que applyInvestBuy compró (round-tri
 
 t("reconcileTR SIGUE simulando round-up/saveback/aporte si la cuenta no tiene datos reales de OB", () => {
   const s = {
-    trAnchor: "2026-07",
+    trAnchor: prevMonthKey(),
     accounts: [{ id: "acc1", ent: "trade_republic", role: "diario", spendFrom: true, inject: 0, monthlyInvest: 50, rewardInv: "inv1", value: 500 }],
     investments: [{ id: "inv1", cur: "EUR", shares: 10, value: 1000, cost: 900 }],
     expenses: [], // sin ningún movimiento source:"ob" de esta cuenta
@@ -115,7 +131,7 @@ t("reconcileTR SIGUE simulando round-up/saveback/aporte si la cuenta no tiene da
 
 t("reconcileTR DEJA de simular en cuanto la cuenta tiene un movimiento real (source:'ob')", () => {
   const s = {
-    trAnchor: "2026-07",
+    trAnchor: prevMonthKey(),
     accounts: [{ id: "acc1", ent: "trade_republic", role: "diario", spendFrom: true, inject: 0, monthlyInvest: 50, rewardInv: "inv1", value: 500 }],
     investments: [{ id: "inv1", cur: "EUR", shares: 10, value: 1000, cost: 900 }],
     expenses: [{ id: "e1", date: today, amount: 10, category: "otros", source: "ob", ent: "trade_republic" }],
@@ -196,29 +212,29 @@ function estadoConMacroDroid(extra) {
     investments: [{ id: "inv1", cur: "EUR", shares: 10, value: 1000, cost: 900 }],
     settings: {},
     expenses: [
-      { id: "m1", date: "2026-08-02T12:00:00.000Z", amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
-      { id: "m2", date: "2026-08-02T12:00:00.000Z", amount: -34.7, merchant: "Bizum recibido", category: "ingreso", source: "macrodroid" },
+      { id: "m1", date: dayAtIso(-5), amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
+      { id: "m2", date: dayAtIso(-5), amount: -34.7, merchant: "Bizum recibido", category: "ingreso", source: "macrodroid" },
     ].concat(extra || []),
   };
 }
 
 t("un gasto que ya entró por el móvil NO se repite cuando el banco lo trae un día después sin nombre", () => {
   const s = estadoConMacroDroid();
-  const txs = [{ ent: "trade_republic", id: null, date: "2026-08-03", amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" }];
+  const txs = [{ ent: "trade_republic", id: null, date: dayAt(-4), amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" }];
   assert.equal(ctx.importObExpenses(s, txs), null, "mismo importe, un día después, sin nombre → es el mismo gasto");
 });
 
 t("lo mismo con los ingresos (el bizum que el banco repite sin decir de quién)", () => {
   const s = estadoConMacroDroid();
-  const txs = [{ ent: "trade_republic", id: null, date: "2026-08-02", amount: -34.7, merchant: "Movimiento", note: "", card: false, status: "BOOK" }];
+  const txs = [{ ent: "trade_republic", id: null, date: dayAt(-5), amount: -34.7, merchant: "Movimiento", note: "", card: false, status: "BOOK" }];
   assert.equal(ctx.importObExpenses(s, txs), null);
 });
 
 t("pero lo que SOLO ve el banco (round-up, cashback, aporte) sí entra", () => {
   const s = estadoConMacroDroid();
   const txs = [
-    { ent: "trade_republic", id: null, date: "2026-08-03", amount: 50, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
-    { ent: "trade_republic", id: null, date: "2026-08-03", amount: 22.62, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
+    { ent: "trade_republic", id: null, date: dayAt(-4), amount: 50, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
+    { ent: "trade_republic", id: null, date: dayAt(-4), amount: 22.62, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
   ];
   const add = ctx.importObExpenses(s, txs);
   assert.equal(add.length, 2, "ningún gemelo por otra vía → entran los dos");
@@ -228,8 +244,8 @@ t("pero lo que SOLO ve el banco (round-up, cashback, aporte) sí entra", () => {
 t("el emparejamiento es 1 a 1: dos cargos iguales de verdad con uno solo apuntado dejan pasar el otro", () => {
   const s = estadoConMacroDroid();
   const txs = [
-    { ent: "trade_republic", id: null, date: "2026-08-03", amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
-    { ent: "trade_republic", id: null, date: "2026-08-03", amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
+    { ent: "trade_republic", id: null, date: dayAt(-4), amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
+    { ent: "trade_republic", id: null, date: dayAt(-4), amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
   ];
   const add = ctx.importObExpenses(s, txs);
   assert.equal(add.length, 1, "solo uno tenía gemelo; el segundo es un cargo real distinto");
@@ -237,7 +253,7 @@ t("el emparejamiento es 1 a 1: dos cargos iguales de verdad con uno solo apuntad
 
 t("si el banco SÍ dice el comercio no se aplica esta red (ahí manda el dedup de siempre)", () => {
   const s = estadoConMacroDroid();
-  const txs = [{ ent: "trade_republic", id: null, date: "2026-08-03", amount: 88.11, merchant: "Repsol", note: "", card: false, status: "BOOK" }];
+  const txs = [{ ent: "trade_republic", id: null, date: dayAt(-4), amount: 88.11, merchant: "Repsol", note: "", card: false, status: "BOOK" }];
   const add = ctx.importObExpenses(s, txs);
   assert.equal(add.length, 1, "con nombre no hay ambigüedad: se respeta el criterio clásico día+importe+comercio");
 });
@@ -248,10 +264,10 @@ t("fixMovInvasion retira los duplicados que YA estaban guardados, y deja el del 
     investments: [{ id: "inv1", cur: "EUR", shares: 10, value: 1000, cost: 900 }],
     catOverrides: {}, deleted: [],
     expenses: [
-      { id: "m1", date: "2026-08-02T12:00:00.000Z", amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
-      { id: "o1", date: "2026-08-03T12:00:00.000Z", amount: 88.11, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
-      { id: "o2", date: "2026-08-03T12:00:00.000Z", amount: 50, merchant: "Movimiento", category: "inversion", source: "ob", ent: "trade_republic" },
-      { id: "o3", date: "2026-08-03T12:00:00.000Z", amount: 22.62, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
+      { id: "m1", date: dayAtIso(-5), amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
+      { id: "o1", date: dayAtIso(-4), amount: 88.11, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
+      { id: "o2", date: dayAtIso(-4), amount: 50, merchant: "Movimiento", category: "inversion", source: "ob", ent: "trade_republic" },
+      { id: "o3", date: dayAtIso(-4), amount: 22.62, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
     ],
   };
   const ns = ctx.fixMovInvasion(s);
@@ -265,9 +281,15 @@ t("fixMovInvasion retira los duplicados que YA estaban guardados, y deja el del 
 
 t("un gasto viejo del mismo importe (fuera de la ventana de 3 días) no tapa uno nuevo", () => {
   const s = estadoConMacroDroid();
-  const txs = [{ ent: "trade_republic", id: null, date: "2026-08-20", amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" }];
+  // Macro hace 20 días; banco hoy (>3 días) → no es gemelo. La fecha del banco sigue dentro
+  // de la ventana de import (día 1 − 8 días), porque es "hoy".
+  s.expenses = [
+    { id: "m1", date: dayAtIso(-20), amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
+    { id: "m2", date: dayAtIso(-20), amount: -34.7, merchant: "Bizum recibido", category: "ingreso", source: "macrodroid" },
+  ];
+  const txs = [{ ent: "trade_republic", id: null, date: dayAt(0), amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" }];
   const add = ctx.importObExpenses(s, txs);
-  assert.equal(add.length, 1, "18 días después es otro cargo, no el mismo");
+  assert.equal(add.length, 1, "más de 3 días después es otro cargo, no el mismo");
 });
 
 /* BUG 2026-08-04 (segunda vuelta, dos quejas suyas con la app de TR delante):
