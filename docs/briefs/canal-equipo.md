@@ -104,9 +104,11 @@ Los casos de prueba usan identidades e importes ficticios. Evidencias originales
 del repo; los informes distinguen observación, hipótesis y reproducción sintética.
 
 El 2026-09-06 se recibieron acuses e informes de Cursor y Claude personal. Cursor declara un shell
-monitorizado en su sesión; Claude declara `/loop`. Ambos requieren sus sesiones abiertas. Codex
-envió un desafío posterior: la reactivación autónoma aún necesita esa respuesta. El sondeo de Codex
-se ajustó a diez minutos para reducir la espera; se pidió el mismo cambio a los otros
-dos. Sus acuses iniciales acreditan lectura, no todavía el intervalo nuevo ni servicio permanente.
+monitorizado en su sesión; Claude declara `/loop`. Ambos requieren sus sesiones abiertas. Los dos
+respondieron a un desafío posterior desde una vuelta automática, por lo que su reactivación queda
+verificada bajo ese límite. El sondeo de Codex está verificado en disco cada diez minutos y se pidió
+el mismo intervalo a los otros dos. No existe un disparador inmediato de Codex Desktop por cambios
+en una carpeta local: durante una conversación activa, Codex comprueba el buzón entre decisiones;
+la tarea programada cubre los periodos inactivos.
 Encargo financiero vigente: plan de contención derivado de
 `incidencias-integridad-2026-09-06.md`, sin modificar la app ni datos remotos.
