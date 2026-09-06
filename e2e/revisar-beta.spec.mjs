@@ -222,6 +222,9 @@ test("✓, «no lo puedo probar» Y los ✗ con su comentario se heredan entre c
   await page.evaluate(() => {
     const base = mcVerBase(CONFIG.APP_VERSION);
     const notes = (RELEASE_NOTES || []).find(function(n){ return n.v === base; }) || RELEASE_NOTES[0];
+    // La checklist prioriza tandas sobre items: usar aquí la tanda implícita permite sembrar
+    // tres puntos incluso cuando la versión real trae una tanda explícita de solo dos.
+    if (notes) notes.tandas = [];
     if (notes && notes.items) {
       ["es", "en", "ca"].forEach(function(lang) {
         const arr = notes.items[lang];

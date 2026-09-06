@@ -1424,6 +1424,41 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.7", d:"6 sep 2026",
+   t:{es:"El total de Gastos se actualiza al cambiar de banco",
+      en:"Gastos total updates when you change banks",
+      ca:"El total de Despeses s'actualitza en canviar de banc"},
+   tandas:[
+     {id:"cabecera-bancos", t:{es:"📊 Cabecera al día", en:"📊 Header stays current", ca:"📊 Capçalera al dia"},
+      items:{
+        es:[
+          "Si quitas o añades un banco de gasto diario, el total del mes en Gastos se actualiza al momento.",
+          "Ya no hace falta sincronizar para que la cabecera deje de mostrar de más.",
+        ],
+        en:[
+          "If you add or remove a daily-spend bank, the monthly total in Gastos updates right away.",
+          "You no longer need to sync for the header to stop showing too much.",
+        ],
+        ca:[
+          "Si treus o afegeixes un banc de despesa diària, el total del mes a Despeses s'actualitza de seguida.",
+          "Ja no cal sincronitzar perquè la capçalera deixi de mostrar de més.",
+        ],
+      }},
+   ],
+   items:{
+     es:[
+       "Si quitas o añades un banco de gasto diario, el total del mes en Gastos se actualiza al momento.",
+       "Ya no hace falta sincronizar para que la cabecera deje de mostrar de más.",
+     ],
+     en:[
+       "If you add or remove a daily-spend bank, the monthly total in Gastos updates right away.",
+       "You no longer need to sync for the header to stop showing too much.",
+     ],
+     ca:[
+       "Si treus o afegeixes un banc de despesa diària, el total del mes a Despeses s'actualitza de seguida.",
+       "Ja no cal sincronitzar perquè la capçalera deixi de mostrar de més.",
+     ],
+   }},
   {v:"4.18.6", d:"6 sep 2026",
    t:{es:"La app ya no borra movimientos por parecerse",
       en:"The app no longer deletes look-alike movements",

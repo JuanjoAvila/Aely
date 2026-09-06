@@ -1,6 +1,10 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-06 · **v4.18.6** — contención de integridad en el árbol (sin DELETE/lápida por
+> Estado a 2026-09-06 · **v4.18.7** — cabecera de Gastos al cambiar bancos de gasto diario (B09-A).
+> Canal vivo: `npm run salud` (no afirmar beta/prod solo por el working tree). OTA, sin APK.
+> Anterior: **4.18.6** (contención sin DELETE/lápida por similitud).
+>
+> Anterior: 2026-09-06 · **v4.18.6** — contención de integridad en el árbol (sin DELETE/lápida por
 > similitud). Canal vivo: `npm run salud` (no afirmar beta/prod solo por el working tree). OTA, sin
 > APK. Anterior: **4.18.5** (destello tabs). Producción conocida vía Pages: comprobar con `salud`.
 >
@@ -98,7 +102,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.18.6** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.18.7** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |
