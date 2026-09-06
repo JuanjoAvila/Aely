@@ -16,6 +16,8 @@ reales Wallet/TR pueden verse/contarse temporalmente. `importObExpenses` / `merg
 índice / migraciones quedan para tickets siguientes. Nota: `setExpenseCat` aún empareja por
 atributos — migrar a ID de fila antes de tocar el índice.
 
+Ajustes pre-merge: comentario único en reconcileObDupes; RELEASE_NOTES con items es/en/ca; docs sin afirmar canal sin salud.
+
 Guardianes: tests en `invest-category` (cruce bancos, cashback conservado, cero `borrar`) y
 `presupuesto-servidor` (app = servidor en fixture cross-source). OTA; sin Android.
 

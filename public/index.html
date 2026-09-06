@@ -10471,35 +10471,19 @@ function esTraspasoPropio(s, tx){
   if(m && m!=="Movimiento" && m!=="Ingreso") return false;            // con nombre = cobro real
   return (s.flows||[]).some(function(f){ return f && f.kind==="transfer" && f.to===tx.ent; });
 }
-/* LA PASADA QUE ARREGLA LO QUE YA ESTÁ GUARDADO — SIN FLAG, EN CADA SYNC (2026-08-04).
-   Las dos limpiezas anteriores (`fixMovInvasion`, `_fixMovInvasion2`) fallaron por el mismo par de
-   motivos, y esta nace de esos dos golpes:
-     1. IBAN CON FLAG: corrían una vez y se marcaban como hechas. En cuanto el flag quedó escrito
-        —aunque fuese en una vuelta donde no había gastos delante— la versión corregida ya no podía
-        entrar, y el usuario seguía viendo el mismo destrozo mientras desde fuera parecía aplicado.
-     2. SOLO TOCABAN EL MÓVIL: quitaban el gasto del array local pero la fila seguía viva en la
-        tabla `expenses` de la nube. Al reconectar el banco (o al siguiente pull) volvía. Los
-        tombstones tampoco bastaron: dependen de que la clave coincida al carácter, y un signo
-        distinto en el importe ya los deja pasar.
-   Esta corre SIEMPRE y es idempotente: cuando no queda nada que arreglar no toca nada y devuelve el
-   MISMO objeto (cero renders de más). Y devuelve lo que hay que borrar/recategorizar EN LA NUBE
-   para que quien la llama lo haga de verdad — ver `syncCloudExpenses` en 11-app-main.js.
-/* CONTENCIÓN 4.18.6: ya no borra por similitud; puede recategorizar cashback sin borrar.
-   Devuelve {state, borrar:[], recat:[{expense,cat}]}. `borrar` queda vacío a propósito. */
+/* CONTENCIÓN 4.18.6 (1d-CONTENCION-A) — corre en cada sync, sin flag.
+   Conserva todas las filas: ya NO borra ni crea lápidas por similitud
+   (importe ±3 días entre OB sin nombre y otra vía). Devuelve siempre
+   `borrar:[]`. Puede RECATEGORIZAR la salida de un cashback/round-up a
+   «Inversión» (neutra) sin borrar la entrada. Contrato de identidad y
+   recovery van en tickets siguientes. Ver syncCloudExpenses (solo recat). */
 function reconcileObDupes(state){
   const exps=(state&&state.expenses)||[];
   if(!exps.length) return { state:state, borrar:[], recat:[] };
   const esOb=function(e){ return e && (e.source==="ob" || e.source==="ob-hist"); };
   const sinNombre=function(e){ const m=String((e&&e.merchant)||"").trim(); return !m || m==="Movimiento" || m==="Ingreso"; };
-  /* CONTENCIÓN 4.18.6 (1d-CONTENCION-A): ya NO se borra ni se entierra por similitud
-     (importe ±3 días entre OB sin nombre y otra vía). Eso confundía operaciones distintas y
-     llegaba a `cloud.deleteExpense` + lápidas día|importe|comercio. Conservar ambas filas;
-     la resolución no destructiva y el contrato de identidad van en tickets siguientes.
-     Puede hacer visibles gemelos reales Wallet/TR de forma temporal: se declara en beta. */
-  /* Cashback/round-up: el banco apunta entrada + salida. Solo se RECATEGORIZA la salida a
-     «Inversión» (neutra en presupuesto). No se borra la entrada ni se crea lápida.
-     Solo si la cuenta tiene `rewardInv`. `setExpenseCat` aún empareja por atributos — migrar a
-     ID de fila antes de tocar el índice (ticket posterior). */
+  /* Cashback: solo recat de la salida si hay rewardInv. setExpenseCat aún
+     empareja por atributos — migrar a ID de fila antes de tocar el índice. */
   const recat=[];
   const usadoTwin={};
   exps.forEach(function(g){
@@ -14177,13 +14161,42 @@ var RELEASE_NOTES=[
       en:"The app no longer deletes look-alike movements",
       ca:"L'app ja no esborra moviments per assemblar-se"},
    tandas:[
-     {id:"contencion-dupes", t:"🧾 Movimientos que se parecían", items:[
+     {id:"contencion-dupes", t:{es:"🧾 Movimientos que se parecían", en:"🧾 Look-alike movements", ca:"🧾 Moviments que s'assemblaven"},
+      items:{
+        es:[
+          "Si el banco y el móvil apuntaban lo mismo con nombres distintos, la app ya no borra uno de los dos por su cuenta.",
+          "Puede que veas alguna fila de más mientras afinamos el criterio; el total del mes puede subir un poco hasta entonces.",
+          "Lo que tú borres a mano sigue borrado.",
+        ],
+        en:[
+          "If the bank and your phone logged the same payment under different names, the app no longer deletes one of them on its own.",
+          "You may see an extra row for a while while we refine the match; the monthly total may rise a little until then.",
+          "Anything you delete yourself stays deleted.",
+        ],
+        ca:[
+          "Si el banc i el mòbil apuntaven el mateix amb noms diferents, l'app ja no n'esborra un pel seu compte.",
+          "Pot ser que vegis alguna fila de més mentre afinem el criteri; el total del mes pot pujar una mica fins aleshores.",
+          "El que esborris a mà segueix esborrat.",
+        ],
+      }},
+   ],
+   items:{
+     es:[
        "Si el banco y el móvil apuntaban lo mismo con nombres distintos, la app ya no borra uno de los dos por su cuenta.",
        "Puede que veas alguna fila de más mientras afinamos el criterio; el total del mes puede subir un poco hasta entonces.",
        "Lo que tú borres a mano sigue borrado.",
-     ]},
-   ],
-  },
+     ],
+     en:[
+       "If the bank and your phone logged the same payment under different names, the app no longer deletes one of them on its own.",
+       "You may see an extra row for a while while we refine the match; the monthly total may rise a little until then.",
+       "Anything you delete yourself stays deleted.",
+     ],
+     ca:[
+       "Si el banc i el mòbil apuntaven el mateix amb noms diferents, l'app ja no n'esborra un pel seu compte.",
+       "Pot ser que vegis alguna fila de més mentre afinem el criteri; el total del mes pot pujar una mica fins aleshores.",
+       "El que esborris a mà segueix esborrat.",
+     ],
+   }},
   {v:"4.18.5", d:"18 ago 2026",
    t:{es:"El fondo ya no parpadea al cambiar de pestaña",
       en:"No more flicker when switching tabs",

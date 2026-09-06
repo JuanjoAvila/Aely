@@ -6,7 +6,7 @@ Cualquiera (Cursor, Claude, él desde el móvil) puede retomar desde aquí sin p
 
 | Tanda | Estado | Notas |
 |---|---|---|
-| **1d · Contención falsos duplicados** | ⏳ **PR 4.18.6** | Sin DELETE/lápida automática por similitud (`reconcileObDupes` + `fixMovInvasion`). No cierra identidad ni recovery. Brief largo: PR #26 si aún no está en beta. |
+| **1d · Contención falsos duplicados** | ⏳ **4.18.6 en PR/repo** | Sin DELETE/lápida automática por similitud. Canal: `npm run salud`. No cierra identidad ni recovery. |
 | 0 · Pages / familia | ✅ **Prod 4.18.3** · APK **42** publicada | Pages `version.json` = 4.18.3. Código alineado en `8ca8f55f`. La familia instala la 42 si aún lleva la 41. |
 | 1a · Widget coherente | ⏳ **código en 4.18.3** · APK **42** publicada | Ingest en prod. Pendiente **su** prueba: pago con la app cerrada, «Puedes gastar» = Gastos. Con la APK 41 esa línea no puede cuadrar. |
 | 1b · Revolut −204 del padre | ⏳ **4.18.3** OTA en prod | `pickBankBalance` ya no pinta un negativo inventado. Capturas 18/8: −204,54 → 22,06 al sync. Pendiente que no vuelva. |

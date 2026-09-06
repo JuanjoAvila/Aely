@@ -1,9 +1,10 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-06 · **v4.18.6** — **EN `beta` (PR)**. Contención de integridad: la app ya no
-> borra ni entierra movimientos solo porque se parecen (importe ± días). Pueden reaparecer gemelos
-> temporales hasta el contrato de identidad. OTA, sin APK. Anterior: **4.18.5** (destello tabs).
-> Producción sigue en **4.18.3** · APK **42**.
+> Estado a 2026-09-06 · **v4.18.6** — contención de integridad en el árbol (sin DELETE/lápida por
+> similitud). Canal vivo: `npm run salud` (no afirmar beta/prod solo por el working tree). OTA, sin
+> APK. Anterior: **4.18.5** (destello tabs). Producción conocida vía Pages: comprobar con `salud`.
+>
+> Anterior: 2026-08-18 · **v4.18.5** — destello/tabs. OTA, sin APK.
 >
 > Anterior: 2026-08-18 · **v4.18.5** — **EN `beta`**. El fondo ya no parpadea al cambiar de pestaña:
 > el «refuerzo opaco» del gesto tapaba el degradado del `body` (−16 niveles medidos a 120 fps en su
@@ -97,7 +98,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.18.6** (en `beta`) |
+| Web / OTA (`VERSION`) | **4.18.6** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |
