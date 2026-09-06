@@ -119,7 +119,13 @@ Debe explicar cómo conserva los movimientos sin inflar el presupuesto con gemel
 El siguiente bloque será identidad de extremo a extremo (cliente, esquema, ingest, widget, legado).
 La recuperación histórica mantiene ticket propio. La ambigüedad de OB sin identificador fiable
 requiere tratar multiplicidad, paginación y respuestas parciales; un ordinal aislado tampoco es
-prueba suficiente de identidad. No se autoriza todavía ninguna implementación ni migración.
+prueba suficiente de identidad.
+
+El 2026-09-06 Juanjo autorizó ejecutar el backlog por tandas y publicar cada tarea terminada en
+beta para su prueba. Producción permanece bloqueada hasta su aprobación expresa posterior. Se
+autoriza primero B03, en rama/PR propio, y después la contención 1d, en otra rama/PR. El contrato
+de identidad, su migración y la recuperación histórica requieren todavía sus tickets concretos,
+doble revisión y pruebas antes de ejecutarse; esta autorización no permite mezclar esos alcances.
 
 **Validación documental de esta rama:** `guard-privacy` y `docs-frescura` pasan. `memoria-espejo`
 falla por diferencias con la memoria local actual de Claude, incluida su nueva nota del canal.
