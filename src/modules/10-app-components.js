@@ -1424,6 +1424,47 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.6", d:"6 sep 2026",
+   t:{es:"La app ya no borra movimientos por parecerse",
+      en:"The app no longer deletes look-alike movements",
+      ca:"L'app ja no esborra moviments per assemblar-se"},
+   tandas:[
+     {id:"contencion-dupes", t:{es:"🧾 Movimientos que se parecían", en:"🧾 Look-alike movements", ca:"🧾 Moviments que s'assemblaven"},
+      items:{
+        es:[
+          "Si el banco y el móvil apuntaban lo mismo con nombres distintos, la app ya no borra uno de los dos por su cuenta.",
+          "Puede que veas alguna fila de más mientras afinamos el criterio; el total del mes puede subir un poco hasta entonces.",
+          "Los movimientos borrados a mano siguen borrados.",
+        ],
+        en:[
+          "If the bank and your phone logged the same payment under different names, the app no longer deletes one of them on its own.",
+          "You may see an extra row for a while while we refine the match; the monthly total may rise a little until then.",
+          "Movements deleted by hand stay deleted.",
+        ],
+        ca:[
+          "Si el banc i el mòbil apuntaven el mateix amb noms diferents, l'app ja no n'esborra un pel seu compte.",
+          "Pot ser que vegis alguna fila de més mentre afinem el criteri; el total del mes pot pujar una mica fins aleshores.",
+          "Els moviments esborrats a mà segueixen esborrats.",
+        ],
+      }},
+   ],
+   items:{
+     es:[
+       "Si el banco y el móvil apuntaban lo mismo con nombres distintos, la app ya no borra uno de los dos por su cuenta.",
+       "Puede que veas alguna fila de más mientras afinamos el criterio; el total del mes puede subir un poco hasta entonces.",
+       "Los movimientos borrados a mano siguen borrados.",
+     ],
+     en:[
+       "If the bank and your phone logged the same payment under different names, the app no longer deletes one of them on its own.",
+       "You may see an extra row for a while while we refine the match; the monthly total may rise a little until then.",
+       "Movements deleted by hand stay deleted.",
+     ],
+     ca:[
+       "Si el banc i el mòbil apuntaven el mateix amb noms diferents, l'app ja no n'esborra un pel seu compte.",
+       "Pot ser que vegis alguna fila de més mentre afinem el criteri; el total del mes pot pujar una mica fins aleshores.",
+       "Els moviments esborrats a mà segueixen esborrats.",
+     ],
+   }},
   {v:"4.18.5", d:"18 ago 2026",
    t:{es:"El fondo ya no parpadea al cambiar de pestaña",
       en:"No more flicker when switching tabs",
