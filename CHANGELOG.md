@@ -10,6 +10,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y ver
 - **`addExpense`:** manda `id` cuando es uuid → local = nube desde el nacimiento.
 - **Cinco escrituras** (`setExpenseBank/NoCard/Note/Cat`, `deleteExpense`): `.eq('id', …)` si
   uuid; si no, fallback eterno por fecha|importe|comercio (ids cortos del móvil).
+  Si faltan fecha o importe en la rama attrs, **abort** (cero queries): evita un DELETE
+  solo por `user_id` que vaciaría la tabla.
 - **Upsert** `ignoreDuplicates` + conflicto por atributos: comentario; el pull sigue adoptando
   `r.id`. Sin tocar el índice unique (ticket aparte / Codex).
 - Guardián: `tests/expense-id-cloud.test.mjs`.
