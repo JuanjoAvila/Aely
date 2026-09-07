@@ -96,6 +96,12 @@ caducaran «cada dos por tres» (feedback 2026-07-18). Syncs que siguen vivos, t
 | Bootstrap de conciliación (1ª vez sin `bankTx`) | `11-app-main.js` (solo una vez en la vida del enlace) |
 | Noti del banco (evento real del usuario) | ajuste `st_banksync_notif`, se puede apagar |
 
+El sincronizador general también consulta el puente nativo de Trade Republic cuando existe. Su
+`availableCash` y la tarjeta específica de TR pasan por el mismo reanclaje (`applyTrCash`), para
+que dos botones equivalentes no dejen saldos distintos. En enlaces Open Banking multicuenta, los
+movimientos se leen desde cada `accounts[].transactions`; el bloque superior es solo la copia
+retrocompatible de la primera cuenta y no se suma dos veces.
+
 **No reintroducir** un sync por apertura/foreground sin repensar esto: el histórico está en el
 CHANGELOG 4.1.0 y en el comentario del propio código.
 

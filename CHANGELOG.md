@@ -2,6 +2,26 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.0] — 2026-09-07
+### Sincronización coherente de TR, movimientos completos, categoría IA y orden manual
+
+- **Saldo de Trade Republic:** el sincronizador general ya aplica `availableCash` con el mismo
+  `applyTrCash` que la tarjeta específica. Antes actualizaba posiciones pero descartaba el efectivo.
+- **Movimientos multicuenta:** `flattenBankTx` consume todas las listas
+  `accounts[].transactions` y usa el bloque superior solo para el contrato antiguo.
+- **Sin falsos negativos por similitud:** el import OB ya no descarta movimientos sin identidad
+  solo por coincidir en importe dentro de ±3 días. El dedup exacto por identificador o clave OB sigue.
+- **Estado de TR reactivo:** verificar, sincronizar, caducar o desconectar emite `mc-tr-status`,
+  por lo que Ajustes y Cartera cambian sin reiniciar la app.
+- **Categoría IA:** ChatGPT, Claude, Cursor y equivalentes se clasifican como `ia` en cliente,
+  ingest y sugerencias, con textos es/en/ca. Solo aplica a movimientos nuevos: el histórico espera
+  a que `setExpenseCat` escriba por ID estable y no por atributos.
+- **Orden de Gastos:** asa táctil y `settings.expenseOrder` por día. No inventa horas ni modifica
+  `date`; el E2E cubre gesto, DOM, persistencia, recarga y fechas intactas.
+
+Guardianes: `tr-open-banking`, `categories`, `ingest-classify`,
+`e2e/brokers-selector.spec.mjs` y `e2e/gastos-orden.spec.mjs`. OTA; sin Android.
+
 ## [4.18.7] — 2026-09-06
 ### Cabecera de Gastos: deps de bancos/rol (B09-A)
 

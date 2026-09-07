@@ -1,8 +1,8 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-06 · **v4.18.7** — cabecera de Gastos al cambiar bancos de gasto diario (B09-A).
+> Estado a 2026-09-07 · **v4.19.0** — sincronización coherente de TR, movimientos multicuenta, categoría IA y orden manual de Gastos.
 > Canal vivo: `npm run salud` (no afirmar beta/prod solo por el working tree). OTA, sin APK.
-> Anterior: **4.18.6** (contención sin DELETE/lápida por similitud).
+> Anterior: **4.18.7** (cabecera de Gastos al cambiar bancos de gasto diario).
 >
 > Anterior: 2026-09-06 · **v4.18.6** — contención de integridad en el árbol (sin DELETE/lápida por
 > similitud). Canal vivo: `npm run salud` (no afirmar beta/prod solo por el working tree). OTA, sin
@@ -102,7 +102,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.18.7** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.0** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |
@@ -118,6 +118,8 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 | **Play Store** | **Lo último.** Data safety + NotificationListener. No adelantar: si se implementa, se tienta de publicar antes de que esté pulida a su criterio. Cualquier tanda nueva va **antes**. |
 | **Pulido de diseño (tanda 17)** | Mock Claude Design: `docs/design/handoff/` (SPEC-v4 + mockup HTML). **No tocar a ciegas.** Hogar, Apuntar, Gastos, el look. Tanda propia, no mezclar con dinero. |
 | **OPENAI_API_KEY** | Opcional en Supabase Secrets → Edge `categorize`. Ver [CATEGORIZE.md](CATEGORIZE.md) |
+| **IA en gastos antiguos** | 4.19.0 clasifica los movimientos nuevos. Los anteriores no se mueven hasta que `setExpenseCat` persista por ID estable; hacerlo por fecha+importe+comercio arriesgaría tocar gemelos legítimos. |
+| **Salto a TR/Open Banking al sincronizar automáticamente** | Reportado el 2026-09-07, pero no reproducido ni respaldado por el flujo inspeccionado. No se cambia la navegación a ciegas; recoger pantalla y punto de entrada exacto si vuelve a ocurrir. |
 
 ## Lo que apuntó él el 2026-07-26 — HECHO en la 4.12.0
 

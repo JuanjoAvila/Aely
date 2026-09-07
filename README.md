@@ -80,7 +80,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.18.7** en el repo — disponibilidad del canal con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.19.0** en el repo — disponibilidad del canal con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 > Esta línea la vigila `tests/docs-frescura.test.mjs`: si no coincide con `VERSION`, `npm test` falla. Se puso porque el README se quedó siete versiones atrás (v4.1.0 con la app en la 4.8.0) sin que saltara nada.
 
@@ -89,5 +89,6 @@ Notas rápidas del rediseño v4 (para no perderse):
 - **Hogar y gastos compartidos:** toca tu avatar en Inicio → Perfil → **«Tu gente»** (movido ahí en 4.10.0; antes al final de Cartera, donde no lo veía nadie) — [docs/HOGAR.md](docs/HOGAR.md).
 - **Ordenar los bloques de Cartera:** Cartera → «⇅ Ordenar secciones» al pie (4.10.0).
 - **Open Banking se sincroniza a demanda** (botón en Cartera), no al abrir la app.
+- **Orden manual de movimientos:** en Gastos, arrastra el asa de una fila para colocarla dentro del mismo día; la fecha real no cambia.
 - **Updates:** transporte en `12-boot.js`, estado de UI en `useUpdates()` (`10-app-components.js`).
 - **Canal beta y banco de pruebas** (solo `is_admin`): Ajustes → Dev → Pruebas — [docs/TESTING.md](docs/TESTING.md).

@@ -58,6 +58,8 @@ Desde la 4.9.1 esto lo vigila `tests/docs-frescura.test.mjs`: si quedan cambios 
   están escritos en el propio fichero con lo medido el día que se pusieron; subirlos vale, pero se
   hace a propósito y explicando por qué. El tamaño crece de uno en uno y nadie lo mira hasta que la
   app tarda cinco segundos en abrir y no hay un commit al que señalar.
+- **`e2e/gastos-orden.spec.mjs`** — arrastra un movimiento con gesto táctil, comprueba el DOM y el
+  orden guardado tras recargar, y garantiza que las fechas originales no cambian.
 
 ## Flujo local (CMD o PowerShell)
 
