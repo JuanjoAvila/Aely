@@ -380,6 +380,61 @@ test("con prod conocida, la checklist junta toda la ronda (no solo la última ve
   expect(r.rondaItems).toBeGreaterThan(2);
 });
 
+/* PANEL CON TANDAS DE VARIAS VERSIONES (2026-09-07). Lo de arriba solo ejercita betaChecklist
+ * en evaluate. Aquí se MONTA el panel: se pintan todas, marks va por índice de la lista plana
+ * (marcar en la 2.ª no pisa la 1.ª) y aprobar UNA tanda no deja sent en las demás. */
+test("panel: ronda multi-versión pinta tandas, marks por índice y aprobar una no pisa las otras", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  await page.evaluate(() => {
+    CONFIG.APP_VERSION = "9.9.2.7";
+    RELEASE_NOTES.unshift(
+      { v: "9.9.2", d: "e2e", t: { es: "Nueva", en: "New", ca: "Nova" },
+        tandas: [{ id: "nueva", t: "Tanda nueva e2e", items: { es: ["Punto N1 e2e", "Punto N2 e2e"], en: ["Punto N1 e2e", "Punto N2 e2e"], ca: ["Punto N1 e2e", "Punto N2 e2e"] } }],
+        items: { es: ["fam 9.9.2"], en: ["fam 9.9.2"], ca: ["fam 9.9.2"] } },
+      { v: "9.9.1", d: "e2e", t: { es: "Vieja", en: "Old", ca: "Vella" },
+        tandas: [{ id: "vieja", t: "Tanda vieja e2e", items: { es: ["Punto V1 e2e", "Punto V2 e2e"], en: ["Punto V1 e2e", "Punto V2 e2e"], ca: ["Punto V1 e2e", "Punto V2 e2e"] } }],
+        items: { es: ["fam 9.9.1"], en: ["fam 9.9.1"], ca: ["fam 9.9.1"] } },
+    );
+    window.__betaReports = [];
+    cloud.betaReport = function (p) { window.__betaReports.push(p); return Promise.resolve(); };
+    try { localStorage.removeItem("_betaReview_" + CONFIG.APP_VERSION); } catch (e) {}
+    try { localStorage.removeItem("_betaReview_" + CONFIG.APP_VERSION + "_v"); } catch (e) {}
+    try { localStorage.removeItem("_betaReview_" + CONFIG.APP_VERSION + "_n"); } catch (e) {}
+  });
+  const panel = await conProduccionEn(page, "9.9.0");
+  await expect(panel).toBeVisible();
+
+  const tandas = panel.locator(".beta-tanda");
+  await expect(tandas).toHaveCount(2);
+  await expect(tandas.nth(0).locator(".beta-tanda-t")).toHaveText(/v9\.9\.2 · Tanda nueva e2e/);
+  await expect(tandas.nth(1).locator(".beta-tanda-t")).toHaveText(/v9\.9\.1 · Tanda vieja e2e/);
+  await expect(tandas.nth(0)).toContainText("Punto N1 e2e");
+  await expect(tandas.nth(0)).toContainText("Punto N2 e2e");
+  await expect(tandas.nth(1)).toContainText("Punto V1 e2e");
+  await expect(tandas.nth(1)).toContainText("Punto V2 e2e");
+
+  // Marcar N2 (índice global 1) y V1 (índice 2): la lista plana es [N1,N2,V1,V2].
+  await tandas.nth(0).locator(".beta-item").nth(1).getByRole("button", { name: /Va bien/i }).click();
+  await tandas.nth(1).locator(".beta-item").nth(0).getByRole("button", { name: /Falla/i }).click();
+  const marks = await page.evaluate(() => store.get("_betaReview_" + CONFIG.APP_VERSION));
+  expect(marks).toEqual({ 1: "ok", 2: "ko" });
+  await expect(tandas.nth(0).locator(".beta-tanda-n")).toHaveText("1/2");
+  await expect(tandas.nth(1).locator(".beta-tanda-n")).toHaveText("1/2");
+
+  // Completar la tanda nueva y aprobarla: la vieja sigue sin veredicto.
+  await tandas.nth(0).locator(".beta-item").nth(0).getByRole("button", { name: /Va bien/i }).click();
+  await tandas.nth(0).getByRole("button", { name: /Aprobar esta tanda/i }).click();
+  await expect(tandas.nth(0)).toContainText(/✅ aprobada/i);
+  await expect(tandas.nth(1).getByRole("button", { name: /Aprobar esta tanda/i })).toBeVisible();
+  await expect(tandas.nth(1)).not.toContainText(/✅ aprobada/i);
+  const sent = await page.evaluate(() => store.get("_betaReview_" + CONFIG.APP_VERSION + "_v"));
+  expect(sent).toEqual({ "9.9.2/nueva": "approved" });
+  const reports = await page.evaluate(() => window.__betaReports);
+  expect(reports).toHaveLength(1);
+  expect(reports[0].tanda).toBe("9.9.2/nueva");
+  expect(reports[0].verdict).toBe("approved");
+});
+
 /** Siembra dos tandas de mentira en la entrada de RELEASE_NOTES que resuelve la versión en curso.
  *  Devuelve la versión ANTERIOR (para pasar como prod): así la ronda del panel es solo esa
  *  entrada — si prod fuera 0.0.1, `betaChecklist` juntaría toda la historia (2026-09-07). */
