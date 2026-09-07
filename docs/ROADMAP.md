@@ -4,14 +4,14 @@
 > Anterior: **4.19.1** (identidad de fila uuid). **4.19.0** (TR, posible repetido, IA, orden).
 > Canal vivo: `npm run salud` (no afirmar beta/prod solo por el working tree). OTA, sin APK.
 > Anterior: **4.18.7** (cabecera de Gastos al cambiar bancos de gasto diario).
+> Producción: **4.18.7**, promocionada el 2026-09-07 (antes llevaba desde el 18/8 en 4.18.3).
+> Este número envejece: confírmalo con `npm run salud` antes de decírselo a nadie.
 >
 > Anterior: 2026-09-06 · **v4.18.6** — contención de integridad en el árbol (sin DELETE/lápida por
 > similitud). Canal vivo: `npm run salud` (no afirmar beta/prod solo por el working tree). OTA, sin
 > APK. Anterior: **4.18.5** (destello tabs). Producción conocida vía Pages: comprobar con `salud`.
 >
-> Anterior: 2026-08-18 · **v4.18.5** — destello/tabs. OTA, sin APK.
->
-> Anterior: 2026-08-18 · **v4.18.5** — **EN `beta`**. El fondo ya no parpadea al cambiar de pestaña:
+> Anterior: 2026-08-18 · **v4.18.5** — El fondo ya no parpadea al cambiar de pestaña:
 > el «refuerzo opaco» del gesto tapaba el degradado del `body` (−16 niveles medidos a 120 fps en su
 > OnePlus 13, 12 gestos de 12, y también sin temporada). Y los gestos funcionan al estrenar la app.
 > OTA, sin APK. Anterior: **4.18.4** (cada banco descuenta lo suyo, 257 € medidos). Producción sigue
