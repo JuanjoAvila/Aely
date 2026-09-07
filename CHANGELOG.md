@@ -2,6 +2,19 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.5] — 2026-09-07
+### Novedades: solo las 20 últimas en el bundle
+
+- **`RELEASE_NOTES_MAX=20`** + truncado en `build-app.mjs` (`scripts/release-notes-max.mjs`):
+  la fuente puede seguir creciendo; el OTA solo lleva las N más nuevas. El slice en runtime
+  no bastaba (el literal seguía en el HTML). CHANGELOG.md guarda el histórico entero.
+- Guardianes: `tests/release-notes-max.test.mjs` (N clavado en 20; ronda tip vs 4.18.7 no
+  pierde tandas por el recorte).
+- **Presupuesto bundle BAJADO** tras medir: minificado 1180 KB / gzip 330 KB (antes 1240 / 350).
+  Medido tras el corte: ~1145 / ~319 KB.
+
+OTA; sin Android.
+
 ## [4.19.4] — 2026-09-07
 ### Premontado de pestañas: no ahogar el idle con la ventana de mes
 

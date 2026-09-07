@@ -54,10 +54,15 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
    nada de eso es grasa, y recortar la nota sería lo que el 06/08 ya descartó. Se sube el
    minificado a 1240 KB (~3 % sobre los 1203 medidos hoy) y el gzip a 350 KB (~2,8 % sobre 340,4):
    el gzip se mueve poco a propósito, porque es lo que baja el móvil. El problema de fondo (las
-   notas se acumulan para siempre en el bundle) queda para una tanda aparte. */
+   notas se acumulan para siempre en el bundle) queda para una tanda aparte.
+
+   BAJADO 2026-09-07 (noche, 4.19.5): `RELEASE_NOTES_MAX=20` + truncado en build deja de arrastrar
+   ~90 notas viejas. Medido tras el corte: ~1145 KB min / ~319 KB gzip. Se BAJAN los topes a
+   1180 / 330 (~3 % de aire): recuperamos el margen que se había abierto «por las notas» esta
+   misma tarde, en vez de dejar el presupuesto holgado. */
 const PRESUPUESTO = {
-  minificado: 1240 * 1024,  // medido 2026-09-07: 1203 KB
-  gzip: 350 * 1024,         // medido 2026-09-07: 340,4 KB  ← esto es lo que baja el móvil
+  minificado: 1180 * 1024,  // medido 2026-09-07 noche: ~1145 KB (antes tope 1240)
+  gzip: 330 * 1024,         // medido 2026-09-07 noche: ~319 KB  ← esto es lo que baja el móvil
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

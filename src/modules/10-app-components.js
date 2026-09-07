@@ -1451,10 +1451,13 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
      · texto suelto            → castellano (todo el histórico anterior a esta fecha)
      · {es:"…",en:"…",ca:"…"}  → traducida
 
-   POR QUÉ NO SE TRADUCE EL HISTÓRICO ENTERO: son 68 versiones y 279 entradas, 55 KB de texto.
-   Por tres idiomas serían 165 KB, y el presupuesto de descarga (`tests/presupuesto-rendimiento`)
-   va por 277 KB de 310 en gzip — se lo comería de golpe para que nadie lea nunca las notas de
-   una versión de hace dos meses en catalán. De aquí en adelante, cada nota nace en los tres. */
+   POR QUÉ NO SE TRADUCE EL HISTÓRICO ENTERO: serían cientos de KB y nadie lee en catalán una
+   nota de hace dos meses. De aquí en adelante, cada nota nace en los tres.
+
+   TOPE EN EL BUNDLE (2026-09-07): las notas se acumulaban para siempre (~12 % de la descarga
+   gzip). `RELEASE_NOTES_MAX` + el build (`scripts/build-app.mjs`) dejan solo las N más nuevas
+   en `public/index.html`. La fuente puede seguir creciendo; CHANGELOG.md guarda el resto.
+   Subir N exige cambiar a propósito el test `release-notes-max` (si no, salta). */
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 /* Los puntos que lee la familia en Novedades. Si una versión declara TANDAS y se olvida de los
    `items` de primer nivel, el popup se quedaba con el título y ni una viñeta: le pasó a la 4.18.5,
@@ -1471,7 +1474,27 @@ function rnItems(r,lg){
   if(Array.isArray(it)) return it;
   return it[lg||CURLANG]||it.es||[];
 }
+/* Cuántas versiones enseña Novedades / viaja en el OTA. No subir «por holgura»: cada una
+   engorda la descarga de toda la familia. El test fija 20. */
+var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+  {v:"4.19.5", d:"7 sep 2026",
+   t:{es:"El historial de novedades guarda las últimas 20 versiones",
+      en:"What's new keeps the last 20 versions",
+      ca:"L'historial de novetats guarda les darreres 20 versions"},
+   tandas:[
+     {id:"notas-20", t:{es:"📜 Historial reciente", en:"📜 Recent history", ca:"📜 Historial recent"},
+      items:{
+        es:["Ajustes → Novedades: salen las últimas 20 versiones. Las más antiguas siguen en el registro técnico del proyecto, no en la app."],
+        en:["Settings → What's new: you see the last 20 versions. Older ones stay in the project's technical log, not in the app."],
+        ca:["Ajustaments → Novetats: surten les darreres 20 versions. Les mes antigues queden al registre tecnic del projecte, no a l'app."]
+      }}
+   ],
+   items:{
+     es:["El historial de novedades guarda las últimas 20 versiones."],
+     en:["What's new keeps the last 20 versions."],
+     ca:["L'historial de novetats guarda les darreres 20 versions."]
+   }},
   {v:"4.19.4", d:"7 sep 2026",
    t:{es:"La app arranca más suelta si tienes muchos movimientos",
       en:"The app starts more smoothly when you have lots of transactions",
@@ -2707,6 +2730,9 @@ var RELEASE_NOTES=[
     "«Buscar actualización» en Ajustes aplica la versión nueva al momento."
   ]}
 ];
+/* Cinturón por si alguien sirve el módulo sin pasar por build-app (tests que evalúan fuente).
+   En el bundle real el literal YA viene troceado: este slice no ahorra bytes allí. */
+RELEASE_NOTES=RELEASE_NOTES.slice(0,RELEASE_NOTES_MAX);
 /* Panel de Novedades. Se usa desde App (popup automático al estrenar versión) y desde
    Ajustes (histórico). Portal a body: sobrevive al transform del cajón de Ajustes. */
 function WhatsNew({onClose, showToast, set, state}){
