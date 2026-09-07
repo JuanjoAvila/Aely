@@ -1073,6 +1073,33 @@ function expenseBankOf(e){
   if(s.indexOf("manual:")===0) return s.slice(7)||null;
   return null;
 }
+/* Gasto del mes partido por banco de origen. A mano (sin banco) → cuenta diaria.
+   Por qué: dynBal restaba thisMonthSpent ENTERO al principal cuando expenseBanks tiene
+   varios — un cargo de Revolut se comía Trade Republic (257,17 € el 2026-08-18). */
+function gastoDelMesPorBanco(gastosDelMes, dailyEnt){
+  const map={};
+  (gastosDelMes||[]).forEach(function(e){
+    const b=expenseBankOf(e)||dailyEnt||null;
+    if(!b) return;
+    map[b]=(map[b]||0)+(e.amount||0);
+  });
+  return map;
+}
+/* Saldo mostrado de la cuenta de gasto diario, y su inversa al editar / sincronizar.
+   Vivían copiadas en cinco sitios; si se cambia dynBal y no las inversas, teclear el
+   saldo guarda un número torcido — peor que el bug (brief 2026-08-18). */
+function saldoCuentaGasto(o){
+  o=o||{};
+  var v=(o.value||0)+(o.injTR||0)-(o.spentOwn||0)-(o.roundup||0)-(o.monthlyInvest||0);
+  if(o.ambos) v+=(o.paidNet||0);
+  return v;
+}
+function valueDesdeSaldo(o){
+  o=o||{};
+  var v=(o.shown||0)-(o.injTR||0)+(o.spentOwn||0)+(o.roundup||0)+(o.monthlyInvest||0);
+  if(o.ambos) v-=(o.paidNet||0);
+  return +v.toFixed(2);
+}
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){
   const raw=String(r.source||"manual");

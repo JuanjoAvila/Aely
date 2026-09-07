@@ -182,6 +182,32 @@ t("★ las lápidas de la app también las respeta el servidor (gastos que él y
   assert.equal(srv.spent, c(app.spent));
 });
 
+t("★ cross-source misma entidad: app y servidor cuentan el mismo gasto (contención)", () => {
+  /* Tras 1d-CONTENCION-A se conservan las dos filas (macrodroid con nombre + OB «Movimiento»).
+     Comercios distintos → claves distintas → ambas entran al presupuesto; app y widget deben
+     coincidir. No declara resueltos los gemelos Wallet/TR de misma clave. */
+  const data = {
+    budget: 1000,
+    accounts: [{ ent: "trade_republic", role: "diario" }],
+    settings: { expenseBanks: ["trade_republic"], gTotalMode: "split" },
+    reservaLog: [],
+  };
+  const filas = [
+    { fecha: d(2), importe: 9.5, cat: "tasas", source: "macrodroid", comercio: "Serveis Ambientals" },
+    { fecha: d(3), importe: 9.5, cat: "otros", source: "ob:trade_republic", comercio: "Movimiento" },
+  ];
+  const visibles = filasComoLaApp(filas, []);
+  assert.equal(visibles.length, 2, "claves distintas: se conservan las dos");
+  const srv = statsDelMes(visibles, data, desdeMs);
+  const app = cli.monthBudgetStats(Object.assign({}, data, {
+    expenses: visibles.map((f) => ({
+      date: f.fecha, amount: f.importe, category: f.cat, source: f.source, merchant: f.comercio,
+    })),
+  }));
+  assert.equal(srv.spent, 19);
+  assert.equal(srv.spent, c(app.spent));
+});
+
 t("el banco sale del source igual que en el cliente", () => {
   assert.equal(bancoDeSource("macrodroid"), "trade_republic");
   assert.equal(bancoDeSource("ob:caixabank"), "caixabank");

@@ -31,7 +31,33 @@ function t(name, fn) {
 
 console.log("invest-category");
 
-const today = new Date().toISOString().slice(0, 10);
+/* Reloj único local (B03). La app construye fechas de OB como `ymd + "T12:00:00"` (hora local)
+   y las guarda con `.toISOString()`. Mezclar `toISOString().slice(0,10)` (día UTC) con
+   `getFullYear/getMonth/getDate` (calendario local) o sufijo `Z` rompe en husos extremos. */
+const NOW = new Date();
+function ymdLocal(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function dayAt(offset, from) {
+  from = from || NOW;
+  const d = new Date(from.getFullYear(), from.getMonth(), from.getDate() + offset);
+  return ymdLocal(d);
+}
+function dayAtStored(offset, from) {
+  // Misma convención que importObExpenses al materializar la fila.
+  return new Date(dayAt(offset, from) + "T12:00:00").toISOString();
+}
+function prevMonthKey(from) {
+  from = from || NOW;
+  const x = new Date(from.getFullYear(), from.getMonth() - 1, 1);
+  return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0");
+}
+const today = dayAt(0);
+
+t("prevMonthKey cruza el año de forma determinista (sin reloj real)", () => {
+  assert.equal(prevMonthKey(new Date(2026, 0, 15)), "2025-12");
+  assert.equal(prevMonthKey(new Date(2026, 8, 6)), "2026-08");
+});
 
 t("importObExpenses etiqueta 'inversion' SOLO el importe exacto de monthlyInvest", () => {
   const s = {
@@ -101,7 +127,7 @@ t("reverseInvestBuy deshace EXACTAMENTE lo que applyInvestBuy compró (round-tri
 
 t("reconcileTR SIGUE simulando round-up/saveback/aporte si la cuenta no tiene datos reales de OB", () => {
   const s = {
-    trAnchor: "2026-07",
+    trAnchor: prevMonthKey(),
     accounts: [{ id: "acc1", ent: "trade_republic", role: "diario", spendFrom: true, inject: 0, monthlyInvest: 50, rewardInv: "inv1", value: 500 }],
     investments: [{ id: "inv1", cur: "EUR", shares: 10, value: 1000, cost: 900 }],
     expenses: [], // sin ningún movimiento source:"ob" de esta cuenta
@@ -115,7 +141,7 @@ t("reconcileTR SIGUE simulando round-up/saveback/aporte si la cuenta no tiene da
 
 t("reconcileTR DEJA de simular en cuanto la cuenta tiene un movimiento real (source:'ob')", () => {
   const s = {
-    trAnchor: "2026-07",
+    trAnchor: prevMonthKey(),
     accounts: [{ id: "acc1", ent: "trade_republic", role: "diario", spendFrom: true, inject: 0, monthlyInvest: 50, rewardInv: "inv1", value: 500 }],
     investments: [{ id: "inv1", cur: "EUR", shares: 10, value: 1000, cost: 900 }],
     expenses: [{ id: "e1", date: today, amount: 10, category: "otros", source: "ob", ent: "trade_republic" }],
@@ -187,6 +213,46 @@ t("fixMovInvasion es idempotente (no repite la limpieza en la siguiente carga)",
   assert.strictEqual(twice, once, "con el flag puesto, la segunda vuelta no toca nada");
 });
 
+t("fixMovInvasion con _fixMovInvasion2=true: mismo objeto aunque haya gemelos por similitud", () => {
+  const s = {
+    _fixMovInvasion2: true,
+    deleted: [],
+    accounts: [{ id: "acc1", ent: "trade_republic", monthlyInvest: 50, rewardInv: "inv1" }],
+    investments: [{ id: "inv1", cur: "EUR", shares: 10, value: 1000, cost: 900 }],
+    expenses: [
+      { id: "m1", date: dayAtStored(-5), amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
+      { id: "o1", date: dayAtStored(-4), amount: 88.11, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
+    ],
+  };
+  const ns = ctx.fixMovInvasion(s);
+  assert.strictEqual(ns, s, "flag true → no reentra (a) ni inventa (b)");
+  assert.equal(ns.expenses.length, 2);
+  assert.equal((ns.deleted || []).length, 0);
+});
+
+t("fixMovInvasion sin flag: ejecuta (a) y cero lápida/supresión por similitud (cubre los 3 call sites)", () => {
+  // Los tres call sites (loadState, syncFromCloud, syncCloudExpenses) invocan la misma función;
+  // si aquí no hay deleted por similitud, ninguno de los tres lo genera.
+  const s = {
+    catOverrides: { movimiento: "inversion" },
+    deleted: [],
+    accounts: [{ id: "acc1", ent: "trade_republic", monthlyInvest: 50, rewardInv: "inv1" }],
+    investments: [{ id: "inv1", cur: "EUR", shares: 10, value: 1000, cost: 900 }],
+    expenses: [
+      { id: "m1", date: dayAtStored(-5), amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
+      { id: "o1", date: dayAtStored(-4), amount: 88.11, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
+      { id: "fake", date: dayAtStored(-4), amount: 8.38, merchant: "Movimiento", category: "inversion", source: "ob", ent: "trade_republic",
+        investInvId: "inv1", investShares: 0.08, investCInv: 8.38, investAmountEur: 8.38 },
+    ],
+  };
+  const ns = ctx.fixMovInvasion(s);
+  assert.equal(ns.catOverrides.movimiento, undefined, "(a) limpia override");
+  assert.notEqual(ns.expenses.find((e) => e.id === "fake").category, "inversion", "(a) deshace compra falsa");
+  assert.ok(ns.expenses.some((e) => e.id === "o1"), "sin (b): gemelo OB se conserva");
+  assert.equal((ns.deleted || []).length, 0, "cero lápidas por similitud");
+  assert.ok(ns._fixMovInvasion2);
+});
+
 /* EL MISMO GASTO POR DOS CAMINOS (2026-08-04, medido en sus datos reales): sus compras de TR ya
  * entran por las notificaciones del móvil con el comercio de verdad; Open Banking las repite 1-2
  * días después y sin ningún dato. 9 de sus 22 movimientos de TR eran gemelos exactos. */
@@ -196,29 +262,29 @@ function estadoConMacroDroid(extra) {
     investments: [{ id: "inv1", cur: "EUR", shares: 10, value: 1000, cost: 900 }],
     settings: {},
     expenses: [
-      { id: "m1", date: "2026-08-02T12:00:00.000Z", amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
-      { id: "m2", date: "2026-08-02T12:00:00.000Z", amount: -34.7, merchant: "Bizum recibido", category: "ingreso", source: "macrodroid" },
+      { id: "m1", date: dayAtStored(-5), amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
+      { id: "m2", date: dayAtStored(-5), amount: -34.7, merchant: "Bizum recibido", category: "ingreso", source: "macrodroid" },
     ].concat(extra || []),
   };
 }
 
 t("un gasto que ya entró por el móvil NO se repite cuando el banco lo trae un día después sin nombre", () => {
   const s = estadoConMacroDroid();
-  const txs = [{ ent: "trade_republic", id: null, date: "2026-08-03", amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" }];
+  const txs = [{ ent: "trade_republic", id: null, date: dayAt(-4), amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" }];
   assert.equal(ctx.importObExpenses(s, txs), null, "mismo importe, un día después, sin nombre → es el mismo gasto");
 });
 
 t("lo mismo con los ingresos (el bizum que el banco repite sin decir de quién)", () => {
   const s = estadoConMacroDroid();
-  const txs = [{ ent: "trade_republic", id: null, date: "2026-08-02", amount: -34.7, merchant: "Movimiento", note: "", card: false, status: "BOOK" }];
+  const txs = [{ ent: "trade_republic", id: null, date: dayAt(-5), amount: -34.7, merchant: "Movimiento", note: "", card: false, status: "BOOK" }];
   assert.equal(ctx.importObExpenses(s, txs), null);
 });
 
 t("pero lo que SOLO ve el banco (round-up, cashback, aporte) sí entra", () => {
   const s = estadoConMacroDroid();
   const txs = [
-    { ent: "trade_republic", id: null, date: "2026-08-03", amount: 50, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
-    { ent: "trade_republic", id: null, date: "2026-08-03", amount: 22.62, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
+    { ent: "trade_republic", id: null, date: dayAt(-4), amount: 50, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
+    { ent: "trade_republic", id: null, date: dayAt(-4), amount: 22.62, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
   ];
   const add = ctx.importObExpenses(s, txs);
   assert.equal(add.length, 2, "ningún gemelo por otra vía → entran los dos");
@@ -228,8 +294,8 @@ t("pero lo que SOLO ve el banco (round-up, cashback, aporte) sí entra", () => {
 t("el emparejamiento es 1 a 1: dos cargos iguales de verdad con uno solo apuntado dejan pasar el otro", () => {
   const s = estadoConMacroDroid();
   const txs = [
-    { ent: "trade_republic", id: null, date: "2026-08-03", amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
-    { ent: "trade_republic", id: null, date: "2026-08-03", amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
+    { ent: "trade_republic", id: null, date: dayAt(-4), amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
+    { ent: "trade_republic", id: null, date: dayAt(-4), amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
   ];
   const add = ctx.importObExpenses(s, txs);
   assert.equal(add.length, 1, "solo uno tenía gemelo; el segundo es un cargo real distinto");
@@ -237,37 +303,43 @@ t("el emparejamiento es 1 a 1: dos cargos iguales de verdad con uno solo apuntad
 
 t("si el banco SÍ dice el comercio no se aplica esta red (ahí manda el dedup de siempre)", () => {
   const s = estadoConMacroDroid();
-  const txs = [{ ent: "trade_republic", id: null, date: "2026-08-03", amount: 88.11, merchant: "Repsol", note: "", card: false, status: "BOOK" }];
+  const txs = [{ ent: "trade_republic", id: null, date: dayAt(-4), amount: 88.11, merchant: "Repsol", note: "", card: false, status: "BOOK" }];
   const add = ctx.importObExpenses(s, txs);
   assert.equal(add.length, 1, "con nombre no hay ambigüedad: se respeta el criterio clásico día+importe+comercio");
 });
 
-t("fixMovInvasion retira los duplicados que YA estaban guardados, y deja el del comercio de verdad", () => {
+t("fixMovInvasion YA NO retira gemelos por similitud (contención 4.18.6); sí repara categorías", () => {
   const s = {
     accounts: [{ id: "acc1", ent: "trade_republic", monthlyInvest: 50, rewardInv: "inv1" }],
     investments: [{ id: "inv1", cur: "EUR", shares: 10, value: 1000, cost: 900 }],
     catOverrides: {}, deleted: [],
     expenses: [
-      { id: "m1", date: "2026-08-02T12:00:00.000Z", amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
-      { id: "o1", date: "2026-08-03T12:00:00.000Z", amount: 88.11, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
-      { id: "o2", date: "2026-08-03T12:00:00.000Z", amount: 50, merchant: "Movimiento", category: "inversion", source: "ob", ent: "trade_republic" },
-      { id: "o3", date: "2026-08-03T12:00:00.000Z", amount: 22.62, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
+      { id: "m1", date: dayAtStored(-5), amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
+      { id: "o1", date: dayAtStored(-4), amount: 88.11, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
+      { id: "o2", date: dayAtStored(-4), amount: 50, merchant: "Movimiento", category: "inversion", source: "ob", ent: "trade_republic" },
+      { id: "o3", date: dayAtStored(-4), amount: 22.62, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
     ],
   };
   const ns = ctx.fixMovInvasion(s);
   const ids = ns.expenses.map((e) => e.id);
-  assert.ok(ids.includes("m1"), "el que trae el comercio de verdad SIEMPRE se queda");
-  assert.ok(!ids.includes("o1"), "el duplicado sin nombre se retira");
-  assert.ok(ids.includes("o2"), "el aporte automático real no se toca");
-  assert.ok(ids.includes("o3"), "lo que solo ve el banco (round-up) se queda");
-  assert.ok(ns.deleted.length >= 1, "queda marcado como borrado para que el pull de la nube no lo resucite");
+  assert.ok(ids.includes("m1"));
+  assert.ok(ids.includes("o1"), "el OB gemelo se conserva: no hay DELETE/lápida automática");
+  assert.ok(ids.includes("o2"));
+  assert.ok(ids.includes("o3"));
+  assert.equal((ns.deleted || []).length, 0, "no se crean lápidas nuevas por heurística");
 });
 
 t("un gasto viejo del mismo importe (fuera de la ventana de 3 días) no tapa uno nuevo", () => {
   const s = estadoConMacroDroid();
-  const txs = [{ ent: "trade_republic", id: null, date: "2026-08-20", amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" }];
+  // Macro hace 20 días; banco hoy (>3 días) → no es gemelo. La fecha del banco sigue dentro
+  // de la ventana de import (día 1 − 8 días), porque es "hoy".
+  s.expenses = [
+    { id: "m1", date: dayAtStored(-20), amount: 88.11, merchant: "Repsol", category: "transporte", source: "macrodroid" },
+    { id: "m2", date: dayAtStored(-20), amount: -34.7, merchant: "Bizum recibido", category: "ingreso", source: "macrodroid" },
+  ];
+  const txs = [{ ent: "trade_republic", id: null, date: dayAt(0), amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" }];
   const add = ctx.importObExpenses(s, txs);
-  assert.equal(add.length, 1, "18 días después es otro cargo, no el mismo");
+  assert.equal(add.length, 1, "más de 3 días después es otro cargo, no el mismo");
 });
 
 /* BUG 2026-08-04 (segunda vuelta, dos quejas suyas con la app de TR delante):
@@ -412,45 +484,57 @@ t("…pero la ventana no arrastra meses enteros de histórico en cada sync", () 
   assert.equal(ctx.importObExpenses(s, txs), null, "40 días atrás sigue fuera de la ventana");
 });
 
-/* LA PASADA DEFINITIVA (2026-08-04, tercera vuelta). Las dos limpiezas anteriores fallaron por lo
- * mismo: iban con flag (se marcaban hechas y ya no volvían a entrar) y solo tocaban el array local
- * (la fila seguía viva en la tabla de la nube y volvía al reconectar el banco). Esta corre siempre,
- * es idempotente, y devuelve lo que hay que borrar/recategorizar EN LA NUBE. */
+/* CONTENCIÓN 4.18.6: reconcileObDupes ya no borra ni entierra por similitud; cashback solo recat. */
 function estadoConDupes() {
   return {
     accounts: [{ id: "a1", ent: "trade_republic", role: "diario", spendFrom: true, rewardInv: "inv1", monthlyInvest: 50 }],
     investments: [{ id: "inv1", cur: "EUR", shares: 10, value: 1000, cost: 900 }],
     expenses: [
-      // duplicado: el bueno (con nombre, del móvil) y el del banco un día después sin nombre
       { id: "bueno", date: "2026-08-02T12:00:00Z", amount: 9.5, merchant: "Serveis Ambientals", category: "tasas", source: "macrodroid", ent: "trade_republic" },
       { id: "dupe", date: "2026-08-03T12:00:00Z", amount: 9.5, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
-      // par del cashback: entra el 1 y sale el 3
       { id: "cbIn", date: "2026-08-01T12:00:00Z", amount: -8.38, merchant: "Movimiento", category: "ingreso", source: "ob", ent: "trade_republic" },
       { id: "cbOut", date: "2026-08-03T12:00:00Z", amount: 8.38, merchant: "Movimiento", category: "otros", source: "ob", ent: "trade_republic" },
-      // el aporte automático real: ni se borra ni se toca
       { id: "aporte", date: "2026-08-03T12:00:00Z", amount: 50, merchant: "Movimiento", category: "inversion", source: "ob", ent: "trade_republic" },
     ],
   };
 }
 
-t("reconcileObDupes borra el duplicado sin nombre y deja el que trae el comercio de verdad", () => {
+t("reconcileObDupes conserva el OB sin nombre junto al del móvil (cero DELETE/lápida)", () => {
   const r = ctx.reconcileObDupes(estadoConDupes());
-  assert.ok(r.borrar.some((e) => e.id === "dupe"), "el del banco sin nombre se va");
-  assert.ok(!r.borrar.some((e) => e.id === "bueno"), "el que tiene el nombre real se queda SIEMPRE");
+  assert.equal(r.borrar.length, 0);
   assert.ok(r.state.expenses.some((e) => e.id === "bueno"));
-  assert.ok(!r.state.expenses.some((e) => e.id === "dupe"));
+  assert.ok(r.state.expenses.some((e) => e.id === "dupe"));
+  assert.equal((r.state.deleted || []).length, 0);
 });
 
-/* «Del cashback solo debe haber 1, solo pagan 1 vez al mes» (corrección suya). El banco lo apunta
- * dos veces —entra el día 1 y sale hacia el fondo el día 3, el primer día laborable— pero es un
- * solo movimiento: se deja UNA línea, la salida marcada Inversión, y la entrada se borra. */
-t("reconcileObDupes deja UNA sola línea del cashback: la salida, marcada Inversión", () => {
+t("reconcileObDupes: cruce de bancos con mismo importe conserva las dos filas", () => {
+  const s = {
+    accounts: [
+      { id: "a1", ent: "trade_republic", role: "diario", spendFrom: true, rewardInv: "inv1" },
+      { id: "a2", ent: "revolut", role: "diario" },
+    ],
+    investments: [{ id: "inv1", cur: "EUR", shares: 10, value: 1000, cost: 900 }],
+    expenses: [
+      { id: "tr", date: "2026-08-02T12:00:00Z", amount: 25.5, merchant: "Cafe Ficticio", category: "bares", source: "macrodroid", ent: "trade_republic" },
+      { id: "rv", date: "2026-08-03T12:00:00Z", amount: 25.5, merchant: "Movimiento", category: "otros", source: "ob", ent: "revolut" },
+    ],
+  };
+  const r = ctx.reconcileObDupes(s);
+  assert.equal(r.borrar.length, 0);
+  assert.equal(r.state.expenses.length, 2);
+  assert.ok(r.state.expenses.some((e) => e.id === "tr"));
+  assert.ok(r.state.expenses.some((e) => e.id === "rv"));
+});
+
+t("reconcileObDupes: cashback conserva ambas filas y recategoriza la salida a Inversión", () => {
   const r = ctx.reconcileObDupes(estadoConDupes());
   const cbOut = r.state.expenses.find((e) => e.id === "cbOut");
-  assert.ok(cbOut, "la salida hacia el fondo se queda");
+  const cbIn = r.state.expenses.find((e) => e.id === "cbIn");
+  assert.ok(cbOut);
+  assert.ok(cbIn, "la entrada se conserva");
   assert.equal(cbOut.category, "inversion");
-  assert.ok(!r.state.expenses.some((e) => e.id === "cbIn"), "su entrada se va: es el mismo movimiento, no dos");
-  assert.ok(r.borrar.some((e) => e.id === "cbIn"), "y se borra también en la nube");
+  assert.ok(r.recat.some((x) => x.expense.id === "cbOut" && x.cat === "inversion"));
+  assert.equal(r.borrar.length, 0);
 });
 
 t("reconcileObDupes NO toca el aporte automático real ni lo confunde con un duplicado", () => {
@@ -460,10 +544,10 @@ t("reconcileObDupes NO toca el aporte automático real ni lo confunde con un dup
   assert.equal(ap.category, "inversion");
 });
 
-t("reconcileObDupes devuelve lo que hay que aplicar EN LA NUBE (no solo en el móvil)", () => {
+t("reconcileObDupes solo propone recat en nube, nunca DELETE automático", () => {
   const r = ctx.reconcileObDupes(estadoConDupes());
-  assert.ok(r.borrar.length > 0, "las filas a borrar de la tabla");
-  assert.ok(r.recat.length > 0, "y las recategorizaciones a persistir");
+  assert.equal(r.borrar.length, 0);
+  assert.ok(r.recat.length > 0, "sí hay recategorizaciones a persistir");
   r.recat.forEach((x) => assert.ok(x.expense && x.cat, "cada una con su gasto y su categoría"));
 });
 

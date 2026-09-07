@@ -2164,13 +2164,14 @@ function expenseBucket(e, s){
 function applyAccountRole(s, totals, id, r){
   const pn=function(i){ return (totals.paidNetByBank&&totals.paidNetByBank[i.ent])||0; };
   const ruM=totals.roundupThisMonth||0, miM=totals.monthlyInvestThisMonth||0;
-  const spendBal=function(i){ return i.value + totals.injTR - totals.thisMonthSpent - ruM - miM + (accRole(i)==="ambos"?pn(i):0); };
+  const spentOwn=function(i){ return (totals.spentByBank&&i.ent&&totals.spentByBank[i.ent])||0; };
+  const spendBal=function(i){ return saldoCuentaGasto({value:i.value, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)}); };
   const ruOfA=function(a){ return (a.roundupManual!=null)?a.roundupManual:(a.roundup?ruM:0); };
   const injOfA=function(a){ return nominaYaEntro()? accInject(a):0; };
   const shownOf=function(a){ return accDaily(a)? spendBal(a) : ((a.value||0) + pn(a)); };
   const valueForRole=function(a,rr,shown){
     if(rr==="fijos") return +(shown - pn(a)).toFixed(2);
-    return +((shown - injOfA(a) + (totals.thisMonthSpent||0) + ruOfA(a) + (a.monthlyInvest||0) - (rr==="ambos"?pn(a):0))).toFixed(2);
+    return valueDesdeSaldo({shown:shown, injTR:injOfA(a), spentOwn:spentOwn(a), roundup:ruOfA(a), monthlyInvest:a.monthlyInvest||0, ambos:rr==="ambos", paidNet:pn(a)});
   };
   return Object.assign({},s,{accounts:s.accounts.map(function(a){
     if(a.id===id){ if(accRole(a)===r) return a; return Object.assign({},a,{role:r, spendFrom:r!=="fijos", value:valueForRole(a,r,shownOf(a))}); }
@@ -2589,14 +2590,16 @@ function fixRevoDupes(s){
   s._invFixRevoDupes = true;
   return s;
 }
-// Limpieza única del bug de `setCat` (2026-08-04): "Movimiento" es el hueco que deja un banco sin
-// datos (Trade Republic por Open Banking) — no es un comercio de verdad, pero `setCat` lo trataba
-// como si todos los gastos con ese mismo texto fueran el MISMO comercio: al marcar UNO como
-// Inversión, recategorizaba TODOS los demás también (con su propia compra de participaciones cada
-// uno) y aprendía "movimiento"→inversion como override para siempre. Deshace el destrozo: borra
-// ese override envenenado y devuelve a su categoría normal (deshaciendo la compra) cualquier gasto
-// "Movimiento"/Inversión que NO sea el aporte automático real (`monthlyInvest`, el único legítimo,
-// ver `importObExpenses`). Idempotente con flag, como fixInvSold/fixInvAuto/fixRevoDupes.
+// Limpieza del bug de `setCat` (2026-08-04) + contención 4.18.6.
+// Call sites (los tres pasan por ESTA función; la contención no se duplica en cada uno):
+//   1) loadState (arranque en frío) — 01-i18n.js
+//   2) syncFromCloud (adopta nube) — 11-app-main.js
+//   3) syncCloudExpenses (tras pull de la tabla) — 11-app-main.js
+// (a) OVERRIDE + compras falsas: borra catOverrides «movimiento»→inversión y deshace
+//     reverseInvestBuy en «Movimiento»/Inversión que NO sea el aporte monthlyInvest.
+// (b) DEDUP/LÁPIDAS por similitud: ELIMINADO en 4.18.6. No reintroducir. No subir/renombrar
+//     `_fixMovInvasion2`: quien ya tiene el flag no reejecuta (a); quien no, (a) corre una vez
+//     y (b) ya no existe.
 function fixMovInvasion(state){
   // ⚠ EL FLAG VA POR VERSIÓN (`_fixMovInvasion2`), y este es el motivo exacto: la PRIMERA versión de
   // esta limpieza corría con la lista de gastos todavía vacía y aun así se marcaba como hecha. Ese
@@ -2632,35 +2635,11 @@ function fixMovInvasion(state){
     delete upd.investInvId; delete upd.investShares; delete upd.investCInv; delete upd.investAmountEur;
     return upd;
   });
-  /* Y LOS DUPLICADOS QUE YA ESTABAN GUARDADOS. `importObExpenses` ya no deja entrar un movimiento
-     sin nombre que sea gemelo de algo apuntado por otra vía (±3 días, mismo importe), pero los que
-     entraron ANTES de esa red siguen ahí, contando doble. Mismo criterio, mismo emparejamiento 1 a
-     1, y solo se retiran los de Open Banking sin nombre: el gasto con el comercio de verdad —el que
-     vino del móvil— es el que se queda, siempre. Se marcan como borrados (`deleted`) en vez de
-     desaparecer sin más: es lo que impide que el siguiente pull de la nube los resucite (ver el
-     filtro `delSet` en `syncCloudExpenses`). */
-  const otrasVias=exps.filter(function(e){ return e.source!=="ob" && e.source!=="ob-hist"; });
-  const usado={};
-  const fuera={};
-  exps.forEach(function(e,i){
-    if(e.source!=="ob" && e.source!=="ob-hist") return;
-    if(e.merchant!=="Movimiento") return;
-    const acc=(s.accounts||[]).find(function(a){ return a.ent===e.ent; });
-    if(acc && acc.monthlyInvest>0 && Math.abs(e.amount-acc.monthlyInvest)<0.01) return;   // el aporte real no se toca
-    const ms=dateMs(e.date);
-    const j=otrasVias.findIndex(function(o,k){
-      return !usado[k] && Math.abs((o.amount||0)-(e.amount||0))<=0.005 && Math.abs(dateMs(o.date)-ms)<=3*86400000;
-    });
-    if(j>=0){ usado[j]=1; fuera[i]=1; }
-  });
-  const quedan=exps.filter(function(e,i){ return !fuera[i]; });
-  if(quedan.length!==exps.length){
-    let del=s.deleted||[];
-    exps.forEach(function(e,i){ if(fuera[i]) del=pushDeleted(del, String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.merchant||"")); });
-    s=Object.assign({},s,{expenses:quedan, deleted:del});
-  } else {
-    s=Object.assign({},s,{expenses:exps});
-  }
+  /* CONTENCIÓN 4.18.6: ya no se retiran por similitud los OB «Movimiento» que casan importe
+     ±3 días con otra vía, ni se escriben lápidas. Esa pasada borraba evidencia y podía cruzar
+     bancos. Aquí solo queda la reparación del override «movimiento»→inversión y reclasificar
+     aportes/errores de categoría. */
+  s=Object.assign({},s,{expenses:exps});
   s._fixMovInvasion2=true;
   return s;
 }
@@ -2814,6 +2793,7 @@ function loadState(){
     // Capturar ANTES de seedFlows (muta in-place): evita stringify de toda la cartera en cada
     // apertura fría — feedback 2026-07-16.
     var writeBack=!(saved._dataVer>=6) || !saved._dynBalAnchored;
+    // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
     const s = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
     if(writeBack) mcSaveRaw(mcStateKey(), s);
     applyTheme(s.settings&&s.settings.theme);

@@ -464,8 +464,9 @@ function TRSync({state, set, totals, open, onToggle}){
           ? s.accounts.map(function(a){
               if(a.ent!=="trade_republic") return a;
               const pn=(totals.paidNetByBank&&totals.paidNetByBank[a.ent])||0;
+              const spentOwn=(totals.spentByBank&&totals.spentByBank[a.ent])||0;
               const stored = accDaily(a)
-                ? trCash-(totals.injTR||0)+(totals.thisMonthSpent||0)+(totals.roundupThisMonth||0)+(totals.monthlyInvestThisMonth||0)-(accRole(a)==="ambos"?pn:0)
+                ? valueDesdeSaldo({shown:trCash, injTR:totals.injTR||0, spentOwn:spentOwn, roundup:totals.roundupThisMonth||0, monthlyInvest:totals.monthlyInvestThisMonth||0, ambos:accRole(a)==="ambos", paidNet:pn})
                 : trCash-pn;
               return Object.assign({},a,{value:+stored.toFixed(2)});
             })

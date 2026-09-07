@@ -359,6 +359,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // La cabecera es siempre el mes natural: los filtros sirven para explorar, pero no deben hacer
   // que el presupuesto parezca cambiar al mirar otro período o una categoría.
   // Cifras = `monthBudgetStats` (misma fuente que Resumen y el widget).
+  // `accounts` + `settings` van en deps: monthBudgetStats → expenseCountsBudget → expenseBankEnts
+  // lee rol diario y expenseBanks. Sin ellos, quitar un banco de gasto diario dejaba la cabecera
+  // alta hasta que un sync cambiaba `expenses` (B09-A / feedback familia 2026-09-06).
   const monthSummary=useMemo(function(){
     const now=new Date();
     const bs=monthBudgetStats(state);
@@ -369,7 +372,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       last:new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),
       month:monthLong(now.getMonth())
     };
-  },[state.expenses,state.budget,state.reservaLog,state.settings&&state.settings.gTotalMode]);
+  },[state.expenses,state.budget,state.reservaLog,state.accounts,state.settings]);
   const subs=useMemo(function(){ return heavyOk?detectSubscriptions(expensesDef):[]; },[heavyOk,expensesDef]);
   const suggestAi=function(ex){
     if(!(state.settings&&state.settings.aiCat)){ showToast(t("ai_cat_off")); return; }

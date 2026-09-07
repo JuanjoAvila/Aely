@@ -1,21 +1,24 @@
 # Plan — Vuelta del crucero (2026-08-17)
 
-## 📍 DÓNDE ESTAMOS — mirar esto primero (última actualización: 17/8 noche, 4.18.1)
+## 📍 DÓNDE ESTAMOS — mirar esto primero (última actualización: 6/9, 4.18.6 contención)
 
 Cualquiera (Cursor, Claude, él desde el móvil) puede retomar desde aquí sin preguntar a nadie.
 
 | Tanda | Estado | Notas |
 |---|---|---|
-| 0 · Pages / familia | ✅ **Prod 4.18.1** · APK **41** | Pages `version.json` = 4.18.1. Widget NO entra. |
-| 1a · Widget coherente | ⏳ **4.18.3** · hace falta **APK 42** | Ingest ya en prod. Con APK 41 el desayuno no puede cuadrar «Puedes gastar» (Java viejo). |
-| 1b · Revolut −204 del padre | ⏳ **4.18.3** OTA | `pickBankBalance` ya no pinta un negativo inventado. Capturas 18/8: −204,54 → 22,06 al sync. |
+| **1d · Contención falsos duplicados** | ⏳ **4.18.6 en PR/repo** | Sin DELETE/lápida automática por similitud. Canal: `npm run salud`. No cierra identidad ni recovery. |
+| 0 · Pages / familia | ✅ **Prod 4.18.3** · APK **42** publicada | Pages `version.json` = 4.18.3. Código alineado en `8ca8f55f`. La familia instala la 42 si aún lleva la 41. |
+| 1a · Widget coherente | ⏳ **código en 4.18.3** · APK **42** publicada | Ingest en prod. Pendiente **su** prueba: pago con la app cerrada, «Puedes gastar» = Gastos. Con la APK 41 esa línea no puede cuadrar. |
+| 1b · Revolut −204 del padre | ⏳ **4.18.3** OTA en prod | `pickBankBalance` ya no pinta un negativo inventado. Capturas 18/8: −204,54 → 22,06 al sync. Pendiente que no vuelva. |
 | 2 · Gastos: qué cuenta / «Movimiento» / banco | ✅ **EN PRODUCCIÓN 4.17.1** | Aprobada 17/8 |
 | 3 · Fecha en `+`/editar + calendario + filtro gasto diario | ✅ **EN PRODUCCIÓN 4.18.1** (sin widget) | Calendario de la casa. Default = todos los de gasto diario. |
 | 4 · Más categorías + KW | ✅ **EN PRODUCCIÓN 4.18.1** (sin widget) | Heladería, joyería, videojuegos, Recibos. IA en cualquier gasto. |
-| 5 · Meta = gasto del mes | ⛔ **NO EMPEZAR** | Reescribe `monthBudgetStats`. Esperar a que la 1a esté aprobada |
-| 6 · Efectivo | ⬜ Libre | Opus 1 página, Cursor v1 |
+| 1c · **Saldo cruzado entre bancos** | ⏳ **4.18.4** OTA | Cada banco descuenta lo suyo. Pendiente de su prueba en Cartera. Va antes que la 5 y la 6. |
+| 5 · Meta = gasto del mes | ⬜ **Plan sellado 18/8** | `plan-tanda-5-meta-gasto-mes.md`. ⚠ El aviso «reescribe `monthBudgetStats`» **queda derogado**: se hace por `expenseCountsBudget`, sin tocar la fórmula ni Java. Sus 2 metas están al 0% → no le urge. |
+| 6 · Efectivo | ⬜ **Plan sellado 18/8** | `plan-tanda-6-efectivo.md`. Es una cuenta más, no un módulo. **Depende de la 1c.** OTA. |
 | 7 · Import histórico 3 meses | ⬜ Plan sellado | `plan-import-historico-seguro.md`. La 3 deja Gastos listo para que entre como un banco más. |
-| 8 · Destello / scroll / overscroll | 📌 **Después de probar la 3** | Se nota MÁS con temporada, **también SIN**. Brief: `brief-claude-destello.md`. **Opus/Ultra**, no Sonnet. |
+| 8 · Destello / parpadeo de tabs | ✅ **CERRADO 4.18.5** · aprobado por él EN LA APK | El «refuerzo opaco» del gesto tapaba el degradado del `body` (−16 medidos a 120 fps, 12/12, también sin temporada). *«va fluidísima, 20 de 10»*. ⬜ **Queda el «stopper» al scrollear: otro bicho, ya venía de antes, sin diagnóstico.** Entorno en vivo montado en `brief-claude-destello.md`. |
+| 8-BIS · Gestos muertos al estrenar | ✅ **CERRADO 4.18.5** | `App` salía por `return` antes del `.viewport` en onboarding/candado → el efecto ataba 0 listeners y con `[]` no lo reintentaba. Mordía a su padre y su pareja **su primer día**. |
 | 9 · Ajustes → Dinero | ✅ **HECHO en 4.14.0** | No hay tanda. El plan viejo estaba rancio: presupuesto y bancos de gasto diario ya salieron de Ajustes (viven en Resumen / Cartera); comparar monedas es el conversor. |
 | 10 · MyInvestor nativo | ⬜ Más adelante | WebView nativa si el reCAPTCHA OTA no cuela (ver ROADMAP) |
 | 11 · Hogar · diseño | ⬜ Va en la **17** | Funciona; el look entra en la tanda de diseño (mock Claude Design). |
@@ -29,7 +32,7 @@ Cualquiera (Cursor, Claude, él desde el móvil) puede retomar desde aquí sin p
 
 **Play Store no se mueve de última.** Pedido 17/8 noche. Sideload / APK de GitHub sigue valiendo.
 
-**Estado del repo:** `beta` = **4.18.2** (ingest del widget + APK de `beta` alineada a **41 / 4.17.1**). `origin/main` / Pages aún **4.18.1** hasta que este ingest esté en `main` y Actions despliegue. El canal beta no prueba el widget con la app cerrada: hay un proyecto Supabase y la noti habla con `ingest`, no con el bundle OTA.
+**Estado del repo:** `main` / Pages = **4.18.3**. APK **42** publicada (`apk.json` live apunta al asset real). El 18/8 `beta` y `main` se alinearon en `8ca8f55f`; los briefs de esta noche van a `beta` encima, **sin bump de VERSION**. El canal beta **sigue sin** probar el widget con la app cerrada: hay un proyecto Supabase y la noti habla con `ingest`, no con el bundle OTA — por eso el ingest de 4.18.2 ya está en producción.
 
 ### ⚠ NO PULSAR «Promocionar beta» VACÍO
 
@@ -88,15 +91,15 @@ se ve al pedirlo y no come el techo. Así el import de 3 meses entra como un ban
 
 ---
 
-## Foto ahora (17/8 noche)
+## Foto ahora (18/8 noche)
 
 | Qué | Estado real |
 |-----|-------------|
-| `VERSION` en `beta` | **4.18.2** |
-| `origin/main` | **4.18.1** hasta el push del ingest · APK **41** |
-| Pages live / familia | **4.18.1** hasta que Actions publique 4.18.2 |
-| Widget 4.17.2 / 4.18.2 | Ingest a producción (no se puede probar solo en canal beta) |
-| Crucero pendiente | Destello = tanda 8. Diseño (mock) = tanda **17**. Play Store = última. |
+| `VERSION` en `main` / Pages | **4.18.3** |
+| `beta` | 4.18.3 + briefs de esta noche (1c/5/6), sin bump |
+| APK | **42 / 4.18.3** publicada. Hasta instalarla, el nativo sigue en 41. |
+| Widget 4.18.2 / 4.18.3 | Ingest en prod. APK 42 lista. Falta su prueba con la app cerrada. |
+| Crucero pendiente | 1c saldo cruzado → luego 5/6. Destello = tanda 8 (también sin temporada). Diseño = **17**. Play Store = última. |
 
 ---
 
@@ -148,7 +151,14 @@ En 4.18.1 el banco al apuntar es una pastilla que se despliega (como el cuadradi
 ### 4. Más categorías + KW — **HECHO en 4.18.0 / Recibos+IA 4.18.1**
 Heladería, joyería, videojuegos, **Recibos**. Tres idiomas. `autoCategory` / KW cliente + `ingest_logic.ts`. Crucero se queda en Viajes. IA (`categorize`): ALLOWED = todas las categorías; botón en cualquier gasto, no solo Otros. KW primero; IA solo si cae en otros y hay clave.
 
-### 5. Meta ahorrada = gasto del mes (temporal) — **Claude Opus diseña**
+### 5. Meta ahorrada = gasto del mes (temporal) — ✅ **DISEÑO CERRADO 18/8**
+
+→ [`plan-tanda-5-meta-gasto-mes.md`](plan-tanda-5-meta-gasto-mes.md). Lo que sigue es el brief
+original; se deja porque el planteamiento no ha cambiado, pero **las trampas ya están cerradas ahí**
+y dos avisos de abajo quedaron derogados por el diseño: no reescribe `monthBudgetStats` (entra por
+`expenseCountsBudget`, que ya es la puerta única) y no toca Java, siempre que la cuenta de gasto
+diario no pueda ligarse a una meta.
+
 Palabras suyas: la meta marcada sustituye **temporalmente** el «gasto del mes»; gastar de esa hucha **no es** gasto corriente. Varios bancos ligados → al gastar de esos bancos se elige esa meta **sola**. Al llegar a **0**, vuelve el presupuesto normal.
 
 Trampas (que Opus tiene que cerrar antes de codear):
@@ -158,15 +168,20 @@ Trampas (que Opus tiene que cerrar antes de codear):
 - Widget e ingest tienen que usar **la misma regla** (lección 4.16).
 - Sin inventar euros: si no hay tipo / no hay saldo, no se apunta.
 
-### 6. Efectivo (cash) — Claude Opus 1 página, Cursor v1
+### 6. Efectivo (cash) — ✅ **DISEÑO CERRADO 18/8**
 Qué tienes, qué entra, qué sale, acorde con la app (cuenta `familia` / rol, no un segundo patrimonio inventado).
+→ [`plan-tanda-6-efectivo.md`](plan-tanda-6-efectivo.md). Resumen: el efectivo es **una cuenta
+manual más**, no un módulo nuevo; casi todo sale gratis. Lo que hay que escribir son dos piezas
+(que el saldo baje al gastar, y el gesto «saqué del cajero» reusando la categoría `traspaso`, que
+ya es neutra). ⚠ **Bloqueada por la 1c**: sin ese arreglo, los gastos en efectivo bajarían el
+saldo de Trade Republic.
 
 ### 7. Import histórico seguro — plan YA sellado
 [`plan-import-historico-seguro.md`](plan-import-historico-seguro.md) (híbrido C, agujeros A/B/C/N).  
 **Cursor tanda motor** (tests rojo→verde, sin UI). Claude Opus solo si aparece un bloqueante nuevo. **No** destello/`shell.html`.
 
-### 8. Parpadeo tabs / overscroll Cartera — Cursor cuando él esté para grabar
-Pista: capa negra al tirar Cartera a la derecha; host transparente season. A/B temática Ninguna. No es de la APK Wallet (también 4.15). Brief: `brief-claude-destello.md`. **Opus/Ultra**.
+### 8. Parpadeo tabs / overscroll Cartera — **Opus/Ultra, en su Oppo**
+Pista: capa negra al tirar Cartera a la derecha; host transparente. **CONFIRMADO 18/8:** el parpadeo **también pasa con Temática Ninguna** → no es (solo) season, es compositor / WebView. No empieces tocando `season`. No es de la APK Wallet (también 4.15). Brief: `brief-claude-destello.md`. La tanda 3 ya está en producción: no hay que esperarla.
 
 ### 9. Ajustes → Dinero — **HECHO en 4.14.0** (no hay tanda)
 El plan del 4/8 pedía quitar «Presupuesto mensual» y «Bancos de gasto diario» (duplicados) y que «Comparar monedas» no saliera vacío. Ya está: presupuesto vive en Resumen, bancos de gasto diario en Cartera, comparar monedas es el conversor (`st_cur_convert`). Si Ajustes → Dinero se ve raro, es otra cosa: se mira entonces, no se reabre esta limpieza.

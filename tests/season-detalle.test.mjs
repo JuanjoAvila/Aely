@@ -101,7 +101,16 @@ assert.match(shell, /\.page\.page-scroll-host\{[\s\S]*?background:\s*var\(--bg\)
 assert.match(shell, /html\[data-season\]\s+\.page\.page-scroll-host\{background:transparent!important;/, "host transparente reposo");
 assert.match(shell, /\.track\.scroll-host-park\{[^}]*overflow:\s*hidden/, "scroll-host-park recorta hermanas");
 assert.match(shell, /\.track\.scroll-host-park \.page:not\(\.page-scroll-host\)\{visibility:hidden/, "visibility:hidden en park (anti-fusión)");
-assert.match(shell, /html\[data-season\]\s+\.track\.dragging \.page\{background:var\(--bg\)!important;/, "page opaca en gesto");
+/* ⛔ LO CONTRARIO DE LO QUE PEDÍA ESTE TEST HASTA EL 2026-08-18. Exigía `.page` OPACA durante el
+   gesto («refuerzo opaco»), y esa regla ERA el parpadeo: pintaba `var(--bg)` plano encima del
+   `radial-gradient` del `body`, que es lo que ilumina la esquina superior derecha. Medido en su
+   OnePlus 13 a 120 fps: −16 niveles arriba-derecha, −8 a la izquierda, 12 gestos de 12, y también
+   con Temática Ninguna (el degradado es del tema base). El porqué largo, en `shell.html`.
+   Ahora el guardián vigila que NO vuelva: durante el arrastre las páginas no pintan fondo.
+   ⚠ Sobre CÓDIGO, no sobre el texto: el comentario de `shell.html` cita la regla vieja entera
+   para explicarla, así que hay que quitar los comentarios antes de buscarla (igual que hace el
+   guardián de `background-attachment` un poco más abajo). */
+assert.doesNotMatch(shell.replace(/\/\*[\s\S]*?\*\//g, ""), /\.track\.dragging \.page\{[^}]*background:\s*var\(--bg\)/, "el refuerzo opaco del gesto NO vuelve (era el parpadeo)");
 assert.doesNotMatch(shell, /html\[data-season\]\s+\.page\.page-scroll-host::before/, "no ::before sticky");
 assert.doesNotMatch(shell.replace(/\/\*[\s\S]*?\*\//g, ""), /background-attachment:\s*fixed/, "no attachment fixed en reglas");
 assert.match(shell, /html\[data-season\]\s+\.page\{background:transparent!important;/, "page transparente");

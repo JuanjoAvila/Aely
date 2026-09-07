@@ -1424,6 +1424,115 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.7", d:"6 sep 2026",
+   t:{es:"El total de Gastos se actualiza al cambiar de banco",
+      en:"Gastos total updates when you change banks",
+      ca:"El total de Despeses s'actualitza en canviar de banc"},
+   tandas:[
+     {id:"cabecera-bancos", t:{es:"📊 Cabecera al día", en:"📊 Header stays current", ca:"📊 Capçalera al dia"},
+      items:{
+        es:[
+          "Si quitas o añades un banco de gasto diario, el total del mes en Gastos se actualiza al momento.",
+          "Ya no hace falta sincronizar para que la cabecera deje de mostrar de más.",
+        ],
+        en:[
+          "If you add or remove a daily-spend bank, the monthly total in Gastos updates right away.",
+          "You no longer need to sync for the header to stop showing too much.",
+        ],
+        ca:[
+          "Si treus o afegeixes un banc de despesa diària, el total del mes a Despeses s'actualitza de seguida.",
+          "Ja no cal sincronitzar perquè la capçalera deixi de mostrar de més.",
+        ],
+      }},
+   ],
+   items:{
+     es:[
+       "Si quitas o añades un banco de gasto diario, el total del mes en Gastos se actualiza al momento.",
+       "Ya no hace falta sincronizar para que la cabecera deje de mostrar de más.",
+     ],
+     en:[
+       "If you add or remove a daily-spend bank, the monthly total in Gastos updates right away.",
+       "You no longer need to sync for the header to stop showing too much.",
+     ],
+     ca:[
+       "Si treus o afegeixes un banc de despesa diària, el total del mes a Despeses s'actualitza de seguida.",
+       "Ja no cal sincronitzar perquè la capçalera deixi de mostrar de més.",
+     ],
+   }},
+  {v:"4.18.6", d:"6 sep 2026",
+   t:{es:"La app ya no borra movimientos por parecerse",
+      en:"The app no longer deletes look-alike movements",
+      ca:"L'app ja no esborra moviments per assemblar-se"},
+   tandas:[
+     {id:"contencion-dupes", t:{es:"🧾 Movimientos que se parecían", en:"🧾 Look-alike movements", ca:"🧾 Moviments que s'assemblaven"},
+      items:{
+        es:[
+          "Si el banco y el móvil apuntaban lo mismo con nombres distintos, la app ya no borra uno de los dos por su cuenta.",
+          "Puede que veas alguna fila de más mientras afinamos el criterio; el total del mes puede subir un poco hasta entonces.",
+          "Los movimientos borrados a mano siguen borrados.",
+        ],
+        en:[
+          "If the bank and your phone logged the same payment under different names, the app no longer deletes one of them on its own.",
+          "You may see an extra row for a while while we refine the match; the monthly total may rise a little until then.",
+          "Movements deleted by hand stay deleted.",
+        ],
+        ca:[
+          "Si el banc i el mòbil apuntaven el mateix amb noms diferents, l'app ja no n'esborra un pel seu compte.",
+          "Pot ser que vegis alguna fila de més mentre afinem el criteri; el total del mes pot pujar una mica fins aleshores.",
+          "Els moviments esborrats a mà segueixen esborrats.",
+        ],
+      }},
+   ],
+   items:{
+     es:[
+       "Si el banco y el móvil apuntaban lo mismo con nombres distintos, la app ya no borra uno de los dos por su cuenta.",
+       "Puede que veas alguna fila de más mientras afinamos el criterio; el total del mes puede subir un poco hasta entonces.",
+       "Los movimientos borrados a mano siguen borrados.",
+     ],
+     en:[
+       "If the bank and your phone logged the same payment under different names, the app no longer deletes one of them on its own.",
+       "You may see an extra row for a while while we refine the match; the monthly total may rise a little until then.",
+       "Movements deleted by hand stay deleted.",
+     ],
+     ca:[
+       "Si el banc i el mòbil apuntaven el mateix amb noms diferents, l'app ja no n'esborra un pel seu compte.",
+       "Pot ser que vegis alguna fila de més mentre afinem el criteri; el total del mes pot pujar una mica fins aleshores.",
+       "Els moviments esborrats a mà segueixen esborrats.",
+     ],
+   }},
+  {v:"4.18.5", d:"18 ago 2026",
+   t:{es:"El fondo ya no parpadea al cambiar de pestaña",
+      en:"No more flicker when switching tabs",
+      ca:"El fons ja no parpelleja en canviar de pestanya"},
+   tandas:[
+     {id:"destello-tabs", t:"✨ Cambio de pestaña limpio", items:[
+       "Al deslizar entre pestañas ya no se ve ese oscurecimiento del fondo.",
+       "Pasaba con cualquier temática, también sin ninguna.",
+       "Si estrenas la app, los gestos funcionan desde el primer momento (antes había que cerrarla y volver a abrirla).",
+     ]},
+   ],
+  },
+  {v:"4.18.4", d:"18 ago 2026",
+   t:{es:"Cada banco descuenta lo suyo",
+      en:"Each bank now subtracts only its own spending",
+      ca:"Cada banc descompta el que és seu"},
+   tandas:[
+     {id:"saldo-cruzado", t:"🏦 Saldos por banco", items:[
+       "Si pagabas con un banco que no era el del día a día, el gasto ya no se le resta al principal.",
+       "El dinero total no cambia de sitio inventado: cada euro queda en su cuenta.",
+       "Editar el saldo a mano y volver a mirarlo tiene que dar el mismo número.",
+     ]},
+   ],
+   items:{
+   es:[
+    "🏦 Si pagabas con un banco que no era el del día a día, el gasto se le restaba por error al saldo del principal. El dinero total siempre fue correcto; el reparto entre cuentas, no. Ya está cada euro en su sitio.",
+   ],
+   en:[
+    "🏦 Spending from a bank that wasn't your day-to-day account was wrongly taken off the main balance. The total was always right; the split between accounts wasn't. Each euro is in its place now.",
+   ],
+   ca:[
+    "🏦 Si pagaves amb un banc que no era el del dia a dia, la despesa es restava per error al saldo del principal. El total sempre va ser correcte; el repartiment entre comptes, no. Cada euro ja és al seu lloc.",
+   ]}},
   {v:"4.18.3", d:"18 ago 2026",
    t:{es:"El saldo del banco ya no salta a un número raro, y el widget deja de esconder lo que puedes gastar",
       en:"Bank balances no longer jump to a bogus figure, and the widget keeps showing what you can spend",

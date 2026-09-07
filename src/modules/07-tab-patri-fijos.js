@@ -9,7 +9,8 @@ function Wealth({state, set, totals, v4Embed, parte}){
   const pn=(i)=> (totals.paidNetByBank&&totals.paidNetByBank[i.ent])||0;   // movimientos ya ocurridos este mes
   const ruM=totals.roundupThisMonth||0;                                     // round-up del mes (sale del efectivo de gasto)
   const miM=totals.monthlyInvestThisMonth||0;                               // aporte periódico del mes (idem)
-  const spendBal=(i)=> i.value + totals.injTR - totals.thisMonthSpent - ruM - miM + (accRole(i)==="ambos"?pn(i):0);
+  const spentOwn=(i)=> (totals.spentByBank&&i.ent&&totals.spentByBank[i.ent])||0;
+  const spendBal=(i)=> saldoCuentaGasto({value:i.value, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)});
   // ROLES DE CUENTA: al cambiar el rol se RE-ANCLA `value` para que el saldo mostrado no cambie
   // (despejamos value de la fórmula del rol nuevo). Solo puede haber UNA cuenta de gasto diario.
   const setRole=(id,r)=>{ set(function(s){ return applyAccountRole(s, totals, id, r); }); };   // lógica compartida (applyAccountRole)
@@ -17,7 +18,7 @@ function Wealth({state, set, totals, v4Embed, parte}){
     // Editas el SALDO REAL de hoy; por dentro se guarda la base (inicio de mes) correcta.
     display:  i => accDaily(i) ? spendBal(i) : (i.value + pn(i)),
     // editar a mano re-ancla: typed = spendBal(nuevo value) → despeja value (incluye miM, que faltaba)
-    toStored: (i,typed) => accDaily(i) ? (typed - totals.injTR + totals.thisMonthSpent + ruM + miM - (accRole(i)==="ambos"?pn(i):0)) : (typed - pn(i))
+    toStored: (i,typed) => accDaily(i) ? valueDesdeSaldo({shown:typed, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)}) : (typed - pn(i))
   });
   const astEd=useEditable(state.assets,it=>set(s=>Object.assign({},s,{assets:it})));
   const accSum=totals.liquid;

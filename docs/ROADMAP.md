@@ -1,6 +1,22 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-08-18 · **v4.18.3** — **EN `beta`**. El saldo OB ya no pinta un negativo inventado
+> Estado a 2026-09-06 · **v4.18.7** — cabecera de Gastos al cambiar bancos de gasto diario (B09-A).
+> Canal vivo: `npm run salud` (no afirmar beta/prod solo por el working tree). OTA, sin APK.
+> Anterior: **4.18.6** (contención sin DELETE/lápida por similitud).
+>
+> Anterior: 2026-09-06 · **v4.18.6** — contención de integridad en el árbol (sin DELETE/lápida por
+> similitud). Canal vivo: `npm run salud` (no afirmar beta/prod solo por el working tree). OTA, sin
+> APK. Anterior: **4.18.5** (destello tabs). Producción conocida vía Pages: comprobar con `salud`.
+>
+> Anterior: 2026-08-18 · **v4.18.5** — destello/tabs. OTA, sin APK.
+>
+> Anterior: 2026-08-18 · **v4.18.5** — **EN `beta`**. El fondo ya no parpadea al cambiar de pestaña:
+> el «refuerzo opaco» del gesto tapaba el degradado del `body` (−16 niveles medidos a 120 fps en su
+> OnePlus 13, 12 gestos de 12, y también sin temporada). Y los gestos funcionan al estrenar la app.
+> OTA, sin APK. Anterior: **4.18.4** (cada banco descuenta lo suyo, 257 € medidos). Producción sigue
+> en **4.18.3** · APK **42**.
+>
+> Anterior: 2026-08-18 · **v4.18.3** — **EN PRODUCCIÓN**. El saldo OB ya no pinta un negativo inventado
 > (Revolut −204 del padre). El widget manda `afford` y `budgetLeft` (APK 41 y 42). APK **42**.
 >
 > Anterior: 2026-08-17 · **v4.18.2** — ingest del widget a producción. El canal beta no prueba el widget con la app cerrada (un solo Supabase). APK seguía **41 / 4.17.1**.
@@ -86,10 +102,10 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.18.3** (en `beta`) |
+| Web / OTA (`VERSION`) | **4.18.7** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
-| `public/apk.json` | repo **40** / 4.16.2 (esta rama no ha corrido `release:apk`) |
+| `public/apk.json` | **42** / 4.18.3 |
 
 ## Pendiente / limitaciones conocidas
 

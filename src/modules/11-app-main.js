@@ -318,16 +318,12 @@ function App(){
         // varias veces al día, y cada vez más caro según crecía el histórico (2026-07-24).
         const next=keep.concat(add);
         const igual = next.length===prev.expenses.length && next.every(function(e,i){ return e===prev.expenses[i]; });
-        // Los gastos llegan AQUÍ, no al cargar el estado, así que es el único punto donde se les
-        // puede pasar revista de verdad. `reconcileObDupes` corre SIEMPRE (sin flag: las dos
-        // limpiezas anteriores se quedaron bloqueadas por el suyo) y es idempotente.
+        // Call site 3/3 de fixMovInvasion (tras pull expenses). Contención 4.18.6: sin bloque (b).
         const base=Object.assign({},prev,{expenses: igual?prev.expenses:next, lastSync:Date.now()});
         const rec=reconcileObDupes(fixMovInvasion(base));
-        // Y se aplica TAMBIÉN en la nube: quitar la fila del array local no basta, la de la tabla
-        // seguía viva y volvía en el siguiente pull o al reconectar el banco.
-        if(rec.borrar.length || rec.recat.length){
+        // reconcileObDupes: solo recat (cashback); nunca DELETE automático por similitud.
+        if(rec.recat.length){
           setTimeout(function(){
-            rec.borrar.forEach(function(e){ cloud.deleteExpense(e).catch(function(){}); });
             rec.recat.forEach(function(r){ cloud.setExpenseCat(r.expense, r.cat).catch(function(){}); });
           },0);
         }
@@ -359,6 +355,7 @@ function App(){
           // Usuario que ya tenía cartera en la nube: no repetir onboarding en otro dispositivo.
           if(freshLogin && (cloudState.accounts||[]).length) baseObj.onboarded=true;
           if(freshLogin && ((cloudState.accounts||[]).length || (cloudState.monthStartNet||0)>0)) baseObj.setupHint=false;
+          // Call site 2/3 de fixMovInvasion (syncFromCloud). Contención dentro de la fn, no aquí.
           return seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR(baseObj))))));
         });
       } else if(cloudState){
@@ -1445,14 +1442,20 @@ function App(){
     const today=new Date().getDate();                    // día de hoy (para separar pagado/pendiente)
     // SALDO DINÁMICO: cada banco = base (inicio de mes) + movimientos YA ocurridos este mes
     // (ingresos/nómina/bizums − fijos − cuotas − puntuales − transfers). El de gasto (TR) usa su inyección.
+    // La diaria resta SOLO lo suyo (`spentByBank[ent]`), no thisMonthSpent entero: si no, un
+    // cargo de Revolut se come TR (257 € el 2026-08-18). thisMonthSpent se queda para Hogar / fallback.
     const paidNetByBank={};
     state.accounts.forEach(function(a){ if(accFixed(a)) paidNetByBank[a.ent]=(paidNetByBank[a.ent]||0)+monthNetForAccount(state,a.ent,curYear,curMonth,today); });
+    const dailyEnt=trAcc&&trAcc.ent;
+    const spentByBank=gastoDelMesPorBanco(thisMonthExp, dailyEnt);
     // el round-up y el aporte periódico del mes ya salieron del efectivo de gasto (TR) hacia la inversión (en tránsito)
     const dynBal=function(a){
       if(!accDaily(a)) return (a.value||0)+(paidNetByBank[a.ent]||0);
-      let v=a.value+injTR-thisMonthSpent-roundupThisMonth-monthlyInvestThisMonth;
-      if(accRole(a)==="ambos") v+=(paidNetByBank[a.ent]||0);   // una cuenta para todo: también lleva sus fijos/nómina
-      return v;
+      return saldoCuentaGasto({
+        value:a.value, injTR:injTR, spentOwn:spentByBank[a.ent]||0,
+        roundup:roundupThisMonth, monthlyInvest:monthlyInvestThisMonth,
+        ambos:accRole(a)==="ambos", paidNet:paidNetByBank[a.ent]||0
+      });
     };
     // cuentas extra de Open Banking (2ª cuenta de un banco, compartidas…): saldo puro, suma al líquido
     const obLiquid=(state.obAccounts||[]).reduce((a,o)=> a + toEurAmt(o.value||0, o.cur||"EUR", state), 0);
@@ -1529,7 +1532,7 @@ function App(){
     /* DEPENDENCIAS: ojo al tocar este bloque — la lista de abajo tiene que incluir TODO
        `state.loQueSea` que se lea aquí dentro (incluidos los que leen las funciones auxiliares:
        monthNetForAccount → fixed/debts/oneoffs/flows; toEurAmt/invValueEur → fx y fxRates). */
-    return {liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,delta,deltaPct,thisMonthSpent,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
+    return {liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,delta,deltaPct,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
   // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` en CADA cambio, el
   // objeto de estado es nuevo siempre → el memo NUNCA acertaba y este cálculo (que recorre gastos,
   // fijos, deudas, flujos y simula el mes día a día) se rehacía al abrir una ficha, al escribir en
@@ -2201,6 +2204,18 @@ function App(){
       if(appShellRef.current && appShellRef.current.classList.contains("gesture-freeze")) freezeShell(false);
     }catch(e){}
     ensureScrollHost();
+    /* ⛔ NO PROMOVER AQUÍ LA CAPA DEL TRACK — PROBADO Y REVERTIDO EL 2026-08-18.
+       Se intentó `trackRef.current.style.willChange="transform"` en el touchstart, para que el
+       compositor creara la capa del carrusel con el dedo aún quieto en vez de a mitad del gesto.
+       Resultado medido en su OnePlus 13: el parpadeo **siguió igual** Y además apareció un fallo
+       nuevo que él vio al instante — «se baja todo un poco hacia abajo al scrollear».
+       La causa está escrita 200 líneas más abajo, en `ensureScrollHost`: «el track aparca con
+       `left` SIN transform — un ancestro con transform mata el overscroll nativo». **`will-change:
+       transform` crea el MISMO containing block que `transform`**, así que el `position:fixed` de
+       `.page-scroll-host` deja de referirse a la pantalla y pasa a referirse al track: todo el
+       contenido se desplaza al scrollear.
+       Regla que deja esto: en este carrusel, NADA de `transform`/`will-change:transform`/`filter`/
+       `perspective` en el track ni en ningún ancestro del host mientras el host sea `fixed`. */
     dragging.current=true; axis.current=null; dx.current=0; startT.current=Date.now(); gestureMode.current=null;
     // El ancho del track, UNA vez y aquí: el layout todavía está limpio (no se ha congelado nada
     // ni añadido clases), así que esta lectura no fuerza reflow. Ver el porqué largo en `onMove`.
@@ -2550,7 +2565,17 @@ function App(){
       el.removeEventListener("touchend", t);
       el.removeEventListener("touchcancel", c);
     };
-  },[]);
+  /* ⚠ LAS DEPS NO SON DECORACIÓN (bug encontrado y reproducido el 2026-08-18).
+     `App` sale por `return` ANTES del `.viewport` en dos casos —candado (`locked`) y onboarding
+     (`state.onboarded===false`)—, así que en esos arranques `viewportRef.current` es `null`, este
+     efecto se rinde en el `if(!el)` y, con `[]`, NO SE VOLVÍA A EJECUTAR NUNCA. Al desbloquear o
+     al terminar el onboarding la app se pintaba entera pero **sin un solo listener de gestos**:
+     medido con CDP, `.viewport` con 0 listeners, y los toques llegaban al documento sin que nadie
+     los recogiera. Los gestos de pestañas no volvían hasta cerrar y reabrir la app.
+     A quien mordía: cualquiera que ESTRENA la app (su padre y su pareja, su primer día).
+     El efecto de la tabbar de aquí al lado ya llevaba estas mismas deps por este mismo motivo
+     —«si la app arranca en el candado o el onboarding, la tabbar aún no existe»—; aquí faltaban. */
+  },[locked, state.onboarded]);
   // Toque en la barra inferior (y cualquier setTab que no venga del gesto): mismo asentamiento
   // por rAF. Si el gesto ya lo arrancó hacia este índice, asentarTrack no reinicia.
   // Mismo apagado de desenfoque que ya tiene el swipe, aquí también (2026-08-03, bug 1 «la rayita

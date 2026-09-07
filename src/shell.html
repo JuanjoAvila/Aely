@@ -553,8 +553,35 @@
   .viewport.scroll-host-open{overflow:visible;}
   .page.page-scroll-host.mc-touch-own{touch-action:none;}
   .track.scroll-host-park{transform:none !important;will-change:auto;overflow:hidden;}
-  /* Gesto entre pestañas: refuerzo opaco mientras el dedo arrastra (host transparente glow22). */
-  html[data-season] .track.dragging .page{background:var(--bg)!important;}
+  /* ⛔ AQUÍ VIVÍA EL «REFUERZO OPACO» DEL GESTO, Y ERA EL PARPADEO — medido y quitado el 2026-08-18.
+     Era una regla que ponía a `.page`, bajo `html[data-season] .track.dragging`, el fondo plano
+     `var(--bg)` con `!important`, para que las pestañas no se fusionaran al deslizar.
+     (⚠ Escrito así, en prosa y NO como CSS literal, a propósito: citarla entera hacía que el
+     guardián de `season-detalle` y cualquier `grep` la encontraran aquí y creyeran que sigue viva.
+     Ya pasó el 18/8 y costó una vuelta de diagnóstico en falso.)
+     Lo que hacía de verdad:
+
+     En reposo las páginas son transparentes y dejan ver el fondo del `body`, que NO es un color
+     plano — lleva `radial-gradient(130% 55% at 85% -8%, …)`, o sea un lavado pegado ARRIBA A LA
+     DERECHA. Al empezar el gesto, esta regla las pintaba de `var(--bg)` **plano** y ese lavado
+     desaparecía de golpe. Eso es «la cosa negra» que él veía al cambiar de pestaña.
+
+     Medido en su OnePlus 13 a 120 fps, 12 gestos de 12: −16 niveles de luminancia arriba a la
+     derecha y −8 a la izquierda. La proporción entre los dos números es la forma del degradado,
+     que es lo que lo delató. Y explica por qué se veía **también con Temática Ninguna**: el
+     degradado es del tema BASE, no de temporada — por eso nueve intentos de tocar `.season-glow`
+     lo «arreglaban» y volvía: se estaba tocando la capa equivocada.
+
+     Antifusión, que es lo que esta regla decía proteger: la de verdad es
+     `.track.scroll-host-park .page:not(.page-scroll-host){visibility:hidden}` (en reposo) y, ya
+     con el dedo puesto, que las páginas son hermanas `flex` una AL LADO de otra — no superpuestas.
+     El único elemento que sí se solapaba era el host `position:fixed`, y durante el arrastre ese
+     modo ya no está. Verificado en su móvil: no se fusionan.
+
+     ⚠ NO devolver un fondo pintado aquí, y menos con `background-attachment:fixed` (lo probé:
+     arregla el parpadeo pero repinta el fondo en cada frame de scroll; el guardián de
+     `season-detalle` ya lo prohíbe desde antes, por esto mismo). */
+
   @media (prefers-reduced-motion:reduce){.track{transition:none;}}
 
   /* ===== v4: nav inferior + FAB + sheets (SPEC-v4 §1–2, §7) ===== */

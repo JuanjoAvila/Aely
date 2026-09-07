@@ -553,8 +553,35 @@
   .viewport.scroll-host-open{overflow:visible;}
   .page.page-scroll-host.mc-touch-own{touch-action:none;}
   .track.scroll-host-park{transform:none !important;will-change:auto;overflow:hidden;}
-  /* Gesto entre pestañas: refuerzo opaco mientras el dedo arrastra (host transparente glow22). */
-  html[data-season] .track.dragging .page{background:var(--bg)!important;}
+  /* ⛔ AQUÍ VIVÍA EL «REFUERZO OPACO» DEL GESTO, Y ERA EL PARPADEO — medido y quitado el 2026-08-18.
+     Era una regla que ponía a `.page`, bajo `html[data-season] .track.dragging`, el fondo plano
+     `var(--bg)` con `!important`, para que las pestañas no se fusionaran al deslizar.
+     (⚠ Escrito así, en prosa y NO como CSS literal, a propósito: citarla entera hacía que el
+     guardián de `season-detalle` y cualquier `grep` la encontraran aquí y creyeran que sigue viva.
+     Ya pasó el 18/8 y costó una vuelta de diagnóstico en falso.)
+     Lo que hacía de verdad:
+
+     En reposo las páginas son transparentes y dejan ver el fondo del `body`, que NO es un color
+     plano — lleva `radial-gradient(130% 55% at 85% -8%, …)`, o sea un lavado pegado ARRIBA A LA
+     DERECHA. Al empezar el gesto, esta regla las pintaba de `var(--bg)` **plano** y ese lavado
+     desaparecía de golpe. Eso es «la cosa negra» que él veía al cambiar de pestaña.
+
+     Medido en su OnePlus 13 a 120 fps, 12 gestos de 12: −16 niveles de luminancia arriba a la
+     derecha y −8 a la izquierda. La proporción entre los dos números es la forma del degradado,
+     que es lo que lo delató. Y explica por qué se veía **también con Temática Ninguna**: el
+     degradado es del tema BASE, no de temporada — por eso nueve intentos de tocar `.season-glow`
+     lo «arreglaban» y volvía: se estaba tocando la capa equivocada.
+
+     Antifusión, que es lo que esta regla decía proteger: la de verdad es
+     `.track.scroll-host-park .page:not(.page-scroll-host){visibility:hidden}` (en reposo) y, ya
+     con el dedo puesto, que las páginas son hermanas `flex` una AL LADO de otra — no superpuestas.
+     El único elemento que sí se solapaba era el host `position:fixed`, y durante el arrastre ese
+     modo ya no está. Verificado en su móvil: no se fusionan.
+
+     ⚠ NO devolver un fondo pintado aquí, y menos con `background-attachment:fixed` (lo probé:
+     arregla el parpadeo pero repinta el fondo en cada frame de scroll; el guardián de
+     `season-detalle` ya lo prohíbe desde antes, por esto mismo). */
+
   @media (prefers-reduced-motion:reduce){.track{transition:none;}}
 
   /* ===== v4: nav inferior + FAB + sheets (SPEC-v4 §1–2, §7) ===== */
@@ -2850,6 +2877,33 @@ function expenseBankOf(e){
   if(s.indexOf("ob-hist:")===0) return s.slice(8)||null;
   if(s.indexOf("manual:")===0) return s.slice(7)||null;
   return null;
+}
+/* Gasto del mes partido por banco de origen. A mano (sin banco) → cuenta diaria.
+   Por qué: dynBal restaba thisMonthSpent ENTERO al principal cuando expenseBanks tiene
+   varios — un cargo de Revolut se comía Trade Republic (257,17 € el 2026-08-18). */
+function gastoDelMesPorBanco(gastosDelMes, dailyEnt){
+  const map={};
+  (gastosDelMes||[]).forEach(function(e){
+    const b=expenseBankOf(e)||dailyEnt||null;
+    if(!b) return;
+    map[b]=(map[b]||0)+(e.amount||0);
+  });
+  return map;
+}
+/* Saldo mostrado de la cuenta de gasto diario, y su inversa al editar / sincronizar.
+   Vivían copiadas en cinco sitios; si se cambia dynBal y no las inversas, teclear el
+   saldo guarda un número torcido — peor que el bug (brief 2026-08-18). */
+function saldoCuentaGasto(o){
+  o=o||{};
+  var v=(o.value||0)+(o.injTR||0)-(o.spentOwn||0)-(o.roundup||0)-(o.monthlyInvest||0);
+  if(o.ambos) v+=(o.paidNet||0);
+  return v;
+}
+function valueDesdeSaldo(o){
+  o=o||{};
+  var v=(o.shown||0)-(o.injTR||0)+(o.spentOwn||0)+(o.roundup||0)+(o.monthlyInvest||0);
+  if(o.ambos) v-=(o.paidNet||0);
+  return +v.toFixed(2);
 }
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){
@@ -5176,13 +5230,14 @@ function expenseBucket(e, s){
 function applyAccountRole(s, totals, id, r){
   const pn=function(i){ return (totals.paidNetByBank&&totals.paidNetByBank[i.ent])||0; };
   const ruM=totals.roundupThisMonth||0, miM=totals.monthlyInvestThisMonth||0;
-  const spendBal=function(i){ return i.value + totals.injTR - totals.thisMonthSpent - ruM - miM + (accRole(i)==="ambos"?pn(i):0); };
+  const spentOwn=function(i){ return (totals.spentByBank&&i.ent&&totals.spentByBank[i.ent])||0; };
+  const spendBal=function(i){ return saldoCuentaGasto({value:i.value, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)}); };
   const ruOfA=function(a){ return (a.roundupManual!=null)?a.roundupManual:(a.roundup?ruM:0); };
   const injOfA=function(a){ return nominaYaEntro()? accInject(a):0; };
   const shownOf=function(a){ return accDaily(a)? spendBal(a) : ((a.value||0) + pn(a)); };
   const valueForRole=function(a,rr,shown){
     if(rr==="fijos") return +(shown - pn(a)).toFixed(2);
-    return +((shown - injOfA(a) + (totals.thisMonthSpent||0) + ruOfA(a) + (a.monthlyInvest||0) - (rr==="ambos"?pn(a):0))).toFixed(2);
+    return valueDesdeSaldo({shown:shown, injTR:injOfA(a), spentOwn:spentOwn(a), roundup:ruOfA(a), monthlyInvest:a.monthlyInvest||0, ambos:rr==="ambos", paidNet:pn(a)});
   };
   return Object.assign({},s,{accounts:s.accounts.map(function(a){
     if(a.id===id){ if(accRole(a)===r) return a; return Object.assign({},a,{role:r, spendFrom:r!=="fijos", value:valueForRole(a,r,shownOf(a))}); }
@@ -5601,14 +5656,16 @@ function fixRevoDupes(s){
   s._invFixRevoDupes = true;
   return s;
 }
-// Limpieza única del bug de `setCat` (2026-08-04): "Movimiento" es el hueco que deja un banco sin
-// datos (Trade Republic por Open Banking) — no es un comercio de verdad, pero `setCat` lo trataba
-// como si todos los gastos con ese mismo texto fueran el MISMO comercio: al marcar UNO como
-// Inversión, recategorizaba TODOS los demás también (con su propia compra de participaciones cada
-// uno) y aprendía "movimiento"→inversion como override para siempre. Deshace el destrozo: borra
-// ese override envenenado y devuelve a su categoría normal (deshaciendo la compra) cualquier gasto
-// "Movimiento"/Inversión que NO sea el aporte automático real (`monthlyInvest`, el único legítimo,
-// ver `importObExpenses`). Idempotente con flag, como fixInvSold/fixInvAuto/fixRevoDupes.
+// Limpieza del bug de `setCat` (2026-08-04) + contención 4.18.6.
+// Call sites (los tres pasan por ESTA función; la contención no se duplica en cada uno):
+//   1) loadState (arranque en frío) — 01-i18n.js
+//   2) syncFromCloud (adopta nube) — 11-app-main.js
+//   3) syncCloudExpenses (tras pull de la tabla) — 11-app-main.js
+// (a) OVERRIDE + compras falsas: borra catOverrides «movimiento»→inversión y deshace
+//     reverseInvestBuy en «Movimiento»/Inversión que NO sea el aporte monthlyInvest.
+// (b) DEDUP/LÁPIDAS por similitud: ELIMINADO en 4.18.6. No reintroducir. No subir/renombrar
+//     `_fixMovInvasion2`: quien ya tiene el flag no reejecuta (a); quien no, (a) corre una vez
+//     y (b) ya no existe.
 function fixMovInvasion(state){
   // ⚠ EL FLAG VA POR VERSIÓN (`_fixMovInvasion2`), y este es el motivo exacto: la PRIMERA versión de
   // esta limpieza corría con la lista de gastos todavía vacía y aun así se marcaba como hecha. Ese
@@ -5644,35 +5701,11 @@ function fixMovInvasion(state){
     delete upd.investInvId; delete upd.investShares; delete upd.investCInv; delete upd.investAmountEur;
     return upd;
   });
-  /* Y LOS DUPLICADOS QUE YA ESTABAN GUARDADOS. `importObExpenses` ya no deja entrar un movimiento
-     sin nombre que sea gemelo de algo apuntado por otra vía (±3 días, mismo importe), pero los que
-     entraron ANTES de esa red siguen ahí, contando doble. Mismo criterio, mismo emparejamiento 1 a
-     1, y solo se retiran los de Open Banking sin nombre: el gasto con el comercio de verdad —el que
-     vino del móvil— es el que se queda, siempre. Se marcan como borrados (`deleted`) en vez de
-     desaparecer sin más: es lo que impide que el siguiente pull de la nube los resucite (ver el
-     filtro `delSet` en `syncCloudExpenses`). */
-  const otrasVias=exps.filter(function(e){ return e.source!=="ob" && e.source!=="ob-hist"; });
-  const usado={};
-  const fuera={};
-  exps.forEach(function(e,i){
-    if(e.source!=="ob" && e.source!=="ob-hist") return;
-    if(e.merchant!=="Movimiento") return;
-    const acc=(s.accounts||[]).find(function(a){ return a.ent===e.ent; });
-    if(acc && acc.monthlyInvest>0 && Math.abs(e.amount-acc.monthlyInvest)<0.01) return;   // el aporte real no se toca
-    const ms=dateMs(e.date);
-    const j=otrasVias.findIndex(function(o,k){
-      return !usado[k] && Math.abs((o.amount||0)-(e.amount||0))<=0.005 && Math.abs(dateMs(o.date)-ms)<=3*86400000;
-    });
-    if(j>=0){ usado[j]=1; fuera[i]=1; }
-  });
-  const quedan=exps.filter(function(e,i){ return !fuera[i]; });
-  if(quedan.length!==exps.length){
-    let del=s.deleted||[];
-    exps.forEach(function(e,i){ if(fuera[i]) del=pushDeleted(del, String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.merchant||"")); });
-    s=Object.assign({},s,{expenses:quedan, deleted:del});
-  } else {
-    s=Object.assign({},s,{expenses:exps});
-  }
+  /* CONTENCIÓN 4.18.6: ya no se retiran por similitud los OB «Movimiento» que casan importe
+     ±3 días con otra vía, ni se escriben lápidas. Esa pasada borraba evidencia y podía cruzar
+     bancos. Aquí solo queda la reparación del override «movimiento»→inversión y reclasificar
+     aportes/errores de categoría. */
+  s=Object.assign({},s,{expenses:exps});
   s._fixMovInvasion2=true;
   return s;
 }
@@ -5826,6 +5859,7 @@ function loadState(){
     // Capturar ANTES de seedFlows (muta in-place): evita stringify de toda la cartera en cada
     // apertura fría — feedback 2026-07-16.
     var writeBack=!(saved._dataVer>=6) || !saved._dynBalAnchored;
+    // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
     const s = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
     if(writeBack) mcSaveRaw(mcStateKey(), s);
     applyTheme(s.settings&&s.settings.theme);
@@ -7323,6 +7357,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // La cabecera es siempre el mes natural: los filtros sirven para explorar, pero no deben hacer
   // que el presupuesto parezca cambiar al mirar otro período o una categoría.
   // Cifras = `monthBudgetStats` (misma fuente que Resumen y el widget).
+  // `accounts` + `settings` van en deps: monthBudgetStats → expenseCountsBudget → expenseBankEnts
+  // lee rol diario y expenseBanks. Sin ellos, quitar un banco de gasto diario dejaba la cabecera
+  // alta hasta que un sync cambiaba `expenses` (B09-A / feedback familia 2026-09-06).
   const monthSummary=useMemo(function(){
     const now=new Date();
     const bs=monthBudgetStats(state);
@@ -7333,7 +7370,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       last:new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),
       month:monthLong(now.getMonth())
     };
-  },[state.expenses,state.budget,state.reservaLog,state.settings&&state.settings.gTotalMode]);
+  },[state.expenses,state.budget,state.reservaLog,state.accounts,state.settings]);
   const subs=useMemo(function(){ return heavyOk?detectSubscriptions(expensesDef):[]; },[heavyOk,expensesDef]);
   const suggestAi=function(ex){
     if(!(state.settings&&state.settings.aiCat)){ showToast(t("ai_cat_off")); return; }
@@ -8942,8 +8979,9 @@ function TRSync({state, set, totals, open, onToggle}){
           ? s.accounts.map(function(a){
               if(a.ent!=="trade_republic") return a;
               const pn=(totals.paidNetByBank&&totals.paidNetByBank[a.ent])||0;
+              const spentOwn=(totals.spentByBank&&totals.spentByBank[a.ent])||0;
               const stored = accDaily(a)
-                ? trCash-(totals.injTR||0)+(totals.thisMonthSpent||0)+(totals.roundupThisMonth||0)+(totals.monthlyInvestThisMonth||0)-(accRole(a)==="ambos"?pn:0)
+                ? valueDesdeSaldo({shown:trCash, injTR:totals.injTR||0, spentOwn:spentOwn, roundup:totals.roundupThisMonth||0, monthlyInvest:totals.monthlyInvestThisMonth||0, ambos:accRole(a)==="ambos", paidNet:pn})
                 : trCash-pn;
               return Object.assign({},a,{value:+stored.toFixed(2)});
             })
@@ -9414,7 +9452,8 @@ function Wealth({state, set, totals, v4Embed, parte}){
   const pn=(i)=> (totals.paidNetByBank&&totals.paidNetByBank[i.ent])||0;   // movimientos ya ocurridos este mes
   const ruM=totals.roundupThisMonth||0;                                     // round-up del mes (sale del efectivo de gasto)
   const miM=totals.monthlyInvestThisMonth||0;                               // aporte periódico del mes (idem)
-  const spendBal=(i)=> i.value + totals.injTR - totals.thisMonthSpent - ruM - miM + (accRole(i)==="ambos"?pn(i):0);
+  const spentOwn=(i)=> (totals.spentByBank&&i.ent&&totals.spentByBank[i.ent])||0;
+  const spendBal=(i)=> saldoCuentaGasto({value:i.value, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)});
   // ROLES DE CUENTA: al cambiar el rol se RE-ANCLA `value` para que el saldo mostrado no cambie
   // (despejamos value de la fórmula del rol nuevo). Solo puede haber UNA cuenta de gasto diario.
   const setRole=(id,r)=>{ set(function(s){ return applyAccountRole(s, totals, id, r); }); };   // lógica compartida (applyAccountRole)
@@ -9422,7 +9461,7 @@ function Wealth({state, set, totals, v4Embed, parte}){
     // Editas el SALDO REAL de hoy; por dentro se guarda la base (inicio de mes) correcta.
     display:  i => accDaily(i) ? spendBal(i) : (i.value + pn(i)),
     // editar a mano re-ancla: typed = spendBal(nuevo value) → despeja value (incluye miM, que faltaba)
-    toStored: (i,typed) => accDaily(i) ? (typed - totals.injTR + totals.thisMonthSpent + ruM + miM - (accRole(i)==="ambos"?pn(i):0)) : (typed - pn(i))
+    toStored: (i,typed) => accDaily(i) ? valueDesdeSaldo({shown:typed, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)}) : (typed - pn(i))
   });
   const astEd=useEditable(state.assets,it=>set(s=>Object.assign({},s,{assets:it})));
   const accSum=totals.liquid;
@@ -10435,74 +10474,35 @@ function esTraspasoPropio(s, tx){
   if(m && m!=="Movimiento" && m!=="Ingreso") return false;            // con nombre = cobro real
   return (s.flows||[]).some(function(f){ return f && f.kind==="transfer" && f.to===tx.ent; });
 }
-/* LA PASADA QUE ARREGLA LO QUE YA ESTÁ GUARDADO — SIN FLAG, EN CADA SYNC (2026-08-04).
-   Las dos limpiezas anteriores (`fixMovInvasion`, `_fixMovInvasion2`) fallaron por el mismo par de
-   motivos, y esta nace de esos dos golpes:
-     1. IBAN CON FLAG: corrían una vez y se marcaban como hechas. En cuanto el flag quedó escrito
-        —aunque fuese en una vuelta donde no había gastos delante— la versión corregida ya no podía
-        entrar, y el usuario seguía viendo el mismo destrozo mientras desde fuera parecía aplicado.
-     2. SOLO TOCABAN EL MÓVIL: quitaban el gasto del array local pero la fila seguía viva en la
-        tabla `expenses` de la nube. Al reconectar el banco (o al siguiente pull) volvía. Los
-        tombstones tampoco bastaron: dependen de que la clave coincida al carácter, y un signo
-        distinto en el importe ya los deja pasar.
-   Esta corre SIEMPRE y es idempotente: cuando no queda nada que arreglar no toca nada y devuelve el
-   MISMO objeto (cero renders de más). Y devuelve lo que hay que borrar/recategorizar EN LA NUBE
-   para que quien la llama lo haga de verdad — ver `syncCloudExpenses` en 11-app-main.js.
-   Devuelve {state, borrar:[gastos], recat:[{expense,cat}]}. */
+/* CONTENCIÓN 4.18.6 (1d-CONTENCION-A) — corre en cada sync, sin flag.
+   Conserva todas las filas: ya NO borra ni crea lápidas por similitud
+   (importe ±3 días entre OB sin nombre y otra vía). Devuelve siempre
+   `borrar:[]`. Puede RECATEGORIZAR la salida de un cashback/round-up a
+   «Inversión» (neutra) sin borrar la entrada. Contrato de identidad y
+   recovery van en tickets siguientes. Ver syncCloudExpenses (solo recat). */
 function reconcileObDupes(state){
   const exps=(state&&state.expenses)||[];
   if(!exps.length) return { state:state, borrar:[], recat:[] };
   const esOb=function(e){ return e && (e.source==="ob" || e.source==="ob-hist"); };
   const sinNombre=function(e){ const m=String((e&&e.merchant)||"").trim(); return !m || m==="Movimiento" || m==="Ingreso"; };
-  const otrasVias=exps.filter(function(e){ return !esOb(e); });
-  // (a) DUPLICADOS: un apunte de Open Banking sin nombre que repite algo que ya entró por otra vía
-  // (los avisos del móvil, con el comercio de verdad). Emparejamiento 1 a 1 y ±3 días: el banco
-  // contabiliza uno o dos días después de la compra. El que se queda es SIEMPRE el que tiene nombre.
-  const usado={}, borrar=[];
-  exps.forEach(function(e){
-    if(!esOb(e) || !sinNombre(e)) return;
-    const acc=(state.accounts||[]).find(function(a){ return a.ent===e.ent; });
-    if(acc && acc.monthlyInvest>0 && Math.abs(Math.abs(e.amount)-acc.monthlyInvest)<0.01) return;   // el aporte real no se toca
-    const ms=dateMs(e.date);
-    const j=otrasVias.findIndex(function(o,k){
-      return !usado[k] && Math.abs((o.amount||0)-(e.amount||0))<=0.005 && Math.abs(dateMs(o.date)-ms)<=3*86400000;
-    });
-    if(j>=0){ usado[j]=1; borrar.push(e); }
-  });
-  const fuera={}; borrar.forEach(function(e){ fuera[e.id]=1; });
-  let quedan=borrar.length ? exps.filter(function(e){ return !fuera[e.id]; }) : exps;
-  /* (b) EL PAR DEL CASHBACK ES UN SOLO MOVIMIENTO, Y SE VE UNA SOLA VEZ (2026-08-04, corrección
-     suya: «del cashback solo debe haber 1, solo pagan 1 vez al mes»). El banco lo apunta dos veces
-     —entra al efectivo con fecha del día 1 y sale hacia el fondo el día 3, el primer día laborable—
-     pero es el mismo dinero yendo a un sitio. Se deja UNA línea: la SALIDA, marcada «Inversión»
-     (es la que refleja dónde acabó el dinero), y la entrada se borra como el duplicado que es.
-     Solo en la cuenta que TIENE fondo enlazado (`rewardInv`): sin destino declarado esto no es el
-     round-up/cashback de nadie y no se toca. */
+  /* Cashback: solo recat de la salida si hay rewardInv. setExpenseCat aún
+     empareja por atributos — migrar a ID de fila antes de tocar el índice. */
   const recat=[];
   const usadoTwin={};
-  quedan.forEach(function(g){
+  exps.forEach(function(g){
     if(!esOb(g) || !(g.amount>0) || !sinNombre(g)) return;
     const acc=(state.accounts||[]).find(function(a){ return a.ent===g.ent && a.rewardInv; });
     if(!acc) return;
     if(acc.monthlyInvest>0 && Math.abs(g.amount-acc.monthlyInvest)<0.01) return;   // el aporte fijo va aparte
-    const i=findCashbackTwin(quedan, g);
-    if(i<0 || usadoTwin[quedan[i].id]) return;
-    usadoTwin[quedan[i].id]=1;
+    const i=findCashbackTwin(exps, g);
+    if(i<0 || usadoTwin[exps[i].id]) return;
+    usadoTwin[exps[i].id]=1;
     if(g.category!=="inversion") recat.push({ expense:g, cat:"inversion" });
-    borrar.push(quedan[i]);                                  // la entrada: mismo movimiento, una sola línea
   });
-  if(usadoTwin && borrar.length){
-    const fuera2={}; borrar.forEach(function(e){ fuera2[e.id]=1; });
-    quedan=exps.filter(function(e){ return !fuera2[e.id]; });
-  }
-  if(!borrar.length && !recat.length) return { state:state, borrar:[], recat:[] };
-  if(recat.length){
-    const nuevaCat={}; recat.forEach(function(r){ nuevaCat[r.expense.id]=r.cat; });
-    quedan=quedan.map(function(e){ return nuevaCat[e.id] ? Object.assign({},e,{category:nuevaCat[e.id]}) : e; });
-  }
-  let del=state.deleted||[];
-  borrar.forEach(function(e){ del=pushDeleted(del, String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.merchant||"")); });
-  return { state:Object.assign({},state,{expenses:quedan, deleted:del}), borrar:borrar, recat:recat };
+  if(!recat.length) return { state:state, borrar:[], recat:[] };
+  const nuevaCat={}; recat.forEach(function(r){ nuevaCat[r.expense.id]=r.cat; });
+  const quedan=exps.map(function(e){ return nuevaCat[e.id] ? Object.assign({},e,{category:nuevaCat[e.id]}) : e; });
+  return { state:Object.assign({},state,{expenses:quedan}), borrar:[], recat:recat };
 }
 
 function findCashbackTwin(expenses, gasto){
@@ -14159,6 +14159,115 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.7", d:"6 sep 2026",
+   t:{es:"El total de Gastos se actualiza al cambiar de banco",
+      en:"Gastos total updates when you change banks",
+      ca:"El total de Despeses s'actualitza en canviar de banc"},
+   tandas:[
+     {id:"cabecera-bancos", t:{es:"📊 Cabecera al día", en:"📊 Header stays current", ca:"📊 Capçalera al dia"},
+      items:{
+        es:[
+          "Si quitas o añades un banco de gasto diario, el total del mes en Gastos se actualiza al momento.",
+          "Ya no hace falta sincronizar para que la cabecera deje de mostrar de más.",
+        ],
+        en:[
+          "If you add or remove a daily-spend bank, the monthly total in Gastos updates right away.",
+          "You no longer need to sync for the header to stop showing too much.",
+        ],
+        ca:[
+          "Si treus o afegeixes un banc de despesa diària, el total del mes a Despeses s'actualitza de seguida.",
+          "Ja no cal sincronitzar perquè la capçalera deixi de mostrar de més.",
+        ],
+      }},
+   ],
+   items:{
+     es:[
+       "Si quitas o añades un banco de gasto diario, el total del mes en Gastos se actualiza al momento.",
+       "Ya no hace falta sincronizar para que la cabecera deje de mostrar de más.",
+     ],
+     en:[
+       "If you add or remove a daily-spend bank, the monthly total in Gastos updates right away.",
+       "You no longer need to sync for the header to stop showing too much.",
+     ],
+     ca:[
+       "Si treus o afegeixes un banc de despesa diària, el total del mes a Despeses s'actualitza de seguida.",
+       "Ja no cal sincronitzar perquè la capçalera deixi de mostrar de més.",
+     ],
+   }},
+  {v:"4.18.6", d:"6 sep 2026",
+   t:{es:"La app ya no borra movimientos por parecerse",
+      en:"The app no longer deletes look-alike movements",
+      ca:"L'app ja no esborra moviments per assemblar-se"},
+   tandas:[
+     {id:"contencion-dupes", t:{es:"🧾 Movimientos que se parecían", en:"🧾 Look-alike movements", ca:"🧾 Moviments que s'assemblaven"},
+      items:{
+        es:[
+          "Si el banco y el móvil apuntaban lo mismo con nombres distintos, la app ya no borra uno de los dos por su cuenta.",
+          "Puede que veas alguna fila de más mientras afinamos el criterio; el total del mes puede subir un poco hasta entonces.",
+          "Los movimientos borrados a mano siguen borrados.",
+        ],
+        en:[
+          "If the bank and your phone logged the same payment under different names, the app no longer deletes one of them on its own.",
+          "You may see an extra row for a while while we refine the match; the monthly total may rise a little until then.",
+          "Movements deleted by hand stay deleted.",
+        ],
+        ca:[
+          "Si el banc i el mòbil apuntaven el mateix amb noms diferents, l'app ja no n'esborra un pel seu compte.",
+          "Pot ser que vegis alguna fila de més mentre afinem el criteri; el total del mes pot pujar una mica fins aleshores.",
+          "Els moviments esborrats a mà segueixen esborrats.",
+        ],
+      }},
+   ],
+   items:{
+     es:[
+       "Si el banco y el móvil apuntaban lo mismo con nombres distintos, la app ya no borra uno de los dos por su cuenta.",
+       "Puede que veas alguna fila de más mientras afinamos el criterio; el total del mes puede subir un poco hasta entonces.",
+       "Los movimientos borrados a mano siguen borrados.",
+     ],
+     en:[
+       "If the bank and your phone logged the same payment under different names, the app no longer deletes one of them on its own.",
+       "You may see an extra row for a while while we refine the match; the monthly total may rise a little until then.",
+       "Movements deleted by hand stay deleted.",
+     ],
+     ca:[
+       "Si el banc i el mòbil apuntaven el mateix amb noms diferents, l'app ja no n'esborra un pel seu compte.",
+       "Pot ser que vegis alguna fila de més mentre afinem el criteri; el total del mes pot pujar una mica fins aleshores.",
+       "Els moviments esborrats a mà segueixen esborrats.",
+     ],
+   }},
+  {v:"4.18.5", d:"18 ago 2026",
+   t:{es:"El fondo ya no parpadea al cambiar de pestaña",
+      en:"No more flicker when switching tabs",
+      ca:"El fons ja no parpelleja en canviar de pestanya"},
+   tandas:[
+     {id:"destello-tabs", t:"✨ Cambio de pestaña limpio", items:[
+       "Al deslizar entre pestañas ya no se ve ese oscurecimiento del fondo.",
+       "Pasaba con cualquier temática, también sin ninguna.",
+       "Si estrenas la app, los gestos funcionan desde el primer momento (antes había que cerrarla y volver a abrirla).",
+     ]},
+   ],
+  },
+  {v:"4.18.4", d:"18 ago 2026",
+   t:{es:"Cada banco descuenta lo suyo",
+      en:"Each bank now subtracts only its own spending",
+      ca:"Cada banc descompta el que és seu"},
+   tandas:[
+     {id:"saldo-cruzado", t:"🏦 Saldos por banco", items:[
+       "Si pagabas con un banco que no era el del día a día, el gasto ya no se le resta al principal.",
+       "El dinero total no cambia de sitio inventado: cada euro queda en su cuenta.",
+       "Editar el saldo a mano y volver a mirarlo tiene que dar el mismo número.",
+     ]},
+   ],
+   items:{
+   es:[
+    "🏦 Si pagabas con un banco que no era el del día a día, el gasto se le restaba por error al saldo del principal. El dinero total siempre fue correcto; el reparto entre cuentas, no. Ya está cada euro en su sitio.",
+   ],
+   en:[
+    "🏦 Spending from a bank that wasn't your day-to-day account was wrongly taken off the main balance. The total was always right; the split between accounts wasn't. Each euro is in its place now.",
+   ],
+   ca:[
+    "🏦 Si pagaves amb un banc que no era el del dia a dia, la despesa es restava per error al saldo del principal. El total sempre va ser correcte; el repartiment entre comptes, no. Cada euro ja és al seu lloc.",
+   ]}},
   {v:"4.18.3", d:"18 ago 2026",
    t:{es:"El saldo del banco ya no salta a un número raro, y el widget deja de esconder lo que puedes gastar",
       en:"Bank balances no longer jump to a bogus figure, and the widget keeps showing what you can spend",
@@ -17513,16 +17622,12 @@ function App(){
         // varias veces al día, y cada vez más caro según crecía el histórico (2026-07-24).
         const next=keep.concat(add);
         const igual = next.length===prev.expenses.length && next.every(function(e,i){ return e===prev.expenses[i]; });
-        // Los gastos llegan AQUÍ, no al cargar el estado, así que es el único punto donde se les
-        // puede pasar revista de verdad. `reconcileObDupes` corre SIEMPRE (sin flag: las dos
-        // limpiezas anteriores se quedaron bloqueadas por el suyo) y es idempotente.
+        // Call site 3/3 de fixMovInvasion (tras pull expenses). Contención 4.18.6: sin bloque (b).
         const base=Object.assign({},prev,{expenses: igual?prev.expenses:next, lastSync:Date.now()});
         const rec=reconcileObDupes(fixMovInvasion(base));
-        // Y se aplica TAMBIÉN en la nube: quitar la fila del array local no basta, la de la tabla
-        // seguía viva y volvía en el siguiente pull o al reconectar el banco.
-        if(rec.borrar.length || rec.recat.length){
+        // reconcileObDupes: solo recat (cashback); nunca DELETE automático por similitud.
+        if(rec.recat.length){
           setTimeout(function(){
-            rec.borrar.forEach(function(e){ cloud.deleteExpense(e).catch(function(){}); });
             rec.recat.forEach(function(r){ cloud.setExpenseCat(r.expense, r.cat).catch(function(){}); });
           },0);
         }
@@ -17554,6 +17659,7 @@ function App(){
           // Usuario que ya tenía cartera en la nube: no repetir onboarding en otro dispositivo.
           if(freshLogin && (cloudState.accounts||[]).length) baseObj.onboarded=true;
           if(freshLogin && ((cloudState.accounts||[]).length || (cloudState.monthStartNet||0)>0)) baseObj.setupHint=false;
+          // Call site 2/3 de fixMovInvasion (syncFromCloud). Contención dentro de la fn, no aquí.
           return seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR(baseObj))))));
         });
       } else if(cloudState){
@@ -18640,14 +18746,20 @@ function App(){
     const today=new Date().getDate();                    // día de hoy (para separar pagado/pendiente)
     // SALDO DINÁMICO: cada banco = base (inicio de mes) + movimientos YA ocurridos este mes
     // (ingresos/nómina/bizums − fijos − cuotas − puntuales − transfers). El de gasto (TR) usa su inyección.
+    // La diaria resta SOLO lo suyo (`spentByBank[ent]`), no thisMonthSpent entero: si no, un
+    // cargo de Revolut se come TR (257 € el 2026-08-18). thisMonthSpent se queda para Hogar / fallback.
     const paidNetByBank={};
     state.accounts.forEach(function(a){ if(accFixed(a)) paidNetByBank[a.ent]=(paidNetByBank[a.ent]||0)+monthNetForAccount(state,a.ent,curYear,curMonth,today); });
+    const dailyEnt=trAcc&&trAcc.ent;
+    const spentByBank=gastoDelMesPorBanco(thisMonthExp, dailyEnt);
     // el round-up y el aporte periódico del mes ya salieron del efectivo de gasto (TR) hacia la inversión (en tránsito)
     const dynBal=function(a){
       if(!accDaily(a)) return (a.value||0)+(paidNetByBank[a.ent]||0);
-      let v=a.value+injTR-thisMonthSpent-roundupThisMonth-monthlyInvestThisMonth;
-      if(accRole(a)==="ambos") v+=(paidNetByBank[a.ent]||0);   // una cuenta para todo: también lleva sus fijos/nómina
-      return v;
+      return saldoCuentaGasto({
+        value:a.value, injTR:injTR, spentOwn:spentByBank[a.ent]||0,
+        roundup:roundupThisMonth, monthlyInvest:monthlyInvestThisMonth,
+        ambos:accRole(a)==="ambos", paidNet:paidNetByBank[a.ent]||0
+      });
     };
     // cuentas extra de Open Banking (2ª cuenta de un banco, compartidas…): saldo puro, suma al líquido
     const obLiquid=(state.obAccounts||[]).reduce((a,o)=> a + toEurAmt(o.value||0, o.cur||"EUR", state), 0);
@@ -18724,7 +18836,7 @@ function App(){
     /* DEPENDENCIAS: ojo al tocar este bloque — la lista de abajo tiene que incluir TODO
        `state.loQueSea` que se lea aquí dentro (incluidos los que leen las funciones auxiliares:
        monthNetForAccount → fixed/debts/oneoffs/flows; toEurAmt/invValueEur → fx y fxRates). */
-    return {liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,delta,deltaPct,thisMonthSpent,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
+    return {liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,delta,deltaPct,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
   // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` en CADA cambio, el
   // objeto de estado es nuevo siempre → el memo NUNCA acertaba y este cálculo (que recorre gastos,
   // fijos, deudas, flujos y simula el mes día a día) se rehacía al abrir una ficha, al escribir en
@@ -19396,6 +19508,18 @@ function App(){
       if(appShellRef.current && appShellRef.current.classList.contains("gesture-freeze")) freezeShell(false);
     }catch(e){}
     ensureScrollHost();
+    /* ⛔ NO PROMOVER AQUÍ LA CAPA DEL TRACK — PROBADO Y REVERTIDO EL 2026-08-18.
+       Se intentó `trackRef.current.style.willChange="transform"` en el touchstart, para que el
+       compositor creara la capa del carrusel con el dedo aún quieto en vez de a mitad del gesto.
+       Resultado medido en su OnePlus 13: el parpadeo **siguió igual** Y además apareció un fallo
+       nuevo que él vio al instante — «se baja todo un poco hacia abajo al scrollear».
+       La causa está escrita 200 líneas más abajo, en `ensureScrollHost`: «el track aparca con
+       `left` SIN transform — un ancestro con transform mata el overscroll nativo». **`will-change:
+       transform` crea el MISMO containing block que `transform`**, así que el `position:fixed` de
+       `.page-scroll-host` deja de referirse a la pantalla y pasa a referirse al track: todo el
+       contenido se desplaza al scrollear.
+       Regla que deja esto: en este carrusel, NADA de `transform`/`will-change:transform`/`filter`/
+       `perspective` en el track ni en ningún ancestro del host mientras el host sea `fixed`. */
     dragging.current=true; axis.current=null; dx.current=0; startT.current=Date.now(); gestureMode.current=null;
     // El ancho del track, UNA vez y aquí: el layout todavía está limpio (no se ha congelado nada
     // ni añadido clases), así que esta lectura no fuerza reflow. Ver el porqué largo en `onMove`.
@@ -19745,7 +19869,17 @@ function App(){
       el.removeEventListener("touchend", t);
       el.removeEventListener("touchcancel", c);
     };
-  },[]);
+  /* ⚠ LAS DEPS NO SON DECORACIÓN (bug encontrado y reproducido el 2026-08-18).
+     `App` sale por `return` ANTES del `.viewport` en dos casos —candado (`locked`) y onboarding
+     (`state.onboarded===false`)—, así que en esos arranques `viewportRef.current` es `null`, este
+     efecto se rinde en el `if(!el)` y, con `[]`, NO SE VOLVÍA A EJECUTAR NUNCA. Al desbloquear o
+     al terminar el onboarding la app se pintaba entera pero **sin un solo listener de gestos**:
+     medido con CDP, `.viewport` con 0 listeners, y los toques llegaban al documento sin que nadie
+     los recogiera. Los gestos de pestañas no volvían hasta cerrar y reabrir la app.
+     A quien mordía: cualquiera que ESTRENA la app (su padre y su pareja, su primer día).
+     El efecto de la tabbar de aquí al lado ya llevaba estas mismas deps por este mismo motivo
+     —«si la app arranca en el candado o el onboarding, la tabbar aún no existe»—; aquí faltaban. */
+  },[locked, state.onboarded]);
   // Toque en la barra inferior (y cualquier setTab que no venga del gesto): mismo asentamiento
   // por rAF. Si el gesto ya lo arrancó hacia este índice, asentarTrack no reinicia.
   // Mismo apagado de desenfoque que ya tiene el swipe, aquí también (2026-08-03, bug 1 «la rayita
