@@ -19344,6 +19344,11 @@ function App(){
   // en silencio para no disparar tres de golpe). Suena también como toast en la app.
   // Misma cifra que Resumen/Gastos (`monthBudgetStats`): sin neutras ni reservas, no
   // `thisMonthSpent` (feedback «el presupuesto no cuadra» — 2026-08-05).
+  // accounts + settings enteros en deps: monthBudgetStats → expenseBankEnts (B09-A2 /
+  // 2026-09-07). Sin ellos, quitar/añadir un banco de gasto diario no reevaluaba el % y
+  // podía dejar selladas (o sin disparar) las banderas _bn* del mes.
+  // settings entero también re-corre al cambiar expenseOrder (arrastre 4.19.0): inofensivo
+  // porque _bn* son idempotentes y `seen` impide repetir el toast/noti.
   useEffect(function(){
     if(state.onboarded===false||locked) return;
     const bs=monthBudgetStats(state);
@@ -19364,7 +19369,7 @@ function App(){
       const nat=natPlugin();
       if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Mi Cartera",body:msg}).catch(function(){}); }catch(e){} }
     });
-  },[state.onboarded,locked,state.expenses,state.budget,state.reservaLog,state.settings&&state.settings.gTotalMode]);
+  },[state.onboarded,locked,state.expenses,state.budget,state.reservaLog,state.accounts,state.settings]);
   // Snapshot diario del total invertido (€) para el gráfico de evolución (#6). Se actualiza si cambia valor/coste hoy.
   const invSnapRef=useRef("");
   useEffect(function(){

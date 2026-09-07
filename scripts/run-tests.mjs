@@ -39,6 +39,7 @@ const steps = [
   ["security", ["node", "tests/security.test.mjs"]],
   ["webdebug-guard", ["node", "tests/webdebug-guard.test.mjs"]],
   ["gastos-active-bus", ["node", "tests/gastos-active-bus.test.mjs"]],
+  ["budget-notis-deps", ["node", "tests/budget-notis-deps.test.mjs"]],
   ["track-asentar-raf", ["node", "tests/track-asentar-raf.test.mjs"]],
   ["season-detalle", ["node", "tests/season-detalle.test.mjs"]],
   ["edge-sintaxis", ["node", "tests/edge-sintaxis.test.mjs"]],
