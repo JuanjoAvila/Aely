@@ -2092,20 +2092,31 @@ function relDay(d){
    y el test month-window carga los DOS. Antes: cliente = hora del dispositivo, ingest = UTC;
    el día 1 a las 00:30 en España caía en meses distintos (widget ≠ app). */
 const MC_TZ="Europe/Madrid";
+/* Cache de formatters + ym→ms: sin esto, cada startOfMonth() recreaba Intl y hacía
+   búsqueda binaria (~15 format). Con histórico grande el filter de totals llamaba
+   startOfMonth() POR gasto y mataba el premontado de pestañas (e2e rendimiento-tabs,
+   CI 34155106775 en 4.19.2). */
+var _mcInicioMesYmFmt=null, _mcInicioMesDiaFmt=null, _mcInicioMesTz=null, _mcInicioMesByYm={};
 function inicioDeMesMs(when, timeZone){
   const t0=when instanceof Date ? when.getTime() : (when==null?Date.now():Number(when));
   timeZone=timeZone||MC_TZ;
-  const ym=new Intl.DateTimeFormat("en-CA",{timeZone:timeZone,year:"numeric",month:"2-digit"}).format(new Date(t0));
+  if(_mcInicioMesTz!==timeZone || !_mcInicioMesYmFmt){
+    _mcInicioMesTz=timeZone;
+    _mcInicioMesYmFmt=new Intl.DateTimeFormat("en-CA",{timeZone:timeZone,year:"numeric",month:"2-digit"});
+    _mcInicioMesDiaFmt=new Intl.DateTimeFormat("en-CA",{timeZone:timeZone,year:"numeric",month:"2-digit",day:"2-digit"});
+    _mcInicioMesByYm={};
+  }
+  const ym=_mcInicioMesYmFmt.format(new Date(t0));
+  if(_mcInicioMesByYm[ym]!=null) return _mcInicioMesByYm[ym];
   const parts=ym.split("-"); const y=+parts[0], m=+parts[1];
   const target=y+"-"+(m<10?"0":"")+m+"-01";
-  const localYmd=function(ms){
-    return new Intl.DateTimeFormat("en-CA",{timeZone:timeZone,year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(ms));
-  };
+  const localYmd=function(ms){ return _mcInicioMesDiaFmt.format(new Date(ms)); };
   let lo=Date.UTC(y,m-1,1)-14*3600000, hi=Date.UTC(y,m-1,1)+14*3600000;
   while(lo<hi){
     const mid=Math.floor((lo+hi)/2);
     if(localYmd(mid)<target) lo=mid+1; else hi=mid;
   }
+  _mcInicioMesByYm[ym]=lo;
   return lo;
 }
 const startOfMonth=(d)=>{ d=d||new Date(); return new Date(inicioDeMesMs(d)); };

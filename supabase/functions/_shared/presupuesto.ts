@@ -31,16 +31,30 @@ export const MC_TZ = "Europe/Madrid";
  * B09-B: ingest usaba `Date.UTC(y,m,1)` y el cliente `new Date(y,m,1)` local; una compra el
  * día 1 a las 00:30 en España caía en meses distintos → widget ≠ app.
  */
+/* Formatters + ym→ms cacheados (espejo cliente 01-i18n.js). Misma semántica; evita
+   recrear Intl en cada llamada cuando ingest/widget reevalúan el mes. */
+let _inicioMesYmFmt: Intl.DateTimeFormat | null = null;
+let _inicioMesDiaFmt: Intl.DateTimeFormat | null = null;
+let _inicioMesTz: string | null = null;
+let _inicioMesByYm: Record<string, number> = {};
+
 export function inicioDeMesMs(when: number | Date = Date.now(), timeZone: string = MC_TZ): number {
   const t0 = when instanceof Date ? when.getTime() : Number(when);
-  const ym = new Intl.DateTimeFormat("en-CA", {
-    timeZone, year: "numeric", month: "2-digit",
-  }).format(new Date(t0)); // "2026-09"
+  if (_inicioMesTz !== timeZone || !_inicioMesYmFmt) {
+    _inicioMesTz = timeZone;
+    _inicioMesYmFmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone, year: "numeric", month: "2-digit",
+    });
+    _inicioMesDiaFmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone, year: "numeric", month: "2-digit", day: "2-digit",
+    });
+    _inicioMesByYm = {};
+  }
+  const ym = _inicioMesYmFmt.format(new Date(t0)); // "2026-09"
+  if (_inicioMesByYm[ym] != null) return _inicioMesByYm[ym];
   const [y, m] = ym.split("-").map(Number);
   const target = y + "-" + String(m).padStart(2, "0") + "-01";
-  const localYmd = (ms: number) => new Intl.DateTimeFormat("en-CA", {
-    timeZone, year: "numeric", month: "2-digit", day: "2-digit",
-  }).format(new Date(ms));
+  const localYmd = (ms: number) => _inicioMesDiaFmt!.format(new Date(ms));
   // Primer ms UTC cuya fecha local en la zona es el día 1 (DST-safe).
   let lo = Date.UTC(y, m - 1, 1) - 14 * 3600_000;
   let hi = Date.UTC(y, m - 1, 1) + 14 * 3600_000;
@@ -49,6 +63,7 @@ export function inicioDeMesMs(when: number | Date = Date.now(), timeZone: string
     if (localYmd(mid) < target) lo = mid + 1;
     else hi = mid;
   }
+  _inicioMesByYm[ym] = lo;
   return lo;
 }
 

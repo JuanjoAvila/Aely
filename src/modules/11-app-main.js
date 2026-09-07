@@ -1425,8 +1425,10 @@ function App(){
   const totals=useMemo(()=>{
     // Solo lo que sale de bancos de gasto diario (y a mano): si no, un cargo de Sabadell
     // «solo para ver» restaría del efectivo de TR (2026-08-05).
+    // startOfMonth UNA vez: antes iba dentro del filter → N× Intl (regresión B09-B / CI tabs).
+    const monthStart=startOfMonth();
     const thisMonthExp=(state.expenses||[]).filter(function(e){
-      return parseDate(e.date)>=startOfMonth() && expenseCountsCash(e, state);
+      return parseDate(e.date)>=monthStart && expenseCountsCash(e, state);
     });
     const thisMonthSpent=thisMonthExp.reduce((a,e)=>a+e.amount,0);
     // Efectivo de TR = base del mes + nómina (si ya entró el último día laborable) − gasto del mes.

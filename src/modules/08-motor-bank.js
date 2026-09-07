@@ -173,7 +173,8 @@ function applyBankBalances(s, links){
         if(role==="fijos"){
           newBase=+((bal - monthNetForAccount(s, ent, cy, cm, td)).toFixed(2));
         } else {
-          const monthExp=(s.expenses||[]).filter(function(e){ return parseDate(e.date)>=startOfMonth(); });
+          const monthStart=startOfMonth();
+          const monthExp=(s.expenses||[]).filter(function(e){ return parseDate(e.date)>=monthStart; });
           const spentM=monthExp.reduce(function(x,e){ return x+e.amount; },0);
           const ruMv=(a.roundupManual!=null)?a.roundupManual:roundupOf(monthExp, a.roundup||0);
           const miMv=a.monthlyInvest||0;

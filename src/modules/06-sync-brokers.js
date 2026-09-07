@@ -816,7 +816,8 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
       const setTr=function(patch){ set(function(s){ return Object.assign({},s,{accounts:s.accounts.map(function(a){ return a.spendFrom?Object.assign({},a,patch):a; })}); }); };
       const setTot=function(v){ set(function(s){ return Object.assign({},s,{trRewardsTotal:v}); }); };
       const numOrNull=function(v){ v=String(v).trim(); return v===""?null:(parseFloat(v.replace(',','.'))||0); };
-      const monthExp=(state.expenses||[]).filter(function(e){ return parseDate(e.date)>=startOfMonth(); });
+      const monthStart=startOfMonth();
+      const monthExp=(state.expenses||[]).filter(function(e){ return parseDate(e.date)>=monthStart; });
       const mult=trAcc.roundup||0;
       const ruAuto=roundupOf(monthExp, mult), sbAuto=trAcc.saveback?savebackOf(monthExp):0;
       const ru=(trAcc.roundupManual!=null)?trAcc.roundupManual:ruAuto, sb=(trAcc.savebackManual!=null)?trAcc.savebackManual:sbAuto, tot=state.trRewardsTotal||0;

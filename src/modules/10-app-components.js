@@ -1472,6 +1472,31 @@ function rnItems(r,lg){
   return it[lg||CURLANG]||it.es||[];
 }
 var RELEASE_NOTES=[
+  {v:"4.19.4", d:"7 sep 2026",
+   t:{es:"La app arranca más suelta si tienes muchos movimientos",
+      en:"The app starts more smoothly when you have lots of transactions",
+      ca:"L'app arrenca més fluida si tens molts moviments"},
+   tandas:[
+     {id:"arranque-suelto", t:{es:"⚡ Arranque con histórico grande", en:"⚡ Start with a large history", ca:"⚡ Arrencada amb historic gran"},
+      items:{
+        es:[
+          "Con la app recién abierta, espera unos segundos en Inicio y cambia a Gastos, Plan y Cartera: las cuatro tienen que responder sin quedarse colgadas.",
+          "Si tienes muchos movimientos, el primer cambio de pestaña no tiene que notarse más lento que el resto.",
+        ],
+        en:[
+          "With the app freshly opened, wait a few seconds on Home and switch to Expenses, Plan and Portfolio: all four should respond without hanging.",
+          "If you have lots of transactions, the first tab switch should not feel slower than the others.",
+        ],
+        ca:[
+          "Amb l'app acabada d'obrir, espera uns segons a Inici i canvia a Despeses, Pla i Cartera: les quatre han de respondre sense quedar-se penjades.",
+          "Si tens molts moviments, el primer canvi de pestanya no ha de notar-se mes lent que la resta.",
+        ]}}
+   ],
+   items:{
+     es:["Con muchos movimientos, cambiar de pestaña al arrancar vuelve a ir fluido."],
+     en:["With lots of transactions, switching tabs right after launch feels smooth again."],
+     ca:["Amb molts moviments, canviar de pestanya en arrencar torna a anar fluid."]
+   }},
   {v:"4.19.3", d:"7 sep 2026",
    t:{es:"Revisar la beta enseña toda la ronda, con pasos claros",
       en:"Beta review shows the whole round, with clear steps",

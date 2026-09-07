@@ -95,8 +95,9 @@ function shareMonthReport(state, tt, showToast){
     }
     // top 3 categorías del mes
     const byCat={};
+    const monthStart=startOfMonth();
     (state.expenses||[]).filter(function(e){
-      return parseDate(e.date)>=startOfMonth() && e.amount>0 && !CAT_NEUTRAS[e.category];
+      return parseDate(e.date)>=monthStart && e.amount>0 && !CAT_NEUTRAS[e.category];
     })
       .forEach(function(e){ byCat[e.category||"otros"]=(byCat[e.category||"otros"]||0)+e.amount; });
     const top=Object.keys(byCat).map(function(k){ return [k,byCat[k]]; }).sort(function(a,b){ return b[1]-a[1]; }).slice(0,3);

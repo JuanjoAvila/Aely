@@ -2,6 +2,19 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.4] — 2026-09-07
+### Premontado de pestañas: no ahogar el idle con la ventana de mes
+
+- **Causa (CI 34155106775 en 4.19.2):** `inicioDeMesMs` recreaba `Intl.DateTimeFormat` y hacía
+  búsqueda binaria en cada llamada; `totals` (y otros filtros) invocaban `startOfMonth()`
+  **dentro** del `.filter` por cada gasto. Con ~1200 movimientos y CPU×6 el hilo no liberaba
+  idle → solo 2 pestañas montadas tras 6 s (`e2e/rendimiento-tabs`).
+- **Fix:** cache de formatters + `ym→ms` en cliente e ingest; `startOfMonth()` una vez antes
+  del bucle en `11-app-main`, `02-ui-shared`, `13-hogar`, `08-motor-bank`, `06-sync-brokers`.
+  Semántica de B09-B intacta (`month-window` sigue verde).
+
+OTA; sin Android. Edge Function sin redespliegue (misma ventana, solo cache).
+
 ## [4.19.3] — 2026-09-07
 ### Panel «Revisar la beta»: ronda entera + pasos
 

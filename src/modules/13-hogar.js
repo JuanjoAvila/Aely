@@ -18,9 +18,10 @@ function buildHouseholdSnapshot(state, totals, email){
   });
   // Gastos del mes por categoría (sin comercios: privacidad)
   const byCat={};
+  const monthStart=startOfMonth();
   (state.expenses||[]).forEach(function(e){
     if(!(e.amount>0)) return;
-    if(parseDate(e.date)<startOfMonth()) return;
+    if(parseDate(e.date)<monthStart) return;
     const k=e.category||"otros";
     byCat[k]=(byCat[k]||0)+e.amount;
   });
