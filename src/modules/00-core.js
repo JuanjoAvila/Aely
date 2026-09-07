@@ -1157,6 +1157,32 @@ function moveExpenseWithinDay(state, fromId, toId){
   const settings=Object.assign({},state.settings,{expenseOrder:Object.assign({},((state.settings||{}).expenseOrder)||{},{[day]:ids})});
   return Object.assign({},state,{settings:settings});
 }
+/* Resuelve un OB marcado como posible repetido (2026-09-07).
+   same=true  → se queda el gemelo con nombre (noti/manual) y se borra la fila OB.
+   same=false → son dos cargos reales: se quita la marca y la fila OB ya cuenta. */
+function resolvePossibleDup(state, expenseId, same){
+  if(!state || !expenseId) return state;
+  const ex=(state.expenses||[]).find(function(e){ return e && e.id===expenseId; });
+  if(!ex || !ex.possibleDup) return state;
+  if(same){
+    const twinId=ex.possibleDupOf;
+    const twin=twinId && (state.expenses||[]).find(function(e){ return e && e.id===twinId; });
+    let expenses=(state.expenses||[]).filter(function(e){ return e && e.id!==expenseId; });
+    // Si el gemelo no tenía extId del banco, se lo pasa la fila OB al fundirse.
+    if(twin && ex.extId && !twin.extId){
+      expenses=expenses.map(function(e){
+        return e.id===twin.id ? Object.assign({},e,{extId:ex.extId}) : e;
+      });
+    }
+    return Object.assign({},state,{expenses:expenses});
+  }
+  return Object.assign({},state,{expenses:(state.expenses||[]).map(function(e){
+    if(e.id!==expenseId) return e;
+    const u=Object.assign({},e);
+    delete u.possibleDup; delete u.possibleDupOf;
+    return u;
+  })});
+}
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){
   const raw=String(r.source||"manual");

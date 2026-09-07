@@ -402,12 +402,34 @@ function importObExpenses(s, txs){
   const nameForKey=function(e){ return e.obName!=null ? e.obName : (e.merchant||""); };
   const kOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+nameForKey(e); };
   const keys={}; (s.expenses||[]).forEach(function(e){ keys[kOf(e)]=1; });
-  /* NO SE DESCARTA POR «PARECIDO» (2026-09-07). TR por Open Banking no manda id, comercio ni
-     hora: dos cargos de 23 € dentro de tres días pueden ser el mismo que llegó por una noti, o
-     pueden ser dos compras reales (el ChatGPT de 23 € se perdió así). Sin identidad no hay una
-     respuesta honesta. El dedup exacto de arriba sigue evitando reimportar la MISMA fila OB; lo
-     ambiguo se conserva para que el usuario pueda verlo y decidir, coherente con la contención
-     4.18.6: un posible duplicado visible es recuperable, un movimiento oculto no. */
+  /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
+     sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
+  const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
+  /* POSIBLE REPETIDO, NO DESCARTE (2026-09-07). TR por OB no manda id/comercio/hora: un
+     «Movimiento» sin nombre puede ser el mismo cargo que ya entró por la noti del móvil, o una
+     compra distinta del mismo importe. Descartar callaba pérdidas (y, sin filtrar banco, un
+     Revolut de 23 € se comía un TR). La red solo MIRA la misma entidad (`expenseBankOf`) y
+     fuentes que no son OB; si casa 1 a 1, la fila OB ENTRA marcada (`possibleDup`) para que él
+     diga «es el mismo» o «son distintos». Cero decisiones irreversibles automáticas. */
+  const DUP_MS=3*86400000;
+  const otrasVias=(s.expenses||[]).filter(function(e){
+    return e && e.source!=="ob" && e.source!=="ob-hist";
+  });
+  const usadoDup={};
+  const gemeloOtraVia=function(tx){
+    if(tx.merchant && tx.merchant!=="Movimiento") return null;
+    if(!tx.ent) return null;
+    const ms=parseDate(tx.date).getTime();
+    const hit=otrasVias.findIndex(function(e,i){
+      if(usadoDup[i]) return false;
+      if(expenseBankOf(e)!==tx.ent) return false;
+      if(Math.abs((e.amount||0)-tx.amount)>0.005) return false;
+      return Math.abs(dateMs(e.date)-ms)<=DUP_MS;
+    });
+    if(hit<0) return null;
+    usadoDup[hit]=1;
+    return otrasVias[hit];
+  };
   // Cargos ya modelados ESTE mes por entidad (Fijos/deudas/puntuales), para no duplicar un recibo.
   const now=new Date(), ym=now.getMonth()+1, yy=now.getFullYear();
   const modeledByEnt={};
@@ -432,7 +454,9 @@ function importObExpenses(s, txs){
       if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
       if(tx.id) e.extId=tx.id;
       const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-      if(keys[kOf(e)]) return;
+      if(keys[kOf(e)] || delSet[kOf(e)]) return;
+      const gemIn=gemeloOtraVia(tx);
+      if(gemIn && gemIn.id){ e.possibleDup=true; e.possibleDupOf=gemIn.id; }
       keys[kOf(e)]=1; add.push(e);
       return;
     }
@@ -449,7 +473,9 @@ function importObExpenses(s, txs){
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
     if(tx.id) e.extId=tx.id;
     const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-    if(keys[kOf(e)]) return;
+    if(keys[kOf(e)] || delSet[kOf(e)]) return;
+    const gem=gemeloOtraVia(tx);
+    if(gem && gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
     keys[kOf(e)]=1;
     add.push(e);
   });

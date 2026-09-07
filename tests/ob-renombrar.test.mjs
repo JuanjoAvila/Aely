@@ -98,15 +98,75 @@ t("dos cargos iguales de verdad siguen entrando los dos", () => {
   assert.equal(String(dos[0].date).slice(0, 10), dia(-2));
 });
 
-t("renombrar no rompe el gemelo de MacroDroid (la red de ±3 días)", () => {
-  /* Sus gastos de TR entran ANTES por la noti del móvil, con el comercio de verdad. Open Banking
-     los trae uno o dos días después y sin nombre. Esa red no la puede debilitar esto. */
+t("★ noti TR SIN ent (como llegan de verdad) + OB sin nombre → entra marcado, no se pierde", () => {
+  /* Claude 2026-09-07: si el test pone ent a mano, no protege expenseBankOf. Las notis reales
+     llegan source:macrodroid a secas; el banco se infiere. */
   const porNoti = {
     id: "n1", date: new Date(dia(-2) + "T12:00:00").toISOString(), amount: 41.8,
-    merchant: "Repsol", category: "transporte", source: "macrodroid", ent: "trade_republic",
+    merchant: "Repsol", category: "transporte", source: "macrodroid",
   };
+  assert.equal(ctx.expenseBankOf(porNoti), "trade_republic");
   const otra = ctx.importObExpenses(estado([porNoti]), [movTR(dia(-1), 41.8)]);
-  assert.equal(otra, null, "el mismo gasto por dos caminos sigue siendo uno solo");
+  assert.equal(otra && otra.length, 1, "la fila OB entra (cero pérdidas silenciosas)");
+  assert.equal(otra[0].possibleDup, true);
+  assert.equal(otra[0].possibleDupOf, "n1");
+  assert.equal(porNoti.merchant, "Repsol", "la noti con nombre bueno sigue intacta");
+});
+
+t("★ cross-banco: Revolut 23 € NO marca un Movimiento de TR de 23 €", () => {
+  const revo = {
+    id: "r1", date: new Date(dia(-1) + "T12:00:00").toISOString(), amount: 23,
+    merchant: "ChatGPT", category: "ocio", source: "manual", ent: "revolut",
+  };
+  const otra = ctx.importObExpenses(estado([revo]), [movTR(dia(-1), 23)]);
+  assert.equal(otra && otra.length, 1, "TR entra igual");
+  assert.equal(!!otra[0].possibleDup, false, "cross-banco no marca");
+});
+
+t("idempotencia: dos pasadas seguidas no duplican ni re-marcan", () => {
+  const porNoti = {
+    id: "n2", date: new Date(dia(-2) + "T12:00:00").toISOString(), amount: 12.5,
+    merchant: "Cafe", category: "ocio", source: "macrodroid",
+  };
+  const prim = ctx.importObExpenses(estado([porNoti]), [movTR(dia(-1), 12.5)]);
+  assert.equal(prim.length, 1);
+  assert.equal(prim[0].possibleDup, true);
+  const seg = ctx.importObExpenses(estado([porNoti].concat(prim)), [movTR(dia(-1), 12.5)]);
+  assert.equal(seg, null, "segunda pasada: ya está, no duplica");
+});
+
+t("«son distintos»: la marca se quita y el siguiente sync no la vuelve a poner", () => {
+  const porNoti = {
+    id: "n3", date: new Date(dia(-2) + "T12:00:00").toISOString(), amount: 9.9,
+    merchant: "Parking", category: "transporte", source: "macrodroid",
+  };
+  const base = estado([porNoti]);
+  const add = ctx.importObExpenses(base, [movTR(dia(-1), 9.9)]);
+  const marcado = add[0];
+  assert.equal(ctx.expenseCountsCash(marcado, base), false, "marcada: no mueve saldo ni presupuesto");
+  const limpio = ctx.resolvePossibleDup(Object.assign({}, base, { expenses: [porNoti, marcado] }), marcado.id, false);
+  const fila = limpio.expenses.find((e) => e.id === marcado.id);
+  assert.equal(!!fila.possibleDup, false);
+  assert.equal(ctx.expenseCountsCash(fila, limpio), true, "tras «son distintos» ya cuenta");
+  const otra = ctx.importObExpenses(limpio, [movTR(dia(-1), 9.9)]);
+  assert.equal(otra, null, "fila ya presente sin marca → sync no reintroduce la marca");
+  assert.equal(!!limpio.expenses.find((e) => e.id === marcado.id).possibleDup, false);
+});
+
+t("«es el mismo»: borra OB + lápida y el sync no lo resucita marcado", () => {
+  const porNoti = {
+    id: "n4", date: new Date(dia(-2) + "T12:00:00").toISOString(), amount: 7.5,
+    merchant: "Pan", category: "super", source: "macrodroid",
+  };
+  const add = ctx.importObExpenses(estado([porNoti]), [movTR(dia(-1), 7.5)]);
+  const ob = add[0];
+  let s = ctx.resolvePossibleDup(estado([porNoti, ob]), ob.id, true);
+  const k = String(ob.date).slice(0, 10) + "|" + ob.amount + "|" + (ob.merchant || "");
+  s = Object.assign({}, s, { deleted: ctx.pushDeleted(s.deleted, k) });
+  assert.equal(s.expenses.some((e) => e.id === ob.id), false);
+  assert.ok(s.expenses.some((e) => e.id === "n4" && e.merchant === "Pan"));
+  const otra = ctx.importObExpenses(s, [movTR(dia(-1), 7.5)]);
+  assert.equal(otra, null, "lápida impide resucitar el Movimiento");
 });
 
 console.log("  ok");

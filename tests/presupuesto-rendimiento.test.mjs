@@ -46,10 +46,18 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
    del tope mientras el GZIP —que es lo que baja el móvil de verdad— se quedó en 330/340 KB, con
    margen. Recortar aquí sería recortar novedades o idiomas, y en esta casa eso no se toca. Se sube
    el tope del minificado a 1200 KB (~3 % de aire sobre los 1167 medidos hoy) y se deja el de gzip
-   quieto, que es el que de verdad frena una regresión gorda. */
+   quieto, que es el que de verdad frena una regresión gorda.
+
+   SUBIDO 2026-09-07 (minificado y gzip): la 4.19.0 suma ~8,5 KB min / ~2,7 KB gzip sobre un tip
+   (4.18.7) que YA iba justo (1194,5 / 337,7). Casi la mitad del crecimiento es la nota de versión
+   en tres idiomas; el resto es orden táctil en Gastos y el estado reactivo de Trade Republic —
+   nada de eso es grasa, y recortar la nota sería lo que el 06/08 ya descartó. Se sube el
+   minificado a 1240 KB (~3 % sobre los 1203 medidos hoy) y el gzip a 350 KB (~2,8 % sobre 340,4):
+   el gzip se mueve poco a propósito, porque es lo que baja el móvil. El problema de fondo (las
+   notas se acumulan para siempre en el bundle) queda para una tanda aparte. */
 const PRESUPUESTO = {
-  minificado: 1200 * 1024,  // medido 2026-08-06: 1167 KB
-  gzip: 340 * 1024,         // medido 2026-08-03: 318 KB  ← esto es lo que baja el móvil
+  minificado: 1240 * 1024,  // medido 2026-09-07: 1203 KB
+  gzip: 350 * 1024,         // medido 2026-09-07: 340,4 KB  ← esto es lo que baja el móvil
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

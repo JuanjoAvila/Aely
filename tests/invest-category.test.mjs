@@ -268,16 +268,24 @@ function estadoConMacroDroid(extra) {
   };
 }
 
-t("un gasto que ya entró por el móvil NO se repite cuando el banco lo trae un día después sin nombre", () => {
+t("un gasto que ya entró por el móvil NO se pierde: el banco lo trae marcado", () => {
   const s = estadoConMacroDroid();
+  assert.equal(s.expenses[0].ent, undefined, "noti real: sin ent; protege expenseBankOf");
+  assert.equal(ctx.expenseBankOf(s.expenses[0]), "trade_republic");
   const txs = [{ ent: "trade_republic", id: null, date: dayAt(-4), amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" }];
-  assert.equal(ctx.importObExpenses(s, txs), null, "mismo importe, un día después, sin nombre → es el mismo gasto");
+  const add = ctx.importObExpenses(s, txs);
+  assert.equal(add && add.length, 1, "entra (no se descarta)");
+  assert.equal(add[0].possibleDup, true);
+  assert.equal(add[0].possibleDupOf, "m1");
 });
 
 t("lo mismo con los ingresos (el bizum que el banco repite sin decir de quién)", () => {
   const s = estadoConMacroDroid();
   const txs = [{ ent: "trade_republic", id: null, date: dayAt(-5), amount: -34.7, merchant: "Movimiento", note: "", card: false, status: "BOOK" }];
-  assert.equal(ctx.importObExpenses(s, txs), null);
+  const add = ctx.importObExpenses(s, txs);
+  assert.equal(add && add.length, 1);
+  assert.equal(add[0].possibleDup, true);
+  assert.equal(add[0].possibleDupOf, "m2");
 });
 
 t("pero lo que SOLO ve el banco (round-up, cashback, aporte) sí entra", () => {
@@ -291,14 +299,22 @@ t("pero lo que SOLO ve el banco (round-up, cashback, aporte) sí entra", () => {
   assert.equal(add.find((e) => e.amount === 50).category, "inversion", "y el aporte sigue reconociéndose");
 });
 
-t("el emparejamiento es 1 a 1: dos cargos iguales de verdad con uno solo apuntado dejan pasar el otro", () => {
+t("el emparejamiento es 1 a 1: el gemelo marca uno; otro cargo real del mismo importe entra limpio", () => {
+  /* Mismo día + mismo importe + «Movimiento» chocan en kOf (dedup de siempre): solo cabe uno.
+     El 1 a 1 se ve con OTRO día: el primero gasta el gemelo de la noti; el segundo no tiene
+     pareja y entra sin marca. */
   const s = estadoConMacroDroid();
   const txs = [
     { ent: "trade_republic", id: null, date: dayAt(-4), amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
-    { ent: "trade_republic", id: null, date: dayAt(-4), amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
+    { ent: "trade_republic", id: null, date: dayAt(-3), amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
   ];
   const add = ctx.importObExpenses(s, txs);
-  assert.equal(add.length, 1, "solo uno tenía gemelo; el segundo es un cargo real distinto");
+  assert.equal(add.length, 2, "los dos entran");
+  const marked = add.filter((e) => e.possibleDup);
+  const clean = add.filter((e) => !e.possibleDup);
+  assert.equal(marked.length, 1, "solo uno tenía gemelo");
+  assert.equal(marked[0].possibleDupOf, "m1");
+  assert.equal(clean.length, 1, "el segundo es un cargo real distinto, sin marca");
 });
 
 t("si el banco SÍ dice el comercio no se aplica esta red (ahí manda el dedup de siempre)", () => {
