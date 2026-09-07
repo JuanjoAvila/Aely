@@ -9,8 +9,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y ver
   `applyTrCash` que la tarjeta específica. Antes actualizaba posiciones pero descartaba el efectivo.
 - **Movimientos multicuenta:** `flattenBankTx` consume todas las listas
   `accounts[].transactions` y usa el bloque superior solo para el contrato antiguo.
-- **Sin falsos negativos por similitud:** el import OB ya no descarta movimientos sin identidad
-  solo por coincidir en importe dentro de ±3 días. El dedup exacto por identificador o clave OB sigue.
+- **Posible repetido (no descarte):** `importObExpenses` ya no tira un OB sin nombre por
+  coincidir importe ±3 días con otra vía. Si casa 1:1 con la misma entidad (`expenseBankOf`),
+  entra marcado (`possibleDup`) y no cuenta en cash/presupuesto hasta que se resuelva
+  («es el mismo» borra la OB + lápida; «son distintos» quita la marca). Cross-banco no marca.
+  Dedup exacto por `ext_id` / `kOf` intacto. Guardianes: `ob-renombrar`, `invest-category`.
 - **Estado de TR reactivo:** verificar, sincronizar, caducar o desconectar emite `mc-tr-status`,
   por lo que Ajustes y Cartera cambian sin reiniciar la app.
 - **Categoría IA:** ChatGPT, Claude, Cursor y equivalentes se clasifican como `ia` en cliente,
@@ -18,8 +21,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y ver
   a que `setExpenseCat` escriba por ID estable y no por atributos.
 - **Orden de Gastos:** asa táctil y `settings.expenseOrder` por día. No inventa horas ni modifica
   `date`; el E2E cubre gesto, DOM, persistencia, recarga y fechas intactas.
+- **Presupuesto bundle:** tope minificado 1240 KB / gzip 350 KB (notas + UI de orden).
 
-Guardianes: `tr-open-banking`, `categories`, `ingest-classify`,
+Guardianes: `tr-open-banking`, `categories`, `ingest-classify`, `ob-renombrar`,
 `e2e/brokers-selector.spec.mjs` y `e2e/gastos-orden.spec.mjs`. OTA; sin Android.
 
 ## [4.18.7] — 2026-09-06

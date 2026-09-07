@@ -1,6 +1,6 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-07 · **v4.19.0** — sincronización coherente de TR, movimientos multicuenta, categoría IA y orden manual de Gastos.
+> Estado a 2026-09-07 · **v4.19.0** — sincronización coherente de TR, movimientos multicuenta (posible repetido marcado, no descartado), categoría IA y orden manual de Gastos.
 > Canal vivo: `npm run salud` (no afirmar beta/prod solo por el working tree). OTA, sin APK.
 > Anterior: **4.18.7** (cabecera de Gastos al cambiar bancos de gasto diario).
 >

@@ -1432,9 +1432,9 @@ var RELEASE_NOTES=[
        en:["Sync from Cartera and check that Trade Republic updates positions and balance in the same pass.","In My banks, a successful reconnection changes the summary to connected without closing the app."],
        ca:["Sincronitza des de Cartera i comprova que Trade Republic actualitza posicions i saldo en la mateixa passada.","A Els meus bancs, una reconnexió correcta canvia el resum a connectat sense tancar l'app."]}},
      {id:"movimientos",t:{es:"🧾 Movimientos completos",en:"🧾 Complete transactions",ca:"🧾 Moviments complets"},items:{
-       es:["Sincroniza los bancos y comprueba que aparece cualquier movimiento nuevo, también si pertenece a una segunda cuenta del mismo banco.","Dos movimientos sin datos suficientes ya no se ocultan solo por tener el mismo importe cerca en el tiempo."],
-       en:["Sync banks and check that every new transaction appears, including one from a second account at the same bank.","Two transactions with insufficient details are no longer hidden just because their amount and dates are close."],
-       ca:["Sincronitza els bancs i comprova que apareix qualsevol moviment nou, també si pertany a un segon compte del mateix banc.","Dos moviments sense prou dades ja no s'amaguen només perquè tenen el mateix import i dates properes."]}},
+       es:["Sincroniza los bancos y comprueba que aparece cualquier movimiento nuevo, también si pertenece a una segunda cuenta del mismo banco.","Si el banco trae un movimiento sin nombre que puede ser el mismo que ya entró por el móvil, aparece marcado y no cuenta en el mes hasta que digas si es el mismo o son distintos. Tócalo para decidir."],
+       en:["Sync banks and check that every new transaction appears, including one from a second account at the same bank.","If the bank brings an unnamed transaction that may be the same one already on your phone, it shows as marked and does not count in the month until you say whether it is the same or they are different. Tap it to decide."],
+       ca:["Sincronitza els bancs i comprova que apareix qualsevol moviment nou, també si pertany a un segon compte del mateix banc.","Si el banc porta un moviment sense nom que pot ser el mateix que ja va entrar pel mòbil, surt marcat i no compta al mes fins que diguis si és el mateix o són diferents. Toca'l per decidir."]}},
      {id:"categoria-ia",t:{es:"🤖 Categoría de IA",en:"🤖 AI category",ca:"🤖 Categoria d'IA"},items:{
        es:["La lista de categorías incluye Inteligencia artificial.","Los movimientos nuevos de ChatGPT, Claude, Cursor y servicios similares entran en IA; los anteriores conservan su categoría actual."],
        en:["The category list includes Artificial intelligence.","New ChatGPT, Claude, Cursor and similar transactions go into AI; existing ones keep their current category."],
@@ -1445,9 +1445,9 @@ var RELEASE_NOTES=[
        ca:["A Despeses, arrossega l'ansa d'una fila per posar-la damunt o sota un altre moviment del mateix dia.","Tanca i torna a obrir: l'ordre es conserva i no canvia cap data."]}}
    ],
    items:{
-     es:["Trade Republic actualiza saldo, posiciones y estado sin necesitar reiniciar.","La sincronización recoge movimientos de todas las cuentas enlazadas.","Las herramientas de inteligencia artificial tienen categoría propia.","Los movimientos se pueden ordenar a mano dentro de cada día."],
-     en:["Trade Republic updates its balance, positions and status without requiring a restart.","Sync collects transactions from every linked account.","Artificial intelligence tools have their own category.","Transactions can be manually ordered within each day."],
-     ca:["Trade Republic actualitza saldo, posicions i estat sense haver de reiniciar.","La sincronització recull moviments de tots els comptes enllaçats.","Les eines d'intel·ligència artificial tenen categoria pròpia.","Els moviments es poden ordenar manualment dins de cada dia."]
+     es:["Trade Republic actualiza saldo, posiciones y estado sin necesitar reiniciar.","La sincronización recoge movimientos de todas las cuentas enlazadas.","Si un movimiento del banco puede repetir uno del móvil, se marca para que lo resuelvas.","Las herramientas de inteligencia artificial tienen categoría propia.","Los movimientos se pueden ordenar a mano dentro de cada día."],
+     en:["Trade Republic updates its balance, positions and status without requiring a restart.","Sync collects transactions from every linked account.","If a bank transaction may repeat one from your phone, it is marked so you can resolve it.","Artificial intelligence tools have their own category.","Transactions can be manually ordered within each day."],
+     ca:["Trade Republic actualitza saldo, posicions i estat sense haver de reiniciar.","La sincronització recull moviments de tots els comptes enllaçats.","Si un moviment del banc pot repetir un del mòbil, es marca perquè el resolguis.","Les eines d'intel·ligència artificial tenen categoria pròpia.","Els moviments es poden ordenar manualment dins de cada dia."]
    }},
   {v:"4.18.7", d:"6 sep 2026",
    t:{es:"El total de Gastos se actualiza al cambiar de banco",
