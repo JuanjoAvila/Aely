@@ -74,6 +74,7 @@ const steps = [
   ["tr-open-banking", ["node", "tests/tr-open-banking.test.mjs"]],
   ["huella-bundle", ["node", "tests/huella-bundle.test.mjs"]],
   ["expense-note", ["node", "tests/expense-note.test.mjs"]],
+  ["expense-id-cloud", ["node", "tests/expense-id-cloud.test.mjs"]],
   ["bank-connect-once", ["node", "tests/bank-connect-once.test.mjs"]],
   ["inv-dashboard", ["node", "tests/inv-dashboard.test.mjs"]],
   ["financing", ["node", "tests/financing.test.mjs"]],

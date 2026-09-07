@@ -2369,6 +2369,9 @@ const cloud = (function(){
       // source lleva el banco embebido (ob:caixa…) para filtrar en Gastos tras reinstalación
       // sin columna nueva en Supabase (feedback 2026-07-16).
       const base={ user_id:session.user.id, fecha:e.date, importe:e.amount, comercio:e.merchant, cat:e.category, source:expenseSourceForCloud(e), no_card:!!e.noCard };
+      // Id local = id de fila cuando es uuid (2026-09-07). Sin esto la tabla genera otro uuid
+      // y las escrituras por id no casarían hasta el siguiente pull.
+      if(isExpenseUuid(e&&e.id)) base.id=e.id;
       const nota={ nota:(e.note?String(e.note).slice(0,160):null), nota_edit:!!e.noteEdited };
       // Lo que tecleó de verdad, cuando no fue en euros (migración 0020). El `importe` sigue siendo
       // el euro convertido —la app cuenta en euros— pero sin esto, en cuanto el gasto daba la
@@ -2383,6 +2386,9 @@ const cloud = (function(){
           if(conNota) fila=Object.assign({},fila,nota);
           if(conDivisa) fila=Object.assign({},fila,divisa);
           if(conObName) fila=Object.assign({},fila,obn);
+          // ignoreDuplicates + onConflict user_id,fecha,importe,comercio: si ya hay fila, NO
+          // inserta (el id mandado se ignora). Local puede quedar con uuid distinto al de la
+          // nube hasta el pull — igual que antes de mandar id. El pull adopta r.id.
           return sb.from('expenses').upsert(
             fila,
             { onConflict:'user_id,fecha,importe,comercio', ignoreDuplicates:true }
@@ -2397,8 +2403,7 @@ const cloud = (function(){
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
       const src=expenseSourceForCloud(Object.assign({},e,{ent:ent||undefined}));
-      const {error}=await sb.from('expenses').update({ source:src })
-        .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant||"");
+      const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
       if(error) throw error;
     },
     // Persiste el flag 💳/🔄 en la tabla (si no, el siguiente pull lo pisaría en gastos de la nube).
@@ -2406,8 +2411,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      const {error}=await sb.from('expenses').update({ no_card:!!noCard })
-        .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant||"");
+      const {error}=await expenseCloudEq(sb.from('expenses').update({ no_card:!!noCard }), session.user.id, e);
       if(error) throw error;
     },
     // Concepto escrito a mano (o corregido) por el usuario. `nota_edit` lo blinda: el siguiente
@@ -2418,8 +2422,7 @@ const cloud = (function(){
       if(!session) return;
       // Si la migración 0017 aún no está aplicada, esto no puede hacer nada útil: se avisa al
       // llamante en vez de fallar mudo (aquí el concepto ES el dato que el usuario quiere guardar).
-      const {error}=await sb.from('expenses').update({ nota:String(note||"").slice(0,160)||null, nota_edit:true })
-        .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant||"");
+      const {error}=await expenseCloudEq(sb.from('expenses').update({ nota:String(note||"").slice(0,160)||null, nota_edit:true }), session.user.id, e);
       if(error){ if(_isMissingNotaCol(error)) _mcNotaCols=false; throw error; }
     },
     // CATEGORÍA en la tabla. Sin esto, `syncCloudExpenses` —que reemplaza los gastos de origen
@@ -2429,16 +2432,14 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      const {error}=await sb.from('expenses').update({ cat:String(cat||"otros") })
-        .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant||"");
+      const {error}=await expenseCloudEq(sb.from('expenses').update({ cat:String(cat||"otros") }), session.user.id, e);
       if(error) throw error;
     },
     async deleteExpense(e){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      const {error}=await sb.from('expenses').delete()
-        .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant||"");
+      const {error}=await expenseCloudEq(sb.from('expenses').delete(), session.user.id, e);
       if(error) throw error;
     },
     async prices(symbols){
@@ -2833,6 +2834,39 @@ function mcRandomToken(){
     if(c&&c.randomUUID) return String(c.randomUUID()).replace(/-/g,"");
   }catch(e){}
   return null;
+}
+/* UUID de fila de gasto (2026-09-07). La tabla `expenses.id` es uuid PK; el id corto de
+   `uid()` no casaba con la nube y las escrituras iban por fecha|importe|comercio (tocaban
+   gemelos). Nuevos gastos nacen con uuid; los viejos (8 chars) siguen el fallback por atributos. */
+function isExpenseUuid(id){
+  return typeof id==="string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+}
+function mcExpenseId(){
+  try{
+    const c=typeof window!=="undefined"?(window.crypto||window.msCrypto):null;
+    if(c&&c.randomUUID) return c.randomUUID();
+    if(c&&c.getRandomValues){
+      const b=new Uint8Array(16); c.getRandomValues(b);
+      b[6]=(b[6]&0x0f)|0x40; b[8]=(b[8]&0x3f)|0x80;
+      const h=[]; for(let i=0;i<16;i++) h.push(("0"+b[i].toString(16)).slice(-2));
+      return h[0]+h[1]+h[2]+h[3]+"-"+h[4]+h[5]+"-"+h[6]+h[7]+"-"+h[8]+h[9]+"-"+h[10]+h[11]+h[12]+h[13]+h[14]+h[15];
+    }
+  }catch(e){}
+  // Sin crypto (tests Node): mismo fallback que createHousehold — isExpenseUuid lo acepta.
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(ch){
+    const r=Math.random()*16|0; return (ch==="x"?r:(r&0x3|0x8)).toString(16);
+  });
+}
+/* Clave de escritura en la tabla: uuid si lo hay; si no, atributos (gastos viejos del móvil). */
+function expenseCloudKeys(e){
+  if(isExpenseUuid(e&&e.id)) return {by:"id", id:e.id};
+  return {by:"attrs", fecha:e&&e.date, importe:e&&e.amount, comercio:(e&&e.merchant)||""};
+}
+function expenseCloudEq(q, userId, e){
+  q=q.eq("user_id", userId);
+  const k=expenseCloudKeys(e);
+  if(k.by==="id") return q.eq("id", k.id);
+  return q.eq("fecha",k.fecha).eq("importe",k.importe).eq("comercio",k.comercio);
 }
 
 /* ---------- Lápidas de gastos borrados ----------
@@ -7632,7 +7666,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     // Fecha elegible (petición 2026-07-11: una transferencia de hace días no podía apuntarse en su
     // día). Vacía = ahora; con fecha = ese día a las 12:00 local (evita bailes de zona horaria).
     const when=form.date? new Date(form.date+"T12:00:00") : new Date();
-    const ex={ id:uid(), date:(isNaN(when.getTime())?new Date():when).toISOString(), merchant:form.merchant||(form.income?"Ingreso":"Gasto"), amount:signed, category:form.income?"ingreso":form.category, source:"manual" };
+    const ex={ id:mcExpenseId(), date:(isNaN(when.getTime())?new Date():when).toISOString(), merchant:form.merchant||(form.income?"Ingreso":"Gasto"), amount:signed, category:form.income?"ingreso":form.category, source:"manual" };
     if(form.income) ex.noCard=true;                   // un ingreso nunca alimenta el round-up (igual que al editar)
     else if(form.noCard) ex.noCard=true;              // bizum/transfer: no cuenta round-up
     // Gasto a mano: etiqueta el banco de gasto diario si hay uno (filtro por banco; 2026-07-16)
@@ -10492,7 +10526,7 @@ function importObExpenses(s, txs){
     if(esIngreso){
       if(!tx.date || parseDate(tx.date)<som) return;
       if(tx.id && seen[tx.id]) return;
-      const e={ id:uid(), date:new Date(tx.date+"T12:00:00").toISOString(),
+      const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
         category: esTraspasoPropio(s, tx) ? TRASPASO_CAT.id : INGRESO_CAT.id, source:"ob", ent:tx.ent };
       e.obName=e.merchant;   // lo que dijo el banco: el dedup se queda con esto aunque él lo renombre
@@ -10512,7 +10546,7 @@ function importObExpenses(s, txs){
     if(tx.id && seen[tx.id]) return;
     const esDiario=tx.ent===dailyEnt;
     const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
-    const e={ id:uid(), date:new Date(tx.date+"T12:00:00").toISOString(),
+    const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
       merchant:tx.merchant||"Compra", amount:tx.amount,
       category: esAporteInv ? "inversion" : autoCategory(tx.merchant||""), source:"ob", ent:tx.ent };
     e.obName=e.merchant;   // lo que dijo el banco: el dedup se queda con esto aunque él lo renombre
@@ -12650,7 +12684,7 @@ function hojaAGastos(filas, map, opts){
     const catHoja=map.categoria>=0?hojaNorm(f[map.categoria]):"";
     const merchant=concepto||(monto<0?"Ingreso":"Gasto");
     out.push({
-      id:uid(),
+      id:mcExpenseId(),
       date:fecha.toISOString(),
       merchant:merchant,
       amount:monto,
@@ -13302,12 +13336,12 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
         return;
       }
       if(d==="ingreso"){
-        const e={ id:uid(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:-Math.abs(x.amount), category:"ingreso", source:"ob-hist", ent:x.ent, noCard:true, income:true };
+        const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:-Math.abs(x.amount), category:"ingreso", source:"ob-hist", ent:x.ent, noCard:true, income:true };
         if(x.id) e.extId=x.id;
         const nti=cleanNote(x.note, e.merchant); if(nti) e.note=nti;   // concepto del extracto (2026-07-24)
         expAdds.push(e); return;
       }
-      const e={ id:uid(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:Math.abs(x.amount), category:autoCategory(x.merchant||""), source:"ob-hist", ent:x.ent };
+      const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:Math.abs(x.amount), category:autoCategory(x.merchant||""), source:"ob-hist", ent:x.ent };
       if(x.id) e.extId=x.id;
       const nt=cleanNote(x.note, e.merchant); if(nt) e.note=nt;
       expAdds.push(e);
@@ -14339,6 +14373,31 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.19.1", d:"7 sep 2026",
+   t:{es:"Cambiar o borrar un movimiento ya no toca a otro igual",
+      en:"Editing or deleting a transaction no longer hits another lookalike",
+      ca:"Canviar o esborrar un moviment ja no toca un altre d'igual"},
+   tandas:[
+     {id:"id-fila", t:{es:"🎯 Solo ese movimiento", en:"🎯 Just that transaction", ca:"🎯 Només aquell moviment"},
+      items:{
+        es:[
+          "Si borras o cambias la categoría, el banco o el concepto de un movimiento, se actualiza ese y no otro del mismo día con el mismo importe.",
+          "Los movimientos antiguos del móvil siguen funcionando igual; los nuevos nacen con identidad propia en la nube.",
+        ],
+        en:[
+          "If you delete or change a transaction’s category, bank or note, that one updates — not another from the same day with the same amount.",
+          "Older transactions already on your phone keep working; new ones get their own identity in the cloud.",
+        ],
+        ca:[
+          "Si esborres o canvies la categoria, el banc o el concepte d’un moviment, s’actualitza aquell i no un altre del mateix dia amb el mateix import.",
+          "Els moviments antics del mòbil segueixen funcionant igual; els nous neixen amb identitat pròpia al núvol.",
+        ]}}
+   ],
+   items:{
+     es:["Borrar o editar un movimiento apunta solo a ese, no a otro gemelo del mismo día."],
+     en:["Deleting or editing a transaction targets only that one, not a same-day lookalike."],
+     ca:["Esborrar o editar un moviment apunta només a aquell, no a un altre bessó del mateix dia."]
+   }},
   {v:"4.19.0", d:"7 sep 2026",
    t:{es:"Sincronización más completa y Gastos a tu manera",en:"More complete syncing and expenses your way",ca:"Sincronització més completa i Despeses a la teva manera"},
    tandas:[
@@ -17300,7 +17359,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     // Guardamos en € (base de la app); lo tecleado iba en entryCur.
     const amtEur=+toEurAmt(amt, entryCur, state).toFixed(2);
     const e={
-      id:uid(), date:date||isoLocal(),
+      id:mcExpenseId(), date:date||isoLocal(),
       amount:isIn?-Math.abs(amtEur):Math.abs(amtEur),
       merchant:note.trim()||(isIn?t("cat_ingreso"):catName(cat)),
       category:isIn?"ingreso":cat, source:"manual", card:!isIn

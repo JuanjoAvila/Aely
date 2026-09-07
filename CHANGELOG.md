@@ -2,6 +2,20 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.1] — 2026-09-07
+### Identidad de fila en gastos (escrituras por uuid)
+
+- **Altas nuevas:** `mcExpenseId()` (crypto.randomUUID + getRandomValues v4 + fallback) en
+  OB, manual, Apuntar, ob-hist e import hoja. `uid()` global intacto (metas/deudas/cuentas).
+- **`addExpense`:** manda `id` cuando es uuid → local = nube desde el nacimiento.
+- **Cinco escrituras** (`setExpenseBank/NoCard/Note/Cat`, `deleteExpense`): `.eq('id', …)` si
+  uuid; si no, fallback eterno por fecha|importe|comercio (ids cortos del móvil).
+- **Upsert** `ignoreDuplicates` + conflicto por atributos: comentario; el pull sigue adoptando
+  `r.id`. Sin tocar el índice unique (ticket aparte / Codex).
+- Guardián: `tests/expense-id-cloud.test.mjs`.
+
+OTA; sin Android.
+
 ## [4.19.0] — 2026-09-07
 ### Sincronización coherente de TR, movimientos completos, categoría IA y orden manual
 

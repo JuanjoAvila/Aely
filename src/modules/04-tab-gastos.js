@@ -525,7 +525,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     // Fecha elegible (petición 2026-07-11: una transferencia de hace días no podía apuntarse en su
     // día). Vacía = ahora; con fecha = ese día a las 12:00 local (evita bailes de zona horaria).
     const when=form.date? new Date(form.date+"T12:00:00") : new Date();
-    const ex={ id:uid(), date:(isNaN(when.getTime())?new Date():when).toISOString(), merchant:form.merchant||(form.income?"Ingreso":"Gasto"), amount:signed, category:form.income?"ingreso":form.category, source:"manual" };
+    const ex={ id:mcExpenseId(), date:(isNaN(when.getTime())?new Date():when).toISOString(), merchant:form.merchant||(form.income?"Ingreso":"Gasto"), amount:signed, category:form.income?"ingreso":form.category, source:"manual" };
     if(form.income) ex.noCard=true;                   // un ingreso nunca alimenta el round-up (igual que al editar)
     else if(form.noCard) ex.noCard=true;              // bizum/transfer: no cuenta round-up
     // Gasto a mano: etiqueta el banco de gasto diario si hay uno (filtro por banco; 2026-07-16)

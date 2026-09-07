@@ -557,6 +557,9 @@ const cloud = (function(){
       // source lleva el banco embebido (ob:caixa…) para filtrar en Gastos tras reinstalación
       // sin columna nueva en Supabase (feedback 2026-07-16).
       const base={ user_id:session.user.id, fecha:e.date, importe:e.amount, comercio:e.merchant, cat:e.category, source:expenseSourceForCloud(e), no_card:!!e.noCard };
+      // Id local = id de fila cuando es uuid (2026-09-07). Sin esto la tabla genera otro uuid
+      // y las escrituras por id no casarían hasta el siguiente pull.
+      if(isExpenseUuid(e&&e.id)) base.id=e.id;
       const nota={ nota:(e.note?String(e.note).slice(0,160):null), nota_edit:!!e.noteEdited };
       // Lo que tecleó de verdad, cuando no fue en euros (migración 0020). El `importe` sigue siendo
       // el euro convertido —la app cuenta en euros— pero sin esto, en cuanto el gasto daba la
@@ -571,6 +574,9 @@ const cloud = (function(){
           if(conNota) fila=Object.assign({},fila,nota);
           if(conDivisa) fila=Object.assign({},fila,divisa);
           if(conObName) fila=Object.assign({},fila,obn);
+          // ignoreDuplicates + onConflict user_id,fecha,importe,comercio: si ya hay fila, NO
+          // inserta (el id mandado se ignora). Local puede quedar con uuid distinto al de la
+          // nube hasta el pull — igual que antes de mandar id. El pull adopta r.id.
           return sb.from('expenses').upsert(
             fila,
             { onConflict:'user_id,fecha,importe,comercio', ignoreDuplicates:true }
@@ -585,8 +591,7 @@ const cloud = (function(){
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
       const src=expenseSourceForCloud(Object.assign({},e,{ent:ent||undefined}));
-      const {error}=await sb.from('expenses').update({ source:src })
-        .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant||"");
+      const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
       if(error) throw error;
     },
     // Persiste el flag 💳/🔄 en la tabla (si no, el siguiente pull lo pisaría en gastos de la nube).
@@ -594,8 +599,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      const {error}=await sb.from('expenses').update({ no_card:!!noCard })
-        .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant||"");
+      const {error}=await expenseCloudEq(sb.from('expenses').update({ no_card:!!noCard }), session.user.id, e);
       if(error) throw error;
     },
     // Concepto escrito a mano (o corregido) por el usuario. `nota_edit` lo blinda: el siguiente
@@ -606,8 +610,7 @@ const cloud = (function(){
       if(!session) return;
       // Si la migración 0017 aún no está aplicada, esto no puede hacer nada útil: se avisa al
       // llamante en vez de fallar mudo (aquí el concepto ES el dato que el usuario quiere guardar).
-      const {error}=await sb.from('expenses').update({ nota:String(note||"").slice(0,160)||null, nota_edit:true })
-        .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant||"");
+      const {error}=await expenseCloudEq(sb.from('expenses').update({ nota:String(note||"").slice(0,160)||null, nota_edit:true }), session.user.id, e);
       if(error){ if(_isMissingNotaCol(error)) _mcNotaCols=false; throw error; }
     },
     // CATEGORÍA en la tabla. Sin esto, `syncCloudExpenses` —que reemplaza los gastos de origen
@@ -617,16 +620,14 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      const {error}=await sb.from('expenses').update({ cat:String(cat||"otros") })
-        .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant||"");
+      const {error}=await expenseCloudEq(sb.from('expenses').update({ cat:String(cat||"otros") }), session.user.id, e);
       if(error) throw error;
     },
     async deleteExpense(e){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      const {error}=await sb.from('expenses').delete()
-        .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant||"");
+      const {error}=await expenseCloudEq(sb.from('expenses').delete(), session.user.id, e);
       if(error) throw error;
     },
     async prices(symbols){
@@ -1021,6 +1022,39 @@ function mcRandomToken(){
     if(c&&c.randomUUID) return String(c.randomUUID()).replace(/-/g,"");
   }catch(e){}
   return null;
+}
+/* UUID de fila de gasto (2026-09-07). La tabla `expenses.id` es uuid PK; el id corto de
+   `uid()` no casaba con la nube y las escrituras iban por fecha|importe|comercio (tocaban
+   gemelos). Nuevos gastos nacen con uuid; los viejos (8 chars) siguen el fallback por atributos. */
+function isExpenseUuid(id){
+  return typeof id==="string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+}
+function mcExpenseId(){
+  try{
+    const c=typeof window!=="undefined"?(window.crypto||window.msCrypto):null;
+    if(c&&c.randomUUID) return c.randomUUID();
+    if(c&&c.getRandomValues){
+      const b=new Uint8Array(16); c.getRandomValues(b);
+      b[6]=(b[6]&0x0f)|0x40; b[8]=(b[8]&0x3f)|0x80;
+      const h=[]; for(let i=0;i<16;i++) h.push(("0"+b[i].toString(16)).slice(-2));
+      return h[0]+h[1]+h[2]+h[3]+"-"+h[4]+h[5]+"-"+h[6]+h[7]+"-"+h[8]+h[9]+"-"+h[10]+h[11]+h[12]+h[13]+h[14]+h[15];
+    }
+  }catch(e){}
+  // Sin crypto (tests Node): mismo fallback que createHousehold — isExpenseUuid lo acepta.
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(ch){
+    const r=Math.random()*16|0; return (ch==="x"?r:(r&0x3|0x8)).toString(16);
+  });
+}
+/* Clave de escritura en la tabla: uuid si lo hay; si no, atributos (gastos viejos del móvil). */
+function expenseCloudKeys(e){
+  if(isExpenseUuid(e&&e.id)) return {by:"id", id:e.id};
+  return {by:"attrs", fecha:e&&e.date, importe:e&&e.amount, comercio:(e&&e.merchant)||""};
+}
+function expenseCloudEq(q, userId, e){
+  q=q.eq("user_id", userId);
+  const k=expenseCloudKeys(e);
+  if(k.by==="id") return q.eq("id", k.id);
+  return q.eq("fecha",k.fecha).eq("importe",k.importe).eq("comercio",k.comercio);
 }
 
 /* ---------- Lápidas de gastos borrados ----------

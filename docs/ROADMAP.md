@@ -1,6 +1,7 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-07 · **v4.19.0** — sincronización coherente de TR, movimientos multicuenta (posible repetido marcado, no descartado), categoría IA y orden manual de Gastos.
+> Estado a 2026-09-07 · **v4.19.1** — identidad de fila en gastos (escrituras por uuid; ids
+> cortos siguen por atributos). Anterior: **4.19.0** (TR, posible repetido, categoría IA, orden).
 > Canal vivo: `npm run salud` (no afirmar beta/prod solo por el working tree). OTA, sin APK.
 > Anterior: **4.18.7** (cabecera de Gastos al cambiar bancos de gasto diario).
 >
@@ -102,7 +103,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.19.0** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.1** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |
@@ -118,7 +119,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 | **Play Store** | **Lo último.** Data safety + NotificationListener. No adelantar: si se implementa, se tienta de publicar antes de que esté pulida a su criterio. Cualquier tanda nueva va **antes**. |
 | **Pulido de diseño (tanda 17)** | Mock Claude Design: `docs/design/handoff/` (SPEC-v4 + mockup HTML). **No tocar a ciegas.** Hogar, Apuntar, Gastos, el look. Tanda propia, no mezclar con dinero. |
 | **OPENAI_API_KEY** | Opcional en Supabase Secrets → Edge `categorize`. Ver [CATEGORIZE.md](CATEGORIZE.md) |
-| **IA en gastos antiguos** | 4.19.0 clasifica los movimientos nuevos. Los anteriores no se mueven hasta que `setExpenseCat` persista por ID estable; hacerlo por fecha+importe+comercio arriesgaría tocar gemelos legítimos. |
+| **IA en gastos antiguos** | 4.19.1 ya escribe categoría (y banco/nota/borrado) por uuid cuando el gasto lo tiene; ids cortos del móvil siguen por atributos. Recategorizar histórico a IA sigue siendo manual y seguro fila a fila. |
 | **Salto a TR/Open Banking al sincronizar automáticamente** | Reportado el 2026-09-07, pero no reproducido ni respaldado por el flujo inspeccionado. No se cambia la navegación a ciegas; recoger pantalla y punto de entrada exacto si vuelve a ocurrir. |
 
 ## Lo que apuntó él el 2026-07-26 — HECHO en la 4.12.0

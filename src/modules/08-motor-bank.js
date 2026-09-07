@@ -446,7 +446,7 @@ function importObExpenses(s, txs){
     if(esIngreso){
       if(!tx.date || parseDate(tx.date)<som) return;
       if(tx.id && seen[tx.id]) return;
-      const e={ id:uid(), date:new Date(tx.date+"T12:00:00").toISOString(),
+      const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
         category: esTraspasoPropio(s, tx) ? TRASPASO_CAT.id : INGRESO_CAT.id, source:"ob", ent:tx.ent };
       e.obName=e.merchant;   // lo que dijo el banco: el dedup se queda con esto aunque él lo renombre
@@ -466,7 +466,7 @@ function importObExpenses(s, txs){
     if(tx.id && seen[tx.id]) return;
     const esDiario=tx.ent===dailyEnt;
     const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
-    const e={ id:uid(), date:new Date(tx.date+"T12:00:00").toISOString(),
+    const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
       merchant:tx.merchant||"Compra", amount:tx.amount,
       category: esAporteInv ? "inversion" : autoCategory(tx.merchant||""), source:"ob", ent:tx.ent };
     e.obName=e.merchant;   // lo que dijo el banco: el dedup se queda con esto aunque él lo renombre

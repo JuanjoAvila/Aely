@@ -387,12 +387,12 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
         return;
       }
       if(d==="ingreso"){
-        const e={ id:uid(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:-Math.abs(x.amount), category:"ingreso", source:"ob-hist", ent:x.ent, noCard:true, income:true };
+        const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:-Math.abs(x.amount), category:"ingreso", source:"ob-hist", ent:x.ent, noCard:true, income:true };
         if(x.id) e.extId=x.id;
         const nti=cleanNote(x.note, e.merchant); if(nti) e.note=nti;   // concepto del extracto (2026-07-24)
         expAdds.push(e); return;
       }
-      const e={ id:uid(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:Math.abs(x.amount), category:autoCategory(x.merchant||""), source:"ob-hist", ent:x.ent };
+      const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:Math.abs(x.amount), category:autoCategory(x.merchant||""), source:"ob-hist", ent:x.ent };
       if(x.id) e.extId=x.id;
       const nt=cleanNote(x.note, e.merchant); if(nt) e.note=nt;
       expAdds.push(e);
@@ -1424,6 +1424,31 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.19.1", d:"7 sep 2026",
+   t:{es:"Cambiar o borrar un movimiento ya no toca a otro igual",
+      en:"Editing or deleting a transaction no longer hits another lookalike",
+      ca:"Canviar o esborrar un moviment ja no toca un altre d'igual"},
+   tandas:[
+     {id:"id-fila", t:{es:"🎯 Solo ese movimiento", en:"🎯 Just that transaction", ca:"🎯 Només aquell moviment"},
+      items:{
+        es:[
+          "Si borras o cambias la categoría, el banco o el concepto de un movimiento, se actualiza ese y no otro del mismo día con el mismo importe.",
+          "Los movimientos antiguos del móvil siguen funcionando igual; los nuevos nacen con identidad propia en la nube.",
+        ],
+        en:[
+          "If you delete or change a transaction’s category, bank or note, that one updates — not another from the same day with the same amount.",
+          "Older transactions already on your phone keep working; new ones get their own identity in the cloud.",
+        ],
+        ca:[
+          "Si esborres o canvies la categoria, el banc o el concepte d’un moviment, s’actualitza aquell i no un altre del mateix dia amb el mateix import.",
+          "Els moviments antics del mòbil segueixen funcionant igual; els nous neixen amb identitat pròpia al núvol.",
+        ]}}
+   ],
+   items:{
+     es:["Borrar o editar un movimiento apunta solo a ese, no a otro gemelo del mismo día."],
+     en:["Deleting or editing a transaction targets only that one, not a same-day lookalike."],
+     ca:["Esborrar o editar un moviment apunta només a aquell, no a un altre bessó del mateix dia."]
+   }},
   {v:"4.19.0", d:"7 sep 2026",
    t:{es:"Sincronización más completa y Gastos a tu manera",en:"More complete syncing and expenses your way",ca:"Sincronització més completa i Despeses a la teva manera"},
    tandas:[

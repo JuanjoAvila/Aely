@@ -582,7 +582,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     // Guardamos en € (base de la app); lo tecleado iba en entryCur.
     const amtEur=+toEurAmt(amt, entryCur, state).toFixed(2);
     const e={
-      id:uid(), date:date||isoLocal(),
+      id:mcExpenseId(), date:date||isoLocal(),
       amount:isIn?-Math.abs(amtEur):Math.abs(amtEur),
       merchant:note.trim()||(isIn?t("cat_ingreso"):catName(cat)),
       category:isIn?"ingreso":cat, source:"manual", card:!isIn

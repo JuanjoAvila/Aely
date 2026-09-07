@@ -597,7 +597,7 @@ function hojaAGastos(filas, map, opts){
     const catHoja=map.categoria>=0?hojaNorm(f[map.categoria]):"";
     const merchant=concepto||(monto<0?"Ingreso":"Gasto");
     out.push({
-      id:uid(),
+      id:mcExpenseId(),
       date:fecha.toISOString(),
       merchant:merchant,
       amount:monto,
