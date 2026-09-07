@@ -1424,6 +1424,31 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.19.2", d:"7 sep 2026",
+   t:{es:"El gasto del mes cuadra con el widget a primera hora",
+      en:"Month spend matches the widget first thing in the morning",
+      ca:"La despesa del mes quadra amb el giny a primera hora"},
+   tandas:[
+     {id:"ventana-mes", t:{es:"📅 Mismo mes en todos sitios", en:"📅 Same month everywhere", ca:"📅 El mateix mes a tot arreu"},
+      items:{
+        es:[
+          "Una compra pasada la medianoche del día 1 cuenta en el mes nuevo tanto en Gastos como en el resumen del móvil con la app cerrada.",
+          "Ya no hay dos cifras distintas según mires la lista o el widget.",
+        ],
+        en:[
+          "A purchase just after midnight on the 1st counts in the new month both in Gastos and in the phone summary with the app closed.",
+          "You no longer get two different totals depending on whether you look at the list or the widget.",
+        ],
+        ca:[
+          "Una compra passada la mitjanit del dia 1 compta al mes nou tant a Despeses com al resum del mòbil amb l’app tancada.",
+          "Ja no hi ha dues xifres diferents segons miris la llista o el giny.",
+        ]}}
+   ],
+   items:{
+     es:["El total del mes en Gastos y en el widget coinciden también el día 1 a primera hora."],
+     en:["The monthly total in Gastos and on the widget matches even early on the 1st."],
+     ca:["El total del mes a Despeses i al giny coincideixen també el dia 1 a primera hora."]
+   }},
   {v:"4.19.1", d:"7 sep 2026",
    t:{es:"Cambiar o borrar un movimiento ya no toca a otro igual",
       en:"Editing or deleting a transaction no longer hits another lookalike",

@@ -23,6 +23,35 @@
  * dos veces porque corren en dos sitios (el widget se pinta con la app cerrada, sin JS del bundle).
  */
 
+/** Zona de la casa. Cliente e ingest deben usar LA MISMA (B09-B, 2026-09-07). */
+export const MC_TZ = "Europe/Madrid";
+
+/**
+ * Epoch ms del día 1 del mes calendario que contiene `when`, a las 00:00:00 en `timeZone`.
+ * B09-B: ingest usaba `Date.UTC(y,m,1)` y el cliente `new Date(y,m,1)` local; una compra el
+ * día 1 a las 00:30 en España caía en meses distintos → widget ≠ app.
+ */
+export function inicioDeMesMs(when: number | Date = Date.now(), timeZone: string = MC_TZ): number {
+  const t0 = when instanceof Date ? when.getTime() : Number(when);
+  const ym = new Intl.DateTimeFormat("en-CA", {
+    timeZone, year: "numeric", month: "2-digit",
+  }).format(new Date(t0)); // "2026-09"
+  const [y, m] = ym.split("-").map(Number);
+  const target = y + "-" + String(m).padStart(2, "0") + "-01";
+  const localYmd = (ms: number) => new Intl.DateTimeFormat("en-CA", {
+    timeZone, year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(new Date(ms));
+  // Primer ms UTC cuya fecha local en la zona es el día 1 (DST-safe).
+  let lo = Date.UTC(y, m - 1, 1) - 14 * 3600_000;
+  let hi = Date.UTC(y, m - 1, 1) + 14 * 3600_000;
+  while (lo < hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (localYmd(mid) < target) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}
+
 /** Igual que `CAT_NEUTRAS` en el cliente: ni suman gasto ni suman ingreso. */
 const CAT_NEUTRAS: Record<string, number> = { inversion: 1, traspaso: 1 };
 

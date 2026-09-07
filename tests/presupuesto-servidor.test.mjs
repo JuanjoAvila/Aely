@@ -24,7 +24,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const src = fs.readFileSync(path.join(root, "supabase/functions/_shared/presupuesto.ts"), "utf8");
 const js = transformSync(src, { loader: "ts", format: "esm" }).code;
 const { statsDelMes, bancosDeGastoDiario, cuentaParaPresupuesto, bancoDeSource,
-  claveComoLaApp, filasComoLaApp } =
+  claveComoLaApp, filasComoLaApp, inicioDeMesMs } =
   await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
 
 const cli = loadPureLogicFromFile();
@@ -41,9 +41,13 @@ function t(name, fn) {
 
 console.log("presupuesto-servidor");
 
-const ym = new Date().toISOString().slice(0, 7);
+/* Mes calendario de la casa (Madrid), no el UTC de la máquina CI — B09-B. */
+const nowMs = Date.now();
+const desdeMs = inicioDeMesMs(nowMs);
+const ym = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/Madrid", year: "numeric", month: "2-digit",
+}).format(new Date(nowMs));
 const d = (day) => ym + "-" + String(day).padStart(2, "0") + "T10:00:00.000Z";
-const desdeMs = Date.UTC(Number(ym.slice(0, 4)), Number(ym.slice(5, 7)) - 1, 1);
 
 /* Un movimiento se escribe UNA vez y se traduce a los dos formatos: si se escribieran por separado
    el test podría pasar con dos escenarios distintos y no probaría nada. */
@@ -85,7 +89,7 @@ function escenario(extra = {}) {
 t("el servidor da el mismo gasto que la app (modo split)", () => {
   const { movs, data } = escenario();
   const srv = statsDelMes(movs.map(paraServidor), data, desdeMs);
-  const app = cli.monthBudgetStats(Object.assign({}, data, { expenses: movs.map(paraCliente) }));
+  const app = cli.monthBudgetStats(Object.assign({}, data, { expenses: movs.map(paraCliente) }), nowMs);
   assert.equal(srv.spent, c(app.spent));
   assert.equal(srv.income, c(app.income));
   assert.equal(srv.against, c(app.against));
@@ -95,7 +99,7 @@ t("el servidor da el mismo gasto que la app (modo split)", () => {
 t("y también en modo neto, que es como lo tiene él", () => {
   const { movs, data } = escenario({ settings: { gTotalMode: "net" } });
   const srv = statsDelMes(movs.map(paraServidor), data, desdeMs);
-  const app = cli.monthBudgetStats(Object.assign({}, data, { expenses: movs.map(paraCliente) }));
+  const app = cli.monthBudgetStats(Object.assign({}, data, { expenses: movs.map(paraCliente) }), nowMs);
   assert.equal(srv.against, c(app.against));
   assert.equal(srv.shown, c(app.shown));
   // 88,11 + 12,60 + 40 = 140,71 de gasto; 179,35 de ingreso → neto negativo
@@ -117,7 +121,7 @@ t("lo reservado para metas se resta del presupuesto", () => {
     reservaLog: [{ date: d(3), amount: 150 }, { date: "2020-01-01T00:00:00.000Z", amount: 999 }],
   });
   const srv = statsDelMes(movs.map(paraServidor), data, desdeMs);
-  const app = cli.monthBudgetStats(Object.assign({}, data, { expenses: movs.map(paraCliente) }));
+  const app = cli.monthBudgetStats(Object.assign({}, data, { expenses: movs.map(paraCliente) }), nowMs);
   assert.equal(srv.reserved, 150);            // lo de 2020 es de otro mes: no cuenta
   assert.equal(srv.budget, 850);
   assert.equal(srv.budget, app.budget);
@@ -177,7 +181,7 @@ t("★ las lápidas de la app también las respeta el servidor (gastos que él y
   const app = cli.monthBudgetStats(Object.assign({}, data, {
     expenses: visibles.map((f) => ({ date: f.fecha, amount: f.importe, category: f.cat, source: f.source })),
     deleted: [k],
-  }));
+  }), nowMs);
   assert.equal(srv.spent, 12.6);
   assert.equal(srv.spent, c(app.spent));
 });
@@ -203,7 +207,7 @@ t("★ cross-source misma entidad: app y servidor cuentan el mismo gasto (conten
     expenses: visibles.map((f) => ({
       date: f.fecha, amount: f.importe, category: f.cat, source: f.source, merchant: f.comercio,
     })),
-  }));
+  }), nowMs);
   assert.equal(srv.spent, 19);
   assert.equal(srv.spent, c(app.spent));
 });

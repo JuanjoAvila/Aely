@@ -2087,7 +2087,28 @@ function relDay(d){
   if(dayKey(d)===dayKey(y)) return t("g_yesterday");
   return d.getDate()+" "+monthShort(d.getMonth());
 }
-const startOfMonth=(d)=>{ d=d||new Date(); return new Date(d.getFullYear(),d.getMonth(),1); };
+/* Inicio de mes en Europe/Madrid (B09-B, 2026-09-07). Espejo de
+   `inicioDeMesMs` en supabase/functions/_shared/presupuesto.ts — si cambia uno, cambia el otro
+   y el test month-window carga los DOS. Antes: cliente = hora del dispositivo, ingest = UTC;
+   el día 1 a las 00:30 en España caía en meses distintos (widget ≠ app). */
+const MC_TZ="Europe/Madrid";
+function inicioDeMesMs(when, timeZone){
+  const t0=when instanceof Date ? when.getTime() : (when==null?Date.now():Number(when));
+  timeZone=timeZone||MC_TZ;
+  const ym=new Intl.DateTimeFormat("en-CA",{timeZone:timeZone,year:"numeric",month:"2-digit"}).format(new Date(t0));
+  const parts=ym.split("-"); const y=+parts[0], m=+parts[1];
+  const target=y+"-"+(m<10?"0":"")+m+"-01";
+  const localYmd=function(ms){
+    return new Intl.DateTimeFormat("en-CA",{timeZone:timeZone,year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(ms));
+  };
+  let lo=Date.UTC(y,m-1,1)-14*3600000, hi=Date.UTC(y,m-1,1)+14*3600000;
+  while(lo<hi){
+    const mid=Math.floor((lo+hi)/2);
+    if(localYmd(mid)<target) lo=mid+1; else hi=mid;
+  }
+  return lo;
+}
+const startOfMonth=(d)=>{ d=d||new Date(); return new Date(inicioDeMesMs(d)); };
 
 /* ---------- Lógica del efectivo de Trade Republic ----------
    El "value" de la cuenta de gasto = saldo al INICIO del mes en curso

@@ -2,6 +2,17 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.2] — 2026-09-07
+### Ventana del mes alineada (app = widget)
+
+- **`inicioDeMesMs`** compartida (Europe/Madrid) en cliente (`01-i18n.js`) e ingest
+  (`presupuesto.ts`). Antes el cliente usaba hora local del dispositivo y ingest `Date.UTC`:
+  una compra el día 1 a las 00:30 en España caía en meses distintos.
+- `monthBudgetStats` y la query de mes de ingest usan esa ventana.
+- Guardián dual: `tests/month-window.test.mjs` (bordes 00:30 y 23:30, reloj fijo).
+
+OTA; Edge Function `ingest` redesplegada con el canal. Sin Android.
+
 ## [4.19.1] — 2026-09-07
 ### Identidad de fila en gastos (escrituras por uuid)
 

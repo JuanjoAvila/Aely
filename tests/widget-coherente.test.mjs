@@ -29,7 +29,7 @@ const read = (p) => fs.readFileSync(path.join(root, p), "utf8");
 
 const srcTs = read("supabase/functions/_shared/presupuesto.ts");
 const js = transformSync(srcTs, { loader: "ts", format: "esm" }).code;
-const { statsDelMes } = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
+const { statsDelMes, inicioDeMesMs } = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
 const cli = loadPureLogicFromFile();
 
 function t(name, fn) {
@@ -44,9 +44,12 @@ function t(name, fn) {
 
 console.log("widget-coherente");
 
-const ym = new Date().toISOString().slice(0, 7);
+const nowMs = Date.now();
+const desdeMs = inicioDeMesMs(nowMs);
+const ym = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/Madrid", year: "numeric", month: "2-digit",
+}).format(new Date(nowMs));
 const d = (day) => ym + "-" + String(day).padStart(2, "0") + "T10:00:00.000Z";
-const desdeMs = Date.UTC(Number(ym.slice(0, 4)), Number(ym.slice(5, 7)) - 1, 1);
 const c = (n) => +Number(n).toFixed(2);
 
 /** Su caso: TR es la cuenta de gasto diario, Sabadell los recibos, 1.000 € de presupuesto. */
@@ -79,7 +82,7 @@ const MOVS = [
 t("«te quedan» del servidor = «te quedan» de la app", () => {
   const data = escenario(MOVS);
   const srv = statsDelMes(MOVS.map(paraServidor), data, desdeMs);
-  const app = cli.monthBudgetStats(data);
+  const app = cli.monthBudgetStats(data, nowMs);
   // lo que el widget guarda como budgetLeft, en cada lado
   const srvLeft = srv.budget > 0 ? c(Math.max(0, srv.budget - srv.against)) : -1;
   const appLeft = c(Math.max(0, app.remaining));

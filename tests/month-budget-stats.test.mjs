@@ -16,8 +16,11 @@ function t(name, fn) {
 
 console.log("month-budget-stats");
 
-const ym = new Date().toISOString().slice(0, 7);
-const d = (day) => ym + "-" + String(day).padStart(2, "0");
+const nowMs = Date.now();
+const ym = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/Madrid", year: "numeric", month: "2-digit",
+}).format(new Date(nowMs));
+const d = (day) => ym + "-" + String(day).padStart(2, "0") + "T12:00:00.000Z";
 
 t("excluye inversión y traspaso del gastado", () => {
   const s = {
@@ -29,7 +32,7 @@ t("excluye inversión y traspaso del gastado", () => {
       { date: d(5), amount: -200, category: "ingreso" },
     ],
   };
-  const bs = ctx.monthBudgetStats(s);
+  const bs = ctx.monthBudgetStats(s, nowMs);
   assert.equal(bs.spent, 40);
   assert.equal(bs.income, 200);
   assert.equal(bs.against, 40); // gTotalMode split por defecto
@@ -43,7 +46,7 @@ t("resta reservas del presupuesto (no del gastado)", () => {
     expenses: [{ date: d(2), amount: 100, category: "super" }],
     reservaLog: [{ date: d(1), amount: 80 }],
   };
-  const bs = ctx.monthBudgetStats(s);
+  const bs = ctx.monthBudgetStats(s, nowMs);
   assert.equal(bs.reserved, 80);
   assert.equal(bs.budget, 420);
   assert.equal(bs.spent, 100);
@@ -59,7 +62,7 @@ t("modo net: against = gasto − ingreso", () => {
       { date: d(3), amount: -30, category: "ingreso" },
     ],
   };
-  const bs = ctx.monthBudgetStats(s);
+  const bs = ctx.monthBudgetStats(s, nowMs);
   assert.equal(bs.against, 70);
   assert.equal(bs.shown, 70); // |balance|
   assert.equal(bs.remaining, 430);

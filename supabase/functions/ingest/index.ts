@@ -36,7 +36,7 @@ import {
 } from "../_shared/ingest_logic.ts";
 import { aEuros, parseWallet } from "../_shared/wallet.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
-import { bancosDeGastoDiario, cuentaParaPresupuesto, filasComoLaApp, statsDelMes } from "../_shared/presupuesto.ts";
+import { bancosDeGastoDiario, cuentaParaPresupuesto, filasComoLaApp, inicioDeMesMs, statsDelMes } from "../_shared/presupuesto.ts";
 
 /**
  * Comparación en tiempo CONSTANTE del token (2026-07-24).
@@ -256,7 +256,8 @@ Deno.serve(async (req) => {
   try {
     const { data: st } = await supabase.from("app_state").select("data").eq("user_id", userId).maybeSingle();
     const now = new Date(fecha);
-    const desdeMs = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1);
+    // Misma ventana que la app (Europe/Madrid), no Date.UTC — B09-B 2026-09-07.
+    const desdeMs = inicioDeMesMs(now);
     const desde = new Date(desdeMs).toISOString();
     // `cat` y `source` hacen falta para contar como cuenta la app: sin ellos esto sumaba TODO
     // —los recibos del banco de fijos y las inversiones— y el aviso salía por las nubes.

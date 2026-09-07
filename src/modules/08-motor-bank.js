@@ -560,8 +560,8 @@ function reservedSince(state, fromMs){
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
    que pinta la cabecera de Gastos (gasto bruto o |balance| según gTotalMode). */
-function monthBudgetStats(state){
-  const now=new Date(), startMs=startOfMonth(now).getTime();
+function monthBudgetStats(state, nowMs){
+  const startMs=inicioDeMesMs(nowMs!=null?nowMs:Date.now());
   let spent=0, income=0;
   (state.expenses||[]).forEach(function(e){
     if(dateMs(e.date)<startMs) return;

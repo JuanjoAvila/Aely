@@ -94,7 +94,7 @@ const STEPS_DOCS = ["guard-privacy", "docs-frescura", "memoria-espejo"];
 const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente"];
 const STEPS_SUPABASE = [
   "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "widget-coherente",
-  "wallet-notis", "ingest-classify", "divisa-original", "presupuesto-rendimiento",
+  "month-window", "wallet-notis", "ingest-classify", "divisa-original", "presupuesto-rendimiento",
 ];
 
 export function posixPath(p) {

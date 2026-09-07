@@ -48,6 +48,7 @@ const steps = [
   ["ob-ingresos", ["node", "tests/ob-ingresos.test.mjs"]],
   ["reserva-dinero", ["node", "tests/reserva-dinero.test.mjs"]],
   ["month-budget-stats", ["node", "tests/month-budget-stats.test.mjs"]],
+  ["month-window", ["node", "tests/month-window.test.mjs"]],
   ["presupuesto-servidor", ["node", "tests/presupuesto-servidor.test.mjs"]],
   ["widget-coherente", ["node", "tests/widget-coherente.test.mjs"]],
   ["ob-renombrar", ["node", "tests/ob-renombrar.test.mjs"]],
