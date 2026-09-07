@@ -61,6 +61,26 @@ t("expenseCloudKeys: comercio vacío si falta (mismo contrato que el .eq viejo)"
   assert.equal(k.comercio, "");
 });
 
+t("expenseCloudKeys: sin fecha o importe → abort (nunca solo user_id)", () => {
+  assert.equal(ctx.expenseCloudKeys({ id: "k7x9m2ab", amount: 40 }).by, "abort");
+  assert.equal(ctx.expenseCloudKeys({ id: "k7x9m2ab", date: "2026-09-01T12:00:00.000Z" }).by, "abort");
+  assert.equal(ctx.expenseCloudKeys({ id: "k7x9m2ab", date: "", amount: 40 }).by, "abort");
+  // importe 0 es válido (no «falta»)
+  assert.equal(ctx.expenseCloudKeys({ id: "k7x9m2ab", date: "2026-09-01T12:00:00.000Z", amount: 0 }).by, "attrs");
+});
+
+t("expenseCloudEq: abort no emite ninguna query", () => {
+  let eqs = 0;
+  const q = {
+    eq() { eqs++; return this; },
+    delete() { eqs++; return this; },
+    update() { eqs++; return this; },
+  };
+  const out = ctx.expenseCloudEq(q, "user-1", { id: "corto", amount: 12.5 });
+  assert.equal(eqs, 0, "sin fecha no debe llamar a .eq");
+  assert.equal(out.error, null);
+});
+
 t("fuente: las cinco escrituras van por expenseCloudEq (rama id/attrs)", () => {
   const names = ["setExpenseBank", "setExpenseNoCard", "setExpenseNote", "setExpenseCat", "deleteExpense"];
   for (const n of names) {

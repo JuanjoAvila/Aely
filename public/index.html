@@ -2857,14 +2857,21 @@ function mcExpenseId(){
     const r=Math.random()*16|0; return (ch==="x"?r:(r&0x3|0x8)).toString(16);
   });
 }
-/* Clave de escritura en la tabla: uuid si lo hay; si no, atributos (gastos viejos del móvil). */
+/* Clave de escritura en la tabla: uuid si lo hay; si no, atributos (gastos viejos del móvil).
+   Sin fecha o importe NO se escribe: un .eq solo por user_id borraría (o tocaría) TODOS los
+   gastos del usuario — agujero viejo que el botón «es el mismo» pisa a diario (2026-09-07). */
 function expenseCloudKeys(e){
   if(isExpenseUuid(e&&e.id)) return {by:"id", id:e.id};
-  return {by:"attrs", fecha:e&&e.date, importe:e&&e.amount, comercio:(e&&e.merchant)||""};
+  const fecha=e&&e.date;
+  const importe=e&&e.amount;
+  if(fecha==null || fecha==="" || importe==null || importe==="") return {by:"abort"};
+  return {by:"attrs", fecha:fecha, importe:importe, comercio:(e&&e.merchant)||""};
 }
 function expenseCloudEq(q, userId, e){
-  q=q.eq("user_id", userId);
   const k=expenseCloudKeys(e);
+  // Abort silencioso: el llamante hace `const {error}=await …` y no revienta; cero queries.
+  if(k.by==="abort") return { data:null, error:null };
+  q=q.eq("user_id", userId);
   if(k.by==="id") return q.eq("id", k.id);
   return q.eq("fecha",k.fecha).eq("importe",k.importe).eq("comercio",k.comercio);
 }
