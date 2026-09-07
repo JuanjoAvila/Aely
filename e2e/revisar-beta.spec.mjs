@@ -319,7 +319,13 @@ test("quitar un ✗ heredado se lleva su comentario (no reaparece en la siguient
 test("una versión sin tandas declaradas sigue siendo una sola checklist", async ({ page }) => {
   await abrirRevisionBeta(page);
   const r = await page.evaluate(() => {
-    const p = betaChecklist("4.8.0");        // del histórico: no declara tandas
+    // 4.8.0 ya no viaja en el bundle (tope 20). Se planta una entrada sin tandas.
+    RELEASE_NOTES.unshift({
+      v: "0.0.8", d: "e2e", t: "sin tandas e2e",
+      items: { es: ["A", "B"], en: ["A", "B"], ca: ["A", "B"] },
+      tandas: [],
+    });
+    const p = betaChecklist("0.0.8");
     return { n: p.tandas.length, id: p.tandas[0].id, items: p.tandas[0].items.length, total: p.items.length };
   });
   expect(r.n).toBe(1);
@@ -511,10 +517,16 @@ test("cada tanda lleva su cuenta propia, no la de la beta entera", async ({ page
  * DOS sitios (fila y panel), así que blindar la función blinda a ambos a la vez. */
 test("betaMarksCount cuenta lo marcado en ESTA compilación (no la versión base)", async ({ page }) => {
   await abrirRevisionBeta(page);
-  await page.evaluate(() => { CONFIG.APP_VERSION = "4.13.0.11"; });
+  // Hace falta una nota con ≥3 puntos que SÍ viaje en el bundle (tope 20).
+  await page.evaluate(() => {
+    const base = (RELEASE_NOTES || []).find(function (n) {
+      return betaChecklist(n.v).items.length >= 3;
+    });
+    CONFIG.APP_VERSION = (base ? base.v : RELEASE_NOTES[0].v) + ".11";
+  });
   const r0 = await page.evaluate(() => betaMarksCount(betaChecklist(CONFIG.APP_VERSION)));
   expect(r0.n, "arranca en 0 sin nada marcado").toBe(0);
-  expect(r0.tot).toBeGreaterThan(0);
+  expect(r0.tot).toBeGreaterThanOrEqual(3);
 
   await page.evaluate(() => {
     const items = betaChecklist(CONFIG.APP_VERSION).items;
@@ -529,14 +541,20 @@ test("betaMarksCount cuenta lo marcado en ESTA compilación (no la versión base
 
 test("betaMarksCount hereda lo aprobado de una compilación anterior, aunque cambie el número", async ({ page }) => {
   await abrirRevisionBeta(page);
-  await page.evaluate(() => { CONFIG.APP_VERSION = "4.13.0.10"; });
+  await page.evaluate(() => {
+    const base = (RELEASE_NOTES || []).find(function (n) {
+      return betaChecklist(n.v).items.length >= 3;
+    });
+    CONFIG.APP_VERSION = (base ? base.v : RELEASE_NOTES[0].v) + ".10";
+  });
   await page.evaluate(() => {
     const items = betaChecklist(CONFIG.APP_VERSION).items;
     store.set("_betaReviewOk", { [items[0]]: "ok", [items[1]]: "ko" });
   });
-  // Compilación NUEVA, mismo texto de puntos (import/bancos no se reescribieron esta ronda):
-  // la cuenta tiene que seguir viendo esos dos marcados, heredados por TEXTO.
-  await page.evaluate(() => { CONFIG.APP_VERSION = "4.13.0.11"; });
+  // Compilación NUEVA, mismo texto de puntos: la cuenta tiene que seguir viendo esos dos.
+  await page.evaluate(() => {
+    CONFIG.APP_VERSION = mcVerBase(CONFIG.APP_VERSION) + ".11";
+  });
   const r = await page.evaluate(() => betaMarksCount(betaChecklist(CONFIG.APP_VERSION)));
   expect(r.n).toBeGreaterThanOrEqual(2);
 });
