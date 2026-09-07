@@ -821,30 +821,55 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
    compara contra `RELEASE_NOTES` va por la base (4.11.0). Lo usan la checklist de beta y el popup
    de Novedades — la segunda lo hacía a pelo y por eso no marcaba nunca «tu versión». */
 function mcVerBase(v){ return String(v||"").split(".").slice(0,3).join("."); }
-function betaChecklist(version){
-  // Las notas de la versión en curso SON la checklist.
+/* Compara X.Y.Z sin depender de que `_mcNewerVer` ya esté colgado (tests / orden de carga). */
+function mcIsNewer(a,b){
+  if(typeof window!=="undefined"&&window._mcNewerVer) return window._mcNewerVer(a,b);
+  a=String(a||"").split("."); b=String(b||"").split(".");
+  for(var i=0;i<Math.max(a.length,b.length);i++){
+    var x=parseInt(a[i]||0,10), y=parseInt(b[i]||0,10);
+    if(x!==y) return x>y;
+  }
+  return false;
+}
+function betaChecklist(version, prodVersion){
   var base=mcVerBase(version);
-  var notes=(typeof RELEASE_NOTES!=="undefined"&&RELEASE_NOTES.length)
-    ? (RELEASE_NOTES.filter(function(n){ return n.v===base; })[0] || RELEASE_NOTES[0])
-    : null;
+  if(typeof RELEASE_NOTES==="undefined"||!RELEASE_NOTES.length) return { v:base, t:"", items:[], tandas:[] };
+  /* RONDA ENTERA (2026-09-07). El panel cogía SOLO las notas de la versión que corre: en
+     4.19.1.2 enseñaba «Solo ese movimiento» y dejaba fuera todo lo de 4.19.0 (posible repetido,
+     IA, orden…) que YA estaba en el móvil. Con `prodVersion` se juntan las tandas de todas las
+     versiones > producción y ≤ la que corre. Sin prod (aún preguntando / sin red): se queda el
+     comportamiento de siempre —una sola versión—; en la duda, menos, no de más. */
+  var round;
+  var conProd=prodVersion!=null&&prodVersion!=="";
+  if(!conProd){
+    var one=RELEASE_NOTES.filter(function(n){ return n.v===base; })[0] || RELEASE_NOTES[0];
+    round=one?[one]:[];
+  }else{
+    var prod=mcVerBase(prodVersion);
+    round=RELEASE_NOTES.filter(function(n){
+      return n&&n.v && mcIsNewer(n.v, prod) && !mcIsNewer(n.v, base);
+    });
+  }
+  if(!round.length){
+    var fb=RELEASE_NOTES.filter(function(n){ return n.v===base; })[0] || RELEASE_NOTES[0];
+    round=fb?[fb]:[];
+  }
   // El panel de revisión es la consola privada del dueño y va SIN traducir (como «Actividad»),
   // así que la checklist se lee siempre en castellano aunque la app esté en otro idioma.
-  if(!notes) return { v:base, t:"", items:[], tandas:[] };
-  /* ⚠ LA CHECKLIST SON LOS PUNTOS DE LAS TANDAS, NO LOS DE NOVEDADES (2026-08-01).
-     `items` de una versión es lo que lee LA FAMILIA en Novedades: otra redacción, otro número de
-     líneas (la 4.13.0 tiene 14 ahí y 21 repartidos en tandas). El panel numera los puntos
-     GLOBALMENTE y todo lo demás va por ese índice —`marks`, el progreso, y sobre todo la lista de
-     ✓ heredados, que casa por el TEXTO del punto—, así que si la lista plana no es exactamente la
-     concatenación de las tandas, los índices se cruzan: el panel enseña «Un CSV también entra» y
-     guarda ese ✓ bajo el texto de una nota de bancos, y los puntos que sobran (del 14 al 20) se
-     guardan bajo `undefined` y no se heredan nunca. Aplanar aquí lo deja alineado por
-     construcción. Sin tandas declaradas, `betaTandas` devuelve una sola con `rnItems` dentro, así
-     que esto da EXACTAMENTE la misma lista de siempre y las 69 versiones del histórico no se
-     enteran. */
-  var tandas=betaTandas(notes);
-  var planos=[];
-  tandas.forEach(function(g){ planos=planos.concat(g.items); });
-  return { v:notes.v, t:rnT(notes.t,"es"), items:planos, tandas:tandas };
+  var tandas=[], planos=[], titulo="";
+  round.forEach(function(notes){
+    if(!titulo) titulo=rnT(notes.t,"es");
+    betaTandas(notes).forEach(function(g){
+      /* Con ronda multi-versión el id lleva la versión: dos tandas «id-fila» de bases distintas
+         no se pisan en el veredicto. Sin prod (una sola versión) se conserva el id corto de
+         siempre para no resetear lo ya enviado en esta compilación. */
+      var id=conProd?(notes.v+"/"+g.id):g.id;
+      var t=conProd?("v"+notes.v+(g.t?" · "+g.t:"")):g.t;
+      tandas.push({ id:id, t:t, items:g.items });
+      planos=planos.concat(g.items);
+    });
+  });
+  return { v:base, t:titulo, items:planos, tandas:tandas };
 }
 /* LAS TANDAS DE UNA VERSIÓN — varias betas a la vez, cada una con su veredicto.
    Petición suya 2026-07-29: «que se pudieran implementar varias betas a la vez y que me des la
@@ -896,6 +921,18 @@ function betaMarksCount(pack){
   });
   return { n:n, tot:pack.items.length };
 }
+/* Versión que sirve Pages AHORA (cruda). `null` mientras pregunta o si falla la red.
+   Sacada de `useYaEnProd` para que el panel de beta pueda armar la ronda entera (2026-09-07). */
+function useProdVersion(){
+  const [prod,setProd]=useState(null);
+  useEffect(function(){
+    if(!window._mcProdVersion) return;
+    let vivo=true;
+    window._mcProdVersion().then(function(v){ if(vivo) setProd(v||null); });
+    return function(){ vivo=false; };
+  },[]);
+  return prod;
+}
 /* ¿LO QUE LLEVO PUESTO YA ESTÁ EN PRODUCCIÓN? (petición suya 2026-07-28)
    «Ponme que cuando suba algo a prod, la beta no haya nada para aprobar porque lógicamente ya lo
    hice para que subiera prod». Y es verdad: promocionar ES la aprobación. Pero el panel solo
@@ -906,13 +943,7 @@ function betaMarksCount(pack){
    ya va por ahí o más allá, esto está aprobado por definición. `null` mientras se pregunta o si
    la red falla: en la duda se sigue preguntando, que es el lado seguro. */
 function useYaEnProd(){
-  const [prod,setProd]=useState(null);
-  useEffect(function(){
-    if(!window._mcProdVersion) return;
-    let vivo=true;
-    window._mcProdVersion().then(function(v){ if(vivo) setProd(v||null); });
-    return function(){ vivo=false; };
-  },[]);
+  const prod=useProdVersion();
   if(!prod||!window._mcNewerVer) return null;
   const base=mcVerBase(CONFIG.APP_VERSION);
   /* UNA VERSIÓN QUE NO SE PUEDE COMPARAR NO DA NADA POR APROBADO (2026-07-28, cazado en CI).
@@ -926,8 +957,11 @@ function useYaEnProd(){
 }
 function BetaReviewPanel({onClose, showToast}){
   useBackClose(true, onClose);
-  const pack=betaChecklist(CONFIG.APP_VERSION);
-  const yaEnProd=useYaEnProd();
+  const prod=useProdVersion();
+  const pack=betaChecklist(CONFIG.APP_VERSION, prod);
+  const yaEnProd=(!prod||!/^\d+\.\d+\.\d+$/.test(mcVerBase(CONFIG.APP_VERSION)))
+    ? null
+    : (!mcIsNewer(mcVerBase(CONFIG.APP_VERSION), prod) ? prod : false);
   // La clave va por la COMPILACIÓN (4.12.0.17), no por la versión base (4.12.0). Petición suya
   // 2026-07-26: «cuando me subas una nueva versión con el fix de eso, que se resetee y se ponga
   // vacío». Con la clave por versión base, la beta siguiente heredaba las cruces y los comentarios
@@ -1438,6 +1472,31 @@ function rnItems(r,lg){
   return it[lg||CURLANG]||it.es||[];
 }
 var RELEASE_NOTES=[
+  {v:"4.19.3", d:"7 sep 2026",
+   t:{es:"Revisar la beta enseña toda la ronda, con pasos claros",
+      en:"Beta review shows the whole round, with clear steps",
+      ca:"Revisar la beta ensenya tota la ronda, amb passos clars"},
+   tandas:[
+     {id:"panel-ronda", t:{es:"🧪 Toda la ronda a la vista", en:"🧪 Whole round in view", ca:"🧪 Tota la ronda a la vista"},
+      items:{
+        es:[
+          "Ajustes → Revisar esta beta: tienen que salir las tandas de TODAS las versiones de esta ronda (no solo la última), cada una con su número de versión en el título.",
+          "Cada punto tiene que decir dónde ir, qué tocar y qué tiene que pasar. Si alguno habla en abstracto sin decir dónde, está mal.",
+        ],
+        en:[
+          "Ajustes → Revisar esta beta: tienen que salir las tandas de TODAS las versiones de esta ronda (no solo la última), cada una con su número de versión en el título.",
+          "Cada punto tiene que decir dónde ir, qué tocar y qué tiene que pasar. Si alguno habla en abstracto sin decir dónde, está mal.",
+        ],
+        ca:[
+          "Ajustes → Revisar esta beta: tienen que salir las tandas de TODAS las versiones de esta ronda (no solo la última), cada una con su número de versión en el título.",
+          "Cada punto tiene que decir dónde ir, qué tocar y qué tiene que pasar. Si alguno habla en abstracto sin decir dónde, está mal.",
+        ]}}
+   ],
+   items:{
+     es:["En Revisar la beta salen todas las tandas de la ronda, con pasos concretos para probar cada una."],
+     en:["Beta review lists every tanda in the round, with concrete steps to try each one."],
+     ca:["A Revisar la beta surten totes les tandes de la ronda, amb passos concrets per provar cadascuna."]
+   }},
   {v:"4.19.2", d:"7 sep 2026",
    t:{es:"El gasto del mes cuadra con el widget a primera hora",
       en:"Month spend matches the widget first thing in the morning",
@@ -1446,16 +1505,16 @@ var RELEASE_NOTES=[
      {id:"ventana-mes", t:{es:"📅 Mismo mes en todos sitios", en:"📅 Same month everywhere", ca:"📅 El mateix mes a tot arreu"},
       items:{
         es:[
-          "Una compra pasada la medianoche del día 1 cuenta en el mes nuevo tanto en Gastos como en el resumen del móvil con la app cerrada.",
-          "Ya no hay dos cifras distintas según mires la lista o el widget.",
+          "Gastos: mira el total del mes arriba. Con la app cerrada, mira el widget: tiene que decir la misma cifra.",
+          "Si apuntas un gasto pasada la medianoche del día 1, tiene que sumar en el mes nuevo en los dos sitios, no solo en uno.",
         ],
         en:[
-          "A purchase just after midnight on the 1st counts in the new month both in Gastos and in the phone summary with the app closed.",
-          "You no longer get two different totals depending on whether you look at the list or the widget.",
+          "Gastos: mira el total del mes arriba. Con la app cerrada, mira el widget: tiene que decir la misma cifra.",
+          "Si apuntas un gasto pasada la medianoche del día 1, tiene que sumar en el mes nuevo en los dos sitios, no solo en uno.",
         ],
         ca:[
-          "Una compra passada la mitjanit del dia 1 compta al mes nou tant a Despeses com al resum del mòbil amb l’app tancada.",
-          "Ja no hi ha dues xifres diferents segons miris la llista o el giny.",
+          "Gastos: mira el total del mes arriba. Con la app cerrada, mira el widget: tiene que decir la misma cifra.",
+          "Si apuntas un gasto pasada la medianoche del día 1, tiene que sumar en el mes nuevo en los dos sitios, no solo en uno.",
         ]}}
    ],
    items:{
@@ -1471,16 +1530,30 @@ var RELEASE_NOTES=[
      {id:"id-fila", t:{es:"🎯 Solo ese movimiento", en:"🎯 Just that transaction", ca:"🎯 Només aquell moviment"},
       items:{
         es:[
-          "Si borras o cambias la categoría, el banco o el concepto de un movimiento, se actualiza ese y no otro del mismo día con el mismo importe.",
-          "Los movimientos antiguos del móvil siguen funcionando igual; los nuevos nacen con identidad propia en la nube.",
+          "Gastos: busca dos movimientos del MISMO día y el MISMO importe. Cambia la categoría de uno. Solo tiene que cambiar ese; el otro se queda como estaba.",
+          "Con esos mismos dos: borra uno. Tiene que desaparecer solo el que tocaste. Cierra la app, vuelve a abrirla y sincroniza: el que quedaba sigue ahí.",
         ],
         en:[
-          "If you delete or change a transaction’s category, bank or note, that one updates — not another from the same day with the same amount.",
-          "Older transactions already on your phone keep working; new ones get their own identity in the cloud.",
+          "Gastos: busca dos movimientos del MISMO día y el MISMO importe. Cambia la categoría de uno. Solo tiene que cambiar ese; el otro se queda como estaba.",
+          "Con esos mismos dos: borra uno. Tiene que desaparecer solo el que tocaste. Cierra la app, vuelve a abrirla y sincroniza: el que quedaba sigue ahí.",
         ],
         ca:[
-          "Si esborres o canvies la categoria, el banc o el concepte d’un moviment, s’actualitza aquell i no un altre del mateix dia amb el mateix import.",
-          "Els moviments antics del mòbil segueixen funcionant igual; els nous neixen amb identitat pròpia al núvol.",
+          "Gastos: busca dos movimientos del MISMO día y el MISMO importe. Cambia la categoría de uno. Solo tiene que cambiar ese; el otro se queda como estaba.",
+          "Con esos mismos dos: borra uno. Tiene que desaparecer solo el que tocaste. Cierra la app, vuelve a abrirla y sincroniza: el que quedaba sigue ahí.",
+        ]}},
+     {id:"avisos-presupuesto", t:{es:"🔔 Avisos al pasar del 50/80/95/100", en:"🔔 Alerts at 50/80/95/100", ca:"🔔 Avisos en passar del 50/80/95/100"},
+      items:{
+        es:[
+          "Ajustes, gestionar bancos: quita o añade un banco de gasto diario. Vuelve a Gastos y mira el total del mes: tiene que haber cambiado al momento.",
+          "Si con ese cambio cruzas el 50, 80, 95 o 100 por ciento de tu presupuesto, tiene que saltarte el aviso. Y una sola vez, no tres seguidos.",
+        ],
+        en:[
+          "Ajustes, gestionar bancos: quita o añade un banco de gasto diario. Vuelve a Gastos y mira el total del mes: tiene que haber cambiado al momento.",
+          "Si con ese cambio cruzas el 50, 80, 95 o 100 por ciento de tu presupuesto, tiene que saltarte el aviso. Y una sola vez, no tres seguidos.",
+        ],
+        ca:[
+          "Ajustes, gestionar bancos: quita o añade un banco de gasto diario. Vuelve a Gastos y mira el total del mes: tiene que haber cambiado al momento.",
+          "Si con ese cambio cruzas el 50, 80, 95 o 100 por ciento de tu presupuesto, tiene que saltarte el aviso. Y una sola vez, no tres seguidos.",
         ]}}
    ],
    items:{
@@ -1491,22 +1564,26 @@ var RELEASE_NOTES=[
   {v:"4.19.0", d:"7 sep 2026",
    t:{es:"Sincronización más completa y Gastos a tu manera",en:"More complete syncing and expenses your way",ca:"Sincronització més completa i Despeses a la teva manera"},
    tandas:[
-     {id:"sync-tr",t:{es:"🏦 Trade Republic al día",en:"🏦 Trade Republic up to date",ca:"🏦 Trade Republic al dia"},items:{
-       es:["Sincroniza desde Cartera y comprueba que Trade Republic actualiza posiciones y saldo en la misma pasada.","En Mis bancos, una reconexión correcta cambia el resumen a conectado sin cerrar la app."],
-       en:["Sync from Cartera and check that Trade Republic updates positions and balance in the same pass.","In My banks, a successful reconnection changes the summary to connected without closing the app."],
-       ca:["Sincronitza des de Cartera i comprova que Trade Republic actualitza posicions i saldo en la mateixa passada.","A Els meus bancs, una reconnexió correcta canvia el resum a connectat sense tancar l'app."]}},
-     {id:"movimientos",t:{es:"🧾 Movimientos completos",en:"🧾 Complete transactions",ca:"🧾 Moviments complets"},items:{
-       es:["Sincroniza los bancos y comprueba que aparece cualquier movimiento nuevo, también si pertenece a una segunda cuenta del mismo banco.","Si el banco trae un movimiento sin nombre que puede ser el mismo que ya entró por el móvil, aparece marcado y no cuenta en el mes hasta que digas si es el mismo o son distintos. Tócalo para decidir."],
-       en:["Sync banks and check that every new transaction appears, including one from a second account at the same bank.","If the bank brings an unnamed transaction that may be the same one already on your phone, it shows as marked and does not count in the month until you say whether it is the same or they are different. Tap it to decide."],
-       ca:["Sincronitza els bancs i comprova que apareix qualsevol moviment nou, també si pertany a un segon compte del mateix banc.","Si el banc porta un moviment sense nom que pot ser el mateix que ja va entrar pel mòbil, surt marcat i no compta al mes fins que diguis si és el mateix o són diferents. Toca'l per decidir."]}},
-     {id:"categoria-ia",t:{es:"🤖 Categoría de IA",en:"🤖 AI category",ca:"🤖 Categoria d'IA"},items:{
-       es:["La lista de categorías incluye Inteligencia artificial.","Los movimientos nuevos de ChatGPT, Claude, Cursor y servicios similares entran en IA; los anteriores conservan su categoría actual."],
-       en:["The category list includes Artificial intelligence.","New ChatGPT, Claude, Cursor and similar transactions go into AI; existing ones keep their current category."],
-       ca:["La llista de categories inclou Intel·ligència artificial.","Els moviments nous de ChatGPT, Claude, Cursor i serveis semblants entren a IA; els anteriors conserven la categoria actual."]}},
-     {id:"orden-gastos",t:{es:"↕️ Orden manual",en:"↕️ Manual ordering",ca:"↕️ Ordre manual"},items:{
-       es:["En Gastos, arrastra el asa de una fila para colocarla por encima o debajo de otra del mismo día.","Cierra y vuelve a abrir: el orden se conserva y ninguna fecha cambia."],
-       en:["In Gastos, drag a row handle to place it above or below another transaction from the same day.","Close and reopen: the order is preserved and no date changes."],
-       ca:["A Despeses, arrossega l'ansa d'una fila per posar-la damunt o sota un altre moviment del mateix dia.","Tanca i torna a obrir: l'ordre es conserva i no canvia cap data."]}}
+     {id:"tr-reactivo",t:{es:"🏦 Trade Republic sin reiniciar",en:"🏦 Trade Republic without restart",ca:"🏦 Trade Republic sense reiniciar"},items:{
+       es:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."],
+       en:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."],
+       ca:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."]}},
+     {id:"multicuenta",t:{es:"🧾 Todas las cuentas del banco",en:"🧾 Every bank account",ca:"🧾 Tots els comptes del banc"},items:{
+       es:["Sincroniza los bancos y mira Gastos: si tienes más de una cuenta en el mismo banco, tienen que aparecer también los movimientos de la segunda, no solo los de la primera."],
+       en:["Sincroniza los bancos y mira Gastos: si tienes más de una cuenta en el mismo banco, tienen que aparecer también los movimientos de la segunda, no solo los de la primera."],
+       ca:["Sincroniza los bancos y mira Gastos: si tienes más de una cuenta en el mismo banco, tienen que aparecer también los movimientos de la segunda, no solo los de la primera."]}},
+     {id:"posible-repetido",t:{es:"🧾 Movimientos que se repiten",en:"🧾 Repeated transactions",ca:"🧾 Moviments que es repeteixen"},items:{
+       es:["Sincroniza los bancos. Si algún movimiento de Trade Republic pudiera ser el mismo que ya te entró por el móvil, sale apagado y con aviso. Comprueba que NO suma en el total del mes de arriba.","Toca ese movimiento: dentro tienen que salir dos botones, es el mismo y son distintos. Dale a son distintos: la marca desaparece y el importe empieza a contar en el total.","Repite con otro y dale a es el mismo: la fila se va y el bueno, el que tiene nombre de comercio, se queda. Sincroniza otra vez y comprueba que no vuelve a aparecer."],
+       en:["Sincroniza los bancos. Si algún movimiento de Trade Republic pudiera ser el mismo que ya te entró por el móvil, sale apagado y con aviso. Comprueba que NO suma en el total del mes de arriba.","Toca ese movimiento: dentro tienen que salir dos botones, es el mismo y son distintos. Dale a son distintos: la marca desaparece y el importe empieza a contar en el total.","Repite con otro y dale a es el mismo: la fila se va y el bueno, el que tiene nombre de comercio, se queda. Sincroniza otra vez y comprueba que no vuelve a aparecer."],
+       ca:["Sincroniza los bancos. Si algún movimiento de Trade Republic pudiera ser el mismo que ya te entró por el móvil, sale apagado y con aviso. Comprueba que NO suma en el total del mes de arriba.","Toca ese movimiento: dentro tienen que salir dos botones, es el mismo y son distintos. Dale a son distintos: la marca desaparece y el importe empieza a contar en el total.","Repite con otro y dale a es el mismo: la fila se va y el bueno, el que tiene nombre de comercio, se queda. Sincroniza otra vez y comprueba que no vuelve a aparecer."]}},
+     {id:"categoria-ia",t:{es:"🤖 Categoría de inteligencia artificial",en:"🤖 AI category",ca:"🤖 Categoria d'intel·ligència artificial"},items:{
+       es:["Apuntar: crea un gasto a mano que se llame ChatGPT. Tiene que caer en Inteligencia artificial, no en Ocio.","Mira tus cargos VIEJOS de ChatGPT o Claude: tienen que seguir donde estaban. Esto solo aplica a lo nuevo, es lo que decidiste."],
+       en:["Apuntar: crea un gasto a mano que se llame ChatGPT. Tiene que caer en Inteligencia artificial, no en Ocio.","Mira tus cargos VIEJOS de ChatGPT o Claude: tienen que seguir donde estaban. Esto solo aplica a lo nuevo, es lo que decidiste."],
+       ca:["Apuntar: crea un gasto a mano que se llame ChatGPT. Tiene que caer en Inteligencia artificial, no en Ocio.","Mira tus cargos VIEJOS de ChatGPT o Claude: tienen que seguir donde estaban. Esto solo aplica a lo nuevo, es lo que decidiste."]}},
+     {id:"orden-gastos",t:{es:"↕️ Ordenar a mano",en:"↕️ Manual ordering",ca:"↕️ Ordenar a mà"},items:{
+       es:["Gastos: en un día con dos o más movimientos, arrastra uno por su asa y suéltalo encima o debajo de otro del mismo día.","Cierra la app, ábrela y vuelve a Gastos: tiene que seguir en el sitio donde lo dejaste, y ninguna fecha puede haber cambiado."],
+       en:["Gastos: en un día con dos o más movimientos, arrastra uno por su asa y suéltalo encima o debajo de otro del mismo día.","Cierra la app, ábrela y vuelve a Gastos: tiene que seguir en el sitio donde lo dejaste, y ninguna fecha puede haber cambiado."],
+       ca:["Gastos: en un día con dos o más movimientos, arrastra uno por su asa y suéltalo encima o debajo de otro del mismo día.","Cierra la app, ábrela y vuelve a Gastos: tiene que seguir en el sitio donde lo dejaste, y ninguna fecha puede haber cambiado."]}}
    ],
    items:{
      es:["Trade Republic actualiza saldo, posiciones y estado sin necesitar reiniciar.","La sincronización recoge movimientos de todas las cuentas enlazadas.","Si un movimiento del banco puede repetir uno del móvil, se marca para que lo resuelvas.","Las herramientas de inteligencia artificial tienen categoría propia.","Los movimientos se pueden ordenar a mano dentro de cada día."],
@@ -2775,7 +2852,11 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const [hojaOpen,setHojaOpen]=useState(false);  // importar una hoja de gastos (Excel/CSV)
   const [histOpen,setHistOpen]=useState(false);  // importar histórico del banco (también desde «Mis bancos»)
   const [autoBackOpen,setAutoBackOpen]=useState(false);  // copias automáticas diarias (state_backups)
-  const yaEnProd=useYaEnProd();                  // lo que corre ya lo sirve Pages → nada que aprobar
+  const prodVer=useProdVersion();                // Pages ahora (cruda); null mientras pregunta
+  // Misma regla que useYaEnProd, sin segundo fetch (compartimos prodVer con betaChecklist).
+  const yaEnProd=(!prodVer||!/^\d+\.\d+\.\d+$/.test(mcVerBase(CONFIG.APP_VERSION)))
+    ? null
+    : (!mcIsNewer(mcVerBase(CONFIG.APP_VERSION), prodVer) ? prodVer : false);
   const loadEvents=function(){
     cloud.adminEvents(200).then(function(rows){
       setEvents(rows||[]);
@@ -3273,7 +3354,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
             // «Code review» pero probando la app: la checklist sale de las notas de esta versión.
             // Solo tiene sentido estando en beta — en estable no hay nada que aprobar.
             beta && (function(){
-              const pack=betaChecklist(CONFIG.APP_VERSION);
+              const pack=betaChecklist(CONFIG.APP_VERSION, prodVer);
               const c=betaMarksCount(pack);
               // Con la versión ya subida a producción la fila deja de cantar «3/8» — ese contador
               // se leía como trabajo pendiente cada vez que abría Ajustes, y no lo era (2026-07-28).

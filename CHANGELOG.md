@@ -2,6 +2,19 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.3] — 2026-09-07
+### Panel «Revisar la beta»: ronda entera + pasos
+
+- **`betaChecklist(version, prodVersion)`:** con prod conocida junta las tandas de todas las
+  versiones `> prod` y `≤` la que corre (orden nueva→vieja, título `vX.Y.Z · …`). Sin prod,
+  comportamiento de siempre (una sola versión).
+- **`useProdVersion`:** Pages cruda; panel y fila de Ajustes comparten el mismo pack.
+- Tandas de 4.19.0–4.19.2 reescritas como pasos (dónde / qué / qué pasa); B09-A2 entra como
+  tanda de 4.19.1. Novedades de familia intactas.
+- Guardián e2e: ronda vs una versión; concatenación plana = tandas.
+
+OTA; sin Android.
+
 ## [4.19.2] — 2026-09-07
 ### Ventana del mes alineada (app = widget)
 

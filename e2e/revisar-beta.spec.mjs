@@ -353,21 +353,51 @@ test("la versión en curso: tandas (o la implícita) cubren TODOS los puntos ali
   expect(r.alineados, "cada índice global tiene que caer sobre el texto que enseña su tanda").toBe(true);
 });
 
+test("con prod conocida, la checklist junta toda la ronda (no solo la última versión)", async ({ page }) => {
+  /* Regresión 2026-09-07: en 4.19.1.2 el panel enseñaba solo «Solo ese movimiento» y dejaba
+     fuera 4.19.0. Con prod=4.18.7 tiene que salir la ronda 4.19.0…4.19.x. */
+  await abrirRevisionBeta(page);
+  const r = await page.evaluate(() => {
+    const solo = betaChecklist("4.19.3");
+    const ronda = betaChecklist("4.19.3", "4.18.7");
+    const planos = [];
+    ronda.tandas.forEach((g) => { planos.push.apply(planos, g.items); });
+    return {
+      soloN: solo.tandas.length,
+      rondaN: ronda.tandas.length,
+      rondaItems: ronda.items.length,
+      ids: ronda.tandas.map((t) => t.id),
+      titulos: ronda.tandas.map((t) => t.t),
+      planosOk: planos.length === ronda.items.length && planos.every((it, i) => it === ronda.items[i]),
+    };
+  });
+  expect(r.rondaN).toBeGreaterThan(r.soloN);
+  expect(r.ids.some((id) => String(id).indexOf("4.19.0/") === 0)).toBe(true);
+  expect(r.ids.some((id) => String(id).indexOf("4.19.1/") === 0)).toBe(true);
+  expect(r.ids.some((id) => String(id).indexOf("4.19.2/") === 0)).toBe(true);
+  expect(r.titulos.every((t) => /^v4\.19\./.test(t))).toBe(true);
+  expect(r.planosOk, "marks por índice: la lista plana = concat de tandas en el mismo orden").toBe(true);
+  expect(r.rondaItems).toBeGreaterThan(2);
+});
+
 /** Siembra dos tandas de mentira en la entrada de RELEASE_NOTES que resuelve la versión en curso.
- *  Antes mutaba siempre RELEASE_NOTES[0]: valía mientras la ronda viva era esa. Con 4.14.0 delante
- *  y el test clavando APP_VERSION a un .7 de otra base, el panel leía la entrada real (vacía o con
- *  una sola tanda) y la siembra no llegaba. */
+ *  Devuelve la versión ANTERIOR (para pasar como prod): así la ronda del panel es solo esa
+ *  entrada — si prod fuera 0.0.1, `betaChecklist` juntaría toda la historia (2026-09-07). */
 async function conTandasDePrueba(page) {
-  await page.evaluate(() => {
+  return page.evaluate(() => {
     const base = typeof mcVerBase === "function"
       ? mcVerBase(CONFIG.APP_VERSION)
       : String(CONFIG.APP_VERSION || "").split(".").slice(0, 3).join(".");
     const n = (RELEASE_NOTES || []).filter(function (x) { return x.v === base; })[0] || RELEASE_NOTES[0];
-    if (!n) return;
+    if (!n) return "0.0.1";
     n.tandas = [
       { id: "a", t: "Tanda A de prueba", items: { es: ["Punto A1", "Punto A2"] } },
       { id: "b", t: "Tanda B de prueba", items: { es: ["Punto B1", "Punto B2"] } },
     ];
+    const idx = RELEASE_NOTES.indexOf(n);
+    return (idx >= 0 && RELEASE_NOTES[idx + 1] && RELEASE_NOTES[idx + 1].v)
+      ? RELEASE_NOTES[idx + 1].v
+      : "0.0.1";
   });
 }
 
@@ -375,8 +405,8 @@ test("un fallo en una tanda NO bloquea aprobar las otras", async ({ page }) => {
   await abrirRevisionBeta(page);
   // Compilación de la ronda VIVA (RELEASE_NOTES[0]), no un número clavado de una ronda ya cerrada.
   await page.evaluate(() => { CONFIG.APP_VERSION = RELEASE_NOTES[0].v + ".7"; });
-  await conTandasDePrueba(page);
-  const panel = await conProduccionEn(page, "0.0.1");
+  const prev = await conTandasDePrueba(page);
+  const panel = await conProduccionEn(page, prev);
   await expect(panel).toBeVisible();
 
   const tandas = panel.locator(".beta-tanda");
@@ -403,8 +433,8 @@ test("un fallo en una tanda NO bloquea aprobar las otras", async ({ page }) => {
 test("cada tanda lleva su cuenta propia, no la de la beta entera", async ({ page }) => {
   await abrirRevisionBeta(page);
   await page.evaluate(() => { CONFIG.APP_VERSION = RELEASE_NOTES[0].v + ".7"; });
-  await conTandasDePrueba(page);
-  const panel = await conProduccionEn(page, "0.0.1");
+  const prev = await conTandasDePrueba(page);
+  const panel = await conProduccionEn(page, prev);
   const primera = panel.locator(".beta-tanda").nth(0);
   const total = await primera.locator(".beta-item").count();
 
