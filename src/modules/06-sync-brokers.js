@@ -361,6 +361,12 @@ function trBridge(){
 // Teléfono del último login OK (solo el teléfono, NUNCA el PIN): tras un 401 real el formulario
 // sale ya rellenado y reconectar queda en PIN + código (feedback 2026-07-17).
 function trPhoneSaved(){ try{ return localStorage.getItem("mc_tr_phone")||""; }catch(e){ return ""; } }
+// La tarjeta y sus consumidores (resumen de Ajustes + banner de Cartera) viven en componentes
+// distintos. Cambiar solo el useState local dejaba «1 caído» hasta reiniciar aunque el login o
+// el sync acabasen bien — feedback 2026-09-07. Este evento mantiene una única verdad visible.
+function trSignalStatus(connected){
+  try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:!!connected}})); }catch(e){}
+}
 function TRSync({state, set, totals, open, onToggle}){
   const bridge=trBridge();
   const [step,setStep]=useState("idle");      // idle | code | preview | done
@@ -400,12 +406,13 @@ function TRSync({state, set, totals, open, onToggle}){
       if(r&&r.authExpired && !r.softFail && !r.wafBlocked){
         // 401 REAL (no anti-bot): al formulario directamente, con el teléfono ya puesto. Antes se
         // pedía pulsar «Desconectar» — que además borra el snapshot bueno (feedback 2026-07-17).
-        setConnected(false); setExpired(true); setStep("idle");
+        setConnected(false); trSignalStatus(false); setExpired(true); setStep("idle");
         try{ cloud.logEvent('error','TR sync: sesión caducada de verdad (401 real)'); }catch(x){}
         return;
       }
       if(r&&(r.softFail||r.wafBlocked)){ fail(r); return; }   // anti-bot: sesión sigue, no pedir 2FA
       if(!r||!r.ok||!Array.isArray(r.positions)){ fail(r); return; }
+      trSignalStatus(true);
       const m={};
       r.positions.forEach(function(po){
         const sug=brokerSuggest(po, state.investments);
@@ -432,7 +439,7 @@ function TRSync({state, set, totals, open, onToggle}){
     setBusy(true); setErr(false); setErrMsg("");
     Promise.resolve(bridge.verify({processId:processId,code:code.trim()})).then(function(r){
       if(!r||!r.ok){ fail(r); return; }
-      setConnected(true); setExpired(false); setCode(""); doSync();
+      setConnected(true); trSignalStatus(true); setExpired(false); setCode(""); doSync();
     }).catch(fail);
   };
   const mappedN=positions?positions.filter(function(p){ return map[p.isin]; }).length:0;
@@ -478,7 +485,7 @@ function TRSync({state, set, totals, open, onToggle}){
   };
   const disconnect=function(){
     if(bridge&&bridge.logout){ Promise.resolve(bridge.logout()).catch(function(){}); }
-    setConnected(false); setStep("idle"); setPositions(null); setPhone(""); setPin("");
+    setConnected(false); trSignalStatus(false); setStep("idle"); setPositions(null); setPhone(""); setPin("");
   };
   const inpStyle={marginTop:8};
   const body=!bridge

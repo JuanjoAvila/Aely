@@ -167,6 +167,12 @@ t("Steam / Instant Gaming caen en videojuegos", () => {
   assert.equal(categorizar("Instant Gaming"), "gaming");
 });
 
+t("ChatGPT / Claude / Cursor caen en IA también en el ingest", () => {
+  assert.equal(categorizar("OPENAI CHATGPT SUBSCRIPTION"), "ia");
+  assert.equal(categorizar("Claude Anthropic"), "ia");
+  assert.equal(categorizar("Cursor AI"), "ia");
+});
+
 t("teléfono / seguro caen en Recibos; Movistar Plus sigue en ocio", () => {
   assert.equal(categorizar("Vodafone España"), "recibos");
   assert.equal(categorizar("Mapfre Seguros"), "recibos");

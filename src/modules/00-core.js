@@ -138,6 +138,7 @@ const CATEGORIES = [
   { id:"cine",       name:"Cine",                color:"#E8A0C8", icon:"🍿" },
   { id:"padel",      name:"Pádel",               color:"#6BCB77", icon:"🎾" },
   { id:"heladeria",  name:"Heladería",           color:"#F5A3C7", icon:"🍦" },
+  { id:"ia",         name:"Inteligencia artificial",color:"#C9A0E0", icon:"🤖" },
   { id:"ocio",       name:"Ocio",                color:"#9BD0E0", icon:"🎭" },
   { id:"gaming",     name:"Videojuegos",         color:"#7B8CDE", icon:"🎮" },
   { id:"viajes",     name:"Viajes",              color:"#5B8DEF", icon:"✈️" },
@@ -222,7 +223,10 @@ const KW = {
   educacion:["universidad","universitat","uab ","upc ","upf ","ub ","uoc ","uned","campus","matricula","matrícula","academia","academía","curso ","cursos","formacion","formación","master ","máster","mba ","udemy","coursera","domestika","linkedin learning","skillshare","colegio","escola","guarderia","guardería","escuela infantil","libro de texto","libreria universitaria","openenglish","open english","british council","oxford house","academia de ingles","academia d'angles","autoescuela","autoescola","dgt examen","permiso conducir"],
   // Videojuegos ANTES que ocio/compras: Steam e Instant Gaming no son «Netflix» ni «Amazon».
   gaming:["steam","instant gaming","instantgaming","instant-gaming","g2a","eneba","cdkeys","humble bundle","epic games","battle.net","vs gamers","versus gamers","playstation store","xbox store","nintendo eshop","nintendo e-shop"],
-  ocio:["spotify","netflix","hbo","disney","playstation","xbox","nintendo","fnac","museo","teatro","concierto","decathlon","gym","gimnasio","sport","bolera","anthropic","claude","claude.ai","openai","chatgpt","gpt-","google one","google play","googleplay","play store","playstore","icloud","apple.com","apple servic","youtube premium","youtube music","prime video","amazon prime","twitch","crunchyroll","dazn","filmin","movistar plus","rakuten","audible","deezer","tidal","dropbox","notion","canva","duolingo","cursor","midjourney","perplexity","atraccion","atracción","parque tematico","zoologic","zoológico","aquarium","aquari","escape room","ocio","basic fit","basic-fit","dir ","metropolitan","synergym","fitness park","puregym","mcfit","crossfit","bowling","karaoke","laser tag","minigolf","parque de atracciones","portaventura","ferrari land","tibidabo"],
+  // Suscripciones de IA separadas de Ocio (feedback 2026-09-07): son herramientas de trabajo
+  // distintas de Netflix/Spotify y el presupuesto tiene que poder enseñarlas por separado.
+  ia:["anthropic","claude","claude.ai","openai","chatgpt","chat gpt","gpt-","cursor","midjourney","perplexity","github copilot"],
+  ocio:["spotify","netflix","hbo","disney","playstation","xbox","nintendo","fnac","museo","teatro","concierto","decathlon","gym","gimnasio","sport","bolera","google one","google play","googleplay","play store","playstore","icloud","apple.com","apple servic","youtube premium","youtube music","prime video","amazon prime","twitch","crunchyroll","dazn","filmin","movistar plus","rakuten","audible","deezer","tidal","dropbox","notion","canva","duolingo","atraccion","atracción","parque tematico","zoologic","zoológico","aquarium","aquari","escape room","ocio","basic fit","basic-fit","dir ","metropolitan","synergym","fitness park","puregym","mcfit","crossfit","bowling","karaoke","laser tag","minigolf","parque de atracciones","portaventura","ferrari land","tibidabo"],
   // Recibos DESPUÉS de ocio: «movistar plus» es streaming; el teléfono Movistar, no.
   // Luz/gas/agua se quedan en energia; impuestos en tasas; Sanitas/Adeslas en salud.
   recibos:["vodafone","yoigo","masmovil","mas movil","pepephone","jazztel","finetwork","simyo","lowi","parlem","digi espa","digi mobil","digi mov","movistar","orange es","orange espana","orange spain","orange fibra","orange movil","o2 es","o2 espa","telefonia","telefonica","fibra optica","factura movil","recibo movil","mapfre","allianz","axa ","axa.","pelayo","zurich","genesis seguro","direct seguros","mutua madrilena","linea directa","reale seguro","helvetia","alquiler","comunidad de prop","administracion de finca","adm fincas","cuota comunidad","prosegur","securitas direct"],
@@ -1099,6 +1103,59 @@ function valueDesdeSaldo(o){
   var v=(o.shown||0)-(o.injTR||0)+(o.spentOwn||0)+(o.roundup||0)+(o.monthlyInvest||0);
   if(o.ambos) v-=(o.paidNet||0);
   return +v.toFixed(2);
+}
+/* EFECTIVO REAL DE TRADE REPUBLIC (availableCash) → base guardada de su cuenta.
+   Lo usan los DOS botones que hablan con el puente nativo: la tarjeta de TR y el sincronizador
+   general. Antes cada uno tenía un contrato distinto: la tarjeta aplicaba `cash` y el general lo
+   tiraba, así que el saldo solo cuadraba al volver a sincronizar por Open Banking. */
+function applyTrCash(state, cash, totals){
+  if(!state || cash==null || !isFinite(Number(cash)) || !totals) return state;
+  const shown=Number(cash);
+  const accounts=state.accounts||[];
+  const hasTR=accounts.some(function(a){ return a.ent==="trade_republic"; });
+  const next=hasTR ? accounts.map(function(a){
+    if(a.ent!=="trade_republic") return a;
+    const pn=(totals.paidNetByBank&&totals.paidNetByBank[a.ent])||0;
+    const spentOwn=(totals.spentByBank&&totals.spentByBank[a.ent])||0;
+    const stored=accDaily(a)
+      ? valueDesdeSaldo({shown:shown,injTR:totals.injTR||0,spentOwn:spentOwn,roundup:totals.roundupThisMonth||0,monthlyInvest:totals.monthlyInvestThisMonth||0,ambos:accRole(a)==="ambos",paidNet:pn})
+      : shown-pn;
+    return Object.assign({},a,{value:+stored.toFixed(2)});
+  }) : accounts.concat([{id:uid(),ent:"trade_republic",name:"Trade Republic",value:+shown.toFixed(2),note:""}]);
+  return Object.assign({},state,{accounts:next});
+}
+
+/* Orden visual de Gastos. El banco muchas veces solo trae DÍA, no hora: inventar una hora para
+   ordenar sería mentir. Se conserva el día y el usuario decide el orden dentro de ese día; los
+   ids viven en settings para que viajen con la cuenta aunque `expenses` se guarde por separado. */
+function sortExpensesForDisplay(expenses, state){
+  const saved=((state&&state.settings)||{}).expenseOrder||{};
+  const cache={};
+  const pos=function(day,id){
+    const list=saved[day];
+    if(!Array.isArray(list)||!list.length) return null;
+    if(!cache[day]){ const m={}; list.forEach(function(x,i){ m[x]=i; }); cache[day]=m; }
+    return cache[day][id]!=null?cache[day][id]:Infinity;
+  };
+  return (expenses||[]).slice().sort(function(a,b){
+    const da=String(a.date||"").slice(0,10), db=String(b.date||"").slice(0,10);
+    if(da!==db) return db.localeCompare(da);
+    const pa=pos(da,a.id), pb=pos(db,b.id);
+    if(pa!=null||pb!=null){ if(pa!==pb) return (pa==null?Infinity:pa)-(pb==null?Infinity:pb); }
+    return dateMs(b.date)-dateMs(a.date);
+  });
+}
+function moveExpenseWithinDay(state, fromId, toId){
+  if(!state || !fromId || !toId || fromId===toId) return state;
+  const byId={}; (state.expenses||[]).forEach(function(e){ if(e&&e.id) byId[e.id]=e; });
+  const from=byId[fromId], to=byId[toId];
+  const day=from&&String(from.date||"").slice(0,10);
+  if(!from||!to||day!==String(to.date||"").slice(0,10)) return state;
+  const ids=sortExpensesForDisplay((state.expenses||[]).filter(function(e){ return String(e.date||"").slice(0,10)===day; }),state).map(function(e){ return e.id; });
+  const i=ids.indexOf(fromId), j=ids.indexOf(toId); if(i<0||j<0) return state;
+  ids.splice(i,1); ids.splice(j,0,fromId);
+  const settings=Object.assign({},state.settings,{expenseOrder:Object.assign({},((state.settings||{}).expenseOrder)||{},{[day]:ids})});
+  return Object.assign({},state,{settings:settings});
 }
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){

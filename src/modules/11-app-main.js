@@ -508,7 +508,7 @@ function App(){
   const brokerSyncing=useRef(false);
 
   // Re-ancla contra el bróker las posiciones reconocidas y sella la marca de tiempo.
-  const applyBrokerPositions=function(positions, stampKey){
+  const applyBrokerPositions=function(positions, stampKey, cash){
     set(function(s){
       const keyOf=function(p){ return p.isin||p.ticker||p.name; };
       const m={};
@@ -525,7 +525,11 @@ function App(){
         return Object.assign({},i,patch);
       });
       const stamp={}; stamp[stampKey]=Date.now();
-      return Object.assign({},s,{investments:inv},stamp);
+      let next=Object.assign({},s,{investments:inv},stamp);
+      // El sync general recibía `availableCash` de TR pero lo tiraba: solo la tarjeta de TR
+      // re-anclaba el efectivo, así que ambos botones daban resultados distintos (2026-09-07).
+      if(stampKey==="lastTrSync" && cash!=null) next=applyTrCash(next,cash,totals);
+      return next;
     });
   };
 
@@ -572,7 +576,7 @@ function App(){
         return Promise.resolve(bridge.sync()).then(function(res){
           if(res&&res.authExpired&&!res.softFail&&!res.wafBlocked){ expiredB.push("Trade Republic"); signalTrDead(); return; }
           if(!res||!res.ok||!Array.isArray(res.positions)) return;   // anti-bot/hipo: silencio, se reintenta luego
-          applyBrokerPositions(res.positions, "lastTrSync"); touched++;
+          applyBrokerPositions(res.positions, "lastTrSync", res.cash); touched++;
         });
       }).catch(function(){}));
     }

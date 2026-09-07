@@ -77,3 +77,44 @@ test("las tarjetas de bróker nacen plegadas y se abren al tocarlas, de una en u
   await expect(mi.locator(".bk-brand")).toHaveAttribute("aria-expanded", "true");
   await expect(tr.locator(".bk-brand")).toHaveAttribute("aria-expanded", "false");
 });
+
+test("reconectar TR actualiza al momento el resumen de Ajustes, sin reiniciar", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("mc_tr_phone", "+34600000000");
+    let connected = false;
+    window.MiCarteraTR = {
+      status: async function() { return { connected: connected }; },
+      login: async function() { return { ok: true, processId: "e2e-tr" }; },
+      verify: async function() { connected = true; return { ok: true }; },
+      sync: async function() {
+        return { ok: true, cash: 123.45, positions: [
+          { isin: "IE00E2E", name: "Fondo e2e", shares: 1, value: 100, cost: 90 },
+        ] };
+      },
+      logout: async function() { connected = false; return { ok: true }; },
+    };
+  });
+  await abrirBancos(page, {
+    settings: { brokersOn: ["trade_republic"] },
+    investments: [{ id: "i1", ent: "trade_republic", name: "Fondo e2e", isin: "IE00E2E", shares: 1, value: 90, cost: 90, cur: "EUR" }],
+  });
+
+  // El puente empieza desconectado: Ajustes conoce el teléfono guardado y lo cuenta como caído.
+  // El resumen sigue montado detrás del portal de Mis bancos, así comprobamos el cambio exacto
+  // que antes no ocurría sin introducir un cierre/reapertura que enmascare la regresión.
+  const bankSummary = page.locator(".set-card").filter({ hasText: /Gestionar mis bancos/i });
+  await expect(bankSummary).toContainText(/1 caducado.*Trade Republic desconectado/i);
+
+  // Completar PIN + código. Antes solo cambiaba el estado local de TRSync; el resumen que queda
+  // detrás conservaba el caído hasta matar la app.
+  const tr = page.locator(".bk-card.bk-tr");
+  await tr.locator(".bk-brand").click();
+  await tr.locator('input[type="password"]').fill("1234");
+  await tr.getByRole("button", { name: "Conectar", exact: true }).click();
+  await tr.locator('input[maxlength="6"]').fill("123456");
+  await tr.getByRole("button", { name: "Verificar", exact: true }).click();
+  await expect(tr.locator("select")).toBeVisible();
+
+  await expect(bankSummary).toContainText(/1 conectado\(s\)/i);
+  await expect(bankSummary).not.toContainText(/Trade Republic desconectado/i);
+});

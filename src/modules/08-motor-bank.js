@@ -343,7 +343,14 @@ function flattenBankTx(links){
   (links||[]).forEach(function(lk){
     const ent=entFromAspsp(lk && lk.aspsp);
     if(!ent) return;
-    (lk.transactions||[]).forEach(function(t){
+    // En multicuenta el top-level solo contiene la PRIMERA cuenta compatible. Los movimientos
+    // nuevos de una segunda cuenta estaban en `accounts[].transactions` y el cliente ni los
+    // miraba: el banco figuraba sincronizado pero Gastos decía que no había nada nuevo.
+    let txs=[];
+    const accountTx=(lk.accounts||[]).filter(function(a){ return a&&Array.isArray(a.transactions); });
+    if(accountTx.length) accountTx.forEach(function(a){ txs=txs.concat(a.transactions); });
+    else txs=(lk.transactions||[]).slice();   // shape antiguo: una sola cuenta en top-level
+    txs.forEach(function(t){
       // `note` = concepto del extracto (remittance_information): lo que hace que el histórico se
       // entienda sin abrir la app del banco (2026-07-24).
       out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"" });
@@ -395,36 +402,12 @@ function importObExpenses(s, txs){
   const nameForKey=function(e){ return e.obName!=null ? e.obName : (e.merchant||""); };
   const kOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+nameForKey(e); };
   const keys={}; (s.expenses||[]).forEach(function(e){ keys[kOf(e)]=1; });
-  /* EL MISMO GASTO, CONTADO DOS VECES POR DOS CAMINOS (2026-08-04, caso real medido).
-     Sus gastos de Trade Republic YA entran por las notificaciones del móvil (MacroDroid) con el
-     comercio de verdad —«Repsol», «BEACH BARBA ROSSA BAR»— el día que compra. Open Banking los
-     trae DE NUEVO uno o dos días después (fecha de contabilización del banco, no de la compra) y
-     sin ningún dato: TR manda `entry_reference`, `creditor`, `remittance_information`… todo null
-     (payload crudo verificado). Así que el dedup clásico —día + importe + comercio— no los ve
-     como el mismo: ni el día coincide ni el comercio. De sus 22 movimientos de TR por Open
-     Banking, 9 eran gemelos exactos de un gasto que ya tenía. Eso es lo que él veía como
-     «duplicados» y «movimientos que se inventa».
-     Regla: un movimiento SIN NOMBRE que case en importe exacto con algo apuntado por OTRA vía en
-     ±3 días es el mismo gasto → no se apunta. Emparejamiento 1 a 1 (`usadoDup`): si de verdad
-     hiciste dos cargos iguales y solo uno estaba apuntado, el segundo entra. Solo se comparan
-     movimientos sin nombre —cuando el banco SÍ dice el comercio no hay ambigüedad y manda el
-     dedup de siempre— y solo contra gastos de otra fuente: dos apuntes de Open Banking del mismo
-     banco no se tapan entre sí (ese caso ya lo cubre `kOf`). */
-  const DUP_MS=3*86400000;
-  const otrasVias=(s.expenses||[]).filter(function(e){ return e.source!=="ob" && e.source!=="ob-hist"; });
-  const usadoDup={};
-  const yaApuntadoPorOtraVia=function(tx){
-    if(tx.merchant && tx.merchant!=="Movimiento") return false;   // el banco sí dice qué es: sin ambigüedad
-    const ms=parseDate(tx.date).getTime();
-    const hit=otrasVias.findIndex(function(e,i){
-      if(usadoDup[i]) return false;
-      if(Math.abs((e.amount||0)-tx.amount)>0.005) return false;
-      return Math.abs(dateMs(e.date)-ms)<=DUP_MS;
-    });
-    if(hit<0) return false;
-    usadoDup[hit]=1;
-    return true;
-  };
+  /* NO SE DESCARTA POR «PARECIDO» (2026-09-07). TR por Open Banking no manda id, comercio ni
+     hora: dos cargos de 23 € dentro de tres días pueden ser el mismo que llegó por una noti, o
+     pueden ser dos compras reales (el ChatGPT de 23 € se perdió así). Sin identidad no hay una
+     respuesta honesta. El dedup exacto de arriba sigue evitando reimportar la MISMA fila OB; lo
+     ambiguo se conserva para que el usuario pueda verlo y decidir, coherente con la contención
+     4.18.6: un posible duplicado visible es recuperable, un movimiento oculto no. */
   // Cargos ya modelados ESTE mes por entidad (Fijos/deudas/puntuales), para no duplicar un recibo.
   const now=new Date(), ym=now.getMonth()+1, yy=now.getFullYear();
   const modeledByEnt={};
@@ -450,7 +433,6 @@ function importObExpenses(s, txs){
       if(tx.id) e.extId=tx.id;
       const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
       if(keys[kOf(e)]) return;
-      if(yaApuntadoPorOtraVia(tx)) return;
       keys[kOf(e)]=1; add.push(e);
       return;
     }
@@ -468,7 +450,6 @@ function importObExpenses(s, txs){
     if(tx.id) e.extId=tx.id;
     const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
     if(keys[kOf(e)]) return;
-    if(yaApuntadoPorOtraVia(tx)) return;
     keys[kOf(e)]=1;
     add.push(e);
   });

@@ -818,6 +818,13 @@
   .v4-mov .am.pos{color:var(--mint);}
   .v4-mov .am.muted{color:var(--muted-2);}
   .v4-mov.v4-mov-skip{border-style:dashed;}
+  /* Asa separada: tocar el resto sigue abriendo la ficha y deslizar en vertical sigue siendo
+     scroll. Solo el asa reclama el dedo para ordenar, sin activar el swipe entre pestañas. */
+  .v4-mov-drag{width:28px;height:44px;display:grid;place-items:center;flex:0 0 auto;margin:-4px -6px -4px 0;
+    color:var(--muted-2);font-size:22px;line-height:1;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:grab;}
+  .v4-mov.dragging{opacity:.58;transform:scale(.985);border-color:var(--mint);}
+  .v4-mov.drag-over{border-color:var(--mint);box-shadow:0 0 0 2px rgba(95,208,138,.18);}
+  html.reduce-motion .v4-mov.dragging{transform:none;}
   .v4-gastos-list{background:transparent;}
   .v4-gastos-list-body{padding:0;}
 

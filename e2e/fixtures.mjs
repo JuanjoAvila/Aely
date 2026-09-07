@@ -3,6 +3,8 @@
  *  no tenga que repetir el objeto entero. */
 export async function seedLoggedInDashboard(page, overrides = {}) {
   await page.addInitScript((overrides) => {
+    const seedOnce = !!overrides.__seedOnce;
+    delete overrides.__seedOnce;
     const session = { user: { id: "e2e-user", email: "e2e@test.local" } };
     // Filas por tabla para los tests que necesitan datos de la nube (p.ej. `bank_links` para
     // «Mis bancos»). Viaja dentro de `overrides` con un nombre que no choca con el estado real,
@@ -92,7 +94,10 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       _dataVer: 6,
       trAnchor: new Date().toISOString().slice(0, 7),
     };
-    localStorage.setItem("micartera_v3", JSON.stringify(Object.assign(base, overrides)));
+    if (!seedOnce || !sessionStorage.getItem("_e2eSeeded")) {
+      localStorage.setItem("micartera_v3", JSON.stringify(Object.assign(base, overrides)));
+      if (seedOnce) sessionStorage.setItem("_e2eSeeded", "1");
+    }
     localStorage.setItem("_seenVersion", "dev");
     try {
       ["dash", "metas", "gastos", "fijos", "inv"].forEach((id) =>

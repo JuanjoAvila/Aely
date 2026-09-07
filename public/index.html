@@ -818,6 +818,13 @@
   .v4-mov .am.pos{color:var(--mint);}
   .v4-mov .am.muted{color:var(--muted-2);}
   .v4-mov.v4-mov-skip{border-style:dashed;}
+  /* Asa separada: tocar el resto sigue abriendo la ficha y deslizar en vertical sigue siendo
+     scroll. Solo el asa reclama el dedo para ordenar, sin activar el swipe entre pestañas. */
+  .v4-mov-drag{width:28px;height:44px;display:grid;place-items:center;flex:0 0 auto;margin:-4px -6px -4px 0;
+    color:var(--muted-2);font-size:22px;line-height:1;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:grab;}
+  .v4-mov.dragging{opacity:.58;transform:scale(.985);border-color:var(--mint);}
+  .v4-mov.drag-over{border-color:var(--mint);box-shadow:0 0 0 2px rgba(95,208,138,.18);}
+  html.reduce-motion .v4-mov.dragging{transform:none;}
   .v4-gastos-list{background:transparent;}
   .v4-gastos-list-body{padding:0;}
 
@@ -1943,6 +1950,7 @@ const CATEGORIES = [
   { id:"cine",       name:"Cine",                color:"#E8A0C8", icon:"🍿" },
   { id:"padel",      name:"Pádel",               color:"#6BCB77", icon:"🎾" },
   { id:"heladeria",  name:"Heladería",           color:"#F5A3C7", icon:"🍦" },
+  { id:"ia",         name:"Inteligencia artificial",color:"#C9A0E0", icon:"🤖" },
   { id:"ocio",       name:"Ocio",                color:"#9BD0E0", icon:"🎭" },
   { id:"gaming",     name:"Videojuegos",         color:"#7B8CDE", icon:"🎮" },
   { id:"viajes",     name:"Viajes",              color:"#5B8DEF", icon:"✈️" },
@@ -2027,7 +2035,10 @@ const KW = {
   educacion:["universidad","universitat","uab ","upc ","upf ","ub ","uoc ","uned","campus","matricula","matrícula","academia","academía","curso ","cursos","formacion","formación","master ","máster","mba ","udemy","coursera","domestika","linkedin learning","skillshare","colegio","escola","guarderia","guardería","escuela infantil","libro de texto","libreria universitaria","openenglish","open english","british council","oxford house","academia de ingles","academia d'angles","autoescuela","autoescola","dgt examen","permiso conducir"],
   // Videojuegos ANTES que ocio/compras: Steam e Instant Gaming no son «Netflix» ni «Amazon».
   gaming:["steam","instant gaming","instantgaming","instant-gaming","g2a","eneba","cdkeys","humble bundle","epic games","battle.net","vs gamers","versus gamers","playstation store","xbox store","nintendo eshop","nintendo e-shop"],
-  ocio:["spotify","netflix","hbo","disney","playstation","xbox","nintendo","fnac","museo","teatro","concierto","decathlon","gym","gimnasio","sport","bolera","anthropic","claude","claude.ai","openai","chatgpt","gpt-","google one","google play","googleplay","play store","playstore","icloud","apple.com","apple servic","youtube premium","youtube music","prime video","amazon prime","twitch","crunchyroll","dazn","filmin","movistar plus","rakuten","audible","deezer","tidal","dropbox","notion","canva","duolingo","cursor","midjourney","perplexity","atraccion","atracción","parque tematico","zoologic","zoológico","aquarium","aquari","escape room","ocio","basic fit","basic-fit","dir ","metropolitan","synergym","fitness park","puregym","mcfit","crossfit","bowling","karaoke","laser tag","minigolf","parque de atracciones","portaventura","ferrari land","tibidabo"],
+  // Suscripciones de IA separadas de Ocio (feedback 2026-09-07): son herramientas de trabajo
+  // distintas de Netflix/Spotify y el presupuesto tiene que poder enseñarlas por separado.
+  ia:["anthropic","claude","claude.ai","openai","chatgpt","chat gpt","gpt-","cursor","midjourney","perplexity","github copilot"],
+  ocio:["spotify","netflix","hbo","disney","playstation","xbox","nintendo","fnac","museo","teatro","concierto","decathlon","gym","gimnasio","sport","bolera","google one","google play","googleplay","play store","playstore","icloud","apple.com","apple servic","youtube premium","youtube music","prime video","amazon prime","twitch","crunchyroll","dazn","filmin","movistar plus","rakuten","audible","deezer","tidal","dropbox","notion","canva","duolingo","atraccion","atracción","parque tematico","zoologic","zoológico","aquarium","aquari","escape room","ocio","basic fit","basic-fit","dir ","metropolitan","synergym","fitness park","puregym","mcfit","crossfit","bowling","karaoke","laser tag","minigolf","parque de atracciones","portaventura","ferrari land","tibidabo"],
   // Recibos DESPUÉS de ocio: «movistar plus» es streaming; el teléfono Movistar, no.
   // Luz/gas/agua se quedan en energia; impuestos en tasas; Sanitas/Adeslas en salud.
   recibos:["vodafone","yoigo","masmovil","mas movil","pepephone","jazztel","finetwork","simyo","lowi","parlem","digi espa","digi mobil","digi mov","movistar","orange es","orange espana","orange spain","orange fibra","orange movil","o2 es","o2 espa","telefonia","telefonica","fibra optica","factura movil","recibo movil","mapfre","allianz","axa ","axa.","pelayo","zurich","genesis seguro","direct seguros","mutua madrilena","linea directa","reale seguro","helvetia","alquiler","comunidad de prop","administracion de finca","adm fincas","cuota comunidad","prosegur","securitas direct"],
@@ -2904,6 +2915,59 @@ function valueDesdeSaldo(o){
   var v=(o.shown||0)-(o.injTR||0)+(o.spentOwn||0)+(o.roundup||0)+(o.monthlyInvest||0);
   if(o.ambos) v-=(o.paidNet||0);
   return +v.toFixed(2);
+}
+/* EFECTIVO REAL DE TRADE REPUBLIC (availableCash) → base guardada de su cuenta.
+   Lo usan los DOS botones que hablan con el puente nativo: la tarjeta de TR y el sincronizador
+   general. Antes cada uno tenía un contrato distinto: la tarjeta aplicaba `cash` y el general lo
+   tiraba, así que el saldo solo cuadraba al volver a sincronizar por Open Banking. */
+function applyTrCash(state, cash, totals){
+  if(!state || cash==null || !isFinite(Number(cash)) || !totals) return state;
+  const shown=Number(cash);
+  const accounts=state.accounts||[];
+  const hasTR=accounts.some(function(a){ return a.ent==="trade_republic"; });
+  const next=hasTR ? accounts.map(function(a){
+    if(a.ent!=="trade_republic") return a;
+    const pn=(totals.paidNetByBank&&totals.paidNetByBank[a.ent])||0;
+    const spentOwn=(totals.spentByBank&&totals.spentByBank[a.ent])||0;
+    const stored=accDaily(a)
+      ? valueDesdeSaldo({shown:shown,injTR:totals.injTR||0,spentOwn:spentOwn,roundup:totals.roundupThisMonth||0,monthlyInvest:totals.monthlyInvestThisMonth||0,ambos:accRole(a)==="ambos",paidNet:pn})
+      : shown-pn;
+    return Object.assign({},a,{value:+stored.toFixed(2)});
+  }) : accounts.concat([{id:uid(),ent:"trade_republic",name:"Trade Republic",value:+shown.toFixed(2),note:""}]);
+  return Object.assign({},state,{accounts:next});
+}
+
+/* Orden visual de Gastos. El banco muchas veces solo trae DÍA, no hora: inventar una hora para
+   ordenar sería mentir. Se conserva el día y el usuario decide el orden dentro de ese día; los
+   ids viven en settings para que viajen con la cuenta aunque `expenses` se guarde por separado. */
+function sortExpensesForDisplay(expenses, state){
+  const saved=((state&&state.settings)||{}).expenseOrder||{};
+  const cache={};
+  const pos=function(day,id){
+    const list=saved[day];
+    if(!Array.isArray(list)||!list.length) return null;
+    if(!cache[day]){ const m={}; list.forEach(function(x,i){ m[x]=i; }); cache[day]=m; }
+    return cache[day][id]!=null?cache[day][id]:Infinity;
+  };
+  return (expenses||[]).slice().sort(function(a,b){
+    const da=String(a.date||"").slice(0,10), db=String(b.date||"").slice(0,10);
+    if(da!==db) return db.localeCompare(da);
+    const pa=pos(da,a.id), pb=pos(db,b.id);
+    if(pa!=null||pb!=null){ if(pa!==pb) return (pa==null?Infinity:pa)-(pb==null?Infinity:pb); }
+    return dateMs(b.date)-dateMs(a.date);
+  });
+}
+function moveExpenseWithinDay(state, fromId, toId){
+  if(!state || !fromId || !toId || fromId===toId) return state;
+  const byId={}; (state.expenses||[]).forEach(function(e){ if(e&&e.id) byId[e.id]=e; });
+  const from=byId[fromId], to=byId[toId];
+  const day=from&&String(from.date||"").slice(0,10);
+  if(!from||!to||day!==String(to.date||"").slice(0,10)) return state;
+  const ids=sortExpensesForDisplay((state.expenses||[]).filter(function(e){ return String(e.date||"").slice(0,10)===day; }),state).map(function(e){ return e.id; });
+  const i=ids.indexOf(fromId), j=ids.indexOf(toId); if(i<0||j<0) return state;
+  ids.splice(i,1); ids.splice(j,0,fromId);
+  const settings=Object.assign({},state.settings,{expenseOrder:Object.assign({},((state.settings||{}).expenseOrder)||{},{[day]:ids})});
+  return Object.assign({},state,{settings:settings});
 }
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){
@@ -4248,7 +4312,7 @@ Object.assign(LANG.es,{
   g_empty_t:"No hay gastos aquí", g_empty_d:"Cambia el filtro, sincroniza o apunta uno.", g_loadmore:"Cargando más…",
   g_empty_period_t:"Aún no hay gastos en este período", g_empty_period_d:"Es normal si acaba de empezar el mes o tu ciclo — irán apareciendo según sincronices o apuntes alguno.",
   g_today:"Hoy", g_yesterday:"Ayer", g_invalid:"Pon un importe válido", g_saved_g:"✓ Gasto apuntado", g_saved_i:"✓ Ingreso apuntado", g_deleted:"Eliminado", g_changecat:"Cambiar categoría",
-  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_parking:"Parking", cat_energia:"Luz, gas y agua", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso",
+  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_parking:"Parking", cat_energia:"Luz, gas y agua", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso",
   freq_mes:"mensual", freq_bimestral:"bimestral", freq_trimestral:"trimestral", freq_semestral:"semestral", "freq_año":"anual",
   // Fijos
   fj_monthly:"Gasto fijo mensual", fj_peryear:"{x}/año", fj_top_a:"Tu mayor gasto fijo es ", fj_top_b:" ({x}/mes)",
@@ -4343,7 +4407,7 @@ Object.assign(LANG.en,{
   g_empty_t:"No expenses here", g_empty_d:"Change the filter, sync or add one.", g_loadmore:"Loading more…",
   g_empty_period_t:"No expenses yet this period", g_empty_period_d:"That's normal if the month or your cycle just started — they'll show up as you sync or add one.",
   g_today:"Today", g_yesterday:"Yesterday", g_invalid:"Enter a valid amount", g_saved_g:"✓ Expense added", g_saved_i:"✓ Income added", g_deleted:"Deleted", g_changecat:"Change category",
-  cat_super:"Groceries", cat_pan:"Bakery", cat_bares:"Bars & restaurants", cat_cine:"Cinema", cat_padel:"Padel", cat_heladeria:"Ice cream", cat_ocio:"Leisure", cat_gaming:"Games", cat_viajes:"Travel", cat_transporte:"Transport", cat_parking:"Parking", cat_energia:"Power, gas & water", cat_tasas:"Taxes & fines", cat_recibos:"Bills", cat_compras:"Shopping", cat_educacion:"Education", cat_salud:"Health", cat_pelu:"Hair & beauty", cat_mascotas:"Pets", cat_hogar:"Home", cat_regalos:"Gifts", cat_joyeria:"Jewellery", cat_otros:"Other", cat_ingreso:"Income", cat_inversion:"Investment", cat_traspaso:"Transfer",
+  cat_super:"Groceries", cat_pan:"Bakery", cat_bares:"Bars & restaurants", cat_cine:"Cinema", cat_padel:"Padel", cat_heladeria:"Ice cream", cat_ia:"Artificial intelligence", cat_ocio:"Leisure", cat_gaming:"Games", cat_viajes:"Travel", cat_transporte:"Transport", cat_parking:"Parking", cat_energia:"Power, gas & water", cat_tasas:"Taxes & fines", cat_recibos:"Bills", cat_compras:"Shopping", cat_educacion:"Education", cat_salud:"Health", cat_pelu:"Hair & beauty", cat_mascotas:"Pets", cat_hogar:"Home", cat_regalos:"Gifts", cat_joyeria:"Jewellery", cat_otros:"Other", cat_ingreso:"Income", cat_inversion:"Investment", cat_traspaso:"Transfer",
   freq_mes:"monthly", freq_bimestral:"bimonthly", freq_trimestral:"quarterly", freq_semestral:"biannual", "freq_año":"yearly",
   fj_monthly:"Monthly fixed cost", fj_peryear:"{x}/year", fj_top_a:"Your biggest fixed cost is ", fj_top_b:" ({x}/mo)",
   fj_prox:"Upcoming charges · {m}", fj_prox_sub:"{x} this month",
@@ -4437,7 +4501,7 @@ Object.assign(LANG.ca,{
   g_empty_t:"No hi ha despeses aquí", g_empty_d:"Canvia el filtre, sincronitza o apunta'n una.", g_loadmore:"Carregant més…",
   g_empty_period_t:"Encara no hi ha despeses en aquest període", g_empty_period_d:"És normal si acaba de començar el mes o el teu cicle — aniran sortint a mesura que sincronitzis o n'apuntis alguna.",
   g_today:"Avui", g_yesterday:"Ahir", g_invalid:"Posa un import vàlid", g_saved_g:"✓ Despesa apuntada", g_saved_i:"✓ Ingrés apuntat", g_deleted:"Eliminat", g_changecat:"Canvia la categoria",
-  cat_super:"Supermercat", cat_pan:"Fleca", cat_bares:"Bars i restaurants", cat_cine:"Cinema", cat_padel:"Pàdel", cat_heladeria:"Gelateria", cat_ocio:"Oci", cat_gaming:"Videojocs", cat_viajes:"Viatges", cat_transporte:"Transport", cat_parking:"Pàrquing", cat_energia:"Llum, gas i aigua", cat_tasas:"Impostos i multes", cat_recibos:"Rebuts", cat_compras:"Compres", cat_educacion:"Educació", cat_salud:"Salut", cat_pelu:"Perruqueria", cat_mascotas:"Mascotes", cat_hogar:"Llar", cat_regalos:"Regals", cat_joyeria:"Joieria", cat_otros:"Altres", cat_ingreso:"Ingrés", cat_inversion:"Inversió", cat_traspaso:"Traspàs",
+  cat_super:"Supermercat", cat_pan:"Fleca", cat_bares:"Bars i restaurants", cat_cine:"Cinema", cat_padel:"Pàdel", cat_heladeria:"Gelateria", cat_ia:"Intel·ligència artificial", cat_ocio:"Oci", cat_gaming:"Videojocs", cat_viajes:"Viatges", cat_transporte:"Transport", cat_parking:"Pàrquing", cat_energia:"Llum, gas i aigua", cat_tasas:"Impostos i multes", cat_recibos:"Rebuts", cat_compras:"Compres", cat_educacion:"Educació", cat_salud:"Salut", cat_pelu:"Perruqueria", cat_mascotas:"Mascotes", cat_hogar:"Llar", cat_regalos:"Regals", cat_joyeria:"Joieria", cat_otros:"Altres", cat_ingreso:"Ingrés", cat_inversion:"Inversió", cat_traspaso:"Traspàs",
   freq_mes:"mensual", freq_bimestral:"bimestral", freq_trimestral:"trimestral", freq_semestral:"semestral", "freq_año":"anual",
   fj_monthly:"Despesa fixa mensual", fj_peryear:"{x}/any", fj_top_a:"La teva despesa fixa més gran és ", fj_top_b:" ({x}/mes)",
   fj_prox:"Pròxims càrrecs · {m}", fj_prox_sub:"{x} aquest mes",
@@ -5757,9 +5821,13 @@ function seedFlows(s){
   if(!s.catOverrides) s.catOverrides = {};
   if(!s.categoryBudgets) s.categoryBudgets = {};   // límites €/mes por categoría (§5)
   USER_OVERRIDES = Object.assign({}, s.catOverrides);    // overrides personales (comercio→cat) activos
-  // recategoriza lo que quedó en "Otros" (gastos auto, no manuales) con las keywords/overrides mejorados
+  // Recategoriza lo que quedó en "Otros" (gastos auto, no manuales) con las keywords/overrides
+  // mejorados. La categoría IA nació después de que ChatGPT/Claude/Cursor cayesen en Ocio: solo
+  // movemos los importados que ahora casan IA; un override personal sigue mandando en autoCategory
+  // y los apuntados a mano no se reinterpretan a espaldas del usuario (feedback 2026-09-07).
   if(s.expenses){ s.expenses = s.expenses.map(function(e){
     if(e.category==="otros" && e.source!=="manual"){ const nc=autoCategory(e.merchant); if(nc!=="otros") return Object.assign({},e,{category:nc}); }
+    if(e.category==="ocio" && e.source!=="manual" && autoCategory(e.merchant)==="ia") return Object.assign({},e,{category:"ia"});
     return e;
   }); }
   // SEMILLAS DE LA CARTERA DE EJEMPLO: solo para estados legacy (ids demo o del creador).
@@ -7094,6 +7162,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const [morePeriods,setMorePeriods]=useState(false);
   const [filterOpen,setFilterOpen]=useState(false);
   const [visible,setVisible]=useState(CONFIG.PAGE_SIZE);
+  const [dragExpense,setDragExpense]=useState(null);
+  const dragExpenseRef=useRef(null);
+  const suppressOpenRef=useRef(0);
   const [adding,setAdding]=useState(false);
   const [form,setForm]=useState({merchant:"",amount:"",category:"super",income:false,noCard:false,date:""});
   const [catEdit,setCatEdit]=useState(null);   // id del gasto al que estás cambiando la categoría
@@ -7349,10 +7420,34 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       }
       out.push(e);
     }
-    return out.sort((a,b)=>dateMs(b.date)-dateMs(a.date));
+    return sortExpensesForDisplay(out,state);
     // `state.settings`/`state.accounts` van en las dependencias porque `expenseBucket` los lee
     // (qué bancos son de gasto diario): cambiar eso tiene que re-filtrar la lista.
   },[expensesDef,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts]);
+
+  /* El asa reclama el dedo desde el principio: dejar que la fila entera fuera arrastrable
+     convertiría un scroll normal en cambios de orden accidentales. El destino se resuelve contra
+     el DOM porque solo hay unas pocas filas visibles; `moveExpenseWithinDay` vuelve a comprobar
+     la fecha antes de guardar, así un dedo que cruce un separador nunca mezcla días. */
+  const startExpenseDrag=useCallback(function(ev,e){
+    ev.stopPropagation(); cancelSwipe();
+    const d={from:e.id,to:e.id,day:String(e.date||"").slice(0,10)};
+    dragExpenseRef.current=d; setDragExpense(d);
+  },[cancelSwipe]);
+  const moveExpenseDrag=useCallback(function(ev){
+    const d=dragExpenseRef.current; if(!d||!ev.touches||!ev.touches[0]) return;
+    ev.stopPropagation();
+    const p=ev.touches[0], hit=document.elementFromPoint(p.clientX,p.clientY);
+    const row=hit&&hit.closest&&hit.closest("[data-expense-id]");
+    if(!row||row.getAttribute("data-expense-day")!==d.day) return;
+    const to=row.getAttribute("data-expense-id"); if(!to||to===d.to) return;
+    d.to=to; setDragExpense({from:d.from,to:d.to,day:d.day});
+  },[]);
+  const endExpenseDrag=useCallback(function(){
+    const d=dragExpenseRef.current;
+    if(d&&d.from!==d.to){ suppressOpenRef.current=Date.now()+400; set(function(s){ return moveExpenseWithinDay(s,d.from,d.to); }); }
+    dragExpenseRef.current=null; setDragExpense(null);
+  },[set]);
 
   // La cabecera es siempre el mes natural: los filtros sirven para explorar, pero no deben hacer
   // que el presupuesto parezca cambiar al mirar otro período o una categoría.
@@ -7424,6 +7519,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // Abrir la ficha de un movimiento. useCallback = referencia ESTABLE: si cambiara en cada render,
   // el React.memo de MovRow no serviría para nada y volveríamos al problema de siempre.
   const openDetail=useCallback(function(e){
+    if(Date.now()<suppressOpenRef.current) return;
     setDetailId(e.id);
     setEditExp({id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
     setCatEdit(null);
@@ -7657,7 +7753,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
           : groups.map(function(g,i){ return g.sep
               ? React.createElement("div",{className:"day-sep",key:"s"+i},g.sep)
               : React.createElement(MovRow,{key:g.e.id||i, e:g.e, ms:g.ms, onOpen:openDetail, l10n:l10nKey,
-                  bucket:expenseBucket(g.e, state)}); }),
+                  bucket:expenseBucket(g.e, state),dragging:!!(dragExpense&&dragExpense.from===g.e.id),
+                  dragOver:!!(dragExpense&&dragExpense.to===g.e.id&&dragExpense.from!==g.e.id),
+                  onDragStart:startExpenseDrag,onDragMove:moveExpenseDrag,onDragEnd:endExpenseDrag}); }),
         visible<filtered.length && React.createElement("div",{className:"sentinel",ref:sentinelRefCb},t("g_loadmore"))
       )
     ),
@@ -7688,7 +7786,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
    `l10n` (idioma|símbolo de moneda) es un prop a posta: catName/entOf/eur leen globales que memo
    no puede ver, así que sin él cambiar de idioma o de moneda dejaría las filas en el idioma viejo.
    `onOpen` tiene que ser ESTABLE (useCallback) o el memo no sirve de nada. */
-const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket}){
+const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket, dragging, dragOver, onDragStart, onDragMove, onDragEnd}){
   // `ms` y no un `Date`: ver el porqué donde se construyen los grupos. El objeto se crea aquí,
   // que es la única línea que lo necesita, y solo cuando la fila se pinta de verdad.
   // `bucket` (string) lo pasa el padre: si se pasara `state` entero, el memo no acertaría nunca.
@@ -7702,8 +7800,9 @@ const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket}){
   // genérico que hacía que una inversión y un recibo de Sabadell parecieran lo mismo.
   const skip=bucket==="neutra"||bucket==="otrobanco";
   const skipTxt=skip?t("g_skip_"+bucket):"";
-  return React.createElement("button",{type:"button",className:"v4-mov"+(skip?" v4-mov-skip":""),onClick:function(){ onOpen(e); },
-      style:skip?{opacity:.72}:null},
+  return React.createElement("button",{type:"button","data-expense-id":e.id,"data-expense-day":String(e.date||"").slice(0,10),
+      className:"v4-mov"+(skip?" v4-mov-skip":"")+(dragging?" dragging":"")+(dragOver?" drag-over":""),
+      onClick:function(ev){ if(ev.target&&ev.target.closest&&ev.target.closest(".v4-mov-drag")) return; onOpen(e); },style:skip?{opacity:.72}:null},
     React.createElement("div",{className:"tile",style:{borderColor:c.color+"55",color:c.color,background:c.color+"18"}},c.icon),
     React.createElement("div",{className:"nm"},
       React.createElement("div",{className:"nm-title"}, e.merchant||"—"),
@@ -7721,7 +7820,9 @@ const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket}){
         ):null
       )
     ),
-    React.createElement("div",{className:"am num"+(isIncome?" pos":"")+(skip?" muted":"")}, (isIncome?"+":"")+eur(Math.abs(e.amount)))
+    React.createElement("div",{className:"am num"+(isIncome?" pos":"")+(skip?" muted":"")}, (isIncome?"+":"")+eur(Math.abs(e.amount))),
+    React.createElement("span",{className:"v4-mov-drag",role:"img","data-noswipe":"1","aria-label":t("drag_hint"),title:t("drag_hint"),
+      onTouchStart:function(ev){ onDragStart(ev,e); },onTouchMove:onDragMove,onTouchEnd:onDragEnd,onTouchCancel:onDragEnd},"⠿")
   );
 });
 
@@ -8876,6 +8977,12 @@ function trBridge(){
 // Teléfono del último login OK (solo el teléfono, NUNCA el PIN): tras un 401 real el formulario
 // sale ya rellenado y reconectar queda en PIN + código (feedback 2026-07-17).
 function trPhoneSaved(){ try{ return localStorage.getItem("mc_tr_phone")||""; }catch(e){ return ""; } }
+// La tarjeta y sus consumidores (resumen de Ajustes + banner de Cartera) viven en componentes
+// distintos. Cambiar solo el useState local dejaba «1 caído» hasta reiniciar aunque el login o
+// el sync acabasen bien — feedback 2026-09-07. Este evento mantiene una única verdad visible.
+function trSignalStatus(connected){
+  try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:!!connected}})); }catch(e){}
+}
 function TRSync({state, set, totals, open, onToggle}){
   const bridge=trBridge();
   const [step,setStep]=useState("idle");      // idle | code | preview | done
@@ -8915,12 +9022,13 @@ function TRSync({state, set, totals, open, onToggle}){
       if(r&&r.authExpired && !r.softFail && !r.wafBlocked){
         // 401 REAL (no anti-bot): al formulario directamente, con el teléfono ya puesto. Antes se
         // pedía pulsar «Desconectar» — que además borra el snapshot bueno (feedback 2026-07-17).
-        setConnected(false); setExpired(true); setStep("idle");
+        setConnected(false); trSignalStatus(false); setExpired(true); setStep("idle");
         try{ cloud.logEvent('error','TR sync: sesión caducada de verdad (401 real)'); }catch(x){}
         return;
       }
       if(r&&(r.softFail||r.wafBlocked)){ fail(r); return; }   // anti-bot: sesión sigue, no pedir 2FA
       if(!r||!r.ok||!Array.isArray(r.positions)){ fail(r); return; }
+      trSignalStatus(true);
       const m={};
       r.positions.forEach(function(po){
         const sug=brokerSuggest(po, state.investments);
@@ -8947,7 +9055,7 @@ function TRSync({state, set, totals, open, onToggle}){
     setBusy(true); setErr(false); setErrMsg("");
     Promise.resolve(bridge.verify({processId:processId,code:code.trim()})).then(function(r){
       if(!r||!r.ok){ fail(r); return; }
-      setConnected(true); setExpired(false); setCode(""); doSync();
+      setConnected(true); trSignalStatus(true); setExpired(false); setCode(""); doSync();
     }).catch(fail);
   };
   const mappedN=positions?positions.filter(function(p){ return map[p.isin]; }).length:0;
@@ -8993,7 +9101,7 @@ function TRSync({state, set, totals, open, onToggle}){
   };
   const disconnect=function(){
     if(bridge&&bridge.logout){ Promise.resolve(bridge.logout()).catch(function(){}); }
-    setConnected(false); setStep("idle"); setPositions(null); setPhone(""); setPin("");
+    setConnected(false); trSignalStatus(false); setStep("idle"); setPositions(null); setPhone(""); setPin("");
   };
   const inpStyle={marginTop:8};
   const body=!bridge
@@ -10216,7 +10324,14 @@ function flattenBankTx(links){
   (links||[]).forEach(function(lk){
     const ent=entFromAspsp(lk && lk.aspsp);
     if(!ent) return;
-    (lk.transactions||[]).forEach(function(t){
+    // En multicuenta el top-level solo contiene la PRIMERA cuenta compatible. Los movimientos
+    // nuevos de una segunda cuenta estaban en `accounts[].transactions` y el cliente ni los
+    // miraba: el banco figuraba sincronizado pero Gastos decía que no había nada nuevo.
+    let txs=[];
+    const accountTx=(lk.accounts||[]).filter(function(a){ return a&&Array.isArray(a.transactions); });
+    if(accountTx.length) accountTx.forEach(function(a){ txs=txs.concat(a.transactions); });
+    else txs=(lk.transactions||[]).slice();   // shape antiguo: una sola cuenta en top-level
+    txs.forEach(function(t){
       // `note` = concepto del extracto (remittance_information): lo que hace que el histórico se
       // entienda sin abrir la app del banco (2026-07-24).
       out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"" });
@@ -10268,36 +10383,12 @@ function importObExpenses(s, txs){
   const nameForKey=function(e){ return e.obName!=null ? e.obName : (e.merchant||""); };
   const kOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+nameForKey(e); };
   const keys={}; (s.expenses||[]).forEach(function(e){ keys[kOf(e)]=1; });
-  /* EL MISMO GASTO, CONTADO DOS VECES POR DOS CAMINOS (2026-08-04, caso real medido).
-     Sus gastos de Trade Republic YA entran por las notificaciones del móvil (MacroDroid) con el
-     comercio de verdad —«Repsol», «BEACH BARBA ROSSA BAR»— el día que compra. Open Banking los
-     trae DE NUEVO uno o dos días después (fecha de contabilización del banco, no de la compra) y
-     sin ningún dato: TR manda `entry_reference`, `creditor`, `remittance_information`… todo null
-     (payload crudo verificado). Así que el dedup clásico —día + importe + comercio— no los ve
-     como el mismo: ni el día coincide ni el comercio. De sus 22 movimientos de TR por Open
-     Banking, 9 eran gemelos exactos de un gasto que ya tenía. Eso es lo que él veía como
-     «duplicados» y «movimientos que se inventa».
-     Regla: un movimiento SIN NOMBRE que case en importe exacto con algo apuntado por OTRA vía en
-     ±3 días es el mismo gasto → no se apunta. Emparejamiento 1 a 1 (`usadoDup`): si de verdad
-     hiciste dos cargos iguales y solo uno estaba apuntado, el segundo entra. Solo se comparan
-     movimientos sin nombre —cuando el banco SÍ dice el comercio no hay ambigüedad y manda el
-     dedup de siempre— y solo contra gastos de otra fuente: dos apuntes de Open Banking del mismo
-     banco no se tapan entre sí (ese caso ya lo cubre `kOf`). */
-  const DUP_MS=3*86400000;
-  const otrasVias=(s.expenses||[]).filter(function(e){ return e.source!=="ob" && e.source!=="ob-hist"; });
-  const usadoDup={};
-  const yaApuntadoPorOtraVia=function(tx){
-    if(tx.merchant && tx.merchant!=="Movimiento") return false;   // el banco sí dice qué es: sin ambigüedad
-    const ms=parseDate(tx.date).getTime();
-    const hit=otrasVias.findIndex(function(e,i){
-      if(usadoDup[i]) return false;
-      if(Math.abs((e.amount||0)-tx.amount)>0.005) return false;
-      return Math.abs(dateMs(e.date)-ms)<=DUP_MS;
-    });
-    if(hit<0) return false;
-    usadoDup[hit]=1;
-    return true;
-  };
+  /* NO SE DESCARTA POR «PARECIDO» (2026-09-07). TR por Open Banking no manda id, comercio ni
+     hora: dos cargos de 23 € dentro de tres días pueden ser el mismo que llegó por una noti, o
+     pueden ser dos compras reales (el ChatGPT de 23 € se perdió así). Sin identidad no hay una
+     respuesta honesta. El dedup exacto de arriba sigue evitando reimportar la MISMA fila OB; lo
+     ambiguo se conserva para que el usuario pueda verlo y decidir, coherente con la contención
+     4.18.6: un posible duplicado visible es recuperable, un movimiento oculto no. */
   // Cargos ya modelados ESTE mes por entidad (Fijos/deudas/puntuales), para no duplicar un recibo.
   const now=new Date(), ym=now.getMonth()+1, yy=now.getFullYear();
   const modeledByEnt={};
@@ -10323,7 +10414,6 @@ function importObExpenses(s, txs){
       if(tx.id) e.extId=tx.id;
       const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
       if(keys[kOf(e)]) return;
-      if(yaApuntadoPorOtraVia(tx)) return;
       keys[kOf(e)]=1; add.push(e);
       return;
     }
@@ -10341,7 +10431,6 @@ function importObExpenses(s, txs){
     if(tx.id) e.extId=tx.id;
     const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
     if(keys[kOf(e)]) return;
-    if(yaApuntadoPorOtraVia(tx)) return;
     keys[kOf(e)]=1;
     add.push(e);
   });
@@ -17812,7 +17901,7 @@ function App(){
   const brokerSyncing=useRef(false);
 
   // Re-ancla contra el bróker las posiciones reconocidas y sella la marca de tiempo.
-  const applyBrokerPositions=function(positions, stampKey){
+  const applyBrokerPositions=function(positions, stampKey, cash){
     set(function(s){
       const keyOf=function(p){ return p.isin||p.ticker||p.name; };
       const m={};
@@ -17829,7 +17918,11 @@ function App(){
         return Object.assign({},i,patch);
       });
       const stamp={}; stamp[stampKey]=Date.now();
-      return Object.assign({},s,{investments:inv},stamp);
+      let next=Object.assign({},s,{investments:inv},stamp);
+      // El sync general recibía `availableCash` de TR pero lo tiraba: solo la tarjeta de TR
+      // re-anclaba el efectivo, así que ambos botones daban resultados distintos (2026-09-07).
+      if(stampKey==="lastTrSync" && cash!=null) next=applyTrCash(next,cash,totals);
+      return next;
     });
   };
 
@@ -17876,7 +17969,7 @@ function App(){
         return Promise.resolve(bridge.sync()).then(function(res){
           if(res&&res.authExpired&&!res.softFail&&!res.wafBlocked){ expiredB.push("Trade Republic"); signalTrDead(); return; }
           if(!res||!res.ok||!Array.isArray(res.positions)) return;   // anti-bot/hipo: silencio, se reintenta luego
-          applyBrokerPositions(res.positions, "lastTrSync"); touched++;
+          applyBrokerPositions(res.positions, "lastTrSync", res.cash); touched++;
         });
       }).catch(function(){}));
     }

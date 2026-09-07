@@ -103,4 +103,31 @@ t("y no se duplican: el mismo ext_id no entra dos veces", () => {
   assert.equal(add, null, "ya estaba importado por su ext_id");
 });
 
+t("dos cargos iguales sin identidad se conservan: parecido no significa duplicado", () => {
+  const hoy = new Date().toISOString().slice(0, 10);
+  const s = estadoTR({ expenses: [{ id: "notif23", date: hoy + "T10:00:00.000Z", amount: 23, merchant: "Otro cargo", ent: "trade_republic", source: "macrodroid" }] });
+  const add = ctx.importObExpenses(s, [
+    { id: null, ent: "trade_republic", date: hoy, amount: 23, card: true, merchant: "Movimiento" },
+  ]);
+  assert.equal(add && add.length, 1, "el ChatGPT de 23 € no puede desaparecer por parecerse a otro apunte");
+});
+
+t("el cash del puente re-ancla TR también para el sincronizador general", () => {
+  const s = estadoTR({ expenses: [{ id: "g1", date: new Date().toISOString(), amount: 20, merchant: "ChatGPT", ent: "trade_republic", source: "ob" }] });
+  const totals = { spentByBank: { trade_republic: 20 }, paidNetByBank: {}, injTR: 0, roundupThisMonth: 0, monthlyInvestThisMonth: 0 };
+  const next = ctx.applyTrCash(s, 900, totals);
+  const tr = next.accounts.find((a) => a.ent === "trade_republic");
+  assert.equal(ctx.saldoCuentaGasto({ value: tr.value, spentOwn: 20 }), 900);
+});
+
+t("flattenBankTx incluye todas las cuentas, no solo la primaria", () => {
+  const links = [{ aspsp: "Revolut", transactions: [{ ext_id: "top", date: "2026-09-07", amount: 1, merchant: "primaria" }], accounts: [
+    { transactions: [{ ext_id: "a", date: "2026-09-07", amount: 1, merchant: "primaria" }] },
+    { transactions: [{ ext_id: "b", date: "2026-09-07", amount: 23, merchant: "ChatGPT" }] },
+  ] }];
+  const txs = ctx.flattenBankTx(links);
+  assert.equal(txs.some((x) => x.id === "b"), true, "el movimiento nuevo de la segunda cuenta llega a Gastos");
+  assert.equal(txs.some((x) => x.id === "top"), false, "el top-level es copia retrocompatible de la primera cuenta");
+});
+
 console.log("tr-open-banking: OK");
