@@ -19,10 +19,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y ver
   de gasto diario y lo EXCLUYE. El fallo degrada al lado seguro y el arreglo no depende de
   desplegar la función.
 - Escritura y lectura, no solo escritura: `expenseSourceForCloud` la emite, `expenseFromRow` la
-  recupera (sobrevive a pull, reinicio y segundo móvil), `cloud.setExpenseDup` la quita al pulsar
-  «son distintos» —tocar solo el estado local no arregla nada— y `syncCloudExpenses` repasa los
-  pendientes que ya estaban en la tabla, porque `addExpense` va con `ignoreDuplicates` y nunca
-  cambia el `source` de una fila existente.
+  recupera (sobrevive a pull, reinicio y segundo móvil) y `cloud.setExpenseDup` la quita al pulsar
+  «son distintos» —tocar solo el estado local no arregla nada.
+- **LÍMITE, y es importante:** los posibles repetidos que YA estaban en la nube antes de esta
+  versión siguen contando en el servidor hasta que él los resuelva. Escribí un repaso que los
+  re-marcaba desde el móvil y lo RETIRÉ tras la revisión de Codex, que reprodujo dos defectos
+  reales: (1) si un móvil ya resolvió «son distintos», otro móvil con la marca aún puesta en local
+  no puede distinguir «fila vieja» de «decisión tomada» y DESHACÍA la decisión; (2) la fila remota
+  puede tener otro uuid que la local (por `ignoreDuplicates`), con lo que el UPDATE afecta a cero
+  filas sin dar error y lo daríamos por persistido. Hacerlo bien exige identidad fiable y ACK: es
+  el bloqueo de identidad de gastos, no un parche de esta ronda.
 - No viaja `possibleDupOf`: tras reinstalar, «es el mismo» sigue borrando la fila OB pero ya no
   traspasa el `extId` al gemelo.
 - Guardianes en `tests/presupuesto-servidor.test.mjs`: los cuatro casos cargan LAS DOS
