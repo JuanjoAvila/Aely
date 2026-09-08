@@ -2388,9 +2388,14 @@ const cloud = (function(){
     },
     async pullExpenses(){
       if(!sb) return [];
-      const {data,error}=await sb.from('expenses').select('*').order('fecha',{ascending:false}).limit(2000);
+      // Tope duro: sin paginar aún (plan O). Si se llena, syncCloudExpenses avisa — callar mentiría
+      // tras un import histórico largo.
+      const EXPENSE_PULL_LIMIT=2000;
+      const {data,error}=await sb.from('expenses').select('*').order('fecha',{ascending:false}).limit(EXPENSE_PULL_LIMIT);
       if(error) throw error;
-      return data || [];
+      const rows=data||[];
+      if(rows.length>=EXPENSE_PULL_LIMIT) rows._mcPullCapped=true;
+      return rows;
     },
     async addExpense(e){
       if(!sb) return;
@@ -5371,6 +5376,7 @@ Object.assign(LANG.es,{
   bp_hist_undo_cloud_fail:"Quitado en el móvil, pero la nube no ha confirmado el borrado. Si vuelven a aparecer, vuelve a deshacer con conexión.",
   bp_hist_f_all:"Todos", bp_hist_f_gastos:"🛒 Gastos", bp_hist_f_ingresos:"💰 Ingresos", bp_hist_f_allmonths:"Todos los meses",
   bp_hist_nofilter:"Ningún movimiento con este filtro. Prueba a quitar alguno.",
+  exp_pull_capped:"Solo se han podido traer los 2.000 gastos más recientes de la nube. Si echas alguno en falta, avísame.",
   bp_summary_n:"{n} conectado(s)", bp_summary_exp:"⚠ {n} caducado(s) — reconéctalo", bp_summary_none:"Ningún banco conectado todavía",
   bp_summary_tr_dead:"⚠ Trade Republic desconectado",
   st_ver_web:"web v{v}", st_ver_app:"app {v}", st_ver_both:"web v{w} · app {a}",
@@ -5420,6 +5426,7 @@ Object.assign(LANG.en,{
   bp_hist_undo_cloud_fail:"Removed on this phone, but the cloud did not confirm the deletion. If they come back, undo again while online.",
   bp_hist_f_all:"All", bp_hist_f_gastos:"🛒 Spending", bp_hist_f_ingresos:"💰 Income", bp_hist_f_allmonths:"All months",
   bp_hist_nofilter:"No transactions match this filter. Try removing one.",
+  exp_pull_capped:"Only the 2,000 most recent cloud expenses could be loaded. If something is missing, let me know.",
   bp_summary_n:"{n} connected", bp_summary_exp:"⚠ {n} expired — reconnect it", bp_summary_none:"No bank connected yet",
   bp_summary_tr_dead:"⚠ Trade Republic disconnected",
   st_ver_web:"web v{v}", st_ver_app:"app {v}", st_ver_both:"web v{w} · app {a}",
@@ -5469,6 +5476,7 @@ Object.assign(LANG.ca,{
   bp_hist_undo_cloud_fail:"Tret al mòbil, però el núvol no ha confirmat l'esborrat. Si tornen a aparèixer, torna a desfer amb connexió.",
   bp_hist_f_all:"Tots", bp_hist_f_gastos:"🛒 Despeses", bp_hist_f_ingresos:"💰 Ingressos", bp_hist_f_allmonths:"Tots els mesos",
   bp_hist_nofilter:"Cap moviment amb aquest filtre. Prova de treure'n algun.",
+  exp_pull_capped:"Només s'han pogut portar els 2.000 despeses més recents del núvol. Si en trobes a faltar, avisa'm.",
   bp_summary_n:"{n} connectat(s)", bp_summary_exp:"⚠ {n} caducat(s) — reconnecta'l", bp_summary_none:"Cap banc connectat encara",
   bp_summary_tr_dead:"⚠ Trade Republic desconnectat",
   st_ver_web:"web v{v}", st_ver_app:"app {v}", st_ver_both:"web v{w} · app {a}",
@@ -11415,6 +11423,16 @@ function histUndoBatch(state, lastHistImport){
     reason:null
   };
 }
+/* L: importBatchId no viaja a la nube. Tras un pull las filas vuelven sin el campo y lastHistImport
+   puede seguir — botón NO (no haría nada útil). PERO si el DELETE en nube falló, el catch marca
+   cloudPending y restaura el lote: ahí el botón SÍ (reintento solo cloud) — review Claude 8/9. */
+function histCanUndo(state){
+  const last=state&&state.lastHistImport;
+  if(!last||!last.batchId) return false;
+  if(last.cloudPending && (last.cloudIds||[]).length) return true;
+  const bid=last.batchId;
+  return (state.expenses||[]).some(function(e){ return e&&e.importBatchId===bid; });
+}
 
 /* Bancos que NO están sirviendo datos, con el motivo, para el banner «Reconectar» y la noti.
 
@@ -14026,9 +14044,10 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
             /* Y si la nube falla hay que DEVOLVERLE el botón (review de Cursor, 8/9): el `set` de
                arriba ya dejó `lastHistImport` a null, así que el aviso le decía «vuelve a
                deshacer» con el botón ya desaparecido de la pantalla. Un mensaje que pide algo
-               imposible es peor que no avisar. Se restaura el lote —lo local ya está quitado, no
-               se toca— y el segundo toque reintenta SOLO el borrado en la nube. */
-            set(function(s){ return Object.assign({}, s, { lastHistImport:last }); });
+               imposible es peor que no avisar. Se restaura el lote CON cloudPending —lo local ya
+               está quitado— para que histCanUndo siga en true aunque no queden filas del batch
+               (si no, el boton desaparecía otra vez: choque L vs reintento, Claude 8/9). */
+            set(function(s){ return Object.assign({}, s, { lastHistImport:Object.assign({}, last, {cloudPending:true}) }); });
             showToast("⚠ "+t("bp_hist_undo_cloud_fail"));
           });
       });
@@ -14047,7 +14066,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
     }
     runImport();
   };
-  const canUndo=!!(state&&state.lastHistImport&&state.lastHistImport.batchId);
+  const canUndo=histCanUndo(state);
   const wrap={position:"fixed",inset:0,zIndex:97,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
   const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
@@ -14158,7 +14177,6 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
    `state.investments`, para poder deducir de la cartera cuáles usa el usuario sin preguntarle. */
 var BROKER_CHIPS=[["trade_republic","Trade Republic"],["myinvestor","MyInvestor"],["revolut","Revolut"]];
 function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onLinks, fetchPrices, focusAspsp}){
-  const [histOpen,setHistOpen]=useState(false);
   const [links,setLinks]=useState(null);          // null = cargando
   const [aspsps,setAspsps]=useState(null);        // null = sin cargar
   const [loadingA,setLoadingA]=useState(false);
@@ -14423,18 +14441,8 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
         )
       );
     })(),
-    ((links||[]).some(function(l){ return l.status==='active'; })) && React.createElement("button",{style:{width:"100%",padding:"12px",borderRadius:14,border:"1px solid var(--line-soft)",background:"var(--sur)",color:"var(--text)",fontWeight:700,fontSize:13.5,cursor:"pointer",marginTop:12},onClick:function(){ setHistOpen(true); }}, t("bp_hist_btn")),
-    histOpen && ReactDOM.createPortal(React.createElement(BankHistoryImport,{
-      state:state,set:set,showToast:showToast,onClose:function(){ setHistOpen(false); },
-      linkEnts:(function(){
-        const ents=[];
-        (links||[]).forEach(function(l){
-          if(!(l&&(l.status==="active"||l.status==="pending"))) return;
-          const e=entFromAspsp(l.aspsp_name||l.aspsp); if(e&&ents.indexOf(e)<0) ents.push(e);
-        });
-        return ents.length?ents:null;
-      })()
-    }), document.body),
+    /* Histórico del banco: solo Ajustes → Importaciones (tanda 4 / plan K). Aquí ensuciaba
+       «Mis bancos» y duplicaba la puerta. */
     React.createElement("div",{style:{height:1,background:"var(--line-soft)",margin:"22px 0 8px"}}),
     React.createElement("div",{className:"bk-sec"}, t("bp_brokers")),
     /* ¿QUÉ BRÓKERS USAS? (feedback 2026-07-25: «que te salgan directamente para loguear sin
@@ -15924,7 +15932,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const [actOpen,setActOpen]=useState(false);   // pantalla «Actividad» (antes acordeón: crecía sin fin)
   const [betaOpen,setBetaOpen]=useState(false);  // pantalla «Revisar la beta» (solo en canal beta)
   const [hojaOpen,setHojaOpen]=useState(false);  // importar una hoja de gastos (Excel/CSV)
-  const [histOpen,setHistOpen]=useState(false);  // importar histórico del banco (también desde «Mis bancos»)
+  const [histOpen,setHistOpen]=useState(false);  // importar histórico del banco (Ajustes → Importaciones)
   const [autoBackOpen,setAutoBackOpen]=useState(false);  // copias automáticas diarias (state_backups)
   const prodVer=useProdVersion();                // Pages ahora (cruda); null mientras pregunta
   // Misma regla que useYaEnProd, sin segundo fetch (compartimos prodVer con betaChecklist).
@@ -16300,11 +16308,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         checkUpdates),
       React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 12px"}}, t("st_widget_hint"))
     ),
-    /* IMPORTACIONES, todas juntas (2026-08-04, petición suya). Antes estaban repartidas: la hoja de
-       Excel dentro de «Copia de seguridad» —donde nadie la buscaría— y el histórico del banco
-       escondido en «Mis bancos», al final de la lista. Son la misma tarea («traerme lo que ya tengo
-       en otro sitio»), así que viven en el mismo sitio. El histórico sigue accesible también desde
-       «Mis bancos», que es donde estaba y donde tiene sentido justo tras conectar un banco. */
+    /* IMPORTACIONES, todas juntas (2026-08-04). Desde tanda 4 el histórico vive SOLO aquí: se
+       quitó el botón duplicado de «Mis bancos» (plan puertas + K). */
     grp("import","📥",t("st_imports"),"importar import excel hoja csv gastos historico banco extracto",null,
       row("imphoja","📗",t("ih_title"),null,function(){ setHojaOpen(true); }),
       row("imphist","🏦",t("bp_hist_btn"),null,function(){ setHistOpen(true); })
@@ -16468,9 +16473,18 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     ),
     betaOpen && ReactDOM.createPortal(React.createElement(BetaReviewPanel,{showToast:showToast,onClose:function(){ setBetaOpen(false); }}), document.body),
     hojaOpen && ReactDOM.createPortal(React.createElement(SheetImport,{state:state,set:set,showToast:showToast,goGastos:goGastos,onClose:function(){ setHojaOpen(false); }}), document.body),
-    // Sin `linkEnts`: el propio panel cae a los bancos de gasto cuando no se le pasa lista (ver
-    // `allowList` en BankHistoryImport). Desde «Mis bancos» sí se le pasan los enlaces vivos.
-    histOpen && ReactDOM.createPortal(React.createElement(BankHistoryImport,{state:state,set:set,showToast:showToast,onClose:function(){ setHistOpen(false); }}), document.body),
+    // Allow-list = bancos OB conectados (misma regla que antes desde Mis bancos).
+    histOpen && ReactDOM.createPortal(React.createElement(BankHistoryImport,{
+      state:state,set:set,showToast:showToast,onClose:function(){ setHistOpen(false); },
+      linkEnts:(function(){
+        const ents=[];
+        (bankLinks||[]).forEach(function(l){
+          if(!(l&&(l.status==="active"||l.status==="pending"))) return;
+          const e=entFromAspsp(l.aspsp_name||l.aspsp); if(e&&ents.indexOf(e)<0) ents.push(e);
+        });
+        return ents.length?ents:null;
+      })()
+    }), document.body),
     autoBackOpen && ReactDOM.createPortal(React.createElement(AutoBackupsPanel,{state:state,set:set,showToast:showToast,uid:uid,onClose:function(){ setAutoBackOpen(false); }}), document.body),
     actOpen && ReactDOM.createPortal(React.createElement(ActivityPanel,{events:events,onReload:loadEvents,onClose:function(){ setActOpen(false); }}), document.body),
     privOpen && ReactDOM.createPortal(React.createElement(PrivacyPanel,{onClose:function(){ setPrivOpen(false); }}), document.body),
@@ -18122,6 +18136,8 @@ function App(){
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
   const syncCloudExpenses=function(){
     return cloud.pullExpenses().then(function(rows){
+      // O: el SELECT lleva .limit(2000). Si llega lleno, hay más en la nube que no vemos — avisar.
+      if(rows&&rows._mcPullCapped) showToast("⚠ "+t("exp_pull_capped"));
       const keyOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.merchant||""); };
       const delSet={}; (stateRef.current.deleted||[]).forEach(function(k){ delSet[k]=1; });
       const incoming=rows.map(expenseFromRow).filter(function(e){ return e.amount!==0 && !delSet[keyOf(e)]; });

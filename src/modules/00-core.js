@@ -573,9 +573,14 @@ const cloud = (function(){
     },
     async pullExpenses(){
       if(!sb) return [];
-      const {data,error}=await sb.from('expenses').select('*').order('fecha',{ascending:false}).limit(2000);
+      // Tope duro: sin paginar aún (plan O). Si se llena, syncCloudExpenses avisa — callar mentiría
+      // tras un import histórico largo.
+      const EXPENSE_PULL_LIMIT=2000;
+      const {data,error}=await sb.from('expenses').select('*').order('fecha',{ascending:false}).limit(EXPENSE_PULL_LIMIT);
       if(error) throw error;
-      return data || [];
+      const rows=data||[];
+      if(rows.length>=EXPENSE_PULL_LIMIT) rows._mcPullCapped=true;
+      return rows;
     },
     async addExpense(e){
       if(!sb) return;

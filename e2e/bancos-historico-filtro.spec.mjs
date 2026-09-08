@@ -10,6 +10,8 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
  * esconder o filtrar filas de una lista es algo que `npm test` (lógica pura) no ve, solo el DOM
  * real — y aquí además hay que comprobar que el filtro no es solo cosmético: lo que queda oculto
  * tiene que desaparecer también del contador de "Importar N", que es el propio bug reportado.
+ *
+ * Puerta (tanda 4 / plan K): SOLO Ajustes → Importaciones. Se quitó el botón de Mis bancos.
  */
 
 const bankLinks = [
@@ -37,14 +39,11 @@ async function abrirHistorico(page) {
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
-  // Misma puerta que bancos-acordeon.spec.mjs para llegar a «Mis bancos».
-  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-banks", { detail: { focus: null } })));
-  await expect(page.locator("[data-aspsp]")).toHaveCount(2, { timeout: 10_000 });
-
-  // El de «Mis bancos», no el de Ajustes → Importaciones: desde la 4.13.0 se llega por los dos
-  // sitios y el nombre a secas es ambiguo. Este test comprueba el filtro por banco, que solo tiene
-  // sentido con los enlaces vivos que le pasa este panel (`linkEnts`).
-  await page.locator("button:not(.set-row)").filter({ hasText: /^Importar histórico$/ }).click();
+  // Ajustes → Importaciones (única puerta desde tanda 4).
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-settings")));
+  await expect(page.locator(".set-card").first()).toBeVisible({ timeout: 10_000 });
+  await page.getByRole("button", { name: /Importaciones/i }).click();
+  await page.locator("button.set-row").filter({ hasText: /Importar histórico/i }).click();
   const overlay = page.locator(".hist-import");
   await expect(overlay).toBeVisible();
   await overlay.getByRole("button", { name: /Buscar movimientos/i }).click();
@@ -52,6 +51,19 @@ async function abrirHistorico(page) {
   await expect(overlay.getByText("Super Sabadell")).toBeVisible();
   return overlay;
 }
+
+test("Mis bancos ya no ofrece Importar histórico (solo Importaciones)", async ({ page }) => {
+  await seedLoggedInDashboard(page, {
+    hasBankLink: true,
+    __cloudRows: { bank_links: bankLinks },
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-banks", { detail: { focus: null } })));
+  await expect(page.locator("[data-aspsp]")).toHaveCount(2, { timeout: 10_000 });
+  await expect(page.locator("button").filter({ hasText: /^Importar histórico$/ })).toHaveCount(0);
+});
 
 test("Importar histórico: sin tocar el filtro salen los movimientos de TODOS los bancos conectados", async ({ page }) => {
   const overlay = await abrirHistorico(page);

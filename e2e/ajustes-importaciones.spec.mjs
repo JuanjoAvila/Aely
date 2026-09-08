@@ -4,6 +4,7 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 /* AJUSTES → IMPORTACIONES (2026-08-04, petición suya). Las dos importaciones estaban repartidas y
  * escondidas: la hoja de Excel dentro de «Copia de seguridad» —donde nadie la buscaría— y el
  * histórico del banco al final de «Mis bancos». Son la misma tarea, así que viven juntas.
+ * Desde tanda 4 el histórico SOLO está aquí (se quitó de Mis bancos).
  * Y el exportar/importar JSON a mano se retiró: la copia automática diaria ya lo cubre, y ese botón
  * sobrescribía el estado ENTERO de golpe. */
 

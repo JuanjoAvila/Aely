@@ -490,9 +490,10 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
             /* Y si la nube falla hay que DEVOLVERLE el botón (review de Cursor, 8/9): el `set` de
                arriba ya dejó `lastHistImport` a null, así que el aviso le decía «vuelve a
                deshacer» con el botón ya desaparecido de la pantalla. Un mensaje que pide algo
-               imposible es peor que no avisar. Se restaura el lote —lo local ya está quitado, no
-               se toca— y el segundo toque reintenta SOLO el borrado en la nube. */
-            set(function(s){ return Object.assign({}, s, { lastHistImport:last }); });
+               imposible es peor que no avisar. Se restaura el lote CON cloudPending —lo local ya
+               está quitado— para que histCanUndo siga en true aunque no queden filas del batch
+               (si no, el boton desaparecía otra vez: choque L vs reintento, Claude 8/9). */
+            set(function(s){ return Object.assign({}, s, { lastHistImport:Object.assign({}, last, {cloudPending:true}) }); });
             showToast("⚠ "+t("bp_hist_undo_cloud_fail"));
           });
       });
@@ -511,7 +512,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
     }
     runImport();
   };
-  const canUndo=!!(state&&state.lastHistImport&&state.lastHistImport.batchId);
+  const canUndo=histCanUndo(state);
   const wrap={position:"fixed",inset:0,zIndex:97,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
   const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
@@ -622,7 +623,6 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
    `state.investments`, para poder deducir de la cartera cuáles usa el usuario sin preguntarle. */
 var BROKER_CHIPS=[["trade_republic","Trade Republic"],["myinvestor","MyInvestor"],["revolut","Revolut"]];
 function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onLinks, fetchPrices, focusAspsp}){
-  const [histOpen,setHistOpen]=useState(false);
   const [links,setLinks]=useState(null);          // null = cargando
   const [aspsps,setAspsps]=useState(null);        // null = sin cargar
   const [loadingA,setLoadingA]=useState(false);
@@ -887,18 +887,8 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
         )
       );
     })(),
-    ((links||[]).some(function(l){ return l.status==='active'; })) && React.createElement("button",{style:{width:"100%",padding:"12px",borderRadius:14,border:"1px solid var(--line-soft)",background:"var(--sur)",color:"var(--text)",fontWeight:700,fontSize:13.5,cursor:"pointer",marginTop:12},onClick:function(){ setHistOpen(true); }}, t("bp_hist_btn")),
-    histOpen && ReactDOM.createPortal(React.createElement(BankHistoryImport,{
-      state:state,set:set,showToast:showToast,onClose:function(){ setHistOpen(false); },
-      linkEnts:(function(){
-        const ents=[];
-        (links||[]).forEach(function(l){
-          if(!(l&&(l.status==="active"||l.status==="pending"))) return;
-          const e=entFromAspsp(l.aspsp_name||l.aspsp); if(e&&ents.indexOf(e)<0) ents.push(e);
-        });
-        return ents.length?ents:null;
-      })()
-    }), document.body),
+    /* Histórico del banco: solo Ajustes → Importaciones (tanda 4 / plan K). Aquí ensuciaba
+       «Mis bancos» y duplicaba la puerta. */
     React.createElement("div",{style:{height:1,background:"var(--line-soft)",margin:"22px 0 8px"}}),
     React.createElement("div",{className:"bk-sec"}, t("bp_brokers")),
     /* ¿QUÉ BRÓKERS USAS? (feedback 2026-07-25: «que te salgan directamente para loguear sin
@@ -3221,7 +3211,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const [actOpen,setActOpen]=useState(false);   // pantalla «Actividad» (antes acordeón: crecía sin fin)
   const [betaOpen,setBetaOpen]=useState(false);  // pantalla «Revisar la beta» (solo en canal beta)
   const [hojaOpen,setHojaOpen]=useState(false);  // importar una hoja de gastos (Excel/CSV)
-  const [histOpen,setHistOpen]=useState(false);  // importar histórico del banco (también desde «Mis bancos»)
+  const [histOpen,setHistOpen]=useState(false);  // importar histórico del banco (Ajustes → Importaciones)
   const [autoBackOpen,setAutoBackOpen]=useState(false);  // copias automáticas diarias (state_backups)
   const prodVer=useProdVersion();                // Pages ahora (cruda); null mientras pregunta
   // Misma regla que useYaEnProd, sin segundo fetch (compartimos prodVer con betaChecklist).
@@ -3597,11 +3587,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         checkUpdates),
       React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 12px"}}, t("st_widget_hint"))
     ),
-    /* IMPORTACIONES, todas juntas (2026-08-04, petición suya). Antes estaban repartidas: la hoja de
-       Excel dentro de «Copia de seguridad» —donde nadie la buscaría— y el histórico del banco
-       escondido en «Mis bancos», al final de la lista. Son la misma tarea («traerme lo que ya tengo
-       en otro sitio»), así que viven en el mismo sitio. El histórico sigue accesible también desde
-       «Mis bancos», que es donde estaba y donde tiene sentido justo tras conectar un banco. */
+    /* IMPORTACIONES, todas juntas (2026-08-04). Desde tanda 4 el histórico vive SOLO aquí: se
+       quitó el botón duplicado de «Mis bancos» (plan puertas + K). */
     grp("import","📥",t("st_imports"),"importar import excel hoja csv gastos historico banco extracto",null,
       row("imphoja","📗",t("ih_title"),null,function(){ setHojaOpen(true); }),
       row("imphist","🏦",t("bp_hist_btn"),null,function(){ setHistOpen(true); })
@@ -3765,9 +3752,18 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     ),
     betaOpen && ReactDOM.createPortal(React.createElement(BetaReviewPanel,{showToast:showToast,onClose:function(){ setBetaOpen(false); }}), document.body),
     hojaOpen && ReactDOM.createPortal(React.createElement(SheetImport,{state:state,set:set,showToast:showToast,goGastos:goGastos,onClose:function(){ setHojaOpen(false); }}), document.body),
-    // Sin `linkEnts`: el propio panel cae a los bancos de gasto cuando no se le pasa lista (ver
-    // `allowList` en BankHistoryImport). Desde «Mis bancos» sí se le pasan los enlaces vivos.
-    histOpen && ReactDOM.createPortal(React.createElement(BankHistoryImport,{state:state,set:set,showToast:showToast,onClose:function(){ setHistOpen(false); }}), document.body),
+    // Allow-list = bancos OB conectados (misma regla que antes desde Mis bancos).
+    histOpen && ReactDOM.createPortal(React.createElement(BankHistoryImport,{
+      state:state,set:set,showToast:showToast,onClose:function(){ setHistOpen(false); },
+      linkEnts:(function(){
+        const ents=[];
+        (bankLinks||[]).forEach(function(l){
+          if(!(l&&(l.status==="active"||l.status==="pending"))) return;
+          const e=entFromAspsp(l.aspsp_name||l.aspsp); if(e&&ents.indexOf(e)<0) ents.push(e);
+        });
+        return ents.length?ents:null;
+      })()
+    }), document.body),
     autoBackOpen && ReactDOM.createPortal(React.createElement(AutoBackupsPanel,{state:state,set:set,showToast:showToast,uid:uid,onClose:function(){ setAutoBackOpen(false); }}), document.body),
     actOpen && ReactDOM.createPortal(React.createElement(ActivityPanel,{events:events,onReload:loadEvents,onClose:function(){ setActOpen(false); }}), document.body),
     privOpen && ReactDOM.createPortal(React.createElement(PrivacyPanel,{onClose:function(){ setPrivOpen(false); }}), document.body),
