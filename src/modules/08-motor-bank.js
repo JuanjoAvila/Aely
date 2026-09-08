@@ -889,11 +889,12 @@ function histUndoBatch(state, lastHistImport){
   };
 }
 /* L: importBatchId no viaja a la nube. Tras un pull las filas vuelven sin el campo y lastHistImport
-   puede seguir en el estado — el botón Deshacer solo tiene sentido mientras queden filas LOCALES
-   del lote (si no, deshacería a ciegas o no quitaría nada útil). */
+   puede seguir — botón NO (no haría nada útil). PERO si el DELETE en nube falló, el catch marca
+   cloudPending y restaura el lote: ahí el botón SÍ (reintento solo cloud) — review Claude 8/9. */
 function histCanUndo(state){
   const last=state&&state.lastHistImport;
   if(!last||!last.batchId) return false;
+  if(last.cloudPending && (last.cloudIds||[]).length) return true;
   const bid=last.batchId;
   return (state.expenses||[]).some(function(e){ return e&&e.importBatchId===bid; });
 }

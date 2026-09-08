@@ -359,7 +359,7 @@ t("B+lote: undo dos veces idempotente y cero deleted", () => {
   assert.deepEqual(twice.nextState.deleted, ["keep"]);
 });
 
-t("L: histCanUndo solo si quedan filas locales del batch (no basta lastHistImport)", () => {
+t("L(a): tras pull, lote sin filas locales y sin cloudPending → botón NO", () => {
   const st = baseState();
   st.lastHistImport = { batchId: "hist-l", localIds: ["x"], cloudIds: ["x"] };
   st.expenses = [{ id: "x", importBatchId: "hist-l", amount: 1, merchant: "A", date: "2026-09-01T12:00:00.000Z", source: "ob-hist" }];
@@ -370,6 +370,22 @@ t("L: histCanUndo solo si quedan filas locales del batch (no basta lastHistImpor
   st.expenses = [];
   assert.equal(ctx.histCanUndo(st), false);
   st.lastHistImport = null;
+  assert.equal(ctx.histCanUndo(st), false);
+});
+
+t("L(b): borrado nube fallido (cloudPending) → botón SÍ y reintento mismos cloudIds", () => {
+  const st = baseState();
+  // Local ya quitado; catch restauró el lote marcado.
+  st.expenses = [{ id: "other", amount: 3, merchant: "C", date: "2026-08-01T12:00:00.000Z", source: "manual" }];
+  st.lastHistImport = { batchId: "hist-l", localIds: ["u1", "u2"], cloudIds: ["u1", "u2"], cloudPending: true };
+  assert.equal(ctx.histCanUndo(st), true);
+  const retry = ctx.histUndoBatch(st, st.lastHistImport);
+  assert.equal(retry.ok, true);
+  assert.deepEqual(retry.cloudDeleteById, ["u1", "u2"]);
+  assert.equal(retry.nextState.expenses.length, 1);
+  assert.equal(retry.nextState.expenses[0].id, "other");
+  // Sin marca y sin filas del lote → no (el caso que Claude simuló).
+  st.lastHistImport = { batchId: "hist-l", localIds: ["u1", "u2"], cloudIds: ["u1", "u2"] };
   assert.equal(ctx.histCanUndo(st), false);
 });
 

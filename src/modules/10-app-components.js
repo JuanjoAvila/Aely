@@ -490,9 +490,10 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
             /* Y si la nube falla hay que DEVOLVERLE el botón (review de Cursor, 8/9): el `set` de
                arriba ya dejó `lastHistImport` a null, así que el aviso le decía «vuelve a
                deshacer» con el botón ya desaparecido de la pantalla. Un mensaje que pide algo
-               imposible es peor que no avisar. Se restaura el lote —lo local ya está quitado, no
-               se toca— y el segundo toque reintenta SOLO el borrado en la nube. */
-            set(function(s){ return Object.assign({}, s, { lastHistImport:last }); });
+               imposible es peor que no avisar. Se restaura el lote CON cloudPending —lo local ya
+               está quitado— para que histCanUndo siga en true aunque no queden filas del batch
+               (si no, el boton desaparecía otra vez: choque L vs reintento, Claude 8/9). */
+            set(function(s){ return Object.assign({}, s, { lastHistImport:Object.assign({}, last, {cloudPending:true}) }); });
             showToast("⚠ "+t("bp_hist_undo_cloud_fail"));
           });
       });
