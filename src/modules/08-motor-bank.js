@@ -555,11 +555,18 @@ function applyReserva(state, income, plan, bankEnt){
 // Total reservado desde `fromMs` — lo que hay que restar del presupuesto del período que se esté
 // mirando, para que lo apartado se note de verdad en "lo que puedes gastar".
 function reservedSince(state, fromMs, hastaMs){
+  /* Dos cosas a la vez, y las dos hacen falta (fusion 2026-09-08):
+     · Ventana con tope superior opcional, para el informe del mes cerrado.
+     · La fecha se parsea AQUI y no con `dateMs`: `dateMs` devuelve `Date.now()` cuando no
+       entiende el texto, asi que una reserva con fecha corrupta se colaba como si fuera de HOY
+       y restaba de este mes. El servidor (`reservadoDesde`) exige `isFinite` y la descarta, o
+       sea que la app ensenaba MENOS presupuesto que el widget por un dato roto. Ante una
+       reserva que no sabemos de cuando es, no inventamos que es de este mes. */
   const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
   return (state.reservaLog||[]).reduce(function(a,x){
-    const ms=dateMs(x.date);
-    if(ms<fromMs || ms>=endMs) return a;
-    return a+(x.amount||0);
+    const ms=new Date(x&&x.date).getTime();
+    if(!isFinite(ms) || ms<fromMs || ms>=endMs) return a;
+    return a+(x&&x.amount||0);
   },0);
 }
 /* Misma cifra en Gastos, Resumen y el widget (2026-08-05). `totals.thisMonthSpent` suma TODO

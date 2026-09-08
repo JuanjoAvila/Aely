@@ -129,9 +129,10 @@ export function bancoDeSource(source?: string | null): string | null {
   return null;
 }
 
-/** Rol de una cuenta. Espejo de `accRole()`: sin `role` explícito manda `spendFrom`. */
+/** Rol de una cuenta. Espejo de `accRole()`: sin `role` explícito manda `spendFrom`.
+ *  Exportada para que el test pueda compararla DE FRENTE con la del cliente, no de rebote. */
 // deno-lint-ignore no-explicit-any
-function rolDeCuenta(a: any): string {
+export function rolDeCuenta(a: any): string {
   return (a && a.role) || (a && a.spendFrom ? "diario" : "fijos");
 }
 
