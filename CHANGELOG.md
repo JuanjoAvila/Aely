@@ -44,6 +44,14 @@ puntos de su tanda —un array plano en castellano— y un familiar en inglés o
 español. Era la única versión del bundle así. Guardián `tests/novedades-idiomas.test.mjs`, en rojo
 antes: nombraba `4.18.5 (en)` y `4.18.5 (ca)`.
 
+**Y una divergencia cliente/servidor que encontró un test nuevo a la primera:** los dos espejos
+que solo estaban cubiertos DE REBOTE (`accRole`/`rolDeCuenta` y `reservedSince`/`reservadoDesde`)
+ahora se comparan de frente. Al hacerlo saltó que una fecha corrupta en `reservaLog` se contaba
+en el cliente y no en el servidor: `dateMs()` devuelve `Date.now()` cuando no entiende el texto,
+así que la reserva rota se colaba como si fuera de HOY y la app enseñaba MENOS presupuesto que el
+widget. Ahora `reservedSince` exige una fecha válida, igual que el servidor. Ante una reserva que
+no sabemos de cuándo es, no se inventa que es de este mes.
+
 ## [4.19.9] — 2026-09-08
 ### Import histórico, tanda 3: el agujero A cerrado
 

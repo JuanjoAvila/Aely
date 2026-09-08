@@ -24,6 +24,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const src = fs.readFileSync(path.join(root, "supabase/functions/_shared/presupuesto.ts"), "utf8");
 const js = transformSync(src, { loader: "ts", format: "esm" }).code;
 const { statsDelMes, bancosDeGastoDiario, cuentaParaPresupuesto, bancoDeSource, esPosibleRepetido,
+  rolDeCuenta: rolDeCuentaServidor, reservadoDesde,
   claveComoLaApp, filasComoLaApp, inicioDeMesMs } =
   await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
 
@@ -237,6 +238,35 @@ t("el banco sale del source igual que en el cliente", () => {
   assert.equal(bancoDeSource("manual:revolut"), "revolut");
   assert.equal(bancoDeSource("manual"), null);              // a mano sin banco → cuenta siempre
   movsIgualQueElCliente();
+});
+
+/* Los otros dos espejos del fichero solo estaban cubiertos DE REBOTE, a través de statsDelMes.
+   Un test indirecto se queda verde si uno de los dos lados deriva y el escenario no toca ese
+   camino: es la misma trampa de los 965 €, en pequeño. Aquí se comparan de frente. */
+t("el ROL de una cuenta se lee igual en los dos lados", () => {
+  const casos = [
+    { role: "diario" }, { role: "ambos" }, { role: "fijos" },
+    { spendFrom: true }, { spendFrom: false }, {},
+    { role: "diario", spendFrom: false },     // `role` explícito manda sobre spendFrom
+    { role: "", spendFrom: true },            // role vacío = no declarado
+  ];
+  casos.forEach((a) => {
+    assert.equal(rolDeCuentaServidor(a), cli.accRole(a), "cuenta: " + JSON.stringify(a));
+  });
+});
+
+t("lo reservado para metas se suma igual en los dos lados", () => {
+  const data = {
+    reservaLog: [
+      { date: d(3), amount: 150 },
+      { date: d(9), amount: 25.5 },
+      { date: "2020-01-01T00:00:00.000Z", amount: 999 },   // otro mes: fuera
+      { date: "no es una fecha", amount: 7 },              // basura: fuera, y sin NaN
+    ],
+  };
+  assert.equal(reservadoDesde(data, desdeMs), c(cli.reservedSince(data, desdeMs)));
+  assert.equal(reservadoDesde(data, desdeMs), 175.5);
+  assert.equal(reservadoDesde({}, desdeMs), cli.reservedSince({}, desdeMs));   // sin log: 0, no NaN
 });
 
 /** El mapeo source→banco existe dos veces; que no se separen. */

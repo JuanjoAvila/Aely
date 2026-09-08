@@ -555,7 +555,16 @@ function applyReserva(state, income, plan, bankEnt){
 // Total reservado desde `fromMs` — lo que hay que restar del presupuesto del período que se esté
 // mirando, para que lo apartado se note de verdad en "lo que puedes gastar".
 function reservedSince(state, fromMs){
-  return (state.reservaLog||[]).reduce(function(a,x){ return dateMs(x.date)>=fromMs ? a+(x.amount||0) : a; },0);
+  /* La fecha se parsea AQUÍ y no con `dateMs`, a propósito: `dateMs` devuelve `Date.now()`
+     cuando no entiende el texto, así que una fecha corrupta en `reservaLog` se colaba como si
+     fuera de HOY y restaba de este mes. El servidor (`reservadoDesde`) exige `isFinite` y la
+     descarta, o sea que la app enseñaba MENOS presupuesto que el widget por un dato roto.
+     Lo cazó el test que compara los dos espejos de frente (2026-09-08). Ante una reserva que no
+     sabemos de cuándo es, no inventamos que es de este mes. */
+  return (state.reservaLog||[]).reduce(function(a,x){
+    const ms=new Date(x&&x.date).getTime();
+    return (isFinite(ms) && ms>=fromMs) ? a+(x&&x.amount||0) : a;
+  },0);
 }
 /* Misma cifra en Gastos, Resumen y el widget (2026-08-05). `totals.thisMonthSpent` suma TODO
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
