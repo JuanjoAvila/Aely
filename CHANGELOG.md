@@ -2,6 +2,32 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.9] — 2026-09-08
+### Import histórico, tanda 3: el agujero A cerrado
+
+El grave del plan, el que podía borrarle un gasto bueno para siempre: `cloud.addExpense` sube con
+`onConflict` por TERNA e `ignoreDuplicates`, y `cloud.deleteExpense` borra por esa MISMA terna. Si
+la importación chocaba con un gasto que ya tenía, el upsert no creaba fila y un «Deshacer» por
+terna le borraba el ORIGINAL.
+
+- **Camino nuevo y paralelo**, sin tocar `addExpense`, `deleteExpense` ni `expenses_dedup_idx`:
+  `cloud.addExpensesBatch` sube el lote con `.select('id')`. Con `ON CONFLICT DO NOTHING …
+  RETURNING id`, Postgres **solo devuelve las filas realmente insertadas**: las que chocaron no
+  vuelven, sus ids no existen y el undo no puede tocarlas ni queriendo.
+- `cloud.deleteExpensesByIds` borra **solo por uuid**, con `.eq('user_id')` y `isExpenseUuid` de
+  colador. Nunca por terna, nunca lápidas en `state.deleted` (agujero B).
+- Sin ACK del servidor no se persiste en local y **se avisa** en vez de dejarlo a medias.
+- **Endurecido en revisión (Claude):** `histApplyBatchAck` devolvía los ids CRUDOS del servidor,
+  que viajaban a `lastHistImport` → undo → `deleteExpensesByIds`. Si PostgREST llegara a devolver
+  alguna vez el id de una fila preexistente, el undo se la habría llevado: el agujero A otra vez
+  por una puerta más estrecha. Hoy no es explotable, pero la seguridad no puede depender de que
+  el servidor se comporte como suponemos. Ahora `cloudIds` sale de lo que NOSOTROS enviamos y el
+  servidor confirmó (`kept.map(e => e.id)`), así que un id ajeno no puede llegar al borrado.
+  Guardián: «A: ACK — id ajeno del servidor no va a cloudIds ni a undo», comprobado en rojo antes.
+- Botón de deshacer en la pantalla del import, con confirmación e idempotente.
+
+OTA; sin Android. Sin migraciones: no se ha tocado el esquema.
+
 ## [4.19.8] — 2026-09-08
 ### Import histórico: tandas 1 (motor) y 2 (UI segura)
 

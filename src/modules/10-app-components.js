@@ -1609,6 +1609,40 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+  {v:"4.19.9", d:"8 sep 2026",
+   t:{es:"Deshacer una importación del histórico, sin llevarse nada por delante",
+      en:"Undo a history import without taking anything else with it",
+      ca:"Desfer una importació de l'historial sense endur-se res al davant"},
+   tandas:[
+     {id:"import-deshacer", t:{es:"↩️ Deshacer la última importación", en:"↩️ Undo the last import", ca:"↩️ Desfer la darrera importació"},
+      items:{
+        es:[
+          "Ajustes → Mis bancos → Importar histórico: importa unos cuantos movimientos. Arriba del todo tiene que aparecer un botón rojo para deshacer esa importación.",
+          "Dale a deshacer. Te tiene que preguntar antes, y al aceptar desaparecen SOLO los que acabas de importar. Los que ya tenías de antes se quedan todos.",
+          "Vuelve a darle a deshacer una segunda vez: no puede borrar nada más ni dar error raro.",
+          "Cierra la app, ábrela y sincroniza: lo deshecho NO puede volver, y lo que no importaste tiene que seguir ahí.",
+          "Importa un movimiento que ya tuvieras apuntado igual (mismo día, importe y comercio). Al deshacer, el que ya tenías NO se puede borrar."
+        ],
+        en:[
+          "Ajustes → Mis bancos → Importar histórico: importa unos cuantos movimientos. Arriba del todo tiene que aparecer un botón rojo para deshacer esa importación.",
+          "Dale a deshacer. Te tiene que preguntar antes, y al aceptar desaparecen SOLO los que acabas de importar. Los que ya tenías de antes se quedan todos.",
+          "Vuelve a darle a deshacer una segunda vez: no puede borrar nada más ni dar error raro.",
+          "Cierra la app, ábrela y sincroniza: lo deshecho NO puede volver, y lo que no importaste tiene que seguir ahí.",
+          "Importa un movimiento que ya tuvieras apuntado igual (mismo día, importe y comercio). Al deshacer, el que ya tenías NO se puede borrar."
+        ],
+        ca:[
+          "Ajustes → Mis bancos → Importar histórico: importa unos cuantos movimientos. Arriba del todo tiene que aparecer un botón rojo para deshacer esa importación.",
+          "Dale a deshacer. Te tiene que preguntar antes, y al aceptar desaparecen SOLO los que acabas de importar. Los que ya tenías de antes se quedan todos.",
+          "Vuelve a darle a deshacer una segunda vez: no puede borrar nada más ni dar error raro.",
+          "Cierra la app, ábrela y sincroniza: lo deshecho NO puede volver, y lo que no importaste tiene que seguir ahí.",
+          "Importa un movimiento que ya tuvieras apuntado igual (mismo día, importe y comercio). Al deshacer, el que ya tenías NO se puede borrar."
+        ]}}
+   ],
+   items:{
+     es:["Se puede deshacer la última importación del histórico, y solo borra lo que entró en esa importación.","Si algún movimiento ya lo tenías apuntado, deshacer no te lo toca."],
+     en:["You can undo the last history import, and it only removes what that import brought in.","If you already had a transaction logged, undoing does not touch it."],
+     ca:["Es pot desfer la darrera importació de l'historial, i només esborra el que va entrar en aquella importació.","Si ja tenies un moviment apuntat, desfer no te'l toca."]
+   }},
   {v:"4.19.8", d:"8 sep 2026",
    t:{es:"Traer el histórico del banco ya no crea recibos que no pediste",
       en:"Importing bank history no longer creates bills you didn't ask for",
