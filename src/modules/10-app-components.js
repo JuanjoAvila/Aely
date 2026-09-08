@@ -2946,7 +2946,12 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     };
     refreshTr();
     const onTr=function(e){
-      if(e&&e.detail&&typeof e.detail.connected==="boolean"){ setTrConn(!!e.detail.connected); setTrKnown(true); return; }
+      if(e&&e.detail&&typeof e.detail.connected==="boolean"){
+        setTrConn(!!e.detail.connected); setTrKnown(true);
+        // Solo si la acción MANUAL acabó bien (detalle.ack). Status/poll no tosta — rechazo TR.
+        if(e.detail.ack && e.detail.connected) showToast(t("tr_connected"));
+        return;
+      }
       refreshTr();
     };
     window.addEventListener("mc-tr-status", onTr);

@@ -364,9 +364,13 @@ function trPhoneSaved(){ try{ return localStorage.getItem("mc_tr_phone")||""; }c
 // La tarjeta y sus consumidores (resumen de Ajustes + banner de Cartera) viven en componentes
 // distintos. Cambiar solo el useState local dejaba «1 caído» hasta reiniciar aunque el login o
 // el sync acabasen bien — feedback 2026-09-07. Este evento mantiene una única verdad visible.
-function trSignalStatus(connected){
-  try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:!!connected}})); }catch(e){}
+// `ack:true` = la acción MANUAL acabó bien (conectar / sync). El consumidor pinta toast UNA vez.
+ // Las consultas de status (arranque, visibility) NO llevan ack — rechazo 4.19.0/tr-reactivo.
+function trSignalStatus(connected, opts){
+  opts=opts||{};
+  try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:!!connected, ack:!!opts.ack}})); }catch(e){}
 }
+function markTrConnected(opts){ trSignalStatus(true, opts||{}); }
 function TRSync({state, set, totals, open, onToggle}){
   const bridge=trBridge();
   const [step,setStep]=useState("idle");      // idle | code | preview | done
@@ -399,7 +403,8 @@ function TRSync({state, set, totals, open, onToggle}){
     if(s.length===9) return "+34"+s;            // móvil español típico
     return s.indexOf("+")===0?s:"+"+s;
   };
-  const doSync=function(){
+  const doSync=function(opts){
+    opts=opts||{};
     setBusy(true); setErr(false); setErrMsg(""); setStep("idle"); setDoneN(null);
     return Promise.resolve(bridge.sync()).then(function(r){
       setBusy(false);
@@ -412,7 +417,8 @@ function TRSync({state, set, totals, open, onToggle}){
       }
       if(r&&(r.softFail||r.wafBlocked)){ fail(r); return; }   // anti-bot: sesión sigue, no pedir 2FA
       if(!r||!r.ok||!Array.isArray(r.positions)){ fail(r); return; }
-      trSignalStatus(true);
+      // Tras verify el acuse ya salió; el botón Sync pide ack propio. Fallo → fail(), sin ack.
+      markTrConnected(opts.ack?{ack:true}:undefined);
       const m={};
       r.positions.forEach(function(po){
         const sug=brokerSuggest(po, state.investments);
@@ -439,7 +445,8 @@ function TRSync({state, set, totals, open, onToggle}){
     setBusy(true); setErr(false); setErrMsg("");
     Promise.resolve(bridge.verify({processId:processId,code:code.trim()})).then(function(r){
       if(!r||!r.ok){ fail(r); return; }
-      setConnected(true); trSignalStatus(true); setExpired(false); setCode(""); doSync();
+      // Acuse visible al completar el 2FA (rechazo 4.19.0/tr-reactivo). doSync sin ack otra vez.
+      setConnected(true); markTrConnected({ack:true}); setExpired(false); setCode(""); doSync();
     }).catch(fail);
   };
   const mappedN=positions?positions.filter(function(p){ return map[p.isin]; }).length:0;
@@ -506,7 +513,7 @@ function TRSync({state, set, totals, open, onToggle}){
         ),
         connected && step!=="preview" && React.createElement(React.Fragment,null,
           React.createElement("div",{className:"hint",style:{marginTop:0,color:"var(--mint)",fontWeight:700}},t("tr_connected")),
-          React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:10},disabled:busy,onClick:doSync}, busy?t("tr_syncing"):t("tr_sync")),
+          React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:10},disabled:busy,onClick:function(){ doSync({ack:true}); }}, busy?t("tr_syncing"):t("tr_sync")),
           React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:disconnect},t("tr_disconnect"))
         ),
         step==="preview" && positions && React.createElement(React.Fragment,null,
