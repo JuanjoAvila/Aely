@@ -15271,6 +15271,37 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+{v:"4.19.12", d:"9 sep 2026",
+   t:{es:"Al empezar el mes, Inicio te cuenta cómo acabó el anterior",
+      en:"When a new month starts, Home tells you how the last one ended",
+      ca:"En començar el mes, Inici t'explica com va acabar l'anterior"},
+   tandas:[
+     {id:"informe-mes", t:{es:"📅 El resumen del mes cerrado", en:"📅 The closed month summary", ca:"📅 El resum del mes tancat"},
+      items:{
+        es:[
+          "Los primeros días del mes, en Inicio tiene que salir una tarjeta con el resumen del mes ANTERIOR: lo gastado, en qué se fue más y lo que ahorraste.",
+          "Esa cifra tiene que ser la misma que veías en Gastos ese mes. Lo que gastes ahora, en el mes nuevo, NO puede sumar ahí.",
+          "El botón de compartir tiene que generar la imagen de ESE mes cerrado, no del actual.",
+          "Descártala: no puede volver a salir. Al cerrar el mes siguiente sí tiene que volver, con el mes nuevo."
+        ],
+        en:[
+          "Los primeros días del mes, en Inicio tiene que salir una tarjeta con el resumen del mes ANTERIOR: lo gastado, en qué se fue más y lo que ahorraste.",
+          "Esa cifra tiene que ser la misma que veías en Gastos ese mes. Lo que gastes ahora, en el mes nuevo, NO puede sumar ahí.",
+          "El botón de compartir tiene que generar la imagen de ESE mes cerrado, no del actual.",
+          "Descártala: no puede volver a salir. Al cerrar el mes siguiente sí tiene que volver, con el mes nuevo."
+        ],
+        ca:[
+          "Los primeros días del mes, en Inicio tiene que salir una tarjeta con el resumen del mes ANTERIOR: lo gastado, en qué se fue más y lo que ahorraste.",
+          "Esa cifra tiene que ser la misma que veías en Gastos ese mes. Lo que gastes ahora, en el mes nuevo, NO puede sumar ahí.",
+          "El botón de compartir tiene que generar la imagen de ESE mes cerrado, no del actual.",
+          "Descártala: no puede volver a salir. Al cerrar el mes siguiente sí tiene que volver, con el mes nuevo."
+        ]}}
+   ],
+   items:{
+     es:["Al empezar el mes, Inicio te enseña cómo acabó el anterior: cuánto gastaste, en qué se te fue más y cuánto ahorraste. Con un toque lo compartes como imagen.","Antes ese aviso enseñaba el mes que acababa de empezar, así que casi siempre salía a cero."],
+     en:["When a new month starts, Home shows how the previous one ended: what you spent, where most of it went and how much you saved. One tap shares it as an image.","That reminder used to show the month that had just started, so it was almost always zero."],
+     ca:["En començar el mes, Inici t'ensenya com va acabar l'anterior: quant vas gastar, en què se te'n va anar més i quant vas estalviar. Amb un toc ho comparteixes com a imatge.","Abans aquell avís ensenyava el mes que tot just començava, així que gairebé sempre sortia a zero."]
+   }},
 {v:"4.19.11", d:"9 sep 2026",
    t:{es:"El histórico se importa desde Importaciones, y avisa si el banco se queda corto",
       en:"History is imported from Imports, and it warns if the bank falls short",
@@ -15818,41 +15849,6 @@ var RELEASE_NOTES=[
     "🧾 Rebuts és una categoria pròpia: telèfon, internet, assegurança o el lloguer ja no es queden a Altres.",
     "✨ En qualsevol moviment pots demanar un suggeriment de categoria, no només si és a Altres.",
     "🏦 En apuntar una despesa, el banc és una pastilla que es desplega, com els filtres de Despeses.",
-   ]}},
-{v:"4.18.0", d:"17 ago 2026",
-   t:{es:"Gastos de todos tus bancos del día a día, y más categorías",
-      en:"Spending from every day-to-day bank, plus extra categories",
-      ca:"Despeses de tots els teus bancs del dia a dia, i més categories"},
-   tandas:[
-     {id:"filtro-apuntar", t:"📅 Fecha al apuntar y todos los bancos del día a día", items:[
-       "En Gastos, si tienes varios bancos marcados como gasto diario, salen los movimientos de TODOS ellos (no solo el principal).",
-       "Un recibo de un banco que NO está marcado como gasto diario sigue sin contar para el presupuesto.",
-       "Una inversión o un traspaso no cuenta aunque salga de un banco del día a día.",
-       "Al apuntar un gasto con + puedes elegir el día, no solo hoy.",
-       "Al abrir un movimiento puedes cambiarle la fecha.",
-       "Si eliges un rango de fechas a medida, el calendario es el de la app (no el gris de Android).",
-     ]},
-     {id:"mas-categorias", t:"🍦 Heladería, joyería y videojuegos", items:[
-       "Hay categorías nuevas: heladería, joyería y videojuegos.",
-       "Un cargo de Steam o Instant Gaming cae en videojuegos, no en ocio.",
-       "Una heladería ya no se mezcla con bares y restaurantes.",
-     ]},
-   ],
-   items:{
-   es:[
-    "🏦 Si usas más de un banco para el día a día, Gastos enseña los movimientos de todos ellos. Un recibo de otro banco sigue sin contar, y una inversión tampoco.",
-    "📅 Al apuntar un gasto o al editarlo puedes elegir el día. El calendario es el de la app.",
-    "🍦 Heladería, joyería y videojuegos son categorías propias: Steam e Instant Gaming ya no se van a ocio.",
-   ],
-   en:[
-    "🏦 If you use more than one bank for day-to-day spending, Spending shows movements from all of them. A bill from another bank still doesn't count, and neither does an investment.",
-    "📅 When you add or edit a payment you can pick the day. The calendar is the app's own.",
-    "🍦 Ice cream, jewellery and games are their own categories: Steam and Instant Gaming no longer land in leisure.",
-   ],
-   ca:[
-    "🏦 Si uses més d'un banc per al dia a dia, Despeses ensenya els moviments de tots. Un rebut d'un altre banc continua sense comptar, i una inversió tampoc.",
-    "📅 En apuntar una despesa o en editar-la pots triar el dia. El calendari és el de l'app.",
-    "🍦 Gelateria, joieria i videojocs són categories pròpies: Steam i Instant Gaming ja no se'n van a oci.",
    ]}}
 ];
 /* Cinturón por si alguien sirve el módulo sin pasar por build-app (tests que evalúan fuente).

@@ -2,6 +2,32 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.12] — 2026-09-09
+### El resumen del mes cerrado, en Inicio (idea 5.3.3, la favorita de su pareja)
+
+- Tarjeta en Inicio los primeros días del mes con el resumen del mes **anterior**: gastado contra
+  presupuesto, categoría que más se llevó y ahorro real. Botón para compartir la imagen de ESE mes.
+- Se descarta y no vuelve; la decisión va en `settings`, así que tampoco vuelve en otro móvil.
+  Al cerrar el mes siguiente aparece otra vez, con el mes nuevo.
+- **El export ya existía** (`shareMonthReport`): solo hubo que decirle de qué mes va. La idea
+  5.3.6 estaba hecha desde hace tiempo.
+
+**El aviso del día 1 YA EXISTÍA y estaba mal.** Se hizo el 2026-07-15 para su pareja, y pintaba
+`totals.thisMonthSpent`: el gasto del mes que **acababa de empezar**, o sea casi siempre 0 €. Por
+eso él lo volvió a pedir. Sustituido por la tarjeta del mes cerrado.
+
+**La trampa que había que cerrar antes de codear** (encontrada leyendo el código, no probando):
+`monthBudgetStats(state, nowMs)` solo tenía tope INFERIOR —`if(dateMs(e.date) < startMs) return;`—
+así que no calculaba «ese mes» sino «desde el día 1 de ese mes en adelante». Un informe de agosto
+hecho con eso habría sumado agosto **más septiembre y todo lo posterior**: una cifra inventada y,
+peor, parecida a la buena. Medido con el fixture: 100 con tope, **600 sin él**.
+
+Cierre: tope superior OPCIONAL (`hastaMs`), por defecto infinito, para que Inicio, la cabecera de
+Gastos y el envío al widget den exactamente lo mismo que antes. `reservedSince` acota igual.
+`presupuesto-servidor` sigue verde: cliente y servidor cuentan lo mismo.
+
+OTA; sin Android; sin migraciones.
+
 ## [4.19.11] — 2026-09-09
 ### Import histórico, tanda 4: puertas y avisos
 

@@ -1617,6 +1617,37 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+  {v:"4.19.12", d:"9 sep 2026",
+   t:{es:"Al empezar el mes, Inicio te cuenta cómo acabó el anterior",
+      en:"When a new month starts, Home tells you how the last one ended",
+      ca:"En començar el mes, Inici t'explica com va acabar l'anterior"},
+   tandas:[
+     {id:"informe-mes", t:{es:"📅 El resumen del mes cerrado", en:"📅 The closed month summary", ca:"📅 El resum del mes tancat"},
+      items:{
+        es:[
+          "Los primeros días del mes, en Inicio tiene que salir una tarjeta con el resumen del mes ANTERIOR: lo gastado, en qué se fue más y lo que ahorraste.",
+          "Esa cifra tiene que ser la misma que veías en Gastos ese mes. Lo que gastes ahora, en el mes nuevo, NO puede sumar ahí.",
+          "El botón de compartir tiene que generar la imagen de ESE mes cerrado, no del actual.",
+          "Descártala: no puede volver a salir. Al cerrar el mes siguiente sí tiene que volver, con el mes nuevo."
+        ],
+        en:[
+          "Los primeros días del mes, en Inicio tiene que salir una tarjeta con el resumen del mes ANTERIOR: lo gastado, en qué se fue más y lo que ahorraste.",
+          "Esa cifra tiene que ser la misma que veías en Gastos ese mes. Lo que gastes ahora, en el mes nuevo, NO puede sumar ahí.",
+          "El botón de compartir tiene que generar la imagen de ESE mes cerrado, no del actual.",
+          "Descártala: no puede volver a salir. Al cerrar el mes siguiente sí tiene que volver, con el mes nuevo."
+        ],
+        ca:[
+          "Los primeros días del mes, en Inicio tiene que salir una tarjeta con el resumen del mes ANTERIOR: lo gastado, en qué se fue más y lo que ahorraste.",
+          "Esa cifra tiene que ser la misma que veías en Gastos ese mes. Lo que gastes ahora, en el mes nuevo, NO puede sumar ahí.",
+          "El botón de compartir tiene que generar la imagen de ESE mes cerrado, no del actual.",
+          "Descártala: no puede volver a salir. Al cerrar el mes siguiente sí tiene que volver, con el mes nuevo."
+        ]}}
+   ],
+   items:{
+     es:["Al empezar el mes, Inicio te enseña cómo acabó el anterior: cuánto gastaste, en qué se te fue más y cuánto ahorraste. Con un toque lo compartes como imagen.","Antes ese aviso enseñaba el mes que acababa de empezar, así que casi siempre salía a cero."],
+     en:["When a new month starts, Home shows how the previous one ended: what you spent, where most of it went and how much you saved. One tap shares it as an image.","That reminder used to show the month that had just started, so it was almost always zero."],
+     ca:["En començar el mes, Inici t'ensenya com va acabar l'anterior: quant vas gastar, en què se te'n va anar més i quant vas estalviar. Amb un toc ho comparteixes com a imatge.","Abans aquell avís ensenyava el mes que tot just començava, així que gairebé sempre sortia a zero."]
+   }},
   {v:"4.19.11", d:"9 sep 2026",
    t:{es:"El histórico se importa desde Importaciones, y avisa si el banco se queda corto",
       en:"History is imported from Imports, and it warns if the bank falls short",
