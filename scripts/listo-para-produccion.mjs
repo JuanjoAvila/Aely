@@ -67,7 +67,20 @@ const git = (a) => {
 };
 
 /* ---- Las tandas que su móvil tiene delante ahora mismo ---- */
-const VERSION = fs.readFileSync(path.join(root, "VERSION"), "utf8").trim();
+/* La versión que TIENE SU MÓVIL, no la del working tree. El fichero `VERSION` es lo que estamos
+   preparando aquí; si se usa esa, el panel enseña tandas que él todavía no ha recibido y la
+   cuenta de «te falta probar N» sale inflada — me pasó al integrar la 4.19.10 (2026-09-08).
+   Misma regla que `npm run salud`: lo que responde el canal manda sobre lo que dice el repo. */
+const VERSION_REPO = fs.readFileSync(path.join(root, "VERSION"), "utf8").trim();
+async function versionDelCanalBeta() {
+  try {
+    const r = await fetch("https://github.com/JuanjoAvila/Mi-Cartera/releases/download/beta/version.json", { redirect: "follow" });
+    if (r.ok) { const j = await r.json(); if (j && j.version) return String(j.version); }
+  } catch { /* sin red */ }
+  return null;
+}
+const VERSION_CANAL = await versionDelCanalBeta();
+const VERSION = VERSION_CANAL || VERSION_REPO;
 const prodVersion = (function () {
   // Lo que responde Pages, no lo que dice el repo. Si no hay red, se avisa y se sigue.
   return val("prod", null);
@@ -145,7 +158,11 @@ if (flag("json")) {
 
 const ico = { approved: "✅", rejected: "⛔", "sin probar": "⬜" };
 console.log("\n📦  LISTO PARA PRODUCCIÓN\n");
-console.log(`  beta ${VERSION} · producción ${prod || "(sin red: no se ha podido leer)"}\n`);
+console.log(`  en su móvil ${VERSION_CANAL || VERSION_REPO + " (del repo: sin red para leer el canal)"} · producción ${prod || "(sin red)"}`);
+if (VERSION_CANAL && VERSION_CANAL.indexOf(VERSION_REPO) !== 0) {
+  console.log(`  ⚠ aquí hay ${VERSION_REPO} sin publicar: sus tandas todavía no le han llegado.`);
+}
+console.log("");
 
 if (!filas.length) {
   console.log("  No hay ninguna tanda pendiente de revisar. Nada que promocionar por tandas.\n");
