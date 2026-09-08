@@ -5,6 +5,9 @@
 > Identidad de gastos: detectado colapso local además del índice de nube; arquitectura preparada,
 > implementación pendiente. [Relevo y reparto](briefs/RELEVO-CLAUDE-CURSOR-2026-09-08.md).
 > Esta revisión documental no publica una versión ni autoriza promoción.
+> Evidencia posterior del 8/9: widget e Inicio muestran distinto gasto mensual.
+> [B09-D](briefs/b09-d-widget-inicio-desacuerdo.md): divergencia de posibles repetidos reproducida
+> con datos sintéticos; causa completa del caso real y corrección pendientes.
 
 > Estado a 2026-09-07 · **v4.19.5** — Novedades guarda 20 versiones (bundle más ligero).
 > Anterior: **4.19.4** (arranque suelto). **4.19.3** (panel beta). **4.19.2** (ventana mes). **4.19.1**.

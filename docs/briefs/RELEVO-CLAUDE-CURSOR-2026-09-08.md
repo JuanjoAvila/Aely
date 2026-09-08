@@ -42,6 +42,11 @@ Sin evento en esta consulta: `4.19.0/categoria-ia`, `4.19.0/orden-gastos`,
 
 ## Reparto y orden de ejecución
 
+**Evidencia nueva del dueño, 8/9 después de este relevo:** widget e Inicio discrepan en gasto
+mensual. [B09-D: diagnóstico y reproducción](b09-d-widget-inicio-desacuerdo.md). Priorizar su
+diagnóstico junto a identidad: probado que los posibles repetidos se excluyen en app pero no
+en servidor; falta confirmar cuánto explica del caso real. No darlo por cubierto con B09-C.
+
 **1. Claude: cerrar el alcance de los dos rechazos; Cursor: correcciones pequeñas + DOM real.**
 
 - **TR:** revisar `markTrConnected` en `11-app-main.js` y el consumidor `mc-tr-status` en
