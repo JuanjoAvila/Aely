@@ -301,6 +301,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
         // Fuera del catálogo ENT: no silenciar (agujero E) — clave sintética para filtrar/ver.
         if(ent && !allow[ent]) return;
         const entKey=ent || ("aspsp:"+String((lk&&lk.aspsp)||"desconocido").toLowerCase().replace(/\s+/g,"_"));
+        // Label humano aparte: entKey sintético no se pinta nunca (review Claude 2026-09-08).
+        const entLabel=ent ? entOf(ent).label : (String((lk&&lk.aspsp)||"").trim()||null);
         (lk.accounts||[]).forEach(function(ac){
           (ac.transactions||[]).forEach(function(tx){
             const dt=String(tx.date||"").slice(0,10), am=Number(tx.amount)||0;
@@ -309,7 +311,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
             const abs=Math.abs(am);
             if(tx.ext_id && seen[tx.ext_id]) return;
             const k=(tx.ext_id||"")+"|"+(isIn?"in":"out")+"|"+kOf(dt,abs,tx.merchant); if(uniq[k]) return; uniq[k]=1;
-            out.push({ id:tx.ext_id||null, date:dt, amount:abs, merchant:tx.merchant||(isIn?t("cat_ingreso"):"Compra"), note:tx.note||"", card:!!tx.card, ent:entKey, kind:isIn?"in":"out" });
+            out.push({ id:tx.ext_id||null, date:dt, amount:abs, merchant:tx.merchant||(isIn?t("cat_ingreso"):"Compra"), note:tx.note||"", card:!!tx.card, ent:entKey, entLabel:entLabel, kind:isIn?"in":"out" });
           });
         });
       });
@@ -367,6 +369,20 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
   const signBanks=Object.keys(signSuspect||{}).filter(function(ent){
     return signSuspect[ent] && visible.some(function(o){ return o.x.ent===ent; });
   });
+  // Nunca pintar el slug aspsp:… (entOf cae a label=id). Prioriza entLabel del banco.
+  const histBankLabel=function(xOrEnt){
+    if(xOrEnt && typeof xOrEnt==="object"){
+      if(xOrEnt.entLabel) return xOrEnt.entLabel;
+      const id=xOrEnt.ent;
+      if(id && typeof ENT!=="undefined" && ENT[id]) return ENT[id].label;
+      return t("bp_hist_bank_unknown");
+    }
+    const id=xOrEnt;
+    if(id && typeof ENT!=="undefined" && ENT[id]) return ENT[id].label;
+    const hit=(visible||[]).find(function(o){ return o.x.ent===id; });
+    if(hit&&hit.x.entLabel) return hit.x.entLabel;
+    return t("bp_hist_bank_unknown");
+  };
   const visibleShown=visible.slice(0, renderCap);
   // Las filas entran contando, una detrás de otra — mismo efecto que el import de Excel (petición
   // suya 2026-07-28, aplicada aquí también por consistencia). El tope evita una espera eterna si
@@ -466,7 +482,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
         React.createElement("div",{style:{fontSize:12,color:"var(--muted-2)",marginBottom:8}}, tf("bp_hist_found",{n:visible.length})),
         truncWarn && React.createElement("div",{style:{fontSize:12,lineHeight:1.45,color:"var(--warn, #E6A23C)",background:"rgba(230,162,60,.12)",borderRadius:10,padding:"8px 10px",marginBottom:8}}, t("bp_hist_trunc")),
         signBanks.length>0 && React.createElement("div",{style:{fontSize:12,lineHeight:1.45,color:"var(--warn, #E6A23C)",background:"rgba(230,162,60,.12)",borderRadius:10,padding:"8px 10px",marginBottom:8}},
-          tf("bp_hist_sign",{banks:signBanks.map(function(e){ return entOf(e).label||e; }).join(", ")})),
+          tf("bp_hist_sign",{banks:signBanks.map(function(e){ return histBankLabel(e); }).join(", ")})),
         /* FILTROS: banco (solo si hay más de uno entre los que se buscó — con uno solo no aporta
            nada elegirlo), tipo (gasto/ingreso) y mes (solo si el lote trae más de uno). Mismo
            patrón visual `.v4-chip`/`.v4-chips` que el resto de la app (Gastos ya filtra así por
@@ -517,7 +533,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
               React.createElement("span",{style:{width:20,height:20,borderRadius:6,border:"2px solid "+(on?"var(--mint)":"var(--muted-2)"),background:on?"var(--mint)":"transparent",color:"#06120C",fontWeight:900,fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}, on?"✓":""),
               React.createElement("div",{style:{flex:1,minWidth:0}},
                 React.createElement("div",{style:{fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",textDecoration:(!on&&isDup)?"line-through":"none",color:(!on&&isDup)?"var(--muted-2)":undefined}}, x.merchant),
-                React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)",marginTop:1}}, x.date, " · ", (entOf(x.ent).label||x.ent), isIn?"":(x.card?"":" · "+t("bp_hist_notcard")), suggestRec&&!on?"":""),
+                React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)",marginTop:1}}, x.date, " · ", histBankLabel(x), isIn?"":(x.card?"":" · "+t("bp_hist_notcard")), suggestRec&&!on?"":""),
                 suggestRec && on ? React.createElement("div",{style:{fontSize:11,color:"var(--muted)",marginTop:1}}, t("bp_hist_suggest_recibo")) : null,
                 dupHint(c) ? React.createElement("div",{style:{fontSize:11,color:c.reason==="recibo-lote"?"var(--mint)":"var(--muted-2)",marginTop:1}}, dupHint(c)) : null),
               React.createElement("span",{style:{fontWeight:800,fontSize:14,flexShrink:0,color:isIn?"var(--mint)":"var(--text)"}}, (isIn?"+":"")+eur(x.amount))
