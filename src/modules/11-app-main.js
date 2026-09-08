@@ -303,6 +303,14 @@ function App(){
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
       const tableKeys={}; incoming.forEach(function(e){ tableKeys[keyOf(e)]=1; });
       (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOf(e)]) cloud.addExpense(e).catch(function(){}); });
+      // Y los posibles repetidos que ya estaban en la tabla ANTES de que la marca viajara (B09-D):
+      // `addExpense` va con ignoreDuplicates, así que a una fila ya presente no le cambia el
+      // `source` nunca. Sin este repaso, los pendientes de antes del arreglo seguirían contando en
+      // el servidor —justo el descuadre del widget— hasta que él los resolviera a mano.
+      const dupEnLaNube={}; incoming.forEach(function(e){ dupEnLaNube[keyOf(e)]=!!e.possibleDup; });
+      (stateRef.current.expenses||[]).forEach(function(e){
+        if(e && e.possibleDup && tableKeys[keyOf(e)] && !dupEnLaNube[keyOf(e)]) cloud.setExpenseDup(e, true).catch(function(){});
+      });
       // "nuevo" = no lo teníamos en NINGÚN origen local (así, ya sincronizado → 0 → "Ya estás al día")
       const prevKeys={}; (stateRef.current.expenses||[]).forEach(function(e){ prevKeys[keyOf(e)]=1; });
       let count=0; const seenC={};

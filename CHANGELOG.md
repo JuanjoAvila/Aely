@@ -2,6 +2,34 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.6] — 2026-09-08
+### El posible repetido tampoco cuenta en el servidor (B09-D)
+
+- **La decisión viaja.** `possibleDup` solo existía en el móvil: la app lo dejaba fuera del total
+  del mes y el `ingest` —que solo lee `fecha/importe/comercio/cat/source`— lo sumaba. Con 30 + 10
+  y un posible repetido de 30, la app decía **40** y el servidor **70**: de ahí que el widget
+  enseñara más gasto que Inicio.
+- La marca se codifica DENTRO de `source` (`ob:trade_republic#dup`), igual que el banco. **Sin
+  migración** en el Supabase compartido y viaja por OTA.
+- **Sufijo y no prefijo nuevo, a propósito** (objeción de Codex, correcta): un `ob-dup:` es una
+  cara desconocida para el servidor viejo, que lo leería como «sin banco» → «a mano» → lo SUMARÍA.
+  Con el sufijo, el servidor viejo lee el banco `trade_republic#dup`, no lo encuentra en la lista
+  de gasto diario y lo EXCLUYE. El fallo degrada al lado seguro y el arreglo no depende de
+  desplegar la función.
+- Escritura y lectura, no solo escritura: `expenseSourceForCloud` la emite, `expenseFromRow` la
+  recupera (sobrevive a pull, reinicio y segundo móvil), `cloud.setExpenseDup` la quita al pulsar
+  «son distintos» —tocar solo el estado local no arregla nada— y `syncCloudExpenses` repasa los
+  pendientes que ya estaban en la tabla, porque `addExpense` va con `ignoreDuplicates` y nunca
+  cambia el `source` de una fila existente.
+- No viaja `possibleDupOf`: tras reinstalar, «es el mismo» sigue borrando la fila OB pero ya no
+  traspasa el `extId` al gemelo.
+- Guardianes en `tests/presupuesto-servidor.test.mjs`: los cuatro casos cargan LAS DOS
+  implementaciones. Comprobado en rojo antes del arreglo (servidor 70 contra app 40).
+- Panel de beta: fuera las cinco tandas que aprobó el 8/9 (`notas-20`, `arranque-suelto`,
+  `panel-ronda`, `multicuenta`, `posible-repetido`).
+
+OTA; sin Android.
+
 ## [4.19.5] — 2026-09-07
 ### Novedades: solo las 20 últimas en el bundle
 

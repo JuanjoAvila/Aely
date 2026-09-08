@@ -2406,6 +2406,18 @@ const cloud = (function(){
       const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
       if(error) throw error;
     },
+    // Persiste la DECISIÓN sobre un posible repetido (B09-D, 2026-09-08). Sin esto, «son
+    // distintos» solo quitaba la marca en el móvil: la fila seguía siendo `ob:ent#dup` en la nube,
+    // el servidor la seguía descontando del presupuesto y el siguiente pull volvía a apagarla.
+    // Tocar solo el estado local no arregla nada; la fila vuelve de la nube.
+    async setExpenseDup(e, isDup){
+      if(!sb) return;
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) return;
+      const src=expenseSourceForCloud(Object.assign({},e,{possibleDup:!!isDup}));
+      const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
+      if(error) throw error;
+    },
     // Persiste el flag 💳/🔄 en la tabla (si no, el siguiente pull lo pisaría en gastos de la nube).
     async setExpenseNoCard(e, noCard){
       if(!sb) return;
@@ -2784,7 +2796,7 @@ const cloud = (function(){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","setExpenseBank","setExpenseNoCard","setExpenseNote","setExpenseCat","deleteExpense",
+  "pushState","addExpense","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","deleteExpense",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -2804,7 +2816,23 @@ const CLOUD_WRITES=[
    macrodroid (= Trade Republic). Así el filtro por banco sobrevive a reinstalaciones. */
 function expenseSourceForCloud(e){
   const ent=e&&e.ent; const s=(e&&e.source)||"manual";
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent;
+  // POSIBLE REPETIDO PENDIENTE (B09-D, 2026-09-08): la decisión tiene que VIAJAR. Hasta hoy
+  // `possibleDup` solo existía en el móvil: la app lo excluía del total del mes y el servidor
+  // —que solo lee fecha/importe/comercio/cat/source— lo sumaba. De ahí que el widget dijera más
+  // que Inicio. Se codifica dentro de `source`, igual que el banco: cero migración en el
+  // Supabase compartido y viaja por OTA.
+  //
+  // POR QUÉ SUFIJO `#dup` Y NO UN PREFIJO `ob-dup:` (voto de Codex, y tiene razón): un prefijo
+  // nuevo es una cara desconocida para el servidor VIEJO, que lo leería como «sin banco» → «a
+  // mano» → CUENTA. Un gasto de un banco que hoy queda fuera del presupuesto empezaría a sumar
+  // en cuanto saliera el OTA, aunque el ingest no se hubiera desplegado. Con el sufijo, el
+  // servidor viejo ve el banco "trade_republic#dup", no lo encuentra en la lista de bancos de
+  // gasto diario y lo EXCLUYE: exactamente lo que queremos. El fallo degrada al lado seguro y
+  // el arreglo no depende de desplegar el Supabase compartido.
+  //
+  // Lo que NO viaja es `possibleDupOf` (el gemelo): tras reinstalar, «es el mismo» sigue
+  // borrando la fila OB pero ya no puede traspasarle el extId al gemelo.
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+((e&&e.possibleDup)?"#dup":"");
   if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent;
   if(s==="macrodroid"||s==="tr") return "macrodroid";
   if(s==="supabase") return "manual";
@@ -2925,7 +2953,7 @@ function expenseBankOf(e){
   if(e.ent) return e.ent;
   const s=String(e.source||"");
   if(s==="macrodroid"||s==="tr") return "trade_republic";
-  if(s.indexOf("ob:")===0) return s.slice(3)||null;
+  if(s.indexOf("ob:")===0) return s.slice(3).split("#")[0]||null;   // «#dup» = posible repetido (B09-D)
   if(s.indexOf("ob-hist:")===0) return s.slice(8)||null;
   if(s.indexOf("manual:")===0) return s.slice(7)||null;
   return null;
@@ -3039,9 +3067,11 @@ function resolvePossibleDup(state, expenseId, same){
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){
   const raw=String(r.source||"manual");
-  let ent=null, source=raw;
+  let ent=null, source=raw, dup=false;
   if(raw==="macrodroid"||raw==="tr"){ ent="trade_republic"; source="macrodroid"; }
-  else if(raw.indexOf("ob:")===0){ ent=raw.slice(3)||null; source="ob"; }
+  // «ob:ent#dup» = posible repetido que sigue pendiente de su decisión (B09-D): vuelve marcado,
+  // así que la app lo sigue dejando fuera del total tras un pull, un reinicio o un segundo móvil.
+  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); ent=p[0]||null; source="ob"; dup=p[1]==="dup"; }
   else if(raw.indexOf("ob-hist:")===0){ ent=raw.slice(8)||null; source="ob-hist"; }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
@@ -3065,6 +3095,7 @@ function expenseFromRow(r){
     // propósito: es EXACTAMENTE lo que le pasó a la divisa —se escribía al subir y nadie lo
     // bajaba—, y aquí perderlo significa que el siguiente sync duplica el gasto renombrado.
     obName: r.ob_name!=null ? String(r.ob_name) : undefined,
+    possibleDup: dup ? true : undefined,
   };
 }
 
@@ -7339,6 +7370,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         next=Object.assign({},next,{deleted:pushDeleted(next.deleted, keyOfE(e))});
         if(cloud.enabled()) cloud.deleteExpense(e).catch(function(){});
       }
+      // «Son distintos»: hay que QUITAR la marca también en la nube (B09-D). Si no, la fila sigue
+      // siendo `ob-dup:` allí, el servidor la deja fuera del presupuesto y el siguiente pull la
+      // vuelve a apagar en el móvil.
+      else if(cloud.enabled()) cloud.setExpenseDup(e, false).catch(function(){});
       return next;
     });
     if(same) showToast(t("g_dup_same"));
@@ -14469,18 +14504,43 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+{v:"4.19.6", d:"8 sep 2026",
+   t:{es:"Un movimiento marcado como posible repetido tampoco suma en el widget",
+      en:"A transaction flagged as a possible repeat no longer counts on the widget either",
+      ca:"Un moviment marcat com a possible repetit tampoc no suma al giny"},
+   tandas:[
+     {id:"repetido-widget", t:{es:"📊 El posible repetido no suma en ningún sitio", en:"📊 The possible repeat counts nowhere", ca:"📊 El possible repetit no suma enlloc"},
+      items:{
+        es:[
+          "Sincroniza los bancos hasta que salga un movimiento apagado, de los que avisan de posible repetido. Mira el total del mes arriba en Gastos y apúntalo.",
+          "Cierra la app y mira el widget: tiene que decir esa MISMA cifra, sin sumar el movimiento apagado.",
+          "Entra en ese movimiento y dale a «son distintos». Vuelve a Gastos: ahora sí suma. Cierra la app y mira el widget otra vez: tiene que haber subido lo mismo.",
+          "Cierra la app del todo, ábrela y sincroniza: el que dejaste apagado tiene que seguir apagado, no encenderse solo."
+        ],
+        en:[
+          "Sincroniza los bancos hasta que salga un movimiento apagado, de los que avisan de posible repetido. Mira el total del mes arriba en Gastos y apúntalo.",
+          "Cierra la app y mira el widget: tiene que decir esa MISMA cifra, sin sumar el movimiento apagado.",
+          "Entra en ese movimiento y dale a «son distintos». Vuelve a Gastos: ahora sí suma. Cierra la app y mira el widget otra vez: tiene que haber subido lo mismo.",
+          "Cierra la app del todo, ábrela y sincroniza: el que dejaste apagado tiene que seguir apagado, no encenderse solo."
+        ],
+        ca:[
+          "Sincroniza los bancos hasta que salga un movimiento apagado, de los que avisan de posible repetido. Mira el total del mes arriba en Gastos y apúntalo.",
+          "Cierra la app y mira el widget: tiene que decir esa MISMA cifra, sin sumar el movimiento apagado.",
+          "Entra en ese movimiento y dale a «son distintos». Vuelve a Gastos: ahora sí suma. Cierra la app y mira el widget otra vez: tiene que haber subido lo mismo.",
+          "Cierra la app del todo, ábrela y sincroniza: el que dejaste apagado tiene que seguir apagado, no encenderse solo."
+        ]}}
+   ],
+   items:{
+     es:["Si un movimiento sale marcado como posible repetido, deja de contar también en el widget y en los avisos, no solo dentro de la app.","Esa marca ya no se pierde al cerrar la app ni al cambiar de móvil."],
+     en:["If a transaction is flagged as a possible repeat, it now stops counting on the widget and in alerts too, not just inside the app.","That flag no longer gets lost when you close the app or switch phones."],
+     ca:["Si un moviment surt marcat com a possible repetit, deixa de comptar també al giny i als avisos, no només dins de l'app.","Aquesta marca ja no es perd en tancar l'app ni en canviar de mòbil."]
+   }},
 {v:"4.19.5", d:"7 sep 2026",
    t:{es:"El historial de novedades guarda las últimas 20 versiones",
       en:"What's new keeps the last 20 versions",
       ca:"L'historial de novetats guarda les darreres 20 versions"},
-   tandas:[
-     {id:"notas-20", t:{es:"📜 Historial reciente", en:"📜 Recent history", ca:"📜 Historial recent"},
-      items:{
-        es:["Ajustes → Novedades: salen las últimas 20 versiones. Las más antiguas siguen en el registro técnico del proyecto, no en la app."],
-        en:["Settings → What's new: you see the last 20 versions. Older ones stay in the project's technical log, not in the app."],
-        ca:["Ajustaments → Novetats: surten les darreres 20 versions. Les mes antigues queden al registre tecnic del projecte, no a l'app."]
-      }}
-   ],
+
+   
    items:{
      es:["El historial de novedades guarda las últimas 20 versiones."],
      en:["What's new keeps the last 20 versions."],
@@ -14490,22 +14550,8 @@ var RELEASE_NOTES=[
    t:{es:"La app arranca más suelta si tienes muchos movimientos",
       en:"The app starts more smoothly when you have lots of transactions",
       ca:"L'app arrenca més fluida si tens molts moviments"},
-   tandas:[
-     {id:"arranque-suelto", t:{es:"⚡ Arranque con histórico grande", en:"⚡ Start with a large history", ca:"⚡ Arrencada amb historic gran"},
-      items:{
-        es:[
-          "Con la app recién abierta, espera unos segundos en Inicio y cambia a Gastos, Plan y Cartera: las cuatro tienen que responder sin quedarse colgadas.",
-          "Si tienes muchos movimientos, el primer cambio de pestaña no tiene que notarse más lento que el resto.",
-        ],
-        en:[
-          "With the app freshly opened, wait a few seconds on Home and switch to Expenses, Plan and Portfolio: all four should respond without hanging.",
-          "If you have lots of transactions, the first tab switch should not feel slower than the others.",
-        ],
-        ca:[
-          "Amb l'app acabada d'obrir, espera uns segons a Inici i canvia a Despeses, Pla i Cartera: les quatre han de respondre sense quedar-se penjades.",
-          "Si tens molts moviments, el primer canvi de pestanya no ha de notar-se mes lent que la resta.",
-        ]}}
-   ],
+
+   
    items:{
      es:["Con muchos movimientos, cambiar de pestaña al arrancar vuelve a ir fluido."],
      en:["With lots of transactions, switching tabs right after launch feels smooth again."],
@@ -14515,22 +14561,8 @@ var RELEASE_NOTES=[
    t:{es:"Revisar la beta enseña toda la ronda, con pasos claros",
       en:"Beta review shows the whole round, with clear steps",
       ca:"Revisar la beta ensenya tota la ronda, amb passos clars"},
-   tandas:[
-     {id:"panel-ronda", t:{es:"🧪 Toda la ronda a la vista", en:"🧪 Whole round in view", ca:"🧪 Tota la ronda a la vista"},
-      items:{
-        es:[
-          "Ajustes → Revisar esta beta: tienen que salir las tandas de TODAS las versiones de esta ronda (no solo la última), cada una con su número de versión en el título.",
-          "Cada punto tiene que decir dónde ir, qué tocar y qué tiene que pasar. Si alguno habla en abstracto sin decir dónde, está mal.",
-        ],
-        en:[
-          "Ajustes → Revisar esta beta: tienen que salir las tandas de TODAS las versiones de esta ronda (no solo la última), cada una con su número de versión en el título.",
-          "Cada punto tiene que decir dónde ir, qué tocar y qué tiene que pasar. Si alguno habla en abstracto sin decir dónde, está mal.",
-        ],
-        ca:[
-          "Ajustes → Revisar esta beta: tienen que salir las tandas de TODAS las versiones de esta ronda (no solo la última), cada una con su número de versión en el título.",
-          "Cada punto tiene que decir dónde ir, qué tocar y qué tiene que pasar. Si alguno habla en abstracto sin decir dónde, está mal.",
-        ]}}
-   ],
+
+   
    items:{
      es:["En Revisar la beta salen todas las tandas de la ronda, con pasos concretos para probar cada una."],
      en:["Beta review lists every tanda in the round, with concrete steps to try each one."],
@@ -14607,14 +14639,10 @@ var RELEASE_NOTES=[
        es:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."],
        en:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."],
        ca:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."]}},
-     {id:"multicuenta",t:{es:"🧾 Todas las cuentas del banco",en:"🧾 Every bank account",ca:"🧾 Tots els comptes del banc"},items:{
-       es:["Sincroniza los bancos y mira Gastos: si tienes más de una cuenta en el mismo banco, tienen que aparecer también los movimientos de la segunda, no solo los de la primera."],
-       en:["Sincroniza los bancos y mira Gastos: si tienes más de una cuenta en el mismo banco, tienen que aparecer también los movimientos de la segunda, no solo los de la primera."],
-       ca:["Sincroniza los bancos y mira Gastos: si tienes más de una cuenta en el mismo banco, tienen que aparecer también los movimientos de la segunda, no solo los de la primera."]}},
-     {id:"posible-repetido",t:{es:"🧾 Movimientos que se repiten",en:"🧾 Repeated transactions",ca:"🧾 Moviments que es repeteixen"},items:{
-       es:["Sincroniza los bancos. Si algún movimiento de Trade Republic pudiera ser el mismo que ya te entró por el móvil, sale apagado y con aviso. Comprueba que NO suma en el total del mes de arriba.","Toca ese movimiento: dentro tienen que salir dos botones, es el mismo y son distintos. Dale a son distintos: la marca desaparece y el importe empieza a contar en el total.","Repite con otro y dale a es el mismo: la fila se va y el bueno, el que tiene nombre de comercio, se queda. Sincroniza otra vez y comprueba que no vuelve a aparecer."],
-       en:["Sincroniza los bancos. Si algún movimiento de Trade Republic pudiera ser el mismo que ya te entró por el móvil, sale apagado y con aviso. Comprueba que NO suma en el total del mes de arriba.","Toca ese movimiento: dentro tienen que salir dos botones, es el mismo y son distintos. Dale a son distintos: la marca desaparece y el importe empieza a contar en el total.","Repite con otro y dale a es el mismo: la fila se va y el bueno, el que tiene nombre de comercio, se queda. Sincroniza otra vez y comprueba que no vuelve a aparecer."],
-       ca:["Sincroniza los bancos. Si algún movimiento de Trade Republic pudiera ser el mismo que ya te entró por el móvil, sale apagado y con aviso. Comprueba que NO suma en el total del mes de arriba.","Toca ese movimiento: dentro tienen que salir dos botones, es el mismo y son distintos. Dale a son distintos: la marca desaparece y el importe empieza a contar en el total.","Repite con otro y dale a es el mismo: la fila se va y el bueno, el que tiene nombre de comercio, se queda. Sincroniza otra vez y comprueba que no vuelve a aparecer."]}},
+
+     
+
+     
      {id:"categoria-ia",t:{es:"🤖 Categoría de inteligencia artificial",en:"🤖 AI category",ca:"🤖 Categoria d'intel·ligència artificial"},items:{
        es:["Apuntar: crea un gasto a mano que se llame ChatGPT. Tiene que caer en Inteligencia artificial, no en Ocio.","Mira tus cargos VIEJOS de ChatGPT o Claude: tienen que seguir donde estaban. Esto solo aplica a lo nuevo, es lo que decidiste."],
        en:["Apuntar: crea un gasto a mano que se llame ChatGPT. Tiene que caer en Inteligencia artificial, no en Ocio.","Mira tus cargos VIEJOS de ChatGPT o Claude: tienen que seguir donde estaban. Esto solo aplica a lo nuevo, es lo que decidiste."],
@@ -14992,107 +15020,6 @@ var RELEASE_NOTES=[
     "💱 Si apuntes una despesa en una altra moneda, ara queda desat el que va costar de veritat (per exemple «1.520,00 ₺») i es veu al detall de la despesa. Abans només es desaven els euros.",
     "🍺 Els llocs que tenen un nom acabat en «bar» ja es desen com a bars i no com a «altres».",
     "🧹 Els noms de comerç que arriben amb caràcters estranys del datàfon es netegen abans de desar-se.",
-   ]}},
-{v:"4.15.0", d:"5 ago 2026",
-   t:{es:"Ambientación, conversor, presupuesto, extracto y filtros de Gastos",
-      en:"Ambience, converter, budget, bank statements and Spending filters",
-      ca:"Ambientació, convertidor, pressupost, extracte i filtres de Despeses"},
-   tandas:[
-     {id:"season-fx-soft", t:"🍂 Ambientación detrás de las cartillas", items:[
-       "Ajustes → Apariencia → Temática → Verano (o Navidad/Halloween…): ves piezas muy suaves cayendo, sin molestar — también quieto en una pestaña.",
-       "Arriba a la derecha hay un destello de luz suave que se QUEDA fijo (no aparece y desaparece al hacer scroll).",
-       "Cambia de pestaña: la lluvia sigue el MISMO camino — no salta atrás ni se reinicia.",
-       "Ajustes → Apariencia → Reducir animaciones: la lluvia y el destello desaparecen.",
-       "Temática → Ninguna: vuelve el look normal, sin piezas.",
-     ]},
-     {id:"fx-converter", t:"🔁 Conversor de monedas", items:[
-       "Ajustes → Dinero → Conversor de monedas: pon un importe, elige moneda de origen y de destino.",
-       "Prueba 150 ₺ → € (o al revés con Intercambiar): el resultado usa el cambio del día.",
-       "Ya NO está la lista fija «1 € → …»; el conversor la sustituye.",
-     ]},
-     {id:"presupuesto-resumen", t:"💶 Presupuesto: misma cifra en todos sitios", items:[
-       "En Resumen, la tarjeta de presupuesto muestra lo mismo que la cabecera de Gastos (sin inversión/traspasos).",
-       "Si tienes dinero reservado a metas, el presupuesto «que queda» ya lo descuenta.",
-       "Los avisos al 50/80/95/100 % usan esa misma cifra (no un total distinto).",
-       "El informe imagen y el reto de «mes bajo presupuesto» también cuadran con Resumen/Gastos.",
-     ]},
-     {id:"otros-bancos-vista", t:"🏦 Extracto de todos los bancos", items:[
-       "Conecta un banco que NO sea el de gasto diario y sincroniza: sus movimientos aparecen en Gastos.",
-       "Esos movimientos llevan la marca «no afecta»: no restan del presupuesto ni del saldo de gasto diario.",
-       "Los bancos marcados como gasto diario (Cartera → rol) SÍ restan, como siempre.",
-       "Ingresos de cualquier banco siguen entrando (para «Mi ciclo»).",
-     ]},
-     {id:"gastos-filtros-ia", t:"🎛️ Filtros y categorías más listos", items:[
-       "En Gastos, toca «Filtros»: sheet con buscador de categorías y bancos (ya no hay dos filas interminables de chips).",
-       "Nuevas categorías: Viajes, Mascotas, Educación, Luz/gas/agua — al apuntar y al filtrar.",
-       "Booking/Vueling → Viajes; Zooplus → Mascotas; Endesa → Energía (ya no caen en «Otros» u Ocio).",
-     ]},
-     {id:"gastos-filtros-ubicacion", t:"🎛️ El botón de Filtros ya no queda suelto", items:[
-       "En Gastos, «Filtros» se ha movido justo al lado del buscador — antes vivía solo, en su propia fila entre el buscador y «Sincronizar».",
-       "Si tienes categorías o bancos seleccionados, siguen viéndose debajo, con «Borrar filtros» a mano.",
-       "El resumen (gastado, presupuesto…) no ha perdido ni un milímetro de sitio.",
-     ]},
-     {id:"fix-novedades-nag", t:"🔔 Novedades ya no insiste sin motivo", items:[
-       "En el canal beta, el popup de ✨ Novedades salía otra vez en CADA compilación nueva (4.15.0.1, .2, .3…) aunque fueran las mismas notas — hoy con 4-5 compilaciones en un día, de ahí «todo el rato me sale para actualizar».",
-       "Ahora se marca como vista por versión base (4.15.0), no por el sello exacto de la compilación: si no hay una versión de verdad nueva, no vuelve a saltar.",
-       "Instala esta compilación y cierra/abre la app un par de veces: Novedades no debería reaparecer sola.",
-     ]},
-     {id:"fix-season-glow", t:"✨ Destello de arriba fijo (y la barra limpia)", items:[
-       "Con temática puesta, el destello suave de ARRIBA A LA DERECHA se queda fijo y se ve también parado, no solo al moverte por la app.",
-       "Al cambiar de pestaña, las piezas que caen siguen su camino: no se reinician ni saltan atrás.",
-       "La barra de abajo ya no enseña la lista a través suyo un momento al cambiar de pestaña (efecto raro de un arreglo anterior).",
-     ]},
-     {id:"fix-season-portal", t:"✨ Destello y barra (arreglo definitivo)", items:[
-       "Con temática activa, baja y sube en Gastos: el destello de arriba a la derecha NO debería aparecer y desaparecer al hacer scroll.",
-       "Desliza de pestaña (Inicio ↔ Gastos ↔ Plan): la barra de abajo no debería dejar ver la lista a través suya ni un segundo.",
-       "Si algo sigue fallando, anótalo en la revisión beta con la versión que ves en Mis bancos.",
-     ]},
-     {id:"fix-season-glow-steady", t:"✨ Destello que no cambia nunca", items:[
-       "Desliza de pestaña despacio (Inicio ↔ Gastos ↔ Plan): NO tiene que aparecer ningún verde claro arriba mientras se mueve. El fondo se queda exactamente igual de principio a fin.",
-       "En ese mismo gesto, el contenido NO puede bajar unos píxeles y volver a subir: los títulos se quedan clavados a la misma altura.",
-       "El destello de arriba a la derecha se queda igual durante todo el gesto — ni se enciende, ni se apaga, ni desaparece.",
-       "Baja y sube dentro de una pestaña: igual, el destello no se mueve ni cambia de fuerza.",
-       "La franja de los iconos de arriba (al lado de la cámara) es del mismo tono que el resto de la app, y no se nota ningún corte entre esa zona y la app.",
-       "Nada cruza por delante de los iconos de arriba: las piezas de la temática caen ya por debajo.",
-       "En modo Verano el destello es ya de día caluroso: cálido y bien visible arriba a la derecha. Las demás temáticas llevan la misma forma más contenida, para decidirlas una a una.",
-       "Scrollea rápido dentro de una lista: el destello no puede dar ni un parpadeo.",
-       "La barra de abajo sigue limpia (sin ver la lista a través).",
-     ]},
-     {id:"fix-season-glow-soft", t:"🌅 Destello suave de fondo", items:[
-       "Ajustes → Apariencia → Temática → Verano: arriba se nota un lavado cálido tipo atardecer (melocotón/ámbar), suave y de fondo — no una raya encima del texto.",
-       "Scrollea Inicio o Gastos: el destello se queda arriba (no desaparece al bajar la lista); el texto pasa por delante, sin taparse.",
-       "Prueba Halloween (ámbar/óxido), Navidad (rojo suave), Invierno (azul plateado) y Pascua (rosa/verde): cada una con su tono, mismo estilo de lavado amplio.",
-       "La franja de los iconos junto a la cámara sigue del mismo tono que la app.",
-       "Desliza entre pestañas y baja/sube en una lista: sin parpadeo del destello; la barra de abajo sin dejar ver la lista.",
-     ]},
-     {id:"fix-season-tabs", t:"🚫 Pestañas sin mezclarse", items:[
-       "Con temática activa, desliza Inicio ↔ Gastos: solo debe verse UNA pantalla a la vez — sin «Hola Juanjo» encima de «Tus gastos» ni cifras superpuestas.",
-       "El lavado cálido de arriba se mantiene; el fondo de cada pestaña sigue siendo opaco.",
-       "Scrollea dentro de Inicio o Gastos: sin parpadeo ni salto de píxeles.",
-       "La barra de abajo sigue limpia al cambiar de pestaña.",
-     ]}
-   ],
-   items:{
-   es:[
-    "🍂 Con una temática de temporada, las piezas caen muy suaves — sin molestar. El destello de arriba a la derecha se queda fijo (también al hacer scroll) y la lluvia no salta al cambiar de pestaña.",
-    "🔁 En Ajustes → Dinero hay un conversor de verdad: eliges importe, moneda de origen y destino.",
-    "💶 El presupuesto del mes es la misma cifra en Resumen, Gastos, avisos e informe: sin mezclar inversiones ni traspasos, y descontando lo reservado a metas.",
-    "🏦 En Gastos ves el extracto de todos tus bancos. Solo el de gasto diario resta del presupuesto; el resto sale marcado como «no afecta».",
-    "🎛️ En Gastos, los filtros van en un sheet con buscador (adiós a la fila interminable de chips). Hay categorías nuevas (viajes, mascotas, educación, luz/gas) y el reconocimiento de comercios acierta más.",
-   ],
-   en:[
-    "🍂 With a seasonal theme on, pieces drift very softly. The soft glow at the top-right stays put (also when you scroll) and the drift doesn't jump when you switch tabs.",
-    "🔁 In Settings → Money there's a real converter: pick an amount, a from-currency and a to-currency.",
-    "💶 The monthly budget is the same figure on Home, Spending, alerts and the share image: investments and transfers stay out, and money reserved for goals is deducted.",
-    "🏦 On Spending you see every linked bank's statement. Only your daily-spending bank hits the budget; the rest is marked «doesn't count».",
-    "🎛️ On Spending, filters live in a searchable sheet (no more endless chip rows). New categories (travel, pets, education, utilities) and smarter merchant detection.",
-   ],
-   ca:[
-    "🍂 Amb una temàtica de temporada, les peces cauen molt suaus. El destell de dalt a la dreta es queda fix (també en fer scroll) i la pluja no salta en canviar de pestanya.",
-    "🔁 A Ajustos → Diners hi ha un convertidor de veritat: tries import, moneda d'origen i de destí.",
-    "💶 El pressupost del mes és la mateixa xifra al Resum, Despeses, avisos i informe: sense barrejar inversions ni traspassos, i descomptant el reservat a metes.",
-    "🏦 A Despeses veus l'extracte de tots els teus bancs. Només el de despesa diària resta del pressupost; la resta surt marcada com a «no afecta».",
-    "🎛️ A Despeses, els filtres van en un full amb cercador (adéu a la fila interminable de xips). Hi ha categories noves (viatges, mascotes, educació, llum/gas) i el reconeixement de comerços encerta més.",
    ]}}
 ];
 /* Cinturón por si alguien sirve el módulo sin pasar por build-app (tests que evalúan fuente).
@@ -17459,6 +17386,14 @@ function App(){
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
       const tableKeys={}; incoming.forEach(function(e){ tableKeys[keyOf(e)]=1; });
       (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOf(e)]) cloud.addExpense(e).catch(function(){}); });
+      // Y los posibles repetidos que ya estaban en la tabla ANTES de que la marca viajara (B09-D):
+      // `addExpense` va con ignoreDuplicates, así que a una fila ya presente no le cambia el
+      // `source` nunca. Sin este repaso, los pendientes de antes del arreglo seguirían contando en
+      // el servidor —justo el descuadre del widget— hasta que él los resolviera a mano.
+      const dupEnLaNube={}; incoming.forEach(function(e){ dupEnLaNube[keyOf(e)]=!!e.possibleDup; });
+      (stateRef.current.expenses||[]).forEach(function(e){
+        if(e && e.possibleDup && tableKeys[keyOf(e)] && !dupEnLaNube[keyOf(e)]) cloud.setExpenseDup(e, true).catch(function(){});
+      });
       // "nuevo" = no lo teníamos en NINGÚN origen local (así, ya sincronizado → 0 → "Ya estás al día")
       const prevKeys={}; (stateRef.current.expenses||[]).forEach(function(e){ prevKeys[keyOf(e)]=1; });
       let count=0; const seenC={};

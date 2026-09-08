@@ -1478,18 +1478,43 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+  {v:"4.19.6", d:"8 sep 2026",
+   t:{es:"Un movimiento marcado como posible repetido tampoco suma en el widget",
+      en:"A transaction flagged as a possible repeat no longer counts on the widget either",
+      ca:"Un moviment marcat com a possible repetit tampoc no suma al giny"},
+   tandas:[
+     {id:"repetido-widget", t:{es:"📊 El posible repetido no suma en ningún sitio", en:"📊 The possible repeat counts nowhere", ca:"📊 El possible repetit no suma enlloc"},
+      items:{
+        es:[
+          "Sincroniza los bancos hasta que salga un movimiento apagado, de los que avisan de posible repetido. Mira el total del mes arriba en Gastos y apúntalo.",
+          "Cierra la app y mira el widget: tiene que decir esa MISMA cifra, sin sumar el movimiento apagado.",
+          "Entra en ese movimiento y dale a «son distintos». Vuelve a Gastos: ahora sí suma. Cierra la app y mira el widget otra vez: tiene que haber subido lo mismo.",
+          "Cierra la app del todo, ábrela y sincroniza: el que dejaste apagado tiene que seguir apagado, no encenderse solo."
+        ],
+        en:[
+          "Sincroniza los bancos hasta que salga un movimiento apagado, de los que avisan de posible repetido. Mira el total del mes arriba en Gastos y apúntalo.",
+          "Cierra la app y mira el widget: tiene que decir esa MISMA cifra, sin sumar el movimiento apagado.",
+          "Entra en ese movimiento y dale a «son distintos». Vuelve a Gastos: ahora sí suma. Cierra la app y mira el widget otra vez: tiene que haber subido lo mismo.",
+          "Cierra la app del todo, ábrela y sincroniza: el que dejaste apagado tiene que seguir apagado, no encenderse solo."
+        ],
+        ca:[
+          "Sincroniza los bancos hasta que salga un movimiento apagado, de los que avisan de posible repetido. Mira el total del mes arriba en Gastos y apúntalo.",
+          "Cierra la app y mira el widget: tiene que decir esa MISMA cifra, sin sumar el movimiento apagado.",
+          "Entra en ese movimiento y dale a «son distintos». Vuelve a Gastos: ahora sí suma. Cierra la app y mira el widget otra vez: tiene que haber subido lo mismo.",
+          "Cierra la app del todo, ábrela y sincroniza: el que dejaste apagado tiene que seguir apagado, no encenderse solo."
+        ]}}
+   ],
+   items:{
+     es:["Si un movimiento sale marcado como posible repetido, deja de contar también en el widget y en los avisos, no solo dentro de la app.","Esa marca ya no se pierde al cerrar la app ni al cambiar de móvil."],
+     en:["If a transaction is flagged as a possible repeat, it now stops counting on the widget and in alerts too, not just inside the app.","That flag no longer gets lost when you close the app or switch phones."],
+     ca:["Si un moviment surt marcat com a possible repetit, deixa de comptar també al giny i als avisos, no només dins de l'app.","Aquesta marca ja no es perd en tancar l'app ni en canviar de mòbil."]
+   }},
   {v:"4.19.5", d:"7 sep 2026",
    t:{es:"El historial de novedades guarda las últimas 20 versiones",
       en:"What's new keeps the last 20 versions",
       ca:"L'historial de novetats guarda les darreres 20 versions"},
-   tandas:[
-     {id:"notas-20", t:{es:"📜 Historial reciente", en:"📜 Recent history", ca:"📜 Historial recent"},
-      items:{
-        es:["Ajustes → Novedades: salen las últimas 20 versiones. Las más antiguas siguen en el registro técnico del proyecto, no en la app."],
-        en:["Settings → What's new: you see the last 20 versions. Older ones stay in the project's technical log, not in the app."],
-        ca:["Ajustaments → Novetats: surten les darreres 20 versions. Les mes antigues queden al registre tecnic del projecte, no a l'app."]
-      }}
-   ],
+
+   
    items:{
      es:["El historial de novedades guarda las últimas 20 versiones."],
      en:["What's new keeps the last 20 versions."],
@@ -1499,22 +1524,8 @@ var RELEASE_NOTES=[
    t:{es:"La app arranca más suelta si tienes muchos movimientos",
       en:"The app starts more smoothly when you have lots of transactions",
       ca:"L'app arrenca més fluida si tens molts moviments"},
-   tandas:[
-     {id:"arranque-suelto", t:{es:"⚡ Arranque con histórico grande", en:"⚡ Start with a large history", ca:"⚡ Arrencada amb historic gran"},
-      items:{
-        es:[
-          "Con la app recién abierta, espera unos segundos en Inicio y cambia a Gastos, Plan y Cartera: las cuatro tienen que responder sin quedarse colgadas.",
-          "Si tienes muchos movimientos, el primer cambio de pestaña no tiene que notarse más lento que el resto.",
-        ],
-        en:[
-          "With the app freshly opened, wait a few seconds on Home and switch to Expenses, Plan and Portfolio: all four should respond without hanging.",
-          "If you have lots of transactions, the first tab switch should not feel slower than the others.",
-        ],
-        ca:[
-          "Amb l'app acabada d'obrir, espera uns segons a Inici i canvia a Despeses, Pla i Cartera: les quatre han de respondre sense quedar-se penjades.",
-          "Si tens molts moviments, el primer canvi de pestanya no ha de notar-se mes lent que la resta.",
-        ]}}
-   ],
+
+   
    items:{
      es:["Con muchos movimientos, cambiar de pestaña al arrancar vuelve a ir fluido."],
      en:["With lots of transactions, switching tabs right after launch feels smooth again."],
@@ -1524,22 +1535,8 @@ var RELEASE_NOTES=[
    t:{es:"Revisar la beta enseña toda la ronda, con pasos claros",
       en:"Beta review shows the whole round, with clear steps",
       ca:"Revisar la beta ensenya tota la ronda, amb passos clars"},
-   tandas:[
-     {id:"panel-ronda", t:{es:"🧪 Toda la ronda a la vista", en:"🧪 Whole round in view", ca:"🧪 Tota la ronda a la vista"},
-      items:{
-        es:[
-          "Ajustes → Revisar esta beta: tienen que salir las tandas de TODAS las versiones de esta ronda (no solo la última), cada una con su número de versión en el título.",
-          "Cada punto tiene que decir dónde ir, qué tocar y qué tiene que pasar. Si alguno habla en abstracto sin decir dónde, está mal.",
-        ],
-        en:[
-          "Ajustes → Revisar esta beta: tienen que salir las tandas de TODAS las versiones de esta ronda (no solo la última), cada una con su número de versión en el título.",
-          "Cada punto tiene que decir dónde ir, qué tocar y qué tiene que pasar. Si alguno habla en abstracto sin decir dónde, está mal.",
-        ],
-        ca:[
-          "Ajustes → Revisar esta beta: tienen que salir las tandas de TODAS las versiones de esta ronda (no solo la última), cada una con su número de versión en el título.",
-          "Cada punto tiene que decir dónde ir, qué tocar y qué tiene que pasar. Si alguno habla en abstracto sin decir dónde, está mal.",
-        ]}}
-   ],
+
+   
    items:{
      es:["En Revisar la beta salen todas las tandas de la ronda, con pasos concretos para probar cada una."],
      en:["Beta review lists every tanda in the round, with concrete steps to try each one."],
@@ -1616,14 +1613,10 @@ var RELEASE_NOTES=[
        es:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."],
        en:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."],
        ca:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."]}},
-     {id:"multicuenta",t:{es:"🧾 Todas las cuentas del banco",en:"🧾 Every bank account",ca:"🧾 Tots els comptes del banc"},items:{
-       es:["Sincroniza los bancos y mira Gastos: si tienes más de una cuenta en el mismo banco, tienen que aparecer también los movimientos de la segunda, no solo los de la primera."],
-       en:["Sincroniza los bancos y mira Gastos: si tienes más de una cuenta en el mismo banco, tienen que aparecer también los movimientos de la segunda, no solo los de la primera."],
-       ca:["Sincroniza los bancos y mira Gastos: si tienes más de una cuenta en el mismo banco, tienen que aparecer también los movimientos de la segunda, no solo los de la primera."]}},
-     {id:"posible-repetido",t:{es:"🧾 Movimientos que se repiten",en:"🧾 Repeated transactions",ca:"🧾 Moviments que es repeteixen"},items:{
-       es:["Sincroniza los bancos. Si algún movimiento de Trade Republic pudiera ser el mismo que ya te entró por el móvil, sale apagado y con aviso. Comprueba que NO suma en el total del mes de arriba.","Toca ese movimiento: dentro tienen que salir dos botones, es el mismo y son distintos. Dale a son distintos: la marca desaparece y el importe empieza a contar en el total.","Repite con otro y dale a es el mismo: la fila se va y el bueno, el que tiene nombre de comercio, se queda. Sincroniza otra vez y comprueba que no vuelve a aparecer."],
-       en:["Sincroniza los bancos. Si algún movimiento de Trade Republic pudiera ser el mismo que ya te entró por el móvil, sale apagado y con aviso. Comprueba que NO suma en el total del mes de arriba.","Toca ese movimiento: dentro tienen que salir dos botones, es el mismo y son distintos. Dale a son distintos: la marca desaparece y el importe empieza a contar en el total.","Repite con otro y dale a es el mismo: la fila se va y el bueno, el que tiene nombre de comercio, se queda. Sincroniza otra vez y comprueba que no vuelve a aparecer."],
-       ca:["Sincroniza los bancos. Si algún movimiento de Trade Republic pudiera ser el mismo que ya te entró por el móvil, sale apagado y con aviso. Comprueba que NO suma en el total del mes de arriba.","Toca ese movimiento: dentro tienen que salir dos botones, es el mismo y son distintos. Dale a son distintos: la marca desaparece y el importe empieza a contar en el total.","Repite con otro y dale a es el mismo: la fila se va y el bueno, el que tiene nombre de comercio, se queda. Sincroniza otra vez y comprueba que no vuelve a aparecer."]}},
+
+     
+
+     
      {id:"categoria-ia",t:{es:"🤖 Categoría de inteligencia artificial",en:"🤖 AI category",ca:"🤖 Categoria d'intel·ligència artificial"},items:{
        es:["Apuntar: crea un gasto a mano que se llame ChatGPT. Tiene que caer en Inteligencia artificial, no en Ocio.","Mira tus cargos VIEJOS de ChatGPT o Claude: tienen que seguir donde estaban. Esto solo aplica a lo nuevo, es lo que decidiste."],
        en:["Apuntar: crea un gasto a mano que se llame ChatGPT. Tiene que caer en Inteligencia artificial, no en Ocio.","Mira tus cargos VIEJOS de ChatGPT o Claude: tienen que seguir donde estaban. Esto solo aplica a lo nuevo, es lo que decidiste."],

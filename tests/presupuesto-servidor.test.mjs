@@ -23,7 +23,7 @@ import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const src = fs.readFileSync(path.join(root, "supabase/functions/_shared/presupuesto.ts"), "utf8");
 const js = transformSync(src, { loader: "ts", format: "esm" }).code;
-const { statsDelMes, bancosDeGastoDiario, cuentaParaPresupuesto, bancoDeSource,
+const { statsDelMes, bancosDeGastoDiario, cuentaParaPresupuesto, bancoDeSource, esPosibleRepetido,
   claveComoLaApp, filasComoLaApp, inicioDeMesMs } =
   await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
 
@@ -223,9 +223,107 @@ t("el banco sale del source igual que en el cliente", () => {
 
 /** El mapeo source→banco existe dos veces; que no se separen. */
 function movsIgualQueElCliente() {
-  ["macrodroid", "tr", "ob:caixabank", "ob-hist:sabadell", "manual:revolut", "manual", ""].forEach((s) => {
+  ["macrodroid", "tr", "ob:caixabank", "ob:caixabank#dup", "ob-hist:sabadell", "manual:revolut", "manual", ""].forEach((s) => {
     assert.equal(bancoDeSource(s), cli.expenseBankOf({ source: s }), "source: " + s);
   });
 }
+
+/* ---------------------------------------------------------------------------
+   B09-D (2026-09-08): EL POSIBLE REPETIDO TAMBIÉN TIENE QUE RESTAR EN EL SERVIDOR.
+
+   Su queja, con capturas: el widget decía más gasto del mes que Inicio. Causa: `possibleDup`
+   solo existía en el móvil. La app lo dejaba fuera del total y el servidor —que solo lee
+   fecha/importe/comercio/cat/source— lo sumaba. Con una compra de 30, otra de 10 y un posible
+   repetido de 30: la app decía 40 y el ingest 70.
+
+   Estos tests NO comprueban una constante: hacen el viaje entero (app → fila de la nube →
+   vuelta) y exigen que las dos implementaciones den el mismo número. Una marca que se escribe
+   pero no se lee no arregla nada.
+   --------------------------------------------------------------------------- */
+console.log("presupuesto-servidor · posible repetido (B09-D)");
+
+/** Los tres movimientos del caso, tal y como los tiene la app. */
+const b09d = () => ({
+  data: {
+    budget: 1000,
+    accounts: [{ ent: "trade_republic", role: "diario" }],
+    settings: { expenseBanks: ["trade_republic"], gTotalMode: "split" },
+    reservaLog: [],
+  },
+  gastos: [
+    { date: d(3), amount: 30, category: "super", source: "ob", ent: "trade_republic", merchant: "Mercadona" },
+    { date: d(4), amount: 10, category: "cine", source: "ob", ent: "trade_republic", merchant: "Filmin" },
+    // el sospechoso: mismo importe que el primero, comercio distinto para que el dedup por
+    // atributos no lo esconda y el defecto se vea de verdad
+    { date: d(5), amount: 30, category: "super", source: "ob", ent: "trade_republic", merchant: "Movimiento",
+      possibleDup: true, possibleDupOf: "x1" },
+  ],
+});
+
+t("app y servidor dicen 40, no 40 y 70", () => {
+  const { data, gastos } = b09d();
+  // el viaje real: lo que la app sube → lo que la tabla guarda → lo que el servidor lee
+  const filas = gastos.map((e) => ({
+    fecha: e.date, importe: e.amount, cat: e.category, comercio: e.merchant,
+    source: cli.expenseSourceForCloud(e),
+  }));
+  const app = cli.monthBudgetStats(Object.assign({}, data, { expenses: gastos }), nowMs);
+  const srv = statsDelMes(filas, data, desdeMs);
+  assert.equal(c(app.spent), 40, "la app ya lo excluía");
+  assert.equal(srv.spent, 40, "el servidor tiene que excluirlo igual (antes: 70)");
+  assert.equal(srv.spent, c(app.spent));
+});
+
+t("la marca sobrevive al viaje por la nube (subir y volver a bajar)", () => {
+  const { data, gastos } = b09d();
+  const vueltos = gastos.map((e) => cli.expenseFromRow({
+    id: "row-" + e.merchant, fecha: e.date, importe: e.amount, cat: e.category,
+    comercio: e.merchant, source: cli.expenseSourceForCloud(e),
+  }));
+  assert.equal(vueltos[2].possibleDup, true, "vuelve marcado tras un pull o una reinstalación");
+  assert.equal(vueltos[0].possibleDup, undefined);
+  assert.equal(vueltos[2].ent, "trade_republic", "y sin perder el banco: el filtro sigue funcionando");
+  assert.equal(vueltos[2].source, "ob");
+  // y con lo que vuelve de la nube la app sigue diciendo 40
+  const app = cli.monthBudgetStats(Object.assign({}, data, { expenses: vueltos }), nowMs);
+  assert.equal(c(app.spent), 40);
+});
+
+t("«son distintos» quita la marca en los dos lados", () => {
+  const { data, gastos } = b09d();
+  const resuelto = Object.assign({}, gastos[2]); delete resuelto.possibleDup; delete resuelto.possibleDupOf;
+  const src = cli.expenseSourceForCloud(resuelto);
+  assert.equal(src, "ob:trade_republic", "la fila de la nube vuelve a ser normal");
+  assert.equal(esPosibleRepetido(src), false);
+  const filas = [gastos[0], gastos[1], resuelto].map((e) => ({
+    fecha: e.date, importe: e.amount, cat: e.category, comercio: e.merchant,
+    source: cli.expenseSourceForCloud(e),
+  }));
+  const app = cli.monthBudgetStats(Object.assign({}, data, { expenses: [gastos[0], gastos[1], resuelto] }), nowMs);
+  assert.equal(statsDelMes(filas, data, desdeMs).spent, 70, "ya cuenta: son dos cargos de verdad");
+  assert.equal(statsDelMes(filas, data, desdeMs).spent, c(app.spent));
+});
+
+t("un servidor SIN desplegar tampoco lo suma (por eso es sufijo y no prefijo)", () => {
+  // El `bancoDeSource` que hay hoy en el Supabase compartido, copiado tal cual: no conoce la marca.
+  const viejo = (s) => {
+    s = String(s || "");
+    if (s === "macrodroid" || s === "tr") return "trade_republic";
+    if (s.indexOf("ob:") === 0) return s.slice(3) || null;
+    if (s.indexOf("ob-hist:") === 0) return s.slice(8) || null;
+    if (s.indexOf("manual:") === 0) return s.slice(7) || null;
+    return null;
+  };
+  const marcado = "ob:trade_republic#dup";
+  assert.equal(viejo(marcado), "trade_republic#dup", "lee un banco raro, NO null");
+  // y un banco que no está en su lista se queda fuera del presupuesto: el lado seguro
+  assert.equal(["trade_republic"].indexOf(viejo(marcado)) >= 0, false);
+  // con un prefijo nuevo («ob-dup:…») habría leído null → «a mano» → lo habría SUMADO
+  assert.equal(viejo("ob-dup:trade_republic"), null);
+  // el servidor nuevo sí lo entiende del todo
+  assert.equal(bancoDeSource(marcado), "trade_republic");
+  assert.equal(esPosibleRepetido(marcado), true);
+  assert.equal(cuentaParaPresupuesto({ importe: 30, cat: "super", source: marcado }, ["trade_republic"]), false);
+});
 
 console.log("  ok");

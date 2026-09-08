@@ -594,6 +594,18 @@ const cloud = (function(){
       const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
       if(error) throw error;
     },
+    // Persiste la DECISIÓN sobre un posible repetido (B09-D, 2026-09-08). Sin esto, «son
+    // distintos» solo quitaba la marca en el móvil: la fila seguía siendo `ob:ent#dup` en la nube,
+    // el servidor la seguía descontando del presupuesto y el siguiente pull volvía a apagarla.
+    // Tocar solo el estado local no arregla nada; la fila vuelve de la nube.
+    async setExpenseDup(e, isDup){
+      if(!sb) return;
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) return;
+      const src=expenseSourceForCloud(Object.assign({},e,{possibleDup:!!isDup}));
+      const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
+      if(error) throw error;
+    },
     // Persiste el flag 💳/🔄 en la tabla (si no, el siguiente pull lo pisaría en gastos de la nube).
     async setExpenseNoCard(e, noCard){
       if(!sb) return;
@@ -972,7 +984,7 @@ const cloud = (function(){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","setExpenseBank","setExpenseNoCard","setExpenseNote","setExpenseCat","deleteExpense",
+  "pushState","addExpense","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","deleteExpense",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -992,7 +1004,23 @@ const CLOUD_WRITES=[
    macrodroid (= Trade Republic). Así el filtro por banco sobrevive a reinstalaciones. */
 function expenseSourceForCloud(e){
   const ent=e&&e.ent; const s=(e&&e.source)||"manual";
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent;
+  // POSIBLE REPETIDO PENDIENTE (B09-D, 2026-09-08): la decisión tiene que VIAJAR. Hasta hoy
+  // `possibleDup` solo existía en el móvil: la app lo excluía del total del mes y el servidor
+  // —que solo lee fecha/importe/comercio/cat/source— lo sumaba. De ahí que el widget dijera más
+  // que Inicio. Se codifica dentro de `source`, igual que el banco: cero migración en el
+  // Supabase compartido y viaja por OTA.
+  //
+  // POR QUÉ SUFIJO `#dup` Y NO UN PREFIJO `ob-dup:` (voto de Codex, y tiene razón): un prefijo
+  // nuevo es una cara desconocida para el servidor VIEJO, que lo leería como «sin banco» → «a
+  // mano» → CUENTA. Un gasto de un banco que hoy queda fuera del presupuesto empezaría a sumar
+  // en cuanto saliera el OTA, aunque el ingest no se hubiera desplegado. Con el sufijo, el
+  // servidor viejo ve el banco "trade_republic#dup", no lo encuentra en la lista de bancos de
+  // gasto diario y lo EXCLUYE: exactamente lo que queremos. El fallo degrada al lado seguro y
+  // el arreglo no depende de desplegar el Supabase compartido.
+  //
+  // Lo que NO viaja es `possibleDupOf` (el gemelo): tras reinstalar, «es el mismo» sigue
+  // borrando la fila OB pero ya no puede traspasarle el extId al gemelo.
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+((e&&e.possibleDup)?"#dup":"");
   if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent;
   if(s==="macrodroid"||s==="tr") return "macrodroid";
   if(s==="supabase") return "manual";
@@ -1113,7 +1141,7 @@ function expenseBankOf(e){
   if(e.ent) return e.ent;
   const s=String(e.source||"");
   if(s==="macrodroid"||s==="tr") return "trade_republic";
-  if(s.indexOf("ob:")===0) return s.slice(3)||null;
+  if(s.indexOf("ob:")===0) return s.slice(3).split("#")[0]||null;   // «#dup» = posible repetido (B09-D)
   if(s.indexOf("ob-hist:")===0) return s.slice(8)||null;
   if(s.indexOf("manual:")===0) return s.slice(7)||null;
   return null;
@@ -1227,9 +1255,11 @@ function resolvePossibleDup(state, expenseId, same){
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){
   const raw=String(r.source||"manual");
-  let ent=null, source=raw;
+  let ent=null, source=raw, dup=false;
   if(raw==="macrodroid"||raw==="tr"){ ent="trade_republic"; source="macrodroid"; }
-  else if(raw.indexOf("ob:")===0){ ent=raw.slice(3)||null; source="ob"; }
+  // «ob:ent#dup» = posible repetido que sigue pendiente de su decisión (B09-D): vuelve marcado,
+  // así que la app lo sigue dejando fuera del total tras un pull, un reinicio o un segundo móvil.
+  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); ent=p[0]||null; source="ob"; dup=p[1]==="dup"; }
   else if(raw.indexOf("ob-hist:")===0){ ent=raw.slice(8)||null; source="ob-hist"; }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
@@ -1253,6 +1283,7 @@ function expenseFromRow(r){
     // propósito: es EXACTAMENTE lo que le pasó a la divisa —se escribía al subir y nadie lo
     // bajaba—, y aquí perderlo significa que el siguiente sync duplica el gasto renombrado.
     obName: r.ob_name!=null ? String(r.ob_name) : undefined,
+    possibleDup: dup ? true : undefined,
   };
 }
 

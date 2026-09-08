@@ -158,6 +158,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         next=Object.assign({},next,{deleted:pushDeleted(next.deleted, keyOfE(e))});
         if(cloud.enabled()) cloud.deleteExpense(e).catch(function(){});
       }
+      // «Son distintos»: hay que QUITAR la marca también en la nube (B09-D). Si no, la fila sigue
+      // siendo `ob-dup:` allí, el servidor la deja fuera del presupuesto y el siguiente pull la
+      // vuelve a apagar en el móvil.
+      else if(cloud.enabled()) cloud.setExpenseDup(e, false).catch(function(){});
       return next;
     });
     if(same) showToast(t("g_dup_same"));

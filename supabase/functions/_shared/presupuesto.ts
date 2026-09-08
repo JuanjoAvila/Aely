@@ -123,7 +123,7 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
 export function bancoDeSource(source?: string | null): string | null {
   const s = String(source || "");
   if (s === "macrodroid" || s === "tr") return "trade_republic";
-  if (s.indexOf("ob:") === 0) return s.slice(3) || null;
+  if (s.indexOf("ob:") === 0) return s.slice(3).split("#")[0] || null;   // «#dup» → B09-D
   if (s.indexOf("ob-hist:") === 0) return s.slice(8) || null;
   if (s.indexOf("manual:") === 0) return s.slice(7) || null;
   return null;
@@ -154,9 +154,27 @@ export function bancosDeGastoDiario(data: any): string[] {
   return out;
 }
 
+/**
+ * ¿Es un Open Banking marcado como POSIBLE REPETIDO y todavía sin decidir? (B09-D, 2026-09-08).
+ * La marca viaja DENTRO de `source` («ob:trade_republic#dup») porque no hay columna propia —
+ * mismo truco que el banco. Espejo de `e.possibleDup` en el cliente.
+ *
+ * El sufijo, y no un prefijo nuevo, para que un servidor SIN esta línea siga leyendo un banco
+ * («trade_republic#dup») que no está en su lista y lo excluya, en vez de leer «sin banco» y
+ * sumarlo. Así el arreglo no depende de que este Supabase compartido se despliegue.
+ */
+export function esPosibleRepetido(source?: string | null): boolean {
+  const s = String(source || "");
+  return s.indexOf("ob:") === 0 && s.slice(3).split("#")[1] === "dup";
+}
+
 /** ¿Este movimiento mueve la cifra del presupuesto? Espejo de `expenseCountsBudget()`. */
 export function cuentaParaPresupuesto(fila: FilaGasto, ents: string[]): boolean {
   if (!fila) return false;
+  // Pendiente de que él diga «es el mismo» o «son distintos»: no mueve saldo ni presupuesto,
+  // igual que en `expenseCountsCash()`. Sin esta línea el servidor sumaba lo que la app restaba
+  // y el widget decía más que Inicio.
+  if (esPosibleRepetido(fila.source)) return false;
   if (CAT_NEUTRAS[String(fila.cat || "")]) return false;
   const ent = bancoDeSource(fila.source);
   if (!ent) return true;                                   // a mano, sin banco → cuenta

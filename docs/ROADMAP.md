@@ -1,7 +1,8 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-07 · **v4.19.5** — Novedades guarda 20 versiones (bundle más ligero).
-> Anterior: **4.19.4** (arranque suelto). **4.19.3** (panel beta). **4.19.2** (ventana mes). **4.19.1**.
+> Estado a 2026-09-08 · **v4.19.6** — el posible repetido tampoco cuenta en el servidor (B09-D).
+> Anterior: **4.19.5** (Novedades guarda 20 versiones). **4.19.4** (arranque suelto). **4.19.3**
+> (panel beta). **4.19.2** (ventana mes). **4.19.1**.
 > Canal vivo: `npm run salud` (no afirmar beta/prod solo por el working tree). OTA, sin APK.
 > Anterior: **4.18.7** (cabecera de Gastos al cambiar bancos de gasto diario).
 > Producción: **4.18.7**, promocionada el 2026-09-07 (antes llevaba desde el 18/8 en 4.18.3).
@@ -103,7 +104,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.19.5** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.6** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |
