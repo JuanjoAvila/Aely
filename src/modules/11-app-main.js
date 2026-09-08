@@ -1786,20 +1786,6 @@ function App(){
       setWhatsNew(true);
     },420);
   },[state.onboarded,locked,showAuth,tourOpen]);
-  // Informe mensual automático el día 1 (prioridad pareja 2026-07-15).
-  const [monthReportOpen,setMonthReportOpen]=useState(false);
-  useEffect(function(){
-    if(state.onboarded===false||locked||showAuth||tourOpen||whatsNew) return;
-    const d=new Date();
-    if(d.getDate()!==1) return;
-    const key="_mr"+d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
-    try{ if(localStorage.getItem(key)==="1") return; }catch(e){}
-    const tmr=setTimeout(function(){
-      try{ localStorage.setItem(key,"1"); }catch(e){}
-      setMonthReportOpen(true);
-    },3000);
-    return function(){ clearTimeout(tmr); };
-  },[state.onboarded,locked,showAuth,tourOpen,whatsNew]);
   // Calendario de cargos del mes (fijos + cuotas) para el intercambio con el nativo: lo usan
   // el efecto de avisos de la víspera Y el push al AlertCheckWorker — misma lista en ambos.
   const alertCalendarOf=function(){
@@ -2832,7 +2818,7 @@ function App(){
   const hiddenTabIds = TABS.map(function(tt){return tt.id;}).filter(function(id){ return tabIds.indexOf(id)<0; });
   const pageFor=function(id){
     const simple=!!(state.settings&&state.settings.simpleMode);
-    if(id==="dash") return React.createElement(Dashboard,{state:state,totals:totals,set:set,
+    if(id==="dash") return React.createElement(Dashboard,{state:state,totals:totals,set:set,showToast:showToast,
       onOpenSettings:function(){ setDrawerOpen(true); },
       onOpenProfile:function(){
         // Montar cerrado un frame y luego abrir: si montas ya con .open no hay animación de entrada.
@@ -3001,7 +2987,6 @@ function App(){
       goGastos:function(){ const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i); }}),
     tourOpen && React.createElement(Tour,{onDone:endTour, goTab:goTab, tabIds:tabIds}),
     whatsNew && React.createElement(WhatsNew,{onClose:function(){ setWhatsNew(false); },showToast:showToast,set:set,state:state}),
-    monthReportOpen && React.createElement(MonthReportPrompt,{state:state,totals:totals,showToast:showToast,onClose:function(){ setMonthReportOpen(false); }}),
     (upd.updateReady||upd.otaReady) && React.createElement("button",{className:"update-pill",onClick:function(){ upd.applyUpdate(showToast); }},
       (upd.otaReady&&!upd.otaDownloaded)?t("upd_downloading"):t("upd_ready")),
     upd.apkUpd && React.createElement("button",{className:"update-pill",onClick:function(){ upd.installApk(showToast); }}, tf("apk_ready",{v:upd.apkUpd.versionName})),

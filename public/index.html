@@ -3998,8 +3998,9 @@ Object.assign(LANG.es,{
   ob_imported:"🏦 {n} compras con tarjeta añadidas a Gastos",
   rp_btn:"📸 Informe del mes (imagen)", rp_spent:"Gastado este mes", rp_of_budget:"de {b} de presupuesto ({p}%)",
   rp_top:"Top categorías", rp_networth:"Patrimonio", rp_delta:"{x} este mes", rp_footer:"hecho con Mi Cartera",
-  mr_title:"¡Nuevo mes!", mr_sub:"Tu resumen del mes que acaba de empezar. Compártelo con quien quieras o guárdalo.",
-  mr_share:"📸 Crear imagen del informe", mr_later:"Ahora no", mr_shared:"✓ Informe listo para compartir",
+  mr_title:"Así acabó {mes}", mr_sub:"Resumen del mes que acaba de cerrar. Compártelo o descártalo como imagen.",
+  mr_share:"📸 Crear imagen del informe", mr_later:"Descartar", mr_shared:"✓ Informe listo para compartir",
+  mr_top:"Más gasto: {cat} ({x})", mr_saved:"Ahorraste {x}", mr_over:"Gastaste {x} más de lo que entró",
   hh_title:"Hogar compartido", hh_intro:"Como la cuenta conjunta del banco: cada uno ve el patrimonio fusionado, sin mezclar datos privados.",
   hh_need_cloud:"Inicia sesión para crear o unirte a un hogar.", hh_need_login:"Inicia sesión para usar el hogar compartido.",
   hh_create:"Crear hogar", hh_join:"Unirme con código", hh_name_ph:"Nombre (ej. Casa Avila)", hh_code_ph:"Código de 6 letras",
@@ -4037,8 +4038,9 @@ Object.assign(LANG.en,{
   ob_imported:"🏦 {n} card purchases added to Spending",
   rp_btn:"📸 Month report (image)", rp_spent:"Spent this month", rp_of_budget:"of {b} budget ({p}%)",
   rp_top:"Top categories", rp_networth:"Net worth", rp_delta:"{x} this month", rp_footer:"made with Mi Cartera",
-  mr_title:"New month!", mr_sub:"Your summary for the month that just started. Share it or save it.",
-  mr_share:"📸 Create report image", mr_later:"Not now", mr_shared:"✓ Report ready to share",
+  mr_title:"How {mes} ended", mr_sub:"Summary of the month that just closed. Share it or save it as an image.",
+  mr_share:"📸 Create report image", mr_later:"Dismiss", mr_shared:"✓ Report ready to share",
+  mr_top:"Top spend: {cat} ({x})", mr_saved:"You saved {x}", mr_over:"You spent {x} more than came in",
   hh_title:"Shared household", hh_intro:"Like a joint bank view: each person publishes their snapshot; nothing crosses into the other's data.",
   hh_need_cloud:"Sign in to create or join a household.", hh_need_login:"Sign in to use shared household.",
   hh_create:"Create household", hh_join:"Join with code", hh_name_ph:"Name (e.g. Home)", hh_code_ph:"6-letter code",
@@ -4076,8 +4078,9 @@ Object.assign(LANG.ca,{
   ob_imported:"🏦 {n} compres amb targeta afegides a Despeses",
   rp_btn:"📸 Informe del mes (imatge)", rp_spent:"Gastat aquest mes", rp_of_budget:"de {b} de pressupost ({p}%)",
   rp_top:"Top categories", rp_networth:"Patrimoni", rp_delta:"{x} aquest mes", rp_footer:"fet amb Mi Cartera",
-  mr_title:"Nou mes!", mr_sub:"El resum del mes que acaba de començar. Comparteix-lo o guarda'l.",
-  mr_share:"📸 Crear imatge de l'informe", mr_later:"Ara no", mr_shared:"✓ Informe llest per compartir",
+  mr_title:"Així va acabar {mes}", mr_sub:"Resum del mes que acaba de tancar. Comparteix-lo o desa'l com a imatge.",
+  mr_share:"📸 Crear imatge de l'informe", mr_later:"Descartar", mr_shared:"✓ Informe llest per compartir",
+  mr_top:"Més despesa: {cat} ({x})", mr_saved:"Has estalviat {x}", mr_over:"Has gastat {x} més del que va entrar",
   hh_title:"Llar compartida", hh_intro:"Com el compte conjunt del banc: cadascú publica la seva instantània sense barrejar dades privades.",
   hh_need_cloud:"Inicia sessió per crear o unir-te a una llar.", hh_need_login:"Inicia sessió per usar la llar compartida.",
   hh_create:"Crear llar", hh_join:"Unir-me amb codi", hh_name_ph:"Nom (ex. Casa)", hh_code_ph:"Codi de 6 lletres",
@@ -6444,8 +6447,9 @@ function HelpTip({text}){
    INFORME DEL MES — imagen 1080×1350 (para compartir por WhatsApp/IG) con los
    colores del tema activo. Todo en el dispositivo (canvas → share/descarga).
    ============================================================ */
-function shareMonthReport(state, tt, showToast){
+function shareMonthReport(state, tt, showToast, opt){
   try{
+    opt=opt||{};
     // Paleta FIJA por tema (mismos hex que el CSS). No se lee getComputedStyle: en algunos
     // móviles el "modo oscuro automático" del navegador reescribe/oscurece las variables CSS
     // y el informe salía con textos negros ilegibles. Así los colores son deterministas.
@@ -6465,30 +6469,41 @@ function shareMonthReport(state, tt, showToast){
     const grad=g.createLinearGradient(0,0,0,H*0.5); grad.addColorStop(0,"rgba(95,208,138,.14)"); grad.addColorStop(1,"rgba(0,0,0,0)");
     g.fillStyle=grad; g.fillRect(0,0,W,H*0.5);
     g.textBaseline="top";
-    const mes=monthLong(new Date().getMonth())+" "+new Date().getFullYear();
+    // Mes del informe: opt (mes cerrado) o el mes en curso. Nombre de fichero igual.
+    const winStart=opt.startMs!=null?opt.startMs:inicioDeMesMs(opt.nowMs!=null?opt.nowMs:Date.now());
+    const winEnd=opt.endMs!=null?opt.endMs:null;
+    const labelParts=typeof madridYmdParts==="function"?madridYmdParts(winStart+5*864e5):null;
+    const mesRaw=opt.ym
+      ? (monthLong((labelParts?labelParts.m:1)-1)+" "+(labelParts?labelParts.y:""))
+      : (monthLong(new Date().getMonth())+" "+new Date().getFullYear());
+    const mes=String(mesRaw).replace(/\s+$/,"");
+    const ymFile=opt.ym||(labelParts&&labelParts.ym)||new Date().toISOString().slice(0,7);
     g.fillStyle=mint;  g.font="800 44px Manrope, sans-serif"; g.fillText("💼 Mi Cartera", 72, 70);
     g.fillStyle=muted; g.font="600 34px Manrope, sans-serif"; g.fillText(mes.charAt(0).toUpperCase()+mes.slice(1), 72, 130);
     // tarjeta: gastado este mes + barra de presupuesto
     g.fillStyle=surface; round(72,210,W-144,330,28); g.fill(); g.strokeStyle=line; g.lineWidth=2; round(72,210,W-144,330,28); g.stroke();
     g.fillStyle=muted; g.font="700 27px Manrope, sans-serif"; g.fillText(t("rp_spent").toUpperCase(), 116, 252);
     // Misma cifra que Resumen/Gastos (`monthBudgetStats`), no thisMonthSpent.
-    const bs=monthBudgetStats(state);
+    const bs=monthBudgetStats(state, winStart+12*864e5, winEnd!=null?winEnd:undefined);
     const spentShown=bs.shown!=null?bs.shown:Math.max(0,bs.against||0);
     g.fillStyle=text;  g.font="700 96px Manrope, sans-serif"; g.fillText(eur0(spentShown), 112, 300);
-    const bud=bs.budget!=null?bs.budget:(state.budget||0);
+    const bud=bs.budget!=null?bs.budget:0;
     if(bud>0){
       const ratio=Math.min(1, Math.max(0, bs.against||0)/bud);
       g.fillStyle="rgba(128,128,128,.18)"; round(116,432,W-232,26,13); g.fill();
       g.fillStyle=ratio<1?mint:coral; round(116,432,Math.max(20,(W-232)*ratio),26,13); g.fill();
       g.fillStyle=muted; g.font="600 28px Manrope, sans-serif"; g.fillText(tf("rp_of_budget",{b:eur0(bud),p:Math.round(ratio*100)}), 116, 480);
     }
-    // top 3 categorías del mes
+    // top 3 categorías del mes (misma ventana que bs)
     const byCat={};
-    const monthStart=startOfMonth();
-    (state.expenses||[]).filter(function(e){
-      return parseDate(e.date)>=monthStart && e.amount>0 && !CAT_NEUTRAS[e.category];
-    })
-      .forEach(function(e){ byCat[e.category||"otros"]=(byCat[e.category||"otros"]||0)+e.amount; });
+    const endCap=winEnd!=null?winEnd:Infinity;
+    (state.expenses||[]).forEach(function(e){
+      const ms=dateMs(e.date);
+      if(ms<winStart||ms>=endCap) return;
+      if(!(e.amount>0) || CAT_NEUTRAS[e.category]) return;
+      if(typeof expenseCountsBudget==="function" && !expenseCountsBudget(e, state)) return;
+      byCat[e.category||"otros"]=(byCat[e.category||"otros"]||0)+e.amount;
+    });
     const top=Object.keys(byCat).map(function(k){ return [k,byCat[k]]; }).sort(function(a,b){ return b[1]-a[1]; }).slice(0,3);
     let y=610;
     g.fillStyle=text; g.font="800 36px Manrope, sans-serif"; g.fillText(t("rp_top"), 72, y); y+=70;
@@ -6514,7 +6529,7 @@ function shareMonthReport(state, tt, showToast){
     g.fillStyle=muted; g.font="600 26px Manrope, sans-serif"; g.fillText(t("rp_footer")+" · v"+CONFIG.APP_VERSION, 72, H-72);
     cv.toBlob(function(b){
       if(!b){ if(showToast) showToast("✕ Informe: canvas vacío"); return; }
-      const fname="mi-cartera-"+new Date().toISOString().slice(0,7)+".png";
+      const fname="mi-cartera-"+ymFile+".png";
       const dl=function(){
         const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download=fname; a.click();
         setTimeout(function(){ URL.revokeObjectURL(u); },1000);
@@ -6541,7 +6556,7 @@ function shareMonthReport(state, tt, showToast){
         saidSaved();
       }
     },"image/png");
-  }catch(e){ try{ alert("Informe: "+((e&&e.message)||e)); }catch(_){} }
+  }catch(e){ if(showToast) showToast("✕ Informe: "+((e&&e.message)||e)); }
 }
 
 /* ============================================================
@@ -7243,7 +7258,7 @@ function dashOrderOf(s, allIds){
   const saved=((s.settings&&s.settings.dashOrder)||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
   return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
 }
-function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan}){
+function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
   const tt=totals;
   const simple=!!(state.settings&&state.settings.simpleMode);
   const [shownNet,setShownNet]=useState(0);
@@ -7367,6 +7382,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const ringC=2*Math.PI*48;
   const ringPct=Math.max(0,Math.min(1,ratio));
   const monthName=monthLong(new Date().getMonth());
+  const closedCard=closedMonthCardOf(state);
 
   return React.createElement("div",{className:"v4-screen"},
     React.createElement("div",{className:"v4-inicio-head rise"},
@@ -7376,6 +7392,30 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       ),
       React.createElement("button",{className:"v4-avatar","data-tour":"avatar","aria-label":t("pf_title"),
         onClick:function(){ if(onOpenProfile) onOpenProfile(); else if(onOpenSettings) onOpenSettings(); }}, initials)
+    ),
+
+    closedCard && React.createElement("div",{className:"v4-card rise","data-tour":"closed-month",style:{animationDelay:".02s",marginTop:4}},
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
+        React.createElement("div",null,
+          React.createElement("div",{style:{fontWeight:800,fontSize:15}}, tf("mr_title",{mes:monthLong(closedCard.month)+" "+closedCard.year})),
+          React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:4,lineHeight:1.4}}, t("mr_sub"))
+        ),
+        React.createElement("button",{type:"button",className:"link",style:{flexShrink:0,fontSize:13},onClick:function(){
+          set(function(s){ return dismissClosedMonthCard(s, closedCard.ym); });
+        }}, t("mr_later"))
+      ),
+      React.createElement("div",{className:"num",style:{fontWeight:800,fontSize:26,marginTop:10}}, eur0(closedCard.stats.shown)),
+      React.createElement("div",{style:{fontSize:12,color:"var(--muted)"}}, t("rp_spent")),
+      closedCard.stats.budget!=null && closedCard.stats.budget>0 && React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
+        tf("rp_of_budget",{b:eur0(closedCard.stats.budget),p:Math.round(Math.min(100,(closedCard.stats.against/(closedCard.stats.budget||1))*100))})),
+      closedCard.topCat && React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
+        tf("mr_top",{cat:catName(closedCard.topCat.id), x:eur0(closedCard.topCat.amount)})),
+      React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
+        closedCard.saved>=0 ? tf("mr_saved",{x:eur0(closedCard.saved)}) : tf("mr_over",{x:eur0(Math.abs(closedCard.saved))})),
+      React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{marginTop:12},onClick:function(){
+        shareMonthReport(state, totals, showToast, {startMs:closedCard.startMs, endMs:closedCard.endMs, ym:closedCard.ym});
+        if(showToast) showToast(t("mr_shared"));
+      }}, t("mr_share"))
     ),
 
     React.createElement("div",{className:"v4-hero rise","data-tour":"hero",style:{animationDelay:".05s"}},
@@ -11089,24 +11129,35 @@ function applyReserva(state, income, plan, bankEnt){
 }
 // Total reservado desde `fromMs` — lo que hay que restar del presupuesto del período que se esté
 // mirando, para que lo apartado se note de verdad en "lo que puedes gastar".
-function reservedSince(state, fromMs){
-  return (state.reservaLog||[]).reduce(function(a,x){ return dateMs(x.date)>=fromMs ? a+(x.amount||0) : a; },0);
+function reservedSince(state, fromMs, hastaMs){
+  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
+  return (state.reservaLog||[]).reduce(function(a,x){
+    const ms=dateMs(x.date);
+    if(ms<fromMs || ms>=endMs) return a;
+    return a+(x.amount||0);
+  },0);
 }
 /* Misma cifra en Gastos, Resumen y el widget (2026-08-05). `totals.thisMonthSpent` suma TODO
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
    que pinta la cabecera de Gastos (gasto bruto o |balance| según gTotalMode). */
-function monthBudgetStats(state, nowMs){
+function monthBudgetStats(state, nowMs, hastaMs){
   const startMs=inicioDeMesMs(nowMs!=null?nowMs:Date.now());
+  // hastaMs opcional (informe del mes cerrado): sin él, comportamiento idéntico al de siempre
+  // — desde el día 1 en adelante. Con él, acota [startMs, hastaMs) para que un gasto del mes
+  // nuevo no se cuele (brief INFORME-MES / criterio 3).
+  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
   let spent=0, income=0;
   (state.expenses||[]).forEach(function(e){
-    if(dateMs(e.date)<startMs) return;
+    const ms=dateMs(e.date);
+    if(ms<startMs) return;
+    if(ms>=endMs) return;
     // Solo bancos de gasto diario (+ a mano). El resto se ve en la lista pero no mueve la cifra.
     if(!expenseCountsBudget(e, state)) return;
     if(e.amount>0) spent+=e.amount;
     else if(e.amount<0) income+=Math.abs(e.amount);
   });
-  const reserved=reservedSince(state, startMs);
+  const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs);
   const budgetRaw=typeof state.budget==="number" && state.budget>0 ? state.budget : null;
   const budget=budgetRaw==null?null:Math.max(0,+(budgetRaw-reserved).toFixed(2));
   const mode=(state.settings&&state.settings.gTotalMode)||"split";
@@ -11116,6 +11167,55 @@ function monthBudgetStats(state, nowMs){
   const remaining=budget==null?null:budget-against;
   return {spent:spent, income:income, balance:balance, mode:mode, budget:budget, reserved:reserved,
     remaining:remaining, against:against, shown:shown};
+}
+
+/* INFORME DEL MES CERRADO (brief 2026-09-08). Primeros días del mes nuevo: tarjeta en Inicio
+   con cifras del mes ANTERIOR (monthBudgetStats + hastaMs). Descartar = settings.closedMonthDismissed. */
+var CLOSED_MONTH_CARD_DAYS=5;
+function madridYmdParts(ms){
+  const s=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(ms));
+  const p=s.split("-");
+  return {y:+p[0], m:+p[1], d:+p[2], ym:p[0]+"-"+p[1]};
+}
+function closedMonthWindow(nowMs){
+  nowMs=nowMs!=null?nowMs:Date.now();
+  const endMs=inicioDeMesMs(nowMs);
+  const startMs=inicioDeMesMs(endMs-1);
+  const cur=madridYmdParts(nowMs);
+  const closed=madridYmdParts(startMs+5*864e5);
+  return {nowMs:nowMs, startMs:startMs, endMs:endMs, dayOfMonth:cur.d, closedYm:closed.ym, closedMonth:closed.m-1, closedYear:closed.y};
+}
+function closedMonthTopCat(state, startMs, endMs){
+  const byCat={};
+  (state.expenses||[]).forEach(function(e){
+    const ms=dateMs(e.date);
+    if(ms<startMs||ms>=endMs) return;
+    if(!(e.amount>0) || (typeof CAT_NEUTRAS!=="undefined" && CAT_NEUTRAS[e.category])) return;
+    if(!expenseCountsBudget(e, state)) return;
+    byCat[e.category||"otros"]=(byCat[e.category||"otros"]||0)+e.amount;
+  });
+  let best=null, bestV=0;
+  Object.keys(byCat).forEach(function(k){ if(byCat[k]>bestV){ bestV=byCat[k]; best=k; } });
+  return best?{id:best, amount:bestV}:null;
+}
+function closedMonthCardOf(state, nowMs){
+  const w=closedMonthWindow(nowMs);
+  if(w.dayOfMonth>CLOSED_MONTH_CARD_DAYS) return null;
+  const dismissed=(state.settings&&state.settings.closedMonthDismissed)||"";
+  if(dismissed===w.closedYm) return null;
+  const stats=monthBudgetStats(state, w.startMs+12*864e5, w.endMs);
+  if(!(stats.spent>0) && !(stats.income>0)) return null;
+  return {
+    ym:w.closedYm, startMs:w.startMs, endMs:w.endMs,
+    month:w.closedMonth, year:w.closedYear,
+    stats:stats, topCat:closedMonthTopCat(state, w.startMs, w.endMs),
+    saved:+((stats.income-stats.spent).toFixed(2))
+  };
+}
+function dismissClosedMonthCard(state, ym){
+  return Object.assign({}, state, {
+    settings:Object.assign({}, state.settings||{}, {closedMonthDismissed:ym||""})
+  });
 }
 
 /* EL CASHBACK ENTRA Y LUEGO SALE — son DOS apuntes del banco, un solo movimiento de dinero
@@ -17010,30 +17110,6 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
     React.createElement("div",{className:"hint",style:{marginTop:8}}, t("hh_pub_hint"))
   );
 }
-
-function MonthReportPrompt({state, totals, onClose, showToast}){
-  return React.createElement("div",{className:"tabsheet-back",onClick:onClose},
-    React.createElement("div",{className:"tabsheet",onClick:function(e){ e.stopPropagation(); },style:{maxWidth:400}},
-      React.createElement("div",{className:"ts-title"},"📊 "+t("mr_title")),
-      React.createElement("div",{className:"ts-hint"}, t("mr_sub")),
-      React.createElement("div",{className:"card",style:{padding:14,marginTop:10}},
-        React.createElement("div",{className:"hint"}, monthLong(new Date().getMonth())+" "+new Date().getFullYear()),
-        React.createElement("div",{className:"num",style:{fontSize:28,fontWeight:800,marginTop:6}}, eur0(totals.thisMonthSpent)),
-        React.createElement("div",{className:"hint"}, t("rp_spent")),
-        (state.budget||0)>0 && React.createElement("div",{style:{marginTop:8,fontSize:13}},
-          tf("rp_of_budget",{b:eur0(state.budget||0),p:Math.round(Math.min(100,(totals.thisMonthSpent/(state.budget||1))*100))})),
-        React.createElement("div",{style:{marginTop:10,fontSize:13}},
-          t("rp_networth")+": ", React.createElement("span",{className:"num",style:{fontWeight:700}}, eur0(totals.netWorth)))
-      ),
-      React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},onClick:function(){
-        shareMonthReport(state, totals, showToast);
-        showToast(t("mr_shared"));
-        onClose();
-      }}, t("mr_share")),
-      React.createElement("button",{className:"btn btn-ghost btn-block",onClick:onClose}, t("mr_later"))
-    )
-  );
-}
 /* ============================================================
    v4 — Plan (Recibos/Deudas/Metas), Cartera, Sheet Apuntar
    Spec: docs/design/handoff/SPEC-v4.md §5–7
@@ -19624,20 +19700,6 @@ function App(){
       setWhatsNew(true);
     },420);
   },[state.onboarded,locked,showAuth,tourOpen]);
-  // Informe mensual automático el día 1 (prioridad pareja 2026-07-15).
-  const [monthReportOpen,setMonthReportOpen]=useState(false);
-  useEffect(function(){
-    if(state.onboarded===false||locked||showAuth||tourOpen||whatsNew) return;
-    const d=new Date();
-    if(d.getDate()!==1) return;
-    const key="_mr"+d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
-    try{ if(localStorage.getItem(key)==="1") return; }catch(e){}
-    const tmr=setTimeout(function(){
-      try{ localStorage.setItem(key,"1"); }catch(e){}
-      setMonthReportOpen(true);
-    },3000);
-    return function(){ clearTimeout(tmr); };
-  },[state.onboarded,locked,showAuth,tourOpen,whatsNew]);
   // Calendario de cargos del mes (fijos + cuotas) para el intercambio con el nativo: lo usan
   // el efecto de avisos de la víspera Y el push al AlertCheckWorker — misma lista en ambos.
   const alertCalendarOf=function(){
@@ -20670,7 +20732,7 @@ function App(){
   const hiddenTabIds = TABS.map(function(tt){return tt.id;}).filter(function(id){ return tabIds.indexOf(id)<0; });
   const pageFor=function(id){
     const simple=!!(state.settings&&state.settings.simpleMode);
-    if(id==="dash") return React.createElement(Dashboard,{state:state,totals:totals,set:set,
+    if(id==="dash") return React.createElement(Dashboard,{state:state,totals:totals,set:set,showToast:showToast,
       onOpenSettings:function(){ setDrawerOpen(true); },
       onOpenProfile:function(){
         // Montar cerrado un frame y luego abrir: si montas ya con .open no hay animación de entrada.
@@ -20839,7 +20901,6 @@ function App(){
       goGastos:function(){ const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i); }}),
     tourOpen && React.createElement(Tour,{onDone:endTour, goTab:goTab, tabIds:tabIds}),
     whatsNew && React.createElement(WhatsNew,{onClose:function(){ setWhatsNew(false); },showToast:showToast,set:set,state:state}),
-    monthReportOpen && React.createElement(MonthReportPrompt,{state:state,totals:totals,showToast:showToast,onClose:function(){ setMonthReportOpen(false); }}),
     (upd.updateReady||upd.otaReady) && React.createElement("button",{className:"update-pill",onClick:function(){ upd.applyUpdate(showToast); }},
       (upd.otaReady&&!upd.otaDownloaded)?t("upd_downloading"):t("upd_ready")),
     upd.apkUpd && React.createElement("button",{className:"update-pill",onClick:function(){ upd.installApk(showToast); }}, tf("apk_ready",{v:upd.apkUpd.versionName})),

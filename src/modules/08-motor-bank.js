@@ -554,24 +554,35 @@ function applyReserva(state, income, plan, bankEnt){
 }
 // Total reservado desde `fromMs` — lo que hay que restar del presupuesto del período que se esté
 // mirando, para que lo apartado se note de verdad en "lo que puedes gastar".
-function reservedSince(state, fromMs){
-  return (state.reservaLog||[]).reduce(function(a,x){ return dateMs(x.date)>=fromMs ? a+(x.amount||0) : a; },0);
+function reservedSince(state, fromMs, hastaMs){
+  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
+  return (state.reservaLog||[]).reduce(function(a,x){
+    const ms=dateMs(x.date);
+    if(ms<fromMs || ms>=endMs) return a;
+    return a+(x.amount||0);
+  },0);
 }
 /* Misma cifra en Gastos, Resumen y el widget (2026-08-05). `totals.thisMonthSpent` suma TODO
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
    que pinta la cabecera de Gastos (gasto bruto o |balance| según gTotalMode). */
-function monthBudgetStats(state, nowMs){
+function monthBudgetStats(state, nowMs, hastaMs){
   const startMs=inicioDeMesMs(nowMs!=null?nowMs:Date.now());
+  // hastaMs opcional (informe del mes cerrado): sin él, comportamiento idéntico al de siempre
+  // — desde el día 1 en adelante. Con él, acota [startMs, hastaMs) para que un gasto del mes
+  // nuevo no se cuele (brief INFORME-MES / criterio 3).
+  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
   let spent=0, income=0;
   (state.expenses||[]).forEach(function(e){
-    if(dateMs(e.date)<startMs) return;
+    const ms=dateMs(e.date);
+    if(ms<startMs) return;
+    if(ms>=endMs) return;
     // Solo bancos de gasto diario (+ a mano). El resto se ve en la lista pero no mueve la cifra.
     if(!expenseCountsBudget(e, state)) return;
     if(e.amount>0) spent+=e.amount;
     else if(e.amount<0) income+=Math.abs(e.amount);
   });
-  const reserved=reservedSince(state, startMs);
+  const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs);
   const budgetRaw=typeof state.budget==="number" && state.budget>0 ? state.budget : null;
   const budget=budgetRaw==null?null:Math.max(0,+(budgetRaw-reserved).toFixed(2));
   const mode=(state.settings&&state.settings.gTotalMode)||"split";
@@ -581,6 +592,55 @@ function monthBudgetStats(state, nowMs){
   const remaining=budget==null?null:budget-against;
   return {spent:spent, income:income, balance:balance, mode:mode, budget:budget, reserved:reserved,
     remaining:remaining, against:against, shown:shown};
+}
+
+/* INFORME DEL MES CERRADO (brief 2026-09-08). Primeros días del mes nuevo: tarjeta en Inicio
+   con cifras del mes ANTERIOR (monthBudgetStats + hastaMs). Descartar = settings.closedMonthDismissed. */
+var CLOSED_MONTH_CARD_DAYS=5;
+function madridYmdParts(ms){
+  const s=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(ms));
+  const p=s.split("-");
+  return {y:+p[0], m:+p[1], d:+p[2], ym:p[0]+"-"+p[1]};
+}
+function closedMonthWindow(nowMs){
+  nowMs=nowMs!=null?nowMs:Date.now();
+  const endMs=inicioDeMesMs(nowMs);
+  const startMs=inicioDeMesMs(endMs-1);
+  const cur=madridYmdParts(nowMs);
+  const closed=madridYmdParts(startMs+5*864e5);
+  return {nowMs:nowMs, startMs:startMs, endMs:endMs, dayOfMonth:cur.d, closedYm:closed.ym, closedMonth:closed.m-1, closedYear:closed.y};
+}
+function closedMonthTopCat(state, startMs, endMs){
+  const byCat={};
+  (state.expenses||[]).forEach(function(e){
+    const ms=dateMs(e.date);
+    if(ms<startMs||ms>=endMs) return;
+    if(!(e.amount>0) || (typeof CAT_NEUTRAS!=="undefined" && CAT_NEUTRAS[e.category])) return;
+    if(!expenseCountsBudget(e, state)) return;
+    byCat[e.category||"otros"]=(byCat[e.category||"otros"]||0)+e.amount;
+  });
+  let best=null, bestV=0;
+  Object.keys(byCat).forEach(function(k){ if(byCat[k]>bestV){ bestV=byCat[k]; best=k; } });
+  return best?{id:best, amount:bestV}:null;
+}
+function closedMonthCardOf(state, nowMs){
+  const w=closedMonthWindow(nowMs);
+  if(w.dayOfMonth>CLOSED_MONTH_CARD_DAYS) return null;
+  const dismissed=(state.settings&&state.settings.closedMonthDismissed)||"";
+  if(dismissed===w.closedYm) return null;
+  const stats=monthBudgetStats(state, w.startMs+12*864e5, w.endMs);
+  if(!(stats.spent>0) && !(stats.income>0)) return null;
+  return {
+    ym:w.closedYm, startMs:w.startMs, endMs:w.endMs,
+    month:w.closedMonth, year:w.closedYear,
+    stats:stats, topCat:closedMonthTopCat(state, w.startMs, w.endMs),
+    saved:+((stats.income-stats.spent).toFixed(2))
+  };
+}
+function dismissClosedMonthCard(state, ym){
+  return Object.assign({}, state, {
+    settings:Object.assign({}, state.settings||{}, {closedMonthDismissed:ym||""})
+  });
 }
 
 /* EL CASHBACK ENTRA Y LUEGO SALE — son DOS apuntes del banco, un solo movimiento de dinero

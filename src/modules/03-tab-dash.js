@@ -5,7 +5,7 @@ function dashOrderOf(s, allIds){
   const saved=((s.settings&&s.settings.dashOrder)||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
   return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
 }
-function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan}){
+function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
   const tt=totals;
   const simple=!!(state.settings&&state.settings.simpleMode);
   const [shownNet,setShownNet]=useState(0);
@@ -129,6 +129,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const ringC=2*Math.PI*48;
   const ringPct=Math.max(0,Math.min(1,ratio));
   const monthName=monthLong(new Date().getMonth());
+  const closedCard=closedMonthCardOf(state);
 
   return React.createElement("div",{className:"v4-screen"},
     React.createElement("div",{className:"v4-inicio-head rise"},
@@ -138,6 +139,30 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       ),
       React.createElement("button",{className:"v4-avatar","data-tour":"avatar","aria-label":t("pf_title"),
         onClick:function(){ if(onOpenProfile) onOpenProfile(); else if(onOpenSettings) onOpenSettings(); }}, initials)
+    ),
+
+    closedCard && React.createElement("div",{className:"v4-card rise","data-tour":"closed-month",style:{animationDelay:".02s",marginTop:4}},
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
+        React.createElement("div",null,
+          React.createElement("div",{style:{fontWeight:800,fontSize:15}}, tf("mr_title",{mes:monthLong(closedCard.month)+" "+closedCard.year})),
+          React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:4,lineHeight:1.4}}, t("mr_sub"))
+        ),
+        React.createElement("button",{type:"button",className:"link",style:{flexShrink:0,fontSize:13},onClick:function(){
+          set(function(s){ return dismissClosedMonthCard(s, closedCard.ym); });
+        }}, t("mr_later"))
+      ),
+      React.createElement("div",{className:"num",style:{fontWeight:800,fontSize:26,marginTop:10}}, eur0(closedCard.stats.shown)),
+      React.createElement("div",{style:{fontSize:12,color:"var(--muted)"}}, t("rp_spent")),
+      closedCard.stats.budget!=null && closedCard.stats.budget>0 && React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
+        tf("rp_of_budget",{b:eur0(closedCard.stats.budget),p:Math.round(Math.min(100,(closedCard.stats.against/(closedCard.stats.budget||1))*100))})),
+      closedCard.topCat && React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
+        tf("mr_top",{cat:catName(closedCard.topCat.id), x:eur0(closedCard.topCat.amount)})),
+      React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
+        closedCard.saved>=0 ? tf("mr_saved",{x:eur0(closedCard.saved)}) : tf("mr_over",{x:eur0(Math.abs(closedCard.saved))})),
+      React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{marginTop:12},onClick:function(){
+        shareMonthReport(state, totals, showToast, {startMs:closedCard.startMs, endMs:closedCard.endMs, ym:closedCard.ym});
+        if(showToast) showToast(t("mr_shared"));
+      }}, t("mr_share"))
     ),
 
     React.createElement("div",{className:"v4-hero rise","data-tour":"hero",style:{animationDelay:".05s"}},

@@ -270,27 +270,3 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
     React.createElement("div",{className:"hint",style:{marginTop:8}}, t("hh_pub_hint"))
   );
 }
-
-function MonthReportPrompt({state, totals, onClose, showToast}){
-  return React.createElement("div",{className:"tabsheet-back",onClick:onClose},
-    React.createElement("div",{className:"tabsheet",onClick:function(e){ e.stopPropagation(); },style:{maxWidth:400}},
-      React.createElement("div",{className:"ts-title"},"📊 "+t("mr_title")),
-      React.createElement("div",{className:"ts-hint"}, t("mr_sub")),
-      React.createElement("div",{className:"card",style:{padding:14,marginTop:10}},
-        React.createElement("div",{className:"hint"}, monthLong(new Date().getMonth())+" "+new Date().getFullYear()),
-        React.createElement("div",{className:"num",style:{fontSize:28,fontWeight:800,marginTop:6}}, eur0(totals.thisMonthSpent)),
-        React.createElement("div",{className:"hint"}, t("rp_spent")),
-        (state.budget||0)>0 && React.createElement("div",{style:{marginTop:8,fontSize:13}},
-          tf("rp_of_budget",{b:eur0(state.budget||0),p:Math.round(Math.min(100,(totals.thisMonthSpent/(state.budget||1))*100))})),
-        React.createElement("div",{style:{marginTop:10,fontSize:13}},
-          t("rp_networth")+": ", React.createElement("span",{className:"num",style:{fontWeight:700}}, eur0(totals.netWorth)))
-      ),
-      React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},onClick:function(){
-        shareMonthReport(state, totals, showToast);
-        showToast(t("mr_shared"));
-        onClose();
-      }}, t("mr_share")),
-      React.createElement("button",{className:"btn btn-ghost btn-block",onClick:onClose}, t("mr_later"))
-    )
-  );
-}
