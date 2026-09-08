@@ -32,6 +32,10 @@ terna le borraba el ORIGINAL.
   reaparecer lo que acababa de deshacer, con un ✓ en pantalla. Ahora el toast de hecho solo
   sale si la nube confirma, y si no, se le dice que vuelva a deshacer con cobertura.
   Decirle «si vuelve, avísame» habría sido pasarle a él un defecto nuestro.
+- Y si la nube falla, se le DEVUELVE el botón de deshacer (tercera pasada, Cursor): el aviso le
+  decía «vuelve a deshacer» con el botón ya desaparecido, porque `lastHistImport` se ponía a null
+  antes de la promesa. Un mensaje que pide algo imposible es peor que no avisar. El segundo toque
+  reintenta solo el borrado en la nube; lo local ya estaba quitado y no se vuelve a tocar.
 
 OTA; sin Android. Sin migraciones: no se ha tocado el esquema.
 

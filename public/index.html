@@ -13762,7 +13762,15 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
         if(!cloud.deleteExpensesByIds){ showToast("⚠ "+t("bp_hist_undo_local_only")); return; }
         Promise.resolve(cloud.deleteExpensesByIds(ids))
           .then(function(){ showToast(t("bp_hist_undo_done")); })
-          .catch(function(){ showToast("⚠ "+t("bp_hist_undo_cloud_fail")); });
+          .catch(function(){
+            /* Y si la nube falla hay que DEVOLVERLE el botón (review de Cursor, 8/9): el `set` de
+               arriba ya dejó `lastHistImport` a null, así que el aviso le decía «vuelve a
+               deshacer» con el botón ya desaparecido de la pantalla. Un mensaje que pide algo
+               imposible es peor que no avisar. Se restaura el lote —lo local ya está quitado, no
+               se toca— y el segundo toque reintenta SOLO el borrado en la nube. */
+            set(function(s){ return Object.assign({}, s, { lastHistImport:last }); });
+            showToast("⚠ "+t("bp_hist_undo_cloud_fail"));
+          });
       });
   };
   const doImport=function(){
