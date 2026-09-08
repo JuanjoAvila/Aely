@@ -644,7 +644,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
                   React.createElement("span",{className:"v4-gastos-cat-hint"}, tf("v4_gastos_cat_limit",{x:eur0(lim)})),
                   React.createElement("div",{className:"bar",role:"progressbar","aria-valuemin":0,"aria-valuemax":lim,"aria-valuenow":row.spent},
                     React.createElement("i",{style:{width:pct+"%",background:cat.color||"var(--mint)"}})))
-              : React.createElement("span",{className:"v4-gastos-cat-hint"}, t("v4_gastos_cat_nolimit")));
+              : null);
         })
       )
     ),
