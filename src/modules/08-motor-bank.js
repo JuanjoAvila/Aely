@@ -859,7 +859,9 @@ function histApplyBatchAck(expAdds, cloudIds, opts){
     if(!e) return;
     if(ok[e.id]) kept.push(e); else skipped.push(e);
   });
-  return { kept:kept, skipped:skipped, cloudIds:(cloudIds||[]).slice(), offline:false };
+  // Solo ids que NOSOTROS enviamos y el servidor ACK. Un id crudo ajeno (fila
+  // preexistente) no puede viajar a lastHistImport → undo → deleteExpensesByIds.
+  return { kept:kept, skipped:skipped, cloudIds:kept.map(function(e){ return e.id; }), offline:false };
 }
 /* Deshacer un batch: quita filas locales del batch y lista ids de nube para borrar POR ID.
    Nunca escribe state.deleted (agujero B). cloudDeleteById solo debe llevar ids con ACK

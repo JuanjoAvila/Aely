@@ -471,12 +471,12 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
         const ids=(r.cloudDeleteById||[]).slice();
         if(ids.length && cloud.deleteExpensesByIds){
           cloud.deleteExpensesByIds(ids).catch(function(){});
-        }else if(!ids.length && (last.localIds||[]).length){
+        }
+        if(!ids.length && (last.localIds||[]).length){
           showToast("⚠ "+t("bp_hist_undo_local_only"));
         }else{
           showToast(t("bp_hist_undo_done"));
         }
-        if(ids.length) showToast(t("bp_hist_undo_done"));
       });
   };
   const doImport=function(){
