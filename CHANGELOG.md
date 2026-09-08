@@ -55,6 +55,22 @@ como `cloudPending` y `histCanUndo` lo respeta. Dos tests, uno por caso.
 
 OTA; sin Android; sin migraciones.
 
+**Y las categorías, que también estaban escritas dos veces sin test cruzado.** `autoCategory()`
+(cliente) y `categorizar()` (`ingest_logic.ts`) llevan ~700 palabras clave cada una: si una compra
+entra por notificación la clasifica el servidor, y si la apunta a mano o la reclasifica la app, el
+cliente. Misma familia que el bug de los 965 €.
+
+- `tests/categorias-dual.test.mjs` **no** usa una lista fija de comercios (envejece y no cubre lo
+  que se añada mañana): SACA las palabras clave del propio fichero del servidor —688 hoy— y exige
+  la misma respuesta a los dos lados. Añadir una clave a un solo sitio pone el test en rojo solo.
+- Comparado `categoryOfNewMerchant` y no `autoCategory`, porque el servidor solo clasifica altas
+  nuevas y el cliente detecta ahí el cajero, que a propósito NO detecta en `autoCategory`.
+- **Encontró una divergencia real a la primera:** «DOUGLAS» a secas estaba solo en la lista del
+  servidor (`regalos`); el cliente lo dejaba en `otros`. El mismo comercio caía en dos cajones
+  según por dónde entrara. Añadido al cliente; «Douglas Perfumerías» sigue en `compras` en ambos.
+- Se blinda además que `autoCategory` siga SIN detectar el cajero: si eso se rompe, la migración
+  le convertiría las retiradas viejas en traspaso y le bajaría meses ya cerrados.
+
 ## [4.19.10] — 2026-09-08
 ### Efectivo: una cuenta más, no un módulo nuevo (tanda 6)
 
