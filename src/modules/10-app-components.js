@@ -398,6 +398,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
     if(!cands || !selCount) return;
     setImporting(true);
     const expAdds=[], fixAdds=[];
+    const batchId="hist-"+(typeof mcExpenseId==="function"?mcExpenseId():String(Date.now()));
     visible.forEach(function(o){
       const i=o.i, x=o.x;
       if(!sel[i]) return;
@@ -411,32 +412,72 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
       }
       if(d==="ingreso"){
         const cat=(c&&c.defDest==="ingreso"&&c.category)?c.category:"ingreso";
-        const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:-Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, noCard:true, income:true };
+        const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:-Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, noCard:true, income:true, importBatchId:batchId };
         if(x.id) e.extId=x.id;
         const nti=cleanNote(x.note, e.merchant); if(nti) e.note=nti;
         expAdds.push(e); return;
       }
-      // Gasto: categoría del clasificador (incl. inversion) — nunca applyInvestBuy aquí.
       const cat=(c&&c.category)||autoCategory(x.merchant||"");
-      const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent };
+      const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, importBatchId:batchId };
       if(x.id) e.extId=x.id;
       const nt=cleanNote(x.note, e.merchant); if(nt) e.note=nt;
       expAdds.push(e);
     });
-    set(function(s){
-      const next=Object.assign({},s);
-      if(expAdds.length) next.expenses=expAdds.concat(s.expenses||[]);
-      if(fixAdds.length) next.fixed=(s.fixed||[]).concat(fixAdds);
-      return next;
-    });
-    // Batch cloud con .select('id') = tanda 3; hoy sigue el camino viejo (ACK por fila).
-    setTimeout(function(){ expAdds.forEach(function(e){ cloud.addExpense(e).catch(function(){}); }); },0);
-    const parts=[];
-    if(expAdds.filter(function(e){ return e.amount>0; }).length) parts.push(tf("bp_hist_done_g",{n:expAdds.filter(function(e){ return e.amount>0; }).length}));
-    if(expAdds.filter(function(e){ return e.amount<0; }).length) parts.push(tf("bp_hist_done_i",{n:expAdds.filter(function(e){ return e.amount<0; }).length}));
-    if(fixAdds.length) parts.push(tf("bp_hist_done_r",{n:fixAdds.length}));
-    showToast(parts.length?parts.join(" · "):tf("bp_hist_done",{n:selCount}));
-    setImporting(false); onClose();
+    // Tanda 3: batch + RETURNING id. Solo lo ACK queda en local; sin ids → aviso claro.
+    Promise.resolve(cloud.addExpensesBatch ? cloud.addExpensesBatch(expAdds) : { cloudIds:[], offline:true })
+      .catch(function(){ return { cloudIds:[], offline:false, failed:true }; })
+      .then(function(res){
+        const offline=!!(res&&res.offline);
+        const failed=!!(res&&res.failed);
+        const ack=histApplyBatchAck(expAdds, (res&&res.cloudIds)||[], { offline:offline });
+        // Servidor llamado y 0 ids con candidatos: no persistimos en local (sin ACK).
+        const keepLocal=offline ? ack.kept : (failed ? [] : ack.kept);
+        set(function(s){
+          const next=Object.assign({},s);
+          if(keepLocal.length) next.expenses=keepLocal.concat(s.expenses||[]);
+          if(fixAdds.length) next.fixed=(s.fixed||[]).concat(fixAdds);
+          if(keepLocal.length){
+            next.lastHistImport={ batchId:batchId, localIds:keepLocal.map(function(e){ return e.id; }), cloudIds:offline?[]:ack.cloudIds, at:Date.now() };
+          }
+          return next;
+        });
+        const parts=[];
+        if(keepLocal.filter(function(e){ return e.amount>0; }).length) parts.push(tf("bp_hist_done_g",{n:keepLocal.filter(function(e){ return e.amount>0; }).length}));
+        if(keepLocal.filter(function(e){ return e.amount<0; }).length) parts.push(tf("bp_hist_done_i",{n:keepLocal.filter(function(e){ return e.amount<0; }).length}));
+        if(fixAdds.length) parts.push(tf("bp_hist_done_r",{n:fixAdds.length}));
+        if(failed || (!offline && expAdds.length && !ack.cloudIds.length)){
+          showToast("⚠ "+t("bp_hist_no_ack"));
+        }else if(!offline && ack.skipped.length){
+          showToast((parts.length?parts.join(" · ")+" · ":"")+tf("bp_hist_skip_dup",{n:ack.skipped.length}));
+        }else if(offline && expAdds.length){
+          showToast((parts.length?parts.join(" · ")+" · ":"")+t("bp_hist_offline"));
+        }else{
+          showToast(parts.length?parts.join(" · "):tf("bp_hist_done",{n:keepLocal.length+fixAdds.length}));
+        }
+        setImporting(false); onClose();
+      });
+  };
+  const doUndoLast=function(){
+    const last=state&&state.lastHistImport;
+    if(!last||!last.batchId){ showToast("⚠ "+t("bp_hist_undo_empty")); return; }
+    askConfirm({ title:t("bp_hist_undo_title"), sub:t("bp_hist_undo_sub"), ok:t("bp_hist_undo_ok"), danger:true })
+      .then(function(yes){
+        if(!yes) return;
+        const r=histUndoBatch(state, last);
+        if(!r||!r.ok){ showToast("⚠ "+t("bp_hist_undo_empty")); return; }
+        set(function(s){
+          return Object.assign({}, r.nextState, { lastHistImport:null });
+        });
+        const ids=(r.cloudDeleteById||[]).slice();
+        if(ids.length && cloud.deleteExpensesByIds){
+          cloud.deleteExpensesByIds(ids).catch(function(){});
+        }
+        if(!ids.length && (last.localIds||[]).length){
+          showToast("⚠ "+t("bp_hist_undo_local_only"));
+        }else{
+          showToast(t("bp_hist_undo_done"));
+        }
+      });
   };
   const doImport=function(){
     if(!cands || !selCount) return;
@@ -452,6 +493,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
     }
     runImport();
   };
+  const canUndo=!!(state&&state.lastHistImport&&state.lastHistImport.batchId);
   const wrap={position:"fixed",inset:0,zIndex:97,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
   const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
@@ -474,6 +516,9 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
     React.createElement("div",{className:"serif",style:{fontSize:24,margin:"4px 0 4px"}}, t("bp_hist_title")),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}},
       allowList.length? tf("bp_hist_sub",{banks:banksLbl}) : t("bp_hist_nodaily")),
+    canUndo && React.createElement("button",{type:"button",onClick:doUndoLast,
+      style:{width:"100%",padding:"11px",borderRadius:12,border:"1px solid var(--coral)",background:"transparent",color:"var(--coral)",fontWeight:800,fontSize:13,cursor:"pointer",marginBottom:12}},
+      t("bp_hist_undo_btn")),
     allowList.length>0 && React.createElement(React.Fragment,null,
       React.createElement("div",{style:{display:"flex",gap:8,marginBottom:12}}, [1,2,3].map(chip)),
       React.createElement("button",{style:{width:"100%",padding:"12px",borderRadius:12,border:"1px solid var(--line)",background:"var(--surface)",color:"var(--text)",fontWeight:800,fontSize:14,cursor:"pointer"},disabled:loading,onClick:search}, loading?t("bp_hist_searching"):t("bp_hist_search")),

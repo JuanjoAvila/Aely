@@ -586,6 +586,45 @@ const cloud = (function(){
         }
       );
     },
+    /* IMPORT HISTÓRICO — batch con RETURNING id (tanda 3, agujero A).
+       ignoreDuplicates + onConflict terna: Postgres NO devuelve las filas que chocaron.
+       Solo los ids ACK son borrables después. NO toca addExpense (camino paralelo). */
+    async addExpensesBatch(expenses){
+      if(!sb) return { cloudIds:[], offline:true };
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) return { cloudIds:[], offline:true };
+      const list=(expenses||[]).filter(Boolean);
+      if(!list.length) return { cloudIds:[], offline:false };
+      const uid=session.user.id;
+      const r=await withNotaFallback(function(conNota, conDivisa, conObName){
+        const filas=list.map(function(e){
+          const base={ user_id:uid, fecha:e.date, importe:e.amount, comercio:e.merchant, cat:e.category, source:expenseSourceForCloud(e), no_card:!!e.noCard };
+          if(isExpenseUuid(e&&e.id)) base.id=e.id;
+          let fila=base;
+          if(conNota) fila=Object.assign({},fila,{ nota:(e.note?String(e.note).slice(0,160):null), nota_edit:!!e.noteEdited });
+          if(conDivisa) fila=Object.assign({},fila,{ importe_orig:(e.origCur?Math.abs(Number(e.origAmount)||0):null), divisa:(e.origCur||null) });
+          if(conObName) fila=Object.assign({},fila,{ ob_name:(e.obName!=null?String(e.obName).slice(0,160):null) });
+          return fila;
+        });
+        return sb.from('expenses').upsert(
+          filas,
+          { onConflict:'user_id,fecha,importe,comercio', ignoreDuplicates:true }
+        ).select('id');
+      });
+      const rows=(r&&r.data)||[];
+      return { cloudIds:rows.map(function(row){ return row.id; }).filter(Boolean), offline:false };
+    },
+    /* Borrado SOLO por id (uuid). Camino del undo del histórico: nunca por terna.
+       No sustituye a deleteExpense (gastos viejos sin uuid siguen el fallback de atributos). */
+    async deleteExpensesByIds(ids){
+      if(!sb) return;
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) return;
+      const uuids=(ids||[]).filter(isExpenseUuid);
+      if(!uuids.length) return;
+      const {error}=await sb.from('expenses').delete().eq('user_id', session.user.id).in('id', uuids);
+      if(error) throw error;
+    },
     // Persiste el BANCO elegido de un gasto (va embebido en source: manual:caixabank…) para
     // que sobreviva a reinstalaciones — mismo truco que ob: (2026-07-18).
     async setExpenseBank(e, ent){
@@ -986,7 +1025,7 @@ const cloud = (function(){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","deleteExpense",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","deleteExpense","deleteExpensesByIds",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",

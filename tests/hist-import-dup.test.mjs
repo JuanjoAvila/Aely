@@ -280,4 +280,79 @@ t("híbrido C: cargo no-tarjeta default gasto (nunca recibo) y build no toca fix
   assert.equal(built.expAdds[0].category !== undefined, true);
 });
 
+t("A: ACK batch — terna colisionante no entra en kept ni en cloudIds", () => {
+  const pre = "pre-uuid-1111-1111-1111-111111111111";
+  const neu = "new-uuid-2222-2222-2222-222222222222";
+  const adds = [
+    { id: pre, merchant: "Cafe" },
+    { id: neu, merchant: "Pan" },
+  ];
+  // Servidor solo ACK del nuevo (el preexistente chocó → no RETURNING)
+  const ack = ctx.histApplyBatchAck(adds, [neu], { offline: false });
+  assert.equal(ack.kept.length, 1);
+  assert.equal(ack.kept[0].id, neu);
+  assert.equal(ack.skipped.length, 1);
+  assert.equal(ack.skipped[0].id, pre);
+  assert.ok(ack.cloudIds.indexOf(pre) < 0);
+  assert.ok(ack.cloudIds.indexOf(neu) >= 0);
+});
+
+/* Si PostgREST devolviera alguna vez el id de una fila preexistente (no solo INSERT),
+   ese id NO puede acabar en cloudDeleteById: deshacer borraría un gasto ajeno (agujero A). */
+t("A: ACK — id ajeno del servidor no va a cloudIds ni a undo", () => {
+  const ours = "our-uuid-3333-3333-3333-333333333333";
+  const alien = "alien-uuid-4444-4444-4444-444444444444";
+  const adds = [{ id: ours, merchant: "Cafe" }];
+  const ack = ctx.histApplyBatchAck(adds, [ours, alien], { offline: false });
+  assert.equal(ack.kept.length, 1);
+  assert.equal(ack.kept[0].id, ours);
+  assert.ok(ack.cloudIds.indexOf(alien) < 0, "cloudIds no debe llevar el id ajeno");
+  assert.ok(ack.cloudIds.indexOf(ours) >= 0);
+  const st = baseState();
+  st.expenses = [{ id: ours, importBatchId: "hist-alien", amount: 1, merchant: "Cafe", date: "2026-09-01T12:00:00.000Z", source: "ob-hist" },
+    { id: alien, amount: 9, merchant: "Viejo", date: "2026-01-01T12:00:00.000Z", source: "manual" }];
+  const undo = ctx.histUndoBatch(st, {
+    batchId: "hist-alien",
+    localIds: ack.kept.map(function(e){ return e.id; }),
+    cloudIds: ack.cloudIds,
+  });
+  assert.ok(undo.cloudDeleteById.indexOf(alien) < 0, "undo no debe borrar el id ajeno");
+  assert.ok(undo.nextState.expenses.some(function(e){ return e.id === alien; }), "gasto ajeno sigue en local");
+});
+
+t("A: servidor sin ids → kept vacío (se quita local)", () => {
+  const adds = [{ id: "a1" }, { id: "a2" }];
+  const ack = ctx.histApplyBatchAck(adds, [], { offline: false });
+  assert.equal(ack.kept.length, 0);
+  assert.equal(ack.skipped.length, 2);
+});
+
+t("A: offline → se conservan locales sin cloudIds", () => {
+  const adds = [{ id: "a1" }];
+  const ack = ctx.histApplyBatchAck(adds, [], { offline: true });
+  assert.equal(ack.kept.length, 1);
+  assert.equal(ack.cloudIds.length, 0);
+  assert.equal(ack.offline, true);
+});
+
+t("B+lote: undo dos veces idempotente y cero deleted", () => {
+  const st = baseState();
+  st.deleted = ["keep"];
+  const e1 = { id: "u1", importBatchId: "hist-x", amount: 1, merchant: "A", date: "2026-09-01T12:00:00.000Z", source: "ob-hist" };
+  const e2 = { id: "u2", importBatchId: "hist-x", amount: 2, merchant: "B", date: "2026-09-02T12:00:00.000Z", source: "ob-hist" };
+  const other = { id: "old", amount: 3, merchant: "C", date: "2026-08-01T12:00:00.000Z", source: "manual" };
+  st.expenses = [e1, e2, other];
+  const last = { batchId: "hist-x", localIds: ["u1", "u2"], cloudIds: ["u1", "u2"] };
+  const once = ctx.histUndoBatch(st, last);
+  assert.equal(once.ok, true);
+  assert.equal(once.nextState.expenses.length, 1);
+  assert.equal(once.nextState.expenses[0].id, "old");
+  assert.deepEqual(once.nextState.deleted, ["keep"]);
+  assert.deepEqual(once.cloudDeleteById, ["u1", "u2"]);
+  const twice = ctx.histUndoBatch(once.nextState, last);
+  assert.equal(twice.ok, true);
+  assert.equal(twice.nextState.expenses.length, 1);
+  assert.deepEqual(twice.nextState.deleted, ["keep"]);
+});
+
 console.log("\nhist-import-dup: OK");
