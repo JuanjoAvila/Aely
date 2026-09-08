@@ -747,6 +747,14 @@
   .v4-gastos-progress-marks{display:flex;justify-content:space-between;gap:8px;margin-top:7px;color:var(--muted-2);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.25px;}
   .v4-gastos-progress-marks span:nth-child(2){text-align:center;color:var(--muted);}
   .v4-gastos-progress-marks span:last-child{text-align:right;}
+  .v4-gastos-cats{margin-top:14px;}
+  .v4-gastos-cats-h{font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--muted-2);margin-bottom:4px;}
+  .v4-gastos-cat{display:block;width:100%;text-align:left;background:transparent;border:0;padding:8px 0 2px;cursor:pointer;color:inherit;font:inherit;}
+  .v4-gastos-cat-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;}
+  .v4-gastos-cat-name{font-weight:600;min-width:0;}
+  .v4-gastos-cat-amt{font-weight:700;flex:0 0 auto;}
+  .v4-gastos-cat-hint{display:block;margin-top:2px;font-size:11px;color:var(--muted-2);}
+  .v4-gastos-cat .bar{height:8px;margin-top:5px;}
   .v4-periods{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
   .v4-period-btn{min-height:48px;border-radius:15px;border:1px solid var(--line-soft);background:var(--sur);color:var(--muted);font-size:13.5px;font-weight:800;}
   .v4-period-btn.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
@@ -3406,6 +3414,9 @@ const LANG = {
     v4_gastos_title:"Tus gastos", v4_gastos_spent_in:"Gastado en {month}", v4_gastos_net_in:"Balance en {month}", v4_gastos_of:"de {x}", v4_gastos_left:"quedan {x}", v4_gastos_today_mark:"hoy · día {d}", v4_period_more:"Más…",
     v4_gastos_inc_line:"Ingresos {x} · balance {bal}", v4_gastos_split_line:"Gastos {spent} · ingresos {income}",
     v4_gastos_lbl_spent:"Gastos", v4_gastos_lbl_income:"Ingresos", v4_gastos_lbl_balance:"Balance",
+    v4_gastos_cats:"Por categoría", v4_gastos_cat_limit:"límite {x}", v4_gastos_cat_nolimit:"Sin límite · tocar para poner",
+    g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Solo para verlo: no cambia tu presupuesto ni te bloquea. Vacío o 0 = quitar el límite.",
+    g_cat_budget_clear:"Quitar límite",
     v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
     v4_inv_tools:"Herramientas de inversión", v4_inv_tools_h:"Precios, redondeo, proyección y edición manual — lo que antes llenaba Cartera.",
     v4_sync_banks:"Sincronizar bancos", v4_sync_banks_done:"✓ Bancos sincronizados",
@@ -3565,6 +3576,9 @@ const LANG = {
     v4_gastos_title:"Your spending", v4_gastos_spent_in:"Spent in {month}", v4_gastos_net_in:"Balance in {month}", v4_gastos_of:"of {x}", v4_gastos_left:"{x} left", v4_gastos_today_mark:"today · day {d}", v4_period_more:"More…",
     v4_gastos_inc_line:"Income {x} · balance {bal}", v4_gastos_split_line:"Spent {spent} · income {income}",
     v4_gastos_lbl_spent:"Spent", v4_gastos_lbl_income:"Income", v4_gastos_lbl_balance:"Balance",
+    v4_gastos_cats:"By category", v4_gastos_cat_limit:"limit {x}", v4_gastos_cat_nolimit:"No limit · tap to set",
+    g_cat_budget_title:"Limit for {cat}", g_cat_budget_sub:"Just to see it: it does not change your budget or block you. Empty or 0 removes the limit.",
+    g_cat_budget_clear:"Remove limit",
     v4_cartera_title:"Your portfolio", v4_cuentas:"Your accounts", v4_inversiones:"Your investments", v4_inv_positions:"{n} positions",
     v4_inv_tools:"Investment tools", v4_inv_tools_h:"Prices, round-ups, projections and manual edit — what used to clutter Portfolio.",
     v4_sync_banks:"Sync banks", v4_sync_banks_done:"✓ Banks synced",
@@ -3711,6 +3725,9 @@ const LANG = {
     v4_gastos_title:"Les teves despeses", v4_gastos_spent_in:"Gastat al {month}", v4_gastos_net_in:"Balanç al {month}", v4_gastos_of:"de {x}", v4_gastos_left:"queden {x}", v4_gastos_today_mark:"avui · dia {d}", v4_period_more:"Més…",
     v4_gastos_inc_line:"Ingressos {x} · balanç {bal}", v4_gastos_split_line:"Despeses {spent} · ingressos {income}",
     v4_gastos_lbl_spent:"Despeses", v4_gastos_lbl_income:"Ingressos", v4_gastos_lbl_balance:"Balanç",
+    v4_gastos_cats:"Per categoria", v4_gastos_cat_limit:"límit {x}", v4_gastos_cat_nolimit:"Sense límit · toca per posar",
+    g_cat_budget_title:"Límit a {cat}", g_cat_budget_sub:"Només per veure’l: no canvia el pressupost ni et bloqueja. Buit o 0 = treure el límit.",
+    g_cat_budget_clear:"Treure límit",
     v4_cartera_title:"La teva cartera", v4_cuentas:"Els teus comptes", v4_inversiones:"Les teves inversions", v4_inv_positions:"{n} posicions",
     v4_inv_tools:"Eines d’inversió", v4_inv_tools_h:"Preus, arrodoniment, projecció i edició manual — el que abans omplia Cartera.",
     v4_sync_banks:"Sincronitza els bancs", v4_sync_banks_done:"✓ Bancs sincronitzats",
@@ -7971,6 +7988,29 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       month:monthLong(now.getMonth())
     };
   },[state.expenses,state.budget,state.reservaLog,state.accounts,state.settings]);
+  // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
+  // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
+  const catBreakdown=useMemo(function(){
+    return categorySpentByMonth(state);
+  },[state.expenses,state.categoryBudgets,state.accounts,state.settings]);
+  const editCatBudget=useCallback(function(id){
+    const cur=Number((state.categoryBudgets||{})[id])||0;
+    const parseAmt=function(raw){ return Math.abs(parseFloat(String(raw==null?"":raw).replace(/\s/g,"").replace(",","."))||0); };
+    const chips=[{v:100,label:"100 €"},{v:200,label:"200 €"},{v:300,label:"300 €"}];
+    if(cur>0) chips.push({v:0,label:t("g_cat_budget_clear")});
+    askText({ title:tf("g_cat_budget_title",{cat:catName(id)}), sub:t("g_cat_budget_sub"),
+      ph:cur>0?String(cur).replace(".",","):"200", ok:t("save"), chips:chips })
+      .then(function(raw){
+        if(raw==null) return;
+        const amt=parseAmt(raw);
+        set(function(s){
+          const next=Object.assign({}, s.categoryBudgets||{});
+          if(!(amt>0)) delete next[id];
+          else next[id]=+amt.toFixed(2);
+          return Object.assign({}, s, { categoryBudgets:next });
+        });
+      });
+  },[set, state.categoryBudgets]);
   const subs=useMemo(function(){ return heavyOk?detectSubscriptions(expensesDef):[]; },[heavyOk,expensesDef]);
   const suggestAi=function(ex){
     if(!(state.settings&&state.settings.aiCat)){ showToast(t("ai_cat_off")); return; }
@@ -8156,6 +8196,25 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         React.createElement("span","1 "+monthSummary.month),
         React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
         React.createElement("span",monthSummary.last+" "+monthSummary.month)
+      ),
+      catBreakdown.length>0 && React.createElement("div",{className:"v4-gastos-cats","data-testid":"gastos-cats"},
+        React.createElement("div",{className:"v4-gastos-cats-h"}, t("v4_gastos_cats")),
+        catBreakdown.map(function(row){
+          const cat=catOf(row.id);
+          const lim=row.limit;
+          const pct=lim>0?Math.min(100, row.spent/lim*100):0;
+          return React.createElement("button",{key:row.id,type:"button",className:"v4-gastos-cat",
+              "data-cat":row.id,onClick:function(){ editCatBudget(row.id); }},
+            React.createElement("div",{className:"v4-gastos-cat-row"},
+              React.createElement("span",{className:"v4-gastos-cat-name"}, (cat.icon||"")+" "+catName(row.id)),
+              React.createElement("span",{className:"v4-gastos-cat-amt num"}, eur0(row.spent))),
+            lim>0
+              ? React.createElement(React.Fragment,null,
+                  React.createElement("span",{className:"v4-gastos-cat-hint"}, tf("v4_gastos_cat_limit",{x:eur0(lim)})),
+                  React.createElement("div",{className:"bar",role:"progressbar","aria-valuemin":0,"aria-valuemax":lim,"aria-valuenow":row.spent},
+                    React.createElement("i",{style:{width:pct+"%",background:cat.color||"var(--mint)"}})))
+              : React.createElement("span",{className:"v4-gastos-cat-hint"}, t("v4_gastos_cat_nolimit")));
+        })
       )
     ),
     React.createElement("div",{className:"filters"},
@@ -11176,6 +11235,43 @@ function monthBudgetStats(state, nowMs, hastaMs){
     remaining:remaining, against:against, shown:shown};
 }
 
+/* Desglose del mes por categoría (brief PRESUPUESTO-POR-CATEGORIA). Misma ventana y misma
+   regla que monthBudgetStats (`expenseCountsBudget` + hastaMs): la suma de `spent` tiene que
+   cuadrar al céntimo con la cabecera. Neutras fuera. Un límite huérfano (id que ya no está
+   en CAT) no se enseña ni suma. Sin gastos pero con límite → fila a 0, para que no parezca
+   que se ha borrado el tope. */
+function categorySpentByMonth(state, nowMs, hastaMs){
+  const startMs=inicioDeMesMs(nowMs!=null?nowMs:Date.now());
+  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
+  const byCat={};
+  (state.expenses||[]).forEach(function(e){
+    const ms=dateMs(e.date);
+    if(ms<startMs || ms>=endMs) return;
+    if(!(e.amount>0)) return;
+    if(!expenseCountsBudget(e, state)) return;
+    const id=e.category||"otros";
+    byCat[id]=(byCat[id]||0)+e.amount;
+  });
+  const budgets=(state&&state.categoryBudgets)||{};
+  Object.keys(budgets).forEach(function(id){
+    if(typeof CAT!=="undefined" && !CAT[id]) return;
+    const lim=Number(budgets[id]);
+    if(!(lim>0)) return;
+    if(byCat[id]==null) byCat[id]=0;
+  });
+  return Object.keys(byCat).map(function(id){
+    const lim=(typeof CAT==="undefined" || CAT[id]) ? Number(budgets[id]) : NaN;
+    return {
+      id:id,
+      spent:+((byCat[id]||0).toFixed(2)),
+      limit:(lim>0)?lim:null
+    };
+  }).sort(function(a,b){
+    if(b.spent!==a.spent) return b.spent-a.spent;
+    return String(a.id).localeCompare(String(b.id));
+  });
+}
+
 /* INFORME DEL MES CERRADO (brief 2026-09-08). Primeros días del mes nuevo: tarjeta en Inicio
    con cifras del mes ANTERIOR (monthBudgetStats + hastaMs). Descartar = settings.closedMonthDismissed. */
 var CLOSED_MONTH_CARD_DAYS=5;
@@ -11193,17 +11289,10 @@ function closedMonthWindow(nowMs){
   return {nowMs:nowMs, startMs:startMs, endMs:endMs, dayOfMonth:cur.d, closedYm:closed.ym, closedMonth:closed.m-1, closedYear:closed.y};
 }
 function closedMonthTopCat(state, startMs, endMs){
-  const byCat={};
-  (state.expenses||[]).forEach(function(e){
-    const ms=dateMs(e.date);
-    if(ms<startMs||ms>=endMs) return;
-    if(!(e.amount>0) || (typeof CAT_NEUTRAS!=="undefined" && CAT_NEUTRAS[e.category])) return;
-    if(!expenseCountsBudget(e, state)) return;
-    byCat[e.category||"otros"]=(byCat[e.category||"otros"]||0)+e.amount;
-  });
-  let best=null, bestV=0;
-  Object.keys(byCat).forEach(function(k){ if(byCat[k]>bestV){ bestV=byCat[k]; best=k; } });
-  return best?{id:best, amount:bestV}:null;
+  // Misma agregación que el desglose de Gastos (categorySpentByMonth), no un segundo forEach.
+  const rows=categorySpentByMonth(state, startMs+12*864e5, endMs);
+  const top=rows.find(function(r){ return r.spent>0; });
+  return top?{id:top.id, amount:top.spent}:null;
 }
 function closedMonthCardOf(state, nowMs){
   const w=closedMonthWindow(nowMs);

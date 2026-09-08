@@ -601,6 +601,43 @@ function monthBudgetStats(state, nowMs, hastaMs){
     remaining:remaining, against:against, shown:shown};
 }
 
+/* Desglose del mes por categoría (brief PRESUPUESTO-POR-CATEGORIA). Misma ventana y misma
+   regla que monthBudgetStats (`expenseCountsBudget` + hastaMs): la suma de `spent` tiene que
+   cuadrar al céntimo con la cabecera. Neutras fuera. Un límite huérfano (id que ya no está
+   en CAT) no se enseña ni suma. Sin gastos pero con límite → fila a 0, para que no parezca
+   que se ha borrado el tope. */
+function categorySpentByMonth(state, nowMs, hastaMs){
+  const startMs=inicioDeMesMs(nowMs!=null?nowMs:Date.now());
+  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
+  const byCat={};
+  (state.expenses||[]).forEach(function(e){
+    const ms=dateMs(e.date);
+    if(ms<startMs || ms>=endMs) return;
+    if(!(e.amount>0)) return;
+    if(!expenseCountsBudget(e, state)) return;
+    const id=e.category||"otros";
+    byCat[id]=(byCat[id]||0)+e.amount;
+  });
+  const budgets=(state&&state.categoryBudgets)||{};
+  Object.keys(budgets).forEach(function(id){
+    if(typeof CAT!=="undefined" && !CAT[id]) return;
+    const lim=Number(budgets[id]);
+    if(!(lim>0)) return;
+    if(byCat[id]==null) byCat[id]=0;
+  });
+  return Object.keys(byCat).map(function(id){
+    const lim=(typeof CAT==="undefined" || CAT[id]) ? Number(budgets[id]) : NaN;
+    return {
+      id:id,
+      spent:+((byCat[id]||0).toFixed(2)),
+      limit:(lim>0)?lim:null
+    };
+  }).sort(function(a,b){
+    if(b.spent!==a.spent) return b.spent-a.spent;
+    return String(a.id).localeCompare(String(b.id));
+  });
+}
+
 /* INFORME DEL MES CERRADO (brief 2026-09-08). Primeros días del mes nuevo: tarjeta en Inicio
    con cifras del mes ANTERIOR (monthBudgetStats + hastaMs). Descartar = settings.closedMonthDismissed. */
 var CLOSED_MONTH_CARD_DAYS=5;
@@ -618,17 +655,10 @@ function closedMonthWindow(nowMs){
   return {nowMs:nowMs, startMs:startMs, endMs:endMs, dayOfMonth:cur.d, closedYm:closed.ym, closedMonth:closed.m-1, closedYear:closed.y};
 }
 function closedMonthTopCat(state, startMs, endMs){
-  const byCat={};
-  (state.expenses||[]).forEach(function(e){
-    const ms=dateMs(e.date);
-    if(ms<startMs||ms>=endMs) return;
-    if(!(e.amount>0) || (typeof CAT_NEUTRAS!=="undefined" && CAT_NEUTRAS[e.category])) return;
-    if(!expenseCountsBudget(e, state)) return;
-    byCat[e.category||"otros"]=(byCat[e.category||"otros"]||0)+e.amount;
-  });
-  let best=null, bestV=0;
-  Object.keys(byCat).forEach(function(k){ if(byCat[k]>bestV){ bestV=byCat[k]; best=k; } });
-  return best?{id:best, amount:bestV}:null;
+  // Misma agregación que el desglose de Gastos (categorySpentByMonth), no un segundo forEach.
+  const rows=categorySpentByMonth(state, startMs+12*864e5, endMs);
+  const top=rows.find(function(r){ return r.spent>0; });
+  return top?{id:top.id, amount:top.spent}:null;
 }
 function closedMonthCardOf(state, nowMs){
   const w=closedMonthWindow(nowMs);

@@ -52,6 +52,7 @@ export const E2E_MAP = [
   { file: "src/modules/04-tab-gastos.js", specs: [
     "e2e/gastos-cajones.spec.mjs", "e2e/gastos-concepto.spec.mjs", "e2e/apuntar-sheet.spec.mjs",
     "e2e/gastos-diario-filtro.spec.mjs", "e2e/gastos-cabecera-bancos.spec.mjs", "e2e/gastos-orden.spec.mjs",
+    "e2e/gastos-categorias-presupuesto.spec.mjs",
   ] },
   { file: "src/modules/05-dialogs-inv.js", specs: [
     "e2e/cartera-inversiones.spec.mjs", "e2e/brokers-selector.spec.mjs",

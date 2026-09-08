@@ -419,6 +419,29 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       month:monthLong(now.getMonth())
     };
   },[state.expenses,state.budget,state.reservaLog,state.accounts,state.settings]);
+  // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
+  // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
+  const catBreakdown=useMemo(function(){
+    return categorySpentByMonth(state);
+  },[state.expenses,state.categoryBudgets,state.accounts,state.settings]);
+  const editCatBudget=useCallback(function(id){
+    const cur=Number((state.categoryBudgets||{})[id])||0;
+    const parseAmt=function(raw){ return Math.abs(parseFloat(String(raw==null?"":raw).replace(/\s/g,"").replace(",","."))||0); };
+    const chips=[{v:100,label:"100 €"},{v:200,label:"200 €"},{v:300,label:"300 €"}];
+    if(cur>0) chips.push({v:0,label:t("g_cat_budget_clear")});
+    askText({ title:tf("g_cat_budget_title",{cat:catName(id)}), sub:t("g_cat_budget_sub"),
+      ph:cur>0?String(cur).replace(".",","):"200", ok:t("save"), chips:chips })
+      .then(function(raw){
+        if(raw==null) return;
+        const amt=parseAmt(raw);
+        set(function(s){
+          const next=Object.assign({}, s.categoryBudgets||{});
+          if(!(amt>0)) delete next[id];
+          else next[id]=+amt.toFixed(2);
+          return Object.assign({}, s, { categoryBudgets:next });
+        });
+      });
+  },[set, state.categoryBudgets]);
   const subs=useMemo(function(){ return heavyOk?detectSubscriptions(expensesDef):[]; },[heavyOk,expensesDef]);
   const suggestAi=function(ex){
     if(!(state.settings&&state.settings.aiCat)){ showToast(t("ai_cat_off")); return; }
@@ -604,6 +627,25 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         React.createElement("span","1 "+monthSummary.month),
         React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
         React.createElement("span",monthSummary.last+" "+monthSummary.month)
+      ),
+      catBreakdown.length>0 && React.createElement("div",{className:"v4-gastos-cats","data-testid":"gastos-cats"},
+        React.createElement("div",{className:"v4-gastos-cats-h"}, t("v4_gastos_cats")),
+        catBreakdown.map(function(row){
+          const cat=catOf(row.id);
+          const lim=row.limit;
+          const pct=lim>0?Math.min(100, row.spent/lim*100):0;
+          return React.createElement("button",{key:row.id,type:"button",className:"v4-gastos-cat",
+              "data-cat":row.id,onClick:function(){ editCatBudget(row.id); }},
+            React.createElement("div",{className:"v4-gastos-cat-row"},
+              React.createElement("span",{className:"v4-gastos-cat-name"}, (cat.icon||"")+" "+catName(row.id)),
+              React.createElement("span",{className:"v4-gastos-cat-amt num"}, eur0(row.spent))),
+            lim>0
+              ? React.createElement(React.Fragment,null,
+                  React.createElement("span",{className:"v4-gastos-cat-hint"}, tf("v4_gastos_cat_limit",{x:eur0(lim)})),
+                  React.createElement("div",{className:"bar",role:"progressbar","aria-valuemin":0,"aria-valuemax":lim,"aria-valuenow":row.spent},
+                    React.createElement("i",{style:{width:pct+"%",background:cat.color||"var(--mint)"}})))
+              : React.createElement("span",{className:"v4-gastos-cat-hint"}, t("v4_gastos_cat_nolimit")));
+        })
       )
     ),
     React.createElement("div",{className:"filters"},
