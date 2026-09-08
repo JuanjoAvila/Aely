@@ -866,6 +866,9 @@
   .v4-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:8px;}
   .v4-chip{flex:0 0 auto;min-height:44px;padding:0 14px;border-radius:22px;background:var(--sur);border:1px solid var(--line-soft);font-size:13.5px;font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;text-align:center;line-height:1.2;box-sizing:border-box;}
   .v4-chip.on{background:rgba(95,208,138,.16);border-color:var(--mint-deep);color:var(--mint);}
+  /* Chip que NO se puede desmarcar (la cuenta de gasto diario). Se ve marcado pero apagado, para
+     que no parezca que el toque «no hace nada» — rechazo 4.19.1/avisos-presupuesto. */
+  .v4-chip-locked{opacity:.72;cursor:default;border-style:dashed;}
   /* Calendario propio: el nativo de Android es gris y en inglés (tanda 3, 2026-08-17). */
   .mc-cal{margin:4px 0 12px;padding:10px 8px 8px;background:var(--sur);border:1px solid var(--line-soft);border-radius:14px;}
   .mc-cal-nav{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
@@ -5118,7 +5121,8 @@ Object.assign(LANG.es,{
   bp_title:"Mis bancos", bp_intro:"Solo lectura · el permiso se renueva cada ~3 meses.",
   bp_manage:"Gestionar mis bancos", bp_close:"Ajustes", bp_back:"Mis bancos",
   bp_empty:"Aún no has conectado ningún banco.", bp_add:"Conectar un banco",
-  bp_expbanks:"También apuntar gastos de tarjeta de…", bp_expbanks_hint:"Sus compras con tarjeta entrarán solas en Gastos.", bp_expbanks_none:"Conecta un banco Open Banking para poder importar sus compras con tarjeta a Gastos.",
+  bp_expbanks:"También apuntar gastos de tarjeta de…", bp_expbanks_hint:"Marca bancos EXTRA cuyas compras cuentan en el presupuesto del día a día. La cuenta principal de gasto diario (rol en Patrimonio) siempre cuenta y no se puede desmarcar aquí. Quitar un banco no borra su historial.", bp_expbanks_none:"Conecta un banco Open Banking para poder importar sus compras con tarjeta a Gastos.",
+  bp_expbanks_main:"principal (obligatoria)", bp_expbanks_locked:"Esa es tu cuenta de gasto diario: no se desmarca aquí. Cámbiala en Cartera → editar cuenta. Prueba a añadir o quitar un banco EXTRA.",
   bp_hist_btn:"Importar histórico", bp_hist_title:"Importar histórico", bp_hist_sub:"Trae movimientos de los últimos meses de: {banks}. Elige cuáles y si van a Gastos, Recibos o Ingresos. Tarjeta→Gasto, recibo→Recibos, crédito→Ingreso (puedes cambiarlo).", bp_hist_nodaily:"Conecta un banco Open Banking (o márcalo en «También apuntar gastos de tarjeta»). Trade Republic no vale aquí: no está en Open Banking.", bp_hist_m:"{n} mes(es)", bp_hist_search:"Buscar movimientos", bp_hist_searching:"Buscando…", bp_hist_none:"No hay movimientos nuevos en ese periodo (o ya están todos apuntados). Recuerda: el banco solo deja ver ~90 días.", bp_hist_found:"{n} movimientos · marca y elige destino", bp_hist_notcard:"no es tarjeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importados", bp_hist_as_gasto:"🛒 Gasto", bp_hist_as_recibo:"🧾 Recibo", bp_hist_as_ingreso:"💰 Ingreso", bp_hist_recibo:"Recibo", bp_hist_done_g:"✓ {n} en Gastos", bp_hist_done_i:"✓ {n} ingresos", bp_hist_done_r:"✓ {n} recibos", bp_hist_dup:"ya detectado como recibo mensual · se cuenta una sola vez",
   bp_hist_nuevos:"nuevos", bp_hist_repes:"repetidos", bp_hist_dupexist:"ya lo tienes apuntado (mismo día e importe)",
   bp_hist_f_all:"Todos", bp_hist_f_gastos:"🛒 Gastos", bp_hist_f_ingresos:"💰 Ingresos", bp_hist_f_allmonths:"Todos los meses",
@@ -5146,7 +5150,8 @@ Object.assign(LANG.en,{
   bp_title:"My banks", bp_intro:"Read-only · consent renews every ~3 months.",
   bp_manage:"Manage my banks", bp_close:"Settings", bp_back:"My banks",
   bp_empty:"You haven't connected any bank yet.", bp_add:"Connect a bank",
-  bp_expbanks:"Also log card spending from…", bp_expbanks_hint:"Their card purchases will land in Spending on their own.", bp_expbanks_none:"Connect an Open Banking bank to import its card purchases into Spending.",
+  bp_expbanks:"Also log card spending from…", bp_expbanks_hint:"Tick EXTRA banks whose purchases count toward the daily budget. Your main daily-spend account (role in Portfolio) always counts and cannot be unticked here. Removing a bank does not delete its history.", bp_expbanks_none:"Connect an Open Banking bank to import its card purchases into Spending.",
+  bp_expbanks_main:"main (required)", bp_expbanks_locked:"That's your daily-spend account: you can't untick it here. Change it in Portfolio → edit account. Try adding or removing an EXTRA bank.",
   bp_hist_btn:"Import history", bp_hist_title:"Import history", bp_hist_sub:"Pull the last months from: {banks}. Pick which ones and whether they go to Spending, Bills or Income. Card→Spending, bill→Bills, credit→Income (you can change it).", bp_hist_nodaily:"Connect an Open Banking bank (or tick it under “Also log card spending”). Trade Republic won't work here: it's not in Open Banking.", bp_hist_m:"{n} month(s)", bp_hist_search:"Find transactions", bp_hist_searching:"Searching…", bp_hist_none:"No new transactions in that period (or they're all logged already). Remember: the bank only shows ~90 days.", bp_hist_found:"{n} transactions · check and pick destination", bp_hist_notcard:"not a card purchase", bp_hist_import:"Import {n}", bp_hist_done:"✓ {n} imported", bp_hist_as_gasto:"🛒 Spend", bp_hist_as_recibo:"🧾 Bill", bp_hist_as_ingreso:"💰 Income", bp_hist_recibo:"Bill", bp_hist_done_g:"✓ {n} in Spending", bp_hist_done_i:"✓ {n} income", bp_hist_done_r:"✓ {n} bills", bp_hist_dup:"already detected as a monthly bill · counted once",
   bp_hist_nuevos:"new", bp_hist_repes:"repeated", bp_hist_dupexist:"already logged (same day & amount)",
   bp_hist_f_all:"All", bp_hist_f_gastos:"🛒 Spending", bp_hist_f_ingresos:"💰 Income", bp_hist_f_allmonths:"All months",
@@ -5174,7 +5179,8 @@ Object.assign(LANG.ca,{
   bp_title:"Els meus bancs", bp_intro:"Només lectura · el permís es renova cada ~3 mesos.",
   bp_manage:"Gestiona els meus bancs", bp_close:"Ajustos", bp_back:"Els meus bancs",
   bp_empty:"Encara no has connectat cap banc.", bp_add:"Connecta un banc",
-  bp_expbanks:"També apuntar despeses de targeta de…", bp_expbanks_hint:"Les seves compres amb targeta entraran soles a Despeses.", bp_expbanks_none:"Connecta un banc Open Banking per poder importar-ne les compres amb targeta a Despeses.",
+  bp_expbanks:"També apuntar despeses de targeta de…", bp_expbanks_hint:"Marca bancs EXTRA les compres dels quals compten al pressupost diari. El compte principal de despesa diària (rol a Patrimoni) sempre compta i no es pot desmarcar aquí. Treure un banc no esborra el seu historial.", bp_expbanks_none:"Connecta un banc Open Banking per poder importar-ne les compres amb targeta a Despeses.",
+  bp_expbanks_main:"principal (obligatòria)", bp_expbanks_locked:"Aquest és el teu compte de despesa diària: no es desmarca aquí. Canvia'l a Cartera → editar compte. Prova d'afegir o treure un banc EXTRA.",
   bp_hist_btn:"Importar històric", bp_hist_title:"Importar històric", bp_hist_sub:"Porta moviments dels últims mesos de: {banks}. Tria quins i si van a Despeses, Rebuts o Ingressos. Targeta→Despesa, rebut→Rebuts, crèdit→Ingrés (ho pots canviar).", bp_hist_nodaily:"Connecta un banc Open Banking (o marca'l a «També apuntar despeses de targeta»). Trade Republic no val aquí: no és a Open Banking.", bp_hist_m:"{n} mes(os)", bp_hist_search:"Cerca moviments", bp_hist_searching:"Cercant…", bp_hist_none:"No hi ha moviments nous en aquest període (o ja estan tots apuntats). Recorda: el banc només deixa veure ~90 dies.", bp_hist_found:"{n} moviments · marca i tria destinació", bp_hist_notcard:"no és targeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importats", bp_hist_as_gasto:"🛒 Despesa", bp_hist_as_recibo:"🧾 Rebut", bp_hist_as_ingreso:"💰 Ingrés", bp_hist_recibo:"Rebut", bp_hist_done_g:"✓ {n} a Despeses", bp_hist_done_i:"✓ {n} ingressos", bp_hist_done_r:"✓ {n} rebuts", bp_hist_dup:"ja detectat com a rebut mensual · es compta una sola vegada",
   bp_hist_nuevos:"nous", bp_hist_repes:"repetits", bp_hist_dupexist:"ja ho tens apuntat (mateix dia i import)",
   bp_hist_f_all:"Tots", bp_hist_f_gastos:"🛒 Despeses", bp_hist_f_ingresos:"💰 Ingressos", bp_hist_f_allmonths:"Tots els mesos",
@@ -9156,9 +9162,13 @@ function trPhoneSaved(){ try{ return localStorage.getItem("mc_tr_phone")||""; }c
 // La tarjeta y sus consumidores (resumen de Ajustes + banner de Cartera) viven en componentes
 // distintos. Cambiar solo el useState local dejaba «1 caído» hasta reiniciar aunque el login o
 // el sync acabasen bien — feedback 2026-09-07. Este evento mantiene una única verdad visible.
-function trSignalStatus(connected){
-  try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:!!connected}})); }catch(e){}
+// `ack:true` = la acción MANUAL acabó bien (conectar / sync). El consumidor pinta toast UNA vez.
+ // Las consultas de status (arranque, visibility) NO llevan ack — rechazo 4.19.0/tr-reactivo.
+function trSignalStatus(connected, opts){
+  opts=opts||{};
+  try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:!!connected, ack:!!opts.ack}})); }catch(e){}
 }
+function markTrConnected(opts){ trSignalStatus(true, opts||{}); }
 function TRSync({state, set, totals, open, onToggle}){
   const bridge=trBridge();
   const [step,setStep]=useState("idle");      // idle | code | preview | done
@@ -9191,7 +9201,8 @@ function TRSync({state, set, totals, open, onToggle}){
     if(s.length===9) return "+34"+s;            // móvil español típico
     return s.indexOf("+")===0?s:"+"+s;
   };
-  const doSync=function(){
+  const doSync=function(opts){
+    opts=opts||{};
     setBusy(true); setErr(false); setErrMsg(""); setStep("idle"); setDoneN(null);
     return Promise.resolve(bridge.sync()).then(function(r){
       setBusy(false);
@@ -9204,7 +9215,8 @@ function TRSync({state, set, totals, open, onToggle}){
       }
       if(r&&(r.softFail||r.wafBlocked)){ fail(r); return; }   // anti-bot: sesión sigue, no pedir 2FA
       if(!r||!r.ok||!Array.isArray(r.positions)){ fail(r); return; }
-      trSignalStatus(true);
+      // Tras verify el acuse ya salió; el botón Sync pide ack propio. Fallo → fail(), sin ack.
+      markTrConnected(opts.ack?{ack:true}:undefined);
       const m={};
       r.positions.forEach(function(po){
         const sug=brokerSuggest(po, state.investments);
@@ -9231,7 +9243,8 @@ function TRSync({state, set, totals, open, onToggle}){
     setBusy(true); setErr(false); setErrMsg("");
     Promise.resolve(bridge.verify({processId:processId,code:code.trim()})).then(function(r){
       if(!r||!r.ok){ fail(r); return; }
-      setConnected(true); trSignalStatus(true); setExpired(false); setCode(""); doSync();
+      // Acuse visible al completar el 2FA (rechazo 4.19.0/tr-reactivo). doSync sin ack otra vez.
+      setConnected(true); markTrConnected({ack:true}); setExpired(false); setCode(""); doSync();
     }).catch(fail);
   };
   const mappedN=positions?positions.filter(function(p){ return map[p.isin]; }).length:0;
@@ -9298,7 +9311,7 @@ function TRSync({state, set, totals, open, onToggle}){
         ),
         connected && step!=="preview" && React.createElement(React.Fragment,null,
           React.createElement("div",{className:"hint",style:{marginTop:0,color:"var(--mint)",fontWeight:700}},t("tr_connected")),
-          React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:10},disabled:busy,onClick:doSync}, busy?t("tr_syncing"):t("tr_sync")),
+          React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:10},disabled:busy,onClick:function(){ doSync({ack:true}); }}, busy?t("tr_syncing"):t("tr_sync")),
           React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:disconnect},t("tr_disconnect"))
         ),
         step==="preview" && positions && React.createElement(React.Fragment,null,
@@ -13759,8 +13772,16 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       const ents=[]; active.forEach(function(l){ const e=entFromAspsp(l.aspsp_name); if(e&&ents.indexOf(e)<0) ents.push(e); });
       if(!ents.length) return null;
       const cur=expenseBankEnts(state);
+      const primaryEnt=(function(){
+        const daily=(state.accounts||[]).find(function(a){ return accDaily(a); });
+        return (daily&&daily.ent)||null;
+      })();
       const onEnt=function(ent){ return cur.indexOf(ent)>=0; };
       const toggleEnt=function(ent){
+        // La cuenta de gasto diario SIEMPRE cuenta (expenseBankEnts la reinyecta). Desmarcarla
+        // parecía no hacer nada — rechazo 4.19.1/avisos-presupuesto al quitar TR. Aquí se deja
+        // explícito: solo se quitan/añaden EXTRA.
+        if(primaryEnt && ent===primaryEnt){ showToast(t("bp_expbanks_locked")); return; }
         set(function(s){
           const base=expenseBankEnts(s).slice();
           const i=base.indexOf(ent);
@@ -13769,14 +13790,21 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
           return Object.assign({},s,{settings:Object.assign({},s.settings,{expenseBanks:base})});
         });
       };
-      return React.createElement("div",{style:{marginTop:18}},
+      return React.createElement("div",{style:{marginTop:18},"data-expbanks":"1"},
         React.createElement("div",{className:"v4-section-h"}, React.createElement("span",null, t("bp_expbanks"))),
         React.createElement("div",{style:{fontSize:12,color:"var(--muted)",lineHeight:1.45,marginBottom:10}}, t("bp_expbanks_hint")),
         React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8}},
           ents.map(function(ent){
             const on=onEnt(ent);
-            return React.createElement("button",{key:ent,type:"button",className:"v4-chip"+(on?" on":""),onClick:function(){ toggleEnt(ent); }},
-              (on?"✓ ":"")+entOf(ent).label);
+            const locked=!!(primaryEnt&&ent===primaryEnt);
+            return React.createElement("button",{
+              key:ent,type:"button",
+              className:"v4-chip"+(on?" on":"")+(locked?" v4-chip-locked":""),
+              "data-ent":ent,
+              "data-primary":locked?"1":undefined,
+              onClick:function(){ toggleEnt(ent); }
+            },
+              (on?"✓ ":"")+entOf(ent).label+(locked?" · "+t("bp_expbanks_main"):""));
           })
         )
       );
@@ -14631,15 +14659,21 @@ var RELEASE_NOTES=[
      {id:"avisos-presupuesto", t:{es:"🔔 Avisos al pasar del 50/80/95/100", en:"🔔 Alerts at 50/80/95/100", ca:"🔔 Avisos en passar del 50/80/95/100"},
       items:{
         es:[
-          "Ajustes, gestionar bancos: quita o añade un banco de gasto diario. Vuelve a Gastos y mira el total del mes: tiene que haber cambiado al momento.",
+          "Ajustes → Gestionar mis bancos, apartado «También apuntar gastos de tarjeta de…». El chip de tu cuenta del día a día sale como «principal (obligatoria)»: tócalo y comprueba que te lo dice y NO se desmarca. Esa cuenta cuenta siempre.",
+          "Ahora marca o desmarca un banco EXTRA (uno que no sea el principal). Vuelve a Gastos: el total del mes tiene que cambiar al momento, sin sincronizar.",
+          "Sus movimientos NO se borran: con el banco desmarcado siguen en la lista, solo dejan de sumar en el total. Vuélvelo a marcar y el total vuelve a subir.",
           "Si con ese cambio cruzas el 50, 80, 95 o 100 por ciento de tu presupuesto, tiene que saltarte el aviso. Y una sola vez, no tres seguidos.",
         ],
         en:[
-          "Ajustes, gestionar bancos: quita o añade un banco de gasto diario. Vuelve a Gastos y mira el total del mes: tiene que haber cambiado al momento.",
+          "Ajustes → Gestionar mis bancos, apartado «También apuntar gastos de tarjeta de…». El chip de tu cuenta del día a día sale como «principal (obligatoria)»: tócalo y comprueba que te lo dice y NO se desmarca. Esa cuenta cuenta siempre.",
+          "Ahora marca o desmarca un banco EXTRA (uno que no sea el principal). Vuelve a Gastos: el total del mes tiene que cambiar al momento, sin sincronizar.",
+          "Sus movimientos NO se borran: con el banco desmarcado siguen en la lista, solo dejan de sumar en el total. Vuélvelo a marcar y el total vuelve a subir.",
           "Si con ese cambio cruzas el 50, 80, 95 o 100 por ciento de tu presupuesto, tiene que saltarte el aviso. Y una sola vez, no tres seguidos.",
         ],
         ca:[
-          "Ajustes, gestionar bancos: quita o añade un banco de gasto diario. Vuelve a Gastos y mira el total del mes: tiene que haber cambiado al momento.",
+          "Ajustes → Gestionar mis bancos, apartado «También apuntar gastos de tarjeta de…». El chip de tu cuenta del día a día sale como «principal (obligatoria)»: tócalo y comprueba que te lo dice y NO se desmarca. Esa cuenta cuenta siempre.",
+          "Ahora marca o desmarca un banco EXTRA (uno que no sea el principal). Vuelve a Gastos: el total del mes tiene que cambiar al momento, sin sincronizar.",
+          "Sus movimientos NO se borran: con el banco desmarcado siguen en la lista, solo dejan de sumar en el total. Vuélvelo a marcar y el total vuelve a subir.",
           "Si con ese cambio cruzas el 50, 80, 95 o 100 por ciento de tu presupuesto, tiene que saltarte el aviso. Y una sola vez, no tres seguidos.",
         ]}}
    ],
@@ -14652,9 +14686,9 @@ var RELEASE_NOTES=[
    t:{es:"Sincronización más completa y Gastos a tu manera",en:"More complete syncing and expenses your way",ca:"Sincronització més completa i Despeses a la teva manera"},
    tandas:[
      {id:"tr-reactivo",t:{es:"🏦 Trade Republic sin reiniciar",en:"🏦 Trade Republic without restart",ca:"🏦 Trade Republic sense reiniciar"},items:{
-       es:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."],
-       en:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."],
-       ca:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."]}},
+       es:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app, Y salirte un aviso verde de que se ha conectado bien.","Vuelve a darle a Sincronizar estando ya conectado: te lo tiene que volver a decir. Pero abrir Ajustes sin tocar nada NO puede sacar ese aviso solo.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."],
+       en:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app, Y salirte un aviso verde de que se ha conectado bien.","Vuelve a darle a Sincronizar estando ya conectado: te lo tiene que volver a decir. Pero abrir Ajustes sin tocar nada NO puede sacar ese aviso solo.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."],
+       ca:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app, Y salirte un aviso verde de que se ha conectado bien.","Vuelve a darle a Sincronizar estando ya conectado: te lo tiene que volver a decir. Pero abrir Ajustes sin tocar nada NO puede sacar ese aviso solo.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."]}},
 
      
 
@@ -15254,7 +15288,12 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     };
     refreshTr();
     const onTr=function(e){
-      if(e&&e.detail&&typeof e.detail.connected==="boolean"){ setTrConn(!!e.detail.connected); setTrKnown(true); return; }
+      if(e&&e.detail&&typeof e.detail.connected==="boolean"){
+        setTrConn(!!e.detail.connected); setTrKnown(true);
+        // Solo si la acción MANUAL acabó bien (detalle.ack). Status/poll no tosta — rechazo TR.
+        if(e.detail.ack && e.detail.connected) showToast(t("tr_connected"));
+        return;
+      }
       refreshTr();
     };
     window.addEventListener("mc-tr-status", onTr);
@@ -17659,7 +17698,9 @@ function App(){
   };
   const signalTrAlive=function(){
     try{ localStorage.removeItem("_trDeadNotif"); }catch(e){}
-    try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:true}})); }catch(e){}
+    // Sin ack: es consulta de status / sync automático. El toast solo en markTrConnected({ack:true}).
+    if(typeof markTrConnected==="function") markTrConnected();
+    else try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:true}})); }catch(e){}
   };
   const runBrokerSync=function(opts){
     opts=opts||{};

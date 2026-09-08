@@ -560,7 +560,9 @@ function App(){
   };
   const signalTrAlive=function(){
     try{ localStorage.removeItem("_trDeadNotif"); }catch(e){}
-    try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:true}})); }catch(e){}
+    // Sin ack: es consulta de status / sync automático. El toast solo en markTrConnected({ack:true}).
+    if(typeof markTrConnected==="function") markTrConnected();
+    else try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:true}})); }catch(e){}
   };
   const runBrokerSync=function(opts){
     opts=opts||{};

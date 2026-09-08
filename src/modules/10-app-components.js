@@ -731,8 +731,16 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       const ents=[]; active.forEach(function(l){ const e=entFromAspsp(l.aspsp_name); if(e&&ents.indexOf(e)<0) ents.push(e); });
       if(!ents.length) return null;
       const cur=expenseBankEnts(state);
+      const primaryEnt=(function(){
+        const daily=(state.accounts||[]).find(function(a){ return accDaily(a); });
+        return (daily&&daily.ent)||null;
+      })();
       const onEnt=function(ent){ return cur.indexOf(ent)>=0; };
       const toggleEnt=function(ent){
+        // La cuenta de gasto diario SIEMPRE cuenta (expenseBankEnts la reinyecta). Desmarcarla
+        // parecía no hacer nada — rechazo 4.19.1/avisos-presupuesto al quitar TR. Aquí se deja
+        // explícito: solo se quitan/añaden EXTRA.
+        if(primaryEnt && ent===primaryEnt){ showToast(t("bp_expbanks_locked")); return; }
         set(function(s){
           const base=expenseBankEnts(s).slice();
           const i=base.indexOf(ent);
@@ -741,14 +749,21 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
           return Object.assign({},s,{settings:Object.assign({},s.settings,{expenseBanks:base})});
         });
       };
-      return React.createElement("div",{style:{marginTop:18}},
+      return React.createElement("div",{style:{marginTop:18},"data-expbanks":"1"},
         React.createElement("div",{className:"v4-section-h"}, React.createElement("span",null, t("bp_expbanks"))),
         React.createElement("div",{style:{fontSize:12,color:"var(--muted)",lineHeight:1.45,marginBottom:10}}, t("bp_expbanks_hint")),
         React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8}},
           ents.map(function(ent){
             const on=onEnt(ent);
-            return React.createElement("button",{key:ent,type:"button",className:"v4-chip"+(on?" on":""),onClick:function(){ toggleEnt(ent); }},
-              (on?"✓ ":"")+entOf(ent).label);
+            const locked=!!(primaryEnt&&ent===primaryEnt);
+            return React.createElement("button",{
+              key:ent,type:"button",
+              className:"v4-chip"+(on?" on":"")+(locked?" v4-chip-locked":""),
+              "data-ent":ent,
+              "data-primary":locked?"1":undefined,
+              onClick:function(){ toggleEnt(ent); }
+            },
+              (on?"✓ ":"")+entOf(ent).label+(locked?" · "+t("bp_expbanks_main"):""));
           })
         )
       );
@@ -1603,15 +1618,21 @@ var RELEASE_NOTES=[
      {id:"avisos-presupuesto", t:{es:"🔔 Avisos al pasar del 50/80/95/100", en:"🔔 Alerts at 50/80/95/100", ca:"🔔 Avisos en passar del 50/80/95/100"},
       items:{
         es:[
-          "Ajustes, gestionar bancos: quita o añade un banco de gasto diario. Vuelve a Gastos y mira el total del mes: tiene que haber cambiado al momento.",
+          "Ajustes → Gestionar mis bancos, apartado «También apuntar gastos de tarjeta de…». El chip de tu cuenta del día a día sale como «principal (obligatoria)»: tócalo y comprueba que te lo dice y NO se desmarca. Esa cuenta cuenta siempre.",
+          "Ahora marca o desmarca un banco EXTRA (uno que no sea el principal). Vuelve a Gastos: el total del mes tiene que cambiar al momento, sin sincronizar.",
+          "Sus movimientos NO se borran: con el banco desmarcado siguen en la lista, solo dejan de sumar en el total. Vuélvelo a marcar y el total vuelve a subir.",
           "Si con ese cambio cruzas el 50, 80, 95 o 100 por ciento de tu presupuesto, tiene que saltarte el aviso. Y una sola vez, no tres seguidos.",
         ],
         en:[
-          "Ajustes, gestionar bancos: quita o añade un banco de gasto diario. Vuelve a Gastos y mira el total del mes: tiene que haber cambiado al momento.",
+          "Ajustes → Gestionar mis bancos, apartado «También apuntar gastos de tarjeta de…». El chip de tu cuenta del día a día sale como «principal (obligatoria)»: tócalo y comprueba que te lo dice y NO se desmarca. Esa cuenta cuenta siempre.",
+          "Ahora marca o desmarca un banco EXTRA (uno que no sea el principal). Vuelve a Gastos: el total del mes tiene que cambiar al momento, sin sincronizar.",
+          "Sus movimientos NO se borran: con el banco desmarcado siguen en la lista, solo dejan de sumar en el total. Vuélvelo a marcar y el total vuelve a subir.",
           "Si con ese cambio cruzas el 50, 80, 95 o 100 por ciento de tu presupuesto, tiene que saltarte el aviso. Y una sola vez, no tres seguidos.",
         ],
         ca:[
-          "Ajustes, gestionar bancos: quita o añade un banco de gasto diario. Vuelve a Gastos y mira el total del mes: tiene que haber cambiado al momento.",
+          "Ajustes → Gestionar mis bancos, apartado «También apuntar gastos de tarjeta de…». El chip de tu cuenta del día a día sale como «principal (obligatoria)»: tócalo y comprueba que te lo dice y NO se desmarca. Esa cuenta cuenta siempre.",
+          "Ahora marca o desmarca un banco EXTRA (uno que no sea el principal). Vuelve a Gastos: el total del mes tiene que cambiar al momento, sin sincronizar.",
+          "Sus movimientos NO se borran: con el banco desmarcado siguen en la lista, solo dejan de sumar en el total. Vuélvelo a marcar y el total vuelve a subir.",
           "Si con ese cambio cruzas el 50, 80, 95 o 100 por ciento de tu presupuesto, tiene que saltarte el aviso. Y una sola vez, no tres seguidos.",
         ]}}
    ],
@@ -1624,9 +1645,9 @@ var RELEASE_NOTES=[
    t:{es:"Sincronización más completa y Gastos a tu manera",en:"More complete syncing and expenses your way",ca:"Sincronització més completa i Despeses a la teva manera"},
    tandas:[
      {id:"tr-reactivo",t:{es:"🏦 Trade Republic sin reiniciar",en:"🏦 Trade Republic without restart",ca:"🏦 Trade Republic sense reiniciar"},items:{
-       es:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."],
-       en:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."],
-       ca:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."]}},
+       es:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app, Y salirte un aviso verde de que se ha conectado bien.","Vuelve a darle a Sincronizar estando ya conectado: te lo tiene que volver a decir. Pero abrir Ajustes sin tocar nada NO puede sacar ese aviso solo.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."],
+       en:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app, Y salirte un aviso verde de que se ha conectado bien.","Vuelve a darle a Sincronizar estando ya conectado: te lo tiene que volver a decir. Pero abrir Ajustes sin tocar nada NO puede sacar ese aviso solo.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."],
+       ca:["Ajustes: si Trade Republic sale caído, conéctalo o sincronízalo. Tiene que pasar a conectado AHÍ MISMO, sin cerrar y abrir la app, Y salirte un aviso verde de que se ha conectado bien.","Vuelve a darle a Sincronizar estando ya conectado: te lo tiene que volver a decir. Pero abrir Ajustes sin tocar nada NO puede sacar ese aviso solo.","Vuelve a Cartera sin reiniciar: el aviso de TR caído también tiene que haber desaparecido."]}},
 
      
 
@@ -2953,7 +2974,12 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     };
     refreshTr();
     const onTr=function(e){
-      if(e&&e.detail&&typeof e.detail.connected==="boolean"){ setTrConn(!!e.detail.connected); setTrKnown(true); return; }
+      if(e&&e.detail&&typeof e.detail.connected==="boolean"){
+        setTrConn(!!e.detail.connected); setTrKnown(true);
+        // Solo si la acción MANUAL acabó bien (detalle.ack). Status/poll no tosta — rechazo TR.
+        if(e.detail.ack && e.detail.connected) showToast(t("tr_connected"));
+        return;
+      }
       refreshTr();
     };
     window.addEventListener("mc-tr-status", onTr);
