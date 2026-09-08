@@ -26,6 +26,16 @@ del presupuesto los manda el `ingest`, así que meter ahí los límites por cate
 desplegar la Edge Function del Supabase compartido, que es de producción también, y a duplicar la
 regla en dos sitios otra vez. Primero que lo vea y decida si los quiere.
 
+**El desglose rompía el arrastrar-para-ordenar, y lo cazó el e2e.** La cabecera más alta dejaba
+la lista fuera del alcance del gesto (`elementFromPoint` apuntaba al sitio equivocado), así que
+`gastos-orden` —una tanda que él todavía no ha probado— se habría publicado rota. Filas más
+compactas y la espera del test acotada: 163/163.
+
+Al compactarlas se quitó el «Sin límite · tocar para poner» de cada fila, y con él la única pista
+de que la fila se puede tocar. La pista vuelve UNA vez en la cabecera de la sección («Por
+categoría · toca una para ponerle un límite») en vez de una por fila: se conserva la altura
+ganada y no se pierde el gesto. La cadena que quedaba sin usar se ha retirado.
+
 OTA; sin Android; sin migraciones.
 
 ## [4.19.12] — 2026-09-09
