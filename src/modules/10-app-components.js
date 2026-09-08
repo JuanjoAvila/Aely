@@ -1617,6 +1617,40 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+  {v:"4.19.13", d:"9 sep 2026",
+   t:{es:"Ponle tope a lo que más se te va",
+      en:"Put a cap on what runs away from you",
+      ca:"Posa un límit al que més se't'n va"},
+   tandas:[
+     {id:"presupuesto-categoria", t:{es:"🎯 Un límite por categoría", en:"🎯 A cap per category", ca:"🎯 Un límit per categoria"},
+      items:{
+        es:[
+          "Gastos: tiene que salir el desglose del mes por categorías, de más a menos. La suma de lo que cuenta debe dar EXACTAMENTE el total de arriba.",
+          "Tus inversiones y traspasos NO pueden aparecer en ese desglose, y los recibos de un banco que no es el del día a día tampoco.",
+          "Ponle un límite a una categoría, por ejemplo 200 € a Súper: sale su barrita con lo gastado. Comprueba que NO cambia nada más: ni el presupuesto de arriba, ni el widget, ni te salta ningún aviso.",
+          "Quita el límite: la categoría se queda con su cifra y sin barra.",
+          "Si le pones límite a una categoría en la que aún no has gastado este mes, tiene que verse a 0, no desaparecer."
+        ],
+        en:[
+          "Gastos: tiene que salir el desglose del mes por categorías, de más a menos. La suma de lo que cuenta debe dar EXACTAMENTE el total de arriba.",
+          "Tus inversiones y traspasos NO pueden aparecer en ese desglose, y los recibos de un banco que no es el del día a día tampoco.",
+          "Ponle un límite a una categoría, por ejemplo 200 € a Súper: sale su barrita con lo gastado. Comprueba que NO cambia nada más: ni el presupuesto de arriba, ni el widget, ni te salta ningún aviso.",
+          "Quita el límite: la categoría se queda con su cifra y sin barra.",
+          "Si le pones límite a una categoría en la que aún no has gastado este mes, tiene que verse a 0, no desaparecer."
+        ],
+        ca:[
+          "Gastos: tiene que salir el desglose del mes por categorías, de más a menos. La suma de lo que cuenta debe dar EXACTAMENTE el total de arriba.",
+          "Tus inversiones y traspasos NO pueden aparecer en ese desglose, y los recibos de un banco que no es el del día a día tampoco.",
+          "Ponle un límite a una categoría, por ejemplo 200 € a Súper: sale su barrita con lo gastado. Comprueba que NO cambia nada más: ni el presupuesto de arriba, ni el widget, ni te salta ningún aviso.",
+          "Quita el límite: la categoría se queda con su cifra y sin barra.",
+          "Si le pones límite a una categoría en la que aún no has gastado este mes, tiene que verse a 0, no desaparecer."
+        ]}}
+   ],
+   items:{
+     es:["En Gastos ves en qué se te va el mes por categorías, y puedes ponerle un límite a las que quieras con su barrita.","Es solo para verlo: no cambia tu presupuesto ni te bloquea nada."],
+     en:["In Gastos you can see where your month goes by category, and set a cap on the ones you want, with its own bar.","It's just to see it: it doesn't change your budget or block anything."],
+     ca:["A Despeses veus en què se te'n va el mes per categories, i pots posar un límit a les que vulguis amb la seva barra.","És només per veure-ho: no canvia el teu pressupost ni et bloqueja res."]
+   }},
   {v:"4.19.12", d:"9 sep 2026",
    t:{es:"Al empezar el mes, Inicio te cuenta cómo acabó el anterior",
       en:"When a new month starts, Home tells you how the last one ended",

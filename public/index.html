@@ -15367,6 +15367,40 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+{v:"4.19.13", d:"9 sep 2026",
+   t:{es:"Ponle tope a lo que más se te va",
+      en:"Put a cap on what runs away from you",
+      ca:"Posa un límit al que més se't'n va"},
+   tandas:[
+     {id:"presupuesto-categoria", t:{es:"🎯 Un límite por categoría", en:"🎯 A cap per category", ca:"🎯 Un límit per categoria"},
+      items:{
+        es:[
+          "Gastos: tiene que salir el desglose del mes por categorías, de más a menos. La suma de lo que cuenta debe dar EXACTAMENTE el total de arriba.",
+          "Tus inversiones y traspasos NO pueden aparecer en ese desglose, y los recibos de un banco que no es el del día a día tampoco.",
+          "Ponle un límite a una categoría, por ejemplo 200 € a Súper: sale su barrita con lo gastado. Comprueba que NO cambia nada más: ni el presupuesto de arriba, ni el widget, ni te salta ningún aviso.",
+          "Quita el límite: la categoría se queda con su cifra y sin barra.",
+          "Si le pones límite a una categoría en la que aún no has gastado este mes, tiene que verse a 0, no desaparecer."
+        ],
+        en:[
+          "Gastos: tiene que salir el desglose del mes por categorías, de más a menos. La suma de lo que cuenta debe dar EXACTAMENTE el total de arriba.",
+          "Tus inversiones y traspasos NO pueden aparecer en ese desglose, y los recibos de un banco que no es el del día a día tampoco.",
+          "Ponle un límite a una categoría, por ejemplo 200 € a Súper: sale su barrita con lo gastado. Comprueba que NO cambia nada más: ni el presupuesto de arriba, ni el widget, ni te salta ningún aviso.",
+          "Quita el límite: la categoría se queda con su cifra y sin barra.",
+          "Si le pones límite a una categoría en la que aún no has gastado este mes, tiene que verse a 0, no desaparecer."
+        ],
+        ca:[
+          "Gastos: tiene que salir el desglose del mes por categorías, de más a menos. La suma de lo que cuenta debe dar EXACTAMENTE el total de arriba.",
+          "Tus inversiones y traspasos NO pueden aparecer en ese desglose, y los recibos de un banco que no es el del día a día tampoco.",
+          "Ponle un límite a una categoría, por ejemplo 200 € a Súper: sale su barrita con lo gastado. Comprueba que NO cambia nada más: ni el presupuesto de arriba, ni el widget, ni te salta ningún aviso.",
+          "Quita el límite: la categoría se queda con su cifra y sin barra.",
+          "Si le pones límite a una categoría en la que aún no has gastado este mes, tiene que verse a 0, no desaparecer."
+        ]}}
+   ],
+   items:{
+     es:["En Gastos ves en qué se te va el mes por categorías, y puedes ponerle un límite a las que quieras con su barrita.","Es solo para verlo: no cambia tu presupuesto ni te bloquea nada."],
+     en:["In Gastos you can see where your month goes by category, and set a cap on the ones you want, with its own bar.","It's just to see it: it doesn't change your budget or block anything."],
+     ca:["A Despeses veus en què se te'n va el mes per categories, i pots posar un límit a les que vulguis amb la seva barra.","És només per veure-ho: no canvia el teu pressupost ni et bloqueja res."]
+   }},
 {v:"4.19.12", d:"9 sep 2026",
    t:{es:"Al empezar el mes, Inicio te cuenta cómo acabó el anterior",
       en:"When a new month starts, Home tells you how the last one ended",
@@ -15917,34 +15951,6 @@ var RELEASE_NOTES=[
    ca:[
     "📊 La despesa del mes del widget és la mateixa que la de l'app, també si la tenies tancada.",
     "Si una compra t'ha avisat dues vegades (el banc i la cartera), només en compta una.",
-   ]}},
-{v:"4.18.1", d:"17 ago 2026",
-   t:{es:"Recibos, sugerir categoría en cualquier gasto, y el banco al apuntar sin el lío",
-      en:"Bills, suggest a category on any payment, and a tidier bank picker",
-      ca:"Rebuts, suggerir categoria en qualsevol despesa, i el banc en apuntar sense el embolic"},
-   tandas:[
-     {id:"recibos-ia-banco", t:"🧾 Recibos, sugerir categoría y banco al apuntar", items:[
-       "Hay categoría Recibos: un Vodafone, un Mapfre o el alquiler ya no se quedan en Otros.",
-       "Movistar Plus sigue en ocio (es la tele). El teléfono Movistar va a Recibos.",
-       "Abres un gasto que NO está en Otros y también sale «Sugerir categoría».",
-       "Al apuntar con +, el banco es una pastilla. Al tocarla se despliegan los bancos, no hay una fila de chips.",
-     ]},
-   ],
-   items:{
-   es:[
-    "🧾 Recibos es una categoría propia: teléfono, internet, seguro o el alquiler ya no se quedan en Otros.",
-    "✨ En cualquier movimiento puedes pedir una sugerencia de categoría, no solo si está en Otros.",
-    "🏦 Al apuntar un gasto, el banco es una pastilla que se despliega, como los filtros de Gastos.",
-   ],
-   en:[
-    "🧾 Bills is its own category: phone, internet, insurance or rent no longer sit in Other.",
-    "✨ On any payment you can ask for a category suggestion, not only if it is in Other.",
-    "🏦 When adding a payment, the bank is a pill that expands, like the filters in Spending.",
-   ],
-   ca:[
-    "🧾 Rebuts és una categoria pròpia: telèfon, internet, assegurança o el lloguer ja no es queden a Altres.",
-    "✨ En qualsevol moviment pots demanar un suggeriment de categoria, no només si és a Altres.",
-    "🏦 En apuntar una despesa, el banc és una pastilla que es desplega, com els filtres de Despeses.",
    ]}}
 ];
 /* Cinturón por si alguien sirve el módulo sin pasar por build-app (tests que evalúan fuente).

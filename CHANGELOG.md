@@ -2,6 +2,32 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.13] — 2026-09-09
+### Un límite por categoría (idea 5.2, la que su pareja usaría seguro)
+
+- Desglose del mes por categoría en Gastos, de más a menos. **No existía nada parecido en la app**:
+  esa era la mitad del trabajo.
+- Límite opcional por categoría con su barra. `state.categoryBudgets` llevaba desde julio
+  inicializado en dos sitios, con el comentario «límites €/mes por categoría (§5)», **y no lo leía
+  nadie**: un objeto vacío que viajaba a la nube en cada guardado sin hacer nada. Esta tanda le da
+  uso; no hubo que migrar nada.
+- `categorySpentByMonth` usa la MISMA ventana y la MISMA regla que la cabecera
+  (`inicioDeMesMs` + `hastaMs` + `expenseCountsBudget`), no un segundo `forEach` con criterio
+  propio. Medido con fixture: cabecera 140,71 y suma del desglose 140,71. Si no cuadrara, el
+  desglose mentiría y sería peor que no tenerlo.
+- Las neutras (inversión, traspaso) y los bancos que no cuentan para el presupuesto quedan fuera
+  del desglose, igual que de la cifra de arriba. Verificado.
+- Una categoría con límite y sin gasto este mes se ve a 0; si desapareciera parecería que se ha
+  borrado el límite.
+
+**Decisiones que acotan la tanda, a propósito:** el límite es INFORMATIVO —no resta del
+presupuesto general, no bloquea, no cambia «lo que puedes gastar»— y **no hay avisos**. Los avisos
+del presupuesto los manda el `ingest`, así que meter ahí los límites por categoría obligaría a
+desplegar la Edge Function del Supabase compartido, que es de producción también, y a duplicar la
+regla en dos sitios otra vez. Primero que lo vea y decida si los quiere.
+
+OTA; sin Android; sin migraciones.
+
 ## [4.19.12] — 2026-09-09
 ### El resumen del mes cerrado, en Inicio (idea 5.3.3, la favorita de su pareja)
 
