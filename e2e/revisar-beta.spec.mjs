@@ -224,7 +224,9 @@ test("✓, «no lo puedo probar» Y los ✗ con su comentario se heredan entre c
     const notes = (RELEASE_NOTES || []).find(function(n){ return n.v === base; }) || RELEASE_NOTES[0];
     // La checklist prioriza tandas sobre items: usar aquí la tanda implícita permite sembrar
     // tres puntos incluso cuando la versión real trae una tanda explícita de solo dos.
-    if (notes) notes.tandas = [];
+    // Desde 4.19.7 la implícita se pide BORRANDO la propiedad, no poniéndola a []: un array
+    // vacío significa «aprobadas todas, nada que probar» y aquí dejaría la checklist a cero.
+    if (notes) delete notes.tandas;
     if (notes && notes.items) {
       ["es", "en", "ca"].forEach(function(lang) {
         const arr = notes.items[lang];
@@ -319,11 +321,11 @@ test("quitar un ✗ heredado se lleva su comentario (no reaparece en la siguient
 test("una versión sin tandas declaradas sigue siendo una sola checklist", async ({ page }) => {
   await abrirRevisionBeta(page);
   const r = await page.evaluate(() => {
-    // 4.8.0 ya no viaja en el bundle (tope 20). Se planta una entrada sin tandas.
+    // 4.8.0 ya no viaja en el bundle (tope 20). Se planta una entrada SIN la propiedad `tandas`,
+    // que es lo que son las ~70 versiones del histórico.
     RELEASE_NOTES.unshift({
       v: "0.0.8", d: "e2e", t: "sin tandas e2e",
       items: { es: ["A", "B"], en: ["A", "B"], ca: ["A", "B"] },
-      tandas: [],
     });
     const p = betaChecklist("0.0.8");
     return { n: p.tandas.length, id: p.tandas[0].id, items: p.tandas[0].items.length, total: p.items.length };
@@ -333,8 +335,26 @@ test("una versión sin tandas declaradas sigue siendo una sola checklist", async
   expect(r.items).toBe(r.total);             // la tanda implícita lo lleva todo
 });
 
+/* Y el reverso, que es el bug que le reapareció el 8/9: una versión que SÍ declaró tandas y ya no
+   tiene ninguna (las aprobó todas) NO puede resucitar como checklist «todo». Ausente y vacío
+   dejaron de ser lo mismo a propósito; ver `betaTandas` y tests/beta-tandas-vacias.test.mjs. */
+test("una versión con TODAS las tandas aprobadas ya no vuelve a pedir revisión", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  const r = await page.evaluate(() => {
+    RELEASE_NOTES.unshift({
+      v: "0.0.9", d: "e2e", t: "todo aprobado e2e",
+      items: { es: ["A", "B"], en: ["A", "B"], ca: ["A", "B"] },
+      tandas: [],
+    });
+    const p = betaChecklist("0.0.9");
+    return { n: p.tandas.length, total: p.items.length };
+  });
+  expect(r.n).toBe(0);
+  expect(r.total).toBe(0);
+});
+
 test("la versión en curso: tandas (o la implícita) cubren TODOS los puntos alineados", async ({ page }) => {
-  /* Con tandas[] vacías (ronda ya promocionada) betaTandas inventa una sola «todo».
+  /* Sin la propiedad `tandas` betaTandas inventa una sola «todo» (versiones del histórico).
      Con varias, la lista plana TIENE que ser la concatenación exacta — regresión 2026-08-01. */
   await abrirRevisionBeta(page);
   const r = await page.evaluate(() => {
