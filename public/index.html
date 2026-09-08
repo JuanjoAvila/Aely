@@ -15571,6 +15571,16 @@ var RELEASE_NOTES=[
        "Si estrenas la app, los gestos funcionan desde el primer momento (antes había que cerrarla y volver a abrirla).",
      ]},
    ],
+   /* Sin estas tres, Novedades caía a los puntos de la tanda, que son un array plano en
+      castellano: un familiar en inglés o catalán veía el texto en español. Era la única versión
+      del bundle así, y es literalmente lo que él pidió el 26/7 («que el histórico de
+      actualizaciones sea en todos los idiomas, no solo español»). Lo vigila
+      `tests/novedades-idiomas.test.mjs`. */
+   items:{
+     es:["Al cambiar de pestaña el fondo ya no parpadea, con cualquier temática o sin ninguna.","Si estrenas la app, los gestos funcionan desde el primer momento."],
+     en:["Switching tabs no longer makes the background flicker, with any theme or none at all.","If the app is brand new, gestures work from the very first moment."],
+     ca:["En canviar de pestanya el fons ja no parpelleja, amb qualsevol temàtica o sense cap.","Si estrenes l'app, els gestos funcionen des del primer moment."]
+   },
   },
 {v:"4.18.4", d:"18 ago 2026",
    t:{es:"Cada banco descuenta lo suyo",

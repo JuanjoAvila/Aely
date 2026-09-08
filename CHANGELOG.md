@@ -38,6 +38,12 @@ Desplegar afecta a producción y **necesita su autorización**. El guion de la t
 
 OTA (parcial, ver límite); sin Android; sin migraciones SQL.
 
+**Y una sugerencia suya del 26/7, por fin atendida:** «que el histórico de actualizaciones sea en
+todos los idiomas, no solo español». La 4.18.5 no tenía `items`, así que Novedades caía a los
+puntos de su tanda —un array plano en castellano— y un familiar en inglés o catalán veía el texto
+español. Era la única versión del bundle así. Guardián `tests/novedades-idiomas.test.mjs`, en rojo
+antes: nombraba `4.18.5 (en)` y `4.18.5 (ca)`.
+
 ## [4.19.9] — 2026-09-08
 ### Import histórico, tanda 3: el agujero A cerrado
 
