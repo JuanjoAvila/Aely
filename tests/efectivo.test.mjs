@@ -98,12 +98,33 @@ t("saque desde OB (bankIban): no toca value del banco; sí sube efectivo", () =>
   assert.equal(st1.accounts.find(function(a){ return a.ent === "efectivo"; }).value, 250);
 });
 
-t("ATM keywords → traspaso", () => {
-  assert.equal(ctx.autoCategory("RETIRADA CAJERO AUTOMATICO"), "traspaso");
-  assert.equal(ctx.autoCategory("ATM WITHDRAWAL"), "traspaso");
-  assert.equal(ctx.autoCategory("Reintegro efectivo"), "traspaso");
-  assert.equal(ctx.isAtmWithdrawal("RETIRADA CAJERO"), true);
+t("ATM keywords → traspaso SOLO en alta nueva, no en autoCategory", () => {
+  assert.equal(ctx.isAtmWithdrawal("RETIRADA CAJERO AUTOMATICO"), true);
   assert.equal(ctx.isAtmWithdrawal("Mercadona"), false);
+  // autoCategory NO debe convertir cajero (migrate lo usaría y tocaría el histórico)
+  assert.equal(ctx.autoCategory("RETIRADA CAJERO AUTOMATICO"), "otros");
+  assert.equal(ctx.categoryOfNewMerchant("RETIRADA CAJERO AUTOMATICO"), "traspaso");
+  assert.equal(ctx.categoryOfNewMerchant("Mercadona"), ctx.autoCategory("Mercadona"));
+});
+
+t("migrate NO saca un cajero viejo de «otros»", () => {
+  const st = {
+    expenses: [{
+      id: "old-atm",
+      merchant: "RETIRADA CAJERO 4B",
+      category: "otros",
+      source: "ob",
+      amount: 50,
+      date: "2026-01-15T12:00:00.000Z",
+      ent: "sabadell",
+    }],
+    accounts: [],
+    settings: {},
+  };
+  const next = ctx.migrate(JSON.parse(JSON.stringify(st)));
+  const e = (next.expenses || []).find(function(x){ return x.id === "old-atm"; });
+  assert.ok(e);
+  assert.equal(e.category, "otros", "el histórico en otros se queda en otros");
 });
 
 t("borrar efectivo: gastos se quedan; expenseBanks limpio; líquido sin el sobre", () => {

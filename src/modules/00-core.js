@@ -240,6 +240,13 @@ const KW = {
   joyeria:["joyeria","joyeros","tiffany","cartier","swarovski","tous ","pandora"],
 };
 /* Retirada de cajero / ATM → traspaso (neutro). Mismas claves en ingest_logic.ts. */
+/* Categoría al ALTA de un movimiento nuevo (OB/import/ingest). ATM → traspaso.
+   NUNCA meter esto en autoCategory: migrate recategoriza «otros» en cada carga y
+   cambiaría totales de meses ya cerrados (bloqueo Claude 2026-09-08, misma regla que IA). */
+function categoryOfNewMerchant(merchant){
+  if(isAtmWithdrawal(merchant)) return "traspaso";
+  return autoCategory(merchant||"");
+}
 function isAtmWithdrawal(merchant){
   const c=(merchant||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   if(!c) return false;
@@ -262,7 +269,6 @@ function autoCategory(merchant){
   // abr\u00eda la app, porque `migrate` re-categoriza todo lo que est\u00e9 en "otros" y no sea manual.
   if(USER_OVERRIDES[key] && !CAT_NEUTRAS[USER_OVERRIDES[key]]) return USER_OVERRIDES[key];   // lo que T\u00da has aprendido a mano
   for(const k in MERCHANT_OVERRIDES){ if(c.indexOf(k)!==-1) return MERCHANT_OVERRIDES[k]; }  // overrides de ejemplo
-  if(typeof isAtmWithdrawal==="function" && isAtmWithdrawal(merchant)) return "traspaso";
   // Keywords cortas (bar, bus…) con límite de palabra: si no, "Barcelona" caía en bares
   // por el substring «bar» (bug Kinepolis 2026-07-17).
   const hit=function(hay, needle){

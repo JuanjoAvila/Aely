@@ -417,7 +417,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
         expAdds.push(e); return;
       }
       // Gasto: categoría del clasificador (incl. inversion) — nunca applyInvestBuy aquí.
-      const cat=(c&&c.category)||autoCategory(x.merchant||"");
+      const cat=(c&&c.category)||categoryOfNewMerchant(x.merchant||"");
       const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent };
       if(x.id) e.extId=x.id;
       const nt=cleanNote(x.note, e.merchant); if(nt) e.note=nt;

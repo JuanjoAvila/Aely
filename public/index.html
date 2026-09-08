@@ -2055,6 +2055,13 @@ const KW = {
   joyeria:["joyeria","joyeros","tiffany","cartier","swarovski","tous ","pandora"],
 };
 /* Retirada de cajero / ATM → traspaso (neutro). Mismas claves en ingest_logic.ts. */
+/* Categoría al ALTA de un movimiento nuevo (OB/import/ingest). ATM → traspaso.
+   NUNCA meter esto en autoCategory: migrate recategoriza «otros» en cada carga y
+   cambiaría totales de meses ya cerrados (bloqueo Claude 2026-09-08, misma regla que IA). */
+function categoryOfNewMerchant(merchant){
+  if(isAtmWithdrawal(merchant)) return "traspaso";
+  return autoCategory(merchant||"");
+}
 function isAtmWithdrawal(merchant){
   const c=(merchant||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   if(!c) return false;
@@ -2077,7 +2084,6 @@ function autoCategory(merchant){
   // abr\u00eda la app, porque `migrate` re-categoriza todo lo que est\u00e9 en "otros" y no sea manual.
   if(USER_OVERRIDES[key] && !CAT_NEUTRAS[USER_OVERRIDES[key]]) return USER_OVERRIDES[key];   // lo que T\u00da has aprendido a mano
   for(const k in MERCHANT_OVERRIDES){ if(c.indexOf(k)!==-1) return MERCHANT_OVERRIDES[k]; }  // overrides de ejemplo
-  if(typeof isAtmWithdrawal==="function" && isAtmWithdrawal(merchant)) return "traspaso";
   // Keywords cortas (bar, bus…) con límite de palabra: si no, "Barcelona" caía en bares
   // por el substring «bar» (bug Kinepolis 2026-07-17).
   const hit=function(hay, needle){
@@ -10915,7 +10921,7 @@ function importObExpenses(s, txs){
     const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
     const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
       merchant:tx.merchant||"Compra", amount:tx.amount,
-      category: esAporteInv ? "inversion" : autoCategory(tx.merchant||""), source:"ob", ent:tx.ent };
+      category: esAporteInv ? "inversion" : categoryOfNewMerchant(tx.merchant||""), source:"ob", ent:tx.ent };
     e.obName=e.merchant;   // lo que dijo el banco: el dedup se queda con esto aunque él lo renombre
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
     if(tx.id) e.extId=tx.id;
@@ -11258,7 +11264,7 @@ function histClassifyCandidates(cands, state){
     }
     const amt=Math.abs(x.amount||0);
     const esAporte=!!(daily && daily.ent===x.ent && daily.monthlyInvest>0 && Math.abs(amt-daily.monthlyInvest)<0.01);
-    const cat=esAporte ? "inversion" : (typeof autoCategory==="function"?autoCategory(x.merchant||""):"otros");
+    const cat=esAporte ? "inversion" : (typeof categoryOfNewMerchant==="function"?categoryOfNewMerchant(x.merchant||""):(typeof autoCategory==="function"?autoCategory(x.merchant||""):"otros"));
     // Híbrido C: default Gasto; recibo solo si el usuario lo marca (suggestRecibo).
     return { status:"new", reason:null, match:null, defDest:"gasto", suggestRecibo:!x.card, category:cat };
   });
@@ -13854,7 +13860,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
         expAdds.push(e); return;
       }
       // Gasto: categoría del clasificador (incl. inversion) — nunca applyInvestBuy aquí.
-      const cat=(c&&c.category)||autoCategory(x.merchant||"");
+      const cat=(c&&c.category)||categoryOfNewMerchant(x.merchant||"");
       const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent };
       if(x.id) e.extId=x.id;
       const nt=cleanNote(x.note, e.merchant); if(nt) e.note=nt;

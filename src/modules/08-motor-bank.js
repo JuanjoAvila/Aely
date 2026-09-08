@@ -469,7 +469,7 @@ function importObExpenses(s, txs){
     const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
     const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
       merchant:tx.merchant||"Compra", amount:tx.amount,
-      category: esAporteInv ? "inversion" : autoCategory(tx.merchant||""), source:"ob", ent:tx.ent };
+      category: esAporteInv ? "inversion" : categoryOfNewMerchant(tx.merchant||""), source:"ob", ent:tx.ent };
     e.obName=e.merchant;   // lo que dijo el banco: el dedup se queda con esto aunque él lo renombre
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
     if(tx.id) e.extId=tx.id;
@@ -812,7 +812,7 @@ function histClassifyCandidates(cands, state){
     }
     const amt=Math.abs(x.amount||0);
     const esAporte=!!(daily && daily.ent===x.ent && daily.monthlyInvest>0 && Math.abs(amt-daily.monthlyInvest)<0.01);
-    const cat=esAporte ? "inversion" : (typeof autoCategory==="function"?autoCategory(x.merchant||""):"otros");
+    const cat=esAporte ? "inversion" : (typeof categoryOfNewMerchant==="function"?categoryOfNewMerchant(x.merchant||""):(typeof autoCategory==="function"?autoCategory(x.merchant||""):"otros"));
     // Híbrido C: default Gasto; recibo solo si el usuario lo marca (suggestRecibo).
     return { status:"new", reason:null, match:null, defDest:"gasto", suggestRecibo:!x.card, category:cat };
   });

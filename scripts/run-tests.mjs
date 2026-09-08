@@ -76,6 +76,7 @@ const steps = [
   ["expense-bank", ["node", "tests/expense-bank.test.mjs"]],
   ["saldo-por-banco", ["node", "tests/saldo-por-banco.test.mjs"]],
   ["efectivo", ["node", "tests/efectivo.test.mjs"]],
+  ["atm-dual", ["node", "tests/atm-dual.test.mjs"]],
   ["tr-open-banking", ["node", "tests/tr-open-banking.test.mjs"]],
   ["huella-bundle", ["node", "tests/huella-bundle.test.mjs"]],
   ["expense-note", ["node", "tests/expense-note.test.mjs"]],
