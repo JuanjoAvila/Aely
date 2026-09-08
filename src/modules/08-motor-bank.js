@@ -845,6 +845,22 @@ function histBuildCommit(cands, classifications, state, opts){
   });
   return { expAdds:expAdds, fixAdds:[], batchId:batchId, investmentsSnapshot:investmentsBefore };
 }
+/* Tras el batch: qué filas se quedan en local. Sin ACK del servidor (y sin offline) se tiran —
+   un uuid local que no volvió en RETURNING chocó con la terna o no se insertó (agujero A). */
+function histApplyBatchAck(expAdds, cloudIds, opts){
+  opts=opts||{};
+  if(opts.offline){
+    return { kept:(expAdds||[]).slice(), skipped:[], cloudIds:[], offline:true };
+  }
+  const ok={};
+  (cloudIds||[]).forEach(function(id){ if(id) ok[id]=1; });
+  const kept=[], skipped=[];
+  (expAdds||[]).forEach(function(e){
+    if(!e) return;
+    if(ok[e.id]) kept.push(e); else skipped.push(e);
+  });
+  return { kept:kept, skipped:skipped, cloudIds:(cloudIds||[]).slice(), offline:false };
+}
 /* Deshacer un batch: quita filas locales del batch y lista ids de nube para borrar POR ID.
    Nunca escribe state.deleted (agujero B). cloudDeleteById solo debe llevar ids con ACK
    (insertados de verdad); el llamador no mete los que chocaron en la terna (agujero A). */

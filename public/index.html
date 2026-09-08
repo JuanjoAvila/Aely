@@ -2401,6 +2401,45 @@ const cloud = (function(){
         }
       );
     },
+    /* IMPORT HISTÓRICO — batch con RETURNING id (tanda 3, agujero A).
+       ignoreDuplicates + onConflict terna: Postgres NO devuelve las filas que chocaron.
+       Solo los ids ACK son borrables después. NO toca addExpense (camino paralelo). */
+    async addExpensesBatch(expenses){
+      if(!sb) return { cloudIds:[], offline:true };
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) return { cloudIds:[], offline:true };
+      const list=(expenses||[]).filter(Boolean);
+      if(!list.length) return { cloudIds:[], offline:false };
+      const uid=session.user.id;
+      const r=await withNotaFallback(function(conNota, conDivisa, conObName){
+        const filas=list.map(function(e){
+          const base={ user_id:uid, fecha:e.date, importe:e.amount, comercio:e.merchant, cat:e.category, source:expenseSourceForCloud(e), no_card:!!e.noCard };
+          if(isExpenseUuid(e&&e.id)) base.id=e.id;
+          let fila=base;
+          if(conNota) fila=Object.assign({},fila,{ nota:(e.note?String(e.note).slice(0,160):null), nota_edit:!!e.noteEdited });
+          if(conDivisa) fila=Object.assign({},fila,{ importe_orig:(e.origCur?Math.abs(Number(e.origAmount)||0):null), divisa:(e.origCur||null) });
+          if(conObName) fila=Object.assign({},fila,{ ob_name:(e.obName!=null?String(e.obName).slice(0,160):null) });
+          return fila;
+        });
+        return sb.from('expenses').upsert(
+          filas,
+          { onConflict:'user_id,fecha,importe,comercio', ignoreDuplicates:true }
+        ).select('id');
+      });
+      const rows=(r&&r.data)||[];
+      return { cloudIds:rows.map(function(row){ return row.id; }).filter(Boolean), offline:false };
+    },
+    /* Borrado SOLO por id (uuid). Camino del undo del histórico: nunca por terna.
+       No sustituye a deleteExpense (gastos viejos sin uuid siguen el fallback de atributos). */
+    async deleteExpensesByIds(ids){
+      if(!sb) return;
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) return;
+      const uuids=(ids||[]).filter(isExpenseUuid);
+      if(!uuids.length) return;
+      const {error}=await sb.from('expenses').delete().eq('user_id', session.user.id).in('id', uuids);
+      if(error) throw error;
+    },
     // Persiste el BANCO elegido de un gasto (va embebido en source: manual:caixabank…) para
     // que sobreviva a reinstalaciones — mismo truco que ob: (2026-07-18).
     async setExpenseBank(e, ent){
@@ -2801,7 +2840,7 @@ const cloud = (function(){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","deleteExpense",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","deleteExpense","deleteExpensesByIds",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -5134,6 +5173,16 @@ Object.assign(LANG.es,{
   bp_hist_confirm_fijos:"¿Crear {n} recibo(s) fijo(s)?",
   bp_hist_confirm_fijos_sub:"Se restarán todos los meses, también hacia atrás. Si solo quieres apuntar este cobro una vez, déjalo como Gasto.",
   bp_hist_confirm_fijos_ok:"Crear recibos fijos",
+  bp_hist_no_ack:"La nube no ha confirmado ningún movimiento: no se ha guardado el lote. Prueba otra vez con conexión.",
+  bp_hist_skip_dup:"{n} ya estaban y no se han tocado",
+  bp_hist_offline:"Sin nube: solo en este móvil (al sincronizar pueden chocar)",
+  bp_hist_undo_btn:"↶ Deshacer la última importación",
+  bp_hist_undo_title:"¿Deshacer la última importación?",
+  bp_hist_undo_sub:"Se quitan los movimientos de ese lote. Los que ya tenías antes no se tocan.",
+  bp_hist_undo_ok:"Deshacer",
+  bp_hist_undo_done:"✓ Importación deshecha",
+  bp_hist_undo_empty:"No hay una importación reciente que deshacer.",
+  bp_hist_undo_local_only:"Quitado en el móvil. En la nube no había ids confirmados: no se ha borrado nada allí.",
   bp_hist_f_all:"Todos", bp_hist_f_gastos:"🛒 Gastos", bp_hist_f_ingresos:"💰 Ingresos", bp_hist_f_allmonths:"Todos los meses",
   bp_hist_nofilter:"Ningún movimiento con este filtro. Prueba a quitar alguno.",
   bp_summary_n:"{n} conectado(s)", bp_summary_exp:"⚠ {n} caducado(s) — reconéctalo", bp_summary_none:"Ningún banco conectado todavía",
@@ -5172,6 +5221,16 @@ Object.assign(LANG.en,{
   bp_hist_confirm_fijos:"Create {n} fixed bill(s)?",
   bp_hist_confirm_fijos_sub:"They will be deducted every month, including past months. If you only want this charge once, leave it as Spending.",
   bp_hist_confirm_fijos_ok:"Create fixed bills",
+  bp_hist_no_ack:"The cloud did not confirm any transaction: the batch was not saved. Try again when online.",
+  bp_hist_skip_dup:"{n} were already there and were left untouched",
+  bp_hist_offline:"Offline: only on this phone (they may clash when you sync)",
+  bp_hist_undo_btn:"↶ Undo last import",
+  bp_hist_undo_title:"Undo the last import?",
+  bp_hist_undo_sub:"Removes that batch’s transactions. Ones you already had stay put.",
+  bp_hist_undo_ok:"Undo",
+  bp_hist_undo_done:"✓ Import undone",
+  bp_hist_undo_empty:"There’s no recent import to undo.",
+  bp_hist_undo_local_only:"Removed on the phone. No confirmed cloud ids: nothing was deleted there.",
   bp_hist_f_all:"All", bp_hist_f_gastos:"🛒 Spending", bp_hist_f_ingresos:"💰 Income", bp_hist_f_allmonths:"All months",
   bp_hist_nofilter:"No transactions match this filter. Try removing one.",
   bp_summary_n:"{n} connected", bp_summary_exp:"⚠ {n} expired — reconnect it", bp_summary_none:"No bank connected yet",
@@ -5210,6 +5269,16 @@ Object.assign(LANG.ca,{
   bp_hist_confirm_fijos:"Crear {n} rebut(s) fix(os)?",
   bp_hist_confirm_fijos_sub:"Es restaran tots els mesos, també cap enrere. Si només vols apuntar aquest cobrament un cop, deixa'l com a Despesa.",
   bp_hist_confirm_fijos_ok:"Crear rebuts fixos",
+  bp_hist_no_ack:"El núvol no ha confirmat cap moviment: no s'ha desat el lot. Torna-ho a provar amb connexió.",
+  bp_hist_skip_dup:"{n} ja hi eren i no s'han tocat",
+  bp_hist_offline:"Sense núvol: només en aquest mòbil (en sincronitzar poden xocar)",
+  bp_hist_undo_btn:"↶ Desfer la darrera importació",
+  bp_hist_undo_title:"Desfer la darrera importació?",
+  bp_hist_undo_sub:"Es treuen els moviments d'aquest lot. Els que ja tenies abans no es toquen.",
+  bp_hist_undo_ok:"Desfer",
+  bp_hist_undo_done:"✓ Importació desfeta",
+  bp_hist_undo_empty:"No hi ha una importació recent per desfer.",
+  bp_hist_undo_local_only:"Tret al mòbil. Al núvol no hi havia ids confirmats: no s'ha esborrat res allà.",
   bp_hist_f_all:"Tots", bp_hist_f_gastos:"🛒 Despeses", bp_hist_f_ingresos:"💰 Ingressos", bp_hist_f_allmonths:"Tots els mesos",
   bp_hist_nofilter:"Cap moviment amb aquest filtre. Prova de treure'n algun.",
   bp_summary_n:"{n} connectat(s)", bp_summary_exp:"⚠ {n} caducat(s) — reconnecta'l", bp_summary_none:"Cap banc connectat encara",
@@ -11043,6 +11112,22 @@ function histBuildCommit(cands, classifications, state, opts){
   });
   return { expAdds:expAdds, fixAdds:[], batchId:batchId, investmentsSnapshot:investmentsBefore };
 }
+/* Tras el batch: qué filas se quedan en local. Sin ACK del servidor (y sin offline) se tiran —
+   un uuid local que no volvió en RETURNING chocó con la terna o no se insertó (agujero A). */
+function histApplyBatchAck(expAdds, cloudIds, opts){
+  opts=opts||{};
+  if(opts.offline){
+    return { kept:(expAdds||[]).slice(), skipped:[], cloudIds:[], offline:true };
+  }
+  const ok={};
+  (cloudIds||[]).forEach(function(id){ if(id) ok[id]=1; });
+  const kept=[], skipped=[];
+  (expAdds||[]).forEach(function(e){
+    if(!e) return;
+    if(ok[e.id]) kept.push(e); else skipped.push(e);
+  });
+  return { kept:kept, skipped:skipped, cloudIds:(cloudIds||[]).slice(), offline:false };
+}
 /* Deshacer un batch: quita filas locales del batch y lista ids de nube para borrar POR ID.
    Nunca escribe state.deleted (agujero B). cloudDeleteById solo debe llevar ids con ACK
    (insertados de verdad); el llamador no mete los que chocaron en la terna (agujero A). */
@@ -13587,6 +13672,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
     if(!cands || !selCount) return;
     setImporting(true);
     const expAdds=[], fixAdds=[];
+    const batchId="hist-"+(typeof mcExpenseId==="function"?mcExpenseId():String(Date.now()));
     visible.forEach(function(o){
       const i=o.i, x=o.x;
       if(!sel[i]) return;
@@ -13600,32 +13686,72 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
       }
       if(d==="ingreso"){
         const cat=(c&&c.defDest==="ingreso"&&c.category)?c.category:"ingreso";
-        const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:-Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, noCard:true, income:true };
+        const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:-Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, noCard:true, income:true, importBatchId:batchId };
         if(x.id) e.extId=x.id;
         const nti=cleanNote(x.note, e.merchant); if(nti) e.note=nti;
         expAdds.push(e); return;
       }
-      // Gasto: categoría del clasificador (incl. inversion) — nunca applyInvestBuy aquí.
       const cat=(c&&c.category)||autoCategory(x.merchant||"");
-      const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent };
+      const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, importBatchId:batchId };
       if(x.id) e.extId=x.id;
       const nt=cleanNote(x.note, e.merchant); if(nt) e.note=nt;
       expAdds.push(e);
     });
-    set(function(s){
-      const next=Object.assign({},s);
-      if(expAdds.length) next.expenses=expAdds.concat(s.expenses||[]);
-      if(fixAdds.length) next.fixed=(s.fixed||[]).concat(fixAdds);
-      return next;
-    });
-    // Batch cloud con .select('id') = tanda 3; hoy sigue el camino viejo (ACK por fila).
-    setTimeout(function(){ expAdds.forEach(function(e){ cloud.addExpense(e).catch(function(){}); }); },0);
-    const parts=[];
-    if(expAdds.filter(function(e){ return e.amount>0; }).length) parts.push(tf("bp_hist_done_g",{n:expAdds.filter(function(e){ return e.amount>0; }).length}));
-    if(expAdds.filter(function(e){ return e.amount<0; }).length) parts.push(tf("bp_hist_done_i",{n:expAdds.filter(function(e){ return e.amount<0; }).length}));
-    if(fixAdds.length) parts.push(tf("bp_hist_done_r",{n:fixAdds.length}));
-    showToast(parts.length?parts.join(" · "):tf("bp_hist_done",{n:selCount}));
-    setImporting(false); onClose();
+    // Tanda 3: batch + RETURNING id. Solo lo ACK queda en local; sin ids → aviso claro.
+    Promise.resolve(cloud.addExpensesBatch ? cloud.addExpensesBatch(expAdds) : { cloudIds:[], offline:true })
+      .catch(function(){ return { cloudIds:[], offline:false, failed:true }; })
+      .then(function(res){
+        const offline=!!(res&&res.offline);
+        const failed=!!(res&&res.failed);
+        const ack=histApplyBatchAck(expAdds, (res&&res.cloudIds)||[], { offline:offline });
+        // Servidor llamado y 0 ids con candidatos: no persistimos en local (sin ACK).
+        const keepLocal=offline ? ack.kept : (failed ? [] : ack.kept);
+        set(function(s){
+          const next=Object.assign({},s);
+          if(keepLocal.length) next.expenses=keepLocal.concat(s.expenses||[]);
+          if(fixAdds.length) next.fixed=(s.fixed||[]).concat(fixAdds);
+          if(keepLocal.length){
+            next.lastHistImport={ batchId:batchId, localIds:keepLocal.map(function(e){ return e.id; }), cloudIds:offline?[]:ack.cloudIds, at:Date.now() };
+          }
+          return next;
+        });
+        const parts=[];
+        if(keepLocal.filter(function(e){ return e.amount>0; }).length) parts.push(tf("bp_hist_done_g",{n:keepLocal.filter(function(e){ return e.amount>0; }).length}));
+        if(keepLocal.filter(function(e){ return e.amount<0; }).length) parts.push(tf("bp_hist_done_i",{n:keepLocal.filter(function(e){ return e.amount<0; }).length}));
+        if(fixAdds.length) parts.push(tf("bp_hist_done_r",{n:fixAdds.length}));
+        if(failed || (!offline && expAdds.length && !ack.cloudIds.length)){
+          showToast("⚠ "+t("bp_hist_no_ack"));
+        }else if(!offline && ack.skipped.length){
+          showToast((parts.length?parts.join(" · ")+" · ":"")+tf("bp_hist_skip_dup",{n:ack.skipped.length}));
+        }else if(offline && expAdds.length){
+          showToast((parts.length?parts.join(" · ")+" · ":"")+t("bp_hist_offline"));
+        }else{
+          showToast(parts.length?parts.join(" · "):tf("bp_hist_done",{n:keepLocal.length+fixAdds.length}));
+        }
+        setImporting(false); onClose();
+      });
+  };
+  const doUndoLast=function(){
+    const last=state&&state.lastHistImport;
+    if(!last||!last.batchId){ showToast("⚠ "+t("bp_hist_undo_empty")); return; }
+    askConfirm({ title:t("bp_hist_undo_title"), sub:t("bp_hist_undo_sub"), ok:t("bp_hist_undo_ok"), danger:true })
+      .then(function(yes){
+        if(!yes) return;
+        const r=histUndoBatch(state, last);
+        if(!r||!r.ok){ showToast("⚠ "+t("bp_hist_undo_empty")); return; }
+        set(function(s){
+          return Object.assign({}, r.nextState, { lastHistImport:null });
+        });
+        const ids=(r.cloudDeleteById||[]).slice();
+        if(ids.length && cloud.deleteExpensesByIds){
+          cloud.deleteExpensesByIds(ids).catch(function(){});
+        }else if(!ids.length && (last.localIds||[]).length){
+          showToast("⚠ "+t("bp_hist_undo_local_only"));
+        }else{
+          showToast(t("bp_hist_undo_done"));
+        }
+        if(ids.length) showToast(t("bp_hist_undo_done"));
+      });
   };
   const doImport=function(){
     if(!cands || !selCount) return;
@@ -13641,6 +13767,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
     }
     runImport();
   };
+  const canUndo=!!(state&&state.lastHistImport&&state.lastHistImport.batchId);
   const wrap={position:"fixed",inset:0,zIndex:97,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
   const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
@@ -13663,6 +13790,9 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
     React.createElement("div",{className:"serif",style:{fontSize:24,margin:"4px 0 4px"}}, t("bp_hist_title")),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}},
       allowList.length? tf("bp_hist_sub",{banks:banksLbl}) : t("bp_hist_nodaily")),
+    canUndo && React.createElement("button",{type:"button",onClick:doUndoLast,
+      style:{width:"100%",padding:"11px",borderRadius:12,border:"1px solid var(--coral)",background:"transparent",color:"var(--coral)",fontWeight:800,fontSize:13,cursor:"pointer",marginBottom:12}},
+      t("bp_hist_undo_btn")),
     allowList.length>0 && React.createElement(React.Fragment,null,
       React.createElement("div",{style:{display:"flex",gap:8,marginBottom:12}}, [1,2,3].map(chip)),
       React.createElement("button",{style:{width:"100%",padding:"12px",borderRadius:12,border:"1px solid var(--line)",background:"var(--surface)",color:"var(--text)",fontWeight:800,fontSize:14,cursor:"pointer"},disabled:loading,onClick:search}, loading?t("bp_hist_searching"):t("bp_hist_search")),
