@@ -256,8 +256,9 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
   const [cands,setCands]=useState(null);
   const [sel,setSel]=useState({});       // índice -> bool
   const [dest,setDest]=useState({});     // índice -> "gasto"|"recibo"|"ingreso"
-  const [dupRecibo,setDupRecibo]=useState({});   // índice -> true (misma factura, otro mes del histórico)
-  const [dupExist,setDupExist]=useState({});     // índice -> el gasto/ingreso YA guardado con el que coincide
+  const [classRows,setClassRows]=useState([]);  // salida de histClassifyCandidates
+  const [signSuspect,setSignSuspect]=useState({});
+  const [truncWarn,setTruncWarn]=useState(false);
   const [importing,setImporting]=useState(false);
   /* FILTROS (rediseño 3/8, petición suya: «me parece anticuada comparada con el import de Excel»,
      más un bug real que reportó: «seleccioné Trade Republic y salían también movimientos de Banco
@@ -274,17 +275,19 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
   const [tipoFilter,setTipoFilter]=useState("all");   // "all" | "gasto" | "ingreso"
   const [mesFilter,setMesFilter]=useState("all");     // "all" | "YYYY-MM"
   const [revelado,setRevelado]=useState(0);           // filas ya "entradas" (animación, como el import de Excel)
+  // Tope de DOM (§7 bis / plan P): con 3 meses el lote puede ser cientos; pintarlas todas
+  // tiran WebView. Se muestran las primeras y el resto a demanda.
+  const HIST_RENDER_CAP=60;
+  const [renderCap,setRenderCap]=useState(HIST_RENDER_CAP);
   useBackClose(true, onClose);
   const kOf=function(dt,am,mc){ return String(dt).slice(0,10)+"|"+am+"|"+(mc||""); };
-  const defDest=function(x){
-    if(x.kind==="in") return "ingreso";
-    if(x.card) return "gasto";
-    return "recibo";
-  };
+  // Fallback si aún no hay clasificación (híbrido C: NUNCA recibo a ciegas).
+  const defDest=function(x){ return x.kind==="in" ? "ingreso" : "gasto"; };
   const search=function(){
     if(!allowList.length){ showToast(t("bp_hist_nodaily")); return; }
     setLoading(true); setCands(null);
     setBankFilter([]); setTipoFilter("all"); setMesFilter("all"); setRevelado(0);
+    setRenderCap(HIST_RENDER_CAP); setTruncWarn(false); setSignSuspect({}); setClassRows([]);
     const d=new Date(); d.setMonth(d.getMonth()-months); const dateFrom=d.toISOString().slice(0,10);
     cloud.bankSyncHistory(dateFrom).then(function(res){
       const links=(res&&res.links)||[];
@@ -292,10 +295,14 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
       // ambigüedad —es literalmente el mismo movimiento del banco— así que se descarta aquí, en
       // silencio: enseñarlo solo ensuciaría la lista con lo que ya entró cada día sin que hiciera falta.
       const seen={}; (state.expenses||[]).forEach(function(e){ if(e.extId) seen[e.extId]=1; });
-      const fixNames={}; (state.fixed||[]).forEach(function(f){ fixNames[(f.name||"").toLowerCase()+"|"+(f.amount||0)+"|"+(f.account||"")]=1; });
       const out=[], uniq={};
       links.forEach(function(lk){
-        const ent=entFromAspsp(lk&&lk.aspsp); if(!allow[ent]) return;
+        const ent=entFromAspsp(lk&&lk.aspsp);
+        // Fuera del catálogo ENT: no silenciar (agujero E) — clave sintética para filtrar/ver.
+        if(ent && !allow[ent]) return;
+        const entKey=ent || ("aspsp:"+String((lk&&lk.aspsp)||"desconocido").toLowerCase().replace(/\s+/g,"_"));
+        // Label humano aparte: entKey sintético no se pinta nunca (review Claude 2026-09-08).
+        const entLabel=ent ? entOf(ent).label : (String((lk&&lk.aspsp)||"").trim()||null);
         (lk.accounts||[]).forEach(function(ac){
           (ac.transactions||[]).forEach(function(tx){
             const dt=String(tx.date||"").slice(0,10), am=Number(tx.amount)||0;
@@ -304,34 +311,31 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
             const abs=Math.abs(am);
             if(tx.ext_id && seen[tx.ext_id]) return;
             const k=(tx.ext_id||"")+"|"+(isIn?"in":"out")+"|"+kOf(dt,abs,tx.merchant); if(uniq[k]) return; uniq[k]=1;
-            out.push({ id:tx.ext_id||null, date:dt, amount:abs, merchant:tx.merchant||(isIn?t("cat_ingreso"):"Compra"), note:tx.note||"", card:!!tx.card, ent:ent, kind:isIn?"in":"out" });
+            out.push({ id:tx.ext_id||null, date:dt, amount:abs, merchant:tx.merchant||(isIn?t("cat_ingreso"):"Compra"), note:tx.note||"", card:!!tx.card, ent:entKey, entLabel:entLabel, kind:isIn?"in":"out" });
           });
         });
       });
       out.sort(function(a,b){ return b.date.localeCompare(a.date); });
+      // Truncado del servidor o del banco: avisamos en preview (agujero F).
+      let trunc=!!(res&&(res.truncated||res.truncatedAt));
+      if(!trunc && out.length){
+        let minD=out[0].date;
+        out.forEach(function(x){ if(x.date<minD) minD=x.date; });
+        if(minD>dateFrom) trunc=true;
+      }
+      setTruncWarn(trunc);
+      // Clasificador puro (tanda 1): dups 1:1, modeled por mes, cats traspaso/inversion, signo.
+      const classified=histClassifyCandidates(out, state);
+      setClassRows(classified.rows||[]);
+      setSignSuspect(classified.signSuspect||{});
       setCands(out);
-      // Duplicados de recibo DENTRO del propio lote (2026-07-31): 3 meses de histórico traen la
-      // MISMA factura recurrente 3 veces — sin esto, "aceptar todo" crea 3 Fijos idénticos que se
-      // cobran los 3 cada mes para siempre. Ver dedupeHistRecibos (08-motor-bank.js).
-      const dup=dedupeHistRecibos(out);
-      setDupRecibo(dup);
-      // Duplicados contra lo que YA TIENES guardado (2026-08-03, mismo criterio y misma idea de UI
-      // que el import de Excel): antes esto se descartaba en silencio con una clave sin normalizar
-      // el comercio — ahora la fila se queda en la lista, tachada, para COMPARAR en vez de
-      // desaparecer sin explicación. Ver histCandExisting (08-motor-bank.js).
-      const dExist=histCandExisting(out, state.expenses||[]);
-      setDupExist(dExist);
       const s0={}, d0={};
       out.forEach(function(x,i){
-        d0[i]=defDest(x);
-        // Pre-marca: tarjeta/ingreso sí; recibo (no tarjeta) también — es lo que evita teclear fijos.
-        s0[i]=true;
-        if(dExist[i]) s0[i]=false;      // ya está guardado con ese mismo día/importe/comercio
-        if(d0[i]==="recibo"){
-          const fk=(x.merchant||"").toLowerCase()+"|"+x.amount+"|"+x.ent;
-          if(fixNames[fk]) s0[i]=false;   // ya tienes ese fijo
-          else if(dup[i]) s0[i]=false;    // misma factura ya contada por otro mes del histórico
-        }
+        const c=classified.rows&&classified.rows[i];
+        d0[i]=(c&&c.defDest)||defDest(x);
+        // Híbrido C: recibo NUNCA es default — solo si el usuario lo marca a mano.
+        if(d0[i]==="recibo") d0[i]="gasto";
+        s0[i]=!(c&&c.status==="dup");
       });
       setSel(s0); setDest(d0);
     }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); setCands([]); }).finally(function(){ setLoading(false); });
@@ -360,19 +364,37 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
   // `doImport`. Es la garantía de que el filtro de banco arregla de raíz el bug que reportó.
   const visible=cands? cands.map(function(x,i){ return {x:x,i:i}; }).filter(function(o){ return passFilter(o.x); }) : [];
   const selCount=visible.filter(function(o){ return sel[o.i]; }).length;
-  const repCount=visible.filter(function(o){ return dupRecibo[o.i]||dupExist[o.i]; }).length;
+  const repCount=visible.filter(function(o){ const c=classRows[o.i]; return c&&c.status==="dup"; }).length;
   const nuevosCount=visible.length-repCount;
+  const signBanks=Object.keys(signSuspect||{}).filter(function(ent){
+    return signSuspect[ent] && visible.some(function(o){ return o.x.ent===ent; });
+  });
+  // Nunca pintar el slug aspsp:… (entOf cae a label=id). Prioriza entLabel del banco.
+  const histBankLabel=function(xOrEnt){
+    if(xOrEnt && typeof xOrEnt==="object"){
+      if(xOrEnt.entLabel) return xOrEnt.entLabel;
+      const id=xOrEnt.ent;
+      if(id && typeof ENT!=="undefined" && ENT[id]) return ENT[id].label;
+      return t("bp_hist_bank_unknown");
+    }
+    const id=xOrEnt;
+    if(id && typeof ENT!=="undefined" && ENT[id]) return ENT[id].label;
+    const hit=(visible||[]).find(function(o){ return o.x.ent===id; });
+    if(hit&&hit.x.entLabel) return hit.x.entLabel;
+    return t("bp_hist_bank_unknown");
+  };
+  const visibleShown=visible.slice(0, renderCap);
   // Las filas entran contando, una detrás de otra — mismo efecto que el import de Excel (petición
   // suya 2026-07-28, aplicada aquí también por consistencia). El tope evita una espera eterna si
   // el histórico trae decenas de movimientos: pasado el tope, el resto aparece de golpe al acabar.
   useEffect(function(){
     if(!cands) return undefined;
-    const tope=Math.min(24, cands.length);
+    const tope=Math.min(24, Math.min(renderCap, cands.length));
     if(revelado>=tope) return undefined;
     const tm=setTimeout(function(){ setRevelado(function(n){ return n+1; }); }, revelado===0?90:34);
     return function(){ clearTimeout(tm); };
-  },[cands,revelado]);
-  const doImport=function(){
+  },[cands,revelado,renderCap]);
+  const runImport=function(){
     if(!cands || !selCount) return;
     setImporting(true);
     const expAdds=[], fixAdds=[];
@@ -380,6 +402,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
       const i=o.i, x=o.x;
       if(!sel[i]) return;
       const d=dest[i]||defDest(x);
+      const c=classRows[i];
       if(d==="recibo"){
         const it={id:uid(),name:x.merchant||t("bp_hist_recibo"),amount:+Number(x.amount).toFixed(2),freq:"mes",account:x.ent};
         const dd=recDay(x.date); if(dd) it.day=dd;
@@ -387,12 +410,15 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
         return;
       }
       if(d==="ingreso"){
-        const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:-Math.abs(x.amount), category:"ingreso", source:"ob-hist", ent:x.ent, noCard:true, income:true };
+        const cat=(c&&c.defDest==="ingreso"&&c.category)?c.category:"ingreso";
+        const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:-Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, noCard:true, income:true };
         if(x.id) e.extId=x.id;
-        const nti=cleanNote(x.note, e.merchant); if(nti) e.note=nti;   // concepto del extracto (2026-07-24)
+        const nti=cleanNote(x.note, e.merchant); if(nti) e.note=nti;
         expAdds.push(e); return;
       }
-      const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:Math.abs(x.amount), category:autoCategory(x.merchant||""), source:"ob-hist", ent:x.ent };
+      // Gasto: categoría del clasificador (incl. inversion) — nunca applyInvestBuy aquí.
+      const cat=(c&&c.category)||autoCategory(x.merchant||"");
+      const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent };
       if(x.id) e.extId=x.id;
       const nt=cleanNote(x.note, e.merchant); if(nt) e.note=nt;
       expAdds.push(e);
@@ -403,6 +429,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
       if(fixAdds.length) next.fixed=(s.fixed||[]).concat(fixAdds);
       return next;
     });
+    // Batch cloud con .select('id') = tanda 3; hoy sigue el camino viejo (ACK por fila).
     setTimeout(function(){ expAdds.forEach(function(e){ cloud.addExpense(e).catch(function(){}); }); },0);
     const parts=[];
     if(expAdds.filter(function(e){ return e.amount>0; }).length) parts.push(tf("bp_hist_done_g",{n:expAdds.filter(function(e){ return e.amount>0; }).length}));
@@ -411,15 +438,36 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
     showToast(parts.length?parts.join(" · "):tf("bp_hist_done",{n:selCount}));
     setImporting(false); onClose();
   };
+  const doImport=function(){
+    if(!cands || !selCount) return;
+    const nRecibo=visible.filter(function(o){ return sel[o.i] && (dest[o.i]||defDest(o.x))==="recibo"; }).length;
+    if(nRecibo>0){
+      askConfirm({
+        title:tf("bp_hist_confirm_fijos",{n:nRecibo}),
+        sub:t("bp_hist_confirm_fijos_sub"),
+        ok:t("bp_hist_confirm_fijos_ok"),
+        danger:true
+      }).then(function(yes){ if(yes) runImport(); });
+      return;
+    }
+    runImport();
+  };
   const wrap={position:"fixed",inset:0,zIndex:97,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
   const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const chip=function(n){ const on=months===n; return React.createElement("button",{key:n,onClick:function(){ setMonths(n); },style:{flex:1,padding:"9px 0",borderRadius:10,border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"var(--mint)":"var(--surface)",color:on?"#06120C":"var(--text)",fontWeight:800,fontSize:13,cursor:"pointer"}}, tf("bp_hist_m",{n:n})); };
   const bigBtn={width:"100%",padding:"14px",borderRadius:14,border:"none",background:"var(--mint)",color:"#06120C",fontWeight:800,fontSize:15,cursor:"pointer",marginTop:12};
-  const destChip=function(i,id,label){
+  const destChip=function(i,id,label,hint){
     const on=(dest[i]||"")==id;
     return React.createElement("button",{key:id,type:"button",onClick:function(e){ e.stopPropagation(); setDestI(i,id); },
+      title:hint||"",
       style:{padding:"4px 9px",borderRadius:999,border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"rgba(95,208,138,.18)":"transparent",color:on?"var(--mint)":"var(--muted)",fontWeight:800,fontSize:11,cursor:"pointer"}}, label);
+  };
+  const dupHint=function(c){
+    if(!c||c.status!=="dup") return null;
+    if(c.reason==="recibo-lote") return "↺ "+t("bp_hist_dup");
+    if(c.reason==="modeled") return "🗐 "+t("bp_hist_dupmodel");
+    return "🗐 "+t("bp_hist_dupexist");
   };
   return React.createElement("div",{style:wrap,className:"hist-import"}, React.createElement("div",{style:inner},
     React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("bp_close")),
@@ -432,6 +480,9 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
       cands!==null && cands.length===0 && !loading && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,textAlign:"center",padding:"20px 0"}}, t("bp_hist_none")),
       cands!==null && cands.length>0 && React.createElement("div",{style:{marginTop:14}},
         React.createElement("div",{style:{fontSize:12,color:"var(--muted-2)",marginBottom:8}}, tf("bp_hist_found",{n:visible.length})),
+        truncWarn && React.createElement("div",{style:{fontSize:12,lineHeight:1.45,color:"var(--warn, #E6A23C)",background:"rgba(230,162,60,.12)",borderRadius:10,padding:"8px 10px",marginBottom:8}}, t("bp_hist_trunc")),
+        signBanks.length>0 && React.createElement("div",{style:{fontSize:12,lineHeight:1.45,color:"var(--warn, #E6A23C)",background:"rgba(230,162,60,.12)",borderRadius:10,padding:"8px 10px",marginBottom:8}},
+          tf("bp_hist_sign",{banks:signBanks.map(function(e){ return histBankLabel(e); }).join(", ")})),
         /* FILTROS: banco (solo si hay más de uno entre los que se buscó — con uno solo no aporta
            nada elegirlo), tipo (gasto/ingreso) y mes (solo si el lote trae más de uno). Mismo
            patrón visual `.v4-chip`/`.v4-chips` que el resto de la app (Gastos ya filtra así por
@@ -469,29 +520,34 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
         visible.length===0
           ? React.createElement("div",{style:{color:"var(--muted)",fontSize:13,textAlign:"center",padding:"16px 0"}}, t("bp_hist_nofilter"))
           : React.createElement(React.Fragment,null,
-          visible.map(function(o,vi){
+          visibleShown.map(function(o,vi){
           const i=o.i, x=o.x;
           const on=!!sel[i];
           const isIn=x.kind==="in";
-          const isDup=!!(dupRecibo[i]||dupExist[i]);
+          const c=classRows[i];
+          const isDup=!!(c&&c.status==="dup");
+          const suggestRec=!!(c&&c.suggestRecibo&&!isDup);
           const dentro=vi<revelado;
           return React.createElement("div",{key:i,className:"hist-fila"+(dentro?" dentro":""),style:{border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"var(--mint)14":"var(--surface)",borderRadius:12,marginBottom:7,padding:"10px 12px"}},
             React.createElement("button",{type:"button",onClick:function(){ toggle(i); },style:{display:"flex",alignItems:"center",gap:11,width:"100%",background:"none",border:"none",color:"inherit",cursor:"pointer",textAlign:"left",padding:0}},
               React.createElement("span",{style:{width:20,height:20,borderRadius:6,border:"2px solid "+(on?"var(--mint)":"var(--muted-2)"),background:on?"var(--mint)":"transparent",color:"#06120C",fontWeight:900,fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}, on?"✓":""),
               React.createElement("div",{style:{flex:1,minWidth:0}},
                 React.createElement("div",{style:{fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",textDecoration:(!on&&isDup)?"line-through":"none",color:(!on&&isDup)?"var(--muted-2)":undefined}}, x.merchant),
-                React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)",marginTop:1}}, x.date, " · ", entOf(x.ent).label, isIn?"":(x.card?"":" · "+t("bp_hist_notcard"))),
-                dupRecibo[i] ? React.createElement("div",{style:{fontSize:11,color:"var(--mint)",marginTop:1}}, "↺ "+t("bp_hist_dup"))
-                  : (dupExist[i] ? React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)",marginTop:1}}, "🗐 "+t("bp_hist_dupexist")) : null)),
+                React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)",marginTop:1}}, x.date, " · ", histBankLabel(x), isIn?"":(x.card?"":" · "+t("bp_hist_notcard")), suggestRec&&!on?"":""),
+                suggestRec && on ? React.createElement("div",{style:{fontSize:11,color:"var(--muted)",marginTop:1}}, t("bp_hist_suggest_recibo")) : null,
+                dupHint(c) ? React.createElement("div",{style:{fontSize:11,color:c.reason==="recibo-lote"?"var(--mint)":"var(--muted-2)",marginTop:1}}, dupHint(c)) : null),
               React.createElement("span",{style:{fontWeight:800,fontSize:14,flexShrink:0,color:isIn?"var(--mint)":"var(--text)"}}, (isIn?"+":"")+eur(x.amount))
             ),
             on && React.createElement("div",{style:{display:"flex",gap:6,marginTop:8,flexWrap:"wrap",paddingLeft:31}},
               !isIn && destChip(i,"gasto",t("bp_hist_as_gasto")),
-              !isIn && destChip(i,"recibo",t("bp_hist_as_recibo")),
+              !isIn && destChip(i,"recibo",t("bp_hist_as_recibo"),t("bp_hist_confirm_fijos_sub")),
               destChip(i,"ingreso",t("bp_hist_as_ingreso"))
             )
           );
         }),
+        visible.length>renderCap && React.createElement("button",{type:"button",onClick:function(){ setRenderCap(function(n){ return n+HIST_RENDER_CAP; }); setRevelado(function(n){ return Math.max(n, Math.min(24, renderCap+HIST_RENDER_CAP)); }); },
+          style:{width:"100%",padding:"10px",borderRadius:12,border:"1px solid var(--line)",background:"var(--surface)",color:"var(--text)",fontWeight:700,fontSize:13,cursor:"pointer",marginBottom:8}},
+          tf("bp_hist_more",{n:visible.length-renderCap})),
         React.createElement("button",{style:Object.assign({},bigBtn,{opacity:(selCount&&!importing)?1:0.5}),disabled:!selCount||importing,onClick:doImport}, tf("bp_hist_import",{n:selCount}))
         )
       )
