@@ -10789,7 +10789,9 @@ function esTraspasoPropio(s, tx){
 function reconcileObDupes(state){
   const exps=(state&&state.expenses)||[];
   if(!exps.length) return { state:state, borrar:[], recat:[] };
-  const esOb=function(e){ return e && (e.source==="ob" || e.source==="ob-hist"); };
+  // Solo sync diario (`ob`). El histórico (`ob-hist`) ya pasó por preview + dedup 1:1;
+  // un barrido ciego al volver a primer plano (cashback/twin) lo deshacía — plan N.
+  const esOb=function(e){ return e && e.source==="ob"; };
   const sinNombre=function(e){ const m=String((e&&e.merchant)||"").trim(); return !m || m==="Movimiento" || m==="Ingreso"; };
   /* Cashback: solo recat de la salida si hay rewardInv. setExpenseCat aún
      empareja por atributos — migrar a ID de fila antes de tocar el índice. */
@@ -10909,16 +10911,135 @@ function histCandDupKey(dt, amountSigned, merchant){
   return dia+"|"+Math.round(amountSigned*100)+"|"+norm;
 }
 function histCandExisting(cands, expenses){
+  // 1:1 como usadoDup del sync diario (agujero H): dos candidatos contra UN guardado
+  // solo marcan uno; el mapa 1:N antiguo marcaba los dos y el preview mentía.
   const porClave={};
-  (expenses||[]).forEach(function(e){ porClave[histCandDupKey(e.date, e.amount, e.merchant)]=e; });
+  (expenses||[]).forEach(function(e){
+    const k=histCandDupKey(e.date, e.amount, e.merchant);
+    (porClave[k]=porClave[k]||[]).push(e);
+  });
   const out={};
   (cands||[]).forEach(function(x,i){
     if(!x) return;
     const signed = x.kind==="in" ? -Math.abs(x.amount) : Math.abs(x.amount);
-    const found=porClave[histCandDupKey(x.date, signed, x.merchant)];
-    if(found) out[i]=found;
+    const list=porClave[histCandDupKey(x.date, signed, x.merchant)];
+    if(list&&list.length) out[i]=list.shift();
   });
   return out;
+}
+
+/* IMPORT HISTÓRICO — clasificar / construir / deshacer (tanda motor, 2026-09-08).
+   Puros: no escriben nube ni mutan state. UI orquesta en tandas siguientes. */
+function histMatchesModeled(state, cand){
+  if(!cand || cand.kind==="in" || cand.card) return null;
+  const d=parseDate(cand.date);
+  if(!d || !isFinite(d.getTime())) return null;
+  const ym=d.getMonth()+1, yy=d.getFullYear();
+  const amount=Math.abs(cand.amount||0);
+  const merchant=cand.merchant||"";
+  const ent=cand.ent;
+  const modeled=[];
+  const push=function(e,name,amt){ if(e&&amt>0) modeled.push({ent:e,name:name,amount:amt}); };
+  (state.fixed||[]).forEach(function(f){ if(occursIn(f,ym)) push(accOf(f), f.name, occAmountIn(f,ym)); });
+  (state.debts||[]).forEach(function(db){ if(debtActive(db)) push(db.account||"sabadell", db.name||"Cuota", (db.monthly||0)+debtBalloonIn(db,yy,ym)); });
+  (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,yy,ym)) push(o.account||"sabadell", o.name||"Cargo", o.amount||0); });
+  for(let i=0;i<modeled.length;i++){
+    const mm=modeled[i];
+    if(mm.ent!==ent) continue;
+    if(recAmtClose(mm.amount,amount) && recNameMatch(mm.name,merchant)) return mm;
+  }
+  return null;
+}
+function histSignSuspectByBank(cands){
+  const by={};
+  (cands||[]).forEach(function(x){
+    if(!x||!x.ent) return;
+    by[x.ent]=by[x.ent]||{in:0,n:0};
+    by[x.ent].n++;
+    if(x.kind==="in") by[x.ent].in++;
+  });
+  const flagged={};
+  Object.keys(by).forEach(function(ent){
+    const b=by[ent];
+    if(b.n>=3 && (b.in/b.n)>0.7) flagged[ent]=true;
+  });
+  return flagged;
+}
+function histClassifyCandidates(cands, state){
+  state=state||{};
+  const existing=histCandExisting(cands, state.expenses);
+  const recibDup=dedupeHistRecibos(cands);
+  const daily=(state.accounts||[]).find(function(a){ return accDaily(a); });
+  const rows=(cands||[]).map(function(x,i){
+    if(!x) return null;
+    if(existing[i]) return { status:"dup", reason:"existing", match:existing[i], defDest:null, suggestRecibo:false, category:null };
+    if(recibDup[i]) return { status:"dup", reason:"recibo-lote", match:null, defDest:null, suggestRecibo:false, category:null };
+    const modeled=histMatchesModeled(state, x);
+    if(modeled) return { status:"dup", reason:"modeled", match:modeled, defDest:null, suggestRecibo:false, category:null };
+    if(x.kind==="in"){
+      const tx={ amount:-Math.abs(x.amount||0), merchant:x.merchant, ent:x.ent, date:x.date };
+      const cat=esTraspasoPropio(state, tx) ? (typeof TRASPASO_CAT!=="undefined"?TRASPASO_CAT.id:"traspaso") : (typeof INGRESO_CAT!=="undefined"?INGRESO_CAT.id:"ingreso");
+      return { status:"new", reason:null, match:null, defDest:"ingreso", suggestRecibo:false, category:cat };
+    }
+    const amt=Math.abs(x.amount||0);
+    const esAporte=!!(daily && daily.ent===x.ent && daily.monthlyInvest>0 && Math.abs(amt-daily.monthlyInvest)<0.01);
+    const cat=esAporte ? "inversion" : (typeof autoCategory==="function"?autoCategory(x.merchant||""):"otros");
+    // Híbrido C: default Gasto; recibo solo si el usuario lo marca (suggestRecibo).
+    return { status:"new", reason:null, match:null, defDest:"gasto", suggestRecibo:!x.card, category:cat };
+  });
+  return { rows:rows, signSuspect:histSignSuspectByBank(cands) };
+}
+function histBuildCommit(cands, classifications, state, opts){
+  opts=opts||{};
+  const batchId=opts.batchId || ("hist-"+(typeof mcExpenseId==="function"?mcExpenseId():String(Date.now())));
+  const expAdds=[];
+  const investmentsBefore=(state&&state.investments)||null;
+  (cands||[]).forEach(function(x,i){
+    const c=classifications && classifications[i];
+    if(!x||!c||c.status!=="new") return;
+    if(c.defDest==="recibo") return;   // Fijos: tanda UI
+    const signed = x.kind==="in" ? -Math.abs(x.amount||0) : Math.abs(x.amount||0);
+    const merchant=x.merchant||(x.kind==="in"?"Ingreso":"Compra");
+    const e={
+      id:(typeof mcExpenseId==="function"?mcExpenseId():("h"+i)),
+      date:new Date(String(x.date||"").slice(0,10)+"T12:00:00").toISOString(),
+      merchant:merchant,
+      amount:signed,
+      category:c.category||"otros",
+      source:"ob-hist",
+      ent:x.ent,
+      importBatchId:batchId,
+      obName:merchant
+    };
+    if(x.id) e.extId=x.id;
+    expAdds.push(e);
+  });
+  return { expAdds:expAdds, fixAdds:[], batchId:batchId, investmentsSnapshot:investmentsBefore };
+}
+/* Deshacer un batch: quita filas locales del batch y lista ids de nube para borrar POR ID.
+   Nunca escribe state.deleted (agujero B). cloudDeleteById solo debe llevar ids con ACK
+   (insertados de verdad); el llamador no mete los que chocaron en la terna (agujero A). */
+function histUndoBatch(state, lastHistImport){
+  if(!state||!lastHistImport||!lastHistImport.batchId){
+    return { nextState:state, cloudDeleteById:[], ok:false, reason:"empty" };
+  }
+  const batchId=lastHistImport.batchId;
+  const cloudIds=(lastHistImport.cloudIds||[]).slice();
+  const localIds=new Set(lastHistImport.localIds||[]);
+  cloudIds.forEach(function(id){ localIds.add(id); });
+  const nextEx=(state.expenses||[]).filter(function(e){
+    if(!e) return false;
+    if(e.importBatchId===batchId) return false;
+    if(localIds.has(e.id)) return false;
+    return true;
+  });
+  // Idempotente: segunda pasada no toca deleted ni vuelve a listar.
+  return {
+    nextState:Object.assign({},state,{expenses:nextEx}),
+    cloudDeleteById:cloudIds,
+    ok:true,
+    reason:null
+  };
 }
 
 /* Bancos que NO están sirviendo datos, con el motivo, para el banner «Reconectar» y la noti.

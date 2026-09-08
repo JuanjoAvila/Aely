@@ -136,4 +136,133 @@ t("sin coincidencia en absoluto: no se marca nada", () => {
   assert.equal(dup[0], undefined);
 });
 
+t("H: dos candidatos contra UN guardado → solo uno se marca (1:1)", () => {
+  const existentes = [exp({ id: "solo" })];
+  const cands = [
+    cand({ date: "2026-07-28", amount: 30, merchant: "Mercadona", kind: "out", card: true }),
+    cand({ date: "2026-07-28", amount: 30, merchant: "Mercadona", kind: "out", card: true }),
+  ];
+  const dup = ctx.histCandExisting(cands, existentes);
+  assert.equal(dup[0], existentes[0]);
+  assert.equal(dup[1], undefined, "el segundo no debe reusar el mismo gasto");
+});
+
+console.log("\nhist-import-motor (A/B/C/N/I/J)");
+
+const baseState = () => ({
+  accounts: [
+    { id: "a1", ent: "sabadell", name: "Sabadell", role: "diario", spendFrom: true, monthlyInvest: 200, value: 1000 },
+    { id: "a2", ent: "trade_republic", name: "TR", role: "fijos", value: 500 },
+  ],
+  expenses: [],
+  investments: [{ id: "inv1", name: "Fondo", shares: 10, value: 1000, cost: 900, cur: "EUR" }],
+  fixed: [],
+  debts: [],
+  oneoffs: [],
+  flows: [{ id: "f1", kind: "transfer", to: "trade_republic", from: "sabadell", amount: 1500 }],
+  deleted: [],
+});
+
+t("N: reconcileObDupes no recategoriza ni toca filas ob-hist", () => {
+  const st = baseState();
+  st.accounts[0].rewardInv = "inv1";
+  st.expenses = [
+    { id: "h1", date: "2026-09-01T12:00:00.000Z", amount: 5, merchant: "Movimiento", source: "ob-hist", ent: "sabadell", category: "otros" },
+    { id: "h0", date: "2026-08-28T12:00:00.000Z", amount: -5, merchant: "Ingreso", source: "ob-hist", ent: "sabadell", category: "ingreso" },
+  ];
+  const before = st.expenses.map((e) => e.category);
+  const delBefore = (st.deleted || []).length;
+  const r = ctx.reconcileObDupes(st);
+  assert.equal(r.borrar.length, 0);
+  assert.equal(r.recat.length, 0, "ob-hist fuera del barrido cashback");
+  assert.deepEqual(r.state.expenses.map((e) => e.category), before);
+  assert.equal((r.state.deleted || []).length, delBefore, "nunca escribe tombstones");
+});
+
+t("C: traspaso propio → category traspaso (no ingreso)", () => {
+  const st = baseState();
+  const cands = [cand({ kind: "in", amount: 1620, merchant: "Ingreso", ent: "trade_republic", date: "2026-09-05", card: false })];
+  const { rows } = ctx.histClassifyCandidates(cands, st);
+  assert.equal(rows[0].status, "new");
+  assert.equal(rows[0].category, "traspaso");
+});
+
+t("C: aporte ≈ monthlyInvest → inversion; investments intacto al build", () => {
+  const st = baseState();
+  const invBefore = JSON.parse(JSON.stringify(st.investments));
+  const cands = [cand({ kind: "out", amount: 200, merchant: "APORTE", ent: "sabadell", date: "2026-09-05", card: true })];
+  const { rows } = ctx.histClassifyCandidates(cands, st);
+  assert.equal(rows[0].category, "inversion");
+  const built = ctx.histBuildCommit(cands, rows, st);
+  assert.equal(built.expAdds[0].category, "inversion");
+  assert.deepEqual(st.investments, invBefore, "nunca applyInvestBuy");
+  assert.deepEqual(built.investmentsSnapshot, invBefore);
+});
+
+t("I: matchesModeled usa el mes del candidato, no solo el mes actual", () => {
+  const st = baseState();
+  // Fijo que SOLO ocurre en mayo (day 5); candidato en mayo debe casar.
+  st.fixed = [{ id: "luz", name: "Luz Endesa", amount: 45, day: 5, months: [5], account: "sabadell", ent: "sabadell" }];
+  // Helper occursIn — si months vacío/undefined ocurre todos los meses; con [5] solo mayo.
+  const cMay = cand({ date: "2026-05-05", amount: 45, merchant: "RECIBO ENDESA LUZ", ent: "sabadell", kind: "out", card: false });
+  const cSep = cand({ date: "2026-09-05", amount: 45, merchant: "RECIBO ENDESA LUZ", ent: "sabadell", kind: "out", card: false });
+  assert.ok(ctx.histMatchesModeled(st, cMay), "mayo casa con el fijo de mayo");
+  assert.equal(ctx.histMatchesModeled(st, cSep), null, "septiembre no debe casar con fijo solo-mayo");
+});
+
+t("J: signo sospechoso si >70% ingresos en un banco (≥3 movs)", () => {
+  const cands = [
+    cand({ ent: "caixabank", kind: "in", amount: 10, date: "2026-09-01" }),
+    cand({ ent: "caixabank", kind: "in", amount: 20, date: "2026-09-02" }),
+    cand({ ent: "caixabank", kind: "in", amount: 30, date: "2026-09-03" }),
+    cand({ ent: "caixabank", kind: "out", amount: 5, date: "2026-09-04", card: true }),
+  ];
+  const flagged = ctx.histSignSuspectByBank(cands);
+  assert.equal(flagged.caixabank, true);
+  const { signSuspect } = ctx.histClassifyCandidates(cands, baseState());
+  assert.equal(signSuspect.caixabank, true);
+});
+
+t("A: undo con terna colisionante no mete el preexistente en cloudDeleteById", () => {
+  const st = baseState();
+  const pre = { id: "pre-uuid-1111-1111-1111-111111111111", date: "2026-09-10T12:00:00.000Z", amount: 12, merchant: "Cafe", source: "manual", ent: "sabadell" };
+  st.expenses = [pre];
+  const cands = [cand({ date: "2026-09-10", amount: 12, merchant: "Cafe", kind: "out", card: true, ent: "sabadell" })];
+  // Clasifica como dup existing → no entra en commit. Simulamos el caso malo: build de un "new"
+  // que choca, y cloudIds SOLO tiene el insertado (el preexistente nunca ACK).
+  const fakeClass = [{ status: "new", defDest: "gasto", category: "ocio", suggestRecibo: false }];
+  const built = ctx.histBuildCommit(cands, fakeClass, st, { batchId: "hist-test-a" });
+  assert.equal(built.expAdds.length, 1);
+  const inserted = built.expAdds[0];
+  st.expenses = st.expenses.concat(inserted);
+  // Solo el id insertado (ACK); el preexistente NO está — cierre A.
+  const last = { batchId: "hist-test-a", localIds: [inserted.id], cloudIds: [inserted.id] };
+  const undo = ctx.histUndoBatch(st, last);
+  assert.ok(undo.cloudDeleteById.indexOf(pre.id) < 0);
+  assert.ok(undo.cloudDeleteById.indexOf(inserted.id) >= 0);
+  assert.ok(undo.nextState.expenses.some((e) => e.id === pre.id), "preexistente vivo");
+  assert.ok(!undo.nextState.expenses.some((e) => e.id === inserted.id));
+});
+
+t("B: undo no escribe state.deleted", () => {
+  const st = baseState();
+  st.deleted = ["keep-me"];
+  const e = { id: "b1", date: "2026-09-10T12:00:00.000Z", amount: 9, merchant: "X", source: "ob-hist", ent: "sabadell", importBatchId: "hist-b" };
+  st.expenses = [e];
+  const undo = ctx.histUndoBatch(st, { batchId: "hist-b", localIds: ["b1"], cloudIds: ["b1"] });
+  assert.deepEqual(undo.nextState.deleted, ["keep-me"]);
+  assert.equal((undo.nextState.deleted || []).length, 1);
+});
+
+t("A/B: undo vacío / idempotente → no-op declarado", () => {
+  const st = baseState();
+  const empty = ctx.histUndoBatch(st, null);
+  assert.equal(empty.ok, false);
+  const once = ctx.histUndoBatch(st, { batchId: "hist-z", localIds: [], cloudIds: [] });
+  assert.equal(once.ok, true);
+  const again = ctx.histUndoBatch(once.nextState, { batchId: "hist-z", localIds: [], cloudIds: [] });
+  assert.equal(again.ok, true);
+  assert.deepEqual(again.nextState.expenses, once.nextState.expenses);
+});
+
 console.log("\nhist-import-dup: OK");
