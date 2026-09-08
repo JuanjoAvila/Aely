@@ -95,6 +95,11 @@ el par) y **«Entró efectivo»** (le devuelven dinero, una propina, la paga).
   de conectar.
 - **¿Widget?** No cambia nada. El widget enseña el saldo de la cuenta **diaria**, y el efectivo no
   lo es. **Sin APK: esta tanda es OTA pura.**
+- **¿Resta de gastos solo por «sin bankIban»?** **No (Cursor / Claude, 2026-09-08).** La resta
+  aplica **solo** a `ent==="efectivo"`. Una cuenta manual sin OB (p. ej. `familia`) sigue
+  clavada y él la ajusta a mano. **Pendiente del dueño:** si algún día quiere que esas manuales
+  también bajen solas al gastar, es otra tanda — no ensanchar aquí (y ojo TR sin IBAN: ya
+  descuenta por `saldoCuentaGasto`).
 
 ## Criterios de «hecho»
 

@@ -2054,6 +2054,18 @@ const KW = {
   regalos:["regalo","flores","floristeria","floristería","perfumeria","perfumería","interflora","teleflorist","rosas ","ramo "],
   joyeria:["joyeria","joyeros","tiffany","cartier","swarovski","tous ","pandora"],
 };
+/* Retirada de cajero / ATM → traspaso (neutro). Mismas claves en ingest_logic.ts. */
+function isAtmWithdrawal(merchant){
+  const c=(merchant||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  if(!c) return false;
+  if(c.indexOf("cajero")!==-1) return true;
+  if(c.indexOf("cash withdrawal")!==-1 || c.indexOf("cashwithdrawal")!==-1) return true;
+  if(c.indexOf("retirada de efectivo")!==-1) return true;
+  if(c.indexOf("reintegro")!==-1) return true;
+  if(c.indexOf("retrait")!==-1 && c.indexOf("espece")!==-1) return true;
+  if(/\batm\b/.test(c)) return true;
+  return false;
+}
 function autoCategory(merchant){
   const c=(merchant||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   const key=c.trim();
@@ -2065,6 +2077,7 @@ function autoCategory(merchant){
   // abr\u00eda la app, porque `migrate` re-categoriza todo lo que est\u00e9 en "otros" y no sea manual.
   if(USER_OVERRIDES[key] && !CAT_NEUTRAS[USER_OVERRIDES[key]]) return USER_OVERRIDES[key];   // lo que T\u00da has aprendido a mano
   for(const k in MERCHANT_OVERRIDES){ if(c.indexOf(k)!==-1) return MERCHANT_OVERRIDES[k]; }  // overrides de ejemplo
+  if(typeof isAtmWithdrawal==="function" && isAtmWithdrawal(merchant)) return "traspaso";
   // Keywords cortas (bar, bus…) con límite de palabra: si no, "Barcelona" caía en bares
   // por el substring «bar» (bug Kinepolis 2026-07-17).
   const hit=function(hay, needle){
@@ -2109,8 +2122,14 @@ const ENT = {
   cajamar:        { label:"Cajamar",        mono:"Cj", color:"#6FB08A" },
   imagin:         { label:"imagin",         mono:"im", color:"#3FC0A8" },
   familia:        { label:"Familia",        mono:"Fa", color:"#E2705F" },
+  // Sobre de billetes (tanda 6): nunca Open Banking, no es gasto diario.
+  efectivo:       { label:"Efectivo",       mono:"€",  color:"#8FA89A" },
 };
 const entOf = (id)=> ENT[id] || { label:id, mono:"··", color:"#8FA89A" };
+function isEfectivoEnt(aOrEnt){
+  const e=(aOrEnt&&typeof aOrEnt==="object")?aOrEnt.ent:aOrEnt;
+  return e==="efectivo";
+}
 
 function fxTableOf(s){
   const t=s&&s.fxRates;
@@ -2989,6 +3008,88 @@ function valueDesdeSaldo(o){
   var v=(o.shown||0)-(o.injTR||0)+(o.spentOwn||0)+(o.roundup||0)+(o.monthlyInvest||0);
   if(o.ambos) v-=(o.paidNet||0);
   return +v.toFixed(2);
+}
+/* Saldo que se PINTA de una cuenta. Diaria → fórmula TR. Efectivo → value − gastos propios
+   (nadie re-ancla el sobre). Resto → value + paidNet, SIN restar gastos: las manuales sin OB
+   las ajusta él a mano (decisión pendiente del dueño; NO ensanchar a «sin bankIban»). */
+function saldoCuentaMostrada(a, o){
+  o=o||{};
+  if(!a) return 0;
+  const spentMap=o.spentByBank||{};
+  const paidMap=o.paidNetByBank||{};
+  const pn=paidMap[a.ent]||0;
+  if(typeof accDaily==="function" ? accDaily(a) : (a.role==="diario"||a.role==="ambos"||a.spendFrom)){
+    return saldoCuentaGasto({
+      value:a.value, injTR:o.injTR||0, spentOwn:spentMap[a.ent]||0,
+      roundup:o.roundup||0, monthlyInvest:o.monthlyInvest||0,
+      ambos:(typeof accRole==="function"?accRole(a)==="ambos":a.role==="ambos"), paidNet:pn
+    });
+  }
+  var v=(a.value||0)+pn;
+  if(isEfectivoEnt(a)) v-=(spentMap[a.ent]||0);
+  return v;
+}
+/* Crea el sobre si no existe. Valor inicial opcional. Lo mete en expenseBanks (presupuesto sí). */
+function ensureEfectivoAccount(state, initialValue){
+  if(!state) return state;
+  const accounts=(state.accounts||[]).slice();
+  if(accounts.some(isEfectivoEnt)) return state;
+  const v=(initialValue!=null && isFinite(Number(initialValue))) ? +Number(initialValue).toFixed(2) : 0;
+  accounts.push({ id:(typeof uid==="function"?uid():("ef-"+Date.now())), ent:"efectivo", name:"Efectivo", value:v, role:"fijos" });
+  const settings=Object.assign({}, state.settings||{});
+  const eb=(settings.expenseBanks||[]).slice();
+  if(eb.indexOf("efectivo")<0) eb.push("efectivo");
+  settings.expenseBanks=eb;
+  return Object.assign({}, state, { accounts:accounts, settings:settings });
+}
+/* Borrar el sobre: no toca los gastos (siguen con ent efectivo); saca efectivo de expenseBanks. */
+function removeEfectivoAccount(state, id){
+  if(!state) return state;
+  const accounts=(state.accounts||[]).filter(function(a){
+    if(id && a.id===id) return false;
+    if(!id && isEfectivoEnt(a)) return false;
+    return true;
+  });
+  const settings=Object.assign({}, state.settings||{});
+  settings.expenseBanks=(settings.expenseBanks||[]).filter(function(e){ return e!=="efectivo"; });
+  settings.dailyOnlyBanks=(settings.dailyOnlyBanks||[]).filter(function(e){ return e!=="efectivo"; });
+  return Object.assign({}, state, { accounts:accounts, settings:settings });
+}
+/* Saqué del cajero: traspaso neutro en el banco + sube el sobre.
+   Si el banco NO está anclado por IBAN, también baja su value (si no, el banco ya trae el −€). */
+function applySaqueCajero(state, fromEnt, amount){
+  if(!state || !fromEnt) return state;
+  const amt=Math.abs(Number(amount)||0);
+  if(!(amt>0)) return state;
+  let st=ensureEfectivoAccount(state, 0);
+  const accounts=(st.accounts||[]).map(function(a){
+    if(isEfectivoEnt(a)) return Object.assign({}, a, { value:+((a.value||0)+amt).toFixed(2) });
+    if(a.ent===fromEnt && !a.bankIban) return Object.assign({}, a, { value:+((a.value||0)-amt).toFixed(2) });
+    return a;
+  });
+  const e={
+    id:(typeof mcExpenseId==="function"?mcExpenseId():(typeof uid==="function"?uid():("cajero-"+Date.now()))),
+    date:new Date().toISOString(),
+    merchant:"Cajero",
+    amount:amt,
+    category:"traspaso",
+    source:"manual",
+    ent:fromEnt,
+    noCard:true
+  };
+  return Object.assign({}, st, { accounts:accounts, expenses:[e].concat(st.expenses||[]) });
+}
+/* Entró efectivo (propina, te devuelven…): solo sube el sobre. */
+function applyEntradaEfectivo(state, amount){
+  if(!state) return state;
+  const amt=Math.abs(Number(amount)||0);
+  if(!(amt>0)) return state;
+  let st=ensureEfectivoAccount(state, 0);
+  const accounts=(st.accounts||[]).map(function(a){
+    if(!isEfectivoEnt(a)) return a;
+    return Object.assign({}, a, { value:+((a.value||0)+amt).toFixed(2) });
+  });
+  return Object.assign({}, st, { accounts:accounts });
 }
 /* EFECTIVO REAL DE TRADE REPUBLIC (availableCash) → base guardada de su cuenta.
    Lo usan los DOS botones que hablan con el puente nativo: la tarjeta de TR y el sincronizador
@@ -4187,6 +4288,32 @@ Object.assign(LANG.es,{
   rec_hide:"Ocultar aviso",
   pt_name_ph:"Nombre (ej. Personal)",
   pt_acc_del:"Quitar cuenta", pt_acc_del_q:"¿Quitar esta cuenta del patrimonio?", pt_acc_del_yes:"Sí, quitar", pt_acc_del_no:"Cancelar", pt_acc_del_hint:"Quita del patrimonio una cuenta que añadiste a mano (p. ej. de una pareja que ya no usas). Si la cuenta está conectada al banco, desconéctala en Ajustes → Bancos.",
+  ef_create_btn:"+ Efectivo",
+  ef_create_title:"¿Cuánto llevas en efectivo?",
+  ef_create_sub:"Cuenta el dinero de la cartera. Se suma al patrimonio y puedes gastar desde ella.",
+  ef_create_ok:"Crear efectivo",
+  ef_create_done:"✓ Efectivo añadido",
+  ef_cajero_btn:"Saqué del cajero",
+  ef_cajero_bank:"¿De qué banco?",
+  ef_cajero_bank_sub:"Elige la cuenta de la que salió el dinero.",
+  ef_cajero_next:"Siguiente",
+  ef_cajero_title:"¿Cuánto sacaste?",
+  ef_cajero_sub:"De {bank} al efectivo. El patrimonio no cambia.",
+  ef_cajero_ok:"Anotar",
+  ef_cajero_done:"✓ Saque apuntado",
+  ef_in_btn:"Entró efectivo",
+  ef_in_title:"¿Cuánto ha entrado?",
+  ef_in_sub:"Propina, te lo devolvieron, te lo dieron… Solo sube el sobre.",
+  ef_in_ok:"Sumar",
+  ef_in_done:"✓ Efectivo sumado",
+  ef_need_bank:"Necesitas otra cuenta para anotar de dónde salió.",
+  ef_no_diario:"El efectivo no puede ser la cuenta de gasto diario.",
+  ef_neg_warn:"El sobre queda en negativo ({x}). ¿Olvidaste apuntar un saque del cajero?",
+  ef_atm_offer_title:"¿Han entrado {x} en tu efectivo?",
+  ef_atm_offer_sub:"El banco ha detectado una retirada. Si el dinero está en tu cartera, súmalo. Si se lo diste a alguien, di que no.",
+  ef_atm_offer_yes:"Sí, sumar al efectivo",
+  ef_atm_offer_no:"No",
+
   ob2_claim:"Tu dinero claro y sin trabajo: gastos que se apuntan solos, tus bancos conectados y tus inversiones al día.",
   ob2_f1_t:"Gastos sin teclear", ob2_f1_d:"Apunta un gasto en dos toques… o deja que entren solos con tu tarjeta de Trade Republic.",
   ob2_f2_t:"Tus fijos, vigilados", ob2_f2_d:"Recibos, nómina y cuotas con su calendario: sabrás si llegas a fin de mes antes de que pase.",
@@ -4249,6 +4376,32 @@ Object.assign(LANG.en,{
   rec_hide:"Hide alert",
   pt_name_ph:"Name (e.g. Personal)",
   pt_acc_del:"Remove account", pt_acc_del_q:"Remove this account from net worth?", pt_acc_del_yes:"Yes, remove", pt_acc_del_no:"Cancel", pt_acc_del_hint:"Removes from net worth an account you added by hand (e.g. a partner's you no longer use). If the account is connected to a bank, disconnect it in Settings → Banks.",
+  ef_create_btn:"+ Cash",
+  ef_create_title:"How much cash do you have?",
+  ef_create_sub:"Count the notes in your wallet. It adds to net worth and you can spend from it.",
+  ef_create_ok:"Add cash",
+  ef_create_done:"✓ Cash added",
+  ef_cajero_btn:"ATM withdrawal",
+  ef_cajero_bank:"Which bank?",
+  ef_cajero_bank_sub:"Pick the account the cash came from.",
+  ef_cajero_next:"Next",
+  ef_cajero_title:"How much did you withdraw?",
+  ef_cajero_sub:"From {bank} to cash. Net worth stays the same.",
+  ef_cajero_ok:"Log it",
+  ef_cajero_done:"✓ Withdrawal logged",
+  ef_in_btn:"Cash came in",
+  ef_in_title:"How much came in?",
+  ef_in_sub:"Tip, change returned, someone paid you… Only raises the envelope.",
+  ef_in_ok:"Add",
+  ef_in_done:"✓ Cash added",
+  ef_need_bank:"You need another account to say where it came from.",
+  ef_no_diario:"Cash cannot be the daily-spend account.",
+  ef_neg_warn:"The envelope goes negative ({x}). Did you forget to log an ATM withdrawal?",
+  ef_atm_offer_title:"Did {x} go into your cash?",
+  ef_atm_offer_sub:"The bank saw a withdrawal. If the money is in your wallet, add it. If you gave it away, say no.",
+  ef_atm_offer_yes:"Yes, add to cash",
+  ef_atm_offer_no:"No",
+
   ob2_claim:"Your money, clear and effortless: expenses that log themselves, your banks connected and your investments up to date.",
   ob2_f1_t:"No-typing expenses", ob2_f1_d:"Log an expense in two taps… or let them come in on their own with your Trade Republic card.",
   ob2_f2_t:"Your bills, watched", ob2_f2_d:"Bills, payroll and instalments on their calendar: you'll know if you make it to month's end before it happens.",
@@ -4311,6 +4464,32 @@ Object.assign(LANG.ca,{
   rec_hide:"Amaga l'avís",
   pt_name_ph:"Nom (ex. Personal)",
   pt_acc_del:"Treu compte", pt_acc_del_q:"Treure aquest compte del patrimoni?", pt_acc_del_yes:"Sí, treu", pt_acc_del_no:"Cancel·la", pt_acc_del_hint:"Treu del patrimoni un compte que vas afegir a mà (p. ex. d'una parella que ja no fas servir). Si el compte està connectat al banc, desconnecta'l a Configuració → Bancs.",
+  ef_create_btn:"+ Efectiu",
+  ef_create_title:"Quant portes en efectiu?",
+  ef_create_sub:"Compta els bitllets de la cartera. Suma al patrimoni i pots gastar-ne.",
+  ef_create_ok:"Crear efectiu",
+  ef_create_done:"✓ Efectiu afegit",
+  ef_cajero_btn:"He tret del caixer",
+  ef_cajero_bank:"De quin banc?",
+  ef_cajero_bank_sub:"Tria el compte d'on ha sortit els diners.",
+  ef_cajero_next:"Següent",
+  ef_cajero_title:"Quant has tret?",
+  ef_cajero_sub:"De {bank} a l'efectiu. El patrimoni no canvia.",
+  ef_cajero_ok:"Anotar",
+  ef_cajero_done:"✓ Extracció apuntada",
+  ef_in_btn:"Ha entrat efectiu",
+  ef_in_title:"Quant ha entrat?",
+  ef_in_sub:"Propina, te'l van tornar, te'l van donar… Només puja el sobre.",
+  ef_in_ok:"Sumar",
+  ef_in_done:"✓ Efectiu sumat",
+  ef_need_bank:"Cal un altre compte per dir d'on ha sortit.",
+  ef_no_diario:"L'efectiu no pot ser el compte de despesa diària.",
+  ef_neg_warn:"El sobre queda en negatiu ({x}). Has oblidat apuntar una extracció?",
+  ef_atm_offer_title:"Han entrat {x} al teu efectiu?",
+  ef_atm_offer_sub:"El banc ha detectat una retirada. Si els diners són a la cartera, suma'ls. Si els vas donar a algú, digues que no.",
+  ef_atm_offer_yes:"Sí, sumar a l'efectiu",
+  ef_atm_offer_no:"No",
+
   ob2_claim:"Els teus diners clars i sense feina: despeses que s'apunten soles, els teus bancs connectats i les inversions al dia.",
   ob2_f1_t:"Despeses sense teclejar", ob2_f1_d:"Apunta una despesa en dos tocs… o deixa que entrin soles amb la teva targeta de Trade Republic.",
   ob2_f2_t:"Les teves fixes, vigilades", ob2_f2_d:"Rebuts, nòmina i quotes amb el seu calendari: sabràs si arribes a final de mes abans que passi.",
@@ -9769,24 +9948,39 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
 /* ============================================================
    TAB: PATRIMONIO
    ============================================================ */
-function Wealth({state, set, totals, v4Embed, parte}){
+function Wealth({state, set, totals, v4Embed, parte, showToast}){
   const [delAcc,setDelAcc]=React.useState("");   // id de la cuenta manual pendiente de confirmar borrado
   // Quitar a mano una cuenta manual del patrimonio (la del onboarding no se va sola al desloguear el banco:
   // las manuales viven en state.accounts, no en obAccounts, y bankDisconnect solo purga obAccounts).
-  const removeAccount=(id)=>{ setDelAcc(""); set(function(s){ return Object.assign({},s,{accounts:(s.accounts||[]).filter(function(a){ return a.id!==id; })}); }); };
+  const removeAccount=(id)=>{
+    setDelAcc("");
+    set(function(s){
+      const a=(s.accounts||[]).find(function(x){ return x.id===id; });
+      if(a && isEfectivoEnt(a)) return removeEfectivoAccount(s, id);
+      return Object.assign({},s,{accounts:(s.accounts||[]).filter(function(x){ return x.id!==id; })});
+    });
+  };
   const pn=(i)=> (totals.paidNetByBank&&totals.paidNetByBank[i.ent])||0;   // movimientos ya ocurridos este mes
   const ruM=totals.roundupThisMonth||0;                                     // round-up del mes (sale del efectivo de gasto)
   const miM=totals.monthlyInvestThisMonth||0;                               // aporte periódico del mes (idem)
   const spentOwn=(i)=> (totals.spentByBank&&i.ent&&totals.spentByBank[i.ent])||0;
-  const spendBal=(i)=> saldoCuentaGasto({value:i.value, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)});
+  const shownAcc=(i)=> saldoCuentaMostrada(i, {
+    injTR:totals.injTR||0, spentByBank:totals.spentByBank||{}, paidNetByBank:totals.paidNetByBank||{},
+    roundup:ruM, monthlyInvest:miM
+  });
+  const spendBal=(i)=> shownAcc(i);
   // ROLES DE CUENTA: al cambiar el rol se RE-ANCLA `value` para que el saldo mostrado no cambie
   // (despejamos value de la fórmula del rol nuevo). Solo puede haber UNA cuenta de gasto diario.
   const setRole=(id,r)=>{ set(function(s){ return applyAccountRole(s, totals, id, r); }); };   // lógica compartida (applyAccountRole)
   const accEd=useEditable(state.accounts,it=>set(s=>Object.assign({},s,{accounts:it})),{
     // Editas el SALDO REAL de hoy; por dentro se guarda la base (inicio de mes) correcta.
-    display:  i => accDaily(i) ? spendBal(i) : (i.value + pn(i)),
+    display:  i => shownAcc(i),
     // editar a mano re-ancla: typed = spendBal(nuevo value) → despeja value (incluye miM, que faltaba)
-    toStored: (i,typed) => accDaily(i) ? valueDesdeSaldo({shown:typed, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)}) : (typed - pn(i))
+    toStored: (i,typed) => {
+      if(accDaily(i)) return valueDesdeSaldo({shown:typed, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)});
+      if(isEfectivoEnt(i)) return +((Number(typed)||0) + spentOwn(i)).toFixed(2);
+      return (typed - pn(i));
+    }
   });
   const astEd=useEditable(state.assets,it=>set(s=>Object.assign({},s,{assets:it})));
   const accSum=totals.liquid;
@@ -9822,8 +10016,51 @@ function Wealth({state, set, totals, v4Embed, parte}){
           React.createElement("div",null,entOf(a.ent).label, isSynced(a)&&badge(t("pt_ob_badge"),"#7FB5E8")),
           React.createElement("div",{className:"meta"}, [roleLab(a),a.name].filter(Boolean).join(" · ")||"—")
         ),
-        React.createElement("div",{className:"am num"},eur(accDaily(a)?spendBal(a):(a.value+pn(a))))
+        React.createElement("div",{className:"am num"},eur(shownAcc(a)))
       );
+    };
+    const cashAcc=(state.accounts||[]).find(isEfectivoEnt);
+    const parseAmt=function(raw){ return Math.abs(parseFloat(String(raw==null?"":raw).replace(/\s/g,"").replace(",","."))||0); };
+    const toast=function(msg){ if(typeof showToast==="function") showToast(msg); };
+    const doSaqueCajero=function(){
+      const banks=(state.accounts||[]).filter(function(a){ return a.ent && !isEfectivoEnt(a); });
+      if(!banks.length){ toast("⚠ "+t("ef_need_bank")); return; }
+      const bankChips=banks.map(function(a){ return { v:a.ent, label:entOf(a.ent).label }; });
+      askText({ title:t("ef_cajero_bank"), sub:t("ef_cajero_bank_sub"), ph:entOf(banks[0].ent).label, ok:t("ef_cajero_next"), chips:bankChips })
+        .then(function(entRaw){
+          if(entRaw==null) return;
+          const ent=banks.some(function(b){ return b.ent===entRaw; }) ? entRaw : banks[0].ent;
+          askText({ title:t("ef_cajero_title"), sub:tf("ef_cajero_sub",{bank:entOf(ent).label}), ph:"200", ok:t("ef_cajero_ok"),
+            chips:[{v:50,label:"50 €"},{v:100,label:"100 €"},{v:200,label:"200 €"}] })
+            .then(function(raw){
+              if(raw==null) return;
+              const amt=parseAmt(raw);
+              if(!(amt>0)){ toast("⚠ "+t("g_invalid")); return; }
+              set(function(s){ return applySaqueCajero(s, ent, amt); });
+              toast(t("ef_cajero_done"));
+            });
+        });
+    };
+    const doEntradaEfectivo=function(){
+      askText({ title:t("ef_in_title"), sub:t("ef_in_sub"), ph:"20", ok:t("ef_in_ok"),
+        chips:[{v:10,label:"10 €"},{v:20,label:"20 €"},{v:50,label:"50 €"}] })
+        .then(function(raw){
+          if(raw==null) return;
+          const amt=parseAmt(raw);
+          if(!(amt>0)){ toast("⚠ "+t("g_invalid")); return; }
+          set(function(s){ return applyEntradaEfectivo(s, amt); });
+          toast(t("ef_in_done"));
+        });
+    };
+    const doAddEfectivo=function(){
+      askText({ title:t("ef_create_title"), sub:t("ef_create_sub"), ph:"120", ok:t("ef_create_ok") })
+        .then(function(raw){
+          if(raw==null) return;
+          const amt=raw===""?0:parseAmt(raw);
+          if(raw!=="" && !(amt>=0)){ toast("⚠ "+t("g_invalid")); return; }
+          set(function(s){ return ensureEfectivoAccount(s, amt); });
+          toast(t("ef_create_done"));
+        });
     };
     const obRow=function(o){
       const custom=(state.obLabels||{})[o.key]; const disp=(custom!=null&&custom!=="")?custom:niceObName(o);
@@ -9846,6 +10083,11 @@ function Wealth({state, set, totals, v4Embed, parte}){
     // los extras. En un extra, «Gasto diario» = expenseBanks + dailyOnlyBanks (recibos fuera);
     // «Todo» = expenseBanks sin dailyOnly (recibos y gasto diario a la vez).
     const pickRole=function(a,r){
+      // Efectivo: solo recibos/fijos. No es gasto diario (round-up / nómina no aplican).
+      if(isEfectivoEnt(a) && (r==="diario"||r==="ambos")){
+        toast("⚠ "+t("ef_no_diario"));
+        return;
+      }
       // Pide un sync en cuanto se suelta el bloque `set` (React agrupa el estado, el evento no
       // tiene por qué esperar a eso): el banco nuevo puede llevar días sin sincronizar porque
       // hasta ahora no era «suyo» — sin esto sus compras de esta semana se quedan sin traer hasta
@@ -9884,8 +10126,9 @@ function Wealth({state, set, totals, v4Embed, parte}){
     const roleChips=function(a){
       const dy=dailyEffOf(a), fx=fixedEffOf(a);
       const on={fijos:fx&&!dy, diario:dy&&!fx, ambos:fx&&dy};
+      const roles=isEfectivoEnt(a) ? [["fijos","rl_fijos"]] : [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]];
       return React.createElement("div",{className:"rolechips",style:{padding:"8px 0 2px"}},
-        [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]].map(function(rr){
+        roles.map(function(rr){
           return React.createElement("button",{key:rr[0],className:"rchip"+(on[rr[0]]?" on":""),onClick:function(){ pickRole(a, rr[0]); }}, t(rr[1]));
         }),
         React.createElement("button",{className:"ex-del",style:{marginLeft:"auto"},title:t("pt_acc_del"),onClick:function(){ setDelAcc(a.id); }},"🗑")
@@ -9901,6 +10144,11 @@ function Wealth({state, set, totals, v4Embed, parte}){
       parte!=="bienes" && React.createElement("div",{className:"v4-card-list"},
         state.accounts.map(accRow),
         (state.obAccounts||[]).map(obRow),
+        !cashAcc && React.createElement("button",{type:"button",className:"edit-link",style:{margin:"8px 4px"},onClick:doAddEfectivo}, t("ef_create_btn")),
+        cashAcc && React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",margin:"8px 4px"}},
+          React.createElement("button",{type:"button",className:"edit-link",onClick:doSaqueCajero}, t("ef_cajero_btn")),
+          React.createElement("button",{type:"button",className:"edit-link",onClick:doEntradaEfectivo}, t("ef_in_btn"))
+        ),
         React.createElement("button",{className:"edit-link",style:{margin:"8px 4px"},onClick:function(){ accEd.editing?accEd.save():accEd.start(); }},accEd.editing?t("fj_save"):t("fj_edit"))
       ),
       // Editor completo (2026-07-18): nombre + rol (recibos/diario/todo) SIEMPRE; el saldo solo
@@ -9914,7 +10162,7 @@ function Wealth({state, set, totals, v4Embed, parte}){
               React.createElement("input",{className:"af-in",style:{flex:1,fontSize:13,padding:"7px 10px"},value:a.name||"",placeholder:t("pt_name_ph"),
                 onChange:function(e){ const v=e.target.value; set(function(s){ return Object.assign({},s,{accounts:s.accounts.map(function(x){ return x.id===a.id?Object.assign({},x,{name:v}):x; })}); }); }}),
               synced
-                ? React.createElement("span",{className:"am num",style:{flex:"0 0 auto",color:"var(--muted)",fontSize:14}}, eur(accDaily(a)?spendBal(a):(a.value+pn(a))))
+                ? React.createElement("span",{className:"am num",style:{flex:"0 0 auto",color:"var(--muted)",fontSize:14}}, eur(shownAcc(a)))
                 : React.createElement("input",{className:"af-in num",style:{width:104,flex:"0 0 auto"},value:accEd.draft[a.id],inputMode:"decimal",
                     onChange:function(e){const v=e.target.value;accEd.setDraft(function(d){return Object.assign({},d,{[a.id]:v});});}})
             ),
@@ -10008,7 +10256,7 @@ function Wealth({state, set, totals, v4Embed, parte}){
                 : (a.name?React.createElement("div",{className:"rsub"},a.name):null))),
           accEd.editing
             ? React.createElement("input",{className:"editv num",value:accEd.draft[a.id],inputMode:"decimal",onChange:e=>{const v=e.target.value;accEd.setDraft(d=>Object.assign({},d,{[a.id]:v}));}})
-            : React.createElement("div",{className:"rval num"},eur(accDaily(a)? spendBal(a) : a.value + pn(a)))
+            : React.createElement("div",{className:"rval num"},eur(shownAcc(a)))
         ),
         // rol de la cuenta (solo en modo edición): recibos / gasto diario / todo + quitar cuenta
         accEd.editing && React.createElement("div",{className:"rolechips"},
@@ -16951,7 +17199,7 @@ function BillsManageSheet({open, onClose, state, set, totals}){
     ), document.body);
 }
 
-function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, onReconnectBank}){
+function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, onReconnectBank, showToast}){
   const [invTools,setInvTools]=useState(false);
   // TR desconectado (y el usuario SÍ lo tuvo conectado alguna vez → mc_tr_phone guardado):
   // banner con botón que abre Mis bancos directamente. UX padre 2026-07-18: al ver el saldo
@@ -17070,7 +17318,7 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
           state.hasBankLink && onBankSync && React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:0},
             disabled:bankBusy,onClick:doBankSync}, bankBusy?t("bp_syncing"):("↻ "+t("v4_sync_banks")))
         ),
-        React.createElement(Wealth,{state:state,set:set,totals:totals,v4Embed:true,parte:"cuentas"})
+        React.createElement(Wealth,{state:state,set:set,totals:totals,v4Embed:true,parte:"cuentas",showToast:showToast})
       ) },
       // Bienes (piso, coche…) es su propio bloque: no son cuentas de banco y el usuario quiere
       // colocarlos donde le apetezca (feedback 2026-07-25).
@@ -17191,6 +17439,17 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     onClose();
     if(goGastos) goGastos();
     showToast(isIn?t("v4_apuntar_ok_in"):t("v4_apuntar_ok"));
+    if(!isIn && e.ent==="efectivo"){
+      const cash=(state.accounts||[]).find(isEfectivoEnt);
+      if(cash){
+        const monthStart=startOfMonth();
+        const spentPrev=(state.expenses||[]).filter(function(x){
+          return x && x.ent==="efectivo" && parseDate(x.date)>=monthStart && expenseCountsCash(x, state);
+        }).reduce(function(a,x){ return a+(x.amount||0); },0);
+        const left=(cash.value||0)-(spentPrev+e.amount);
+        if(left< -0.005) showToast("⚠ "+tf("ef_neg_warn",{x:eur(Math.abs(left))}));
+      }
+    }
   };
   const keys=["1","2","3","4","5","6","7","8","9",",","0","⌫"];
   const cats=CATEGORIES.filter(function(c){ return c.id!=="otros"; }).concat(CATEGORIES.filter(function(c){ return c.id==="otros"; }));
@@ -17832,6 +18091,31 @@ function App(){
       // Si has pulsado tú «↻ Sincronizar bancos», esto se junta con el resultado de abajo: dos
       // avisos seguidos por una sola acción tuya eran ruido (feedback 2026-07-26).
       if(obAdded.length && !opts.manual) showToast(tf("ob_imported",{n:obAdded.length}));
+      // Cajero / ATM: ofrecer la otra mitad al efectivo (nunca automático).
+      (function offerAtmCash(){
+        const atms=(obAdded||[]).filter(function(e){
+          return e && e.category==="traspaso" && e.amount>0 && isAtmWithdrawal(e.merchant||e.obName||"");
+        });
+        if(!atms.length || typeof askConfirm!=="function") return;
+        let i=0;
+        const next=function(){
+          if(i>=atms.length) return;
+          const e=atms[i++];
+          askConfirm({
+            title:tf("ef_atm_offer_title",{x:eur(e.amount)}),
+            sub:t("ef_atm_offer_sub"),
+            ok:t("ef_atm_offer_yes"),
+            cancel:t("ef_atm_offer_no")
+          }).then(function(yes){
+            if(yes){
+              set(function(s){ return applyEntradaEfectivo(s, e.amount); });
+              showToast(t("ef_in_done"));
+            }
+            next();
+          });
+        };
+        setTimeout(next, 400);
+      })();
       // Resultado por banco (servidor tolerante a fallos): aplica los que funcionaron y avisa SOLO
       // del que falló. ok===false explícito → fallo (respuestas antiguas sin 'ok' se tratan como ok).
       const bankLabelOf=function(l){ const e=entFromAspsp(l&&l.aspsp); return e?entOf(e).label:((l&&l.aspsp)||"🏦"); };
@@ -18859,11 +19143,9 @@ function App(){
     const spentByBank=gastoDelMesPorBanco(thisMonthExp, dailyEnt);
     // el round-up y el aporte periódico del mes ya salieron del efectivo de gasto (TR) hacia la inversión (en tránsito)
     const dynBal=function(a){
-      if(!accDaily(a)) return (a.value||0)+(paidNetByBank[a.ent]||0);
-      return saldoCuentaGasto({
-        value:a.value, injTR:injTR, spentOwn:spentByBank[a.ent]||0,
-        roundup:roundupThisMonth, monthlyInvest:monthlyInvestThisMonth,
-        ambos:accRole(a)==="ambos", paidNet:paidNetByBank[a.ent]||0
+      return saldoCuentaMostrada(a, {
+        injTR:injTR, spentByBank:spentByBank, paidNetByBank:paidNetByBank,
+        roundup:roundupThisMonth, monthlyInvest:monthlyInvestThisMonth
       });
     };
     // cuentas extra de Open Banking (2ª cuenta de un banco, compartidas…): saldo puro, suma al líquido
@@ -20209,7 +20491,7 @@ function App(){
     if(id==="plan") return React.createElement(PlanTab,{state:state,set:set,totals:totals,showToast:showToast,simple:simple,gotoSeg:planGoto,clearGoto:function(){ setPlanGoto(null); }});
     // El «Sincronizar» de Cartera actualiza TODO lo conectado: Open Banking + TR + MyInvestor
     // (petición 2026-07-18: «que también sincronice Trade Republic y MyInvestor»).
-    if(id==="cartera") return React.createElement(CarteraTab,{state:state,set:set,totals:totals,fetchPrices:fetchPrices,pricing:pricing,simple:simple,onBankSync:function(){ return Promise.all([runBankSync({manual:true}), runBrokerSync({manual:true})]); },onReconnectBank:reconnectBank});
+    if(id==="cartera") return React.createElement(CarteraTab,{state:state,set:set,totals:totals,fetchPrices:fetchPrices,pricing:pricing,simple:simple,showToast:showToast,onBankSync:function(){ return Promise.all([runBankSync({manual:true}), runBrokerSync({manual:true})]); },onReconnectBank:reconnectBank});
     return null;
   };
 

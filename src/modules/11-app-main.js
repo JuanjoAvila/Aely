@@ -445,6 +445,31 @@ function App(){
       // Si has pulsado tú «↻ Sincronizar bancos», esto se junta con el resultado de abajo: dos
       // avisos seguidos por una sola acción tuya eran ruido (feedback 2026-07-26).
       if(obAdded.length && !opts.manual) showToast(tf("ob_imported",{n:obAdded.length}));
+      // Cajero / ATM: ofrecer la otra mitad al efectivo (nunca automático).
+      (function offerAtmCash(){
+        const atms=(obAdded||[]).filter(function(e){
+          return e && e.category==="traspaso" && e.amount>0 && isAtmWithdrawal(e.merchant||e.obName||"");
+        });
+        if(!atms.length || typeof askConfirm!=="function") return;
+        let i=0;
+        const next=function(){
+          if(i>=atms.length) return;
+          const e=atms[i++];
+          askConfirm({
+            title:tf("ef_atm_offer_title",{x:eur(e.amount)}),
+            sub:t("ef_atm_offer_sub"),
+            ok:t("ef_atm_offer_yes"),
+            cancel:t("ef_atm_offer_no")
+          }).then(function(yes){
+            if(yes){
+              set(function(s){ return applyEntradaEfectivo(s, e.amount); });
+              showToast(t("ef_in_done"));
+            }
+            next();
+          });
+        };
+        setTimeout(next, 400);
+      })();
       // Resultado por banco (servidor tolerante a fallos): aplica los que funcionaron y avisa SOLO
       // del que falló. ok===false explícito → fallo (respuestas antiguas sin 'ok' se tratan como ok).
       const bankLabelOf=function(l){ const e=entFromAspsp(l&&l.aspsp); return e?entOf(e).label:((l&&l.aspsp)||"🏦"); };
@@ -1472,11 +1497,9 @@ function App(){
     const spentByBank=gastoDelMesPorBanco(thisMonthExp, dailyEnt);
     // el round-up y el aporte periódico del mes ya salieron del efectivo de gasto (TR) hacia la inversión (en tránsito)
     const dynBal=function(a){
-      if(!accDaily(a)) return (a.value||0)+(paidNetByBank[a.ent]||0);
-      return saldoCuentaGasto({
-        value:a.value, injTR:injTR, spentOwn:spentByBank[a.ent]||0,
-        roundup:roundupThisMonth, monthlyInvest:monthlyInvestThisMonth,
-        ambos:accRole(a)==="ambos", paidNet:paidNetByBank[a.ent]||0
+      return saldoCuentaMostrada(a, {
+        injTR:injTR, spentByBank:spentByBank, paidNetByBank:paidNetByBank,
+        roundup:roundupThisMonth, monthlyInvest:monthlyInvestThisMonth
       });
     };
     // cuentas extra de Open Banking (2ª cuenta de un banco, compartidas…): saldo puro, suma al líquido
@@ -2822,7 +2845,7 @@ function App(){
     if(id==="plan") return React.createElement(PlanTab,{state:state,set:set,totals:totals,showToast:showToast,simple:simple,gotoSeg:planGoto,clearGoto:function(){ setPlanGoto(null); }});
     // El «Sincronizar» de Cartera actualiza TODO lo conectado: Open Banking + TR + MyInvestor
     // (petición 2026-07-18: «que también sincronice Trade Republic y MyInvestor»).
-    if(id==="cartera") return React.createElement(CarteraTab,{state:state,set:set,totals:totals,fetchPrices:fetchPrices,pricing:pricing,simple:simple,onBankSync:function(){ return Promise.all([runBankSync({manual:true}), runBrokerSync({manual:true})]); },onReconnectBank:reconnectBank});
+    if(id==="cartera") return React.createElement(CarteraTab,{state:state,set:set,totals:totals,fetchPrices:fetchPrices,pricing:pricing,simple:simple,showToast:showToast,onBankSync:function(){ return Promise.all([runBankSync({manual:true}), runBrokerSync({manual:true})]); },onReconnectBank:reconnectBank});
     return null;
   };
 

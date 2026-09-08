@@ -239,6 +239,18 @@ const KW = {
   regalos:["regalo","flores","floristeria","floristería","perfumeria","perfumería","interflora","teleflorist","rosas ","ramo "],
   joyeria:["joyeria","joyeros","tiffany","cartier","swarovski","tous ","pandora"],
 };
+/* Retirada de cajero / ATM → traspaso (neutro). Mismas claves en ingest_logic.ts. */
+function isAtmWithdrawal(merchant){
+  const c=(merchant||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  if(!c) return false;
+  if(c.indexOf("cajero")!==-1) return true;
+  if(c.indexOf("cash withdrawal")!==-1 || c.indexOf("cashwithdrawal")!==-1) return true;
+  if(c.indexOf("retirada de efectivo")!==-1) return true;
+  if(c.indexOf("reintegro")!==-1) return true;
+  if(c.indexOf("retrait")!==-1 && c.indexOf("espece")!==-1) return true;
+  if(/\batm\b/.test(c)) return true;
+  return false;
+}
 function autoCategory(merchant){
   const c=(merchant||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
   const key=c.trim();
@@ -250,6 +262,7 @@ function autoCategory(merchant){
   // abr\u00eda la app, porque `migrate` re-categoriza todo lo que est\u00e9 en "otros" y no sea manual.
   if(USER_OVERRIDES[key] && !CAT_NEUTRAS[USER_OVERRIDES[key]]) return USER_OVERRIDES[key];   // lo que T\u00da has aprendido a mano
   for(const k in MERCHANT_OVERRIDES){ if(c.indexOf(k)!==-1) return MERCHANT_OVERRIDES[k]; }  // overrides de ejemplo
+  if(typeof isAtmWithdrawal==="function" && isAtmWithdrawal(merchant)) return "traspaso";
   // Keywords cortas (bar, bus…) con límite de palabra: si no, "Barcelona" caía en bares
   // por el substring «bar» (bug Kinepolis 2026-07-17).
   const hit=function(hay, needle){
@@ -294,8 +307,14 @@ const ENT = {
   cajamar:        { label:"Cajamar",        mono:"Cj", color:"#6FB08A" },
   imagin:         { label:"imagin",         mono:"im", color:"#3FC0A8" },
   familia:        { label:"Familia",        mono:"Fa", color:"#E2705F" },
+  // Sobre de billetes (tanda 6): nunca Open Banking, no es gasto diario.
+  efectivo:       { label:"Efectivo",       mono:"€",  color:"#8FA89A" },
 };
 const entOf = (id)=> ENT[id] || { label:id, mono:"··", color:"#8FA89A" };
+function isEfectivoEnt(aOrEnt){
+  const e=(aOrEnt&&typeof aOrEnt==="object")?aOrEnt.ent:aOrEnt;
+  return e==="efectivo";
+}
 
 function fxTableOf(s){
   const t=s&&s.fxRates;
@@ -1174,6 +1193,88 @@ function valueDesdeSaldo(o){
   var v=(o.shown||0)-(o.injTR||0)+(o.spentOwn||0)+(o.roundup||0)+(o.monthlyInvest||0);
   if(o.ambos) v-=(o.paidNet||0);
   return +v.toFixed(2);
+}
+/* Saldo que se PINTA de una cuenta. Diaria → fórmula TR. Efectivo → value − gastos propios
+   (nadie re-ancla el sobre). Resto → value + paidNet, SIN restar gastos: las manuales sin OB
+   las ajusta él a mano (decisión pendiente del dueño; NO ensanchar a «sin bankIban»). */
+function saldoCuentaMostrada(a, o){
+  o=o||{};
+  if(!a) return 0;
+  const spentMap=o.spentByBank||{};
+  const paidMap=o.paidNetByBank||{};
+  const pn=paidMap[a.ent]||0;
+  if(typeof accDaily==="function" ? accDaily(a) : (a.role==="diario"||a.role==="ambos"||a.spendFrom)){
+    return saldoCuentaGasto({
+      value:a.value, injTR:o.injTR||0, spentOwn:spentMap[a.ent]||0,
+      roundup:o.roundup||0, monthlyInvest:o.monthlyInvest||0,
+      ambos:(typeof accRole==="function"?accRole(a)==="ambos":a.role==="ambos"), paidNet:pn
+    });
+  }
+  var v=(a.value||0)+pn;
+  if(isEfectivoEnt(a)) v-=(spentMap[a.ent]||0);
+  return v;
+}
+/* Crea el sobre si no existe. Valor inicial opcional. Lo mete en expenseBanks (presupuesto sí). */
+function ensureEfectivoAccount(state, initialValue){
+  if(!state) return state;
+  const accounts=(state.accounts||[]).slice();
+  if(accounts.some(isEfectivoEnt)) return state;
+  const v=(initialValue!=null && isFinite(Number(initialValue))) ? +Number(initialValue).toFixed(2) : 0;
+  accounts.push({ id:(typeof uid==="function"?uid():("ef-"+Date.now())), ent:"efectivo", name:"Efectivo", value:v, role:"fijos" });
+  const settings=Object.assign({}, state.settings||{});
+  const eb=(settings.expenseBanks||[]).slice();
+  if(eb.indexOf("efectivo")<0) eb.push("efectivo");
+  settings.expenseBanks=eb;
+  return Object.assign({}, state, { accounts:accounts, settings:settings });
+}
+/* Borrar el sobre: no toca los gastos (siguen con ent efectivo); saca efectivo de expenseBanks. */
+function removeEfectivoAccount(state, id){
+  if(!state) return state;
+  const accounts=(state.accounts||[]).filter(function(a){
+    if(id && a.id===id) return false;
+    if(!id && isEfectivoEnt(a)) return false;
+    return true;
+  });
+  const settings=Object.assign({}, state.settings||{});
+  settings.expenseBanks=(settings.expenseBanks||[]).filter(function(e){ return e!=="efectivo"; });
+  settings.dailyOnlyBanks=(settings.dailyOnlyBanks||[]).filter(function(e){ return e!=="efectivo"; });
+  return Object.assign({}, state, { accounts:accounts, settings:settings });
+}
+/* Saqué del cajero: traspaso neutro en el banco + sube el sobre.
+   Si el banco NO está anclado por IBAN, también baja su value (si no, el banco ya trae el −€). */
+function applySaqueCajero(state, fromEnt, amount){
+  if(!state || !fromEnt) return state;
+  const amt=Math.abs(Number(amount)||0);
+  if(!(amt>0)) return state;
+  let st=ensureEfectivoAccount(state, 0);
+  const accounts=(st.accounts||[]).map(function(a){
+    if(isEfectivoEnt(a)) return Object.assign({}, a, { value:+((a.value||0)+amt).toFixed(2) });
+    if(a.ent===fromEnt && !a.bankIban) return Object.assign({}, a, { value:+((a.value||0)-amt).toFixed(2) });
+    return a;
+  });
+  const e={
+    id:(typeof mcExpenseId==="function"?mcExpenseId():(typeof uid==="function"?uid():("cajero-"+Date.now()))),
+    date:new Date().toISOString(),
+    merchant:"Cajero",
+    amount:amt,
+    category:"traspaso",
+    source:"manual",
+    ent:fromEnt,
+    noCard:true
+  };
+  return Object.assign({}, st, { accounts:accounts, expenses:[e].concat(st.expenses||[]) });
+}
+/* Entró efectivo (propina, te devuelven…): solo sube el sobre. */
+function applyEntradaEfectivo(state, amount){
+  if(!state) return state;
+  const amt=Math.abs(Number(amount)||0);
+  if(!(amt>0)) return state;
+  let st=ensureEfectivoAccount(state, 0);
+  const accounts=(st.accounts||[]).map(function(a){
+    if(!isEfectivoEnt(a)) return a;
+    return Object.assign({}, a, { value:+((a.value||0)+amt).toFixed(2) });
+  });
+  return Object.assign({}, st, { accounts:accounts });
 }
 /* EFECTIVO REAL DE TRADE REPUBLIC (availableCash) → base guardada de su cuenta.
    Lo usan los DOS botones que hablan con el puente nativo: la tarjeta de TR y el sincronizador
