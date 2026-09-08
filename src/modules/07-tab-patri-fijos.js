@@ -1,24 +1,39 @@
 /* ============================================================
    TAB: PATRIMONIO
    ============================================================ */
-function Wealth({state, set, totals, v4Embed, parte}){
+function Wealth({state, set, totals, v4Embed, parte, showToast}){
   const [delAcc,setDelAcc]=React.useState("");   // id de la cuenta manual pendiente de confirmar borrado
   // Quitar a mano una cuenta manual del patrimonio (la del onboarding no se va sola al desloguear el banco:
   // las manuales viven en state.accounts, no en obAccounts, y bankDisconnect solo purga obAccounts).
-  const removeAccount=(id)=>{ setDelAcc(""); set(function(s){ return Object.assign({},s,{accounts:(s.accounts||[]).filter(function(a){ return a.id!==id; })}); }); };
+  const removeAccount=(id)=>{
+    setDelAcc("");
+    set(function(s){
+      const a=(s.accounts||[]).find(function(x){ return x.id===id; });
+      if(a && isEfectivoEnt(a)) return removeEfectivoAccount(s, id);
+      return Object.assign({},s,{accounts:(s.accounts||[]).filter(function(x){ return x.id!==id; })});
+    });
+  };
   const pn=(i)=> (totals.paidNetByBank&&totals.paidNetByBank[i.ent])||0;   // movimientos ya ocurridos este mes
   const ruM=totals.roundupThisMonth||0;                                     // round-up del mes (sale del efectivo de gasto)
   const miM=totals.monthlyInvestThisMonth||0;                               // aporte periódico del mes (idem)
   const spentOwn=(i)=> (totals.spentByBank&&i.ent&&totals.spentByBank[i.ent])||0;
-  const spendBal=(i)=> saldoCuentaGasto({value:i.value, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)});
+  const shownAcc=(i)=> saldoCuentaMostrada(i, {
+    injTR:totals.injTR||0, spentByBank:totals.spentByBank||{}, paidNetByBank:totals.paidNetByBank||{},
+    roundup:ruM, monthlyInvest:miM
+  });
+  const spendBal=(i)=> shownAcc(i);
   // ROLES DE CUENTA: al cambiar el rol se RE-ANCLA `value` para que el saldo mostrado no cambie
   // (despejamos value de la fórmula del rol nuevo). Solo puede haber UNA cuenta de gasto diario.
   const setRole=(id,r)=>{ set(function(s){ return applyAccountRole(s, totals, id, r); }); };   // lógica compartida (applyAccountRole)
   const accEd=useEditable(state.accounts,it=>set(s=>Object.assign({},s,{accounts:it})),{
     // Editas el SALDO REAL de hoy; por dentro se guarda la base (inicio de mes) correcta.
-    display:  i => accDaily(i) ? spendBal(i) : (i.value + pn(i)),
+    display:  i => shownAcc(i),
     // editar a mano re-ancla: typed = spendBal(nuevo value) → despeja value (incluye miM, que faltaba)
-    toStored: (i,typed) => accDaily(i) ? valueDesdeSaldo({shown:typed, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)}) : (typed - pn(i))
+    toStored: (i,typed) => {
+      if(accDaily(i)) return valueDesdeSaldo({shown:typed, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)});
+      if(isEfectivoEnt(i)) return +((Number(typed)||0) + spentOwn(i)).toFixed(2);
+      return (typed - pn(i));
+    }
   });
   const astEd=useEditable(state.assets,it=>set(s=>Object.assign({},s,{assets:it})));
   const accSum=totals.liquid;
@@ -54,8 +69,51 @@ function Wealth({state, set, totals, v4Embed, parte}){
           React.createElement("div",null,entOf(a.ent).label, isSynced(a)&&badge(t("pt_ob_badge"),"#7FB5E8")),
           React.createElement("div",{className:"meta"}, [roleLab(a),a.name].filter(Boolean).join(" · ")||"—")
         ),
-        React.createElement("div",{className:"am num"},eur(accDaily(a)?spendBal(a):(a.value+pn(a))))
+        React.createElement("div",{className:"am num"},eur(shownAcc(a)))
       );
+    };
+    const cashAcc=(state.accounts||[]).find(isEfectivoEnt);
+    const parseAmt=function(raw){ return Math.abs(parseFloat(String(raw==null?"":raw).replace(/\s/g,"").replace(",","."))||0); };
+    const toast=function(msg){ if(typeof showToast==="function") showToast(msg); };
+    const doSaqueCajero=function(){
+      const banks=(state.accounts||[]).filter(function(a){ return a.ent && !isEfectivoEnt(a); });
+      if(!banks.length){ toast("⚠ "+t("ef_need_bank")); return; }
+      const bankChips=banks.map(function(a){ return { v:a.ent, label:entOf(a.ent).label }; });
+      askText({ title:t("ef_cajero_bank"), sub:t("ef_cajero_bank_sub"), ph:entOf(banks[0].ent).label, ok:t("ef_cajero_next"), chips:bankChips })
+        .then(function(entRaw){
+          if(entRaw==null) return;
+          const ent=banks.some(function(b){ return b.ent===entRaw; }) ? entRaw : banks[0].ent;
+          askText({ title:t("ef_cajero_title"), sub:tf("ef_cajero_sub",{bank:entOf(ent).label}), ph:"200", ok:t("ef_cajero_ok"),
+            chips:[{v:50,label:"50 €"},{v:100,label:"100 €"},{v:200,label:"200 €"}] })
+            .then(function(raw){
+              if(raw==null) return;
+              const amt=parseAmt(raw);
+              if(!(amt>0)){ toast("⚠ "+t("g_invalid")); return; }
+              set(function(s){ return applySaqueCajero(s, ent, amt); });
+              toast(t("ef_cajero_done"));
+            });
+        });
+    };
+    const doEntradaEfectivo=function(){
+      askText({ title:t("ef_in_title"), sub:t("ef_in_sub"), ph:"20", ok:t("ef_in_ok"),
+        chips:[{v:10,label:"10 €"},{v:20,label:"20 €"},{v:50,label:"50 €"}] })
+        .then(function(raw){
+          if(raw==null) return;
+          const amt=parseAmt(raw);
+          if(!(amt>0)){ toast("⚠ "+t("g_invalid")); return; }
+          set(function(s){ return applyEntradaEfectivo(s, amt); });
+          toast(t("ef_in_done"));
+        });
+    };
+    const doAddEfectivo=function(){
+      askText({ title:t("ef_create_title"), sub:t("ef_create_sub"), ph:"120", ok:t("ef_create_ok") })
+        .then(function(raw){
+          if(raw==null) return;
+          const amt=raw===""?0:parseAmt(raw);
+          if(raw!=="" && !(amt>=0)){ toast("⚠ "+t("g_invalid")); return; }
+          set(function(s){ return ensureEfectivoAccount(s, amt); });
+          toast(t("ef_create_done"));
+        });
     };
     const obRow=function(o){
       const custom=(state.obLabels||{})[o.key]; const disp=(custom!=null&&custom!=="")?custom:niceObName(o);
@@ -78,6 +136,11 @@ function Wealth({state, set, totals, v4Embed, parte}){
     // los extras. En un extra, «Gasto diario» = expenseBanks + dailyOnlyBanks (recibos fuera);
     // «Todo» = expenseBanks sin dailyOnly (recibos y gasto diario a la vez).
     const pickRole=function(a,r){
+      // Efectivo: solo recibos/fijos. No es gasto diario (round-up / nómina no aplican).
+      if(isEfectivoEnt(a) && (r==="diario"||r==="ambos")){
+        toast("⚠ "+t("ef_no_diario"));
+        return;
+      }
       // Pide un sync en cuanto se suelta el bloque `set` (React agrupa el estado, el evento no
       // tiene por qué esperar a eso): el banco nuevo puede llevar días sin sincronizar porque
       // hasta ahora no era «suyo» — sin esto sus compras de esta semana se quedan sin traer hasta
@@ -116,8 +179,9 @@ function Wealth({state, set, totals, v4Embed, parte}){
     const roleChips=function(a){
       const dy=dailyEffOf(a), fx=fixedEffOf(a);
       const on={fijos:fx&&!dy, diario:dy&&!fx, ambos:fx&&dy};
+      const roles=isEfectivoEnt(a) ? [["fijos","rl_fijos"]] : [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]];
       return React.createElement("div",{className:"rolechips",style:{padding:"8px 0 2px"}},
-        [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]].map(function(rr){
+        roles.map(function(rr){
           return React.createElement("button",{key:rr[0],className:"rchip"+(on[rr[0]]?" on":""),onClick:function(){ pickRole(a, rr[0]); }}, t(rr[1]));
         }),
         React.createElement("button",{className:"ex-del",style:{marginLeft:"auto"},title:t("pt_acc_del"),onClick:function(){ setDelAcc(a.id); }},"🗑")
@@ -133,6 +197,11 @@ function Wealth({state, set, totals, v4Embed, parte}){
       parte!=="bienes" && React.createElement("div",{className:"v4-card-list"},
         state.accounts.map(accRow),
         (state.obAccounts||[]).map(obRow),
+        !cashAcc && React.createElement("button",{type:"button",className:"edit-link",style:{margin:"8px 4px"},onClick:doAddEfectivo}, t("ef_create_btn")),
+        cashAcc && React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",margin:"8px 4px"}},
+          React.createElement("button",{type:"button",className:"edit-link",onClick:doSaqueCajero}, t("ef_cajero_btn")),
+          React.createElement("button",{type:"button",className:"edit-link",onClick:doEntradaEfectivo}, t("ef_in_btn"))
+        ),
         React.createElement("button",{className:"edit-link",style:{margin:"8px 4px"},onClick:function(){ accEd.editing?accEd.save():accEd.start(); }},accEd.editing?t("fj_save"):t("fj_edit"))
       ),
       // Editor completo (2026-07-18): nombre + rol (recibos/diario/todo) SIEMPRE; el saldo solo
@@ -146,7 +215,7 @@ function Wealth({state, set, totals, v4Embed, parte}){
               React.createElement("input",{className:"af-in",style:{flex:1,fontSize:13,padding:"7px 10px"},value:a.name||"",placeholder:t("pt_name_ph"),
                 onChange:function(e){ const v=e.target.value; set(function(s){ return Object.assign({},s,{accounts:s.accounts.map(function(x){ return x.id===a.id?Object.assign({},x,{name:v}):x; })}); }); }}),
               synced
-                ? React.createElement("span",{className:"am num",style:{flex:"0 0 auto",color:"var(--muted)",fontSize:14}}, eur(accDaily(a)?spendBal(a):(a.value+pn(a))))
+                ? React.createElement("span",{className:"am num",style:{flex:"0 0 auto",color:"var(--muted)",fontSize:14}}, eur(shownAcc(a)))
                 : React.createElement("input",{className:"af-in num",style:{width:104,flex:"0 0 auto"},value:accEd.draft[a.id],inputMode:"decimal",
                     onChange:function(e){const v=e.target.value;accEd.setDraft(function(d){return Object.assign({},d,{[a.id]:v});});}})
             ),
@@ -240,7 +309,7 @@ function Wealth({state, set, totals, v4Embed, parte}){
                 : (a.name?React.createElement("div",{className:"rsub"},a.name):null))),
           accEd.editing
             ? React.createElement("input",{className:"editv num",value:accEd.draft[a.id],inputMode:"decimal",onChange:e=>{const v=e.target.value;accEd.setDraft(d=>Object.assign({},d,{[a.id]:v}));}})
-            : React.createElement("div",{className:"rval num"},eur(accDaily(a)? spendBal(a) : a.value + pn(a)))
+            : React.createElement("div",{className:"rval num"},eur(shownAcc(a)))
         ),
         // rol de la cuenta (solo en modo edición): recibos / gasto diario / todo + quitar cuenta
         accEd.editing && React.createElement("div",{className:"rolechips"},

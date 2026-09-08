@@ -417,7 +417,10 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
         const nti=cleanNote(x.note, e.merchant); if(nti) e.note=nti;
         expAdds.push(e); return;
       }
-      const cat=(c&&c.category)||autoCategory(x.merchant||"");
+      // Gasto: categoria del clasificador (incl. inversion) — nunca applyInvestBuy aqui.
+      // `categoryOfNewMerchant` y no `autoCategory`: el cajero solo se detecta en ALTAS
+      // NUEVAS, nunca desde la migracion que recategoriza el historico (tanda 6).
+      const cat=(c&&c.category)||categoryOfNewMerchant(x.merchant||"");
       const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, importBatchId:batchId };
       if(x.id) e.extId=x.id;
       const nt=cleanNote(x.note, e.merchant); if(nt) e.note=nt;
@@ -1624,6 +1627,46 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+  {v:"4.19.10", d:"8 sep 2026",
+   t:{es:"El dinero en efectivo, controlado como una cuenta más",
+      en:"Cash, tracked like any other account",
+      ca:"Els diners en efectiu, controlats com un compte més"},
+   tandas:[
+     {id:"efectivo", t:{es:"💶 El sobre del efectivo", en:"💶 The cash envelope", ca:"💶 El sobre de l'efectiu"},
+      items:{
+        es:[
+          "Cartera: crea la cuenta de Efectivo y ponle lo que llevas de verdad en la cartera.",
+          "Apunta un gasto eligiendo Efectivo: el sobre tiene que bajar, y NINGÚN otro saldo se puede mover.",
+          "Usa «saqué del cajero» por 200 € desde Sabadell: Sabadell baja 200, Efectivo sube 200, y tu patrimonio total se queda IGUAL. No puede aparecer como gasto del mes.",
+          "Ese gasto en efectivo sí tiene que contar en el total del mes de Gastos, igual que uno de tarjeta.",
+          "Si intentas gastar más de lo que hay en el sobre, tiene que avisarte.",
+          "Borra la cuenta de Efectivo: no puede quedarse ningún gasto huérfano ni descuadrarse el patrimonio.",
+          "Una retirada de cajero que te entre por notificación PUEDE seguir contando como gasto: esa mitad está en el servidor y todavía no se ha subido. Si te pasa, no es un fallo tuyo."
+        ],
+        en:[
+          "Cartera: crea la cuenta de Efectivo y ponle lo que llevas de verdad en la cartera.",
+          "Apunta un gasto eligiendo Efectivo: el sobre tiene que bajar, y NINGÚN otro saldo se puede mover.",
+          "Usa «saqué del cajero» por 200 € desde Sabadell: Sabadell baja 200, Efectivo sube 200, y tu patrimonio total se queda IGUAL. No puede aparecer como gasto del mes.",
+          "Ese gasto en efectivo sí tiene que contar en el total del mes de Gastos, igual que uno de tarjeta.",
+          "Si intentas gastar más de lo que hay en el sobre, tiene que avisarte.",
+          "Borra la cuenta de Efectivo: no puede quedarse ningún gasto huérfano ni descuadrarse el patrimonio.",
+          "Una retirada de cajero que te entre por notificación PUEDE seguir contando como gasto: esa mitad está en el servidor y todavía no se ha subido. Si te pasa, no es un fallo tuyo."
+        ],
+        ca:[
+          "Cartera: crea la cuenta de Efectivo y ponle lo que llevas de verdad en la cartera.",
+          "Apunta un gasto eligiendo Efectivo: el sobre tiene que bajar, y NINGÚN otro saldo se puede mover.",
+          "Usa «saqué del cajero» por 200 € desde Sabadell: Sabadell baja 200, Efectivo sube 200, y tu patrimonio total se queda IGUAL. No puede aparecer como gasto del mes.",
+          "Ese gasto en efectivo sí tiene que contar en el total del mes de Gastos, igual que uno de tarjeta.",
+          "Si intentas gastar más de lo que hay en el sobre, tiene que avisarte.",
+          "Borra la cuenta de Efectivo: no puede quedarse ningún gasto huérfano ni descuadrarse el patrimonio.",
+          "Una retirada de cajero que te entre por notificación PUEDE seguir contando como gasto: esa mitad está en el servidor y todavía no se ha subido. Si te pasa, no es un fallo tuyo."
+        ]}}
+   ],
+   items:{
+     es:["Ya puedes llevar el dinero en efectivo como una cuenta más: baja al gastar y sube cuando sacas del cajero.","Sacar del cajero mueve el dinero de sitio, no cuenta como gasto.","Las retiradas de cajero antiguas se quedan donde estaban."],
+     en:["You can now track cash like any other account: it goes down when you spend and up when you withdraw.","Withdrawing cash moves money around; it does not count as spending.","Older cash withdrawals stay where they were."],
+     ca:["Ja pots portar els diners en efectiu com un compte més: baixa en gastar i puja quan treus del caixer.","Treure del caixer mou els diners de lloc, no compta com a despesa.","Les retirades de caixer antigues es queden on eren."]
+   }},
   {v:"4.19.9", d:"8 sep 2026",
    t:{es:"Deshacer una importación del histórico, sin llevarse nada por delante",
       en:"Undo a history import without taking anything else with it",

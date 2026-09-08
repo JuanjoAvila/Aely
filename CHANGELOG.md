@@ -2,6 +2,42 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.10] — 2026-09-08
+### Efectivo: una cuenta más, no un módulo nuevo (tanda 6)
+
+Diseño cerrado con él el 18/8, desbloqueado ahora: dependía del bug 1c del saldo cruzado, que ya
+está cerrado (`saldoCuentaGasto` / `valueDesdeSaldo` en los cinco sitios, `saldo-por-banco` verde).
+
+- `ENT.efectivo` es una cuenta normal: **nunca** Open Banking, **nunca** cuenta de gasto diario.
+- El sobre **descuenta sus propios gastos**, porque no hay banco que lo re-ancle por IBAN.
+- **Alcance acotado a propósito (decisión de integración):** la resta se aplica solo a
+  `ent === "efectivo"`, NO a «toda cuenta sin `bankIban`» como proponía el plan. Una cuenta manual
+  suya sin Open Banking tampoco tiene IBAN, y hoy la ajusta a mano: restarle además los gastos le
+  duplicaría el ajuste y le movería saldos que le cuadran. El caso general queda como decisión
+  pendiente suya, escrita en el brief. Y Trade Republic no pasa por OB a propósito, así que sin
+  acotar habría descontado sus gastos DOS veces: hay test.
+- «Saqué del cajero» reusa `traspaso`, que ya es neutra: mueve dinero de sitio y no cuenta como
+  gasto del mes. Aviso si el sobre se queda en negativo.
+
+**Lo que se bloqueó en revisión y hubo que rehacer:**
+
+- **Le recategorizaba el histórico.** La detección de cajero entró en `autoCategory`, y hay una
+  migración que corre EN CADA CARGA y recategoriza todo lo que esté en «otros» y no sea manual.
+  Comprobado ejecutando: `autoCategory('RETIRADA CAJERO 4B')` daba `traspaso`, que es NEUTRA, así
+  que sus retiradas viejas habrían dejado de contar como gasto y le habrían bajado los totales de
+  meses ya cerrados, sin avisar. Es exactamente lo que él decidió que NO en la categoría de IA.
+  Ahora la detección vive en `categoryOfNewMerchant`, solo para altas nuevas; `autoCategory`
+  devuelve `otros` para un cajero, con test.
+- **La regla estaba escrita dos veces y solo se probaba una** (cliente y `ingest_logic.ts`).
+  `tests/atm-dual.test.mjs` carga LAS DOS y les exige la misma respuesta sobre una lista común.
+
+**LÍMITE — esto NO viaja entero por OTA.** La detección de cajero del servidor está en la Edge
+Function del Supabase **compartido por beta y producción**. Sin desplegarla, el móvil detecta el
+cajero y el servidor no: una retirada que entre por notificación puede seguir contando como gasto.
+Desplegar afecta a producción y **necesita su autorización**. El guion de la tanda se lo dice.
+
+OTA (parcial, ver límite); sin Android; sin migraciones SQL.
+
 ## [4.19.9] — 2026-09-08
 ### Import histórico, tanda 3: el agujero A cerrado
 

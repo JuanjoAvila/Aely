@@ -355,7 +355,7 @@ function BillsManageSheet({open, onClose, state, set, totals}){
     ), document.body);
 }
 
-function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, onReconnectBank}){
+function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, onReconnectBank, showToast}){
   const [invTools,setInvTools]=useState(false);
   // TR desconectado (y el usuario SÍ lo tuvo conectado alguna vez → mc_tr_phone guardado):
   // banner con botón que abre Mis bancos directamente. UX padre 2026-07-18: al ver el saldo
@@ -474,7 +474,7 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
           state.hasBankLink && onBankSync && React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:0},
             disabled:bankBusy,onClick:doBankSync}, bankBusy?t("bp_syncing"):("↻ "+t("v4_sync_banks")))
         ),
-        React.createElement(Wealth,{state:state,set:set,totals:totals,v4Embed:true,parte:"cuentas"})
+        React.createElement(Wealth,{state:state,set:set,totals:totals,v4Embed:true,parte:"cuentas",showToast:showToast})
       ) },
       // Bienes (piso, coche…) es su propio bloque: no son cuentas de banco y el usuario quiere
       // colocarlos donde le apetezca (feedback 2026-07-25).
@@ -595,6 +595,17 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     onClose();
     if(goGastos) goGastos();
     showToast(isIn?t("v4_apuntar_ok_in"):t("v4_apuntar_ok"));
+    if(!isIn && e.ent==="efectivo"){
+      const cash=(state.accounts||[]).find(isEfectivoEnt);
+      if(cash){
+        const monthStart=startOfMonth();
+        const spentPrev=(state.expenses||[]).filter(function(x){
+          return x && x.ent==="efectivo" && parseDate(x.date)>=monthStart && expenseCountsCash(x, state);
+        }).reduce(function(a,x){ return a+(x.amount||0); },0);
+        const left=(cash.value||0)-(spentPrev+e.amount);
+        if(left< -0.005) showToast("⚠ "+tf("ef_neg_warn",{x:eur(Math.abs(left))}));
+      }
+    }
   };
   const keys=["1","2","3","4","5","6","7","8","9",",","0","⌫"];
   const cats=CATEGORIES.filter(function(c){ return c.id!=="otros"; }).concat(CATEGORIES.filter(function(c){ return c.id==="otros"; }));

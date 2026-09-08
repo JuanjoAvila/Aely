@@ -73,8 +73,20 @@ export function limpiarTexto(s: string): string {
     .trim();
 }
 
+export function isAtmWithdrawal(comercio: string): boolean {
+  const c = norm(comercio);
+  if (!c) return false;
+  if (c.includes("cajero")) return true;
+  if (c.includes("cash withdrawal") || c.includes("cashwithdrawal")) return true;
+  if (c.includes("retirada de efectivo")) return true;
+  if (c.includes("reintegro")) return true;
+  if (c.includes("retrait") && c.includes("espece")) return true;
+  if (/\batm\b/.test(c)) return true;
+  return false;
+}
 export function categorizar(comercio: string): string {
   const c = norm(comercio);
+  if (isAtmWithdrawal(comercio)) return "traspaso";
   // Keywords cortas con límite de palabra (mismo criterio que el cliente: «bar» ≠ Barcelona).
   const hit = (hay: string, needle: string) => {
     if (needle.length >= 4) return hay.includes(needle);
