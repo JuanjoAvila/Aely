@@ -265,4 +265,19 @@ t("A/B: undo vacío / idempotente → no-op declarado", () => {
   assert.deepEqual(again.nextState.expenses, once.nextState.expenses);
 });
 
+t("híbrido C: cargo no-tarjeta default gasto (nunca recibo) y build no toca fixed", () => {
+  const st = baseState();
+  st.fixed = [{ id: "f1", name: "Alquiler", amount: 700, day: 1, account: "sabadell" }];
+  const before = st.fixed.length;
+  const cands = [cand({ kind: "out", card: false, amount: 42, merchant: "NETFLIX", ent: "sabadell", date: "2026-09-05" })];
+  const { rows } = ctx.histClassifyCandidates(cands, st);
+  assert.equal(rows[0].status, "new");
+  assert.equal(rows[0].defDest, "gasto");
+  assert.equal(rows[0].suggestRecibo, true);
+  const built = ctx.histBuildCommit(cands, rows, st);
+  assert.equal(built.fixAdds.length, 0);
+  assert.equal(st.fixed.length, before);
+  assert.equal(built.expAdds[0].category !== undefined, true);
+});
+
 console.log("\nhist-import-dup: OK");
