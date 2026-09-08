@@ -10,9 +10,13 @@
  * se restaba 3 veces cada mes, para siempre.
  */
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
 const ctx = loadPureLogicFromFile();
+const i18nSrc = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "src", "modules", "01-i18n.js"), "utf8");
 
 function t(name, fn) {
   try { fn(); console.log(`  ✓ ${name}`); }
@@ -353,6 +357,27 @@ t("B+lote: undo dos veces idempotente y cero deleted", () => {
   assert.equal(twice.ok, true);
   assert.equal(twice.nextState.expenses.length, 1);
   assert.deepEqual(twice.nextState.deleted, ["keep"]);
+});
+
+t("L: histCanUndo solo si quedan filas locales del batch (no basta lastHistImport)", () => {
+  const st = baseState();
+  st.lastHistImport = { batchId: "hist-l", localIds: ["x"], cloudIds: ["x"] };
+  st.expenses = [{ id: "x", importBatchId: "hist-l", amount: 1, merchant: "A", date: "2026-09-01T12:00:00.000Z", source: "ob-hist" }];
+  assert.equal(ctx.histCanUndo(st), true);
+  // Tras un pull las filas vuelven SIN importBatchId — lastHistImport sigue, el botón no.
+  st.expenses = [{ id: "x", amount: 1, merchant: "A", date: "2026-09-01T12:00:00.000Z", source: "supabase" }];
+  assert.equal(ctx.histCanUndo(st), false);
+  st.expenses = [];
+  assert.equal(ctx.histCanUndo(st), false);
+  st.lastHistImport = null;
+  assert.equal(ctx.histCanUndo(st), false);
+});
+
+t("M: confirmación de fijos avisa que resta todos los meses hacia atrás", () => {
+  // LANG es const en el monolito → no sale al sandbox. Leemos la fuente (tres idiomas).
+  assert.ok(/bp_hist_confirm_fijos_sub:"Se restarán todos los meses, también hacia atrás\./.test(i18nSrc));
+  assert.ok(/bp_hist_confirm_fijos_sub:"They will be deducted every month, including past months\./.test(i18nSrc));
+  assert.ok(/bp_hist_confirm_fijos_sub:"Es restaran tots els mesos, també cap enrere\./.test(i18nSrc));
 });
 
 console.log("\nhist-import-dup: OK");

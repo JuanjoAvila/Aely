@@ -888,6 +888,15 @@ function histUndoBatch(state, lastHistImport){
     reason:null
   };
 }
+/* L: importBatchId no viaja a la nube. Tras un pull las filas vuelven sin el campo y lastHistImport
+   puede seguir en el estado — el botón Deshacer solo tiene sentido mientras queden filas LOCALES
+   del lote (si no, deshacería a ciegas o no quitaría nada útil). */
+function histCanUndo(state){
+  const last=state&&state.lastHistImport;
+  if(!last||!last.batchId) return false;
+  const bid=last.batchId;
+  return (state.expenses||[]).some(function(e){ return e&&e.importBatchId===bid; });
+}
 
 /* Bancos que NO están sirviendo datos, con el motivo, para el banner «Reconectar» y la noti.
 
