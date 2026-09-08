@@ -25,6 +25,13 @@ terna le borraba el ORIGINAL.
   servidor confirmó (`kept.map(e => e.id)`), así que un id ajeno no puede llegar al borrado.
   Guardián: «A: ACK — id ajeno del servidor no va a cloudIds ni a undo», comprobado en rojo antes.
 - Botón de deshacer en la pantalla del import, con confirmación e idempotente.
+- **Y el borrado en la nube se ESPERA** (segunda pasada de revisión, Cursor): iba a fuego y
+  olvido con un `.catch` vacío y el ✓ de «deshecho» salía igual. Como el undo no escribe
+  lápidas —a propósito—, lo único que impide que esas filas vuelvan es que la nube las haya
+  borrado de verdad: si el DELETE fallaba, el siguiente pull se las devolvía y él veía
+  reaparecer lo que acababa de deshacer, con un ✓ en pantalla. Ahora el toast de hecho solo
+  sale si la nube confirma, y si no, se le dice que vuelva a deshacer con cobertura.
+  Decirle «si vuelve, avísame» habría sido pasarle a él un defecto nuestro.
 
 OTA; sin Android. Sin migraciones: no se ha tocado el esquema.
 

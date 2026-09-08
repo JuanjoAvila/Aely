@@ -469,14 +469,21 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
           return Object.assign({}, r.nextState, { lastHistImport:null });
         });
         const ids=(r.cloudDeleteById||[]).slice();
-        if(ids.length && cloud.deleteExpensesByIds){
-          cloud.deleteExpensesByIds(ids).catch(function(){});
+        if(!ids.length){
+          if((last.localIds||[]).length) showToast("⚠ "+t("bp_hist_undo_local_only"));
+          else showToast(t("bp_hist_undo_done"));
+          return;
         }
-        if(!ids.length && (last.localIds||[]).length){
-          showToast("⚠ "+t("bp_hist_undo_local_only"));
-        }else{
-          showToast(t("bp_hist_undo_done"));
-        }
+        /* EL BORRADO EN LA NUBE HAY QUE ESPERARLO (review de Cursor, 8/9). Iba a fuego y olvido
+           con un `.catch` vacío y el toast de «hecho» salía igual. Y como el undo NO escribe
+           lápidas —a propósito, agujero B— lo ÚNICO que impide que esas filas vuelvan es que la
+           nube las haya borrado de verdad: si el DELETE fallaba, el siguiente pull se las
+           devolvía y él veía reaparecer lo que acababa de deshacer, con un ✓ en la pantalla.
+           Decirle «si vuelve, avísame» es pasarle a él un defecto nuestro. */
+        if(!cloud.deleteExpensesByIds){ showToast("⚠ "+t("bp_hist_undo_local_only")); return; }
+        Promise.resolve(cloud.deleteExpensesByIds(ids))
+          .then(function(){ showToast(t("bp_hist_undo_done")); })
+          .catch(function(){ showToast("⚠ "+t("bp_hist_undo_cloud_fail")); });
       });
   };
   const doImport=function(){
@@ -1620,22 +1627,22 @@ var RELEASE_NOTES=[
           "Ajustes → Mis bancos → Importar histórico: importa unos cuantos movimientos. Arriba del todo tiene que aparecer un botón rojo para deshacer esa importación.",
           "Dale a deshacer. Te tiene que preguntar antes, y al aceptar desaparecen SOLO los que acabas de importar. Los que ya tenías de antes se quedan todos.",
           "Vuelve a darle a deshacer una segunda vez: no puede borrar nada más ni dar error raro.",
-          "Cierra la app, ábrela y sincroniza: lo deshecho NO puede volver, y lo que no importaste tiene que seguir ahí.",
-          "Importa un movimiento que ya tuvieras apuntado igual (mismo día, importe y comercio). Al deshacer, el que ya tenías NO se puede borrar."
+          "Cierra la app, ábrela y sincroniza: lo deshecho NO puede volver, y lo que no importaste tiene que seguir ahí. Si al deshacer te sale un aviso de que la nube no lo ha confirmado, vuelve a deshacer con cobertura: eso NO es un fallo tuyo.",
+          "En la lista, un movimiento que ya tenías sale tachado y sin marcar. Márcalo tú a mano, impórtalo junto con al menos uno nuevo y deshaz: el que ya tenías de antes tiene que seguir ahí; solo se van los del lote nuevo."
         ],
         en:[
           "Ajustes → Mis bancos → Importar histórico: importa unos cuantos movimientos. Arriba del todo tiene que aparecer un botón rojo para deshacer esa importación.",
           "Dale a deshacer. Te tiene que preguntar antes, y al aceptar desaparecen SOLO los que acabas de importar. Los que ya tenías de antes se quedan todos.",
           "Vuelve a darle a deshacer una segunda vez: no puede borrar nada más ni dar error raro.",
-          "Cierra la app, ábrela y sincroniza: lo deshecho NO puede volver, y lo que no importaste tiene que seguir ahí.",
-          "Importa un movimiento que ya tuvieras apuntado igual (mismo día, importe y comercio). Al deshacer, el que ya tenías NO se puede borrar."
+          "Cierra la app, ábrela y sincroniza: lo deshecho NO puede volver, y lo que no importaste tiene que seguir ahí. Si al deshacer te sale un aviso de que la nube no lo ha confirmado, vuelve a deshacer con cobertura: eso NO es un fallo tuyo.",
+          "En la lista, un movimiento que ya tenías sale tachado y sin marcar. Márcalo tú a mano, impórtalo junto con al menos uno nuevo y deshaz: el que ya tenías de antes tiene que seguir ahí; solo se van los del lote nuevo."
         ],
         ca:[
           "Ajustes → Mis bancos → Importar histórico: importa unos cuantos movimientos. Arriba del todo tiene que aparecer un botón rojo para deshacer esa importación.",
           "Dale a deshacer. Te tiene que preguntar antes, y al aceptar desaparecen SOLO los que acabas de importar. Los que ya tenías de antes se quedan todos.",
           "Vuelve a darle a deshacer una segunda vez: no puede borrar nada más ni dar error raro.",
-          "Cierra la app, ábrela y sincroniza: lo deshecho NO puede volver, y lo que no importaste tiene que seguir ahí.",
-          "Importa un movimiento que ya tuvieras apuntado igual (mismo día, importe y comercio). Al deshacer, el que ya tenías NO se puede borrar."
+          "Cierra la app, ábrela y sincroniza: lo deshecho NO puede volver, y lo que no importaste tiene que seguir ahí. Si al deshacer te sale un aviso de que la nube no lo ha confirmado, vuelve a deshacer con cobertura: eso NO es un fallo tuyo.",
+          "En la lista, un movimiento que ya tenías sale tachado y sin marcar. Márcalo tú a mano, impórtalo junto con al menos uno nuevo y deshaz: el que ya tenías de antes tiene que seguir ahí; solo se van los del lote nuevo."
         ]}}
    ],
    items:{
