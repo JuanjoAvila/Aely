@@ -10222,12 +10222,15 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
       parte!=="bienes" && React.createElement("div",{className:"v4-card-list"},
         state.accounts.map(accRow),
         (state.obAccounts||[]).map(obRow),
-        !cashAcc && React.createElement("button",{type:"button",className:"edit-link",style:{margin:"8px 4px"},onClick:doAddEfectivo}, t("ef_create_btn")),
+        // Editar PRIMERO: los e2e (y el dedo) buscan button.edit-link; si «+ Efectivo» iba
+        // delante con la misma clase, el test de cabecera Gastos no abría el formulario
+        // (review 4.19.10). Acciones de efectivo van con v4-link-mini.
+        React.createElement("button",{className:"edit-link",style:{margin:"8px 4px"},onClick:function(){ accEd.editing?accEd.save():accEd.start(); }},accEd.editing?t("fj_save"):t("fj_edit")),
+        !cashAcc && React.createElement("button",{type:"button",className:"v4-link-mini",style:{margin:"8px 4px",display:"block"},onClick:doAddEfectivo}, t("ef_create_btn")),
         cashAcc && React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",margin:"8px 4px"}},
-          React.createElement("button",{type:"button",className:"edit-link",onClick:doSaqueCajero}, t("ef_cajero_btn")),
-          React.createElement("button",{type:"button",className:"edit-link",onClick:doEntradaEfectivo}, t("ef_in_btn"))
-        ),
-        React.createElement("button",{className:"edit-link",style:{margin:"8px 4px"},onClick:function(){ accEd.editing?accEd.save():accEd.start(); }},accEd.editing?t("fj_save"):t("fj_edit"))
+          React.createElement("button",{type:"button",className:"v4-link-mini",onClick:doSaqueCajero}, t("ef_cajero_btn")),
+          React.createElement("button",{type:"button",className:"v4-link-mini",onClick:doEntradaEfectivo}, t("ef_in_btn"))
+        )
       ),
       // Editor completo (2026-07-18): nombre + rol (recibos/diario/todo) SIEMPRE; el saldo solo
       // en cuentas manuales — el de las conectadas lo trae el banco y editarlo aquí sería mentirse.
