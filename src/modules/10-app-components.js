@@ -1564,6 +1564,43 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+  {v:"4.19.8", d:"8 sep 2026",
+   t:{es:"Traer el histórico del banco ya no crea recibos que no pediste",
+      en:"Importing bank history no longer creates bills you didn't ask for",
+      ca:"Portar l'historial del banc ja no crea rebuts que no vas demanar"},
+   tandas:[
+     {id:"import-historico", t:{es:"🧾 Importar histórico sin sustos", en:"🧾 Import history without surprises", ca:"🧾 Importar historial sense ensurts"},
+      items:{
+        es:[
+          "Ajustes → Mis bancos → Importar histórico. Busca 3 meses: todo lo que salga tiene que venir marcado como Gasto o Ingreso, NUNCA como Recibo por su cuenta.",
+          "Si marcas alguno como Recibo, al darle a Importar te tiene que preguntar antes de crear ningún fijo. Y la misma factura repetida en varios meses solo cuenta una vez.",
+          "Lo que ya tengas apuntado sale tachado y sin marcar, con el motivo: ya lo tienes, ya es un fijo tuyo, o está repetido dentro del propio lote.",
+          "Un traspaso entre tus cuentas tiene que salir como traspaso, y tu aporte mensual de inversión como inversión: ninguno de los dos puede contar como gasto del mes.",
+          "Si el banco devuelve menos días de los que pediste, o casi todo te llega como ingreso, tiene que avisarte con un recuadro naranja antes de importar.",
+          "Con muchos movimientos la lista no se pinta entera de golpe: sale un botón de «Ver más» y la pantalla no se atasca."
+        ],
+        en:[
+          "Ajustes → Mis bancos → Importar histórico. Busca 3 meses: todo lo que salga tiene que venir marcado como Gasto o Ingreso, NUNCA como Recibo por su cuenta.",
+          "Si marcas alguno como Recibo, al darle a Importar te tiene que preguntar antes de crear ningún fijo. Y la misma factura repetida en varios meses solo cuenta una vez.",
+          "Lo que ya tengas apuntado sale tachado y sin marcar, con el motivo: ya lo tienes, ya es un fijo tuyo, o está repetido dentro del propio lote.",
+          "Un traspaso entre tus cuentas tiene que salir como traspaso, y tu aporte mensual de inversión como inversión: ninguno de los dos puede contar como gasto del mes.",
+          "Si el banco devuelve menos días de los que pediste, o casi todo te llega como ingreso, tiene que avisarte con un recuadro naranja antes de importar.",
+          "Con muchos movimientos la lista no se pinta entera de golpe: sale un botón de «Ver más» y la pantalla no se atasca."
+        ],
+        ca:[
+          "Ajustes → Mis bancos → Importar histórico. Busca 3 meses: todo lo que salga tiene que venir marcado como Gasto o Ingreso, NUNCA como Recibo por su cuenta.",
+          "Si marcas alguno como Recibo, al darle a Importar te tiene que preguntar antes de crear ningún fijo. Y la misma factura repetida en varios meses solo cuenta una vez.",
+          "Lo que ya tengas apuntado sale tachado y sin marcar, con el motivo: ya lo tienes, ya es un fijo tuyo, o está repetido dentro del propio lote.",
+          "Un traspaso entre tus cuentas tiene que salir como traspaso, y tu aporte mensual de inversión como inversión: ninguno de los dos puede contar como gasto del mes.",
+          "Si el banco devuelve menos días de los que pediste, o casi todo te llega como ingreso, tiene que avisarte con un recuadro naranja antes de importar.",
+          "Con muchos movimientos la lista no se pinta entera de golpe: sale un botón de «Ver más» y la pantalla no se atasca."
+        ]}}
+   ],
+   items:{
+     es:["Al traer el histórico del banco, nada se marca como recibo sin que tú lo digas: antes creaba fijos que se cobraban cada mes.","Los traspasos entre tus cuentas y tus aportes de inversión ya no cuentan como gasto del mes.","Avisa si el banco devuelve menos días de los pedidos o si los signos vienen raros.","Y con muchos movimientos la pantalla ya no se atasca."],
+     en:["When importing bank history, nothing is marked as a bill unless you say so: it used to create fixed charges billed every month.","Transfers between your own accounts and your investment contributions no longer count as monthly spending.","It warns you if the bank returns fewer days than requested or if the signs look wrong.","And with lots of transactions the screen no longer stalls."],
+     ca:["En portar l'historial del banc, res es marca com a rebut sense que ho diguis: abans creava càrrecs fixos cada mes.","Els traspassos entre els teus comptes i les aportacions d'inversió ja no compten com a despesa del mes.","Avisa si el banc torna menys dies dels demanats o si els signes vénen estranys.","I amb molts moviments la pantalla ja no s'encalla."]
+   }},
   {v:"4.19.7", d:"8 sep 2026",
    t:{es:"Lo que ya diste por bueno no vuelve a aparecer",
       en:"What you already approved does not come back",

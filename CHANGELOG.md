@@ -2,6 +2,44 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.8] — 2026-09-08
+### Import histórico: tandas 1 (motor) y 2 (UI segura)
+
+Las dos primeras tandas de [`plan-import-historico-seguro.md`](docs/briefs/plan-import-historico-seguro.md).
+Es lo que más le importa del inventario, y hasta hoy el import **no era seguro**: cuatro agujeros
+auditados. Estas dos cierran motor y UI; **el agujero A sigue abierto** (ver límite abajo).
+
+**Motor (Cursor, tanda 1):**
+- `histCandExisting` dedupea **1:1**, como `usadoDup` del sync diario (agujero H): dos candidatos
+  contra UN guardado marcan uno, no los dos. El mapa 1:N mentía en el preview.
+- `reconcileObDupes` deja de mirar `ob-hist` (agujero N): corría en cada vuelta a primer plano y
+  deshacía el preview por detrás, porque `sinNombre` casa «Ingreso», que es como el histórico
+  etiqueta los ingresos en castellano.
+- `histClassifyCandidates` clasifica como el sync diario (agujero C): traspaso propio →
+  `traspaso`, aporte ≈ `monthlyInvest` → `inversion`. **Solo la categoría**, nunca
+  `applyInvestBuy`, que duplicaría la cartera.
+- `histUndoBatch` no escribe NUNCA en `state.deleted` (agujero B): una lápida
+  `fecha|importe|comercio` dejaría fuera para siempre gastos reales con esa clave. Undo = quitar
+  del array local + borrar por **id**.
+- 8 casos en `tests/hist-import-dup.test.mjs`, verificados en rojo antes.
+
+**UI (Cursor, tanda 2):**
+- **Híbrido C: «Recibo» deja de ser el destino por defecto.** Era lo que creaba tres fijos
+  idénticos —cobrados cada mes, para siempre— al aceptar un lote de 3 meses. Ahora Gasto o
+  Ingreso, y si él marca alguno como Recibo se le **pregunta** antes de crear ningún fijo.
+- Los duplicados salen tachados con el motivo (ya guardado / ya modelado / repetido en el lote).
+- Banners de truncado del banco y de signo sospechoso (>70% ingresos en un banco, ≥3 movimientos).
+- Tope de render de 60 filas con «Ver más»: un lote de 3 meses tiraba la WebView.
+- Un banco fuera del catálogo ya no se descarta en silencio (agujero E) — su queja de «gastos que
+  no entran». Se le enseña el nombre que manda el banco, nunca la clave interna.
+
+**LÍMITE, y va sin adornos:** el **agujero A** —«Deshacer» borrando por terna podía cargarse un
+gasto preexistente— NO está cerrado. El helper solo borra por ids confirmados, pero la garantía
+real es el batch con `.select('id')`, que es la tanda 3. Hoy no hay botón de deshacer, así que
+no es alcanzable; no publicar uno hasta que la 3 esté dentro.
+
+OTA; sin Android.
+
 ## [4.19.7] — 2026-09-08
 ### Lo que él ya aprobó no puede volver al panel
 
