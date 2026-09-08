@@ -1212,8 +1212,13 @@ function BetaReviewPanel({onClose, showToast}){
           background:ko?"var(--coral)":"var(--mint)",transition:"width .25s ease"}})),
       React.createElement("span",{style:{fontSize:12.5,fontWeight:700,color:"var(--muted)"}}, (ok+ko+na)+"/"+total)),
 
+    /* Dos casos distintos con la lista vacía, y decir el que no es despista (review de Cursor,
+       8/9): si la versión declara `tandas` es que las aprobó TODAS —el caso normal a partir de
+       ahora—; si no declara ninguna es una versión suelta sin checklist. */
     pack.items.length===0 && React.createElement("div",{style:{fontSize:13,color:"var(--muted)"}},
-      "Esta versión no trae notas, así que no hay checklist. Prueba lo que hayas tocado."),
+      pack.tandas.length===0 && (RELEASE_NOTES||[]).some(function(n){ return n && n.tandas; })
+        ? "✅ No queda nada por probar: has aprobado todas las tandas de esta ronda."
+        : "Esta versión no trae notas, así que no hay checklist. Prueba lo que hayas tocado."),
 
     /* UNA SECCIÓN POR TANDA, cada una con su veredicto (petición suya 2026-07-29).
        El punto de todo esto: que una tanda lista pueda subir HOY sin esperar a la que todavía
