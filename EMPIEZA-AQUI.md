@@ -14,12 +14,15 @@ git fetch --all --prune && git log --oneline -5 refs/heads/beta && cat VERSION
 suele ir una versión por detrás. Si cortas una rama de `main` estás trabajando sobre código viejo:
 tus arreglos ya pueden estar hechos, y tu bump de versión le BAJARÍA la versión a la gente.
 
-## 2. Las siete trampas que más caro salen
+## 2. Las ocho trampas que más caro salen
 
 1. **`beta` es rama Y tag a la vez.** El tag lo usa el workflow del canal de pruebas para publicar
    los assets, así que **no se borra** aunque apunte a un commit viejo. Efecto diario:
    `git push origin beta` falla con «src refspec beta matches more than one» → usa
    `git push origin refs/heads/beta:refs/heads/beta`. Igual con `git log beta` → `refs/heads/beta`.
+   Y **`git checkout beta` / `git checkout refs/heads/beta` deja HEAD separado** (el tag gana o
+   confunde). Para engancharte a la rama: **`git switch beta`**. Incidente 2026-09-08: se fusionó
+   en detached HEAD y `beta` no se movió.
 2. **La versión canónica es el fichero `VERSION`**, no `package.json`. Bumpear solo `package.json`
    es un fallo silencioso: el deploy sale verde y el móvil no se entera de nada.
 3. **La fuente es `src/modules/*.js` + `src/shell.html`.** `public/index.html` es el ARTEFACTO que
@@ -41,6 +44,11 @@ tus arreglos ya pueden estar hechos, y tu bump de versión le BAJARÍA la versi�
    afirmación:** el mismo día se subió `brief-claude-destello.md` del 5/8 como si el WIP .13
    existiera; no existía, y el .12 ya estaba aprobado. Si el forense vale, se deja; el estado
    caducado se marca arriba. Piénsalo dos veces antes de afirmárselo.
+8. **Un solo checkout compartido (`E:/Mi cartera`) no se pelea.** Claude integra y publica ahí.
+   Cursor (y cualquier agente en paralelo) trabaja **solo en worktree** bajo `.claude/worktrees/`,
+   sin `git switch`/`checkout` de la rama del árbol principal. Empuja tu rama; el otro la trae.
+   Si dejas el principal en otra rama o en detached HEAD, el siguiente relevo puede fusionar o
+   publicar donde no toca (pasó varias veces el 2026-09-08).
 
 > **Atajo para las de golpe: `npm run salud`** (desde 4.13.0). Contesta en veinte segundos
 > lo que si no se comprueba a mano: si los cuatro sitios donde vive la versión cuadran, si la APK
