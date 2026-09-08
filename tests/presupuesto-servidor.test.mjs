@@ -41,6 +41,24 @@ function t(name, fn) {
 
 console.log("presupuesto-servidor");
 
+t("las categorías neutras sobreviven al pull real y no inflan el presupuesto", () => {
+  const fecha = new Date().toISOString();
+  const rows = [
+    { id: "a", fecha, importe: 20, comercio: "Compra", cat: "otros", source: "manual" },
+    { id: "b", fecha, importe: 200, comercio: "Movimiento", cat: "inversion", source: "manual" },
+    { id: "c", fecha, importe: 100, comercio: "Movimiento entre cuentas", cat: "traspaso", source: "manual" },
+  ];
+  const original = JSON.stringify(rows);
+  const data = { budget: 500, accounts: [], settings: {}, reservaLog: [] };
+  const expenses = rows.map(cli.expenseFromRow);
+  assert.deepEqual(Array.from(expenses, e => e.category), ["otros", "inversion", "traspaso"]);
+  const app = cli.monthBudgetStats({ ...data, expenses });
+  const srv = statsDelMes(rows, data, inicioDeMesMs());
+  assert.equal(app.shown, 20);
+  assert.equal(app.shown, srv.shown);
+  assert.equal(JSON.stringify(rows), original, "el pull no modifica las filas originales");
+});
+
 /* Mes calendario de la casa (Madrid), no el UTC de la máquina CI — B09-B. */
 const nowMs = Date.now();
 const desdeMs = inicioDeMesMs(nowMs);

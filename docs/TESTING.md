@@ -1,5 +1,11 @@
 # Testing — Mi Cartera
 
+Regresiones de widget/nube (4.19.6): `e2e/persistencia.spec.mjs` cubre reactivación nativa sin
+`visibilitychange` con puente simulado y pull de categorías neutras comprobado en Inicio/Gastos.
+Está registrado en `CROSSCUTTING`. `tests/presupuesto-servidor.test.mjs` convierte las filas con
+`expenseFromRow` antes de comparar totales: construir directamente `category:cat` no probaba el pull.
+Estas pruebas no ejecutan las preferencias Java ni sustituyen la comprobación final en el móvil.
+
 ## Para el dueño: los dos interruptores de Ajustes → Dev → Pruebas
 
 Son **dos cosas independientes** y se confunden constantemente. Esta tabla es la respuesta corta:

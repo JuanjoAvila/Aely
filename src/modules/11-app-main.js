@@ -1692,7 +1692,22 @@ function App(){
     // re-pintado del widget aunque el estado no haya cambiado.
     const onVis=function(){ if(document.visibilityState==="visible") push(); };
     document.addEventListener("visibilitychange", onVis);
-    return function(){ document.removeEventListener("visibilitychange", onVis); };
+    // Android puede volver sin visibilitychange. Si ingest pisó el widget mientras estaba
+    // cerrada y las cifras locales no cambian, las deps tampoco fuerzan otro push (B09-D).
+    const A=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
+    let sub=null, disposed=false;
+    if(A&&A.addListener){
+      try{
+        sub=Promise.resolve(A.addListener("appStateChange", function(st){ if(!disposed&&st&&st.isActive) push(); }));
+        sub.catch(function(){});
+      }catch(e){}
+    }
+    return function(){
+      disposed=true;
+      document.removeEventListener("visibilitychange", onVis);
+      // addListener puede resolver después del cleanup: liberar también ese handle tardío.
+      if(sub) sub.then(function(h){ if(h&&h.remove) return h.remove(); }).catch(function(){});
+    };
   },[budW.shown,budW.budget,state.budget,widgetCash,widgetBudgetLeft,widgetSafeLiq]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){

@@ -1,6 +1,9 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-08 · **v4.19.6** — el posible repetido tampoco cuenta en el servidor (B09-D).
+> Estado a 2026-09-08 · **v4.19.6** — el gasto del mes cuadra: el posible repetido tampoco
+> cuenta en el servidor, el widget se pone al día al volver y las categorías neutras
+> sobreviven al pull (B09-D). OTA; sin APK y sin desplegar Supabase.
+> [Evidencia del resume/categorías](briefs/b09d-codex-resume-categorias.md).
 > Anterior: **4.19.5** (Novedades guarda 20 versiones). **4.19.4** (arranque suelto). **4.19.3**
 > (panel beta). **4.19.2** (ventana mes). **4.19.1**.
 > Canal vivo: `npm run salud` (no afirmar beta/prod solo por el working tree). OTA, sin APK.

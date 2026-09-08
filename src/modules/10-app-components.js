@@ -1502,12 +1502,26 @@ var RELEASE_NOTES=[
           "Cierra la app y mira el widget: tiene que decir esa MISMA cifra, sin sumar el movimiento apagado.",
           "Entra en ese movimiento y dale a «son distintos». Vuelve a Gastos: ahora sí suma. Cierra la app y mira el widget otra vez: tiene que haber subido lo mismo.",
           "Cierra la app del todo, ábrela y sincroniza: el que dejaste apagado tiene que seguir apagado, no encenderse solo."
+        ]}},
+     {id:"widget-al-volver", t:{es:"🔄 El widget se pone al día al volver a la app", en:"🔄 The widget catches up when you return", ca:"🔄 El giny es posa al dia en tornar a l'app"},
+      items:{
+        es:[
+          "Con la app cerrada, espera a que te entre una compra por notificación y mira el widget. Abre la app, mira el total del mes en Gastos y vuelve al escritorio SIN cerrarla del todo: el widget tiene que decir lo mismo que acabas de ver.",
+          "Mira tus inversiones y traspasos viejos en Gastos: tienen que seguir apagados, como «no cuenta», y no haberse convertido en un gasto normal."
+        ],
+        en:[
+          "Con la app cerrada, espera a que te entre una compra por notificación y mira el widget. Abre la app, mira el total del mes en Gastos y vuelve al escritorio SIN cerrarla del todo: el widget tiene que decir lo mismo que acabas de ver.",
+          "Mira tus inversiones y traspasos viejos en Gastos: tienen que seguir apagados, como «no cuenta», y no haberse convertido en un gasto normal."
+        ],
+        ca:[
+          "Con la app cerrada, espera a que te entre una compra por notificación y mira el widget. Abre la app, mira el total del mes en Gastos y vuelve al escritorio SIN cerrarla del todo: el widget tiene que decir lo mismo que acabas de ver.",
+          "Mira tus inversiones y traspasos viejos en Gastos: tienen que seguir apagados, como «no cuenta», y no haberse convertido en un gasto normal."
         ]}}
    ],
    items:{
-     es:["Si un movimiento sale marcado como posible repetido, deja de contar también en el widget y en los avisos, no solo dentro de la app.","Esa marca ya no se pierde al cerrar la app ni al cambiar de móvil."],
-     en:["If a transaction is flagged as a possible repeat, it now stops counting on the widget and in alerts too, not just inside the app.","That flag no longer gets lost when you close the app or switch phones."],
-     ca:["Si un moviment surt marcat com a possible repetit, deixa de comptar també al giny i als avisos, no només dins de l'app.","Aquesta marca ja no es perd en tancar l'app ni en canviar de mòbil."]
+     es:["Si un movimiento sale marcado como posible repetido, deja de contar también en el widget y en los avisos, no solo dentro de la app.","Esa marca ya no se pierde al cerrar la app ni al cambiar de móvil.","El widget vuelve a recibir las cifras de la app al abrirla de nuevo.","Las inversiones y los traspasos conservan su categoría al recuperar los movimientos guardados."],
+     en:["If a transaction is flagged as a possible repeat, it now stops counting on the widget and in alerts too, not just inside the app.","That flag no longer gets lost when you close the app or switch phones.","The widget receives the app's figures again when you return to the app.","Investments and transfers keep their category when saved transactions are retrieved."],
+     ca:["Si un moviment surt marcat com a possible repetit, deixa de comptar també al giny i als avisos, no només dins de l'app.","Aquesta marca ja no es perd en tancar l'app ni en canviar de mòbil.","El giny torna a rebre les xifres de l'app quan s'obre de nou.","Les inversions i els traspassos conserven la categoria en recuperar els moviments desats."]
    }},
   {v:"4.19.5", d:"7 sep 2026",
    t:{es:"El historial de novedades guarda las últimas 20 versiones",

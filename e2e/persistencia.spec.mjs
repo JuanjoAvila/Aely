@@ -11,6 +11,68 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 const KEY = "micartera_v3";
 const KEY_EXP = "micartera_v3_exp";
 
+test("widget se refresca al volver por el evento nativo sin visibilitychange", async ({ page }) => {
+  await seedLoggedInDashboard(page, {
+    budget: 100,
+    accounts: [{ id: "a", ent: "sabadell", role: "diario", spendFrom: true, value: 1000 }],
+    expenses: [{ id: "a", date: new Date().toISOString(), amount: 40, merchant: "Compra", category: "otros", source: "manual", ent: "sabadell" }],
+    settings: { autoPrices: false, theme: "green", expenseBanks: ["sabadell"] },
+  });
+  await page.addInitScript(() => {
+    window.__nativeListeners = {};
+    window.__widgetCalls = [];
+    const addListener = (name, cb) => {
+      const list = window.__nativeListeners[name] || (window.__nativeListeners[name] = []);
+      list.push(cb);
+      return Promise.resolve({ remove() { const i = list.indexOf(cb); if (i >= 0) list.splice(i, 1); } });
+    };
+    window.Capacitor = { isNativePlatform: () => false, Plugins: {
+      App: { addListener },
+      MiCartera: new Proxy({ addListener, updateWidget: async data => {
+        window.__widgetCalls.push(data);
+        window.__widgetSnapshot = data;
+      } }, { get: (target, key) => target[key] || (() => Promise.resolve({})) }),
+    } };
+  });
+  await page.goto("/");
+  await dismissNews(page);
+  await expect(page.locator(".v4-budget-txt .ph")).toContainText("Has gastado 40 €");
+  await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(40);
+  // Ingest puede sobrescribir las preferencias mientras la app está en segundo plano.
+  // Algunos Android solo notifican appStateChange: simular también visibilitychange escondería el bug.
+  await page.evaluate(() => {
+    window.__widgetSnapshot = { spent: 70 };
+    for (const cb of window.__nativeListeners.appStateChange || []) cb({ isActive: false });
+  });
+  expect(await page.evaluate(() => window.__widgetSnapshot.spent)).toBe(70);
+  await page.evaluate(() => {
+    for (const cb of window.__nativeListeners.appStateChange || []) cb({ isActive: true });
+  });
+  await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(40);
+  await expect(page.locator(".v4-budget-txt .ph")).toContainText("Has gastado 40 €");
+});
+
+test("nube conserva inversión y traspaso al pintar Inicio y Gastos", async ({ page }) => {
+  const fecha = new Date().toISOString();
+  await seedLoggedInDashboard(page, {
+    budget: 500, _fixMovInvasion2: true,
+    accounts: [{ id: "a", ent: "sabadell", role: "diario", spendFrom: true, value: 1000 }],
+    settings: { autoPrices: false, theme: "green", expenseBanks: ["sabadell"] },
+    __cloudRows: { expenses: [
+      { id: "550e8400-e29b-41d4-a716-446655440001", fecha, importe: 20, comercio: "Compra", cat: "otros", source: "manual:sabadell" },
+      { id: "550e8400-e29b-41d4-a716-446655440002", fecha, importe: 200, comercio: "Aporte prueba", cat: "inversion", source: "manual:sabadell" },
+      { id: "550e8400-e29b-41d4-a716-446655440003", fecha, importe: 100, comercio: "Traspaso prueba", cat: "traspaso", source: "manual:sabadell" },
+    ] },
+  });
+  await page.goto("/");
+  await dismissNews(page);
+  await expect(page.locator(".v4-budget-txt .ph")).toContainText("Has gastado 20 €");
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator("button.v4-mov").filter({ hasText: "Aporte prueba" })).toHaveClass(/v4-mov-skip/);
+  await expect(page.locator("button.v4-mov").filter({ hasText: "Traspaso prueba" })).toHaveClass(/v4-mov-skip/);
+  await expect(page.locator("button.v4-mov").filter({ hasText: "Compra" })).not.toHaveClass(/v4-mov-skip/);
+});
+
 function gastos(n) {
   const out = [];
   for (let i = 0; i < n; i++) {

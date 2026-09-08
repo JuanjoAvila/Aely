@@ -268,7 +268,9 @@ function autoCategory(merchant){
 }
 function resolveCategory(sheetCat, merchant){
   // "ambas": usa la del Sheet; si falta o es "otros", autodetecta por comercio
-  if(sheetCat==="ingreso") return "ingreso";   // no está en CAT (es especial) pero debe respetarse
+  // Las especiales están fuera de CAT. Reinterpretarlas al bajar la nube convertía inversión
+  // y traspaso en gasto ordinario, aunque el servidor los excluyera (B09-D, 2026-09-08).
+  if(sheetCat==="ingreso"||sheetCat==="inversion"||sheetCat==="traspaso") return sheetCat;
   if(sheetCat && sheetCat!=="otros" && CAT[sheetCat]) return sheetCat;
   return autoCategory(merchant);
 }
