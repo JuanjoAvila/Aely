@@ -731,8 +731,16 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       const ents=[]; active.forEach(function(l){ const e=entFromAspsp(l.aspsp_name); if(e&&ents.indexOf(e)<0) ents.push(e); });
       if(!ents.length) return null;
       const cur=expenseBankEnts(state);
+      const primaryEnt=(function(){
+        const daily=(state.accounts||[]).find(function(a){ return accDaily(a); });
+        return (daily&&daily.ent)||null;
+      })();
       const onEnt=function(ent){ return cur.indexOf(ent)>=0; };
       const toggleEnt=function(ent){
+        // La cuenta de gasto diario SIEMPRE cuenta (expenseBankEnts la reinyecta). Desmarcarla
+        // parecía no hacer nada — rechazo 4.19.1/avisos-presupuesto al quitar TR. Aquí se deja
+        // explícito: solo se quitan/añaden EXTRA.
+        if(primaryEnt && ent===primaryEnt){ showToast(t("bp_expbanks_locked")); return; }
         set(function(s){
           const base=expenseBankEnts(s).slice();
           const i=base.indexOf(ent);
@@ -741,14 +749,21 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
           return Object.assign({},s,{settings:Object.assign({},s.settings,{expenseBanks:base})});
         });
       };
-      return React.createElement("div",{style:{marginTop:18}},
+      return React.createElement("div",{style:{marginTop:18},"data-expbanks":"1"},
         React.createElement("div",{className:"v4-section-h"}, React.createElement("span",null, t("bp_expbanks"))),
         React.createElement("div",{style:{fontSize:12,color:"var(--muted)",lineHeight:1.45,marginBottom:10}}, t("bp_expbanks_hint")),
         React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8}},
           ents.map(function(ent){
             const on=onEnt(ent);
-            return React.createElement("button",{key:ent,type:"button",className:"v4-chip"+(on?" on":""),onClick:function(){ toggleEnt(ent); }},
-              (on?"✓ ":"")+entOf(ent).label);
+            const locked=!!(primaryEnt&&ent===primaryEnt);
+            return React.createElement("button",{
+              key:ent,type:"button",
+              className:"v4-chip"+(on?" on":"")+(locked?" v4-chip-locked":""),
+              "data-ent":ent,
+              "data-primary":locked?"1":undefined,
+              onClick:function(){ toggleEnt(ent); }
+            },
+              (on?"✓ ":"")+entOf(ent).label+(locked?" · "+t("bp_expbanks_main"):""));
           })
         )
       );

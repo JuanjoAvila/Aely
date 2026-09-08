@@ -69,7 +69,7 @@ export const E2E_MAP = [
   { file: "src/modules/10-app-components.js", specs: [
     "e2e/profile-anim.spec.mjs", "e2e/perfil-simetria.spec.mjs", "e2e/delete-account.spec.mjs",
     "e2e/revisar-beta.spec.mjs", "e2e/ajustes-versiones.spec.mjs", "e2e/ajustes-importaciones.spec.mjs",
-    "e2e/tour-tutorial.spec.mjs", "e2e/modo-pruebas.spec.mjs",
+    "e2e/tour-tutorial.spec.mjs", "e2e/modo-pruebas.spec.mjs", "e2e/presupuesto-bancos.spec.mjs",
   ] },
   { file: "src/modules/12-boot.js", specs: ["e2e/splash.spec.mjs", "e2e/smoke.spec.mjs", "e2e/csp.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },
