@@ -1,5 +1,11 @@
 # Roadmap — Mi Cartera
 
+> Revisión del 8/9/2026: cinco tandas aprobadas y dos rechazadas en 4.19.5.1; cuatro sin evento
+> en la consulta de las últimas 24 horas. Rechazos: aviso de conexión TR y bancos/presupuesto.
+> Identidad de gastos: detectado colapso local además del índice de nube; arquitectura preparada,
+> implementación pendiente. [Relevo y reparto](briefs/RELEVO-CLAUDE-CURSOR-2026-09-08.md).
+> Esta revisión documental no publica una versión ni autoriza promoción.
+
 > Estado a 2026-09-07 · **v4.19.5** — Novedades guarda 20 versiones (bundle más ligero).
 > Anterior: **4.19.4** (arranque suelto). **4.19.3** (panel beta). **4.19.2** (ventana mes). **4.19.1**.
 > Canal vivo: `npm run salud` (no afirmar beta/prod solo por el working tree). OTA, sin APK.

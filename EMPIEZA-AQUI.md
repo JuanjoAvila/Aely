@@ -4,6 +4,12 @@ Lee esto **antes de tocar nada**, seas Claude Code (PC o móvil), Cursor, o cual
 Son cinco minutos que ahorran medio presupuesto de tokens. Está escrito porque el 26/7/2026 una
 sesión del móvil se gastó la mitad trabajando sobre una rama equivocada.
 
+**Relevo del 8/9/2026:** Claude dirige/revisa y Cursor implementa/prueba; Codex queda para
+arquitectura y bloqueos puntuales. Empezar por
+[`RELEVO-CLAUDE-CURSOR-2026-09-08.md`](docs/briefs/RELEVO-CLAUDE-CURSOR-2026-09-08.md):
+veredictos contrastados, dos rechazos y decisión sobre identidad de gastos. La migración descrita
+está pendiente de implementación; no aplicar un cambio aislado del índice UNIQUE.
+
 ## 1. Lo primero, siempre
 
 ```bash
