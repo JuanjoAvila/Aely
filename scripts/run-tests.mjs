@@ -34,6 +34,7 @@ const steps = [
   ["release-notes-max", ["node", "tests/release-notes-max.test.mjs"]],
   ["beta-tandas-vacias", ["node", "tests/beta-tandas-vacias.test.mjs"]],
   ["novedades-idiomas", ["node", "tests/novedades-idiomas.test.mjs"]],
+  ["categorias-dual", ["node", "tests/categorias-dual.test.mjs"]],
   ["docs-frescura", ["node", "tests/docs-frescura.test.mjs"]],
   ["relevant-tests", ["node", "tests/relevant-tests.test.mjs"]],
   // El espejo de la memoria en docs/memoria/ tiene que ir al día: es lo único que ve una sesión

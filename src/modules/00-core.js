@@ -236,7 +236,7 @@ const KW = {
   // Mascotas ANTES que hogar.
   mascotas:["zooplus","kivet","tiendanimal","miscota","animalis","kiwoko","pienso","veterinario","veterinari","clinica veterinaria","clínica veterinaria","peluqueria canina","peluquería canina","petsia","dogfy","affinity pet","royal canin","hills pet","purina","advance dog","advance cat","gos ","gat ","perro","gato","mascota"],
   hogar:["ikea","leroy","bricomart","bauhaus","ferreteria","muebles","sofa","sofá","lampara","lámpara","tintoreria","tintorería","lavanderia","lavandería","mrw","seur","correos","amazon locker","bricodepot","bricodépôt","aki ","aki.","ferretería","manitas","limpieza hogar","limpiapro","blink ","dyson","rowenta","bosch electro","balay","teka"],
-  regalos:["regalo","flores","floristeria","floristería","perfumeria","perfumería","interflora","teleflorist","rosas ","ramo "],
+  regalos:["regalo","flores","floristeria","floristería","perfumeria","perfumería","interflora","teleflorist","rosas ","ramo ","douglas"],
   joyeria:["joyeria","joyeros","tiffany","cartier","swarovski","tous ","pandora"],
 };
 /* Retirada de cajero / ATM → traspaso (neutro). Mismas claves en ingest_logic.ts. */
