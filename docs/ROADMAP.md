@@ -1,6 +1,7 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-08 · **v4.19.6** — el gasto del mes cuadra: el posible repetido tampoco
+> Estado a 2026-09-08 · **v4.19.7** — lo que el dueno ya aprobo no vuelve al panel de beta.
+> Anterior: **4.19.6** — el gasto del mes cuadra: el posible repetido tampoco
 > cuenta en el servidor, el widget se pone al día al volver y las categorías neutras
 > sobreviven al pull (B09-D). OTA; sin APK y sin desplegar Supabase.
 > [Evidencia del resume/categorías](briefs/b09d-codex-resume-categorias.md).
@@ -107,7 +108,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.19.6** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.7** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

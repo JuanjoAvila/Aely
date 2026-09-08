@@ -2,6 +2,26 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.7] — 2026-09-08
+### Lo que él ya aprobó no puede volver al panel
+
+Bug suyo, el mismo día: «todo lo que probé y marqué como aprobado me salta otra vez». Por la
+mañana aprobó cinco tandas y por la tarde le volvieron a salir sin aprobar. **Lo metí yo en la
+4.19.6**, al retirar del panel las tandas aprobadas.
+
+- Causa: al aprobar una tanda se QUITA del array `tandas` de su versión. Al quitar la última
+  quité también la propiedad entera, y `betaTandas()` trata «sin `tandas`» como «versión antigua
+  que nunca las declaró» → devolvía UNA tanda con todo dentro. La versión resucitaba como
+  `4.19.5/todo`, un id que ya no casaba con el veredicto que él había dado.
+- Arreglo: `tandas:[]` (vacío) y «sin `tandas`» dejan de ser lo mismo. Ausente → tanda `todo`,
+  para que las ~70 versiones del histórico sigan funcionando. Vacío → cero tandas.
+  `4.19.5`, `4.19.4` y `4.19.3` recuperan la propiedad, vacía.
+- Guardián `tests/beta-tandas-vacias.test.mjs`, registrado en el runner: no comprueba constantes,
+  le pregunta al panel qué pintaría sobre la ronda real. Verificado en rojo antes del arreglo,
+  nombrando las tres que volvían (`4.19.5/todo`, `4.19.4/todo`, `4.19.3/todo`).
+
+OTA; sin Android.
+
 ## [4.19.6] — 2026-09-08
 ### El gasto del mes cuadra: posible repetido, widget al volver y categorías neutras (B09-D)
 

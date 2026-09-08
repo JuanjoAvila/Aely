@@ -895,8 +895,18 @@ function betaChecklist(version, prodVersion){
    Si una versión no declara tandas se devuelve UNA sola con todo dentro, y el panel se comporta
    exactamente como antes. Eso hace que las 69 versiones del histórico sigan funcionando y que
    declarar tandas sea opcional: una tanda pequeña no necesita ceremonia. */
+/* ⚠ `tandas:[]` (lista VACÍA) y «sin `tandas`» NO son lo mismo, y confundirlos le resucitó a él
+   tres tandas ya aprobadas (bug suyo 2026-09-08: «todo lo que probé y marqué como aprobado me
+   salta otra vez»). Al aprobar una tanda se QUITA del array; si al quitar la última se borraba
+   también la propiedad, esta función caía al `todo` de abajo y la versión entera volvía al panel
+   como una tanda nueva sin aprobar, con otro id (`4.19.5/todo`), así que su veredicto ya no
+   casaba con nada.
+     · propiedad AUSENTE  → versión antigua que nunca declaró tandas (las ~70 del histórico):
+       se devuelve una sola con todo dentro, como siempre.
+     · array VACÍO        → declaró tandas y ya no queda ninguna por probar: CERO tandas.
+   Lo vigila `tests/beta-tandas-vacias.test.mjs`. */
 function betaTandas(notes){
-  if(notes && notes.tandas && notes.tandas.length){
+  if(notes && notes.tandas){
     return notes.tandas.map(function(g){
       return { id:String(g.id), t:rnT(g.t,"es"), items:rnItems(g,"es") };
     });
@@ -1493,6 +1503,34 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+  {v:"4.19.7", d:"8 sep 2026",
+   t:{es:"Lo que ya diste por bueno no vuelve a aparecer",
+      en:"What you already approved does not come back",
+      ca:"El que ja vas donar per bo no torna a aparèixer"},
+   tandas:[
+     {id:"aprobadas-no-vuelven", t:{es:"✅ Lo aprobado se queda aprobado", en:"✅ Approved stays approved", ca:"✅ L'aprovat es queda aprovat"},
+      items:{
+        es:[
+          "Ajustes → Revisar esta beta: NO pueden salir las que ya diste por buenas esta mañana (historial reciente, arranque con histórico grande, toda la ronda a la vista, todas las cuentas del banco, movimientos que se repiten).",
+          "Las que aún no has probado o rechazaste sí tienen que seguir ahí: Trade Republic, avisos del presupuesto, mismo mes en todos sitios, categoría de inteligencia artificial, ordenar a mano y solo ese movimiento.",
+          "Y lo que ya tuvieras marcado dentro de una tanda tiene que seguir marcado, no en blanco."
+        ],
+        en:[
+          "Ajustes → Revisar esta beta: NO pueden salir las que ya diste por buenas esta mañana (historial reciente, arranque con histórico grande, toda la ronda a la vista, todas las cuentas del banco, movimientos que se repiten).",
+          "Las que aún no has probado o rechazaste sí tienen que seguir ahí: Trade Republic, avisos del presupuesto, mismo mes en todos sitios, categoría de inteligencia artificial, ordenar a mano y solo ese movimiento.",
+          "Y lo que ya tuvieras marcado dentro de una tanda tiene que seguir marcado, no en blanco."
+        ],
+        ca:[
+          "Ajustes → Revisar esta beta: NO pueden salir las que ya diste por buenas esta mañana (historial reciente, arranque con histórico grande, toda la ronda a la vista, todas las cuentas del banco, movimientos que se repiten).",
+          "Las que aún no has probado o rechazaste sí tienen que seguir ahí: Trade Republic, avisos del presupuesto, mismo mes en todos sitios, categoría de inteligencia artificial, ordenar a mano y solo ese movimiento.",
+          "Y lo que ya tuvieras marcado dentro de una tanda tiene que seguir marcado, no en blanco."
+        ]}}
+   ],
+   items:{
+     es:["Al revisar la beta ya no vuelven a salir las tandas que habías dado por buenas."],
+     en:["When reviewing the beta, the batches you already approved no longer come back."],
+     ca:["En revisar la beta ja no tornen a sortir les tandes que havies donat per bones."]
+   }},
   {v:"4.19.6", d:"8 sep 2026",
    t:{es:"Un movimiento marcado como posible repetido tampoco suma en el widget",
       en:"A transaction flagged as a possible repeat no longer counts on the widget either",
@@ -1544,6 +1582,9 @@ var RELEASE_NOTES=[
       ca:"L'historial de novetats guarda les darreres 20 versions"},
 
    
+   /* Tanda aprobada el 8/9 y retirada del panel. VACIO, no ausente: ausente resucita
+      la version entera como tanda «todo» (ver betaTandas). */
+   tandas:[],
    items:{
      es:["El historial de novedades guarda las últimas 20 versiones."],
      en:["What's new keeps the last 20 versions."],
@@ -1555,6 +1596,9 @@ var RELEASE_NOTES=[
       ca:"L'app arrenca més fluida si tens molts moviments"},
 
    
+   /* Tanda aprobada el 8/9 y retirada del panel. VACIO, no ausente: ausente resucita
+      la version entera como tanda «todo» (ver betaTandas). */
+   tandas:[],
    items:{
      es:["Con muchos movimientos, cambiar de pestaña al arrancar vuelve a ir fluido."],
      en:["With lots of transactions, switching tabs right after launch feels smooth again."],
@@ -1566,6 +1610,9 @@ var RELEASE_NOTES=[
       ca:"Revisar la beta ensenya tota la ronda, amb passos clars"},
 
    
+   /* Tanda aprobada el 8/9 y retirada del panel. VACIO, no ausente: ausente resucita
+      la version entera como tanda «todo» (ver betaTandas). */
+   tandas:[],
    items:{
      es:["En Revisar la beta salen todas las tandas de la ronda, con pasos concretos para probar cada una."],
      en:["Beta review lists every tanda in the round, with concrete steps to try each one."],
