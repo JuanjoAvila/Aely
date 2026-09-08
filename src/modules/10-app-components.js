@@ -1617,6 +1617,37 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+  {v:"4.19.11", d:"9 sep 2026",
+   t:{es:"El histórico se importa desde Importaciones, y avisa si el banco se queda corto",
+      en:"History is imported from Imports, and it warns if the bank falls short",
+      ca:"L'historial s'importa des d'Importacions, i avisa si el banc es queda curt"},
+   tandas:[
+     {id:"import-puertas", t:{es:"🚪 El histórico, en su sitio", en:"🚪 History, where it belongs", ca:"🚪 L'historial, al seu lloc"},
+      items:{
+        es:[
+          "Ajustes → Importaciones: ahí está «Importar histórico». En Ajustes → Mis bancos ya NO tiene que salir.",
+          "Importa un lote y luego cierra y abre la app: el botón de deshacer solo puede seguir ahí si de verdad puede deshacer algo.",
+          "Si al deshacer la nube no confirma, el botón tiene que SEGUIR para que lo reintentes. Ese es el caso que fallaba.",
+          "Si tienes muchísimos movimientos y el banco no te los da todos, tiene que avisarte en vez de callarse."
+        ],
+        en:[
+          "Ajustes → Importaciones: ahí está «Importar histórico». En Ajustes → Mis bancos ya NO tiene que salir.",
+          "Importa un lote y luego cierra y abre la app: el botón de deshacer solo puede seguir ahí si de verdad puede deshacer algo.",
+          "Si al deshacer la nube no confirma, el botón tiene que SEGUIR para que lo reintentes. Ese es el caso que fallaba.",
+          "Si tienes muchísimos movimientos y el banco no te los da todos, tiene que avisarte en vez de callarse."
+        ],
+        ca:[
+          "Ajustes → Importaciones: ahí está «Importar histórico». En Ajustes → Mis bancos ya NO tiene que salir.",
+          "Importa un lote y luego cierra y abre la app: el botón de deshacer solo puede seguir ahí si de verdad puede deshacer algo.",
+          "Si al deshacer la nube no confirma, el botón tiene que SEGUIR para que lo reintentes. Ese es el caso que fallaba.",
+          "Si tienes muchísimos movimientos y el banco no te los da todos, tiene que avisarte en vez de callarse."
+        ]}}
+   ],
+   items:{
+     es:["Importar el histórico del banco vive ahora en Ajustes → Importaciones, junto al resto de importaciones.","Si el banco devuelve menos movimientos de los que hay, la app te lo dice en vez de callárselo.","El botón de deshacer solo aparece cuando de verdad puede deshacer algo."],
+     en:["Importing bank history now lives in Settings → Imports, next to the other imports.","If the bank returns fewer transactions than there are, the app tells you instead of staying quiet.","The undo button only shows up when it can actually undo something."],
+     ca:["Importar l'historial del banc ara viu a Ajustaments → Importacions, al costat de la resta d'importacions.","Si el banc torna menys moviments dels que hi ha, l'app t'ho diu en comptes de callar-s'ho.","El botó de desfer només apareix quan de debò pot desfer alguna cosa."]
+   }},
   {v:"4.19.10", d:"8 sep 2026",
    t:{es:"El dinero en efectivo, controlado como una cuenta más",
       en:"Cash, tracked like any other account",

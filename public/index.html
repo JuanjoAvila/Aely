@@ -15171,6 +15171,37 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+{v:"4.19.11", d:"9 sep 2026",
+   t:{es:"El histórico se importa desde Importaciones, y avisa si el banco se queda corto",
+      en:"History is imported from Imports, and it warns if the bank falls short",
+      ca:"L'historial s'importa des d'Importacions, i avisa si el banc es queda curt"},
+   tandas:[
+     {id:"import-puertas", t:{es:"🚪 El histórico, en su sitio", en:"🚪 History, where it belongs", ca:"🚪 L'historial, al seu lloc"},
+      items:{
+        es:[
+          "Ajustes → Importaciones: ahí está «Importar histórico». En Ajustes → Mis bancos ya NO tiene que salir.",
+          "Importa un lote y luego cierra y abre la app: el botón de deshacer solo puede seguir ahí si de verdad puede deshacer algo.",
+          "Si al deshacer la nube no confirma, el botón tiene que SEGUIR para que lo reintentes. Ese es el caso que fallaba.",
+          "Si tienes muchísimos movimientos y el banco no te los da todos, tiene que avisarte en vez de callarse."
+        ],
+        en:[
+          "Ajustes → Importaciones: ahí está «Importar histórico». En Ajustes → Mis bancos ya NO tiene que salir.",
+          "Importa un lote y luego cierra y abre la app: el botón de deshacer solo puede seguir ahí si de verdad puede deshacer algo.",
+          "Si al deshacer la nube no confirma, el botón tiene que SEGUIR para que lo reintentes. Ese es el caso que fallaba.",
+          "Si tienes muchísimos movimientos y el banco no te los da todos, tiene que avisarte en vez de callarse."
+        ],
+        ca:[
+          "Ajustes → Importaciones: ahí está «Importar histórico». En Ajustes → Mis bancos ya NO tiene que salir.",
+          "Importa un lote y luego cierra y abre la app: el botón de deshacer solo puede seguir ahí si de verdad puede deshacer algo.",
+          "Si al deshacer la nube no confirma, el botón tiene que SEGUIR para que lo reintentes. Ese es el caso que fallaba.",
+          "Si tienes muchísimos movimientos y el banco no te los da todos, tiene que avisarte en vez de callarse."
+        ]}}
+   ],
+   items:{
+     es:["Importar el histórico del banco vive ahora en Ajustes → Importaciones, junto al resto de importaciones.","Si el banco devuelve menos movimientos de los que hay, la app te lo dice en vez de callárselo.","El botón de deshacer solo aparece cuando de verdad puede deshacer algo."],
+     en:["Importing bank history now lives in Settings → Imports, next to the other imports.","If the bank returns fewer transactions than there are, the app tells you instead of staying quiet.","The undo button only shows up when it can actually undo something."],
+     ca:["Importar l'historial del banc ara viu a Ajustaments → Importacions, al costat de la resta d'importacions.","Si el banc torna menys moviments dels que hi ha, l'app t'ho diu en comptes de callar-s'ho.","El botó de desfer només apareix quan de debò pot desfer alguna cosa."]
+   }},
 {v:"4.19.10", d:"8 sep 2026",
    t:{es:"El dinero en efectivo, controlado como una cuenta más",
       en:"Cash, tracked like any other account",
@@ -15722,43 +15753,6 @@ var RELEASE_NOTES=[
     "🏦 Si uses més d'un banc per al dia a dia, Despeses ensenya els moviments de tots. Un rebut d'un altre banc continua sense comptar, i una inversió tampoc.",
     "📅 En apuntar una despesa o en editar-la pots triar el dia. El calendari és el de l'app.",
     "🍦 Gelateria, joieria i videojocs són categories pròpies: Steam i Instant Gaming ja no se'n van a oci.",
-   ]}},
-{v:"4.17.2", d:"17 ago 2026",
-   t:{es:"El widget deja de sumar un pago dos veces",
-      en:"The widget stops counting the same payment twice",
-      ca:"El widget deixa de sumar un pagament dues vegades"},
-   tandas:[
-     {id:"widget-coherente", t:"📊 El widget dice la verdad con la app cerrada", items:[
-       "Mira el widget y abre la app: «gastado este mes» es el mismo número en los dos sitios.",
-       "En el widget, «te quedan X» y «✅ Puedes gastar Y» tienen que cuadrar entre ellos (Y nunca puede ser mayor que X).",
-       "Cierra la app del todo, haz un pago con la tarjeta y espera a la noti: el widget se actualiza y las tres cifras siguen cuadrando.",
-       "Vuelve a mirar el widget un rato después, sin abrir la app: NO debe haber vuelto a descuadrarse (ese era el fallo).",
-       "Haz un pago que no cuente para el presupuesto (una inversión o un traspaso): el gasto del mes del widget no se mueve.",
-       "El saldo de la cuenta de gasto que sale abajo en el widget también baja con cada pago, sin esperar a abrir la app.",
-       "★ Si una compra te avisó dos veces (el banco y la cartera), el widget no la suma dos veces: dice lo mismo que Gastos.",
-     ]},
-     {id:"gastos-orden", t:"🧾 En Gastos se ve qué cuenta y qué no", items:[
-       "En Gastos, una inversión o un traspaso salen apagados y ponen «no es un gasto».",
-       "Un recibo de un banco que no es el del día a día sale apagado y pone «no es del día a día» (antes los dos decían lo mismo).",
-       "Un ingreso NO sale apagado: se ve en verde con su «+», porque entra dinero.",
-       "Cada movimiento dice de qué banco sale, también los que apuntas a mano.",
-       "Filtros (🎛️) → arriba del todo hay «Qué contar»: elige «Inversión y traspasos» y solo quedan esos.",
-       "Prueba también «Ingresos»; con «Todo» vuelves a verlo entero. Ya no está «De otros bancos»: lo quitamos porque para eso valen los chips de banco de abajo.",
-       "«Limpiar» quita también ese filtro, no solo las categorías y los bancos.",
-       "★ Abre un movimiento, cámbiale el nombre y guarda: la pantalla SIGUE respondiendo (antes se quedaba muerta hasta darle a atrás).",
-       "Con el nombre ya cambiado, cierra la ficha y vuelve a abrirla: el nombre nuevo sigue puesto.",
-       "★ Sincroniza los bancos después de renombrarlo: el gasto NO puede aparecer duplicado (ese era el fallo).",
-     ]},
-   ],
-   items:{
-   es:[
-    "📊 El gasto del mes del widget ya es el mismo que el de la app: si una compra te avisó dos veces (el banco y la cartera), no la suma dos veces, y lo que ya habías borrado deja de contarlo.",
-   ],
-   en:[
-    "📊 The widget's month spending now matches the app: if a purchase pinged you twice (the bank and the wallet), it isn't added twice, and anything you already deleted stops counting.",
-   ],
-   ca:[
-    "📊 La despesa del mes del widget ja és la mateixa que la de l'app: si una compra t'ha avisat dues vegades (el banc i la cartera), no la suma dues vegades, i el que ja havies esborrat deixa de comptar-lo.",
    ]}}
 ];
 /* Cinturón por si alguien sirve el módulo sin pasar por build-app (tests que evalúan fuente).

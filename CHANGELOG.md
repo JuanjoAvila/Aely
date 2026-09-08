@@ -2,6 +2,33 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.11] — 2026-09-09
+### Import histórico, tanda 4: puertas y avisos
+
+Cierra el plan `plan-import-historico-seguro.md`. Con esto los cuatro agujeros (A, B, C, N) y la
+tabla de «importantes» quedan cerrados.
+
+- **Puertas (K):** «Importar histórico» sale de Ajustes → Mis bancos y vive en Ajustes →
+  Importaciones, junto al resto. El e2e `bancos-historico-filtro` se **migró** a la ruta nueva —no
+  se borró— y hay un test de que Mis bancos ya no lo ofrece.
+- **O:** `pullExpenses` tiene un tope de 2000 filas que hasta ahora truncaba **en silencio**. Esta
+  feature lo hace alcanzable de verdad, así que al llenarse se marca y se avisa. Callarse es lo
+  que convierte un límite en un bug de datos.
+- **L:** el botón de deshacer ya no depende solo de que `lastHistImport` exista: exige que queden
+  filas locales del lote. Tras un pull, un botón que no puede deshacer nada no sale.
+- **D:** fuera el nombre fantasma `expenseCountsForDaily`; se usan `expenseCountsCash` /
+  `expenseCountsBudget`. **M:** el texto de confirmación de un fijo sin inicio ni fin dice que
+  resta todos los meses, también hacia atrás, con test de las tres fuentes de idioma.
+
+**Choque entre dos arreglos, cazado en revisión:** la regla de L dejaba invisible el botón justo
+en el estado que crea el reintento de 4.19.9 —cuando el borrado en la nube falla, lo local ya se
+quitó—, así que el aviso «vuelve a deshacer» aparecía sin botón. Simulado y confirmado: `false`
+donde tenía que ser `true`. Los dos arreglos eran correctos por separado; faltaba distinguir
+«no queda nada que hacer» de «queda trabajo pendiente en la nube». Ahora el fallo marca el lote
+como `cloudPending` y `histCanUndo` lo respeta. Dos tests, uno por caso.
+
+OTA; sin Android; sin migraciones.
+
 ## [4.19.10] — 2026-09-08
 ### Efectivo: una cuenta más, no un módulo nuevo (tanda 6)
 
