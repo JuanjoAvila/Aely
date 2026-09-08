@@ -60,6 +60,13 @@ vigila que el trabajo no crezca con el histórico; esto vigila lo que hay que ba
 
 ## Flujo de datos
 
+El widget recibe `monthBudgetStats` desde la app al cambiar sus cifras y al volver a primer plano,
+tanto por `visibilitychange` como por `App.appStateChange` de Capacitor. Son señales distintas en
+Android; escuchar solo la primera podía dejar el último total escrito por ingest aunque la app
+ya mostrase otro. La reactivación solo reenvía el snapshot local, no sincroniza Open Banking.
+Al convertir `expenses` con `expenseFromRow`, las categorías especiales `ingreso`, `inversion`
+y `traspaso` se conservan aunque no pertenezcan al catálogo ordinario de categorías.
+
 ```
 [Notificación TR en Android]
         │  Lector nativo Mi Cartera

@@ -1,6 +1,10 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-07 · **v4.19.5** — Novedades guarda 20 versiones (bundle más ligero).
+> Estado a 2026-09-08 · **v4.19.6** — Widget al reactivar Android y categorías neutras al descargar.
+> Preparado en rama de revisión; publicación pendiente de integración por Claude y validación.
+> Regresiones reproducidas y corregidas: resume nativo sin visibilitychange y pérdida de
+> inversión/traspaso en expenseFromRow. OTA; sin APK. B09-D/posibles repetidos en ingest sigue aparte.
+> [Evidencia, validación y límites del arreglo](briefs/b09d-codex-resume-categorias.md).
 > Anterior: **4.19.4** (arranque suelto). **4.19.3** (panel beta). **4.19.2** (ventana mes). **4.19.1**.
 > Canal vivo: `npm run salud` (no afirmar beta/prod solo por el working tree). OTA, sin APK.
 > Anterior: **4.18.7** (cabecera de Gastos al cambiar bancos de gasto diario).
@@ -103,7 +107,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.19.5** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.6** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

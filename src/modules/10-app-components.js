@@ -1478,6 +1478,12 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+  {v:"4.19.6", d:"8 sep 2026",
+   t:{es:"El widget se refresca al volver y se respetan las categorías guardadas",en:"The widget refreshes on return and saved categories are preserved",ca:"El widget es refresca en tornar i es respecten les categories desades"},
+   items:{
+     es:["El widget vuelve a recibir las cifras de la app al abrirla de nuevo.","Las inversiones y los traspasos conservan su categoría al recuperar los movimientos guardados."],
+     en:["The widget receives the app's figures again when you return to the app.","Investments and transfers keep their category when saved transactions are retrieved."],
+     ca:["El widget torna a rebre les xifres de l'app quan s'obre de nou.","Les inversions i els traspassos conserven la categoria en recuperar els moviments desats."]}},
   {v:"4.19.5", d:"7 sep 2026",
    t:{es:"El historial de novedades guarda las últimas 20 versiones",
       en:"What's new keeps the last 20 versions",

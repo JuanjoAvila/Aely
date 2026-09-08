@@ -2,6 +2,23 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.6] — 2026-09-08
+### Widget al reactivar Android y categorías neutras al descargar gastos
+
+- El efecto de envío al widget escucha también `App.appStateChange` además de
+  `visibilitychange`. Reproducción: ingest sobrescribe el snapshot; al volver solo por evento
+  nativo y no cambiar las cifras locales, antes no se reenviaba nada. Se libera el listener
+  incluso si su registro devuelve una promesa que resuelve después del cleanup.
+- `resolveCategory` conserva `inversion` y `traspaso`, como ya hacía con `ingreso`. Están fuera
+  de `CAT`: `expenseFromRow` las reinterpretaba por comercio y podían convertirse en `otros`,
+  inflando el gasto al descargar la nube. No se recategoriza el histórico ni se escriben filas remotas.
+- Regresiones en `persistencia.spec.mjs` (ya CROSSCUTTING): puente nativo simulado sin evento
+  DOM de visibilidad y pull de filas neutras que abre Inicio/Gastos. Ambas fallaban antes del fix.
+  `presupuesto-servidor` comprueba además el roundtrip real por `expenseFromRow`.
+- **Límite:** no resuelve que la decisión `possibleDup` no llegue a ingest ni arbitra respuestas
+  tardías del servidor; esos caminos siguen en B09-D. Tampoco repara categorías históricas ya
+  sobrescritas. Los dos arreglos de esta entrada son web/OTA, sin cambios de APK ni Supabase.
+
 ## [4.19.5] — 2026-09-07
 ### Novedades: solo las 20 últimas en el bundle
 

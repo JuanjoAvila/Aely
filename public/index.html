@@ -2080,7 +2080,9 @@ function autoCategory(merchant){
 }
 function resolveCategory(sheetCat, merchant){
   // "ambas": usa la del Sheet; si falta o es "otros", autodetecta por comercio
-  if(sheetCat==="ingreso") return "ingreso";   // no está en CAT (es especial) pero debe respetarse
+  // Las especiales están fuera de CAT. Reinterpretarlas al bajar la nube convertía inversión
+  // y traspaso en gasto ordinario, aunque el servidor los excluyera (B09-D, 2026-09-08).
+  if(sheetCat==="ingreso"||sheetCat==="inversion"||sheetCat==="traspaso") return sheetCat;
   if(sheetCat && sheetCat!=="otros" && CAT[sheetCat]) return sheetCat;
   return autoCategory(merchant);
 }
@@ -14469,6 +14471,12 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+{v:"4.19.6", d:"8 sep 2026",
+   t:{es:"El widget se refresca al volver y se respetan las categorías guardadas",en:"The widget refreshes on return and saved categories are preserved",ca:"El widget es refresca en tornar i es respecten les categories desades"},
+   items:{
+     es:["El widget vuelve a recibir las cifras de la app al abrirla de nuevo.","Las inversiones y los traspasos conservan su categoría al recuperar los movimientos guardados."],
+     en:["The widget receives the app's figures again when you return to the app.","Investments and transfers keep their category when saved transactions are retrieved."],
+     ca:["El widget torna a rebre les xifres de l'app quan s'obre de nou.","Les inversions i els traspassos conserven la categoria en recuperar els moviments desats."]}},
 {v:"4.19.5", d:"7 sep 2026",
    t:{es:"El historial de novedades guarda las últimas 20 versiones",
       en:"What's new keeps the last 20 versions",
@@ -14992,107 +15000,6 @@ var RELEASE_NOTES=[
     "💱 Si apuntes una despesa en una altra moneda, ara queda desat el que va costar de veritat (per exemple «1.520,00 ₺») i es veu al detall de la despesa. Abans només es desaven els euros.",
     "🍺 Els llocs que tenen un nom acabat en «bar» ja es desen com a bars i no com a «altres».",
     "🧹 Els noms de comerç que arriben amb caràcters estranys del datàfon es netegen abans de desar-se.",
-   ]}},
-{v:"4.15.0", d:"5 ago 2026",
-   t:{es:"Ambientación, conversor, presupuesto, extracto y filtros de Gastos",
-      en:"Ambience, converter, budget, bank statements and Spending filters",
-      ca:"Ambientació, convertidor, pressupost, extracte i filtres de Despeses"},
-   tandas:[
-     {id:"season-fx-soft", t:"🍂 Ambientación detrás de las cartillas", items:[
-       "Ajustes → Apariencia → Temática → Verano (o Navidad/Halloween…): ves piezas muy suaves cayendo, sin molestar — también quieto en una pestaña.",
-       "Arriba a la derecha hay un destello de luz suave que se QUEDA fijo (no aparece y desaparece al hacer scroll).",
-       "Cambia de pestaña: la lluvia sigue el MISMO camino — no salta atrás ni se reinicia.",
-       "Ajustes → Apariencia → Reducir animaciones: la lluvia y el destello desaparecen.",
-       "Temática → Ninguna: vuelve el look normal, sin piezas.",
-     ]},
-     {id:"fx-converter", t:"🔁 Conversor de monedas", items:[
-       "Ajustes → Dinero → Conversor de monedas: pon un importe, elige moneda de origen y de destino.",
-       "Prueba 150 ₺ → € (o al revés con Intercambiar): el resultado usa el cambio del día.",
-       "Ya NO está la lista fija «1 € → …»; el conversor la sustituye.",
-     ]},
-     {id:"presupuesto-resumen", t:"💶 Presupuesto: misma cifra en todos sitios", items:[
-       "En Resumen, la tarjeta de presupuesto muestra lo mismo que la cabecera de Gastos (sin inversión/traspasos).",
-       "Si tienes dinero reservado a metas, el presupuesto «que queda» ya lo descuenta.",
-       "Los avisos al 50/80/95/100 % usan esa misma cifra (no un total distinto).",
-       "El informe imagen y el reto de «mes bajo presupuesto» también cuadran con Resumen/Gastos.",
-     ]},
-     {id:"otros-bancos-vista", t:"🏦 Extracto de todos los bancos", items:[
-       "Conecta un banco que NO sea el de gasto diario y sincroniza: sus movimientos aparecen en Gastos.",
-       "Esos movimientos llevan la marca «no afecta»: no restan del presupuesto ni del saldo de gasto diario.",
-       "Los bancos marcados como gasto diario (Cartera → rol) SÍ restan, como siempre.",
-       "Ingresos de cualquier banco siguen entrando (para «Mi ciclo»).",
-     ]},
-     {id:"gastos-filtros-ia", t:"🎛️ Filtros y categorías más listos", items:[
-       "En Gastos, toca «Filtros»: sheet con buscador de categorías y bancos (ya no hay dos filas interminables de chips).",
-       "Nuevas categorías: Viajes, Mascotas, Educación, Luz/gas/agua — al apuntar y al filtrar.",
-       "Booking/Vueling → Viajes; Zooplus → Mascotas; Endesa → Energía (ya no caen en «Otros» u Ocio).",
-     ]},
-     {id:"gastos-filtros-ubicacion", t:"🎛️ El botón de Filtros ya no queda suelto", items:[
-       "En Gastos, «Filtros» se ha movido justo al lado del buscador — antes vivía solo, en su propia fila entre el buscador y «Sincronizar».",
-       "Si tienes categorías o bancos seleccionados, siguen viéndose debajo, con «Borrar filtros» a mano.",
-       "El resumen (gastado, presupuesto…) no ha perdido ni un milímetro de sitio.",
-     ]},
-     {id:"fix-novedades-nag", t:"🔔 Novedades ya no insiste sin motivo", items:[
-       "En el canal beta, el popup de ✨ Novedades salía otra vez en CADA compilación nueva (4.15.0.1, .2, .3…) aunque fueran las mismas notas — hoy con 4-5 compilaciones en un día, de ahí «todo el rato me sale para actualizar».",
-       "Ahora se marca como vista por versión base (4.15.0), no por el sello exacto de la compilación: si no hay una versión de verdad nueva, no vuelve a saltar.",
-       "Instala esta compilación y cierra/abre la app un par de veces: Novedades no debería reaparecer sola.",
-     ]},
-     {id:"fix-season-glow", t:"✨ Destello de arriba fijo (y la barra limpia)", items:[
-       "Con temática puesta, el destello suave de ARRIBA A LA DERECHA se queda fijo y se ve también parado, no solo al moverte por la app.",
-       "Al cambiar de pestaña, las piezas que caen siguen su camino: no se reinician ni saltan atrás.",
-       "La barra de abajo ya no enseña la lista a través suyo un momento al cambiar de pestaña (efecto raro de un arreglo anterior).",
-     ]},
-     {id:"fix-season-portal", t:"✨ Destello y barra (arreglo definitivo)", items:[
-       "Con temática activa, baja y sube en Gastos: el destello de arriba a la derecha NO debería aparecer y desaparecer al hacer scroll.",
-       "Desliza de pestaña (Inicio ↔ Gastos ↔ Plan): la barra de abajo no debería dejar ver la lista a través suya ni un segundo.",
-       "Si algo sigue fallando, anótalo en la revisión beta con la versión que ves en Mis bancos.",
-     ]},
-     {id:"fix-season-glow-steady", t:"✨ Destello que no cambia nunca", items:[
-       "Desliza de pestaña despacio (Inicio ↔ Gastos ↔ Plan): NO tiene que aparecer ningún verde claro arriba mientras se mueve. El fondo se queda exactamente igual de principio a fin.",
-       "En ese mismo gesto, el contenido NO puede bajar unos píxeles y volver a subir: los títulos se quedan clavados a la misma altura.",
-       "El destello de arriba a la derecha se queda igual durante todo el gesto — ni se enciende, ni se apaga, ni desaparece.",
-       "Baja y sube dentro de una pestaña: igual, el destello no se mueve ni cambia de fuerza.",
-       "La franja de los iconos de arriba (al lado de la cámara) es del mismo tono que el resto de la app, y no se nota ningún corte entre esa zona y la app.",
-       "Nada cruza por delante de los iconos de arriba: las piezas de la temática caen ya por debajo.",
-       "En modo Verano el destello es ya de día caluroso: cálido y bien visible arriba a la derecha. Las demás temáticas llevan la misma forma más contenida, para decidirlas una a una.",
-       "Scrollea rápido dentro de una lista: el destello no puede dar ni un parpadeo.",
-       "La barra de abajo sigue limpia (sin ver la lista a través).",
-     ]},
-     {id:"fix-season-glow-soft", t:"🌅 Destello suave de fondo", items:[
-       "Ajustes → Apariencia → Temática → Verano: arriba se nota un lavado cálido tipo atardecer (melocotón/ámbar), suave y de fondo — no una raya encima del texto.",
-       "Scrollea Inicio o Gastos: el destello se queda arriba (no desaparece al bajar la lista); el texto pasa por delante, sin taparse.",
-       "Prueba Halloween (ámbar/óxido), Navidad (rojo suave), Invierno (azul plateado) y Pascua (rosa/verde): cada una con su tono, mismo estilo de lavado amplio.",
-       "La franja de los iconos junto a la cámara sigue del mismo tono que la app.",
-       "Desliza entre pestañas y baja/sube en una lista: sin parpadeo del destello; la barra de abajo sin dejar ver la lista.",
-     ]},
-     {id:"fix-season-tabs", t:"🚫 Pestañas sin mezclarse", items:[
-       "Con temática activa, desliza Inicio ↔ Gastos: solo debe verse UNA pantalla a la vez — sin «Hola Juanjo» encima de «Tus gastos» ni cifras superpuestas.",
-       "El lavado cálido de arriba se mantiene; el fondo de cada pestaña sigue siendo opaco.",
-       "Scrollea dentro de Inicio o Gastos: sin parpadeo ni salto de píxeles.",
-       "La barra de abajo sigue limpia al cambiar de pestaña.",
-     ]}
-   ],
-   items:{
-   es:[
-    "🍂 Con una temática de temporada, las piezas caen muy suaves — sin molestar. El destello de arriba a la derecha se queda fijo (también al hacer scroll) y la lluvia no salta al cambiar de pestaña.",
-    "🔁 En Ajustes → Dinero hay un conversor de verdad: eliges importe, moneda de origen y destino.",
-    "💶 El presupuesto del mes es la misma cifra en Resumen, Gastos, avisos e informe: sin mezclar inversiones ni traspasos, y descontando lo reservado a metas.",
-    "🏦 En Gastos ves el extracto de todos tus bancos. Solo el de gasto diario resta del presupuesto; el resto sale marcado como «no afecta».",
-    "🎛️ En Gastos, los filtros van en un sheet con buscador (adiós a la fila interminable de chips). Hay categorías nuevas (viajes, mascotas, educación, luz/gas) y el reconocimiento de comercios acierta más.",
-   ],
-   en:[
-    "🍂 With a seasonal theme on, pieces drift very softly. The soft glow at the top-right stays put (also when you scroll) and the drift doesn't jump when you switch tabs.",
-    "🔁 In Settings → Money there's a real converter: pick an amount, a from-currency and a to-currency.",
-    "💶 The monthly budget is the same figure on Home, Spending, alerts and the share image: investments and transfers stay out, and money reserved for goals is deducted.",
-    "🏦 On Spending you see every linked bank's statement. Only your daily-spending bank hits the budget; the rest is marked «doesn't count».",
-    "🎛️ On Spending, filters live in a searchable sheet (no more endless chip rows). New categories (travel, pets, education, utilities) and smarter merchant detection.",
-   ],
-   ca:[
-    "🍂 Amb una temàtica de temporada, les peces cauen molt suaus. El destell de dalt a la dreta es queda fix (també en fer scroll) i la pluja no salta en canviar de pestanya.",
-    "🔁 A Ajustos → Diners hi ha un convertidor de veritat: tries import, moneda d'origen i de destí.",
-    "💶 El pressupost del mes és la mateixa xifra al Resum, Despeses, avisos i informe: sense barrejar inversions ni traspassos, i descomptant el reservat a metes.",
-    "🏦 A Despeses veus l'extracte de tots els teus bancs. Només el de despesa diària resta del pressupost; la resta surt marcada com a «no afecta».",
-    "🎛️ A Despeses, els filtres van en un full amb cercador (adéu a la fila interminable de xips). Hi ha categories noves (viatges, mascotes, educació, llum/gas) i el reconeixement de comerços encerta més.",
    ]}}
 ];
 /* Cinturón por si alguien sirve el módulo sin pasar por build-app (tests que evalúan fuente).
@@ -18840,7 +18747,22 @@ function App(){
     // re-pintado del widget aunque el estado no haya cambiado.
     const onVis=function(){ if(document.visibilityState==="visible") push(); };
     document.addEventListener("visibilitychange", onVis);
-    return function(){ document.removeEventListener("visibilitychange", onVis); };
+    // Android puede volver sin visibilitychange. Si ingest pisó el widget mientras estaba
+    // cerrada y las cifras locales no cambian, las deps tampoco fuerzan otro push (B09-D).
+    const A=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
+    let sub=null, disposed=false;
+    if(A&&A.addListener){
+      try{
+        sub=Promise.resolve(A.addListener("appStateChange", function(st){ if(!disposed&&st&&st.isActive) push(); }));
+        sub.catch(function(){});
+      }catch(e){}
+    }
+    return function(){
+      disposed=true;
+      document.removeEventListener("visibilitychange", onVis);
+      // addListener puede resolver después del cleanup: liberar también ese handle tardío.
+      if(sub) sub.then(function(h){ if(h&&h.remove) return h.remove(); }).catch(function(){});
+    };
   },[budW.shown,budW.budget,state.budget,widgetCash,widgetBudgetLeft,widgetSafeLiq]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){
