@@ -73,6 +73,7 @@ export const E2E_MAP = [
     "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs", "e2e/pulido-numpad.spec.mjs",
   ] },
   { file: "src/modules/10-app-components.js", specs: [
+    "e2e/modo-inicial.spec.mjs",
     "e2e/profile-anim.spec.mjs", "e2e/perfil-simetria.spec.mjs", "e2e/delete-account.spec.mjs",
     "e2e/revisar-beta.spec.mjs", "e2e/ajustes-versiones.spec.mjs", "e2e/ajustes-importaciones.spec.mjs",
     "e2e/tour-tutorial.spec.mjs", "e2e/modo-pruebas.spec.mjs", "e2e/tr-aviso.spec.mjs",

@@ -2,6 +2,15 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.21] — 2026-09-09
+### Modo inicial: ver la app como recién instalada sin tocar la cartera real
+
+- Petición suya, y con razón: el banco de pruebas **copia** la cartera real, así que no había forma de mirar las pantallas de estreno del pulido v4 (hero sin gráfico, tarjetas vacías, racha a cero). Sus palabras: «si no, te marcaré el 50% de las pruebas que no puedo reproducirlo».
+- `mcSeedSandboxVacio()` siembra la cartera de PRUEBAS vacía. Nunca toca la real: escribe en `STATE_KEY_TEST` y punto.
+- `onboarded:true` a propósito: con el onboarding delante te obliga a poner presupuesto y entonces la tarjeta vacía de presupuesto (P3) no se puede ver nunca. `budget:0` es justo el caso a probar.
+- Dos puertas en Ajustes: «Probar con la app vacía» desde fuera y «Vaciar la cartera de pruebas» desde dentro. Bloque solo visible para el dueño (`is_admin`), como el resto del banco de pruebas.
+- `e2e/modo-inicial.spec.mjs` cubre lo único que da miedo: que sembrar la vacía **no roce** `micartera_v3`. La fila de Ajustes no se cubre porque ese bloque no se pinta para un usuario que no sea admin, y el de los e2e no lo es.
+
 ## [4.19.20] — 2026-09-09
 ### Cierre del pulido: P9/P10/P14 + guardianes del histórico
 

@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.19.21",
+    "d": "9 sep 2026",
+    "t": {
+      "es": "Ver la app como recién instalada",
+      "en": "See the app as freshly installed",
+      "ca": "Veure l'app com acabada d'instal·lar"
+    },
+    "tandas": [
+      {
+        "id": "modo-inicial",
+        "t": {
+          "es": "🌱 Modo inicial",
+          "en": "🌱 Fresh-start mode",
+          "ca": "🌱 Mode inicial"
+        },
+        "items": {
+          "es": [
+            "Ajustes → «Probar con la app vacía»: entras al banco de pruebas con una cartera SIN cuentas, SIN gastos y SIN presupuesto, como alguien que se la acaba de instalar.",
+            "Comprueba ahí las pantallas de estreno: el inicio sin gráfico, las tarjetas de presupuesto, recibos y metas, y el primer mes sin racha.",
+            "Al salir, tu cartera real tiene que estar EXACTAMENTE igual que la dejaste. Eso es lo importante de esta tanda.",
+            "Y si ya estabas dentro del banco de pruebas, «Vaciar la cartera de pruebas» hace lo mismo sin salir."
+          ],
+          "en": [
+            "Settings → «Try the app empty»: you enter the test wallet with NO accounts, NO spending and NO budget, like someone who just installed it.",
+            "Check the first-run screens there: home with no chart, the budget, bills and goals cards, and a first month with no streak.",
+            "On the way out, your real wallet must be EXACTLY as you left it. That is the point of this batch.",
+            "And if you were already in the test wallet, «Empty the test wallet» does the same without leaving."
+          ],
+          "ca": [
+            "Ajustos → «Provar amb l'app buida»: entres al banc de proves amb una cartera SENSE comptes, SENSE despeses i SENSE pressupost, com algú que se l'acaba d'instal·lar.",
+            "Comprova-hi les pantalles d'estrena: l'inici sense gràfic, les targetes de pressupost, rebuts i objectius, i el primer mes sense ratxa.",
+            "En sortir, la teva cartera real ha d'estar EXACTAMENT igual que la vas deixar. Això és l'important d'aquesta tanda.",
+            "I si ja eres dins del banc de proves, «Buidar la cartera de proves» fa el mateix sense sortir."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "Ya se puede ver la app como recién instalada sin tocar tu cartera: Ajustes → «Probar con la app vacía»."
+      ],
+      "en": [
+        "You can now see the app as freshly installed without touching your wallet: Settings → «Try the app empty»."
+      ],
+      "ca": [
+        "Ja es pot veure l'app com acabada d'instal·lar sense tocar la teva cartera: Ajustos → «Provar amb l'app buida»."
+      ]
+    }
+  },
+  {
     "v": "4.19.20",
     "d": "9 sep 2026",
     "t": {

@@ -463,6 +463,21 @@ function mcEnterSandbox(seedFrom){
    llama recarga inmediatamente después, y así lo que quede por volcar se guarda en la clave
    correcta, la de la sesión que se está cerrando. */
 function mcExitSandbox(){ try{ localStorage.removeItem("_mcSandbox"); }catch(e){} }
+/* MODO INICIAL (peticion suya, 9/9/2026): el banco de pruebas COPIA la cartera real, asi que no
+   habia forma de ver la app como la ve alguien que acaba de instalarla — y justo eso es lo que hay
+   que probar del pulido v4 (hero sin grafico, tarjetas vacias, racha a cero). Sus palabras: «si no,
+   te marcare el 50% de las pruebas que no puedo reproducirlo».
+   Siembra la cartera de PRUEBAS vacia. Nunca toca la real: escribe en STATE_KEY_TEST y punto.
+   `onboarded:true` a proposito: con el onboarding delante te obliga a poner presupuesto, y entonces
+   la tarjeta vacia de presupuesto (P3) no se puede ver nunca. `budget:0` es justo el caso a probar. */
+function mcSeedSandboxVacio(){
+  store.set(STATE_KEY_TEST, {
+    _dataVer:6, onboarded:true, tourSeen:true, setupHint:false,
+    budget:0, monthStartNet:0, history:[], streak:0,
+    accounts:[], investments:[], assets:[], debts:[], fixed:[], flows:[], oneoffs:[], goals:[],
+    expenses:[], settings:{}
+  });
+}
 /* Tira la cartera de pruebas y empieza otra desde cero copiando la real otra vez. */
 function mcResetSandbox(){ store.del(STATE_KEY_TEST); }
 
