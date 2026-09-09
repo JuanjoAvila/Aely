@@ -501,7 +501,10 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
   };
   const doImport=function(){
     if(!cands || !selCount) return;
-    const nRecibo=visible.filter(function(o){ return sel[o.i] && (dest[o.i]||defDest(o.x))==="recibo"; }).length;
+    // Cuenta los Fijos que se van a crear DE VERDAD, ya agrupados (FIN-02): marcar tres meses del
+    // mismo recibo crea UNO, así que el diálogo no puede seguir diciendo «¿Crear 3 recibos fijos?».
+    const reciboSel=visible.filter(function(o){ return sel[o.i] && (dest[o.i]||defDest(o.x))==="recibo"; }).map(function(o){ return o.i; });
+    const nRecibo=histFijosFromSelection(cands, reciboSel, { mkId:uid, name:t("bp_hist_recibo"), dayOf:recDay }).length;
     if(nRecibo>0){
       askConfirm({
         title:tf("bp_hist_confirm_fijos",{n:nRecibo}),
@@ -521,13 +524,15 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
   const bigBtn={width:"100%",padding:"14px",borderRadius:14,border:"none",background:"var(--mint)",color:"#06120C",fontWeight:800,fontSize:15,cursor:"pointer",marginTop:12};
   const destChip=function(i,id,label,hint){
     const on=(dest[i]||"")==id;
+    // `data-dest`/`data-cand`: las filas se pintan con estilos en linea y sin clase, asi que un
+    // e2e solo podia apuntar por posicion. Con esto se marca la fila EXACTA (mismo patron que
+    // `data-ent` en Mis bancos). Sin coste de render.
     return React.createElement("button",{key:id,type:"button",onClick:function(e){ e.stopPropagation(); setDestI(i,id); },
-      title:hint||"",
+      title:hint||"", "data-dest":id, "data-cand":(cands&&cands[i]&&cands[i].id)||String(i),
       style:{padding:"4px 9px",borderRadius:999,border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"rgba(95,208,138,.18)":"transparent",color:on?"var(--mint)":"var(--muted)",fontWeight:800,fontSize:11,cursor:"pointer"}}, label);
   };
   const dupHint=function(c){
     if(!c||c.status!=="dup") return null;
-    if(c.reason==="recibo-lote") return "↺ "+t("bp_hist_dup");
     if(c.reason==="modeled") return "🗐 "+t("bp_hist_dupmodel");
     return "🗐 "+t("bp_hist_dupexist");
   };
@@ -600,7 +605,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
                 React.createElement("div",{style:{fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",textDecoration:(!on&&isDup)?"line-through":"none",color:(!on&&isDup)?"var(--muted-2)":undefined}}, x.merchant),
                 React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)",marginTop:1}}, x.date, " · ", histBankLabel(x), isIn?"":(x.card?"":" · "+t("bp_hist_notcard")), suggestRec&&!on?"":""),
                 suggestRec && on ? React.createElement("div",{style:{fontSize:11,color:"var(--muted)",marginTop:1}}, t("bp_hist_suggest_recibo")) : null,
-                dupHint(c) ? React.createElement("div",{style:{fontSize:11,color:c.reason==="recibo-lote"?"var(--mint)":"var(--muted-2)",marginTop:1}}, dupHint(c)) : null),
+                dupHint(c) ? React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)",marginTop:1}}, dupHint(c)) : null),
               React.createElement("span",{style:{fontWeight:800,fontSize:14,flexShrink:0,color:isIn?"var(--mint)":"var(--text)"}}, (isIn?"+":"")+eur(x.amount))
             ),
             on && React.createElement("div",{style:{display:"flex",gap:6,marginTop:8,flexWrap:"wrap",paddingLeft:31}},
@@ -1663,6 +1668,22 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+  {v:"4.19.17", d:"9 sep 2026",
+   t:{es:"El aviso de los recibos fijos dice la verdad",
+      en:"The recurring-bill prompt tells the truth",
+      ca:"L'avís dels rebuts fixos diu la veritat"},
+   tandas:[{id:"recibos-confirmacion",t:{es:"🧾 El aviso cuenta los recibos de verdad",en:"🧾 The prompt counts the real bills",ca:"🧾 L'avís compta els rebuts de veritat"},
+     items:{
+       es:["Importa el histórico y marca como «Recibo» tres meses del MISMO recibo. La pregunta de confirmación tiene que decir 1, no 3.",
+           "Acepta y mira Plan: tiene que haber UN recibo fijo de ese comercio, no tres."],
+       en:["Import history and mark three months of the SAME bill as «Bill». The confirmation must say 1, not 3.",
+           "Accept and check Plan: there must be ONE recurring bill for that merchant, not three."],
+       ca:["Importa l'històric i marca com a «Rebut» tres mesos del MATEIX rebut. La pregunta de confirmació ha de dir 1, no 3.",
+           "Accepta i mira Pla: hi ha d'haver UN rebut fix d'aquest comerç, no tres."]}}],
+   items:{
+     es:["Al marcar varios meses del mismo recibo, la pregunta de confirmación ya dice cuántos recibos fijos se van a crear de verdad: uno, no uno por mes."],
+     en:["When you mark several months of the same bill, the confirmation now says how many recurring bills will really be created: one, not one per month."],
+     ca:["En marcar diversos mesos del mateix rebut, la confirmació ja diu quants rebuts fixos es crearan de veritat: un, no un per mes."]}},
   {v:"4.19.16", d:"9 sep 2026",
    t:{es:"El histórico ya no se salta meses",
       en:"History no longer skips months",

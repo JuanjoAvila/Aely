@@ -2,6 +2,14 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.17] — 2026-09-09
+### El diálogo cuenta los Fijos agrupados, y un e2e cubre el cableado
+
+- `doImport` anunciaba «¿Crear N recibos fijos?» con N = filas marcadas. Tras FIN-02 varias filas equivalentes crean UNO, así que la pregunta mentía. Ahora cuenta el resultado de `histFijosFromSelection`.
+- `e2e/hist-pagos-mensuales.spec.mjs`: los tres meses del mismo recibo salen los tres y sin aviso de repetido; marcarlos como «Recibo» deja UN fijo en el estado guardado. Ejecutado en rojo contra el código anterior (los dos casos fallan) y en verde después.
+- `destChip` gana `data-dest`/`data-cand`: las filas se pintan con estilos en línea y un e2e solo podía apuntar por posición. Mismo patrón que `data-ent` en Mis bancos.
+- Fuera la pista de interfaz de `recibo-lote`, que ya no puede dispararse.
+
 ## [4.19.16] — 2026-09-09
 ### El histórico deja de descartar pagos de meses distintos
 
