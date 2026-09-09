@@ -841,6 +841,12 @@
   .v4-goal .bar{height:10px;border-radius:6px;background:var(--sur2);overflow:hidden;margin:10px 0 8px;}
   .v4-goal .bar i{display:block;height:100%;background:var(--mint);border-radius:6px;transform-origin:left;animation:v4bar .8s var(--ease) both;}
   .v4-mov{display:flex;align-items:center;gap:12px;padding:10px 12px;margin-top:8px;background:var(--sur);border:1px solid var(--line-soft);border-radius:18px;}
+  /* B3 — estas dos filas abren un panel al tocarlas y no daban NINGUNA señal de que respondian.
+     Es el detalle que separa «una web» de «una app»: el dedo tiene que notar que ha pasado algo.
+     Mismo gesto que ya usan los botones (`.v4-keys button:active` hace scale .96), mas suave
+     porque una fila entera moviendose mucho marea. Solo :active, sin JS ni transiciones nuevas. */
+  .v4-charge:active,.v4-mov:active{transform:scale(.995);background:var(--sur2);transition:transform .12s var(--ease),background .12s var(--ease);}
+  @media (prefers-reduced-motion:reduce){ .v4-charge:active,.v4-mov:active{transform:none;} }
   .v4-mov .tile{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:21px;flex:0 0 auto;}
   .v4-mov button.tile{border:1px solid var(--line-soft);}
   .v4-mov .nm{flex:1;min-width:0;font-weight:700;font-size:15.5px;}
