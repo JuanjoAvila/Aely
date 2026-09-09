@@ -240,6 +240,20 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       })
     ),
 
+    // Estado vacio en vez de esconder la seccion (P4, spec §27): un Inicio recien instalado se
+    // quedaba en hero + «Ultimos movimientos» vacio y no se veia que la app hace mas cosas.
+    upcoming.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".15s"}},
+      React.createElement("div",{className:"v4-section-h"}, React.createElement("span",null, t("v4_upcoming"))),
+      React.createElement("div",{className:"v4-empty"},
+        React.createElement("div",{className:"em"}, "🧾"),
+        React.createElement("div",{className:"ti"}, t("v4_noup_t")),
+        React.createElement("div",{className:"ph"}, t("v4_noup_p")),
+        React.createElement("button",{className:"btn cta",onClick:function(){
+          try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){}
+        }}, t("v4_noup_cta"))
+      )
+    ),
+
     upcoming.length>0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".15s"}},
       React.createElement("div",{className:"v4-section-h"},
         React.createElement("span",null, t("v4_upcoming")),
@@ -261,6 +275,16 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
                 React.createElement("div",{className:"am num"+(u.pos?" pos":"")}, (u.pos?"+":"")+eur(u.amount))
               );
             })
+      )
+    ),
+
+    goals.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
+      React.createElement("div",{className:"v4-section-h"}, React.createElement("span",null, t("v4_your_goals"))),
+      React.createElement("div",{className:"v4-empty"},
+        React.createElement("div",{className:"em"}, "🎯"),
+        React.createElement("div",{className:"ti"}, t("v4_nogoal_t")),
+        React.createElement("div",{className:"ph"}, t("v4_nogoal_p")),
+        React.createElement("button",{className:"btn cta",onClick:function(){ if(onGoPlan) onGoPlan("metas"); }}, t("v4_nogoal_cta"))
       )
     ),
 

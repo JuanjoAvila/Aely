@@ -39,6 +39,27 @@ test("★ sin presupuesto, Inicio ofrece ponerlo en vez de esconder la tarjeta",
   await expect(page.getByText(/presupuesto|budget|pressupost/i).first()).toBeVisible({ timeout: 10_000 });
 });
 
+test("★ P4: Inicio recién instalado ofrece recibos y metas en vez de quedarse desnudo", async ({ page }) => {
+  await inicio(page, { history: [], budget: 500, expenses: [], accounts: [], fixed: [], goals: [] });
+
+  const recibos = page.locator(".v4-empty").filter({ hasText: /recibos|bills|rebuts/i });
+  const metas = page.locator(".v4-empty").filter({ hasText: /meta|goal|objectiu/i });
+  await expect(recibos).toBeVisible();
+  await expect(metas).toBeVisible();
+  // No son adornos: las dos llevan a algún sitio.
+  await expect(recibos.getByRole("button")).toBeEnabled();
+  await expect(metas.getByRole("button")).toBeEnabled();
+});
+
+test("con recibos y metas de verdad, las tarjetas fantasma desaparecen", async ({ page }) => {
+  await inicio(page, {
+    history: [100, 200], budget: 500,
+    fixed: [{ id: "f1", name: "Luz", amount: 40, freq: "mes", day: 28, account: "sabadell" }],
+    goals: [{ id: "g1", name: "Viaje", target: 1000, saved: 100, emoji: "✈️" }],
+  });
+  await expect(page.locator(".v4-empty")).toHaveCount(0);
+});
+
 test("con presupuesto e histórico, el hero vuelve a ser el de siempre", async ({ page }) => {
   await inicio(page, { history: [100, 200], budget: 500 });
 
