@@ -730,7 +730,7 @@
   .app.v4 .viewport{flex:1;min-height:0;}
 
   .v4-screen{padding-top:8px;}
-  .v4-title{font-size:26px;font-weight:560;letter-spacing:-.3px;margin:8px 0 14px;line-height:1.15;}
+  .v4-title{font-size:26px;font-weight:560;font-variation-settings:"opsz" 24;letter-spacing:-.3px;margin:8px 0 14px;line-height:1.15;}
   .v4-micro{font-size:12.5px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;}
   .v4-card{background:linear-gradient(180deg,var(--sur),var(--bg-2));border:1px solid var(--line-soft);border-radius:24px;padding:20px;box-shadow:var(--shadow);}
   .v4-gastos-summary{background:linear-gradient(180deg,var(--sur),var(--bg-2));border:1px solid var(--line-soft);border-radius:22px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow);}
@@ -740,7 +740,7 @@
      a mitad de frase (rechazo visual post-multidivisa 2026-08-05). */
   .v4-gastos-summary-main{flex:1 1 auto;min-width:0;}
   .v4-gastos-summary-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.1px;color:var(--muted-2);}
-  .v4-gastos-summary-amount{font-family:'Fraunces',Georgia,serif;font-size:clamp(22px,8.2vw,40px);font-weight:550;letter-spacing:-1px;line-height:1.08;margin-top:4px;font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap;overflow:hidden;max-width:100%;}
+  .v4-gastos-summary-amount{font-family:'Fraunces',Georgia,serif;font-size:clamp(22px,8.2vw,40px);font-variation-settings:"opsz" 40;font-weight:550;letter-spacing:-1px;line-height:1.08;margin-top:4px;font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap;overflow:hidden;max-width:100%;}
   /* Mismo blanco y peso que el entero (feedback 2026-07-17: céntimos/€ en gris desentonaban).
      1em → sigue el clamp del padre (antes 40px fijo descuadraba al encoger). */
   .v4-gastos-summary-amount .cents{font-size:1em;color:inherit;font-weight:550;}
@@ -798,17 +798,21 @@
     transition:transform .42s cubic-bezier(.32,.72,0,1),box-shadow .42s cubic-bezier(.32,.72,0,1);}
   .v4-inicio-head{display:flex;align-items:center;justify-content:space-between;padding:12px 2px 4px;}
   .v4-inicio-date{font-size:14px;color:var(--muted-2);font-weight:600;}
-  .v4-inicio-hi{font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:560;letter-spacing:-.2px;margin-top:2px;}
+  .v4-inicio-hi{font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:560;font-variation-settings:"opsz" 24;letter-spacing:-.2px;margin-top:2px;}
   .v4-hero{text-align:center;padding:22px 0 8px;}
   /* inline-block: el tour (y cualquiera que mida la caja) ve el ancho REAL de la cifra, no
      todo el ancho de la pantalla — con 999 € es chico; con 192.148,45 €, más ancho. */
-  .v4-hero-amt{display:inline-block;font-family:'Fraunces',Georgia,serif;font-size:56px;font-weight:550;line-height:1.05;letter-spacing:-1.5px;margin-top:8px;font-variant-numeric:tabular-nums;}
+  /* P13 — la Fraunces se carga como variable con `opsz` 9-144 y no se estaba usando: los numeros
+     grandes salian con el tamaño optico por defecto, de trazo mas fino y menos «impreso». Se le
+     dice a cada sitio el tamaño optico que le toca. Un solo sitio, mucho efecto. */
+  .v4-hero-amt{display:inline-block;font-family:'Fraunces',Georgia,serif;font-size:56px;font-variation-settings:"opsz" 40;font-weight:550;line-height:1.05;letter-spacing:-1.5px;margin-top:8px;font-variant-numeric:tabular-nums;}
   .v4-budget{display:flex;gap:16px;align-items:center;}
   .v4-budget-txt{flex:1;min-width:0;}
   .v4-budget-txt .st{font-family:'Fraunces',Georgia,serif;font-size:21px;font-weight:600;color:var(--mint);line-height:1.15;}
   .v4-budget-txt .st.warn{color:var(--tan);}
   .v4-budget-txt .st.bad{color:var(--coral);}
-  .v4-budget-txt .ph{font-size:14.5px;color:var(--muted);line-height:1.45;margin-top:6px;}
+  /* `text-wrap:pretty` en las frases humanas: quita la palabra huerfana al final. Es gratis. */
+  .v4-budget-txt .ph{font-size:14.5px;color:var(--muted);line-height:1.45;margin-top:6px;text-wrap:pretty;}
   .v4-budget-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line-soft);font-size:12.5px;color:var(--muted-2);}
   .v4-budget-foot a,.v4-budget-foot button.link{color:var(--mint);font-weight:700;background:none;border:none;padding:0;font-size:12.5px;}
   .v4-section{margin-top:22px;}
@@ -842,7 +846,7 @@
   .v4-empty{border:1px dashed var(--line);border-radius:20px;padding:22px 18px;text-align:center;}
   .v4-empty .em{font-size:40px;line-height:1;}
   .v4-empty .ti{font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:600;margin-top:8px;}
-  .v4-empty .ph{color:var(--muted);font-size:13px;line-height:1.5;margin-top:6px;}
+  .v4-empty .ph{color:var(--muted);font-size:13px;line-height:1.5;margin-top:6px;text-wrap:pretty;}
   .v4-empty .cta{margin-top:14px;}
   /* Asa separada: tocar el resto sigue abriendo la ficha y deslizar en vertical sigue siendo
      scroll. Solo el asa reclama el dedo para ordenar, sin activar el swipe entre pestañas. */
@@ -1279,7 +1283,7 @@
   .v4-ob-skip{position:absolute;top:0;right:0;background:none;border:none;color:var(--muted);font-weight:700;font-size:14px;padding:8px 4px;cursor:pointer;font-family:inherit;}
   .v4-ob-logo{width:76px;height:76px;border-radius:22px;display:grid;place-items:center;margin:28px auto 18px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));box-shadow:0 16px 32px -12px rgba(95,208,138,.55);color:var(--on-mint);}
   .v4-ob-title{font-size:36px;font-weight:560;letter-spacing:-.6px;line-height:1.12;text-align:center;margin:8px 0 10px;}
-  .v4-ob-sub{text-align:center;color:var(--muted);font-size:15px;line-height:1.5;margin:0 auto;max-width:34ch;}
+  .v4-ob-sub{text-align:center;color:var(--muted);font-size:15px;line-height:1.5;margin:0 auto;max-width:34ch;text-wrap:pretty;}
   .v4-ob-dots{display:flex;gap:6px;justify-content:center;margin:22px 0 0;}
   .v4-ob-dots span{width:8px;height:8px;border-radius:8px;background:var(--line);transition:width .3s var(--ease),background .3s;}
   .v4-ob-dots span.on{width:22px;background:var(--mint);}
