@@ -48,7 +48,8 @@ export const CORE = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
-  { file: "src/modules/03-tab-dash.js", specs: ["e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: [
+    "e2e/pulido-vacios.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: [
     "e2e/gastos-cajones.spec.mjs", "e2e/gastos-concepto.spec.mjs", "e2e/apuntar-sheet.spec.mjs",
     "e2e/gastos-diario-filtro.spec.mjs", "e2e/gastos-cabecera-bancos.spec.mjs", "e2e/gastos-orden.spec.mjs",

@@ -184,6 +184,18 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
           : React.createElement("div",{style:{fontSize:12.5,color:"var(--muted-2)",padding:"6px 0 2px"}}, t("v4_hist_empty")))
     ),
 
+    // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
+    // sin saber por que (P3). En vez de esconderla, la misma tarjeta en vacio y con salida: abre
+    // el `BudgetSheet` que ya existe, el mismo que el boton de editar presupuesto.
+    !(state.budget>0) && React.createElement("div",{className:"v4-card rise",style:{animationDelay:".1s",marginTop:8}},
+      React.createElement("div",{className:"v4-empty"},
+        React.createElement("div",{className:"em"}, "🎯"),
+        React.createElement("div",{className:"ti"}, t("v4_nobud_t")),
+        React.createElement("div",{className:"ph"}, t("v4_nobud_p")),
+        React.createElement("button",{className:"btn cta",onClick:function(){ setBudgetOpen(true); }}, t("v4_nobud_cta"))
+      )
+    ),
+
     state.budget>0 && React.createElement("div",{className:"v4-card rise",style:{animationDelay:".1s",marginTop:8}},
       React.createElement("div",{className:"v4-budget",role:"button",tabIndex:0,onClick:function(){ setBudgetOpen(true); },onKeyDown:function(e){ if(e.key==="Enter") setBudgetOpen(true); }},
         React.createElement("div",{style:{position:"relative",width:104,height:104,flex:"0 0 auto"}},

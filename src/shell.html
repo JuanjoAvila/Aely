@@ -830,6 +830,13 @@
   .v4-mov .am.pos{color:var(--mint);}
   .v4-mov .am.muted{color:var(--muted-2);}
   .v4-mov.v4-mov-skip{border-style:dashed;}
+  /* Tarjeta fantasma de estado vacio (P3/P4 del pulido v4): mismo borde punteado que ya usan
+     `.tab-add` y `.v4-mov-skip`. Una sola clase para los tres huecos, cero componentes nuevos. */
+  .v4-empty{border:1px dashed var(--line);border-radius:20px;padding:22px 18px;text-align:center;}
+  .v4-empty .em{font-size:40px;line-height:1;}
+  .v4-empty .ti{font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:600;margin-top:8px;}
+  .v4-empty .ph{color:var(--muted);font-size:13px;line-height:1.5;margin-top:6px;}
+  .v4-empty .cta{margin-top:14px;}
   /* Asa separada: tocar el resto sigue abriendo la ficha y deslizar en vertical sigue siendo
      scroll. Solo el asa reclama el dedo para ordenar, sin activar el swipe entre pestañas. */
   .v4-mov-drag{width:28px;height:44px;display:grid;place-items:center;flex:0 0 auto;margin:-4px -6px -4px 0;
