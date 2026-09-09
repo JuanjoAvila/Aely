@@ -2427,8 +2427,14 @@ function reconcileTR(s){
     // `setCat`) — sumarlos aquí TAMBIÉN los contaba dos veces (una simulada, otra real).
     const obFed = (s.expenses||[]).some(function(e){ return e.source==="ob" && e.ent===acc.ent; });
     if(!obFed){
-      const ru = (acc.roundupManual!=null) ? acc.roundupManual : roundupOf(monthExp, acc.roundup||0);
-      const sb = (acc.savebackManual!=null) ? acc.savebackManual : (acc.saveback ? savebackOf(monthExp) : 0);
+      /* El round-up y el saveback se estiman de los MISMOS gastos que en vivo. Durante el mes,
+         `11-app-main.js:1483` los calcula sobre una lista ya filtrada por `expenseCountsCash`;
+         aquí se calculaban sobre el mes ENTERO, así que al cerrar podían comerse compras con
+         tarjeta de bancos que no son de gasto diario y el saldo de TR daba un salto el día 1.
+         Divergencia vieja, encontrada al revisar FIN-01 (9/9). Misma regla en los dos sitios. */
+      const monthExpCash = monthExp.filter(function(e){ return expenseCountsCash(e, s); });
+      const ru = (acc.roundupManual!=null) ? acc.roundupManual : roundupOf(monthExpCash, acc.roundup||0);
+      const sb = (acc.savebackManual!=null) ? acc.savebackManual : (acc.saveback ? savebackOf(monthExpCash) : 0);
       if(ru>0) acc.value = +(acc.value - ru).toFixed(2);             // el round-up abandona el efectivo
       const contrib = ru + sb;                                       // total que entra a la inversión (€)
       if(contrib>0 && acc.rewardInv){

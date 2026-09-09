@@ -9,7 +9,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y ver
 - El reparto pasa a ser el mismo que usa el saldo que se pinta durante el mes (`gastoDelMesPorBanco`), para que el cierre no contradiga a la pantalla y el saldo del sobre no rebote el día 1.
 - El sobre de efectivo arrastra sus propias compras al cerrar; los demás bancos siguen sin restar gastos, como hasta ahora.
 - Regresión nueva `tests/efectivo-cierre.test.mjs` (11 casos) ejecutada en rojo antes del arreglo y en verde después.
-- Límite conocido y sin tocar: el round-up/saveback sigue calculándose sobre TODOS los gastos del mes, igual en el cierre y en `11-app-main.js`. Cambiarlo exige mover las dos a la vez.
+- El round-up y el saveback del cierre se estiman ya sobre los mismos gastos que en vivo (`expenseCountsCash`). Antes se calculaban sobre el mes ENTERO mientras `11-app-main.js:1483` los filtraba: una compra con tarjeta de un banco que no es de gasto diario inflaba el round-up y el saldo de Trade Republic pegaba un salto el día 1. Divergencia vieja, encontrada por Cursor al revisar esta entrega.
 
 ## [4.19.14] — 2026-09-09
 ### Revisión plegable y auditoría de la ronda

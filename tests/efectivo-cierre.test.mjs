@@ -181,5 +181,29 @@ t("cierre y saldo mostrado coinciden: el sobre no rebota el día 1", () => {
   assert.equal(cuenta(ns, "efectivo").value, durante, "el cierre tiene que dejar el saldo que ya se estaba pintando");
 });
 
+t("el round-up del cierre mira los mismos gastos que el de la pantalla", () => {
+  // Durante el mes, `11-app-main.js:1483` estima el round-up sobre gastos ya filtrados por
+  // `expenseCountsCash`. Al cerrar se calculaba sobre el mes ENTERO: una compra con tarjeta de un
+  // banco que NO es de gasto diario inflaba el round-up y el saldo de TR pegaba un salto el día 1.
+  const s = estado({
+    anchor: prev.key,
+    expenses: [{ id: "e1", amount: 10.5, ent: "sabadell", source: "ob:sabadell", category: "super", date: diaDe(prev, 7) }],
+  });
+  s.accounts[0].roundup = 1;   // multiplicador x1
+  const ns = ctx.reconcileTR(s);
+  assert.equal(cuenta(ns, "trade_republic").value, 1000, "ni el gasto ni su calderilla salen de TR");
+});
+
+t("y sí cuenta la calderilla de las compras que la pantalla sí suma", () => {
+  const s = estado({
+    anchor: prev.key,
+    expenses: [{ id: "e1", amount: 10.5, ent: "trade_republic", source: "macrodroid", category: "super", date: diaDe(prev, 7) }],
+  });
+  s.accounts[0].roundup = 1;
+  const ns = ctx.reconcileTR(s);
+  // 1000 − 10,50 de la compra − 0,50 de round-up
+  assert.equal(cuenta(ns, "trade_republic").value, 989, "la compra de TR sí redondea");
+});
+
 if (failed) { console.error("\nefectivo-cierre: " + failed + " fallo(s)"); process.exit(1); }
 console.log("efectivo-cierre: OK");
