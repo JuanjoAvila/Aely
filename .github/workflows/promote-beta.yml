@@ -93,7 +93,10 @@ jobs:
           # forzamos esto, GITHUB_REF_NAME=main exige un bump absurdo de toda la ronda beta.
           echo "GITHUB_REF_NAME=beta" >> "$GITHUB_ENV"
           npm ci
-          sudo rm -f /etc/apt/sources.list.d/google-chrome.list || true
+          # Borrar SOLO el .list no basta: la imagen del runner trae la fuente tambien en
+          # formato deb822 (.sources). Se quita cualquier fuente que apunte a dl.google.com.
+          sudo rm -f /etc/apt/sources.list.d/google*.list /etc/apt/sources.list.d/google*.sources || true
+          sudo grep -rl "dl.google.com" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null | xargs -r sudo rm -f || true
           npx playwright install chromium --with-deps
           node scripts/run-tests.mjs
 
