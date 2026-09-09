@@ -88,3 +88,22 @@ test("★ P9: cerrar el sheet a mitad de pulsación no deja el timer vivo", asyn
   const despues = cifrasImporte(await sheet.locator(".v4-apuntar-amt").innerText());
   expect(despues).toBe(antes);
 });
+
+test("★ P10: en inglés la tecla pone «.» y escribe «.»", async ({ page }) => {
+  const sheet = await abrirApuntar(page, {
+    settings: { autoPrices: false, theme: "green", lang: "en" },
+  });
+  const keys = sheet.locator(".v4-keys");
+  await expect(keys.getByRole("button", { name: ".", exact: true })).toBeVisible();
+  await expect(keys.getByRole("button", { name: ",", exact: true })).toHaveCount(0);
+  await teclear(sheet, ["1", "2"]);
+  await keys.getByRole("button", { name: ".", exact: true }).click();
+  await teclear(sheet, ["5", "0"]);
+  await expect(sheet.locator(".v4-apuntar-amt")).toContainText("12.50");
+  await sheet.locator(".v4-input").fill("P10 decimal");
+  await sheet.locator(".v4-cta").click();
+  await expect(page.locator(".v4-sheet")).toHaveCount(0, { timeout: 3_000 });
+  await expect(page.getByText("P10 decimal").first()).toBeVisible({ timeout: 5_000 });
+  // Si el parseo siguiera quitando los puntos (miles ES), 12.50 se guardaría como 1250.
+  await expect(page.getByText(/12[.,]50/).first()).toBeVisible();
+});

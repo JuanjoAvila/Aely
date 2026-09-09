@@ -470,7 +470,7 @@ function ContributeGoalSheet({goal, state, onClose, onContribute}){
   useBackClose(!!goal, onClose);
   const swipe=useSheetSwipe(!!goal, onClose);
   if(!goal) return null;
-  const amt=parseFloat(String(raw).replace(/\./g,"").replace(",","."))||0;
+  const amt=parseNumPadRaw(raw);
   const save=function(){
     if(!(amt>0)) return;
     try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){}
