@@ -147,3 +147,22 @@ test("★ P14: con yenes y patrimonio negativo, el importe cabe entero y en una 
   const recortado = await hero.evaluate((el) => el.scrollWidth > el.clientWidth + 1);
   expect(recortado).toBe(false);
 });
+
+/* B2 — NO ENTREGADO, y aquí queda medido por qué (9/9).
+ *
+ * Pedía extraer el count-up de Inicio a un hook y usarlo también en el hero de Cartera. Se hizo, y
+ * NO sirve: la app PREMONTA las pestañas escondidas, así que la cuenta de Cartera se gasta con la
+ * pestaña oculta y, al deslizar hasta ella, el número ya está puesto. Es el mismo fallo del splash
+ * («se gastaba a puerta cerrada») por otra puerta.
+ *
+ * Segundo intento: arrancar cuando el hero SE VE, con un IntersectionObserver sobre el propio
+ * elemento, para no tocar el carrusel — que el brief prohíbe expresamente. Tampoco vale: los
+ * paneles del carrusel están desplazados a los lados pero el observer los da por visibles, así que
+ * arranca igual de pronto. Medido: la primera lectura tras tocar «Cartera» ya es el total, 4321,
+ * en tres ejecuciones seguidas.
+ *
+ * Conclusión: B2 no se puede hacer bien sin meter mano al carrusel de pestañas. Se deja sin hacer
+ * y se anota, que es la norma del brief para las tareas que chocan. Un hook extraído que no anima
+ * nada sería peor que no hacer nada: código nuevo que promete algo que no cumple.
+ */
+
