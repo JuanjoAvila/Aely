@@ -78,7 +78,11 @@ function shareMonthReport(state, tt, showToast, opt){
     g.fillStyle=grad; g.fillRect(0,0,W,H*0.5);
     g.textBaseline="top";
     // Mes del informe: opt (mes cerrado) o el mes en curso. Nombre de fichero igual.
-    const winStart=opt.startMs!=null?opt.startMs:inicioDeMesMs(opt.nowMs!=null?opt.nowMs:Date.now());
+    // La tarjeta del mes cerrado pasa `opt.startMs`; el boton de siempre (Ajustes, Hogar) no pasa
+    // nada. Ese camino llamaba a `inicioDeMesMs`, que en produccion NO existe: al tocar compartir
+    // reventaba con ReferenceError. Lo cazo Cursor revisando el porte. Se usa `startOfMonth`, la
+    // misma regla de mes que el resto del parche.
+    const winStart=opt.startMs!=null?opt.startMs:startOfMonth(new Date(opt.nowMs!=null?opt.nowMs:Date.now())).getTime();
     const winEnd=opt.endMs!=null?opt.endMs:null;
     const labelParts=typeof madridYmdParts==="function"?madridYmdParts(winStart+5*864e5):null;
     const mesRaw=opt.ym

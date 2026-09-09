@@ -84,3 +84,21 @@ t("mes sin movimientos: no sale la tarjeta", () => {
 });
 
 console.log("\ninforme-mes: OK");
+
+/* REGRESIÓN DEL PORTE A PRODUCCIÓN (2026-09-10). La cazó Cursor revisando, y habría llegado a la
+ * familia: `shareMonthReport` sin `opt` —el botón de siempre en Ajustes y en Hogar— llamaba a
+ * `inicioDeMesMs`, que en producción NO existe. Al tocar «compartir» reventaba con ReferenceError.
+ * Aquí se comprueba que ese camino sigue vivo sin pasarle ventana. */
+t("compartir el informe SIN ventana (el botón de siempre) no revienta", () => {
+  const s = {
+    budget: 500,
+    expenses: [{ date: new Date().toISOString(), amount: 25, category: "super" }],
+  };
+  // No se mira la imagen: se mira que la función no lance. En Node no hay canvas, así que un fallo
+  // por eso es aceptable; lo que NO se acepta es un ReferenceError de un símbolo que no existe.
+  try {
+    ctx.shareMonthReport(s);
+  } catch (e) {
+    assert.ok(!/is not defined/.test(String(e && e.message)), "símbolo inexistente en producción: " + e.message);
+  }
+});

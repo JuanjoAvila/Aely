@@ -48,8 +48,14 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
    el tope del minificado a 1200 KB (~3 % de aire sobre los 1167 medidos hoy) y se deja el de gzip
    quieto, que es el que de verdad frena una regresión gorda. */
 const PRESUPUESTO = {
-  minificado: 1200 * 1024,  // medido 2026-08-06: 1167 KB
-  gzip: 340 * 1024,         // medido 2026-08-03: 318 KB  ← esto es lo que baja el móvil
+  /* SUBIDO 3 KB el 2026-09-10, con motivo. Este parche sube a produccion las DOS tandas que el
+     aprobo (informe del mes cerrado y limite por categoria). Produccion todavia lleva las notas
+     de version DENTRO del modulo; el recorte a un JSON aparte —que en beta deja el gzip en 318—
+     es otra tanda y sube por su cuenta. Meterlo aqui seria ampliar un parche de emergencia con
+     superficie que nadie ha aprobado. Medido tras el porte: 1203 min / 341 gzip.
+     Cuando suba el recorte de notas, estos topes BAJAN, no se quedan. */
+  minificado: 1206 * 1024,
+  gzip: 344 * 1024,         // medido 2026-08-03: 318 KB  ← esto es lo que baja el móvil
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

@@ -546,8 +546,15 @@ function applyReserva(state, income, plan, bankEnt){
 }
 // Total reservado desde `fromMs` — lo que hay que restar del presupuesto del período que se esté
 // mirando, para que lo apartado se note de verdad en "lo que puedes gastar".
-function reservedSince(state, fromMs){
-  return (state.reservaLog||[]).reduce(function(a,x){ return dateMs(x.date)>=fromMs ? a+(x.amount||0) : a; },0);
+/* `hastaMs` es OPCIONAL y llega con el informe del mes cerrado: sin el, se comporta igual que
+   siempre (todo lo reservado desde `fromMs`). Con el, acota a [fromMs, hastaMs) para que una
+   reserva hecha ya en el mes NUEVO no baje el presupuesto del informe del mes cerrado. */
+function reservedSince(state, fromMs, hastaMs){
+  const tope=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
+  return (state.reservaLog||[]).reduce(function(a,x){
+    const ms=dateMs(x.date);
+    return (ms>=fromMs && ms<tope) ? a+(x.amount||0) : a;
+  },0);
 }
 /* Misma cifra en Gastos, Resumen y el widget (2026-08-05). `totals.thisMonthSpent` suma TODO
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
@@ -574,7 +581,9 @@ function monthBudgetStats(state, nowMs, hastaMs){
     if(e.amount>0) spent+=e.amount;
     else if(e.amount<0) income+=Math.abs(e.amount);
   });
-  const reserved=reservedSince(state, startMs);
+  // Con `hastaMs` (informe del mes cerrado) la reserva tambien se acota: una reserva hecha YA en
+  // el mes nuevo bajaba el presupuesto del informe del mes cerrado.
+  const reserved=reservedSince(state, startMs, endMs!==Infinity?endMs:undefined);
   const budgetRaw=typeof state.budget==="number" && state.budget>0 ? state.budget : null;
   const budget=budgetRaw==null?null:Math.max(0,+(budgetRaw-reserved).toFixed(2));
   const mode=(state.settings&&state.settings.gTotalMode)||"split";

@@ -5974,7 +5974,11 @@ function shareMonthReport(state, tt, showToast, opt){
     g.fillStyle=grad; g.fillRect(0,0,W,H*0.5);
     g.textBaseline="top";
     // Mes del informe: opt (mes cerrado) o el mes en curso. Nombre de fichero igual.
-    const winStart=opt.startMs!=null?opt.startMs:inicioDeMesMs(opt.nowMs!=null?opt.nowMs:Date.now());
+    // La tarjeta del mes cerrado pasa `opt.startMs`; el boton de siempre (Ajustes, Hogar) no pasa
+    // nada. Ese camino llamaba a `inicioDeMesMs`, que en produccion NO existe: al tocar compartir
+    // reventaba con ReferenceError. Lo cazo Cursor revisando el porte. Se usa `startOfMonth`, la
+    // misma regla de mes que el resto del parche.
+    const winStart=opt.startMs!=null?opt.startMs:startOfMonth(new Date(opt.nowMs!=null?opt.nowMs:Date.now())).getTime();
     const winEnd=opt.endMs!=null?opt.endMs:null;
     const labelParts=typeof madridYmdParts==="function"?madridYmdParts(winStart+5*864e5):null;
     const mesRaw=opt.ym
@@ -10519,8 +10523,15 @@ function applyReserva(state, income, plan, bankEnt){
 }
 // Total reservado desde `fromMs` — lo que hay que restar del presupuesto del período que se esté
 // mirando, para que lo apartado se note de verdad en "lo que puedes gastar".
-function reservedSince(state, fromMs){
-  return (state.reservaLog||[]).reduce(function(a,x){ return dateMs(x.date)>=fromMs ? a+(x.amount||0) : a; },0);
+/* `hastaMs` es OPCIONAL y llega con el informe del mes cerrado: sin el, se comporta igual que
+   siempre (todo lo reservado desde `fromMs`). Con el, acota a [fromMs, hastaMs) para que una
+   reserva hecha ya en el mes NUEVO no baje el presupuesto del informe del mes cerrado. */
+function reservedSince(state, fromMs, hastaMs){
+  const tope=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
+  return (state.reservaLog||[]).reduce(function(a,x){
+    const ms=dateMs(x.date);
+    return (ms>=fromMs && ms<tope) ? a+(x.amount||0) : a;
+  },0);
 }
 /* Misma cifra en Gastos, Resumen y el widget (2026-08-05). `totals.thisMonthSpent` suma TODO
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
@@ -10547,7 +10558,9 @@ function monthBudgetStats(state, nowMs, hastaMs){
     if(e.amount>0) spent+=e.amount;
     else if(e.amount<0) income+=Math.abs(e.amount);
   });
-  const reserved=reservedSince(state, startMs);
+  // Con `hastaMs` (informe del mes cerrado) la reserva tambien se acota: una reserva hecha YA en
+  // el mes nuevo bajaba el presupuesto del informe del mes cerrado.
+  const reserved=reservedSince(state, startMs, endMs!==Infinity?endMs:undefined);
   const budgetRaw=typeof state.budget==="number" && state.budget>0 ? state.budget : null;
   const budget=budgetRaw==null?null:Math.max(0,+(budgetRaw-reserved).toFixed(2));
   const mode=(state.settings&&state.settings.gTotalMode)||"split";
@@ -14351,6 +14364,15 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.8", d:"10 sep 2026",
+   t:{es:"El resumen del mes y un tope por categoría",en:"The month summary and a cap per category",ca:"El resum del mes i un límit per categoria"},
+   items:{
+     es:["Los primeros días del mes, en Inicio sale una tarjeta con el resumen del mes ANTERIOR: lo gastado, en qué se fue más y si te pasaste del presupuesto.",
+         "En Gastos, cada categoría puede tener su propio tope, con su barra. La suma del desglose cuadra al céntimo con el total de arriba."],
+     en:["In the first days of the month, Home shows a card with LAST month’s summary: what you spent, where most of it went and whether you went over budget.",
+         "In Gastos, each category can have its own cap, with its own bar. The breakdown adds up to the exact total shown above."],
+     ca:["Els primers dies del mes, a Inici surt una targeta amb el resum del mes ANTERIOR: el que has gastat, en què se n’ha anat més i si t’has passat del pressupost.",
+         "A Despeses, cada categoria pot tenir el seu propi límit, amb la seva barra. La suma del desglossament quadra al cèntim amb el total de dalt."]}},
   {v:"4.18.7", d:"6 sep 2026",
    t:{es:"El total de Gastos se actualiza al cambiar de banco",
       en:"Gastos total updates when you change banks",

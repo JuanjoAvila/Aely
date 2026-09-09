@@ -1424,6 +1424,15 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.8", d:"10 sep 2026",
+   t:{es:"El resumen del mes y un tope por categoría",en:"The month summary and a cap per category",ca:"El resum del mes i un límit per categoria"},
+   items:{
+     es:["Los primeros días del mes, en Inicio sale una tarjeta con el resumen del mes ANTERIOR: lo gastado, en qué se fue más y si te pasaste del presupuesto.",
+         "En Gastos, cada categoría puede tener su propio tope, con su barra. La suma del desglose cuadra al céntimo con el total de arriba."],
+     en:["In the first days of the month, Home shows a card with LAST month’s summary: what you spent, where most of it went and whether you went over budget.",
+         "In Gastos, each category can have its own cap, with its own bar. The breakdown adds up to the exact total shown above."],
+     ca:["Els primers dies del mes, a Inici surt una targeta amb el resum del mes ANTERIOR: el que has gastat, en què se n’ha anat més i si t’has passat del pressupost.",
+         "A Despeses, cada categoria pot tenir el seu propi límit, amb la seva barra. La suma del desglossament quadra al cèntim amb el total de dalt."]}},
   {v:"4.18.7", d:"6 sep 2026",
    t:{es:"El total de Gastos se actualiza al cambiar de banco",
       en:"Gastos total updates when you change banks",

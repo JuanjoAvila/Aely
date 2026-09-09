@@ -1,3 +1,14 @@
+## [4.18.8] — 2026-09-10
+### Las dos tandas que aprobó, subidas solas
+
+- Porte a mano desde `beta` de **informe del mes cerrado** (4.19.12) y **límite por categoría** (4.19.13), las dos aprobadas por él en el móvil. Commits nuevos sobre producción, no cherry-pick: los de `beta` arrastran ~50 commits de contexto y con `-X theirs` el resultado compilaba con `doImport` declarado dos veces.
+- `monthBudgetStats` acepta `nowMs`/`hastaMs`, los dos opcionales. **Sin ellos se comporta exactamente igual que hasta ahora**: desde el día 1 en adelante.
+- `reservedSince` acepta tope superior: una reserva hecha ya en el mes nuevo no baja el presupuesto del informe del mes cerrado.
+- **No se porta `inicioDeMesMs`**, que en `beta` llegó con la ventana de mes — la tanda que él RECHAZÓ. Dentro se usa el `startOfMonth` que producción ya usa: una sola regla de mes, que es el criterio 1 de su propia tanda de categorías.
+- **No sube «revisiones plegables»**: mezcla el panel de beta con el deshacer del import histórico, y producción no tiene ese motor.
+- Regresión añadida por un fallo que cazó Cursor revisando y que habría llegado a la familia: compartir el informe desde Ajustes u Hogar llamaba a `inicioDeMesMs` y reventaba con `ReferenceError`.
+- Topes de tamaño +3 KB con motivo escrito: producción todavía lleva las notas dentro del módulo; el recorte a JSON sube por su cuenta y entonces estos topes bajan.
+
 # Changelog
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
