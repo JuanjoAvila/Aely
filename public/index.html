@@ -824,7 +824,7 @@
   .v4-charge .am{font-family:'Fraunces',Georgia,serif;font-size:16px;font-weight:550;font-variant-numeric:tabular-nums;}
   .v4-charge .am.pos{color:var(--mint);}
   .v4-paid{opacity:.55;}
-  .v4-goals{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px;margin:0 -4px;}
+  .v4-goals{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x mandatory;padding-bottom:4px;margin:0 -4px;}
   .v4-goal{flex:0 0 78%;scroll-snap-align:start;background:var(--sur);border:1px solid var(--line-soft);border-radius:20px;padding:16px;}
   .v4-goal .bar{height:10px;border-radius:6px;background:var(--sur2);overflow:hidden;margin:10px 0 8px;}
   .v4-goal .bar i{display:block;height:100%;background:var(--mint);border-radius:6px;transform-origin:left;animation:v4bar .8s var(--ease) both;}
@@ -889,7 +889,17 @@
   .v4-apuntar-amt{text-align:center;font-size:34px;font-weight:550;letter-spacing:-1px;padding:4px 0 10px;font-variant-numeric:tabular-nums;}
   .v4-input{width:100%;background:var(--sur);border:1px solid var(--line-soft);border-radius:12px;padding:11px 13px;font-size:15px;color:var(--text);margin-bottom:10px;}
   .v4-input:focus{border-color:var(--mint);outline:none;}
-  .v4-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:8px;}
+  /* P12 — los carruseles cortaban en seco y no se veia que habia mas a la derecha. La tabbar ya
+     resuelve eso con un degradado (.tabbar-wrap::after); aqui se hace con `mask-image`, que no
+     necesita un pseudo-elemento posicionado y funciona igual sobre cualquier fondo. `.wrap` y
+     `.meta-chips` van en varias filas: ahi no hay nada a la derecha que insinuar, se excluyen.
+     Y les faltaba `scrollbar-width:none`, que si tienen .chips, .cat-select, .tabbar y
+     .v4-period-more: en Firefox de escritorio asomaba la barra. */
+  .v4-chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:10px;margin-bottom:8px;}
+  .v4-chips::-webkit-scrollbar,.v4-goals::-webkit-scrollbar{display:none;}
+  .v4-chips:not(.wrap):not(.meta-chips),.v4-period-more,.v4-goals{
+    -webkit-mask-image:linear-gradient(to right,#000 88%,transparent);
+    mask-image:linear-gradient(to right,#000 88%,transparent);}
   .v4-chip{flex:0 0 auto;min-height:44px;padding:0 14px;border-radius:22px;background:var(--sur);border:1px solid var(--line-soft);font-size:13.5px;font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;text-align:center;line-height:1.2;box-sizing:border-box;}
   .v4-chip.on{background:rgba(95,208,138,.16);border-color:var(--mint-deep);color:var(--mint);}
   /* Chip que NO se puede desmarcar (la cuenta de gasto diario). Se ve marcado pero apagado, para
