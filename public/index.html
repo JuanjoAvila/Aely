@@ -7537,8 +7537,10 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
           ),
           React.createElement("div",{style:{position:"absolute",inset:0,display:"grid",placeItems:"center",textAlign:"center",pointerEvents:"none"}},
             React.createElement("div",null,
-              React.createElement("div",{className:"num",style:{fontWeight:800,fontSize:18,lineHeight:1}}, Math.round(ringPct*100)+"%"),
-              React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)",fontWeight:600}}, t("v4_of_month"))
+              // P7 — es el numero mas mirado de la app y era el unico que iba en Manrope: desentonaba
+              // con el resto de cifras grandes, que son Fraunces. Mismo tamaño y peso que el mockup.
+              React.createElement("div",{className:"num",style:{fontFamily:"'Fraunces',Georgia,serif",fontWeight:600,fontSize:24,lineHeight:1,letterSpacing:"-0.5px"}}, Math.round(ringPct*100)+"%"),
+              React.createElement("div",{style:{fontSize:10.5,color:"var(--muted-2)",fontWeight:600,marginTop:1}}, t("v4_of_month"))
             )
           )
         ),
