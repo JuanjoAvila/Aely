@@ -93,6 +93,7 @@ jobs:
           # forzamos esto, GITHUB_REF_NAME=main exige un bump absurdo de toda la ronda beta.
           echo "GITHUB_REF_NAME=beta" >> "$GITHUB_ENV"
           npm ci
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list || true
           npx playwright install chromium --with-deps
           node scripts/run-tests.mjs
 

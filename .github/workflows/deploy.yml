@@ -25,7 +25,12 @@ jobs:
         with:
           node-version: 20
       - name: Tests + privacidad
-        run: npm ci && npx playwright install chromium --with-deps && node scripts/run-tests.mjs && node scripts/guard-privacy.mjs
+        run: |
+          npm ci
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list || true
+          npx playwright install chromium --with-deps
+          node scripts/run-tests.mjs
+          node scripts/guard-privacy.mjs
 
   build:
     needs: test

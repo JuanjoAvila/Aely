@@ -24,7 +24,13 @@ jobs:
         run: npm ci
 
       - name: Instalar Chromium (Playwright)
-        run: npx playwright install chromium --with-deps
+        run: |
+          # El repo de Google Chrome sirve a veces un indice apt con el hash cambiado y tumba
+          # `--with-deps` (9/9/2026: dos runs seguidos de la beta). No usamos Chrome, solo el
+          # Chromium que trae Playwright, asi que se quita esa fuente antes de instalar. No se
+          # relaja nada: los deps siguen instalandose con --with-deps.
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list || true
+          npx playwright install chromium --with-deps
 
       - uses: denoland/setup-deno@v2
         with:
