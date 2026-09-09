@@ -555,15 +555,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
   const tbl=fxTableOf(state);
   const curAlways={ EUR:1, TRY:1, USD:1, GBP:1, CHF:1 };
   const curChips=CUR_LIST.filter(function(c){ return curAlways[c] || c===entryCur || tbl[c]>0; });
-  const tap=function(ch){
-    if(ch==="⌫"){ setRaw(function(r){ return r.slice(0,-1); }); return; }
-    setRaw(function(r){
-      if(ch===","){ if(r.indexOf(",")>=0||r.indexOf(".")>=0) return r; return (r||"0")+","; }
-      if(r.replace(",","").length>=7) return r;
-      return r==="0"?ch:(r+ch);
-    });
-  };
-  const amt=parseFloat(String(raw).replace(/\./g,"").replace(",","."))||0;
+  const amt=parseNumPadRaw(raw);
   const pickCur=function(c){
     setEntryCur(c);
     // Recuerda la última para el siguiente Apuntar (viaje: no volver a buscar la lira cada vez).
@@ -607,7 +599,6 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
       }
     }
   };
-  const keys=["1","2","3","4","5","6","7","8","9",",","0","⌫"];
   const cats=CATEGORIES.filter(function(c){ return c.id!=="otros"; }).concat(CATEGORIES.filter(function(c){ return c.id==="otros"; }));
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
@@ -652,11 +643,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
               c.icon+" "+catName(c.id));
           })
         ),
-        React.createElement("div",{className:"v4-keys"},
-          keys.map(function(k){
-            return React.createElement("button",{key:k,type:"button","aria-label":k==="⌫"?"Borrar":k,onClick:function(){ tap(k); }}, k);
-          })
-        ),
+        React.createElement(NumPad,{value:raw, onChange:setRaw}),
         React.createElement("button",{className:"v4-cta",onClick:save},
           kind==="ingreso"?t("v4_save_in"):t("v4_save_gasto"))
       )

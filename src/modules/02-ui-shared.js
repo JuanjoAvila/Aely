@@ -863,3 +863,77 @@ function McCal({value, onPick}){
   );
 }
 
+/* Teclado numérico propio (Apuntar + Aportar a meta). Estaba copiado en dos sitios y cada
+   arreglo se hacía dos veces. Extraerlo es el único refactor que pide el pulido v4 (P9/P10):
+   mismo markup y mismas clases, para no tocar el CSS que afina P8. */
+function applyNumPadKey(raw, ch, sep){
+  raw=String(raw||"");
+  if(ch==="⌫") return raw.slice(0,-1);
+  if(ch===sep || ch==="," || ch==="."){
+    if(raw.indexOf(",")>=0 || raw.indexOf(".")>=0) return raw;
+    return (raw||"0")+sep;
+  }
+  if(raw.replace(/[.,]/g,"").length>=7) return raw;
+  return raw==="0"?ch:(raw+ch);
+}
+function numPadDecSep(){
+  // El teclado tenía la coma clavada. En inglés (en-GB) el decimal es punto; el parseo
+  // de abajo tolera los dos, esto es etiqueta + lo que se escribe (P10).
+  try{
+    const ch=(1.1).toLocaleString(loc()).charAt(1);
+    return (ch==="."||ch===",")?ch:",";
+  }catch(e){ return ","; }
+}
+function parseNumPadRaw(raw){
+  // Un solo separador decimal (el teclado no pone miles). Coma o punto → float.
+  return parseFloat(String(raw||"").replace(",","."))||0;
+}
+function NumPad({value, onChange}){
+  const sep=numPadDecSep();
+  const holdRef=useRef(null);
+  const stopHold=function(){
+    const h=holdRef.current;
+    if(!h) return;
+    if(h.t) clearTimeout(h.t);
+    if(h.i) clearInterval(h.i);
+    holdRef.current=null;
+  };
+  // El sheet se DESMONTA (ApuntarSheet vuelve `null` al cerrar). Si el timer sobrevive, el
+  // setState del padre —que sigue montado— se come el importe del siguiente apunte (P9).
+  useEffect(function(){ return stopHold; },[]);
+  const tap=function(ch){
+    onChange(function(r){ return applyNumPadKey(r, ch, sep); });
+  };
+  const delOnce=function(){
+    onChange(function(r){ return String(r||"").slice(0,-1); });
+  };
+  const startHold=function(e){
+    if(e.button!=null && e.button!==0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    stopHold();
+    delOnce();
+    try{ if(navigator.vibrate) navigator.vibrate(4); }catch(err){}
+    const t=setTimeout(function(){
+      const i=setInterval(delOnce, 70);
+      if(holdRef.current) holdRef.current.i=i;
+    }, 400);
+    holdRef.current={ t:t, i:null };
+  };
+  const keys=["1","2","3","4","5","6","7","8","9",sep,"0","⌫"];
+  return React.createElement("div",{className:"v4-keys"},
+    keys.map(function(k){
+      const isDel=k==="⌫";
+      return React.createElement("button",{
+        key:k, type:"button",
+        "aria-label":isDel?"Borrar":k,
+        onClick:isDel?undefined:function(){ tap(k); },
+        onPointerDown:isDel?startHold:undefined,
+        onPointerUp:isDel?stopHold:undefined,
+        onPointerCancel:isDel?stopHold:undefined,
+        onPointerLeave:isDel?stopHold:undefined
+      }, k);
+    })
+  );
+}
+

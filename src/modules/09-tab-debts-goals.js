@@ -470,16 +470,7 @@ function ContributeGoalSheet({goal, state, onClose, onContribute}){
   useBackClose(!!goal, onClose);
   const swipe=useSheetSwipe(!!goal, onClose);
   if(!goal) return null;
-  const tap=function(ch){
-    if(ch==="⌫"){ setRaw(function(r){ return r.slice(0,-1); }); return; }
-    setRaw(function(r){
-      if(ch===","){ if(r.indexOf(",")>=0||r.indexOf(".")>=0) return r; return (r||"0")+","; }
-      if(r.replace(",","").length>=7) return r;
-      return r==="0"?ch:(r+ch);
-    });
-  };
-  const amt=parseFloat(String(raw).replace(/\./g,"").replace(",","."))||0;
-  const keys=["1","2","3","4","5","6","7","8","9",",","0","⌫"];
+  const amt=parseNumPadRaw(raw);
   const save=function(){
     if(!(amt>0)) return;
     try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){}
@@ -501,11 +492,7 @@ function ContributeGoalSheet({goal, state, onClose, onContribute}){
             })
           )
         ),
-        React.createElement("div",{className:"v4-keys"},
-          keys.map(function(k){
-            return React.createElement("button",{key:k,type:"button","aria-label":k==="⌫"?"Borrar":k,onClick:function(){ tap(k); }}, k);
-          })
-        ),
+        React.createElement(NumPad,{value:raw, onChange:setRaw}),
         React.createElement("button",{className:"v4-cta",disabled:!(amt>0),style:!(amt>0)?{opacity:.5}:null,onClick:save},
           amt>0?tf("gl_contribute_save",{x:eur(amt)}):t("gl_contribute"))
       )

@@ -3543,7 +3543,6 @@ const LANG = {
     st_delete_acc_done:"✓ Cuenta borrada · datos eliminados",
     st_sync_conflict:"⚠ Otro dispositivo guardó cambios antes: se ha recargado la versión de la nube",
     wn_title:"Novedades", wn_sub:"Qué ha cambiado en cada versión. Toca una versión para ver su detalle.", wn_current:"tu versión",
-    wn_older:"Ver {n} versiones anteriores",
     wn_fb_title:"💬 ¿Algo que contar?", wn_fb_hint:"Sugerencias, errores o cosas raras: quedan apuntadas aquí abajo y le llegan a Juanjo con tu versión, para que no se olviden.",
     wn_fb_ph:"Escribe la sugerencia o el error que has visto…", wn_fb_send:"Enviar", wn_fb_sent:"✓ Apuntado y enviado", wn_fb_offline:"✓ Apuntado en tus notas (no se pudo enviar; se queda guardado)",
     wn_yours:"Tus apuntes", wn_close:"¡Entendido!",
@@ -3699,7 +3698,6 @@ const LANG = {
     st_delete_acc_done:"✓ Account deleted · data removed",
     st_sync_conflict:"⚠ Another device saved changes first: reloaded from the cloud",
     wn_title:"What's new", wn_sub:"What changed in each version. Tap a version for details.", wn_current:"your version",
-    wn_older:"See {n} older versions",
     wn_fb_title:"💬 Anything to share?", wn_fb_hint:"Suggestions, bugs or oddities: they're saved below and reach Juanjo with your version, so nothing gets lost.",
     wn_fb_ph:"Write your suggestion or the bug you saw…", wn_fb_send:"Send", wn_fb_sent:"✓ Saved and sent", wn_fb_offline:"✓ Saved to your notes (couldn't send; it stays stored)",
     wn_yours:"Your notes", wn_close:"Got it!",
@@ -3850,7 +3848,6 @@ const LANG = {
     st_delete_acc_done:"✓ Compte esborrat · dades eliminades",
     st_sync_conflict:"⚠ Un altre dispositiu ha desat canvis abans: s'ha recarregat des del núvol",
     wn_title:"Novetats", wn_sub:"Què ha canviat a cada versió. Toca una versió per veure'n el detall.", wn_current:"la teva versió",
-    wn_older:"Veure {n} versions anteriors",
     wn_fb_title:"💬 Alguna cosa a dir?", wn_fb_hint:"Suggeriments, errors o coses rares: queden apuntades aquí sota i arriben al Juanjo amb la teva versió, perquè no s'oblidin.",
     wn_fb_ph:"Escriu el suggeriment o l'error que has vist…", wn_fb_send:"Envia", wn_fb_sent:"✓ Apuntat i enviat", wn_fb_offline:"✓ Apuntat a les teves notes (no s'ha pogut enviar; queda desat)",
     wn_yours:"Els teus apunts", wn_close:"Entesos!",
@@ -7332,80 +7329,6 @@ function McCal({value, onPick}){
     ),
     React.createElement("button",{type:"button",className:"v4-chip"+(sel===hoy?" on":""),style:{marginTop:8},
       onClick:function(){ onPick(hoy); }}, t("cal_today"))
-  );
-}
-
-/* Teclado numérico propio (Apuntar + Aportar a meta). Estaba copiado en dos sitios y cada
-   arreglo se hacía dos veces. Extraerlo es el único refactor que pide el pulido v4 (P9/P10):
-   mismo markup y mismas clases, para no tocar el CSS que afina P8. */
-function applyNumPadKey(raw, ch, sep){
-  raw=String(raw||"");
-  if(ch==="⌫") return raw.slice(0,-1);
-  if(ch===sep || ch==="," || ch==="."){
-    if(raw.indexOf(",")>=0 || raw.indexOf(".")>=0) return raw;
-    return (raw||"0")+sep;
-  }
-  if(raw.replace(/[.,]/g,"").length>=7) return raw;
-  return raw==="0"?ch:(raw+ch);
-}
-function numPadDecSep(){
-  // El teclado tenía la coma clavada. En inglés (en-GB) el decimal es punto; el parseo
-  // de abajo tolera los dos, esto es etiqueta + lo que se escribe (P10).
-  try{
-    const ch=(1.1).toLocaleString(loc()).charAt(1);
-    return (ch==="."||ch===",")?ch:",";
-  }catch(e){ return ","; }
-}
-function parseNumPadRaw(raw){
-  // Un solo separador decimal (el teclado no pone miles). Coma o punto → float.
-  return parseFloat(String(raw||"").replace(",","."))||0;
-}
-function NumPad({value, onChange}){
-  const sep=numPadDecSep();
-  const holdRef=useRef(null);
-  const stopHold=function(){
-    const h=holdRef.current;
-    if(!h) return;
-    if(h.t) clearTimeout(h.t);
-    if(h.i) clearInterval(h.i);
-    holdRef.current=null;
-  };
-  // El sheet se DESMONTA (ApuntarSheet vuelve `null` al cerrar). Si el timer sobrevive, el
-  // setState del padre —que sigue montado— se come el importe del siguiente apunte (P9).
-  useEffect(function(){ return stopHold; },[]);
-  const tap=function(ch){
-    onChange(function(r){ return applyNumPadKey(r, ch, sep); });
-  };
-  const delOnce=function(){
-    onChange(function(r){ return String(r||"").slice(0,-1); });
-  };
-  const startHold=function(e){
-    if(e.button!=null && e.button!==0) return;
-    e.preventDefault();
-    e.stopPropagation();
-    stopHold();
-    delOnce();
-    try{ if(navigator.vibrate) navigator.vibrate(4); }catch(err){}
-    const t=setTimeout(function(){
-      const i=setInterval(delOnce, 70);
-      if(holdRef.current) holdRef.current.i=i;
-    }, 400);
-    holdRef.current={ t:t, i:null };
-  };
-  const keys=["1","2","3","4","5","6","7","8","9",sep,"0","⌫"];
-  return React.createElement("div",{className:"v4-keys"},
-    keys.map(function(k){
-      const isDel=k==="⌫";
-      return React.createElement("button",{
-        key:k, type:"button",
-        "aria-label":isDel?"Borrar":k,
-        onClick:isDel?undefined:function(){ tap(k); },
-        onPointerDown:isDel?startHold:undefined,
-        onPointerUp:isDel?stopHold:undefined,
-        onPointerCancel:isDel?stopHold:undefined,
-        onPointerLeave:isDel?stopHold:undefined
-      }, k);
-    })
   );
 }
 
@@ -13029,7 +12952,16 @@ function ContributeGoalSheet({goal, state, onClose, onContribute}){
   useBackClose(!!goal, onClose);
   const swipe=useSheetSwipe(!!goal, onClose);
   if(!goal) return null;
-  const amt=parseNumPadRaw(raw);
+  const tap=function(ch){
+    if(ch==="⌫"){ setRaw(function(r){ return r.slice(0,-1); }); return; }
+    setRaw(function(r){
+      if(ch===","){ if(r.indexOf(",")>=0||r.indexOf(".")>=0) return r; return (r||"0")+","; }
+      if(r.replace(",","").length>=7) return r;
+      return r==="0"?ch:(r+ch);
+    });
+  };
+  const amt=parseFloat(String(raw).replace(/\./g,"").replace(",","."))||0;
+  const keys=["1","2","3","4","5","6","7","8","9",",","0","⌫"];
   const save=function(){
     if(!(amt>0)) return;
     try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){}
@@ -13051,7 +12983,11 @@ function ContributeGoalSheet({goal, state, onClose, onContribute}){
             })
           )
         ),
-        React.createElement(NumPad,{value:raw, onChange:setRaw}),
+        React.createElement("div",{className:"v4-keys"},
+          keys.map(function(k){
+            return React.createElement("button",{key:k,type:"button","aria-label":k==="⌫"?"Borrar":k,onClick:function(){ tap(k); }}, k);
+          })
+        ),
         React.createElement("button",{className:"v4-cta",disabled:!(amt>0),style:!(amt>0)?{opacity:.5}:null,onClick:save},
           amt>0?tf("gl_contribute_save",{x:eur(amt)}):t("gl_contribute"))
       )
@@ -15101,13 +15037,7 @@ function useYaEnProd(){
 function BetaReviewPanel({onClose, showToast}){
   useBackClose(true, onClose);
   const prod=useProdVersion();
-  const [notesReady,setNotesReady]=useState(!!(RELEASE_NOTES&&RELEASE_NOTES.length));
-  useEffect(function(){
-    var alive=true;
-    ensureReleaseNotes().then(function(){ if(alive) setNotesReady(true); });
-    return function(){ alive=false; };
-  },[]);
-  const pack=notesReady?betaChecklist(CONFIG.APP_VERSION, prod):{ v:mcVerBase(CONFIG.APP_VERSION), t:"", items:[], tandas:[] };
+  const pack=betaChecklist(CONFIG.APP_VERSION, prod);
   const yaEnProd=(!prod||!/^\d+\.\d+\.\d+$/.test(mcVerBase(CONFIG.APP_VERSION)))
     ? null
     : (!mcIsNewer(mcVerBase(CONFIG.APP_VERSION), prod) ? prod : false);
@@ -15628,10 +15558,10 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
    POR QUÉ NO SE TRADUCE EL HISTÓRICO ENTERO: serían cientos de KB y nadie lee en catalán una
    nota de hace dos meses. De aquí en adelante, cada nota nace en los tres.
 
-   TOPE EN EL BUNDLE (2026-09-09, NOTAS-BUNDLE): el histórico vive en
-   `src/data/release-notes.json` y se sirve como `release-notes.json`. El index ya no lo
-   arrastra. `RELEASE_NOTES_MAX` solo limita cuántas enseña Novedades de entrada — bajarlo
-   NO puede vaciar el panel de beta. Subir N es cosmético; el peso lo marca el JSON. */
+   TOPE EN EL BUNDLE (2026-09-07): las notas se acumulaban para siempre (~12 % de la descarga
+   gzip). `RELEASE_NOTES_MAX` + el build (`scripts/build-app.mjs`) dejan solo las N más nuevas
+   en `public/index.html`. La fuente puede seguir creciendo; CHANGELOG.md guarda el resto.
+   Subir N exige cambiar a propósito el test `release-notes-max` (si no, salta). */
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 /* Los puntos que lee la familia en Novedades. Si una versión declara TANDAS y se olvida de los
    `items` de primer nivel, el popup se quedaba con el título y ni una viñeta: le pasó a la 4.18.5,
@@ -15648,70 +15578,25 @@ function rnItems(r,lg){
   if(Array.isArray(it)) return it;
   return it[lg||CURLANG]||it.es||[];
 }
-/* Cuántas versiones enseña Novedades DE ENTRADA. Ya NO recorta el panel de beta:
-   las tandas viven en release-notes.json completo. Bajar este número no puede vaciarle
-   la lista de cosas por probar. El test fija el valor esperado. */
+/* Cuántas versiones enseña Novedades / viaja en el OTA. No subir «por holgura»: cada una
+   engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
-/* Histórico en src/data/release-notes.json (build → public/release-notes.json).
-   El build deja este array vacío a propósito (gzip del index). ensureReleaseNotes()
-   lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
-var _rnLoad=null;
-function releaseNotesUrl(){
-  try{
-    var base=document.querySelector('base');
-    if(base&&base.href) return new URL("release-notes.json", base.href).href;
-  }catch(e){}
-  try{ return new URL("release-notes.json", document.baseURI||location.href).href; }catch(e2){}
-  return "release-notes.json";
-}
-/* Carga el histórico completo. Idempotente. El panel de beta y Novedades esperan a esto:
-   si no, bajar RELEASE_NOTES_MAX volvería a vaciarle la checklist en silencio. */
-function ensureReleaseNotes(){
-  if(RELEASE_NOTES && RELEASE_NOTES.length) return Promise.resolve(RELEASE_NOTES);
-  if(_rnLoad) return _rnLoad;
-  _rnLoad=fetch(releaseNotesUrl(),{credentials:"same-origin"})
-    .then(function(r){ if(!r||!r.ok) throw new Error("release-notes HTTP "+(r&&r.status)); return r.json(); })
-    .then(function(arr){
-      if(!Array.isArray(arr)||!arr.length) throw new Error("release-notes vacío");
-      RELEASE_NOTES=arr;
-      return RELEASE_NOTES;
-    })
-    .catch(function(e){
-      _rnLoad=null;
-      try{ console.warn("release-notes", e&&e.message||e); }catch(err){}
-      return RELEASE_NOTES||[];
-    });
-  return _rnLoad;
-}
-
+/* Cinturón por si alguien sirve el módulo sin pasar por build-app (tests que evalúan fuente).
+   En el bundle real el literal YA viene troceado: este slice no ahorra bytes allí. */
+RELEASE_NOTES=RELEASE_NOTES.slice(0,RELEASE_NOTES_MAX);
 /* Panel de Novedades. Se usa desde App (popup automático al estrenar versión) y desde
    Ajustes (histórico). Portal a body: sobrevive al transform del cajón de Ajustes. */
 function WhatsNew({onClose, showToast, set, state}){
   useBackClose(true, onClose);
-  const [notes,setNotes]=useState(function(){ return (RELEASE_NOTES||[]).slice(); });
-  const [openV,setOpenV]=useState(null);
-  useEffect(function(){
-    var alive=true;
-    ensureReleaseNotes().then(function(arr){
-      if(!alive) return;
-      setNotes(arr.slice());
-      if(!openV && arr.length) setOpenV(arr[0].v);
-    });
-    return function(){ alive=false; };
-  },[]);
+  const [openV,setOpenV]=useState(RELEASE_NOTES.length?RELEASE_NOTES[0].v:null);
   // (La caja de sugerencias se mudó a Ajustes → «Enviar sugerencia» el 2026-07-18: aquí
   // quedaba enterrada bajo el historial de versiones. Este popup es solo el historial.)
   const card=function(cur){ return {padding:"12px 14px",borderRadius:14,border:"1px solid "+(cur?"var(--mint)":"var(--line)"),background:"var(--surface)",marginBottom:10}; };
-  const shown=notes.slice(0, RELEASE_NOTES_MAX);
-  const older=notes.length>RELEASE_NOTES_MAX ? notes.slice(RELEASE_NOTES_MAX) : [];
-  const [showOlder,setShowOlder]=useState(false);
-  const list=showOlder ? notes : shown;
   return ReactDOM.createPortal(React.createElement("div",{className:"wn-panel"}, React.createElement("div",{className:"wn-inner"},
     React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 2px"}}, "✨ "+t("wn_title")),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}}, t("wn_sub")),
-    !notes.length && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,marginBottom:12}}, "…"),
-    list.map(function(r){
+    RELEASE_NOTES.map(function(r){
       /* En beta la versión que corre lleva sufijo de compilación (4.11.0.8) y las notas van por
          versión base (4.11.0), así que comparar a pelo no casaba NUNCA: ninguna entrada salía
          marcada como «tu versión» y arriba ponía «v4.11.0» estando en la .8 — «salía la 4.11 con
@@ -15726,8 +15611,6 @@ function WhatsNew({onClose, showToast, set, state}){
         open && rnItems(r).map(function(it,j){ return React.createElement("div",{key:j,style:{fontSize:12.5,lineHeight:1.55,color:"var(--text)",margin:"0 0 7px",paddingLeft:14,textIndent:-14}},"• "+it); })
       );
     }),
-    older.length>0 && !showOlder && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:4},onClick:function(){ setShowOlder(true); }},
-      tf("wn_older",{n:older.length})),
     React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:12},onClick:onClose}, t("wn_close"))
   )), document.body);
 }
@@ -17511,7 +17394,15 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
   const tbl=fxTableOf(state);
   const curAlways={ EUR:1, TRY:1, USD:1, GBP:1, CHF:1 };
   const curChips=CUR_LIST.filter(function(c){ return curAlways[c] || c===entryCur || tbl[c]>0; });
-  const amt=parseNumPadRaw(raw);
+  const tap=function(ch){
+    if(ch==="⌫"){ setRaw(function(r){ return r.slice(0,-1); }); return; }
+    setRaw(function(r){
+      if(ch===","){ if(r.indexOf(",")>=0||r.indexOf(".")>=0) return r; return (r||"0")+","; }
+      if(r.replace(",","").length>=7) return r;
+      return r==="0"?ch:(r+ch);
+    });
+  };
+  const amt=parseFloat(String(raw).replace(/\./g,"").replace(",","."))||0;
   const pickCur=function(c){
     setEntryCur(c);
     // Recuerda la última para el siguiente Apuntar (viaje: no volver a buscar la lira cada vez).
@@ -17555,6 +17446,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
       }
     }
   };
+  const keys=["1","2","3","4","5","6","7","8","9",",","0","⌫"];
   const cats=CATEGORIES.filter(function(c){ return c.id!=="otros"; }).concat(CATEGORIES.filter(function(c){ return c.id==="otros"; }));
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
@@ -17599,7 +17491,11 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
               c.icon+" "+catName(c.id));
           })
         ),
-        React.createElement(NumPad,{value:raw, onChange:setRaw}),
+        React.createElement("div",{className:"v4-keys"},
+          keys.map(function(k){
+            return React.createElement("button",{key:k,type:"button","aria-label":k==="⌫"?"Borrar":k,onClick:function(){ tap(k); }}, k);
+          })
+        ),
         React.createElement("button",{className:"v4-cta",onClick:save},
           kind==="ingreso"?t("v4_save_in"):t("v4_save_gasto"))
       )
@@ -19506,13 +19402,6 @@ function App(){
   // silencioso tras el onboarding), ni encima del login/candado/tour.
   const [whatsNew,setWhatsNew]=useState(false);
   const newsTimer=useRef(null); const newsDone=useRef(false);
-  // NOTAS-BUNDLE: el index ya no lleva el histórico; se pide en cuanto la app está usable
-  // para que el panel de beta y Novedades no salgan vacíos el primer frame.
-  const [,setRnTick]=useState(0);
-  useEffect(function(){
-    if(typeof ensureReleaseNotes!=="function") return;
-    ensureReleaseNotes().then(function(){ setRnTick(function(n){ return n+1; }); });
-  },[]);
   useEffect(function(){
     if(newsDone.current) return;
     // Espera a que la app esté lista (no encima del onboarding/candado/login/tour).
