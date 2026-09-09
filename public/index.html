@@ -5803,7 +5803,15 @@ function reconcileTR(s){
   while(mk(ay,am) < cmKey && guard<120){
     const key=mk(ay,am);
     const monthExp=s.expenses.filter(e=> mkOf(parseDate(e.date))===key);
-    const spent=monthExp.reduce((a,e)=>a+e.amount,0);
+    /* Cada cuenta se come SUS compras (FIN-01, 2026-09-09). Antes `spent` sumaba el mes ENTERO
+       y se lo restaba a la cuenta de gasto diario sin mirar `e.ent`: una compra pagada del sobre
+       de efectivo —o un recibo de Sabadell— bajaba Trade Republic, y el sobre no arrastraba nada
+       porque `monthNetForAccount` no mira `s.expenses`. El patrimonio total cuadraba y por eso no
+       se veía; los dos saldos por separado mentían. Mismo reparto que usa el saldo que se PINTA
+       durante el mes (`gastoDelMesPorBanco` + `saldoCuentaMostrada`, 00-core): si el cierre usa
+       otro criterio, el saldo pega un salto el día 1. */
+    const gastoPorBanco=gastoDelMesPorBanco(monthExp, acc.ent);
+    const spent=gastoPorBanco[acc.ent]||0;
     acc.value = acc.value + accInject(acc) - spent;                 // mes cerrado: + inyección de nómina − gasto
     // rol "ambos" (una cuenta para todo): además arrastra su neto de fijos/nómina/puntuales del mes
     if(accRole(acc)==="ambos") acc.value = +(acc.value + monthNetForAccount(s, acc.ent, ay, am+1, null)).toFixed(2);
@@ -5851,7 +5859,16 @@ function reconcileTR(s){
     if(acc.roundupManual!=null) delete acc.roundupManual;
     if(acc.savebackManual!=null) delete acc.savebackManual;
     // Demás bancos (Sabadell, etc.): arrastran su neto del mes cerrado (ingresos − fijos − cuotas − puntuales − transfers)
-    s.accounts.forEach(function(a2){ if(!a2.spendFrom){ a2.value = +(((a2.value||0) + monthNetForAccount(s, a2.ent, ay, am+1, null))).toFixed(2); } });
+    s.accounts.forEach(function(a2){
+      if(a2.spendFrom) return;
+      let v=(a2.value||0) + monthNetForAccount(s, a2.ent, ay, am+1, null);
+      // El sobre de efectivo SÍ arrastra sus propias compras al cerrar: durante el mes
+      // `saldoCuentaMostrada` ya se las resta, y sin esto el saldo del sobre rebotaba hacia
+      // arriba el día 1. Los demás bancos NO restan gastos a propósito (00-core, saldo mostrado:
+      // «las manuales sin OB las ajusta él a mano»), así que aquí tampoco.
+      if(isEfectivoEnt(a2)) v -= (gastoPorBanco["efectivo"]||0);
+      a2.value = +v.toFixed(2);
+    });
     am++; if(am>11){am=0;ay++;}
     guard++;
   }
@@ -15422,6 +15439,28 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+{v:"4.19.15", d:"9 sep 2026",
+   t:{es:"Cada cuenta se lleva sus gastos al cerrar el mes",
+      en:"Each account keeps its own spending when the month closes",
+      ca:"Cada compte s'enduà les seves despeses en tancar el mes"},
+   tandas:[{id:"efectivo-cierre",t:{es:"💶 El efectivo cuadra al cambiar de mes",en:"💶 Cash adds up when the month rolls over",ca:"💶 L'efectiu quadra en canviar de mes"},
+     items:{
+       es:["Apunta un gasto pagado en efectivo con fecha del mes pasado. Al cambiar de mes, el que baja es el sobre de efectivo; la cuenta del día a día se queda como estaba.",
+           "Mira el saldo del sobre el último día del mes y otra vez el día 1: tiene que ser el mismo número, sin subir de golpe.",
+           "Un recibo de otro banco tampoco puede bajarte el saldo de la cuenta del día a día.",
+           "El patrimonio total no cambia con esto: lo que cambia es de qué cuenta sale cada gasto."],
+       en:["Add an expense paid in cash dated last month. When the month rolls over, the cash envelope goes down; the everyday account stays as it was.",
+           "Check the envelope balance on the last day of the month and again on the 1st: it must be the same number, with no sudden jump.",
+           "A bill from another bank cannot lower the everyday account balance either.",
+           "Total net worth does not change with this: what changes is which account each expense comes from."],
+       ca:["Apunta una despesa pagada en efectiu amb data del mes passat. En canviar de mes, el que baixa és el sobre d'efectiu; el compte del dia a dia es queda com estava.",
+           "Mira el saldo del sobre l'últim dia del mes i un altre cop el dia 1: ha de ser el mateix número, sense pujar de cop.",
+           "Un rebut d'un altre banc tampoc pot abaixar-te el saldo del compte del dia a dia.",
+           "El patrimoni total no canvia amb això: el que canvia és de quin compte surt cada despesa."]}}],
+   items:{
+     es:["Al cerrar el mes, cada cuenta arrastra sus propios gastos: lo pagado en efectivo ya no se le descuenta a la cuenta del día a día."],
+     en:["When the month closes, each account carries its own spending: cash payments are no longer taken off the everyday account."],
+     ca:["En tancar el mes, cada compte arrossega les seves despeses: el pagat en efectiu ja no es descompta del compte del dia a dia."]}},
 {v:"4.19.14", d:"9 sep 2026",
    t:{es:"Revisiones más cómodas",en:"Easier reviews",ca:"Revisions més còmodes"},
    tandas:[{id:"revision-plegable",t:{es:"📋 Encoger las tandas",en:"📋 Collapse review groups",ca:"📋 Plegar les tandes"},
@@ -15968,30 +16007,6 @@ var RELEASE_NOTES=[
    ],
    ca:[
     "🏦 Si pagaves amb un banc que no era el del dia a dia, la despesa es restava per error al saldo del principal. El total sempre va ser correcte; el repartiment entre comptes, no. Cada euro ja és al seu lloc.",
-   ]}},
-{v:"4.18.3", d:"18 ago 2026",
-   t:{es:"El saldo del banco ya no salta a un número raro, y el widget deja de esconder lo que puedes gastar",
-      en:"Bank balances no longer jump to a bogus figure, and the widget keeps showing what you can spend",
-      ca:"El saldo del banc ja no salta a un número rar, i el widget deixa d'amagar el que pots gastar"},
-   tandas:[
-     {id:"ob-saldo-widget-apk", t:"🏦 Saldo del banco y widget", items:[
-       "Si Revolut (u otro banco) salía en rojo inventado y al sincronizar se arreglaba, ya no debería pintar ese rojo: se queda el último saldo bueno.",
-       "Abre la app: en el widget vuelve a verse «Puedes gastar».",
-       "Cierra la app, paga, espera la noti: gastado del mes = Gastos. «Puedes gastar» solo se mueve con la app nueva instalada (no basta recargar).",
-     ]},
-   ],
-   items:{
-   es:[
-    "🏦 El saldo de un banco ya no salta a un número en rojo inventado: si llega un dato raro, se queda el último bueno.",
-    "📊 En el widget vuelve a verse «Puedes gastar». Para que se actualice también con la app cerrada, instala la actualización de la app.",
-   ],
-   en:[
-    "🏦 A bank balance no longer jumps to a made-up negative: if a bad figure arrives, the last good one stays.",
-    "📊 The widget shows «you can spend» again. For it to update with the app closed, install the app update.",
-   ],
-   ca:[
-    "🏦 El saldo d'un banc ja no salta a un número en vermell inventat: si arriba una dada rara, es queda l'últim bo.",
-    "📊 Al widget torna a veure's «Pots gastar». Perquè s'actualitzi amb l'app tancada, instal·la l'actualització de l'app.",
    ]}}
 ];
 /* Cinturón por si alguien sirve el módulo sin pasar por build-app (tests que evalúan fuente).

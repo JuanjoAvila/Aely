@@ -2407,7 +2407,15 @@ function reconcileTR(s){
   while(mk(ay,am) < cmKey && guard<120){
     const key=mk(ay,am);
     const monthExp=s.expenses.filter(e=> mkOf(parseDate(e.date))===key);
-    const spent=monthExp.reduce((a,e)=>a+e.amount,0);
+    /* Cada cuenta se come SUS compras (FIN-01, 2026-09-09). Antes `spent` sumaba el mes ENTERO
+       y se lo restaba a la cuenta de gasto diario sin mirar `e.ent`: una compra pagada del sobre
+       de efectivo —o un recibo de Sabadell— bajaba Trade Republic, y el sobre no arrastraba nada
+       porque `monthNetForAccount` no mira `s.expenses`. El patrimonio total cuadraba y por eso no
+       se veía; los dos saldos por separado mentían. Mismo reparto que usa el saldo que se PINTA
+       durante el mes (`gastoDelMesPorBanco` + `saldoCuentaMostrada`, 00-core): si el cierre usa
+       otro criterio, el saldo pega un salto el día 1. */
+    const gastoPorBanco=gastoDelMesPorBanco(monthExp, acc.ent);
+    const spent=gastoPorBanco[acc.ent]||0;
     acc.value = acc.value + accInject(acc) - spent;                 // mes cerrado: + inyección de nómina − gasto
     // rol "ambos" (una cuenta para todo): además arrastra su neto de fijos/nómina/puntuales del mes
     if(accRole(acc)==="ambos") acc.value = +(acc.value + monthNetForAccount(s, acc.ent, ay, am+1, null)).toFixed(2);
@@ -2455,7 +2463,16 @@ function reconcileTR(s){
     if(acc.roundupManual!=null) delete acc.roundupManual;
     if(acc.savebackManual!=null) delete acc.savebackManual;
     // Demás bancos (Sabadell, etc.): arrastran su neto del mes cerrado (ingresos − fijos − cuotas − puntuales − transfers)
-    s.accounts.forEach(function(a2){ if(!a2.spendFrom){ a2.value = +(((a2.value||0) + monthNetForAccount(s, a2.ent, ay, am+1, null))).toFixed(2); } });
+    s.accounts.forEach(function(a2){
+      if(a2.spendFrom) return;
+      let v=(a2.value||0) + monthNetForAccount(s, a2.ent, ay, am+1, null);
+      // El sobre de efectivo SÍ arrastra sus propias compras al cerrar: durante el mes
+      // `saldoCuentaMostrada` ya se las resta, y sin esto el saldo del sobre rebotaba hacia
+      // arriba el día 1. Los demás bancos NO restan gastos a propósito (00-core, saldo mostrado:
+      // «las manuales sin OB las ajusta él a mano»), así que aquí tampoco.
+      if(isEfectivoEnt(a2)) v -= (gastoPorBanco["efectivo"]||0);
+      a2.value = +v.toFixed(2);
+    });
     am++; if(am>11){am=0;ay++;}
     guard++;
   }

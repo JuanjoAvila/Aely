@@ -1665,6 +1665,28 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+  {v:"4.19.15", d:"9 sep 2026",
+   t:{es:"Cada cuenta se lleva sus gastos al cerrar el mes",
+      en:"Each account keeps its own spending when the month closes",
+      ca:"Cada compte s'enduà les seves despeses en tancar el mes"},
+   tandas:[{id:"efectivo-cierre",t:{es:"💶 El efectivo cuadra al cambiar de mes",en:"💶 Cash adds up when the month rolls over",ca:"💶 L'efectiu quadra en canviar de mes"},
+     items:{
+       es:["Apunta un gasto pagado en efectivo con fecha del mes pasado. Al cambiar de mes, el que baja es el sobre de efectivo; la cuenta del día a día se queda como estaba.",
+           "Mira el saldo del sobre el último día del mes y otra vez el día 1: tiene que ser el mismo número, sin subir de golpe.",
+           "Un recibo de otro banco tampoco puede bajarte el saldo de la cuenta del día a día.",
+           "El patrimonio total no cambia con esto: lo que cambia es de qué cuenta sale cada gasto."],
+       en:["Add an expense paid in cash dated last month. When the month rolls over, the cash envelope goes down; the everyday account stays as it was.",
+           "Check the envelope balance on the last day of the month and again on the 1st: it must be the same number, with no sudden jump.",
+           "A bill from another bank cannot lower the everyday account balance either.",
+           "Total net worth does not change with this: what changes is which account each expense comes from."],
+       ca:["Apunta una despesa pagada en efectiu amb data del mes passat. En canviar de mes, el que baixa és el sobre d'efectiu; el compte del dia a dia es queda com estava.",
+           "Mira el saldo del sobre l'últim dia del mes i un altre cop el dia 1: ha de ser el mateix número, sense pujar de cop.",
+           "Un rebut d'un altre banc tampoc pot abaixar-te el saldo del compte del dia a dia.",
+           "El patrimoni total no canvia amb això: el que canvia és de quin compte surt cada despesa."]}}],
+   items:{
+     es:["Al cerrar el mes, cada cuenta arrastra sus propios gastos: lo pagado en efectivo ya no se le descuenta a la cuenta del día a día."],
+     en:["When the month closes, each account carries its own spending: cash payments are no longer taken off the everyday account."],
+     ca:["En tancar el mes, cada compte arrossega les seves despeses: el pagat en efectiu ja no es descompta del compte del dia a dia."]}},
   {v:"4.19.14", d:"9 sep 2026",
    t:{es:"Revisiones más cómodas",en:"Easier reviews",ca:"Revisions més còmodes"},
    tandas:[{id:"revision-plegable",t:{es:"📋 Encoger las tandas",en:"📋 Collapse review groups",ca:"📋 Plegar les tandes"},

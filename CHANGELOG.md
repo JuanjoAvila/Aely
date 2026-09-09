@@ -2,6 +2,15 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.15] — 2026-09-09
+### Cada cuenta arrastra sus propios gastos al cerrar el mes
+
+- `reconcileTR` sumaba TODOS los gastos del mes cerrado y se los restaba a la cuenta de gasto diario, sin mirar `e.ent`. Una compra pagada del sobre de efectivo —o un recibo de otro banco— bajaba Trade Republic; el sobre no arrastraba nada porque `monthNetForAccount` no mira `s.expenses`. El patrimonio total cuadraba y por eso el fallo no se veía: los dos saldos por separado mentían.
+- El reparto pasa a ser el mismo que usa el saldo que se pinta durante el mes (`gastoDelMesPorBanco`), para que el cierre no contradiga a la pantalla y el saldo del sobre no rebote el día 1.
+- El sobre de efectivo arrastra sus propias compras al cerrar; los demás bancos siguen sin restar gastos, como hasta ahora.
+- Regresión nueva `tests/efectivo-cierre.test.mjs` (11 casos) ejecutada en rojo antes del arreglo y en verde después.
+- Límite conocido y sin tocar: el round-up/saveback sigue calculándose sobre TODOS los gastos del mes, igual en el cierre y en `11-app-main.js`. Cambiarlo exige mover las dos a la vez.
+
 ## [4.19.14] — 2026-09-09
 ### Revisión plegable y auditoría de la ronda
 
