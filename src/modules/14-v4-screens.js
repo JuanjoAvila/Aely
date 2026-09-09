@@ -409,7 +409,6 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
   const sum=Math.max(0.01, active.reduce(function(a,x){ return a+x.v; },0));
   // Con todo marcado el hero sigue siendo el patrimonio neto (deudas descontadas, como siempre);
   // con selección parcial enseña la suma de lo marcado (sin deudas — no aplican a un subconjunto).
-  const p=eurParts(allOn ? totals.netWorth : active.reduce(function(a,x){ return a+x.v; },0));
   const heroLab=allOn ? t(simple?"v4_money_total":"d_networth")
     : t("v4_sel_partial")+" · "+active.map(function(x){ return x.lab; }).join(" + ");
   const doBankSync=function(){
@@ -417,12 +416,19 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
     setBankBusy(true);
     Promise.resolve(onBankSync()).finally(function(){ setBankBusy(false); });
   };
+  /* B2 — count-up al ACTIVAR Cartera (bus), no al montar ni al «verse» por geometría.
+     Premontaje e IntersectionObserver se probaron y fallan; el bus es el de Gastos. */
+  const [carteraOn,setCarteraOn]=useState(false);
+  useEffect(function(){ return mcOnCarteraActive(setCarteraOn); },[]);
+  const heroTarget=allOn ? (totals.netWorth||0) : active.reduce(function(a,x){ return a+x.v; },0);
+  const shownHero=useCountUp(heroTarget, carteraOn);
+  const ph=eurParts(shownHero);
   return React.createElement("div",{className:"v4-screen"},
     React.createElement("h1",{className:"v4-title serif"}, t("v4_cartera_title")),
     React.createElement("div",{className:"v4-card v4-card-hero rise",style:{animationDelay:".05s"}},
       React.createElement("div",{className:"v4-micro"}, heroLab),
-      React.createElement("div",{className:"serif num",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
-        p.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},","+p.dec+" "+p.sym)),
+      React.createElement("div",{className:"serif num cartera-hero-amt",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
+        ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},","+ph.dec+" "+ph.sym)),
       React.createElement("div",{className:"v4-stackbar",style:{marginTop:16}},
         active.map(function(x){
           return React.createElement("i",{key:x.k,style:{flex:Math.max(0.02,(x.v/sum)*100),background:x.color}});

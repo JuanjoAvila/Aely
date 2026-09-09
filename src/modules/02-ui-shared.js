@@ -464,6 +464,42 @@ function CollapsibleCard({title, sub, dot, defaultOpen, right, children, storage
   );
 }
 
+/* Count-up compartido (B2). `ready` es la puerta: Inicio espera `mc-splash-gone`; Cartera espera
+   el bus `mcOnCarteraActive`. Sin puerta, la animación se gasta con la pestaña premontada (o
+   detrás del splash) y al llegar el número ya está puesto — peor que no animar. */
+function useCountUp(target, ready){
+  const [shown,setShown]=useState(0);
+  const rafRef=useRef(0);
+  const shownRef=useRef(0);
+  const primeraRef=useRef(true);
+  useEffect(function(){
+    if(!ready) return undefined;
+    const tgt=+(target||0);
+    cancelAnimationFrame(rafRef.current);
+    const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+    if(reduce){
+      shownRef.current=tgt; setShown(tgt); primeraRef.current=false;
+      return undefined;
+    }
+    let cancelado=false;
+    const start=primeraRef.current?0:shownRef.current;
+    primeraRef.current=false;
+    const t0=performance.now(), dur=950;
+    const ease=function(x){ return 1-Math.pow(1-x,3); };
+    const step=function(now){
+      if(cancelado) return;
+      const p=Math.min(1,(now-t0)/dur);
+      const v=start+(tgt-start)*ease(p);
+      shownRef.current=v;
+      setShown(v);
+      if(p<1) rafRef.current=requestAnimationFrame(step);
+    };
+    rafRef.current=requestAnimationFrame(step);
+    return function(){ cancelado=true; cancelAnimationFrame(rafRef.current); };
+  },[target, ready]);
+  return shown;
+}
+
 function Sparkline({data, current}){
   const pts = data.concat(current!=null?[current]:[]);
   // Con 0 o 1 puntos esto pintaba una recta de lado a lado con su puntito final: parece un grafico

@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.19.22",
+    "d": "9 sep 2026",
+    "t": {
+      "es": "Cartera cuenta al llegar",
+      "en": "Portfolio counts on arrival",
+      "ca": "Cartera compta en arribar"
+    },
+    "tandas": [
+      {
+        "id": "pulido-b245",
+        "t": {
+          "es": "✨ Acabado del primer minuto",
+          "en": "✨ First-minute polish",
+          "ca": "✨ Acabat del primer minut"
+        },
+        "items": {
+          "es": [
+            "Al abrir Cartera, el patrimonio cuenta igual que en Inicio (no aparece ya puesto).",
+            "Si la nube tarda un segundo tras el splash, Inicio enseña siluetas en vez de ceros.",
+            "En tema claro, el verde de los textos pequeños se lee mejor sobre blanco."
+          ],
+          "en": [
+            "Opening Portfolio, net worth counts up like on Home (it no longer appears already set).",
+            "If the cloud is a second late after the splash, Home shows silhouettes instead of zeros.",
+            "In the light theme, small green text is easier to read on white."
+          ],
+          "ca": [
+            "En obrir Cartera, el patrimoni compta igual que a Inici (no apareix ja posat).",
+            "Si el núvol triga un segon després de l'splash, Inici ensenya siluetes en comptes de zeros.",
+            "En tema clar, el verd dels textos petits es llegeix millor sobre blanc."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "Cartera anima el patrimonio al llegar, siluetas de carga y tema claro más legible."
+      ],
+      "en": [
+        "Portfolio animates net worth on arrival, loading silhouettes, and a more readable light theme."
+      ],
+      "ca": [
+        "Cartera anima el patrimoni en arribar, siluetes de càrrega i tema clar més llegible."
+      ]
+    }
+  },
+  {
     "v": "4.19.21",
     "d": "9 sep 2026",
     "t": {

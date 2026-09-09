@@ -2,6 +2,13 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.22] — 2026-09-09
+### B2/B4/B5 del pulido
+
+- **B2 SÍ**: count-up en el hero de Cartera vía bus `mcOnCarteraActive` (mismo patrón que Gastos; no toca el carrusel). Premontaje e IntersectionObserver se descartaron. `useCountUp` compartido. e2e en pulido-vacios con muestreo rAF.
+- **B4**: tres `.v4-skel` tras splash y antes de `mc-boot-ready`. Sin brillo con reduced-motion.
+- **B5**: tema claro — textos mint pequeños usan `--mint-ink`; party/goal-pct/empty con tokens.
+
 ## [4.19.21] — 2026-09-09
 ### Modo inicial: ver la app como recién instalada sin tocar la cartera real
 
@@ -21,7 +28,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y ver
 - Espejo `docs/memoria/` al día (`npm run memoria`).
 
 - **B3** las filas que abren un panel (`.v4-charge`, `.v4-mov`) responden al toque con el mismo gesto que ya hacen los botones; con `prefers-reduced-motion` solo cambia el fondo.
-- **B2 NO se entrega**, y queda medido en `e2e/pulido-vacios.spec.mjs`: la app premonta las pestañas ocultas, así que el count-up de Cartera se gasta con la pestaña escondida. El segundo intento (arrancar al ver el hero, con `IntersectionObserver`, para no tocar el carrusel que el brief prohíbe) tampoco vale: los paneles están desplazados y el observer los da por visibles. Tres ejecuciones seguidas: la primera lectura tras tocar «Cartera» ya es el total.
+- **B2** en esta entrada se anotó como no entregable vía observer/premontaje; se cierra en **4.19.22** con el bus de pestaña activa.
 ## [4.19.19] — 2026-09-09
 ### Pulido v4, P6–P13
 

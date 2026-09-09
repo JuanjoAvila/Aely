@@ -48,12 +48,44 @@ function mcOnGastosActive(cb){
   };
 }
 
+/* B2 — Cartera necesita el mismo aviso «eres la activa» que Gastos, y por el MISMO motivo: si
+   viaja como prop, entrar en Cartera reconstruye el árbol encima del gesto. El count-up no puede
+   engancharse al montaje (las pestañas vecinas se premontan) ni a IntersectionObserver (los
+   paneles desplazados salen «visibles»). El bus ya existía para Gastos; aquí se replica. No toca
+   el carrusel ni los gestos — solo el mismo useEffect de tab que ya llama a mcSetGastosActive. */
+var _mcCarteraActive=false;
+var _mcCarteraActiveCbs=[];
+function mcSetCarteraActive(on){
+  on=!!on;
+  if(_mcCarteraActive===on) return;
+  _mcCarteraActive=on;
+  for(var i=0;i<_mcCarteraActiveCbs.length;i++){
+    try{ _mcCarteraActiveCbs[i](on); }catch(e){}
+  }
+}
+function mcOnCarteraActive(cb){
+  if(typeof cb!=="function") return function(){};
+  _mcCarteraActiveCbs.push(cb);
+  try{ cb(_mcCarteraActive); }catch(e){}
+  return function(){
+    var i=_mcCarteraActiveCbs.indexOf(cb);
+    if(i>=0) _mcCarteraActiveCbs.splice(i,1);
+  };
+}
+
 /* Le dice al SPLASH de entrada que ya puede irse: lo que se vea a partir de ahora es lo bueno.
    El vigilante vive al final de shell.html y no depende de esto para retirarse (tiene un tope de
    1,8 s), así que llamar de más es gratis y no llamar nunca solo devuelve el comportamiento viejo.
    Idempotente a propósito: lo llaman varios caminos (sin nube, sin sesión, candado, alta, y el
-   final del primer pull de la nube) y ninguno sabe de los demás. */
-function mcBootReady(){ try{ window.__mcBootReady=true; }catch(e){} }
+   final del primer pull de la nube) y ninguno sabe de los demás.
+   Emite `mc-boot-ready` para que Inicio pueda quitar los esqueletos (B4) sin sondear. */
+function mcBootReady(){
+  try{
+    if(window.__mcBootReady) return;
+    window.__mcBootReady=true;
+    window.dispatchEvent(new Event("mc-boot-ready"));
+  }catch(e){}
+}
 
 /* EJE DE UN GESTO: "x", "y" o null (todavía no está claro).
    Lo comparten el swipe horizontal entre pestañas (11-app-main.js) y el vertical de Plan
