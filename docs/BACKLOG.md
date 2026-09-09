@@ -26,6 +26,15 @@ Una tarea implementada, una verificada por tests y una aprobada en móvil son es
 - Antes de retomar: `git fetch origin`, `npm run salud`, `npm run listo`, `npm run sugerencias`
   y último Actions. Esta foto envejece; una PR abierta o un documento viejo no prueba trabajo ausente.
 
+## Dónde está cada cosa — 10 de septiembre, madrugada
+
+| | |
+|---|---|
+| Canal beta | **4.19.22.1** · pulido v4 completo (P1–P14 + B2/B3/B4/B5), teclado nuevo, **modo inicial** y el bundle de 330 → 319 KB de gzip |
+| Producción | **4.18.7**, y con un parche listo: `claude/prod-aprobadas` @ `0f69c752` sube **4.18.8** con las DOS tandas que él aprobó y que sí son portables |
+| Pendiente de él | **21 tandas sin veredicto** en beta. Empezar por «🌱 Modo inicial», que deja probar las de estreno sin tocar su cartera |
+| Repo | 71 → **27 ramas**, 23 → **13 worktrees**, las 5 PR abiertas cerradas con su evidencia |
+
 ## ⚠ REGLA DE TANDAS — la que rompimos el 9/9 y no se vuelve a romper
 
 Su pauta, con sus palabras: **«implementación por tanda; si la apruebo, sube a producción sin
