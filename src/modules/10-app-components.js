@@ -1668,6 +1668,28 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+  {v:"4.19.18", d:"9 sep 2026",
+   t:{es:"Inicio ya no te recibe vacío",
+      en:"Home no longer greets you empty",
+      ca:"Inici ja no et rep buit"},
+   tandas:[{id:"primer-minuto",t:{es:"✨ El primer minuto en la app",en:"✨ The first minute in the app",ca:"✨ El primer minut a l'app"},
+     items:{
+       es:["Con la app recién instalada, arriba ya no sale un gráfico plano ni un «+0 € este mes»: sale una línea que dice que tu histórico empieza hoy.",
+           "Si no tienes presupuesto puesto, Inicio te lo ofrece con un botón en vez de esconder la tarjeta.",
+           "Sin recibos ni metas, esas dos secciones te invitan a conectar el banco o crear tu primera meta, en lugar de desaparecer.",
+           "Y el primer mes ya no dice «0 meses sin pasarte»."],
+       en:["On a freshly installed app there is no flat chart and no «+0 € this month» at the top: it says your history starts today instead.",
+           "If you have no budget set, Home offers it with a button instead of hiding the card.",
+           "With no bills or goals, those two sections invite you to connect your bank or create your first goal, instead of vanishing.",
+           "And your first month no longer says «0 months on track»."],
+       ca:["Amb l'app acabada d'instal·lar, a dalt ja no surt un gràfic pla ni un «+0 € aquest mes»: surt una línia que diu que el teu històric comença avui.",
+           "Si no tens pressupost posat, Inici te l'ofereix amb un botó en comptes d'amagar la targeta.",
+           "Sense rebuts ni objectius, aquestes dues seccions et conviden a connectar el banc o crear el primer objectiu, en lloc de desaparèixer.",
+           "I el primer mes ja no diu «0 mesos sense passar-te»."]}}],
+   items:{
+     es:["Con la app recién instalada, Inicio ya no se queda desnudo: en vez de esconder lo que aún no tienes, te ofrece ponerlo."],
+     en:["On a freshly installed app, Home no longer looks bare: instead of hiding what you do not have yet, it offers to set it up."],
+     ca:["Amb l'app acabada d'instal·lar, Inici ja no es queda despullat: en comptes d'amagar el que encara no tens, t'ofereix posar-ho."]}},
   {v:"4.19.17", d:"9 sep 2026",
    t:{es:"El aviso de los recibos fijos dice la verdad",
       en:"The recurring-bill prompt tells the truth",

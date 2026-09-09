@@ -2,6 +2,16 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.18] — 2026-09-09
+### Pulido v4, P1–P5: el primer minuto de alguien recién llegado
+
+- **P1** `Sparkline` devuelve `null` con menos de dos puntos: con `data=[]` pintaba una recta de lado a lado con su punto final, un gráfico que dice cero. Inicio reserva el hueco con una línea discreta.
+- **P2** la pastilla del hero solo sale si el delta no es cero o ya hay histórico.
+- **P3** sin presupuesto, Inicio enseña la tarjeta en vacío con CTA al `BudgetSheet` en vez de esconderla. **La otra mitad de P3 no aplica**: el onboarding de `beta` ya no usa placeholder, es un stepper con 700 preseleccionado y `finish()` fuerza un mínimo de 100.
+- **P4** estados vacíos de próximos cargos y metas (spec §27), reutilizando una sola clase `.v4-empty` con el borde punteado que ya existía.
+- **P5** con racha 0, «Tu primer mes empieza hoy» en vez de «0 meses sin pasarte».
+- `e2e/pulido-vacios.spec.mjs`, 7 casos: cubren la app recién instalada, que era justo el estado que ningún test miraba, y que todo vuelve a la normalidad en cuanto hay datos.
+
 ## [4.19.17] — 2026-09-09
 ### El diálogo cuenta los Fijos agrupados, y un e2e cubre el cableado
 
