@@ -112,3 +112,38 @@ test("P6 con reduced-motion: el valor final, directo y sin animar", async ({ pag
  * Aplicar el `clamp(38px,13.5vw,56px)` en su móvil de 360 px bajaría el hero de 56 a 48,6: haría
  * MÁS PEQUEÑO el número insignia de la app para arreglar algo que no pasa. Por eso se deja sin
  * hacer y se le pregunta, que es la norma que él puso para las tareas que no cuadran. */
+
+/* P14 — el hero encoge cuando hace falta.
+ *
+ * Mi medida en euros decía que no hacía falta: «192.148,45 €» ocupa 248 px de 324. El caso que se
+ * me escapó lo reprodujo Codex: la MONEDA DE VISUALIZACIÓN llega al hero, y con yenes y patrimonio
+ * negativo el importe se parte en dos líneas a 56 px. La red que yo proponía (nowrap + overflow
+ * hidden) habría RECORTADO el número, que en una app de dinero es peor. De ahí el clamp.
+ *
+ * Lo que exige este test es lo que pidió Cursor al votar: importe, signo y moneda visibles, y en
+ * UNA línea. Los importes son sintéticos; el factor no es un tipo de cambio real.
+ */
+test("★ P14: con yenes y patrimonio negativo, el importe cabe entero y en una línea", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 667 });
+  await inicio(page, {
+    history: [100, 200], budget: 500,
+    accounts: [{ id: "a1", ent: "sabadell", name: "Banco", value: -192148.45, role: "fijos" }],
+    settings: { currency: "JPY" },
+    fxRates: { JPY: 0.00625 },
+  });
+  await page.evaluate(() => { window.__mcSplashGone = true; window.dispatchEvent(new Event("mc-splash-gone")); });
+  await page.waitForTimeout(1200);
+
+  const hero = page.locator(".v4-hero-amt");
+  const caja = await hero.boundingBox();
+  const unaLinea = await hero.evaluate((el) => {
+    const linea = parseFloat(getComputedStyle(el).lineHeight) || parseFloat(getComputedStyle(el).fontSize) * 1.05;
+    return el.getBoundingClientRect().height < linea * 1.6;
+  });
+  expect(unaLinea).toBe(true);
+  expect(caja.x).toBeGreaterThanOrEqual(0);
+  expect(caja.x + caja.width).toBeLessThanOrEqual(361);
+  // Y el número no puede estar recortado: lo que se ve es lo que hay.
+  const recortado = await hero.evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+  expect(recortado).toBe(false);
+});

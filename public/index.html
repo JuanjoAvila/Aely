@@ -805,7 +805,15 @@
   /* P13 — la Fraunces se carga como variable con `opsz` 9-144 y no se estaba usando: los numeros
      grandes salian con el tamaño optico por defecto, de trazo mas fino y menos «impreso». Se le
      dice a cada sitio el tamaño optico que le toca. Un solo sitio, mucho efecto. */
-  .v4-hero-amt{display:inline-block;font-family:'Fraunces',Georgia,serif;font-size:56px;font-variation-settings:"opsz" 40;font-weight:550;line-height:1.05;letter-spacing:-1.5px;margin-top:8px;font-variant-numeric:tabular-nums;}
+  /* P14 — el hero era el UNICO importe grande con tamaño fijo; el de Gastos ya usaba clamp.
+     Mi medida en euros decia que no hacia falta (192.148,45 € ocupa 248 px de 324, y siete cifras
+     294), y por eso lo deje sin hacer y lo llevamos a votacion. Codex reprodujo el caso que a mi
+     se me escapo: la MONEDA DE VISUALIZACION llega hasta aqui, y con yenes y patrimonio negativo
+     («-30.743.752,00 ¥») el importe se parte en DOS LINEAS a 56 px. Y la red que yo proponia
+     —nowrap + overflow hidden— hubiera RECORTADO el numero: en una app de dinero eso es peor que
+     un numero mas pequeño. Los dos votaron C y C se hace. Precio aceptado: en un movil de 360 el
+     hero pasa de 56 a ~49 px. */
+  .v4-hero-amt{display:inline-block;font-family:'Fraunces',Georgia,serif;font-size:clamp(38px,13.5vw,56px);font-variation-settings:"opsz" 40;max-width:100%;font-weight:550;line-height:1.05;letter-spacing:-1.5px;margin-top:8px;font-variant-numeric:tabular-nums;}
   .v4-budget{display:flex;gap:16px;align-items:center;}
   .v4-budget-txt{flex:1;min-width:0;}
   .v4-budget-txt .st{font-family:'Fraunces',Georgia,serif;font-size:21px;font-weight:600;color:var(--mint);line-height:1.15;}
