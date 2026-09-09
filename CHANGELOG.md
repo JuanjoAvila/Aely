@@ -11,6 +11,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y ver
 - Guardianes tras NOTAS-BUNDLE: `novedades-vinnetas` lee `src/data/release-notes.json` (el módulo deja `RELEASE_NOTES=[]`); `season-detalle` comprueba `4.13.0.tandas:[]` en el JSON en vez del comentario `QUITADA` que vivía dentro del literal.
 - Espejo `docs/memoria/` al día (`npm run memoria`).
 
+- **B3** las filas que abren un panel (`.v4-charge`, `.v4-mov`) responden al toque con el mismo gesto que ya hacen los botones; con `prefers-reduced-motion` solo cambia el fondo.
+- **B2 NO se entrega**, y queda medido en `e2e/pulido-vacios.spec.mjs`: la app premonta las pestañas ocultas, así que el count-up de Cartera se gasta con la pestaña escondida. El segundo intento (arrancar al ver el hero, con `IntersectionObserver`, para no tocar el carrusel que el brief prohíbe) tampoco vale: los paneles están desplazados y el observer los da por visibles. Tres ejecuciones seguidas: la primera lectura tras tocar «Cartera» ya es el total.
 ## [4.19.19] — 2026-09-09
 ### Pulido v4, P6–P13
 

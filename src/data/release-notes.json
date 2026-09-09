@@ -19,17 +19,20 @@
           "es": [
             "En el teclado de apuntar, mantener pulsado el borrar limpia de seguido.",
             "El decimal del teclado sigue el idioma (coma o punto), no una coma fija.",
-            "Si el saldo del hero no cabe (yen, cifras muy largas o negativos), la letra se adapta en vez de cortarse."
+            "Si el saldo del hero no cabe (yen, cifras muy largas o negativos), la letra se adapta en vez de cortarse.",
+            "Al tocar un recibo o un movimiento de la lista, la fila responde: se hunde un poco mientras la pulsas."
           ],
           "en": [
             "On the number pad, holding delete clears continuously.",
             "The pad decimal follows the language (comma or point), not a fixed comma.",
-            "If the hero balance does not fit (yen, very long figures or negatives), the type shrinks instead of clipping."
+            "If the hero balance does not fit (yen, very long figures or negatives), the type shrinks instead of clipping.",
+            "Tapping a bill or a transaction in the list now responds: the row presses in slightly while you hold it."
           ],
           "ca": [
             "Al teclat d'apuntar, mantenir premut esborrar neteja de seguida.",
             "El decimal del teclat segueix l'idioma (coma o punt), no una coma fixa.",
-            "Si el saldo de l'hero no hi cap (ien, xifres molt llargues o negatius), la lletra s'adapta en comptes de tallar-se."
+            "Si el saldo de l'hero no hi cap (ien, xifres molt llargues o negatius), la lletra s'adapta en comptes de tallar-se.",
+            "En tocar un rebut o un moviment de la llista, la fila respon: s'enfonsa una mica mentre la premes."
           ]
         }
       }
