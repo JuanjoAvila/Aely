@@ -1,5 +1,10 @@
 # Testing — Mi Cartera
 
+FIN-04 transporte: `tests/expense-source-ack.test.mjs` (registrado en el runner) ejecuta
+`setExpenseBank`/`setExpenseDup` reales con carreras entre lectura y UPDATE, sesión perdida,
+UUID ausente, ACK falso y conflicto del mismo campo. Simula transporte; no acredita SQL vivo.
+Alcance y rojo/verde en [el brief del paso 1](briefs/fin04-paso1-source-ack.md).
+
 Auditoría 4.19.14: `e2e/revisar-beta.spec.mjs` comprueba plegado automático al aprobar,
 desplegar/cambiar de opinión y conservación entre compilaciones. `e2e/bancos-historico-filtro.spec.mjs`
 actualiza el estado durante la confirmación de Deshacer y simula fallo/reintento del DELETE.

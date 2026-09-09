@@ -194,3 +194,11 @@ escribir `Access-Control-Allow-Origin: "*"`.
 - **Freemium / suscripciones** (ver ROADMAP — solo diseño, nada implementado).
 - Play Store (Data safety + NotificationListener).
 - Feedback de uso real.
+
+## Escrituras parciales de source (FIN-04, transporte)
+
+Las escrituras de banco/decisión con UUID leen la fila por dueño e identidad exacta y comparan
+source al actualizar. Solo devuelven ACK para el UUID/valor esperado; una carrera relee y un
+conflicto del mismo campo se propaga. No se añaden columnas ni se cambia el índice antiguo.
+El legado corto y la UI optimista siguen pendientes de la siguiente fase: esto no es una cola
+persistente ni una revisión global del servidor. [Contrato y límites](briefs/fin04-paso1-source-ack.md).

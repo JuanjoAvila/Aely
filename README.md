@@ -31,7 +31,7 @@ mi-cartera/
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
 ├── e2e/                    # Playwright (62 specs: arranque, listas, bancos, brókers, perfil, CSV, CSP, rendimiento, beta…)
-├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
+├── tests/                  # Unitarios en Node (lógica, parsers, source/ACK, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
 ├── scripts/
