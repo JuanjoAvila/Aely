@@ -658,6 +658,7 @@ const cloud = (function(){
     // Persiste el BANCO elegido de un gasto (va embebido en source: manual:caixabank…) para
     // que sobreviva a reinstalaciones — mismo truco que ob: (2026-07-18).
     async setExpenseBank(e, ent){
+      if(isExpenseUuid(e&&e.id)) return writeExpenseSourceField(sb,e,"bank",ent);
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
@@ -670,6 +671,7 @@ const cloud = (function(){
     // el servidor la seguía descontando del presupuesto y el siguiente pull volvía a apagarla.
     // Tocar solo el estado local no arregla nada; la fila vuelve de la nube.
     async setExpenseDup(e, isDup){
+      if(isExpenseUuid(e&&e.id)) return writeExpenseSourceField(sb,e,"dup",!!isDup);
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
@@ -1161,6 +1163,60 @@ function expenseCloudEq(q, userId, e){
   q=q.eq("user_id", userId);
   if(k.by==="id") return q.eq("id", k.id);
   return q.eq("fecha",k.fecha).eq("importe",k.importe).eq("comercio",k.comercio);
+}
+
+/* source comparte banco y decisión: reconstruirlo desde un gasto local antiguo pisa el otro
+   campo. Se cambia SOLO el solicitado sobre el valor leído de la fila exacta (FIN-04, 9/9).
+   Fuentes futuras se rechazan: adivinar su formato podría convertir un gasto neutro en diario. */
+function expenseSourceField(raw, field, value){
+  const src=raw==null?"manual":String(raw);
+  const ob=/^(ob|ob-hist):([^:#]+)(#dup)?$/.exec(src);
+  if(field==="dup"){
+    if(!ob || ob[1]!=="ob") throw new Error("expense source unsupported");
+    return "ob:"+ob[2]+(value?"#dup":"");
+  }
+  if(field!=="bank" || (value!=null && !/^[a-z0-9_-]+$/i.test(value))) throw new Error("expense bank invalid");
+  if(ob){
+    if(!value) throw new Error("expense bank required");
+    return ob[1]+":"+value+(ob[3]||"");
+  }
+  if(src==="supabase" || /^manual(?::[^:#]+)?$/.test(src)) return value?"manual:"+value:"manual";
+  throw new Error("expense source unsupported");
+}
+/* Compatible con la tabla antigua: el propio source leído es la condición del UPDATE.
+   Una carrera obliga a releer; cero filas NO es un ACK. Esto no reemplaza una revisión de
+   servidor ni una cola persistente: un escritor antiguo aún puede sobrescribir después. */
+async function writeExpenseSourceField(sb, e, field, value){
+  if(!sb) throw new Error("cloud unavailable");
+  if(!isExpenseUuid(e&&e.id)) throw new Error("expense identity required");
+  const auth=await sb.auth.getSession();
+  const session=auth&&auth.data&&auth.data.session;
+  if(!session) throw new Error("session unavailable");
+  const owner=session.user.id;
+  let initialValue;
+  for(let attempt=0;attempt<3;attempt++){
+    const read=await sb.from('expenses').select('id,source').eq('user_id',owner).eq('id',e.id).maybeSingle();
+    if(read.error) throw read.error;
+    const row=read.data;
+    if(!row || row.id!==e.id || !Object.prototype.hasOwnProperty.call(row,'source')) throw new Error("expense identity unconfirmed");
+    const source=expenseSourceField(row.source,field,value);
+    const currentValue=field==="dup"?/#dup$/.test(row.source):String(row.source||"").split(":").slice(1).join(":").split("#")[0];
+    if(attempt===0) initialValue=currentValue;
+    // Se puede rebasar un cambio del OTRO campo; dos decisiones distintas sobre el mismo
+    // campo necesitan revisión, no que nuestro reintento gane por llegar el último.
+    else if(currentValue!==initialValue && source!==row.source) throw new Error("expense write conflict");
+    const fresh=await sb.auth.getSession();
+    if(!fresh.data || !fresh.data.session || fresh.data.session.user.id!==owner) throw new Error("expense session changed");
+    if(source===row.source) return {id:row.id,source:source};
+    let q=sb.from('expenses').update({source:source}).eq('user_id',owner).eq('id',e.id);
+    q=row.source==null?q.is('source',null):q.eq('source',row.source);
+    const written=await q.select('id,source').maybeSingle();
+    if(written.error) throw written.error;
+    if(!written.data) continue;
+    if(written.data.id!==e.id || written.data.source!==source) throw new Error("expense write unconfirmed");
+    return {id:e.id,source:source};
+  }
+  throw new Error("expense write conflict");
 }
 
 /* ---------- Lápidas de gastos borrados ----------

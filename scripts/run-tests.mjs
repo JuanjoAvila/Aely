@@ -27,6 +27,7 @@ if (plan.build !== false) {
 }
 
 const steps = [
+  ["expense-source-ack", ["node", "tests/expense-source-ack.test.mjs"]],
   ["guard-privacy", ["node", "scripts/guard-privacy.mjs"]],
   ["check-syntax", ["node", "scripts/check-syntax.mjs"]],
   ["i18n-keys", ["node", "tests/i18n-keys.test.mjs"]],
