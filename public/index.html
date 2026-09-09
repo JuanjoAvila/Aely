@@ -901,7 +901,9 @@
   .mc-cal-day.on{background:rgba(95,208,138,.16);color:var(--mint);box-shadow:inset 0 0 0 1px var(--mint-deep);}
   .range .v4-chip{flex:1;min-width:0;}
   .v4-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:6px 0 12px;}
-  .v4-keys button{height:46px;border-radius:12px;background:var(--sur);border:1px solid var(--line-soft);font-size:18px;font-weight:600;}
+  /* P8 — el QA de la v4 se marco con «teclas 56» y estaban a 46. Se comprueba a 360x667 con el
+     sheet abierto y `safe-bottom`: si no cabe, se baja a 54, no se deja en 46. */
+  .v4-keys button{height:56px;border-radius:12px;background:var(--sur);border:1px solid var(--line-soft);font-size:18px;font-weight:600;}
   .v4-keys button:active{transform:scale(.96);background:var(--sur2);}
   .v4-cta{width:100%;height:50px;border-radius:14px;border:none;font-size:15px;font-weight:800;cursor:pointer;
     background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);
