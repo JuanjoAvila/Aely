@@ -4,6 +4,11 @@ Lee esto **antes de tocar nada**, seas Claude Code (PC o móvil), Cursor, o cual
 Son cinco minutos que ahorran medio presupuesto de tokens. Está escrito porque el 26/7/2026 una
 sesión del móvil se gastó la mitad trabajando sobre una rama equivocada.
 
+> **Para continuar el trabajo:** [docs/BACKLOG.md](docs/BACKLOG.md) es el índice operativo,
+> con prioridades, encargos para Claude/Cursor, criterios de cierre y lo ya terminado.
+> El panel de beta no contiene todo el backlog. El relevo de madrugada del 9/9 quedó superado
+> por la auditoría posterior: efectivo e histórico conservan fallos abiertos.
+
 ## 1. Lo primero, siempre
 
 ```bash
@@ -20,6 +25,8 @@ tus arreglos ya pueden estar hechos, y tu bump de versión le BAJARÍA la versi�
    los assets, así que **no se borra** aunque apunte a un commit viejo. Efecto diario:
    `git push origin beta` falla con «src refspec beta matches more than one» → usa
    `git push origin refs/heads/beta:refs/heads/beta`. Igual con `git log beta` → `refs/heads/beta`.
+   Para cambiar de rama, `git switch beta`; `git checkout refs/heads/beta` desengancha HEAD.
+   **Cursor trabaja en worktrees propios:** no cambia de rama en el checkout compartido.
 2. **La versión canónica es el fichero `VERSION`**, no `package.json`. Bumpear solo `package.json`
    es un fallo silencioso: el deploy sale verde y el móvil no se entera de nada.
 3. **La fuente es `src/modules/*.js` + `src/shell.html`.** `public/index.html` es el ARTEFACTO que
@@ -96,6 +103,7 @@ La norma completa está en `AGENTS.md` §6 ter.
 ## 6. Estado y pendientes
 
 `docs/ROADMAP.md` es la foto de ahora: qué versión va por dónde, qué está hecho y qué falta.
+La cola reconciliada y los encargos pendientes viven en **[docs/BACKLOG.md](docs/BACKLOG.md)**.
 `CHANGELOG.md` es el porqué de cada cosa. `AGENTS.md` son las reglas de la casa.
 Los tres se mantienen al día en cada tanda — si no cuadran con `VERSION`, `npm test` te lo dice.
 
@@ -132,7 +140,6 @@ Import histórico (ya diseñado): [`docs/briefs/plan-import-historico-seguro.md`
 
 Detalle y checklist en `docs/ROADMAP.md` y `docs/TESTING.md`. **No promocionar sin su OK** en el panel.
 
-La cola post-rechazo de una beta (qué falló en el móvil y en qué orden arreglarlo) vive en
-`docs/memoria/mi-cartera-backlog.md` (§8 ter / §8 quater / siguientes). El header del ROADMAP
-puede ir un paso por detrás del último veredicto: **mira el backlog** antes de asumir que está
-«pendiente de su primera prueba».
+La cola post-rechazo se contrasta con `npm run listo` y [docs/BACKLOG.md](docs/BACKLOG.md).
+`docs/memoria/mi-cartera-backlog.md` conserva historia: no asumir que sus rechazos o pendientes
+son actuales. El header del ROADMAP puede ir por detrás del último veredicto.

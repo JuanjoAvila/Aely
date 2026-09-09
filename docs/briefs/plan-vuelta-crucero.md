@@ -1,5 +1,9 @@
 # Plan — Vuelta del crucero (2026-08-17)
 
+> **Índice vigente:** este plan conserva el diseño y la secuencia histórica del crucero.
+> Su estado operativo está reconciliado en [BACKLOG.md](../BACKLOG.md), con tareas ya hechas,
+> bloqueos actuales y aceptación. No empezar por una casilla antigua sin contrastarla allí.
+
 ## 📍 DÓNDE ESTAMOS — mirar esto primero (última actualización: 6/9, 4.18.6 contención)
 
 Cualquiera (Cursor, Claude, él desde el móvil) puede retomar desde aquí sin preguntar a nadie.

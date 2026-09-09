@@ -2,10 +2,11 @@
 
 > Estado a 2026-09-09 · **v4.19.14** — revisión plegable y deshacer sin restaurar estado antiguo.
 > Auditoría: [hallazgos y límites](briefs/AUDITORIA-CODEX-2026-09-09.md). Efectivo sigue bloqueado por el cierre mensual; no promover la ronda completa.
+> **Cola operativa y encargos del equipo:** [BACKLOG.md](BACKLOG.md). Las tablas históricas de abajo no sustituyen ese inventario ni el canal vivo.
 > En Ajustes → Revisar esta beta se pliegan las tandas desde su cabecera, automáticamente tras aprobar.
 > Anterior: **4.19.13** — un límite por categoría en Gastos.
 > Anterior: **4.19.12** — el resumen del mes cerrado, en Inicio.
-> Anterior: **4.19.11** — import historico cerrado del todo (tanda 4: puertas y avisos).
+> Anterior: **4.19.11** — puertas y avisos del import histórico; quedan los casos de la auditoría posterior.
 > Anterior: **4.19.10** — efectivo como una cuenta mas (tanda 6).
 > Anterior: **4.19.9** — import historico: agujero A cerrado, se puede deshacer.
 > Anterior: **4.19.8** — import historico: motor y UI seguras (tandas 1 y 2).
@@ -146,18 +147,14 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 | **Trade Republic mudo al desconectarse** | ✅ Banner + noti + resumen en Ajustes; CTA abre Mis bancos con TR, no OAuth. |
 | **Stopper del perfil (560 ms)** | ✅ Candado afinado: síncrono al cerrar, cierre permitido tras abrir, generación en `transitionend`. |
 | **Versión APK invisible en Ajustes** | ✅ Pie y fila de actualizaciones: `web vX · app Y` (puente ya en APK 35). |
-| **Herencia de ✓ en el panel de beta** | ✅ Entre compilaciones, por texto del punto; los ✗ no se heredan. |
+| **Herencia de veredictos en el panel de beta** | ✅ Se conservan marcas compatibles entre compilaciones; aprobar pliega la tanda y se puede cambiar de opinión. Los rechazos anteriores requieren revalidación: consultar `npm run listo`. |
 
 ## Lo siguiente
 
-> **4.15.0** en `beta`: ambientación suave + conversor FX + presupuesto alineado + extracto de
-> todos los bancos + filtros de Gastos + fix Novedades + fix destello/lluvia al swipe.
-> Producción = **4.14.1**. APK = **35 / 4.12.0**.
-> Probar checklist de las tandas; promote cuando las apruebe.
-
-1. En el móvil (canal beta): Mis bancos / Ajustes → ver **v4.15.0.N**.
-2. Revisar las tandas del panel (incluye `fix-season-glow`: destello fijo bajo el + y lluvia
-   que no se reinicia al cambiar de pestaña; y `fix-novedades-nag`).
+Primero FIN-01 (efectivo al cerrar mes) y FIN-02 (pagos mensuales del histórico), después
+identidad cloud, widget y validaciones pendientes. Reparto, pruebas y dependencias en
+[BACKLOG.md](BACKLOG.md). `npm run salud` y `npm run listo` dan la versión y los veredictos
+actuales. No promover la ronda entera con esos bloqueos abiertos.
 
 ### Pendiente de respuesta suya
 
@@ -186,17 +183,17 @@ existe se deja anotado con su prueba: si mañana alguien vuelve a proponerlo, aq
 | Crash reporting | **Ya está.** Sentry en producción ([SENTRY.md](SENTRY.md)) + `app_events` propio, con `window.onerror` y `unhandledrejection` enganchados. | — |
 | Analytics de uso | **HECHO (4.13.0).** `cloud.logUso(etiqueta)` con **vocabulario cerrado** (`USO_OK` en 00-core): pestañas y acciones, agregado y sin un solo dato personal. Instrumentadas las cuatro pestañas y el importador. | Una vista SQL que agregue `kind='use'` por etiqueta y semana. El dato ya se está guardando, que era lo que no se recuperaba hacia atrás. |
 | Rate limiting | **A medias.** Migración `0019` + `_shared/ratelimit.ts`, aplicado en `ingest` y `myinvestor-connect` (4.10.0). Documentado como hueco #7 en [AMENAZAS.md](AMENAZAS.md). | Extenderlo al resto de funciones (`prices`, `categorize`, `bank-*`) o dejar por escrito por qué no hace falta. |
-| Validar TODO lo que entra | **Sin auditar** — es el único hueco en ROJO de [AMENAZAS.md](AMENAZAS.md) (#8) y la tarea que sale primera de allí. | Pasada por las diez Edge Functions: tipos, tamaños y rangos de cada campo del `body`, con test que mande basura y espere un 400 (no un 500). |
+| Validar TODO lo que entra | **Sin auditoría sistemática completada.** Hueco #8 de [AMENAZAS.md](AMENAZAS.md). | SEC-01: inventariar todas las Edge Functions actuales; tipos, tamaños y rangos, con pruebas de errores 4xx sin efectos. El antiguo recuento de diez ya no sirve. |
 | Logs sin información sensible | **A medias.** `guard-privacy` vigila el cliente; las métricas nuevas nacen cerradas (`USO_OK`). Hueco #9 de [AMENAZAS.md](AMENAZAS.md). | Auditar qué acaba en `app_events` y en Sentry (mensajes de error con importes, correos o IBAN) y limpiarlo en origen. |
 | Virtualización de listas | **Ya está.** La lista pagina — `e2e/rendimiento.spec.mjs`: 3.000 movimientos no son 3.000 nodos. | — |
 | Memoización / no repetir trabajo | **Ya está** (4.8.0): estado partido, `totals` con dependencias reales, `parseDate` cacheado, filas en `React.memo`, presupuesto de rendimiento en `npm test`. | — |
 | Lógica financiera independiente de React | **A medias.** La lógica pura se extrae y se testea sin React (`scripts/load-pure-logic.mjs`, 15 suites), pero convive en el mismo fichero que la UI. | Separar de verdad los servicios (cartera, movimientos, dividendos, precios) a módulos sin un solo `React.createElement`, y que la UI solo los llame. Sin prisa: es refactor, no arreglo. |
 | Módulos por dominio, no por número | **No.** `src/modules/` va numerado por orden de ensamblado (`00-core`, `06-sync-brokers`, `10-app-components`…). | Reagrupar por dominio cuando duela — hoy 15 ficheros se siguen; el riesgo real es `10`/`11`, que son los que crecen sin parar. |
-| Importadores PDF/CSV | **CSV y EXCEL sí.** Revolut (con golden tests) y, desde la 4.13.0, cualquier **hoja de gastos casera** en .xlsx o CSV, con mapeo de columnas y duplicados descartados solos. El .xlsx se lee sin librería (ZIP + `DecompressionStream`). **PDF no.** | Importar extractos en PDF (los bancos que no dan CSV). |
-| Sistema de backups | **A medias.** Export JSON a mano + estado en Supabase. | Copia automática periódica y **restaurar probado de verdad** (un backup que no se ha restaurado nunca no es un backup). |
+| Importadores PDF/CSV | **CSV, XLSX, DOCX y PDF de texto soportado ya existen.** Pruebas `import-docx-pdf` unitarias y E2E. Los PDF escaneados no tienen OCR. | No reconstruir el lector. La integridad del histórico sigue en FIN-02/03/07 de [BACKLOG.md](BACKLOG.md). |
+| Sistema de backups | **Copia diaria y UI de restauración ya existen.** `backupState`, `listBackups`, `getBackup` y copias automáticas en Ajustes. | Ensayo completo de restauración aislada, incluyendo gastos cloud, reinicio y segundo cliente: OPS-02 de [BACKLOG.md](BACKLOG.md). |
 | Sincronización bancaria con adapters | **A medias.** Cada banco/bróker tiene su módulo, pero sin interfaz común. | Interfaz única (conectar / sincronizar / desconectar / estado) para que añadir un banco no toque la UI. Enlaza con Enable Banking. |
 | Play Store, cobrar, gestor fiscal | Ya estaba en el plan (ver «Solo si lo pides» y la nota de freemium). | Antes de cobrar un euro: **hablar con un gestor**. La consulta es barata comparada con regularizar tarde. |
-| Más tests de lógica financiera | Hay 15 suites unitarias + 67 e2e. | Seguir sumando al tocar dinero: es la regla de la casa, no una tarea con final. |
+| Más tests de lógica financiera | Lógica y Deno aprobados, 164 E2E Chromium en la auditoría 4.19.14. Recuento vivo en runner/mapa. | Seguir sumando al tocar dinero; los casos pendientes concretos están en [BACKLOG.md](BACKLOG.md). |
 
 ### Segunda tanda de la misma review (2026-07-26)
 
@@ -249,7 +246,7 @@ Muestra gasto del mes vs presupuesto + saldo de la cuenta diaria.
 | Qué | Dónde | Estado |
 |-----|--------|--------|
 | Backup JSON | Ajustes → Copia de seguridad → Exportar | ✅ |
-| Informe del mes (imagen WhatsApp) | Ajustes → Avanzado · popup día 1 · si el share de la WebView falla, descarga el PNG (4.1.0) | ✅ |
+| Informe del mes (imagen WhatsApp) | Inicio → tarjeta del mes cerrado (4.19.12); compartir imagen, con descarga PNG si no hay share | ✅ |
 | Hogar y gastos compartidos | **Perfil → «Tu gente»** (toca tu avatar en Inicio). Movido aquí en 4.10.0 porque al final de Cartera no lo veía nadie; antes en Cartera (4.6.1) y antes aún en Ajustes → Conexiones | ✅ |
 | Sugerencias / errores del usuario | Ajustes → App → «Enviar sugerencia» (desde 4.1.0; antes dentro de Novedades) | ✅ |
 

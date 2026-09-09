@@ -38,7 +38,7 @@ mi-cartera/
 │   ├── build-app.mjs       # Ensambla src/ → public/index.html
 │   ├── run-tests.mjs       # build + unit + Deno + E2E
 │   └── stamp-version.mjs
-├── docs/                   # ARQUITECTURA, TESTING, SENTRY, ROADMAP…
+├── docs/                   # BACKLOG, ARQUITECTURA, TESTING, SENTRY, ROADMAP…
 ├── playwright.config.mjs
 ├── VERSION
 └── CHANGELOG.md
@@ -81,6 +81,9 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 ## 🗺️ Roadmap
 
 Estado actual: **v4.19.14** en el repo — disponibilidad del canal con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+
+Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
+Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.
 
 En Ajustes → Revisar esta beta, toca la cabecera de una tanda para encogerla o desplegarla. Las aprobadas se encogen automáticamente y conservan su veredicto al actualizar si el guion sigue igual.
 

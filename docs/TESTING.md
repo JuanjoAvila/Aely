@@ -6,6 +6,9 @@ actualiza el estado durante la confirmación de Deshacer y simula fallo/reintent
 Ambos ya están en el mapa de pruebas. `expense-id-cloud` ejecuta el método de borrado con sesión
 ausente, comprueba filtros por dueño/uuid y propagación de errores. No usa datos ni servicios reales.
 Hallazgos aún abiertos: [auditoría del 9/9](briefs/AUDITORIA-CODEX-2026-09-09.md).
+Cola de casos que faltan y aceptación por encargo: [BACKLOG.md](BACKLOG.md), FIN-01 a FIN-08,
+OPS-01/02/06 y seguridad. Una suite verde no sustituye esos ensayos de identidad, restauración,
+servidor vivo y Android; cada entrega debe indicar cuáles ejecutó y cuáles siguen pendientes.
 
 Regresiones de widget/nube (4.19.6): `e2e/persistencia.spec.mjs` cubre reactivación nativa sin
 `visibilitychange` con puente simulado y pull de categorías neutras comprobado en Inicio/Gastos.
