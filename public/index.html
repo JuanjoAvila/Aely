@@ -3409,7 +3409,7 @@ const LANG = {
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
     v4_money_total:"Tu dinero en total", v4_this_month:"este mes", v4_of_month:"del mes",
     v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.",
-    v4_streak:"{n} meses sin pasarte", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
+    v4_streak:"{n} meses sin pasarte", v4_hist_empty:"Tu histórico empieza hoy", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_empty:"Nada pendiente este mes. Los recibos aparecen aquí.",
     v4_your_goals:"Tus metas", v4_recent:"Últimos movimientos", v4_recent_empty:"Aún no hay movimientos. Apunta el primero con +.",
     v4_all:"Todos ›", v4_plan_title:"Tu plan del mes", v4_plan_recibos:"Recibos", v4_plan_deudas:"Deudas", v4_plan_metas:"Metas",
@@ -3572,7 +3572,7 @@ const LANG = {
     v4_hola:"Hi, {n}", v4_hola_anon:"Hi",
     v4_money_total:"All your money", v4_this_month:"this month", v4_of_month:"of month",
     v4_budget_spent:"You've spent {spent} of your {budget}.", v4_budget_daily:"You can spend {x}/day until month end.",
-    v4_streak:"{n} months on track", v4_see_gastos:"See spending ›", v4_see_plan:"See plan ›",
+    v4_streak:"{n} months on track", v4_hist_empty:"Your history starts today", v4_see_gastos:"See spending ›", v4_see_plan:"See plan ›",
     v4_upcoming:"Upcoming", v4_upcoming_empty:"Nothing pending this month. Bills show up here.",
     v4_your_goals:"Your goals", v4_recent:"Latest activity", v4_recent_empty:"No activity yet. Add the first one with +.",
     v4_all:"All ›", v4_plan_title:"Your month plan", v4_plan_recibos:"Bills", v4_plan_deudas:"Debts", v4_plan_metas:"Goals",
@@ -3722,7 +3722,7 @@ const LANG = {
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
     v4_money_total:"Els teus diners en total", v4_this_month:"aquest mes", v4_of_month:"del mes",
     v4_budget_spent:"Has gastat {spent} dels teus {budget}.", v4_budget_daily:"Pots gastar {x}/dia fins a fi de mes.",
-    v4_streak:"{n} mesos sense passar-te", v4_see_gastos:"Veure despeses ›", v4_see_plan:"Veure pla ›",
+    v4_streak:"{n} mesos sense passar-te", v4_hist_empty:"El teu històric comença avui", v4_see_gastos:"Veure despeses ›", v4_see_plan:"Veure pla ›",
     v4_upcoming:"Pròxims càrrecs", v4_upcoming_empty:"Res pendent aquest mes. Els rebuts surten aquí.",
     v4_your_goals:"Les teves metes", v4_recent:"Últims moviments", v4_recent_empty:"Encara no hi ha moviments. Apunta el primer amb +.",
     v4_all:"Tots ›", v4_plan_title:"El teu pla del mes", v4_plan_recibos:"Rebuts", v4_plan_deudas:"Deutes", v4_plan_metas:"Metes",
@@ -6905,6 +6905,10 @@ function CollapsibleCard({title, sub, dot, defaultOpen, right, children, storage
 
 function Sparkline({data, current}){
   const pts = data.concat(current!=null?[current]:[]);
+  // Con 0 o 1 puntos esto pintaba una recta de lado a lado con su puntito final: parece un grafico
+  // de verdad que dice cero, y es lo primero que ve alguien que acaba de instalar la app. Sin
+  // datos no hay grafico (P1). Quien lo llama reserva el hueco para que no salte el layout.
+  if(pts.length<2) return null;
   const w=320, h=70, pad=4;
   const min=Math.min.apply(null,pts), max=Math.max.apply(null,pts);
   const rng=(max-min)||1;
@@ -7475,7 +7479,11 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
           (tt.delta>=0?"+":"")+eur0(tt.delta)+" "+t("v4_this_month"))
       ),
       React.createElement("div",{style:{marginTop:14}},
-        React.createElement(Sparkline,{data:state.history,current:tt.netWorth}))
+        // Sin al menos dos puntos, `Sparkline` devuelve null (P1). Se reserva el hueco con una
+        // linea discreta para que el hero no pegue un salto en cuanto haya histórico.
+        (state.history&&state.history.length>=1)
+          ? React.createElement(Sparkline,{data:state.history,current:tt.netWorth})
+          : React.createElement("div",{style:{fontSize:12.5,color:"var(--muted-2)",padding:"6px 0 2px"}}, t("v4_hist_empty")))
     ),
 
     state.budget>0 && React.createElement("div",{className:"v4-card rise",style:{animationDelay:".1s",marginTop:8}},

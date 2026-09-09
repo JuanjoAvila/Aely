@@ -175,7 +175,11 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
           (tt.delta>=0?"+":"")+eur0(tt.delta)+" "+t("v4_this_month"))
       ),
       React.createElement("div",{style:{marginTop:14}},
-        React.createElement(Sparkline,{data:state.history,current:tt.netWorth}))
+        // Sin al menos dos puntos, `Sparkline` devuelve null (P1). Se reserva el hueco con una
+        // linea discreta para que el hero no pegue un salto en cuanto haya histórico.
+        (state.history&&state.history.length>=1)
+          ? React.createElement(Sparkline,{data:state.history,current:tt.netWorth})
+          : React.createElement("div",{style:{fontSize:12.5,color:"var(--muted-2)",padding:"6px 0 2px"}}, t("v4_hist_empty")))
     ),
 
     state.budget>0 && React.createElement("div",{className:"v4-card rise",style:{animationDelay:".1s",marginTop:8}},

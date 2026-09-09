@@ -466,6 +466,10 @@ function CollapsibleCard({title, sub, dot, defaultOpen, right, children, storage
 
 function Sparkline({data, current}){
   const pts = data.concat(current!=null?[current]:[]);
+  // Con 0 o 1 puntos esto pintaba una recta de lado a lado con su puntito final: parece un grafico
+  // de verdad que dice cero, y es lo primero que ve alguien que acaba de instalar la app. Sin
+  // datos no hay grafico (P1). Quien lo llama reserva el hueco para que no salte el layout.
+  if(pts.length<2) return null;
   const w=320, h=70, pad=4;
   const min=Math.min.apply(null,pts), max=Math.max.apply(null,pts);
   const rng=(max-min)||1;
