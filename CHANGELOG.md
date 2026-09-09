@@ -2,6 +2,15 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.16] — 2026-09-09
+### El histórico deja de descartar pagos de meses distintos
+
+- `histClassifyCandidates` pasaba TODOS los candidatos por `dedupeHistRecibos`, que compara comercio + importe + banco **sin fecha**. Tres recibos iguales de junio, julio y agosto quedaban como uno: dos meses de pagos reales se pintaban desmarcados como repetidos al importar el histórico.
+- El descarte por lote sale de la clasificación. El extracto del banco manda: si lista tres cargos, hubo tres cargos.
+- La protección que ese guardo decía dar **no existía de verdad**: la pantalla (`runImport`) crea un Fijo por fila marcada, sin agrupar, y las filas descartadas se podían marcar a mano. Ahora `histFijosFromSelection` agrupa por la misma clave y varios «Recibo» equivalentes crean UN solo Fijo — que importa, porque un Fijo se cobra todos los meses para siempre en `monthNetForAccount`.
+- Intactos: duplicado contra lo ya guardado (1:1, con día), coincidencia con Fijos/deudas/puntuales ya modelados, aviso de signo por banco y deshacer la importación.
+- Regresión nueva `tests/hist-pagos-mensuales.test.mjs` (8 casos): 5 rojos antes del arreglo, 8 verdes después. `hist-import-dup` sigue en verde.
+
 ## [4.19.15] — 2026-09-09
 ### Cada cuenta arrastra sus propios gastos al cerrar el mes
 

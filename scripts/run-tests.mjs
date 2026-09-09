@@ -72,6 +72,7 @@ const steps = [
   ["import-hoja", ["node", "tests/import-hoja.test.mjs"]],
   ["import-docx-pdf", ["node", "tests/import-docx-pdf.test.mjs"]],
   ["hist-import-dup", ["node", "tests/hist-import-dup.test.mjs"]],
+  ["hist-pagos-mensuales", ["node", "tests/hist-pagos-mensuales.test.mjs"]],
   ["revo-metales-coste", ["node", "tests/revo-metales-coste.test.mjs"]],
   ["parsers-revolut", ["node", "tests/parsers/revolut.test.mjs"]],
   ["motor-debt", ["node", "tests/motor-debt.test.mjs"]],
@@ -174,9 +175,18 @@ if (plan.deno !== false) {
 if (!failed && plan.playwright !== false && plan.e2e !== "none") {
   console.log("\n── playwright-e2e ──");
   const specs = plan.e2e === "all" || !plan.e2e ? [] : plan.e2e;
-  const pw = spawnSync("npx", ["playwright", "test", "--config=playwright.config.mjs"].concat(specs), {
-    cwd: root, stdio: "inherit", shell: process.platform === "win32",
-  });
+  /* `npx playwright` depende de los wrappers de node_modules/.bin, y en este repo faltan en
+     varias maquinas (Windows incluido): el runner respondia «"playwright" no se reconoce como un
+     comando» y marcaba FAILED sin haber ejecutado un solo e2e. Eso es peor que un rojo: parece
+     que la suite ha corrido y ha fallado. Si esta el CLI del paquete, se llama directo. */
+  const pwCli = path.join(root, "node_modules", "playwright", "cli.js");
+  const pw = fs.existsSync(pwCli)
+    ? spawnSync(process.execPath, [pwCli, "test", "--config=playwright.config.mjs"].concat(specs), {
+        cwd: root, stdio: "inherit",
+      })
+    : spawnSync("npx", ["playwright", "test", "--config=playwright.config.mjs"].concat(specs), {
+        cwd: root, stdio: "inherit", shell: process.platform === "win32",
+      });
   if (pw.status !== 0) {
     failed = true;
     console.error("\nFAILED: playwright-e2e");
