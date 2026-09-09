@@ -57,3 +57,6 @@ test-results/
 # Plan de tests recortados (lo escribe scripts/relevant-tests.mjs en local y en CI)
 relevant-plan.json
 
+# Sobras de medir el bundle: Cursor las genero al comparar tamaños con y sin notas
+# (9/9). Son copias de 1,2 y 1,7 MB del index; se colaron en un merge y las quito.
+.empty-*.html
