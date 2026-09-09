@@ -31,6 +31,8 @@ Antes del fix: dos E2E y la nueva regresión de paridad fallan. Después: pasan.
 categorías, widget-coherente, mapa de pruebas, docs-frescura y privacidad correctos.
 `npm test` local: único fallo reportado `memoria-espejo`, por espejo ajeno desfasado; Deno no
 instalado y omitido. Por ello no se declara suite completa local verde ni se regenera memoria.
+La suite completa en GitHub **sí pasó**, con Deno, E2E y privacidad, para `fc80bf39`:
+[ejecución 34250021090](https://github.com/JuanjoAvila/Mi-Cartera/actions/runs/34250021090).
 
 ## Límites y revisión de Claude
 
@@ -44,6 +46,24 @@ instalado y omitido. Por ello no se declara suite completa local verde ni se reg
   pero NO evita despliegue del servidor compartido, permisos de producción ni pruebas de compatibilidad.
   El upsert que ignora duplicados tampoco actualiza una fila existente. Validar ambos puntos antes
   de presentar esa otra corrección como resuelta por OTA.
+
+### Revisión posterior de la propuesta de Claude (`17169775`)
+
+El sufijo alternativo `ob:trade_republic#dup` sí evita el problema concreto del prefijo:
+el lector antiguo interpreta un banco fuera de la selección y lo excluye del presupuesto.
+Eso no valida el protocolo de escritura. Ejecutando el bloque real de backfill de ese commit
+con datos sintéticos se reprodujeron dos defectos, comunicados a Claude para corregir antes de integrar:
+
+1. A confirma «son distintos» y la nube queda sin marca; B conserva `possibleDup=true`.
+   El pull de B vuelve a enviar `setExpenseDup(e,true)` y deshace la decisión de A. Falta
+   distinguir una fila antigua sin migrar de una decisión explícita resuelta. Probar dos clientes.
+2. La clave débil encuentra la fila remota con UUID A, pero el local conserva UUID B tras
+   `ignoreDuplicates`. El UPDATE recibe B y puede afectar cero filas sin error. Exigir confirmación
+   de la fila afectada e identidad fiable; no sustituirlo por una búsqueda ambigua a ciegas.
+
+El ida y vuelta del serializador no cubre estos casos. Si se aplaza el protocolo, separar el
+backfill inseguro de esta entrega. **Las respuestas tardías de ingest siguen pendientes también
+después de PR #31**; la reactivación nativa no arbitra los dos escritores del widget.
 
 ## Prueba móvil cuando se integre y publique
 

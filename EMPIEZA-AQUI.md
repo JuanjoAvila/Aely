@@ -26,6 +26,8 @@ tus arreglos ya pueden estar hechos, y tu bump de versión le BAJARÍA la versi�
    `git push origin beta` falla con «src refspec beta matches more than one» → usa
    `git push origin refs/heads/beta:refs/heads/beta`. Igual con `git log beta` → `refs/heads/beta`.
    Para cambiar de rama, `git switch beta`; `git checkout refs/heads/beta` desengancha HEAD.
+   **Incidente 2026-09-08:** se fusionó en HEAD separado y `beta` no se movió — el trabajo parecía
+   subido y no lo estaba. Rescatado de la PR #41 al cerrarla (9/9).
    **Cursor trabaja en worktrees propios:** no cambia de rama en el checkout compartido.
 2. **La versión canónica es el fichero `VERSION`**, no `package.json`. Bumpear solo `package.json`
    es un fallo silencioso: el deploy sale verde y el móvil no se entera de nada.
