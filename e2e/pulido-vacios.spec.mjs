@@ -77,3 +77,28 @@ test("con presupuesto e histórico, el hero vuelve a ser el de siempre", async (
   await expect(page.locator("svg.spark")).toHaveCount(1);
   await expect(page.locator(".v4-empty").filter({ hasText: /presupuesto|budget|pressupost/i })).toHaveCount(0);
 });
+
+/* P6 — el anillo del presupuesto se DIBUJA. La transición no animaba el primer pintado, así que
+ * salía ya lleno y la animación de 1 s del spec §10 no se veía nunca. Se monta vacío y pasa al
+ * valor real en el frame siguiente, enganchado al mismo `mc-splash-gone` que el count-up del hero
+ * (si no, se gasta detrás de la cortina de entrada — ya pasó una vez con el número). */
+test("★ P6: el anillo arranca vacío y se llena, no aparece relleno", async ({ page }) => {
+  await inicio(page, { history: [100, 200], budget: 500, expenses: [{ id: "e1", date: "2026-09-09T12:00:00.000Z", amount: 100, merchant: "Super", category: "super" }] });
+  const anillo = page.locator("svg circle").last();
+  await expect(anillo).toHaveAttribute("stroke-dasharray", /\d/);
+  // Ya con el splash fuera, el trazo tiene que haber llegado a su valor final (offset < circunferencia).
+  await expect.poll(async () => {
+    const d = await anillo.getAttribute("stroke-dasharray");
+    const o = await anillo.getAttribute("stroke-dashoffset");
+    return Number(o) < Number(d) - 0.01;
+  }, { timeout: 10_000 }).toBe(true);
+});
+
+test("P6 con reduced-motion: el valor final, directo y sin animar", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await inicio(page, { history: [100, 200], budget: 500, expenses: [{ id: "e1", date: "2026-09-09T12:00:00.000Z", amount: 100, merchant: "Super", category: "super" }] });
+  const anillo = page.locator("svg circle").last();
+  const d = Number(await anillo.getAttribute("stroke-dasharray"));
+  const o = Number(await anillo.getAttribute("stroke-dashoffset"));
+  expect(o).toBeLessThan(d - 0.01);
+});
