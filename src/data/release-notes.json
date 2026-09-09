@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.19.20",
+    "d": "9 sep 2026",
+    "t": {
+      "es": "Teclado y cifras grandes",
+      "en": "Keypad and large figures",
+      "ca": "Teclat i xifres grans"
+    },
+    "tandas": [
+      {
+        "id": "pulido-cierre",
+        "t": {
+          "es": "✨ Acabado del teclado y del hero",
+          "en": "✨ Keypad and hero finish",
+          "ca": "✨ Acabat del teclat i de l'hero"
+        },
+        "items": {
+          "es": [
+            "En el teclado de apuntar, mantener pulsado el borrar limpia de seguido.",
+            "El decimal del teclado sigue el idioma (coma o punto), no una coma fija.",
+            "Si el saldo del hero no cabe (yen, cifras muy largas o negativos), la letra se adapta en vez de cortarse."
+          ],
+          "en": [
+            "On the number pad, holding delete clears continuously.",
+            "The pad decimal follows the language (comma or point), not a fixed comma.",
+            "If the hero balance does not fit (yen, very long figures or negatives), the type shrinks instead of clipping."
+          ],
+          "ca": [
+            "Al teclat d'apuntar, mantenir premut esborrar neteja de seguida.",
+            "El decimal del teclat segueix l'idioma (coma o punt), no una coma fixa.",
+            "Si el saldo de l'hero no hi cap (ien, xifres molt llargues o negatius), la lletra s'adapta en comptes de tallar-se."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "Teclado de apuntar más cómodo y cifras grandes del inicio que ya no se cortan."
+      ],
+      "en": [
+        "A more comfortable number pad, and Home big figures that no longer clip."
+      ],
+      "ca": [
+        "Teclat d'apuntar més còmode i xifres grans d'inici que ja no es tallen."
+      ]
+    }
+  },
+  {
     "v": "4.19.19",
     "d": "9 sep 2026",
     "t": {

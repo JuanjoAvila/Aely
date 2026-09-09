@@ -6,9 +6,8 @@
  * familia veía el título de la versión y NADA debajo. Le pasó a la 4.18.5 — una sola de 90, y no
  * se detectó a ojo sino evaluando la lista entera.
  *
- * Este test evalúa el RELEASE_NOTES de verdad (no lo lee con expresiones regulares: la primera
- * medida que hice así dio 68 falsos positivos porque las versiones viejas ponen `items:[` en la
- * misma línea) y exige que cada versión dé al menos un punto en los tres idiomas.
+ * NOTAS-BUNDLE (2026-09-09): el histórico vive en src/data/release-notes.json. Aquí se lee ese
+ * JSON (la misma fuente que sirve el build) y se usa la `rnItems` DE VERDAD del módulo.
  */
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -17,18 +16,7 @@ import assert from "node:assert/strict";
 
 const root = join(dirname(dirname(fileURLToPath(import.meta.url))), "");
 const src = readFileSync(join(root, "src/modules/10-app-components.js"), "utf8");
-
-/* Recorta el literal del array y lo evalúa: es la MISMA fuente que se sirve, no una copia. */
-const decl = src.search(/(?:const|var)\s+RELEASE_NOTES\s*=\s*\[/);
-assert.ok(decl >= 0, "no se encuentra RELEASE_NOTES en 10-app-components.js");
-const from = src.indexOf("[", decl);
-let hondura = 0, fin = -1;
-for (let i = from; i < src.length; i++) {
-  if (src[i] === "[") hondura++;
-  else if (src[i] === "]" && --hondura === 0) { fin = i + 1; break; }
-}
-assert.ok(fin > from, "no se encuentra el cierre del array RELEASE_NOTES");
-const NOTAS = eval(src.slice(from, fin));
+const NOTAS = JSON.parse(readFileSync(join(root, "src/data/release-notes.json"), "utf8"));
 
 /* La rnItems DE VERDAD, sacada de la fuente. Reescribirla aquí sería un test que se queda verde
    aunque alguien rompa el renderizador: comprobaría mi copia, no la app. */

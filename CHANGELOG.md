@@ -2,6 +2,15 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.20] — 2026-09-09
+### Cierre del pulido: P9/P10/P14 + guardianes del histórico
+
+- **P9** mantener pulsado el borrar del NumPad limpia en ráfaga.
+- **P10** el separador decimal del teclado sale de `toLocaleString` del idioma activo, no de una coma fija.
+- **P14 (opción C)**: el hero usa `clamp` + `overflow:hidden` + `text-overflow:ellipsis` cuando la cifra no cabe (yen, negativos, números muy largos). En euros grandes no se nota; el caso que sí se rompía era el de moneda de visualización.
+- Guardianes tras NOTAS-BUNDLE: `novedades-vinnetas` lee `src/data/release-notes.json` (el módulo deja `RELEASE_NOTES=[]`); `season-detalle` comprueba `4.13.0.tandas:[]` en el JSON en vez del comentario `QUITADA` que vivía dentro del literal.
+- Espejo `docs/memoria/` al día (`npm run memoria`).
+
 ## [4.19.19] — 2026-09-09
 ### Pulido v4, P6–P13
 
@@ -11,7 +20,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y ver
 - **P11** `focus-visible` en chips, teclas, CTAs, segmentos y filas de ajustes, no solo en la nav.
 - **P12** degradado por la derecha y `scrollbar-width:none` en los carruseles.
 - **P13** `opsz` de la Fraunces y `text-wrap:pretty` en las frases humanas.
-- **P14 NO se aplica**: el hecho del brief es cierto (el hero va a 56 px fijo y sin protección) pero la consecuencia no se reproduce — a 360×667, «192.148,45 €» ocupa 248 px de 324, y con siete cifras 294. El `clamp` propuesto bajaría el hero a 48,6 px en un móvil de 360: más pequeño para arreglar algo que no pasa. Pendiente de su decisión.
+- **P14** quedó pendiente en esta entrada (en euros no se reproducía el recorte); se cerró en **4.19.20** con la opción C del equipo.
 - **NOTAS-BUNDLE**: el histórico de `RELEASE_NOTES` sale de `10-app-components.js` a `src/data/release-notes.json` (108 versiones). El build copia a `public/release-notes.json` y el index ya no arrastra el literal. `ensureReleaseNotes()` lo carga al montar (Novedades + panel de beta). `RELEASE_NOTES_MAX` vuelve a ser solo «cuántas enseña Novedades de entrada»: bajarlo no puede vaciarle la checklist. Medido: gzip **318 KB** / 330 (antes 330 clavado). `revisar-beta` 21/21 y la ronda tip→prod conserva las tandas (incluidas ventana-mes, tr-reactivo, id-fila…).
 
 ## [4.19.18] — 2026-09-09
