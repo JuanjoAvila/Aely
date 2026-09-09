@@ -1,9 +1,29 @@
 /**
- * Tope de RELEASE_NOTES en el bundle (2026-09-07).
- * Fuente puede crecer; el build deja solo las N primeras (más nuevas).
- * CHANGELOG.md guarda el histórico entero.
+ * RELEASE_NOTES: fuente en src/data/release-notes.json.
+ * El histórico NO viaja en el JS del OTA (NOTAS-BUNDLE, 2026-09-09).
+ * RELEASE_NOTES_MAX = cuántas enseña Novedades de entrada (NO recorta el panel de beta).
  */
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 export const RELEASE_NOTES_MAX_ESPERADO = 20;
+/** Cuántas versiones «hacia atrás» con tandas se consideran ronda viva al empaquetar tests. */
+export const RELEASE_NOTES_BETA_DEPTH = 25;
+
+const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+
+export function releaseNotesJsonPath() {
+  return path.join(root, "src", "data", "release-notes.json");
+}
+
+export function leerReleaseNotesJson() {
+  const p = releaseNotesJsonPath();
+  if (!fs.existsSync(p)) throw new Error("falta src/data/release-notes.json");
+  const notes = JSON.parse(fs.readFileSync(p, "utf8"));
+  if (!Array.isArray(notes) || !notes.length) throw new Error("release-notes.json vacío");
+  return notes;
+}
 
 /** Parsea `var RELEASE_NOTES_MAX=N` del JS ensamblado. */
 export function leerReleaseNotesMax(js) {
@@ -65,10 +85,51 @@ export function partirObjetosTop(inner) {
   return objs;
 }
 
+export function contarReleaseNotesEnJs(js) {
+  const lit = extraerLiteralReleaseNotes(js);
+  return partirObjetosTop(js.slice(lit.innerFrom, lit.innerTo)).length;
+}
+
 /**
- * Reescribe el JS dejando solo las `max` primeras entradas del array RELEASE_NOTES.
- * Así el bundle no arrastra el histórico entero (el slice en runtime NO basta: el literal sigue).
+ * Slim solo-castellano para el panel de beta (va sin traducir).
+ * WhatsNew pide el JSON completo al abrir.
  */
+export function slimNoteForBeta(n) {
+  const tEs = typeof n.t === "string" ? n.t : (n.t && n.t.es) || "";
+  const o = { v: n.v, d: n.d, t: tEs };
+  if (n.tandas) {
+    o.tandas = n.tandas.map(function (g) {
+      return {
+        id: g.id,
+        t: typeof g.t === "string" ? g.t : (g.t && g.t.es) || "",
+        items: Array.isArray(g.items) ? g.items : (g.items && g.items.es) || [],
+      };
+    });
+  } else if (n.items) {
+    o.items = Array.isArray(n.items) ? n.items : (n.items.es || []);
+  }
+  return o;
+}
+
+/**
+ * Lo que VIAJA en el index: NADA del histórico.
+ * Medido 2026-09-09: ni el slim de la ronda 4.19.x cabía bajo 320 KB gzip.
+ * public/release-notes.json lleva las 100+ versiones; ensureReleaseNotes() lo carga.
+ * max / betaDepth se conservan por si un día el presupuesto da aire y se reinyecta slim.
+ */
+export function packReleaseNotesForBundle(all, _max, _betaDepth) {
+  void all; void _max; void _betaDepth;
+  return [];
+}
+
+/** Inyecta el array empaquetado en el JS ensamblado (sustituye `var RELEASE_NOTES=…`). */
+export function inyectarReleaseNotesEnJs(js, notes) {
+  const lit = extraerLiteralReleaseNotes(js);
+  const nuevo = "var RELEASE_NOTES=" + JSON.stringify(notes);
+  return js.slice(0, lit.from) + nuevo + js.slice(lit.to);
+}
+
+/** @deprecated El histórico ya no se trunca: se empaqueta desde JSON. Se mantiene por tests viejos. */
 export function truncarReleaseNotesEnJs(js, max) {
   if (!(max > 0)) throw new Error("max inválido");
   const lit = extraerLiteralReleaseNotes(js);
@@ -78,10 +139,4 @@ export function truncarReleaseNotesEnJs(js, max) {
   const kept = objs.slice(0, max).join(",\n");
   const nuevo = "var RELEASE_NOTES=[\n" + kept + "\n]";
   return js.slice(0, lit.from) + nuevo + js.slice(lit.to);
-}
-
-/** Cuenta entradas {v:…} de primer nivel en el literal. */
-export function contarReleaseNotesEnJs(js) {
-  const lit = extraerLiteralReleaseNotes(js);
-  return partirObjetosTop(js.slice(lit.innerFrom, lit.innerTo)).length;
 }

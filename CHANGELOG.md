@@ -12,7 +12,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y ver
 - **P12** degradado por la derecha y `scrollbar-width:none` en los carruseles.
 - **P13** `opsz` de la Fraunces y `text-wrap:pretty` en las frases humanas.
 - **P14 NO se aplica**: el hecho del brief es cierto (el hero va a 56 px fijo y sin protección) pero la consecuencia no se reproduce — a 360×667, «192.148,45 €» ocupa 248 px de 324, y con siete cifras 294. El `clamp` propuesto bajaría el hero a 48,6 px en un móvil de 360: más pequeño para arreglar algo que no pasa. Pendiente de su decisión.
-- **Aviso**: con esta versión el bundle llega al tope (gzip 330 de 330). El recorte de verdad va aparte (encargo NOTAS-BUNDLE): las notas son 158 KB de los 348 KB de `10-app-components.js`. Bajar `RELEASE_NOTES_MAX` NO vale — se comprobó que le vacía tandas del panel de beta.
+- **NOTAS-BUNDLE**: el histórico de `RELEASE_NOTES` sale de `10-app-components.js` a `src/data/release-notes.json` (108 versiones). El build copia a `public/release-notes.json` y el index ya no arrastra el literal. `ensureReleaseNotes()` lo carga al montar (Novedades + panel de beta). `RELEASE_NOTES_MAX` vuelve a ser solo «cuántas enseña Novedades de entrada»: bajarlo no puede vaciarle la checklist. Medido: gzip **318 KB** / 330 (antes 330 clavado). `revisar-beta` 21/21 y la ronda tip→prod conserva las tandas (incluidas ventana-mes, tr-reactivo, id-fila…).
 
 ## [4.19.18] — 2026-09-09
 ### Pulido v4, P1–P5: el primer minuto de alguien recién llegado

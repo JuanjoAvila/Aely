@@ -1761,6 +1761,13 @@ function App(){
   // silencioso tras el onboarding), ni encima del login/candado/tour.
   const [whatsNew,setWhatsNew]=useState(false);
   const newsTimer=useRef(null); const newsDone=useRef(false);
+  // NOTAS-BUNDLE: el index ya no lleva el histórico; se pide en cuanto la app está usable
+  // para que el panel de beta y Novedades no salgan vacíos el primer frame.
+  const [,setRnTick]=useState(0);
+  useEffect(function(){
+    if(typeof ensureReleaseNotes!=="function") return;
+    ensureReleaseNotes().then(function(){ setRnTick(function(n){ return n+1; }); });
+  },[]);
   useEffect(function(){
     if(newsDone.current) return;
     // Espera a que la app esté lista (no encima del onboarding/candado/login/tour).

@@ -103,5 +103,14 @@ export function loadPureLogic(html) {
 
 export function loadPureLogicFromFile() {
   const html = fs.readFileSync(path.join(root, "public", "index.html"), "utf8");
-  return loadPureLogic(html);
+  const sandbox = loadPureLogic(html);
+  // NOTAS-BUNDLE: el index ya no lleva el histórico; los tests / `npm run listo` lo leen del JSON.
+  try {
+    const notesPath = path.join(root, "src", "data", "release-notes.json");
+    if (fs.existsSync(notesPath)) {
+      const notes = JSON.parse(fs.readFileSync(notesPath, "utf8"));
+      if (Array.isArray(notes) && notes.length) sandbox.RELEASE_NOTES = notes;
+    }
+  } catch (e) { /* sin JSON: se queda lo que inyectó el build */ }
+  return sandbox;
 }

@@ -7,6 +7,7 @@ const VERSION = "4.13.0-2026-08-01-5e5e115";
 const CACHE = "micartera-" + VERSION;
 const SHELL = [
   "./", "./index.html", "./manifest.json",
+  "./release-notes.json",
   "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png",
   "./vendor/supabase.min.js",
   "./fonts/manrope-latin.woff2", "./fonts/manrope-latin-ext.woff2",

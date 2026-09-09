@@ -2,11 +2,22 @@
 /**
  * Ensambla public/index.html desde src/shell.html + src/modules/*.js
  * Fuente editable: src/modules/ (no public/index.html directamente).
+ *
+ * RELEASE_NOTES (NOTAS-BUNDLE, 2026-09-09): el histórico vive en
+ * src/data/release-notes.json → public/release-notes.json. El index solo lleva un
+ * array vacío (o un slim de beta si cupiera); la app pide el JSON al abrir Novedades
+ * y al montar el panel de beta. Así bajar RELEASE_NOTES_MAX no le vacía la checklist.
  */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { leerReleaseNotesMax, truncarReleaseNotesEnJs, contarReleaseNotesEnJs } from "./release-notes-max.mjs";
+import {
+  leerReleaseNotesMax,
+  leerReleaseNotesJson,
+  inyectarReleaseNotesEnJs,
+  packReleaseNotesForBundle,
+  contarReleaseNotesEnJs,
+} from "./release-notes-max.mjs";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const order = JSON.parse(fs.readFileSync(path.join(root, "src", "build-order.json"), "utf8"));
@@ -29,17 +40,18 @@ if (dsn) {
   js = js.replace(/SENTRY_DSN:\s*""/, `SENTRY_DSN: ${JSON.stringify(dsn)}`);
 }
 
-/* El histórico de RELEASE_NOTES vive entero en la fuente (y en CHANGELOG.md), pero el
-   bundle solo lleva las N más nuevas: si no, cada versión engorda la descarga para siempre
-   (medido 2026-09-07: ~128 KB / ~41 KB gzip = ~12 % de lo que baja el móvil). El slice en
-   runtime no basta — el literal seguiría en el HTML. */
+const allNotes = leerReleaseNotesJson();
 const rnMax = leerReleaseNotesMax(js);
-const rnAntes = contarReleaseNotesEnJs(js);
-js = truncarReleaseNotesEnJs(js, rnMax);
-const rnDespues = contarReleaseNotesEnJs(js);
-if (rnAntes > rnMax) {
-  console.log(`  · RELEASE_NOTES: ${rnAntes} → ${rnDespues} (tope ${rnMax})`);
-}
+/* El pack del index va VACÍO a propósito: con la ronda 4.19.x entera en slim el gzip
+   seguía a 322 KB (>320). El histórico completo baja aparte (release-notes.json) y la
+   app lo carga al montar. RELEASE_NOTES_MAX solo limita la UI de Novedades. */
+const packed = packReleaseNotesForBundle(allNotes, rnMax);
+js = inyectarReleaseNotesEnJs(js, packed);
+console.log(`  · RELEASE_NOTES: ${allNotes.length} en JSON · ${contarReleaseNotesEnJs(js)} en index (max UI ${rnMax})`);
+
+const pubNotes = path.join(root, "public", "release-notes.json");
+fs.writeFileSync(pubNotes, JSON.stringify(allNotes));
+console.log(`  · public/release-notes.json (${(fs.statSync(pubNotes).size / 1024).toFixed(0)} KB, ${allNotes.length} versiones)`);
 
 let shell = fs.readFileSync(path.join(root, "src", "shell.html"), "utf8");
 const MARK = "<!--MC_APP_SCRIPT-->";
@@ -47,7 +59,6 @@ if (!shell.includes(MARK)) {
   console.error("shell.html sin marcador <!--MC_APP_SCRIPT-->");
   process.exit(1);
 }
-// OJO: String.replace con string de reemplazo interpreta $' y $& — el JS tiene indexOf('$') y rompe el HTML.
 const parts = shell.split(MARK);
 if (parts.length !== 2) {
   console.error("marcador MC_APP_SCRIPT debe aparecer exactamente una vez");

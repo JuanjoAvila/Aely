@@ -10,8 +10,8 @@
  * mismo texto español para inglés y catalán. Pasaba con la 4.18.5 y era la única del bundle.
  *
  * No comprueba que la traducción sea BUENA —eso no lo puede saber un test— sino que exista y no
- * sea el castellano copiado. Y mira solo las versiones que VIAJAN en el bundle (tope de 20): el
- * histórico entero vive en CHANGELOG.md y no lo lee nadie desde el móvil.
+ * sea el castellano copiado. Mira las N más nuevas del JSON (RELEASE_NOTES_MAX): el resto del
+ * histórico también viaja en release-notes.json y se pide al abrir Novedades.
  */
 import assert from "node:assert/strict";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
