@@ -702,6 +702,13 @@
     color:var(--muted-2);font-size:11px;font-weight:700;transition:color .2s;padding:0;background:none;border:none;}
   .botnav-tab.active{color:var(--mint);}
   .botnav-tab:focus-visible{outline:2px solid var(--mint);outline-offset:2px;border-radius:10px;}
+  /* P11 — el foco de teclado solo existia en la barra de abajo y en un toggle del panel de beta.
+     El spec §11 lo pide en todo lo que se puede pulsar: sin esto, alguien que navegue con teclado
+     (o con un mando/teclado bluetooth, que es como se prueba la accesibilidad) no ve donde esta.
+     Un solo bloque, mismo color y grosor que la nav, cero JS. */
+  .v4-chip:focus-visible, .v4-keys button:focus-visible, .v4-cta:focus-visible,
+  .v4-seg-btn:focus-visible, .v4-link-mini:focus-visible, .v4-legend-btn:focus-visible,
+  .profile-row:focus-visible, .set-row:focus-visible{outline:2px solid var(--mint);outline-offset:2px;}
   .botnav-fab-slot{flex:1;display:flex;justify-content:center;}
   .botnav-fab{width:58px;height:58px;border-radius:50%;margin-top:-26px;border:none;cursor:pointer;
     background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);
