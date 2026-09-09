@@ -24,7 +24,24 @@ clave. Entra uno; los otros dos quedan `dup` con motivo `recibo-lote` y la UI lo
 desmarcados (`10-app-components.js:532`, en verde menta). Son **tres pagos reales de tres meses
 distintos**: el usuario importa su histórico y se le quedan fuera dos meses sin que nada avise.
 
-## Por qué el guardo ya no protege lo que protegía
+## ⚠ CORRECCIÓN (9/9, al implementarlo): el guardo SÍ protegía algo
+
+La primera versión de este brief decía que el guardo «ya no protege ningún Fijo» porque
+`histBuildCommit` devuelve `fixAdds:[]`. **Era falso, y quitarlo a secas habría sido el peor
+arreglo posible.** La pantalla NO usa `histBuildCommit`: `runImport`
+(`10-app-components.js`) crea **un Fijo por fila marcada**, sin agrupar. Tres meses marcados
+como «Recibo» = tres Fijos idénticos cobrándose todos los meses para siempre.
+
+Y hay una segunda mitad, peor: **esa garantía tampoco existía hoy.** Las filas descartadas por
+`recibo-lote` salen desmarcadas, pero se pueden marcar a mano (`toggle`), así que cualquiera
+podía crear los tres Fijos ya mismo. O sea que el guardo perdía pagos reales *y* no cumplía lo
+que prometía.
+
+Por eso el arreglo son **dos cambios que viajan juntos**: quitar el descarte por lote de la
+clasificación **y** agrupar los «Recibo» equivalentes en `histFijosFromSelection`.
+
+## Lo que el guardo protegía, y sigue haciendo falta
+
 
 El comentario de `:800` explica su origen: con destino por defecto «Recibo», aceptar todo creaba
 tres Fijos idénticos, y un Fijo se cobra **todos los meses para siempre** en `monthNetForAccount`.
