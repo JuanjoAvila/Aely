@@ -647,9 +647,9 @@ const cloud = (function(){
     /* Borrado SOLO por id (uuid). Camino del undo del histórico: nunca por terna.
        No sustituye a deleteExpense (gastos viejos sin uuid siguen el fallback de atributos). */
     async deleteExpensesByIds(ids){
-      if(!sb) return;
+      if(!sb) throw new Error("cloud unavailable");
       const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
+      if(!session) throw new Error("session unavailable");
       const uuids=(ids||[]).filter(isExpenseUuid);
       if(!uuids.length) return;
       const {error}=await sb.from('expenses').delete().eq('user_id', session.user.id).in('id', uuids);

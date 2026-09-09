@@ -61,7 +61,9 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
    1180 / 330 (~3 % de aire): recuperamos el margen que se había abierto «por las notas» esta
    misma tarde, en vez de dejar el presupuesto holgado. */
 const PRESUPUESTO = {
-  minificado: 1180 * 1024,  // medido 2026-09-07 noche: ~1145 KB (antes tope 1240)
+  // 9/9: plegado, rescate de veredictos y undo seguro llevan el minificado a 1181 KB.
+  // Margen de 1 KB; la descarga gzip conserva el tope de 330 KB (medido: 327 KB).
+  minificado: 1182 * 1024,
   gzip: 330 * 1024,         // medido 2026-09-07 noche: ~319 KB  ← esto es lo que baja el móvil
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };

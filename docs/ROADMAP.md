@@ -1,6 +1,9 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-09 · **v4.19.13** — un limite por categoria en Gastos.
+> Estado a 2026-09-09 · **v4.19.14** — revisión plegable y deshacer sin restaurar estado antiguo.
+> Auditoría: [hallazgos y límites](briefs/AUDITORIA-CODEX-2026-09-09.md). Efectivo sigue bloqueado por el cierre mensual; no promover la ronda completa.
+> En Ajustes → Revisar esta beta se pliegan las tandas desde su cabecera, automáticamente tras aprobar.
+> Anterior: **4.19.13** — un límite por categoría en Gastos.
 > Anterior: **4.19.12** — el resumen del mes cerrado, en Inicio.
 > Anterior: **4.19.11** — import historico cerrado del todo (tanda 4: puertas y avisos).
 > Anterior: **4.19.10** — efectivo como una cuenta mas (tanda 6).
@@ -114,7 +117,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.19.13** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.14** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

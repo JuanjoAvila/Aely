@@ -2,6 +2,16 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.14] — 2026-09-09
+### Revisión plegable y auditoría de la ronda
+
+- Cabeceras accesibles para plegar cada tanda sin cambiar marcas, notas ni veredictos. Aprobar la pliega automáticamente; se puede desplegar y cambiar de opinión.
+- Recuperación de aprobaciones entre compilaciones por id de tanda, siempre que todos los textos sigan marcados. Al responder Pages se recupera también el progreso de las tandas antiguas: el estado inicial solo conocía la última versión.
+- `BankHistoryImport` deshacía sobre el `state` capturado antes de la confirmación. Reproducido en navegador: presupuesto actualizado de 100 a 777 volvía a 100, perdiendo también un gasto ajeno. Ahora calcula sobre el estado del updater.
+- El reintento del borrado se guarda antes de pedirlo a la nube, sobrevive al cierre y solo se limpia tras éxito. Un pull durante el borrado no resucita filas confirmadas como borradas; la respuesta tampoco pisa una importación posterior.
+- `deleteExpensesByIds` rechaza si falta cliente o sesión: resolver sin borrar provocaba un falso éxito. Regresión ejecutada en rojo y verde.
+- Auditoría y pendientes en `docs/briefs/AUDITORIA-CODEX-2026-09-09.md`. OTA, sin APK ni despliegue de Supabase. Producción sigue pendiente de aprobación.
+
 ## [4.19.13] — 2026-09-09
 ### Un límite por categoría (idea 5.2, la que su pareja usaría seguro)
 

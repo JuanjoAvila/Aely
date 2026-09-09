@@ -459,6 +459,29 @@ test("panel: ronda multi-versión pinta tandas, marks por índice y aprobar una 
   expect(reports).toHaveLength(1);
   expect(reports[0].tanda).toBe("9.9.2/nueva");
   expect(reports[0].verdict).toBe("approved");
+  // Aprobar encoge solo esa tanda; abrir/cerrar no cambia sus marcas ni manda otro parte.
+  const toggle = tandas.nth(0).locator(".beta-tanda-toggle");
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(tandas.nth(0).locator(".beta-item").first()).toBeHidden();
+  await toggle.click();
+  await expect(tandas.nth(0).locator(".beta-item").first()).toBeVisible();
+  await toggle.click();
+  expect(await page.evaluate(() => window.__betaReports.length)).toBe(1);
+  // Recargar el panel conserva la aprobación y el plegado automático.
+  await page.evaluate(() => {
+    document.querySelector(".beta-review").remove();
+    CONFIG.APP_VERSION = "9.9.2.8";
+  });
+  const again = await conProduccionEn(page, "9.9.0");
+  const first = again.locator(".beta-tanda").first();
+  await expect(first.locator(".beta-tanda-toggle")).toHaveAttribute("aria-expanded", "false");
+  await first.locator(".beta-tanda-toggle").click();
+  await first.getByRole("button", { name:/Cambiar de opinión/ }).click();
+  await expect(first.getByRole("button", { name:/Aprobar esta tanda/ })).toBeEnabled();
+  await expect(again.locator(".beta-tanda").nth(1).getByRole("button", { name:/Aprobar esta tanda/ })).toBeDisabled();
+  await page.evaluate(() => { document.querySelector(".beta-review").remove(); CONFIG.APP_VERSION="9.9.2.9"; });
+  const changed = await conProduccionEn(page,"9.9.0");
+  await expect(changed.locator(".beta-tanda").first().getByRole("button", {name:/Aprobar esta tanda/})).toBeEnabled();
 });
 
 /** Siembra dos tandas de mentira en la entrada de RELEASE_NOTES que resuelve la versión en curso.

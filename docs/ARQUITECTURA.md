@@ -1,5 +1,10 @@
 # Arquitectura — Mi Cartera
 
+Deshacer histórico (4.19.14): calcula sobre el estado actual del updater, conserva el lote con
+`cloudPending` antes del DELETE y solo limpia ese lote tras confirmación. La ausencia de sesión
+es un error recuperable, nunca un borrado exitoso. Un pull concurrente no puede resucitar los ids
+que acaba de confirmar el DELETE; el resto del estado permanece intacto.
+
 ## Principios de diseño
 
 ### 1. Sin JSX/Babel en el navegador

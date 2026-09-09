@@ -398,6 +398,10 @@
   .beta-tanda{margin:0 0 22px;padding-top:2px;}
   .beta-tanda+.beta-tanda{border-top:1px solid var(--line-soft);padding-top:18px;}
   .beta-tanda-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 2px 10px;}
+  .beta-tanda-toggle{width:100%;margin-left:0;margin-right:0;padding:10px 2px;background:none;border:0;color:inherit;text-align:left;cursor:pointer;flex-wrap:wrap;}
+  .beta-tanda-toggle:focus-visible{outline:2px solid var(--mint);outline-offset:2px;border-radius:8px;}
+  .beta-tanda-toggle .beta-tanda-t{flex:1;min-width:150px;}
+  .beta-tanda-fold{font-size:12px;color:var(--muted);}
   .beta-tanda-t{font-family:'Fraunces',Georgia,serif;font-size:17px;font-weight:560;line-height:1.25;}
   .beta-tanda-n{flex:0 0 auto;font-size:11.5px;font-weight:800;color:var(--muted-2);background:var(--surface-2);
     border-radius:20px;padding:4px 10px;white-space:nowrap;}
@@ -2470,9 +2474,9 @@ const cloud = (function(){
     /* Borrado SOLO por id (uuid). Camino del undo del histórico: nunca por terna.
        No sustituye a deleteExpense (gastos viejos sin uuid siguen el fallback de atributos). */
     async deleteExpensesByIds(ids){
-      if(!sb) return;
+      if(!sb) throw new Error("cloud unavailable");
       const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
+      if(!session) throw new Error("session unavailable");
       const uuids=(ids||[]).filter(isExpenseUuid);
       if(!uuids.length) return;
       const {error}=await sb.from('expenses').delete().eq('user_id', session.user.id).in('id', uuids);
@@ -3399,6 +3403,7 @@ let CURLANG = "es";
 const LANGS = [["es","Español"],["en","English"],["ca","Català"]];
 const LANG = {
   es:{
+    beta_group:"Revisión", beta_collapse:"Encoger", beta_expand:"Desplegar",
     tab_dash:"Inicio", tab_gastos:"Gastos", tab_plan:"Plan", tab_cartera:"Cartera", tab_fijos:"Fijos", tab_inv:"Inversiones", tab_patri:"Patrimonio", tab_debt:"Deudas", tab_compartido:"Compartido",
     tab_metas:"Metas", tab_logros:"Logros",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
@@ -3561,6 +3566,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Dólar canadiense", cur_aud:"A$ Dólar australiano", cur_cny:"¥ Yuan", cur_mxn:"$ Peso mexicano", cur_sek:"kr Corona sueca", cur_nok:"kr Corona noruega", cur_dkk:"kr Corona danesa", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupia", cur_try:"₺ Lira turca",
   },
   en:{
+    beta_group:"Review", beta_collapse:"Collapse", beta_expand:"Expand",
     tab_dash:"Home", tab_gastos:"Spending", tab_plan:"Plan", tab_cartera:"Portfolio", tab_fijos:"Fixed", tab_inv:"Investments", tab_patri:"Net worth", tab_debt:"Debts", tab_compartido:"Shared",
     tab_metas:"Goals", tab_logros:"Achievements",
     v4_hola:"Hi, {n}", v4_hola_anon:"Hi",
@@ -3710,6 +3716,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Canadian dollar", cur_aud:"A$ Australian dollar", cur_cny:"¥ Yuan", cur_mxn:"$ Mexican peso", cur_sek:"kr Swedish krona", cur_nok:"kr Norwegian krone", cur_dkk:"kr Danish krone", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupee", cur_try:"₺ Turkish lira",
   },
   ca:{
+    beta_group:"Revisió", beta_collapse:"Plegar", beta_expand:"Desplegar",
     tab_dash:"Inici", tab_gastos:"Despeses", tab_plan:"Pla", tab_cartera:"Cartera", tab_fijos:"Fixes", tab_inv:"Inversions", tab_patri:"Patrimoni", tab_debt:"Deutes", tab_compartido:"Compartit",
     tab_metas:"Metes", tab_logros:"Assoliments",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
@@ -14216,12 +14223,14 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
     askConfirm({ title:t("bp_hist_undo_title"), sub:t("bp_hist_undo_sub"), ok:t("bp_hist_undo_ok"), danger:true })
       .then(function(yes){
         if(!yes) return;
-        const r=histUndoBatch(state, last);
-        if(!r||!r.ok){ showToast("⚠ "+t("bp_hist_undo_empty")); return; }
+        const ids=(last.cloudIds||[]).slice();
+        // Confirmar puede tardar: un pull o una notificación ya habrán cambiado el estado.
+        // Guardar el reintento ANTES de la red permite recuperarlo incluso si Android nos mata.
         set(function(s){
-          return Object.assign({}, r.nextState, { lastHistImport:null });
+          const r=histUndoBatch(s,last);
+          return Object.assign({}, r.nextState, { lastHistImport:s.lastHistImport&&s.lastHistImport.batchId===last.batchId
+            ? (ids.length?Object.assign({},last,{cloudPending:true}):null) : s.lastHistImport });
         });
-        const ids=(r.cloudDeleteById||[]).slice();
         if(!ids.length){
           if((last.localIds||[]).length) showToast("⚠ "+t("bp_hist_undo_local_only"));
           else showToast(t("bp_hist_undo_done"));
@@ -14233,17 +14242,18 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
            nube las haya borrado de verdad: si el DELETE fallaba, el siguiente pull se las
            devolvía y él veía reaparecer lo que acababa de deshacer, con un ✓ en la pantalla.
            Decirle «si vuelve, avísame» es pasarle a él un defecto nuestro. */
-        if(!cloud.deleteExpensesByIds){ showToast("⚠ "+t("bp_hist_undo_local_only")); return; }
-        Promise.resolve(cloud.deleteExpensesByIds(ids))
-          .then(function(){ showToast(t("bp_hist_undo_done")); })
+        if(!cloud.deleteExpensesByIds){ showToast("⚠ "+t("bp_hist_undo_cloud_fail")); return; }
+        Promise.resolve().then(function(){ return cloud.deleteExpensesByIds(ids); })
+          .then(function(){
+            set(function(s){
+              // Un pull durante el DELETE puede haber devuelto las filas: quitar solo esos ids.
+              const r=histUndoBatch(s,last);
+              return Object.assign({},r.nextState,{lastHistImport:s.lastHistImport&&s.lastHistImport.batchId===last.batchId?null:s.lastHistImport});
+            });
+            showToast(t("bp_hist_undo_done"));
+          })
           .catch(function(){
-            /* Y si la nube falla hay que DEVOLVERLE el botón (review de Cursor, 8/9): el `set` de
-               arriba ya dejó `lastHistImport` a null, así que el aviso le decía «vuelve a
-               deshacer» con el botón ya desaparecido de la pantalla. Un mensaje que pide algo
-               imposible es peor que no avisar. Se restaura el lote CON cloudPending —lo local ya
-               está quitado— para que histCanUndo siga en true aunque no queden filas del batch
-               (si no, el boton desaparecía otra vez: choque L vs reintento, Claude 8/9). */
-            set(function(s){ return Object.assign({}, s, { lastHistImport:Object.assign({}, last, {cloudPending:true}) }); });
+            // El lote sigue guardado con cloudPending; no pisar una importación posterior.
             showToast("⚠ "+t("bp_hist_undo_cloud_fail"));
           });
       });
@@ -14805,6 +14815,31 @@ function betaMarksCount(pack){
   });
   return { n:n, tot:pack.items.length };
 }
+function betaSavedVerdicts(pack, storeKey){
+  const sent={};
+  const marks=store.get("_betaReviewOk")||{};
+  // Recuperar el último parte por tanda entre compilaciones. Solo heredar una aprobación
+  // si TODOS sus textos siguen marcados: cambiar el guion exige una revisión nueva.
+  const keys=[];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(/^_betaReview_\d+(?:\.\d+){2,3}_v$/.test(k)) keys.push(k);
+    }
+  }catch(e){}
+  keys.sort(function(a,b){ return mcIsNewer(a.slice(12,-2),b.slice(12,-2))?1:mcIsNewer(b.slice(12,-2),a.slice(12,-2))?-1:0; });
+  keys.forEach(function(k){
+    const old=store.get(k)||{};
+    (pack.tandas||[]).forEach(function(g){
+      const id=g.id.indexOf("/")>=0?g.id:pack.v+"/"+g.id;
+      if(Object.prototype.hasOwnProperty.call(old,id)) sent[g.id]=old[id];
+    });
+  });
+  (pack.tandas||[]).forEach(function(g){
+    if(sent[g.id]!=="approved" || !g.items.length || !g.items.every(function(it){ return marks[it]==="ok"||marks[it]==="na"; })) delete sent[g.id];
+  });
+  return Object.assign(sent,store.get(storeKey+"_v")||{});
+}
 /* Versión que sirve Pages AHORA (cruda). `null` mientras pregunta o si falla la red.
    Sacada de `useYaEnProd` para que el panel de beta pueda armar la ronda entera (2026-09-07). */
 function useProdVersion(){
@@ -14920,7 +14955,16 @@ function BetaReviewPanel({onClose, showToast}){
   const [busy,setBusy]=useState(false);
   // Veredicto POR TANDA: {idTanda: "approved"|"rejected"}. Antes era uno solo para toda la beta,
   // y con varias cosas en vuelo eso obliga a esperar a la más lenta para subir la más rápida.
-  const [sent,setSent]=useState(function(){ return store.get(storeKey+"_v") || {}; });
+  const [sent,setSent]=useState(function(){ return betaSavedVerdicts(pack,storeKey); });
+  // Lo aprobado ocupa solo su cabecera; abrirlo para consultar nunca cambia el veredicto.
+  const [expanded,setExpanded]=useState({});
+  // Pages responde después de montar el panel. Al llegar las tandas antiguas, recuperar
+  // también sus marcas y partes; el primer useState solo conocía la versión más reciente.
+  useEffect(function(){
+    setMarks(Object.assign(heredarOk(),store.get(storeKey)||{}));
+    setNotes(Object.assign(heredarNotas(),store.get(storeKey+"_n")||{}));
+    setSent(betaSavedVerdicts(pack,storeKey));
+  },[JSON.stringify(pack.tandas)]);
   // Cuántos venían ya marcados de compilaciones anteriores, para decírselo en vez de que parezca
   // que el panel se ha inventado unos ✓ que él no ha puesto en esta ronda.
   // Se separan los ✓/«no probable» de los ✗: el aviso de arriba no puede decir «los diste por
@@ -15024,6 +15068,7 @@ function BetaReviewPanel({onClose, showToast}){
           store.set(storeKey+"_v",n);   // sobrevive a cerrar la app: probar lleva días
           return n;
         });
+        setExpanded(function(p){ return Object.assign({},p,{[g.id]:verdict!=="approved"}); });
         showToast(verdict==="approved"?"✅ Aprobada · queda registrado":"⛔ Enviado · no se sube");
       })
       .catch(function(e){ showToast("✕ No se pudo enviar: "+((e&&e.message)||e)); })
@@ -15088,11 +15133,16 @@ function BetaReviewPanel({onClose, showToast}){
       const c=cuenta(g.idx);
       const v=sent[g.id];
       const listo=c.pend===0 && c.ko===0;
+      const open=expanded[g.id]!==undefined ? expanded[g.id] : v!=="approved";
       return React.createElement("div",{key:g.id,className:"beta-tanda"},
-        g.t && React.createElement("div",{className:"beta-tanda-h"},
-          React.createElement("span",{className:"beta-tanda-t"}, g.t),
+        React.createElement("button",{type:"button",className:"beta-tanda-h beta-tanda-toggle",
+          "aria-expanded":open,"aria-controls":"beta-body-"+g.id,
+          onClick:function(){ setExpanded(function(p){ return Object.assign({},p,{[g.id]:!open}); }); }},
+          React.createElement("span",{className:"beta-tanda-t"}, g.t||t("beta_group")),
           React.createElement("span",{className:"beta-tanda-n"+(v==="approved"?" ok":v==="rejected"?" ko":"")},
-            v==="approved" ? "✅ aprobada" : v==="rejected" ? "⛔ rechazada" : (c.ok+c.ko+c.na)+"/"+g.idx.length)),
+            v==="approved" ? "✅ aprobada" : v==="rejected" ? "⛔ rechazada" : (c.ok+c.ko+c.na)+"/"+g.idx.length),
+          React.createElement("span",{className:"beta-tanda-fold"},(open?"▾ ":"▸ ")+t(open?"beta_collapse":"beta_expand"))),
+        React.createElement("div",{id:"beta-body-"+g.id,hidden:!open},
         g.idx.map(function(i,j){
           const it=g.items[j], m=marks[i];
           return React.createElement("div",{key:i,className:"beta-item",style:{border:"1px solid "+(m==="ko"?"var(--coral)":m==="ok"?"var(--mint)":m==="na"?"var(--muted-2)":"var(--line-soft)"),
@@ -15128,7 +15178,7 @@ function BetaReviewPanel({onClose, showToast}){
                 ? "Queda registrado con su nombre («"+g.id+"»), así que quien la suba sabe exactamente qué subir."
                 : "Queda registrado con lo que falla. Esta tanda no sube; las demás pueden seguir su camino."),
             React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:10},
-              onClick:function(){ setSent(function(p){ const n=Object.assign({},p); delete n[g.id]; store.set(storeKey+"_v",n); return n; }); }},
+              onClick:function(){ setSent(function(p){ const n=Object.assign({},p); n[g.id]=null; store.set(storeKey+"_v",n); return n; }); }},
               "↺ Cambiar de opinión"))
         : React.createElement(React.Fragment,null,
             c.ko>0 && React.createElement("button",{type:"button",className:"v4-danger",style:{marginTop:6},disabled:busy,
@@ -15139,12 +15189,17 @@ function BetaReviewPanel({onClose, showToast}){
             !listo && React.createElement("div",{style:{fontSize:12,color:"var(--muted-2)",textAlign:"center",marginTop:8,lineHeight:1.5}},
               c.ko>0 ? "Hay algo marcado como que falla: arréglalo antes de aprobar."
                      : "Te quedan "+c.pend+" cosa(s) por probar.")
-          )
+          ))
       );
     }),
 
     React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:14},
-      onClick:function(){ store.del(storeKey); store.del(storeKey+"_n"); store.del(storeKey+"_v"); setMarks({}); setNotes({}); setSent({}); }},
+      onClick:function(){
+        const reset={}; grupos.forEach(function(g){ reset[g.id]=null; });
+        store.del(storeKey); store.del(storeKey+"_n"); store.set(storeKey+"_v",reset);
+        recordarOk({}); pack.items.forEach(function(_,i){ recordarNota(i,""); });
+        setMarks({}); setNotes({}); setSent(reset); setExpanded({});
+      }},
       "↺ Empezar la revisión de cero")
   ));
 }
@@ -15367,6 +15422,17 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+{v:"4.19.14", d:"9 sep 2026",
+   t:{es:"Revisiones más cómodas",en:"Easier reviews",ca:"Revisions més còmodes"},
+   tandas:[{id:"revision-plegable",t:{es:"📋 Encoger las tandas",en:"📋 Collapse review groups",ca:"📋 Plegar les tandes"},
+     items:{
+       es:["Toca la cabecera para encoger y desplegar una tanda: conserva marcas y comentarios. Las aprobadas se encogen solas y permiten cambiar de opinión al desplegarlas."],
+       en:["Tap a group heading to collapse and expand it: marks and comments remain. Approved groups collapse automatically; expand to change your verdict."],
+       ca:["Toca la capçalera per plegar i desplegar una tanda: conserva marques i comentaris. Les aprovades es pleguen soles; desplega-les per canviar d'opinió."]}}],
+   items:{
+     es:["Las listas de revisión se pueden encoger y desplegar sin perder las marcas ni los comentarios.","Deshacer una importación conserva los cambios recientes y permite reintentar si falla la conexión."],
+     en:["Review lists can be collapsed and expanded without losing marks or comments.","Undoing an import preserves recent changes and allows retrying if the connection fails."],
+     ca:["Les llistes de revisió es poden plegar i desplegar sense perdre les marques ni els comentaris.","Desfer una importació conserva els canvis recents i permet tornar-ho a provar si falla la connexió."]}},
 {v:"4.19.13", d:"9 sep 2026",
    t:{es:"Ponle tope a lo que más se te va",
       en:"Put a cap on what runs away from you",
@@ -15926,31 +15992,6 @@ var RELEASE_NOTES=[
    ca:[
     "🏦 El saldo d'un banc ja no salta a un número en vermell inventat: si arriba una dada rara, es queda l'últim bo.",
     "📊 Al widget torna a veure's «Pots gastar». Perquè s'actualitzi amb l'app tancada, instal·la l'actualització de l'app.",
-   ]}},
-{v:"4.18.2", d:"17 ago 2026",
-   t:{es:"El widget ya dice el mismo gasto del mes que la app",
-      en:"The widget now shows the same monthly spend as the app",
-      ca:"El widget ja diu la mateixa despesa del mes que l'app"},
-   tandas:[
-     {id:"widget-ingest", t:"📊 Widget con la app cerrada", items:[
-       "Mira el widget y abre Gastos: «gastado este mes» es el mismo número.",
-       "Cierra la app del todo, paga con la tarjeta y espera la noti: el widget se actualiza y sigue cuadrando.",
-       "Si una compra avisó dos veces (el banco y la cartera), el widget no la suma dos veces.",
-       "Un rato después, sin abrir la app, el widget NO debe haberse descuadrado.",
-     ]},
-   ],
-   items:{
-   es:[
-    "📊 El gasto del mes del widget es el mismo que el de la app, también si la tenías cerrada.",
-    "Si una compra avisó dos veces (el banco y la cartera), solo cuenta una.",
-   ],
-   en:[
-    "📊 The widget's month spending matches the app, even if the app was closed.",
-    "If a purchase pinged you twice (the bank and the wallet), it only counts once.",
-   ],
-   ca:[
-    "📊 La despesa del mes del widget és la mateixa que la de l'app, també si la tenies tancada.",
-    "Si una compra t'ha avisat dues vegades (el banc i la cartera), només en compta una.",
    ]}}
 ];
 /* Cinturón por si alguien sirve el módulo sin pasar por build-app (tests que evalúan fuente).

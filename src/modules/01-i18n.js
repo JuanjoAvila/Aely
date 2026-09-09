@@ -7,6 +7,7 @@ let CURLANG = "es";
 const LANGS = [["es","Español"],["en","English"],["ca","Català"]];
 const LANG = {
   es:{
+    beta_group:"Revisión", beta_collapse:"Encoger", beta_expand:"Desplegar",
     tab_dash:"Inicio", tab_gastos:"Gastos", tab_plan:"Plan", tab_cartera:"Cartera", tab_fijos:"Fijos", tab_inv:"Inversiones", tab_patri:"Patrimonio", tab_debt:"Deudas", tab_compartido:"Compartido",
     tab_metas:"Metas", tab_logros:"Logros",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
@@ -169,6 +170,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Dólar canadiense", cur_aud:"A$ Dólar australiano", cur_cny:"¥ Yuan", cur_mxn:"$ Peso mexicano", cur_sek:"kr Corona sueca", cur_nok:"kr Corona noruega", cur_dkk:"kr Corona danesa", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupia", cur_try:"₺ Lira turca",
   },
   en:{
+    beta_group:"Review", beta_collapse:"Collapse", beta_expand:"Expand",
     tab_dash:"Home", tab_gastos:"Spending", tab_plan:"Plan", tab_cartera:"Portfolio", tab_fijos:"Fixed", tab_inv:"Investments", tab_patri:"Net worth", tab_debt:"Debts", tab_compartido:"Shared",
     tab_metas:"Goals", tab_logros:"Achievements",
     v4_hola:"Hi, {n}", v4_hola_anon:"Hi",
@@ -318,6 +320,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Canadian dollar", cur_aud:"A$ Australian dollar", cur_cny:"¥ Yuan", cur_mxn:"$ Mexican peso", cur_sek:"kr Swedish krona", cur_nok:"kr Norwegian krone", cur_dkk:"kr Danish krone", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupee", cur_try:"₺ Turkish lira",
   },
   ca:{
+    beta_group:"Revisió", beta_collapse:"Plegar", beta_expand:"Desplegar",
     tab_dash:"Inici", tab_gastos:"Despeses", tab_plan:"Pla", tab_cartera:"Cartera", tab_fijos:"Fixes", tab_inv:"Inversions", tab_patri:"Patrimoni", tab_debt:"Deutes", tab_compartido:"Compartit",
     tab_metas:"Metes", tab_logros:"Assoliments",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",

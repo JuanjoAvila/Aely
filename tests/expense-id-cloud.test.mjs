@@ -121,4 +121,20 @@ t("altas de gasto usan mcExpenseId; uid() global intacto", () => {
   assert.match(i18n, /const uid=\(\)=>\s*Math\.random\(\)\.toString\(36\)\.slice\(2,10\)/);
 });
 
-console.log("\nexpense-id-cloud: OK");
+// Ejecuta el método real con una sesión desaparecida: resolver sin DELETE mentía a la UI.
+const deleteSource = core.match(/async deleteExpensesByIds\(ids\)\{([\s\S]*?)\n    \},/)[1];
+const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+const deleteBatch = new AsyncFunction("sb", "isExpenseUuid", "ids", deleteSource);
+await assert.rejects(() => deleteBatch(null, ctx.isExpenseUuid, ["550e8400-e29b-41d4-a716-446655440000"]));
+await assert.rejects(() => deleteBatch({ auth:{ getSession:async()=>({data:{session:null}}) } }, ctx.isExpenseUuid,
+  ["550e8400-e29b-41d4-a716-446655440000"]));
+const ops=[];
+const query={ delete(){ ops.push("delete"); return this; }, eq(k,v){ ops.push([k,v]); return this; },
+  async in(k,v){ ops.push([k,v]); return {error:null}; } };
+const sbBatch={ auth:{getSession:async()=>({data:{session:{user:{id:"test-owner"}}}})},
+  from(table){ ops.push(table); return query; } };
+await deleteBatch(sbBatch,ctx.isExpenseUuid,["550e8400-e29b-41d4-a716-446655440000","legacy"]);
+assert.deepEqual(ops,["expenses","delete",["user_id","test-owner"],["id",["550e8400-e29b-41d4-a716-446655440000"]]]);
+query.in=async()=>({error:new Error("DELETE failed")});
+await assert.rejects(()=>deleteBatch(sbBatch,ctx.isExpenseUuid,["550e8400-e29b-41d4-a716-446655440000"]),/DELETE failed/);
+console.log("\nexpense-id-cloud: OK (incluye sesión perdida, filtro por dueño e ids y error de DELETE)");

@@ -1,5 +1,12 @@
 # Testing — Mi Cartera
 
+Auditoría 4.19.14: `e2e/revisar-beta.spec.mjs` comprueba plegado automático al aprobar,
+desplegar/cambiar de opinión y conservación entre compilaciones. `e2e/bancos-historico-filtro.spec.mjs`
+actualiza el estado durante la confirmación de Deshacer y simula fallo/reintento del DELETE.
+Ambos ya están en el mapa de pruebas. `expense-id-cloud` ejecuta el método de borrado con sesión
+ausente, comprueba filtros por dueño/uuid y propagación de errores. No usa datos ni servicios reales.
+Hallazgos aún abiertos: [auditoría del 9/9](briefs/AUDITORIA-CODEX-2026-09-09.md).
+
 Regresiones de widget/nube (4.19.6): `e2e/persistencia.spec.mjs` cubre reactivación nativa sin
 `visibilitychange` con puente simulado y pull de categorías neutras comprobado en Inicio/Gastos.
 Está registrado en `CROSSCUTTING`. `tests/presupuesto-servidor.test.mjs` convierte las filas con

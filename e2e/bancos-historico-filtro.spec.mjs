@@ -21,6 +21,43 @@ const bankLinks = [
     valid_until: "2026-10-01T00:00:00Z", last_sync: "2026-07-25T09:00:00Z", accounts: [{ uid: "a2" }] },
 ];
 
+test("deshacer usa el estado actual y conserva el reintento mientras la nube responde", async ({ page }) => {
+  await seedLoggedInDashboard(page);
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible();
+  await dismissNews(page);
+  await page.evaluate(() => {
+    const imported = { id: "550e8400-e29b-41d4-a716-446655440000", importBatchId: "audit", amount: 9 };
+    window.__undoToasts = [];
+    askConfirm = () => new Promise(resolve => { window.__confirmUndo = resolve; });
+    cloud.deleteExpensesByIds = () => new Promise((resolve, reject) => { window.__deleteUndo = { resolve, reject }; });
+    function Harness() {
+      const [s, set] = React.useState({ expenses: [imported], accounts: [], budget: 100,
+        lastHistImport: { batchId: "audit", localIds: [imported.id], cloudIds: [imported.id] } });
+      window.__undoState = s;
+      window.__setUndoState = set;
+      return React.createElement(BankHistoryImport, { state:s, set, onClose:()=>{}, showToast:m=>window.__undoToasts.push(m) });
+    }
+    const host = document.createElement("div"); document.body.appendChild(host);
+    ReactDOM.createRoot(host).render(React.createElement(Harness));
+  });
+  const undo = page.locator(".hist-import").getByRole("button", { name: /Deshacer/i });
+  await undo.click();
+  await page.evaluate(() => window.__setUndoState(s => ({ ...s, budget:777,
+    expenses:s.expenses.concat([{ id:"nuevo-ajeno", amount:15 }]) })));
+  await page.evaluate(() => window.__confirmUndo(true));
+  await expect.poll(() => page.evaluate(() => window.__undoState.budget)).toBe(777);
+  await expect.poll(() => page.evaluate(() => window.__undoState.expenses.map(e=>e.id))).toEqual(["nuevo-ajeno"]);
+  await expect.poll(() => page.evaluate(() => window.__undoState.lastHistImport?.cloudPending)).toBe(true);
+  await page.evaluate(() => window.__deleteUndo.reject(new Error("offline")));
+  await expect(undo).toBeEnabled();
+  await undo.click();
+  await page.evaluate(() => window.__confirmUndo(true));
+  await page.evaluate(() => window.__deleteUndo.resolve());
+  await expect.poll(() => page.evaluate(() => window.__undoState.lastHistImport)).toBeNull();
+  expect(await page.evaluate(() => window.__undoState.budget)).toBe(777);
+});
+
 const histLinks = [
   { aspsp: "Trade Republic", accounts: [{ transactions: [
     { date: "2026-07-20", amount: 12.5, merchant: "Cafe TR", card: true, ext_id: "tr1" },
