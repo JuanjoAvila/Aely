@@ -26,6 +26,26 @@ Una tarea implementada, una verificada por tests y una aprobada en móvil son es
 - Antes de retomar: `git fetch origin`, `npm run salud`, `npm run listo`, `npm run sugerencias`
   y último Actions. Esta foto envejece; una PR abierta o un documento viejo no prueba trabajo ausente.
 
+## ⚠ REGLA DE TANDAS — la que rompimos el 9/9 y no se vuelve a romper
+
+Su pauta, con sus palabras: **«implementación por tanda; si la apruebo, sube a producción sin
+romper el resto»**. El 9/9 la incumplimos: se commiteó al tip de `beta` mezclando tandas, y sus
+**tres aprobadas quedaron atadas a 18 sin probar**. Peor: «límite por categoría» resultó estar
+construida **encima de «Mismo mes en todos sitios», que él había RECHAZADO** — llamaba a
+`inicioDeMesMs`, que llegó con esa tanda. Comprobado ejecutando, no deducido.
+
+A partir de ahora, sin excepciones:
+
+1. `git fetch && git switch -c tanda/<id> origin/main` — **desde `main`, no desde `beta`**.
+2. Código, `npm run build` y suite **en esa rama**.
+3. Merge a `beta` para que él la pruebe. **Nunca al revés**, y nunca escribiendo en el tip de `beta`.
+4. Al aprobarla: Actions → Promocionar → casilla `tandas: <id>`. Sube esa y solo esa.
+
+Si alguien commitea al tip de `beta` «porque iba rápido», esa tanda **ya no es promocionable sola**.
+Eso es exactamente lo que pasó, y el precio fue un porte a mano sobre producción.
+La maquinaria (`promote-beta.yml`, entrada `tandas:`) ya existía y hay ramas `tanda/*` de rondas
+viejas: la disciplina existía y la dejamos caer.
+
 ## Orden de trabajo para la tarde/noche
 
 **Claude dirige e integra; Cursor implementa en su propio worktree.** Un encargo acotado por
