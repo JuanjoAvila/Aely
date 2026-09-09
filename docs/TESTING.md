@@ -5,6 +5,10 @@ desplegar/cambiar de opinión y conservación entre compilaciones. `e2e/bancos-h
 actualiza el estado durante la confirmación de Deshacer y simula fallo/reintento del DELETE.
 Ambos ya están en el mapa de pruebas. `expense-id-cloud` ejecuta el método de borrado con sesión
 ausente, comprueba filtros por dueño/uuid y propagación de errores. No usa datos ni servicios reales.
+4.19.15–17: `tests/efectivo-cierre.test.mjs` (13 casos) cubre el cierre de mes por cuenta —
+efectivo, otros bancos y round-up— y `tests/hist-pagos-mensuales.test.mjs` (8) la clasificación del
+histórico. `e2e/hist-pagos-mensuales.spec.mjs` cubre lo que el unitario no ve: que marcar tres meses
+del mismo recibo en la pantalla real deje UN fijo. Los tres se ejecutaron en rojo antes del arreglo.
 Hallazgos aún abiertos: [auditoría del 9/9](briefs/AUDITORIA-CODEX-2026-09-09.md).
 Cola de casos que faltan y aceptación por encargo: [BACKLOG.md](BACKLOG.md), FIN-01 a FIN-08,
 OPS-01/02/06 y seguridad. Una suite verde no sustituye esos ensayos de identidad, restauración,

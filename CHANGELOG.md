@@ -2,6 +2,32 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.17] — 2026-09-09
+### El diálogo cuenta los Fijos agrupados, y un e2e cubre el cableado
+
+- `doImport` anunciaba «¿Crear N recibos fijos?» con N = filas marcadas. Tras FIN-02 varias filas equivalentes crean UNO, así que la pregunta mentía. Ahora cuenta el resultado de `histFijosFromSelection`.
+- `e2e/hist-pagos-mensuales.spec.mjs`: los tres meses del mismo recibo salen los tres y sin aviso de repetido; marcarlos como «Recibo» deja UN fijo en el estado guardado. Ejecutado en rojo contra el código anterior (los dos casos fallan) y en verde después.
+- `destChip` gana `data-dest`/`data-cand`: las filas se pintan con estilos en línea y un e2e solo podía apuntar por posición. Mismo patrón que `data-ent` en Mis bancos.
+- Fuera la pista de interfaz de `recibo-lote`, que ya no puede dispararse.
+
+## [4.19.16] — 2026-09-09
+### El histórico deja de descartar pagos de meses distintos
+
+- `histClassifyCandidates` pasaba TODOS los candidatos por `dedupeHistRecibos`, que compara comercio + importe + banco **sin fecha**. Tres recibos iguales de junio, julio y agosto quedaban como uno: dos meses de pagos reales se pintaban desmarcados como repetidos al importar el histórico.
+- El descarte por lote sale de la clasificación. El extracto del banco manda: si lista tres cargos, hubo tres cargos.
+- La protección que ese guardo decía dar **no existía de verdad**: la pantalla (`runImport`) crea un Fijo por fila marcada, sin agrupar, y las filas descartadas se podían marcar a mano. Ahora `histFijosFromSelection` agrupa por la misma clave y varios «Recibo» equivalentes crean UN solo Fijo — que importa, porque un Fijo se cobra todos los meses para siempre en `monthNetForAccount`.
+- Intactos: duplicado contra lo ya guardado (1:1, con día), coincidencia con Fijos/deudas/puntuales ya modelados, aviso de signo por banco y deshacer la importación.
+- Regresión nueva `tests/hist-pagos-mensuales.test.mjs` (8 casos): 5 rojos antes del arreglo, 8 verdes después. `hist-import-dup` sigue en verde.
+
+## [4.19.15] — 2026-09-09
+### Cada cuenta arrastra sus propios gastos al cerrar el mes
+
+- `reconcileTR` sumaba TODOS los gastos del mes cerrado y se los restaba a la cuenta de gasto diario, sin mirar `e.ent`. Una compra pagada del sobre de efectivo —o un recibo de otro banco— bajaba Trade Republic; el sobre no arrastraba nada porque `monthNetForAccount` no mira `s.expenses`. El patrimonio total cuadraba y por eso el fallo no se veía: los dos saldos por separado mentían.
+- El reparto pasa a ser el mismo que usa el saldo que se pinta durante el mes (`gastoDelMesPorBanco`), para que el cierre no contradiga a la pantalla y el saldo del sobre no rebote el día 1.
+- El sobre de efectivo arrastra sus propias compras al cerrar; los demás bancos siguen sin restar gastos, como hasta ahora.
+- Regresión nueva `tests/efectivo-cierre.test.mjs` (11 casos) ejecutada en rojo antes del arreglo y en verde después.
+- El round-up y el saveback del cierre se estiman ya sobre los mismos gastos que en vivo (`expenseCountsCash`). Antes se calculaban sobre el mes ENTERO mientras `11-app-main.js:1483` los filtraba: una compra con tarjeta de un banco que no es de gasto diario inflaba el round-up y el saldo de Trade Republic pegaba un salto el día 1. Divergencia vieja, encontrada por Cursor al revisar esta entrega.
+
 ## [4.19.14] — 2026-09-09
 ### Revisión plegable y auditoría de la ronda
 

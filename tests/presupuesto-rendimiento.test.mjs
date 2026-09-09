@@ -61,9 +61,14 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
    1180 / 330 (~3 % de aire): recuperamos el margen que se había abierto «por las notas» esta
    misma tarde, en vez de dejar el presupuesto holgado. */
 const PRESUPUESTO = {
-  // 9/9: plegado, rescate de veredictos y undo seguro llevan el minificado a 1181 KB.
-  // Margen de 1 KB; la descarga gzip conserva el tope de 330 KB (medido: 327 KB).
-  minificado: 1182 * 1024,
+  /* 9/9 tarde: los dos arreglos de dinero de la ronda (FIN-01, el cierre de mes que le descontaba
+     a Trade Republic lo pagado en efectivo y los recibos de otros bancos; FIN-02, el historico que
+     descartaba pagos de meses distintos) suman ~2 KB minificados, casi todo notas de version en
+     tres idiomas y el helper que agrupa los Fijos. Medido tras el cambio: 1183 KB.
+     El tope anterior dejaba 1 KB de aire, que no es margen: es una trampa para el siguiente.
+     Se sube a 1188 (~0,4 %). El gzip NO se toca y sigue en 330: medido 328, y es lo que de verdad
+     baja el movil. Si el gzip se acerca al tope, se recorta; no se sube. */
+  minificado: 1188 * 1024,
   gzip: 330 * 1024,         // medido 2026-09-07 noche: ~319 KB  ← esto es lo que baja el móvil
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };

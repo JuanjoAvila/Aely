@@ -5803,7 +5803,15 @@ function reconcileTR(s){
   while(mk(ay,am) < cmKey && guard<120){
     const key=mk(ay,am);
     const monthExp=s.expenses.filter(e=> mkOf(parseDate(e.date))===key);
-    const spent=monthExp.reduce((a,e)=>a+e.amount,0);
+    /* Cada cuenta se come SUS compras (FIN-01, 2026-09-09). Antes `spent` sumaba el mes ENTERO
+       y se lo restaba a la cuenta de gasto diario sin mirar `e.ent`: una compra pagada del sobre
+       de efectivo —o un recibo de Sabadell— bajaba Trade Republic, y el sobre no arrastraba nada
+       porque `monthNetForAccount` no mira `s.expenses`. El patrimonio total cuadraba y por eso no
+       se veía; los dos saldos por separado mentían. Mismo reparto que usa el saldo que se PINTA
+       durante el mes (`gastoDelMesPorBanco` + `saldoCuentaMostrada`, 00-core): si el cierre usa
+       otro criterio, el saldo pega un salto el día 1. */
+    const gastoPorBanco=gastoDelMesPorBanco(monthExp, acc.ent);
+    const spent=gastoPorBanco[acc.ent]||0;
     acc.value = acc.value + accInject(acc) - spent;                 // mes cerrado: + inyección de nómina − gasto
     // rol "ambos" (una cuenta para todo): además arrastra su neto de fijos/nómina/puntuales del mes
     if(accRole(acc)==="ambos") acc.value = +(acc.value + monthNetForAccount(s, acc.ent, ay, am+1, null)).toFixed(2);
@@ -5815,8 +5823,14 @@ function reconcileTR(s){
     // `setCat`) — sumarlos aquí TAMBIÉN los contaba dos veces (una simulada, otra real).
     const obFed = (s.expenses||[]).some(function(e){ return e.source==="ob" && e.ent===acc.ent; });
     if(!obFed){
-      const ru = (acc.roundupManual!=null) ? acc.roundupManual : roundupOf(monthExp, acc.roundup||0);
-      const sb = (acc.savebackManual!=null) ? acc.savebackManual : (acc.saveback ? savebackOf(monthExp) : 0);
+      /* El round-up y el saveback se estiman de los MISMOS gastos que en vivo. Durante el mes,
+         `11-app-main.js:1483` los calcula sobre una lista ya filtrada por `expenseCountsCash`;
+         aquí se calculaban sobre el mes ENTERO, así que al cerrar podían comerse compras con
+         tarjeta de bancos que no son de gasto diario y el saldo de TR daba un salto el día 1.
+         Divergencia vieja, encontrada al revisar FIN-01 (9/9). Misma regla en los dos sitios. */
+      const monthExpCash = monthExp.filter(function(e){ return expenseCountsCash(e, s); });
+      const ru = (acc.roundupManual!=null) ? acc.roundupManual : roundupOf(monthExpCash, acc.roundup||0);
+      const sb = (acc.savebackManual!=null) ? acc.savebackManual : (acc.saveback ? savebackOf(monthExpCash) : 0);
       if(ru>0) acc.value = +(acc.value - ru).toFixed(2);             // el round-up abandona el efectivo
       const contrib = ru + sb;                                       // total que entra a la inversión (€)
       if(contrib>0 && acc.rewardInv){
@@ -5851,7 +5865,16 @@ function reconcileTR(s){
     if(acc.roundupManual!=null) delete acc.roundupManual;
     if(acc.savebackManual!=null) delete acc.savebackManual;
     // Demás bancos (Sabadell, etc.): arrastran su neto del mes cerrado (ingresos − fijos − cuotas − puntuales − transfers)
-    s.accounts.forEach(function(a2){ if(!a2.spendFrom){ a2.value = +(((a2.value||0) + monthNetForAccount(s, a2.ent, ay, am+1, null))).toFixed(2); } });
+    s.accounts.forEach(function(a2){
+      if(a2.spendFrom) return;
+      let v=(a2.value||0) + monthNetForAccount(s, a2.ent, ay, am+1, null);
+      // El sobre de efectivo SÍ arrastra sus propias compras al cerrar: durante el mes
+      // `saldoCuentaMostrada` ya se las resta, y sin esto el saldo del sobre rebotaba hacia
+      // arriba el día 1. Los demás bancos NO restan gastos a propósito (00-core, saldo mostrado:
+      // «las manuales sin OB las ajusta él a mano»), así que aquí tampoco.
+      if(isEfectivoEnt(a2)) v -= (gastoPorBanco["efectivo"]||0);
+      a2.value = +v.toFixed(2);
+    });
     am++; if(am>11){am=0;ay++;}
     guard++;
   }
@@ -11451,6 +11474,10 @@ function histReciboDupKey(x){
   const norm=String((x&&x.merchant)||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim();
   return norm+"|"+((x&&x.amount)||0)+"|"+((x&&x.ent)||"");
 }
+/* OJO (FIN-02, 9/9): desde que la clasificacion dejo de descartar pagos de meses distintos, esta
+   funcion YA NO LA USA la app; quien agrupa de verdad es `histFijosFromSelection`, que comparte
+   su misma clave. Se conserva porque sus pruebas documentan la regla de equivalencia, pero no la
+   vuelvas a enchufar a la clasificacion: es justo el bug que se acaba de quitar. */
 function dedupeHistRecibos(cands){
   const dup={};
   const seen={};
@@ -11535,12 +11562,19 @@ function histSignSuspectByBank(cands){
 function histClassifyCandidates(cands, state){
   state=state||{};
   const existing=histCandExisting(cands, state.expenses);
-  const recibDup=dedupeHistRecibos(cands);
   const daily=(state.accounts||[]).find(function(a){ return accDaily(a); });
   const rows=(cands||[]).map(function(x,i){
     if(!x) return null;
     if(existing[i]) return { status:"dup", reason:"existing", match:existing[i], defDest:null, suggestRecibo:false, category:null };
-    if(recibDup[i]) return { status:"dup", reason:"recibo-lote", match:null, defDest:null, suggestRecibo:false, category:null };
+    /* Aquí iba `recibDup[i] → dup, motivo "recibo-lote"` (FIN-02, retirado el 2026-09-09).
+       `dedupeHistRecibos` compara comercio+importe+banco SIN FECHA, así que tres recibos de
+       luz de junio, julio y agosto eran "el mismo": entraba uno y los otros dos se quedaban
+       desmarcados como repetidos. Eran DOS MESES DE PAGOS REALES perdidos al importar el
+       histórico. El extracto del banco manda: si lista tres cargos, hubo tres cargos.
+       La protección que este guardo decía dar —no crear tres Fijos idénticos, y un Fijo se
+       cobra TODOS los meses para siempre en `monthNetForAccount`— nunca vivió aquí de
+       verdad: la pantalla crea un Fijo por fila marcada y el usuario podía marcar también
+       las descartadas. Ahora esa garantía existe y está en `histFijosFromSelection`. */
     const modeled=histMatchesModeled(state, x);
     if(modeled) return { status:"dup", reason:"modeled", match:modeled, defDest:null, suggestRecibo:false, category:null };
     if(x.kind==="in"){
@@ -11555,6 +11589,32 @@ function histClassifyCandidates(cands, state){
     return { status:"new", reason:null, match:null, defDest:"gasto", suggestRecibo:!x.card, category:cat };
   });
   return { rows:rows, signSuspect:histSignSuspectByBank(cands) };
+}
+/* FIN-02 — VARIOS «RECIBO» QUE SON EL MISMO RECIBO CREAN UN SOLO FIJO.
+   Un Fijo se cobra todos los meses para siempre (`monthNetForAccount`): tres Fijos idénticos
+   restan su importe tres veces cada mes hasta que alguien lo note y los borre a mano. Y
+   marcar los tres meses del recibo de la luz es justo lo que hace cualquiera al importar.
+   Agrupa por la MISMA clave que `dedupeHistRecibos` (comercio normalizado + importe + banco)
+   y conserva el candidato más reciente de cada grupo: `cands` viene ordenado por fecha
+   descendente. Puro: no toca estado ni nube. `idxs` = índices marcados como «Recibo».
+   `opts.mkId` genera el id, `opts.name` es el nombre de repuesto y `opts.dayOf` el día de
+   cobro (la pantalla pasa su `recDay`, que ya sabe leer la fecha del extracto). */
+function histFijosFromSelection(cands, idxs, opts){
+  opts=opts||{};
+  const mkId=opts.mkId || (typeof uid==="function" ? uid : function(){ return "f"+Math.random().toString(36).slice(2,10); });
+  const dayOf=opts.dayOf || function(d){ const n=parseInt(String(d||"").slice(8,10),10); return (n>=1&&n<=31)?n:null; };
+  const vistos={}, out=[];
+  (idxs||[]).forEach(function(i){
+    const x=(cands||[])[i];
+    if(!x) return;
+    const k=histReciboDupKey(x);
+    if(vistos[k]) return;                       // ese recibo ya tiene su Fijo
+    vistos[k]=1;
+    const it={ id:mkId(), name:x.merchant||opts.name||"Recibo", amount:+Number(x.amount||0).toFixed(2), freq:"mes", account:x.ent };
+    const dd=dayOf(x.date); if(dd) it.day=dd;
+    out.push(it);
+  });
+  return out;
 }
 function histBuildCommit(cands, classifications, state, opts){
   opts=opts||{};
@@ -14154,19 +14214,16 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
   const runImport=function(){
     if(!cands || !selCount) return;
     setImporting(true);
-    const expAdds=[], fixAdds=[];
+    const expAdds=[], reciboIdx=[];
     const batchId="hist-"+(typeof mcExpenseId==="function"?mcExpenseId():String(Date.now()));
     visible.forEach(function(o){
       const i=o.i, x=o.x;
       if(!sel[i]) return;
       const d=dest[i]||defDest(x);
       const c=classRows[i];
-      if(d==="recibo"){
-        const it={id:uid(),name:x.merchant||t("bp_hist_recibo"),amount:+Number(x.amount).toFixed(2),freq:"mes",account:x.ent};
-        const dd=recDay(x.date); if(dd) it.day=dd;
-        fixAdds.push(it);
-        return;
-      }
+      // Los «Recibo» se apuntan y se agrupan DESPUÉS (FIN-02): tres meses del mismo recibo
+      // marcados a la vez tienen que crear UN Fijo, no tres. Ver `histFijosFromSelection`.
+      if(d==="recibo"){ reciboIdx.push(i); return; }
       if(d==="ingreso"){
         const cat=(c&&c.defDest==="ingreso"&&c.category)?c.category:"ingreso";
         const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:-Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, noCard:true, income:true, importBatchId:batchId };
@@ -14183,6 +14240,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
       const nt=cleanNote(x.note, e.merchant); if(nt) e.note=nt;
       expAdds.push(e);
     });
+    const fixAdds=histFijosFromSelection(cands, reciboIdx, { mkId:uid, name:t("bp_hist_recibo"), dayOf:recDay });
     // Tanda 3: batch + RETURNING id. Solo lo ACK queda en local; sin ids → aviso claro.
     Promise.resolve(cloud.addExpensesBatch ? cloud.addExpensesBatch(expAdds) : { cloudIds:[], offline:true })
       .catch(function(){ return { cloudIds:[], offline:false, failed:true }; })
@@ -14260,7 +14318,10 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
   };
   const doImport=function(){
     if(!cands || !selCount) return;
-    const nRecibo=visible.filter(function(o){ return sel[o.i] && (dest[o.i]||defDest(o.x))==="recibo"; }).length;
+    // Cuenta los Fijos que se van a crear DE VERDAD, ya agrupados (FIN-02): marcar tres meses del
+    // mismo recibo crea UNO, así que el diálogo no puede seguir diciendo «¿Crear 3 recibos fijos?».
+    const reciboSel=visible.filter(function(o){ return sel[o.i] && (dest[o.i]||defDest(o.x))==="recibo"; }).map(function(o){ return o.i; });
+    const nRecibo=histFijosFromSelection(cands, reciboSel, { mkId:uid, name:t("bp_hist_recibo"), dayOf:recDay }).length;
     if(nRecibo>0){
       askConfirm({
         title:tf("bp_hist_confirm_fijos",{n:nRecibo}),
@@ -14280,13 +14341,15 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
   const bigBtn={width:"100%",padding:"14px",borderRadius:14,border:"none",background:"var(--mint)",color:"#06120C",fontWeight:800,fontSize:15,cursor:"pointer",marginTop:12};
   const destChip=function(i,id,label,hint){
     const on=(dest[i]||"")==id;
+    // `data-dest`/`data-cand`: las filas se pintan con estilos en linea y sin clase, asi que un
+    // e2e solo podia apuntar por posicion. Con esto se marca la fila EXACTA (mismo patron que
+    // `data-ent` en Mis bancos). Sin coste de render.
     return React.createElement("button",{key:id,type:"button",onClick:function(e){ e.stopPropagation(); setDestI(i,id); },
-      title:hint||"",
+      title:hint||"", "data-dest":id, "data-cand":(cands&&cands[i]&&cands[i].id)||String(i),
       style:{padding:"4px 9px",borderRadius:999,border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"rgba(95,208,138,.18)":"transparent",color:on?"var(--mint)":"var(--muted)",fontWeight:800,fontSize:11,cursor:"pointer"}}, label);
   };
   const dupHint=function(c){
     if(!c||c.status!=="dup") return null;
-    if(c.reason==="recibo-lote") return "↺ "+t("bp_hist_dup");
     if(c.reason==="modeled") return "🗐 "+t("bp_hist_dupmodel");
     return "🗐 "+t("bp_hist_dupexist");
   };
@@ -14359,7 +14422,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
                 React.createElement("div",{style:{fontWeight:700,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",textDecoration:(!on&&isDup)?"line-through":"none",color:(!on&&isDup)?"var(--muted-2)":undefined}}, x.merchant),
                 React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)",marginTop:1}}, x.date, " · ", histBankLabel(x), isIn?"":(x.card?"":" · "+t("bp_hist_notcard")), suggestRec&&!on?"":""),
                 suggestRec && on ? React.createElement("div",{style:{fontSize:11,color:"var(--muted)",marginTop:1}}, t("bp_hist_suggest_recibo")) : null,
-                dupHint(c) ? React.createElement("div",{style:{fontSize:11,color:c.reason==="recibo-lote"?"var(--mint)":"var(--muted-2)",marginTop:1}}, dupHint(c)) : null),
+                dupHint(c) ? React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)",marginTop:1}}, dupHint(c)) : null),
               React.createElement("span",{style:{fontWeight:800,fontSize:14,flexShrink:0,color:isIn?"var(--mint)":"var(--text)"}}, (isIn?"+":"")+eur(x.amount))
             ),
             on && React.createElement("div",{style:{display:"flex",gap:6,marginTop:8,flexWrap:"wrap",paddingLeft:31}},
@@ -15422,6 +15485,66 @@ function rnItems(r,lg){
    engorda la descarga de toda la familia. El test fija 20. */
 var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+{v:"4.19.17", d:"9 sep 2026",
+   t:{es:"El aviso de los recibos fijos dice la verdad",
+      en:"The recurring-bill prompt tells the truth",
+      ca:"L'avís dels rebuts fixos diu la veritat"},
+   tandas:[{id:"recibos-confirmacion",t:{es:"🧾 El aviso cuenta los recibos de verdad",en:"🧾 The prompt counts the real bills",ca:"🧾 L'avís compta els rebuts de veritat"},
+     items:{
+       es:["Importa el histórico y marca como «Recibo» tres meses del MISMO recibo. La pregunta de confirmación tiene que decir 1, no 3.",
+           "Acepta y mira Plan: tiene que haber UN recibo fijo de ese comercio, no tres."],
+       en:["Import history and mark three months of the SAME bill as «Bill». The confirmation must say 1, not 3.",
+           "Accept and check Plan: there must be ONE recurring bill for that merchant, not three."],
+       ca:["Importa l'històric i marca com a «Rebut» tres mesos del MATEIX rebut. La pregunta de confirmació ha de dir 1, no 3.",
+           "Accepta i mira Pla: hi ha d'haver UN rebut fix d'aquest comerç, no tres."]}}],
+   items:{
+     es:["Al marcar varios meses del mismo recibo, la pregunta de confirmación ya dice cuántos recibos fijos se van a crear de verdad: uno, no uno por mes."],
+     en:["When you mark several months of the same bill, the confirmation now says how many recurring bills will really be created: one, not one per month."],
+     ca:["En marcar diversos mesos del mateix rebut, la confirmació ja diu quants rebuts fixos es crearan de veritat: un, no un per mes."]}},
+{v:"4.19.16", d:"9 sep 2026",
+   t:{es:"El histórico ya no se salta meses",
+      en:"History no longer skips months",
+      ca:"L'històric ja no es salta mesos"},
+   tandas:[{id:"hist-pagos-mensuales",t:{es:"🧾 Cada mes del recibo es un pago",en:"🧾 Each month of a bill is its own payment",ca:"🧾 Cada mes del rebut és un pagament"},
+     items:{
+       es:["Ajustes → Importaciones → Importar histórico, con tres meses. Un recibo que se repite cada mes tiene que salir una vez POR MES, los tres marcados, no uno solo.",
+           "Ninguno de esos meses puede salir en verde como repetido: eran pagos de verdad que antes se quedaban fuera.",
+           "Si marcas esos tres meses como «Recibo», en Fijos tiene que aparecer UN solo recibo, no tres.",
+           "Un movimiento que ya tenías apuntado sigue detectándose como repetido, y volver a importar el mismo extracto no duplica nada."],
+       en:["Settings → Imports → Import history, three months. A bill that repeats every month must appear once PER MONTH, all three ticked, not just one.",
+           "None of those months may show up in green as a duplicate: they were real payments that used to be left out.",
+           "If you mark those three months as «Bill», Fijos must show ONE recurring bill, not three.",
+           "A transaction you already had is still detected as a duplicate, and importing the same statement again adds nothing."],
+       ca:["Ajustos → Importacions → Importar històric, amb tres mesos. Un rebut que es repeteix cada mes ha de sortir una vegada PER MES, els tres marcats, no només un.",
+           "Cap d'aquests mesos pot sortir en verd com a repetit: eren pagaments de veritat que abans es quedaven fora.",
+           "Si marques aquests tres mesos com a «Rebut», a Fixos ha d'aparèixer UN sol rebut, no tres.",
+           "Un moviment que ja tenies apuntat se segueix detectant com a repetit, i tornar a importar el mateix extracte no duplica res."]}}],
+   items:{
+     es:["Al importar el histórico, un recibo que se repite cada mes entra una vez por mes: antes solo entraba el más reciente y los demás se descartaban."],
+     en:["When importing history, a bill that repeats monthly comes in once per month: before, only the most recent one was kept."],
+     ca:["En importar l'històric, un rebut que es repeteix cada mes entra una vegada per mes: abans només entrava el més recent."]}},
+{v:"4.19.15", d:"9 sep 2026",
+   t:{es:"Cada cuenta se lleva sus gastos al cerrar el mes",
+      en:"Each account keeps its own spending when the month closes",
+      ca:"Cada compte s'enduà les seves despeses en tancar el mes"},
+   tandas:[{id:"efectivo-cierre",t:{es:"💶 El efectivo cuadra al cambiar de mes",en:"💶 Cash adds up when the month rolls over",ca:"💶 L'efectiu quadra en canviar de mes"},
+     items:{
+       es:["Apunta un gasto pagado en efectivo con fecha del mes pasado. Al cambiar de mes, el que baja es el sobre de efectivo; la cuenta del día a día se queda como estaba.",
+           "Mira el saldo del sobre el último día del mes y otra vez el día 1: tiene que ser el mismo número, sin subir de golpe.",
+           "Un recibo de otro banco tampoco puede bajarte el saldo de la cuenta del día a día.",
+           "El patrimonio total no cambia con esto: lo que cambia es de qué cuenta sale cada gasto."],
+       en:["Add an expense paid in cash dated last month. When the month rolls over, the cash envelope goes down; the everyday account stays as it was.",
+           "Check the envelope balance on the last day of the month and again on the 1st: it must be the same number, with no sudden jump.",
+           "A bill from another bank cannot lower the everyday account balance either.",
+           "Total net worth does not change with this: what changes is which account each expense comes from."],
+       ca:["Apunta una despesa pagada en efectiu amb data del mes passat. En canviar de mes, el que baixa és el sobre d'efectiu; el compte del dia a dia es queda com estava.",
+           "Mira el saldo del sobre l'últim dia del mes i un altre cop el dia 1: ha de ser el mateix número, sense pujar de cop.",
+           "Un rebut d'un altre banc tampoc pot abaixar-te el saldo del compte del dia a dia.",
+           "El patrimoni total no canvia amb això: el que canvia és de quin compte surt cada despesa."]}}],
+   items:{
+     es:["Al cerrar el mes, cada cuenta arrastra sus propios gastos: lo pagado en efectivo ya no se le descuenta a la cuenta del día a día."],
+     en:["When the month closes, each account carries its own spending: cash payments are no longer taken off the everyday account."],
+     ca:["En tancar el mes, cada compte arrossega les seves despeses: el pagat en efectiu ja no es descompta del compte del dia a dia."]}},
 {v:"4.19.14", d:"9 sep 2026",
    t:{es:"Revisiones más cómodas",en:"Easier reviews",ca:"Revisions més còmodes"},
    tandas:[{id:"revision-plegable",t:{es:"📋 Encoger las tandas",en:"📋 Collapse review groups",ca:"📋 Plegar les tandes"},
@@ -15925,74 +16048,7 @@ var RELEASE_NOTES=[
        "Pot ser que vegis alguna fila de més mentre afinem el criteri; el total del mes pot pujar una mica fins aleshores.",
        "Els moviments esborrats a mà segueixen esborrats.",
      ],
-   }},
-{v:"4.18.5", d:"18 ago 2026",
-   t:{es:"El fondo ya no parpadea al cambiar de pestaña",
-      en:"No more flicker when switching tabs",
-      ca:"El fons ja no parpelleja en canviar de pestanya"},
-   tandas:[
-     {id:"destello-tabs", t:"✨ Cambio de pestaña limpio", items:[
-       "Al deslizar entre pestañas ya no se ve ese oscurecimiento del fondo.",
-       "Pasaba con cualquier temática, también sin ninguna.",
-       "Si estrenas la app, los gestos funcionan desde el primer momento (antes había que cerrarla y volver a abrirla).",
-     ]},
-   ],
-   /* Sin estas tres, Novedades caía a los puntos de la tanda, que son un array plano en
-      castellano: un familiar en inglés o catalán veía el texto en español. Era la única versión
-      del bundle así, y es literalmente lo que él pidió el 26/7 («que el histórico de
-      actualizaciones sea en todos los idiomas, no solo español»). Lo vigila
-      `tests/novedades-idiomas.test.mjs`. */
-   items:{
-     es:["Al cambiar de pestaña el fondo ya no parpadea, con cualquier temática o sin ninguna.","Si estrenas la app, los gestos funcionan desde el primer momento."],
-     en:["Switching tabs no longer makes the background flicker, with any theme or none at all.","If the app is brand new, gestures work from the very first moment."],
-     ca:["En canviar de pestanya el fons ja no parpelleja, amb qualsevol temàtica o sense cap.","Si estrenes l'app, els gestos funcionen des del primer moment."]
-   },
-  },
-{v:"4.18.4", d:"18 ago 2026",
-   t:{es:"Cada banco descuenta lo suyo",
-      en:"Each bank now subtracts only its own spending",
-      ca:"Cada banc descompta el que és seu"},
-   tandas:[
-     {id:"saldo-cruzado", t:"🏦 Saldos por banco", items:[
-       "Si pagabas con un banco que no era el del día a día, el gasto ya no se le resta al principal.",
-       "El dinero total no cambia de sitio inventado: cada euro queda en su cuenta.",
-       "Editar el saldo a mano y volver a mirarlo tiene que dar el mismo número.",
-     ]},
-   ],
-   items:{
-   es:[
-    "🏦 Si pagabas con un banco que no era el del día a día, el gasto se le restaba por error al saldo del principal. El dinero total siempre fue correcto; el reparto entre cuentas, no. Ya está cada euro en su sitio.",
-   ],
-   en:[
-    "🏦 Spending from a bank that wasn't your day-to-day account was wrongly taken off the main balance. The total was always right; the split between accounts wasn't. Each euro is in its place now.",
-   ],
-   ca:[
-    "🏦 Si pagaves amb un banc que no era el del dia a dia, la despesa es restava per error al saldo del principal. El total sempre va ser correcte; el repartiment entre comptes, no. Cada euro ja és al seu lloc.",
-   ]}},
-{v:"4.18.3", d:"18 ago 2026",
-   t:{es:"El saldo del banco ya no salta a un número raro, y el widget deja de esconder lo que puedes gastar",
-      en:"Bank balances no longer jump to a bogus figure, and the widget keeps showing what you can spend",
-      ca:"El saldo del banc ja no salta a un número rar, i el widget deixa d'amagar el que pots gastar"},
-   tandas:[
-     {id:"ob-saldo-widget-apk", t:"🏦 Saldo del banco y widget", items:[
-       "Si Revolut (u otro banco) salía en rojo inventado y al sincronizar se arreglaba, ya no debería pintar ese rojo: se queda el último saldo bueno.",
-       "Abre la app: en el widget vuelve a verse «Puedes gastar».",
-       "Cierra la app, paga, espera la noti: gastado del mes = Gastos. «Puedes gastar» solo se mueve con la app nueva instalada (no basta recargar).",
-     ]},
-   ],
-   items:{
-   es:[
-    "🏦 El saldo de un banco ya no salta a un número en rojo inventado: si llega un dato raro, se queda el último bueno.",
-    "📊 En el widget vuelve a verse «Puedes gastar». Para que se actualice también con la app cerrada, instala la actualización de la app.",
-   ],
-   en:[
-    "🏦 A bank balance no longer jumps to a made-up negative: if a bad figure arrives, the last good one stays.",
-    "📊 The widget shows «you can spend» again. For it to update with the app closed, install the app update.",
-   ],
-   ca:[
-    "🏦 El saldo d'un banc ja no salta a un número en vermell inventat: si arriba una dada rara, es queda l'últim bo.",
-    "📊 Al widget torna a veure's «Pots gastar». Perquè s'actualitzi amb l'app tancada, instal·la l'actualització de l'app.",
-   ]}}
+   }}
 ];
 /* Cinturón por si alguien sirve el módulo sin pasar por build-app (tests que evalúan fuente).
    En el bundle real el literal YA viene troceado: este slice no ahorra bytes allí. */

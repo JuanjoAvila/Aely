@@ -810,6 +810,10 @@ function histReciboDupKey(x){
   const norm=String((x&&x.merchant)||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim();
   return norm+"|"+((x&&x.amount)||0)+"|"+((x&&x.ent)||"");
 }
+/* OJO (FIN-02, 9/9): desde que la clasificacion dejo de descartar pagos de meses distintos, esta
+   funcion YA NO LA USA la app; quien agrupa de verdad es `histFijosFromSelection`, que comparte
+   su misma clave. Se conserva porque sus pruebas documentan la regla de equivalencia, pero no la
+   vuelvas a enchufar a la clasificacion: es justo el bug que se acaba de quitar. */
 function dedupeHistRecibos(cands){
   const dup={};
   const seen={};
@@ -894,12 +898,19 @@ function histSignSuspectByBank(cands){
 function histClassifyCandidates(cands, state){
   state=state||{};
   const existing=histCandExisting(cands, state.expenses);
-  const recibDup=dedupeHistRecibos(cands);
   const daily=(state.accounts||[]).find(function(a){ return accDaily(a); });
   const rows=(cands||[]).map(function(x,i){
     if(!x) return null;
     if(existing[i]) return { status:"dup", reason:"existing", match:existing[i], defDest:null, suggestRecibo:false, category:null };
-    if(recibDup[i]) return { status:"dup", reason:"recibo-lote", match:null, defDest:null, suggestRecibo:false, category:null };
+    /* Aquí iba `recibDup[i] → dup, motivo "recibo-lote"` (FIN-02, retirado el 2026-09-09).
+       `dedupeHistRecibos` compara comercio+importe+banco SIN FECHA, así que tres recibos de
+       luz de junio, julio y agosto eran "el mismo": entraba uno y los otros dos se quedaban
+       desmarcados como repetidos. Eran DOS MESES DE PAGOS REALES perdidos al importar el
+       histórico. El extracto del banco manda: si lista tres cargos, hubo tres cargos.
+       La protección que este guardo decía dar —no crear tres Fijos idénticos, y un Fijo se
+       cobra TODOS los meses para siempre en `monthNetForAccount`— nunca vivió aquí de
+       verdad: la pantalla crea un Fijo por fila marcada y el usuario podía marcar también
+       las descartadas. Ahora esa garantía existe y está en `histFijosFromSelection`. */
     const modeled=histMatchesModeled(state, x);
     if(modeled) return { status:"dup", reason:"modeled", match:modeled, defDest:null, suggestRecibo:false, category:null };
     if(x.kind==="in"){
@@ -914,6 +925,32 @@ function histClassifyCandidates(cands, state){
     return { status:"new", reason:null, match:null, defDest:"gasto", suggestRecibo:!x.card, category:cat };
   });
   return { rows:rows, signSuspect:histSignSuspectByBank(cands) };
+}
+/* FIN-02 — VARIOS «RECIBO» QUE SON EL MISMO RECIBO CREAN UN SOLO FIJO.
+   Un Fijo se cobra todos los meses para siempre (`monthNetForAccount`): tres Fijos idénticos
+   restan su importe tres veces cada mes hasta que alguien lo note y los borre a mano. Y
+   marcar los tres meses del recibo de la luz es justo lo que hace cualquiera al importar.
+   Agrupa por la MISMA clave que `dedupeHistRecibos` (comercio normalizado + importe + banco)
+   y conserva el candidato más reciente de cada grupo: `cands` viene ordenado por fecha
+   descendente. Puro: no toca estado ni nube. `idxs` = índices marcados como «Recibo».
+   `opts.mkId` genera el id, `opts.name` es el nombre de repuesto y `opts.dayOf` el día de
+   cobro (la pantalla pasa su `recDay`, que ya sabe leer la fecha del extracto). */
+function histFijosFromSelection(cands, idxs, opts){
+  opts=opts||{};
+  const mkId=opts.mkId || (typeof uid==="function" ? uid : function(){ return "f"+Math.random().toString(36).slice(2,10); });
+  const dayOf=opts.dayOf || function(d){ const n=parseInt(String(d||"").slice(8,10),10); return (n>=1&&n<=31)?n:null; };
+  const vistos={}, out=[];
+  (idxs||[]).forEach(function(i){
+    const x=(cands||[])[i];
+    if(!x) return;
+    const k=histReciboDupKey(x);
+    if(vistos[k]) return;                       // ese recibo ya tiene su Fijo
+    vistos[k]=1;
+    const it={ id:mkId(), name:x.merchant||opts.name||"Recibo", amount:+Number(x.amount||0).toFixed(2), freq:"mes", account:x.ent };
+    const dd=dayOf(x.date); if(dd) it.day=dd;
+    out.push(it);
+  });
+  return out;
 }
 function histBuildCommit(cands, classifications, state, opts){
   opts=opts||{};
