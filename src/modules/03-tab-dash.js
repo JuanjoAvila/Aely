@@ -223,7 +223,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         )
       ),
       React.createElement("div",{className:"v4-budget-foot"},
-        React.createElement("span",null, "🔥 "+tf("v4_streak",{n:state.streak||0})),
+        // Con 0, «0 meses sin pasarte» resta en vez de sumar: el primer mes se dice en positivo (P5).
+        React.createElement("span",null, (state.streak||0)>0 ? ("🔥 "+tf("v4_streak",{n:state.streak})) : t("v4_streak_zero")),
         React.createElement("button",{className:"link",onClick:function(e){ e.stopPropagation(); if(onGoGastos) onGoGastos(); }}, t("v4_see_gastos"))
       )
     ),

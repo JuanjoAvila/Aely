@@ -60,6 +60,17 @@ test("con recibos y metas de verdad, las tarjetas fantasma desaparecen", async (
   await expect(page.locator(".v4-empty")).toHaveCount(0);
 });
 
+test("★ P5: la racha a cero se dice en positivo, no «0 meses sin pasarte»", async ({ page }) => {
+  await inicio(page, { history: [], budget: 500, streak: 0 });
+  await expect(page.getByText(/0 meses sin pasarte/i)).toHaveCount(0);
+  await expect(page.getByText(/Tu primer mes empieza hoy/i)).toBeVisible();
+});
+
+test("con racha de verdad vuelve el fuego", async ({ page }) => {
+  await inicio(page, { history: [100, 200], budget: 500, streak: 3 });
+  await expect(page.getByText(/3 meses sin pasarte/i)).toBeVisible();
+});
+
 test("con presupuesto e histórico, el hero vuelve a ser el de siempre", async ({ page }) => {
   await inicio(page, { history: [100, 200], budget: 500 });
 
