@@ -102,3 +102,13 @@ test("P6 con reduced-motion: el valor final, directo y sin animar", async ({ pag
   const o = Number(await anillo.getAttribute("stroke-dashoffset"));
   expect(o).toBeLessThan(d - 0.01);
 });
+
+/* P14 — NO SE APLICA, y aquí queda por qué, medido (9/9).
+ * El brief acierta en el hecho: `.v4-hero-amt` va a 56px fijo y sin `nowrap/overflow`, mientras
+ * el de Gastos usa `clamp` y sí se protege. Pero la consecuencia que describe no se reproduce:
+ * a 360×667, con el splash ya fuera, «192.148,45 €» mide 248 px de los 324 disponibles, y con
+ * siete cifras («9.876.543,21 €») 294. No se aprieta contra los bordes. Y «Letra grande» no lo
+ * cambia, porque el tamaño va en px y no escala con el root.
+ * Aplicar el `clamp(38px,13.5vw,56px)` en su móvil de 360 px bajaría el hero de 56 a 48,6: haría
+ * MÁS PEQUEÑO el número insignia de la app para arreglar algo que no pasa. Por eso se deja sin
+ * hacer y se le pregunta, que es la norma que él puso para las tareas que no cuadran. */

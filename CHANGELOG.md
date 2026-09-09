@@ -2,6 +2,18 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.19] — 2026-09-09
+### Pulido v4, P6–P13
+
+- **P6** el anillo se dibuja: recibía el `strokeDashoffset` final y una `transition`, y una transición no anima el primer pintado. Se monta vacío y pasa al valor real en el frame siguiente, enganchado a `mc-splash-gone` para no gastarse detrás de la cortina. `prefers-reduced-motion` → valor directo.
+- **P7** el % del anillo pasa a Fraunces 24/600.
+- **P8** teclas a 56. Medido antes: a 360×667 el fondo del teclado ya caía en 855 px con las teclas a 46, así que el desbordamiento no lo trae este cambio.
+- **P11** `focus-visible` en chips, teclas, CTAs, segmentos y filas de ajustes, no solo en la nav.
+- **P12** degradado por la derecha y `scrollbar-width:none` en los carruseles.
+- **P13** `opsz` de la Fraunces y `text-wrap:pretty` en las frases humanas.
+- **P14 NO se aplica**: el hecho del brief es cierto (el hero va a 56 px fijo y sin protección) pero la consecuencia no se reproduce — a 360×667, «192.148,45 €» ocupa 248 px de 324, y con siete cifras 294. El `clamp` propuesto bajaría el hero a 48,6 px en un móvil de 360: más pequeño para arreglar algo que no pasa. Pendiente de su decisión.
+- **Aviso**: con esta versión el bundle llega al tope (gzip 330 de 330). El recorte de verdad va aparte (encargo NOTAS-BUNDLE): las notas son 158 KB de los 348 KB de `10-app-components.js`. Bajar `RELEASE_NOTES_MAX` NO vale — se comprobó que le vacía tandas del panel de beta.
+
 ## [4.19.18] — 2026-09-09
 ### Pulido v4, P1–P5: el primer minuto de alguien recién llegado
 
