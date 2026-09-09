@@ -189,4 +189,3 @@ console.log('Merge de UUIDs distintos', c.mergeExpenses(rows, []).list.length);
 Resultado reproducido en esta auditoría: **1, 1, 2, 1**. Objetivo: **2, 2, 1 con discrepancia
 revisable, 2**. Los tests existentes `ob-ingresos`, `ob-renombrar` y `expense-id-cloud` pasan;
 no demuestran este contrato. Este guion documenta el fallo, no sustituye los tests de implementación.
-
