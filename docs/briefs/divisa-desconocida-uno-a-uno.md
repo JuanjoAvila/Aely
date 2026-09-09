@@ -45,6 +45,22 @@ Cambiar el cliente a `null` a secas rompe a los que llaman: `toEurAmt` alimenta 
 y de coste, y un `null` ahí se convierte en `NaN` y contamina la pantalla entera. Por eso no lo he
 tocado sobre la marcha: hay que elegir qué enseña la app cuando no sabe el cambio.
 
+## ✅ DECIDIDO el 2026-09-09: camino A, y con una tercera pata
+
+El dueño lo zanjó así: «que muestre el mismo valor y que diga que no es un valor real dado que
+el cambio no está, siempre y cuando no esté claramente; el objetivo es que estén todos los
+cambios de moneda **sin inventar valores**».
+
+Lo que eso significa, en concreto:
+1. La cifra original se conserva y se **marca**: «500 ₺ · sin tipo de cambio». No desaparece.
+2. **No se suma** al total en euros como si 1 lira fuera 1 euro. Eso es inventarse un tipo.
+3. Y hay una tercera pata que no estaba en los tres caminos: **ampliar la tabla de tipos** para
+   que «no lo sé» sea la excepción y no el caso de todos los días. Marcar bien está, pero el
+   objetivo que él pone es que casi nunca haga falta marcar.
+
+Descartados **B** (pedir el tipo al vuelo: mete red en un cálculo que hoy es puro) y **C**
+(sin tipo, no hay cifra: le esconde su propio gasto).
+
 Tres caminos, con su coste:
 
 - **A. Dejar la cifra cruda pero MARCARLA** («500 ₺ · sin tipo de cambio») y no sumarla al total en
