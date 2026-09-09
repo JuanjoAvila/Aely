@@ -150,6 +150,15 @@ assert.match(
 assert.match(shell, /@keyframes\s+seasonDrift/, "seasonDrift");
 
 assert.doesNotMatch(comps, /\{id:"temporada"\s*,\s*t:/, "tanda temporada fuera");
-assert.match(comps, /temporada.*QUITADA|QUITADA.*temporada/i, "por qué se quitó");
+/* NOTAS-BUNDLE: el comentario «temporada QUITADA» vivía dentro del literal de RELEASE_NOTES
+   y se perdió al pasar a JSON (los comentarios no caben). La prueba de que salió del panel
+   es la 4.13.0 con `tandas:[]` — aprobada → se borra del array, no se marca hecha. */
+{
+  const notes = JSON.parse(readFileSync(join(root, "src/data/release-notes.json"), "utf8"));
+  const v413 = notes.find((n) => n && n.v === "4.13.0");
+  assert.ok(v413, "falta 4.13.0 en release-notes.json");
+  assert.ok(Array.isArray(v413.tandas) && v413.tandas.length === 0,
+    "4.13.0 debe tener tandas vacías (temporada y el resto QUITADAS al aprobar)");
+}
 
 console.log("ok: season glow .22 portal #root z-0; sin cofia; botnav opaco");
