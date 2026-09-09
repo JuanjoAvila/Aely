@@ -55,8 +55,9 @@ function HelpTip({text}){
    INFORME DEL MES — imagen 1080×1350 (para compartir por WhatsApp/IG) con los
    colores del tema activo. Todo en el dispositivo (canvas → share/descarga).
    ============================================================ */
-function shareMonthReport(state, tt, showToast){
+function shareMonthReport(state, tt, showToast, opt){
   try{
+    opt=opt||{};
     // Paleta FIJA por tema (mismos hex que el CSS). No se lee getComputedStyle: en algunos
     // móviles el "modo oscuro automático" del navegador reescribe/oscurece las variables CSS
     // y el informe salía con textos negros ilegibles. Así los colores son deterministas.
@@ -76,29 +77,41 @@ function shareMonthReport(state, tt, showToast){
     const grad=g.createLinearGradient(0,0,0,H*0.5); grad.addColorStop(0,"rgba(95,208,138,.14)"); grad.addColorStop(1,"rgba(0,0,0,0)");
     g.fillStyle=grad; g.fillRect(0,0,W,H*0.5);
     g.textBaseline="top";
-    const mes=monthLong(new Date().getMonth())+" "+new Date().getFullYear();
+    // Mes del informe: opt (mes cerrado) o el mes en curso. Nombre de fichero igual.
+    const winStart=opt.startMs!=null?opt.startMs:inicioDeMesMs(opt.nowMs!=null?opt.nowMs:Date.now());
+    const winEnd=opt.endMs!=null?opt.endMs:null;
+    const labelParts=typeof madridYmdParts==="function"?madridYmdParts(winStart+5*864e5):null;
+    const mesRaw=opt.ym
+      ? (monthLong((labelParts?labelParts.m:1)-1)+" "+(labelParts?labelParts.y:""))
+      : (monthLong(new Date().getMonth())+" "+new Date().getFullYear());
+    const mes=String(mesRaw).replace(/\s+$/,"");
+    const ymFile=opt.ym||(labelParts&&labelParts.ym)||new Date().toISOString().slice(0,7);
     g.fillStyle=mint;  g.font="800 44px Manrope, sans-serif"; g.fillText("💼 Mi Cartera", 72, 70);
     g.fillStyle=muted; g.font="600 34px Manrope, sans-serif"; g.fillText(mes.charAt(0).toUpperCase()+mes.slice(1), 72, 130);
     // tarjeta: gastado este mes + barra de presupuesto
     g.fillStyle=surface; round(72,210,W-144,330,28); g.fill(); g.strokeStyle=line; g.lineWidth=2; round(72,210,W-144,330,28); g.stroke();
     g.fillStyle=muted; g.font="700 27px Manrope, sans-serif"; g.fillText(t("rp_spent").toUpperCase(), 116, 252);
     // Misma cifra que Resumen/Gastos (`monthBudgetStats`), no thisMonthSpent.
-    const bs=monthBudgetStats(state);
+    const bs=monthBudgetStats(state, winStart+12*864e5, winEnd!=null?winEnd:undefined);
     const spentShown=bs.shown!=null?bs.shown:Math.max(0,bs.against||0);
     g.fillStyle=text;  g.font="700 96px Manrope, sans-serif"; g.fillText(eur0(spentShown), 112, 300);
-    const bud=bs.budget!=null?bs.budget:(state.budget||0);
+    const bud=bs.budget!=null?bs.budget:0;
     if(bud>0){
       const ratio=Math.min(1, Math.max(0, bs.against||0)/bud);
       g.fillStyle="rgba(128,128,128,.18)"; round(116,432,W-232,26,13); g.fill();
       g.fillStyle=ratio<1?mint:coral; round(116,432,Math.max(20,(W-232)*ratio),26,13); g.fill();
       g.fillStyle=muted; g.font="600 28px Manrope, sans-serif"; g.fillText(tf("rp_of_budget",{b:eur0(bud),p:Math.round(ratio*100)}), 116, 480);
     }
-    // top 3 categorías del mes
+    // top 3 categorías del mes (misma ventana que bs)
     const byCat={};
-    (state.expenses||[]).filter(function(e){
-      return parseDate(e.date)>=startOfMonth() && e.amount>0 && !CAT_NEUTRAS[e.category];
-    })
-      .forEach(function(e){ byCat[e.category||"otros"]=(byCat[e.category||"otros"]||0)+e.amount; });
+    const endCap=winEnd!=null?winEnd:Infinity;
+    (state.expenses||[]).forEach(function(e){
+      const ms=dateMs(e.date);
+      if(ms<winStart||ms>=endCap) return;
+      if(!(e.amount>0) || CAT_NEUTRAS[e.category]) return;
+      if(typeof expenseCountsBudget==="function" && !expenseCountsBudget(e, state)) return;
+      byCat[e.category||"otros"]=(byCat[e.category||"otros"]||0)+e.amount;
+    });
     const top=Object.keys(byCat).map(function(k){ return [k,byCat[k]]; }).sort(function(a,b){ return b[1]-a[1]; }).slice(0,3);
     let y=610;
     g.fillStyle=text; g.font="800 36px Manrope, sans-serif"; g.fillText(t("rp_top"), 72, y); y+=70;
@@ -124,7 +137,7 @@ function shareMonthReport(state, tt, showToast){
     g.fillStyle=muted; g.font="600 26px Manrope, sans-serif"; g.fillText(t("rp_footer")+" · v"+CONFIG.APP_VERSION, 72, H-72);
     cv.toBlob(function(b){
       if(!b){ if(showToast) showToast("✕ Informe: canvas vacío"); return; }
-      const fname="mi-cartera-"+new Date().toISOString().slice(0,7)+".png";
+      const fname="mi-cartera-"+ymFile+".png";
       const dl=function(){
         const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download=fname; a.click();
         setTimeout(function(){ URL.revokeObjectURL(u); },1000);
@@ -151,7 +164,7 @@ function shareMonthReport(state, tt, showToast){
         saidSaved();
       }
     },"image/png");
-  }catch(e){ try{ alert("Informe: "+((e&&e.message)||e)); }catch(_){} }
+  }catch(e){ if(showToast) showToast("✕ Informe: "+((e&&e.message)||e)); }
 }
 
 /* ============================================================

@@ -553,11 +553,22 @@ function reservedSince(state, fromMs){
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
    que pinta la cabecera de Gastos (gasto bruto o |balance| según gTotalMode). */
-function monthBudgetStats(state){
-  const now=new Date(), startMs=startOfMonth(now).getTime();
+/* `nowMs` y `hastaMs` llegan con el informe del mes cerrado (tanda 4.19.12, aprobada por el).
+   Los dos son OPCIONALES y sin ellos el comportamiento es EXACTAMENTE el de siempre: desde el dia
+   1 en adelante. Con `hastaMs` se acota a [inicio de mes, hastaMs) para que un gasto del mes nuevo
+   no se cuele en el informe del mes cerrado.
+   NOTA DEL PORTE A PRODUCCION (2026-09-10): en beta esta linea usa `inicioDeMesMs`, que llego con
+   la tanda de la ventana de mes — la que el RECHAZO. Aqui se mantiene `startOfMonth`, que es lo
+   que produccion ya usa en todas partes; asi el desglose por categoria y esta cabecera comparten
+   la MISMA regla de mes, que es justo el criterio 1 de la tanda de categorias. */
+function monthBudgetStats(state, nowMs, hastaMs){
+  const now=(nowMs!=null)?new Date(nowMs):new Date();
+  const startMs=startOfMonth(now).getTime();
+  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
   let spent=0, income=0;
   (state.expenses||[]).forEach(function(e){
-    if(dateMs(e.date)<startMs) return;
+    const ms=dateMs(e.date);
+    if(ms<startMs || ms>=endMs) return;
     // Solo bancos de gasto diario (+ a mano). El resto se ve en la lista pero no mueve la cifra.
     if(!expenseCountsBudget(e, state)) return;
     if(e.amount>0) spent+=e.amount;
@@ -573,6 +584,87 @@ function monthBudgetStats(state){
   const remaining=budget==null?null:budget-against;
   return {spent:spent, income:income, balance:balance, mode:mode, budget:budget, reserved:reserved,
     remaining:remaining, against:against, shown:shown};
+}
+
+/* Desglose del mes por categoría (brief PRESUPUESTO-POR-CATEGORIA). Misma ventana y misma
+   regla que monthBudgetStats (`expenseCountsBudget` + hastaMs): la suma de `spent` tiene que
+   cuadrar al céntimo con la cabecera. Neutras fuera. Un límite huérfano (id que ya no está
+   en CAT) no se enseña ni suma. Sin gastos pero con límite → fila a 0, para que no parezca
+   que se ha borrado el tope. */
+function categorySpentByMonth(state, nowMs, hastaMs){
+  const startMs=startOfMonth(nowMs!=null?new Date(nowMs):new Date()).getTime();   // prod usa startOfMonth; `inicioDeMesMs` vino con la tanda de la ventana de mes, que el RECHAZO
+  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
+  const byCat={};
+  (state.expenses||[]).forEach(function(e){
+    const ms=dateMs(e.date);
+    if(ms<startMs || ms>=endMs) return;
+    if(!(e.amount>0)) return;
+    if(!expenseCountsBudget(e, state)) return;
+    const id=e.category||"otros";
+    byCat[id]=(byCat[id]||0)+e.amount;
+  });
+  const budgets=(state&&state.categoryBudgets)||{};
+  Object.keys(budgets).forEach(function(id){
+    if(typeof CAT!=="undefined" && !CAT[id]) return;
+    const lim=Number(budgets[id]);
+    if(!(lim>0)) return;
+    if(byCat[id]==null) byCat[id]=0;
+  });
+  return Object.keys(byCat).map(function(id){
+    const lim=(typeof CAT==="undefined" || CAT[id]) ? Number(budgets[id]) : NaN;
+    return {
+      id:id,
+      spent:+((byCat[id]||0).toFixed(2)),
+      limit:(lim>0)?lim:null
+    };
+  }).sort(function(a,b){
+    if(b.spent!==a.spent) return b.spent-a.spent;
+    return String(a.id).localeCompare(String(b.id));
+  });
+}
+
+/* INFORME DEL MES CERRADO (brief 2026-09-08). Primeros días del mes nuevo: tarjeta en Inicio
+   con cifras del mes ANTERIOR (monthBudgetStats + hastaMs). Descartar = settings.closedMonthDismissed. */
+var CLOSED_MONTH_CARD_DAYS=5;
+function madridYmdParts(ms){
+  const s=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(ms));
+  const p=s.split("-");
+  return {y:+p[0], m:+p[1], d:+p[2], ym:p[0]+"-"+p[1]};
+}
+function closedMonthWindow(nowMs){
+  nowMs=nowMs!=null?nowMs:Date.now();
+  // `inicioDeMesMs` vino con la tanda de la ventana de mes, que el RECHAZO: aqui se usa el
+  // `startOfMonth` que produccion ya usa en `monthBudgetStats`, para no colar codigo suyo.
+  const endMs=startOfMonth(new Date(nowMs)).getTime();
+  const startMs=startOfMonth(new Date(endMs-1)).getTime();
+  const cur=madridYmdParts(nowMs);
+  const closed=madridYmdParts(startMs+5*864e5);
+  return {nowMs:nowMs, startMs:startMs, endMs:endMs, dayOfMonth:cur.d, closedYm:closed.ym, closedMonth:closed.m-1, closedYear:closed.y};
+}
+function closedMonthTopCat(state, startMs, endMs){
+  // Misma agregación que el desglose de Gastos (categorySpentByMonth), no un segundo forEach.
+  const rows=categorySpentByMonth(state, startMs+12*864e5, endMs);
+  const top=rows.find(function(r){ return r.spent>0; });
+  return top?{id:top.id, amount:top.spent}:null;
+}
+function closedMonthCardOf(state, nowMs){
+  const w=closedMonthWindow(nowMs);
+  if(w.dayOfMonth>CLOSED_MONTH_CARD_DAYS) return null;
+  const dismissed=(state.settings&&state.settings.closedMonthDismissed)||"";
+  if(dismissed===w.closedYm) return null;
+  const stats=monthBudgetStats(state, w.startMs+12*864e5, w.endMs);
+  if(!(stats.spent>0) && !(stats.income>0)) return null;
+  return {
+    ym:w.closedYm, startMs:w.startMs, endMs:w.endMs,
+    month:w.closedMonth, year:w.closedYear,
+    stats:stats, topCat:closedMonthTopCat(state, w.startMs, w.endMs),
+    saved:+((stats.income-stats.spent).toFixed(2))
+  };
+}
+function dismissClosedMonthCard(state, ym){
+  return Object.assign({}, state, {
+    settings:Object.assign({}, state.settings||{}, {closedMonthDismissed:ym||""})
+  });
 }
 
 /* EL CASHBACK ENTRA Y LUEGO SALE — son DOS apuntes del banco, un solo movimiento de dinero

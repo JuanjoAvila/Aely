@@ -55,6 +55,8 @@ const steps = [
   ["invest-category", ["node", "tests/invest-category.test.mjs"]],
   ["fx-multi", ["node", "tests/fx-multi.test.mjs"]],
   ["categories", ["node", "tests/categories.test.mjs"]],
+  ["presupuesto-categoria", ["node", "tests/presupuesto-categoria.test.mjs"]],
+  ["informe-mes", ["node", "tests/informe-mes.test.mjs"]],
   ["revo-parse", ["node", "tests/revo-parse.test.mjs"]],
   ["revo-num", ["node", "tests/revo-num.test.mjs"]],
   ["debts", ["node", "tests/debts.test.mjs"]],

@@ -747,6 +747,14 @@
   .v4-gastos-progress-marks{display:flex;justify-content:space-between;gap:8px;margin-top:7px;color:var(--muted-2);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.25px;}
   .v4-gastos-progress-marks span:nth-child(2){text-align:center;color:var(--muted);}
   .v4-gastos-progress-marks span:last-child{text-align:right;}
+  .v4-gastos-cats{margin-top:14px;}
+  .v4-gastos-cats-h{font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--muted-2);margin-bottom:4px;}
+  .v4-gastos-cat{display:block;width:100%;text-align:left;background:transparent;border:0;padding:8px 0 2px;cursor:pointer;color:inherit;font:inherit;}
+  .v4-gastos-cat-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;}
+  .v4-gastos-cat-name{font-weight:600;min-width:0;}
+  .v4-gastos-cat-amt{font-weight:700;flex:0 0 auto;}
+  .v4-gastos-cat-hint{display:block;margin-top:2px;font-size:11px;color:var(--muted-2);}
+  .v4-gastos-cat .bar{height:8px;margin-top:5px;}
   .v4-periods{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
   .v4-period-btn{min-height:48px;border-radius:15px;border:1px solid var(--line-soft);background:var(--sur);color:var(--muted);font-size:13.5px;font-weight:800;}
   .v4-period-btn.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
@@ -3088,6 +3096,9 @@ const LANG = {
     v4_gastos_title:"Tus gastos", v4_gastos_spent_in:"Gastado en {month}", v4_gastos_net_in:"Balance en {month}", v4_gastos_of:"de {x}", v4_gastos_left:"quedan {x}", v4_gastos_today_mark:"hoy · día {d}", v4_period_more:"Más…",
     v4_gastos_inc_line:"Ingresos {x} · balance {bal}", v4_gastos_split_line:"Gastos {spent} · ingresos {income}",
     v4_gastos_lbl_spent:"Gastos", v4_gastos_lbl_income:"Ingresos", v4_gastos_lbl_balance:"Balance",
+    v4_gastos_cats:"Por categoría", v4_gastos_cat_limit:"límite {x}", v4_gastos_cat_nolimit:"Sin límite · tocar para poner",
+    g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Solo para verlo: no cambia tu presupuesto ni te bloquea. Vacío o 0 = quitar el límite.",
+    g_cat_budget_clear:"Quitar límite",
     v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
     v4_inv_tools:"Herramientas de inversión", v4_inv_tools_h:"Precios, redondeo, proyección y edición manual — lo que antes llenaba Cartera.",
     v4_sync_banks:"Sincronizar bancos", v4_sync_banks_done:"✓ Bancos sincronizados",
@@ -3247,6 +3258,9 @@ const LANG = {
     v4_gastos_title:"Your spending", v4_gastos_spent_in:"Spent in {month}", v4_gastos_net_in:"Balance in {month}", v4_gastos_of:"of {x}", v4_gastos_left:"{x} left", v4_gastos_today_mark:"today · day {d}", v4_period_more:"More…",
     v4_gastos_inc_line:"Income {x} · balance {bal}", v4_gastos_split_line:"Spent {spent} · income {income}",
     v4_gastos_lbl_spent:"Spent", v4_gastos_lbl_income:"Income", v4_gastos_lbl_balance:"Balance",
+    v4_gastos_cats:"By category", v4_gastos_cat_limit:"limit {x}", v4_gastos_cat_nolimit:"No limit · tap to set",
+    g_cat_budget_title:"Limit for {cat}", g_cat_budget_sub:"Just to see it: it does not change your budget or block you. Empty or 0 removes the limit.",
+    g_cat_budget_clear:"Remove limit",
     v4_cartera_title:"Your portfolio", v4_cuentas:"Your accounts", v4_inversiones:"Your investments", v4_inv_positions:"{n} positions",
     v4_inv_tools:"Investment tools", v4_inv_tools_h:"Prices, round-ups, projections and manual edit — what used to clutter Portfolio.",
     v4_sync_banks:"Sync banks", v4_sync_banks_done:"✓ Banks synced",
@@ -3393,6 +3407,9 @@ const LANG = {
     v4_gastos_title:"Les teves despeses", v4_gastos_spent_in:"Gastat al {month}", v4_gastos_net_in:"Balanç al {month}", v4_gastos_of:"de {x}", v4_gastos_left:"queden {x}", v4_gastos_today_mark:"avui · dia {d}", v4_period_more:"Més…",
     v4_gastos_inc_line:"Ingressos {x} · balanç {bal}", v4_gastos_split_line:"Despeses {spent} · ingressos {income}",
     v4_gastos_lbl_spent:"Despeses", v4_gastos_lbl_income:"Ingressos", v4_gastos_lbl_balance:"Balanç",
+    v4_gastos_cats:"Per categoria", v4_gastos_cat_limit:"límit {x}", v4_gastos_cat_nolimit:"Sense límit · toca per posar",
+    g_cat_budget_title:"Límit a {cat}", g_cat_budget_sub:"Només per veure’l: no canvia el pressupost ni et bloqueja. Buit o 0 = treure el límit.",
+    g_cat_budget_clear:"Treure límit",
     v4_cartera_title:"La teva cartera", v4_cuentas:"Els teus comptes", v4_inversiones:"Les teves inversions", v4_inv_positions:"{n} posicions",
     v4_inv_tools:"Eines d’inversió", v4_inv_tools_h:"Preus, arrodoniment, projecció i edició manual — el que abans omplia Cartera.",
     v4_sync_banks:"Sincronitza els bancs", v4_sync_banks_done:"✓ Bancs sincronitzats",
@@ -3680,8 +3697,9 @@ Object.assign(LANG.es,{
   ob_imported:"🏦 {n} compras con tarjeta añadidas a Gastos",
   rp_btn:"📸 Informe del mes (imagen)", rp_spent:"Gastado este mes", rp_of_budget:"de {b} de presupuesto ({p}%)",
   rp_top:"Top categorías", rp_networth:"Patrimonio", rp_delta:"{x} este mes", rp_footer:"hecho con Mi Cartera",
-  mr_title:"¡Nuevo mes!", mr_sub:"Tu resumen del mes que acaba de empezar. Compártelo con quien quieras o guárdalo.",
-  mr_share:"📸 Crear imagen del informe", mr_later:"Ahora no", mr_shared:"✓ Informe listo para compartir",
+  mr_title:"Así acabó {mes}", mr_sub:"Resumen del mes que acaba de cerrar. Compártelo o descártalo como imagen.",
+  mr_share:"📸 Crear imagen del informe", mr_later:"Descartar", mr_shared:"✓ Informe listo para compartir",
+  mr_top:"Más gasto: {cat} ({x})", mr_saved:"Ahorraste {x}", mr_over:"Gastaste {x} más de lo que entró",
   hh_title:"Hogar compartido", hh_intro:"Como la cuenta conjunta del banco: cada uno ve el patrimonio fusionado, sin mezclar datos privados.",
   hh_need_cloud:"Inicia sesión para crear o unirte a un hogar.", hh_need_login:"Inicia sesión para usar el hogar compartido.",
   hh_create:"Crear hogar", hh_join:"Unirme con código", hh_name_ph:"Nombre (ej. Casa Avila)", hh_code_ph:"Código de 6 letras",
@@ -3719,8 +3737,9 @@ Object.assign(LANG.en,{
   ob_imported:"🏦 {n} card purchases added to Spending",
   rp_btn:"📸 Month report (image)", rp_spent:"Spent this month", rp_of_budget:"of {b} budget ({p}%)",
   rp_top:"Top categories", rp_networth:"Net worth", rp_delta:"{x} this month", rp_footer:"made with Mi Cartera",
-  mr_title:"New month!", mr_sub:"Your summary for the month that just started. Share it or save it.",
-  mr_share:"📸 Create report image", mr_later:"Not now", mr_shared:"✓ Report ready to share",
+  mr_title:"How {mes} ended", mr_sub:"Summary of the month that just closed. Share it or save it as an image.",
+  mr_share:"📸 Create report image", mr_later:"Dismiss", mr_shared:"✓ Report ready to share",
+  mr_top:"Top spend: {cat} ({x})", mr_saved:"You saved {x}", mr_over:"You spent {x} more than came in",
   hh_title:"Shared household", hh_intro:"Like a joint bank view: each person publishes their snapshot; nothing crosses into the other's data.",
   hh_need_cloud:"Sign in to create or join a household.", hh_need_login:"Sign in to use shared household.",
   hh_create:"Create household", hh_join:"Join with code", hh_name_ph:"Name (e.g. Home)", hh_code_ph:"6-letter code",
@@ -3758,8 +3777,9 @@ Object.assign(LANG.ca,{
   ob_imported:"🏦 {n} compres amb targeta afegides a Despeses",
   rp_btn:"📸 Informe del mes (imatge)", rp_spent:"Gastat aquest mes", rp_of_budget:"de {b} de pressupost ({p}%)",
   rp_top:"Top categories", rp_networth:"Patrimoni", rp_delta:"{x} aquest mes", rp_footer:"fet amb Mi Cartera",
-  mr_title:"Nou mes!", mr_sub:"El resum del mes que acaba de començar. Comparteix-lo o guarda'l.",
-  mr_share:"📸 Crear imatge de l'informe", mr_later:"Ara no", mr_shared:"✓ Informe llest per compartir",
+  mr_title:"Així va acabar {mes}", mr_sub:"Resum del mes que acaba de tancar. Comparteix-lo o desa'l com a imatge.",
+  mr_share:"📸 Crear imatge de l'informe", mr_later:"Descartar", mr_shared:"✓ Informe llest per compartir",
+  mr_top:"Més despesa: {cat} ({x})", mr_saved:"Has estalviat {x}", mr_over:"Has gastat {x} més del que va entrar",
   hh_title:"Llar compartida", hh_intro:"Com el compte conjunt del banc: cadascú publica la seva instantània sense barrejar dades privades.",
   hh_need_cloud:"Inicia sessió per crear o unir-te a una llar.", hh_need_login:"Inicia sessió per usar la llar compartida.",
   hh_create:"Crear llar", hh_join:"Unir-me amb codi", hh_name_ph:"Nom (ex. Casa)", hh_code_ph:"Codi de 6 lletres",
@@ -5931,8 +5951,9 @@ function HelpTip({text}){
    INFORME DEL MES — imagen 1080×1350 (para compartir por WhatsApp/IG) con los
    colores del tema activo. Todo en el dispositivo (canvas → share/descarga).
    ============================================================ */
-function shareMonthReport(state, tt, showToast){
+function shareMonthReport(state, tt, showToast, opt){
   try{
+    opt=opt||{};
     // Paleta FIJA por tema (mismos hex que el CSS). No se lee getComputedStyle: en algunos
     // móviles el "modo oscuro automático" del navegador reescribe/oscurece las variables CSS
     // y el informe salía con textos negros ilegibles. Así los colores son deterministas.
@@ -5952,29 +5973,41 @@ function shareMonthReport(state, tt, showToast){
     const grad=g.createLinearGradient(0,0,0,H*0.5); grad.addColorStop(0,"rgba(95,208,138,.14)"); grad.addColorStop(1,"rgba(0,0,0,0)");
     g.fillStyle=grad; g.fillRect(0,0,W,H*0.5);
     g.textBaseline="top";
-    const mes=monthLong(new Date().getMonth())+" "+new Date().getFullYear();
+    // Mes del informe: opt (mes cerrado) o el mes en curso. Nombre de fichero igual.
+    const winStart=opt.startMs!=null?opt.startMs:inicioDeMesMs(opt.nowMs!=null?opt.nowMs:Date.now());
+    const winEnd=opt.endMs!=null?opt.endMs:null;
+    const labelParts=typeof madridYmdParts==="function"?madridYmdParts(winStart+5*864e5):null;
+    const mesRaw=opt.ym
+      ? (monthLong((labelParts?labelParts.m:1)-1)+" "+(labelParts?labelParts.y:""))
+      : (monthLong(new Date().getMonth())+" "+new Date().getFullYear());
+    const mes=String(mesRaw).replace(/\s+$/,"");
+    const ymFile=opt.ym||(labelParts&&labelParts.ym)||new Date().toISOString().slice(0,7);
     g.fillStyle=mint;  g.font="800 44px Manrope, sans-serif"; g.fillText("💼 Mi Cartera", 72, 70);
     g.fillStyle=muted; g.font="600 34px Manrope, sans-serif"; g.fillText(mes.charAt(0).toUpperCase()+mes.slice(1), 72, 130);
     // tarjeta: gastado este mes + barra de presupuesto
     g.fillStyle=surface; round(72,210,W-144,330,28); g.fill(); g.strokeStyle=line; g.lineWidth=2; round(72,210,W-144,330,28); g.stroke();
     g.fillStyle=muted; g.font="700 27px Manrope, sans-serif"; g.fillText(t("rp_spent").toUpperCase(), 116, 252);
     // Misma cifra que Resumen/Gastos (`monthBudgetStats`), no thisMonthSpent.
-    const bs=monthBudgetStats(state);
+    const bs=monthBudgetStats(state, winStart+12*864e5, winEnd!=null?winEnd:undefined);
     const spentShown=bs.shown!=null?bs.shown:Math.max(0,bs.against||0);
     g.fillStyle=text;  g.font="700 96px Manrope, sans-serif"; g.fillText(eur0(spentShown), 112, 300);
-    const bud=bs.budget!=null?bs.budget:(state.budget||0);
+    const bud=bs.budget!=null?bs.budget:0;
     if(bud>0){
       const ratio=Math.min(1, Math.max(0, bs.against||0)/bud);
       g.fillStyle="rgba(128,128,128,.18)"; round(116,432,W-232,26,13); g.fill();
       g.fillStyle=ratio<1?mint:coral; round(116,432,Math.max(20,(W-232)*ratio),26,13); g.fill();
       g.fillStyle=muted; g.font="600 28px Manrope, sans-serif"; g.fillText(tf("rp_of_budget",{b:eur0(bud),p:Math.round(ratio*100)}), 116, 480);
     }
-    // top 3 categorías del mes
+    // top 3 categorías del mes (misma ventana que bs)
     const byCat={};
-    (state.expenses||[]).filter(function(e){
-      return parseDate(e.date)>=startOfMonth() && e.amount>0 && !CAT_NEUTRAS[e.category];
-    })
-      .forEach(function(e){ byCat[e.category||"otros"]=(byCat[e.category||"otros"]||0)+e.amount; });
+    const endCap=winEnd!=null?winEnd:Infinity;
+    (state.expenses||[]).forEach(function(e){
+      const ms=dateMs(e.date);
+      if(ms<winStart||ms>=endCap) return;
+      if(!(e.amount>0) || CAT_NEUTRAS[e.category]) return;
+      if(typeof expenseCountsBudget==="function" && !expenseCountsBudget(e, state)) return;
+      byCat[e.category||"otros"]=(byCat[e.category||"otros"]||0)+e.amount;
+    });
     const top=Object.keys(byCat).map(function(k){ return [k,byCat[k]]; }).sort(function(a,b){ return b[1]-a[1]; }).slice(0,3);
     let y=610;
     g.fillStyle=text; g.font="800 36px Manrope, sans-serif"; g.fillText(t("rp_top"), 72, y); y+=70;
@@ -6000,7 +6033,7 @@ function shareMonthReport(state, tt, showToast){
     g.fillStyle=muted; g.font="600 26px Manrope, sans-serif"; g.fillText(t("rp_footer")+" · v"+CONFIG.APP_VERSION, 72, H-72);
     cv.toBlob(function(b){
       if(!b){ if(showToast) showToast("✕ Informe: canvas vacío"); return; }
-      const fname="mi-cartera-"+new Date().toISOString().slice(0,7)+".png";
+      const fname="mi-cartera-"+ymFile+".png";
       const dl=function(){
         const u=URL.createObjectURL(b); const a=document.createElement("a"); a.href=u; a.download=fname; a.click();
         setTimeout(function(){ URL.revokeObjectURL(u); },1000);
@@ -6027,7 +6060,7 @@ function shareMonthReport(state, tt, showToast){
         saidSaved();
       }
     },"image/png");
-  }catch(e){ try{ alert("Informe: "+((e&&e.message)||e)); }catch(_){} }
+  }catch(e){ if(showToast) showToast("✕ Informe: "+((e&&e.message)||e)); }
 }
 
 /* ============================================================
@@ -6729,7 +6762,7 @@ function dashOrderOf(s, allIds){
   const saved=((s.settings&&s.settings.dashOrder)||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
   return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
 }
-function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan}){
+function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
   const tt=totals;
   const simple=!!(state.settings&&state.settings.simpleMode);
   const [shownNet,setShownNet]=useState(0);
@@ -6853,6 +6886,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const ringC=2*Math.PI*48;
   const ringPct=Math.max(0,Math.min(1,ratio));
   const monthName=monthLong(new Date().getMonth());
+  const closedCard=closedMonthCardOf(state);
 
   return React.createElement("div",{className:"v4-screen"},
     React.createElement("div",{className:"v4-inicio-head rise"},
@@ -6862,6 +6896,30 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       ),
       React.createElement("button",{className:"v4-avatar","data-tour":"avatar","aria-label":t("pf_title"),
         onClick:function(){ if(onOpenProfile) onOpenProfile(); else if(onOpenSettings) onOpenSettings(); }}, initials)
+    ),
+
+    closedCard && React.createElement("div",{className:"v4-card rise","data-tour":"closed-month",style:{animationDelay:".02s",marginTop:4}},
+      React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
+        React.createElement("div",null,
+          React.createElement("div",{style:{fontWeight:800,fontSize:15}}, tf("mr_title",{mes:monthLong(closedCard.month)+" "+closedCard.year})),
+          React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:4,lineHeight:1.4}}, t("mr_sub"))
+        ),
+        React.createElement("button",{type:"button",className:"link",style:{flexShrink:0,fontSize:13},onClick:function(){
+          set(function(s){ return dismissClosedMonthCard(s, closedCard.ym); });
+        }}, t("mr_later"))
+      ),
+      React.createElement("div",{className:"num",style:{fontWeight:800,fontSize:26,marginTop:10}}, eur0(closedCard.stats.shown)),
+      React.createElement("div",{style:{fontSize:12,color:"var(--muted)"}}, t("rp_spent")),
+      closedCard.stats.budget!=null && closedCard.stats.budget>0 && React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
+        tf("rp_of_budget",{b:eur0(closedCard.stats.budget),p:Math.round(Math.min(100,(closedCard.stats.against/(closedCard.stats.budget||1))*100))})),
+      closedCard.topCat && React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
+        tf("mr_top",{cat:catName(closedCard.topCat.id), x:eur0(closedCard.topCat.amount)})),
+      React.createElement("div",{style:{fontSize:12.5,marginTop:6}},
+        closedCard.saved>=0 ? tf("mr_saved",{x:eur0(closedCard.saved)}) : tf("mr_over",{x:eur0(Math.abs(closedCard.saved))})),
+      React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{marginTop:12},onClick:function(){
+        shareMonthReport(state, totals, showToast, {startMs:closedCard.startMs, endMs:closedCard.endMs, ym:closedCard.ym});
+        if(showToast) showToast(t("mr_shared"));
+      }}, t("mr_share"))
     ),
 
     React.createElement("div",{className:"v4-hero rise","data-tour":"hero",style:{animationDelay:".05s"}},
@@ -7371,6 +7429,29 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       month:monthLong(now.getMonth())
     };
   },[state.expenses,state.budget,state.reservaLog,state.accounts,state.settings]);
+  // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
+  // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
+  const catBreakdown=useMemo(function(){
+    return categorySpentByMonth(state);
+  },[state.expenses,state.categoryBudgets,state.accounts,state.settings]);
+  const editCatBudget=useCallback(function(id){
+    const cur=Number((state.categoryBudgets||{})[id])||0;
+    const parseAmt=function(raw){ return Math.abs(parseFloat(String(raw==null?"":raw).replace(/\s/g,"").replace(",","."))||0); };
+    const chips=[{v:100,label:"100 €"},{v:200,label:"200 €"},{v:300,label:"300 €"}];
+    if(cur>0) chips.push({v:0,label:t("g_cat_budget_clear")});
+    askText({ title:tf("g_cat_budget_title",{cat:catName(id)}), sub:t("g_cat_budget_sub"),
+      ph:cur>0?String(cur).replace(".",","):"200", ok:t("save"), chips:chips })
+      .then(function(raw){
+        if(raw==null) return;
+        const amt=parseAmt(raw);
+        set(function(s){
+          const next=Object.assign({}, s.categoryBudgets||{});
+          if(!(amt>0)) delete next[id];
+          else next[id]=+amt.toFixed(2);
+          return Object.assign({}, s, { categoryBudgets:next });
+        });
+      });
+  },[set, state.categoryBudgets]);
   const subs=useMemo(function(){ return heavyOk?detectSubscriptions(expensesDef):[]; },[heavyOk,expensesDef]);
   const suggestAi=function(ex){
     if(!(state.settings&&state.settings.aiCat)){ showToast(t("ai_cat_off")); return; }
@@ -7555,6 +7636,25 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         React.createElement("span","1 "+monthSummary.month),
         React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
         React.createElement("span",monthSummary.last+" "+monthSummary.month)
+      ),
+      catBreakdown.length>0 && React.createElement("div",{className:"v4-gastos-cats","data-testid":"gastos-cats"},
+        React.createElement("div",{className:"v4-gastos-cats-h"}, t("v4_gastos_cats")),
+        catBreakdown.map(function(row){
+          const cat=catOf(row.id);
+          const lim=row.limit;
+          const pct=lim>0?Math.min(100, row.spent/lim*100):0;
+          return React.createElement("button",{key:row.id,type:"button",className:"v4-gastos-cat",
+              "data-cat":row.id,onClick:function(){ editCatBudget(row.id); }},
+            React.createElement("div",{className:"v4-gastos-cat-row"},
+              React.createElement("span",{className:"v4-gastos-cat-name"}, (cat.icon||"")+" "+catName(row.id)),
+              React.createElement("span",{className:"v4-gastos-cat-amt num"}, eur0(row.spent))),
+            lim>0
+              ? React.createElement(React.Fragment,null,
+                  React.createElement("span",{className:"v4-gastos-cat-hint"}, tf("v4_gastos_cat_limit",{x:eur0(lim)})),
+                  React.createElement("div",{className:"bar",role:"progressbar","aria-valuemin":0,"aria-valuemax":lim,"aria-valuenow":row.spent},
+                    React.createElement("i",{style:{width:pct+"%",background:cat.color||"var(--mint)"}})))
+              : React.createElement("span",{className:"v4-gastos-cat-hint"}, t("v4_gastos_cat_nolimit")));
+        })
       )
     ),
     React.createElement("div",{className:"filters"},
@@ -10426,11 +10526,22 @@ function reservedSince(state, fromMs){
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
    que pinta la cabecera de Gastos (gasto bruto o |balance| según gTotalMode). */
-function monthBudgetStats(state){
-  const now=new Date(), startMs=startOfMonth(now).getTime();
+/* `nowMs` y `hastaMs` llegan con el informe del mes cerrado (tanda 4.19.12, aprobada por el).
+   Los dos son OPCIONALES y sin ellos el comportamiento es EXACTAMENTE el de siempre: desde el dia
+   1 en adelante. Con `hastaMs` se acota a [inicio de mes, hastaMs) para que un gasto del mes nuevo
+   no se cuele en el informe del mes cerrado.
+   NOTA DEL PORTE A PRODUCCION (2026-09-10): en beta esta linea usa `inicioDeMesMs`, que llego con
+   la tanda de la ventana de mes — la que el RECHAZO. Aqui se mantiene `startOfMonth`, que es lo
+   que produccion ya usa en todas partes; asi el desglose por categoria y esta cabecera comparten
+   la MISMA regla de mes, que es justo el criterio 1 de la tanda de categorias. */
+function monthBudgetStats(state, nowMs, hastaMs){
+  const now=(nowMs!=null)?new Date(nowMs):new Date();
+  const startMs=startOfMonth(now).getTime();
+  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
   let spent=0, income=0;
   (state.expenses||[]).forEach(function(e){
-    if(dateMs(e.date)<startMs) return;
+    const ms=dateMs(e.date);
+    if(ms<startMs || ms>=endMs) return;
     // Solo bancos de gasto diario (+ a mano). El resto se ve en la lista pero no mueve la cifra.
     if(!expenseCountsBudget(e, state)) return;
     if(e.amount>0) spent+=e.amount;
@@ -10446,6 +10557,87 @@ function monthBudgetStats(state){
   const remaining=budget==null?null:budget-against;
   return {spent:spent, income:income, balance:balance, mode:mode, budget:budget, reserved:reserved,
     remaining:remaining, against:against, shown:shown};
+}
+
+/* Desglose del mes por categoría (brief PRESUPUESTO-POR-CATEGORIA). Misma ventana y misma
+   regla que monthBudgetStats (`expenseCountsBudget` + hastaMs): la suma de `spent` tiene que
+   cuadrar al céntimo con la cabecera. Neutras fuera. Un límite huérfano (id que ya no está
+   en CAT) no se enseña ni suma. Sin gastos pero con límite → fila a 0, para que no parezca
+   que se ha borrado el tope. */
+function categorySpentByMonth(state, nowMs, hastaMs){
+  const startMs=startOfMonth(nowMs!=null?new Date(nowMs):new Date()).getTime();   // prod usa startOfMonth; `inicioDeMesMs` vino con la tanda de la ventana de mes, que el RECHAZO
+  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
+  const byCat={};
+  (state.expenses||[]).forEach(function(e){
+    const ms=dateMs(e.date);
+    if(ms<startMs || ms>=endMs) return;
+    if(!(e.amount>0)) return;
+    if(!expenseCountsBudget(e, state)) return;
+    const id=e.category||"otros";
+    byCat[id]=(byCat[id]||0)+e.amount;
+  });
+  const budgets=(state&&state.categoryBudgets)||{};
+  Object.keys(budgets).forEach(function(id){
+    if(typeof CAT!=="undefined" && !CAT[id]) return;
+    const lim=Number(budgets[id]);
+    if(!(lim>0)) return;
+    if(byCat[id]==null) byCat[id]=0;
+  });
+  return Object.keys(byCat).map(function(id){
+    const lim=(typeof CAT==="undefined" || CAT[id]) ? Number(budgets[id]) : NaN;
+    return {
+      id:id,
+      spent:+((byCat[id]||0).toFixed(2)),
+      limit:(lim>0)?lim:null
+    };
+  }).sort(function(a,b){
+    if(b.spent!==a.spent) return b.spent-a.spent;
+    return String(a.id).localeCompare(String(b.id));
+  });
+}
+
+/* INFORME DEL MES CERRADO (brief 2026-09-08). Primeros días del mes nuevo: tarjeta en Inicio
+   con cifras del mes ANTERIOR (monthBudgetStats + hastaMs). Descartar = settings.closedMonthDismissed. */
+var CLOSED_MONTH_CARD_DAYS=5;
+function madridYmdParts(ms){
+  const s=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(ms));
+  const p=s.split("-");
+  return {y:+p[0], m:+p[1], d:+p[2], ym:p[0]+"-"+p[1]};
+}
+function closedMonthWindow(nowMs){
+  nowMs=nowMs!=null?nowMs:Date.now();
+  // `inicioDeMesMs` vino con la tanda de la ventana de mes, que el RECHAZO: aqui se usa el
+  // `startOfMonth` que produccion ya usa en `monthBudgetStats`, para no colar codigo suyo.
+  const endMs=startOfMonth(new Date(nowMs)).getTime();
+  const startMs=startOfMonth(new Date(endMs-1)).getTime();
+  const cur=madridYmdParts(nowMs);
+  const closed=madridYmdParts(startMs+5*864e5);
+  return {nowMs:nowMs, startMs:startMs, endMs:endMs, dayOfMonth:cur.d, closedYm:closed.ym, closedMonth:closed.m-1, closedYear:closed.y};
+}
+function closedMonthTopCat(state, startMs, endMs){
+  // Misma agregación que el desglose de Gastos (categorySpentByMonth), no un segundo forEach.
+  const rows=categorySpentByMonth(state, startMs+12*864e5, endMs);
+  const top=rows.find(function(r){ return r.spent>0; });
+  return top?{id:top.id, amount:top.spent}:null;
+}
+function closedMonthCardOf(state, nowMs){
+  const w=closedMonthWindow(nowMs);
+  if(w.dayOfMonth>CLOSED_MONTH_CARD_DAYS) return null;
+  const dismissed=(state.settings&&state.settings.closedMonthDismissed)||"";
+  if(dismissed===w.closedYm) return null;
+  const stats=monthBudgetStats(state, w.startMs+12*864e5, w.endMs);
+  if(!(stats.spent>0) && !(stats.income>0)) return null;
+  return {
+    ym:w.closedYm, startMs:w.startMs, endMs:w.endMs,
+    month:w.closedMonth, year:w.closedYear,
+    stats:stats, topCat:closedMonthTopCat(state, w.startMs, w.endMs),
+    saved:+((stats.income-stats.spent).toFixed(2))
+  };
+}
+function dismissClosedMonthCard(state, ym){
+  return Object.assign({}, state, {
+    settings:Object.assign({}, state.settings||{}, {closedMonthDismissed:ym||""})
+  });
 }
 
 /* EL CASHBACK ENTRA Y LUEGO SALE — son DOS apuntes del banco, un solo movimiento de dinero
