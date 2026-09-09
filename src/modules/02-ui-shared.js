@@ -876,9 +876,20 @@ function applyNumPadKey(raw, ch, sep){
   if(raw.replace(/[.,]/g,"").length>=7) return raw;
   return raw==="0"?ch:(raw+ch);
 }
+function numPadDecSep(){
+  // El teclado tenía la coma clavada. En inglés (en-GB) el decimal es punto; el parseo
+  // de abajo tolera los dos, esto es etiqueta + lo que se escribe (P10).
+  try{
+    const ch=(1.1).toLocaleString(loc()).charAt(1);
+    return (ch==="."||ch===",")?ch:",";
+  }catch(e){ return ","; }
+}
+function parseNumPadRaw(raw){
+  // Un solo separador decimal (el teclado no pone miles). Coma o punto → float.
+  return parseFloat(String(raw||"").replace(",","."))||0;
+}
 function NumPad({value, onChange}){
-  // P10 cambia `sep` al del locale; P9 lo deja en coma, que es lo que había en los dos teclados.
-  const sep=",";
+  const sep=numPadDecSep();
   const holdRef=useRef(null);
   const stopHold=function(){
     const h=holdRef.current;

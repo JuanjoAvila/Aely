@@ -555,7 +555,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
   const tbl=fxTableOf(state);
   const curAlways={ EUR:1, TRY:1, USD:1, GBP:1, CHF:1 };
   const curChips=CUR_LIST.filter(function(c){ return curAlways[c] || c===entryCur || tbl[c]>0; });
-  const amt=parseFloat(String(raw).replace(/\./g,"").replace(",","."))||0;
+  const amt=parseNumPadRaw(raw);
   const pickCur=function(c){
     setEntryCur(c);
     // Recuerda la última para el siguiente Apuntar (viaje: no volver a buscar la lira cada vez).
