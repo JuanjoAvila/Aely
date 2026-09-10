@@ -2,6 +2,41 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.26] — 2026-09-10
+### El desglose por categorías se puede ocultar
+
+Petición de su pareja, traída por él el 10/9: «está chulo pero mi pareja lo vio y me dijo que es *too much*, que le gustaría que se pudiera ocultar y habilitarlo si tú quieres».
+
+- El desglose lista **todas** las categorías con gasto del mes, así que con vida normal son ocho o diez filas fijas encima de la lista de gastos. A él le sirve —ponerles límite fue idea suya— y a ella le tapa justo lo que viene a mirar. No es un fallo de la función: es que no todo el mundo quiere lo mismo abierto siempre.
+- La **cabecera pasa a ser el interruptor**, con el mismo idioma que las tandas del panel de beta (▾/▸ + verbo), que ya conoce. Plegado deja **una línea** que dice cuántas categorías esconde: sigue estando, y no se ha perdido nada.
+- El estado vive en `settings.gastosCatsOff`, o sea **por cuenta**: él puede tenerlo abierto y ella cerrado, sin pelearse.
+- **Por defecto ABIERTO** a propósito: a quien ya lo tiene no se le esconde algo sin avisar. Se pliega quien quiera plegarlo.
+- Plegar no toca ni un límite ni una cifra — hay un test que lo comprueba.
+- 5 e2e nuevos en `gastos-categorias-presupuesto.spec.mjs` (8/8), más un caso de capturas bajo `MC_TIROS`.
+
+## [4.19.25] — 2026-09-10
+### Mantener pulsado ya no deja nada «marcado»
+
+Rechazo suyo del 10/9 sobre `4.19.20/pulido-cierre`: «al mantener pulsado en un gasto, se subraya y la app se vuelve loca, no se puede quitar el que está "marcado"».
+
+- Lo que se le quedaba marcado es la **selección de texto nativa de Android**. Una fila de gasto es un `<button>` que además lleva arrastrar-para-ordenar y deslizar: con las asas de selección puestas, los tres gestos se pelean por el mismo dedo y no hay forma de soltarlo.
+- Regla en `button,.v4-mov,.v4-charge`: `user-select:none` + `-webkit-touch-callout:none`. Va sobre el botón y no fila por fila, así cubre también recibos, tarjetas y lo que venga. Los `input` y las notas **no** son botones y conservan su selección — hay un test que se pone rojo si alguien sube la regla a `body` o a `*`.
+- ⚠ **Límite dicho a la cara**: la selección por pulsación larga la hace la capa nativa y Chromium de escritorio **no la dispara**. Comprobado: con el fallo puesto, un touch de 900 ms por CDP deja `getSelection()` vacío igual. Así que este arreglo está hecho **por causa, no por reproducción**, y lo que se vigila en los e2e es la condición que lo permite (`user-select` de la fila). El veredicto de verdad es el suyo en el móvil.
+- `e2e/pulsacion-larga.spec.mjs`, 3 casos.
+
+## [4.19.24] — 2026-09-10
+### Modo inicial: el rechazo del 10/9, arreglado en su causa
+
+Sus palabras al rechazar `4.19.21/modo-inicial`: «No funciona, entra sin más al banco de pruebas» y «Tampoco pasa nada, solamente sigue en el banco de pruebas como estaba, no resetea nada». Tenía razón las dos veces, y era el mismo fallo.
+
+- **Causa**: el estado está PARTIDO (lo ligero en `micartera_sandbox`, los gastos en `micartera_sandbox_exp`). `mcSeedSandboxVacio` escribía la clave principal **a pelo** con `store.set`, pero la app no lee de ahí: lee por `mcLoadRaw`, que pisa `expenses` con la mitad partida. Como él ya había entrado antes al banco de pruebas, esa mitad tenía sus gastos y volvían todos. Vaciaba cuentas y presupuesto, dejaba los gastos.
+- **Segundo fallo del mismo origen**: `mcEnterSandbox` sembraba con `store.get(STATE_KEY_REAL)`, que devuelve la mitad ligera — entrar al banco de pruebas te dejaba una cartera **sin un solo gasto**. Probar con eso no vale para nada, que es justo lo que motivó el modo inicial.
+- **Tercero**: `mcResetSandbox` borraba solo la mitad ligera y dejaba `micartera_sandbox_exp` huérfana, así que la siguiente entrada mezclaba los gastos de la sesión anterior con la copia nueva.
+- Las tres pasan ahora por `mcLoadRaw`/`mcSaveRaw`, nunca por `store` a pelo.
+- **Y el volcado pendiente, que habría devuelto el fallo por otra puerta** — lo encontró Cursor revisando la tanda: el guardado del estado va con 400 ms de retraso y `pagehide` lo fuerza justo antes de recargar, así que «Vaciar la cartera de pruebas» sembraba vacío y a continuación el volcado escribía encima el estado de React de hace un momento, con todo dentro, en la clave de pruebas. Los tres botones del banco de pruebas pasan ahora por `mcRecargarSinVolcar`, que descarta ese volcado: lo que se acaba de escribir a mano es la verdad. Con su test.
+
+**Por qué el guardián no lo cazó**, que es la parte que importa: `modo-inicial.spec.mjs` leía `localStorage.getItem("micartera_sandbox")` — justo la mitad que sí se vaciaba. Verde en CI y roto en su móvil. Corregido para leer por donde lee la app, más cuatro casos nuevos: vaciar con la clave partida ya creada, la cartera real intacta con sus gastos, entrar copiando los gastos, y tirar las dos mitades. 5/5.
+
 ## [4.19.23] — 2026-09-10
 ### Panel de pruebas: de uno en uno
 

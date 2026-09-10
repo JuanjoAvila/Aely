@@ -1,5 +1,161 @@
 [
   {
+    "v": "4.19.26",
+    "d": "10 sep 2026",
+    "t": {
+      "es": "Gastos, más despejado",
+      "en": "A tidier Expenses",
+      "ca": "Despeses, més despejat"
+    },
+    "tandas": [
+      {
+        "id": "cats-plegable",
+        "t": {
+          "es": "🙈 Ocultar el desglose por categorías",
+          "en": "🙈 Hide the category breakdown",
+          "ca": "🙈 Amagar el desglossament per categories"
+        },
+        "items": {
+          "es": [
+            "En Gastos, toca la cabecera «Por categoría»: el desglose se pliega y deja una sola línea que dice cuántas categorías hay.",
+            "Vuelve a tocarla: se despliega igual que estaba, con sus límites y sus barras.",
+            "Déjalo plegado, cierra la app y vuelve a entrar: tiene que seguir plegado. Es una preferencia, no un gesto que haya que repetir.",
+            "Comprueba que plegarlo NO cambia nada de dinero: ni el gasto del mes, ni lo que queda, ni los límites que tengas puestos.",
+            "Enséñaselo a tu pareja: en su móvil puede tenerlo plegado sin que a ti se te pliegue, porque va por cuenta."
+          ],
+          "en": [
+            "In Expenses, tap the «By category» heading: the breakdown collapses to a single line saying how many categories there are.",
+            "Tap it again: it expands exactly as it was, with its caps and bars.",
+            "Leave it collapsed, close the app and come back: it must still be collapsed. It is a preference, not a gesture to repeat.",
+            "Check that collapsing changes NO money: not the month spend, not what is left, not any caps you set.",
+            "Show it to your partner: on her phone she can keep it collapsed without collapsing yours, because it goes per account."
+          ],
+          "ca": [
+            "A Despeses, toca la capçalera «Per categoria»: el desglossament es plega i deixa una sola línia que diu quantes categories hi ha.",
+            "Torna a tocar-la: es desplega igual que estava, amb els seus límits i les seves barres.",
+            "Deixa'l plegat, tanca l'app i torna a entrar: ha de seguir plegat. És una preferència, no un gest per repetir.",
+            "Comprova que plegar-lo NO canvia res de diners: ni la despesa del mes, ni el que queda, ni els límits que tinguis posats.",
+            "Ensenya-ho a la teva parella: al seu mòbil pot tenir-ho plegat sense que a tu se't plegui, perquè va per compte."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "El desglose por categorías de Gastos se puede plegar de un toque, y se queda como lo dejes."
+      ],
+      "en": [
+        "The category breakdown in Expenses can be collapsed with one tap, and stays how you leave it."
+      ],
+      "ca": [
+        "El desglossament per categories de Despeses es pot plegar d'un toc, i es queda com el deixis."
+      ]
+    }
+  },
+  {
+    "v": "4.19.25",
+    "d": "10 sep 2026",
+    "t": {
+      "es": "Sin subrayados raros",
+      "en": "No stray highlights",
+      "ca": "Sense subratllats estranys"
+    },
+    "tandas": [
+      {
+        "id": "pulsacion-larga",
+        "t": {
+          "es": "✋ Mantener pulsado sin liarla",
+          "en": "✋ Long-press without the mess",
+          "ca": "✋ Mantenir premut sense embolic"
+        },
+        "items": {
+          "es": [
+            "En Gastos, mantén el dedo puesto encima de un gasto un par de segundos: NO se puede subrayar ni quedarse nada «marcado».",
+            "Haz lo mismo sobre un recibo y sobre las tarjetas de Inicio: igual, nada se subraya.",
+            "Arrastra un gasto por el asa (⠿) para reordenarlo: tiene que seguir yendo igual de bien que antes.",
+            "Escribe una nota en un gasto y toca a mitad de palabra para corregir: ahí SÍ tienes que poder colocar el cursor y seleccionar."
+          ],
+          "en": [
+            "In Expenses, hold your finger on an expense for a couple of seconds: nothing may get highlighted or stay «selected».",
+            "Do the same on a bill and on the Home cards: same thing, nothing gets highlighted.",
+            "Drag an expense by its handle (⠿) to reorder it: it must still work exactly as before.",
+            "Type a note on an expense and tap mid-word to correct it: there you SHOULD be able to place the cursor and select."
+          ],
+          "ca": [
+            "A Despeses, mantén el dit sobre una despesa un parell de segons: NO es pot subratllar ni quedar-se res «marcat».",
+            "Fes el mateix sobre un rebut i sobre les targetes d'Inici: igual, no se subratlla res.",
+            "Arrossega una despesa per l'ansa (⠿) per reordenar-la: ha de seguir anant igual de bé que abans.",
+            "Escriu una nota en una despesa i toca a mitja paraula per corregir: allà SÍ que has de poder col·locar el cursor i seleccionar."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "Mantener el dedo sobre un movimiento o una tarjeta ya no subraya el texto ni deja nada seleccionado."
+      ],
+      "en": [
+        "Holding your finger on a transaction or a card no longer highlights text or leaves anything selected."
+      ],
+      "ca": [
+        "Mantenir el dit sobre un moviment o una targeta ja no subratlla el text ni deixa res seleccionat."
+      ]
+    }
+  },
+  {
+    "v": "4.19.24",
+    "d": "10 sep 2026",
+    "t": {
+      "es": "El modo inicial, de verdad",
+      "en": "Fresh-start mode, for real",
+      "ca": "El mode inicial, de debò"
+    },
+    "tandas": [
+      {
+        "id": "modo-inicial-v2",
+        "t": {
+          "es": "🌱 Modo inicial (segundo intento)",
+          "en": "🌱 Fresh-start mode (second try)",
+          "ca": "🌱 Mode inicial (segon intent)"
+        },
+        "items": {
+          "es": [
+            "Ajustes → «Probar con la app vacía»: ahora sí entras SIN gastos, sin cuentas y sin presupuesto, aunque ya hubieras usado antes el banco de pruebas. Esto era lo que fallaba.",
+            "Ya dentro, «Vaciar la cartera de pruebas» la deja igual de vacía, sin salir.",
+            "Comprueba ahí las pantallas de estreno: el inicio sin gráfico, las tarjetas de presupuesto, recibos y metas, y el primer mes sin racha.",
+            "Sal del banco de pruebas: tu cartera real tiene que estar EXACTAMENTE igual, con todos tus gastos. Eso es lo importante.",
+            "Vuelve a entrar al banco de pruebas sin vaciarlo: tiene que traerse tus gastos reales, no una cartera a medias."
+          ],
+          "en": [
+            "Settings → «Try the app empty»: you now really do enter with NO spending, no accounts and no budget, even if you had used the test wallet before. This is what was broken.",
+            "Once inside, «Empty the test wallet» leaves it just as empty, without leaving.",
+            "Check the first-run screens there: home with no chart, the budget, bills and goals cards, and a first month with no streak.",
+            "Leave the test wallet: your real wallet must be EXACTLY as it was, with all your spending. That is the point.",
+            "Enter the test wallet again without emptying it: it must bring your real spending across, not a half-empty wallet."
+          ],
+          "ca": [
+            "Ajustos → «Provar amb l'app buida»: ara sí que entres SENSE despeses, sense comptes i sense pressupost, encara que ja haguessis fet servir abans el banc de proves. Això és el que fallava.",
+            "Un cop dins, «Buidar la cartera de proves» la deixa igual de buida, sense sortir.",
+            "Comprova-hi les pantalles d'estrena: l'inici sense gràfic, les targetes de pressupost, rebuts i objectius, i el primer mes sense ratxa.",
+            "Surt del banc de proves: la teva cartera real ha d'estar EXACTAMENT igual, amb totes les teves despeses. Això és l'important.",
+            "Torna a entrar al banc de proves sense buidar-lo: ha de portar-hi les teves despeses reals, no una cartera a mitges."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "El modo para ver la app «recién instalada» ya deja la cartera de pruebas realmente vacía, y volver a entrar conserva los movimientos."
+      ],
+      "en": [
+        "The «just installed» mode now really empties the test wallet, and re-entering keeps your transactions."
+      ],
+      "ca": [
+        "El mode per veure l'app «acabada d'instal·lar» ja deixa la cartera de proves realment buida, i tornar-hi conserva els moviments."
+      ]
+    }
+  },
+  {
     "v": "4.19.23",
     "d": "10 sep 2026",
     "t": {
