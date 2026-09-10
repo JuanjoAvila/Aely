@@ -147,7 +147,7 @@ window._mcNewerVer=function(a,b){
 };
 
 window._mcNotifyUpdate=function(version, kind){
-  var title="Mi Cartera";
+  var title="Aely";
   var body=kind==="apk"&&version?tf("upd_notif_apk",{v:version}):(version?tf("upd_notif",{v:version}):t("upd_notif_web"));
   try{
     var nat=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.MiCartera;

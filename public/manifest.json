@@ -1,7 +1,7 @@
 {
-  "name": "Mi Cartera",
-  "short_name": "Mi Cartera",
-  "description": "Mis finanzas personales: patrimonio, gastos, inversiones y deudas.",
+  "name": "Aely",
+  "short_name": "Aely",
+  "description": "Aely: control de gastos y presupuesto. Patrimonio, gastos, inversiones y deudas.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

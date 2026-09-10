@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
-<meta name="theme-color" content="#0A1310" />
+<meta name="theme-color" content="#0B140F" />
 <meta name="color-scheme" content="light dark" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-<title>Mi Cartera</title>
+<title>Aely</title>
 
 <!-- ================== Content-Security-Policy (2026-07-24) ==================
      Red de seguridad: aunque alguien colara HTML/JS en la página, el navegador no dejaría cargar
@@ -96,12 +96,14 @@
   @font-face{font-family:'Fraunces';font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/fraunces-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}
   @font-face{font-family:'Fraunces';font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/fraunces-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;}
   :root, html[data-theme="green"]{
-    /* Verde bosque un poco más vivo (feedback 2026-07-17: el tono quedó «seco/oscuro»). */
-    --bg:#0C1712; --bg-2:#10201A; --bg2:#10201A; --surface:#14261E; --surface-2:#1A2F25; --sur:#14261E; --sur2:#1A2F25;
-    --line:#214032; --line-soft:#1A3228;
-    --mint:#5FD08A; --mint-bright:#8CEFB0; --mint-hi:#8CEFB0; --mint-dim:#2F6B4A; --mint-deep:#2F6B4A; --on-mint:#06120C;
+    /* Aely brand tokens (docs/design/aely/AELY_BRAND_BRIEF.md, 2026-09-10).
+       dark-first forestal + menta; success = --ok, danger = --coral. */
+    --bg:#0B140F; --bg-2:#10201A; --bg2:#10201A; --surface:#132119; --surface-2:#1A2F25; --sur:#132119; --sur2:#1A2F25;
+    --line:#1C2A22; --line-soft:#1C2A22;
+    --mint:#6CC688; --mint-bright:#8CEFB0; --mint-hi:#8CEFB0; --mint-dim:#2BB673; --mint-deep:#2BB673; --on-mint:#0B140F;
+    --ok:#2BB673; --brand-word:#E8EEEC;
     --blue:#7FB5E8; --tan:#E6C36A; --cream:#F4EFE2;
-    --text:#EAF2EC; --muted:#93AC9E; --muted-2:#5E7468; --coral:#E2705F; --coral-dim:#5c322c;
+    --text:#FFFFFF; --muted:#A7B3AD; --muted-2:#5E7468; --coral:#E85D4C; --coral-dim:#5c322c;
     --radius:20px;
     --shadow:0 20px 44px -26px rgba(0,0,0,.75);
     --ease:cubic-bezier(.22,.61,.36,1); --spring:cubic-bezier(.3,1.25,.5,1);
@@ -1387,7 +1389,15 @@
   .v4-tip{margin-top:14px;padding:4px;border-radius:18px;background:rgba(230,195,106,.08);border:1px solid rgba(230,195,106,.3);}
   .v4-tip .card{background:transparent;border:none;box-shadow:none;}
   .v4-ob-skip{position:absolute;top:0;right:0;background:none;border:none;color:var(--muted);font-weight:700;font-size:14px;padding:8px 4px;cursor:pointer;font-family:inherit;}
-  .v4-ob-logo{width:76px;height:76px;border-radius:22px;display:grid;place-items:center;margin:28px auto 18px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));box-shadow:0 16px 32px -12px rgba(95,208,138,.55);color:var(--on-mint);}
+  /* Lockup Aely (Tanda A, 2026-09-10): badge A-Dot + wordmark. Sin mascota. */
+  .v4-ob-lockup{display:flex;align-items:center;justify-content:center;gap:14px;margin:28px auto 18px;}
+  .v4-ob-badge{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;flex:0 0 auto;
+    background:var(--surface);border:1px solid var(--line);color:var(--mint);
+    box-shadow:0 16px 32px -14px rgba(108,198,136,.45);}
+  .v4-ob-badge svg{width:40px;height:40px;display:block;}
+  .v4-ob-word{font-family:'Manrope',sans-serif;font-weight:800;font-size:28px;letter-spacing:-.4px;color:var(--brand-word,#E8EEEC);}
+  /* Legacy class kept so old screenshots/docs still resolve; lockup is the real header now. */
+  .v4-ob-logo{width:76px;height:76px;border-radius:22px;display:grid;place-items:center;margin:28px auto 18px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));box-shadow:0 16px 32px -12px rgba(108,198,136,.55);color:var(--on-mint);}
   .v4-ob-title{font-size:36px;font-weight:560;letter-spacing:-.6px;line-height:1.12;text-align:center;margin:8px 0 10px;}
   .v4-ob-sub{text-align:center;color:var(--muted);font-size:15px;line-height:1.5;margin:0 auto;max-width:34ch;text-wrap:pretty;}
   .v4-ob-dots{display:flex;gap:6px;justify-content:center;margin:22px 0 0;}
@@ -1599,18 +1609,18 @@
      sistema — la única pantalla de la app que no parecía la app. Ahora lleva su marca, su
      tipografía y sus colores, y respeta el tema (el script del <head> pone data-theme antes del
      primer pintado, así que en tema claro no hay fogonazo). */
-  #mc-load{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:var(--bg,#0C1712);}
-  #mc-load .mcl-mark{width:94px;height:94px;border-radius:26px;background:var(--sur,#14261E);border:1px solid var(--line-soft,#1A3228);
-    display:grid;place-items:center;color:var(--mint,#5FD08A);box-shadow:0 26px 60px -30px var(--mint,#5FD08A);
+  #mc-load{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:var(--bg,#0B140F);}
+  #mc-load .mcl-mark{width:94px;height:94px;border-radius:26px;background:var(--sur,#132119);border:1px solid var(--line-soft,#1C2A22);
+    display:grid;place-items:center;color:var(--mint,#6CC688);box-shadow:0 26px 60px -30px var(--mint,#6CC688);
     animation:mclpop .5s cubic-bezier(.32,.72,0,1) both;}
-  #mc-load .mcl-mark svg{width:52px;height:52px;display:block;}
+  #mc-load .mcl-mark svg{width:56px;height:56px;display:block;}
   /* EL NOMBRE NO SE ENSEÑA HASTA QUE ESTÁ SU TIPOGRAFÍA (2026-07-28). Con `font-display:swap`
-     el navegador pinta «Mi Cartera» en Georgia al momento y la CAMBIA a Fraunces cuando la
+     el navegador pinta «Aely» en Georgia al momento y la CAMBIA a Fraunces cuando la
      fuente carga: en un arranque en frío ese cambio de forma se ve, y es lo primero que enseña
      la app. Feedback suyo: «antes aparece algo raro en vez de aparecer el icono». Ahora el icono
      entra solo y el nombre se suma cuando puede hacerlo bien (tope de 500 ms en `mcl-fuente`,
      abajo: si la fuente se atasca, mejor Georgia que un hueco). */
-  #mc-load .mcl-name{font-family:'Fraunces',Georgia,serif;font-size:27px;font-weight:560;letter-spacing:-.3px;color:var(--text,#EAF2EC);
+  #mc-load .mcl-name{font-family:'Fraunces',Georgia,serif;font-size:27px;font-weight:560;letter-spacing:-.3px;color:var(--brand-word,#E8EEEC);
     opacity:0;}
   #mc-load .mcl-name.lista{animation:mclpop .42s cubic-bezier(.32,.72,0,1) both;}
   /* SIN BARRA DE CARGA (2026-07-26). Había una barra indeterminada debajo del nombre; fuera, por
@@ -1619,7 +1629,7 @@
      dice «esto va lento». El botón de reintentar SÍ se queda: ese aparece únicamente si algo se
      ha atascado de verdad, y es la única salida cuando pasa. */
   #mc-load .mcl-retry{display:none;margin-top:2px;background:none;border:none;font-family:'Manrope',sans-serif;font-size:13px;font-weight:700;
-    color:var(--mint,#5FD08A);text-decoration:underline;padding:8px 12px;cursor:pointer;}
+    color:var(--mint,#6CC688);text-decoration:underline;padding:8px 12px;cursor:pointer;}
   @keyframes mclpop{from{opacity:0;transform:translateY(9px) scale(.94);}to{opacity:1;transform:none;}}
   @media (prefers-reduced-motion:reduce){
     #mc-load .mcl-mark{animation:none !important;}
@@ -1634,7 +1644,7 @@
      De ahí que el vigilante esperase `#root` con más de un hijo —cosa que no pasaba nunca— y que
      el usuario no viera splash ninguno, solo negro. Como hermano, React ni lo toca y se retira
      cuando nosotros decidimos. -->
-<div id="mc-load"><div class="mcl-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.7" y="5.6" width="18.6" height="12.8" rx="3.4"/><path d="M21.3 9.8h-3a2.2 2.2 0 0 0 0 4.4h3"/><circle cx="18.1" cy="12" r=".95" fill="currentColor" stroke="none"/></svg></div><div class="mcl-name">Mi Cartera</div><button class="mcl-retry" id="mcl-retry" type="button">Está tardando demasiado · reintentar</button></div>
+<div id="mc-load"><div class="mcl-mark" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="58" height="58" rx="14" stroke="currentColor" stroke-width="3"/><path d="M18 48 L32 14 L46 48" stroke="currentColor" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="32" cy="34" r="4.6" fill="currentColor"/></svg></div><div class="mcl-name">Aely</div><button class="mcl-retry" id="mcl-retry" type="button">Está tardando demasiado · reintentar</button></div>
 <div id="root"></div>
 <script id="mcl-fuente">/* Ver el comentario de `.mcl-name`: el nombre espera a Fraunces para no cambiar
    de forma a la vista. Va aquí, pegado al splash y antes de los scripts pesados, para que la
@@ -3538,8 +3548,8 @@ const bio = {
     if(!this.supported()) throw new Error("Este dispositivo/navegador no soporta huella");
     const cred = await navigator.credentials.create({ publicKey:{
       challenge: crypto.getRandomValues(new Uint8Array(32)),
-      rp:{ id: location.hostname, name:"Mi Cartera" },
-      user:{ id: new TextEncoder().encode(String(uid||email||"user")), name: email||"usuario", displayName: email||"Mi Cartera" },
+      rp:{ id: location.hostname, name:"Aely" },
+      user:{ id: new TextEncoder().encode(String(uid||email||"user")), name: email||"usuario", displayName: email||"Aely" },
       pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],
       authenticatorSelection:{ authenticatorAttachment:"platform", userVerification:"required", residentKey:"preferred" },
       timeout:60000,
@@ -3719,7 +3729,7 @@ const LANG = {
     upd_notif:"Hay una actualización (v{v}) lista. Toca para instalarla.",
     upd_notif_web:"Hay una versión nueva de la app. Toca el botón de arriba para actualizar.",
     upd_notif_apk:"Hay una app nueva (v{v}). Toca el botón de arriba para instalarla.",
-    apk_ready:"⬇️ App {v} lista · toca para instalar", apk_downloading:"Descargando la actualización… se abrirá el instalador", apk_perm:"Permite «instalar apps desconocidas» a Mi Cartera y vuelve a tocar el botón",
+    apk_ready:"⬇️ App {v} lista · toca para instalar", apk_downloading:"Descargando la actualización… se abrirá el instalador", apk_perm:"Permite «instalar apps desconocidas» a Aely y vuelve a tocar el botón",
     // El porqué de que la app no se actualice sola: antes este camino se callaba y «no pasaba nada».
     apk_why_noapp:"Instalar la app solo se puede desde la app de Android", apk_why_oldapk:"La app que tienes instalada no sabe actualizarse sola: instala la última a mano una vez",
     apk_why_manifest:"El canal {ch} no dice qué app hay publicada", apk_why_noinfo:"No se puede leer qué versión de la app tienes instalada",
@@ -3731,13 +3741,13 @@ const LANG = {
     cc_hide:"Ocultar", cc_show:"Mostrar",
     st_updates:"Actualizaciones", st_update:"Buscar actualización",
     st_up_ok:"✓ Estás a la última", st_up_web:"Hay versión web nueva: se instala sola — cierra y abre la app para estrenarla", st_up_applying:"⬇️ Actualizando a la v{v}… la app se recarga sola en unos segundos", st_up_apk:"⬇️ App {v} disponible · descargando, se abrirá el instalador",
-    st_widget_hint:"📱 Widget: mantén pulsado el escritorio → Widgets → Mi Cartera. Verás el gasto del mes y lo que te queda.",
+    st_widget_hint:"📱 Widget: mantén pulsado el escritorio → Widgets → Aely. Verás el gasto del mes y lo que te queda.",
     st_news:"Novedades", st_news_row:"Historial de novedades",
     st_feedback:"Enviar sugerencia o error", st_shared:"Hogar y gastos compartidos",
     st_account:"Tu cuenta", st_privacy:"Privacidad y datos", st_delete_acc:"Borrar mi cuenta",
     st_delete_acc_sub:"Se borrarán todos tus datos en la nube (gastos, cuentas, inversiones…). No se puede deshacer.",
     st_delete_acc_ok:"Sí, borrar todo", st_delete_acc_pwd:"Confirma con tu contraseña",
-    st_delete_acc_pwd_sub:"Por seguridad, escribe la contraseña de tu cuenta de Mi Cartera.",
+    st_delete_acc_pwd_sub:"Por seguridad, escribe la contraseña de tu cuenta de Aely.",
     st_delete_acc_done:"✓ Cuenta borrada · datos eliminados",
     st_sync_conflict:"⚠ Otro dispositivo guardó cambios antes: se ha recargado la versión de la nube",
     wn_title:"Novedades", wn_sub:"Qué ha cambiado en cada versión. Toca una versión para ver su detalle.", wn_current:"tu versión",
@@ -3745,7 +3755,7 @@ const LANG = {
     wn_fb_title:"💬 ¿Algo que contar?", wn_fb_hint:"Sugerencias, errores o cosas raras: quedan apuntadas aquí abajo y le llegan a Juanjo con tu versión, para que no se olviden.",
     wn_fb_ph:"Escribe la sugerencia o el error que has visto…", wn_fb_send:"Enviar", wn_fb_sent:"✓ Apuntado y enviado", wn_fb_offline:"✓ Apuntado en tus notas (no se pudo enviar; se queda guardado)",
     wn_yours:"Tus apuntes", wn_close:"¡Entendido!",
-    st_trnotif:"Avisar de cada gasto apuntado (TR)", st_trnotif_hint:"Si lo apagas, Mi Cartera deja de confirmar cada gasto con una notificación (Trade Republic ya te avisa del cargo). Los avisos de presupuesto siguen llegando.",
+    st_trnotif:"Avisar de cada gasto apuntado (TR)", st_trnotif_hint:"Si lo apagas, Aely deja de confirmar cada gasto con una notificación (Trade Republic ya te avisa del cargo). Los avisos de presupuesto siguen llegando.",
     st_tring:"Apuntar aquí mis gastos de Trade Republic", st_tring_hint:"Al activarlo, esta app lee las notificaciones de gasto de Trade Republic de ESTE móvil y las apunta en TU cuenta (no en la de nadie más). Cada persona lo activa en su propio teléfono. Solo lee la notificación; nunca entra en tu banco. Puedes apagarlo cuando quieras.", st_tring_on:"✓ Listo · tus compras con la tarjeta de Trade Republic entrarán solas en esta cuenta", st_tring_off:"Apuntado de Trade Republic desactivado", st_tring_nornd:"✕ Este navegador no puede generar una clave segura · no se activa (mejor eso que una clave adivinable)",
     st_banksync_notif:"Al detectar aviso del banco, sincronizar movimientos", st_banksync_notif_hint:"Si Caixa, Sabadell u otro banco te manda una notificación, la app pide los movimientos por Open Banking (no lee el importe de la noti). Como máximo una sync cada 2 minutos.",
     st_aicat:"Sugerir categoría (IA) en «Otros»", st_aicat_hint:"En Gastos, si un comercio queda en Otros, puedes pedir sugerencia. Primero usa palabras clave; si hay OPENAI_API_KEY en Supabase, la IA solo actúa en esos casos. No se envía el importe.",
@@ -3757,7 +3767,7 @@ const LANG = {
     ob_welcome:"Bienvenido/a 👋",
     ob_intro:"Vamos a montar tu cartera en 1 minuto. Empieza por tus cuentas y el presupuesto; las inversiones, deudas y gastos fijos los añades luego en sus pestañas.",
     ob_budget:"Presupuesto mensual para gastos (€)", ob_accounts:"Tus cuentas (banco y saldo actual)",
-    ob_addacc:"+ Añadir cuenta", ob_start:"Empezar a usar Mi Cartera", ob_start_empty:"Empezar (añadiré cuentas luego)",
+    ob_addacc:"+ Añadir cuenta", ob_start:"Empezar a usar Aely", ob_start_empty:"Empezar (añadiré cuentas luego)",
     ob_haveacc:"Ya tengo cuenta · Iniciar sesión",
     ob_returning:"¿Reinstalaste la app o cambiaste de móvil? Inicia sesión y recuperas todos tus datos al instante.",
     ob_foot:"Podrás editar y añadir todo cuando quieras. Inicia sesión para sincronizar entre dispositivos y recuperar tus datos.",
@@ -3882,7 +3892,7 @@ const LANG = {
     upd_notif:"An update (v{v}) is ready. Tap to install it.",
     upd_notif_web:"A new app version is ready. Tap the button at the top to update.",
     upd_notif_apk:"A new app (v{v}) is ready. Tap the button at the top to install it.",
-    apk_ready:"⬇️ App {v} ready · tap to install", apk_downloading:"Downloading the update… the installer will open", apk_perm:"Allow «install unknown apps» for Mi Cartera and tap the button again",
+    apk_ready:"⬇️ App {v} ready · tap to install", apk_downloading:"Downloading the update… the installer will open", apk_perm:"Allow «install unknown apps» for Aely and tap the button again",
     apk_why_noapp:"Installing the app only works from the Android app", apk_why_oldapk:"The app you have installed can't update itself: install the latest one by hand once",
     apk_why_manifest:"The {ch} channel doesn't say which app is published", apk_why_noinfo:"Can't read which version of the app you have installed",
     apk_why_state:"app: {ch} channel offers {want}, you have {have}", apk_ch_beta:"testing", apk_ch_stable:"stable",
@@ -3893,13 +3903,13 @@ const LANG = {
     cc_hide:"Hide", cc_show:"Show",
     st_updates:"Updates", st_update:"Check for updates",
     st_up_ok:"✓ You're up to date", st_up_web:"New web version available: it installs itself — close and reopen the app", st_up_applying:"⬇️ Updating to v{v}… the app will reload itself in a few seconds", st_up_apk:"⬇️ App {v} available · downloading, the installer will open",
-    st_widget_hint:"📱 Widget: long-press the home screen → Widgets → Mi Cartera. Shows this month's spend and what's left.",
+    st_widget_hint:"📱 Widget: long-press the home screen → Widgets → Aely. Shows this month's spend and what's left.",
     st_news:"What's new", st_news_row:"Release history",
     st_feedback:"Send feedback or a bug", st_shared:"Household & shared expenses",
     st_account:"Your account", st_privacy:"Privacy & data", st_delete_acc:"Delete my account",
     st_delete_acc_sub:"All your cloud data will be deleted (expenses, accounts, investments…). This can't be undone.",
     st_delete_acc_ok:"Yes, delete everything", st_delete_acc_pwd:"Confirm with your password",
-    st_delete_acc_pwd_sub:"For security, enter your Mi Cartera account password.",
+    st_delete_acc_pwd_sub:"For security, enter your Aely account password.",
     st_delete_acc_done:"✓ Account deleted · data removed",
     st_sync_conflict:"⚠ Another device saved changes first: reloaded from the cloud",
     wn_title:"What's new", wn_sub:"What changed in each version. Tap a version for details.", wn_current:"your version",
@@ -3907,7 +3917,7 @@ const LANG = {
     wn_fb_title:"💬 Anything to share?", wn_fb_hint:"Suggestions, bugs or oddities: they're saved below and reach Juanjo with your version, so nothing gets lost.",
     wn_fb_ph:"Write your suggestion or the bug you saw…", wn_fb_send:"Send", wn_fb_sent:"✓ Saved and sent", wn_fb_offline:"✓ Saved to your notes (couldn't send; it stays stored)",
     wn_yours:"Your notes", wn_close:"Got it!",
-    st_trnotif:"Notify every logged expense (TR)", st_trnotif_hint:"If you turn it off, Mi Cartera stops confirming each expense with a notification (Trade Republic already notifies the charge). Budget alerts keep coming.",
+    st_trnotif:"Notify every logged expense (TR)", st_trnotif_hint:"If you turn it off, Aely stops confirming each expense with a notification (Trade Republic already notifies the charge). Budget alerts keep coming.",
     st_tring:"Log my Trade Republic spending here", st_tring_hint:"When on, this app reads Trade Republic spending notifications on THIS phone and logs them into YOUR account (nobody else's). Each person turns it on on their own phone. It only reads the notification; it never touches your bank. You can turn it off anytime.", st_tring_on:"✓ Done · your Trade Republic card purchases will come in on their own into this account", st_tring_off:"Trade Republic logging turned off", st_tring_nornd:"✕ This browser can't generate a secure key · not enabling it (better than a guessable one)",
     st_banksync_notif:"When a bank notification arrives, sync movements", st_banksync_notif_hint:"If Caixa, Sabadell or another bank notifies you, the app pulls movements via Open Banking (it does not parse the notification amount). At most one sync every 2 minutes.",
     st_aicat:"Suggest category (AI) for “Other”", st_aicat_hint:"In Spending, if a merchant lands in Other, you can ask for a suggestion. Keywords first; if OPENAI_API_KEY is set in Supabase, AI only runs then. Amount is never sent.",
@@ -3919,7 +3929,7 @@ const LANG = {
     ob_welcome:"Welcome 👋",
     ob_intro:"Let's set up your wallet in 1 minute. Start with your accounts and budget; you can add investments, debts and fixed costs later in their tabs.",
     ob_budget:"Monthly spending budget (€)", ob_accounts:"Your accounts (bank and current balance)",
-    ob_addacc:"+ Add account", ob_start:"Start using Mi Cartera", ob_start_empty:"Start (I'll add accounts later)",
+    ob_addacc:"+ Add account", ob_start:"Start using Aely", ob_start_empty:"Start (I'll add accounts later)",
     ob_haveacc:"I already have an account · Sign in",
     ob_returning:"Reinstalled the app or switched phones? Sign in and recover all your data instantly.",
     ob_foot:"You can edit and add everything whenever you want. Sign in to sync across devices and recover your data.",
@@ -4039,7 +4049,7 @@ const LANG = {
     upd_notif:"Hi ha una actualització (v{v}) a punt. Toca per instal·lar-la.",
     upd_notif_web:"Hi ha una versió nova de l'app. Toca el botó de dalt per actualitzar.",
     upd_notif_apk:"Hi ha una app nova (v{v}). Toca el botó de dalt per instal·lar-la.",
-    apk_ready:"⬇️ App {v} a punt · toca per instal·lar", apk_downloading:"Baixant l'actualització… s'obrirà l'instal·lador", apk_perm:"Permet «instal·lar apps desconegudes» a Mi Cartera i torna a tocar el botó",
+    apk_ready:"⬇️ App {v} a punt · toca per instal·lar", apk_downloading:"Baixant l'actualització… s'obrirà l'instal·lador", apk_perm:"Permet «instal·lar apps desconegudes» a Aely i torna a tocar el botó",
     apk_why_noapp:"Instal·lar l'app només es pot des de l'app d'Android", apk_why_oldapk:"L'app que tens instal·lada no sap actualitzar-se sola: instal·la l'última a mà un cop",
     apk_why_manifest:"El canal {ch} no diu quina app hi ha publicada", apk_why_noinfo:"No es pot llegir quina versió de l'app tens instal·lada",
     apk_why_state:"app: el canal {ch} ofereix la {want}, tens la {have}", apk_ch_beta:"proves", apk_ch_stable:"estable",
@@ -4050,13 +4060,13 @@ const LANG = {
     cc_hide:"Amaga", cc_show:"Mostra",
     st_updates:"Actualitzacions", st_update:"Cerca actualització",
     st_up_ok:"✓ Estàs a l'última", st_up_web:"Hi ha versió web nova: s'instal·la sola — tanca i obre l'app per estrenar-la", st_up_applying:"⬇️ Actualitzant a la v{v}… l'app es recarrega sola en uns segons", st_up_apk:"⬇️ App {v} disponible · baixant, s'obrirà l'instal·lador",
-    st_widget_hint:"📱 Widget: mantén premut l'escriptori → Widgets → Mi Cartera. Veuràs la despesa del mes i el que et queda.",
+    st_widget_hint:"📱 Widget: mantén premut l'escriptori → Widgets → Aely. Veuràs la despesa del mes i el que et queda.",
     st_news:"Novetats", st_news_row:"Historial de novetats",
     st_feedback:"Envia un suggeriment o error", st_shared:"Llar i despeses compartides",
     st_account:"El teu compte", st_privacy:"Privacitat i dades", st_delete_acc:"Esborrar el meu compte",
     st_delete_acc_sub:"S'esborraran totes les teves dades al núvol (despeses, comptes, inversions…). No es pot desfer.",
     st_delete_acc_ok:"Sí, esborrar tot", st_delete_acc_pwd:"Confirma amb la contrasenya",
-    st_delete_acc_pwd_sub:"Per seguretat, escriu la contrasenya del teu compte de Mi Cartera.",
+    st_delete_acc_pwd_sub:"Per seguretat, escriu la contrasenya del teu compte de Aely.",
     st_delete_acc_done:"✓ Compte esborrat · dades eliminades",
     st_sync_conflict:"⚠ Un altre dispositiu ha desat canvis abans: s'ha recarregat des del núvol",
     wn_title:"Novetats", wn_sub:"Què ha canviat a cada versió. Toca una versió per veure'n el detall.", wn_current:"la teva versió",
@@ -4064,7 +4074,7 @@ const LANG = {
     wn_fb_title:"💬 Alguna cosa a dir?", wn_fb_hint:"Suggeriments, errors o coses rares: queden apuntades aquí sota i arriben al Juanjo amb la teva versió, perquè no s'oblidin.",
     wn_fb_ph:"Escriu el suggeriment o l'error que has vist…", wn_fb_send:"Envia", wn_fb_sent:"✓ Apuntat i enviat", wn_fb_offline:"✓ Apuntat a les teves notes (no s'ha pogut enviar; queda desat)",
     wn_yours:"Els teus apunts", wn_close:"Entesos!",
-    st_trnotif:"Avisar de cada despesa apuntada (TR)", st_trnotif_hint:"Si l'apagues, Mi Cartera deixa de confirmar cada despesa amb una notificació (Trade Republic ja t'avisa del càrrec). Els avisos de pressupost segueixen arribant.",
+    st_trnotif:"Avisar de cada despesa apuntada (TR)", st_trnotif_hint:"Si l'apagues, Aely deixa de confirmar cada despesa amb una notificació (Trade Republic ja t'avisa del càrrec). Els avisos de pressupost segueixen arribant.",
     st_tring:"Apuntar aquí les meves despeses de Trade Republic", st_tring_hint:"En activar-ho, aquesta app llegeix les notificacions de despesa de Trade Republic d'AQUEST mòbil i les apunta al TEU compte (no al de ningú més). Cada persona ho activa al seu propi telèfon. Només llegeix la notificació; mai no entra al teu banc. El pots apagar quan vulguis.", st_tring_on:"✓ Fet · les teves compres amb la targeta de Trade Republic entraran soles en aquest compte", st_tring_off:"Apuntat de Trade Republic desactivat", st_tring_nornd:"✕ Aquest navegador no pot generar una clau segura · no s'activa (millor això que una clau endevinable)",
     st_banksync_notif:"En detectar avís del banc, sincronitzar moviments", st_banksync_notif_hint:"Si Caixa, Sabadell o un altre banc et envia una notificació, l'app demana els moviments per Open Banking (no llegeix l'import de la noti). Com a màxim una sync cada 2 minuts.",
     st_aicat:"Suggerir categoria (IA) a «Altres»", st_aicat_hint:"A Despeses, si un comerç queda a Altres, pots demanar suggeriment. Primer paraules clau; si hi ha OPENAI_API_KEY a Supabase, l'IA només actua aleshores. No s'envia l'import.",
@@ -4076,7 +4086,7 @@ const LANG = {
     ob_welcome:"Benvingut/da 👋",
     ob_intro:"Muntem la teva cartera en 1 minut. Comença pels comptes i el pressupost; les inversions, deutes i despeses fixes les afegeixes després a les seves pestanyes.",
     ob_budget:"Pressupost mensual per a despeses (€)", ob_accounts:"Els teus comptes (banc i saldo actual)",
-    ob_addacc:"+ Afegeix compte", ob_start:"Comença a usar Mi Cartera", ob_start_empty:"Comença (ja afegiré comptes)",
+    ob_addacc:"+ Afegeix compte", ob_start:"Comença a usar Aely", ob_start_empty:"Comença (ja afegiré comptes)",
     ob_haveacc:"Ja tinc compte · Inicia sessió",
     ob_returning:"Has reinstal·lat l'app o has canviat de mòbil? Inicia sessió i recuperes totes les teves dades a l'instant.",
     ob_foot:"Podràs editar i afegir-ho tot quan vulguis. Inicia sessió per sincronitzar entre dispositius i recuperar les teves dades.",
@@ -4264,7 +4274,7 @@ Object.assign(LANG.es,{
   rl_hint:"«Recibos» = pagos fijos (luz, cuotas…). «Gasto diario» = compras variables del día a día (solo una cuenta; mueve presupuesto y round-up). «Todo» = ambas en la misma. Si gastas con tarjeta de otro banco conectado, actívalo en Ajustes → Bancos sin cambiar este rol. Al cambiar el rol, el saldo mostrado se conserva.",
   ob_imported:"🏦 {n} compras con tarjeta añadidas a Gastos",
   rp_btn:"📸 Informe del mes (imagen)", rp_spent:"Gastado este mes", rp_of_budget:"de {b} de presupuesto ({p}%)",
-  rp_top:"Top categorías", rp_networth:"Patrimonio", rp_delta:"{x} este mes", rp_footer:"hecho con Mi Cartera",
+  rp_top:"Top categorías", rp_networth:"Patrimonio", rp_delta:"{x} este mes", rp_footer:"hecho con Aely",
   mr_title:"Así acabó {mes}", mr_sub:"Resumen del mes que acaba de cerrar. Compártelo o descártalo como imagen.",
   mr_share:"📸 Crear imagen del informe", mr_later:"Descartar", mr_shared:"✓ Informe listo para compartir",
   mr_top:"Más gasto: {cat} ({x})", mr_saved:"Ahorraste {x}", mr_over:"Gastaste {x} más de lo que entró",
@@ -4304,7 +4314,7 @@ Object.assign(LANG.en,{
   rl_hint:"“Bills” = fixed payments (utilities, instalments…). “Daily spending” = variable day-to-day purchases (only one; drives budget and round-up). “Everything” = both in the same account. Card spend from another connected bank: tick it in Settings → Banks without changing this role. Switching roles keeps the shown balance.",
   ob_imported:"🏦 {n} card purchases added to Spending",
   rp_btn:"📸 Month report (image)", rp_spent:"Spent this month", rp_of_budget:"of {b} budget ({p}%)",
-  rp_top:"Top categories", rp_networth:"Net worth", rp_delta:"{x} this month", rp_footer:"made with Mi Cartera",
+  rp_top:"Top categories", rp_networth:"Net worth", rp_delta:"{x} this month", rp_footer:"made with Aely",
   mr_title:"How {mes} ended", mr_sub:"Summary of the month that just closed. Share it or save it as an image.",
   mr_share:"📸 Create report image", mr_later:"Dismiss", mr_shared:"✓ Report ready to share",
   mr_top:"Top spend: {cat} ({x})", mr_saved:"You saved {x}", mr_over:"You spent {x} more than came in",
@@ -4344,7 +4354,7 @@ Object.assign(LANG.ca,{
   rl_hint:"«Rebuts» = pagaments fixos (llum, quotes…). «Despesa diària» = compres variables del dia a dia (només un; mou pressupost i round-up). «Tot» = les dues al mateix. Si gastes amb targeta d'un altre banc connectat, activa'l a Ajustos → Bancs sense canviar aquest rol. En canviar el rol, el saldo mostrat es conserva.",
   ob_imported:"🏦 {n} compres amb targeta afegides a Despeses",
   rp_btn:"📸 Informe del mes (imatge)", rp_spent:"Gastat aquest mes", rp_of_budget:"de {b} de pressupost ({p}%)",
-  rp_top:"Top categories", rp_networth:"Patrimoni", rp_delta:"{x} aquest mes", rp_footer:"fet amb Mi Cartera",
+  rp_top:"Top categories", rp_networth:"Patrimoni", rp_delta:"{x} aquest mes", rp_footer:"fet amb Aely",
   mr_title:"Així va acabar {mes}", mr_sub:"Resum del mes que acaba de tancar. Comparteix-lo o desa'l com a imatge.",
   mr_share:"📸 Crear imatge de l'informe", mr_later:"Descartar", mr_shared:"✓ Informe llest per compartir",
   mr_top:"Més despesa: {cat} ({x})", mr_saved:"Has estalviat {x}", mr_over:"Has gastat {x} més del que va entrar",
@@ -4591,9 +4601,9 @@ Object.assign(LANG.es,{
   tr_beta:"BETA",
   tr_web_only:"Esta conexión funciona dentro de la app de Android (necesita un navegador real para el acceso seguro de TR). Ábrelo desde la app del móvil.",
   na_toast:"⚠ El apunte automático de gastos está desactivado — actívalo en Ajustes",
-  na_body:"⚠ El apunte automático de gastos (lector de notificaciones de TR) no tiene permiso — los gastos NO entran solos. Pasa al reinstalar la app: actívalo para Mi Cartera.",
+  na_body:"⚠ El apunte automático de gastos (lector de notificaciones de TR) no tiene permiso — los gastos NO entran solos. Pasa al reinstalar la app: actívalo para Aely.",
   na_fix:"Activar acceso a notificaciones",
-  na_restricted:"Si Android dice «acceso denegado» o «ajuste restringido» (pasa al instalar la app fuera de la Play Store): ve a Ajustes de Android → Aplicaciones → Mi Cartera → menú ⋮ (arriba a la derecha) → «Permitir ajustes restringidos», y vuelve a intentarlo. Es una sola vez.",
+  na_restricted:"Si Android dice «acceso denegado» o «ajuste restringido» (pasa al instalar la app fuera de la Play Store): ve a Ajustes de Android → Aplicaciones → Aely → menú ⋮ (arriba a la derecha) → «Permitir ajustes restringidos», y vuelve a intentarlo. Es una sola vez.",
   tr_tos:"Conexión no oficial · puede pedir el 2FA de vez en cuando · tus credenciales no salen del móvil.",
   tr_phone_ph:"Teléfono (+34…)", tr_pin_ph:"PIN de Trade Republic",
   tr_connect:"Conectar", tr_connecting:"Conectando…",
@@ -4647,7 +4657,7 @@ Object.assign(LANG.es,{
   ob3_t:"¿Deudas o inversiones?", ob3_d:"Opcional — puedes saltarlo y añadirlo luego en sus pestañas.",
   ob3_debt:"Una deuda (opcional)", ob3_debt_name:"Nombre (ej. Hipoteca)", ob3_debt_val:"Saldo pendiente €", ob3_debt_monthly:"Cuota/mes €",
   ob3_inv:"Una inversión (opcional)", ob3_inv_name:"Nombre (ej. MSCI World)", ob3_inv_val:"Valor actual €",
-  ob3_skip:"Saltar — empezar ya", ob3_finish:"Listo — entrar a Mi Cartera",
+  ob3_skip:"Saltar — empezar ya", ob3_finish:"Listo — entrar a Aely",
   ob_hint_t:"Primeros pasos", ob_hint_d:"Conecta tu banco en Ajustes, activa el apunte de Trade Republic o importa gastos cuando quieras.",
   ob_hint_go:"Abrir Ajustes", ob_hint_dismiss:"Entendido",
   tr_createnew:"➕ Crear como posición nueva", tr_apply:"Aplicar a {n} posiciones", tr_apply_hint:"Al aplicar: participaciones, valor y coste se re-anclan con lo que dice Trade Republic ahora mismo (es dato en vivo, no hace falta actualizar precios).",
@@ -4657,7 +4667,7 @@ Object.assign(LANG.es,{
   mi_title:"Conectar MyInvestor", mi_sub:"trae tus fondos indexados",
   mi_expired:"Tu sesión de MyInvestor caducó y no se pudo renovar sola. Vuelve a entrar (usuario recordado): contraseña y, si lo pide, el código SMS.",
   mi_hint:"Login con tu usuario de MyInvestor · la contraseña no se guarda nunca.",
-  mi_need_login:"Para conectar MyInvestor primero inicia sesión en Mi Cartera (arriba, «Iniciar sesión»).",
+  mi_need_login:"Para conectar MyInvestor primero inicia sesión en Aely (arriba, «Iniciar sesión»).",
   mi_user_ph:"Usuario / DNI de MyInvestor", mi_pass_ph:"Contraseña de MyInvestor",
   mi_connect:"Conectar", mi_connecting:"Conectando…", mi_nostore:"🔒 Tu contraseña no se guarda. Viaja cifrada solo para el login.",
   mi_otp_intro:"MyInvestor te ha mandado un código por SMS. Escríbelo aquí:", mi_otp_ph:"Código SMS", mi_verify:"Verificar", mi_verifying:"Verificando…",
@@ -4679,9 +4689,9 @@ Object.assign(LANG.en,{
   tr_beta:"BETA",
   tr_web_only:"This connection runs inside the Android app (it needs a real browser for TR's secure login). Open it from the mobile app.",
   na_toast:"⚠ Automatic expense capture is off — enable it in Settings",
-  na_body:"⚠ Automatic expense capture (TR notification reader) has no permission — expenses will NOT come in on their own. This happens after reinstalling: enable it for Mi Cartera.",
+  na_body:"⚠ Automatic expense capture (TR notification reader) has no permission — expenses will NOT come in on their own. This happens after reinstalling: enable it for Aely.",
   na_fix:"Enable notification access",
-  na_restricted:"If Android says \"access denied\" or \"restricted setting\" (happens when the app is installed outside the Play Store): go to Android Settings → Apps → Mi Cartera → ⋮ menu (top right) → \"Allow restricted settings\", then try again. One time only.",
+  na_restricted:"If Android says \"access denied\" or \"restricted setting\" (happens when the app is installed outside the Play Store): go to Android Settings → Apps → Aely → ⋮ menu (top right) → \"Allow restricted settings\", then try again. One time only.",
   tr_tos:"Unofficial connection · may ask for 2FA now and then · your credentials never leave the phone.",
   tr_phone_ph:"Phone (+34…)", tr_pin_ph:"Trade Republic PIN",
   tr_connect:"Connect", tr_connecting:"Connecting…",
@@ -4735,14 +4745,14 @@ Object.assign(LANG.en,{
   ob3_t:"Debts or investments?", ob3_d:"Optional — skip and add them later in their tabs.",
   ob3_debt:"One debt (optional)", ob3_debt_name:"Name (e.g. Mortgage)", ob3_debt_val:"Outstanding balance €", ob3_debt_monthly:"Payment/mo €",
   ob3_inv:"One investment (optional)", ob3_inv_name:"Name (e.g. MSCI World)", ob3_inv_val:"Current value €",
-  ob3_skip:"Skip — start now", ob3_finish:"Done — open Mi Cartera",
+  ob3_skip:"Skip — start now", ob3_finish:"Done — open Aely",
   ob_hint_t:"First steps", ob_hint_d:"Connect your bank in Settings, turn on Trade Republic logging, or import expenses whenever you like.",
   ob_hint_go:"Open Settings", ob_hint_dismiss:"Got it",
   tr_createnew:"➕ Create as a new position", tr_apply:"Apply to {n} positions", tr_apply_hint:"On apply: shares, value and cost are re-anchored to what Trade Republic says right now (live data, no need to refresh prices).",
   mi_title:"Connect MyInvestor", mi_sub:"pulls your index funds",
   mi_expired:"Your MyInvestor session expired and couldn't renew itself. Sign in again (username remembered): password and, if asked, the SMS code.",
   mi_hint:"Log in with your MyInvestor user · the password is never stored.",
-  mi_need_login:"To connect MyInvestor, first sign in to Mi Cartera (top, «Sign in»).",
+  mi_need_login:"To connect MyInvestor, first sign in to Aely (top, «Sign in»).",
   mi_user_ph:"MyInvestor username / ID", mi_pass_ph:"MyInvestor password",
   mi_connect:"Connect", mi_connecting:"Connecting…", mi_nostore:"🔒 Your password is never stored. It travels encrypted only for the login.",
   mi_otp_intro:"MyInvestor texted you a code. Type it here:", mi_otp_ph:"SMS code", mi_verify:"Verify", mi_verifying:"Verifying…",
@@ -4767,9 +4777,9 @@ Object.assign(LANG.ca,{
   tr_beta:"BETA",
   tr_web_only:"Aquesta connexió funciona dins l'app d'Android (necessita un navegador real per a l'accés segur de TR). Obre-ho des de l'app del mòbil.",
   na_toast:"⚠ L'apunt automàtic de despeses està desactivat — activa'l a Ajustos",
-  na_body:"⚠ L'apunt automàtic de despeses (lector de notificacions de TR) no té permís — les despeses NO entren soles. Passa en reinstal·lar l'app: activa'l per a Mi Cartera.",
+  na_body:"⚠ L'apunt automàtic de despeses (lector de notificacions de TR) no té permís — les despeses NO entren soles. Passa en reinstal·lar l'app: activa'l per a Aely.",
   na_fix:"Activar accés a notificacions",
-  na_restricted:"Si Android diu «accés denegat» o «configuració restringida» (passa en instal·lar l'app fora de la Play Store): ves a Configuració d'Android → Aplicacions → Mi Cartera → menú ⋮ (a dalt a la dreta) → «Permet configuracions restringides», i torna-ho a provar. Només un cop.",
+  na_restricted:"Si Android diu «accés denegat» o «configuració restringida» (passa en instal·lar l'app fora de la Play Store): ves a Configuració d'Android → Aplicacions → Aely → menú ⋮ (a dalt a la dreta) → «Permet configuracions restringides», i torna-ho a provar. Només un cop.",
   tr_tos:"Connexió no oficial · pot demanar el 2FA de tant en tant · les credencials no surten del mòbil.",
   tr_phone_ph:"Telèfon (+34…)", tr_pin_ph:"PIN de Trade Republic",
   tr_connect:"Connecta", tr_connecting:"Connectant…",
@@ -4823,14 +4833,14 @@ Object.assign(LANG.ca,{
   ob3_t:"Deutes o inversions?", ob3_d:"Opcional — salta-ho i afegeix-ho després a les seves pestanyes.",
   ob3_debt:"Un deute (opcional)", ob3_debt_name:"Nom (p. ex. Hipoteca)", ob3_debt_val:"Saldo pendent €", ob3_debt_monthly:"Quota/mes €",
   ob3_inv:"Una inversió (opcional)", ob3_inv_name:"Nom (p. ex. MSCI World)", ob3_inv_val:"Valor actual €",
-  ob3_skip:"Saltar — començar ja", ob3_finish:"Fet — entrar a Mi Cartera",
+  ob3_skip:"Saltar — començar ja", ob3_finish:"Fet — entrar a Aely",
   ob_hint_t:"Primers passos", ob_hint_d:"Connecta el teu banc a Ajustos, activa l'apunt de Trade Republic o importa despeses quan vulguis.",
   ob_hint_go:"Obrir Ajustos", ob_hint_dismiss:"Entesos",
   tr_createnew:"➕ Crea com a posició nova", tr_apply:"Aplica a {n} posicions", tr_apply_hint:"En aplicar: participacions, valor i cost es re-ancoren amb el que diu Trade Republic ara mateix (és dada en viu, no cal actualitzar preus).",
   mi_title:"Connecta MyInvestor", mi_sub:"porta els teus fons indexats",
   mi_expired:"La teva sessió de MyInvestor ha caducat i no s'ha pogut renovar sola. Torna a entrar (usuari recordat): contrasenya i, si el demana, el codi SMS.",
   mi_hint:"Login amb el teu usuari de MyInvestor · la contrasenya no es desa mai.",
-  mi_need_login:"Per connectar MyInvestor primer inicia sessió a Mi Cartera (a dalt, «Inicia sessió»).",
+  mi_need_login:"Per connectar MyInvestor primer inicia sessió a Aely (a dalt, «Inicia sessió»).",
   mi_user_ph:"Usuari / DNI de MyInvestor", mi_pass_ph:"Contrasenya de MyInvestor",
   mi_connect:"Connecta", mi_connecting:"Connectant…", mi_nostore:"🔒 La teva contrasenya no es desa. Viatja xifrada només per al login.",
   mi_otp_intro:"MyInvestor t'ha enviat un codi per SMS. Escriu-lo aquí:", mi_otp_ph:"Codi SMS", mi_verify:"Verifica", mi_verifying:"Verificant…",
@@ -5567,7 +5577,7 @@ Object.assign(LANG.ca,{
 // notch y «cuesta tirar para atrás». Ahora es un panel dentro de la app, con safe-area y gesto atrás). ---
 Object.assign(LANG.es,{
   st_back_settings:"Ajustes",
-  pv_title:"Privacidad y datos", pv_updated:"Última actualización: 15 jul 2026 · Mi Cartera (Juanjo Ávila)",
+  pv_title:"Privacidad y datos", pv_updated:"Última actualización: 15 jul 2026 · Aely (Juanjo Ávila)",
   pv_s1_h:"Qué datos guardamos",
   pv_s1:["Tu cartera: cuentas, inversiones, deudas, presupuesto y ajustes (en el móvil y, si inicias sesión, en Supabase).","Gastos: importe, comercio, categoría y fecha.","Conexiones bancarias: estado del enlace Open Banking y tokens de sesión cifrados. No guardamos la contraseña del banco.","MyInvestor: tokens de sesión cifrados tras conectar. La contraseña solo se usa al entrar y no se almacena.","Telemetría mínima (opcional): versión, plataforma y errores — sin datos financieros."],
   pv_s2_h:"Dónde se alojan",
@@ -5579,7 +5589,7 @@ Object.assign(LANG.es,{
 });
 Object.assign(LANG.en,{
   st_back_settings:"Settings",
-  pv_title:"Privacy & data", pv_updated:"Last updated: 15 Jul 2026 · Mi Cartera (Juanjo Ávila)",
+  pv_title:"Privacy & data", pv_updated:"Last updated: 15 Jul 2026 · Aely (Juanjo Ávila)",
   pv_s1_h:"What we store",
   pv_s1:["Your portfolio: accounts, investments, debts, budget and settings (on the phone and, if you sign in, in Supabase).","Expenses: amount, merchant, category and date.","Bank connections: Open Banking link status and encrypted session tokens. We never store your bank password.","MyInvestor: encrypted session tokens after connecting. The password is only used to sign in and is not stored.","Minimal telemetry (optional): version, platform and errors — no financial data."],
   pv_s2_h:"Where it lives",
@@ -5591,7 +5601,7 @@ Object.assign(LANG.en,{
 });
 Object.assign(LANG.ca,{
   st_back_settings:"Ajustos",
-  pv_title:"Privacitat i dades", pv_updated:"Última actualització: 15 jul 2026 · Mi Cartera (Juanjo Ávila)",
+  pv_title:"Privacitat i dades", pv_updated:"Última actualització: 15 jul 2026 · Aely (Juanjo Ávila)",
   pv_s1_h:"Quines dades desem",
   pv_s1:["La teva cartera: comptes, inversions, deutes, pressupost i ajustos (al mòbil i, si inicies sessió, a Supabase).","Despeses: import, comerç, categoria i data.","Connexions bancàries: estat de l'enllaç Open Banking i tokens de sessió xifrats. No desem la contrasenya del banc.","MyInvestor: tokens de sessió xifrats després de connectar. La contrasenya només s'usa en entrar i no es desa.","Telemetria mínima (opcional): versió, plataforma i errors — sense dades financeres."],
   pv_s2_h:"On s'allotgen",
@@ -5831,7 +5841,7 @@ Object.assign(LANG.es,{
   pf_wealth_src:"Origen del patrimonio", pf_wealth_src_ph:"Ingresos laborales…",
   pf_networth:"Patrimonio neto", pf_networth_ph:"€150.001 – €400.000",
   pf_inv_purpose:"Finalidad de la inversión", pf_inv_purpose_ph:"Exploratoria; riesgo equilibrado…",
-  pf_hint:"Estos datos viven solo en tu móvil (y en la nube de Mi Cartera si tienes sesión). No se comparten con bancos.",
+  pf_hint:"Estos datos viven solo en tu móvil (y en la nube de Aely si tienes sesión). No se comparten con bancos.",
   pf_to_settings:"Ir a Ajustes",
 });
 Object.assign(LANG.en,{
@@ -5847,7 +5857,7 @@ Object.assign(LANG.en,{
   pf_wealth_src:"Source of wealth", pf_wealth_src_ph:"Employment income…",
   pf_networth:"Net worth", pf_networth_ph:"€150,001 – €400,000",
   pf_inv_purpose:"Investment purpose", pf_inv_purpose_ph:"Exploratory; balanced risk…",
-  pf_hint:"This data stays on your phone (and Mi Cartera cloud if signed in). It is not shared with banks.",
+  pf_hint:"This data stays on your phone (and Aely cloud if signed in). It is not shared with banks.",
   pf_to_settings:"Go to Settings",
 });
 Object.assign(LANG.ca,{
@@ -5863,7 +5873,7 @@ Object.assign(LANG.ca,{
   pf_wealth_src:"Origen del patrimoni", pf_wealth_src_ph:"Ingressos laborals…",
   pf_networth:"Patrimoni net", pf_networth_ph:"€150.001 – €400.000",
   pf_inv_purpose:"Finalitat de la inversió", pf_inv_purpose_ph:"Exploratòria; risc equilibrat…",
-  pf_hint:"Aquestes dades viuen només al teu mòbil (i al núvol de Mi Cartera si tens sessió). No es comparteixen amb bancs.",
+  pf_hint:"Aquestes dades viuen només al teu mòbil (i al núvol de Aely si tens sessió). No es comparteixen amb bancs.",
   pf_to_settings:"Ves a Ajustos",
 });
 
@@ -6722,7 +6732,11 @@ const I = {
   chev:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.4",width:"18",height:"18"},p),React.createElement("path",{d:"M6 9l6 6 6-6"})),
   up:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.6",width:"13",height:"13"},p),React.createElement("path",{d:"M12 19V5M5 12l7-7 7 7"})),
   down:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.6",width:"13",height:"13"},p),React.createElement("path",{d:"M12 5v14M5 12l7 7 7-7"})),
-  logo:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"#0B1410",strokeWidth:"2.1"},p),React.createElement("path",{d:"M3 8.5A2.5 2.5 0 0 1 5.5 6H19a1 1 0 0 1 1 1v2"}),React.createElement("path",{d:"M3 8.5V17a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-3.5"}),React.createElement("path",{d:"M16 12.5h4.5v3H16a1.5 1.5 0 0 1 0-3z"})),
+  logo:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 64 64",fill:"none","aria-hidden":"true"},p),
+    React.createElement("rect",{x:3,y:3,width:58,height:58,rx:14,stroke:"currentColor",strokeWidth:3}),
+    React.createElement("path",{d:"M18 48 L32 14 L46 48",stroke:"currentColor",strokeWidth:4.2,strokeLinecap:"round",strokeLinejoin:"round"}),
+    React.createElement("circle",{cx:32,cy:34,r:4.6,fill:"currentColor"})),
+  /* A-Dot Badge: A geométrica cuyo travesaño es un punto (brief Aely). */
   cloud:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.2 9.2 4 4 0 0 0 6.5 19z"})),
   cloudOff:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M17.5 19a4.5 4.5 0 0 0 1.9-8.58M9 5.2A6 6 0 0 1 18 9.2M6.5 19a4 4 0 0 1-.3-7.8"}),React.createElement("path",{d:"M3 3l18 18"})),
   gear:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2"},p),React.createElement("circle",{cx:12,cy:12,r:3}),React.createElement("path",{d:"M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H2a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 3.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.05a1.65 1.65 0 0 0 1-1.51V2a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.05a1.65 1.65 0 0 0 1.51 1H22a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"})),
@@ -6792,7 +6806,7 @@ function shareMonthReport(state, tt, showToast, opt){
       : (monthLong(new Date().getMonth())+" "+new Date().getFullYear());
     const mes=String(mesRaw).replace(/\s+$/,"");
     const ymFile=opt.ym||(labelParts&&labelParts.ym)||new Date().toISOString().slice(0,7);
-    g.fillStyle=mint;  g.font="800 44px Manrope, sans-serif"; g.fillText("💼 Mi Cartera", 72, 70);
+    g.fillStyle=mint;  g.font="800 44px Manrope, sans-serif"; g.fillText("💼 Aely", 72, 70);
     g.fillStyle=muted; g.font="600 34px Manrope, sans-serif"; g.fillText(mes.charAt(0).toUpperCase()+mes.slice(1), 72, 130);
     // tarjeta: gastado este mes + barra de presupuesto
     g.fillStyle=surface; round(72,210,W-144,330,28); g.fill(); g.strokeStyle=line; g.lineWidth=2; round(72,210,W-144,330,28); g.stroke();
@@ -6853,13 +6867,13 @@ function shareMonthReport(state, tt, showToast, opt){
       const saidSaved=function(){
         if(showToast) showToast(t("rp_saved"));
         const nat=natPlugin();
-        if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Mi Cartera", body:tf("rp_saved_notif",{f:fname})}).catch(function(){}); }catch(e){} }
+        if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely", body:tf("rp_saved_notif",{f:fname})}).catch(function(){}); }catch(e){} }
       };
       const file=new File([b], fname, {type:"image/png"});
       if(navigator.canShare && navigator.canShare({files:[file]})){
         // El share de la WebView puede rechazar en silencio («el informe no hace nada»,
         // feedback 2026-07-18): si falla, descargamos la imagen igualmente y lo decimos.
-        navigator.share({files:[file], title:"Mi Cartera"}).catch(function(err){
+        navigator.share({files:[file], title:"Aely"}).catch(function(err){
           const aborted=err && (err.name==="AbortError");   // canceló el usuario: no insistir
           if(aborted) return;
           dl();
@@ -8614,7 +8628,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       else if(amt>=bud*0.15 && amt>=50){ msg=tf("al_big",{x:eur0(amt)}); isAlert=true; }
     }
     // En la app Android los avisos también salen como notificación de verdad (quedan en la bandeja).
-    if(isAlert){ const nat=natPlugin(); if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Mi Cartera",body:msg}).catch(function(){}); }catch(e){} } }
+    if(isAlert){ const nat=natPlugin(); if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely",body:msg}).catch(function(){}); }catch(e){} } }
     setForm({merchant:"",amount:"",category:form.category,income:false,noCard:false,date:""}); setAdding(false); showToast(msg);
   };
 
@@ -14433,7 +14447,7 @@ function LockScreen({onUnlock}){
   const link={background:"none",border:"none",color:"var(--muted-2)",cursor:"pointer",fontSize:"12px",marginTop:"10px",textDecoration:"underline"};
   return React.createElement("div",{style:wrap},
     React.createElement("div",{style:{width:64,height:64,borderRadius:"50%",background:"#5FD08A22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"30px"}},"🔒"),
-    React.createElement("div",{style:{fontWeight:700,fontSize:"22px",fontFamily:"Fraunces, serif"}},"Mi cartera"),
+    React.createElement("div",{style:{fontWeight:700,fontSize:"22px",fontFamily:"Fraunces, serif"}},"Aely"),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:"14px"}}, err?t("lk_failed"):t("lk_unlock")),
     React.createElement("button",{style:btn,onClick:tryUnlock},t("lk_unlockbtn")),
     React.createElement("button",{style:link,onClick:escape},t("lk_cant"))
@@ -16526,7 +16540,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     React.createElement("div",{className:"v4-set-profile"},
       React.createElement("div",{className:"v4-set-av"}, (meEmail||"MC").slice(0,2).toUpperCase()),
       React.createElement("div",{style:{minWidth:0,flex:1}},
-        React.createElement("div",{style:{fontWeight:800,fontSize:16}}, meEmail?meEmail.split("@")[0]:"Mi Cartera"),
+        React.createElement("div",{style:{fontWeight:800,fontSize:16}}, meEmail?meEmail.split("@")[0]:"Aely"),
         React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:2}}, meEmail||t("v4_set_profile_local")),
         React.createElement("div",{style:{fontSize:12,color:"var(--mint)",marginTop:4,fontWeight:700}}, uid?t("v4_set_profile_sync"):t("v4_set_profile_local"))
       )
@@ -16932,7 +16946,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     // El canal y las DOS versiones (OTA + APK) se cantan en el pie: si el icono no cambia,
     // aquí se ve al momento si sigues en una APK vieja aunque la web ya esté al día (2026-07-26).
     React.createElement("div",{style:{textAlign:"center",color:"#5E7468",fontSize:"12px",marginTop:"22px"}},
-      "Mi Cartera · "+(apkVer
+      "Aely · "+(apkVer
         ? tf("st_ver_both",{w:CONFIG.APP_VERSION,a:apkVer})
         : ("v"+CONFIG.APP_VERSION))+((typeof mcChannel==="function"&&mcChannel()==="beta")?" · 🚧 beta":""))
   );
@@ -16970,7 +16984,10 @@ function Onboarding({set, onCloud, onSignup}){
 
   if(step===0) return React.createElement("div",{style:wrap},React.createElement("div",{style:inner},
     skipBtn,
-    React.createElement("div",{className:"v4-ob-logo"},React.createElement(I.logo,{width:36,height:36})),
+    React.createElement("div",{className:"v4-ob-lockup","aria-label":"Aely"},
+      React.createElement("div",{className:"v4-ob-badge"},React.createElement(I.logo,{width:40,height:40})),
+      React.createElement("div",{className:"v4-ob-word"},"Aely")
+    ),
     React.createElement("h1",{className:"serif v4-ob-title"},t("v4_ob_title1")),
     React.createElement("p",{className:"v4-ob-sub"},t("v4_ob_sub1")),
     onCloud && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:18},onClick:onCloud},t("ob_haveacc")),
@@ -20203,7 +20220,7 @@ function App(){
       const msg=tf("bn_"+th,{x:eur0(spent),b:eur0(bud),p:Math.round(pct)});
       showToast(msg);
       const nat=natPlugin();
-      if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Mi Cartera",body:msg}).catch(function(){}); }catch(e){} }
+      if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely",body:msg}).catch(function(){}); }catch(e){} }
     });
   },[state.onboarded,locked,state.expenses,state.budget,state.reservaLog,state.accounts,state.settings]);
   // Snapshot diario del total invertido (€) para el gráfico de evolución (#6). Se actualiza si cambia valor/coste hoy.
@@ -21522,7 +21539,7 @@ window._mcNewerVer=function(a,b){
 };
 
 window._mcNotifyUpdate=function(version, kind){
-  var title="Mi Cartera";
+  var title="Aely";
   var body=kind==="apk"&&version?tf("upd_notif_apk",{v:version}):(version?tf("upd_notif",{v:version}):t("upd_notif_web"));
   try{
     var nat=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.MiCartera;

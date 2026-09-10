@@ -16,7 +16,11 @@ const I = {
   chev:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.4",width:"18",height:"18"},p),React.createElement("path",{d:"M6 9l6 6 6-6"})),
   up:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.6",width:"13",height:"13"},p),React.createElement("path",{d:"M12 19V5M5 12l7-7 7 7"})),
   down:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.6",width:"13",height:"13"},p),React.createElement("path",{d:"M12 5v14M5 12l7 7 7-7"})),
-  logo:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"#0B1410",strokeWidth:"2.1"},p),React.createElement("path",{d:"M3 8.5A2.5 2.5 0 0 1 5.5 6H19a1 1 0 0 1 1 1v2"}),React.createElement("path",{d:"M3 8.5V17a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-3.5"}),React.createElement("path",{d:"M16 12.5h4.5v3H16a1.5 1.5 0 0 1 0-3z"})),
+  logo:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 64 64",fill:"none","aria-hidden":"true"},p),
+    React.createElement("rect",{x:3,y:3,width:58,height:58,rx:14,stroke:"currentColor",strokeWidth:3}),
+    React.createElement("path",{d:"M18 48 L32 14 L46 48",stroke:"currentColor",strokeWidth:4.2,strokeLinecap:"round",strokeLinejoin:"round"}),
+    React.createElement("circle",{cx:32,cy:34,r:4.6,fill:"currentColor"})),
+  /* A-Dot Badge: A geométrica cuyo travesaño es un punto (brief Aely). */
   cloud:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.2 9.2 4 4 0 0 0 6.5 19z"})),
   cloudOff:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M17.5 19a4.5 4.5 0 0 0 1.9-8.58M9 5.2A6 6 0 0 1 18 9.2M6.5 19a4 4 0 0 1-.3-7.8"}),React.createElement("path",{d:"M3 3l18 18"})),
   gear:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2"},p),React.createElement("circle",{cx:12,cy:12,r:3}),React.createElement("path",{d:"M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H2a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 3.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.05a1.65 1.65 0 0 0 1-1.51V2a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.05a1.65 1.65 0 0 0 1.51 1H22a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"})),
@@ -86,7 +90,7 @@ function shareMonthReport(state, tt, showToast, opt){
       : (monthLong(new Date().getMonth())+" "+new Date().getFullYear());
     const mes=String(mesRaw).replace(/\s+$/,"");
     const ymFile=opt.ym||(labelParts&&labelParts.ym)||new Date().toISOString().slice(0,7);
-    g.fillStyle=mint;  g.font="800 44px Manrope, sans-serif"; g.fillText("💼 Mi Cartera", 72, 70);
+    g.fillStyle=mint;  g.font="800 44px Manrope, sans-serif"; g.fillText("💼 Aely", 72, 70);
     g.fillStyle=muted; g.font="600 34px Manrope, sans-serif"; g.fillText(mes.charAt(0).toUpperCase()+mes.slice(1), 72, 130);
     // tarjeta: gastado este mes + barra de presupuesto
     g.fillStyle=surface; round(72,210,W-144,330,28); g.fill(); g.strokeStyle=line; g.lineWidth=2; round(72,210,W-144,330,28); g.stroke();
@@ -147,13 +151,13 @@ function shareMonthReport(state, tt, showToast, opt){
       const saidSaved=function(){
         if(showToast) showToast(t("rp_saved"));
         const nat=natPlugin();
-        if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Mi Cartera", body:tf("rp_saved_notif",{f:fname})}).catch(function(){}); }catch(e){} }
+        if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely", body:tf("rp_saved_notif",{f:fname})}).catch(function(){}); }catch(e){} }
       };
       const file=new File([b], fname, {type:"image/png"});
       if(navigator.canShare && navigator.canShare({files:[file]})){
         // El share de la WebView puede rechazar en silencio («el informe no hace nada»,
         // feedback 2026-07-18): si falla, descargamos la imagen igualmente y lo decimos.
-        navigator.share({files:[file], title:"Mi Cartera"}).catch(function(err){
+        navigator.share({files:[file], title:"Aely"}).catch(function(err){
           const aborted=err && (err.name==="AbortError");   // canceló el usuario: no insistir
           if(aborted) return;
           dl();

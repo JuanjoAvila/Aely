@@ -137,7 +137,7 @@ function LockScreen({onUnlock}){
   const link={background:"none",border:"none",color:"var(--muted-2)",cursor:"pointer",fontSize:"12px",marginTop:"10px",textDecoration:"underline"};
   return React.createElement("div",{style:wrap},
     React.createElement("div",{style:{width:64,height:64,borderRadius:"50%",background:"#5FD08A22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"30px"}},"🔒"),
-    React.createElement("div",{style:{fontWeight:700,fontSize:"22px",fontFamily:"Fraunces, serif"}},"Mi cartera"),
+    React.createElement("div",{style:{fontWeight:700,fontSize:"22px",fontFamily:"Fraunces, serif"}},"Aely"),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:"14px"}}, err?t("lk_failed"):t("lk_unlock")),
     React.createElement("button",{style:btn,onClick:tryUnlock},t("lk_unlockbtn")),
     React.createElement("button",{style:link,onClick:escape},t("lk_cant"))
@@ -2230,7 +2230,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     React.createElement("div",{className:"v4-set-profile"},
       React.createElement("div",{className:"v4-set-av"}, (meEmail||"MC").slice(0,2).toUpperCase()),
       React.createElement("div",{style:{minWidth:0,flex:1}},
-        React.createElement("div",{style:{fontWeight:800,fontSize:16}}, meEmail?meEmail.split("@")[0]:"Mi Cartera"),
+        React.createElement("div",{style:{fontWeight:800,fontSize:16}}, meEmail?meEmail.split("@")[0]:"Aely"),
         React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:2}}, meEmail||t("v4_set_profile_local")),
         React.createElement("div",{style:{fontSize:12,color:"var(--mint)",marginTop:4,fontWeight:700}}, uid?t("v4_set_profile_sync"):t("v4_set_profile_local"))
       )
@@ -2636,7 +2636,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     // El canal y las DOS versiones (OTA + APK) se cantan en el pie: si el icono no cambia,
     // aquí se ve al momento si sigues en una APK vieja aunque la web ya esté al día (2026-07-26).
     React.createElement("div",{style:{textAlign:"center",color:"#5E7468",fontSize:"12px",marginTop:"22px"}},
-      "Mi Cartera · "+(apkVer
+      "Aely · "+(apkVer
         ? tf("st_ver_both",{w:CONFIG.APP_VERSION,a:apkVer})
         : ("v"+CONFIG.APP_VERSION))+((typeof mcChannel==="function"&&mcChannel()==="beta")?" · 🚧 beta":""))
   );
@@ -2674,7 +2674,10 @@ function Onboarding({set, onCloud, onSignup}){
 
   if(step===0) return React.createElement("div",{style:wrap},React.createElement("div",{style:inner},
     skipBtn,
-    React.createElement("div",{className:"v4-ob-logo"},React.createElement(I.logo,{width:36,height:36})),
+    React.createElement("div",{className:"v4-ob-lockup","aria-label":"Aely"},
+      React.createElement("div",{className:"v4-ob-badge"},React.createElement(I.logo,{width:40,height:40})),
+      React.createElement("div",{className:"v4-ob-word"},"Aely")
+    ),
     React.createElement("h1",{className:"serif v4-ob-title"},t("v4_ob_title1")),
     React.createElement("p",{className:"v4-ob-sub"},t("v4_ob_sub1")),
     onCloud && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:18},onClick:onCloud},t("ob_haveacc")),
