@@ -151,6 +151,56 @@ t("H: dos candidatos contra UN guardado → solo uno se marca (1:1)", () => {
   assert.equal(dup[1], undefined, "el segundo no debe reusar el mismo gasto");
 });
 
+/* (c) del 10/9 — «detecta movimiento y no lo detecta duplicado».
+   El sync diario clavea con obName||merchant; histCandExisting miraba solo merchant.
+   Tras renombrar un «Movimiento» de TR (sin ext_id), el histórico lo volvía a marcar nuevo. */
+t("TR renombrado: el candidato del banco («Movimiento») casa por obName, no por merchant", () => {
+  const existentes = [exp({
+    id: "tr1",
+    date: "2026-09-01T12:00:00.000Z",
+    amount: 23,
+    merchant: "Supermercado",
+    obName: "Movimiento",
+    source: "ob",
+    ent: "trade_republic",
+  })];
+  const cands = [cand({
+    date: "2026-09-01",
+    amount: 23,
+    merchant: "Movimiento",
+    kind: "out",
+    card: false,
+    ent: "trade_republic",
+  })];
+  const dup = ctx.histCandExisting(cands, existentes);
+  assert.equal(dup[0], existentes[0], "sin obName esto salía NEW y era el falso nuevo de TR");
+});
+
+t("sin obName (filas viejas) sigue casando por merchant como siempre", () => {
+  const existentes = [exp({ merchant: "Mercadona" })];
+  const cands = [cand({ date: "2026-07-28", amount: 30, merchant: "MERCADONA", kind: "out", card: true })];
+  const dup = ctx.histCandExisting(cands, existentes);
+  assert.equal(dup[0], existentes[0]);
+});
+
+t("clasificador: el renombrado de TR sale dup, no new", () => {
+  const st = {
+    accounts: [{ id: "a", ent: "trade_republic", name: "TR", role: "diario", spendFrom: true }],
+    expenses: [exp({
+      id: "tr1", date: "2026-09-01T12:00:00.000Z", amount: 23,
+      merchant: "Supermercado", obName: "Movimiento", source: "ob", ent: "trade_republic",
+    })],
+    fixed: [], debts: [], oneoffs: [],
+  };
+  const cands = [cand({
+    date: "2026-09-01", amount: 23, merchant: "Movimiento",
+    kind: "out", card: false, ent: "trade_republic",
+  })];
+  const { rows } = ctx.histClassifyCandidates(cands, st);
+  assert.equal(rows[0].status, "dup");
+  assert.equal(rows[0].reason, "existing");
+});
+
 console.log("\nhist-import-motor (A/B/C/N/I/J)");
 
 const baseState = () => ({

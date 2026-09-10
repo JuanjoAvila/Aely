@@ -2,6 +2,16 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.28] — 2026-09-10
+### El histórico reconoce lo que ya renombraste
+
+Parte (c) de su queja del 10/9: «detecta movimiento y no lo detecta duplicado» — en Trade Republic (sin `ext_id`) y en cualquier gasto renombrado.
+
+- **Causa medida** (Cursor): `histCandExisting` indexaba lo guardado por `merchant`, pero el sync diario clavea con `obName||merchant`. Tras renombrar un «Movimiento» de TR, el histórico volvía a ver el nombre del banco y lo marcaba **nuevo**.
+- Misma regla que `importObExpenses`: al comparar contra lo ya guardado se usa `obName` si existe. **No toca** la identidad UNIQUE de la nube (FIN-03), ni borra, ni migra.
+- Tests nuevos en `hist-import-dup.test.mjs` (renombrado TR → dup; sin `obName` sigue el merchant).
+- Queda aparte el tope de `pullExpenses` (2000): si el histórico local no tiene la fila, el falso nuevo puede seguir por otra puerta (FIN-07).
+
 ## [4.19.27] — 2026-09-10
 ### El visor del histórico deja de ponerse negro
 
