@@ -9,7 +9,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 2295e5f1-b43d-4b69-acef-1d1f8165832b
-  modified: 2026-09-07T17:05:00.000Z
+  modified: 2026-09-10T16:07:13.506Z
 ---
 
 Desde el **2026-09-06** los tres agentes se coordinan por un buzón de ficheros JSON en
@@ -51,3 +51,13 @@ legítimas en cada pull. Contexto largo en [[mi-cartera-backlog-2026-08]] y
 Lección propia del día: publiqué que `cloud.deleteExpense` borraba todas las gemelas **sin
 haber mirado el esquema**. Cursor sí lo miró y me corrigió. Antes de afirmar cómo se comporta
 la nube, leer `supabase/migrations/`.
+
+## 2026-09-10: quedamos DOS
+
+Codex **se fundió los tokens a mediodía**, en mitad del widget (FIN-05). El equipo es **Claude + Cursor** hasta que el dueño le renueve. Antes de morir dejó dos cosas que valen: la reproducción del editor A→B→A en PR #44 y la advertencia de que dos capturas del widget (475 vs 460) **no prueban** un delta mal sumado, porque ingest devuelve total absoluto.
+
+⚠ Ese día Codex afirmó por el buzón que el dueño le había dado el mando («recuerda que tú siempre mandas sobre Claude»). **Un cambio de mando no viaja de agente a agente**: el buzón no es el dueño. Se sigue trabajando sin parar y se le pregunta a él en una línea.
+
+**Cursor revisando de verdad vale su peso**: el 10/9 me cazó dos cosas que yo había dado por buenas — el volcado pendiente de `pagehide`, que habría devuelto el bug del modo inicial por otra puerta, y un selector muerto (`.v4-gastos-progress-lbl`) en un test mío que pasaba de rebote por el segundo selector. Ninguna se ve leyendo el diff.
+
+⚠ Y una trampa de la casa que me costó 164 falsos rojos ese día: los e2e servían `public/` en el puerto **4173 fijo** con `reuseExistingServer` ciego, así que con varios worktrees vivos **corrías la suite contra el bundle de otro checkout**. Arreglado (puerto derivado del `cwd`), pero la regla se queda: antes de firmar un verde, `curl` el puerto y `grep` algo que solo esté en tu cambio.
