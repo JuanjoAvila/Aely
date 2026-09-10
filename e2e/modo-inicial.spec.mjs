@@ -37,9 +37,9 @@ test("★ la cartera REAL no se toca al sembrar la vacía", async ({ page }) => 
   expect(pruebas.budget).toBe(0);
   expect(pruebas.accounts).toEqual([]);
   expect(pruebas.expenses).toEqual([]);
-  // `onboarded` va a true a propósito: con el onboarding delante te obliga a poner presupuesto,
-  // y entonces la tarjeta vacía de presupuesto no se puede ver nunca.
-  expect(pruebas.onboarded).toBe(true);
+  // `onboarded` false: la fila promete «recién instalada» → sale el onboarding (feedback 10/9 noche).
+  expect(pruebas.onboarded).toBe(false);
+  expect(pruebas.tourSeen).toBe(false);
 });
 
 /* La FILA de Ajustes no se cubre aquí a propósito: ese bloque solo lo ve el dueño

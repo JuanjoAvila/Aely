@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.19.33",
+    "d": "10 sep 2026",
+    "t": {
+      "es": "Bizum aparte, y el vacío enseña el onboarding",
+      "en": "Bizum on its own, and empty shows onboarding",
+      "ca": "Bizum a part, i el buit ensenya l'onboarding"
+    },
+    "tandas": [
+      {
+        "id": "bizum-onboard",
+        "t": {
+          "es": "📲 Bizum como categoría + vacío con onboarding",
+          "en": "📲 Bizum as a category + empty with onboarding",
+          "ca": "📲 Bizum com a categoria + buit amb onboarding"
+        },
+        "items": {
+          "es": [
+            "En Gastos, al editar un movimiento: tiene que salir la categoría Bizum (📲).",
+            "Un gasto cuyo comercio diga «Bizum a…» o «Bizum de…» tiene que caer solo en Bizum, no en Otros.",
+            "Ajustes → Probar con la app vacía (o Vaciar la cartera de pruebas): tiene que salir el onboarding de la primera vez, no el Inicio vacío a pelo.",
+            "Al salir del banco de pruebas, tu cartera real sigue igual."
+          ],
+          "en": [
+            "In Expenses, when editing a move: Bizum (📲) must appear as a category.",
+            "A spend whose merchant says «Bizum a…» or «Bizum de…» must land in Bizum by itself, not Other.",
+            "Settings → Try with an empty app (or Empty the test wallet): you must get the first-time onboarding, not a bare empty Home.",
+            "Leaving the test bank, your real wallet stays as it was."
+          ],
+          "ca": [
+            "A Despeses, en editar un moviment: ha de sortir la categoria Bizum (📲).",
+            "Una despesa el comerç de la qual digui «Bizum a…» o «Bizum de…» ha de caure sola a Bizum, no a Altres.",
+            "Ajustos → Provar amb l'app buida (o Buidar la cartera de proves): ha de sortir l'onboarding de la primera vegada, no l'Inici buit a pèl.",
+            "En sortir del banc de proves, la teva cartera real segueix igual."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "Bizum tiene categoría propia, y al vaciar las pruebas vuelve el onboarding."
+      ],
+      "en": [
+        "Bizum has its own category, and emptying the test bank brings onboarding back."
+      ],
+      "ca": [
+        "Bizum té categoria pròpia, i en buidar les proves torna l'onboarding."
+      ]
+    }
+  },
+  {
     "v": "4.19.31",
     "d": "10 sep 2026",
     "t": {

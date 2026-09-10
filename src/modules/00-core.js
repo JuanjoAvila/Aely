@@ -187,6 +187,9 @@ const CATEGORIES = [
   { id:"hogar",      name:"Hogar",               color:"#B7C98A", icon:"🏠" },
   { id:"regalos",    name:"Regalos",             color:"#E89CB0", icon:"🎁" },
   { id:"joyeria",    name:"Joyería",             color:"#D4AF37", icon:"💍" },
+  /* Bizum ANTES de otros (feedback 10/9): manda y recibe a menudo; quiere verlo aparte
+     en el desglose y en el límite por categoría, no mezclado en «Otros». */
+  { id:"bizum",      name:"Bizum",               color:"#5B9FE8", icon:"📲" },
   { id:"otros",      name:"Otros",               color:"#8FA89A", icon:"📦" },
 ];
 const CAT = Object.fromEntries(CATEGORIES.map(c=>[c.id,c]));
@@ -270,6 +273,9 @@ const KW = {
   hogar:["ikea","leroy","bricomart","bauhaus","ferreteria","muebles","sofa","sofá","lampara","lámpara","tintoreria","tintorería","lavanderia","lavandería","mrw","seur","correos","amazon locker","bricodepot","bricodépôt","aki ","aki.","ferretería","manitas","limpieza hogar","limpiapro","blink ","dyson","rowenta","bosch electro","balay","teka"],
   regalos:["regalo","flores","floristeria","floristería","perfumeria","perfumería","interflora","teleflorist","rosas ","ramo ","douglas"],
   joyeria:["joyeria","joyeros","tiffany","cartier","swarovski","tous ","pandora"],
+  /* Bizum al final del vocabulario de gasto (antes de caer en otros). Los BIZUM RECIBIDOS
+     suelen entrar como ingreso por el signo; esto pilla los enviados / el comercio «BIZUM …». */
+  bizum:["bizum","bizum a ","bizum de ","envio bizum","envío bizum","pago bizum","bizum movistar","bizum bbva","bizum caixa","bizum sabadell","bizum santander"],
 };
 /* Retirada de cajero / ATM → traspaso (neutro). Mismas claves en ingest_logic.ts. */
 /* Categoría al ALTA de un movimiento nuevo (OB/import/ingest). ATM → traspaso.
@@ -506,8 +512,12 @@ function mcExitSandbox(){ try{ localStorage.removeItem("_mcSandbox"); }catch(e){
    que probar del pulido v4 (hero sin grafico, tarjetas vacias, racha a cero). Sus palabras: «si no,
    te marcare el 50% de las pruebas que no puedo reproducirlo».
    Siembra la cartera de PRUEBAS vacia. Nunca toca la real: escribe en STATE_KEY_TEST y punto.
-   `onboarded:true` a proposito: con el onboarding delante te obliga a poner presupuesto, y entonces
-   la tarjeta vacia de presupuesto (P3) no se puede ver nunca. `budget:0` es justo el caso a probar. */
+   ⚠ `onboarded:false` (10/9 noche, rechazo suyo): la fila dice «como recién instalada» y él
+   esperaba el onboarding. Antes iba a `true` a propósito para mirar la tarjeta vacía de
+   presupuesto sin pasar por el stepper — pero eso mentía en el copy y «tampoco furula» el reset
+   a cero. Quien quiera saltarse el onboarding en pruebas toca «Saltar» (deja budget 0 si no
+   cambia el stepper… en realidad finish pone el budget del stepper; al saltar con default 700).
+   Para pantallas vacías tras onboarding: salta y no añadas cuentas. */
 /* ⚠ RECHAZADA LA PRIMERA VERSIÓN (10/9): «no funciona, entra sin más al banco de pruebas» y
    «tampoco pasa nada, solamente sigue en el banco de pruebas como estaba, no resetea nada».
    Tenía toda la razón y la causa era esta línea: `store.set(STATE_KEY_TEST, {...expenses:[]})`
@@ -522,7 +532,7 @@ function mcExitSandbox(){ try{ localStorage.removeItem("_mcSandbox"); }catch(e){
    test que solo mira uno. */
 function mcSeedSandboxVacio(){
   mcSaveRaw(STATE_KEY_TEST, {
-    _dataVer:6, onboarded:true, tourSeen:true, setupHint:false,
+    _dataVer:6, onboarded:false, tourSeen:false, setupHint:false,
     budget:0, monthStartNet:0, history:[], streak:0,
     accounts:[], investments:[], assets:[], debts:[], fixed:[], flows:[], oneoffs:[], goals:[],
     expenses:[], settings:{}

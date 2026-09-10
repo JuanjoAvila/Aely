@@ -33,6 +33,7 @@ export const CATEGORIAS: Record<string, string[]> = {
   hogar:      ["ikea","leroy","bricomart","bauhaus","ferreteria","muebles","sofa","lampara","tintoreria","tintorería","lavanderia","lavandería","mrw","seur","correos","amazon locker","bricodepot","aki "],
   regalos:    ["regalo","flores","floristeria","perfumeria","sephora","douglas","interflora"],
   joyeria:    ["joyeria","joyeros","tiffany","cartier","swarovski","tous ","pandora"],
+  bizum:      ["bizum","bizum a ","bizum de ","envio bizum","envío bizum","pago bizum"],
 };
 
 export function norm(s: string): string {

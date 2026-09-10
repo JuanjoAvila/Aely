@@ -2087,7 +2087,12 @@ function App(){
   const pintarArrastre=function(){
     dragRaf.current=0;
     const el=trackRef.current, off=dragOff.current;
-    if(!el || off==null || !dragging.current) return;
+    /* `axis` también, no solo `dragging` (lo caza Cursor en la review): si el dedo se va en
+       vertical a mitad del gesto, el arrastre de pestañas deja de mandar pero el rAF seguía vivo
+       reescribiendo el último `off` hasta que el dedo se levantaba. No se ve —el valor es el
+       mismo— pero es un bucle por frame haciendo trabajo para nada, y justo en el momento en que
+       el usuario está scrolleando y hace falta cada milisegundo. */
+    if(!el || off==null || !dragging.current || axis.current!=="x") return;
     el.style.transform="translate3d("+off+"px,0,0)";
     dragRaf.current=requestAnimationFrame(pintarArrastre);
   };
