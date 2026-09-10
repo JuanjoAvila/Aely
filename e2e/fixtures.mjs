@@ -24,6 +24,12 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         select: () => chain,
         order: () => chain,
         limit: () => chain,
+        /* PAGINA DE VERDAD (FIN-07, 2026-09-10). `pullExpenses` dejó de traer 2.000 filas de una
+           tacada y ahora recorre la tabla por páginas con `.range()`. El doble no lo tenía y el
+           pull reventaba, así que en vez de añadir un `range: () => chain` que se lo tragara sin
+           hacer nada —y dejara la paginación SIN probar en ningún e2e— aquí se recorta de verdad.
+           Así un test puede sembrar 2.500 gastos y comprobar que llegan los 2.500. */
+        range: (a, b) => { chain._rango = [a, b]; return chain; },
         eq: () => chain,
         lt: () => chain,
         update: () => chain,
@@ -32,7 +38,12 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         maybeSingle: async () => ({ data: null, error: null }),
         single: async () => ({ data: null, error: null }),
       };
-      chain.then = (resolve) => resolve({ data: cloudRows[tabla] || [], error: null });
+      chain.then = (resolve) => {
+        const todas = cloudRows[tabla] || [];
+        const r = chain._rango;
+        chain._rango = null;   // la cadena se reutiliza; sin esto la página se queda pegada
+        resolve({ data: r ? todas.slice(r[0], r[1] + 1) : todas, error: null });
+      };
       return {
         auth: {
           getSession: async () => ({ data: { session } }),

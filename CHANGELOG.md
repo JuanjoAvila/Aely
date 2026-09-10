@@ -2,6 +2,22 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.36] — 2026-09-10
+### FIN-07 · el histórico entero, y una consulta a medias que ya no borra nada
+
+Su queja del 10/9 era «solo baja el historico de revolut un poquito y de trade republic», y la causa **no estaba en el importador**.
+
+- `pullExpenses` traía como mucho **2.000 filas y sin paginar**. Y `syncCloudExpenses` **reemplaza** los gastos de origen `supabase` por lo que llega. O sea que con más de 2.000 gastos en la nube —lo normal después de importar el histórico de un banco— **cada sincronización le borraba de la app los más viejos**. No es que no se descargaran: es que se iban.
+- Ahora se pagina hasta el final. Orden **estable**: `fecha` desc **y `id` desc** para desempatar — sin un segundo criterio único, dos gastos del mismo día pueden salir en distinto orden entre páginas y entonces uno se repite y otro se pierde. Lo que se pierde son gastos suyos.
+- Se pide **una fila de más** y se descarta, para saber si queda algo sin gastar otra vuelta. Con un histórico que caiga justo en el borde (1.000, 2.000…) antes hacía falta una consulta extra solo para recibir cero filas. Lo cazó el test del borde.
+- El tope sigue existiendo pero como **red** (100.000 filas), no como límite de trabajo.
+
+**Y la mitad que de verdad daba miedo**: si el pull se queda corto —red que se corta, tope, error del servidor— ahora se **añade** lo que llega y **no se quita nada**. Una consulta incompleta no es un borrado; es la regla de la casa desde la contención 4.18.6 y no estaba aplicada aquí.
+
+- El aviso de recorte deja de prometer «los 2.000 más recientes» y dice lo que le importa: **que no ha perdido nada**.
+- `tests/pull-historico-entero.test.mjs`, 7 casos, con un doble que cuenta las consultas.
+- El doble de Supabase de los e2e **pagina de verdad** (`range` recorta) en vez de tragarse la llamada: si no, la paginación se quedaba sin probar en ningún e2e.
+
 ## [4.19.35] — 2026-09-10
 ### El copy y el logo de Aely, del brief de verdad
 

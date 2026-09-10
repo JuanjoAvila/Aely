@@ -667,16 +667,43 @@ const cloud = (function(){
       if(error) throw error;
       return { updated_at: rows && rows[0] && rows[0].updated_at };
     },
+    /* TRAE EL HISTÓRICO ENTERO, PAGINANDO (FIN-07, 2026-09-10).
+       Antes era un solo SELECT con `.limit(2000)` y sin paginar. Con más de 2.000 gastos en la
+       nube —que es lo normal después de importar el histórico de un banco— pasaba algo peor que
+       «no se ven todos»: `syncCloudExpenses` REEMPLAZA los gastos de origen `supabase` por lo que
+       llega, así que cada sincronización le BORRABA de la app los más viejos. Su queja: «solo baja
+       el historico de revolut un poquito y de trade republic».
+
+       Orden estable: `fecha` desc **y `id` desc** para desempatar. Sin el segundo criterio, dos
+       filas con la misma fecha pueden salir en distinto orden entre páginas y entonces una se
+       repite y otra se pierde — el fallo clásico de paginar por un campo no único, y aquí se
+       llevaría gastos suyos por delante.
+
+       El tope sigue existiendo, pero como RED (100.000 filas), no como límite de trabajo. Si
+       alguna vez se toca, `_mcPullCapped` sigue avisando: callar mentiría. */
     async pullExpenses(){
       if(!sb) return [];
-      // Tope duro: sin paginar aún (plan O). Si se llena, syncCloudExpenses avisa — callar mentiría
-      // tras un import histórico largo.
-      const EXPENSE_PULL_LIMIT=2000;
-      const {data,error}=await sb.from('expenses').select('*').order('fecha',{ascending:false}).limit(EXPENSE_PULL_LIMIT);
-      if(error) throw error;
-      const rows=data||[];
-      if(rows.length>=EXPENSE_PULL_LIMIT) rows._mcPullCapped=true;
-      return rows;
+      const PAGINA=1000;              // lo que pide PostgREST de una vez sin ahogarse
+      const TOPE_RED=100000;          // 50 vueltas; si esto se alcanza hay algo raro, no un usuario
+      const filas=[];
+      let desde=0;
+      for(;;){
+        /* Se pide UNA fila de más y se descarta. Es el truco para saber si queda algo sin gastar
+           otra vuelta: sin él, con un histórico que caiga justo en el borde (1.000, 2.000…) hacía
+           falta una consulta extra solo para recibir cero filas y enterarse de que ya estaba. Con
+           su móvil y datos móviles, esa vuelta de más se nota. Lo cazó el test del borde. */
+        const {data,error}=await sb.from('expenses').select('*')
+          .order('fecha',{ascending:false}).order('id',{ascending:false})
+          .range(desde, desde+PAGINA);
+        if(error) throw error;
+        const trozo=data||[];
+        const hayMas=trozo.length>PAGINA;
+        filas.push.apply(filas, hayMas?trozo.slice(0,PAGINA):trozo);
+        if(!hayMas) break;                         // ya está todo
+        desde+=PAGINA;
+        if(filas.length>=TOPE_RED){ filas._mcPullCapped=true; break; }
+      }
+      return filas;
     },
     async addExpense(e){
       if(!sb) return;

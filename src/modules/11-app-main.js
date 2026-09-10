@@ -329,7 +329,19 @@ function App(){
       let count=0; const seenC={};
       incoming.forEach(function(e){ const k=keyOf(e); if(!seenC[k]){ seenC[k]=1; if(!prevKeys[k]) count++; } });
       set(function(prev){
-        const keep=prev.expenses.filter(function(e){ return e.source!=="supabase"; });
+        /* ⚠ UNA CONSULTA A MEDIAS NO ES UN BORRADO (FIN-07, 2026-09-10).
+           Esta línea da por hecho que `incoming` es la nube ENTERA y descarta todo lo de origen
+           `supabase` que no venga en ella. Mientras el pull traía como mucho 2.000 filas, eso
+           significaba que a quien tuviera más histórico se le borraban de la app los gastos viejos
+           en CADA sincronización. Ya se pagina, así que el caso normal es completo; pero si alguna
+           vez el pull vuelve a quedarse corto —red que se corta, tope de red, un error del
+           servidor— lo que NO se puede hacer es tomar la ausencia por una eliminación.
+           Con la consulta incompleta: se AÑADE lo que llega y no se quita nada.
+           Es la regla de la casa desde la contención 4.18.6: nunca borrar por ausencia. */
+        const parcial=!!(rows&&rows._mcPullCapped);
+        const keep=parcial
+          ? prev.expenses.slice()
+          : prev.expenses.filter(function(e){ return e.source!=="supabase"; });
         const keepKeys={}; keep.forEach(function(e){ keepKeys[keyOf(e)]=1; });
         const seen={}; const add=[];
         incoming.forEach(function(e){ const k=keyOf(e); if(!keepKeys[k] && !seen[k]){ seen[k]=1; add.push(e); } });

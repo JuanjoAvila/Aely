@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.19.36",
+    "d": "10 sep 2026",
+    "t": {
+      "es": "Tu histórico, entero",
+      "en": "Your full history",
+      "ca": "El teu històric, sencer"
+    },
+    "tandas": [
+      {
+        "id": "hist-entero",
+        "t": {
+          "es": "📚 El histórico entero, sin recortes",
+          "en": "📚 The full history, no cuts",
+          "ca": "📚 L'històric sencer, sense retalls"
+        },
+        "items": {
+          "es": [
+            "Ve a Gastos → «Más…» y mira meses viejos, de los de antes del import: tienen que estar TODOS sus movimientos, no solo unos pocos.",
+            "Sincroniza y vuelve a mirar ese mismo mes viejo: no puede haber desaparecido nada. Esto es lo importante de esta tanda.",
+            "Comprueba que el total de un mes cerrado sigue dando lo mismo antes y después de sincronizar.",
+            "Si te sale un aviso de que el histórico no cupo entero, tiene que decirte que NO se ha borrado nada. Avísame si lo ves.",
+            "Con el móvil sin cobertura, dale a sincronizar: no puede desaparecer ningún gasto de la lista."
+          ],
+          "en": [
+            "Go to Expenses → «More…» and look at old months, from before the import: ALL their transactions must be there, not just a few.",
+            "Sync and look at that same old month again: nothing may have disappeared. This is the point of this batch.",
+            "Check that a closed month's total is the same before and after syncing.",
+            "If you get a notice saying the history did not fit, it must tell you that NOTHING was deleted. Let me know if you see it.",
+            "With no signal on the phone, hit sync: no expense may vanish from the list."
+          ],
+          "ca": [
+            "Ves a Despeses → «Més…» i mira mesos vells, d'abans de la importació: hi han de ser TOTS els seus moviments, no només uns quants.",
+            "Sincronitza i torna a mirar aquest mateix mes vell: no pot haver desaparegut res. Això és l'important d'aquesta tanda.",
+            "Comprova que el total d'un mes tancat continua donant el mateix abans i després de sincronitzar.",
+            "Si et surt un avís que l'històric no hi ha cabut sencer, t'ha de dir que NO s'ha esborrat res. Avisa'm si el veus.",
+            "Amb el mòbil sense cobertura, dona-li a sincronitzar: no pot desaparèixer cap despesa de la llista."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "La app se trae tu histórico ENTERO de la nube, sin quedarse en los más recientes, y una sincronización a medias ya no puede hacer desaparecer movimientos."
+      ],
+      "en": [
+        "The app now pulls your ENTIRE history from the cloud instead of just the most recent, and a partial sync can no longer make transactions disappear."
+      ],
+      "ca": [
+        "L'app es porta el teu històric SENCER del núvol, sense quedar-se als més recents, i una sincronització a mitges ja no pot fer desaparèixer moviments."
+      ]
+    }
+  },
+  {
     "v": "4.19.35",
     "d": "10 sep 2026",
     "t": {
