@@ -167,6 +167,19 @@
   .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
   .serif{font-family:'Fraunces',Georgia,serif;}
   button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+  /* MANTENER PULSADO NO SELECCIONA TEXTO (rechazo suyo del 10/9, `4.19.20/pulido-cierre`):
+     «al mantener pulsado en un gasto, se subraya y la app se vuelve loca, no se puede quitar el
+     que está marcado». Lo que se le queda «marcado» es la SELECCIÓN DE TEXTO nativa de Android:
+     el WebView la ofrece por defecto en cualquier texto, y una fila de gasto es un `<button>` que
+     además lleva arrastrar-para-ordenar y deslizar. Con las asas de selección puestas, los tres
+     gestos se pelean por el mismo dedo y no hay forma de soltarlo.
+     Un botón no es texto que nadie quiera copiar, así que la regla va aquí y no fila por fila:
+     así cubre también la lista de recibos, las tarjetas y lo que venga después. Las notas, los
+     importes editables y los `input` NO son botones y conservan su selección.
+     ⚠ Esto NO se puede reproducir en Chromium de escritorio: la selección por pulsación larga es
+     de la capa nativa. Lo que sí se comprueba en los e2e es la condición que la permite
+     (`user-select` de la fila), y el veredicto de verdad es el suyo en el móvil. */
+  button,.v4-mov,.v4-charge{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
   input,select{font-family:inherit;}
   ::-webkit-scrollbar{width:0;height:0;}
 

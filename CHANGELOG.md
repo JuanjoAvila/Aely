@@ -2,6 +2,16 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.25] — 2026-09-10
+### Mantener pulsado ya no deja nada «marcado»
+
+Rechazo suyo del 10/9 sobre `4.19.20/pulido-cierre`: «al mantener pulsado en un gasto, se subraya y la app se vuelve loca, no se puede quitar el que está "marcado"».
+
+- Lo que se le quedaba marcado es la **selección de texto nativa de Android**. Una fila de gasto es un `<button>` que además lleva arrastrar-para-ordenar y deslizar: con las asas de selección puestas, los tres gestos se pelean por el mismo dedo y no hay forma de soltarlo.
+- Regla en `button,.v4-mov,.v4-charge`: `user-select:none` + `-webkit-touch-callout:none`. Va sobre el botón y no fila por fila, así cubre también recibos, tarjetas y lo que venga. Los `input` y las notas **no** son botones y conservan su selección — hay un test que se pone rojo si alguien sube la regla a `body` o a `*`.
+- ⚠ **Límite dicho a la cara**: la selección por pulsación larga la hace la capa nativa y Chromium de escritorio **no la dispara**. Comprobado: con el fallo puesto, un touch de 900 ms por CDP deja `getSelection()` vacío igual. Así que este arreglo está hecho **por causa, no por reproducción**, y lo que se vigila en los e2e es la condición que lo permite (`user-select` de la fila). El veredicto de verdad es el suyo en el móvil.
+- `e2e/pulsacion-larga.spec.mjs`, 3 casos.
+
 ## [4.19.22] — 2026-09-09
 ### B2/B4/B5 del pulido
 
