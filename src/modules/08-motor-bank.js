@@ -866,6 +866,121 @@ function histCandExisting(cands, expenses){
   return out;
 }
 
+/* SONDA HIST-DUP (c) 10/9 — SOLO MEDIDA. No cambia clasificación ni identidad.
+   BLOQUEADOR Codex 10/9: NO reclasificar un out distinto (p. ej. sin `card`) — mediría un
+   fallo inventado por la sonda. Entrada = candidatos + classRows YA calculados en Buscar.
+   Contadores de descarte = los del flatten real (`histFlattenHistoryLinks`).
+   `coincideDayAmt` = coincidencia día+|importe| de diagnóstico, NO identidad.
+   `count` de bank-sync = all.length del Edge, no total garantizado del banco.
+   Truncado: solo flags explícitos del servidor; minDate>dateFrom se reporta aparte
+   (heurística de la UI; no prueba truncado por sí sola). */
+
+/* Mismo pipeline que BankHistoryImport.search() al aplanar links → candidatos. */
+function histFlattenHistoryLinks(res, expenses, allow, opts){
+  opts=opts||{};
+  allow=allow||{};
+  const merchantIn=opts.merchantIn!=null ? opts.merchantIn : "Ingreso";
+  const merchantOut=opts.merchantOut!=null ? opts.merchantOut : "Compra";
+  const seen={}; (expenses||[]).forEach(function(e){ if(e.extId) seen[e.extId]=1; });
+  let bankReported=0, bankPayload=0, skippedAllow=0, skippedBad=0, skippedExt=0, skippedUniq=0, acctAtCap=0;
+  const out=[], uniq={};
+  const kOf=function(dt,am,mc){ return String(dt).slice(0,10)+"|"+am+"|"+(mc||""); };
+  ((res&&res.links)||[]).forEach(function(lk){
+    const ent=entFromAspsp(lk&&lk.aspsp);
+    const accts=(lk&&lk.accounts)||[];
+    // Siempre contamos lo que Edge declara (count=all.length en el repo; no es total del banco).
+    accts.forEach(function(ac){
+      const txs=(ac&&ac.transactions)||[];
+      const n=(typeof ac.count==="number") ? ac.count : txs.length;
+      bankReported+=n;
+      bankPayload+=txs.length;
+      if(n>=2000) acctAtCap++;
+    });
+    // Fuera de allow: mismo silencio que search() — no entran a candidatos.
+    if(ent && Object.keys(allow).length && !allow[ent]){
+      accts.forEach(function(ac){ skippedAllow+=((ac&&ac.transactions)||[]).length; });
+      return;
+    }
+    const entKey=ent || ("aspsp:"+String((lk&&lk.aspsp)||"desconocido").toLowerCase().replace(/\s+/g,"_"));
+    const entLabel=ent ? (typeof entOf==="function" ? entOf(ent).label : ent) : (String((lk&&lk.aspsp)||"").trim()||null);
+    accts.forEach(function(ac){
+      ((ac&&ac.transactions)||[]).forEach(function(tx){
+        const dt=String(tx.date||"").slice(0,10), am=Number(tx.amount)||0;
+        if(!dt || !am){ skippedBad++; return; }
+        const isIn=am<0, abs=Math.abs(am);
+        if(tx.ext_id && seen[tx.ext_id]){ skippedExt++; return; }
+        const k=(tx.ext_id||"")+"|"+(isIn?"in":"out")+"|"+kOf(dt,abs,tx.merchant);
+        if(uniq[k]){ skippedUniq++; return; }
+        uniq[k]=1;
+        out.push({
+          id:tx.ext_id||null, date:dt, amount:abs,
+          merchant:tx.merchant||(isIn?merchantIn:merchantOut),
+          note:tx.note||"", card:!!tx.card, ent:entKey, entLabel:entLabel,
+          kind:isIn?"in":"out"
+        });
+      });
+    });
+  });
+  out.sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
+  return {
+    out:out,
+    stats:{
+      bankReported:bankReported, bankPayload:bankPayload,
+      skippedAllow:skippedAllow, skippedBad:skippedBad, skippedExt:skippedExt, skippedUniq:skippedUniq,
+      acctAtCap:acctAtCap
+    }
+  };
+}
+
+/* Contadores sobre el flatten + classRows REALES (no volver a clasificar otro conjunto). */
+function histDupProbe(opts){
+  opts=opts||{};
+  const out=opts.out||[];
+  const classRows=opts.classRows||[];
+  const expenses=opts.expenses||[];
+  const stats=opts.stats||{};
+  const dateFrom=opts.dateFrom||null;
+  const res=opts.res||null;
+  const byDayAmt={};
+  expenses.forEach(function(e){
+    const k=String(e.date||"").slice(0,10)+"|"+Math.round(Math.abs(Number(e.amount)||0)*100);
+    byDayAmt[k]=(byDayAmt[k]||0)+1;
+  });
+  let nuevos=0, dups=0, coincideDayAmt=0;
+  classRows.forEach(function(row,i){
+    if(!row) return;
+    if(row.status==="dup"){ dups++; return; }
+    nuevos++;
+    const x=out[i]; if(!x) return;
+    const k=String(x.date).slice(0,10)+"|"+Math.round(Math.abs(x.amount)*100);
+    if(byDayAmt[k]){ coincideDayAmt++; byDayAmt[k]--; }
+  });
+  let minDate=null;
+  out.forEach(function(x){ if(!minDate||x.date<minDate) minDate=x.date; });
+  const truncExplicit=!!(res&&(res.truncated||res.truncatedAt));
+  // Heurística de la UI (agujero F): no equivale a truncado del servidor.
+  const uiMinAfterFrom=!!(minDate && dateFrom && minDate>dateFrom);
+  return {
+    bankReported:stats.bankReported||0,
+    bankPayload:stats.bankPayload||0,
+    llegan:out.length,
+    nuevos:nuevos,
+    dups:dups,
+    coincideDayAmt:coincideDayAmt,
+    skippedAllow:stats.skippedAllow||0,
+    skippedBad:stats.skippedBad||0,
+    skippedExt:stats.skippedExt||0,
+    skippedUniq:stats.skippedUniq||0,
+    acctAtCap:stats.acctAtCap||0,
+    truncExplicit:truncExplicit,
+    uiMinAfterFrom:uiMinAfterFrom,
+    minDate:minDate,
+    dateFrom:dateFrom,
+    expensesN:expenses.length,
+    pullCappedLikely:expenses.length>=2000
+  };
+}
+
 /* IMPORT HISTÓRICO — clasificar / construir / deshacer (tanda motor, 2026-09-08).
    Puros: no escriben nube ni mutan state. UI orquesta en tandas siguientes. */
 function histMatchesModeled(state, cand){

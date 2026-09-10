@@ -446,4 +446,100 @@ t("M: confirmación de fijos avisa que resta todos los meses hacia atrás", () =
   assert.ok(/bp_hist_confirm_fijos_sub:"Es restaran tots els mesos, també cap enrere\./.test(i18nSrc));
 });
 
+/* Sonda (c) 10/9 — contadores sobre flatten+classRows reales; no cambia clasificación. */
+function probeFrom(res, state, allow){
+  const flat = ctx.histFlattenHistoryLinks(res, state.expenses, allow, {});
+  const classified = ctx.histClassifyCandidates(flat.out, state);
+  return ctx.histDupProbe({
+    out: flat.out,
+    classRows: classified.rows || [],
+    expenses: state.expenses || [],
+    stats: flat.stats,
+    res: res,
+    dateFrom: res.dateFrom || null,
+  });
+}
+
+t("sonda: banco→llegan→nuevos→coincideDayAmt (día+€, no identidad)", () => {
+  const res = {
+    dateFrom: "2026-06-01",
+    links: [{
+      aspsp: "Banco de Sabadell",
+      accounts: [{
+        uid: "a1",
+        count: 3,
+        transactions: [
+          { date: "2026-09-01", amount: 10, merchant: "Cafe", ext_id: "x1" },
+          { date: "2026-09-02", amount: 20, merchant: "Movimiento", ext_id: null },
+          { date: "2026-09-03", amount: 30, merchant: "Nuevo", ext_id: null },
+        ],
+      }],
+    }],
+  };
+  const state = {
+    expenses: [
+      { id: "e1", date: "2026-09-01T12:00:00.000Z", amount: 10, merchant: "Cafe", extId: "x1" },
+      // mismo día+importe que «Movimiento», pero comercio distinto → clasificador NEW; sonda coincideDayAmt++
+      { id: "e2", date: "2026-09-02T12:00:00.000Z", amount: 20, merchant: "Super", obName: "Otro" },
+    ],
+    accounts: [], fixed: [], debts: [], oneoffs: [],
+  };
+  const p = probeFrom(res, state, { sabadell: 1 });
+  assert.equal(p.bankReported, 3);
+  assert.equal(p.bankPayload, 3);
+  assert.equal(p.skippedExt, 1, "ext_id x1 ya en state");
+  assert.equal(p.llegan, 2, "tras filtro ext_id");
+  assert.equal(p.nuevos, 2);
+  assert.equal(p.dups, 0);
+  assert.equal(p.coincideDayAmt, 1, "día+importe del 02 casa con e2 (coincidencia, no identidad)");
+  assert.equal(p.acctAtCap, 0);
+  assert.equal(p.pullCappedLikely, false);
+  assert.equal(p.truncExplicit, false);
+  assert.equal(p.uiMinAfterFrom, true, "minDate>dateFrom: heurística UI, no truncado real");
+});
+
+t("sonda: cuenta en tope 2000 marca acctAtCap (sospecha Edge)", () => {
+  const txs = [];
+  for (let i = 0; i < 5; i++) txs.push({ date: "2026-08-01", amount: 1 + i * 0.01, merchant: "T" + i });
+  const res = {
+    dateFrom: "2026-06-01",
+    links: [{ aspsp: "Revolut", accounts: [{ uid: "r1", count: 2000, transactions: txs }] }],
+  };
+  const p = probeFrom(res, { expenses: [], accounts: [] }, { revolut: 1 });
+  assert.equal(p.bankReported, 2000);
+  assert.equal(p.bankPayload, 5, "payload corto vs count → servidor/tope");
+  assert.equal(p.acctAtCap, 1);
+  assert.equal(p.llegan, 5);
+});
+
+/* BLOQUEADOR Codex 10/9: card:true + fijo → UI NEW; sonda vieja (sin card) mentía DUP. */
+t("sonda=UI: tarjeta que casa con fijo sigue NEW (no reclasificar sin card)", () => {
+  const res = {
+    dateFrom: "2026-09-01",
+    links: [{
+      aspsp: "Revolut",
+      accounts: [{
+        uid: "r1", count: 1,
+        transactions: [{ date: "2026-09-02", amount: 30, merchant: "Seguro coche", card: true }],
+      }],
+    }],
+  };
+  const state = {
+    expenses: [], accounts: [], debts: [], oneoffs: [],
+    fixed: [{ id: "f", name: "Seguro coche", amount: 30, account: "revolut", freq: "mes" }],
+  };
+  const flat = ctx.histFlattenHistoryLinks(res, state.expenses, { revolut: 1 }, {});
+  assert.equal(flat.out.length, 1);
+  assert.equal(flat.out[0].card, true);
+  const classified = ctx.histClassifyCandidates(flat.out, state);
+  assert.equal(classified.rows[0].status, "new", "card:true no casa con modeled");
+  const p = ctx.histDupProbe({
+    out: flat.out, classRows: classified.rows, expenses: [], stats: flat.stats, res, dateFrom: "2026-09-01",
+  });
+  assert.equal(p.nuevos, 1);
+  assert.equal(p.dups, 0, "sonda debe cuadrar con UI, no inventar dup");
+  assert.equal(p.uiMinAfterFrom, true);
+  assert.equal(p.truncExplicit, false, "sin flag de servidor no es truncado");
+});
+
 console.log("\nhist-import-dup: OK");

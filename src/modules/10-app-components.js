@@ -290,33 +290,13 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
     setRenderCap(HIST_RENDER_CAP); setTruncWarn(false); setSignSuspect({}); setClassRows([]);
     const d=new Date(); d.setMonth(d.getMonth()-months); const dateFrom=d.toISOString().slice(0,10);
     cloud.bankSyncHistory(dateFrom).then(function(res){
-      const links=(res&&res.links)||[];
-      // Dedup CIERTO por ext_id: el mismo apunte que el sync diario ya trajo solo. No hay
-      // ambigüedad —es literalmente el mismo movimiento del banco— así que se descarta aquí, en
-      // silencio: enseñarlo solo ensuciaría la lista con lo que ya entró cada día sin que hiciera falta.
-      const seen={}; (state.expenses||[]).forEach(function(e){ if(e.extId) seen[e.extId]=1; });
-      const out=[], uniq={};
-      links.forEach(function(lk){
-        const ent=entFromAspsp(lk&&lk.aspsp);
-        // Fuera del catálogo ENT: no silenciar (agujero E) — clave sintética para filtrar/ver.
-        if(ent && !allow[ent]) return;
-        const entKey=ent || ("aspsp:"+String((lk&&lk.aspsp)||"desconocido").toLowerCase().replace(/\s+/g,"_"));
-        // Label humano aparte: entKey sintético no se pinta nunca (review Claude 2026-09-08).
-        const entLabel=ent ? entOf(ent).label : (String((lk&&lk.aspsp)||"").trim()||null);
-        (lk.accounts||[]).forEach(function(ac){
-          (ac.transactions||[]).forEach(function(tx){
-            const dt=String(tx.date||"").slice(0,10), am=Number(tx.amount)||0;
-            if(!dt || !am) return;
-            const isIn=am<0;
-            const abs=Math.abs(am);
-            if(tx.ext_id && seen[tx.ext_id]) return;
-            const k=(tx.ext_id||"")+"|"+(isIn?"in":"out")+"|"+kOf(dt,abs,tx.merchant); if(uniq[k]) return; uniq[k]=1;
-            out.push({ id:tx.ext_id||null, date:dt, amount:abs, merchant:tx.merchant||(isIn?t("cat_ingreso"):"Compra"), note:tx.note||"", card:!!tx.card, ent:entKey, entLabel:entLabel, kind:isIn?"in":"out" });
-          });
-        });
+      // Flatten compartido con la sonda (Codex 10/9): un solo pipeline, con card/entKey/merchant.
+      const flat=histFlattenHistoryLinks(res, state.expenses, allow, {
+        merchantIn:t("cat_ingreso"), merchantOut:"Compra"
       });
-      out.sort(function(a,b){ return b.date.localeCompare(a.date); });
+      const out=flat.out;
       // Truncado del servidor o del banco: avisamos en preview (agujero F).
+      // Nota Codex: minDate>dateFrom NO prueba truncado (puede no haber movs el día 1).
       let trunc=!!(res&&(res.truncated||res.truncatedAt));
       if(!trunc && out.length){
         let minD=out[0].date;
@@ -338,6 +318,20 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
         s0[i]=!(c&&c.status==="dup");
       });
       setSel(s0); setDest(d0);
+      // Sonda (c): contadores sobre out+classRows REALES (no reclasificar otro conjunto).
+      try{
+        const probe=histDupProbe({
+          out:out, classRows:classified.rows||[], expenses:state.expenses||[],
+          stats:flat.stats, res:res, dateFrom:dateFrom
+        });
+        if(typeof window!=="undefined") window.__histDupProbe=probe;
+        showToast(tf("bp_hist_probe",{
+          bank:probe.bankReported,
+          llegan:probe.llegan,
+          nuevos:probe.nuevos,
+          ya:probe.coincideDayAmt
+        }));
+      }catch(_e){ /* sonda no tumba el import */ }
     }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); setCands([]); }).finally(function(){ setLoading(false); });
   };
   const toggle=function(i){ setSel(function(p){ const n=Object.assign({},p); n[i]=!n[i]; return n; }); };
