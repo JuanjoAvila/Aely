@@ -596,11 +596,21 @@ function App(){
       try{ nat.showNotification({title:t("bk_tr_notif_title"), body:t("bk_tr_notif_body"), gotoTarget:"tr|reconnect", tag:"tr"}).catch(function(){}); }catch(e){}
     }
   };
-  const signalTrAlive=function(){
+  /* «Sale conectado pero no te avisa ni nada que se ha conectado bien» — su rechazo de
+     `4.19.0/tr-reactivo`, y el 10/9 dijo qué botón: **«sincronizar bancos el boton»**.
+     El toast solo salía con `markTrConnected({ack:true})`, y eso pasaba en dos sitios: tras
+     verificar el 2FA y con el «Sincronizar» de la tarjeta de TR. Sincronizar bancos dejaba TR
+     conectado y se quedaba mudo, así que él no sabía si había funcionado.
+     Ahora avisa, pero SOLO cuando hay algo que contar: lo pidió él (`manual`) Y TR estaba
+     marcado como caído. Si ya estaba bien, sincronizar no tiene por qué felicitarse — un toast
+     en cada sync es el ruido que hizo que se rechazaran los toasts del poll. */
+  const signalTrAlive=function(opts){
+    var revivido=false;
+    try{ revivido=localStorage.getItem("_trDeadNotif")==="1"; }catch(e){}
     try{ localStorage.removeItem("_trDeadNotif"); }catch(e){}
-    // Sin ack: es consulta de status / sync automático. El toast solo en markTrConnected({ack:true}).
-    if(typeof markTrConnected==="function") markTrConnected();
-    else try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:true}})); }catch(e){}
+    const ack=!!(opts&&opts.manual&&revivido);
+    if(typeof markTrConnected==="function") markTrConnected(ack?{ack:true}:undefined);
+    else try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:true, ack:ack}})); }catch(e){}
   };
   const runBrokerSync=function(opts){
     opts=opts||{};
@@ -619,7 +629,7 @@ function App(){
           if(hadPhone){ expiredB.push("Trade Republic"); signalTrDead(); }
           return;
         }
-        signalTrAlive();
+        signalTrAlive({manual:opts.manual});
         if(!opts.manual || !bridge.sync) return;   // sync TR solo a demanda
         return Promise.resolve(bridge.sync()).then(function(res){
           if(res&&res.authExpired&&!res.softFail&&!res.wafBlocked){ expiredB.push("Trade Republic"); signalTrDead(); return; }
@@ -3034,7 +3044,11 @@ function App(){
         React.createElement("button",{className:"back","aria-label":t("v4_back"),onClick:function(){ setDrawerOpen(false); }},"‹"),
         React.createElement("h1",null, t("settings"))
       ),
-      drawerMounted && React.createElement(SettingsPanel,{state:state,set:set,onClose:function(){ setDrawerOpen(false); },showToast:showToast,uid:uid,onBankSync:function(){ return runBankSync({manual:true}); },onTour:openTour,totals:totals,fetchPrices:fetchPrices,refreshFx:refreshFx,goBanks:banksGoto,goBanksFocus:banksFocus,
+      /* «Sincronizar bancos» de Ajustes ahora sincroniza TAMBIÉN Trade Republic, como ya hacía el
+         de Cartera. Antes solo lanzaba `runBankSync` (Open Banking), así que el botón que él usa
+         para arreglar TR ni siquiera lo tocaba: para él TR es un banco más —lo tiene en el widget—
+         y esperar que adivine que va por otro camino es cosa nuestra, no suya. */
+      drawerMounted && React.createElement(SettingsPanel,{state:state,set:set,onClose:function(){ setDrawerOpen(false); },showToast:showToast,uid:uid,onBankSync:function(){ return Promise.all([runBankSync({manual:true}), runBrokerSync({manual:true})]); },onTour:openTour,totals:totals,fetchPrices:fetchPrices,refreshFx:refreshFx,goBanks:banksGoto,goBanksFocus:banksFocus,
         goGastos:function(){ setDrawerOpen(false); setGastosForceAll(Date.now()); const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i); }})
     ),
     React.createElement("div",{className:"profile-dim-layer"+(profileOpen?" on":""),ref:dimLayerRef,style:profileOpen?{opacity:"1"}:undefined,"aria-hidden":"true"}),

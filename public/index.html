@@ -244,6 +244,16 @@
   .askback.ask-compact .ts-title{font-size:17px;font-weight:700;}
   .askback.ask-compact .tabsheet{padding:16px 16px calc(14px + var(--safe-bottom));}
   .ask-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:2px;}
+  /* Opciones del diálogo (askChoice): una debajo de otra, y cada una con su consecuencia escrita.
+     Lo que hay que leer aquí no es la etiqueta, es qué pasa si la eliges. Alto de sobra para el
+     dedo (48 px de mínimo) porque estas decisiones se toman con una mano y andando. */
+  .ask-opts{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+  .ask-opt{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;min-height:48px;
+    padding:11px 14px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);
+    color:var(--text);cursor:pointer;font-family:inherit;}
+  .ask-opt:active{background:var(--sur2);}
+  .ask-opt-t{font-size:14.5px;font-weight:700;}
+  .ask-opt-s{font-size:12px;color:var(--muted);line-height:1.45;}
   .ask-btns{display:flex;gap:8px;margin-top:14px;}
   .ask-btns .btn{flex:1;margin:0;}
   /* Roles de cuenta (Patrimonio → Editar) */
@@ -3638,7 +3648,7 @@ const LANG = {
     ap_bank:"Banco", ap_bank_none:"Sin banco", ap_date:"Fecha",
     cal_today:"Hoy", cal_prev:"Mes anterior", cal_next:"Mes siguiente",
     bk_issue:"⚠ {bank} necesita tu permiso otra vez", bk_issue_sub:"El permiso de lectura caducó (obligatorio cada ~3 meses): el saldo puede estar desfasado. Un toque y listo.",
-    bk_issue_cta:"🔓 Reconectar {bank}", bk_tr_dead:"⚠ Trade Republic está desconectado",
+    bk_issue_cta:"🔓 Reconectar {bank}", bk_tr_dead:"⚠ Trade Republic (inversiones): sesión caducada",
     // Aviso al sincronizar con algún banco caído (petición 2026-07-24): sale como notificación de
     // verdad y al tocarla lleva a Cartera → Mis bancos, que era lo que no se encontraba.
     bk_notif_title:"Un banco necesita que lo reconectes",
@@ -3650,6 +3660,10 @@ const LANG = {
     bk_issue_noacct:"⚠ {bank} está conectado a medias", bk_issue_noacct_sub:"El enlace existe pero el banco no da ninguna cuenta. Vuelve a conectarlo y elige las cuentas que quieres ver.",
     bk_tr_sub:"Su sesión caducó: las posiciones y el efectivo no se actualizan. Se reconecta aquí, en la app (PIN + código SMS) — no en la app de Trade Republic.",
     bk_tr_cta:"🔓 Reconectar Trade Republic",
+    bk_tr_ob:"⚠ Trade Republic (banco): permiso caducado",
+    bk_tr_ob_noacct:"⚠ Trade Republic (banco): no devuelve ninguna cuenta",
+    bk_tr_ob_sub:"Esto es la conexión de BANCO, la que trae tus compras con tarjeta. Se renueva entrando en Trade Republic desde aquí. Tus posiciones y tu efectivo van por otro camino y no se ven afectados.",
+    bk_tr_ob_cta:"🔓 Renovar el permiso del banco",
     v4_acc_locked:"El saldo de las cuentas conectadas lo trae el banco solo; el nombre y el rol sí puedes cambiarlos.",
     v4_sel_partial:"Seleccionado", v4_edit_goods:"Editar bienes",
     v4_gestionar_h:"Edita fijos, cuotas, flujos y conciliación del banco — sin llenar la vista diaria.",
@@ -3804,7 +3818,7 @@ const LANG = {
     ap_bank:"Bank", ap_bank_none:"No bank", ap_date:"Date",
     cal_today:"Today", cal_prev:"Previous month", cal_next:"Next month",
     bk_issue:"⚠ {bank} needs your permission again", bk_issue_sub:"The read consent expired (required every ~3 months): the balance may be stale. One tap fixes it.",
-    bk_issue_cta:"🔓 Reconnect {bank}", bk_tr_dead:"⚠ Trade Republic is disconnected",
+    bk_issue_cta:"🔓 Reconnect {bank}", bk_tr_dead:"⚠ Trade Republic (investments): session expired",
     bk_notif_title:"A bank needs reconnecting",
     bk_notif_one:"{bank} is asking for permission again · tap to see the warning",
     bk_notif_noacct:"{bank} is linked but has no accounts · tap to see the warning",
@@ -3814,6 +3828,10 @@ const LANG = {
     bk_issue_noacct:"⚠ {bank} is only half connected", bk_issue_noacct_sub:"The link exists but the bank returns no account. Connect it again and pick the accounts you want to see.",
     bk_tr_sub:"Its session expired: positions and cash aren't updating. Reconnect HERE in the app (PIN + SMS code) — not in the Trade Republic app.",
     bk_tr_cta:"🔓 Reconnect Trade Republic",
+    bk_tr_ob:"⚠ Trade Republic (bank): permission expired",
+    bk_tr_ob_noacct:"⚠ Trade Republic (bank): returns no account",
+    bk_tr_ob_sub:"This is the BANK connection, the one that brings your card purchases. You renew it by signing in to Trade Republic from here. Your positions and cash come through a different route and are not affected.",
+    bk_tr_ob_cta:"🔓 Renew the bank permission",
     v4_acc_locked:"Connected accounts get their balance from the bank; you can still change the name and role.",
     v4_sel_partial:"Selected", v4_edit_goods:"Edit assets",
     v4_gestionar_h:"Edit fixed bills, installments, cash flows and bank reconciliation — without cluttering the daily view.",
@@ -3957,7 +3975,7 @@ const LANG = {
     ap_bank:"Banc", ap_bank_none:"Sense banc", ap_date:"Data",
     cal_today:"Avui", cal_prev:"Mes anterior", cal_next:"Mes següent",
     bk_issue:"⚠ {bank} necessita el teu permís altra vegada", bk_issue_sub:"El permís de lectura ha caducat (obligatori cada ~3 mesos): el saldo pot estar desfasat. Un toc i llest.",
-    bk_issue_cta:"🔓 Reconnecta {bank}", bk_tr_dead:"⚠ Trade Republic està desconnectat",
+    bk_issue_cta:"🔓 Reconnecta {bank}", bk_tr_dead:"⚠ Trade Republic (inversions): sessió caducada",
     bk_notif_title:"Un banc necessita que el reconnectis",
     bk_notif_one:"{bank} demana permís altra vegada · toca per veure l'avís",
     bk_notif_noacct:"{bank} està enllaçat però sense comptes · toca per veure l'avís",
@@ -3967,6 +3985,10 @@ const LANG = {
     bk_issue_noacct:"⚠ {bank} està connectat a mitges", bk_issue_noacct_sub:"L'enllaç existeix però el banc no dóna cap compte. Torna a connectar-lo i tria els comptes que vulguis veure.",
     bk_tr_sub:"La sessió ha caducat: posicions i efectiu no s'actualitzen. Es reconnecta AQUÍ, a l'app (PIN + codi SMS) — no a l'app de Trade Republic.",
     bk_tr_cta:"🔓 Reconnecta Trade Republic",
+    bk_tr_ob:"⚠ Trade Republic (banc): permís caducat",
+    bk_tr_ob_noacct:"⚠ Trade Republic (banc): no retorna cap compte",
+    bk_tr_ob_sub:"Això és la connexió de BANC, la que porta les teves compres amb targeta. Es renova entrant a Trade Republic des d'aquí. Les teves posicions i el teu efectiu van per un altre camí i no queden afectats.",
+    bk_tr_ob_cta:"🔓 Renovar el permís del banc",
     v4_acc_locked:"El saldo dels comptes connectats el porta el banc sol; el nom i el rol sí que els pots canviar.",
     v4_sel_partial:"Seleccionat", v4_edit_goods:"Edita els béns",
     v4_gestionar_h:"Edita fixes, quotes, fluxos i conciliació del banc — sense omplir la vista diària.",
@@ -5634,6 +5656,14 @@ Object.assign(LANG.es,{
   bp_retry_link:"Volver a intentar", bp_naccts:"{n} cuentas",
   bp_remove:"Quitar", bp_remove_q:"¿Quitar {bank}?", bp_remove_yes:"Sí, quitar", bp_remove_no:"Cancelar",
   bp_removing:"Quitando…", bp_removed:"{bank} quitado · puedes reconectarlo cuando quieras",
+  bp_rm_title:"¿Quitar {bank}?",
+  bp_rm_sub:"Sus movimientos NO se borran: se quedan en tu historial pase lo que pase. Lo único que eliges es si siguen contando en el gasto del mes.",
+  bp_rm_keep:"Que sigan contando",
+  bp_rm_keep_sub:"Solo se corta la conexión. Tus cifras se quedan exactamente como están.",
+  bp_rm_sub_diario:"Es tu banco del día a día, así que sus compras cuentan siempre: eso no se puede cambiar quitando el banco. Sus movimientos NO se borran.",
+  bp_rm_keep_diario_sub:"Se corta la conexión y nada más. Si quieres que dejen de contar, primero cambia cuál es tu cuenta del día a día en Patrimonio.",
+  bp_rm_stop:"Que dejen de contar",
+  bp_rm_stop_sub:"Sus compras salen del gasto del mes. Ojo: también cambia lo que ves en los meses ya pasados, porque la cifra se recalcula.",
   bp_foot:"Trade Republic no está en Open Banking: su gasto entra por notificaciones.",
   bp_brokers:"Brókers",
   bp_which:"¿Qué brókers usas? Toca para añadir o quitar — solo verás los que marques.",
@@ -5684,6 +5714,14 @@ Object.assign(LANG.en,{
   bp_retry_link:"Try again", bp_naccts:"{n} accounts",
   bp_remove:"Remove", bp_remove_q:"Remove {bank}?", bp_remove_yes:"Yes, remove", bp_remove_no:"Cancel",
   bp_removing:"Removing…", bp_removed:"{bank} removed · you can reconnect it whenever you want",
+  bp_rm_title:"Remove {bank}?",
+  bp_rm_sub:"Its transactions are NOT deleted: they stay in your history no matter what. All you choose is whether they keep counting towards this month's spending.",
+  bp_rm_keep:"Keep them counting",
+  bp_rm_keep_sub:"Only the connection is cut. Your figures stay exactly as they are.",
+  bp_rm_sub_diario:"This is your everyday bank, so its purchases always count: removing the bank cannot change that. Its transactions are NOT deleted.",
+  bp_rm_keep_diario_sub:"The connection is cut and nothing else. If you want them to stop counting, first change which account is your everyday one, in Net worth.",
+  bp_rm_stop:"Stop them counting",
+  bp_rm_stop_sub:"Its purchases leave this month's spending. Careful: past months change too, because the figure is always recalculated.",
   bp_foot:"Trade Republic isn't in Open Banking: its spending arrives via notifications.",
   bp_brokers:"Brokers",
   bp_which:"Which brokers do you use? Tap to add or remove — you'll only see the ones you pick.",
@@ -5734,6 +5772,14 @@ Object.assign(LANG.ca,{
   bp_retry_link:"Torna-ho a provar", bp_naccts:"{n} comptes",
   bp_remove:"Treu", bp_remove_q:"Treure {bank}?", bp_remove_yes:"Sí, treu", bp_remove_no:"Cancel·la",
   bp_removing:"Traient…", bp_removed:"{bank} tret · pots reconnectar-lo quan vulguis",
+  bp_rm_title:"Vols treure {bank}?",
+  bp_rm_sub:"Els seus moviments NO s'esborren: es queden al teu historial passi el que passi. L'únic que tries és si segueixen comptant en la despesa del mes.",
+  bp_rm_keep:"Que segueixin comptant",
+  bp_rm_keep_sub:"Només es talla la connexió. Les teves xifres es queden exactament com estan.",
+  bp_rm_sub_diario:"És el teu banc del dia a dia, així que les seves compres compten sempre: això no es pot canviar traient el banc. Els seus moviments NO s'esborren.",
+  bp_rm_keep_diario_sub:"Es talla la connexió i res més. Si vols que deixin de comptar, primer canvia quin és el teu compte del dia a dia a Patrimoni.",
+  bp_rm_stop:"Que deixin de comptar",
+  bp_rm_stop_sub:"Les seves compres surten de la despesa del mes. Compte: també canvia el que veus als mesos ja passats, perquè la xifra es recalcula.",
   bp_foot:"Trade Republic no és a Open Banking: la seva despesa entra per notificacions.",
   bp_brokers:"Brókers",
   bp_which:"Quins bròkers fas servir? Toca per afegir o treure — només veuràs els que marquis.",
@@ -9089,6 +9135,19 @@ function askDialog(o){
 }
 function askText(o){ return askDialog(Object.assign({input:true},o)); }
 function askConfirm(o){ return askDialog(Object.assign({input:false},o)); }
+/* ELEGIR ENTRE VARIAS, no solo sí/no (2026-09-10).
+   Nace de una decisión suya: al quitar un banco, «que te pregunte» qué hacer con sus movimientos.
+   Con `askConfirm` habría que inventarse cuál de las dos cosas es «aceptar», y eso es adivinar con
+   su dinero — que es justo lo que no queremos.
+   `options`: [{v, label, sub}]. Resuelve con el `v` elegido, o `null` si cancela.
+   Sin `AskHost` montado cae a `confirm()` con la PRIMERA opción, para no perder la acción. */
+function askChoice(o){
+  const opts=(o&&o.options)||[];
+  return new Promise(function(resolve){
+    if(!askEmit){ resolve(window.confirm(o.title)? (opts[0]&&opts[0].v) : null); return; }
+    askEmit(Object.assign({},o,{input:false,options:opts,resolve:resolve}));
+  });
+}
 function AskHost(){
   const [cur,setCur]=useState(null);
   const [val,setVal]=useState("");
@@ -9100,7 +9159,9 @@ function AskHost(){
   // resolve ANTES de perder cur, y solo una vez: cerrar por el fondo y por «Cancelar» son el mismo camino
   const done=function(r){ const f=cur.resolve; setCur(null); setVal(""); f(r); };
   const ok=function(){ done(cur.input?String(val):true); };
-  const cancel=function(){ done(cur.input?null:false); };
+  // Con opciones, cancelar es `null` («no he elegido»), no `false` («he dicho que no»): con tres
+  // caminos posibles, un `false` se confundiría con haber elegido el primero.
+  const cancel=function(){ done((cur.input||(cur.options||[]).length>0)?null:false); };
   return ReactDOM.createPortal(
     React.createElement("div",{className:"askback"+(cur.compact?" ask-compact":""),onClick:cancel},
       React.createElement("div",{className:"tabsheet",onClick:function(e){ e.stopPropagation(); }},
@@ -9114,9 +9175,19 @@ function AskHost(){
         cur.input && (cur.chips||[]).length>0 && React.createElement("div",{className:"ask-chips"},
           cur.chips.map(function(c){ return React.createElement("button",{key:String(c.v),className:"chip",
             onClick:function(){ setVal(String(c.v)); }}, c.label); })),
+        /* Varias opciones, una debajo de otra y cada una con su explicación. En fila no caben:
+           lo que hay que leer aquí no es la etiqueta, es la consecuencia. */
+        (cur.options||[]).length>0 && React.createElement("div",{className:"ask-opts"},
+          cur.options.map(function(op){
+            return React.createElement("button",{key:String(op.v),type:"button",className:"ask-opt",
+              onClick:function(){ done(op.v); }},
+              React.createElement("span",{className:"ask-opt-t"}, op.label),
+              op.sub && React.createElement("span",{className:"ask-opt-s"}, op.sub));
+          })),
         React.createElement("div",{className:"ask-btns"},
           React.createElement("button",{className:"btn btn-ghost",onClick:cancel}, cur.cancel||t("fj_cancel")),
-          React.createElement("button",{className:"btn btn-primary",style:cur.danger?{background:"linear-gradient(160deg,#E2705F,#C4553F)",color:"#fff"}:null,
+          // Con opciones, el botón de aceptar sobra: elegir una YA es aceptar.
+          (cur.options||[]).length===0 && React.createElement("button",{className:"btn btn-primary",style:cur.danger?{background:"linear-gradient(160deg,#E2705F,#C4553F)",color:"#fff"}:null,
             onClick:ok}, cur.ok||t("ask_ok")))
       )
     ), document.body);
@@ -14951,13 +15022,58 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
   // Quitar banco (revoca en EB + borra la fila). Reversible: reaparece el picker para reconectar.
   // Purga al momento sus cuentas sincronizadas (obAccounts) del patrimonio: antes se quedaban
   // sumando hasta el siguiente bank-sync (feedback 2026-07-10). Las cuentas MANUALES no se tocan.
-  const remove=function(name){ setBusy(name); cloud.bankDisconnect(name).then(function(){ setConfirming(""); showToast(tf("bp_removed",{bank:bankLabel(name)}));
-    set(function(s){
-      const ob=(s.obAccounts||[]).filter(function(o){ return String(o.aspsp||"").toLowerCase()!==String(name||"").toLowerCase(); });
-      if(ob.length===(s.obAccounts||[]).length) return s;
-      return Object.assign({},s,{obAccounts:ob});
+  /* QUITAR UN BANCO PREGUNTA QUÉ HACER CON SUS MOVIMIENTOS (decisión suya, 10/9: «opción c»).
+     Su rechazo del 10/9, con sus palabras: «quité TRADE republic y se mantienen todos los gastos,
+     todos los filtros y todo igual no ha cambiado nada ni ningún movimiento». Tenía razón y el
+     motivo era este: quitar un banco purgaba `obAccounts` —los saldos— y NADA MÁS. Su `ent` se
+     quedaba en `settings.expenseBanks`, así que sus compras seguían contando para el presupuesto
+     y saliendo en los filtros. No es que no pasara nada: pasaba la mitad, y la mitad que pasaba
+     no se veía por ningún sitio.
+     Se le pregunta en vez de decidir por él porque las dos respuestas son razonables y la
+     diferencia se mide en euros suyos:
+       · «que dejen de contar» recalcula el gasto del mes —y los meses ya cerrados, porque la cifra
+         se recalcula siempre desde los gastos—, así que se le dice EN EL PROPIO BOTÓN.
+       · «que sigan contando» es lo de hoy: solo se corta la conexión.
+     Lo que NO se ofrece, ni aquí ni en ningún sitio: borrar sus movimientos. Un banco que quitas
+     no es un historial que quieras perder, y por borrados automáticos ya perdió movimientos una
+     vez ([[tr-duplicados-saga]]). */
+  const remove=function(name){
+    const ent=entFromAspsp(name);
+    /* ⚠ SI ES SU BANCO DE GASTO DIARIO, «que dejen de contar» NO SE PUEDE CUMPLIR, y ofrecerlo
+       sería mentirle. `expenseBankEnts` añade SIEMPRE el `ent` de la cuenta diaria, quitarlo de
+       `expenseBanks` o no: la cuenta diaria es su cartera, y sus compras cuentan por definición.
+       Lo cazó el e2e —yo lo había dado por hecho— así que en ese caso se ofrece solo lo que sí
+       es verdad, y se le dice dónde se cambia el banco del día a día. */
+    const esDiario=!!(state.accounts||[]).find(function(a){ return accDaily(a) && a.ent===ent; });
+    askChoice({
+      title:tf("bp_rm_title",{bank:bankLabel(name)}),
+      sub:esDiario ? t("bp_rm_sub_diario") : t("bp_rm_sub"),
+      options: esDiario
+        ? [{v:"keep", label:t("bp_rm_keep"), sub:t("bp_rm_keep_diario_sub")}]
+        : [{v:"keep", label:t("bp_rm_keep"), sub:t("bp_rm_keep_sub")},
+           {v:"stop", label:t("bp_rm_stop"), sub:t("bp_rm_stop_sub")}]
+    }).then(function(elige){
+      if(!elige) return;
+      setBusy(name);
+      cloud.bankDisconnect(name).then(function(){
+        setConfirming("");
+        showToast(tf("bp_removed",{bank:bankLabel(name)}));
+        set(function(s){
+          const ob=(s.obAccounts||[]).filter(function(o){ return String(o.aspsp||"").toLowerCase()!==String(name||"").toLowerCase(); });
+          var next=s;
+          if(ob.length!==(s.obAccounts||[]).length) next=Object.assign({},next,{obAccounts:ob});
+          /* Solo si lo ha pedido, y solo sacándolo de la lista de gasto diario: los gastos siguen
+             enteros en `expenses` con su banco, así que volver a conectarlo lo deja como estaba. */
+          if(elige==="stop" && ent){
+            const eb=(((next.settings||{}).expenseBanks)||[]).filter(function(e){ return e!==ent; });
+            next=Object.assign({},next,{settings:Object.assign({},next.settings||{},{expenseBanks:eb})});
+          }
+          return next;
+        });
+        loadLinks();
+      }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); }).finally(function(){ setBusy(""); });
     });
-    loadLinks(); }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); }).finally(function(){ setBusy(""); }); };
+  };
 
   const fmtD=function(x){ try{ return new Date(x).toLocaleDateString(); }catch(e){ return String(x); } };
   const fmtDT=function(x){ try{ return new Date(x).toLocaleString(); }catch(e){ return String(x); } };
@@ -17780,10 +17896,24 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       // «noacct» = enlazado pero el banco no devuelve ninguna cuenta: el texto de «permiso
       // caducado» ahí despistaba, porque no hay ningún permiso que renovar (2026-07-24).
       const noacct=is.kind==="noacct";
+      /* TRADE REPUBLIC ENTRA POR DOS PUERTAS, Y SE ROMPEN POR SEPARADO (petición suya, 10/9:
+         «estaría bien identificar cuándo falla por la api externa de trade republic y cuándo falla
+         por open banking, me refiero a trade republic»).
+         · Open Banking (esto): el permiso de Enable Banking. Es lo que trae sus COMPRAS con tarjeta.
+           Se arregla con el OAuth del banco.
+         · La API propia de TR (el banner de abajo): la sesión con PIN + SMS. Es lo que trae sus
+           POSICIONES y su EFECTIVO. Se arregla dentro de la app.
+         Hasta ahora los dos avisos decían «Trade Republic» y los dos decían «Reconectar Trade
+         Republic», así que no había forma de saber cuál tocar — y tocar el que no era no hacía
+         nada. Con cualquier otro banco esto no pasa: solo hay una puerta. */
+      const esTR=is.ent==="trade_republic";
       return React.createElement("div",{key:"bi_"+is.aspsp,className:"v4-card v4-bank-issue",style:{marginTop:10,padding:"14px 16px",border:"1px solid rgba(226,112,95,.45)",background:"rgba(226,112,95,.08)"}},
-        React.createElement("div",{style:{fontWeight:800,fontSize:14.5,lineHeight:1.4}}, tf(noacct?"bk_issue_noacct":"bk_issue",{bank:lbl})),
-        React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:3,lineHeight:1.45}}, t(noacct?"bk_issue_noacct_sub":"bk_issue_sub")),
-        onReconnectBank && React.createElement("button",{type:"button",className:"v4-cta",style:{marginTop:10,height:46},onClick:function(){ onReconnectBank(is.aspsp); }}, tf("bk_issue_cta",{bank:lbl}))
+        React.createElement("div",{style:{fontWeight:800,fontSize:14.5,lineHeight:1.4}},
+          esTR ? t(noacct?"bk_tr_ob_noacct":"bk_tr_ob") : tf(noacct?"bk_issue_noacct":"bk_issue",{bank:lbl})),
+        React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:3,lineHeight:1.45}},
+          esTR ? t("bk_tr_ob_sub") : t(noacct?"bk_issue_noacct_sub":"bk_issue_sub")),
+        onReconnectBank && React.createElement("button",{type:"button",className:"v4-cta",style:{marginTop:10,height:46},onClick:function(){ onReconnectBank(is.aspsp); }},
+          esTR ? t("bk_tr_ob_cta") : tf("bk_issue_cta",{bank:lbl}))
       );
     }),
     trDead && React.createElement("div",{className:"v4-card v4-tr-issue",style:{marginTop:10,padding:"14px 16px",border:"1px solid rgba(226,112,95,.45)",background:"rgba(226,112,95,.08)"}},
@@ -18718,11 +18848,21 @@ function App(){
       try{ nat.showNotification({title:t("bk_tr_notif_title"), body:t("bk_tr_notif_body"), gotoTarget:"tr|reconnect", tag:"tr"}).catch(function(){}); }catch(e){}
     }
   };
-  const signalTrAlive=function(){
+  /* «Sale conectado pero no te avisa ni nada que se ha conectado bien» — su rechazo de
+     `4.19.0/tr-reactivo`, y el 10/9 dijo qué botón: **«sincronizar bancos el boton»**.
+     El toast solo salía con `markTrConnected({ack:true})`, y eso pasaba en dos sitios: tras
+     verificar el 2FA y con el «Sincronizar» de la tarjeta de TR. Sincronizar bancos dejaba TR
+     conectado y se quedaba mudo, así que él no sabía si había funcionado.
+     Ahora avisa, pero SOLO cuando hay algo que contar: lo pidió él (`manual`) Y TR estaba
+     marcado como caído. Si ya estaba bien, sincronizar no tiene por qué felicitarse — un toast
+     en cada sync es el ruido que hizo que se rechazaran los toasts del poll. */
+  const signalTrAlive=function(opts){
+    var revivido=false;
+    try{ revivido=localStorage.getItem("_trDeadNotif")==="1"; }catch(e){}
     try{ localStorage.removeItem("_trDeadNotif"); }catch(e){}
-    // Sin ack: es consulta de status / sync automático. El toast solo en markTrConnected({ack:true}).
-    if(typeof markTrConnected==="function") markTrConnected();
-    else try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:true}})); }catch(e){}
+    const ack=!!(opts&&opts.manual&&revivido);
+    if(typeof markTrConnected==="function") markTrConnected(ack?{ack:true}:undefined);
+    else try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:true, ack:ack}})); }catch(e){}
   };
   const runBrokerSync=function(opts){
     opts=opts||{};
@@ -18741,7 +18881,7 @@ function App(){
           if(hadPhone){ expiredB.push("Trade Republic"); signalTrDead(); }
           return;
         }
-        signalTrAlive();
+        signalTrAlive({manual:opts.manual});
         if(!opts.manual || !bridge.sync) return;   // sync TR solo a demanda
         return Promise.resolve(bridge.sync()).then(function(res){
           if(res&&res.authExpired&&!res.softFail&&!res.wafBlocked){ expiredB.push("Trade Republic"); signalTrDead(); return; }
@@ -21156,7 +21296,11 @@ function App(){
         React.createElement("button",{className:"back","aria-label":t("v4_back"),onClick:function(){ setDrawerOpen(false); }},"‹"),
         React.createElement("h1",null, t("settings"))
       ),
-      drawerMounted && React.createElement(SettingsPanel,{state:state,set:set,onClose:function(){ setDrawerOpen(false); },showToast:showToast,uid:uid,onBankSync:function(){ return runBankSync({manual:true}); },onTour:openTour,totals:totals,fetchPrices:fetchPrices,refreshFx:refreshFx,goBanks:banksGoto,goBanksFocus:banksFocus,
+      /* «Sincronizar bancos» de Ajustes ahora sincroniza TAMBIÉN Trade Republic, como ya hacía el
+         de Cartera. Antes solo lanzaba `runBankSync` (Open Banking), así que el botón que él usa
+         para arreglar TR ni siquiera lo tocaba: para él TR es un banco más —lo tiene en el widget—
+         y esperar que adivine que va por otro camino es cosa nuestra, no suya. */
+      drawerMounted && React.createElement(SettingsPanel,{state:state,set:set,onClose:function(){ setDrawerOpen(false); },showToast:showToast,uid:uid,onBankSync:function(){ return Promise.all([runBankSync({manual:true}), runBrokerSync({manual:true})]); },onTour:openTour,totals:totals,fetchPrices:fetchPrices,refreshFx:refreshFx,goBanks:banksGoto,goBanksFocus:banksFocus,
         goGastos:function(){ setDrawerOpen(false); setGastosForceAll(Date.now()); const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i); }})
     ),
     React.createElement("div",{className:"profile-dim-layer"+(profileOpen?" on":""),ref:dimLayerRef,style:profileOpen?{opacity:"1"}:undefined,"aria-hidden":"true"}),

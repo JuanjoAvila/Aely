@@ -739,13 +739,58 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
   // Quitar banco (revoca en EB + borra la fila). Reversible: reaparece el picker para reconectar.
   // Purga al momento sus cuentas sincronizadas (obAccounts) del patrimonio: antes se quedaban
   // sumando hasta el siguiente bank-sync (feedback 2026-07-10). Las cuentas MANUALES no se tocan.
-  const remove=function(name){ setBusy(name); cloud.bankDisconnect(name).then(function(){ setConfirming(""); showToast(tf("bp_removed",{bank:bankLabel(name)}));
-    set(function(s){
-      const ob=(s.obAccounts||[]).filter(function(o){ return String(o.aspsp||"").toLowerCase()!==String(name||"").toLowerCase(); });
-      if(ob.length===(s.obAccounts||[]).length) return s;
-      return Object.assign({},s,{obAccounts:ob});
+  /* QUITAR UN BANCO PREGUNTA QUÉ HACER CON SUS MOVIMIENTOS (decisión suya, 10/9: «opción c»).
+     Su rechazo del 10/9, con sus palabras: «quité TRADE republic y se mantienen todos los gastos,
+     todos los filtros y todo igual no ha cambiado nada ni ningún movimiento». Tenía razón y el
+     motivo era este: quitar un banco purgaba `obAccounts` —los saldos— y NADA MÁS. Su `ent` se
+     quedaba en `settings.expenseBanks`, así que sus compras seguían contando para el presupuesto
+     y saliendo en los filtros. No es que no pasara nada: pasaba la mitad, y la mitad que pasaba
+     no se veía por ningún sitio.
+     Se le pregunta en vez de decidir por él porque las dos respuestas son razonables y la
+     diferencia se mide en euros suyos:
+       · «que dejen de contar» recalcula el gasto del mes —y los meses ya cerrados, porque la cifra
+         se recalcula siempre desde los gastos—, así que se le dice EN EL PROPIO BOTÓN.
+       · «que sigan contando» es lo de hoy: solo se corta la conexión.
+     Lo que NO se ofrece, ni aquí ni en ningún sitio: borrar sus movimientos. Un banco que quitas
+     no es un historial que quieras perder, y por borrados automáticos ya perdió movimientos una
+     vez ([[tr-duplicados-saga]]). */
+  const remove=function(name){
+    const ent=entFromAspsp(name);
+    /* ⚠ SI ES SU BANCO DE GASTO DIARIO, «que dejen de contar» NO SE PUEDE CUMPLIR, y ofrecerlo
+       sería mentirle. `expenseBankEnts` añade SIEMPRE el `ent` de la cuenta diaria, quitarlo de
+       `expenseBanks` o no: la cuenta diaria es su cartera, y sus compras cuentan por definición.
+       Lo cazó el e2e —yo lo había dado por hecho— así que en ese caso se ofrece solo lo que sí
+       es verdad, y se le dice dónde se cambia el banco del día a día. */
+    const esDiario=!!(state.accounts||[]).find(function(a){ return accDaily(a) && a.ent===ent; });
+    askChoice({
+      title:tf("bp_rm_title",{bank:bankLabel(name)}),
+      sub:esDiario ? t("bp_rm_sub_diario") : t("bp_rm_sub"),
+      options: esDiario
+        ? [{v:"keep", label:t("bp_rm_keep"), sub:t("bp_rm_keep_diario_sub")}]
+        : [{v:"keep", label:t("bp_rm_keep"), sub:t("bp_rm_keep_sub")},
+           {v:"stop", label:t("bp_rm_stop"), sub:t("bp_rm_stop_sub")}]
+    }).then(function(elige){
+      if(!elige) return;
+      setBusy(name);
+      cloud.bankDisconnect(name).then(function(){
+        setConfirming("");
+        showToast(tf("bp_removed",{bank:bankLabel(name)}));
+        set(function(s){
+          const ob=(s.obAccounts||[]).filter(function(o){ return String(o.aspsp||"").toLowerCase()!==String(name||"").toLowerCase(); });
+          var next=s;
+          if(ob.length!==(s.obAccounts||[]).length) next=Object.assign({},next,{obAccounts:ob});
+          /* Solo si lo ha pedido, y solo sacándolo de la lista de gasto diario: los gastos siguen
+             enteros en `expenses` con su banco, así que volver a conectarlo lo deja como estaba. */
+          if(elige==="stop" && ent){
+            const eb=(((next.settings||{}).expenseBanks)||[]).filter(function(e){ return e!==ent; });
+            next=Object.assign({},next,{settings:Object.assign({},next.settings||{},{expenseBanks:eb})});
+          }
+          return next;
+        });
+        loadLinks();
+      }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); }).finally(function(){ setBusy(""); });
     });
-    loadLinks(); }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); }).finally(function(){ setBusy(""); }); };
+  };
 
   const fmtD=function(x){ try{ return new Date(x).toLocaleDateString(); }catch(e){ return String(x); } };
   const fmtDT=function(x){ try{ return new Date(x).toLocaleString(); }catch(e){ return String(x); } };

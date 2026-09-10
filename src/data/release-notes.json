@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.19.28",
+    "d": "10 sep 2026",
+    "t": {
+      "es": "Bancos más claros",
+      "en": "Clearer banks",
+      "ca": "Bancs més clars"
+    },
+    "tandas": [
+      {
+        "id": "quitar-banco",
+        "t": {
+          "es": "🏦 Quitar un banco, y las dos caras de Trade Republic",
+          "en": "🏦 Removing a bank, and Trade Republic's two sides",
+          "ca": "🏦 Treure un banc, i les dues cares de Trade Republic"
+        },
+        "items": {
+          "es": [
+            "Ajustes → Mis bancos, quita un banco que NO sea el de tu día a día: ahora te pregunta qué hacer con sus movimientos, con las dos consecuencias escritas.",
+            "Elige «que dejen de contar»: sus compras salen del gasto del mes, pero los movimientos siguen TODOS en la lista. No puede desaparecer ni uno.",
+            "Quita ahora el banco de tu día a día: ahí solo te ofrece cortar la conexión, y te explica que sus compras cuentan siempre y dónde se cambia el banco del día a día.",
+            "Si Trade Republic sale caído por el lado del BANCO, el aviso lo dice y aclara que tus posiciones y tu efectivo no están afectados.",
+            "Si sale caído por el lado de INVERSIONES, el aviso lo dice también, y te manda a reconectar con PIN y SMS.",
+            "Ajustes → «Sincronizar bancos» con Trade Republic caído: ahora también lo sincroniza y, si lo levanta, te avisa de que se ha conectado bien."
+          ],
+          "en": [
+            "Settings → My banks, remove a bank that is NOT your everyday one: it now asks what to do with its transactions, with both consequences spelled out.",
+            "Pick «stop them counting»: its purchases leave the month spend, but ALL its transactions stay in the list. Not one may disappear.",
+            "Now remove your everyday bank: there it only offers to cut the connection, and explains that its purchases always count and where to change your everyday bank.",
+            "If Trade Republic is down on the BANK side, the notice says so and clarifies that your positions and cash are unaffected.",
+            "If it is down on the INVESTMENTS side, the notice says that too, and sends you to reconnect with PIN and SMS.",
+            "Settings → «Sync banks» with Trade Republic down: it now syncs it too and, if it comes back, tells you it connected fine."
+          ],
+          "ca": [
+            "Ajustos → Els meus bancs, treu un banc que NO sigui el del teu dia a dia: ara et pregunta què fer amb els seus moviments, amb les dues conseqüències escrites.",
+            "Tria «que deixin de comptar»: les seves compres surten de la despesa del mes, però els moviments segueixen TOTS a la llista. No en pot desaparèixer ni un.",
+            "Ara treu el banc del teu dia a dia: allà només t'ofereix tallar la connexió, i t'explica que les seves compres compten sempre i on es canvia el banc del dia a dia.",
+            "Si Trade Republic surt caigut pel costat del BANC, l'avís ho diu i aclareix que les teves posicions i el teu efectiu no queden afectats.",
+            "Si surt caigut pel costat d'INVERSIONS, l'avís ho diu també, i t'envia a reconnectar amb PIN i SMS.",
+            "Ajustos → «Sincronitzar bancs» amb Trade Republic caigut: ara també el sincronitza i, si el aixeca, t'avisa que s'ha connectat bé."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "Al quitar un banco, la app te pregunta si sus movimientos siguen contando. Y los avisos de Trade Republic ya dicen si falla el banco o las inversiones."
+      ],
+      "en": [
+        "When you remove a bank, the app asks whether its transactions keep counting. And Trade Republic notices now say whether the bank side or the investments side is down."
+      ],
+      "ca": [
+        "En treure un banc, l'app et pregunta si els seus moviments segueixen comptant. I els avisos de Trade Republic ja diuen si falla el banc o les inversions."
+      ]
+    }
+  },
+  {
     "v": "4.19.27",
     "d": "10 sep 2026",
     "t": {

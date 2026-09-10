@@ -2,6 +2,25 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.28] — 2026-09-10
+### Quitar un banco pregunta, y Trade Republic dice por cuál de sus dos puertas falla
+
+Dos cosas suyas del 10/9, y la primera venía de un rechazo suyo que era correcto.
+
+**Quitar un banco (su decisión: «opción c»).** Su rechazo decía «quité TRADE republic y se mantienen todos los gastos, todos los filtros y todo igual no ha cambiado nada». Era verdad: quitar un banco purgaba `obAccounts` —los saldos— y **nada más**; su `ent` seguía en `settings.expenseBanks`, así que sus compras seguían contando para el presupuesto. No es que no pasara nada: pasaba la mitad, y la mitad que pasaba no se veía.
+
+- Ahora **pregunta**, con `askChoice` (diálogo de varias opciones, pieza nueva): «que sigan contando» o «que dejen de contar». Cada opción lleva escrita su consecuencia, incluida la incómoda: dejar de contar **también cambia los meses ya pasados**, porque la cifra se recalcula siempre.
+- **Nunca se ofrece borrar sus movimientos.** Un banco que quitas no es un historial que quieras perder.
+- ⚠ **Límite que encontró el propio e2e**, no yo: si el banco es el de tu **día a día**, «que dejen de contar» no se puede cumplir — `expenseBankEnts` reañade siempre el `ent` de la cuenta diaria, porque esa cuenta es tu cartera. En ese caso la app ofrece solo lo que sí es verdad y te dice dónde se cambia el banco del día a día, en vez de prometer algo que no hará.
+
+**Trade Republic tiene dos puertas** («estaría bien identificar cuándo falla por la api externa de trade republic y cuándo falla por open banking»). Los dos avisos decían «Trade Republic» y los dos decían «Reconectar Trade Republic», así que tocar el que no era no hacía nada.
+
+- **(banco)** → Open Banking. Trae tus **compras con tarjeta**. Se arregla con el permiso del banco, y el aviso ahora dice que tus posiciones y tu efectivo no están afectados.
+- **(inversiones)** → la API propia de TR. Trae tus **posiciones y tu efectivo**. Se arregla con PIN + SMS dentro de la app.
+- Y **«Sincronizar bancos» de Ajustes ahora sincroniza también TR**, como ya hacía el de Cartera: era el botón que él usa para arreglar TR y ni siquiera lo tocaba. Si TR estaba caído y ese botón lo revive, **avisa** — y solo entonces, para no convertir cada sync en un toast.
+
+7 e2e nuevos en `quitar-banco.spec.mjs`.
+
 ## [4.19.27] — 2026-09-10
 ### El visor del histórico deja de ponerse negro
 

@@ -18,6 +18,19 @@ function askDialog(o){
 }
 function askText(o){ return askDialog(Object.assign({input:true},o)); }
 function askConfirm(o){ return askDialog(Object.assign({input:false},o)); }
+/* ELEGIR ENTRE VARIAS, no solo sí/no (2026-09-10).
+   Nace de una decisión suya: al quitar un banco, «que te pregunte» qué hacer con sus movimientos.
+   Con `askConfirm` habría que inventarse cuál de las dos cosas es «aceptar», y eso es adivinar con
+   su dinero — que es justo lo que no queremos.
+   `options`: [{v, label, sub}]. Resuelve con el `v` elegido, o `null` si cancela.
+   Sin `AskHost` montado cae a `confirm()` con la PRIMERA opción, para no perder la acción. */
+function askChoice(o){
+  const opts=(o&&o.options)||[];
+  return new Promise(function(resolve){
+    if(!askEmit){ resolve(window.confirm(o.title)? (opts[0]&&opts[0].v) : null); return; }
+    askEmit(Object.assign({},o,{input:false,options:opts,resolve:resolve}));
+  });
+}
 function AskHost(){
   const [cur,setCur]=useState(null);
   const [val,setVal]=useState("");
@@ -29,7 +42,9 @@ function AskHost(){
   // resolve ANTES de perder cur, y solo una vez: cerrar por el fondo y por «Cancelar» son el mismo camino
   const done=function(r){ const f=cur.resolve; setCur(null); setVal(""); f(r); };
   const ok=function(){ done(cur.input?String(val):true); };
-  const cancel=function(){ done(cur.input?null:false); };
+  // Con opciones, cancelar es `null` («no he elegido»), no `false` («he dicho que no»): con tres
+  // caminos posibles, un `false` se confundiría con haber elegido el primero.
+  const cancel=function(){ done((cur.input||(cur.options||[]).length>0)?null:false); };
   return ReactDOM.createPortal(
     React.createElement("div",{className:"askback"+(cur.compact?" ask-compact":""),onClick:cancel},
       React.createElement("div",{className:"tabsheet",onClick:function(e){ e.stopPropagation(); }},
@@ -43,9 +58,19 @@ function AskHost(){
         cur.input && (cur.chips||[]).length>0 && React.createElement("div",{className:"ask-chips"},
           cur.chips.map(function(c){ return React.createElement("button",{key:String(c.v),className:"chip",
             onClick:function(){ setVal(String(c.v)); }}, c.label); })),
+        /* Varias opciones, una debajo de otra y cada una con su explicación. En fila no caben:
+           lo que hay que leer aquí no es la etiqueta, es la consecuencia. */
+        (cur.options||[]).length>0 && React.createElement("div",{className:"ask-opts"},
+          cur.options.map(function(op){
+            return React.createElement("button",{key:String(op.v),type:"button",className:"ask-opt",
+              onClick:function(){ done(op.v); }},
+              React.createElement("span",{className:"ask-opt-t"}, op.label),
+              op.sub && React.createElement("span",{className:"ask-opt-s"}, op.sub));
+          })),
         React.createElement("div",{className:"ask-btns"},
           React.createElement("button",{className:"btn btn-ghost",onClick:cancel}, cur.cancel||t("fj_cancel")),
-          React.createElement("button",{className:"btn btn-primary",style:cur.danger?{background:"linear-gradient(160deg,#E2705F,#C4553F)",color:"#fff"}:null,
+          // Con opciones, el botón de aceptar sobra: elegir una YA es aceptar.
+          (cur.options||[]).length===0 && React.createElement("button",{className:"btn btn-primary",style:cur.danger?{background:"linear-gradient(160deg,#E2705F,#C4553F)",color:"#fff"}:null,
             onClick:ok}, cur.ok||t("ask_ok")))
       )
     ), document.body);

@@ -244,6 +244,16 @@
   .askback.ask-compact .ts-title{font-size:17px;font-weight:700;}
   .askback.ask-compact .tabsheet{padding:16px 16px calc(14px + var(--safe-bottom));}
   .ask-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:2px;}
+  /* Opciones del diálogo (askChoice): una debajo de otra, y cada una con su consecuencia escrita.
+     Lo que hay que leer aquí no es la etiqueta, es qué pasa si la eliges. Alto de sobra para el
+     dedo (48 px de mínimo) porque estas decisiones se toman con una mano y andando. */
+  .ask-opts{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+  .ask-opt{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;min-height:48px;
+    padding:11px 14px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);
+    color:var(--text);cursor:pointer;font-family:inherit;}
+  .ask-opt:active{background:var(--sur2);}
+  .ask-opt-t{font-size:14.5px;font-weight:700;}
+  .ask-opt-s{font-size:12px;color:var(--muted);line-height:1.45;}
   .ask-btns{display:flex;gap:8px;margin-top:14px;}
   .ask-btns .btn{flex:1;margin:0;}
   /* Roles de cuenta (Patrimonio → Editar) */
