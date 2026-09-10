@@ -22,7 +22,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -131,6 +131,21 @@ info(`${migs.length} migraciones en el repo · la última es ${migs[migs.length 
 // No se puede saber desde aquí cuáles están APLICADAS sin credenciales de la BD; decirlo es más
 // honesto que inventarse un ✓ (AGENTS: si un dato no lo sabes, no te lo inventes).
 info("cuáles están aplicadas solo lo sabe Supabase · míralo en su panel → Database → Migrations");
+
+/* ---------- 4-bis. ¿El servidor corre lo que dice el repo? ----------
+   Puesto aquí el 10/9/2026, después de perder una mañana buscando en el código un descuadre del
+   widget que no estaba en el código: `ingest` llevaba 24 días sin desplegar. Hasta hoy, `salud`
+   contaba lo que hay en el repo y lo que sirve Pages, pero de las Edge Functions no decía nada —
+   y ahí es donde vive la mitad de las cuentas de su dinero. */
+console.log("\nServidor (Edge Functions)");
+try {
+  const r = spawnSync(process.execPath, [path.join(root, "scripts", "servidor-al-dia.mjs")], { encoding: "utf8" });
+  const salida = String(r.stdout || "").trim();
+  if (salida) salida.split("\n").forEach((l) => console.log("  " + l));
+  if (r.status === 1) avisos++;
+} catch (e) {
+  info("no se pudo comprobar (" + ((e && e.message) || e) + ")");
+}
 
 /* ---------- 5. Errores recientes ---------- */
 console.log("\nErrores de los móviles (app_events)");
