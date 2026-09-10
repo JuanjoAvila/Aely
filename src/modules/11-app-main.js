@@ -2052,6 +2052,43 @@ function App(){
 
   /* swipe — distingue eje vertical/horizontal, menos sensible */
   const startX=useRef(0), startY=useRef(0), startT=useRef(0), dx=useRef(0), axis=useRef(null), dragging=useRef(false), trackRef=useRef(null);
+  /* PINTAR UNA VEZ POR FRAME, NO UNA POR `touchmove` (2026-09-10, medido en su OnePlus).
+     Su queja, con sus palabras: «si desplazas fluido no se nota apenas, es ir LENTO y ahí se nota
+     el tirón, no va super smooth». Y tenía razón otra vez: arrastrando despacio, el avance del
+     carrusel frame a frame salía así —
+
+         -0,24  -0,25  -0,25  0  -0,25  0  -0,24  0  -0,25  0  -0,25  0 …
+
+     un frame sí y otro no. La pantalla va a 120 Hz y el táctil manda ~2,7 eventos por frame (696
+     `touchmove` para 253 frames, muchos con la MISMA marca de tiempo: llegan en ráfaga). Escribir
+     `transform` dentro de cada `touchmove` no hace que se pinte más veces —el navegador pinta como
+     mucho una vez por frame— pero sí desalinea CUÁNDO se escribe respecto a cuándo se pinta: hay
+     frames que se llevan dos escrituras y frames que se quedan sin ninguna.
+     Deslizando rápido eso no se ve, porque cada frame avanza varios píxeles y un frame repetido se
+     pierde entre los demás. Deslizando despacio el avance es de 0,25 px por frame: la mitad de los
+     frames quietos se nota como un temblorcillo. De ahí que solo lo notara yendo lento.
+
+     Arreglo: `touchmove` solo APUNTA a dónde va el dedo; el `transform` se escribe en un
+     `requestAnimationFrame`, o sea exactamente una vez por frame pintado y pegado al reloj de la
+     pantalla. Es el patrón de siempre para arrastres, y aquí además cuesta menos trabajo que antes.
+     ⚠ La animación de soltar (`animarA`) NO pasa por aquí: escribe su propio transform y hay que
+     cancelar el rAF del arrastre antes, o se pelean por el mismo elemento. */
+  const dragRaf=useRef(0), dragOff=useRef(null);
+  const pintarArrastre=function(){
+    dragRaf.current=0;
+    const el=trackRef.current, off=dragOff.current;
+    if(!el || off==null || !dragging.current) return;
+    el.style.transform="translate3d("+off+"px,0,0)";
+    dragRaf.current=requestAnimationFrame(pintarArrastre);
+  };
+  const pedirPintado=function(px){
+    dragOff.current=px;
+    if(!dragRaf.current) dragRaf.current=requestAnimationFrame(pintarArrastre);
+  };
+  const pararPintado=function(){
+    if(dragRaf.current){ cancelAnimationFrame(dragRaf.current); dragRaf.current=0; }
+    dragOff.current=null;
+  };
   const trackW=useRef(0);   // ancho del carrusel, medido al empezar el gesto (ver onMove)
   const prepped=useRef(0);    // qué vecina se ha premontado ya EN ESTE gesto (ver onMove)
   /* EL CARRUSEL SE MUEVE EN PÍXELES, NO EN PORCENTAJES — y esto valía la mitad del lag.
@@ -2438,7 +2475,8 @@ function App(){
     // Sin rubber-band a la derecha en Inicio (ese gesto es Ajustes) — evitaba el rebote raro.
     if(tab===tabIds.length-1&&dx.current<0) off=-tab*100+(dx.current/w)*100*0.28;
     else if(tab===0&&dx.current>0) off=-tab*100;
-    if(trackRef.current) trackRef.current.style.transform="translate3d("+(off*w/100)+"px,0,0)";
+    // Solo se APUNTA a dónde va; lo escribe el rAF, una vez por frame pintado (ver `pedirPintado`).
+    pedirPintado(off*w/100);
     /* ESTE `preventDefault` ES EL QUE FALTABA, Y ES TODO EL PROBLEMA (2026-07-27).
        Sin él, el navegador considera que el gesto es SUYO en cuanto huele scroll: se lo lleva,
        manda `touchcancel` y el arrastre de pestañas se queda a medias. Medido en su móvil:
@@ -2461,6 +2499,9 @@ function App(){
   };
   const onEnd=()=>{
     if(!dragging.current) return; dragging.current=false;
+    // El rAF del arrastre se para AQUÍ: a partir de ahora manda `animarA`, y si los dos escriben
+    // el mismo `transform` se pisan y el soltar daría un tirón peor que el que veníamos a quitar.
+    pararPintado();
     scheduleEndTopClear();
     if(axis.current==="y" && gestureMode.current==="profile"){
       profileRelease();
@@ -2542,6 +2583,7 @@ function App(){
       setProfileProgress(profileOpen?1:0);   // el gesto no cuenta: se queda como estaba
       pDY.current=0;
       dragging.current=false; axis.current=null; gestureMode.current=null;
+      pararPintado();
       freezeShell(false);
       return;
     }
@@ -2771,6 +2813,7 @@ function App(){
   const cancelSwipe=function(){
     if(!dragging.current) return;
     dragging.current=false; axis.current=null; gestureMode.current=null; dx.current=0;
+    pararPintado();   // touchcancel: el navegador nos quita el gesto, hay que soltar el rAF igual
     endTopClearNow(true);
     // `tabRef` por lo mismo que en `goTab`: con el `tab` de cuando se construyó la página, cancelar
     // el gesto devolvería el carrusel a la pestaña equivocada. Asentar por rAF (no snap a pelo):
