@@ -2,6 +2,19 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.30] — 2026-09-10
+### Al cambiar de pestaña ya no hay tironcillo
+
+Su pista del 10/9: «es solo al scrollear recuerda de una tab a otra». Medido en su OnePlus: **0 frames >16,7 ms** y **0 longtasks** — los deltas de `rAF` no sirven. El instrumento válido es `layout-shift`: el contenido (`.v4-screen`) saltaba **44 px** (barra de estado) en la mitad de los cambios de pestaña.
+
+- Causa: al poner/quitar `.page-scroll-host` cambiaban a la vez `position` (fixed↔relative) y `padding-top` (safe-top+10 ↔ 6). En reposo 44+6=50 cuadra; si las mitades no caen en el mismo frame, el contenido se pinta a 94 o a 6 y luego salta.
+- Arreglo: el host ancla con `top: calc(var(--safe-top) + 4px)` (mismo hueco que `.app`) y el **mismo** `padding: 6px 18px …` que `.page`. La clase solo cambia `position`/anclaje, no el padding del contenido.
+- La temática no agranda el salto (A/B idéntico); lo hace más visible contra un fondo quieto.
+- Guardián en `season-detalle` + `e2e/ux01-layout-shift.spec.mjs` (geometría + layout-shift vertical).
+- Brief: `docs/briefs/ux01-tironcillo-medido-2026-09-10.md`. **No publicar a la familia sin re-medir layout-shift en su móvil.**
+- Bump **4.19.30** a propósito: deja hueco a las dos tandas selladas como 4.19.28 (`quitar-banco` / `hist-dup`) por si Claude las numera 28 y 29 al integrar.
+- Cabo abierto: la APK `.debug` midió web 4.19.19; falta confirmar con bundle beta (+ count-up de Cartera B2 al aterrizar).
+
 ## [4.19.27] — 2026-09-10
 ### El visor del histórico deja de ponerse negro
 
