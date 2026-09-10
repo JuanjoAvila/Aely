@@ -2423,15 +2423,15 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
                 // no habia manera de mirar las pantallas vacias sin vaciarse la cartera de verdad.
                 !sandbox && row("sbx0","🌱","Probar con la app vacía",null,function(){
                   askConfirm({ title:"¿Ver la app como recién instalada?", sub:"Entras al banco de pruebas con una cartera VACÍA: sin cuentas, sin gastos y sin presupuesto, igual que alguien que se acaba de instalar la app. Tu cartera real no se toca y sigue esperándote al salir.", ok:"Entrar vacío" })
-                    .then(function(yes){ if(!yes) return; mcSeedSandboxVacio(); mcEnterSandbox(); location.reload(); });
+                    .then(function(yes){ if(!yes) return; mcSeedSandboxVacio(); mcEnterSandbox(); mcRecargarSinVolcar(); });
                 }),
                 sandbox && row("sbx0d","🌱","Vaciar la cartera de pruebas",null,function(){
                   askConfirm({ title:"¿Dejarla como recién instalada?", sub:"La cartera de pruebas se queda vacía: sin cuentas, sin gastos y sin presupuesto. Tu cartera real no se toca.", ok:"Vaciar", danger:true })
-                    .then(function(yes){ if(!yes) return; mcSeedSandboxVacio(); location.reload(); });
+                    .then(function(yes){ if(!yes) return; mcSeedSandboxVacio(); mcRecargarSinVolcar(); });
                 }),
                 sandbox && row("sbxr","♻️","Volver a copiar mi cartera real",null,function(){
                   askConfirm({ title:"¿Empezar las pruebas de cero?", sub:"Se tira la cartera de pruebas actual y se copia otra vez la real. Tu cartera real no se toca.", ok:"Copiar de nuevo", danger:true })
-                    .then(function(yes){ if(!yes) return; mcExitSandbox(); mcResetSandbox(); location.reload(); });
+                    .then(function(yes){ if(!yes) return; mcExitSandbox(); mcResetSandbox(); mcRecargarSinVolcar(); });
                 }),
                 React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}},
                   sandbox?"Estás en datos de prueba. Nada de lo que hagas aquí sale de este móvil.":"Copia tu cartera a un espacio aparte para probar sin miedo.")

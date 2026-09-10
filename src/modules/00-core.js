@@ -528,6 +528,24 @@ function mcSeedSandboxVacio(){
     expenses:[], settings:{}
   });
 }
+/* ⚠ NO VUELQUES EL ESTADO VIEJO ENCIMA DE LO QUE ACABO DE SEMBRAR (hallazgo de Cursor al revisar,
+   10/9). El guardado va con 400 ms de retraso, y `pagehide` lo fuerza justo antes de recargar.
+   Secuencia mala, y es EXACTAMENTE la queja que estamos arreglando: estás dentro del banco de
+   pruebas, tocas «Vaciar la cartera de pruebas» → se siembra vacía → `location.reload()` →
+   `pagehide` vuelca el estado de React de hace un momento, que todavía lleva TODO, y como la
+   sesión está fijada en pruebas lo escribe en la clave de pruebas. Vuelve a estar llena.
+   Con esto el volcado pendiente se descarta: lo que acabamos de escribir a mano es la verdad.
+   Solo se levanta justo antes de una recarga, así que no apaga el guardado de nada vivo. */
+var _mcSkipPersist=false;
+function mcSkipPersist(){ return _mcSkipPersist; }
+/* Separadas a propósito: `mcMarcarNoVolcar` es lo que se puede comprobar en un test —recargar de
+   verdad se lleva por delante la propia página y no deja mirar nada—, y `mcRecargarSinVolcar` es
+   lo que llama la UI. No es un atajo para las pruebas: son dos cosas distintas de verdad. */
+function mcMarcarNoVolcar(){ _mcSkipPersist=true; }
+function mcRecargarSinVolcar(){
+  mcMarcarNoVolcar();
+  location.reload();
+}
 /* Tira la cartera de pruebas y empieza otra desde cero copiando la real otra vez.
    Las DOS mitades: borrar solo la ligera dejaba `micartera_sandbox_exp` huérfana, y la siguiente
    entrada al banco de pruebas se encontraba los gastos de la sesión anterior mezclados con la

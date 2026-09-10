@@ -129,3 +129,26 @@ test("tirar la cartera de pruebas se lleva las DOS mitades", async ({ page }) =>
   // con la copia nueva de la cartera real.
   expect(await page.evaluate(() => localStorage.getItem("micartera_sandbox_exp"))).toBeNull();
 });
+
+/* EL VOLCADO PENDIENTE, QUE HABRÍA DEVUELTO EL FALLO POR OTRA PUERTA
+   Lo encontró Cursor revisando esta tanda, y no es menor: el guardado del estado va con 400 ms de
+   retraso y `pagehide` lo fuerza justo antes de recargar. Estando DENTRO del banco de pruebas,
+   «Vaciar la cartera de pruebas» sembraba vacío y recargaba — y el volcado pendiente escribía el
+   estado de React de hace un momento, que todavía llevaba todo, en la clave de pruebas. La
+   cartera de pruebas volvía a estar llena. O sea: la misma queja suya, entrando por otra puerta. */
+test("★ recargar tras sembrar NO vuelca encima el estado viejo", async ({ page }) => {
+  await ajustes(page, { budget: 777, accounts: [{ id: "a1", ent: "sabadell", name: "Banco", value: 4321 }] });
+  await conPruebasUsadas(page);
+  const r = await page.evaluate(() => {
+    mcSeedSandboxVacio();
+    mcMarcarNoVolcar();   // lo que hace la UI antes de recargar (recargar de verdad se llevaría la página)
+    // Ahora simulamos el volcado que `pagehide` habría forzado con el estado viejo.
+    const viejo = { _dataVer: 6, onboarded: true, budget: 1000, accounts: [{ id: "x" }],
+                    expenses: [{ id: "g1", amount: 12.5 }, { id: "g2", amount: 2.4 }] };
+    const bloqueado = (typeof mcSkipPersist === "function" && mcSkipPersist());
+    if (!bloqueado) mcSaveRaw("micartera_sandbox", viejo);
+    return { bloqueado: bloqueado, gastos: mcLoadRaw("micartera_sandbox").expenses.length };
+  });
+  expect(r.bloqueado, "la bandera tiene que estar levantada tras pedir recarga limpia").toBe(true);
+  expect(r.gastos, "el volcado pendiente no puede resucitar los gastos de pruebas").toBe(0);
+});

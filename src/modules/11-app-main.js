@@ -233,6 +233,11 @@ function App(){
   const writeNow=function(p){
     const v=p.val; const withExp=p.exp;
     p.val=null; p.exp=false;
+    /* Sembrar la cartera de pruebas y recargar deja un volcado pendiente que `pagehide` fuerza
+       justo después, con el estado de React de hace un momento: eso reescribía encima lo que se
+       acababa de sembrar, y la cartera de pruebas volvía a estar llena. Ver `mcRecargarSinVolcar`
+       en 00-core. Hallazgo de Cursor al revisar la tanda. */
+    if(typeof mcSkipPersist==="function" && mcSkipPersist()) return;
     if(v!=null) mcSaveRaw(mcStateKey(), v, {expenses:withExp});
   };
   const flushPersist=useCallback(function(){
