@@ -759,7 +759,19 @@
   .v4-gastos-progress-marks span:nth-child(2){text-align:center;color:var(--muted);}
   .v4-gastos-progress-marks span:last-child{text-align:right;}
   .v4-gastos-cats{margin-top:14px;}
-  .v4-gastos-cats-h{font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--muted-2);margin-bottom:4px;}
+  /* La cabecera es el interruptor (petición de su pareja, 10/9: «es too much, que se pudiera
+     ocultar y habilitarlo si tú quieres»). Ocupa toda la fila para que sea fácil de acertar con
+     el dedo, y dice en palabras lo que hace en vez de esconderlo en un icono: plegada, esta línea
+     es TODO lo que queda del desglose. Mismo idioma que las tandas del panel de beta (▾/▸ + verbo),
+     que es un patrón que ya conoce. */
+  .v4-gastos-cats-h{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
+    font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--muted-2);
+    margin-bottom:4px;padding:6px 0;background:none;border:none;text-align:left;cursor:pointer;font-family:inherit;}
+  .v4-gastos-cats-t{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  .v4-gastos-cats-fold{flex:0 0 auto;color:var(--muted);text-transform:none;letter-spacing:0;font-size:11.5px;}
+  /* Plegado no deja hueco: si dejara el margen, «ocultar» seguiría notándose como un vacío raro. */
+  .v4-gastos-cats.cerrado{margin-top:10px;}
+  .v4-gastos-cats.cerrado .v4-gastos-cats-h{margin-bottom:0;}
   .v4-gastos-cat{display:block;width:100%;text-align:left;background:transparent;border:0;padding:6px 0 2px;cursor:pointer;color:inherit;font:inherit;}
   .v4-gastos-cat-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;}
   .v4-gastos-cat-name{font-weight:600;min-width:0;}
@@ -3563,6 +3575,8 @@ const LANG = {
     v4_gastos_inc_line:"Ingresos {x} · balance {bal}", v4_gastos_split_line:"Gastos {spent} · ingresos {income}",
     v4_gastos_lbl_spent:"Gastos", v4_gastos_lbl_income:"Ingresos", v4_gastos_lbl_balance:"Balance",
     v4_gastos_cats:"Por categoría · toca una para ponerle un límite", v4_gastos_cat_limit:"límite {x}",
+    v4_gastos_cats_hide:"Ocultar", v4_gastos_cats_show:"Ver", v4_gastos_cats_n:"{n} categorías este mes",
+    v4_gastos_cats_n1:"1 categoría este mes",
     g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Solo para verlo: no cambia tu presupuesto ni te bloquea. Vacío o 0 = quitar el límite.",
     g_cat_budget_clear:"Quitar límite",
     v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
@@ -3727,6 +3741,8 @@ const LANG = {
     v4_gastos_inc_line:"Income {x} · balance {bal}", v4_gastos_split_line:"Spent {spent} · income {income}",
     v4_gastos_lbl_spent:"Spent", v4_gastos_lbl_income:"Income", v4_gastos_lbl_balance:"Balance",
     v4_gastos_cats:"By category · tap one to set a cap", v4_gastos_cat_limit:"limit {x}",
+    v4_gastos_cats_hide:"Hide", v4_gastos_cats_show:"Show", v4_gastos_cats_n:"{n} categories this month",
+    v4_gastos_cats_n1:"1 category this month",
     g_cat_budget_title:"Limit for {cat}", g_cat_budget_sub:"Just to see it: it does not change your budget or block you. Empty or 0 removes the limit.",
     g_cat_budget_clear:"Remove limit",
     v4_cartera_title:"Your portfolio", v4_cuentas:"Your accounts", v4_inversiones:"Your investments", v4_inv_positions:"{n} positions",
@@ -3878,6 +3894,8 @@ const LANG = {
     v4_gastos_inc_line:"Ingressos {x} · balanç {bal}", v4_gastos_split_line:"Despeses {spent} · ingressos {income}",
     v4_gastos_lbl_spent:"Despeses", v4_gastos_lbl_income:"Ingressos", v4_gastos_lbl_balance:"Balanç",
     v4_gastos_cats:"Per categoria · toca'n una per posar-li un límit", v4_gastos_cat_limit:"límit {x}",
+    v4_gastos_cats_hide:"Amagar", v4_gastos_cats_show:"Veure", v4_gastos_cats_n:"{n} categories aquest mes",
+    v4_gastos_cats_n1:"1 categoria aquest mes",
     g_cat_budget_title:"Límit a {cat}", g_cat_budget_sub:"Només per veure’l: no canvia el pressupost ni et bloqueja. Buit o 0 = treure el límit.",
     g_cat_budget_clear:"Treure límit",
     v4_cartera_title:"La teva cartera", v4_cuentas:"Els teus comptes", v4_inversiones:"Les teves inversions", v4_inv_positions:"{n} posicions",
@@ -8334,6 +8352,16 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const catBreakdown=useMemo(function(){
     return categorySpentByMonth(state);
   },[state.expenses,state.categoryBudgets,state.accounts,state.settings]);
+  /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
+     —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
+  const catsOpen=!(state.settings && state.settings.gastosCatsOff);
+  const toggleCats=useCallback(function(){
+    set(function(s){
+      const st=Object.assign({}, s.settings||{});
+      if(st.gastosCatsOff) delete st.gastosCatsOff; else st.gastosCatsOff=true;
+      return Object.assign({}, s, { settings:st });
+    });
+  },[set]);
   const editCatBudget=useCallback(function(id){
     const cur=Number((state.categoryBudgets||{})[id])||0;
     const parseAmt=function(raw){ return Math.abs(parseFloat(String(raw==null?"":raw).replace(/\s/g,"").replace(",","."))||0); };
@@ -8538,8 +8566,25 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
         React.createElement("span",monthSummary.last+" "+monthSummary.month)
       ),
-      catBreakdown.length>0 && React.createElement("div",{className:"v4-gastos-cats","data-testid":"gastos-cats"},
-        React.createElement("div",{className:"v4-gastos-cats-h"}, t("v4_gastos_cats")),
+      /* SE PUEDE OCULTAR (petición de su pareja, 10/9, y con razón).
+         Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria
+         que se pudiera ocultar y habilitarlo si tu quieres».
+         El desglose lista TODAS las categorías con gasto del mes, así que en cuanto tienes vida
+         normal son ocho o diez filas fijas encima de la lista de gastos. A él le sirve —fue idea
+         suya ponerles límite— y a ella le tapa lo que viene a mirar. No es un fallo de la función:
+         es que no todo el mundo quiere lo mismo abierto siempre.
+         Plegado, deja UNA línea: sigue estando y no molesta. El estado va en `settings` (por
+         cuenta, que cada uno tiene la suya), y por defecto ABIERTO: quien ya lo tiene no se
+         encuentra con que le han escondido algo sin avisar. Se pliega quien quiera plegarlo. */
+      catBreakdown.length>0 && React.createElement("div",{className:"v4-gastos-cats"+(catsOpen?"":" cerrado"),"data-testid":"gastos-cats"},
+        React.createElement("button",{type:"button",className:"v4-gastos-cats-h",
+          "aria-expanded":catsOpen,"aria-controls":"gastos-cats-body",onClick:toggleCats},
+          React.createElement("span",{className:"v4-gastos-cats-t"},
+            catsOpen ? t("v4_gastos_cats")
+                     : (catBreakdown.length===1 ? t("v4_gastos_cats_n1") : tf("v4_gastos_cats_n",{n:catBreakdown.length}))),
+          React.createElement("span",{className:"v4-gastos-cats-fold"},
+            (catsOpen?"▾ ":"▸ ")+t(catsOpen?"v4_gastos_cats_hide":"v4_gastos_cats_show"))),
+        React.createElement("div",{id:"gastos-cats-body",hidden:!catsOpen},
         catBreakdown.map(function(row){
           const cat=catOf(row.id);
           const lim=row.limit;
@@ -8555,7 +8600,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
                   React.createElement("div",{className:"bar",role:"progressbar","aria-valuemin":0,"aria-valuemax":lim,"aria-valuenow":row.spent},
                     React.createElement("i",{style:{width:pct+"%",background:cat.color||"var(--mint)"}})))
               : null);
-        })
+        }))
       )
     ),
     React.createElement("div",{className:"filters"},

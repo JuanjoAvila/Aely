@@ -90,3 +90,93 @@ test("Gastos: poner y quitar límite de categoría no mueve el presupuesto gener
     });
   }).toBe(200);
 });
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SE PUEDE OCULTAR — petición de su pareja, 10/9
+   Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria que
+   se pudiera ocultar y habilitarlo si tu quieres». El desglose lista TODAS las categorías con
+   gasto del mes: con vida normal son ocho o diez filas fijas encima de la lista de gastos. A él
+   le sirve, a ella le tapa lo que viene a mirar. No es un fallo: es que no todos quieren lo mismo
+   abierto siempre.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+const OUT_TIROS = process.env.MC_TIROS || "";
+
+async function gastosSembrado(page) {
+  await page.clock.install({ time: now });
+  await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000, __seedOnce: true });
+  await abreGastos(page);
+}
+
+test("★ por defecto se ve ABIERTO: a quien ya lo tenía no se le esconde nada sin avisar", async ({ page }) => {
+  await gastosSembrado(page);
+  const cab = page.locator('[data-testid="gastos-cats"] .v4-gastos-cats-h');
+  await expect(cab).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator('[data-testid="gastos-cats"] .v4-gastos-cat').first()).toBeVisible();
+});
+
+test("★ plegarlo deja UNA línea, y dice cuántas categorías esconde", async ({ page }) => {
+  await gastosSembrado(page);
+  const bloque = page.locator('[data-testid="gastos-cats"]');
+  const cab = bloque.locator(".v4-gastos-cats-h");
+  const cuantas = await bloque.locator(".v4-gastos-cat").count();
+  expect(cuantas).toBeGreaterThan(0);
+
+  await cab.click();
+  await expect(cab).toHaveAttribute("aria-expanded", "false");
+  await expect(bloque.locator(".v4-gastos-cat").first()).toBeHidden();
+  // Plegado no puede quedarse mudo: tiene que decir qué hay debajo, o parece que se ha perdido.
+  await expect(bloque.locator(".v4-gastos-cats-t")).toContainText(String(cuantas));
+  await expect(bloque.locator(".v4-gastos-cats-fold")).toContainText(/Ver/i);
+});
+
+test("★ y se queda plegado al volver: es una preferencia, no un gesto que haya que repetir", async ({ page }) => {
+  await gastosSembrado(page);
+  await page.locator('[data-testid="gastos-cats"] .v4-gastos-cats-h').click();
+  await expect(page.locator('[data-testid="gastos-cats"] .v4-gastos-cats-h')).toHaveAttribute("aria-expanded", "false");
+  /* Se guarda en `settings`, o sea por cuenta: él puede tenerlo abierto y ella cerrado.
+     Con `poll` porque el guardado no es instantáneo (va por el volcado diferido del estado):
+     leerlo a pelo justo después del toque lo pilla a medias y el test parpadea. */
+  await expect.poll(async () => page.evaluate(() => (mcLoadRaw("micartera_v3").settings || {}).gastosCatsOff),
+    { timeout: 10_000 }).toBe(true);
+
+  await page.reload();
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator(".v4-gastos-summary")).toBeVisible();
+  await expect(page.locator('[data-testid="gastos-cats"] .v4-gastos-cats-h')).toHaveAttribute("aria-expanded", "false");
+});
+
+test("volver a abrirlo lo deja como estaba, con sus límites y sus barras", async ({ page }) => {
+  await gastosSembrado(page);
+  const cab = page.locator('[data-testid="gastos-cats"] .v4-gastos-cats-h');
+  const antes = await page.locator('[data-testid="gastos-cats"] .v4-gastos-cat').count();
+  await cab.click();
+  await cab.click();
+  await expect(cab).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator('[data-testid="gastos-cats"] .v4-gastos-cat')).toHaveCount(antes);
+  expect(await page.evaluate(() => (mcLoadRaw("micartera_v3").settings || {}).gastosCatsOff)).toBeUndefined();
+});
+
+test("plegar el desglose NO toca ni un límite ni una cifra", async ({ page }) => {
+  await gastosSembrado(page);
+  const antes = await page.evaluate(() => JSON.stringify(mcLoadRaw("micartera_v3").categoryBudgets || {}));
+  /* La cifra grande del mes, NO el texto entero de la cabecera: el desglose vive DENTRO de
+     `.v4-gastos-summary`, así que plegarlo cambia ese texto por definición. Lo que no puede
+     cambiar es el dinero. */
+  const cifra = await page.locator(".v4-gastos-progress-lbl, .v4-gastos-summary .num").first().innerText();
+  await page.locator('[data-testid="gastos-cats"] .v4-gastos-cats-h').click();
+  expect(await page.evaluate(() => JSON.stringify(mcLoadRaw("micartera_v3").categoryBudgets || {}))).toBe(antes);
+  expect(await page.locator(".v4-gastos-progress-lbl, .v4-gastos-summary .num").first().innerText()).toBe(cifra);
+});
+
+test("tiros: cómo se ve abierto y plegado", async ({ page }) => {
+  test.skip(!OUT_TIROS, "solo cuando se piden capturas con MC_TIROS");
+  await gastosSembrado(page);
+  await page.locator('[data-testid="gastos-cats"]').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: OUT_TIROS + "/cats-abierto.png" });
+  await page.locator('[data-testid="gastos-cats"] .v4-gastos-cats-h').click();
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: OUT_TIROS + "/cats-plegado.png" });
+});

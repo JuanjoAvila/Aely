@@ -424,6 +424,16 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const catBreakdown=useMemo(function(){
     return categorySpentByMonth(state);
   },[state.expenses,state.categoryBudgets,state.accounts,state.settings]);
+  /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
+     —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
+  const catsOpen=!(state.settings && state.settings.gastosCatsOff);
+  const toggleCats=useCallback(function(){
+    set(function(s){
+      const st=Object.assign({}, s.settings||{});
+      if(st.gastosCatsOff) delete st.gastosCatsOff; else st.gastosCatsOff=true;
+      return Object.assign({}, s, { settings:st });
+    });
+  },[set]);
   const editCatBudget=useCallback(function(id){
     const cur=Number((state.categoryBudgets||{})[id])||0;
     const parseAmt=function(raw){ return Math.abs(parseFloat(String(raw==null?"":raw).replace(/\s/g,"").replace(",","."))||0); };
@@ -628,8 +638,25 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
         React.createElement("span",monthSummary.last+" "+monthSummary.month)
       ),
-      catBreakdown.length>0 && React.createElement("div",{className:"v4-gastos-cats","data-testid":"gastos-cats"},
-        React.createElement("div",{className:"v4-gastos-cats-h"}, t("v4_gastos_cats")),
+      /* SE PUEDE OCULTAR (petición de su pareja, 10/9, y con razón).
+         Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria
+         que se pudiera ocultar y habilitarlo si tu quieres».
+         El desglose lista TODAS las categorías con gasto del mes, así que en cuanto tienes vida
+         normal son ocho o diez filas fijas encima de la lista de gastos. A él le sirve —fue idea
+         suya ponerles límite— y a ella le tapa lo que viene a mirar. No es un fallo de la función:
+         es que no todo el mundo quiere lo mismo abierto siempre.
+         Plegado, deja UNA línea: sigue estando y no molesta. El estado va en `settings` (por
+         cuenta, que cada uno tiene la suya), y por defecto ABIERTO: quien ya lo tiene no se
+         encuentra con que le han escondido algo sin avisar. Se pliega quien quiera plegarlo. */
+      catBreakdown.length>0 && React.createElement("div",{className:"v4-gastos-cats"+(catsOpen?"":" cerrado"),"data-testid":"gastos-cats"},
+        React.createElement("button",{type:"button",className:"v4-gastos-cats-h",
+          "aria-expanded":catsOpen,"aria-controls":"gastos-cats-body",onClick:toggleCats},
+          React.createElement("span",{className:"v4-gastos-cats-t"},
+            catsOpen ? t("v4_gastos_cats")
+                     : (catBreakdown.length===1 ? t("v4_gastos_cats_n1") : tf("v4_gastos_cats_n",{n:catBreakdown.length}))),
+          React.createElement("span",{className:"v4-gastos-cats-fold"},
+            (catsOpen?"▾ ":"▸ ")+t(catsOpen?"v4_gastos_cats_hide":"v4_gastos_cats_show"))),
+        React.createElement("div",{id:"gastos-cats-body",hidden:!catsOpen},
         catBreakdown.map(function(row){
           const cat=catOf(row.id);
           const lim=row.limit;
@@ -645,7 +672,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
                   React.createElement("div",{className:"bar",role:"progressbar","aria-valuemin":0,"aria-valuemax":lim,"aria-valuenow":row.spent},
                     React.createElement("i",{style:{width:pct+"%",background:cat.color||"var(--mint)"}})))
               : null);
-        })
+        }))
       )
     ),
     React.createElement("div",{className:"filters"},

@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.19.26",
+    "d": "10 sep 2026",
+    "t": {
+      "es": "Gastos, más despejado",
+      "en": "A tidier Expenses",
+      "ca": "Despeses, més despejat"
+    },
+    "tandas": [
+      {
+        "id": "cats-plegable",
+        "t": {
+          "es": "🙈 Ocultar el desglose por categorías",
+          "en": "🙈 Hide the category breakdown",
+          "ca": "🙈 Amagar el desglossament per categories"
+        },
+        "items": {
+          "es": [
+            "En Gastos, toca la cabecera «Por categoría»: el desglose se pliega y deja una sola línea que dice cuántas categorías hay.",
+            "Vuelve a tocarla: se despliega igual que estaba, con sus límites y sus barras.",
+            "Déjalo plegado, cierra la app y vuelve a entrar: tiene que seguir plegado. Es una preferencia, no un gesto que haya que repetir.",
+            "Comprueba que plegarlo NO cambia nada de dinero: ni el gasto del mes, ni lo que queda, ni los límites que tengas puestos.",
+            "Enséñaselo a tu pareja: en su móvil puede tenerlo plegado sin que a ti se te pliegue, porque va por cuenta."
+          ],
+          "en": [
+            "In Expenses, tap the «By category» heading: the breakdown collapses to a single line saying how many categories there are.",
+            "Tap it again: it expands exactly as it was, with its caps and bars.",
+            "Leave it collapsed, close the app and come back: it must still be collapsed. It is a preference, not a gesture to repeat.",
+            "Check that collapsing changes NO money: not the month spend, not what is left, not any caps you set.",
+            "Show it to your partner: on her phone she can keep it collapsed without collapsing yours, because it goes per account."
+          ],
+          "ca": [
+            "A Despeses, toca la capçalera «Per categoria»: el desglossament es plega i deixa una sola línia que diu quantes categories hi ha.",
+            "Torna a tocar-la: es desplega igual que estava, amb els seus límits i les seves barres.",
+            "Deixa'l plegat, tanca l'app i torna a entrar: ha de seguir plegat. És una preferència, no un gest per repetir.",
+            "Comprova que plegar-lo NO canvia res de diners: ni la despesa del mes, ni el que queda, ni els límits que tinguis posats.",
+            "Ensenya-ho a la teva parella: al seu mòbil pot tenir-ho plegat sense que a tu se't plegui, perquè va per compte."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "El desglose por categorías de Gastos se puede plegar de un toque, y se queda como lo dejes."
+      ],
+      "en": [
+        "The category breakdown in Expenses can be collapsed with one tap, and stays how you leave it."
+      ],
+      "ca": [
+        "El desglossament per categories de Despeses es pot plegar d'un toc, i es queda com el deixis."
+      ]
+    }
+  },
+  {
     "v": "4.19.22",
     "d": "9 sep 2026",
     "t": {

@@ -759,7 +759,19 @@
   .v4-gastos-progress-marks span:nth-child(2){text-align:center;color:var(--muted);}
   .v4-gastos-progress-marks span:last-child{text-align:right;}
   .v4-gastos-cats{margin-top:14px;}
-  .v4-gastos-cats-h{font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--muted-2);margin-bottom:4px;}
+  /* La cabecera es el interruptor (petición de su pareja, 10/9: «es too much, que se pudiera
+     ocultar y habilitarlo si tú quieres»). Ocupa toda la fila para que sea fácil de acertar con
+     el dedo, y dice en palabras lo que hace en vez de esconderlo en un icono: plegada, esta línea
+     es TODO lo que queda del desglose. Mismo idioma que las tandas del panel de beta (▾/▸ + verbo),
+     que es un patrón que ya conoce. */
+  .v4-gastos-cats-h{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
+    font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--muted-2);
+    margin-bottom:4px;padding:6px 0;background:none;border:none;text-align:left;cursor:pointer;font-family:inherit;}
+  .v4-gastos-cats-t{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+  .v4-gastos-cats-fold{flex:0 0 auto;color:var(--muted);text-transform:none;letter-spacing:0;font-size:11.5px;}
+  /* Plegado no deja hueco: si dejara el margen, «ocultar» seguiría notándose como un vacío raro. */
+  .v4-gastos-cats.cerrado{margin-top:10px;}
+  .v4-gastos-cats.cerrado .v4-gastos-cats-h{margin-bottom:0;}
   .v4-gastos-cat{display:block;width:100%;text-align:left;background:transparent;border:0;padding:6px 0 2px;cursor:pointer;color:inherit;font:inherit;}
   .v4-gastos-cat-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;}
   .v4-gastos-cat-name{font-weight:600;min-width:0;}

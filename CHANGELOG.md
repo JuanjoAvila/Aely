@@ -2,6 +2,18 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.26] — 2026-09-10
+### El desglose por categorías se puede ocultar
+
+Petición de su pareja, traída por él el 10/9: «está chulo pero mi pareja lo vio y me dijo que es *too much*, que le gustaría que se pudiera ocultar y habilitarlo si tú quieres».
+
+- El desglose lista **todas** las categorías con gasto del mes, así que con vida normal son ocho o diez filas fijas encima de la lista de gastos. A él le sirve —ponerles límite fue idea suya— y a ella le tapa justo lo que viene a mirar. No es un fallo de la función: es que no todo el mundo quiere lo mismo abierto siempre.
+- La **cabecera pasa a ser el interruptor**, con el mismo idioma que las tandas del panel de beta (▾/▸ + verbo), que ya conoce. Plegado deja **una línea** que dice cuántas categorías esconde: sigue estando, y no se ha perdido nada.
+- El estado vive en `settings.gastosCatsOff`, o sea **por cuenta**: él puede tenerlo abierto y ella cerrado, sin pelearse.
+- **Por defecto ABIERTO** a propósito: a quien ya lo tiene no se le esconde algo sin avisar. Se pliega quien quiera plegarlo.
+- Plegar no toca ni un límite ni una cifra — hay un test que lo comprueba.
+- 5 e2e nuevos en `gastos-categorias-presupuesto.spec.mjs` (8/8), más un caso de capturas bajo `MC_TIROS`.
+
 ## [4.19.22] — 2026-09-09
 ### B2/B4/B5 del pulido
 
