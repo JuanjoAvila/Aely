@@ -2674,6 +2674,19 @@ function Onboarding({set, onCloud, onSignup}){
     ),
     React.createElement("h1",{className:"serif v4-ob-title"},t("v4_ob_title1")),
     React.createElement("p",{className:"v4-ob-sub"},t("v4_ob_sub1")),
+    /* Las tres tarjetas del brief. Existen para decir QUÉ ES la app antes de pedirle nada, porque
+       el brief es explícito en el posicionamiento: esto no es «una app de control de gastos», es
+       el mapa entero del dinero. Textos literales del brief; en inglés y catalán traducida la VOZ
+       y no las palabras — el brief prohíbe el copy de agencia, y el castellano copiado en en/ca ya
+       es un agujero conocido (OPS-03). */
+    React.createElement("div",{className:"v4-ob-cards"},
+      [["c1","🗺"],["c2","⚡"],["c3","🧭"]].map(function(c){
+        return React.createElement("div",{key:c[0],className:"v4-ob-card"},
+          React.createElement("span",{className:"v4-ob-card-ic","aria-hidden":"true"},c[1]),
+          React.createElement("div",{className:"v4-ob-card-tx"},
+            React.createElement("div",{className:"v4-ob-card-t"},t("v4_ob_"+c[0]+"t")),
+            React.createElement("div",{className:"v4-ob-card-s"},t("v4_ob_"+c[0]+"s"))));
+      })),
     onCloud && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:18},onClick:onCloud},t("ob_haveacc")),
     onSignup && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:onSignup},t("ob_signup")),
     React.createElement("button",{style:cta,onClick:function(){ setStep(1); }},t("ob2_go")+" →"),

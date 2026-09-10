@@ -1400,6 +1400,16 @@
   .v4-ob-logo{width:76px;height:76px;border-radius:22px;display:grid;place-items:center;margin:28px auto 18px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));box-shadow:0 16px 32px -12px rgba(108,198,136,.55);color:var(--on-mint);}
   .v4-ob-title{font-size:36px;font-weight:560;letter-spacing:-.6px;line-height:1.12;text-align:center;margin:8px 0 10px;}
   .v4-ob-sub{text-align:center;color:var(--muted);font-size:15px;line-height:1.5;margin:0 auto;max-width:34ch;text-wrap:pretty;}
+  /* Las tres tarjetas del brief de Aely: dicen QUÉ ES la app antes de pedirle nada. Alineadas a la
+     izquierda a propósito aunque el titular vaya centrado — son frases de dos líneas y centradas
+     se leen peor; el brief pide «hablar humano y concreto», no una pancarta. */
+  .v4-ob-cards{display:flex;flex-direction:column;gap:10px;margin:22px auto 4px;max-width:38ch;}
+  .v4-ob-card{display:flex;gap:12px;align-items:flex-start;text-align:left;
+    background:var(--surface);border:1px solid var(--border,var(--line-soft));border-radius:16px;padding:13px 15px;}
+  .v4-ob-card-ic{font-size:19px;line-height:1.25;flex:0 0 auto;}
+  .v4-ob-card-tx{min-width:0;}
+  .v4-ob-card-t{font-size:14.5px;font-weight:750;margin-bottom:2px;}
+  .v4-ob-card-s{font-size:12.5px;color:var(--muted);line-height:1.45;text-wrap:pretty;}
   .v4-ob-dots{display:flex;gap:6px;justify-content:center;margin:22px 0 0;}
   .v4-ob-dots span{width:8px;height:8px;border-radius:8px;background:var(--line);transition:width .3s var(--ease),background .3s;}
   .v4-ob-dots span.on{width:22px;background:var(--mint);}
