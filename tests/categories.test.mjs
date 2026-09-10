@@ -121,6 +121,12 @@ t("Barcelona no cae en bares por el substring «bar»", () => {
   assert.notEqual(ctx.autoCategory("Parking Barcelona Centro"), "bares");
 });
 
+t("Bizum cae en bizum (no otros)", () => {
+  assert.equal(ctx.autoCategory("BIZUM A MARIA"), "bizum");
+  assert.equal(ctx.autoCategory("Bizum de Pedro"), "bizum");
+  assert.equal(ctx.autoCategory("Envio Bizum Ana"), "bizum");
+});
+
 t("la IA (categorize) conoce todas las categorías del cliente", () => {
   const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
   const core = fs.readFileSync(path.join(root, "src/modules/00-core.js"), "utf8");

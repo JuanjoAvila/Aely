@@ -2160,6 +2160,9 @@ const CATEGORIES = [
   { id:"hogar",      name:"Hogar",               color:"#B7C98A", icon:"🏠" },
   { id:"regalos",    name:"Regalos",             color:"#E89CB0", icon:"🎁" },
   { id:"joyeria",    name:"Joyería",             color:"#D4AF37", icon:"💍" },
+  /* Bizum ANTES de otros (feedback 10/9): manda y recibe a menudo; quiere verlo aparte
+     en el desglose y en el límite por categoría, no mezclado en «Otros». */
+  { id:"bizum",      name:"Bizum",               color:"#5B9FE8", icon:"📲" },
   { id:"otros",      name:"Otros",               color:"#8FA89A", icon:"📦" },
 ];
 const CAT = Object.fromEntries(CATEGORIES.map(c=>[c.id,c]));
@@ -2243,6 +2246,9 @@ const KW = {
   hogar:["ikea","leroy","bricomart","bauhaus","ferreteria","muebles","sofa","sofá","lampara","lámpara","tintoreria","tintorería","lavanderia","lavandería","mrw","seur","correos","amazon locker","bricodepot","bricodépôt","aki ","aki.","ferretería","manitas","limpieza hogar","limpiapro","blink ","dyson","rowenta","bosch electro","balay","teka"],
   regalos:["regalo","flores","floristeria","floristería","perfumeria","perfumería","interflora","teleflorist","rosas ","ramo ","douglas"],
   joyeria:["joyeria","joyeros","tiffany","cartier","swarovski","tous ","pandora"],
+  /* Bizum al final del vocabulario de gasto (antes de caer en otros). Los BIZUM RECIBIDOS
+     suelen entrar como ingreso por el signo; esto pilla los enviados / el comercio «BIZUM …». */
+  bizum:["bizum","bizum a ","bizum de ","envio bizum","envío bizum","pago bizum","bizum movistar","bizum bbva","bizum caixa","bizum sabadell","bizum santander"],
 };
 /* Retirada de cajero / ATM → traspaso (neutro). Mismas claves en ingest_logic.ts. */
 /* Categoría al ALTA de un movimiento nuevo (OB/import/ingest). ATM → traspaso.
@@ -2479,8 +2485,12 @@ function mcExitSandbox(){ try{ localStorage.removeItem("_mcSandbox"); }catch(e){
    que probar del pulido v4 (hero sin grafico, tarjetas vacias, racha a cero). Sus palabras: «si no,
    te marcare el 50% de las pruebas que no puedo reproducirlo».
    Siembra la cartera de PRUEBAS vacia. Nunca toca la real: escribe en STATE_KEY_TEST y punto.
-   `onboarded:true` a proposito: con el onboarding delante te obliga a poner presupuesto, y entonces
-   la tarjeta vacia de presupuesto (P3) no se puede ver nunca. `budget:0` es justo el caso a probar. */
+   ⚠ `onboarded:false` (10/9 noche, rechazo suyo): la fila dice «como recién instalada» y él
+   esperaba el onboarding. Antes iba a `true` a propósito para mirar la tarjeta vacía de
+   presupuesto sin pasar por el stepper — pero eso mentía en el copy y «tampoco furula» el reset
+   a cero. Quien quiera saltarse el onboarding en pruebas toca «Saltar» (deja budget 0 si no
+   cambia el stepper… en realidad finish pone el budget del stepper; al saltar con default 700).
+   Para pantallas vacías tras onboarding: salta y no añadas cuentas. */
 /* ⚠ RECHAZADA LA PRIMERA VERSIÓN (10/9): «no funciona, entra sin más al banco de pruebas» y
    «tampoco pasa nada, solamente sigue en el banco de pruebas como estaba, no resetea nada».
    Tenía toda la razón y la causa era esta línea: `store.set(STATE_KEY_TEST, {...expenses:[]})`
@@ -2495,7 +2505,7 @@ function mcExitSandbox(){ try{ localStorage.removeItem("_mcSandbox"); }catch(e){
    test que solo mira uno. */
 function mcSeedSandboxVacio(){
   mcSaveRaw(STATE_KEY_TEST, {
-    _dataVer:6, onboarded:true, tourSeen:true, setupHint:false,
+    _dataVer:6, onboarded:false, tourSeen:false, setupHint:false,
     budget:0, monthStartNet:0, history:[], streak:0,
     accounts:[], investments:[], assets:[], debts:[], fixed:[], flows:[], oneoffs:[], goals:[],
     expenses:[], settings:{}
@@ -4929,7 +4939,7 @@ Object.assign(LANG.es,{
   g_empty_t:"No hay gastos aquí", g_empty_d:"Cambia el filtro, sincroniza o apunta uno.", g_loadmore:"Cargando más…",
   g_empty_period_t:"Aún no hay gastos en este período", g_empty_period_d:"Es normal si acaba de empezar el mes o tu ciclo — irán apareciendo según sincronices o apuntes alguno.",
   g_today:"Hoy", g_yesterday:"Ayer", g_invalid:"Pon un importe válido", g_saved_g:"✓ Gasto apuntado", g_saved_i:"✓ Ingreso apuntado", g_deleted:"Eliminado", g_changecat:"Cambiar categoría",
-  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_parking:"Parking", cat_energia:"Luz, gas y agua", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso",
+  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_parking:"Parking", cat_energia:"Luz, gas y agua", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso",
   freq_mes:"mensual", freq_bimestral:"bimestral", freq_trimestral:"trimestral", freq_semestral:"semestral", "freq_año":"anual",
   // Fijos
   fj_monthly:"Gasto fijo mensual", fj_peryear:"{x}/año", fj_top_a:"Tu mayor gasto fijo es ", fj_top_b:" ({x}/mes)",
@@ -5029,7 +5039,7 @@ Object.assign(LANG.en,{
   g_empty_t:"No expenses here", g_empty_d:"Change the filter, sync or add one.", g_loadmore:"Loading more…",
   g_empty_period_t:"No expenses yet this period", g_empty_period_d:"That's normal if the month or your cycle just started — they'll show up as you sync or add one.",
   g_today:"Today", g_yesterday:"Yesterday", g_invalid:"Enter a valid amount", g_saved_g:"✓ Expense added", g_saved_i:"✓ Income added", g_deleted:"Deleted", g_changecat:"Change category",
-  cat_super:"Groceries", cat_pan:"Bakery", cat_bares:"Bars & restaurants", cat_cine:"Cinema", cat_padel:"Padel", cat_heladeria:"Ice cream", cat_ia:"Artificial intelligence", cat_ocio:"Leisure", cat_gaming:"Games", cat_viajes:"Travel", cat_transporte:"Transport", cat_parking:"Parking", cat_energia:"Power, gas & water", cat_tasas:"Taxes & fines", cat_recibos:"Bills", cat_compras:"Shopping", cat_educacion:"Education", cat_salud:"Health", cat_pelu:"Hair & beauty", cat_mascotas:"Pets", cat_hogar:"Home", cat_regalos:"Gifts", cat_joyeria:"Jewellery", cat_otros:"Other", cat_ingreso:"Income", cat_inversion:"Investment", cat_traspaso:"Transfer",
+  cat_super:"Groceries", cat_pan:"Bakery", cat_bares:"Bars & restaurants", cat_cine:"Cinema", cat_padel:"Padel", cat_heladeria:"Ice cream", cat_ia:"Artificial intelligence", cat_ocio:"Leisure", cat_gaming:"Games", cat_viajes:"Travel", cat_transporte:"Transport", cat_parking:"Parking", cat_energia:"Power, gas & water", cat_tasas:"Taxes & fines", cat_recibos:"Bills", cat_compras:"Shopping", cat_educacion:"Education", cat_salud:"Health", cat_pelu:"Hair & beauty", cat_mascotas:"Pets", cat_hogar:"Home", cat_regalos:"Gifts", cat_joyeria:"Jewellery", cat_bizum:"Bizum", cat_otros:"Other", cat_ingreso:"Income", cat_inversion:"Investment", cat_traspaso:"Transfer",
   freq_mes:"monthly", freq_bimestral:"bimonthly", freq_trimestral:"quarterly", freq_semestral:"biannual", "freq_año":"yearly",
   fj_monthly:"Monthly fixed cost", fj_peryear:"{x}/year", fj_top_a:"Your biggest fixed cost is ", fj_top_b:" ({x}/mo)",
   fj_prox:"Upcoming charges · {m}", fj_prox_sub:"{x} this month",
@@ -5128,7 +5138,7 @@ Object.assign(LANG.ca,{
   g_empty_t:"No hi ha despeses aquí", g_empty_d:"Canvia el filtre, sincronitza o apunta'n una.", g_loadmore:"Carregant més…",
   g_empty_period_t:"Encara no hi ha despeses en aquest període", g_empty_period_d:"És normal si acaba de començar el mes o el teu cicle — aniran sortint a mesura que sincronitzis o n'apuntis alguna.",
   g_today:"Avui", g_yesterday:"Ahir", g_invalid:"Posa un import vàlid", g_saved_g:"✓ Despesa apuntada", g_saved_i:"✓ Ingrés apuntat", g_deleted:"Eliminat", g_changecat:"Canvia la categoria",
-  cat_super:"Supermercat", cat_pan:"Fleca", cat_bares:"Bars i restaurants", cat_cine:"Cinema", cat_padel:"Pàdel", cat_heladeria:"Gelateria", cat_ia:"Intel·ligència artificial", cat_ocio:"Oci", cat_gaming:"Videojocs", cat_viajes:"Viatges", cat_transporte:"Transport", cat_parking:"Pàrquing", cat_energia:"Llum, gas i aigua", cat_tasas:"Impostos i multes", cat_recibos:"Rebuts", cat_compras:"Compres", cat_educacion:"Educació", cat_salud:"Salut", cat_pelu:"Perruqueria", cat_mascotas:"Mascotes", cat_hogar:"Llar", cat_regalos:"Regals", cat_joyeria:"Joieria", cat_otros:"Altres", cat_ingreso:"Ingrés", cat_inversion:"Inversió", cat_traspaso:"Traspàs",
+  cat_super:"Supermercat", cat_pan:"Fleca", cat_bares:"Bars i restaurants", cat_cine:"Cinema", cat_padel:"Pàdel", cat_heladeria:"Gelateria", cat_ia:"Intel·ligència artificial", cat_ocio:"Oci", cat_gaming:"Videojocs", cat_viajes:"Viatges", cat_transporte:"Transport", cat_parking:"Pàrquing", cat_energia:"Llum, gas i aigua", cat_tasas:"Impostos i multes", cat_recibos:"Rebuts", cat_compras:"Compres", cat_educacion:"Educació", cat_salud:"Salut", cat_pelu:"Perruqueria", cat_mascotas:"Mascotes", cat_hogar:"Llar", cat_regalos:"Regals", cat_joyeria:"Joieria", cat_bizum:"Bizum", cat_otros:"Altres", cat_ingreso:"Ingrés", cat_inversion:"Inversió", cat_traspaso:"Traspàs",
   freq_mes:"mensual", freq_bimestral:"bimestral", freq_trimestral:"trimestral", freq_semestral:"semestral", "freq_año":"anual",
   fj_monthly:"Despesa fixa mensual", fj_peryear:"{x}/any", fj_top_a:"La teva despesa fixa més gran és ", fj_top_b:" ({x}/mes)",
   fj_prox:"Pròxims càrrecs · {m}", fj_prox_sub:"{x} aquest mes",
@@ -16904,11 +16914,11 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
                 // MODO INICIAL: la app como recien instalada, dentro del banco de pruebas. Sin esto
                 // no habia manera de mirar las pantallas vacias sin vaciarse la cartera de verdad.
                 !sandbox && row("sbx0","🌱","Probar con la app vacía",null,function(){
-                  askConfirm({ title:"¿Ver la app como recién instalada?", sub:"Entras al banco de pruebas con una cartera VACÍA: sin cuentas, sin gastos y sin presupuesto, igual que alguien que se acaba de instalar la app. Tu cartera real no se toca y sigue esperándote al salir.", ok:"Entrar vacío" })
+                  askConfirm({ title:"¿Ver la app como recién instalada?", sub:"Entras al banco de pruebas con una cartera VACÍA y el onboarding de la primera vez. Tu cartera real no se toca y sigue esperándote al salir.", ok:"Entrar vacío" })
                     .then(function(yes){ if(!yes) return; mcSeedSandboxVacio(); mcEnterSandbox(); mcRecargarSinVolcar(); });
                 }),
                 sandbox && row("sbx0d","🌱","Vaciar la cartera de pruebas",null,function(){
-                  askConfirm({ title:"¿Dejarla como recién instalada?", sub:"La cartera de pruebas se queda vacía: sin cuentas, sin gastos y sin presupuesto. Tu cartera real no se toca.", ok:"Vaciar", danger:true })
+                  askConfirm({ title:"¿Dejarla como recién instalada?", sub:"La cartera de pruebas se queda vacía y vuelve el onboarding. Tu cartera real no se toca.", ok:"Vaciar", danger:true })
                     .then(function(yes){ if(!yes) return; mcSeedSandboxVacio(); mcRecargarSinVolcar(); });
                 }),
                 sandbox && row("sbxr","♻️","Volver a copiar mi cartera real",null,function(){
@@ -20369,7 +20379,12 @@ function App(){
   const pintarArrastre=function(){
     dragRaf.current=0;
     const el=trackRef.current, off=dragOff.current;
-    if(!el || off==null || !dragging.current) return;
+    /* `axis` también, no solo `dragging` (lo caza Cursor en la review): si el dedo se va en
+       vertical a mitad del gesto, el arrastre de pestañas deja de mandar pero el rAF seguía vivo
+       reescribiendo el último `off` hasta que el dedo se levantaba. No se ve —el valor es el
+       mismo— pero es un bucle por frame haciendo trabajo para nada, y justo en el momento en que
+       el usuario está scrolleando y hace falta cada milisegundo. */
+    if(!el || off==null || !dragging.current || axis.current!=="x") return;
     el.style.transform="translate3d("+off+"px,0,0)";
     dragRaf.current=requestAnimationFrame(pintarArrastre);
   };

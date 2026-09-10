@@ -17,7 +17,7 @@ import { withCors } from "../_shared/cors.ts";
 const ALLOWED = [
   "super", "pan", "bares", "cine", "padel", "heladeria", "ia", "ocio", "gaming", "viajes",
   "transporte", "parking", "energia", "tasas", "recibos", "compras", "educacion",
-  "salud", "pelu", "mascotas", "hogar", "regalos", "joyeria", "otros",
+  "salud", "pelu", "mascotas", "hogar", "regalos", "joyeria", "bizum", "otros",
 ] as const;
 
 const HINTS =
@@ -29,7 +29,7 @@ const HINTS =
   "recibos=facturas periódicas: teléfono, internet, seguro NO médico, alquiler, comunidad, alarma; " +
   "compras=ropa y tiendas; educacion=cursos y colegios; salud=farmacia, médico, seguro médico; " +
   "pelu=peluquería y estética; mascotas=veterinario y pienso; hogar=IKEA, bricolaje; " +
-  "regalos=flores y regalos; joyeria=joyas; otros=solo si no encaja ninguna.";
+  "regalos=flores y regalos; joyeria=joyas; bizum=Bizum enviado a personas; otros=solo si no encaja ninguna.";
 
 // El origen permitido lo pone `withCors` en la respuesta (lista blanca, ../_shared/cors.ts).
 const cors = { "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
