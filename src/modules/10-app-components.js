@@ -384,12 +384,15 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
     return t("bp_hist_bank_unknown");
   };
   const visibleShown=visible.slice(0, renderCap);
-  // Las filas entran contando, una detrás de otra — mismo efecto que el import de Excel (petición
-  // suya 2026-07-28, aplicada aquí también por consistencia). El tope evita una espera eterna si
-  // el histórico trae decenas de movimientos: pasado el tope, el resto aparece de golpe al acabar.
+  /* Las filas entran de una en una — mismo efecto que el import de Excel (petición 2026-07-28).
+     El tope (24) evita una espera eterna con lotes grandes: al llegar, el RESTO debe llevar
+     `dentro` de golpe. Sin eso, `.hist-fila` se queda en `opacity:0` para siempre (feedback
+     10/9: «a mitad está todo negro» y «ver 35 más, le doy y no pasa nada»). El «Ver más» solo
+     sube `renderCap`; si `revelado` ya pasó el tope, las filas nuevas nacen visibles. */
+  const HIST_ANIM_TOPE=24;
   useEffect(function(){
     if(!cands) return undefined;
-    const tope=Math.min(24, Math.min(renderCap, cands.length));
+    const tope=Math.min(HIST_ANIM_TOPE, Math.min(renderCap, cands.length));
     if(revelado>=tope) return undefined;
     const tm=setTimeout(function(){ setRevelado(function(n){ return n+1; }); }, revelado===0?90:34);
     return function(){ clearTimeout(tm); };
@@ -597,7 +600,10 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
           const c=classRows[i];
           const isDup=!!(c&&c.status==="dup");
           const suggestRec=!!(c&&c.suggestRecibo&&!isDup);
-          const dentro=vi<revelado;
+          // Pasado el tope de animación, TODAS las pintadas (incluidas las de «Ver más») llevan
+          // `dentro`. Si solo se mirara `vi<revelado`, la 25ª y siguientes quedarían invisibles.
+          const animTope=Math.min(HIST_ANIM_TOPE, visibleShown.length);
+          const dentro=revelado>=animTope || vi<revelado;
           return React.createElement("div",{key:i,className:"hist-fila"+(dentro?" dentro":""),style:{border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"var(--mint)14":"var(--surface)",borderRadius:12,marginBottom:7,padding:"10px 12px"}},
             React.createElement("button",{type:"button",onClick:function(){ toggle(i); },style:{display:"flex",alignItems:"center",gap:11,width:"100%",background:"none",border:"none",color:"inherit",cursor:"pointer",textAlign:"left",padding:0}},
               React.createElement("span",{style:{width:20,height:20,borderRadius:6,border:"2px solid "+(on?"var(--mint)":"var(--muted-2)"),background:on?"var(--mint)":"transparent",color:"#06120C",fontWeight:900,fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}, on?"✓":""),
@@ -615,7 +621,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
             )
           );
         }),
-        visible.length>renderCap && React.createElement("button",{type:"button",onClick:function(){ setRenderCap(function(n){ return n+HIST_RENDER_CAP; }); setRevelado(function(n){ return Math.max(n, Math.min(24, renderCap+HIST_RENDER_CAP)); }); },
+        visible.length>renderCap && React.createElement("button",{type:"button","data-hist-more":"1",onClick:function(){ setRenderCap(function(n){ return n+HIST_RENDER_CAP; }); },
           style:{width:"100%",padding:"10px",borderRadius:12,border:"1px solid var(--line)",background:"var(--surface)",color:"var(--text)",fontWeight:700,fontSize:13,cursor:"pointer",marginBottom:8}},
           tf("bp_hist_more",{n:visible.length-renderCap})),
         React.createElement("button",{style:Object.assign({},bigBtn,{opacity:(selCount&&!importing)?1:0.5}),disabled:!selCount||importing,onClick:doImport}, tf("bp_hist_import",{n:selCount}))

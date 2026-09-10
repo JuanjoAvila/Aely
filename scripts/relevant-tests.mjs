@@ -79,6 +79,8 @@ export const E2E_MAP = [
     "e2e/tour-tutorial.spec.mjs", "e2e/modo-pruebas.spec.mjs", "e2e/tr-aviso.spec.mjs",
     "e2e/presupuesto-bancos.spec.mjs",
     "e2e/hist-pagos-mensuales.spec.mjs",
+    "e2e/bancos-historico-filtro.spec.mjs",
+    "e2e/hist-visor.spec.mjs",
   ] },
   { file: "src/modules/12-boot.js", specs: ["e2e/splash.spec.mjs", "e2e/smoke.spec.mjs", "e2e/csp.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },
