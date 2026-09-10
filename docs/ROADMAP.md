@@ -1,6 +1,6 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-10 · **v4.19.28** — quitar un banco pregunta; TR dice por qué puerta falla.
+> Estado a 2026-09-10 · **v4.19.30** — quitar banco pregunta, TR por dos puertas, histórico renombrado y el tironcillo de las pestañas.
 > Anterior: v4.19.27
 > Anterior: v4.19.15 — cada cuenta arrastra sus propios gastos al cerrar el mes.
 > Auditoría: [hallazgos y límites](briefs/AUDITORIA-CODEX-2026-09-09.md). Efectivo sigue bloqueado por el cierre mensual; no promover la ronda completa.
@@ -120,7 +120,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.19.28** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.30** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

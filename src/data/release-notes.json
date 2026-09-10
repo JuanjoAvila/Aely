@@ -1,5 +1,102 @@
 [
   {
+    "v": "4.19.30",
+    "d": "10 sep 2026",
+    "t": {
+      "es": "Sin tironcillo al cambiar de pestaña",
+      "en": "No more jolt when switching tabs",
+      "ca": "Sense tironcillo en canviar de pestanya"
+    },
+    "tandas": [
+      {
+        "id": "ux01-tiron",
+        "t": {
+          "es": "📐 Al pasar de una pestaña a otra ya no salta el contenido",
+          "en": "📐 Switching tabs no longer jumps the content",
+          "ca": "📐 En passar d'una pestanya a una altra ja no salta el contingut"
+        },
+        "items": {
+          "es": [
+            "Con temática puesta (Navidad u otra), desliza varias veces Inicio → Gastos → Plan → Cartera y vuelta. El título y las cartillas no pueden dar un salto hacia arriba o abajo a mitad del gesto.",
+            "Prueba también tocando las pestañas de la barra inferior: mismo criterio, sin tirón vertical.",
+            "En Gastos, baja la lista con el dedo: eso NO es este arreglo (tiene que seguir yendo fluido como siempre).",
+            "Si notas el salto otra vez, anótalo en Revisar esta beta con qué temática y entre qué pestañas."
+          ],
+          "en": [
+            "With a theme on (Christmas or another), swipe several times Home → Expenses → Plan → Portfolio and back. The title and cards must not jump up or down mid-gesture.",
+            "Also try tapping the bottom tabs: same rule, no vertical jolt.",
+            "In Expenses, scroll the list with your finger: that is NOT this fix (it should still feel as smooth as always).",
+            "If you see the jump again, note it in Review this beta with which theme and between which tabs."
+          ],
+          "ca": [
+            "Amb temàtica posada (Nadal o una altra), llisca diverses vegades Inici → Despeses → Pla → Cartera i torna. El títol i les targetes no poden fer un salt amunt o avall a meitat del gest.",
+            "Prova també tocant les pestanyes de la barra inferior: mateix criteri, sense tiró vertical.",
+            "A Despeses, baixa la llista amb el dit: això NO és aquest arranjament (ha de seguir anant fluid com sempre).",
+            "Si notes el salt una altra vegada, anota-ho a Revisar aquesta beta amb quina temàtica i entre quines pestanyes."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "Al pasar de una pestaña a otra el contenido ya no da un salto: se queda donde toca."
+      ],
+      "en": [
+        "When you switch tabs, the content no longer jumps: it stays where it should."
+      ],
+      "ca": [
+        "En passar d'una pestanya a una altra el contingut ja no fa un salt: es queda on toca."
+      ]
+    }
+  },
+  {
+    "v": "4.19.29",
+    "d": "10 sep 2026",
+    "t": {
+      "es": "El histórico reconoce lo renombrado",
+      "en": "History recognizes renamed items",
+      "ca": "L'històric reconeix el que has canviat de nom"
+    },
+    "tandas": [
+      {
+        "id": "hist-dup-obname",
+        "t": {
+          "es": "🔁 Lo que ya renombraste ya no sale como nuevo",
+          "en": "🔁 Renamed items no longer show as new",
+          "ca": "🔁 El que ja has canviat de nom ja no surt com a nou"
+        },
+        "items": {
+          "es": [
+            "Ajustes → Importaciones → Importar histórico (Trade Republic o un gasto que hayas renombrado): busca. Lo que YA tenías no puede salir marcado como nuevo solo porque le cambiaste el nombre.",
+            "Un gasto de TR que llamabas «Movimiento» y renombraste: tiene que salir tachado / repetido, no para importar otra vez.",
+            "Gastos que nunca renombraste: siguen detectándose igual que antes."
+          ],
+          "en": [
+            "Settings → Imports → Import history (Trade Republic or a renamed expense): search. What you already have must NOT show as new just because you renamed it.",
+            "A TR expense that said «Movimiento» and you renamed: it must show as a duplicate, not ready to import again.",
+            "Expenses you never renamed: still detected the same as before."
+          ],
+          "ca": [
+            "Ajustos → Importacions → Importar històric (Trade Republic o una despesa que hagis canviat de nom): cerca. El que JA tenies no pot sortir marcat com a nou només perquè li has canviat el nom.",
+            "Una despesa de TR que deia «Movimiento» i has canviat de nom: ha de sortir com a repetida, no per importar una altra vegada.",
+            "Despeses que no has canviat mai de nom: se segueixen detectant igual que abans."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "Al traer el histórico, lo que ya tenías y habías renombrado ya no aparece como movimiento nuevo."
+      ],
+      "en": [
+        "When importing history, items you already had and renamed no longer appear as new."
+      ],
+      "ca": [
+        "En portar l'històric, el que ja tenies i havies canviat de nom ja no surt com a moviment nou."
+      ]
+    }
+  },
+  {
     "v": "4.19.28",
     "d": "10 sep 2026",
     "t": {
