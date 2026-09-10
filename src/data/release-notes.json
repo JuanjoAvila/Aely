@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.19.31",
+    "d": "10 sep 2026",
+    "t": {
+      "es": "Deslizar despacio, sin temblor",
+      "en": "Slow swipes, no judder",
+      "ca": "Lliscar a poc a poc, sense tremolor"
+    },
+    "tandas": [
+      {
+        "id": "tiron-lento",
+        "t": {
+          "es": "👉 El tironcillo al pasar de pestaña",
+          "en": "👉 The judder when switching tabs",
+          "ca": "👉 La sotragada en passar de pestanya"
+        },
+        "items": {
+          "es": [
+            "Pasa de una pestaña a otra arrastrando MUY DESPACIO, con el dedo puesto: la pestaña tiene que seguir a tu dedo sin temblar ni ir a saltitos. Este es EL punto de esta tanda.",
+            "Hazlo también rápido, de un manotazo: tiene que ir igual de bien que antes.",
+            "Empieza a arrastrar y suelta a medias, sin llegar a cambiar: tiene que volver a su sitio de un tirón limpio, sin quedarse pegada.",
+            "Empieza a arrastrar y sube el dedo hacia arriba a media faena (para que el móvil te quite el gesto): la app no puede quedarse bloqueada ni la pestaña a medio camino.",
+            "Al llegar a la pestaña nueva, el contenido NO puede pegar un salto hacia arriba. Míralo con una temática puesta, que es donde más se nota."
+          ],
+          "en": [
+            "Switch tabs by dragging VERY SLOWLY with your finger down: the tab must follow your finger without judder or stepping. This is THE point of this batch.",
+            "Do it fast too, with a flick: it must work just as well as before.",
+            "Start dragging and let go halfway, without changing tab: it must snap back cleanly, not stick.",
+            "Start dragging and move your finger upwards halfway (so the phone takes the gesture away): the app must not freeze nor leave the tab half-way.",
+            "On arriving at the new tab, the content must NOT jump upwards. Check it with a theme on, where it shows most."
+          ],
+          "ca": [
+            "Passa d'una pestanya a l'altra arrossegant MOLT A POC A POC, amb el dit posat: la pestanya ha de seguir el teu dit sense tremolar ni anar a salts. Aquest és EL punt d'aquesta tanda.",
+            "Fes-ho també ràpid, d'una revolada: ha d'anar igual de bé que abans.",
+            "Comença a arrossegar i deixa anar a mitges, sense arribar a canviar: ha de tornar al seu lloc net, sense quedar-se enganxada.",
+            "Comença a arrossegar i puja el dit cap amunt a mitja feina (perquè el mòbil et prengui el gest): l'app no es pot quedar bloquejada ni la pestanya a mig camí.",
+            "En arribar a la pestanya nova, el contingut NO pot fer un salt cap amunt. Mira-ho amb una temàtica posada, que és on més es nota."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "Al pasar de una pestaña a otra, la app sigue tu dedo sin temblar, sobre todo si deslizas despacio."
+      ],
+      "en": [
+        "Switching tabs now follows your finger without judder, especially when you swipe slowly."
+      ],
+      "ca": [
+        "En passar d'una pestanya a l'altra, l'app segueix el teu dit sense tremolar, sobretot si llisques a poc a poc."
+      ]
+    }
+  },
+  {
     "v": "4.19.30",
     "d": "10 sep 2026",
     "t": {

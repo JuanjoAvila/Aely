@@ -2,6 +2,17 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.31] — 2026-09-10
+### El tironcillo al pasar de pestaña: la mitad que faltaba
+
+Con el arreglo de los 44 px puesto, él lo probó y dijo lo que faltaba: «sigue igual, una pequeñiiiiiiiiiiisiima mejora, pero sigo notando el tironcillo [...] **si desplazas fluido no se nota apenas, es ir LENTO y ahí se nota** el tirón, no va super smooth».
+
+- Esa frase resuelve el caso, y deja claro que yo medía mal: todos mis arrastres eran de 200 ms, **rápidos**. El caso lento no lo probé nunca.
+- Arrastrando despacio, el avance del carrusel frame a frame era: `-0,24  -0,25  -0,25  0  -0,25  0  -0,24  0  -0,25  0 …` — **un frame sí y otro no**.
+- Causa: pantalla a 120 Hz, táctil mandando **~2,7 `touchmove` por frame** (696 para 253 frames, muchos con la misma marca de tiempo: el WebView los entrega en ráfaga). Escribir `transform` dentro de cada `touchmove` no pinta más veces, pero **desalinea cuándo se escribe respecto a cuándo se pinta**: frames con dos escrituras y frames sin ninguna. Rápido no se ve; a 0,25 px por frame, sí.
+- Arreglo: `touchmove` solo apunta a dónde va el dedo; el `transform` lo escribe un `requestAnimationFrame`, una vez por frame pintado. Menos trabajo que antes, además.
+- ⚠ El rAF se para en las **tres** salidas del gesto (fin, cambio de modo y `touchcancel`); si no, se pelea con `animarA` por el mismo `transform` y el soltar daría un tirón peor.
+
 ## [4.19.30] — 2026-09-10
 ### Al cambiar de pestaña ya no hay tironcillo
 
