@@ -162,13 +162,18 @@ test("volver a abrirlo lo deja como estaba, con sus límites y sus barras", asyn
 test("plegar el desglose NO toca ni un límite ni una cifra", async ({ page }) => {
   await gastosSembrado(page);
   const antes = await page.evaluate(() => JSON.stringify(mcLoadRaw("micartera_v3").categoryBudgets || {}));
-  /* La cifra grande del mes, NO el texto entero de la cabecera: el desglose vive DENTRO de
+  /* La cifra grande del mes, NO el texto entero de la cabecera. Y con la clase que EXISTE de
+     verdad (`.v4-gastos-summary-amount`): antes iba un selector doble con `.v4-gastos-progress-lbl`
+     delante, que no existe en el DOM — funcionaba de rebote por el segundo. Lo cazó Cursor
+     revisando. Un selector muerto en un test es una mentira esperando su turno: el día que
+     alguien cambie el segundo, este test pasa a mirar la nada y sigue verde.
+     Motivo del test: el desglose vive DENTRO de
      `.v4-gastos-summary`, así que plegarlo cambia ese texto por definición. Lo que no puede
      cambiar es el dinero. */
-  const cifra = await page.locator(".v4-gastos-progress-lbl, .v4-gastos-summary .num").first().innerText();
+  const cifra = await page.locator(".v4-gastos-summary-amount").first().innerText();
   await page.locator('[data-testid="gastos-cats"] .v4-gastos-cats-h').click();
   expect(await page.evaluate(() => JSON.stringify(mcLoadRaw("micartera_v3").categoryBudgets || {}))).toBe(antes);
-  expect(await page.locator(".v4-gastos-progress-lbl, .v4-gastos-summary .num").first().innerText()).toBe(cifra);
+  expect(await page.locator(".v4-gastos-summary-amount").first().innerText()).toBe(cifra);
 });
 
 test("tiros: cómo se ve abierto y plegado", async ({ page }) => {
