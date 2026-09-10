@@ -2,6 +2,16 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.33] — 2026-09-10
+### Bizum como categoría, y el vacío vuelve a enseñar el onboarding
+
+Sus palabras del 10/9 noche: «añademe bizum como categoria tambien que recibo muchos y mando muchos» y «lo de resetear la app de 0 para que salga onboarding […] tampoco furula».
+
+- **Categoría `bizum`**: en el selector, el desglose y el límite por categoría. Auto-detecta comercios con «Bizum…». Los **recibidos** siguen entrando como ingreso por el signo (como siempre); esta categoría es para los que **mandas**.
+- Alineado en cliente, `ingest_logic` y `categorize` (ALLOWED + hints).
+- **Modo vacío / «recién instalada»**: siembra `onboarded:false` (antes `true` a propósito para mirar la tarjeta vacía de presupuesto, y por eso no salía el onboarding aunque el copy lo prometía).
+- Incluye el nit del rAF del tironcillo (`axis!=="x"`) que Claude publicó en `tanda/tiron-raf` pero **no** llegó a la beta 4.19.31.1. Él sigue notando el tirón: no cantamos victoria; hace falta otra pasada con su gesto lento en la beta.
+
 ## [4.19.32] — 2026-09-10
 ### La app se llama Aely
 
