@@ -2,6 +2,16 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.36] — 2026-09-10
+### El histórico de la nube ya no se corta a 2000 (FIN-07)
+
+`pullExpenses` hacía un solo `.limit(2000)`. `syncCloudExpenses` **reemplaza** los gastos `source=supabase` por lo bajado: con tope, los más viejos desaparecían del móvil aunque siguieran en la nube — y el import histórico no tenía sus `ext_id` en memoria («solo baja un poquito» / falsos nuevos).
+
+- Paginación por **keyset** (`fecha` desc, `id` desc), páginas de 1000; no OFFSET (altas concurrentes no deben abrir huecos).
+- Tope de seguridad 50 páginas (50k): si se llena, sigue el aviso `_mcPullCapped` / toast.
+- Helper puro `mcPullExpensesPaged` + tests con 2500 filas sintéticas.
+- No toca identidad FIN-03 ni Edge.
+
 ## [4.19.35] — 2026-09-10
 ### El copy y el logo de Aely, del brief de verdad
 

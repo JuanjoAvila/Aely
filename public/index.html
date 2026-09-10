@@ -2605,6 +2605,23 @@ async function withNotaFallback(run){
   return r;
 }
 
+/* FIN-07 — bucle de páginas puro (testeable sin Supabase). `fetchPage(cursor)` recibe
+   null la primera vez y luego `{fecha,id}` del último de la página anterior (orden
+   fecha desc, id desc). Corta cuando una página viene corta; si agota maxPages → capped. */
+async function mcPullExpensesPaged(fetchPage, pageSize, maxPages){
+  const all=[];
+  let cursor=null;
+  for(let p=0;p<maxPages;p++){
+    const chunk=await fetchPage(cursor);
+    if(!chunk || !chunk.length) return { rows:all, capped:false };
+    for(let i=0;i<chunk.length;i++) all.push(chunk[i]);
+    if(chunk.length<pageSize) return { rows:all, capped:false };
+    const last=chunk[chunk.length-1];
+    cursor={ fecha:last.fecha, id:last.id };
+  }
+  return { rows:all, capped:true };
+}
+
 const cloud = (function(){
   let sb = null;
   try {
@@ -2650,15 +2667,34 @@ const cloud = (function(){
       if(error) throw error;
       return { updated_at: rows && rows[0] && rows[0].updated_at };
     },
+    /* FIN-07 — histórico cloud completo (10/9). Antes: un solo .limit(2000). Con tope,
+       syncCloudExpenses REEMPLAZA los gastos source=supabase por lo bajado: los más
+       viejos desaparecían del móvil aunque siguieran en la nube («solo baja un poquito»
+       / falsos nuevos en el histórico sin ext_id en memoria). Paginación por keyset
+       (fecha desc, id desc) — no OFFSET: altas concurrentes no deben abrir huecos.
+       Tope de seguridad MAX_PAGES×PAGE: si se llena, _mcPullCapped=true y el toast sigue. */
     async pullExpenses(){
       if(!sb) return [];
-      // Tope duro: sin paginar aún (plan O). Si se llena, syncCloudExpenses avisa — callar mentiría
-      // tras un import histórico largo.
-      const EXPENSE_PULL_LIMIT=2000;
-      const {data,error}=await sb.from('expenses').select('*').order('fecha',{ascending:false}).limit(EXPENSE_PULL_LIMIT);
-      if(error) throw error;
-      const rows=data||[];
-      if(rows.length>=EXPENSE_PULL_LIMIT) rows._mcPullCapped=true;
+      const PAGE=1000;
+      const MAX_PAGES=50;   // 50k filas: red de seguridad, no techo de producto
+      const fetchPage=async function(cursor){
+        let q=sb.from("expenses").select("*")
+          .order("fecha",{ascending:false})
+          .order("id",{ascending:false})
+          .limit(PAGE);
+        if(cursor){
+          // Estrictamente «después» en orden desc: fecha menor, o misma fecha e id menor.
+          const f=String(cursor.fecha);
+          const id=String(cursor.id);
+          q=q.or("fecha.lt."+f+",and(fecha.eq."+f+",id.lt."+id+")");
+        }
+        const {data,error}=await q;
+        if(error) throw error;
+        return data||[];
+      };
+      const pulled=await mcPullExpensesPaged(fetchPage, PAGE, MAX_PAGES);
+      const rows=pulled.rows;
+      if(pulled.capped) rows._mcPullCapped=true;
       return rows;
     },
     async addExpense(e){
@@ -18774,7 +18810,7 @@ function App(){
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
   const syncCloudExpenses=function(){
     return cloud.pullExpenses().then(function(rows){
-      // O: el SELECT lleva .limit(2000). Si llega lleno, hay más en la nube que no vemos — avisar.
+      // FIN-07: pullExpenses pagina por keyset. Si aún llena el tope de seguridad (50k), avisar.
       if(rows&&rows._mcPullCapped) showToast("⚠ "+t("exp_pull_capped"));
       const keyOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.merchant||""); };
       const delSet={}; (stateRef.current.deleted||[]).forEach(function(k){ delSet[k]=1; });

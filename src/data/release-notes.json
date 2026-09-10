@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.19.36",
+    "d": "10 sep 2026",
+    "t": {
+      "es": "Todos los gastos de la nube, no solo los 2000 últimos",
+      "en": "All cloud expenses, not just the latest 2000",
+      "ca": "Totes les despeses del núvol, no només les 2000 últimes"
+    },
+    "tandas": [
+      {
+        "id": "fin07-pull",
+        "t": {
+          "es": "📥 Histórico cloud completo",
+          "en": "📥 Full cloud history",
+          "ca": "📥 Històric cloud complet"
+        },
+        "items": {
+          "es": [
+            "Con muchos gastos en la nube (más de 2000): al sincronizar tienen que seguir apareciendo también los más viejos, no solo los recientes.",
+            "Si algún día hubiera decenas de miles, puede salir un aviso de que aún no bajó todo; con un histórico normal no debería."
+          ],
+          "en": [
+            "With many cloud expenses (more than 2000): after sync, older ones must still show up, not only the recent ones.",
+            "If there were tens of thousands someday, a notice may say not everything came down yet; a normal history should not hit that."
+          ],
+          "ca": [
+            "Amb moltes despeses al núvol (més de 2000): en sincronitzar han de seguir sortint també les més velles, no només les recents.",
+            "Si algun dia n'hi hagués desenes de milers, pot sortir un avís que encara no ha baixat tot; amb un històric normal no hauria."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "Al sincronizar, la app trae todos los gastos de la nube por páginas, no se queda en los 2000 más recientes."
+      ],
+      "en": [
+        "On sync, the app pulls all cloud expenses in pages instead of stopping at the latest 2000."
+      ],
+      "ca": [
+        "En sincronitzar, l'app porta totes les despeses del núvol per pàgines, no es queda amb les 2000 més recents."
+      ]
+    }
+  },
+  {
     "v": "4.19.35",
     "d": "10 sep 2026",
     "t": {

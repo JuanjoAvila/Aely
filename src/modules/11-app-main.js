@@ -297,7 +297,7 @@ function App(){
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
   const syncCloudExpenses=function(){
     return cloud.pullExpenses().then(function(rows){
-      // O: el SELECT lleva .limit(2000). Si llega lleno, hay más en la nube que no vemos — avisar.
+      // FIN-07: pullExpenses pagina por keyset. Si aún llena el tope de seguridad (50k), avisar.
       if(rows&&rows._mcPullCapped) showToast("⚠ "+t("exp_pull_capped"));
       const keyOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.merchant||""); };
       const delSet={}; (stateRef.current.deleted||[]).forEach(function(k){ delSet[k]=1; });
