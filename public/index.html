@@ -15325,6 +15325,17 @@ function BetaReviewPanel({onClose, showToast}){
   const [sent,setSent]=useState(function(){ return betaSavedVerdicts(pack,storeKey); });
   // Lo aprobado ocupa solo su cabecera; abrirlo para consultar nunca cambia el veredicto.
   const [expanded,setExpanded]=useState({});
+  /* UNO A UNO DENTRO DE LA TANDA (petición suya 2026-09-10, y no era una petición de estilo:
+     «si estoy haciendo pruebas en 1, no quiero tener que bajar hasta abajo del todo para dar la
+     siguiente y así sucesivamente porque si tiene 5 para probar en 1 tanda y tengo que estar
+     leyendo porque no me lo aprendo todo de memoria, te lo juro que me muero»).
+     El punto marcado se ENCOGE a una línea y el siguiente sin marcar se trae solo a la vista, así
+     que la lista mengua según prueba y el botón de aprobar sube hacia él en vez de huir.
+     ⚠ Un ✗ NUNCA se encoge: debajo tiene el «¿qué pasa exactamente?», y esconderlo sería tragarse
+     lo único que hace útil un rechazo. `itemOpen` guarda solo lo que él abre A MANO para repasar,
+     que manda sobre la regla automática. */
+  const [itemOpen,setItemOpen]=useState({});
+  const itemRefs=useRef({});
   // Pages responde después de montar el panel. Al llegar las tandas antiguas, recuperar
   // también sus marcas y partes; el primer useState solo conocía la versión más reciente.
   useEffect(function(){
@@ -15357,10 +15368,30 @@ function BetaReviewPanel({onClose, showToast}){
     if(txt&&txt.trim()) prev[it]=txt; else delete prev[it];
     store.set(notaKey,prev);
   };
-  const mark=function(i,v){
+  /* Traer el siguiente punto sin probar a la vista. Se hace por `ref` y no por id de DOM porque
+     el panel se remonta al llegar las tandas viejas de Pages y los ids se repetirían.
+     `block:"center"` a propósito: con `start` el punto queda pegado al borde de arriba y en el
+     móvil se lo come la barra de estado. Si ya no queda ninguno sin probar, se lleva al botón de
+     veredicto de esa tanda — que es justo el momento en que él quiere llegar abajo. */
+  const traerALaVista=function(el){
+    if(!el||!el.scrollIntoView) return;
+    try{ el.scrollIntoView({behavior:"smooth",block:"center"}); }catch(e){ try{ el.scrollIntoView(); }catch(e2){} }
+  };
+  const mark=function(i,v,g){
     setMarks(function(p){ const m=Object.assign({},p); if(m[i]===v) delete m[i]; else m[i]=v; save(m,null); recordarOk(m);
       // Quitar el ✗ se lleva su comentario: si ya no falla, la nota es ruido en el parte siguiente.
       if(m[i]!=="ko") recordarNota(i,"");
+      /* Solo se avanza cuando el punto queda RESUELTO y encogido (✓ o «no lo puedo probar»).
+         Con un ✗ se queda donde está: tiene que escribir qué falla. Y al DESmarcar tampoco se
+         mueve nada, porque desmarcar es volver atrás a mirar algo. */
+      if(g && (m[i]==="ok"||m[i]==="na")){
+        var sig=null;
+        for(var k=0;k<g.idx.length;k++){ var j=g.idx[k]; if(j!==i && !m[j]){ sig=j; break; } }
+        var clave=sig!==null ? sig : "fin-"+g.id;
+        // El ref se lee DENTRO del timeout: antes de repintar, el nodo del punto que se encoge
+        // todavía ocupa su altura vieja y el scroll caería en el sitio equivocado.
+        setTimeout(function(){ traerALaVista(itemRefs.current[clave]); },90);
+      }
       return m; });
   };
   const setNote=function(i,txt){ setNotes(function(p){ const n=Object.assign({},p); n[i]=txt; store.set(storeKey+"_n",n); recordarNota(i,txt); return n; }); };
@@ -15435,7 +15466,9 @@ function BetaReviewPanel({onClose, showToast}){
           store.set(storeKey+"_v",n);   // sobrevive a cerrar la app: probar lleva días
           return n;
         });
-        setExpanded(function(p){ return Object.assign({},p,{[g.id]:verdict!=="approved"}); });
+        // Encoger SIEMPRE al enviar, apruebe o rechace. Dejar la rechazada abierta era lo que le
+        // obligaba a bajar por encima de una tanda ya juzgada para llegar a la siguiente.
+        setExpanded(function(p){ return Object.assign({},p,{[g.id]:false}); });
         showToast(verdict==="approved"?"✅ Aprobada · queda registrado":"⛔ Enviado · no se sube");
       })
       .catch(function(e){ showToast("✕ No se pudo enviar: "+((e&&e.message)||e)); })
@@ -15500,7 +15533,12 @@ function BetaReviewPanel({onClose, showToast}){
       const c=cuenta(g.idx);
       const v=sent[g.id];
       const listo=c.pend===0 && c.ko===0;
-      const open=expanded[g.id]!==undefined ? expanded[g.id] : v!=="approved";
+      /* Con veredicto —APROBADA O RECHAZADA— la tanda se encoge a su cabecera. Antes solo se
+         encogían las aprobadas y él lo dijo con todas las letras (2026-09-10): «las que se
+         aprueban se encogen, las que se rechazan también se deberían poder encoger». Tenía razón
+         y el motivo es el mismo en los dos casos: una tanda ya juzgada solo estorba entre las que
+         le faltan por probar. Se sigue pudiendo abrir para repasar lo que escribió. */
+      const open=expanded[g.id]!==undefined ? expanded[g.id] : !v;
       return React.createElement("div",{key:g.id,className:"beta-tanda"},
         React.createElement("button",{type:"button",className:"beta-tanda-h beta-tanda-toggle",
           "aria-expanded":open,"aria-controls":"beta-body-"+g.id,
@@ -15512,7 +15550,26 @@ function BetaReviewPanel({onClose, showToast}){
         React.createElement("div",{id:"beta-body-"+g.id,hidden:!open},
         g.idx.map(function(i,j){
           const it=g.items[j], m=marks[i];
-          return React.createElement("div",{key:i,className:"beta-item",style:{border:"1px solid "+(m==="ko"?"var(--coral)":m==="ok"?"var(--mint)":m==="na"?"var(--muted-2)":"var(--line-soft)"),
+          const borde=m==="ko"?"var(--coral)":m==="ok"?"var(--mint)":m==="na"?"var(--muted-2)":"var(--line-soft)";
+          /* Resuelto = encogido. Abierto queda lo que le falta por probar y lo que falla (que
+             lleva debajo el comentario), más lo que él abra a mano para repasar. */
+          const resuelto=(m==="ok"||m==="na");
+          const abierto=itemOpen[i]!==undefined ? itemOpen[i] : !resuelto;
+          if(!abierto){
+            return React.createElement("button",{key:i,type:"button",className:"beta-item beta-item-done",
+              ref:function(el){ itemRefs.current[i]=el; },
+              onClick:function(){ setItemOpen(function(p){ return Object.assign({},p,{[i]:true}); }); },
+              style:{display:"flex",gap:9,alignItems:"center",width:"100%",textAlign:"left",cursor:"pointer",
+                border:"1px solid "+borde,borderRadius:14,padding:"9px 12px",marginBottom:8,
+                background:"var(--sur)",color:"var(--text)",opacity:m==="na"?0.6:0.78}},
+              React.createElement("span",{style:{fontSize:13,flexShrink:0}}, m==="ok"?"✓":"—"),
+              React.createElement("span",{style:{fontSize:12.5,lineHeight:1.4,flex:1,overflow:"hidden",
+                textOverflow:"ellipsis",whiteSpace:"nowrap"}}, it),
+              React.createElement("span",{style:{fontSize:11,color:"var(--muted-2)",flexShrink:0}}, "▸"));
+          }
+          return React.createElement("div",{key:i,className:"beta-item",
+            ref:function(el){ itemRefs.current[i]=el; },
+            style:{border:"1px solid "+borde,
             borderRadius:16,padding:"12px 14px",marginBottom:10,background:"var(--sur)",opacity:m==="na"?0.72:1}},
             React.createElement("div",{style:{fontSize:13.5,lineHeight:1.5,marginBottom:10}}, it),
             // Una cruz que viene de la compilación anterior se dice, para que no parezca que la
@@ -15520,16 +15577,26 @@ function BetaReviewPanel({onClose, showToast}){
             m==="ko" && heredadas.current.ko[i] && React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",marginTop:-4,marginBottom:9}},
               "↩ lo marcaste en la compilación anterior · compruébalo y ponlo en ✓ si ya va"),
             React.createElement("div",{style:{display:"flex",gap:8}},
-              React.createElement("button",{type:"button",style:btn(m==="ok","var(--mint)"),onClick:function(){ mark(i,"ok"); }}, "✓ Va bien"),
-              React.createElement("button",{type:"button",style:btn(m==="ko","var(--coral)"),onClick:function(){ mark(i,"ko"); }}, "✗ Falla")),
+              React.createElement("button",{type:"button",style:btn(m==="ok","var(--mint)"),onClick:function(){ mark(i,"ok",g); }}, "✓ Va bien"),
+              React.createElement("button",{type:"button",style:btn(m==="ko","var(--coral)"),onClick:function(){ mark(i,"ko",g); }}, "✗ Falla")),
             React.createElement("button",{type:"button",style:Object.assign({},btn(m==="na","var(--muted-2)"),{marginTop:8,width:"100%"}),
-              onClick:function(){ mark(i,"na"); }}, "— No lo puedo probar"),
+              onClick:function(){ mark(i,"na",g); }}, "— No lo puedo probar"),
             m==="ko" && React.createElement("input",{className:"v4-exp-note-in",style:{marginTop:10},
               placeholder:"¿Qué pasa exactamente?",value:notes[i]||"",
-              onChange:function(e){ setNote(i,e.target.value); }})
+              onChange:function(e){ setNote(i,e.target.value); }}),
+            /* Si lo ha abierto A MANO para repasar algo que ya dio por bueno, hace falta una
+               salida: sin esto se le queda desplegado para siempre y vuelve el problema de la
+               lista larga. Solo sale en ese caso, no en un punto que aún no ha probado. */
+            resuelto && itemOpen[i] && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",
+              style:{marginTop:10,fontSize:12.5},
+              onClick:function(){ setItemOpen(function(p){ const n=Object.assign({},p); delete n[i]; return n; }); }},
+              "▴ Volver a encogerlo")
           );
         }),
         // El veredicto de ESTA tanda. Con la versión ya en producción no se pide ninguno.
+        // El `ref` es el destino del último ✓: probado el último punto, lo que se le trae a la
+        // vista es el botón de aprobar, no un hueco.
+        React.createElement("div",{ref:function(el){ itemRefs.current["fin-"+g.id]=el; }},
         yaEnProd ? null
         : v ? React.createElement("div",{className:"beta-veredicto",style:{borderColor:v==="approved"?"var(--mint)":"var(--coral)"}},
             React.createElement("div",{style:{fontWeight:800,fontSize:14,marginBottom:5}},
@@ -15556,7 +15623,7 @@ function BetaReviewPanel({onClose, showToast}){
             !listo && React.createElement("div",{style:{fontSize:12,color:"var(--muted-2)",textAlign:"center",marginTop:8,lineHeight:1.5}},
               c.ko>0 ? "Hay algo marcado como que falla: arréglalo antes de aprobar."
                      : "Te quedan "+c.pend+" cosa(s) por probar.")
-          ))
+          )))
       );
     }),
 
@@ -15565,7 +15632,7 @@ function BetaReviewPanel({onClose, showToast}){
         const reset={}; grupos.forEach(function(g){ reset[g.id]=null; });
         store.del(storeKey); store.del(storeKey+"_n"); store.set(storeKey+"_v",reset);
         recordarOk({}); pack.items.forEach(function(_,i){ recordarNota(i,""); });
-        setMarks({}); setNotes({}); setSent(reset); setExpanded({});
+        setMarks({}); setNotes({}); setSent(reset); setExpanded({}); setItemOpen({});
       }},
       "↺ Empezar la revisión de cero")
   ));

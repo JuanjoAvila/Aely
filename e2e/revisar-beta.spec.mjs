@@ -71,6 +71,15 @@ test("no se puede aprobar con cosas sin probar ni con fallos marcados", async ({
   // 2) Todo bien menos uno marcado como que falla → sigue deshabilitado, y sale el aviso.
   for (let i = 0; i < n; i++) await items.nth(i).getByRole("button", { name: /Va bien/i }).click();
   await expect(aprobar).toBeEnabled();                       // todo ok → sí se puede
+
+  /* Desde 2026-09-10 un punto en ✓ se ENCOGE a una línea, así que para cambiarle el veredicto hay
+     que volver a abrirlo de un toque. Es un toque de más en el camino raro (rectificar algo que ya
+     diste por bueno) a cambio de no bajar media pantalla en el camino normal, que es el que él hace
+     cinco veces por tanda. La regla de aprobación no cambia, que es lo que vigila este test. */
+  const reabrir = async (i) => {
+    if (await items.nth(i).evaluate((el) => el.classList.contains("beta-item-done"))) await items.nth(i).click();
+  };
+  await reabrir(0);
   await items.nth(0).getByRole("button", { name: /Falla/i }).click();
   await expect(aprobar).toBeDisabled();                      // uno roto → no se puede
   await expect(tanda).toContainText(/arréglalo antes de aprobar/i);
@@ -86,6 +95,7 @@ test("no se puede aprobar con cosas sin probar ni con fallos marcados", async ({
   // 4) «No lo puedo probar» NO bloquea (2026-07-26). Hay cosas que no dependen de él —que llegue
   //    la nómina, que el banco mande una notificación, un icono que solo se ve con la APK— y antes
   //    contaban como pendientes: o mentía marcando «va bien» o la beta se quedaba sin veredicto.
+  await reabrir(0);
   await items.nth(0).getByRole("button", { name: /No lo puedo probar/i }).click();
   await expect(aprobar).toBeEnabled();
 });
@@ -602,4 +612,103 @@ test("betaMarksCount hereda lo aprobado de una compilación anterior, aunque cam
   });
   const r = await page.evaluate(() => betaMarksCount(betaChecklist(CONFIG.APP_VERSION)));
   expect(r.n).toBeGreaterThanOrEqual(2);
+});
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PROBAR SIN BUSCAR NADA (petición suya del 2026-09-10)
+   Dos quejas suyas, del mismo día y del mismo sitio:
+   · «las que se aprueban se encogen, las que se rechazan también se deberían poder encoger»
+   · «si estoy haciendo pruebas en 1, no quiero tener que bajar hasta abajo del todo para dar la
+      siguiente y así sucesivamente [...] tengo que estar leyendo porque no me lo aprendo todo de
+      memoria, te lo juro que me muero»
+   No son estética: con 21 tandas esperando veredicto, el panel es lo que le impide dárnoslos.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/** Deja el panel montado con dos tandas de mentira (A y B, dos puntos cada una). */
+async function panelConDosTandas(page) {
+  await abrirRevisionBeta(page);
+  await page.evaluate(() => {
+    window.__betaReports = [];
+    cloud.betaReport = function (p) { window.__betaReports.push(p); return Promise.resolve(); };
+    const k = "_betaReview_" + CONFIG.APP_VERSION;
+    try { localStorage.removeItem(k); localStorage.removeItem(k + "_v"); localStorage.removeItem(k + "_n"); } catch (e) {}
+    try { localStorage.removeItem("_betaReviewOk"); localStorage.removeItem("_betaReviewNotas"); } catch (e) {}
+  });
+  const prod = await conTandasDePrueba(page);
+  const panel = await conProduccionEn(page, prod);
+  await expect(panel).toBeVisible();
+  return panel;
+}
+
+test("una tanda RECHAZADA se encoge igual que una aprobada", async ({ page }) => {
+  const panel = await panelConDosTandas(page);
+  const a = panel.locator(".beta-tanda").first();
+  await expect(a.locator(".beta-tanda-toggle")).toHaveAttribute("aria-expanded", "true");
+
+  // Un fallo y a reportar: es el camino que antes dejaba la tanda abierta estorbando.
+  await a.locator(".beta-item").first().getByRole("button", { name: /Falla/i }).click();
+  await a.getByRole("button", { name: /Reportar .* fallo/i }).click();
+  await expect(a).toContainText(/⛔ rechazada/i);
+
+  await expect(a.locator(".beta-tanda-toggle")).toHaveAttribute("aria-expanded", "false");
+  await expect(a.locator(".beta-item").first()).toBeHidden();
+
+  // Y se puede volver a abrir para repasar lo que escribió, sin mandar otro parte.
+  await a.locator(".beta-tanda-toggle").click();
+  await expect(a.locator(".beta-tanda-toggle")).toHaveAttribute("aria-expanded", "true");
+  expect(await page.evaluate(() => window.__betaReports.length)).toBe(1);
+  expect(await page.evaluate(() => window.__betaReports[0].verdict)).toBe("rejected");
+});
+
+test("el punto que va bien se encoge a una línea y el ✗ NO (lleva su comentario debajo)", async ({ page }) => {
+  const panel = await panelConDosTandas(page);
+  const a = panel.locator(".beta-tanda").first();
+
+  // Punto 1: ✓ → se encoge. Sigue leyéndose su texto, pero ya no ocupa media pantalla.
+  await a.locator(".beta-item").first().getByRole("button", { name: /Va bien/i }).click();
+  const p1 = a.locator(".beta-item").first();
+  await expect(p1).toHaveClass(/beta-item-done/);
+  await expect(p1).toContainText("Punto A1");
+  await expect(p1.getByRole("button", { name: /Va bien/i })).toHaveCount(0);
+
+  // Punto 2 sigue entero y es el único con botones: es el que le toca probar.
+  const p2 = a.locator(".beta-item").nth(1);
+  await expect(p2).not.toHaveClass(/beta-item-done/);
+  await expect(p2.getByRole("button", { name: /Va bien/i })).toBeVisible();
+
+  /* Un ✗ NO se encoge: debajo tiene «¿qué pasa exactamente?», y esconderlo sería tragarse lo
+     único que hace útil un rechazo. Este es el caso que más caro sale si se hace mal. */
+  await p2.getByRole("button", { name: /Falla/i }).click();
+  await expect(a.locator(".beta-item").nth(1)).not.toHaveClass(/beta-item-done/);
+  await expect(a.locator(".beta-item").nth(1).locator("input[placeholder*='exactamente']")).toBeVisible();
+});
+
+test("un punto encogido se vuelve a abrir para repasarlo, y se cierra otra vez", async ({ page }) => {
+  const panel = await panelConDosTandas(page);
+  const a = panel.locator(".beta-tanda").first();
+  await a.locator(".beta-item").first().getByRole("button", { name: /Va bien/i }).click();
+  await expect(a.locator(".beta-item").first()).toHaveClass(/beta-item-done/);
+
+  await a.locator(".beta-item").first().click();
+  const abierto = a.locator(".beta-item").first();
+  await expect(abierto).not.toHaveClass(/beta-item-done/);
+  // Repasar no cambia el veredicto del punto: sigue en ✓.
+  await expect(abierto.getByRole("button", { name: /Va bien/i })).toBeVisible();
+  expect(await page.evaluate(() => store.get("_betaReview_" + CONFIG.APP_VERSION))).toEqual({ 0: "ok" });
+
+  await abierto.getByRole("button", { name: /Volver a encogerlo/i }).click();
+  await expect(a.locator(".beta-item").first()).toHaveClass(/beta-item-done/);
+});
+
+test("«no lo puedo probar» también encoge; desmarcar vuelve a abrir el punto", async ({ page }) => {
+  const panel = await panelConDosTandas(page);
+  const a = panel.locator(".beta-tanda").first();
+  await a.locator(".beta-item").first().getByRole("button", { name: /No lo puedo probar/i }).click();
+  await expect(a.locator(".beta-item").first()).toHaveClass(/beta-item-done/);
+
+  // Desmarcar (segundo toque sobre el mismo botón) devuelve el punto a la cola de pendientes.
+  await a.locator(".beta-item").first().click();
+  await a.locator(".beta-item").first().getByRole("button", { name: /No lo puedo probar/i }).click();
+  expect(await page.evaluate(() => store.get("_betaReview_" + CONFIG.APP_VERSION))).toEqual({});
+  await expect(a.locator(".beta-item").first()).not.toHaveClass(/beta-item-done/);
 });

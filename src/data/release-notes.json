@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.19.23",
+    "d": "10 sep 2026",
+    "t": {
+      "es": "Probar de uno en uno",
+      "en": "Test one at a time",
+      "ca": "Provar d'un en un"
+    },
+    "tandas": [
+      {
+        "id": "panel-uno-a-uno",
+        "t": {
+          "es": "🧪 Probar sin buscar nada",
+          "en": "🧪 Testing without hunting",
+          "ca": "🧪 Provar sense buscar res"
+        },
+        "items": {
+          "es": [
+            "Marca un punto como «va bien»: se encoge a una línea y el siguiente sin probar se te pone delante solo, sin que tengas que bajar.",
+            "Marca el último punto de una tanda: lo que se te pone delante es el botón de aprobar, no un hueco.",
+            "Marca un punto como «falla»: ese NO se encoge, se queda abierto con su recuadro para escribir qué pasa.",
+            "Toca un punto ya encogido: se vuelve a abrir para repasarlo, y sigue marcado igual que lo dejaste.",
+            "Rechaza una tanda: se encoge sola, igual que las aprobadas, y la siguiente queda a la vista."
+          ],
+          "en": [
+            "Mark a point as «works»: it shrinks to a single line and the next untested one comes to you, with no scrolling.",
+            "Mark the last point of a group: what comes to you is the approve button, not empty space.",
+            "Mark a point as «fails»: that one does NOT shrink, it stays open with its box to write what happens.",
+            "Tap a point that is already shrunk: it opens again to review it, still marked as you left it.",
+            "Reject a group: it collapses on its own, just like approved ones, and the next group is right there."
+          ],
+          "ca": [
+            "Marca un punt com a «va bé»: s'encongeix a una línia i el següent sense provar se't posa al davant sol, sense haver de baixar.",
+            "Marca l'últim punt d'una tanda: el que se't posa al davant és el botó d'aprovar, no un buit.",
+            "Marca un punt com a «falla»: aquest NO s'encongeix, es queda obert amb el seu quadre per escriure què passa.",
+            "Toca un punt ja encongit: es torna a obrir per repassar-lo, i segueix marcat tal com el vas deixar.",
+            "Rebutja una tanda: s'encongeix sola, igual que les aprovades, i la següent queda a la vista."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "Las listas de revisión van de uno en uno: lo que ya has resuelto se encoge y lo siguiente se pone delante, sin buscarlo."
+      ],
+      "en": [
+        "Review lists go one at a time: what you have already settled shrinks and the next item comes to you, no hunting."
+      ],
+      "ca": [
+        "Les llistes de revisió van d'un en un: el que ja has resolt s'encongeix i el següent es posa al davant, sense buscar-lo."
+      ]
+    }
+  },
+  {
     "v": "4.19.22",
     "d": "9 sep 2026",
     "t": {

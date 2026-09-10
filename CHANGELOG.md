@@ -2,6 +2,15 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.23] — 2026-09-10
+### Panel de pruebas: de uno en uno
+
+- Un punto marcado ✓ o «no lo puedo probar» se **encoge a una línea** y el siguiente sin probar se trae solo a la vista (scrollIntoView centrado). Al marcar el último, el destino es el botón de veredicto.
+- Un ✗ **no** se encoge: debajo lleva el «¿qué pasa exactamente?». Esconderlo sería tragarse lo único que hace útil un rechazo.
+- Un punto encogido se reabre de un toque para repasarlo, con «▴ Volver a encogerlo» para cerrarlo otra vez. `itemOpen` (lo que abre a mano) manda sobre la regla automática.
+- **Las tandas RECHAZADAS se encogen igual que las aprobadas**, petición suya del 10/9. Antes solo se plegaban las aprobadas y la rechazada se quedaba estorbando en medio de la lista.
+- 4 e2e nuevos en `revisar-beta.spec.mjs` (25/25 Chromium). El test de la regla de aprobación se adaptó: rectificar un ✓ ahora pide reabrir el punto primero.
+
 ## [4.19.22] — 2026-09-09
 ### B2/B4/B5 del pulido
 
