@@ -16,11 +16,46 @@ const I = {
   chev:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.4",width:"18",height:"18"},p),React.createElement("path",{d:"M6 9l6 6 6-6"})),
   up:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.6",width:"13",height:"13"},p),React.createElement("path",{d:"M12 19V5M5 12l7-7 7 7"})),
   down:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.6",width:"13",height:"13"},p),React.createElement("path",{d:"M12 5v14M5 12l7 7 7-7"})),
-  logo:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 64 64",fill:"none","aria-hidden":"true"},p),
-    React.createElement("rect",{x:3,y:3,width:58,height:58,rx:14,stroke:"currentColor",strokeWidth:3}),
-    React.createElement("path",{d:"M18 48 L32 14 L46 48",stroke:"currentColor",strokeWidth:4.2,strokeLinecap:"round",strokeLinejoin:"round"}),
-    React.createElement("circle",{cx:32,cy:34,r:4.6,fill:"currentColor"})),
-  /* A-Dot Badge: A geométrica cuyo travesaño es un punto (brief Aely). */
+  /* A-DOT BADGE — el logo de Aely (brief), rehecho el 10/9 contra la referencia de verdad.
+     La primera versión era una A de trazo fino nadando en un marco vacío y él la despachó en dos
+     palabras: «esto es un mierdón, la foto original es la chula». Tenía razón, y la diferencia se
+     ve en tres cosas concretas:
+       · la A es MACIZA y llena el badge de arriba abajo — no un trazo de 4 px, dos patas anchas
+         que se estrechan hacia el vértice;
+       · el badge lleva borde FINO y brillante, no un marco gordo;
+       · las dos cosas van con glow, que es lo que le da el aire premium de la referencia.
+     Se dibuja con `path` relleno (no `stroke`) para poder engordar las patas sin que el vértice
+     se redondee como una gota. El punto va entre las patas, más abajo del centro, donde estaría
+     el travesaño de la A. */
+  logo:(p)=>{
+    const id="aelyGlow"+(I._n=(I._n||0)+1);
+    return React.createElement("svg",Object.assign({viewBox:"0 0 64 64",fill:"none","aria-hidden":"true"},p),
+      React.createElement("defs",null,
+        React.createElement("filter",{id:id,x:"-30%",y:"-30%",width:"160%",height:"160%"},
+          // Glow CONTENIDO: con 1,8 quedaba un neón borroso y el original lo tiene mucho más
+          // ceñido al trazo. Comparado lado a lado contra `logo Aely.png`.
+          React.createElement("feGaussianBlur",{stdDeviation:"0.7",result:"b"}),
+          React.createElement("feMerge",null,
+            React.createElement("feMergeNode",{in:"b"}),
+            React.createElement("feMergeNode",{in:"SourceGraphic"})))),
+      React.createElement("g",{filter:"url(#"+id+")"},
+        /* El badge llega al BORDE del lienzo: «el logo debe acabar en las rayas exteriores
+           verdes» (él, 10/9). Antes sobraba marco muerto alrededor y el icono se veía pequeño
+           dentro de su propia caja. */
+        React.createElement("rect",{x:0.8,y:0.8,width:62.4,height:62.4,rx:14.2,stroke:"currentColor",strokeWidth:1.6}),
+        /* La A es HUECA — un contorno de Λ, no una cuña maciza.
+           ⚠ Estas coordenadas NO están estimadas a ojo: están MEDIDAS sobre `logo Aely.png`, el
+           original que él tenía en Pictures. Mis dos primeros intentos los dibujé mirando una
+           captura y salieron «un mierdón» y «un horror», con razón las dos veces. Escala: el badge
+           del original ocupa 473 px y aquí son 64 unidades (×0,1353).
+           ⚠ El `stroke` va FINO a propósito: con 2,4 el propio trazo cerraba el hueco cerca del
+           vértice y la A salía maciza — un triángulo con una muesca, no una A. Sirve solo para
+           redondear vértice y bases, que en el original van romos. */
+        React.createElement("path",{d:"M31.8 11.5 L55.9 54.1 L46.7 54.1 L31.8 25.3 L16.9 54.1 L7.7 54.1 Z",
+          fill:"currentColor",stroke:"currentColor",strokeWidth:1.4,strokeLinejoin:"round",strokeLinecap:"round"}),
+        // El punto vive DENTRO del hueco, donde iría el travesaño. Casi rozando las patas.
+        React.createElement("circle",{cx:31.8,cy:43.7,r:5.1,fill:"currentColor"})));
+  },
   cloud:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.2 9.2 4 4 0 0 0 6.5 19z"})),
   cloudOff:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M17.5 19a4.5 4.5 0 0 0 1.9-8.58M9 5.2A6 6 0 0 1 18 9.2M6.5 19a4 4 0 0 1-.3-7.8"}),React.createElement("path",{d:"M3 3l18 18"})),
   gear:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2"},p),React.createElement("circle",{cx:12,cy:12,r:3}),React.createElement("path",{d:"M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H2a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 3.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.05a1.65 1.65 0 0 0 1-1.51V2a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.05a1.65 1.65 0 0 0 1.51 1H22a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"})),

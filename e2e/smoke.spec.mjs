@@ -8,8 +8,11 @@ test("arranca y muestra la marca", async ({ page }) => {
 
 test("onboarding o dashboard visible", async ({ page }) => {
   await page.goto("/");
-  // v4: claim «Tu dinero, por fin claro» / EN «Your money, finally clear» · o nav inferior si ya onboarded
-  const onboarding = page.getByText(/Tu dinero, por fin claro|Your money, finally clear|Els teus diners, per fi clars/i);
+  /* Se busca el SALUDO del onboarding, no el reclamo publicitario. El copy de marketing cambia
+     —de «Tu dinero, por fin claro» a «Bienvenido/a» con el brief de Aely, 10/9— y cada vez que
+     cambia este smoke se pone rojo sin que haya nada roto. El saludo es lo estable: mientras haya
+     una pantalla de bienvenida, ahí estará. O la barra inferior, si ya pasó el onboarding. */
+  const onboarding = page.getByText(/Bienvenido\/a|Welcome|Benvingut\/da/i);
   const dash = page.locator(".botnav");
   await expect(onboarding.or(dash)).toBeVisible({ timeout: 15_000 });
 });

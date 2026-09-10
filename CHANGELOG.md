@@ -2,6 +2,17 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.35] — 2026-09-10
+### El copy y el logo de Aely, del brief de verdad
+
+Él trajo un brief ampliado con **voz, posicionamiento y el copy exacto** del onboarding, y la instrucción de aplicarlo al pie de la letra.
+
+- **Posicionamiento**: esto no es «una app de control de gastos», es el **mapa completo del dinero**. El onboarding lo dice ahora con sus palabras: «La gracia no es tener 40 pantallas: es saber dónde estás cuando vas a gastar o decidir».
+- Tres tarjetas nuevas — *Todo tu dinero*, *Se apunta solo*, *Para decidir* — con el texto del brief. En **inglés y catalán se traduce la VOZ, no las palabras**: el brief prohíbe expresamente el copy de agencia, y el castellano copiado en `en`/`ca` ya es un agujero conocido (OPS-03).
+- **El logo, rehecho contra el original.** Mis dos primeros intentos los dibujé mirando una captura y él los despachó con «esto es un mierdón» y «no se parece nada» — tenía razón las dos veces. Encontré `logo Aely.png` en su carpeta de imágenes y las coordenadas están ahora **medidas sobre él**: la A es HUECA (contorno de Λ, no una cuña maciza), ocupa el 79 % del ancho del badge, las patas son el 22 % de la A, y el badge llega al borde del lienzo — «el logo debe acabar en las rayas exteriores verdes».
+- ⚠ El `stroke` de la A va fino a propósito: con 2,4 el propio trazo cerraba el hueco cerca del vértice y salía un triángulo con una muesca, no una A.
+- El original queda guardado en `docs/design/aely/aely-icon-adot-badge.png` como fuente de verdad.
+
 ## [4.19.33] — 2026-09-10
 ### Bizum como categoría, y el vacío vuelve a enseñar el onboarding
 
