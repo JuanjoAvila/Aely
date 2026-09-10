@@ -712,3 +712,41 @@ test("«no lo puedo probar» también encoge; desmarcar vuelve a abrir el punto"
   expect(await page.evaluate(() => store.get("_betaReview_" + CONFIG.APP_VERSION))).toEqual({});
   await expect(a.locator(".beta-item").first()).not.toHaveClass(/beta-item-done/);
 });
+
+/* VOLVER AL MISMO SITIO DESPUÉS DE PROBAR
+   La otra mitad de su queja, y la que no se ve leyendo el panel: para probar un punto TIENE que
+   salir de la app, y Android le mata la WebView mientras paga o mira el widget. Sin esto, cada
+   vuelta aterriza en Inicio y hay que rehacer Ajustes → Revisar la beta → bajar. */
+
+test("salir a probar y volver: el panel se reabre solo y a la misma altura", async ({ page }) => {
+  await panelConDosTandas(page);
+  // Estaba leyendo por la mitad cuando Android le mató la app.
+  await page.evaluate(() => {
+    const w = document.querySelector(".beta-review");
+    w.scrollTop = 240;
+    w.dispatchEvent(new Event("scroll"));
+  });
+  expect(await page.evaluate(() => localStorage.getItem("_betaPanelAbierto"))).not.toBeNull();
+  expect(await page.evaluate(() => Number(localStorage.getItem("_betaPanelScroll")))).toBeGreaterThan(0);
+  expect(await page.evaluate(() => betaDebeReabrirse())).toBe(true);
+});
+
+test("cerrar el panel A PROPÓSITO no lo reabre la próxima vez", async ({ page }) => {
+  const panel = await panelConDosTandas(page);
+  await panel.getByRole("button", { name: /‹ Ajustes/ }).click();
+  expect(await page.evaluate(() => localStorage.getItem("_betaPanelAbierto"))).toBeNull();
+  expect(await page.evaluate(() => betaDebeReabrirse())).toBe(false);
+});
+
+test("la marca caduca: si vuelve al día siguiente entra en su app, no en el panel", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  // Salió hace tres horas: eso ya no es «he salido a probar», es otro día de su vida.
+  expect(await page.evaluate(() => {
+    localStorage.setItem("_betaPanelAbierto", String(Date.now() - 3 * 60 * 60 * 1000));
+    return betaDebeReabrirse();
+  })).toBe(false);
+  expect(await page.evaluate(() => {
+    localStorage.setItem("_betaPanelAbierto", String(Date.now() - 5 * 60 * 1000));
+    return betaDebeReabrirse();
+  })).toBe(true);
+});

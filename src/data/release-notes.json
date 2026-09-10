@@ -21,34 +21,40 @@
             "Marca el último punto de una tanda: lo que se te pone delante es el botón de aprobar, no un hueco.",
             "Marca un punto como «falla»: ese NO se encoge, se queda abierto con su recuadro para escribir qué pasa.",
             "Toca un punto ya encogido: se vuelve a abrir para repasarlo, y sigue marcado igual que lo dejaste.",
-            "Rechaza una tanda: se encoge sola, igual que las aprobadas, y la siguiente queda a la vista."
+            "Rechaza una tanda: se encoge sola, igual que las aprobadas, y la siguiente queda a la vista.",
+            "Sal de la app estando a media tanda (paga algo, mira el widget, abre otra app un rato) y vuelve: tiene que devolverte al panel y a la misma altura, sin rehacer Ajustes → Revisar la beta.",
+            "Cierra el panel a propósito con «‹ Ajustes»: la próxima vez que abras la app tienes que entrar en tu Inicio de siempre, no en el panel."
           ],
           "en": [
             "Mark a point as «works»: it shrinks to a single line and the next untested one comes to you, with no scrolling.",
             "Mark the last point of a group: what comes to you is the approve button, not empty space.",
             "Mark a point as «fails»: that one does NOT shrink, it stays open with its box to write what happens.",
             "Tap a point that is already shrunk: it opens again to review it, still marked as you left it.",
-            "Reject a group: it collapses on its own, just like approved ones, and the next group is right there."
+            "Reject a group: it collapses on its own, just like approved ones, and the next group is right there.",
+            "Leave the app mid-batch (pay for something, check the widget, use another app for a while) and come back: it must return you to the panel at the same height, without redoing Settings → Review the beta.",
+            "Close the panel on purpose with «‹ Settings»: next time you open the app you must land on your usual Home, not on the panel."
           ],
           "ca": [
             "Marca un punt com a «va bé»: s'encongeix a una línia i el següent sense provar se't posa al davant sol, sense haver de baixar.",
             "Marca l'últim punt d'una tanda: el que se't posa al davant és el botó d'aprovar, no un buit.",
             "Marca un punt com a «falla»: aquest NO s'encongeix, es queda obert amb el seu quadre per escriure què passa.",
             "Toca un punt ja encongit: es torna a obrir per repassar-lo, i segueix marcat tal com el vas deixar.",
-            "Rebutja una tanda: s'encongeix sola, igual que les aprovades, i la següent queda a la vista."
+            "Rebutja una tanda: s'encongeix sola, igual que les aprovades, i la següent queda a la vista.",
+            "Surt de l'app a mitja tanda (paga alguna cosa, mira el widget, obre una altra app una estona) i torna: t'ha de tornar al panell i a la mateixa altura, sense refer Ajustos → Revisar la beta.",
+            "Tanca el panell a posta amb «‹ Ajustos»: el proper cop que obris l'app has d'entrar al teu Inici de sempre, no al panell."
           ]
         }
       }
     ],
     "items": {
       "es": [
-        "Las listas de revisión van de uno en uno: lo que ya has resuelto se encoge y lo siguiente se pone delante, sin buscarlo."
+        "Las listas de revisión van de uno en uno, y salir a probar y volver te deja donde lo dejaste."
       ],
       "en": [
-        "Review lists go one at a time: what you have already settled shrinks and the next item comes to you, no hunting."
+        "Review lists go one at a time, and leaving to test then coming back drops you right where you left off."
       ],
       "ca": [
-        "Les llistes de revisió van d'un en un: el que ja has resolt s'encongeix i el següent es posa al davant, sense buscar-lo."
+        "Les llistes de revisió van d'un en un, i sortir a provar i tornar et deixa on ho vas deixar."
       ]
     }
   },

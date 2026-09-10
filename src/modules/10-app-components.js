@@ -1120,8 +1120,43 @@ function useYaEnProd(){
   if(!/^\d+\.\d+\.\d+$/.test(base)) return null;
   return !window._mcNewerVer(base, prod) ? prod : false;
 }
+/* VOLVER AL MISMO SITIO DESPUÉS DE PROBAR (2026-09-10).
+   La otra mitad de su queja, y la que no se ve leyendo el panel: para probar un punto TIENE que
+   salir de la app. Android le mata la WebView mientras paga, mira el widget o toca otra app, y al
+   volver aterriza en Inicio — con Ajustes cerrado, el panel cerrado y la lista arriba del todo.
+   Cinco puntos por tanda son cinco viajes de vuelta rehaciendo Ajustes → Revisar la beta → bajar.
+   Con esto, si salió estando en el panel, vuelve al panel y a la misma altura.
+   La marca lleva la HORA y caduca a las 2 h: salir a probar y volver es cosa de minutos; si la
+   abre mañana por la mañana quiere entrar en su app, no en el panel de pruebas. Y cerrar a
+   propósito (‹ Ajustes o el gesto atrás) la borra: eso SÍ es «he terminado». */
+const BETA_ABIERTO_KEY="_betaPanelAbierto";
+const BETA_SCROLL_KEY="_betaPanelScroll";
+const BETA_VUELTA_MS=2*60*60*1000;
+function betaDebeReabrirse(){
+  try{
+    var t=parseInt(localStorage.getItem(BETA_ABIERTO_KEY)||"",10);
+    return !!t && (Date.now()-t) < BETA_VUELTA_MS;
+  }catch(e){ return false; }
+}
+function betaOlvidarVuelta(){
+  try{ localStorage.removeItem(BETA_ABIERTO_KEY); localStorage.removeItem(BETA_SCROLL_KEY); }catch(e){}
+}
 function BetaReviewPanel({onClose, showToast}){
-  useBackClose(true, onClose);
+  /* Cerrar A PROPÓSITO borra la marca; que la app se muera por detrás, no. Esa es toda la
+     diferencia entre «he terminado» y «he salido a probar». */
+  const cerrarDeVerdad=function(){ betaOlvidarVuelta(); if(onClose) onClose(); };
+  useBackClose(true, cerrarDeVerdad);
+  const wrapRef=useRef(null);
+  const scrollPuesto=useRef(false);
+  useEffect(function(){
+    try{ localStorage.setItem(BETA_ABIERTO_KEY, String(Date.now())); }catch(e){}
+  },[]);
+  const recordarScroll=function(){
+    const el=wrapRef.current; if(!el) return;
+    try{ localStorage.setItem(BETA_SCROLL_KEY, String(el.scrollTop)); }catch(e){}
+    // Refresca la hora: mientras esté leyendo el panel, la marca no caduca debajo de él.
+    try{ localStorage.setItem(BETA_ABIERTO_KEY, String(Date.now())); }catch(e){}
+  };
   const prod=useProdVersion();
   const [notesReady,setNotesReady]=useState(!!(RELEASE_NOTES&&RELEASE_NOTES.length));
   useEffect(function(){
@@ -1228,6 +1263,16 @@ function BetaReviewPanel({onClose, showToast}){
     setNotes(Object.assign(heredarNotas(),store.get(storeKey+"_n")||{}));
     setSent(betaSavedVerdicts(pack,storeKey));
   },[JSON.stringify(pack.tandas)]);
+  /* Devolverlo a la MISMA altura, y solo una vez. Va atado a que las tandas estén pintadas y no
+     al montaje: las notas viejas llegan de Pages después, y restaurar antes deja el scroll a
+     media página o a cero porque todavía no hay contenido que recorrer. */
+  useEffect(function(){
+    if(scrollPuesto.current || !wrapRef.current || !pack.items.length) return;
+    var y=0;
+    try{ y=parseInt(localStorage.getItem(BETA_SCROLL_KEY)||"0",10)||0; }catch(e){}
+    scrollPuesto.current=true;
+    if(y>0) requestAnimationFrame(function(){ if(wrapRef.current) wrapRef.current.scrollTop=y; });
+  },[JSON.stringify(pack.tandas), pack.items.length]);
   // Cuántos venían ya marcados de compilaciones anteriores, para decírselo en vez de que parezca
   // que el panel se ha inventado unos ✓ que él no ha puesto en esta ronda.
   // Se separan los ✓/«no probable» de los ✗: el aviso de arriba no puede decir «los diste por
@@ -1366,8 +1411,9 @@ function BetaReviewPanel({onClose, showToast}){
   const btn=function(on,color){ return {flex:1,background:on?color:"var(--surface-2)",color:on?"#06120C":"var(--text)",
     border:on?"none":"1px solid var(--line)",borderRadius:12,padding:"9px 6px",fontSize:13,fontWeight:800,cursor:"pointer"}; };
 
-  return React.createElement("div",{style:wrap,className:"beta-review"}, React.createElement("div",{style:inner},
-    React.createElement("button",{style:back,onClick:onClose}, "‹ Ajustes"),
+  return React.createElement("div",{style:wrap,className:"beta-review",ref:wrapRef,onScroll:recordarScroll},
+    React.createElement("div",{style:inner},
+    React.createElement("button",{style:back,onClick:cerrarDeVerdad}, "‹ Ajustes"),
     React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 2px"}}, "🧪 Revisar la beta"),
     // Y a la vista, no solo en el parte: si un fallo es del icono o del instalador, lo primero que
     // hay que saber es qué APK lleva puesta — y hasta ahora aquí solo salía la versión web.
@@ -1958,6 +2004,14 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const [events,setEvents]=useState(null);
   const [actOpen,setActOpen]=useState(false);   // pantalla «Actividad» (antes acordeón: crecía sin fin)
   const [betaOpen,setBetaOpen]=useState(false);  // pantalla «Revisar la beta» (solo en canal beta)
+  /* El arranque pide reabrir el panel cuando salió de la app para probar un punto y Android le
+     mató la WebView (ver BETA_ABIERTO_KEY). Se hace por evento y no por prop porque Ajustes se
+     monta al abrir el cajón, así que quien arranca no puede pasarle nada todavía. */
+  useEffect(function(){
+    const h=function(){ setBetaOpen(true); };
+    window.addEventListener("mc-open-beta-review",h);
+    return function(){ window.removeEventListener("mc-open-beta-review",h); };
+  },[]);
   const [hojaOpen,setHojaOpen]=useState(false);  // importar una hoja de gastos (Excel/CSV)
   const [histOpen,setHistOpen]=useState(false);  // importar histórico del banco (Ajustes → Importaciones)
   const [autoBackOpen,setAutoBackOpen]=useState(false);  // copias automáticas diarias (state_backups)

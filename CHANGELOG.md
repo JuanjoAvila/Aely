@@ -9,7 +9,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y ver
 - Un ✗ **no** se encoge: debajo lleva el «¿qué pasa exactamente?». Esconderlo sería tragarse lo único que hace útil un rechazo.
 - Un punto encogido se reabre de un toque para repasarlo, con «▴ Volver a encogerlo» para cerrarlo otra vez. `itemOpen` (lo que abre a mano) manda sobre la regla automática.
 - **Las tandas RECHAZADAS se encogen igual que las aprobadas**, petición suya del 10/9. Antes solo se plegaban las aprobadas y la rechazada se quedaba estorbando en medio de la lista.
-- 4 e2e nuevos en `revisar-beta.spec.mjs` (25/25 Chromium). El test de la regla de aprobación se adaptó: rectificar un ✓ ahora pide reabrir el punto primero.
+- **Y volver al mismo sitio después de probar**, que es la otra mitad de la queja y la que no se ve leyendo el panel: para probar un punto TIENE que salir de la app, y Android le mata la WebView mientras paga o mira el widget. Sin esto, cada vuelta aterriza en Inicio y hay que rehacer Ajustes → Revisar la beta → bajar; con cinco puntos por tanda, cinco veces. La marca lleva la hora y caduca a las 2 h, y cerrar a propósito («‹ Ajustes» o el gesto atrás) la borra: esa es toda la diferencia entre «he salido a probar» y «he terminado». Idea de Codex en el voto del panel.
+- 7 e2e nuevos en `revisar-beta.spec.mjs` (28/28 Chromium; 190/190 la suite entera). El test de la regla de aprobación se adaptó: rectificar un ✓ ahora pide reabrir el punto primero.
 
 ## [4.19.22] — 2026-09-09
 ### B2/B4/B5 del pulido

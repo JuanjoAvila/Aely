@@ -967,6 +967,20 @@ function App(){
     window.addEventListener("mc-open-settings",h);
     return function(){ window.removeEventListener("mc-open-settings",h); };
   },[]);
+  /* VOLVER AL PANEL DE PRUEBAS DONDE LO DEJÓ (2026-09-10).
+     Probar un punto de la beta obliga a SALIR de la app —pagar, mirar el widget, abrir otra app— y
+     Android le mata la WebView mientras tanto. Sin esto, cada vuelta aterriza en Inicio y hay que
+     rehacer Ajustes → Revisar la beta → bajar hasta donde iba; con cinco puntos por tanda son
+     cinco veces. `betaDebeReabrirse()` solo dice que sí si salió estando dentro y hace menos de
+     2 h; cerrar el panel a propósito borra la marca.
+     El evento va en un `setTimeout(0)` a posta: `setDrawerOpen(true)` todavía no ha montado
+     Ajustes en este tick, y quien escucha `mc-open-beta-review` vive dentro. */
+  useEffect(function(){
+    if(typeof betaDebeReabrirse!=="function" || !betaDebeReabrirse()) return;
+    setDrawerOpen(true);
+    const id=setTimeout(function(){ window.dispatchEvent(new CustomEvent("mc-open-beta-review")); },0);
+    return function(){ clearTimeout(id); };
+  },[]);
   // «Reconectar Trade Republic» desde el banner de Cartera: abre Ajustes YA en Mis bancos
   // (con el teléfono precargado) — sin pasear al usuario por menús (UX padre 2026-07-18).
   const [banksGoto,setBanksGoto]=useState(0);
