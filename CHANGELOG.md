@@ -2,6 +2,17 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.27] — 2026-09-10
+### El visor del histórico deja de ponerse negro
+
+Sus palabras del 10/9: «cuando bajo mas o menos por la mitad esta todo negro, sigo bajando negro mas negro hasta llegar al final que te dice ver 35 mas, le doy y no pasa nada xd, es sublime lo de importar hyper roto».
+
+- **Una sola causa para las dos cosas**, que es lo que había que encontrar: `.hist-fila{opacity:0}` y solo `.dentro` las enseña. La animación de entrada paraba `revelado` en 24 y **nunca marcaba el resto**, así que de la fila 25 en adelante se veía el fondo. Y «Ver 35 más» sí subía `renderCap`, pero `setRevelado` iba topeado a `Math.min(24, …)`, así que **las filas nuevas nacían invisibles**: por eso parecía que el botón no hacía nada.
+- Pasado el tope, `dentro = revelado >= animTope || vi < revelado`. «Ver más» solo sube `renderCap`.
+- `e2e/hist-visor.spec.mjs`: lote de 95, la fila 30 opaca, y «Ver 35 más» → 95 visibles.
+- Lo encontró y lo arregló **Cursor**. No toca identidad de gastos ni FIN-03.
+- Queda abierto el tercer fallo del histórico que él reportó el mismo día: «detecta movimiento y no lo detecta duplicado». Es otra tanda y ata con FIN-07 y FIN-03.
+
 ## [4.19.26] — 2026-09-10
 ### El desglose por categorías se puede ocultar
 

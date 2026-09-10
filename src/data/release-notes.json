@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.19.27",
+    "d": "10 sep 2026",
+    "t": {
+      "es": "El histórico se ve entero",
+      "en": "The full history shows up",
+      "ca": "L'històric es veu sencer"
+    },
+    "tandas": [
+      {
+        "id": "hist-visor",
+        "t": {
+          "es": "📜 El visor del histórico ya no se queda negro",
+          "en": "📜 The history viewer no longer goes black",
+          "ca": "📜 El visor de l'històric ja no es queda negre"
+        },
+        "items": {
+          "es": [
+            "Ajustes → Importaciones, con un banco que traiga muchos movimientos: baja hasta el final de la lista. NO puede quedarse en negro a partir de la mitad.",
+            "Al llegar abajo, toca «Ver X más»: tienen que aparecer los siguientes movimientos, y verse, no salir en blanco.",
+            "Sigue bajando y tocando «Ver más» hasta el final: todo tiene que verse siempre.",
+            "Filtra por un banco y vuelve a «Todos los bancos»: la lista tiene que seguir viéndose entera."
+          ],
+          "en": [
+            "Settings → Imports, with a bank that brings many transactions: scroll to the end of the list. It must NOT go black past the halfway point.",
+            "At the bottom, tap «Show X more»: the next transactions must appear, and be visible, not blank.",
+            "Keep scrolling and tapping «Show more» to the end: everything must stay visible.",
+            "Filter by one bank and go back to «All banks»: the list must still show in full."
+          ],
+          "ca": [
+            "Ajustos → Importacions, amb un banc que porti molts moviments: baixa fins al final de la llista. NO pot quedar-se en negre a partir de la meitat.",
+            "En arribar a baix, toca «Veure'n X més»: han d'aparèixer els següents moviments, i veure's, no sortir en blanc.",
+            "Continua baixant i tocant «Veure'n més» fins al final: tot s'ha de veure sempre.",
+            "Filtra per un banc i torna a «Tots els bancs»: la llista s'ha de seguir veient sencera."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "Al traer el histórico de un banco, la lista ya se ve entera: ni filas en negro ni «ver más» que no hace nada."
+      ],
+      "en": [
+        "When importing a bank history, the list now shows in full: no black rows and no «show more» that does nothing."
+      ],
+      "ca": [
+        "En portar l'històric d'un banc, la llista ja es veu sencera: ni files en negre ni «veure'n més» que no fa res."
+      ]
+    }
+  },
+  {
     "v": "4.19.26",
     "d": "10 sep 2026",
     "t": {
