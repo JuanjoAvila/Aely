@@ -553,20 +553,25 @@
   /* Ola NATIVA como Ajustes (medido 5/8 en Oppo): la pestaña activa se comporta como
      `.settings-push` — `position:fixed` a pantalla, `touch-action:auto`, sin contain ni
      ancestro con `transform`. El carrusel en reposo aparca con `left` (no transform); al
-     deslizar tabs se sale de este modo y vuelve el translate3d. */
+     deslizar tabs se sale de este modo y vuelve el translate3d.
+
+     UX-01 (10/9, medido en su OnePlus): entrar/salir de esta clase NO puede cambiar ni un px
+     de geometría. Antes el host llevaba `padding-top: safe-top+10` y el `.page` normal `6px`
+     (el safe-top lo ponía `.app`): en reposo 44+6=50 cuadra, pero al quitar la clase en el
+     gesto las dos mitades no caían en el mismo frame → salto de 44 px (layout-shift en
+     `.v4-screen` y:94→50). Ahora el hueco de la barra de estado lo pone SIEMPRE `.app`
+     (`top: safe-top+4` cuando fixed); el padding del host es el MISMO 6px que `.page`.
+     La clase solo cambia `position` (y el anclaje `top`), no el padding del contenido.
+     FONDO OPACO, SIEMPRE (incidente 2026-08-05): transparente → Inicio+Gastos a la vez.
+     ⚠ NADA de gradiente aquí (build .12): esta clase se QUITA al deslizar entre pestañas y el
+     destello se apagaba en pleno gesto. El lavado fijo vive en `.season-glow` (portal z-1). */
   .page.page-scroll-host{
-    position:fixed;inset:0;left:0;right:0;top:0;bottom:0;width:100%;height:100%;max-width:520px;
+    position:fixed;left:0;right:0;top:calc(var(--safe-top) + 4px);bottom:0;width:100%;height:auto;max-width:520px;
     margin:0 auto;z-index:35;transform:none !important;
     touch-action:auto;contain:none;overscroll-behavior:auto;overscroll-behavior-y:auto;
     overflow-y:auto;-webkit-overflow-scrolling:touch;content-visibility:visible;
-    /* Mismo safe-top que `.settings-push`: sin él el título («Tus gastos») se metía debajo
-       de la barra de estado / iconos del sistema (feedback 5/8). El `.page` normal NO lo
-       necesita porque ya cuelga dentro de `.app` con padding-top.
-       FONDO OPACO, SIEMPRE (incidente 2026-08-05): transparente → Inicio+Gastos a la vez.
-       ⚠ NADA de gradiente aquí (build .12): esta clase se QUITA al deslizar entre pestañas y el
-       destello se apagaba en pleno gesto. El lavado fijo vive en `.season-glow` (portal z-1). */
     background:var(--bg);
-    padding:calc(var(--safe-top) + 10px) 18px calc(108px + var(--safe-bottom));
+    padding:6px 18px calc(108px + var(--safe-bottom));
   }
   /* Con temática: host transparente en reposo para que el lavado fijo se vea al scrollear; `.app`
      opaca con el mismo gradiente mientras se desliza entre pestañas (evita fusionar tabs).

@@ -104,6 +104,8 @@ export const CROSSCUTTING = [
      global (`button{user-select:none}`), y quien la puede romper sin querer es cualquiera que
      toque `src/shell.html` o meta una pantalla nueva, no solo quien toque Gastos. */
   "e2e/pulsacion-larga.spec.mjs",
+  /* UX-01: geometría de `.page-scroll-host` en `shell.html` (layout-shift al cambiar tab). */
+  "e2e/ux01-layout-shift.spec.mjs",
 ];
 
 const STEPS_DOCS = ["guard-privacy", "docs-frescura", "memoria-espejo"];
