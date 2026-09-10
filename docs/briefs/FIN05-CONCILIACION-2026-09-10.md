@@ -12,6 +12,9 @@ Los datos y capturas originales permanecen fuera del repositorio público.
   como pendientes porque compara versiones y ramas, no los portes ya publicados.
 - La consulta de solo lectura del mes, usando el cálculo de ingest, reproduce el total
   alto del widget. Cliente y servidor **coinciden al céntimo sobre las mismas filas**.
+- El modo leído de `app_state.data.settings.gTotalMode` es **neto**, comprobado en esa
+  consulta. La frase del widget «de ... este mes» no distingue neto de separado. Descartar
+  diferencias de ingresos suponiendo modo separado contradice esta evidencia.
 - La copia diaria anterior al pago contiene ingresos activos cuya clave también está en
   `app_state.data.deleted`. El cliente los cuenta; `filasComoLaApp` los excluye en servidor.
   Hay además una fila local sin correspondencia en la consulta del mes. No se ha cambiado
@@ -21,6 +24,10 @@ Los datos y capturas originales permanecen fuera del repositorio público.
   investigación, pero no sustituye la conciliación de identidades y decisiones.
 - No hay marcas `#dup` en las filas remotas consultadas del mes. El supuesto de que este
   caso concreto era un posible repetido pendiente no queda demostrado.
+- La inspección posterior de Claude confirma funciones desplegadas anteriores a cambios
+  de septiembre. Es una deriva que debe corregirse mediante su plan de despliegue, pero
+  **no demuestra que una fila `#dup` cause estas capturas**. FIN-05 permanece abierto;
+  verificar despliegue y conciliar conjuntos son comprobaciones distintas.
 
 ## Camino de código comprobado
 
