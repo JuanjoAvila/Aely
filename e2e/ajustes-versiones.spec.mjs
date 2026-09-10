@@ -25,8 +25,8 @@ test("Ajustes muestra web/OTA y APK cuando el puente nativo responde", async ({ 
   const ajustes = page.locator(".settings-push.open");
   await expect(ajustes).toBeVisible({ timeout: 5_000 });
 
-  // Pie permanente: «Mi Cartera · web vX · app Y» (en e2e la web puede ser «vdev»).
-  const pie = ajustes.getByText(/Mi Cartera · web v/i);
+  // Pie permanente: «Aely · web vX · app Y» (en e2e la web puede ser «vdev»).
+  const pie = ajustes.getByText(/Aely · web v/i);
   await expect(pie).toBeVisible();
   await expect(pie).toContainText(/app 4\.12\.0/i);
 });
@@ -42,7 +42,7 @@ test("en el navegador (sin puente) Ajustes enseña solo la versión web", async 
   const ajustes = page.locator(".settings-push.open");
   await expect(ajustes).toBeVisible({ timeout: 5_000 });
 
-  const pie = ajustes.getByText(/Mi Cartera · v/i);
+  const pie = ajustes.getByText(/Aely · v/i);
   await expect(pie).toBeVisible();
   // Sin puente nativo no se inventa una APK: solo el número web.
   await expect(pie).not.toContainText(/web v.*· app /i);

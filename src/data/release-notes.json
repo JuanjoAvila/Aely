@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.19.32",
+    "d": "10 sep 2026",
+    "t": {
+      "es": "Ahora se llama Aely",
+      "en": "It's called Aely now",
+      "ca": "Ara es diu Aely"
+    },
+    "tandas": [
+      {
+        "id": "aely-a",
+        "t": {
+          "es": "✨ La app se llama Aely",
+          "en": "✨ The app is called Aely",
+          "ca": "✨ L'app es diu Aely"
+        },
+        "items": {
+          "es": [
+            "Al abrir la app: splash con la A de punto (A-Dot) y el nombre Aely. Sin monito ni mascota.",
+            "Si entras como nuevo: el onboarding enseña el badge + «Aely» arriba, no el logo viejo de cartera.",
+            "En Ajustes, el pie de versión dice Aely. Los textos que hablaban de «Mi Cartera» (avisos, privacidad, widget…) ya dicen Aely.",
+            "El icono del escritorio de Android y el widget pueden seguir con el nombre viejo hasta la siguiente tanda (hace falta APK)."
+          ],
+          "en": [
+            "On open: splash with the A-Dot badge and the name Aely. No mascot.",
+            "As a new user: onboarding shows the badge + «Aely» at the top, not the old wallet logo.",
+            "In Settings, the version footer says Aely. Copy that said «Mi Cartera» (alerts, privacy, widget…) now says Aely.",
+            "The Android home-screen icon and widget may still show the old name until the next batch (needs an APK)."
+          ],
+          "ca": [
+            "En obrir l'app: splash amb la A de punt (A-Dot) i el nom Aely. Sense mascota.",
+            "Si entres com a nou: l'onboarding ensenya el badge + «Aely» a dalt, no el logo vell de cartera.",
+            "A Ajustos, el peu de versió diu Aely. Els textos que parlaven de «Mi Cartera» (avisos, privacitat, widget…) ja diuen Aely.",
+            "La icona de l'escriptori d'Android i el widget poden seguir amb el nom vell fins a la següent tanda (cal APK)."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "La app se llama Aely: nuevo nombre en pantallas, avisos y onboarding."
+      ],
+      "en": [
+        "The app is called Aely: new name on screens, alerts and onboarding."
+      ],
+      "ca": [
+        "L'app es diu Aely: nom nou a pantalles, avisos i onboarding."
+      ]
+    }
+  },
+  {
     "v": "4.19.31",
     "d": "10 sep 2026",
     "t": {

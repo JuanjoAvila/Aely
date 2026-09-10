@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test("arranca y muestra la marca", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("#root")).not.toBeEmpty();
-  await expect(page.getByText(/Mi cartera|Hola|Bienvenido|Welcome|Primeros|Tu dinero/i).first()).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText(/Aely|Hola|Bienvenido|Welcome|Primeros|Tu dinero/i).first()).toBeVisible({ timeout: 15_000 });
 });
 
 test("onboarding o dashboard visible", async ({ page }) => {

@@ -1575,8 +1575,8 @@ const bio = {
     if(!this.supported()) throw new Error("Este dispositivo/navegador no soporta huella");
     const cred = await navigator.credentials.create({ publicKey:{
       challenge: crypto.getRandomValues(new Uint8Array(32)),
-      rp:{ id: location.hostname, name:"Mi Cartera" },
-      user:{ id: new TextEncoder().encode(String(uid||email||"user")), name: email||"usuario", displayName: email||"Mi Cartera" },
+      rp:{ id: location.hostname, name:"Aely" },
+      user:{ id: new TextEncoder().encode(String(uid||email||"user")), name: email||"usuario", displayName: email||"Aely" },
       pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],
       authenticatorSelection:{ authenticatorAttachment:"platform", userVerification:"required", residentKey:"preferred" },
       timeout:60000,

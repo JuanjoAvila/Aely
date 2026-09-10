@@ -2,6 +2,16 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.32] — 2026-09-10
+### La app se llama Aely
+
+Nombre oficial decidido por él. Brief en `docs/design/aely/AELY_BRAND_BRIEF.md`: «no inventes otra identidad».
+
+- **Tanda A (web / OTA):** strings «Mi Cartera» → **Aely** (es/en/ca + manifest/title/privacy/back), header del onboarding con **lockup** (badge A-Dot + wordmark), tokens CSS del brief (`#0B140F` / `#6CC688` / …). Sin mascota.
+- Icono A-Dot: A geométrica cuyo travesaño es un **punto**, en marco rounded-square (SVG inline en splash + `I.logo`).
+- **No toca** `applicationId`, icono/splash nativos ni `android:label` (Tanda B, necesita APK y su OK). Deep-link `micartera://` y claves de storage se quedan: cambiarlos rompería instalaciones.
+- El widget nativo y el nombre bajo el icono de Android siguen diciendo lo viejo hasta la Tanda B.
+
 ## [4.19.31] — 2026-09-10
 ### El tironcillo al pasar de pestaña: la mitad que faltaba
 
