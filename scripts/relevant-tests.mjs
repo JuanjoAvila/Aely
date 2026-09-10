@@ -98,6 +98,10 @@ export const CROSSCUTTING = [
   "e2e/rebote-barra-inferior.spec.mjs",
   "e2e/rendimiento.spec.mjs",
   "e2e/rendimiento-tabs.spec.mjs",
+  /* Va aquí y no colgando de `04-tab-gastos.js` a propósito: lo que vigila es una regla de CSS
+     global (`button{user-select:none}`), y quien la puede romper sin querer es cualquiera que
+     toque `src/shell.html` o meta una pantalla nueva, no solo quien toque Gastos. */
+  "e2e/pulsacion-larga.spec.mjs",
 ];
 
 const STEPS_DOCS = ["guard-privacy", "docs-frescura", "memoria-espejo"];
