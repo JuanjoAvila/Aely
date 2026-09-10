@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.19.35",
+    "d": "10 sep 2026",
+    "t": {
+      "es": "Aely se presenta",
+      "en": "Aely introduces itself",
+      "ca": "Aely es presenta"
+    },
+    "tandas": [
+      {
+        "id": "aely-copy",
+        "t": {
+          "es": "✨ El estreno de Aely",
+          "en": "✨ Aely's first screen",
+          "ca": "✨ L'estrena d'Aely"
+        },
+        "items": {
+          "es": [
+            "Ajustes → «Probar con la app vacía» y mira la primera pantalla: tiene que decir «Bienvenido/a» y hablar del mapa completo de tu dinero, no de «control de gastos».",
+            "Ahí mismo, el logo: la A tiene que verse HUECA y llenar el marco, como en el icono de tu móvil. Si parece un triángulo relleno, está mal.",
+            "Debajo, tres tarjetas: «Todo tu dinero», «Se apunta solo» y «Para decidir». Que se lean bien y no se salgan.",
+            "Cambia el idioma a inglés y a catalán en Ajustes y vuelve a mirar esa pantalla: NO puede salir texto en castellano.",
+            "Con «Letra grande» de Android puesto, comprueba que las tres tarjetas siguen cabiendo."
+          ],
+          "en": [
+            "Settings → «Try the app empty» and look at the first screen: it must say «Welcome» and talk about the whole map of your money, not «expense tracking».",
+            "Right there, the logo: the A must look HOLLOW and fill the frame, like the icon on your phone. If it looks like a solid triangle, it is wrong.",
+            "Below it, three cards: «All of your money», «It logs itself» and «To decide with». They must read well and not overflow.",
+            "Switch the language to Spanish and Catalan in Settings and look again: no English may be left there.",
+            "With Android «Large text» on, check the three cards still fit."
+          ],
+          "ca": [
+            "Ajustos → «Provar amb l'app buida» i mira la primera pantalla: ha de dir «Benvingut/da» i parlar del mapa complet dels teus diners, no de «control de despeses».",
+            "Allà mateix, el logo: la A s'ha de veure BUIDA i omplir el marc, com la icona del teu mòbil. Si sembla un triangle ple, està malament.",
+            "A sota, tres targetes: «Tots els teus diners», «S'apunta sol» i «Per decidir». Que es llegeixin bé i no se surtin.",
+            "Canvia l'idioma a castellà i a anglès a Ajustos i torna a mirar: no hi pot quedar text en català.",
+            "Amb «Lletra gran» d'Android posat, comprova que les tres targetes hi caben."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "La pantalla de bienvenida de Aely, con su logo nuevo y explicando de verdad qué hace la app."
+      ],
+      "en": [
+        "Aely's welcome screen, with the new logo and actually explaining what the app does."
+      ],
+      "ca": [
+        "La pantalla de benvinguda d'Aely, amb el logo nou i explicant de debò què fa l'app."
+      ]
+    }
+  },
+  {
     "v": "4.19.34",
     "d": "10 sep 2026",
     "t": {
