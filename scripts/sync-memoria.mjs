@@ -65,7 +65,15 @@ for (const f of ficheros) {
   const salida = path.join(DESTINO, f);
   const previo = fs.existsSync(salida) ? fs.readFileSync(salida, "utf8") : null;
   const nuevo = CABECERA(f) + txt;
-  if (previo !== nuevo) {
+  /* Comparar SIN los \r (2026-09-10). El espejo se escribe con LF, pero Git en Windows lo saca
+     con CRLF al hacer checkout, así que en un worktree recién creado los 46 ficheros salían
+     «desfasados» y `memoria-espejo` era ROJO sin que nadie hubiera tocado la memoria: el mismo
+     commit daba verde en el checkout principal (escrito por este script) y rojo en el worktree.
+     Un guardián que se pone rojo solo por dónde estás trabajando enseña a ignorar los rojos, que
+     es peor que no tenerlo. Se compara el contenido; el salto de línea no es contenido.
+     Escribir se sigue escribiendo con LF, sin tocar. */
+  const mismo = (a, b) => a !== null && a.replace(/\r\n/g, "\n") === b.replace(/\r\n/g, "\n");
+  if (!mismo(previo, nuevo)) {
     deriva.push(f);
     if (!CHECK) { fs.writeFileSync(salida, nuevo); escritos++; }
   }

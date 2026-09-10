@@ -2,6 +2,18 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
 
+## [4.19.24] — 2026-09-10
+### Modo inicial: el rechazo del 10/9, arreglado en su causa
+
+Sus palabras al rechazar `4.19.21/modo-inicial`: «No funciona, entra sin más al banco de pruebas» y «Tampoco pasa nada, solamente sigue en el banco de pruebas como estaba, no resetea nada». Tenía razón las dos veces, y era el mismo fallo.
+
+- **Causa**: el estado está PARTIDO (lo ligero en `micartera_sandbox`, los gastos en `micartera_sandbox_exp`). `mcSeedSandboxVacio` escribía la clave principal **a pelo** con `store.set`, pero la app no lee de ahí: lee por `mcLoadRaw`, que pisa `expenses` con la mitad partida. Como él ya había entrado antes al banco de pruebas, esa mitad tenía sus gastos y volvían todos. Vaciaba cuentas y presupuesto, dejaba los gastos.
+- **Segundo fallo del mismo origen**: `mcEnterSandbox` sembraba con `store.get(STATE_KEY_REAL)`, que devuelve la mitad ligera — entrar al banco de pruebas te dejaba una cartera **sin un solo gasto**. Probar con eso no vale para nada, que es justo lo que motivó el modo inicial.
+- **Tercero**: `mcResetSandbox` borraba solo la mitad ligera y dejaba `micartera_sandbox_exp` huérfana, así que la siguiente entrada mezclaba los gastos de la sesión anterior con la copia nueva.
+- Las tres pasan ahora por `mcLoadRaw`/`mcSaveRaw`, nunca por `store` a pelo.
+
+**Por qué el guardián no lo cazó**, que es la parte que importa: `modo-inicial.spec.mjs` leía `localStorage.getItem("micartera_sandbox")` — justo la mitad que sí se vaciaba. Verde en CI y roto en su móvil. Corregido para leer por donde lee la app, más cuatro casos nuevos: vaciar con la clave partida ya creada, la cartera real intacta con sus gastos, entrar copiando los gastos, y tirar las dos mitades. 5/5.
+
 ## [4.19.22] — 2026-09-09
 ### B2/B4/B5 del pulido
 

@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.19.24",
+    "d": "10 sep 2026",
+    "t": {
+      "es": "El modo inicial, de verdad",
+      "en": "Fresh-start mode, for real",
+      "ca": "El mode inicial, de debò"
+    },
+    "tandas": [
+      {
+        "id": "modo-inicial-v2",
+        "t": {
+          "es": "🌱 Modo inicial (segundo intento)",
+          "en": "🌱 Fresh-start mode (second try)",
+          "ca": "🌱 Mode inicial (segon intent)"
+        },
+        "items": {
+          "es": [
+            "Ajustes → «Probar con la app vacía»: ahora sí entras SIN gastos, sin cuentas y sin presupuesto, aunque ya hubieras usado antes el banco de pruebas. Esto era lo que fallaba.",
+            "Ya dentro, «Vaciar la cartera de pruebas» la deja igual de vacía, sin salir.",
+            "Comprueba ahí las pantallas de estreno: el inicio sin gráfico, las tarjetas de presupuesto, recibos y metas, y el primer mes sin racha.",
+            "Sal del banco de pruebas: tu cartera real tiene que estar EXACTAMENTE igual, con todos tus gastos. Eso es lo importante.",
+            "Vuelve a entrar al banco de pruebas sin vaciarlo: tiene que traerse tus gastos reales, no una cartera a medias."
+          ],
+          "en": [
+            "Settings → «Try the app empty»: you now really do enter with NO spending, no accounts and no budget, even if you had used the test wallet before. This is what was broken.",
+            "Once inside, «Empty the test wallet» leaves it just as empty, without leaving.",
+            "Check the first-run screens there: home with no chart, the budget, bills and goals cards, and a first month with no streak.",
+            "Leave the test wallet: your real wallet must be EXACTLY as it was, with all your spending. That is the point.",
+            "Enter the test wallet again without emptying it: it must bring your real spending across, not a half-empty wallet."
+          ],
+          "ca": [
+            "Ajustos → «Provar amb l'app buida»: ara sí que entres SENSE despeses, sense comptes i sense pressupost, encara que ja haguessis fet servir abans el banc de proves. Això és el que fallava.",
+            "Un cop dins, «Buidar la cartera de proves» la deixa igual de buida, sense sortir.",
+            "Comprova-hi les pantalles d'estrena: l'inici sense gràfic, les targetes de pressupost, rebuts i objectius, i el primer mes sense ratxa.",
+            "Surt del banc de proves: la teva cartera real ha d'estar EXACTAMENT igual, amb totes les teves despeses. Això és l'important.",
+            "Torna a entrar al banc de proves sense buidar-lo: ha de portar-hi les teves despeses reals, no una cartera a mitges."
+          ]
+        }
+      }
+    ],
+    "items": {
+      "es": [
+        "El modo para ver la app «recién instalada» ya deja la cartera de pruebas realmente vacía, y volver a entrar conserva los movimientos."
+      ],
+      "en": [
+        "The «just installed» mode now really empties the test wallet, and re-entering keeps your transactions."
+      ],
+      "ca": [
+        "El mode per veure l'app «acabada d'instal·lar» ja deixa la cartera de proves realment buida, i tornar-hi conserva els moviments."
+      ]
+    }
+  },
+  {
     "v": "4.19.22",
     "d": "9 sep 2026",
     "t": {

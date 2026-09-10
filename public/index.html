@@ -2408,9 +2408,15 @@ function mcSandbox(){
 function mcStateKey(){ return mcSandbox()? STATE_KEY_TEST : STATE_KEY_REAL; }
 /* Entra al banco de pruebas sembrándolo con una copia de lo real (si aún no había copia). Recarga
    la app para que TODO (incluido el arranque) lea ya la clave de pruebas. */
+/* ⚠ SIEMPRE por `mcLoadRaw`/`mcSaveRaw`, NUNCA por `store` a pelo (2026-09-10, rechazo suyo de
+   `4.19.21/modo-inicial`). El estado está PARTIDO: lo ligero en la clave y los gastos en
+   `<clave>_exp`. Escribir la clave a pelo deja la mitad de los gastos viva, y como al arrancar se
+   lee por `mcLoadRaw`, esa mitad vuelve. Aquí además había un segundo fallo del mismo origen:
+   `store.get(STATE_KEY_REAL)` devuelve la mitad LIGERA, así que entrar al banco de pruebas te
+   copiaba la cartera sin un solo gasto. */
 function mcEnterSandbox(seedFrom){
   try{
-    if(!store.get(STATE_KEY_TEST)) store.set(STATE_KEY_TEST, seedFrom||store.get(STATE_KEY_REAL)||{});
+    if(!store.get(STATE_KEY_TEST)) mcSaveRaw(STATE_KEY_TEST, seedFrom||mcLoadRaw(STATE_KEY_REAL)||{});
     localStorage.setItem("_mcSandbox","1");
   }catch(e){}
 }
@@ -2425,16 +2431,31 @@ function mcExitSandbox(){ try{ localStorage.removeItem("_mcSandbox"); }catch(e){
    Siembra la cartera de PRUEBAS vacia. Nunca toca la real: escribe en STATE_KEY_TEST y punto.
    `onboarded:true` a proposito: con el onboarding delante te obliga a poner presupuesto, y entonces
    la tarjeta vacia de presupuesto (P3) no se puede ver nunca. `budget:0` es justo el caso a probar. */
+/* ⚠ RECHAZADA LA PRIMERA VERSIÓN (10/9): «no funciona, entra sin más al banco de pruebas» y
+   «tampoco pasa nada, solamente sigue en el banco de pruebas como estaba, no resetea nada».
+   Tenía toda la razón y la causa era esta línea: `store.set(STATE_KEY_TEST, {...expenses:[]})`
+   escribía los gastos vacíos DENTRO de la clave principal, pero la app no los lee de ahí — los
+   lee de `micartera_sandbox_exp` (estado partido, ver `mcLoadRaw`). Como él ya había entrado
+   antes al banco de pruebas, esa clave existía con sus gastos dentro y volvían todos al recargar.
+   Vaciaba cuentas y presupuesto, y dejaba los gastos: la cartera de pruebas parecía la de siempre.
+
+   El test que lo tapaba leía `localStorage.getItem("micartera_sandbox")` a pelo, o sea la mitad
+   que sí se vaciaba, y salía verde mientras en su móvil no funcionaba nada. Ahora se comprueba
+   por donde lo lee la app. Es el mismo patrón de siempre: la regla escrita en dos sitios y un
+   test que solo mira uno. */
 function mcSeedSandboxVacio(){
-  store.set(STATE_KEY_TEST, {
+  mcSaveRaw(STATE_KEY_TEST, {
     _dataVer:6, onboarded:true, tourSeen:true, setupHint:false,
     budget:0, monthStartNet:0, history:[], streak:0,
     accounts:[], investments:[], assets:[], debts:[], fixed:[], flows:[], oneoffs:[], goals:[],
     expenses:[], settings:{}
   });
 }
-/* Tira la cartera de pruebas y empieza otra desde cero copiando la real otra vez. */
-function mcResetSandbox(){ store.del(STATE_KEY_TEST); }
+/* Tira la cartera de pruebas y empieza otra desde cero copiando la real otra vez.
+   Las DOS mitades: borrar solo la ligera dejaba `micartera_sandbox_exp` huérfana, y la siguiente
+   entrada al banco de pruebas se encontraba los gastos de la sesión anterior mezclados con la
+   copia nueva de la cartera real. */
+function mcResetSandbox(){ store.del(STATE_KEY_TEST); store.del(STATE_KEY_TEST+EXP_SUFFIX); }
 
 /* ---------- Supabase: sincronización en la nube (Fase 1) ----------
    Offline-first: si no hay librería/red o no hay sesión, la app funciona igual con localStorage.
