@@ -834,7 +834,13 @@ function dedupeHistRecibos(cands){
    literal que ya trajo el sync diario) se sigue filtrando ANTES, en `BankHistoryImport.search()`,
    en silencio — no hay ambigüedad ahí. Aquí solo entran los que coinciden "por casualidad de
    datos" sin ext_id, que es donde de verdad hace falta que el usuario VEA la comparación en vez de
-   fiarse de un descarte mudo. */
+   fiarse de un descarte mudo.
+
+   ⚠ EL COMERCIO DE LO YA GUARDADO ES `obName` SI EXISTE (medida Cursor 10/9, (c) del histórico).
+   El sync diario (`importObExpenses`) clavea con `obName||merchant` para que renombrar no rompa
+   el dedup. Aquí se indexaba solo `merchant`: tras renombrar un «Movimiento» de TR (sin ext_id),
+   el histórico volvía a ver el nombre del banco y lo marcaba NUEVO. Misma regla que el sync —
+   cero cambio de identidad en la nube. */
 function histCandDupKey(dt, amountSigned, merchant){
   const dia=String(dt||"").slice(0,10);
   const norm=String(merchant||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim();
@@ -845,7 +851,9 @@ function histCandExisting(cands, expenses){
   // solo marcan uno; el mapa 1:N antiguo marcaba los dos y el preview mentía.
   const porClave={};
   (expenses||[]).forEach(function(e){
-    const k=histCandDupKey(e.date, e.amount, e.merchant);
+    // Misma regla que importObExpenses.nameForKey: lo que dijo el banco, no el renombrado.
+    const nombre=e.obName!=null ? e.obName : (e.merchant||"");
+    const k=histCandDupKey(e.date, e.amount, nombre);
     (porClave[k]=porClave[k]||[]).push(e);
   });
   const out={};
