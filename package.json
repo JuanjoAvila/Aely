@@ -21,7 +21,8 @@
     "android:sync": "cap sync android",
     "android:open": "cap open android",
     "salud": "node scripts/salud.mjs",
-    "listo": "node scripts/listo-para-produccion.mjs"
+    "listo": "node scripts/listo-para-produccion.mjs",
+    "servidor": "node scripts/servidor-al-dia.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^6.1.0",
