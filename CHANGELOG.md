@@ -7,8 +7,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y ver
 
 Para cerrar el diagnóstico de «detecta movimiento y no lo marca duplicado» hace falta contar en SU móvil, no solo en el banco de pruebas.
 
-- Tras **Buscar movimientos** en Importar histórico: toast con `banco → llegan → nuevos → coinciden día+€` (comercio ignorado; coincidencia de diagnóstico, no identidad) y `window.__histDupProbe` con el detalle (tope Edge 2000, truncado, pull capped…).
-- **No cambia** clasificación, identidad ni borrados. Si `bankReported` ≠ `bankPayload` o `acctAtCap>0`, sospechar el `bank-sync` desplegado (~17 ago), no el dedup del cliente.
+- Tras **Buscar movimientos** en Importar histórico: toast con `banco → llegan → nuevos → coinciden día+€` (comercio ignorado; coincidencia de diagnóstico, no identidad) y `window.__histDupProbe` con el detalle (tope Edge 2000, truncado explícito, pull capped…).
+- Flatten compartido UI↔sonda (`histFlattenHistoryLinks`): conserva `card` / entKey / merchant fallback; la sonda **no** reclasifica un conjunto distinto (bloqueador Codex: tarjeta+fijo).
+- **No cambia** clasificación, identidad ni borrados. `count` de bank-sync = `all.length`, no total del banco. `minDate>dateFrom` se reporta como heurística UI (`uiMinAfterFrom`), no como truncado del servidor.
 - Temporal: se quita cuando la medida esté tomada.
 
 ## [4.19.33] — 2026-09-10

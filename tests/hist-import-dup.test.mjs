@@ -446,7 +446,20 @@ t("M: confirmación de fijos avisa que resta todos los meses hacia atrás", () =
   assert.ok(/bp_hist_confirm_fijos_sub:"Es restaran tots els mesos, també cap enrere\./.test(i18nSrc));
 });
 
-/* Sonda (c) 10/9 — contadores puro; no cambia clasificación. */
+/* Sonda (c) 10/9 — contadores sobre flatten+classRows reales; no cambia clasificación. */
+function probeFrom(res, state, allow){
+  const flat = ctx.histFlattenHistoryLinks(res, state.expenses, allow, {});
+  const classified = ctx.histClassifyCandidates(flat.out, state);
+  return ctx.histDupProbe({
+    out: flat.out,
+    classRows: classified.rows || [],
+    expenses: state.expenses || [],
+    stats: flat.stats,
+    res: res,
+    dateFrom: res.dateFrom || null,
+  });
+}
+
 t("sonda: banco→llegan→nuevos→coincideDayAmt (día+€, no identidad)", () => {
   const res = {
     dateFrom: "2026-06-01",
@@ -471,8 +484,7 @@ t("sonda: banco→llegan→nuevos→coincideDayAmt (día+€, no identidad)", ()
     ],
     accounts: [], fixed: [], debts: [], oneoffs: [],
   };
-  const allow = { sabadell: 1 };
-  const p = ctx.histDupProbe(res, state, allow);
+  const p = probeFrom(res, state, { sabadell: 1 });
   assert.equal(p.bankReported, 3);
   assert.equal(p.bankPayload, 3);
   assert.equal(p.skippedExt, 1, "ext_id x1 ya en state");
@@ -482,6 +494,8 @@ t("sonda: banco→llegan→nuevos→coincideDayAmt (día+€, no identidad)", ()
   assert.equal(p.coincideDayAmt, 1, "día+importe del 02 casa con e2 (coincidencia, no identidad)");
   assert.equal(p.acctAtCap, 0);
   assert.equal(p.pullCappedLikely, false);
+  assert.equal(p.truncExplicit, false);
+  assert.equal(p.uiMinAfterFrom, true, "minDate>dateFrom: heurística UI, no truncado real");
 });
 
 t("sonda: cuenta en tope 2000 marca acctAtCap (sospecha Edge)", () => {
@@ -491,11 +505,41 @@ t("sonda: cuenta en tope 2000 marca acctAtCap (sospecha Edge)", () => {
     dateFrom: "2026-06-01",
     links: [{ aspsp: "Revolut", accounts: [{ uid: "r1", count: 2000, transactions: txs }] }],
   };
-  const p = ctx.histDupProbe(res, { expenses: [], accounts: [] }, { revolut: 1 });
+  const p = probeFrom(res, { expenses: [], accounts: [] }, { revolut: 1 });
   assert.equal(p.bankReported, 2000);
   assert.equal(p.bankPayload, 5, "payload corto vs count → servidor/tope");
   assert.equal(p.acctAtCap, 1);
   assert.equal(p.llegan, 5);
+});
+
+/* BLOQUEADOR Codex 10/9: card:true + fijo → UI NEW; sonda vieja (sin card) mentía DUP. */
+t("sonda=UI: tarjeta que casa con fijo sigue NEW (no reclasificar sin card)", () => {
+  const res = {
+    dateFrom: "2026-09-01",
+    links: [{
+      aspsp: "Revolut",
+      accounts: [{
+        uid: "r1", count: 1,
+        transactions: [{ date: "2026-09-02", amount: 30, merchant: "Seguro coche", card: true }],
+      }],
+    }],
+  };
+  const state = {
+    expenses: [], accounts: [], debts: [], oneoffs: [],
+    fixed: [{ id: "f", name: "Seguro coche", amount: 30, account: "revolut", freq: "mes" }],
+  };
+  const flat = ctx.histFlattenHistoryLinks(res, state.expenses, { revolut: 1 }, {});
+  assert.equal(flat.out.length, 1);
+  assert.equal(flat.out[0].card, true);
+  const classified = ctx.histClassifyCandidates(flat.out, state);
+  assert.equal(classified.rows[0].status, "new", "card:true no casa con modeled");
+  const p = ctx.histDupProbe({
+    out: flat.out, classRows: classified.rows, expenses: [], stats: flat.stats, res, dateFrom: "2026-09-01",
+  });
+  assert.equal(p.nuevos, 1);
+  assert.equal(p.dups, 0, "sonda debe cuadrar con UI, no inventar dup");
+  assert.equal(p.uiMinAfterFrom, true);
+  assert.equal(p.truncExplicit, false, "sin flag de servidor no es truncado");
 });
 
 console.log("\nhist-import-dup: OK");
