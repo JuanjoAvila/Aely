@@ -35,10 +35,10 @@
         </activity>
 
         <!-- Lector de la notificación de gasto de Trade Republic (reemplazo de MacroDroid).
-             Requiere activar "Acceso a notificaciones" para Mi Cartera en Ajustes de Android. -->
+             Requiere activar "Acceso a notificaciones" para Aely en Ajustes de Android. -->
         <service
             android:name=".TrExpenseListener"
-            android:label="Mi Cartera · captura de gastos"
+            android:label="Aely · captura de gastos"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="false">
             <intent-filter>
@@ -50,7 +50,7 @@
              la web (plugin MiCartera.updateWidget) y el lector de notis de TR. -->
         <receiver
             android:name=".MiCarteraWidget"
-            android:label="Mi Cartera · gasto del mes"
+            android:label="Aely · gasto del mes"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

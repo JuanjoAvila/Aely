@@ -5,5 +5,5 @@
      lo primero que se ve al abrir sean la misma cosa.
      Los PNG se regeneran con: node scripts/iconos.mjs -->
 <resources>
-    <color name="ic_launcher_background">#0C1712</color>
+    <color name="ic_launcher_background">#0B140F</color>
 </resources>
