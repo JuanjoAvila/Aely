@@ -447,7 +447,7 @@ t("M: confirmación de fijos avisa que resta todos los meses hacia atrás", () =
 });
 
 /* Sonda (c) 10/9 — contadores puro; no cambia clasificación. */
-t("sonda: banco→llegan→nuevos→yaExDayAmt (comercio ignorado en yaEx)", () => {
+t("sonda: banco→llegan→nuevos→coincideDayAmt (día+€, no identidad)", () => {
   const res = {
     dateFrom: "2026-06-01",
     links: [{
@@ -466,7 +466,7 @@ t("sonda: banco→llegan→nuevos→yaExDayAmt (comercio ignorado en yaEx)", () 
   const state = {
     expenses: [
       { id: "e1", date: "2026-09-01T12:00:00.000Z", amount: 10, merchant: "Cafe", extId: "x1" },
-      // mismo día+importe que «Movimiento», pero comercio distinto → clasificador NEW; sonda yaExDayAmt++
+      // mismo día+importe que «Movimiento», pero comercio distinto → clasificador NEW; sonda coincideDayAmt++
       { id: "e2", date: "2026-09-02T12:00:00.000Z", amount: 20, merchant: "Super", obName: "Otro" },
     ],
     accounts: [], fixed: [], debts: [], oneoffs: [],
@@ -479,7 +479,7 @@ t("sonda: banco→llegan→nuevos→yaExDayAmt (comercio ignorado en yaEx)", () 
   assert.equal(p.llegan, 2, "tras filtro ext_id");
   assert.equal(p.nuevos, 2);
   assert.equal(p.dups, 0);
-  assert.equal(p.yaExDayAmt, 1, "día+importe del 02 casa con e2");
+  assert.equal(p.coincideDayAmt, 1, "día+importe del 02 casa con e2 (coincidencia, no identidad)");
   assert.equal(p.acctAtCap, 0);
   assert.equal(p.pullCappedLikely, false);
 });

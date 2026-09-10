@@ -867,10 +867,10 @@ function histCandExisting(cands, expenses){
 }
 
 /* SONDA HIST-DUP (c) 10/9 — SOLO MEDIDA. No cambia clasificación ni identidad.
-   Contadores que pide Claude: cuántos manda el banco (Edge), cuántos llegan al clasificador,
-   cuántos se marcan nuevos, y de esos cuántos YA existen en state por día+importe (comercio
-   ignorado). Si «manda» vs «payload» no cuadra o hay cuenta ≥2000, sospechar el bank-sync
-   desplegado (~17 ago: tope 2000 txs / 12 páginas), no el dedup del cliente. */
+   Contadores: banco (Edge) → llegan → nuevos → coinciden día+|importe| (comercio ignorado).
+   Esa última cifra es coincidencia de DIAGNÓSTICO, no duplicado confirmado ni identidad
+   (nit Codex 10/9). Si «manda» vs «payload» no cuadra o hay cuenta ≥2000, sospechar el
+   bank-sync desplegado (~17 ago: tope 2000 txs / 12 páginas), no el dedup del cliente. */
 function histDupProbe(res, state, allow){
   allow=allow||{};
   const expenses=(state&&state.expenses)||[];
@@ -905,14 +905,14 @@ function histDupProbe(res, state, allow){
     const k=String(e.date||"").slice(0,10)+"|"+Math.round(Math.abs(Number(e.amount)||0)*100);
     byDayAmt[k]=(byDayAmt[k]||0)+1;
   });
-  let nuevos=0, dups=0, yaExDayAmt=0;
+  let nuevos=0, dups=0, coincideDayAmt=0;
   (classified.rows||[]).forEach(function(row,i){
     if(!row) return;
     if(row.status==="dup"){ dups++; return; }
     nuevos++;
     const x=out[i]; if(!x) return;
     const k=String(x.date).slice(0,10)+"|"+Math.round(Math.abs(x.amount)*100);
-    if(byDayAmt[k]){ yaExDayAmt++; byDayAmt[k]--; }
+    if(byDayAmt[k]){ coincideDayAmt++; byDayAmt[k]--; }
   });
   let trunc=!!(res&&(res.truncated||res.truncatedAt));
   let minDate=null;
@@ -925,7 +925,8 @@ function histDupProbe(res, state, allow){
     llegan:out.length,
     nuevos:nuevos,
     dups:dups,
-    yaExDayAmt:yaExDayAmt,
+    // Coincidencia día+|importe| para diagnóstico — NO = duplicado confirmado / identidad.
+    coincideDayAmt:coincideDayAmt,
     skippedAllow:skippedAllow,
     skippedBad:skippedBad,
     skippedExt:skippedExt,

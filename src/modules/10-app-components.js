@@ -346,7 +346,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
           bank:probe.bankReported,
           llegan:probe.llegan,
           nuevos:probe.nuevos,
-          ya:probe.yaExDayAmt
+          ya:probe.coincideDayAmt
         }));
       }catch(_e){ /* sonda no tumba el import */ }
     }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); setCands([]); }).finally(function(){ setLoading(false); });

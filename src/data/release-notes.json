@@ -17,15 +17,15 @@
         },
         "items": {
           "es": [
-            "Mis bancos → Importar histórico → Buscar movimientos: tiene que salir un aviso corto con cuatro números (banco, llegan, nuevos, ya existían).",
+            "Mis bancos → Importar histórico → Buscar movimientos: tiene que salir un aviso corto con cuatro números (banco, llegan, nuevos, coinciden día+€).",
             "La lista de movimientos se comporta igual que antes: la sonda no cambia qué se marca como nuevo o repetido."
           ],
           "en": [
-            "My banks → Import history → Search moves: a short notice with four numbers must appear (bank, arrive, new, already there).",
+            "My banks → Import history → Search moves: a short notice with four numbers must appear (bank, arrive, new, same day+€).",
             "The move list behaves as before: the probe does not change what is marked new or repeated."
           ],
           "ca": [
-            "Els meus bancs → Importar històric → Cercar moviments: ha de sortir un avís curt amb quatre números (banc, arriben, nous, ja existien).",
+            "Els meus bancs → Importar històric → Cercar moviments: ha de sortir un avís curt amb quatre números (banc, arriben, nous, coincideixen dia+€).",
             "La llista de moviments es comporta igual que abans: la sonda no canvia què es marca com a nou o repetit."
           ]
         }
@@ -33,13 +33,13 @@
     ],
     "items": {
       "es": [
-        "Al buscar el histórico, un aviso enseña cuántos movimientos manda el banco, cuántos llegan, cuántos salen como nuevos y cuántos de esos ya tenías por día e importe."
+        "Al buscar el histórico, un aviso enseña cuántos movimientos manda el banco, cuántos llegan, cuántos salen como nuevos y cuántos de esos coinciden solo por día e importe (para medir, no para borrar)."
       ],
       "en": [
-        "When searching history, a notice shows how many moves the bank sends, how many arrive, how many are marked new, and how many of those you already had by day and amount."
+        "When searching history, a notice shows how many moves the bank sends, how many arrive, how many are marked new, and how many of those match only by day and amount (for measuring, not for deleting)."
       ],
       "ca": [
-        "En cercar l'històric, un avís ensenya quants moviments envia el banc, quants arriben, quants surten com a nous i quants d'aquests ja tenies per dia i import."
+        "En cercar l'històric, un avís ensenya quants moviments envia el banc, quants arriben, quants surten com a nous i quants d'aquests coincideixen només per dia i import (per mesurar, no per esborrar)."
       ]
     }
   },

@@ -7,7 +7,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y ver
 
 Para cerrar el diagnóstico de «detecta movimiento y no lo marca duplicado» hace falta contar en SU móvil, no solo en el banco de pruebas.
 
-- Tras **Buscar movimientos** en Importar histórico: toast con `banco → llegan → nuevos → ya existían` (día+importe, sin comercio) y `window.__histDupProbe` con el detalle (tope Edge 2000, truncado, pull capped…).
+- Tras **Buscar movimientos** en Importar histórico: toast con `banco → llegan → nuevos → coinciden día+€` (comercio ignorado; coincidencia de diagnóstico, no identidad) y `window.__histDupProbe` con el detalle (tope Edge 2000, truncado, pull capped…).
 - **No cambia** clasificación, identidad ni borrados. Si `bankReported` ≠ `bankPayload` o `acctAtCap>0`, sospechar el `bank-sync` desplegado (~17 ago), no el dedup del cliente.
 - Temporal: se quita cuando la medida esté tomada.
 
