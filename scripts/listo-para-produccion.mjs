@@ -14,10 +14,10 @@
  *
  * CÓMO SE SUBE UNA TANDA SUELTA, que es lo que él quiere:
  *   El workflow ya sabe hacerlo, pero SOLO si esa tanda vive en su propia rama `tanda/<id>`.
- *   Si la ronda se commiteó mezclada en `beta` no se puede trocear, y el propio workflow lo dice
- *   y se niega en vez de subir algo a medias. Por eso este script comprueba la rama y no se
- *   limita a mirar el veredicto: un «aprobada» sin rama es un «aprobada que NO se puede subir
- *   sola», y más vale saberlo antes que descubrirlo con producción a medio promocionar.
+ *   Si la ronda se commiteó mezclada en `beta`, se puede preparar un porte aislado sobre main.
+ *   La existencia de una rama tampoco acredita revisión ni ausencia de dependencias rechazadas.
+ *   Este inventario no reconoce portes con otra versión: comprobar lo ya publicado antes de
+ *   preparar uno (el informe y las categorías de 4.18.8 seguían saliendo pendientes el 10/9).
  *
  * Uso:
  *   npm run listo
@@ -175,8 +175,8 @@ for (const f of filas) {
   console.log(`      ${f.id}${cuando ? "  ·  " + cuando : ""}${f.version ? "  ·  probada en " + f.version : ""}`);
   if (f.estado === "approved") {
     console.log(f.rama
-      ? `      ↑ se puede subir sola:  rama ${f.rama}`
-      : `      ⚠ aprobada pero SIN rama propia: no se puede subir sola (está mezclada en beta)`);
+      ? `      ↑ rama candidata: ${f.rama} · contrastar diff, dependencias y pruebas antes de publicar`
+      : `      ⚠ sin rama propia: comprobar si ya se publicó mediante un porte; si no, preparar uno aislado`);
   }
 }
 
@@ -189,18 +189,19 @@ console.log("\n  ─────────────────────
 console.log(`  ${aprobadas.length} aprobada(s) · ${filas.filter((f) => f.estado === "rejected").length} rechazada(s) · ${filas.filter((f) => f.estado === "sin probar").length} sin probar\n`);
 
 if (conRama.length) {
-  console.log("  PUEDES SUBIR YA, sin esperar al resto:");
+  console.log("  CANDIDATAS CON RAMA, pendientes de revisión técnica y comprobación de lo ya publicado:");
   console.log("    Actions → «Promocionar beta a producción» → confirmar SUBIR");
   console.log(`    tandas: ${conRama.map((f) => f.corto).join(",")}\n`);
 }
 if (sinRama.length) {
-  console.log("  APROBADAS QUE NO SE PUEDEN TROCEAR (se commitearon mezcladas en beta):");
+  console.log("  APROBADAS SIN RAMA PROPIA (pueden requerir un porte aislado):");
   sinRama.forEach((f) => console.log(`    · ${f.corto}`));
-  console.log("    Suben cuando suba la ronda entera, o sea cuando no quede nada pendiente.\n");
+  console.log("    Revisar primero producción: los portes conservan otra versión y esta lista puede seguir mostrándolos.");
+  console.log("    Si falta el cambio, prepararlo sobre main sin arrastrar tandas rechazadas y verificarlo.\n");
 }
 if (!pendientes.length) {
-  console.log("  ✔ NO QUEDA NADA PENDIENTE: la ronda entera está aprobada.");
-  console.log("    Actions → «Promocionar beta a producción», deja «tandas» vacío y confirma SUBIR.\n");
+  console.log("  ✔ Todas las tandas de esta lista tienen aprobación.");
+  console.log("    Antes de promover la ronda: contrastar el diff completo, los veredictos actuales y las pruebas.\n");
 } else {
   console.log(`  Falta que pruebes ${pendientes.length}: ${pendientes.map((f) => f.corto).join(", ")}\n`);
 }

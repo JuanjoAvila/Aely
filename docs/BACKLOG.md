@@ -1,5 +1,33 @@
 # Backlog operativo — Mi Cartera
 
+## Actualización operativa — 10/9, sesión de Codex
+
+El dueño devuelve la dirección a **Codex**, manteniendo los encargos ya enviados: Cursor al
+visor del histórico; Claude al panel de pruebas, modo inicial y pulsación larga; Codex al
+widget y a revisar qué tandas aprobadas son publicables. La recepción de cada encargo se
+comprueba en el canal: esta tabla no acredita que una sesión esté trabajando.
+
+- Verificación por red: producción **4.18.8**, beta **4.19.22.1**, APK **42 / 4.18.3**.
+  Informe de mes y límites por categoría **ya están en producción**. No volver a portarlos.
+- Últimos veredictos del panel: 7 aprobadas, 5 rechazadas y 12 sin probar en la lista de
+  `listo`. Incluye las dos aprobadas ya portadas; no equivale a siete entregas nuevas.
+- Widget: [conciliación y reproducción](briefs/FIN05-CONCILIACION-2026-09-10.md).
+  Mismas filas dan el mismo total; hay gastos locales activos que contradicen las lápidas
+  del servidor. Reproducido además con el editor real al renombrar A→B→A. **Sigue abierto**;
+  no borrar gastos ni lápidas automáticamente para hacer coincidir las cifras.
+- Rechazos nuevos: modo inicial que conserva la demo y pulsación larga que deja texto
+  seleccionado. Revisar los caminos Android reales, no solo la simulación del navegador.
+- Panel: rechazadas plegables conservando el motivo; un paso a la vez con resumen reabrible,
+  controles próximos y retorno al paso al volver de probar. El fallo escrito se guarda antes
+  de avanzar. Histórico: reproducir por separado negro al desplazar, «ver más» sin efecto y
+  clasificación/paginación incompleta; no deduplicar por el nombre genérico «Movimiento».
+
+El dueño autoriza publicar lo aprobado que esté aislado y verificado. La autorización no
+convierte las tandas rechazadas en aprobadas. Antes del siguiente porte: matriz de IDs de
+tanda, archivos exactos, dependencias y prueba ejecutada, revisión independiente y CI.
+`listo` avisa ahora de sus límites: una rama no demuestra publicabilidad y la ausencia de
+rama no impide preparar un porte. La foto de madrugada y los roles de abajo son históricos.
+
 Actualizado el **9 de septiembre de 2026** a petición del dueño: dejar trabajo concreto para
 Claude y Cursor durante la tarde/noche. **El backlog completo NO está terminado.** El panel de
 beta solo enumera entregas para probar; no enumera todo lo que falta construir o verificar.
