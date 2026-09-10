@@ -338,6 +338,17 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
         s0[i]=!(c&&c.status==="dup");
       });
       setSel(s0); setDest(d0);
+      // Sonda (c): contadores sin tocar la clasificación. Toast corto + window.__histDupProbe.
+      try{
+        const probe=histDupProbe(Object.assign({},res,{dateFrom:dateFrom}), state, allow);
+        if(typeof window!=="undefined") window.__histDupProbe=probe;
+        showToast(tf("bp_hist_probe",{
+          bank:probe.bankReported,
+          llegan:probe.llegan,
+          nuevos:probe.nuevos,
+          ya:probe.yaExDayAmt
+        }));
+      }catch(_e){ /* sonda no tumba el import */ }
     }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); setCands([]); }).finally(function(){ setLoading(false); });
   };
   const toggle=function(i){ setSel(function(p){ const n=Object.assign({},p); n[i]=!n[i]; return n; }); };

@@ -446,4 +446,56 @@ t("M: confirmación de fijos avisa que resta todos los meses hacia atrás", () =
   assert.ok(/bp_hist_confirm_fijos_sub:"Es restaran tots els mesos, també cap enrere\./.test(i18nSrc));
 });
 
+/* Sonda (c) 10/9 — contadores puro; no cambia clasificación. */
+t("sonda: banco→llegan→nuevos→yaExDayAmt (comercio ignorado en yaEx)", () => {
+  const res = {
+    dateFrom: "2026-06-01",
+    links: [{
+      aspsp: "Banco de Sabadell",
+      accounts: [{
+        uid: "a1",
+        count: 3,
+        transactions: [
+          { date: "2026-09-01", amount: 10, merchant: "Cafe", ext_id: "x1" },
+          { date: "2026-09-02", amount: 20, merchant: "Movimiento", ext_id: null },
+          { date: "2026-09-03", amount: 30, merchant: "Nuevo", ext_id: null },
+        ],
+      }],
+    }],
+  };
+  const state = {
+    expenses: [
+      { id: "e1", date: "2026-09-01T12:00:00.000Z", amount: 10, merchant: "Cafe", extId: "x1" },
+      // mismo día+importe que «Movimiento», pero comercio distinto → clasificador NEW; sonda yaExDayAmt++
+      { id: "e2", date: "2026-09-02T12:00:00.000Z", amount: 20, merchant: "Super", obName: "Otro" },
+    ],
+    accounts: [], fixed: [], debts: [], oneoffs: [],
+  };
+  const allow = { sabadell: 1 };
+  const p = ctx.histDupProbe(res, state, allow);
+  assert.equal(p.bankReported, 3);
+  assert.equal(p.bankPayload, 3);
+  assert.equal(p.skippedExt, 1, "ext_id x1 ya en state");
+  assert.equal(p.llegan, 2, "tras filtro ext_id");
+  assert.equal(p.nuevos, 2);
+  assert.equal(p.dups, 0);
+  assert.equal(p.yaExDayAmt, 1, "día+importe del 02 casa con e2");
+  assert.equal(p.acctAtCap, 0);
+  assert.equal(p.pullCappedLikely, false);
+});
+
+t("sonda: cuenta en tope 2000 marca acctAtCap (sospecha Edge)", () => {
+  const txs = [];
+  for (let i = 0; i < 5; i++) txs.push({ date: "2026-08-01", amount: 1 + i * 0.01, merchant: "T" + i });
+  const res = {
+    dateFrom: "2026-06-01",
+    links: [{ aspsp: "Revolut", accounts: [{ uid: "r1", count: 2000, transactions: txs }] }],
+  };
+  const p = ctx.histDupProbe(res, { expenses: [], accounts: [] }, { revolut: 1 });
+  assert.equal(p.bankReported, 2000);
+  assert.equal(p.bankPayload, 5, "payload corto vs count → servidor/tope");
+  assert.equal(p.acctAtCap, 1);
+  assert.equal(p.llegan, 5);
+});
+
 console.log("\nhist-import-dup: OK");
