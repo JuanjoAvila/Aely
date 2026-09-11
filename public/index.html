@@ -10370,7 +10370,14 @@ function flattenBankTx(links){
   (links||[]).forEach(function(lk){
     const ent=entFromAspsp(lk && lk.aspsp);
     if(!ent) return;
-    (lk.transactions||[]).forEach(function(t){
+    // En multicuenta el top-level solo contiene la PRIMERA cuenta compatible. Los movimientos
+    // nuevos de una segunda cuenta estaban en `accounts[].transactions` y el cliente ni los
+    // miraba: el banco figuraba sincronizado pero Gastos decía que no había nada nuevo.
+    let txs=[];
+    const accountTx=(lk.accounts||[]).filter(function(a){ return a&&Array.isArray(a.transactions); });
+    if(accountTx.length) accountTx.forEach(function(a){ txs=txs.concat(a.transactions); });
+    else txs=(lk.transactions||[]).slice();   // shape antiguo: una sola cuenta en top-level
+    txs.forEach(function(t){
       // `note` = concepto del extracto (remittance_information): lo que hace que el histórico se
       // entienda sin abrir la app del banco (2026-07-24).
       out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"" });
@@ -14414,6 +14421,21 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.10", d:"11 sep 2026",
+   t:{es:"También los movimientos de la segunda cuenta del banco",en:"Moves from the bank’s second account too",ca:"També els moviments del segon compte del banc"},
+   tandas:[
+     {id:"multicuenta", t:{es:"🏦 Multicuenta Open Banking", en:"🏦 Open Banking multi-account", ca:"🏦 Multicomptes Open Banking"},
+      items:{
+        es:["Si un banco tiene dos cuentas enlazadas, al sincronizar tienen que entrar los movimientos de LAS DOS, no solo de la primera.",
+            "Gastos no puede decir que no hay nada nuevo cuando el banco sí trae cargos de la segunda cuenta."],
+        en:["If a bank has two linked accounts, sync must bring moves from BOTH, not only the first.",
+            "Gastos must not say there is nothing new when the bank does bring charges from the second account."],
+        ca:["Si un banc té dos comptes enllaçats, en sincronitzar han d’entrar els moviments dels DOS, no només del primer.",
+            "Despeses no pot dir que no hi ha res de nou quan el banc sí porta càrrecs del segon compte."]}}],
+   items:{
+     es:["Si un banco tiene varias cuentas enlazadas, la sincronización ya recoge los movimientos de todas, no solo de la primera."],
+     en:["If a bank has several linked accounts, sync now collects moves from all of them, not only the first."],
+     ca:["Si un banc té diversos comptes enllaçats, la sincronització ja recull els moviments de tots, no només del primer."]}},
   {v:"4.18.9", d:"11 sep 2026",
    t:{es:"Tu historial completo, sin perder nada",en:"Your full history, with nothing lost",ca:"El teu historial complet, sense perdre res"},
    items:{

@@ -1,3 +1,11 @@
+## [4.18.10] — 2026-09-11
+### Multicuenta Open Banking (rescate de aprobada)
+
+Porte a mano desde `beta` de **4.19.0/multicuenta**, sola, desde `main`. Sin cherry-pick.
+
+- `flattenBankTx` lee `accounts[].transactions` (todas las cuentas del enlace), no solo `lk.transactions` (primera cuenta). Shape antiguo sin `accounts` sigue valiendo.
+- Test: `flattenBankTx incluye todas las cuentas, no solo la primaria`.
+- Sin `inicioDeMesMs`, sin Aely, sin import histórico.
 ## [4.18.9] — 2026-09-11
 ### FIN-07 · El histórico entero, y una descarga a medias que ya no borra
 
