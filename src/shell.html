@@ -570,6 +570,19 @@
   .page.page-scroll-host{
     position:fixed;left:0;right:0;top:calc(var(--safe-top) + 4px);bottom:0;width:100%;height:auto;max-width:520px;
     margin:0 auto;z-index:35;transform:none !important;
+    /* ⚠ AQUÍ TENÍA PUESTO `overscroll-behavior-y:contain` Y LO HE QUITADO (11/9).
+       Lo metí para su «al scrollear se baja todo en bloque y luego sube» en el banco de pruebas
+       vacío, razonando que sin nada que scrollear el gesto se encadena hacia arriba y el efecto
+       nativo se lo come la app entera. La mitad del razonamiento está MEDIDA y es cierta: con la
+       cartera vacía, Plan da scrollHeight 748 y clientHeight 748, o sea que no scrollea nada.
+       Pero la otra mitad NO la he podido reproducir en su móvil: ni el shell se mueve un píxel
+       (215 fotogramas, 0,0 px) ni dos capturas —una con el dedo puesto en el sobrescroll y otra
+       en reposo— salen distintas: son el MISMO sha1.
+       Así que no hay prueba de que el fallo sea esto, y por tanto tampoco de que `contain` lo
+       arregle. Cambiar el comportamiento del scroll de toda la familia por una hipótesis bonita
+       es justo lo que aquí sale caro. Se queda como estaba hasta verlo pasar.
+       Lo que sí es seguro: que en la cartera vacía no se oculte la barra ni salga la ola NO es un
+       bug, es que no hay scroll. Con datos vuelve solo. */
     touch-action:auto;contain:none;overscroll-behavior:auto;overscroll-behavior-y:auto;
     overflow-y:auto;-webkit-overflow-scrolling:touch;content-visibility:visible;
     background:var(--bg);
@@ -1388,17 +1401,32 @@
   .v4-ghost-add{width:100%;margin-top:12px;min-height:52px;border-radius:18px;border:1.5px dashed var(--line);background:transparent;color:var(--muted);font-weight:700;font-size:14.5px;font-family:inherit;cursor:pointer;}
   .v4-tip{margin-top:14px;padding:4px;border-radius:18px;background:rgba(230,195,106,.08);border:1px solid rgba(230,195,106,.3);}
   .v4-tip .card{background:transparent;border:none;box-shadow:none;}
-  .v4-ob-skip{position:absolute;top:0;right:0;background:none;border:none;color:var(--muted);font-weight:700;font-size:14px;padding:8px 4px;cursor:pointer;font-family:inherit;}
+  /* ⚠ «SALTAR» YA NO VA EN ABSOLUTO (11/9, él con dos fotos: «está pegadísimo al título y en la
+     siguiente peor»). Iba con `position:absolute;top:0;right:0`, así que no ocupaba sitio y el
+     título —centrado y a 36 px— se le metía DEBAJO en cuanto envolvía a dos líneas. En pantallas
+     de 360 px eso es siempre. Ahora es una fila de verdad: el título empieza donde acaba. */
+  .v4-ob-top{display:flex;justify-content:flex-end;align-items:center;min-height:34px;margin-bottom:2px;}
+  .v4-ob-skip{background:none;border:none;color:var(--muted);font-weight:700;font-size:14px;padding:8px 4px;cursor:pointer;font-family:inherit;}
   /* Lockup Aely (Tanda A, 2026-09-10): badge A-Dot + wordmark. Sin mascota. */
   .v4-ob-lockup{display:flex;align-items:center;justify-content:center;gap:14px;margin:28px auto 18px;}
-  .v4-ob-badge{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;flex:0 0 auto;
+  /* ⚠ SE LLAMABA `.v4-ob-badge` Y CHOCABA CON LA CHIP «del banco» (11/9, él con una foto).
+     En esta casa `v4-ob-` significa DOS cosas distintas: onboarding aquí, open banking allí. La
+     insignia del lockup de Aely (que metí yo el 10/9) reusó el nombre de una chip que ya existía,
+     y como esta regla pone `width:64px;height:64px` y la otra no los toca, la chipita de «del
+     banco» se convirtió en un cuadro de 64×64 encima del nombre del banco. En la pantalla de
+     Cuentas se veía un recuadro azul vacío tapando «Sabadell».
+     El guardián `clases-que-chocan` comprueba que ninguna clase se declare con dos sentidos. */
+  .v4-ob-lockup-badge{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;flex:0 0 auto;
     background:var(--surface);border:1px solid var(--line);color:var(--mint);
     box-shadow:0 16px 32px -14px rgba(108,198,136,.45);}
-  .v4-ob-badge svg{width:40px;height:40px;display:block;}
+  .v4-ob-lockup-badge svg{width:40px;height:40px;display:block;}
   .v4-ob-word{font-family:'Manrope',sans-serif;font-weight:800;font-size:28px;letter-spacing:-.4px;color:var(--brand-word,#E8EEEC);}
   /* Legacy class kept so old screenshots/docs still resolve; lockup is the real header now. */
   .v4-ob-logo{width:76px;height:76px;border-radius:22px;display:grid;place-items:center;margin:28px auto 18px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));box-shadow:0 16px 32px -12px rgba(108,198,136,.55);color:var(--on-mint);}
-  .v4-ob-title{font-size:36px;font-weight:560;letter-spacing:-.6px;line-height:1.12;text-align:center;margin:8px 0 10px;}
+  /* 36 px era «EXTRA EXTRA EXTRA GRANDE» (suyo, 11/9) — en 360 px de ancho «¿Cuánto quieres gastar
+     al mes?» ocupaba dos líneas enormes y se comía la pantalla. 27 px sigue siendo titular serif
+     y deja respirar al resto. */
+  .v4-ob-title{font-size:27px;font-weight:560;letter-spacing:-.4px;line-height:1.18;text-align:center;margin:6px 0 10px;}
   .v4-ob-sub{text-align:center;color:var(--muted);font-size:15px;line-height:1.5;margin:0 auto;max-width:34ch;text-wrap:pretty;}
   /* Las tres tarjetas del brief de Aely: dicen QUÉ ES la app antes de pedirle nada. Alineadas a la
      izquierda a propósito aunque el titular vaya centrado — son frases de dos líneas y centradas

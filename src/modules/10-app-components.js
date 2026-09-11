@@ -2657,19 +2657,25 @@ function Onboarding({set, onCloud, onSignup}){
       return Object.assign({},s,{
         budget:bud, monthStartNet:0, history:[0],
         onboarded:true, setupHint:true, tourSeen:false,
+        /* LETRA PEQUEÑA DE SALIDA, Y SOLO EN INSTALACIONES NUEVAS (11/9, suyo: «pon la letra en
+           pequeño para comenzar, en normal es terriblemente gigantesca»). Se pone AQUÍ, en el
+           onboarding, y no como valor por defecto global: cambiarlo globalmente le reescribiría
+           el tamaño a su padre y a su pareja, que ya tienen la app y no han pedido nada. Quien la
+           quiera más grande la sube en Ajustes, y eso manda sobre esto. */
+        settings: Object.assign({}, s.settings, { textSize:"small" }),
       });
     });
   };
   const skip=function(){ finish(budget); };
   const dots=React.createElement("div",{className:"v4-ob-dots"},
     [0,1,2].map(function(i){ return React.createElement("span",{key:i,className:i===step?"on":""}); }));
-  const skipBtn=React.createElement("button",{type:"button",className:"v4-ob-skip",onClick:skip},t("v4_ob_skip"));
+  const skipBtn=React.createElement("div",{className:"v4-ob-top"},React.createElement("button",{type:"button",className:"v4-ob-skip",onClick:skip},t("v4_ob_skip")));
   const cta={width:"100%",padding:"16px",borderRadius:"16px",border:"none",background:"linear-gradient(160deg,var(--mint-hi),var(--mint))",color:"var(--on-mint)",fontWeight:800,fontSize:"15.5px",cursor:"pointer",marginTop:22,boxShadow:"0 14px 28px -10px rgba(95,208,138,.45)"};
 
   if(step===0) return React.createElement("div",{style:wrap},React.createElement("div",{style:inner},
     skipBtn,
     React.createElement("div",{className:"v4-ob-lockup","aria-label":"Aely"},
-      React.createElement("div",{className:"v4-ob-badge"},React.createElement(I.logo,{width:40,height:40})),
+      React.createElement("div",{className:"v4-ob-lockup-badge"},React.createElement(I.logo,{width:40,height:40})),
       React.createElement("div",{className:"v4-ob-word"},"Aely")
     ),
     React.createElement("h1",{className:"serif v4-ob-title"},t("v4_ob_title1")),
