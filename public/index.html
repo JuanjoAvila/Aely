@@ -398,6 +398,10 @@
   .beta-tanda{margin:0 0 22px;padding-top:2px;}
   .beta-tanda+.beta-tanda{border-top:1px solid var(--line-soft);padding-top:18px;}
   .beta-tanda-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 2px 10px;}
+  .beta-tanda-toggle{width:100%;margin-left:0;margin-right:0;padding:10px 2px;background:none;border:0;color:inherit;text-align:left;cursor:pointer;flex-wrap:wrap;}
+  .beta-tanda-toggle:focus-visible{outline:2px solid var(--mint);outline-offset:2px;border-radius:8px;}
+  .beta-tanda-toggle .beta-tanda-t{flex:1;min-width:150px;}
+  .beta-tanda-fold{font-size:12px;color:var(--muted);}
   .beta-tanda-t{font-family:'Fraunces',Georgia,serif;font-size:17px;font-weight:560;line-height:1.25;}
   .beta-tanda-n{flex:0 0 auto;font-size:11.5px;font-weight:800;color:var(--muted-2);background:var(--surface-2);
     border-radius:20px;padding:4px 10px;white-space:nowrap;}
@@ -1823,7 +1827,7 @@ const CONFIG = {
   // --- Supabase (Fase 1). La anon key es pública por diseño (va protegida con RLS). ---
   SUPABASE_URL: "https://sfyfjagbnhbplrljpbvh.supabase.co",
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeWZqYWdibmhicGxybGpwYnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3NzYyODAsImV4cCI6MjA5NzM1MjI4MH0.umMHOZanC4aRSBqiNAjsegyXxcZ-Q-g2oTQtS1JXzZk",
-  APP_VERSION: "dev",          // lo sella el CI en cada deploy (scripts/stamp-version.mjs)
+  APP_VERSION: "4.18.16",          // lo sella el CI en cada deploy (scripts/stamp-version.mjs)
   SENTRY_DSN: "",              // opcional: inyectar SENTRY_DSN en CI (scripts/build-app.mjs)
 };
 
@@ -3081,6 +3085,7 @@ let CURLANG = "es";
 const LANGS = [["es","Español"],["en","English"],["ca","Català"]];
 const LANG = {
   es:{
+    beta_group:"Revisión", beta_collapse:"Encoger", beta_expand:"Desplegar",
     tab_dash:"Inicio", tab_gastos:"Gastos", tab_plan:"Plan", tab_cartera:"Cartera", tab_fijos:"Fijos", tab_inv:"Inversiones", tab_patri:"Patrimonio", tab_debt:"Deudas", tab_compartido:"Compartido",
     tab_metas:"Metas", tab_logros:"Logros",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
@@ -3243,6 +3248,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Dólar canadiense", cur_aud:"A$ Dólar australiano", cur_cny:"¥ Yuan", cur_mxn:"$ Peso mexicano", cur_sek:"kr Corona sueca", cur_nok:"kr Corona noruega", cur_dkk:"kr Corona danesa", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupia", cur_try:"₺ Lira turca",
   },
   en:{
+    beta_group:"Review", beta_collapse:"Collapse", beta_expand:"Expand",
     tab_dash:"Home", tab_gastos:"Spending", tab_plan:"Plan", tab_cartera:"Portfolio", tab_fijos:"Fixed", tab_inv:"Investments", tab_patri:"Net worth", tab_debt:"Debts", tab_compartido:"Shared",
     tab_metas:"Goals", tab_logros:"Achievements",
     v4_hola:"Hi, {n}", v4_hola_anon:"Hi",
@@ -3392,6 +3398,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Canadian dollar", cur_aud:"A$ Australian dollar", cur_cny:"¥ Yuan", cur_mxn:"$ Mexican peso", cur_sek:"kr Swedish krona", cur_nok:"kr Norwegian krone", cur_dkk:"kr Danish krone", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupee", cur_try:"₺ Turkish lira",
   },
   ca:{
+    beta_group:"Revisió", beta_collapse:"Plegar", beta_expand:"Desplegar",
     tab_dash:"Inici", tab_gastos:"Despeses", tab_plan:"Pla", tab_cartera:"Cartera", tab_fijos:"Fixes", tab_inv:"Inversions", tab_patri:"Patrimoni", tab_debt:"Deutes", tab_compartido:"Compartit",
     tab_metas:"Metes", tab_logros:"Assoliments",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
@@ -13943,6 +13950,8 @@ function BetaReviewPanel({onClose, showToast}){
   // Veredicto POR TANDA: {idTanda: "approved"|"rejected"}. Antes era uno solo para toda la beta,
   // y con varias cosas en vuelo eso obliga a esperar a la más lenta para subir la más rápida.
   const [sent,setSent]=useState(function(){ return store.get(storeKey+"_v") || {}; });
+  // Lo aprobado ocupa solo su cabecera; abrirlo para consultar nunca cambia el veredicto.
+  const [expanded,setExpanded]=useState({});
   // Cuántos venían ya marcados de compilaciones anteriores, para decírselo en vez de que parezca
   // que el panel se ha inventado unos ✓ que él no ha puesto en esta ronda.
   // Se separan los ✓/«no probable» de los ✗: el aviso de arriba no puede decir «los diste por
@@ -14046,6 +14055,7 @@ function BetaReviewPanel({onClose, showToast}){
           store.set(storeKey+"_v",n);   // sobrevive a cerrar la app: probar lleva días
           return n;
         });
+        setExpanded(function(p){ return Object.assign({},p,{[g.id]:verdict!=="approved"}); });
         showToast(verdict==="approved"?"✅ Aprobada · queda registrado":"⛔ Enviado · no se sube");
       })
       .catch(function(e){ showToast("✕ No se pudo enviar: "+((e&&e.message)||e)); })
@@ -14105,11 +14115,16 @@ function BetaReviewPanel({onClose, showToast}){
       const c=cuenta(g.idx);
       const v=sent[g.id];
       const listo=c.pend===0 && c.ko===0;
+      const open=expanded[g.id]!==undefined ? expanded[g.id] : v!=="approved";
       return React.createElement("div",{key:g.id,className:"beta-tanda"},
-        g.t && React.createElement("div",{className:"beta-tanda-h"},
-          React.createElement("span",{className:"beta-tanda-t"}, g.t),
+        React.createElement("button",{type:"button",className:"beta-tanda-h beta-tanda-toggle",
+          "aria-expanded":open,"aria-controls":"beta-body-"+g.id,
+          onClick:function(){ setExpanded(function(p){ return Object.assign({},p,{[g.id]:!open}); }); }},
+          React.createElement("span",{className:"beta-tanda-t"}, g.t||t("beta_group")),
           React.createElement("span",{className:"beta-tanda-n"+(v==="approved"?" ok":v==="rejected"?" ko":"")},
-            v==="approved" ? "✅ aprobada" : v==="rejected" ? "⛔ rechazada" : (c.ok+c.ko+c.na)+"/"+g.idx.length)),
+            v==="approved" ? "✅ aprobada" : v==="rejected" ? "⛔ rechazada" : (c.ok+c.ko+c.na)+"/"+g.idx.length),
+          React.createElement("span",{className:"beta-tanda-fold"},(open?"▾ ":"▸ ")+t(open?"beta_collapse":"beta_expand"))),
+        React.createElement("div",{id:"beta-body-"+g.id,hidden:!open},
         g.idx.map(function(i,j){
           const it=g.items[j], m=marks[i];
           return React.createElement("div",{key:i,className:"beta-item",style:{border:"1px solid "+(m==="ko"?"var(--coral)":m==="ok"?"var(--mint)":m==="na"?"var(--muted-2)":"var(--line-soft)"),
@@ -14156,7 +14171,7 @@ function BetaReviewPanel({onClose, showToast}){
             !listo && React.createElement("div",{style:{fontSize:12,color:"var(--muted-2)",textAlign:"center",marginTop:8,lineHeight:1.5}},
               c.ko>0 ? "Hay algo marcado como que falla: arréglalo antes de aprobar."
                      : "Te quedan "+c.pend+" cosa(s) por probar.")
-          )
+          ))
       );
     }),
 
@@ -14364,6 +14379,17 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.16", d:"11 sep 2026",
+   t:{es:"Revisiones más cómodas",en:"Easier reviews",ca:"Revisions més còmodes"},
+   tandas:[{id:"revision-plegable",t:{es:"📋 Encoger las tandas",en:"📋 Collapse review groups",ca:"📋 Plegar les tandes"},
+     items:{
+       es:["Toca la cabecera para encoger y desplegar una tanda: conserva marcas y comentarios. Las aprobadas se encogen solas y permiten cambiar de opinión al desplegarlas."],
+       en:["Tap a group heading to collapse and expand it: marks and comments remain. Approved groups collapse automatically; expand to change your verdict."],
+       ca:["Toca la capçalera per plegar i desplegar una tanda: conserva marques i comentaris. Les aprovades es pleguen soles; desplega-les per canviar d'opinió."]}}],
+   items:{
+     es:["Las listas de revisión se pueden encoger y desplegar sin perder las marcas ni los comentarios."],
+     en:["Review lists can be collapsed and expanded without losing marks or comments."],
+     ca:["Les llistes de revisió es poden plegar i desplegar sense perdre les marques ni els comentaris."]}},
   {v:"4.18.8", d:"10 sep 2026",
    t:{es:"El resumen del mes y un tope por categoría",en:"The month summary and a cap per category",ca:"El resum del mes i un límit per categoria"},
    items:{

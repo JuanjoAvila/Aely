@@ -1003,6 +1003,8 @@ function BetaReviewPanel({onClose, showToast}){
   // Veredicto POR TANDA: {idTanda: "approved"|"rejected"}. Antes era uno solo para toda la beta,
   // y con varias cosas en vuelo eso obliga a esperar a la más lenta para subir la más rápida.
   const [sent,setSent]=useState(function(){ return store.get(storeKey+"_v") || {}; });
+  // Lo aprobado ocupa solo su cabecera; abrirlo para consultar nunca cambia el veredicto.
+  const [expanded,setExpanded]=useState({});
   // Cuántos venían ya marcados de compilaciones anteriores, para decírselo en vez de que parezca
   // que el panel se ha inventado unos ✓ que él no ha puesto en esta ronda.
   // Se separan los ✓/«no probable» de los ✗: el aviso de arriba no puede decir «los diste por
@@ -1106,6 +1108,7 @@ function BetaReviewPanel({onClose, showToast}){
           store.set(storeKey+"_v",n);   // sobrevive a cerrar la app: probar lleva días
           return n;
         });
+        setExpanded(function(p){ return Object.assign({},p,{[g.id]:verdict!=="approved"}); });
         showToast(verdict==="approved"?"✅ Aprobada · queda registrado":"⛔ Enviado · no se sube");
       })
       .catch(function(e){ showToast("✕ No se pudo enviar: "+((e&&e.message)||e)); })
@@ -1165,11 +1168,16 @@ function BetaReviewPanel({onClose, showToast}){
       const c=cuenta(g.idx);
       const v=sent[g.id];
       const listo=c.pend===0 && c.ko===0;
+      const open=expanded[g.id]!==undefined ? expanded[g.id] : v!=="approved";
       return React.createElement("div",{key:g.id,className:"beta-tanda"},
-        g.t && React.createElement("div",{className:"beta-tanda-h"},
-          React.createElement("span",{className:"beta-tanda-t"}, g.t),
+        React.createElement("button",{type:"button",className:"beta-tanda-h beta-tanda-toggle",
+          "aria-expanded":open,"aria-controls":"beta-body-"+g.id,
+          onClick:function(){ setExpanded(function(p){ return Object.assign({},p,{[g.id]:!open}); }); }},
+          React.createElement("span",{className:"beta-tanda-t"}, g.t||t("beta_group")),
           React.createElement("span",{className:"beta-tanda-n"+(v==="approved"?" ok":v==="rejected"?" ko":"")},
-            v==="approved" ? "✅ aprobada" : v==="rejected" ? "⛔ rechazada" : (c.ok+c.ko+c.na)+"/"+g.idx.length)),
+            v==="approved" ? "✅ aprobada" : v==="rejected" ? "⛔ rechazada" : (c.ok+c.ko+c.na)+"/"+g.idx.length),
+          React.createElement("span",{className:"beta-tanda-fold"},(open?"▾ ":"▸ ")+t(open?"beta_collapse":"beta_expand"))),
+        React.createElement("div",{id:"beta-body-"+g.id,hidden:!open},
         g.idx.map(function(i,j){
           const it=g.items[j], m=marks[i];
           return React.createElement("div",{key:i,className:"beta-item",style:{border:"1px solid "+(m==="ko"?"var(--coral)":m==="ok"?"var(--mint)":m==="na"?"var(--muted-2)":"var(--line-soft)"),
@@ -1216,7 +1224,7 @@ function BetaReviewPanel({onClose, showToast}){
             !listo && React.createElement("div",{style:{fontSize:12,color:"var(--muted-2)",textAlign:"center",marginTop:8,lineHeight:1.5}},
               c.ko>0 ? "Hay algo marcado como que falla: arréglalo antes de aprobar."
                      : "Te quedan "+c.pend+" cosa(s) por probar.")
-          )
+          ))
       );
     }),
 
@@ -1424,6 +1432,17 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.16", d:"11 sep 2026",
+   t:{es:"Revisiones más cómodas",en:"Easier reviews",ca:"Revisions més còmodes"},
+   tandas:[{id:"revision-plegable",t:{es:"📋 Encoger las tandas",en:"📋 Collapse review groups",ca:"📋 Plegar les tandes"},
+     items:{
+       es:["Toca la cabecera para encoger y desplegar una tanda: conserva marcas y comentarios. Las aprobadas se encogen solas y permiten cambiar de opinión al desplegarlas."],
+       en:["Tap a group heading to collapse and expand it: marks and comments remain. Approved groups collapse automatically; expand to change your verdict."],
+       ca:["Toca la capçalera per plegar i desplegar una tanda: conserva marques i comentaris. Les aprovades es pleguen soles; desplega-les per canviar d'opinió."]}}],
+   items:{
+     es:["Las listas de revisión se pueden encoger y desplegar sin perder las marcas ni los comentarios."],
+     en:["Review lists can be collapsed and expanded without losing marks or comments."],
+     ca:["Les llistes de revisió es poden plegar i desplegar sense perdre les marques ni els comentaris."]}},
   {v:"4.18.8", d:"10 sep 2026",
    t:{es:"El resumen del mes y un tope por categoría",en:"The month summary and a cap per category",ca:"El resum del mes i un límit per categoria"},
    items:{
