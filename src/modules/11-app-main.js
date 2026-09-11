@@ -100,6 +100,17 @@ function App(){
         nav.classList.toggle("botnav-hidden-fast", fast);
       }
     }catch(e){}
+    /* ⚠ CON EL DEDO PUESTO NO SE RE-RENDERIZA APP. Lo que ESCONDE la barra es la clase de arriba;
+       el `setState` solo pone a React de acuerdo con el DOM, y hacerlo a mitad de gesto repinta la
+       app entera — que es literalmente el rechazo 4.12.0.17 («si te mueves en Deudas/Metas y
+       deslizas acto seguido, se laguea»).
+       Antes esto no podía pasar porque `onPageScroll` se iba de vacío con cualquier dedo; al
+       acotarlo al gesto de pestaña (11/9, para que la barra se escondiera bajando despacio) volvió
+       a ser posible. Se ve en el guardián de rendimiento: aislado pasa, pero con la suite entera
+       en paralelo se fue a 85 ms contra un tope de 80.
+       Así que el estado se guarda y se vuelca en cuanto levanta el dedo (`onEnd`). Visualmente es
+       idéntico: la clase ya está puesta. */
+    if(dragging.current){ navFlush.current=true; return; }
     setNavHidden(true);
     setNavHiddenFast(fast);
   };
@@ -137,6 +148,8 @@ function App(){
   // congelado cuando no hace falta (ver allí). Se apunta antes de cualquier corte: durante el
   // gesto también interesa, porque justo eso es el momentum que se quiere detectar.
   const lastScrollAt=useRef(0);
+  /* ¿Queda un `setState` de la barra pendiente de volcar al levantar el dedo? Ver `applyNavHide`. */
+  const navFlush=useRef(false);
   /* Alto del contenido en el scroll anterior. Sirve para distinguir «ha bajado él» de «la
      pantalla se ha recolocado sola»: al tocar un chip de rol en Cartera la tarjeta estira o
      encoge, el navegador ajusta el `scrollTop` y dispara un `scroll` que NADIE ha pedido. Sin
@@ -2585,6 +2598,12 @@ function App(){
   };
   const onEnd=()=>{
     if(!dragging.current) return; dragging.current=false;
+    // El `setState` de la barra que se aplazó para no repintar App a mitad de gesto (applyNavHide).
+    if(navFlush.current){
+      navFlush.current=false;
+      setNavHidden(!!navHiddenRef.current);
+      setNavHiddenFast(!!navHideFastRef.current);
+    }
     // El rAF del arrastre se para AQUÍ: a partir de ahora manda `animarA`, y si los dos escriben
     // el mismo `transform` se pisan y el soltar daría un tirón peor que el que veníamos a quitar.
     pararPintado();

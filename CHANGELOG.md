@@ -1,3 +1,25 @@
+## [4.19.69] - 2026-09-11
+### El arreglo de la barra apretaba justo el guardián de SU rechazo
+
+Él aprobó la 4.19.62 esa misma noche («6 ok / 0 fallos»), pero al pasar la suite entera en
+paralelo saltó `rendimiento-tabs`: *«scroll→swipe bloqueó el hilo 85 ms»* contra un tope de 80. En
+aislado pasaba 3 de 3 — o sea, margen justo, no fallo limpio.
+
+**Y el margen era mío.** Ese guardián existe por su rechazo 4.12.0.17: *«si te mueves en
+Deudas/Metas y deslizas acto seguido, se laguea»*. La protección de entonces era que
+`onPageScroll` se iba de vacío con **cualquier** dedo puesto. Al acotarla al gesto de pestaña —lo
+que hacía falta para que la barra se escondiera bajando despacio— volvieron a pasar `setNavHidden`
+a mitad de gesto, y cada uno **repinta App entera**.
+
+Lo que esconde la barra es la clase CSS, no el `setState`: el `setState` solo pone a React de
+acuerdo con el DOM. Así que con el dedo puesto se aplica la clase y **el estado se aplaza hasta que
+levanta el dedo** (`onEnd`). Visualmente idéntico, y el hilo principal se queda libre durante el
+gesto, que es de lo que iba su rechazo.
+
+Comprobado: `botnav-esconder` 5/5, `rebote-barra-inferior` 2/2, `rendimiento-tabs` 3/3, y **la
+suite entera en verde dos veces seguidas** — que es lo que hacía falta, porque el fallo solo salía
+con la máquina cargada.
+
 ## [4.19.68] - 2026-09-11
 ### «barcelo» se comía Barcelona entera, y él vive ahí
 

@@ -1,5 +1,61 @@
 [
  {
+  "v": "4.19.69",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "La barra de abajo, sin castigar al dedo",
+   "en": "The bottom bar, without taxing the gesture",
+   "ca": "La barra de baix, sense castigar el dit"
+  },
+  "tandas": [
+   {
+    "id": "botnav-sin-repintar",
+    "t": {
+     "es": "👇 La barra se esconde igual, pero sin que la app se atasque",
+     "en": "👇 The bar still hides, without the app stuttering",
+     "ca": "👇 La barra s'amaga igual, pero sense que l'app s'encalli"
+    },
+    "items": {
+     "es": [
+      "1. Esto es el remate de lo que ya aprobaste: tiene que seguir funcionando EXACTAMENTE igual, y además ir más fino.",
+      "2. Vete a Plan → Deudas o Metas y baja la lista con el dedo. La barra de abajo se esconde.",
+      "3. Sin levantar mucho el dedo, desliza de lado para cambiar de pestaña ACTO SEGUIDO. Ese es el gesto: no puede notarse ningún tirón ni parón.",
+      "4. Repítelo en Gastos con la lista larga: bajar y deslizar seguido.",
+      "5. Comprueba que la barra sigue escondiéndose al bajar despacio y volviendo al subir, como ayer.",
+      "6. Y al llegar abajo del todo, que la ola siga saliendo como siempre."
+     ],
+     "en": [
+      "1. This finishes what you already approved: it must work exactly the same, only smoother.",
+      "2. Go to Plan → Debts or Goals and scroll the list. The bottom bar hides.",
+      "3. Without lifting much, swipe sideways to change tab RIGHT AFTER. No stutter allowed.",
+      "4. Repeat in Expenses with the long list.",
+      "5. Check the bar still hides scrolling slowly and comes back going up.",
+      "6. And at the very bottom, the wave still shows."
+     ],
+     "ca": [
+      "1. Aixo remata el que ja vas aprovar: ha de funcionar IGUAL, pero mes fi.",
+      "2. Ves a Pla → Deutes o Metes i baixa la llista amb el dit. La barra s'amaga.",
+      "3. Sense aixecar gaire el dit, llisca de costat per canviar de pestanya TOT SEGUIT. No pot notar-se cap estirada.",
+      "4. Repeteix-ho a Despeses amb la llista llarga.",
+      "5. Comprova que la barra segueix amagant-se baixant a poc a poc.",
+      "6. I en arribar a baix del tot, que l'ona segueixi sortint."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Afinado del escondido de la barra: ya no se repinta la app entera mientras tienes el dedo puesto, así que bajar por una lista y deslizar a otra pestaña acto seguido va más fino."
+   ],
+   "en": [
+    "Polish on the bar hiding: the whole app no longer repaints while your finger is down, so scrolling and then swiping to another tab is smoother."
+   ],
+   "ca": [
+    "Afinat de l'amagat de la barra: ja no es repinta l'app sencera amb el dit posat."
+   ]
+  }
+ },
+ {
   "v": "4.19.68",
   "d": "11 sep 2026",
   "t": {
@@ -286,36 +342,7 @@
    "en": "Cash gets its own icon",
    "ca": "L'efectiu estrena icona"
   },
-  "tandas": [
-   {
-    "id": "efectivo-billete",
-    "t": {
-     "es": "💵 El efectivo ya no sale con la chapa del euro",
-     "en": "💵 Cash no longer shows a plain euro badge",
-     "ca": "💵 L'efectiu ja no surt amb la xapa de l'euro"
-    },
-    "items": {
-     "es": [
-      "1. Vete a Cartera → Tus cuentas y busca la fila del Efectivo.",
-      "2. Su icono tiene que ser un billete verde con una moneda dorada delante, no la chapita marrón con el símbolo del euro.",
-      "3. Míralo también donde salga el efectivo al apuntar un gasto: mismo icono en todos los sitios.",
-      "4. Y comprueba que los bancos de verdad (Sabadell, Revolut, Trade Republic…) siguen con SU logo de siempre, sin cambiar de tamaño."
-     ],
-     "en": [
-      "1. Go to Wallet → Your accounts and find the Cash row.",
-      "2. Its icon must be a green banknote with a gold coin in front, not the brown badge with a euro sign.",
-      "3. Check it too wherever cash appears when logging an expense: same icon everywhere.",
-      "4. And check the real banks still show THEIR own logo, at the same size as before."
-     ],
-     "ca": [
-      "1. Ves a Cartera → Els teus comptes i busca la fila de l'Efectiu.",
-      "2. La seva icona ha de ser un bitllet verd amb una moneda daurada al davant.",
-      "3. Mira-ho tambe on surti l'efectiu en apuntar una despesa: la mateixa icona a tot arreu.",
-      "4. I comprova que els bancs de veritat segueixen amb EL SEU logotip de sempre."
-     ]
-    }
-   }
-  ],
+  "tandas": [],
   "items": {
    "es": [
     "El efectivo tenía una chapita con el símbolo del euro que desentonaba al lado de los logos de los bancos. Ahora lleva su propio dibujo: un billete con una moneda."
@@ -357,42 +384,7 @@
    "en": "The bottom bar hides again when you scroll down",
    "ca": "La barra de baix torna a amagar-se en baixar"
   },
-  "tandas": [
-   {
-    "id": "botnav-esconder",
-    "t": {
-     "es": "👇 La barra de abajo se esconde al bajar, y pronto",
-     "en": "👇 The bottom bar hides as soon as you scroll down",
-     "ca": "👇 La barra de baix s'amaga en baixar, i aviat"
-    },
-    "items": {
-     "es": [
-      "1. Vete a Inicio y baja con el dedo, DESPACIO, sin dar un manotazo. Este es el punto: en cuanto la pantalla empieza a subir, la barra de abajo tiene que irse.",
-      "2. Fíjate en cómo se va: tiene que deslizarse con suavidad, no desaparecer de golpe.",
-      "3. Sube un poco con el dedo: la barra tiene que volver.",
-      "4. Repítelo en Gastos y en Cartera, que también son listas largas.",
-      "5. Ahora dale un manotazo rápido hacia arriba: tiene que seguir yendo igual de bien que antes.",
-      "6. Y lo que NO puede romperse: cambia de pestaña deslizando de lado. Al llegar a la pestaña nueva la barra tiene que quedarse quieta y a la vista, sin parpadear."
-     ],
-     "en": [
-      "1. Go to Home and scroll down SLOWLY with your finger, no flick. That is the point: as soon as the screen starts moving, the bottom bar must go.",
-      "2. Watch how it goes: it must slide away smoothly, not vanish at once.",
-      "3. Scroll up a little: the bar must come back.",
-      "4. Repeat in Expenses and Wallet, which are long lists too.",
-      "5. Now flick up fast: it must work as well as before.",
-      "6. And what must NOT break: swipe sideways to change tab. On arriving the bar must stay put and visible, no flicker."
-     ],
-     "ca": [
-      "1. Ves a Inici i baixa amb el dit, A POC A POC, sense manotada. Aquest es el punt: quan la pantalla comenca a pujar, la barra de baix ha de marxar.",
-      "2. Fixa't com se'n va: ha de lliscar amb suavitat, no desapareixer de cop.",
-      "3. Puja una mica amb el dit: la barra ha de tornar.",
-      "4. Repeteix-ho a Despeses i a Cartera.",
-      "5. Ara fes una manotada rapida cap amunt: ha d'anar igual de be que abans.",
-      "6. I el que NO pot trencar-se: canvia de pestanya lliscant de costat. En arribar, la barra s'ha de quedar quieta i a la vista."
-     ]
-    }
-   }
-  ],
+  "tandas": [],
   "items": {
    "es": [
     "La barra de abajo volvía a salir casi siempre al bajar por una lista. Ahora se esconde en cuanto empiezas a bajar, con la misma transición suave de siempre."
