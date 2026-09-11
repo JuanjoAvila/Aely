@@ -1,3 +1,23 @@
+## [4.19.50] - 2026-09-11
+### Ninguna escritura de gastos se queda muda
+
+Portado a mano desde `tanda/catch-addExpense-log` (4.18.24, ya en `main`). Mergear la rama
+entera arrastraba media rama vieja de `main` y dejaba 7 tests en conflicto, asi que se han
+llevado los hunks uno a uno.
+
+- `subirGasto(e, donde)` y `borrarGastoNube(e, donde)` en `00-core.js`: envuelven
+  `cloud.addExpense` / `cloud.deleteExpense` y mandan a `app_events` la clave del gasto y el
+  error cuando fallan. Antes cada sitio hacia `.catch(function(){})` y la fila se quedaba solo
+  en el movil.
+- Cableados los 8 sitios: borrar, resolver repetido, editar, apuntar (Gastos y v4), backfill de
+  sincronizacion, importadas de Open Banking y `setExpenseDup`.
+- El blindaje del banco de pruebas los cubre: envuelve `cloud[name]` por propiedad y el helper la
+  resuelve al llamar, asi que en modo pruebas no sale nada del movil.
+
+Por que importa: el 11/9 se midio widget 512 EUR sin abrir la app y 497 EUR en pantalla. La
+diferencia eran 14,90 EUR de un gasto que el movil tiene y la tabla `expenses` no. Sin este
+rastro no hay forma de saber cual ni por que.
+
 ## [4.19.49] — 2026-09-11
 ### TR corto/gordo y Revolut de una pieza
 

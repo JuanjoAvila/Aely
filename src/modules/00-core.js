@@ -1193,6 +1193,30 @@ const cloud = (function(){
   };
 })();
 
+/* Escritura de gastos a la nube CON rastro (2026-09-11). Antes cada sitio hacia
+   `.catch(function(){})` y la fila se quedaba solo en el movil -> widget != app
+   (512 sin abrir / 497 en pantalla). Un helper, un log; la proxima escritura no nace muda.
+   Portado a mano desde `tanda/catch-addExpense-log` (4.18.24): mergearla entera arrastraba
+   media rama vieja de `main` y dejaba 7 tests en conflicto. */
+function keyOfExpense(e){
+  return String(e&&e.date).slice(0,10)+"|"+(e&&e.amount)+"|"+((e&&e.merchant)||"");
+}
+function _errCloudMsg(err){
+  return String((err&&(err.message||err.code||err.error_description))||err||"?").slice(0,300);
+}
+function subirGasto(e, donde){
+  if(!cloud.enabled()) return Promise.resolve();
+  return cloud.addExpense(e).catch(function(err){
+    cloud.logEvent("error","addExpense "+(donde||"?")+": "+keyOfExpense(e), _errCloudMsg(err));
+  });
+}
+function borrarGastoNube(e, donde){
+  if(!cloud.enabled()) return Promise.resolve();
+  return cloud.deleteExpense(e).catch(function(err){
+    cloud.logEvent("error","deleteExpense "+(donde||"?")+": "+keyOfExpense(e), _errCloudMsg(err));
+  });
+}
+
 /* ---------- Blindaje del banco de pruebas ----------
    Mientras estás en modo pruebas, TODA operación que ESCRIBA en la nube se anula. Es la garantía
    que hace que el modo pruebas sirva para algo: puedes romper lo que quieras y no llega nada a

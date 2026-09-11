@@ -1,6 +1,6 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-11 · **v4.19.49** — en pruebas: logos cara a cara con el launcher.
+> Estado a 2026-09-11 · **v4.19.50** — en pruebas: logos del launcher y el rastro de los gastos que no suben.
 > Anterior: **v4.19.45** — logos medidos (lockup Enable Banking; rehuidos).
 > Anterior: **v4.19.44** — Aa en Inicio y Conectar cuentas.
 > Anterior: **v4.19.43** — ronda de la tarde (bugs + copy + banco fantasma).
@@ -123,7 +123,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.19.49** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.50** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

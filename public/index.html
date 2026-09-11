@@ -3210,6 +3210,30 @@ const cloud = (function(){
   };
 })();
 
+/* Escritura de gastos a la nube CON rastro (2026-09-11). Antes cada sitio hacia
+   `.catch(function(){})` y la fila se quedaba solo en el movil -> widget != app
+   (512 sin abrir / 497 en pantalla). Un helper, un log; la proxima escritura no nace muda.
+   Portado a mano desde `tanda/catch-addExpense-log` (4.18.24): mergearla entera arrastraba
+   media rama vieja de `main` y dejaba 7 tests en conflicto. */
+function keyOfExpense(e){
+  return String(e&&e.date).slice(0,10)+"|"+(e&&e.amount)+"|"+((e&&e.merchant)||"");
+}
+function _errCloudMsg(err){
+  return String((err&&(err.message||err.code||err.error_description))||err||"?").slice(0,300);
+}
+function subirGasto(e, donde){
+  if(!cloud.enabled()) return Promise.resolve();
+  return cloud.addExpense(e).catch(function(err){
+    cloud.logEvent("error","addExpense "+(donde||"?")+": "+keyOfExpense(e), _errCloudMsg(err));
+  });
+}
+function borrarGastoNube(e, donde){
+  if(!cloud.enabled()) return Promise.resolve();
+  return cloud.deleteExpense(e).catch(function(err){
+    cloud.logEvent("error","deleteExpense "+(donde||"?")+": "+keyOfExpense(e), _errCloudMsg(err));
+  });
+}
+
 /* ---------- Blindaje del banco de pruebas ----------
    Mientras estás en modo pruebas, TODA operación que ESCRIBA en la nube se anula. Es la garantía
    que hace que el modo pruebas sirva para algo: puedes romper lo que quieras y no llega nada a
@@ -8464,7 +8488,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const keyOfE=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.merchant||""); };
   const delExpense=function(e){
     set(function(s){ return Object.assign({},s,{ expenses:s.expenses.filter(function(x){ return x.id!==e.id; }), deleted:pushDeleted(s.deleted, keyOfE(e)) }); });
-    if(cloud.enabled()) cloud.deleteExpense(e).catch(function(){});
+    if(cloud.enabled()) borrarGastoNube(e, "gastos-borrar");
     showToast(t("g_deleted"));
   };
   /* Posible repetido OB↔noti (2026-09-07): «es el mismo» borra la fila OB; «son distintos»
@@ -8475,12 +8499,12 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       let next=resolvePossibleDup(s, e.id, same);
       if(same){
         next=Object.assign({},next,{deleted:pushDeleted(next.deleted, keyOfE(e))});
-        if(cloud.enabled()) cloud.deleteExpense(e).catch(function(){});
+        if(cloud.enabled()) borrarGastoNube(e, "gastos-dup");
       }
       // «Son distintos»: hay que QUITAR la marca también en la nube (B09-D). Si no, la fila sigue
       // siendo `ob-dup:` allí, el servidor la deja fuera del presupuesto y el siguiente pull la
       // vuelve a apagar en el móvil.
-      else if(cloud.enabled()) cloud.setExpenseDup(e, false).catch(function(){});
+      else if(cloud.enabled()) cloud.setExpenseDup(e, false).catch(function(err){ cloud.logEvent("error","setExpenseDup gastos-dup: "+keyOfExpense(e), _errCloudMsg(err)); });
       return next;
     });
     if(same) showToast(t("g_dup_same"));
@@ -8639,7 +8663,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; }),
       deleted:pushDeleted(s.deleted, keyOfE(orig))
     }); });
-    if(cloud.enabled()){ cloud.deleteExpense(orig).catch(function(){}); cloud.addExpense(upd).catch(function(){}); }
+    if(cloud.enabled()){ borrarGastoNube(orig, "gastos-editar"); subirGasto(upd, "gastos-editar"); }
     sincroniza(upd); showToast(t("g_edited"));
   };
 
@@ -8887,7 +8911,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     // Gasto a mano: etiqueta el banco de gasto diario si hay uno (filtro por banco; 2026-07-16)
     if(!form.income){ const daily=(state.accounts||[]).find(function(a){ return accDaily(a); }); if(daily&&daily.ent) ex.ent=daily.ent; }
     set(s=>Object.assign({},s,{expenses:[ex].concat(s.expenses)}));
-    if(cloud.enabled()) cloud.addExpense(ex).catch(function(){});   // lo guarda también en la BD
+    if(cloud.enabled()) subirGasto(ex, "gastos-apuntar");   // lo guarda también en la BD
     // Avisos al apuntar (notificaciones "de andar por casa", las push reales llegarán con el APK):
     // pasarse del presupuesto > cruzar el 80% > gasto tocho (≥15% del presupuesto). Si no, el toast normal.
     let msg = form.income ? t("g_saved_i") : t("g_saved_g");
@@ -18490,7 +18514,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     // Rastro del importe original (informativo; la lista sigue en la moneda de visualización).
     if(entryCur!=="EUR"){ e.origAmount=amt; e.origCur=entryCur; }
     set(function(s){ return Object.assign({},s,{expenses:(s.expenses||[]).concat([e])}); });
-    if(cloud.enabled()) cloud.addExpense(e).catch(function(){});
+    if(cloud.enabled()) subirGasto(e, "v4-apuntar");
     onClose();
     if(goGastos) goGastos();
     showToast(isIn?t("v4_apuntar_ok_in"):t("v4_apuntar_ok"));
@@ -19010,7 +19034,7 @@ function App(){
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
       const tableKeys={}; incoming.forEach(function(e){ tableKeys[keyOf(e)]=1; });
-      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOf(e)]) cloud.addExpense(e).catch(function(){}); });
+      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOf(e)]) subirGasto(e, "backfill"); });
       /* AQUÍ NO VA UN REPASO QUE RE-MARQUE LOS POSIBLES REPETIDOS VIEJOS (B09-D, 2026-09-08).
          Lo escribí y lo retiré: `addExpense` va con ignoreDuplicates y nunca cambia el `source` de
          una fila ya presente, así que los pendientes anteriores a esta versión siguen contando en
@@ -19149,7 +19173,7 @@ function App(){
         return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links) });
       });
       // sube las importadas a la tabla expenses (best-effort; el estado local ya las tiene)
-      setTimeout(function(){ obAdded.forEach(function(e){ cloud.addExpense(e).catch(function(){}); }); }, 0);
+      setTimeout(function(){ obAdded.forEach(function(e){ subirGasto(e, "ob-import"); }); }, 0);
       // En sync automática (la que dispara la noti del banco) se avisa solo de lo que ha entrado.
       // Si has pulsado tú «↻ Sincronizar bancos», esto se junta con el resultado de abajo: dos
       // avisos seguidos por una sola acción tuya eran ruido (feedback 2026-07-26).

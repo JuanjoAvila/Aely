@@ -1,5 +1,46 @@
 [
  {
+  "v": "4.19.50",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Si un gasto no llega a la nube, ahora se sabe",
+   "en": "If an expense doesn't reach the cloud, we now know",
+   "ca": "Si una despesa no arriba al nuvol, ara se sap"
+  },
+  "tandas": [
+   {
+    "id": "catch-mudo",
+    "t": {
+     "es": "🔎 Si un gasto no se guarda en la nube, queda constancia",
+     "en": "🔎 If an expense fails to save to the cloud, it's recorded",
+     "ca": "🔎 Si una despesa no es desa al nuvol, en queda constancia"
+    },
+    "items": {
+     "es": [
+      "Apunta un gasto, cierra la app y ábrela: tiene que seguir ahí. No deberías notar nada distinto — esto es un rastro interno para cazar por qué el widget y la pantalla de inicio decían cifras diferentes."
+     ],
+     "en": [
+      "Add an expense, close the app and reopen it: it must still be there. You shouldn't notice anything different — this is an internal trace to track down why the widget and the home screen showed different amounts."
+     ],
+     "ca": [
+      "Apunta una despesa, tanca l'app i obre-la: hi ha de seguir. No hauries de notar res diferent — aixo es un rastre intern per caçar per que el widget i la pantalla d'inici deien xifres diferents."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Cuando un gasto no consigue guardarse en la nube, la app deja constancia en vez de callarse. Era la causa de que el widget y la pantalla de inicio dijeran cifras distintas."
+   ],
+   "en": [
+    "When an expense fails to save to the cloud, the app now records it instead of staying quiet. This is why the widget and the home screen sometimes showed different amounts."
+   ],
+   "ca": [
+    "Quan una despesa no aconsegueix desar-se al nuvol, l'app en deixa constancia en comptes de callar. Era la causa que el widget i la pantalla d'inici diguessin xifres diferents."
+   ]
+  }
+ },
+ {
   "v": "4.19.49",
   "d": "11 sep 2026",
   "t": {
