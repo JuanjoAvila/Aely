@@ -1,5 +1,46 @@
 [
  {
+  "v": "4.19.45",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Conectar cuentas desde Cartera",
+   "en": "Connect accounts from Portfolio",
+   "ca": "Connectar comptes des de Cartera"
+  },
+  "tandas": [
+   {
+    "id": "conectar-cuentas-11sep",
+    "t": {
+     "es": "🏦 Conectar cuentas también en Tus cuentas",
+     "en": "🏦 Connect accounts also under Your accounts",
+     "ca": "🏦 Connectar comptes també a Els teus comptes"
+    },
+    "items": {
+     "es": [
+      "En Cartera → Tus cuentas hay un «Conectar cuentas» que abre Mis bancos, igual que el de Inicio."
+     ],
+     "en": [
+      "In Portfolio → Your accounts there is a «Connect accounts» that opens My banks, same as on Home."
+     ],
+     "ca": [
+      "A Cartera → Els teus comptes hi ha un «Connectar comptes» que obre Els meus bancs, igual que a Inici."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Desde Tus cuentas ya se pueden conectar bancos, sin pasar solo por Inicio."
+   ],
+   "en": [
+    "You can connect banks from Your accounts, not only from Home."
+   ],
+   "ca": [
+    "Des dels teus comptes ja es poden connectar bancs, sense passar només per Inici."
+   ]
+  }
+ },
+ {
   "v": "4.19.44",
   "d": "11 sep 2026",
   "t": {

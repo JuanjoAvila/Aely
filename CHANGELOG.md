@@ -1,3 +1,9 @@
+## [4.19.45] — 2026-09-11
+### Conectar cuentas desde Cartera (lista 11/9, ítem 2)
+
+En Cartera → Tus cuentas solo estaba el sync (si ya había banco). El CTA de conectar vivía en Inicio → Próximos cargos (vacío) y en Ajustes. Ahora «Conectar cuentas» abre Mis bancos desde la cabecera de Tus cuentas (`mc-open-banks`), la misma puerta.
+
+
 ## [4.19.44] — 2026-09-11
 ### Logos de banco y la letra a mano (lista 11/9, ítems 1 y 3)
 
