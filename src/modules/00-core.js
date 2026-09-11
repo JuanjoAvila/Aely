@@ -1163,6 +1163,37 @@ function valueDesdeSaldo(o){
   if(o.ambos) v-=(o.paidNet||0);
   return +v.toFixed(2);
 }
+/* Orden visual de Gastos. El banco muchas veces solo trae DÍA, no hora: inventar una hora para
+   ordenar sería mentir. Se conserva el día y el usuario decide el orden dentro de ese día; los
+   ids viven en settings para que viajen con la cuenta aunque `expenses` se guarde por separado. */
+function sortExpensesForDisplay(expenses, state){
+  const saved=((state&&state.settings)||{}).expenseOrder||{};
+  const cache={};
+  const pos=function(day,id){
+    const list=saved[day];
+    if(!Array.isArray(list)||!list.length) return null;
+    if(!cache[day]){ const m={}; list.forEach(function(x,i){ m[x]=i; }); cache[day]=m; }
+    return cache[day][id]!=null?cache[day][id]:Infinity;
+  };
+  return (expenses||[]).slice().sort(function(a,b){
+    const da=String(a.date||"").slice(0,10), db=String(b.date||"").slice(0,10);
+    if(da!==db) return db.localeCompare(da);
+    const pa=pos(da,a.id), pb=pos(db,b.id);
+    if(pa!=null||pb!=null){ if(pa!==pb) return (pa==null?Infinity:pa)-(pb==null?Infinity:pb); }
+    return dateMs(b.date)-dateMs(a.date);
+  });
+}
+function moveExpenseWithinDay(state, fromId, toId){
+  if(!state || !fromId || !toId || fromId===toId) return state;
+  const byId={}; (state.expenses||[]).forEach(function(e){ if(e&&e.id) byId[e.id]=e; });
+  const from=byId[fromId], to=byId[toId];
+  const day=from&&String(from.date||"").slice(0,10);
+  if(!from||!to||day!==String(to.date||"").slice(0,10)) return state;
+  const ids=sortExpensesForDisplay((state.expenses||[]).filter(function(e){ return String(e.date||"").slice(0,10)===day; }),state).map(function(e){ return e.id; });
+  const i=ids.indexOf(fromId), j=ids.indexOf(toId); if(i<0||j<0) return state;
+  ids.splice(i,1); ids.splice(j,0,fromId);
+  const settings=Object.assign({},state.settings,{expenseOrder:Object.assign({},((state.settings||{}).expenseOrder)||{},{[day]:ids})});
+  return Object.assign({},state,{settings:settings});
 /* Resuelve un OB marcado como posible repetido.
    same=true conserva el gemelo con nombre; false confirma que los dos cargos son reales. */
 function resolvePossibleDup(state, expenseId, same){

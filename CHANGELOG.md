@@ -1,3 +1,16 @@
+## [4.18.13] — 2026-09-11
+### Orden manual dentro del día en Gastos
+
+Las filas de un mismo día se pueden reordenar arrastrando su asa. El orden se guarda como lista
+de ids por fecha en `settings.expenseOrder`, por lo que sincroniza con la cuenta sin volver a
+serializar el histórico `expenses`, que sigue partido en su propia clave.
+
+**Por qué:** muchas operaciones bancarias solo informan el día. Inventar una hora para alterar el
+orden sería falsear el movimiento; este ajuste conserva la fecha original y deja que la persona
+decida únicamente entre filas del mismo día. El destino se comprueba de nuevo al guardar para no
+mezclar días al cruzar un separador. Guardián: `e2e/gastos-orden.spec.mjs`.
+
+OTA; sin cambios nativos ni de Supabase.
 ## [4.18.12] — 2026-09-11
 ### Categoría Inteligencia artificial
 
