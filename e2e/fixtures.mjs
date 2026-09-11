@@ -1,8 +1,14 @@
+import { readFileSync } from "node:fs";
+
 /** Estado mínimo onboarded + sesión Supabase simulada (sin red).
  *  `overrides` se mezcla sobre el estado base (p.ej. {investments:[...]}) para que cada test
  *  no tenga que repetir el objeto entero. */
 export async function seedLoggedInDashboard(page, overrides = {}) {
-  await page.addInitScript((overrides) => {
+  // Si el bundle está sellado (APP_VERSION=4.x) y `_seenVersion` sigue en "dev", Novedades
+  // tapa los clics del panel de beta y el e2e miente en rojo. Leemos VERSION del checkout.
+  let seenVer = "dev";
+  try { seenVer = readFileSync("VERSION", "utf8").trim() || "dev"; } catch (e) {}
+  await page.addInitScript(([overrides, seenVer]) => {
     // Sin esto, cada reload vuelve a pisar localStorage y tests como el orden de Gastos
     // «persiste tras recargar» nunca pueden ver lo que la app acaba de guardar.
     const seedOnce = !!overrides.__seedOnce;
@@ -100,7 +106,7 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       localStorage.setItem("micartera_v3", JSON.stringify(Object.assign(base, overrides)));
       if (seedOnce) sessionStorage.setItem("_e2eSeeded", "1");
     }
-    localStorage.setItem("_seenVersion", "dev");
+    localStorage.setItem("_seenVersion", seenVer);
     try {
       ["dash", "metas", "gastos", "fijos", "inv"].forEach((id) =>
         localStorage.setItem("_coach_" + id, "1")
@@ -120,7 +126,7 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         "1"
       );
     } catch (e) {}
-  }, overrides);
+  }, [overrides, seenVer]);
 }
 
 /** Cierra el popup de Novedades si sale (cambia de versión en cada release). Llamar tras el
