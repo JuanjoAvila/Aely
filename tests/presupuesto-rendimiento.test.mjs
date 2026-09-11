@@ -59,7 +59,6 @@ const PRESUPUESTO = {
      es otra tanda y sube por su cuenta. Meterlo aqui seria ampliar un parche de emergencia con
      superficie que nadie ha aprobado. Medido tras el porte: 1203 min / 341 gzip.
      Cuando suba el recorte de notas, estos topes BAJAN, no se quedan. */
-  minificado: 1215 * 1024,
   /* SUBIDO 3 KB el 2026-09-11, con motivo. FIN-07 (el histórico entero) añade la paginación por
      keyset, el aviso de descarga incompleta en los TRES idiomas y su nota de Novedades, que también
      va en tres. Otra vez son literales, no código: el minificado se pasó 1 KB mientras el GZIP —lo
@@ -69,7 +68,22 @@ const PRESUPUESTO = {
      ⚠ El gzip está al 99 %: la siguiente tanda que meta texto lo revienta. El recorte de las notas
      a un JSON aparte (ya hecho en beta, deja el gzip en 318) tiene que subir a producción pronto;
      cuando suba, estos dos topes BAJAN, no se quedan. */
-  minificado: 1210 * 1024,
+  /* ⚠ UNA SOLA CLAVE. El 11/9 la integración de prod dejó `minificado` DOS VECES en este objeto
+     (una por tanda, cada una con su motivo). En un objeto literal gana la última en silencio: el
+     tope real pasó a ser el de abajo y el de arriba no lo leía nadie. Un presupuesto que no se
+     aplica es peor que no tenerlo, porque el verde sigue saliendo.
+
+     SUBIDO a 1216 KB el 2026-09-11, con motivo y MEDIDO sobre el bundle ya integrado (1212,6 min /
+     343,8 gzip). Lo que engorda son literales, no código: tres tandas × título + puntos × tres
+     idiomas en Novedades, más el aviso de descarga incompleta de FIN-07. Recortar aquí sería
+     quitar idiomas o quitarle a la familia la explicación de lo que ha cambiado.
+
+     ⚠⚠ EL GZIP ESTÁ A 0,2 KB DEL TOPE (343,8 de 344), y el gzip es lo que de verdad baja el móvil.
+     La siguiente tanda que meta una línea de texto lo revienta, y eso NO es un fallo del tope: es
+     el tope avisando. El arreglo ya existe y está en beta —sacar las notas de versión a un JSON
+     aparte, que allí deja el gzip en 318— y hay que portarlo a producción ANTES de seguir
+     portando tandas. Cuando suba, estos dos topes BAJAN, no se quedan. */
+  minificado: 1216 * 1024,
   gzip: 344 * 1024,         // medido 2026-08-03: 318 KB  ← esto es lo que baja el móvil
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
