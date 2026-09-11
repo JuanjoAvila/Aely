@@ -1,12 +1,7 @@
 [
  {
-  "v": "4.19.72",
+  "v": "4.19.73",
   "d": "12 sep 2026",
-  "t": {
-   "es": "El mismo día ya no sale dos veces en Gastos",
-   "en": "The same day no longer appears twice in Expenses",
-   "ca": "El mateix dia ja no surt dues vegades a Despeses"
-  },
   "tandas": [
    {
     "id": "dia-partido-en-dos",
@@ -40,6 +35,32 @@
     }
    }
   ],
+  "t": {
+   "es": "«Dia» y las farmacias abreviadas, reconocidas",
+   "en": "“Dia” and shortened pharmacies now recognised",
+   "ca": "«Dia» i les farmacies abreujades, reconegudes"
+  },
+  "items": {
+   "es": [
+    "Dos comercios tuyos que caían en «Otros»: el súper Dia cuando viene con ese nombre a secas, y las farmacias que el banco abrevia como «FCIA»."
+   ],
+   "en": [
+    "Two of your merchants that fell into “Other”: the Dia supermarket when it arrives with just that name, and pharmacies the bank shortens to “FCIA”."
+   ],
+   "ca": [
+    "Dos comercos teus que queien a «Altres»: el super Dia i les farmacies que el banc abreuja com a «FCIA»."
+   ]
+  }
+ },
+ {
+  "v": "4.19.72",
+  "d": "12 sep 2026",
+  "t": {
+   "es": "El mismo día ya no sale dos veces en Gastos",
+   "en": "The same day no longer appears twice in Expenses",
+   "ca": "El mateix dia ja no surt dues vegades a Despeses"
+  },
+  "tandas": [],
   "items": {
    "es": [
     "En Gastos, un día podía partirse en dos y salir su cabecera repetida. Pasaba con los movimientos de madrugada, que la app metía en el día anterior."

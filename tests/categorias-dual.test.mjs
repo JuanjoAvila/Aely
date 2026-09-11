@@ -106,6 +106,19 @@ t("★ una MARCA que es el principio de una palabra corriente solo vale entera",
     ["Zara Home", "compras"],
     ["Hospitalet de Llobregat", "otros"],
     ["Hospital Clinic", "salud"],            // y el hospital sigue siendo salud
+
+    /* Y dos HUECOS al revés, sacados de contar qué comercios suyos de los últimos 90 días caían en
+       «otros» (12/9). El patrón es el mismo de siempre pero en la otra dirección: la palabra
+       llevaba un espacio detrás para no pasarse, y así **falla cuando el comercio ACABA en ella**.
+         · «Dia» a secas (el supermercado) → la clave era «dia » con espacio. 2 veces en su lista.
+         · «FCIA COLLADO PALLARES» → «fcia» es como viene una farmacia en el extracto. */
+    ["Dia", "super"],
+    ["DIA", "super"],
+    ["Dia Sant Boi", "super"],
+    ["Compras diarias", "otros"],            // y «dia» no se come «diarias»…
+    ["mediodia", "otros"],                   // …ni «mediodía»
+    ["FCIA COLLADO PALLARES", "salud"],
+    ["Farmacia Central", "salud"],           // la palabra entera sigue funcionando
   ];
   const mal = [];
   for (const [m, esperado] of debe) {

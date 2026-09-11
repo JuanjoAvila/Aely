@@ -1,3 +1,31 @@
+## [4.19.73] - 2026-09-12
+### El mismo patrón, pero al revés: la palabra con espacio detrás falla al final del nombre
+
+Después de arreglar las marcas que se pasaban de largo (`barcelo`, `saba`…), la pregunta obvia es
+la contraria: **qué se está quedando sin reconocer**. Se contó, no se supuso: de sus 642 movimientos
+de los últimos 90 días, **122 comercios distintos caen en «Otros»**. Los dos únicos que son un
+fallo de verdad y no un nombre de persona o un «Movimiento» de Trade Republic:
+
+| comercio suyo | caía en | por qué |
+|---|---|---|
+| `Dia` (2×) | Otros | la clave era **`"dia "`**, con espacio detrás |
+| `FCIA COLLADO PALLARES` | Otros | «FCIA» es como el banco abrevia farmacia |
+
+El espacio detrás se puso para que «dia» no se comiera «diarias» ni «mediodía» — y para eso
+funciona. Pero **falla justo cuando el comercio ACABA en la palabra**, que es como llega el súper
+Dia. Es el mismo fallo que ya tuvo `bar` el 6/8: `"bar "` dejaba fuera «1331 BAR» y «SNACK BAR», y
+se arregló quitándole el espacio para que entrara por el camino de límite de palabra.
+
+- `"dia "` → `"dia"`: al bajar de 4 letras entra por `hit()` con límite de palabra, así que
+  reconoce `Dia` y `DIA` **sin** comerse `Compras diarias` ni `mediodia`. Los tres, en el guardián.
+- `"fcia"` a salud, junto a «farmacia».
+
+El resto de esos 122 son nombres de personas (bizums y transferencias), los «Movimiento» que manda
+Trade Republic sin comercio, y traspasos internos tipo «To Cuenta Remunerada» o «Exchanged to EUR».
+**Los traspasos NO se tocan**: `traspaso` es una categoría neutra y adivinarla por comercio movería
+totales suyos ya cerrados — es el blindaje que existe desde `fixMovInvasion`. Si algún día se hace,
+va con su OK y con su propia tanda.
+
 ## [4.19.72] - 2026-09-12
 ### El mismo día salía dos veces de cabecera, y lo vi en una captura suya
 
