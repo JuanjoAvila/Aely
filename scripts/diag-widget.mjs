@@ -25,6 +25,18 @@
  *     de Trade Republic tiene UN 230 y UN 115. Wallet avisó a una hora y TR a otra (97 min, fuera
  *     de la ventana de 10). NO son dos compras. Meter la hora en la clave de fusión haría que la
  *     app también mintiera. Ingest ahora junta como la app (`filasComoLaApp`) y no inserta la 2ª.
+ *
+ * HALLAZGO DEL 2026-09-11 — y una MENTIRA de este mismo script, corregida aquí.
+ *   · La línea «SERVIDOR (lo que va al widget)» llevaba meses siendo falsa: pasaba las filas
+ *     CRUDAS a `statsDelMes` cuando `ingest` ya usaba `filasComoLaApp` desde 4.18.2. O sea que
+ *     simulaba el ingest VIEJO y lo etiquetaba como el de hoy. De ahí salió un diagnóstico
+ *     equivocado («faltan 81 € en la nube»). Ahora se pintan las dos, cada una con su nombre.
+ *   · Lo que SÍ está roto: **un movimiento de Open Banking que vuelve con el signo cambiado
+ *     entra otra vez**. El índice único es `(user_id, fecha, importe, comercio)` y `importe`
+ *     lleva el signo; la clave del cliente (`keyOf`) también. Ninguno de los dos lo ve repetido.
+ *     Medido en sus datos: 3 pares desde el 1/6, ≈1.097,72 € de ruido, y SOLO en el usuario con
+ *     Open Banking (los otros dos: 0 y 0). Sus 248 lápidas de `state.deleted` son él borrando
+ *     esta basura a mano desde julio. El bloque 6) de abajo lo caza.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -74,17 +86,27 @@ const desde = new Date(desdeMs).toISOString();
 
 for (const { user_id, data } of estados) {
   const filas = await api(
-    `expenses?select=fecha,importe,cat,source,comercio&user_id=eq.${user_id}&fecha=gte.${desde}`,
+    `expenses?select=fecha,importe,cat,source,comercio,created_at&user_id=eq.${user_id}&fecha=gte.${desde}`,
   );
   console.log(`\n═══ usuario ${String(user_id).slice(0, 8)}… · ${filas.length} filas este mes ═══`);
   console.log(`presupuesto ${data?.budget ?? "—"} · modo ${data?.settings?.gTotalMode || "split"}` +
     ` · bancos de gasto: ${(srv.bancosDeGastoDiario(data) || []).join(", ") || "—"}`);
 
-  // 1) EL SERVIDOR, con lo que hay en la nube. Es literalmente lo que manda al widget.
-  const s = srv.statsDelMes(filas, data, desdeMs);
-  console.log(`\n  SERVIDOR (lo que va al widget)`);
+  /* 1) EL SERVIDOR. ⚠ 2026-09-11: esta línea decía «lo que va al widget» y era MENTIRA desde que
+     `ingest` llama a `filasComoLaApp` (4.18.2). Pasaba las filas CRUDAS a `statsDelMes`, así que
+     simulaba el ingest VIEJO — y de esa etiqueta falsa salió un diagnóstico equivocado (se creyó
+     que faltaban 81 € en la nube cuando el desfase real era otro, y de otro sitio).
+     Ahora se pintan LAS DOS: lo que manda hoy el widget, y lo que mandaba antes del arreglo. */
+  const visibles = srv.filasComoLaApp(filas, data?.deleted);
+  const s = srv.statsDelMes(visibles, data, desdeMs);
+  const crudo = srv.statsDelMes(filas, data, desdeMs);
+  console.log(`\n  SERVIDOR DE HOY (ingest → widget: filasComoLaApp + statsDelMes)`);
   console.log(`    gastado(shown) ${eur(s.shown)} · bruto ${eur(s.spent)} · ingresos ${eur(s.income)}`);
   console.log(`    presupuesto ${eur(s.budget)} · reservado ${eur(s.reserved)} · te quedan ${eur(Math.max(0, s.budget - s.against))}`);
+  console.log(`  ingest VIEJO (filas crudas, sin lápidas ni fusión) — solo para comparar`);
+  console.log(`    gastado(shown) ${eur(crudo.shown)}` +
+    (Math.abs(crudo.shown - s.shown) < 0.02 ? `  (igual: aquí la basura no cambiaba nada)`
+      : `  ⇒ el arreglo de 4.18.2 vale ${eur(Math.abs(crudo.shown - s.shown))} en sus datos de hoy`));
 
   // 2) EL CLIENTE, con LAS MISMAS filas traducidas a su formato. Si sale otro número con la misma
   //    entrada, la culpa es de la fórmula; si sale el mismo, la culpa es de qué filas ve cada uno.
@@ -95,10 +117,13 @@ for (const { user_id, data } of estados) {
   console.log(`\n  CLIENTE, con LAS MISMAS filas`);
   console.log(`    gastado(shown) ${eur(c.shown)} · bruto ${eur(c.spent)} · ingresos ${eur(c.income)}`);
 
-  const iguales = Math.abs(c.shown - s.shown) < 0.02;
+  /* ⚠ Se compara contra `crudo`, NO contra `s`: esta prueba es «misma ENTRADA, ¿mismo número?».
+     `s` ya ha pasado por `filasComoLaApp`, así que compararlo aquí acusaría de divergencia de
+     fórmula a lo que en realidad es una diferencia de FILAS. */
+  const iguales = Math.abs(c.shown - crudo.shown) < 0.02;
   console.log(`\n  ⇒ ${iguales
     ? "MISMA CIFRA con la misma entrada → la formula esta bien; lo que difiere es lo que ve cada lado"
-    : "DISTINTA con la misma entrada → hay divergencia de FORMULA (" + eur(Math.abs(c.shown - s.shown)) + ")"}`);
+    : "DISTINTA con la misma entrada → hay divergencia de FORMULA (" + eur(Math.abs(c.shown - crudo.shown)) + ")"}`);
 
   // 3) Desglose de lo que el servidor SÍ cuenta, para poder cotejarlo contra la pantalla del móvil.
   const ents = srv.bancosDeGastoDiario(data);
@@ -159,7 +184,36 @@ for (const { user_id, data } of estados) {
   console.log(`    ${tapadasPorClave} fila(s) tapadas por la fusion · ${tapadasPorLapida} por lapida` +
     ` · ${eur(importeTapado)} en total`);
   console.log(`    gastado(shown) ${eur(cApp.shown)}   ← esto deberia ser lo que enseña la pantalla`);
-  console.log(`    frente a ${eur(s.shown)} del widget  ⇒ desfase ${eur(s.shown - cApp.shown)}`);
+  console.log(`    frente a ${eur(s.shown)} del widget  ⇒ desfase ${eur(s.shown - cApp.shown)}` +
+    (Math.abs(s.shown - cApp.shown) < 0.02 ? `  (widget y pantalla de acuerdo)` : `  ⚠ AQUI ESTA EL BUG`));
+
+  /* 6) EL MISMO MOVIMIENTO, METIDO DOS VECES CON EL SIGNO AL REVES (2026-09-11).
+     El indice unico de la tabla es `(user_id, fecha, importe, comercio)` y `importe` LLEVA EL
+     SIGNO; la clave de fusion del cliente (`keyOf`) tambien. Asi que si una sincronizacion de
+     Open Banking devuelve el mismo movimiento con el signo cambiado, ni la BD ni la app lo
+     reconocen como repetido: entra como fila nueva y el mes se descuadra por el DOBLE del
+     importe. No lo tapa nada — `reconcileObDupes`, pese al nombre, devuelve siempre `borrar:[]`.
+     Caso medido: el mismo movimiento de Revolut entro el 06/09 como +247,26 (cat `traspaso`) y
+     el 10/09 como -247,26 (cat `ingreso`), con identica fecha, comercio, nota y `ob_name`. */
+  const porFechaComercio = {};
+  for (const f of filas) {
+    const k = String(f.fecha) + "|" + (f.comercio || "") + "|" + Math.abs(Number(f.importe) || 0).toFixed(2);
+    (porFechaComercio[k] = porFechaComercio[k] || []).push(f);
+  }
+  const volteados = Object.values(porFechaComercio).filter(
+    (v) => v.length > 1 && v.some((x) => Number(x.importe) > 0) && v.some((x) => Number(x.importe) < 0),
+  );
+  if (volteados.length) {
+    const ruido = volteados.reduce((a, v) => a + Math.abs(Number(v[0].importe) || 0) * 2, 0);
+    console.log(`\n  ⚠ ${volteados.length} movimiento(s) metidos DOS VECES con el signo al reves` +
+      ` — ${eur(ruido)} de ruido. El indice unico no los ve porque lleva el signo dentro.`);
+    volteados.slice(0, 6).forEach((v) => console.log(
+      `    ${String(v[0].fecha).slice(0, 16)}  ${eur(Math.abs(Number(v[0].importe)))}` +
+      `  [${v.map((x) => x.source).join(" + ")}]  cats ${v.map((x) => x.cat).join("/")}` +
+      `  creados ${v.map((x) => String(x.created_at || "?").slice(0, 10)).join(" y ")}`));
+  } else {
+    console.log(`\n  sin movimientos volteados de signo`);
+  }
 
   // Horas de cada gemelo. ⚠ Horas de diferencia NO prueba dos compras: Wallet y TR del mismo
   // cargo pueden avisarte con más de una hora de margen (13/8: 11:31 vs 13:08, y el banco
