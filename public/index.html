@@ -10465,6 +10465,12 @@ function applyBankBalances(s, links){
   const now=new Date(), cy=now.getFullYear(), cm=now.getMonth()+1, td=now.getDate();
   const accounts=(s.accounts||[]).slice();
   let changed=false; const synced=[]; const obAccts=[]; const usedPrimary={};
+  /* Gasto del mes PARTIDO POR BANCO, calculado UNA vez y de la misma lista que usa el pintado.
+     Si se recalculara dentro del bucle con el total del mes, un segundo banco diario volvería a
+     comerse los gastos ajenos — que es exactamente el bug del saldo de su padre. */
+  const monthExp=(s.expenses||[]).filter(function(e){ return parseDate(e.date)>=startOfMonth(); });
+  const dailyAcc=(s.accounts||[]).find(function(x){ return accDaily(x); });
+  const porBanco=gastoDelMesPorBanco(monthExp, dailyAcc&&dailyAcc.ent);
   links.forEach(function(lk){
     if(lk && lk.ok===false){
       // Banco que falló/caducó este sync: CONSERVA sus cuentas sincronizadas tal y como estaban,
@@ -10518,21 +10524,28 @@ function applyBankBalances(s, links){
       contributed++;
       if(ownerOf[k]!=null){
         const a=accounts[ownerOf[k]];
-        // re-anclaje = despejar `value` de la fórmula de dynBal para que HOY muestre el saldo real.
-        // fijos:  dyn = value + paidNet
-        // diario: dyn = value + inyección − gasto − round-up − aporte
-        // ambos:  dyn = value + inyección − gasto − round-up − aporte + paidNet
+        /* re-anclaje = despejar `value` para que HOY se pinte el saldo real del banco.
+           MISMA fórmula que al pintar (`saldoCuentaMostrada` ↔ `valueDesdeSaldo`). Antes `spentM`
+           sumaba el gasto del mes de TODOS los bancos y, con rol diario/ambos, inflaba la base:
+           a su padre el banco le decía 26,46 € y la app le enseñaba 455,50 € porque se le
+           devolvían a Revolut los gastos que hace con CaixaBank y Trade Republic (2026-09-11).
+           Ya estaba arreglado en la mitad que PINTA desde agosto (`gastoDelMesPorBanco`, cuando
+           un cargo de Revolut se comió 257,17 € de TR); esta era la copia que se quedó sin migrar. */
         const role=accRole(a);
         let newBase;
         if(role==="fijos"){
+          // Pintado: value + paidNet. paidNet = monthNetForAccount → base = bal − monthNet.
           newBase=+((bal - monthNetForAccount(s, ent, cy, cm, td)).toFixed(2));
         } else {
-          const monthExp=(s.expenses||[]).filter(function(e){ return parseDate(e.date)>=startOfMonth(); });
-          const spentM=monthExp.reduce(function(x,e){ return x+e.amount; },0);
           const ruMv=(a.roundupManual!=null)?a.roundupManual:roundupOf(monthExp, a.roundup||0);
           const miMv=a.monthlyInvest||0;
           const injMv=nominaYaEntro()?accInject(a):0;
-          newBase=+((bal - injMv + spentM + ruMv + miMv - (role==="ambos"?monthNetForAccount(s, ent, cy, cm, td):0)).toFixed(2));
+          newBase=valueDesdeSaldo({
+            shown:bal, injTR:injMv, spentOwn:porBanco[ent]||0,
+            roundup:ruMv, monthlyInvest:miMv,
+            ambos:role==="ambos",
+            paidNet:monthNetForAccount(s, ent, cy, cm, td)
+          });
         }
         synced.push({ ent:ent, bal:bal, iban:ac.iban||null });
         /* ⚠ EL RASTRO SE REFRESCA AUNQUE EL IMPORTE NO CAMBIE (lo caza Cursor en la review, 11/9).

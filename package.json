@@ -1,6 +1,6 @@
 {
   "name": "mi-cartera",
-  "version": "4.18.24",
+  "version": "4.18.25",
   "private": true,
   "description": "Mi Cartera — PWA de finanzas personales (+ envoltorio Android con Capacitor)",
   "scripts": {

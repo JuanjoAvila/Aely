@@ -1,5 +1,26 @@
 [
  {
+  "v": "4.18.25",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "El saldo del banco vuelve a cuadrar",
+   "en": "Bank balance adds up again",
+   "ca": "El saldo del banc torna a quadrar"
+  },
+  "tandas": [],
+  "items": {
+   "es": [
+    "Si tienes más de un banco y uno está puesto como «Todo» o «Gasto diario», su saldo se inflaba con los gastos que hacías con los OTROS bancos. Ya muestra el saldo que dice el banco."
+   ],
+   "en": [
+    "If you have more than one bank and one is set to «All» or «Daily spending», its balance was inflated with what you spent on the OTHER banks. It now shows the bank's own balance."
+   ],
+   "ca": [
+    "Si tens mes d'un banc i un esta posat com «Tot» o «Despesa diaria», el seu saldo s'inflava amb el que gastaves amb els ALTRES bancs. Ara mostra el saldo que diu el banc."
+   ]
+  }
+ },
+ {
   "v": "4.18.24",
   "d": "11 sep 2026",
   "t": {

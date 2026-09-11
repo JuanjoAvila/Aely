@@ -1,3 +1,23 @@
+## [4.18.25] - 2026-09-11
+### El re-anclaje del saldo usaba el gasto de TODOS los bancos
+
+Su padre: el banco decía **26,46 €** y la app le enseñaba **455,50 €**. Confirmado por él.
+
+`applyBankBalances` despejaba la base con `spentM` = el gasto del mes ENTERO, de todos los
+bancos, mientras que al pintar se resta solo el de esa cuenta (`spentByBank`). Su padre gasta
+con CaixaBank y Trade Republic, así que al re-anclar Revolut se le devolvían ~429 € ajenos.
+
+Era la **sexta copia sin migrar** de `saldoCuentaGasto`. El mismo fallo se arregló en agosto
+—cuando un cargo de Revolut se comió 257,17 € de TR— pero **solo en la mitad que pinta**. Y el
+comentario de `saldoCuentaGasto` ya avisaba: «vivían copiadas en cinco sitios».
+
+- Ahora llama a `valueDesdeSaldo` (la inversa canónica) con `gastoDelMesPorBanco`.
+- `fijos` no cambia: `bal − monthNet` sí es la inversa de `value + paidNet`.
+- Test 7 de `saldo-por-banco` con **DOS bancos**: con uno pasa igual de bien estando roto.
+
+Portado desde `1bfb4b28` (beta 4.19.57). Va SOLO esto a producción: es el único fallo de hoy
+con víctima en `main` que el dueño no puede reproducir en su móvil.
+
 ## [4.18.24] — 2026-09-11
 ### Las escrituras de gastos a la nube ya dejan rastro
 
