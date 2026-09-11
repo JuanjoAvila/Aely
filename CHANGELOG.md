@@ -1,3 +1,20 @@
+## [4.18.10] — 2026-09-11
+### Posibles repetidos de Open Banking se revisan, no se pierden
+
+- Un `Movimiento` sin comercio de Open Banking que coincide en el mismo banco, importe y ventana
+  de ±3 días con una notificación o gasto manual entra marcado como posible repetido. Ya no se
+  descarta automáticamente: dos cargos reales iguales se conservan para que se puedan distinguir.
+- La ficha permite confirmar «Es el mismo» (borra la fila OB y deja lápida para que el sync no la
+  reviva) o «Son distintos» (la fila empieza a contar en efectivo y presupuesto).
+- La marca viaja como sufijo seguro `#dup` en `source` (`ob:ent#dup`): sobrevive a pulls y, sin
+  desplegar Edge, un servidor anterior lo interpreta como banco no diario y lo deja fuera.
+  `possibleDupOf` se mantiene local porque solo identifica el gemelo para resolverlo.
+- Se añaden regresiones para la notificación real sin `ent`, el aislamiento entre bancos, decisiones
+  idempotentes, lápidas y serialización/deserialización de `#dup`.
+
+OTA; sin Android. La paridad explícita del cálculo de presupuesto dentro de la Edge Function queda
+pendiente de su propio despliegue: este port no modifica ni despliega servidor.
+
 ## [4.18.8] — 2026-09-10
 ### Las dos tandas que aprobó, subidas solas
 

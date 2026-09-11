@@ -145,6 +145,21 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(cloud.enabled()) cloud.deleteExpense(e).catch(function(){});
     showToast(t("g_deleted"));
   };
+  /* La decisión es explícita: borrar solo cuando confirma el gemelo; si son distintos, la fila
+     deja de estar apagada y se persiste para que el siguiente pull no revierta la elección. */
+  const resolveDup=function(e, same){
+    if(!e || !e.possibleDup) return;
+    set(function(s){
+      let next=resolvePossibleDup(s, e.id, same);
+      if(same){
+        next=Object.assign({},next,{deleted:pushDeleted(next.deleted, keyOfE(e))});
+        if(cloud.enabled()) cloud.deleteExpense(e).catch(function(){});
+      }else if(cloud.enabled()) cloud.setExpenseDup(e, false).catch(function(){});
+      return next;
+    });
+    if(same) showToast(t("g_dup_same"));
+    else showToast(t("g_dup_diff"));
+  };
   // Recategorizar un gasto a mano: actualiza ESTE, recuerda el comercio (catOverrides) para los
   // futuros y arregla otros gastos del mismo comercio que estuvieran en "Otros".
   const setCat=function(ex,newCat){
@@ -717,6 +732,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       editExp:editExp, setEditExp:setEditExp,
       onClose:function(){ setDetailId(null); setEditExp(null); },
       setCat:setCat, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
+      resolveDup:resolveDup,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     })
   );
@@ -744,7 +760,7 @@ const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket}){
   // Un ingreso NO va apagado: entra dinero, no es un gasto que se descarta. Solo se atenúan los
   // dos cajones que no mueven el presupuesto, y cada uno dice el suyo en vez de un «no afecta»
   // genérico que hacía que una inversión y un recibo de Sabadell parecieran lo mismo.
-  const skip=bucket==="neutra"||bucket==="otrobanco";
+  const skip=bucket==="neutra"||bucket==="otrobanco"||bucket==="posible";
   const skipTxt=skip?t("g_skip_"+bucket):"";
   return React.createElement("button",{type:"button",className:"v4-mov"+(skip?" v4-mov-skip":""),onClick:function(){ onOpen(e); },
       style:skip?{opacity:.72}:null},
@@ -882,7 +898,7 @@ function PeriodMoreSheet({open, onClose, preset, setPreset}){
 }
 
 /* Sheet detalle/edición de un movimiento. Layout alineado con Apuntar/Cartera (feedback 2026-07-17). */
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCardFlag, setBank, delExpense, saveEdit, saveNote, showToast, aiBusy, suggestAi, state}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -922,6 +938,14 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCardF
           React.createElement("input",{className:"v4-exp-amt num serif",inputMode:"decimal",value:editExp.amount,onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{amount:v}); }); },onBlur:closeSave,"aria-label":t("v4_exp_amount")}),
           React.createElement("input",{className:"v4-exp-name",value:editExp.merchant,placeholder:t("v4_exp_merchant_ph"),onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{merchant:v}); }); },onBlur:closeSave}),
           React.createElement("div",{className:"v4-exp-meta"}, metaBits.join(" · "))
+        ),
+        exp.possibleDup && React.createElement("div",{className:"hint",style:{marginTop:10,padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
+          React.createElement("div",{style:{fontWeight:600,marginBottom:4}}, t("g_dup_title")),
+          React.createElement("div",{style:{marginBottom:10}}, t("g_dup_sub")),
+          React.createElement("div",{className:"row",style:{gap:8}},
+            React.createElement("button",{type:"button",className:"btn btn-primary",style:{flex:1},onClick:function(){ resolveDup && resolveDup(exp,true); onClose(); }}, t("g_dup_same")),
+            React.createElement("button",{type:"button",className:"btn btn-ghost",style:{flex:1},onClick:function(){ resolveDup && resolveDup(exp,false); onClose(); }}, t("g_dup_diff"))
+          )
         ),
         React.createElement("div",{className:"v4-exp-sec",style:{marginTop:12}}, t("ap_date")),
         React.createElement("div",{className:"v4-chips"},

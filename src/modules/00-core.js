@@ -585,6 +585,16 @@ const cloud = (function(){
         .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant||"");
       if(error) throw error;
     },
+    // Persiste la decisión: si «son distintos» solo quitara la marca local, el pull la restauraría.
+    async setExpenseDup(e, isDup){
+      if(!sb) return;
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) return;
+      const src=expenseSourceForCloud(Object.assign({},e,{possibleDup:!!isDup}));
+      const {error}=await sb.from('expenses').update({ source:src })
+        .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant||"");
+      if(error) throw error;
+    },
     // Persiste el flag 💳/🔄 en la tabla (si no, el siguiente pull lo pisaría en gastos de la nube).
     async setExpenseNoCard(e, noCard){
       if(!sb) return;
@@ -967,7 +977,7 @@ const cloud = (function(){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","setExpenseBank","setExpenseNoCard","setExpenseNote","setExpenseCat","deleteExpense",
+  "pushState","addExpense","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","deleteExpense",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -987,7 +997,9 @@ const CLOUD_WRITES=[
    macrodroid (= Trade Republic). Así el filtro por banco sobrevive a reinstalaciones. */
 function expenseSourceForCloud(e){
   const ent=e&&e.ent; const s=(e&&e.source)||"manual";
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent;
+  /* El sufijo conserva la entidad para que un ingest aún sin actualizar la vea como un banco
+     no diario y la excluya. Un prefijo nuevo parecería un gasto manual y contaría de más. */
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+((e&&e.possibleDup)?"#dup":"");
   if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent;
   if(s==="macrodroid"||s==="tr") return "macrodroid";
   if(s==="supabase") return "manual";
@@ -1068,7 +1080,7 @@ function expenseBankOf(e){
   if(e.ent) return e.ent;
   const s=String(e.source||"");
   if(s==="macrodroid"||s==="tr") return "trade_republic";
-  if(s.indexOf("ob:")===0) return s.slice(3)||null;
+  if(s.indexOf("ob:")===0) return s.slice(3).split("#")[0]||null;
   if(s.indexOf("ob-hist:")===0) return s.slice(8)||null;
   if(s.indexOf("manual:")===0) return s.slice(7)||null;
   return null;
@@ -1100,12 +1112,38 @@ function valueDesdeSaldo(o){
   if(o.ambos) v-=(o.paidNet||0);
   return +v.toFixed(2);
 }
+/* Resuelve un OB marcado como posible repetido.
+   same=true conserva el gemelo con nombre; false confirma que los dos cargos son reales. */
+function resolvePossibleDup(state, expenseId, same){
+  if(!state || !expenseId) return state;
+  const ex=(state.expenses||[]).find(function(e){ return e && e.id===expenseId; });
+  if(!ex || !ex.possibleDup) return state;
+  if(same){
+    const twinId=ex.possibleDupOf;
+    const twin=twinId && (state.expenses||[]).find(function(e){ return e && e.id===twinId; });
+    let expenses=(state.expenses||[]).filter(function(e){ return e && e.id!==expenseId; });
+    // Si la notificación no traía extId, se conserva la identidad que sí aportó Open Banking.
+    if(twin && ex.extId && !twin.extId){
+      expenses=expenses.map(function(e){
+        return e.id===twin.id ? Object.assign({},e,{extId:ex.extId}) : e;
+      });
+    }
+    return Object.assign({},state,{expenses:expenses});
+  }
+  return Object.assign({},state,{expenses:(state.expenses||[]).map(function(e){
+    if(e.id!==expenseId) return e;
+    const u=Object.assign({},e);
+    delete u.possibleDup; delete u.possibleDupOf;
+    return u;
+  })});
+}
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){
   const raw=String(r.source||"manual");
-  let ent=null, source=raw;
+  let ent=null, source=raw, dup=false;
   if(raw==="macrodroid"||raw==="tr"){ ent="trade_republic"; source="macrodroid"; }
-  else if(raw.indexOf("ob:")===0){ ent=raw.slice(3)||null; source="ob"; }
+  // El flag viaja dentro de source y debe sobrevivir a pull, reinicio y otro dispositivo.
+  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); ent=p[0]||null; source="ob"; dup=p[1]==="dup"; }
   else if(raw.indexOf("ob-hist:")===0){ ent=raw.slice(8)||null; source="ob-hist"; }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
@@ -1129,6 +1167,7 @@ function expenseFromRow(r){
     // propósito: es EXACTAMENTE lo que le pasó a la divisa —se escribía al subir y nadie lo
     // bajaba—, y aquí perderlo significa que el siguiente sync duplica el gasto renombrado.
     obName: r.ob_name!=null ? String(r.ob_name) : undefined,
+    possibleDup: dup ? true : undefined,
   };
 }
 

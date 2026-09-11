@@ -268,16 +268,24 @@ function estadoConMacroDroid(extra) {
   };
 }
 
-t("un gasto que ya entró por el móvil NO se repite cuando el banco lo trae un día después sin nombre", () => {
+t("un gasto que ya entró por el móvil entra marcado cuando el banco no lo nombra", () => {
   const s = estadoConMacroDroid();
+  assert.equal(s.expenses[0].ent, undefined, "la notificación real no trae ent");
+  assert.equal(ctx.expenseBankOf(s.expenses[0]), "trade_republic");
   const txs = [{ ent: "trade_republic", id: null, date: dayAt(-4), amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" }];
-  assert.equal(ctx.importObExpenses(s, txs), null, "mismo importe, un día después, sin nombre → es el mismo gasto");
+  const add = ctx.importObExpenses(s, txs);
+  assert.equal(add && add.length, 1);
+  assert.equal(add[0].possibleDup, true);
+  assert.equal(add[0].possibleDupOf, "m1");
 });
 
 t("lo mismo con los ingresos (el bizum que el banco repite sin decir de quién)", () => {
   const s = estadoConMacroDroid();
   const txs = [{ ent: "trade_republic", id: null, date: dayAt(-5), amount: -34.7, merchant: "Movimiento", note: "", card: false, status: "BOOK" }];
-  assert.equal(ctx.importObExpenses(s, txs), null);
+  const add = ctx.importObExpenses(s, txs);
+  assert.equal(add && add.length, 1);
+  assert.equal(add[0].possibleDup, true);
+  assert.equal(add[0].possibleDupOf, "m2");
 });
 
 t("pero lo que SOLO ve el banco (round-up, cashback, aporte) sí entra", () => {
@@ -291,14 +299,18 @@ t("pero lo que SOLO ve el banco (round-up, cashback, aporte) sí entra", () => {
   assert.equal(add.find((e) => e.amount === 50).category, "inversion", "y el aporte sigue reconociéndose");
 });
 
-t("el emparejamiento es 1 a 1: dos cargos iguales de verdad con uno solo apuntado dejan pasar el otro", () => {
+t("el emparejamiento es 1 a 1: marca uno y deja el otro limpio", () => {
   const s = estadoConMacroDroid();
   const txs = [
     { ent: "trade_republic", id: null, date: dayAt(-4), amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
-    { ent: "trade_republic", id: null, date: dayAt(-4), amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
+    { ent: "trade_republic", id: null, date: dayAt(-3), amount: 88.11, merchant: "Movimiento", note: "", card: false, status: "BOOK" },
   ];
   const add = ctx.importObExpenses(s, txs);
-  assert.equal(add.length, 1, "solo uno tenía gemelo; el segundo es un cargo real distinto");
+  assert.equal(add.length, 2);
+  const marked = add.filter((e) => e.possibleDup);
+  assert.equal(marked.length, 1);
+  assert.equal(marked[0].possibleDupOf, "m1");
+  assert.equal(add.filter((e) => !e.possibleDup).length, 1);
 });
 
 t("si el banco SÍ dice el comercio no se aplica esta red (ahí manda el dedup de siempre)", () => {
