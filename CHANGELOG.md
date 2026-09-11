@@ -1,3 +1,11 @@
+## [4.18.24] — 2026-09-11
+### Las escrituras de gastos a la nube ya dejan rastro
+
+Cazado en vivo (widget 512 → app 497): filas solo en el móvil. Helpers `subirGasto` /
+`borrarGastoNube` + cableado en backfill, OB, apuntar, editar, histórico. Sin cifras nuevas.
+La 4.18.23 quedó con el bump antes de la ampliación; esta punta cierra docs-frescura.
+
+
 ## [4.18.22] — 2026-09-11
 ### Aely llega a su padre y a su pareja
 

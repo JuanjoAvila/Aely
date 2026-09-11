@@ -308,7 +308,11 @@ function App(){
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
       const tableKeys={}; incoming.forEach(function(e){ tableKeys[keyOf(e)]=1; });
-      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOf(e)]) cloud.addExpense(e).catch(function(){}); });
+      /* Backfill: lo local que la tabla no tiene. Fallos → app_events (subirGasto). */
+      (stateRef.current.expenses||[]).forEach(function(e){
+        if(e.amount===0 || tableKeys[keyOf(e)]) return;
+        subirGasto(e, "backfill");
+      });
       // "nuevo" = no lo teníamos en NINGÚN origen local (así, ya sincronizado → 0 → "Ya estás al día")
       const prevKeys={}; (stateRef.current.expenses||[]).forEach(function(e){ prevKeys[keyOf(e)]=1; });
       let count=0; const seenC={};
@@ -433,7 +437,7 @@ function App(){
         return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links) });
       });
       // sube las importadas a la tabla expenses (best-effort; el estado local ya las tiene)
-      setTimeout(function(){ obAdded.forEach(function(e){ cloud.addExpense(e).catch(function(){}); }); }, 0);
+      setTimeout(function(){ obAdded.forEach(function(e){ subirGasto(e, "ob-import"); }); }, 0);
       // En sync automática (la que dispara la noti del banco) se avisa solo de lo que ha entrado.
       // Si has pulsado tú «↻ Sincronizar bancos», esto se junta con el resultado de abajo: dos
       // avisos seguidos por una sola acción tuya eran ruido (feedback 2026-07-26).
