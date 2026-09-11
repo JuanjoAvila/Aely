@@ -1,3 +1,31 @@
+## [4.19.59] - 2026-09-11
+### Los logos de las empresas en Inversiones
+
+Pidió ver NVIDIA, Alphabet, Broadcom, TSMC, AMD, Micron, Meta y el FTSE con su logo, como los ve
+en Revolut y Trade Republic. Eligió la **opción C** (los que se puedan, guardados en la app; el
+resto con su monograma) y autorizó usar los logotipos oficiales.
+
+- `scripts/logos-inversiones.mjs` genera `public/logos/inv/*.svg` desde **simple-icons** (MIT,
+  trazo oficial). **Nada se descarga en caliente**: ni se rompe la norma de cero CDNs, ni se le
+  cuenta a un tercero qué empresas tiene en cartera. 4,5 KB, fuera del bundle.
+- **La regla de «qué marca es» vive SOLO en `00-core.js`** (`marcaDeInversion`). El script la
+  carga con `load-pure-logic.mjs`. Si viviera en los dos sitios sería la séptima copia de la
+  misma regla — y eso mordió tres veces el 11/9.
+- Se compara por PALABRAS, no con expresiones regulares: un `` perdido al copiar el fichero
+  entre sitios convierte «AMD» en algo que casa dentro de cualquier palabra. Pasó dos veces hoy.
+- Un FONDO con el nombre de una empresa NO es la empresa: «iShares Metaverse UCITS» y «AMD Ryzen
+  Fondo» no llevan logo. Ante la duda, sin logo: **el monograma correcto es mejor que el
+  logotipo equivocado**.
+- `LogoInv` en los dos sitios donde la fila ES una empresa; el resto sigue con `Mono`.
+- Guardián `logos-inversiones --check` en la suite, con los nombres reales del bróker y los
+  tramposos.
+
+### El service worker ya no se cae por un fichero que falte
+
+Ámbar de Cursor al revisar la 4.19.52: `caches.addAll(SHELL)` es todo-o-nada, así que **un solo
+404 reventaba la instalación entera del SW** y dejaba la app sin caché offline, en silencio.
+Ahora se precachea uno a uno y el fallo de un fichero no tira el conjunto.
+
 ## [4.19.58] - 2026-09-11
 ### Panel de beta: fuera tandas mentira
 

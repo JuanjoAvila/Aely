@@ -99,6 +99,28 @@ function Mono({ent, size, logo}){
   return React.createElement("div",{className:"mono",style:{width:size,height:size,background:e.color+"22",color:e.color,borderColor:e.color+"44"}}, e.mono);
 }
 
+/* LOGO DE UNA INVERSIÓN — la EMPRESA, no el banco que la custodia (2026-09-11).
+   Pidió ver NVIDIA, Alphabet, Broadcom, Meta… con su logo, como los ve en Revolut y en Trade
+   Republic. Eligió la opción C: los que se puedan, guardados en la app; el resto con su
+   monograma y el color de la marca — un monograma correcto es mejor que un logo equivocado.
+   Quién es quién lo decide `marcaDeInversion` (00-core.js), que es la ÚNICA copia de esa regla:
+   `scripts/logos-inversiones.mjs` la carga de ahí para generar los SVG y para su guardián.
+   Si el SVG no carga, cae al monograma de siempre. */
+function LogoInv({nombre, ent, size}){
+  size=size||38;
+  /* El hook va SIEMPRE y ANTES de cualquier return: no puede quedarse detrás de una condición. */
+  const [roto,setRoto]=React.useState(false);
+  const slug=(typeof marcaDeInversion==="function") ? marcaDeInversion(nombre) : null;
+  if(slug && !roto){
+    return React.createElement("div",{className:"mono mono-logo",title:nombre||"","aria-label":nombre||"",
+      style:{width:size,height:size,background:"#fff",display:"grid",placeItems:"center",
+        borderRadius:Math.round(size*0.275),flex:"0 0 auto",border:"1px solid transparent",overflow:"hidden"}},
+      React.createElement("img",{src:"logos/inv/"+slug+".svg",alt:"",width:size,height:size,
+        loading:"lazy",decoding:"async",onError:function(){ setRoto(true); },
+        style:{width:Math.round(size*0.62),height:Math.round(size*0.62),objectFit:"contain",display:"block"}}));
+  }
+  return React.createElement(Mono,{ent:ent,size:size,logo:false});
+}
 /* Ayuda contextual: un «?» discreto que explica la tarjeta en cristiano (para no-técnicos). */
 function HelpTip({text}){
   const [open,setOpen]=useState(false);

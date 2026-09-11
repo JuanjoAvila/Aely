@@ -3,7 +3,7 @@
 // red lenta o sin conexión) y a la vez descarga la versión fresca en segundo plano.
 // La versión nueva queda cacheada y se ve en el SIGUIENTE arranque — mismo comportamiento
 // de actualización que antes (sin recargas a media sesión), pero sin esperar a la red.
-const VERSION = "4.13.0-2026-08-01-5e5e115";
+const VERSION = "99.99.99.99";
 const CACHE = "micartera-" + VERSION;
 const SHELL = [
   "./", "./index.html", "./manifest.json",
@@ -11,6 +11,8 @@ const SHELL = [
   "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png",
   "./logos/sabadell.png", "./logos/revolut.png", "./logos/trade_republic.png",
   "./logos/myinvestor.png", "./logos/caixabank.png",
+  "./logos/inv/nvidia.svg", "./logos/inv/amd.svg", "./logos/inv/meta.svg",
+  "./logos/inv/alphabet.svg", "./logos/inv/broadcom.svg",
   "./vendor/supabase.min.js",
   "./fonts/manrope-latin.woff2", "./fonts/manrope-latin-ext.woff2",
   "./fonts/fraunces-latin.woff2", "./fonts/fraunces-latin-ext.woff2",
@@ -19,7 +21,15 @@ const SHELL = [
 self.addEventListener("install", (e) => {
   // Precachea el shell pero NO hace skipWaiting: el SW nuevo espera al siguiente
   // arranque en frío para activarse, así no provoca recargas a media sesión.
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
+  //
+  // ⚠ UNO A UNO, no `addAll`. `addAll` es todo-o-nada: si UNA sola ruta da 404, revienta la
+  // instalación ENTERA del service worker y la app se queda sin caché offline — sin avisar, y
+  // por un fichero que a lo mejor ni se usa. Aviso de Cursor al revisar la 4.19.52, cuando metí
+  // los 5 logos de banco al shell (2026-09-11). Lo imprescindible es `index.html`; el resto es
+  // mejora, así que el fallo de uno no puede tirar el conjunto.
+  e.waitUntil(caches.open(CACHE).then((c) =>
+    Promise.all(SHELL.map((u) => c.add(u).catch(() => {})))
+  ));
 });
 
 self.addEventListener("activate", (e) => {
