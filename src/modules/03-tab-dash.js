@@ -11,8 +11,6 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const [budgetOpen,setBudgetOpen]=useState(false);
   /* Barra de letra FUERA de Ajustes (11/9): la quería a mano mientras usa la app, no enterrada
      en dos sitios de settings. Vive en Inicio, junto al avatar. */
-  const [textOpen,setTextOpen]=useState(false);
-  const curTextSize=textSizeOf(state);
   /* Puertas de arranque: el count-up y los esqueletos NO pueden vivir detrás del splash ni
      adelantarse a la nube (B2/B4 — misma lección: animar a puerta cerrada es peor que no animar). */
   const [splashGone,setSplashGone]=useState(function(){
@@ -142,30 +140,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         React.createElement("div",{className:"v4-inicio-date"}, new Date().toLocaleDateString(loc(),{weekday:"long",day:"numeric",month:"long"})),
         React.createElement("div",{className:"v4-inicio-hi"}, greetName?tf("v4_hola",{n:greetName}):t("v4_hola_anon"))
       ),
-      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,flex:"0 0 auto"}},
-        React.createElement("button",{type:"button",className:"v4-aa","data-tour":"text-size",
-          "aria-label":t("st_textsize"),"aria-expanded":textOpen?"true":"false",
-          onClick:function(){ setTextOpen(!textOpen); },
-          style:{width:40,height:40,borderRadius:12,border:"1px solid var(--line)",background:"var(--sur)",
-            color:"var(--text)",fontWeight:800,fontSize:15,letterSpacing:"-0.5px",cursor:"pointer"}}, "Aa"),
-        React.createElement("button",{className:"v4-avatar","data-tour":"avatar","aria-label":t("pf_title"),
-          onClick:function(){ if(onOpenProfile) onOpenProfile(); else if(onOpenSettings) onOpenSettings(); }}, initials)
-      )
-    ),
-    textOpen && React.createElement("div",{className:"v4-aa-bar rise","data-tour":"text-size-bar",
-      style:{display:"flex",gap:8,flexWrap:"wrap",marginTop:8,padding:"10px 12px",borderRadius:14,
-        background:"var(--sur)",border:"1px solid var(--line)"}},
-      [["small","ts_small"],["normal","ts_normal"],["big","ts_big"],["huge","ts_huge"]].map(function(ts){
-        const on=curTextSize===ts[0];
-        return React.createElement("button",{key:ts[0],type:"button",
-          onClick:function(){
-            applyTextSize(ts[0]);
-            set(function(s){ return Object.assign({},s,{settings:Object.assign({},s.settings,{textSize:ts[0]})}); });
-          },
-          style:{flex:"1 1 40%",minHeight:36,borderRadius:10,border:"1px solid "+(on?"var(--mint)":"var(--line)"),
-            background:on?"rgba(95,208,138,.18)":"var(--bg-2)",color:"var(--text)",fontWeight:on?800:650,fontSize:13,cursor:"pointer"}},
-          t(ts[1]));
-      })
+      React.createElement("button",{className:"v4-avatar","data-tour":"avatar","aria-label":t("pf_title"),
+        onClick:function(){ if(onOpenProfile) onOpenProfile(); else if(onOpenSettings) onOpenSettings(); }}, initials)
     ),
 
     /* B4 — entre splash fuera y nube lista: siluetas, no ceros. Si se pintan detrás del splash

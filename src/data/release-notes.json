@@ -1,5 +1,68 @@
 [
  {
+  "v": "4.19.52",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Los logos de tus bancos, los de verdad",
+   "en": "Your banks' real logos",
+   "ca": "Els logotips dels teus bancs, els de debo"
+  },
+  "tandas": [
+   {
+    "id": "logos-reales",
+    "t": {
+     "es": "🏦 Cada banco con su logo de verdad",
+     "en": "🏦 Each bank with its real logo",
+     "ca": "🏦 Cada banc amb el seu logotip de debo"
+    },
+    "items": {
+     "es": [
+      "En Cartera, tapa el nombre de un banco: tienes que saber cuál es solo por el dibujo. Sabadell, Revolut, Trade Republic, MyInvestor y CaixaBank."
+     ],
+     "en": [
+      "In Wallet, cover a bank's name: you should still know which one it is from the icon alone. Sabadell, Revolut, Trade Republic, MyInvestor and CaixaBank."
+     ],
+     "ca": [
+      "A Cartera, tapa el nom d'un banc: has de saber quin es nomes pel dibuix. Sabadell, Revolut, Trade Republic, MyInvestor i CaixaBank."
+     ]
+    }
+   },
+   {
+    "id": "aa-fuera-inicio",
+    "t": {
+     "es": "🔤 El tamaño de letra vuelve a Ajustes",
+     "en": "🔤 Text size back in Settings",
+     "ca": "🔤 La mida de lletra torna a Configuracio"
+    },
+    "items": {
+     "es": [
+      "Se ha quitado el botón «Aa» de Inicio. El tamaño de letra sigue donde siempre: Ajustes."
+     ],
+     "en": [
+      "The «Aa» button is gone from Home. Text size stays where it always was: Settings."
+     ],
+     "ca": [
+      "S'ha tret el boto «Aa» d'Inici. La mida de lletra segueix on sempre: Configuracio."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Los bancos salen con su logo real, no con un dibujo parecido.",
+    "El botón «Aa» de Inicio se va: el tamaño de letra ya estaba en Ajustes."
+   ],
+   "en": [
+    "Banks now show their real logo instead of a look-alike drawing.",
+    "The «Aa» button leaves Home: text size was already in Settings."
+   ],
+   "ca": [
+    "Els bancs surten amb el seu logotip real, no amb un dibuix semblant.",
+    "El boto «Aa» d'Inici se'n va: la mida de lletra ja era a Configuracio."
+   ]
+  }
+ },
+ {
   "v": "4.19.51",
   "d": "11 sep 2026",
   "t": {

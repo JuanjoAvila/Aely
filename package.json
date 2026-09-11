@@ -1,6 +1,6 @@
 {
   "name": "mi-cartera",
-  "version": "4.19.51",
+  "version": "4.19.52",
   "private": true,
   "description": "Mi Cartera — PWA de finanzas personales (+ envoltorio Android con Capacitor)",
   "scripts": {
@@ -22,7 +22,8 @@
     "android:open": "cap open android",
     "salud": "node scripts/salud.mjs",
     "listo": "node scripts/listo-para-produccion.mjs",
-    "servidor": "node scripts/servidor-al-dia.mjs"
+    "servidor": "node scripts/servidor-al-dia.mjs",
+    "logos": "node scripts/logos-bancos.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^6.1.0",
@@ -34,6 +35,8 @@
   "devDependencies": {
     "@capacitor/cli": "^8.4.2",
     "@playwright/test": "^1.52.0",
-    "esbuild": "^0.25.5"
+    "esbuild": "^0.25.5",
+    "pngjs": "^7.0.0",
+    "simple-icons": "^16.30.0"
   }
 }

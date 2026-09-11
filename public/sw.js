@@ -9,6 +9,8 @@ const SHELL = [
   "./", "./index.html", "./manifest.json",
   "./release-notes.json",
   "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png",
+  "./logos/sabadell.png", "./logos/revolut.png", "./logos/trade_republic.png",
+  "./logos/myinvestor.png", "./logos/caixabank.png",
   "./vendor/supabase.min.js",
   "./fonts/manrope-latin.woff2", "./fonts/manrope-latin-ext.woff2",
   "./fonts/fraunces-latin.woff2", "./fonts/fraunces-latin-ext.woff2",

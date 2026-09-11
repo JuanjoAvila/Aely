@@ -42,6 +42,8 @@ const steps = [
   // que no corra en este PC (móvil, Cursor, otra IA). En una máquina sin memoria local —el CI—
   // el script sale en verde sin hacer nada, así que esto solo pincha aquí, que es donde se arregla.
   ["memoria-espejo", ["node", "scripts/sync-memoria.mjs", "--check"]],
+  // Los logos de banco salen del PNG oficial: si alguien los edita a mano, esto lo caza.
+  ["logos-bancos", ["node", "scripts/logos-bancos.mjs", "--check"]],
   ["security", ["node", "tests/security.test.mjs"]],
   ["webdebug-guard", ["node", "tests/webdebug-guard.test.mjs"]],
   ["gastos-active-bus", ["node", "tests/gastos-active-bus.test.mjs"]],

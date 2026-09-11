@@ -67,74 +67,29 @@ const I = {
 /* ============================================================
    COMPONENTES REUTILIZABLES
    ============================================================ */
+/* LOGOS DE BANCO — el PNG OFICIAL recortado, no un dibujo (2026-09-11).
+   Se intentaron dibujar CUATRO veces (iniciales, formas a ojo, trazos de una captura del
+   launcher, y otra ronda) y su veredicto siempre fue el mismo: «no son los logos», «parecen
+   logos de aliexpress». Y tenía razón: con `<text>` de la fuente del sistema y curvas a mano
+   sale una imitación, nunca el logotipo. Ahora se recorta el isotipo del original de Enable
+   Banking — la misma fuente por la que la app conecta con sus bancos y que ya se enseña en el
+   selector. Los genera `scripts/logos-bancos.mjs` en `public/logos/`; van FUERA del bundle
+   porque el gzip está al 99 % (326/330 KB).
+   Si el PNG no carga (primer arranque sin red, banco nuevo), cae al monograma de siempre. */
+const BANCOS_CON_LOGO={sabadell:1,revolut:1,trade_republic:1,myinvestor:1,caixabank:1};
 function Mono({ent, size}){
   const e=entOf(ent); size=size||40;
-  /* Logos = los iconos del móvil (captura 11/9 14:12), no el lockup de Enable Banking
-     ni dibujos a ojo. Prueba de fuego: tapa el nombre. SVG inline, cero PNG. */
-  const mark=bankMark(String(ent||""));
-  if(mark){
-    const svgProps={viewBox:"0 0 24 24",width:Math.round(size*(mark.scale||0.78)),height:Math.round(size*(mark.scale||0.78)),
-      "aria-hidden":"true"};
-    if(mark.fg) svgProps.fill=mark.fg;
-    return React.createElement("div",{
-      className:"mono mono-logo",
-      title:e.label,
-      "aria-label":e.label,
-      style:{width:size,height:size,background:mark.bg,borderColor:"transparent",
-        display:"grid",placeItems:"center",borderRadius:11,flex:"0 0 auto",border:"1px solid transparent",overflow:"hidden"}
-    }, React.createElement("svg",svgProps, mark.el));
+  const id=String(ent||"");
+  const [roto,setRoto]=React.useState(false);
+  if(BANCOS_CON_LOGO[id] && !roto){
+    return React.createElement("div",{className:"mono mono-logo",title:e.label,"aria-label":e.label,
+      style:{width:size,height:size,background:"#fff",display:"grid",placeItems:"center",
+        borderRadius:Math.round(size*0.275),flex:"0 0 auto",border:"1px solid transparent",overflow:"hidden"}},
+      React.createElement("img",{src:"logos/"+id+".png",alt:"",width:size,height:size,loading:"lazy",
+        decoding:"async",onError:function(){ setRoto(true); },
+        style:{width:size,height:size,objectFit:"contain",display:"block"}}));
   }
   return React.createElement("div",{className:"mono",style:{width:size,height:size,background:e.color+"22",color:e.color,borderColor:e.color+"44"}}, e.mono);
-}
-/* Iconos del launcher (captura 11/9 14:12 + cara a cara 14:18).
-   Errores que él pilló: Revolut y TR NO son fondo negro; TR son DOS ondas, no tres. */
-function bankMark(id){
-  if(id==="sabadell"){
-    /* Blanco: bola azul (≈60% de la S) + S negra grande. */
-    return {bg:"#FFFFFF",scale:0.86,el:React.createElement(React.Fragment,null,
-      React.createElement("circle",{cx:7.1,cy:12,r:3.55,fill:"#0082C9"}),
-      React.createElement("path",{fill:"#fff",d:"M5.55 9.55h1.55c.78 0 1.28.42 1.28 1.05 0 .4-.22.72-.6.88.58.18.9.55.9 1.12 0 .75-.6 1.22-1.55 1.22H5.55V9.55zm1.05 1.7h.55c.35 0 .55-.16.55-.42s-.2-.4-.55-.4h-.55v.82zm0 2.15h.7c.4 0 .65-.2.65-.52s-.25-.5-.65-.5h-.7v1.02z"}),
-      React.createElement("text",{x:16.6,y:17.6,textAnchor:"middle",fill:"#111",
-        fontSize:15.5,fontWeight:800,fontFamily:"system-ui,-apple-system,sans-serif"},"S")
-    )};
-  }
-  if(id==="revolut"){
-    /* Blanco + R negra de UNA pieza (sin hueco asta/hombro: a 40 px leía «IR»). */
-    return {bg:"#FFFFFF",fg:"#111",scale:0.64,el:React.createElement("path",{fill:"#111",
-      d:"M4.1 3.3h9.4c3.15 0 5.45 2.05 5.45 5.05 0 2.4-1.4 4.2-3.75 4.85L19.6 20.7h-4.25l-4-6.85H7.55v6.85H4.1V3.3zm3.45 2.95v4.15h2.45c1.5 0 2.4-.9 2.4-2.1s-.95-2.05-2.4-2.05H7.55z"})};
-  }
-  if(id==="trade_republic"){
-    /* Blanco: DOS trazos cortos y gordos centrados (aire a los lados). No tres ni de borde a borde. */
-    return {bg:"#FFFFFF",scale:0.78,el:React.createElement(React.Fragment,null,
-      React.createElement("path",{d:"M6.8 9.6 Q12 6.8 17.2 9.6",fill:"none",stroke:"#111",strokeWidth:3.5,strokeLinecap:"round"}),
-      React.createElement("path",{d:"M6.8 14.7 Q12 11.9 17.2 14.7",fill:"none",stroke:"#111",strokeWidth:3.5,strokeLinecap:"round"})
-    )};
-  }
-  if(id==="myinvestor"){
-    /* Blanco: «my»+barra centrados como grupo (feedback Claude 40 px: iba a la izquierda;
-       barra ≥2,4 u para que el degradado se lea). Sin círculo. */
-    return {bg:"#FFFFFF",scale:0.82,el:React.createElement(React.Fragment,null,
-      React.createElement("text",{x:11.4,y:15.4,textAnchor:"middle",fill:"#1a1a1a",
-        fontSize:10.2,fontWeight:600,fontFamily:"system-ui,-apple-system,sans-serif",letterSpacing:"-0.8px"},"my"),
-      React.createElement("defs",null,
-        React.createElement("linearGradient",{id:"miBar",x1:"0",y1:"0",x2:"0.2",y2:"1"},
-          React.createElement("stop",{offset:"0%",stopColor:"#8B4FA0"}),
-          React.createElement("stop",{offset:"45%",stopColor:"#6B5B9A"}),
-          React.createElement("stop",{offset:"100%",stopColor:"#4A6BB0"})
-        )
-      ),
-      React.createElement("path",{d:"M16.55 5.8 L19.05 6.45 L17.35 18.2 L14.85 17.55",fill:"url(#miBar)"})
-    )};
-  }
-  if(id==="caixabank"){
-    /* Blanco: estrella de 5 brazos + amarillo + rojo (posiciones del icono CaixaBankNow). */
-    return {bg:"#FFFFFF",scale:0.82,el:React.createElement(React.Fragment,null,
-      React.createElement("path",{fill:"#0077B6",d:"M12 2.6l1.25 5.45 5.55.2-4.35 3.5 1.8 5.15L12 14.2l-4.25 2.7 1.8-5.15-4.35-3.5 5.55-.2z"}),
-      React.createElement("circle",{cx:9.2,cy:13.6,r:1.15,fill:"#F5C518"}),
-      React.createElement("circle",{cx:7.2,cy:18.0,r:1.85,fill:"#E30613"})
-    )};
-  }
-  return null;
 }
 
 /* Ayuda contextual: un «?» discreto que explica la tarjeta en cristiano (para no-técnicos). */

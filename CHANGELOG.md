@@ -1,3 +1,28 @@
+## [4.19.52] - 2026-09-11
+### Los logos de banco, recortados del original en vez de dibujados
+
+Cuarto intento, y el primero que no es un dibujo. Los tres anteriores (iniciales, formas a ojo,
+trazos medidos de una captura del launcher) los rechazo: «que puta mierda es esa, no son los
+logos» y «parecen logos de aliexpress». Tenia razon: con `<text>` de la fuente del sistema y
+curvas a mano sale una imitacion, no un logotipo.
+
+- `scripts/logos-bancos.mjs` recorta el ISOTIPO del PNG oficial de `docs/design/bancos/`
+  (bajados del directorio de Enable Banking, campo `logo` de `bank-aspsps` — la misma fuente por
+  la que la app conecta con sus bancos, y que ya se enseña en el selector). Caja del contenido
+  calculada, no a ojo; reduccion por media de area para que el trazo no se deshaga.
+- Salen a `public/logos/*.png`, **17,1 KB en total y FUERA del bundle**: el gzip del index esta
+  al 99 % del tope y un fichero aparte no cuenta. Viajan igual en el APK (`build-www` copia
+  `public/` entero) y en el bundle OTA (`zip -qr`), y van al shell del service worker.
+- `Mono` usa `<img>` y cae al monograma de siempre si el PNG no carga.
+- Fuera `bankMark`: 23 `createElement` de SVG dibujado a mano.
+- Guardian nuevo en la suite: `logos-bancos --check` falla si alguien los edita a mano.
+
+### Fuera el boton «Aa» de Inicio
+
+Peticion suya: *«quitame lo de la letra al lado del perfil... que pa eso esta en las settings,
+no se porque me lo añadiste ahi»*. El control sigue en Ajustes (`10-app-components.js`), que es
+donde estaba; se va el atajo de Inicio y su barra desplegable.
+
 ## [4.19.51] — 2026-09-11
 ### Paso 0: un apunte manual no se fusiona
 
