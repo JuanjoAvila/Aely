@@ -1,5 +1,49 @@
 [
  {
+  "v": "4.19.44",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Letra a mano y conectar cuentas",
+   "en": "Text size at hand and connect accounts",
+   "ca": "Lletra a mà i connectar comptes"
+  },
+  "tandas": [
+   {
+    "id": "letra-conectar-sin-logos",
+    "t": {
+     "es": "🔤 Aa en Inicio y conectar desde Tus cuentas",
+     "en": "🔤 Aa on Home and connect from Your accounts",
+     "ca": "🔤 Aa a Inici i connectar des dels teus comptes"
+    },
+    "items": {
+     "es": [
+      "En Inicio, el botón «Aa» junto al avatar abre la barra de tamaño de letra sin entrar en Ajustes.",
+      "En Cartera → Tus cuentas hay un «Conectar cuentas» que abre Mis bancos, igual que el de Inicio."
+     ],
+     "en": [
+      "On Home, the «Aa» button next to the avatar opens text size without opening Settings.",
+      "In Portfolio → Your accounts there is a «Connect accounts» that opens My banks, same as on Home."
+     ],
+     "ca": [
+      "A Inici, el botó «Aa» al costat de l'avatar obre la mida de lletra sense entrar a Ajustos.",
+      "A Cartera → Els teus comptes hi ha un «Connectar comptes» que obre Els meus bancs, igual que a Inici."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "El tamaño de letra se cambia desde Inicio, y desde Tus cuentas ya se pueden conectar bancos."
+   ],
+   "en": [
+    "Text size can be changed from Home, and you can connect banks from Your accounts."
+   ],
+   "ca": [
+    "La mida de lletra es canvia des d'Inici, i des dels teus comptes ja es poden connectar bancs."
+   ]
+  }
+ },
+ {
   "v": "4.19.43",
   "d": "11 sep 2026",
   "t": {

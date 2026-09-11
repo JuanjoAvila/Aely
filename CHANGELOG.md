@@ -1,3 +1,14 @@
+## [4.19.44] — 2026-09-11
+### Letra a mano y conectar cuentas (lista 11/9, ítems 2 y 3) — sin logos
+
+Claude revisó a ojo los SVG de `logos-letra`: dibujaban **iniciales**, no marcas. Él pidió logos reales; marcas registradas quedan a su voto (1/2/3). Esta rama integra solo lo ya VERDE:
+
+- **Aa en Inicio** junto al avatar (ítem 3): misma escala que Ajustes, sin tocar `shell.html`.
+- **Conectar cuentas** en Cartera → Tus cuentas (ítem 2): `mc-open-banks`.
+
+Los `bankMarkPaths` / Mono SVG quedan fuera hasta que decida.
+
+
 ## [4.19.43] — 2026-09-11
 ### La ronda de la tarde: lo que se veía roto al estrenar y los textos que sobraban
 
