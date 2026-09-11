@@ -17,6 +17,14 @@ async function abrirRevisionBeta(page) {
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
+  /* NOTAS-BUNDLE: el histórico ya no viaja en el index, se pide aparte. Sin esperarlo,
+     `betaChecklist` sale vacío y estos tests fallarían por una carrera, no por la regla que
+     vigilan. Se dispara la carga a mano en vez de confiar en que algún componente la haya
+     pedido ya: si el panel cambia de sitio, la espera sigue valiendo. */
+  await page.evaluate(() => window.ensureReleaseNotes && window.ensureReleaseNotes());
+  await page.waitForFunction(
+    () => Array.isArray(window.RELEASE_NOTES) && window.RELEASE_NOTES.length > 0,
+    null, { timeout: 10_000 });
 }
 
 test("el panel de revisión saca la checklist de las notas de la versión", async ({ page }) => {
