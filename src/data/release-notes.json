@@ -1,41 +1,24 @@
 [
  {
-  "v": "4.18.20",
+  "v": "4.18.21",
   "d": "11 sep 2026",
   "t": {
-   "es": "Rastro del saldo que manda el banco",
-   "en": "A trace of which bank balance was used",
-   "ca": "Rastre del saldo que envia el banc"
+   "es": "Los repetidos cuentan igual en la app y en el widget",
+   "en": "Duplicates now count the same in app and widget",
+   "ca": "Els repetits compten igual a l'app i al widget"
   },
   "items": {
    "es": [
+    "Un movimiento marcado como posible repetido ya no puede contar en el widget si no cuenta en la app. Antes coincidían de casualidad.",
     "Cuando un banco manda varios saldos, la app guarda cuál ha usado. No cambia ninguna cifra: sirve para poder explicar un saldo raro en vez de adivinar."
    ],
    "en": [
+    "A movement flagged as a possible duplicate can no longer count in the widget if it does not count in the app.",
     "When a bank sends several balances, the app records which one it used. No figure changes: it exists so an odd balance can be explained instead of guessed."
    ],
    "ca": [
+    "Un moviment marcat com a possible repetit ja no pot comptar al widget si no compta a l'app.",
     "Quan un banc envia diversos saldos, l'app desa quin ha fet servir. No canvia cap xifra."
-   ]
-  }
- },
- {
-  "v": "4.18.19",
-  "d": "11 sep 2026",
-  "t": {
-   "es": "El servidor y la app cuentan igual los movimientos repetidos",
-   "en": "Server and app now count duplicates the same way",
-   "ca": "El servidor i l'app compten igual els moviments repetits"
-  },
-  "items": {
-   "es": [
-    "Un movimiento marcado como posible repetido ya no puede contar en el widget si no cuenta en la app. Antes coincidían de casualidad."
-   ],
-   "en": [
-    "A movement flagged as a possible duplicate can no longer count in the widget if it does not count in the app."
-   ],
-   "ca": [
-    "Un moviment marcat com a possible repetit ja no pot comptar al widget si no compta a l'app."
    ]
   }
  },

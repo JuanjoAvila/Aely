@@ -1,3 +1,9 @@
+## [4.18.21] — 2026-09-11
+### Sella las dos de producción del 11/9
+
+- Une **4.18.19** (el servidor deja de acertar por accidente con los movimientos repetidos) y **4.18.20** (rastro de qué saldo manda el banco, para el Revolut de su padre). Las dos con review ejecutada de Cursor.
+- Las notas de las dos se funden aquí: ninguna llegó a publicarse por separado.
+- ⚠ **Este promote DESPLIEGA las Edge Functions**, porque 4.18.19 toca `supabase/functions/_shared/presupuesto.ts` y `supabase.yml` se dispara con cualquier cambio bajo `supabase/**`. Avisado y autorizado por él ANTES de subir — a diferencia de esta mañana, que se desplegaron solas sin que ninguno de los dos lo viéramos venir.
 ## [4.18.20] — 2026-09-11
 ### Rastro de qué saldo manda el banco (el Revolut de su padre)
 
