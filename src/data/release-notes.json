@@ -1,11 +1,11 @@
 [
  {
-  "v": "4.19.39",
+  "v": "4.19.40",
   "d": "11 sep 2026",
   "t": {
-   "es": "El cambio de pestaña ya no pega el tirón",
-   "en": "Switching tabs no longer lurches",
-   "ca": "El canvi de pestanya ja no fa l'estrebada"
+   "es": "El banco de pruebas, el logo y el tirón",
+   "en": "Test mode, the logo and the lurch",
+   "ca": "La zona de proves, el logotip i l'estrebada"
   },
   "tandas": [
    {
@@ -32,29 +32,7 @@
       "I el que NO es pot trencar: desplaça en vertical dins d'una pestanya. El scroll ha de ser teu."
      ]
     }
-   }
-  ],
-  "items": {
-   "es": [
-    "Al cambiar de pestaña arrastrando despacio, la pantalla ya no da un brinco al empezar a moverse."
-   ],
-   "en": [
-    "When switching tabs with a slow drag, the screen no longer jumps as it starts to move."
-   ],
-   "ca": [
-    "En canviar de pestanya a poc a poc, la pantalla ja no fa un bot en començar a moure's."
-   ]
-  }
- },
- {
-  "v": "4.19.38",
-  "d": "11 sep 2026",
-  "t": {
-   "es": "Un solo logo, y que no se corte",
-   "en": "One single logo, and not cropped",
-   "ca": "Un sol logotip, i que no es talli"
-  },
-  "tandas": [
+   },
    {
     "id": "logo-unico",
     "t": {
@@ -76,29 +54,7 @@
       "⚠ La icona tallada a les notificacions NO es corregeix amb aquesta actualització: cal una APK nova."
      ]
     }
-   }
-  ],
-  "items": {
-   "es": [
-    "La pantalla de carga ya enseña el mismo logo que el icono de la app."
-   ],
-   "en": [
-    "The loading screen now shows the same logo as the app icon."
-   ],
-   "ca": [
-    "La pantalla de càrrega ja mostra el mateix logotip que la icona de l'app."
-   ]
-  }
- },
- {
-  "v": "4.19.37",
-  "d": "11 sep 2026",
-  "t": {
-   "es": "El modo inicial ya se queda vacío de verdad",
-   "en": "Fresh-install mode really stays empty",
-   "ca": "El mode inicial ja es queda buit de debò"
-  },
-  "tandas": [
+   },
    {
     "id": "modo-inicial-v3",
     "t": {
@@ -130,12 +86,18 @@
   ],
   "items": {
    "es": [
+    "Al cambiar de pestaña arrastrando despacio, la pantalla ya no da un brinco al empezar a moverse.",
+    "La pantalla de carga ya enseña el mismo logo que el icono de la app.",
     "Al mirar la app «como recién instalada», ya no se vuelve a llenar sola con tus datos a los pocos segundos."
    ],
    "en": [
+    "When switching tabs with a slow drag, the screen no longer jumps as it starts to move.",
+    "The loading screen now shows the same logo as the app icon.",
     "When you look at the app «as if just installed», it no longer refills itself with your data after a few seconds."
    ],
    "ca": [
+    "En canviar de pestanya a poc a poc, la pantalla ja no fa un bot en començar a moure's.",
+    "La pantalla de càrrega ja mostra el mateix logotip que la icona de l'app.",
     "En mirar l'app «com acabada d'instal·lar», ja no es torna a omplir sola amb les teves dades."
    ]
   }

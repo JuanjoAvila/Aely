@@ -1,3 +1,17 @@
+## [4.19.40] — 2026-09-11
+### La ronda del 11/9: el banco de pruebas, el logo y el tirón
+
+Une las tres tandas de la mañana, las tres con review ejecutada de Cursor en verde:
+
+- **4.19.37 — el modo inicial ya no se deja rellenar por la nube.** Segundo rechazo suyo del mismo sitio. El sandbox sigue LEYENDO de la nube a propósito, y eso choca con «ver la app como recién instalada»: siembras vacío, recarga, llega su estado real y gana el last-write-wins. Ahora el modo inicial lleva bandera propia y corta también las lecturas que meten datos.
+- **4.19.38 — un solo logo de Aely, y un icono que no se corta.** Había dos dibujos distintos (el splash llevaba uno viejo hecho a ojo) y el icono adaptativo se salía de la máscara redonda de las notificaciones. La escala final sale de MEDIR los píxeles del PNG, no de la fórmula: el resplandor sobresale y la cuenta no lo veía.
+- **4.19.39 — el tironcillo del cambio de pestaña.** Medido en su móvil con toques reales: el carrusel se quedaba quieto ~30 px y luego pintaba los 36 de golpe. Yendo lento eso son 721 ms de silencio; yendo rápido, 173. Con el ancla: 36,1 → 0,7 px.
+
+**Las notas de la 4.19.37, .38 y .39 se funden aquí a propósito.** Ninguna de las tres llegó a publicarse —beta iba por la 4.19.36—, así que dejar tres entradas en Novedades sería contarle a la familia tres versiones que nunca existieron. Las tres TANDAS sí se conservan enteras: son lo que él tiene que probar, y el panel de revisión las lee de aquí.
+
+⚠ **Lo nativo no viaja por OTA.** El icono adaptativo y los literales de las notificaciones necesitan APK nueva. Por beta van el modo inicial, la pantalla de carga y el tirón.
+
+
 ## [4.19.39] — 2026-09-11
 ### El tironcillo del cambio de pestaña, medido en su móvil y arreglado
 
