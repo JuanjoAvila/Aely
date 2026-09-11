@@ -1,3 +1,15 @@
+## [4.19.36] — 2026-09-11
+### FIN-07 · El histórico entero, y una descarga a medias que ya no borra
+
+- `pullExpenses` traía como mucho **2.000 gastos sin paginar**, y `syncCloudExpenses` REEMPLAZA los de origen `supabase` por lo que acaba de llegar. Con más de 2.000 en la nube —lo normal tras importar el histórico de un banco— **cada sincronización borraba de la app los más viejos**. Su queja del 10/9 («solo baja el histórico un poquito») era esto, y no el importador.
+- Ahora se **pagina por clave** (`fecha` desc + `id` desc, páginas de 1.000). Por clave y no por desplazamiento porque un gasto que entre a mitad de la descarga corre la lista y te hace saltarte una fila o repetirla. El `id` en el orden no es decorativo: sin un segundo criterio ÚNICO, dos gastos del MISMO día pueden salir en distinto orden entre páginas.
+- **Una descarga a medias ya no es un borrado**: se conserva lo que había y solo se añade lo nuevo.
+- El aviso ya no promete «los 2.000 más recientes» ni acaba en «avísame» —le pedía a él que vigilara si le faltaban gastos—: dice lo único que importa, que **no ha perdido nada**.
+- Guardián `pull-historico-entero` (9 casos), verificado en rojo quitando la guarda.
+- ⚠ Este mismo fallo estaba **también en producción** (4.18.8, y allí sin `id` en el orden): va aparte en `tanda/fin07-historico` / `integra/prod-11sep`.
+
+**Crédito:** la paginación por keyset es de Cursor (`tanda/fin-07-pull`); el tope de seguridad, la guarda de la mezcla y los guardianes, de esta tanda.
+
 # Changelog
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).

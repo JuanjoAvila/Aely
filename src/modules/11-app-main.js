@@ -298,7 +298,12 @@ function App(){
   const syncCloudExpenses=function(){
     return cloud.pullExpenses().then(function(rows){
       // O: el SELECT lleva .limit(2000). Si llega lleno, hay más en la nube que no vemos — avisar.
-      if(rows&&rows._mcPullCapped) showToast("⚠ "+t("exp_pull_capped"));
+      /* FIN-07: una descarga a medias NO es un borrado. Sin esta distinción, un pull corto
+         descarta de la app todo lo de origen `supabase` que no haya llegado — que es exactamente
+         cómo se le borraban los gastos viejos. Regla desde la contención 4.18.6: nunca se borra
+         por ausencia. */
+      const parcial=!!(rows&&rows._mcPullCapped);
+      if(parcial) showToast("⚠ "+t("exp_pull_capped"));
       const keyOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.merchant||""); };
       const delSet={}; (stateRef.current.deleted||[]).forEach(function(k){ delSet[k]=1; });
       const incoming=rows.map(expenseFromRow).filter(function(e){ return e.amount!==0 && !delSet[keyOf(e)]; });
@@ -329,7 +334,8 @@ function App(){
       let count=0; const seenC={};
       incoming.forEach(function(e){ const k=keyOf(e); if(!seenC[k]){ seenC[k]=1; if(!prevKeys[k]) count++; } });
       set(function(prev){
-        const keep=prev.expenses.filter(function(e){ return e.source!=="supabase"; });
+        const keep=parcial ? prev.expenses.slice()
+                           : prev.expenses.filter(function(e){ return e.source!=="supabase"; });
         const keepKeys={}; keep.forEach(function(e){ keepKeys[keyOf(e)]=1; });
         const seen={}; const add=[];
         incoming.forEach(function(e){ const k=keyOf(e); if(!keepKeys[k] && !seen[k]){ seen[k]=1; add.push(e); } });

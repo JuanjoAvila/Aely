@@ -2605,6 +2605,29 @@ async function withNotaFallback(run){
   return r;
 }
 
+/* FIN-07 — EL HISTÓRICO ENTERO. Aquí había un `.limit(2000)` sin paginar, y `syncCloudExpenses`
+   REEMPLAZA los gastos de origen "supabase" por lo que acaba de llegar: con más de 2.000 en la nube
+   —lo normal tras importar el histórico de un banco— cada sincronización BORRABA los más viejos.
+   Se pagina por CLAVE (keyset), no por desplazamiento: un gasto que entre a mitad de la descarga
+   corre la lista y te hace saltarte una fila o repetirla. El `id` en el orden no es decorativo —
+   sin un segundo criterio ÚNICO, dos gastos del MISMO día pueden salir en distinto orden entre
+   páginas y entonces uno se repite y otro se pierde.
+   (Paginación por keyset: de Cursor. Tope de seguridad y guarda de la mezcla: de esta tanda.) */
+async function mcPullExpensesPaged(fetchPage, pageSize, maxPages){
+  const all=[];
+  let cursor=null;
+  for(let p=0;p<maxPages;p++){
+    const chunk=await fetchPage(cursor);
+    if(!chunk || !chunk.length) return { rows:all, capped:false };
+    for(let i=0;i<chunk.length;i++) all.push(chunk[i]);
+    if(chunk.length<pageSize) return { rows:all, capped:false };
+    const last=chunk[chunk.length-1];
+    cursor={ fecha:last.fecha, id:last.id };
+  }
+  return { rows:all, capped:true };
+}
+
+
 const cloud = (function(){
   let sb = null;
   try {
@@ -2652,13 +2675,24 @@ const cloud = (function(){
     },
     async pullExpenses(){
       if(!sb) return [];
-      // Tope duro: sin paginar aún (plan O). Si se llena, syncCloudExpenses avisa — callar mentiría
-      // tras un import histórico largo.
-      const EXPENSE_PULL_LIMIT=2000;
-      const {data,error}=await sb.from('expenses').select('*').order('fecha',{ascending:false}).limit(EXPENSE_PULL_LIMIT);
-      if(error) throw error;
-      const rows=data||[];
-      if(rows.length>=EXPENSE_PULL_LIMIT) rows._mcPullCapped=true;
+      const PAGE=1000;
+      const MAX_PAGES=50;   // 50.000 filas: red de seguridad contra un bucle, no un techo de producto.
+      const fetchPage=async function(cursor){
+        let q=sb.from('expenses').select('*')
+          .order('fecha',{ascending:false})
+          .order('id',{ascending:false})
+          .limit(PAGE);
+        if(cursor){
+          const f=String(cursor.fecha), id=String(cursor.id);
+          q=q.or('fecha.lt.'+f+',and(fecha.eq.'+f+',id.lt.'+id+')');
+        }
+        const {data,error}=await q;
+        if(error) throw error;
+        return data||[];
+      };
+      const pulled=await mcPullExpensesPaged(fetchPage, PAGE, MAX_PAGES);
+      const rows=pulled.rows;
+      if(pulled.capped) rows._mcPullCapped=true;
       return rows;
     },
     async addExpense(e){
@@ -5694,7 +5728,7 @@ Object.assign(LANG.es,{
   bp_hist_undo_cloud_fail:"Quitado en el móvil, pero la nube no ha confirmado el borrado. Si vuelven a aparecer, vuelve a deshacer con conexión.",
   bp_hist_f_all:"Todos", bp_hist_f_gastos:"🛒 Gastos", bp_hist_f_ingresos:"💰 Ingresos", bp_hist_f_allmonths:"Todos los meses",
   bp_hist_nofilter:"Ningún movimiento con este filtro. Prueba a quitar alguno.",
-  exp_pull_capped:"Solo se han podido traer los 2.000 gastos más recientes de la nube. Si echas alguno en falta, avísame.",
+  exp_pull_capped:"No ha cabido todo el historial de una vez. NO se ha borrado nada: vuelve a sincronizar para traer el resto.",
   bp_summary_n:"{n} conectado(s)", bp_summary_exp:"⚠ {n} caducado(s) — reconéctalo", bp_summary_none:"Ningún banco conectado todavía",
   bp_summary_tr_dead:"⚠ Trade Republic desconectado",
   st_ver_web:"web v{v}", st_ver_app:"app {v}", st_ver_both:"web v{w} · app {a}",
@@ -5752,7 +5786,7 @@ Object.assign(LANG.en,{
   bp_hist_undo_cloud_fail:"Removed on this phone, but the cloud did not confirm the deletion. If they come back, undo again while online.",
   bp_hist_f_all:"All", bp_hist_f_gastos:"🛒 Spending", bp_hist_f_ingresos:"💰 Income", bp_hist_f_allmonths:"All months",
   bp_hist_nofilter:"No transactions match this filter. Try removing one.",
-  exp_pull_capped:"Only the 2,000 most recent cloud expenses could be loaded. If something is missing, let me know.",
+  exp_pull_capped:"We couldn't fetch your whole history in one go. Nothing has been deleted: sync again to bring in the rest.",
   bp_summary_n:"{n} connected", bp_summary_exp:"⚠ {n} expired — reconnect it", bp_summary_none:"No bank connected yet",
   bp_summary_tr_dead:"⚠ Trade Republic disconnected",
   st_ver_web:"web v{v}", st_ver_app:"app {v}", st_ver_both:"web v{w} · app {a}",
@@ -5810,7 +5844,7 @@ Object.assign(LANG.ca,{
   bp_hist_undo_cloud_fail:"Tret al mòbil, però el núvol no ha confirmat l'esborrat. Si tornen a aparèixer, torna a desfer amb connexió.",
   bp_hist_f_all:"Tots", bp_hist_f_gastos:"🛒 Despeses", bp_hist_f_ingresos:"💰 Ingressos", bp_hist_f_allmonths:"Tots els mesos",
   bp_hist_nofilter:"Cap moviment amb aquest filtre. Prova de treure'n algun.",
-  exp_pull_capped:"Només s'han pogut portar els 2.000 despeses més recents del núvol. Si en trobes a faltar, avisa'm.",
+  exp_pull_capped:"No hi ha cabut tot l'historial de cop. NO s'ha esborrat res: torna a sincronitzar per portar la resta.",
   bp_summary_n:"{n} connectat(s)", bp_summary_exp:"⚠ {n} caducat(s) — reconnecta'l", bp_summary_none:"Cap banc connectat encara",
   bp_summary_tr_dead:"⚠ Trade Republic desconnectat",
   st_ver_web:"web v{v}", st_ver_app:"app {v}", st_ver_both:"web v{w} · app {a}",
@@ -18775,7 +18809,12 @@ function App(){
   const syncCloudExpenses=function(){
     return cloud.pullExpenses().then(function(rows){
       // O: el SELECT lleva .limit(2000). Si llega lleno, hay más en la nube que no vemos — avisar.
-      if(rows&&rows._mcPullCapped) showToast("⚠ "+t("exp_pull_capped"));
+      /* FIN-07: una descarga a medias NO es un borrado. Sin esta distinción, un pull corto
+         descarta de la app todo lo de origen `supabase` que no haya llegado — que es exactamente
+         cómo se le borraban los gastos viejos. Regla desde la contención 4.18.6: nunca se borra
+         por ausencia. */
+      const parcial=!!(rows&&rows._mcPullCapped);
+      if(parcial) showToast("⚠ "+t("exp_pull_capped"));
       const keyOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.merchant||""); };
       const delSet={}; (stateRef.current.deleted||[]).forEach(function(k){ delSet[k]=1; });
       const incoming=rows.map(expenseFromRow).filter(function(e){ return e.amount!==0 && !delSet[keyOf(e)]; });
@@ -18806,7 +18845,8 @@ function App(){
       let count=0; const seenC={};
       incoming.forEach(function(e){ const k=keyOf(e); if(!seenC[k]){ seenC[k]=1; if(!prevKeys[k]) count++; } });
       set(function(prev){
-        const keep=prev.expenses.filter(function(e){ return e.source!=="supabase"; });
+        const keep=parcial ? prev.expenses.slice()
+                           : prev.expenses.filter(function(e){ return e.source!=="supabase"; });
         const keepKeys={}; keep.forEach(function(e){ keepKeys[keyOf(e)]=1; });
         const seen={}; const add=[];
         incoming.forEach(function(e){ const k=keyOf(e); if(!keepKeys[k] && !seen[k]){ seen[k]=1; add.push(e); } });

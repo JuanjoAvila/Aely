@@ -87,6 +87,7 @@ const steps = [
   ["huella-bundle", ["node", "tests/huella-bundle.test.mjs"]],
   ["expense-note", ["node", "tests/expense-note.test.mjs"]],
   ["expense-id-cloud", ["node", "tests/expense-id-cloud.test.mjs"]],
+  ["pull-historico-entero", ["node", "tests/pull-historico-entero.test.mjs"]],
   ["bank-connect-once", ["node", "tests/bank-connect-once.test.mjs"]],
   ["inv-dashboard", ["node", "tests/inv-dashboard.test.mjs"]],
   ["financing", ["node", "tests/financing.test.mjs"]],

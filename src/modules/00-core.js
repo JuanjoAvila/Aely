@@ -622,6 +622,29 @@ async function withNotaFallback(run){
   return r;
 }
 
+/* FIN-07 — EL HISTÓRICO ENTERO. Aquí había un `.limit(2000)` sin paginar, y `syncCloudExpenses`
+   REEMPLAZA los gastos de origen "supabase" por lo que acaba de llegar: con más de 2.000 en la nube
+   —lo normal tras importar el histórico de un banco— cada sincronización BORRABA los más viejos.
+   Se pagina por CLAVE (keyset), no por desplazamiento: un gasto que entre a mitad de la descarga
+   corre la lista y te hace saltarte una fila o repetirla. El `id` en el orden no es decorativo —
+   sin un segundo criterio ÚNICO, dos gastos del MISMO día pueden salir en distinto orden entre
+   páginas y entonces uno se repite y otro se pierde.
+   (Paginación por keyset: de Cursor. Tope de seguridad y guarda de la mezcla: de esta tanda.) */
+async function mcPullExpensesPaged(fetchPage, pageSize, maxPages){
+  const all=[];
+  let cursor=null;
+  for(let p=0;p<maxPages;p++){
+    const chunk=await fetchPage(cursor);
+    if(!chunk || !chunk.length) return { rows:all, capped:false };
+    for(let i=0;i<chunk.length;i++) all.push(chunk[i]);
+    if(chunk.length<pageSize) return { rows:all, capped:false };
+    const last=chunk[chunk.length-1];
+    cursor={ fecha:last.fecha, id:last.id };
+  }
+  return { rows:all, capped:true };
+}
+
+
 const cloud = (function(){
   let sb = null;
   try {
@@ -669,13 +692,24 @@ const cloud = (function(){
     },
     async pullExpenses(){
       if(!sb) return [];
-      // Tope duro: sin paginar aún (plan O). Si se llena, syncCloudExpenses avisa — callar mentiría
-      // tras un import histórico largo.
-      const EXPENSE_PULL_LIMIT=2000;
-      const {data,error}=await sb.from('expenses').select('*').order('fecha',{ascending:false}).limit(EXPENSE_PULL_LIMIT);
-      if(error) throw error;
-      const rows=data||[];
-      if(rows.length>=EXPENSE_PULL_LIMIT) rows._mcPullCapped=true;
+      const PAGE=1000;
+      const MAX_PAGES=50;   // 50.000 filas: red de seguridad contra un bucle, no un techo de producto.
+      const fetchPage=async function(cursor){
+        let q=sb.from('expenses').select('*')
+          .order('fecha',{ascending:false})
+          .order('id',{ascending:false})
+          .limit(PAGE);
+        if(cursor){
+          const f=String(cursor.fecha), id=String(cursor.id);
+          q=q.or('fecha.lt.'+f+',and(fecha.eq.'+f+',id.lt.'+id+')');
+        }
+        const {data,error}=await q;
+        if(error) throw error;
+        return data||[];
+      };
+      const pulled=await mcPullExpensesPaged(fetchPage, PAGE, MAX_PAGES);
+      const rows=pulled.rows;
+      if(pulled.capped) rows._mcPullCapped=true;
       return rows;
     },
     async addExpense(e){
