@@ -6,7 +6,18 @@ on:
   push:
     branches: [main]
     paths: ["supabase/**"]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      funcion:
+        description: "Una sola función (p.ej. ingest). Vacío = TODAS las 13."
+        required: false
+        default: ""
+      migraciones:
+        description: "Aplicar TAMBIÉN las migraciones de la base de datos"
+        required: false
+        default: "no"
+        type: choice
+        options: ["no", "si"]
 
 jobs:
   deploy:
@@ -29,7 +40,11 @@ jobs:
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
-          if [ -n "$DB_PASSWORD" ]; then echo "migrate=true" >> "$GITHUB_OUTPUT"; else echo "migrate=false" >> "$GITHUB_OUTPUT"; fi
+          # Las migraciones tocan la BASE DE DATOS, no solo las funciones. Al lanzarlo a mano hay
+          # que pedirlas a propósito (input `migraciones`); el disparo por push sigue como estaba.
+          MIG_OK=true
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.migraciones }}" != "si" ]; then MIG_OK=false; fi
+          if [ -n "$DB_PASSWORD" ] && [ "$MIG_OK" = "true" ]; then echo "migrate=true" >> "$GITHUB_OUTPUT"; else echo "migrate=false" >> "$GITHUB_OUTPUT"; fi
 
       - name: Instalar Supabase CLI
         if: steps.gate.outputs.skip != 'true'
@@ -57,4 +72,14 @@ jobs:
         if: steps.gate.outputs.skip != 'true'
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: supabase functions deploy --project-ref "${{ vars.SUPABASE_PROJECT_REF }}"
+        run: |
+          # Desplegar las TRECE de golpe para arreglar una es como se rompen las otras doce
+          # (docs/briefs/plan-despliegue-edge-2026-09-10.md). Con `funcion` se manda solo esa.
+          FN="${{ github.event.inputs.funcion }}"
+          if [ -n "$FN" ]; then
+            echo "Desplegando SOLO $FN"
+            supabase functions deploy "$FN" --project-ref "${{ vars.SUPABASE_PROJECT_REF }}"
+          else
+            echo "Desplegando TODAS las funciones"
+            supabase functions deploy --project-ref "${{ vars.SUPABASE_PROJECT_REF }}"
+          fi
