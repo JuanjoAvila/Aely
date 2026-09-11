@@ -1,6 +1,6 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-11 · **v4.18.15** — el panel beta enseña todas las tandas pendientes de la ronda.
+> Estado a 2026-09-11 · **v4.18.16** — revisión de beta plegable: cada tanda se puede encoger desde su cabecera y la aprobada se encoge sola.
 > Anterior: **v4.18.14** — rescate de la ronda: seis tandas que él ya había aprobado, portadas una a una desde `main` y subidas juntas (histórico completo al sincronizar, multicuenta, posibles repetidos, notas fuera del bundle, categoría IA y orden manual dentro del día).
 > Anterior: **v4.18.8** — las dos tandas que aprobó, subidas solas (informe del mes cerrado y límite por categoría).
 > Anterior: **v4.18.7** — cabecera de Gastos al cambiar bancos de gasto diario (B09-A).
@@ -105,7 +105,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.18.15** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.18.16** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

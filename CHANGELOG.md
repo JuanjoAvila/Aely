@@ -1,3 +1,11 @@
+## [4.18.16] — 2026-09-11
+### Revisión plegable
+
+- Porte limitado de `revision-plegable`: la cabecera accesible de cada tanda permite encogerla y desplegarla sin tocar sus marcas, notas ni veredicto. Al aprobar, se encoge solo esa tanda; al desplegarla se puede consultar o cambiar de opinión.
+- El estado de desplegado solo vive durante la vista. Se conserva el guardado de veredictos que ya tenía producción, sin importar la recuperación entre compilaciones ni rutas de deshacer/cambio en nube de la tanda beta.
+- Regresión e2e: aprobar una tanda la encoge, se vuelve a desplegar y mantiene disponible el veredicto.
+- Las notas de la versión se añaden a `src/data/release-notes.json`, que es la fuente del histórico fuera del bundle; `RELEASE_NOTES` permanece vacío en el módulo.
+- OTA web; sin APK, Supabase, Edge, Aely ni cambios de identidad/cloud.
 ## [4.18.15] — 2026-09-11
 ### Panel «Revisar la beta»: ronda entera
 

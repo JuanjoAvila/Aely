@@ -1024,6 +1024,8 @@ function BetaReviewPanel({onClose, showToast}){
   // Veredicto POR TANDA: {idTanda: "approved"|"rejected"}. Antes era uno solo para toda la beta,
   // y con varias cosas en vuelo eso obliga a esperar a la más lenta para subir la más rápida.
   const [sent,setSent]=useState(function(){ return store.get(storeKey+"_v") || {}; });
+  // Lo aprobado ocupa solo su cabecera; abrirlo para consultar nunca cambia el veredicto.
+  const [expanded,setExpanded]=useState({});
   // Cuántos venían ya marcados de compilaciones anteriores, para decírselo en vez de que parezca
   // que el panel se ha inventado unos ✓ que él no ha puesto en esta ronda.
   // Se separan los ✓/«no probable» de los ✗: el aviso de arriba no puede decir «los diste por
@@ -1125,6 +1127,7 @@ function BetaReviewPanel({onClose, showToast}){
         setSent(function(p){
           const n=Object.assign({},p); n[g.id]=verdict;
           store.set(storeKey+"_v",n);   // sobrevive a cerrar la app: probar lleva días
+          setExpanded(function(p){ return Object.assign({},p,{[g.id]:verdict!=="approved"}); });
           return n;
         });
         showToast(verdict==="approved"?"✅ Aprobada · queda registrado":"⛔ Enviado · no se sube");
@@ -1186,11 +1189,16 @@ function BetaReviewPanel({onClose, showToast}){
       const c=cuenta(g.idx);
       const v=sent[g.id];
       const listo=c.pend===0 && c.ko===0;
+      const open=expanded[g.id]!==undefined ? expanded[g.id] : v!=="approved";
       return React.createElement("div",{key:g.id,className:"beta-tanda"},
-        g.t && React.createElement("div",{className:"beta-tanda-h"},
-          React.createElement("span",{className:"beta-tanda-t"}, g.t),
+        React.createElement("button",{type:"button",className:"beta-tanda-h beta-tanda-toggle",
+          "aria-expanded":open,"aria-controls":"beta-body-"+g.id,
+          onClick:function(){ setExpanded(function(p){ return Object.assign({},p,{[g.id]:!open}); }); }},
+          React.createElement("span",{className:"beta-tanda-t"}, g.t||t("beta_group")),
           React.createElement("span",{className:"beta-tanda-n"+(v==="approved"?" ok":v==="rejected"?" ko":"")},
-            v==="approved" ? "✅ aprobada" : v==="rejected" ? "⛔ rechazada" : (c.ok+c.ko+c.na)+"/"+g.idx.length)),
+            v==="approved" ? "✅ aprobada" : v==="rejected" ? "⛔ rechazada" : (c.ok+c.ko+c.na)+"/"+g.idx.length),
+          React.createElement("span",{className:"beta-tanda-fold"},(open?"▾ ":"▸ ")+t(open?"beta_collapse":"beta_expand"))),
+        React.createElement("div",{id:"beta-body-"+g.id,hidden:!open},
         g.idx.map(function(i,j){
           const it=g.items[j], m=marks[i];
           return React.createElement("div",{key:i,className:"beta-item",style:{border:"1px solid "+(m==="ko"?"var(--coral)":m==="ok"?"var(--mint)":m==="na"?"var(--muted-2)":"var(--line-soft)"),
@@ -1238,6 +1246,7 @@ function BetaReviewPanel({onClose, showToast}){
               c.ko>0 ? "Hay algo marcado como que falla: arréglalo antes de aprobar."
                      : "Te quedan "+c.pend+" cosa(s) por probar.")
           )
+        )
       );
     }),
 
