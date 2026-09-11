@@ -1,3 +1,20 @@
+## [4.19.60] - 2026-09-11
+### Revolut nombra por TICKER, no por el nombre de la empresa
+
+Mandó una captura de sus inversiones reales: de sus siete posiciones de Revolut, solo AMD y Meta
+llevaban logo. El resto llegan como **`NVDA`, `GOOG`, `AVGO`, `TSM`, `MU`** — el ticker, no el
+nombre. Trade Republic sí manda «Meta Platforms», y de ahí la confusión al probarlo con nombres
+completos inventados en vez de con los suyos.
+
+- `TICKERS_INVERSION` en `00-core.js`: `nvda`, `goog`, `googl`, `avgo`, `amd`, `meta`.
+- El ticker **solo vale si el nombre ENTERO es ese ticker** (un solo token). Buscarlo dentro de
+  un nombre largo haría que «NVDA 2x Leveraged» o «Cartera GOOG y otros» se llevaran un logo que
+  no les toca; están los tres en el guardián.
+- TSM, MU, el oro y los fondos siguen sin logo: no hay trazo oficial en simple-icons.
+
+Lección: **probar con SUS nombres, no con los que uno se imagina.** El guardián ya tenía
+«NVIDIA» y «Broadcom» y pasaba en verde mientras su pantalla enseñaba cinco monogramas.
+
 ## [4.19.59] - 2026-09-11
 ### Los logos de las empresas en Inversiones
 

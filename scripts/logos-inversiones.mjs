@@ -50,14 +50,22 @@ const ICONO_DE = {
 /* Nombres REALES tal y como llegan del bróker (de sus capturas de Revolut y Trade Republic).
    El guardián exige que cada uno dé su marca, y que los de abajo NO den ninguna. */
 const DEBEN_DAR = [
+  // por NOMBRE (Trade Republic, MyInvestor)
   ["NVIDIA", "nvidia"], ["Advanced Micro Devices", "amd"], ["AMD", "amd"],
   ["Meta Platforms (A)", "meta"], ["Alphabet (Class C)", "alphabet"], ["Broadcom", "broadcom"],
+  // por TICKER (Revolut). Así es como llegan de verdad los suyos — captura del 11/9, donde
+  // solo salían AMD y Meta porque los otros cinco venían como NVDA / GOOG / AVGO / TSM / MU.
+  ["NVDA", "nvidia"], ["GOOG", "alphabet"], ["GOOGL", "alphabet"], ["AVGO", "broadcom"],
 ];
 const NO_DEBEN_CASAR = [
   "Metaverse ETF", "iShares Metaverse UCITS", "Meta Materials",
   "AMD Ryzen Fondo Tecnologico", "Alphabetical Growth Fund",
   "FTSE All-World USD (Acc)", "Vanguard FTSE All-World UCITS ETF",
   "Taiwan Semiconductor", "Micron Technology",
+  // tickers suyos que NO tienen icono en simple-icons: se quedan con su monograma
+  "TSM", "MU", "Oro (XAU)", "Fidelity MSCI World",
+  // y un ticker DENTRO de un nombre largo no cuenta: solo vale si el nombre ES el ticker entero
+  "AVGO Bond Fund", "Cartera GOOG y otros", "NVDA 2x Leveraged",
 ];
 
 /* Quita los retornos de carro para comparar CONTENIDO y no bytes. Escrito con `split/join` y

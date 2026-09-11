@@ -1460,6 +1460,13 @@ function palabrasDeNombre(nombre){
    Tecnológico» o un «iShares Metaverse UCITS» no llevan logo. Se mira ANTES que las marcas. */
 const PALABRAS_DE_FONDO=["fondo","fund","etf","ucits","index","indexado","sicav",
   "vanguard","ishares","amundi","msci","lyxor","xtrackers"];
+/* ⚠ REVOLUT LOS LLAMA POR EL TICKER, no por el nombre (su captura del 11/9: `NVDA`, `GOOG`,
+   `AVGO`, `TSM`, `MU`), mientras que Trade Republic manda «Meta Platforms» y Revolut manda «AMD».
+   Por eso en la primera versión solo salían AMD y Meta: las otras cinco llegaban como ticker.
+   El ticker solo vale si el nombre ENTERO es ese ticker: buscarlo dentro de un nombre largo haría
+   que un «MU» o un «TSM» sueltos se llevaran un logo que no les toca. */
+const TICKERS_INVERSION={ nvda:"nvidia", goog:"alphabet", googl:"alphabet", avgo:"broadcom",
+  amd:"amd", meta:"meta" };
 /* `clave` = palabras que TODAS tienen que estar en el nombre. */
 const MARCAS_INVERSION=[
   {slug:"nvidia",   clave:["nvidia"]},
@@ -1473,6 +1480,8 @@ function marcaDeInversion(nombre){
   const p=palabrasDeNombre(nombre);
   if(!p.length) return null;
   for(let i=0;i<PALABRAS_DE_FONDO.length;i++) if(p.indexOf(PALABRAS_DE_FONDO[i])>=0) return null;
+  // Ticker: solo si el nombre es EXACTAMENTE eso y nada más.
+  if(p.length===1 && TICKERS_INVERSION[p[0]]) return TICKERS_INVERSION[p[0]];
   for(let i=0;i<MARCAS_INVERSION.length;i++){
     const m=MARCAS_INVERSION[i];
     let todas=true;

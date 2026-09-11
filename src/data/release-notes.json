@@ -1,5 +1,46 @@
 [
  {
+  "v": "4.19.60",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Los logos, también cuando el bróker usa el ticker",
+   "en": "Logos also when the broker uses the ticker",
+   "ca": "Els logotips, tambe quan el broker fa servir el ticker"
+  },
+  "tandas": [
+   {
+    "id": "logos-por-ticker",
+    "t": {
+     "es": "📈 NVDA, GOOG y AVGO ya salen con su logo",
+     "en": "📈 NVDA, GOOG and AVGO now show their logo",
+     "ca": "📈 NVDA, GOOG i AVGO ja surten amb el seu logotip"
+    },
+    "items": {
+     "es": [
+      "En Cartera → Inversiones, abre Revolut: NVDA, GOOG, AVGO, AMD y Meta con su logo. TSM, MU y el oro siguen con sus letras porque no hay logo oficial disponible."
+     ],
+     "en": [
+      "In Wallet → Investments, open Revolut: NVDA, GOOG, AVGO, AMD and Meta with their logo. TSM, MU and gold keep their initials — no official logo available."
+     ],
+     "ca": [
+      "A Cartera → Inversions, obre Revolut: NVDA, GOOG, AVGO, AMD i Meta amb el seu logotip. TSM, MU i l'or segueixen amb les inicials."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Revolut nombra tus posiciones por su ticker (NVDA, GOOG…), no por el nombre de la empresa, así que solo salían dos logos. Ahora se reconocen también por el ticker."
+   ],
+   "en": [
+    "Revolut names your holdings by ticker (NVDA, GOOG…) rather than company name, so only two logos showed. Tickers are now recognised too."
+   ],
+   "ca": [
+    "Revolut anomena les teves posicions pel ticker, no pel nom, aixi que nomes en sortien dos. Ara tambe es reconeixen pel ticker."
+   ]
+  }
+ },
+ {
   "v": "4.19.59",
   "d": "11 sep 2026",
   "t": {
