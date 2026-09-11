@@ -47,7 +47,7 @@ const RECORTES = {
   revolut:         { x0: 0,    x1: 948, vecinoPegado: true, soloPieza: true },
   /* Las dos cintas en zigzag. `ocupa` propio: en el logotipo real son PEQUEÑAS al lado del
      nombre, y a 0,66 se veían «GIGANTESCAS» (su palabra). */
-  trade_republic:  { x0: 1797, x1: 1999, ocupa: 0.46 },
+  trade_republic:  { x0: 1797, x1: 1999, ocupa: 0.38 },
   // el aro de colores con el «my» dentro
   myinvestor:      { x0: 351,  x1: 848  },
   // la estrella de Miró con sus dos puntos
@@ -83,27 +83,38 @@ function caja(img, X0, X1) {
            cortaIzq: col(X0 - 1), cortaDer: col(X1) };
 }
 
-/* Máscara de UNA PIEZA. Cuando el símbolo comparte columnas con la letra de al lado (la R de
-   Revolut y la «e»), recortar por caja rectangular cuela un trozo del vecino — se veía como una
-   mota pegada al borde. Esto rellena por inundación desde el primer píxel con tinta y se queda
-   SOLO con esa pieza. */
-function piezaConectada(img, X0, X1) {
+/* Máscara por PIEZAS COMPLETAS. Recortar por caja rectangular cuela un trozo de la letra de al
+   lado (la «e» de Revolut comparte columnas con la R). Pero quedarse con UNA sola pieza también
+   está mal: **la R de Revolut son DOS piezas sueltas**, el palo y la panza, y al quedarme con una
+   le corté el palo — «arreglaste el circulito de la r pero cortaste el palo» (11/9).
+   La regla correcta: se queda TODA pieza cuya caja quepa ENTERA dentro del recorte. La «e» se
+   sale por la derecha, así que fuera; el palo y la panza caben, así que dentro. */
+function piezasDentro(img, X0, X1) {
   const W = img.width, H = img.height;
-  let sx = -1, sy = -1;
-  for (let x = X0; x < X1 && sx < 0; x++) for (let y = 0; y < H; y++) if (tinta(img, x, y)) { sx = x; sy = y; break; }
-  if (sx < 0) return null;
-  const vis = new Uint8Array(W * H), pila = [[sx, sy]];
-  vis[sy * W + sx] = 1;
-  while (pila.length) {
-    const [x, y] = pila.pop();
-    for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      const nx = x + a, ny = y + b;
-      if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
-      if (vis[ny * W + nx] || !tinta(img, nx, ny)) continue;
-      vis[ny * W + nx] = 1; pila.push([nx, ny]);
+  const comp = new Int32Array(W * H).fill(-1);
+  const buena = new Uint8Array(W * H);
+  let n = 0;
+  for (let y0 = 0; y0 < H; y0++) {
+    for (let x0 = X0; x0 < X1; x0++) {
+      if (comp[y0 * W + x0] >= 0 || !tinta(img, x0, y0)) continue;
+      const px = [], pila = [[x0, y0]];
+      comp[y0 * W + x0] = n;
+      let mnx = x0, mxx = x0;
+      while (pila.length) {
+        const [x, y] = pila.pop(); px.push(y * W + x);
+        if (x < mnx) mnx = x; if (x > mxx) mxx = x;
+        for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = x + a, ny = y + b;
+          if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+          if (comp[ny * W + nx] >= 0 || !tinta(img, nx, ny)) continue;
+          comp[ny * W + nx] = n; pila.push([nx, ny]);
+        }
+      }
+      if (mnx >= X0 && mxx < X1) for (const i of px) buena[i] = 1;
+      n++;
     }
   }
-  return vis;
+  return buena;
 }
 
 /** Media de área (box filter). Al reducir 5-10x, un muestreo simple deja el trazo hecho jirones. */
@@ -143,7 +154,7 @@ for (const [ent, { x0, x1, vecinoPegado, ocupa, soloPieza }] of Object.entries(R
   const origen = path.join(ORIG, ent + ".png");
   if (!fs.existsSync(origen)) { fallos.push(`falta el original ${ent}.png`); continue; }
   const img = lee(origen);
-  const mascara = soloPieza ? piezaConectada(img, Math.max(0, x0), Math.min(img.width, x1 + 1)) : null;
+  const mascara = soloPieza ? piezasDentro(img, Math.max(0, x0), Math.min(img.width, x1 + 1)) : null;
   const c = caja(img, x0, x1);
   if (c.cortaDer && !vecinoPegado) fallos.push(`${ent}: hay tinta pegada en x=${x1 + 1} — el símbolo sigue y lo estás cortando`);
   if (c.cortaIzq) fallos.push(`${ent}: hay tinta pegada en x=${x0 - 1} — el símbolo empieza antes y lo estás cortando`);

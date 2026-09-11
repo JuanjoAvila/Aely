@@ -1,3 +1,16 @@
+## [4.19.56] - 2026-09-11
+### La R de Revolut son DOS piezas, y yo me quedaba con una
+
+Su aviso: *«arreglaste el circulito de la r pero cortaste el palo»*. En la 4.19.53 puse una
+máscara de «una sola pieza conectada» para que no se colara la «e» de al lado. Pero la R de
+Revolut son **dos piezas sueltas** —el palo vertical y la panza con la pata— así que quedarme
+con una le amputaba la otra.
+
+- `piezasDentro`: se queda con TODA pieza cuya caja quepa ENTERA en el recorte. La «e» se sale
+  por la derecha → fuera; el palo y la panza caben → dentro. Además no hay que saber cuántas
+  piezas tiene cada logo.
+- Trade Republic: `ocupa` 0,46 → 0,38.
+
 ## [4.19.55] - 2026-09-11
 ### La R de Revolut son DOS piezas, y yo me quedaba con una
 
