@@ -9,7 +9,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: d6ae387e-f9d4-460d-b8dc-c43511bd8b4c
-  modified: 2026-08-18T19:35:55.816Z
+  modified: 2026-09-11T18:09:06.634Z
 ---
 
 **⚠ ESTE FICHERO ES LA LISTA ÚNICA. Si aparece algo nuevo, va aquí.** Se armó porque el 4/8 le di un
@@ -130,6 +130,34 @@ alertas de saldo mínimo. **No confundir con el Δ 205 del widget** (ese era `sp
 (`11-app-main:1453`, `01-i18n:2167` y `:2173`, `07-tab-patri-fijos:12` y `:20`, `06-sync-brokers:468`):
 cambiar solo unas cuantas hace que editar el saldo a mano guarde un número torcido. Plan sellado en
 `docs/briefs/bug-saldo-cruzado-gasto-diario.md`. OTA, sin APK. Va ANTES de las tandas 5 y 6.
+
+# 🐛 2-TER. NUEVO (2026-09-11, noche) — los DOS gestos que se han perdido
+Suyos, literales: **«el efecto rebote de las tabs, que se ha perdido, el que viene de manera nativa
+de android»** y **«el esconderse la barra de abajo ya no lo hace apenas nunca»**.
+
+**La barra de abajo — MEDIDO, no deducido** (sonda Playwright + CDP táctil, 375×812, Inicio con
+`max=460`):
+- Con el DEDO: `scrollTop` 0 → **369 px** y la barra NO se esconde. Segundo arrastre 369 → 450:
+  tampoco. Cero eventos `scrollend`. Cero `preventDefault` (0 de 19 `touchmove`).
+- Con `scrollTop=200` **por JS**: se esconde **al instante**. O sea, la máquina de esconder está
+  bien; lo que no llega es el aviso del scroll del dedo.
+- Deltas entre dos eventos `scroll`: `[8,8,8,8,…]`, así que **no** es el filtro `Math.abs(dy)<6`.
+- Hipótesis viva, sin confirmar: `onPageScroll` (`11-app-main.js` ~149) abre con
+  `if(dragging.current) return;`, y `dragging` se pone en el `touchstart` de CUALQUIER gesto, no
+  solo el de cambiar de pestaña → durante todo el arrastre se tiran los eventos y solo podría
+  armar el momentum posterior. Traducido: **se escondería con manotazo, nunca con scroll lento**,
+  que es justo «apenas nunca». Encaja con [[feedback-el-ojo-suyo-gana-a-mis-medidas]] (medir el
+  gesto LENTO). Falta comprobar la otra mitad: CDP sintético no hace momentum.
+
+**El rebote nativo — mi hipótesis bonita ya está DESCARTADA.** Creí que los dos bugs compartían
+causa (el scroll host perdido) y lo medí: el host está puesto y correcto (`position:fixed`,
+`overscroll-behavior-y:auto`, `touch-action:auto`, track con `transform:none`). Así que es otra
+cosa y probablemente solo se ve en su OnePlus → [[entorno-en-vivo-chrome-movil]].
+
+**Descartado ya, para no repetirlo:** NO es `html.sheet-open` pegada (el sheet del `+` limpia bien
+por sus tres caminos, medido), NO es `mc-touch-own`, NO es nadie haciendo `preventDefault`, NO es
+el filtro de 6 px. ⚠ Y ojo al montar una sonda: `#mc-load` (el splash) es `fixed` con `z=9999`
+sobre toda la pantalla — sin esperar a que se vaya, parece que Inicio no scrollea y es mentira.
 
 # 🐛 2. BUGS VIVOS (de más fácil a más difícil)
 
