@@ -1,5 +1,51 @@
 [
  {
+  "v": "4.18.14",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Ordena los gastos de cada día",
+   "en": "Order each day's expenses",
+   "ca": "Ordena les despeses de cada dia"
+  },
+  "items": {
+   "es": [
+    "En Gastos, arrastra el asa ⠿ para poner los movimientos del mismo día en el orden que prefieras.",
+    "La fecha de cada movimiento se conserva tal cual."
+   ],
+   "en": [
+    "In Expenses, drag the ⠿ handle to put transactions from the same day in the order you prefer.",
+    "Each transaction keeps its original date."
+   ],
+   "ca": [
+    "A Despeses, arrossega l'ansa ⠿ per posar els moviments del mateix dia en l'ordre que prefereixis.",
+    "La data de cada moviment es conserva tal com està."
+   ]
+  }
+ },
+ {
+  "v": "4.18.13",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Una categoría para las herramientas de IA",
+   "en": "A category for AI tools",
+   "ca": "Una categoria per a les eines d'IA"
+  },
+  "items": {
+   "es": [
+    "Los movimientos nuevos de ChatGPT, Claude, Cursor y servicios similares entran en Inteligencia artificial.",
+    "Los movimientos que ya estaban guardados conservan su categoría actual."
+   ],
+   "en": [
+    "New ChatGPT, Claude, Cursor and similar transactions go into Artificial intelligence.",
+    "Transactions already saved keep their current category."
+   ],
+   "ca": [
+    "Els moviments nous de ChatGPT, Claude, Cursor i serveis semblants entren a Intel·ligència artificial.",
+    "Els moviments que ja estaven desats conserven la categoria actual."
+   ]
+  }
+ },
+ {
   "v": "4.18.12",
   "d": "11 sep 2026",
   "t": {

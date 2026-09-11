@@ -1,4 +1,4 @@
-## [4.18.13] — 2026-09-11
+## [4.18.14] — 2026-09-11
 ### Orden manual dentro del día en Gastos
 
 Las filas de un mismo día se pueden reordenar arrastrando su asa. El orden se guarda como lista
@@ -11,7 +11,7 @@ decida únicamente entre filas del mismo día. El destino se comprueba de nuevo 
 mezclar días al cruzar un separador. Guardián: `e2e/gastos-orden.spec.mjs`.
 
 OTA; sin cambios nativos ni de Supabase.
-## [4.18.12] — 2026-09-11
+## [4.18.13] — 2026-09-11
 ### Categoría Inteligencia artificial
 
 - Porte manual desde la tanda aprobada `categoria-ia`: añade `ia` a `CATEGORIES`, sus tres
@@ -21,6 +21,8 @@ OTA; sin cambios nativos ni de Supabase.
   conservar la paridad con el cliente. El despliegue de la Edge Function queda pendiente de
   autorización expresa del propietario; este commit no despliega ninguna Edge Function.
 - Guardianes en `categories` e `ingest-classify` comprueban la categoría cliente y compartida.
+
+## [4.18.12] — 2026-09-11
 ### Las notas de Novedades salen del bundle (NOTAS-BUNDLE, portado de beta)
 
 - La ronda de prod del 11/9 dejó el **gzip del index a 0,2 KB del tope** (343,8 de 344) porque las 92 versiones de Novedades viajaban pegadas dentro del JS. Portar una tanda más era imposible sin esto, y el gzip es lo que de verdad baja al móvil.

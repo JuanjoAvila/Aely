@@ -1194,6 +1194,7 @@ function moveExpenseWithinDay(state, fromId, toId){
   ids.splice(i,1); ids.splice(j,0,fromId);
   const settings=Object.assign({},state.settings,{expenseOrder:Object.assign({},((state.settings||{}).expenseOrder)||{},{[day]:ids})});
   return Object.assign({},state,{settings:settings});
+}
 /* Resuelve un OB marcado como posible repetido.
    same=true conserva el gemelo con nombre; false confirma que los dos cargos son reales. */
 function resolvePossibleDup(state, expenseId, same){
