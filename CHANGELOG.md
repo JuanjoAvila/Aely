@@ -1,4 +1,4 @@
-## [4.18.11] — 2026-09-11
+## [4.18.12] — 2026-09-11
 ### Categoría Inteligencia artificial
 
 - Porte manual desde la tanda aprobada `categoria-ia`: añade `ia` a `CATEGORIES`, sus tres

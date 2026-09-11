@@ -1424,7 +1424,7 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
-  {v:"4.18.11", d:"11 sep 2026",
+  {v:"4.18.12", d:"11 sep 2026",
    t:{es:"Una categoría para las herramientas de IA",en:"A category for AI tools",ca:"Una categoria per a les eines d'IA"},
    items:{
      es:["Los movimientos nuevos de ChatGPT, Claude, Cursor y servicios similares entran en Inteligencia artificial.","Los movimientos que ya estaban guardados conservan su categoría actual."],
