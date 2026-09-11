@@ -7509,7 +7509,11 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       if(same){
         next=Object.assign({},next,{deleted:pushDeleted(next.deleted, keyOfE(e))});
         if(cloud.enabled()) borrarGastoNube(e, "gastos-dup");
-      }else if(cloud.enabled()) cloud.setExpenseDup(e, false).catch(function(){});
+      }else if(cloud.enabled()){
+        cloud.setExpenseDup(e, false).catch(function(err){
+          cloud.logEvent("error","setExpenseDup gastos-dup: "+keyOfExpense(e), _errCloudMsg(err));
+        });
+      }
       return next;
     });
     if(same) showToast(t("g_dup_same"));

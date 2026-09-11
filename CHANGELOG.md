@@ -1,12 +1,9 @@
-## [4.18.23] — 2026-09-11
+## [4.18.24] — 2026-09-11
 ### Las escrituras de gastos a la nube ya dejan rastro
 
-Cazado en vivo (widget 512 sin abrir app → app 497 → widget 497): la app contaba un ingreso
-local de 14,90 € (Bizum) que la nube no tenía. Cinco sitios tragaban el error con
-`.catch(function(){})`. Ahora `subirGasto` / `borrarGastoNube` (en `00-core.js`) loguean
-`dónde + clave + error` vía `logEvent`. En editar gasto, el log distingue borrado vs alta.
-No cambia ninguna cifra; sin esto seguíamos adivinando.
-
+Cazado en vivo (widget 512 → app 497): filas solo en el móvil. Helpers `subirGasto` /
+`borrarGastoNube` + cableado en backfill, OB, apuntar, editar, histórico. Sin cifras nuevas.
+La 4.18.23 quedó con el bump antes de la ampliación; esta punta cierra docs-frescura.
 
 
 ## [4.18.22] — 2026-09-11
