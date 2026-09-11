@@ -1,3 +1,16 @@
+## [4.19.37] — 2026-09-11
+### El modo inicial ya no se deja rellenar por la nube
+
+- **Segundo rechazo suyo del mismo sitio**, y esta vez con la causa medida. El banco de pruebas SIGUE LEYENDO de la nube a propósito —está escrito en el código: «probar con datos de verdad es justo la gracia»— y eso es correcto para el banco de pruebas normal. Pero es **incompatible con el modo inicial**: siembras la cartera vacía, la app recarga, `syncFromCloud` trae su estado real y, como la cartera recién sembrada no tiene `_savedAt`, la nube gana el last-write-wins y la vuelve a llenar entera. Medido sin el arreglo: `budget 900, 1 cuenta, onboarded true`. Eso es «entra sin más al banco de pruebas» y «no resetea nada».
+- El modo inicial pasa a tener **bandera propia** (`_mcSandboxVacio`) y, mientras está puesta, se cortan también las **lecturas que meten datos** (`pullState`, `pullExpenses`, `bankSync`, `bankLinks`, `myinvestorSync`, backups, Hogar…). El banco de pruebas NORMAL no se toca: sigue leyendo de la nube como hasta ahora.
+- Salir del banco de pruebas o volver a copiar la cartera real **apagan la bandera**. Sin eso, la nube se quedaría cortada para siempre sin motivo.
+
+**Por qué se me escapó el 10/9, que es lo que más importa:** lo di por arreglado probándolo en un navegador **sin sesión de nube**. Con el doble de Supabase devolviendo vacío, el fallo no existe. Su móvil sí tiene sesión. Otra vez lo mismo: si él lo ve y mi medida sale limpia, **la medida está mal hecha**.
+
+**Y el guardián casi nace muerto.** El primero que escribí pasaba con el arreglo QUITADO: la nube de mentira tenía `_savedAt` de «ahora», la app sella el suyo al arrancar antes de que llegue la respuesta, ganaba lo local y la cartera se quedaba vacía por accidente. Ahora la nube va 10 minutos por delante —que es el caso real— y el test está verificado **en rojo sin el arreglo y en verde con él**.
+
+- `e2e/fixtures.mjs`: el doble de Supabase devolvía SIEMPRE `null` en `maybeSingle`, así que `pullState` no traía nada y **ningún test de esta casa podía ver qué pasa cuando la nube tiene cartera**. Ese agujero es el que escondió todo esto. Ahora se puede sembrar nube con `__cloudRows.app_state`.
+
 ## [4.19.36] — 2026-09-11
 ### FIN-07 · El histórico entero, y una descarga a medias que ya no borra
 

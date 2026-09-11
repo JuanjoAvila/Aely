@@ -489,6 +489,25 @@ function mcSandbox(){
   return _mcSandboxPinned;
 }
 function mcStateKey(){ return mcSandbox()? STATE_KEY_TEST : STATE_KEY_REAL; }
+
+/* ⚠ MODO INICIAL ≠ BANCO DE PRUEBAS (11/9, SEGUNDO rechazo suyo: «sigue sin funcionar»).
+   El banco de pruebas normal SIGUE LEYENDO de la nube a propósito —«probar con datos de verdad es
+   justo la gracia»—, y eso es correcto para él. Pero es incompatible con «ver la app como recién
+   instalada»: siembras la cartera vacía, la app recarga, `syncFromCloud` trae su estado real y,
+   como la cartera recién sembrada no tiene `_savedAt`, la nube GANA el last-write-wins y se la
+   vuelve a llenar entera. Por eso se veía «entra sin más al banco de pruebas» y «no resetea nada».
+
+   Yo lo di por arreglado el 10/9 probándolo en un navegador SIN sesión de nube: con el doble de
+   Supabase devolviendo vacío, el fallo no existe. Su móvil sí tiene sesión. Es el caso de siempre:
+   si él lo ve y mi medida sale limpia, la medida está mal hecha.
+
+   Así que el modo inicial lleva bandera propia y, mientras está puesta, la nube tampoco ENTRA. */
+var _mcVacioPinned=null;
+function mcSandboxVacioFlag(){ try{ return localStorage.getItem("_mcSandboxVacio")==="1"; }catch(e){ return false; } }
+function mcSandboxVacio(){
+  if(_mcVacioPinned===null) _mcVacioPinned=mcSandboxVacioFlag();
+  return _mcVacioPinned;
+}
 /* Entra al banco de pruebas sembrándolo con una copia de lo real (si aún no había copia). Recarga
    la app para que TODO (incluido el arranque) lea ya la clave de pruebas. */
 /* ⚠ SIEMPRE por `mcLoadRaw`/`mcSaveRaw`, NUNCA por `store` a pelo (2026-09-10, rechazo suyo de
@@ -506,7 +525,7 @@ function mcEnterSandbox(seedFrom){
 /* Entrar y salir NO cambian el modo de la sesión en curso a propósito (ver mcSandbox): quien las
    llama recarga inmediatamente después, y así lo que quede por volcar se guarda en la clave
    correcta, la de la sesión que se está cerrando. */
-function mcExitSandbox(){ try{ localStorage.removeItem("_mcSandbox"); }catch(e){} }
+function mcExitSandbox(){ try{ localStorage.removeItem("_mcSandbox"); localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
 /* MODO INICIAL (peticion suya, 9/9/2026): el banco de pruebas COPIA la cartera real, asi que no
    habia forma de ver la app como la ve alguien que acaba de instalarla — y justo eso es lo que hay
    que probar del pulido v4 (hero sin grafico, tarjetas vacias, racha a cero). Sus palabras: «si no,
@@ -531,6 +550,7 @@ function mcExitSandbox(){ try{ localStorage.removeItem("_mcSandbox"); }catch(e){
    por donde lo lee la app. Es el mismo patrón de siempre: la regla escrita en dos sitios y un
    test que solo mira uno. */
 function mcSeedSandboxVacio(){
+  try{ localStorage.setItem("_mcSandboxVacio","1"); }catch(e){}
   mcSaveRaw(STATE_KEY_TEST, {
     _dataVer:6, onboarded:false, tourSeen:false, setupHint:false,
     budget:0, monthStartNet:0, history:[], streak:0,
@@ -560,7 +580,7 @@ function mcRecargarSinVolcar(){
    Las DOS mitades: borrar solo la ligera dejaba `micartera_sandbox_exp` huérfana, y la siguiente
    entrada al banco de pruebas se encontraba los gastos de la sesión anterior mezclados con la
    copia nueva de la cartera real. */
-function mcResetSandbox(){ store.del(STATE_KEY_TEST); store.del(STATE_KEY_TEST+EXP_SUFFIX); }
+function mcResetSandbox(){ store.del(STATE_KEY_TEST); store.del(STATE_KEY_TEST+EXP_SUFFIX); try{ localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
 
 /* ---------- Supabase: sincronización en la nube (Fase 1) ----------
    Offline-first: si no hay librería/red o no hay sesión, la app funciona igual con localStorage.
@@ -1190,12 +1210,30 @@ const CLOUD_WRITES=[
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
 ];
+
+/* Lecturas que METEN DATOS en la cartera. Solo se cortan en MODO INICIAL (mcSandboxVacio), nunca
+   en el banco de pruebas normal. Sin esto, la cartera vacía dura lo que tarda el primer pull.
+   `prices`, `suggestCategory` y las de sesión se quedan fuera a propósito: no traen movimientos
+   ni saldos, y cortarlas haría que la app pareciera rota en vez de recién instalada. */
+const CLOUD_READS_QUE_LLENAN=[
+  "pullState","pullExpenses","bankSync","bankSyncHistory","bankLinks","bankAspsps",
+  "myinvestorSync","myinvestorStatus","listBackupDays","getBackup","fetchHouseholdBundle",
+];
 (function(){
   CLOUD_WRITES.forEach(function(name){
     const real=cloud[name];
     if(typeof real!=="function") return;   // método renombrado: mejor enterarse en los tests que fallar mudo
     cloud[name]=function(){
       if(mcSandbox()) return Promise.resolve(null);   // modo pruebas: no sale nada de este móvil
+      return real.apply(cloud, arguments);
+    };
+  });
+  CLOUD_READS_QUE_LLENAN.forEach(function(name){
+    const real=cloud[name];
+    if(typeof real!=="function") return;   // método renombrado: mejor enterarse en los tests que fallar mudo
+    cloud[name]=function(){
+      // Solo el MODO INICIAL. El banco de pruebas normal sigue leyendo de la nube, como debe.
+      if(mcSandboxVacio()) return Promise.resolve(name==="pullExpenses" ? [] : null);
       return real.apply(cloud, arguments);
     };
   });

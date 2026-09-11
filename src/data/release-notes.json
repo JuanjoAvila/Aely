@@ -1,5 +1,55 @@
 [
  {
+  "v": "4.19.37",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "El modo inicial ya se queda vacío de verdad",
+   "en": "Fresh-install mode really stays empty",
+   "ca": "El mode inicial ja es queda buit de debò"
+  },
+  "tandas": [
+   {
+    "id": "modo-inicial-v3",
+    "t": {
+     "es": "🌱 Modo inicial que no se rellena solo",
+     "en": "🌱 Fresh-install mode that does not refill itself",
+     "ca": "🌱 Mode inicial que no s'omple sol"
+    },
+    "items": {
+     "es": [
+      "Ajustes → «Probar con la app vacía»: tiene que entrar SIN cuentas, SIN presupuesto y con el onboarding de la primera vez. Espera unos segundos y comprueba que NO vuelven tus datos.",
+      "Estando dentro, «Vaciar la cartera de pruebas» tiene que dejarla igual de vacía, y tampoco puede volver nada al rato.",
+      "Sal del banco de pruebas: tu cartera real tiene que estar intacta, con todo.",
+      "Vuelve a entrar al banco de pruebas NORMAL (el que copia tu cartera): ahí sí tienen que estar tus datos y seguir sincronizando."
+     ],
+     "en": [
+      "Settings → «Try with an empty app»: it must open with NO accounts, NO budget and the first-time onboarding. Wait a few seconds and check your data does NOT come back.",
+      "From inside, «Empty the test wallet» must leave it just as empty, and nothing may come back later either.",
+      "Leave the test area: your real wallet must be untouched.",
+      "Enter the NORMAL test area again (the one that copies your wallet): there your data must be present and still syncing."
+     ],
+     "ca": [
+      "Ajustos → «Provar amb l'app buida»: ha d'entrar SENSE comptes, SENSE pressupost i amb l'onboarding del primer cop. Espera uns segons i comprova que NO tornen les teves dades.",
+      "A dins, «Buidar la cartera de proves» l'ha de deixar igual de buida, i tampoc pot tornar res després.",
+      "Surt de la zona de proves: la teva cartera real ha d'estar intacta.",
+      "Torna a entrar a la zona de proves NORMAL (la que copia la cartera): allà sí hi han de ser les teves dades."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Al mirar la app «como recién instalada», ya no se vuelve a llenar sola con tus datos a los pocos segundos."
+   ],
+   "en": [
+    "When you look at the app «as if just installed», it no longer refills itself with your data after a few seconds."
+   ],
+   "ca": [
+    "En mirar l'app «com acabada d'instal·lar», ja no es torna a omplir sola amb les teves dades."
+   ]
+  }
+ },
+ {
   "v": "4.19.36",
   "d": "11 sep 2026",
   "t": {

@@ -29,7 +29,12 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         update: () => chain,
         upsert: () => chain,
         delete: () => chain,
-        maybeSingle: async () => ({ data: null, error: null }),
+        /* Antes devolvía SIEMPRE null, así que `cloud.pullState()` nunca traía nada y NINGÚN test
+           podía ver lo que pasa cuando la nube SÍ tiene cartera. Ese agujero escondió el fallo del
+           modo inicial: en el navegador la cartera vacía se quedaba vacía porque no había nube que
+           la rellenara, y en su móvil —con sesión de verdad— se rellenaba sola. Ahora el doble
+           puede traer estado, poniéndolo en `__cloudRows.app_state`. */
+        maybeSingle: async () => ({ data: (cloudRows[tabla] || [])[0] || null, error: null }),
         single: async () => ({ data: null, error: null }),
       };
       chain.then = (resolve) => resolve({ data: cloudRows[tabla] || [], error: null });

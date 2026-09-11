@@ -152,3 +152,67 @@ test("★ recargar tras sembrar NO vuelca encima el estado viejo", async ({ page
   expect(r.bloqueado, "la bandera tiene que estar levantada tras pedir recarga limpia").toBe(true);
   expect(r.gastos, "el volcado pendiente no puede resucitar los gastos de pruebas").toBe(0);
 });
+
+/* ── EL FALLO QUE SE ME ESCAPÓ (11/9, su segundo rechazo: «sigue sin funcionar») ─────────────
+ *
+ * Yo lo di por arreglado probándolo en un navegador SIN nube. Con el doble de Supabase devolviendo
+ * vacío, la cartera sembrada se quedaba vacía y todo parecía bien. Su móvil tiene sesión de verdad:
+ * al recargar, `syncFromCloud` traía su cartera real y, como la recién sembrada no tiene `_savedAt`,
+ * la nube GANABA el last-write-wins y se la volvía a llenar entera.
+ *
+ * Estos dos tests son los que habrían cazado eso. Los dos SIEMBRAN NUBE, que es lo que ningún test
+ * de esta casa hacía.
+ */
+/* ⚠ LA NUBE TIENE QUE SER MÁS NUEVA QUE LO LOCAL, Y NO ES UN DETALLE.
+ * `syncFromCloud` resuelve por last-write-wins con `_savedAt`. La app SELLA `_savedAt` al arrancar,
+ * antes de que llegue la respuesta de la nube, así que con una nube «de ahora mismo» gana lo local
+ * y la cartera vacía se queda vacía POR ACCIDENTE: el test pasa igual sin el arreglo puesto y no
+ * vigila nada. Lo comprobé quitando el corte y viendo que seguía verde.
+ * Con la nube por delante —que es el caso real: su nube lleva meses de datos— sin el arreglo sale
+ * budget 900, una cuenta y onboarded true. Exactamente lo que él ve. */
+const NUBE_LLENA = {
+  __cloudRows: {
+    app_state: [{
+      data: {
+        _dataVer: 6, onboarded: true, tourSeen: true, budget: 900, monthStartNet: 2500, streak: 12,
+        accounts: [{ id: "real1", ent: "sabadell", name: "Cuenta de verdad", value: 5555 }],
+        investments: [], assets: [], debts: [], fixed: [], flows: [], oneoffs: [], goals: [],
+        history: [], settings: {}, expenses: [], _savedAt: Date.now() + 600000,   // MÁS NUEVA que lo local: ver la nota de abajo
+      },
+      updated_at: new Date().toISOString(),
+    }],
+  },
+};
+
+test("★ el modo inicial NO se deja rellenar por la nube", async ({ page }) => {
+  await ajustes(page, Object.assign({ budget: 777 }, NUBE_LLENA));
+
+  await page.evaluate(() => { mcSeedSandboxVacio(); mcEnterSandbox(); });
+  await page.reload();
+  await expect(page.locator("body")).toBeVisible({ timeout: 15_000 });
+  await page.waitForTimeout(3000);   // margen de sobra para que el pull de la nube haya ido y vuelto
+
+  const caja = await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_sandbox") || "{}"));
+  expect(caja.budget, "la nube ha vuelto a llenar la cartera de pruebas: es EXACTAMENTE su queja").toBe(0);
+  expect((caja.accounts || []).length, "han vuelto las cuentas de la nube").toBe(0);
+  expect(caja.onboarded, "sin onboarding no es «como recién instalada»").toBe(false);
+});
+
+test("★ y el banco de pruebas NORMAL sí sigue leyendo la nube (eso no se toca)", async ({ page }) => {
+  await ajustes(page, Object.assign({ budget: 777 }, NUBE_LLENA));
+
+  // Entrar copiando la cartera real, que es el modo de siempre: aquí la nube DEBE poder entrar,
+  // porque «probar con datos de verdad es justo la gracia». Cortarla aquí rompería el sandbox.
+  await page.evaluate(() => { mcEnterSandbox(); });
+  const cortada = await page.evaluate(() => mcSandboxVacio());
+  expect(cortada, "entrar al banco de pruebas normal no puede encender el modo inicial").toBe(false);
+});
+
+test("salir del banco de pruebas apaga el modo inicial", async ({ page }) => {
+  await ajustes(page, { budget: 777 });
+  await page.evaluate(() => { mcSeedSandboxVacio(); mcEnterSandbox(); });
+  expect(await page.evaluate(() => localStorage.getItem("_mcSandboxVacio"))).toBe("1");
+  await page.evaluate(() => mcExitSandbox());
+  expect(await page.evaluate(() => localStorage.getItem("_mcSandboxVacio")),
+    "si la bandera se queda puesta, al volver a entrar la nube seguiría cortada sin motivo").toBe(null);
+});
