@@ -1,3 +1,39 @@
+## [4.18.19] — 2026-09-11
+### El servidor deja de acertar por accidente con los movimientos repetidos
+
+Buscando su descuadre del widget (457 + 2,40 → la app decía 460 y el widget 475) salió esto, que no
+es lo que buscaba pero es peor de dejar como estaba.
+
+- **La regla del posible repetido estaba en el cliente y NO en el servidor.** `expenseCountsCash()`
+  excluye `e.possibleDup`; `cuentaParaPresupuesto()` no tenía nada equivalente. La tanda
+  `posible-repetido` que él aprobó portó a producción la mitad de cliente y dejó fuera la del
+  servidor. Es el patrón de siempre: **la misma regla escrita en dos sitios y solo se cambió uno.**
+- **Y aun así cuadraba, por accidente.** `bancoDeSource("ob:trade_republic#dup")` devolvía
+  `"trade_republic#dup"` —el marcador pegado al nombre del banco— que no casa con ninguna cuenta, así
+  que el movimiento quedaba fuera del presupuesto por el filtro de bancos y no por la regla. El día
+  que alguien limpiara ese parseo (que parece un despiste porque lo es), los repetidos se habrían
+  puesto a contar en el widget **en silencio**, y el cliente habría seguido sin contarlos.
+- Se arreglan **las dos mitades**: el parseo deja de confundir el marcador con el banco, y la regla
+  se escribe de verdad (`esPosibleRepetido`). Ahora coinciden porque lo dicen, no porque se tropiecen.
+
+**El test de espejos tenía un agujero y por eso nada de esto saltó.** `presupuesto-servidor` carga
+las dos implementaciones y exige el mismo número, pero:
+
+1. Su escenario **no incluía ningún posible repetido**, o sea que no tocaba la única regla en la que
+   los dos lados discrepaban. Un espejo que no incluye el caso que difiere no es un espejo.
+2. Al añadir la fila, primero la puse en `ob:revolut#dup` — y **el test seguía verde sin el arreglo**,
+   porque Revolut ya queda fuera por el filtro de bancos. Una fila que se descarta por OTRO motivo no
+   prueba nada. Tiene que ir en el banco del día a día.
+3. `paraCliente` pasaba solo el `source`, así que el cliente **no reconocía el repetido**: el mismo
+   movimiento lleva `possibleDup` en el cliente y `#dup` en el `source` de la nube. Ahora el espejo
+   le da a cada lado su marca, que es como llega en la vida real.
+
+Verificado quitando la regla: el servidor da 155,71 y el cliente 140,71. Los 15 € que faltaban.
+
+⚠ **Esto NO explica su 475 €.** Con el parseo antiguo los dos lados coincidían, así que el descuadre
+del widget que él vio el 10/9 sigue **sin causa conocida**. Lo que se arregla aquí es una trampa que
+habría aparecido sola más adelante.
+
 ## [4.18.18] — 2026-09-11
 ### Pulido B2/B4/B5
 

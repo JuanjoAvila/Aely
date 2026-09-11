@@ -55,7 +55,16 @@ const c = (n) => +Number(n).toFixed(2);
 
 const mov = (day, importe, cat, source) => ({ day, importe, cat, source });
 const paraServidor = (m) => ({ importe: m.importe, cat: m.cat, source: m.source });
-const paraCliente = (m) => ({ date: d(m.day), amount: m.importe, category: m.cat, source: m.source });
+/* ⚠ EL MISMO MOVIMIENTO SE MARCA DISTINTO EN CADA LADO, Y EL ESPEJO TIENE QUE RESPETARLO.
+   Un posible repetido lleva en el CLIENTE el campo `possibleDup`, y al subir a la nube
+   `expenseSourceForCloud()` lo serializa como `ob:<banco>#dup` en el `source` — que es lo único
+   que ve el SERVIDOR. Si aquí le pasara al cliente solo el `source`, el cliente no reconocería el
+   repetido, los dos lados contarían cosas distintas y el test culparía al servidor de un descuadre
+   que habría fabricado el propio test. */
+const paraCliente = (m) => ({
+  date: d(m.day), amount: m.importe, category: m.cat, source: m.source,
+  possibleDup: /^ob:[^#]*#dup$/.test(String(m.source || "")) || undefined,
+});
 
 /** Su escenario real de agosto, en pequeño: TR es el diario, Sabadell son los recibos. */
 function escenario(extra = {}) {
@@ -66,6 +75,15 @@ function escenario(extra = {}) {
     mov(5, 281.89, "inversion", "macrodroid"),      // neutra  → NO cuenta
     mov(6, 40, "super", "manual"),                  // a mano, sin banco → cuenta
     mov(7, -179.35, "ingreso", "macrodroid"),       // ingreso → cuenta como ingreso
+    /* ⚠ UN POSIBLE REPETIDO. Sin esta fila el escenario NO tocaba la única regla en la que los dos
+       lados discrepaban, y el test pasaba en verde mientras el widget y la app decían cifras
+       distintas — que es exactamente lo que él vio el 10/9 (457 + 2,40 → la app 460, el widget
+       475). Un test de espejos que no incluye el caso que difiere no es un espejo, es un adorno.
+       ⚠ Y tiene que ir en el banco DIARIO (`trade_republic`). Lo puse primero en `ob:revolut#dup`
+       y el test seguía verde sin el arreglo: Revolut ya queda fuera por el filtro de bancos, así
+       que la fila no aislaba la regla del repetido. Una fila que se descarta por OTRO motivo no
+       prueba nada. */
+    mov(8, 15, "super", "ob:trade_republic#dup"),   // posible repetido EN EL BANCO DIARIO → NO cuenta
   ];
   const base = {
     budget: 1000,
@@ -108,8 +126,9 @@ t("los recibos y las inversiones NO cuentan (el bug de los 965 €)", () => {
   const sumaTonta = movs.reduce((a, m) => a + m.importe, 0);   // lo que hacía ingest antes
   assert.equal(srv.spent, 140.71);
   assert.notEqual(+sumaTonta.toFixed(2), srv.against);
-  // lo que se colaba: los recibos de Sabadell y la inversión
-  assert.equal(+(sumaTonta - (srv.spent - srv.income)).toFixed(2), 448.39 + 281.89);
+  // Lo que se colaba: los recibos de Sabadell, la inversión y —desde el 11/9— el posible repetido.
+  // Los 15 € del repetido son exactamente el descuadre que él vio entre la app y el widget.
+  assert.equal(+(sumaTonta - (srv.spent - srv.income)).toFixed(2), 448.39 + 281.89 + 15);
 });
 
 t("lo reservado para metas se resta del presupuesto", () => {

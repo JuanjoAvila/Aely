@@ -79,7 +79,12 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
 export function bancoDeSource(source?: string | null): string | null {
   const s = String(source || "");
   if (s === "macrodroid" || s === "tr") return "trade_republic";
-  if (s.indexOf("ob:") === 0) return s.slice(3) || null;
+  /* ⚠ EL `#dup` NO ES PARTE DEL NOMBRE DEL BANCO. Antes esto devolvía «trade_republic#dup», que no
+     casa con ninguna cuenta, y por eso los posibles repetidos quedaban fuera del presupuesto: por
+     ACCIDENTE, no por la regla. El día que alguien limpiara este parseo —que parece un despiste,
+     porque lo es— los repetidos se habrían puesto a contar en el widget en silencio, y el cliente
+     habría seguido sin contarlos. Se arregla el parseo Y se pone la regla de verdad abajo. */
+  if (s.indexOf("ob:") === 0) return s.slice(3).split("#")[0] || null;
   if (s.indexOf("ob-hist:") === 0) return s.slice(8) || null;
   if (s.indexOf("manual:") === 0) return s.slice(7) || null;
   return null;
@@ -111,8 +116,30 @@ export function bancosDeGastoDiario(data: any): string[] {
 }
 
 /** ¿Este movimiento mueve la cifra del presupuesto? Espejo de `expenseCountsBudget()`. */
+/** ¿Open Banking lo marcó como POSIBLE REPETIDO? El importador le pega `#dup` al `source`.
+ *  Espejo exacto de `isPossibleDup()` del cliente. */
+export function esPosibleRepetido(source?: string | null): boolean {
+  const s = String(source || "");
+  return s.indexOf("ob:") === 0 && s.slice(3).split("#")[1] === "dup";
+}
+
+
 export function cuentaParaPresupuesto(fila: FilaGasto, ents: string[]): boolean {
   if (!fila) return false;
+  /* ⚠ EL POSIBLE REPETIDO NO CUENTA, IGUAL QUE EN EL CLIENTE (11/9).
+     Esto faltaba SOLO en el servidor: el cliente ya lo excluía desde la tanda `posible-repetido`
+     que él aprobó, pero el porte a producción se llevó la mitad de cliente y dejó esta fuera.
+
+     ⚠⚠ Y CUADRABA IGUAL, POR ACCIDENTE — esto es lo que hay que entender antes de tocar nada:
+     `bancoDeSource` devolvía «trade_republic#dup», con el marcador pegado al nombre del banco, y
+     eso no casa con ninguna cuenta, así que la fila se caía por el FILTRO DE BANCOS y no por esta
+     regla. Al arreglar el parseo (que era un despiste de verdad) la fila habría empezado a contar
+     en el widget sin que nadie lo pidiera. Por eso van juntas las dos mitades.
+
+     ⚠ NO es la causa de su 460 vs 475 del 10/9. Con el parseo viejo los dos lados coincidían, así
+     que ese descuadre sigue SIN explicación conocida. Que nadie lo dé por cerrado leyendo esto.
+     (Lo señaló Cursor revisando: yo había escrito aquí lo contrario que en el commit.) */
+  if (esPosibleRepetido(fila.source)) return false;
   if (CAT_NEUTRAS[String(fila.cat || "")]) return false;
   const ent = bancoDeSource(fila.source);
   if (!ent) return true;                                   // a mano, sin banco → cuenta

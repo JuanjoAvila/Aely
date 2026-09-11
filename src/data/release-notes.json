@@ -1,5 +1,25 @@
 [
  {
+  "v": "4.18.19",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "El servidor y la app cuentan igual los movimientos repetidos",
+   "en": "Server and app now count duplicates the same way",
+   "ca": "El servidor i l'app compten igual els moviments repetits"
+  },
+  "items": {
+   "es": [
+    "Un movimiento marcado como posible repetido ya no puede contar en el widget si no cuenta en la app. Antes coincidían de casualidad."
+   ],
+   "en": [
+    "A movement flagged as a possible duplicate can no longer count in the widget if it does not count in the app."
+   ],
+   "ca": [
+    "Un moviment marcat com a possible repetit ja no pot comptar al widget si no compta a l'app."
+   ]
+  }
+ },
+ {
   "v": "4.18.18",
   "d": "11 sep 2026",
   "t": {
