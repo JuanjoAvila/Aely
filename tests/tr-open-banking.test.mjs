@@ -103,4 +103,14 @@ t("y no se duplican: el mismo ext_id no entra dos veces", () => {
   assert.equal(add, null, "ya estaba importado por su ext_id");
 });
 
+t("flattenBankTx incluye todas las cuentas, no solo la primaria", () => {
+  const links = [{ aspsp: "Revolut", transactions: [{ ext_id: "top", date: "2026-09-07", amount: 1, merchant: "primaria" }], accounts: [
+    { transactions: [{ ext_id: "a", date: "2026-09-07", amount: 1, merchant: "primaria" }] },
+    { transactions: [{ ext_id: "b", date: "2026-09-07", amount: 23, merchant: "ChatGPT" }] },
+  ] }];
+  const txs = ctx.flattenBankTx(links);
+  assert.equal(txs.some((x) => x.id === "b"), true, "el movimiento nuevo de la segunda cuenta llega a Gastos");
+  assert.equal(txs.some((x) => x.id === "top"), false, "el top-level es copia retrocompatible de la primera cuenta");
+});
+
 console.log("tr-open-banking: OK");

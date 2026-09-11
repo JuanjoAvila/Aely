@@ -1424,6 +1424,21 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.9", d:"11 sep 2026",
+   t:{es:"También los movimientos de la segunda cuenta del banco",en:"Moves from the bank’s second account too",ca:"També els moviments del segon compte del banc"},
+   tandas:[
+     {id:"multicuenta", t:{es:"🏦 Multicuenta Open Banking", en:"🏦 Open Banking multi-account", ca:"🏦 Multicomptes Open Banking"},
+      items:{
+        es:["Si un banco tiene dos cuentas enlazadas, al sincronizar tienen que entrar los movimientos de LAS DOS, no solo de la primera.",
+            "Gastos no puede decir que no hay nada nuevo cuando el banco sí trae cargos de la segunda cuenta."],
+        en:["If a bank has two linked accounts, sync must bring moves from BOTH, not only the first.",
+            "Gastos must not say there is nothing new when the bank does bring charges from the second account."],
+        ca:["Si un banc té dos comptes enllaçats, en sincronitzar han d’entrar els moviments dels DOS, no només del primer.",
+            "Despeses no pot dir que no hi ha res de nou quan el banc sí porta càrrecs del segon compte."]}}],
+   items:{
+     es:["Si un banco tiene varias cuentas enlazadas, la sincronización ya recoge los movimientos de todas, no solo de la primera."],
+     en:["If a bank has several linked accounts, sync now collects moves from all of them, not only the first."],
+     ca:["Si un banc té diversos comptes enllaçats, la sincronització ja recull els moviments de tots, no només del primer."]}},
   {v:"4.18.8", d:"10 sep 2026",
    t:{es:"El resumen del mes y un tope por categoría",en:"The month summary and a cap per category",ca:"El resum del mes i un límit per categoria"},
    items:{

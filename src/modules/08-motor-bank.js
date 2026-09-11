@@ -343,7 +343,14 @@ function flattenBankTx(links){
   (links||[]).forEach(function(lk){
     const ent=entFromAspsp(lk && lk.aspsp);
     if(!ent) return;
-    (lk.transactions||[]).forEach(function(t){
+    // En multicuenta el top-level solo contiene la PRIMERA cuenta compatible. Los movimientos
+    // nuevos de una segunda cuenta estaban en `accounts[].transactions` y el cliente ni los
+    // miraba: el banco figuraba sincronizado pero Gastos decía que no había nada nuevo.
+    let txs=[];
+    const accountTx=(lk.accounts||[]).filter(function(a){ return a&&Array.isArray(a.transactions); });
+    if(accountTx.length) accountTx.forEach(function(a){ txs=txs.concat(a.transactions); });
+    else txs=(lk.transactions||[]).slice();   // shape antiguo: una sola cuenta en top-level
+    txs.forEach(function(t){
       // `note` = concepto del extracto (remittance_information): lo que hace que el histórico se
       // entienda sin abrir la app del banco (2026-07-24).
       out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"" });
