@@ -1,5 +1,58 @@
 [
  {
+  "v": "4.19.68",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "La factura del agua ya no es un viaje",
+   "en": "The water bill is no longer a trip",
+   "ca": "La factura de l'aigua ja no es un viatge"
+  },
+  "tandas": [
+   {
+    "id": "barcelona-no-es-un-viaje",
+    "t": {
+     "es": "🏷️ Lo de Barcelona ya no se categoriza como viaje",
+     "en": "🏷️ Barcelona things are no longer filed as travel",
+     "ca": "🏷️ El de Barcelona ja no es categoritza com a viatge"
+    },
+    "items": {
+     "es": [
+      "1. Gastos → busca «Barcelona» en el buscador.",
+      "2. Mira las categorías de lo que salga. Las que pongan «Viajes» sin ser un viaje de verdad son las que estaban mal: por ejemplo la factura del agua (Aigües de Barcelona) o un taxi.",
+      "3. ⚠ Lo que YA está apuntado no se recategoriza solo, a propósito: cambiar categorías viejas movería totales de meses que ya diste por cerrados. Si quieres arreglar alguno, tócalo y cámbiale la categoría a mano.",
+      "4. Lo que hay que comprobar es lo NUEVO: sincroniza los bancos y mira lo que entre desde hoy. Una factura del agua tiene que caer en «Luz, gas y agua», y un taxi en «Transporte».",
+      "5. Y lo que NO puede romperse: si algún día pagas en un hotel Barceló, eso SÍ tiene que seguir siendo «Viajes»."
+     ],
+     "en": [
+      "1. Expenses → search for “Barcelona”.",
+      "2. Look at the categories. Anything filed as “Travel” without being a trip was the bug — a water bill, a taxi.",
+      "3. ⚠ What is already recorded is NOT recategorised on purpose: changing old categories would move totals of months you already closed. Fix one by hand if you want.",
+      "4. What to check is what comes in from now on: sync and look at new rows. A water bill must land in “Utilities”, a taxi in “Transport”.",
+      "5. And what must not break: paying at a Barceló hotel must still be “Travel”."
+     ],
+     "ca": [
+      "1. Despeses → busca «Barcelona».",
+      "2. Mira les categories. El que posi «Viatges» sense ser un viatge era el fallo.",
+      "3. ⚠ El que ja esta apuntat NO es recategoritza sol, a proposit.",
+      "4. El que cal comprovar es el NOU: sincronitza i mira el que entri des d'avui.",
+      "5. I el que NO pot trencar-se: un hotel Barcelo SI ha de seguir sent «Viatges»."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Cualquier cosa con «Barcelona» en el nombre se categorizaba como viaje, porque la palabra casaba con la cadena de hoteles Barceló. La factura del agua, un taxi… Los nuevos ya caen donde toca; los que ya tienes no se tocan, para no mover meses cerrados."
+   ],
+   "en": [
+    "Anything with “Barcelona” in the name was filed as travel, because it matched the Barceló hotel chain. New ones land where they should; existing ones are left alone so closed months do not move."
+   ],
+   "ca": [
+    "Qualsevol cosa amb «Barcelona» al nom es categoritzava com a viatge, perque casava amb la cadena Barcelo. Els nous ja cauen on toca."
+   ]
+  }
+ },
+ {
   "v": "4.19.67",
   "d": "11 sep 2026",
   "t": {

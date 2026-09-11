@@ -1,3 +1,38 @@
+## [4.19.68] - 2026-09-11
+### «barcelo» se comía Barcelona entera, y él vive ahí
+
+Salió mirando sus gastos reales de septiembre con `scripts/diag-mes.mjs`, no de una revisión de
+código. Tres filas suyas, medidas:
+
+| comercio | categoría que le ponía | la que toca |
+|---|---|---|
+| `AIGUES DE BARCELONA` | Viajes | Luz, gas y agua |
+| `SQ *PASTABAR BARCELONA S.` | Viajes | — |
+| `Taxi Barcelona` | Viajes | Transporte |
+
+La palabra clave **`barcelo`** está en `viajes` por la cadena de hoteles Barceló, y el emparejador
+va por substring en cuanto una palabra tiene 4 letras o más: **casaba dentro de BARCELONA**. Como
+él vive en Barcelona, le afectaba a cualquier comercio que llevara la ciudad en el nombre y que no
+hubiera pillado antes una regla anterior. `Mercadona Barcelona` se salvaba solo porque `super` va
+antes que `viajes` en el orden.
+
+El mecanismo de límite de palabra ya existía —es el que impide que «bar» case dentro de
+«Barcelona» desde el bug de Kinepolis del 17/7— pero **solo se aplicaba a términos de menos de 4
+letras**. Ahora hay una lista explícita, `KW_PALABRA`, para las marcas que además son el principio
+de una palabra corriente. De momento tiene una sola entrada, y añadir la siguiente es una línea.
+
+- Espejo exacto en `supabase/functions/_shared/ingest_logic.ts`: el servidor clasifica las altas
+  que entran por notificación y el cliente las demás. `categorias-dual` exige que digan lo mismo.
+- **Lo ya apuntado NO se recategoriza**, a propósito: `migrate` re-categoriza lo que está en
+  «otros» en cada carga, y tocar categorías viejas movería totales de meses que él ya dio por
+  cerrados. El arreglo es para lo que entre a partir de ahora.
+- `SQ *PASTABAR BARCELONA` pasa a **«otros»**, no a «bares»: «bar» pide límite de palabra y
+  `PASTABAR` no lo tiene. No era un bar por mérito propio — caía en viajes de rebote. «Otros» al
+  menos no miente, y meter «pastabar» en la lista sería hacerle un traje a un comercio.
+
+El guardián comprueba **las dos mitades**: que la ciudad deja de robar y que la CADENA de hoteles
+sigue casando. Un arreglo que rompa lo segundo no es un arreglo.
+
 ## [4.19.67] - 2026-09-11
 ### Cada cuenta tiene su ficha, en vez de abrirse las cinco a la vez
 

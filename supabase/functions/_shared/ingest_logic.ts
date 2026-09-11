@@ -36,6 +36,12 @@ export const CATEGORIAS: Record<string, string[]> = {
   bizum:      ["bizum","bizum a ","bizum de ","envio bizum","envío bizum","pago bizum"],
 };
 
+/* PALABRAS QUE SOLO VALEN ENTERAS. Espejo EXACTO de `KW_PALABRA` en `src/modules/00-core.js`;
+   el guardián `categorias-dual` exige que las dos digan lo mismo. «barcelo» es la cadena de
+   hoteles Barceló y casaba dentro de BARCELONA: «Aigües de Barcelona» salía como viaje, y él vive
+   ahí. Medido con sus gastos reales de septiembre (2026-09-11). */
+const KW_PALABRA: Record<string, number> = { "barcelo": 1 };
+
 export function norm(s: string): string {
   return (s || "").toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
 }
@@ -89,8 +95,12 @@ export function categorizar(comercio: string): string {
   const c = norm(comercio);
   if (isAtmWithdrawal(comercio)) return "traspaso";
   // Keywords cortas con límite de palabra (mismo criterio que el cliente: «bar» ≠ Barcelona).
+  // Y las de KW_PALABRA, que pasan por el mismo camino aunque sean largas: «barcelo» es la cadena
+  // de hoteles Barceló y casaba dentro de BARCELONA, así que «Aigües de Barcelona» salía como
+  // viaje. Medido con sus gastos de septiembre. ⚠ La lista es la MISMA que en `00-core.js`, y el
+  // guardián `categorias-dual` exige que digan lo mismo.
   const hit = (hay: string, needle: string) => {
-    if (needle.length >= 4) return hay.includes(needle);
+    if (needle.length >= 4 && !KW_PALABRA[needle]) return hay.includes(needle);
     let i = 0;
     while ((i = hay.indexOf(needle, i)) !== -1) {
       const before = i === 0 || /[^a-z0-9]/.test(hay.charAt(i - 1));

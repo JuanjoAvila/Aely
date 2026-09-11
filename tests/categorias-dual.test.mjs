@@ -63,7 +63,9 @@ t("y tampoco los comercios de verdad que ya nos han dado guerra", () => {
      «Barcelona» no puede caer en bares por el substring «bar» (bug Kinepolis 2026-07-17), y
      «Douglas» a secas estaba solo en la lista del servidor (encontrado 2026-09-08). */
   const casos = ["Barcelona", "Bar Manolo", "Kinepolis", "DOUGLAS", "Douglas Perfumerias",
-    "Mercadona", "ChatGPT", "RETIRADA CAJERO 4B", "Movimiento", ""];
+    "Mercadona", "ChatGPT", "RETIRADA CAJERO 4B", "Movimiento", "",
+    // 2026-09-11: «barcelo» (la cadena de hoteles) casaba dentro de BARCELONA, y él vive ahí.
+    "AIGUES DE BARCELONA", "Taxi Barcelona", "Hotel Barcelo Sants", "Mercadona Barcelona"];
   const dif = [];
   for (const m of casos) {
     const app = cli.categoryOfNewMerchant(m);
@@ -71,6 +73,33 @@ t("y tampoco los comercios de verdad que ya nos han dado guerra", () => {
     if (app !== srv) dif.push(`«${m}» → app=${app} · servidor=${srv}`);
   }
   assert.deepEqual(dif, []);
+});
+
+t("★ una MARCA que es el principio de una palabra corriente solo vale entera", () => {
+  /* Medido con sus gastos reales de septiembre (2026-09-11): «AIGUES DE BARCELONA» salía como
+     VIAJE, y «Taxi Barcelona» también. Culpa de «barcelo» —la cadena de hoteles Barceló— casando
+     dentro de BARCELONA. Él vive en Barcelona, así que le afectaba a todo lo que llevara la ciudad
+     en el nombre y no lo hubiera pillado antes otra regla.
+     `KW_PALABRA` manda esos términos por el camino de límite de palabra que ya usaban «bar» o
+     «bus». Aquí se comprueban las dos mitades: que la ciudad deja de robar, y que la CADENA sigue
+     casando — un arreglo que rompa lo segundo no es un arreglo. */
+  const debe = [
+    ["AIGUES DE BARCELONA", "energia"],
+    ["Aigües de Barcelona", "energia"],
+    ["Taxi Barcelona", "transporte"],
+    ["Parking Barcelona", "parking"],
+    ["Mercadona Barcelona", "super"],
+    // Y la cadena de hoteles, que es para lo que estaba la palabra:
+    ["Hotel Barcelo Sants", "viajes"],
+    ["Barcelo Raval", "viajes"],
+    ["BARCELO HOTEL GROUP", "viajes"],
+  ];
+  const mal = [];
+  for (const [m, esperado] of debe) {
+    const v = cli.autoCategory(m);
+    if (v !== esperado) mal.push(`«${m}» → ${v} (debería ser ${esperado})`);
+  }
+  assert.deepEqual(mal, []);
 });
 
 t("el histórico NO se toca: autoCategory sigue sin detectar el cajero", () => {

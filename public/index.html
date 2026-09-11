@@ -2326,6 +2326,23 @@ const KW = {
      suelen entrar como ingreso por el signo; esto pilla los enviados / el comercio «BIZUM …». */
   bizum:["bizum","bizum a ","bizum de ","envio bizum","envío bizum","pago bizum","bizum movistar","bizum bbva","bizum caixa","bizum sabadell","bizum santander"],
 };
+/* PALABRAS QUE SOLO VALEN ENTERAS (2026-09-11). El emparejador va por substring en cuanto una
+   palabra tiene 4 letras o más, y eso muerde cuando una MARCA es el principio de una palabra
+   corriente. Medido con sus gastos reales de septiembre:
+
+     «AIGUES DE BARCELONA»       → viajes   (debería ser energía)
+     «SQ *PASTABAR BARCELONA S.» → viajes   (debería ser bares)
+     «Taxi Barcelona»            → viajes   (debería ser transporte)
+
+   Culpa de **«barcelo»**, que está en viajes por la cadena de hoteles Barceló y casa dentro de
+   BARCELONA. Él vive en Barcelona: le afecta a todo lo que lleve la ciudad en el nombre y no lo
+   haya pillado antes una regla anterior.
+
+   Con esta lista, el término pasa por el mismo camino de límite de palabra que ya usaban «bar» o
+   «bus»: «Hotel Barceló Sants» sigue casando, «Aigües de Barcelona» ya no.
+   ⚠ La MISMA lista vive en `supabase/functions/_shared/ingest_logic.ts`, y el guardián
+   `categorias-dual` exige que digan lo mismo. */
+const KW_PALABRA={ "barcelo":1 };
 /* Retirada de cajero / ATM → traspaso (neutro). Mismas claves en ingest_logic.ts. */
 /* Categoría al ALTA de un movimiento nuevo (OB/import/ingest). ATM → traspaso.
    NUNCA meter esto en autoCategory: migrate recategoriza «otros» en cada carga y
@@ -2359,7 +2376,7 @@ function autoCategory(merchant){
   // Keywords cortas (bar, bus…) con límite de palabra: si no, "Barcelona" caía en bares
   // por el substring «bar» (bug Kinepolis 2026-07-17).
   const hit=function(hay, needle){
-    if(needle.length>=4) return hay.indexOf(needle)!==-1;
+    if(needle.length>=4 && !KW_PALABRA[needle]) return hay.indexOf(needle)!==-1;
     let i=0;
     while((i=hay.indexOf(needle,i))!==-1){
       const before=i===0 || /[^a-z0-9]/.test(hay.charAt(i-1));
