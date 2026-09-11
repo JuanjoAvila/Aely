@@ -596,7 +596,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     // Rastro del importe original (informativo; la lista sigue en la moneda de visualización).
     if(entryCur!=="EUR"){ e.origAmount=amt; e.origCur=entryCur; }
     set(function(s){ return Object.assign({},s,{expenses:(s.expenses||[]).concat([e])}); });
-    if(cloud.enabled()) cloud.addExpense(e).catch(function(){});
+    if(cloud.enabled()) subirGasto(e, "v4-apuntar");
     onClose();
     if(goGastos) goGastos();
     showToast(isIn?t("v4_apuntar_ok_in"):t("v4_apuntar_ok"));

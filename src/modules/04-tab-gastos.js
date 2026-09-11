@@ -145,7 +145,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const keyOfE=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.merchant||""); };
   const delExpense=function(e){
     set(function(s){ return Object.assign({},s,{ expenses:s.expenses.filter(function(x){ return x.id!==e.id; }), deleted:pushDeleted(s.deleted, keyOfE(e)) }); });
-    if(cloud.enabled()) cloud.deleteExpense(e).catch(function(){});
+    if(cloud.enabled()) borrarGastoNube(e, "gastos-borrar");
     showToast(t("g_deleted"));
   };
   /* La decisión es explícita: borrar solo cuando confirma el gemelo; si son distintos, la fila
@@ -156,7 +156,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       let next=resolvePossibleDup(s, e.id, same);
       if(same){
         next=Object.assign({},next,{deleted:pushDeleted(next.deleted, keyOfE(e))});
-        if(cloud.enabled()) cloud.deleteExpense(e).catch(function(){});
+        if(cloud.enabled()) borrarGastoNube(e, "gastos-dup");
       }else if(cloud.enabled()) cloud.setExpenseDup(e, false).catch(function(){});
       return next;
     });
@@ -316,7 +316,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; }),
       deleted:pushDeleted(s.deleted, keyOfE(orig))
     }); });
-    if(cloud.enabled()){ cloud.deleteExpense(orig).catch(function(){}); cloud.addExpense(upd).catch(function(){}); }
+    if(cloud.enabled()){ borrarGastoNube(orig, "gastos-editar"); subirGasto(upd, "gastos-editar"); }
     sincroniza(upd); showToast(t("g_edited"));
   };
 
@@ -554,7 +554,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     // Gasto a mano: etiqueta el banco de gasto diario si hay uno (filtro por banco; 2026-07-16)
     if(!form.income){ const daily=(state.accounts||[]).find(function(a){ return accDaily(a); }); if(daily&&daily.ent) ex.ent=daily.ent; }
     set(s=>Object.assign({},s,{expenses:[ex].concat(s.expenses)}));
-    if(cloud.enabled()) cloud.addExpense(ex).catch(function(){});   // lo guarda también en la BD
+    if(cloud.enabled()) subirGasto(ex, "gastos-apuntar");   // lo guarda también en la BD
     // Avisos al apuntar (notificaciones "de andar por casa", las push reales llegarán con el APK):
     // pasarse del presupuesto > cruzar el 80% > gasto tocho (≥15% del presupuesto). Si no, el toast normal.
     let msg = form.income ? t("g_saved_i") : t("g_saved_g");

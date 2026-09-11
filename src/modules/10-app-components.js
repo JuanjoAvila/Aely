@@ -403,7 +403,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
       if(fixAdds.length) next.fixed=(s.fixed||[]).concat(fixAdds);
       return next;
     });
-    setTimeout(function(){ expAdds.forEach(function(e){ cloud.addExpense(e).catch(function(){}); }); },0);
+    setTimeout(function(){ expAdds.forEach(function(e){ subirGasto(e, "ob-hist"); }); },0);
     const parts=[];
     if(expAdds.filter(function(e){ return e.amount>0; }).length) parts.push(tf("bp_hist_done_g",{n:expAdds.filter(function(e){ return e.amount>0; }).length}));
     if(expAdds.filter(function(e){ return e.amount<0; }).length) parts.push(tf("bp_hist_done_i",{n:expAdds.filter(function(e){ return e.amount<0; }).length}));

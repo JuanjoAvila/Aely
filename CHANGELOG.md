@@ -1,10 +1,12 @@
 ## [4.18.23] — 2026-09-11
-### El catch mudo de `addExpense` ya habla
+### Las escrituras de gastos a la nube ya dejan rastro
 
 Cazado en vivo (widget 512 sin abrir app → app 497 → widget 497): la app contaba un ingreso
-local de 14,90 € (Bizum) que la nube no tenía. El backfill hacia `expenses` tragaba el error
-con `.catch(function(){})`. Ahora `logEvent` guarda la clave `día|importe|comercio` y el error
-de Supabase. No cambia ninguna cifra; sin esto seguíamos adivinando.
+local de 14,90 € (Bizum) que la nube no tenía. Cinco sitios tragaban el error con
+`.catch(function(){})`. Ahora `subirGasto` / `borrarGastoNube` (en `00-core.js`) loguean
+`dónde + clave + error` vía `logEvent`. En editar gasto, el log distingue borrado vs alta.
+No cambia ninguna cifra; sin esto seguíamos adivinando.
+
 
 
 ## [4.18.22] — 2026-09-11

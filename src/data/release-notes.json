@@ -9,13 +9,13 @@
   },
   "items": {
    "es": [
-    "Cuando un movimiento del móvil no se puede guardar en la nube, el fallo queda apuntado. No cambia ninguna cifra: sirve para localizar por qué a veces el widget y la pantalla no coinciden."
+    "Cuando un movimiento del móvil no se puede guardar o borrar en la nube, el fallo queda apuntado (al apuntar, al editar, al sincronizar el banco…). No cambia ninguna cifra: sirve para localizar por qué a veces el widget y la pantalla no coinciden."
    ],
    "en": [
-    "When a movement on the phone cannot be saved to the cloud, the failure is recorded. No figure changes: it helps find why the widget and the screen sometimes disagree."
+    "When a movement on the phone cannot be saved or deleted in the cloud, the failure is recorded (add, edit, bank sync…). No figure changes: it helps find why the widget and the screen sometimes disagree."
    ],
    "ca": [
-    "Quan un moviment del mòbil no es pot desar al núvol, la fallada queda apuntada. No canvia cap xifra."
+    "Quan un moviment del mòbil no es pot desar o esborrar al núvol, la fallada queda apuntada. No canvia cap xifra."
    ]
   }
  },
