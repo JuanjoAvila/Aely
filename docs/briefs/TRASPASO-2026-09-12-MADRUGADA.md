@@ -37,9 +37,9 @@ sin categoría. **No le inventes una**: pregúntale qué es.
 | | versión |
 |---|---|
 | producción (`main`) | **4.18.25** · APK **4.18.22 (45)** |
-| beta publicada | **4.19.72.1** |
-| `beta` remota | `40433410` · **4.19.73** (publicándose al cerrar) |
-| en local, sin pushear | **4.19.74** (`e917745e`), esperando review de Cursor |
+| beta publicada | **4.19.74.1** — verificado con `npm run salud`, no supuesto |
+| `beta` remota | `d7631abc` |
+| en local, sin pushear | nada de código (solo documentación) |
 
 Todo lo de esta sesión pasó por review de Cursor. **Nada mío fue a `beta` sin su verde.**
 
