@@ -2317,7 +2317,21 @@ function dateMs(v){
   const ms=_pdMs(String(v||"").trim());
   return isNaN(ms)?Date.now():ms;
 }
-const dayKey=(d)=> d.toISOString().slice(0,10);
+/* LA CLAVE DEL DÍA VA EN HORA LOCAL, COMO LA ETIQUETA (2026-09-11).
+   Esto era `d.toISOString().slice(0,10)`, o sea **UTC**, mientras que el texto de la cabecera sale
+   de `toLocaleDateString` — la hora del móvil. En España (UTC+2 en verano) cualquier gasto entre
+   las 00:00 y las 02:00 cae en el día UTC ANTERIOR, así que un día se parte en dos grupos y la
+   misma fecha sale DOS VECES seguidas como cabecera.
+   Se ve en su captura del 11/9: «DOMINGO, 6 SEPT» y justo debajo otra vez «DOMINGO, 6 SEPT».
+   Medido en Europe/Madrid antes de tocar nada:
+     06/09 01:00 local → clave 2026-09-05, etiqueta «domingo, 6 sept»   ← el que parte el día
+     06/09 12:00 local → clave 2026-09-06, etiqueta «domingo, 6 sept»
+     07/09 00:30 local → clave 2026-09-06, etiqueta «lunes, 7 sept»     ← y este se cuela en el 6
+   Y afectaba igual a «Hoy» y «Ayer», que salen de comparar esta misma clave: entre medianoche y
+   las dos de la mañana, lo de hoy se etiquetaba como ayer.
+   Es el mismo fallo que ya se arregló para el mes (`inicioDeMesMs`, B09-B): la app vive en la hora
+   del móvil, no en UTC. */
+const dayKey=(d)=> String(d.getFullYear())+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 function relDay(d){
   const tn=new Date(); const y=new Date(); y.setDate(tn.getDate()-1);
   if(dayKey(d)===dayKey(tn)) return t("g_today");

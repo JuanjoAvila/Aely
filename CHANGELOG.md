@@ -1,3 +1,38 @@
+## [4.19.72] - 2026-09-12
+### El mismo día salía dos veces de cabecera, y lo vi en una captura suya
+
+Él no lo reportó: estaba en una captura que mandó por otra cosa. En Gastos salía **«DOMINGO, 6
+SEPT»** y justo debajo, otra vez, **«DOMINGO, 6 SEPT»**.
+
+`dayKey` agrupaba en **UTC** (`toISOString().slice(0,10)`) mientras la etiqueta de la cabecera sale
+de `toLocaleDateString`, o sea la hora del móvil. En España cualquier gasto entre las 00:00 y las
+02:00 cae en el día UTC anterior, así que se abre un grupo con la clave del 5 etiquetado «6 sept» y
+otro con la clave del 6 etiquetado igual.
+
+Medido en `Europe/Madrid` antes de tocar nada:
+
+| hora local | clave | etiqueta |
+|---|---|---|
+| 06/09 01:00 | `2026-09-05` | domingo, 6 sept ← **parte el día** |
+| 06/09 12:00 | `2026-09-06` | domingo, 6 sept |
+| 07/09 00:30 | `2026-09-06` | lunes, 7 sept ← **se cuela en el día anterior** |
+
+Y no era solo cosmético: **«Hoy» y «Ayer» salen de comparar esa misma clave**, así que entre
+medianoche y las dos de la mañana lo de hoy se etiquetaba como ayer.
+
+Es el mismo fallo que ya se arregló para el mes (`inicioDeMesMs`, B09-B, 7/9): la app vive en la
+hora del móvil, no en UTC.
+
+**Y el test se escribió mal la primera vez.** Puse una copia local de `dayKey` «por si no está
+expuesta en el sandbox», y al volver a meter el fallo a mano **los cuatro casos de conducta
+siguieron en verde**: estaban probando mi copia, no la app. Solo cantó el guardián de fuente. Ahora
+lee la línea real del módulo y la evalúa: con el fallo puesto se ponen en rojo **16 aserciones**.
+Es la misma lección de esta misma noche con el filtro de bancos — un test que no puede fallar no
+vale, y hay que comprobarlo rompiéndolo.
+
+El fichero se relanza solo con `TZ=Europe/Madrid`: en una máquina en UTC este bug es **invisible** y
+el test se quedaría verde mintiendo.
+
 ## [4.19.71] - 2026-09-11
 ### El aplazamiento de la 4.19.69 tenía un agujero, y era peor que no aplazar nada
 

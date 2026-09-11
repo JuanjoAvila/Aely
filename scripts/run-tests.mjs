@@ -52,6 +52,9 @@ const steps = [
   // Quitar un banco tiene que limpiar SU cuenta de Cartera, y un enlace a medio autorizar tiene
   // que avisar. Los tres sustos de CaixaBank del 11/9.
   ["quitar-banco-y-pendiente", ["node", "tests/quitar-banco-y-pendiente.test.mjs"]],
+  // El día se agrupa en hora local, no en UTC: si no, el mismo día sale DOS veces de cabecera.
+  // Se relanza solo con TZ=Europe/Madrid — en una máquina en UTC el fallo es invisible.
+  ["dia-local-no-utc", ["node", "tests/dia-local-no-utc.test.mjs"]],
   ["security", ["node", "tests/security.test.mjs"]],
   ["webdebug-guard", ["node", "tests/webdebug-guard.test.mjs"]],
   ["gastos-active-bus", ["node", "tests/gastos-active-bus.test.mjs"]],

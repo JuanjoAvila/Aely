@@ -1,5 +1,58 @@
 [
  {
+  "v": "4.19.72",
+  "d": "12 sep 2026",
+  "t": {
+   "es": "El mismo día ya no sale dos veces en Gastos",
+   "en": "The same day no longer appears twice in Expenses",
+   "ca": "El mateix dia ja no surt dues vegades a Despeses"
+  },
+  "tandas": [
+   {
+    "id": "dia-partido-en-dos",
+    "t": {
+     "es": "📅 Un día, una cabecera",
+     "en": "📅 One day, one heading",
+     "ca": "📅 Un dia, una capcalera"
+    },
+    "items": {
+     "es": [
+      "1. Vete a Gastos y baja por la lista mirando SOLO las cabeceras de día (LUNES, MARTES…).",
+      "2. No puede salir el mismo día dos veces seguidas. Esto salía en tu lista: «DOMINGO, 6 SEPT» y justo debajo otra vez «DOMINGO, 6 SEPT».",
+      "3. Comprueba que cada movimiento está bajo el día que le toca: mira la fecha pequeña de cada fila y que cuadre con su cabecera.",
+      "4. Fíjate sobre todo en los movimientos de MADRUGADA (de 00:00 a 02:00), que eran los que rompían el grupo.",
+      "5. Y arriba del todo: lo de hoy tiene que poner «Hoy» y lo de ayer «Ayer». Si alguna vez miras la app de madrugada, eso también estaba mal."
+     ],
+     "en": [
+      "1. Go to Expenses and scroll looking ONLY at the day headings.",
+      "2. The same day must not appear twice in a row. Yours showed “SUNDAY, 6 SEPT” twice.",
+      "3. Check each transaction sits under the right day: compare its small date with its heading.",
+      "4. Look especially at transactions between 00:00 and 02:00 — those were the ones breaking the group.",
+      "5. And at the top: today must say “Today” and yesterday “Yesterday”. That was wrong too if you opened the app after midnight."
+     ],
+     "ca": [
+      "1. Ves a Despeses i baixa mirant NOMES les capcaleres de dia.",
+      "2. No pot sortir el mateix dia dos cops seguits.",
+      "3. Comprova que cada moviment esta sota el dia que li toca.",
+      "4. Fixa't sobretot en els moviments de MATINADA (de 00:00 a 02:00).",
+      "5. I a dalt de tot: el d'avui ha de posar «Avui» i el d'ahir «Ahir»."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "En Gastos, un día podía partirse en dos y salir su cabecera repetida. Pasaba con los movimientos de madrugada, que la app metía en el día anterior."
+   ],
+   "en": [
+    "In Expenses a day could split in two and show its heading twice. It happened with after-midnight transactions, which the app filed under the previous day."
+   ],
+   "ca": [
+    "A Despeses, un dia es podia partir en dos i sortir la capcalera repetida."
+   ]
+  }
+ },
+ {
   "v": "4.19.71",
   "d": "11 sep 2026",
   "tandas": [
