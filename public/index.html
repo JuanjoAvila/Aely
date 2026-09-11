@@ -3751,8 +3751,20 @@ function sortExpensesForDisplay(expenses, state){
     if(!cache[day]){ const m={}; list.forEach(function(x,i){ m[x]=i; }); cache[day]=m; }
     return cache[day][id]!=null?cache[day][id]:Infinity;
   };
+  /* EL DÍA DE CADA GASTO, UNA SOLA VEZ. `diaDeGasto` construye un `Date`, y un `sort` llama al
+     comparador ~n·log n veces: Cursor lo midió con 5.000 gastos y salía **127 ms contra 7 ms** del
+     `slice` de string que había antes — 18×. En un mes normal no se nota porque el sort va sobre la
+     lista YA filtrada, pero con el filtro en «Todo» y su histórico entero sí rozaría.
+     Con esto se calcula n veces en vez de n·log n y el coste vuelve a ser el de comparar strings. */
+  const diaDe={};
+  const dia=function(e){
+    const k=e&&e.id;
+    if(k==null) return diaDeGasto(e);
+    if(diaDe[k]===undefined) diaDe[k]=diaDeGasto(e);
+    return diaDe[k];
+  };
   return (expenses||[]).slice().sort(function(a,b){
-    const da=diaDeGasto(a), db=diaDeGasto(b);
+    const da=dia(a), db=dia(b);
     if(da!==db) return db.localeCompare(da);
     const pa=pos(da,a.id), pb=pos(db,b.id);
     if(pa!=null||pb!=null){ if(pa!==pb) return (pa==null?Infinity:pa)-(pb==null?Infinity:pb); }

@@ -124,6 +124,15 @@ t("★ un gasto de MADRUGADA se puede reordenar a mano (antes el arrastre no hac
     "y el orden se guarda bajo el día que se VE, no bajo el de UTC");
 });
 
+t("y nadie ha vuelto a declarar `dayKey` en i18n (una regla, un sitio)", () => {
+  /* Aserción que pidió Cursor al revisar la mudanza a core, y es barata: si alguien vuelve a
+     declarar `const dayKey=` en `01-i18n.js`, la de core queda tapada para todo lo que venga
+     después y volvemos a tener dos reglas para la misma pregunta. */
+  const i18n = readFileSync(new URL("../src/modules/01-i18n.js", import.meta.url), "utf8");
+  assert.ok(!/const\s+dayKey\s*=/.test(i18n),
+    "`dayKey` ha vuelto a declararse en 01-i18n.js: taparía la de 00-core y volverían a divergir");
+});
+
 t("el módulo sigue calculando la clave en local (no ha vuelto a toISOString)", () => {
   const txt = readFileSync(new URL("../src/modules/00-core.js", import.meta.url), "utf8");
   const i = txt.indexOf("const dayKey=");

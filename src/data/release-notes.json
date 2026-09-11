@@ -45,13 +45,13 @@
   },
   "items": {
    "es": [
-    "La otra mitad de lo del día partido: arrastrar un gasto de madrugada para cambiarlo de sitio no hacía nada, porque para el orden pertenecía al día anterior."
+    "La otra mitad de lo del día partido: arrastrar un gasto de madrugada para cambiarlo de sitio no hacía nada. Si alguna vez ordenaste a mano un día que tuviera cargos de madrugada, puede que tengas que volver a ordenarlo una vez."
    ],
    "en": [
-    "The other half of the split-day bug: dragging an after-midnight expense did nothing, because for ordering purposes it belonged to the previous day."
+    "The other half of the split-day bug: dragging an after-midnight expense did nothing. If you had hand-sorted a day that included after-midnight charges, you may need to sort it once more."
    ],
    "ca": [
-    "L'altra meitat del dia partit: arrossegar una despesa de matinada no feia res."
+    "L'altra meitat del dia partit: arrossegar una despesa de matinada no feia res. Si havies ordenat a ma un dia amb carrecs de matinada, potser l'has de tornar a ordenar un cop."
    ]
   }
  },
