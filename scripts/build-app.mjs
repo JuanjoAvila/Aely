@@ -6,6 +6,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { leerReleaseNotesMax, truncarReleaseNotesEnJs, contarReleaseNotesEnJs } from "./release-notes-max.mjs";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const order = JSON.parse(fs.readFileSync(path.join(root, "src", "build-order.json"), "utf8"));
@@ -27,6 +28,14 @@ const dsn = (process.env.SENTRY_DSN || "").trim();
 if (dsn) {
   js = js.replace(/SENTRY_DSN:\s*""/, `SENTRY_DSN: ${JSON.stringify(dsn)}`);
 }
+
+/* El histórico completo se conserva en fuente y CHANGELOG; el móvil solo descarga las N notas
+   recientes. Recortar al pintar no ahorra red porque el literal ya habría viajado en el HTML. */
+const rnMax = leerReleaseNotesMax(js);
+const rnAntes = contarReleaseNotesEnJs(js);
+js = truncarReleaseNotesEnJs(js, rnMax);
+const rnDespues = contarReleaseNotesEnJs(js);
+if (rnAntes > rnMax) console.log(`  · RELEASE_NOTES: ${rnAntes} → ${rnDespues} (tope ${rnMax})`);
 
 let shell = fs.readFileSync(path.join(root, "src", "shell.html"), "utf8");
 const MARK = "<!--MC_APP_SCRIPT-->";

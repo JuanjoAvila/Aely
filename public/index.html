@@ -14357,14 +14357,24 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
      · texto suelto            → castellano (todo el histórico anterior a esta fecha)
      · {es:"…",en:"…",ca:"…"}  → traducida
 
-   POR QUÉ NO SE TRADUCE EL HISTÓRICO ENTERO: son 68 versiones y 279 entradas, 55 KB de texto.
-   Por tres idiomas serían 165 KB, y el presupuesto de descarga (`tests/presupuesto-rendimiento`)
-   va por 277 KB de 310 en gzip — se lo comería de golpe para que nadie lea nunca las notas de
-   una versión de hace dos meses en catalán. De aquí en adelante, cada nota nace en los tres. */
+   POR QUÉ NO SE TRADUCE EL HISTÓRICO ENTERO: serían cientos de KB y nadie lee en catalán una
+   nota de hace dos meses. De aquí en adelante, cada nota nace en los tres.
+
+   TOPE EN EL BUNDLE (2026-09-11): el build deja solo las N más nuevas en `public/index.html`;
+   la fuente y CHANGELOG.md guardan el resto. Así el OTA no crece para siempre con cada versión. */
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
+/* Cada nota añade texto a toda descarga; cambiar el tope exige ajustar el guardián explícitamente. */
+var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
-  {v:"4.18.8", d:"10 sep 2026",
+{v:"4.18.15",d:"11 sep 2026",
+   t:{es:"Novedades conserva las 20 versiones más recientes",en:"What's new keeps the 20 most recent versions",ca:"Novetats conserva les 20 versions més recents"},
+   tandas:[{id:"notas-20",t:{es:"📜 Historial reciente",en:"📜 Recent history",ca:"📜 Historial recent"},items:{
+     es:["Ajustes → Novedades muestra las últimas 20 versiones; el historial técnico completo sigue guardado fuera de la app."],
+     en:["Settings → What's new shows the latest 20 versions; the full technical history remains stored outside the app."],
+     ca:["Ajustaments → Novetats mostra les darreres 20 versions; l'historial tècnic complet es conserva fora de l'app."]}}],
+   items:{es:["Novedades conserva las últimas 20 versiones."],en:["What's new keeps the 20 most recent versions."],ca:["Novetats conserva les 20 versions més recents."]}},
+{v:"4.18.8", d:"10 sep 2026",
    t:{es:"El resumen del mes y un tope por categoría",en:"The month summary and a cap per category",ca:"El resum del mes i un límit per categoria"},
    items:{
      es:["Los primeros días del mes, en Inicio sale una tarjeta con el resumen del mes ANTERIOR: lo gastado, en qué se fue más y si te pasaste del presupuesto.",
@@ -14373,7 +14383,7 @@ var RELEASE_NOTES=[
          "In Gastos, each category can have its own cap, with its own bar. The breakdown adds up to the exact total shown above."],
      ca:["Els primers dies del mes, a Inici surt una targeta amb el resum del mes ANTERIOR: el que has gastat, en què se n’ha anat més i si t’has passat del pressupost.",
          "A Despeses, cada categoria pot tenir el seu propi límit, amb la seva barra. La suma del desglossament quadra al cèntim amb el total de dalt."]}},
-  {v:"4.18.7", d:"6 sep 2026",
+{v:"4.18.7", d:"6 sep 2026",
    t:{es:"El total de Gastos se actualiza al cambiar de banco",
       en:"Gastos total updates when you change banks",
       ca:"El total de Despeses s'actualitza en canviar de banc"},
@@ -14408,7 +14418,7 @@ var RELEASE_NOTES=[
        "Ja no cal sincronitzar perquè la capçalera deixi de mostrar de més.",
      ],
    }},
-  {v:"4.18.6", d:"6 sep 2026",
+{v:"4.18.6", d:"6 sep 2026",
    t:{es:"La app ya no borra movimientos por parecerse",
       en:"The app no longer deletes look-alike movements",
       ca:"L'app ja no esborra moviments per assemblar-se"},
@@ -14449,7 +14459,7 @@ var RELEASE_NOTES=[
        "Els moviments esborrats a mà segueixen esborrats.",
      ],
    }},
-  {v:"4.18.5", d:"18 ago 2026",
+{v:"4.18.5", d:"18 ago 2026",
    t:{es:"El fondo ya no parpadea al cambiar de pestaña",
       en:"No more flicker when switching tabs",
       ca:"El fons ja no parpelleja en canviar de pestanya"},
@@ -14461,7 +14471,7 @@ var RELEASE_NOTES=[
      ]},
    ],
   },
-  {v:"4.18.4", d:"18 ago 2026",
+{v:"4.18.4", d:"18 ago 2026",
    t:{es:"Cada banco descuenta lo suyo",
       en:"Each bank now subtracts only its own spending",
       ca:"Cada banc descompta el que és seu"},
@@ -14482,7 +14492,7 @@ var RELEASE_NOTES=[
    ca:[
     "🏦 Si pagaves amb un banc que no era el del dia a dia, la despesa es restava per error al saldo del principal. El total sempre va ser correcte; el repartiment entre comptes, no. Cada euro ja és al seu lloc.",
    ]}},
-  {v:"4.18.3", d:"18 ago 2026",
+{v:"4.18.3", d:"18 ago 2026",
    t:{es:"El saldo del banco ya no salta a un número raro, y el widget deja de esconder lo que puedes gastar",
       en:"Bank balances no longer jump to a bogus figure, and the widget keeps showing what you can spend",
       ca:"El saldo del banc ja no salta a un número rar, i el widget deixa d'amagar el que pots gastar"},
@@ -14506,7 +14516,7 @@ var RELEASE_NOTES=[
     "🏦 El saldo d'un banc ja no salta a un número en vermell inventat: si arriba una dada rara, es queda l'últim bo.",
     "📊 Al widget torna a veure's «Pots gastar». Perquè s'actualitzi amb l'app tancada, instal·la l'actualització de l'app.",
    ]}},
-  {v:"4.18.2", d:"17 ago 2026",
+{v:"4.18.2", d:"17 ago 2026",
    t:{es:"El widget ya dice el mismo gasto del mes que la app",
       en:"The widget now shows the same monthly spend as the app",
       ca:"El widget ja diu la mateixa despesa del mes que l'app"},
@@ -14531,7 +14541,7 @@ var RELEASE_NOTES=[
     "📊 La despesa del mes del widget és la mateixa que la de l'app, també si la tenies tancada.",
     "Si una compra t'ha avisat dues vegades (el banc i la cartera), només en compta una.",
    ]}},
-  {v:"4.18.1", d:"17 ago 2026",
+{v:"4.18.1", d:"17 ago 2026",
    t:{es:"Recibos, sugerir categoría en cualquier gasto, y el banco al apuntar sin el lío",
       en:"Bills, suggest a category on any payment, and a tidier bank picker",
       ca:"Rebuts, suggerir categoria en qualsevol despesa, i el banc en apuntar sense el embolic"},
@@ -14559,7 +14569,7 @@ var RELEASE_NOTES=[
     "✨ En qualsevol moviment pots demanar un suggeriment de categoria, no només si és a Altres.",
     "🏦 En apuntar una despesa, el banc és una pastilla que es desplega, com els filtres de Despeses.",
    ]}},
-  {v:"4.18.0", d:"17 ago 2026",
+{v:"4.18.0", d:"17 ago 2026",
    t:{es:"Gastos de todos tus bancos del día a día, y más categorías",
       en:"Spending from every day-to-day bank, plus extra categories",
       ca:"Despeses de tots els teus bancs del dia a dia, i més categories"},
@@ -14594,7 +14604,7 @@ var RELEASE_NOTES=[
     "📅 En apuntar una despesa o en editar-la pots triar el dia. El calendari és el de l'app.",
     "🍦 Gelateria, joieria i videojocs són categories pròpies: Steam i Instant Gaming ja no se'n van a oci.",
    ]}},
-  {v:"4.17.2", d:"17 ago 2026",
+{v:"4.17.2", d:"17 ago 2026",
    t:{es:"El widget deja de sumar un pago dos veces",
       en:"The widget stops counting the same payment twice",
       ca:"El widget deixa de sumar un pagament dues vegades"},
@@ -14631,7 +14641,7 @@ var RELEASE_NOTES=[
    ca:[
     "📊 La despesa del mes del widget ja és la mateixa que la de l'app: si una compra t'ha avisat dues vegades (el banc i la cartera), no la suma dues vegades, i el que ja havies esborrat deixa de comptar-lo.",
    ]}},
-  {v:"4.17.1", d:"17 ago 2026",
+{v:"4.17.1", d:"17 ago 2026",
    t:{es:"Orden en Gastos: qué cuenta, qué no, y de qué banco sale",
       en:"Order in Spending: what counts, what doesn't, and which bank it came from",
       ca:"Ordre a Despeses: què compta, què no, i de quin banc surt"},
@@ -14676,7 +14686,7 @@ var RELEASE_NOTES=[
     "🎛️ Als filtres hi ha un apartat nou, «Què comptar», per veure per separat les despeses que compten, els ingressos, les inversions i traspassos, o el que ve d'altres bancs.",
     "✏️ Els moviments que arriben del banc sense nom (els que posen «Moviment») ja es poden reanomenar sense que la següent sincronització els torni a posar duplicats.",
    ]}},
-  {v:"4.16.2", d:"17 ago 2026",
+{v:"4.16.2", d:"17 ago 2026",
    t:{es:"El widget de la pantalla de inicio deja de contradecirse",
       en:"The home screen widget stops contradicting itself",
       ca:"El widget de la pantalla d'inici deixa de contradir-se"},
@@ -14693,7 +14703,7 @@ var RELEASE_NOTES=[
     "📊 El widget de la pantalla d'inici es contradeia: podia dir que et quedaven 109 € i just a sota que podies gastar-ne 324 €. Passava amb l'app tancada, quan entrava un pagament: actualitzava el que s'havia gastat però es deixava la resta de xifres d'abans. Ara s'actualitzen totes juntes i sempre quadren.",
     "💳 El saldo del compte de despesa que surt al widget també es posa al dia amb cada pagament, sense haver d'obrir l'app.",
    ]}},
-  {v:"4.16.1", d:"6 ago 2026",
+{v:"4.16.1", d:"6 ago 2026",
    t:{es:"Arranque limpio, sin franja bajo la cámara",
       en:"Clean launch, no strip under the camera",
       ca:"Arrencada neta, sense franja sota la càmera"},
@@ -14710,7 +14720,7 @@ var RELEASE_NOTES=[
     "En obrir l'app ja no queda una franja estranya sota la càmera.",
     "Si et ofereix instal·lar l'app nova, accepta-la: és l'arreglo de veritat (s'instal·la a sobre sense perdre res).",
    ]}},
-  {v:"4.16.0", d:"6 ago 2026",
+{v:"4.16.0", d:"6 ago 2026",
    t:{es:"Avisos que cuadran, monedas que no se pierden y más compras que se apuntan solas",
       en:"Alerts that add up, currencies that stick, and more purchases logged on their own",
       ca:"Avisos que quadren, monedes que no es perden i més compres que s'apunten soles"},
@@ -14737,7 +14747,7 @@ var RELEASE_NOTES=[
     "🍺 Els llocs que tenen un nom acabat en «bar» ja es desen com a bars i no com a «altres».",
     "🧹 Els noms de comerç que arriben amb caràcters estranys del datàfon es netegen abans de desar-se.",
    ]}},
-  {v:"4.15.0", d:"5 ago 2026",
+{v:"4.15.0", d:"5 ago 2026",
    t:{es:"Ambientación, conversor, presupuesto, extracto y filtros de Gastos",
       en:"Ambience, converter, budget, bank statements and Spending filters",
       ca:"Ambientació, convertidor, pressupost, extracte i filtres de Despeses"},
@@ -14838,7 +14848,7 @@ var RELEASE_NOTES=[
     "🏦 A Despeses veus l'extracte de tots els teus bancs. Només el de despesa diària resta del pressupost; la resta surt marcada com a «no afecta».",
     "🎛️ A Despeses, els filtres van en un full amb cercador (adéu a la fila interminable de xips). Hi ha categories noves (viatges, mascotes, educació, llum/gas) i el reconeixement de comerços encerta més.",
    ]}},
-  {v:"4.14.1", d:"5 ago 2026",
+{v:"4.14.1", d:"5 ago 2026",
    t:{es:"El resumen de Gastos ya no se desborda",
       en:"The Spending summary no longer overflows",
       ca:"El resum de Despeses ja no es desborda"},
@@ -14853,7 +14863,7 @@ var RELEASE_NOTES=[
    ca:[
     "📐 A Despeses, amb monedes d'imports llargs (ien, lira…) i lletra petita, el resum ja no es desborda ni deixa forats rares entre l'etiqueta i l'import.",
    ]}},
-  {v:"4.14.0", d:"5 ago 2026",
+{v:"4.14.0", d:"5 ago 2026",
    t:{es:"Liras y monedas de verdad, y Ajustes → Dinero más claro",
       en:"Real liras and currencies, and a clearer Settings → Money",
       ca:"Lires i monedes de veritat, i Ajustos → Diners més clar"},
@@ -14879,7 +14889,7 @@ var RELEASE_NOTES=[
     "📊 «Comparar monedes» ensenya el canvi real (ja no surt una llista buida).",
     "🧹 Ajustos → Diners més net: fora el pressupost duplicat i els bancs de despesa diària (ja són al Resum i a Cartera). Es queda el de la moneda i com es veu el total de despeses.",
    ]}},
-  {v:"4.13.0", d:"5 ago 2026",
+{v:"4.13.0", d:"5 ago 2026",
    t:{es:"La app se mueve como te gusta, y tus bancos ya no se lían",
       en:"The app moves the way you like, and your banks stop getting mixed up",
       ca:"L'app es mou com t'agrada, i els teus bancs ja no s'embolica"},
@@ -14929,7 +14939,7 @@ var RELEASE_NOTES=[
     "🐣 Les icones de la barra fan la seva gràcia en entrar a cada pestanya.",
     "📊 La despesa del mes al Resum (i al widget) és el mateix número que veus a Despeses.",
    ]}},
-  {v:"4.12.3", d:"1 ago 2026",
+{v:"4.12.3", d:"1 ago 2026",
    t:{es:"Un arranque más limpio, y tu dinero subiendo hasta la cifra otra vez",
       en:"A cleaner start-up, and your money counting up again",
       ca:"Un arrencada més neta, i els teus diners pujant fins a la xifra un altre cop"},
@@ -14951,520 +14961,10 @@ var RELEASE_NOTES=[
     "💰 I en obrir l'app tornes a veure els teus diners pujant fins a la xifra: l'animació hi era, però es gastava abans que la veiessis.",
     "🍂 Si tens posada una temàtica de temporada, les peces cauen un moment al principi i paren soles — abans duraven molt més i tornaven a caure cada cop que canviaves de pestanya.",
     "🎨 Amb una temàtica posada, ara també es nota a la resta de l'app (vores i detalls), no només al botó central.",
-   ]}},
-  {v:"4.12.1", d:"27 jul 2026",
-   t:{es:"Ajustes solo desde Resumen, y sin topes al abrir o bajar la lista",
-      en:"Settings only from Home, and no more stops when opening or scrolling",
-      ca:"Ajustos només des de Resum, i sense topalls en obrir o baixar la llista"},
-   items:{
-   es:[
-    "⚙️ Ajustes ya no se abre desde el borde de las otras pestañas: solo desde Resumen, deslizando a la derecha.",
-    "⚙️ Y al llegar a Resumen ya puedes abrir Ajustes al momento: antes hacía falta un segundo intento si venías de otra pestaña.",
-    "👤 Abrir el perfil, cerrarlo y volver a abrirlo seguido ya responde a la primera: se había quedado sordo un instante al tercer gesto.",
-    "📜 En Gastos, bajar la lista a toda velocidad ya no se para a medias: carga con más margen por delante.",
-   ],
-   en:[
-    "⚙️ Settings no longer opens from the edge of other tabs: only from Home, by swiping right.",
-    "⚙️ And once you are on Home you can open Settings right away: before, coming from another tab needed a second try.",
-    "👤 Opening the profile, closing it and opening it again in a row now responds the first time: the third gesture used to go deaf for a moment.",
-    "📜 In Expenses, scrolling the list flat out no longer stalls halfway: it loads with more room ahead.",
-   ],
-   ca:[
-    "⚙️ Els ajustos ja no s'obren des de la vora de les altres pestanyes: només des de Resum, fent lliscar a la dreta.",
-    "⚙️ I en arribar a Resum ja pots obrir Ajustos al moment: abans calia un segon intent si venies d'una altra pestanya.",
-    "👤 Obrir el perfil, tancar-lo i tornar-lo a obrir seguit ja respon a la primera: el tercer gest s'havia quedat sord un instant.",
-    "📜 A Despeses, baixar la llista a tota velocitat ja no s'atura a mitges: carrega amb més marge per davant.",
-   ]}},
-  {v:"4.12.0", d:"26 jul 2026",
-   t:{es:"Más rápida al cambiar de pestaña, y los ingresos del banco ya se apuntan",
-      en:"Faster when switching tabs, and money coming in now gets recorded",
-      ca:"Més ràpida en canviar de pestanya, i els ingressos del banc ja s'apunten"},
-   items:{
-   es:[
-    "💰 Los ingresos que llegan a tu banco ya se apuntan solos. Hasta ahora la app solo recogía las compras con tarjeta: cuando entraba una nómina o una transferencia, el saldo subía pero el movimiento no aparecía por ningún lado.",
-    "🏦 Y al sincronizar los bancos ahora te dice qué ha pasado, en un solo aviso: «✓ CaixaBank al día · 1.234,56 € · 3 movimientos nuevos». Antes salía el saldo suelto, de un banco solamente aunque tuvieras varios, y en dos avisos seguidos.",
-    "⚡ Entrar en Deudas y Metas ya no deja la app clavada un momento. Cada pestaña se preparaba justo al tocarla; ahora se prepara antes, mientras no estás haciendo nada.",
-    "👌 Y deslizar entre pestañas va suave desde la primera vez, también si acabas de moverte dentro de Deudas o Metas.",
-    "🎯 Al soltar el dedo al cambiar de pestaña ya no se pierde la fluidez: el arrastre iba bien y el medio segundo de después iba a trompicones. Ese tramo ya va tan limpio como el gesto.",
-    "🖐️ Deslizar entre pestañas ya cuenta SIEMPRE. El móvil se quedaba con uno de cada tres gestos —creía que estabas haciendo scroll— y esa deslizada no cambiaba de pestaña: se movía a medias y se volvía. Por fuera parecía que la app se atascaba o que iba lenta, y lo que pasaba es que un tercio de los intentos no llegaba a contar.",
-    "🔔 Si un banco pierde el permiso, el aviso te deja delante del aviso en Cartera. Tú decides cuándo reconectar: así no se abren dos autorizaciones a la vez ni se gasta el permiso.",
-    "📈 Si Trade Republic se desconecta, también sale un aviso en Cartera para volver a entrar con el PIN y el código.",
-    "📱 En Ajustes se ven las dos versiones: la de la app instalada y la que se actualiza sola.",
-    "👤 Cerrar el perfil justo después de abrirlo vuelve a responder al momento.",
-    "👤 Y abrirlo también: la pantalla del perfil entra a la primera, sin el tirón que daba antes. De paso va más suelta toda la app, porque ha dejado de rehacer por dentro pantallas que no habían cambiado.",
-    "🌍 Las notas de cada versión, como esta, ya se leen en los tres idiomas de la app.",
-    "🚪 La pantalla de entrada se queda solo con el logo: la barrita de carga sobraba.",
-    "📲 Cuando hay una versión nueva de la app para instalar, ya se ofrece de verdad; y si por algo no se puede instalar, la app te dice el motivo en vez de quedarse callada.",
-    "🎨 La app estrena su icono de verdad. El del escritorio y el de la pantalla de arranque eran todavía el genérico que trae la herramienta con la que está hecha.",
-   ],
-   en:[
-    "💰 Money coming into your bank is now recorded automatically. Until now the app only picked up card purchases: when a salary or a transfer came in, your balance went up but the transaction appeared nowhere.",
-    "🏦 And syncing your banks now tells you what happened, in a single message: «✓ CaixaBank up to date · €1,234.56 · 3 new transactions». It used to show a bare balance, for one bank only even if you had several, in two messages one after the other.",
-    "⚡ Opening Debts and Goals no longer freezes the app for a moment. Each tab used to be prepared the instant you touched it; now it is prepared beforehand, while you are doing nothing.",
-    "👌 And swiping between tabs is smooth from the very first time, even right after you have been scrolling inside Debts or Goals.",
-    "🎯 Letting go after a tab swipe no longer kills the smoothness: the drag itself was fine, and the half-second after it juddered. That bit is now as clean as the gesture.",
-    "🖐️ Swiping between tabs now always counts. The phone was taking over one in every three gestures —it thought you were scrolling— and that swipe never changed tab: it moved halfway and came back. From the outside it looked like the app was stuttering or slow, when in fact a third of your attempts simply did not count.",
-    "🔔 If a bank loses its permission, the alert takes you to the warning in Portfolio. You choose when to reconnect, so two authorizations are not opened at once and the permission is not wasted.",
-    "📈 If Trade Republic disconnects, a warning also appears in Portfolio so you can sign back in with your PIN and code.",
-    "📱 Settings now shows both versions: the installed app and the one that updates itself.",
-    "👤 Closing the profile right after opening it responds instantly again.",
-    "👤 And opening it too: the profile screen comes in first time, without the stutter it had before. The whole app feels lighter as a result, because it has stopped rebuilding screens that had not changed.",
-    "🌍 Release notes like these can now be read in all three languages of the app.",
-    "🚪 The start screen keeps just the logo: the little loading bar was unnecessary.",
-    "📲 When a new version of the app is ready to install, it is now actually offered; and if for some reason it cannot be installed, the app tells you why instead of staying silent.",
-    "🎨 The app has a proper icon at last. The one on your home screen and on the start screen were still the generic one from the tool it is built with.",
-   ],
-   ca:[
-    "💰 Els ingressos que arriben al teu banc ja s'apunten sols. Fins ara l'app només recollia les compres amb targeta: quan entrava una nòmina o una transferència, el saldo pujava però el moviment no apareixia enlloc.",
-    "🏦 I en sincronitzar els bancs ara et diu què ha passat, en un sol avís: «✓ CaixaBank al dia · 1.234,56 € · 3 moviments nous». Abans sortia el saldo sol, d'un banc només encara que en tinguessis diversos, i en dos avisos seguits.",
-    "⚡ Entrar a Deutes i Metes ja no deixa l'app clavada un moment. Cada pestanya es preparava just en tocar-la; ara es prepara abans, mentre no estàs fent res.",
-    "👌 I lliscar entre pestanyes va suau des de la primera vegada, també si acabes de moure't dins de Deutes o Metes.",
-    "🎯 En deixar anar el dit en canviar de pestanya ja no es perd la fluïdesa: l'arrossegament anava bé i el mig segon de després anava a trepets. Aquell tram ja va tan net com el gest.",
-    "🖐️ Lliscar entre pestanyes ja compta SEMPRE. El mòbil es quedava amb un de cada tres gestos —es pensava que estaves fent scroll— i aquella lliscada no canviava de pestanya: es movia a mitges i tornava. Des de fora semblava que l'app s'encallava o anava lenta, i el que passava és que un terç dels intents no arribava a comptar.",
-    "🔔 Si un banc perd el permís, l'avís et deixa davant de l'avís a Cartera. Tu decides quan reconnectar: així no s'obren dues autoritzacions a la vegada ni es gasta el permís.",
-    "📈 Si Trade Republic es desconnecta, també surt un avís a Cartera per tornar a entrar amb el PIN i el codi.",
-    "📱 A Ajustos es veuen les dues versions: la de l'app instal·lada i la que s'actualitza sola.",
-    "👤 Tancar el perfil just després d'obrir-lo torna a respondre a l'instant.",
-    "👤 I obrir-lo també: la pantalla del perfil entra a la primera, sense l'estirada que feia abans. De passada va més àgil tota l'app, perquè ha deixat de refer per dins pantalles que no havien canviat.",
-    "🌍 Les notes de cada versió, com aquesta, ja es llegeixen en els tres idiomes de l'app.",
-    "🚪 La pantalla d'entrada es queda només amb el logotip: la barreta de càrrega hi sobrava.",
-    "📲 Quan hi ha una versió nova de l'app per instal·lar, ja s'ofereix de debò; i si per alguna cosa no es pot instal·lar, l'app et diu el motiu en comptes de quedar-se callada.",
-    "🎨 L'app estrena icona de debò. La de l'escriptori i la de la pantalla d'arrencada encara eren la genèrica de l'eina amb què està feta.",
-   ]}},
-  {v:"4.11.0", d:"25 jul 2026",
-   t:{es:"La app se presenta al abrirse, y los bienes van por su cuenta",
-      en:"The app introduces itself when it opens, and assets stand on their own",
-      ca:"L'app es presenta en obrir-se, i els béns van pel seu compte"},
-   items:{
-   es:[
-    "🚪 Al abrir la app ya se ve su logo mientras carga, en vez de una pantalla en negro.",
-    "🏡 Tus bienes (piso, coche…) tienen ahora su propio bloque en Cartera, separado de las cuentas del banco. Puedes subirlo o bajarlo con «⇅ Ordenar secciones».",
-    "👤 Cerrar el perfil vuelve a ir a la primera, también si habías bajado dentro. Abrirlo y cerrarlo se sienten igual de suaves.",
-    "🔔 Se acabaron los avisos repetidos de que hay una versión nueva.",
-    "✨ El popup de Novedades marca bien cuál es la versión que llevas puesta.",
-    "💡 Por si acaso: el patrimonio de Inicio sube contando hasta tu cifra. Es una animación — el número final siempre ha sido el correcto.",
-   ],
-   en:[
-    "🚪 Opening the app now shows its logo while it loads, instead of a black screen.",
-    "🏡 Your assets (flat, car…) now have their own block in Portfolio, separate from your bank accounts. Move it up or down with «⇅ Reorder sections».",
-    "👤 Closing your profile works first time again, even if you had scrolled down inside it. Opening and closing now feel the same.",
-    "🔔 No more repeated notifications about a new version being available.",
-    "✨ The What's new popup now correctly marks which version you are running.",
-    "💡 Just in case: the net worth on Home counts up to your figure. It's an animation — the final number was always the right one.",
-   ],
-   ca:[
-    "🚪 En obrir l'app ja es veu el seu logotip mentre carrega, en lloc d'una pantalla en negre.",
-    "🏡 Els teus béns (pis, cotxe…) tenen ara el seu propi bloc a Cartera, separat dels comptes del banc. El pots pujar o baixar amb «⇅ Ordenar seccions».",
-    "👤 Tancar el perfil torna a anar a la primera, també si havies baixat a dins. Obrir-lo i tancar-lo se senten igual de suaus.",
-    "🔔 S'han acabat els avisos repetits que hi ha una versió nova.",
-    "✨ El missatge de Novetats marca bé quina versió portes posada.",
-    "💡 Per si de cas: el patrimoni d'Inici puja comptant fins a la teva xifra. És una animació — el número final sempre ha estat el correcte.",
-   ]}},
-  {v:"4.10.2", d:"25 jul 2026", t:"El canal de pruebas, esta vez de verdad", items:[
-    "🚧 Lo de ayer era solo la mitad. Después del arreglo anterior, la app seguía diciéndote «✓ estás a la última» con la versión de prueba ahí publicada. El motivo de fondo: GitHub no deja que la app lea esos ficheros directamente desde la web, así que ahora los pide Android, que sí puede. Comprobado: la versión de prueba nunca se había llegado a descargar ni una sola vez.",
-    "🔔 Y si el canal de pruebas falla, te lo dice. Antes, cualquier problema al mirar si había versión nueva se disfrazaba de «no hay nada nuevo» — que es justo lo que hizo que esto pasara desapercibido tanto tiempo. Ahora sale el error y queda anotado.",
-    "🙈 Sigue afectando solo al canal de pruebas: si nunca lo has activado, no te ha faltado ninguna actualización.",
-  ]},
-  {v:"4.10.1", d:"25 jul 2026", t:"El canal de pruebas vuelve a funcionar", items:[
-    "🚧 Si activabas el canal de pruebas, la app te decía «✓ estás a la última» aunque hubiera una versión de prueba esperándote. GitHub cambió el sitio de donde se bajan esos ficheros y la app tenía apuntado el antiguo, así que la descarga moría — y como hay una red de seguridad que en ese caso mira el canal normal, no se veía ningún error: simplemente te contestaba que no había nada nuevo. Corregido.",
-    "🙈 Solo afecta al canal de pruebas: si nunca lo has activado, no te ha faltado ninguna actualización.",
-  ]},
-  {v:"4.10.0", d:"25 jul 2026", t:"El perfil ya se cierra a la primera, el oro de Revolut entra, y una pantalla de entrada de verdad", items:[
-    "👤 El gesto del perfil, arreglado de verdad. Si habías bajado un poco dentro del perfil y luego tirabas para cerrarlo, la pantalla se ponía a parpadear entre el perfil y el resumen y no cerraba nunca. Ahora el dedo primero sube el contenido y, al llegar arriba, el panel empieza a encogerse desde donde está — sin saltos. Y ABRIRLO también: se quedó sin los dos arreglos que sí recibió el cierre, por eso seguía yendo a tirones y mezclando las dos pantallas.",
-    "🥇 El CSV de Revolut ya no te dice «no he podido leer el CSV». Subiste el extracto de tu cuenta en euros —justo el que hace falta para saber cuánto ganas con el oro— y la app lo rechazaba, aunque lo había leído perfectamente. Ahora te lo confirma, se guarda los euros de tus conversiones y te dice qué fichero falta. Puedes soltarlos de uno en uno y en el orden que quieras: los va juntando.",
-    "🚪 Pantalla de entrada nueva. Antes veías un emoji con «Cargando…» y, al entrar, el patrimonio viejo un segundo antes que el bueno. Ahora la app se presenta con su marca y espera a tener el dato bueno para dar paso — como mucho un instante, nunca se queda colgada.",
-    "🏠 «Hogar y gastos compartidos» se muda al perfil (el avatar de Inicio, arriba del todo). Estaba enterrado al final de Cartera, que es donde no mira nadie.",
-    "⇅ Cartera se ordena a tu gusto. «Tus cuentas» e «Inversiones» se suben y se bajan con el mismo «⇅ Ordenar secciones» que ya tenían Recibos, Deudas y Metas. Tu orden se guarda y viaja con tu cuenta.",
-    "🔒 Y por detrás: el servidor solo acepta llamadas desde la app (antes desde cualquier web), freno a los intentos repetidos —para que tu banco no te bloquee la cuenta si algo se pone pesado— y los permisos de conectar un banco caducan a la media hora y solo valen una vez.",
-  ]},
-  {v:"4.9.2", d:"25 jul 2026", t:"Arreglado el APK roto: caracteres raros y la app que no se actualizaba", items:[
-    "🔤 Los símbolos raros que salían en la tarjeta de Trade Republic (donde debía ir un ✓) eran texto que se estropeó al preparar la versión anterior. Corregido, y ahora hay una comprobación que no deja publicar con texto roto.",
-    "⬇️ La app decía «vdev» y no se actualizaba nunca. El APK anterior se empaquetó sin ponerle el número de versión, y la app compara números para saber si hay algo nuevo: sin número, la respuesta era siempre «no hay nada». Por eso no te llegó ninguna de las mejoras del día. Arreglado, y el proceso de empaquetado ahora se para en seco si la versión no queda puesta.",
-    "🙌 Con esto sí te llegan de verdad: los brókers que eliges tú, las tarjetas plegables, el oro de Revolut con su coste y el perfil que cierra limpio.",
-  ]},
-  {v:"4.9.1", d:"25 jul 2026", t:"Los brókers los eliges tú, y el perfil se cierra limpio", items:[
-    "🧩 Ya no te salen los tres brókers a la fuerza. Antes la app te enseñaba el login de Trade Republic, MyInvestor y Revolut aunque no tuvieras cuenta en ninguno — raro y confuso. Ahora arriba eliges cuáles usas y solo aparecen esos. Si ya tenías posiciones de un bróker, sigue apareciendo solo: no tienes que tocar nada.",
-    "🗂️ Las tarjetas de bróker también se pliegan, igual que los bancos: tocas la que quieras y se abre solo esa.",
-    "👤 Cerrar el perfil deslizando ya no mezcla las dos pantallas. Al arrastrar hacia abajo se veían el perfil y el resumen a la vez, uno encima del otro, y parecía que la app se volvía loca. Ahora el panel se encoge hacia tu avatar, opaco y limpio, igual que al abrirlo pero al revés.",
-  ]},
-  {v:"4.9.0", d:"25 jul 2026", t:"Trade Republic deja de pedirte el código cada vez, y el oro por fin dice si ganas", items:[
-    "🔐 Trade Republic ya NO se desconecta al cerrar la app. Llevaba meses pidiéndote el PIN y el código del móvil cada vez que la abrías. La causa: al guardar la sesión, de las dos copias que hay de la misma credencial nos quedábamos con la caducada, y encima la volvíamos a guardar en cada vuelta — una vez estropeada, ya no se recuperaba nunca. Por eso pasaba «siempre, dieras el tiempo que dieras». Probado cerrando la app y volviendo a entrar: entra sin pedir nada.",
-    "🥇 El oro de Revolut ya te dice cuánto ganas o pierdes, sin teclear nada. Revolut parte cada compra en dos ficheros: las onzas en el extracto de Materias primas y los euros en el de la cuenta. Ahora la app cruza los dos sola y calcula el coste (incluso si vendiste una parte). Suelta los dos extractos juntos, en el orden que quieras.",
-    "👤 Cerrar el perfil deslizando ya va suave. Al arrastrar hacia abajo, la app repintaba la pantalla entera hasta 120 veces por segundo y se atascaba. Abrir siempre fue fino; ahora cerrar también.",
-    "🏦 «Mis bancos» deja de ser un muro de botones. Cada banco enseñaba sus tres botones a la vez (con tres bancos, nueve). Ahora tocas el banco y salen los suyos. El estado sigue siempre a la vista, y si vienes del aviso de «reconecta este banco», ese llega ya abierto.",
-    "🔔 El aviso de «hay versión nueva» en el navegador no salía nunca (fallaba por dentro, en silencio). Arreglado.",
-    "🛡️ Por dentro: la clave que usa el lector de notificaciones ya no viaja en la dirección web sino en una cabecera, que es donde no queda registrada. Y los fallos del servidor vuelven a quedar apuntados — llevaban dos semanas perdiéndose sin que nadie lo supiera.",
-  ]},
-  {v:"4.8.0", d:"24 jul 2026", t:"Ya no se ralentiza, y el histórico se explica solo", items:[
-    "⚡ Se acabó lo de «cuanto más rato la uso, más lenta va». La app guardaba TODO el histórico de gastos en el móvil cada vez que volvías a ella (abrir la app, cambiar de app y volver…), y eso costaba más cada mes según se llenaba: con 2.000 gastos eran 477 KB por vuelta, con 8.000 casi 2 MB. Ahora el histórico solo se reescribe cuando cambia de verdad — 1 KB — y ese número ya NO crece con los años.",
-    "📝 El histórico por fin dice DE QUÉ era cada movimiento (lo pedía mi padre): debajo del título sale el concepto del bizum o la descripción del banco, y se rellena también en los movimientos antiguos al sincronizar. Puedes escribirlo o corregirlo tú desde la ficha del gasto, y lo que escribas no te lo pisa el banco. El buscador también busca por concepto.",
-    "🏦 Si al sincronizar hay un banco que se ha desconectado, ahora te enteras: salta una notificación de verdad y la app te lleva SOLA al sitio donde se reconecta, con ese banco resaltado. Antes salía un aviso de dos segundos que decía «reconéctate» sin decir dónde. Si no tienes ningún banco puesto, también te abre la pantalla para ponerlo.",
-    "🧪 Modo pruebas y canal beta (para el que la desarrolla): probar cosas en el móvil con una copia de los datos, sin tocar la cartera real ni la de nadie más, y recibir las versiones antes que el resto de la familia. Y una pantalla para revisar la beta desde el propio móvil: sale la lista de lo que trae la versión, marcas qué va bien y qué falla, y hasta que no esté todo probado no se puede aprobar.",
-    "🛡 Seguridad: la app ya no deja que se cargue código de sitios que no sean los suyos ni que se manden tus datos fuera (CSP). La clave de la captura automática de gastos ahora es de 256 bits de verdad — antes, en algunos navegadores, salía de un generador predecible.",
-    "🐞 Arreglado: si dos móviles tocaban la cartera a la vez, el aviso de conflicto reventaba por dentro y no se resolvía nunca (fallaba en silencio). Y varios textos salían en clave («tb_removed», «fj_fixed») en vez de en castellano.",
-  ]},
-  {v:"4.7.1", d:"23 jul 2026", t:"Herramientas de inversión, más limpias", items:[
-    "📈 Fuera el bloque «Orden de los brókers» de Herramientas de inversión: ensuciaba la pantalla sin aportar. Tus brókers salen en Cartera → Inversiones en el orden de siempre: Revolut, Trade Republic y MyInvestor."
-  ]},
-  {v:"4.7.0", d:"22 jul 2026", t:"Notis sin duplicados, roles de banco claros y deudas que hablan igual", items:[
-    "🔔 Se acabaron las notis dobles: cuando un gasto es «tocho» ya solo sale esa noti (antes salía TAMBIÉN la de «✓ Gasto apuntado» con el mismo importe). Esta parte va en el APK 31 — la app te lo ofrecerá cuando esté publicado.",
-    "🧾 El aviso de recibo de la víspera tampoco sale ya dos veces (una exacta del móvil y otra redondeada al abrir la app): ahora la app comprueba primero qué avisó ya el móvil. Y los avisos de recibos van SIEMPRE con el importe exacto: 89,54 €, no «90 €».",
-    "🏦 En Cartera cada banco dice debajo lo que es, como Trade Republic: «Gasto diario», «Recibos», o las dos si hace ambas cosas — y fuera el carrito suelto al lado del nombre. Al editar, cada banco es UNA cosa: o Recibos, o Gasto diario, o Todo (ya no se queda «Recibos» clavado en verde).",
-    "📈 Desplegar un bróker en Cartera va con la misma animación suave del resto de la app.",
-    "💳 Deudas: todas hablan igual. La hipoteca y el préstamo dicen «acabas en febrero 2049» como las demás (fuera el «a este ritmo acabas ~») y también muestran «Quedan X/Y cuotas · Z €/mes», estimado con lo que amortizas cada mes.",
-    "🛡 El logo de reCAPTCHA que se quedaba flotando abajo en TODA la app ya no sale. Y si el captcha de MyInvestor falla, el mensaje ahora dice QUÉ falló exactamente: si Google no quiso dar el token dentro de la app, o si MyInvestor lo rechazó — así sabemos si el atajo del site key tiene recorrido o toca pantalla nativa.",
-  ]},
-  {v:"4.6.4", d:"20 jul 2026", t:"MyInvestor: intento de resolver el captcha en la propia app", items:[
-    "🔓 Nuevo intento para el captcha de MyInvestor SIN cambiar el APK: cuando salta el captcha, aparece un campo «avanzado» para pegar el «site key» de reCAPTCHA de MyInvestor. Con él, la app intenta resolver el captcha ella sola dentro de la app y reintenta el login. Cómo sacar el site key: en el PC, en la web de MyInvestor, F12 → Red → filtra «recaptcha» → copia el «render=6L…».",
-    "ℹ️ Aviso honesto: puede que MyInvestor rechace el token por venir de un sitio distinto al suyo. Si es así, el único camino que queda es una pantalla nativa (otro APK) — pero esto se prueba en 1 minuto y si funciona, resuelto sin tocar nada más.",
-  ]},
-  {v:"4.6.3", d:"20 jul 2026", t:"El «Gasto diario» de siempre ahora admite varios bancos", items:[
-    "🛒 Quitado el chip «En gasto diario» duplicado que añadí por error. Ahora el chip «Gasto diario» de toda la vida es el que deja marcar VARIOS bancos: el primero es tu cuenta principal (de la que sale el efectivo y el redondeo) y los demás solo suman sus compras al mismo presupuesto. Sin líos ni chips de más.",
-  ]},
-  {v:"4.6.2", d:"20 jul 2026", t:"Arreglos: tabs con letra pequeña + «gasto diario» en cada banco", items:[
-    "📱 Con la letra en «Pequeña» la barra de abajo se quedaba flotando más arriba de la cuenta: ya vuelve a estar pegada abajo (y de paso queda perfecta también en Grande/Enorme).",
-    "🛒 «Gasto diario» con varios bancos ahora está DONDE tiene que estar: en Cartera → editar cuentas, un botón «En gasto diario» en cada banco (con su iniciales), y puedes marcar los que quieras. Los marcados salen con un 🛒 en la lista. Ya no está escondido en una sección aparte.",
-    "🔄 El widget vuelve a empujar sus datos cada vez que abres la app, no solo cuando cambian — para que MIUI/HyperOS no se quede con la cifra vieja. (Si aún así no se actualiza: quítalo del escritorio y vuelve a añadirlo.)",
-  ]},
-  {v:"4.6.1", d:"18 jul 2026", t:"Ajustes del lote: letra pequeña, Hogar fuera de Ajustes, animaciones con más chispa", items:[
-    "🔡 En Accesibilidad ahora hay también «Pequeña» (además de Normal/Grande/Enorme).",
-    "🏠 «Hogar y gastos compartidos» sale de Ajustes y vive en Cartera, abajo del todo — es una funcionalidad de la app, no un ajuste.",
-    "🪙 Los «bancos de gasto diario» (marcar varios para el mismo presupuesto) se ven y se editan también en Cartera → editar cuentas, no solo en Ajustes → Dinero.",
-    "✨ Las temáticas de temporada tienen ahora más vidilla estilo Revolut: 3 capas de profundidad (parallax), caída orgánica con giro y balanceo, un halo de color que respira arriba y el botón + con pulso. (Se apaga con «Reducir animaciones».)",
-    "🔌 MyInvestor y el widget: el código nuevo ya está, pero el captcha necesita una pieza nativa que aún no puedo montar por actualización web, y el widget necesita que el APK que lo lleva esté bien instalado. Sigo con ello.",
-  ]},
-  {v:"4.6.0", d:"18 jul 2026", t:"Temáticas, accesibilidad, metas con teclado propio y más monedas", items:[
-    "🎯 Al aportar a una meta ya no salta el teclado del móvil (que rompía la estética): ahora abre una hoja con teclado numérico propio, como el botón +, y eliges de qué banco lo aportas.",
-    "🎉 Temáticas de temporada en Ajustes → Apariencia: Mundial (España), Halloween, Navidad, Verano, Invierno y Pascua. Cada una re-tinta el botón + y deja caer un detalle animado (nieve, hojas, balón…). Se apaga con «Reducir animaciones» o eligiendo «Ninguna».",
-    "♿ Nueva sección Accesibilidad: tamaño de letra en 3 niveles (Normal/Grande/Enorme) que ahora escala TODA la app —incluidos los diálogos y hojas, que antes se quedaban pequeños y descuadrados—, «Reducir animaciones» y «Más contraste».",
-    "💱 Muchas más monedas (yen, dólar canadiense/australiano, yuan, coronas, złoty, real, rupia…) y una comparativa rápida «1 € = …» con los tipos del BCE.",
-    "🪙 Ahora puedes marcar VARIOS bancos como gasto diario (Ajustes → Dinero): si en un viaje usas Trade Republic y Revolut, las compras de ambos cuentan en el mismo presupuesto.",
-    "📱 El widget de inicio ya no enseña solo lo gastado: añade «Puedes gastar X €» — lo que te puedes permitir sin pasarte ni quedarte en rojo. (Necesita el APK nuevo para que llegue al escritorio.)",
-    "💼 En Cartera se guarda tu selección de patrimonio (líquido/inversiones/bienes) aunque cierres la app, y la zona de inversiones entra con una animación suave.",
-    "🎛️ Ajustes abre siempre con todas las secciones encogidas y con un orden más lógico: Apariencia → Accesibilidad → Para empezar → Dinero → Conexiones → App → Avanzado.",
-    "🧾 «Gestionar recibos» y «Herramientas de inversión» ahora combinan con la estética nueva (tarjetas, inputs y enlaces al mismo estilo que el resto).",
-    "🌬️ Los ocultamientos (barra inferior, plegar tarjetas) son más suaves, sin cortes secos, tanto al esconder como al aparecer.",
-    "🔌 MyInvestor: seguimos preparando el terreno para el captcha (el envío del token ya viaja en la petición). Resolverlo del todo necesita una pantalla nativa nueva; mientras tanto, el aviso sigue explicándolo en cristiano.",
-  ]},
-  {v:"4.5.1", d:"18 jul 2026", t:"Primera vez que abres Ajustes/perfil: ya se ve el contenido", items:[
-    "✨ La primera vez que tiras despacio hacia Ajustes o el perfil ya no sale el panel negro vacío: el contenido se prepara en segundo plano y está listo al arrastrar.",
-    "👆 Al bajar el perfil, Resumen se queda quieto (sin scroll a la vez) — eso quitaba fluidez cuando pelean los dos gestos.",
-  ]},
-  {v:"4.5.0", d:"18 jul 2026", t:"Histórico del banco: a Gastos, Recibos o Ingresos", items:[
-    "🏦 Al importar histórico ya salen también los ingresos (nómina, bizums…). En cada movimiento eliges si va a Gastos, a Recibos (fijo mensual con su día) o a Ingresos — así no tienes que teclear la luz a mano si ya está en el banco.",
-    "🛒 Al sincronizar un banco marcado en «También apuntar gastos de tarjeta», las compras con tarjeta del mes siguen entrando solas en Gastos (se ven en Todos y filtrando por ese banco) y cuentan para el presupuesto. El rol «gasto diario» sigue siendo uno (TR); el resto son bancos extra de tarjeta.",
-  ]},
-  {v:"4.4.3", d:"18 jul 2026", t:"Gesto fluido Y con Resumen visible detrás", items:[
-    "✨ Al abrir Ajustes o el perfil ya se ve otra vez Inicio detrás (adiós al fondo negro cutre de la 4.4.2), sin volver a los tirones: el truco es no re-pintar el shell en cada milímetro, no ocultarlo.",
-  ]},
-  {v:"4.4.2", d:"18 jul 2026", t:"Gestos fluidos de verdad + sin cargos vacíos", items:[
-    "✨ Al abrir Ajustes o el perfil tirando despacio, Resumen se «congela» un momento: ya no se re-pinta el gráfico en cada milímetro (el tirón de antes).",
-    "🏠 Si no hay próximos cargos este mes, esa sección desaparece del todo en Inicio (antes quedaba el hueco vacío).",
-  ]},
-  {v:"4.4.1", d:"18 jul 2026", t:"Ajustes y perfil sin tirones al arrastrar lento", items:[
-    "✨ Si abres Ajustes o el perfil tirando despacio con el dedo, ya no se pone a «cámara lenta» (antes el móvil re-pintaba toda la pantalla en cada milímetro).",
-    "🧾 El velo del perfil sigue ahí; el desenfoque fino entra al soltar, que es cuando se nota y no cuesta frames.",
-  ]},
-  {v:"4.4.0", d:"18 jul 2026", t:"Reconectar un banco en UN toque y avisos con la app cerrada (APK 29)", items:[
-    "🔓 Si un banco pierde el permiso, ahora te enteras DONDE miras el saldo: banner en Cartera con botón «Reconectar CaixaBank» que te lleva directo a autorizar — sin bucear por Ajustes. Y si Trade Republic se desconecta, su banner abre la pantalla de reconexión con el teléfono ya puesto (y te aclara que es AQUÍ, no en la app de TR 😉).",
-    "🛎 Recibos con la app CERRADA: la app deja programado en Android el calendario del mes y el móvil avisa solo la víspera de cada recibo y cuota. Necesita el APK 4.4.0 (te lo ofrece sola al abrir; instálalo una vez).",
-    "📊 Los avisos de presupuesto de los gastos que entran con la app cerrada (notis de TR) ahora también saltan al 50% y al 95% (antes solo al 80% y al pasarte). Esto va por servidor: funciona ya, sin APK nuevo.",
-  ]},
-  {v:"4.3.0", d:"18 jul 2026", t:"Avisos que valen dinero, deudas con fecha de fin y alegrías en Inicio", items:[
-    "🔔 La app ahora te avisa sola: al cruzar el 50%, 80%, 95% y 100% del presupuesto del mes (una vez por umbral), y la VÍSPERA de cada recibo y cuota («mañana se cobran X €») — porque el banco no avisa. Los recibos gordos siguen avisando además con 2-3 días.",
-    "📅 La hipoteca y los préstamos sin plazo ya no están «muertos»: ahora ponen «a este ritmo acabas ~febrero 2049» calculado con tu cuota. Amortiza y verás la fecha acercarse.",
-    "🎉 Cuando a una financiación le queda LA ÚLTIMA cuota, te lo celebra en Inicio: «¡última cuota este mes! Después, X €/mes libres para ti».",
-    "👇 El sheet «Más…» de períodos en Gastos (mes pasado, 3 meses, rango…) ya se cierra tirando hacia abajo y con el gesto atrás — era el único que no.",
-    "📊 El informe ahora te dice DÓNDE queda: toast + notificación con el nombre del fichero (carpeta Descargas).",
-    "⚙️ Las secciones de Ajustes se despliegan con animación suave (se acabó el corte seco).",
-    "🔌 MyInvestor: el «Captcha required» ahora se explica en cristiano (es su anti-bot; esperar y reintentar desde casa) y la app se presenta con versión más nueva ante su API — la palanca documentada contra el captcha. Si con esto sigue, el siguiente paso es resolver el captcha de verdad (necesita trabajo nativo).",
-  ]},
-  {v:"4.2.0", d:"18 jul 2026", t:"Compras a plazos simuladas, banco en cada apunte y la ronda de arreglos que pediste", items:[
-    "📅 «¿Me lo puedo permitir?» ahora también A PLAZOS: pones meses y entrada y te dice la cuota, cómo suben tus fijos, si te cabe cada mes con tu nómina… y con un botón creas la deuda directamente (aparece en Plan → Deudas y descuenta del líquido sola).",
-    "🏦 Al apuntar un gasto a mano (el + o editando uno) puedes elegir de qué banco sale. Se recuerda hasta reinstalando la app.",
-    "↻ El «Sincronizar» de Cartera ahora también actualiza Trade Republic y MyInvestor (si están conectados), no solo los bancos de Open Banking.",
-    "🏠 Arreglado el error al crear un hogar («row-level security policy»): a la base de datos le faltaba un permiso. Hay que pegar la migración 0015 en Supabase (docs/HOGAR.md) — la app ahora además te lo dice en cristiano.",
-    "⚙️ Entrar en Ajustes ya no hace ese efecto raro e incómodo: ahora es un deslizamiento limpio, sin desenfoques.",
-    "🔀 «Ver más» y «Ver plan» desde Inicio te dejan al PRINCIPIO de Gastos/Metas (antes aterrizabas a mitad de pantalla).",
-    "📅 El cartelito de «Mi ciclo» ya no choca con los filtros de abajo.",
-    "🖊 Editar los Bienes en Cartera ya no parte los nombres palabra a palabra (la casilla del importe iba sin estilo).",
-    "🧹 Textos de bancos en Ajustes a dieta: menos párrafos, mismo contenido.",
-    "⚡ Menos micro-tirones usando la app: el guardado local ahora va en segundo plano (y se vuelca siempre al salir).",
-  ]},
-  {v:"4.1.0", d:"18 jul 2026", t:"Cartera a tu gusto, bancos que no caducan solos y Ajustes puestos al día", items:[
-    "🏦 Los bancos ya NO se sincronizan solos al abrir la app (eso les olía a robot y te caducaban la conexión cada dos por tres). Ahora sincronizas tú con el botón «↻ Sincronizar bancos» en Cartera, cuando quieras.",
-    "📊 El gráfico de Cartera es tuyo: toca Liquidez, Inversiones o Bienes en la leyenda para marcarlos/desmarcarlos y ver, por ejemplo, líquido + inversiones a secas. Todo marcado = tu patrimonio de siempre.",
-    "✏️ Vuelve el editar de verdad en Cartera: nombre y rol (Recibos / Gasto diario / Todo) de cada cuenta — el rol se había quedado sin sitio con el rediseño —, los bienes otra vez editables, y en inversiones un «Editar a mano» pequeñito al pie.",
-    "🔒 En las cuentas conectadas al banco solo editas el nombre: el saldo lo trae el banco solo (editarlo a mano era engañarse).",
-    "🏠 Hogar y gastos compartidos han vuelto: estaban implementados pero el rediseño los dejó sin puerta. Ahora en Ajustes → Conexiones → «Hogar y gastos compartidos».",
-    "🎯 Al scrollear las metas en Inicio ya no se te escapa la pestaña, y los dos «Ver plan ›» te llevan al sitio correcto (cargos → Recibos, metas → Metas).",
-    "⬇️ La barra de abajo, al esconderse, deja ver el contenido (antes quedaba un bloque vacío) y anima con la misma curva que el resto.",
-    "⚙️ Ajustes: botones a tamaño humano, animación suave por secciones, huella y cerrar sesión otra vez a mano, sugerencias con su propio botón, más monedas (£ y CHF), y fuera lo deprecado.",
-    "📸 El informe del mes ya no «no hace nada»: si el menú de compartir falla, la imagen se descarga igualmente.",
-  ]},
-  {v:"4.0.15", d:"17 jul 2026", t:"Bancos que aguantan, oro con su %, barra que se esconde y Ajustes más guapos", items:[
-    "🏦 Open Banking ya no se cae «cada dos por tres»: un fallo pasajero del banco (rate-limit, un 403/404 suelto) ya NO te desconecta ni te pide reconectar. Solo se marca «reconéctate» cuando el permiso caducó de verdad.",
-    "🥇 Materias primas de Revolut: al importar el CSV puedes escribir lo que te costó en € y por fin ves si el oro/plata sube o baja (el precio ya se actualizaba solo; faltaba el coste, que Revolut no manda en ese extracto).",
-    "⬇️ La barra de abajo se esconde al bajar y vuelve al subir o al cambiar de pestaña (como Revolut), con la misma animación suave de siempre.",
-    "🔒 Privacidad: ahora se abre DENTRO de la app, con su botón de volver — se acabó la ventana que quedaba pegada arriba y de la que costaba salir.",
-    "⚙️ Ajustes: repaso de arriba abajo, quitando restos antiguos y dejándolo más limpio.",
-  ]},
-  {v:"4.0.14", d:"17 jul 2026", t:"Editar gasto: categorías sin cambiar de pestaña", items:[
-    "🧾 Al modificar un gasto, al deslizar las categorías ya no se mueve la app de detrás (igual que en el + y en los filtros de Gastos).",
-  ]},
-  {v:"4.0.13", d:"17 jul 2026", t:"Perfil se cierra tirando abajo + fondo al apuntar", items:[
-    "👤 En el perfil, desliza de arriba hacia abajo y se encoge otra vez al avatar (la misma animación, hacia atrás).",
-    "🧾 Al pulsar + o editar un gasto desde cualquier pestaña, se ve la pantalla de detrás (como ya pasaba en Resumen).",
-  ]},
-  {v:"4.0.12", d:"17 jul 2026", t:"MyInvestor sin captcha", items:[
-    "🔌 Conectar MyInvestor ahora hace el login desde TU móvil (como la app oficial): el dichoso reCAPTCHA saltaba porque el login salía de un servidor de Amazon. Desde tu IP de casa casi nunca aparece.",
-    "☁️ Todo lo demás sigue igual: la sesión se guarda cifrada en la nube y las posiciones se refrescan solas. Funciona ya con el APK que tienes (te llega por OTA).",
-    "🧪 El gesto del perfil (abrir arrastrando hacia abajo, cerrar hacia arriba) queda cubierto por test automático."
-  ]},
-  {v:"4.0.11", d:"17 jul 2026", t:"El perfil baja como en Revolut + TR sin dramas", items:[
-    "👤 El perfil ahora nace del avatar y crece hasta llenar la pantalla mientras el fondo se desenfoca — como en Revolut, también tirando hacia abajo desde Inicio con el dedo.",
-    "🏦 Trade Republic: si la sesión caduca de verdad, la app te lleva directa a reconectar con el teléfono ya puesto (PIN + código y listo). Ya no hay que pulsar «Desconectar».",
-    "📱 APK 4.0.11 (versionCode 28): la sesión de TR se guarda en más momentos (también al salir de la app) para que no «caduque» sola cada dos por tres."
-  ]},
-  {v:"4.0.10", d:"17 jul 2026", t:"La app nueva llega sola a todos", items:[
-    "📱 Si hay APK nueva, al abrir Mi Cartera se lanza el instalador (tú, tu padre y tu pareja). Solo confirma «Instalar» en Android.",
-    "🔔 La notificación de «app nueva» ya abre el instalador de verdad (antes se confundía con el update web)."
-  ]},
-  {v:"4.0.9", d:"17 jul 2026", t:"Verde más vivo + APK 4.0.9 alineado", items:[
-    "🌿 El tema verde vuelve a verse más cálido (menos seco/oscuro). Las fichas llevan un velo verdoso suave, no negro.",
-    "📱 APK 4.0.9 (versionCode 27): Trade Republic ya no se desconecta solo por un sync fallido al abrir. Instálalo una vez; el resto sigue por OTA."
-  ]},
-  {v:"4.0.8", d:"17 jul 2026", t:"Tutorial al avatar, fichas sin negro y bancos claros", items:[
-    "🎓 El tutorial ahora encierra el círculo del avatar (antes medía a medias del swipe y el foco salía vacío).",
-    "🧾 Al editar un gasto o pulsar +, se ve la app detrás de verdad: sin fondo negro ni scale raro.",
-    "👤 Perfil: capa de atenuado aparte (sin achicar la app), botón ✕ y animación más suave.",
-    "🏦 Brókers con tarjetas marcadas (TR / MI / CSV) y la versión abajo — así ves si ya tienes el update.",
-    "🔌 Trade Republic ya no se sincroniza solo al abrir (eso te deslogueaba con el APK viejo). Sync a mano. El arreglo nativo sigue necesitando APK 4.0.7+."
-  ]},
-  {v:"4.0.7", d:"17 jul 2026", t:"Novedades suaves, perfil natural, Pádel y fichas sin negro", items:[
-    "✨ Tras un update, Novedades entra con animación suave (sin el salto de antes).",
-    "👤 Perfil: abrir y cerrar más naturales (cierra tirando hacia arriba, como entró); sin fondo negro raro.",
-    "🧾 En editar gasto y en +, se ve la app detrás con un velo suave; al tirar abajo cierra más rápido.",
-    "🎾 Nueva categoría Pádel (🎾): Playtomic y pádel ya no van a Ocio/cine. Un «restaurante de pádel» sigue en Bares.",
-    "🏦 Brókers en tarjetas planas; Trade Republic no se marca desconectado por un sync fallido (hace falta el APK 4.0.7).",
-    "🔌 MyInvestor: el captcha lo pone su anti-bot — espera un rato y reintenta; el device_id se reutiliza para pedirlo menos."
-  ]},
-  {v:"4.0.6", d:"17 jul 2026", t:"Perfil más fino, Gastos ordenados y bancos claros", items:[
-    "👤 Perfil: tipografía compacta, animación más suave, tirar abajo para salir; casillas de editar al tamaño del texto guardado.",
-    "🧾 En Gastos: nombre, debajo la categoría y abajo fecha · banco (como Mapfre).",
-    "🏦 Bancos: brókers en tarjetas planas (sin acordeones) y sync suave de TR/MI al abrir sin pedir captcha a ciegas.",
-    "🔌 MyInvestor reutiliza el device_id de la nube y prueba un sync suave si estaba «caducado»."
-  ]},
-  {v:"4.0.5", d:"17 jul 2026", t:"Perfil al tirar abajo, fichas sin velo y bancos que no se desconectan solos", items:[
-    "👤 En Inicio, tira hacia abajo (o el avatar) y baja tu perfil al estilo Revolut: datos personales, patrimonio y perfil inversor, editables.",
-    "🧾 Las fichas de gasto y Apuntar ya no ponen el fondo negro; al cerrarlas no hay el parpadeo de antes.",
-    "🏦 Mis bancos más limpio, al estilo del resto de la app.",
-    "🔌 Trade Republic y MyInvestor ya no se desconectan solos al abrir la app (ni MyInvestor te pide captcha por un 403 de anti-bot).",
-    "📱 Para el arreglo nativo de Trade Republic hace falta el APK 4.0.5."
-  ]},
-  {v:"4.0.4", d:"17 jul 2026", t:"Tutorial nuevo, fichas más suaves y Plan compacto", items:[
-    "🎓 Tutorial actualizado al rediseño: Inicio, Gastos, +, Plan, Cartera y Ajustes.",
-    "👆 En Gastos, scrollear categorías/bancos ya no hace el amago de cambiar de pestaña.",
-    "🧾 Tirar hacia abajo para cerrar (+ y editar gasto) es más suave, al estilo del swipe entre tabs; en editar gasto vale en toda la ficha.",
-    "✨ Ficha de editar gasto más clara: importe grande, comercio, categoría y tipo gasto/ingreso.",
-    "📅 En Plan, Pendiente y Ya pagado vuelven a mostrar 3 y «Ver más».",
-    "💼 En Cartera, fuera el número verde al lado de inversiones y la tarjeta de redondeo."
-  ]},
-  {v:"4.0.3", d:"17 jul 2026", t:"Ajustes ordenados y aviso de update con la app cerrada", items:[
-    "🔔 Si hay actualización, el móvil te avisa aunque no tengas la app abierta (hace falta instalar el APK nuevo una vez).",
-    "👈 En Inicio, Ajustes se abre deslizando desde casi toda la pantalla (no solo el borde).",
-    "⚙️ Ajustes agrupado por secciones (apariencia, dinero, conexiones…); Actividad (admin) al final y fuera el botón de Sentry.",
-    "💶 En Gastos, céntimos y € del balance van en el mismo blanco que el entero.",
-    "🧾 Ficha de gasto y Apuntar más compactos; tira hacia abajo desde cualquier sitio de la hoja.",
-    "📅 En Plan, «Ya pagado» lista todo lo del mes (incluidos ingresos y transferencias ya hechos).",
-    "💼 Herramientas de inversión sin brókers duplicados, sin editar a mano ni precios USD.",
-    "👆 En Gastos, si las categorías están al inicio, deslizar cambia de pestaña; al volver, los chips vuelven al principio."
-  ]},
-  {v:"4.0.2", d:"17 jul 2026", t:"Ajustes con swipe, balance claro y más categorías", items:[
-    "👈 Ajustes se abre de verdad deslizando de izquierda a derecha (el panel ya estaba listo para el gesto).",
-    "💶 El balance de Gastos va en blanco, sin el menos, y con el € al lado.",
-    "🧾 Al editar un gasto, las etiquetas de fecha/banco quedan centradas y el fondo ya no se mueve al pasar categorías.",
-    "🍿 Nueva categoría Cine (Kinepolis…) y más palabras clave para salud, Claude, Google Play…",
-    "💼 Inversiones con el mismo diseño que tus cuentas; el resto (precios, redondeo…) en «Herramientas de inversión».",
-    "👆 Cambio entre pestañas más suave, al estilo Trade Republic.",
-    "📱 Status bar y barra de abajo al color de la app (APK nuevo)."
-  ]},
-  {v:"4.0.1", d:"17 jul 2026", t:"Pulido del rediseño: gestos, fichas y números que cuadran", items:[
-    "👈 Ajustes se abre deslizando desde el borde (como Revolut) y se cierra tirando a la izquierda; el avatar sigue valiendo.",
-    "🏠 En Inicio, «Próximos cargos» ya no enseña recibos que ya pagaste este mes.",
-    "💶 En Gastos, el resumen cuenta también los ingresos (y el ajuste de Ajustes vuelve a cambiar la vista).",
-    "🧾 Fichas de gasto: fecha y banco con margen, fecha legible al editar, y tira hacia abajo para cerrar (también el +).",
-    "📅 En Plan › Recibos, «Gestionar» abre fijos y herramientas; «Ya pagado» enseña 3 y el resto con Ver más.",
-    "💼 Cartera más limpia: brókers desplegables sin botones ni auto-precios de más.",
-    "📱 Status bar del móvil al color de la app (hace falta actualizar el APK nativo)."
-  ]},
-  {v:"4.0.0", d:"17 jul 2026", t:"Rediseño completo: más claro, más rápido, más tuyo", items:[
-    "🏠 Nueva navegación: Inicio, Gastos, botón + para apuntar, Plan y Cartera.",
-    "✨ Inicio responde «¿cómo voy?» con patrimonio, presupuesto en humano y próximos cargos.",
-    "➕ El botón verde del centro abre el teclado para apuntar un gasto o ingreso al momento.",
-    "📅 Plan junta recibos, deudas y metas con cards claras (lo pendiente, lo que debes, lo ahorrado).",
-    "💼 Cartera muestra patrimonio, cuentas, redondeo e inversiones sin pantallas de más.",
-    "🧾 En Gastos, toca un movimiento para editarlo en una ficha (categoría, tarjeta, borrar).",
-    "💶 Toca el presupuesto en Inicio para cambiarlo con −/+ (pasos de 50 €).",
-    "👋 Onboarding en 3 pasos: claim, demo de gastos y presupuesto con −/+.",
-    "⚙️ Ajustes desde el avatar: perfil, temas en círculos, modo sencillo y conexiones."
-  ]},
-  {v:"3.113.3", d:"16 jul 2026", t:"Arranque más ligero y desliz entre pestañas más limpio", items:[
-    "⚡ Al abrir la app (sobre todo tras vaciar recientes) se carga menos «por detrás» antes de pintar Resumen.",
-    "👆 Al deslizar a Gastos el contenido se prepara mientras mueves el dedo, no al soltar.",
-    "⚙️ El menú de Ajustes ya no se construye entero hasta que lo abres la primera vez.",
-    "🎬 La pantalla de «Cargando…» se desvanece un pelín más suave al terminar de abrir."
-  ]},
-  {v:"3.113.2", d:"16 jul 2026", t:"Sin parpadeos al cambiar de pestaña y updates más ágiles", items:[
-    "🏦 Al ir de Resumen a Gastos (y al revés) ya no «parpadean» los bancos ni el contenido.",
-    "⚡ Arranque: Gastos no se monta en segundo plano a lo loco; solo cuando lo tocas.",
-    "⬇️ Si hay versión nueva, el aviso sale antes (mientras descarga) y, si ya estaba lista, te avisa al abrir si aún no te había avisado.",
-    "🛡️ El botón de «error de prueba» de Sentry en Ajustes solo lo ves tú (como Actividad); el resto de la casa no."
-  ]},
-  {v:"3.113.1", d:"16 jul 2026", t:"Más comercios reconocidos en Gastos", items:[
-    "🏛️ Nueva categoría «Impuestos y multas» para cosas como Gencat, AEAT, DGT, ayuntamientos o sanciones.",
-    "🧠 El detector de categorías reconoce más comercios reales sin llenar de botones el filtro: mejor diccionario, misma pantalla simple.",
-    "✅ Se han añadido pruebas para que no se rompan casos raros como Zooplus, Booking o papelerías."
-  ]},
-  {v:"3.113.0", d:"16 jul 2026", t:"Arranque más suave, divisas y categorías inteligentes", items:[
-    "⚡ Menos tirón al abrir la app y pasar a Gastos la primera vez (sobre todo tras vaciar las apps en Android).",
-    "💱 Inversiones y cuentas en USD/GBP/CHF se pasan a € con tipos del BCE; si editas el coste invertido, queda anclado en euros.",
-    "✨ En un gasto «Otros» puedes pedir sugerencia de categoría (palabras clave; IA opcional si está configurada en el servidor).",
-    "🛡️ Sentry activo en la versión publicada: en Ajustes puedes enviar un error de prueba."
-  ]},
-  {v:"3.112.0", d:"16 jul 2026", t:"Tutorial claro y filtro por banco en Gastos", items:[
-    "🎓 Tutorial y trucos de Gastos/Fijos/Patrimonio más claros: qué va en cada sitio, nómina/Bizum como Ingreso, y dónde marcar varios bancos.",
-    "🏦 En Gastos puedes filtrar por banco (Caixa, Trade Republic, a mano…). Cada movimiento enseña de qué banco es.",
-    "💡 Los trucos de esas pestañas vuelven a salir una vez para que no te los pierdas."
-  ]},
-  {v:"3.111.0", d:"16 jul 2026", t:"Varios bancos en Gastos y roles más claros", items:[
-    "🛒 ¿Gastos o Fijos? Los trucos de cada pestaña y los roles en Patrimonio explican en cristiano: recibos/cuotas van a Fijos; supermercado y bares a Gastos.",
-    "🏦 Varios bancos de gasto: en Ajustes → Bancos marcas «También apuntar gastos de tarjeta de…» (Caixa, Sabadell…). El presupuesto del día a día sigue en una sola cuenta.",
-    "🔄 El banco se actualiza más a menudo (al volver a la app y cada ~hora y media), no solo cada muchas horas.",
-    "✅ En Fijos, los cargos nuevos del banco se confirman con «Confirmar y apuntar» — menos tecleo.",
-    "📱 App Android (alpha22): si Caixa/Sabadell te avisan con una noti, se piden los movimientos al banco (sin leer el importe de la noti)."
-  ]},
-  {v:"3.110.0", d:"16 jul 2026", t:"Fin de mes en paz, Hogar completo y tutorial arreglado", items:[
-    "😌 Fin de mes en paz: en el Resumen ves cuánto puedes gastar al día y si vas demasiado rápido.",
-    "📊 Presupuesto por categoría con barritas (Editar → super=200, ocio=80…).",
-    "🏠 Hogar Fase 2: al publicar tu vista se suman gastos por categoría y fijos del hogar (solo lectura).",
-    "🔔 Aviso de recibos gordos 1–3 días antes (app Android).",
-    "🛟 Tutorial: ya no se queda pillado en los interrogantes «?»."
-  ]},
-  {v:"3.109.0", d:"15 jul 2026", t:"Hogar compartido e informe del mes", items:[
-    "🏠 Hogar compartido (Fase 1): crea un hogar, invita con código de 6 letras y ve el patrimonio fusionado — cada uno publica SU vista, sin mezclar datos.",
-    "📊 El día 1 de cada mes te ofrece el informe automático (imagen para WhatsApp). También en Ajustes → Personalización.",
-    "⚡ Cambio de pestaña más fluido (pre-carga + animación optimizada)."
-  ]},
-  {v:"3.108.0", d:"15 jul 2026", t:"Más rápida, más sólida, lista para crecer", items:[
-    "⚡ Arranque más fluido: las pestañas que no ves aún no cargan su contenido hasta que las visitas (menos tirones en móviles modestos).",
-    "🧩 Código modular en src/ (13 módulos): más fácil de mantener y escalar sin partir el despliegue.",
-    "🛡️ Sentry opcional para crashes en producción; Playwright E2E + tests de borrado de cuenta."
-  ]},
-  {v:"3.107.0", d:"15 jul 2026", t:"Actualizaciones que avisan solas", items:[
-    "🔔 Cuando hay una versión nueva lista, te llega una notificación al móvil (tú y quien use la app en su cuenta).",
-    "✨ El botón «Nueva versión · toca para actualizar» vuelve a aparecer en cuanto el bundle está descargado — también si cierras y abres la app.",
-    "🔄 La app busca updates al arrancar, al volver a primer plano y cada 30 minutos con la app abierta."
-  ]},
-  {v:"3.106.0", d:"15 jul 2026", t:"Documentación y tests de lo que ya teníamos", items:[
-    "👥 Multi-usuario en ingest: cada persona con su token en Ajustes → notificaciones TR (no hace falta JWT en el lector Android).",
-    "🚗 Financiación coche: entrada + cuotas + pago final + asesor «¿Cuándo amortizar?» — ya estaba; ahora con tests automáticos.",
-    "📋 Nueva tarjeta «Sin cotización automática» en Inversiones: guía para fondos MyInvestor y posiciones sin ticker en TR."
-  ]},
-  {v:"3.105.0", d:"15 jul 2026", t:"Dashboard de inversiones más completo", items:[
-    "📈 El gráfico de evolución muestra valor y coste aportado (línea discontinua) y el cambio % del periodo.",
-    "🔄 El histórico se actualiza al refrescar precios o editar posiciones, no solo al abrir la app.",
-    "📊 La tarjeta de evolución aparece desde el primer día; al segundo ya ves la tendencia."
-  ]},
-  {v:"3.104.0", d:"15 jul 2026", t:"Onboarding completo para usuarios nuevos", items:[
-    "👋 Si es tu primera vez, un asistente de 4 pasos te guía: presupuesto, cuentas y (opcional) una deuda o inversión. Empiezas con la cartera vacía, sin datos de ejemplo.",
-    "📋 En el Resumen verás «Primeros pasos» hasta que lo cierres: un acceso rápido a Ajustes para conectar bancos o activar el apunte de Trade Republic.",
-    "☁️ Si ya tenías cartera en la nube e inicias sesión en otro móvil, no te vuelve a pasar el asistente."
-  ]},
-  {v:"3.103.0", d:"15 jul 2026", t:"Deudas que bajan solas y más tests de fiabilidad", items:[
-    "📉 Las cuotas de tus deudas (hipoteca, coche, préstamos…) ahora restan del líquido del banco automáticamente, igual que los gastos fijos. Si no pones día de cargo, se asume el día 1.",
-    "📊 El saldo pendiente de cada deuda sigue bajando mes a mes sin que tengas que tocarlo a mano.",
-    "🔐 Si acabas de activar el cifrado de tokens en Supabase, la próxima sincronización con MyInvestor re-cifra los enlaces antiguos sola.",
-    "✅ Más tests automáticos: motor de deudas, conciliación con el banco y saldos de Open Banking."
-  ]},
-  {v:"3.102.0", d:"15 jul 2026", t:"Más seguridad y control de tu cuenta", items:[
-    "🔐 Los tokens de sesión de MyInvestor y del banco se guardan cifrados en el servidor. Tus contraseñas nunca se almacenan — solo los tokens que devuelve el banco al conectar.",
-    "👤 Puedes leer la política de privacidad y borrar tu cuenta desde Ajustes → Tu cuenta. El borrado pide tu contraseña y elimina todos tus datos de la nube.",
-    "📱 Si editas en dos móviles a la vez, la app detecta el conflicto y recarga la versión más reciente de la nube en lugar de pisarla sin avisar."
-  ]},
-  {v:"3.101.0", d:"15 jul 2026", t:"Más fiabilidad por detrás: tests automáticos y datos más seguros", items:[
-    "🛡️ El repositorio ya no lleva datos financieros personales: la semilla del código es sintética y solo sirve para migraciones técnicas. Tus datos reales siguen en tu cuenta y en tu móvil, como siempre.",
-    "✅ Antes de cada despliegue se ejecutan tests automáticos: comprueban que el código no tiene errores de sintaxis y que los cálculos clave (round-up, importadores Revolut, clasificación de gastos TR) siguen cuadrando.",
-    "🏷️ Las categorías de los gastos que entran por notificación de Trade Republic ahora coinciden mejor con las de la app (panadería, parking, peluquería… ya no se van a parar a sitios raros)."
-  ]},
-  {v:"3.100.0", d:"15 jul 2026", t:"Tu oro de Revolut ya entra, y se acabaron los cuadros grises de Android", items:[
-    "🥇 ¡Revolut ya trae tu oro y tu plata! Nunca fue un fallo de lectura: Revolut los guarda en un extracto APARTE («Materias primas»), no en el de acciones, así que el importador ni los veía. Ahora puedes subir los dos extractos a la vez y se fusionan solos. Tu oro pasa a tener onzas de verdad y precio en vivo, en lugar de un número que mantenías a mano.",
-    "🧭 Si te equivocas de fichero, ahora te digo cuál es: el «Extracto de Pérdidas y Ganancias» solo trae lo que YA vendiste, no lo que tienes (y ojo, que Revolut le pone un nombre engañoso a uno de ellos). Antes solo salía «no he podido leer el CSV» y a adivinar.",
-    "💬 Los cuadros de «Amortizar», «Aportar a una meta» o «Vender parte» ya son de la app: mismos colores, misma letra y botones en español. Antes se asomaba el cuadro gris de Android con «CANCEL / OK» y desentonaba muchísimo. De regalo, ahora traen atajos (100 €, 250 €, «Todo») y te recuerdan cuánto llevas pendiente. ¡Gracias por el aviso! 💚"
-  ]},
-  {v:"3.99.0", d:"15 jul 2026", t:"Trade Republic ya aguanta en frío, brókers que se actualizan solos y menos avisos", items:[
-    "🏆 ¡Arreglado el fallo de Trade Republic al abrir la app en frío! Llevaba meses pidiendo el 2FA una y otra vez. No era el control anti-bot como creíamos: Android se cargaba la sesión al cerrar la app del todo. Ahora se guarda a mano y sobrevive. (Si pasas varios días sin entrar, sí tendrás que reconectar: eso lo decide Trade Republic.)",
-    "🔄 Trade Republic y MyInvestor se actualizan SOLOS al abrir la app, sin darle a «Sincronizar». Va en silencio y con cabeza: refresca lo que ya tienes mapeado y como mucho cada media hora. Lo nuevo lo sigues revisando tú en su tarjeta.",
-    "🔕 Fuera dos avisos pesados: el del saldo del banco (que saltaba en cada apertura) y el de errores. El saldo ya lo ves en Patrimonio, y ahora solo te avisa si lo pides tú.",
-    "🏦 «Gestionar mis bancos» a dieta: se queda con lo básico — actualizar saldo, reconectar y quitar. Clasificar un banco (recibos / gasto diario / todo) sigue estando en Patrimonio → Editar."
-  ]},
-  {v:"3.98.0", d:"13 jul 2026", t:"Revolut cuadrado: fuera duplicados y precios en vivo de verdad", items:[
-    "🧹 Los duplicados fantasma de Revolut (esos «NVDA 0,00 € · −100%» al lado de tu NVIDIA de verdad) se van solos al abrir la app: eran restos del importador antiguo.",
-    "💹 Al aplicar un extracto de Revolut, el valor de cada posición también se recalcula (antes solo se tocaban participaciones y coste, y el % salía disparatado: un Broadcom a −39% que en Revolut estaba a −6%). Y nada más aplicar, los precios se actualizan en vivo solos.",
-    "📈 «Precios USD» ahora cotiza cualquier ticker de tu cartera (antes estaba clavado a 6 valores fijos) y también el oro (XAU).",
-    "🗑️ Ya puedes borrar una posición a mano: «Editar a mano» → 🗑 Borrar. Antes los cadáveres se quedaban en la lista para siempre."
-  ]},
-  {v:"3.97.0", d:"13 jul 2026", t:"Importar Revolut arreglado, asesor de amortización y Ajustes con buscador", items:[
-    "💹 El importador de Revolut ya lee bien los números: entiende importes con coma española («88,94 €»), ventas sin cantidad, y no resucita posiciones que ya vendiste. Además, por defecto NO crea posiciones nuevas — tú decides qué se toca, y cada posición enseña sus compras/ventas para poder cuadrarla con la app de Revolut.",
-    "💡 Nuevo en Deudas: el asesor «¿Cuándo amortizar?». Ponle el interés a la deuda, di cuánto amortizarías y te dice cuántas cuotas te quitas, cuánto ahorras en intereses y si te compensa frente a tu efectivo remunerado.",
-    "⚙️ Ajustes reorganizado: secciones plegadas y buscador arriba («tema», «banco», «copia»…). Se acabó el scroll kilométrico.",
-    "🎓 Mini-tutoriales por pestaña: la primera vez que entras en cada una te cuenta sus trucos (p.ej. el lápiz ✎ para editar un gasto). Los relees cuando quieras con el botoncito «💡 ¿Cómo va esto?».",
-    "📈 La sesión de MyInvestor ahora se mantiene viva sola (el servidor la renueva cada 10 minutos). Si aún así caduca, la app te lo canta y recuerda tu usuario — la contraseña nunca se guarda.",
-    "💇 Categoría nueva: Peluquería (cortes, uñas y estética ya no caen en «Salud»)."
-  ]},
-  {v:"3.96.0", d:"12 jul 2026", t:"Conectar MyInvestor, importar Revolut y las vistas de Gastos con nombres claros", items:[
-    "📈 Conectar MyInvestor (beta): en Ajustes → Gestionar mis bancos. Metes usuario y contraseña (puede pedir un SMS) y trae tus fondos indexados. Tu contraseña NO se guarda, solo la sesión.",
-    "💹 Importar Revolut por CSV (beta): junto a Trade Republic, con un paso a paso para exportar el extracto desde la app de Revolut. Re-ancla tus acciones/ETF. Se procesa en tu móvil, no se sube nada.",
-    "🧮 Las dos vistas del total de Gastos ahora se llaman «Gastos e ingresos» y «Balance» (antes «Desglosado» y «Lo que te queda»), comparten el mismo diseño y ninguna enseña ya el «−»."
-  ]},
-  {v:"3.95.1", d:"12 jul 2026", t:"Retoque: el «−» que se colaba en «Lo que te queda»", items:[
-    "En la vista «Lo que te queda» de Gastos, cuando te pasabas de gasto seguía saliendo un «−» delante del número. Ya no: el color rojo o verde te dice solo si ahorras o te pasas, igual que en el resto de la app."
-  ]},
-  {v:"3.95.0", d:"12 jul 2026", t:"Novedades a la vista, sugerencias sin salir de la app y gastos sin «−»", items:[
-    "🎉 Este popup: a partir de ahora, cada actualización te cuenta qué trae. Se abre solo una vez por versión.",
-    "📜 Histórico en Ajustes → «✨ Novedades y sugerencias»: relee las novedades de cualquier versión cuando quieras.",
-    "💬 Caja de sugerencias aquí mismo: apunta errores o ideas en el momento — quedan en «Tus apuntes» y le llegan a Juanjo con tu versión.",
-    "Los gastos ya no llevan el signo «−» delante (quedaba feo); los ingresos conservan su «+».",
-    "✨ En la app Android vuelve el botoncito de arriba «Nueva versión · toca para actualizar»: sale cuando la actualización está descargada y lista (antes se instalaba en silencio al reabrir la app)."
-  ]},
-  {v:"3.94.0", d:"11 jul 2026", t:"Ahorro editable, dos vistas de Gastos y secciones a tu gusto", items:[
-    "La tarjeta «¿A dónde va tu ahorro?» del Resumen ya se puede editar: importes, nombres, banco, borrar y añadir aportaciones.",
-    "El total de Gastos tiene dos vistas (Ajustes → Personalización): «Desglosado» o «Lo que te queda» (ingresos − gastos, un solo número verde/rojo).",
-    "Botón «⇅ Ordenar secciones» al pie de Fijos, Patrimonio, Deudas, Inversiones y Metas: ordena las tarjetas como quieras.",
-    "La pantalla «Actividad» (admin) ahora va aparte, con filtro de solo errores.",
-    "Si un banco conectado no trae ninguna cuenta utilizable, ahora avisa con pasos claros (antes se quedaba mudo)."
-  ]},
-  {v:"3.93.0", d:"11 jul 2026", t:"Editar el saldo de una deuda ya no resetea las cuotas", items:[
-    "Corregir el saldo pendiente de una deuda con plazo respetaba mal las cuotas: volvía a «Quedan 4/4» aunque llevaras 3 pagadas. Arreglado: el contador y el % amortizado se mantienen."
-  ]},
-  {v:"3.92.0", d:"11 jul 2026", t:"Deudas más completas", items:[
-    "Añadir una deuda incompleta ahora avisa de qué falta (antes fallaba en silencio y parecía que el botón no iba).",
-    "Botón «💸 Amortizar» en cada deuda: pagas anticipado, baja el pendiente y se acorta el plazo manteniendo la cuota.",
-    "Campo «Cuotas ya pagadas» al crear una deuda que ya estaba empezada: el pendiente y el «Quedan n/tot» salen bien desde el primer día."
-  ]},
-  {v:"3.91.0", d:"11 jul 2026", t:"Total de Gastos legible, cuentas del banco con rol y filtro «Mi ciclo»", items:[
-    "El total de Gastos con ingresos ya no engaña: gastos por un lado y «💰 +ingresos · Balance» por otro (verde si ahorras).",
-    "Las cuentas conectadas por banco (Revolut, CaixaBank…) pueden tener rol — Recibos / Gasto diario / Todo — para domiciliarles gastos fijos.",
-    "Filtro «Mi ciclo» en Gastos: de tu último cobro a hoy. El Balance de ese filtro es tu ahorro real del ciclo, aunque la nómina no caiga en día fijo.",
-    "Categoría nueva 🥖 Panadería (los cruasanes ya no son «Bares»)."
-  ]},
-  {v:"3.90.0", d:"11 jul 2026", t:"Gastos de TR por persona, bancos que no se esfuman y más", items:[
-    "Cada persona apunta sus gastos de Trade Republic en SU cuenta: interruptor «Apuntar aquí mis gastos de TR» en Ajustes → Notificaciones.",
-    "Un banco con el permiso caducado ya no desaparece del Patrimonio: se queda con aviso «caducado» hasta que lo reconectes.",
-    "Alta manual de Gastos con fecha (para apuntar cosas de hace días), filtro 💰 Ingreso, y las suscripciones detectadas ofrecen «pasar a Gastos fijos».",
-    "«Buscar actualización» en Ajustes aplica la versión nueva al momento."
-  ]}
+   ]}}
 ];
+/* Sirve también a tests que evalúan la fuente sin build; el bundle ya llega recortado. */
+RELEASE_NOTES=RELEASE_NOTES.slice(0,RELEASE_NOTES_MAX);
 /* Panel de Novedades. Se usa desde App (popup automático al estrenar versión) y desde
    Ajustes (histórico). Portal a body: sobrevive al transform del cajón de Ajustes. */
 function WhatsNew({onClose, showToast, set, state}){

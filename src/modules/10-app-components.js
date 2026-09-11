@@ -1417,13 +1417,23 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
      · texto suelto            → castellano (todo el histórico anterior a esta fecha)
      · {es:"…",en:"…",ca:"…"}  → traducida
 
-   POR QUÉ NO SE TRADUCE EL HISTÓRICO ENTERO: son 68 versiones y 279 entradas, 55 KB de texto.
-   Por tres idiomas serían 165 KB, y el presupuesto de descarga (`tests/presupuesto-rendimiento`)
-   va por 277 KB de 310 en gzip — se lo comería de golpe para que nadie lea nunca las notas de
-   una versión de hace dos meses en catalán. De aquí en adelante, cada nota nace en los tres. */
+   POR QUÉ NO SE TRADUCE EL HISTÓRICO ENTERO: serían cientos de KB y nadie lee en catalán una
+   nota de hace dos meses. De aquí en adelante, cada nota nace en los tres.
+
+   TOPE EN EL BUNDLE (2026-09-11): el build deja solo las N más nuevas en `public/index.html`;
+   la fuente y CHANGELOG.md guardan el resto. Así el OTA no crece para siempre con cada versión. */
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
+/* Cada nota añade texto a toda descarga; cambiar el tope exige ajustar el guardián explícitamente. */
+var RELEASE_NOTES_MAX=20;
 var RELEASE_NOTES=[
+  {v:"4.18.15",d:"11 sep 2026",
+   t:{es:"Novedades conserva las 20 versiones más recientes",en:"What's new keeps the 20 most recent versions",ca:"Novetats conserva les 20 versions més recents"},
+   tandas:[{id:"notas-20",t:{es:"📜 Historial reciente",en:"📜 Recent history",ca:"📜 Historial recent"},items:{
+     es:["Ajustes → Novedades muestra las últimas 20 versiones; el historial técnico completo sigue guardado fuera de la app."],
+     en:["Settings → What's new shows the latest 20 versions; the full technical history remains stored outside the app."],
+     ca:["Ajustaments → Novetats mostra les darreres 20 versions; l'historial tècnic complet es conserva fora de l'app."]}}],
+   items:{es:["Novedades conserva las últimas 20 versiones."],en:["What's new keeps the 20 most recent versions."],ca:["Novetats conserva les 20 versions més recents."]}},
   {v:"4.18.8", d:"10 sep 2026",
    t:{es:"El resumen del mes y un tope por categoría",en:"The month summary and a cap per category",ca:"El resum del mes i un límit per categoria"},
    items:{
@@ -2525,6 +2535,8 @@ var RELEASE_NOTES=[
     "«Buscar actualización» en Ajustes aplica la versión nueva al momento."
   ]}
 ];
+/* Sirve también a tests que evalúan la fuente sin build; el bundle ya llega recortado. */
+RELEASE_NOTES=RELEASE_NOTES.slice(0,RELEASE_NOTES_MAX);
 /* Panel de Novedades. Se usa desde App (popup automático al estrenar versión) y desde
    Ajustes (histórico). Portal a body: sobrevive al transform del cajón de Ajustes. */
 function WhatsNew({onClose, showToast, set, state}){

@@ -1,3 +1,15 @@
+## [4.18.15] — 2026-09-11
+### Novedades: historial de 20 versiones
+
+- `RELEASE_NOTES_MAX=20` hace que el build recorte el literal antes de escribir
+  `public/index.html`; el histórico completo permanece en fuente y CHANGELOG.
+- El guardián `release-notes-max` exige el límite exacto y comprueba el bundle generado.
+
+**Por qué:** cortar el array al mostrar el panel no reducía la descarga, porque todo el histórico
+seguía dentro del HTML. Esta tanda es independiente del panel de ronda de 4.18.14.
+
+OTA; sin Android.
+
 ## [4.18.8] — 2026-09-10
 ### Las dos tandas que aprobó, subidas solas
 
