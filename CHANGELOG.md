@@ -1,3 +1,43 @@
+## [4.19.62] - 2026-09-11
+### La barra de abajo se escondía con manotazo, nunca con el dedo puesto
+
+Suyo, 11/9: *«el esconderse la barra de abajo ya no lo hace apenas nunca»*. Y lo peor: la suite
+estaba VERDE, con un test dedicado a la barra desde agosto.
+
+**Medido antes de tocar nada** (sonda Playwright + CDP táctil, Inicio, `max = 460`):
+
+| | |
+|---|---|
+| Arrastre con el dedo, 369 px | la barra NO se mueve |
+| `scrollTop = 200` por JS | escondida **al instante** |
+| `scrollend` durante el gesto | **0** |
+| `touchmove` con `preventDefault` | **0 de 19** |
+| Deltas entre eventos `scroll` | `[8,8,8,…]` (pasan el filtro de 6 px) |
+
+O sea: la máquina de esconder estaba bien; lo que no llegaba era el aviso del dedo.
+
+**Causa.** `onPageScroll` abría con `if(dragging.current) return;`. Se puso para el rechazo
+4.12.0.17 («si te mueves en Deudas/Metas y deslizas acto seguido, se laguea»), pero `dragging` se
+pone en el `touchstart` de **cualquier** gesto, no solo el de cambiar de pestaña. Con el dedo
+puesto se tiraban TODOS los eventos de scroll, así que la barra solo podía esconderse con el
+momentum de después de soltar: **con manotazo sí, con scroll lento nunca.** Es otra vez la lección
+de medir el gesto LENTO y no solo el rápido.
+
+- El corte se acota a `gestureMode.current === "tab"`, que es lo que aquel rechazo pedía.
+- Y de paso, lo que pidió encima: *«la barra ocúltala antes, en cuanto baje, sin quitarme la
+  animación suave»*. Se puede tener todo: la suavidad la pone la transición CSS de `.botnav`, no
+  el retraso. El escondido a media pantalla pasa a ser **inmediato** (antes: armar y esperar
+  550 ms) y basta con haber bajado 24 px (antes 56). La espera **se queda** para el caso de abajo
+  del todo, que es donde la ola nativa y la barra se peleaban por el mismo trozo de pantalla.
+- El `pinNavVisible` del primer scroll tras cambiar de pestaña baja de 1000 a 320 ms: se comía el
+  primer gesto entero.
+
+**Por qué ningún test lo vio, que es lo que más importa.** `e2e/rebote-barra-inferior.spec.mjs`
+mueve el scroll con `live.scrollTop = st` — justo el camino que nunca se rompió. Un test que
+simula el scroll por JS aquí no vale: se queda verde con el fallo puesto. El nuevo
+`e2e/botnav-esconder.spec.mjs` baja con `Input.dispatchTouchEvent` y **despacio**, que es como se
+rompía. Comprobado poniendo el fallo a mano: **3 de sus 4 casos se ponen rojos**.
+
 ## [4.19.61] - 2026-09-11
 ### TSMC y Micron con logo, y los brókers recuperan el suyo
 

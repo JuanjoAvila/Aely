@@ -18870,7 +18870,7 @@ function App(){
     setNavHidden(true);
     setNavHiddenFast(fast);
   };
-  const armNavHide=function(fast){
+  const armNavHide=function(fast, inmediato){
     if(navPinned()) return;
     navHideFastRef.current=!!fast;
     if(navHideArmed.current || navHiddenRef.current){
@@ -18879,6 +18879,12 @@ function App(){
     }
     navHideArmed.current=true;
     if(navBotSync.current) clearTimeout(navBotSync.current);
+    /* `inmediato` = esconderla YA, sin esperar (2026-09-11). Suyo: «la barra ocúltala antes, en
+       cuanto baje, sin quitarme la animación suave». Las dos cosas a la vez sí se pueden: lo que
+       da la suavidad es la TRANSICIÓN CSS de `.botnav`, no este retraso. El retraso solo servía
+       para el caso de ABAJO DEL TODO, donde la ola nativa y la barra se peleaban por el mismo
+       trozo de pantalla — ahí se queda tal cual. */
+    if(inmediato){ applyNavHide(); return; }
     // Fallback si no hay scrollend: abajo más margen (ola del flick).
     navBotSync.current=setTimeout(applyNavHide, fast?800:550);
   };
@@ -18898,6 +18904,14 @@ function App(){
   // congelado cuando no hace falta (ver allí). Se apunta antes de cualquier corte: durante el
   // gesto también interesa, porque justo eso es el momentum que se quiere detectar.
   const lastScrollAt=useRef(0);
+  /* Alto del contenido en el scroll anterior. Sirve para distinguir «ha bajado él» de «la
+     pantalla se ha recolocado sola»: al tocar un chip de rol en Cartera la tarjeta estira o
+     encoge, el navegador ajusta el `scrollTop` y dispara un `scroll` que NADIE ha pedido. Sin
+     esto, la barra se iba en ese momento — y justo debajo del dedo que iba a tocar una pestaña.
+     Se mira el ALTO y no si hay un dedo puesto, porque en su móvil tocar el chip también es un
+     dedo: lo que de verdad separa los dos casos es que en uno cambia `scrollHeight` y en el otro
+     no. */
+  const ultimoScrollH=useRef(0);
   /* Ola nativa (`touch-action:pan-y` en `.page`) vs gestos de borde.
      Mapa: Gastos/Cartera = ola arriba y abajo (pan-y siempre). Resumen = ola solo abajo
      (arriba = perfil → `.mc-touch-own`). Plan = pan-y SIEMPRE en reposo: si lo poníamos en
@@ -18915,17 +18929,35 @@ function App(){
   };
   const onPageScroll=function(e){
     lastScrollAt.current=Date.now();
-    // Mientras el dedo cambia de pestaña, el momentum del scroll vertical sigue disparando
-    // eventos. Cada uno podía llamar a setNavHidden y re-renderizar App entera a mitad del
-    // gesto — eso es el «si te mueves en Deudas/Metas y deslizas acto seguido, se laguea»
-    // (rechazo 4.12.0.17). El perfil ya congelaba el scroll; el swipe de pestañas no.
-    if(dragging.current) return;
+    /* Mientras el dedo CAMBIA DE PESTAÑA, el momentum del scroll vertical sigue disparando
+       eventos. Cada uno podía llamar a setNavHidden y re-renderizar App entera a mitad del
+       gesto — eso es el «si te mueves en Deudas/Metas y deslizas acto seguido, se laguea»
+       (rechazo 4.12.0.17). El perfil ya congelaba el scroll; el swipe de pestañas no.
+
+       ⚠ PERO ESTO DECÍA `if(dragging.current) return;` A SECAS, y `dragging` se pone en el
+       `touchstart` de CUALQUIER gesto, no solo el de pestaña. O sea que TODOS los eventos de
+       scroll con el dedo puesto se tiraban a la basura, y la barra solo podía esconderse con
+       los del momentum de después de soltar: se escondía con un manotazo y NUNCA con un scroll
+       lento y controlado. Eso es exactamente su «ya no lo hace apenas nunca» (11/9).
+       Medido antes de tocar nada: arrastre de 369 px en Inicio → la barra no se movió; el mismo
+       recorrido puesto por JS (`scrollTop=200`) → se escondió al instante. La máquina estaba
+       bien; lo que no llegaba era el aviso del dedo. */
+    if(dragging.current && gestureMode.current==="tab") return;
     const y=e.currentTarget.scrollTop;
     // touch-action de la página (ola vs gestos de borde): ver syncPageTouchAction.
     syncPageTouchAction(e.currentTarget, tab);
     // Cambió la pestaña (o es la primera lectura): sincroniza sin actuar. Cada .page tiene su propio
     // scrollTop y sin esto pasar de una tab scrolleada a otra escondería la barra de golpe.
-    if(scrollTab.current!==tab){ scrollTab.current=tab; lastScrollY.current=y; revealNav(); pinNavVisible(1000); return; }
+    /* El pin era de 1000 ms y se comía el PRIMER gesto entero: entras en una pestaña, bajas, y la
+       barra no puede esconderse hasta un segundo después — con lo que para cuando podía, el dedo
+       ya había parado. 320 ms siguen cubriendo el asentamiento del cambio de pestaña, que es para
+       lo que está (que no se esconda de golpe al llegar a la pestaña nueva). */
+    if(scrollTab.current!==tab){ scrollTab.current=tab; lastScrollY.current=y; ultimoScrollH.current=e.currentTarget.scrollHeight; revealNav(); pinNavVisible(320); return; }
+    /* Si el contenido ha cambiado de alto, este `scroll` no lo ha pedido él: es la pantalla
+       recolocándose (ver `ultimoScrollH`). Se apunta la posición nueva y no se actúa. */
+    const sh=e.currentTarget.scrollHeight;
+    if(ultimoScrollH.current && sh!==ultimoScrollH.current){ ultimoScrollH.current=sh; lastScrollY.current=y; return; }
+    ultimoScrollH.current=sh;
     const dy=y-lastScrollY.current;
     lastScrollY.current=y;
     if(y<=8){
@@ -18944,7 +18976,10 @@ function App(){
     const max=e.currentTarget.scrollHeight-e.currentTarget.clientHeight;
     if(max>0 && y>=max-4){ armNavHide(true); return; }
     if(Math.abs(dy)<6) return;
-    if(dy>0 && y>56){ armNavHide(false); }
+    /* «En cuanto baje»: antes pedía haber bajado 56 px Y esperaba 550 ms más. Ahora basta con
+       haber salido del tope y se esconde en el acto — la curva calmada de `.botnav` sigue
+       poniendo la suavidad que él pide. */
+    if(dy>0 && y>24){ armNavHide(false, true); }
     else if(dy<0){ revealNav(); }
   };
   const applyNavHideRef=useRef(applyNavHide);

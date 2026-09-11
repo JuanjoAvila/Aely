@@ -1,5 +1,61 @@
 [
  {
+  "v": "4.19.62",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "La barra de abajo vuelve a esconderse al bajar",
+   "en": "The bottom bar hides again when you scroll down",
+   "ca": "La barra de baix torna a amagar-se en baixar"
+  },
+  "tandas": [
+   {
+    "id": "botnav-esconder",
+    "t": {
+     "es": "👇 La barra de abajo se esconde al bajar, y pronto",
+     "en": "👇 The bottom bar hides as soon as you scroll down",
+     "ca": "👇 La barra de baix s'amaga en baixar, i aviat"
+    },
+    "items": {
+     "es": [
+      "1. Vete a Inicio y baja con el dedo, DESPACIO, sin dar un manotazo. Este es el punto: en cuanto la pantalla empieza a subir, la barra de abajo tiene que irse.",
+      "2. Fíjate en cómo se va: tiene que deslizarse con suavidad, no desaparecer de golpe.",
+      "3. Sube un poco con el dedo: la barra tiene que volver.",
+      "4. Repítelo en Gastos y en Cartera, que también son listas largas.",
+      "5. Ahora dale un manotazo rápido hacia arriba: tiene que seguir yendo igual de bien que antes.",
+      "6. Y lo que NO puede romperse: cambia de pestaña deslizando de lado. Al llegar a la pestaña nueva la barra tiene que quedarse quieta y a la vista, sin parpadear."
+     ],
+     "en": [
+      "1. Go to Home and scroll down SLOWLY with your finger, no flick. That is the point: as soon as the screen starts moving, the bottom bar must go.",
+      "2. Watch how it goes: it must slide away smoothly, not vanish at once.",
+      "3. Scroll up a little: the bar must come back.",
+      "4. Repeat in Expenses and Wallet, which are long lists too.",
+      "5. Now flick up fast: it must work as well as before.",
+      "6. And what must NOT break: swipe sideways to change tab. On arriving the bar must stay put and visible, no flicker."
+     ],
+     "ca": [
+      "1. Ves a Inici i baixa amb el dit, A POC A POC, sense manotada. Aquest es el punt: quan la pantalla comenca a pujar, la barra de baix ha de marxar.",
+      "2. Fixa't com se'n va: ha de lliscar amb suavitat, no desapareixer de cop.",
+      "3. Puja una mica amb el dit: la barra ha de tornar.",
+      "4. Repeteix-ho a Despeses i a Cartera.",
+      "5. Ara fes una manotada rapida cap amunt: ha d'anar igual de be que abans.",
+      "6. I el que NO pot trencar-se: canvia de pestanya lliscant de costat. En arribar, la barra s'ha de quedar quieta i a la vista."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "La barra de abajo volvía a salir casi siempre al bajar por una lista. Ahora se esconde en cuanto empiezas a bajar, con la misma transición suave de siempre."
+   ],
+   "en": [
+    "The bottom bar used to stay put when scrolling a list. It now hides as soon as you start scrolling down, with the same smooth transition as before."
+   ],
+   "ca": [
+    "La barra de baix es quedava gairebe sempre en baixar per una llista. Ara s'amaga quan comences a baixar, amb la mateixa transicio suau."
+   ]
+  }
+ },
+ {
   "v": "4.19.61",
   "d": "11 sep 2026",
   "t": {

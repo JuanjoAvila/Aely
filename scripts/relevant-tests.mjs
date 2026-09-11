@@ -98,6 +98,10 @@ export const CROSSCUTTING = [
   "e2e/persistencia.spec.mjs",
   "e2e/swipe-pestanas.spec.mjs",
   "e2e/rebote-barra-inferior.spec.mjs",
+  /* Hermano del de arriba, y hace falta que sean DOS. Aquél mueve el scroll con `scrollTop` por
+     JS, que es el camino que nunca se rompió: se quedó verde mientras ella no se escondía con el
+     dedo (11/9). Éste baja con `Input.dispatchTouchEvent` y es el que caza eso. */
+  "e2e/botnav-esconder.spec.mjs",
   "e2e/rendimiento.spec.mjs",
   "e2e/rendimiento-tabs.spec.mjs",
   /* Va aquí y no colgando de `04-tab-gastos.js` a propósito: lo que vigila es una regla de CSS

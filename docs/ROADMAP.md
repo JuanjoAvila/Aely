@@ -1,6 +1,7 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-11 · **v4.19.61** — en pruebas: TSMC y Micron con logo, y los brókers también.
+> Estado a 2026-09-11 · **v4.19.62** — en pruebas: la barra de abajo vuelve a esconderse al bajar.
+> Anterior: **v4.19.61** — TSMC y Micron con logo, y los brókers también.
 > Anterior: **v4.19.60** — los logos de inversiones también por ticker.
 > Anterior: **v4.19.57** — re-anclar saldo por banco (padre Revolut).
 > Anterior: **v4.19.56** — la R de Revolut entera y TR a su tamaño.
@@ -127,7 +128,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.19.61** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.62** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |
