@@ -1,3 +1,9 @@
+## [4.19.46] — 2026-09-11
+### Logos = los del icono del móvil
+
+La 4.19.45 midió el lockup de Enable Banking y no se parecía a lo que él ve en el launcher. Ahora copian los iconos de su captura: Sabadell bola+B+S, Revolut R en negro, TR ondas (media recta), MyInvestor my+barra (sin círculo), Caixa Miró en blanco.
+
+
 ## [4.19.45] — 2026-09-11
 ### Logos de banco medidos del original
 

@@ -1,5 +1,46 @@
 [
  {
+  "v": "4.19.46",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Los logos, como en el móvil",
+   "en": "Logos like on your phone",
+   "ca": "Els logotips, com al mòbil"
+  },
+  "tandas": [
+   {
+    "id": "logos-marcas-reales",
+    "t": {
+     "es": "🏦 Logos como los iconos del móvil",
+     "en": "🏦 Logos like the phone icons",
+     "ca": "🏦 Logotips com les icones del mòbil"
+    },
+    "items": {
+     "es": [
+      "En Cartera → Tus cuentas, Sabadell, Revolut, Trade Republic, MyInvestor y CaixaBank se ven como en el icono de su app, no como una inicial inventada."
+     ],
+     "en": [
+      "In Portfolio → Your accounts, Sabadell, Revolut, Trade Republic, MyInvestor and CaixaBank look like their app icons, not made-up initials."
+     ],
+     "ca": [
+      "A Cartera → Els teus comptes, Sabadell, Revolut, Trade Republic, MyInvestor i CaixaBank es veuen com a la icona de l'app, no com una inicial inventada."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Los bancos se reconocen por el mismo dibujo que en el icono del móvil."
+   ],
+   "en": [
+    "Banks are recognizable by the same mark as on the phone icon."
+   ],
+   "ca": [
+    "Els bancs es reconeixen pel mateix dibuix que a la icona del mòbil."
+   ]
+  }
+ },
+ {
   "v": "4.19.45",
   "d": "11 sep 2026",
   "t": {

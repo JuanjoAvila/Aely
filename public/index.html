@@ -6932,11 +6932,11 @@ const I = {
    ============================================================ */
 function Mono({ent, size}){
   const e=entOf(ent); size=size||40;
-  /* Logos medidos desde docs/design/bancos/ (Enable Banking), 11/9. No de memoria:
-     dos intentos a ojo los tumbó. Prueba de fuego: tapa el nombre. SVG inline, cero PNG. */
+  /* Logos = los iconos del móvil (captura 11/9 14:12), no el lockup de Enable Banking
+     ni dibujos a ojo. Prueba de fuego: tapa el nombre. SVG inline, cero PNG. */
   const mark=bankMark(String(ent||""));
   if(mark){
-    const svgProps={viewBox:"0 0 24 24",width:Math.round(size*(mark.scale||0.72)),height:Math.round(size*(mark.scale||0.72)),
+    const svgProps={viewBox:"0 0 24 24",width:Math.round(size*(mark.scale||0.78)),height:Math.round(size*(mark.scale||0.78)),
       "aria-hidden":"true"};
     if(mark.fg) svgProps.fill=mark.fg;
     return React.createElement("div",{
@@ -6949,42 +6949,50 @@ function Mono({ent, size}){
   }
   return React.createElement("div",{className:"mono",style:{width:size,height:size,background:e.color+"22",color:e.color,borderColor:e.color+"44"}}, e.mono);
 }
-/* Isotipos medidos del PNG (LEEME). Colores del artwork, no del pastel de ENT. */
+/* Iconos del launcher (su captura). Fondo y trazo como en el móvil. */
 function bankMark(id){
   if(id==="sabadell"){
-    /* Bola azul #0082C9 + B (knockout del PNG → blanca sobre la bola). */
-    return {bg:"#0B0B0B",scale:0.92,el:React.createElement(React.Fragment,null,
-      React.createElement("circle",{cx:12,cy:12,r:11,fill:"#0082C9"}),
-      React.createElement("path",{fill:"#fff",d:"M8.2 5.4h5.1c2.55 0 4.15 1.35 4.15 3.35 0 1.25-.7 2.25-1.9 2.75 1.55.55 2.5 1.75 2.5 3.55 0 2.3-1.85 3.75-4.85 3.75H8.2V5.4zm3.05 5.15h2.05c1.15 0 1.8-.55 1.8-1.45s-.65-1.4-1.8-1.4h-2.05v2.85zm0 6.55h2.45c1.35 0 2.15-.65 2.15-1.7s-.8-1.65-2.15-1.65h-2.45v3.35z"})
+    /* Blanco: bola azul con B + S negra (icono Banco Sabadell del launcher). */
+    return {bg:"#FFFFFF",scale:0.88,el:React.createElement(React.Fragment,null,
+      React.createElement("circle",{cx:6.4,cy:12,r:4.5,fill:"#0082C9"}),
+      React.createElement("path",{fill:"#fff",d:"M4.35 8.9h2.15c1.1 0 1.78.58 1.78 1.42 0 .52-.3.95-.8 1.15.78.24 1.2.74 1.2 1.5 0 1-.82 1.63-2.1 1.63H4.35V8.9zm1.4 2.25h.82c.5 0 .78-.24.78-.62s-.28-.58-.78-.58h-.82v1.2zm0 2.85h1c.58 0 .92-.28.92-.72s-.34-.7-.92-.7h-1v1.42z"}),
+      React.createElement("text",{x:16.2,y:17.2,textAnchor:"middle",fill:"#111",
+        fontSize:16,fontWeight:800,fontFamily:"system-ui,-apple-system,sans-serif"},"S")
     )};
   }
   if(id==="revolut"){
-    /* Trazo oficial simple-icons/revolut (341 chars). No redibujar. */
-    return {bg:"#0666EB",fg:"#fff",scale:0.62,el:React.createElement("path",{d:"M20.913 6.957C20.913 3.121 17.79 0 13.95 0H2.424v3.86h10.978c1.738 0 3.177 1.365 3.209 3.043.016.84-.3 1.633-.888 2.233-.589.6-1.375.93-2.214.93H9.232a.276.276 0 0 0-.276.275v3.431c0 .059.018.114.052.161L16.265 24h5.311l-7.273-10.094c3.663-.184 6.61-3.261 6.61-6.949zM6.894 5.923H2.424V24h4.47z"})};
+    /* Negro + R blanca (icono Revolut del launcher). Trazo simple-icons. */
+    return {bg:"#0B0B0B",fg:"#fff",scale:0.58,el:React.createElement("path",{d:"M20.913 6.957C20.913 3.121 17.79 0 13.95 0H2.424v3.86h10.978c1.738 0 3.177 1.365 3.209 3.043.016.84-.3 1.633-.888 2.233-.589.6-1.375.93-2.214.93H9.232a.276.276 0 0 0-.276.275v3.431c0 .059.018.114.052.161L16.265 24h5.311l-7.273-10.094c3.663-.184 6.61-3.261 6.61-6.949zM6.894 5.923H2.424V24h4.47z"})};
   }
   if(id==="trade_republic"){
-    /* Onda del PNG: 3 chevrones apilados (huecos a la derecha del lockup). Blanco sobre negro. */
-    const wave=function(y){ return "M2.5 "+y+" L7 "+(y-3.2)+" L12 "+y+" L17 "+(y-3.2)+" L21.5 "+y; };
-    return {bg:"#0B0B0B",el:React.createElement(React.Fragment,null,
-      React.createElement("path",{d:wave(8.2),fill:"none",stroke:"#fff",strokeWidth:1.85,strokeLinecap:"round",strokeLinejoin:"round"}),
-      React.createElement("path",{d:wave(12.5),fill:"none",stroke:"#fff",strokeWidth:1.85,strokeLinecap:"round",strokeLinejoin:"round"}),
-      React.createElement("path",{d:wave(16.8),fill:"none",stroke:"#fff",strokeWidth:1.85,strokeLinecap:"round",strokeLinejoin:"round"})
+    /* Negro: 3 trazos blancos — arriba/abajo ondulados, el del medio recto (icono TR). */
+    return {bg:"#0B0B0B",scale:0.72,el:React.createElement(React.Fragment,null,
+      React.createElement("path",{d:"M3.2 7.2 L8.2 4.6 L12 7.2 L15.8 4.6 L20.8 7.2",fill:"none",stroke:"#fff",strokeWidth:2.05,strokeLinecap:"round",strokeLinejoin:"round"}),
+      React.createElement("path",{d:"M3.2 12 H20.8",fill:"none",stroke:"#fff",strokeWidth:2.05,strokeLinecap:"round"}),
+      React.createElement("path",{d:"M3.2 16.8 L8.2 14.2 L12 16.8 L15.8 14.2 L20.8 16.8",fill:"none",stroke:"#fff",strokeWidth:2.05,strokeLinecap:"round",strokeLinejoin:"round"})
     )};
   }
   if(id==="myinvestor"){
-    /* Círculo + «my» (magenta plano: el degradado no hace el reconocimiento). */
-    return {bg:"#fff",scale:0.88,el:React.createElement(React.Fragment,null,
-      React.createElement("circle",{cx:12,cy:12,r:10.2,fill:"none",stroke:"#E6007E",strokeWidth:1.35}),
-      React.createElement("text",{x:12,y:15.2,textAnchor:"middle",fill:"#282828",
-        fontSize:9,fontWeight:700,fontFamily:"system-ui,-apple-system,sans-serif",letterSpacing:"-0.5px"},"my")
+    /* Blanco: «my» negro + barra vertical degradado (icono MyInvestor — SIN círculo). */
+    return {bg:"#FFFFFF",scale:0.9,el:React.createElement(React.Fragment,null,
+      React.createElement("text",{x:9.2,y:15.6,textAnchor:"middle",fill:"#1a1a1a",
+        fontSize:11,fontWeight:700,fontFamily:"system-ui,-apple-system,sans-serif",letterSpacing:"-0.6px"},"my"),
+      React.createElement("defs",null,
+        React.createElement("linearGradient",{id:"miBar",x1:"0",y1:"0",x2:"0",y2:"1"},
+          React.createElement("stop",{offset:"0%",stopColor:"#7B2D8E"}),
+          React.createElement("stop",{offset:"55%",stopColor:"#E6007E"}),
+          React.createElement("stop",{offset:"100%",stopColor:"#2F6BFF"})
+        )
+      ),
+      React.createElement("rect",{x:15.6,y:5.2,width:1.55,height:13.6,rx:0.75,fill:"url(#miBar)"})
     )};
   }
   if(id==="caixabank"){
-    /* Estrella Miró + punto amarillo + rojo (medidos en el crop). Sin el path de 2,5 KB. */
-    return {bg:"#0B0B0B",scale:0.9,el:React.createElement(React.Fragment,null,
-      React.createElement("path",{fill:"#00A0DF",d:"M12.2 2.1l1.55 5.35 4.85-.35-3.55 3.55 2.35 4.55-4.7-2.15-3.85 3.45.35-5.1-4.45-2.55 5.15-.55z"}),
-      React.createElement("circle",{cx:6.2,cy:13.8,r:1.55,fill:"#FFCC00"}),
-      React.createElement("ellipse",{cx:6.4,cy:18.6,rx:2.35,ry:2.55,fill:"#E30613"})
+    /* Blanco: estrella Miró + puntos (icono CaixaBankNow). */
+    return {bg:"#FFFFFF",scale:0.88,el:React.createElement(React.Fragment,null,
+      React.createElement("path",{fill:"#00A0DF",d:"M13.1 2.4l1.35 5.5 5.05-.2-3.85 3.35 2.55 4.55-4.85-1.95-3.55 3.75.15-5.25-4.65-2.35 5.35-.7z"}),
+      React.createElement("circle",{cx:16.6,cy:15.2,r:1.35,fill:"#FFCC00"}),
+      React.createElement("circle",{cx:16.9,cy:19.1,r:1.95,fill:"#E30613"})
     )};
   }
   return null;
