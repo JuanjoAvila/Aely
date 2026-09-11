@@ -1,3 +1,10 @@
+## [4.19.44] — 2026-09-11
+### Logos de banco y la letra a mano (lista 11/9, ítems 1 y 3)
+
+- **Logos:** `Mono` pinta SVG propios (no dos letras) para Sabadell, Revolut, Trade Republic, MyInvestor y CaixaBank — los que él citó. El resto sigue con iniciales. Sin PNG ni CDN; el gzip apenas se mueve.
+- **Tamaño de letra:** botón «Aa» en Inicio junto al avatar. Abre la misma escala (pequeña/normal/grande/enorme) sin entrar en Ajustes ni en el perfil. Ajustes sigue teniendo la sección por si la busca ahí.
+
+
 ## [4.19.43] — 2026-09-11
 ### La ronda de la tarde: lo que se veía roto al estrenar y los textos que sobraban
 

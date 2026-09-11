@@ -1,5 +1,49 @@
 [
  {
+  "v": "4.19.44",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Logos de banco y la letra a mano",
+   "en": "Bank logos and text size at hand",
+   "ca": "Logotips de banc i la lletra a mà"
+  },
+  "tandas": [
+   {
+    "id": "logos-letra-11sep",
+    "t": {
+     "es": "🏦 Logos de verdad y Aa en Inicio",
+     "en": "🏦 Real logos and Aa on Home",
+     "ca": "🏦 Logotips de veritat i Aa a Inici"
+    },
+    "items": {
+     "es": [
+      "En Cartera → Tus cuentas, Sabadell, Revolut, Trade Republic, MyInvestor y CaixaBank ya no son dos letras: llevan marca.",
+      "En Inicio, el botón «Aa» junto al avatar abre la barra de tamaño de letra sin entrar en Ajustes."
+     ],
+     "en": [
+      "In Portfolio → Your accounts, Sabadell, Revolut, Trade Republic, MyInvestor and CaixaBank are no longer two letters: they show a mark.",
+      "On Home, the «Aa» button next to the avatar opens text size without opening Settings."
+     ],
+     "ca": [
+      "A Cartera → Els teus comptes, Sabadell, Revolut, Trade Republic, MyInvestor i CaixaBank ja no són dues lletres: porten marca.",
+      "A Inici, el botó «Aa» al costat de l'avatar obre la mida de lletra sense entrar a Ajustos."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Los bancos de siempre muestran marca en vez de dos letras, y el tamaño de letra se cambia desde Inicio."
+   ],
+   "en": [
+    "Familiar banks show a mark instead of two letters, and text size can be changed from Home."
+   ],
+   "ca": [
+    "Els bancs de sempre mostren marca en lloc de dues lletres, i la mida de lletra es canvia des d'Inici."
+   ]
+  }
+ },
+ {
   "v": "4.19.43",
   "d": "11 sep 2026",
   "t": {

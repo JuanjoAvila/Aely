@@ -69,7 +69,32 @@ const I = {
    ============================================================ */
 function Mono({ent, size}){
   const e=entOf(ent); size=size||40;
+  /* Logos de verdad para los bancos que él ve a diario (11/9: «Sb, Rv, TR, MI, Cx»).
+     SVG mínimos inline — cero PNG, cero CDN. El resto sigue con las dos letras: meter
+     veinte marcas hincharía el gzip sin que las use. */
+  const mark=bankMarkPaths(String(ent||""));
+  if(mark){
+    return React.createElement("div",{
+      className:"mono mono-logo",
+      title:e.label,
+      "aria-label":e.label,
+      style:{width:size,height:size,background:e.color,color:"#fff",borderColor:e.color,
+        display:"grid",placeItems:"center",borderRadius:11,flex:"0 0 auto",border:"1px solid"}
+    }, React.createElement("svg",{viewBox:"0 0 40 40",width:Math.round(size*0.58),height:Math.round(size*0.58),
+        "aria-hidden":"true",fill:"currentColor"}, mark));
+  }
   return React.createElement("div",{className:"mono",style:{width:size,height:size,background:e.color+"22",color:e.color,borderColor:e.color+"44"}}, e.mono);
+}
+/* Trazos propios, no copias de marca registrada: siluetas legibles al tamaño del chip. */
+function bankMarkPaths(id){
+  if(id==="sabadell") return React.createElement("path",{d:"M20 6c-6.2 0-10 3.2-10 7.6 0 3.2 2.2 5.2 7.2 6.4l3.2.8c3.4.8 4.6 1.8 4.6 3.6 0 2.4-2.2 3.8-5.8 3.8-3.2 0-5.8-1.2-7.2-3.2l-3.2 2.6C10.6 31.8 14.6 34 20 34c6.6 0 11-3.4 11-8.2 0-3.6-2.4-5.8-7.6-7.2l-3.4-.8c-3-.8-4.2-1.8-4.2-3.4 0-2 1.8-3.4 5-3.4 2.8 0 5 1 6.4 2.8l3-2.6C28.4 8.2 24.6 6 20 6z"});
+  if(id==="revolut") return React.createElement("path",{d:"M12 8h12.5c4.6 0 7.5 2.6 7.5 6.6 0 3.2-1.8 5.4-4.8 6.2L32 32h-7.2l-4.2-9.6H18V32h-6V8zm6 9.2h5.2c1.8 0 2.9-.9 2.9-2.4S25 12.4 23.2 12.4H18v4.8z"});
+  if(id==="trade_republic") return React.createElement(React.Fragment,null,
+    React.createElement("path",{d:"M8 10h24v5.2H24.2V32h-8.4V15.2H8z"}),
+    React.createElement("circle",{cx:20,cy:28,r:2.2}));
+  if(id==="myinvestor") return React.createElement("path",{d:"M7 30V10h5.2l5.4 12.8L23 10H28v20h-5.2V16.4L18.2 28h-3.6L10.2 16.4V30H7z"});
+  if(id==="caixabank") return React.createElement("path",{d:"M20 6l3.2 9.2H33l-7.6 5.6 2.9 9.2L20 24.8l-8.3 5.2 2.9-9.2L7 15.2h9.8z"});
+  return null;
 }
 
 /* Ayuda contextual: un «?» discreto que explica la tarjeta en cristiano (para no-técnicos). */
