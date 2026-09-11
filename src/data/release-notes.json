@@ -1,5 +1,28 @@
 [
  {
+  "v": "4.18.17",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Más cómodo de usar",
+   "en": "More comfortable to use",
+   "ca": "Més còmode d'utilitzar"
+  },
+  "items": {
+   "es": [
+    "El anillo del presupuesto se dibuja al entrar y su porcentaje se lee mejor.",
+    "Las teclas para apuntar son más grandes y las listas que se deslizan indican que hay más opciones."
+   ],
+   "en": [
+    "The budget ring draws on entry, with a clearer percentage.",
+    "Larger keys and fading edges help reveal more options."
+   ],
+   "ca": [
+    "L'anell del pressupost es dibuixa en entrar i el percentatge es llegeix millor.",
+    "Les tecles per apuntar són més grans i les llistes que es llisquen indiquen que hi ha més opcions."
+   ]
+  }
+ },
+ {
   "v": "4.18.14",
   "d": "11 sep 2026",
   "t": {

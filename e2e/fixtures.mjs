@@ -1,8 +1,12 @@
+import { readFileSync } from "node:fs";
+
+const E2E_SEEN_VERSION=readFileSync(new URL("../VERSION",import.meta.url),"utf8").trim();
+
 /** Estado mínimo onboarded + sesión Supabase simulada (sin red).
  *  `overrides` se mezcla sobre el estado base (p.ej. {investments:[...]}) para que cada test
  *  no tenga que repetir el objeto entero. */
 export async function seedLoggedInDashboard(page, overrides = {}) {
-  await page.addInitScript((overrides) => {
+  await page.addInitScript(({overrides,seenVersion}) => {
     // Sin esto, cada reload vuelve a pisar localStorage y tests como el orden de Gastos
     // «persiste tras recargar» nunca pueden ver lo que la app acaba de guardar.
     const seedOnce = !!overrides.__seedOnce;
@@ -100,7 +104,7 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       localStorage.setItem("micartera_v3", JSON.stringify(Object.assign(base, overrides)));
       if (seedOnce) sessionStorage.setItem("_e2eSeeded", "1");
     }
-    localStorage.setItem("_seenVersion", "dev");
+    localStorage.setItem("_seenVersion", seenVersion);
     try {
       ["dash", "metas", "gastos", "fijos", "inv"].forEach((id) =>
         localStorage.setItem("_coach_" + id, "1")
@@ -120,12 +124,15 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         "1"
       );
     } catch (e) {}
-  }, overrides);
+  }, {overrides,seenVersion:E2E_SEEN_VERSION});
 }
 
 /** Cierra el popup de Novedades si sale (cambia de versión en cada release). Llamar tras el
  *  primer goto("/") en cualquier test que necesite interactuar con la pantalla. */
 export async function dismissNews(page) {
+  // Con builds selladas Novedades se abre cuando termina el splash; mirar antes deja el panel
+  // aparecer encima del siguiente click y vuelve el test dependiente de una carrera.
+  await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 10_000 }).catch(() => {});
   const btn = page.getByRole("button", { name: /Entendido|Got it|D'acord/i });
   if (await btn.count()) await btn.first().click();
 }

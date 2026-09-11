@@ -128,6 +128,18 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const p=eurParts(shownNet);
   const ringC=2*Math.PI*48;
   const ringPct=Math.max(0,Math.min(1,ratio));
+  /* El primer pintado no anima una transición: el anillo debe arrancar vacío y recibir su
+     valor real tras el splash, igual que el patrimonio, para que la animación sea visible. */
+  const [ringDraw,setRingDraw]=useState(false);
+  useEffect(function(){
+    const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+    if(reduce){ setRingDraw(true); return undefined; }
+    let raf=0, cancelado=false;
+    const arrancar=function(){ if(cancelado) return; raf=requestAnimationFrame(function(){ if(!cancelado) setRingDraw(true); }); };
+    if(window.__mcSplashGone || !document.getElementById("mc-load")){ arrancar(); }
+    else window.addEventListener("mc-splash-gone", arrancar, {once:true});
+    return function(){ cancelado=true; cancelAnimationFrame(raf); window.removeEventListener("mc-splash-gone", arrancar); };
+  },[]);
   const monthName=monthLong(new Date().getMonth());
   const closedCard=closedMonthCardOf(state);
 
@@ -185,13 +197,13 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
             React.createElement("circle",{cx:52,cy:52,r:48,fill:"none",stroke:"var(--sur2)",strokeWidth:10}),
             React.createElement("circle",{cx:52,cy:52,r:48,fill:"none",stroke:stCls.indexOf("bad")>=0?"var(--coral)":(stCls.indexOf("warn")>=0?"var(--tan)":"var(--mint)"),
               strokeWidth:10,strokeLinecap:"round",strokeDasharray:String(ringC),
-              strokeDashoffset:String(ringC*(1-ringPct)),
+              strokeDashoffset:String(ringDraw ? ringC*(1-ringPct) : ringC),
               transform:"rotate(-90 52 52)",style:{transition:"stroke-dashoffset 1s var(--ease)"}})
           ),
           React.createElement("div",{style:{position:"absolute",inset:0,display:"grid",placeItems:"center",textAlign:"center",pointerEvents:"none"}},
             React.createElement("div",null,
-              React.createElement("div",{className:"num",style:{fontWeight:800,fontSize:18,lineHeight:1}}, Math.round(ringPct*100)+"%"),
-              React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)",fontWeight:600}}, t("v4_of_month"))
+              React.createElement("div",{className:"num",style:{fontFamily:"'Fraunces',Georgia,serif",fontWeight:600,fontSize:24,lineHeight:1,letterSpacing:"-0.5px"}}, Math.round(ringPct*100)+"%"),
+              React.createElement("div",{style:{fontSize:10.5,color:"var(--muted-2)",fontWeight:600,marginTop:1}}, t("v4_of_month"))
             )
           )
         ),
