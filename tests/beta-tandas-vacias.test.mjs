@@ -65,21 +65,49 @@ t("★ su bug: ninguna versión de la ronda resucita como «/todo»", () => {
     "vuelven enteras al panel: " + resucitadas.join(", ") + " — ponles `tandas:[]` en vez de quitar la propiedad");
 });
 
-t("★ las cinco que aprobó el 8/9 no vuelven a salir", () => {
+/* NINGUNA TANDA CON VEREDICTO SUYO PUEDE VOLVER AL PANEL.
+   La lista de abajo son ids que él YA juzgó —aprobados el 8/9 y el 10/9, y rechazados—, leídos
+   de sus propios veredictos con `node scripts/errores.mjs --kind=beta`. Enseñarle otra vez algo
+   que ya dictaminó es exactamente lo que pidió quitar el 11/9 por la noche: «no me sirve cosas
+   que ya te he dicho por aquí». Un RECHAZO tampoco vuelve tal cual: el arreglo se le devuelve
+   como paso dentro de la tanda que de verdad lo arregla (tr-reactivo → quitar-banco de 4.19.28,
+   avisos-presupuesto → la tanda de 4.19.55), no re-probando la versión que ya rechazó. */
+t("★ nada con veredicto suyo vuelve al panel", () => {
   const pack = cli.betaChecklist(VERSION_ACTUAL, "4.18.7");
   const ids = pack.tandas.map((g) => String(g.id));
-  ["notas-20", "arranque-suelto", "panel-ronda", "multicuenta", "posible-repetido"].forEach((id) => {
+  const juzgadas = [
+    /* aprobadas 8/9 */ "notas-20", "arranque-suelto", "panel-ronda", "multicuenta", "posible-repetido",
+    /* aprobadas 10/9 */ "categoria-ia", "orden-gastos", "acabado-v4", "pulido-b245", "revision-plegable",
+    "informe-mes", "presupuesto-categoria",
+    /* rechazadas (su arreglo va dentro de otra tanda) */ "tr-reactivo", "avisos-presupuesto",
+    "ventana-mes", "pulido-cierre", "modo-inicial",
+  ];
+  juzgadas.forEach((id) => {
     assert.equal(ids.some((x) => x.endsWith("/" + id) || x === id), false,
-      `«${id}» estaba aprobada y ha vuelto al panel`);
+      `«${id}» ya tiene veredicto suyo y ha vuelto al panel`);
   });
 });
 
-t("y las que NO ha aprobado siguen ahí (no nos hemos pasado de frenada)", () => {
+t("y lo que nunca ha probado sigue ahí (no nos hemos pasado de frenada)", () => {
   const pack = cli.betaChecklist(VERSION_ACTUAL, "4.18.7");
   const ids = pack.tandas.map((g) => String(g.id));
-  ["tr-reactivo", "avisos-presupuesto", "ventana-mes", "categoria-ia", "orden-gastos", "id-fila"].forEach((id) => {
+  ["id-fila", "quitar-banco", "cats-plegable", "pulsacion-larga", "logos-inversiones"].forEach((id) => {
     assert.equal(ids.some((x) => x.endsWith("/" + id)), true, `falta «${id}», que sigue pendiente`);
   });
+});
+
+/* Y que los pasos se puedan seguir sin adivinar: él los lee en el móvil, uno a uno. */
+t("cada punto del panel dice qué hacer, no solo qué debería pasar", () => {
+  const pack = cli.betaChecklist(VERSION_ACTUAL, "4.18.7");
+  const flojos = [];
+  pack.tandas.forEach((g) => {
+    (g.items || []).forEach((it) => {
+      const txt = String(it || "");
+      if (!/^\s*\d+\./.test(txt)) flojos.push(g.id + " → " + txt.slice(0, 60));
+    });
+  });
+  assert.equal(flojos.length, 0,
+    "estos puntos no van numerados como pasos:\n      " + flojos.join("\n      "));
 });
 
 console.log(failed ? `\n${failed} fallo(s)` : "\nbeta-tandas-vacias: OK");

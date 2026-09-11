@@ -81,11 +81,14 @@ function Mono({ent, size, logo}){
   const e=entOf(ent); size=size||40;
   const id=String(ent||"");
   const [roto,setRoto]=React.useState(false);
-  /* `logo:false` = el monograma de colores de siempre. Las INVERSIONES van así a propósito
-     (2026-09-11): ahí cada fila es una EMPRESA (Apple, Nvidia…), y ponerle el logo del banco que
-     la custodia hacía que todas las empresas de un mismo bróker salieran con el mismo icono de
-     banco. Su aviso: «te cargaste los iconos de las inversiones de las empresas». El logo real
-     es para «Tus cuentas», donde la fila SÍ es el banco.
+  /* `logo:false` = el monograma de colores de siempre.
+     LA REGLA, que me costó dos rondas (11/9): **si la fila es un BANCO, el logo del banco; si es
+     una EMPRESA, `LogoInv`**. La primera vez puse el logo a todo y las posiciones de un bróker
+     salían todas con el mismo icono de banco («te cargaste los iconos de las inversiones de las
+     empresas»); al arreglarlo me pasé de frenada y lo apagué también en las filas que agrupan POR
+     BRÓKER, que sí son bancos — y lo cazó: «no puede ser que salgan bien los logos de las cuentas,
+     que salgan los de las empresas, pero no los bancos donde están las inversiones».
+     Hoy `logo:false` no lo usa nadie; se deja porque una fila puede no ser ninguna de las dos.
      Va DESPUÉS del useState a propósito: un hook no puede quedarse detrás de un return. */
   if(logo===false) return React.createElement("div",{className:"mono",style:{width:size,height:size,background:e.color+"22",color:e.color,borderColor:e.color+"44"}}, e.mono);
   if(BANCOS_CON_LOGO[id] && !roto){

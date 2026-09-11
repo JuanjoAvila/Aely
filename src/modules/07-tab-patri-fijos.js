@@ -369,7 +369,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
       ["revolut","trade_republic","myinvestor"].filter(g=>state.investments.some(i=>i.ent===g)).map(g=>{
         const v=state.investments.filter(i=>i.ent===g).reduce((a,i)=>a+invValueEur(i, state),0);
         return React.createElement("div",{className:"row",key:g},
-          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g,size:38,logo:false}),React.createElement("div",{className:"rname"},entOf(g).label)),
+          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g,size:38}),React.createElement("div",{className:"rname"},entOf(g).label)),
           React.createElement("div",{className:"rval num"},eur(v)));
       }),
       React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("pt_total_inv")),React.createElement("span",{className:"num"},eur(totals.invested)))

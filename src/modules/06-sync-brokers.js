@@ -792,7 +792,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
         return React.createElement(React.Fragment,{key:g[0]},
           React.createElement("button",{type:"button",className:"v4-mov",
             onClick:function(){ if(!editing) setBrokerOpen(function(o){ return Object.assign({},o,{[g[0]]:!o[g[0]]}); }); }},
-            React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:g[0],size:44,logo:false})),
+            React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:g[0],size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
               React.createElement("div",{className:"meta"}, tf("v4_inv_positions",{n:items.length}))
@@ -869,7 +869,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
       // desglose por bróker, para poder comparar cada uno con su app (p.ej. Revolut en $)
       groups.map(function(g){ const o=byBroker[g[0]]; if(!o||o.v===0) return null; const gain=o.v-o.c; const pl=o.c>0?gain/o.c*100:0;
         return React.createElement("div",{className:"row",key:g[0]},
-          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g[0],size:34,logo:false}),
+          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g[0],size:34}),
             React.createElement("div",null,React.createElement("div",{className:"rname"},g[1]),React.createElement("div",{className:"rsub"},tf("inv_invested_lbl",{x:f0(o.c)})))),
           React.createElement("div",{className:"rval num"}, f0(o.v),
             React.createElement("div",{className:"rvsub"+(gain<0?" neg":""),style:{color:gain>=0?"var(--mint)":"var(--coral)"}}, (gain>=0?"+":"")+f0(gain)+" ("+(pl>=0?"+":"")+pl.toFixed(1)+"%)")));

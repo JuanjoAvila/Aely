@@ -46,6 +46,9 @@ const steps = [
   ["logos-bancos", ["node", "scripts/logos-bancos.mjs", "--check"]],
   // Los de las empresas salen de simple-icons y la regla de «qué marca es» vive en la app.
   ["logos-inversiones", ["node", "scripts/logos-inversiones.mjs", "--check"]],
+  // Y QUIÉN lleva cada logo: fila de banco → logo del banco, fila de empresa → LogoInv. Se
+  // rompió en las dos direcciones el 11/9 y ningún test lo vio.
+  ["logo-banco-o-empresa", ["node", "tests/logo-banco-o-empresa.test.mjs"]],
   ["security", ["node", "tests/security.test.mjs"]],
   ["webdebug-guard", ["node", "tests/webdebug-guard.test.mjs"]],
   ["gastos-active-bus", ["node", "tests/gastos-active-bus.test.mjs"]],

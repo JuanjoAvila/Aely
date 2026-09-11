@@ -7067,11 +7067,14 @@ function Mono({ent, size, logo}){
   const e=entOf(ent); size=size||40;
   const id=String(ent||"");
   const [roto,setRoto]=React.useState(false);
-  /* `logo:false` = el monograma de colores de siempre. Las INVERSIONES van así a propósito
-     (2026-09-11): ahí cada fila es una EMPRESA (Apple, Nvidia…), y ponerle el logo del banco que
-     la custodia hacía que todas las empresas de un mismo bróker salieran con el mismo icono de
-     banco. Su aviso: «te cargaste los iconos de las inversiones de las empresas». El logo real
-     es para «Tus cuentas», donde la fila SÍ es el banco.
+  /* `logo:false` = el monograma de colores de siempre.
+     LA REGLA, que me costó dos rondas (11/9): **si la fila es un BANCO, el logo del banco; si es
+     una EMPRESA, `LogoInv`**. La primera vez puse el logo a todo y las posiciones de un bróker
+     salían todas con el mismo icono de banco («te cargaste los iconos de las inversiones de las
+     empresas»); al arreglarlo me pasé de frenada y lo apagué también en las filas que agrupan POR
+     BRÓKER, que sí son bancos — y lo cazó: «no puede ser que salgan bien los logos de las cuentas,
+     que salgan los de las empresas, pero no los bancos donde están las inversiones».
+     Hoy `logo:false` no lo usa nadie; se deja porque una fila puede no ser ninguna de las dos.
      Va DESPUÉS del useState a propósito: un hook no puede quedarse detrás de un return. */
   if(logo===false) return React.createElement("div",{className:"mono",style:{width:size,height:size,background:e.color+"22",color:e.color,borderColor:e.color+"44"}}, e.mono);
   if(BANCOS_CON_LOGO[id] && !roto){
@@ -10880,7 +10883,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
         return React.createElement(React.Fragment,{key:g[0]},
           React.createElement("button",{type:"button",className:"v4-mov",
             onClick:function(){ if(!editing) setBrokerOpen(function(o){ return Object.assign({},o,{[g[0]]:!o[g[0]]}); }); }},
-            React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:g[0],size:44,logo:false})),
+            React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:g[0],size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
               React.createElement("div",{className:"meta"}, tf("v4_inv_positions",{n:items.length}))
@@ -10957,7 +10960,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
       // desglose por bróker, para poder comparar cada uno con su app (p.ej. Revolut en $)
       groups.map(function(g){ const o=byBroker[g[0]]; if(!o||o.v===0) return null; const gain=o.v-o.c; const pl=o.c>0?gain/o.c*100:0;
         return React.createElement("div",{className:"row",key:g[0]},
-          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g[0],size:34,logo:false}),
+          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g[0],size:34}),
             React.createElement("div",null,React.createElement("div",{className:"rname"},g[1]),React.createElement("div",{className:"rsub"},tf("inv_invested_lbl",{x:f0(o.c)})))),
           React.createElement("div",{className:"rval num"}, f0(o.v),
             React.createElement("div",{className:"rvsub"+(gain<0?" neg":""),style:{color:gain>=0?"var(--mint)":"var(--coral)"}}, (gain>=0?"+":"")+f0(gain)+" ("+(pl>=0?"+":"")+pl.toFixed(1)+"%)")));
@@ -11400,7 +11403,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
       ["revolut","trade_republic","myinvestor"].filter(g=>state.investments.some(i=>i.ent===g)).map(g=>{
         const v=state.investments.filter(i=>i.ent===g).reduce((a,i)=>a+invValueEur(i, state),0);
         return React.createElement("div",{className:"row",key:g},
-          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g,size:38,logo:false}),React.createElement("div",{className:"rname"},entOf(g).label)),
+          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g,size:38}),React.createElement("div",{className:"rname"},entOf(g).label)),
           React.createElement("div",{className:"rval num"},eur(v)));
       }),
       React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("pt_total_inv")),React.createElement("span",{className:"num"},eur(totals.invested)))

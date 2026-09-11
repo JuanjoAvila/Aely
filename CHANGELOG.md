@@ -1,3 +1,70 @@
+## [4.19.61] - 2026-09-11
+### TSMC y Micron con logo, y los brókers recuperan el suyo
+
+Dos cosas que venían del mismo sitio: yo apagando iconos de más y dando por imposible lo que no
+había buscado bien.
+
+**1. «No hay logo oficial» era mentira.** En la 4.19.60 escribí que TSM, MU, el oro y los fondos
+se quedaban con sus letras porque no existía trazo oficial. Me lo cazó enseñando su Revolut, donde
+salen los dos. No estaban en simple-icons, que no es lo mismo que no existir: estaban en
+`@iconify-json/logos` (CC0), a la primera búsqueda.
+
+- Segunda fuente en `scripts/logos-inversiones.mjs` para **tsmc** y **micron**.
+- **Categorías dibujadas** (aquí sí es legítimo: no hay marca que copiar): `oro` (lingote),
+  `etf-mundo` (globo), `fondo-indice` (barras que suben). Petición suya.
+- **El fallback pasa a ser las iniciales DEL ACTIVO**, no la insignia del bróker. Antes TSM, MU,
+  el oro y los dos fondos salían todos como «Rv», «TR» o «MI»: cinco filas distintas con el mismo
+  icono. Un ticker de una sola palabra se enseña entero (`TSM`, `MU`), no su primera letra.
+
+**2. Los brókers volvían a salir con letras.** Suyo, literal: *«no puede ser que salgan bien los
+logos de las cuentas bancarias, que salgan los de las empresas en inversiones, pero no los bancos
+donde están las inversiones»*. Culpa mía y de un arreglo mal calibrado: al meter los logos de
+banco se colaron en las filas de EMPRESAS, y al apagarlos puse `logo:false` en los **cinco**
+sitios — incluidos los tres que agrupan POR BRÓKER, que sí son bancos.
+
+- Fuera `logo:false` de la tarjeta del bróker y del desglose por bróker
+  (`06-sync-brokers.js`) y de Inversiones por bróker en Cartera (`07-tab-patri-fijos.js`).
+- **Sin tocar** las dos filas que son por empresa, que ya van por `LogoInv`.
+
+**La regla, por fin escrita y atada:** *si la fila es un BANCO, el logo del banco; si es una
+EMPRESA, `LogoInv`*. Nuevo guardián `tests/logo-banco-o-empresa.test.mjs`, que comprueba los cinco
+sitios y se pone rojo en las dos direcciones (probado rompiéndolo a mano). Se rompió dos veces el
+mismo día y ningún test lo vio: es un [[misma-regla-en-dos-sitios]] de manual.
+
+### Y el panel de «Revisar esta beta», de 56 tandas a 13
+
+Petición suya esa misma noche: *«actualizarme la lista de cosas que verdaderamente puedo probar,
+no me sirve cosas que ya te he dicho por aquí, ni cosas que sabes 100 % que no podré probar… y
+actualizarme las descripciones paso por paso como si fuera tontico»*. Tenía 56 tandas acumuladas
+desde el 4.19.0: nadie se lee eso en un móvil.
+
+Criterios, todos comprobables y no «a ojo»:
+
+- **Fuera lo que ya tiene veredicto suyo**, leído de sus propios eventos
+  (`node scripts/errores.mjs --kind=beta`): 12 tandas, aprobadas el 8/9 y el 10/9 o rechazadas.
+- **Fuera lo que no se ve**: el rastro interno del 512/497 (`catch-mudo`) y la sonda de duplicados
+  decían literalmente «no deberías notar nada distinto». Eso es instrumentación mía, no algo que
+  él pueda dictaminar.
+- **Fuera lo meta**: dos tandas pedían probar el propio panel desde dentro del panel.
+- **Fuera lo que depende de servidor sin desplegar.** `npm run servidor` dice que las 13 Edge
+  Functions van por detrás del repo. Las tandas de efectivo, del widget y de que los apuntes a
+  mano no se fusionen tienen su mitad ahí: pedirle que las pruebe es pedirle que encuentre un
+  fallo mío. Quedan aparcadas hasta desplegar, no borradas.
+- **Una saga, una tanda**: las seis rondas de logos y las tres del tirón al cambiar de pestaña se
+  quedan en la del estado de hoy.
+- **Un rechazo no vuelve tal cual.** Sus dos rechazos del 8/9 (`tr-reactivo`,
+  `avisos-presupuesto`) se le devuelven como un paso más dentro de la tanda que de verdad los
+  arregla, con su frase citada. Re-probar la compilación que ya rechazó no vale para nada.
+
+Y los pasos, numerados y con la ruta entera («Cartera → Tus cuentas → Editar»), diciendo qué mirar
+y qué significa que esté mal. El guardián `beta-tandas-vacias` exige ahora las tres cosas: que
+nada juzgado vuelva, que lo no probado siga, y que **cada punto empiece por un número**.
+
+Se han retocado tres guardianes que llevaban congelada la foto del 8/9 y daban por «pendientes»
+tandas que él aprobó el 10/9 — `beta-tandas-vacias`, `release-notes-max` y el e2e
+`revisar-beta`. Los tres acusaban de regresión a una limpieza correcta; ahora comprueban la forma
+(que la ronda abarque varias versiones) en vez de una lista de versiones que caduca sola.
+
 ## [4.19.60] - 2026-09-11
 ### Revolut nombra por TICKER, no por el nombre de la empresa
 

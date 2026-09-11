@@ -77,13 +77,21 @@ function idsRonda(notes, running, prod) {
   return ids;
 }
 
-const tip = "4.19.5";
-const prod = "4.18.7";
+/* La ronda de verdad: del tip de beta hasta lo que corre producción. Se prueba con la ventana
+   REAL (y no con una foto de hace tres días) porque lo que este test defiende es que bajar
+   RELEASE_NOTES_MAX no se coma tandas del panel — y eso solo se ve si la ronda es más larga que
+   el MAX. Antes se anclaba a «4.19.0 tiene que estar»: el 11/9 se vaciaron sus tandas, porque él
+   ya las había juzgado, y el test se puso rojo acusando de regresión a una limpieza correcta. */
+const tip = fs.readFileSync(path.join(root, "VERSION"), "utf8").trim();
+const prod = "4.18.24";
 const fullIds = idsRonda(all, tip, prod);
 assert.ok(fullIds.length > 0, "la ronda de prueba tiene que tener tandas en el JSON");
+/* Lo que importa: que la ronda llegue MÁS ABAJO que el tope de la UI. Si el pack del index
+   volviera a ser la fuente del panel, estas de abajo desaparecerían sin que nadie se entere. */
+const masViejaDeLaRonda = fullIds[fullIds.length - 1];
 assert.ok(
-  fullIds.some((id) => id.indexOf("4.19.0/") === 0),
-  "la ronda incluye 4.19.0 (regresión del panel)"
+  fullIds.length > maxSrc || masViejaDeLaRonda.indexOf("4.19.1/") === 0,
+  `la ronda (${fullIds.length}) tiene que pasar del tope de la UI (${maxSrc}) o llegar hasta 4.19.1; la más vieja es ${masViejaDeLaRonda}`
 );
 /* Bajar MAX no puede comerse tandas: el pack del index ya no es la fuente del panel. */
 const packed = packReleaseNotesForBundle(all, 1, 5);

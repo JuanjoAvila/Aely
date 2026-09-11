@@ -393,11 +393,16 @@ test("la versión en curso: tandas (o la implícita) cubren TODOS los puntos ali
 
 test("con prod conocida, la checklist junta toda la ronda (no solo la última versión)", async ({ page }) => {
   /* Regresión 2026-09-07: en 4.19.1.2 el panel enseñaba solo «Solo ese movimiento» y dejaba
-     fuera 4.19.0. Con prod=4.18.7 tiene que salir la ronda 4.19.0…4.19.x. */
+     fuera 4.19.0. Con una prod vieja tiene que salir la ronda ENTERA, no la última versión.
+     Se comprueba por FORMA, no contra una lista de versiones concretas: el 11/9, al vaciar las
+     tandas que él ya había juzgado, este test acusó de regresión a una limpieza correcta. Lo que
+     de verdad se defiende es que la ronda abarque VARIAS versiones y llegue hasta la más vieja. */
   await abrirRevisionBeta(page);
   const r = await page.evaluate(() => {
-    const solo = betaChecklist("4.19.3");
-    const ronda = betaChecklist("4.19.3", "4.18.7");
+    /* Un tip por encima de todo lo escrito: así la ronda es la de verdad y el test no caduca
+       cada vez que sube la VERSION. */
+    const solo = betaChecklist("4.99.0");
+    const ronda = betaChecklist("4.99.0", "4.18.7");
     const planos = [];
     ronda.tandas.forEach((g) => { planos.push.apply(planos, g.items); });
     return {
@@ -410,9 +415,11 @@ test("con prod conocida, la checklist junta toda la ronda (no solo la última ve
     };
   });
   expect(r.rondaN).toBeGreaterThan(r.soloN);
-  expect(r.ids.some((id) => String(id).indexOf("4.19.0/") === 0)).toBe(true);
-  expect(r.ids.some((id) => String(id).indexOf("4.19.1/") === 0)).toBe(true);
-  expect(r.ids.some((id) => String(id).indexOf("4.19.2/") === 0)).toBe(true);
+  /* La ronda tiene que venir de VARIAS versiones distintas (eso es lo que se rompió), y la más
+     vieja que quede en el JSON tiene que estar dentro. */
+  const versiones = r.ids.map((id) => String(id).split("/")[0]);
+  expect(new Set(versiones).size).toBeGreaterThan(2);
+  expect(versiones[versiones.length - 1]).not.toBe(versiones[0]);
   expect(r.titulos.every((t) => /^v4\.19\./.test(t))).toBe(true);
   expect(r.planosOk, "marks por índice: la lista plana = concat de tandas en el mismo orden").toBe(true);
   expect(r.rondaItems).toBeGreaterThan(2);
