@@ -3921,6 +3921,7 @@ const LANG = {
     bk_notif_n:"{n} bancos necesitan que los reconectes · toca para verlos",
     bk_tr_notif_title:"Trade Republic está desconectado",
     bk_tr_notif_body:"La sesión caducó · toca para ver el aviso en Cartera",
+    bk_issue_pending:"⚠ {bank} se quedó a medio conectar", bk_issue_pending_sub:"Empezaste a conectarlo pero el banco no llegó a dar el permiso, así que no trae ni saldo ni movimientos. Vuelve a intentarlo desde aquí.", bk_notif_pending:"{bank} no llegó a conectarse · toca para terminar",
     bk_issue_noacct:"⚠ {bank} está conectado a medias", bk_issue_noacct_sub:"El enlace existe pero el banco no da ninguna cuenta. Vuelve a conectarlo y elige las cuentas que quieres ver.",
     bk_tr_sub:"Su sesión caducó: las posiciones y el efectivo no se actualizan. Se reconecta aquí, en la app (PIN + código SMS) — no en la app de Trade Republic.",
     bk_tr_cta:"🔓 Reconectar Trade Republic",
@@ -4095,6 +4096,7 @@ const LANG = {
     bk_notif_n:"{n} banks need reconnecting · tap to see them",
     bk_tr_notif_title:"Trade Republic is disconnected",
     bk_tr_notif_body:"The session expired · tap to see the warning in Portfolio",
+    bk_issue_pending:"⚠ {bank} was left half-connected", bk_issue_pending_sub:"You started connecting it but the bank never granted permission, so it brings no balance and no transactions. Try again from here.", bk_notif_pending:"{bank} never finished connecting · tap to finish",
     bk_issue_noacct:"⚠ {bank} is only half connected", bk_issue_noacct_sub:"The link exists but the bank returns no account. Connect it again and pick the accounts you want to see.",
     bk_tr_sub:"Its session expired: positions and cash aren't updating. Reconnect HERE in the app (PIN + SMS code) — not in the Trade Republic app.",
     bk_tr_cta:"🔓 Reconnect Trade Republic",
@@ -4258,6 +4260,7 @@ const LANG = {
     bk_notif_n:"{n} bancs necessiten que els reconnectis · toca per veure'ls",
     bk_tr_notif_title:"Trade Republic està desconnectat",
     bk_tr_notif_body:"La sessió ha caducat · toca per veure l'avís a Cartera",
+    bk_issue_pending:"⚠ {bank} es va quedar a mig connectar", bk_issue_pending_sub:"Vas començar a connectar-lo però el banc no va arribar a donar el permís, així que no porta ni saldo ni moviments. Torna-ho a provar des d'aquí.", bk_notif_pending:"{bank} no va arribar a connectar-se · toca per acabar",
     bk_issue_noacct:"⚠ {bank} està connectat a mitges", bk_issue_noacct_sub:"L'enllaç existeix però el banc no dóna cap compte. Torna a connectar-lo i tria els comptes que vulguis veure.",
     bk_tr_sub:"La sessió ha caducat: posicions i efectiu no s'actualitzen. Es reconnecta AQUÍ, a l'app (PIN + codi SMS) — no a l'app de Trade Republic.",
     bk_tr_cta:"🔓 Reconnecta Trade Republic",
@@ -5941,6 +5944,7 @@ Object.assign(LANG.es,{
   bp_retry_link:"Volver a intentar", bp_naccts:"{n} cuentas",
   bp_remove:"Quitar", bp_remove_q:"¿Quitar {bank}?", bp_remove_yes:"Sí, quitar", bp_remove_no:"Cancelar",
   bp_removing:"Quitando…", bp_removed:"{bank} quitado · puedes reconectarlo cuando quieras",
+  bp_removed_acc:"{bank} quitado · su cuenta se queda en Cartera con el último saldo, ya no la actualiza el banco",
   bp_rm_title:"¿Quitar {bank}?",
   bp_rm_sub:"Sus movimientos NO se borran: se quedan en tu historial pase lo que pase. Lo único que eliges es si siguen contando en el gasto del mes.",
   bp_rm_keep:"Que sigan contando",
@@ -5999,6 +6003,7 @@ Object.assign(LANG.en,{
   bp_retry_link:"Try again", bp_naccts:"{n} accounts",
   bp_remove:"Remove", bp_remove_q:"Remove {bank}?", bp_remove_yes:"Yes, remove", bp_remove_no:"Cancel",
   bp_removing:"Removing…", bp_removed:"{bank} removed · you can reconnect it whenever you want",
+  bp_removed_acc:"{bank} removed · its account stays in Wallet with the last balance, the bank no longer updates it",
   bp_rm_title:"Remove {bank}?",
   bp_rm_sub:"Its transactions are NOT deleted: they stay in your history no matter what. All you choose is whether they keep counting towards this month's spending.",
   bp_rm_keep:"Keep them counting",
@@ -6057,6 +6062,7 @@ Object.assign(LANG.ca,{
   bp_retry_link:"Torna-ho a provar", bp_naccts:"{n} comptes",
   bp_remove:"Treu", bp_remove_q:"Treure {bank}?", bp_remove_yes:"Sí, treu", bp_remove_no:"Cancel·la",
   bp_removing:"Traient…", bp_removed:"{bank} tret · pots reconnectar-lo quan vulguis",
+  bp_removed_acc:"{bank} tret · el seu compte es queda a Cartera amb l'últim saldo, el banc ja no l'actualitza",
   bp_rm_title:"Vols treure {bank}?",
   bp_rm_sub:"Els seus moviments NO s'esborren: es queden al teu historial passi el que passi. L'únic que tries és si segueixen comptant en la despesa del mes.",
   bp_rm_keep:"Que segueixin comptant",
@@ -12712,12 +12718,27 @@ function histCanUndo(state){
    `kind`: "expired" (el permiso caducó, se reconecta) · "noacct" (enlace sin cuentas utilizables).
    Los fallos PASAJEROS (rate-limit, 5xx) NO entran aquí a propósito: se reintentan solos y sacarlos
    en un banner haría que «se cae cada dos por tres» otra vez (feedback 2026-07-17). */
-function bankIssuesOf(links){
-  return (links||[]).filter(function(l){
-    return l && l.ok===false && (l.expired || l.noacct);
+/* `dbLinks` = las filas de `bank_links` tal cual (lo que devuelve `cloud.bankLinks()`), y hace
+   falta porque el sync NO las ve todas: un banco que se quedó a medias de autorizar tiene
+   `status:'pending'` y la Edge `bank-sync` solo consulta `active`/`expired`/`error`. O sea que ni
+   aparecía en la respuesta ni había forma de avisar de él. Suyo, 11/9, con CaixaBank en pendiente:
+   «al sincronizar no sale ni un aviso ni nada, he tenido que venir aquí para ver qué pasaba».
+   Se arregla en el CLIENTE a propósito: así le llega por OTA sin esperar a desplegar el servidor
+   (que también se arregla, para cuando toque). */
+function bankIssuesOf(links, dbLinks){
+  const out=(links||[]).filter(function(l){
+    return l && l.ok===false && (l.expired || l.noacct || l.pending);
   }).map(function(l){
-    return { aspsp:l.aspsp, ent:entFromAspsp(l.aspsp), kind: l.expired ? "expired" : "noacct" };
+    return { aspsp:l.aspsp, ent:entFromAspsp(l.aspsp), kind: l.pending ? "pending" : (l.expired ? "expired" : "noacct") };
   });
+  const ya={}; out.forEach(function(i){ ya[String(i.aspsp||"").toLowerCase()]=1; });
+  (dbLinks||[]).forEach(function(l){
+    if(!l || String(l.status||"")!=="pending") return;
+    const nm=l.aspsp_name||"";
+    if(ya[String(nm).toLowerCase()]) return;
+    out.push({ aspsp:nm, ent:entFromAspsp(nm), kind:"pending" });
+  });
+  return out;
 }
 
 /* Rellena el CONCEPTO de los gastos que YA estaban apuntados, usando lo que acaba de traer el
@@ -15577,11 +15598,37 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       setBusy(name);
       cloud.bankDisconnect(name).then(function(){
         setConfirming("");
-        showToast(tf("bp_removed",{bank:bankLabel(name)}));
+        // Si el banco tenía una cuenta con rol en Cartera, se le dice qué pasa con ella: se queda,
+        // con su último saldo y sin que el banco la toque ya (ver el `set` de abajo).
+        const teniaCuenta=!!(state.accounts||[]).find(function(a){ return a && a.ent===ent && a.bankIban; });
+        showToast(tf(teniaCuenta?"bp_removed_acc":"bp_removed",{bank:bankLabel(name)}));
         set(function(s){
           const ob=(s.obAccounts||[]).filter(function(o){ return String(o.aspsp||"").toLowerCase()!==String(name||"").toLowerCase(); });
           var next=s;
           if(ob.length!==(s.obAccounts||[]).length) next=Object.assign({},next,{obAccounts:ob});
+          /* ⚠ Y LAS CUENTAS PROMOCIONADAS (11/9/2026). Esto solo purgaba `obAccounts`, pero una
+             cuenta que se promocionó para darle un rol (`promoteObAccount`) vive en
+             `state.accounts` con su `bankIban`. Al quitar el banco se quedaba en Cartera → Tus
+             cuentas tan pancha, con la chapita «del banco» y el último saldo congelado. Él lo vio
+             con CaixaBank: «se me ocurre ir a cartera para ver si ya no estaba el banco quitado y
+             adivina, estaba».
+             NO se borra la cuenta —por borrados automáticos ya perdió movimientos una vez, ver
+             [[tr-duplicados-saga]]—: se le quita el `bankIban`, que es lo que la marcaba como
+             sincronizada. Así deja de decir «del banco», deja de re-anclarla el sync, y se queda
+             como una cuenta suya a mano con su saldo, que él puede editar o borrar desde Cartera.
+             Se le dice en el aviso, que si no es magia negra. */
+          if(ent){
+            const accs=(next.accounts||[]);
+            var tocadas=0;
+            const nuevas=accs.map(function(a){
+              if(a && a.ent===ent && a.bankIban){
+                tocadas++;
+                const c=Object.assign({},a); delete c.bankIban; return c;
+              }
+              return a;
+            });
+            if(tocadas) next=Object.assign({},next,{accounts:nuevas});
+          }
           /* Solo si lo ha pedido, y solo sacándolo de la lista de gasto diario: los gastos siguen
              enteros en `expenses` con su banco, así que volver a conectarlo lo deja como estaba. */
           if(elige==="stop" && ent){
@@ -18404,6 +18451,11 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       // «noacct» = enlazado pero el banco no devuelve ninguna cuenta: el texto de «permiso
       // caducado» ahí despistaba, porque no hay ningún permiso que renovar (2026-07-24).
       const noacct=is.kind==="noacct";
+      /* «pending» = se quedó a medio autorizar en el banco. No es un permiso caducado —nunca
+         llegó a haberlo— ni un enlace sin cuentas: es que el viaje al banco no terminó. Hasta
+         el 11/9 este caso no llegaba siquiera a la app (ver `bankIssuesOf`), así que su
+         CaixaBank se quedó ahí semanas sin que nada lo dijera. */
+      const pend=is.kind==="pending";
       /* TRADE REPUBLIC ENTRA POR DOS PUERTAS, Y SE ROMPEN POR SEPARADO (petición suya, 10/9:
          «estaría bien identificar cuándo falla por la api externa de trade republic y cuándo falla
          por open banking, me refiero a trade republic»).
@@ -18417,9 +18469,9 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       const esTR=is.ent==="trade_republic";
       return React.createElement("div",{key:"bi_"+is.aspsp,className:"v4-card v4-bank-issue",style:{marginTop:10,padding:"14px 16px",border:"1px solid rgba(226,112,95,.45)",background:"rgba(226,112,95,.08)"}},
         React.createElement("div",{style:{fontWeight:800,fontSize:14.5,lineHeight:1.4}},
-          esTR ? t(noacct?"bk_tr_ob_noacct":"bk_tr_ob") : tf(noacct?"bk_issue_noacct":"bk_issue",{bank:lbl})),
+          esTR ? t(noacct?"bk_tr_ob_noacct":"bk_tr_ob") : tf(pend?"bk_issue_pending":(noacct?"bk_issue_noacct":"bk_issue"),{bank:lbl})),
         React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:3,lineHeight:1.45}},
-          esTR ? t("bk_tr_ob_sub") : t(noacct?"bk_issue_noacct_sub":"bk_issue_sub")),
+          esTR ? t("bk_tr_ob_sub") : t(pend?"bk_issue_pending_sub":(noacct?"bk_issue_noacct_sub":"bk_issue_sub"))),
         onReconnectBank && React.createElement("button",{type:"button",className:"v4-cta",style:{marginTop:10,height:46},onClick:function(){ onReconnectBank(is.aspsp); }},
           esTR ? t("bk_tr_ob_cta") : tf("bk_issue_cta",{bank:lbl}))
       );
@@ -19210,7 +19262,14 @@ function App(){
     opts=opts||{};
     if(!cloud.enabled() || !sessionRef.current || bankSyncing.current) return Promise.resolve();
     bankSyncing.current=true;
-    return cloud.bankSync().then(function(res){
+    /* Las filas de `bank_links` en crudo, EN PARALELO al sync. Hacen falta porque el sync no ve
+       los enlaces `pending` (la Edge solo consulta active/expired/error), y un banco que se quedó
+       a medio autorizar no salía por ningún lado: ni saldo, ni movimientos, ni aviso. Suyo, 11/9:
+       «al sincronizar no sale ni un aviso ni nada, he tenido que venir aquí para ver qué pasaba».
+       Va con `catch` a lista vacía: si esto falla, el sync sigue como siempre. */
+    const pDb=Promise.resolve().then(function(){ return cloud.bankLinks(); }).catch(function(){ return []; });
+    return Promise.all([cloud.bankSync(), pDb]).then(function(par){
+      const res=par[0], dbLinks=par[1]||[];
       const links=(res&&res.links)||[];
       // Telemetría (caso CaixaBank 2026-07-11): banco que sincroniza «bien» (ok!==false) pero no
       // trae NINGUNA cuenta con saldo utilizable → invisible para el usuario (ni rol ni patrimonio).
@@ -19251,7 +19310,7 @@ function App(){
         const withNotes=enrichNotesFromBankTx(baseExp, txs);
         const withExp=(withNotes!==(invState.expenses||[])) ? Object.assign({},invState,{expenses:withNotes}) : invState;
         const r=applyBankBalances(withExp, links);
-        return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links) });
+        return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks) });
       });
       // sube las importadas a la tabla expenses (best-effort; el estado local ya las tiene)
       setTimeout(function(){ obAdded.forEach(function(e){ subirGasto(e, "ob-import"); }); }, 0);
@@ -19305,7 +19364,7 @@ function App(){
       //   2) Y no se canta victoria con un banco caído: si hay alguno que reconectar, el aviso que
       //      manda es el ⚠ de abajo —que además abre el panel para arreglarlo—, no un «✓ al día»
       //      que dice lo contrario medio segundo después.
-      const issues=bankIssuesOf(links);
+      const issues=bankIssuesOf(links, dbLinks);
       if(opts.manual && preview.synced.length && !issues.length){
         const ents={}; preview.synced.forEach(function(x){ if(x&&x.ent) ents[x.ent]=1; });
         const bancos=Object.keys(ents);
@@ -19322,9 +19381,11 @@ function App(){
       // (invalid_request) y dejaba al usuario dando vueltas aunque el banco dijera «OK».
       if(issues.length){
         const lbl=issues[0].ent?entOf(issues[0].ent).label:(issues[0].aspsp||"🏦");
+        const claveNoti=issues[0].kind==="pending" ? "bk_notif_pending"
+          : (issues[0].kind==="noacct" ? "bk_notif_noacct" : "bk_notif_one");
         const msg=issues.length>1
           ? tf("bk_notif_n",{n:issues.length})
-          : tf(issues[0].kind==="noacct"?"bk_notif_noacct":"bk_notif_one",{bank:lbl});
+          : tf(claveNoti,{bank:lbl});
         showToast("⚠ "+msg);
         if(opts.manual){
           const nat=natPlugin();

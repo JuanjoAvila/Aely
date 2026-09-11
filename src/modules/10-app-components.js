@@ -768,11 +768,37 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       setBusy(name);
       cloud.bankDisconnect(name).then(function(){
         setConfirming("");
-        showToast(tf("bp_removed",{bank:bankLabel(name)}));
+        // Si el banco tenía una cuenta con rol en Cartera, se le dice qué pasa con ella: se queda,
+        // con su último saldo y sin que el banco la toque ya (ver el `set` de abajo).
+        const teniaCuenta=!!(state.accounts||[]).find(function(a){ return a && a.ent===ent && a.bankIban; });
+        showToast(tf(teniaCuenta?"bp_removed_acc":"bp_removed",{bank:bankLabel(name)}));
         set(function(s){
           const ob=(s.obAccounts||[]).filter(function(o){ return String(o.aspsp||"").toLowerCase()!==String(name||"").toLowerCase(); });
           var next=s;
           if(ob.length!==(s.obAccounts||[]).length) next=Object.assign({},next,{obAccounts:ob});
+          /* ⚠ Y LAS CUENTAS PROMOCIONADAS (11/9/2026). Esto solo purgaba `obAccounts`, pero una
+             cuenta que se promocionó para darle un rol (`promoteObAccount`) vive en
+             `state.accounts` con su `bankIban`. Al quitar el banco se quedaba en Cartera → Tus
+             cuentas tan pancha, con la chapita «del banco» y el último saldo congelado. Él lo vio
+             con CaixaBank: «se me ocurre ir a cartera para ver si ya no estaba el banco quitado y
+             adivina, estaba».
+             NO se borra la cuenta —por borrados automáticos ya perdió movimientos una vez, ver
+             [[tr-duplicados-saga]]—: se le quita el `bankIban`, que es lo que la marcaba como
+             sincronizada. Así deja de decir «del banco», deja de re-anclarla el sync, y se queda
+             como una cuenta suya a mano con su saldo, que él puede editar o borrar desde Cartera.
+             Se le dice en el aviso, que si no es magia negra. */
+          if(ent){
+            const accs=(next.accounts||[]);
+            var tocadas=0;
+            const nuevas=accs.map(function(a){
+              if(a && a.ent===ent && a.bankIban){
+                tocadas++;
+                const c=Object.assign({},a); delete c.bankIban; return c;
+              }
+              return a;
+            });
+            if(tocadas) next=Object.assign({},next,{accounts:nuevas});
+          }
           /* Solo si lo ha pedido, y solo sacándolo de la lista de gasto diario: los gastos siguen
              enteros en `expenses` con su banco, así que volver a conectarlo lo deja como estaba. */
           if(elige==="stop" && ent){

@@ -84,7 +84,11 @@ Deno.serve(withCors(async (req: Request) => {
     const admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: allLinks } = await admin
       .from("bank_links").select("*")
-      .eq("user_id", user.id).in("status", ["active", "expired", "error"]);
+      // Y también los 'pending' (11/9/2026): un banco que se quedó a medio autorizar no entraba
+      // aquí, así que no salía en la respuesta y la app no tenía NADA que avisar. Su CaixaBank
+      // estuvo semanas en pendiente sin que ni el sync ni ninguna pantalla lo dijeran: «al
+      // sincronizar no sale ni un aviso ni nada, he tenido que venir aquí para ver qué pasaba».
+      .eq("user_id", user.id).in("status", ["active", "expired", "error", "pending"]);
     const links = (allLinks || []).filter((l) => l.status === "active");
     const deadLinks = (allLinks || []).filter((l) => l.status !== "active");
 
@@ -207,6 +211,7 @@ Deno.serve(withCors(async (req: Request) => {
       out.push({
         aspsp: link.aspsp_name, iban: link.iban, ok: false, skipped: true,
         expired: link.status === "expired", noacct: link.status === "error",
+        pending: link.status === "pending",
         error: "enlace " + link.status + " · reconecta",
         balances: [], count: 0, transactions: [], accounts: [],
       });

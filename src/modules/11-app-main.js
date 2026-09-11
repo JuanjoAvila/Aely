@@ -443,7 +443,14 @@ function App(){
     opts=opts||{};
     if(!cloud.enabled() || !sessionRef.current || bankSyncing.current) return Promise.resolve();
     bankSyncing.current=true;
-    return cloud.bankSync().then(function(res){
+    /* Las filas de `bank_links` en crudo, EN PARALELO al sync. Hacen falta porque el sync no ve
+       los enlaces `pending` (la Edge solo consulta active/expired/error), y un banco que se quedó
+       a medio autorizar no salía por ningún lado: ni saldo, ni movimientos, ni aviso. Suyo, 11/9:
+       «al sincronizar no sale ni un aviso ni nada, he tenido que venir aquí para ver qué pasaba».
+       Va con `catch` a lista vacía: si esto falla, el sync sigue como siempre. */
+    const pDb=Promise.resolve().then(function(){ return cloud.bankLinks(); }).catch(function(){ return []; });
+    return Promise.all([cloud.bankSync(), pDb]).then(function(par){
+      const res=par[0], dbLinks=par[1]||[];
       const links=(res&&res.links)||[];
       // Telemetría (caso CaixaBank 2026-07-11): banco que sincroniza «bien» (ok!==false) pero no
       // trae NINGUNA cuenta con saldo utilizable → invisible para el usuario (ni rol ni patrimonio).
@@ -484,7 +491,7 @@ function App(){
         const withNotes=enrichNotesFromBankTx(baseExp, txs);
         const withExp=(withNotes!==(invState.expenses||[])) ? Object.assign({},invState,{expenses:withNotes}) : invState;
         const r=applyBankBalances(withExp, links);
-        return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links) });
+        return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks) });
       });
       // sube las importadas a la tabla expenses (best-effort; el estado local ya las tiene)
       setTimeout(function(){ obAdded.forEach(function(e){ subirGasto(e, "ob-import"); }); }, 0);
@@ -538,7 +545,7 @@ function App(){
       //   2) Y no se canta victoria con un banco caído: si hay alguno que reconectar, el aviso que
       //      manda es el ⚠ de abajo —que además abre el panel para arreglarlo—, no un «✓ al día»
       //      que dice lo contrario medio segundo después.
-      const issues=bankIssuesOf(links);
+      const issues=bankIssuesOf(links, dbLinks);
       if(opts.manual && preview.synced.length && !issues.length){
         const ents={}; preview.synced.forEach(function(x){ if(x&&x.ent) ents[x.ent]=1; });
         const bancos=Object.keys(ents);
@@ -555,9 +562,11 @@ function App(){
       // (invalid_request) y dejaba al usuario dando vueltas aunque el banco dijera «OK».
       if(issues.length){
         const lbl=issues[0].ent?entOf(issues[0].ent).label:(issues[0].aspsp||"🏦");
+        const claveNoti=issues[0].kind==="pending" ? "bk_notif_pending"
+          : (issues[0].kind==="noacct" ? "bk_notif_noacct" : "bk_notif_one");
         const msg=issues.length>1
           ? tf("bk_notif_n",{n:issues.length})
-          : tf(issues[0].kind==="noacct"?"bk_notif_noacct":"bk_notif_one",{bank:lbl});
+          : tf(claveNoti,{bank:lbl});
         showToast("⚠ "+msg);
         if(opts.manual){
           const nat=natPlugin();

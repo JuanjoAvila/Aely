@@ -49,6 +49,9 @@ const steps = [
   // Y QUIÉN lleva cada logo: fila de banco → logo del banco, fila de empresa → LogoInv. Se
   // rompió en las dos direcciones el 11/9 y ningún test lo vio.
   ["logo-banco-o-empresa", ["node", "tests/logo-banco-o-empresa.test.mjs"]],
+  // Quitar un banco tiene que limpiar SU cuenta de Cartera, y un enlace a medio autorizar tiene
+  // que avisar. Los tres sustos de CaixaBank del 11/9.
+  ["quitar-banco-y-pendiente", ["node", "tests/quitar-banco-y-pendiente.test.mjs"]],
   ["security", ["node", "tests/security.test.mjs"]],
   ["webdebug-guard", ["node", "tests/webdebug-guard.test.mjs"]],
   ["gastos-active-bus", ["node", "tests/gastos-active-bus.test.mjs"]],

@@ -1,3 +1,43 @@
+## [4.19.63] - 2026-09-11
+### Los tres sustos de CaixaBank
+
+Los contó él de una tirada, y salen todos del mismo sitio: un enlace a medio autorizar es
+**invisible** para todo el circuito, y quitar un banco solo limpiaba la mitad del estado.
+
+**1. «al sincronizar no sale ni un aviso ni nada, he tenido que venir aquí para ver qué pasaba».**
+Y tenía razón hasta en el detalle. `bank-sync` consulta los enlaces con
+`.in("status", ["active","expired","error"])`: un banco que se quedó en **`pending`** ni siquiera
+entra en esa consulta, así que no sale en la respuesta, no llega a `bankIssuesOf`, y no hay nada
+que avisar. Su CaixaBank llevaba así desde el 10/9 sin que ninguna pantalla lo dijera.
+
+- Arreglado **en el cliente**, a propósito: `bankIssuesOf` acepta ahora también las filas crudas de
+  `bank_links` (que el cliente ya sabe leer con RLS) y saca de ahí los `pending`. Así le llega por
+  OTA sin esperar a desplegar el servidor, que va por detrás.
+- Y arreglado **también en el servidor** para cuando toque desplegar: `pending` entra en la
+  consulta y viaja en la respuesta.
+- Aviso propio, que ni es «permiso caducado» —nunca llegó a haberlo— ni «enlazado sin cuentas»:
+  `bk_issue_pending` en los tres idiomas, con su recuadro en Cartera y su botón para terminarlo.
+
+**2. «decidí quitar la caixa… estado pendiente y no se quitó».** Un enlace `pending` tampoco salía
+de la lista al desconectar, por lo mismo de arriba: el sync no lo veía.
+
+**3. Y el que más le chocó: «se me ocurre ir a cartera para ver si ya no estaba el banco quitado y
+adivina, estaba».** Quitar un banco purgaba `obAccounts` y nada más. Una cuenta **promocionada**
+—la que se creó para poder darle un rol, `promoteObAccount`— vive en `state.accounts` con su
+`bankIban`, así que se quedaba en Cartera → Tus cuentas con la chapita «del banco» y el saldo
+congelado del último sync.
+
+- Ahora se le quita el `bankIban`, que es lo que la marcaba como sincronizada. **La cuenta NO se
+  borra**: por borrados automáticos ya perdió movimientos una vez ([[tr-duplicados-saga]]). Se
+  queda como una cuenta suya, con su saldo, y él decide si la borra.
+- Y se le dice en el aviso, que si no es magia negra: «su cuenta se queda en Cartera con el último
+  saldo, ya no la actualiza el banco».
+
+Guardián nuevo `tests/quitar-banco-y-pendiente.test.mjs`, con **dos bancos** sembrados (con uno
+solo, el filtro pasa igual de bien estando roto) y un caso que exige que los movimientos y la
+cuenta sobrevivan. Incluye un guardián de fuente para que el test no acabe probando mi réplica de
+la pantalla en vez de la pantalla.
+
 ## [4.19.62] - 2026-09-11
 ### La barra de abajo se escondía con manotazo, nunca con el dedo puesto
 

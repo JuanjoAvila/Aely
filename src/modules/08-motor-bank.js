@@ -1176,12 +1176,27 @@ function histCanUndo(state){
    `kind`: "expired" (el permiso caducó, se reconecta) · "noacct" (enlace sin cuentas utilizables).
    Los fallos PASAJEROS (rate-limit, 5xx) NO entran aquí a propósito: se reintentan solos y sacarlos
    en un banner haría que «se cae cada dos por tres» otra vez (feedback 2026-07-17). */
-function bankIssuesOf(links){
-  return (links||[]).filter(function(l){
-    return l && l.ok===false && (l.expired || l.noacct);
+/* `dbLinks` = las filas de `bank_links` tal cual (lo que devuelve `cloud.bankLinks()`), y hace
+   falta porque el sync NO las ve todas: un banco que se quedó a medias de autorizar tiene
+   `status:'pending'` y la Edge `bank-sync` solo consulta `active`/`expired`/`error`. O sea que ni
+   aparecía en la respuesta ni había forma de avisar de él. Suyo, 11/9, con CaixaBank en pendiente:
+   «al sincronizar no sale ni un aviso ni nada, he tenido que venir aquí para ver qué pasaba».
+   Se arregla en el CLIENTE a propósito: así le llega por OTA sin esperar a desplegar el servidor
+   (que también se arregla, para cuando toque). */
+function bankIssuesOf(links, dbLinks){
+  const out=(links||[]).filter(function(l){
+    return l && l.ok===false && (l.expired || l.noacct || l.pending);
   }).map(function(l){
-    return { aspsp:l.aspsp, ent:entFromAspsp(l.aspsp), kind: l.expired ? "expired" : "noacct" };
+    return { aspsp:l.aspsp, ent:entFromAspsp(l.aspsp), kind: l.pending ? "pending" : (l.expired ? "expired" : "noacct") };
   });
+  const ya={}; out.forEach(function(i){ ya[String(i.aspsp||"").toLowerCase()]=1; });
+  (dbLinks||[]).forEach(function(l){
+    if(!l || String(l.status||"")!=="pending") return;
+    const nm=l.aspsp_name||"";
+    if(ya[String(nm).toLowerCase()]) return;
+    out.push({ aspsp:nm, ent:entFromAspsp(nm), kind:"pending" });
+  });
+  return out;
 }
 
 /* Rellena el CONCEPTO de los gastos que YA estaban apuntados, usando lo que acaba de traer el

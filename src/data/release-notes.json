@@ -1,5 +1,64 @@
 [
  {
+  "v": "4.19.63",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Un banco a medio conectar ya no se queda callado",
+   "en": "A half-connected bank no longer stays quiet",
+   "ca": "Un banc a mig connectar ja no es queda callat"
+  },
+  "tandas": [
+   {
+    "id": "banco-pendiente-y-quitar",
+    "t": {
+     "es": "🏦 El banco que no llegó a conectarse, y el que quitas",
+     "en": "🏦 The bank that never connected, and the one you remove",
+     "ca": "🏦 El banc que no es va connectar, i el que treus"
+    },
+    "items": {
+     "es": [
+      "1. Si tienes algún banco que se quedó a medio conectar (en Ajustes → Mis bancos sale como «pendiente»), dale a Ajustes → «Sincronizar bancos».",
+      "2. Ahora tiene que salirte un aviso diciendo que ese banco no llegó a conectarse, y dejarte en Cartera con un recuadro para terminarlo. Antes no decías nada y había que ir a mirarlo a mano.",
+      "3. Prueba a quitar un banco desde Ajustes → Mis bancos (elige uno que no sea el de tu día a día).",
+      "4. En cuanto acepte, la tarjeta de ese banco tiene que desaparecer de la lista sola, sin que tengas que salir y volver a entrar.",
+      "5. Y ESTE es el punto: vete a Cartera → Tus cuentas. Su cuenta puede seguir ahí con el último saldo —eso es a propósito, no se te borra nada— pero ya NO puede llevar la chapita «del banco».",
+      "6. Si no la quieres, bórrala tú: Cartera → Tus cuentas → Editar → la papelera de esa cuenta.",
+      "7. Comprueba que sus movimientos siguen todos en Gastos. No puede faltar ni uno."
+     ],
+     "en": [
+      "1. If a bank was left half-connected (Settings → My banks shows it as “pending”), tap Settings → “Sync banks”.",
+      "2. A warning must now tell you that bank never connected, and leave you in Wallet with a card to finish it.",
+      "3. Try removing a bank from Settings → My banks (pick one that is not your day-to-day bank).",
+      "4. Its card must disappear from the list straight away, with no need to leave and come back.",
+      "5. THIS is the point: go to Wallet → Your accounts. Its account may still be there with the last balance — on purpose, nothing is deleted — but it must NOT show the “from the bank” chip any more.",
+      "6. If you don't want it, delete it yourself: Wallet → Your accounts → Edit → the bin on that account.",
+      "7. Check every one of its transactions is still in Expenses."
+     ],
+     "ca": [
+      "1. Si tens un banc que es va quedar a mig connectar (a Ajustos → Els meus bancs surt com a «pendent»), toca Ajustos → «Sincronitzar bancs».",
+      "2. Ara t'ha de sortir un avis dient que aquest banc no es va connectar, i deixar-te a Cartera amb un requadre per acabar-ho.",
+      "3. Prova de treure un banc des d'Ajustos → Els meus bancs (tria'n un que no sigui el del dia a dia).",
+      "4. La seva targeta ha de desapareixer de la llista tota sola.",
+      "5. I AQUEST es el punt: ves a Cartera → Els teus comptes. El seu compte pot seguir alla amb l'ultim saldo, pero ja NO pot portar la xapeta «del banc».",
+      "6. Si no el vols, esborra'l tu: Cartera → Els teus comptes → Editar → la paperera.",
+      "7. Comprova que els seus moviments segueixen tots a Despeses."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Un banco que se queda a medio conectar ahora avisa al sincronizar, en vez de quedarse callado. Y al quitar un banco, su cuenta deja de decir que viene del banco (pero no se borra: su saldo y sus movimientos se quedan)."
+   ],
+   "en": [
+    "A bank left half-connected now warns you on sync instead of staying quiet. And when you remove a bank, its account stops claiming it comes from the bank — nothing is deleted, its balance and transactions stay."
+   ],
+   "ca": [
+    "Un banc que es queda a mig connectar ara avisa en sincronitzar. I en treure un banc, el seu compte deixa de dir que ve del banc, pero no s'esborra res."
+   ]
+  }
+ },
+ {
   "v": "4.19.62",
   "d": "11 sep 2026",
   "t": {
