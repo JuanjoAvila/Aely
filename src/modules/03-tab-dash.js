@@ -65,10 +65,11 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const pace=spentAgainst/elapsed;
   const projected=spentAgainst+pace*leftDays;
   const overTrack=projected>budAmt+0.5;
-  let stCls="st", stHead=t("st_good_h");
+  // Sin gasto aún, «Vas muy bien» suena a vacío (feedback 11/9, modo recién instalada).
+  let stCls="st", stHead=spentAgainst>0.005 ? t("st_good_h") : t("st_start_h");
   if(ratio>1 || overTrack&&ratio>0.85){ stCls="st bad"; stHead=t("st_over_h"); }
   else if(ratio>0.8 || !overTrack&&ratio>0.8){ stCls="st warn"; stHead=t("st_tight_h"); }
-  if(ratio<=0.8 && !overTrack){ stCls="st"; stHead=t("st_good_h"); }
+  else if(ratio<=0.8 && !overTrack){ stCls="st"; stHead=spentAgainst>0.005 ? t("st_good_h") : t("st_start_h"); }
 
   // Próximos cargos: misma regla que Plan›Recibos (día del mes + isPaidIn). Antes usaba
   // f.day crudo y mostraba recibos ya cobrados (luz/seguros) — feedback 2026-07-17.
