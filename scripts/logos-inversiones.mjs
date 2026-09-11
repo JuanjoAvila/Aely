@@ -60,6 +60,13 @@ const NO_DEBEN_CASAR = [
   "Taiwan Semiconductor", "Micron Technology",
 ];
 
+/* Quita los retornos de carro para comparar CONTENIDO y no bytes. Escrito con `split/join` y
+   `String.fromCharCode` a propósito: cada vez que este fichero pasa por el shell se le comen las
+   barras invertidas, así que aquí no hay ninguna. Ya me ha mordido cuatro veces hoy. */
+function sinRetornos(txt) {
+  return String(txt == null ? "" : txt).split(String.fromCharCode(13)).join("");
+}
+
 function svgDe(icono) {
   const ic = si[icono];
   if (!ic) throw new Error(`simple-icons no tiene ${icono} (¿le cambiaron el nombre?)`);
@@ -98,7 +105,12 @@ for (const [slug, icono] of Object.entries(ICONO_DE)) {
   const antes = fs.existsSync(destino) ? fs.readFileSync(destino, "utf8") : null;
   if (soloComprobar) {
     if (antes == null) fallos.push(`falta public/logos/inv/${slug}.svg — ejecuta npm run logos:inv`);
-    else if (antes !== svg) fallos.push(`public/logos/inv/${slug}.svg no cuadra con simple-icons`);
+    // Se compara el CONTENIDO, no los bytes: git normaliza los finales de línea al commitear
+    // (LF en el índice, CRLF en el disco de Windows) y un guardián byte a byte se pone rojo
+    // por eso, sin que nadie haya tocado un logo. Pasó justo al integrar la 4.19.59.
+    else if (sinRetornos(antes) !== sinRetornos(svg)) {
+      fallos.push(`public/logos/inv/${slug}.svg no cuadra con simple-icons`);
+    }
   } else {
     fs.writeFileSync(destino, svg, "utf8");
   }
