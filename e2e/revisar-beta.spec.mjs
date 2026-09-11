@@ -530,19 +530,34 @@ test("un fallo en una tanda NO bloquea aprobar las otras", async ({ page }) => {
   expect(n, "esta prueba siembra 2 tandas").toBe(2);
 
   const primera = tandas.nth(0), segunda = tandas.nth(1);
-  const aprobar = (t) => t.getByRole("button", { name: /Aprobar esta tanda/i });
 
-  // La PRIMERA se marca entera como que va bien → su botón se habilita.
-  const it1 = primera.locator(".beta-item");
-  for (let i = 0; i < (await it1.count()); i++) {
-    await it1.nth(i).getByRole("button", { name: /Va bien/i }).click();
-  }
-  await expect(aprobar(primera)).toBeEnabled();
+  // Abrir la tanda si está plegada (cabecera toggle); si no, los .beta-item van con hidden.
+  const ensureOpen = async (t) => {
+    const body = t.locator("[id^=beta-body-]");
+    if (await body.getAttribute("hidden") !== null) {
+      await t.locator("button.beta-tanda-toggle").click();
+    }
+    await expect(body).not.toHaveAttribute("hidden");
+  };
+  await ensureOpen(primera);
+  await ensureOpen(segunda);
+
+  // Solo los abiertos tienen «Va bien». Tras marcarlos se encogen a .beta-item-done (sin ese botón),
+  // así que NO se itera por índice fijo — flaky en CI 4.19.55 (mismo patrón que .last() suelto).
+  const marcarTodosVaBien = async (t) => {
+    for (;;) {
+      const btn = t.locator(".beta-item:not(.beta-item-done) button", { hasText: /Va bien/i }).first();
+      if (await btn.count() === 0) break;
+      await btn.click();
+    }
+  };
+  await marcarTodosVaBien(primera);
+  await expect(primera.getByRole("button", { name: /Aprobar esta tanda/i })).toBeEnabled();
 
   // Y en la SEGUNDA se marca un fallo. Lo que importa: la primera sigue aprobable.
-  await segunda.locator(".beta-item").nth(0).getByRole("button", { name: /Falla/i }).click();
-  await expect(aprobar(segunda)).toBeDisabled();
-  await expect(aprobar(primera)).toBeEnabled();
+  await segunda.locator(".beta-item:not(.beta-item-done) button", { hasText: /Falla/i }).first().click();
+  await expect(segunda.getByRole("button", { name: /Aprobar esta tanda/i })).toBeDisabled();
+  await expect(primera.getByRole("button", { name: /Aprobar esta tanda/i })).toBeEnabled();
   await expect(segunda).toContainText(/arréglalo antes de aprobar/i);
 });
 
