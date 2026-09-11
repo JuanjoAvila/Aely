@@ -111,6 +111,13 @@ function applyBankBalances(s, links){
   const now=new Date(), cy=now.getFullYear(), cm=now.getMonth()+1, td=now.getDate();
   const accounts=(s.accounts||[]).slice();
   let changed=false; const synced=[]; const obAccts=[]; const usedPrimary={};
+  // Gasto del mes por banco UNA vez (misma lista que al pintar). Si se recalcula dentro del
+  // bucle con `spentM` global, un segundo banco diario/ambos se come los gastos ajenos.
+  const monthStart=startOfMonth();
+  const monthExp=(s.expenses||[]).filter(function(e){ return parseDate(e.date)>=monthStart; });
+  const dailyAcc=(s.accounts||[]).find(function(x){ return accDaily(x); });
+  const dailyEnt=dailyAcc&&dailyAcc.ent;
+  const porBanco=gastoDelMesPorBanco(monthExp, dailyEnt);
   links.forEach(function(lk){
     if(lk && lk.ok===false){
       // Banco que falló/caducó este sync: CONSERVA sus cuentas sincronizadas tal y como estaban,
@@ -164,22 +171,25 @@ function applyBankBalances(s, links){
       contributed++;
       if(ownerOf[k]!=null){
         const a=accounts[ownerOf[k]];
-        // re-anclaje = despejar `value` de la fórmula de dynBal para que HOY muestre el saldo real.
-        // fijos:  dyn = value + paidNet
-        // diario: dyn = value + inyección − gasto − round-up − aporte
-        // ambos:  dyn = value + inyección − gasto − round-up − aporte + paidNet
+        // re-anclaje = despejar `value` para que HOY muestre el saldo real del banco.
+        // Misma fórmula que al pintar (`saldoCuentaMostrada` ↔ `valueDesdeSaldo`). Antes
+        // `spentM` sumaba TODOS los bancos del mes y, con rol diario/ambos, inflaba la base
+        // (padre: Revolut 26 € del banco → 455 € en pantalla; 2026-09-11).
         const role=accRole(a);
         let newBase;
         if(role==="fijos"){
+          // Pintado: value + paidNet. paidNet = monthNetForAccount → base = bal − monthNet.
           newBase=+((bal - monthNetForAccount(s, ent, cy, cm, td)).toFixed(2));
         } else {
-          const monthStart=startOfMonth();
-          const monthExp=(s.expenses||[]).filter(function(e){ return parseDate(e.date)>=monthStart; });
-          const spentM=monthExp.reduce(function(x,e){ return x+e.amount; },0);
           const ruMv=(a.roundupManual!=null)?a.roundupManual:roundupOf(monthExp, a.roundup||0);
           const miMv=a.monthlyInvest||0;
           const injMv=nominaYaEntro()?accInject(a):0;
-          newBase=+((bal - injMv + spentM + ruMv + miMv - (role==="ambos"?monthNetForAccount(s, ent, cy, cm, td):0)).toFixed(2));
+          newBase=valueDesdeSaldo({
+            shown:bal, injTR:injMv, spentOwn:porBanco[ent]||0,
+            roundup:ruMv, monthlyInvest:miMv,
+            ambos:role==="ambos",
+            paidNet:monthNetForAccount(s, ent, cy, cm, td)
+          });
         }
         synced.push({ ent:ent, bal:bal, iban:ac.iban||null });
         if(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban)){

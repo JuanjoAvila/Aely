@@ -1,5 +1,46 @@
 [
  {
+  "v": "4.19.57",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "El saldo del banco ya cuadra",
+   "en": "Bank balance matches again",
+   "ca": "El saldo del banc ja quadra"
+  },
+  "tandas": [
+   {
+    "id": "reanclar-por-banco",
+    "t": {
+     "es": "🏦 Al sincronizar, cada cuenta usa solo sus gastos",
+     "en": "🏦 On sync, each account uses only its own spending",
+     "ca": "🏦 En sincronitzar, cada compte usa només les seves despeses"
+    },
+    "items": {
+     "es": [
+      "Si tienes varios bancos, el saldo que enseña cada uno vuelve a ser el del banco. Antes, al sincronizar, se mezclaban gastos de otras cuentas y el número se inflaba."
+     ],
+     "en": [
+      "With several banks, each account’s shown balance matches the bank again. Sync used to mix in other accounts’ spending and inflate the figure."
+     ],
+     "ca": [
+      "Si tens diversos bancs, el saldo de cada compte torna a ser el del banc. Abans, en sincronitzar, es barrejaven despeses d'altres comptes."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Al sincronizar con varios bancos, el saldo de cada cuenta ya no se infla con gastos que no son suyos."
+   ],
+   "en": [
+    "When syncing with several banks, each account’s balance no longer inflates with spending that isn’t theirs."
+   ],
+   "ca": [
+    "En sincronitzar amb diversos bancs, el saldo de cada compte ja no s'infla amb despeses que no són seves."
+   ]
+  }
+ },
+ {
   "v": "4.19.56",
   "d": "11 sep 2026",
   "t": {

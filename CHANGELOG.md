@@ -1,3 +1,15 @@
+## [4.19.57] - 2026-09-11
+### El saldo del banco ya no se infla con gastos de otros bancos
+
+Su padre: Revolut en el banco **26,46 €**, en la app **455,50 €**. Confirmó que esos 26 €
+eran reales. Al sincronizar, `applyBankBalances` despejaba la base sumando el gasto del mes
+de **todos** los bancos; con rol diario/ambos, Caixa/TR se le devolvían a Revolut.
+
+- Re-anclaje diario/ambos vía `valueDesdeSaldo` + `gastoDelMesPorBanco` (misma regla que al pintar).
+- La rama `fijos` sigue `bal − monthNet` (= inversa de `value + paidNet`).
+- Test espejo con DOS bancos en `saldo-por-banco` (con uno solo el bug no se ve).
+- No se toca el rol de su padre.
+
 ## [4.19.56] - 2026-09-11
 ### La R de Revolut son DOS piezas, y yo me quedaba con una
 
@@ -10,19 +22,6 @@ con una le amputaba la otra.
   por la derecha → fuera; el palo y la panza caben → dentro. Además no hay que saber cuántas
   piezas tiene cada logo.
 - Trade Republic: `ocupa` 0,46 → 0,38.
-
-## [4.19.55] - 2026-09-11
-### La R de Revolut son DOS piezas, y yo me quedaba con una
-
-Su aviso: *«arreglaste el circulito de la r pero cortaste el palo»*. En la 4.19.53 puse una
-máscara de «una sola pieza conectada» para que no se colara la «e» de al lado. Pero **la R de
-Revolut son dos piezas sueltas** —el palo vertical y la panza con la pata— así que quedarme con
-una le amputaba la otra.
-
-- `piezasDentro`: se queda con **TODA pieza cuya caja quepa ENTERA en el recorte**. La «e» se
-  sale por la derecha → fuera. El palo y la panza caben → dentro. Es la regla correcta y además
-  no necesita saber cuántas piezas tiene cada logo.
-- Trade Republic: `ocupa` 0,46 → **0,38**. «Sigue siendo las dos olas grandes.»
 
 ## [4.19.55] - 2026-09-11
 ### Bancos solo para bancos: gasto diario fuera de Conectar cuentas

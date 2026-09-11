@@ -105,3 +105,45 @@ t("6. el arreglo recupera los euros en TR, no los resta de Revolut (caso 257,17)
   const liquidoViejo = trViejo + rvShown;
   assert.equal(+(liquidoNuevo - liquidoViejo).toFixed(2), 257.17);
 });
+
+t("7. re-anclar Revolut con DOS bancos: el pintado cuadra con el banco (padre 26,46)", () => {
+  // Reproduce 2026-09-11: spentM global devolvía gastos de Caixa/TR a la base de Revolut.
+  const now = new Date();
+  const y = now.getUTCFullYear(), m = now.getUTCMonth();
+  const d = (day) => new Date(Date.UTC(y, m, day, 12, 0, 0)).toISOString();
+  const s = {
+    accounts: [
+      { id: "rv", ent: "revolut", name: "Revolut", value: 500, role: "ambos", bankIban: "ES99" },
+      { id: "cx", ent: "caixabank", name: "Caixa", value: 2000, role: "fijos" },
+    ],
+    expenses: [
+      { id: "e1", date: d(3), amount: 400, merchant: "Mercadona", source: "ob:caixabank", ent: "caixabank" },
+      { id: "e2", date: d(4), amount: 29, merchant: "Cafe", source: "ob:revolut", ent: "revolut" },
+    ],
+    fixed: [], debts: [], oneoffs: [], flows: [], obAccounts: [],
+  };
+  const bal = 26.46;
+  const r = ctx.applyBankBalances(s, [{
+    ok: true,
+    aspsp: "Revolut",
+    accounts: [{ uid: "u1", iban: "ES99", ok: true, balances: [{ type: "ITAV", amount: bal, currency: "EUR" }] }],
+  }]);
+  assert.ok(r.changed);
+  const acc = r.state.accounts.find((a) => a.ent === "revolut");
+  const monthExp = (r.state.expenses || s.expenses).filter((e) => {
+    const ms = ctx.dateMs(e.date);
+    const start = Date.UTC(now.getFullYear(), now.getMonth(), 1);
+    return ms >= start;
+  });
+  const spentByBank = ctx.gastoDelMesPorBanco(monthExp, "revolut");
+  const paidNet = ctx.monthNetForAccount(r.state, "revolut", now.getFullYear(), now.getMonth() + 1, now.getDate());
+  const shown = ctx.saldoCuentaMostrada(acc, {
+    injTR: 0, spentByBank: spentByBank, paidNetByBank: { revolut: paidNet },
+    roundup: 0, monthlyInvest: 0,
+  });
+  assert.equal(+shown.toFixed(2), bal);
+  // Con el bug viejo (spentM = 429), el pintado quedaba ~bal+400.
+  assert.ok(Math.abs(shown - (bal + 400)) > 1, "no debe inflarse con el gasto de Caixa");
+});
+
+console.log("\nsaldo-por-banco: OK");
