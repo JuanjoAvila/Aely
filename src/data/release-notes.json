@@ -1,5 +1,46 @@
 [
  {
+  "v": "4.19.54",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Las inversiones recuperan su icono",
+   "en": "Investments get their icon back",
+   "ca": "Les inversions recuperen la seva icona"
+  },
+  "tandas": [
+   {
+    "id": "inv-icono-atras",
+    "t": {
+     "es": "📈 Las empresas ya no salen con el logo del banco",
+     "en": "📈 Companies no longer show the bank's logo",
+     "ca": "📈 Les empreses ja no surten amb el logotip del banc"
+    },
+    "items": {
+     "es": [
+      "En Cartera → Inversiones, cada empresa vuelve a su icono de siempre. El logo del banco se queda solo en «Tus cuentas», que es donde la fila sí es un banco."
+     ],
+     "en": [
+      "In Wallet → Investments, each company gets its usual icon back. The bank logo stays only in «Your accounts», where the row really is a bank."
+     ],
+     "ca": [
+      "A Cartera → Inversions, cada empresa torna a la seva icona de sempre. El logotip del banc es queda nomes a «Els teus comptes»."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Al poner los logos de banco se colaron también en las inversiones, y todas las empresas de un mismo bróker salían con el mismo icono. Arreglado."
+   ],
+   "en": [
+    "The new bank logos leaked into investments, so every company under a broker showed the same icon. Fixed."
+   ],
+   "ca": [
+    "En posar els logotips de banc es van colar tambe a les inversions. Arreglat."
+   ]
+  }
+ },
+ {
   "v": "4.19.53",
   "d": "11 sep 2026",
   "t": {

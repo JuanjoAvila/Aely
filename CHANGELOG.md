@@ -1,3 +1,16 @@
+## [4.19.54] - 2026-09-11
+### Las inversiones recuperan su monograma (regresión mía de la 4.19.52)
+
+Su aviso: *«te cargaste los iconos de las inversiones de las empresas, pon los de antes»*.
+Al enseñar el logo real del banco en `Mono` se coló también en Inversiones, donde cada fila es
+una EMPRESA (Apple, Nvidia…) y no un banco: todas las posiciones de un mismo bróker salían con
+el mismo icono de banco.
+
+- `Mono` acepta `logo:false` → monograma de colores de siempre.
+- Puesto en los 5 sitios de inversiones: `06-sync-brokers` (lista, tarjeta de bróker, desglose
+  por bróker y rendimiento por posición) y `07-tab-patri-fijos` (Inversiones por bróker).
+- El early-return va DESPUÉS del `useState`: un hook no puede quedarse detrás de un return.
+
 ## [4.19.53] - 2026-09-11
 ### Revolut entera y Trade Republic a su tamaño
 

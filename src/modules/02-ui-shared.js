@@ -77,10 +77,17 @@ const I = {
    porque el gzip está al 99 % (326/330 KB).
    Si el PNG no carga (primer arranque sin red, banco nuevo), cae al monograma de siempre. */
 const BANCOS_CON_LOGO={sabadell:1,revolut:1,trade_republic:1,myinvestor:1,caixabank:1};
-function Mono({ent, size}){
+function Mono({ent, size, logo}){
   const e=entOf(ent); size=size||40;
   const id=String(ent||"");
   const [roto,setRoto]=React.useState(false);
+  /* `logo:false` = el monograma de colores de siempre. Las INVERSIONES van así a propósito
+     (2026-09-11): ahí cada fila es una EMPRESA (Apple, Nvidia…), y ponerle el logo del banco que
+     la custodia hacía que todas las empresas de un mismo bróker salieran con el mismo icono de
+     banco. Su aviso: «te cargaste los iconos de las inversiones de las empresas». El logo real
+     es para «Tus cuentas», donde la fila SÍ es el banco.
+     Va DESPUÉS del useState a propósito: un hook no puede quedarse detrás de un return. */
+  if(logo===false) return React.createElement("div",{className:"mono",style:{width:size,height:size,background:e.color+"22",color:e.color,borderColor:e.color+"44"}}, e.mono);
   if(BANCOS_CON_LOGO[id] && !roto){
     return React.createElement("div",{className:"mono mono-logo",title:e.label,"aria-label":e.label,
       style:{width:size,height:size,background:"#fff",display:"grid",placeItems:"center",

@@ -558,7 +558,7 @@ function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDele
   return items.map(function(it){
     return React.createElement("div",{className:"row",key:it.id},
       React.createElement("div",{className:"rl"},
-        React.createElement(Mono,{ent:it.ent,size:38}),
+        React.createElement(Mono,{ent:it.ent,size:38,logo:false}),
         React.createElement("div",null,
           React.createElement("div",{className:"rname"},it.name),
           React.createElement("div",{className:"rsub"}, entOf(it.ent).label + (it.cur==="USD"?" \u00b7 USD":"")),
@@ -792,7 +792,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
         return React.createElement(React.Fragment,{key:g[0]},
           React.createElement("button",{type:"button",className:"v4-mov",
             onClick:function(){ if(!editing) setBrokerOpen(function(o){ return Object.assign({},o,{[g[0]]:!o[g[0]]}); }); }},
-            React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:g[0],size:44})),
+            React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:g[0],size:44,logo:false})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
               React.createElement("div",{className:"meta"}, tf("v4_inv_positions",{n:items.length}))
@@ -869,7 +869,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
       // desglose por bróker, para poder comparar cada uno con su app (p.ej. Revolut en $)
       groups.map(function(g){ const o=byBroker[g[0]]; if(!o||o.v===0) return null; const gain=o.v-o.c; const pl=o.c>0?gain/o.c*100:0;
         return React.createElement("div",{className:"row",key:g[0]},
-          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g[0],size:34}),
+          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g[0],size:34,logo:false}),
             React.createElement("div",null,React.createElement("div",{className:"rname"},g[1]),React.createElement("div",{className:"rsub"},tf("inv_invested_lbl",{x:f0(o.c)})))),
           React.createElement("div",{className:"rval num"}, f0(o.v),
             React.createElement("div",{className:"rvsub"+(gain<0?" neg":""),style:{color:gain>=0?"var(--mint)":"var(--coral)"}}, (gain>=0?"+":"")+f0(gain)+" ("+(pl>=0?"+":"")+pl.toFixed(1)+"%)")));
@@ -890,7 +890,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
         const pos=p.gain>=0; const wpct=Math.min(100,Math.abs(p.gain)/maxAbsGain*100);
         return React.createElement("div",{key:p.id,style:{padding:"8px 2px",borderBottom:"1px solid var(--line-soft)"}},
           React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginBottom:5}},
-            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:9,minWidth:0}},React.createElement(Mono,{ent:p.ent,size:30}),React.createElement("div",{className:"rname",style:{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},p.name)),
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:9,minWidth:0}},React.createElement(Mono,{ent:p.ent,size:30,logo:false}),React.createElement("div",{className:"rname",style:{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},p.name)),
             React.createElement("div",{className:"num",style:{textAlign:"right",flex:"0 0 auto"}},
               React.createElement("div",{style:{fontWeight:700,color:pos?"var(--mint)":"var(--coral)"}},(pos?"+":"")+f2(p.gain)),
               React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)"}},(p.pl>=0?"+":"")+p.pl.toFixed(1)+"%"))),

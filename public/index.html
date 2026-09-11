@@ -6977,10 +6977,17 @@ const I = {
    porque el gzip está al 99 % (326/330 KB).
    Si el PNG no carga (primer arranque sin red, banco nuevo), cae al monograma de siempre. */
 const BANCOS_CON_LOGO={sabadell:1,revolut:1,trade_republic:1,myinvestor:1,caixabank:1};
-function Mono({ent, size}){
+function Mono({ent, size, logo}){
   const e=entOf(ent); size=size||40;
   const id=String(ent||"");
   const [roto,setRoto]=React.useState(false);
+  /* `logo:false` = el monograma de colores de siempre. Las INVERSIONES van así a propósito
+     (2026-09-11): ahí cada fila es una EMPRESA (Apple, Nvidia…), y ponerle el logo del banco que
+     la custodia hacía que todas las empresas de un mismo bróker salieran con el mismo icono de
+     banco. Su aviso: «te cargaste los iconos de las inversiones de las empresas». El logo real
+     es para «Tus cuentas», donde la fila SÍ es el banco.
+     Va DESPUÉS del useState a propósito: un hook no puede quedarse detrás de un return. */
+  if(logo===false) return React.createElement("div",{className:"mono",style:{width:size,height:size,background:e.color+"22",color:e.color,borderColor:e.color+"44"}}, e.mono);
   if(BANCOS_CON_LOGO[id] && !roto){
     return React.createElement("div",{className:"mono mono-logo",title:e.label,"aria-label":e.label,
       style:{width:size,height:size,background:"#fff",display:"grid",placeItems:"center",
@@ -10517,7 +10524,7 @@ function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDele
   return items.map(function(it){
     return React.createElement("div",{className:"row",key:it.id},
       React.createElement("div",{className:"rl"},
-        React.createElement(Mono,{ent:it.ent,size:38}),
+        React.createElement(Mono,{ent:it.ent,size:38,logo:false}),
         React.createElement("div",null,
           React.createElement("div",{className:"rname"},it.name),
           React.createElement("div",{className:"rsub"}, entOf(it.ent).label + (it.cur==="USD"?" \u00b7 USD":"")),
@@ -10751,7 +10758,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
         return React.createElement(React.Fragment,{key:g[0]},
           React.createElement("button",{type:"button",className:"v4-mov",
             onClick:function(){ if(!editing) setBrokerOpen(function(o){ return Object.assign({},o,{[g[0]]:!o[g[0]]}); }); }},
-            React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:g[0],size:44})),
+            React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:g[0],size:44,logo:false})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
               React.createElement("div",{className:"meta"}, tf("v4_inv_positions",{n:items.length}))
@@ -10828,7 +10835,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
       // desglose por bróker, para poder comparar cada uno con su app (p.ej. Revolut en $)
       groups.map(function(g){ const o=byBroker[g[0]]; if(!o||o.v===0) return null; const gain=o.v-o.c; const pl=o.c>0?gain/o.c*100:0;
         return React.createElement("div",{className:"row",key:g[0]},
-          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g[0],size:34}),
+          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g[0],size:34,logo:false}),
             React.createElement("div",null,React.createElement("div",{className:"rname"},g[1]),React.createElement("div",{className:"rsub"},tf("inv_invested_lbl",{x:f0(o.c)})))),
           React.createElement("div",{className:"rval num"}, f0(o.v),
             React.createElement("div",{className:"rvsub"+(gain<0?" neg":""),style:{color:gain>=0?"var(--mint)":"var(--coral)"}}, (gain>=0?"+":"")+f0(gain)+" ("+(pl>=0?"+":"")+pl.toFixed(1)+"%)")));
@@ -10849,7 +10856,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
         const pos=p.gain>=0; const wpct=Math.min(100,Math.abs(p.gain)/maxAbsGain*100);
         return React.createElement("div",{key:p.id,style:{padding:"8px 2px",borderBottom:"1px solid var(--line-soft)"}},
           React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginBottom:5}},
-            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:9,minWidth:0}},React.createElement(Mono,{ent:p.ent,size:30}),React.createElement("div",{className:"rname",style:{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},p.name)),
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:9,minWidth:0}},React.createElement(Mono,{ent:p.ent,size:30,logo:false}),React.createElement("div",{className:"rname",style:{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},p.name)),
             React.createElement("div",{className:"num",style:{textAlign:"right",flex:"0 0 auto"}},
               React.createElement("div",{style:{fontWeight:700,color:pos?"var(--mint)":"var(--coral)"}},(pos?"+":"")+f2(p.gain)),
               React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)"}},(p.pl>=0?"+":"")+p.pl.toFixed(1)+"%"))),
@@ -11271,7 +11278,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
       ["revolut","trade_republic","myinvestor"].filter(g=>state.investments.some(i=>i.ent===g)).map(g=>{
         const v=state.investments.filter(i=>i.ent===g).reduce((a,i)=>a+invValueEur(i, state),0);
         return React.createElement("div",{className:"row",key:g},
-          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g,size:38}),React.createElement("div",{className:"rname"},entOf(g).label)),
+          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g,size:38,logo:false}),React.createElement("div",{className:"rname"},entOf(g).label)),
           React.createElement("div",{className:"rval num"},eur(v)));
       }),
       React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("pt_total_inv")),React.createElement("span",{className:"num"},eur(totals.invested)))
