@@ -1,5 +1,46 @@
 [
  {
+  "v": "4.18.15",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Revisar la beta muestra la ronda entera",
+   "en": "Beta review shows the whole round",
+   "ca": "Revisar la beta mostra tota la ronda"
+  },
+  "tandas": [
+   {
+    "id": "panel-ronda",
+    "t": {
+     "es": "🧪 Toda la ronda a la vista",
+     "en": "🧪 Whole round in view",
+     "ca": "🧪 Tota la ronda a la vista"
+    },
+    "items": {
+     "es": [
+      "Ajustes → Revisar esta beta reúne las tandas pendientes de toda la ronda, con su versión en el título."
+     ],
+     "en": [
+      "Settings → Review this beta gathers the pending tandas from the whole round, with their version in the title."
+     ],
+     "ca": [
+      "Ajustaments → Revisar aquesta beta reuneix les tandes pendents de tota la ronda, amb la versió al títol."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Revisar la beta reúne toda la ronda pendiente, con pasos claros."
+   ],
+   "en": [
+    "Beta review gathers the full pending round, with clear steps."
+   ],
+   "ca": [
+    "Revisar la beta reuneix tota la ronda pendent, amb passos clars."
+   ]
+  }
+ },
+ {
   "v": "4.18.14",
   "d": "11 sep 2026",
   "t": {

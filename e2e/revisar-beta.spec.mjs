@@ -361,6 +361,27 @@ test("la versión en curso: tandas (o la implícita) cubren TODOS los puntos ali
   expect(r.alineados, "cada índice global tiene que caer sobre el texto que enseña su tanda").toBe(true);
 });
 
+test("con producción conocida, la checklist reúne la ronda entera", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  const r = await page.evaluate(() => {
+    const original = RELEASE_NOTES.slice();
+    RELEASE_NOTES.length = 0;
+    RELEASE_NOTES.push(
+      { v: "4.18.15", t: "Actual", tandas: [{ id: "actual", t: "Actual", items: { es: ["Actual"] } }] },
+      { v: "4.18.14", t: "Anterior", tandas: [{ id: "anterior", t: "Anterior", items: { es: ["Anterior"] } }] },
+      { v: "4.18.8", t: "Producción", tandas: [{ id: "prod", t: "Producción", items: { es: ["Producción"] } }] }
+    );
+    const solo = betaChecklist("4.18.15");
+    const ronda = betaChecklist("4.18.15", "4.18.8");
+    RELEASE_NOTES.length = 0;
+    RELEASE_NOTES.push.apply(RELEASE_NOTES, original);
+    return { solo: solo.tandas.map((x) => x.id), ronda: ronda.tandas.map((x) => x.id), items: ronda.items };
+  });
+  expect(r.solo).toEqual(["actual"]);
+  expect(r.ronda).toEqual(["4.18.15/actual", "4.18.14/anterior"]);
+  expect(r.items).toEqual(["Actual", "Anterior"]);
+});
+
 /** Siembra dos tandas de mentira en la entrada de RELEASE_NOTES que resuelve la versión en curso.
  *  Antes mutaba siempre RELEASE_NOTES[0]: valía mientras la ronda viva era esa. Con 4.14.0 delante
  *  y el test clavando APP_VERSION a un .7 de otra base, el panel leía la entrada real (vacía o con
