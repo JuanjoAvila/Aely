@@ -494,16 +494,30 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       { id:"cuentas", label:t("v4_cuentas"), el:React.createElement(React.Fragment,null,
         React.createElement("div",{className:"v4-sec-h",style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}},
           React.createElement("span",null, t("v4_cuentas")),
-          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,flex:"0 0 auto"}},
-            // Misma puerta que Inicio → Próximos cargos (11/9): sin esto solo se conectaba
-            // desde ahí o desde Ajustes, y en Cartera → Tus cuentas no había forma.
-            React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:0},
-              onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){} }},
-              t("v4_connect_accounts")),
+          /* DOS ICONOS, NO DOS PÍLDORAS DE TEXTO (11/9). Con «Conectar cuentas» y «↻ Sincronizar
+             bancos» escritos, el título se partía en dos líneas en su móvil. Llevan su `title` y
+             su `aria-label`, así que no se pierde el nombre para quien lo necesite. */
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:7,flex:"0 0 auto"}},
             // Sync a demanda: el auto-sync al abrir la app se retiró (los bancos veían «bot» y
             // caducaban la conexión cada dos por tres — feedback 2026-07-18).
-            state.hasBankLink && onBankSync && React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:0},
-              disabled:bankBusy,onClick:doBankSync}, bankBusy?t("bp_syncing"):("↻ "+t("v4_sync_banks")))
+            state.hasBankLink && onBankSync && React.createElement("button",{type:"button",
+              className:"v4-ic-mini"+(bankBusy?" girando":""),disabled:bankBusy,onClick:doBankSync,
+              title:bankBusy?t("bp_syncing"):t("v4_sync_banks"),"aria-label":t("v4_sync_banks")},
+              React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2",strokeLinecap:"round",strokeLinejoin:"round"},
+                React.createElement("path",{d:"M20 11a8 8 0 0 0-13.7-5.7L3 8"}),
+                React.createElement("path",{d:"M3 3v5h5"}),
+                React.createElement("path",{d:"M4 13a8 8 0 0 0 13.7 5.7L21 16"}),
+                React.createElement("path",{d:"M21 21v-5h-5"}))),
+            // Misma puerta que Inicio → Próximos cargos (11/9): sin esto solo se conectaba
+            // desde ahí o desde Ajustes, y en Cartera → Tus cuentas no había forma.
+            React.createElement("button",{type:"button",className:"v4-ic-mini",
+              title:t("v4_connect_accounts"),"aria-label":t("v4_connect_accounts"),
+              onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){} }},
+              React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2",strokeLinecap:"round",strokeLinejoin:"round"},
+                React.createElement("path",{d:"M3 9.5 12 4l9 5.5"}),
+                React.createElement("path",{d:"M5 10v8M10 10v8M14 10v5M19 10v3"}),
+                React.createElement("path",{d:"M3 20h11"}),
+                React.createElement("path",{d:"M18 16v6M15 19h6"})))
           )
         ),
         React.createElement(Wealth,{state:state,set:set,totals:totals,v4Embed:true,parte:"cuentas",showToast:showToast})

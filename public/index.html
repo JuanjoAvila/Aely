@@ -1503,6 +1503,18 @@
   html.sheet-open .v4-sheet,html.sheet-open .v4-chips{touch-action:pan-y pan-x;pointer-events:auto;}
   html.sheet-open .v4-sheet-back{pointer-events:auto;}
   .v4-link-mini{display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:6px 10px;border-radius:999px;border:none;background:rgba(95,208,138,.16);color:var(--mint);font-weight:800;font-size:12.5px;font-family:inherit;cursor:pointer;}
+  /* Los dos accesos de «Tus cuentas» (sincronizar y conectar), en icono (2026-09-11). Iban como
+     dos píldoras de texto y entre las tres cosas el título se partía en DOS líneas en su móvil:
+     «me falta lo de sincronizar y añadir cuenta quizás con iconos distintivos pequeños, y así
+     "tus cuentas" cabe entero y no en dos líneas». 31 px es el mínimo que sigue siendo cómodo de
+     tocar sin que la cabecera crezca. */
+  .v4-ic-mini{width:31px;height:31px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;
+    background:var(--sur);border:1px solid var(--line-soft);color:var(--mint);cursor:pointer;padding:0;}
+  .v4-ic-mini svg{width:16px;height:16px;display:block;}
+  .v4-ic-mini:disabled{opacity:.5;}
+  .v4-ic-mini.girando svg{animation:mcSpin .9s linear infinite;transform-origin:50% 50%;}
+  @keyframes mcSpin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){ .v4-ic-mini.girando svg{animation:none;opacity:.55;} }
   .v4-tools{margin-top:18px;padding-top:4px;}
   .v4-tools summary{list-style:none;cursor:pointer;font-weight:800;font-size:14px;color:var(--muted);padding:12px 4px;display:flex;justify-content:space-between;align-items:center;}
   .v4-tools summary::-webkit-details-marker{display:none;}
@@ -8519,12 +8531,17 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const [range,setRange]=useState({from:"",to:""});
   const [calPick,setCalPick]=useState(null);   // "from" | "to" | null — rango a medida, calendario de la casa
   const [sel,setSel]=useState([]);   // categorías seleccionadas; [] = todas
-  // Por defecto, TODOS los bancos marcados como gasto diario (2026-08-17): no solo el
-  // principal. Él tiene Revolut + Trade Republic y el filtro arrancaba solo en TR, así que
-  // Revolut desaparecía de la lista aunque sí contara en el presupuesto. Vacío = todos.
-  // Solo se calcula UNA vez al montar: si luego cambia el marcado no reordena el filtro
-  // que el usuario ya esté usando.
-  const [bankSel,setBankSel]=useState(function(){ return expenseBankEnts(state).slice(); });
+  /* GASTOS ENSEÑA TODAS SUS CUENTAS, CUENTEN O NO PARA EL PRESUPUESTO (11/9/2026).
+     Suyo, y con razón: «lo de gasto diario es para que cuente cuando gaste desde ese banco a mi
+     límite que ponga, pero TODAS las cuentas deben salir en el apartado de gastos aunque no esté
+     marcado gasto diario. Es importante».
+     Son dos cosas distintas y el filtro las confundía: `expenseBankEnts` dice qué bancos SUMAN al
+     presupuesto, y arrancaba marcado exactamente con esos. Resultado: los movimientos de sus
+     cuentas de recibos —Sabadell, CaixaBank— no salían en la lista, como si no existieran, y solo
+     se veían si él caía en tocar su chip. Lo que se ve y lo que cuenta son decisiones separadas:
+     la lista es su histórico entero, y el presupuesto sigue contando solo lo que él marque.
+     Vacío = todos, que es justo lo que se quiere. */
+  const [bankSel,setBankSel]=useState([]);
   /* Filtro por cajón (2026-08-17): «cuenta», «ingreso», «neutra», «otrobanco». Es lo que le deja
      separar el caos que describió al volver del crucero. Arranca VACÍO = se ve todo: la lista
      sigue siendo el histórico completo por defecto, esto es para explorar, no un modo nuevo. */
@@ -18504,16 +18521,30 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       { id:"cuentas", label:t("v4_cuentas"), el:React.createElement(React.Fragment,null,
         React.createElement("div",{className:"v4-sec-h",style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}},
           React.createElement("span",null, t("v4_cuentas")),
-          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,flex:"0 0 auto"}},
-            // Misma puerta que Inicio → Próximos cargos (11/9): sin esto solo se conectaba
-            // desde ahí o desde Ajustes, y en Cartera → Tus cuentas no había forma.
-            React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:0},
-              onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){} }},
-              t("v4_connect_accounts")),
+          /* DOS ICONOS, NO DOS PÍLDORAS DE TEXTO (11/9). Con «Conectar cuentas» y «↻ Sincronizar
+             bancos» escritos, el título se partía en dos líneas en su móvil. Llevan su `title` y
+             su `aria-label`, así que no se pierde el nombre para quien lo necesite. */
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:7,flex:"0 0 auto"}},
             // Sync a demanda: el auto-sync al abrir la app se retiró (los bancos veían «bot» y
             // caducaban la conexión cada dos por tres — feedback 2026-07-18).
-            state.hasBankLink && onBankSync && React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:0},
-              disabled:bankBusy,onClick:doBankSync}, bankBusy?t("bp_syncing"):("↻ "+t("v4_sync_banks")))
+            state.hasBankLink && onBankSync && React.createElement("button",{type:"button",
+              className:"v4-ic-mini"+(bankBusy?" girando":""),disabled:bankBusy,onClick:doBankSync,
+              title:bankBusy?t("bp_syncing"):t("v4_sync_banks"),"aria-label":t("v4_sync_banks")},
+              React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2",strokeLinecap:"round",strokeLinejoin:"round"},
+                React.createElement("path",{d:"M20 11a8 8 0 0 0-13.7-5.7L3 8"}),
+                React.createElement("path",{d:"M3 3v5h5"}),
+                React.createElement("path",{d:"M4 13a8 8 0 0 0 13.7 5.7L21 16"}),
+                React.createElement("path",{d:"M21 21v-5h-5"}))),
+            // Misma puerta que Inicio → Próximos cargos (11/9): sin esto solo se conectaba
+            // desde ahí o desde Ajustes, y en Cartera → Tus cuentas no había forma.
+            React.createElement("button",{type:"button",className:"v4-ic-mini",
+              title:t("v4_connect_accounts"),"aria-label":t("v4_connect_accounts"),
+              onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){} }},
+              React.createElement("svg",{viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2",strokeLinecap:"round",strokeLinejoin:"round"},
+                React.createElement("path",{d:"M3 9.5 12 4l9 5.5"}),
+                React.createElement("path",{d:"M5 10v8M10 10v8M14 10v5M19 10v3"}),
+                React.createElement("path",{d:"M3 20h11"}),
+                React.createElement("path",{d:"M18 16v6M15 19h6"})))
           )
         ),
         React.createElement(Wealth,{state:state,set:set,totals:totals,v4Embed:true,parte:"cuentas",showToast:showToast})

@@ -82,12 +82,17 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const [range,setRange]=useState({from:"",to:""});
   const [calPick,setCalPick]=useState(null);   // "from" | "to" | null — rango a medida, calendario de la casa
   const [sel,setSel]=useState([]);   // categorías seleccionadas; [] = todas
-  // Por defecto, TODOS los bancos marcados como gasto diario (2026-08-17): no solo el
-  // principal. Él tiene Revolut + Trade Republic y el filtro arrancaba solo en TR, así que
-  // Revolut desaparecía de la lista aunque sí contara en el presupuesto. Vacío = todos.
-  // Solo se calcula UNA vez al montar: si luego cambia el marcado no reordena el filtro
-  // que el usuario ya esté usando.
-  const [bankSel,setBankSel]=useState(function(){ return expenseBankEnts(state).slice(); });
+  /* GASTOS ENSEÑA TODAS SUS CUENTAS, CUENTEN O NO PARA EL PRESUPUESTO (11/9/2026).
+     Suyo, y con razón: «lo de gasto diario es para que cuente cuando gaste desde ese banco a mi
+     límite que ponga, pero TODAS las cuentas deben salir en el apartado de gastos aunque no esté
+     marcado gasto diario. Es importante».
+     Son dos cosas distintas y el filtro las confundía: `expenseBankEnts` dice qué bancos SUMAN al
+     presupuesto, y arrancaba marcado exactamente con esos. Resultado: los movimientos de sus
+     cuentas de recibos —Sabadell, CaixaBank— no salían en la lista, como si no existieran, y solo
+     se veían si él caía en tocar su chip. Lo que se ve y lo que cuenta son decisiones separadas:
+     la lista es su histórico entero, y el presupuesto sigue contando solo lo que él marque.
+     Vacío = todos, que es justo lo que se quiere. */
+  const [bankSel,setBankSel]=useState([]);
   /* Filtro por cajón (2026-08-17): «cuenta», «ingreso», «neutra», «otrobanco». Es lo que le deja
      separar el caos que describió al volver del crucero. Arranca VACÍO = se ve todo: la lista
      sigue siendo el histórico completo por defecto, esto es para explorar, no un modo nuevo. */

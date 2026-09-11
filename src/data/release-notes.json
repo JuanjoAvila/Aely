@@ -1,5 +1,92 @@
 [
  {
+  "v": "4.19.65",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Gastos enseña todas tus cuentas",
+   "en": "Expenses shows all your accounts",
+   "ca": "Despeses ensenya tots els teus comptes"
+  },
+  "tandas": [
+   {
+    "id": "gastos-todas-las-cuentas",
+    "t": {
+     "es": "🧾 En Gastos salen TODAS tus cuentas",
+     "en": "🧾 Expenses now lists ALL your accounts",
+     "ca": "🧾 A Despeses surten TOTS els teus comptes"
+    },
+    "items": {
+     "es": [
+      "1. Vete a Gastos sin tocar ningún filtro.",
+      "2. Tienen que salir también los movimientos de las cuentas que NO son de gasto diario (las que tienes en «Recibos»): Sabadell, CaixaBank… Antes desaparecían de la lista.",
+      "3. Esos movimientos salen apagados y con el motivo escrito al lado: «no es del día a día».",
+      "4. Y lo importante que NO puede cambiar: mira el total gastado del mes, arriba. Tiene que ser el MISMO de antes. Enseñarlos no es contarlos.",
+      "5. Lo mismo con lo que queda de presupuesto y con las barras por categoría: no pueden moverse.",
+      "6. Si tocas el chip de un banco para filtrar, tiene que seguir funcionando igual que siempre."
+     ],
+     "en": [
+      "1. Go to Expenses without touching any filter.",
+      "2. Transactions from accounts that are NOT day-to-day (the ones set to “Bills”) must show up too. They used to vanish from the list.",
+      "3. They appear greyed out with the reason next to them: “not day-to-day”.",
+      "4. And what must NOT change: the month total at the top must be exactly the same as before. Showing them is not counting them.",
+      "5. Same for the budget left and the per-category bars: they cannot move.",
+      "6. Tapping a bank chip to filter must still work as always."
+     ],
+     "ca": [
+      "1. Ves a Despeses sense tocar cap filtre.",
+      "2. Han de sortir tambe els moviments dels comptes que NO son de despesa diaria. Abans desapareixien.",
+      "3. Surten apagats i amb el motiu al costat: «no es del dia a dia».",
+      "4. I el que NO pot canviar: el total gastat del mes ha de ser EL MATEIX. Ensenyar-los no es comptar-los.",
+      "5. Igual amb el pressupost que queda i les barres per categoria.",
+      "6. Si toques el xip d'un banc per filtrar, ha de seguir funcionant igual."
+     ]
+    }
+   },
+   {
+    "id": "cartera-cabecera-iconos",
+    "t": {
+     "es": "🏦 «Tus cuentas» ya cabe en una línea",
+     "en": "🏦 “Your accounts” now fits on one line",
+     "ca": "🏦 «Els teus comptes» ja cap en una linia"
+    },
+    "items": {
+     "es": [
+      "1. Cartera → mira la cabecera de «Tus cuentas».",
+      "2. El título tiene que caber entero en UNA línea, con dos cuadraditos a su derecha.",
+      "3. El de las flechas en círculo es sincronizar los bancos: tócalo y tiene que girar mientras trabaja.",
+      "4. El del banco con un + es conectar una cuenta nueva: tiene que abrirte la pantalla de siempre.",
+      "5. Si no tienes ningún banco conectado, el de sincronizar no sale. Es normal."
+     ],
+     "en": [
+      "1. Wallet → look at the “Your accounts” header.",
+      "2. The title must fit on ONE line, with two small squares to its right.",
+      "3. The circling arrows is sync banks: tap it and it must spin while working.",
+      "4. The bank with a + connects a new account: it must open the usual screen.",
+      "5. With no bank connected, the sync one is not shown. That's normal."
+     ],
+     "ca": [
+      "1. Cartera → mira la capcalera de «Els teus comptes».",
+      "2. El titol ha de cabre sencer en UNA linia, amb dos quadradets a la dreta.",
+      "3. El de les fletxes en cercle es sincronitzar els bancs: ha de girar mentre treballa.",
+      "4. El del banc amb un + es connectar un compte nou.",
+      "5. Si no tens cap banc connectat, el de sincronitzar no surt."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "En Gastos ya salen los movimientos de todas tus cuentas, también las que solo usas para recibos. Siguen sin contar para el presupuesto, que es para lo que sirve marcar «gasto diario». Y en Cartera, sincronizar y conectar una cuenta pasan a ser dos iconos, así que el título cabe entero."
+   ],
+   "en": [
+    "Expenses now lists transactions from all your accounts, including the ones you only use for bills. They still don't count towards the budget. And in Wallet, sync and connect are now two icons, so the title fits."
+   ],
+   "ca": [
+    "A Despeses ja surten els moviments de tots els teus comptes, tambe els que nomes fas servir per a rebuts. Segueixen sense comptar per al pressupost. I a Cartera, sincronitzar i connectar passen a ser dues icones."
+   ]
+  }
+ },
+ {
   "v": "4.19.64",
   "d": "11 sep 2026",
   "t": {

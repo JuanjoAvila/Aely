@@ -1503,6 +1503,18 @@
   html.sheet-open .v4-sheet,html.sheet-open .v4-chips{touch-action:pan-y pan-x;pointer-events:auto;}
   html.sheet-open .v4-sheet-back{pointer-events:auto;}
   .v4-link-mini{display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:6px 10px;border-radius:999px;border:none;background:rgba(95,208,138,.16);color:var(--mint);font-weight:800;font-size:12.5px;font-family:inherit;cursor:pointer;}
+  /* Los dos accesos de «Tus cuentas» (sincronizar y conectar), en icono (2026-09-11). Iban como
+     dos píldoras de texto y entre las tres cosas el título se partía en DOS líneas en su móvil:
+     «me falta lo de sincronizar y añadir cuenta quizás con iconos distintivos pequeños, y así
+     "tus cuentas" cabe entero y no en dos líneas». 31 px es el mínimo que sigue siendo cómodo de
+     tocar sin que la cabecera crezca. */
+  .v4-ic-mini{width:31px;height:31px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;
+    background:var(--sur);border:1px solid var(--line-soft);color:var(--mint);cursor:pointer;padding:0;}
+  .v4-ic-mini svg{width:16px;height:16px;display:block;}
+  .v4-ic-mini:disabled{opacity:.5;}
+  .v4-ic-mini.girando svg{animation:mcSpin .9s linear infinite;transform-origin:50% 50%;}
+  @keyframes mcSpin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){ .v4-ic-mini.girando svg{animation:none;opacity:.55;} }
   .v4-tools{margin-top:18px;padding-top:4px;}
   .v4-tools summary{list-style:none;cursor:pointer;font-weight:800;font-size:14px;color:var(--muted);padding:12px 4px;display:flex;justify-content:space-between;align-items:center;}
   .v4-tools summary::-webkit-details-marker{display:none;}

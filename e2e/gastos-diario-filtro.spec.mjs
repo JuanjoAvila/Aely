@@ -1,9 +1,19 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
-/* Filtro por defecto = TODOS los bancos marcados como gasto diario, no solo el principal
-   (2026-08-17). Él tiene Revolut + Trade Republic y solo veía TR. El presupuesto ya sumaba
-   los dos (`expenseBankEnts`); la lista de Gastos arrancaba con `accDaily` a solas. */
+/* GASTOS ENSEÑA TODAS SUS CUENTAS, CUENTEN O NO PARA EL PRESUPUESTO.
+ *
+ * Dos vueltas de lo mismo, y la segunda la pidió él:
+ *  · 2026-08-17: el filtro arrancaba solo en su banco principal, así que Revolut desaparecía de la
+ *    lista aunque sí contara en el presupuesto. Se amplió a todos los de gasto diario.
+ *  · 2026-09-11: seguía sin ser suficiente. Suyo: «lo de gasto diario es para que cuente cuando
+ *    gaste desde ese banco a mi límite que ponga, pero TODAS las cuentas deben salir en el
+ *    apartado de gastos aunque no esté marcado gasto diario. Es importante».
+ *
+ * Son dos decisiones separadas y el filtro las confundía: **lo que se VE** es su histórico entero,
+ * **lo que CUENTA** es solo lo que él marque. Este test las prueba juntas a propósito: si alguien
+ * vuelve a atar la lista al presupuesto, la primera mitad se pone roja; si alguien hace que
+ * cuenten todos, la segunda. */
 
 const d = (n) => new Date(Date.now() - n * 86400000).toISOString();
 
@@ -25,20 +35,30 @@ const fila = (page, nombre) => lista(page).filter({ hasText: nombre });
 
 test.use({ viewport: { width: 375, height: 812 } });
 
-test("por defecto salen todos los de gasto diario; Sabadell no, y una inversión no cuenta", async ({ page }) => {
+test("por defecto salen TODAS las cuentas, y solo cuentan las de gasto diario", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
 
-  // SIN pulsar «Todos los bancos»: si el filtro siguiera anclado solo a TR, Cafe Revolut no saldría.
+  // SIN tocar ningún filtro. Las CUATRO filas, incluida la del banco de solo recibos.
   await expect(fila(page, "Mercadona TR")).toHaveCount(1);
   await expect(fila(page, "Cafe Revolut")).toHaveCount(1);
   await expect(fila(page, "Aporte TR")).toHaveCount(1);
-  await expect(fila(page, "RECIBO LUZ")).toHaveCount(0);
+  await expect(fila(page, "RECIBO LUZ"), "su petición del 11/9: las cuentas que no son de gasto diario también salen").toHaveCount(1);
 
+  // Y lo que CUENTA sigue siendo solo lo suyo del día a día: las otras dos salen apagadas,
+  // cada una diciendo POR QUÉ, que son motivos distintos.
+  await expect(fila(page, "Mercadona TR")).not.toHaveClass(/v4-mov-skip/);
   await expect(fila(page, "Cafe Revolut")).not.toHaveClass(/v4-mov-skip/);
   await expect(fila(page, "Aporte TR")).toHaveClass(/v4-mov-skip/);
   await expect(fila(page, "Aporte TR")).toContainText("no es un gasto");
+  await expect(fila(page, "RECIBO LUZ")).toHaveClass(/v4-mov-skip/);
+  await expect(fila(page, "RECIBO LUZ")).toContainText(/no es del día a día|not day-to-day|no és del dia a dia/i);
+
+  // El total del mes: 12 + 8. Ni la inversión ni el recibo de Sabadell pueden colarse.
+  const resumen = page.locator(".v4-gastos-summary");
+  await expect(resumen, "enseñar un movimiento no es contarlo").toContainText("20,00");
+  await expect(resumen).not.toContainText("100,00");
 });

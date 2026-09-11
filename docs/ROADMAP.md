@@ -1,6 +1,7 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-11 · **v4.19.64** — en pruebas: el efectivo estrena billete.
+> Estado a 2026-09-11 · **v4.19.65** — en pruebas: Gastos enseña TODAS las cuentas, y la cabecera de Cartera en una línea.
+> Anterior: **v4.19.64** — el efectivo estrena billete.
 > Anterior: **v4.19.63** — el banco a medio conectar avisa, y al quitarlo se va de Cartera.
 > Anterior: **v4.19.62** — la barra de abajo vuelve a esconderse al bajar.
 > Anterior: **v4.19.61** — TSMC y Micron con logo, y los brókers también.
@@ -130,7 +131,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.19.64** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.65** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

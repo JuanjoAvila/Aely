@@ -1,3 +1,37 @@
+## [4.19.65] - 2026-09-11
+### Lo que se VE y lo que CUENTA son dos decisiones distintas
+
+Suyo, 11/9, y tenía toda la razón: *«lo de gasto diario es para que cuente cuando gaste desde ese
+banco a mi límite que ponga, pero ya te dije que TODAS las cuentas deben salir en el apartado de
+gastos aunque no esté marcado gasto diario. Es importante»*.
+
+El filtro de Gastos arrancaba marcado con `expenseBankEnts(state)` — o sea, **exactamente los
+bancos que suman al presupuesto**. Así que los movimientos de sus cuentas de recibos (Sabadell,
+CaixaBank) no aparecían en la lista, como si no existieran, y solo se veían si él caía en tocar su
+chip. Un movimiento que no cuenta **sigue siendo un movimiento suyo**.
+
+- El filtro arranca VACÍO = todos. Los chips ya listaban todas las cuentas; lo que estaba mal era
+  la selección de partida.
+- Lo que cuenta no se toca: el total del mes, lo que queda y las barras por categoría siguen
+  saliendo de `expenseBanks`. Comprobado en el propio test, que ahora mide **las dos cosas a la
+  vez**: las cuatro filas salen y el total sigue siendo 20 €, no 100 €.
+- Y la app ya sabía explicarlo: esas filas salen apagadas con «no es del día a día» al lado, que es
+  un motivo distinto del «no es un gasto» de una inversión.
+
+La segunda vuelta de lo mismo, por cierto: el 17/8 ya se amplió de «solo el banco principal» a
+«todos los de gasto diario». Faltaba el último paso.
+
+### Y «Tus cuentas» vuelve a caber en una línea
+
+*«Me falta lo de sincronizar y añadir cuenta, quizás con iconos distintivos pequeños, y así "tus
+cuentas" cabe entero y no en dos líneas»*. Eran dos píldoras de texto («Conectar cuentas» y
+«↻ Sincronizar bancos») y entre las tres cosas el título se partía.
+
+- Dos botones de icono de 31 px: flechas en círculo para sincronizar (giran mientras trabaja, y se
+  quedan quietas con «reducir movimiento» puesto) y un banco con `+` para conectar.
+- Llevan `title` y `aria-label`, así que no se pierde el nombre de la acción.
+- Cabecera medida: **31 px de alto y el título entero en una línea**.
+
 ## [4.19.64] - 2026-09-11
 ### El efectivo estrena billete
 
