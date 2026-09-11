@@ -10,7 +10,7 @@ const SHELL = [
   "./release-notes.json",
   "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png",
   "./logos/sabadell.png", "./logos/revolut.png", "./logos/trade_republic.png",
-  "./logos/myinvestor.png", "./logos/caixabank.png",
+  "./logos/myinvestor.png", "./logos/caixabank.png", "./logos/efectivo.svg",
   "./logos/inv/nvidia.svg", "./logos/inv/amd.svg", "./logos/inv/meta.svg",
   "./logos/inv/alphabet.svg", "./logos/inv/broadcom.svg",
   "./logos/inv/tsmc.svg", "./logos/inv/micron.svg",

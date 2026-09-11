@@ -7069,6 +7069,13 @@ const I = {
    porque el gzip está al 99 % (326/330 KB).
    Si el PNG no carga (primer arranque sin red, banco nuevo), cae al monograma de siempre. */
 const BANCOS_CON_LOGO={sabadell:1,revolut:1,trade_republic:1,myinvestor:1,caixabank:1};
+/* EL EFECTIVO NO ES UN BANCO, así que no hay PNG oficial que recortar: se dibuja, igual que el
+   lingote del oro. Suyo, 11/9: «ponerle un logo de un billete o algo que se te ocurra, porque lo
+   del euro con la cartilla marrón bastante cutre, algo como lo que hiciste para el oro que molo
+   muchísimo». Mismo criterio que allí: geometría plana y dos degradados, que a 38 px es lo único
+   que se lee. Un billete con su moneda delante — distinto de un vistazo de cualquier logo de
+   banco, que es de lo que se trata. */
+const ENTS_DIBUJADAS={efectivo:"efectivo.svg"};
 function Mono({ent, size, logo}){
   const e=entOf(ent); size=size||40;
   const id=String(ent||"");
@@ -7083,13 +7090,18 @@ function Mono({ent, size, logo}){
      Hoy `logo:false` no lo usa nadie; se deja porque una fila puede no ser ninguna de las dos.
      Va DESPUÉS del useState a propósito: un hook no puede quedarse detrás de un return. */
   if(logo===false) return React.createElement("div",{className:"mono",style:{width:size,height:size,background:e.color+"22",color:e.color,borderColor:e.color+"44"}}, e.mono);
-  if(BANCOS_CON_LOGO[id] && !roto){
+  if((BANCOS_CON_LOGO[id]||ENTS_DIBUJADAS[id]) && !roto){
+    const dib=ENTS_DIBUJADAS[id];
+    /* El dibujado se enseña más pequeño dentro del cuadro (0,66), como los de Inversiones: un
+       PNG recortado ya trae su propio aire y un SVG dibujado no, así que a tamaño completo se
+       veía gigante. Ese 0,66 está medido, no puesto a ojo ([[logos-bancos-recortar-no-dibujar]]). */
+    const lado=dib?Math.round(size*0.66):size;
     return React.createElement("div",{className:"mono mono-logo",title:e.label,"aria-label":e.label,
       style:{width:size,height:size,background:"#fff",display:"grid",placeItems:"center",
         borderRadius:Math.round(size*0.275),flex:"0 0 auto",border:"1px solid transparent",overflow:"hidden"}},
-      React.createElement("img",{src:"logos/"+id+".png",alt:"",width:size,height:size,loading:"lazy",
+      React.createElement("img",{src:"logos/"+(dib||(id+".png")),alt:"",width:lado,height:lado,loading:"lazy",
         decoding:"async",onError:function(){ setRoto(true); },
-        style:{width:size,height:size,objectFit:"contain",display:"block"}}));
+        style:{width:lado,height:lado,objectFit:"contain",display:"block"}}));
   }
   return React.createElement("div",{className:"mono",style:{width:size,height:size,background:e.color+"22",color:e.color,borderColor:e.color+"44"}}, e.mono);
 }

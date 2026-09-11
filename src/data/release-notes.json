@@ -1,5 +1,55 @@
 [
  {
+  "v": "4.19.64",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "El efectivo estrena icono",
+   "en": "Cash gets its own icon",
+   "ca": "L'efectiu estrena icona"
+  },
+  "tandas": [
+   {
+    "id": "efectivo-billete",
+    "t": {
+     "es": "💵 El efectivo ya no sale con la chapa del euro",
+     "en": "💵 Cash no longer shows a plain euro badge",
+     "ca": "💵 L'efectiu ja no surt amb la xapa de l'euro"
+    },
+    "items": {
+     "es": [
+      "1. Vete a Cartera → Tus cuentas y busca la fila del Efectivo.",
+      "2. Su icono tiene que ser un billete verde con una moneda dorada delante, no la chapita marrón con el símbolo del euro.",
+      "3. Míralo también donde salga el efectivo al apuntar un gasto: mismo icono en todos los sitios.",
+      "4. Y comprueba que los bancos de verdad (Sabadell, Revolut, Trade Republic…) siguen con SU logo de siempre, sin cambiar de tamaño."
+     ],
+     "en": [
+      "1. Go to Wallet → Your accounts and find the Cash row.",
+      "2. Its icon must be a green banknote with a gold coin in front, not the brown badge with a euro sign.",
+      "3. Check it too wherever cash appears when logging an expense: same icon everywhere.",
+      "4. And check the real banks still show THEIR own logo, at the same size as before."
+     ],
+     "ca": [
+      "1. Ves a Cartera → Els teus comptes i busca la fila de l'Efectiu.",
+      "2. La seva icona ha de ser un bitllet verd amb una moneda daurada al davant.",
+      "3. Mira-ho tambe on surti l'efectiu en apuntar una despesa: la mateixa icona a tot arreu.",
+      "4. I comprova que els bancs de veritat segueixen amb EL SEU logotip de sempre."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "El efectivo tenía una chapita con el símbolo del euro que desentonaba al lado de los logos de los bancos. Ahora lleva su propio dibujo: un billete con una moneda."
+   ],
+   "en": [
+    "Cash used to show a plain euro badge that clashed with the bank logos. It now has its own drawing: a banknote with a coin."
+   ],
+   "ca": [
+    "L'efectiu tenia una xapeta amb el simbol de l'euro que desentonava al costat dels logotips. Ara porta el seu propi dibuix."
+   ]
+  }
+ },
+ {
   "v": "4.19.63",
   "d": "11 sep 2026",
   "t": {

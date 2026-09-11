@@ -1,3 +1,24 @@
+## [4.19.64] - 2026-09-11
+### El efectivo estrena billete
+
+Suyo, 11/9: *«el efectivo, ponerle un logo de un billete o yo que sé algo que se te ocurra, porque
+lo del euro con la cartilla marrón bastante cutre, algo como lo que hiciste para el oro que molo
+muchísimo»*.
+
+El efectivo no es un banco, así que **no hay PNG oficial que recortar** y aquí sí toca dibujar —
+igual que el lingote del oro y por el mismo motivo: no hay logotipo de marca que copiar, es
+iconografía. Se respeta el criterio que allí funcionó: geometría plana, dos degradados y nada de
+detalle fino, que a 38 px es lo único que se lee. Un billete verde con su moneda dorada delante,
+que a ese tamaño se distingue de un vistazo de cualquier logo de banco.
+
+- `public/logos/efectivo.svg`, fuera del bundle (el gzip sigue al límite) y en el precache del SW.
+- `Mono` aprende a pintar iconos DIBUJADOS además de los PNG recortados (`ENTS_DIBUJADAS`). Van a
+  **0,66** del cuadro, como los de Inversiones: un PNG recortado ya trae su propio aire y un SVG
+  dibujado no, así que a tamaño completo se veía gigante. Ese 0,66 está medido, no puesto a ojo
+  ([[logos-bancos-recortar-no-dibujar]]).
+- Comprobado renderizado a 38, 44 y 120 px antes de enseñárselo, que es la otra lección de aquella
+  saga: cuatro rondas de logos rechazadas por no mirarlos primero.
+
 ## [4.19.63] - 2026-09-11
 ### Los tres sustos de CaixaBank
 
