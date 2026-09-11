@@ -62,3 +62,47 @@ test("por defecto salen TODAS las cuentas, y solo cuentan las de gasto diario", 
   await expect(resumen, "enseñar un movimiento no es contarlo").toContainText("20,00");
   await expect(resumen).not.toContainText("100,00");
 });
+
+test("al entrar, Gastos NO cree que ya tiene un filtro puesto", async ({ page }) => {
+  /* Lo cazó Cursor en la review de la 4.19.65, no un test: al cambiar el default a «todos los
+     bancos» (array vacío), tres sitios seguían pensando que el default era «los de gasto diario».
+     Resultado: el botón Filtros se encendía con un «1» y el chip «Todos los bancos» salía como
+     filtro activo NADA MÁS ENTRAR, sin que él hubiera tocado nada. */
+  await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator(".v4-gastos-summary")).toBeVisible();
+
+  /* El síntoma exacto: el botón de Filtros (🎛️) se encendía con la clase `on` y un contador al
+     lado. Se mide ESO y no la existencia del chip de limpiar, que es lo que se me ocurrió primero
+     y no cazaba nada — comprobado volviendo a meter el fallo. */
+  const btnFiltros = page.locator("button.v4-chip").filter({ hasText: "🎛️" }).first();
+  await expect(btnFiltros).toBeVisible();
+  await expect(btnFiltros, "el botón de filtros no puede salir encendido sin filtros").not.toHaveClass(/\bon\b/);
+  await expect(btnFiltros, "ni con un contador al lado").toHaveText("🎛️");
+});
+
+test("«Limpiar» devuelve TODOS los bancos, no solo los de gasto diario", async ({ page }) => {
+  await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator(".v4-gastos-summary")).toBeVisible();
+
+  /* Se pone un filtro de banco a mano y se limpia. Antes «limpiar» volvía a los de gasto diario,
+     o sea que borrar los filtros PONÍA uno y Sabadell desaparecía otra vez. */
+  await page.evaluate(() => {
+    const b = [...document.querySelectorAll("button")].find((x) => /Sabadell/i.test(x.textContent || "") && x.className.includes("chip"));
+    if (b) b.click();
+  });
+  await page.waitForTimeout(300);
+  const limpiar = page.locator(".v4-chip").filter({ hasText: /Limpiar|Clear|Netejar/i }).first();
+  if (await limpiar.count()) {
+    await limpiar.click();
+    await page.waitForTimeout(300);
+  }
+  await expect(fila(page, "RECIBO LUZ"), "tras limpiar tienen que volver TODAS las cuentas").toHaveCount(1);
+});

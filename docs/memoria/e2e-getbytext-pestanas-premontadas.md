@@ -12,6 +12,21 @@ metadata:
   modified: 2026-09-11T13:06:47.417Z
 ---
 
+**TERCERA VÍCTIMA (2026-09-11), y esta vez ni siquiera hacía falta `getByText`: bastó cambiar un
+`div` por un `button`.** Las filas de cuenta de Cartera pasaron a ser botones (para abrir su ficha
+al tocarlas) y **tres** tests que contaban `button.v4-mov` **de toda la página** empezaron a
+medirlas: inversiones pedía 3 y encontraba 4, el buscador de Gastos pedía 1 y encontraba 2, y el de
+deslizar entre pestañas pedía 2 y encontraba 3. Los tres se arreglan igual: acotar al contenedor
+(`.v4-gastos-list-body`, la `.v4-card-list` que contiene «posiciones»…).
+
+**La regla, más ancha de lo que parecía:** el peligro no es `getByText` ni `.first()`. Es **contar
+o elegir sobre `page`**. Un selector anclado en `page` mide la app entera, y en esta app la app
+entera incluye las pestañas vecinas premontadas. Si un test cuenta filas, la pregunta es siempre
+«¿filas de QUÉ?» — y la respuesta va en el locator, no en el comentario.
+
+⚠ Y ojo al cambiar un elemento de etiqueta: `div` → `button` parece cosmético y **mueve lo que
+miden los tests de otras pantallas**. Si haces ese cambio, ejecuta la suite ENTERA antes de cantar.
+
 **2026-08-17.** `e2e/bancos-acordeon.spec.mjs` caía 2 de cada 3 pasadas de la suite entera a
 `--workers=8` (en aislado, 9/9). El error decía `toBeVisible() ... Received: hidden` en
 `getByText("Sabadell").first()`, con las filas ya contadas — cuadro perfecto de «va lento, dale más

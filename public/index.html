@@ -8997,9 +8997,15 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // Resumen de filtros activos, para el botón "Filtros" (badge) y la línea de chips debajo.
   // Se calcula aquí (no memoizado: sel/bankSel son arrays cortos) porque lo usan dos sitios:
   // el botón junto al buscador y la línea de resumen + "Borrar filtros".
-  const bankSelIsDefault=sameEntList(bankSel, diarioEnts);
+  /* SIN NADA MARCADO = SIN FILTRO DE BANCO. Esto era `sameEntList(bankSel, diarioEnts)`, o sea
+     «el default es tener marcados los bancos de gasto diario» — el criterio del 17/8. Desde el
+     11/9 el default es la lista ENTERA (su petición: «TODAS las cuentas deben salir en el apartado
+     de gastos aunque no esté marcado gasto diario»), y con el array vacío aquello daba `false`:
+     el botón Filtros se encendía con un «1» y el chip «Todos los bancos» salía como si él hubiera
+     puesto un filtro nada más entrar. Lo cazó Cursor en la review, no un test. */
+  const bankSelIsDefault=bankSel.length===0;
   const nCatSel=sel.length;
-  const nBankSel=bankSelIsDefault?0:(bankSel.length||1);
+  const nBankSel=bankSelIsDefault?0:bankSel.length;
   const nFilters=nCatSel+nBankSel+bucketSel.length;
   const filterParts=[];
   if(bucketSel.length===1) filterParts.push(t("g_bk_"+bucketSel[0]));
@@ -9206,7 +9212,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         React.createElement("button",{type:"button",className:"v4-chip",onClick:function(){
           setSel([]);
           setBucketSel([]);
-          setBankSel(diarioEnts.slice());
+          // Borrar filtros = dejarlo como al entrar, y al entrar salen TODOS los bancos (11/9).
+          // Antes volvía a los de gasto diario, o sea que «borrar» ponía un filtro.
+          setBankSel([]);
         },style:{padding:"8px 12px"}}, t("g_filters_clear"))
       )
     ),
@@ -9357,7 +9365,8 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
   const clearAll=function(){
     setSel([]);
     setBucketSel([]);
-    setBankSel((diarioEnts||[]).slice());
+    // Igual que el chip de «Borrar filtros»: vacío = todos los bancos, que es como entra (11/9).
+    setBankSel([]);
   };
   const toggleBucket=function(b){
     setBucketSel(function(prev){
@@ -15786,8 +15795,8 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       setBusy(name);
       cloud.bankDisconnect(name).then(function(){
         setConfirming("");
-        // Si el banco tenía una cuenta con rol en Cartera, se le dice qué pasa con ella: se queda,
-        // con su último saldo y sin que el banco la toque ya (ver el `set` de abajo).
+        // Si el banco tenía una cuenta con rol en Cartera, se le dice qué pasa con ella: SALE de
+        // Cartera, y sus movimientos se quedan enteros en Gastos (ver el `set` de abajo).
         const teniaCuenta=!!(state.accounts||[]).find(function(a){ return a && a.ent===ent && a.bankIban; });
         showToast(tf(teniaCuenta?"bp_removed_acc":"bp_removed",{bank:bankLabel(name)}));
         set(function(s){

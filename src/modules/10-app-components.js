@@ -768,8 +768,8 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       setBusy(name);
       cloud.bankDisconnect(name).then(function(){
         setConfirming("");
-        // Si el banco tenía una cuenta con rol en Cartera, se le dice qué pasa con ella: se queda,
-        // con su último saldo y sin que el banco la toque ya (ver el `set` de abajo).
+        // Si el banco tenía una cuenta con rol en Cartera, se le dice qué pasa con ella: SALE de
+        // Cartera, y sus movimientos se quedan enteros en Gastos (ver el `set` de abajo).
         const teniaCuenta=!!(state.accounts||[]).find(function(a){ return a && a.ent===ent && a.bankIban; });
         showToast(tf(teniaCuenta?"bp_removed_acc":"bp_removed",{bank:bankLabel(name)}));
         set(function(s){

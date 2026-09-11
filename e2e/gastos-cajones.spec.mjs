@@ -127,9 +127,11 @@ test("y se puede volver a verlo todo sin dejar el filtro pegado", async ({ page 
   await expect(lista(page)).toHaveCount(1);
 
   /* «Limpiar» tiene que llevarse también este, no solo categorías y bancos. Deja el filtro como
-     al entrar —y al entrar vienen preseleccionados TODOS los de gasto diario—, así que vuelven los
-     tres de Trade Republic; el recibo de Sabadell sigue fuera hasta que pidas todos los bancos. */
+     al entrar — y desde el 11/9 al entrar salen TODAS las cuentas, no solo las de gasto diario
+     (su petición: «TODAS las cuentas deben salir en el apartado de gastos aunque no esté marcado
+     gasto diario»). Así que vuelven los cuatro, incluido el recibo de Sabadell: se VE, pero sigue
+     sin contar para el presupuesto, que es lo que se prueba en `gastos-diario-filtro`. */
   await page.locator('button.v4-chip:has-text("Limpiar")').first().click();
-  await expect(lista(page)).toHaveCount(3);
-  await expect(fila(page, "RECIBO ENDESA")).toHaveCount(0);
+  await expect(lista(page)).toHaveCount(4);
+  await expect(fila(page, "RECIBO ENDESA"), "limpiar no puede dejar fuera una cuenta suya").toHaveCount(1);
 });
