@@ -1,5 +1,210 @@
 [
  {
+  "v": "4.19.49",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Revolut y Trade Republic, bien",
+   "en": "Revolut and Trade Republic, fixed",
+   "ca": "Revolut i Trade Republic, bé"
+  },
+  "tandas": [
+   {
+    "id": "logos-tr-revolut",
+    "t": {
+     "es": "🏦 Revolut y Trade Republic al estilo del móvil",
+     "en": "🏦 Revolut and Trade Republic like on the phone",
+     "ca": "🏦 Revolut i Trade Republic com al mòbil"
+    },
+    "items": {
+     "es": [
+      "Trade Republic: dos trazos cortos y gruesos. Revolut: una sola R, sin hueco que parezca otra letra."
+     ],
+     "en": [
+      "Trade Republic: two short thick strokes. Revolut: a single R, no gap that looks like another letter."
+     ],
+     "ca": [
+      "Trade Republic: dos traços curts i gruixuts. Revolut: una sola R, sense forat que sembli una altra lletra."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Los logos de Revolut y Trade Republic se reconocen a primera vista."
+   ],
+   "en": [
+    "Revolut and Trade Republic logos are recognizable at a glance."
+   ],
+   "ca": [
+    "Els logotips de Revolut i Trade Republic es reconeixen a primera vista."
+   ]
+  }
+ },
+ {
+  "v": "4.19.48",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "MyInvestor, centrado",
+   "en": "MyInvestor, centered",
+   "ca": "MyInvestor, centrat"
+  },
+  "tandas": [
+   {
+    "id": "logos-myinvestor-centro",
+    "t": {
+     "es": "🏦 MyInvestor centrado",
+     "en": "🏦 MyInvestor centered",
+     "ca": "🏦 MyInvestor centrat"
+    },
+    "items": {
+     "es": [
+      "El logo de MyInvestor queda centrado y la barrita de color se ve mejor."
+     ],
+     "en": [
+      "The MyInvestor logo is centered and the color bar is easier to see."
+     ],
+     "ca": [
+      "El logotip de MyInvestor queda centrat i la barreta de color es veu millor."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "MyInvestor se reconoce mejor en la lista de cuentas."
+   ],
+   "en": [
+    "MyInvestor is easier to spot in the accounts list."
+   ],
+   "ca": [
+    "MyInvestor es reconeix millor a la llista de comptes."
+   ]
+  }
+ },
+ {
+  "v": "4.19.47",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Logos del móvil, bien puestos",
+   "en": "Phone logos, fixed",
+   "ca": "Logotips del mòbil, ben posats"
+  },
+  "tandas": [
+   {
+    "id": "logos-cara-a-cara",
+    "t": {
+     "es": "🏦 Logos cara a cara con el launcher",
+     "en": "🏦 Logos matched to the launcher",
+     "ca": "🏦 Logotips cara a cara amb el launcher"
+    },
+    "items": {
+     "es": [
+      "Revolut y Trade Republic van en blanco (como en el icono), no en negro. Trade Republic son dos ondas, no tres."
+     ],
+     "en": [
+      "Revolut and Trade Republic use a white icon (as on the phone), not black. Trade Republic is two waves, not three."
+     ],
+     "ca": [
+      "Revolut i Trade Republic van en blanc (com a la icona), no en negre. Trade Republic són dues ones, no tres."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Los logos de banco se parecen más al icono que tienes en el móvil."
+   ],
+   "en": [
+    "Bank logos look closer to the icons on your phone."
+   ],
+   "ca": [
+    "Els logotips de banc s'assemblen més a la icona que tens al mòbil."
+   ]
+  }
+ },
+ {
+  "v": "4.19.46",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Los logos, como en el móvil",
+   "en": "Logos like on your phone",
+   "ca": "Els logotips, com al mòbil"
+  },
+  "tandas": [
+   {
+    "id": "logos-marcas-reales",
+    "t": {
+     "es": "🏦 Logos como los iconos del móvil",
+     "en": "🏦 Logos like the phone icons",
+     "ca": "🏦 Logotips com les icones del mòbil"
+    },
+    "items": {
+     "es": [
+      "En Cartera → Tus cuentas, Sabadell, Revolut, Trade Republic, MyInvestor y CaixaBank se ven como en el icono de su app, no como una inicial inventada."
+     ],
+     "en": [
+      "In Portfolio → Your accounts, Sabadell, Revolut, Trade Republic, MyInvestor and CaixaBank look like their app icons, not made-up initials."
+     ],
+     "ca": [
+      "A Cartera → Els teus comptes, Sabadell, Revolut, Trade Republic, MyInvestor i CaixaBank es veuen com a la icona de l'app, no com una inicial inventada."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Los bancos se reconocen por el mismo dibujo que en el icono del móvil."
+   ],
+   "en": [
+    "Banks are recognizable by the same mark as on the phone icon."
+   ],
+   "ca": [
+    "Els bancs es reconeixen pel mateix dibuix que a la icona del mòbil."
+   ]
+  }
+ },
+ {
+  "v": "4.19.45",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Los bancos, con su marca",
+   "en": "Banks with their mark",
+   "ca": "Els bancs, amb la seva marca"
+  },
+  "tandas": [
+   {
+    "id": "logos-marcas-reales",
+    "t": {
+     "es": "🏦 Logos de banco medidos",
+     "en": "🏦 Measured bank logos",
+     "ca": "🏦 Logotips de banc mesurats"
+    },
+    "items": {
+     "es": [
+      "En Cartera → Tus cuentas, los cinco bancos de siempre se reconocen por su marca (medidos del original), no por dos letras."
+     ],
+     "en": [
+      "In Portfolio → Your accounts, the five familiar banks are recognizable by their mark (traced from the original), not two letters."
+     ],
+     "ca": [
+      "A Cartera → Els teus comptes, els cinc bancs de sempre es reconeixen per la marca (mesurada de l'original), no per dues lletres."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Los bancos de siempre muestran su marca en la lista de cuentas."
+   ],
+   "en": [
+    "Familiar banks show their mark in the accounts list."
+   ],
+   "ca": [
+    "Els bancs de sempre mostren la seva marca a la llista de comptes."
+   ]
+  }
+ },
+ {
   "v": "4.19.44",
   "d": "11 sep 2026",
   "t": {

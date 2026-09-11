@@ -1,3 +1,35 @@
+## [4.19.49] — 2026-09-11
+### TR corto/gordo y Revolut de una pieza
+
+Feedback Claude sobre preview: TR leía como ≈ de tres lóbulos (paths largos finos); ahora dos Q cortas stroke 3.5. Revolut con hueco asta/hombro leía «IR»; path único pegado.
+
+Se quitan `preview-launcher.html` y `launcher-real/` del árbol (recortes de su pantalla).
+
+
+## [4.19.48] — 2026-09-11
+### MyInvestor centrado a 40 px
+
+Feedback Claude: el grupo my+barra iba a la izquierda y la barra (1,55 u) no leía el degradado. Centrado como grupo y barra ~2,5 u.
+
+
+## [4.19.47] — 2026-09-11
+### Logos cara a cara con su captura
+
+Él puso el launcher al lado de lo que había pintado: Revolut y Trade Republic iban invertidos (fondo negro). En el móvil son fondo blanco; TR son DOS ondas negras, no tres. Sabadell/MyInvestor/Caixa reajustados a proporciones del recorte.
+
+
+## [4.19.46] — 2026-09-11
+### Logos = los del icono del móvil
+
+La 4.19.45 midió el lockup de Enable Banking y no se parecía a lo que él ve en el launcher. Ahora copian los iconos de su captura: Sabadell bola+B+S, Revolut R en negro, TR ondas (media recta), MyInvestor my+barra (sin círculo), Caixa Miró en blanco.
+
+
+## [4.19.45] — 2026-09-11
+### Logos de banco medidos del original
+
+Isotipos SVG sacados de `docs/design/bancos/` (Enable Banking), no de memoria. Sabadell bola+B, Revolut simple-icons, TR ondas, MyInvestor círculo+my, Caixa estrella Miró. Gzip sin apretar el tope.
+
+
 ## [4.19.44] — 2026-09-11
 ### Letra a mano y conectar cuentas (lista 11/9, ítems 2 y 3) — sin logos
 
