@@ -1,5 +1,46 @@
 [
  {
+  "v": "4.19.47",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Logos del móvil, bien puestos",
+   "en": "Phone logos, fixed",
+   "ca": "Logotips del mòbil, ben posats"
+  },
+  "tandas": [
+   {
+    "id": "logos-cara-a-cara",
+    "t": {
+     "es": "🏦 Logos cara a cara con el launcher",
+     "en": "🏦 Logos matched to the launcher",
+     "ca": "🏦 Logotips cara a cara amb el launcher"
+    },
+    "items": {
+     "es": [
+      "Revolut y Trade Republic van en blanco (como en el icono), no en negro. Trade Republic son dos ondas, no tres."
+     ],
+     "en": [
+      "Revolut and Trade Republic use a white icon (as on the phone), not black. Trade Republic is two waves, not three."
+     ],
+     "ca": [
+      "Revolut i Trade Republic van en blanc (com a la icona), no en negre. Trade Republic són dues ones, no tres."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Los logos de banco se parecen más al icono que tienes en el móvil."
+   ],
+   "en": [
+    "Bank logos look closer to the icons on your phone."
+   ],
+   "ca": [
+    "Els logotips de banc s'assemblen més a la icona que tens al mòbil."
+   ]
+  }
+ },
+ {
   "v": "4.19.46",
   "d": "11 sep 2026",
   "t": {

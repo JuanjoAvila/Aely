@@ -1,3 +1,9 @@
+## [4.19.47] — 2026-09-11
+### Logos cara a cara con su captura
+
+Él puso el launcher al lado de lo que había pintado: Revolut y Trade Republic iban invertidos (fondo negro). En el móvil son fondo blanco; TR son DOS ondas negras, no tres. Sabadell/MyInvestor/Caixa reajustados a proporciones del recorte.
+
+
 ## [4.19.46] — 2026-09-11
 ### Logos = los del icono del móvil
 

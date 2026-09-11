@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8"/>
+<title>Logos cara a cara — launcher vs SVG</title>
+<style>
+  body{margin:0;font:14px/1.4 system-ui;background:#111;color:#eee;padding:24px}
+  h1{font-size:18px;margin:0 0 8px}
+  .hint{opacity:.7;margin-bottom:20px}
+  .row{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start}
+  .col{min-width:280px}
+  .col h2{font-size:13px;opacity:.75;margin:0 0 12px;font-weight:600}
+  .grid{display:flex;gap:14px;flex-wrap:wrap}
+  .cell{text-align:center;width:72px}
+  .cell span{display:block;margin-top:6px;font-size:11px;opacity:.8}
+  .ico{width:56px;height:56px;border-radius:12px;display:grid;place-items:center;overflow:hidden;margin:0 auto}
+  .ico img{width:56px;height:56px;object-fit:cover;border-radius:12px}
+  .ico svg{display:block}
+</style>
+<body>
+  <h1>Cara a cara (captura del móvil vs SVG nuevo)</h1>
+  <p class="hint">Izquierda = recorte real del launcher. Derecha = lo que pinta la app ahora.</p>
+  <div class="row">
+    <div class="col">
+      <h2>Como en el launcher (su captura)</h2>
+      <div class="grid" id="real"></div>
+    </div>
+    <div class="col">
+      <h2>SVG corregido (4.19.47)</h2>
+      <div class="grid" id="svg"></div>
+    </div>
+  </div>
+<script>
+const real = [
+  ["Sabadell","launcher-real/sabadell.png"],
+  ["Revolut","launcher-real/revolut.png"],
+  ["Trade Republic","launcher-real/traderepublic.png"],
+  ["MyInvestor","launcher-real/myinvestor.png"],
+  ["CaixaBank","launcher-real/caixabank.png"],
+];
+const realEl = document.getElementById("real");
+real.forEach(([n,src])=>{
+  const c=document.createElement("div"); c.className="cell";
+  c.innerHTML=`<div class="ico"><img src="${src}" alt="${n}"></div><span>${n}</span>`;
+  realEl.appendChild(c);
+});
+
+function cell(name, bg, svgInner, scale){
+  const s = Math.round(56*(scale||0.78));
+  const c=document.createElement("div"); c.className="cell";
+  c.innerHTML=`<div class="ico" style="background:${bg}"><svg viewBox="0 0 24 24" width="${s}" height="${s}">${svgInner}</svg></div><span>${name}</span>`;
+  document.getElementById("svg").appendChild(c);
+}
+cell("Sabadell","#fff",`
+  <circle cx="7.1" cy="12" r="3.55" fill="#0082C9"/>
+  <path fill="#fff" d="M5.55 9.55h1.55c.78 0 1.28.42 1.28 1.05 0 .4-.22.72-.6.88.58.18.9.55.9 1.12 0 .75-.6 1.22-1.55 1.22H5.55V9.55zm1.05 1.7h.55c.35 0 .55-.16.55-.42s-.2-.4-.55-.4h-.55v.82zm0 2.15h.7c.4 0 .65-.2.65-.52s-.25-.5-.65-.5h-.7v1.02z"/>
+  <text x="16.6" y="17.6" text-anchor="middle" fill="#111" font-size="15.5" font-weight="800" font-family="system-ui,sans-serif">S</text>
+`,0.86);
+cell("Revolut","#fff",`
+  <rect x="3.2" y="3.4" width="3.35" height="17.2" rx="0.2" fill="#111"/>
+  <path fill="#111" d="M8.1 3.4h5.55c3.05 0 5.2 1.95 5.2 4.85 0 2.35-1.35 4.05-3.55 4.7L19.6 20.6h-4.05l-3.95-6.85H8.1V3.4zm3.35 3.05v4.35h2.35c1.55 0 2.45-.9 2.45-2.2S14.35 6.45 12.8 6.45H11.45z"/>
+`,0.62);
+cell("Trade Republic","#fff",`
+  <path d="M3.2 10 Q6.2 6.6 9.2 10 T15.2 10 T21 10" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M3.2 15.6 Q6.2 12.2 9.2 15.6 T15.2 15.6 T21 15.6" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+`,0.68);
+cell("MyInvestor","#fff",`
+  <defs><linearGradient id="miBar" x1="0" y1="0" x2="0.35" y2="1">
+    <stop offset="0%" stop-color="#8B4FA0"/><stop offset="45%" stop-color="#6B5B9A"/><stop offset="100%" stop-color="#4A6BB0"/>
+  </linearGradient></defs>
+  <text x="10.2" y="15.4" text-anchor="middle" fill="#1a1a1a" font-size="10.2" font-weight="600" font-family="system-ui,sans-serif" letter-spacing="-0.8px">my</text>
+  <path d="M16.9 6.2 L18.05 6.8 L15.6 17.6 L14.45 17" fill="url(#miBar)"/>
+`,0.78);
+cell("CaixaBank","#fff",`
+  <path fill="#0077B6" d="M12 2.6l1.25 5.45 5.55.2-4.35 3.5 1.8 5.15L12 14.2l-4.25 2.7 1.8-5.15-4.35-3.5 5.55-.2z"/>
+  <circle cx="9.2" cy="13.6" r="1.15" fill="#F5C518"/>
+  <circle cx="7.2" cy="18.0" r="1.85" fill="#E30613"/>
+`,0.82);
+</script>
+</body>
+</html>
