@@ -131,6 +131,44 @@ alertas de saldo mínimo. **No confundir con el Δ 205 del widget** (ese era `sp
 cambiar solo unas cuantas hace que editar el saldo a mano guarde un número torcido. Plan sellado en
 `docs/briefs/bug-saldo-cruzado-gasto-diario.md`. OTA, sin APK. Va ANTES de las tandas 5 y 6.
 
+# 🆕 2-QUATER. LO QUE APUNTÓ AL CERRAR LA NOCHE DEL 12/9 (madrugada)
+
+Lo dijo **sin haber entrado a probar en serio** («te añado como bugs que me he encontrado sin
+entrar a probar cosas como tal»), así que lo de abajo es lo que se ve de un vistazo. Cuando pruebe
+de verdad saldrá más.
+
+## Bugs
+
+1. **El botón «Editar» de Cartera sigue apareciendo.** Y para él es un resto del rediseño. Yo lo
+   dejé a propósito —es la única puerta a las cuentas EXTRA de Open Banking, las que aún no tienen
+   rol y se promocionan desde ahí— pero **eso él no lo sabe ni tiene por qué**. Lo suyo es que solo
+   salga cuando hay `obAccounts` que promocionar, o que se llame otra cosa. Es de una línea.
+2. **Mantener pulsado un banco no lo mueve.** No es un bug: **está sin implementar**. Lo lleva
+   Cursor. Él ya lo da por prometido, así que es lo primero que va a mirar.
+3. **★ EL TIRONCILLO VUELVE AL ABRIR AJUSTES.** Sus palabras: *«el tironcillo que arreglamos, que
+   costó mucho, al scrollear de manera lenta, se reproduce exactamente igual al abrir las settings,
+   solo las settings normales»*.
+   **Hipótesis con base, no corazonada:** es la misma familia que la barra de abajo. Al abrir el
+   panel se hace `setState` a mitad de gesto y **se repinta App entera**; es lo que se arregló en
+   4.19.69/71 aplazando el `setState` de la barra hasta soltar el dedo (`flushNavHide`). El
+   guardián `rendimiento-tabs` ya mide «abrir el perfil no arrastra a las cuatro pestañas» — hay
+   que mirar si Ajustes tiene su equivalente y, si no, escribirlo ANTES de tocar.
+
+## Extras que pidió (no bugs)
+
+4. **Que la app sea más FLUIDA en general**, y da la referencia buena: *«como cuando se oculta la
+   barra, que va muy fluido»*. Sitios que nombró: desplegar las categorías del mes, abrir el sheet
+   de apuntar gasto, los botones que despliegan cosas, entrar en Gastos, y **cerrar cualquier
+   ventana**. Es un trabajo de una tanda entera, no un arreglo suelto.
+5. **Temporada de PRIMAVERA y de OTOÑO.** Lo pide su pareja. El mecanismo de temporadas ya existe.
+6. **★ Los 5.303 € del Inicio: que se pueda tocar y ver DE DÓNDE SALE.** Textual: *«creo que se
+   inventa cosas»*. Ojo con esto: no es una petición de diseño, es que **no se fía del número**.
+   Que al pulsar (o mantener) salga el desglose de dónde viene cada euro.
+7. **Ficha de una inversión, estilo Revolut.** Tocar NVIDIA y ver su gráfico, cuándo compró, cuándo
+   vendió… Él mismo dice que es tarea gorda. Hay datos de posiciones y de snapshots
+   (`recordInvSnapshot`), pero no de operaciones individuales: **antes de prometer nada hay que
+   mirar qué se puede reconstruir de verdad**.
+
 # 🐛 2-TER. NUEVO (2026-09-11, noche) — los DOS gestos que se han perdido
 Suyos, literales: **«el efecto rebote de las tabs, que se ha perdido, el que viene de manera nativa
 de android»** y **«el esconderse la barra de abajo ya no lo hace apenas nunca»**.

@@ -109,6 +109,18 @@ Yo **aparqué tres tandas del panel** por eso. Al desplegar `ingest` de verdad, 
 **Comprueba siempre el test rompiéndolo a mano.** Y si lo rompes «a medias», tampoco vale: la
 primera vez solo revertí una de las dos líneas y el test seguía verde por eso.
 
+### UNA PASADA ROJA SIN LOG NO ES «FLAKY», ES QUE NO LA MIRASTE
+Una pasada de la suite salió roja y no capturé la salida. Lo dejé escrito en el CHANGELOG en vez de
+tacharlo de flaky, y unas horas después **volvió a pasar, con el log**:
+
+    net::ERR_NO_BUFFER_SPACE at http://127.0.0.1:4184/
+
+No era ningún test: es **Windows quedándose sin sockets** tras decenas de pasadas seguidas. La
+siguiente, sin tocar nada, verde con 233. Sin el log habría acabado culpando al guardián de
+rendimiento —que no tenía nada que ver— y «arreglando» un margen que estaba bien.
+
+**Captura la salida SIEMPRE** (`> fichero 2>&1`) antes de repetir una pasada.
+
 ### UN SELECTOR SIN ACOTAR MIDE LA APP ENTERA
 Cambiar las filas de cuenta de `div` a `button` rompió **tres** e2e que contaban `button.v4-mov`
 **de toda la página** — y las pestañas vecinas van premontadas. Tercera vez que muerde lo mismo:

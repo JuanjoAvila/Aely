@@ -138,9 +138,18 @@ fuera a propósito: meter palabras a esa lista sin un comercio real detrás es a
 entrada estrecha lo que la clave detecta.
 
 ⚠ **Una pasada de la suite salió en rojo sin que capturara la salida**, y las dos siguientes en
-verde. No sé cuál falló. El sospechoso es `rendimiento-tabs`, que va con poco margen (85 contra 80
-en la 4.19.69) y solo se cae con la máquina cargada. Queda dicho aquí en vez de tachado de flaky:
-si vuelve a pasar, **capturar la salida SIEMPRE** antes de repetir la pasada.
+verde. Lo dejé escrito aquí en vez de tacharlo de flaky, y esa misma noche, unas horas después,
+**apareció otra vez y esta vez con el log**:
+
+    net::ERR_NO_BUFFER_SPACE at http://127.0.0.1:4184/
+
+No era `rendimiento-tabs` ni ningún test: es **Windows quedándose sin sockets** después de decenas
+de pasadas de la suite seguidas. Cada pasada levanta un servidor y abre cientos de conexiones. La
+siguiente pasada, sin tocar nada, salió en verde con 233 tests.
+
+**La lección que queda es la que ya estaba escrita, y funcionó:** capturar la salida SIEMPRE. Sin
+ella habría acabado culpando al guardián de rendimiento, que no tenía nada que ver — y «arreglando»
+un margen que estaba bien.
 
 ## [4.19.69] - 2026-09-11
 ### El arreglo de la barra apretaba justo el guardián de SU rechazo
