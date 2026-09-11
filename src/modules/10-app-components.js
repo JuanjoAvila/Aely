@@ -2657,6 +2657,12 @@ function Onboarding({set, onCloud, onSignup}){
       return Object.assign({},s,{
         budget:bud, monthStartNet:0, history:[0],
         onboarded:true, setupHint:true, tourSeen:false,
+        /* LETRA PEQUEÑA DE SALIDA, Y SOLO EN INSTALACIONES NUEVAS (11/9, suyo: «pon la letra en
+           pequeño para comenzar, en normal es terriblemente gigantesca»). Se pone AQUÍ, en el
+           onboarding, y no como valor por defecto global: cambiarlo globalmente le reescribiría
+           el tamaño a su padre y a su pareja, que ya tienen la app y no han pedido nada. Quien la
+           quiera más grande la sube en Ajustes, y eso manda sobre esto. */
+        settings: Object.assign({}, s.settings, { textSize:"small" }),
       });
     });
   };

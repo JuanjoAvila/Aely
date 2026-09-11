@@ -1,3 +1,18 @@
+## [4.19.41] — 2026-09-11
+### El cuadro azul de Cuentas, el onboarding y el rebote en bloque
+
+Cuatro de la lista que soltó probando el modo vacío. Las otras ocho van repartidas con Cursor.
+
+- **El recuadro azul vacío encima del nombre del banco** (foto suya). `.v4-ob-badge` estaba declarado **DOS VECES** en `shell.html`: la insignia del lockup de Aely —que metí yo el 10/9— y la chip «del banco», que ya existía. En esta casa `v4-ob-` significa dos cosas distintas: **onboarding** en una y **open banking** en la otra. Como la del lockup pone `width:64px;height:64px` y la chip no toca esas propiedades, la chipita se convertía en un cuadro de 64×64 tapando «Sabadell». Renombrada a `.v4-ob-lockup-badge`. **Mi rebranding rompió su pantalla de Cuentas y no lo vi.**
+- **«Saltar» pegado al título** en el onboarding, y peor en la segunda pantalla. Iba en `position:absolute;top:0;right:0`, o sea que no ocupaba sitio, y el título —centrado y a 36 px— se le metía debajo en cuanto envolvía a dos líneas. En 360 px de ancho eso es siempre. Ahora es una fila propia (`.v4-ob-top`) y el título empieza donde ella acaba.
+- **El título del onboarding, de 36 a 27 px.** Suyo: «con letra EXTRA EXTRA EXTRA GRANDE o qué».
+- **La letra de la app arranca en «pequeña», pero SOLO en instalaciones nuevas.** Se pone en el `finish()` del onboarding y no como valor por defecto global: cambiarlo globalmente le reescribiría el tamaño a su padre y a su pareja, que ya tienen la app y no han pedido nada.
+- **El rebote «se baja todo en bloque y luego sube»** en el banco de pruebas vacío. Medido: con la cartera vacía la página **no tiene nada que scrollear** (Plan da `scrollHeight` 808 y `clientHeight` 808), así que el gesto no lo coge el host, se encadena hacia arriba y el efecto nativo se lo come la app entera. El host pasa a `overscroll-behavior-y: contain`, que corta el encadenado **sin matar el efecto**: la ola nativa se sigue viendo dentro del host. `none` haría las dos cosas, y por eso se quitó en su día.
+
+**Y una que NO es un fallo, aunque lo parezca:** que en la cartera vacía no se oculte la barra ni salga la ola es **la misma raíz**, no un bug aparte. Sin nada que scrollear no hay eventos de scroll. Con datos vuelve solo.
+
+⚠ **El rebote está razonado y probado en escritorio, pero NO verificado en su móvil**: el efecto de estiramiento es del compositor de Android y Chrome de escritorio no lo reproduce. Se quedó sin cable a mitad. Hay que confirmarlo en el aparato antes de darlo por cerrado.
+
 ## [4.19.40] — 2026-09-11
 ### La ronda del 11/9: el banco de pruebas, el logo y el tirón
 

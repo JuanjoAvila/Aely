@@ -1,5 +1,55 @@
 [
  {
+  "v": "4.19.41",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "El cuadro azul, el onboarding y el rebote en bloque",
+   "en": "The blue box, onboarding and the block bounce",
+   "ca": "El quadre blau, l'onboarding i el rebot en bloc"
+  },
+  "tandas": [
+   {
+    "id": "bugs-11sep",
+    "t": {
+     "es": "🧹 Lo que se veía roto en Cuentas y al estrenar",
+     "en": "🧹 What looked broken in Accounts and on first run",
+     "ca": "🧹 El que es veia trencat a Comptes i en estrenar"
+    },
+    "items": {
+     "es": [
+      "Cartera → Tus cuentas: el recuadro azul vacío que tapaba el nombre del banco tiene que haber desaparecido, y «del banco» vuelve a ser una chapita pequeña al lado del nombre.",
+      "Estrena la app con «Probar con la app vacía»: el «Saltar» ya no puede tocar el título en NINGUNA de las tres pantallas, y el título es más pequeño.",
+      "Empezando de cero, la letra de la app arranca en pequeña. Si la subes en Ajustes, manda lo que tú pongas.",
+      "En el banco de pruebas vacío, arrastra de arriba abajo: la app ya no puede bajar ENTERA y rebotar."
+     ],
+     "en": [
+      "Portfolio → Your accounts: the empty blue box covering the bank name must be gone.",
+      "Start the app with «Try with an empty app»: «Skip» can no longer touch the title on any of the three screens.",
+      "Starting fresh, the app text starts small. If you raise it in Settings, yours wins.",
+      "In the empty test wallet, drag up and down: the app can no longer move as one block and bounce."
+     ],
+     "ca": [
+      "Cartera → Els teus comptes: el requadre blau buit que tapava el nom del banc ha de desaparèixer.",
+      "Estrena l'app amb «Provar amb l'app buida»: el «Saltar» ja no pot tocar el títol.",
+      "Començant de zero, la lletra arrenca petita.",
+      "A la zona de proves buida, arrossega amunt i avall: l'app ja no pot baixar SENCERA i rebotar."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Arreglado el recuadro azul que tapaba el nombre del banco en Tus cuentas, el «Saltar» pegado al título al estrenar la app, y el rebote de la pantalla entera cuando no hay nada que deslizar."
+   ],
+   "en": [
+    "Fixed the blue box covering the bank name, the «Skip» stuck to the title on first run, and the whole-screen bounce when there is nothing to scroll."
+   ],
+   "ca": [
+    "Arreglat el requadre blau que tapava el nom del banc, el «Saltar» enganxat al títol i el rebot de tota la pantalla."
+   ]
+  }
+ },
+ {
   "v": "4.19.40",
   "d": "11 sep 2026",
   "t": {
