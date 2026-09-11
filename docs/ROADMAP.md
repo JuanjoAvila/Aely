@@ -1,7 +1,7 @@
 # Roadmap — Mi Cartera
 
 > Estado a 2026-09-11 · **v4.19.42** — en pruebas, el contador de bancos no inventa un TR fantasma.
-> Anterior: **v4.19.41** — cuadro azul de Cuentas, onboarding y rebote en bloque.
+> Anterior: **v4.19.42** — cuadro azul de Cuentas, onboarding y rebote en bloque.
 > Anterior: v4.19.33
 > Anterior: v4.19.15 — cada cuenta arrastra sus propios gastos al cerrar el mes.
 > Auditoría: [hallazgos y límites](briefs/AUDITORIA-CODEX-2026-09-09.md). Efectivo sigue bloqueado por el cierre mensual; no promover la ronda completa.

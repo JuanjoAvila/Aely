@@ -3,53 +3,9 @@
   "v": "4.19.42",
   "d": "11 sep 2026",
   "t": {
-   "es": "Bancos en pruebas, sin fantasmas",
-   "en": "Banks in test mode, no ghosts",
-   "ca": "Bancs en proves, sense fantasmes"
-  },
-  "tandas": [
-   {
-    "id": "bp-count-vacio",
-    "t": {
-     "es": "🏦 En el banco de pruebas, el contador dice la verdad",
-     "en": "🏦 In test mode, the bank count tells the truth",
-     "ca": "🏦 A la zona de proves, el comptador diu la veritat"
-    },
-    "items": {
-     "es": [
-      "Entra al banco de pruebas vacío (o con la app vacía). Ajustes → Bancos tiene que decir que no hay ninguno conectado, aunque Trade Republic siga en el móvil de verdad.",
-      "Fuera del banco de pruebas, si tienes TR conectado, el resumen sigue contándolo como siempre."
-     ],
-     "en": [
-      "Enter the empty test bank. Settings → Banks must say none connected, even if Trade Republic is still on the real phone.",
-      "Outside test mode, if TR is connected, the summary still counts it as before."
-     ],
-     "ca": [
-      "Entra a la zona de proves buida. Ajustes → Bancs ha de dir que no n'hi ha cap de connectat, encara que Trade Republic segueixi al mòbil de veritat.",
-      "Fora de la zona de proves, si tens TR connectat, el resum el continua comptant."
-     ]
-    }
-   }
-  ],
-  "items": {
-   "es": [
-    "En el banco de pruebas, Ajustes ya no cuenta Trade Republic del móvil como un banco conectado cuando la cartera de pruebas está vacía."
-   ],
-   "en": [
-    "In test mode, Settings no longer counts the phone’s Trade Republic as a connected bank when the test wallet is empty."
-   ],
-   "ca": [
-    "A la zona de proves, Ajustes ja no compta el Trade Republic del mòbil com a banc connectat quan la cartera de proves és buida."
-   ]
-  }
- },
- {
-  "v": "4.19.41",
-  "d": "11 sep 2026",
-  "t": {
-   "es": "El cuadro azul, el onboarding y el rebote en bloque",
-   "en": "The blue box, onboarding and the block bounce",
-   "ca": "El quadre blau, l'onboarding i el rebot en bloc"
+   "es": "Lo que se veía roto al estrenar, y los textos que sobraban",
+   "en": "What looked broken on first run, and the copy that was in the way",
+   "ca": "El que es veia trencat en estrenar, i els textos que sobraven"
   },
   "tandas": [
    {
@@ -78,17 +34,70 @@
       "A la zona de proves buida, arrossega amunt i avall: l'app ja no pot baixar SENCERA i rebotar."
      ]
     }
+   },
+   {
+    "id": "copy-ruido-11sep",
+    "t": {
+     "es": "🧹 Menos ruido al probar con la app vacía",
+     "en": "🧹 Less noise when trying the empty app",
+     "ca": "🧹 Menys soroll en provar amb l'app buida"
+    },
+    "items": {
+     "es": [
+      "En Mis bancos ya no sale el aviso de que Trade Republic no está en Open Banking (sí puede conectar).",
+      "Al importar histórico, el texto ya no dice que TR no vale.",
+      "Con presupuesto y cero gastos, Inicio ya no dice «Vas muy bien»: dice que el mes acaba de empezar."
+     ],
+     "en": [
+      "In My banks, the note that Trade Republic isn’t in Open Banking is gone (it can connect).",
+      "Import history no longer says TR won’t work.",
+      "With a budget and zero spending, Home no longer says “Doing great”: it says the month is just starting."
+     ],
+     "ca": [
+      "A Els meus bancs ja no surt l’avís que Trade Republic no és a Open Banking.",
+      "En importar històric, el text ja no diu que TR no val.",
+      "Amb pressupost i zero despeses, Inici ja no diu «Molt bé»: diu que el mes acaba de començar."
+     ]
+    }
+   },
+   {
+    "id": "bp-count-vacio",
+    "t": {
+     "es": "🏦 En el banco de pruebas, el contador dice la verdad",
+     "en": "🏦 In test mode, the bank count tells the truth",
+     "ca": "🏦 A la zona de proves, el comptador diu la veritat"
+    },
+    "items": {
+     "es": [
+      "Entra al banco de pruebas vacío (o con la app vacía). Ajustes → Bancos tiene que decir que no hay ninguno conectado, aunque Trade Republic siga en el móvil de verdad.",
+      "Fuera del banco de pruebas, si tienes TR conectado, el resumen sigue contándolo como siempre."
+     ],
+     "en": [
+      "Enter the empty test bank. Settings → Banks must say none connected, even if Trade Republic is still on the real phone.",
+      "Outside test mode, if TR is connected, the summary still counts it as before."
+     ],
+     "ca": [
+      "Entra a la zona de proves buida. Ajustes → Bancs ha de dir que no n'hi ha cap de connectat, encara que Trade Republic segueixi al mòbil de veritat.",
+      "Fora de la zona de proves, si tens TR connectat, el resum el continua comptant."
+     ]
+    }
    }
   ],
   "items": {
    "es": [
-    "Arreglado el recuadro azul que tapaba el nombre del banco en Tus cuentas y el «Saltar» pegado al título al estrenar la app."
+    "Arreglado el recuadro azul que tapaba el nombre del banco en Tus cuentas y el «Saltar» pegado al título al estrenar la app.",
+    "Ajustes de texto al probar la app como recién instalada: menos avisos viejos de Trade Republic y un mensaje de Inicio que no da por bueno el mes antes de gastar.",
+    "En el banco de pruebas, Ajustes ya no cuenta Trade Republic del móvil como un banco conectado cuando la cartera de pruebas está vacía."
    ],
    "en": [
-    "Fixed the blue box covering the bank name in Your accounts and the «Skip» stuck to the title on first run."
+    "Fixed the blue box covering the bank name in Your accounts and the «Skip» stuck to the title on first run.",
+    "Copy tweaks for trying the app as newly installed: fewer outdated Trade Republic notes and a Home line that doesn’t praise the month before you’ve spent anything.",
+    "In test mode, Settings no longer counts the phone’s Trade Republic as a connected bank when the test wallet is empty."
    ],
    "ca": [
-    "Arreglat el requadre blau que tapava el nom del banc i el «Saltar» enganxat al títol."
+    "Arreglat el requadre blau que tapava el nom del banc i el «Saltar» enganxat al títol.",
+    "Ajustos de text en provar l’app com a nova: menys avisos vells de Trade Republic i un missatge d’Inici que no dona el mes per bo abans de gastar.",
+    "A la zona de proves, Ajustes ja no compta el Trade Republic del mòbil com a banc connectat quan la cartera de proves és buida."
    ]
   }
  },
