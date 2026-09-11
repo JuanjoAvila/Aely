@@ -1904,7 +1904,7 @@ Object.assign(LANG.ca,{
 });
 // --- Open Banking (Capa 2: el saldo real del banco) ---
 Object.assign(LANG.es,{
-  bank_section:"Banco (Open Banking)",
+  bank_section:"Bancos",
   bank_intro:"Conecta tu banco y tu saldo real será el «hoy» de la app. Solo lectura, sin tarjeta. El permiso se renueva cada ~3 meses.",
   bank_connect:"Conectar mi banco", bank_connecting:"Abriendo tu banco…",
   bank_connected:"Banco conectado ✓", bank_error:"No se pudo conectar el banco",
@@ -1929,7 +1929,7 @@ Object.assign(LANG.es,{
   bank_consent:"Permiso válido hasta {x}", bank_consent_soon:"⚠ El permiso caduca el {x} · reconéctate",
 });
 Object.assign(LANG.en,{
-  bank_section:"Bank (Open Banking)",
+  bank_section:"Banks",
   bank_intro:"Connect your bank and your real balance becomes the app's “today”. Read-only, no card. The consent renews every ~3 months.",
   bank_connect:"Connect my bank", bank_connecting:"Opening your bank…",
   bank_connected:"Bank connected ✓", bank_error:"Couldn't connect the bank",
@@ -1948,7 +1948,7 @@ Object.assign(LANG.en,{
   bank_consent:"Consent valid until {x}", bank_consent_soon:"⚠ Consent expires on {x} · reconnect",
 });
 Object.assign(LANG.ca,{
-  bank_section:"Banc (Open Banking)",
+  bank_section:"Bancs",
   bank_intro:"Connecta el teu banc i el teu saldo real serà l'«avui» de l'app. Només lectura, sense targeta. El permís es renova cada ~3 mesos.",
   bank_connect:"Connecta el meu banc", bank_connecting:"Obrint el teu banc…",
   bank_connected:"Banc connectat ✓", bank_error:"No s'ha pogut connectar el banc",

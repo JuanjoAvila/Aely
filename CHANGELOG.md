@@ -1,3 +1,9 @@
+## [4.19.42] — 2026-09-11
+### Bancos en pruebas, sin fantasmas (lista 11/9, ítem 4)
+
+En el banco de pruebas vacío, Ajustes → Bancos decía «1 conectado» con Mis bancos vacío. `bankLinks` de la nube ya se corta en modo inicial; lo que sumaba era **`trConn` del plugin nativo** (sesión real del móvil + `mc_tr_phone`), fuera de la cartera de pruebas. En sandbox ese +1 (y el «TR caído») ya no cuentan; en producción se sigue contando TR como siempre (feedback 2026-07-10). Título de sección: «Bancos» a secas, sin «(Open Banking)» en el rótulo.
+
+
 ## [4.19.41] — 2026-09-11
 ### Textos del banco y del primer día (lista 11/9, ítems 5–7)
 

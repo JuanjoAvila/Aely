@@ -2357,12 +2357,17 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       // entra en nDead por su propio camino — no es Open Banking.
       const issueAsp={};
       (state.bankIssues||[]).forEach(function(is){ if(is&&is.aspsp) issueAsp[String(is.aspsp).toLowerCase()]=1; });
+      // ⚠ En el banco de pruebas NO cuentes el TR nativo del móvil (11/9). La sesión de TR vive
+      // en el aparato (plugin + mc_tr_phone), fuera de la cartera de pruebas. Con modo vacío
+      // bankLinks ya viene cortado, pero trConn seguía sumando +1 → «1 conectado» con Mis bancos
+      // vacío. En producción se sigue contando (feedback 2026-07-10).
+      const enPruebas=typeof mcSandbox==="function" && mcSandbox();
       const nActive=(links||[]).filter(function(r){
         if(r.status!=='active') return false;
         return !issueAsp[String(r.aspsp_name||"").toLowerCase()];
-      }).length + (trConn?1:0);
+      }).length + (!enPruebas && trConn?1:0);
       const nDeadDb=(links||[]).filter(function(r){ return r.status==='expired'||r.status==='error'||issueAsp[String(r.aspsp_name||"").toLowerCase()]; }).length;
-      const trDead=trKnown&&!trConn;
+      const trDead=!enPruebas && trKnown&&!trConn;
       const nDead=nDeadDb + (trDead?1:0);
       let summary = links===null ? "…"
         : nActive>0 ? (tf("bp_summary_n",{n:nActive}) + (nDead?" · "+tf("bp_summary_exp",{n:nDead}):""))
