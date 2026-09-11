@@ -48,12 +48,41 @@ function mcOnGastosActive(cb){
   };
 }
 
+/* Cartera se premonta como pestaña vecina: el aviso de pestaña activa evita gastar el count-up
+   antes de que se vea, sin reconstruir el carrusel durante el gesto. */
+var _mcCarteraActive=false;
+var _mcCarteraActiveCbs=[];
+function mcSetCarteraActive(on){
+  on=!!on;
+  if(_mcCarteraActive===on) return;
+  _mcCarteraActive=on;
+  for(var i=0;i<_mcCarteraActiveCbs.length;i++){
+    try{ _mcCarteraActiveCbs[i](on); }catch(e){}
+  }
+}
+function mcOnCarteraActive(cb){
+  if(typeof cb!=="function") return function(){};
+  _mcCarteraActiveCbs.push(cb);
+  try{ cb(_mcCarteraActive); }catch(e){}
+  return function(){
+    var i=_mcCarteraActiveCbs.indexOf(cb);
+    if(i>=0) _mcCarteraActiveCbs.splice(i,1);
+  };
+}
+
 /* Le dice al SPLASH de entrada que ya puede irse: lo que se vea a partir de ahora es lo bueno.
    El vigilante vive al final de shell.html y no depende de esto para retirarse (tiene un tope de
    1,8 s), así que llamar de más es gratis y no llamar nunca solo devuelve el comportamiento viejo.
    Idempotente a propósito: lo llaman varios caminos (sin nube, sin sesión, candado, alta, y el
-   final del primer pull de la nube) y ninguno sabe de los demás. */
-function mcBootReady(){ try{ window.__mcBootReady=true; }catch(e){} }
+   final del primer pull de la nube) y ninguno sabe de los demás. Emite un evento para que Inicio
+   pueda retirar los esqueletos cuando ya hay datos que pintar. */
+function mcBootReady(){
+  try{
+    if(window.__mcBootReady) return;
+    window.__mcBootReady=true;
+    window.dispatchEvent(new Event("mc-boot-ready"));
+  }catch(e){}
+}
 
 /* EJE DE UN GESTO: "x", "y" o null (todavía no está claro).
    Lo comparten el swipe horizontal entre pestañas (11-app-main.js) y el vertical de Plan

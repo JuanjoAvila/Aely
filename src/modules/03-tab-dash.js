@@ -8,49 +8,30 @@ function dashOrderOf(s, allIds){
 function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
   const tt=totals;
   const simple=!!(state.settings&&state.settings.simpleMode);
-  const [shownNet,setShownNet]=useState(0);
   const [budgetOpen,setBudgetOpen]=useState(false);
-  const rafRef=useRef(0);
-  const shownRef=useRef(0);      // último valor pintado, para encadenar sin volver a cero
-  const primeraRef=useRef(true); // la cuenta desde 0 es solo la de la entrada
-  // Count-up 950 ms (SPEC §3 / §10). Reduced-motion → valor directo.
+  /* El splash y la nube son puertas distintas: el número no debe animarse oculto ni las tarjetas
+     enseñar ceros antes de que lleguen datos. */
+  const [splashGone,setSplashGone]=useState(function(){
+    try{ return !!(window.__mcSplashGone) || !document.getElementById("mc-load"); }catch(e){ return true; }
+  });
+  const [bootReady,setBootReady]=useState(function(){
+    try{ return !!window.__mcBootReady; }catch(e){ return true; }
+  });
   useEffect(function(){
-    const target=tt.netWorth||0;
-    cancelAnimationFrame(rafRef.current);
-    const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
-    if(reduce){ shownRef.current=target; setShownNet(target); return undefined; }
-    let cancelado=false;
-    const arrancar=function(){
-      if(cancelado) return;
-      /* De DÓNDE cuenta: la primera vez desde 0 (la entrada, que es la que él echaba de menos);
-         después, desde lo que hubiera puesto. Volver a 0 cada vez que cambia el patrimonio
-         —apuntar un gasto, que entre una sincronización— convertía una animación bonita de
-         bienvenida en un parpadeo del número a media faena. */
-      const start=primeraRef.current?0:shownRef.current;
-      primeraRef.current=false;
-      const t0=performance.now(), dur=950;
-      const ease=function(x){ return 1-Math.pow(1-x,3); };
-      const step=function(now){
-        const p=Math.min(1,(now-t0)/dur);
-        const v=start+(target-start)*ease(p);
-        shownRef.current=v;
-        setShownNet(v);
-        if(p<1) rafRef.current=requestAnimationFrame(step);
-      };
-      rafRef.current=requestAnimationFrame(step);
-    };
-    /* NO SE CUENTA DETRÁS DEL SPLASH (2026-07-28). La cortina de entrada se queda puesta hasta
-       que ha llegado el primer dato bueno de la nube (~1,3 s), y esto arrancaba al montar: para
-       cuando él veía la pantalla, la cuenta había terminado y el número aparecía ya puesto. Su
-       feedback: «eso molaba mucho y se perdió». No se perdió, se gastaba a puerta cerrada. */
-    if(window.__mcSplashGone || !document.getElementById("mc-load")){ arrancar(); return function(){ cancelado=true; cancelAnimationFrame(rafRef.current); }; }
-    window.addEventListener("mc-splash-gone", arrancar, {once:true});
-    return function(){
-      cancelado=true;
-      cancelAnimationFrame(rafRef.current);
-      window.removeEventListener("mc-splash-gone", arrancar);
-    };
-  },[tt.netWorth]);
+    if(splashGone) return undefined;
+    const on=function(){ setSplashGone(true); };
+    window.addEventListener("mc-splash-gone", on);
+    return function(){ window.removeEventListener("mc-splash-gone", on); };
+  },[splashGone]);
+  useEffect(function(){
+    if(bootReady) return undefined;
+    const on=function(){ setBootReady(true); };
+    window.addEventListener("mc-boot-ready", on);
+    try{ if(window.__mcBootReady) setBootReady(true); }catch(e){}
+    return function(){ window.removeEventListener("mc-boot-ready", on); };
+  },[bootReady]);
+  const shownNet=useCountUp(tt.netWorth||0, splashGone);
+  const showSkel=splashGone && !bootReady;
 
   const nameGuess=(function(){
     try{
@@ -153,7 +134,13 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         onClick:function(){ if(onOpenProfile) onOpenProfile(); else if(onOpenSettings) onOpenSettings(); }}, initials)
     ),
 
-    closedCard && React.createElement("div",{className:"v4-card rise","data-tour":"closed-month",style:{animationDelay:".02s",marginTop:4}},
+    showSkel && React.createElement(React.Fragment,null,
+      React.createElement("div",{className:"v4-skel",style:{marginTop:8}}),
+      React.createElement("div",{className:"v4-skel"}),
+      React.createElement("div",{className:"v4-skel"})
+    ),
+
+    !showSkel && closedCard && React.createElement("div",{className:"v4-card rise","data-tour":"closed-month",style:{animationDelay:".02s",marginTop:4}},
       React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
         React.createElement("div",null,
           React.createElement("div",{style:{fontWeight:800,fontSize:15}}, tf("mr_title",{mes:monthLong(closedCard.month)+" "+closedCard.year})),
@@ -190,7 +177,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         React.createElement(Sparkline,{data:state.history,current:tt.netWorth}))
     ),
 
-    state.budget>0 && React.createElement("div",{className:"v4-card rise",style:{animationDelay:".1s",marginTop:8}},
+    !showSkel && state.budget>0 && React.createElement("div",{className:"v4-card rise",style:{animationDelay:".1s",marginTop:8}},
       React.createElement("div",{className:"v4-budget",role:"button",tabIndex:0,onClick:function(){ setBudgetOpen(true); },onKeyDown:function(e){ if(e.key==="Enter") setBudgetOpen(true); }},
         React.createElement("div",{style:{position:"relative",width:104,height:104,flex:"0 0 auto"}},
           React.createElement("svg",{width:104,height:104,viewBox:"0 0 104 104"},
@@ -225,7 +212,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       set(function(s){ return Object.assign({},s,{budget:b}); });
     }}),
 
-    partyDebts.length>0 && React.createElement("div",{className:"v4-card rise",style:{animationDelay:".12s",marginTop:8,border:"1px solid rgba(95,208,138,.4)",background:"rgba(95,208,138,.07)",padding:"14px 16px"}},
+    !showSkel && partyDebts.length>0 && React.createElement("div",{className:"v4-card rise v4-party",style:{animationDelay:".12s",marginTop:8,padding:"14px 16px"}},
       partyDebts.map(function(d){
         return React.createElement("div",{key:d.id},
           React.createElement("div",{style:{fontWeight:800,fontSize:15,lineHeight:1.35}}, tf("v4_debt_party_1",{name:d.name,x:eur0(d.monthly||0)})),
@@ -234,7 +221,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       })
     ),
 
-    upcoming.length>0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".15s"}},
+    !showSkel && upcoming.length>0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".15s"}},
       React.createElement("div",{className:"v4-section-h"},
         React.createElement("span",null, t("v4_upcoming")),
         // «Ver plan» fuerza el segmento Recibos: sin esto aterrizabas en el último subtab
@@ -258,7 +245,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       )
     ),
 
-    goals.length>0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
+    !showSkel && goals.length>0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
       React.createElement("div",{className:"v4-section-h"},
         React.createElement("span",null, t("v4_your_goals")),
         React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("metas"); }}, t("v4_see_plan"))
@@ -277,7 +264,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
                 React.createElement("div",{style:{fontWeight:800,fontSize:15.5}}, g.name),
                 React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:2}}, eur0(g.saved||0)+" "+t("gl_of")+" "+eur0(g.target||0))
               ),
-              React.createElement("div",{className:"serif num",style:{color:"var(--mint)",fontWeight:600,fontSize:18}}, Math.round(pct)+"%")
+              React.createElement("div",{className:"serif num v4-goal-pct",style:{fontWeight:600,fontSize:18}}, Math.round(pct)+"%")
             ),
             React.createElement("div",{className:"bar"}, React.createElement("i",{style:{width:pct+"%"}})),
             React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)"}}, eta.text)
@@ -286,7 +273,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       )
     ),
 
-    React.createElement("div",{className:"v4-section rise",style:{animationDelay:".25s"}},
+    !showSkel && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".25s"}},
       React.createElement("div",{className:"v4-section-h"},
         React.createElement("span",null, t("v4_recent")),
         React.createElement("button",{className:"link",onClick:function(){ if(onGoGastos) onGoGastos(); }}, t("v4_all"))

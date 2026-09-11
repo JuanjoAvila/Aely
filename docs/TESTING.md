@@ -386,6 +386,10 @@ Reglas:
 - Esto **no sube `VERSION` de `beta`**, sube un PATCH nuevo sobre lo que ya hay en producción — la
   ronda grande sigue en `beta` esperando su turno, intacta.
 
+### Porte de pulido B2/B4/B5 (4.18.18)
+
+`e2e/pulido-b245.spec.mjs` muestra que el patrimonio de Cartera parte de un valor intermedio al
+activar su pestaña, en vez de gastar la animación durante el premontaje.
 ### Porte de acabado v4 (4.18.17)
 
 `e2e/acabado-v4.spec.mjs` cubre el anillo antes y después del splash y la continuidad de los
