@@ -1,5 +1,46 @@
 [
  {
+  "v": "4.19.59",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Tus empresas, con su logo",
+   "en": "Your companies, with their logo",
+   "ca": "Les teves empreses, amb el seu logotip"
+  },
+  "tandas": [
+   {
+    "id": "logos-empresas",
+    "t": {
+     "es": "📈 Cada empresa con su logo en Inversiones",
+     "en": "📈 Each company with its logo in Investments",
+     "ca": "📈 Cada empresa amb el seu logotip a Inversions"
+    },
+    "items": {
+     "es": [
+      "En Cartera → Inversiones, abre un bróker: NVIDIA, Alphabet, Broadcom, AMD y Meta salen con su logo. Los que no lo tienen (TSMC, Micron, el FTSE) siguen con sus letras."
+     ],
+     "en": [
+      "In Wallet → Investments, open a broker: NVIDIA, Alphabet, Broadcom, AMD and Meta show their logo. The ones without (TSMC, Micron, FTSE) keep their initials."
+     ],
+     "ca": [
+      "A Cartera → Inversions, obre un broker: NVIDIA, Alphabet, Broadcom, AMD i Meta surten amb el seu logotip. Els que no en tenen segueixen amb les inicials."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Las empresas en las que inviertes salen con su logo, como en la app del bróker. Las que no lo tengan siguen con sus iniciales."
+   ],
+   "en": [
+    "The companies you invest in now show their logo, like in the broker app. Those without one keep their initials."
+   ],
+   "ca": [
+    "Les empreses on inverteixes surten amb el seu logotip. Les que no en tinguin segueixen amb les inicials."
+   ]
+  }
+ },
+ {
   "v": "4.19.58",
   "d": "11 sep 2026",
   "t": {

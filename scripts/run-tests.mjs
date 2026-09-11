@@ -44,6 +44,8 @@ const steps = [
   ["memoria-espejo", ["node", "scripts/sync-memoria.mjs", "--check"]],
   // Los logos de banco salen del PNG oficial: si alguien los edita a mano, esto lo caza.
   ["logos-bancos", ["node", "scripts/logos-bancos.mjs", "--check"]],
+  // Los de las empresas salen de simple-icons y la regla de «qué marca es» vive en la app.
+  ["logos-inversiones", ["node", "scripts/logos-inversiones.mjs", "--check"]],
   ["security", ["node", "tests/security.test.mjs"]],
   ["webdebug-guard", ["node", "tests/webdebug-guard.test.mjs"]],
   ["gastos-active-bus", ["node", "tests/gastos-active-bus.test.mjs"]],

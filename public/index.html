@@ -3453,6 +3453,51 @@ function gastoDelMesPorBanco(gastosDelMes, dailyEnt){
   });
   return map;
 }
+/* ============================================================
+   ¿QUÉ MARCA ES ESTA INVERSIÓN? (2026-09-11)
+   Pidió ver el logo de cada empresa en Inversiones, como los ve en Revolut y Trade Republic.
+   Los brókers mandan `{isin, name}` y NADA de imagen —comprobado en `miPositionsFrom` y en
+   `TradeRepublicPlugin`— así que hay que reconocer la marca por el NOMBRE.
+
+   Vive AQUÍ y no en el script que genera los SVG a propósito: si la regla estuviera en los dos
+   sitios sería la séptima copia de la misma lógica, y hoy eso nos ha mordido tres veces
+   (`misma-regla-en-dos-sitios`). `scripts/logos-inversiones.mjs` la carga de aquí con
+   `load-pure-logic.mjs` y comprueba que hay un fichero para cada marca que esto puede devolver.
+
+   Se compara POR PALABRAS y no con expresiones regulares: al pasar este fichero por el shell se
+   perdieron DOS veces las barras invertidas, y sin ellas «amd» casa dentro de cualquier palabra
+   — sin dar un solo error. Aquí un fallo callado es ponerle a una empresa la cara de otra.
+   Ante la duda, SIN logo: el monograma correcto es mejor que el logotipo equivocado.
+   ============================================================ */
+function palabrasDeNombre(nombre){
+  return String(nombre||"").toLowerCase().normalize("NFD")
+    .replace(/[^a-z0-9]+/g," ").trim().split(" ").filter(Boolean);
+}
+/* Un FONDO que lleve dentro el nombre de una empresa NO es esa empresa: un «AMD Ryzen Fondo
+   Tecnológico» o un «iShares Metaverse UCITS» no llevan logo. Se mira ANTES que las marcas. */
+const PALABRAS_DE_FONDO=["fondo","fund","etf","ucits","index","indexado","sicav",
+  "vanguard","ishares","amundi","msci","lyxor","xtrackers"];
+/* `clave` = palabras que TODAS tienen que estar en el nombre. */
+const MARCAS_INVERSION=[
+  {slug:"nvidia",   clave:["nvidia"]},
+  {slug:"amd",      clave:["advanced","micro"]},
+  {slug:"amd",      clave:["amd"]},
+  {slug:"meta",     clave:["meta","platforms"]},
+  {slug:"alphabet", clave:["alphabet"]},
+  {slug:"broadcom", clave:["broadcom"]},
+];
+function marcaDeInversion(nombre){
+  const p=palabrasDeNombre(nombre);
+  if(!p.length) return null;
+  for(let i=0;i<PALABRAS_DE_FONDO.length;i++) if(p.indexOf(PALABRAS_DE_FONDO[i])>=0) return null;
+  for(let i=0;i<MARCAS_INVERSION.length;i++){
+    const m=MARCAS_INVERSION[i];
+    let todas=true;
+    for(let j=0;j<m.clave.length;j++) if(p.indexOf(m.clave[j])<0){ todas=false; break; }
+    if(todas) return m.slug;
+  }
+  return null;
+}
 /* Saldo mostrado de la cuenta de gasto diario, y su inversa al editar / sincronizar.
    Vivían copiadas en cinco sitios; si se cambia dynBal y no las inversas, teclear el
    saldo guarda un número torcido — peor que el bug (brief 2026-08-18). */
@@ -6999,6 +7044,28 @@ function Mono({ent, size, logo}){
   return React.createElement("div",{className:"mono",style:{width:size,height:size,background:e.color+"22",color:e.color,borderColor:e.color+"44"}}, e.mono);
 }
 
+/* LOGO DE UNA INVERSIÓN — la EMPRESA, no el banco que la custodia (2026-09-11).
+   Pidió ver NVIDIA, Alphabet, Broadcom, Meta… con su logo, como los ve en Revolut y en Trade
+   Republic. Eligió la opción C: los que se puedan, guardados en la app; el resto con su
+   monograma y el color de la marca — un monograma correcto es mejor que un logo equivocado.
+   Quién es quién lo decide `marcaDeInversion` (00-core.js), que es la ÚNICA copia de esa regla:
+   `scripts/logos-inversiones.mjs` la carga de ahí para generar los SVG y para su guardián.
+   Si el SVG no carga, cae al monograma de siempre. */
+function LogoInv({nombre, ent, size}){
+  size=size||38;
+  /* El hook va SIEMPRE y ANTES de cualquier return: no puede quedarse detrás de una condición. */
+  const [roto,setRoto]=React.useState(false);
+  const slug=(typeof marcaDeInversion==="function") ? marcaDeInversion(nombre) : null;
+  if(slug && !roto){
+    return React.createElement("div",{className:"mono mono-logo",title:nombre||"","aria-label":nombre||"",
+      style:{width:size,height:size,background:"#fff",display:"grid",placeItems:"center",
+        borderRadius:Math.round(size*0.275),flex:"0 0 auto",border:"1px solid transparent",overflow:"hidden"}},
+      React.createElement("img",{src:"logos/inv/"+slug+".svg",alt:"",width:size,height:size,
+        loading:"lazy",decoding:"async",onError:function(){ setRoto(true); },
+        style:{width:Math.round(size*0.62),height:Math.round(size*0.62),objectFit:"contain",display:"block"}}));
+  }
+  return React.createElement(Mono,{ent:ent,size:size,logo:false});
+}
 /* Ayuda contextual: un «?» discreto que explica la tarjeta en cristiano (para no-técnicos). */
 function HelpTip({text}){
   const [open,setOpen]=useState(false);
@@ -10524,7 +10591,7 @@ function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDele
   return items.map(function(it){
     return React.createElement("div",{className:"row",key:it.id},
       React.createElement("div",{className:"rl"},
-        React.createElement(Mono,{ent:it.ent,size:38,logo:false}),
+        React.createElement(LogoInv,{nombre:it.name,ent:it.ent,size:38}),
         React.createElement("div",null,
           React.createElement("div",{className:"rname"},it.name),
           React.createElement("div",{className:"rsub"}, entOf(it.ent).label + (it.cur==="USD"?" \u00b7 USD":"")),
@@ -10856,7 +10923,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
         const pos=p.gain>=0; const wpct=Math.min(100,Math.abs(p.gain)/maxAbsGain*100);
         return React.createElement("div",{key:p.id,style:{padding:"8px 2px",borderBottom:"1px solid var(--line-soft)"}},
           React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginBottom:5}},
-            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:9,minWidth:0}},React.createElement(Mono,{ent:p.ent,size:30,logo:false}),React.createElement("div",{className:"rname",style:{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},p.name)),
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:9,minWidth:0}},React.createElement(LogoInv,{nombre:p.name,ent:p.ent,size:30}),React.createElement("div",{className:"rname",style:{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},p.name)),
             React.createElement("div",{className:"num",style:{textAlign:"right",flex:"0 0 auto"}},
               React.createElement("div",{style:{fontWeight:700,color:pos?"var(--mint)":"var(--coral)"}},(pos?"+":"")+f2(p.gain)),
               React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)"}},(p.pl>=0?"+":"")+p.pl.toFixed(1)+"%"))),

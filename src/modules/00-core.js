@@ -1436,6 +1436,51 @@ function gastoDelMesPorBanco(gastosDelMes, dailyEnt){
   });
   return map;
 }
+/* ============================================================
+   ¿QUÉ MARCA ES ESTA INVERSIÓN? (2026-09-11)
+   Pidió ver el logo de cada empresa en Inversiones, como los ve en Revolut y Trade Republic.
+   Los brókers mandan `{isin, name}` y NADA de imagen —comprobado en `miPositionsFrom` y en
+   `TradeRepublicPlugin`— así que hay que reconocer la marca por el NOMBRE.
+
+   Vive AQUÍ y no en el script que genera los SVG a propósito: si la regla estuviera en los dos
+   sitios sería la séptima copia de la misma lógica, y hoy eso nos ha mordido tres veces
+   (`misma-regla-en-dos-sitios`). `scripts/logos-inversiones.mjs` la carga de aquí con
+   `load-pure-logic.mjs` y comprueba que hay un fichero para cada marca que esto puede devolver.
+
+   Se compara POR PALABRAS y no con expresiones regulares: al pasar este fichero por el shell se
+   perdieron DOS veces las barras invertidas, y sin ellas «amd» casa dentro de cualquier palabra
+   — sin dar un solo error. Aquí un fallo callado es ponerle a una empresa la cara de otra.
+   Ante la duda, SIN logo: el monograma correcto es mejor que el logotipo equivocado.
+   ============================================================ */
+function palabrasDeNombre(nombre){
+  return String(nombre||"").toLowerCase().normalize("NFD")
+    .replace(/[^a-z0-9]+/g," ").trim().split(" ").filter(Boolean);
+}
+/* Un FONDO que lleve dentro el nombre de una empresa NO es esa empresa: un «AMD Ryzen Fondo
+   Tecnológico» o un «iShares Metaverse UCITS» no llevan logo. Se mira ANTES que las marcas. */
+const PALABRAS_DE_FONDO=["fondo","fund","etf","ucits","index","indexado","sicav",
+  "vanguard","ishares","amundi","msci","lyxor","xtrackers"];
+/* `clave` = palabras que TODAS tienen que estar en el nombre. */
+const MARCAS_INVERSION=[
+  {slug:"nvidia",   clave:["nvidia"]},
+  {slug:"amd",      clave:["advanced","micro"]},
+  {slug:"amd",      clave:["amd"]},
+  {slug:"meta",     clave:["meta","platforms"]},
+  {slug:"alphabet", clave:["alphabet"]},
+  {slug:"broadcom", clave:["broadcom"]},
+];
+function marcaDeInversion(nombre){
+  const p=palabrasDeNombre(nombre);
+  if(!p.length) return null;
+  for(let i=0;i<PALABRAS_DE_FONDO.length;i++) if(p.indexOf(PALABRAS_DE_FONDO[i])>=0) return null;
+  for(let i=0;i<MARCAS_INVERSION.length;i++){
+    const m=MARCAS_INVERSION[i];
+    let todas=true;
+    for(let j=0;j<m.clave.length;j++) if(p.indexOf(m.clave[j])<0){ todas=false; break; }
+    if(todas) return m.slug;
+  }
+  return null;
+}
 /* Saldo mostrado de la cuenta de gasto diario, y su inversa al editar / sincronizar.
    Vivían copiadas en cinco sitios; si se cambia dynBal y no las inversas, teclear el
    saldo guarda un número torcido — peor que el bug (brief 2026-08-18). */
