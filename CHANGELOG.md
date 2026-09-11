@@ -1,4 +1,4 @@
-## [4.18.9] — 2026-09-11
+## [4.18.10] — 2026-09-11
 ### Multicuenta Open Banking (rescate de aprobada)
 
 Porte a mano desde `beta` de **4.19.0/multicuenta**, sola, desde `main`. Sin cherry-pick.
