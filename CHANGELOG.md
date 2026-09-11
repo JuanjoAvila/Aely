@@ -1,3 +1,27 @@
+## [4.19.74] - 2026-09-12
+### La otra mitad del día partido: arrastrar un gasto de madrugada no hacía nada
+
+Cursor lo señaló al revisar la 4.19.72 y lo marcó como «otra tanda». Lo es, y aquí está.
+
+Al arreglar las cabeceras, el agrupado pasó a hora local pero **el orden a mano se quedó en UTC**:
+`sortExpensesForDisplay` y `moveExpenseWithinDay` partían el día con `String(e.date).slice(0,10)`,
+el prefijo ISO del texto guardado. Consecuencia para él:
+
+- Un gasto de madrugada se VE bajo su día local, pero su clave de orden es la del día anterior.
+- `moveExpenseWithinDay` compara el día del que arrastras con el del destino, no coinciden, y
+  **devuelve el estado sin tocar**. O sea: coges el gasto por el asa, lo sueltas donde quieras, y
+  **no pasa absolutamente nada**. Sin aviso, sin error, sin nada.
+
+`dayKey` se muda a `00-core.js` y nace `diaDeGasto(e)`. **Las dos pantallas preguntan a la misma
+función**, que es lo que evita que vuelvan a divergir — es literalmente el patrón que ya costó caro
+([[misma-regla-en-dos-sitios]]). Vive en core y no en i18n porque no es traducción: es la regla de
+qué día es cada cosa.
+
+⚠ **Lo que cuesta, dicho antes y no después:** el orden a mano se guarda en
+`settings.expenseOrder` indexado por esa clave. Los días que él ya hubiera ordenado a mano **y**
+tuvieran algo de madrugada pierden ese orden y vuelven a salir por hora. Es una vez, y a cambio se
+puede reordenar — que hasta ahora no se podía.
+
 ## [4.19.73] - 2026-09-12
 ### El mismo patrón, pero al revés: la palabra con espacio detrás falla al final del nombre
 

@@ -2326,6 +2326,31 @@ const KW = {
      suelen entrar como ingreso por el signo; esto pilla los enviados / el comercio «BIZUM …». */
   bizum:["bizum","bizum a ","bizum de ","envio bizum","envío bizum","pago bizum","bizum movistar","bizum bbva","bizum caixa","bizum sabadell","bizum santander"],
 };
+/* ¿QUÉ DÍA ES ESTO? EN HORA LOCAL, COMO LO QUE SE LEE EN PANTALLA (2026-09-11/12).
+   `dayKey` era `d.toISOString().slice(0,10)` —**UTC**— mientras la etiqueta de la cabecera sale de
+   `toLocaleDateString`, que es la hora del móvil. En España cualquier gasto entre las 00:00 y las
+   02:00 cae en el día UTC ANTERIOR, así que un día se partía en dos grupos y la misma fecha salía
+   DOS VECES seguidas como cabecera. Se ve en su captura del 11/9: «DOMINGO, 6 SEPT» y justo debajo
+   otra vez «DOMINGO, 6 SEPT». Medido en Europe/Madrid antes de tocar nada:
+     06/09 01:00 local → clave 2026-09-05, etiqueta «domingo, 6 sept»   ← el que parte el día
+     06/09 12:00 local → clave 2026-09-06, etiqueta «domingo, 6 sept»
+     07/09 00:30 local → clave 2026-09-06, etiqueta «lunes, 7 sept»     ← y este se cuela en el 6
+   Afectaba igual a «Hoy» y «Ayer», que salen de comparar esta misma clave: de madrugada, lo de hoy
+   se etiquetaba como ayer. Mismo fallo que ya se arregló para el mes (`inicioDeMesMs`, B09-B): la
+   app vive en la hora del móvil, no en UTC.
+
+   ⚠ Y VIVE AQUÍ, EN CORE, NO EN i18n: no es traducción, es la regla de qué día es cada cosa, y la
+   usan DOS sitios que tienen que decir lo mismo — las cabeceras de Gastos y el orden a mano
+   (`sortExpensesForDisplay` / `moveExpenseWithinDay`). Aquellos partían el día con el prefijo ISO
+   del string guardado, o sea otra vez UTC: un gasto de madrugada se veía bajo su día local pero su
+   clave de orden era la del día anterior, así que **arrastrarlo no hacía nada** — `moveExpenseWithinDay`
+   comparaba los dos días, no coincidían y devolvía el estado sin tocar. Dos reglas para la misma
+   pregunta es el patrón que ya costó caro ([[misma-regla-en-dos-sitios]]). */
+const dayKey=(d)=> String(d.getFullYear())+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+/* El día de un GASTO, que guarda la fecha como texto. Pasa por `dateMs` (que ya sabe de los
+   formatos raros del histórico) y de ahí a la clave local. */
+function diaDeGasto(e){ return dayKey(new Date(dateMs(e&&e.date))); }
+
 /* PALABRAS QUE SOLO VALEN ENTERAS (2026-09-11). El emparejador va por substring en cuanto una
    palabra tiene 4 letras o más, y eso muerde cuando una MARCA es el principio de una palabra
    corriente. Medido con sus gastos reales de septiembre:
@@ -3727,7 +3752,7 @@ function sortExpensesForDisplay(expenses, state){
     return cache[day][id]!=null?cache[day][id]:Infinity;
   };
   return (expenses||[]).slice().sort(function(a,b){
-    const da=String(a.date||"").slice(0,10), db=String(b.date||"").slice(0,10);
+    const da=diaDeGasto(a), db=diaDeGasto(b);
     if(da!==db) return db.localeCompare(da);
     const pa=pos(da,a.id), pb=pos(db,b.id);
     if(pa!=null||pb!=null){ if(pa!==pb) return (pa==null?Infinity:pa)-(pb==null?Infinity:pb); }
@@ -3738,9 +3763,15 @@ function moveExpenseWithinDay(state, fromId, toId){
   if(!state || !fromId || !toId || fromId===toId) return state;
   const byId={}; (state.expenses||[]).forEach(function(e){ if(e&&e.id) byId[e.id]=e; });
   const from=byId[fromId], to=byId[toId];
-  const day=from&&String(from.date||"").slice(0,10);
-  if(!from||!to||day!==String(to.date||"").slice(0,10)) return state;
-  const ids=sortExpensesForDisplay((state.expenses||[]).filter(function(e){ return String(e.date||"").slice(0,10)===day; }),state).map(function(e){ return e.id; });
+  /* El MISMO día que enseña la cabecera (local, `diaDeGasto`). Antes era el prefijo ISO del string
+     guardado —UTC— así que un gasto de madrugada tenía una clave distinta de la de sus vecinos en
+     pantalla: los dos `day` no coincidían, esta función devolvía el estado sin tocar y **arrastrarlo
+     no hacía nada**. ⚠ El orden guardado (`settings.expenseOrder`) va indexado por esa clave: los
+     días que él ya hubiera ordenado a mano Y tuvieran algo de madrugada pierden ese orden a mano y
+     vuelven a salir por hora. Es una vez, y a cambio se puede reordenar. */
+  const day=from&&diaDeGasto(from);
+  if(!from||!to||day!==diaDeGasto(to)) return state;
+  const ids=sortExpensesForDisplay((state.expenses||[]).filter(function(e){ return diaDeGasto(e)===day; }),state).map(function(e){ return e.id; });
   const i=ids.indexOf(fromId), j=ids.indexOf(toId); if(i<0||j<0) return state;
   ids.splice(i,1); ids.splice(j,0,fromId);
   const settings=Object.assign({},state.settings,{expenseOrder:Object.assign({},((state.settings||{}).expenseOrder)||{},{[day]:ids})});
@@ -6251,21 +6282,9 @@ function dateMs(v){
   const ms=_pdMs(String(v||"").trim());
   return isNaN(ms)?Date.now():ms;
 }
-/* LA CLAVE DEL DÍA VA EN HORA LOCAL, COMO LA ETIQUETA (2026-09-11).
-   Esto era `d.toISOString().slice(0,10)`, o sea **UTC**, mientras que el texto de la cabecera sale
-   de `toLocaleDateString` — la hora del móvil. En España (UTC+2 en verano) cualquier gasto entre
-   las 00:00 y las 02:00 cae en el día UTC ANTERIOR, así que un día se parte en dos grupos y la
-   misma fecha sale DOS VECES seguidas como cabecera.
-   Se ve en su captura del 11/9: «DOMINGO, 6 SEPT» y justo debajo otra vez «DOMINGO, 6 SEPT».
-   Medido en Europe/Madrid antes de tocar nada:
-     06/09 01:00 local → clave 2026-09-05, etiqueta «domingo, 6 sept»   ← el que parte el día
-     06/09 12:00 local → clave 2026-09-06, etiqueta «domingo, 6 sept»
-     07/09 00:30 local → clave 2026-09-06, etiqueta «lunes, 7 sept»     ← y este se cuela en el 6
-   Y afectaba igual a «Hoy» y «Ayer», que salen de comparar esta misma clave: entre medianoche y
-   las dos de la mañana, lo de hoy se etiquetaba como ayer.
-   Es el mismo fallo que ya se arregló para el mes (`inicioDeMesMs`, B09-B): la app vive en la hora
-   del móvil, no en UTC. */
-const dayKey=(d)=> String(d.getFullYear())+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+/* `dayKey` y `diaDeGasto` viven ahora en `00-core.js`, que es donde tienen que estar: no son
+   traducción, son la regla de «qué día es esto» y la usan tanto las cabeceras de Gastos como el
+   orden a mano. Aquí solo se usan. Ver allí el porqué de que vayan en hora LOCAL. */
 function relDay(d){
   const tn=new Date(); const y=new Date(); y.setDate(tn.getDate()-1);
   if(dayKey(d)===dayKey(tn)) return t("g_today");

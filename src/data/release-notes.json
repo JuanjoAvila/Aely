@@ -1,6 +1,6 @@
 [
  {
-  "v": "4.19.73",
+  "v": "4.19.74",
   "d": "12 sep 2026",
   "tandas": [
    {
@@ -16,25 +16,49 @@
       "2. No puede salir el mismo día dos veces seguidas. Esto salía en tu lista: «DOMINGO, 6 SEPT» y justo debajo otra vez «DOMINGO, 6 SEPT».",
       "3. Comprueba que cada movimiento está bajo el día que le toca: mira la fecha pequeña de cada fila y que cuadre con su cabecera.",
       "4. Fíjate sobre todo en los movimientos de MADRUGADA (de 00:00 a 02:00), que eran los que rompían el grupo.",
-      "5. Y arriba del todo: lo de hoy tiene que poner «Hoy» y lo de ayer «Ayer». Si alguna vez miras la app de madrugada, eso también estaba mal."
+      "5. Y arriba del todo: lo de hoy tiene que poner «Hoy» y lo de ayer «Ayer». Si alguna vez miras la app de madrugada, eso también estaba mal.",
+      "6. Y el arrastre: coge un gasto de MADRUGADA por su asa (⠿) y muévelo de sitio dentro de su día. Antes no pasaba nada de nada al soltarlo, sin avisar."
      ],
      "en": [
       "1. Go to Expenses and scroll looking ONLY at the day headings.",
       "2. The same day must not appear twice in a row. Yours showed “SUNDAY, 6 SEPT” twice.",
       "3. Check each transaction sits under the right day: compare its small date with its heading.",
       "4. Look especially at transactions between 00:00 and 02:00 — those were the ones breaking the group.",
-      "5. And at the top: today must say “Today” and yesterday “Yesterday”. That was wrong too if you opened the app after midnight."
+      "5. And at the top: today must say “Today” and yesterday “Yesterday”. That was wrong too if you opened the app after midnight.",
+      "6. And dragging: grab an after-midnight expense by its handle (⠿) and move it within its day. Nothing happened at all before, with no warning."
      ],
      "ca": [
       "1. Ves a Despeses i baixa mirant NOMES les capcaleres de dia.",
       "2. No pot sortir el mateix dia dos cops seguits.",
       "3. Comprova que cada moviment esta sota el dia que li toca.",
       "4. Fixa't sobretot en els moviments de MATINADA (de 00:00 a 02:00).",
-      "5. I a dalt de tot: el d'avui ha de posar «Avui» i el d'ahir «Ahir»."
+      "5. I a dalt de tot: el d'avui ha de posar «Avui» i el d'ahir «Ahir».",
+      "6. I l'arrossegament: agafa una despesa de MATINADA per la nansa (⠿) i mou-la dins del seu dia."
      ]
     }
    }
   ],
+  "t": {
+   "es": "Un gasto de madrugada ya se puede reordenar",
+   "en": "After-midnight expenses can be reordered now",
+   "ca": "Una despesa de matinada ja es pot reordenar"
+  },
+  "items": {
+   "es": [
+    "La otra mitad de lo del día partido: arrastrar un gasto de madrugada para cambiarlo de sitio no hacía nada, porque para el orden pertenecía al día anterior."
+   ],
+   "en": [
+    "The other half of the split-day bug: dragging an after-midnight expense did nothing, because for ordering purposes it belonged to the previous day."
+   ],
+   "ca": [
+    "L'altra meitat del dia partit: arrossegar una despesa de matinada no feia res."
+   ]
+  }
+ },
+ {
+  "v": "4.19.73",
+  "d": "12 sep 2026",
+  "tandas": [],
   "t": {
    "es": "«Dia» y las farmacias abreviadas, reconocidas",
    "en": "“Dia” and shortened pharmacies now recognised",

@@ -57,10 +57,10 @@ console.log("el día se agrupa en hora local, no en UTC  (TZ=" + Intl.DateTimeFo
    `dayKey` no está en el sandbox de `load-pure-logic` (es un `const` de módulo, no una función
    exportada), así que se lee su línea del fichero y se evalúa. Si alguien la cambia, cambia lo que
    este test mide — que es justo lo que se quiere. */
-const fuente = readFileSync(new URL("../src/modules/01-i18n.js", import.meta.url), "utf8");
+const fuente = readFileSync(new URL("../src/modules/00-core.js", import.meta.url), "utf8");
 const lineaDayKey = (() => {
   const i = fuente.indexOf("const dayKey=");
-  if (i === -1) throw new Error("no encuentro `const dayKey=` en 01-i18n.js");
+  if (i === -1) throw new Error("no encuentro `const dayKey=` en 00-core.js");
   return fuente.slice(i, fuente.indexOf("\n", i));
 })();
 // eslint-disable-next-line no-new-func
@@ -104,10 +104,30 @@ t("«Hoy» sigue siendo hoy a las 00:30 (y no ayer)", () => {
     "a las 00:30 de hoy, la clave tiene que ser la de hoy");
 });
 
+t("★ un gasto de MADRUGADA se puede reordenar a mano (antes el arrastre no hacía nada)", () => {
+  /* El cabo que señaló Cursor al revisar el arreglo de las cabeceras: el orden a mano partía el
+     día con el prefijo ISO del string guardado, o sea **UTC**, mientras la cabecera ya iba en
+     local. Así que un gasto de madrugada se veía bajo su día local pero su clave de orden era la
+     del día anterior: `moveExpenseWithinDay` comparaba los dos días, no coincidían, y devolvía el
+     estado SIN TOCAR. Arrastrarlo no hacía absolutamente nada, y sin ningún aviso. */
+  const madrugada = { id: "a", date: "2026-09-06T01:00:00+02:00", amount: 5, merchant: "A" };
+  const tarde = { id: "b", date: "2026-09-06T20:00:00+02:00", amount: 9, merchant: "B" };
+  const st = { expenses: [madrugada, tarde], settings: {} };
+
+  assert.equal(cli.diaDeGasto(madrugada), cli.diaDeGasto(tarde),
+    "los dos son del mismo día para el usuario, así que tienen que serlo para el orden");
+
+  const out = cli.moveExpenseWithinDay(st, "a", "b");
+  assert.notEqual(out, st, "el arrastre devolvía el estado sin tocar: no pasaba nada");
+  const orden = ((out.settings || {}).expenseOrder || {});
+  assert.deepEqual(orden[cli.diaDeGasto(madrugada)], ["a", "b"],
+    "y el orden se guarda bajo el día que se VE, no bajo el de UTC");
+});
+
 t("el módulo sigue calculando la clave en local (no ha vuelto a toISOString)", () => {
-  const txt = readFileSync(new URL("../src/modules/01-i18n.js", import.meta.url), "utf8");
+  const txt = readFileSync(new URL("../src/modules/00-core.js", import.meta.url), "utf8");
   const i = txt.indexOf("const dayKey=");
-  assert.notEqual(i, -1, "no encuentro dayKey en 01-i18n.js");
+  assert.notEqual(i, -1, "no encuentro dayKey en 00-core.js");
   const linea = txt.slice(i, txt.indexOf("\n", i));
   assert.ok(!/toISOString/.test(linea),
     "dayKey ha vuelto a UTC: el mismo día volverá a salir dos veces como cabecera");

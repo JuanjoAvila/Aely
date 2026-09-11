@@ -1,6 +1,7 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-12 · **v4.19.73** — «Dia» y las farmacias abreviadas ya se reconocen.
+> Estado a 2026-09-12 · **v4.19.74** — un gasto de madrugada ya se puede reordenar.
+> Anterior: **v4.19.73** — «Dia» y las farmacias abreviadas ya se reconocen.
 > Anterior: **v4.19.72** — el mismo día ya no sale dos veces en Gastos.
 > Anterior: **v4.19.71** — el estado de la barra se vuelca aunque el gesto se cancele.
 > Anterior: **v4.19.70** — «Sabadell» ya no es un parking.
@@ -139,7 +140,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.19.73** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.74** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |
