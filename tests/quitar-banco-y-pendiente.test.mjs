@@ -77,12 +77,8 @@ const alQuitarBanco = (s, ent, aspsp) => {
   const ob = (s.obAccounts || []).filter((o) => String(o.aspsp || "").toLowerCase() !== String(aspsp || "").toLowerCase());
   let next = ob.length !== (s.obAccounts || []).length ? Object.assign({}, s, { obAccounts: ob }) : s;
   if (ent) {
-    let tocadas = 0;
-    const nuevas = (next.accounts || []).map((a) => {
-      if (a && a.ent === ent && a.bankIban) { tocadas++; const c = Object.assign({}, a); delete c.bankIban; return c; }
-      return a;
-    });
-    if (tocadas) next = Object.assign({}, next, { accounts: nuevas });
+    const quedan = (next.accounts || []).filter((a) => !(a && a.ent === ent && a.bankIban));
+    if (quedan.length !== (next.accounts || []).length) next = Object.assign({}, next, { accounts: quedan });
   }
   return next;
 };
@@ -96,12 +92,12 @@ const estado = () => ({
   expenses: [{ id: "e1", ent: "caixabank", amount: 12, date: "2026-09-02" }],
 });
 
-t("la cuenta del banco quitado deja de decir «del banco»", () => {
+t("la cuenta del banco quitado sale de Cartera", () => {
+  /* Decisión SUYA del 11/9, viendo la primera versión: «si quito un banco, se va fuera, y ya con
+     las decisiones lógicamente que me dejaste». La 4.19.63 solo le quitaba el `bankIban` y dejaba
+     la cuenta; la enseñó y dijo que no. */
   const out = alQuitarBanco(estado(), "caixabank", "CaixaBank");
-  const a = out.accounts.find((x) => x.id === "a1");
-  assert.ok(a, "la cuenta NO se borra: un banco que quitas no es un historial que quieras perder");
-  assert.equal(a.bankIban, undefined, "sin bankIban ya no sale como sincronizada ni la re-ancla el sync");
-  assert.equal(a.value, 1.28, "su saldo se queda como estaba");
+  assert.equal(out.accounts.find((x) => x.id === "a1"), undefined, "la cuenta del banco quitado no puede quedarse en Cartera");
 });
 
 t("y sus cuentas extra de Open Banking sí se van", () => {
@@ -130,10 +126,10 @@ t("la pantalla de Mis bancos limpia de verdad el bankIban al desconectar", () =>
   const i = src.indexOf("cloud.bankDisconnect(");
   assert.notEqual(i, -1, "no encuentro la desconexión en 10-app-components.js");
   const bloque = src.slice(i, i + 2600);
-  assert.ok(/delete\s+c\.bankIban/.test(bloque),
-    "el `set` de bankDisconnect ya no limpia `bankIban`: la cuenta se quedaría en Cartera diciendo «del banco»");
-  assert.ok(!/accounts:\s*\(?s\.accounts[^)]*\)\.filter/.test(bloque),
-    "aquí NO se borran cuentas: quitar un banco no puede llevarse por delante su histórico");
+  assert.ok(/a\.ent===ent\s*&&\s*a\.bankIban/.test(bloque),
+    "el `set` de bankDisconnect ya no saca de Cartera la cuenta del banco quitado");
+  assert.ok(!/expenses\s*:/.test(bloque),
+    "aquí NO se tocan los movimientos: quitar un banco no puede llevarse por delante su histórico");
 });
 
 if (fallos) { console.error(`\nquitar-banco-y-pendiente: ${fallos} fallo(s)`); process.exit(1); }

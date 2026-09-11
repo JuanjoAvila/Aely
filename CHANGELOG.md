@@ -1,3 +1,33 @@
+## [4.19.66] - 2026-09-11
+### Me equivoqué al elegir por él: la cuenta del banco quitado SÍ se va
+
+En la 4.19.63 arreglé que la cuenta de un banco quitado se quedase en Cartera con la chapita «del
+banco»… dejándola igualmente ahí, solo que sin la chapita. Lo razoné como prudencia: no borrar
+nada automáticamente. Se lo enseñé y la respuesta fue **«si quito un banco, se va fuera, y ya con
+las decisiones lógicamente que me dejaste»**.
+
+Tiene razón, y la prudencia estaba mal colocada: **lo que no se puede perder son sus MOVIMIENTOS**,
+no una cuenta cuyo banco él acaba de desconectar. Los movimientos siguen enteros en `expenses` con
+su banco, así que reconectar lo deja como estaba, y qué hacen con el presupuesto es justo lo que se
+le pregunta al quitarlo (contar / dejar de contar).
+
+- La cuenta sale de `state.accounts`; sus cuentas extra de Open Banking ya salían.
+- El aviso lo dice: «su cuenta sale de Cartera. Sus movimientos se quedan todos en Gastos».
+- El guardián cambia de lado y pasa a exigir lo contrario que ayer, con su frase escrita para que
+  el siguiente no lo «arregle» de vuelta. Y sigue exigiendo que los movimientos no se toquen.
+
+### Y tres tandas que aparqué sin motivo, de vuelta al panel
+
+Las quité del panel de beta porque `npm run servidor` decía «13 de 13 funciones con el repo por
+delante» y las tres (efectivo, widget/posible repetido, apuntes manuales) dependen de `ingest`.
+
+Al desplegar `ingest` de verdad, Supabase contestó **«No change found in Function: ingest»**: ya
+estaba al día. Ese script compara **fechas de commit**, no contenido — y `_shared/` lo tocan
+commits que no cambian lo que `ingest` compila. Así que las tres se podían probar desde el
+principio y se las quité para nada.
+
+Lección, y va a memoria: **una fecha no es una comprobación**.
+
 ## [4.19.65] - 2026-09-11
 ### Lo que se VE y lo que CUENTA son dos decisiones distintas
 

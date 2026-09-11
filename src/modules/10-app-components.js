@@ -776,28 +776,26 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
           const ob=(s.obAccounts||[]).filter(function(o){ return String(o.aspsp||"").toLowerCase()!==String(name||"").toLowerCase(); });
           var next=s;
           if(ob.length!==(s.obAccounts||[]).length) next=Object.assign({},next,{obAccounts:ob});
-          /* ⚠ Y LAS CUENTAS PROMOCIONADAS (11/9/2026). Esto solo purgaba `obAccounts`, pero una
-             cuenta que se promocionó para darle un rol (`promoteObAccount`) vive en
-             `state.accounts` con su `bankIban`. Al quitar el banco se quedaba en Cartera → Tus
-             cuentas tan pancha, con la chapita «del banco» y el último saldo congelado. Él lo vio
-             con CaixaBank: «se me ocurre ir a cartera para ver si ya no estaba el banco quitado y
-             adivina, estaba».
-             NO se borra la cuenta —por borrados automáticos ya perdió movimientos una vez, ver
-             [[tr-duplicados-saga]]—: se le quita el `bankIban`, que es lo que la marcaba como
-             sincronizada. Así deja de decir «del banco», deja de re-anclarla el sync, y se queda
-             como una cuenta suya a mano con su saldo, que él puede editar o borrar desde Cartera.
-             Se le dice en el aviso, que si no es magia negra. */
+          /* ⚠ Y LAS CUENTAS PROMOCIONADAS. Esto solo purgaba `obAccounts`, pero una cuenta que se
+             promocionó para darle un rol (`promoteObAccount`) vive en `state.accounts` con su
+             `bankIban`. Al quitar el banco se quedaba en Cartera → Tus cuentas tan pancha, con la
+             chapita «del banco» y el último saldo congelado. Él lo vio con CaixaBank: «se me
+             ocurre ir a cartera para ver si ya no estaba el banco quitado y adivina, estaba».
+
+             La primera versión de esto (4.19.63) le quitaba solo el `bankIban` y dejaba la cuenta,
+             por no borrar nada automáticamente. Se lo enseñé y decidió lo contrario, que es lo que
+             hay ahora: **«si quito un banco, se va fuera, y ya con las decisiones lógicamente que
+             me dejaste»**. Tiene sentido: si quitas el banco, esa cuenta ya no es tuya en la app.
+
+             LO QUE SIGUE SIN BORRARSE, Y NO SE NEGOCIA: sus MOVIMIENTOS. Se quedan enteros en
+             `expenses` con su banco, así que reconectar lo deja como estaba y el histórico no se
+             pierde. Por borrados automáticos ya perdió movimientos una vez ([[tr-duplicados-saga]]).
+             Qué hacen esos movimientos con el presupuesto es justo lo que se le acaba de preguntar
+             arriba (`keep` / `stop`). */
           if(ent){
             const accs=(next.accounts||[]);
-            var tocadas=0;
-            const nuevas=accs.map(function(a){
-              if(a && a.ent===ent && a.bankIban){
-                tocadas++;
-                const c=Object.assign({},a); delete c.bankIban; return c;
-              }
-              return a;
-            });
-            if(tocadas) next=Object.assign({},next,{accounts:nuevas});
+            const quedan=accs.filter(function(a){ return !(a && a.ent===ent && a.bankIban); });
+            if(quedan.length!==accs.length) next=Object.assign({},next,{accounts:quedan});
           }
           /* Solo si lo ha pedido, y solo sacándolo de la lista de gasto diario: los gastos siguen
              enteros en `expenses` con su banco, así que volver a conectarlo lo deja como estaba. */

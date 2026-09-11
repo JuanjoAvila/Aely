@@ -1,5 +1,64 @@
 [
  {
+  "v": "4.19.66",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Al quitar un banco, su cuenta se va",
+   "en": "Removing a bank takes its account with it",
+   "ca": "En treure un banc, el seu compte se'n va"
+  },
+  "tandas": [
+   {
+    "id": "banco-pendiente-y-quitar",
+    "t": {
+     "es": "🏦 El banco que no llegó a conectarse, y el que quitas",
+     "en": "🏦 The bank that never connected, and the one you remove",
+     "ca": "🏦 El banc que no es va connectar, i el que treus"
+    },
+    "items": {
+     "es": [
+      "1. Si tienes algún banco que se quedó a medio conectar (en Ajustes → Mis bancos sale como «pendiente»), dale a Ajustes → «Sincronizar bancos».",
+      "2. Ahora tiene que salirte un aviso diciendo que ese banco no llegó a conectarse, y dejarte en Cartera con un recuadro para terminarlo. Antes no decías nada y había que ir a mirarlo a mano.",
+      "3. Prueba a quitar un banco desde Ajustes → Mis bancos (elige uno que no sea el de tu día a día).",
+      "4. En cuanto acepte, la tarjeta de ese banco tiene que desaparecer de la lista sola, sin que tengas que salir y volver a entrar.",
+      "5. Y ESTE es el punto: vete a Cartera → Tus cuentas. La cuenta de ese banco tiene que HABER DESAPARECIDO de la lista.",
+      "6. Comprueba que el patrimonio de arriba ha bajado justo lo que tenía esa cuenta, ni un euro más.",
+      "7. Comprueba que sus movimientos siguen todos en Gastos. No puede faltar ni uno."
+     ],
+     "en": [
+      "1. If a bank was left half-connected (Settings → My banks shows it as “pending”), tap Settings → “Sync banks”.",
+      "2. A warning must now tell you that bank never connected, and leave you in Wallet with a card to finish it.",
+      "3. Try removing a bank from Settings → My banks (pick one that is not your day-to-day bank).",
+      "4. Its card must disappear from the list straight away, with no need to leave and come back.",
+      "5. THIS is the point: go to Wallet → Your accounts. That bank's account must be GONE from the list.",
+      "6. Check the net worth at the top dropped by exactly that account's balance, not a euro more.",
+      "7. Check every one of its transactions is still in Expenses."
+     ],
+     "ca": [
+      "1. Si tens un banc que es va quedar a mig connectar (a Ajustos → Els meus bancs surt com a «pendent»), toca Ajustos → «Sincronitzar bancs».",
+      "2. Ara t'ha de sortir un avis dient que aquest banc no es va connectar, i deixar-te a Cartera amb un requadre per acabar-ho.",
+      "3. Prova de treure un banc des d'Ajustos → Els meus bancs (tria'n un que no sigui el del dia a dia).",
+      "4. La seva targeta ha de desapareixer de la llista tota sola.",
+      "5. I AQUEST es el punt: ves a Cartera → Els teus comptes. El compte d'aquest banc ha d'HAVER DESAPAREGUT.",
+      "6. Comprova que el patrimoni de dalt ha baixat just el que tenia aquest compte.",
+      "7. Comprova que els seus moviments segueixen tots a Despeses."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Corrige lo de la versión anterior: al quitar un banco su cuenta ya no se queda en Cartera, se va con él. Sus movimientos siguen todos en Gastos."
+   ],
+   "en": [
+    "Fixes the previous version: removing a bank now takes its account out of Wallet instead of leaving it behind. All its transactions stay in Expenses."
+   ],
+   "ca": [
+    "Corregeix la versio anterior: en treure un banc, el seu compte ja no es queda a Cartera. Els seus moviments segueixen tots a Despeses."
+   ]
+  }
+ },
+ {
   "v": "4.19.65",
   "d": "11 sep 2026",
   "t": {
@@ -144,54 +203,16 @@
    "en": "A half-connected bank no longer stays quiet",
    "ca": "Un banc a mig connectar ja no es queda callat"
   },
-  "tandas": [
-   {
-    "id": "banco-pendiente-y-quitar",
-    "t": {
-     "es": "🏦 El banco que no llegó a conectarse, y el que quitas",
-     "en": "🏦 The bank that never connected, and the one you remove",
-     "ca": "🏦 El banc que no es va connectar, i el que treus"
-    },
-    "items": {
-     "es": [
-      "1. Si tienes algún banco que se quedó a medio conectar (en Ajustes → Mis bancos sale como «pendiente»), dale a Ajustes → «Sincronizar bancos».",
-      "2. Ahora tiene que salirte un aviso diciendo que ese banco no llegó a conectarse, y dejarte en Cartera con un recuadro para terminarlo. Antes no decías nada y había que ir a mirarlo a mano.",
-      "3. Prueba a quitar un banco desde Ajustes → Mis bancos (elige uno que no sea el de tu día a día).",
-      "4. En cuanto acepte, la tarjeta de ese banco tiene que desaparecer de la lista sola, sin que tengas que salir y volver a entrar.",
-      "5. Y ESTE es el punto: vete a Cartera → Tus cuentas. Su cuenta puede seguir ahí con el último saldo —eso es a propósito, no se te borra nada— pero ya NO puede llevar la chapita «del banco».",
-      "6. Si no la quieres, bórrala tú: Cartera → Tus cuentas → Editar → la papelera de esa cuenta.",
-      "7. Comprueba que sus movimientos siguen todos en Gastos. No puede faltar ni uno."
-     ],
-     "en": [
-      "1. If a bank was left half-connected (Settings → My banks shows it as “pending”), tap Settings → “Sync banks”.",
-      "2. A warning must now tell you that bank never connected, and leave you in Wallet with a card to finish it.",
-      "3. Try removing a bank from Settings → My banks (pick one that is not your day-to-day bank).",
-      "4. Its card must disappear from the list straight away, with no need to leave and come back.",
-      "5. THIS is the point: go to Wallet → Your accounts. Its account may still be there with the last balance — on purpose, nothing is deleted — but it must NOT show the “from the bank” chip any more.",
-      "6. If you don't want it, delete it yourself: Wallet → Your accounts → Edit → the bin on that account.",
-      "7. Check every one of its transactions is still in Expenses."
-     ],
-     "ca": [
-      "1. Si tens un banc que es va quedar a mig connectar (a Ajustos → Els meus bancs surt com a «pendent»), toca Ajustos → «Sincronitzar bancs».",
-      "2. Ara t'ha de sortir un avis dient que aquest banc no es va connectar, i deixar-te a Cartera amb un requadre per acabar-ho.",
-      "3. Prova de treure un banc des d'Ajustos → Els meus bancs (tria'n un que no sigui el del dia a dia).",
-      "4. La seva targeta ha de desapareixer de la llista tota sola.",
-      "5. I AQUEST es el punt: ves a Cartera → Els teus comptes. El seu compte pot seguir alla amb l'ultim saldo, pero ja NO pot portar la xapeta «del banc».",
-      "6. Si no el vols, esborra'l tu: Cartera → Els teus comptes → Editar → la paperera.",
-      "7. Comprova que els seus moviments segueixen tots a Despeses."
-     ]
-    }
-   }
-  ],
+  "tandas": [],
   "items": {
    "es": [
-    "Un banco que se queda a medio conectar ahora avisa al sincronizar, en vez de quedarse callado. Y al quitar un banco, su cuenta deja de decir que viene del banco (pero no se borra: su saldo y sus movimientos se quedan)."
+    "Un banco que se queda a medio conectar ahora avisa al sincronizar, en vez de quedarse callado. Y al quitar un banco, su cuenta sale de Cartera — pero sus movimientos se quedan todos en Gastos."
    ],
    "en": [
-    "A bank left half-connected now warns you on sync instead of staying quiet. And when you remove a bank, its account stops claiming it comes from the bank — nothing is deleted, its balance and transactions stay."
+    "A bank left half-connected now warns you on sync. And when you remove a bank, its account leaves Wallet — but all its transactions stay in Expenses."
    ],
    "ca": [
-    "Un banc que es queda a mig connectar ara avisa en sincronitzar. I en treure un banc, el seu compte deixa de dir que ve del banc, pero no s'esborra res."
+    "Un banc a mig connectar ara avisa en sincronitzar. I en treure un banc, el seu compte surt de Cartera, pero els seus moviments es queden tots a Despeses."
    ]
   }
  },
@@ -580,7 +601,42 @@
    "en": "What you enter by hand no longer disappears on its own",
    "ca": "El que apuntes a mà ja no s'esborra sol"
   },
-  "tandas": [],
+  "tandas": [
+   {
+    "id": "manual-no-fusiona",
+    "t": {
+     "es": "✍️ Lo que apuntas a mano no se lo come el sync",
+     "en": "✍️ What you log by hand survives the sync",
+     "ca": "✍️ El que apuntes a ma no se'l menja el sync"
+    },
+    "items": {
+     "es": [
+      "1. Este es el de los Bizums, el que más te ha dado la lata: 8 en el banco y 5 en la app.",
+      "2. Apunta a mano un gasto con el botón + (por ejemplo un Bizum de 20 € a alguien), y fíjate en que queda guardado.",
+      "3. Ajustes → «Sincronizar bancos». Espera a que termine.",
+      "4. Vuelve a Gastos: tu apunte a mano tiene que SEGUIR AHÍ. Antes desaparecía porque la app creía que era el mismo movimiento que traía el banco.",
+      "5. Repítelo con dos Bizums del MISMO importe y el MISMO día, a personas distintas: los dos tienen que sobrevivir. Este es el caso exacto que te fallaba.",
+      "6. Y comprueba que sí se siguen detectando los repetidos de verdad: si el banco te trae dos veces la misma compra, una tiene que salir apagada."
+     ],
+     "en": [
+      "1. This is the Bizum one: 8 at the bank, 5 in the app.",
+      "2. Log an expense by hand with the + button and check it is saved.",
+      "3. Settings → “Sync banks”. Wait for it to finish.",
+      "4. Back in Expenses: your hand-written entry must STILL BE THERE.",
+      "5. Repeat with two Bizums of the SAME amount on the SAME day to different people: both must survive. That is the exact failing case.",
+      "6. And check real duplicates are still caught: if the bank sends the same purchase twice, one must appear greyed out."
+     ],
+     "ca": [
+      "1. Aquest es el dels Bizums: 8 al banc i 5 a l'app.",
+      "2. Apunta a ma una despesa amb el boto + i comprova que queda desada.",
+      "3. Ajustos → «Sincronitzar bancs». Espera que acabi.",
+      "4. Torna a Despeses: el teu apunt ha de SEGUIR-HI.",
+      "5. Repeteix-ho amb dos Bizums del MATEIX import i el MATEIX dia: tots dos han de sobreviure.",
+      "6. I comprova que els repetits de veritat encara es detecten."
+     ]
+    }
+   }
+  ],
   "items": {
    "es": [
     "Los movimientos que escribes tú a mano se quedan, aunque tengan el mismo importe y día que otro."
@@ -1634,7 +1690,42 @@
    "en": "Cash, tracked like any other account",
    "ca": "Els diners en efectiu, controlats com un compte més"
   },
-  "tandas": [],
+  "tandas": [
+   {
+    "id": "efectivo",
+    "t": {
+     "es": "💶 El sobre del efectivo",
+     "en": "💶 The cash envelope",
+     "ca": "💶 El sobre de l'efectiu"
+    },
+    "items": {
+     "es": [
+      "1. Cartera → Tus cuentas: si no la tienes, crea la cuenta de Efectivo y ponle lo que llevas de verdad encima.",
+      "2. Apunta un gasto con el + eligiendo Efectivo: el sobre tiene que bajar, y NINGÚN otro saldo puede moverse.",
+      "3. Ese gasto SÍ tiene que contar en el total del mes de Gastos, igual que uno de tarjeta.",
+      "4. Usa «saqué del cajero» por 200 € desde tu banco: el banco baja 200, el Efectivo sube 200, y tu patrimonio total se queda EXACTAMENTE IGUAL. No puede aparecer como gasto del mes.",
+      "5. Intenta gastar más de lo que hay en el sobre: tiene que avisarte.",
+      "6. Borra la cuenta de Efectivo: no puede quedarse ningún gasto huérfano ni descuadrarse el patrimonio."
+     ],
+     "en": [
+      "1. Wallet → Your accounts: create the Cash account and set what you really carry.",
+      "2. Log an expense choosing Cash: the envelope goes down and NO other balance may move.",
+      "3. That expense DOES count in the month total, like a card one.",
+      "4. Use “cash withdrawal” for 200 € from your bank: bank −200, Cash +200, net worth EXACTLY the same. It cannot show as spending.",
+      "5. Try spending more than the envelope holds: it must warn you.",
+      "6. Delete the Cash account: no orphan expenses, no broken net worth."
+     ],
+     "ca": [
+      "1. Cartera → Els teus comptes: crea el compte d'Efectiu amb el que portes de veritat.",
+      "2. Apunta una despesa triant Efectiu: el sobre ha de baixar i cap altre saldo es pot moure.",
+      "3. Aquesta despesa SI compta al total del mes.",
+      "4. Fes servir «vaig treure del caixer» per 200 €: el banc baixa 200, l'Efectiu puja 200, i el patrimoni es queda IGUAL.",
+      "5. Prova de gastar mes del que hi ha al sobre: t'ha d'avisar.",
+      "6. Esborra el compte d'Efectiu: cap despesa orfe ni patrimoni descuadrat."
+     ]
+    }
+   }
+  ],
   "items": {
    "es": [
     "Ya puedes llevar el dinero en efectivo como una cuenta más: baja al gastar y sube cuando sacas del cajero.",
@@ -1783,7 +1874,42 @@
    "en": "A transaction flagged as a possible repeat no longer counts on the widget either",
    "ca": "Un moviment marcat com a possible repetit tampoc no suma al giny"
   },
-  "tandas": [],
+  "tandas": [
+   {
+    "id": "repetido-widget",
+    "t": {
+     "es": "📊 El posible repetido no suma, ni en la app ni en el widget",
+     "en": "📊 A possible duplicate counts nowhere, app or widget",
+     "ca": "📊 El possible repetit no suma, ni a l'app ni al widget"
+    },
+    "items": {
+     "es": [
+      "1. Sincroniza los bancos hasta que salga un movimiento apagado de los que avisan de «posible repetido».",
+      "2. Mira el total del mes arriba en Gastos y apúntalo en un papel.",
+      "3. Cierra la app y mira el widget de la pantalla de inicio: tiene que decir ESA MISMA cifra, sin sumar el apagado.",
+      "4. Vuelve a la app, entra en ese movimiento y dale a «son distintos». Ahora sí tiene que sumar en Gastos.",
+      "5. Cierra la app otra vez y mira el widget: tiene que haber subido lo mismo.",
+      "6. Cierra la app del todo, ábrela y sincroniza: el que dejaste apagado tiene que seguir apagado, no encenderse solo."
+     ],
+     "en": [
+      "1. Sync until a greyed-out “possible duplicate” transaction appears.",
+      "2. Note the month total at the top of Expenses.",
+      "3. Close the app and check the home-screen widget: it must show THAT SAME figure.",
+      "4. Back in the app, open that transaction and tap “they're different”. It must now count.",
+      "5. Close the app and check the widget again: it must have gone up by the same amount.",
+      "6. Fully close, reopen and sync: the one you left off must stay off."
+     ],
+     "ca": [
+      "1. Sincronitza fins que surti un moviment apagat de «possible repetit».",
+      "2. Apunta el total del mes a Despeses.",
+      "3. Tanca l'app i mira el widget: ha de dir LA MATEIXA xifra.",
+      "4. Torna i marca «son diferents». Ara si ha de sumar.",
+      "5. Tanca i mira el widget: ha d'haver pujat el mateix.",
+      "6. Tanca del tot, obre i sincronitza: el que vas deixar apagat segueix apagat."
+     ]
+    }
+   }
+  ],
   "items": {
    "es": [
     "Si un movimiento sale marcado como posible repetido, deja de contar también en el widget y en los avisos, no solo dentro de la app.",
