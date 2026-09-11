@@ -25,7 +25,7 @@
       <div class="grid" id="real"></div>
     </div>
     <div class="col">
-      <h2>SVG corregido (4.19.47)</h2>
+      <h2>SVG corregido (4.19.48)</h2>
       <div class="grid" id="svg"></div>
     </div>
   </div>
@@ -45,7 +45,7 @@ real.forEach(([n,src])=>{
 });
 
 function cell(name, bg, svgInner, scale){
-  const s = Math.round(56*(scale||0.78));
+  const s = Math.round(56*(scale||0.82));
   const c=document.createElement("div"); c.className="cell";
   c.innerHTML=`<div class="ico" style="background:${bg}"><svg viewBox="0 0 24 24" width="${s}" height="${s}">${svgInner}</svg></div><span>${name}</span>`;
   document.getElementById("svg").appendChild(c);
@@ -67,9 +67,9 @@ cell("MyInvestor","#fff",`
   <defs><linearGradient id="miBar" x1="0" y1="0" x2="0.35" y2="1">
     <stop offset="0%" stop-color="#8B4FA0"/><stop offset="45%" stop-color="#6B5B9A"/><stop offset="100%" stop-color="#4A6BB0"/>
   </linearGradient></defs>
-  <text x="10.2" y="15.4" text-anchor="middle" fill="#1a1a1a" font-size="10.2" font-weight="600" font-family="system-ui,sans-serif" letter-spacing="-0.8px">my</text>
-  <path d="M16.9 6.2 L18.05 6.8 L15.6 17.6 L14.45 17" fill="url(#miBar)"/>
-`,0.78);
+  <text x="11.4" y="15.4" text-anchor="middle" fill="#1a1a1a" font-size="10.2" font-weight="600" font-family="system-ui,sans-serif" letter-spacing="-0.8px">my</text>
+  <path d="M16.55 5.8 L19.05 6.45 L17.35 18.2 L14.85 17.55" fill="url(#miBar)"/>
+`,0.82);
 cell("CaixaBank","#fff",`
   <path fill="#0077B6" d="M12 2.6l1.25 5.45 5.55.2-4.35 3.5 1.8 5.15L12 14.2l-4.25 2.7 1.8-5.15-4.35-3.5 5.55-.2z"/>
   <circle cx="9.2" cy="13.6" r="1.15" fill="#F5C518"/>

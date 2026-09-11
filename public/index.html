@@ -6976,18 +6976,19 @@ function bankMark(id){
     )};
   }
   if(id==="myinvestor"){
-    /* Blanco: «my» negro fino + barrita violeta a la derecha (sin círculo). */
-    return {bg:"#FFFFFF",scale:0.78,el:React.createElement(React.Fragment,null,
-      React.createElement("text",{x:10.2,y:15.4,textAnchor:"middle",fill:"#1a1a1a",
+    /* Blanco: «my»+barra centrados como grupo (feedback Claude 40 px: iba a la izquierda;
+       barra ≥2,4 u para que el degradado se lea). Sin círculo. */
+    return {bg:"#FFFFFF",scale:0.82,el:React.createElement(React.Fragment,null,
+      React.createElement("text",{x:11.4,y:15.4,textAnchor:"middle",fill:"#1a1a1a",
         fontSize:10.2,fontWeight:600,fontFamily:"system-ui,-apple-system,sans-serif",letterSpacing:"-0.8px"},"my"),
       React.createElement("defs",null,
-        React.createElement("linearGradient",{id:"miBar",x1:"0",y1:"0",x2:"0.35",y2:"1"},
+        React.createElement("linearGradient",{id:"miBar",x1:"0",y1:"0",x2:"0.2",y2:"1"},
           React.createElement("stop",{offset:"0%",stopColor:"#8B4FA0"}),
           React.createElement("stop",{offset:"45%",stopColor:"#6B5B9A"}),
           React.createElement("stop",{offset:"100%",stopColor:"#4A6BB0"})
         )
       ),
-      React.createElement("path",{d:"M16.9 6.2 L18.05 6.8 L15.6 17.6 L14.45 17",fill:"url(#miBar)"})
+      React.createElement("path",{d:"M16.55 5.8 L19.05 6.45 L17.35 18.2 L14.85 17.55",fill:"url(#miBar)"})
     )};
   }
   if(id==="caixabank"){

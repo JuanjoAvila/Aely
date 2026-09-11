@@ -1,5 +1,46 @@
 [
  {
+  "v": "4.19.48",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "MyInvestor, centrado",
+   "en": "MyInvestor, centered",
+   "ca": "MyInvestor, centrat"
+  },
+  "tandas": [
+   {
+    "id": "logos-myinvestor-centro",
+    "t": {
+     "es": "🏦 MyInvestor centrado",
+     "en": "🏦 MyInvestor centered",
+     "ca": "🏦 MyInvestor centrat"
+    },
+    "items": {
+     "es": [
+      "El logo de MyInvestor queda centrado y la barrita de color se ve mejor."
+     ],
+     "en": [
+      "The MyInvestor logo is centered and the color bar is easier to see."
+     ],
+     "ca": [
+      "El logotip de MyInvestor queda centrat i la barreta de color es veu millor."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "MyInvestor se reconoce mejor en la lista de cuentas."
+   ],
+   "en": [
+    "MyInvestor is easier to spot in the accounts list."
+   ],
+   "ca": [
+    "MyInvestor es reconeix millor a la llista de comptes."
+   ]
+  }
+ },
+ {
   "v": "4.19.47",
   "d": "11 sep 2026",
   "t": {

@@ -1,3 +1,9 @@
+## [4.19.48] — 2026-09-11
+### MyInvestor centrado a 40 px
+
+Feedback Claude: el grupo my+barra iba a la izquierda y la barra (1,55 u) no leía el degradado. Centrado como grupo y barra ~2,5 u.
+
+
 ## [4.19.47] — 2026-09-11
 ### Logos cara a cara con su captura
 
