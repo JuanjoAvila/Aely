@@ -83,7 +83,9 @@ function idsRonda(notes, running, prod) {
    el MAX. Antes se anclaba a «4.19.0 tiene que estar»: el 11/9 se vaciaron sus tandas, porque él
    ya las había juzgado, y el test se puso rojo acusando de regresión a una limpieza correcta. */
 const tip = fs.readFileSync(path.join(root, "VERSION"), "utf8").trim();
-const prod = "4.18.24";
+/* Lo que corre producción. Se actualiza al promocionar (`npm run salud` lo dice); si se queda
+   viejo la ronda sale un poco más larga de lo real, que no rompe nada pero miente en el log. */
+const prod = "4.18.25";
 const fullIds = idsRonda(all, tip, prod);
 assert.ok(fullIds.length > 0, "la ronda de prueba tiene que tener tandas en el JSON");
 /* Lo que importa: que la ronda llegue MÁS ABAJO que el tope de la UI. Si el pack del index
