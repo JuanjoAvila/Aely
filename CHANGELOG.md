@@ -1,3 +1,15 @@
+## [4.19.58] - 2026-09-11
+### Panel de beta: fuera tandas mentira
+
+Él entró a Revisar la beta y le pedía probar el «Aa» de Inicio (quitado en 4.19.52) y media
+docena de intentos de logos que nunca llegaron al móvil.
+
+- `tandas: []` en 4.19.44–49 y .53 (Aa mentira + intentos supersedidos).
+- Una sola tanda de logos vivos: **4.19.56** (`revolut-palo`). 4.19.52 se queda solo con
+  `aa-fuera-inicio` (dónde está el tamaño de letra ahora).
+- 4.19.55 (`expbanks-en-cartera`) y 4.19.57 intactas — no tocar.
+- Checklist tip↔prod ~53 tandas; la mentira del Aa ya no sale.
+
 ## [4.19.57] - 2026-09-11
 ### El saldo del banco ya no se infla con gastos de otros bancos
 

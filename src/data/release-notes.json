@@ -1,5 +1,46 @@
 [
  {
+  "v": "4.19.58",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "El panel de beta dice la verdad",
+   "en": "The beta panel tells the truth",
+   "ca": "El panell de beta diu la veritat"
+  },
+  "tandas": [
+   {
+    "id": "panel-tandas-limpias",
+    "t": {
+     "es": "🧹 Fuera las pruebas de cosas que ya no existen",
+     "en": "🧹 No more checks for things that no longer exist",
+     "ca": "🧹 Fora les proves de coses que ja no existeixen"
+    },
+    "items": {
+     "es": [
+      "En Revisar la beta ya no sale lo de «Aa en Inicio» (se quitó) ni media docena de intentos viejos de logos. Queda lo que sí puedes probar hoy."
+     ],
+     "en": [
+      "Beta review no longer asks about “Aa on Home” (removed) or a pile of old logo attempts. What’s left is what you can actually try today."
+     ],
+     "ca": [
+      "A Revisar la beta ja no surt el d'«Aa a Inici» (es va treure) ni un munt d'intents vells de logotips. Queda el que sí pots provar avui."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "El panel de Revisar la beta ya no pide probar cosas retiradas ni intentos de logos que nunca llegaron al móvil."
+   ],
+   "en": [
+    "Beta review no longer asks you to test removed features or logo attempts that never reached the phone."
+   ],
+   "ca": [
+    "El panell de Revisar la beta ja no demana provar coses retirades ni intents de logotips que no van arribar al mòbil."
+   ]
+  }
+ },
+ {
   "v": "4.19.57",
   "d": "11 sep 2026",
   "t": {
@@ -78,47 +119,6 @@
    ],
    "ca": [
     "A la R de Revolut li faltava el pal i Trade Republic era massa gran."
-   ]
-  }
- },
- {
-  "v": "4.19.55",
-  "d": "11 sep 2026",
-  "t": {
-   "es": "La R de Revolut, con su palo",
-   "en": "Revolut's R, stem included",
-   "ca": "La R de Revolut, amb el seu pal"
-  },
-  "tandas": [
-   {
-    "id": "revolut-palo-tr-mas-chico",
-    "t": {
-     "es": "🏦 Revolut entera y Trade Republic más pequeño",
-     "en": "🏦 Full Revolut and smaller Trade Republic",
-     "ca": "🏦 Revolut sencera i Trade Republic mes petit"
-    },
-    "items": {
-     "es": [
-      "Revolut: la R son dos trazos sueltos (el palo y la curva) y faltaba el palo. Trade Republic: las olas, más pequeñas."
-     ],
-     "en": [
-      "Revolut: the R is two separate strokes (stem and curve) and the stem was missing. Trade Republic: smaller waves."
-     ],
-     "ca": [
-      "Revolut: la R son dos traços solts (el pal i la corba) i faltava el pal. Trade Republic: ones mes petites."
-     ]
-    }
-   }
-  ],
-  "items": {
-   "es": [
-    "A la R de Revolut le faltaba el palo de la izquierda y a Trade Republic le sobraba tamaño otra vez."
-   ],
-   "en": [
-    "Revolut's R was missing its left stem and Trade Republic was still too big."
-   ],
-   "ca": [
-    "A la R de Revolut li faltava el pal i Trade Republic encara era massa gran."
    ]
   }
  },
@@ -212,27 +212,7 @@
    "en": "Full Revolut R and Trade Republic at its size",
    "ca": "Revolut sencera i Trade Republic a la seva mida"
   },
-  "tandas": [
-   {
-    "id": "logos-afinados",
-    "t": {
-     "es": "🏦 Los dos logos que quedaban",
-     "en": "🏦 The two remaining logos",
-     "ca": "🏦 Els dos logotips que quedaven"
-    },
-    "items": {
-     "es": [
-      "Revolut: la R sale entera, con su curva. Trade Republic: las dos olas, más pequeñas, como en el logo de verdad."
-     ],
-     "en": [
-      "Revolut: the full R, curve included. Trade Republic: the two waves, smaller, like the real logo."
-     ],
-     "ca": [
-      "Revolut: la R sencera, amb la seva corba. Trade Republic: les dues ones, mes petites, com al logotip de debo."
-     ]
-    }
-   }
-  ],
+  "tandas": [],
   "items": {
    "es": [
     "A Revolut le faltaba un trozo de la curva de la R y a Trade Republic le sobraba tamaño. Los dos arreglados."
@@ -254,25 +234,6 @@
    "ca": "Els logotips dels teus bancs, els de debo"
   },
   "tandas": [
-   {
-    "id": "logos-reales",
-    "t": {
-     "es": "🏦 Cada banco con su logo de verdad",
-     "en": "🏦 Each bank with its real logo",
-     "ca": "🏦 Cada banc amb el seu logotip de debo"
-    },
-    "items": {
-     "es": [
-      "En Cartera, tapa el nombre de un banco: tienes que saber cuál es solo por el dibujo. Sabadell, Revolut, Trade Republic, MyInvestor y CaixaBank."
-     ],
-     "en": [
-      "In Wallet, cover a bank's name: you should still know which one it is from the icon alone. Sabadell, Revolut, Trade Republic, MyInvestor and CaixaBank."
-     ],
-     "ca": [
-      "A Cartera, tapa el nom d'un banc: has de saber quin es nomes pel dibuix. Sabadell, Revolut, Trade Republic, MyInvestor i CaixaBank."
-     ]
-    }
-   },
    {
     "id": "aa-fuera-inicio",
     "t": {
@@ -398,27 +359,7 @@
    "en": "Revolut and Trade Republic, fixed",
    "ca": "Revolut i Trade Republic, bé"
   },
-  "tandas": [
-   {
-    "id": "logos-tr-revolut",
-    "t": {
-     "es": "🏦 Revolut y Trade Republic al estilo del móvil",
-     "en": "🏦 Revolut and Trade Republic like on the phone",
-     "ca": "🏦 Revolut i Trade Republic com al mòbil"
-    },
-    "items": {
-     "es": [
-      "Trade Republic: dos trazos cortos y gruesos. Revolut: una sola R, sin hueco que parezca otra letra."
-     ],
-     "en": [
-      "Trade Republic: two short thick strokes. Revolut: a single R, no gap that looks like another letter."
-     ],
-     "ca": [
-      "Trade Republic: dos traços curts i gruixuts. Revolut: una sola R, sense forat que sembli una altra lletra."
-     ]
-    }
-   }
-  ],
+  "tandas": [],
   "items": {
    "es": [
     "Los logos de Revolut y Trade Republic se reconocen a primera vista."
@@ -439,27 +380,7 @@
    "en": "MyInvestor, centered",
    "ca": "MyInvestor, centrat"
   },
-  "tandas": [
-   {
-    "id": "logos-myinvestor-centro",
-    "t": {
-     "es": "🏦 MyInvestor centrado",
-     "en": "🏦 MyInvestor centered",
-     "ca": "🏦 MyInvestor centrat"
-    },
-    "items": {
-     "es": [
-      "El logo de MyInvestor queda centrado y la barrita de color se ve mejor."
-     ],
-     "en": [
-      "The MyInvestor logo is centered and the color bar is easier to see."
-     ],
-     "ca": [
-      "El logotip de MyInvestor queda centrat i la barreta de color es veu millor."
-     ]
-    }
-   }
-  ],
+  "tandas": [],
   "items": {
    "es": [
     "MyInvestor se reconoce mejor en la lista de cuentas."
@@ -480,27 +401,7 @@
    "en": "Phone logos, fixed",
    "ca": "Logotips del mòbil, ben posats"
   },
-  "tandas": [
-   {
-    "id": "logos-cara-a-cara",
-    "t": {
-     "es": "🏦 Logos cara a cara con el launcher",
-     "en": "🏦 Logos matched to the launcher",
-     "ca": "🏦 Logotips cara a cara amb el launcher"
-    },
-    "items": {
-     "es": [
-      "Revolut y Trade Republic van en blanco (como en el icono), no en negro. Trade Republic son dos ondas, no tres."
-     ],
-     "en": [
-      "Revolut and Trade Republic use a white icon (as on the phone), not black. Trade Republic is two waves, not three."
-     ],
-     "ca": [
-      "Revolut i Trade Republic van en blanc (com a la icona), no en negre. Trade Republic són dues ones, no tres."
-     ]
-    }
-   }
-  ],
+  "tandas": [],
   "items": {
    "es": [
     "Los logos de banco se parecen más al icono que tienes en el móvil."
@@ -521,27 +422,7 @@
    "en": "Logos like on your phone",
    "ca": "Els logotips, com al mòbil"
   },
-  "tandas": [
-   {
-    "id": "logos-marcas-reales",
-    "t": {
-     "es": "🏦 Logos como los iconos del móvil",
-     "en": "🏦 Logos like the phone icons",
-     "ca": "🏦 Logotips com les icones del mòbil"
-    },
-    "items": {
-     "es": [
-      "En Cartera → Tus cuentas, Sabadell, Revolut, Trade Republic, MyInvestor y CaixaBank se ven como en el icono de su app, no como una inicial inventada."
-     ],
-     "en": [
-      "In Portfolio → Your accounts, Sabadell, Revolut, Trade Republic, MyInvestor and CaixaBank look like their app icons, not made-up initials."
-     ],
-     "ca": [
-      "A Cartera → Els teus comptes, Sabadell, Revolut, Trade Republic, MyInvestor i CaixaBank es veuen com a la icona de l'app, no com una inicial inventada."
-     ]
-    }
-   }
-  ],
+  "tandas": [],
   "items": {
    "es": [
     "Los bancos se reconocen por el mismo dibujo que en el icono del móvil."
@@ -562,27 +443,7 @@
    "en": "Banks with their mark",
    "ca": "Els bancs, amb la seva marca"
   },
-  "tandas": [
-   {
-    "id": "logos-marcas-reales",
-    "t": {
-     "es": "🏦 Logos de banco medidos",
-     "en": "🏦 Measured bank logos",
-     "ca": "🏦 Logotips de banc mesurats"
-    },
-    "items": {
-     "es": [
-      "En Cartera → Tus cuentas, los cinco bancos de siempre se reconocen por su marca (medidos del original), no por dos letras."
-     ],
-     "en": [
-      "In Portfolio → Your accounts, the five familiar banks are recognizable by their mark (traced from the original), not two letters."
-     ],
-     "ca": [
-      "A Cartera → Els teus comptes, els cinc bancs de sempre es reconeixen per la marca (mesurada de l'original), no per dues lletres."
-     ]
-    }
-   }
-  ],
+  "tandas": [],
   "items": {
    "es": [
     "Los bancos de siempre muestran su marca en la lista de cuentas."
@@ -599,43 +460,20 @@
   "v": "4.19.44",
   "d": "11 sep 2026",
   "t": {
-   "es": "Letra a mano y conectar cuentas",
-   "en": "Text size at hand and connect accounts",
-   "ca": "Lletra a mà i connectar comptes"
+   "es": "Conectar cuentas desde Cartera",
+   "en": "Connect accounts from Wallet",
+   "ca": "Connectar comptes des de Cartera"
   },
-  "tandas": [
-   {
-    "id": "letra-conectar-sin-logos",
-    "t": {
-     "es": "🔤 Aa en Inicio y conectar desde Tus cuentas",
-     "en": "🔤 Aa on Home and connect from Your accounts",
-     "ca": "🔤 Aa a Inici i connectar des dels teus comptes"
-    },
-    "items": {
-     "es": [
-      "En Inicio, el botón «Aa» junto al avatar abre la barra de tamaño de letra sin entrar en Ajustes.",
-      "En Cartera → Tus cuentas hay un «Conectar cuentas» que abre Mis bancos, igual que el de Inicio."
-     ],
-     "en": [
-      "On Home, the «Aa» button next to the avatar opens text size without opening Settings.",
-      "In Portfolio → Your accounts there is a «Connect accounts» that opens My banks, same as on Home."
-     ],
-     "ca": [
-      "A Inici, el botó «Aa» al costat de l'avatar obre la mida de lletra sense entrar a Ajustos.",
-      "A Cartera → Els teus comptes hi ha un «Connectar comptes» que obre Els meus bancs, igual que a Inici."
-     ]
-    }
-   }
-  ],
+  "tandas": [],
   "items": {
    "es": [
-    "El tamaño de letra se cambia desde Inicio, y desde Tus cuentas ya se pueden conectar bancos."
+    "Desde Tus cuentas ya se pueden conectar bancos."
    ],
    "en": [
-    "Text size can be changed from Home, and you can connect banks from Your accounts."
+    "You can connect banks from Your accounts."
    ],
    "ca": [
-    "La mida de lletra es canvia des d'Inici, i des dels teus comptes ja es poden connectar bancs."
+    "Des dels teus comptes ja es poden connectar bancs."
    ]
   }
  },
