@@ -54,7 +54,16 @@ const PRESUPUESTO = {
      es otra tanda y sube por su cuenta. Meterlo aqui seria ampliar un parche de emergencia con
      superficie que nadie ha aprobado. Medido tras el porte: 1203 min / 341 gzip.
      Cuando suba el recorte de notas, estos topes BAJAN, no se quedan. */
-  minificado: 1206 * 1024,
+  /* SUBIDO 3 KB el 2026-09-11, con motivo. FIN-07 (el histórico entero) añade la paginación por
+     keyset, el aviso de descarga incompleta en los TRES idiomas y su nota de Novedades, que también
+     va en tres. Otra vez son literales, no código: el minificado se pasó 1 KB mientras el GZIP —lo
+     que de verdad baja el móvil— se quedó en 342/344, dentro. Recortar aquí sería quitar idiomas o
+     quitarle a la familia la explicación de por qué dejaron de desaparecerle gastos, y eso no se
+     toca. Medido hoy: 1207 min / 342 gzip.
+     ⚠ El gzip está al 99 %: la siguiente tanda que meta texto lo revienta. El recorte de las notas
+     a un JSON aparte (ya hecho en beta, deja el gzip en 318) tiene que subir a producción pronto;
+     cuando suba, estos dos topes BAJAN, no se quedan. */
+  minificado: 1210 * 1024,
   gzip: 344 * 1024,         // medido 2026-08-03: 318 KB  ← esto es lo que baja el móvil
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };

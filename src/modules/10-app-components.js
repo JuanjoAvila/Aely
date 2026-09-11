@@ -1424,6 +1424,15 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.9", d:"11 sep 2026",
+   t:{es:"Tu historial completo, sin perder nada",en:"Your full history, with nothing lost",ca:"El teu historial complet, sense perdre res"},
+   items:{
+     es:["Al sincronizar se trae tu historial entero. Antes, si tenías muchos gastos guardados, los más antiguos podían desaparecer de la app.",
+         "Y si alguna vez no cabe todo de una vez, la app te avisa y no borra nada: basta con volver a sincronizar."],
+     en:["Syncing now brings in your whole history. Before, if you had a lot of spending saved, the oldest entries could disappear from the app.",
+         "And if it ever can’t all fit at once, the app tells you and deletes nothing: just sync again."],
+     ca:["En sincronitzar es porta tot el teu historial. Abans, si tenies moltes despeses desades, les més antigues podien desaparèixer de l’app.",
+         "I si alguna vegada no hi cap tot de cop, l’app t’avisa i no esborra res: només cal tornar a sincronitzar."]}},
   {v:"4.18.8", d:"10 sep 2026",
    t:{es:"El resumen del mes y un tope por categoría",en:"The month summary and a cap per category",ca:"El resum del mes i un límit per categoria"},
    items:{

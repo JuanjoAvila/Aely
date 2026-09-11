@@ -1,3 +1,15 @@
+## [4.18.9] — 2026-09-11
+### FIN-07 · El histórico entero, y una descarga a medias que ya no borra
+
+- **Producción llevaba un `.limit(2000)` sin paginar** en `pullExpenses`, y `syncCloudExpenses` REEMPLAZA los gastos de origen `supabase` por lo que acaba de llegar. Con más de 2.000 gastos en la nube —lo normal tras importar el histórico de un banco— **cada sincronización borraba de la app los más viejos**. Le pasaba a toda la familia, no solo a él. Su queja del 10/9 («solo baja el histórico un poquito») era esto, y no el importador.
+- Ahora se **pagina por clave** (`fecha` desc + `id` desc, páginas de 1.000) hasta el final. Por clave y no por desplazamiento porque un gasto que entre a mitad de la descarga corre la lista y te hace saltarte una fila o repetirla. El `id` en el orden no es decorativo: sin un segundo criterio ÚNICO, dos gastos del MISMO día pueden salir en distinto orden entre páginas y entonces uno se repite y otro se pierde.
+- **Una descarga a medias ya no es un borrado.** Si se llega al tope de seguridad (50.000), se conserva lo que ya había y solo se añade lo nuevo, en vez de descartar todo lo que no llegó. Regla desde la contención 4.18.6: nunca se borra por ausencia.
+- Aviso en los tres idiomas que dice lo que le importa —que **no ha perdido nada**— y no el número.
+- Guardián `pull-historico-entero` (9 casos) sobre el código real del módulo, verificado en rojo quitando la guarda y en verde al volver a ponerla.
+- Tanda nacida **desde `main`**: sube sola, sin esperar a la ronda de beta.
+
+**Crédito:** la paginación por keyset es de Cursor (`tanda/fin-07-pull`); el tope de seguridad, la guarda de la mezcla y los guardianes, de esta tanda. Se reconcilian las dos en una.
+
 ## [4.18.8] — 2026-09-10
 ### Las dos tandas que aprobó, subidas solas
 

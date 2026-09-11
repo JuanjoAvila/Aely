@@ -42,3 +42,22 @@ mirar una ventana concreta y sabiendo que suma ruido.
 
 Y la lección de fondo, que vale para cualquier gesto: **antes de optimizar, comprueba que lo que
 mides distingue su caso bueno del malo**. Aquí el fallo ni siquiera era de rendimiento.
+
+## ⚠ La APK `.debug` sirve para MEDIR causas, NO para VERIFICAR arreglos (10/9/2026)
+
+Su bundle web va por su cuenta y se queda atrás: el 10/9 el nativo era el mismo que el suyo
+(42 / 4.18.3) pero la web era **4.19.19** cuando su beta iba por **4.19.31**. Ocho versiones.
+
+El precio de no saberlo: se midió el tironcillo ahí, salió que seguía, y estuvo a punto de darse
+por hecho que el arreglo no servía — cuando lo que pasaba es que **ese build no lo llevaba**.
+Y al revés: sus medidas de causa (los 44 px de `layout-shift`, el frame sí y frame no del
+arrastre lento) sí valían, porque el fallo estaba en las dos.
+
+Regla: **causa se mide en la `.debug`; arreglo se verifica en la beta real y con su dedo.**
+Y antes de cualquier medida, preguntar por CDP qué versión web corre:
+`typeof CONFIG!=="undefined" ? CONFIG.APP_VERSION : "sin CONFIG"`.
+
+Otro detalle que costó un rato: la app carga desde `https://localhost/`, así que **no acepta un
+bundle local servido por `http`** (`adb reverse` + `Page.navigate` a `localhost:4173` no carga).
+Por eso no se puede hacer el A/B en caliente del arreglo; el A/B de CSS sí, inyectando un
+`<style>` con `Runtime.evaluate`.

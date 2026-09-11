@@ -2308,6 +2308,36 @@ async function withNotaFallback(run){
   return r;
 }
 
+/* FIN-07 (2026-09-11) — TRAER EL HISTÓRICO ENTERO, SIN PERDER NADA POR EL CAMINO.
+   Esto bajaba los gastos con un `.limit(2000)` a secas. Con más de 2.000 gastos en la nube
+   —lo normal en cuanto importas el histórico de un banco— el resto NO llegaba… y `syncCloudExpenses`
+   REEMPLAZA los gastos de origen "supabase" por lo que acaba de llegar, así que cada sincronización
+   BORRABA de la app los más viejos. La queja del 10/9 («solo baja el histórico un poquito») era
+   esto, y no el importador.
+
+   Se pagina por CLAVE (keyset), no por desplazamiento: se pide «lo que va después del último que ya
+   tengo». Con desplazamientos, un gasto que entre a mitad de la descarga corre la lista y te hace
+   saltarte una fila o repetirla; con clave, no. Y el orden lleva `id` además de `fecha` justamente
+   por eso: sin un segundo criterio ÚNICO, dos gastos del MISMO día pueden salir en distinto orden
+   entre páginas, y entonces uno se repite y otro se pierde.
+   (La paginación por keyset es de Cursor; el tope de seguridad y la guarda de syncCloudExpenses,
+   de esta tanda.) */
+async function mcPullExpensesPaged(fetchPage, pageSize, maxPages){
+  const all=[];
+  let cursor=null;
+  for(let p=0;p<maxPages;p++){
+    const chunk=await fetchPage(cursor);
+    if(!chunk || !chunk.length) return { rows:all, capped:false };
+    for(let i=0;i<chunk.length;i++) all.push(chunk[i]);
+    // Página corta = se acabó la tabla. Así no se gasta una consulta de más en el caso normal.
+    if(chunk.length<pageSize) return { rows:all, capped:false };
+    const last=chunk[chunk.length-1];
+    cursor={ fecha:last.fecha, id:last.id };
+  }
+  return { rows:all, capped:true };
+}
+
+
 const cloud = (function(){
   let sb = null;
   try {
@@ -2355,9 +2385,26 @@ const cloud = (function(){
     },
     async pullExpenses(){
       if(!sb) return [];
-      const {data,error}=await sb.from('expenses').select('*').order('fecha',{ascending:false}).limit(2000);
-      if(error) throw error;
-      return data || [];
+      const PAGE=1000;
+      const MAX_PAGES=50;   // 50.000 filas: red de seguridad contra un bucle, no un techo de producto.
+      const fetchPage=async function(cursor){
+        let q=sb.from('expenses').select('*')
+          .order('fecha',{ascending:false})
+          .order('id',{ascending:false})
+          .limit(PAGE);
+        if(cursor){
+          // Estrictamente «después» en orden descendente: fecha menor, o misma fecha e id menor.
+          const f=String(cursor.fecha), id=String(cursor.id);
+          q=q.or('fecha.lt.'+f+',and(fecha.eq.'+f+',id.lt.'+id+')');
+        }
+        const {data,error}=await q;
+        if(error) throw error;
+        return data||[];
+      };
+      const pulled=await mcPullExpensesPaged(fetchPage, PAGE, MAX_PAGES);
+      const rows=pulled.rows;
+      if(pulled.capped) rows._mcPullCapped=true;
+      return rows;
     },
     async addExpense(e){
       if(!sb) return;
@@ -3081,6 +3128,7 @@ let CURLANG = "es";
 const LANGS = [["es","Español"],["en","English"],["ca","Català"]];
 const LANG = {
   es:{
+    exp_pull_capped:"No ha cabido todo el historial de una vez. NO se ha borrado nada: vuelve a sincronizar para traer el resto.",
     tab_dash:"Inicio", tab_gastos:"Gastos", tab_plan:"Plan", tab_cartera:"Cartera", tab_fijos:"Fijos", tab_inv:"Inversiones", tab_patri:"Patrimonio", tab_debt:"Deudas", tab_compartido:"Compartido",
     tab_metas:"Metas", tab_logros:"Logros",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
@@ -3243,6 +3291,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Dólar canadiense", cur_aud:"A$ Dólar australiano", cur_cny:"¥ Yuan", cur_mxn:"$ Peso mexicano", cur_sek:"kr Corona sueca", cur_nok:"kr Corona noruega", cur_dkk:"kr Corona danesa", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupia", cur_try:"₺ Lira turca",
   },
   en:{
+    exp_pull_capped:"We couldn't fetch your whole history in one go. Nothing has been deleted: sync again to bring in the rest.",
     tab_dash:"Home", tab_gastos:"Spending", tab_plan:"Plan", tab_cartera:"Portfolio", tab_fijos:"Fixed", tab_inv:"Investments", tab_patri:"Net worth", tab_debt:"Debts", tab_compartido:"Shared",
     tab_metas:"Goals", tab_logros:"Achievements",
     v4_hola:"Hi, {n}", v4_hola_anon:"Hi",
@@ -3392,6 +3441,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Canadian dollar", cur_aud:"A$ Australian dollar", cur_cny:"¥ Yuan", cur_mxn:"$ Mexican peso", cur_sek:"kr Swedish krona", cur_nok:"kr Norwegian krone", cur_dkk:"kr Danish krone", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupee", cur_try:"₺ Turkish lira",
   },
   ca:{
+    exp_pull_capped:"No hi ha cabut tot l'historial de cop. NO s'ha esborrat res: torna a sincronitzar per portar la resta.",
     tab_dash:"Inici", tab_gastos:"Despeses", tab_plan:"Pla", tab_cartera:"Cartera", tab_fijos:"Fixes", tab_inv:"Inversions", tab_patri:"Patrimoni", tab_debt:"Deutes", tab_compartido:"Compartit",
     tab_metas:"Metes", tab_logros:"Assoliments",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
@@ -14364,6 +14414,15 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.9", d:"11 sep 2026",
+   t:{es:"Tu historial completo, sin perder nada",en:"Your full history, with nothing lost",ca:"El teu historial complet, sense perdre res"},
+   items:{
+     es:["Al sincronizar se trae tu historial entero. Antes, si tenías muchos gastos guardados, los más antiguos podían desaparecer de la app.",
+         "Y si alguna vez no cabe todo de una vez, la app te avisa y no borra nada: basta con volver a sincronizar."],
+     en:["Syncing now brings in your whole history. Before, if you had a lot of spending saved, the oldest entries could disappear from the app.",
+         "And if it ever can’t all fit at once, the app tells you and deletes nothing: just sync again."],
+     ca:["En sincronitzar es porta tot el teu historial. Abans, si tenies moltes despeses desades, les més antigues podien desaparèixer de l’app.",
+         "I si alguna vegada no hi cap tot de cop, l’app t’avisa i no esborra res: només cal tornar a sincronitzar."]}},
   {v:"4.18.8", d:"10 sep 2026",
    t:{es:"El resumen del mes y un tope por categoría",en:"The month summary and a cap per category",ca:"El resum del mes i un límit per categoria"},
    items:{
@@ -17810,6 +17869,12 @@ function App(){
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
   const syncCloudExpenses=function(){
     return cloud.pullExpenses().then(function(rows){
+      // FIN-07: si la descarga se ha quedado a medias (tope de seguridad), esto NO es un borrado.
+      // Sin esta distinción, un pull corto descarta de la app todo lo de origen `supabase` que no
+      // haya llegado: exactamente como se le borraban los gastos viejos. Regla desde la contención
+      // 4.18.6: nunca se borra por ausencia.
+      const parcial=!!(rows&&rows._mcPullCapped);
+      if(parcial) showToast("⚠ "+t("exp_pull_capped"));
       const keyOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.merchant||""); };
       const delSet={}; (stateRef.current.deleted||[]).forEach(function(k){ delSet[k]=1; });
       const incoming=rows.map(expenseFromRow).filter(function(e){ return e.amount!==0 && !delSet[keyOf(e)]; });
@@ -17826,7 +17891,8 @@ function App(){
       let count=0; const seenC={};
       incoming.forEach(function(e){ const k=keyOf(e); if(!seenC[k]){ seenC[k]=1; if(!prevKeys[k]) count++; } });
       set(function(prev){
-        const keep=prev.expenses.filter(function(e){ return e.source!=="supabase"; });
+        const keep=parcial ? prev.expenses.slice()
+                           : prev.expenses.filter(function(e){ return e.source!=="supabase"; });
         const keepKeys={}; keep.forEach(function(e){ keepKeys[keyOf(e)]=1; });
         const seen={}; const add=[];
         incoming.forEach(function(e){ const k=keyOf(e); if(!keepKeys[k] && !seen[k]){ seen[k]=1; add.push(e); } });
