@@ -111,6 +111,17 @@ test("no se puede aprobar con cosas sin probar ni con fallos marcados", async ({
  *
  * Por eso aquí se FIJA la versión de producción con un doble, en vez de depender de la red: así
  * el caso se prueba igual en el portátil que en CI. */
+/** Producción = la versión justo anterior a la que corre. Lo que pasa de verdad al probar una
+ *  beta, y lo que acota la ronda a una sola versión. Un número inventado y viejo («0.0.1») hace
+ *  que la ronda sea TODA la historia: 111 tandas en el panel. */
+async function prodJustoAnterior(page) {
+  return page.evaluate(() => {
+    const base = mcVerBase(CONFIG.APP_VERSION);
+    const i = RELEASE_NOTES.findIndex((n) => n.v === base);
+    return (i >= 0 && RELEASE_NOTES[i + 1]) ? RELEASE_NOTES[i + 1].v : RELEASE_NOTES[1].v;
+  });
+}
+
 async function conProduccionEn(page, version) {
   await page.evaluate((v) => { window._mcProdVersion = () => Promise.resolve(v); }, version);
   const host = "e2e-beta-prod-" + Math.random().toString(36).slice(2, 7);
@@ -405,7 +416,7 @@ test("un fallo en una tanda NO bloquea aprobar las otras", async ({ page }) => {
   // Compilación de la ronda VIVA (RELEASE_NOTES[0]), no un número clavado de una ronda ya cerrada.
   await page.evaluate(() => { CONFIG.APP_VERSION = RELEASE_NOTES[0].v + ".7"; });
   await conTandasDePrueba(page);
-  const panel = await conProduccionEn(page, "0.0.1");
+  const panel = await conProduccionEn(page, await prodJustoAnterior(page));
   await expect(panel).toBeVisible();
 
   const tandas = panel.locator(".beta-tanda");
@@ -433,7 +444,7 @@ test("cada tanda lleva su cuenta propia, no la de la beta entera", async ({ page
   await abrirRevisionBeta(page);
   await page.evaluate(() => { CONFIG.APP_VERSION = RELEASE_NOTES[0].v + ".7"; });
   await conTandasDePrueba(page);
-  const panel = await conProduccionEn(page, "0.0.1");
+  const panel = await conProduccionEn(page, await prodJustoAnterior(page));
   const primera = panel.locator(".beta-tanda").nth(0);
   const total = await primera.locator(".beta-item").count();
 
