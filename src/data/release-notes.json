@@ -1,5 +1,28 @@
 [
  {
+  "v": "4.18.22",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "La app ahora se llama Aely",
+   "en": "The app is now called Aely",
+   "ca": "L'app ara es diu Aely"
+  },
+  "items": {
+   "es": [
+    "Mismo sitio, mismos datos, nombre nuevo: Aely. No hay que hacer nada — la app se actualiza sola y todo sigue donde estaba.",
+    "También cambia el icono y el nombre que sale en los avisos."
+   ],
+   "en": [
+    "Same app, same data, new name: Aely. Nothing to do — it updates itself and everything stays where it was.",
+    "The icon and the name shown in notifications change too."
+   ],
+   "ca": [
+    "Mateixa app, mateixes dades, nom nou: Aely. No cal fer res.",
+    "També canvien la icona i el nom dels avisos."
+   ]
+  }
+ },
+ {
   "v": "4.18.21",
   "d": "11 sep 2026",
   "t": {

@@ -1,6 +1,6 @@
 {
-  "versionCode": 42,
-  "versionName": "4.18.3",
-  "url": "https://github.com/JuanjoAvila/Mi-Cartera/releases/download/v4.18.3/Mi-Cartera-4.18.3.apk",
-  "notes": "APK 4.18.3 (42): el widget ya no se contradice con la app cerrada, y el saldo del banco ya no salta a un numero en rojo inventado. Se instala encima sin perder datos."
+  "versionCode": 45,
+  "versionName": "4.18.22",
+  "url": "https://github.com/JuanjoAvila/Mi-Cartera/releases/download/v4.18.22/Mi-Cartera-4.18.22.apk",
+  "notes": "APK 4.18.22 (45): se instala encima sin desinstalar ni perder datos."
 }

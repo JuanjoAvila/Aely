@@ -1,6 +1,6 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-11 · **v4.18.21** — porte aislado del pulido B2/B4/B5: cuenta de Cartera, siluetas de inicio y contraste en tema claro. Pendiente de revisión y publicación.
+> Estado a 2026-09-11 · **v4.18.22** — porte aislado del pulido B2/B4/B5: cuenta de Cartera, siluetas de inicio y contraste en tema claro. Pendiente de revisión y publicación.
 > Anterior: **v4.18.8** — las dos tandas que aprobó, subidas solas (informe del mes cerrado y límite por categoría).
 > Anterior: **v4.18.7** — cabecera de Gastos al cambiar bancos de gasto diario (B09-A).
 > Canal vivo: `npm run salud` (no afirmar beta/prod solo por el working tree). OTA, sin APK.
@@ -104,7 +104,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.18.21** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.18.22** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

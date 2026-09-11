@@ -1,3 +1,34 @@
+## [4.18.22] — 2026-09-11
+### Aely llega a su padre y a su pareja
+
+Hasta hoy el rebrand vivía **solo en beta**. Para el resto de la familia la app seguía llamándose
+«Mi Cartera», con el icono viejo —el que se corta en las notificaciones— y los avisos con el nombre
+antiguo. Nada de eso viaja por OTA: es nativo y necesita APK.
+
+- `app_name`, `title_activity_main` y `widget_title` → **Aely**.
+- Los 15 PNG del icono adaptativo y el fondo (`ic_launcher_background.xml`), con la escala 0,49 que
+  ya no se corta en la máscara redonda. Y el generador `scripts/iconos-aely.mjs`, para poder
+  rehacerlos midiendo en vez de a ojo.
+- Los cinco literales «Mi Cartera» del lado nativo: el título de las notificaciones, el nombre del
+  canal de avisos y los dos del aviso de actualización.
+
+**`versionCode` 42 → 45, y el 45 no es arbitrario.** Producción anuncia la 42, pero SU móvil lleva
+la 44 (la APK de beta). Android no ofrece una actualización con código menor o igual al instalado,
+así que con 43 o 44 él no vería nunca esta. Con 45 les llega a los tres.
+
+**LO QUE NO SE HA TOCADO, Y ES LA RAZÓN DE QUE ESTO SE PUEDA PUBLICAR:**
+
+`applicationId`, `package_name`, `custom_url_scheme` y la configuración de firma **no aparecen en el
+diff**. Comprobado por grep sobre el diff completo contra `main`, no de palabra: 0 coincidencias.
+
+Si cualquiera de esos cambiara, Android trataría esto como una **app distinta**: su padre y su
+pareja se quedarían con la vieja instalada y sus datos dentro, y la «nueva» les llegaría vacía. Su
+condición al autorizarlo fue literal — «siempre y cuando no reviente nada ni pise nada» — y eso es
+exactamente lo que significa aquí.
+
+Él ya les ha avisado del cambio de nombre. Aun así la nota de Novedades lo dice en la primera línea
+y deja claro lo único que les importa: **mismos datos, no hay que hacer nada**.
+
 ## [4.18.21] — 2026-09-11
 ### Sella las dos de producción del 11/9
 
