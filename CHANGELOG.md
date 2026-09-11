@@ -1,3 +1,14 @@
+## [4.18.11] — 2026-09-11
+### Categoría Inteligencia artificial
+
+- Porte manual desde la tanda aprobada `categoria-ia`: añade `ia` a `CATEGORIES`, sus tres
+  traducciones y las palabras clave de ChatGPT, Claude, OpenAI, Cursor y servicios similares.
+  Solo se autodetectan movimientos nuevos; no hay migración ni recategorización del histórico.
+- La lógica compartida de ingest y la lista permitida de `categorize` ya aceptan `ia`, para
+  conservar la paridad con el cliente. El despliegue de la Edge Function queda pendiente de
+  autorización expresa del propietario; este commit no despliega ninguna Edge Function.
+- Guardianes en `categories` e `ingest-classify` comprueban la categoría cliente y compartida.
+
 ## [4.18.8] — 2026-09-10
 ### Las dos tandas que aprobó, subidas solas
 

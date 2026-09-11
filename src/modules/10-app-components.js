@@ -1424,6 +1424,12 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.11", d:"11 sep 2026",
+   t:{es:"Una categoría para las herramientas de IA",en:"A category for AI tools",ca:"Una categoria per a les eines d'IA"},
+   items:{
+     es:["Los movimientos nuevos de ChatGPT, Claude, Cursor y servicios similares entran en Inteligencia artificial.","Los movimientos que ya estaban guardados conservan su categoría actual."],
+     en:["New ChatGPT, Claude, Cursor and similar transactions go into Artificial intelligence.","Transactions already saved keep their current category."],
+     ca:["Els moviments nous de ChatGPT, Claude, Cursor i serveis semblants entren a Intel·ligència artificial.","Els moviments que ja estaven desats conserven la categoria actual."]}},
   {v:"4.18.8", d:"10 sep 2026",
    t:{es:"El resumen del mes y un tope por categoría",en:"The month summary and a cap per category",ca:"El resum del mes i un límit per categoria"},
    items:{
