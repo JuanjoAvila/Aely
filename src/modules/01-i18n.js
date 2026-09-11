@@ -8,6 +8,7 @@ const LANGS = [["es","Español"],["en","English"],["ca","Català"]];
 const LANG = {
   es:{
     exp_pull_capped:"No ha cabido todo el historial de una vez. NO se ha borrado nada: vuelve a sincronizar para traer el resto.",
+    beta_group:"Revisión", beta_collapse:"Encoger", beta_expand:"Desplegar",
     tab_dash:"Inicio", tab_gastos:"Gastos", tab_plan:"Plan", tab_cartera:"Cartera", tab_fijos:"Fijos", tab_inv:"Inversiones", tab_patri:"Patrimonio", tab_debt:"Deudas", tab_compartido:"Compartido",
     tab_metas:"Metas", tab_logros:"Logros",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
@@ -171,6 +172,7 @@ const LANG = {
   },
   en:{
     exp_pull_capped:"We couldn't fetch your whole history in one go. Nothing has been deleted: sync again to bring in the rest.",
+    beta_group:"Review", beta_collapse:"Collapse", beta_expand:"Expand",
     tab_dash:"Home", tab_gastos:"Spending", tab_plan:"Plan", tab_cartera:"Portfolio", tab_fijos:"Fixed", tab_inv:"Investments", tab_patri:"Net worth", tab_debt:"Debts", tab_compartido:"Shared",
     tab_metas:"Goals", tab_logros:"Achievements",
     v4_hola:"Hi, {n}", v4_hola_anon:"Hi",
@@ -321,6 +323,7 @@ const LANG = {
   },
   ca:{
     exp_pull_capped:"No hi ha cabut tot l'historial de cop. NO s'ha esborrat res: torna a sincronitzar per portar la resta.",
+    beta_group:"Revisió", beta_collapse:"Plegar", beta_expand:"Desplegar",
     tab_dash:"Inici", tab_gastos:"Despeses", tab_plan:"Pla", tab_cartera:"Cartera", tab_fijos:"Fixes", tab_inv:"Inversions", tab_patri:"Patrimoni", tab_debt:"Deutes", tab_compartido:"Compartit",
     tab_metas:"Metes", tab_logros:"Assoliments",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",

@@ -426,6 +426,26 @@ test("cada tanda lleva su cuenta propia, no la de la beta entera", async ({ page
   await expect(segunda.locator(".beta-tanda-n")).toHaveText("0/" + total2);
 });
 
+test("aprobar una tanda la pliega sin perder su veredicto", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  await page.evaluate(() => { CONFIG.APP_VERSION = RELEASE_NOTES[0].v + ".7"; });
+  await conTandasDePrueba(page);
+  // El sandbox bloquea los partes hacia cloud; aquí simulamos solo la respuesta exitosa para
+  // comprobar la transición visual posterior a aprobar, sin sacar datos del móvil.
+  await page.evaluate(() => { cloud.betaReport=() => Promise.resolve(); });
+  const panel = await conProduccionEn(page, "0.0.1");
+  const tanda = panel.locator(".beta-tanda").first();
+  const items = tanda.locator(".beta-item");
+  for(let i=0;i<await items.count();i++) await items.nth(i).getByRole("button",{name:/Va bien/i}).click();
+  await tanda.getByRole("button",{name:/Aprobar esta tanda/i}).click();
+  const toggle=tanda.locator(".beta-tanda-toggle");
+  await expect(toggle).toHaveAttribute("aria-expanded","false");
+  await expect(items.first()).toBeHidden();
+  await toggle.click();
+  await expect(items.first()).toBeVisible();
+  await expect(tanda.getByRole("button",{name:/Cambiar de opinión/i})).toBeVisible();
+});
+
 /* EL «0/26» DE AJUSTES CUANDO YA HABÍA MARCADO COSAS (bug suyo, 2026-08-01: «me sale revisar
  * esta beta 0/26 cuando ya he aceptado o rechazado cosas, me tendría que salir conforme voy
  * poniendo»). La fila de Ajustes leía `_betaReview_`+versión BASE («4.13.0»), una clave que el

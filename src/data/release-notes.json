@@ -1,5 +1,46 @@
 [
  {
+  "v": "4.18.16",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Revisiones más cómodas",
+   "en": "Easier reviews",
+   "ca": "Revisions més còmodes"
+  },
+  "tandas": [
+   {
+    "id": "revision-plegable",
+    "t": {
+     "es": "Encoger las tandas",
+     "en": "Collapse review groups",
+     "ca": "Plegar les tandes"
+    },
+    "items": {
+     "es": [
+      "Toca la cabecera para encoger y desplegar una tanda: conserva marcas y comentarios. Las aprobadas se encogen solas y permiten cambiar de opinión al desplegarlas."
+     ],
+     "en": [
+      "Tap a group heading to collapse and expand it: marks and comments remain. Approved groups collapse automatically; expand to change your verdict."
+     ],
+     "ca": [
+      "Toca la capçalera per plegar i desplegar una tanda: conserva marques i comentaris. Les aprovades es pleguen soles; desplega-les per canviar d'opinió."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Las listas de revisión se pueden encoger y desplegar sin perder las marcas ni los comentarios."
+   ],
+   "en": [
+    "Review lists can be collapsed and expanded without losing marks or comments."
+   ],
+   "ca": [
+    "Les llistes de revisió es poden plegar i desplegar sense perdre les marques ni els comentaris."
+   ]
+  }
+ },
+ {
   "v": "4.18.14",
   "d": "11 sep 2026",
   "t": {
