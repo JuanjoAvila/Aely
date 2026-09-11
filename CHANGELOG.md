@@ -1,3 +1,11 @@
+## [4.19.49] — 2026-09-11
+### TR corto/gordo y Revolut de una pieza
+
+Feedback Claude sobre preview: TR leía como ≈ de tres lóbulos (paths largos finos); ahora dos Q cortas stroke 3.5. Revolut con hueco asta/hombro leía «IR»; path único pegado.
+
+Se quitan `preview-launcher.html` y `launcher-real/` del árbol (recortes de su pantalla).
+
+
 ## [4.19.48] — 2026-09-11
 ### MyInvestor centrado a 40 px
 

@@ -99,17 +99,15 @@ function bankMark(id){
     )};
   }
   if(id==="revolut"){
-    /* Blanco + R negra con hueco arriba-izquierda (icono Revolut del launcher). */
-    return {bg:"#FFFFFF",fg:"#111",scale:0.62,el:React.createElement(React.Fragment,null,
-      React.createElement("rect",{x:3.2,y:3.4,width:3.35,height:17.2,rx:0.2,fill:"#111"}),
-      React.createElement("path",{fill:"#111",d:"M8.1 3.4h5.55c3.05 0 5.2 1.95 5.2 4.85 0 2.35-1.35 4.05-3.55 4.7L19.6 20.6h-4.05l-3.95-6.85H8.1V3.4zm3.35 3.05v4.35h2.35c1.55 0 2.45-.9 2.45-2.2S14.35 6.45 12.8 6.45H11.45z"})
-    )};
+    /* Blanco + R negra de UNA pieza (sin hueco asta/hombro: a 40 px leía «IR»). */
+    return {bg:"#FFFFFF",fg:"#111",scale:0.64,el:React.createElement("path",{fill:"#111",
+      d:"M4.1 3.3h9.4c3.15 0 5.45 2.05 5.45 5.05 0 2.4-1.4 4.2-3.75 4.85L19.6 20.7h-4.25l-4-6.85H7.55v6.85H4.1V3.3zm3.45 2.95v4.15h2.45c1.5 0 2.4-.9 2.4-2.1s-.95-2.05-2.4-2.05H7.55z"})};
   }
   if(id==="trade_republic"){
-    /* Blanco + DOS ondas negras (≈), no tres ni invertido. */
-    return {bg:"#FFFFFF",scale:0.68,el:React.createElement(React.Fragment,null,
-      React.createElement("path",{d:"M3.2 10 Q6.2 6.6 9.2 10 T15.2 10 T21 10",fill:"none",stroke:"#111",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"}),
-      React.createElement("path",{d:"M3.2 15.6 Q6.2 12.2 9.2 15.6 T15.2 15.6 T21 15.6",fill:"none",stroke:"#111",strokeWidth:2.2,strokeLinecap:"round",strokeLinejoin:"round"})
+    /* Blanco: DOS trazos cortos y gordos centrados (aire a los lados). No tres ni de borde a borde. */
+    return {bg:"#FFFFFF",scale:0.78,el:React.createElement(React.Fragment,null,
+      React.createElement("path",{d:"M6.8 9.6 Q12 6.8 17.2 9.6",fill:"none",stroke:"#111",strokeWidth:3.5,strokeLinecap:"round"}),
+      React.createElement("path",{d:"M6.8 14.7 Q12 11.9 17.2 14.7",fill:"none",stroke:"#111",strokeWidth:3.5,strokeLinecap:"round"})
     )};
   }
   if(id==="myinvestor"){

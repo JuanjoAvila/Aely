@@ -1,5 +1,46 @@
 [
  {
+  "v": "4.19.49",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Revolut y Trade Republic, bien",
+   "en": "Revolut and Trade Republic, fixed",
+   "ca": "Revolut i Trade Republic, bé"
+  },
+  "tandas": [
+   {
+    "id": "logos-tr-revolut",
+    "t": {
+     "es": "🏦 Revolut y Trade Republic al estilo del móvil",
+     "en": "🏦 Revolut and Trade Republic like on the phone",
+     "ca": "🏦 Revolut i Trade Republic com al mòbil"
+    },
+    "items": {
+     "es": [
+      "Trade Republic: dos trazos cortos y gruesos. Revolut: una sola R, sin hueco que parezca otra letra."
+     ],
+     "en": [
+      "Trade Republic: two short thick strokes. Revolut: a single R, no gap that looks like another letter."
+     ],
+     "ca": [
+      "Trade Republic: dos traços curts i gruixuts. Revolut: una sola R, sense forat que sembli una altra lletra."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Los logos de Revolut y Trade Republic se reconocen a primera vista."
+   ],
+   "en": [
+    "Revolut and Trade Republic logos are recognizable at a glance."
+   ],
+   "ca": [
+    "Els logotips de Revolut i Trade Republic es reconeixen a primera vista."
+   ]
+  }
+ },
+ {
   "v": "4.19.48",
   "d": "11 sep 2026",
   "t": {
