@@ -1,3 +1,22 @@
+## [4.19.39] — 2026-09-11
+### El tironcillo del cambio de pestaña, medido en su móvil y arreglado
+
+- **Lo llevaba viendo desde el 10/9 y yo lo di por arreglado tres veces.** Esta vez está MEDIDO en su OnePlus 13, con toques **reales** (`adb shell input swipe` inyecta MotionEvents por el sistema; los sintéticos del navegador no reproducen el muestreo del digitalizador). Herramienta nueva: `tools/movil/tiron-lento.mjs`.
+- **Lo que salió, y por qué mis medidas antiguas decían que todo iba bien.** Yo medía los deltas de FOTOGRAMA con `rAF` y salían 120 Hz clavados — y siguen saliendo: **0 fotogramas tarde**. El número que había que mirar no era cuándo llega el fotograma, sino **cuánto se ha movido en él**:
+
+  | | lento (1600 ms) | rápido (350 ms) |
+  |---|---|---|
+  | el dedo se mueve sin respuesta | **721 ms** | 173 ms |
+  | y recorre | 28,1 px | 29,9 px |
+  | entonces la pantalla salta | **36,1 px** | 37,1 px |
+
+  El hueco muerto es el MISMO; lo que cambia es cuánto dura. Tres cuartos de segundo con el dedo moviéndose y la pantalla quieta, y entonces un brinco. Sus palabras encajan clavadas: *«si desplazas fluido no se nota apenas, es ir lento y ahí se nota el tirón»*.
+- **De dónde salen esos ~30 px.** No son los 12 de `GEST_LEAD`: hay una guarda que NO suelta el eje horizontal hasta `|ddx|>36` mientras la página pueda scrollear, para que el carrusel no le robe el scroll vertical. **Esa guarda se queda** — quitarla devuelve el bug de la deriva lateral, que costó caro. Lo que no tiene por qué pasar es que, al soltarse, pinte los 36 px acumulados **de golpe**.
+- **El ancla**: al reclamar el eje se apunta cuánto se había recorrido, y lo que se PINTA arranca desde ahí. Medido otra vez en el mismo móvil: **36,1 → 0,7 px** (lento) y **37,1 → 1,5** (rápido).
+- ⚠ El ancla es **solo para lo que se ve**. `dx.current` sigue crudo porque de él dependen el umbral de cambio de pestaña, el flick y el premontado de la vecina; restarle 36 también a eso pediría 108 px para cambiar de pestaña y el gesto se volvería pesado.
+- Guardián en `swipe-pestanas`: cruza el umbral a pasitos de 3 px y exige que el primer movimiento pintado sea menor de 12 px. Verificado **en rojo quitando el ancla**.
+
+**Lo que NO arregla esto, y hay que decirlo:** el hueco muerto de ~30 px (730 ms yendo lento) sigue ahí, porque es la guarda del scroll. Se ha quitado el brinco, no la espera. Bajar ese umbral es una decisión aparte y arriesgada: toca directamente el bug de «la deriva lateral roba el scroll».
 ## [4.19.38] — 2026-09-11
 ### Un solo logo de Aely, y un icono que no se corta
 

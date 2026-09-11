@@ -20665,6 +20665,22 @@ function App(){
     if(dragRaf.current){ cancelAnimationFrame(dragRaf.current); dragRaf.current=0; }
     dragOff.current=null;
   };
+  /* ⚠ DÓNDE EMPIEZA A MOVERSE EL CARRUSEL — el tironcillo que él lleva viendo desde el 10/9.
+     MEDIDO en su móvil (OnePlus 13, toques reales por `adb input swipe`, no sintéticos):
+       lento  → el dedo se mueve 721 ms sin que la pantalla responda, y entonces salta 36,1 px.
+       rápido → el mismo hueco de ~30 px, pero solo 173 ms, y salta 37,1 px.
+     Mismo salto, cuatro veces menos silencio. Por eso decía «si desplazas fluido no se nota
+     apenas, es ir lento y ahí se nota»: lo que se ve no es el salto, es el TIEMPO callado antes.
+
+     El hueco viene de la guarda de arriba, que no suelta el eje horizontal hasta `|ddx|>36` para
+     que el carrusel no le robe el scroll vertical. Esa guarda se queda: quitarla es volver al bug
+     de la deriva lateral. Lo que NO tiene por qué pasar es que, al soltarse, pinte los 36 px
+     acumulados DE GOLPE. Con el ancla, el carrusel arranca en 0 y sigue al dedo 1:1 desde ahí.
+
+     ⚠ El ancla es SOLO para lo que se ve. `dx.current` sigue siendo el recorrido crudo, porque de
+     él dependen el umbral de cambio de pestaña, el flick y el premontado de la vecina; restarle 36
+     también a eso pediría 108 px para cambiar de pestaña y el gesto se volvería pesado. */
+  const ancla=useRef(0);
   const trackW=useRef(0);   // ancho del carrusel, medido al empezar el gesto (ver onMove)
   const prepped=useRef(0);    // qué vecina se ha premontado ya EN ESTE gesto (ver onMove)
   /* EL CARRUSEL SE MUEVE EN PÍXELES, NO EN PORCENTAJES — y esto valía la mitad del lag.
@@ -20908,7 +20924,7 @@ function App(){
        contenido se desplaza al scrollear.
        Regla que deja esto: en este carrusel, NADA de `transform`/`will-change:transform`/`filter`/
        `perspective` en el track ni en ningún ancestro del host mientras el host sea `fixed`. */
-    dragging.current=true; axis.current=null; dx.current=0; startT.current=Date.now(); gestureMode.current=null;
+    dragging.current=true; axis.current=null; dx.current=0; ancla.current=0; startT.current=Date.now(); gestureMode.current=null;
     // El ancho del track, UNA vez y aquí: el layout todavía está limpio (no se ha congelado nada
     // ni añadido clases), así que esta lectura no fuerza reflow. Ver el porqué largo en `onMove`.
     trackW.current=(trackRef.current&&trackRef.current.offsetWidth)||window.innerWidth||360;
@@ -20956,6 +20972,8 @@ function App(){
         }
       }
       axis.current=eje;
+      // Desde AQUÍ cuenta el movimiento visible: lo recorrido hasta reclamar el eje no se pinta.
+      if(eje==="x") ancla.current=ddx;
       if(axis.current==="x"){
         /* AJUSTES SOLO DESDE RESUMEN (feedback 2026-07-27). El borde (`EDGE_OPEN`) en el resto
            de pestañas pillaba gestos normales y era un coñazo. Y el candado de 450 ms tras
@@ -21047,9 +21065,13 @@ function App(){
        Es layout-thrashing de manual, y la cura es la de manual: leer una vez, fuera del bucle. El
        ancho del track no cambia mientras el dedo está en la pantalla. */
     const w=trackW.current||360;
-    let off=-tab*100+(dx.current/w)*100;
+    // Lo que se PINTA arranca en 0 desde que el gesto es nuestro (ver `ancla`); lo que se DECIDE
+    // sigue usando el recorrido crudo.
+    const dxVis=dx.current-ancla.current;
+    let off=-tab*100+(dxVis/w)*100;
     // Sin rubber-band a la derecha en Inicio (ese gesto es Ajustes) — evitaba el rebote raro.
-    if(tab===tabIds.length-1&&dx.current<0) off=-tab*100+(dx.current/w)*100*0.28;
+    if(tab===tabIds.length-1&&dxVis<0) off=-tab*100+(dxVis/w)*100*0.28;
+    else if(tab===0&&dxVis>0) off=-tab*100;
     else if(tab===0&&dx.current>0) off=-tab*100;
     // Solo se APUNTA a dónde va; lo escribe el rAF, una vez por frame pintado (ver `pedirPintado`).
     pedirPintado(off*w/100);
@@ -21388,7 +21410,7 @@ function App(){
   // Cancela el gesto de tabs/ajustes a mitad (chips de Gastos: scroll interno sin cambiar de pestaña).
   const cancelSwipe=function(){
     if(!dragging.current) return;
-    dragging.current=false; axis.current=null; gestureMode.current=null; dx.current=0;
+    dragging.current=false; axis.current=null; gestureMode.current=null; dx.current=0; ancla.current=0;
     pararPintado();   // touchcancel: el navegador nos quita el gesto, hay que soltar el rAF igual
     endTopClearNow(true);
     // `tabRef` por lo mismo que en `goTab`: con el `tab` de cuando se construyó la página, cancelar

@@ -244,3 +244,48 @@ test("un gesto que el navegador cancela no deja la app bloqueada", async ({ page
   await expect.poll(() => pagina().then((p) => p.top), { timeout: 5_000 })
     .not.toBe(antes);
 });
+
+/* ── EL TIRONCILLO DEL ARRANQUE, MEDIDO ─────────────────────────────────────────────────────
+ *
+ * Su queja desde el 10/9, y la que más veces di por arreglada sin estarlo: «al scrollear de una
+ * tab a otra… si desplazas fluido no se nota apenas, es ir LENTO y ahí se nota el tirón».
+ *
+ * Medido el 11/9 en su OnePlus 13 con toques REALES (`adb shell input swipe`, no sintéticos):
+ * el carrusel no se movía hasta que el dedo pasaba de los ~30 px —la guarda que impide que robe
+ * el scroll vertical— y entonces pintaba los **36 px de golpe**. El hueco es el mismo yendo
+ * rápido, pero dura 173 ms en vez de 721: por eso solo se ve yendo lento.
+ *
+ * La guarda se queda (quitarla devuelve el bug de la deriva lateral). Lo que no puede volver es
+ * el SALTO. Tras el ancla, medido en el mismo móvil: 36,1 → 0,7 px (lento) y 37,1 → 1,5 (rápido).
+ */
+test("★ al reclamar el gesto, el carrusel arranca donde está y no pega un salto", async ({ page }) => {
+  await seedLoggedInDashboard(page);
+  await page.goto("/");
+  await appLista(page);
+  const cdp = await page.context().newCDPSession(page);
+
+  const leerX = () =>
+    page.evaluate(() => {
+      const t = document.querySelector(".track");
+      if (!t) return null;
+      return new DOMMatrixReadOnly(getComputedStyle(t).transform).m41;
+    });
+
+  const y = 200, x0 = page.viewportSize().width - 40;
+  const base = await leerX();
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: x0, y }] });
+
+  // Pasos pequeños, como un dedo yendo despacio: así se cruza el umbral sin saltárselo.
+  let primerMovimiento = null;
+  for (let d = 3; d <= 72 && primerMovimiento === null; d += 3) {
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x0 - d, y }] });
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    const ahora = await leerX();
+    if (ahora !== null && base !== null && Math.abs(ahora - base) > 0.5) primerMovimiento = Math.abs(ahora - base);
+  }
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+
+  expect(primerMovimiento, "el carrusel no llegó a moverse en 72 px de arrastre").not.toBeNull();
+  expect(primerMovimiento, "el primer fotograma pintado pega un salto: eso es el tironcillo que él ve al ir lento")
+    .toBeLessThan(12);
+});
