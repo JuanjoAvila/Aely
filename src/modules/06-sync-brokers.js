@@ -558,7 +558,7 @@ function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDele
   return items.map(function(it){
     return React.createElement("div",{className:"row",key:it.id},
       React.createElement("div",{className:"rl"},
-        React.createElement(LogoInv,{nombre:it.name,ent:it.ent,size:38}),
+        React.createElement(LogoInv,{nombre:it.name,ent:it.ent,kind:it.kind,size:38}),
         React.createElement("div",null,
           React.createElement("div",{className:"rname"},it.name),
           React.createElement("div",{className:"rsub"}, entOf(it.ent).label + (it.cur==="USD"?" \u00b7 USD":"")),
@@ -890,7 +890,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
         const pos=p.gain>=0; const wpct=Math.min(100,Math.abs(p.gain)/maxAbsGain*100);
         return React.createElement("div",{key:p.id,style:{padding:"8px 2px",borderBottom:"1px solid var(--line-soft)"}},
           React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginBottom:5}},
-            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:9,minWidth:0}},React.createElement(LogoInv,{nombre:p.name,ent:p.ent,size:30}),React.createElement("div",{className:"rname",style:{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},p.name)),
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:9,minWidth:0}},React.createElement(LogoInv,{nombre:p.name,ent:p.ent,kind:p.kind,size:30}),React.createElement("div",{className:"rname",style:{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},p.name)),
             React.createElement("div",{className:"num",style:{textAlign:"right",flex:"0 0 auto"}},
               React.createElement("div",{style:{fontWeight:700,color:pos?"var(--mint)":"var(--coral)"}},(pos?"+":"")+f2(p.gain)),
               React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)"}},(p.pl>=0?"+":"")+p.pl.toFixed(1)+"%"))),

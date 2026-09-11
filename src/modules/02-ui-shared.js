@@ -106,11 +106,11 @@ function Mono({ent, size, logo}){
    Quién es quién lo decide `marcaDeInversion` (00-core.js), que es la ÚNICA copia de esa regla:
    `scripts/logos-inversiones.mjs` la carga de ahí para generar los SVG y para su guardián.
    Si el SVG no carga, cae al monograma de siempre. */
-function LogoInv({nombre, ent, size}){
+function LogoInv({nombre, ent, size, kind}){
   size=size||38;
   /* El hook va SIEMPRE y ANTES de cualquier return: no puede quedarse detrás de una condición. */
   const [roto,setRoto]=React.useState(false);
-  const slug=(typeof marcaDeInversion==="function") ? marcaDeInversion(nombre) : null;
+  const slug=(typeof marcaDeInversion==="function") ? marcaDeInversion(nombre, kind) : null;
   if(slug && !roto){
     return React.createElement("div",{className:"mono mono-logo",title:nombre||"","aria-label":nombre||"",
       style:{width:size,height:size,background:"#fff",display:"grid",placeItems:"center",
@@ -119,7 +119,21 @@ function LogoInv({nombre, ent, size}){
         loading:"lazy",decoding:"async",onError:function(){ setRoto(true); },
         style:{width:Math.round(size*0.62),height:Math.round(size*0.62),objectFit:"contain",display:"block"}}));
   }
-  return React.createElement(Mono,{ent:ent,size:size,logo:false});
+  /* Sin icono: las iniciales DEL ACTIVO, no la insignia del bróker. Antes caía a `Mono`, así que
+     TSM, MU, el oro y los dos fondos salían TODOS como «Rv», «TR» o «MI» — cinco filas distintas
+     con la misma marca del custodio, que es justo lo que él llamó cutre (11/9). La fila es un
+     activo: enseña lo que ES, no dónde está guardado. */
+  const trozos=String(nombre||"").replace(/[^\p{L}\p{N} ]+/gu," ").trim().split(/\s+/).filter(Boolean);
+  /* Una sola palabra = un ticker («TSM», «MU»): se enseña ENTERO, que es como lo llama el bróker.
+     Con la primera letra de cada palabra salían «T» y «M», que no dicen nada. */
+  const ini=(trozos.length===1
+    ? trozos[0].slice(0,4)
+    : trozos.slice(0,2).map(function(w){ return w[0]; }).join("")).toUpperCase() || "··";
+  return React.createElement("div",{className:"mono",title:nombre||"","aria-label":nombre||"",
+    style:{width:size,height:size,borderRadius:Math.round(size*0.275),flex:"0 0 auto",
+      display:"grid",placeItems:"center",background:"var(--sur2)",color:"var(--muted)",
+      border:"1px solid var(--line-soft)",fontWeight:800,
+      fontSize:Math.max(10,Math.round(size*0.32)),letterSpacing:"-0.02em"}}, ini);
 }
 /* Ayuda contextual: un «?» discreto que explica la tarjeta en cristiano (para no-técnicos). */
 function HelpTip({text}){

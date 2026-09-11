@@ -13,6 +13,8 @@ const SHELL = [
   "./logos/myinvestor.png", "./logos/caixabank.png",
   "./logos/inv/nvidia.svg", "./logos/inv/amd.svg", "./logos/inv/meta.svg",
   "./logos/inv/alphabet.svg", "./logos/inv/broadcom.svg",
+  "./logos/inv/tsmc.svg", "./logos/inv/micron.svg",
+  "./logos/inv/oro.svg", "./logos/inv/etf-mundo.svg", "./logos/inv/fondo-indice.svg",
   "./vendor/supabase.min.js",
   "./fonts/manrope-latin.woff2", "./fonts/manrope-latin-ext.woff2",
   "./fonts/fraunces-latin.woff2", "./fonts/fraunces-latin-ext.woff2",

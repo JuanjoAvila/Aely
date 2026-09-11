@@ -3476,14 +3476,16 @@ function palabrasDeNombre(nombre){
 /* Un FONDO que lleve dentro el nombre de una empresa NO es esa empresa: un «AMD Ryzen Fondo
    Tecnológico» o un «iShares Metaverse UCITS» no llevan logo. Se mira ANTES que las marcas. */
 const PALABRAS_DE_FONDO=["fondo","fund","etf","ucits","index","indexado","sicav",
-  "vanguard","ishares","amundi","msci","lyxor","xtrackers"];
+  "vanguard","ishares","amundi","msci","lyxor","xtrackers",
+  // índices: un «FTSE All-World» no lleva ninguna de las de arriba y es un fondo igual
+  "ftse","stoxx","nasdaq"];
 /* ⚠ REVOLUT LOS LLAMA POR EL TICKER, no por el nombre (su captura del 11/9: `NVDA`, `GOOG`,
    `AVGO`, `TSM`, `MU`), mientras que Trade Republic manda «Meta Platforms» y Revolut manda «AMD».
    Por eso en la primera versión solo salían AMD y Meta: las otras cinco llegaban como ticker.
    El ticker solo vale si el nombre ENTERO es ese ticker: buscarlo dentro de un nombre largo haría
    que un «MU» o un «TSM» sueltos se llevaran un logo que no les toca. */
 const TICKERS_INVERSION={ nvda:"nvidia", goog:"alphabet", googl:"alphabet", avgo:"broadcom",
-  amd:"amd", meta:"meta" };
+  amd:"amd", meta:"meta", tsm:"tsmc", mu:"micron" };
 /* `clave` = palabras que TODAS tienen que estar en el nombre. */
 const MARCAS_INVERSION=[
   {slug:"nvidia",   clave:["nvidia"]},
@@ -3492,10 +3494,40 @@ const MARCAS_INVERSION=[
   {slug:"meta",     clave:["meta","platforms"]},
   {slug:"alphabet", clave:["alphabet"]},
   {slug:"broadcom", clave:["broadcom"]},
+  {slug:"tsmc",     clave:["taiwan","semiconductor"]},
+  {slug:"micron",   clave:["micron"]},
 ];
-function marcaDeInversion(nombre){
+/* CATEGORÍAS, para lo que no es una empresa con logotipo (2026-09-11, petición suya: «para el oro
+   métele un lingote, y para el FTSE All-World y el MSCI World algo distintivo, al final uno es un
+   ETF y otro un fondo indexado»). Aquí SÍ se dibuja, y es legítimo: no hay marca que copiar, es
+   iconografía de categoría — al revés que con los logos de banco, donde dibujar salió mal cuatro
+   veces seguidas. */
+function categoriaDeInversion(nombre, kind){
   const p=palabrasDeNombre(nombre);
   if(!p.length) return null;
+  // Oro y metales: el lingote.
+  if(p.indexOf("oro")>=0 || p.indexOf("xau")>=0 || p.indexOf("gold")>=0) return "oro";
+  const esFondo=(function(){
+    for(let i=0;i<PALABRAS_DE_FONDO.length;i++) if(p.indexOf(PALABRAS_DE_FONDO[i])>=0) return true;
+    return false;
+  })();
+  if(!esFondo) return null;
+  /* ETF o fondo indexado. `kind` lo manda MyInvestor (`indexed`/`fund`); Trade Republic no manda
+     nada, así que ahí se mira el nombre. No es perfecto y no lo puede ser con un nombre suelto:
+     ante la duda cae a fondo, que es lo más común en su cartera. */
+  if(kind==="indexed") return "fondo-indice";
+  if(p.indexOf("etf")>=0 || p.indexOf("ucits")>=0) return "etf-mundo";
+  if(kind==="fund") return "fondo-indice";
+  // «FTSE All-World» de Trade Republic llega sin `kind` y sin la palabra ETF, pero lo es.
+  if(p.indexOf("ftse")>=0 || (p.indexOf("all")>=0 && p.indexOf("world")>=0)) return "etf-mundo";
+  return "fondo-indice";
+}
+function marcaDeInversion(nombre, kind){
+  const p=palabrasDeNombre(nombre);
+  if(!p.length) return null;
+  // Categoría primero: el oro y los fondos nunca son una empresa.
+  const cat=categoriaDeInversion(nombre, kind);
+  if(cat) return cat;
   for(let i=0;i<PALABRAS_DE_FONDO.length;i++) if(p.indexOf(PALABRAS_DE_FONDO[i])>=0) return null;
   // Ticker: solo si el nombre es EXACTAMENTE eso y nada más.
   if(p.length===1 && TICKERS_INVERSION[p[0]]) return TICKERS_INVERSION[p[0]];
@@ -7060,11 +7092,11 @@ function Mono({ent, size, logo}){
    Quién es quién lo decide `marcaDeInversion` (00-core.js), que es la ÚNICA copia de esa regla:
    `scripts/logos-inversiones.mjs` la carga de ahí para generar los SVG y para su guardián.
    Si el SVG no carga, cae al monograma de siempre. */
-function LogoInv({nombre, ent, size}){
+function LogoInv({nombre, ent, size, kind}){
   size=size||38;
   /* El hook va SIEMPRE y ANTES de cualquier return: no puede quedarse detrás de una condición. */
   const [roto,setRoto]=React.useState(false);
-  const slug=(typeof marcaDeInversion==="function") ? marcaDeInversion(nombre) : null;
+  const slug=(typeof marcaDeInversion==="function") ? marcaDeInversion(nombre, kind) : null;
   if(slug && !roto){
     return React.createElement("div",{className:"mono mono-logo",title:nombre||"","aria-label":nombre||"",
       style:{width:size,height:size,background:"#fff",display:"grid",placeItems:"center",
@@ -7073,7 +7105,21 @@ function LogoInv({nombre, ent, size}){
         loading:"lazy",decoding:"async",onError:function(){ setRoto(true); },
         style:{width:Math.round(size*0.62),height:Math.round(size*0.62),objectFit:"contain",display:"block"}}));
   }
-  return React.createElement(Mono,{ent:ent,size:size,logo:false});
+  /* Sin icono: las iniciales DEL ACTIVO, no la insignia del bróker. Antes caía a `Mono`, así que
+     TSM, MU, el oro y los dos fondos salían TODOS como «Rv», «TR» o «MI» — cinco filas distintas
+     con la misma marca del custodio, que es justo lo que él llamó cutre (11/9). La fila es un
+     activo: enseña lo que ES, no dónde está guardado. */
+  const trozos=String(nombre||"").replace(/[^\p{L}\p{N} ]+/gu," ").trim().split(/\s+/).filter(Boolean);
+  /* Una sola palabra = un ticker («TSM», «MU»): se enseña ENTERO, que es como lo llama el bróker.
+     Con la primera letra de cada palabra salían «T» y «M», que no dicen nada. */
+  const ini=(trozos.length===1
+    ? trozos[0].slice(0,4)
+    : trozos.slice(0,2).map(function(w){ return w[0]; }).join("")).toUpperCase() || "··";
+  return React.createElement("div",{className:"mono",title:nombre||"","aria-label":nombre||"",
+    style:{width:size,height:size,borderRadius:Math.round(size*0.275),flex:"0 0 auto",
+      display:"grid",placeItems:"center",background:"var(--sur2)",color:"var(--muted)",
+      border:"1px solid var(--line-soft)",fontWeight:800,
+      fontSize:Math.max(10,Math.round(size*0.32)),letterSpacing:"-0.02em"}}, ini);
 }
 /* Ayuda contextual: un «?» discreto que explica la tarjeta en cristiano (para no-técnicos). */
 function HelpTip({text}){
@@ -10600,7 +10646,7 @@ function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDele
   return items.map(function(it){
     return React.createElement("div",{className:"row",key:it.id},
       React.createElement("div",{className:"rl"},
-        React.createElement(LogoInv,{nombre:it.name,ent:it.ent,size:38}),
+        React.createElement(LogoInv,{nombre:it.name,ent:it.ent,kind:it.kind,size:38}),
         React.createElement("div",null,
           React.createElement("div",{className:"rname"},it.name),
           React.createElement("div",{className:"rsub"}, entOf(it.ent).label + (it.cur==="USD"?" \u00b7 USD":"")),
@@ -10932,7 +10978,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
         const pos=p.gain>=0; const wpct=Math.min(100,Math.abs(p.gain)/maxAbsGain*100);
         return React.createElement("div",{key:p.id,style:{padding:"8px 2px",borderBottom:"1px solid var(--line-soft)"}},
           React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginBottom:5}},
-            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:9,minWidth:0}},React.createElement(LogoInv,{nombre:p.name,ent:p.ent,size:30}),React.createElement("div",{className:"rname",style:{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},p.name)),
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:9,minWidth:0}},React.createElement(LogoInv,{nombre:p.name,ent:p.ent,kind:p.kind,size:30}),React.createElement("div",{className:"rname",style:{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},p.name)),
             React.createElement("div",{className:"num",style:{textAlign:"right",flex:"0 0 auto"}},
               React.createElement("div",{style:{fontWeight:700,color:pos?"var(--mint)":"var(--coral)"}},(pos?"+":"")+f2(p.gain)),
               React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)"}},(p.pl>=0?"+":"")+p.pl.toFixed(1)+"%"))),

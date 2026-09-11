@@ -1459,14 +1459,16 @@ function palabrasDeNombre(nombre){
 /* Un FONDO que lleve dentro el nombre de una empresa NO es esa empresa: un «AMD Ryzen Fondo
    Tecnológico» o un «iShares Metaverse UCITS» no llevan logo. Se mira ANTES que las marcas. */
 const PALABRAS_DE_FONDO=["fondo","fund","etf","ucits","index","indexado","sicav",
-  "vanguard","ishares","amundi","msci","lyxor","xtrackers"];
+  "vanguard","ishares","amundi","msci","lyxor","xtrackers",
+  // índices: un «FTSE All-World» no lleva ninguna de las de arriba y es un fondo igual
+  "ftse","stoxx","nasdaq"];
 /* ⚠ REVOLUT LOS LLAMA POR EL TICKER, no por el nombre (su captura del 11/9: `NVDA`, `GOOG`,
    `AVGO`, `TSM`, `MU`), mientras que Trade Republic manda «Meta Platforms» y Revolut manda «AMD».
    Por eso en la primera versión solo salían AMD y Meta: las otras cinco llegaban como ticker.
    El ticker solo vale si el nombre ENTERO es ese ticker: buscarlo dentro de un nombre largo haría
    que un «MU» o un «TSM» sueltos se llevaran un logo que no les toca. */
 const TICKERS_INVERSION={ nvda:"nvidia", goog:"alphabet", googl:"alphabet", avgo:"broadcom",
-  amd:"amd", meta:"meta" };
+  amd:"amd", meta:"meta", tsm:"tsmc", mu:"micron" };
 /* `clave` = palabras que TODAS tienen que estar en el nombre. */
 const MARCAS_INVERSION=[
   {slug:"nvidia",   clave:["nvidia"]},
@@ -1475,10 +1477,40 @@ const MARCAS_INVERSION=[
   {slug:"meta",     clave:["meta","platforms"]},
   {slug:"alphabet", clave:["alphabet"]},
   {slug:"broadcom", clave:["broadcom"]},
+  {slug:"tsmc",     clave:["taiwan","semiconductor"]},
+  {slug:"micron",   clave:["micron"]},
 ];
-function marcaDeInversion(nombre){
+/* CATEGORÍAS, para lo que no es una empresa con logotipo (2026-09-11, petición suya: «para el oro
+   métele un lingote, y para el FTSE All-World y el MSCI World algo distintivo, al final uno es un
+   ETF y otro un fondo indexado»). Aquí SÍ se dibuja, y es legítimo: no hay marca que copiar, es
+   iconografía de categoría — al revés que con los logos de banco, donde dibujar salió mal cuatro
+   veces seguidas. */
+function categoriaDeInversion(nombre, kind){
   const p=palabrasDeNombre(nombre);
   if(!p.length) return null;
+  // Oro y metales: el lingote.
+  if(p.indexOf("oro")>=0 || p.indexOf("xau")>=0 || p.indexOf("gold")>=0) return "oro";
+  const esFondo=(function(){
+    for(let i=0;i<PALABRAS_DE_FONDO.length;i++) if(p.indexOf(PALABRAS_DE_FONDO[i])>=0) return true;
+    return false;
+  })();
+  if(!esFondo) return null;
+  /* ETF o fondo indexado. `kind` lo manda MyInvestor (`indexed`/`fund`); Trade Republic no manda
+     nada, así que ahí se mira el nombre. No es perfecto y no lo puede ser con un nombre suelto:
+     ante la duda cae a fondo, que es lo más común en su cartera. */
+  if(kind==="indexed") return "fondo-indice";
+  if(p.indexOf("etf")>=0 || p.indexOf("ucits")>=0) return "etf-mundo";
+  if(kind==="fund") return "fondo-indice";
+  // «FTSE All-World» de Trade Republic llega sin `kind` y sin la palabra ETF, pero lo es.
+  if(p.indexOf("ftse")>=0 || (p.indexOf("all")>=0 && p.indexOf("world")>=0)) return "etf-mundo";
+  return "fondo-indice";
+}
+function marcaDeInversion(nombre, kind){
+  const p=palabrasDeNombre(nombre);
+  if(!p.length) return null;
+  // Categoría primero: el oro y los fondos nunca son una empresa.
+  const cat=categoriaDeInversion(nombre, kind);
+  if(cat) return cat;
   for(let i=0;i<PALABRAS_DE_FONDO.length;i++) if(p.indexOf(PALABRAS_DE_FONDO[i])>=0) return null;
   // Ticker: solo si el nombre es EXACTAMENTE eso y nada más.
   if(p.length===1 && TICKERS_INVERSION[p[0]]) return TICKERS_INVERSION[p[0]];
