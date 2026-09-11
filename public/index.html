@@ -13761,15 +13761,36 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
    compara contra `RELEASE_NOTES` va por la base (4.11.0). Lo usan la checklist de beta y el popup
    de Novedades — la segunda lo hacía a pelo y por eso no marcaba nunca «tu versión». */
 function mcVerBase(v){ return String(v||"").split(".").slice(0,3).join("."); }
-function betaChecklist(version){
-  // Las notas de la versión en curso SON la checklist.
+/* Compara X.Y.Z aunque el helper del boot aún no esté disponible (tests / orden de carga). */
+function mcIsNewer(a,b){
+  if(typeof window!=="undefined"&&window._mcNewerVer) return window._mcNewerVer(a,b);
+  a=String(a||"").split("."); b=String(b||"").split(".");
+  for(var i=0;i<Math.max(a.length,b.length);i++){
+    var x=parseInt(a[i]||0,10), y=parseInt(b[i]||0,10);
+    if(x!==y) return x>y;
+  }
+  return false;
+}
+function betaChecklist(version,prodVersion){
   var base=mcVerBase(version);
-  var notes=(typeof RELEASE_NOTES!=="undefined"&&RELEASE_NOTES.length)
-    ? (RELEASE_NOTES.filter(function(n){ return n.v===base; })[0] || RELEASE_NOTES[0])
-    : null;
+  if(typeof RELEASE_NOTES==="undefined"||!RELEASE_NOTES.length) return {v:base,t:"",items:[],tandas:[]};
+  /* Con Pages conocida, revisar solo la última versión dejaba invisibles tandas que estaban en
+     esta misma beta. Sin red conservamos una única versión: si falta la referencia segura, no
+     inventamos una ronda. */
+  var conProd=prodVersion!=null&&prodVersion!=="", round;
+  if(!conProd){
+    var one=RELEASE_NOTES.filter(function(n){ return n.v===base; })[0]||RELEASE_NOTES[0];
+    round=one?[one]:[];
+  }else{
+    var prod=mcVerBase(prodVersion);
+    round=RELEASE_NOTES.filter(function(n){ return n&&n.v&&mcIsNewer(n.v,prod)&&!mcIsNewer(n.v,base); });
+  }
+  if(!round.length){
+    var fallback=RELEASE_NOTES.filter(function(n){ return n.v===base; })[0]||RELEASE_NOTES[0];
+    round=fallback?[fallback]:[];
+  }
   // El panel de revisión es la consola privada del dueño y va SIN traducir (como «Actividad»),
   // así que la checklist se lee siempre en castellano aunque la app esté en otro idioma.
-  if(!notes) return { v:base, t:"", items:[], tandas:[] };
   /* ⚠ LA CHECKLIST SON LOS PUNTOS DE LAS TANDAS, NO LOS DE NOVEDADES (2026-08-01).
      `items` de una versión es lo que lee LA FAMILIA en Novedades: otra redacción, otro número de
      líneas (la 4.13.0 tiene 14 ahí y 21 repartidos en tandas). El panel numera los puntos
@@ -13781,10 +13802,17 @@ function betaChecklist(version){
      construcción. Sin tandas declaradas, `betaTandas` devuelve una sola con `rnItems` dentro, así
      que esto da EXACTAMENTE la misma lista de siempre y las 69 versiones del histórico no se
      enteran. */
-  var tandas=betaTandas(notes);
-  var planos=[];
-  tandas.forEach(function(g){ planos=planos.concat(g.items); });
-  return { v:notes.v, t:rnT(notes.t,"es"), items:planos, tandas:tandas };
+  var tandas=[], planos=[], titulo="";
+  round.forEach(function(notes){
+    if(!titulo) titulo=rnT(notes.t,"es");
+    betaTandas(notes).forEach(function(g){
+      /* Dos tandas de versiones distintas pueden compartir id: prefijarlo evita que sus
+         veredictos se pisen. Para una sola versión se conserva la clave ya guardada. */
+      tandas.push({id:conProd?(notes.v+"/"+g.id):g.id,t:conProd?("v"+notes.v+(g.t?" · "+g.t:"")):g.t,items:g.items});
+      planos=planos.concat(g.items);
+    });
+  });
+  return {v:base,t:titulo,items:planos,tandas:tandas};
 }
 /* LAS TANDAS DE UNA VERSIÓN — varias betas a la vez, cada una con su veredicto.
    Petición suya 2026-07-29: «que se pudieran implementar varias betas a la vez y que me des la
@@ -13836,6 +13864,17 @@ function betaMarksCount(pack){
   });
   return { n:n, tot:pack.items.length };
 }
+/* Pages responde con su versión cruda; compartirla evita dos consultas que podían discrepar. */
+function useProdVersion(){
+  const [prod,setProd]=useState(null);
+  useEffect(function(){
+    if(!window._mcProdVersion) return;
+    let vivo=true;
+    window._mcProdVersion().then(function(v){ if(vivo) setProd(v||null); });
+    return function(){ vivo=false; };
+  },[]);
+  return prod;
+}
 /* ¿LO QUE LLEVO PUESTO YA ESTÁ EN PRODUCCIÓN? (petición suya 2026-07-28)
    «Ponme que cuando suba algo a prod, la beta no haya nada para aprobar porque lógicamente ya lo
    hice para que subiera prod». Y es verdad: promocionar ES la aprobación. Pero el panel solo
@@ -13846,13 +13885,7 @@ function betaMarksCount(pack){
    ya va por ahí o más allá, esto está aprobado por definición. `null` mientras se pregunta o si
    la red falla: en la duda se sigue preguntando, que es el lado seguro. */
 function useYaEnProd(){
-  const [prod,setProd]=useState(null);
-  useEffect(function(){
-    if(!window._mcProdVersion) return;
-    let vivo=true;
-    window._mcProdVersion().then(function(v){ if(vivo) setProd(v||null); });
-    return function(){ vivo=false; };
-  },[]);
+  const prod=useProdVersion();
   if(!prod||!window._mcNewerVer) return null;
   const base=mcVerBase(CONFIG.APP_VERSION);
   /* UNA VERSIÓN QUE NO SE PUEDE COMPARAR NO DA NADA POR APROBADO (2026-07-28, cazado en CI).
@@ -13866,8 +13899,9 @@ function useYaEnProd(){
 }
 function BetaReviewPanel({onClose, showToast}){
   useBackClose(true, onClose);
-  const pack=betaChecklist(CONFIG.APP_VERSION);
-  const yaEnProd=useYaEnProd();
+  const prod=useProdVersion();
+  const pack=betaChecklist(CONFIG.APP_VERSION,prod);
+  const yaEnProd=(!prod||!/^\d+\.\d+\.\d+$/.test(mcVerBase(CONFIG.APP_VERSION)))?null:(!mcIsNewer(mcVerBase(CONFIG.APP_VERSION),prod)?prod:false);
   // La clave va por la COMPILACIÓN (4.12.0.17), no por la versión base (4.12.0). Petición suya
   // 2026-07-26: «cuando me subas una nueva versión con el fix de eso, que se resetee y se ponga
   // vacío». Con la clave por versión base, la beta siguiente heredaba las cruces y los comentarios
@@ -14364,6 +14398,13 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.14",d:"11 sep 2026",
+   t:{es:"Revisar la beta muestra la ronda entera",en:"Beta review shows the whole round",ca:"Revisar la beta mostra tota la ronda"},
+   tandas:[{id:"panel-ronda",t:{es:"🧪 Toda la ronda a la vista",en:"🧪 Whole round in view",ca:"🧪 Tota la ronda a la vista"},items:{
+     es:["Ajustes → Revisar esta beta reúne las tandas pendientes de toda la ronda, con su versión en el título."],
+     en:["Settings → Review this beta gathers the pending tandas from the whole round, with their version in the title."],
+     ca:["Ajustaments → Revisar aquesta beta reuneix les tandes pendents de tota la ronda, amb la versió al títol."]}}],
+   items:{es:["Revisar la beta reúne toda la ronda pendiente, con pasos claros."],en:["Beta review gathers the full pending round, with clear steps."],ca:["Revisar la beta reuneix tota la ronda pendent, amb passos clars."]}},
   {v:"4.18.8", d:"10 sep 2026",
    t:{es:"El resumen del mes y un tope por categoría",en:"The month summary and a cap per category",ca:"El resum del mes i un límit per categoria"},
    items:{
@@ -15635,7 +15676,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const [hojaOpen,setHojaOpen]=useState(false);  // importar una hoja de gastos (Excel/CSV)
   const [histOpen,setHistOpen]=useState(false);  // importar histórico del banco (también desde «Mis bancos»)
   const [autoBackOpen,setAutoBackOpen]=useState(false);  // copias automáticas diarias (state_backups)
-  const yaEnProd=useYaEnProd();                  // lo que corre ya lo sirve Pages → nada que aprobar
+  const prodVer=useProdVersion();                // Pages ahora; null mientras pregunta
+  const yaEnProd=(!prodVer||!/^\d+\.\d+\.\d+$/.test(mcVerBase(CONFIG.APP_VERSION)))?null:(!mcIsNewer(mcVerBase(CONFIG.APP_VERSION),prodVer)?prodVer:false);
   const loadEvents=function(){
     cloud.adminEvents(200).then(function(rows){
       setEvents(rows||[]);
@@ -16133,7 +16175,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
             // «Code review» pero probando la app: la checklist sale de las notas de esta versión.
             // Solo tiene sentido estando en beta — en estable no hay nada que aprobar.
             beta && (function(){
-              const pack=betaChecklist(CONFIG.APP_VERSION);
+              const pack=betaChecklist(CONFIG.APP_VERSION,prodVer);
               const c=betaMarksCount(pack);
               // Con la versión ya subida a producción la fila deja de cantar «3/8» — ese contador
               // se leía como trabajo pendiente cada vez que abría Ajustes, y no lo era (2026-07-28).

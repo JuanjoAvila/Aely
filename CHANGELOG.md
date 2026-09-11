@@ -1,3 +1,16 @@
+## [4.18.14] — 2026-09-11
+### Panel «Revisar la beta»: ronda entera
+
+- `betaChecklist(version, prodVersion)` reúne las tandas de todas las versiones posteriores a
+  producción y hasta la que corre; cada una conserva su versión en el título y un id propio.
+- `useProdVersion` comparte la lectura de Pages entre el panel y Ajustes, para que el contador y
+  la checklist usen exactamente la misma ronda.
+
+**Por qué:** revisar únicamente la última versión ocultaba tandas que ya estaban en la misma beta.
+Sin versión de producción confirmada se conserva el comportamiento prudente de una sola versión.
+
+OTA; sin Android.
+
 ## [4.18.8] — 2026-09-10
 ### Las dos tandas que aprobó, subidas solas
 
