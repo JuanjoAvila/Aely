@@ -51,11 +51,29 @@ for (const [d, f] of Object.entries(densidades)) {
   const dir = path.join(RES, "mipmap-" + d);
   if (!fs.existsSync(dir)) continue;
 
-  /* FOREGROUND del icono adaptativo: 108 dp de lienzo, pero solo los 72 dp centrales se ven
-     seguro (el sistema recorta y anima el resto). 72/108 = 0,667, y se deja un pelo de aire. */
+  /* FOREGROUND del icono adaptativo. El lienzo son 108 dp, pero el sistema RECORTA: solo los
+     72 dp centrales se ven con cualquier máscara y solo los 66 dp centrales están garantizados.
+     Y la máscara de las notificaciones es un CÍRCULO, así que lo que manda no es el lado del
+     badge sino su RADIO desde el centro.
+
+     Estaba en 0,63. El badge es un cuadrado redondeado, así que su punto más lejano es la esquina:
+     centro del arco a (15,15) de un lienzo de 64 → 24,04 del centro, más el radio 14,2 y el medio
+     trazo 0,8 = 39,04 de 64, o sea 0,61 del lado. Con 0,63: 0,61 × 108 × 0,63 = 41,5 de radio,
+     contra los 33 garantizados. Se sale 8,5 dp — y eso es exactamente lo que él vio el 11/9:
+     «el icono cuando sale algo sale cortado los bordes».
+
+     ⚠ Y no vale con la cuenta: el dibujo lleva un RESPLANDOR (drop-shadow) que sobresale del
+     trazo y que la geometría no ve. Medido sobre el PNG de 432 px con 0,50 salían 134,4 de radio
+     contra 132 garantizados: seguía cortándose. Con 0,49 el radio real es 131,7. Este número sale
+     de MEDIR los píxeles, no de calcularlo.
+
+     0,49 deja el icono algo más pequeño dentro de su caja, y es el precio de que no se corte. El
+     queda algo más pequeño dentro de su caja, y es el precio de que no se corte en ningún sitio.
+     El guardián `tests/aely-logo-unico.test.mjs` rehace esta cuenta y se pone rojo si alguien
+     vuelve a subir la escala sin mirar. */
   const fg = Math.round(108 * f);
   await pag.setViewportSize({ width: fg, height: fg });
-  await pag.setContent(pagina(fg, 0.63, null));
+  await pag.setContent(pagina(fg, 0.49, null));
   fs.writeFileSync(path.join(dir, "ic_launcher_foreground.png"),
     await pag.screenshot({ omitBackground: true }));
 

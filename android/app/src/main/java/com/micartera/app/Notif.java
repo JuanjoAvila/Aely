@@ -42,7 +42,7 @@ class Notif {
             NotificationManager nm = ctx.getSystemService(NotificationManager.class);
             if (nm != null && nm.getNotificationChannel(CHANNEL) == null) {
                 NotificationChannel ch = new NotificationChannel(
-                        CHANNEL, "Mi Cartera · avisos", NotificationManager.IMPORTANCE_DEFAULT);
+                        CHANNEL, "Aely · avisos", NotificationManager.IMPORTANCE_DEFAULT);
                 ch.setDescription("Gastos capturados y avisos de presupuesto");
                 nm.createNotificationChannel(ch);
             }

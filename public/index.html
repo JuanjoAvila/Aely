@@ -1654,7 +1654,13 @@
      De ahí que el vigilante esperase `#root` con más de un hijo —cosa que no pasaba nunca— y que
      el usuario no viera splash ninguno, solo negro. Como hermano, React ni lo toca y se retira
      cuando nosotros decidimos. -->
-<div id="mc-load"><div class="mcl-mark" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="58" height="58" rx="14" stroke="currentColor" stroke-width="3"/><path d="M18 48 L32 14 L46 48" stroke="currentColor" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="32" cy="34" r="4.6" fill="currentColor"/></svg></div><div class="mcl-name">Aely</div><button class="mcl-retry" id="mcl-retry" type="button">Está tardando demasiado · reintentar</button></div>
+<!-- ⚠ ESTE SVG ES EL MISMO QUE `I.logo` (02-ui-shared.js) Y QUE `BADGE` (scripts/iconos-aely.mjs).
+     Tiene que ir a pelo aquí porque el splash se pinta ANTES de que cargue nada de JS. El 11/9
+     él vio dos logos distintos —«se ve alargado y no es el mismo»— porque este se quedó con un
+     dibujo viejo hecho a ojo mientras el otro se medía sobre `logo Aely.png`.
+     Las tres copias las ata el guardián `tests/aely-logo-unico.test.mjs`: si tocas una y no las
+     otras, se pone rojo. NO edites este trazo a ojo. -->
+<div id="mc-load"><div class="mcl-mark" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="0.8" y="0.8" width="62.4" height="62.4" rx="14.2" stroke="currentColor" stroke-width="1.6"/><path d="M31.8 11.5 L55.9 54.1 L46.7 54.1 L31.8 25.3 L16.9 54.1 L7.7 54.1 Z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="31.8" cy="43.7" r="5.1" fill="currentColor"/></svg></div><div class="mcl-name">Aely</div><button class="mcl-retry" id="mcl-retry" type="button">Está tardando demasiado · reintentar</button></div>
 <div id="root"></div>
 <script id="mcl-fuente">/* Ver el comentario de `.mcl-name`: el nombre espera a Fraunces para no cambiar
    de forma a la vista. Va aquí, pegado al splash y antes de los scripts pesados, para que la

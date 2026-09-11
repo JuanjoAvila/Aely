@@ -61,7 +61,7 @@ public class OtaCheckWorker extends Worker {
                 if (!remote.isEmpty() && newer(remote, current)) {
                     String already = sp.getString(KEY_BG_NOTIFIED, "");
                     if (!remote.equals(already)) {
-                        Notif.show(ctx, "Mi Cartera",
+                        Notif.show(ctx, "Aely",
                                 "Hay una actualización (v" + remote + ") lista. Toca para instalarla.",
                                 NOTIF_OTA, "update|ota");
                         sp.edit().putString(KEY_BG_NOTIFIED, remote).apply();
@@ -82,7 +82,7 @@ public class OtaCheckWorker extends Worker {
                     String vn = apkJson.optString("versionName", "v" + remoteCode);
                     String alreadyApk = sp.getString(KEY_BG_APK, "");
                     if (!vn.equals(alreadyApk)) {
-                        Notif.show(ctx, "Mi Cartera",
+                        Notif.show(ctx, "Aely",
                                 "Hay una app nueva (v" + vn + "). Toca el botón de arriba para instalarla.",
                                 NOTIF_APK, "update|apk");
                         sp.edit().putString(KEY_BG_APK, vn).apply();

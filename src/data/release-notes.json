@@ -1,5 +1,49 @@
 [
  {
+  "v": "4.19.38",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Un solo logo, y que no se corte",
+   "en": "One single logo, and not cropped",
+   "ca": "Un sol logotip, i que no es talli"
+  },
+  "tandas": [
+   {
+    "id": "logo-unico",
+    "t": {
+     "es": "🅰️ El logo de Aely, el mismo en todas partes",
+     "en": "🅰️ The Aely logo, the same everywhere",
+     "ca": "🅰️ El logotip d'Aely, el mateix a tot arreu"
+    },
+    "items": {
+     "es": [
+      "Al abrir la app (y al entrar o salir del banco de pruebas), el logo de la pantalla de carga tiene que ser EL MISMO que el del icono: la A ancha y rellena, no una estrecha de trazo fino.",
+      "⚠ El icono cortado en las notificaciones NO se arregla con esta actualización: eso es del instalador, hace falta una APK nueva."
+     ],
+     "en": [
+      "When the app opens (and when entering or leaving the test area), the loading logo must be THE SAME as the icon: the wide filled A, not a thin narrow one.",
+      "⚠ The cropped notification icon is NOT fixed by this update: that one is native and needs a new APK."
+     ],
+     "ca": [
+      "En obrir l'app (i en entrar o sortir de la zona de proves), el logotip de la pantalla de càrrega ha de ser EL MATEIX que el de la icona: la A ampla i plena.",
+      "⚠ La icona tallada a les notificacions NO es corregeix amb aquesta actualització: cal una APK nova."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "La pantalla de carga ya enseña el mismo logo que el icono de la app."
+   ],
+   "en": [
+    "The loading screen now shows the same logo as the app icon."
+   ],
+   "ca": [
+    "La pantalla de càrrega ja mostra el mateix logotip que la icona de l'app."
+   ]
+  }
+ },
+ {
   "v": "4.19.37",
   "d": "11 sep 2026",
   "t": {

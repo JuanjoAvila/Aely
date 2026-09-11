@@ -117,7 +117,7 @@ public class MiCarteraPlugin extends Plugin {
         act.runOnUiThread(() -> {
             try {
                 BiometricPrompt.PromptInfo info = new BiometricPrompt.PromptInfo.Builder()
-                        .setTitle("Mi Cartera")
+                        .setTitle("Aely")
                         .setSubtitle("Desbloquea para entrar")
                         .setAllowedAuthenticators(AUTHS)
                         .build();
@@ -185,7 +185,7 @@ public class MiCarteraPlugin extends Plugin {
         // para los avisos de actualización ya distingue ota de apk.
         String tag = call.getString("tag");
         if (tag == null || tag.isEmpty()) tag = gotoTarget != null ? gotoTarget : String.valueOf(body);
-        Notif.show(getContext(), title != null ? title : "Mi Cartera", body,
+        Notif.show(getContext(), title != null ? title : "Aely", body,
                 Notif.idFor(tag), gotoTarget);
         call.resolve();
     }
