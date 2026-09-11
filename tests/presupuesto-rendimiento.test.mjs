@@ -68,23 +68,15 @@ const PRESUPUESTO = {
      ⚠ El gzip está al 99 %: la siguiente tanda que meta texto lo revienta. El recorte de las notas
      a un JSON aparte (ya hecho en beta, deja el gzip en 318) tiene que subir a producción pronto;
      cuando suba, estos dos topes BAJAN, no se quedan. */
-  /* ⚠ UNA SOLA CLAVE. El 11/9 la integración de prod dejó `minificado` DOS VECES en este objeto
-     (una por tanda, cada una con su motivo). En un objeto literal gana la última en silencio: el
-     tope real pasó a ser el de abajo y el de arriba no lo leía nadie. Un presupuesto que no se
-     aplica es peor que no tenerlo, porque el verde sigue saliendo.
-
-     SUBIDO a 1216 KB el 2026-09-11, con motivo y MEDIDO sobre el bundle ya integrado (1212,6 min /
-     343,8 gzip). Lo que engorda son literales, no código: tres tandas × título + puntos × tres
-     idiomas en Novedades, más el aviso de descarga incompleta de FIN-07. Recortar aquí sería
-     quitar idiomas o quitarle a la familia la explicación de lo que ha cambiado.
-
-     ⚠⚠ EL GZIP ESTÁ A 0,2 KB DEL TOPE (343,8 de 344), y el gzip es lo que de verdad baja el móvil.
-     La siguiente tanda que meta una línea de texto lo revienta, y eso NO es un fallo del tope: es
-     el tope avisando. El arreglo ya existe y está en beta —sacar las notas de versión a un JSON
-     aparte, que allí deja el gzip en 318— y hay que portarlo a producción ANTES de seguir
-     portando tandas. Cuando suba, estos dos topes BAJAN, no se quedan. */
-  minificado: 1216 * 1024,
-  gzip: 344 * 1024,         // medido 2026-08-03: 318 KB  ← esto es lo que baja el móvil
+  /* BAJADOS el 2026-09-11, y esto es lo importante: un tope que sube y nunca vuelve a bajar deja
+     de ser un presupuesto y pasa a ser un sello de goma. El 11/9 el gzip llegó a 343,8 de 344 —a
+     0,2 KB— porque las 92 versiones de Novedades viajaban pegadas dentro del JS. Portado desde
+     beta el recorte (el histórico vive en src/data/release-notes.json y se sirve aparte), medido
+     sobre el bundle real: 1101,1 minificado y 305,8 gzip. Son 38 KB menos de gzip, un 11 %.
+     Los topes vuelven a tener el aire de siempre (~3 %) sobre lo medido HOY, no sobre lo que
+     llegaron a ser en el peor momento. */
+  minificado: 1135 * 1024,
+  gzip: 318 * 1024,         // medido 2026-09-11: 305,8 KB  ← esto es lo que baja el móvil
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

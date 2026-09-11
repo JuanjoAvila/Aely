@@ -69,9 +69,20 @@ ok(`VERSION = ${VERSION}`);
    las .1 de arreglo— lleva su entrada. Si no está, el popup enseña las notas de otra versión. */
 {
   const comp = read("src/modules/10-app-components.js");
-  const block = comp.match(/var RELEASE_NOTES=\[\s*\{\s*v:\s*"(\d+\.\d+\.\d+)"/);
-  if (!block) bad("RELEASE_NOTES existe y empieza por {v:\"X.Y.Z\"}", "no se encontró en 10-app-components.js");
-  else eq("RELEASE_NOTES primera nota", block[1], VERSION, "añade la nota de esta versión al PRINCIPIO del array (es/en/ca)");
+  /* NOTAS-BUNDLE (11/9): el histórico ya no vive en el módulo, vive en
+     src/data/release-notes.json. Mirar el módulo aquí dejaría el guardián CIEGO: pasaría siempre,
+     porque el array del index está vacío a propósito. */
+  const pNotas = path.join(root, "src/data/release-notes.json");
+  if (!fs.existsSync(pNotas)) bad("src/data/release-notes.json existe", "falta el histórico de Novedades");
+  else {
+    let first = null;
+    try {
+      const arr = JSON.parse(fs.readFileSync(pNotas, "utf8"));
+      first = arr && arr[0] && arr[0].v;
+    } catch (e) { bad("release-notes.json parseable", e.message); }
+    if (first) eq("RELEASE_NOTES primera nota", first, VERSION, "añade la nota de esta versión al PRINCIPIO de src/data/release-notes.json (es/en/ca)");
+    else bad("RELEASE_NOTES primera nota", "JSON vacío o sin v");
+  }
 }
 
 /* ---- 4. El escaparate: README y ROADMAP ----

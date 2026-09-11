@@ -1,3 +1,14 @@
+## [4.18.12] — 2026-09-11
+### Las notas de Novedades salen del bundle (NOTAS-BUNDLE, portado de beta)
+
+- La ronda de prod del 11/9 dejó el **gzip del index a 0,2 KB del tope** (343,8 de 344) porque las 92 versiones de Novedades viajaban pegadas dentro del JS. Portar una tanda más era imposible sin esto, y el gzip es lo que de verdad baja al móvil.
+- El histórico pasa a `src/data/release-notes.json`; el build lo copia a `public/release-notes.json` y deja el array del index VACÍO. `ensureReleaseNotes()` lo carga al abrir Novedades o el panel de revisión. El bundle del móvil lo lleva igual: `build-www.mjs` copia `public/` entero.
+- **Medido: 1212,6 → 1101,1 minificado y 343,8 → 305,8 gzip.** 38 KB menos, un 11 %. Los topes **BAJAN** a 1135 / 318 sobre lo medido hoy: un tope que sube y nunca vuelve a bajar deja de ser un presupuesto y pasa a ser un sello de goma.
+- **Rescatados cinco comentarios** que vivían dentro del array y que un JSON no puede guardar: la práctica de que una tanda aprobada se BORRA del array (si se deja marcada, el panel se la sigue pidiendo), que los puntos de una tanda no se reescriben entre compilaciones (el panel hereda los ✓/✗ casando por texto), y que lo ya promocionado solo no se vuelve a contar. Lo cazó `season-detalle`, que vigilaba uno de ellos; los otros cuatro se habrían perdido en silencio.
+- `docs-frescura` ya no mira el módulo para comprobar la nota de la versión: con el array vacío a propósito, ese guardián habría pasado SIEMPRE. Ahora mira el JSON.
+- `release-notes-max` deja de clavar a mano versiones de beta (`4.19.5`/`4.18.7`), que aquí no existen: la ronda se deriva de los datos, así el guardián dice lo mismo en las dos ramas.
+- `rnItems` aplana las tandas: una versión que declara tandas y se olvida de los `items` de primer nivel salía MUDA en Novedades (le pasó a la 4.18.5).
+
 ## [4.18.11] — 2026-09-11
 ### Posibles repetidos de Open Banking se revisan, no se pierden
 
