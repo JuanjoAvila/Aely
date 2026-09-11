@@ -25,8 +25,7 @@
      "en": [
       "Portfolio → Your accounts: the empty blue box covering the bank name must be gone.",
       "Start the app with «Try with an empty app»: «Skip» can no longer touch the title on any of the three screens.",
-      "Starting fresh, the app text starts small. If you raise it in Settings, yours wins.",
-      "In the empty test wallet, drag up and down: the app can no longer move as one block and bounce."
+      "Starting fresh, the app text starts small. If you raise it in Settings, yours wins."
      ],
      "ca": [
       "Cartera → Els teus comptes: el requadre blau buit que tapava el nom del banc ha de desaparèixer.",
@@ -39,13 +38,13 @@
   ],
   "items": {
    "es": [
-    "Arreglado el recuadro azul que tapaba el nombre del banco en Tus cuentas, el «Saltar» pegado al título al estrenar la app, y el rebote de la pantalla entera cuando no hay nada que deslizar."
+    "Arreglado el recuadro azul que tapaba el nombre del banco en Tus cuentas y el «Saltar» pegado al título al estrenar la app."
    ],
    "en": [
-    "Fixed the blue box covering the bank name, the «Skip» stuck to the title on first run, and the whole-screen bounce when there is nothing to scroll."
+    "Fixed the blue box covering the bank name in Your accounts and the «Skip» stuck to the title on first run."
    ],
    "ca": [
-    "Arreglat el requadre blau que tapava el nom del banc, el «Saltar» enganxat al títol i el rebot de tota la pantalla."
+    "Arreglat el requadre blau que tapava el nom del banc i el «Saltar» enganxat al títol."
    ]
   }
  },

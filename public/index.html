@@ -570,17 +570,20 @@
   .page.page-scroll-host{
     position:fixed;left:0;right:0;top:calc(var(--safe-top) + 4px);bottom:0;width:100%;height:auto;max-width:520px;
     margin:0 auto;z-index:35;transform:none !important;
-    /* ⚠ `contain` EN VERTICAL, NO `auto` (11/9, él en el banco de pruebas vacío: «al scrollear se
-       baja todo en bloque y luego sube»).
-       Con la cartera VACÍA la página no tiene nada que scrollear —medido: Plan da scrollHeight 808
-       y clientHeight 808— así que el gesto no lo coge el host: se encadena hacia arriba y el efecto
-       nativo se lo come la app entera, que se mueve de una pieza y rebota.
-       `contain` corta el encadenado SIN matar el efecto: la ola nativa se sigue viendo DENTRO del
-       host (que es lo que se quiso al quitar el viejo `overscroll-behavior-y:none`), pero ya no
-       puede arrastrar a los ancestros. `none` haría las dos cosas y por eso no vale.
-       ⚠ Que en la cartera vacía no se oculte la barra ni haya ola NO es un fallo aparte: sin nada
-       que scrollear no hay eventos de scroll. Es la misma raíz. */
-    touch-action:auto;contain:none;overscroll-behavior-x:auto;overscroll-behavior-y:contain;
+    /* ⚠ AQUÍ TENÍA PUESTO `overscroll-behavior-y:contain` Y LO HE QUITADO (11/9).
+       Lo metí para su «al scrollear se baja todo en bloque y luego sube» en el banco de pruebas
+       vacío, razonando que sin nada que scrollear el gesto se encadena hacia arriba y el efecto
+       nativo se lo come la app entera. La mitad del razonamiento está MEDIDA y es cierta: con la
+       cartera vacía, Plan da scrollHeight 748 y clientHeight 748, o sea que no scrollea nada.
+       Pero la otra mitad NO la he podido reproducir en su móvil: ni el shell se mueve un píxel
+       (215 fotogramas, 0,0 px) ni dos capturas —una con el dedo puesto en el sobrescroll y otra
+       en reposo— salen distintas: son el MISMO sha1.
+       Así que no hay prueba de que el fallo sea esto, y por tanto tampoco de que `contain` lo
+       arregle. Cambiar el comportamiento del scroll de toda la familia por una hipótesis bonita
+       es justo lo que aquí sale caro. Se queda como estaba hasta verlo pasar.
+       Lo que sí es seguro: que en la cartera vacía no se oculte la barra ni salga la ola NO es un
+       bug, es que no hay scroll. Con datos vuelve solo. */
+    touch-action:auto;contain:none;overscroll-behavior:auto;overscroll-behavior-y:auto;
     overflow-y:auto;-webkit-overflow-scrolling:touch;content-visibility:visible;
     background:var(--bg);
     padding:6px 18px calc(108px + var(--safe-bottom));
