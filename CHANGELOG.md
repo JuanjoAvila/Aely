@@ -1,3 +1,14 @@
+## [4.19.38] — 2026-09-11
+### Un solo logo de Aely, y un icono que no se corta
+
+- **Había DOS logos distintos.** Él lo vio en su móvil: *«al cargar… se ve este icono es raro, se ve alargado y no es el mismo»*. Tenía razón: la pantalla de carga de `shell.html` se había quedado con un dibujo viejo hecho a ojo —su «A» iba de 18 a 46 (28 de ancho) contra los 7,7→55,9 (48) del bueno, y encima era un trazo abierto sin relleno— mientras `I.logo` llevaba el medido sobre `logo Aely.png`. De ahí lo de «alargado».
+- **El icono de Android salía cortado por los bordes** en las notificaciones: *«el icono cuando sale algo sale cortado los bordes»*. No era otro dibujo, era geometría. La máscara de las notificaciones es un CÍRCULO, y lo que manda no es el lado del badge sino su radio. Estaba al 0,63 del lienzo → 41,5 dp de radio contra los 33 garantizados.
+- **Y la cuenta no bastaba.** Bajándolo a 0,50 la geometría decía 32,9, pero midiendo los píxeles del PNG salían **134,4 de 132**: seguía cortándose, porque el dibujo lleva un resplandor que sobresale del trazo y que la fórmula no ve. Con 0,49 el radio real es **131,6**. El número sale de medir, no de calcular.
+- Guardián `aely-logo-unico` (4 casos): ata las TRES copias del badge —splash, `I.logo` e `iconos-aely`— y rehace la cuenta del recorte con la fracción **medida**. Verificado en rojo devolviendo el logo viejo al splash.
+- Cinco literales «Mi Cartera» que se saltaron el rebranding en el lado nativo (título de las notificaciones, nombre del canal y el aviso de actualización) pasan a **Aely**. Es lo que sale en la notificación de su captura.
+
+⚠ **El icono y los textos nativos NO viajan por beta**: son de la APK. Esta versión arregla por OTA la pantalla de carga; lo demás necesita instalar una APK nueva.
+
 ## [4.19.36] — 2026-09-11
 ### FIN-07 · El histórico entero, y una descarga a medias que ya no borra
 
