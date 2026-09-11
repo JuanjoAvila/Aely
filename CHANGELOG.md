@@ -1,3 +1,12 @@
+## [4.18.23] — 2026-09-11
+### El catch mudo de `addExpense` ya habla
+
+Cazado en vivo (widget 512 sin abrir app → app 497 → widget 497): la app contaba un ingreso
+local de 14,90 € (Bizum) que la nube no tenía. El backfill hacia `expenses` tragaba el error
+con `.catch(function(){})`. Ahora `logEvent` guarda la clave `día|importe|comercio` y el error
+de Supabase. No cambia ninguna cifra; sin esto seguíamos adivinando.
+
+
 ## [4.18.22] — 2026-09-11
 ### Aely llega a su padre y a su pareja
 

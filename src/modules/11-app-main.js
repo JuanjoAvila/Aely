@@ -308,7 +308,18 @@ function App(){
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
       const tableKeys={}; incoming.forEach(function(e){ tableKeys[keyOf(e)]=1; });
-      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOf(e)]) cloud.addExpense(e).catch(function(){}); });
+      /* 2026-09-11: el catch iba mudo. Un gasto local cuya clave choca con lápida (o la
+         tabla rechaza) se reintenta en cada sync para siempre — y nadie se enteraba. El
+         desfase widget 512 / app 497 venía justo de eso (Bizum 14,90 solo en el móvil). */
+      (stateRef.current.expenses||[]).forEach(function(e){
+        if(e.amount===0 || tableKeys[keyOf(e)]) return;
+        cloud.addExpense(e).catch(function(err){
+          try{
+            const why=String((err&&(err.message||err.code||err.error_description))||err||"?").slice(0,300);
+            cloud.logEvent("error","addExpense backfill: "+keyOf(e), why);
+          }catch(_){}
+        });
+      });
       // "nuevo" = no lo teníamos en NINGÚN origen local (así, ya sincronizado → 0 → "Ya estás al día")
       const prevKeys={}; (stateRef.current.expenses||[]).forEach(function(e){ prevKeys[keyOf(e)]=1; });
       let count=0; const seenC={};
