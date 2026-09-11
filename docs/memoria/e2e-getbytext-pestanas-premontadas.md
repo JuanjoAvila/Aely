@@ -9,7 +9,7 @@ metadata:
   node_type: memory
   type: feedback
   originSessionId: 15e1bf30-4dfd-4b0e-88de-d4d1a7b980d5
-  modified: 2026-08-17T15:57:45.638Z
+  modified: 2026-09-11T13:06:47.417Z
 ---
 
 **2026-08-17.** `e2e/bancos-acordeon.spec.mjs` caía 2 de cada 3 pasadas de la suite entera a
@@ -39,3 +39,38 @@ existir en el DOM y ocupar pantalla son dos estados distintos.
 Verificado con 4 pasadas completas a `--workers=8` (135/135 cada una) + prueba mutante
 (esconder `.nm` con `addStyleTag` y comprobar que el test SÍ cae). Misma disciplina que
 [[feedback-de-uno-en-uno]]: no se da por arreglado sin reproducirlo antes.
+
+---
+
+## SEGUNDA VEZ, 2026-09-11 — y esta dejó la beta sin publicar
+
+`e2e/pulido-vacios.spec.mjs` («★ P6: el anillo arranca vacío y se llena») tenía
+`page.locator("svg circle").last()`. Al integrar los **logos de banco** —SVG inline con sus
+propios `<circle>`: Sabadell uno, CaixaBank dos— el último círculo del documento dejó de ser el
+anillo del presupuesto y pasó a ser **el punto azul del logo de Sabadell**. Volcado real:
+
+```
+i=2  r=48     dash=301.59  off=241.27   ← el anillo
+i=3  r=3.55   dash=null    off=null     ← Sabadell, dentro de .mono-logo
+```
+
+`Number(null) < Number(null)-0.01` es `false` para siempre → el `expect.poll` agotaba sus 10 s.
+`Publicar BETA` salió en rojo (217 pasan, 1 falla) y **la 4.19.49 no llegó a su móvil**.
+Arreglado acotando a `.v4-budget svg circle`.
+
+**La regla, ya con dos víctimas:** `.first()` / `.last()` sobre un selector de toda la página es
+una bomba de relojería — la desarma cualquier dibujo nuevo. **Siempre dentro de su contenedor.**
+
+## ⚠ Y AHORA PUEDO EJECUTARLOS YO
+
+No existe el shim en `node_modules/.bin`, por eso `npm run test:e2e` decía «playwright no se
+reconoce». Pero esto funciona:
+
+```
+node node_modules/@playwright/test/cli.js install chromium
+node node_modules/@playwright/test/cli.js test --config=playwright.config.mjs
+```
+
+218 pasan en ~2,3 min. Con eso `npm test` da **EXIT 0 de verdad**, e2e incluidos. Ya no hay excusa
+para pedirle a Cursor que ejecute lo que puedo ejecutar yo — su review sigue siendo obligatoria
+([[feedback-todo-lo-mio-revisado-por-cursor]]), pero para el **criterio**, no para ser mis manos.
