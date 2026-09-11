@@ -65,6 +65,42 @@ t("goalPct / goalRemaining", () => {
   assert.equal(ctx.goalRemaining({ target: 1000, saved: 750 }), 250);
 });
 
+/* ⚠ EL RASTRO DEL SALDO (11/9). Su padre: «Revolut no tiene ese dinero y le cambia el valor
+   constantemente sin tocar la cuenta». No es el −204,54 € de agosto (aquello ya está arreglado):
+   aquí la cifra BAILA entre sincronizaciones, y no se podía ni empezar a mirar porque no se
+   guardaba QUÉ saldo de los que manda el banco habíamos usado.
+   Esto no arregla el baile —no sé aún por qué pasa— pero sin el rastro no hay forma de saberlo:
+   si el tipo cambia entre sincronizaciones, ahí está la causa; si no cambia, el problema lo tiene
+   el banco y hay que ir por otro lado. Un test que solo mire el NÚMERO deja el rastro sin vigilar,
+   y entonces cualquiera lo quita sin enterarse. */
+t("★ el saldo deja dicho CUÁL se eligió y cuáles ofrecía el banco", () => {
+  const inf = ctx.pickBankBalanceInfo([
+    { type: "CLBD", amount: 100 },
+    { type: "ITAV", amount: 42.5 },
+  ]);
+  assert.equal(inf.valor, 42.5);
+  assert.equal(inf.tipo, "ITAV", "hay que poder saber que se usó el disponible y no el contable");
+  assert.deepEqual(inf.tipos, ["CLBD", "ITAV"], "y qué había para elegir");
+});
+
+t("el rastro también cuenta cuando el negativo se descarta", () => {
+  // El caso del padre en agosto: ITAV negativo, CLBD positivo al lado.
+  const inf = ctx.pickBankBalanceInfo([
+    { type: "ITAV", amount: -204.54 },
+    { type: "CLBD", amount: 22.06 },
+  ]);
+  assert.equal(inf.valor, 22.06);
+  assert.ok(/CLBD/.test(inf.tipo), "el rastro tiene que decir que se acabó usando el contable");
+  assert.deepEqual(inf.tipos, ["ITAV", "CLBD"]);
+});
+
+t("sin saldos utilizables, el rastro no inventa un tipo", () => {
+  const inf = ctx.pickBankBalanceInfo([{ type: "ITAV", amount: -5 }]);
+  assert.equal(inf.valor, null, "solo basura negativa → se conserva el saldo de antes");
+  assert.equal(inf.tipo, null);
+});
+
+
 t("pickBankBalance: prefiere ITAV sobre CLBD", () => {
   const bal = ctx.pickBankBalance([
     { type: "CLBD", amount: 100 },

@@ -1,5 +1,25 @@
 [
  {
+  "v": "4.18.20",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Rastro del saldo que manda el banco",
+   "en": "A trace of which bank balance was used",
+   "ca": "Rastre del saldo que envia el banc"
+  },
+  "items": {
+   "es": [
+    "Cuando un banco manda varios saldos, la app guarda cuál ha usado. No cambia ninguna cifra: sirve para poder explicar un saldo raro en vez de adivinar."
+   ],
+   "en": [
+    "When a bank sends several balances, the app records which one it used. No figure changes: it exists so an odd balance can be explained instead of guessed."
+   ],
+   "ca": [
+    "Quan un banc envia diversos saldos, l'app desa quin ha fet servir. No canvia cap xifra."
+   ]
+  }
+ },
+ {
   "v": "4.18.19",
   "d": "11 sep 2026",
   "t": {

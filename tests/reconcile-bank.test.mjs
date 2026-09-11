@@ -89,3 +89,44 @@ t("applyBankBalances: re-ancla cuenta primaria con saldo real", () => {
 });
 
 console.log("\nreconcile-bank: OK");
+
+/* ── EL RASTRO DEL SALDO TIENE QUE VERSE AUNQUE EL IMPORTE NO CAMBIE ────────────────────────────
+ *
+ * Queja de su PADRE (11/9): «Revolut no tiene ese dinero y le cambia el valor constantemente sin
+ * tocar la cuenta». Para poder diagnosticarlo se guarda QUÉ saldo de los que manda el banco hemos
+ * usado (`balTipo`) y cuáles había (`balTipos`).
+ *
+ * Y el rastro nacía CIEGO justo a su caso: solo se escribía si cambiaba el importe o el IBAN, así
+ * que un banco que pasara de mandar ITAV a mandar CLBD con el MISMO número se guardaba con la
+ * etiqueta vieja. Lo cazó Cursor revisando. Un instrumento que no ve lo único que tiene que ver
+ * es peor que no tenerlo, porque da falsa tranquilidad.
+ */
+t("★ el rastro del saldo se refresca aunque el importe sea el mismo", () => {
+  const s = {
+    accounts: [{ id: "x", ent: "revolut", name: "Revolut", value: 300, role: "fijos", bankIban: "ES9" }],
+    fixed: [], debts: [], obAccounts: [],
+  };
+  const conTipo = (tipo) => [{
+    ok: true, aspsp: "Revolut",
+    accounts: [{ uid: "u1", iban: "ES9", ok: true, balances: [{ type: tipo, amount: 346.29, currency: "EUR" }] }],
+  }];
+
+  const r1 = ctx.applyBankBalances(s, conTipo("ITAV"));
+  const a1 = r1.state.accounts[0];
+  assert.equal(a1.balTipo, "ITAV", "el primer sync tiene que dejar dicho qué saldo usó");
+  assert.equal(a1.balSaldo, 346.29);
+
+  // MISMO importe, OTRO tipo: el banco ha cambiado de saldo y el número no se entera.
+  const r2 = ctx.applyBankBalances(r1.state, conTipo("CLBD"));
+  assert.equal(r2.state.accounts[0].balTipo, "CLBD",
+    "el banco cambió de saldo con el mismo importe y el rastro se quedó con la etiqueta vieja: " +
+    "ciego justo al caso de su padre");
+});
+
+t("los tipos que ofrece el banco se guardan sin repetir y con tope", () => {
+  const muchos = [];
+  for (let i = 0; i < 40; i++) muchos.push({ type: i % 2 ? "CLBD" : "ITAV", amount: 10 + i });
+  const inf = ctx.pickBankBalanceInfo(muchos);
+  assert.deepEqual(inf.tipos, ["ITAV", "CLBD"], "sin repetir");
+  assert.ok(inf.tipos.length <= 16, "esto viaja dentro de app_state: no puede crecer sin tope");
+});

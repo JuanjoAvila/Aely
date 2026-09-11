@@ -10322,33 +10322,57 @@ function entFromAspsp(name){
 // 22,06 €. `pickBankBalance` caía a `balances[0]` si no reconocía el tipo, y un ITAV/XPCD
 // negativo ganaba aunque hubiera un CLBD positivo. Un saldo en rojo inventado es peor que
 // dejar el de antes: si no hay tipo conocido, o si el elegido es <0 y hay otro ≥0, no se pinta.
-function pickBankBalance(balances){
-  if(!Array.isArray(balances) || !balances.length) return null;
+/* ⚠ 11/9 — SU PADRE: «Revolut no tiene ese dinero y le cambia el valor constantemente sin
+   tocar la cuenta». Distinto del −204,54 € de agosto (aquello era la caída ciega a balances[0], ya
+   arreglada). Aquí la cifra BAILA entre sincronizaciones.
+
+   Y no se podía ni empezar a mirar: el banco manda una LISTA de saldos (disponible, contable,
+   pendiente…), elegimos uno por orden de preferencia, y NO se guardaba cuál. Si Revolut un día
+   manda ITAV y otro no, cambiamos de saldo sin enterarnos y sin dejar rastro — y al mirar el
+   estado solo se ve un número distinto, sin nada que explique por qué.
+
+   Esto NO arregla el baile: deja el rastro para poder diagnosticarlo. `tipo` es el que se usó y
+   `tipos` los que ofreció el banco. Si en la próxima queja el `tipo` ha cambiado, ahí está la
+   causa; si es el mismo, el problema lo tiene el banco y hay que ir por otro lado. */
+function pickBankBalanceInfo(balances){
+  if(!Array.isArray(balances) || !balances.length) return { valor:null, tipo:null, tipos:[] };
   const pri=["ITAV","XPCD","CLBD","OTHR","PRCD"];
   const num=function(x){ const n=Number(x&&x.amount); return isFinite(n) ? n : null; };
+  /* Sin repetir y con tope: esto se guarda en el estado y el estado SUBE A LA NUBE. Berlin Group
+     define una decena de tipos; un banco raro que devolviera cincuenta saldos no tiene por qué
+     hinchar el `app_state` de nadie (defensivo, sugerencia de Cursor). */
+  const tipos=balances.map(function(x){ return String((x&&x.type)||"?").toUpperCase(); })
+    .filter(function(v,i,arr){ return arr.indexOf(v)===i; }).slice(0,16);
   const known=function(list){
     for(let p=0;p<pri.length;p++){
       const b=list.find(function(x){ return String(x&&x.type).toUpperCase()===pri[p]; });
       const n=b ? num(b) : null;
-      if(n!=null) return n;
+      if(n!=null) return { valor:n, tipo:pri[p] };
     }
     return null;
   };
   const picked=known(balances);
-  if(picked==null) return null;
-  if(picked<0){
+  if(picked==null) return { valor:null, tipo:null, tipos:tipos };
+  if(picked.valor<0){
     const pos=balances.filter(function(x){ return num(x)>=0; });
-    if(!pos.length) return null;
+    if(!pos.length) return { valor:null, tipo:null, tipos:tipos };
     const better=known(pos);
-    return better!=null ? better : num(pos[0]);
+    if(better!=null) return { valor:better.valor, tipo:better.tipo+"+", tipos:tipos };
+    return { valor:num(pos[0]), tipo:"fallback", tipos:tipos };
   }
-  return picked;
+  return { valor:picked.valor, tipo:picked.tipo, tipos:tipos };
+}
+function pickBankBalance(balances){
+  return pickBankBalanceInfo(balances).valor;
 }
 // Construye una "cuenta extra" (obAccount) = saldo puro de una cuenta secundaria del banco
 // (p.ej. Revolut compartida). NO participa en el motor de cash-flow; solo suma al patrimonio.
-function mkObAcct(lk, ac, bal){
+function mkObAcct(lk, ac, bal, info){
   const cur=(ac.currency || (ac.balances&&ac.balances[0]&&ac.balances[0].currency) || "EUR");
-  return { key:String(ac.uid||ac.iban||(lk&&lk.aspsp)), ent:entFromAspsp(lk&&lk.aspsp), iban:ac.iban||null, name:ac.name||null, value:+Number(bal).toFixed(2), cur:cur, aspsp:(lk&&lk.aspsp)||null };
+  return { key:String(ac.uid||ac.iban||(lk&&lk.aspsp)), ent:entFromAspsp(lk&&lk.aspsp), iban:ac.iban||null, name:ac.name||null, value:+Number(bal).toFixed(2), cur:cur, aspsp:(lk&&lk.aspsp)||null,
+    /* Rastro para diagnosticar el baile del saldo (queja de su padre, 11/9): qué saldo de los
+       que manda el banco hemos usado, y cuáles había. Sin esto solo se ve el número. */
+    balTipo:(info&&info.tipo)||null, balTipos:(info&&info.tipos)||undefined };
 }
 // Nombre "bonito" por defecto para una cuenta extra (el banco suele devolver algo feo: los
 // titulares de una conjunta, un tipo técnico o nada). El usuario puede sobreescribirlo (obLabels).
@@ -10444,7 +10468,7 @@ function applyBankBalances(s, links){
     if(!accs.length){ keepStale(); return; }
     if(ent==null){   // banco SIN cuenta manual en la app → TODAS sus cuentas van a obAccounts
       let pushed=0;
-      accs.forEach(function(ac){ const bal=pickBankBalance(ac.balances); if(bal!=null){ obAccts.push(mkObAcct(lk,ac,bal)); pushed++; } });
+      accs.forEach(function(ac){ const inf=pickBankBalanceInfo(ac.balances); if(inf.valor!=null){ obAccts.push(mkObAcct(lk,ac,inf.valor,inf)); pushed++; } });
       if(!pushed) keepStale();
       return;
     }
@@ -10464,7 +10488,7 @@ function applyBankBalances(s, links){
     });
     let contributed=0;
     accs.forEach(function(ac,k){
-      const bal=pickBankBalance(ac.balances); if(bal==null) return;
+      const inf=pickBankBalanceInfo(ac.balances); const bal=inf.valor; if(bal==null) return;
       contributed++;
       if(ownerOf[k]!=null){
         const a=accounts[ownerOf[k]];
@@ -10485,12 +10509,22 @@ function applyBankBalances(s, links){
           newBase=+((bal - injMv + spentM + ruMv + miMv - (role==="ambos"?monthNetForAccount(s, ent, cy, cm, td):0)).toFixed(2));
         }
         synced.push({ ent:ent, bal:bal, iban:ac.iban||null });
-        if(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban)){
-          accounts[ownerOf[k]]=Object.assign({}, a, { value:newBase, bankIban:ac.iban||a.bankIban });
+        /* ⚠ EL RASTRO SE REFRESCA AUNQUE EL IMPORTE NO CAMBIE (lo caza Cursor en la review, 11/9).
+           Antes esto solo escribía si cambiaba `value` o `bankIban`. O sea que si el banco pasaba
+           de mandar ITAV a mandar CLBD con el MISMO importe, el rastro se quedaba con la etiqueta
+           vieja — y ese es justo el caso para el que existe el rastro: «mismo número, otra
+           etiqueta». El instrumento estaba ciego a lo único que tenía que ver. */
+        const rastroCambia = (inf.tipo||null)!==(a.balTipo||null) || Math.abs((a.balSaldo==null?NaN:a.balSaldo)-bal)>0.005;
+        if(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban) || rastroCambia){
+          /* El rastro va también aquí: la Revolut de su padre es una cuenta PRINCIPAL re-anclada,
+             no una obAccount, y era justo la que le bailaba. `balSaldo` es el saldo crudo que mandó
+             el banco, sin la fórmula de dynBal encima, para poder comparar manzanas con manzanas. */
+          accounts[ownerOf[k]]=Object.assign({}, a, { value:newBase, bankIban:ac.iban||a.bankIban,
+            balTipo:inf.tipo||null, balTipos:inf.tipos&&inf.tipos.length?inf.tipos:undefined, balSaldo:bal });
           changed=true;
         }
       } else {
-        obAccts.push(mkObAcct(lk,ac,bal));
+        obAccts.push(mkObAcct(lk,ac,bal,inf));
         synced.push({ ent:ent, bal:bal, iban:ac.iban||null });
       }
     });

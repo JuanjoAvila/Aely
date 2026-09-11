@@ -1,3 +1,36 @@
+## [4.18.20] — 2026-09-11
+### Rastro de qué saldo manda el banco (el Revolut de su padre)
+
+Su padre, 11/9: «Revolut no tiene ese dinero y le cambia el valor
+constantemente sin tocar la cuenta». NO es el -204,54 EUR de agosto: aquello
+era la caida ciega a balances[0] y ya esta arreglado. Aqui la cifra BAILA
+entre sincronizaciones.
+
+Y no se podia ni empezar a mirar. El banco manda una LISTA de saldos
+(disponible, contable, pendiente...), elegimos uno por orden de preferencia,
+y NO se guardaba cual. Si Revolut un dia manda ITAV y otro no, cambiamos de
+saldo sin enterarnos y sin dejar rastro: al mirar el estado solo se ve un
+numero distinto, sin nada que explique por que.
+
+ESTO NO ARREGLA EL BAILE. No se aun por que pasa, y no voy a fingir que si.
+Lo que hace es dejar el rastro para poder diagnosticarlo la proxima vez:
+  - `balTipo`  : el saldo que se uso (ITAV, CLBD, ...)
+  - `balTipos` : los que ofrecia el banco
+  - `balSaldo` : el saldo crudo, sin la formula de dynBal encima
+
+Va en las obAccounts Y en las cuentas PRINCIPALES re-ancladas: la Revolut de
+su padre es principal, no obAccount, y era justo la que le bailaba.
+
+Si en la proxima queja el tipo ha cambiado entre sincronizaciones, ahi esta la
+causa. Si es el mismo, el problema lo tiene el banco y hay que ir por otro
+lado. Hoy no podiamos distinguir esas dos cosas.
+
+Tres tests nuevos en finance-core que vigilan el RASTRO, no solo el numero:
+sin ellos cualquiera lo quita sin enterarse.
+
+Ninguna cifra cambia para nadie.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 ## [4.18.19] — 2026-09-11
 ### El servidor deja de acertar por accidente con los movimientos repetidos
 
