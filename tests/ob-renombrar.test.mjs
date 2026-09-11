@@ -98,15 +98,72 @@ t("dos cargos iguales de verdad siguen entrando los dos", () => {
   assert.equal(String(dos[0].date).slice(0, 10), dia(-2));
 });
 
-t("renombrar no rompe el gemelo de MacroDroid (la red de ±3 días)", () => {
-  /* Sus gastos de TR entran ANTES por la noti del móvil, con el comercio de verdad. Open Banking
-     los trae uno o dos días después y sin nombre. Esa red no la puede debilitar esto. */
+t("★ noti TR SIN ent + OB sin nombre: entra marcada, no se pierde", () => {
   const porNoti = {
     id: "n1", date: new Date(dia(-2) + "T12:00:00").toISOString(), amount: 41.8,
-    merchant: "Repsol", category: "transporte", source: "macrodroid", ent: "trade_republic",
+    merchant: "Repsol", category: "transporte", source: "macrodroid",
   };
+  assert.equal(ctx.expenseBankOf(porNoti), "trade_republic", "la notificación real no trae ent");
   const otra = ctx.importObExpenses(estado([porNoti]), [movTR(dia(-1), 41.8)]);
-  assert.equal(otra, null, "el mismo gasto por dos caminos sigue siendo uno solo");
+  assert.equal(otra && otra.length, 1, "la fila OB entra para no perder movimientos");
+  assert.equal(otra[0].possibleDup, true);
+  assert.equal(otra[0].possibleDupOf, "n1");
+});
+
+t("cross-banco: Revolut no marca un Movimiento igual de Trade Republic", () => {
+  const revo = {
+    id: "r1", date: new Date(dia(-1) + "T12:00:00").toISOString(), amount: 23,
+    merchant: "ChatGPT", category: "ocio", source: "manual", ent: "revolut",
+  };
+  const otra = ctx.importObExpenses(estado([revo]), [movTR(dia(-1), 23)]);
+  assert.equal(otra && otra.length, 1);
+  assert.equal(!!otra[0].possibleDup, false);
+});
+
+t("idempotencia: una segunda pasada no duplica ni re-marca", () => {
+  const porNoti = {
+    id: "n2", date: new Date(dia(-2) + "T12:00:00").toISOString(), amount: 12.5,
+    merchant: "Cafe", category: "ocio", source: "macrodroid",
+  };
+  const prim = ctx.importObExpenses(estado([porNoti]), [movTR(dia(-1), 12.5)]);
+  assert.equal(prim.length, 1);
+  const seg = ctx.importObExpenses(estado([porNoti].concat(prim)), [movTR(dia(-1), 12.5)]);
+  assert.equal(seg, null);
+});
+
+t("«son distintos»: cuenta y no vuelve a marcarse", () => {
+  const porNoti = {
+    id: "n3", date: new Date(dia(-2) + "T12:00:00").toISOString(), amount: 9.9,
+    merchant: "Parking", category: "transporte", source: "macrodroid",
+  };
+  const base = estado([porNoti]);
+  const marcado = ctx.importObExpenses(base, [movTR(dia(-1), 9.9)])[0];
+  assert.equal(ctx.expenseCountsCash(marcado, base), false);
+  const limpio = ctx.resolvePossibleDup(Object.assign({}, base, { expenses: [porNoti, marcado] }), marcado.id, false);
+  const fila = limpio.expenses.find((e) => e.id === marcado.id);
+  assert.equal(!!fila.possibleDup, false);
+  assert.equal(ctx.expenseCountsCash(fila, limpio), true);
+  assert.equal(ctx.importObExpenses(limpio, [movTR(dia(-1), 9.9)]), null);
+});
+
+t("«es el mismo»: borra OB y la lápida impide resucitarlo", () => {
+  const porNoti = {
+    id: "n4", date: new Date(dia(-2) + "T12:00:00").toISOString(), amount: 7.5,
+    merchant: "Pan", category: "super", source: "macrodroid",
+  };
+  const ob = ctx.importObExpenses(estado([porNoti]), [movTR(dia(-1), 7.5)])[0];
+  let s = ctx.resolvePossibleDup(estado([porNoti, ob]), ob.id, true);
+  const k = String(ob.date).slice(0, 10) + "|" + ob.amount + "|" + (ob.merchant || "");
+  s = Object.assign({}, s, { deleted: ctx.pushDeleted(s.deleted, k) });
+  assert.equal(s.expenses.some((e) => e.id === ob.id), false);
+  assert.equal(ctx.importObExpenses(s, [movTR(dia(-1), 7.5)]), null);
+});
+
+t("#dup viaja por nube y no altera la entidad", () => {
+  const pendiente = { id: "ob1", source: "ob", ent: "trade_republic", possibleDup: true };
+  assert.equal(ctx.expenseSourceForCloud(pendiente), "ob:trade_republic#dup");
+  assert.equal(ctx.expenseBankOf({ source: "ob:trade_republic#dup" }), "trade_republic");
+  assert.equal(ctx.expenseFromRow({ id: "ob1", fecha: dia(-1), importe: 4, comercio: "Movimiento", source: "ob:trade_republic#dup" }).possibleDup, true);
 });
 
 console.log("  ok");

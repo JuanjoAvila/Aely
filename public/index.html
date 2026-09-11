@@ -2445,6 +2445,16 @@ const cloud = (function(){
         .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant||"");
       if(error) throw error;
     },
+    // Persiste la decisión: si «son distintos» solo quitara la marca local, el pull la restauraría.
+    async setExpenseDup(e, isDup){
+      if(!sb) return;
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) return;
+      const src=expenseSourceForCloud(Object.assign({},e,{possibleDup:!!isDup}));
+      const {error}=await sb.from('expenses').update({ source:src })
+        .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant||"");
+      if(error) throw error;
+    },
     // Persiste el flag 💳/🔄 en la tabla (si no, el siguiente pull lo pisaría en gastos de la nube).
     async setExpenseNoCard(e, noCard){
       if(!sb) return;
@@ -2827,7 +2837,7 @@ const cloud = (function(){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","setExpenseBank","setExpenseNoCard","setExpenseNote","setExpenseCat","deleteExpense",
+  "pushState","addExpense","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","deleteExpense",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -2847,7 +2857,9 @@ const CLOUD_WRITES=[
    macrodroid (= Trade Republic). Así el filtro por banco sobrevive a reinstalaciones. */
 function expenseSourceForCloud(e){
   const ent=e&&e.ent; const s=(e&&e.source)||"manual";
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent;
+  /* El sufijo conserva la entidad para que un ingest aún sin actualizar la vea como un banco
+     no diario y la excluya. Un prefijo nuevo parecería un gasto manual y contaría de más. */
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+((e&&e.possibleDup)?"#dup":"");
   if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent;
   if(s==="macrodroid"||s==="tr") return "macrodroid";
   if(s==="supabase") return "manual";
@@ -2928,7 +2940,7 @@ function expenseBankOf(e){
   if(e.ent) return e.ent;
   const s=String(e.source||"");
   if(s==="macrodroid"||s==="tr") return "trade_republic";
-  if(s.indexOf("ob:")===0) return s.slice(3)||null;
+  if(s.indexOf("ob:")===0) return s.slice(3).split("#")[0]||null;
   if(s.indexOf("ob-hist:")===0) return s.slice(8)||null;
   if(s.indexOf("manual:")===0) return s.slice(7)||null;
   return null;
@@ -2960,12 +2972,38 @@ function valueDesdeSaldo(o){
   if(o.ambos) v-=(o.paidNet||0);
   return +v.toFixed(2);
 }
+/* Resuelve un OB marcado como posible repetido.
+   same=true conserva el gemelo con nombre; false confirma que los dos cargos son reales. */
+function resolvePossibleDup(state, expenseId, same){
+  if(!state || !expenseId) return state;
+  const ex=(state.expenses||[]).find(function(e){ return e && e.id===expenseId; });
+  if(!ex || !ex.possibleDup) return state;
+  if(same){
+    const twinId=ex.possibleDupOf;
+    const twin=twinId && (state.expenses||[]).find(function(e){ return e && e.id===twinId; });
+    let expenses=(state.expenses||[]).filter(function(e){ return e && e.id!==expenseId; });
+    // Si la notificación no traía extId, se conserva la identidad que sí aportó Open Banking.
+    if(twin && ex.extId && !twin.extId){
+      expenses=expenses.map(function(e){
+        return e.id===twin.id ? Object.assign({},e,{extId:ex.extId}) : e;
+      });
+    }
+    return Object.assign({},state,{expenses:expenses});
+  }
+  return Object.assign({},state,{expenses:(state.expenses||[]).map(function(e){
+    if(e.id!==expenseId) return e;
+    const u=Object.assign({},e);
+    delete u.possibleDup; delete u.possibleDupOf;
+    return u;
+  })});
+}
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){
   const raw=String(r.source||"manual");
-  let ent=null, source=raw;
+  let ent=null, source=raw, dup=false;
   if(raw==="macrodroid"||raw==="tr"){ ent="trade_republic"; source="macrodroid"; }
-  else if(raw.indexOf("ob:")===0){ ent=raw.slice(3)||null; source="ob"; }
+  // El flag viaja dentro de source y debe sobrevivir a pull, reinicio y otro dispositivo.
+  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); ent=p[0]||null; source="ob"; dup=p[1]==="dup"; }
   else if(raw.indexOf("ob-hist:")===0){ ent=raw.slice(8)||null; source="ob-hist"; }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
@@ -2989,6 +3027,7 @@ function expenseFromRow(r){
     // propósito: es EXACTAMENTE lo que le pasó a la divisa —se escribía al subir y nadie lo
     // bajaba—, y aquí perderlo significa que el siguiente sync duplica el gasto renombrado.
     obName: r.ob_name!=null ? String(r.ob_name) : undefined,
+    possibleDup: dup ? true : undefined,
   };
 }
 
@@ -4292,6 +4331,11 @@ Object.assign(LANG.es,{
   // Por qué un movimiento no se come el presupuesto (2026-08-17). Van en la línea pequeña de la
   // fila, así que cortos; el filtro usa los mismos cajones con nombre largo (g_bk_*).
   g_skip_neutra:"no es un gasto", g_skip_otrobanco:"no es del día a día",
+  g_skip_posible:"tócalo: ¿mismo o distinto?",
+  g_dup_title:"¿Es el mismo movimiento?",
+  g_dup_sub:"El banco lo trajo otra vez sin nombre. Si es el mismo que ya tenías, se queda el que tiene el comercio bien puesto. Si son dos cargos distintos, los dos cuentan.",
+  g_dup_same:"Es el mismo",
+  g_dup_diff:"Son distintos",
   g_bk_cuenta:"Gastos que cuentan", g_bk_ingreso:"Ingresos",
   g_bk_neutra:"Inversión y traspasos", g_bk_otrobanco:"De otros bancos",
   g_bk_title:"Qué contar", g_bk_all:"Todo",
@@ -4387,6 +4431,11 @@ Object.assign(LANG.en,{
   g_month:"This month", g_last:"Last month", g_cycle:"My cycle", g_3m:"Last 3 months", g_all:"All", g_custom:"Range…", g_allcats:"All",
   g_no_budget:"doesn't count",
   g_skip_neutra:"not spending", g_skip_otrobanco:"not day-to-day",
+  g_skip_posible:"tap: same or different?",
+  g_dup_title:"Is this the same movement?",
+  g_dup_sub:"The bank brought it again with no name. If it's the same one you already have, the one with the real merchant stays. If they are two different charges, both count.",
+  g_dup_same:"Same one",
+  g_dup_diff:"They are different",
   g_bk_cuenta:"Spending that counts", g_bk_ingreso:"Income",
   g_bk_neutra:"Investing and transfers", g_bk_otrobanco:"From other banks",
   g_bk_title:"What to count", g_bk_all:"Everything",
@@ -4481,6 +4530,11 @@ Object.assign(LANG.ca,{
   g_month:"Aquest mes", g_last:"Mes passat", g_cycle:"El meu cicle", g_3m:"Últims 3 mesos", g_all:"Tot", g_custom:"Rang…", g_allcats:"Totes",
   g_no_budget:"no afecta",
   g_skip_neutra:"no és una despesa", g_skip_otrobanco:"no és del dia a dia",
+  g_skip_posible:"toca'l: mateix o diferent?",
+  g_dup_title:"És el mateix moviment?",
+  g_dup_sub:"El banc l'ha tornat a portar sense nom. Si és el mateix que ja tenies, es queda el que té el comerç ben posat. Si són dos càrrecs diferents, els dos compten.",
+  g_dup_same:"És el mateix",
+  g_dup_diff:"Són diferents",
   g_bk_cuenta:"Despeses que compten", g_bk_ingreso:"Ingressos",
   g_bk_neutra:"Inversió i traspassos", g_bk_otrobanco:"D'altres bancs",
   g_bk_title:"Què comptar", g_bk_all:"Tot",
@@ -5264,6 +5318,8 @@ function sameEntList(a,b){
    ent) sí cuenta. Pedido 2026-08-17: Revolut+TR marcados → los dos se ven y cuentan. */
 function expenseCountsCash(e, s){
   if(!e) return false;
+  // No altera efectivo ni presupuesto hasta que se confirme que son cargos distintos.
+  if(e.possibleDup) return false;
   const ent=expenseBankOf(e);
   if(!ent) return true;
   return expenseBankEnts(s).indexOf(ent)>=0;
@@ -5279,15 +5335,17 @@ function expenseCountsBudget(e, s){
    marcaba con un «no afecta» genérico tanto una inversión como un recibo de Sabadell, que no se
    parecen en nada. Uno es dinero tuyo cambiando de sitio; el otro es un gasto de verdad que
    simplemente no sale del banco del día a día.
-   Cuatro cajones, excluyentes y en este orden:
+   Cajones, excluyentes y en este orden:
      "ingreso"   → entra dinero.
      "neutra"    → inversión o traspaso: se mueve, no se gasta.
+     "posible"   → Open Banking sin nombre que casa con otra vía del mismo banco.
      "otrobanco" → gasto real, pero de un banco que no es de gasto diario (los recibos).
      "cuenta"    → lo que de verdad se come el presupuesto del mes.
    Devuelve una etiqueta, no un booleano: la fila necesita decir POR QUÉ, y el filtro necesita
    agrupar por lo mismo. Una sola función para las dos cosas, para que no se separen. */
 function expenseBucket(e, s){
   if(!e) return "cuenta";
+  if(e.possibleDup) return "posible";
   if((e.amount||0)<0) return "ingreso";
   if(CAT_NEUTRAS[e.category]) return "neutra";
   if(!expenseCountsCash(e, s)) return "otrobanco";
@@ -7255,6 +7313,21 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(cloud.enabled()) cloud.deleteExpense(e).catch(function(){});
     showToast(t("g_deleted"));
   };
+  /* La decisión es explícita: borrar solo cuando confirma el gemelo; si son distintos, la fila
+     deja de estar apagada y se persiste para que el siguiente pull no revierta la elección. */
+  const resolveDup=function(e, same){
+    if(!e || !e.possibleDup) return;
+    set(function(s){
+      let next=resolvePossibleDup(s, e.id, same);
+      if(same){
+        next=Object.assign({},next,{deleted:pushDeleted(next.deleted, keyOfE(e))});
+        if(cloud.enabled()) cloud.deleteExpense(e).catch(function(){});
+      }else if(cloud.enabled()) cloud.setExpenseDup(e, false).catch(function(){});
+      return next;
+    });
+    if(same) showToast(t("g_dup_same"));
+    else showToast(t("g_dup_diff"));
+  };
   // Recategorizar un gasto a mano: actualiza ESTE, recuerda el comercio (catOverrides) para los
   // futuros y arregla otros gastos del mismo comercio que estuvieran en "Otros".
   const setCat=function(ex,newCat){
@@ -7827,6 +7900,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       editExp:editExp, setEditExp:setEditExp,
       onClose:function(){ setDetailId(null); setEditExp(null); },
       setCat:setCat, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
+      resolveDup:resolveDup,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     })
   );
@@ -7854,7 +7928,7 @@ const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket}){
   // Un ingreso NO va apagado: entra dinero, no es un gasto que se descarta. Solo se atenúan los
   // dos cajones que no mueven el presupuesto, y cada uno dice el suyo en vez de un «no afecta»
   // genérico que hacía que una inversión y un recibo de Sabadell parecieran lo mismo.
-  const skip=bucket==="neutra"||bucket==="otrobanco";
+  const skip=bucket==="neutra"||bucket==="otrobanco"||bucket==="posible";
   const skipTxt=skip?t("g_skip_"+bucket):"";
   return React.createElement("button",{type:"button",className:"v4-mov"+(skip?" v4-mov-skip":""),onClick:function(){ onOpen(e); },
       style:skip?{opacity:.72}:null},
@@ -7992,7 +8066,7 @@ function PeriodMoreSheet({open, onClose, preset, setPreset}){
 }
 
 /* Sheet detalle/edición de un movimiento. Layout alineado con Apuntar/Cartera (feedback 2026-07-17). */
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCardFlag, setBank, delExpense, saveEdit, saveNote, showToast, aiBusy, suggestAi, state}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -8032,6 +8106,14 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCardF
           React.createElement("input",{className:"v4-exp-amt num serif",inputMode:"decimal",value:editExp.amount,onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{amount:v}); }); },onBlur:closeSave,"aria-label":t("v4_exp_amount")}),
           React.createElement("input",{className:"v4-exp-name",value:editExp.merchant,placeholder:t("v4_exp_merchant_ph"),onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{merchant:v}); }); },onBlur:closeSave}),
           React.createElement("div",{className:"v4-exp-meta"}, metaBits.join(" · "))
+        ),
+        exp.possibleDup && React.createElement("div",{className:"hint",style:{marginTop:10,padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
+          React.createElement("div",{style:{fontWeight:600,marginBottom:4}}, t("g_dup_title")),
+          React.createElement("div",{style:{marginBottom:10}}, t("g_dup_sub")),
+          React.createElement("div",{className:"row",style:{gap:8}},
+            React.createElement("button",{type:"button",className:"btn btn-primary",style:{flex:1},onClick:function(){ resolveDup && resolveDup(exp,true); onClose(); }}, t("g_dup_same")),
+            React.createElement("button",{type:"button",className:"btn btn-ghost",style:{flex:1},onClick:function(){ resolveDup && resolveDup(exp,false); onClose(); }}, t("g_dup_diff"))
+          )
         ),
         React.createElement("div",{className:"v4-exp-sec",style:{marginTop:12}}, t("ap_date")),
         React.createElement("div",{className:"v4-chips"},
@@ -10429,35 +10511,26 @@ function importObExpenses(s, txs){
   const nameForKey=function(e){ return e.obName!=null ? e.obName : (e.merchant||""); };
   const kOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+nameForKey(e); };
   const keys={}; (s.expenses||[]).forEach(function(e){ keys[kOf(e)]=1; });
-  /* EL MISMO GASTO, CONTADO DOS VECES POR DOS CAMINOS (2026-08-04, caso real medido).
-     Sus gastos de Trade Republic YA entran por las notificaciones del móvil (MacroDroid) con el
-     comercio de verdad —«Repsol», «BEACH BARBA ROSSA BAR»— el día que compra. Open Banking los
-     trae DE NUEVO uno o dos días después (fecha de contabilización del banco, no de la compra) y
-     sin ningún dato: TR manda `entry_reference`, `creditor`, `remittance_information`… todo null
-     (payload crudo verificado). Así que el dedup clásico —día + importe + comercio— no los ve
-     como el mismo: ni el día coincide ni el comercio. De sus 22 movimientos de TR por Open
-     Banking, 9 eran gemelos exactos de un gasto que ya tenía. Eso es lo que él veía como
-     «duplicados» y «movimientos que se inventa».
-     Regla: un movimiento SIN NOMBRE que case en importe exacto con algo apuntado por OTRA vía en
-     ±3 días es el mismo gasto → no se apunta. Emparejamiento 1 a 1 (`usadoDup`): si de verdad
-     hiciste dos cargos iguales y solo uno estaba apuntado, el segundo entra. Solo se comparan
-     movimientos sin nombre —cuando el banco SÍ dice el comercio no hay ambigüedad y manda el
-     dedup de siempre— y solo contra gastos de otra fuente: dos apuntes de Open Banking del mismo
-     banco no se tapan entre sí (ese caso ya lo cubre `kOf`). */
+  /* Lápidas: «es el mismo» borra la fila OB y deja clave para que el siguiente sync no la reviva. */
+  const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
+  /* Un Movimiento sin nombre puede ser una notificación ya vista o una compra distinta. Nunca se
+     descarta: si coincide con una vía no-OB del MISMO banco, entra marcada para decidirlo. */
   const DUP_MS=3*86400000;
-  const otrasVias=(s.expenses||[]).filter(function(e){ return e.source!=="ob" && e.source!=="ob-hist"; });
+  const otrasVias=(s.expenses||[]).filter(function(e){ return e && e.source!=="ob" && e.source!=="ob-hist"; });
   const usadoDup={};
-  const yaApuntadoPorOtraVia=function(tx){
-    if(tx.merchant && tx.merchant!=="Movimiento") return false;   // el banco sí dice qué es: sin ambigüedad
+  const gemeloOtraVia=function(tx){
+    if(tx.merchant && tx.merchant!=="Movimiento") return null;
+    if(!tx.ent) return null;
     const ms=parseDate(tx.date).getTime();
     const hit=otrasVias.findIndex(function(e,i){
       if(usadoDup[i]) return false;
+      if(expenseBankOf(e)!==tx.ent) return false;
       if(Math.abs((e.amount||0)-tx.amount)>0.005) return false;
       return Math.abs(dateMs(e.date)-ms)<=DUP_MS;
     });
-    if(hit<0) return false;
+    if(hit<0) return null;
     usadoDup[hit]=1;
-    return true;
+    return otrasVias[hit];
   };
   // Cargos ya modelados ESTE mes por entidad (Fijos/deudas/puntuales), para no duplicar un recibo.
   const now=new Date(), ym=now.getMonth()+1, yy=now.getFullYear();
@@ -10483,8 +10556,9 @@ function importObExpenses(s, txs){
       if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
       if(tx.id) e.extId=tx.id;
       const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-      if(keys[kOf(e)]) return;
-      if(yaApuntadoPorOtraVia(tx)) return;
+      if(keys[kOf(e)] || delSet[kOf(e)]) return;
+      const gemIn=gemeloOtraVia(tx);
+      if(gemIn && gemIn.id){ e.possibleDup=true; e.possibleDupOf=gemIn.id; }
       keys[kOf(e)]=1; add.push(e);
       return;
     }
@@ -10501,8 +10575,9 @@ function importObExpenses(s, txs){
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
     if(tx.id) e.extId=tx.id;
     const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-    if(keys[kOf(e)]) return;
-    if(yaApuntadoPorOtraVia(tx)) return;
+    if(keys[kOf(e)] || delSet[kOf(e)]) return;
+    const gem=gemeloOtraVia(tx);
+    if(gem && gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
     keys[kOf(e)]=1;
     add.push(e);
   });
@@ -14421,6 +14496,15 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.11", d:"11 sep 2026",
+   t:{es:"Los movimientos parecidos se revisan antes de contar",en:"Similar transactions are reviewed before counting",ca:"Els moviments semblants es revisen abans de comptar"},
+   items:{
+     es:["Si el banco trae un movimiento sin nombre que podría ser uno que ya estaba apuntado, ahora aparece marcado y no suma todavía.",
+         "Al abrirlo puedes decidir: «Es el mismo» lo deja fuera, o «Son distintos» hace que los dos cuenten."],
+     en:["If the bank brings an unnamed transaction that might be one already logged, it now appears marked and does not count yet.",
+         "Open it to decide: “Same one” leaves it out, or “They are different” makes both count."],
+     ca:["Si el banc porta un moviment sense nom que podria ser un que ja estava apuntat, ara surt marcat i encara no suma.",
+         "En obrir-lo pots decidir: «És el mateix» el deixa fora, o «Són diferents» fa que comptin tots dos."]}},
   {v:"4.18.10", d:"11 sep 2026",
    t:{es:"También los movimientos de la segunda cuenta del banco",en:"Moves from the bank’s second account too",ca:"També els moviments del segon compte del banc"},
    tandas:[

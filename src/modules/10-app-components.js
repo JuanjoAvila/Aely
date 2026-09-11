@@ -1424,6 +1424,15 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.11", d:"11 sep 2026",
+   t:{es:"Los movimientos parecidos se revisan antes de contar",en:"Similar transactions are reviewed before counting",ca:"Els moviments semblants es revisen abans de comptar"},
+   items:{
+     es:["Si el banco trae un movimiento sin nombre que podría ser uno que ya estaba apuntado, ahora aparece marcado y no suma todavía.",
+         "Al abrirlo puedes decidir: «Es el mismo» lo deja fuera, o «Son distintos» hace que los dos cuenten."],
+     en:["If the bank brings an unnamed transaction that might be one already logged, it now appears marked and does not count yet.",
+         "Open it to decide: “Same one” leaves it out, or “They are different” makes both count."],
+     ca:["Si el banc porta un moviment sense nom que podria ser un que ja estava apuntat, ara surt marcat i encara no suma.",
+         "En obrir-lo pots decidir: «És el mateix» el deixa fora, o «Són diferents» fa que comptin tots dos."]}},
   {v:"4.18.10", d:"11 sep 2026",
    t:{es:"También los movimientos de la segunda cuenta del banco",en:"Moves from the bank’s second account too",ca:"També els moviments del segon compte del banc"},
    tandas:[

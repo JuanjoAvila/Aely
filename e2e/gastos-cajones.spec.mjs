@@ -133,3 +133,19 @@ test("y se puede volver a verlo todo sin dejar el filtro pegado", async ({ page 
   await expect(lista(page)).toHaveCount(3);
   await expect(fila(page, "RECIBO ENDESA")).toHaveCount(0);
 });
+
+test("un posible repetido se ve apagado y permite confirmar que son distintos", async ({ page }) => {
+  const posible = {
+    id: "e5", date: d(1), amount: 31.2, merchant: "Movimiento", category: "otros",
+    source: "ob", ent: "trade_republic", possibleDup: true, possibleDupOf: "e1",
+  };
+  await seedLoggedInDashboard(page, { accounts, settings, expenses: expenses.concat([posible]), budget: 1000 });
+  await abreGastos(page);
+
+  await expect(fila(page, "Movimiento")).toHaveClass(/v4-mov-skip/);
+  await expect(fila(page, "Movimiento")).toContainText("tócalo: ¿mismo o distinto?");
+  await fila(page, "Movimiento").click();
+  await expect(page.getByText("¿Es el mismo movimiento?")).toBeVisible();
+  await page.getByRole("button", { name: "Son distintos" }).click();
+  await expect(fila(page, "Movimiento")).not.toHaveClass(/v4-mov-skip/);
+});
