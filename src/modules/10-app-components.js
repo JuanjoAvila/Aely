@@ -1424,6 +1424,12 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
 function rnT(x,lg){ if(!x) return ""; if(typeof x==="string") return x; return x[lg||CURLANG]||x.es||""; }
 function rnItems(r,lg){ var it=r&&r.items; if(!it) return []; if(Array.isArray(it)) return it; return it[lg||CURLANG]||it.es||[]; }
 var RELEASE_NOTES=[
+  {v:"4.18.13", d:"11 sep 2026",
+   t:{es:"Ordena los gastos de cada día",en:"Order each day's expenses",ca:"Ordena les despeses de cada dia"},
+   items:{
+     es:["En Gastos, arrastra el asa ⠿ para poner los movimientos del mismo día en el orden que prefieras.","La fecha de cada movimiento se conserva tal cual."],
+     en:["In Expenses, drag the ⠿ handle to put transactions from the same day in the order you prefer.","Each transaction keeps its original date."],
+     ca:["A Despeses, arrossega l'ansa ⠿ per posar els moviments del mateix dia en l'ordre que prefereixis.","La data de cada moviment es conserva tal com està."]}},
   {v:"4.18.8", d:"10 sep 2026",
    t:{es:"El resumen del mes y un tope por categoría",en:"The month summary and a cap per category",ca:"El resum del mes i un límit per categoria"},
    items:{

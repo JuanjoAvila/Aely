@@ -96,6 +96,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const [morePeriods,setMorePeriods]=useState(false);
   const [filterOpen,setFilterOpen]=useState(false);
   const [visible,setVisible]=useState(CONFIG.PAGE_SIZE);
+  const [dragExpense,setDragExpense]=useState(null);
+  const dragExpenseRef=useRef(null);
+  const suppressOpenRef=useRef(0);
   const [adding,setAdding]=useState(false);
   const [form,setForm]=useState({merchant:"",amount:"",category:"super",income:false,noCard:false,date:""});
   const [catEdit,setCatEdit]=useState(null);   // id del gasto al que estás cambiando la categoría
@@ -351,10 +354,34 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       }
       out.push(e);
     }
-    return out.sort((a,b)=>dateMs(b.date)-dateMs(a.date));
+    return sortExpensesForDisplay(out,state);
     // `state.settings`/`state.accounts` van en las dependencias porque `expenseBucket` los lee
     // (qué bancos son de gasto diario): cambiar eso tiene que re-filtrar la lista.
   },[expensesDef,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts]);
+
+  /* El asa reclama el dedo desde el principio: dejar que la fila entera fuera arrastrable
+     convertiría un scroll normal en cambios de orden accidentales. El destino se resuelve contra
+     el DOM porque solo hay unas pocas filas visibles; `moveExpenseWithinDay` vuelve a comprobar
+     la fecha antes de guardar, así un dedo que cruce un separador nunca mezcla días. */
+  const startExpenseDrag=useCallback(function(ev,e){
+    ev.stopPropagation(); cancelSwipe();
+    const d={from:e.id,to:e.id,day:String(e.date||"").slice(0,10)};
+    dragExpenseRef.current=d; setDragExpense(d);
+  },[cancelSwipe]);
+  const moveExpenseDrag=useCallback(function(ev){
+    const d=dragExpenseRef.current; if(!d||!ev.touches||!ev.touches[0]) return;
+    ev.stopPropagation();
+    const p=ev.touches[0], hit=document.elementFromPoint(p.clientX,p.clientY);
+    const row=hit&&hit.closest&&hit.closest("[data-expense-id]");
+    if(!row||row.getAttribute("data-expense-day")!==d.day) return;
+    const to=row.getAttribute("data-expense-id"); if(!to||to===d.to) return;
+    d.to=to; setDragExpense({from:d.from,to:d.to,day:d.day});
+  },[]);
+  const endExpenseDrag=useCallback(function(){
+    const d=dragExpenseRef.current;
+    if(d&&d.from!==d.to){ suppressOpenRef.current=Date.now()+400; set(function(s){ return moveExpenseWithinDay(s,d.from,d.to); }); }
+    dragExpenseRef.current=null; setDragExpense(null);
+  },[set]);
 
   // La cabecera es siempre el mes natural: los filtros sirven para explorar, pero no deben hacer
   // que el presupuesto parezca cambiar al mirar otro período o una categoría.
@@ -449,6 +476,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // Abrir la ficha de un movimiento. useCallback = referencia ESTABLE: si cambiara en cada render,
   // el React.memo de MovRow no serviría para nada y volveríamos al problema de siempre.
   const openDetail=useCallback(function(e){
+    if(Date.now()<suppressOpenRef.current) return;
     setDetailId(e.id);
     setEditExp({id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
     setCatEdit(null);
@@ -701,7 +729,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
           : groups.map(function(g,i){ return g.sep
               ? React.createElement("div",{className:"day-sep",key:"s"+i},g.sep)
               : React.createElement(MovRow,{key:g.e.id||i, e:g.e, ms:g.ms, onOpen:openDetail, l10n:l10nKey,
-                  bucket:expenseBucket(g.e, state)}); }),
+                  bucket:expenseBucket(g.e, state),dragging:!!(dragExpense&&dragExpense.from===g.e.id),
+                  dragOver:!!(dragExpense&&dragExpense.to===g.e.id&&dragExpense.from!==g.e.id),
+                  onDragStart:startExpenseDrag,onDragMove:moveExpenseDrag,onDragEnd:endExpenseDrag}); }),
         visible<filtered.length && React.createElement("div",{className:"sentinel",ref:sentinelRefCb},t("g_loadmore"))
       )
     ),
@@ -732,7 +762,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
    `l10n` (idioma|símbolo de moneda) es un prop a posta: catName/entOf/eur leen globales que memo
    no puede ver, así que sin él cambiar de idioma o de moneda dejaría las filas en el idioma viejo.
    `onOpen` tiene que ser ESTABLE (useCallback) o el memo no sirve de nada. */
-const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket}){
+const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket, dragging, dragOver, onDragStart, onDragMove, onDragEnd}){
   // `ms` y no un `Date`: ver el porqué donde se construyen los grupos. El objeto se crea aquí,
   // que es la única línea que lo necesita, y solo cuando la fila se pinta de verdad.
   // `bucket` (string) lo pasa el padre: si se pasara `state` entero, el memo no acertaría nunca.
@@ -746,8 +776,9 @@ const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket}){
   // genérico que hacía que una inversión y un recibo de Sabadell parecieran lo mismo.
   const skip=bucket==="neutra"||bucket==="otrobanco";
   const skipTxt=skip?t("g_skip_"+bucket):"";
-  return React.createElement("button",{type:"button",className:"v4-mov"+(skip?" v4-mov-skip":""),onClick:function(){ onOpen(e); },
-      style:skip?{opacity:.72}:null},
+  return React.createElement("button",{type:"button","data-expense-id":e.id,"data-expense-day":String(e.date||"").slice(0,10),
+      className:"v4-mov"+(skip?" v4-mov-skip":"")+(dragging?" dragging":"")+(dragOver?" drag-over":""),
+      onClick:function(ev){ if(ev.target&&ev.target.closest&&ev.target.closest(".v4-mov-drag")) return; onOpen(e); },style:skip?{opacity:.72}:null},
     React.createElement("div",{className:"tile",style:{borderColor:c.color+"55",color:c.color,background:c.color+"18"}},c.icon),
     React.createElement("div",{className:"nm"},
       React.createElement("div",{className:"nm-title"}, e.merchant||"—"),
@@ -765,7 +796,9 @@ const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket}){
         ):null
       )
     ),
-    React.createElement("div",{className:"am num"+(isIncome?" pos":"")+(skip?" muted":"")}, (isIncome?"+":"")+eur(Math.abs(e.amount)))
+    React.createElement("div",{className:"am num"+(isIncome?" pos":"")+(skip?" muted":"")}, (isIncome?"+":"")+eur(Math.abs(e.amount))),
+    React.createElement("span",{className:"v4-mov-drag",role:"img","data-noswipe":"1","aria-label":t("drag_hint"),title:t("drag_hint"),
+      onTouchStart:function(ev){ onDragStart(ev,e); },onTouchMove:onDragMove,onTouchEnd:onDragEnd,onTouchCancel:onDragEnd},"⠿")
   );
 });
 
