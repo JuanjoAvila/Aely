@@ -9,7 +9,7 @@ metadata:
   node_type: memory
   type: feedback
   originSessionId: 272a31c7-fc62-419e-a958-cac67b02f7a5
-  modified: 2026-08-06T15:34:38.594Z
+  modified: 2026-09-11T16:18:42.891Z
 ---
 
 **2026-08-06.** Le saltó «¡95% del presupuesto! 965 € de 1.000 €» en la noti y en el widget, y al
@@ -37,3 +37,28 @@ duplicada. Y verificar siempre contra su nube real antes de darlo por bueno
 ⚠ Trampa relacionada: `toEurAmt()` dice «no inventar tipo» pero **devuelve el número crudo** sin
 tipo de cambio, o sea que aplica un 1:1. El freno real está en el botón de guardar. Cualquier
 conversión nueva necesita su propio freno.
+
+---
+
+## 2026-09-11 — TRES veces el mismo día, y una le enseñaba a su padre un saldo falso
+
+**No son dos sitios: eran SEIS.** El comentario de `saldoCuentaGasto` (`00-core.js`) ya avisaba
+—*«vivían copiadas en cinco sitios; si se cambia dynBal y no las inversas, teclear el saldo guarda
+un número torcido»*— y por eso existe `valueDesdeSaldo`, la inversa canónica.
+
+1. **El saldo de su padre.** `applyBankBalances` era la **sexta copia sin migrar**: al re-anclar
+   restaba `spentM` = **el gasto del mes de TODOS los bancos**, mientras que al pintar se resta
+   solo `spentByBank[ent]`. Su padre gasta con Caixa y TR, así que a Revolut se le devolvían
+   gastos ajenos: el banco decía **26,46 €** y la app le enseñaba **455,50 €**. Arreglado en
+   4.19.57 llamando a `valueDesdeSaldo` + `gastoDelMesPorBanco`. **Y el mismo fallo ya se había
+   arreglado en agosto… solo en la mitad que pinta** (un cargo de Revolut se comía 257,17 € de TR).
+2. **`dailyEnt` se deriva de dos maneras**: al pintar `find(a => a.spendFrom)`, al re-anclar
+   `find(accDaily)` — y `accDaily` NO mira `spendFrom`. Hoy coinciden en los tres usuarios (lo
+   comprobé con sus datos), pero se separan en cuanto alguien ponga «Todo» sin esa marca vieja.
+3. **Casi cometo la séptima** al duplicar `marcaDeInversion` en `scripts/logos-inversiones.mjs`.
+   Se evita con `load-pure-logic.mjs`, que es el mecanismo que el repo ya tiene para esto: la
+   regla vive en `00-core.js` y el script la CARGA.
+
+**La regla de oro que sale de aquí:** antes de escribir una fórmula inversa a mano, buscar si ya
+existe (`valueDesdeSaldo`, `gastoDelMesPorBanco`). Y el test tiene que sembrar **DOS bancos**: con
+uno, todas estas versiones pasan igual de bien estando rotas.
