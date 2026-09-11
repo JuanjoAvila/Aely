@@ -1,5 +1,46 @@
 [
  {
+  "v": "4.19.53",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Revolut entera y Trade Republic a su tamaño",
+   "en": "Full Revolut R and Trade Republic at its size",
+   "ca": "Revolut sencera i Trade Republic a la seva mida"
+  },
+  "tandas": [
+   {
+    "id": "logos-afinados",
+    "t": {
+     "es": "🏦 Los dos logos que quedaban",
+     "en": "🏦 The two remaining logos",
+     "ca": "🏦 Els dos logotips que quedaven"
+    },
+    "items": {
+     "es": [
+      "Revolut: la R sale entera, con su curva. Trade Republic: las dos olas, más pequeñas, como en el logo de verdad."
+     ],
+     "en": [
+      "Revolut: the full R, curve included. Trade Republic: the two waves, smaller, like the real logo."
+     ],
+     "ca": [
+      "Revolut: la R sencera, amb la seva corba. Trade Republic: les dues ones, mes petites, com al logotip de debo."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "A Revolut le faltaba un trozo de la curva de la R y a Trade Republic le sobraba tamaño. Los dos arreglados."
+   ],
+   "en": [
+    "Revolut was missing part of the R's curve and Trade Republic was too big. Both fixed."
+   ],
+   "ca": [
+    "A Revolut li faltava un tros de la corba de la R i Trade Republic era massa gran. Tots dos arreglats."
+   ]
+  }
+ },
+ {
   "v": "4.19.52",
   "d": "11 sep 2026",
   "t": {

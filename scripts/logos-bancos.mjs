@@ -28,7 +28,8 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const ORIG = path.join(root, "docs/design/bancos");
 const DEST = path.join(root, "public/logos");
 const LADO = 96;          // 40 px en pantalla · 2,4x para pantallas densas
-const OCUPA = 0.66;       // cuánto del cuadro ocupa el símbolo. Un icono de app lleva AIRE:
+const OCUPA = 0.66;       // cuánto del cuadro ocupa el símbolo POR DEFECTO (cada uno puede
+                          // llevar el suyo). Un icono de app lleva AIRE:
                           // a 0,88 «la B gigante» y «las olas en gigante» — rechazado 11/9.
 
 /* Franja del PNG donde vive el ISOTIPO, EN PÍXELES y medida con el detector de componentes
@@ -38,12 +39,15 @@ const OCUPA = 0.66;       // cuánto del cuadro ocupa el símbolo. Un icono de a
 const RECORTES = {
   // la bola azul con la B + la S: es el icono que tiene en el móvil, no la B sola
   sabadell:        { x0: 3,    x1: 282  },
-  /* La R entera: x 0..851, medido por las filas de ARRIBA (la R es el único glifo de altura
-     completa al principio; las minúsculas no llegan). La «e» arranca en 852 sin ni una columna
-     en blanco, así que aquí el aviso de corte es un falso positivo y va reconocido a mano. */
-  revolut:         { x0: 0,    x1: 851, vecinoPegado: true },
-  // las dos cintas en zigzag, a la derecha del nombre
-  trade_republic:  { x0: 1797, x1: 1999 },
+  /* La R entera: x 0..948, medido con RELLENO POR INUNDACIÓN (la R es una sola pieza conectada),
+     no por columnas ni por las filas de arriba. Medirla por las filas altas daba 851 y dejaba
+     fuera 97 px: «la redonda de esa letra cortada un poquitín en mitad de la curva». Su punto
+     más a la derecha está al 99 % de la altura, así que cualquier medida que mire solo arriba
+     la corta. La «e» solapa en columnas, de ahí el `vecinoPegado`. */
+  revolut:         { x0: 0,    x1: 948, vecinoPegado: true, soloPieza: true },
+  /* Las dos cintas en zigzag. `ocupa` propio: en el logotipo real son PEQUEÑAS al lado del
+     nombre, y a 0,66 se veían «GIGANTESCAS» (su palabra). */
+  trade_republic:  { x0: 1797, x1: 1999, ocupa: 0.46 },
   // el aro de colores con el «my» dentro
   myinvestor:      { x0: 351,  x1: 848  },
   // la estrella de Miró con sus dos puntos
@@ -79,8 +83,31 @@ function caja(img, X0, X1) {
            cortaIzq: col(X0 - 1), cortaDer: col(X1) };
 }
 
+/* Máscara de UNA PIEZA. Cuando el símbolo comparte columnas con la letra de al lado (la R de
+   Revolut y la «e»), recortar por caja rectangular cuela un trozo del vecino — se veía como una
+   mota pegada al borde. Esto rellena por inundación desde el primer píxel con tinta y se queda
+   SOLO con esa pieza. */
+function piezaConectada(img, X0, X1) {
+  const W = img.width, H = img.height;
+  let sx = -1, sy = -1;
+  for (let x = X0; x < X1 && sx < 0; x++) for (let y = 0; y < H; y++) if (tinta(img, x, y)) { sx = x; sy = y; break; }
+  if (sx < 0) return null;
+  const vis = new Uint8Array(W * H), pila = [[sx, sy]];
+  vis[sy * W + sx] = 1;
+  while (pila.length) {
+    const [x, y] = pila.pop();
+    for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + a, ny = y + b;
+      if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+      if (vis[ny * W + nx] || !tinta(img, nx, ny)) continue;
+      vis[ny * W + nx] = 1; pila.push([nx, ny]);
+    }
+  }
+  return vis;
+}
+
 /** Media de área (box filter). Al reducir 5-10x, un muestreo simple deja el trazo hecho jirones. */
-function reduce(img, src, dw, dh, dest, ox, oy) {
+function reduce(img, src, dw, dh, dest, ox, oy, mascara) {
   for (let ty = 0; ty < dh; ty++) {
     for (let tx = 0; tx < dw; tx++) {
       const sx0 = src.x + (tx * src.w) / dw, sx1 = src.x + ((tx + 1) * src.w) / dw;
@@ -90,7 +117,8 @@ function reduce(img, src, dw, dh, dest, ox, oy) {
         for (let x = Math.floor(sx0); x < Math.max(Math.ceil(sx1), Math.floor(sx0) + 1); x++) {
           if (x < 0 || y < 0 || x >= img.width || y >= img.height) continue;
           const i = (img.width * y + x) << 2;
-          const al = img.data[i + 3] / 255;
+          // Fuera de la pieza = blanco: así el vecino no deja motas en el borde.
+          const al = (mascara && !mascara[img.width * y + x]) ? 0 : img.data[i + 3] / 255;
           // Sobre blanco: un píxel transparente del original es blanco, no negro.
           r += img.data[i] * al + 255 * (1 - al);
           g += img.data[i + 1] * al + 255 * (1 - al);
@@ -111,21 +139,22 @@ fs.mkdirSync(DEST, { recursive: true });
 const fallos = [];
 let total = 0;
 
-for (const [ent, { x0, x1, vecinoPegado }] of Object.entries(RECORTES)) {
+for (const [ent, { x0, x1, vecinoPegado, ocupa, soloPieza }] of Object.entries(RECORTES)) {
   const origen = path.join(ORIG, ent + ".png");
   if (!fs.existsSync(origen)) { fallos.push(`falta el original ${ent}.png`); continue; }
   const img = lee(origen);
+  const mascara = soloPieza ? piezaConectada(img, Math.max(0, x0), Math.min(img.width, x1 + 1)) : null;
   const c = caja(img, x0, x1);
   if (c.cortaDer && !vecinoPegado) fallos.push(`${ent}: hay tinta pegada en x=${x1 + 1} — el símbolo sigue y lo estás cortando`);
   if (c.cortaIzq) fallos.push(`${ent}: hay tinta pegada en x=${x0 - 1} — el símbolo empieza antes y lo estás cortando`);
   const lado = Math.max(c.w, c.h);
-  const util = Math.round(LADO * OCUPA);
+  const util = Math.round(LADO * (ocupa || OCUPA));
   const dw = Math.max(1, Math.round((c.w / lado) * util));
   const dh = Math.max(1, Math.round((c.h / lado) * util));
 
   const out = new PNG({ width: LADO, height: LADO });
   out.data.fill(255);                         // fondo blanco, como el icono del launcher
-  reduce(img, c, dw, dh, out, Math.round((LADO - dw) / 2), Math.round((LADO - dh) / 2));
+  reduce(img, c, dw, dh, out, Math.round((LADO - dw) / 2), Math.round((LADO - dh) / 2), mascara);
 
   const buf = PNG.sync.write(out, { deflateLevel: 9 });
   const destino = path.join(DEST, ent + ".png");

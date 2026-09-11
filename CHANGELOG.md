@@ -1,3 +1,17 @@
+## [4.19.53] - 2026-09-11
+### Revolut entera y Trade Republic a su tamaño
+
+Su veredicto de la 4.19.52: *«revolut sale con la R la redonda de esa letra cortada un poquitin
+en mitad de la curva»* y *«las dos olas esas SON GIGANTESCAS, la original son pequeñitas»*.
+
+- **Revolut**: la R llega hasta x=948, no 851. La medía por las filas de ARRIBA y su punto más
+  a la derecha está al **99 % de la altura**, así que cualquier medida que mire solo arriba la
+  corta — 97 px fuera. Ahora se mide con **relleno por inundación**: la R es una sola pieza.
+- Y máscara de esa pieza: recortar por caja rectangular colaba un trozo de la «e» de al lado,
+  que se veía como una mota pegada al borde al ampliar.
+- **Trade Republic**: `ocupa` propio de 0,46 (el resto sigue a 0,66). En el logotipo real las
+  cintas son pequeñas al lado del nombre.
+
 ## [4.19.52] - 2026-09-11
 ### Los logos de banco, recortados del original en vez de dibujados
 
