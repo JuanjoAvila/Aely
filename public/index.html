@@ -817,7 +817,7 @@
   .v4-charge .am{font-family:'Fraunces',Georgia,serif;font-size:16px;font-weight:550;font-variant-numeric:tabular-nums;}
   .v4-charge .am.pos{color:var(--mint);}
   .v4-paid{opacity:.55;}
-  .v4-goals{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px;margin:0 -4px;}
+  .v4-goals{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x mandatory;padding-bottom:4px;margin:0 -4px;}
   .v4-goal{flex:0 0 78%;scroll-snap-align:start;background:var(--sur);border:1px solid var(--line-soft);border-radius:20px;padding:16px;}
   .v4-goal .bar{height:10px;border-radius:6px;background:var(--sur2);overflow:hidden;margin:10px 0 8px;}
   .v4-goal .bar i{display:block;height:100%;background:var(--mint);border-radius:6px;transform-origin:left;animation:v4bar .8s var(--ease) both;}
@@ -875,7 +875,13 @@
   .v4-apuntar-amt{text-align:center;font-size:34px;font-weight:550;letter-spacing:-1px;padding:4px 0 10px;font-variant-numeric:tabular-nums;}
   .v4-input{width:100%;background:var(--sur);border:1px solid var(--line-soft);border-radius:12px;padding:11px 13px;font-size:15px;color:var(--text);margin-bottom:10px;}
   .v4-input:focus{border-color:var(--mint);outline:none;}
-  .v4-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:8px;}
+  /* El borde difuminado avisa de que hay más opciones; se excluyen las listas de varias filas
+     porque no esconden contenido hacia la derecha. */
+  .v4-chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:10px;margin-bottom:8px;}
+  .v4-chips::-webkit-scrollbar,.v4-goals::-webkit-scrollbar{display:none;}
+  .v4-chips:not(.wrap):not(.meta-chips),.v4-period-more,.v4-goals{
+    -webkit-mask-image:linear-gradient(to right,#000 88%,transparent);
+    mask-image:linear-gradient(to right,#000 88%,transparent);}
   .v4-chip{flex:0 0 auto;min-height:44px;padding:0 14px;border-radius:22px;background:var(--sur);border:1px solid var(--line-soft);font-size:13.5px;font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;text-align:center;line-height:1.2;box-sizing:border-box;}
   .v4-chip.on{background:rgba(95,208,138,.16);border-color:var(--mint-deep);color:var(--mint);}
   /* Calendario propio: el nativo de Android es gris y en inglés (tanda 3, 2026-08-17). */
@@ -891,7 +897,8 @@
   .mc-cal-day.on{background:rgba(95,208,138,.16);color:var(--mint);box-shadow:inset 0 0 0 1px var(--mint-deep);}
   .range .v4-chip{flex:1;min-width:0;}
   .v4-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:6px 0 12px;}
-  .v4-keys button{height:46px;border-radius:12px;background:var(--sur);border:1px solid var(--line-soft);font-size:18px;font-weight:600;}
+  /* Las teclas deben alcanzar el tamaño táctil marcado en el acabado de la v4. */
+  .v4-keys button{height:56px;border-radius:12px;background:var(--sur);border:1px solid var(--line-soft);font-size:18px;font-weight:600;}
   .v4-keys button:active{transform:scale(.96);background:var(--sur2);}
   .v4-cta{width:100%;height:50px;border-radius:14px;border:none;font-size:15px;font-weight:800;cursor:pointer;
     background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);
@@ -7047,6 +7054,18 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const p=eurParts(shownNet);
   const ringC=2*Math.PI*48;
   const ringPct=Math.max(0,Math.min(1,ratio));
+  /* El primer pintado no anima una transición: el anillo debe arrancar vacío y recibir su
+     valor real tras el splash, igual que el patrimonio, para que la animación sea visible. */
+  const [ringDraw,setRingDraw]=useState(false);
+  useEffect(function(){
+    const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+    if(reduce){ setRingDraw(true); return undefined; }
+    let raf=0, cancelado=false;
+    const arrancar=function(){ if(cancelado) return; raf=requestAnimationFrame(function(){ if(!cancelado) setRingDraw(true); }); };
+    if(window.__mcSplashGone || !document.getElementById("mc-load")){ arrancar(); }
+    else window.addEventListener("mc-splash-gone", arrancar, {once:true});
+    return function(){ cancelado=true; cancelAnimationFrame(raf); window.removeEventListener("mc-splash-gone", arrancar); };
+  },[]);
   const monthName=monthLong(new Date().getMonth());
   const closedCard=closedMonthCardOf(state);
 
@@ -7104,13 +7123,13 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
             React.createElement("circle",{cx:52,cy:52,r:48,fill:"none",stroke:"var(--sur2)",strokeWidth:10}),
             React.createElement("circle",{cx:52,cy:52,r:48,fill:"none",stroke:stCls.indexOf("bad")>=0?"var(--coral)":(stCls.indexOf("warn")>=0?"var(--tan)":"var(--mint)"),
               strokeWidth:10,strokeLinecap:"round",strokeDasharray:String(ringC),
-              strokeDashoffset:String(ringC*(1-ringPct)),
+              strokeDashoffset:String(ringDraw ? ringC*(1-ringPct) : ringC),
               transform:"rotate(-90 52 52)",style:{transition:"stroke-dashoffset 1s var(--ease)"}})
           ),
           React.createElement("div",{style:{position:"absolute",inset:0,display:"grid",placeItems:"center",textAlign:"center",pointerEvents:"none"}},
             React.createElement("div",null,
-              React.createElement("div",{className:"num",style:{fontWeight:800,fontSize:18,lineHeight:1}}, Math.round(ringPct*100)+"%"),
-              React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)",fontWeight:600}}, t("v4_of_month"))
+              React.createElement("div",{className:"num",style:{fontFamily:"'Fraunces',Georgia,serif",fontWeight:600,fontSize:24,lineHeight:1,letterSpacing:"-0.5px"}}, Math.round(ringPct*100)+"%"),
+              React.createElement("div",{style:{fontSize:10.5,color:"var(--muted-2)",fontWeight:600,marginTop:1}}, t("v4_of_month"))
             )
           )
         ),

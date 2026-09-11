@@ -386,3 +386,9 @@ Reglas:
 - Esto **no sube `VERSION` de `beta`**, sube un PATCH nuevo sobre lo que ya hay en producción — la
   ronda grande sigue en `beta` esperando su turno, intacta.
 
+### Porte de acabado v4 (4.18.17)
+
+`e2e/acabado-v4.spec.mjs` cubre el anillo antes y después del splash y la continuidad de los
+carruseles. `e2e/pulido-apuntar.spec.mjs` comprueba las teclas de 56 px y que la última fila sigue
+siendo accesible en una pantalla 360×667, también con letra grande.
+

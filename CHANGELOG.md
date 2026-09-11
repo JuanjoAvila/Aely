@@ -1,3 +1,12 @@
+## [4.18.17] — 2026-09-11
+### Acabado v4
+
+- El anillo de presupuesto parte vacío y se completa tras el splash, para que su transición se
+  llegue a ver; con reducir animaciones conserva directamente el valor correcto.
+- El porcentaje usa la tipografía de cifras de la app, las teclas de Apuntar alcanzan 56 px y los
+  carruseles horizontales muestran un borde que indica que hay más contenido.
+- Guardianes: `e2e/acabado-v4.spec.mjs` y `e2e/pulido-apuntar.spec.mjs`. OTA; sin cambios
+  nativos, de Supabase ni de identidad de aplicación.
 ## [4.18.16] — 2026-09-11
 ### Revisión plegable
 

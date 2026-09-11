@@ -49,7 +49,7 @@ export const CORE = [
  */
 export const E2E_MAP = [
   { file: "src/modules/03-tab-dash.js", specs: [
-    "e2e/informe-mes.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs"] },
+    "e2e/acabado-v4.spec.mjs", "e2e/informe-mes.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: [
     "e2e/gastos-categorias-presupuesto.spec.mjs",
     "e2e/gastos-cajones.spec.mjs", "e2e/gastos-concepto.spec.mjs", "e2e/apuntar-sheet.spec.mjs",
@@ -76,7 +76,7 @@ export const E2E_MAP = [
   { file: "src/modules/12-boot.js", specs: ["e2e/splash.spec.mjs", "e2e/smoke.spec.mjs", "e2e/csp.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: [
-    "e2e/apuntar-sheet.spec.mjs", "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs",
+    "e2e/pulido-apuntar.spec.mjs", "e2e/acabado-v4.spec.mjs", "e2e/apuntar-sheet.spec.mjs", "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/cartera-orden-hogar.spec.mjs",
   ] },
   { file: "src/modules/15-import-hoja.js", specs: ["e2e/import-hoja.spec.mjs", "e2e/import-docx-pdf.spec.mjs"] },

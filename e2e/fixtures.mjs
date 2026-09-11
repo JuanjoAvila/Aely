@@ -1,9 +1,12 @@
 import { readFileSync } from "node:fs";
 
+const E2E_SEEN_VERSION=readFileSync(new URL("../VERSION",import.meta.url),"utf8").trim();
+
 /** Estado mínimo onboarded + sesión Supabase simulada (sin red).
  *  `overrides` se mezcla sobre el estado base (p.ej. {investments:[...]}) para que cada test
  *  no tenga que repetir el objeto entero. */
 export async function seedLoggedInDashboard(page, overrides = {}) {
+  await page.addInitScript(({overrides,seenVersion}) => {
   // Si el bundle está sellado (APP_VERSION=4.x) y `_seenVersion` sigue en "dev", Novedades
   // tapa los clics del panel de beta y el e2e miente en rojo. Leemos VERSION del checkout.
   let seenVer = "dev";
@@ -106,6 +109,7 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       localStorage.setItem("micartera_v3", JSON.stringify(Object.assign(base, overrides)));
       if (seedOnce) sessionStorage.setItem("_e2eSeeded", "1");
     }
+    localStorage.setItem("_seenVersion", seenVersion);
     localStorage.setItem("_seenVersion", seenVer);
     try {
       ["dash", "metas", "gastos", "fijos", "inv"].forEach((id) =>
@@ -126,12 +130,16 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         "1"
       );
     } catch (e) {}
+  }, {overrides,seenVersion:E2E_SEEN_VERSION});
   }, [overrides, seenVer]);
 }
 
 /** Cierra el popup de Novedades si sale (cambia de versión en cada release). Llamar tras el
  *  primer goto("/") en cualquier test que necesite interactuar con la pantalla. */
 export async function dismissNews(page) {
+  // Con builds selladas Novedades se abre cuando termina el splash; mirar antes deja el panel
+  // aparecer encima del siguiente click y vuelve el test dependiente de una carrera.
+  await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 10_000 }).catch(() => {});
   const btn = page.getByRole("button", { name: /Entendido|Got it|D'acord/i });
   if (await btn.count()) await btn.first().click();
 }
