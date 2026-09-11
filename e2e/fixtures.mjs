@@ -1,17 +1,25 @@
 import { readFileSync } from "node:fs";
 
-const E2E_SEEN_VERSION=readFileSync(new URL("../VERSION",import.meta.url),"utf8").trim();
+/* «Ya he visto esta versión» tiene que casar con la versión que lleva EL BUNDLE, no con la del
+   fichero VERSION. No son lo mismo: `build-app.mjs` deja `APP_VERSION: "dev"` y solo el CI la
+   sella. Leyendo VERSION, en local salía `_seenVersion: "4.18.18"` contra un bundle "dev", no
+   casaban, y el popup de Novedades se ponía ENCIMA de todo: 56 e2e cayeron por clics que no
+   llegaban al botón, ninguno por lo que de verdad probaban. Así vale en los dos sitios. */
+const E2E_SEEN_VERSION = (function () {
+  try {
+    const idx = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
+    const m = idx.match(/APP_VERSION:\s*"([^"]+)"/);
+    if (m) return m[1];
+  } catch (e) {}
+  try { return readFileSync(new URL("../VERSION", import.meta.url), "utf8").trim(); } catch (e) {}
+  return "dev";
+})();
 
 /** Estado mínimo onboarded + sesión Supabase simulada (sin red).
  *  `overrides` se mezcla sobre el estado base (p.ej. {investments:[...]}) para que cada test
  *  no tenga que repetir el objeto entero. */
 export async function seedLoggedInDashboard(page, overrides = {}) {
   await page.addInitScript(({overrides,seenVersion}) => {
-  // Si el bundle está sellado (APP_VERSION=4.x) y `_seenVersion` sigue en "dev", Novedades
-  // tapa los clics del panel de beta y el e2e miente en rojo. Leemos VERSION del checkout.
-  let seenVer = "dev";
-  try { seenVer = readFileSync("VERSION", "utf8").trim() || "dev"; } catch (e) {}
-  await page.addInitScript(([overrides, seenVer]) => {
     // Sin esto, cada reload vuelve a pisar localStorage y tests como el orden de Gastos
     // «persiste tras recargar» nunca pueden ver lo que la app acaba de guardar.
     const seedOnce = !!overrides.__seedOnce;
@@ -110,7 +118,6 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       if (seedOnce) sessionStorage.setItem("_e2eSeeded", "1");
     }
     localStorage.setItem("_seenVersion", seenVersion);
-    localStorage.setItem("_seenVersion", seenVer);
     try {
       ["dash", "metas", "gastos", "fijos", "inv"].forEach((id) =>
         localStorage.setItem("_coach_" + id, "1")
@@ -131,7 +138,6 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       );
     } catch (e) {}
   }, {overrides,seenVersion:E2E_SEEN_VERSION});
-  }, [overrides, seenVer]);
 }
 
 /** Cierra el popup de Novedades si sale (cambia de versión en cada release). Llamar tras el
