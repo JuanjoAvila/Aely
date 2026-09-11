@@ -968,7 +968,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       open:openBank==="br:rev", onToggle:function(){ setOpenBank(openBank==="br:rev"?"":"br:rev"); }}),
     React.createElement("div",{className:"bk-ver"}, "v"+(CONFIG.APP_VERSION||"?")),
     // (bp_apk_hint fuera 2026-07-18: párrafo de circunstancias ya resueltas — menos letra aquí)
-    React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",marginTop:6,lineHeight:1.5}}, t("bp_foot"))
+    // bp_foot fuera 2026-09-11: decía que TR no está en OB y ya sí puede; sobraba.
   ));
 }
 

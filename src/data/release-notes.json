@@ -1,5 +1,52 @@
 [
  {
+  "v": "4.19.41",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Textos del banco y del primer día",
+   "en": "Bank copy and day-one wording",
+   "ca": "Textos del banc i del primer dia"
+  },
+  "tandas": [
+   {
+    "id": "copy-ruido-11sep",
+    "t": {
+     "es": "🧹 Menos ruido al probar con la app vacía",
+     "en": "🧹 Less noise when trying the empty app",
+     "ca": "🧹 Menys soroll en provar amb l'app buida"
+    },
+    "items": {
+     "es": [
+      "En Mis bancos ya no sale el aviso de que Trade Republic no está en Open Banking (sí puede conectar).",
+      "Al importar histórico, el texto ya no dice que TR no vale.",
+      "Con presupuesto y cero gastos, Inicio ya no dice «Vas muy bien»: dice que el mes acaba de empezar."
+     ],
+     "en": [
+      "In My banks, the note that Trade Republic isn’t in Open Banking is gone (it can connect).",
+      "Import history no longer says TR won’t work.",
+      "With a budget and zero spending, Home no longer says “Doing great”: it says the month is just starting."
+     ],
+     "ca": [
+      "A Els meus bancs ja no surt l’avís que Trade Republic no és a Open Banking.",
+      "En importar històric, el text ja no diu que TR no val.",
+      "Amb pressupost i zero despeses, Inici ja no diu «Molt bé»: diu que el mes acaba de començar."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Ajustes de texto al probar la app como recién instalada: menos avisos viejos de Trade Republic y un mensaje de Inicio que no da por bueno el mes antes de gastar."
+   ],
+   "en": [
+    "Copy tweaks for trying the app as newly installed: fewer outdated Trade Republic notes and a Home line that doesn’t praise the month before you’ve spent anything."
+   ],
+   "ca": [
+    "Ajustos de text en provar l’app com a nova: menys avisos vells de Trade Republic i un missatge d’Inici que no dona el mes per bo abans de gastar."
+   ]
+  }
+ },
+ {
   "v": "4.19.40",
   "d": "11 sep 2026",
   "t": {

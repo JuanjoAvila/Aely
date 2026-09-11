@@ -1,3 +1,15 @@
+## [4.19.41] — 2026-09-11
+### Textos del banco y del primer día (lista 11/9, ítems 5–7)
+
+Feedback suyo al probar el modo vacío:
+
+- **Mis bancos:** se quita el pie que decía que Trade Republic no está en Open Banking (desde el 1/8 sí puede conectar por OB; el aviso mentía).
+- **Importar histórico:** `bp_hist_nodaily` ya no dice que TR no vale; indica que también sirve si está conectado.
+- **Inicio con presupuesto y cero gastos:** dejaba «Vas muy bien» por defecto (`ratio===0`). Ahora usa `st_start_h` («Aquí empieza el mes») hasta que haya gasto real. Es el primer minuto de alguien que acaba de instalar.
+
+Ítem 4 («1 conectado» con cero bancos) queda para cuando quede libre `10-app-components.js` (Claude en bugs de scroll).
+
+
 ## [4.19.40] — 2026-09-11
 ### La ronda del 11/9: el banco de pruebas, el logo y el tirón
 
