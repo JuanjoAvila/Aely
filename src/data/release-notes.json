@@ -1,5 +1,31 @@
 [
  {
+  "v": "4.18.18",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Cartera cuenta al llegar",
+   "en": "Portfolio counts on arrival",
+   "ca": "Cartera compta en arribar"
+  },
+  "items": {
+   "es": [
+    "Al abrir Cartera, el patrimonio cuenta igual que en Inicio.",
+    "Si la nube tarda un segundo tras el splash, Inicio enseña siluetas en vez de ceros.",
+    "En tema claro, el verde de los textos pequeños se lee mejor sobre blanco."
+   ],
+   "en": [
+    "Opening Portfolio, net worth counts up like on Home.",
+    "If the cloud is a second late after the splash, Home shows silhouettes instead of zeros.",
+    "In the light theme, small green text is easier to read on white."
+   ],
+   "ca": [
+    "En obrir Cartera, el patrimoni compta igual que a Inici.",
+    "Si el núvol triga un segon després de l'splash, Inici ensenya siluetes en comptes de zeros.",
+    "En tema clar, el verd dels textos petits es llegeix millor sobre blanc."
+   ]
+  }
+ },
+ {
   "v": "4.18.14",
   "d": "11 sep 2026",
   "t": {

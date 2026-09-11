@@ -826,6 +826,49 @@
   .v4-mov .am.pos{color:var(--mint);}
   .v4-mov .am.muted{color:var(--muted-2);}
   .v4-mov.v4-mov-skip{border-style:dashed;}
+  /* Tras el splash, mientras llega la nube, las siluetas no inventan importes ni estados. */
+  .v4-skel{height:92px;border-radius:20px;background:var(--sur2);margin-bottom:12px;opacity:.6;
+    animation:v4skel 1.2s ease-in-out alternate infinite;}
+  @keyframes v4skel{to{opacity:1}}
+  @media (prefers-reduced-motion:reduce){ .v4-skel{animation:none;opacity:.85;} }
+  .v4-party{border:1px solid color-mix(in srgb, var(--mint) 40%, transparent);
+    background:color-mix(in srgb, var(--mint) 8%, var(--sur));}
+  .v4-goal-pct{color:var(--mint);}
+  /* Sobre blanco el mint normal no alcanza contraste en texto pequeño; rellenos conservan mint. */
+  html[data-theme="light"]{--mint-ink:#1A6B3F;}
+  html[data-theme="light"] .dc-badge,
+  html[data-theme="light"] .v4-budget-foot a,
+  html[data-theme="light"] .v4-budget-foot button.link,
+  html[data-theme="light"] .v4-section-h button.link,
+  html[data-theme="light"] .profile-handle,
+  html[data-theme="light"] .profile-row .pr-edit,
+  html[data-theme="light"] .af-safe,
+  html[data-theme="light"] .row .rval .rvsub,
+  html[data-theme="light"] .botnav-tab.active,
+  html[data-theme="light"] .v4-gastos-summary-left,
+  html[data-theme="light"] .v4-pill,
+  html[data-theme="light"] .hoja-marc-ok b,
+  html[data-theme="light"] .chip.active,
+  html[data-theme="light"] .v4-chip.on,
+  html[data-theme="light"] .mc-cal-day.on,
+  html[data-theme="light"] .pill.pos,
+  html[data-theme="light"] .recap-v.good,
+  html[data-theme="light"] .v4-pace-marks .mid,
+  html[data-theme="light"] .v4-charge .am.pos,
+  html[data-theme="light"] .v4-mov .am.pos,
+  html[data-theme="light"] .helpq:active,
+  html[data-theme="light"] .tab-add:active,
+  html[data-theme="light"] .icon-btn,
+  html[data-theme="light"] .v4-goal-pct,
+  html[data-theme="light"] .v4-budget-txt .st,
+  html[data-theme="light"] .v4-embed-legacy .edit-link,
+  html[data-theme="light"] .v4-embed-legacy .link{color:var(--mint-ink);}
+  html[data-theme="light"] .v4-pill,
+  html[data-theme="light"] .v4-chip.on,
+  html[data-theme="light"] .chip.active,
+  html[data-theme="light"] .mc-cal-day.on,
+  html[data-theme="light"] .pill.pos,
+  html[data-theme="light"] .dc-badge{background:color-mix(in srgb, var(--mint-ink) 12%, transparent);}
   /* Asa separada: tocar el resto sigue abriendo la ficha y deslizar en vertical sigue siendo
      scroll. Solo el asa reclama el dedo para ordenar, sin activar el swipe entre pestañas. */
   .v4-mov-drag{width:28px;height:44px;display:grid;place-items:center;flex:0 0 auto;margin:-4px -6px -4px 0;
@@ -1868,12 +1911,41 @@ function mcOnGastosActive(cb){
   };
 }
 
+/* Cartera se premonta como pestaña vecina: el aviso de pestaña activa evita gastar el count-up
+   antes de que se vea, sin reconstruir el carrusel durante el gesto. */
+var _mcCarteraActive=false;
+var _mcCarteraActiveCbs=[];
+function mcSetCarteraActive(on){
+  on=!!on;
+  if(_mcCarteraActive===on) return;
+  _mcCarteraActive=on;
+  for(var i=0;i<_mcCarteraActiveCbs.length;i++){
+    try{ _mcCarteraActiveCbs[i](on); }catch(e){}
+  }
+}
+function mcOnCarteraActive(cb){
+  if(typeof cb!=="function") return function(){};
+  _mcCarteraActiveCbs.push(cb);
+  try{ cb(_mcCarteraActive); }catch(e){}
+  return function(){
+    var i=_mcCarteraActiveCbs.indexOf(cb);
+    if(i>=0) _mcCarteraActiveCbs.splice(i,1);
+  };
+}
+
 /* Le dice al SPLASH de entrada que ya puede irse: lo que se vea a partir de ahora es lo bueno.
    El vigilante vive al final de shell.html y no depende de esto para retirarse (tiene un tope de
    1,8 s), así que llamar de más es gratis y no llamar nunca solo devuelve el comportamiento viejo.
    Idempotente a propósito: lo llaman varios caminos (sin nube, sin sesión, candado, alta, y el
-   final del primer pull de la nube) y ninguno sabe de los demás. */
-function mcBootReady(){ try{ window.__mcBootReady=true; }catch(e){} }
+   final del primer pull de la nube) y ninguno sabe de los demás. Emite un evento para que Inicio
+   pueda retirar los esqueletos cuando ya hay datos que pintar. */
+function mcBootReady(){
+  try{
+    if(window.__mcBootReady) return;
+    window.__mcBootReady=true;
+    window.dispatchEvent(new Event("mc-boot-ready"));
+  }catch(e){}
+}
 
 /* EJE DE UN GESTO: "x", "y" o null (todavía no está claro).
    Lo comparten el swipe horizontal entre pestañas (11-app-main.js) y el vertical de Plan
@@ -6515,6 +6587,40 @@ function CollapsibleCard({title, sub, dot, defaultOpen, right, children, storage
   );
 }
 
+/* La puerta de animación impide contar mientras la pestaña está premontada o tras el splash. */
+function useCountUp(target, ready){
+  const [shown,setShown]=useState(0);
+  const rafRef=useRef(0);
+  const shownRef=useRef(0);
+  const primeraRef=useRef(true);
+  useEffect(function(){
+    if(!ready) return undefined;
+    const tgt=+(target||0);
+    cancelAnimationFrame(rafRef.current);
+    const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+    if(reduce){
+      shownRef.current=tgt; setShown(tgt); primeraRef.current=false;
+      return undefined;
+    }
+    let cancelado=false;
+    const start=primeraRef.current?0:shownRef.current;
+    primeraRef.current=false;
+    const t0=performance.now(), dur=950;
+    const ease=function(x){ return 1-Math.pow(1-x,3); };
+    const step=function(now){
+      if(cancelado) return;
+      const p=Math.min(1,(now-t0)/dur);
+      const v=start+(tgt-start)*ease(p);
+      shownRef.current=v;
+      setShown(v);
+      if(p<1) rafRef.current=requestAnimationFrame(step);
+    };
+    rafRef.current=requestAnimationFrame(step);
+    return function(){ cancelado=true; cancelAnimationFrame(rafRef.current); };
+  },[target, ready]);
+  return shown;
+}
+
 function Sparkline({data, current}){
   const pts = data.concat(current!=null?[current]:[]);
   const w=320, h=70, pad=4;
@@ -6920,49 +7026,30 @@ function dashOrderOf(s, allIds){
 function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
   const tt=totals;
   const simple=!!(state.settings&&state.settings.simpleMode);
-  const [shownNet,setShownNet]=useState(0);
   const [budgetOpen,setBudgetOpen]=useState(false);
-  const rafRef=useRef(0);
-  const shownRef=useRef(0);      // último valor pintado, para encadenar sin volver a cero
-  const primeraRef=useRef(true); // la cuenta desde 0 es solo la de la entrada
-  // Count-up 950 ms (SPEC §3 / §10). Reduced-motion → valor directo.
+  /* El splash y la nube son puertas distintas: el número no debe animarse oculto ni las tarjetas
+     enseñar ceros antes de que lleguen datos. */
+  const [splashGone,setSplashGone]=useState(function(){
+    try{ return !!(window.__mcSplashGone) || !document.getElementById("mc-load"); }catch(e){ return true; }
+  });
+  const [bootReady,setBootReady]=useState(function(){
+    try{ return !!window.__mcBootReady; }catch(e){ return true; }
+  });
   useEffect(function(){
-    const target=tt.netWorth||0;
-    cancelAnimationFrame(rafRef.current);
-    const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
-    if(reduce){ shownRef.current=target; setShownNet(target); return undefined; }
-    let cancelado=false;
-    const arrancar=function(){
-      if(cancelado) return;
-      /* De DÓNDE cuenta: la primera vez desde 0 (la entrada, que es la que él echaba de menos);
-         después, desde lo que hubiera puesto. Volver a 0 cada vez que cambia el patrimonio
-         —apuntar un gasto, que entre una sincronización— convertía una animación bonita de
-         bienvenida en un parpadeo del número a media faena. */
-      const start=primeraRef.current?0:shownRef.current;
-      primeraRef.current=false;
-      const t0=performance.now(), dur=950;
-      const ease=function(x){ return 1-Math.pow(1-x,3); };
-      const step=function(now){
-        const p=Math.min(1,(now-t0)/dur);
-        const v=start+(target-start)*ease(p);
-        shownRef.current=v;
-        setShownNet(v);
-        if(p<1) rafRef.current=requestAnimationFrame(step);
-      };
-      rafRef.current=requestAnimationFrame(step);
-    };
-    /* NO SE CUENTA DETRÁS DEL SPLASH (2026-07-28). La cortina de entrada se queda puesta hasta
-       que ha llegado el primer dato bueno de la nube (~1,3 s), y esto arrancaba al montar: para
-       cuando él veía la pantalla, la cuenta había terminado y el número aparecía ya puesto. Su
-       feedback: «eso molaba mucho y se perdió». No se perdió, se gastaba a puerta cerrada. */
-    if(window.__mcSplashGone || !document.getElementById("mc-load")){ arrancar(); return function(){ cancelado=true; cancelAnimationFrame(rafRef.current); }; }
-    window.addEventListener("mc-splash-gone", arrancar, {once:true});
-    return function(){
-      cancelado=true;
-      cancelAnimationFrame(rafRef.current);
-      window.removeEventListener("mc-splash-gone", arrancar);
-    };
-  },[tt.netWorth]);
+    if(splashGone) return undefined;
+    const on=function(){ setSplashGone(true); };
+    window.addEventListener("mc-splash-gone", on);
+    return function(){ window.removeEventListener("mc-splash-gone", on); };
+  },[splashGone]);
+  useEffect(function(){
+    if(bootReady) return undefined;
+    const on=function(){ setBootReady(true); };
+    window.addEventListener("mc-boot-ready", on);
+    try{ if(window.__mcBootReady) setBootReady(true); }catch(e){}
+    return function(){ window.removeEventListener("mc-boot-ready", on); };
+  },[bootReady]);
+  const shownNet=useCountUp(tt.netWorth||0, splashGone);
+  const showSkel=splashGone && !bootReady;
 
   const nameGuess=(function(){
     try{
@@ -7053,7 +7140,13 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         onClick:function(){ if(onOpenProfile) onOpenProfile(); else if(onOpenSettings) onOpenSettings(); }}, initials)
     ),
 
-    closedCard && React.createElement("div",{className:"v4-card rise","data-tour":"closed-month",style:{animationDelay:".02s",marginTop:4}},
+    showSkel && React.createElement(React.Fragment,null,
+      React.createElement("div",{className:"v4-skel",style:{marginTop:8}}),
+      React.createElement("div",{className:"v4-skel"}),
+      React.createElement("div",{className:"v4-skel"})
+    ),
+
+    !showSkel && closedCard && React.createElement("div",{className:"v4-card rise","data-tour":"closed-month",style:{animationDelay:".02s",marginTop:4}},
       React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
         React.createElement("div",null,
           React.createElement("div",{style:{fontWeight:800,fontSize:15}}, tf("mr_title",{mes:monthLong(closedCard.month)+" "+closedCard.year})),
@@ -7090,7 +7183,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         React.createElement(Sparkline,{data:state.history,current:tt.netWorth}))
     ),
 
-    state.budget>0 && React.createElement("div",{className:"v4-card rise",style:{animationDelay:".1s",marginTop:8}},
+    !showSkel && state.budget>0 && React.createElement("div",{className:"v4-card rise",style:{animationDelay:".1s",marginTop:8}},
       React.createElement("div",{className:"v4-budget",role:"button",tabIndex:0,onClick:function(){ setBudgetOpen(true); },onKeyDown:function(e){ if(e.key==="Enter") setBudgetOpen(true); }},
         React.createElement("div",{style:{position:"relative",width:104,height:104,flex:"0 0 auto"}},
           React.createElement("svg",{width:104,height:104,viewBox:"0 0 104 104"},
@@ -7125,7 +7218,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       set(function(s){ return Object.assign({},s,{budget:b}); });
     }}),
 
-    partyDebts.length>0 && React.createElement("div",{className:"v4-card rise",style:{animationDelay:".12s",marginTop:8,border:"1px solid rgba(95,208,138,.4)",background:"rgba(95,208,138,.07)",padding:"14px 16px"}},
+    !showSkel && partyDebts.length>0 && React.createElement("div",{className:"v4-card rise v4-party",style:{animationDelay:".12s",marginTop:8,padding:"14px 16px"}},
       partyDebts.map(function(d){
         return React.createElement("div",{key:d.id},
           React.createElement("div",{style:{fontWeight:800,fontSize:15,lineHeight:1.35}}, tf("v4_debt_party_1",{name:d.name,x:eur0(d.monthly||0)})),
@@ -7134,7 +7227,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       })
     ),
 
-    upcoming.length>0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".15s"}},
+    !showSkel && upcoming.length>0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".15s"}},
       React.createElement("div",{className:"v4-section-h"},
         React.createElement("span",null, t("v4_upcoming")),
         // «Ver plan» fuerza el segmento Recibos: sin esto aterrizabas en el último subtab
@@ -7158,7 +7251,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       )
     ),
 
-    goals.length>0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
+    !showSkel && goals.length>0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
       React.createElement("div",{className:"v4-section-h"},
         React.createElement("span",null, t("v4_your_goals")),
         React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("metas"); }}, t("v4_see_plan"))
@@ -7177,7 +7270,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
                 React.createElement("div",{style:{fontWeight:800,fontSize:15.5}}, g.name),
                 React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:2}}, eur0(g.saved||0)+" "+t("gl_of")+" "+eur0(g.target||0))
               ),
-              React.createElement("div",{className:"serif num",style:{color:"var(--mint)",fontWeight:600,fontSize:18}}, Math.round(pct)+"%")
+              React.createElement("div",{className:"serif num v4-goal-pct",style:{fontWeight:600,fontSize:18}}, Math.round(pct)+"%")
             ),
             React.createElement("div",{className:"bar"}, React.createElement("i",{style:{width:pct+"%"}})),
             React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)"}}, eta.text)
@@ -7186,7 +7279,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       )
     ),
 
-    React.createElement("div",{className:"v4-section rise",style:{animationDelay:".25s"}},
+    !showSkel && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".25s"}},
       React.createElement("div",{className:"v4-section-h"},
         React.createElement("span",null, t("v4_recent")),
         React.createElement("button",{className:"link",onClick:function(){ if(onGoGastos) onGoGastos(); }}, t("v4_all"))
@@ -16333,7 +16426,6 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
   const sum=Math.max(0.01, active.reduce(function(a,x){ return a+x.v; },0));
   // Con todo marcado el hero sigue siendo el patrimonio neto (deudas descontadas, como siempre);
   // con selección parcial enseña la suma de lo marcado (sin deudas — no aplican a un subconjunto).
-  const p=eurParts(allOn ? totals.netWorth : active.reduce(function(a,x){ return a+x.v; },0));
   const heroLab=allOn ? t(simple?"v4_money_total":"d_networth")
     : t("v4_sel_partial")+" · "+active.map(function(x){ return x.lab; }).join(" + ");
   const doBankSync=function(){
@@ -16341,12 +16433,18 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
     setBankBusy(true);
     Promise.resolve(onBankSync()).finally(function(){ setBankBusy(false); });
   };
+  /* Al montar se premonta fuera de pantalla: la activación real llega por el bus de pestaña. */
+  const [carteraOn,setCarteraOn]=useState(false);
+  useEffect(function(){ return mcOnCarteraActive(setCarteraOn); },[]);
+  const heroTarget=allOn ? (totals.netWorth||0) : active.reduce(function(a,x){ return a+x.v; },0);
+  const shownHero=useCountUp(heroTarget, carteraOn);
+  const ph=eurParts(shownHero);
   return React.createElement("div",{className:"v4-screen"},
     React.createElement("h1",{className:"v4-title serif"}, t("v4_cartera_title")),
     React.createElement("div",{className:"v4-card v4-card-hero rise",style:{animationDelay:".05s"}},
       React.createElement("div",{className:"v4-micro"}, heroLab),
-      React.createElement("div",{className:"serif num",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
-        p.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},","+p.dec+" "+p.sym)),
+      React.createElement("div",{className:"serif num cartera-hero-amt",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
+        ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},","+ph.dec+" "+ph.sym)),
       React.createElement("div",{className:"v4-stackbar",style:{marginTop:16}},
         active.map(function(x){
           return React.createElement("i",{key:x.k,style:{flex:Math.max(0.02,(x.v/sum)*100),background:x.color}});
@@ -19548,6 +19646,7 @@ function App(){
   },[state, totals, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, drawerOpen, locked, gastosForceAll]);
   // Aviso barato a Expenses: sin setState en App que no haga falta, y sin re-render de Gastos.
   useEffect(function(){ mcSetGastosActive(tabIds[tab]==="gastos"); },[tab, tabIds]);
+  useEffect(function(){ mcSetCarteraActive(tabIds[tab]==="cartera"); },[tab, tabIds]);
   // Al cambiar de pestaña (o del orden), recalcular qué páginas necesitan `mc-touch-own`.
   // Sin esto, Inicio se quedaba en pan-y tras volver desde Gastos scrolleado, o Plan perdía el
   // gesto de segmento al aterrizar ya arriba del todo sin haber disparado onScroll.

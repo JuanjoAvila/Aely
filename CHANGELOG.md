@@ -1,3 +1,12 @@
+## [4.18.18] — 2026-09-11
+### Pulido B2/B4/B5
+
+- Cartera recibe su activación por el mismo bus que Gastos y anima el patrimonio al entrar, sin
+  tocar el carrusel que premonta las pestañas vecinas.
+- Inicio muestra siluetas después del splash hasta que termina la carga inicial, y respeta reducir
+  animaciones. En tema claro, el texto verde pequeño usa un tono legible sobre blanco.
+- Guardián: `e2e/pulido-b245.spec.mjs`. OTA; sin Aely, cambios nativos, Edge ni identidad.
+
 ## [4.18.14] — 2026-09-11
 ### Orden manual dentro del día en Gastos
 

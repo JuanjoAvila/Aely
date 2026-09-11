@@ -826,6 +826,49 @@
   .v4-mov .am.pos{color:var(--mint);}
   .v4-mov .am.muted{color:var(--muted-2);}
   .v4-mov.v4-mov-skip{border-style:dashed;}
+  /* Tras el splash, mientras llega la nube, las siluetas no inventan importes ni estados. */
+  .v4-skel{height:92px;border-radius:20px;background:var(--sur2);margin-bottom:12px;opacity:.6;
+    animation:v4skel 1.2s ease-in-out alternate infinite;}
+  @keyframes v4skel{to{opacity:1}}
+  @media (prefers-reduced-motion:reduce){ .v4-skel{animation:none;opacity:.85;} }
+  .v4-party{border:1px solid color-mix(in srgb, var(--mint) 40%, transparent);
+    background:color-mix(in srgb, var(--mint) 8%, var(--sur));}
+  .v4-goal-pct{color:var(--mint);}
+  /* Sobre blanco el mint normal no alcanza contraste en texto pequeño; rellenos conservan mint. */
+  html[data-theme="light"]{--mint-ink:#1A6B3F;}
+  html[data-theme="light"] .dc-badge,
+  html[data-theme="light"] .v4-budget-foot a,
+  html[data-theme="light"] .v4-budget-foot button.link,
+  html[data-theme="light"] .v4-section-h button.link,
+  html[data-theme="light"] .profile-handle,
+  html[data-theme="light"] .profile-row .pr-edit,
+  html[data-theme="light"] .af-safe,
+  html[data-theme="light"] .row .rval .rvsub,
+  html[data-theme="light"] .botnav-tab.active,
+  html[data-theme="light"] .v4-gastos-summary-left,
+  html[data-theme="light"] .v4-pill,
+  html[data-theme="light"] .hoja-marc-ok b,
+  html[data-theme="light"] .chip.active,
+  html[data-theme="light"] .v4-chip.on,
+  html[data-theme="light"] .mc-cal-day.on,
+  html[data-theme="light"] .pill.pos,
+  html[data-theme="light"] .recap-v.good,
+  html[data-theme="light"] .v4-pace-marks .mid,
+  html[data-theme="light"] .v4-charge .am.pos,
+  html[data-theme="light"] .v4-mov .am.pos,
+  html[data-theme="light"] .helpq:active,
+  html[data-theme="light"] .tab-add:active,
+  html[data-theme="light"] .icon-btn,
+  html[data-theme="light"] .v4-goal-pct,
+  html[data-theme="light"] .v4-budget-txt .st,
+  html[data-theme="light"] .v4-embed-legacy .edit-link,
+  html[data-theme="light"] .v4-embed-legacy .link{color:var(--mint-ink);}
+  html[data-theme="light"] .v4-pill,
+  html[data-theme="light"] .v4-chip.on,
+  html[data-theme="light"] .chip.active,
+  html[data-theme="light"] .mc-cal-day.on,
+  html[data-theme="light"] .pill.pos,
+  html[data-theme="light"] .dc-badge{background:color-mix(in srgb, var(--mint-ink) 12%, transparent);}
   /* Asa separada: tocar el resto sigue abriendo la ficha y deslizar en vertical sigue siendo
      scroll. Solo el asa reclama el dedo para ordenar, sin activar el swipe entre pestañas. */
   .v4-mov-drag{width:28px;height:44px;display:grid;place-items:center;flex:0 0 auto;margin:-4px -6px -4px 0;
