@@ -1,3 +1,28 @@
+## [4.19.55] - 2026-09-11
+### La R de Revolut son DOS piezas, y yo me quedaba con una
+
+Su aviso: *«arreglaste el circulito de la r pero cortaste el palo»*. En la 4.19.53 puse una
+máscara de «una sola pieza conectada» para que no se colara la «e» de al lado. Pero **la R de
+Revolut son dos piezas sueltas** —el palo vertical y la panza con la pata— así que quedarme con
+una le amputaba la otra.
+
+- `piezasDentro`: se queda con **TODA pieza cuya caja quepa ENTERA en el recorte**. La «e» se
+  sale por la derecha → fuera. El palo y la panza caben → dentro. Es la regla correcta y además
+  no necesita saber cuántas piezas tiene cada logo.
+- Trade Republic: `ocupa` 0,46 → **0,38**. «Sigue siendo las dos olas grandes.»
+
+## [4.19.55] - 2026-09-11
+### Bancos solo para bancos: gasto diario fuera de Conectar cuentas
+
+Su petición: en conectar cuentas salía «también apuntar gastos de tarjeta…» con mucho texto
+y chips; eso tenía que vivir solo en Cartera (roles Recibos / Gasto diario / Todo).
+
+- Quitado el bloque `data-expbanks` de `BankPanel` (`10-app-components.js`).
+- No se añade casilla nueva: `pickRole` en Cartera ya escribe `settings.expenseBanks`.
+- Textos que mandaban a «Ajustes → Bancos» (`h_roles`, `rl_hint`, `coach_*`, `bp_hist_nodaily`)
+  reescritos en es/en/ca.
+- E2e `presupuesto-bancos` pasa a marcar el EXTRA desde Cartera → editar cuenta.
+
 ## [4.19.54] - 2026-09-11
 ### Las inversiones recuperan su monograma (regresión mía de la 4.19.52)
 

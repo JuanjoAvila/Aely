@@ -895,49 +895,10 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       );
     }),
     React.createElement("button",{style:bigBtn,onClick:openPicker}, "+ "+t("bp_add")),
-    (function(){
-      const active=(links||[]).filter(function(l){ return l.status==='active'||l.status==='pending'; });
-      if(!active.length) return null;
-      const ents=[]; active.forEach(function(l){ const e=entFromAspsp(l.aspsp_name); if(e&&ents.indexOf(e)<0) ents.push(e); });
-      if(!ents.length) return null;
-      const cur=expenseBankEnts(state);
-      const primaryEnt=(function(){
-        const daily=(state.accounts||[]).find(function(a){ return accDaily(a); });
-        return (daily&&daily.ent)||null;
-      })();
-      const onEnt=function(ent){ return cur.indexOf(ent)>=0; };
-      const toggleEnt=function(ent){
-        // La cuenta de gasto diario SIEMPRE cuenta (expenseBankEnts la reinyecta). Desmarcarla
-        // parecía no hacer nada — rechazo 4.19.1/avisos-presupuesto al quitar TR. Aquí se deja
-        // explícito: solo se quitan/añaden EXTRA.
-        if(primaryEnt && ent===primaryEnt){ showToast(t("bp_expbanks_locked")); return; }
-        set(function(s){
-          const base=expenseBankEnts(s).slice();
-          const i=base.indexOf(ent);
-          if(i>=0){ if(base.length===1) return s; base.splice(i,1); }
-          else base.push(ent);
-          return Object.assign({},s,{settings:Object.assign({},s.settings,{expenseBanks:base})});
-        });
-      };
-      return React.createElement("div",{style:{marginTop:18},"data-expbanks":"1"},
-        React.createElement("div",{className:"v4-section-h"}, React.createElement("span",null, t("bp_expbanks"))),
-        React.createElement("div",{style:{fontSize:12,color:"var(--muted)",lineHeight:1.45,marginBottom:10}}, t("bp_expbanks_hint")),
-        React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8}},
-          ents.map(function(ent){
-            const on=onEnt(ent);
-            const locked=!!(primaryEnt&&ent===primaryEnt);
-            return React.createElement("button",{
-              key:ent,type:"button",
-              className:"v4-chip"+(on?" on":"")+(locked?" v4-chip-locked":""),
-              "data-ent":ent,
-              "data-primary":locked?"1":undefined,
-              onClick:function(){ toggleEnt(ent); }
-            },
-              (on?"✓ ":"")+entOf(ent).label+(locked?" · "+t("bp_expbanks_main"):""));
-          })
-        )
-      );
-    })(),
+    /* «También apuntar gastos de tarjeta» fuera de aquí (2026-09-11): Conectar cuentas es solo
+       bancos. El rol Recibos / Gasto diario / Todo vive en Cartera → editar cuenta, y
+       `pickRole` ya escribe `expenseBanks`. Dejar los chips aquí era una segunda puerta del
+       mismo ajuste (su «lo de bancos que sea solo para bancos»). */
     /* Histórico del banco: solo Ajustes → Importaciones (tanda 4 / plan K). Aquí ensuciaba
        «Mis bancos» y duplicaba la puerta. */
     React.createElement("div",{style:{height:1,background:"var(--line-soft)",margin:"22px 0 8px"}}),

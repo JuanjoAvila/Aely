@@ -1,5 +1,87 @@
 [
  {
+  "v": "4.19.55",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "La R de Revolut, con su palo",
+   "en": "Revolut's R, stem included",
+   "ca": "La R de Revolut, amb el seu pal"
+  },
+  "tandas": [
+   {
+    "id": "revolut-palo-tr-mas-chico",
+    "t": {
+     "es": "🏦 Revolut entera y Trade Republic más pequeño",
+     "en": "🏦 Full Revolut and smaller Trade Republic",
+     "ca": "🏦 Revolut sencera i Trade Republic mes petit"
+    },
+    "items": {
+     "es": [
+      "Revolut: la R son dos trazos sueltos (el palo y la curva) y faltaba el palo. Trade Republic: las olas, más pequeñas."
+     ],
+     "en": [
+      "Revolut: the R is two separate strokes (stem and curve) and the stem was missing. Trade Republic: smaller waves."
+     ],
+     "ca": [
+      "Revolut: la R son dos traços solts (el pal i la corba) i faltava el pal. Trade Republic: ones mes petites."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "A la R de Revolut le faltaba el palo de la izquierda y a Trade Republic le sobraba tamaño otra vez."
+   ],
+   "en": [
+    "Revolut's R was missing its left stem and Trade Republic was still too big."
+   ],
+   "ca": [
+    "A la R de Revolut li faltava el pal i Trade Republic encara era massa gran."
+   ]
+  }
+ },
+ {
+  "v": "4.19.55",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Bancos solo para bancos",
+   "en": "Banks are just for banks",
+   "ca": "Bancs només per a bancs"
+  },
+  "tandas": [
+   {
+    "id": "expbanks-en-cartera",
+    "t": {
+     "es": "🏦 El día a día se marca en Cartera",
+     "en": "🏦 Day-to-day is set in Wallet",
+     "ca": "🏦 El dia a dia es marca a Cartera"
+    },
+    "items": {
+     "es": [
+      "En Conectar cuentas ya no sale el bloque de «también apuntar gastos de tarjeta». Eso se elige al editar cada cuenta en Cartera: Recibos, Gasto diario o Todo."
+     ],
+     "en": [
+      "Connect accounts no longer shows the “also log card spending” block. You pick that when editing each account in Wallet: Bills, Daily spending or Everything."
+     ],
+     "ca": [
+      "A Connectar comptes ja no surt el bloc de «també apuntar despeses de targeta». Això es tria en editar cada compte a Cartera: Rebuts, Despesa diària o Tot."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Conectar cuentas se queda en conectar y quitar bancos. Si una tarjeta cuenta en el día a día, se marca en Cartera al editar la cuenta."
+   ],
+   "en": [
+    "Connect accounts is only for linking and removing banks. If a card counts toward day-to-day spending, you set that in Wallet when editing the account."
+   ],
+   "ca": [
+    "Connectar comptes es queda en connectar i treure bancs. Si una targeta compta al dia a dia, es marca a Cartera en editar el compte."
+   ]
+  }
+ },
+ {
   "v": "4.19.54",
   "d": "11 sep 2026",
   "t": {
