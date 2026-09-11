@@ -1,5 +1,49 @@
 [
  {
+  "v": "4.19.42",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Bancos en pruebas, sin fantasmas",
+   "en": "Banks in test mode, no ghosts",
+   "ca": "Bancs en proves, sense fantasmes"
+  },
+  "tandas": [
+   {
+    "id": "bp-count-vacio",
+    "t": {
+     "es": "🏦 En el banco de pruebas, el contador dice la verdad",
+     "en": "🏦 In test mode, the bank count tells the truth",
+     "ca": "🏦 A la zona de proves, el comptador diu la veritat"
+    },
+    "items": {
+     "es": [
+      "Entra al banco de pruebas vacío (o con la app vacía). Ajustes → Bancos tiene que decir que no hay ninguno conectado, aunque Trade Republic siga en el móvil de verdad.",
+      "Fuera del banco de pruebas, si tienes TR conectado, el resumen sigue contándolo como siempre."
+     ],
+     "en": [
+      "Enter the empty test bank. Settings → Banks must say none connected, even if Trade Republic is still on the real phone.",
+      "Outside test mode, if TR is connected, the summary still counts it as before."
+     ],
+     "ca": [
+      "Entra a la zona de proves buida. Ajustes → Bancs ha de dir que no n'hi ha cap de connectat, encara que Trade Republic segueixi al mòbil de veritat.",
+      "Fora de la zona de proves, si tens TR connectat, el resum el continua comptant."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "En el banco de pruebas, Ajustes ya no cuenta Trade Republic del móvil como un banco conectado cuando la cartera de pruebas está vacía."
+   ],
+   "en": [
+    "In test mode, Settings no longer counts the phone’s Trade Republic as a connected bank when the test wallet is empty."
+   ],
+   "ca": [
+    "A la zona de proves, Ajustes ja no compta el Trade Republic del mòbil com a banc connectat quan la cartera de proves és buida."
+   ]
+  }
+ },
+ {
   "v": "4.19.41",
   "d": "11 sep 2026",
   "t": {
