@@ -1,6 +1,6 @@
 [
  {
-  "v": "4.19.70",
+  "v": "4.19.71",
   "d": "11 sep 2026",
   "tandas": [
    {
@@ -41,6 +41,27 @@
     }
    }
   ],
+  "t": {
+   "es": "La barra de abajo, también cuando el móvil te quita el gesto",
+   "en": "The bottom bar, even when the phone steals the gesture",
+   "ca": "La barra de baix, tambe quan el mobil et pren el gest"
+  },
+  "items": {
+   "es": [
+    "Remate del arreglo de la barra: en el móvil, casi todos los gestos los acaba cancelando el sistema, y por ese camino el estado de la barra se quedaba a medias."
+   ],
+   "en": [
+    "Finishing the bar fix: on the phone almost every gesture ends up cancelled by the system, and that path left the bar's state half-applied."
+   ],
+   "ca": [
+    "Remat de l'arreglada de la barra: al mobil gairebe tots els gestos els acaba cancel·lant el sistema."
+   ]
+  }
+ },
+ {
+  "v": "4.19.70",
+  "d": "11 sep 2026",
+  "tandas": [],
   "t": {
    "es": "«Sabadell» ya no es un parking",
    "en": "“Sabadell” is no longer a car park",

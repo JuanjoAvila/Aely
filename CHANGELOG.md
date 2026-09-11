@@ -1,3 +1,30 @@
+## [4.19.71] - 2026-09-11
+### El aplazamiento de la 4.19.69 tenía un agujero, y era peor que no aplazar nada
+
+En la 4.19.69 aplacé el `setState` de la barra hasta soltar el dedo, para no repintar App a mitad
+de gesto. Lo volcaba **solo en `onEnd`**. Cursor lo cazó leyendo el código, con el dato que lo
+cierra y que está escrito en este mismo repo:
+
+> **en su móvil 174 de 185 gestos acaban en `touchcancel`**, no en `touchend`.
+
+O sea que en su mano el volcado **casi nunca habría corrido**. Y lo que quedaba no era «no se
+aplica»: era el DOM con `.botnav-hidden` puesta, las refs en `true` y React creyendo que la barra
+está a la vista — así que **el siguiente re-render le quitaba la clase y la barra reaparecía sola**.
+Peor que no haber aplazado nada.
+
+- El bloque sale a `flushNavHide()` y se llama desde **los tres** caminos por los que se suelta el
+  dedo: `onEnd`, `onCancel` (antes de su early-return del perfil) y `cancelSwipe`.
+
+**Y por qué los e2e no lo veían, que es lo que importa:** un gesto sintético de Playwright siempre
+termina limpio. Los cinco casos de `botnav-esconder` pasaban con el agujero puesto. Se añaden dos:
+uno que manda `touchCancel` a propósito, y un **guardián de fuente** que exige que `flushNavHide()`
+se llame desde las tres funciones. Esto último no es pereza: es que el caso de verdad **no se puede
+montar** con un gesto sintético, y un test que no puede fallar no vale.
+
+De paso, algo que medí y no esperaba: al cancelar un gesto la app **revela la barra a propósito**
+(`endTopClearNow(true)`). Queda escrito en el test para que nadie lo «arregle» creyendo que es
+este bug.
+
 ## [4.19.70] - 2026-09-11
 ### Tres ciudades más que se comían la categoría, y una es su banco
 

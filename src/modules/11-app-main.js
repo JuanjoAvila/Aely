@@ -150,6 +150,20 @@ function App(){
   const lastScrollAt=useRef(0);
   /* ¿Queda un `setState` de la barra pendiente de volcar al levantar el dedo? Ver `applyNavHide`. */
   const navFlush=useRef(false);
+  /* PONE A REACT DE ACUERDO CON EL DOM, y hay que llamarlo desde TODOS los caminos por los que se
+     suelta el dedo, no solo del limpio.
+     ⚠ La primera versión (4.19.69) solo volcaba en `onEnd`, y lo cazó Cursor con el dato que lo
+     cierra: **en su móvil 174 de 185 gestos acaban en `touchcancel`**, no en `touchend`. O sea que
+     el volcado casi nunca habría corrido en su mano. Y lo que quedaba era peor que no aplazar
+     nada: el DOM con la clase puesta, las refs en `true` y React creyendo que la barra está a la
+     vista, así que **el siguiente re-render le quitaba la clase y la barra reaparecía sola**.
+     Los e2e no lo ven: un gesto sintético siempre termina limpio. */
+  const flushNavHide=function(){
+    if(!navFlush.current) return;
+    navFlush.current=false;
+    setNavHidden(!!navHiddenRef.current);
+    setNavHiddenFast(!!navHideFastRef.current);
+  };
   /* Alto del contenido en el scroll anterior. Sirve para distinguir «ha bajado él» de «la
      pantalla se ha recolocado sola»: al tocar un chip de rol en Cartera la tarjeta estira o
      encoge, el navegador ajusta el `scrollTop` y dispara un `scroll` que NADIE ha pedido. Sin
@@ -2598,12 +2612,7 @@ function App(){
   };
   const onEnd=()=>{
     if(!dragging.current) return; dragging.current=false;
-    // El `setState` de la barra que se aplazó para no repintar App a mitad de gesto (applyNavHide).
-    if(navFlush.current){
-      navFlush.current=false;
-      setNavHidden(!!navHiddenRef.current);
-      setNavHiddenFast(!!navHideFastRef.current);
-    }
+    flushNavHide();   // el setState aplazado de la barra (ver applyNavHide)
     // El rAF del arrastre se para AQUÍ: a partir de ahora manda `animarA`, y si los dos escriben
     // el mismo `transform` se pisan y el soltar daría un tirón peor que el que veníamos a quitar.
     pararPintado();
@@ -2682,6 +2691,7 @@ function App(){
      El perfil, la tabbar y las fichas ya escuchaban `touchcancel`; las pestañas y Ajustes, no. */
   const onCancel=function(){
     if(!dragging.current) return;
+    flushNavHide();   // ANTES del early-return del perfil: en su móvil casi todos los gestos pasan por aquí
     scheduleEndTopClear();
     if(gestureMode.current==="profile"){
       profileRelease();
@@ -2917,6 +2927,7 @@ function App(){
   // Cancela el gesto de tabs/ajustes a mitad (chips de Gastos: scroll interno sin cambiar de pestaña).
   const cancelSwipe=function(){
     if(!dragging.current) return;
+    flushNavHide();   // el navegador nos quita el gesto: el estado de la barra se vuelca igual
     dragging.current=false; axis.current=null; gestureMode.current=null; dx.current=0; ancla.current=0;
     pararPintado();   // touchcancel: el navegador nos quita el gesto, hay que soltar el rAF igual
     endTopClearNow(true);
