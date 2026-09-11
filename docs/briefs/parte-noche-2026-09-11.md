@@ -113,3 +113,51 @@ tumbó. Está aprobada pero no es portable hasta que la ventana de mes se aprueb
 | `beta` (4.19.35) | lo que tiene en el móvil | publicada, pendiente de que la pruebe |
 
 Cursor sigue portando `panel-ronda` y `notas-20`.
+
+---
+
+## CIERRE DE LA NOCHE (06:30)
+
+### Publicado: beta **4.19.36.1** — ya la tienes en el móvil
+Lleva FIN-07: al sincronizar se trae el histórico ENTERO. Review ejecutada por Cursor (verde), CI
+en verde y comprobado con `npm run salud`, no supuesto: *«la beta publicada es 4.19.36.1»*.
+
+**Lo primero que deberías mirar:** abre Gastos, vete a un mes viejo, cuenta lo que hay. Sincroniza.
+Vuelve. **No puede faltar ni un movimiento.** Antes sí faltaban.
+
+### Listo y esperando tu OK: `integra/prod-11sep` @ `61d3c3d1` · **4.18.18**
+**Suite entera: exit 0, 155 e2e.** El rescate completo de las tandas que aprobaste, cada una
+portada desde `main` como pediste:
+
+| | tanda | |
+|---|---|---|
+| 4.18.9 | FIN-07 | el histórico entero |
+| 4.18.10 | multicuenta | las DOS cuentas del banco |
+| 4.18.11 | posible-repetido | los repetidos se revisan, no se pierden |
+| 4.18.12 | notas fuera del bundle | la app pesa un 11 % menos |
+| 4.18.13 | categoría IA | la IA deja de contar como Ocio |
+| 4.18.14 | orden del día | arrastrar el asa ⠿ |
+| 4.18.15 | panel de la ronda | toda la ronda a la vista |
+| 4.18.16 | tandas plegables | las aprobadas se encogen solas |
+| 4.18.17 | acabado v4 | anillo, teclas, tira de categorías |
+| 4.18.18 | pulido del primer minuto | count-up, esqueletos, contraste |
+
+**Solo falta que digas que sí.** `main` es tuyo y no lo toco.
+
+**`arranque-suelto` se queda fuera**, y esto lo paró Cursor: depende de `inicioDeMesMs`, que viene
+de la ventana de mes que TÚ rechazaste. Portarla habría colado a tu padre y a tu pareja justo lo
+que tumbaste. Está aprobada, pero no es portable hasta que la ventana de mes lo esté.
+
+### Sigue bloqueado en ti (y solo esto)
+**Desplegar `ingest`.** Es el 475 € del widget. Comprobado esta noche otra vez: desplegada el
+17/8, 24 días de atraso, con el arreglo de la ventana de mes escrito y sin subir. Desbloquea las
+dos tandas que no puedes aprobar. Plan en `docs/briefs/plan-despliegue-edge-2026-09-10.md`.
+
+### Lo que se rompió esta noche y ya no se puede repetir
+- Un merge se comió una llave de cierre; el bundle no compilaba.
+- Dos `var RELEASE_NOTES=` en el módulo: gana el segundo, y **dos notas de tandas aprobadas se
+  quedaban fuera de Novedades** — habrían subido sin que la familia viera qué cambió.
+- El fixture de los e2e **asumía un bundle sellado**: en local el popup de Novedades tapaba la
+  pantalla y **56 tests caían por clics que no llegaban al botón**, ninguno por lo que probaban.
+- Pegar las dos mitades de un conflicto vale para markdown; en un **array JSON** da un fichero
+  inválido. Me rompió `release-notes.json`.
