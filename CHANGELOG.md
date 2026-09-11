@@ -1,4 +1,4 @@
-## [4.18.10] — 2026-09-11
+## [4.18.11] — 2026-09-11
 ### Posibles repetidos de Open Banking se revisan, no se pierden
 
 - Un `Movimiento` sin comercio de Open Banking que coincide en el mismo banco, importe y ventana
