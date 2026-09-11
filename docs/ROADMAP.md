@@ -1,8 +1,9 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-11 · **v4.18.12** — los posibles repetidos de Open Banking se revisan antes de contar.
+> Estado a 2026-09-11 · **v4.18.12** — porte manual de `categoria-ia` en `prod/categoria-ia`: los movimientos nuevos de herramientas de IA se clasifican por separado; el histórico no cambia. La paridad de la Edge está preparada en código, sin desplegar y pendiente de autorización del propietario.
 > Anterior: **v4.18.8** — las dos tandas que aprobó, subidas solas (informe del mes cerrado y límite por categoría).
-> Web/OTA: rama `prod/posible-repetido` preparada; producción pendiente de integrar. Sin APK ni despliegue Edge.
+> Anterior: **v4.18.7** — cabecera de Gastos al cambiar bancos de gasto diario (B09-A).
+> Canal vivo: `npm run salud` (no afirmar beta/prod solo por el working tree). OTA, sin APK.
 > Anterior: **4.18.6** (contención sin DELETE/lápida por similitud).
 >
 > Anterior: 2026-09-06 · **v4.18.6** — contención de integridad en el árbol (sin DELETE/lápida por

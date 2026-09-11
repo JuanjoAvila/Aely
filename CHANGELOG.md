@@ -1,4 +1,13 @@
 ## [4.18.12] — 2026-09-11
+### Categoría Inteligencia artificial
+
+- Porte manual desde la tanda aprobada `categoria-ia`: añade `ia` a `CATEGORIES`, sus tres
+  traducciones y las palabras clave de ChatGPT, Claude, OpenAI, Cursor y servicios similares.
+  Solo se autodetectan movimientos nuevos; no hay migración ni recategorización del histórico.
+- La lógica compartida de ingest y la lista permitida de `categorize` ya aceptan `ia`, para
+  conservar la paridad con el cliente. El despliegue de la Edge Function queda pendiente de
+  autorización expresa del propietario; este commit no despliega ninguna Edge Function.
+- Guardianes en `categories` e `ingest-classify` comprueban la categoría cliente y compartida.
 ### Las notas de Novedades salen del bundle (NOTAS-BUNDLE, portado de beta)
 
 - La ronda de prod del 11/9 dejó el **gzip del index a 0,2 KB del tope** (343,8 de 344) porque las 92 versiones de Novedades viajaban pegadas dentro del JS. Portar una tanda más era imposible sin esto, y el gzip es lo que de verdad baja al móvil.

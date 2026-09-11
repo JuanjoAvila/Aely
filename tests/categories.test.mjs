@@ -89,8 +89,14 @@ t("Endesa sigue en energía, no Recibos", () => {
   assert.equal(ctx.autoCategory("Endesa Factura"), "energia");
 });
 
-t("Claude / Google Play cae en ocio", () => {
-  assert.equal(ctx.autoCategory("Claude Anthropic"), "ocio");
+t("ChatGPT / Claude / Cursor tienen categoría propia de IA", () => {
+  assert.equal(ctx.autoCategory("OPENAI CHATGPT SUBSCRIPTION"), "ia");
+  assert.equal(ctx.autoCategory("Claude Anthropic"), "ia");
+  assert.equal(ctx.autoCategory("Cursor AI"), "ia");
+  assert.equal(ctx.autoCategory("Perplexity"), "ia");
+});
+
+t("Google Play se queda en ocio", () => {
   assert.equal(ctx.autoCategory("Google Play"), "ocio");
 });
 

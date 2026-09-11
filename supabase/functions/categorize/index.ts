@@ -15,7 +15,7 @@ import { withCors } from "../_shared/cors.ts";
 // Si añades una categoría y no está aquí, la IA no puede devolverla — el test
 // `categories` aborta si falta alguna.
 const ALLOWED = [
-  "super", "pan", "bares", "cine", "padel", "heladeria", "ocio", "gaming", "viajes",
+  "super", "pan", "bares", "cine", "padel", "heladeria", "ia", "ocio", "gaming", "viajes",
   "transporte", "parking", "energia", "tasas", "recibos", "compras", "educacion",
   "salud", "pelu", "mascotas", "hogar", "regalos", "joyeria", "otros",
 ] as const;
@@ -23,7 +23,7 @@ const ALLOWED = [
 const HINTS =
   "super=supermercado; pan=panadería; bares=restaurantes y comida a domicilio; " +
   "cine=cines y entradas; padel=pádel; heladeria=helados; " +
-  "ocio=streaming, gym, ocio (Netflix, Movistar Plus, Spotify); gaming=videojuegos (Steam); " +
+  "ia=herramientas de inteligencia artificial (ChatGPT, Claude, Cursor); ocio=streaming, gym, ocio (Netflix, Movistar Plus, Spotify); gaming=videojuegos (Steam); " +
   "viajes=hoteles, vuelos, cruceros; transporte=metro, taxi, gasolina; parking=aparcamiento; " +
   "energia=luz, gas y agua; tasas=impuestos y multas; " +
   "recibos=facturas periódicas: teléfono, internet, seguro NO médico, alquiler, comunidad, alarma; " +
