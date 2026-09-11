@@ -93,6 +93,19 @@ t("★ una MARCA que es el principio de una palabra corriente solo vale entera",
     ["Hotel Barcelo Sants", "viajes"],
     ["Barcelo Raval", "viajes"],
     ["BARCELO HOTEL GROUP", "viajes"],
+
+    /* Las tres que salieron buscando la MISMA forma (Cursor, 11/9), todas medidas antes de
+       tocarlas. La de `saba` es la más fea de esta casa: es a la vez el aparcamiento SABA y el
+       banco de su familia, así que «Transferencia a banco Sabadell» salía como PARKING. */
+    ["Transferencia a banco Sabadell", "otros"],
+    ["CaixaBank Sabadell", "otros"],
+    ["BSABADELL", "otros"],
+    ["SABA Aparcamientos", "parking"],       // y el aparcamiento sigue siendo aparcamiento
+    ["Tienda Zaragoza", "otros"],
+    ["ZARA", "compras"],                     // Zara entera, la de siempre
+    ["Zara Home", "compras"],
+    ["Hospitalet de Llobregat", "otros"],
+    ["Hospital Clinic", "salud"],            // y el hospital sigue siendo salud
   ];
   const mal = [];
   for (const [m, esperado] of debe) {

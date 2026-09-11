@@ -1,3 +1,33 @@
+## [4.19.70] - 2026-09-11
+### Tres ciudades más que se comían la categoría, y una es su banco
+
+Al mandar la 4.19.68 a review le pedí a Cursor que buscara **más casos de la misma forma** —una
+marca de 4+ letras que además es el principio de un topónimo— pero con la condición de traerlos
+**medidos**, no sonados. Trajo tres, y la primera duele:
+
+| clave | casa dentro de | lo que decía |
+|---|---|---|
+| `saba` (parking) | **SABADELL** | `Transferencia a banco Sabadell` → **Parking** |
+| `zara` (compras) | **ZARAGOZA** | `Tienda Zaragoza` → Compras |
+| `hospital` (salud) | **HOSPITALET** | `Hospitalet de Llobregat` → Salud |
+
+La de `saba` es la peor de esta casa: SABA es una cadena de aparcamientos **y** Sabadell es el
+banco de su familia. Cualquier movimiento con «Sabadell» en el nombre que no pillara antes otra
+regla acababa en Parking.
+
+Las tres a `KW_PALABRA`, con su espejo en `ingest_logic.ts`. El guardián comprueba **las dos
+mitades de cada una**, que es lo que evita que el arreglo rompa lo que la palabra defendía: un
+aparcamiento SABA de verdad sigue siendo Parking, Zara sigue siendo Compras y un hospital, Salud.
+
+Las que sonaban pero **nadie pudo medir** (`cima`, `action`, `melia`, `sorea`, `tous`) se quedan
+fuera a propósito: meter palabras a esa lista sin un comercio real detrás es adivinar, y cada
+entrada estrecha lo que la clave detecta.
+
+⚠ **Una pasada de la suite salió en rojo sin que capturara la salida**, y las dos siguientes en
+verde. No sé cuál falló. El sospechoso es `rendimiento-tabs`, que va con poco margen (85 contra 80
+en la 4.19.69) y solo se cae con la máquina cargada. Queda dicho aquí en vez de tachado de flaky:
+si vuelve a pasar, **capturar la salida SIEMPRE** antes de repetir la pasada.
+
 ## [4.19.69] - 2026-09-11
 ### El arreglo de la barra apretaba justo el guardián de SU rechazo
 

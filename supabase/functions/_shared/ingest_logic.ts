@@ -40,7 +40,12 @@ export const CATEGORIAS: Record<string, string[]> = {
    el guardián `categorias-dual` exige que las dos digan lo mismo. «barcelo» es la cadena de
    hoteles Barceló y casaba dentro de BARCELONA: «Aigües de Barcelona» salía como viaje, y él vive
    ahí. Medido con sus gastos reales de septiembre (2026-09-11). */
-const KW_PALABRA: Record<string, number> = { "barcelo": 1 };
+const KW_PALABRA: Record<string, number> = {
+  "barcelo": 1,   // la cadena Barceló ⊂ BARCELONA
+  "saba": 1,      // SABA aparcamientos ⊂ SABADELL — «Transferencia a banco Sabadell» → parking
+  "zara": 1,      // Zara ⊂ ZARAGOZA
+  "hospital": 1,  // hospital ⊂ HOSPITALET
+};
 
 export function norm(s: string): string {
   return (s || "").toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");

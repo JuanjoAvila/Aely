@@ -53,3 +53,10 @@ llevaban congelada la foto del 8/9: daban por «pendientes» tandas que él apro
 acusaron de regresión a una limpieza correcta. Un guardián de esto se escribe contra la **forma**
 (que nada juzgado vuelva, que la ronda abarque varias versiones), nunca contra una lista de
 versiones concretas.
+
+⚠ **CADA VERSIÓN QUE SE PUBLICA A BETA NECESITA AL MENOS UNA TANDA.** El e2e `revisar-beta` pide
+que la versión EN CURSO traiga checklist: con `tandas: []` en el tip, el panel se queda mudo y el
+test se pone rojo. Me mordió **dos veces el 11/9** (4.19.66 y 4.19.70). Y la salida correcta NO es
+inventarse una tanda nueva: cuando la versión solo remata lo de la anterior, **se MUEVE la tanda**
+a la versión donde la conducta queda como él la va a probar, y la vieja se queda a cero. Pedirle
+dos veces la misma prueba es justo lo que hay que evitar.

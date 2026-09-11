@@ -293,7 +293,15 @@ const KW = {
    «bus»: «Hotel Barceló Sants» sigue casando, «Aigües de Barcelona» ya no.
    ⚠ La MISMA lista vive en `supabase/functions/_shared/ingest_logic.ts`, y el guardián
    `categorias-dual` exige que digan lo mismo. */
-const KW_PALABRA={ "barcelo":1 };
+const KW_PALABRA={
+  "barcelo":1,    // la cadena Barceló ⊂ BARCELONA — «Aigües de Barcelona» salía como viaje
+  /* Las tres de abajo las encontró Cursor buscando la misma forma, y las MIDIÓ antes de
+     proponerlas. La de `saba` es la más fea de esta casa, porque es a la vez el aparcamiento SABA
+     y el banco de su familia: «Transferencia a banco Sabadell» salía como **Parking**. */
+  "saba":1,       // SABA aparcamientos ⊂ SABADELL
+  "zara":1,       // Zara ⊂ ZARAGOZA
+  "hospital":1,   // hospital ⊂ HOSPITALET
+};
 /* Retirada de cajero / ATM → traspaso (neutro). Mismas claves en ingest_logic.ts. */
 /* Categoría al ALTA de un movimiento nuevo (OB/import/ingest). ATM → traspaso.
    NUNCA meter esto en autoCategory: migrate recategoriza «otros» en cada carga y
