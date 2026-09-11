@@ -1,5 +1,46 @@
 [
  {
+  "v": "4.19.51",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Lo que apuntas a mano ya no se borra solo",
+   "en": "What you enter by hand no longer disappears on its own",
+   "ca": "El que apuntes a mà ja no s'esborra sol"
+  },
+  "tandas": [
+   {
+    "id": "manual-no-fusiona",
+    "t": {
+     "es": "✍️ Apuntes a mano a salvo",
+     "en": "✍️ Hand entries are safe",
+     "ca": "✍️ Apunts a mà a salv"
+    },
+    "items": {
+     "es": [
+      "Si apuntas un Bizum u otro movimiento a mano, ya no desaparece al sincronizar porque la app creía que era un duplicado."
+     ],
+     "en": [
+      "If you enter a Bizum or other movement by hand, it no longer disappears on sync because the app thought it was a duplicate."
+     ],
+     "ca": [
+      "Si apuntes un Bizum o un altre moviment a mà, ja no desapareix en sincronitzar."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Los movimientos que escribes tú a mano se quedan, aunque tengan el mismo importe y día que otro."
+   ],
+   "en": [
+    "Movements you type in by hand stay, even if they share the same amount and day as another."
+   ],
+   "ca": [
+    "Els moviments que escrius tu a mà es queden, encara que tinguin el mateix import i dia que un altre."
+   ]
+  }
+ },
+ {
   "v": "4.19.50",
   "d": "11 sep 2026",
   "t": {

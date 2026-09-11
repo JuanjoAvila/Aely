@@ -1,3 +1,11 @@
+## [4.19.51] — 2026-09-11
+### Paso 0: un apunte manual no se fusiona
+
+Él confirmó 8 Bizums en TR vs 5 en la app; los que metía a mano se los comía
+`día|importe|comercio`. `keyOfExpense` / `claveComoLaApp` añaden el `id` si el source
+es manual; lápidas legacy sin id siguen casando. Tests de oro: 8 Bizums + 1 APOLLON.
+
+
 ## [4.19.50] - 2026-09-11
 ### Ninguna escritura de gastos se queda muda
 

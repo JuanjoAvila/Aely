@@ -111,5 +111,5 @@ y Cursor confirma**. No es el mismo bug que los Bizums; no mezclar en la misma t
 | Diagnóstico 8 vs 5 | Cerrado (él + tabla) |
 | Plan escrito | Este brief |
 | OK suyo al plan | Pendiente |
-| Paso 0 en código | No empezado |
+| Paso 0 en código | **4.19.51** — `keyOfExpense` + `claveComoLaApp` + tests de oro |
 | Limpieza signos | Pendiente ids → OK Cursor → Claude ejecuta |

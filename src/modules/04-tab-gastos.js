@@ -142,7 +142,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     return function(){ heavyIdleGen.current++; unsub(); };
   },[]);
   const expensesDef=useDeferredValue(state.expenses);
-  const keyOfE=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.merchant||""); };
+  const keyOfE=keyOfExpense;
   const delExpense=function(e){
     set(function(s){ return Object.assign({},s,{ expenses:s.expenses.filter(function(x){ return x.id!==e.id; }), deleted:pushDeleted(s.deleted, keyOfE(e)) }); });
     if(cloud.enabled()) borrarGastoNube(e, "gastos-borrar");

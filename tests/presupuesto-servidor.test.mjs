@@ -184,6 +184,35 @@ t("★ dos notis del mismo cargo el mismo día cuentan UNA vez — no son dos co
   assert.equal(crudo.spent, 575, "sin juntar, el widget mentía sumando 230 de más");
 });
 
+t("★ Paso 0: ocho Bizums manuales quedan ocho; dos APOLLON siguen siendo uno (servidor)", () => {
+  const data = {
+    budget: 1000,
+    accounts: [{ ent: "trade_republic", role: "diario" }],
+    settings: { expenseBanks: ["trade_republic"], gTotalMode: "net" },
+  };
+  const filas = [];
+  for (let i = 0; i < 8; i++) {
+    filas.push({
+      id: "m" + i,
+      fecha: ym + "-02T12:00:00.000Z",
+      importe: -14.9,
+      cat: "ingreso",
+      source: "manual:trade_republic",
+      comercio: "Bizum recibido",
+    });
+  }
+  filas.push(
+    { id: "a1", fecha: ym + "-13T11:31:14.000Z", importe: 230, cat: "regalos", source: "macrodroid", comercio: "APOLLON GALLERY" },
+    { id: "a2", fecha: ym + "-13T13:08:12.000Z", importe: 230, cat: "bares", source: "macrodroid", comercio: "APOLLON GALLERY" },
+  );
+  const visibles = filasComoLaApp(filas, []);
+  assert.equal(visibles.filter((f) => f.comercio === "Bizum recibido").length, 8);
+  assert.equal(visibles.filter((f) => f.comercio === "APOLLON GALLERY").length, 1);
+  const srv = statsDelMes(visibles, data, desdeMs);
+  assert.equal(srv.income, 8 * 14.9);
+  assert.equal(srv.spent, 230);
+});
+
 t("★ las lápidas de la app también las respeta el servidor (gastos que él ya borró)", () => {
   const data = {
     budget: 1000,

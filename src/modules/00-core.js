@@ -1198,8 +1198,28 @@ const cloud = (function(){
    (512 sin abrir / 497 en pantalla). Un helper, un log; la proxima escritura no nace muda.
    Portado a mano desde `tanda/catch-addExpense-log` (4.18.24): mergearla entera arrastraba
    media rama vieja de `main` y dejaba 7 tests en conflicto. */
-function keyOfExpense(e){
+/* Clave de dedup / lápida. 2026-09-11 Paso 0 (Bizums): un apunte MANUAL no se fusiona con
+   nada — si lo tecleó él, existe. Antes `día|importe|comercio` se comía los Bizums de 14,90 €
+   que apuntaba a mano tras perderlos en OB. Comercio específico (APOLLON) sigue igual. */
+function isManualExpenseSource(source){
+  const s=String(source||"");
+  return !s || s==="manual" || s.indexOf("manual:")===0 || s==="supabase";
+}
+function keyOfExpenseLegacy(e){
   return String(e&&e.date).slice(0,10)+"|"+(e&&e.amount)+"|"+((e&&e.merchant)||"");
+}
+function keyOfExpense(e){
+  const base=keyOfExpenseLegacy(e);
+  if(isManualExpenseSource(e&&e.source)) return base+"|"+String((e&&e.id)||"");
+  return base;
+}
+/* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual. */
+function expenseIsTombstoned(e, delSet){
+  if(!delSet) return false;
+  const k=keyOfExpense(e);
+  if(delSet[k]) return true;
+  if(isManualExpenseSource(e&&e.source) && delSet[keyOfExpenseLegacy(e)]) return true;
+  return false;
 }
 function _errCloudMsg(err){
   return String((err&&(err.message||err.code||err.error_description))||err||"?").slice(0,300);
@@ -1356,14 +1376,9 @@ function expenseCloudEq(q, userId, e){
 }
 
 /* ---------- Lápidas de gastos borrados ----------
-   `state.deleted` guarda claves «fecha|importe|comercio» para que el siguiente pull de la nube no
-   resucite un gasto que has borrado. Crecía SIN TOPE y, como `slimForCloud` no lo quita, viajaba
-   ENTERO a Supabase en cada guardado (debounce de 1,2 s): con los meses, cada cambio de estado
-   subía un array cada vez más gordo. Parte del «cuanto más la uso, más lenta va» (2026-07-24).
-
-   Tope de 500: el borrado de verdad ya se hace también en la tabla (`cloud.deleteExpense`), esto
-   es solo la red de seguridad para lo borrado sin conexión, y 500 cubre de sobra la ventana entre
-   dos sincronizaciones. */
+   `state.deleted` guarda claves de `keyOfExpense` para que el siguiente pull no resucite un
+   gasto borrado. Manuales llevan id en la clave (Paso 0); las lápidas viejas sin id siguen
+   casando vía `expenseIsTombstoned`. Tope 500 (2026-07-24). */
 const DELETED_MAX=500;
 function pushDeleted(list, key){
   const out=(list||[]).concat([key]);
@@ -1632,15 +1647,13 @@ function expenseFromRow(r){
   };
 }
 
-/* Une gastos en la lista local con dedup por clave (fecha|importe|comercio).
-   ADITIVO: nunca borra los que ya tenías; solo añade los nuevos. Esto evita perder
-   datos durante la migración (la tabla de la nube puede estar aún vacía). */
+/* Une gastos en la lista local con dedup. ADITIVO: nunca borra los que ya tenías.
+   Manuales: clave con id (Paso 0, 2026-09-11) — no se comen entre sí ni con el banco. */
 function mergeExpenses(prevList, incoming){
-  const keyOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.merchant||""); };
   const seen={}; const list=[];
-  (prevList||[]).forEach(function(e){ const k=keyOf(e); if(!seen[k]){ seen[k]=1; list.push(e); } });
+  (prevList||[]).forEach(function(e){ const k=keyOfExpense(e); if(!seen[k]){ seen[k]=1; list.push(e); } });
   let nuevos=0;
-  (incoming||[]).forEach(function(e){ const k=keyOf(e); if(!seen[k]){ seen[k]=1; list.push(e); nuevos++; } });
+  (incoming||[]).forEach(function(e){ const k=keyOfExpense(e); if(!seen[k]){ seen[k]=1; list.push(e); nuevos++; } });
   return { list:list, nuevos:nuevos };
 }
 

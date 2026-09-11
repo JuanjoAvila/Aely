@@ -304,17 +304,16 @@ function App(){
          por ausencia. */
       const parcial=!!(rows&&rows._mcPullCapped);
       if(parcial) showToast("⚠ "+t("exp_pull_capped"));
-      const keyOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.merchant||""); };
       const delSet={}; (stateRef.current.deleted||[]).forEach(function(k){ delSet[k]=1; });
-      const incoming=rows.map(expenseFromRow).filter(function(e){ return e.amount!==0 && !delSet[keyOf(e)]; });
+      const incoming=rows.map(expenseFromRow).filter(function(e){ return e.amount!==0 && !expenseIsTombstoned(e, delSet); });
       // La tabla `expenses` es la FUENTE DE VERDAD de los gastos de la nube: se reemplazan los
       // de origen "supabase" con lo que hay en la tabla (refresca categorías, importes y borrados).
       // Los manuales/sheet locales NO se tocan nunca (por eso esto es seguro y no borra datos).
       // Backfill: sube a la tabla TODO gasto local que aún no esté en ella (no solo los manuales).
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
-      const tableKeys={}; incoming.forEach(function(e){ tableKeys[keyOf(e)]=1; });
-      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOf(e)]) subirGasto(e, "backfill"); });
+      const tableKeys={}; incoming.forEach(function(e){ tableKeys[keyOfExpense(e)]=1; });
+      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)]) subirGasto(e, "backfill"); });
       /* AQUÍ NO VA UN REPASO QUE RE-MARQUE LOS POSIBLES REPETIDOS VIEJOS (B09-D, 2026-09-08).
          Lo escribí y lo retiré: `addExpense` va con ignoreDuplicates y nunca cambia el `source` de
          una fila ya presente, así que los pendientes anteriores a esta versión siguen contando en
@@ -330,15 +329,15 @@ function App(){
          Para hacerlo bien hace falta decisión persistida con identidad fiable y un ACK — es el
          bloqueo de identidad de gastos, no un parche de esta ronda. */
       // "nuevo" = no lo teníamos en NINGÚN origen local (así, ya sincronizado → 0 → "Ya estás al día")
-      const prevKeys={}; (stateRef.current.expenses||[]).forEach(function(e){ prevKeys[keyOf(e)]=1; });
+      const prevKeys={}; (stateRef.current.expenses||[]).forEach(function(e){ prevKeys[keyOfExpense(e)]=1; });
       let count=0; const seenC={};
-      incoming.forEach(function(e){ const k=keyOf(e); if(!seenC[k]){ seenC[k]=1; if(!prevKeys[k]) count++; } });
+      incoming.forEach(function(e){ const k=keyOfExpense(e); if(!seenC[k]){ seenC[k]=1; if(!prevKeys[k]) count++; } });
       set(function(prev){
         const keep=parcial ? prev.expenses.slice()
                            : prev.expenses.filter(function(e){ return e.source!=="supabase"; });
-        const keepKeys={}; keep.forEach(function(e){ keepKeys[keyOf(e)]=1; });
+        const keepKeys={}; keep.forEach(function(e){ keepKeys[keyOfExpense(e)]=1; });
         const seen={}; const add=[];
-        incoming.forEach(function(e){ const k=keyOf(e); if(!keepKeys[k] && !seen[k]){ seen[k]=1; add.push(e); } });
+        incoming.forEach(function(e){ const k=keyOfExpense(e); if(!keepKeys[k] && !seen[k]){ seen[k]=1; add.push(e); } });
         // Si el resultado es EXACTAMENTE la lista que ya había (el caso normal: sincronizas y no
         // hay nada nuevo), se conserva el MISMO array. Antes se construía uno nuevo siempre, y eso
         // repintaba toda la app y reescribía el histórico entero en cada vuelta a primer plano —

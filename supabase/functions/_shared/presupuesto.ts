@@ -71,6 +71,7 @@ export function inicioDeMesMs(when: number | Date = Date.now(), timeZone: string
 const CAT_NEUTRAS: Record<string, number> = { inversion: 1, traspaso: 1 };
 
 export type FilaGasto = {
+  id?: string | null;
   importe: number | string;
   cat?: string | null;
   source?: string | null;
@@ -79,20 +80,30 @@ export type FilaGasto = {
 };
 
 /**
- * La misma clave que usa la app al bajar gastos (`keyOf` en `syncCloudExpenses` /
- * `pushDeleted`): día UTC | importe | comercio. SIN la hora, a propósito.
+ * La misma clave que usa la app al bajar gastos (`keyOfExpense` / `mergeExpenses`).
+ * SIN la hora, a propósito (APOLLON Wallet+TR a 97 min = un solo cargo).
  *
- * 2026-08-17: una compra en APOLLON GALLERY disparó DOS notis (Wallet 11:31 y TR 13:08,
- * 97 min — fuera de la ventana de 10 min de ingest). El banco solo tiene UN cargo de 230 €
- * y otro de 115 €. La nube guardó los dos 230 porque la clave única lleva la fecha completa.
- * La app los junta. Si el widget cuenta las dos, miente. Meter la hora en esta clave haría
- * que la app también mintiera: mostraría dos compras que el banco no tiene.
+ * 2026-09-11 Paso 0: si es MANUAL, la clave lleva el `id`. Él apuntó Bizums de 14,90 € a mano
+ * tras perderlos en OB y la fusión se los comía otra vez. Comercio específico sigue sin id.
  */
+export function esSourceManual(source?: string | null): boolean {
+  const s = String(source || "");
+  return !s || s === "manual" || s.indexOf("manual:") === 0 || s === "supabase";
+}
+
 export function claveComoLaApp(f: {
   fecha?: string | null;
   importe?: number | string;
   comercio?: string | null;
+  source?: string | null;
+  id?: string | null;
 }): string {
+  const base = String(f.fecha || "").slice(0, 10) + "|" + (Number(f.importe) || 0) + "|" + (f.comercio || "");
+  if (esSourceManual(f.source)) return base + "|" + String(f.id || "");
+  return base;
+}
+
+function claveLegacySinId(f: { fecha?: string | null; importe?: number | string; comercio?: string | null }): string {
   return String(f.fecha || "").slice(0, 10) + "|" + (Number(f.importe) || 0) + "|" + (f.comercio || "");
 }
 
@@ -100,6 +111,7 @@ export function claveComoLaApp(f: {
  * Lo que la app ve de la tabla: sin las lápidas de `state.deleted` y una sola fila por clave.
  * `ingest` tiene que pasar ESTO a `statsDelMes`, no el volcado crudo: si no, el widget suma
  * gastos que él ya borró y notis gemelas que la lista ya fusionó.
+ * Lápidas viejas (sin id) siguen ocultando manuales borrados antes del Paso 0.
  */
 export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefined, deleted: string[] | null | undefined): T[] {
   const lap = new Set(deleted || []);
@@ -108,6 +120,7 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
   for (const f of filas || []) {
     const k = claveComoLaApp(f);
     if (lap.has(k)) continue;
+    if (esSourceManual(f.source) && lap.has(claveLegacySinId(f))) continue;
     if (vistas.has(k)) continue;
     vistas.add(k);
     out.push(f);
