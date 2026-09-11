@@ -91,7 +91,11 @@ t("★ nada con veredicto suyo vuelve al panel", () => {
 t("y lo que nunca ha probado sigue ahí (no nos hemos pasado de frenada)", () => {
   const pack = cli.betaChecklist(VERSION_ACTUAL, "4.18.7");
   const ids = pack.tandas.map((g) => String(g.id));
-  ["id-fila", "quitar-banco", "cats-plegable", "pulsacion-larga", "logos-inversiones"].forEach((id) => {
+  /* ⚠ Son ids de tandas VIVAS, y las tandas se funden entre sí cuando dos piden la misma prueba
+     («quitar-banco» acabó dentro de «banco-pendiente-y-quitar» el 11/9). Si al fundir una te sale
+     rojo esto, cambia el id por el que sobrevive — no quites la comprobación, que es la que evita
+     pasarse de frenada al limpiar el panel. */
+  ["id-fila", "banco-pendiente-y-quitar", "cats-plegable", "pulsacion-larga", "logos-inversiones"].forEach((id) => {
     assert.equal(ids.some((x) => x.endsWith("/" + id)), true, `falta «${id}», que sigue pendiente`);
   });
 });

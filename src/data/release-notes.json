@@ -11,9 +11,9 @@
    {
     "id": "banco-pendiente-y-quitar",
     "t": {
-     "es": "🏦 El banco que no llegó a conectarse, y el que quitas",
-     "en": "🏦 The bank that never connected, and the one you remove",
-     "ca": "🏦 El banc que no es va connectar, i el que treus"
+     "es": "🏦 Quitar un banco, y el que se quedó a medias",
+     "en": "🏦 Removing a bank, and the one left half-connected",
+     "ca": "🏦 Treure un banc, i el que es va quedar a mitges"
     },
     "items": {
      "es": [
@@ -23,7 +23,11 @@
       "4. En cuanto acepte, la tarjeta de ese banco tiene que desaparecer de la lista sola, sin que tengas que salir y volver a entrar.",
       "5. Y ESTE es el punto: vete a Cartera → Tus cuentas. La cuenta de ese banco tiene que HABER DESAPARECIDO de la lista.",
       "6. Comprueba que el patrimonio de arriba ha bajado justo lo que tenía esa cuenta, ni un euro más.",
-      "7. Comprueba que sus movimientos siguen todos en Gastos. No puede faltar ni uno."
+      "7. Comprueba que sus movimientos siguen todos en Gastos. No puede faltar ni uno.",
+      "8. Ahora lo de los movimientos: al quitarlo te ha preguntado qué hacer con ellos. Si elegiste «que dejen de contar», mira Gastos: sus compras salen del total del mes, pero los movimientos siguen TODOS en la lista. No puede faltar ni uno.",
+      "9. Prueba a quitar el banco de tu DÍA A DÍA: ahí solo te puede ofrecer cortar la conexión, y tiene que explicarte que sus compras cuentan siempre y dónde se cambia el banco del día a día. Puedes cancelar, con verlo basta.",
+      "10. Si Trade Republic te sale caído, lee el aviso: tiene que dejar claro si falla por el lado del BANCO (tus posiciones y tu efectivo no están afectados) o por el de INVERSIONES (te manda a reconectar con PIN y SMS).",
+      "11. Y tu rechazo del 8/9 («sale conectado pero no te avisa»): con Trade Republic caído, dale a Ajustes → «Sincronizar bancos». Si consigue levantarlo, ahora SÍ tiene que decírtelo. Si se conecta en silencio, sigue estando mal."
      ],
      "en": [
       "1. If a bank was left half-connected (Settings → My banks shows it as “pending”), tap Settings → “Sync banks”.",
@@ -32,7 +36,11 @@
       "4. Its card must disappear from the list straight away, with no need to leave and come back.",
       "5. THIS is the point: go to Wallet → Your accounts. That bank's account must be GONE from the list.",
       "6. Check the net worth at the top dropped by exactly that account's balance, not a euro more.",
-      "7. Check every one of its transactions is still in Expenses."
+      "7. Check every one of its transactions is still in Expenses.",
+      "8. About the transactions: it asked what to do with them. If you chose “stop counting them”, check Expenses: they leave the month total but every one stays in the list.",
+      "9. Try removing your DAY-TO-DAY bank: it may only offer to disconnect, and must explain why. You can cancel.",
+      "10. If Trade Republic shows as down, the notice must say whether it is the BANK side or the INVESTMENTS side.",
+      "11. And your 8/9 rejection: with TR down, tap Settings → “Sync banks”. If it comes back, it must SAY so."
      ],
      "ca": [
       "1. Si tens un banc que es va quedar a mig connectar (a Ajustos → Els meus bancs surt com a «pendent»), toca Ajustos → «Sincronitzar bancs».",
@@ -41,7 +49,11 @@
       "4. La seva targeta ha de desapareixer de la llista tota sola.",
       "5. I AQUEST es el punt: ves a Cartera → Els teus comptes. El compte d'aquest banc ha d'HAVER DESAPAREGUT.",
       "6. Comprova que el patrimoni de dalt ha baixat just el que tenia aquest compte.",
-      "7. Comprova que els seus moviments segueixen tots a Despeses."
+      "7. Comprova que els seus moviments segueixen tots a Despeses.",
+      "8. Sobre els moviments: si vas triar «que deixin de comptar», surten del total del mes pero es queden TOTS a la llista.",
+      "9. Prova de treure el banc del DIA A DIA: nomes et pot oferir tallar la connexio. Pots cancel·lar.",
+      "10. Si Trade Republic surt caigut, l'avis ha de dir si es pel costat del BANC o pel d'INVERSIONS.",
+      "11. I el teu rebuig del 8/9: amb TR caigut, toca «Sincronitzar bancs». Si l'aixeca, ho ha de dir."
      ]
     }
    }
@@ -1039,19 +1051,19 @@
       "1. Gastos: toca cualquier movimiento para editarlo.",
       "2. Abre la lista de categorías y busca «Bizum» (📲). Tiene que estar.",
       "3. Ponle Bizum a ese movimiento y guarda: tiene que quedarse con su icono en la lista.",
-      "4. ⚠ Que un Bizum caiga SOLO en esa categoría al sincronizar todavía no: esa mitad vive en el servidor y aún no está subida. No lo marques como fallo."
+      "4. Y ahora sí: sincroniza los bancos y busca un movimiento que ponga «Bizum a…» o «Bizum de…». Tiene que caer SOLO en la categoría Bizum, no en Otros."
      ],
      "en": [
       "1. Expenses: tap any transaction to edit it.",
       "2. Open the category list and look for “Bizum” (📲). It must be there.",
       "3. Set it and save: the icon must stick in the list.",
-      "4. ⚠ Bizums landing in that category automatically on sync is not live yet — that half runs on the server and is not deployed. Do not mark it as a failure."
+      "4. And now: sync your banks and find a transaction saying “Bizum to…”. It must land in the Bizum category by itself, not in Other."
      ],
      "ca": [
       "1. Despeses: toca qualsevol moviment per editar-lo.",
       "2. Obre la llista de categories i busca «Bizum» (📲). Hi ha de ser.",
       "3. Posa-l'hi i desa: ha de quedar-se amb la seva icona.",
-      "4. ⚠ Que un Bizum hi caigui SOL en sincronitzar encara no: aquesta meitat es al servidor i no esta pujada."
+      "4. I ara si: sincronitza i busca un moviment que digui «Bizum a…». Ha de caure SOL a la categoria Bizum."
      ]
     }
    }
@@ -1160,42 +1172,7 @@
    "en": "Clearer banks",
    "ca": "Bancs més clars"
   },
-  "tandas": [
-   {
-    "id": "quitar-banco",
-    "t": {
-     "es": "🏦 Quitar un banco sin perder sus movimientos",
-     "en": "🏦 Removing a bank without losing its transactions",
-     "ca": "🏦 Treure un banc sense perdre els seus moviments"
-    },
-    "items": {
-     "es": [
-      "1. Ajustes → «Mis bancos». Elige un banco que NO sea el de tu día a día y dale a quitarlo.",
-      "2. Tiene que preguntarte qué hacer con sus movimientos, y explicarte las dos consecuencias por escrito.",
-      "3. Elige «que dejen de contar». Vete a Gastos: sus compras salen del total del mes, pero los movimientos siguen TODOS en la lista. No puede faltar ni uno.",
-      "4. Ahora prueba a quitar el banco de tu día a día: ahí solo te puede ofrecer cortar la conexión, y tiene que explicarte que sus compras cuentan siempre y dónde se cambia el banco del día a día. (Puedes cancelar; con verlo basta.)",
-      "5. Si Trade Republic te sale caído, lee el aviso: tiene que dejar claro si es por el lado del BANCO (tus posiciones y tu efectivo no están afectados) o por el de INVERSIONES (te manda a reconectar con PIN y SMS).",
-      "6. Y tu rechazo del 8/9 («sale conectado pero no te avisa»): con Trade Republic caído, dale a Ajustes → «Sincronizar bancos». Si consigue levantarlo, ahora SÍ tiene que decírtelo con un aviso de que se ha conectado bien. Si se conecta en silencio, sigue estando mal."
-     ],
-     "en": [
-      "1. Settings → “My banks”. Pick a bank that is NOT your day-to-day one and remove it.",
-      "2. It must ask what to do with its transactions, spelling out both consequences.",
-      "3. Choose “stop counting them”. In Expenses its purchases leave the month total, but every transaction stays in the list.",
-      "4. Now try removing your day-to-day bank: it may only offer to disconnect, and must explain that its purchases always count. You can cancel.",
-      "5. If Trade Republic shows as down, the notice must say whether it is the BANK side or the INVESTMENTS side.",
-      "6. And your 8/9 rejection (“it connects but never tells you”): with Trade Republic down, tap Settings → “Sync banks”. If it comes back, it must now SAY so. Silent reconnection is still wrong."
-     ],
-     "ca": [
-      "1. Ajustos → «Els meus bancs». Tria un banc que NO sigui el del dia a dia i treu-lo.",
-      "2. T'ha de preguntar que fer amb els seus moviments, amb les dues consequencies escrites.",
-      "3. Tria «que deixin de comptar»: surten del total del mes, pero es queden TOTS a la llista.",
-      "4. Prova de treure el banc del dia a dia: nomes et pot oferir tallar la connexio. Pots cancel·lar.",
-      "5. Si Trade Republic surt caigut, l'avis ha de dir si es pel costat del BANC o pel d'INVERSIONS.",
-      "6. I el teu rebuig del 8/9: amb Trade Republic caigut, toca Ajustos → «Sincronitzar bancs». Si el aixeca, ara SI t'ho ha de dir."
-     ]
-    }
-   }
-  ],
+  "tandas": [],
   "items": {
    "es": [
     "Al quitar un banco, la app te pregunta si sus movimientos siguen contando. Y los avisos de Trade Republic ya dicen si falla el banco o las inversiones."
