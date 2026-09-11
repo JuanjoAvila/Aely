@@ -3464,10 +3464,10 @@ function gastoDelMesPorBanco(gastosDelMes, dailyEnt){
    (`misma-regla-en-dos-sitios`). `scripts/logos-inversiones.mjs` la carga de aquí con
    `load-pure-logic.mjs` y comprueba que hay un fichero para cada marca que esto puede devolver.
 
-   Se compara POR PALABRAS, no con expresiones regulares: un `` perdido al copiar un fichero
-   convierte «AMD» en algo que casa dentro de cualquier palabra, y aquí un fallo callado es
-   ponerle a una empresa la cara de otra. Ante la duda, SIN logo: el monograma correcto es
-   mejor que el logotipo equivocado.
+   Se compara POR PALABRAS y no con expresiones regulares: al pasar este fichero por el shell se
+   perdieron DOS veces las barras invertidas, y sin ellas «amd» casa dentro de cualquier palabra
+   — sin dar un solo error. Aquí un fallo callado es ponerle a una empresa la cara de otra.
+   Ante la duda, SIN logo: el monograma correcto es mejor que el logotipo equivocado.
    ============================================================ */
 function palabrasDeNombre(nombre){
   return String(nombre||"").toLowerCase().normalize("NFD")
