@@ -52,7 +52,11 @@ test("Gastos: el buscador encuentra por concepto, no solo por comercio", async (
 
   // «sábado» no aparece en ningún título: si sale la fila, es que se buscó en el concepto.
   await page.locator(".searchbar-in").fill("sábado");
-  const filas = page.locator("button.v4-mov");
+  /* ⚠ ACOTADO A LA LISTA DE GASTOS (11/9/2026). Contaba `button.v4-mov` de toda la página, y las
+     pestañas VECINAS van premontadas: el día que las filas de cuentas de Cartera pasaron de `div`
+     a `button` —para abrir su ficha— este test empezó a contarlas y pedía 1 encontrando 2.
+     Es exactamente [[e2e-getbytext-pestanas-premontadas]], que ya nos costó dos veces. */
+  const filas = page.locator(".v4-gastos-list-body button.v4-mov");
   await expect(filas).toHaveCount(1);
   await expect(filas.first()).toContainText("Bizum a Pedro");
 });

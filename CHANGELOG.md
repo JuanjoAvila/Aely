@@ -1,3 +1,43 @@
+## [4.19.67] - 2026-09-11
+### Cada cuenta tiene su ficha, en vez de abrirse las cinco a la vez
+
+Suyo: *«hazme un diseño más bonito para editar los bancos en la zona de cartera, porque es muy
+cutrón que se despliegue abajo para editar y es bastante feo. Piensa algo chulo»*. Y tras ver la
+maqueta: *«me gusta que se pudiera apretar en un banco y se despliegue una ficha como si apuntara
+un gasto, es limpio y está chulo»*.
+
+Pulsar «Editar» abría en canal las CINCO cuentas, cada una con casilla de nombre, casilla de
+saldo, tres chips de rol y papelera, más dos pistas al final. Ahora se toca la cuenta y sube su
+ficha — **la misma hoja de abajo que usa a diario para apuntar un gasto** (`useSheetSwipe`), así
+que se cierra tirando y no hay nada nuevo que aprender. Sin botón de «Guardar»: se guarda al vuelo.
+
+Lo que decidió él, punto por punto:
+
+- **Nada de cartilla única.** La primera maqueta metía las cuentas en un solo bloque: *«no me gusta
+  que esté todo en una misma cartilla verde, separado como está me gusta ya»*. Cada cuenta sigue
+  siendo su tarjeta — y además es lo que hará posible el long-press para ordenarlas.
+- **Fuera la flecha**: *«pero sin la flecha esa que sale al lado del dinero que tienes»*. Si toda
+  la tarjeta responde al toque, el chevron solo mete ruido justo donde va a leer el importe.
+- **El saldo dice quién manda.** En una cuenta conectada lo pone el banco: sale con candado y no se
+  teclea, porque editarlo ahí sería mentirse. En una suya, casilla.
+- **El rol deja de ser un acertijo.** Eran tres chips sueltos con la explicación en letra pequeña
+  al final de la tarjeta. Ahora cada opción lleva SU frase debajo.
+
+⚠ **«Editar» sigue en la lista y no es un resto**: es la única puerta a las cuentas EXTRA de Open
+Banking, que aún no son cuentas con rol y se promocionan desde ahí. La ficha cubre las cuentas de
+verdad; aquello, lo que todavía no lo es.
+
+**La fórmula inversa del saldo NO se ha duplicado.** Vivía dentro de `accEd.toStored`; se ha
+sacado a `valorDesdeTecleado` y la usan las dos pantallas. Escribirla dos veces es exactamente el
+fallo que el 11/9 le pintó a su padre 455,50 € donde el banco decía 26,46 — la misma regla vivía en
+seis sitios y solo se migraron cinco ([[misma-regla-en-dos-sitios]]).
+
+**Y tres e2e que contaban de más.** Las filas de cuenta pasaron de `div` a `button`, y tres tests
+que contaban `button.v4-mov` **de toda la página** empezaron a medirlas: inversiones pedía 3 y veía
+4, el buscador de Gastos pedía 1 y veía 2, y el de deslizar entre pestañas pedía 2 y veía 3. Los
+tres acotados a su contenedor. Es [[e2e-getbytext-pestanas-premontadas]] por tercera vez, y en el
+de deslizar duele el doble: el premontaje de las vecinas es justo lo que ese fichero prueba.
+
 ## [4.19.66] - 2026-09-11
 ### Me equivoqué al elegir por él: la cuenta del banco quitado SÍ se va
 

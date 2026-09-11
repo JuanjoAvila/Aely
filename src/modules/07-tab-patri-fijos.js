@@ -1,8 +1,105 @@
 /* ============================================================
    TAB: PATRIMONIO
    ============================================================ */
+/* LA FICHA DE UNA CUENTA (2026-09-11) — el rediseño que pidió y aprobó viendo la maqueta.
+   Antes: un botón «Editar» abría en canal las CINCO cuentas a la vez, cada una con casilla de
+   nombre, casilla de saldo, tres chips de rol y papelera, más dos pistas al final. Suyo: «es muy
+   cutrón que se despliegue abajo para editar y es bastante feo. Piensa algo chulo».
+   Lo que eligió: tocar la cuenta y que suba una ficha **como la de apuntar un gasto** — la misma
+   hoja de abajo que ya usa a diario, con `useSheetSwipe`, así que se cierra tirando y no hay que
+   aprender nada nuevo. Tampoco hay «Guardar»: cada cambio se guarda al vuelo, como en el resto.
+   Y lo que rechazó de la primera maqueta: meter todo en una cartilla única («separado como está
+   me gusta ya») y la flecha al lado del importe. */
+function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, saldoMostrado, sincronizada}){
+  useBackClose(!!open, onClose);
+  const swipe=useSheetSwipe(!!open, onClose);
+  const [borrando,setBorrando]=React.useState(false);
+  const [saldo,setSaldo]=React.useState("");
+  React.useEffect(function(){
+    if(!open||!cuenta) return;
+    setBorrando(false);
+    setSaldo(String(saldoMostrado(cuenta)));
+  },[open,cuenta&&cuenta.id]);
+  if(!open||!cuenta) return null;
+  const a=cuenta;
+  const conectada=sincronizada(a);
+  const efectivo=isEfectivoEnt(a);
+  /* Las tres opciones con su FRASE. Eran tres chips sueltos y la explicación vivía en letra
+     pequeña al final de la tarjeta, así que había que bajar a buscarla para saber qué hacía cada
+     uno. El efectivo no puede llevar recibos domiciliados, así que solo se le ofrece lo suyo. */
+  const roles=efectivo ? [["fijos","rl_fijos","rl_fijos_d"]]
+    : [["fijos","rl_fijos","rl_fijos_d"],["diario","rl_diario","rl_diario_d"],["ambos","rl_ambos","rl_ambos_d"]];
+  const rolActual=accRole(a);
+  const guardaNombre=function(v){
+    set(function(s){ return Object.assign({},s,{accounts:(s.accounts||[]).map(function(x){ return x.id===a.id?Object.assign({},x,{name:v}):x; })}); });
+  };
+  /* El saldo solo se escribe en las cuentas TUYAS. En una conectada lo manda el banco y editarlo
+     aquí sería mentirse: se enseña con su candado y la hora del último sync. */
+  const guardaSaldo=function(){
+    if(conectada) return;
+    const n=parseFloat(String(saldo).replace(",","."));
+    if(!isFinite(n)) return;
+    onSaldo(a.id, n);
+  };
+  return ReactDOM.createPortal(
+    React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
+      React.createElement("div",Object.assign({className:"v4-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },style:{maxHeight:"88dvh"}}, swipe.sheetTouch),
+        React.createElement("div",{className:"v4-sheet-handle"}),
+        React.createElement("div",{style:{display:"flex",alignItems:"center",gap:11,marginBottom:2}},
+          React.createElement(Mono,{ent:a.ent,size:44}),
+          React.createElement("div",{style:{minWidth:0}},
+            React.createElement("div",{style:{fontSize:16,fontWeight:800,lineHeight:1.25}}, entOf(a.ent).label),
+            React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)"}},
+              conectada ? (a.lastSync?tf("pt_ficha_sync",{x:new Date(a.lastSync).toLocaleString()}):t("pt_ob_badge")) : t("pt_ficha_manual"))
+          )
+        ),
+        React.createElement("div",{style:{display:"flex",alignItems:"baseline",justifyContent:"space-between",gap:10,padding:"13px 0 12px",borderBottom:"1px solid var(--line)"}},
+          React.createElement("span",{style:{fontSize:11.5,color:"var(--muted)",fontWeight:700}}, t("pt_ficha_saldo")),
+          conectada
+            ? React.createElement("div",{style:{textAlign:"right"}},
+                React.createElement("div",{className:"num",style:{fontSize:21,fontWeight:800}}, eur(saldoMostrado(a))),
+                React.createElement("span",{style:{fontSize:10.5,color:"var(--muted-2)",fontWeight:600}}, "🔒 "+t("pt_ficha_banco")))
+            : React.createElement("input",{className:"af-in num",inputMode:"decimal",value:saldo,
+                style:{width:130,textAlign:"right",fontSize:18,fontWeight:800},
+                onChange:function(e){ setSaldo(e.target.value); },onBlur:guardaSaldo})
+        ),
+        React.createElement("div",{style:{padding:"14px 0 4px"}},
+          React.createElement("div",{className:"v4-ficha-k"}, t("pt_ficha_nombre")),
+          React.createElement("input",{className:"af-in",style:{width:"100%",fontSize:14,padding:"11px 13px"},
+            value:a.name||"",placeholder:t("pt_name_ph"),onChange:function(e){ guardaNombre(e.target.value); }})
+        ),
+        React.createElement("div",{style:{padding:"14px 0 4px"}},
+          React.createElement("div",{className:"v4-ficha-k"}, t("pt_ficha_rol")),
+          React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:7}},
+            roles.map(function(r){
+              const on=rolActual===r[0];
+              return React.createElement("button",{key:r[0],type:"button",className:"v4-ficha-op"+(on?" on":""),
+                onClick:function(){ set(function(s){ return applyAccountRole(s, totals, a.id, r[0]); }); }},
+                React.createElement("span",{className:"v4-ficha-radio"}),
+                React.createElement("span",{style:{minWidth:0}},
+                  React.createElement("span",{className:"v4-ficha-ot"}, t(r[1])),
+                  React.createElement("span",{className:"v4-ficha-od"}, t(r[2])))
+              );
+            })
+          )
+        ),
+        borrando
+          ? React.createElement("div",{style:{marginTop:15}},
+              React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginBottom:8,lineHeight:1.45}}, t("pt_acc_del_q")),
+              React.createElement("div",{style:{display:"flex",gap:8}},
+                React.createElement("button",{type:"button",className:"v4-ficha-quitar",style:{flex:1},
+                  onClick:function(){ onRemove(a.id); onClose(); }}, t("pt_acc_del_yes")),
+                React.createElement("button",{type:"button",className:"rchip",style:{flex:1,padding:"10px"},
+                  onClick:function(){ setBorrando(false); }}, t("pt_acc_del_no"))))
+          : React.createElement("button",{type:"button",className:"v4-ficha-quitar",style:{width:"100%",marginTop:15},
+              onClick:function(){ setBorrando(true); }}, t("pt_ficha_quitar"))
+      )
+    ), document.body);
+}
+
 function Wealth({state, set, totals, v4Embed, parte, showToast}){
   const [delAcc,setDelAcc]=React.useState("");   // id de la cuenta manual pendiente de confirmar borrado
+  const [sheetAcc,setSheetAcc]=React.useState("");   // id de la cuenta cuya ficha está abierta (v4)
   // Quitar a mano una cuenta manual del patrimonio (la del onboarding no se va sola al desloguear el banco:
   // las manuales viven en state.accounts, no en obAccounts, y bankDisconnect solo purga obAccounts).
   const removeAccount=(id)=>{
@@ -25,16 +122,32 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
   // ROLES DE CUENTA: al cambiar el rol se RE-ANCLA `value` para que el saldo mostrado no cambie
   // (despejamos value de la fórmula del rol nuevo). Solo puede haber UNA cuenta de gasto diario.
   const setRole=(id,r)=>{ set(function(s){ return applyAccountRole(s, totals, id, r); }); };   // lógica compartida (applyAccountRole)
+  /* LA FÓRMULA INVERSA DEL SALDO, EN UN SOLO SITIO. Editas el SALDO REAL de hoy y por dentro se
+     guarda la base (inicio de mes) correcta; `valueDesdeSaldo` (00-core) es la que despeja.
+     ⚠ Vive aquí con nombre propio porque la usan DOS pantallas: el editor de toda la vida
+     (`accEd`, que sigue sirviendo a la vista legacy) y la ficha nueva de cada cuenta. Escribirla
+     dos veces es exactamente el fallo que el 11/9 le pintó a su padre 455,50 € donde el banco
+     decía 26,46 — la misma regla vivía en SEIS sitios y solo se migraron cinco.
+     Ver [[misma-regla-en-dos-sitios]]. */
+  const valorDesdeTecleado=function(i,typed){
+    if(accDaily(i)) return valueDesdeSaldo({shown:typed, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)});
+    if(isEfectivoEnt(i)) return +((Number(typed)||0) + spentOwn(i)).toFixed(2);
+    return (typed - pn(i));
+  };
   const accEd=useEditable(state.accounts,it=>set(s=>Object.assign({},s,{accounts:it})),{
-    // Editas el SALDO REAL de hoy; por dentro se guarda la base (inicio de mes) correcta.
     display:  i => shownAcc(i),
-    // editar a mano re-ancla: typed = spendBal(nuevo value) → despeja value (incluye miM, que faltaba)
-    toStored: (i,typed) => {
-      if(accDaily(i)) return valueDesdeSaldo({shown:typed, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)});
-      if(isEfectivoEnt(i)) return +((Number(typed)||0) + spentOwn(i)).toFixed(2);
-      return (typed - pn(i));
-    }
+    toStored: valorDesdeTecleado
   });
+  /* Guardar el saldo de UNA cuenta (lo que hace la ficha). Mismo camino que el editor de siempre:
+     misma fórmula, mismo `set`. */
+  const guardarSaldoDe=function(id, tecleado){
+    set(function(s){
+      return Object.assign({},s,{accounts:(s.accounts||[]).map(function(x){
+        if(x.id!==id) return x;
+        return Object.assign({},x,{value: valorDesdeTecleado(x, tecleado)});
+      })});
+    });
+  };
   const astEd=useEditable(state.assets,it=>set(s=>Object.assign({},s,{assets:it})));
   const accSum=totals.liquid;
   const astSum=state.assets.reduce((a,i)=>a+i.value,0);
@@ -62,8 +175,18 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
     const badge=function(txt, color){
       return React.createElement("span",{className:"v4-ob-badge",style:{background:color+"22",color:color}}, txt);
     };
+    /* LA FILA ENTERA SE TOCA Y ABRE LA FICHA DE ESA CUENTA (2026-09-11).
+       Antes había UN botón «Editar» que abría en canal las CINCO cuentas a la vez, cada una con su
+       casilla de nombre, su casilla de saldo, tres chips de rol y una papelera, más dos pistas al
+       final. Suyo: «es muy cutrón que se despliegue abajo para editar y es bastante feo».
+       Lo que se enseñó y aprobó: tocar la cuenta y que suba una ficha como la de apuntar un gasto.
+       Y explícitamente **sin la flecha** al lado del importe: «pero sin la flecha esa que sale al
+       lado del dinero que tienes». Si toda la tarjeta responde al toque, el chevron solo mete
+       ruido justo al lado del número, que es lo que va a leer. */
     const accRow=function(a){
-      return React.createElement("div",{className:"v4-mov",key:a.id},
+      return React.createElement("button",{className:"v4-mov",key:a.id,type:"button",
+        onClick:function(){ setSheetAcc(a.id); },
+        "aria-label":entOf(a.ent).label+" · "+eur(shownAcc(a))},
         React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:a.ent,size:44})),
         React.createElement("div",{className:"nm"},
           React.createElement("div",null,entOf(a.ent).label, isSynced(a)&&badge(t("pt_ob_badge"),"#7FB5E8")),
@@ -197,9 +320,12 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
       parte!=="bienes" && React.createElement("div",{className:"v4-card-list"},
         state.accounts.map(accRow),
         (state.obAccounts||[]).map(obRow),
-        // Editar PRIMERO: los e2e (y el dedo) buscan button.edit-link; si «+ Efectivo» iba
-        // delante con la misma clase, el test de cabecera Gastos no abría el formulario
-        // (review 4.19.10). Acciones de efectivo van con v4-link-mini.
+        /* ⚠ «Editar» SIGUE AQUÍ aunque cada cuenta tenga ya su ficha (2026-09-11). No es un resto:
+           es la única puerta a las cuentas EXTRA de Open Banking (las de `obAccounts`, que no son
+           cuentas con rol todavía y se promocionan desde ahí) y a renombrarlas. La ficha cubre las
+           cuentas de verdad; esto, lo que aún no lo es.
+           Los e2e (y el dedo) buscan `button.edit-link`: tiene que ir ANTES que «+ Efectivo», que
+           llevaba la misma clase y se comía el clic (review 4.19.10). */
         React.createElement("button",{className:"edit-link",style:{margin:"8px 4px"},onClick:function(){ accEd.editing?accEd.save():accEd.start(); }},accEd.editing?t("fj_save"):t("fj_edit")),
         !cashAcc && React.createElement("button",{type:"button",className:"v4-link-mini",style:{margin:"8px 4px",display:"block"},onClick:doAddEfectivo}, t("ef_create_btn")),
         cashAcc && React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",margin:"8px 4px"}},
@@ -207,6 +333,13 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
           React.createElement("button",{type:"button",className:"v4-link-mini",onClick:doEntradaEfectivo}, t("ef_in_btn"))
         )
       ),
+      // La ficha de la cuenta que esté abierta. Portal a `body`, así que da igual dónde se monte.
+      React.createElement(AccountSheet,{
+        open:!!sheetAcc, cuenta:(state.accounts||[]).find(function(x){ return x.id===sheetAcc; })||null,
+        set:set, totals:totals, onClose:function(){ setSheetAcc(""); },
+        onRemove:removeAccount, onSaldo:guardarSaldoDe,
+        saldoMostrado:shownAcc, sincronizada:isSynced
+      }),
       // Editor completo (2026-07-18): nombre + rol (recibos/diario/todo) SIEMPRE; el saldo solo
       // en cuentas manuales — el de las conectadas lo trae el banco y editarlo aquí sería mentirse.
       accEd.editing && React.createElement("div",{className:"add-form",style:{marginTop:8}},

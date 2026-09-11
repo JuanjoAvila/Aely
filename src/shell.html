@@ -1515,6 +1515,26 @@
   .v4-ic-mini.girando svg{animation:mcSpin .9s linear infinite;transform-origin:50% 50%;}
   @keyframes mcSpin{to{transform:rotate(360deg)}}
   @media (prefers-reduced-motion:reduce){ .v4-ic-mini.girando svg{animation:none;opacity:.55;} }
+  /* LA FICHA DE UNA CUENTA (2026-09-11). Mismas piezas que el sheet de apuntar un gasto, que es
+     de donde viene la idea: «me gusta que se pudiera apretar en un banco y se despliegue una ficha
+     como si apuntara un gasto, es limpio y está chulo». */
+  .v4-ficha-k{font-size:10.5px;font-weight:800;letter-spacing:.1px;text-transform:uppercase;
+    color:var(--muted-2);margin-bottom:9px;letter-spacing:.1em;}
+  .v4-ficha-op{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:13px;
+    background:var(--sur);border:1px solid var(--line-soft);width:100%;text-align:left;
+    font-family:inherit;cursor:pointer;color:var(--text);}
+  .v4-ficha-op.on{border-color:var(--mint);background:rgba(108,198,136,.10);}
+  .v4-ficha-radio{width:16px;height:16px;border-radius:50%;border:2px solid var(--muted-2);
+    flex:0 0 auto;margin-top:2px;}
+  .v4-ficha-op.on .v4-ficha-radio{border-color:var(--mint);
+    background:radial-gradient(circle,var(--mint) 0 45%,transparent 46%);}
+  .v4-ficha-ot{display:block;font-size:13px;font-weight:800;line-height:1.3;}
+  .v4-ficha-op.on .v4-ficha-ot{color:var(--mint);}
+  .v4-ficha-od{display:block;font-size:11px;color:var(--muted-2);line-height:1.45;margin-top:2px;}
+  /* Rojo, pero de borde: es una acción destructiva y pregunta antes, así que no necesita gritar. */
+  .v4-ficha-quitar{text-align:center;font-size:12.5px;font-weight:800;color:var(--coral);
+    padding:11px;border-radius:13px;border:1px solid rgba(232,93,76,.28);background:transparent;
+    font-family:inherit;cursor:pointer;}
   .v4-tools{margin-top:18px;padding-top:4px;}
   .v4-tools summary{list-style:none;cursor:pointer;font-weight:800;font-size:14px;color:var(--muted);padding:12px 4px;display:flex;justify-content:space-between;align-items:center;}
   .v4-tools summary::-webkit-details-marker{display:none;}

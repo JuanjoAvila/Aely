@@ -114,9 +114,13 @@ test("la pestaña que entra se pinta de verdad, no llega en blanco", async ({ pa
   await deslizar(page, cdp, "siguiente");
   await expect.poll(() => pestanaActiva(page), { timeout: 10_000 }).toBe("gastos");
 
-  // El montaje de la pestaña es perezoso: lo que importa es que acabe con contenido REAL.
-  // No fijamos el orden de la lista (misma marca de tiempo → el sort no es estable entre runs).
-  const filas = page.locator("button.v4-mov");
+  /* El montaje de la pestaña es perezoso: lo que importa es que acabe con contenido REAL.
+     No fijamos el orden de la lista (misma marca de tiempo → el sort no es estable entre runs).
+     ⚠ Y ACOTADO a la lista de Gastos: las vecinas van premontadas, así que contar
+     `button.v4-mov` de toda la página mide también las cuentas de Cartera desde que son botones
+     (11/9). Es [[e2e-getbytext-pestanas-premontadas]] otra vez, y en este fichero duele el doble
+     porque el premontaje es justo lo que prueba. */
+  const filas = page.locator(".v4-gastos-list-body button.v4-mov");
   await expect(filas.first()).toBeVisible({ timeout: 15_000 });
   await expect(filas).toHaveCount(2);
   await expect(page.locator("button.v4-mov", { hasText: "Mercadona" })).toBeVisible();

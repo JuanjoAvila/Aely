@@ -661,6 +661,8 @@ Object.assign(LANG.ca,{
 });
 /* Roles de cuenta + import OB + informe mensual */
 Object.assign(LANG.es,{
+  pt_ficha_saldo:"Saldo", pt_ficha_banco:"lo pone el banco", pt_ficha_manual:"lo pones tú", pt_ficha_nombre:"Cómo se llama", pt_ficha_rol:"Qué cuenta de esta cuenta", pt_ficha_quitar:"Quitar esta cuenta", pt_ficha_sync:"Última sincronización: {x}",
+  rl_fijos_d:"Sus domiciliaciones salen en Plan. Sus compras no suman al gasto del mes.", rl_diario_d:"Sus compras suman al presupuesto del mes. Es la del día a día.", rl_ambos_d:"Las dos cosas: recibos en Plan y compras al presupuesto.",
   rl_fijos:"🏦 Recibos", rl_diario:"🛒 Gasto diario", rl_ambos:"🔁 Todo",
   rl_ob_q:"¿Para qué usas esta cuenta? Dale un rol y podrás asignarle gastos fijos y del día a día:",
   rl_ob_done:"✓ «{n}» activada como {r}. Ya puedes elegirla en tus gastos.",
@@ -701,6 +703,8 @@ Object.assign(LANG.es,{
   bn_100:"🚨 Presupuesto del mes agotado: {x} de {b}",
 });
 Object.assign(LANG.en,{
+  pt_ficha_saldo:"Balance", pt_ficha_banco:"set by the bank", pt_ficha_manual:"you set it", pt_ficha_nombre:"What it is called", pt_ficha_rol:"What this account counts as", pt_ficha_quitar:"Remove this account", pt_ficha_sync:"Last sync: {x}",
+  rl_fijos_d:"Its direct debits show in Plan. Its purchases do not add to the month's spending.", rl_diario_d:"Its purchases count towards the month's budget. This is the day-to-day one.", rl_ambos_d:"Both: bills in Plan and purchases in the budget.",
   rl_fijos:"🏦 Bills", rl_diario:"🛒 Daily spending", rl_ambos:"🔁 Everything",
   rl_ob_q:"What do you use this account for? Give it a role and you'll be able to assign it fixed and day-to-day expenses:",
   rl_ob_done:"✓ \"{n}\" activated as {r}. You can now pick it for your expenses.",
@@ -741,6 +745,8 @@ Object.assign(LANG.en,{
   bn_100:"🚨 Monthly budget spent: {x} of {b}",
 });
 Object.assign(LANG.ca,{
+  pt_ficha_saldo:"Saldo", pt_ficha_banco:"ho posa el banc", pt_ficha_manual:"ho poses tu", pt_ficha_nombre:"Com es diu", pt_ficha_rol:"Que compta d'aquest compte", pt_ficha_quitar:"Treure aquest compte", pt_ficha_sync:"Ultima sincronitzacio: {x}",
+  rl_fijos_d:"Les seves domiciliacions surten a Pla. Les seves compres no sumen a la despesa del mes.", rl_diario_d:"Les seves compres sumen al pressupost del mes. Es la del dia a dia.", rl_ambos_d:"Les dues coses: rebuts a Pla i compres al pressupost.",
   rl_fijos:"🏦 Rebuts", rl_diario:"🛒 Despesa diària", rl_ambos:"🔁 Tot",
   rl_ob_q:"Per a què fas servir aquest compte? Dona-li un rol i podràs assignar-li despeses fixes i del dia a dia:",
   rl_ob_done:"✓ «{n}» activat com a {r}. Ja pots triar-lo a les teves despeses.",

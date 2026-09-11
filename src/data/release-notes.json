@@ -1,5 +1,73 @@
 [
  {
+  "v": "4.19.67",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Cada cuenta tiene su ficha",
+   "en": "Every account has its own card",
+   "ca": "Cada compte te la seva fitxa"
+  },
+  "tandas": [
+   {
+    "id": "ficha-cuenta",
+    "t": {
+     "es": "🏦 Tocas una cuenta y se abre su ficha",
+     "en": "🏦 Tap an account and its card opens",
+     "ca": "🏦 Toques un compte i s'obre la seva fitxa"
+    },
+    "items": {
+     "es": [
+      "1. Cartera → Tus cuentas. Toca una cuenta cualquiera, en cualquier parte de su tarjeta.",
+      "2. Tiene que subir una ficha desde abajo, como la de apuntar un gasto. Se cierra tirando de ella hacia abajo, o tocando fuera.",
+      "3. Fíjate en que las filas ya NO llevan la flechita al lado del dinero.",
+      "4. En una cuenta CONECTADA al banco (Revolut, Sabadell…), el saldo sale con un candado y no se puede escribir: lo pone el banco.",
+      "5. En una cuenta TUYA (el Efectivo), el saldo SÍ se escribe. Cámbialo, cierra la ficha y comprueba que se ha guardado — no hay botón de «Guardar», se guarda solo.",
+      "6. Cambia el nombre de una cuenta desde la ficha y comprueba que se queda.",
+      "7. Mira las tres opciones de abajo (Recibos / Gasto diario / Todo): cada una tiene que llevar SU explicación debajo. Antes había que bajar a buscar la letra pequeña.",
+      "8. Cambia el rol, cierra la ficha y vuelve a abrirla: tiene que salir marcado el nuevo.",
+      "9. «Quitar esta cuenta», abajo en rojo: tiene que preguntarte antes. Dale a cancelar y comprueba que la cuenta sigue ahí.",
+      "10. Y lo de siempre, que no puede romperse: el botón «Editar» de la lista tiene que seguir funcionando para las cuentas EXTRA que trae el banco."
+     ],
+     "en": [
+      "1. Wallet → Your accounts. Tap any account, anywhere on its card.",
+      "2. A card must slide up from the bottom, like the one for logging an expense. It closes by dragging down or tapping outside.",
+      "3. Notice the rows no longer have the little arrow next to the money.",
+      "4. On a CONNECTED account the balance shows a padlock and cannot be typed: the bank sets it.",
+      "5. On YOUR OWN account (Cash) the balance IS editable. Change it, close and check it stuck — there is no Save button.",
+      "6. Change an account's name from the card and check it stays.",
+      "7. The three options (Bills / Daily spending / Everything) must each carry their own explanation.",
+      "8. Change the role, close and reopen: the new one must be selected.",
+      "9. “Remove this account” in red must ask first. Cancel and check the account is still there.",
+      "10. And what must not break: the list's “Edit” button must still work for the EXTRA accounts the bank brings."
+     ],
+     "ca": [
+      "1. Cartera → Els teus comptes. Toca qualsevol compte, a qualsevol part de la targeta.",
+      "2. Ha de pujar una fitxa des de baix, com la d'apuntar una despesa. Es tanca estirant-la cap avall.",
+      "3. Fixa't que les files ja NO porten la fletxeta al costat dels diners.",
+      "4. En un compte CONNECTAT, el saldo surt amb un cadenat i no es pot escriure.",
+      "5. En un compte TEU (l'Efectiu), el saldo SI s'escriu. Canvia'l i comprova que es desa sol.",
+      "6. Canvia el nom d'un compte des de la fitxa i comprova que es queda.",
+      "7. Les tres opcions han de portar CADA UNA la seva explicacio a sota.",
+      "8. Canvia el rol, tanca la fitxa i torna a obrir-la: ha de sortir marcat el nou.",
+      "9. «Treure aquest compte», a baix en vermell, ha de preguntar abans. Cancel·la i comprova que hi segueix.",
+      "10. I el que no pot trencar-se: el boto «Editar» ha de seguir funcionant per als comptes EXTRA del banc."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Editar una cuenta ya no despliega las cinco a la vez debajo de la lista. Tocas la que quieras y se abre su propia ficha, como la de apuntar un gasto: su saldo, su nombre y qué cuenta de ella, cada opción con su explicación."
+   ],
+   "en": [
+    "Editing an account no longer opens all five at once below the list. Tap the one you want and its own card opens, like the one for logging an expense."
+   ],
+   "ca": [
+    "Editar un compte ja no desplega els cinc alhora sota la llista. Toques el que vulguis i s'obre la seva fitxa."
+   ]
+  }
+ },
+ {
   "v": "4.19.66",
   "d": "11 sep 2026",
   "t": {

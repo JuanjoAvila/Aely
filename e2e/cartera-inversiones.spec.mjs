@@ -20,7 +20,13 @@ test("Cartera › Inversiones: los tres brókers se pintan, en orden, con sus im
   await dismissNews(page);
 
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
-  const blocks = page.locator(".v4-card-list button.v4-mov");
+  /* ⚠ ACOTADO A LA TARJETA DE INVERSIONES (11/9/2026). Antes esto era `.v4-card-list
+     button.v4-mov` a secas, y el día que las filas de CUENTAS pasaron de `div` a `button` —para
+     poder tocarlas y abrir su ficha— este test empezó a contarlas también: pedía 3 brókers y
+     encontraba 4. Es el agujero de siempre: un selector sin acotar mide la página entera, no la
+     tarjeta. Ver [[e2e-getbytext-pestanas-premontadas]]. */
+  const listaInv = page.locator(".v4-card-list").filter({ hasText: /posiciones|positions|posicions/ }).first();
+  const blocks = listaInv.locator("button.v4-mov");
   await expect(blocks).toHaveCount(3);
 
   // Orden fijo: Revolut → Trade Republic → MyInvestor (groupsBase, 06-sync-brokers.js).
@@ -36,7 +42,13 @@ test("Cartera › Inversiones: bróker sin posiciones no deja bloque fantasma", 
   await dismissNews(page);
 
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
-  const blocks = page.locator(".v4-card-list button.v4-mov");
+  /* ⚠ ACOTADO A LA TARJETA DE INVERSIONES (11/9/2026). Antes esto era `.v4-card-list
+     button.v4-mov` a secas, y el día que las filas de CUENTAS pasaron de `div` a `button` —para
+     poder tocarlas y abrir su ficha— este test empezó a contarlas también: pedía 3 brókers y
+     encontraba 4. Es el agujero de siempre: un selector sin acotar mide la página entera, no la
+     tarjeta. Ver [[e2e-getbytext-pestanas-premontadas]]. */
+  const listaInv = page.locator(".v4-card-list").filter({ hasText: /posiciones|positions|posicions/ }).first();
+  const blocks = listaInv.locator("button.v4-mov");
   await expect(blocks).toHaveCount(2);
   await expect(blocks.filter({ hasText: "MyInvestor" })).toHaveCount(0);
 });
