@@ -1,3 +1,14 @@
+## [4.19.43] — 2026-09-11
+### La ronda de la tarde: lo que se veía roto al estrenar y los textos que sobraban
+
+Une `bugs-11sep` (mío), `copy-ruido-11sep` y `bp-count-vacio` (de Cursor), las tres con review ejecutada.
+
+- **Las notas de las tres se funden en ESTA a propósito.** Ninguna llegó a publicarse —beta iba por la 4.19.40—, así que dejar tres entradas en Novedades sería contarle a la familia tres versiones que no existieron. Las tres **tandas** se conservan enteras: son lo que él tiene que probar.
+- **Y aquí un fallo mío que se repitió DOS VECES el mismo día.** Mi helper de unir notas deduplicaba por número de versión y, cuando dos ramas llevaban el mismo —que pasa constantemente porque cada una se numera sola—, **se quedaba con la primera y tiraba la otra en silencio**. Esta vez se comió la nota de `copy-ruido-11sep`: la tanda habría subido y su checklist no habría aparecido en el panel de revisión, así que él no habría tenido qué probar de esa mitad. Lo cazó comparar la nota integrada contra la de la rama, no ningún test.
+- Ahora es `scripts/unir-notas.mjs` y **un choque de número es un ERROR**, no una decisión callada: quien integra decide si renumera o funde las dos en una. Las dos cosas son válidas; hacerlo sin mirar, no.
+- El bump de esta versión **no es cosmético**: `docs-frescura` cazó que la integración cambiaba cinco ficheros por encima del último bump, y sin subirlo el móvil no se habría enterado. Lo vio Cursor en su review antes que yo — porque yo pasé la suite **antes** de commitear la retirada del overscroll y no después. La comprobación se hace en la PUNTA, no a mitad.
+
+
 ## [4.19.42] — 2026-09-11
 ### Bancos en pruebas, sin fantasmas (lista 11/9, ítem 4)
 
