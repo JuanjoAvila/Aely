@@ -6932,7 +6932,62 @@ const I = {
    ============================================================ */
 function Mono({ent, size}){
   const e=entOf(ent); size=size||40;
+  /* Logos medidos desde docs/design/bancos/ (Enable Banking), 11/9. No de memoria:
+     dos intentos a ojo los tumbó. Prueba de fuego: tapa el nombre. SVG inline, cero PNG. */
+  const mark=bankMark(String(ent||""));
+  if(mark){
+    const svgProps={viewBox:"0 0 24 24",width:Math.round(size*(mark.scale||0.72)),height:Math.round(size*(mark.scale||0.72)),
+      "aria-hidden":"true"};
+    if(mark.fg) svgProps.fill=mark.fg;
+    return React.createElement("div",{
+      className:"mono mono-logo",
+      title:e.label,
+      "aria-label":e.label,
+      style:{width:size,height:size,background:mark.bg,borderColor:"transparent",
+        display:"grid",placeItems:"center",borderRadius:11,flex:"0 0 auto",border:"1px solid transparent",overflow:"hidden"}
+    }, React.createElement("svg",svgProps, mark.el));
+  }
   return React.createElement("div",{className:"mono",style:{width:size,height:size,background:e.color+"22",color:e.color,borderColor:e.color+"44"}}, e.mono);
+}
+/* Isotipos medidos del PNG (LEEME). Colores del artwork, no del pastel de ENT. */
+function bankMark(id){
+  if(id==="sabadell"){
+    /* Bola azul #0082C9 + B (knockout del PNG → blanca sobre la bola). */
+    return {bg:"#0B0B0B",scale:0.92,el:React.createElement(React.Fragment,null,
+      React.createElement("circle",{cx:12,cy:12,r:11,fill:"#0082C9"}),
+      React.createElement("path",{fill:"#fff",d:"M8.2 5.4h5.1c2.55 0 4.15 1.35 4.15 3.35 0 1.25-.7 2.25-1.9 2.75 1.55.55 2.5 1.75 2.5 3.55 0 2.3-1.85 3.75-4.85 3.75H8.2V5.4zm3.05 5.15h2.05c1.15 0 1.8-.55 1.8-1.45s-.65-1.4-1.8-1.4h-2.05v2.85zm0 6.55h2.45c1.35 0 2.15-.65 2.15-1.7s-.8-1.65-2.15-1.65h-2.45v3.35z"})
+    )};
+  }
+  if(id==="revolut"){
+    /* Trazo oficial simple-icons/revolut (341 chars). No redibujar. */
+    return {bg:"#0666EB",fg:"#fff",scale:0.62,el:React.createElement("path",{d:"M20.913 6.957C20.913 3.121 17.79 0 13.95 0H2.424v3.86h10.978c1.738 0 3.177 1.365 3.209 3.043.016.84-.3 1.633-.888 2.233-.589.6-1.375.93-2.214.93H9.232a.276.276 0 0 0-.276.275v3.431c0 .059.018.114.052.161L16.265 24h5.311l-7.273-10.094c3.663-.184 6.61-3.261 6.61-6.949zM6.894 5.923H2.424V24h4.47z"})};
+  }
+  if(id==="trade_republic"){
+    /* Onda del PNG: 3 chevrones apilados (huecos a la derecha del lockup). Blanco sobre negro. */
+    const wave=function(y){ return "M2.5 "+y+" L7 "+(y-3.2)+" L12 "+y+" L17 "+(y-3.2)+" L21.5 "+y; };
+    return {bg:"#0B0B0B",el:React.createElement(React.Fragment,null,
+      React.createElement("path",{d:wave(8.2),fill:"none",stroke:"#fff",strokeWidth:1.85,strokeLinecap:"round",strokeLinejoin:"round"}),
+      React.createElement("path",{d:wave(12.5),fill:"none",stroke:"#fff",strokeWidth:1.85,strokeLinecap:"round",strokeLinejoin:"round"}),
+      React.createElement("path",{d:wave(16.8),fill:"none",stroke:"#fff",strokeWidth:1.85,strokeLinecap:"round",strokeLinejoin:"round"})
+    )};
+  }
+  if(id==="myinvestor"){
+    /* Círculo + «my» (magenta plano: el degradado no hace el reconocimiento). */
+    return {bg:"#fff",scale:0.88,el:React.createElement(React.Fragment,null,
+      React.createElement("circle",{cx:12,cy:12,r:10.2,fill:"none",stroke:"#E6007E",strokeWidth:1.35}),
+      React.createElement("text",{x:12,y:15.2,textAnchor:"middle",fill:"#282828",
+        fontSize:9,fontWeight:700,fontFamily:"system-ui,-apple-system,sans-serif",letterSpacing:"-0.5px"},"my")
+    )};
+  }
+  if(id==="caixabank"){
+    /* Estrella Miró + punto amarillo + rojo (medidos en el crop). Sin el path de 2,5 KB. */
+    return {bg:"#0B0B0B",scale:0.9,el:React.createElement(React.Fragment,null,
+      React.createElement("path",{fill:"#00A0DF",d:"M12.2 2.1l1.55 5.35 4.85-.35-3.55 3.55 2.35 4.55-4.7-2.15-3.85 3.45.35-5.1-4.45-2.55 5.15-.55z"}),
+      React.createElement("circle",{cx:6.2,cy:13.8,r:1.55,fill:"#FFCC00"}),
+      React.createElement("ellipse",{cx:6.4,cy:18.6,rx:2.35,ry:2.55,fill:"#E30613"})
+    )};
+  }
+  return null;
 }
 
 /* Ayuda contextual: un «?» discreto que explica la tarjeta en cristiano (para no-técnicos). */

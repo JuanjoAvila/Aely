@@ -1,5 +1,46 @@
 [
  {
+  "v": "4.19.45",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "Los bancos, con su marca",
+   "en": "Banks with their mark",
+   "ca": "Els bancs, amb la seva marca"
+  },
+  "tandas": [
+   {
+    "id": "logos-marcas-reales",
+    "t": {
+     "es": "🏦 Logos de banco medidos",
+     "en": "🏦 Measured bank logos",
+     "ca": "🏦 Logotips de banc mesurats"
+    },
+    "items": {
+     "es": [
+      "En Cartera → Tus cuentas, los cinco bancos de siempre se reconocen por su marca (medidos del original), no por dos letras."
+     ],
+     "en": [
+      "In Portfolio → Your accounts, the five familiar banks are recognizable by their mark (traced from the original), not two letters."
+     ],
+     "ca": [
+      "A Cartera → Els teus comptes, els cinc bancs de sempre es reconeixen per la marca (mesurada de l'original), no per dues lletres."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Los bancos de siempre muestran su marca en la lista de cuentas."
+   ],
+   "en": [
+    "Familiar banks show their mark in the accounts list."
+   ],
+   "ca": [
+    "Els bancs de sempre mostren la seva marca a la llista de comptes."
+   ]
+  }
+ },
+ {
   "v": "4.19.44",
   "d": "11 sep 2026",
   "t": {

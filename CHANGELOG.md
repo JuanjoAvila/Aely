@@ -1,3 +1,9 @@
+## [4.19.45] — 2026-09-11
+### Logos de banco medidos del original
+
+Isotipos SVG sacados de `docs/design/bancos/` (Enable Banking), no de memoria. Sabadell bola+B, Revolut simple-icons, TR ondas, MyInvestor círculo+my, Caixa estrella Miró. Gzip sin apretar el tope.
+
+
 ## [4.19.44] — 2026-09-11
 ### Letra a mano y conectar cuentas (lista 11/9, ítems 2 y 3) — sin logos
 
