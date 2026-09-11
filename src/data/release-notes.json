@@ -1,5 +1,52 @@
 [
  {
+  "v": "4.19.39",
+  "d": "11 sep 2026",
+  "t": {
+   "es": "El cambio de pestaña ya no pega el tirón",
+   "en": "Switching tabs no longer lurches",
+   "ca": "El canvi de pestanya ja no fa l'estrebada"
+  },
+  "tandas": [
+   {
+    "id": "tiron-ancla",
+    "t": {
+     "es": "👆 El carrusel arranca donde está el dedo",
+     "en": "👆 The carousel starts where your finger is",
+     "ca": "👆 El carrusel arrenca on és el dit"
+    },
+    "items": {
+     "es": [
+      "Cambia de pestaña arrastrando MUY DESPACIO, que es donde se notaba: cuando la pantalla empieza a moverse, tiene que salir de donde está, sin pegar un brinco.",
+      "Repítelo rápido: tiene que seguir igual de bien y cambiar de pestaña con el mismo empujón de siempre.",
+      "Y lo importante que NO puede romperse: desliza en vertical dentro de una pestaña (Gastos con muchos movimientos). El scroll tiene que ser suyo, sin que el carrusel te robe el dedo."
+     ],
+     "en": [
+      "Switch tabs dragging VERY SLOWLY, which is where it showed: when the screen starts moving it must start from where it is, with no jump.",
+      "Do it fast too: it must still work and switch with the same push as always.",
+      "And the part that must NOT break: scroll vertically inside a tab. The scroll must stay yours, with the carousel not stealing your finger."
+     ],
+     "ca": [
+      "Canvia de pestanya arrossegant MOLT A POC A POC: quan la pantalla comença a moure's, ha de sortir d'on és, sense fer un bot.",
+      "Fes-ho també ràpid: ha de continuar igual de bé.",
+      "I el que NO es pot trencar: desplaça en vertical dins d'una pestanya. El scroll ha de ser teu."
+     ]
+    }
+   }
+  ],
+  "items": {
+   "es": [
+    "Al cambiar de pestaña arrastrando despacio, la pantalla ya no da un brinco al empezar a moverse."
+   ],
+   "en": [
+    "When switching tabs with a slow drag, the screen no longer jumps as it starts to move."
+   ],
+   "ca": [
+    "En canviar de pestanya a poc a poc, la pantalla ja no fa un bot en començar a moure's."
+   ]
+  }
+ },
+ {
   "v": "4.19.36",
   "d": "11 sep 2026",
   "t": {
