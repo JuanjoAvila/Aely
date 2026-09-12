@@ -1,3 +1,15 @@
+## [4.19.79] - 2026-09-12
+### Ámbar de la 4.19.78: no borrar possibleDupOf ni realinear id en el pull
+
+Claude ejecutó `refreshExpenseFromCloud` contra el bundle: `expenseFromRow` declara
+`possibleDup` siempre (aunque sea `undefined`) y **no** declara `possibleDupOf`. El
+`put(possibleDupOf, undefined)` borraba el gemelo en cada sync. Y cambiar `id` al de la nube
+huérfana `settings.expenseOrder` (aprobado esta mañana en 4.19.74).
+
+Fix: solo escribir `possibleDupOf` si viene con valor; no tocar `id` (remap = tanda propia).
+Guardián unitario + el de `pull-historico-entero` ahora exige `mergeExpensesFromCloud`.
+Tope minificado 1195 KB (CI midió 1189).
+
 ## [4.19.78] - 2026-09-12
 ### El pull vuelve a refrescar filas que ya teníamos (ya no filtra por source=supabase)
 

@@ -67,8 +67,9 @@ const PRESUPUESTO = {
      tres idiomas y el helper que agrupa los Fijos. Medido tras el cambio: 1183 KB.
      El tope anterior dejaba 1 KB de aire, que no es margen: es una trampa para el siguiente.
      Se sube a 1188 (~0,4 %). El gzip NO se toca y sigue en 330: medido 328, y es lo que de verdad
-     baja el movil. Si el gzip se acerca al tope, se recorta; no se sube. */
-  minificado: 1188 * 1024,
+     baja el movil. Si el gzip se acerca al tope, se recorta; no se sube.
+     12/9: mergeExpensesFromCloud + notas 4.19.77/78 → 1189 medido en CI. Tope a 1195 (~0,5 %). */
+  minificado: 1195 * 1024,
   gzip: 330 * 1024,         // medido 2026-09-07 noche: ~319 KB  ← esto es lo que baja el móvil
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };

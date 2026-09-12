@@ -2,6 +2,24 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
+test("refreshExpenseFromCloud NO borra possibleDupOf ni cambia el id", () => {
+  const cli = loadPureLogicFromFile();
+  const local = {
+    id: "LOCAL-1", date: "2026-09-10T12:00:00.000Z", amount: 10,
+    merchant: "X", category: "otros", source: "ob",
+    possibleDup: true, possibleDupOf: "GEMELO-7",
+  };
+  const incoming = {
+    id: "NUBE-1", date: "2026-09-10T12:00:00.000Z", amount: 10,
+    merchant: "X", category: "otros", source: "ob",
+    possibleDup: true,
+  };
+  const out = cli.refreshExpenseFromCloud(local, incoming);
+  assert.equal(out.possibleDupOf, "GEMELO-7", "el gemelo local tiene que sobrevivir");
+  assert.equal(out.id, "LOCAL-1", "el id local se conserva (expenseOrder)");
+  assert.equal(out.possibleDup, true);
+});
+
 test("refreshExpenseFromCloud actualiza cat de un OB y no toca un manual", () => {
   const cli = loadPureLogicFromFile();
   assert.equal(typeof cli.refreshExpenseFromCloud, "function");
@@ -17,7 +35,7 @@ test("refreshExpenseFromCloud actualiza cat de un OB y no toca un manual", () =>
   };
   const out = cli.refreshExpenseFromCloud(localOb, cloudOb);
   assert.equal(out.category, "energia");
-  assert.equal(out.id, "cloud");
+  assert.equal(out.id, "loc", "el id local se conserva");
   assert.equal(localOb.category, "viajes", "no muta el original");
 
   const localMan = {

@@ -128,14 +128,15 @@ await (async () => {
 /* ── La mitad que da miedo: qué hace la mezcla con una descarga incompleta ───── */
 
 await t("\u2605 una descarga A MEDIAS no puede borrar gastos: se añade, no se reemplaza", () => {
-  const i = main.indexOf("const parcial=!!(rows&&rows._mcPullCapped);");
-  assert.ok(i > 0,
-    "syncCloudExpenses ya no distingue una descarga parcial de un borrado. Sin eso, una descarga " +
-    "corta descarta de la app todo lo de origen `supabase` que no haya llegado. Es exactamente " +
-    "cómo se le borraban los gastos viejos.");
-  const bloque = main.slice(main.indexOf("const keep=", i), main.indexOf("const keep=", i) + 300);
-  assert.ok(/parcial\s*\?\s*prev\.expenses\.slice\(\)/.test(bloque),
-    "con la descarga incompleta hay que CONSERVAR lo que ya había, no filtrarlo");
+  /* Antes se exigía `parcial ? prev.expenses.slice() : filter(supabase)`. Ese filtro murió
+     (expenseFromRow ya no emite "supabase") y el pull dejó de refrescar. Ahora la mezcla es
+     `mergeExpensesFromCloud`, que NUNCA borra por ausencia — parcial o no. */
+  assert.ok(main.indexOf("mergeExpensesFromCloud(prev.expenses, incoming)") > 0,
+    "syncCloudExpenses tiene que mezclar con mergeExpensesFromCloud (refresco sin borrar)");
+  assert.ok(core.indexOf("function mergeExpensesFromCloud") > 0,
+    "mergeExpensesFromCloud tiene que vivir en 00-core, no una copia en el sync");
+  assert.ok(!/prev\.expenses\.filter\(function\(e\)\{\s*return e\.source!=="supabase"/.test(main),
+    "el filtro source!==supabase está muerto y volvía a mentir: no puede volver");
 });
 
 await t("y avisa en cristiano de que no ha perdido nada", () => {

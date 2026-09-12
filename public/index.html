@@ -3947,13 +3947,21 @@ function refreshExpenseFromCloud(local, incoming){
   if(Object.prototype.hasOwnProperty.call(incoming,"obName")) put("obName", incoming.obName);
   if(Object.prototype.hasOwnProperty.call(incoming,"origAmount")) put("origAmount", incoming.origAmount);
   if(Object.prototype.hasOwnProperty.call(incoming,"origCur")) put("origCur", incoming.origCur);
-  if(Object.prototype.hasOwnProperty.call(incoming,"possibleDup")){
-    put("possibleDup", incoming.possibleDup||undefined);
-    put("possibleDupOf", incoming.possibleDupOf);
+  /* `possibleDup` SÍ viaja (sufijo #dup del source). `possibleDupOf` NO: expenseFromRow no lo
+     declara, y un put(undefined) borraba el gemelo local en CADA pull (ámbar Claude 12/9). */
+  if(incoming.possibleDup) put("possibleDup", true);
+  else if(incoming.possibleDup===false || incoming.possibleDup==null){
+    /* Solo apagar la marca si la nube dice que ya no es dup (source sin #dup → possibleDup falsy
+       y la propiedad existe en el literal de expenseFromRow). No tocar possibleDupOf. */
+    if(Object.prototype.hasOwnProperty.call(incoming,"possibleDup") && !incoming.possibleDup){
+      put("possibleDup", undefined);
+    }
   }
+  if(incoming.possibleDupOf!=null) put("possibleDupOf", incoming.possibleDupOf);
   if(!local.noteEdited && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
-  /* Misma clave, otro uuid en nube: alinear al de la tabla para que los PATCH futuros den. */
-  if(incoming.id && incoming.id!==local.id) put("id", incoming.id);
+  /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
+     nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda
+     propia con remap de expenseOrder + possibleDupOf si hace falta para los PATCH. */
   return out;
 }
 /* Mezcla el pull con lo local: refresca campos de claves ya vistas y solo AÑADE las nuevas.

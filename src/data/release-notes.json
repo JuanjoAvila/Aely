@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.19.79",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "Sincronizar actualiza sin perder el orden ni los duplicados pendientes",
+      "en": "Sync updates without losing your order or pending duplicates",
+      "ca": "Sincronitzar actualitza sense perdre l'ordre ni els duplicats pendents"
+    },
+    "items": {
+      "es": [
+        "Al sincronizar se actualiza lo que cambió en la nube, y se conservan el orden a mano de un día y los posibles repetidos que aún no habías resuelto."
+      ],
+      "en": [
+        "Syncing updates what changed in the cloud, and keeps a day's manual order and any pending possible duplicates you hadn't resolved yet."
+      ],
+      "ca": [
+        "En sincronitzar s'actualitza el que ha canviat al núvol, i es conserven l'ordre a mà d'un dia i els possibles repetits que encara no havies resolt."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "sync-refresca",
+        "t": {
+          "es": "🔄 Sincronizar refresca sin romper el orden",
+          "en": "🔄 Sync refreshes without breaking order",
+          "ca": "🔄 Sincronitzar refresca sense trencar l'ordre"
+        },
+        "items": {
+          "es": [
+            "1. Si habías reordenado gastos de un día a mano, sincroniza: el orden se tiene que quedar.",
+            "2. Un gasto corregido en la nube (p. ej. Aigües → Energía) tiene que actualizarse al sincronizar."
+          ],
+          "en": [
+            "1. If you manually reordered a day's expenses, sync: the order must stay.",
+            "2. An expense corrected in the cloud (e.g. water → Energy) must update on sync."
+          ],
+          "ca": [
+            "1. Si havies reordenat despeses d'un dia a mà, sincronitza: l'ordre s'ha de quedar.",
+            "2. Una despesa corregida al núvol (p. ex. Aigües → Energia) s'ha d'actualitzar en sincronitzar."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.78",
     "d": "12 sep 2026",
     "t": {
