@@ -9,7 +9,7 @@ metadata:
   node_type: memory
   type: feedback
   originSessionId: 0026af41-cbf3-4394-a3f1-3117babc2995
-  modified: 2026-09-11T18:09:27.762Z
+  modified: 2026-09-12T09:44:12.376Z
 ---
 
 **Suyo, 11/9/2026 por la noche:** *«actualizarme la lista de cosas que verdaderamente puedo probar,
@@ -53,6 +53,31 @@ llevaban congelada la foto del 8/9: daban por «pendientes» tandas que él apro
 acusaron de regresión a una limpieza correcta. Un guardián de esto se escribe contra la **forma**
 (que nada juzgado vuelva, que la ronda abarque varias versiones), nunca contra una lista de
 versiones concretas.
+
+⚠ **FILTRO 6, el que faltaba: un paso que NO PUEDE PASAR aunque el arreglo esté perfecto.**
+Descubierto el 12/9 y a mi costa. La tanda `barcelona-no-es-un-viaje` le decía en el paso 2
+*«busca Barcelona y mira las categorías de lo que salga»*, y en el 3 le explicaba que **lo ya
+apuntado no se recategoriza a propósito**. O sea: el paso 2 le pedía mirar exactamente lo que el
+arreglo no toca. La rechazó, con razón, y el código estaba bien.
+
+La regla que lo evita: **antes de escribir un paso, pregúntate qué tendría que ver él si el
+arreglo funciona, y si eso se puede ver HOY en su móvil.** Un arreglo que solo actúa sobre datos
+NUEVOS no se prueba mirando los viejos. Salidas buenas, por orden:
+1. Que la conducta sea provocable a mano y **sin servidor** (para el categorizador: el botón
+   «✨ Sugerir categoría», que corre `autoCategory` en local antes de llamar a la Edge —
+   `04-tab-gastos.js:465`). Así no depende ni de sincronizar ni de desplegar.
+2. Si solo se arregla corrigiendo sus datos viejos, **corrígeselos** (con su OK y el de Cursor) y
+   entonces el paso ya es comprobable. Ver [[misma-regla-en-dos-sitios]] para no inventarse la
+   corrección: solo se toca la fila cuya categoría guardada es EXACTAMENTE la que puso el bug.
+3. Si no hay ninguna de las dos, la tanda **no entra** en el panel.
+
+⚠ **Y esto es de CADA publicación, no de las limpiezas grandes.** Suyo, 12/9 por la mañana:
+*«cada vez que subáis, comprobadme lo de las tareas que tengo que probar, que no sean repetitivas
+y que no me bloqueen, que realmente pueda probarlas… siempre actualizadito»*. Ese día, sin haber
+pasado ni una semana desde la limpieza de 56→13, el panel ya arrastraba **cinco tandas juzgadas**,
+una de ellas aprobada **seis días antes**. La pasada del filtro 1 va con cada bump, no cuando se
+acumule. Y un rechazo cuyo arreglo aún no existe **también sale**: dejarlo puesto es garantizar
+que lo vuelva a probar y lo vuelva a rechazar.
 
 ⚠ **CADA VERSIÓN QUE SE PUBLICA A BETA NECESITA AL MENOS UNA TANDA.** El e2e `revisar-beta` pide
 que la versión EN CURSO traiga checklist: con `tandas: []` en el tip, el panel se queda mudo y el
