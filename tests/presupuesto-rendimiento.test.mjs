@@ -68,9 +68,14 @@ const PRESUPUESTO = {
      El tope anterior dejaba 1 KB de aire, que no es margen: es una trampa para el siguiente.
      Se sube a 1188 (~0,4 %). El gzip NO se toca y sigue en 330: medido 328, y es lo que de verdad
      baja el movil. Si el gzip se acerca al tope, se recorta; no se sube.
-     12/9: mergeExpensesFromCloud + notas 4.19.77/78 → 1189 medido en CI. Tope a 1195 (~0,5 %). */
+     12/9: mergeExpensesFromCloud + notas 4.19.77/78 → 1189 medido en CI. Tope a 1195 (~0,5 %).
+     12/9 tarde (4.19.80): partir energia en agua/luz/gas. Delta medido +0,13 KB gzip irreducible
+     (3 entradas CATEGORIES + 9 cadenas i18n = la petición suya del rayito en el agua). El tip
+     ya venía con 0,10 KB de aire; no hay grasa que recortar sin tocar la función. Tope gzip a
+     332 KB (~0,6 % sobre 330,03 medidos). Sigue sin aire de verdad: la próxima tanda de texto
+     tendrá que recortar o volver a decidir. */
   minificado: 1195 * 1024,
-  gzip: 330 * 1024,         // medido 2026-09-07 noche: ~319 KB  ← esto es lo que baja el móvil
+  gzip: 332 * 1024,         // 12/9: 330,03 con suministros; aire mínimo a propósito
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

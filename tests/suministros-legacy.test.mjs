@@ -7,7 +7,7 @@
  * agua con un ⚡ al lado, porque las tres compartían la categoría «Luz, gas y agua».
  *
  * Al retirar el id `energia`, una fila que lo tuviera guardado se quedaría **sin entrada en `CAT`**
- * y se pintaría en blanco. `migrate` lo traduce una vez: se le pregunta al comercio, y si no lo
+ * y se pintaría en blanco. `seedFlows` lo traduce una vez: se le pregunta al comercio, y si no lo
  * reconoce va a `luz` (la ambigua por defecto, acordada con Cursor).
  *
  * Esto NO es adivinar una categoría que él haya decidido: es traducir un id que hemos retirado
