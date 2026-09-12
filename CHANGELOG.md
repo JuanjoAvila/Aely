@@ -1,3 +1,17 @@
+## [4.19.93] - 2026-09-12
+### Guardar: halo completo, y apagado bajo askConfirm
+
+Diagnóstico de Claude (aritmética, no sospecha):
+
+1. `.v4-cta` tiene `box-shadow` que llega ~34 px bajo el botón; `.v4-sheet` solo dejaba
+   18 px + safe-bottom con `overflow:auto` → halo cortado («sale cortado lo de guardar»,
+   solo con letra normal porque con grande la hoja scrollea). `padding-bottom` → 36 px.
+2. Al borrar, `askback` (z 230) y la ficha (z 80) comparten el borde inferior: el halo mint
+   se lee a través del velo. `html.ask-open .v4-cta{box-shadow:none}` + `AskHost` marca
+   `ask-open` en el documento. Sin tocar z-index.
+
+Guardián: `tests/v4-cta-halo.test.mjs`.
+
 ## [4.19.92] - 2026-09-12
 ### El histórico reconoce lo de madrugada, y dos notas de versión que se pisaban
 

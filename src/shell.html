@@ -998,7 +998,12 @@
     background:rgba(8,28,20,.28);
     pointer-events:auto;}
   .v4-sheet{width:100%;max-width:520px;max-height:88dvh;overflow:auto;background:var(--bg-2);border:1px solid var(--line);border-bottom:none;
-    border-radius:26px 26px 0 0;padding:12px 18px calc(18px + var(--safe-bottom));
+    border-radius:26px 26px 0 0;
+    /* 36 px abajo (no 18): el halo de `.v4-cta` llega a ~34 px bajo el botón
+       (`0 14px 28px -8px`). Con `overflow:auto` y letra normal la hoja no scrollea,
+       el botón queda al borde y el halo se corta en seco — «sale cortado lo de
+       guardar» (12/9). Con letra grande scrollea y el corte no se veía. */
+    padding:12px 18px calc(36px + var(--safe-bottom));
     animation:sheetup .3s cubic-bezier(.22,1,.36,1);
     transition:transform .22s cubic-bezier(.32,.72,0,1);will-change:transform;touch-action:pan-y;
     box-shadow:0 -8px 28px rgba(0,0,0,.28);}
@@ -1064,6 +1069,10 @@
   .v4-cta{width:100%;height:50px;border-radius:14px;border:none;font-size:15px;font-weight:800;cursor:pointer;
     background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);
     box-shadow:0 14px 28px -8px rgba(95,208,138,.45);}
+  /* Al borrar (askConfirm encima de la ficha): el diálogo y la CTA comparten el borde
+     inferior. El halo mint se lee a través del velo 0,55 y parece que Guardar se
+     «sobrepone» al diálogo (12/9). El z-index está bien; se apaga el brillo. */
+  html.ask-open .v4-cta{box-shadow:none;}
   .settings-push,.settings-slide{position:fixed;inset:0;z-index:70;background:var(--bg);max-width:520px;margin:0 auto;overflow-y:auto;
     padding:calc(var(--safe-top) + 12px) 18px calc(24px + var(--safe-bottom));
     transform:translate3d(-100%,0,0);transition:transform .42s cubic-bezier(.32,.72,0,1);will-change:transform;

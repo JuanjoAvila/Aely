@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.19.93",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "El botón Guardar ya no se ve cortado ni asoma al borrar",
+      "en": "The Save button is no longer clipped, and does not glow through delete",
+      "ca": "El botó Desa ja no es veu tallat ni asoma en esborrar"
+    },
+    "items": {
+      "es": [
+        "Con el tamaño de letra normal, el botón Guardar de la hoja parecía cortado por abajo: era la sombra, recortada. Y al borrar un gasto, el brillo verde asomaba detrás del aviso de confirmación. Las dos cosas ya están quietas."
+      ],
+      "en": [
+        "At the normal font size, the sheet's Save button looked cut off at the bottom — it was the shadow being clipped. And when deleting an expense, the green glow showed through the confirm dialog. Both are settled."
+      ],
+      "ca": [
+        "Amb la mida de lletra normal, el botó Desa del full semblava tallat per sota: era l'ombra, retallada. I en esborrar una despesa, la lluentor verda asomava darrere de l'avís. Les dues coses ja estan quietes."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "guardar-cta",
+        "t": {
+          "es": "💾 Guardar y borrar en la ficha",
+          "en": "💾 Save and delete on the expense sheet",
+          "ca": "💾 Desa i esborra a la fitxa"
+        },
+        "items": {
+          "es": [
+            "1. Ajustes → letra en Normal (si no lo estaba). Abre Apuntar (+): el botón Guardar de abajo tiene que verse entero, con su sombra suave, sin borde duro cortado.",
+            "2. En Gastos, abre un gasto y toca borrar: el aviso de confirmación NO debe dejar ver el brillo verde de Guardar debajo. Si «se sobrepone», dilo.",
+            "3. Vuelve a letra Grande un momento: sigue viéndose bien (antes el fallo solo salía en normal)."
+          ],
+          "en": [
+            "1. Settings → font Normal. Open Add (+): the bottom Save button must look whole, soft shadow, no hard clipped edge.",
+            "2. In Expenses, open one and tap delete: the confirm dialog must NOT show Save's green glow underneath.",
+            "3. Switch to Large font briefly: still fine (the bug only showed on Normal before)."
+          ],
+          "ca": [
+            "1. Ajustos → lletra Normal. Obre Apuntar (+): el botó Desa de baix s'ha de veure sencer, ombra suau, sense vora tallada.",
+            "2. A Despeses, obre'n una i toca esborrar: l'avís NO ha de deixar veure la lluentor verda de Desa a sota.",
+            "3. Torna a lletra Gran un moment: segueix bé."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.92",
     "d": "12 sep 2026",
     "t": {

@@ -38,6 +38,14 @@ function AskHost(){
     askEmit=function(o){ setVal(o.value!=null?String(o.value):""); setCur(o); };
     return function(){ askEmit=null; };
   },[]);
+  /* Marca el documento mientras hay diálogo: el CSS apaga el halo de `.v4-cta` debajo
+     (si no, Guardar se lee a través del velo al borrar un gasto — 12/9). */
+  useEffect(function(){
+    var root=document.documentElement;
+    if(cur) root.classList.add("ask-open");
+    else root.classList.remove("ask-open");
+    return function(){ root.classList.remove("ask-open"); };
+  },[cur]);
   if(!cur) return null;
   // resolve ANTES de perder cur, y solo una vez: cerrar por el fondo y por «Cancelar» son el mismo camino
   const done=function(r){ const f=cur.resolve; setCur(null); setVal(""); f(r); };
