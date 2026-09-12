@@ -1016,17 +1016,20 @@ function betaChecklist(version, prodVersion){
   var round;
   var conProd=prodVersion!=null&&prodVersion!=="";
   /* UNA VERSION SIN NADA QUE PROBAR NO PUEDE VACIARLE EL PANEL (2026-09-12).
-     Sin `prodVersion` (aun preguntando, o sin red) la ronda es UNA sola version, y se cogia
-     `RELEASE_NOTES[0]` a pelo. El dia que la mas nueva es fontaneria —guardianes, un arreglo de
-     despliegue— declara `tandas:[]` a proposito, y entonces esa rama devolvia CERO puntos: el
-     panel se le quedaba vacio y parecia que no habia nada pendiente de probar, con media ronda
-     sin juzgar detras. Se coge la mas nueva que SI tenga algo que probar.
+     Sin `prodVersion` (aun preguntando, o sin red) la ronda es UNA sola version. El dia que la
+     que corre es fontaneria —guardianes, un arreglo de despliegue— declara `tandas:[]` a
+     proposito. Si se coge `n.v===base` a pelo, `betaTandas` devuelve CERO y el panel se queda
+     vacio con media ronda sin juzgar detras (medido en review de 4.19.86: checklist(V,null)→0).
+     Se prefiere la entrada de esa base SOLO si tiene algo que probar; si no, la mas nueva que
+     SI tenga. El fallback final (`RELEASE_NOTES[0]`) solo cubre el caso extremo de que no quede
+     ninguna con puntos — entonces el vacio es honesto.
      ⚠ `tandas:[]` (lista vacia) y «sin `tandas`» siguen siendo cosas distintas: la segunda
      resucita la version entera como una tanda «todo», y eso lo vigila `beta-tandas-vacias`. */
   var conAlgoQueProbar=function(n){ return !!n && (!n.tandas || n.tandas.length>0); };
   if(!conProd){
-    var one=RELEASE_NOTES.filter(function(n){ return n.v===base; })[0]
+    var one=RELEASE_NOTES.filter(function(n){ return n.v===base && conAlgoQueProbar(n); })[0]
       || RELEASE_NOTES.filter(conAlgoQueProbar)[0]
+      || RELEASE_NOTES.filter(function(n){ return n.v===base; })[0]
       || RELEASE_NOTES[0];
     round=one?[one]:[];
   }else{
@@ -1036,8 +1039,9 @@ function betaChecklist(version, prodVersion){
     });
   }
   if(!round.length){
-    var fb=RELEASE_NOTES.filter(function(n){ return n.v===base; })[0]
+    var fb=RELEASE_NOTES.filter(function(n){ return n.v===base && conAlgoQueProbar(n); })[0]
       || RELEASE_NOTES.filter(conAlgoQueProbar)[0]
+      || RELEASE_NOTES.filter(function(n){ return n.v===base; })[0]
       || RELEASE_NOTES[0];
     round=fb?[fb]:[];
   }

@@ -55,6 +55,16 @@ t("con tandas declaradas, salen esas y ninguna «todo»", () => {
   assert.equal(out[0].id, "una");
 });
 
+/* Fontanería en el tip (`tandas:[]`) no puede vaciarle el panel mientras aún pregunta prod /
+   sin red — bug medido en review de 4.19.86: checklist(V,null) devolvía 0. */
+t("★ tip con tandas:[] sin prodVersion → salta a la más nueva con algo que probar", () => {
+  const pack = cli.betaChecklist(VERSION_ACTUAL, null);
+  assert.ok(pack.tandas.length > 0,
+    "sin prod, con tip fontanería, el panel no puede quedar a 0 (tiene media ronda detrás)");
+  assert.equal(pack.tandas.some((g) => String(g.id).endsWith("/todo") || g.id === "todo"), false,
+    "no resucitar como «todo» al saltar el tip vacío");
+});
+
 t("★ su bug: ninguna versión de la ronda resucita como «/todo»", () => {
   /* La ronda real que ve su móvil: todo lo publicado por encima de producción. Si alguna
      versión de estas vuelve como «todo» es que a alguien se le fue la propiedad al retirar
