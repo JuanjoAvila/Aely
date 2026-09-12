@@ -31,31 +31,34 @@
         },
         "items": {
           "es": [
-            "1. Gastos → busca «Aigües» en el buscador. La factura del agua tiene que poner «Luz, gas y agua». Antes ponía «Viajes», y es el que nos dijiste esta mañana.",
-            "2. Busca «Sabadell». Tu Bizum a ti mismo ya NO puede salir como «Parking».",
-            "3. Busca «PASTABAR». Ya no puede poner «Viajes». Se queda en «Otros», que es lo honesto: no es un bar, lo parecía de rebote.",
-            "4. Ahora lo nuevo, y esto lo puedes probar sin sincronizar nada. Apunta un gasto de 1 € y ponle de nombre «Transporte público».",
-            "5. Ábrelo, dale a «✨ Sugerir categoría» y tiene que decirte «Transporte». Antes decía «Ocio», porque dentro de «tranSPORTe» está la palabra «sport». (Si el botón no te sale, actívalo en Ajustes → Notificaciones → «Sugerir categoría (IA)».)",
-            "6. Lo que NO puede romperse, con el mismo truco: apunta otro de 1 € llamado «Pollos asados» — sugerir categoría tiene que decir «Restaurantes y bares». Y otro llamado «Decathlon Sport», que tiene que seguir siendo «Ocio».",
-            "7. Borra los gastos de prueba que hayas apuntado y listo."
+            "1. Esto se prueba entero apuntando gastos de mentira y borrándolos al final. No hace falta sincronizar nada ni esperar a que entre nada.",
+            "2. Apunta un gasto de 1 € y ponle de nombre «Transporte público».",
+            "3. Ábrelo y dale a «✨ Sugerir categoría». Tiene que decirte «Transporte». Antes decía «Ocio», porque dentro de «tranSPORTe» está escondida la palabra «sport». (Si no te sale ese botón: Ajustes → Notificaciones → «Sugerir categoría (IA)».)",
+            "4. Otro de 1 € llamado «Apollon Gallery». Sugerir categoría NO puede decir «Restaurantes y bares» (dentro de «aPOLLOn» está «pollo»).",
+            "5. Otro llamado «Mangopay». NO puede decir «Compras» (dentro de «MANGOpay» está «mango», la tienda).",
+            "6. Ahora lo que NO puede romperse. Uno llamado «Pollos asados»: ese SÍ tiene que decir «Restaurantes y bares», aunque ponga «pollos» en plural.",
+            "7. Y uno llamado «Decathlon Sport»: ese SÍ tiene que seguir siendo «Ocio».",
+            "8. Borra los gastos de prueba que hayas apuntado y listo."
           ],
           "en": [
-            "1. Expenses → search “Aigües”. The water bill must say “Utilities”. It used to say “Travel” — that is the one you reported this morning.",
-            "2. Search “Sabadell”. Your Bizum to yourself can NOT come up as “Parking” any more.",
-            "3. Search “PASTABAR”. It must not say “Travel”. It stays in “Other”, which is the honest answer: it is not a bar, it only looked like one.",
-            "4. Now the new part, and you can test it without syncing anything. Add a €1 expense named “Transporte público”.",
-            "5. Open it, tap “✨ Suggest category” and it must say “Transport”. It used to say “Leisure”, because “sport” sits inside “tranSPORTe”. (If the button is missing, turn it on in Settings → Notifications.)",
-            "6. What must not break, same trick: add another €1 one named “Pollos asados” — suggest category must say “Restaurants and bars”. And one named “Decathlon Sport”, which must still be “Leisure”.",
-            "7. Delete the test expenses you added and you are done."
+            "1. You can test all of this by adding fake expenses and deleting them at the end. No syncing needed, nothing to wait for.",
+            "2. Add a €1 expense named “Transporte público”.",
+            "3. Open it and tap “✨ Suggest category”. It must say “Transport”. It used to say “Leisure”, because “sport” is hidden inside “tranSPORTe”. (If the button is missing: Settings → Notifications.)",
+            "4. Another €1 one named “Apollon Gallery”. Suggest category must NOT say “Restaurants and bars” (“pollo” hides inside “aPOLLOn”).",
+            "5. Another named “Mangopay”. It must NOT say “Shopping” (“mango”, the shop, hides inside “MANGOpay”).",
+            "6. Now what must not break. One named “Pollos asados”: that one MUST say “Restaurants and bars”, even in the plural.",
+            "7. And one named “Decathlon Sport”: that one MUST still be “Leisure”.",
+            "8. Delete the test expenses you added and you are done."
           ],
           "ca": [
-            "1. Despeses → busca «Aigües». La factura de l'aigua ha de posar «Llum, gas i aigua». Abans posava «Viatges».",
-            "2. Busca «Sabadell». El teu Bizum a tu mateix ja NO pot sortir com a «Parking».",
-            "3. Busca «PASTABAR». Ja no pot posar «Viatges»: es queda a «Altres».",
-            "4. Ara el nou, i ho pots provar sense sincronitzar res. Apunta una despesa d'1 € i posa-li de nom «Transporte público».",
-            "5. Obre-la, dona-li a «✨ Suggerir categoria» i ha de dir «Transport». Abans deia «Oci», perque dins de «tranSPORTe» hi ha la paraula «sport».",
-            "6. El que NO pot trencar-se: apunta'n una altra que es digui «Pollos asados» — ha de dir «Restaurants i bars». I una «Decathlon Sport», que ha de seguir sent «Oci».",
-            "7. Esborra les despeses de prova i llest."
+            "1. Aixo es prova sencer apuntant despeses de mentida i esborrant-les al final. No cal sincronitzar res.",
+            "2. Apunta una despesa d'1 € i posa-li de nom «Transporte público».",
+            "3. Obre-la i dona-li a «✨ Suggerir categoria». Ha de dir «Transport». Abans deia «Oci», perque dins de «tranSPORTe» hi ha amagada la paraula «sport».",
+            "4. Una altra d'1 € que es digui «Apollon Gallery». Suggerir categoria NO pot dir «Restaurants i bars».",
+            "5. Una altra que es digui «Mangopay». NO pot dir «Compres».",
+            "6. Ara el que NO pot trencar-se. Una que es digui «Pollos asados»: aquesta SI ha de dir «Restaurants i bars», encara que sigui en plural.",
+            "7. I una «Decathlon Sport»: aquesta SI ha de seguir sent «Oci».",
+            "8. Esborra les despeses de prova i llest."
           ]
         }
       }
