@@ -47,7 +47,7 @@ VERDAD PUEDA PROBAR»* — la poda la hacemos nosotros con los seis filtros
 | producción (`main`) | **4.18.25** · sin tocar hoy |
 | beta publicada | **4.19.79.1** — verificado con `version.json` del canal |
 | `beta` remota | `180478b8` |
-| **en vuelo** | **`tanda/suministros` = `5f92bd31` (4.19.80)** — ver §2 |
+| **4.19.80** | ✅ **mergeada a `beta` (`b82d2f0d`)** con el verde de Cursor · pendiente de que Actions publique · ver §2 |
 | panel de beta | **23 tandas**, ninguna con veredicto suyo ya dado |
 | servidor | `categorize` e `ingest` **DESPLEGADAS** hoy (§3) |
 
@@ -55,9 +55,25 @@ Versiones de hoy: 4.19.75 (mía), 4.19.76 / .77 / .78 / .79 (Cursor), y la 4.19.
 
 ---
 
-## 2. ⚠ LO QUE ESTÁ A MEDIAS: la 4.19.80 (agua / luz / gas)
+## 2. ✅ RESUELTA DESPUÉS DE ESCRIBIR ESTO: la 4.19.80 (agua / luz / gas)
 
-**Rama `tanda/suministros`, commit `5f92bd31`. NO está en `beta` y NO está revisada por Cursor.**
+> **ACTUALIZACIÓN.** Cuando cerré la sesión esto estaba parado. Cursor contestó justo después,
+> le dio **VERDE** y **ya está en `refs/heads/beta` (`b82d2f0d`)**. Comprobado por mi cuenta, no
+> por su palabra: `origin/beta` sirve `VERSION` 4.19.80 y el tope de gzip está en 332.
+>
+> - **El bloqueo del gzip se resolvió por la vía (b):** tope a **332 KB** con la justificación
+>   escrita en `tests/presupuesto-rendimiento.test.mjs` (*«330,03 con suministros; aire mínimo a
+>   propósito»*). Su razón: no había grasa real que recortar sin tocar la petición de él.
+> - Arregló también un ámbar menor mío: el comentario de `CATEGORIES` y el encabezado del test
+>   decían `migrate` donde va `seedFlows`.
+> - ⚠ **Lo único que sigue vivo de esta tanda: el servidor NO se despliega hasta el promote.**
+>   El cliente de producción (4.18.25) no conoce los ids `agua`/`luz`/`gas`.
+> - Falta que Actions publique: **no darlo por hecho hasta que `npm run salud` diga 4.19.80.x**,
+>   y entonces avisarle de que la pruebe (tanda `agua-luz-gas`, 10 pasos).
+>
+> Lo de abajo se queda como estaba escrito, por si hace falta el detalle de lo que se hizo.
+
+**Rama `tanda/suministros`, commit `5f92bd31` → ya mergeada en `beta`.**
 
 Petición suya de esta tarde, viendo la 4.19.79 funcionar: *«ahora sí sale lo de Aigües de
 Barcelona luz gas y agua, creo que eso se debería separar… porque sale un símbolo de rayito en
