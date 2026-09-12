@@ -13200,7 +13200,24 @@ function histFlattenHistoryLinks(res, expenses, allow, opts){
         if(!dt || !am){ skippedBad++; return; }
         const isIn=am<0, abs=Math.abs(am);
         if(tx.ext_id && seen[tx.ext_id]){ skippedExt++; return; }
-        const k=(tx.ext_id||"")+"|"+(isIn?"in":"out")+"|"+kOf(dt,abs,tx.merchant);
+        /* ⚠ EL BANCO VA EN LA CLAVE, Y NO ESTABA (2026-09-12 noche, medido con la sonda).
+           Esta clave existe para no meter DOS VECES la misma transaccion si el banco la manda
+           repetida. Pero no llevaba el banco dentro, asi que un cargo de Sabadell y otro de
+           Trade Republic del mismo dia, mismo importe y sin comercio —que es lo normal: TR no
+           manda comercio— eran «la misma» y el segundo se tiraba EN SILENCIO.
+
+           Su telemetria de las 19:25, con los tres meses pedidos:
+
+               bankReported 1230 · llegan 106 · skippedUniq 1104
+
+           Mil ciento cuatro filas a la basura de mil doscientas treinta. Y a las 19:23, con
+           menos datos, skippedUniq 0. Eso es exactamente lo que el describio: «salieron cosas
+           del Sabadell y nada de Trade Republic; le doy otra vez y sale TR y Revolut y todo
+           genial, PEROOOOO desaparecio el Sabadell, me marca 0». No desaparecia el banco: se lo
+           comia el primero que pasara por aqui con la misma fecha e importe.
+
+           Es la MISMA familia que los otros dos de hoy: una clave de identidad sin banco. */
+        const k=entKey+"|"+(tx.ext_id||"")+"|"+(isIn?"in":"out")+"|"+kOf(dt,abs,tx.merchant);
         if(uniq[k]){ skippedUniq++; return; }
         uniq[k]=1;
         out.push({

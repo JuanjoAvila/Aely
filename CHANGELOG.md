@@ -1,3 +1,36 @@
+## [4.19.99] - 2026-09-12
+### Un banco se comía a otro en el histórico, y lo cantó la sonda
+
+Su relato de las 19:28: *«la primera vez que le he dado me han salido cosas del banco Sabadell…
+y nada de Trade Republic. Le doy otra vez y sale lo de Trade Republic y Revolut y todo genial,
+**PEROOOOO desapareció el Sabadell, me marca 0**… y de la Caixa igual, tengo 2 cosas de agosto y
+sale 0»*.
+
+**No hizo falta adivinar: la telemetría de la sonda (4.19.92) ya estaba en su móvil.** Dos búsquedas
+con dos minutos de diferencia:
+
+    19:23   bankReported    92   ·  llegan  40  ·  skippedUniq     0
+    19:25   bankReported  1230   ·  llegan 106  ·  skippedUniq  1104
+
+**1.104 filas de 1.230 tiradas en silencio.** Ahí estaban su Sabadell y su CaixaBank.
+
+La clave anti-duplicados del aplanado era `ext_id|signo|fecha|importe|comercio` y **no llevaba el
+banco**. Como Trade Republic no manda ni `ext_id` ni comercio, un cargo suyo y uno de Sabadell del
+mismo día e importe eran «el mismo» y el segundo se descartaba. Cuál sobrevivía dependía del orden
+en que llegaran los bancos — por eso cambiaba de una búsqueda a otra.
+
+**Es la TERCERA clave de identidad sin banco que aparece hoy**, después de `histCandExisting` (un
+«Movimiento» de Revolut se comía el de TR) y del susto ya conocido del sync diario. Tres sitios
+distintos, el mismo olvido.
+
+Tests: `tests/hist-uniq-por-banco.test.mjs`, 4 casos, verificado en rojo (2 de 4 caen). Uno de
+ellos comprueba lo contrario a propósito: **dentro del mismo banco la repetida se sigue tirando**,
+que es para lo que existe la clave.
+
+⚠ **Esto NO arregla el signo de Trade Republic.** Su FTSE de 10,34 € del 2 de septiembre —un
+Saveback, o sea dinero que SALE hacia la inversión— sigue llegando como **ingreso de +10,34 € y
+con fecha 1**. Eso es la saga del signo de TR por Open Banking, sigue abierta, y va aparte.
+
 ## [4.19.98] - 2026-09-12
 ### Swipe: React se comía scroll-host-swipe a mitad de gesto
 

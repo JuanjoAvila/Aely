@@ -1,5 +1,73 @@
 [
   {
+    "v": "4.19.99",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "Un banco ya no se come a otro en el histórico",
+      "en": "One bank no longer swallows another in the history",
+      "ca": "Un banc ja no es menja un altre a l'històric"
+    },
+    "items": {
+      "es": [
+        "Al buscar en Importar histórico desaparecían bancos enteros: hacías una búsqueda y salía el Sabadell, hacías otra y salían Trade Republic y Revolut pero el Sabadell se quedaba a cero.",
+        "La causa: dos movimientos del mismo día y el mismo importe en bancos DISTINTOS se tomaban por el mismo, y el segundo se tiraba sin avisar. En la última búsqueda se tiraron 1.104 de 1.230.",
+        "Ahora cada banco cuenta por separado. Lo que sí se sigue descartando es la misma fila repetida dentro de un mismo banco, que para eso está."
+      ],
+      "en": [
+        "Searching in Import history made whole banks vanish: one search showed Sabadell, the next showed Trade Republic and Revolut but Sabadell came up empty.",
+        "The cause: two movements on the same day for the same amount at DIFFERENT banks were taken as the same one, and the second was dropped silently. In the last search 1,104 of 1,230 were dropped.",
+        "Now each bank counts on its own. A genuinely repeated row within one bank is still dropped, which is what the check is for."
+      ],
+      "ca": [
+        "En cercar a Importar històric desapareixien bancs sencers: una cerca mostrava el Sabadell, la següent Trade Republic i Revolut però el Sabadell es quedava a zero.",
+        "La causa: dos moviments del mateix dia i import en bancs DIFERENTS es prenien pel mateix. A l'última cerca es van tirar 1.104 de 1.230.",
+        "Ara cada banc compta a part."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "historico-bancos-completos",
+        "t": {
+          "es": "📜 En el histórico salen TODOS tus bancos a la vez",
+          "en": "📜 All your banks show at once in the history",
+          "ca": "📜 A l'històric surten TOTS els teus bancs alhora"
+        },
+        "items": {
+          "es": [
+            "1. Esto es lo que nos contaste: «salieron cosas del Sabadell y nada de Trade Republic; le doy otra vez y sale TR y Revolut y todo genial, PEROOOOO desapareció el Sabadell, me marca 0». No desaparecía el banco: se lo comía otro.",
+            "2. Ajustes → Importaciones → Importar histórico. Pide los tres meses y dale a Buscar.",
+            "3. Mira el filtro de bancos de arriba: tienen que salir CON MOVIMIENTOS todos los que tengas conectados, no unos sí y otros a cero.",
+            "4. Toca cada banco del filtro de uno en uno y comprueba que ninguno se queda vacío si tú sabes que ahí hubo movimientos.",
+            "5. Acuérdate de la Caixa, que nos dijiste que tenías dos cosas de agosto y salía a 0. Mira si ahora están.",
+            "6. Y repite la búsqueda DOS veces seguidas: los mismos bancos y más o menos las mismas cifras las dos veces. Antes cambiaba entre una búsqueda y otra.",
+            "7. Puedes salir sin importar nada. Con decirnos si ya salen todos nos vale.",
+            "8. OJO, esto NO arregla todavía que Trade Republic mande algunos movimientos con el signo cambiado (lo del FTSE de 10,34 € que te salía como ingreso). Eso va aparte y sigue pendiente."
+          ],
+          "en": [
+            "1. This is what you reported: one search showed Sabadell, the next showed TR and Revolut but Sabadell came up as 0. The bank was not missing: another one swallowed it.",
+            "2. Settings → Imports → Import history. Ask for the three months and tap Search.",
+            "3. Look at the bank filter on top: every connected bank must show WITH movements.",
+            "4. Tap each bank one by one and check none comes up empty when you know there were movements.",
+            "5. Remember CaixaBank: you said you had two things from August and it showed 0.",
+            "6. Repeat the search TWICE: same banks and roughly the same figures both times.",
+            "7. You can leave without importing anything.",
+            "8. NOTE: this does NOT yet fix Trade Republic sending some movements with the sign flipped (the 10,34 € FTSE showing as income). That is separate and still open."
+          ],
+          "ca": [
+            "1. Aixo es el que ens vas explicar: una cerca mostrava el Sabadell i la seguent el deixava a 0.",
+            "2. Ajustos → Importacions → Importar historic. Demana els tres mesos i dona-li a Cercar.",
+            "3. Mira el filtre de bancs de dalt: han de sortir AMB moviments tots els que tinguis connectats.",
+            "4. Toca cada banc d'un en un i comprova que cap es queda buit.",
+            "5. Recorda la Caixa, que deies que tenies dues coses d'agost i sortia a 0.",
+            "6. Repeteix la cerca DUES vegades: els mateixos bancs les dues.",
+            "7. Pots sortir sense importar res.",
+            "8. ATENCIO: aixo encara NO arregla que Trade Republic enviï alguns moviments amb el signe canviat."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.98",
     "d": "12 sep 2026",
     "t": {
@@ -257,36 +325,7 @@
         "L’ona en arribar al capdamunt de la llista es queda com estava."
       ]
     },
-    "tandas": [
-      {
-        "id": "swipe-sin-corte",
-        "t": {
-          "es": "Al cambiar de pestaña no se corta arriba",
-          "en": "Switching tabs does not clip the top",
-          "ca": "En canviar de pestanya no es talla a dalt"
-        },
-        "items": {
-          "es": [
-            "1. Con la lista de Gastos un poco bajada (no arriba del todo), desliza despacio hacia Plan o Cartera. La cabecera y el buscador tienen que verse enteros mientras se mueve, no cortados por arriba.",
-            "2. Las dos pantallas a la vez (la que sale y la que entra) deben enseñar su título/cabecera, no empezar a media tarjeta.",
-            "3. En reposo, tira hacia abajo en el tope de Gastos: la ola nativa sigue saliendo como antes.",
-            "4. Si al poner el dedo ya se come un cuarto de pantalla, dilo: eso es justo el fallo."
-          ],
-          "en": [
-            "1. With Expenses scrolled down a bit, swipe slowly toward Plan or Portfolio. Header and search must stay whole while moving, not clipped at the top.",
-            "2. Both screens (outgoing and incoming) must show their header, not start mid-card.",
-            "3. At rest, pull down at the top of Expenses: the native overscroll wave still appears.",
-            "4. If a quarter of the screen is already gone as soon as you put your finger down, say so — that is the bug."
-          ],
-          "ca": [
-            "1. Amb Despeses una mica baixada, llisca a poc a poc cap a Pla o Cartera. La capçalera i el cercador s'han de veure sencers mentre es mou.",
-            "2. Les dues pantalles (la que surt i la que entra) han de mostrar la capçalera, no començar a mitja targeta.",
-            "3. En repòs, estira cap avall al capdamunt de Despeses: l'ona nativa segueix sortint.",
-            "4. Si en posar el dit ja es menja un quart de pantalla, digues-ho."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.93",

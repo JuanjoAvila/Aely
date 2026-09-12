@@ -101,6 +101,7 @@ const steps = [
   ["ota-bases-espejo", ["node", "tests/ota-bases-espejo.test.mjs"]],
   ["hist-dia-local", ["node", "tests/hist-dia-local.test.mjs"]],
   ["hist-fecha-que-baila", ["node", "tests/hist-fecha-que-baila.test.mjs"]],
+  ["hist-uniq-por-banco", ["node", "tests/hist-uniq-por-banco.test.mjs"]],
   ["notas-sin-duplicados", ["node", "tests/notas-sin-duplicados.test.mjs"]],
   ["v4-cta-halo", ["node", "tests/v4-cta-halo.test.mjs"]],
   ["efectivo", ["node", "tests/efectivo.test.mjs"]],
