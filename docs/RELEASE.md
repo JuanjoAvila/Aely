@@ -33,13 +33,15 @@ Al renombrar el repo a **Aely**, GitHub Pages **no** redirige
 `OtaCheckWorker` nativo se quedaban sin canal.
 
 Por eso existe el repo público **`JuanjoAvila/Mi-Cartera`** (distinto de Aely): solo sirve
-Pages con `version.json` + `bundle.zip` en esa ruta. El manifiesto apunta al bundle real en
-`/Aely/`.
+Pages con `version.json` + `bundle.zip` + `apk.json` en esa ruta, y **releases espejo**
+(`beta`, `vX.Y.Z` con el APK) porque crear el repo **mata** el redirect automático de
+GitHub Releases del nombre viejo. El manifiesto apunta a assets reales en **Aely** cuando
+se pueda; si no, el espejo en el puente evita el 404.
 
-⚠ **Mientras haya una APK 44 (o anterior) en circulación, ese repo / esa ruta no se borra.**
-Es tirita, no cura: la cura es APK nueva con base `/Aely/` (desde 4.19.81 en código). En cada
-promote de producción hay que actualizar el `version.json` del puente (mismo número + URL Aely).
-
+⚠ **Mientras haya una APK 44 (o anterior) en circulación, ese repo / esa ruta / esas
+releases espejo no se borran.** Es tirita, no cura: la cura es APK nueva con base `/Aely/`
+(desde 4.19.81 en código). En cada promote hay que actualizar el puente (mismos manifiestos
++ release `beta` espejo).
 Crear o tocar repos públicos en su cuenta **se pregunta antes** (feedback del mismo día).
 
 ## Qué NUNCA hacer
