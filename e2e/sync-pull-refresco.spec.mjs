@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
-/* PULL MUERTO (12/9). Tras el one-shot, Aigües en nube era `energia` y el móvil seguía en
+/* PULL MUERTO (12/9). Tras el one-shot, Aigües en nube era correcta y el móvil seguía en
  * `viajes` con «Ya estás al día». Causa: sync solo AÑADÍA claves nuevas; nunca refrescaba.
- * Este e2e siembra la misma clave en local (viajes) y en la nube (energia) y exige que un
- * sync deje la categoría de la nube. */
+ * Este e2e siembra la misma clave en local (viajes) y en la nube (agua) y exige que un
+ * sync deje la categoría de la nube. (Antes la nube decía `energia`; se partió en agua/luz/gas.) */
 
 const fecha = "2026-09-10T12:00:00.000Z";
 
@@ -19,7 +19,7 @@ test("un sync refresca la categoría de una fila que ya teníamos", async ({ pag
     __cloudRows: {
       expenses: [{
         id: "cloud-aigues", fecha, importe: 81.29,
-        comercio: "AIGUES DE BARCELONA", cat: "energia", source: "ob:sabadell",
+        comercio: "AIGUES DE BARCELONA", cat: "agua", source: "ob:sabadell",
       }],
     },
   });
@@ -32,7 +32,7 @@ test("un sync refresca la categoría de una fila que ya teníamos", async ({ pag
     const ex = JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]");
     const hit = ex.find((e) => /AIGUES/i.test(e.merchant || ""));
     return hit && hit.category;
-  })).toBe("energia");
+  })).toBe("agua");
 });
 
 test("un sync NO borra una fila local que la nube no ha mandado", async ({ page }) => {
