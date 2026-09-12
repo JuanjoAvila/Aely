@@ -13301,6 +13301,17 @@ function bankIssuesOf(links, dbLinks){
   return out;
 }
 
+/* Quitar un banco borra la fila en la nube, pero `state.bankIssues` solo se reescribe al
+   sincronizar. Si no lo limpiamos aquí, Cartera sigue enseñando «pendiente de conectar» (y el
+   toast «✓ al día» no vuelve: issues.length>0) — rechazo 4.19.66 + feedback 12/9. */
+function dropBankIssue(issues, aspsp){
+  const key=String(aspsp||"").toLowerCase();
+  if(!key) return issues||[];
+  const prev=issues||[];
+  const out=prev.filter(function(is){ return String(is&&is.aspsp||"").toLowerCase()!==key; });
+  return out.length===prev.length ? prev : out;
+}
+
 /* Rellena el CONCEPTO de los gastos que YA estaban apuntados, usando lo que acaba de traer el
    banco (2026-07-24). Sin esto, el concepto solo saldría en lo nuevo y el histórico de siempre
    —justo el que hay que consultar— seguiría mudo.
@@ -16193,6 +16204,10 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
             const eb=(((next.settings||{}).expenseBanks)||[]).filter(function(e){ return e!==ent; });
             next=Object.assign({},next,{settings:Object.assign({},next.settings||{},{expenseBanks:eb})});
           }
+          /* El disconnect ya borró la fila en la nube; sin esto el banner de Cartera (y el
+             silencio del «✓ al día») siguen con el `pending` viejo hasta el próximo sync. */
+          const bi=dropBankIssue(next.bankIssues, name);
+          if(bi!==next.bankIssues) next=Object.assign({},next,{bankIssues:bi});
           return next;
         });
         loadLinks();

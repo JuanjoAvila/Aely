@@ -1199,6 +1199,17 @@ function bankIssuesOf(links, dbLinks){
   return out;
 }
 
+/* Quitar un banco borra la fila en la nube, pero `state.bankIssues` solo se reescribe al
+   sincronizar. Si no lo limpiamos aquí, Cartera sigue enseñando «pendiente de conectar» (y el
+   toast «✓ al día» no vuelve: issues.length>0) — rechazo 4.19.66 + feedback 12/9. */
+function dropBankIssue(issues, aspsp){
+  const key=String(aspsp||"").toLowerCase();
+  if(!key) return issues||[];
+  const prev=issues||[];
+  const out=prev.filter(function(is){ return String(is&&is.aspsp||"").toLowerCase()!==key; });
+  return out.length===prev.length ? prev : out;
+}
+
 /* Rellena el CONCEPTO de los gastos que YA estaban apuntados, usando lo que acaba de traer el
    banco (2026-07-24). Sin esto, el concepto solo saldría en lo nuevo y el histórico de siempre
    —justo el que hay que consultar— seguiría mudo.

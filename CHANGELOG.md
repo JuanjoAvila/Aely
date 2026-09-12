@@ -1,3 +1,18 @@
+## [4.19.83] - 2026-09-12
+### Quitar un banco limpia también su aviso `pending` en Cartera
+
+El rechazo de la 4.19.66: *«lo quité en la zona de bancos y desapareció guay, PEROOOO al ir a
+cuentas la notificación de que está pendiente de conectar ahí seguía»*. Misma raíz que el toast
+«✓ al día» silenciado (12/9): `issues.length > 0` mientras quede una fila `pending` en
+`state.bankIssues`, y esa lista **solo se reescribía al sincronizar**.
+
+`cloud.bankDisconnect` ya borraba la fila en la nube; faltaba limpiar `state.bankIssues` en el
+mismo `set` del panel (`dropBankIssue` en `08-motor-bank.js`). Sin sync de por medio.
+
+Test: `tests/quitar-banco-y-pendiente` (guardián + réplica) y `e2e/bancos-quitar-pending`.
+
+---
+
 ## [4.19.82] - 2026-09-12
 ### El aviso de la última cuota se puede quitar, y el paso que él no podía pasar sale del panel
 

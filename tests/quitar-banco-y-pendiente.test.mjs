@@ -80,6 +80,12 @@ const alQuitarBanco = (s, ent, aspsp) => {
     const quedan = (next.accounts || []).filter((a) => !(a && a.ent === ent && a.bankIban));
     if (quedan.length !== (next.accounts || []).length) next = Object.assign({}, next, { accounts: quedan });
   }
+  /* Misma limpieza que `dropBankIssue` en la pantalla: sin esto el banner de Cartera (y el
+     silencio del «✓ al día») se quedan con el pending hasta el próximo sync. */
+  const key = String(aspsp || "").toLowerCase();
+  const prev = next.bankIssues || [];
+  const bi = prev.filter((is) => String(is && is.aspsp || "").toLowerCase() !== key);
+  if (bi.length !== prev.length) next = Object.assign({}, next, { bankIssues: bi });
   return next;
 };
 
@@ -90,6 +96,10 @@ const estado = () => ({
   ],
   obAccounts: [{ key: "k1", aspsp: "CaixaBank", ent: "caixabank", value: 40 }],
   expenses: [{ id: "e1", ent: "caixabank", amount: 12, date: "2026-09-02" }],
+  bankIssues: [
+    { aspsp: "CaixaBank", ent: "caixabank", kind: "pending" },
+    { aspsp: "Banco de Sabadell", ent: "sabadell", kind: "expired" },
+  ],
 });
 
 t("la cuenta del banco quitado sale de Cartera", () => {
@@ -116,6 +126,19 @@ t("los otros bancos se quedan intactos (dos bancos sembrados a propósito)", () 
   assert.equal(sab.bankIban, "ES11", "Sabadell sigue siendo del banco");
 });
 
+t("al quitar, el aviso pending de ESE banco sale de bankIssues", () => {
+  const out = alQuitarBanco(estado(), "caixabank", "CaixaBank");
+  assert.equal((out.bankIssues || []).length, 1, "solo queda el de Sabadell");
+  assert.equal(out.bankIssues[0].aspsp, "Banco de Sabadell");
+});
+
+t("dropBankIssue no inventa array nuevo si no había nada que quitar", () => {
+  assert.ok(typeof cli.dropBankIssue === "function",
+    "dropBankIssue tiene que vivir en el sandbox (¿olvidaste npm run build?)");
+  const prev = [{ aspsp: "Sabadell", kind: "expired" }];
+  assert.equal(cli.dropBankIssue(prev, "CaixaBank"), prev);
+});
+
 /* ---------- El guardián: que la pantalla siga haciendo esto ---------- */
 
 t("la pantalla de Mis bancos limpia de verdad el bankIban al desconectar", () => {
@@ -125,11 +148,13 @@ t("la pantalla de Mis bancos limpia de verdad el bankIban al desconectar", () =>
   const src = readFileSync(new URL("../src/modules/10-app-components.js", import.meta.url), "utf8");
   const i = src.indexOf("cloud.bankDisconnect(");
   assert.notEqual(i, -1, "no encuentro la desconexión en 10-app-components.js");
-  const bloque = src.slice(i, i + 2600);
+  const bloque = src.slice(i, i + 3500);
   assert.ok(/a\.ent===ent\s*&&\s*a\.bankIban/.test(bloque),
     "el `set` de bankDisconnect ya no saca de Cartera la cuenta del banco quitado");
   assert.ok(!/expenses\s*:/.test(bloque),
     "aquí NO se tocan los movimientos: quitar un banco no puede llevarse por delante su histórico");
+  assert.ok(/dropBankIssue\s*\(\s*next\.bankIssues/.test(bloque),
+    "al desconectar tiene que limpiar bankIssues (si no, el banner de Cartera se queda)");
 });
 
 if (fallos) { console.error(`\nquitar-banco-y-pendiente: ${fallos} fallo(s)`); process.exit(1); }

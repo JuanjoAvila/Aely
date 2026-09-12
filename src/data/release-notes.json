@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.19.83",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "Al quitar un banco, el aviso pendiente también se va",
+      "en": "Removing a bank also clears its pending notice",
+      "ca": "En treure un banc, l'avís pendent també desapareix"
+    },
+    "items": {
+      "es": [
+        "Si quitabas un banco a medias, el aviso de «pendiente de conectar» en Cartera se quedaba. Ya no.",
+        "Y con eso vuelve el «al día» al sincronizar: un banco que ya no está no silencia a los demás."
+      ],
+      "en": [
+        "If you removed a half-connected bank, the “pending connection” notice on Portfolio could stick. It no longer does.",
+        "And “up to date” comes back when you sync: a bank that is gone no longer silences the others."
+      ],
+      "ca": [
+        "Si treies un banc a mitges, l'avís de «pendent de connectar» a Cartera es quedava. Ja no.",
+        "I amb això torna el «al dia» en sincronitzar: un banc que ja no hi és no silencia els altres."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "banco-pending-banner",
+        "t": {
+          "es": "🏦 Quitar banco limpia el aviso",
+          "en": "🏦 Removing a bank clears the notice",
+          "ca": "🏦 Treure un banc neteja l'avís"
+        },
+        "items": {
+          "es": [
+            "1. Conecta un banco y déjalo a medias (o deja uno que ya tengas en pendiente).",
+            "2. En Cartera tiene que salir el aviso de pendiente de conectar.",
+            "3. Ve a Mis bancos, ábrelo y quítalo (que sigan contando vale).",
+            "4. Vuelve a Cartera: el aviso de ESE banco tiene que haber desaparecido al momento.",
+            "5. Sincroniza: si el resto de bancos van bien, el «al día» tiene que volver a salir."
+          ],
+          "en": [
+            "1. Connect a bank and leave it half-done (or keep one you already have pending).",
+            "2. On Portfolio the pending-connection notice must show.",
+            "3. Open My banks, open it and remove it (keeping them counting is fine).",
+            "4. Back on Portfolio: that bank’s notice must be gone right away.",
+            "5. Sync: if your other banks are fine, “up to date” must show again."
+          ],
+          "ca": [
+            "1. Connecta un banc i deixa'l a mitges (o deixa'n un que ja tinguis pendent).",
+            "2. A Cartera ha de sortir l'avís de pendent de connectar.",
+            "3. Ves a Els meus bancs, obre'l i treu-lo (que segueixin comptant val).",
+            "4. Torna a Cartera: l'avís d'AQUELL banc ha d'haver desaparegut a l'instant.",
+            "5. Sincronitza: si la resta de bancs van bé, l'«al dia» ha de tornar a sortir."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.82",
     "d": "12 sep 2026",
     "t": {

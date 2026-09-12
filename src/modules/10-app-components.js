@@ -803,6 +803,10 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
             const eb=(((next.settings||{}).expenseBanks)||[]).filter(function(e){ return e!==ent; });
             next=Object.assign({},next,{settings:Object.assign({},next.settings||{},{expenseBanks:eb})});
           }
+          /* El disconnect ya borró la fila en la nube; sin esto el banner de Cartera (y el
+             silencio del «✓ al día») siguen con el `pending` viejo hasta el próximo sync. */
+          const bi=dropBankIssue(next.bankIssues, name);
+          if(bi!==next.bankIssues) next=Object.assign({},next,{bankIssues:bi});
           return next;
         });
         loadLinks();

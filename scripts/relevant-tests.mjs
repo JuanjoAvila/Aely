@@ -65,6 +65,7 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/08-motor-bank.js", specs: [
     "e2e/hist-pagos-mensuales.spec.mjs", "e2e/bancos-historico-filtro.spec.mjs",
+    "e2e/bancos-quitar-pending.spec.mjs",
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
     "e2e/listas-render.spec.mjs", "e2e/bancos-acordeon.spec.mjs", "e2e/bancos-reconnect.spec.mjs",
@@ -80,6 +81,7 @@ export const E2E_MAP = [
     "e2e/revisar-beta.spec.mjs", "e2e/ajustes-versiones.spec.mjs", "e2e/ajustes-importaciones.spec.mjs",
     "e2e/tour-tutorial.spec.mjs", "e2e/modo-pruebas.spec.mjs", "e2e/tr-aviso.spec.mjs",
     "e2e/presupuesto-bancos.spec.mjs", "e2e/quitar-banco.spec.mjs",
+    "e2e/bancos-quitar-pending.spec.mjs",
     "e2e/hist-pagos-mensuales.spec.mjs",
     "e2e/bancos-historico-filtro.spec.mjs",
     "e2e/hist-visor.spec.mjs",
