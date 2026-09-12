@@ -35,6 +35,35 @@ test("un sync refresca la categoría de una fila que ya teníamos", async ({ pag
   })).toBe("agua");
 });
 
+test("un sync con cat legacy energia de la nube acaba en agua", async ({ page }) => {
+  /* Su nube AÚN tiene `energia` (one-shot de esta mañana). Al bajar, resolveCategory no
+     encuentra el id en CAT y cae a autoCategory → agua. No es seedFlows: el pull llega después. */
+  await seedLoggedInDashboard(page, {
+    accounts: [{ id: "a", ent: "sabadell", name: "Sabadell", value: 500, role: "diario", spendFrom: true }],
+    settings: { autoPrices: false, theme: "green", expenseBanks: ["sabadell"] },
+    expenses: [{
+      id: "loc-aigues-leg", date: fecha, amount: 81.29,
+      merchant: "AIGUES DE BARCELONA", category: "viajes", source: "ob", ent: "sabadell",
+    }],
+    __cloudRows: {
+      expenses: [{
+        id: "cloud-aigues-leg", fecha, importe: 81.29,
+        comercio: "AIGUES DE BARCELONA", cat: "energia", source: "ob:sabadell",
+      }],
+    },
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
+  await dismissNews(page);
+
+  await expect.poll(() => page.evaluate(() => {
+    const ex = JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]");
+    const hit = ex.find((e) => /AIGUES/i.test(e.merchant || ""));
+    return hit && hit.category;
+  })).toBe("agua");
+});
+
 test("un sync NO borra una fila local que la nube no ha mandado", async ({ page }) => {
   await seedLoggedInDashboard(page, {
     accounts: [{ id: "a", ent: "sabadell", name: "Sabadell", value: 500, role: "diario", spendFrom: true }],
