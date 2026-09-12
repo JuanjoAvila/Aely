@@ -100,7 +100,15 @@ for (const st of Array.isArray(estados) ? estados : []) {
   const d = st.data || {};
   overridePorUsuario[st.user_id] = (d.settings && d.settings.catOverrides) || d.catOverrides || {};
 }
-const catKey = (s) => String(s || "").trim().toLowerCase();
+/* La clave la da la APP, no yo. `catKey` (`00-core.js:218`) es lower + NFD sin acentos + trim, y
+   es con esa clave con la que la app guarda los overrides. Escribirla otra vez aquí a mano fue el
+   primer error de este mismo script (comparar con una clave que no es la del móvil): un override
+   futuro «Café» o «Aigües…» se escaparía del guard y podríamos pisarlo. Lo cazó Cursor. */
+const catKey = nuevo.catKey;
+if (typeof catKey !== "function") {
+  console.error("El bundle no expone `catKey` — aborto antes de comparar con una clave inventada.");
+  process.exit(1);
+}
 
 const plan = [];
 const apartadas = [];
