@@ -1,7 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-12 · **v4.19.82** — el aviso de la última cuota se puede quitar.
-> Anterior: **v4.19.81** — el repo en GitHub pasa a llamarse Aely.
+> Estado a 2026-09-12 · **v4.19.83** — cambiar una cuenta de sitio ya no le mueve el saldo.
+> Anterior: **v4.19.82** — el aviso de la última cuota se puede quitar.
 > Anterior: **v4.19.79** — sincronizar actualiza sin perder orden ni duplicados pendientes.
 > Anterior: **v4.19.78** — el pull volvía a refrescar (ámbar: gemelo/id; corregido aquí).
 > Anterior: **v4.19.77** — mantén pulsada una cuenta para ordenarla; Editar solo cuando hace falta.
@@ -147,7 +147,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.19.82** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.83** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

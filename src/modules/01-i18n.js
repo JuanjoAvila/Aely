@@ -1932,7 +1932,7 @@ Object.assign(LANG.es,{
   bank_upd_mov1:"1 movimiento nuevo", bank_upd_movn:"{n} movimientos nuevos",
   bank_expired_re:"permiso caducado · reconéctate",
   bank_nolink:"esta cuenta aún no está dada de alta en Enable Banking (modo restringido). Enlázala en el panel de Enable Banking y vuelve a conectar.",
-  bank_refresh:"Actualizar saldo", bank_reconnect:"Reconectar",
+  bank_refresh:"Actualizar todos", bank_reconnect:"Reconectar",
   bank_linked:"{bank} conectado", bank_pending:"Pendiente de autorizar en el banco",
   bank_updated:"Saldo actualizado: {x}", bank_neversync:"Aún sin sincronizar",
   bank_consent:"Permiso válido hasta {x}", bank_consent_soon:"⚠ El permiso caduca el {x} · reconéctate",
@@ -1951,7 +1951,7 @@ Object.assign(LANG.en,{
   bank_upd_mov1:"1 new transaction", bank_upd_movn:"{n} new transactions",
   bank_expired_re:"consent expired · reconnect",
   bank_nolink:"this account isn't linked in Enable Banking yet (restricted mode). Link it in the Enable Banking control panel and reconnect.",
-  bank_refresh:"Refresh balance", bank_reconnect:"Reconnect",
+  bank_refresh:"Refresh all", bank_reconnect:"Reconnect",
   bank_linked:"{bank} connected", bank_pending:"Pending authorization at the bank",
   bank_updated:"Balance updated: {x}", bank_neversync:"Not synced yet",
   bank_consent:"Consent valid until {x}", bank_consent_soon:"⚠ Consent expires on {x} · reconnect",
@@ -1970,7 +1970,7 @@ Object.assign(LANG.ca,{
   bank_upd_mov1:"1 moviment nou", bank_upd_movn:"{n} moviments nous",
   bank_expired_re:"permís caducat · reconnecta't",
   bank_nolink:"aquest compte encara no està donat d'alta a Enable Banking (mode restringit). Enllaça'l al panell d'Enable Banking i torna a connectar.",
-  bank_refresh:"Actualitza saldo", bank_reconnect:"Reconnecta",
+  bank_refresh:"Actualitza tots", bank_reconnect:"Reconnecta",
   bank_linked:"{bank} connectat", bank_pending:"Pendent d'autoritzar al banc",
   bank_updated:"Saldo actualitzat: {x}", bank_neversync:"Encara sense sincronitzar",
   bank_consent:"Permís vàlid fins {x}", bank_consent_soon:"⚠ El permís caduca el {x} · reconnecta't",
@@ -2459,9 +2459,47 @@ function applyAccountRole(s, totals, id, r){
   const ruOfA=function(a){ return (a.roundupManual!=null)?a.roundupManual:(a.roundup?ruM:0); };
   const injOfA=function(a){ return nominaYaEntro()? accInject(a):0; };
   const shownOf=function(a){ return accDaily(a)? spendBal(a) : ((a.value||0) + pn(a)); };
+  /* EL `paidNet` QUE VALE ES EL DE DESPUÉS, NO EL DE ANTES (2026-09-12, reportado por él desde
+     la app: «pasó de 6700 y algo a 6400 de golpe… se arregla sincronizando otra vez»).
+
+     `paidNetByBank` SOLO se rellena para cuentas `accFixed` (`11-app-main.js`, donde se calcula
+     `totals`). O sea que una cuenta de **gasto diario** tiene `pn = 0`, y en cuanto pasa a
+     **recibos** su `pn` vale los fijos ya cobrados este mes. Al re-anclar con el `pn` VIEJO,
+     `value` quedaba bien para la fórmula que la cuenta dejaba atrás y mal para la que estrenaba:
+     se pintaba `value + pn_nuevo`, o sea el saldo real menos los recibos del mes. Con su caso
+     medido: 6700 → 6400, exactamente los 300 € del fijo domiciliado ahí.
+
+     Rompía solo el camino que él probó —`diario → recibos` y `diario → todo`, que son los que
+     hacen saltar `pn` de 0 a ≠0—; `recibos ↔ todo` no se movían (las dos son `accFixed`) y
+     `recibos → diario` tampoco (el rol nuevo no mira `paidNet`).
+     Y por eso sincronizar lo curaba: `applyBankBalances` vuelve a anclar contra el saldo REAL
+     del banco, ya con el rol nuevo puesto.
+
+     Aquí se calcula el `paidNet` que tendrá la cuenta CON EL ROL NUEVO, con la misma suma que
+     hace `totals` (un término por cuenta `accFixed` de ese banco) para que las dos digan lo
+     mismo. ⚠ Esa suma cuenta DOBLE si un banco tiene dos cuentas fijas; es un defecto de fondo
+     anotado al backlog y se replica a propósito: divergir aquí sería el fallo de la regla en dos
+     sitios otra vez. Ver [[misma-regla-en-dos-sitios]]. */
+  const hoy=new Date();
+  const cy=totals.curYear!=null?totals.curYear:hoy.getFullYear();
+  const cm=totals.curMonth!=null?totals.curMonth:(hoy.getMonth()+1);
+  const td=totals.today!=null?totals.today:hoy.getDate();
+  const fijoTras=function(rr){ return rr==="fijos"||rr==="ambos"; };
+  const rolTras=function(a){
+    if(a.id===id) return r;
+    if(r!=="fijos" && accDaily(a)) return "fijos";     // solo puede haber UNA cuenta de gasto diario
+    return accRole(a);
+  };
+  const pnTras=function(a){
+    if(!a || !a.ent || typeof monthNetForAccount!=="function") return pn(a);
+    let v=0;
+    (s.accounts||[]).forEach(function(x){ if(x.ent===a.ent && fijoTras(rolTras(x))) v+=monthNetForAccount(s, a.ent, cy, cm, td); });
+    return v;
+  };
   const valueForRole=function(a,rr,shown){
-    if(rr==="fijos") return +(shown - pn(a)).toFixed(2);
-    return valueDesdeSaldo({shown:shown, injTR:injOfA(a), spentOwn:spentOwn(a), roundup:ruOfA(a), monthlyInvest:a.monthlyInvest||0, ambos:rr==="ambos", paidNet:pn(a)});
+    const pnNuevo=fijoTras(rr)?pnTras(a):0;
+    if(rr==="fijos") return +(shown - pnNuevo).toFixed(2);
+    return valueDesdeSaldo({shown:shown, injTR:injOfA(a), spentOwn:spentOwn(a), roundup:ruOfA(a), monthlyInvest:a.monthlyInvest||0, ambos:rr==="ambos", paidNet:pnNuevo});
   };
   return Object.assign({},s,{accounts:s.accounts.map(function(a){
     if(a.id===id){ if(accRole(a)===r) return a; return Object.assign({},a,{role:r, spendFrom:r!=="fijos", value:valueForRole(a,r,shownOf(a))}); }

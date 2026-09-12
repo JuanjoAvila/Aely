@@ -97,6 +97,7 @@ const steps = [
   ["onboarding", ["node", "tests/onboarding.test.mjs"]],
   ["expense-bank", ["node", "tests/expense-bank.test.mjs"]],
   ["saldo-por-banco", ["node", "tests/saldo-por-banco.test.mjs"]],
+  ["rol-cuenta-sin-salto", ["node", "tests/rol-cuenta-sin-salto.test.mjs"]],
   ["efectivo", ["node", "tests/efectivo.test.mjs"]],
   ["efectivo-cierre", ["node", "tests/efectivo-cierre.test.mjs"]],
   ["atm-dual", ["node", "tests/atm-dual.test.mjs"]],

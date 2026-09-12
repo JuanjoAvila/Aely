@@ -1,3 +1,66 @@
+## [4.19.83] - 2026-09-12
+### Cambiar el rol de una cuenta le movía el saldo 300 € — y era la pantalla, no el dinero
+
+Reportado por él desde la app, y él mismo puso el aviso de que era gordo: *«Un error importante!!
+Al probar de quitar una cuenta de gasto diario y ponerla como recibos por ejemplo… ya no cuenta
+como gasto diario, lo puse en Trade Republic y funciona perfecto… **pero en la zona de cuentas se
+me descontó el gasto… cuando realmente no tocaba… pasó de 6700 y algo a 6400 de golpe**… se
+arregla sincronizando otra vez pero no debería pasar esto»*.
+
+**Reproducido con sus cifras antes de tocar nada**, sobre `load-pure-logic` y un estado de mentira
+(TR de gasto diario con un fijo de 300 € domiciliado ahí y el día ya pasado):
+
+    pn(TR) con rol «gasto diario»  :        0     ← accFixed=false: ni entra en el mapa
+    saldo PINTADO antes            :  6700,00
+    pn(TR) con rol «recibos»       :  -300,00
+    value re-anclado               :  6700       ← despejado con el pn VIEJO
+    saldo PINTADO después          :  6400,00
+    SALTO                          :  -300,00
+
+**La causa.** `paidNetByBank` solo se rellena para cuentas `accFixed` (`11-app-main.js`, donde se
+calcula `totals`). Una cuenta de **gasto diario** tiene por tanto `pn = 0`; en cuanto pasa a
+**recibos**, su `pn` vale los fijos ya cobrados del mes. `applyAccountRole` re-anclaba `value` con
+el `pn` del rol que la cuenta **dejaba**, y acto seguido se pintaba con el del rol que
+**estrenaba**. La intención del código era la correcta —su comentario dice literalmente «al
+cambiar el rol se RE-ANCLA `value` para que el saldo mostrado no cambie»—; lo que fallaba era con
+qué número se despejaba.
+
+Y por eso sincronizar lo curaba: `applyBankBalances` vuelve a anclar contra el saldo REAL del
+banco, ya con el rol nuevo puesto.
+
+**Alcance medido, no supuesto.** Rompían solo `diario → recibos` y `diario → todo`, que son las
+dos transiciones donde `pn` salta de 0 a distinto de 0. `recibos ↔ todo` no se movían (las dos son
+`accFixed`) y `recibos → diario` tampoco (el rol nuevo no mira `paidNet`). Es exactamente el
+camino que él probó.
+
+Ahora se despeja con el `paidNet` **de después**, calculado con la misma suma que hace `totals`
+para que las dos digan lo mismo. ⚠ Esa suma cuenta doble si un banco tiene dos cuentas fijas: es
+un defecto de fondo, no es lo que le pasó a él, y **se replica a propósito** en vez de arreglarlo
+aquí — divergir sería otra vez la misma regla en dos sitios diciendo cosas distintas. Anotado al
+backlog con el voto de Cursor.
+
+### Y el botón que prometía lo que no hacía
+
+Del mismo día: *«si actualizo saldo de un banco en la zona de bancos, de manera individual, por
+ejemplo Trade Republic, no me dice nada que se ha actualizado correctamente»*. Al mirarlo salieron
+**tres cosas distintas**, y solo una es de aquí:
+
+1. El botón vive dentro de la ficha de UN banco y decía «Actualizar saldo», pero por dentro llama
+   a `onBankSync()`, que sincroniza **todos**. Ahora dice **«Actualizar todos»**, que es la verdad.
+   Sincronizar de uno en uno pediría cambiar `runBankSync` entero y no es lo que pidió.
+2. **El «✓ al día» que él echaba en falta no se arregla aquí**: se calla a propósito mientras
+   quede un banco con la conexión a medias (`bankIssuesOf` mete cualquier fila `pending`), y su
+   CaixaBank se quedó así. O sea que es **el mismo bug** que le hizo rechazar
+   `4.19.66/banco-pendiente-y-quitar`. Va en esa tanda, que lleva Cursor.
+3. Trade Republic, además, **nunca pasa por `applyBankBalances`** (`saldoLoMandaPuenteNativo` sale
+   antes: TR no está en Open Banking), así que nunca entra en `synced`. Confirmar TR por su nombre
+   pide tocar el camino del puente nativo: tanda aparte, decidida con Cursor.
+
+Tests: `tests/rol-cuenta-sin-salto.test.mjs`, 6 casos, registrado en el lanzador y **verificado en
+rojo** quitando el arreglo (`actual: 6400, expected: 6700`, sus cifras). Se siembran **DOS bancos**
+a propósito: TR con el recibo domiciliado y Sabadell sin ninguno. Con un solo banco, una
+implementación que le restara a todo el mundo pasaría igual de bien.
+
 ## [4.19.82] - 2026-09-12
 ### El aviso de la última cuota se puede quitar, y el paso que él no podía pasar sale del panel
 
