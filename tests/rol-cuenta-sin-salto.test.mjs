@@ -30,8 +30,16 @@ function totalsDe(s) {
   (s.accounts || []).forEach((a) => {
     if (ctx.accFixed(a)) paidNetByBank[a.ent] = (paidNetByBank[a.ent] || 0) + ctx.monthNetForAccount(s, a.ent, Y, M, D);
   });
+  /* ⚠ `spentByBank` se calcula como lo calcula la app, NO con un {} vacío. Lo tuve vacío y por
+     eso la primera versión de este test daba por bueno un arreglo a medias: `gastoDelMesPorBanco`
+     manda los gastos SIN banco a la cuenta de gasto diario, así que ese mapa CAMBIA con el rol —
+     que es justo la mitad del fallo que se le escapó. Un doble más simple que la realidad no
+     prueba nada de lo que importa aquí. */
+  const desde = ctx.inicioDeMesMs();
+  const delMes = (s.expenses || []).filter((e) => ctx.dateMs(e.date) >= desde);
+  const diaria = (s.accounts || []).find((a) => ctx.accDaily(a));
   return {
-    paidNetByBank, spentByBank: {}, injTR: 0,
+    paidNetByBank, spentByBank: ctx.gastoDelMesPorBanco(delMes, diaria && diaria.ent), injTR: 0,
     roundupThisMonth: 0, monthlyInvestThisMonth: 0,
     curYear: Y, curMonth: M, today: D,
   };
@@ -106,6 +114,46 @@ t("y el banco de al lado tampoco se mueve cuando el que cambia es ÉL", () => {
   const despues = cambiaRol(antes, "sab", "diario");
   assert.equal(ctx.accRole(despues.accounts.find((a) => a.id === "tr")), "fijos");
   assert.equal(pintado(despues, "tr"), saldoTR);
+});
+
+/* ⚠ SU SEGUNDO RECHAZO, del mismo día por la noche, con la secuencia que él escribió:
+   «le doy a trade republic le cambio de Todo a solo recibos… compruebo que está a 0 lo de gastos
+    dado que no cuenta y perfecto se pone bien. Luego vuelvo a trade republic elijo gastos diarios
+    y PAM, 300 pavos menos».
+
+   El arreglo de la tarde curó `paidNet` y dejó suelta la OTRA variable que baila con el rol:
+   `gastoDelMesPorBanco(gastos, dailyEnt)` manda los gastos SIN banco a la cuenta de gasto diario,
+   así que en cuanto una cuenta pasa a serlo hereda de golpe los huérfanos del mes — y la fórmula
+   de la diaria los RESTA. Re-anclar con el `spentOwn` de antes se dejaba justo esa cantidad.
+
+   Se siembran los gastos SIN `ent` a propósito: con `ent` puesto no se reparten y el fallo no
+   aparece. Eso es lo que hizo que el primer arreglo pareciera completo. */
+const gastoSuelto = (importe) => ({
+  id: "g" + importe, date: new Date(new Date().getFullYear(), new Date().getMonth(), Math.min(new Date().getDate(), 28), 12).toISOString(),
+  amount: importe, merchant: "Suelto", category: "otros", source: "manual",
+});
+function estadoConHuerfanos(rolTR) {
+  const e = estado(rolTR);
+  e.expenses = [gastoSuelto(200), gastoSuelto(100)];
+  return e;
+}
+
+t("su secuencia: Todo → Recibos → Gasto diario, sin que el saldo se mueva ni una vez", () => {
+  let s = estadoConHuerfanos("ambos");
+  const inicio = pintado(s, "tr");
+  s = cambiaRol(s, "tr", "fijos");
+  assert.equal(pintado(s, "tr"), inicio, "el paso a Recibos ya iba bien");
+  s = cambiaRol(s, "tr", "diario");
+  assert.equal(pintado(s, "tr"), inicio, "y la vuelta a Gasto diario es la que le quitaba 300 €");
+});
+
+t("los gastos huérfanos del mes se los queda la diaria NUEVA, no la vieja", () => {
+  // Sabadell pasa a diaria: TR deja de heredar los sueltos y Sabadell los hereda. Ninguno salta.
+  const s0 = estadoConHuerfanos("diario");
+  const tr0 = pintado(s0, "tr"), sab0 = pintado(s0, "sab");
+  const s1 = cambiaRol(s0, "sab", "diario");
+  assert.equal(pintado(s1, "tr"), tr0);
+  assert.equal(pintado(s1, "sab"), sab0);
 });
 
 console.log("rol-cuenta-sin-salto: OK");

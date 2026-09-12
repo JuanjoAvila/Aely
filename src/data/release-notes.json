@@ -1,5 +1,70 @@
 [
   {
+    "v": "4.19.97",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "El saldo al cambiar de rol: ahora sí, la otra mitad",
+      "en": "The balance when changing an account's role: the other half",
+      "ca": "El saldo en canviar de rol: ara sí, l'altra meitat"
+    },
+    "items": {
+      "es": [
+        "Cambiar una cuenta a «Gasto diario» le quitaba de golpe lo que llevabas gastado ese mes sin banco asignado. El arreglo de antes curó una mitad del problema y esta cura la otra.",
+        "Ahora el saldo se queda igual vayas y vuelvas entre Recibos, Gasto diario y Todo, las veces que quieras."
+      ],
+      "en": [
+        "Switching an account to “Daily spending” knocked off whatever you had spent that month with no bank assigned. The earlier fix cured one half; this one cures the other.",
+        "The balance now stays put however many times you move between Bills, Daily spending and Everything."
+      ],
+      "ca": [
+        "Canviar un compte a «Despesa diària» li treia de cop el que portaves gastat aquell mes sense banc assignat. L'arreglament anterior va curar una meitat; aquest cura l'altra.",
+        "Ara el saldo es queda igual vagis i tornis entre Rebuts, Despesa diària i Tot."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "rol-sin-salto-2",
+        "t": {
+          "es": "🏦 El saldo no se mueve, vayas y vuelvas las veces que quieras",
+          "en": "🏦 The balance holds, however many times you switch",
+          "ca": "🏦 El saldo no es mou, vagis i tornis les vegades que vulguis"
+        },
+        "items": {
+          "es": [
+            "1. Esto es tu rechazo de las 18:48, con tus palabras: «le cambio de Todo a solo recibos… perfecto se pone bien. Luego vuelvo a trade republic elijo gastos diarios y PAM, 300 pavos menos».",
+            "2. Cartera → Tus cuentas. APUNTA EN UN PAPEL el saldo de Trade Republic.",
+            "3. Editar → cambia TR de «Todo» a «Recibos». Mira el saldo: el del papel.",
+            "4. Ahora la parte que fallaba: cambia TR de «Recibos» a «Gasto diario». El saldo tiene que seguir siendo el del papel. Aquí era donde perdías los 300 €.",
+            "5. Repite el viaje entero dos o tres veces más, en el orden que te dé la gana. No puede moverse ni una vez.",
+            "6. Y sin sincronizar en medio: el arreglo tiene que aguantar solo, sin que la nube lo enderece.",
+            "7. Cuando acabes, sincroniza y comprueba que el saldo sigue siendo ese mismo.",
+            "8. Deja la cuenta en el rol que quieras tener de verdad."
+          ],
+          "en": [
+            "1. This is your 18:48 rejection, in your words: “I switch it from Everything to just Bills… fine. Then I go back and pick daily spending and BAM, 300 quid less”.",
+            "2. Wallet → Your accounts. WRITE DOWN Trade Republic's balance.",
+            "3. Edit → switch TR from “Everything” to “Bills”. The balance must match the paper.",
+            "4. Now the part that failed: switch TR from “Bills” to “Daily spending”. Still the paper figure. This is where the 300 € went.",
+            "5. Do the whole round trip two or three more times, in any order. It must not move once.",
+            "6. Without syncing in between: the fix has to hold on its own.",
+            "7. When done, sync and check the balance is still the same.",
+            "8. Leave the account in whichever role you actually want."
+          ],
+          "ca": [
+            "1. Aixo es el teu rebuig de les 18:48.",
+            "2. Cartera → Els teus comptes. APUNTA EN UN PAPER el saldo de Trade Republic.",
+            "3. Edita → canvia TR de «Tot» a «Rebuts». El saldo ha de ser el del paper.",
+            "4. Ara la part que fallava: de «Rebuts» a «Despesa diaria». Ha de seguir sent el del paper.",
+            "5. Repeteix el viatge dos o tres cops mes, en l'ordre que vulguis.",
+            "6. I sense sincronitzar pel mig.",
+            "7. En acabar, sincronitza i comprova que segueix igual.",
+            "8. Deixa el compte al rol que vulguis."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.96",
     "d": "12 sep 2026",
     "t": {

@@ -6629,10 +6629,39 @@ function applyAccountRole(s, totals, id, r){
   const cm=totals.curMonth!=null?totals.curMonth:(hoy.getMonth()+1);
   const td=totals.today!=null?totals.today:hoy.getDate();
   const fijoTras=function(rr){ return rr==="fijos"||rr==="ambos"; };
+  const diarioTras=function(rr){ return rr==="diario"||rr==="ambos"; };
   const rolTras=function(a){
     if(a.id===id) return r;
     if(r!=="fijos" && accDaily(a)) return "fijos";     // solo puede haber UNA cuenta de gasto diario
     return accRole(a);
+  };
+  /* ⚠ Y `spentOwn` BAILA IGUAL QUE `paidNet` — la otra mitad del mismo fallo (2026-09-12 noche,
+     su segundo rechazo: «le cambio de Todo a solo recibos… perfecto. Luego vuelvo y elijo gastos
+     diarios y PAM, 300 pavos menos»).
+     `gastoDelMesPorBanco(gastos, dailyEnt)` reparte por banco y **manda los gastos SIN banco a la
+     cuenta de gasto diario** (`00-core`). O sea que en cuanto una cuenta pasa a ser la diaria,
+     hereda de golpe todos los gastos huerfanos del mes, y `saldoCuentaGasto` los RESTA.
+     Al re-anclar con el `spentOwn` viejo —el de cuando no era la diaria, sin esos gastos— el
+     saldo pintado se iba justo esa cantidad. Es exactamente el mismo error que ya se arreglo con
+     `paidNet` esta tarde, en la otra variable: arregle una mitad y la otra se quedo.
+     Aqui se calcula el reparto que habra DESPUES, con la diaria que quede. */
+  const entDiariaTras=function(){
+    if(diarioTras(r)) return (s.accounts||[]).filter(function(x){ return x.id===id; })[0] ? ((s.accounts||[]).filter(function(x){ return x.id===id; })[0].ent) : null;
+    const otra=(s.accounts||[]).filter(function(x){ return x.id!==id && accDaily(x); })[0];
+    return otra ? otra.ent : null;
+  };
+  const spentMapTras=(function(){
+    if(typeof gastoDelMesPorBanco!=="function" || typeof inicioDeMesMs!=="function") return null;
+    /* `inicioDeMesMs` y no `startOfMonth`: es la regla de «cuando empieza el mes» que usa el
+       resto de la app desde B09-B, y ademas la que existe en el sandbox de los tests — con la
+       otra, el arreglo se caia a la rama de abajo y el test nunca podia ponerse verde. */
+    const desde=inicioDeMesMs();
+    const mes=(s.expenses||[]).filter(function(e){ return e && dateMs(e.date)>=desde; });
+    return gastoDelMesPorBanco(mes, entDiariaTras());
+  })();
+  const spentTras=function(a){
+    if(!spentMapTras || !a || !a.ent) return spentOwn(a);
+    return spentMapTras[a.ent]||0;
   };
   const pnTras=function(a){
     if(!a || !a.ent || typeof monthNetForAccount!=="function") return pn(a);
@@ -6643,7 +6672,9 @@ function applyAccountRole(s, totals, id, r){
   const valueForRole=function(a,rr,shown){
     const pnNuevo=fijoTras(rr)?pnTras(a):0;
     if(rr==="fijos") return +(shown - pnNuevo).toFixed(2);
-    return valueDesdeSaldo({shown:shown, injTR:injOfA(a), spentOwn:spentOwn(a), roundup:ruOfA(a), monthlyInvest:a.monthlyInvest||0, ambos:rr==="ambos", paidNet:pnNuevo});
+    /* `spentTras` y no `spentOwn`: con el rol nuevo la cuenta puede heredar (o soltar) los gastos
+       sin banco del mes, y esos los RESTA la formula de la diaria. */
+    return valueDesdeSaldo({shown:shown, injTR:injOfA(a), spentOwn:spentTras(a), roundup:ruOfA(a), monthlyInvest:a.monthlyInvest||0, ambos:rr==="ambos", paidNet:pnNuevo});
   };
   return Object.assign({},s,{accounts:s.accounts.map(function(a){
     if(a.id===id){ if(accRole(a)===r) return a; return Object.assign({},a,{role:r, spendFrom:r!=="fijos", value:valueForRole(a,r,shownOf(a))}); }

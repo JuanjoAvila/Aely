@@ -1,3 +1,40 @@
+## [4.19.97] - 2026-09-12
+### El saldo al cambiar de rol: arreglé una mitad y me dejé la otra
+
+**Su segundo rechazo del mismo bug**, con la secuencia exacta escrita por él:
+
+> *«le doy a trade republic le cambio de Todo a solo recibos… compruebo que está a 0 lo de gastos
+> dado que no cuenta y perfecto se pone bien. Luego vuelvo a trade republic elijo gastos diarios y
+> **PAM, 300 pavos menos**… sigue igual fallando»*.
+
+Tenía razón. La 4.19.84 curó `paidNet` —los recibos ya cobrados del mes— y **se dejó la otra
+variable que también baila con el rol**: `spentOwn`.
+
+`gastoDelMesPorBanco(gastos, dailyEnt)` reparte el gasto del mes por banco y **manda los gastos SIN
+banco asignado a la cuenta de gasto diario** (`00-core`). Así que en cuanto una cuenta pasa a ser
+la diaria **hereda de golpe todos los huérfanos del mes**, y `saldoCuentaGasto` los RESTA. Al
+re-anclar `value` con el `spentOwn` de antes —el de cuando esa cuenta no era la diaria, sin esos
+gastos— el saldo pintado se iba exactamente esa cantidad. Sus 300 €.
+
+Reproducido con su secuencia antes de tocar nada, y medido paso a paso:
+
+    inicio (Todo)      rol ambos    value 6700   spent 300   pn -300   → PINTA 6100,00
+    → Recibos          rol fijos    value 6400   spent   0   pn -300   → PINTA 6100,00
+    → Gasto diario     rol diario   value 6400   spent 300   pn    0   → PINTA 6100,00
+
+### Y por qué el primer arreglo pareció completo: mi propio test era más simple que la app
+
+`tests/rol-cuenta-sin-salto.test.mjs` construía sus totales con **`spentByBank: {}`**, un mapa
+vacío. Con eso, el reparto de gastos por banco nunca cambiaba al cambiar el rol… que es justo la
+mitad del fallo. **El test daba verde sobre un arreglo a medias porque el doble no se parecía a la
+realidad en lo único que importaba aquí.** Ahora calcula `spentByBank` con `gastoDelMesPorBanco`,
+igual que `totals`, y los gastos se siembran **sin banco** a propósito: con `ent` puesto no se
+reparten y el fallo no aparece.
+
+Dos casos nuevos: **su secuencia entera** (Todo → Recibos → Gasto diario) y que los huérfanos del
+mes se los quede **la diaria nueva y no la vieja** cuando el cambio lo hace otra cuenta. Verificado
+en rojo quitando el arreglo: `actual: 5800, expected: 6100` — sus 300 € otra vez.
+
 ## [4.19.96] - 2026-09-12
 ### La fecha del banco baila, y sin comercio no hay más pistas
 
