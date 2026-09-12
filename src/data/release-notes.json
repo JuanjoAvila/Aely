@@ -62,33 +62,7 @@
         "Si una despesa ja era al mòbil i al núvol li canvien la categoria (o una altra dada), en sincronitzar s'actualitza. Abans es quedava el valor vell tot i dir «ja estàs al dia»."
       ]
     },
-    "tandas": [
-      {
-        "id": "sync-refresca",
-        "t": {
-          "es": "🔄 Sincronizar refresca lo que ya tenías",
-          "en": "🔄 Sync refreshes what you already had",
-          "ca": "🔄 Sincronitzar refresca el que ja tenies"
-        },
-        "items": {
-          "es": [
-            "1. Abre Gastos y mira un movimiento que se hubiera corregido en la nube (p. ej. Aigües → Energía).",
-            "2. Tira para sincronizar (o vuelve a la app desde fuera).",
-            "3. Tiene que mostrar la categoría nueva, no la vieja, aunque el aviso diga que ya estabas al día."
-          ],
-          "en": [
-            "1. Open Expenses and find a movement that was corrected in the cloud (e.g. water bill → Energy).",
-            "2. Pull to sync (or leave the app and come back).",
-            "3. It must show the new category, not the old one, even if it says you were already up to date."
-          ],
-          "ca": [
-            "1. Obre Despeses i mira un moviment corregit al núvol (p. ex. Aigües → Energia).",
-            "2. Estira per sincronitzar (o surt de l'app i torna).",
-            "3. Ha de mostrar la categoria nova, no la vella, tot i que digui que ja estaves al dia."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.77",
@@ -1235,33 +1209,7 @@
       "en": "What looked broken on first run, and the copy that was in the way",
       "ca": "El que es veia trencat en estrenar, i els textos que sobraven"
     },
-    "tandas": [
-      {
-        "id": "bugs-cuentas",
-        "t": {
-          "es": "🧹 Lo que se veía roto en Tus cuentas",
-          "en": "🧹 What looked broken in Your accounts",
-          "ca": "🧹 El que es veia trencat a Els teus comptes"
-        },
-        "items": {
-          "es": [
-            "1. Cartera → «Tus cuentas». Mira cada fila: no puede haber ningún recuadro azul vacío tapando el nombre del banco.",
-            "2. En las cuentas que vienen del banco, «del banco» tiene que ser una chapita pequeña AL LADO del nombre, no un cartel grande debajo.",
-            "3. Baja hasta el final de la lista y vuelve a subir: nada se descoloca."
-          ],
-          "en": [
-            "1. Wallet → “Your accounts”. No empty blue box may cover the bank name on any row.",
-            "2. On bank-connected accounts, “from the bank” must be a small chip NEXT TO the name, not a big label underneath.",
-            "3. Scroll to the bottom and back up: nothing shifts around."
-          ],
-          "ca": [
-            "1. Cartera → «Els teus comptes». Cap requadre blau buit pot tapar el nom del banc.",
-            "2. Als comptes del banc, «del banc» ha de ser una xapeta petita AL COSTAT del nom.",
-            "3. Baixa fins al final de la llista i torna a pujar: res es descol·loca."
-          ]
-        }
-      }
-    ],
+    "tandas": [],
     "items": {
       "es": [
         "Arreglado el recuadro azul que tapaba el nombre del banco en Tus cuentas y el «Saltar» pegado al título al estrenar la app.",
@@ -2526,33 +2474,7 @@
       "en": "The app no longer deletes look-alike movements",
       "ca": "L'app ja no esborra moviments per assemblar-se"
     },
-    "tandas": [
-      {
-        "id": "contencion-dupes",
-        "t": {
-          "es": "🧾 Movimientos que se parecían",
-          "en": "🧾 Look-alike movements",
-          "ca": "🧾 Moviments que s'assemblaven"
-        },
-        "items": {
-          "es": [
-            "Si el banco y el móvil apuntaban lo mismo con nombres distintos, la app ya no borra uno de los dos por su cuenta.",
-            "Puede que veas alguna fila de más mientras afinamos el criterio; el total del mes puede subir un poco hasta entonces.",
-            "Los movimientos borrados a mano siguen borrados."
-          ],
-          "en": [
-            "If the bank and your phone logged the same payment under different names, the app no longer deletes one of them on its own.",
-            "You may see an extra row for a while while we refine the match; the monthly total may rise a little until then.",
-            "Movements deleted by hand stay deleted."
-          ],
-          "ca": [
-            "Si el banc i el mòbil apuntaven el mateix amb noms diferents, l'app ja no n'esborra un pel seu compte.",
-            "Pot ser que vegis alguna fila de més mentre afinem el criteri; el total del mes pot pujar una mica fins aleshores.",
-            "Els moviments esborrats a mà segueixen esborrats."
-          ]
-        }
-      }
-    ],
+    "tandas": [],
     "items": {
       "es": [
         "Si el banco y el móvil apuntaban lo mismo con nombres distintos, la app ya no borra uno de los dos por su cuenta.",
