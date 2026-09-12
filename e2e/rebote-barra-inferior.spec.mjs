@@ -116,18 +116,27 @@ test("llegar al final esconde la barra con una transición RÁPIDA, no con la ca
   await appLista(page);
   await irAGastosConTodo(page);
   await page.waitForTimeout(400); // deja asentar el premontaje/carga antes de medir
-  const max = await alturaMax(page);
-
   // Primer scroll tras cambiar de pestaña: solo sincroniza (scrollTab.current!==tab), no actúa.
   await scrollear(page, 0);
   await page.waitForTimeout(60);
   await esperarPinTope(page);
 
+  /* Con host a pantalla (ola 4.19.87) el clientHeight crece y la lista aún puede
+     recalcular scrollHeight tras el filtro «Todo». Ese cambio hace que onPageScroll
+     ignore el siguiente gesto (`ultimoScrollH`). Un scroll chico absorbe el cambio. */
+  await scrollear(page, 2);
+  await page.waitForTimeout(80);
+  const max = await alturaMax(page);
+  expect(max, "tiene que haber scroll de verdad").toBeGreaterThan(300);
+
   // Scroll normal hacia abajo, SIN llegar al final: tiene que esconder con la curva calmada.
   await scrollear(page, Math.round(max * 0.4));
-  await esperarBarra(page);
+  /* Poll: en CI el hide a veces aterriza un frame después del timeout fijo (flaky 4.19.88/89). */
+  await expect.poll(async () => (await estadoBarra(page)).escondida, {
+    timeout: 3_000,
+    message: "un scroll normal hacia abajo tiene que esconder la barra",
+  }).toBe(true);
   const normal = await estadoBarra(page);
-  expect(normal.escondida, "un scroll normal hacia abajo tiene que esconder la barra").toBe(true);
   expect(normal.rapida, "un scroll normal (sin llegar al final) NO debe usar la transición rápida").toBe(false);
   expect(normal.transitionDuration, "el escondido normal tiene que conservar su curva calmada de 0,55 s").toContain("0.55s");
 
@@ -153,11 +162,13 @@ test("al alejarse del final y volver a bajar hasta abajo, la transición sigue s
   await appLista(page);
   await irAGastosConTodo(page);
   await page.waitForTimeout(400); // deja asentar el premontaje/carga antes de medir
-  const max = await alturaMax(page);
 
   await scrollear(page, 0); // sincroniza
   await page.waitForTimeout(60);
   await esperarPinTope(page);
+  await scrollear(page, 2); // absorbe cambio de scrollHeight (host a pantalla)
+  await page.waitForTimeout(80);
+  const max = await alturaMax(page);
   await scrollear(page, max); // llega al final
   await esperarBarra(page);
   let estado = await estadoBarra(page);

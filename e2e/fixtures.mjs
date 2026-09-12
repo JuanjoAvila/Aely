@@ -127,8 +127,17 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
 }
 
 /** Cierra el popup de Novedades si sale (cambia de versión en cada release). Llamar tras el
- *  primer goto("/") en cualquier test que necesite interactuar con la pantalla. */
+ *  primer goto("/") en cualquier test que necesite interactuar con la pantalla.
+ *  ⚠ Esperar de verdad: con varias betas el mismo día el popup a veces monta DESPUÉS del
+ *  primer tick y un `count()` a pelo lo dejaba abierto — luego interceptaba los clics del
+ *  panel de revisión (CI 4.19.89). */
 export async function dismissNews(page) {
   const btn = page.getByRole("button", { name: /Entendido|Got it|D'acord/i });
-  if (await btn.count()) await btn.first().click();
+  try {
+    await btn.first().waitFor({ state: "visible", timeout: 4_000 });
+  } catch (_) {
+    return;
+  }
+  await btn.first().click();
+  await page.locator(".wn-panel").waitFor({ state: "detached", timeout: 5_000 }).catch(() => {});
 }

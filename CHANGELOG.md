@@ -1,3 +1,13 @@
+## [4.19.90] - 2026-09-12
+### dismissNews espera al popup; botnav e2e hace poll
+
+La 4.19.89 falló otra vez: Novedades montaba tarde y `dismissNews` (un `count()` a pelo)
+lo dejaba abierto — interceptaba clics del panel de revisión. Ahora espera al botón y a que
+`.wn-panel` se desmonte.
+
+`rebote-barra-inferior`: el hide normal a veces llegaba un frame tarde en CI; `expect.poll`
+en vez de un timeout fijo.
+
 ## [4.19.89] - 2026-09-12
 ### e2e revisar-beta: tandas:[] con prod, no sin ella
 
