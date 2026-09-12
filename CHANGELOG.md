@@ -1,3 +1,65 @@
+## [4.19.75] - 2026-09-12
+### Su rechazo de las 08:57 no era del código, y buscando por qué salieron cuatro trampas más
+
+Rechazó `barcelona-no-es-un-viaje` con *«Aigües de Barcelona precisamente sale como si fuera
+viaje»*. **El arreglo funcionaba**: pasado por el `autoCategory` real (no por una copia),
+`AIGUES DE BARCELONA` → `energia`, con acentos, con `RECIBO` delante y con `, S.A.` detrás.
+
+Lo que veía era una fila **sellada** de antes: la categoría se escribe cuando el movimiento entra y
+luego no se toca, a propósito, para no mover totales de meses cerrados. **El paso 2 de la tanda le
+pedía justamente mirar lo que ya estaba** — o sea, un paso que no podía pasar ni con el arreglo
+puesto. El fallo era de la tanda, no suyo ni del código.
+
+Cuántas filas hay de verdad, medido y no estimado: comparando el `public/index.html` de `183dabef^`
+(sin `KW_PALABRA`) contra el de hoy, fila a fila sobre sus datos reales, y contando solo aquellas
+cuya `cat` guardada es **exactamente** lo que daba la regla vieja → **4 de 670**. Se corrigen esas
+cuatro con un script de una vez (`scripts/recat-una-vez.mjs`), fuera del bundle, con ensayo previo.
+
+### Y de ahí, lo que de verdad importa: cuatro trampas más, todas medidas
+
+Barriendo sus **237 comercios distintos** contra las listas del propio `00-core.js`, 17 términos de
+≥4 letras casan dentro de otra palabra. **Doce aciertan igual** (`hamburgues` en HAMBURGUESERIA,
+`pizza` en TELEPIZZA, `sancion` en SANCIONS, `burger` en KIWIBURGER) y no se tocan. Los otros:
+
+| comercio real suyo | término | caía en | ahora |
+|---|---|---|---|
+| `Transporte publico` | `sport` ⊂ tran**SPORT**e | ocio | **transporte** |
+| `BRESSOLGRAMENET S.A.` | `ramen` ⊂ bressolg**RAMEN**et | bares | otros |
+| `APOLLON GALLERY` | `pollo` ⊂ a**POLLO**n | bares | otros |
+| `Mangopay (vinted)` | `mango` ⊂ **MANGO**pay | compras | otros |
+
+Nace **`KW_INICIO`**, hermana de `KW_PALABRA` pero no la misma, y la diferencia es lo que la hace
+funcionar: `KW_PALABRA` son **prefijos** de una palabra más larga (BARCELOna) y necesitan límite por
+los dos lados; `KW_INICIO` son **sufijos o infijos** (aPOLLOn) y les basta con límite por delante.
+Pedirles los dos lados dejaría de reconocer los plurales: «POLLOS ASADOS» ya no sería un bar.
+
+Tres cosas que salieron de hacerlo, y las tres son de método:
+
+1. **`mango` parecía de esta familia y no lo era.** MANGOpay *empieza* por mango, así que exigirle
+   límite por delante no cambia nada: es un prefijo, o sea `KW_PALABRA`. **Lo cazó el test**, con
+   la lista ya escrita y yo convencido de lo contrario.
+2. **En la lista de Transporte no existía la palabra «transporte».** Al quitar `sport`, «Transporte
+   público» pasó de «Ocio» a «Otros» — mejor, pero seguía sin categoría. Se añade `transport`.
+3. **Probada y descartada** la regla general «límite por delante para todo término de ≥4 letras»:
+   rompe KIWIBURGER y TELEPIZZA, que hoy aciertan de rebote. Medido antes de descartarla.
+
+El test se comprobó **en rojo** revirtiendo el cambio entero —no a medias— y verificando los cinco
+casos de conducta uno a uno contra el build revertido. Los siete guardianes de no-regresión pasan en
+ambos lados, que es su trabajo. `categorias-dual` sigue verde: app y servidor dicen lo mismo.
+
+⚠ **El servidor sigue con las reglas viejas.** `ingest` se desplegó el 11/9 a las 11:16 y los
+arreglos del categorizador son de las 23:08 en adelante. La vía de Open Banking clasifica en el
+cliente (le llega por OTA), pero **la de notificaciones va por servidor**. Desplegar toca
+producción: requiere su OK.
+
+### Panel de beta: cinco tandas fuera
+
+Petición suya de esta mañana: *«que no sean repetitivas y que no me bloqueen, que realmente pueda
+probarlas»*. Se van las dos **aprobadas** que seguían ahí (`dia-partido-en-dos` de hoy y
+`cabecera-bancos`, del 6/9) y las tres **rechazadas**: `barcelona` vuelve como los pasos 1-3 de esta
+tanda, y `botnav-sin-repintar` y `ficha-cuenta` volverán dentro de la tanda que las arregle —
+dejarlas es garantizar que vuelva a rechazar lo mismo. De 24 a 20.
+
 ## [4.19.74] - 2026-09-12
 ### La otra mitad del día partido: arrastrar un gasto de madrugada no hacía nada
 

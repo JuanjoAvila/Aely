@@ -16,7 +16,7 @@ export const CATEGORIAS: Record<string, string[]> = {
   padel:      ["padel","pádel","playtomic","paddle","club de padel","club padel","pista padel","padel pro","world padel","premier padel","indoor padel"],
   super:      ["mercadona","lidl","aldi","carrefour","dia","bonpreu","bon preu","consum","eroski","spar","alcampo","simply","supermercado","market","fresco","verduleria","fruteria","hipercor","caprabo","condis","ahorramas","gadis","froiz","bm supermarket","family cash","supeco","costco","makro","amazon fresh","glovo market"],
   viajes:     ["booking","airbnb","hotel","hostal","hostel","apartament turistic","apartamento turistico","vueling","iberia","ryanair","easyjet","vuelos","vuelo ","aeropuerto","airport","expedia","trivago","kayak","edreams","rumbo","logitravel","civitatis","getyourguide","marriott","hilton","ibis ","nh hotel","melia","barcelo","ac hotel","travelodge","camping","ferry","balearia","crucero","cruise","turismo"],
-  transporte: ["renfe","fgc","tmb","metro","autobus","bus ","taxi","cabify","uber","gasolina","repsol","cepsa","shell","bp ","galp","autopista","peaje","tram","bicing","blablacar","flixbus","moove","bolt","ouigo","iryo","avlo","rodalies","emt ","alsa","avanza","ok mobility","sixt","hertz","europcar","ballenoil","carburante","gasoleo","diesel","recarga electr","free now","freenow"],
+  transporte: ["transport","renfe","fgc","tmb","metro","autobus","bus ","taxi","cabify","uber","gasolina","repsol","cepsa","shell","bp ","galp","autopista","peaje","tram","bicing","blablacar","flixbus","moove","bolt","ouigo","iryo","avlo","rodalies","emt ","alsa","avanza","ok mobility","sixt","hertz","europcar","ballenoil","carburante","gasoleo","diesel","recarga electr","free now","freenow"],
   parking:    ["parking","parquimetro","parkimetro","parquímetro","aparcament","aparcamiento","saba","b:sm","bsm","empark","interparking","apk2","apk80","onepark","elparking","easypark","telpark","zona azul","zona verde","area verde","àrea verda","grua municipal","indigo parking"],
   energia:    ["endesa","iberdrola","naturgy","repsol luz","holaluz","octopus energy","octopus ","totalenergies","factor energia","lucera","pepeenergy","gas natural","canal de isabel","aigues de barcelona","aigües de barcelona","agbar","aqualia","sorea","factura luz","factura gas","factura agua","suministro electric"],
   tasas:      ["gencat","generalitat","atc ","agencia tributaria","aeat","ajuntament","ayuntamiento","diputacio","diputación","dgt","multa","multa transit","sancion","sanción","tribut","impost","impuesto","tax agency","taxes","ibi","ivtm","basura","residus","residuos","canon agua","canon de l'aigua","tasa","taxa","registro mercantil","registro civil","notaria","notaría","gestoria","gestoría","procurador","abogado","lexnet","catastro","seguretat social","seguridad social","tgss","recaudacion","recaudación","zona bajas emisiones","zbe","hacienda","hisenda"],
@@ -45,6 +45,18 @@ const KW_PALABRA: Record<string, number> = {
   "saba": 1,      // SABA aparcamientos ⊂ SABADELL — «Transferencia a banco Sabadell» → parking
   "zara": 1,      // Zara ⊂ ZARAGOZA
   "hospital": 1,  // hospital ⊂ HOSPITALET
+  "mango": 1,     // la tienda Mango ⊂ MANGOpay, la pasarela de Vinted (2026-09-12)
+};
+
+/* PALABRAS QUE TIENEN QUE EMPEZAR PALABRA. Espejo EXACTO de `KW_INICIO` en `00-core.js`.
+   No es lo mismo que `KW_PALABRA`: aquellas son PREFIJOS (BARCELOna) y piden límite por los dos
+   lados; estas son SUFIJOS o infijos (aPOLLOn, tranSPORTe) y les basta con límite por DELANTE.
+   Pedirles los dos lados dejaría de reconocer los plurales («POLLOS ASADOS»).
+   Cada una sale de un movimiento real suyo, medido el 2026-09-12 sobre 237 comercios. */
+const KW_INICIO: Record<string, number> = {
+  "sport": 1,     // ⊂ tranSPORTe — «Transporte publico» caía en ocio
+  "ramen": 1,     // ⊂ bressolgRAMENet
+  "pollo": 1,     // ⊂ aPOLLOn
 };
 
 export function norm(s: string): string {
@@ -105,12 +117,13 @@ export function categorizar(comercio: string): string {
   // viaje. Medido con sus gastos de septiembre. ⚠ La lista es la MISMA que en `00-core.js`, y el
   // guardián `categorias-dual` exige que digan lo mismo.
   const hit = (hay: string, needle: string) => {
-    if (needle.length >= 4 && !KW_PALABRA[needle]) return hay.includes(needle);
+    if (needle.length >= 4 && !KW_PALABRA[needle] && !KW_INICIO[needle]) return hay.includes(needle);
+    const soloInicio = !!KW_INICIO[needle];   // le basta con EMPEZAR palabra: así «pollos» sigue casando
     let i = 0;
     while ((i = hay.indexOf(needle, i)) !== -1) {
       const before = i === 0 || /[^a-z0-9]/.test(hay.charAt(i - 1));
       const after = i + needle.length >= hay.length || /[^a-z0-9]/.test(hay.charAt(i + needle.length));
-      if (before && after) return true;
+      if (before && (soloInicio || after)) return true;
       i++;
     }
     return false;
