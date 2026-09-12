@@ -27,7 +27,7 @@ import { fileURLToPath } from "node:url";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const leer = (p) => fs.readFileSync(path.join(root, p), "utf8");
-const PAGES = "https://juanjoavila.github.io/Mi-Cartera/";
+const PAGES = "https://juanjoavila.github.io/Aely/";
 
 let avisos = 0;
 const ok = (t) => console.log(`  ✓ ${t}`);
@@ -79,7 +79,7 @@ if (liveApk) info(`producción anuncia la APK ${liveApk.versionName} (${liveApk.
 
 /* ---------- 3. El canal beta ---------- */
 console.log("\nCanal beta");
-const beta = await json("https://github.com/JuanjoAvila/Mi-Cartera/releases/download/beta/version.json");
+const beta = await json("https://github.com/JuanjoAvila/Aely/releases/download/beta/version.json");
 if (!beta) info("la release `beta` no responde o no tiene version.json todavía");
 else {
   const base = String(beta.version).split(".").slice(0, 3).join(".");

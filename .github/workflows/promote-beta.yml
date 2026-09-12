@@ -258,7 +258,7 @@ jobs:
           echo "Esperando a que Pages sirva $VERSION…"
           LIVE=""
           for i in $(seq 1 40); do
-            LIVE=$(curl -sL "https://juanjoavila.github.io/Mi-Cartera/version.json" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p')
+            LIVE=$(curl -sL "https://juanjoavila.github.io/Aely/version.json" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p')
             if [ "$LIVE" = "$VERSION" ]; then
               echo "✅ Producción sirve $LIVE" >> $GITHUB_STEP_SUMMARY
               exit 0
