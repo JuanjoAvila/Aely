@@ -1,3 +1,15 @@
+## [4.19.85] - 2026-09-12
+### El OTA ignora `v.url` del manifiesto y baja desde su base
+
+Tras el renombre a Aely, `version.json` de producción seguía anunciando
+`.../Mi-Cartera/bundle.zip` (404 en Pages: el rename no redirige esa ruta). Quien tenía la
+base nueva no podía volver a estable: `_mcApplyChannelBundle` usaba `v.url` a ciegas.
+
+Ahora la descarga usa siempre `mcUpdBase()+"bundle.zip"`. El manifiesto solo aporta la versión.
+Puente legacy recreado en el repo `Mi-Cartera` (Pages) para los clientes con la base vieja cocida.
+
+---
+
 ## [4.19.84] - 2026-09-12
 ### Cambiar el rol de una cuenta le movía el saldo 300 € — y era la pantalla, no el dinero
 

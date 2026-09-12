@@ -124,7 +124,11 @@ window._mcApplyChannelBundle=function(opts){
     .then(function(v){
       if(!v||!v.version||v.version===CONFIG.APP_VERSION) return false;
       if(toast) toast(tf("st_up_applying",{v:v.version}));
-      return up.download({url:(v.url||mcUpdBase()+"bundle.zip"), version:v.version})
+      /* NUNCA fiarse de `v.url` del manifiesto (2026-09-12): tras el renombre Aely, producción
+         seguía anunciando `.../Mi-Cartera/bundle.zip` y el cambio de canal petaba aunque el
+         bundle existiera en `/Aely/`. La base la decide el cliente (`mcUpdBase`); el manifiesto
+         solo aporta el número de versión. */
+      return up.download({url:mcUpdBase()+"bundle.zip", version:v.version})
         .then(function(b){
           try{ localStorage.setItem("_otaPending", v.version); }catch(e){}
           return up.set({id:b.id}).then(function(){ return true; });
@@ -271,7 +275,7 @@ window._mcDownloadOta=function(up, v, opts){
   // Pill YA mientras descarga (antes solo al terminar → «tarda un montón», 2026-07-16).
   if(!manual) window._mcSignalOtaPending(v.version);
   if(manual&&toast) toast(tf("st_up_applying",{v:v.version}));
-  return up.download({url:(v.url||mcUpdBase()+"bundle.zip"), version:v.version})
+  return up.download({url:mcUpdBase()+"bundle.zip", version:v.version})
     .then(function(b){
       if(manual){
         try{ localStorage.setItem("_otaPending", v.version); }catch(e){}

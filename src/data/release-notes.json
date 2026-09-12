@@ -1,5 +1,25 @@
 [
   {
+    "v": "4.19.85",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "Cambiar de canal de actualización ya no se queda a medias",
+      "en": "Switching update channel no longer gets stuck halfway",
+      "ca": "Canviar de canal d'actualització ja no es queda a mitges"
+    },
+    "items": {
+      "es": [
+        "Si apagabas el canal de pruebas y no volvía la versión estable, era porque pedía un archivo en una dirección antigua. Ya usa la buena."
+      ],
+      "en": [
+        "If turning off the test channel did not bring back the stable version, it was asking for a file at an old address. It uses the right one now."
+      ],
+      "ca": [
+        "Si apagaves el canal de proves i no tornava la versió estable, era perquè demanava un fitxer a una adreça antiga. Ja fa servir la bona."
+      ]
+    }
+  },
+  {
     "v": "4.19.84",
     "d": "12 sep 2026",
     "t": {
