@@ -1,5 +1,73 @@
 [
   {
+    "v": "4.19.84",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "Cambiar una cuenta de sitio ya no le mueve el saldo",
+      "en": "Changing what an account is for no longer moves its balance",
+      "ca": "Canviar un compte de lloc ja no li mou el saldo"
+    },
+    "items": {
+      "es": [
+        "Si cambias una cuenta de «Gasto diario» a «Recibos» (o a «Todo»), su saldo se queda EXACTAMENTE igual. Antes pegaba un salto hacia abajo, como si te descontara los recibos del mes otra vez, y solo se enderezaba al sincronizar.",
+        "Tu dinero nunca estuvo mal: era la pantalla, que hacía la cuenta con el papel viejo de la cuenta.",
+        "En Conectar cuentas, el botón de actualizar ahora dice «Actualizar todos», que es lo que hace de verdad: sincroniza todos tus bancos, no solo el de la ficha que tienes abierta."
+      ],
+      "en": [
+        "Switching an account from “Daily spending” to “Bills” (or to “Everything”) now leaves its balance EXACTLY as it was. It used to jump down, as if this month's bills were taken off twice, and only a sync would straighten it out.",
+        "Your money was never wrong: it was the screen, doing the maths with the account's old role.",
+        "In Connect accounts, the refresh button now says “Refresh all”, which is what it really does: it syncs every bank, not just the card you have open."
+      ],
+      "ca": [
+        "Si canvies un compte de «Despesa diària» a «Rebuts» (o a «Tot»), el seu saldo es queda EXACTAMENT igual. Abans feia un salt cap avall i només s'adreçava sincronitzant.",
+        "Els teus diners mai van estar malament: era la pantalla, fent el compte amb el paper vell.",
+        "A Connectar comptes, el botó ara diu «Actualitza tots», que és el que fa de veritat."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "rol-sin-salto",
+        "t": {
+          "es": "🏦 Cambiar una cuenta de sitio sin que salte el saldo",
+          "en": "🏦 Move an account's role without the balance jumping",
+          "ca": "🏦 Canviar un compte de lloc sense que salti el saldo"
+        },
+        "items": {
+          "es": [
+            "1. Es justo lo que nos contaste: «pasó de 6700 y algo a 6400 de golpe». Vamos a repetirlo a ver si ya no pasa.",
+            "2. Ve a Cartera → Tus cuentas y APUNTA EN UN PAPEL el saldo que sale en Trade Republic. Ese número es el que no se puede mover.",
+            "3. Dale a editar, y en esa cuenta cambia el rol de «Gasto diario» a «Recibos».",
+            "4. Mira el saldo otra vez SIN sincronizar nada: tiene que ser el MISMO del papel, al céntimo.",
+            "5. Ahora devuélvelo a «Gasto diario». Otra vez el mismo número.",
+            "6. Y prueba también «Todo»: igual, no se mueve.",
+            "7. Cuando acabes, sincroniza. El saldo tiene que seguir siendo ese: si el arreglo está bien, sincronizar ya no cambia nada.",
+            "8. Deja la cuenta en el rol que tú quieras tener de verdad."
+          ],
+          "en": [
+            "1. This is exactly what you reported: “it went from 6700-something to 6400 all at once”. Let's repeat it.",
+            "2. Go to Wallet → Your accounts and WRITE DOWN the balance shown for Trade Republic. That number must not move.",
+            "3. Tap edit and change that account's role from “Daily spending” to “Bills”.",
+            "4. Look at the balance again WITHOUT syncing: it must be the SAME as on paper, to the cent.",
+            "5. Now put it back to “Daily spending”. Same number again.",
+            "6. Try “Everything” too: same, no movement.",
+            "7. When you are done, sync. The balance must stay the same: if the fix is right, syncing changes nothing.",
+            "8. Leave the account in whichever role you actually want."
+          ],
+          "ca": [
+            "1. Es just el que ens vas explicar: «va passar de 6700 i escaig a 6400 de cop». Ho repetim.",
+            "2. Ves a Cartera → Els teus comptes i APUNTA EN UN PAPER el saldo de Trade Republic.",
+            "3. Dona-li a editar i canvia el rol de «Despesa diaria» a «Rebuts».",
+            "4. Mira el saldo SENSE sincronitzar: ha de ser el MATEIX del paper, al centim.",
+            "5. Torna'l a «Despesa diaria». Un altre cop el mateix numero.",
+            "6. Prova tambe «Tot»: igual, no es mou.",
+            "7. Quan acabis, sincronitza. El saldo ha de seguir sent aquell.",
+            "8. Deixa el compte al rol que vulguis de veritat."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.83",
     "d": "12 sep 2026",
     "t": {

@@ -917,6 +917,16 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
               React.createElement("button",{style:Object.assign({},mb,{color:"var(--coral)",borderColor:"var(--coral)",opacity:busy?0.6:1}),disabled:!!busy,onClick:function(){ remove(l.aspsp_name); }}, busy===l.aspsp_name?t("bp_removing"):t("bp_remove_yes")),
               React.createElement("button",{style:mb,disabled:!!busy,onClick:function(){ setConfirming(""); }}, t("bp_remove_no")))
           : React.createElement("div",{className:"bk-actions",style:{marginTop:8}},
+              /* «Actualizar TODOS», no «Actualizar saldo» (2026-09-12, reportado por él desde la
+                 app: «si actualizo saldo de un banco… de manera individual, por ejemplo Trade
+                 Republic, no me dice nada que se ha actualizado correctamente»). El botón vive
+                 dentro de la ficha de UN banco, así que prometía sincronizar ese; por dentro
+                 llama a `refresh()` → `onBankSync()`, que los sincroniza TODOS y no sabe filtrar.
+                 Se cambia el texto, que es lo honesto y lo barato; sincronizar de uno en uno
+                 pide cambiar `runBankSync` entero y no es lo que él pidió.
+                 ⚠ Lo que le faltaba —el «✓ al día»— NO se arregla aquí: se calla mientras quede
+                 un banco con la conexión a medias (`bankIssuesOf` mira las filas `pending`), y
+                 eso vive en la tanda del banco que se quedó pendiente. */
               React.createElement("button",{style:Object.assign({},mb,{opacity:busy?0.6:1}),disabled:!!busy,onClick:refresh}, busy==="__sync"?t("bp_syncing"):t("bank_refresh")),
               React.createElement("button",{style:Object.assign({},mb,{opacity:busy?0.6:1}),disabled:!!busy,onClick:function(){ connect(l.aspsp_name, l.aspsp_country||"ES"); }}, noAcct?t("bp_retry_link"):t("bank_reconnect")),
               React.createElement("button",{style:Object.assign({},mb,{opacity:busy?0.6:1,color:"var(--muted)",flex:"0 0 auto"}),disabled:!!busy,onClick:function(){ setConfirming(l.aspsp_name); }}, t("bp_remove"))))
