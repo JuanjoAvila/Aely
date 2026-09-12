@@ -1,3 +1,28 @@
+## [4.19.95] - 2026-09-12
+### El banco recién conectado sale sin salir y volver a entrar
+
+Suyo, desde la app (17:09): *«si conectas un banco como acabo de hacer con la Caixa, desde la zona
+de bancos, no te aparece hasta que no tires para atrás y vuelvas a entrar en la zona de bancos»*.
+
+`BankPanel` cargaba sus links en `useEffect(loadLinks, [uid])`, o sea **una vez al montar**. Al
+volver de autorizar el banco la pantalla ya estaba montada, así que seguía enseñando la lista de
+antes hasta que la cerrabas y la abrías. Ahora `runBankSync` avisa al terminar
+(`mc-bank-links-changed`) y el panel vuelve a leer.
+
+**El aviso se manda SIEMPRE**, haya ido bien el sync o mal: el caso que a él le fallaba es justo
+el de después de conectar, que es cuando la fila acaba de nacer, y ahí un sync a medias es tan
+probable como uno limpio.
+
+Tests: `e2e/bancos-lista-fresca.spec.mjs`, **verificado en rojo** quitando el listener
+(`Expected: 2, Received: 1`). El doble de `cloud.bankLinks` responde **por llamada** —la primera
+lo de antes, la segunda con el banco nuevo—, que es la secuencia real; con un doble fijo el test
+pasaría igual sin el arreglo.
+
+⚠ El `removeEventListener` se queda **sin test, y queda escrito por qué**: para probarlo hay que
+CERRAR el panel, y en este repo no hay ninguna puerta e2e que lo cierre — ningún spec de bancos lo
+hace y `Escape` no es el gesto (se cierra por `useBackClose`). Un test que «cierra» sin cerrar de
+verdad sería un verde que miente, que es peor que no tenerlo.
+
 ## [4.19.94] - 2026-09-12
 ### Al deslizar tabs ya no se corta la cabecera (ola intacta)
 

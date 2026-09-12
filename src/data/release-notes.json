@@ -1,5 +1,64 @@
 [
   {
+    "v": "4.19.95",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "El banco que acabas de conectar sale al momento",
+      "en": "The bank you just connected shows up right away",
+      "ca": "El banc que acabes de connectar surt al moment"
+    },
+    "items": {
+      "es": [
+        "Al conectar un banco nuevo ya no hace falta salir de «Conectar cuentas» y volver a entrar para verlo: aparece en la lista en cuanto termina de sincronizar.",
+        "Lo mismo si quitas uno o si vuelves a conectar uno caído: la lista se pone al día sola."
+      ],
+      "en": [
+        "After connecting a new bank you no longer need to leave “Connect accounts” and come back to see it: it shows up as soon as the sync finishes.",
+        "Same when you remove one or reconnect a broken one: the list refreshes on its own."
+      ],
+      "ca": [
+        "En connectar un banc nou ja no cal sortir de «Connectar comptes» i tornar-hi per veure'l: surt a la llista quan acaba de sincronitzar.",
+        "El mateix si en treus un o en reconnectes un de caigut."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "bancos-lista-fresca",
+        "t": {
+          "es": "🏦 El banco recién conectado sale sin salir y volver a entrar",
+          "en": "🏦 The bank you just connected shows without leaving the screen",
+          "ca": "🏦 El banc acabat de connectar surt sense sortir i tornar"
+        },
+        "items": {
+          "es": [
+            "1. Es tu reporte de las 17:09: «si conectas un banco, no te aparece hasta que no tires para atrás y vuelvas a entrar en la zona de bancos».",
+            "2. Ajustes → Conectar cuentas. Quédate en esa pantalla y mira la lista de bancos que tienes.",
+            "3. Conecta uno (o reconecta el que quieras). Cuando la app vuelva del banco y acabe de sincronizar, la lista tiene que enseñarlo SIN que tú salgas y entres.",
+            "4. Prueba también a quitar uno: tiene que desaparecer de la lista sin salir de la pantalla.",
+            "5. Y que no se rompa lo de siempre: los bancos que ya tenías siguen ahí, con su estado (al día / caducado / pendiente) correcto.",
+            "6. Si te da pereza conectar uno de verdad, con darle a «Actualizar todos» y ver que la lista no se queda congelada vale."
+          ],
+          "en": [
+            "1. This is your 17:09 report: “if you connect a bank it does not show until you go back and enter again”.",
+            "2. Settings → Connect accounts. Stay on that screen and look at your bank list.",
+            "3. Connect one (or reconnect any). When the app comes back and finishes syncing, the list must show it WITHOUT you leaving and re-entering.",
+            "4. Try removing one too: it must disappear from the list without leaving the screen.",
+            "5. And nothing else breaks: the banks you already had stay, with the right status.",
+            "6. If connecting one for real is a hassle, tapping “Refresh all” and seeing the list not freeze is enough."
+          ],
+          "ca": [
+            "1. Es el teu report de les 17:09.",
+            "2. Ajustos → Connectar comptes. Queda't en aquella pantalla.",
+            "3. Connecta'n un. Quan l'app torni i acabi de sincronitzar, la llista l'ha d'ensenyar SENSE sortir i tornar.",
+            "4. Prova tambe a treure'n un: ha de desapareixer sense sortir.",
+            "5. I que no es trenqui la resta: els que ja tenies segueixen amb el seu estat correcte.",
+            "6. Si et fa mandra, amb «Actualitza tots» i veure que la llista no es queda congelada n'hi ha prou."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.94",
     "d": "12 sep 2026",
     "t": {
