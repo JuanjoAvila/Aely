@@ -1,7 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-12 · **v4.19.85** — el OTA ya no se fía de una URL vieja del manifiesto.
-> Anterior: **v4.19.84** — al cambiar el rol de una cuenta, el saldo ya no salta.
+> Estado a 2026-09-12 · **v4.19.86** — guardianes para que un renombre no deje a nadie sin actualizaciones.
+> Anterior: **v4.19.85** — el OTA baja el bundle desde su propia base.
 > Anterior: **v4.19.83** — al quitar un banco, el aviso pendiente también se va.
 > Anterior: **v4.19.82** — el aviso de la última cuota se puede quitar.
 > Anterior: **v4.19.79** — sincronizar actualiza sin perder orden ni duplicados pendientes.
@@ -149,7 +149,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.19.85** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.86** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

@@ -1015,8 +1015,19 @@ function betaChecklist(version, prodVersion){
      comportamiento de siempre —una sola versión—; en la duda, menos, no de más. */
   var round;
   var conProd=prodVersion!=null&&prodVersion!=="";
+  /* UNA VERSION SIN NADA QUE PROBAR NO PUEDE VACIARLE EL PANEL (2026-09-12).
+     Sin `prodVersion` (aun preguntando, o sin red) la ronda es UNA sola version, y se cogia
+     `RELEASE_NOTES[0]` a pelo. El dia que la mas nueva es fontaneria —guardianes, un arreglo de
+     despliegue— declara `tandas:[]` a proposito, y entonces esa rama devolvia CERO puntos: el
+     panel se le quedaba vacio y parecia que no habia nada pendiente de probar, con media ronda
+     sin juzgar detras. Se coge la mas nueva que SI tenga algo que probar.
+     ⚠ `tandas:[]` (lista vacia) y «sin `tandas`» siguen siendo cosas distintas: la segunda
+     resucita la version entera como una tanda «todo», y eso lo vigila `beta-tandas-vacias`. */
+  var conAlgoQueProbar=function(n){ return !!n && (!n.tandas || n.tandas.length>0); };
   if(!conProd){
-    var one=RELEASE_NOTES.filter(function(n){ return n.v===base; })[0] || RELEASE_NOTES[0];
+    var one=RELEASE_NOTES.filter(function(n){ return n.v===base; })[0]
+      || RELEASE_NOTES.filter(conAlgoQueProbar)[0]
+      || RELEASE_NOTES[0];
     round=one?[one]:[];
   }else{
     var prod=mcVerBase(prodVersion);
@@ -1025,7 +1036,9 @@ function betaChecklist(version, prodVersion){
     });
   }
   if(!round.length){
-    var fb=RELEASE_NOTES.filter(function(n){ return n.v===base; })[0] || RELEASE_NOTES[0];
+    var fb=RELEASE_NOTES.filter(function(n){ return n.v===base; })[0]
+      || RELEASE_NOTES.filter(conAlgoQueProbar)[0]
+      || RELEASE_NOTES[0];
     round=fb?[fb]:[];
   }
   // El panel de revisión es la consola privada del dueño y va SIN traducir (como «Actividad»),

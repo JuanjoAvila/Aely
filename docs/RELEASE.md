@@ -42,6 +42,46 @@ promote de producción hay que actualizar el `version.json` del puente (mismo n�
 
 Crear o tocar repos públicos en su cuenta **se pregunta antes** (feedback del mismo día).
 
+### ⚠ La segunda trampa: el puente MATA el redirect de las Releases
+
+GitHub redirige el nombre viejo de un repo renombrado **solo mientras no exista otro repo con
+ese nombre**. Al crear el puente, ese redirect murió y saltaron dos 404 nuevos, medidos el mismo
+día:
+
+```
+github.com/JuanjoAvila/Mi-Cartera/releases/download/v4.18.22/…apk   → 404  (la APK que anuncia prod)
+github.com/JuanjoAvila/Mi-Cartera/releases/download/beta/version.json → 404  (BASE_BETA del worker nativo)
+```
+
+O sea: **mientras el puente exista, es él quien manda sobre ese nombre y tiene que servir TODO lo
+que servía antes** — Pages *y* Releases. Hoy sirve las cuatro puertas que usa un cliente antiguo:
+
+| puerta | quién la pide |
+|---|---|
+| `/Mi-Cartera/version.json` (Pages) | el JS del bundle viejo |
+| `/Mi-Cartera/bundle.zip` (Pages) | la descarga del OTA |
+| `/Mi-Cartera/apk.json` (Pages) | **el aviso de APK nueva** — sin esto no hay forma de sacarles de la APK vieja |
+| release `beta` del repo puente | `BASE_BETA` cocido en el `OtaCheckWorker` de la APK ≤45 |
+
+`npm run salud` comprueba las cuatro en cada vuelta, y también que el `url` del `version.json` y
+del `apk.json` de producción **respondan**, no solo que existan. Antes solo se miraba el número de
+versión, y por eso el 404 vivió sin que saltara nada.
+
+### Cómo se apaga el puente (el único camino)
+
+1. Arreglar los bloqueos de promote y promocionar a `main`.
+2. Compilar la **APK nueva desde `main`** (base `/Aely/`, ya en código desde 4.19.81) y publicarla
+   como release **de Aely**.
+3. Apuntar a esa release los **dos** `apk.json`: el de Aely y el del puente.
+4. Que los **tres** móviles la instalen. Los de la familia se enteran **por el puente**: es el
+   vehículo que entrega su propio reemplazo.
+5. Comprobar por telemetría que no queda ningún `versionCode ≤ 45` vivo.
+6. **Entonces** borrar el repo puente. El redirect de Releases vuelve solo, y la ruta vieja de
+   Pages ya no la pide nadie. Y con él se borra el bloque «Puente» de `scripts/salud.mjs`.
+
+No se puede saltar ningún paso, y el orden importa: borrar antes del 5 deja a alguien incomunicado
+sin forma de avisarle.
+
 ## Qué NUNCA hacer
 
 | Trampa | Por qué duele |

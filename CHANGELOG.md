@@ -1,3 +1,59 @@
+## [4.19.86] - 2026-09-12
+### Dos guardianes para que un renombre no vuelva a dejar a nadie sin actualizaciones
+
+Hoy se renombró el repo a **Aely** y eso dejó incomunicados los móviles de su padre y su pareja.
+El arreglo (el repo puente) lo hizo Cursor y ya está vivo; esto es lo que impide la repetición,
+porque **ningún test de este repo podía cazarlo**.
+
+**1 · `tests/ota-bases-espejo.test.mjs` — el JS y el Java no pueden divergir en silencio.**
+La base del OTA vive en DOS sitios: `_mcOtaBASE` / `_mcBetaBASE` en `12-boot.js` y `BASE` /
+`BASE_BETA` en `OtaCheckWorker.java`. Cambiar una y olvidar la otra es exactamente lo que pasó:
+el código llevaba `/Aely/` desde 4.19.81 y **la APK instalada seguía con `/Mi-Cartera/`**, que ese
+día empezó a dar 404. Y eso **no se arregla publicando**, porque lo que está roto es el canal por
+el que llegaría el arreglo: se arregla instalando una APK, teléfono por teléfono.
+Verificado en rojo simulando el olvido de hoy:
+
+    ✗ la base de producción es la MISMA en el JS y en el Java
+      12-boot.js dice https://juanjoavila.github.io/Aely/ y OtaCheckWorker.java dice
+      https://juanjoavila.github.io/Mi-Cartera/. Cambiar una sola deja a quien ya tiene la APK
+      hablando con un sitio muerto, y eso no se arregla por OTA.
+
+El guardián comprueba además que las dos acaben en `/` y que el código nuevo no vuelva a apuntar
+al nombre viejo: el puente es para los clientes YA instalados, no una base sobre la que construir.
+
+**2 · `npm run salud` ahora comprueba que las URLs RESPONDAN, no solo que existan.** Antes solo
+se miraba el número de versión, y por eso un `version.json` que anunciaba un `bundle.zip` en una
+dirección muerta pasó desapercibido. Se añaden:
+
+- el `url` del `version.json` de producción (sin eso, apagar el canal beta no descarga nada);
+- el `url` del `apk.json` de producción (sin eso, nadie puede instalar la APK);
+- **las cuatro puertas del puente** `/Mi-Cartera`: `version.json`, `bundle.zip`, `apk.json` y la
+  release `beta` bajo el nombre viejo.
+
+Esa última hace falta por una trampa que costó descubrir y que queda escrita en `docs/RELEASE.md`:
+**tener un repo con el nombre viejo MATA el redirect automático de GitHub para ese nombre.** Al
+crear el puente se arregló Pages y se rompieron las Releases — la URL de descarga de la APK de
+producción y el `BASE_BETA` del worker nativo pasaron a 404. Mientras el puente exista, manda él
+sobre ese nombre y tiene que servir TODO lo que servía antes.
+
+En `docs/RELEASE.md` queda también **cómo se apaga el puente**, que es la única salida: promocionar,
+APK nueva desde `main`, los dos `apk.json` apuntando a ella, que los tres móviles la instalen —los
+de la familia se enteran POR el puente, que es el vehículo que entrega su propio reemplazo—,
+comprobar que no queda ningún `versionCode ≤ 45` vivo, y **entonces** borrarlo.
+
+**3 · Y la 4.19.85 se había quedado sin tanda.** Sin la propiedad `tandas`, una versión resucita
+entera en su panel como «4.19.85/todo»: `beta-tandas-vacias` estaba **en rojo** en el tip de beta.
+Se le escribe la tanda `volver-a-estable` con siete pasos numerados —que es justo lo que él tiene
+que probar— avisando de que volver a estable le baja a la 4.18.25 y de que el mismo interruptor le
+trae de vuelta.
+
+**4 · Y al escribir eso salió un agujero de verdad en el panel.** Con `tandas:[]` en la versión
+más nueva —que es lo correcto para una versión de fontanería como esta— el panel **se quedaba
+vacío** mientras no supiera qué sirve producción: sin `prodVersion`, la ronda es UNA sola versión
+y se cogía `RELEASE_NOTES[0]` a pelo. O sea que en el arranque, o sin red, le habría parecido que
+no tenía nada pendiente de probar con media ronda sin juzgar detrás. Ahora se coge la más nueva
+que SÍ tenga algo que probar. Lo cazó `revisar-beta` al ponerse en rojo, no una revisión a ojo.
+
 ## [4.19.85] - 2026-09-12
 ### El OTA ignora `v.url` del manifiesto y baja desde su base
 

@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.19.86",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "Que un cambio de nombre no vuelva a dejar a nadie sin actualizaciones",
+      "en": "So a rename never again leaves anyone without updates",
+      "ca": "Que un canvi de nom no torni a deixar ningú sense actualitzacions"
+    },
+    "items": {
+      "es": [
+        "Al cambiar el nombre del proyecto, la dirección desde la que la app pedía las actualizaciones dejó de existir y algunos móviles se quedaron sin poder ni preguntar. Ya está arreglado, y ahora hay dos comprobaciones automáticas para que no pueda repetirse.",
+        "Sin cambios visibles en la app: esto es fontanería para que las versiones sigan llegando."
+      ],
+      "en": [
+        "When the project was renamed, the address the app used to ask for updates stopped existing and some phones could not even ask. That is fixed, and there are now two automatic checks so it cannot happen again.",
+        "Nothing visible changes in the app: this is plumbing so updates keep arriving."
+      ],
+      "ca": [
+        "En canviar el nom del projecte, l'adreça des d'on l'app demanava les actualitzacions va deixar d'existir i alguns mòbils no podien ni preguntar. Ja està arreglat, i ara hi ha dues comprovacions automàtiques.",
+        "Sense canvis visibles a l'app: això és lampisteria perquè les versions segueixin arribant."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.19.85",
     "d": "12 sep 2026",
     "t": {
@@ -17,7 +41,46 @@
       "ca": [
         "Si apagaves el canal de proves i no tornava la versió estable, era perquè demanava un fitxer a una adreça antiga. Ja fa servir la bona."
       ]
-    }
+    },
+    "tandas": [
+      {
+        "id": "volver-a-estable",
+        "t": {
+          "es": "📦 Volver al canal estable, y que tu familia vuelva a recibir versiones",
+          "en": "📦 Back to the stable channel, and your family getting updates again",
+          "ca": "📦 Tornar al canal estable, i que la teva família torni a rebre versions"
+        },
+        "items": {
+          "es": [
+            "1. Esto es lo que nos dijiste que era urgente: «no me deja volver a prod desactivando el canal beta». Aviso antes de empezar: al volver a estable te vas a la 4.18.25, que es bastante más antigua. Se vuelve a la beta por el mismo interruptor, así que no te quedas atrapado.",
+            "2. Ajustes → 🧪 Pruebas → toca la fila «Canal: BETA (pruebas)» y confirma «Volver a estable».",
+            "3. Tiene que empezar a descargar y decirte que está aplicando una versión. Antes aquí no pasaba NADA: ese era el fallo.",
+            "4. Cierra la app del todo y ábrela. Ajustes → abajo del todo: la versión tiene que ser la 4.18.25, no una 4.19.x.",
+            "5. Ahora vuelve: mismo interruptor, «Activar beta». Tiene que traerte otra vez la última de pruebas y quedarte como estabas.",
+            "6. Y lo que más importa, que no lo ves tú: pregúntale a tu padre si le sale aviso de actualización. Su móvil llevaba días sin poder ni preguntar, porque al cambiar el nombre del proyecto la dirección vieja dejó de existir. Ya vuelve a responder.",
+            "7. Si algo de esto se queda a medias, dilo SIN reinstalar nada: el camino de vuelta es el interruptor, y si no funciona queremos verlo tal cual."
+          ],
+          "en": [
+            "1. This is the one you flagged as urgent: “it won't let me go back to prod by turning the beta channel off”. Heads-up: going back to stable drops you to 4.18.25, which is noticeably older. The same switch brings you back, so you are not stuck.",
+            "2. Settings → 🧪 Testing → tap “Channel: BETA” and confirm “Back to stable”.",
+            "3. It must start downloading and tell you it is applying a version. Before, NOTHING happened here: that was the bug.",
+            "4. Close the app fully and reopen. Settings → bottom: the version must read 4.18.25, not a 4.19.x.",
+            "5. Now go back: same switch, “Enable beta”. It must bring you the latest test build again.",
+            "6. And the part you cannot see yourself: ask your dad whether he gets an update notice. His phone could not even ask for days, because renaming the project killed the old address. It answers again now.",
+            "7. If any of this stalls, tell us WITHOUT reinstalling anything: the way back is the switch, and if it fails we want to see it as it is."
+          ],
+          "ca": [
+            "1. Es el que vas dir que era urgent: «no em deixa tornar a prod desactivant el canal beta». Avis: en tornar a estable vas a la 4.18.25, forca mes antiga. Es torna amb el mateix interruptor.",
+            "2. Ajustos → 🧪 Proves → toca «Canal: BETA» i confirma «Tornar a estable».",
+            "3. Ha de comencar a baixar i dir-te que aplica una versio. Abans aqui no passava RES.",
+            "4. Tanca l'app del tot i obre-la. Ajustos → a baix: la versio ha de ser la 4.18.25.",
+            "5. Ara torna: mateix interruptor, «Activar beta». T'ha de portar l'ultima de proves.",
+            "6. I el que no veus tu: pregunta-li al teu pare si li surt avis d'actualitzacio. El seu mobil no podia ni preguntar.",
+            "7. Si algo es queda a mitges, digues-ho SENSE reinstal·lar res."
+          ]
+        }
+      }
+    ]
   },
   {
     "v": "4.19.84",
