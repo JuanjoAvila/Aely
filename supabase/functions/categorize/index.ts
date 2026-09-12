@@ -35,7 +35,15 @@ const HINTS =
   "recibos=facturas periódicas: teléfono, internet, seguro NO médico, alquiler, comunidad, alarma; " +
   "compras=ropa y tiendas; educacion=cursos y colegios; salud=farmacia, médico, seguro médico; " +
   "pelu=peluquería y estética; mascotas=veterinario y pienso; hogar=IKEA, bricolaje; " +
-  "regalos=flores y regalos; joyeria=joyas; bizum=Bizum enviado a personas; otros=solo si no encaja ninguna.";
+  "regalos=flores y regalos; joyeria=joyas; bizum=Bizum enviado a personas; otros=solo si no encaja ninguna. " +
+  /* PASARELAS DE PAGO (rechazo suyo del 12/9: «Mangopay» → Compras). Las palabras clave YA lo
+     dejan en `otros` —«mango» está en KW_PALABRA y no casa dentro de MANGOpay—, pero entonces
+     se le pregunta al modelo, que lee «Mango» y contesta Compras. Y no es una tienda: es la
+     pasarela que cobra por Vinted. El nombre de un intermediario NO dice qué se compró, así que
+     inventarle categoría es adivinar. Regla de familia, no un parche de un comercio. */
+  "REGLA: si el nombre es una pasarela de pago o un intermediario de cobro (mangopay, stripe, " +
+  "paypal, sumup, redsys, adyen, izettle, checkout.com, payco, worldline, ceca), responde " +
+  "`otros`: ese nombre no dice qué se compró, solo quién cobró.";
 
 // El origen permitido lo pone `withCors` en la respuesta (lista blanca, ../_shared/cors.ts).
 const cors = { "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };

@@ -104,9 +104,23 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
 
   // 🎉 Deudas a las que les queda LA ÚLTIMA cuota: alegría en Inicio (petición 2026-07-18
   // «para alegrar un poco el mes»). debtLeft<=1 = la cuota de este mes (o la próxima) es la última.
+  /* Y SE PUEDE QUITAR (2026-09-12, reportado por él desde la app): «está chulo que te aparezca
+     el aviso pero cansa mucho verlo cada día… estaría bien poder quitarlo». La tarjeta se queda
+     —le gusta— pero se descarta como el informe del mes cerrado, con el mismo «Descartar».
+     Se descarta POR DEUDA, no de golpe: cada deuda llega a su última cuota UNA vez, así que
+     esto es «ya lo he visto», no «no me lo cuentes nunca más». Y vive en `settings` para que
+     viaje a la nube: si no, el otro móvil se lo volvería a enseñar cada día. */
+  const partyOff=(state.settings&&state.settings.partyDismissed)||[];
   const partyDebts=(state.debts||[]).filter(function(d){
-    const l=debtLeft(d); return debtActive(d) && l!=null && l<=1;
+    const l=debtLeft(d); return debtActive(d) && l!=null && l<=1 && partyOff.indexOf(d.id)===-1;
   });
+  const dismissParty=function(id){
+    set(function(s){
+      const prev=(s.settings&&s.settings.partyDismissed)||[];
+      if(prev.indexOf(id)!==-1) return s;
+      return Object.assign({},s,{settings:Object.assign({},s.settings,{partyDismissed:prev.concat([id])})});
+    });
+  };
 
   const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,4);
   const recent=(state.expenses||[]).slice().sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); }).slice(0,3);
@@ -245,9 +259,13 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
 
     !showSkel && partyDebts.length>0 && React.createElement("div",{className:"v4-card rise v4-party",style:{animationDelay:".12s",marginTop:8,padding:"14px 16px"}},
       partyDebts.map(function(d){
-        return React.createElement("div",{key:d.id},
-          React.createElement("div",{style:{fontWeight:800,fontSize:15,lineHeight:1.35}}, tf("v4_debt_party_1",{name:d.name,x:eur0(d.monthly||0)})),
-          React.createElement("div",{style:{fontSize:13,color:"var(--muted)",marginTop:3}}, tf("v4_debt_party_sub",{x:eur0(d.monthly||0)}))
+        return React.createElement("div",{key:d.id,style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
+          React.createElement("div",null,
+            React.createElement("div",{style:{fontWeight:800,fontSize:15,lineHeight:1.35}}, tf("v4_debt_party_1",{name:d.name,x:eur0(d.monthly||0)})),
+            React.createElement("div",{style:{fontSize:13,color:"var(--muted)",marginTop:3}}, tf("v4_debt_party_sub",{x:eur0(d.monthly||0)}))
+          ),
+          React.createElement("button",{type:"button",className:"link","data-testid":"party-dismiss",style:{flexShrink:0,fontSize:13},
+            onClick:function(){ dismissParty(d.id); }}, t("mr_later"))
         );
       })
     ),
