@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.19.88",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "La ola del canal de pruebas ya puede llegar al móvil",
+      "en": "The test-channel overscroll fix can reach the phone",
+      "ca": "L'ona del canal de proves ja pot arribar al mòbil"
+    },
+    "items": {
+      "es": [
+        "La versión anterior con el arreglo de la ola no llegó a publicarse: un control automático seguía exigiendo la geometría vieja. Ya cuadra, y el arreglo vuelve a estar en camino."
+      ],
+      "en": [
+        "The previous build with the overscroll fix never published: an automatic check still required the old layout. That check matches the fix now, so it can ship."
+      ],
+      "ca": [
+        "La versió anterior amb l'arranjament de l'ona no es va publicar: un control automàtic encara exigia la geometria vella. Ja encaixa, i l'arranjament torna a estar en camí."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.19.87",
     "d": "12 sep 2026",
     "t": {

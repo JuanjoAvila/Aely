@@ -1,3 +1,15 @@
+## [4.19.88] - 2026-09-12
+### season-detalle exige la geometría de la ola (no la del UX-01 que la mató)
+
+La 4.19.87 falló en CI: `tests/season-detalle.test.mjs` seguía exigiendo
+`top:safe-top+4` + `padding:6px` (UX-01) — justo lo que rompía la ola. El e2e
+`ux01-layout-shift` ya vigila el **efecto** (leave/enter <2 px); el guardián CSS
+pasa a exigir caja a pantalla (`inset:0` / `height:100%` + padding safe-top+10)
+y deja escrito el porqué del cambio.
+
+La 4.19.85 había fallado por `beta-tandas-vacias` (sin `tandas`); eso ya lo
+tapó la 4.19.86. Él se quedó en 4.19.85.1 (docs) porque 85/87 no publicaron.
+
 ## [4.19.87] - 2026-09-12
 ### Ola nativa: caja a pantalla otra vez, sin el salto de 44 px
 

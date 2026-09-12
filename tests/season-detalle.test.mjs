@@ -116,23 +116,29 @@ assert.doesNotMatch(shell.replace(/\/\*[\s\S]*?\*\//g, ""), /background-attachme
 assert.match(shell, /html\[data-season\]\s+\.page\{background:transparent!important;/, "page transparente");
 assert.match(shell, /html\[data-season\]\s+\.app\{[^}]*background:transparent!important;/, "app transparente");
 assert.match(shell, /\.app\{[^}]*padding-top:calc\(var\(--safe-top\) \+ 4px\)/, "app padding-top");
-/* UX-01 (10/9): el host NO puede llevar safe-top en el padding — eso era el salto de 44 px al
-   quitar la clase a mitad de gesto. El hueco lo pone `top` (= padding de `.app`); el padding
-   del host es el mismo 6px que `.page`. */
+/* OLA NATIVA + UX-01 (12/9): dos verdades medidas que se pelearon.
+   UX-01 (10/9) movió el safe-top a `top` + padding 6px para matar el salto de 44 px al
+   entrar/salir de `.page-scroll-host`. Eso dejó el scroller sin caja a pantalla y Android
+   dejó de pintar la ola (bisección prod/beta, commit 37694684).
+   Se vuelve a la geometría de prod/Ajustes: `inset:0` / `top:0` / `height:100%` y el
+   safe-top en el PADDING del host. El Y del contenido en reposo sigue siendo safe-top+10
+   (= `.app` + `.page`). El EFECTO del salto lo vigila `e2e/ux01-layout-shift.spec.mjs`
+   (leave/enter <2 px), no la forma concreta de la regla CSS. */
+const hostCss = shell.replace(/\/\*[\s\S]*?\*\//g, "");
 assert.match(
-  shell.replace(/\/\*[\s\S]*?\*\//g, ""),
-  /\.page\.page-scroll-host\{[^}]*top:calc\(var\(--safe-top\) \+ 4px\)/,
-  "host ancla top en safe-top+4 (como .app)"
+  hostCss,
+  /\.page\.page-scroll-host\{[^}]*(?:inset:0|top:0)[^}]*height:100%/,
+  "host caja a pantalla (condición medida de la ola nativa)"
 );
 assert.match(
-  shell.replace(/\/\*[\s\S]*?\*\//g, ""),
-  /\.page\.page-scroll-host\{[^}]*padding:6px 18px/,
-  "host padding idéntico a .page (sin safe-top en padding)"
+  hostCss,
+  /\.page\.page-scroll-host\{[^}]*padding:calc\(var\(--safe-top\) \+ 10px\)/,
+  "host padding = safe-top+10 (como prod; el salto lo vigila ux01-layout-shift)"
 );
 assert.doesNotMatch(
-  shell.replace(/\/\*[\s\S]*?\*\//g, ""),
-  /\.page\.page-scroll-host\{[^}]*padding:calc\(var\(--safe-top\)/,
-  "host NO mete safe-top en padding (era el tironcillo)"
+  hostCss,
+  /\.page\.page-scroll-host\{[^}]*top:calc\(var\(--safe-top\)/,
+  "host NO ancla top en safe-top (eso mató la ola el 12/9)"
 );
 
 /* Barra: hide sin opacity (evita ver la lista a través) */
