@@ -331,6 +331,18 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
           nuevos:probe.nuevos,
           ya:probe.coincideDayAmt
         }));
+        /* Y LA SONDA TAMBIEN VIAJA (2026-09-12). Hasta hoy solo salia en un aviso de pantalla y
+           en `window.__histDupProbe`, asi que para saber que le pasa habia que pedirle a el que
+           leyera el aviso a tiempo y lo copiara. Su rechazo del 12/9 —«los que salen que no son
+           repetidos si que lo son»— es exactamente lo que mide `coincideDayAmt`: candidatos
+           marcados NUEVOS que ya tenian una fila con el mismo dia e importe. Sin el numero real
+           de SU movil solo se puede adivinar, y aqui adivinar sale caro.
+           ⚠ Lo que viaja son CONTADORES mas las dos fechas del rango pedido (`dateFrom` y la
+           mas antigua que llego), que hacen falta para distinguir «el banco no lo mando» de «el
+           banco lo truncó». NI UN comercio, NI UN importe, NI UN banco. Es la misma linea que
+           separa `logUso` de un `logEvent` libre, y se respeta. */
+        try{ cloud.logEvent("hist", "sonda "+probe.llegan+" llegan / "+probe.nuevos+" nuevos / "+probe.coincideDayAmt+" coinciden dia+importe",
+          JSON.stringify(probe)); }catch(_e2){}
       }catch(_e){ /* sonda no tumba el import */ }
     }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); setCands([]); }).finally(function(){ setLoading(false); });
   };

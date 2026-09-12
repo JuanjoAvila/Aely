@@ -851,8 +851,18 @@ function dedupeHistRecibos(cands){
    el dedup. Aquí se indexaba solo `merchant`: tras renombrar un «Movimiento» de TR (sin ext_id),
    el histórico volvía a ver el nombre del banco y lo marcaba NUEVO. Misma regla que el sync —
    cero cambio de identidad en la nube. */
+/* ⚠ EL DÍA, EN HORA LOCAL — LA TERCERA COPIA DE LA MISMA REGLA (2026-09-12).
+   Esto era `String(dt).slice(0,10)`, o sea el día **UTC** del texto guardado. En España, un
+   gasto hecho entre las 00:00 y las 02:00 se guarda con un ISO del día ANTERIOR: el histórico
+   comparaba el día 4 contra el día 5 que manda el banco y **lo daba por nuevo estando ya
+   apuntado**. Es su rechazo del 12/9 de `historico-la-lista`: «están TODOS apuntados
+   correctamente, así que los que salen que no son repetidos sí que lo son».
+   Es EXACTAMENTE el fallo que ya se arregló dos veces: en las cabeceras de Gastos (el mismo día
+   salía dos veces) y en el orden a mano (arrastrar un gasto de madrugada no hacía nada). La
+   regla buena ya existe y vive en `00-core`: `dayKey` / `diaDeGasto`. Aquí quedaba la tercera
+   copia sin migrar. Ver [[misma-regla-en-dos-sitios]] y [[dia-local-no-utc]]. */
 function histCandDupKey(dt, amountSigned, merchant){
-  const dia=String(dt||"").slice(0,10);
+  const dia=dayKey(new Date(dateMs(dt)));
   const norm=String(merchant||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim();
   return dia+"|"+Math.round(amountSigned*100)+"|"+norm;
 }

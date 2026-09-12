@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.19.90",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "Que la beta vuelva a publicarse de verdad",
+      "en": "So the test channel actually publishes again",
+      "ca": "Que la beta torni a publicar-se de veritat"
+    },
+    "items": {
+      "es": [
+        "Los controles automáticos chocaban con el popup de novedades y con un tiempo demasiado justo al esconder la barra. Ya no bloquean la publicación."
+      ],
+      "en": [
+        "Automatic checks clashed with the what's-new popup and with a too-tight wait when hiding the bar. They no longer block publishing."
+      ],
+      "ca": [
+        "Els controls automàtics xocaven amb el popup de novetats i amb un temps massa just en amagar la barra. Ja no bloquegen la publicació."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.19.89",
     "d": "12 sep 2026",
     "t": {
