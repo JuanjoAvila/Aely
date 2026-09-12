@@ -70,6 +70,7 @@ export const E2E_MAP = [
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
     "e2e/listas-render.spec.mjs", "e2e/bancos-acordeon.spec.mjs", "e2e/bancos-reconnect.spec.mjs",
     "e2e/bancos-historico-filtro.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs",
+    "e2e/bancos-lista-fresca.spec.mjs",
     "e2e/cartera-orden-cuentas.spec.mjs",
   ] },
   { file: "src/modules/09-tab-debts-goals.js", specs: [

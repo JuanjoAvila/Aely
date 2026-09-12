@@ -709,6 +709,17 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
     else if((rows||[]).length===0) set(function(s){ return s.hasBankLink?Object.assign({},s,{hasBankLink:false}):s; });   // sin bancos → dejar de llamar a bank-sync
   }).catch(function(){ setLinks([]); }); };
   useEffect(loadLinks,[uid]);
+  /* Y CADA VEZ QUE LA LISTA PUEDE HABER CAMBIADO (2026-09-12, suyo desde la app: «si conectas un
+     banco… no te aparece hasta que no tires para atrás y vuelvas a entrar en la zona de bancos»).
+     El `useEffect` de arriba corre UNA vez por `uid`: si esta pantalla ya estaba montada cuando
+     vuelves de autorizar el banco, se queda con la lista de antes y la fila nueva no sale hasta
+     que la cierras y la abres. `runBankSync` avisa al terminar (`mc-bank-links-changed`) y aquí
+     se vuelve a leer. `loadLinks` es idempotente y ya trae su propio `catch`. */
+  useEffect(function(){
+    var alRefrescar=function(){ loadLinks(); };
+    window.addEventListener("mc-bank-links-changed", alRefrescar);
+    return function(){ window.removeEventListener("mc-bank-links-changed", alRefrescar); };
+  },[uid]);
   const loadAspsps=function(){ if(aspsps!==null||loadingA) return; setLoadingA(true); cloud.bankAspsps("ES").then(function(rows){ setAspsps(rows||[]); }).catch(function(e){ setAspsps([]); showToast("⚠ "+((e&&e.message)||e)); }).finally(function(){ setLoadingA(false); }); };
   const openPicker=function(){ setPicking(true); loadAspsps(); };
   // Candado compartido con el banner de Cartera: dos toques no gastan el permiso dos veces

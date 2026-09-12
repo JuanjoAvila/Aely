@@ -639,7 +639,17 @@ function App(){
       }
     }).catch(function(e){
       if(opts.manual || navigator.onLine!==false) showToast("⚠ "+t("bank_syncfail"));
-    }).finally(function(){ bankSyncing.current=false; });
+    }).finally(function(){
+      bankSyncing.current=false;
+      /* AVISA DE QUE LA LISTA DE BANCOS HA CAMBIADO (2026-09-12, reportado por el desde la app:
+         «si conectas un banco... no te aparece hasta que no tires para atras y vuelvas a entrar
+         en la zona de bancos»). `BankPanel` carga sus links en un `useEffect(..., [uid])`, o sea
+         UNA vez al montar; si la pantalla ya estaba montada cuando vuelves de autorizar, sigue
+         enseñando la lista de antes hasta que la cierras y la abres. Se avisa SIEMPRE al acabar
+         un sync —haya ido bien o mal—, porque el caso que a el le fallaba es justo el de despues
+         de conectar, que es cuando la fila acaba de nacer. */
+      try{ window.dispatchEvent(new CustomEvent("mc-bank-links-changed")); }catch(e){}
+    });
   };
 
   /* ── Auto-refresh de brókers al abrir (petición 2026-07-15: «que se actualicen solos») ──
