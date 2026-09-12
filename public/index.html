@@ -2065,7 +2065,7 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
 </script>
 <script>
 /* ============================================================
-   MI CARTERA v3 — fuente JSX (se compila con runtime clásico)
+   AELY v3 — fuente JSX (se compila con runtime clásico)
    ============================================================ */
 const { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, useDeferredValue } = React;
 
@@ -10754,7 +10754,7 @@ function MyInvestorSync({state, set, open, onToggle}){
      trBridge().verify({processId,code}) -> { ok:bool, error? }               (guarda la sesión EN EL DISPOSITIVO)
      trBridge().sync()                   -> { ok:bool, positions:[{isin,name,shares,value,cost?}], cash?:number, error? }
      trBridge().logout()                 -> { ok:bool }
-   `value`/`cost` en EUR (TR liquida en €). NADA de esto toca la nube de Mi Cartera:
+   `value`/`cost` en EUR (TR liquida en €). NADA de esto toca la nube de Aely:
    credenciales y sesión viven solo en el móvil.
    ============================================================ */
 function trBridge(){
@@ -22609,7 +22609,7 @@ function App(){
    Notificación al móvil cuando hay update lista (pareja no depende de enterarse a mano). */
 var _mcNative=false;
 try{ _mcNative=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()); }catch(e){}
-var _mcOtaBASE="https://juanjoavila.github.io/Mi-Cartera/";
+var _mcOtaBASE="https://juanjoavila.github.io/Aely/";
 var _mcOtaChecking=false;
 
 /* ---------- CANAL DE ACTUALIZACIONES: estable vs beta ----------
@@ -22621,7 +22621,7 @@ var _mcOtaChecking=false;
    El canal es LOCAL de cada móvil (localStorage): no viaja en el estado ni a la nube, para que
    activar la beta en un móvil no arrastre a los demás. Se enciende desde Ajustes y solo lo ve el
    dueño (profiles.is_admin). */
-var _mcBetaBASE="https://github.com/JuanjoAvila/Mi-Cartera/releases/download/beta/";
+var _mcBetaBASE="https://github.com/JuanjoAvila/Aely/releases/download/beta/";
 function mcChannel(){ try{ return localStorage.getItem("_mcChannel")==="beta" ? "beta" : "stable"; }catch(e){ return "stable"; } }
 function mcSetChannel(c){
   try{
@@ -23090,7 +23090,7 @@ mcScheduleIdle(function(){ mcLoadSentryDeferred(); }, 1800);
       /* EL LOGO SE VA ANTES QUE LA CORTINA (2026-08-01, cazado en SU vídeo).
          Todo se desvanecía a la vez, y eso deja ~260 ms en los que la cortina —un color plano—
          ya es casi transparente mientras el logo —verde brillante sobre fondo oscuro— se sigue
-         viendo perfectamente. Resultado: el escudo y «Mi Cartera» flotando ENCIMA del panel ya
+         viendo perfectamente. Resultado: el escudo y «Aely» flotando ENCIMA del panel ya
          pintado, con el saludo, el patrimonio y la barra de abajo debajo. Se ven las dos
          pantallas a la vez y se lee como que la app «cambia de forma a media carga», que es
          exactamente lo que él lleva rechazando desde el 29/7.

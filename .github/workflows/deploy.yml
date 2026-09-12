@@ -70,7 +70,7 @@ jobs:
           VERSION=$(cat VERSION | tr -d '[:space:]')
           (cd public && zip -qr ../bundle.zip .)
           mv bundle.zip public/bundle.zip
-          printf '{"version":"%s","url":"https://juanjoavila.github.io/Mi-Cartera/bundle.zip"}\n' "$VERSION" > public/version.json
+          printf '{"version":"%s","url":"https://juanjoavila.github.io/Aely/bundle.zip"}\n' "$VERSION" > public/version.json
           echo "OTA $VERSION → $(du -h public/bundle.zip | cut -f1)"
 
       - name: Configurar Pages

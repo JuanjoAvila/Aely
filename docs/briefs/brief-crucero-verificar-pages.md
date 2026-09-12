@@ -18,7 +18,7 @@
 | Pieza | Estado |
 |--------|--------|
 | Código en `main` / `VERSION` | **4.16.1** (arreglo barra bajo cámara + Wallet + release hygiene) |
-| APK GitHub | **39 / 4.16.1** → [v4.16.1](https://github.com/JuanjoAvila/Mi-Cartera/releases/tag/v4.16.1) |
+| APK GitHub | **39 / 4.16.1** → [v4.16.1](https://github.com/JuanjoAvila/Aely/releases/tag/v4.16.1) |
 | Su móvil | Ya tiene release limpia (~38 o 39). **Si la app va bien, no reinstales.** |
 | Supabase (migración 0020 + ingest Wallet) | **OK** — Google Pay / Wallet **sí se pueden probar** |
 | Pages live | AÚN **`version.json` = 4.15.0** y **`apk.json` = 35** (outage de GitHub Actions/Pages, no cuota de minutos) |
@@ -33,8 +33,8 @@
 ### 1. ¿Ya está bien?
 
 ```bash
-curl -sL https://juanjoavila.github.io/Mi-Cartera/version.json
-curl -sL https://juanjoavila.github.io/Mi-Cartera/apk.json
+curl -sL https://juanjoavila.github.io/Aely/version.json
+curl -sL https://juanjoavila.github.io/Aely/apk.json
 ```
 
 **Listo** si ves `"version":"4.16.1"` (o al menos `4.16.0+`) **y** `apk.json` con `versionCode` **39** / `versionName` **4.16.1**.

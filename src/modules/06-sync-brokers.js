@@ -346,7 +346,7 @@ function MyInvestorSync({state, set, open, onToggle}){
      trBridge().verify({processId,code}) -> { ok:bool, error? }               (guarda la sesión EN EL DISPOSITIVO)
      trBridge().sync()                   -> { ok:bool, positions:[{isin,name,shares,value,cost?}], cash?:number, error? }
      trBridge().logout()                 -> { ok:bool }
-   `value`/`cost` en EUR (TR liquida en €). NADA de esto toca la nube de Mi Cartera:
+   `value`/`cost` en EUR (TR liquida en €). NADA de esto toca la nube de Aely:
    credenciales y sesión viven solo en el móvil.
    ============================================================ */
 function trBridge(){

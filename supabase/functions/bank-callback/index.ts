@@ -10,12 +10,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ebApi, ebConfig, makeJWT } from "../_shared/enablebanking.ts";
 import { encryptSessionId } from "../_shared/token_store.ts";
 
-const APP_URL = Deno.env.get("APP_URL") || "https://juanjoavila.github.io/Mi-Cartera/";
+const APP_URL = Deno.env.get("APP_URL") || "https://juanjoavila.github.io/Aely/";
 
 // Vuelta a la app o a la web según de dónde salió el usuario (bank-connect marca el state
 // con ".app" cuando la petición vino de la APK). En la web basta un 302 a Pages; en la app
 // el navegador del sistema no puede "volver" solo → 302 a la página PUENTE public/back.html
-// (en Pages), que navega a micartera://bank (deep-link que reabre Mi Cartera).
+// (en Pages), que navega a micartera://bank (deep-link que reabre Aely).
 // ANTES servíamos el HTML puente desde aquí, pero el gateway de Supabase ahora machaca el
 // Content-Type a text/plain + CSP sandbox (anti-phishing) y el navegador enseñaba el código
 // fuente en crudo (visto 2026-07-10) → el HTML tiene que vivir en nuestro dominio.

@@ -1,7 +1,7 @@
-# Mi Cartera v4.0 — Especificación de rediseño
+# Aely v4.0 — Especificación de rediseño
 
-> Guía de implementación para Cursor/Claude Code sobre el repo `JuanjoAvila/Mi-Cartera`.
-> El mockup de referencia es `Mi Cartera v2.dc.html` (este proyecto). Todo lo que diga esta guía está ya resuelto visualmente ahí: **ante cualquier duda, el mockup manda**.
+> Guía de implementación para Cursor/Claude Code sobre el repo `JuanjoAvila/Aely`.
+> El mockup de referencia es `Aely v2.dc.html` (este proyecto). Todo lo que diga esta guía está ya resuelto visualmente ahí: **ante cualquier duda, el mockup manda**.
 
 ---
 
@@ -209,7 +209,7 @@ Segmented control 3 opciones dentro de card `--sur` radius 16, thumb mint sólid
 8. Barrido de motion + reduced-motion + focus (§10–11).
 9. Migrar Logros/Compartido a su nuevo hogar y borrar tabs muertos.
 
-**Criterio de aceptación global: ponlo al lado de `Mi Cartera v2.dc.html` y no se distingue.**
+**Criterio de aceptación global: ponlo al lado de `Aely v2.dc.html` y no se distingue.**
 
 ---
 

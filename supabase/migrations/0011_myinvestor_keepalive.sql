@@ -1,5 +1,5 @@
 -- ============================================================
--- Mi Cartera — keep-alive de la sesión de MyInvestor (feedback 2026-07-13: «caduca la sesión»).
+-- Aely — keep-alive de la sesión de MyInvestor (feedback 2026-07-13: «caduca la sesión»).
 --
 -- El refresh del token solo ocurría al SINCRONIZAR: si el refresh token de MyInvestor
 -- caducaba entre dos usos, el enlace moría y tocaba reconectar con contraseña + OTP.

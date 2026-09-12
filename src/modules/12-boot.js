@@ -8,7 +8,7 @@
    Notificación al móvil cuando hay update lista (pareja no depende de enterarse a mano). */
 var _mcNative=false;
 try{ _mcNative=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()); }catch(e){}
-var _mcOtaBASE="https://juanjoavila.github.io/Mi-Cartera/";
+var _mcOtaBASE="https://juanjoavila.github.io/Aely/";
 var _mcOtaChecking=false;
 
 /* ---------- CANAL DE ACTUALIZACIONES: estable vs beta ----------
@@ -20,7 +20,7 @@ var _mcOtaChecking=false;
    El canal es LOCAL de cada móvil (localStorage): no viaja en el estado ni a la nube, para que
    activar la beta en un móvil no arrastre a los demás. Se enciende desde Ajustes y solo lo ve el
    dueño (profiles.is_admin). */
-var _mcBetaBASE="https://github.com/JuanjoAvila/Mi-Cartera/releases/download/beta/";
+var _mcBetaBASE="https://github.com/JuanjoAvila/Aely/releases/download/beta/";
 function mcChannel(){ try{ return localStorage.getItem("_mcChannel")==="beta" ? "beta" : "stable"; }catch(e){ return "stable"; } }
 function mcSetChannel(c){
   try{

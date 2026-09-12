@@ -1,5 +1,5 @@
 -- ============================================================
--- Mi Cartera — Open Banking MULTI-CUENTA: guardar TODAS las cuentas de cada banco.
+-- Aely — Open Banking MULTI-CUENTA: guardar TODAS las cuentas de cada banco.
 --
 -- Hasta ahora `bank_links` guardaba UNA sola cuenta por banco (`account_uid`/`iban`),
 -- así que una cuenta con varias (p.ej. Revolut: principal + compartida) solo traía la

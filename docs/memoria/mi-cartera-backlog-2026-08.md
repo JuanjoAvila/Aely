@@ -288,7 +288,7 @@ de cada «ya está», para no volver a proponerlo. Lo que falta de verdad:
 ---
 
 # 🏪 7. BLOQUEANTES DE PLAY STORE (no de la beta)
-22. **NOMBRE NUEVO — decidido que se cambia, sin elegir.** Ya existe una app «Mi Cartera» en Play y
+22. **NOMBRE NUEVO — decidido que se cambia, sin elegir.** Ya existe una app «Aely» en Play y
     el Gobierno tiene «Cartera Digital Beta»; un nombre descriptivo no se registra. **Rechazó**
     Zurrón/Alforja/Brújula/Guardabienes. Brief suyo para la 2ª ronda: subir de «bolsa donde guardar»
     a **crecer / patrimonio / horizonte / rumbo / progreso / legado**, y decidir si debe funcionar en

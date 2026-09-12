@@ -74,7 +74,7 @@ const git = (a) => {
 const VERSION_REPO = fs.readFileSync(path.join(root, "VERSION"), "utf8").trim();
 async function versionDelCanalBeta() {
   try {
-    const r = await fetch("https://github.com/JuanjoAvila/Mi-Cartera/releases/download/beta/version.json", { redirect: "follow" });
+    const r = await fetch("https://github.com/JuanjoAvila/Aely/releases/download/beta/version.json", { redirect: "follow" });
     if (r.ok) { const j = await r.json(); if (j && j.version) return String(j.version); }
   } catch { /* sin red */ }
   return null;
@@ -90,7 +90,7 @@ const cli = loadPureLogicFromFile();
 async function versionDeProduccion() {
   if (prodVersion) return prodVersion;
   try {
-    const r = await fetch("https://juanjoavila.github.io/Mi-Cartera/version.json", { redirect: "follow" });
+    const r = await fetch("https://juanjoavila.github.io/Aely/version.json", { redirect: "follow" });
     if (r.ok) { const j = await r.json(); if (j && j.version) return String(j.version); }
   } catch { /* sin red: se sigue sin ronda */ }
   return null;

@@ -1,4 +1,4 @@
-# Cómo se trabaja en Mi Cartera
+# Cómo se trabaja en Aely
 
 Guía para cualquier IA que toque este repo (Cursor, Claude Code, Copilot…). **Léela entera antes
 de editar nada.** Casi todas las reglas están aquí porque algo se rompió antes por saltárselas.
@@ -132,7 +132,7 @@ Checklist **obligatoria** (sin descuadres — feedback 2026-07-17):
      APK real con socket de depuración y franja bajo la cámara). CDP a propósito:
      `MICARTERA_ALLOW_WEBDEBUG_RELEASE=1` + assemble a mano — **nunca** publicar esa build.
    - **`npm run release:apk`** (preferido): prep → assembleRelease → verifica aapt + firma
-     `CN=Mi Cartera` → sube `Mi-Cartera-$VERSION.apk` al release `v$VERSION` → escribe
+     `CN=Mi Cartera` → sube `Aely-$VERSION.apk` al release `v$VERSION` → escribe
      `public/apk.json` al asset **real**. Alternativa manual: `npm run apk:prep` +
      `assembleRelease` + upload + `apk.json` (misma disciplina). **NUNCA copies `public/` a
      `www/` a mano.** Incidente 2026-07-25: bundle con `APP_VERSION: "dev"` → ese móvil no

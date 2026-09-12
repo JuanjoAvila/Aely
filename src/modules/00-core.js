@@ -1,5 +1,5 @@
 /* ============================================================
-   MI CARTERA v3 — fuente JSX (se compila con runtime clásico)
+   AELY v3 — fuente JSX (se compila con runtime clásico)
    ============================================================ */
 const { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, useDeferredValue } = React;
 

@@ -1,4 +1,4 @@
-# Brief Claude personal — destello temporada (Mi Cartera)
+# Brief Claude personal — destello temporada (Aely)
 
 > ## ✅✅ CERRADO EL 2026-08-18 — aprobado por él EN LA APK, no solo en Chrome
 >

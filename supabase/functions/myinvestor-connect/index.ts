@@ -1,6 +1,6 @@
 // ============================================================
 // Edge Function: myinvestor-connect  (verify_jwt = true)
-// La llama la app (usuario logueado en Mi Cartera). Hace el login en la API de MyInvestor
+// La llama la app (usuario logueado en Aely). Hace el login en la API de MyInvestor
 // y guarda SOLO los tokens de sesión (nunca la contraseña) en myinvestor_links.
 //
 // Flujo (dos pasos posibles, como la app oficial):
@@ -12,7 +12,7 @@
 //   2) body { customerId, password, deviceId, otpId, signatureRequestId, code } → valida OTP
 //
 // La CONTRASEÑA se usa de paso para el login (MyInvestor la re-pide en el paso OTP) y NUNCA
-// se guarda ni se loguea. verify_jwt ata el enlace al usuario de Mi Cartera.
+// se guarda ni se loguea. verify_jwt ata el enlace al usuario de Aely.
 // ============================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";

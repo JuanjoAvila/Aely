@@ -3,12 +3,12 @@
 > **Contexto para quien lo implemente:** la v4 ya está en producción y funciona. Esto NO es un
 > rediseño ni una revisión de arquitectura: es una lista cerrada de micro-detalles de acabado
 > encontrados revisando `main` contra `docs/design/handoff/SPEC-v4.md` y el mockup
-> `Mi Cartera v2.dc.html`. **Revalidado el 2026-09-09 contra `main` (tree `d9bb5490`): las 14
+> `Aely v2.dc.html`. **Revalidado el 2026-09-09 contra `main` (tree `d9bb5490`): las 14
 > tareas y los 5 bonus siguen aplicando sin cambios** — en los 122 commits desde la primera
 > revisión no se ha tocado ninguno de estos puntos (`03-tab-dash.js` sigue intacto). Las
 > referencias de línea de abajo están actualizadas a ese tree.
 >
-> Mockup de cómo queda todo aplicado: `Mi Cartera v4 Pulido.dc.html` (3 pantallas — usuario
+> Mockup de cómo queda todo aplicado: `Aely v4 Pulido.dc.html` (3 pantallas — usuario
 > nuevo, con datos y sheet Apuntar — con etiquetas P1–P14 que se pueden apagar).
 >
 > **Se está trabajando en otras cosas en paralelo. Reglas duras:**

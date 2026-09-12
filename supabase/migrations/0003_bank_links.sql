@@ -1,5 +1,5 @@
 -- ============================================================
--- Mi Cartera — Open Banking (Enable Banking): enlaces de cuenta por usuario.
+-- Aely — Open Banking (Enable Banking): enlaces de cuenta por usuario.
 --
 -- Una fila por (usuario, banco). La ESCRIBEN las Edge Functions con service role
 -- (bank-connect / bank-callback / bank-sync). El cliente solo LEE su estado de

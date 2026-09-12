@@ -27,12 +27,12 @@ public class OtaCheckWorker extends Worker {
     static final String KEY_BG_NOTIFIED = "bg_notified_ver";
     static final String KEY_BG_APK = "bg_notified_apk";
     static final String KEY_CHANNEL = "channel";
-    private static final String BASE = "https://juanjoavila.github.io/Mi-Cartera/";
+    private static final String BASE = "https://juanjoavila.github.io/Aely/";
     /* EL VIGILANTE DE FONDO TAMBIÉN TIENE CANAL. Miraba SIEMPRE producción, así que en un móvil en
      * beta avisaba de una versión que no le toca —y a la vez la app abierta avisaba de la suya: dos
      * notificaciones para lo mismo, con números distintos («las notis se duplican», 2026-07-26).
      * El canal lo manda la web en `syncOtaState`, que es quien lo sabe (vive en su localStorage). */
-    private static final String BASE_BETA = "https://github.com/JuanjoAvila/Mi-Cartera/releases/download/beta/";
+    private static final String BASE_BETA = "https://github.com/JuanjoAvila/Aely/releases/download/beta/";
     // Compartidos con las notis que lanza la web (Notif.idFor): el aviso de «hay versión nueva» es
     // UNO, lo emita el worker con la app cerrada o la propia app abierta. Antes eran dos ids
     // distintos y salían las dos a la vez («las notis se duplican», 2026-07-26).

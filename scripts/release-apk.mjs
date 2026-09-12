@@ -220,13 +220,13 @@ if (apksigner) {
   console.warn("· apksigner no encontrado — salta verificación de CN (instala build-tools)");
 }
 
-const apkName = `Mi-Cartera-${VERSION}.apk`;
+const apkName = `Aely-${VERSION}.apk`;
 const apkOut = path.join(root, "android", "app", "build", "outputs", "apk", "release", apkName);
 fs.copyFileSync(apkSrc, apkOut);
 ok(`APK lista: ${apkOut}`);
 
 const tag = `v${VERSION}`;
-const url = `https://github.com/JuanjoAvila/Mi-Cartera/releases/download/${tag}/${apkName}`;
+const url = `https://github.com/JuanjoAvila/Aely/releases/download/${tag}/${apkName}`;
 const notes = notesArg ||
   `APK ${VERSION} (${gCode}): se instala encima sin desinstalar ni perder datos.`;
 

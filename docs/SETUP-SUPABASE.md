@@ -1,4 +1,4 @@
-# Setup Supabase — Fase 1 (Mi Cartera)
+# Setup Supabase — Fase 1 (Aely)
 
 Guía paso a paso para arrancar las tripas en la nube. Lo que tú haces (una vez) va marcado con 👤.
 El código (esquema, funciones, CI) ya está en el repo dentro de `supabase/`.
@@ -77,8 +77,8 @@ alguien vuelve a poner el `*`.
 ## Paso 3b — Configurar las URLs de Auth (CRÍTICO para el magic link) 👤
 
 En **Authentication → URL Configuration**:
-- **Site URL:** la URL de tu app en GitHub Pages (cópiala de Settings → Pages del repo; normalmente `https://juanjoavila.github.io/Mi-Cartera/`).
-- **Redirect URLs:** añade la misma URL y, por comodidad, un comodín: `https://juanjoavila.github.io/Mi-Cartera/**`.
+- **Site URL:** la URL de tu app en GitHub Pages (cópiala de Settings → Pages del repo; normalmente `https://juanjoavila.github.io/Aely/`).
+- **Redirect URLs:** añade la misma URL y, por comodidad, un comodín: `https://juanjoavila.github.io/Aely/**`.
 
 > Sin esto, el enlace del email redirige a `localhost` y el login falla. Si pruebas también en local, añade `http://localhost` a las Redirect URLs.
 

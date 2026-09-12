@@ -35,7 +35,7 @@ y comprueba el puente. Mantener separados los dos rechazos del panel beta ya reg
   No cubren la pérdida de la decisión al subir/bajar gastos ni una notificación posterior.
 - B09-B está en `origin/beta` y no en `origin/main` en la comparación de esta revisión.
   `supabase.yml` despliega automáticamente solo desde main. Último run de ese workflow consultado:
-  [32069491520](https://github.com/JuanjoAvila/Mi-Cartera/actions/runs/32069491520), 17/8, verde.
+  [32069491520](https://github.com/JuanjoAvila/Aely/actions/runs/32069491520), 17/8, verde.
   **No prueba la versión activa de la función**: puede haber despliegues manuales y el workflow
   tiene un gate que permite omitir despliegue. No anunciar B09-B activo en servidor por estar en beta.
 

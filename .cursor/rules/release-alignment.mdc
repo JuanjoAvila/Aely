@@ -3,7 +3,7 @@ description: Cada bug/feature que se publique debe dejar VERSION, docs, APK y no
 alwaysApply: true
 ---
 
-# Release alignment (Mi Cartera)
+# Release alignment (Aely)
 
 Al cerrar un bug o feature que vaya a `main`, **no dejes descuadres**. Tarda lo que haga falta y hazlo a la primera.
 

@@ -9,7 +9,7 @@ import android.content.Intent;
 import android.os.Build;
 
 /**
- * Notificaciones locales de Mi Cartera (un solo canal). Las usa tanto el plugin
+ * Notificaciones locales de Aely (un solo canal). Las usa tanto el plugin
  * (avisos de la web: presupuesto superado, etc.) como el lector de notis de TR
  * (confirmación "✓ gasto apuntado" aunque la app esté cerrada).
  * En Android 13+ hace falta el permiso POST_NOTIFICATIONS (lo pide la app al abrirse);

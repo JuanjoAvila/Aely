@@ -1,4 +1,4 @@
-# Testing — Mi Cartera
+# Testing — Aely
 
 Auditoría 4.19.14: `e2e/revisar-beta.spec.mjs` comprueba plegado automático al aprobar,
 desplegar/cambiar de opinión y conservación entre compilaciones. `e2e/bancos-historico-filtro.spec.mjs`
@@ -60,7 +60,7 @@ Lo primero que hay que mirar **no es el canal, es el número de versión**: el O
 `VERSION` es invisible para la app (pasó el 2026-07-25). Comprobación de 5 segundos:
 
 ```bash
-curl -s "https://juanjoavila.github.io/Mi-Cartera/version.json"
+curl -s "https://juanjoavila.github.io/Aely/version.json"
 ```
 
 Desde la 4.9.1 esto lo vigila `tests/docs-frescura.test.mjs`: si quedan cambios en `src/`,
@@ -86,7 +86,7 @@ Desde la 4.9.1 esto lo vigila `tests/docs-frescura.test.mjs`: si quedan cambios 
 Abre **CMD** o **PowerShell**, ve a la carpeta del proyecto y ejecuta:
 
 ```powershell
-cd "E:\Mi Cartera"
+cd "E:\Aely"
 ```
 
 ### Si `npm ci` falla con “package-lock.json”

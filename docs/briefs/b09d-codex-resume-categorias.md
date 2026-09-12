@@ -32,7 +32,7 @@ categorías, widget-coherente, mapa de pruebas, docs-frescura y privacidad corre
 `npm test` local: único fallo reportado `memoria-espejo`, por espejo ajeno desfasado; Deno no
 instalado y omitido. Por ello no se declara suite completa local verde ni se regenera memoria.
 La suite completa en GitHub **sí pasó**, con Deno, E2E y privacidad, para `fc80bf39`:
-[ejecución 34250021090](https://github.com/JuanjoAvila/Mi-Cartera/actions/runs/34250021090).
+[ejecución 34250021090](https://github.com/JuanjoAvila/Aely/actions/runs/34250021090).
 
 ## Límites y revisión de Claude
 

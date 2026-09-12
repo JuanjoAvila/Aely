@@ -110,7 +110,7 @@ En `android/app/src/main/AndroidManifest.xml`, dentro de `<application> … </ap
 ```xml
 <service
     android:name=".TrExpenseListener"
-    android:label="Mi Cartera · captura de gastos"
+    android:label="Aely · captura de gastos"
     android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
     android:exported="false">
     <intent-filter>
@@ -133,7 +133,7 @@ La app se instala y abre tu PWA en vivo.
 ## 5. Conceder el permiso de notificaciones (una vez)
 
 En el móvil: **Ajustes → Aplicaciones → Acceso especial → Acceso a notificaciones** (el nombre varía por marca)
-→ activa **Mi Cartera**. Sin esto, el servicio no puede leer la notificación de TR.
+→ activa **Aely**. Sin esto, el servicio no puede leer la notificación de TR.
 
 ## 6. Probar
 

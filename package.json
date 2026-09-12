@@ -1,8 +1,8 @@
 {
-  "name": "mi-cartera",
-  "version": "4.19.80",
+  "name": "aely",
+  "version": "4.19.81",
   "private": true,
-  "description": "Mi Cartera — PWA de finanzas personales (+ envoltorio Android con Capacitor)",
+  "description": "Aely — PWA de finanzas personales (+ envoltorio Android con Capacitor)",
   "scripts": {
     "build": "node scripts/build-app.mjs",
     "build:sentry": "node scripts/bundle-sentry.mjs",

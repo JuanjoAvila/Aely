@@ -1,4 +1,4 @@
-# Pack de diseño — Mi Cartera v4.0
+# Pack de diseño — Aely v4.0
 
 Contenido para implementar el rediseño. Soltar esta carpeta en `docs/design/` del repo.
 

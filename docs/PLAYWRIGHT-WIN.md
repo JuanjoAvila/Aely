@@ -2,7 +2,7 @@
 
 ## El problema típico
 
-Si abres CMD en `C:\Users\...` y haces `cd "E:\Mi Cartera"`, a veces falla por:
+Si abres CMD en `C:\Users\...` y haces `cd "E:\Aely"`, a veces falla por:
 
 - comillas raras al pegar
 - PowerShell vs CMD
@@ -15,18 +15,18 @@ Si abres CMD en `C:\Users\...` y haces `cd "E:\Mi Cartera"`, a veces falla por:
 
 ```powershell
 E:
-cd "\Mi Cartera"
+cd "\Aely"
 pwd
 npm install
 npx playwright install chromium
 npm test
 ```
 
-`E:` cambia al disco. `cd "\Mi Cartera"` entra en la carpeta (ruta absoluta desde raíz del disco).
+`E:` cambia al disco. `cd "\Aely"` entra en la carpeta (ruta absoluta desde raíz del disco).
 
 ## Alternativa: abrir la carpeta en el Explorador
 
-1. Abre `E:\Mi Cartera` en el Explorador
+1. Abre `E:\Aely` en el Explorador
 2. En la barra de dirección escribe `powershell` y Enter
 3. Ya estás en la ruta correcta → `npm test`
 

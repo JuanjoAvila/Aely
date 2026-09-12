@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Prepara Mi Cartera en un Cloud Agent. Es la fase `install` de .cursor/environment.json:
+# Prepara Aely en un Cloud Agent. Es la fase `install` de .cursor/environment.json:
 # se ejecuta tras el checkout para refrescar dependencias y estado derivado del código.
 # TIENE que ser idempotente y terminar sola (lo exige el build de entornos): nada de
 # servidores en primer plano aquí — el server de estáticos vive en `terminals`.

@@ -1,4 +1,4 @@
-# Configuración de Supabase para Mi Cartera (Fase 1)
+# Configuración de Supabase para Aely (Fase 1)
 # El project_id local es solo una etiqueta; el proyecto real se referencia por --project-ref en CI.
 project_id = "mi-cartera"
 

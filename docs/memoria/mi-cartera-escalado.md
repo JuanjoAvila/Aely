@@ -4,14 +4,14 @@
 
 ---
 name: mi-cartera-escalado
-description: "Estrategia de escalado y monetización de Mi Cartera (Open Banking, OTA, hosting, Play Store, legal) por fases"
+description: "Estrategia de escalado y monetización de Aely (Open Banking, OTA, hosting, Play Store, legal) por fases"
 metadata: 
   node_type: memory
   type: project
   originSessionId: e5a1c212-b08a-4dde-91fc-c7f35bab15ee
 ---
 
-Investigación a fondo (2026-06-29) sobre cómo llevar Mi Cartera de "solo yo" → círculo (amigos/familia/pareja) → updates continuos → **monetizar**. El usuario tiene MIEDO (es dinero real y arquitectura); todo se decide con pruebas baratas y reversibles, sin apostar a ciegas. Ver [[mi-cartera-roadmap]], [[mi-cartera-deploy]], [[fase1-supabase]].
+Investigación a fondo (2026-06-29) sobre cómo llevar Aely de "solo yo" → círculo (amigos/familia/pareja) → updates continuos → **monetizar**. El usuario tiene MIEDO (es dinero real y arquitectura); todo se decide con pruebas baratas y reversibles, sin apostar a ciegas. Ver [[mi-cartera-roadmap]], [[mi-cartera-deploy]], [[fase1-supabase]].
 
 ## Hallazgo madre
 **Open Banking GRATIS sí existe para él vía Enable Banking (Restricted Production):** enlaza SUS PROPIAS cuentas reales, API desde Edge Function, **sin contrato ni coste**. Cubre TODOS sus bancos ES (CaixaBank, BBVA, Santander, **Sabadell**, Bankinter, ING…). ⇒ El **lector de notificaciones Android deja de ser necesario** (solo lo planeamos porque creíamos que OB era de pago). Puede tener auto-sync de su banco YA, sin APK/Kotlin, desde la web actual.

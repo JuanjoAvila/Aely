@@ -4,7 +4,7 @@
 
 ---
 name: mi-cartera-deploy
-description: Cómo se despliega Mi Cartera y dónde vive la fuente única del frontend
+description: Cómo se despliega Aely y dónde vive la fuente única del frontend
 metadata: 
   node_type: memory
   type: project
@@ -12,7 +12,7 @@ metadata:
   modified: 2026-07-26T17:42:52.556Z
 ---
 
-Mi Cartera es una PWA estática (React vía createElement, sin build/JSX) en GitHub Pages. Repo **público** (Pages gratis lo exige) → nunca meter secretos en el cliente.
+Aely es una PWA estática (React vía createElement, sin build/JSX) en GitHub Pages. Repo **público** (Pages gratis lo exige) → nunca meter secretos en el cliente.
 
 **Fuente única del frontend:** `public/index.html` (artefacto único inlineado, ARQUITECTURA.md #2). GitHub Actions (`.github/workflows/deploy.yml`) despliega SOLO la carpeta `public/`. **No crear un `index.html` en la raíz**: hubo un duplicado raíz que se editaba por error y dejaba `public/` atrasado — un fix de TR no llegó al móvil hasta consolidar (v3.3.1, 2026-06-18). Edita siempre `public/index.html`.
 

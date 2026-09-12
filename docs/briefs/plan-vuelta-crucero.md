@@ -238,7 +238,7 @@ Pedido 17/8 noche: lo que no convenza del `+` / filtros / pantallas **es diseño
 **No entra:** lógica de dinero, ingest, widget, Play Store.
 
 ### ∞. Play Store — **lo último de lo último**
-Formulario Data safety + justificar NotificationListener. Nombre nuevo (ya hay otra «Mi Cartera» en Play) — ver ROADMAP.
+Formulario Data safety + justificar NotificationListener. Nombre nuevo (ya hay otra «Aely» en Play) — ver ROADMAP.
 
 **No se implementa hasta que él diga que la app está hiper pulida**, a su criterio. Si se hace antes, se tienta de publicar. Cualquier tanda nueva (limpieza, destello, lo que salga) se inserta **delante**, nunca detrás. El sideload / la APK de GitHub no esperan a esto.
 
@@ -253,7 +253,7 @@ Repo: E:/Mi cartera · rama beta · VERSION 4.16.1 · canal beta
 NO implementes. Diagnóstico + diseño de fix. No fable.
 
 Síntomas (capturas 2026-08-17):
-1) Widget «MI CARTERA · ESTE MES»: 891 € de 1.000, quedan 109, «Puedes gastar 324 €», TR 6.308 € · 07:38.
+1) Widget «AELY · ESTE MES»: 891 € de 1.000, quedan 109, «Puedes gastar 324 €», TR 6.308 € · 07:38.
    App Inicio a la misma hora: gastado 686 € de 1.000, 22 €/día, patrimonio 190.649 €.
    Al abrir la app el widget se pone bien; al rato (app cerrada) vuelve a 891.
 2) App del padre: Cartera Revolut −204,54 € (OB). Sync y se arregla. TR por integración directa SÍ cuadra; Open Banking de TR/Revolut a veces no.

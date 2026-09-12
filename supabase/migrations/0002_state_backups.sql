@@ -1,5 +1,5 @@
 -- ============================================================
--- Mi Cartera — Copias de seguridad automáticas del estado (app_state)
+-- Aely — Copias de seguridad automáticas del estado (app_state)
 -- El plan Free de Supabase NO hace backups automáticos. Como esto es dinero real,
 -- la app guarda un snapshot diario de su estado aquí (idempotente por día) y
 -- mantiene una ventana rodante (~30 días). Permite recuperar ante un set corrupto

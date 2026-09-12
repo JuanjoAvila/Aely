@@ -3,5 +3,5 @@
      entero): el nombre que se ve en el cajón de apps para no confundirla con la de verdad,
      instalada aparte gracias al applicationIdSuffix ".debug" en build.gradle. -->
 <resources>
-    <string name="app_name">Mi Cartera (debug)</string>
+    <string name="app_name">Aely (debug)</string>
 </resources>

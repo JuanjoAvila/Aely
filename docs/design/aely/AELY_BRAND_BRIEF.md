@@ -1,12 +1,12 @@
 # Aely — Brand & UI brief (para Cursor / Claude / Codex)
 
-Úsalo como fuente de verdad para rebrandear la app actual **Mi Cartera** → **Aely**.
+Úsalo como fuente de verdad para rebrandear la app actual **Aely** → **Aely**.
 No inventes otra identidad: aplica exactamente esto.
 
 ## Producto
 - App Android de **control de gastos y presupuesto**
 - Nombre de marca: **Aely**
-- Sustituye todas las apariciones de "Mi Cartera" por **Aely** (UI, títulos, strings, metadata)
+- Sustituye todas las apariciones de "Aely" por **Aely** (UI, títulos, strings, metadata)
 
 ## Identidad visual (decidida)
 
@@ -26,7 +26,7 @@ No inventes otra identidad: aplica exactamente esto.
 - Tipografía del nombre: sans geométrica moderna (Inter / Plus Jakarta Sans / similar)
 - Color del texto en header: blanco / off-white `#E8EEEC`
 - Archivo de referencia: `aely-wordmark-lockup.png`
-- Usar el lockup en el header del onboarding (donde ahora está el logo + "Mi Cartera")
+- Usar el lockup en el header del onboarding (donde ahora está el logo + "Aely")
 
 ## Paleta (tokens)
 
@@ -49,7 +49,7 @@ Anclada a la UI actual dark mint:
 - Botones: pill (border-radius muy alto)
 
 ## Qué implementar ahora (checklist)
-1. Renombrar marca Mi Cartera → Aely en strings/UI
+1. Renombrar marca Aely → Aely en strings/UI
 2. Sustituir logo header por lockup Aely (badge + wordmark)
 3. Icono de app / splash alineado a A-Dot Badge
 4. Mantener layout y copy structure del onboarding; solo rebrand + ajustes de color si hace falta para tokens arriba

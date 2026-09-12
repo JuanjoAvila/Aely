@@ -1,6 +1,7 @@
-# Roadmap — Mi Cartera
+# Roadmap — Aely
 
-> Estado a 2026-09-12 · **v4.19.80** — agua, luz y gas son tres categorías.
+> Estado a 2026-09-12 · **v4.19.81** — el repo y las URLs de actualización son Aely.
+> Anterior: **v4.19.80** — agua, luz y gas son tres categorías.
 > Anterior: **v4.19.79** — sincronizar actualiza sin perder orden ni duplicados pendientes.
 > Anterior: **v4.19.78** — el pull volvía a refrescar (ámbar: gemelo/id; corregido aquí).
 > Anterior: **v4.19.77** — mantén pulsada una cuenta para ordenarla; Editar solo cuando hace falta.
@@ -146,7 +147,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.19.80** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.81** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |
@@ -242,9 +243,9 @@ queda escrito para no volver a discutirlas.
 
 ## Bloqueante antes de publicar en Play Store: el NOMBRE
 
-Decidido el 2026-07-26. **«Mi Cartera» se queda como descripción, no como marca.** Los hechos:
+Decidido el 2026-07-26. **«Aely» se queda como descripción, no como marca.** Los hechos:
 
-- Ya hay una app **«Mi Cartera»** de finanzas personales en Google Play (`com.support_tech.micartera`),
+- Ya hay una app **«Aely»** de finanzas personales en Google Play (`com.support_tech.micartera`),
   misma categoría: gastos, informes, export a Excel. No es ilegal llamarse igual —el nombre es
   genérico y nadie puede apropiárselo— pero en Play seríamos invisibles entre los homónimos.
 - El Gobierno tiene **«Cartera Digital Beta»** (identidad digital y verificación de edad). Nombre
@@ -266,7 +267,7 @@ la elección es suya. El registro real lo confirma un agente de la propiedad ind
 
 ## Widget Android (ya existe)
 
-En el móvil: **mantener pulsado en el escritorio → Widgets → Mi Cartera**.  
+En el móvil: **mantener pulsado en el escritorio → Widgets → Aely**.  
 Muestra gasto del mes vs presupuesto + saldo de la cuenta diaria.
 
 ## Export / informe

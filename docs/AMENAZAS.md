@@ -1,4 +1,4 @@
-# Modelo de amenazas — Mi Cartera
+# Modelo de amenazas — Aely
 
 > Escrito el 2026-07-28. Sale de la segunda tanda de la review externa, donde se anotó que era
 > «el más útil de los suyos porque no es papel: alimenta dos filas ya pendientes». Eso es lo que

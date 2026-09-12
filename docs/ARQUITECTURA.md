@@ -1,4 +1,4 @@
-# Arquitectura — Mi Cartera
+# Arquitectura — Aely
 
 Deshacer histórico (4.19.14): calcula sobre el estado actual del updater, conserva el lote con
 `cloudPending` antes del DELETE y solo limpia ese lote tras confirmación. La ausencia de sesión
@@ -74,7 +74,7 @@ y `traspaso` se conservan aunque no pertenezcan al catálogo ordinario de catego
 
 ```
 [Notificación TR en Android]
-        │  Lector nativo Mi Cartera
+        │  Lector nativo Aely
         ▼
 [POST → Edge Function `ingest`]   (?token= por usuario)
         │  clasifica + categoriza (KW)

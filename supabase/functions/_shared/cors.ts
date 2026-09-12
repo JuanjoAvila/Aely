@@ -25,7 +25,7 @@ const LOCAL = [
 ];
 
 function appOrigin(): string | null {
-  try { return new URL(Deno.env.get("APP_URL") || "https://juanjoavila.github.io/Mi-Cartera/").origin; }
+  try { return new URL(Deno.env.get("APP_URL") || "https://juanjoavila.github.io/Aely/").origin; }
   catch { return null; }
 }
 

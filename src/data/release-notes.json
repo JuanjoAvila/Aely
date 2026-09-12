@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.19.81",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "El proyecto en GitHub ya se llama Aely",
+      "en": "The GitHub project is now called Aely",
+      "ca": "El projecte a GitHub ja es diu Aely"
+    },
+    "items": {
+      "es": [
+        "Las actualizaciones y la web pública apuntan al repo Aely (la dirección vieja ya no servía).",
+        "El nombre en textos y documentación queda alineado: Aely."
+      ],
+      "en": [
+        "Updates and the public site now point at the Aely repo (the old address no longer worked).",
+        "App name in copy and docs is aligned: Aely."
+      ],
+      "ca": [
+        "Les actualitzacions i el lloc públic apunten al repo Aely (l'adreça vella ja no servia).",
+        "El nom en textos i documentació queda alineat: Aely."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "repo-aely",
+        "t": {
+          "es": "Repo y direcciones Aely",
+          "en": "Aely repo and URLs",
+          "ca": "Repo i adreces Aely"
+        },
+        "items": {
+          "es": [
+            "1. Mis bancos (o Ajustes): la versión tiene que decir v4.19.81.",
+            "2. Si estabas en beta, tira para actualizar: tiene que ofrecer esta versión sin error de descarga."
+          ],
+          "en": [
+            "1. My banks (or Settings): version must say v4.19.81.",
+            "2. If you are on beta, pull to update: this version must offer without a download error."
+          ],
+          "ca": [
+            "1. Els meus bancs (o Ajustes): la versió ha de dir v4.19.81.",
+            "2. Si eres a beta, estira per actualitzar: ha d'oferir aquesta versió sense error de baixada."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.80",
     "d": "12 sep 2026",
     "t": {
@@ -3240,19 +3287,19 @@
     },
     "items": {
       "es": [
-        "🚀 Al abrir la app, el nombre «Mi Cartera» ya no cambia de forma nada más aparecer: espera a estar listo del todo antes de mostrarse.",
+        "🚀 Al abrir la app, el nombre «Aely» ya no cambia de forma nada más aparecer: espera a estar listo del todo antes de mostrarse.",
         "💰 Y al abrir la app vuelves a ver tu dinero subiendo hasta la cifra: la animación estaba, pero se gastaba antes de que la vieses.",
         "🍂 Si tienes puesta una tematica de temporada, las piezas caen un momento al principio y paran solas — antes duraban mucho más y volvían a caer cada vez que cambiabas de pestaña.",
         "🎨 Con una temática puesta, ahora también se nota en el resto de la app (bordes y detalles), no solo en el botón central."
       ],
       "en": [
-        "🚀 Opening the app, the «Mi Cartera» name no longer changes shape right after appearing: it waits until it is fully ready before showing.",
+        "🚀 Opening the app, the «Aely» name no longer changes shape right after appearing: it waits until it is fully ready before showing.",
         "💰 And opening the app you can see your money counting up to the figure again: the animation was there, it just played before you could see it.",
         "🍂 If you have a seasonal theme on, the pieces fall for a moment at the start and then stop on their own — they used to last much longer and fall again every time you switched tabs.",
         "🎨 With a theme on, it now shows in the rest of the app too (borders and small details), not just the centre button."
       ],
       "ca": [
-        "🚀 En obrir l'app, el nom «Mi Cartera» ja no canvia de forma just en aparèixer: espera a estar del tot llest abans de mostrar-se.",
+        "🚀 En obrir l'app, el nom «Aely» ja no canvia de forma just en aparèixer: espera a estar del tot llest abans de mostrar-se.",
         "💰 I en obrir l'app tornes a veure els teus diners pujant fins a la xifra: l'animació hi era, però es gastava abans que la veiessis.",
         "🍂 Si tens posada una temàtica de temporada, les peces cauen un moment al principi i paren soles — abans duraven molt més i tornaven a caure cada cop que canviaves de pestanya.",
         "🎨 Amb una temàtica posada, ara també es nota a la resta de l'app (vores i detalls), no només al botó central."
@@ -3696,7 +3743,7 @@
     "d": "17 jul 2026",
     "t": "La app nueva llega sola a todos",
     "items": [
-      "📱 Si hay APK nueva, al abrir Mi Cartera se lanza el instalador (tú, tu padre y tu pareja). Solo confirma «Instalar» en Android.",
+      "📱 Si hay APK nueva, al abrir Aely se lanza el instalador (tú, tu padre y tu pareja). Solo confirma «Instalar» en Android.",
       "🔔 La notificación de «app nueva» ya abre el instalador de verdad (antes se confundía con el update web)."
     ]
   },

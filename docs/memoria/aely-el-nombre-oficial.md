@@ -49,5 +49,5 @@ Faltan los dos PNG de referencia (`aely-icon-adot-badge.png`, `aely-wordmark-loc
 `docs/design/aely/`: los pasó por el chat y ahí no se pueden guardar.
 
 ⚠ Al cambiar el nombre, acordarse de los textos que lee **la familia**: notas de versión y popup
-de Novedades ([[feedback-release-notes-siempre]]). Dejar «Mi Cartera» a medias sería peor que no
+de Novedades ([[feedback-release-notes-siempre]]). Dejar «Aely» a medias sería peor que no
 empezar.

@@ -1,5 +1,5 @@
 -- ============================================================
--- Mi Cartera — Esquema inicial (Fase 1: Supabase)
+-- Aely — Esquema inicial (Fase 1: Supabase)
 -- Gastos en tabla relacional + resto del estado de la app en JSONB por usuario.
 -- Row Level Security: cada usuario solo ve y escribe lo suyo.
 -- ============================================================

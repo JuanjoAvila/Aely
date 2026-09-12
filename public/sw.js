@@ -1,4 +1,4 @@
-// Mi Cartera — service worker
+// Aely — service worker
 // STALE-WHILE-REVALIDATE: sirve desde caché AL INSTANTE (arranque inmediato incluso con
 // red lenta o sin conexión) y a la vez descarga la versión fresca en segundo plano.
 // La versión nueva queda cacheada y se ve en el SIGUIENTE arranque — mismo comportamiento

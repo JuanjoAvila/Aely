@@ -4,7 +4,7 @@
 
 ---
 name: feedback-release-notes-siempre
-description: Toda versión publicada de Mi Cartera (incluidas las .1) debe llevar su entrada en RELEASE_NOTES del popup de Novedades
+description: Toda versión publicada de Aely (incluidas las .1) debe llevar su entrada en RELEASE_NOTES del popup de Novedades
 metadata: 
   node_type: memory
   type: feedback
@@ -12,7 +12,7 @@ metadata:
   modified: 2026-07-25T23:52:36.027Z
 ---
 
-Al publicar CUALQUIER versión de Mi Cartera (incluidos los parches `.1`, `.2`…), añadir su entrada AL PRINCIPIO del array `RELEASE_NOTES` (en `public/index.html`, cerca del componente `WhatsNew`), en castellano y sin jerga.
+Al publicar CUALQUIER versión de Aely (incluidos los parches `.1`, `.2`…), añadir su entrada AL PRINCIPIO del array `RELEASE_NOTES` (en `public/index.html`, cerca del componente `WhatsNew`), en castellano y sin jerga.
 
 **Why:** el 2026-07-12 se publicó la 3.95.1 (fix del «−» en «Lo que te queda») SIN entrada en el popup; el usuario lo notó y pidió expresamente que no vuelva a pasar («apunta de siempre agregar lo que se actualiza»). El histórico de Novedades es su forma (y la de su pareja/familia) de saber qué cambió en cada actualización.
 

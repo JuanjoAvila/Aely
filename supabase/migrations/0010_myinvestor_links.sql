@@ -1,5 +1,5 @@
 -- ============================================================
--- Mi Cartera — MyInvestor (API no oficial): un enlace de sesión por usuario.
+-- Aely — MyInvestor (API no oficial): un enlace de sesión por usuario.
 --
 -- MyInvestor NO está en Open Banking para POSICIONES (PSD2 solo trae el cash); su
 -- API propia (api.myinvestor.es, la misma que usa su web/app) SÍ devuelve los fondos

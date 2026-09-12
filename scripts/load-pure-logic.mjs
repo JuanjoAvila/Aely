@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
 export function extractPureLogicSource(html) {
-  const m = html.match(/<script>\s*\/\* =+\s*\n\s*MI CARTERA v3[\s\S]*?<\/script>/i);
+  const m = html.match(/<script>\s*\/\* =+\s*\n\s*AELY v3[\s\S]*?<\/script>/i);
   if (!m) throw new Error("No se encontró el bloque principal de la app en index.html");
   let src = m[0].replace(/^<script>\s*/i, "").replace(/<\/script>\s*$/i, "");
   const cut = src.search(/\nclass ErrorBoundary\b/);

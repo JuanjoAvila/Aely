@@ -1,4 +1,4 @@
-# Cómo publicar Mi Cartera (sin calvarios)
+# Cómo publicar Aely (sin calvarios)
 
 Circuito oficial desde el incidente del **2026-08-06** (WEBDEBUG colado, Pages caído,
 apk.json a releases fantasma, promote encolado…). Detalle técnico en `AGENTS.md` §6.

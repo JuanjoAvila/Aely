@@ -1,4 +1,4 @@
-# Sentry — guía paso a paso (Mi Cartera)
+# Sentry — guía paso a paso (Aely)
 
 ## ¿Es de pago?
 
@@ -34,7 +34,7 @@ La pantalla de Sentry te pide pegar algo así:
 <script src="https://js-de.sentry-cdn.com/….min.js" …>
 ```
 
-**No lo pegues en Mi Cartera.** Motivos:
+**No lo pegues en Aely.** Motivos:
 
 1. La app **ya lleva** Sentry auto-hospedado en `public/vendor/sentry.bundle.min.js` (offline + sin CDN de terceros).
 2. El CI inyecta tu DSN al construir (`SENTRY_DSN`).
@@ -58,7 +58,7 @@ La pantalla de Sentry te pide pegar algo así:
 
 ### 2. Secreto en GitHub
 
-1. Repo **Mi-Cartera** → **Settings** → **Secrets and variables** → **Actions**
+1. Repo **Aely** → **Settings** → **Secrets and variables** → **Actions**
 2. Secret: `SENTRY_DSN` = el DSN completo
 
 ### 3. Deploy
@@ -68,7 +68,7 @@ Push a `main` → el workflow `deploy.yml` pasa el secreto a `build-app.mjs` →
 ### Local (opcional)
 
 ```powershell
-cd "E:\Mi Cartera"
+cd "E:\Aely"
 $env:SENTRY_DSN="https://…@….ingest.sentry.io/…"
 npm run build
 ```

@@ -32,7 +32,7 @@ import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
 
 /**
- * Plugin nativo único de Mi Cartera. La web lo encuentra en
+ * Plugin nativo único de Aely. La web lo encuentra en
  * window.Capacitor.Plugins.MiCartera y expone:
  *   - bioAvailable()          -> { available: bool }   (¿hay huella/candado configurado?)
  *   - bioVerify()             -> resuelve si el usuario se autentica (huella o PIN del móvil)

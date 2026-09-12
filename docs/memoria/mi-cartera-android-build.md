@@ -4,14 +4,14 @@
 
 ---
 name: mi-cartera-android-build
-description: Cómo generar e instalar la APK firmada de Mi Cartera localmente (build nativo Android)
+description: Cómo generar e instalar la APK firmada de Aely localmente (build nativo Android)
 metadata:
   type: project
   originSessionId: c5f21067-5c4f-487a-88db-7ba95d66abb5
   modified: 2026-08-01T19:59:57.853Z
 ---
 
-Receta para generar la APK firmada de Mi Cartera desde este entorno (Windows, Git Bash), usada por primera vez para alpha8 (2026-07-07). Ver [[mi-cartera-deploy]] para el deploy web/Supabase (eso va por CI; esto es 100% local).
+Receta para generar la APK firmada de Aely desde este entorno (Windows, Git Bash), usada por primera vez para alpha8 (2026-07-07). Ver [[mi-cartera-deploy]] para el deploy web/Supabase (eso va por CI; esto es 100% local).
 
 **Prerrequisito — `java` NO está en el PATH del shell.** Hay que exportar `JAVA_HOME` al JBR de Android Studio antes de cualquier `gradlew`:
 ```
@@ -40,7 +40,7 @@ export PATH="$JAVA_HOME/bin:$PATH"
 
 **Solo Java compila offline, no lo confundas con "build completo":** en sesiones anteriores se validó únicamente `./gradlew :app:compileDebugJavaWithJavac --offline` (rápido, solo detecta errores de sintaxis/tipos Java) antes de tener claro el flujo de `assembleRelease` end-to-end. Ahora que se ha hecho el build+firma+instalación completos con éxito (alpha8), ese es el camino ya probado para cualquier tanda que incluya cambios nativos.
 
-**APK `.debug` INSTALABLE EN PARALELO A LA REAL (añadido 2026-08-01) — la vía para que pruebe cambios nativos SIN esperar a una release pública.** `android/app/build.gradle` tiene un bloque `debug { applicationIdSuffix ".debug"; versionNameSuffix "-debug" }`, y `android/app/src/debug/res/values/strings.xml` pone el nombre visible a «Mi Cartera (debug)». Sin el sufijo, `assembleDebug` genera el MISMO `applicationId` que producción pero firmado con la llave de debug (auto-generada, distinta a la de release): Android rechaza esa instalación a menos que se DESINSTALE primero la app real, con riesgo de perder lo que no esté en la nube. Con el sufijo, `adb install -r` mete una app APARTE (`com.micartera.app.debug`) que convive con la real sin tocarla, con sus propios datos. Receta corta (no hace falta versión ni firma release):
+**APK `.debug` INSTALABLE EN PARALELO A LA REAL (añadido 2026-08-01) — la vía para que pruebe cambios nativos SIN esperar a una release pública.** `android/app/build.gradle` tiene un bloque `debug { applicationIdSuffix ".debug"; versionNameSuffix "-debug" }`, y `android/app/src/debug/res/values/strings.xml` pone el nombre visible a «Aely (debug)». Sin el sufijo, `assembleDebug` genera el MISMO `applicationId` que producción pero firmado con la llave de debug (auto-generada, distinta a la de release): Android rechaza esa instalación a menos que se DESINSTALE primero la app real, con riesgo de perder lo que no esté en la nube. Con el sufijo, `adb install -r` mete una app APARTE (`com.micartera.app.debug`) que convive con la real sin tocarla, con sus propios datos. Receta corta (no hace falta versión ni firma release):
 ```bash
 cd "E:/Mi cartera" && node scripts/build-www.mjs && npx cap sync android
 cd android && JAVA_HOME="/c/Program Files/Android/Android Studio/jbr" ./gradlew assembleDebug --offline
