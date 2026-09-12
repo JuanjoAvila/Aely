@@ -1,3 +1,16 @@
+## [4.19.77] - 2026-09-12
+### Long-press ordena cuentas (se elevan) y Editar solo con obAccounts
+
+Él: *«el mantener pulsado los bancos no los mueve»* y *«que se eleve con un efecto chulo… smooth»*.
+No era un bug: faltaba el gesto. Mismo patrón que las pestañas (HOLD 380 ms → vibra → arrastrar).
+`moveAccountInList` reordena el array `accounts`. CSS propio en `.v4-card-list` (eleva; no el
+dim de Gastos).
+
+«Editar» solo si hay `obAccounts` (o el editor ya abierto). La ficha usa `pickRole` (no solo
+`applyAccountRole`) para que un EXTRA de `expenseBanks` también salga al tocar Recibos.
+
+e2e: `cartera-orden-cuentas` + tests que iban por edit-link pasan por la ficha.
+
 ## [4.19.76] — 2026-09-12
 ### El saldo del Efectivo se guarda al cerrar la ficha, y subir ya no repinta App
 

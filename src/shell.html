@@ -976,6 +976,23 @@
   .v4-mov.dragging{opacity:.58;transform:scale(.985);border-color:var(--mint);}
   .v4-mov.drag-over{border-color:var(--mint);box-shadow:0 0 0 2px rgba(95,208,138,.18);}
   html.reduce-motion .v4-mov.dragging{transform:none;}
+  /* Cartera → Tus cuentas: long-press eleva la fila (12/9: «efecto chulo… smooth»). No reutilizar
+     el `.dragging` de Gastos (ese baja opacidad): aquí se LEVANTA. */
+  .v4-card-list.reordering{touch-action:none;}
+  .v4-card-list button.v4-mov.dragging{
+    opacity:1;z-index:2;position:relative;
+    transform:translateY(-6px) scale(1.035);
+    border-color:var(--mint);
+    box-shadow:0 16px 32px -12px rgba(0,0,0,.55),0 0 0 1.5px rgba(95,208,138,.55);
+    transition:transform .22s cubic-bezier(.32,.72,0,1),box-shadow .22s ease;
+  }
+  .v4-card-list button.v4-mov.drag-over{
+    border-color:var(--mint-dim);
+    background:rgba(95,208,138,.08);
+  }
+  html.reduce-motion .v4-card-list button.v4-mov.dragging{
+    transform:none;box-shadow:0 0 0 1.5px var(--mint);
+  }
   .v4-gastos-list{background:transparent;}
   .v4-gastos-list-body{padding:0;}
 

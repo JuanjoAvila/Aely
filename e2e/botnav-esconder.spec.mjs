@@ -111,11 +111,12 @@ test("la pantalla recolocándose sola no esconde la barra", async ({ page }) => 
      Ojo con el criterio: NO vale mirar si hay un dedo puesto, porque tocar el chip TAMBIÉN es un
      dedo. Lo que separa los dos casos es que aquí cambia `scrollHeight` y bajando no. */
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
-  await page.locator("button.edit-link").first().click();
-  await expect(page.locator(".rolechips").first()).toBeVisible();
-  expect(await escondida(page), "abrir la edición no puede esconder la barra").toBe(false);
+  /* Abrir la ficha y tocar un rol: estira/encoge el sheet y mueve scrollHeight sin bajar con el dedo. */
+  await page.locator(".v4-card-list button.v4-mov").first().click();
+  await expect(page.locator(".v4-sheet")).toBeVisible();
+  expect(await escondida(page), "abrir la ficha no puede esconder la barra").toBe(false);
 
-  await page.locator(".rolechips button.rchip").first().click();
+  await page.locator(".v4-sheet .v4-ficha-op").nth(1).click();
   await page.waitForTimeout(900);
   expect(await escondida(page), "cambiar el rol de una cuenta tampoco").toBe(false);
 });

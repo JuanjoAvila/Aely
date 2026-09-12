@@ -29,12 +29,24 @@ async function abrirCarteraEditar(page, overrides) {
     window.addEventListener("mc-bank-role-changed", (e) => e.stopImmediatePropagation(), true);
   });
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
-  await page.locator("button.edit-link").first().click();
-  await expect(page.locator(".add-form")).toBeVisible({ timeout: 10_000 });
 }
 
-function rowCuenta(page, nameRe) {
-  return page.locator(".add-form > div").filter({ hasText: nameRe }).first();
+function fichaCuenta(page, nameRe) {
+  return page.locator(".v4-card-list button.v4-mov").filter({ hasText: nameRe }).first();
+}
+
+function opRol(page, nameRe) {
+  return page.locator(".v4-sheet .v4-ficha-op").filter({ hasText: nameRe }).first();
+}
+
+async function abrirFicha(page, nameRe) {
+  await fichaCuenta(page, nameRe).click();
+  await expect(page.locator(".v4-sheet")).toBeVisible({ timeout: 10_000 });
+}
+
+async function tocarRol(page, nameRe) {
+  const op = opRol(page, nameRe);
+  await op.evaluate((el) => { el.scrollIntoView({ block: "center" }); el.click(); });
 }
 
 function expenseBanksOf(page) {
@@ -86,12 +98,12 @@ test("activar EXTRA en Cartera 40→60 sella el 50%; desactivar no borra filas",
   }
 
   const before = await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]"));
-  const caixa = rowCuenta(page, /CaixaBank/);
-  await caixa.locator("button.rchip", { hasText: /Gasto diario|Daily spending|Despesa diària/ }).click({ force: true });
+  await abrirFicha(page, /CaixaBank|Caixa/);
+  await tocarRol(page, /Gasto diario|Daily spending|Despesa diària/);
   await expect.poll(() => expenseBanksOf(page)).toEqual(["caixabank", "sabadell"]);
   await expect.poll(() => page.evaluate((k) => localStorage.getItem(k), "_bn50_" + ym)).toBe("1");
 
-  await caixa.locator("button.rchip", { hasText: /Recibos|Bills|Rebuts/ }).click({ force: true });
+  await tocarRol(page, /Recibos|Bills|Rebuts/);
   await expect.poll(() => expenseBanksOf(page)).toEqual(["sabadell"]);
   const after = await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]"));
   expect(after, "desactivar EXTRA no borra filas").toEqual(before);
@@ -114,8 +126,8 @@ async function cruzarUmbral(page, fromSpent, addSpent, bnKey) {
   for (const th of [50, 80, 95, 100]) {
     await page.evaluate(({ k }) => { try { localStorage.removeItem(k); } catch (e) {} }, { k: "_bn" + th + "_" + ym });
   }
-  const caixa = rowCuenta(page, /CaixaBank/);
-  await caixa.locator("button.rchip", { hasText: /Gasto diario|Daily spending|Despesa diària/ }).click({ force: true });
+  await abrirFicha(page, /CaixaBank|Caixa/);
+  await tocarRol(page, /Gasto diario|Daily spending|Despesa diària/);
   await expect.poll(() => expenseBanksOf(page)).toEqual(["caixabank", "sabadell"]);
   await expect.poll(() => page.evaluate((k) => localStorage.getItem(k), "_bn" + bnKey + "_" + ym)).toBe("1");
 }

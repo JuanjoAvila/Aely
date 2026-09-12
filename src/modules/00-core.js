@@ -1774,6 +1774,18 @@ function moveExpenseWithinDay(state, fromId, toId){
   const settings=Object.assign({},state.settings,{expenseOrder:Object.assign({},((state.settings||{}).expenseOrder)||{},{[day]:ids})});
   return Object.assign({},state,{settings:settings});
 }
+/* Cartera → Tus cuentas: el orden es el del array `accounts` (12/9). Mantener pulsado + arrastrar
+   pide exactamente eso — no un campo paralelo que luego haya que reconciliar. */
+function moveAccountInList(state, fromId, toId){
+  if(!state || !fromId || !toId || fromId===toId) return state;
+  const acc=(state.accounts||[]).slice();
+  const i=acc.findIndex(function(a){ return a&&a.id===fromId; });
+  const j=acc.findIndex(function(a){ return a&&a.id===toId; });
+  if(i<0||j<0||i===j) return state;
+  const item=acc.splice(i,1)[0];
+  acc.splice(j,0,item);
+  return Object.assign({},state,{accounts:acc});
+}
 /* Resuelve un OB marcado como posible repetido (2026-09-07).
    same=true  → se queda el gemelo con nombre (noti/manual) y se borra la fila OB.
    same=false → son dos cargos reales: se quita la marca y la fila OB ya cuenta. */

@@ -1,6 +1,7 @@
 # Roadmap — Mi Cartera
 
-> Estado a 2026-09-12 · **v4.19.76** — el saldo del efectivo se guarda al cerrar, y subir la lista ya no tira.
+> Estado a 2026-09-12 · **v4.19.77** — mantén pulsada una cuenta para ordenarla; Editar solo cuando hace falta.
+> Anterior: **v4.19.76** — el saldo del efectivo se guarda al cerrar, y subir la lista ya no tira.
 > Anterior: **v4.19.75** — las palabras escondidas dentro de otras ya no deciden la categoría.
 > Anterior: **v4.19.74** — un gasto de madrugada ya se puede reordenar.
 > Anterior: **v4.19.73** — «Dia» y las farmacias abreviadas ya se reconocen.
@@ -142,7 +143,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.19.76** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.77** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

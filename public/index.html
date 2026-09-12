@@ -976,6 +976,23 @@
   .v4-mov.dragging{opacity:.58;transform:scale(.985);border-color:var(--mint);}
   .v4-mov.drag-over{border-color:var(--mint);box-shadow:0 0 0 2px rgba(95,208,138,.18);}
   html.reduce-motion .v4-mov.dragging{transform:none;}
+  /* Cartera → Tus cuentas: long-press eleva la fila (12/9: «efecto chulo… smooth»). No reutilizar
+     el `.dragging` de Gastos (ese baja opacidad): aquí se LEVANTA. */
+  .v4-card-list.reordering{touch-action:none;}
+  .v4-card-list button.v4-mov.dragging{
+    opacity:1;z-index:2;position:relative;
+    transform:translateY(-6px) scale(1.035);
+    border-color:var(--mint);
+    box-shadow:0 16px 32px -12px rgba(0,0,0,.55),0 0 0 1.5px rgba(95,208,138,.55);
+    transition:transform .22s cubic-bezier(.32,.72,0,1),box-shadow .22s ease;
+  }
+  .v4-card-list button.v4-mov.drag-over{
+    border-color:var(--mint-dim);
+    background:rgba(95,208,138,.08);
+  }
+  html.reduce-motion .v4-card-list button.v4-mov.dragging{
+    transform:none;box-shadow:0 0 0 1.5px var(--mint);
+  }
   .v4-gastos-list{background:transparent;}
   .v4-gastos-list-body{padding:0;}
 
@@ -3822,6 +3839,18 @@ function moveExpenseWithinDay(state, fromId, toId){
   ids.splice(i,1); ids.splice(j,0,fromId);
   const settings=Object.assign({},state.settings,{expenseOrder:Object.assign({},((state.settings||{}).expenseOrder)||{},{[day]:ids})});
   return Object.assign({},state,{settings:settings});
+}
+/* Cartera → Tus cuentas: el orden es el del array `accounts` (12/9). Mantener pulsado + arrastrar
+   pide exactamente eso — no un campo paralelo que luego haya que reconciliar. */
+function moveAccountInList(state, fromId, toId){
+  if(!state || !fromId || !toId || fromId===toId) return state;
+  const acc=(state.accounts||[]).slice();
+  const i=acc.findIndex(function(a){ return a&&a.id===fromId; });
+  const j=acc.findIndex(function(a){ return a&&a.id===toId; });
+  if(i<0||j<0||i===j) return state;
+  const item=acc.splice(i,1)[0];
+  acc.splice(j,0,item);
+  return Object.assign({},state,{accounts:acc});
 }
 /* Resuelve un OB marcado como posible repetido (2026-09-07).
    same=true  → se queda el gemelo con nombre (noti/manual) y se borra la fila OB.
@@ -11218,7 +11247,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
    aprender nada nuevo. Tampoco hay «Guardar»: cada cambio se guarda al vuelo, como en el resto.
    Y lo que rechazó de la primera maqueta: meter todo en una cartilla única («separado como está
    me gusta ya») y la flecha al lado del importe. */
-function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, saldoMostrado, sincronizada}){
+function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, onRole, rolVista, saldoMostrado, sincronizada}){
   const [borrando,setBorrando]=React.useState(false);
   const [saldo,setSaldo]=React.useState("");
   /* Ref del importe tecleado: al cerrar por atrás/swipe, `useBackClose`/`useSheetSwipe` se
@@ -11259,7 +11288,9 @@ function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, sa
      uno. El efectivo no puede llevar recibos domiciliados, así que solo se le ofrece lo suyo. */
   const roles=efectivo ? [["fijos","rl_fijos","rl_fijos_d"]]
     : [["fijos","rl_fijos","rl_fijos_d"],["diario","rl_diario","rl_diario_d"],["ambos","rl_ambos","rl_ambos_d"]];
-  const rolActual=accRole(a);
+  /* `rolVista` = lo que se VE (gasto diario efectivo, extras incluidos). `accRole` solo mira el
+     campo de la cuenta y mentiría en un EXTRA de expenseBanks. */
+  const rolActual=rolVista||accRole(a);
   const guardaNombre=function(v){
     set(function(s){ return Object.assign({},s,{accounts:(s.accounts||[]).map(function(x){ return x.id===a.id?Object.assign({},x,{name:v}):x; })}); });
   };
@@ -11296,7 +11327,11 @@ function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, sa
             roles.map(function(r){
               const on=rolActual===r[0];
               return React.createElement("button",{key:r[0],type:"button",className:"v4-ficha-op"+(on?" on":""),
-                onClick:function(){ set(function(s){ return applyAccountRole(s, totals, a.id, r[0]); }); }},
+                /* `onRole` = `pickRole` del padre: no solo `applyAccountRole`. Un EXTRA de gasto
+                   diario vive en `settings.expenseBanks`, y sin ese camino la ficha mentiría al
+                   tocar «Recibos» (dejaría el banco contando igual). */
+                onClick:function(){ if(typeof onRole==="function") onRole(a, r[0]);
+                  else set(function(s){ return applyAccountRole(s, totals, a.id, r[0]); }); }},
                 React.createElement("span",{className:"v4-ficha-radio"}),
                 React.createElement("span",{style:{minWidth:0}},
                   React.createElement("span",{className:"v4-ficha-ot"}, t(r[1])),
@@ -11322,6 +11357,79 @@ function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, sa
 function Wealth({state, set, totals, v4Embed, parte, showToast}){
   const [delAcc,setDelAcc]=React.useState("");   // id de la cuenta manual pendiente de confirmar borrado
   const [sheetAcc,setSheetAcc]=React.useState("");   // id de la cuenta cuya ficha está abierta (v4)
+  /* Long-press ordenar cuentas (refs SIEMPRE arriba: no pueden vivir dentro de `if(v4Embed)`).
+     Callback ref (no solo useEffect): `OrderableSections` puede remontar el bloque y el efecto
+     se quedaba con listeners en un nodo muerto → el HOLD nunca encendía. */
+  const listRef=React.useRef(null);
+  const listCleanRef=React.useRef(null);
+  const dragAccRef=React.useRef(null);
+  const suppressSheetRef=React.useRef(0);
+  const [dragAcc,setDragAcc]=React.useState(null);
+  const bindListDrag=React.useCallback(function(node){
+    if(listCleanRef.current){ listCleanRef.current(); listCleanRef.current=null; }
+    listRef.current=node;
+    if(!node || !v4Embed || parte==="bienes") return;
+    const HOLD=380;
+    const onTS=function(e){
+      const btn=e.target.closest&&e.target.closest("button.v4-mov[data-account-id]");
+      if(!btn||!node.contains(btn)) return;
+      if(e.target.closest&&e.target.closest(".edit-link,.v4-link-mini,a,input")) return;
+      const tch=e.touches&&e.touches[0]; if(!tch) return;
+      const id=btn.getAttribute("data-account-id");
+      const d={from:id,to:id,startX:tch.clientX,startY:tch.clientY,active:false,timer:null};
+      d.timer=setTimeout(function(){
+        d.active=true;
+        node.classList.add("reordering");
+        dragAccRef.current=d;
+        setDragAcc({from:d.from,to:d.to});
+        try{ navigator.vibrate&&navigator.vibrate(15); }catch(_){}
+      },HOLD);
+      dragAccRef.current=d;
+    };
+    const onTM=function(e){
+      const d=dragAccRef.current; if(!d) return;
+      const tch=e.touches&&e.touches[0]; if(!tch) return;
+      if(!d.active){
+        if(Math.abs(tch.clientX-d.startX)>10||Math.abs(tch.clientY-d.startY)>10){
+          clearTimeout(d.timer); dragAccRef.current=null;
+        }
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      const hit=document.elementFromPoint(tch.clientX,tch.clientY);
+      const row=hit&&hit.closest&&hit.closest("button.v4-mov[data-account-id]");
+      if(!row||!node.contains(row)) return;
+      const to=row.getAttribute("data-account-id");
+      if(!to||to===d.to) return;
+      d.to=to; setDragAcc({from:d.from,to:d.to});
+    };
+    const onTE=function(){
+      const d=dragAccRef.current; if(!d) return;
+      clearTimeout(d.timer);
+      if(d.active){
+        node.classList.remove("reordering");
+        suppressSheetRef.current=Date.now()+450;
+        if(d.from!==d.to) set(function(s){ return moveAccountInList(s,d.from,d.to); });
+        setDragAcc(null);
+      }
+      dragAccRef.current=null;
+    };
+    node.addEventListener("touchstart",onTS,{passive:true});
+    node.addEventListener("touchmove",onTM,{passive:false});
+    node.addEventListener("touchend",onTE);
+    node.addEventListener("touchcancel",onTE);
+    listCleanRef.current=function(){
+      node.removeEventListener("touchstart",onTS);
+      node.removeEventListener("touchmove",onTM);
+      node.removeEventListener("touchend",onTE);
+      node.removeEventListener("touchcancel",onTE);
+      clearTimeout((dragAccRef.current&&dragAccRef.current.timer)||0);
+    };
+  },[v4Embed,parte,set]);
+  React.useEffect(function(){
+    return function(){ if(listCleanRef.current){ listCleanRef.current(); listCleanRef.current=null; } };
+  },[]);
   // Quitar a mano una cuenta manual del patrimonio (la del onboarding no se va sola al desloguear el banco:
   // las manuales viven en state.accounts, no en obAccounts, y bankDisconnect solo purga obAccounts).
   const removeAccount=(id)=>{
@@ -11397,6 +11505,49 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
     const badge=function(txt, color){
       return React.createElement("span",{className:"v4-ob-badge",style:{background:color+"22",color:color}}, txt);
     };
+    const toast=function(msg){ if(typeof showToast==="function") showToast(msg); };
+    /* «Gasto diario» admite VARIOS bancos (v4.6.3). Definido ANTES de la ficha y de las filas:
+       la ficha llama aquí (no a `applyAccountRole` a pelo) para que un EXTRA en expenseBanks
+       también salga/entre al tocar Recibos / Gasto diario. */
+    const pickRole=function(a,r){
+      if(isEfectivoEnt(a) && (r==="diario"||r==="ambos")){
+        toast("⚠ "+t("ef_no_diario"));
+        return;
+      }
+      try{ window.dispatchEvent(new CustomEvent("mc-bank-role-changed")); }catch(e){}
+      set(function(s){
+        const patchSet=function(ns,patch){ return Object.assign({},ns,{settings:Object.assign({},ns.settings,patch)}); };
+        const drop=function(list,e){ const i=list.indexOf(e); if(i>=0) list.splice(i,1); return list; };
+        const add=function(list,e){ if(list.indexOf(e)<0) list.push(e); return list; };
+        const eb=expenseBankEnts(s).slice();
+        const dOnly=dailyOnlyEnts(s).slice();
+        const isPrimary=accDaily(a);
+        const hasPrimary=(s.accounts||[]).some(function(x){ return accDaily(x); });
+        let ns=s;
+        if(r==="fijos"){
+          if(isPrimary) ns=applyAccountRole(ns, totals, a.id, "fijos");
+          return patchSet(ns,{expenseBanks:drop(eb,a.ent), dailyOnlyBanks:drop(dOnly,a.ent)});
+        }
+        if(r==="diario"){
+          if(isPrimary || !hasPrimary){
+            ns=applyAccountRole(ns, totals, a.id, "diario");
+            return patchSet(ns,{dailyOnlyBanks:drop(dOnly,a.ent)});
+          }
+          return patchSet(ns,{expenseBanks:add(eb,a.ent), dailyOnlyBanks:add(dOnly,a.ent)});
+        }
+        if(isPrimary || !hasPrimary){
+          ns=applyAccountRole(ns, totals, a.id, "ambos");
+          return patchSet(ns,{dailyOnlyBanks:drop(dOnly,a.ent)});
+        }
+        return patchSet(ns,{expenseBanks:add(eb,a.ent), dailyOnlyBanks:drop(dOnly,a.ent)});
+      });
+    };
+    const rolVistaOf=function(a){
+      const dy=dailyEffOf(a), fx=fixedEffOf(a);
+      if(dy&&fx) return "ambos";
+      if(dy) return "diario";
+      return "fijos";
+    };
     /* LA FILA ENTERA SE TOCA Y ABRE LA FICHA DE ESA CUENTA (2026-09-11).
        Antes había UN botón «Editar» que abría en canal las CINCO cuentas a la vez, cada una con su
        casilla de nombre, su casilla de saldo, tres chips de rol y una papelera, más dos pistas al
@@ -11404,11 +11555,15 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
        Lo que se enseñó y aprobó: tocar la cuenta y que suba una ficha como la de apuntar un gasto.
        Y explícitamente **sin la flecha** al lado del importe: «pero sin la flecha esa que sale al
        lado del dinero que tienes». Si toda la tarjeta responde al toque, el chevron solo mete
-       ruido justo al lado del número, que es lo que va a leer. */
+       ruido justo al lado del número, que es lo que va a leer.
+       Long-press para ordenar: listeners en el efecto de arriba (mismo gesto que las pestañas). */
     const accRow=function(a){
-      return React.createElement("button",{className:"v4-mov",key:a.id,type:"button",
-        onClick:function(){ setSheetAcc(a.id); },
-        "aria-label":entOf(a.ent).label+" · "+eur(shownAcc(a))},
+      const dragging=!!(dragAcc&&dragAcc.from===a.id);
+      const dragOver=!!(dragAcc&&dragAcc.to===a.id&&dragAcc.from!==a.id);
+      return React.createElement("button",{className:"v4-mov"+(dragging?" dragging":"")+(dragOver?" drag-over":""),key:a.id,type:"button",
+        "data-account-id":a.id,"aria-label":entOf(a.ent).label+" · "+eur(shownAcc(a)),
+        title:t("drag_hint"),
+        onClick:function(){ if(Date.now()<suppressSheetRef.current) return; setSheetAcc(a.id); }},
         React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:a.ent,size:44})),
         React.createElement("div",{className:"nm"},
           React.createElement("div",null,entOf(a.ent).label, isSynced(a)&&badge(t("pt_ob_badge"),"#7FB5E8")),
@@ -11419,7 +11574,6 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
     };
     const cashAcc=(state.accounts||[]).find(isEfectivoEnt);
     const parseAmt=function(raw){ return Math.abs(parseFloat(String(raw==null?"":raw).replace(/\s/g,"").replace(",","."))||0); };
-    const toast=function(msg){ if(typeof showToast==="function") showToast(msg); };
     const doSaqueCajero=function(){
       const banks=(state.accounts||[]).filter(function(a){ return a.ent && !isEfectivoEnt(a); });
       if(!banks.length){ toast("⚠ "+t("ef_need_bank")); return; }
@@ -11480,47 +11634,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
     // muestra UN solo estado — o Recibos, o Gasto diario, o Todo — nada de «recibos fijo» en
     // los extras. En un extra, «Gasto diario» = expenseBanks + dailyOnlyBanks (recibos fuera);
     // «Todo» = expenseBanks sin dailyOnly (recibos y gasto diario a la vez).
-    const pickRole=function(a,r){
-      // Efectivo: solo recibos/fijos. No es gasto diario (round-up / nómina no aplican).
-      if(isEfectivoEnt(a) && (r==="diario"||r==="ambos")){
-        toast("⚠ "+t("ef_no_diario"));
-        return;
-      }
-      // Pide un sync en cuanto se suelta el bloque `set` (React agrupa el estado, el evento no
-      // tiene por qué esperar a eso): el banco nuevo puede llevar días sin sincronizar porque
-      // hasta ahora no era «suyo» — sin esto sus compras de esta semana se quedan sin traer hasta
-      // que alguien pulse «Sincronizar» a mano (2026-08-01, ver 11-app-main.js).
-      try{ window.dispatchEvent(new CustomEvent("mc-bank-role-changed")); }catch(e){}
-      set(function(s){
-        const patchSet=function(ns,patch){ return Object.assign({},ns,{settings:Object.assign({},ns.settings,patch)}); };
-        const drop=function(list,e){ const i=list.indexOf(e); if(i>=0) list.splice(i,1); return list; };
-        const add=function(list,e){ if(list.indexOf(e)<0) list.push(e); return list; };
-        const eb=expenseBankEnts(s).slice();
-        const dOnly=dailyOnlyEnts(s).slice();
-        const isPrimary=accDaily(a);
-        const hasPrimary=(s.accounts||[]).some(function(x){ return accDaily(x); });
-        let ns=s;
-        if(r==="fijos"){
-          if(isPrimary) ns=applyAccountRole(ns, totals, a.id, "fijos");
-          return patchSet(ns,{expenseBanks:drop(eb,a.ent), dailyOnlyBanks:drop(dOnly,a.ent)});
-        }
-        if(r==="diario"){
-          // La principal (o la primera que se marca) lleva el rol de verdad; un banco extra
-          // se apunta a expenseBanks y apaga su «recibos» visual con dailyOnlyBanks.
-          if(isPrimary || !hasPrimary){
-            ns=applyAccountRole(ns, totals, a.id, "diario");
-            return patchSet(ns,{dailyOnlyBanks:drop(dOnly,a.ent)});
-          }
-          return patchSet(ns,{expenseBanks:add(eb,a.ent), dailyOnlyBanks:add(dOnly,a.ent)});
-        }
-        // «Todo»: la principal pasa a rol ambos; un extra queda en expenseBanks CON recibos.
-        if(isPrimary || !hasPrimary){
-          ns=applyAccountRole(ns, totals, a.id, "ambos");
-          return patchSet(ns,{dailyOnlyBanks:drop(dOnly,a.ent)});
-        }
-        return patchSet(ns,{expenseBanks:add(eb,a.ent), dailyOnlyBanks:drop(dOnly,a.ent)});
-      });
-    };
+    // `pickRole` vive arriba (antes de las filas): lo usa también la ficha.
     const roleChips=function(a){
       const dy=dailyEffOf(a), fx=fixedEffOf(a);
       const on={fijos:fx&&!dy, diario:dy&&!fx, ambos:fx&&dy};
@@ -11539,16 +11653,14 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
        colocar por separado. `parte` los separa sin duplicar nada: sin `parte` sigue pintando los
        dos, que es como lo usa el resto de la app. */
     return React.createElement("div",null,
-      parte!=="bienes" && React.createElement("div",{className:"v4-card-list"},
+      parte!=="bienes" && React.createElement("div",{className:"v4-card-list",ref:bindListDrag},
         state.accounts.map(accRow),
         (state.obAccounts||[]).map(obRow),
-        /* ⚠ «Editar» SIGUE AQUÍ aunque cada cuenta tenga ya su ficha (2026-09-11). No es un resto:
-           es la única puerta a las cuentas EXTRA de Open Banking (las de `obAccounts`, que no son
-           cuentas con rol todavía y se promocionan desde ahí) y a renombrarlas. La ficha cubre las
-           cuentas de verdad; esto, lo que aún no lo es.
-           Los e2e (y el dedo) buscan `button.edit-link`: tiene que ir ANTES que «+ Efectivo», que
-           llevaba la misma clase y se comía el clic (review 4.19.10). */
-        React.createElement("button",{className:"edit-link",style:{margin:"8px 4px"},onClick:function(){ accEd.editing?accEd.save():accEd.start(); }},accEd.editing?t("fj_save"):t("fj_edit")),
+        /* «Editar» SOLO cuando hay cuentas EXTRA de Open Banking por promocionar (12/9). Él lo
+           veía como resto del rediseño; la ficha ya cubre nombre/saldo/rol de las cuentas reales
+           (y el rol pasa por `pickRole`, así un EXTRA también). Si ya está abierto el editor,
+           se deja el botón para poder Guardar. */
+        ((state.obAccounts||[]).length>0 || accEd.editing) && React.createElement("button",{className:"edit-link",style:{margin:"8px 4px"},onClick:function(){ accEd.editing?accEd.save():accEd.start(); }},accEd.editing?t("fj_save"):t("fj_edit")),
         !cashAcc && React.createElement("button",{type:"button",className:"v4-link-mini",style:{margin:"8px 4px",display:"block"},onClick:doAddEfectivo}, t("ef_create_btn")),
         cashAcc && React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",margin:"8px 4px"}},
           React.createElement("button",{type:"button",className:"v4-link-mini",onClick:doSaqueCajero}, t("ef_cajero_btn")),
@@ -11559,7 +11671,8 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
       React.createElement(AccountSheet,{
         open:!!sheetAcc, cuenta:(state.accounts||[]).find(function(x){ return x.id===sheetAcc; })||null,
         set:set, totals:totals, onClose:function(){ setSheetAcc(""); },
-        onRemove:removeAccount, onSaldo:guardarSaldoDe,
+        onRemove:removeAccount, onSaldo:guardarSaldoDe, onRole:pickRole,
+        rolVista:(function(){ const c=(state.accounts||[]).find(function(x){ return x.id===sheetAcc; }); return c?rolVistaOf(c):null; })(),
         saldoMostrado:shownAcc, sincronizada:isSynced
       }),
       // Editor completo (2026-07-18): nombre + rol (recibos/diario/todo) SIEMPRE; el saldo solo
