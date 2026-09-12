@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.19.78",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "Al sincronizar, lo que cambió en la nube ya llega al móvil",
+      "en": "When you sync, cloud changes now reach the phone",
+      "ca": "En sincronitzar, el que ha canviat al núvol ja arriba al mòbil"
+    },
+    "items": {
+      "es": [
+        "Si un gasto ya estaba en el móvil y en la nube le cambian la categoría (u otro dato), al sincronizar se actualiza. Antes se quedaba el valor viejo aunque dijera «ya estás al día»."
+      ],
+      "en": [
+        "If an expense was already on the phone and its category (or other data) changed in the cloud, syncing updates it. Before, the old value stuck even when it said you were up to date."
+      ],
+      "ca": [
+        "Si una despesa ja era al mòbil i al núvol li canvien la categoria (o una altra dada), en sincronitzar s'actualitza. Abans es quedava el valor vell tot i dir «ja estàs al dia»."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "sync-refresca",
+        "t": {
+          "es": "🔄 Sincronizar refresca lo que ya tenías",
+          "en": "🔄 Sync refreshes what you already had",
+          "ca": "🔄 Sincronitzar refresca el que ja tenies"
+        },
+        "items": {
+          "es": [
+            "1. Abre Gastos y mira un movimiento que se hubiera corregido en la nube (p. ej. Aigües → Energía).",
+            "2. Tira para sincronizar (o vuelve a la app desde fuera).",
+            "3. Tiene que mostrar la categoría nueva, no la vieja, aunque el aviso diga que ya estabas al día."
+          ],
+          "en": [
+            "1. Open Expenses and find a movement that was corrected in the cloud (e.g. water bill → Energy).",
+            "2. Pull to sync (or leave the app and come back).",
+            "3. It must show the new category, not the old one, even if it says you were already up to date."
+          ],
+          "ca": [
+            "1. Obre Despeses i mira un moviment corregit al núvol (p. ex. Aigües → Energia).",
+            "2. Estira per sincronitzar (o surt de l'app i torna).",
+            "3. Ha de mostrar la categoria nova, no la vella, tot i que digui que ja estaves al dia."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.77",
     "d": "12 sep 2026",
     "t": {

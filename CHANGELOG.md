@@ -1,3 +1,16 @@
+## [4.19.78] - 2026-09-12
+### El pull vuelve a refrescar filas que ya teníamos (ya no filtra por source=supabase)
+
+Hallazgo Claude + captura suya: one-shot dejó Aigües en nube como `energia` y el móvil seguía
+en `viajes` con «Ya estás al día». Causa: `syncCloudExpenses` hacía
+`keep = filter(source!=="supabase")`, pero `expenseFromRow` convierte `"supabase"`→`"manual"`
+y nunca emite `"supabase"` — keep se quedaba con TODO lo local y solo añadía claves nuevas.
+
+`mergeExpensesFromCloud` / `refreshExpenseFromCloud`: actualizan cat/importe/nota/… por clave;
+no pisan `cat` de manuales ni `note` editada; **nunca borran por ausencia** (4.18.6).
+
+e2e `sync-pull-refresco` + unitario `merge-expenses-cloud`.
+
 ## [4.19.77] - 2026-09-12
 ### Long-press ordena cuentas (se elevan) y Editar solo con obAccounts
 

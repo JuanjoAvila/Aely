@@ -409,17 +409,15 @@ function App(){
       let count=0; const seenC={};
       incoming.forEach(function(e){ const k=keyOfExpense(e); if(!seenC[k]){ seenC[k]=1; if(!prevKeys[k]) count++; } });
       set(function(prev){
-        const keep=parcial ? prev.expenses.slice()
-                           : prev.expenses.filter(function(e){ return e.source!=="supabase"; });
-        const keepKeys={}; keep.forEach(function(e){ keepKeys[keyOfExpense(e)]=1; });
-        const seen={}; const add=[];
-        incoming.forEach(function(e){ const k=keyOfExpense(e); if(!keepKeys[k] && !seen[k]){ seen[k]=1; add.push(e); } });
-        // Si el resultado es EXACTAMENTE la lista que ya había (el caso normal: sincronizas y no
-        // hay nada nuevo), se conserva el MISMO array. Antes se construía uno nuevo siempre, y eso
-        // repintaba toda la app y reescribía el histórico entero en cada vuelta a primer plano —
-        // varias veces al día, y cada vez más caro según crecía el histórico (2026-07-24).
-        const next=keep.concat(add);
-        const igual = next.length===prev.expenses.length && next.every(function(e,i){ return e===prev.expenses[i]; });
+        /* ANTES: `keep = filter(source!=="supabase")` + solo añadir claves nuevas. Muerto desde
+           que `expenseFromRow` convierte `"supabase"`→`"manual"`: keep se quedaba con TODO lo
+           local y una categoría cambiada en la nube NUNCA bajaba (Aigües viajes vs energia, 12/9).
+           Ahora: `mergeExpensesFromCloud` refresca campo a campo y NUNCA borra por ausencia
+           (parcial o no — la regla 4.18.6 se queda). */
+        const merged=mergeExpensesFromCloud(prev.expenses, incoming);
+        const next=merged.list;
+        const igual=!merged.changed && next.length===(prev.expenses||[]).length
+          && next.every(function(e,i){ return e===(prev.expenses||[])[i]; });
         // Call site 3/3 de fixMovInvasion (tras pull expenses). Contención 4.18.6: sin bloque (b).
         const base=Object.assign({},prev,{expenses: igual?prev.expenses:next, lastSync:Date.now()});
         const rec=reconcileObDupes(fixMovInvasion(base));

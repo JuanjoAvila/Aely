@@ -3922,6 +3922,61 @@ function mergeExpenses(prevList, incoming){
   (incoming||[]).forEach(function(e){ const k=keyOfExpense(e); if(!seen[k]){ seen[k]=1; list.push(e); nuevos++; } });
   return { list:list, nuevos:nuevos };
 }
+/* Refresca una fila LOCAL con lo que manda la nube SIN sustituir el array entero (12/9).
+   El pull filtraba `source!=="supabase"`, pero `expenseFromRow` ya no emite nunca `"supabase"`
+   (lo convierte a `"manual"`). Resultado: keep se quedaba con TODAS las filas locales y solo
+   añadía claves nuevas — categoría/importe/nota de una fila ya vista nunca se actualizaban.
+   Caso medido: Aigües en nube=`energia` y el móvil seguía en `viajes` tras «Ya estás al día».
+   Reglas: no pisar `cat` de un apunte manual; no pisar `note` si él la editó; nunca borrar. */
+function refreshExpenseFromCloud(local, incoming){
+  if(!local||!incoming) return local||incoming;
+  const manual=isManualExpenseSource(local.source);
+  let out=local;
+  const put=function(k,v){
+    const a=local[k], b=v;
+    if(a===b) return;
+    if(a==null && (b==null||b===undefined||b==="")) return;
+    if(out===local) out=Object.assign({},local);
+    if(b===undefined||b===false||b===""){ if(a!=null){ out[k]=undefined; delete out[k]; } return; }
+    out[k]=b;
+  };
+  if(!manual && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
+  if(incoming.amount!=null && isFinite(incoming.amount)) put("amount", incoming.amount);
+  if(incoming.merchant!=null && incoming.merchant!=="") put("merchant", incoming.merchant);
+  if(Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
+  if(Object.prototype.hasOwnProperty.call(incoming,"obName")) put("obName", incoming.obName);
+  if(Object.prototype.hasOwnProperty.call(incoming,"origAmount")) put("origAmount", incoming.origAmount);
+  if(Object.prototype.hasOwnProperty.call(incoming,"origCur")) put("origCur", incoming.origCur);
+  if(Object.prototype.hasOwnProperty.call(incoming,"possibleDup")){
+    put("possibleDup", incoming.possibleDup||undefined);
+    put("possibleDupOf", incoming.possibleDupOf);
+  }
+  if(!local.noteEdited && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
+  /* Misma clave, otro uuid en nube: alinear al de la tabla para que los PATCH futuros den. */
+  if(incoming.id && incoming.id!==local.id) put("id", incoming.id);
+  return out;
+}
+/* Mezcla el pull con lo local: refresca campos de claves ya vistas y solo AÑADE las nuevas.
+   Nunca elimina una clave que solo exista en local (contención 4.18.6 / FIN-07). */
+function mergeExpensesFromCloud(prevList, incoming){
+  const byKey={}; const order=[];
+  (prevList||[]).forEach(function(e){
+    const k=keyOfExpense(e);
+    if(!byKey[k]){ byKey[k]=e; order.push(k); }
+  });
+  let changed=false; let nuevos=0; const seen={};
+  (incoming||[]).forEach(function(inc){
+    const k=keyOfExpense(inc);
+    if(seen[k]) return;
+    seen[k]=1;
+    const loc=byKey[k];
+    if(!loc){ byKey[k]=inc; order.push(k); changed=true; nuevos++; return; }
+    const merged=refreshExpenseFromCloud(loc, inc);
+    if(merged!==loc){ byKey[k]=merged; changed=true; }
+  });
+  const list=order.map(function(k){ return byKey[k]; });
+  return { list:list, changed:changed, nuevos:nuevos };
+}
 
 /* ¿El estado bajado de la nube tiene forma válida? Evita machacar lo local con algo corrupto/parcial.
    (Los arrays pueden estar vacíos —usuario nuevo— pero deben EXISTIR y ser arrays.) */
@@ -19668,17 +19723,15 @@ function App(){
       let count=0; const seenC={};
       incoming.forEach(function(e){ const k=keyOfExpense(e); if(!seenC[k]){ seenC[k]=1; if(!prevKeys[k]) count++; } });
       set(function(prev){
-        const keep=parcial ? prev.expenses.slice()
-                           : prev.expenses.filter(function(e){ return e.source!=="supabase"; });
-        const keepKeys={}; keep.forEach(function(e){ keepKeys[keyOfExpense(e)]=1; });
-        const seen={}; const add=[];
-        incoming.forEach(function(e){ const k=keyOfExpense(e); if(!keepKeys[k] && !seen[k]){ seen[k]=1; add.push(e); } });
-        // Si el resultado es EXACTAMENTE la lista que ya había (el caso normal: sincronizas y no
-        // hay nada nuevo), se conserva el MISMO array. Antes se construía uno nuevo siempre, y eso
-        // repintaba toda la app y reescribía el histórico entero en cada vuelta a primer plano —
-        // varias veces al día, y cada vez más caro según crecía el histórico (2026-07-24).
-        const next=keep.concat(add);
-        const igual = next.length===prev.expenses.length && next.every(function(e,i){ return e===prev.expenses[i]; });
+        /* ANTES: `keep = filter(source!=="supabase")` + solo añadir claves nuevas. Muerto desde
+           que `expenseFromRow` convierte `"supabase"`→`"manual"`: keep se quedaba con TODO lo
+           local y una categoría cambiada en la nube NUNCA bajaba (Aigües viajes vs energia, 12/9).
+           Ahora: `mergeExpensesFromCloud` refresca campo a campo y NUNCA borra por ausencia
+           (parcial o no — la regla 4.18.6 se queda). */
+        const merged=mergeExpensesFromCloud(prev.expenses, incoming);
+        const next=merged.list;
+        const igual=!merged.changed && next.length===(prev.expenses||[]).length
+          && next.every(function(e,i){ return e===(prev.expenses||[])[i]; });
         // Call site 3/3 de fixMovInvasion (tras pull expenses). Contención 4.18.6: sin bloque (b).
         const base=Object.assign({},prev,{expenses: igual?prev.expenses:next, lastSync:Date.now()});
         const rec=reconcileObDupes(fixMovInvasion(base));

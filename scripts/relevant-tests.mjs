@@ -97,6 +97,7 @@ export const E2E_MAP = [
  *  módulo de src (no el núcleo: ese ya dispara todo), van con el recorte. */
 export const CROSSCUTTING = [
   "e2e/persistencia.spec.mjs",
+  "e2e/sync-pull-refresco.spec.mjs",
   "e2e/swipe-pestanas.spec.mjs",
   "e2e/rebote-barra-inferior.spec.mjs",
   /* Hermano del de arriba, y hace falta que sean DOS. Aquél mueve el scroll con `scrollTop` por
