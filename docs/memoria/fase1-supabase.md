@@ -4,14 +4,14 @@
 
 ---
 name: fase1-supabase
-description: Decisiones y plan de la migración Fase 1 a Supabase en Aely
+description: Decisiones y plan de la migración Fase 1 a Supabase en Mi Cartera
 metadata: 
   node_type: memory
   type: project
   originSessionId: e1dc0ffc-f316-4885-bf7c-1e694f8b4d24
 ---
 
-Aely arranca **Fase 1: Supabase** (decidido 2026-06-18). Objetivo: multi-dispositivo real (habrá más dispositivos seguro).
+Mi Cartera arranca **Fase 1: Supabase** (decidido 2026-06-18). Objetivo: multi-dispositivo real (habrá más dispositivos seguro).
 
 Decisiones del usuario:
 - **Auth:** magic link por email (Supabase Auth), con RLS por usuario desde el día 1.

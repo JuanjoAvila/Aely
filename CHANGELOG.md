@@ -1,3 +1,49 @@
+## [4.19.82] - 2026-09-12
+### El aviso de la última cuota se puede quitar, y el paso que él no podía pasar sale del panel
+
+Tres cosas de la vuelta de la tarde, todas nacidas de lo que él reportó **desde la propia app**
+(`errores.mjs --kind=feedback`, que desde hoy se mira en cada vuelta igual que `--kind=beta`).
+
+**1 · «Cansa mucho verlo cada día».** Textual suyo: *«Lo de la "última cuota" del inicio está
+chulo que te aparezca el aviso pero cansa mucho verlo cada día… estaría bien poder quitarlo»*.
+La tarjeta se queda —le gusta— y estrena un **«Descartar»**, el mismo de la tarjeta del mes
+cerrado. Tres decisiones detrás:
+
+- **Se reutiliza `mr_later`**, la cadena que ya existía. Ni una clave nueva de i18n: el gzip
+  está a 330 de 332 KB y cada texto nuevo cuesta. Además, dos botones que hacen lo mismo en la
+  misma pantalla deben leerse igual.
+- **Se descarta POR DEUDA** (`settings.partyDismissed`), no de golpe. Cada deuda llega a su
+  última cuota UNA vez, así que descartarla es «ya lo he visto», no «no me lo cuentes nunca más».
+  Si mañana termina otra, esa sí avisa.
+- **Vive en `settings`**, no en `localStorage`: si no, el otro móvil se lo volvería a enseñar
+  cada día, que es exactamente lo que pidió que dejara de pasar.
+
+⚠ `debtLeft`/`debtActive` viven en `07-tab-patri-fijos.js`, reservado por Cursor en esta ronda:
+no se ha tocado. El helper nuevo se queda en el dash.
+
+**2 · Fuera el paso 5 de `categorias-que-empiezan`.** Lo rechazó **tres veces** con la misma nota
+(*«lo clasifica en compras»*), y la palabra clave NO falla — medido aquí:
+
+    autoCategory("Mangopay")       → otros     ✅
+    autoCategory("Mango")          → compras   ✅ (no se rompió)
+
+El paso le pide pulsar «✨ Sugerir categoría». Cuando las palabras clave dicen `otros`, ese botón
+**le pregunta al modelo**, y el modelo lee «Mango» y contesta Compras. O sea: arreglamos el
+substring y el fallo volvió por la otra puerta. Como el arreglo de esa puerta es del servidor y
+**el servidor no se despliega hasta el promote**, hoy no puede pasar ese paso ni con todo bien
+puesto: es el filtro 6 del panel. Vuelve cuando `categorize` esté desplegada.
+
+**3 · La regla de pasarelas, escrita y sin desplegar.** En el prompt de `categorize`: una pasarela
+de cobro (mangopay, stripe, paypal, redsys…) **no dice qué se compró, solo quién cobró**, así que
+responde `otros`. Es la familia entera, no un parche de un comercio. ⚠ Sube a beta pero **no se
+despliega**: `categorize` importa `_shared`, que ya lleva el split agua/luz/gas, y el cliente de
+producción (4.18.25) no conoce esos ids.
+
+Tests: `e2e/ultima-cuota-descartar.spec.mjs`, dos casos, **verificados en rojo** quitando el
+cambio de `03-tab-dash.js` y reconstruyendo (2 failed), y en verde con él (2 passed). Se siembran
+**DOS deudas** a propósito: con una sola, una implementación que escondiera la tarjeta entera
+pasaría igual de bien.
+
 ## [4.19.81] - 2026-09-12
 ### El repo en GitHub pasa a llamarse Aely (URLs de OTA y Pages)
 

@@ -36,4 +36,4 @@ commit por delante. Se recuperó del `reflog` (`HEAD@{1}`), pero el susto sobra.
   estando rota. Capturar `$?` justo después del comando, o redirigir a fichero y leerlo
   ([[feedback-no-dar-por-hecho]]).
 - Antes de dar por publicado, `npm run salud` **o** el `version.json` del canal:
-  `https://github.com/JuanjoAvila/Aely/releases/download/beta/version.json`. Push ≠ Pages.
+  `https://github.com/JuanjoAvila/Mi-Cartera/releases/download/beta/version.json`. Push ≠ Pages.

@@ -1,5 +1,67 @@
 [
   {
+    "v": "4.19.82",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "El aviso de la última cuota se puede quitar",
+      "en": "The last-instalment notice can be dismissed",
+      "ca": "L'avís de l'última quota es pot treure"
+    },
+    "items": {
+      "es": [
+        "El aviso de «¡ÚLTIMA cuota!» de Inicio estrena un «Descartar»: lo quitas y no vuelve a salir.",
+        "Se quita solo esa deuda: si tienes otra que también termina, esa sigue avisándote.",
+        "Y se queda quitado en todos tus dispositivos, no solo en el que lo tocaste."
+      ],
+      "en": [
+        "The “LAST instalment!” notice on Home now has a “Dismiss”: tap it and it does not come back.",
+        "Only that debt is dismissed: if another one is also ending, it keeps telling you.",
+        "And it stays dismissed on all your devices, not just the one you tapped."
+      ],
+      "ca": [
+        "L'avís d'«ÚLTIMA quota!» d'Inici estrena un «Descartar»: el treus i no torna a sortir.",
+        "Es treu només aquell deute: si en tens un altre que també s'acaba, aquell segueix avisant.",
+        "I es queda tret a tots els teus dispositius, no només al que vas tocar."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "ultima-cuota-descartar",
+        "t": {
+          "es": "🎉 Quitar el aviso de la última cuota",
+          "en": "🎉 Dismiss the last-instalment notice",
+          "ca": "🎉 Treure l'avís de l'última quota"
+        },
+        "items": {
+          "es": [
+            "1. Es el aviso que te sale cada día y que nos dijiste que cansaba, así que ya sabes dónde está.",
+            "2. Ve a Inicio. Arriba tiene que seguir saliendo la tarjeta verde de «¡ÚLTIMA cuota!», igual que hasta ahora.",
+            "3. Ahora a su derecha hay un «Descartar». Tócalo: esa línea tiene que desaparecer al momento.",
+            "4. Si tenías DOS deudas acabando, la otra tiene que seguir ahí. Solo se quita la que tocas.",
+            "5. Cierra la app del todo y vuelve a abrirla. No puede volver a salir la que descartaste — eso era justo lo que te cansaba.",
+            "6. Y quitar el aviso NO borra la deuda: vete a Plan → Deudas y tiene que seguir ahí con su cuota. Solo se calla el cartel."
+          ],
+          "en": [
+            "1. It is the notice you get every day, the one you told us was tiring, so you know where it is.",
+            "2. Go to Home. The green “LAST instalment!” card must still be there, just as before.",
+            "3. Now there is a “Dismiss” on its right. Tap it: that line must disappear at once.",
+            "4. If you had TWO debts ending, the other must stay. Only the one you tap goes.",
+            "5. Close the app fully and open it again. The dismissed one must not come back — that was the tiring part.",
+            "6. And dismissing it does NOT delete the debt: go to Plan → Debts and it must still be there with its instalment."
+          ],
+          "ca": [
+            "1. Es l'avis que et surt cada dia i que ens vas dir que cansava.",
+            "2. Ves a Inici. A dalt ha de seguir sortint la targeta verda d'«ULTIMA quota!», igual que fins ara.",
+            "3. Ara a la seva dreta hi ha un «Descartar». Toca'l: aquella linia ha de desapareixer al moment.",
+            "4. Si en tenies DOS acabant, l'altre ha de seguir. Nomes se'n va el que toques.",
+            "5. Tanca l'app del tot i torna-la a obrir. El descartat no pot tornar a sortir.",
+            "6. I treure l'avis NO esborra el deute: ves a Pla → Deutes i ha de seguir alli amb la seva quota."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.81",
     "d": "12 sep 2026",
     "t": {

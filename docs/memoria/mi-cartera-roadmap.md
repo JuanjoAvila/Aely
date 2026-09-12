@@ -4,7 +4,7 @@
 
 ---
 name: mi-cartera-roadmap
-description: "Estado actual y backlog de Aely. ⚠ 2026-08-17 (vuelta del crucero): lo que la FAMILIA tiene NO es lo que dice el repo — Pages sirve 4.15.0 y apk.json live apunta a 4.12.0/código 35 desde el outage de Actions del 6/8. Beta = 4.16.2 / APK 40 (widget coherente), pendiente de su veredicto. Histórico largo debajo, sesión a sesión. ⚠ Las Edge Functions solo se despliegan al pushear a main: un fix en beta está INERTE."
+description: "Estado actual y backlog de Mi Cartera. ⚠ 2026-08-17 (vuelta del crucero): lo que la FAMILIA tiene NO es lo que dice el repo — Pages sirve 4.15.0 y apk.json live apunta a 4.12.0/código 35 desde el outage de Actions del 6/8. Beta = 4.16.2 / APK 40 (widget coherente), pendiente de su veredicto. Histórico largo debajo, sesión a sesión. ⚠ Las Edge Functions solo se despliegan al pushear a main: un fix en beta está INERTE."
 metadata:
   node_type: memory
   type: project
