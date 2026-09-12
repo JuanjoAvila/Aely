@@ -42,6 +42,21 @@ const json = async (url) => {
     return r.ok ? await r.json() : null;
   } catch { return null; } finally { clearTimeout(id); }
 };
+/* ¿Responde esta URL? Devuelve el código, o 0 si ni se ha podido preguntar (sin red). Algunos
+   hosts no contestan a HEAD, así que se reintenta con GET antes de dar nada por muerto. */
+const head = async (url) => {
+  const probar = async (method) => {
+    const ctrl = new AbortController();
+    const id = setTimeout(() => ctrl.abort(), 12000);
+    try {
+      const r = await fetch(url, { method, redirect: "follow", signal: ctrl.signal, cache: "no-store" });
+      return r.status;
+    } catch { return 0; } finally { clearTimeout(id); }
+  };
+  const st = await probar("HEAD");
+  if (st === 405 || st === 501) return await probar("GET");
+  return st;
+};
 const git = (...args) => { try { return execFileSync("git", args, { cwd: root }).toString().trim(); } catch { return ""; } };
 
 console.log("\n🩺  SALUD DE AELY\n");
@@ -76,6 +91,53 @@ else if (live.version === VERSION) ok(`producción sirve ${live.version} · igua
 else info(`producción sirve ${live.version} · aquí hay ${VERSION}`);
 const liveApk = await json(PAGES + "apk.json");
 if (liveApk) info(`producción anuncia la APK ${liveApk.versionName} (${liveApk.versionCode})`);
+/* EL `url` DEL MANIFIESTO TIENE QUE RESPONDER, no solo existir (2026-09-12).
+   Al renombrar el repo a Aely, `version.json` siguió anunciando `.../Mi-Cartera/bundle.zip` y
+   GitHub Pages NO redirige la ruta vieja: 404. Nadie se enteró porque aquí solo se miraba el
+   NÚMERO de versión. Con eso, apagar el canal beta no podía descargar nada, y quien tuviera la
+   base antigua cocida en la APK se quedaba sin ver actualizaciones. Un manifiesto que apunta a
+   un fichero que no existe no es un manifiesto: es un callejón. */
+if (live && live.url) {
+  const st = await head(live.url);
+  if (st >= 200 && st < 400) ok(`el bundle que anuncia producción responde (${st})`);
+  else if (st === 0) info(`no he podido comprobar el bundle de producción (¿sin red?): ${live.url}`);
+  else mal(`producción anuncia un bundle que NO responde (${st}): ${live.url} · nadie puede actualizar ni volver a estable`);
+} else if (live) {
+  info("el version.json de producción no trae `url` · el cliente cae a su propia base");
+}
+if (liveApk && liveApk.url) {
+  const st = await head(liveApk.url);
+  if (st >= 200 && st < 400) ok(`la APK que anuncia producción se puede descargar (${st})`);
+  else if (st === 0) info(`no he podido comprobar la APK de producción (¿sin red?): ${liveApk.url}`);
+  else mal(`producción anuncia una APK que NO se puede descargar (${st}): ${liveApk.url}`);
+}
+
+/* ---------- 2-BIS. EL PUENTE DEL NOMBRE VIEJO ----------
+   El 12/9 se renombró el repo a Aely y las APK ya instaladas (≤45) llevan
+   `https://juanjoavila.github.io/Mi-Cartera/` cocida en `OtaCheckWorker.java`: sin nadie
+   contestando ahí, esos móviles no vuelven a ver una actualización JAMÁS, y eso no se arregla
+   publicando — se arregla instalando una APK nueva, teléfono por teléfono.
+   Por eso existe el repo puente, y por eso NO se puede borrar mientras circule una APK ≤45.
+   ⚠ Y hay una segunda trampa, que costó descubrirla: tener un repo con el nombre viejo MATA el
+   redirect automático de GitHub para ese nombre, así que el puente tiene que servir también las
+   RELEASES (la etiqueta `beta` y la de cada APK), no solo Pages. Se comprueban las cuatro
+   puertas que usa un cliente antiguo. Cuando los tres móviles estén en una APK con base `/Aely/`,
+   esto se borra entero — y este bloque con él. */
+console.log("");
+console.log("Puente del nombre viejo (para las APK <=45, ver docs/RELEASE.md)");
+const PUENTE = "https://juanjoavila.github.io/Mi-Cartera/";
+const PUENTE_REL = "https://github.com/JuanjoAvila/Mi-Cartera/releases/download/beta/";
+for (const [que, url] of [
+  ["version.json (Pages)", PUENTE + "version.json"],
+  ["bundle.zip (Pages)", PUENTE + "bundle.zip"],
+  ["apk.json (Pages) · sin esto no se les puede avisar de una APK nueva", PUENTE + "apk.json"],
+  ["version.json (release `beta`, la que mira el worker nativo)", PUENTE_REL + "version.json"],
+]) {
+  const st = await head(url);
+  if (st >= 200 && st < 400) ok(`el puente sirve ${que}`);
+  else if (st === 0) info(`no he podido preguntarle al puente por ${que} (¿sin red?)`);
+  else mal(`el puente NO sirve ${que} (${st}) · hay móviles que se quedan sin actualizaciones`);
+}
 
 /* ---------- 3. El canal beta ---------- */
 console.log("\nCanal beta");
