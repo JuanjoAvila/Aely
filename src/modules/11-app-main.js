@@ -142,7 +142,15 @@ function App(){
       const nav=document.querySelector(".botnav");
       if(nav) nav.classList.remove("botnav-hidden","botnav-hidden-fast","botnav-ola-clear");
     }catch(e){}
-    if(navHiddenRef.current){ navHiddenRef.current=false; setNavHidden(false); setNavHiddenFast(false); }
+    if(!navHiddenRef.current) return;
+    navHiddenRef.current=false;
+    navHideFastRef.current=false;
+    /* Misma regla que `applyNavHide` (4.19.69): con el dedo puesto solo se toca el DOM; el
+       `setState` espera a soltar. Rechazo 12/9: *«si hago seguido, SUBIR en gastos… se laguea»*
+       — el hide ya aplazaba, el reveal no, y al subir se repintaba App entera. */
+    if(dragging.current){ navFlush.current=true; return; }
+    setNavHidden(false);
+    setNavHiddenFast(false);
   };
   // Marca de tiempo del último scroll REAL de una página. La usa `freezeShell` para no pagar el
   // congelado cuando no hace falta (ver allí). Se apunta antes de cualquier corte: durante el
@@ -240,7 +248,13 @@ function App(){
        haber salido del tope y se esconde en el acto — la curva calmada de `.botnav` sigue
        poniendo la suavidad que él pide. */
     if(dy>0 && y>24){ armNavHide(false, true); }
-    else if(dy<0){ revealNav(); }
+    else if(dy<0){
+      /* Cerca del fondo el rubber-band dispara `dy<0` con `y` aún alta. Revelar ahí pelea con
+         el hide/ola: *«se queda a medias la barra intentando subir, luego acaba… y luego la ola»*
+         (rechazo 4.19.69, 12/9). La barra solo vuelve al subir de verdad, lejos del borde. */
+      if(max>0 && y>max-80) return;
+      revealNav();
+    }
   };
   const applyNavHideRef=useRef(applyNavHide);
   applyNavHideRef.current=applyNavHide;

@@ -1,3 +1,18 @@
+## [4.19.76] — 2026-09-12
+### El saldo del Efectivo se guarda al cerrar la ficha, y subir ya no repinta App
+
+Rechazo `4.19.67/ficha-cuenta` paso 5: *«si solo pones un número… y lo quitas… no se guarda;
+solo si le das a la flechita del teclado»*. `AccountSheet` solo volcaba en `onBlur`. Al cerrar
+con el foco en el importe (backdrop / atrás / swipe) en su WebView el blur a menudo no llega.
+`cerrar()` = `guardaSaldo()` + `onClose()`, con refs del saldo porque `useBackClose` /
+`useSheetSwipe` capturan el `onClose` del primer render (`[open]` only).
+
+Rechazo `4.19.69/botnav-sin-repintar`: al subir tras bajar, lag; al fondo la barra a medias con
+la ola. `applyNavHide` ya aplazaba `setState` con dedo puesto; **`revealNav` no**. Misma
+regla (`navFlush`). Y si `dy<0` pero `y > max-80`, no se revela (rubber-band del fondo).
+
+e2e: `cartera-ficha-cuenta` (caso nuevo) + `botnav-esconder` 7/7.
+
 ## [4.19.75] - 2026-09-12
 ### Su rechazo de las 08:57 no era del código, y buscando por qué salieron cuatro trampas más
 

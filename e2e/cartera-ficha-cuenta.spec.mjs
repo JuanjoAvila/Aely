@@ -72,6 +72,26 @@ test("una cuenta TUYA sí deja escribir el saldo", async ({ page }) => {
   await expect(ficha(page).locator("input.num")).toHaveCount(1);
 });
 
+/* Rechazo 4.19.67 paso 5 (2026-09-12): *«si solo pones un número… y lo quitas… no se guarda;
+   solo si le das a la flechita del teclado»*. El commit colgaba del blur; al cerrar la ficha
+   ahora se vuelca el saldo (ver `cerrar` en AccountSheet). Flujo: teclear, tocar fuera SIN
+   pasar al nombre, reabrir — tiene que seguir el número nuevo. */
+test("el saldo del Efectivo se guarda al cerrar la ficha, sin pasar por otro campo", async ({ page }) => {
+  await abrirCartera(page);
+  await fila(page, "Efectivo").click();
+  await expect(ficha(page)).toBeVisible();
+
+  const input = ficha(page).locator("input.num");
+  await input.click();
+  await page.keyboard.press("Control+A");
+  await page.keyboard.type("88");
+  await page.locator(".v4-sheet-back").click({ position: { x: 10, y: 10 } });
+  await expect(ficha(page)).toHaveCount(0);
+
+  await fila(page, "Efectivo").click();
+  await expect(ficha(page).locator("input.num")).toHaveValue("88");
+});
+
 test("cada rol lleva su frase, y sale marcado el que tiene", async ({ page }) => {
   await abrirCartera(page);
   await fila(page, "Revolut").click();

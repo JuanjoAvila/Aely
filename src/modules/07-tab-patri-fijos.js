@@ -11,18 +11,40 @@
    Y lo que rechazó de la primera maqueta: meter todo en una cartilla única («separado como está
    me gusta ya») y la flecha al lado del importe. */
 function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, saldoMostrado, sincronizada}){
-  useBackClose(!!open, onClose);
-  const swipe=useSheetSwipe(!!open, onClose);
   const [borrando,setBorrando]=React.useState(false);
   const [saldo,setSaldo]=React.useState("");
+  /* Ref del importe tecleado: al cerrar por atrás/swipe, `useBackClose`/`useSheetSwipe` se
+     quedan con el `onClose` del primer render (deps solo `[open]`). Sin ref, volcaban el saldo
+     vacío de la apertura. Rechazo 4.19.67 paso 5, 2026-09-12: *«si solo pones un número… y lo
+     quitas… no se guarda»* — el blur no llega al cerrar con el foco dentro. */
+  const saldoRef=React.useRef("");
+  const cuentaRef=React.useRef(cuenta);
+  const conectadaRef=React.useRef(false);
   React.useEffect(function(){
     if(!open||!cuenta) return;
     setBorrando(false);
-    setSaldo(String(saldoMostrado(cuenta)));
+    const v=String(saldoMostrado(cuenta));
+    setSaldo(v); saldoRef.current=v;
   },[open,cuenta&&cuenta.id]);
+  /* El saldo solo se escribe en las cuentas TUYAS. En una conectada lo manda el banco y editarlo
+     aquí sería mentirse: se enseña con su candado y la hora del último sync. */
+  const guardaSaldo=function(){
+    const a=cuentaRef.current;
+    if(!a||conectadaRef.current) return;
+    const n=parseFloat(String(saldoRef.current).replace(",","."));
+    if(!isFinite(n)) return;
+    onSaldo(a.id, n);
+  };
+  /* Cerrar = volcar el saldo PRIMERO. El blur sigue por si salta al nombre con el teclado
+     («flechita»), que era el único camino que le funcionaba. */
+  const cerrar=function(){ guardaSaldo(); onClose(); };
+  useBackClose(!!open, cerrar);
+  const swipe=useSheetSwipe(!!open, cerrar);
   if(!open||!cuenta) return null;
   const a=cuenta;
+  cuentaRef.current=a;
   const conectada=sincronizada(a);
+  conectadaRef.current=conectada;
   const efectivo=isEfectivoEnt(a);
   /* Las tres opciones con su FRASE. Eran tres chips sueltos y la explicación vivía en letra
      pequeña al final de la tarjeta, así que había que bajar a buscarla para saber qué hacía cada
@@ -33,16 +55,8 @@ function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, sa
   const guardaNombre=function(v){
     set(function(s){ return Object.assign({},s,{accounts:(s.accounts||[]).map(function(x){ return x.id===a.id?Object.assign({},x,{name:v}):x; })}); });
   };
-  /* El saldo solo se escribe en las cuentas TUYAS. En una conectada lo manda el banco y editarlo
-     aquí sería mentirse: se enseña con su candado y la hora del último sync. */
-  const guardaSaldo=function(){
-    if(conectada) return;
-    const n=parseFloat(String(saldo).replace(",","."));
-    if(!isFinite(n)) return;
-    onSaldo(a.id, n);
-  };
   return ReactDOM.createPortal(
-    React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
+    React.createElement("div",{className:"v4-sheet-back",onClick:cerrar},
       React.createElement("div",Object.assign({className:"v4-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },style:{maxHeight:"88dvh"}}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement("div",{style:{display:"flex",alignItems:"center",gap:11,marginBottom:2}},
@@ -61,7 +75,7 @@ function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, sa
                 React.createElement("span",{style:{fontSize:10.5,color:"var(--muted-2)",fontWeight:600}}, "🔒 "+t("pt_ficha_banco")))
             : React.createElement("input",{className:"af-in num",inputMode:"decimal",value:saldo,
                 style:{width:130,textAlign:"right",fontSize:18,fontWeight:800},
-                onChange:function(e){ setSaldo(e.target.value); },onBlur:guardaSaldo})
+                onChange:function(e){ const v=e.target.value; saldoRef.current=v; setSaldo(v); },onBlur:guardaSaldo})
         ),
         React.createElement("div",{style:{padding:"14px 0 4px"}},
           React.createElement("div",{className:"v4-ficha-k"}, t("pt_ficha_nombre")),
