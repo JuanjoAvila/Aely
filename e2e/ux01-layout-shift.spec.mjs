@@ -104,13 +104,18 @@ test("entrar/salir de page-scroll-host: sin salto vertical del contenido", async
     const out = [];
     const y0 = y();
 
-    /* leave: swipe geom ANTES de quitar host (como leaveScrollHost real) */
+    /* leave: swipe geom ANTES de quitar host (como leaveScrollHost real).
+       También en <html>: React sella `.track.scroll-host-swipe` vía hostTab<0; el e2e
+       imita classList + html porque no dispara el setState. */
     const w = track.offsetWidth || window.innerWidth;
     track.classList.add("scroll-host-swipe");
+    document.documentElement.classList.add("scroll-host-swipe");
     const leftPx = parseFloat(track.style.left);
     const i = !isNaN(leftPx) ? Math.round(-leftPx / w) : 0;
     track.style.left = "";
     track.classList.remove("scroll-host-park");
+    /* Simula el className de React tras setHostTab(-1): park fuera, swipe dentro. */
+    track.className = "track scroll-host-swipe";
     track.style.transform = "translate3d(" + -(i * w) + "px,0,0)";
     for (let k = 0; k < track.children.length; k++) {
       if (track.children[k].classList) track.children[k].classList.remove("page-scroll-host");
@@ -124,6 +129,7 @@ test("entrar/salir de page-scroll-host: sin salto vertical del contenido", async
 
     /* enter: host de nuevo en la pestaña i */
     track.classList.add("scroll-host-park");
+    track.className = "track scroll-host-park";
     track.style.transform = "none";
     track.style.left = -(i * w) + "px";
     for (let k = 0; k < track.children.length; k++) {
@@ -131,6 +137,7 @@ test("entrar/salir de page-scroll-host: sin salto vertical del contenido", async
       track.children[k].classList.toggle("page-scroll-host", k === i);
     }
     track.classList.remove("scroll-host-swipe");
+    document.documentElement.classList.remove("scroll-host-swipe");
     out.push(Math.abs(y() - y0));
 
     return {

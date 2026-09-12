@@ -599,11 +599,18 @@
   .track.scroll-host-park{transform:none !important;will-change:auto;overflow:hidden;}
   /* Al deslizar tabs se QUITA `.page-scroll-host` (hace falta translate3d en el track).
      Antes eso bajaba el padding de ST+10 a 6px con el mismo scrollTop → cabecera cortada
-     en las DOS páginas a la vez (reportado 12/9 con capturas, ola ya OK). Mientras dura el
-     gesto + asiento, `.scroll-host-swipe` mantiene el mismo padding que el host y anula el
-     del `.app` para no sumar dos veces. Se pone en leaveScrollHost y se quita en enter. */
-  .app.v4:has(.track.scroll-host-swipe){padding-top:0!important;}
+     en las DOS páginas a la vez (reportado 12/9 con capturas, ola ya OK).
+
+     ⚠ 4.19.94 puso la clase solo por `classList`. Al leave, `setHostTab(-1)` re-renderiza
+     App y React pinta `className="track"` (solo park cuando hostTab>=0) → se COMÍA
+     `scroll-host-swipe` en el mismo gesto. Por eso en Chromium el e2e (DOM a mano) pasaba
+     y en su móvil «sigue fallando igual». Ahora la clase vive en el `className` de React
+     (`hostTab<0` → swipe). `html.scroll-host-swipe` evita depender de `:has` por si el
+     WebView va corto. */
+  html.scroll-host-swipe .app.v4{padding-top:0!important;}
+  html.scroll-host-swipe .track .page,
   .track.scroll-host-swipe .page{padding-top:calc(var(--safe-top) + 10px);}
+  .app.v4:has(.track.scroll-host-swipe){padding-top:0!important;}
   /* ⛔ AQUÍ VIVÍA EL «REFUERZO OPACO» DEL GESTO, Y ERA EL PARPADEO — medido y quitado el 2026-08-18.
      Era una regla que ponía a `.page`, bajo `html[data-season] .track.dragging`, el fondo plano
      `var(--bg)` con `!important`, para que las pestañas no se fusionaran al deslizar.
@@ -21932,7 +21939,10 @@ function App(){
     let i=tabRef.current;
     // ANTES de quitar el host: mismo padding ST+10 sin fixed (ver `.scroll-host-swipe` en shell).
     // Si se pone después, un frame con padding 6px + scrollTop viejo corta la cabecera.
+    // La clase la SELLA React vía `hostTab<0` (className del track); classList es refuerzo
+    // hasta el re-render. html.* evita depender de :has en WebViews viejos.
     el.classList.add("scroll-host-swipe");
+    try{ document.documentElement.classList.add("scroll-host-swipe"); }catch(e){}
     // Si estábamos aparcados con left, recuperar transform antes de arrastrar
     if(scrollHostOn.current){
       const leftPx=parseFloat(el.style.left);
@@ -21967,8 +21977,9 @@ function App(){
       if(!pgs[k]||!pgs[k].classList) continue;
       pgs[k].classList.toggle("page-scroll-host", k===i);
     }
-    // Host ya lleva el padding: quitar el modo gesto (si no, :has anula el padding del .app).
+    // Host ya lleva el padding: quitar el modo gesto (si no, anula el padding del .app).
     el.classList.remove("scroll-host-swipe");
+    try{ document.documentElement.classList.remove("scroll-host-swipe"); }catch(e){}
     scrollHostOn.current=true;
     if(hostTabRef.current!==i){ hostTabRef.current=i; setHostTab(i); }
     try{ if(viewportRef.current) viewportRef.current.classList.add("scroll-host-open"); }catch(e){}
@@ -22817,7 +22828,7 @@ function App(){
       "🧪 MODO PRUEBAS · los datos no son reales · toca para salir"),
     React.createElement("div",{className:"app-shell",ref:appShellRef},
       React.createElement("div",{className:"viewport",ref:viewportRef},
-        React.createElement("div",{className:"track"+(hostTab>=0?" scroll-host-park":""),ref:trackRef}, paginas)
+        React.createElement("div",{className:"track"+(hostTab>=0?" scroll-host-park":" scroll-host-swipe"),ref:trackRef}, paginas)
       ),
       React.createElement("nav",{className:"botnav"+(navHidden&&!drawerOpen&&!profileOpen?" botnav-hidden"+(navHiddenFast?" botnav-hidden-fast":""):""),"aria-label":"Navegación"},
         React.createElement("div",{className:"botnav-row"},

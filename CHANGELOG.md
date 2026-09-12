@@ -1,3 +1,14 @@
+## [4.19.98] - 2026-09-12
+### Swipe: React se comía scroll-host-swipe a mitad de gesto
+
+La 4.19.94 añadía `.scroll-host-swipe` por `classList` en `leaveScrollHost`. En el mismo
+gesto `setHostTab(-1)` re-renderiza App y el `className` de React del track era solo
+`"track"` (+ park si hostTab>=0) — se perdía la clase y el padding volvía a 6 px. Por eso
+el e2e (DOM a mano, sin setState) pasaba y él veía el mismo corte.
+
+Arreglo: `hostTab<0` → `scroll-host-swipe` en el `className` de React; refuerzo en
+`html.scroll-host-swipe` sin depender solo de `:has`.
+
 ## [4.19.97] - 2026-09-12
 ### El saldo al cambiar de rol: arreglé una mitad y me dejé la otra
 

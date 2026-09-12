@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.19.98",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "Al cambiar de pestaña, la cabecera ya no se corta (de verdad)",
+      "en": "Switching tabs no longer clips the header (for real)",
+      "ca": "En canviar de pestanya, la capçalera ja no es talla (de debò)"
+    },
+    "items": {
+      "es": [
+        "La 94 lo intentó, pero un repintado se comía el arreglo a mitad de gesto. Ahora el padding del desliz se queda puesto hasta que acabas."
+      ],
+      "en": [
+        "4.19.94 tried, but a re-render ate the fix mid-swipe. The swipe padding now stays until you finish."
+      ],
+      "ca": [
+        "La 94 ho va provar, però un repintat se menjava l'arreglo a mig gest. Ara el padding del lliscament es queda fins que acabes."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "swipe-sin-corte",
+        "t": {
+          "es": "Al cambiar de pestaña no se corta arriba",
+          "en": "Switching tabs does not clip the top",
+          "ca": "En canviar de pestanya no es talla a dalt"
+        },
+        "items": {
+          "es": [
+            "1. Con Gastos un poco bajada, desliza despacio a Plan/Cartera. Cabecera y buscador enteros en las DOS pantallas a la vez.",
+            "2. Si al mover el dedo un poquito ya se come un cuarto de pantalla, dilo: eso es el fallo de la 94.",
+            "3. En reposo, ola al tope de la lista como en la 91."
+          ],
+          "en": [
+            "1. With Expenses scrolled a bit, swipe slowly to Plan/Portfolio. Header and search whole on BOTH screens at once.",
+            "2. If a tiny finger move already eats a quarter of the screen, say so — that was the 94 bug.",
+            "3. At rest, overscroll wave at the top like in 91."
+          ],
+          "ca": [
+            "1. Amb Despeses una mica baixada, llisca a poc a poc a Pla/Cartera. Capçalera i cercador sencers a les DUES pantalles.",
+            "2. Si en moure el dit un xic ja es menja un quart de pantalla, digues-ho.",
+            "3. En repòs, ona al capdamunt com a la 91."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.97",
     "d": "12 sep 2026",
     "t": {

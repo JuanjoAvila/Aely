@@ -2294,7 +2294,10 @@ function App(){
     let i=tabRef.current;
     // ANTES de quitar el host: mismo padding ST+10 sin fixed (ver `.scroll-host-swipe` en shell).
     // Si se pone después, un frame con padding 6px + scrollTop viejo corta la cabecera.
+    // La clase la SELLA React vía `hostTab<0` (className del track); classList es refuerzo
+    // hasta el re-render. html.* evita depender de :has en WebViews viejos.
     el.classList.add("scroll-host-swipe");
+    try{ document.documentElement.classList.add("scroll-host-swipe"); }catch(e){}
     // Si estábamos aparcados con left, recuperar transform antes de arrastrar
     if(scrollHostOn.current){
       const leftPx=parseFloat(el.style.left);
@@ -2329,8 +2332,9 @@ function App(){
       if(!pgs[k]||!pgs[k].classList) continue;
       pgs[k].classList.toggle("page-scroll-host", k===i);
     }
-    // Host ya lleva el padding: quitar el modo gesto (si no, :has anula el padding del .app).
+    // Host ya lleva el padding: quitar el modo gesto (si no, anula el padding del .app).
     el.classList.remove("scroll-host-swipe");
+    try{ document.documentElement.classList.remove("scroll-host-swipe"); }catch(e){}
     scrollHostOn.current=true;
     if(hostTabRef.current!==i){ hostTabRef.current=i; setHostTab(i); }
     try{ if(viewportRef.current) viewportRef.current.classList.add("scroll-host-open"); }catch(e){}
@@ -3179,7 +3183,7 @@ function App(){
       "🧪 MODO PRUEBAS · los datos no son reales · toca para salir"),
     React.createElement("div",{className:"app-shell",ref:appShellRef},
       React.createElement("div",{className:"viewport",ref:viewportRef},
-        React.createElement("div",{className:"track"+(hostTab>=0?" scroll-host-park":""),ref:trackRef}, paginas)
+        React.createElement("div",{className:"track"+(hostTab>=0?" scroll-host-park":" scroll-host-swipe"),ref:trackRef}, paginas)
       ),
       React.createElement("nav",{className:"botnav"+(navHidden&&!drawerOpen&&!profileOpen?" botnav-hidden"+(navHiddenFast?" botnav-hidden-fast":""):""),"aria-label":"Navegación"},
         React.createElement("div",{className:"botnav-row"},
