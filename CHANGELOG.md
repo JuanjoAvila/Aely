@@ -1,3 +1,46 @@
+## [4.19.92] - 2026-09-12
+### El histórico reconoce lo de madrugada, y dos notas de versión que se pisaban
+
+**1 · Su rechazo de «Importar histórico · 1», con causa medida.** Textual: *«salen un montonazo de
+repetidos… actualmente solo estaba mirando de septiembre dado que ya me los sé, y están TODOS
+apuntados correctamente, así que los que salen que “no son repetidos” sí que lo son y están mal»*.
+
+`histCandDupKey` partía el día con `String(dt).slice(0,10)`, o sea el día **UTC** del texto
+guardado. En España una compra hecha entre las 00:00 y las 02:00 se guarda con un ISO del día
+ANTERIOR: el histórico comparaba el día 4 contra el día 5 que manda el banco y lo daba por NUEVO
+estando ya apuntado.
+
+**Es la TERCERA vez que muerde la misma regla.** Ya se arregló en las cabeceras de Gastos (el
+mismo día salía dos veces seguidas, en una captura suya del 11/9) y en el orden a mano (arrastrar
+un gasto de madrugada no hacía nada, porque la clave de orden era la del día anterior). La regla
+buena vive en `00-core` desde entonces —`dayKey` / `diaDeGasto`—, y su propio comentario avisa de
+que son «DOS sitios que tienen que decir lo mismo». Eran tres.
+
+`tests/hist-dia-local.test.mjs`, 5 casos, **con el huso fijado a Europe/Madrid a propósito**: en
+una máquina en UTC —como el CI— el fallo no se reproduce, y un verde así no valdría para nada.
+Verificado en rojo: caen 3 de 5, y los dos que comprueban que NO se ha aflojado el criterio (dos
+días distintos de verdad siguen sin casar) pasan en los dos lados, que es lo que tienen que hacer.
+
+**2 · La sonda del histórico ahora viaja.** Hasta hoy solo existía en un aviso de pantalla y en
+`window.__histDupProbe`, así que diagnosticar dependía de que a él le diera tiempo a leer el toast
+y copiarlo. Ahora queda en telemetría (`node scripts/errores.mjs --kind=hist`). Van contadores y
+las dos fechas del rango —que hacen falta para distinguir «el banco no lo mandó» de «el banco lo
+truncó»—; ni un comercio, ni un importe, ni un banco.
+
+**3 · Y dos notas de versión que se pisaban.** Trabajando Cursor y yo a la vez, los dos sellamos
+una **4.19.89**: el fichero acabó con DOS entradas con ese número. En Novedades la familia habría
+visto «v4.19.89» dos veces, y en el panel `filter(n => n.v === base)[0]` se queda con la primera,
+así que la otra existía sin verse. Lo mismo con la tanda `ola-nativa`, que estaba en la 4.19.87 y
+en la 4.19.91 (la .87 no llegó a publicarse, CI rojo): en su panel son dos tandas idénticas
+pidiéndole el mismo trabajo, que es justo lo que nos hizo podar el panel («que no sean
+repetitivas… que realmente pueda probarlas»).
+
+Nace `tests/notas-sin-duplicados.test.mjs`: ninguna versión repetida en todo el histórico, ninguna
+tanda repetida **dentro de la ventana viva** (las 20 que enseña Novedades) y ninguna tanda sin
+pasos. La ventana acota a propósito: más atrás hay ids repetidos de rondas ya cerradas y reescribir
+el histórico no arregla nada. Verificado en rojo contra el fichero de antes: `4.19.89 (posiciones
+2 y 3)`.
+
 ## [4.19.91] - 2026-09-12
 ### `ultimoScrollH` ya no traga gestos reales (ola + barra)
 

@@ -100,6 +100,7 @@ const steps = [
   ["rol-cuenta-sin-salto", ["node", "tests/rol-cuenta-sin-salto.test.mjs"]],
   ["ota-bases-espejo", ["node", "tests/ota-bases-espejo.test.mjs"]],
   ["hist-dia-local", ["node", "tests/hist-dia-local.test.mjs"]],
+  ["notas-sin-duplicados", ["node", "tests/notas-sin-duplicados.test.mjs"]],
   ["efectivo", ["node", "tests/efectivo.test.mjs"]],
   ["efectivo-cierre", ["node", "tests/efectivo-cierre.test.mjs"]],
   ["atm-dual", ["node", "tests/atm-dual.test.mjs"]],

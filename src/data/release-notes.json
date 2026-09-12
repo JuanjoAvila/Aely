@@ -1,5 +1,70 @@
 [
   {
+    "v": "4.19.92",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "El histórico ya reconoce lo de madrugada",
+      "en": "The history now recognises late-night purchases",
+      "ca": "L'històric ja reconeix el de matinada"
+    },
+    "items": {
+      "es": [
+        "Al importar histórico, un gasto hecho entre las 00:00 y las 02:00 salía como «nuevo» aunque ya lo tuvieras apuntado: la app miraba el día en hora de Londres y el banco mandaba el de aquí, así que no cuadraban por un día.",
+        "Ahora los dos miran el mismo día, el tuyo. Los que ya tienes apuntados salen marcados como repetidos, que es lo que nos dijiste que fallaba.",
+        "No se ha aflojado nada: dos gastos de días distintos de verdad siguen sin darse por repetidos."
+      ],
+      "en": [
+        "When importing history, a purchase made between midnight and 2am showed up as “new” even if you already had it: the app looked at the day in London time and the bank sent the local one, so they were a day apart.",
+        "Now both look at the same day, yours. The ones you already have come up marked as repeated, which is what you told us was wrong.",
+        "Nothing was loosened: two purchases on genuinely different days are still not treated as repeats."
+      ],
+      "ca": [
+        "En importar històric, una despesa feta entre les 00:00 i les 02:00 sortia com a «nova» encara que ja la tinguessis apuntada: l'app mirava el dia en hora de Londres i el banc enviava el d'aquí.",
+        "Ara tots dos miren el mateix dia, el teu.",
+        "No s'ha afluixat res: dues despeses de dies diferents de veritat segueixen sense donar-se per repetides."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "historico-madrugada",
+        "t": {
+          "es": "📜 El histórico reconoce lo que ya tienes apuntado",
+          "en": "📜 The history recognises what you already have",
+          "ca": "📜 L'històric reconeix el que ja tens apuntat"
+        },
+        "items": {
+          "es": [
+            "1. Esto es tu rechazo de «Importar histórico · 1»: «los que salen que no son repetidos sí que lo son y están mal». No hace falta importar nada, solo mirar la lista.",
+            "2. Ajustes → Importaciones → Importar histórico. Elige el banco y dale a Buscar.",
+            "3. Al terminar te sale un aviso con cuatro números. Fíjate en el último: «coinciden día+€». Antes ese número era el de los que estaban mal marcados.",
+            "4. Mira los movimientos de SEPTIEMBRE, que son los que dijiste que te sabes de memoria. Los que ya tienes apuntados tienen que salir marcados como repetidos, no como nuevos.",
+            "5. Mira sobre todo los de madrugada, si tienes alguno: eran justo los que fallaban.",
+            "6. LO QUE NO PUEDE PASAR: que ahora te marque como repetido algo que NO tienes apuntado. Si ves alguno así, dilo, que sería peor que el fallo de antes.",
+            "7. Puedes salir sin importar nada. Con decirnos si la lista ya cuadra es suficiente."
+          ],
+          "en": [
+            "1. This is your rejection of “Import history · 1”: “the ones it says are not repeats really are”. No need to import anything, just look at the list.",
+            "2. Settings → Imports → Import history. Pick the bank and tap Search.",
+            "3. A notice with four numbers appears. Look at the last one: “same day+€”. That number used to be the mislabelled ones.",
+            "4. Look at SEPTEMBER, the month you said you know by heart. The ones you already have must come up marked as repeats.",
+            "5. Look especially at late-night ones: those were exactly the failing case.",
+            "6. WHAT MUST NOT HAPPEN: something marked as a repeat that you do NOT have. If you see one, say so — that would be worse than the old bug.",
+            "7. You can leave without importing. Telling us whether the list adds up is enough."
+          ],
+          "ca": [
+            "1. Aixo es el teu rebuig d'«Importar historic · 1». No cal importar res, nomes mirar la llista.",
+            "2. Ajustos → Importacions → Importar historic. Tria el banc i dona-li a Buscar.",
+            "3. Surt un avis amb quatre numeros. Fixa't en l'ultim: «coincideixen dia+€».",
+            "4. Mira els moviments de SETEMBRE. Els que ja tens apuntats han de sortir marcats com a repetits.",
+            "5. Mira sobretot els de matinada: eren justament els que fallaven.",
+            "6. EL QUE NO POT PASSAR: que et marqui com a repetit alguna cosa que NO tens apuntada.",
+            "7. Pots sortir sense importar res."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.91",
     "d": "12 sep 2026",
     "t": {
@@ -89,71 +154,6 @@
     "tandas": []
   },
   {
-    "v": "4.19.89",
-    "d": "12 sep 2026",
-    "t": {
-      "es": "El histórico ya reconoce lo de madrugada",
-      "en": "The history now recognises late-night purchases",
-      "ca": "L'històric ja reconeix el de matinada"
-    },
-    "items": {
-      "es": [
-        "Al importar histórico, un gasto hecho entre las 00:00 y las 02:00 salía como «nuevo» aunque ya lo tuvieras apuntado: la app miraba el día en hora de Londres y el banco mandaba el de aquí, así que no cuadraban por un día.",
-        "Ahora los dos miran el mismo día, el tuyo. Los que ya tienes apuntados salen marcados como repetidos, que es lo que nos dijiste que fallaba.",
-        "No se ha aflojado nada: dos gastos de días distintos de verdad siguen sin darse por repetidos."
-      ],
-      "en": [
-        "When importing history, a purchase made between midnight and 2am showed up as “new” even if you already had it: the app looked at the day in London time and the bank sent the local one, so they were a day apart.",
-        "Now both look at the same day, yours. The ones you already have come up marked as repeated, which is what you told us was wrong.",
-        "Nothing was loosened: two purchases on genuinely different days are still not treated as repeats."
-      ],
-      "ca": [
-        "En importar històric, una despesa feta entre les 00:00 i les 02:00 sortia com a «nova» encara que ja la tinguessis apuntada: l'app mirava el dia en hora de Londres i el banc enviava el d'aquí.",
-        "Ara tots dos miren el mateix dia, el teu.",
-        "No s'ha afluixat res: dues despeses de dies diferents de veritat segueixen sense donar-se per repetides."
-      ]
-    },
-    "tandas": [
-      {
-        "id": "historico-madrugada",
-        "t": {
-          "es": "📜 El histórico reconoce lo que ya tienes apuntado",
-          "en": "📜 The history recognises what you already have",
-          "ca": "📜 L'històric reconeix el que ja tens apuntat"
-        },
-        "items": {
-          "es": [
-            "1. Esto es tu rechazo de «Importar histórico · 1»: «los que salen que no son repetidos sí que lo son y están mal». No hace falta importar nada, solo mirar la lista.",
-            "2. Ajustes → Importaciones → Importar histórico. Elige el banco y dale a Buscar.",
-            "3. Al terminar te sale un aviso con cuatro números. Fíjate en el último: «coinciden día+€». Antes ese número era el de los que estaban mal marcados.",
-            "4. Mira los movimientos de SEPTIEMBRE, que son los que dijiste que te sabes de memoria. Los que ya tienes apuntados tienen que salir marcados como repetidos, no como nuevos.",
-            "5. Mira sobre todo los de madrugada, si tienes alguno: eran justo los que fallaban.",
-            "6. LO QUE NO PUEDE PASAR: que ahora te marque como repetido algo que NO tienes apuntado. Si ves alguno así, dilo, que sería peor que el fallo de antes.",
-            "7. Puedes salir sin importar nada. Con decirnos si la lista ya cuadra es suficiente."
-          ],
-          "en": [
-            "1. This is your rejection of “Import history · 1”: “the ones it says are not repeats really are”. No need to import anything, just look at the list.",
-            "2. Settings → Imports → Import history. Pick the bank and tap Search.",
-            "3. A notice with four numbers appears. Look at the last one: “same day+€”. That number used to be the mislabelled ones.",
-            "4. Look at SEPTEMBER, the month you said you know by heart. The ones you already have must come up marked as repeats.",
-            "5. Look especially at late-night ones: those were exactly the failing case.",
-            "6. WHAT MUST NOT HAPPEN: something marked as a repeat that you do NOT have. If you see one, say so — that would be worse than the old bug.",
-            "7. You can leave without importing. Telling us whether the list adds up is enough."
-          ],
-          "ca": [
-            "1. Aixo es el teu rebuig d'«Importar historic · 1». No cal importar res, nomes mirar la llista.",
-            "2. Ajustos → Importacions → Importar historic. Tria el banc i dona-li a Buscar.",
-            "3. Surt un avis amb quatre numeros. Fixa't en l'ultim: «coincideixen dia+€».",
-            "4. Mira els moviments de SETEMBRE. Els que ja tens apuntats han de sortir marcats com a repetits.",
-            "5. Mira sobretot els de matinada: eren justament els que fallaven.",
-            "6. EL QUE NO POT PASSAR: que et marqui com a repetit alguna cosa que NO tens apuntada.",
-            "7. Pots sortir sense importar res."
-          ]
-        }
-      }
-    ]
-  },
-  {
     "v": "4.19.88",
     "d": "12 sep 2026",
     "t": {
@@ -193,36 +193,7 @@
         "En arribar al final d'una pestanya, el rebot natiu del mòbil fallava al canal de proves (l'estable anava bé). Torna a comportar-se com abans, sense l'estirabot en canviar de pestanya."
       ]
     },
-    "tandas": [
-      {
-        "id": "ola-nativa",
-        "t": {
-          "es": "🌊 La ola al final de la lista",
-          "en": "🌊 Overscroll glow at the end of the list",
-          "ca": "🌊 L'ona al final de la llista"
-        },
-        "items": {
-          "es": [
-            "1. En Gastos (o Plan), con contenido de verdad —no cartera vacía—, baja hasta el final y sigue un poco. Tiene que verse el rebote/ola nativo de Android abajo. En producción estable ya iba; en beta se había roto.",
-            "2. Arriba del todo: en Plan e Inicio es normal que arriba NO pinte ola (así estaba en prod). En el resto, al tirar hacia abajo desde arriba, no debe quedar «bloqueado» sin efecto.",
-            "3. Cambia de pestaña (Inicio → Gastos → Plan). El contenido NO puede dar un tirón de ~media barra de estado: el título se queda donde estaba.",
-            "4. Si la ola sigue a medias o el tirón vuelve, dilo sin reinstalar: queremos verlo tal cual en beta."
-          ],
-          "en": [
-            "1. In Expenses (or Plan), with real content —not an empty wallet—, scroll to the bottom and keep going a bit. You should see Android's native bounce/glow. Stable had it; beta had broken it.",
-            "2. At the very top: on Home and Plan it is normal that the top does NOT show the glow (same as prod). Elsewhere, pulling down from the top must not feel locked with no effect.",
-            "3. Switch tabs (Home → Expenses → Plan). Content must NOT jump by about a status-bar height.",
-            "4. If the glow is still half-broken or the jump returns, say so without reinstalling."
-          ],
-          "ca": [
-            "1. A Despeses (o Pla), amb contingut de veritat —no cartera buida—, baixa fins al final i continua una mica. S'ha de veure el rebot/ona natiu d'Android. A estable anava; a beta s'havia trencat.",
-            "2. Dalt de tot: a Inici i Pla és normal que dalt NO pinti ona (com a prod). A la resta, en estirar cap avall des de dalt, no s'ha de quedar bloquejat sense efecte.",
-            "3. Canvia de pestanya. El contingut NO pot fer un estirabot d'uns ~44 px.",
-            "4. Si l'ona segueix a mitges o torna l'estirabot, digues-ho sense reinstal·lar."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.86",
