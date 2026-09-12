@@ -422,13 +422,13 @@ function importObExpenses(s, txs){
      Revolut de 23 € se comía un TR). La red solo MIRA la misma entidad (`expenseBankOf`) y
      fuentes que no son OB; si casa 1 a 1, la fila OB ENTRA marcada (`possibleDup`) para que él
      diga «es el mismo» o «son distintos». Cero decisiones irreversibles automáticas. */
-  const DUP_MS=3*86400000;
+  const DUP_MS=DUP_DIAS_MS;   // misma ventana que el historico (`histCandCercanos`)
   const otrasVias=(s.expenses||[]).filter(function(e){
     return e && e.source!=="ob" && e.source!=="ob-hist";
   });
   const usadoDup={};
   const gemeloOtraVia=function(tx){
-    if(tx.merchant && tx.merchant!=="Movimiento") return null;
+    if(!sinComercioReal(tx.merchant)) return null;
     if(!tx.ent) return null;
     const ms=parseDate(tx.date).getTime();
     const hit=otrasVias.findIndex(function(e,i){
@@ -861,6 +861,26 @@ function dedupeHistRecibos(cands){
    salía dos veces) y en el orden a mano (arrastrar un gasto de madrugada no hacía nada). La
    regla buena ya existe y vive en `00-core`: `dayKey` / `diaDeGasto`. Aquí quedaba la tercera
    copia sin migrar. Ver [[misma-regla-en-dos-sitios]] y [[dia-local-no-utc]]. */
+/* ⚠ LA MISMA PREGUNTA PARA EL SYNC Y PARA EL HISTORICO (2026-09-12).
+   Trade Republic por Open Banking **no manda comercio**: todo llega como «Movimiento» (medido).
+   Con el nombre en blanco, lo unico que distingue un cargo es el importe y la fecha — y la fecha
+   BAILA: el historico devuelve la fecha CONTABLE y el sync diario la de la operacion. Medido con
+   sus capturas del 12/9, con lo que tiene en Gastos y en la app de TR delante:
+
+     Consum 6,49 €          Gastos y TR: 11 sept   ·  historico: 2026-09-12   (+1)
+     La Tagliatella 21,37 € Gastos y TR: 10 sept   ·  historico: 2026-09-11   (+1)
+     MAPFRE 2,40 €          Gastos y TR: 10 sept   ·  historico: 2026-09-11   (+1)
+     Bizum a Ionan 6,40 €   Gastos y TR: 10 sept   ·  historico: 2026-09-10   (0)  <- el UNICO que casaba
+
+   Por eso le salian 92 «nuevos» estando todos apuntados. El sync diario YA sabia esto y da ±3
+   dias (`gemeloOtraVia`); el historico comparaba al dia exacto. La regla vive aqui una sola vez.
+   ⚠ Sin comercio NO significa sin nombre: TR manda literalmente «Movimiento». */
+const DUP_DIAS_MS=3*86400000;
+function sinComercioReal(merchant){
+  const m=String(merchant||"").trim().toLowerCase();
+  return !m || m==="movimiento" || m==="compra" || m==="ingreso";
+}
+
 function histCandDupKey(dt, amountSigned, merchant){
   const dia=dayKey(new Date(dateMs(dt)));
   const norm=String(merchant||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim();
@@ -881,7 +901,59 @@ function histCandExisting(cands, expenses){
     if(!x) return;
     const signed = x.kind==="in" ? -Math.abs(x.amount) : Math.abs(x.amount);
     const list=porClave[histCandDupKey(x.date, signed, x.merchant)];
-    if(list&&list.length) out[i]=list.shift();
+    if(!list || !list.length) return;
+    /* ⚠ SIN COMERCIO, EL BANCO TIENE QUE CUADRAR (2026-09-12, salido de un test).
+       La clave es dia|importe|comercio y NO lleva banco. Con un comercio de verdad da igual —el
+       nombre ya distingue—, pero cuando TR manda «Movimiento» el nombre no distingue NADA: un
+       «Movimiento» de Revolut del mismo dia e importe se comia el de Trade Republic y la fila
+       salia como «ya lo tienes apuntado» estando sin apuntar. Es el mismo susto que ya se
+       arreglo en el sync diario —«sin filtrar banco, un Revolut de 23 € se comia un TR»— y que
+       alli se resolvio filtrando por `expenseBankOf`. Aqui faltaba.
+       Marcar de MENOS deja una fila duplicada, que se ve y se borra; marcar de MAS esconde un
+       gasto de verdad, que no se ve. Por eso el filtro solo aprieta donde no hay nombre. */
+    const idx=sinComercioReal(x.merchant) && x.ent
+      ? list.findIndex(function(e){ return expenseBankOf(e)===x.ent; })
+      : 0;
+    if(idx<0) return;
+    out[i]=list.splice(idx,1)[0];
+  });
+  return out;
+}
+
+/* «PUEDE QUE YA LO TENGAS» — el de arriba compara al DIA EXACTO; este es la red de debajo, y
+   solo para candidatos SIN comercio de verdad (ver `sinComercioReal`: TR manda «Movimiento»).
+   Mismo banco, mismo importe al centimo, dentro de ±3 dias, y 1:1 — un guardado solo puede
+   emparejar con UN candidato, igual que `usadoDup` en el sync.
+
+   ⚠ NO devuelve «repetido», devuelve «puede que». La diferencia no es de matiz: ensanchar a ±3
+   dias PUEDE tapar un gasto de verdad del mismo importe en dias seguidos —dos cafes iguales
+   existen— y eso seria peor que el fallo que arregla. El paso 6 de la tanda que el aprobo lo
+   dice con todas las letras: «lo que NO puede pasar es que te marque como repetido algo que no
+   tienes». Sale desmarcado y con su etiqueta, y decide el.
+
+   Se le pasan los YA casados exactos para no contarlos dos veces. */
+function histCandCercanos(cands, expenses, yaExactos){
+  const usados={};
+  (yaExactos ? Object.keys(yaExactos) : []).forEach(function(i){
+    const e=yaExactos[i]; const j=(expenses||[]).indexOf(e); if(j>=0) usados[j]=1;
+  });
+  const out={};
+  (cands||[]).forEach(function(x,i){
+    if(!x) return;
+    if(yaExactos && yaExactos[i]) return;          // ya casa al dia exacto: ese manda
+    if(!sinComercioReal(x.merchant)) return;       // con nombre de verdad, la fecha no es lo unico
+    if(!x.ent) return;
+    const ms=parseDate(x.date).getTime();
+    const signed = x.kind==="in" ? -Math.abs(x.amount||0) : Math.abs(x.amount||0);
+    const hit=(expenses||[]).findIndex(function(e,j){
+      if(usados[j] || !e) return false;
+      if(expenseBankOf(e)!==x.ent) return false;
+      if(Math.abs((e.amount||0)-signed)>0.005) return false;
+      return Math.abs(dateMs(e.date)-ms)<=DUP_DIAS_MS;
+    });
+    if(hit<0) return;
+    usados[hit]=1;
+    out[i]=expenses[hit];
   });
   return out;
 }
@@ -1041,10 +1113,12 @@ function histSignSuspectByBank(cands){
 function histClassifyCandidates(cands, state){
   state=state||{};
   const existing=histCandExisting(cands, state.expenses);
+  const cercanos=histCandCercanos(cands, state.expenses, existing);
   const daily=(state.accounts||[]).find(function(a){ return accDaily(a); });
   const rows=(cands||[]).map(function(x,i){
     if(!x) return null;
     if(existing[i]) return { status:"dup", reason:"existing", match:existing[i], defDest:null, suggestRecibo:false, category:null };
+    if(cercanos[i]) return { status:"maybe", reason:"cercano", match:cercanos[i], defDest:null, suggestRecibo:false, category:null };
     /* Aquí iba `recibDup[i] → dup, motivo "recibo-lote"` (FIN-02, retirado el 2026-09-09).
        `dedupeHistRecibos` compara comercio+importe+banco SIN FECHA, así que tres recibos de
        luz de junio, julio y agosto eran "el mismo": entraba uno y los otros dos se quedaban

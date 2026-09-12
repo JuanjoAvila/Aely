@@ -315,7 +315,10 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
         d0[i]=(c&&c.defDest)||defDest(x);
         // Híbrido C: recibo NUNCA es default — solo si el usuario lo marca a mano.
         if(d0[i]==="recibo") d0[i]="gasto";
-        s0[i]=!(c&&c.status==="dup");
+        /* «puede que ya lo tengas» sale DESMARCADO igual que el repetido exacto: la fecha del
+           banco baila ±1 dia en las compras con tarjeta y sin comercio no hay mas pistas, asi que
+           lo que se le ofrece es una sospecha, no un veredicto. Marcarlo el es un clic. */
+        s0[i]=!(c&&(c.status==="dup"||c.status==="maybe"));
       });
       setSel(s0); setDest(d0);
       // Sonda (c): contadores sobre out+classRows REALES (no reclasificar otro conjunto).
@@ -370,7 +373,11 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
   // `doImport`. Es la garantía de que el filtro de banco arregla de raíz el bug que reportó.
   const visible=cands? cands.map(function(x,i){ return {x:x,i:i}; }).filter(function(o){ return passFilter(o.x); }) : [];
   const selCount=visible.filter(function(o){ return sel[o.i]; }).length;
-  const repCount=visible.filter(function(o){ const c=classRows[o.i]; return c&&c.status==="dup"; }).length;
+  /* El «puede que ya lo tengas» cuenta con los repetidos, no con los nuevos: `nuevosCount` sale
+     de restar, y lo que tiene que decir es CUANTAS se van a importar si no toca nada. Meterlas en
+     nuevos le daria otra vez el susto del «92 nuevos» estando ya apuntadas. La diferencia entre
+     «lo tienes» y «puede que lo tengas» la dice la etiqueta de cada fila, que es donde decide. */
+  const repCount=visible.filter(function(o){ const c=classRows[o.i]; return c&&(c.status==="dup"||c.status==="maybe"); }).length;
   const nuevosCount=visible.length-repCount;
   const signBanks=Object.keys(signSuspect||{}).filter(function(ent){
     return signSuspect[ent] && visible.some(function(o){ return o.x.ent===ent; });
@@ -540,7 +547,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
       title:hint||"", "data-dest":id, "data-cand":(cands&&cands[i]&&cands[i].id)||String(i),
       style:{padding:"4px 9px",borderRadius:999,border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"rgba(95,208,138,.18)":"transparent",color:on?"var(--mint)":"var(--muted)",fontWeight:800,fontSize:11,cursor:"pointer"}}, label);
   };
-  const dupHint=function(c){
+  const dupHint=function(c){
+    if(c&&c.status==="maybe") return "🗐 "+t("bp_hist_dupmaybe");
     if(!c||c.status!=="dup") return null;
     if(c.reason==="modeled") return "🗐 "+t("bp_hist_dupmodel");
     return "🗐 "+t("bp_hist_dupexist");
@@ -604,7 +612,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
           const on=!!sel[i];
           const isIn=x.kind==="in";
           const c=classRows[i];
-          const isDup=!!(c&&c.status==="dup");
+          const isDup=!!(c&&(c.status==="dup"||c.status==="maybe"));
           const suggestRec=!!(c&&c.suggestRecibo&&!isDup);
           // Pasado el tope de animación, TODAS las pintadas (incluidas las de «Ver más») llevan
           // `dentro`. Si solo se mirara `vi<revelado`, la 25ª y siguientes quedarían invisibles.

@@ -1,5 +1,70 @@
 [
   {
+    "v": "4.19.96",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "El histórico ya reconoce lo que el banco apunta un día después",
+      "en": "The history now spots what the bank books a day later",
+      "ca": "L'històric ja reconeix el que el banc apunta un dia després"
+    },
+    "items": {
+      "es": [
+        "Al importar histórico te salían como «nuevos» un montón de movimientos que ya tenías: el banco apunta las compras con tarjeta el día siguiente, y como Trade Republic no manda el nombre del comercio, la fecha era casi lo único para reconocerlos.",
+        "Ahora, cuando un movimiento sin nombre cuadra en importe y banco con algo que ya tienes en fechas cercanas, te sale marcado como «puede que ya lo tengas» y viene DESMARCADO. Tú decides.",
+        "No se da nada por repetido a la ligera: si el movimiento trae nombre de comercio, o es de otro banco, o se va más de tres días, sigue contando como nuevo."
+      ],
+      "en": [
+        "Importing history showed a pile of movements as “new” when you already had them: the bank books card purchases the next day, and since Trade Republic sends no merchant name, the date was nearly the only clue.",
+        "Now, when a nameless movement matches an existing one in amount and bank within a few days, it comes up as “you may already have it”, UNTICKED. You decide.",
+        "Nothing is called a repeat lightly: with a real merchant name, from another bank, or more than three days apart, it still counts as new."
+      ],
+      "ca": [
+        "En importar històric sortien com a «nous» un munt de moviments que ja tenies: el banc apunta les compres amb targeta l'endemà.",
+        "Ara, quan un moviment sense nom quadra en import i banc amb un que ja tens en dates properes, surt com a «potser ja ho tens» i ve DESMARCAT.",
+        "No es dóna res per repetit a la lleugera: amb nom de comerç, d'un altre banc, o a més de tres dies, segueix comptant com a nou."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "historico-fecha-cercana",
+        "t": {
+          "es": "📜 El histórico deja de decir «nuevo» a lo que ya tienes",
+          "en": "📜 The history stops calling “new” what you already have",
+          "ca": "📜 L'històric deixa de dir «nou» al que ja tens"
+        },
+        "items": {
+          "es": [
+            "1. Esto sale de tus tres capturas: el Consum de 6,49 € lo tienes del 11 y el histórico lo mandaba como del 12; la Tagliatella del 10 llegaba como del 11. Por eso te decía 92 nuevos.",
+            "2. Ajustes → Importaciones → Importar histórico. Elige Trade Republic y dale a Buscar.",
+            "3. Mira el contador de arriba: el número de NUEVOS tiene que haber bajado mucho respecto a la última vez.",
+            "4. Busca los de septiembre que te sabes de memoria (Consum, La Tagliatella, MAPFRE). Tienen que salir con la etiqueta «puede que ya lo tengas» y con la casilla SIN marcar.",
+            "5. Y el Bizum a Ionan, que llegaba con la fecha buena, tiene que seguir diciendo «ya lo tienes apuntado».",
+            "6. LO IMPORTANTE: repasa los que sigan saliendo como NUEVOS y dinos si alguno lo tenías ya. Y al revés, más importante todavía: si algo marcado como «puede que» resulta que NO lo tenías, dínoslo — eso sería peor que el fallo de antes.",
+            "7. Puedes salir sin importar nada. Con contarnos si los números cuadran nos vale."
+          ],
+          "en": [
+            "1. This comes from your three screenshots: the 6,49 € Consum is yours from the 11th and the history sent it as the 12th. That is why it said 92 new.",
+            "2. Settings → Imports → Import history. Pick Trade Republic and tap Search.",
+            "3. Look at the counter on top: NEW must have dropped a lot versus last time.",
+            "4. Find the September ones you know by heart (Consum, La Tagliatella, MAPFRE). They must show “you may already have it”, UNTICKED.",
+            "5. And the Bizum to Ionan, which arrived with the right date, must still say “already logged”.",
+            "6. THE IMPORTANT ONE: go through whatever still shows as NEW and tell us if you already had any. And the other way round, even more important: if something marked “you may” turns out you did NOT have it, tell us — that would be worse than the old bug.",
+            "7. You can leave without importing anything."
+          ],
+          "ca": [
+            "1. Aixo surt de les teves tres captures: el Consum de 6,49 € el tens de l'11 i l'historic l'enviava com del 12.",
+            "2. Ajustos → Importacions → Importar historic. Tria Trade Republic i dona-li a Buscar.",
+            "3. Mira el comptador de dalt: el numero de NOUS ha d'haver baixat molt.",
+            "4. Busca els de setembre que et saps de memoria. Han de sortir amb «potser ja ho tens» i DESMARCATS.",
+            "5. I el Bizum a Ionan ha de seguir dient «ja ho tens apuntat».",
+            "6. IMPORTANT: repassa els que segueixin sortint com a NOUS i digue'ns si algun ja el tenies. I al reves: si algun marcat com «potser» resulta que NO el tenies, digue-ho.",
+            "7. Pots sortir sense importar res."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.95",
     "d": "12 sep 2026",
     "t": {

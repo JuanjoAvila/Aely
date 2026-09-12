@@ -1,3 +1,48 @@
+## [4.19.96] - 2026-09-12
+### La fecha del banco baila, y sin comercio no hay más pistas
+
+Nos mandó **tres capturas a la vez** —lo que tiene en Gastos, lo que dice la app de Trade Republic
+y lo que le ofrece el histórico— y con eso se acabó el adivinar:
+
+    Consum 6,49 €            Gastos y TR: 11 sept   ·  histórico: 2026-09-12   (+1)  ❌ «nuevo»
+    La Tagliatella 21,37 €   Gastos y TR: 10 sept   ·  histórico: 2026-09-11   (+1)  ❌ «nuevo»
+    MAPFRE 2,40 €            Gastos y TR: 10 sept   ·  histórico: 2026-09-11   (+1)  ❌ «nuevo»
+    Bizum a Ionan 6,40 €     Gastos y TR: 10 sept   ·  histórico: 2026-09-10   (0)   ✅ detectado
+
+El histórico devuelve la fecha **contable** (la tarjeta se apunta al día siguiente) y el sync
+diario la de la operación. Y como **TR por Open Banking no manda comercio** —todo llega como
+«Movimiento»—, la fecha era prácticamente lo único que quedaba para reconocer un cargo. De ahí sus
+**92 «nuevos»** estando todos apuntados. **El único que detectaba era el Bizum**, que es el único
+que llega con la fecha exacta.
+
+⚠ Y esto **no** es lo mismo que el día local de la 4.19.92: aquello era el gasto de madrugada
+guardado con el ISO del día anterior. Dos causas distintas, las dos reales, las dos hacían falta.
+
+**La regla buena ya existía en esta casa.** El sync diario lleva desde el 7/9 dando ±3 días para
+los «Movimiento» sin nombre (`gemeloOtraVia`), y el histórico comparaba al día exacto: otra vez la
+misma pregunta contestada de dos maneras. Ahora `DUP_DIAS_MS` y `sinComercioReal` viven una sola
+vez y las usan los dos caminos.
+
+**Y NO se marca como «repetido», sino como «puede que ya lo tengas», DESMARCADO.** La diferencia
+no es de matiz: ensanchar a ±3 días puede tapar un gasto de verdad del mismo importe en días
+seguidos, y eso sería peor que el fallo que arregla. Él mismo puso el freno en el paso 6 de la
+tanda que aprobó: *«lo que NO puede pasar es que te marque como repetido algo que no tienes»*.
+Decide él, con un clic. Voto de Cursor: opción (a).
+
+### Y de paso, un falso positivo que llevaba ahí desde siempre
+
+Lo destapó el test, no una lectura: `histCandExisting` indexaba por día|importe|comercio **sin el
+banco**. Con un comercio de verdad da igual —el nombre distingue—, pero con «Movimiento» el
+nombre no distingue nada: **un «Movimiento» de Revolut del mismo día e importe se comía el de
+Trade Republic** y la fila salía como «ya lo tienes apuntado» estando sin apuntar. Es el mismo
+susto que ya se arregló en el sync diario (*«sin filtrar banco, un Revolut de 23 € se comía un
+TR»*) y que aquí faltaba. El filtro por banco solo aprieta **donde no hay nombre**: marcar de
+menos deja una fila duplicada, que se ve y se borra; marcar de más esconde un gasto, que no se ve.
+
+Tests: `tests/hist-fecha-que-baila.test.mjs`, 6 casos, con **sus cuatro movimientos reales** y
+**tres frenos deliberados** (comercio de verdad, fuera de ventana, otro banco). Los frenos son la
+mitad que importa: sin ellos esto sería una máquina de esconder gastos.
+
 ## [4.19.95] - 2026-09-12
 ### El banco recién conectado sale sin salir y volver a entrar
 
