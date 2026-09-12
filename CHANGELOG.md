@@ -1,3 +1,14 @@
+## [4.19.89] - 2026-09-12
+### e2e revisar-beta: tandas:[] con prod, no sin ella
+
+La 4.19.88 falló en CI: el e2e «todas las tandas aprobadas» llamaba
+`betaChecklist("0.0.9")` **sin** prod. Tras el fix del panel (tip fontanería salta a la
+más nueva con puntos), esa llamada devolvía tandas de otra versión y el expect(0) petaba.
+
+El contrato «esta versión no pide revisión» se comprueba con prod
+(`betaChecklist("0.0.9", "0.0.8")`). El salto del tip sin prod lo sigue cubriendo
+`beta-tandas-vacias`.
+
 ## [4.19.88] - 2026-09-12
 ### season-detalle exige la geometría de la ola (no la del UX-01 que la mató)
 

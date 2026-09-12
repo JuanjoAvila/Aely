@@ -358,7 +358,9 @@ test("una versión con TODAS las tandas aprobadas ya no vuelve a pedir revisión
       items: { es: ["A", "B"], en: ["A", "B"], ca: ["A", "B"] },
       tandas: [],
     });
-    const p = betaChecklist("0.0.9");
+    /* Con prod: la ronda es solo 0.0.9 (vacía). Sin prod, el tip fontanería salta a la
+       más nueva con puntos (4.19.86+) — eso es el panel real, no este contrato. */
+    const p = betaChecklist("0.0.9", "0.0.8");
     return { n: p.tandas.length, total: p.items.length };
   });
   expect(r.n).toBe(0);
