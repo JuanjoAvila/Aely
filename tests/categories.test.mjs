@@ -140,4 +140,51 @@ t("la IA (categorize) conoce todas las categorías del cliente", () => {
   });
 });
 
+/* KW_INICIO (2026-09-12). Cuatro marcas que casaban DENTRO de otra palabra, todas sacadas de
+   comercios REALES suyos al barrer sus 237 nombres distintos. El caso que manda es el primero:
+   «Transporte publico» caía en Ocio porque `sport` vive dentro de tranSPORTe.
+
+   ⚠ Este test se comprobó EN ROJO antes de darlo por bueno: quitando `KW_INICIO` entero de
+   `00-core.js`, los cuatro casos de conducta fallan. No mira la lista, mira la CONDUCTA. */
+t("«Transporte publico» es transporte, no ocio (sport ⊂ tranSPORTe)", () => {
+  assert.equal(ctx.autoCategory("Transporte publico"), "transporte");
+  assert.equal(ctx.autoCategory("Transporte público"), "transporte");
+});
+
+t("«BRESSOLGRAMENET S.A.» no es un bar (ramen ⊂ bressolgRAMENet)", () => {
+  assert.notEqual(ctx.autoCategory("BRESSOLGRAMENET S.A."), "bares");
+});
+
+t("«APOLLON GALLERY» no es un bar (pollo ⊂ aPOLLOn)", () => {
+  assert.notEqual(ctx.autoCategory("APOLLON GALLERY"), "bares");
+});
+
+/* `mango` ⊂ MANGOpay parecía de la misma familia y NO lo es: mango EMPIEZA la palabra, así que
+   pedirle límite por delante no cambia nada. Es un PREFIJO, o sea `KW_PALABRA`. Lo cazó este test
+   estando yo convencido de lo contrario, y por eso está escrito aparte. */
+t("«Mangopay (vinted)» no son compras (mango es prefijo: va en KW_PALABRA)", () => {
+  assert.notEqual(ctx.autoCategory("Mangopay (vinted)"), "compras");
+});
+
+/* La otra mitad de KW_INICIO: exigir límite SOLO por delante es lo que salva los plurales.
+   Si alguien mueve estas cuatro a `KW_PALABRA` (que pide los dos lados), esto se pone rojo. */
+t("los plurales siguen casando: «POLLOS ASADOS» sigue siendo un bar", () => {
+  assert.equal(ctx.autoCategory("POLLOS ASADOS CASA PEPE"), "bares");
+});
+
+t("y las marcas de verdad no se rompen", () => {
+  assert.equal(ctx.autoCategory("Ramen Ya Barcelona"), "bares");
+  assert.equal(ctx.autoCategory("Pollo Campero"), "bares");
+  assert.equal(ctx.autoCategory("MANGO STORE GRACIA"), "compras");
+  assert.equal(ctx.autoCategory("Decathlon Sport"), "ocio");
+});
+
+/* Y los compuestos que aciertan DE REBOTE y que la regla general habría roto. Están aquí para
+   que nadie «simplifique» KW_INICIO a «límite por delante para todo término de ≥4 letras». */
+t("los compuestos que ya acertaban siguen acertando", () => {
+  assert.equal(ctx.autoCategory("KIWIBURGER"), "bares");
+  assert.equal(ctx.autoCategory("TELEPIZZA ST.BOI"), "bares");
+  assert.equal(ctx.autoCategory("HAMBURGUESERIA BLACK AND"), "bares");
+});
+
 console.log("\ncategories: OK");

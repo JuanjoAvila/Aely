@@ -2299,7 +2299,7 @@ const KW = {
   super:["mercadona","lidl","aldi","carrefour","dia","bonpreu","bon preu","consum","eroski","spar","alcampo","simply","supermercado","market","fresco","verduleria","fruteria","hipercor","caprabo","condis","ahorramas","ahorramás","gadis","froiz","bm supermarket","family cash","supeco","costco","makro","amazon fresh","glovo market","compra online mercadona"],
   // Viajes ANTES que ocio/transporte: booking/vueling no son «ocio» ni solo «metro».
   viajes:["booking","airbnb","hotel","hostal","hostel","apartament turistic","apartamento turistico","vueling","iberia","ryanair","easyjet","vuelos","vuelo ","aeropuerto","airport","expedia","trivago","kayak","edreams","rumbo","logitravel","civitatis","getyourguide","amadeus","renfe ave","hotelbeds","marriott","hilton","ibis ","nh hotel","melia","meliá","barcelo","barceló","ac hotel","travelodge","pension ","pensión ","camping","ferry","balearia","grimaldi","cruise","crucero","tourist","turismo"],
-  transporte:["renfe","fgc","tmb","metro","autobus","bus ","taxi","cabify","uber","gasolina","repsol","cepsa","shell","bp ","galp","autopista","peaje","tram","bicing","blablacar","flixbus","moove","bolt","ouigo","iryo","avlo","rodalies","emt ","alsa","avanza","ok mobility","sixt","hertz","europcar","petrocat","ballenoil","plenergy","carrefour gas","gasoleo","gasóleo","diesel","diésel","carburante","recarga electr","electrolinera","tesla supercharger","free now","freenow","taxi barcelona","ambitus"],
+  transporte:["transport","renfe","fgc","tmb","metro","autobus","bus ","taxi","cabify","uber","gasolina","repsol","cepsa","shell","bp ","galp","autopista","peaje","tram","bicing","blablacar","flixbus","moove","bolt","ouigo","iryo","avlo","rodalies","emt ","alsa","avanza","ok mobility","sixt","hertz","europcar","petrocat","ballenoil","plenergy","carrefour gas","gasoleo","gasóleo","diesel","diésel","carburante","recarga electr","electrolinera","tesla supercharger","free now","freenow","taxi barcelona","ambitus"],
   parking:["parking","parquimetro","parkimetro","parquímetro","aparcament","aparcamiento","saba","b:sm","bsm","empark","interparking","apk2","apk80","onepark","elparking","easypark","telpark","zona azul","zona verde","area verde","àrea verda","grua municipal","indigo parking","secure parking"],
   // Energía ANTES que hogar (luz/gas no es «muebles»).
   energia:["endesa","iberdrola","naturgy","repsol luz","holaluz","octopus energy","octopus ","totalenergies","total energies","factor energia","factor energía","lucera","pepeenergy","pepe energy","energia ","energía ","gas natural","canal de isabel","aigues de barcelona","aigües de barcelona","agbar","aqualia","sorea","suministro electric","suministro eléctric","factura luz","factura gas","factura agua","factura aigua","tarifas luz","potencia contratada"],
@@ -2356,7 +2356,7 @@ function diaDeGasto(e){ return dayKey(new Date(dateMs(e&&e.date))); }
    corriente. Medido con sus gastos reales de septiembre:
 
      «AIGUES DE BARCELONA»       → viajes   (debería ser energía)
-     «SQ *PASTABAR BARCELONA S.» → viajes   (debería ser bares)
+     «SQ *PASTABAR BARCELONA S.» → viajes   (pasa a «otros»: ver abajo)
      «Taxi Barcelona»            → viajes   (debería ser transporte)
 
    Culpa de **«barcelo»**, que está en viajes por la cadena de hoteles Barceló y casa dentro de
@@ -2365,6 +2365,10 @@ function diaDeGasto(e){ return dayKey(new Date(dateMs(e&&e.date))); }
 
    Con esta lista, el término pasa por el mismo camino de límite de palabra que ya usaban «bar» o
    «bus»: «Hotel Barceló Sants» sigue casando, «Aigües de Barcelona» ya no.
+
+   `PASTABAR` se queda en **«otros»**, y es lo correcto: «bar» pide límite de palabra y PASTABAR no
+   lo tiene, así que nunca fue un bar por mérito propio — caía en viajes de rebote por Barceló.
+   Meterle «pastabar» a la lista sería hacerle un traje a un comercio.
    ⚠ La MISMA lista vive en `supabase/functions/_shared/ingest_logic.ts`, y el guardián
    `categorias-dual` exige que digan lo mismo. */
 const KW_PALABRA={
@@ -2375,6 +2379,35 @@ const KW_PALABRA={
   "saba":1,       // SABA aparcamientos ⊂ SABADELL
   "zara":1,       // Zara ⊂ ZARAGOZA
   "hospital":1,   // hospital ⊂ HOSPITALET
+  "mango":1,      // la tienda Mango ⊂ MANGOpay, la pasarela de pago de Vinted (2026-09-12)
+};
+/* PALABRAS QUE TIENEN QUE EMPEZAR PALABRA (2026-09-12). Hermana de `KW_PALABRA`, pero NO la misma,
+   y la diferencia es la que hace que funcione:
+
+     · `KW_PALABRA` son PREFIJOS de una palabra más larga (BARCELOna, SABAdell). Necesitan límite
+       por los DOS lados, porque el fallo está en lo que viene detrás.
+     · `KW_INICIO` son SUFIJOS o infijos (aPOLLOn, tranSPORTe). Les basta con límite por DELANTE.
+
+   Si a estas les pidiera los dos lados, dejarían de reconocer los PLURALES: «POLLOS ASADOS» ya no
+   sería un bar. Por eso son dos listas y no una.
+
+   Salieron de barrer sus 237 comercios distintos, y cada una lleva detrás un movimiento SUYO de
+   verdad — aquí no se meten palabras por sospecha:
+
+     «Transporte publico»      → ocio     por  sport  ⊂ tranSPORTe      (el peor: ese nombre se repite)
+     «BRESSOLGRAMENET S.A.»    → bares    por  ramen  ⊂ bressolgRAMENet
+     «APOLLON GALLERY»         → bares    por  pollo  ⊂ aPOLLOn
+
+   ⚠ `mango` ⊂ MANGOpay parecía de esta familia y NO lo es: mango EMPIEZA la palabra, así que
+   exigirle límite por delante no lo arregla. Es un prefijo, o sea `KW_PALABRA`. Lo pilló el test.
+   ⚠ Probada y DESCARTADA la regla general «límite por delante para TODO término de ≥4 letras»:
+   rompe KIWIBURGER y TELEPIZZA, que hoy aciertan de rebote. Medido, no supuesto.
+   ⚠ La MISMA lista vive en `supabase/functions/_shared/ingest_logic.ts`, y el guardián
+   `categorias-dual` exige que digan lo mismo. */
+const KW_INICIO={
+  "sport":1,      // ⊂ tranSPORTe
+  "ramen":1,      // ⊂ bressolgRAMENet (Santa Coloma de Gramenet)
+  "pollo":1,      // ⊂ aPOLLOn
 };
 /* Retirada de cajero / ATM → traspaso (neutro). Mismas claves en ingest_logic.ts. */
 /* Categoría al ALTA de un movimiento nuevo (OB/import/ingest). ATM → traspaso.
@@ -2409,12 +2442,13 @@ function autoCategory(merchant){
   // Keywords cortas (bar, bus…) con límite de palabra: si no, "Barcelona" caía en bares
   // por el substring «bar» (bug Kinepolis 2026-07-17).
   const hit=function(hay, needle){
-    if(needle.length>=4 && !KW_PALABRA[needle]) return hay.indexOf(needle)!==-1;
+    if(needle.length>=4 && !KW_PALABRA[needle] && !KW_INICIO[needle]) return hay.indexOf(needle)!==-1;
+    const soloInicio=!!KW_INICIO[needle];   // le basta con EMPEZAR palabra: así «pollos» sigue casando
     let i=0;
     while((i=hay.indexOf(needle,i))!==-1){
       const before=i===0 || /[^a-z0-9]/.test(hay.charAt(i-1));
       const after=i+needle.length>=hay.length || /[^a-z0-9]/.test(hay.charAt(i+needle.length));
-      if(before && after) return true;
+      if(before && (soloInicio || after)) return true;
       i++;
     }
     return false;
