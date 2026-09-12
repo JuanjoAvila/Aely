@@ -25,6 +25,23 @@ apk.json a releases fantasma, promote encolado…). Detalle técnico en `AGENTS.
 
 OTA web ≠ APK: un fix en `android/**` **no** llega por Pages.
 
+## Puente OTA legacy `/Mi-Cartera` (2026-09-12)
+
+Al renombrar el repo a **Aely**, GitHub Pages **no** redirige
+`https://juanjoavila.github.io/Mi-Cartera/`. Los móviles con la base vieja cocida
+(producción 4.18.25 y **APK ≤ 44**) pedían ahí y recibían **404**: padre, pareja y el
+`OtaCheckWorker` nativo se quedaban sin canal.
+
+Por eso existe el repo público **`JuanjoAvila/Mi-Cartera`** (distinto de Aely): solo sirve
+Pages con `version.json` + `bundle.zip` en esa ruta. El manifiesto apunta al bundle real en
+`/Aely/`.
+
+⚠ **Mientras haya una APK 44 (o anterior) en circulación, ese repo / esa ruta no se borra.**
+Es tirita, no cura: la cura es APK nueva con base `/Aely/` (desde 4.19.81 en código). En cada
+promote de producción hay que actualizar el `version.json` del puente (mismo número + URL Aely).
+
+Crear o tocar repos públicos en su cuenta **se pregunta antes** (feedback del mismo día).
+
 ## Qué NUNCA hacer
 
 | Trampa | Por qué duele |
