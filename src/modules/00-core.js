@@ -176,7 +176,16 @@ const CATEGORIES = [
   { id:"viajes",     name:"Viajes",              color:"#5B8DEF", icon:"✈️" },
   { id:"transporte", name:"Transporte",          color:"#7FB5E8", icon:"🚇" },
   { id:"parking",    name:"Parking",             color:"#8AA0B8", icon:"🅿️" },
-  { id:"energia",    name:"Luz, gas y agua",     color:"#E8C547", icon:"⚡" },
+  /* AGUA, LUZ Y GAS POR SEPARADO (2026-09-12). Antes era una sola, «Luz, gas y agua», con un ⚡
+     de icono. Suyo: *«sale un símbolo de rayito en Aigües de Barcelona que no encaja para nada…
+     Agua por un lado con su símbolo, luz por otro y gas por otro»*. Tenía razón: el recibo del
+     agua con un rayo al lado. Se midió antes de partirla: solo había **2 filas** en `energia` en
+     toda la familia y **ningún límite por categoría** puesto, así que no hay nada que reasignar.
+     ⚠ `energia` ya NO existe como id. Las filas viejas se curan por `resolveCategory` (que cae a
+     `autoCategory` si la categoría guardada no está en `CAT`) y por el remapeo de `migrate`. */
+  { id:"agua",       name:"Agua",                color:"#6FC3E8", icon:"💧" },
+  { id:"luz",        name:"Luz",                 color:"#E8C547", icon:"💡" },
+  { id:"gas",        name:"Gas",                 color:"#E8945F", icon:"🔥" },
   { id:"tasas",      name:"Impuestos y multas",  color:"#C97D5F", icon:"🏛️" },
   { id:"recibos",    name:"Recibos",             color:"#8FB8C9", icon:"🧾" },
   { id:"compras",    name:"Compras",             color:"#C9A0E0", icon:"🛍️" },
@@ -253,7 +262,25 @@ const KW = {
   transporte:["transport","renfe","fgc","tmb","metro","autobus","bus ","taxi","cabify","uber","gasolina","repsol","cepsa","shell","bp ","galp","autopista","peaje","tram","bicing","blablacar","flixbus","moove","bolt","ouigo","iryo","avlo","rodalies","emt ","alsa","avanza","ok mobility","sixt","hertz","europcar","petrocat","ballenoil","plenergy","carrefour gas","gasoleo","gasóleo","diesel","diésel","carburante","recarga electr","electrolinera","tesla supercharger","free now","freenow","taxi barcelona","ambitus"],
   parking:["parking","parquimetro","parkimetro","parquímetro","aparcament","aparcamiento","saba","b:sm","bsm","empark","interparking","apk2","apk80","onepark","elparking","easypark","telpark","zona azul","zona verde","area verde","àrea verda","grua municipal","indigo parking","secure parking"],
   // Energía ANTES que hogar (luz/gas no es «muebles»).
-  energia:["endesa","iberdrola","naturgy","repsol luz","holaluz","octopus energy","octopus ","totalenergies","total energies","factor energia","factor energía","lucera","pepeenergy","pepe energy","energia ","energía ","gas natural","canal de isabel","aigues de barcelona","aigües de barcelona","agbar","aqualia","sorea","suministro electric","suministro eléctric","factura luz","factura gas","factura agua","factura aigua","tarifas luz","potencia contratada"],
+  /* AGUA / LUZ / GAS: tres listas donde antes había una (2026-09-12).
+     ⚠ EL ORDEN IMPORTA, y aquí más que en ningún sitio: `agua` va PRIMERA a propósito. Las
+     comercializadoras de luz venden también gas y agua a veces, y si `luz` fuese antes, un
+     «AIGUES DE BARCELONA» con la palabra «energia» en el concepto caería en luz. Con `agua`
+     delante, lo específico gana a lo genérico.
+     ⚠ Y las AMBIGUAS —Naturgy, Endesa, Iberdrola, TotalEnergies— venden luz Y gas, y por el
+     nombre del comercio **no se puede saber cuál es**. Van a `luz`, que es la factura más común,
+     y si él le cambia la categoría a mano el override se lo aprende para siempre. Decidido con
+     Cursor (voto A, 12/9). Leer la `nota` del banco —que SÍ lo dice: su recibo literal es
+     «AGUA AIGUES DE BARCELONA SUBMINISTRAMENT D»— es otra tanda: cambia la firma de
+     `autoCategory` y habría que moverla en los DOS lados del espejo a la vez.
+     ⚠ Esto es un REPARTO de la lista que ya había, no una ampliación: las palabras son las
+     mismas de `energia`, cada una en su sitio. La única nueva es `nedgia` (la distribuidora de
+     gas de Cataluña), y entra porque sin ella no hay forma de que él PRUEBE la categoría Gas.
+     Traía media docena más —emasesa, hidraqua, butano, electricidad…— y las quité: ninguna tenía
+     un movimiento suyo detrás, y el presupuesto de gzip estaba a 0,1 KB del tope. */
+  agua:["aigues de barcelona","aigües de barcelona","agbar","aqualia","sorea","canal de isabel","factura agua","factura aigua"],
+  luz:["endesa","iberdrola","naturgy","repsol luz","holaluz","octopus energy","octopus ","totalenergies","total energies","factor energia","factor energía","lucera","pepeenergy","pepe energy","energia ","energía ","suministro electric","suministro eléctric","factura luz","tarifas luz","potencia contratada"],
+  gas:["gas natural","factura gas","nedgia"],
   tasas:["gencat","generalitat","atc ","agencia tributaria","aeat","ajuntament","ayuntamiento","diputacio","diputación","dgt","multa","multa transit","sancion","sanción","tribut","impost","impuesto","tax agency","taxes","ibi","ivtm","basura","residus","residuos","canon agua","canon de l'aigua","tasa","taxa","registro mercantil","registro civil","notaria","notaría","gestoria","gestoría","procurador","abogado","lexnet","catastro","seguretat social","seguridad social","tgss","recaudacion","recaudación","zona bajas emisiones","zbe","hacienda","hisenda","modelo 100","modelo 303","autoliquidacion","autoliquidación","plusvalia","plusvalía","impuesto circulacion"],
   educacion:["universidad","universitat","uab ","upc ","upf ","ub ","uoc ","uned","campus","matricula","matrícula","academia","academía","curso ","cursos","formacion","formación","master ","máster","mba ","udemy","coursera","domestika","linkedin learning","skillshare","colegio","escola","guarderia","guardería","escuela infantil","libro de texto","libreria universitaria","openenglish","open english","british council","oxford house","academia de ingles","academia d'angles","autoescuela","autoescola","dgt examen","permiso conducir"],
   // Videojuegos ANTES que ocio/compras: Steam e Instant Gaming no son «Netflix» ni «Amazon».

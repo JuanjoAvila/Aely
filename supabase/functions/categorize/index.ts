@@ -16,7 +16,7 @@ import { withCors } from "../_shared/cors.ts";
 // `categories` aborta si falta alguna.
 const ALLOWED = [
   "super", "pan", "bares", "cine", "padel", "heladeria", "ia", "ocio", "gaming", "viajes",
-  "transporte", "parking", "energia", "tasas", "recibos", "compras", "educacion",
+  "transporte", "parking", "agua", "luz", "gas", "tasas", "recibos", "compras", "educacion",
   "salud", "pelu", "mascotas", "hogar", "regalos", "joyeria", "bizum", "otros",
 ] as const;
 
@@ -25,7 +25,13 @@ const HINTS =
   "cine=cines y entradas; padel=pádel; heladeria=helados; " +
   "ia=herramientas de inteligencia artificial (ChatGPT, Claude, Cursor); ocio=streaming, gym, ocio (Netflix, Movistar Plus, Spotify); gaming=videojuegos (Steam); " +
   "viajes=hoteles, vuelos, cruceros; transporte=metro, taxi, gasolina; parking=aparcamiento; " +
-  "energia=luz, gas y agua; tasas=impuestos y multas; " +
+  /* Tres categorías donde antes había una. A la IA se le dice explícitamente qué hacer con las
+     comercializadoras que venden luz Y gas, porque si no se inventa una de las dos: van a `luz`,
+     igual que en las palabras clave del cliente y del servidor. */
+  "agua=recibo del agua (Aigües, Agbar, Aqualia); luz=electricidad, y también las " +
+  "comercializadoras que venden luz y gas a la vez (Naturgy, Endesa, Iberdrola); " +
+  "gas=gas cuando el nombre lo dice claramente (Nedgia, «gas natural», butano); " +
+  "tasas=impuestos y multas; " +
   "recibos=facturas periódicas: teléfono, internet, seguro NO médico, alquiler, comunidad, alarma; " +
   "compras=ropa y tiendas; educacion=cursos y colegios; salud=farmacia, médico, seguro médico; " +
   "pelu=peluquería y estética; mascotas=veterinario y pienso; hogar=IKEA, bricolaje; " +

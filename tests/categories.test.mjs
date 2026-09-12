@@ -43,8 +43,8 @@ t("Zooplus cae en mascotas (no hogar)", () => {
   assert.equal(ctx.autoCategory("Zooplus"), "mascotas");
 });
 
-t("Endesa cae en energía", () => {
-  assert.equal(ctx.autoCategory("Endesa Factura"), "energia");
+t("Endesa cae en luz (era «energia» antes del split del 12/9)", () => {
+  assert.equal(ctx.autoCategory("Endesa Factura"), "luz");
 });
 
 t("Udemy cae en educación", () => {
@@ -85,8 +85,8 @@ t("Movistar Plus se queda en ocio (no Recibos)", () => {
   assert.equal(ctx.autoCategory("Movistar Plus"), "ocio");
 });
 
-t("Endesa sigue en energía, no Recibos", () => {
-  assert.equal(ctx.autoCategory("Endesa Factura"), "energia");
+t("Endesa sigue en su suministro, no en Recibos", () => {
+  assert.equal(ctx.autoCategory("Endesa Factura"), "luz");
 });
 
 t("ChatGPT / Claude / Cursor tienen categoría propia de IA", () => {
@@ -185,6 +185,53 @@ t("los compuestos que ya acertaban siguen acertando", () => {
   assert.equal(ctx.autoCategory("KIWIBURGER"), "bares");
   assert.equal(ctx.autoCategory("TELEPIZZA ST.BOI"), "bares");
   assert.equal(ctx.autoCategory("HAMBURGUESERIA BLACK AND"), "bares");
+});
+
+/* AGUA / LUZ / GAS por separado (2026-09-12). Suyo: el recibo del agua salía con un ⚡ al lado,
+   porque las tres compartían la categoría «Luz, gas y agua». */
+t("el recibo del agua es AGUA, no luz (era su queja del rayito)", () => {
+  assert.equal(ctx.autoCategory("AIGUES DE BARCELONA"), "agua");
+  assert.equal(ctx.autoCategory("AIGÜES DE BARCELONA"), "agua");
+  assert.equal(ctx.autoCategory("AGBAR"), "agua");
+  assert.equal(ctx.autoCategory("AQUALIA"), "agua");
+  assert.equal(ctx.autoCategory("Canal de Isabel II"), "agua");
+});
+
+t("la electricidad es LUZ", () => {
+  assert.equal(ctx.autoCategory("HOLALUZ"), "luz");
+  assert.equal(ctx.autoCategory("GC RE OCTOPUS ENERGY"), "luz");
+  assert.equal(ctx.autoCategory("IBERDROLA CLIENTES"), "luz");
+});
+
+t("el gas es GAS cuando el nombre lo dice", () => {
+  assert.equal(ctx.autoCategory("GAS NATURAL SDG"), "gas");
+  assert.equal(ctx.autoCategory("NEDGIA CATALUNYA"), "gas");
+  assert.equal(ctx.autoCategory("FACTURA GAS"), "gas");
+});
+
+/* Las que venden luz Y gas no se pueden distinguir por el nombre: van a `luz` a propósito
+   (decidido con Cursor). Si esto cambia algún día, que sea una decisión, no un descuido. */
+t("las comercializadoras ambiguas van a LUZ, no se adivinan", () => {
+  assert.equal(ctx.autoCategory("ENDESA ENERGIA"), "luz");
+  assert.equal(ctx.autoCategory("NATURGY"), "luz");
+});
+
+/* `CAT` y `CATEGORIES` son `const`, así que no viajan al sandbox: esto se comprueba sobre el
+   fichero, igual que el test de la IA de más abajo. */
+t("«energia» ya no existe, y el agua NO lleva el rayo", () => {
+  const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+  const core = fs.readFileSync(path.join(root, "src/modules/00-core.js"), "utf8");
+  const bloque = core.match(/const CATEGORIES = \[([\s\S]*?)\n\];/);
+  assert.ok(bloque, "CATEGORIES en 00-core.js");
+  const cats = bloque[1];
+  assert.ok(!/id:"energia"/.test(cats), "«energia» sigue en CATEGORIES");
+  for (const id of ["agua", "luz", "gas"]) {
+    assert.ok(new RegExp('id:"' + id + '"').test(cats), "falta la categoría " + id);
+  }
+  const linea = (id) => (cats.split("\n").find((l) => l.indexOf('id:"' + id + '"') >= 0) || "");
+  assert.ok(linea("agua").indexOf("💧") >= 0, "el agua tiene que llevar la gota");
+  assert.ok(linea("agua").indexOf("⚡") < 0, "el agua NO puede llevar el rayo (su queja del 12/9)");
+  assert.ok(linea("gas").indexOf("🔥") >= 0, "el gas tiene que llevar la llama");
 });
 
 console.log("\ncategories: OK");

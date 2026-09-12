@@ -1,3 +1,49 @@
+## [4.19.80] - 2026-09-12
+### Agua, luz y gas: tres categorías donde había una, porque el recibo del agua llevaba un rayo
+
+Suyo, viendo la 4.19.79 funcionando: *«ahora sí sale lo de Aigües de Barcelona luz gas y agua,
+creo que eso se debería separar… porque sale un símbolo de rayito en Aigües de Barcelona que no
+encaja para nada. Agua por un lado con su símbolo, luz por otro y gas por otro»*.
+
+Tenía razón y era barato, pero **se midió antes de tocar**, que es lo que decidió el alcance:
+
+- **2 filas** en `energia` en TODA la familia (`AIGUES DE BARCELONA` 81,29 € y `GC RE OCTOPUS
+  ENERGY` 89,98 €). No hay histórico que repartir.
+- **`categoryBudgets` vacío en los tres usuarios.** Ese era el riesgo gordo — un límite €/mes
+  puesto a `energia` habría que haberlo dividido a mano — y no existe.
+
+`energia` desaparece como id. Nacen `agua` 💧, `luz` 💡 y `gas` 🔥, cada una con su color.
+
+**El orden de las listas es parte del arreglo**, no un detalle: `agua` va PRIMERA. Las
+comercializadoras de luz venden también gas, y si `luz` fuese antes, un «AIGUES DE BARCELONA» con
+la palabra «energia» en el concepto caería en luz. Con `agua` delante, lo específico gana.
+
+**Las ambiguas van a `luz`, y es una decisión, no un descuido.** Naturgy, Endesa, Iberdrola y
+TotalEnergies venden luz Y gas, y por el nombre del comercio no hay forma de saber cuál es. Van a
+la factura más común y el override que él ponga a mano se lo aprende para siempre. Leer la `nota`
+del banco —que SÍ lo dice: su recibo literal es «AGUA AIGUES DE BARCELONA SUBMINISTRAMENT D»— es
+otra tanda: cambia la firma de `autoCategory` y hay que moverla en los dos lados del espejo a la
+vez. Votado con Cursor (opción A ahora, la nota después).
+
+### Lo que se aprendió haciéndolo
+
+**El remapeo de lo viejo NO va en `migrate`, y casi lo puse ahí.** Al cargar, el estado pasa por
+`(saved._dataVer>=6) ? saved : migrate(saved)`: **`migrate` no corre para los estados actuales**.
+Va en `seedFlows`, que corre siempre. El test apuntaba a `migrate` y salía verde en rojo — o sea,
+fallaba por la razón equivocada. Queda escrito dentro del test para que nadie lo «ordene».
+
+Y `CAT` / `CATEGORIES` son `const`, así que **no viajan al sandbox de los tests**: un
+`assert.ok(!ctx.CAT.energia)` no comprueba nada, revienta con `Cannot read properties of
+undefined`. Esa comprobación se hace sobre el fichero, como ya hacía el test de la IA.
+
+Los 12 casos de conducta y los 5 del remapeo se verificaron **en rojo** quitando el cambio entero.
+
+### ⚠ Un fallo que salió al probar y que NO es de esta versión
+
+`NATURGY IBERIA` → **Viajes**, por «iberia» la aerolínea, que va antes en el orden de categorías.
+Comprobado contra el build ANTERIOR al split: **ya pasaba**. No es regresión y no hay ninguna fila
+suya afectada, así que no se toca a ojo — queda anotado para decidirlo con dato.
+
 ## [4.19.79] - 2026-09-12
 ### Ámbar de la 4.19.78: no borrar possibleDupOf ni realinear id en el pull
 

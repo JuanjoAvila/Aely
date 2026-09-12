@@ -1,5 +1,82 @@
 [
   {
+    "v": "4.19.80",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "Agua, luz y gas, cada una con lo suyo",
+      "en": "Water, power and gas, each on its own",
+      "ca": "Aigua, llum i gas, cada una amb la seva"
+    },
+    "items": {
+      "es": [
+        "Donde antes había una sola categoría «Luz, gas y agua» ahora hay tres: Agua 💧, Luz 💡 y Gas 🔥, cada una con su icono y su color.",
+        "El recibo del agua ya no sale con un rayo al lado.",
+        "Las compañías que venden luz y gas a la vez van a Luz, porque por el nombre no se puede distinguir. Si alguna la prefieres en Gas, cámbiala a mano y se queda aprendida.",
+        "Lo que ya estaba apuntado se reparte solo entre las tres, y los totales del mes no cambian."
+      ],
+      "en": [
+        "The single “Power, gas & water” category is now three: Water 💧, Power 💡 and Gas 🔥, each with its own icon and colour.",
+        "The water bill no longer shows a lightning bolt next to it.",
+        "Companies that sell both power and gas go to Power, since the name alone cannot tell them apart. Change one by hand and it stays learned.",
+        "What was already recorded is split across the three on its own, and the monthly totals do not change."
+      ],
+      "ca": [
+        "On abans hi havia una sola categoria «Llum, gas i aigua» ara hi ha tres: Aigua 💧, Llum 💡 i Gas 🔥.",
+        "El rebut de l'aigua ja no surt amb un llamp al costat.",
+        "Les companyies que venen llum i gas alhora van a Llum, perque pel nom no es poden distingir.",
+        "El que ja estava apuntat es reparteix sol entre les tres, i els totals del mes no canvien."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "agua-luz-gas",
+        "t": {
+          "es": "💧 Agua, luz y gas por separado",
+          "en": "💧 Water, power and gas split apart",
+          "ca": "💧 Aigua, llum i gas per separat"
+        },
+        "items": {
+          "es": [
+            "1. Gastos → busca «Aigües». Tu recibo del agua tiene que poner «Agua» con una gota 💧. Ya no puede poner «Luz, gas y agua» ni llevar el rayito, que es lo que nos dijiste.",
+            "2. Toca ese movimiento y abre la lista de categorías: donde antes había una, ahora tienen que salir TRES — Agua 💧, Luz 💡 y Gas 🔥.",
+            "3. Ahora lo nuevo, con gastos de mentira. Apunta uno de 1 € llamado «Nedgia», ábrelo y dale a «✨ Sugerir categoría»: tiene que decir Gas.",
+            "4. Otro de 1 € llamado «Holaluz»: tiene que decir Luz.",
+            "5. Otro llamado «Agbar»: tiene que decir Agua.",
+            "6. Y uno llamado «Naturgy». Este va a Luz A PROPÓSITO: vende luz y gas, y por el nombre no hay forma de saber cuál es. Si tú lo quieres en Gas, cámbialo a mano y la app se lo aprende para siempre.",
+            "7. LO IMPORTANTE que no puede cambiar: mira el gasto del mes arriba en Gastos. Tiene que ser el MISMO de antes. Partir una categoría en tres no cambia lo que gastas.",
+            "8. Mira también el desglose «Por categoría»: donde antes había una barra ahora puede haber hasta tres, pero la suma tiene que cuadrar igual.",
+            "9. Ajustes → Idioma → inglés, y luego catalán: las tres categorías tienen que estar traducidas, sin nada en castellano. Déjalo otra vez en castellano.",
+            "10. Borra los gastos de prueba que hayas apuntado."
+          ],
+          "en": [
+            "1. Expenses → search “Aigües”. Your water bill must say “Water” with a 💧. No more lightning bolt.",
+            "2. Tap it and open the category list: there must now be THREE — Water 💧, Power 💡 and Gas 🔥.",
+            "3. Now with fake expenses. Add a €1 one named “Nedgia”, open it and tap “✨ Suggest category”: it must say Gas.",
+            "4. Another named “Holaluz”: it must say Power.",
+            "5. Another named “Agbar”: it must say Water.",
+            "6. And one named “Naturgy”. That one goes to Power ON PURPOSE: it sells both, and the name cannot tell you which. Change it by hand and the app learns it.",
+            "7. WHAT MUST NOT CHANGE: the month total in Expenses must be the SAME as before. Splitting a category in three does not change what you spend.",
+            "8. Check the “By category” breakdown too: one bar may now be up to three, but the sum must still add up.",
+            "9. Settings → Language → English, then Catalan: all three must be translated. Set it back to Spanish.",
+            "10. Delete the test expenses you added."
+          ],
+          "ca": [
+            "1. Despeses → busca «Aigües». El rebut de l'aigua ha de posar «Aigua» amb una gota 💧, sense el llamp.",
+            "2. Toca'l i obre la llista de categories: ara han de sortir TRES — Aigua 💧, Llum 💡 i Gas 🔥.",
+            "3. Amb despeses de mentida: apunta una d'1 € que es digui «Nedgia» i dona-li a «✨ Suggerir categoria»: ha de dir Gas.",
+            "4. Una altra que es digui «Holaluz»: ha de dir Llum.",
+            "5. Una altra «Agbar»: ha de dir Aigua.",
+            "6. I una «Naturgy». Aquesta va a Llum A PROPOSIT: ven llum i gas i pel nom no es pot saber. Canvia-la a ma i l'app se l'apren.",
+            "7. EL QUE NO POT CANVIAR: la despesa del mes ha de ser la MATEIXA. Partir una categoria en tres no canvia el que gastes.",
+            "8. Mira tambe el desglos «Per categoria»: la suma ha de quadrar igual.",
+            "9. Ajustos → Idioma → angles i catala: les tres han d'estar traduides.",
+            "10. Esborra les despeses de prova."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.79",
     "d": "12 sep 2026",
     "t": {

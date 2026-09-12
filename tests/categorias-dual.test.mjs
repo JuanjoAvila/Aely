@@ -84,8 +84,8 @@ t("★ una MARCA que es el principio de una palabra corriente solo vale entera",
      «bus». Aquí se comprueban las dos mitades: que la ciudad deja de robar, y que la CADENA sigue
      casando — un arreglo que rompa lo segundo no es un arreglo. */
   const debe = [
-    ["AIGUES DE BARCELONA", "energia"],
-    ["Aigües de Barcelona", "energia"],
+    ["AIGUES DE BARCELONA", "agua"],
+    ["Aigües de Barcelona", "agua"],
     ["Taxi Barcelona", "transporte"],
     ["Parking Barcelona", "parking"],
     ["Mercadona Barcelona", "super"],
