@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.19.87",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "La ola al llegar al final de la lista vuelve a verse bien",
+      "en": "The overscroll glow at the end of the list looks right again",
+      "ca": "L'ona en arribar al final de la llista torna a veure's bé"
+    },
+    "items": {
+      "es": [
+        "Al llegar abajo del todo en una pestaña, el rebote nativo del móvil volvía a fallar en el canal de pruebas (en la versión estable sí iba). Ya se comporta como antes, sin el tirón al cambiar de pestaña."
+      ],
+      "en": [
+        "Reaching the bottom of a tab, the phone's native bounce was broken on the test channel (stable was fine). It behaves like before again, without the jump when switching tabs."
+      ],
+      "ca": [
+        "En arribar al final d'una pestanya, el rebot natiu del mòbil fallava al canal de proves (l'estable anava bé). Torna a comportar-se com abans, sense l'estirabot en canviar de pestanya."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "ola-nativa",
+        "t": {
+          "es": "🌊 La ola al final de la lista",
+          "en": "🌊 Overscroll glow at the end of the list",
+          "ca": "🌊 L'ona al final de la llista"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos (o Plan), con contenido de verdad —no cartera vacía—, baja hasta el final y sigue un poco. Tiene que verse el rebote/ola nativo de Android abajo. En producción estable ya iba; en beta se había roto.",
+            "2. Arriba del todo: en Plan e Inicio es normal que arriba NO pinte ola (así estaba en prod). En el resto, al tirar hacia abajo desde arriba, no debe quedar «bloqueado» sin efecto.",
+            "3. Cambia de pestaña (Inicio → Gastos → Plan). El contenido NO puede dar un tirón de ~media barra de estado: el título se queda donde estaba.",
+            "4. Si la ola sigue a medias o el tirón vuelve, dilo sin reinstalar: queremos verlo tal cual en beta."
+          ],
+          "en": [
+            "1. In Expenses (or Plan), with real content —not an empty wallet—, scroll to the bottom and keep going a bit. You should see Android's native bounce/glow. Stable had it; beta had broken it.",
+            "2. At the very top: on Home and Plan it is normal that the top does NOT show the glow (same as prod). Elsewhere, pulling down from the top must not feel locked with no effect.",
+            "3. Switch tabs (Home → Expenses → Plan). Content must NOT jump by about a status-bar height.",
+            "4. If the glow is still half-broken or the jump returns, say so without reinstalling."
+          ],
+          "ca": [
+            "1. A Despeses (o Pla), amb contingut de veritat —no cartera buida—, baixa fins al final i continua una mica. S'ha de veure el rebot/ona natiu d'Android. A estable anava; a beta s'havia trencat.",
+            "2. Dalt de tot: a Inici i Pla és normal que dalt NO pinti ona (com a prod). A la resta, en estirar cap avall des de dalt, no s'ha de quedar bloquejat sense efecte.",
+            "3. Canvia de pestanya. El contingut NO pot fer un estirabot d'uns ~44 px.",
+            "4. Si l'ona segueix a mitges o torna l'estirabot, digues-ho sense reinstal·lar."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.86",
     "d": "12 sep 2026",
     "t": {

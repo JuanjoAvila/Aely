@@ -1,3 +1,20 @@
+## [4.19.87] - 2026-09-12
+### Ola nativa: caja a pantalla otra vez, sin el salto de 44 px
+
+Bisección prod/beta (Claude + él): el rebote nativo iba en prod y fallaba en beta.
+Causa: `37694684` (UX-01) cambió `.page.page-scroll-host` de `inset:0; height:100%` +
+padding `safe-top+10` a `top:safe-top+4; height:auto` + padding `6px`. El scroller dejó
+de ser caja a pantalla completa y Android dejó de pintar la ola.
+
+Arreglo: se restaura la geometría de prod/Ajustes (`inset:0` + `height:100%`) con el
+`safe-top` en el **padding** del host, no en `top`. El Y del contenido en reposo sigue
+siendo `safe-top+10` (= `.app` + `.page`). `e2e/ux01-layout-shift` exige caja a
+pantalla y leave/enter `<2 px` (2/2 en Chromium).
+
+**Promote sigue bloqueado** hasta que él pruebe la ola en el móvil.
+
+También en esta tanda (review de 4.19.86): el tip con 	andas:[] **sin** prodVersion ya no vacía el panel — se prefería .v===base aunque fuera fontanería. Test nuevo en eta-tandas-vacias.
+
 ## [4.19.86] - 2026-09-12
 ### Dos guardianes para que un renombre no vuelva a dejar a nadie sin actualizaciones
 

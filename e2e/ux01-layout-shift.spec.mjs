@@ -2,8 +2,12 @@
  *
  * NO es frames perdidos ni longtasks: con su dedo, 6.046 frames a 120 Hz y CERO >16,7 ms.
  * Los deltas de rAF NO distinguen el caso malo. El instrumento válido es layout-shift /
- * geometría: al poner/quitar `.page-scroll-host` cambiaban a la vez `position` y
- * `padding-top` (safe-top+10 ↔ 6) → salto de ~44 px en `.v4-screen` (y:94→50).
+ * geometría: al poner/quitar `.page-scroll-host` el contenido no puede saltar.
+ *
+ * 12/9: el arreglo UX-01 movió el safe-top a `top` + `height:auto` y mató la ola nativa
+ * (bisección prod/beta, commit 37694684). Se vuelve a la caja a pantalla (`inset:0` +
+ * `height:100%`) con el safe-top en el PADDING del host — como prod / Ajustes. El Y del
+ * contenido en reposo sigue siendo safe-top+10 (= `.app` safe-top+4 + `.page` 6px).
  *
  * Brief: docs/briefs/ux01-tironcillo-medido-2026-09-10.md
  * Condición de publish: re-medir layout-shift en SU móvil. Este e2e vigila la geometría
@@ -17,7 +21,7 @@ async function appLista(page) {
   await dismissNews(page);
 }
 
-test("page-scroll-host: mismo padding que .page; top = padding de .app", async ({ page }) => {
+test("page-scroll-host: caja a pantalla; padding = safe-top+10 (= .app+.page)", async ({ page }) => {
   /* Fuerza un safe-top grande para que un descuadre (44 px) no quede enmascarado por 0. */
   await page.addInitScript(() => {
     document.documentElement.style.setProperty("--safe-top", "44px");
@@ -28,7 +32,10 @@ test("page-scroll-host: mismo padding que .page; top = padding de .app", async (
 
   await expect(page.locator(".page.page-scroll-host")).toBeVisible({ timeout: 15_000 });
 
+  /* La app pisa --safe-top al arrancar (inset nativo / 0 en Chromium). Lo reponemos
+     DESPUÉS del boot para que un descuadre de 44 px no quede enmascarado. */
   const geo = await page.evaluate(() => {
+    document.documentElement.style.setProperty("--safe-top", "44px");
     const host = document.querySelector(".page.page-scroll-host");
     const app = document.querySelector(".app");
     if (!host || !app) return null;
@@ -41,25 +48,31 @@ test("page-scroll-host: mismo padding que .page; top = padding de .app", async (
       : host.getBoundingClientRect().top + parseFloat(hs.paddingTop);
     const appPad = parseFloat(as.paddingTop);
     const hostPad = parseFloat(hs.paddingTop);
-    /* En reposo: contenido = padding de .app + padding del host (antes: appPad se
-       duplicaba dentro del padding del host y al salir saltaba 44 px). */
+    /* Fuera del host el contenido iría en appPad + 6 (.page). Misma cifra que hostPad. */
     return {
       hostPadTop: hs.paddingTop,
       hostTop: hs.top,
       hostPos: hs.position,
       appPadTop: as.paddingTop,
       contentTop,
-      expectedTop: appPad + hostPad,
+      steadyY: appPad + 6,
+      hostPad,
     };
   });
 
   expect(geo, "hace falta .page-scroll-host en reposo").toBeTruthy();
   expect(geo.hostPos).toBe("fixed");
-  expect(geo.hostPadTop).toBe("6px");
-  expect(geo.hostTop).toBe(geo.appPadTop);
+  /* Caja a pantalla completa (condición medida de la ola nativa). */
+  expect(geo.hostTop).toBe("0px");
+  expect(geo.hostPadTop).toBe("54px"); /* 44 + 10 */
+  expect(geo.appPadTop).toBe("48px"); /* 44 + 4 */
   expect(
-    Math.abs(geo.contentTop - geo.expectedTop),
-    `contenido a y=${geo.contentTop}, esperado app+pad=${geo.expectedTop}`
+    Math.abs(geo.contentTop - geo.hostPad),
+    `contenido a y=${geo.contentTop}, esperado hostPad=${geo.hostPad}`
+  ).toBeLessThan(2);
+  expect(
+    Math.abs(geo.contentTop - geo.steadyY),
+    `contenido a y=${geo.contentTop}, esperado app+page=${geo.steadyY}`
   ).toBeLessThan(2);
 });
 
@@ -73,9 +86,11 @@ test("entrar/salir de page-scroll-host: sin salto vertical del contenido", async
   await expect(page.locator(".page.page-scroll-host")).toBeVisible({ timeout: 15_000 });
 
   /* Reproduce la transición de leaveScrollHost → enterScrollHost midiendo el Y del
-     primer bloque de contenido. Antes del arreglo: ~44 px. Con él: <2 px.
+     primer bloque de contenido. Antes del arreglo UX-01: ~44 px. Tras restaurar ola
+     con padding (no top): debe seguir <2 px.
      No depende del gesto (el desliz lo cubre swipe-pestanas); mide la geometría CSS. */
   const deltas = await page.evaluate(() => {
+    document.documentElement.style.setProperty("--safe-top", "44px");
     const track = document.querySelector(".track");
     const host = document.querySelector(".page.page-scroll-host");
     if (!track || !host) return { error: "sin host" };
