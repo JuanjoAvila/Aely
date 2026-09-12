@@ -1,3 +1,16 @@
+## [4.19.94] - 2026-09-12
+### Al deslizar tabs ya no se corta la cabecera (ola intacta)
+
+Con la ola nativa la pestaña activa es `.page-scroll-host` (`padding-top: safe-top+10`,
+`position:fixed`). Al deslizar entre pestañas `leaveScrollHost` quitaba esa clase y el
+padding caía a 6 px **con el mismo scrollTop** → cabecera fuera y lista cortada a media
+tarjeta en las dos páginas a la vez (capturas 12/9; la ola en reposo ya estaba bien).
+
+Arreglo: clase `.scroll-host-swipe` en el track desde el leave hasta el enter — mismo
+padding que el host, `.app` sin padding-top duplicado — sin volver a `position:fixed`
+(el carrusel necesita `translate3d`). Guardián e2e a mitad de leave + test que demuestra
+el salto si falta la clase.
+
 ## [4.19.93] - 2026-09-12
 ### Guardar: halo completo, y apagado bajo askConfirm
 

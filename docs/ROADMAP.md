@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-12 · **v4.19.93** — Guardar sin corte ni brillo bajo el diálogo.
+> Estado a 2026-09-12 · **v4.19.94** — al cambiar de pestaña ya no se corta arriba.
+> Anterior: **v4.19.93** — Guardar sin corte ni brillo bajo el diálogo.
 > Anterior: **v4.19.92** — histórico madrugada + notas sin duplicados.
 > Anterior: **v4.19.90** — dismissNews + intento de e2e (hack retirado).
 > Anterior: **v4.19.89** — e2e tandas vacías con prod.
@@ -45,7 +46,7 @@
 > Anterior: **4.19.12** — el resumen del mes cerrado, en Inicio.
 > Anterior: **4.19.11** — puertas y avisos del import histórico; quedan los casos de la auditoría posterior.
 > Anterior: **4.19.10** — efectivo como una cuenta mas (tanda 6).
-> Anterior: **4.19.9** — import historico: agujero A cerrado, se puede deshacer.
+> Anterior: **v4.19.9** — import historico: agujero A cerrado, se puede deshacer.
 > Anterior: **4.19.8** — import historico: motor y UI seguras (tandas 1 y 2).
 > Anterior: **4.19.7** — lo que el dueno ya aprobo no vuelve al panel de beta.
 > Anterior: **4.19.6** — el gasto del mes cuadra: el posible repetido tampoco
@@ -155,7 +156,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.19.93** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.94** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

@@ -2282,6 +2282,9 @@ function App(){
     const el=trackRef.current; if(!el) return;
     const w=trackW.current||trackAnchoAhora();
     let i=tabRef.current;
+    // ANTES de quitar el host: mismo padding ST+10 sin fixed (ver `.scroll-host-swipe` en shell).
+    // Si se pone después, un frame con padding 6px + scrollTop viejo corta la cabecera.
+    el.classList.add("scroll-host-swipe");
     // Si estábamos aparcados con left, recuperar transform antes de arrastrar
     if(scrollHostOn.current){
       const leftPx=parseFloat(el.style.left);
@@ -2316,6 +2319,8 @@ function App(){
       if(!pgs[k]||!pgs[k].classList) continue;
       pgs[k].classList.toggle("page-scroll-host", k===i);
     }
+    // Host ya lleva el padding: quitar el modo gesto (si no, :has anula el padding del .app).
+    el.classList.remove("scroll-host-swipe");
     scrollHostOn.current=true;
     if(hostTabRef.current!==i){ hostTabRef.current=i; setHostTab(i); }
     try{ if(viewportRef.current) viewportRef.current.classList.add("scroll-host-open"); }catch(e){}

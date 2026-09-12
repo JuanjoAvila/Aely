@@ -9,6 +9,10 @@
  * `height:100%`) con el safe-top en el PADDING del host — como prod / Ajustes. El Y del
  * contenido en reposo sigue siendo safe-top+10 (= `.app` safe-top+4 + `.page` 6px).
  *
+ * 12/9 noche: al deslizar, leaveScrollHost quitaba el host y el padding pasaba a 6px con
+ * el mismo scrollTop → cabecera cortada a media tarjeta (capturas suyas). `.scroll-host-swipe`
+ * mantiene ST+10 durante el gesto; este e2e mide TAMBIÉN a mitad de leave, no solo reposo.
+ *
  * Brief: docs/briefs/ux01-tironcillo-medido-2026-09-10.md
  * Condición de publish: re-medir layout-shift en SU móvil. Este e2e vigila la geometría
  * estable en Chromium; no sustituye esa medida. */
@@ -85,10 +89,8 @@ test("entrar/salir de page-scroll-host: sin salto vertical del contenido", async
   await appLista(page);
   await expect(page.locator(".page.page-scroll-host")).toBeVisible({ timeout: 15_000 });
 
-  /* Reproduce la transición de leaveScrollHost → enterScrollHost midiendo el Y del
-     primer bloque de contenido. Antes del arreglo UX-01: ~44 px. Tras restaurar ola
-     con padding (no top): debe seguir <2 px.
-     No depende del gesto (el desliz lo cubre swipe-pestanas); mide la geometría CSS. */
+  /* Reproduce leaveScrollHost → enterScrollHost (mismo orden que 11-app-main: swipe class
+     ANTES de quitar el host). Antes del arreglo del corte 12/9: leave sin swipe → ~44 px. */
   const deltas = await page.evaluate(() => {
     document.documentElement.style.setProperty("--safe-top", "44px");
     const track = document.querySelector(".track");
@@ -102,8 +104,9 @@ test("entrar/salir de page-scroll-host: sin salto vertical del contenido", async
     const out = [];
     const y0 = y();
 
-    /* leave: quitar host + aparcar → transform (como leaveScrollHost) */
+    /* leave: swipe geom ANTES de quitar host (como leaveScrollHost real) */
     const w = track.offsetWidth || window.innerWidth;
+    track.classList.add("scroll-host-swipe");
     const leftPx = parseFloat(track.style.left);
     const i = !isNaN(leftPx) ? Math.round(-leftPx / w) : 0;
     track.style.left = "";
@@ -112,7 +115,12 @@ test("entrar/salir de page-scroll-host: sin salto vertical del contenido", async
     for (let k = 0; k < track.children.length; k++) {
       if (track.children[k].classList) track.children[k].classList.remove("page-scroll-host");
     }
-    out.push(Math.abs(y() - y0));
+    const yMid = y();
+    out.push(Math.abs(yMid - y0));
+
+    const page0 = track.children[i];
+    const midPad = page0 ? parseFloat(getComputedStyle(page0).paddingTop) : -1;
+    const appPadMid = parseFloat(getComputedStyle(document.querySelector(".app")).paddingTop);
 
     /* enter: host de nuevo en la pestaña i */
     track.classList.add("scroll-host-park");
@@ -122,14 +130,69 @@ test("entrar/salir de page-scroll-host: sin salto vertical del contenido", async
       if (!track.children[k].classList) continue;
       track.children[k].classList.toggle("page-scroll-host", k === i);
     }
+    track.classList.remove("scroll-host-swipe");
     out.push(Math.abs(y() - y0));
 
-    return { y0, deltas: out, max: Math.max.apply(null, out) };
+    return {
+      y0,
+      deltas: out,
+      max: Math.max.apply(null, out),
+      midPad,
+      appPadMid,
+      yMid,
+    };
   });
 
   expect(deltas.error, JSON.stringify(deltas)).toBeUndefined();
+  expect(deltas.midPad, "padding de página a mitad de leave").toBe(54);
+  expect(deltas.appPadMid, ".app sin padding duplicado durante swipe").toBe(0);
   expect(
     deltas.max,
     `salto vertical al leave/enter host: ${deltas.max}px (y0=${deltas.y0}, deltas=${deltas.deltas})`
   ).toBeLessThan(2);
+});
+
+test("sin scroll-host-swipe el leave pierde el padding del host (guardián del bug 12/9)", async ({ page }) => {
+  /* El Y del primer bloque NO salta (UX-01 ya iguala app+6 ≈ hostPad). El corte que él
+     vio con scroll es el padding ST+10 → 6 con el mismo scrollTop. Si alguien quita
+     `.scroll-host-swipe` del leave, este test ve padding 6 en vez de 54. */
+  await page.addInitScript(() => {
+    document.documentElement.style.setProperty("--safe-top", "44px");
+  });
+  await seedLoggedInDashboard(page);
+  await page.goto("/");
+  await appLista(page);
+  await expect(page.locator(".page.page-scroll-host")).toBeVisible({ timeout: 15_000 });
+
+  const bad = await page.evaluate(() => {
+    document.documentElement.style.setProperty("--safe-top", "44px");
+    const track = document.querySelector(".track");
+    const host = document.querySelector(".page.page-scroll-host");
+    if (!track || !host) return { error: "sin host" };
+    const w = track.offsetWidth || window.innerWidth;
+    const leftPx = parseFloat(track.style.left);
+    const i = !isNaN(leftPx) ? Math.round(-leftPx / w) : 0;
+    host.scrollTop = 120;
+    /* leave MALO: sin scroll-host-swipe */
+    track.style.left = "";
+    track.classList.remove("scroll-host-park");
+    track.style.transform = "translate3d(" + -(i * w) + "px,0,0)";
+    for (let k = 0; k < track.children.length; k++) {
+      if (track.children[k].classList) track.children[k].classList.remove("page-scroll-host");
+    }
+    const page0 = track.children[i];
+    const pad = page0 ? parseFloat(getComputedStyle(page0).paddingTop) : -1;
+    /* Restaurar */
+    track.classList.add("scroll-host-park");
+    track.style.transform = "none";
+    track.style.left = -(i * w) + "px";
+    for (let k = 0; k < track.children.length; k++) {
+      if (!track.children[k].classList) continue;
+      track.children[k].classList.toggle("page-scroll-host", k === i);
+    }
+    return { pad };
+  });
+
+  expect(bad.error).toBeUndefined();
+  expect(bad.pad, `leave sin swipe debe caer a padding 6 (pad=${bad.pad})`).toBe(6);
 });

@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.19.94",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "Al cambiar de pestaña ya no se corta la parte de arriba",
+      "en": "Switching tabs no longer clips the top of the screen",
+      "ca": "En canviar de pestanya ja no es talla la part de dalt"
+    },
+    "items": {
+      "es": [
+        "Deslizar entre Inicio, Gastos, Plan y Cartera ya no come la cabecera ni parte las tarjetas por arriba.",
+        "La ola al llegar al tope de la lista se queda como estaba."
+      ],
+      "en": [
+        "Swiping between Home, Expenses, Plan and Portfolio no longer eats the header or clips cards at the top.",
+        "The overscroll wave at the top of a list stays as it was."
+      ],
+      "ca": [
+        "Lliscar entre Inici, Despeses, Pla i Cartera ja no es menja la capçalera ni parteix les targetes per dalt.",
+        "L’ona en arribar al capdamunt de la llista es queda com estava."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "swipe-sin-corte",
+        "t": {
+          "es": "Al cambiar de pestaña no se corta arriba",
+          "en": "Switching tabs does not clip the top",
+          "ca": "En canviar de pestanya no es talla a dalt"
+        },
+        "items": {
+          "es": [
+            "1. Con la lista de Gastos un poco bajada (no arriba del todo), desliza despacio hacia Plan o Cartera. La cabecera y el buscador tienen que verse enteros mientras se mueve, no cortados por arriba.",
+            "2. Las dos pantallas a la vez (la que sale y la que entra) deben enseñar su título/cabecera, no empezar a media tarjeta.",
+            "3. En reposo, tira hacia abajo en el tope de Gastos: la ola nativa sigue saliendo como antes.",
+            "4. Si al poner el dedo ya se come un cuarto de pantalla, dilo: eso es justo el fallo."
+          ],
+          "en": [
+            "1. With Expenses scrolled down a bit, swipe slowly toward Plan or Portfolio. Header and search must stay whole while moving, not clipped at the top.",
+            "2. Both screens (outgoing and incoming) must show their header, not start mid-card.",
+            "3. At rest, pull down at the top of Expenses: the native overscroll wave still appears.",
+            "4. If a quarter of the screen is already gone as soon as you put your finger down, say so — that is the bug."
+          ],
+          "ca": [
+            "1. Amb Despeses una mica baixada, llisca a poc a poc cap a Pla o Cartera. La capçalera i el cercador s'han de veure sencers mentre es mou.",
+            "2. Les dues pantalles (la que surt i la que entra) han de mostrar la capçalera, no començar a mitja targeta.",
+            "3. En repòs, estira cap avall al capdamunt de Despeses: l'ona nativa segueix sortint.",
+            "4. Si en posar el dit ja es menja un quart de pantalla, digues-ho."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.93",
     "d": "12 sep 2026",
     "t": {
