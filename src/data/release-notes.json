@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.19.91",
+    "d": "12 sep 2026",
+    "t": {
+      "es": "Al bajar, la barra ya no se come el primer gesto",
+      "en": "Scrolling down, the bar no longer eats the first gesture",
+      "ca": "En baixar, la barra ja no es menja el primer gest"
+    },
+    "items": {
+      "es": [
+        "Al llegar abajo a veces hacía falta un segundo empujón para que la barra se escondiera y saliera la ola. Era la app descartando un gesto de verdad cuando la lista aún crecía. Ya cuenta el gesto."
+      ],
+      "en": [
+        "At the bottom you sometimes needed a second push before the bar hid and the glow appeared. The app was discarding a real gesture while the list was still growing. It counts the gesture now."
+      ],
+      "ca": [
+        "En arribar a baix de vegades calia un segon empenta perquè la barra s'amagués i sortís l'ona. L'app descartava un gest de veritat mentre la llista encara creixia. Ja compta el gest."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "ola-nativa",
+        "t": {
+          "es": "🌊 Ola y barra al bajar",
+          "en": "🌊 Glow and bar when scrolling down",
+          "ca": "🌊 Ona i barra en baixar"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos con lista larga, baja de un tirón (no hace falta llegar al final). La barra de abajo tiene que esconderse a la primera, sin «stopper».",
+            "2. Llega al final y sigue un poco: tiene que verse la ola nativa, y la barra esconderse rápido.",
+            "3. Si el primer gesto no hace nada y el segundo sí, dilo: eso es justo lo que arreglamos."
+          ],
+          "en": [
+            "1. In Expenses with a long list, scroll down once (need not hit the end). The bottom bar must hide on the first gesture, no stopper.",
+            "2. Reach the end and keep going a bit: native glow, bar hides quickly.",
+            "3. If the first gesture does nothing and the second works, say so — that is exactly what we fixed."
+          ],
+          "ca": [
+            "1. A Despeses amb llista llarga, baixa d'una (no cal arribar al final). La barra s'ha d'amagar al primer gest, sense stopper.",
+            "2. Arriba al final i continua: ona nativa, barra ràpida.",
+            "3. Si el primer gest no fa res i el segon sí, digues-ho."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.90",
     "d": "12 sep 2026",
     "t": {

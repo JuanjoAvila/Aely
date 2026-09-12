@@ -1,3 +1,16 @@
+## [4.19.91] - 2026-09-12
+### `ultimoScrollH` ya no traga gestos reales (ola + barra)
+
+Claude midió bien: `rebote-barra-inferior` en CI no era flaky. Con el host a pantalla el
+`scrollHeight` se recalcula tarde y `onPageScroll` hacía `return` entero al ver el cambio
+de alto — también cuando el `dy` era un gesto de verdad. Eso encaja con su «stopper» / «bajas
+y no pasa nada, luego sí».
+
+Arreglo: si el alto cambió pero `|dy| >= 6`, se sigue el flujo normal (hide/reveal). Solo se
+ignora el nudge de layout. Quitado el scroll chico del e2e que tapaba el bug.
+
+`dismissNews` de la 90 se mantiene (Novedades montaba tarde).
+
 ## [4.19.90] - 2026-09-12
 ### dismissNews espera al popup; botnav e2e hace poll
 

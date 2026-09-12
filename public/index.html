@@ -2073,7 +2073,7 @@ const CONFIG = {
   // --- Supabase (Fase 1). La anon key es pública por diseño (va protegida con RLS). ---
   SUPABASE_URL: "https://sfyfjagbnhbplrljpbvh.supabase.co",
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeWZqYWdibmhicGxybGpwYnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3NzYyODAsImV4cCI6MjA5NzM1MjI4MH0.umMHOZanC4aRSBqiNAjsegyXxcZ-Q-g2oTQtS1JXzZk",
-  APP_VERSION: "4.19.90",          // lo sella el CI en cada deploy (scripts/stamp-version.mjs)
+  APP_VERSION: "4.19.91",          // lo sella el CI en cada deploy (scripts/stamp-version.mjs)
   SENTRY_DSN: "",              // opcional: inyectar SENTRY_DSN en CI (scripts/build-app.mjs)
 };
 
@@ -19711,13 +19711,22 @@ function App(){
        ya había parado. 320 ms siguen cubriendo el asentamiento del cambio de pestaña, que es para
        lo que está (que no se esconda de golpe al llegar a la pestaña nueva). */
     if(scrollTab.current!==tab){ scrollTab.current=tab; lastScrollY.current=y; ultimoScrollH.current=e.currentTarget.scrollHeight; revealNav(); pinNavVisible(320); return; }
-    /* Si el contenido ha cambiado de alto, este `scroll` no lo ha pedido él: es la pantalla
-       recolocándose (ver `ultimoScrollH`). Se apunta la posición nueva y no se actúa. */
+    /* Si el contenido ha cambiado de alto, el motor a veces recoloca `scrollTop` solo
+       (chip de rol, lista que pagina). Eso NO es un gesto suyo — no esconder la barra.
+       ⚠ PERO con host a pantalla (ola 12/9) el `scrollHeight` también se recalcula tarde
+       al montar Gastos, y este `return` se comía gestos REALES (dy grande): la barra no
+       se escondía y él veía el «stopper» / «bajas y no hace nada, luego sí». Solo se
+       ignora si el scrollTop casi no se movió. */
     const sh=e.currentTarget.scrollHeight;
-    if(ultimoScrollH.current && sh!==ultimoScrollH.current){ ultimoScrollH.current=sh; lastScrollY.current=y; return; }
-    ultimoScrollH.current=sh;
     const dy=y-lastScrollY.current;
-    lastScrollY.current=y;
+    if(ultimoScrollH.current && sh!==ultimoScrollH.current){
+      ultimoScrollH.current=sh;
+      lastScrollY.current=y;
+      if(Math.abs(dy)<6) return;
+    } else {
+      ultimoScrollH.current=sh;
+      lastScrollY.current=y;
+    }
     if(y<=8){
       // Tope: barra QUIETA y visible. Sin ola-clear. Pin solo al aterrizar / al revelar,
       // no en cada frame del rubber-band (si no el pin no caduca nunca).
