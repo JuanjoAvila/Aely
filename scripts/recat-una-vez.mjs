@@ -87,7 +87,31 @@ const res = await fetch(`${BASE}/rest/v1/expenses?select=id,fecha,comercio,ob_na
 if (!res.ok) { console.error(`HTTP ${res.status}: ${await res.text()}`); process.exit(1); }
 const rows = await res.json();
 
+/* LO QUE ÉL HA ENSEÑADO A MANO NO SE TOCA, NI PARA BIEN.
+   `catOverrides` (comercio → categoría) es su decisión explícita, y vive en `app_state.data`.
+   Sin esto, el script comparaba dos reglas que corren con `USER_OVERRIDES` VACÍO — o sea, contra
+   un móvil que no es el suyo: si la categoría guardada de un comercio vino de SU override y por
+   casualidad coincide con lo que daba la regla vieja, la habría pisado creyendo arreglar un bug.
+   Pasa de verdad: `apollon gallery → joyeria` está en sus overrides y esas filas están en `bares`.
+   Se apartan y se le enseñan para que decida él. */
+const estados = await (await fetch(`${BASE}/rest/v1/app_state?select=user_id,data`, { headers: H })).json();
+const overridePorUsuario = {};
+for (const st of Array.isArray(estados) ? estados : []) {
+  const d = st.data || {};
+  overridePorUsuario[st.user_id] = (d.settings && d.settings.catOverrides) || d.catOverrides || {};
+}
+/* La clave la da la APP, no yo. `catKey` (`00-core.js:218`) es lower + NFD sin acentos + trim, y
+   es con esa clave con la que la app guarda los overrides. Escribirla otra vez aquí a mano fue el
+   primer error de este mismo script (comparar con una clave que no es la del móvil): un override
+   futuro «Café» o «Aigües…» se escaparía del guard y podríamos pisarlo. Lo cazó Cursor. */
+const catKey = nuevo.catKey;
+if (typeof catKey !== "function") {
+  console.error("El bundle no expone `catKey` — aborto antes de comparar con una clave inventada.");
+  process.exit(1);
+}
+
 const plan = [];
+const apartadas = [];
 for (const x of rows) {
   const m = x.comercio || x.ob_name || "";
   if (!m) continue;
@@ -95,13 +119,23 @@ for (const x of rows) {
   const ahora = nuevo.autoCategory(m);
   if (antes === ahora) continue;              // la regla no cambia para este comercio
   if ((x.cat || "") !== antes) continue;      // no lleva guardada la que puso el bug → no es nuestra
-  plan.push({ id: x.id, fecha: String(x.fecha).slice(0, 10), m, de: antes, a: ahora, imp: x.importe, user: x.user_id });
+  const fila = { id: x.id, fecha: String(x.fecha).slice(0, 10), m, de: antes, a: ahora, imp: x.importe, user: x.user_id };
+  const suyo = (overridePorUsuario[x.user_id] || {})[catKey(m)];
+  if (suyo) { apartadas.push({ ...fila, suyo }); continue; }
+  plan.push(fila);
 }
 
 console.log(`\n${rows.length} filas leídas · regla de «${ref}» contra la de ahora`);
 console.log(`${plan.length} fila(s) llevan guardada la categoría que puso el bug\n`);
 for (const p of plan) {
   console.log(`  ${p.fecha}  ${p.de.padEnd(10)} → ${p.a.padEnd(10)}  ${p.m}   (${p.imp})`);
+}
+if (apartadas.length) {
+  console.log(`\n⚠ ${apartadas.length} fila(s) APARTADAS: ese comercio tiene categoría puesta por él a mano.`);
+  console.log("   No se tocan. Decide él si quiere que entren:");
+  for (const p of apartadas) {
+    console.log(`  ${p.fecha}  ${p.de.padEnd(10)} → ${p.a.padEnd(10)}  ${p.m}   (${p.imp})   [él dijo: ${p.suyo}]`);
+  }
 }
 if (!plan.length) { console.log("\nNada que hacer."); process.exit(0); }
 
