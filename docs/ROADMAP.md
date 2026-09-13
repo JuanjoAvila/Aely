@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-13 · **v4.19.101** — el saldo al cambiar de rol, el redondeo de TR (tercera y última copia).
+> Estado a 2026-09-13 · **v4.19.102** — el Saveback de TR ya no sale como ingreso en el histórico.
+> Anterior: **v4.19.101** — el saldo al cambiar de rol, el redondeo de TR (tercera y última copia).
 > Anterior: **v4.19.100** — Guardar entero (CTA fijo bajo el teclado).
 > Anterior: **v4.19.99** — un banco ya no se come a otro en el historico.
 > Anterior: **v4.19.97** — el saldo al cambiar de rol, la otra mitad.
@@ -159,7 +160,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.19.101** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.102** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

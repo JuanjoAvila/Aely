@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.19.102",
+    "d": "13 sep 2026",
+    "t": {
+      "es": "El Saveback de Trade Republic no es un ingreso",
+      "en": "Trade Republic Saveback is not income",
+      "ca": "El Saveback de Trade Republic no és un ingrés"
+    },
+    "items": {
+      "es": [
+        "Al importar el histórico, el Saveback de Trade Republic salía como un ingreso. En realidad el banco lo abona y al día siguiente lo saca para comprar tu fondo: ahora se reconoce la pareja y ya no te lo ofrece como dinero que entra."
+      ],
+      "en": [
+        "When importing history, Trade Republic Saveback showed up as income. The bank actually credits it and takes it out the next day to buy your fund: the pair is now recognised and it is no longer offered as money coming in."
+      ],
+      "ca": [
+        "En importar l'històric, el Saveback de Trade Republic sortia com un ingrés. En realitat el banc l'abona i l'endemà el treu per comprar el teu fons: ara es reconeix la parella i ja no te l'ofereix com a diners que entren."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "hist-cashback-par",
+        "t": {
+          "es": "💸 El Saveback de TR ya no sale como ingreso en el histórico",
+          "en": "💸 TR Saveback no longer shows as income in history",
+          "ca": "💸 El Saveback de TR ja no surt com a ingrés a l'històric"
+        },
+        "items": {
+          "es": [
+            "1. Es lo de tu captura: el histórico te ofrecía «Movimiento · 1 sept · +10,34 € ingreso», y en Trade Republic es el Saveback que SALE hacia el fondo.",
+            "2. Ajustes → Mis bancos → Importar histórico. Busca desde el 1 de septiembre.",
+            "3. Mira la fila de 10,34 € del 1 de septiembre de Trade Republic: ya NO puede venir marcada para importar como ingreso (sale como repetida, sin marcar).",
+            "4. El «Interés» de 13,72 € del 1 de septiembre sí tiene que salir como ingreso: ese es de verdad.",
+            "5. No importes nada si no quieres: basta con mirar la lista y salir."
+          ],
+          "en": [
+            "1. This is your screenshot: history offered “Movimiento · 1 Sep · +10.34 € income”, and in Trade Republic it is the Saveback going OUT to the fund.",
+            "2. Settings → My banks → Import history. Search from 1 September.",
+            "3. Look at the 10.34 € Trade Republic row on 1 September: it must NOT come ticked to import as income (it shows as a repeat, unticked).",
+            "4. The 13.72 € “Interest” on 1 September must still show as income: that one is real.",
+            "5. You don't need to import anything: just look at the list and leave."
+          ],
+          "ca": [
+            "1. És la teva captura: l'històric t'oferia «Movimiento · 1 set · +10,34 € ingrés», i a Trade Republic és el Saveback que SURT cap al fons.",
+            "2. Ajustos → Els meus bancs → Importar històric. Cerca des de l'1 de setembre.",
+            "3. Mira la fila de 10,34 € de l'1 de setembre de Trade Republic: ja NO pot venir marcada per importar com a ingrés (surt com a repetida, sense marcar).",
+            "4. L'«Interès» de 13,72 € de l'1 de setembre sí que ha de sortir com a ingrés: aquest és de debò.",
+            "5. No cal importar res: n'hi ha prou de mirar la llista i sortir."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.101",
     "d": "13 sep 2026",
     "t": {

@@ -749,18 +749,45 @@ function reconcileObDupes(state){
   return { state:Object.assign({},state,{expenses:quedan}), borrar:[], recat:recat };
 }
 
+/* ¿Son ENTRADA y SALIDA el mismo cashback que entra y sale? La regla, en un solo sitio: la usan el
+   sync diario (`findCashbackTwin`) y el histórico (`histParesCashback`). Cada lado es
+   {date, amount (magnitud), ent, merchant}. */
+function esGemeloCashback(entrada, salida){
+  if(!entrada || !salida || !entrada.ent || entrada.ent!==salida.ent) return false;   // misma cuenta
+  if(!sinComercioReal(entrada.merchant)) return false;                                 // con nombre = cobro real
+  if(Math.abs(Math.abs(entrada.amount||0)-Math.abs(salida.amount||0))>0.005) return false;   // mismo importe
+  const d=dateMs(salida.date)-dateMs(entrada.date);
+  return d>=0 && d<=10*86400000;                                     // la entrada va ANTES que la salida
+}
 function findCashbackTwin(expenses, gasto){
   if(!gasto || !(gasto.amount>0)) return -1;
-  const ms=dateMs(gasto.date);
   return (expenses||[]).findIndex(function(e){
-    if(!e || e.id===gasto.id) return -1 === 0;                       // nunca a sí mismo
+    if(!e || e.id===gasto.id) return false;                          // nunca a sí mismo
     if(!(e.amount<0) || e.category==="inversion") return false;      // solo ingresos aún sin marcar
-    if(e.ent!==gasto.ent) return false;                              // misma cuenta
-    if(e.merchant && e.merchant!=="Movimiento" && e.merchant!=="Ingreso") return false;   // con nombre = real
-    if(Math.abs(Math.abs(e.amount)-gasto.amount)>0.005) return false;                     // mismo importe
-    const d=ms-dateMs(e.date);
-    return d>=0 && d<=10*86400000;                                   // la entrada va ANTES que la salida
+    return esGemeloCashback(e, gasto);
   });
+}
+/* EL SAVEBACK DE TRADE REPUBLIC EN EL HISTÓRICO (2026-09-13, su captura del 12/9: «+10,34 € como
+   INGRESO, cosa que no es un puto ingreso, es un gasto que se va hacia inversiones»).
+   No era el signo: el payload crudo de TR trae `10.34 CRDT 2026-09-01` (abona el Saveback al
+   efectivo) y `10.34 DBIT 2026-09-02` (lo saca para comprar el fondo). La app de TR solo enseña
+   la compra; el histórico ofrecía el abono como ingreso. Es el par que el sync diario reconoce
+   desde el 4/8 y que el histórico no miraba.
+   Devuelve { entrada:{i:true}, salida:{i:true} } sobre `cands`; una salida empareja UNA entrada.
+   La salida se busca entre los candidatos y, si no, entre lo ya guardado. Sin `rewardInv` a
+   propósito (voto de Cursor): en el histórico nadie garantiza que esté puesto, y un ingreso sin
+   nombre + un gasto del mismo banco y céntimo en 10 días es mucho más raro que el Saveback, que
+   es TODOS los meses. */
+function histParesCashback(cands, expenses){
+  const out={ entrada:{}, salida:{} }, usada={};
+  (cands||[]).forEach(function(x,i){
+    if(!x || x.kind!=="in") return;
+    const j=cands.findIndex(function(y,k){ return y && !out.salida[k] && y.kind!=="in" && esGemeloCashback(x, y); });
+    if(j>=0){ out.salida[j]=out.entrada[i]=1; return; }
+    const k=(expenses||[]).findIndex(function(e,n){ return e && !usada[n] && e.amount>0 && esGemeloCashback(x, { date:e.date, amount:e.amount, ent:expenseBankOf(e) }); });
+    if(k>=0) usada[k]=out.entrada[i]=1;
+  });
+  return out;
 }
 
 /* CATEGORÍA "INVERSIÓN" (2026-08-03): round-up/cashback/aporte automático de un bróker que llega
@@ -1132,9 +1159,11 @@ function histClassifyCandidates(cands, state){
   const existing=histCandExisting(cands, state.expenses);
   const cercanos=histCandCercanos(cands, state.expenses, existing);
   const daily=(state.accounts||[]).find(function(a){ return accDaily(a); });
+  const pares=histParesCashback(cands, state.expenses);
   const rows=(cands||[]).map(function(x,i){
     if(!x) return null;
-    if(existing[i]) return { status:"dup", reason:"existing", match:existing[i], defDest:null, suggestRecibo:false, category:null };
+    // `cashback-par`: el abono del Saveback con su compra gemela (ver `histParesCashback`).
+    if(existing[i] || (!cercanos[i] && pares.entrada[i])) return { status:"dup", reason:existing[i]?"existing":"cashback-par", match:existing[i]||null, defDest:null, suggestRecibo:false, category:null };
     if(cercanos[i]) return { status:"maybe", reason:"cercano", match:cercanos[i], defDest:null, suggestRecibo:false, category:null };
     /* Aquí iba `recibDup[i] → dup, motivo "recibo-lote"` (FIN-02, retirado el 2026-09-09).
        `dedupeHistRecibos` compara comercio+importe+banco SIN FECHA, así que tres recibos de
@@ -1154,7 +1183,7 @@ function histClassifyCandidates(cands, state){
     }
     const amt=Math.abs(x.amount||0);
     const esAporte=!!(daily && daily.ent===x.ent && daily.monthlyInvest>0 && Math.abs(amt-daily.monthlyInvest)<0.01);
-    const cat=esAporte ? "inversion" : (typeof categoryOfNewMerchant==="function"?categoryOfNewMerchant(x.merchant||""):(typeof autoCategory==="function"?autoCategory(x.merchant||""):"otros"));
+    const cat=(esAporte || pares.salida[i]) ? "inversion" : (typeof categoryOfNewMerchant==="function"?categoryOfNewMerchant(x.merchant||""):(typeof autoCategory==="function"?autoCategory(x.merchant||""):"otros"));
     // Híbrido C: default Gasto; recibo solo si el usuario lo marca (suggestRecibo).
     return { status:"new", reason:null, match:null, defDest:"gasto", suggestRecibo:!x.card, category:cat };
   });

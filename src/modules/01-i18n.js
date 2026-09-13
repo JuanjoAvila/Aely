@@ -2512,7 +2512,7 @@ function applyAccountRole(s, totals, id, r){
      re-calculada a mano que no cuadraba con lo que se pinta:
        · 4.19.84 `paidNet` (los recibos ya cobrados) — 300 €.
        · 4.19.97 `spentOwn` (los gastos sin banco se los queda la diaria) — otros 300 €.
-       · 4.19.100 el redondeo de TR, que salía de la diaria VIEJA — 43 € («6724 → 6681»).
+       · 4.19.101 el redondeo de TR, que salía de la diaria VIEJA — 43 € («6724 → 6681»).
      No más copias: el estado con el rol nuevo (value intacto) pasa por la misma regla. */
   const sTras=Object.assign({},s,{accounts:(s.accounts||[]).map(function(a){
     const rr=rolTras(a);

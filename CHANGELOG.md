@@ -1,3 +1,23 @@
+## [4.19.102] - 2026-09-13
+### El Saveback de Trade Republic ya no sale como ingreso en el histórico
+
+Su captura del 12/9: el histórico ofrecía «Movimiento · 2026-09-01 · +10,34 € ingreso», y en la
+app de TR es el Saveback del 2/9, 10,34 € que SALEN hacia el FTSE.
+
+Parecía un signo volteado con un día de menos. **No lo era.** El payload crudo de TR en
+`app_events` trae los dos apuntes: `10.34 CRDT 2026-09-01` (TR abona el Saveback al efectivo) y
+`10.34 DBIT 2026-09-02` (lo retira para comprar). `mapTransaction` iba bien; el histórico ofrecía
+la mitad que entra. Es el par que el sync diario reconoce desde el 4/8 (`findCashbackTwin`) y que
+`histClassifyCandidates` no miraba.
+
+Arreglo: la regla del par pasa a `esGemeloCashback` (un solo sitio) y la usan el sync y el
+histórico (`histParesCashback`). En el histórico, la entrada sin nombre con su salida gemela
+(mismo banco, mismo céntimo, 0–10 días después) sale `dup / cashback-par` y no se ofrece; la
+salida, si es nueva, sale como Inversión. 1:1. Sin gate `rewardInv` (voto de Cursor).
+
+Test `hist-cashback-par` (7 casos, dos bancos, con nombre, fuera de ventana, 1:1 y el sync),
+3 en ROJO sin el arreglo.
+
 ## [4.19.101] - 2026-09-13
 ### El saldo al cambiar de rol: el redondeo de TR (su tercer rechazo)
 
