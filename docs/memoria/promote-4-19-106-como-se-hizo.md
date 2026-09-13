@@ -9,7 +9,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 7fd7cd78-dc13-40b7-b03e-17cda8686805
-  modified: 2026-09-13T18:46:55.494Z
+  modified: 2026-09-13T21:27:25.149Z
 ---
 
 13/9/2026: producción pasó de 4.18.25 a **4.19.106** (main = beta = `a5c885ab`). Él pidió «una nota de todo lo que sube, no 818138218 notas» y «revisad que no rompe nada».
@@ -22,6 +22,8 @@ Lo que funcionó y hay que repetir:
 5. **Edge después**, de una en una (`workflow_dispatch funcion=X migraciones=no`), con su OK. Qué está atrasado se sabe por el SHA de cada run de «Deploy Supabase» + los imports de cada index.ts, no por fechas ([[servidor-al-dia-compara-fechas]]).
 
 14/9: repetido con **4.20.4** (FF limpio, nota única, `[skip ci]`, migraciones 0022/0023 con `supabase.yml -f funcion=categorize -f migraciones=si` DESPUÉS de que Pages sirva el cliente). Tras cada promote él pide **resetear la numeración de beta** (4.19.107 → 4.20.0; tras 4.20.4 → 4.21.0).
+
+14/9 noche: repetido con **4.21.2** (FF limpio, nota única, `[skip ci]`, puente con `gh api -X PUT repos/JuanjoAvila/Mi-Cartera/contents/<f>` para version.json/bundle.zip/apk.json, y `supabase.yml -f funcion=ingest -f migraciones=no` después de Pages). Y **APK 46** publicada con `release:apk` desde una rama basada en prod (no en la tanda), `main` en fast-forward con `apk.json`, luego `merge origin/main` en beta. El clasificador de permisos bloquea release:apk, push a main y el puente: pedir OK explícito.
 
 **Why:** cada promote anterior fue un cristo ([[promote-cada-cristo]], [[promote-merge-theirs]]).
 **How to apply:** en el próximo promote, repetir 1–5 en ese orden. Ojo: Cursor dejó `build.gradle` con mojibake (Set-Content) en un porte — revisar `grep Ã` en todo diff de Cursor ([[feedback-nunca-editar-con-powershell]]). Y dos agentes llegaron a editar el MISMO worktree: decir por el buzón de quién es cada worktree.
