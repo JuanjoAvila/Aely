@@ -91,6 +91,16 @@ t("★ nada con veredicto suyo vuelve al panel", () => {
     "informe-mes", "presupuesto-categoria",
     /* rechazadas (su arreglo va dentro de otra tanda) */ "tr-reactivo", "avisos-presupuesto",
     "ventana-mes", "pulido-cierre", "modo-inicial",
+    /* 13/9, panel limpio: aprobadas del 11 al 13/9 */ "id-fila", "efectivo", "repetido-widget",
+    "pulsacion-larga", "cats-plegable", "bizum-categoria", "aely", "banco-de-pruebas",
+    "manual-no-fusiona", "donde-se-elige-el-gasto", "saldo-por-banco", "logos-inversiones",
+    "gastos-todas-las-cuentas", "cartera-cabecera-iconos", "categorias-que-empiezan",
+    "botnav-subir-sin-lag", "ficha-efectivo-guarda", "editar-solo-ob", "longpress-cuentas",
+    "sync-refresca", "agua-luz-gas", "repo-aely", "ultima-cuota-descartar", "banco-pending-banner",
+    "volver-a-estable", "ola-nativa", "bancos-lista-fresca", "swipe-sin-corte",
+    /* rechazadas y sustituidas por una tanda viva */ "banco-pendiente-y-quitar", "rol-sin-salto",
+    "rol-sin-salto-2", "guardar-cta", "guardar-pie", "historico-la-lista", "historico-madrugada",
+    "historico-fecha-cercana", "historico-bancos-completos", "hist-cashback-par",
   ];
   juzgadas.forEach((id) => {
     assert.equal(ids.some((x) => x.endsWith("/" + id) || x === id), false,
@@ -105,7 +115,10 @@ t("y lo que nunca ha probado sigue ahí (no nos hemos pasado de frenada)", () =>
      («quitar-banco» acabó dentro de «banco-pendiente-y-quitar» el 11/9). Si al fundir una te sale
      rojo esto, cambia el id por el que sobrevive — no quites la comprobación, que es la que evita
      pasarse de frenada al limpiar el panel. */
-  ["id-fila", "banco-pendiente-y-quitar", "cats-plegable", "pulsacion-larga", "logos-inversiones"].forEach((id) => {
+  /* 13/9: las cinco de antes las aprobó (id-fila, cats-plegable, pulsacion-larga,
+     logos-inversiones) o las tapó otra aprobada (banco-pendiente-y-quitar). Panel limpio a
+     petición suya: quedan estas, sin juzgar. */
+  ["hojas-scroll", "ab-idiomas", "historico-lista", "rol-sin-salto-3", "historico-importar"].forEach((id) => {
     assert.equal(ids.some((x) => x.endsWith("/" + id)), true, `falta «${id}», que sigue pendiente`);
   });
 });

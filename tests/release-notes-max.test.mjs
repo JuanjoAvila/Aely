@@ -91,9 +91,15 @@ assert.ok(fullIds.length > 0, "la ronda de prueba tiene que tener tandas en el J
 /* Lo que importa: que la ronda llegue MÁS ABAJO que el tope de la UI. Si el pack del index
    volviera a ser la fuente del panel, estas de abajo desaparecerían sin que nadie se entere. */
 const masViejaDeLaRonda = fullIds[fullIds.length - 1];
+/* 13/9: con el panel limpio (5 tandas) la ronda ya no es más larga que el MAX, pero la más vieja
+   sigue estando FUERA de las MAX notas más recientes (4.19.9 con el tip en 4.19.105). Eso prueba lo
+   mismo: el panel llega a una nota que el pack del index ya no lleva. */
+const verNum = (v) => String(v).split(".").map(Number);
+const menor = (a, b) => { const x = verNum(a), y = verNum(b); for (let i = 0; i < 4; i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) < (y[i] || 0); } return false; };
+const ultimaDentroDelMax = all[maxSrc - 1] && all[maxSrc - 1].v;
 assert.ok(
-  fullIds.length > maxSrc || masViejaDeLaRonda.indexOf("4.19.1/") === 0,
-  `la ronda (${fullIds.length}) tiene que pasar del tope de la UI (${maxSrc}) o llegar hasta 4.19.1; la más vieja es ${masViejaDeLaRonda}`
+  fullIds.length > maxSrc || masViejaDeLaRonda.indexOf("4.19.1/") === 0 || menor(masViejaDeLaRonda.split("/")[0], ultimaDentroDelMax),
+  `la ronda (${fullIds.length}) tiene que pasar del tope de la UI (${maxSrc}), llegar hasta 4.19.1 o incluir una nota anterior a ${ultimaDentroDelMax}; la más vieja es ${masViejaDeLaRonda}`
 );
 /* Bajar MAX no puede comerse tandas: el pack del index ya no es la fuente del panel. */
 const packed = packReleaseNotesForBundle(all, 1, 5);

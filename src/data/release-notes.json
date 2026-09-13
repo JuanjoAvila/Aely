@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.19.105",
+    "d": "13 sep 2026",
+    "t": {
+      "es": "Lista de pruebas ordenada",
+      "en": "Test list tidied up",
+      "ca": "Llista de proves endreçada"
+    },
+    "items": {
+      "es": [
+        "Sin cambios en la app: se ordena la lista de cosas por probar de la versión de pruebas."
+      ],
+      "en": [
+        "No app changes: the test build checklist is tidied up."
+      ],
+      "ca": [
+        "Sense canvis a l'app: s'endreça la llista de coses per provar de la versió de proves."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.19.104",
     "d": "13 sep 2026",
     "t": {
@@ -22,28 +43,34 @@
       {
         "id": "hojas-scroll",
         "t": {
-          "es": "📜 Filtro de Gastos: ya puedes bajar otra vez",
-          "en": "📜 Spending filter: you can scroll again",
-          "ca": "📜 Filtre de Despeses: ja pots baixar una altra vegada"
+          "es": "📜 Las hojas: Guardar entero, y todas bajan",
+          "en": "📜 Sheets: Save in full, and they all scroll",
+          "ca": "📜 Els fulls: Desa sencer, i tots baixen"
         },
         "items": {
           "es": [
-            "1. En Gastos, toca el chip de filtros (🎛️).",
-            "2. Baja por la lista de categorías y bancos: tiene que moverse con el dedo.",
-            "3. Cierra el filtro. Abre Apuntar (+): Guardar sigue visible entero abajo, sin cortarse.",
-            "4. En Gastos, toca Más… en los periodos y comprueba que también baja si hace falta."
+            "1. Esto junta tus dos quejas: «Guardar sale cortado» y, hoy, «me acabas de destrozar el filtro en gastos, no puedo bajar».",
+            "2. En Gastos, toca el chip de filtros (🎛️) y baja por la lista de categorías y bancos: tiene que moverse con el dedo.",
+            "3. En Gastos, toca «Más…» en los periodos: también tiene que bajar si no cabe.",
+            "4. Abre alguna hoja de Plan o de Deudas que sea larga: tiene que bajar igual.",
+            "5. Abre Apuntar (+) con letra Normal: el botón «Guardar gasto» se ve ENTERO abajo, con su sombra suave, sin tener que bajar. Prueba también letra Grande y Enorme.",
+            "6. En Gastos, abre un gasto y toca borrar: el aviso NO puede dejar ver ni un instante el brillo verde de Guardar debajo."
           ],
           "en": [
-            "1. In Spending, tap the filters chip (🎛️).",
-            "2. Scroll the category and bank list: it must move with your finger.",
-            "3. Close the filter. Open Add (+): Save still shows in full at the bottom, not cut off.",
-            "4. In Spending, tap More… on periods and check it also scrolls if needed."
+            "1. This joins your two complaints: “Save is cut off” and, today, “you broke the spending filter, I can't scroll”.",
+            "2. In Spending, tap the filters chip (🎛️) and scroll the category and bank list: it must move with your finger.",
+            "3. In Spending, tap “More…” on periods: it must also scroll if it doesn't fit.",
+            "4. Open a long sheet in Plan or Debts: it must scroll too.",
+            "5. Open Add (+) with Normal text: the “Save expense” button shows IN FULL at the bottom, with its soft shadow, without scrolling. Try Large and Huge text too.",
+            "6. In Spending, open an expense and tap delete: the prompt must NOT show even for an instant the green glow of Save underneath."
           ],
           "ca": [
-            "1. A Despeses, toca el xip de filtres (🎛️).",
-            "2. Baixa per la llista de categories i bancs: s'ha de moure amb el dit.",
-            "3. Tanca el filtre. Obre Apuntar (+): Desa segueix visible sencer a baix, sense tallar-se.",
-            "4. A Despeses, toca Mes… als periodes i comprova que tambe baixa si cal."
+            "1. Això ajunta les teves dues queixes: «Desa surt tallat» i, avui, «m'has destrossat el filtre de despeses, no puc baixar».",
+            "2. A Despeses, toca el xip de filtres (🎛️) i baixa per la llista de categories i bancs: s'ha de moure amb el dit.",
+            "3. A Despeses, toca «Més…» als períodes: també ha de baixar si no hi cap.",
+            "4. Obre algun full de Pla o de Deutes que sigui llarg: ha de baixar igual.",
+            "5. Obre Apuntar (+) amb lletra Normal: el botó «Desar despesa» es veu SENCER a baix, amb la seva ombra suau, sense haver de baixar. Prova també lletra Gran i Enorme.",
+            "6. A Despeses, obre una despesa i toca esborrar: l'avís NO pot deixar veure ni un instant la brillantor verda de Desa a sota."
           ]
         }
       }
@@ -123,33 +150,45 @@
     },
     "tandas": [
       {
-        "id": "hist-cashback-par",
+        "id": "historico-lista",
         "t": {
-          "es": "💸 El Saveback de TR ya no sale como ingreso en el histórico",
-          "en": "💸 TR Saveback no longer shows as income in history",
-          "ca": "💸 El Saveback de TR ja no surt com a ingrés a l'històric"
+          "es": "📜 Importar histórico: la lista, de una vez",
+          "en": "📜 Import history: the list, all in one go",
+          "ca": "📜 Importar històric: la llista, d'una vegada"
         },
         "items": {
           "es": [
-            "1. Es lo de tu captura: el histórico te ofrecía «Movimiento · 1 sept · +10,34 € ingreso», y en Trade Republic es el Saveback que SALE hacia el fondo.",
-            "2. Ajustes → Mis bancos → Importar histórico. Busca desde el 1 de septiembre.",
-            "3. Mira la fila de 10,34 € del 1 de septiembre de Trade Republic: ya NO puede venir marcada para importar como ingreso (sale como repetida, sin marcar).",
-            "4. El «Interés» de 13,72 € del 1 de septiembre sí tiene que salir como ingreso: ese es de verdad.",
-            "5. No importes nada si no quieres: basta con mirar la lista y salir."
+            "1. Esto junta TODO lo que rechazaste del histórico: «salen un montonazo de repetidos… los que salen que no son repetidos sí que lo son», el Sabadell que se quedaba a 0, y el Saveback de 10,34 € que salía como ingreso. No hace falta importar nada, solo mirar.",
+            "2. Ajustes → Importaciones → Importar histórico. Pide 3 meses y dale a Buscar.",
+            "3. Filtro de bancos de arriba: tienen que salir CON movimientos todos tus bancos conectados (Sabadell, Trade Republic, Revolut, la Caixa). Ninguno a 0 si sabes que hubo movimientos.",
+            "4. Mira septiembre, que te lo sabes de memoria. Lo que ya tienes apuntado tiene que salir sin marcar, como «ya lo tienes» o «puede que ya lo tengas». Fíjate en los que el banco apunta un día después (Consum, La Tagliatella) y en los de madrugada.",
+            "5. Trade Republic, 1 de septiembre: la fila de 10,34 € (el Saveback) tiene que salir SIN marcar. El «Interés» de 13,72 € sí tiene que salir como ingreso nuevo.",
+            "6. Repasa lo que siga saliendo como NUEVO: dinos si alguno ya lo tenías. Y lo más importante: si algo sale sin marcar y NO lo tenías, dínoslo, que eso es peor.",
+            "7. Baja hasta el final de la lista y toca «Ver más» hasta que no quede nada: todo tiene que verse, sin zonas en negro.",
+            "8. Repite la búsqueda otra vez seguida: los mismos bancos y más o menos las mismas cifras.",
+            "9. Sal sin importar y vete a Gastos, a un mes viejo: no puede faltar nada por haber mirado."
           ],
           "en": [
-            "1. This is your screenshot: history offered “Movimiento · 1 Sep · +10.34 € income”, and in Trade Republic it is the Saveback going OUT to the fund.",
-            "2. Settings → My banks → Import history. Search from 1 September.",
-            "3. Look at the 10.34 € Trade Republic row on 1 September: it must NOT come ticked to import as income (it shows as a repeat, unticked).",
-            "4. The 13.72 € “Interest” on 1 September must still show as income: that one is real.",
-            "5. You don't need to import anything: just look at the list and leave."
+            "1. This gathers EVERYTHING you rejected about history: “loads of repeats… the ones shown as not repeated actually are”, Sabadell showing 0, and the 10.34 € Saveback showing as income. No need to import anything, just look.",
+            "2. Settings → Imports → Import history. Ask for 3 months and tap Search.",
+            "3. Bank filter at the top: ALL your connected banks must show movements (Sabadell, Trade Republic, Revolut, CaixaBank). None at 0 if you know there were movements.",
+            "4. Look at September, which you know by heart. What you already logged must come unticked, as “already logged” or “you may already have it”. Check the ones the bank books a day later (Consum, La Tagliatella) and late-night ones.",
+            "5. Trade Republic, 1 September: the 10.34 € row (Saveback) must come UNTICKED. The 13.72 € “Interest” must still show as new income.",
+            "6. Go through what still shows as NEW: tell us if you already had any. And most important: if something comes unticked and you did NOT have it, tell us — that is worse.",
+            "7. Scroll to the end of the list and tap “See more” until nothing is left: everything must be visible, no black areas.",
+            "8. Search again straight away: same banks and roughly the same numbers.",
+            "9. Leave without importing and go to Spending, an old month: nothing can be missing because you looked."
           ],
           "ca": [
-            "1. És la teva captura: l'històric t'oferia «Movimiento · 1 set · +10,34 € ingrés», i a Trade Republic és el Saveback que SURT cap al fons.",
-            "2. Ajustos → Els meus bancs → Importar històric. Cerca des de l'1 de setembre.",
-            "3. Mira la fila de 10,34 € de l'1 de setembre de Trade Republic: ja NO pot venir marcada per importar com a ingrés (surt com a repetida, sense marcar).",
-            "4. L'«Interès» de 13,72 € de l'1 de setembre sí que ha de sortir com a ingrés: aquest és de debò.",
-            "5. No cal importar res: n'hi ha prou de mirar la llista i sortir."
+            "1. Això aplega TOT el que vas rebutjar de l'històric: «surten un munt de repetits… els que surten com a no repetits sí que ho són», el Sabadell que es quedava a 0, i el Saveback de 10,34 € que sortia com a ingrés. No cal importar res, només mirar.",
+            "2. Ajustos → Importacions → Importar històric. Demana 3 mesos i toca Cercar.",
+            "3. Filtre de bancs de dalt: han de sortir AMB moviments tots els teus bancs connectats (Sabadell, Trade Republic, Revolut, la Caixa). Cap a 0 si saps que hi va haver moviments.",
+            "4. Mira setembre, que te'l saps de memòria. El que ja tens apuntat ha de sortir sense marcar, com a «ja ho tens» o «potser ja ho tens». Fixa't en els que el banc apunta un dia després (Consum, La Tagliatella) i en els de matinada.",
+            "5. Trade Republic, 1 de setembre: la fila de 10,34 € (el Saveback) ha de sortir SENSE marcar. L'«Interès» de 13,72 € sí que ha de sortir com a ingrés nou.",
+            "6. Repassa el que encara surti com a NOU: digues-nos si ja en tenies algun. I el més important: si alguna cosa surt sense marcar i NO la tenies, digues-nos-ho, que això és pitjor.",
+            "7. Baixa fins al final de la llista i toca «Veure'n més» fins que no en quedi cap: tot s'ha de veure, sense zones en negre.",
+            "8. Repeteix la cerca un altre cop seguit: els mateixos bancs i més o menys les mateixes xifres.",
+            "9. Surt sense importar i ves a Despeses, a un mes vell: no hi pot faltar res per haver mirat."
           ]
         }
       }
@@ -233,33 +272,7 @@
         "En esborrar una despesa, la lluentor verda de Desa ja no asoma un instant darrere de l’avís."
       ]
     },
-    "tandas": [
-      {
-        "id": "guardar-pie",
-        "t": {
-          "es": "💾 Guardar entero, sin destello al borrar",
-          "en": "💾 Save whole, no flash on delete",
-          "ca": "💾 Desa sencer, sense flaix en esborrar"
-        },
-        "items": {
-          "es": [
-            "1. Ajustes → letra Normal. Abre Apuntar (+): el botón «Guardar gasto» de abajo se ve ENTERO, con su sombra suave, sin borde duro. No hace falta bajar la hoja.",
-            "2. Prueba también letra Grande y Enorme: igual.",
-            "3. En Gastos, abre un gasto y toca borrar: el aviso NO debe dejar ver ni un instante el brillo verde de Guardar debajo."
-          ],
-          "en": [
-            "1. Settings → Normal font. Open Add (+): the bottom «Save expense» button looks WHOLE, soft shadow, no hard edge. No need to scroll the sheet.",
-            "2. Try Large and Huge font too: same.",
-            "3. In Expenses, open one and tap delete: the confirm must NOT flash Save’s green glow underneath, even for a moment."
-          ],
-          "ca": [
-            "1. Ajustos → lletra Normal. Obre Apuntar (+): el botó «Desar despesa» de baix es veu SENCER, ombra suau. No cal baixar el full.",
-            "2. Prova també lletra Gran i Enorme: igual.",
-            "3. A Despeses, obre’n una i toca esborrar: l’avís NO ha de deixar veure ni un instant la lluentor verda de Desa."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.99",
@@ -286,48 +299,7 @@
         "Ara cada banc compta a part."
       ]
     },
-    "tandas": [
-      {
-        "id": "historico-bancos-completos",
-        "t": {
-          "es": "📜 En el histórico salen TODOS tus bancos a la vez",
-          "en": "📜 All your banks show at once in the history",
-          "ca": "📜 A l'històric surten TOTS els teus bancs alhora"
-        },
-        "items": {
-          "es": [
-            "1. Esto es lo que nos contaste: «salieron cosas del Sabadell y nada de Trade Republic; le doy otra vez y sale TR y Revolut y todo genial, PEROOOOO desapareció el Sabadell, me marca 0». No desaparecía el banco: se lo comía otro.",
-            "2. Ajustes → Importaciones → Importar histórico. Pide los tres meses y dale a Buscar.",
-            "3. Mira el filtro de bancos de arriba: tienen que salir CON MOVIMIENTOS todos los que tengas conectados, no unos sí y otros a cero.",
-            "4. Toca cada banco del filtro de uno en uno y comprueba que ninguno se queda vacío si tú sabes que ahí hubo movimientos.",
-            "5. Acuérdate de la Caixa, que nos dijiste que tenías dos cosas de agosto y salía a 0. Mira si ahora están.",
-            "6. Y repite la búsqueda DOS veces seguidas: los mismos bancos y más o menos las mismas cifras las dos veces. Antes cambiaba entre una búsqueda y otra.",
-            "7. Puedes salir sin importar nada. Con decirnos si ya salen todos nos vale.",
-            "8. OJO, esto NO arregla todavía que Trade Republic mande algunos movimientos con el signo cambiado (lo del FTSE de 10,34 € que te salía como ingreso). Eso va aparte y sigue pendiente."
-          ],
-          "en": [
-            "1. This is what you reported: one search showed Sabadell, the next showed TR and Revolut but Sabadell came up as 0. The bank was not missing: another one swallowed it.",
-            "2. Settings → Imports → Import history. Ask for the three months and tap Search.",
-            "3. Look at the bank filter on top: every connected bank must show WITH movements.",
-            "4. Tap each bank one by one and check none comes up empty when you know there were movements.",
-            "5. Remember CaixaBank: you said you had two things from August and it showed 0.",
-            "6. Repeat the search TWICE: same banks and roughly the same figures both times.",
-            "7. You can leave without importing anything.",
-            "8. NOTE: this does NOT yet fix Trade Republic sending some movements with the sign flipped (the 10,34 € FTSE showing as income). That is separate and still open."
-          ],
-          "ca": [
-            "1. Aixo es el que ens vas explicar: una cerca mostrava el Sabadell i la seguent el deixava a 0.",
-            "2. Ajustos → Importacions → Importar historic. Demana els tres mesos i dona-li a Cercar.",
-            "3. Mira el filtre de bancs de dalt: han de sortir AMB moviments tots els que tinguis connectats.",
-            "4. Toca cada banc d'un en un i comprova que cap es queda buit.",
-            "5. Recorda la Caixa, que deies que tenies dues coses d'agost i sortia a 0.",
-            "6. Repeteix la cerca DUES vegades: els mateixos bancs les dues.",
-            "7. Pots sortir sense importar res.",
-            "8. ATENCIO: aixo encara NO arregla que Trade Republic enviï alguns moviments amb el signe canviat."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.98",
@@ -348,33 +320,7 @@
         "La 94 ho va provar, però un repintat se menjava l'arreglo a mig gest. Ara el padding del lliscament es queda fins que acabes."
       ]
     },
-    "tandas": [
-      {
-        "id": "swipe-sin-corte",
-        "t": {
-          "es": "Al cambiar de pestaña no se corta arriba",
-          "en": "Switching tabs does not clip the top",
-          "ca": "En canviar de pestanya no es talla a dalt"
-        },
-        "items": {
-          "es": [
-            "1. Con Gastos un poco bajada, desliza despacio a Plan/Cartera. Cabecera y buscador enteros en las DOS pantallas a la vez.",
-            "2. Si al mover el dedo un poquito ya se come un cuarto de pantalla, dilo: eso es el fallo de la 94.",
-            "3. En reposo, ola al tope de la lista como en la 91."
-          ],
-          "en": [
-            "1. With Expenses scrolled a bit, swipe slowly to Plan/Portfolio. Header and search whole on BOTH screens at once.",
-            "2. If a tiny finger move already eats a quarter of the screen, say so — that was the 94 bug.",
-            "3. At rest, overscroll wave at the top like in 91."
-          ],
-          "ca": [
-            "1. Amb Despeses una mica baixada, llisca a poc a poc a Pla/Cartera. Capçalera i cercador sencers a les DUES pantalles.",
-            "2. Si en moure el dit un xic ja es menja un quart de pantalla, digues-ho.",
-            "3. En repòs, ona al capdamunt com a la 91."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.97",
@@ -425,45 +371,7 @@
         "No es dóna res per repetit a la lleugera: amb nom de comerç, d'un altre banc, o a més de tres dies, segueix comptant com a nou."
       ]
     },
-    "tandas": [
-      {
-        "id": "historico-fecha-cercana",
-        "t": {
-          "es": "📜 El histórico deja de decir «nuevo» a lo que ya tienes",
-          "en": "📜 The history stops calling “new” what you already have",
-          "ca": "📜 L'històric deixa de dir «nou» al que ja tens"
-        },
-        "items": {
-          "es": [
-            "1. Esto sale de tus tres capturas: el Consum de 6,49 € lo tienes del 11 y el histórico lo mandaba como del 12; la Tagliatella del 10 llegaba como del 11. Por eso te decía 92 nuevos.",
-            "2. Ajustes → Importaciones → Importar histórico. Elige Trade Republic y dale a Buscar.",
-            "3. Mira el contador de arriba: el número de NUEVOS tiene que haber bajado mucho respecto a la última vez.",
-            "4. Busca los de septiembre que te sabes de memoria (Consum, La Tagliatella, MAPFRE). Tienen que salir con la etiqueta «puede que ya lo tengas» y con la casilla SIN marcar.",
-            "5. Y el Bizum a Ionan, que llegaba con la fecha buena, tiene que seguir diciendo «ya lo tienes apuntado».",
-            "6. LO IMPORTANTE: repasa los que sigan saliendo como NUEVOS y dinos si alguno lo tenías ya. Y al revés, más importante todavía: si algo marcado como «puede que» resulta que NO lo tenías, dínoslo — eso sería peor que el fallo de antes.",
-            "7. Puedes salir sin importar nada. Con contarnos si los números cuadran nos vale."
-          ],
-          "en": [
-            "1. This comes from your three screenshots: the 6,49 € Consum is yours from the 11th and the history sent it as the 12th. That is why it said 92 new.",
-            "2. Settings → Imports → Import history. Pick Trade Republic and tap Search.",
-            "3. Look at the counter on top: NEW must have dropped a lot versus last time.",
-            "4. Find the September ones you know by heart (Consum, La Tagliatella, MAPFRE). They must show “you may already have it”, UNTICKED.",
-            "5. And the Bizum to Ionan, which arrived with the right date, must still say “already logged”.",
-            "6. THE IMPORTANT ONE: go through whatever still shows as NEW and tell us if you already had any. And the other way round, even more important: if something marked “you may” turns out you did NOT have it, tell us — that would be worse than the old bug.",
-            "7. You can leave without importing anything."
-          ],
-          "ca": [
-            "1. Aixo surt de les teves tres captures: el Consum de 6,49 € el tens de l'11 i l'historic l'enviava com del 12.",
-            "2. Ajustos → Importacions → Importar historic. Tria Trade Republic i dona-li a Buscar.",
-            "3. Mira el comptador de dalt: el numero de NOUS ha d'haver baixat molt.",
-            "4. Busca els de setembre que et saps de memoria. Han de sortir amb «potser ja ho tens» i DESMARCATS.",
-            "5. I el Bizum a Ionan ha de seguir dient «ja ho tens apuntat».",
-            "6. IMPORTANT: repassa els que segueixin sortint com a NOUS i digue'ns si algun ja el tenies. I al reves: si algun marcat com «potser» resulta que NO el tenies, digue-ho.",
-            "7. Pots sortir sense importar res."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.95",
@@ -487,42 +395,7 @@
         "El mateix si en treus un o en reconnectes un de caigut."
       ]
     },
-    "tandas": [
-      {
-        "id": "bancos-lista-fresca",
-        "t": {
-          "es": "🏦 El banco recién conectado sale sin salir y volver a entrar",
-          "en": "🏦 The bank you just connected shows without leaving the screen",
-          "ca": "🏦 El banc acabat de connectar surt sense sortir i tornar"
-        },
-        "items": {
-          "es": [
-            "1. Es tu reporte de las 17:09: «si conectas un banco, no te aparece hasta que no tires para atrás y vuelvas a entrar en la zona de bancos».",
-            "2. Ajustes → Conectar cuentas. Quédate en esa pantalla y mira la lista de bancos que tienes.",
-            "3. Conecta uno (o reconecta el que quieras). Cuando la app vuelva del banco y acabe de sincronizar, la lista tiene que enseñarlo SIN que tú salgas y entres.",
-            "4. Prueba también a quitar uno: tiene que desaparecer de la lista sin salir de la pantalla.",
-            "5. Y que no se rompa lo de siempre: los bancos que ya tenías siguen ahí, con su estado (al día / caducado / pendiente) correcto.",
-            "6. Si te da pereza conectar uno de verdad, con darle a «Actualizar todos» y ver que la lista no se queda congelada vale."
-          ],
-          "en": [
-            "1. This is your 17:09 report: “if you connect a bank it does not show until you go back and enter again”.",
-            "2. Settings → Connect accounts. Stay on that screen and look at your bank list.",
-            "3. Connect one (or reconnect any). When the app comes back and finishes syncing, the list must show it WITHOUT you leaving and re-entering.",
-            "4. Try removing one too: it must disappear from the list without leaving the screen.",
-            "5. And nothing else breaks: the banks you already had stay, with the right status.",
-            "6. If connecting one for real is a hassle, tapping “Refresh all” and seeing the list not freeze is enough."
-          ],
-          "ca": [
-            "1. Es el teu report de les 17:09.",
-            "2. Ajustos → Connectar comptes. Queda't en aquella pantalla.",
-            "3. Connecta'n un. Quan l'app torni i acabi de sincronitzar, la llista l'ha d'ensenyar SENSE sortir i tornar.",
-            "4. Prova tambe a treure'n un: ha de desapareixer sense sortir.",
-            "5. I que no es trenqui la resta: els que ja tenies segueixen amb el seu estat correcte.",
-            "6. Si et fa mandra, amb «Actualitza tots» i veure que la llista no es queda congelada n'hi ha prou."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.94",
@@ -594,45 +467,7 @@
         "No s'ha afluixat res: dues despeses de dies diferents de veritat segueixen sense donar-se per repetides."
       ]
     },
-    "tandas": [
-      {
-        "id": "historico-madrugada",
-        "t": {
-          "es": "📜 El histórico reconoce lo que ya tienes apuntado",
-          "en": "📜 The history recognises what you already have",
-          "ca": "📜 L'històric reconeix el que ja tens apuntat"
-        },
-        "items": {
-          "es": [
-            "1. Esto es tu rechazo de «Importar histórico · 1»: «los que salen que no son repetidos sí que lo son y están mal». No hace falta importar nada, solo mirar la lista.",
-            "2. Ajustes → Importaciones → Importar histórico. Elige el banco y dale a Buscar.",
-            "3. Al terminar te sale un aviso con cuatro números. Fíjate en el último: «coinciden día+€». Antes ese número era el de los que estaban mal marcados.",
-            "4. Mira los movimientos de SEPTIEMBRE, que son los que dijiste que te sabes de memoria. Los que ya tienes apuntados tienen que salir marcados como repetidos, no como nuevos.",
-            "5. Mira sobre todo los de madrugada, si tienes alguno: eran justo los que fallaban.",
-            "6. LO QUE NO PUEDE PASAR: que ahora te marque como repetido algo que NO tienes apuntado. Si ves alguno así, dilo, que sería peor que el fallo de antes.",
-            "7. Puedes salir sin importar nada. Con decirnos si la lista ya cuadra es suficiente."
-          ],
-          "en": [
-            "1. This is your rejection of “Import history · 1”: “the ones it says are not repeats really are”. No need to import anything, just look at the list.",
-            "2. Settings → Imports → Import history. Pick the bank and tap Search.",
-            "3. A notice with four numbers appears. Look at the last one: “same day+€”. That number used to be the mislabelled ones.",
-            "4. Look at SEPTEMBER, the month you said you know by heart. The ones you already have must come up marked as repeats.",
-            "5. Look especially at late-night ones: those were exactly the failing case.",
-            "6. WHAT MUST NOT HAPPEN: something marked as a repeat that you do NOT have. If you see one, say so — that would be worse than the old bug.",
-            "7. You can leave without importing. Telling us whether the list adds up is enough."
-          ],
-          "ca": [
-            "1. Aixo es el teu rebuig d'«Importar historic · 1». No cal importar res, nomes mirar la llista.",
-            "2. Ajustos → Importacions → Importar historic. Tria el banc i dona-li a Buscar.",
-            "3. Surt un avis amb quatre numeros. Fixa't en l'ultim: «coincideixen dia+€».",
-            "4. Mira els moviments de SETEMBRE. Els que ja tens apuntats han de sortir marcats com a repetits.",
-            "5. Mira sobretot els de matinada: eren justament els que fallaven.",
-            "6. EL QUE NO POT PASSAR: que et marqui com a repetit alguna cosa que NO tens apuntada.",
-            "7. Pots sortir sense importar res."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.91",
@@ -653,33 +488,7 @@
         "En arribar a baix de vegades calia un segon empenta perquè la barra s'amagués i sortís l'ona. L'app descartava un gest de veritat mentre la llista encara creixia. Ja compta el gest."
       ]
     },
-    "tandas": [
-      {
-        "id": "ola-nativa",
-        "t": {
-          "es": "🌊 Ola y barra al bajar",
-          "en": "🌊 Glow and bar when scrolling down",
-          "ca": "🌊 Ona i barra en baixar"
-        },
-        "items": {
-          "es": [
-            "1. En Gastos con lista larga, baja de un tirón (no hace falta llegar al final). La barra de abajo tiene que esconderse a la primera, sin «stopper».",
-            "2. Llega al final y sigue un poco: tiene que verse la ola nativa, y la barra esconderse rápido.",
-            "3. Si el primer gesto no hace nada y el segundo sí, dilo: eso es justo lo que arreglamos."
-          ],
-          "en": [
-            "1. In Expenses with a long list, scroll down once (need not hit the end). The bottom bar must hide on the first gesture, no stopper.",
-            "2. Reach the end and keep going a bit: native glow, bar hides quickly.",
-            "3. If the first gesture does nothing and the second works, say so — that is exactly what we fixed."
-          ],
-          "ca": [
-            "1. A Despeses amb llista llarga, baixa d'una (no cal arribar al final). La barra s'ha d'amagar al primer gest, sense stopper.",
-            "2. Arriba al final i continua: ona nativa, barra ràpida.",
-            "3. Si el primer gest no fa res i el segon sí, digues-ho."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.90",
@@ -808,45 +617,7 @@
         "Si apagaves el canal de proves i no tornava la versió estable, era perquè demanava un fitxer a una adreça antiga. Ja fa servir la bona."
       ]
     },
-    "tandas": [
-      {
-        "id": "volver-a-estable",
-        "t": {
-          "es": "📦 Volver al canal estable, y que tu familia vuelva a recibir versiones",
-          "en": "📦 Back to the stable channel, and your family getting updates again",
-          "ca": "📦 Tornar al canal estable, i que la teva família torni a rebre versions"
-        },
-        "items": {
-          "es": [
-            "1. Esto es lo que nos dijiste que era urgente: «no me deja volver a prod desactivando el canal beta». Aviso antes de empezar: al volver a estable te vas a la 4.18.25, que es bastante más antigua. Se vuelve a la beta por el mismo interruptor, así que no te quedas atrapado.",
-            "2. Ajustes → 🧪 Pruebas → toca la fila «Canal: BETA (pruebas)» y confirma «Volver a estable».",
-            "3. Tiene que empezar a descargar y decirte que está aplicando una versión. Antes aquí no pasaba NADA: ese era el fallo.",
-            "4. Cierra la app del todo y ábrela. Ajustes → abajo del todo: la versión tiene que ser la 4.18.25, no una 4.19.x.",
-            "5. Ahora vuelve: mismo interruptor, «Activar beta». Tiene que traerte otra vez la última de pruebas y quedarte como estabas.",
-            "6. Y lo que más importa, que no lo ves tú: pregúntale a tu padre si le sale aviso de actualización. Su móvil llevaba días sin poder ni preguntar, porque al cambiar el nombre del proyecto la dirección vieja dejó de existir. Ya vuelve a responder.",
-            "7. Si algo de esto se queda a medias, dilo SIN reinstalar nada: el camino de vuelta es el interruptor, y si no funciona queremos verlo tal cual."
-          ],
-          "en": [
-            "1. This is the one you flagged as urgent: “it won't let me go back to prod by turning the beta channel off”. Heads-up: going back to stable drops you to 4.18.25, which is noticeably older. The same switch brings you back, so you are not stuck.",
-            "2. Settings → 🧪 Testing → tap “Channel: BETA” and confirm “Back to stable”.",
-            "3. It must start downloading and tell you it is applying a version. Before, NOTHING happened here: that was the bug.",
-            "4. Close the app fully and reopen. Settings → bottom: the version must read 4.18.25, not a 4.19.x.",
-            "5. Now go back: same switch, “Enable beta”. It must bring you the latest test build again.",
-            "6. And the part you cannot see yourself: ask your dad whether he gets an update notice. His phone could not even ask for days, because renaming the project killed the old address. It answers again now.",
-            "7. If any of this stalls, tell us WITHOUT reinstalling anything: the way back is the switch, and if it fails we want to see it as it is."
-          ],
-          "ca": [
-            "1. Es el que vas dir que era urgent: «no em deixa tornar a prod desactivant el canal beta». Avis: en tornar a estable vas a la 4.18.25, forca mes antiga. Es torna amb el mateix interruptor.",
-            "2. Ajustos → 🧪 Proves → toca «Canal: BETA» i confirma «Tornar a estable».",
-            "3. Ha de comencar a baixar i dir-te que aplica una versio. Abans aqui no passava RES.",
-            "4. Tanca l'app del tot i obre-la. Ajustos → a baix: la versio ha de ser la 4.18.25.",
-            "5. Ara torna: mateix interruptor, «Activar beta». T'ha de portar l'ultima de proves.",
-            "6. I el que no veus tu: pregunta-li al teu pare si li surt avis d'actualitzacio. El seu mobil no podia ni preguntar.",
-            "7. Si algo es queda a mitges, digues-ho SENSE reinstal·lar res."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.84",
@@ -873,48 +644,7 @@
         "A Connectar comptes, el botó ara diu «Actualitza tots», que és el que fa de veritat."
       ]
     },
-    "tandas": [
-      {
-        "id": "rol-sin-salto",
-        "t": {
-          "es": "🏦 Cambiar una cuenta de sitio sin que salte el saldo",
-          "en": "🏦 Move an account's role without the balance jumping",
-          "ca": "🏦 Canviar un compte de lloc sense que salti el saldo"
-        },
-        "items": {
-          "es": [
-            "1. Es justo lo que nos contaste: «pasó de 6700 y algo a 6400 de golpe». Vamos a repetirlo a ver si ya no pasa.",
-            "2. Ve a Cartera → Tus cuentas y APUNTA EN UN PAPEL el saldo que sale en Trade Republic. Ese número es el que no se puede mover.",
-            "3. Dale a editar, y en esa cuenta cambia el rol de «Gasto diario» a «Recibos».",
-            "4. Mira el saldo otra vez SIN sincronizar nada: tiene que ser el MISMO del papel, al céntimo.",
-            "5. Ahora devuélvelo a «Gasto diario». Otra vez el mismo número.",
-            "6. Y prueba también «Todo»: igual, no se mueve.",
-            "7. Cuando acabes, sincroniza. El saldo tiene que seguir siendo ese: si el arreglo está bien, sincronizar ya no cambia nada.",
-            "8. Deja la cuenta en el rol que tú quieras tener de verdad."
-          ],
-          "en": [
-            "1. This is exactly what you reported: “it went from 6700-something to 6400 all at once”. Let's repeat it.",
-            "2. Go to Wallet → Your accounts and WRITE DOWN the balance shown for Trade Republic. That number must not move.",
-            "3. Tap edit and change that account's role from “Daily spending” to “Bills”.",
-            "4. Look at the balance again WITHOUT syncing: it must be the SAME as on paper, to the cent.",
-            "5. Now put it back to “Daily spending”. Same number again.",
-            "6. Try “Everything” too: same, no movement.",
-            "7. When you are done, sync. The balance must stay the same: if the fix is right, syncing changes nothing.",
-            "8. Leave the account in whichever role you actually want."
-          ],
-          "ca": [
-            "1. Es just el que ens vas explicar: «va passar de 6700 i escaig a 6400 de cop». Ho repetim.",
-            "2. Ves a Cartera → Els teus comptes i APUNTA EN UN PAPER el saldo de Trade Republic.",
-            "3. Dona-li a editar i canvia el rol de «Despesa diaria» a «Rebuts».",
-            "4. Mira el saldo SENSE sincronitzar: ha de ser el MATEIX del paper, al centim.",
-            "5. Torna'l a «Despesa diaria». Un altre cop el mateix numero.",
-            "6. Prova tambe «Tot»: igual, no es mou.",
-            "7. Quan acabis, sincronitza. El saldo ha de seguir sent aquell.",
-            "8. Deixa el compte al rol que vulguis de veritat."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.83",
@@ -938,39 +668,7 @@
         "I amb això torna el «al dia» en sincronitzar: un banc que ja no hi és no silencia els altres."
       ]
     },
-    "tandas": [
-      {
-        "id": "banco-pending-banner",
-        "t": {
-          "es": "🏦 Quitar banco limpia el aviso",
-          "en": "🏦 Removing a bank clears the notice",
-          "ca": "🏦 Treure un banc neteja l'avís"
-        },
-        "items": {
-          "es": [
-            "1. Conecta un banco y déjalo a medias (o deja uno que ya tengas en pendiente).",
-            "2. En Cartera tiene que salir el aviso de pendiente de conectar.",
-            "3. Ve a Mis bancos, ábrelo y quítalo (que sigan contando vale).",
-            "4. Vuelve a Cartera: el aviso de ESE banco tiene que haber desaparecido al momento.",
-            "5. Sincroniza: si el resto de bancos van bien, el «al día» tiene que volver a salir."
-          ],
-          "en": [
-            "1. Connect a bank and leave it half-done (or keep one you already have pending).",
-            "2. On Portfolio the pending-connection notice must show.",
-            "3. Open My banks, open it and remove it (keeping them counting is fine).",
-            "4. Back on Portfolio: that bank’s notice must be gone right away.",
-            "5. Sync: if your other banks are fine, “up to date” must show again."
-          ],
-          "ca": [
-            "1. Connecta un banc i deixa'l a mitges (o deixa'n un que ja tinguis pendent).",
-            "2. A Cartera ha de sortir l'avís de pendent de connectar.",
-            "3. Ves a Els meus bancs, obre'l i treu-lo (que segueixin comptant val).",
-            "4. Torna a Cartera: l'avís d'AQUELL banc ha d'haver desaparegut a l'instant.",
-            "5. Sincronitza: si la resta de bancs van bé, l'«al dia» ha de tornar a sortir."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.82",
@@ -997,42 +695,7 @@
         "I es queda tret a tots els teus dispositius, no només al que vas tocar."
       ]
     },
-    "tandas": [
-      {
-        "id": "ultima-cuota-descartar",
-        "t": {
-          "es": "🎉 Quitar el aviso de la última cuota",
-          "en": "🎉 Dismiss the last-instalment notice",
-          "ca": "🎉 Treure l'avís de l'última quota"
-        },
-        "items": {
-          "es": [
-            "1. Es el aviso que te sale cada día y que nos dijiste que cansaba, así que ya sabes dónde está.",
-            "2. Ve a Inicio. Arriba tiene que seguir saliendo la tarjeta verde de «¡ÚLTIMA cuota!», igual que hasta ahora.",
-            "3. Ahora a su derecha hay un «Descartar». Tócalo: esa línea tiene que desaparecer al momento.",
-            "4. Si tenías DOS deudas acabando, la otra tiene que seguir ahí. Solo se quita la que tocas.",
-            "5. Cierra la app del todo y vuelve a abrirla. No puede volver a salir la que descartaste — eso era justo lo que te cansaba.",
-            "6. Y quitar el aviso NO borra la deuda: vete a Plan → Deudas y tiene que seguir ahí con su cuota. Solo se calla el cartel."
-          ],
-          "en": [
-            "1. It is the notice you get every day, the one you told us was tiring, so you know where it is.",
-            "2. Go to Home. The green “LAST instalment!” card must still be there, just as before.",
-            "3. Now there is a “Dismiss” on its right. Tap it: that line must disappear at once.",
-            "4. If you had TWO debts ending, the other must stay. Only the one you tap goes.",
-            "5. Close the app fully and open it again. The dismissed one must not come back — that was the tiring part.",
-            "6. And dismissing it does NOT delete the debt: go to Plan → Debts and it must still be there with its instalment."
-          ],
-          "ca": [
-            "1. Es l'avis que et surt cada dia i que ens vas dir que cansava.",
-            "2. Ves a Inici. A dalt ha de seguir sortint la targeta verda d'«ULTIMA quota!», igual que fins ara.",
-            "3. Ara a la seva dreta hi ha un «Descartar». Toca'l: aquella linia ha de desapareixer al moment.",
-            "4. Si en tenies DOS acabant, l'altre ha de seguir. Nomes se'n va el que toques.",
-            "5. Tanca l'app del tot i torna-la a obrir. El descartat no pot tornar a sortir.",
-            "6. I treure l'avis NO esborra el deute: ves a Pla → Deutes i ha de seguir alli amb la seva quota."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.81",
@@ -1056,30 +719,7 @@
         "El nom en textos i documentació queda alineat: Aely."
       ]
     },
-    "tandas": [
-      {
-        "id": "repo-aely",
-        "t": {
-          "es": "Repo y direcciones Aely",
-          "en": "Aely repo and URLs",
-          "ca": "Repo i adreces Aely"
-        },
-        "items": {
-          "es": [
-            "1. Mis bancos (o Ajustes): la versión tiene que decir v4.19.81.",
-            "2. Si estabas en beta, tira para actualizar: tiene que ofrecer esta versión sin error de descarga."
-          ],
-          "en": [
-            "1. My banks (or Settings): version must say v4.19.81.",
-            "2. If you are on beta, pull to update: this version must offer without a download error."
-          ],
-          "ca": [
-            "1. Els meus bancs (o Ajustes): la versió ha de dir v4.19.81.",
-            "2. Si eres a beta, estira per actualitzar: ha d'oferir aquesta versió sense error de baixada."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.80",
@@ -1109,54 +749,7 @@
         "El que ja estava apuntat es reparteix sol entre les tres, i els totals del mes no canvien."
       ]
     },
-    "tandas": [
-      {
-        "id": "agua-luz-gas",
-        "t": {
-          "es": "💧 Agua, luz y gas por separado",
-          "en": "💧 Water, power and gas split apart",
-          "ca": "💧 Aigua, llum i gas per separat"
-        },
-        "items": {
-          "es": [
-            "1. Gastos → busca «Aigües». Tu recibo del agua tiene que poner «Agua» con una gota 💧. Ya no puede poner «Luz, gas y agua» ni llevar el rayito, que es lo que nos dijiste.",
-            "2. Toca ese movimiento y abre la lista de categorías: donde antes había una, ahora tienen que salir TRES — Agua 💧, Luz 💡 y Gas 🔥.",
-            "3. Ahora lo nuevo, con gastos de mentira. Apunta uno de 1 € llamado «Nedgia», ábrelo y dale a «✨ Sugerir categoría»: tiene que decir Gas.",
-            "4. Otro de 1 € llamado «Holaluz»: tiene que decir Luz.",
-            "5. Otro llamado «Agbar»: tiene que decir Agua.",
-            "6. Y uno llamado «Naturgy». Este va a Luz A PROPÓSITO: vende luz y gas, y por el nombre no hay forma de saber cuál es. Si tú lo quieres en Gas, cámbialo a mano y la app se lo aprende para siempre.",
-            "7. LO IMPORTANTE que no puede cambiar: mira el gasto del mes arriba en Gastos. Tiene que ser el MISMO de antes. Partir una categoría en tres no cambia lo que gastas.",
-            "8. Mira también el desglose «Por categoría»: donde antes había una barra ahora puede haber hasta tres, pero la suma tiene que cuadrar igual.",
-            "9. Ajustes → Idioma → inglés, y luego catalán: las tres categorías tienen que estar traducidas, sin nada en castellano. Déjalo otra vez en castellano.",
-            "10. Borra los gastos de prueba que hayas apuntado."
-          ],
-          "en": [
-            "1. Expenses → search “Aigües”. Your water bill must say “Water” with a 💧. No more lightning bolt.",
-            "2. Tap it and open the category list: there must now be THREE — Water 💧, Power 💡 and Gas 🔥.",
-            "3. Now with fake expenses. Add a €1 one named “Nedgia”, open it and tap “✨ Suggest category”: it must say Gas.",
-            "4. Another named “Holaluz”: it must say Power.",
-            "5. Another named “Agbar”: it must say Water.",
-            "6. And one named “Naturgy”. That one goes to Power ON PURPOSE: it sells both, and the name cannot tell you which. Change it by hand and the app learns it.",
-            "7. WHAT MUST NOT CHANGE: the month total in Expenses must be the SAME as before. Splitting a category in three does not change what you spend.",
-            "8. Check the “By category” breakdown too: one bar may now be up to three, but the sum must still add up.",
-            "9. Settings → Language → English, then Catalan: all three must be translated. Set it back to Spanish.",
-            "10. Delete the test expenses you added."
-          ],
-          "ca": [
-            "1. Despeses → busca «Aigües». El rebut de l'aigua ha de posar «Aigua» amb una gota 💧, sense el llamp.",
-            "2. Toca'l i obre la llista de categories: ara han de sortir TRES — Aigua 💧, Llum 💡 i Gas 🔥.",
-            "3. Amb despeses de mentida: apunta una d'1 € que es digui «Nedgia» i dona-li a «✨ Suggerir categoria»: ha de dir Gas.",
-            "4. Una altra que es digui «Holaluz»: ha de dir Llum.",
-            "5. Una altra «Agbar»: ha de dir Aigua.",
-            "6. I una «Naturgy». Aquesta va a Llum A PROPOSIT: ven llum i gas i pel nom no es pot saber. Canvia-la a ma i l'app se l'apren.",
-            "7. EL QUE NO POT CANVIAR: la despesa del mes ha de ser la MATEIXA. Partir una categoria en tres no canvia el que gastes.",
-            "8. Mira tambe el desglos «Per categoria»: la suma ha de quadrar igual.",
-            "9. Ajustos → Idioma → angles i catala: les tres han d'estar traduides.",
-            "10. Esborra les despeses de prova."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.79",
@@ -1177,30 +770,7 @@
         "En sincronitzar s'actualitza el que ha canviat al núvol, i es conserven l'ordre a mà d'un dia i els possibles repetits que encara no havies resolt."
       ]
     },
-    "tandas": [
-      {
-        "id": "sync-refresca",
-        "t": {
-          "es": "🔄 Sincronizar refresca sin romper el orden",
-          "en": "🔄 Sync refreshes without breaking order",
-          "ca": "🔄 Sincronitzar refresca sense trencar l'ordre"
-        },
-        "items": {
-          "es": [
-            "1. Si habías reordenado gastos de un día a mano, sincroniza: el orden se tiene que quedar.",
-            "2. Un gasto corregido en la nube (p. ej. Aigües → Energía) tiene que actualizarse al sincronizar."
-          ],
-          "en": [
-            "1. If you manually reordered a day's expenses, sync: the order must stay.",
-            "2. An expense corrected in the cloud (e.g. water → Energy) must update on sync."
-          ],
-          "ca": [
-            "1. Si havies reordenat despeses d'un dia a mà, sincronitza: l'ordre s'ha de quedar.",
-            "2. Una despesa corregida al núvol (p. ex. Aigües → Energia) s'ha d'actualitzar en sincronitzar."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.78",
@@ -1245,61 +815,7 @@
         "El botó Editar de Els teus comptes només surt si hi ha un compte del banc pendent de configurar."
       ]
     },
-    "tandas": [
-      {
-        "id": "longpress-cuentas",
-        "t": {
-          "es": "👆 Mantén pulsada una cuenta para ordenarla",
-          "en": "👆 Press and hold an account to reorder",
-          "ca": "👆 Mantén premuda un compte per ordenar-lo"
-        },
-        "items": {
-          "es": [
-            "1. Cartera → Tus cuentas.",
-            "2. Mantén pulsada una cuenta (medio segundo): tiene que ELEVARSE, no solo marcarse.",
-            "3. Sin soltar, arrástrala encima de otra y suelta. El orden nuevo se queda.",
-            "4. Un toque corto sigue abriendo la ficha (no la confunde con el long-press)."
-          ],
-          "en": [
-            "1. Portfolio → Your accounts.",
-            "2. Press and hold an account (~half a second): it must LIFT, not just highlight.",
-            "3. Without releasing, drag it onto another and drop. The new order sticks.",
-            "4. A short tap still opens the sheet (not confused with long-press)."
-          ],
-          "ca": [
-            "1. Cartera → Els teus comptes.",
-            "2. Mantén premuda un compte (mig segon): s'ha d'ELEVAR, no només marcar-se.",
-            "3. Sense deixar anar, arrossega'l damunt d'un altre i deixa'l. L'ordre nou es queda.",
-            "4. Un toc curt continua obrint la fitxa (no el confon amb el long-press)."
-          ]
-        }
-      },
-      {
-        "id": "editar-solo-ob",
-        "t": {
-          "es": "✏️ Editar solo si hay cuenta del banco pendiente",
-          "en": "✏️ Edit only if a bank account is pending",
-          "ca": "✏️ Editar només si hi ha compte del banc pendent"
-        },
-        "items": {
-          "es": [
-            "1. Cartera → Tus cuentas con tus bancos ya configurados.",
-            "2. No debe salir el botón «Editar» debajo de la lista.",
-            "3. Toca una cuenta: la ficha sigue permitiendo cambiar nombre, saldo y rol."
-          ],
-          "en": [
-            "1. Portfolio → Your accounts with banks already set up.",
-            "2. There should be no Edit button under the list.",
-            "3. Tap an account: the sheet still lets you change name, balance and role."
-          ],
-          "ca": [
-            "1. Cartera → Els teus comptes amb els bancs ja configurats.",
-            "2. No ha de sortir el botó «Editar» sota la llista.",
-            "3. Toca un compte: la fitxa continua deixant canviar nom, saldo i rol."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.76",
@@ -1323,64 +839,7 @@
         "En pujar per Despeses després d'haver baixat, l'app ja no s'encalla: la barra de baix ja no repinta tota la pantalla a mig gest."
       ]
     },
-    "tandas": [
-      {
-        "id": "ficha-efectivo-guarda",
-        "t": {
-          "es": "💵 El saldo del Efectivo se guarda al cerrar",
-          "en": "💵 Cash balance saves when you close",
-          "ca": "💵 El saldo de l'Efectiu es desa en tancar"
-        },
-        "items": {
-          "es": [
-            "1. Cartera → toca Efectivo para abrir su ficha.",
-            "2. Cambia el saldo (pon otro número) y NO pases al nombre: cierra tocando fuera o tirando hacia abajo.",
-            "3. Vuelve a abrir Efectivo: tiene que salir el número nuevo.",
-            "4. (Lo que fallaba) Si solo tecleabas y cerrabas, se perdía; solo se guardaba al saltar al siguiente campo con la flechita del teclado."
-          ],
-          "en": [
-            "1. Portfolio → tap Cash to open its sheet.",
-            "2. Change the balance and do NOT move to the name field: close by tapping outside or swiping down.",
-            "3. Open Cash again: the new number must still be there.",
-            "4. (What broke) Typing and closing used to lose it; it only saved when jumping to the next field."
-          ],
-          "ca": [
-            "1. Cartera → toca Efectiu per obrir-ne la fitxa.",
-            "2. Canvia el saldo i NO passis al nom: tanca tocant fora o estirant cap avall.",
-            "3. Torna a obrir Efectiu: ha de sortir el número nou.",
-            "4. (El que fallava) Si només teclejaves i tancaves, es perdia; només es desava en saltar al camp següent."
-          ]
-        }
-      },
-      {
-        "id": "botnav-subir-sin-lag",
-        "t": {
-          "es": "👆 Subir en Gastos ya no laguea, y la ola del fondo no pelea con la barra",
-          "en": "👆 Scrolling up in Expenses no longer lags, and the bottom wave no longer fights the bar",
-          "ca": "👆 Pujar a Despeses ja no va a trompicons, i l'ona del fons no es baralla amb la barra"
-        },
-        "items": {
-          "es": [
-            "1. Gastos → baja un poco la lista hasta que se esconda la barra de abajo.",
-            "2. Sin soltar del todo el ritmo: sube otra vez. Tiene que reaparecer la barra y la pantalla no puede ir a trompicones.",
-            "3. Baja despacio hasta el final de la lista. La barra se esconde; al llegar abajo la ola nativa puede verse sin que la barra «suba a medias» encima.",
-            "4. (Lo que fallaba) Tras bajar y scrollear, al subir seguido se lagueaba todo; y al fondo la barra pelea con la ola."
-          ],
-          "en": [
-            "1. Expenses → scroll down a bit until the bottom bar hides.",
-            "2. Scroll back up: the bar should return and the screen must not stutter.",
-            "3. Scroll slowly to the end. The bar hides; at the bottom the native wave can show without the bar half-rising over it.",
-            "4. (What broke) After scrolling down, scrolling up lagged; at the bottom the bar fought the wave."
-          ],
-          "ca": [
-            "1. Despeses → baixa una mica fins que s'amagui la barra de baix.",
-            "2. Puja altra vegada: la barra ha de tornar i la pantalla no pot anar a trompicons.",
-            "3. Baixa a poc a poc fins al final. La barra s'amaga; al fons l'ona nativa es pot veure sense que la barra «pugi a mitges» a sobre.",
-            "4. (El que fallava) Després de baixar, en pujar seguit anava a trompicons; i al fons la barra es barallava amb l'ona."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.75",
@@ -1404,45 +863,7 @@
         "El canvi val per al que entra a partir d'ara: els moviments ja desats conserven la categoria que tinguessin."
       ]
     },
-    "tandas": [
-      {
-        "id": "categorias-que-empiezan",
-        "t": {
-          "es": "🏷️ Las palabras escondidas ya no mandan",
-          "en": "🏷️ Hidden words no longer decide",
-          "ca": "🏷️ Les paraules amagades ja no manen"
-        },
-        "items": {
-          "es": [
-            "1. Esto se prueba entero apuntando gastos de mentira y borrándolos al final. No hace falta sincronizar nada ni esperar a que entre nada.",
-            "2. Apunta un gasto de 1 € y ponle de nombre «Transporte público».",
-            "3. Ábrelo y dale a «✨ Sugerir categoría». Tiene que decirte «Transporte». Antes decía «Ocio», porque dentro de «tranSPORTe» está escondida la palabra «sport». (Si no te sale ese botón: Ajustes → Notificaciones → «Sugerir categoría (IA)».)",
-            "4. Otro de 1 € llamado «Apollon Gallery». Sugerir categoría NO puede decir «Restaurantes y bares» (dentro de «aPOLLOn» está «pollo»).",
-            "5. Ahora lo que NO puede romperse. Uno llamado «Pollos asados»: ese SÍ tiene que decir «Restaurantes y bares», aunque ponga «pollos» en plural.",
-            "6. Y uno llamado «Decathlon Sport»: ese SÍ tiene que seguir siendo «Ocio».",
-            "7. Borra los gastos de prueba que hayas apuntado y listo."
-          ],
-          "en": [
-            "1. You can test all of this by adding fake expenses and deleting them at the end. No syncing needed, nothing to wait for.",
-            "2. Add a €1 expense named “Transporte público”.",
-            "3. Open it and tap “✨ Suggest category”. It must say “Transport”. It used to say “Leisure”, because “sport” is hidden inside “tranSPORTe”. (If the button is missing: Settings → Notifications.)",
-            "4. Another €1 one named “Apollon Gallery”. Suggest category must NOT say “Restaurants and bars” (“pollo” hides inside “aPOLLOn”).",
-            "5. Now what must not break. One named “Pollos asados”: that one MUST say “Restaurants and bars”, even in the plural.",
-            "6. And one named “Decathlon Sport”: that one MUST still be “Leisure”.",
-            "7. Delete the test expenses you added and you are done."
-          ],
-          "ca": [
-            "1. Aixo es prova sencer apuntant despeses de mentida i esborrant-les al final. No cal sincronitzar res.",
-            "2. Apunta una despesa d'1 € i posa-li de nom «Transporte público».",
-            "3. Obre-la i dona-li a «✨ Suggerir categoria». Ha de dir «Transport». Abans deia «Oci», perque dins de «tranSPORTe» hi ha amagada la paraula «sport».",
-            "4. Una altra d'1 € que es digui «Apollon Gallery». Suggerir categoria NO pot dir «Restaurants i bars».",
-            "5. Ara el que NO pot trencar-se. Una que es digui «Pollos asados»: aquesta SI ha de dir «Restaurants i bars», encara que sigui en plural.",
-            "6. I una «Decathlon Sport»: aquesta SI ha de seguir sent «Oci».",
-            "7. Esborra les despeses de prova i llest."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.74",
@@ -1620,57 +1041,7 @@
       "en": "Removing a bank takes its account with it",
       "ca": "En treure un banc, el seu compte se'n va"
     },
-    "tandas": [
-      {
-        "id": "banco-pendiente-y-quitar",
-        "t": {
-          "es": "🏦 Quitar un banco, y el que se quedó a medias",
-          "en": "🏦 Removing a bank, and the one left half-connected",
-          "ca": "🏦 Treure un banc, i el que es va quedar a mitges"
-        },
-        "items": {
-          "es": [
-            "1. Si tienes algún banco que se quedó a medio conectar (en Ajustes → Mis bancos sale como «pendiente»), dale a Ajustes → «Sincronizar bancos».",
-            "2. Ahora tiene que salirte un aviso diciendo que ese banco no llegó a conectarse, y dejarte en Cartera con un recuadro para terminarlo. Antes no decías nada y había que ir a mirarlo a mano.",
-            "3. Prueba a quitar un banco desde Ajustes → Mis bancos (elige uno que no sea el de tu día a día).",
-            "4. En cuanto acepte, la tarjeta de ese banco tiene que desaparecer de la lista sola, sin que tengas que salir y volver a entrar.",
-            "5. Y ESTE es el punto: vete a Cartera → Tus cuentas. La cuenta de ese banco tiene que HABER DESAPARECIDO de la lista.",
-            "6. Comprueba que el patrimonio de arriba ha bajado justo lo que tenía esa cuenta, ni un euro más.",
-            "7. Comprueba que sus movimientos siguen todos en Gastos. No puede faltar ni uno.",
-            "8. Ahora lo de los movimientos: al quitarlo te ha preguntado qué hacer con ellos. Si elegiste «que dejen de contar», mira Gastos: sus compras salen del total del mes, pero los movimientos siguen TODOS en la lista. No puede faltar ni uno.",
-            "9. Prueba a quitar el banco de tu DÍA A DÍA: ahí solo te puede ofrecer cortar la conexión, y tiene que explicarte que sus compras cuentan siempre y dónde se cambia el banco del día a día. Puedes cancelar, con verlo basta.",
-            "10. Si Trade Republic te sale caído, lee el aviso: tiene que dejar claro si falla por el lado del BANCO (tus posiciones y tu efectivo no están afectados) o por el de INVERSIONES (te manda a reconectar con PIN y SMS).",
-            "11. Y tu rechazo del 8/9 («sale conectado pero no te avisa»): con Trade Republic caído, dale a Ajustes → «Sincronizar bancos». Si consigue levantarlo, ahora SÍ tiene que decírtelo. Si se conecta en silencio, sigue estando mal."
-          ],
-          "en": [
-            "1. If a bank was left half-connected (Settings → My banks shows it as “pending”), tap Settings → “Sync banks”.",
-            "2. A warning must now tell you that bank never connected, and leave you in Wallet with a card to finish it.",
-            "3. Try removing a bank from Settings → My banks (pick one that is not your day-to-day bank).",
-            "4. Its card must disappear from the list straight away, with no need to leave and come back.",
-            "5. THIS is the point: go to Wallet → Your accounts. That bank's account must be GONE from the list.",
-            "6. Check the net worth at the top dropped by exactly that account's balance, not a euro more.",
-            "7. Check every one of its transactions is still in Expenses.",
-            "8. About the transactions: it asked what to do with them. If you chose “stop counting them”, check Expenses: they leave the month total but every one stays in the list.",
-            "9. Try removing your DAY-TO-DAY bank: it may only offer to disconnect, and must explain why. You can cancel.",
-            "10. If Trade Republic shows as down, the notice must say whether it is the BANK side or the INVESTMENTS side.",
-            "11. And your 8/9 rejection: with TR down, tap Settings → “Sync banks”. If it comes back, it must SAY so."
-          ],
-          "ca": [
-            "1. Si tens un banc que es va quedar a mig connectar (a Ajustos → Els meus bancs surt com a «pendent»), toca Ajustos → «Sincronitzar bancs».",
-            "2. Ara t'ha de sortir un avis dient que aquest banc no es va connectar, i deixar-te a Cartera amb un requadre per acabar-ho.",
-            "3. Prova de treure un banc des d'Ajustos → Els meus bancs (tria'n un que no sigui el del dia a dia).",
-            "4. La seva targeta ha de desapareixer de la llista tota sola.",
-            "5. I AQUEST es el punt: ves a Cartera → Els teus comptes. El compte d'aquest banc ha d'HAVER DESAPAREGUT.",
-            "6. Comprova que el patrimoni de dalt ha baixat just el que tenia aquest compte.",
-            "7. Comprova que els seus moviments segueixen tots a Despeses.",
-            "8. Sobre els moviments: si vas triar «que deixin de comptar», surten del total del mes pero es queden TOTS a la llista.",
-            "9. Prova de treure el banc del DIA A DIA: nomes et pot oferir tallar la connexio. Pots cancel·lar.",
-            "10. Si Trade Republic surt caigut, l'avis ha de dir si es pel costat del BANC o pel d'INVERSIONS.",
-            "11. I el teu rebuig del 8/9: amb TR caigut, toca «Sincronitzar bancs». Si l'aixeca, ho ha de dir."
-          ]
-        }
-      }
-    ],
+    "tandas": [],
     "items": {
       "es": [
         "Corrige lo de la versión anterior: al quitar un banco su cuenta ya no se queda en Cartera, se va con él. Sus movimientos siguen todos en Gastos."
@@ -1691,73 +1062,7 @@
       "en": "Expenses shows all your accounts",
       "ca": "Despeses ensenya tots els teus comptes"
     },
-    "tandas": [
-      {
-        "id": "gastos-todas-las-cuentas",
-        "t": {
-          "es": "🧾 En Gastos salen TODAS tus cuentas",
-          "en": "🧾 Expenses now lists ALL your accounts",
-          "ca": "🧾 A Despeses surten TOTS els teus comptes"
-        },
-        "items": {
-          "es": [
-            "1. Vete a Gastos sin tocar ningún filtro.",
-            "2. Tienen que salir también los movimientos de las cuentas que NO son de gasto diario (las que tienes en «Recibos»): Sabadell, CaixaBank… Antes desaparecían de la lista.",
-            "3. Esos movimientos salen apagados y con el motivo escrito al lado: «no es del día a día».",
-            "4. Y lo importante que NO puede cambiar: mira el total gastado del mes, arriba. Tiene que ser el MISMO de antes. Enseñarlos no es contarlos.",
-            "5. Lo mismo con lo que queda de presupuesto y con las barras por categoría: no pueden moverse.",
-            "6. Si tocas el chip de un banco para filtrar, tiene que seguir funcionando igual que siempre."
-          ],
-          "en": [
-            "1. Go to Expenses without touching any filter.",
-            "2. Transactions from accounts that are NOT day-to-day (the ones set to “Bills”) must show up too. They used to vanish from the list.",
-            "3. They appear greyed out with the reason next to them: “not day-to-day”.",
-            "4. And what must NOT change: the month total at the top must be exactly the same as before. Showing them is not counting them.",
-            "5. Same for the budget left and the per-category bars: they cannot move.",
-            "6. Tapping a bank chip to filter must still work as always."
-          ],
-          "ca": [
-            "1. Ves a Despeses sense tocar cap filtre.",
-            "2. Han de sortir tambe els moviments dels comptes que NO son de despesa diaria. Abans desapareixien.",
-            "3. Surten apagats i amb el motiu al costat: «no es del dia a dia».",
-            "4. I el que NO pot canviar: el total gastat del mes ha de ser EL MATEIX. Ensenyar-los no es comptar-los.",
-            "5. Igual amb el pressupost que queda i les barres per categoria.",
-            "6. Si toques el xip d'un banc per filtrar, ha de seguir funcionant igual."
-          ]
-        }
-      },
-      {
-        "id": "cartera-cabecera-iconos",
-        "t": {
-          "es": "🏦 «Tus cuentas» ya cabe en una línea",
-          "en": "🏦 “Your accounts” now fits on one line",
-          "ca": "🏦 «Els teus comptes» ja cap en una linia"
-        },
-        "items": {
-          "es": [
-            "1. Cartera → mira la cabecera de «Tus cuentas».",
-            "2. El título tiene que caber entero en UNA línea, con dos cuadraditos a su derecha.",
-            "3. El de las flechas en círculo es sincronizar los bancos: tócalo y tiene que girar mientras trabaja.",
-            "4. El del banco con un + es conectar una cuenta nueva: tiene que abrirte la pantalla de siempre.",
-            "5. Si no tienes ningún banco conectado, el de sincronizar no sale. Es normal."
-          ],
-          "en": [
-            "1. Wallet → look at the “Your accounts” header.",
-            "2. The title must fit on ONE line, with two small squares to its right.",
-            "3. The circling arrows is sync banks: tap it and it must spin while working.",
-            "4. The bank with a + connects a new account: it must open the usual screen.",
-            "5. With no bank connected, the sync one is not shown. That's normal."
-          ],
-          "ca": [
-            "1. Cartera → mira la capcalera de «Els teus comptes».",
-            "2. El titol ha de cabre sencer en UNA linia, amb dos quadradets a la dreta.",
-            "3. El de les fletxes en cercle es sincronitzar els bancs: ha de girar mentre treballa.",
-            "4. El del banc amb un + es connectar un compte nou.",
-            "5. Si no tens cap banc connectat, el de sincronitzar no surt."
-          ]
-        }
-      }
-    ],
+    "tandas": [],
     "items": {
       "es": [
         "En Gastos ya salen los movimientos de todas tus cuentas, también las que solo usas para recibos. Siguen sin contar para el presupuesto, que es para lo que sirve marcar «gasto diario». Y en Cartera, sincronizar y conectar una cuenta pasan a ser dos iconos, así que el título cabe entero."
@@ -1841,42 +1146,7 @@
       "en": "Every row with the right logo",
       "ca": "Cada fila amb el logotip que li toca"
     },
-    "tandas": [
-      {
-        "id": "logos-inversiones",
-        "t": {
-          "es": "🏷️ Los iconos de Inversiones, completos",
-          "en": "🏷️ Investment icons, complete",
-          "ca": "🏷️ Les icones d'Inversions, completes"
-        },
-        "items": {
-          "es": [
-            "1. Abre la pestaña Cartera (abajo del todo) y baja hasta la tarjeta «Inversiones».",
-            "2. Ahí cada línea es un banco: Revolut, Trade Republic y MyInvestor tienen que salir con SU LOGO de verdad, el mismo que ves en «Tus cuentas». Si ves letras («Rv», «TR», «MI») está MAL.",
-            "3. Ahora vete a la pestaña Inicio y entra en «Tus inversiones» (o Cartera → Inversiones → abrir un bróker).",
-            "4. En la cabecera de cada bróker, otra vez su logo de banco. Dentro, cada línea es una EMPRESA: NVDA, GOOG, AVGO, AMD, Meta, TSMC y Micron con su logo.",
-            "5. El oro tiene que salir como un lingote, y los fondos índice con unas barritas que suben.",
-            "6. Si alguna posición no tiene logo, tiene que enseñar SUS PROPIAS letras (por ejemplo «TSM»), no las del banco. Si ves varias líneas seguidas con la misma insignia del bróker, está MAL."
-          ],
-          "en": [
-            "1. Open the Wallet tab and scroll to the “Investments” card.",
-            "2. Each row there is a bank: Revolut, Trade Republic and MyInvestor must show their real logo, the same one as in “Your accounts”. Letters (“Rv”, “TR”, “MI”) mean it is WRONG.",
-            "3. Now go to Home and open “Your investments” (or Wallet → Investments → open a broker).",
-            "4. Each broker header shows its bank logo. Inside, each row is a COMPANY: NVDA, GOOG, AVGO, AMD, Meta, TSMC and Micron with their logo.",
-            "5. Gold shows a bar, index funds a small rising chart.",
-            "6. A holding with no logo must show ITS OWN initials (e.g. “TSM”), never the broker's badge."
-          ],
-          "ca": [
-            "1. Obre la pestanya Cartera i baixa fins a la targeta «Inversions».",
-            "2. Cada linia es un banc: Revolut, Trade Republic i MyInvestor han de sortir amb EL SEU LOGOTIP, el mateix que a «Els teus comptes». Si hi veus lletres, esta MALAMENT.",
-            "3. Ara ves a Inici i entra a «Les teves inversions».",
-            "4. A la capcalera de cada broker, el seu logotip. A dins, cada linia es una EMPRESA: NVDA, GOOG, AVGO, AMD, Meta, TSMC i Micron amb el seu logotip.",
-            "5. L'or ha de sortir com un lingot, i els fons index amb unes barretes.",
-            "6. Si una posicio no te logotip, ha d'ensenyar LES SEVES lletres, no les del banc."
-          ]
-        }
-      }
-    ],
+    "tandas": [],
     "items": {
       "es": [
         "Los iconos de Inversiones quedan completos: cada empresa con su logo, el oro y los fondos con su dibujo, y cada banco con el suyo."
@@ -1960,39 +1230,7 @@
       "en": "Bank balance matches again",
       "ca": "El saldo del banc ja quadra"
     },
-    "tandas": [
-      {
-        "id": "saldo-por-banco",
-        "t": {
-          "es": "🏦 El saldo de cada banco, sin gastos de otro",
-          "en": "🏦 Each bank's balance, without another's spending",
-          "ca": "🏦 El saldo de cada banc, sense despeses d'un altre"
-        },
-        "items": {
-          "es": [
-            "1. Antes de nada, abre la app de tu banco (o Revolut) y apunta en un papel el saldo que dice.",
-            "2. Vuelve a Aely: Ajustes → «Sincronizar bancos». Espera a que termine.",
-            "3. Vete a Cartera → «Tus cuentas» y compara ese banco con el papel: tiene que decir el MISMO número.",
-            "4. Repítelo con un segundo banco. Este es el punto: con más de un banco es donde se inflaba.",
-            "5. Si algún saldo sale más alto de lo que dice el banco de verdad, márcalo como falla y escribe qué banco y los dos números."
-          ],
-          "en": [
-            "1. First, open your bank's own app and write down the balance it shows.",
-            "2. Back in Aely: Settings → “Sync banks”. Wait for it to finish.",
-            "3. Go to Wallet → “Your accounts” and compare that bank with your note: it must be the SAME number.",
-            "4. Repeat with a second bank. That is the point: it inflated only with more than one.",
-            "5. If a balance is higher than the real one, mark it as failing and write the bank and both numbers."
-          ],
-          "ca": [
-            "1. Primer, obre l'app del teu banc i apunta el saldo que diu.",
-            "2. Torna a Aely: Ajustos → «Sincronitzar bancs». Espera que acabi.",
-            "3. Ves a Cartera → «Els teus comptes» i compara: ha de dir el MATEIX numero.",
-            "4. Repeteix-ho amb un segon banc. Aquest es el punt: amb mes d'un banc s'inflava.",
-            "5. Si algun saldo surt mes alt, marca'l com a falla i escriu el banc i els dos numeros."
-          ]
-        }
-      }
-    ],
+    "tandas": [],
     "items": {
       "es": [
         "Al sincronizar con varios bancos, el saldo de cada cuenta ya no se infla con gastos que no son suyos."
@@ -2034,48 +1272,7 @@
       "en": "Banks are just for banks",
       "ca": "Bancs només per a bancs"
     },
-    "tandas": [
-      {
-        "id": "donde-se-elige-el-gasto",
-        "t": {
-          "es": "🏦 Qué cuenta cuenta para el gasto del día a día",
-          "en": "🏦 Which account counts as day-to-day spending",
-          "ca": "🏦 Quin compte compta per a la despesa del dia a dia"
-        },
-        "items": {
-          "es": [
-            "1. Ajustes → «Mis bancos» → «Conectar cuentas». Mira de arriba abajo: ya NO puede salir el bloque de «también apuntar gastos de tarjeta de…».",
-            "2. Sal de ahí y vete a Cartera → «Tus cuentas».",
-            "3. Toca «Editar» en una cuenta. Ahí tienen que salir tres opciones: Recibos, Gasto diario y Todo.",
-            "4. Ponle «Recibos» a una cuenta que no sea la de tu día a día y guarda.",
-            "5. Vete a Gastos y mira el total del mes de arriba: tiene que BAJAR al momento, sin sincronizar nada.",
-            "6. Sus movimientos NO pueden desaparecer de la lista: siguen ahí, solo dejan de sumar.",
-            "7. Devuélvelo a «Todo» y comprueba que el total vuelve a subir a lo de antes.",
-            "8. Y tu rechazo del 8/9 («quité Trade Republic y no cambió nada»): con ese cambio de Recibos/Todo, si cruzas el 50, 80, 95 o 100 % de tu presupuesto tiene que saltarte el aviso — y UNA sola vez, no tres seguidos."
-          ],
-          "en": [
-            "1. Settings → “My banks” → “Connect accounts”. The old “also track card spending from…” block must be GONE.",
-            "2. Go to Wallet → “Your accounts”.",
-            "3. Tap “Edit” on an account. Three options must appear: Bills, Daily spending and Everything.",
-            "4. Set “Bills” on an account that is not your day-to-day one, and save.",
-            "5. Go to Expenses and look at the month total: it must drop immediately, with no sync.",
-            "6. Its transactions must NOT disappear from the list — they just stop counting.",
-            "7. Set it back to “Everything” and check the total goes back up.",
-            "8. And your 8/9 rejection (“I removed Trade Republic and nothing changed”): if that change crosses 50, 80, 95 or 100% of your budget, the alert must fire — ONCE, not three times."
-          ],
-          "ca": [
-            "1. Ajustos → «Els meus bancs» → «Connectar comptes». Ja NO pot sortir el bloc de «també apuntar despeses de targeta de…».",
-            "2. Ves a Cartera → «Els teus comptes».",
-            "3. Toca «Editar» en un compte. Han de sortir tres opcions: Rebuts, Despesa diaria i Tot.",
-            "4. Posa-li «Rebuts» a un compte que no sigui el del dia a dia i desa.",
-            "5. Ves a Despeses: el total del mes ha de BAIXAR al moment, sense sincronitzar.",
-            "6. Els seus moviments NO poden desapareixer de la llista.",
-            "7. Torna'l a «Tot» i comprova que el total torna a pujar.",
-            "8. I el teu rebuig del 8/9: si amb aquest canvi creues el 50, 80, 95 o 100 % del pressupost, l'avis ha de saltar — UN sol cop."
-          ]
-        }
-      }
-    ],
+    "tandas": [],
     "items": {
       "es": [
         "Conectar cuentas se queda en conectar y quitar bancos. Si una tarjeta cuenta en el día a día, se marca en Cartera al editar la cuenta."
@@ -2162,42 +1359,7 @@
       "en": "What you enter by hand no longer disappears on its own",
       "ca": "El que apuntes a mà ja no s'esborra sol"
     },
-    "tandas": [
-      {
-        "id": "manual-no-fusiona",
-        "t": {
-          "es": "✍️ Lo que apuntas a mano no se lo come el sync",
-          "en": "✍️ What you log by hand survives the sync",
-          "ca": "✍️ El que apuntes a ma no se'l menja el sync"
-        },
-        "items": {
-          "es": [
-            "1. Este es el de los Bizums, el que más te ha dado la lata: 8 en el banco y 5 en la app.",
-            "2. Apunta a mano un gasto con el botón + (por ejemplo un Bizum de 20 € a alguien), y fíjate en que queda guardado.",
-            "3. Ajustes → «Sincronizar bancos». Espera a que termine.",
-            "4. Vuelve a Gastos: tu apunte a mano tiene que SEGUIR AHÍ. Antes desaparecía porque la app creía que era el mismo movimiento que traía el banco.",
-            "5. Repítelo con dos Bizums del MISMO importe y el MISMO día, a personas distintas: los dos tienen que sobrevivir. Este es el caso exacto que te fallaba.",
-            "6. Y comprueba que sí se siguen detectando los repetidos de verdad: si el banco te trae dos veces la misma compra, una tiene que salir apagada."
-          ],
-          "en": [
-            "1. This is the Bizum one: 8 at the bank, 5 in the app.",
-            "2. Log an expense by hand with the + button and check it is saved.",
-            "3. Settings → “Sync banks”. Wait for it to finish.",
-            "4. Back in Expenses: your hand-written entry must STILL BE THERE.",
-            "5. Repeat with two Bizums of the SAME amount on the SAME day to different people: both must survive. That is the exact failing case.",
-            "6. And check real duplicates are still caught: if the bank sends the same purchase twice, one must appear greyed out."
-          ],
-          "ca": [
-            "1. Aquest es el dels Bizums: 8 al banc i 5 a l'app.",
-            "2. Apunta a ma una despesa amb el boto + i comprova que queda desada.",
-            "3. Ajustos → «Sincronitzar bancs». Espera que acabi.",
-            "4. Torna a Despeses: el teu apunt ha de SEGUIR-HI.",
-            "5. Repeteix-ho amb dos Bizums del MATEIX import i el MATEIX dia: tots dos han de sobreviure.",
-            "6. I comprova que els repetits de veritat encara es detecten."
-          ]
-        }
-      }
-    ],
+    "tandas": [],
     "items": {
       "es": [
         "Los movimientos que escribes tú a mano se quedan, aunque tengan el mismo importe y día que otro."
@@ -2392,48 +1554,7 @@
       "en": "Test mode, the logo and the lurch",
       "ca": "La zona de proves, el logotip i l'estrebada"
     },
-    "tandas": [
-      {
-        "id": "banco-de-pruebas",
-        "t": {
-          "es": "🌱 Probar con la app vacía, sin tocar tus datos",
-          "en": "🌱 Trying the empty app without touching your data",
-          "ca": "🌱 Provar amb l'app buida, sense tocar les teves dades"
-        },
-        "items": {
-          "es": [
-            "1. Ajustes → «Probar con la app vacía». Tienes que entrar SIN cuentas, SIN gastos y SIN presupuesto, y con las pantallas de bienvenida de la primera vez.",
-            "2. Quédate ahí un minuto sin hacer nada. Al minuto, comprueba que NO han vuelto solos tus datos. Esto es lo que fallaba las dos veces anteriores.",
-            "3. Ajustes → «Vaciar la cartera de pruebas»: tiene que quedar igual de vacía, y tampoco puede volver nada al rato.",
-            "4. Estando vacío, mira Ajustes → Bancos: tiene que decir que no hay ninguno conectado (aunque en tu móvil de verdad sí los tengas).",
-            "5. Estando vacío, mira Inicio: no puede salir un gráfico plano con «+0 €» ni «0 meses sin pasarte». Lo que no tienes te lo tiene que ofrecer con un botón.",
-            "6. Estando vacío, mira Mis bancos e Importar histórico: no puede salir ningún aviso diciendo que Trade Republic no vale.",
-            "7. AHORA LO IMPORTANTE: sal del banco de pruebas. Tu cartera real tiene que estar EXACTAMENTE igual, con todos tus gastos, cuentas y presupuesto.",
-            "8. Vuelve a entrar al banco de pruebas NORMAL (el que copia tu cartera): ahí sí tienen que estar tus datos."
-          ],
-          "en": [
-            "1. Settings → “Try the empty app”. You must land with NO accounts, NO expenses and NO budget, and with the first-run welcome screens.",
-            "2. Wait a minute doing nothing, then check your data has NOT come back on its own. That is what failed the two previous attempts.",
-            "3. Settings → “Empty the test wallet”: it must stay just as empty, and nothing may return later.",
-            "4. While empty, check Settings → Banks: it must say none connected, even though your real phone has them.",
-            "5. While empty, check Home: no flat chart with “+0 €” or “0 months on budget”. Missing things are offered with a button.",
-            "6. While empty, check My banks and Import history: no warning saying Trade Republic is not supported.",
-            "7. THE IMPORTANT ONE: leave the test wallet. Your real wallet must be EXACTLY as it was.",
-            "8. Enter the NORMAL test wallet (the one that copies your wallet): your data must be there."
-          ],
-          "ca": [
-            "1. Ajustos → «Provar amb l'app buida». Has d'entrar SENSE comptes, despeses ni pressupost, i amb les pantalles de benvinguda.",
-            "2. Espera un minut sense fer res i comprova que NO han tornat soles les teves dades.",
-            "3. Ajustos → «Buidar la cartera de proves»: ha de quedar igual de buida.",
-            "4. Amb tot buit, mira Ajustos → Bancs: ha de dir que no n'hi ha cap de connectat.",
-            "5. Amb tot buit, mira Inici: cap grafic pla amb «+0 €».",
-            "6. Amb tot buit, mira Els meus bancs i Importar historic: cap avis dient que Trade Republic no val.",
-            "7. L'IMPORTANT: surt de la cartera de proves. La teva cartera real ha d'estar EXACTAMENT igual.",
-            "8. Torna a entrar a la cartera de proves NORMAL: alla si hi han de ser les teves dades."
-          ]
-        }
-      }
-    ],
+    "tandas": [],
     "items": {
       "es": [
         "Al cambiar de pestaña arrastrando despacio, la pantalla ya no da un brinco al empezar a moverse.",
@@ -2481,45 +1602,7 @@
       "en": "Aely introduces itself",
       "ca": "Aely es presenta"
     },
-    "tandas": [
-      {
-        "id": "aely",
-        "t": {
-          "es": "✨ La app se llama Aely",
-          "en": "✨ The app is called Aely",
-          "ca": "✨ L'app es diu Aely"
-        },
-        "items": {
-          "es": [
-            "1. Cierra la app del todo y ábrela. En la pantalla de carga tiene que salir la A de Aely: ANCHA y con su punto, la misma del icono de tu móvil. Si la ves estrecha o de trazo fino, está mal.",
-            "2. Ajustes, baja del todo: el pie de versión tiene que decir Aely.",
-            "3. Ajustes → «Probar con la app vacía» y mira la primera pantalla: tiene que decir «Bienvenido/a» y hablar del mapa completo de tu dinero, no de «control de gastos».",
-            "4. Debajo hay tres tarjetas: «Todo tu dinero», «Se apunta solo» y «Para decidir». Tienen que leerse enteras, sin salirse.",
-            "5. Ajustes → Idioma → inglés, y vuelve a esa pantalla. Luego catalán. En ninguno de los dos puede quedar texto en castellano. Déjalo otra vez en castellano al acabar.",
-            "6. Si tienes «Letra grande» en Android, mira otra vez esas tres tarjetas: tienen que seguir cabiendo.",
-            "7. ⚠ El icono del escritorio y el del widget pueden seguir con el nombre viejo: eso NO se arregla con esta actualización, hace falta instalar una APK nueva. No lo marques como fallo."
-          ],
-          "en": [
-            "1. Fully close and reopen the app. The loading screen must show Aely's A: WIDE, with its dot, the same as your phone icon.",
-            "2. Settings, scroll to the bottom: the version footer must say Aely.",
-            "3. Settings → “Try the empty app” and read the first screen: it must say “Welcome” and talk about the full map of your money.",
-            "4. Below, three cards: “All your money”, “Tracked for you” and “To decide”. They must fit and read fully.",
-            "5. Settings → Language → English, then Catalan, checking that screen each time: no Spanish may be left. Set it back afterwards.",
-            "6. With Android's “Large font” on, check those three cards still fit.",
-            "7. ⚠ The home-screen icon and the widget may still show the old name: that needs a new APK, not this update. Do not mark it as a failure."
-          ],
-          "ca": [
-            "1. Tanca l'app del tot i obre-la. A la pantalla de carrega ha de sortir la A d'Aely: AMPLA i amb el seu punt.",
-            "2. Ajustos, baixa del tot: el peu de versio ha de dir Aely.",
-            "3. Ajustos → «Provar amb l'app buida» i mira la primera pantalla: ha de dir «Benvingut/da».",
-            "4. A sota, tres targetes: han de llegir-se senceres, sense sortir-se'n.",
-            "5. Ajustos → Idioma → angles i despres catala: no pot quedar text en castella.",
-            "6. Amb «Lletra gran» d'Android, mira un altre cop les tres targetes.",
-            "7. ⚠ La icona de l'escriptori i el widget poden seguir amb el nom vell: aixo necessita una APK nova. No ho marquis com a falla."
-          ]
-        }
-      }
-    ],
+    "tandas": [],
     "items": {
       "es": [
         "La pantalla de bienvenida de Aely, con su logo nuevo y explicando de verdad qué hace la app."
@@ -2561,36 +1644,7 @@
       "en": "Bizum on its own, and empty shows onboarding",
       "ca": "Bizum a part, i el buit ensenya l'onboarding"
     },
-    "tandas": [
-      {
-        "id": "bizum-categoria",
-        "t": {
-          "es": "📲 Bizum ya es una categoría",
-          "en": "📲 Bizum is now a category",
-          "ca": "📲 Bizum ja es una categoria"
-        },
-        "items": {
-          "es": [
-            "1. Gastos: toca cualquier movimiento para editarlo.",
-            "2. Abre la lista de categorías y busca «Bizum» (📲). Tiene que estar.",
-            "3. Ponle Bizum a ese movimiento y guarda: tiene que quedarse con su icono en la lista.",
-            "4. Y ahora sí: sincroniza los bancos y busca un movimiento que ponga «Bizum a…» o «Bizum de…». Tiene que caer SOLO en la categoría Bizum, no en Otros."
-          ],
-          "en": [
-            "1. Expenses: tap any transaction to edit it.",
-            "2. Open the category list and look for “Bizum” (📲). It must be there.",
-            "3. Set it and save: the icon must stick in the list.",
-            "4. And now: sync your banks and find a transaction saying “Bizum to…”. It must land in the Bizum category by itself, not in Other."
-          ],
-          "ca": [
-            "1. Despeses: toca qualsevol moviment per editar-lo.",
-            "2. Obre la llista de categories i busca «Bizum» (📲). Hi ha de ser.",
-            "3. Posa-l'hi i desa: ha de quedar-se amb la seva icona.",
-            "4. I ara si: sincronitza i busca un moviment que digui «Bizum a…». Ha de caure SOL a la categoria Bizum."
-          ]
-        }
-      }
-    ],
+    "tandas": [],
     "items": {
       "es": [
         "Bizum tiene categoría propia, y al vaciar las pruebas vuelve el onboarding."
@@ -2716,48 +1770,7 @@
       "en": "The full history shows up",
       "ca": "L'històric es veu sencer"
     },
-    "tandas": [
-      {
-        "id": "historico-la-lista",
-        "t": {
-          "es": "📜 Importar histórico · 1 · lo que sale en la lista",
-          "en": "📜 Import history · 1 · what the list shows",
-          "ca": "📜 Importar historic · 1 · el que surt a la llista"
-        },
-        "items": {
-          "es": [
-            "1. Ajustes → «Importaciones» → «Importar histórico». Elige un banco con muchos movimientos y pide 3 meses.",
-            "2. Mientras busca, tiene que salir un aviso corto con cuatro números (banco, cuántos llegan, cuántos son nuevos y cuántos coinciden en día e importe). No tiene que cuadrarte nada: solo que salga.",
-            "3. Baja hasta el final de la lista: NO puede quedarse en negro a partir de la mitad. Todo lo que pases tiene que verse.",
-            "4. Al llegar abajo toca «Ver X más»: aparecen los siguientes y también se ven. Repite hasta el final.",
-            "5. Mira los que ya tenías apuntados: tienen que salir TACHADOS y sin marcar, con el motivo (ya lo tienes / es un fijo tuyo / está repetido dentro del propio lote).",
-            "6. Busca un gasto al que tú le cambiaste el nombre (de los de Trade Republic que ponía «Movimiento»): tiene que salir TACHADO también. Que le cambiaras el nombre no lo convierte en nuevo. Este es el punto de esta tanda.",
-            "7. Un recibo que se repite cada mes tiene que salir UNA VEZ POR MES, los tres marcados. Si solo sale uno de los tres, es un fallo.",
-            "8. Cierra sin importar nada y vete a Gastos, a un mes viejo: no puede haber desaparecido ni un movimiento por haber mirado."
-          ],
-          "en": [
-            "1. Settings → “Imports” → “Import history”. Pick a bank with many transactions and ask for 3 months.",
-            "2. A short notice with four numbers must appear while it searches. Nothing needs to add up — it just has to show.",
-            "3. Scroll to the bottom of the list: it must NOT go black halfway. Everything you scroll past must render.",
-            "4. Tap “Show X more”: the next ones appear and render too. Repeat to the end.",
-            "5. Transactions you already have must appear STRUCK THROUGH and unticked, with the reason.",
-            "6. Find one you renamed yourself: it must be struck through too. Renaming does not make it new. This is the point of this batch.",
-            "7. A monthly bill must appear ONCE PER MONTH, all three ticked.",
-            "8. Close without importing and check an old month in Expenses: nothing may have disappeared."
-          ],
-          "ca": [
-            "1. Ajustos → «Importacions» → «Importar historic». Tria un banc amb molts moviments i demana 3 mesos.",
-            "2. Mentre busca ha de sortir un avis curt amb quatre numeros. Nomes cal que surti.",
-            "3. Baixa fins al final: NO pot quedar-se en negre a mitja llista.",
-            "4. Toca «Veure'n X mes»: han d'apareixer i veure's.",
-            "5. Els que ja tenies han de sortir RATLLATS i sense marcar, amb el motiu.",
-            "6. Busca'n un que tu vas reanomenar: tambe ha de sortir ratllat. Aquest es el punt.",
-            "7. Un rebut mensual ha de sortir UN COP PER MES, els tres marcats.",
-            "8. Tanca sense importar i mira un mes vell a Despeses: no pot faltar res."
-          ]
-        }
-      }
-    ],
+    "tandas": [],
     "items": {
       "es": [
         "Al traer el histórico de un banco, la lista ya se ve entera: ni filas en negro ni «ver más» que no hace nada."
@@ -2778,36 +1791,7 @@
       "en": "A tidier Expenses",
       "ca": "Despeses, més despejat"
     },
-    "tandas": [
-      {
-        "id": "cats-plegable",
-        "t": {
-          "es": "🙈 Plegar el desglose por categorías",
-          "en": "🙈 Collapsing the category breakdown",
-          "ca": "🙈 Plegar el desglossament per categories"
-        },
-        "items": {
-          "es": [
-            "1. Gastos: busca la cabecera «Por categoría» y tócala. Tiene que plegarse y dejar una sola línea diciendo cuántas categorías hay.",
-            "2. Tócala otra vez: se despliega igual que estaba, con sus límites y sus barras.",
-            "3. Déjala PLEGADA, cierra la app del todo y vuelve a entrar: tiene que seguir plegada.",
-            "4. Con ella plegada, comprueba que no ha cambiado ningún número: ni el gasto del mes, ni lo que queda, ni tus límites."
-          ],
-          "en": [
-            "1. Expenses: tap the “By category” header. It must collapse to a single line saying how many categories there are.",
-            "2. Tap again: it expands exactly as before, with its limits and bars.",
-            "3. Leave it COLLAPSED, fully close the app and reopen: it must still be collapsed.",
-            "4. Check no figure changed: not the month's spending, what's left, or your limits."
-          ],
-          "ca": [
-            "1. Despeses: toca la capcalera «Per categoria». S'ha de plegar i deixar una sola linia.",
-            "2. Torna a tocar-la: es desplega igual que estava.",
-            "3. Deixa-la PLEGADA, tanca l'app del tot i torna a entrar: ha de seguir plegada.",
-            "4. Comprova que no ha canviat cap numero."
-          ]
-        }
-      }
-    ],
+    "tandas": [],
     "items": {
       "es": [
         "El desglose por categorías de Gastos se puede plegar de un toque, y se queda como lo dejes."
@@ -2828,39 +1812,7 @@
       "en": "No stray highlights",
       "ca": "Sense subratllats estranys"
     },
-    "tandas": [
-      {
-        "id": "pulsacion-larga",
-        "t": {
-          "es": "✋ Mantener pulsado sin que se líe",
-          "en": "✋ Long-press without the mess",
-          "ca": "✋ Mantenir premut sense liar-la"
-        },
-        "items": {
-          "es": [
-            "1. Esto es lo que rechazaste el 10/9: «al mantener pulsado en un gasto se subraya y la app se vuelve loca, no se puede quitar el que está marcado».",
-            "2. Gastos: mantén el dedo sobre un gasto dos segundos. NO se puede subrayar ni quedarse nada marcado en azul.",
-            "3. Haz lo mismo sobre un recibo en Plan, y sobre las tarjetas de Inicio: igual, nada se subraya.",
-            "4. Arrastra un gasto por el asa (⠿) para reordenarlo: tiene que ir igual de bien que siempre.",
-            "5. Ahora entra a escribir una nota en un gasto y toca a mitad de palabra: ahí SÍ tienes que poder colocar el cursor y seleccionar texto. Si no puedes, también es un fallo."
-          ],
-          "en": [
-            "1. This is what you rejected on 10/9: long-pressing an expense underlined it and got stuck.",
-            "2. Expenses: hold your finger on an expense for two seconds. Nothing may get underlined or stuck selected.",
-            "3. Same on a bill in Plan, and on the Home cards.",
-            "4. Drag an expense by its handle (⠿) to reorder: must work as well as before.",
-            "5. Now type a note on an expense and tap mid-word: there you MUST be able to place the cursor and select. If you cannot, that is also a failure."
-          ],
-          "ca": [
-            "1. Aixo es el que vas rebutjar el 10/9: en mantenir premut una despesa se subratllava i es quedava marcada.",
-            "2. Despeses: mante el dit sobre una despesa dos segons. Res no pot quedar subratllat.",
-            "3. Igual sobre un rebut a Pla i sobre les targetes d'Inici.",
-            "4. Arrossega una despesa per l'nansa (⠿): ha d'anar igual de be.",
-            "5. Escriu una nota en una despesa i toca a mitja paraula: alla SI has de poder posar el cursor i seleccionar."
-          ]
-        }
-      }
-    ],
+    "tandas": [],
     "items": {
       "es": [
         "Mantener el dedo sobre un movimiento o una tarjeta ya no subraya el texto ni deja nada seleccionado."
@@ -3190,42 +2142,7 @@
       "en": "Cash, tracked like any other account",
       "ca": "Els diners en efectiu, controlats com un compte més"
     },
-    "tandas": [
-      {
-        "id": "efectivo",
-        "t": {
-          "es": "💶 El sobre del efectivo",
-          "en": "💶 The cash envelope",
-          "ca": "💶 El sobre de l'efectiu"
-        },
-        "items": {
-          "es": [
-            "1. Cartera → Tus cuentas: si no la tienes, crea la cuenta de Efectivo y ponle lo que llevas de verdad encima.",
-            "2. Apunta un gasto con el + eligiendo Efectivo: el sobre tiene que bajar, y NINGÚN otro saldo puede moverse.",
-            "3. Ese gasto SÍ tiene que contar en el total del mes de Gastos, igual que uno de tarjeta.",
-            "4. Usa «saqué del cajero» por 200 € desde tu banco: el banco baja 200, el Efectivo sube 200, y tu patrimonio total se queda EXACTAMENTE IGUAL. No puede aparecer como gasto del mes.",
-            "5. Intenta gastar más de lo que hay en el sobre: tiene que avisarte.",
-            "6. Borra la cuenta de Efectivo: no puede quedarse ningún gasto huérfano ni descuadrarse el patrimonio."
-          ],
-          "en": [
-            "1. Wallet → Your accounts: create the Cash account and set what you really carry.",
-            "2. Log an expense choosing Cash: the envelope goes down and NO other balance may move.",
-            "3. That expense DOES count in the month total, like a card one.",
-            "4. Use “cash withdrawal” for 200 € from your bank: bank −200, Cash +200, net worth EXACTLY the same. It cannot show as spending.",
-            "5. Try spending more than the envelope holds: it must warn you.",
-            "6. Delete the Cash account: no orphan expenses, no broken net worth."
-          ],
-          "ca": [
-            "1. Cartera → Els teus comptes: crea el compte d'Efectiu amb el que portes de veritat.",
-            "2. Apunta una despesa triant Efectiu: el sobre ha de baixar i cap altre saldo es pot moure.",
-            "3. Aquesta despesa SI compta al total del mes.",
-            "4. Fes servir «vaig treure del caixer» per 200 €: el banc baixa 200, l'Efectiu puja 200, i el patrimoni es queda IGUAL.",
-            "5. Prova de gastar mes del que hi ha al sobre: t'ha d'avisar.",
-            "6. Esborra el compte d'Efectiu: cap despesa orfe ni patrimoni descuadrat."
-          ]
-        }
-      }
-    ],
+    "tandas": [],
     "items": {
       "es": [
         "Ya puedes llevar el dinero en efectivo como una cuenta más: baja al gastar y sube cuando sacas del cajero.",
@@ -3374,42 +2291,7 @@
       "en": "A transaction flagged as a possible repeat no longer counts on the widget either",
       "ca": "Un moviment marcat com a possible repetit tampoc no suma al giny"
     },
-    "tandas": [
-      {
-        "id": "repetido-widget",
-        "t": {
-          "es": "📊 El posible repetido no suma, ni en la app ni en el widget",
-          "en": "📊 A possible duplicate counts nowhere, app or widget",
-          "ca": "📊 El possible repetit no suma, ni a l'app ni al widget"
-        },
-        "items": {
-          "es": [
-            "1. Sincroniza los bancos hasta que salga un movimiento apagado de los que avisan de «posible repetido».",
-            "2. Mira el total del mes arriba en Gastos y apúntalo en un papel.",
-            "3. Cierra la app y mira el widget de la pantalla de inicio: tiene que decir ESA MISMA cifra, sin sumar el apagado.",
-            "4. Vuelve a la app, entra en ese movimiento y dale a «son distintos». Ahora sí tiene que sumar en Gastos.",
-            "5. Cierra la app otra vez y mira el widget: tiene que haber subido lo mismo.",
-            "6. Cierra la app del todo, ábrela y sincroniza: el que dejaste apagado tiene que seguir apagado, no encenderse solo."
-          ],
-          "en": [
-            "1. Sync until a greyed-out “possible duplicate” transaction appears.",
-            "2. Note the month total at the top of Expenses.",
-            "3. Close the app and check the home-screen widget: it must show THAT SAME figure.",
-            "4. Back in the app, open that transaction and tap “they're different”. It must now count.",
-            "5. Close the app and check the widget again: it must have gone up by the same amount.",
-            "6. Fully close, reopen and sync: the one you left off must stay off."
-          ],
-          "ca": [
-            "1. Sincronitza fins que surti un moviment apagat de «possible repetit».",
-            "2. Apunta el total del mes a Despeses.",
-            "3. Tanca l'app i mira el widget: ha de dir LA MATEIXA xifra.",
-            "4. Torna i marca «son diferents». Ara si ha de sumar.",
-            "5. Tanca i mira el widget: ha d'haver pujat el mateix.",
-            "6. Tanca del tot, obre i sincronitza: el que vas deixar apagat segueix apagat."
-          ]
-        }
-      }
-    ],
+    "tandas": [],
     "items": {
       "es": [
         "Si un movimiento sale marcado como posible repetido, deja de contar también en el widget y en los avisos, no solo dentro de la app.",
@@ -3523,36 +2405,7 @@
       "en": "Editing or deleting a transaction no longer hits another lookalike",
       "ca": "Canviar o esborrar un moviment ja no toca un altre d'igual"
     },
-    "tandas": [
-      {
-        "id": "id-fila",
-        "t": {
-          "es": "🎯 Tocar un movimiento no toca el de al lado",
-          "en": "🎯 Editing one transaction leaves the other alone",
-          "ca": "🎯 Tocar un moviment no toca el del costat"
-        },
-        "items": {
-          "es": [
-            "1. Gastos: busca DOS movimientos del mismo día y del mismo importe (por ejemplo dos cafés de 1,50 €).",
-            "2. Cámbiale la categoría a uno. Solo puede cambiar ese; el otro se queda como estaba.",
-            "3. Con esos mismos dos, borra uno: tiene que desaparecer solo el que tocaste.",
-            "4. Cierra la app, ábrela y sincroniza: el que quedaba sigue ahí, con su categoría."
-          ],
-          "en": [
-            "1. Expenses: find TWO transactions on the same day for the same amount.",
-            "2. Change the category on one. Only that one may change.",
-            "3. Delete one of them: only the one you touched may disappear.",
-            "4. Close the app, reopen and sync: the other is still there, with its category."
-          ],
-          "ca": [
-            "1. Despeses: busca DOS moviments del mateix dia i el mateix import.",
-            "2. Canvia la categoria d'un. Nomes pot canviar aquest.",
-            "3. Esborra'n un: nomes pot desapareixer el que has tocat.",
-            "4. Tanca l'app, obre-la i sincronitza: l'altre segueix alla."
-          ]
-        }
-      }
-    ],
+    "tandas": [],
     "items": {
       "es": [
         "Borrar o editar un movimiento apunta solo a ese, no a otro gemelo del mismo día."

@@ -1,3 +1,15 @@
+## [4.19.105] - 2026-09-13
+### Panel de pruebas limpio (sin código)
+
+Petición suya: *«actualízame la zona de pruebas para no tener cosas repetidas… de las que rechacé y
+quedan pendientes»*. Cruzado con TODOS sus veredictos de beta: de 40 tandas por encima de prod
+quedan 5. Fuera las aprobadas y las sustituidas; cada saga es UNA tanda con su rechazo como paso:
+`hojas-scroll` (absorbe `guardar-pie`), `ab-idiomas`, `historico-lista` (nueva: junta 27, 92,
+96, 99 y 102), `rol-sin-salto-3` y `historico-importar` (nunca juzgada). Voto de Cursor: sí.
+
+Guardianes `beta-tandas-vacias` y `release-notes-max` actualizados: sus ids «pendientes» ya
+estaban aprobados, y la ronda corta sigue probando que el panel llega más allá del MAX del index.
+
 ## [4.19.104] - 2026-09-13
 ### El filtro de Gastos vuelve a scrollear (regresión de Guardar)
 
