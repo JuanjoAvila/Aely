@@ -1604,35 +1604,29 @@ function App(){
   const totals=useMemo(()=>{
     // Solo lo que sale de bancos de gasto diario (y a mano): si no, un cargo de Sabadell
     // «solo para ver» restaría del efectivo de TR (2026-08-05).
-    // startOfMonth UNA vez: antes iba dentro del filter → N× Intl (regresión B09-B / CI tabs).
-    const monthStart=startOfMonth();
-    const thisMonthExp=(state.expenses||[]).filter(function(e){
-      return parseDate(e.date)>=monthStart && expenseCountsCash(e, state);
-    });
-    const thisMonthSpent=thisMonthExp.reduce((a,e)=>a+e.amount,0);
     // Efectivo de TR = base del mes + nómina (si ya entró el último día laborable) − gasto del mes.
     // El round-up & saveback (#19) se aplican al CERRAR el mes (reconcileTR), persistidos, para que
     // todas las pestañas lean lo mismo. El mes en curso se muestra como informativo en Inversiones.
-    const trAcc=state.accounts.find(a=>a.spendFrom);
-    const injTR = (trAcc && nominaYaEntro()) ? accInject(trAcc) : 0;
-    // si has puesto un importe a mano (roundupManual/savebackManual) manda ese; si no, se estima de los gastos
-    const roundupThisMonth = trAcc ? ((trAcc.roundupManual!=null)?trAcc.roundupManual:roundupOf(thisMonthExp, trAcc.roundup||0)) : 0;
+    // SALDO DINÁMICO: cada banco = base (inicio de mes) + movimientos YA ocurridos este mes.
+    // La diaria resta SOLO lo suyo (`spentByBank[ent]`), no thisMonthSpent entero: si no, un
+    // cargo de Revolut se come TR (257 € el 2026-08-18). thisMonthSpent se queda para Hogar / fallback.
+    // ⚠ Los insumos salen de `insumosSaldoGasto` (01-i18n), la MISMA función con la que
+    // `applyAccountRole` re-ancla al cambiar de rol. No volver a calcularlos aquí en línea: tres
+    // rechazos suyos del salto de saldo fueron copias de esto que no cuadraban (13/9).
+    const ins=insumosSaldoGasto(state);
+    const thisMonthExp=ins.thisMonthExp;
+    const thisMonthSpent=thisMonthExp.reduce((a,e)=>a+e.amount,0);
+    const trAcc=ins.trAcc;
+    const injTR=ins.injTR;
+    const roundupThisMonth=ins.roundup;
     const savebackThisMonth = trAcc ? ((trAcc.savebackManual!=null)?trAcc.savebackManual:(trAcc.saveback?savebackOf(thisMonthExp):0)) : 0;
     // Aporte periódico a inversión (plan de ahorro TR, p.ej. 50€/mes al FTSE): sale del efectivo
     // y compra participaciones. Igual que el round-up, se muestra restado en vivo y se persiste al cerrar mes.
-    const monthlyInvestThisMonth = trAcc ? (trAcc.monthlyInvest||0) : 0;
+    const monthlyInvestThisMonth=ins.monthlyInvest;
     const trRewardsTotal = state.trRewardsTotal||0;
-    const curMonth=new Date().getMonth()+1;
-    const curYear=new Date().getFullYear();
-    const today=new Date().getDate();                    // día de hoy (para separar pagado/pendiente)
-    // SALDO DINÁMICO: cada banco = base (inicio de mes) + movimientos YA ocurridos este mes
-    // (ingresos/nómina/bizums − fijos − cuotas − puntuales − transfers). El de gasto (TR) usa su inyección.
-    // La diaria resta SOLO lo suyo (`spentByBank[ent]`), no thisMonthSpent entero: si no, un
-    // cargo de Revolut se come TR (257 € el 2026-08-18). thisMonthSpent se queda para Hogar / fallback.
-    const paidNetByBank={};
-    state.accounts.forEach(function(a){ if(accFixed(a)) paidNetByBank[a.ent]=(paidNetByBank[a.ent]||0)+monthNetForAccount(state,a.ent,curYear,curMonth,today); });
-    const dailyEnt=trAcc&&trAcc.ent;
-    const spentByBank=gastoDelMesPorBanco(thisMonthExp, dailyEnt);
+    const curMonth=ins.curMonth, curYear=ins.curYear, today=ins.today;   // día de hoy (para separar pagado/pendiente)
+    const paidNetByBank=ins.paidNetByBank;
+    const spentByBank=ins.spentByBank;
     // el round-up y el aporte periódico del mes ya salieron del efectivo de gasto (TR) hacia la inversión (en tránsito)
     const dynBal=function(a){
       return saldoCuentaMostrada(a, {

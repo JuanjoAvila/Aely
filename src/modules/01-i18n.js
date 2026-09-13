@@ -2451,13 +2451,34 @@ function expenseBucket(e, s){
 // despeja value de la fórmula del rol nuevo). Solo puede haber UNA cuenta de gasto diario: si
 // otra lo era, pasa a «fijos» con el mismo re-anclaje. Transform PURO de estado — lo usan el
 // editor de Patrimonio y el selector de «Gestionar mis bancos» (UX 2026-07-11).
+/* LOS INSUMOS DEL SALDO DE GASTO, EN UN SOLO SITIO (2026-09-13, su tercer rechazo del salto de
+   saldo al cambiar de rol: «6724 pasamos a 6681»). `totals` (11-app-main) los calculaba en línea y
+   `applyAccountRole` los re-calculaba a mano con copias que divergían: el redondeo de TR salía de
+   la diaria VIEJA, y el gasto del mes no pasaba por `expenseCountsCash`. Ahora los dos llaman a
+   esto — `totals` con el estado actual y `applyAccountRole` con el estado CON EL ROL NUEVO. */
+function insumosSaldoGasto(state){
+  const accounts=(state&&state.accounts)||[];
+  const monthStart=startOfMonth();
+  const thisMonthExp=((state&&state.expenses)||[]).filter(function(e){
+    return parseDate(e.date)>=monthStart && expenseCountsCash(e, state);
+  });
+  const trAcc=accounts.find(function(a){ return a.spendFrom; });
+  const injTR=(trAcc && nominaYaEntro()) ? accInject(trAcc) : 0;
+  const roundup=trAcc ? ((trAcc.roundupManual!=null)?trAcc.roundupManual:roundupOf(thisMonthExp, trAcc.roundup||0)) : 0;
+  const monthlyInvest=trAcc ? (trAcc.monthlyInvest||0) : 0;
+  const now=new Date();
+  const curMonth=now.getMonth()+1, curYear=now.getFullYear(), today=now.getDate();
+  const paidNetByBank={};
+  accounts.forEach(function(a){ if(accFixed(a)) paidNetByBank[a.ent]=(paidNetByBank[a.ent]||0)+monthNetForAccount(state,a.ent,curYear,curMonth,today); });
+  const spentByBank=gastoDelMesPorBanco(thisMonthExp, trAcc&&trAcc.ent);
+  return { trAcc:trAcc, thisMonthExp:thisMonthExp, injTR:injTR, roundup:roundup, monthlyInvest:monthlyInvest,
+    spentByBank:spentByBank, paidNetByBank:paidNetByBank, curMonth:curMonth, curYear:curYear, today:today };
+}
 function applyAccountRole(s, totals, id, r){
   const pn=function(i){ return (totals.paidNetByBank&&totals.paidNetByBank[i.ent])||0; };
   const ruM=totals.roundupThisMonth||0, miM=totals.monthlyInvestThisMonth||0;
   const spentOwn=function(i){ return (totals.spentByBank&&i.ent&&totals.spentByBank[i.ent])||0; };
   const spendBal=function(i){ return saldoCuentaGasto({value:i.value, injTR:totals.injTR||0, spentOwn:spentOwn(i), roundup:ruM, monthlyInvest:miM, ambos:accRole(i)==="ambos", paidNet:pn(i)}); };
-  const ruOfA=function(a){ return (a.roundupManual!=null)?a.roundupManual:(a.roundup?ruM:0); };
-  const injOfA=function(a){ return nominaYaEntro()? accInject(a):0; };
   const shownOf=function(a){ return accDaily(a)? spendBal(a) : ((a.value||0) + pn(a)); };
   /* EL `paidNet` QUE VALE ES EL DE DESPUÉS, NO EL DE ANTES (2026-09-12, reportado por él desde
      la app: «pasó de 6700 y algo a 6400 de golpe… se arregla sincronizando otra vez»).
@@ -2480,57 +2501,28 @@ function applyAccountRole(s, totals, id, r){
      mismo. ⚠ Esa suma cuenta DOBLE si un banco tiene dos cuentas fijas; es un defecto de fondo
      anotado al backlog y se replica a propósito: divergir aquí sería el fallo de la regla en dos
      sitios otra vez. Ver [[misma-regla-en-dos-sitios]]. */
-  const hoy=new Date();
-  const cy=totals.curYear!=null?totals.curYear:hoy.getFullYear();
-  const cm=totals.curMonth!=null?totals.curMonth:(hoy.getMonth()+1);
-  const td=totals.today!=null?totals.today:hoy.getDate();
   const fijoTras=function(rr){ return rr==="fijos"||rr==="ambos"; };
-  const diarioTras=function(rr){ return rr==="diario"||rr==="ambos"; };
   const rolTras=function(a){
     if(a.id===id) return r;
     if(r!=="fijos" && accDaily(a)) return "fijos";     // solo puede haber UNA cuenta de gasto diario
     return accRole(a);
   };
-  /* ⚠ Y `spentOwn` BAILA IGUAL QUE `paidNet` — la otra mitad del mismo fallo (2026-09-12 noche,
-     su segundo rechazo: «le cambio de Todo a solo recibos… perfecto. Luego vuelvo y elijo gastos
-     diarios y PAM, 300 pavos menos»).
-     `gastoDelMesPorBanco(gastos, dailyEnt)` reparte por banco y **manda los gastos SIN banco a la
-     cuenta de gasto diario** (`00-core`). O sea que en cuanto una cuenta pasa a ser la diaria,
-     hereda de golpe todos los gastos huerfanos del mes, y `saldoCuentaGasto` los RESTA.
-     Al re-anclar con el `spentOwn` viejo —el de cuando no era la diaria, sin esos gastos— el
-     saldo pintado se iba justo esa cantidad. Es exactamente el mismo error que ya se arreglo con
-     `paidNet` esta tarde, en la otra variable: arregle una mitad y la otra se quedo.
-     Aqui se calcula el reparto que habra DESPUES, con la diaria que quede. */
-  const entDiariaTras=function(){
-    if(diarioTras(r)) return (s.accounts||[]).filter(function(x){ return x.id===id; })[0] ? ((s.accounts||[]).filter(function(x){ return x.id===id; })[0].ent) : null;
-    const otra=(s.accounts||[]).filter(function(x){ return x.id!==id && accDaily(x); })[0];
-    return otra ? otra.ent : null;
-  };
-  const spentMapTras=(function(){
-    if(typeof gastoDelMesPorBanco!=="function" || typeof inicioDeMesMs!=="function") return null;
-    /* `inicioDeMesMs` y no `startOfMonth`: es la regla de «cuando empieza el mes» que usa el
-       resto de la app desde B09-B, y ademas la que existe en el sandbox de los tests — con la
-       otra, el arreglo se caia a la rama de abajo y el test nunca podia ponerse verde. */
-    const desde=inicioDeMesMs();
-    const mes=(s.expenses||[]).filter(function(e){ return e && dateMs(e.date)>=desde; });
-    return gastoDelMesPorBanco(mes, entDiariaTras());
-  })();
-  const spentTras=function(a){
-    if(!spentMapTras || !a || !a.ent) return spentOwn(a);
-    return spentMapTras[a.ent]||0;
-  };
-  const pnTras=function(a){
-    if(!a || !a.ent || typeof monthNetForAccount!=="function") return pn(a);
-    let v=0;
-    (s.accounts||[]).forEach(function(x){ if(x.ent===a.ent && fijoTras(rolTras(x))) v+=monthNetForAccount(s, a.ent, cy, cm, td); });
-    return v;
-  };
+  /* ⚠ TODO LO QUE BAILA CON EL ROL SE SACA DEL ESTADO DE DESPUÉS, con la MISMA función que usa
+     `totals` (`insumosSaldoGasto`). Tres rechazos suyos del mismo fallo, cada uno una variable
+     re-calculada a mano que no cuadraba con lo que se pinta:
+       · 4.19.84 `paidNet` (los recibos ya cobrados) — 300 €.
+       · 4.19.97 `spentOwn` (los gastos sin banco se los queda la diaria) — otros 300 €.
+       · 4.19.100 el redondeo de TR, que salía de la diaria VIEJA — 43 € («6724 → 6681»).
+     No más copias: el estado con el rol nuevo (value intacto) pasa por la misma regla. */
+  const sTras=Object.assign({},s,{accounts:(s.accounts||[]).map(function(a){
+    const rr=rolTras(a);
+    return rr===accRole(a) ? a : Object.assign({},a,{role:rr, spendFrom:rr!=="fijos"});
+  })});
+  const ins=insumosSaldoGasto(sTras);
   const valueForRole=function(a,rr,shown){
-    const pnNuevo=fijoTras(rr)?pnTras(a):0;
+    const pnNuevo=fijoTras(rr)?((a.ent&&ins.paidNetByBank[a.ent])||0):0;
     if(rr==="fijos") return +(shown - pnNuevo).toFixed(2);
-    /* `spentTras` y no `spentOwn`: con el rol nuevo la cuenta puede heredar (o soltar) los gastos
-       sin banco del mes, y esos los RESTA la formula de la diaria. */
-    return valueDesdeSaldo({shown:shown, injTR:injOfA(a), spentOwn:spentTras(a), roundup:ruOfA(a), monthlyInvest:a.monthlyInvest||0, ambos:rr==="ambos", paidNet:pnNuevo});
+    return valueDesdeSaldo({shown:shown, injTR:ins.injTR, spentOwn:(a.ent&&ins.spentByBank[a.ent])||0, roundup:ins.roundup, monthlyInvest:ins.monthlyInvest, ambos:rr==="ambos", paidNet:pnNuevo});
   };
   return Object.assign({},s,{accounts:s.accounts.map(function(a){
     if(a.id===id){ if(accRole(a)===r) return a; return Object.assign({},a,{role:r, spendFrom:r!=="fijos", value:valueForRole(a,r,shownOf(a))}); }

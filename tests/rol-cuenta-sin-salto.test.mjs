@@ -25,33 +25,26 @@ const hoy = new Date();
 const Y = hoy.getFullYear(), M = hoy.getMonth() + 1, D = hoy.getDate();
 
 /* Mismo cálculo que `totals` en 11-app-main: un término por cuenta `accFixed` de cada banco. */
+/* ⚠ SIN DOBLES: los insumos salen de `insumosSaldoGasto`, la MISMA función que usa `totals` en
+   11-app-main. Este test tuvo dos veces un doble más simple que la app justo donde fallaba:
+   primero `spentByBank: {}` (4.19.84, se escaparon 300 €) y luego `roundupThisMonth: 0` (4.19.97,
+   se escaparon 43 € — el redondeo de TR, que se calcula con la diaria que haya). */
 function totalsDe(s) {
-  const paidNetByBank = {};
-  (s.accounts || []).forEach((a) => {
-    if (ctx.accFixed(a)) paidNetByBank[a.ent] = (paidNetByBank[a.ent] || 0) + ctx.monthNetForAccount(s, a.ent, Y, M, D);
-  });
-  /* ⚠ `spentByBank` se calcula como lo calcula la app, NO con un {} vacío. Lo tuve vacío y por
-     eso la primera versión de este test daba por bueno un arreglo a medias: `gastoDelMesPorBanco`
-     manda los gastos SIN banco a la cuenta de gasto diario, así que ese mapa CAMBIA con el rol —
-     que es justo la mitad del fallo que se le escapó. Un doble más simple que la realidad no
-     prueba nada de lo que importa aquí. */
-  const desde = ctx.inicioDeMesMs();
-  const delMes = (s.expenses || []).filter((e) => ctx.dateMs(e.date) >= desde);
-  const diaria = (s.accounts || []).find((a) => ctx.accDaily(a));
+  const ins = ctx.insumosSaldoGasto(s);
   return {
-    paidNetByBank, spentByBank: ctx.gastoDelMesPorBanco(delMes, diaria && diaria.ent), injTR: 0,
-    roundupThisMonth: 0, monthlyInvestThisMonth: 0,
-    curYear: Y, curMonth: M, today: D,
+    paidNetByBank: ins.paidNetByBank, spentByBank: ins.spentByBank, injTR: ins.injTR,
+    roundupThisMonth: ins.roundup, monthlyInvestThisMonth: ins.monthlyInvest,
+    curYear: ins.curYear, curMonth: ins.curMonth, today: ins.today,
   };
 }
 /* El saldo que se PINTA en Cartera → Tus cuentas. */
 function pintado(s, id) {
   const tt = totalsDe(s);
   const a = (s.accounts || []).find((x) => x.id === id);
-  return ctx.saldoCuentaMostrada(a, {
+  return +ctx.saldoCuentaMostrada(a, {
     injTR: tt.injTR, spentByBank: tt.spentByBank, paidNetByBank: tt.paidNetByBank,
-    roundup: 0, monthlyInvest: 0,
-  });
+    roundup: tt.roundupThisMonth, monthlyInvest: tt.monthlyInvestThisMonth,
+  }).toFixed(2);
 }
 function estado(rolTR) {
   return {
@@ -154,6 +147,41 @@ t("los gastos huérfanos del mes se los queda la diaria NUEVA, no la vieja", () 
   const s1 = cambiaRol(s0, "sab", "diario");
   assert.equal(pintado(s1, "tr"), tr0);
   assert.equal(pintado(s1, "sab"), sab0);
+});
+
+/* ⚠ SU TERCER RECHAZO (13/9, en la 4.19.99.1): «ya no son 300 pavos… 6724 pasamos a 6681, ha
+   mejorado pero sigue reduciéndose». Los 43 € eran el REDONDEO de Trade Republic: `totals` lo
+   calcula con `roundupOf(gastos del mes, diaria.roundup)`, y `applyAccountRole` re-anclaba con el
+   de la diaria VIEJA (0 si TR venía de recibos). Céntimos a propósito: con importes redondos el
+   redondeo es 0 y el fallo no aparece. Y un posible repetido, que `totals` no cuenta
+   (`expenseCountsCash`) y el re-anclaje sí contaba. */
+function estadoTR(rolTR) {
+  const e = estado(rolTR);
+  e.accounts[0] = Object.assign({}, e.accounts[0], { roundup: 2, monthlyInvest: 50, inject: 1500 });
+  e.expenses = [gastoSuelto(3.4), gastoSuelto(7.15), gastoSuelto(12.99),
+    Object.assign(gastoSuelto(4.3), { id: "dup", possibleDup: true })];
+  return e;
+}
+
+t("su tercer rechazo: con redondeo de TR, Todo → Recibos → Gasto diario no se mueve", () => {
+  let s = estadoTR("ambos");
+  assert.ok(totalsDe(s).roundupThisMonth > 0, "premisa: el redondeo del mes no es 0");
+  const inicio = pintado(s, "tr");
+  s = cambiaRol(s, "tr", "fijos");
+  assert.equal(pintado(s, "tr"), inicio, "a Recibos");
+  s = cambiaRol(s, "tr", "diario");
+  assert.equal(pintado(s, "tr"), inicio, "y de vuelta a Gasto diario (los 43 €)");
+});
+
+t("con redondeo: pasar la diaria a Sabadell no mueve ninguno de los dos", () => {
+  const s0 = estadoTR("diario");
+  const tr0 = pintado(s0, "tr"), sab0 = pintado(s0, "sab");
+  const s1 = cambiaRol(s0, "sab", "diario");
+  assert.equal(pintado(s1, "tr"), tr0);
+  assert.equal(pintado(s1, "sab"), sab0);
+  const s2 = cambiaRol(s1, "tr", "diario");
+  assert.equal(pintado(s2, "tr"), tr0);
+  assert.equal(pintado(s2, "sab"), sab0);
 });
 
 console.log("rol-cuenta-sin-salto: OK");

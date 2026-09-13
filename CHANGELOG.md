@@ -1,3 +1,26 @@
+## [4.19.101] - 2026-09-13
+### El saldo al cambiar de rol: el redondeo de TR (su tercer rechazo)
+
+Rechazo en 4.19.99.1 de `rol-sin-salto-2`: *«ya no son 300 pavos… 6724 pasamos a 6681, ha
+mejorado pero sigue reduciéndose»*. No era un rechazo anterior al arreglo: probó la buena.
+
+Los 43 € eran el **redondeo de Trade Republic**. `totals` lo calcula con
+`roundupOf(gastos del mes, diaria.roundup)`, y `applyAccountRole` re-anclaba con
+`totals.roundupThisMonth` de la diaria VIEJA — 0 si TR venía de Recibos. Y el gasto del mes del
+re-anclaje no pasaba por `expenseCountsCash` (contaba posibles repetidos que lo pintado no cuenta).
+
+Tercera variable del mismo fallo en tres días (`paidNet` 4.19.84, `spentOwn` 4.19.97, redondeo
+ahora), las tres por lo mismo: copias a mano de lo que calcula `totals`. Arreglo de fondo: los
+insumos del saldo de gasto salen de **una sola función**, `insumosSaldoGasto(state)` (01-i18n).
+`totals` la usa con el estado actual; `applyAccountRole` con el estado CON EL ROL NUEVO. Fuera
+`pnTras`, `spentTras`, `ruOfA`, `injOfA`.
+
+⚠ El test tenía `roundupThisMonth: 0` sembrado a mano — la misma trampa que el `spentByBank: {}`
+de la 97. Ahora el test llama a `insumosSaldoGasto` y no hay doble. Casos nuevos con redondeo 2×,
+céntimos y un posible repetido, verificados EN ROJO sobre la 99 (6324,92 contra 6323,54).
+
+Voto de Cursor: verde a causa, diseño y rama (desde `origin/beta`).
+
 ## [4.19.100] - 2026-09-13
 ### Guardar: el CTA fuera del scroll (3er rechazo)
 
