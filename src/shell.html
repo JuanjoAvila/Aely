@@ -1013,15 +1013,19 @@
     pointer-events:auto;}
   .v4-sheet{width:100%;max-width:520px;max-height:88dvh;background:var(--bg-2);border:1px solid var(--line);border-bottom:none;
     border-radius:26px 26px 0 0;
-    /* Columna: el CTA queda FUERA del scroll. Con overflow:auto en la hoja entera
-       (hasta 4.19.93) el padding-bottom se iba debajo del pliegue cuando el teclado
-       no cabía en 88dvh — el halo (blur ≈ 42 px) se cortaba aunque el pad fuera 52
-       (medido 13/9: scrollH 762 > clientH 748 → solo ~38 px visibles bajo Guardar). */
-    display:flex;flex-direction:column;overflow:hidden;
-    padding:12px 18px calc(52px + var(--safe-bottom));
+    /* Por defecto la hoja ENTERA scrollea (filtro de Gastos, Más…, fijos…). */
+    overflow:auto;-webkit-overflow-scrolling:touch;
+    padding:12px 18px calc(36px + var(--safe-bottom));
     animation:sheetup .3s cubic-bezier(.22,1,.36,1);
     transition:transform .22s cubic-bezier(.32,.72,0,1);will-change:transform;touch-action:pan-y;
     box-shadow:0 -8px 28px rgba(0,0,0,.28);}
+  /* Solo hojas con cuerpo (Apuntar / ficha de gasto): CTA fijo fuera del scroll.
+     :has OK en WebView Chromium 150+. Regresión 4.19.100: flex+overflow:hidden en TODAS
+     las hojas dejaba el filtro de Gastos sin poder bajar (feedback 13/9). */
+  .v4-sheet:has(>.v4-sheet-body){
+    display:flex;flex-direction:column;overflow:hidden;
+    padding-bottom:calc(52px + var(--safe-bottom));
+  }
   .v4-sheet-body{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;}
   .v4-sheet > .v4-cta,.v4-sheet > .v4-danger{flex:0 0 auto;}
   .v4-sheet-handle{width:40px;height:5px;border-radius:4px;background:var(--line);margin:6px auto 14px;position:relative;flex:0 0 auto;cursor:grab;}

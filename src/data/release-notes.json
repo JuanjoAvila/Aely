@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.19.104",
+    "d": "13 sep 2026",
+    "t": {
+      "es": "El filtro de Gastos vuelve a dejarte bajar",
+      "en": "The Spending filter scrolls again",
+      "ca": "El filtre de Despeses torna a deixar-te baixar"
+    },
+    "items": {
+      "es": [
+        "Al arreglar el botón Guardar se había quedado sin scroll el filtro de Gastos y otras hojas: ya puedes bajar otra vez. Guardar sigue entero, sin corte."
+      ],
+      "en": [
+        "Fixing the Save button had left the Spending filter and other sheets unable to scroll: you can scroll again. Save still shows in full, without being cut off."
+      ],
+      "ca": [
+        "En arreglar el boto Desa s'havia quedat sense scroll el filtre de Despeses i altres fulles: ja pots baixar una altra vegada. Desa segueix sencer, sense tall."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "hojas-scroll",
+        "t": {
+          "es": "📜 Filtro de Gastos: ya puedes bajar otra vez",
+          "en": "📜 Spending filter: you can scroll again",
+          "ca": "📜 Filtre de Despeses: ja pots baixar una altra vegada"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, toca el chip de filtros (🎛️).",
+            "2. Baja por la lista de categorías y bancos: tiene que moverse con el dedo.",
+            "3. Cierra el filtro. Abre Apuntar (+): Guardar sigue visible entero abajo, sin cortarse.",
+            "4. En Gastos, toca Más… en los periodos y comprueba que también baja si hace falta."
+          ],
+          "en": [
+            "1. In Spending, tap the filters chip (🎛️).",
+            "2. Scroll the category and bank list: it must move with your finger.",
+            "3. Close the filter. Open Add (+): Save still shows in full at the bottom, not cut off.",
+            "4. In Spending, tap More… on periods and check it also scrolls if needed."
+          ],
+          "ca": [
+            "1. A Despeses, toca el xip de filtres (🎛️).",
+            "2. Baixa per la llista de categories i bancs: s'ha de moure amb el dit.",
+            "3. Tanca el filtre. Obre Apuntar (+): Desa segueix visible sencer a baix, sense tallar-se.",
+            "4. A Despeses, toca Mes… als periodes i comprova que tambe baixa si cal."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.103",
     "d": "13 sep 2026",
     "t": {

@@ -1,3 +1,14 @@
+## [4.19.104] - 2026-09-13
+### El filtro de Gastos vuelve a scrollear (regresión de Guardar)
+
+La 4.19.100 puso `display:flex; overflow:hidden` en **todas** las `.v4-sheet` para fijar el
+CTA de Apuntar. Las hojas sin `.v4-sheet-body` (filtro de Gastos, Más…, fijos, deudas…) se
+quedaron sin scroll: «no puedo bajar».
+
+Arreglo: la hoja por defecto vuelve a `overflow:auto` (pad 36). Solo
+`.v4-sheet:has(>.v4-sheet-body)` usa la columna + pad 52 del halo. Guardianes: `v4-cta-halo` +
+e2e `hojas-scroll`.
+
 ## [4.19.103] - 2026-09-13
 ### Idiomas en/ca fuera del bundle (A/B de gzip)
 

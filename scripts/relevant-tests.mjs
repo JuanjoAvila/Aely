@@ -118,6 +118,8 @@ export const CROSSCUTTING = [
   "e2e/ux01-layout-shift.spec.mjs",
   /* A/B idiomas: en/ca fuera del bundle; arranque debe esperar el JSON. */
   "e2e/i18n-pack.spec.mjs",
+  /* Regresión 4.19.100: hojas sin body tienen que scrollear; Apuntar mantiene CTA fijo. */
+  "e2e/hojas-scroll.spec.mjs",
 ];
 
 const STEPS_DOCS = ["guard-privacy", "docs-frescura", "memoria-espejo"];
