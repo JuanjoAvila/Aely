@@ -214,8 +214,8 @@ const TRASPASO_CAT = { id:"traspaso", name:"Traspaso", color:"#8AA0B8", icon:"�
 /* LA CUOTA DE UNA DEUDA QUE MANDA EL BANCO (4.21.0, idea suya del 12/9: «categorías automáticas
    por las deudas… y así se pudieran filtrar»). Antes `importObExpenses` la TIRABA para no contarla
    dos veces: ya resta en el Plan. Ahora entra, con `debtId`, pero neutra: se ve y se filtra, y no
-   toca ni el gastado del mes ni el saldo de gasto (`expenseCountsCash`). Solo la pone el sync: no
-   sale en el selector de categorías. */
+   suma al gastado del mes. El saldo de gasto SÍ la sigue contando, a propósito (ver
+   `expenseCountsCash`). La pone `marcarCuotasDeDeuda`: no sale en el selector de categorías. */
 const DEUDA_CAT = { id:"deudas", name:"Deudas", color:"#C98A7A", icon:"💳" };
 // Categorías que NO son gasto ni ingreso: mueven dinero, no lo crean ni lo consumen.
 const CAT_NEUTRAS = { inversion:1, traspaso:1, deudas:1 };
