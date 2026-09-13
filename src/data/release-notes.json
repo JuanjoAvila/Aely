@@ -1,223 +1,36 @@
 [
   {
-    "v": "4.20.3",
-    "d": "13 sep 2026",
+    "v": "4.20.4",
+    "d": "14 sep 2026",
     "t": {
-      "es": "Al apuntar un gasto, la categoría se sugiere sola",
-      "en": "When you add an expense, the category suggests itself",
-      "ca": "En apuntar una despesa, la categoria es suggereix sola"
-    },
-    "items": {
-      "es": [
-        "Escribes el concepto y, si la app lo reconoce, elige la categoría. Si no, y tienes la sugerencia con IA encendida, te ofrece un chip: un toque y listo."
-      ],
-      "en": [
-        "You type what it was for and, if the app recognizes it, it picks the category. If not, and AI suggestions are on, it offers a chip — one tap and done."
-      ],
-      "ca": [
-        "Escrius el concepte i, si l'app el reconeix, tria la categoria. Si no, i tens el suggeriment amb IA encès, t'ofereix un xip: un toc i llest."
-      ]
-    },
-    "tandas": [
-      {
-        "id": "apuntar-sugerencia",
-        "t": {
-          "es": "✨ Categoría al apuntar",
-          "en": "✨ Category while adding",
-          "ca": "✨ Categoria en apuntar"
-        },
-        "items": {
-          "es": [
-            "1. Ajustes → activa «Sugerir categoría (IA)» si quieres probar también el chip de IA.",
-            "2. Pulsa + (Apuntar) y escribe «Mercadona» en el concepto.",
-            "3. En menos de un segundo debe quedar seleccionado Supermercado, con una ✨.",
-            "4. Toca a mano otra categoría (p. ej. Ocio) y sigue escribiendo: no puede cambiarte el chip.",
-            "5. (Opcional) Escribe un comercio raro: si la IA responde, sale un chip ✨ aparte; un toque lo aplica."
-          ],
-          "en": [
-            "1. Settings → turn on Suggest category (AI) if you also want to try the AI chip.",
-            "2. Tap + (Add) and type Mercadona in the note.",
-            "3. Within a second Supermarket should be selected, with a sparkle.",
-            "4. Tap another category by hand (e.g. Leisure) and keep typing: the chip must not change.",
-            "5. (Optional) Type a weird merchant: if AI answers, a separate sparkle chip appears; one tap applies it."
-          ],
-          "ca": [
-            "1. Ajustos → activa «Suggerir categoria (IA)» si vols provar també el xip d'IA.",
-            "2. Prem + (Apuntar) i escriu «Mercadona» al concepte.",
-            "3. En menys d'un segon ha de quedar seleccionat Super, amb una ✨.",
-            "4. Toca a mà una altra categoria (p. ex. Oci) i continua escrivint: no et pot canviar el xip.",
-            "5. (Opcional) Escriu un comerç rar: si l'IA respon, surt un xip ✨ a part; un toc l'aplica."
-          ]
-        }
-      }
-    ]
-  },
-  {
-    "v": "4.20.2",
-    "d": "13 sep 2026",
-    "t": {
-      "es": "Tu Hogar compartido, más protegido",
-      "en": "Your shared Household, better protected",
-      "ca": "La teva Llar compartida, més protegida"
-    },
-    "items": {
-      "es": [
-        "Los códigos para invitar a alguien a tu Hogar son más largos y más difíciles de adivinar. Los que ya tenías siguen funcionando."
-      ],
-      "en": [
-        "Codes to invite someone to your Household are longer and harder to guess. The ones you already had keep working."
-      ],
-      "ca": [
-        "Els codis per convidar algú a la teva Llar són més llargs i més difícils d'endevinar. Els que ja tenies continuen funcionant."
-      ]
-    },
-    "tandas": []
-  },
-  {
-    "v": "4.20.1",
-    "d": "13 sep 2026",
-    "t": {
-      "es": "Gastos ya no se ralentiza de tanto subir y bajar",
-      "en": "Spending no longer slows down from scrolling up and down",
-      "ca": "Despeses ja no s'alenteix de tant pujar i baixar"
-    },
-    "items": {
-      "es": [
-        "Al volver arriba del todo, la lista de gastos se aligera sola. Así, por mucho que bajes y subas, no se va haciendo cada vez más pesada."
-      ],
-      "en": [
-        "When you go back to the very top, the spending list lightens itself. However much you scroll up and down, it no longer gets heavier each time."
-      ],
-      "ca": [
-        "En tornar a dalt de tot, la llista de despeses s'alleugereix sola. Per molt que baixis i pugis, ja no es fa cada cop més pesada."
-      ]
-    },
-    "tandas": [
-      {
-        "id": "gastos-suelta-filas",
-        "t": {
-          "es": "🐢 Gastos no se ralentiza al subir y bajar",
-          "en": "🐢 Spending doesn't slow down when scrolling",
-          "ca": "🐢 Despeses no s'alenteix en pujar i baixar"
-        },
-        "items": {
-          "es": [
-            "1. Esto es tu queja: «he bajado y subido varias veces… y de repente se ha comenzado a ralentizar, hasta que la app entera».",
-            "2. Gastos → Más… → Todo, para tener la lista entera.",
-            "3. Baja rápido un buen rato, hasta muy abajo. Luego sube hasta arriba del todo.",
-            "4. Repite eso mismo cinco o seis veces seguidas, como hiciste aquella vez.",
-            "5. No puede ir cada vez más a tirones: la sexta bajada tiene que ir tan fluida como la primera.",
-            "6. Y a mitad de lista, si subes solo un poco, no puede saltar ni desaparecer nada de lo que ves."
-          ],
-          "en": [
-            "1. This is your complaint: “I scrolled down and up several times… and suddenly it started slowing down, until the whole app did”.",
-            "2. Spending → More… → All, to have the whole list.",
-            "3. Scroll down fast for a good while, very far. Then scroll back to the very top.",
-            "4. Repeat that five or six times in a row, like you did that time.",
-            "5. It can't get jerkier each time: the sixth trip down must be as smooth as the first.",
-            "6. And halfway down, if you scroll up just a little, nothing you see can jump or disappear."
-          ],
-          "ca": [
-            "1. Això és la teva queixa: «he baixat i pujat diverses vegades… i de cop ha començat a alentir-se, fins que tota l'app».",
-            "2. Despeses → Més… → Tot, per tenir la llista sencera.",
-            "3. Baixa ràpid una bona estona, fins molt avall. Després puja fins a dalt de tot.",
-            "4. Repeteix això mateix cinc o sis vegades seguides, com vas fer aquella vegada.",
-            "5. No pot anar cada cop més a batzegades: la sisena baixada ha d'anar tan fluida com la primera.",
-            "6. I a mitja llista, si puges només una mica, no pot saltar ni desaparèixer res del que veus."
-          ]
-        }
-      }
-    ]
-  },
-  {
-    "v": "4.20.0",
-    "d": "13 sep 2026",
-    "t": {
-      "es": "Avisos más claros al actualizar y al reconectar un banco",
-      "en": "Clearer messages when refreshing and reconnecting a bank",
-      "ca": "Avisos més clars en actualitzar i en reconnectar un banc"
+      "es": "Más claridad, más fluidez y más protección",
+      "en": "Clearer, smoother and better protected",
+      "ca": "Més clara, més fluida i més protegida"
     },
     "items": {
       "es": [
         "Al tocar «Actualizar» sale un solo aviso con todo: qué bancos están al día, las inversiones y si alguno necesita que hagas algo. Antes un aviso tapaba al otro y parecía que no había pasado nada.",
-        "Cuando vuelves de dar permiso a tu banco, el aviso de «reconecta» desaparece enseguida, sin esperar a que se actualicen todos los bancos."
+        "Cuando vuelves de dar permiso a tu banco, el aviso de «reconecta» desaparece enseguida, sin esperar a que se actualicen todos los bancos.",
+        "Al volver arriba del todo, la lista de gastos se aligera sola. Así, por mucho que bajes y subas, no se va haciendo cada vez más pesada.",
+        "Los códigos para invitar a alguien a tu Hogar son más largos y más difíciles de adivinar. Los que ya tenías siguen funcionando.",
+        "Escribes el concepto y, si la app lo reconoce, elige la categoría. Si no, y tienes la sugerencia con IA encendida, te ofrece un chip: un toque y listo."
       ],
       "en": [
         "Tapping “Refresh” now shows one message with everything: which banks are up to date, your investments, and whether any needs you to do something. Before, one message covered the other and it looked like nothing had happened.",
-        "When you come back from granting permission to your bank, the “reconnect” notice goes away at once, without waiting for every bank to update."
+        "When you come back from granting permission to your bank, the “reconnect” notice goes away at once, without waiting for every bank to update.",
+        "When you go back to the very top, the spending list lightens itself. However much you scroll up and down, it no longer gets heavier each time.",
+        "Codes to invite someone to your Household are longer and harder to guess. The ones you already had keep working.",
+        "You type what it was for and, if the app recognizes it, it picks the category. If not, and AI suggestions are on, it offers a chip — one tap and done."
       ],
       "ca": [
         "En tocar «Actualitza» surt un sol avís amb tot: quins bancs estan al dia, les inversions i si algun necessita que facis alguna cosa. Abans un avís tapava l'altre i semblava que no havia passat res.",
-        "Quan tornes de donar permís al teu banc, l'avís de «reconnecta» desapareix de seguida, sense esperar que s'actualitzin tots els bancs."
+        "Quan tornes de donar permís al teu banc, l'avís de «reconnecta» desapareix de seguida, sense esperar que s'actualitzin tots els bancs.",
+        "En tornar a dalt de tot, la llista de despeses s'alleugereix sola. Per molt que baixis i pugis, ja no es fa cada cop més pesada.",
+        "Els codis per convidar algú a la teva Llar són més llargs i més difícils d'endevinar. Els que ja tenies continuen funcionant.",
+        "Escrius el concepte i, si l'app el reconeix, tria la categoria. Si no, i tens el suggeriment amb IA encès, t'ofereix un xip: un toc i llest."
       ]
     },
-    "tandas": [
-      {
-        "id": "sync-un-aviso",
-        "t": {
-          "es": "🔄 «Actualizar» te dice qué ha pasado",
-          "en": "🔄 “Refresh” tells you what happened",
-          "ca": "🔄 «Actualitza» et diu què ha passat"
-        },
-        "items": {
-          "es": [
-            "1. Esto es tu queja: «si actualizo saldo de un banco, por ejemplo Trade Republic, no me dice nada».",
-            "2. Cartera → toca el botón de actualizar (↻) de Tus cuentas.",
-            "3. Espera a que termine: tiene que salir UN aviso que diga cuántos bancos están al día y, si tienes, que las inversiones también.",
-            "4. El aviso tiene que quedarse en pantalla lo suficiente para leerlo entero, sin desaparecer a medias.",
-            "5. Si algún banco necesita reconectarse, el aviso empieza por ⚠ con ese banco, pero también dice los que sí han ido bien.",
-            "6. Repite desde Ajustes → Bancos → Actualizar todos: mismo aviso, uno solo."
-          ],
-          "en": [
-            "1. This is your complaint: “if I refresh a bank, e.g. Trade Republic, it doesn't tell me anything”.",
-            "2. Wallet → tap the refresh button (↻) in Your accounts.",
-            "3. Wait until it finishes: ONE message must appear saying how many banks are up to date and, if you have them, that investments are too.",
-            "4. The message must stay long enough to read it whole, without vanishing halfway.",
-            "5. If a bank needs reconnecting, the message starts with ⚠ and that bank, but also says which ones went fine.",
-            "6. Repeat from Settings → Banks → Refresh all: same message, just one."
-          ],
-          "ca": [
-            "1. Això és la teva queixa: «si actualitzo el saldo d'un banc, per exemple Trade Republic, no em diu res».",
-            "2. Cartera → toca el botó d'actualitzar (↻) dels teus comptes.",
-            "3. Espera que acabi: ha de sortir UN avís que digui quants bancs estan al dia i, si en tens, que les inversions també.",
-            "4. L'avís s'ha de quedar a la pantalla prou temps per llegir-lo sencer, sense desaparèixer a mitges.",
-            "5. Si algun banc s'ha de reconnectar, l'avís comença per ⚠ amb aquest banc, però també diu els que han anat bé.",
-            "6. Repeteix des d'Ajustos → Bancs → Actualitza tots: el mateix avís, només un."
-          ]
-        }
-      },
-      {
-        "id": "cartel-reconectar",
-        "t": {
-          "es": "🏦 El aviso de reconectar se va al volver del banco",
-          "en": "🏦 The reconnect notice clears when you return from the bank",
-          "ca": "🏦 L'avís de reconnectar se'n va en tornar del banc"
-        },
-        "items": {
-          "es": [
-            "1. Esto es tu queja: «conectas otra vez y desaparece el cartel pero tarda 8 horas laborables».",
-            "2. Solo se puede probar si algún banco te pide reconectar (sale el aviso en Cartera). Si no tienes ninguno así ahora, marca «no lo puedo probar».",
-            "3. Toca Reconectar en ese banco y da el permiso en la app o web del banco.",
-            "4. Al volver a Aely, el aviso de ESE banco tiene que desaparecer en uno o dos segundos, no al cabo de un rato.",
-            "5. Si tenías otro banco también pendiente, su aviso tiene que seguir ahí."
-          ],
-          "en": [
-            "1. This is your complaint: “you connect again and the notice goes away but it takes 8 working hours”.",
-            "2. It can only be tested if a bank is asking you to reconnect (the notice shows in Wallet). If none is right now, mark “can't test it”.",
-            "3. Tap Reconnect on that bank and grant permission in the bank's app or website.",
-            "4. When you come back to Aely, THAT bank's notice must disappear within a second or two, not after a while.",
-            "5. If another bank was pending too, its notice must still be there."
-          ],
-          "ca": [
-            "1. Això és la teva queixa: «connectes una altra vegada i el cartell desapareix però triga 8 hores laborables».",
-            "2. Només es pot provar si algun banc et demana reconnectar (surt l'avís a Cartera). Si ara no en tens cap, marca «no ho puc provar».",
-            "3. Toca Reconnecta en aquest banc i dona el permís a l'app o web del banc.",
-            "4. En tornar a Aely, l'avís d'AQUEST banc ha de desaparèixer en un o dos segons, no al cap d'una estona.",
-            "5. Si tenies un altre banc també pendent, el seu avís hi ha de continuar."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.106",

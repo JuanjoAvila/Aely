@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-13 · **v4.20.3** — al apuntar, la categoría se sugiere sola (palabras clave + chip IA).
+> Estado a 2026-09-14 · **v4.20.4** — la ronda 4.20 a producción, con UNA nota para la familia.
+> Anterior: **v4.20.3** — al apuntar, la categoría se sugiere sola (palabras clave + chip IA).
 > Anterior: **v4.20.2** — seguridad: el código del Hogar y los topes de app_events (OPS-06).
 > Anterior: **v4.20.1** — Gastos ya no se ralentiza de tanto subir y bajar.
 > Anterior: **v4.20.0** — nueva ronda de beta (renumerada a petición suya); prod sigue en 4.19.106.
@@ -169,7 +170,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.20.3** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.20.4** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

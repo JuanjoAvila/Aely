@@ -1,3 +1,13 @@
+## [4.20.4] - 2026-09-14
+### La ronda 4.20 a producción, con una sola nota
+
+Él aprobó las cuatro tandas en 4.20.3.1 (cartel-reconectar 5/5, sync-un-aviso 6/6,
+gastos-suelta-filas 6/6, apuntar-sugerencia 5/5): *«te aprobé todas las tandas… pa prod y a
+resetear de 0 otra vez beta»*. Las notas 4.20.0–4.20.3 se juntan en la entrada 4.20.4 para la
+familia; todas las notas con `tandas:[]`. Incluye las migraciones 0022 (freno Hogar) y 0023
+(topes de app_events), que se aplican con este promote. El arreglo del token de ingest en la APK
+va con la APK 46 (nativo).
+
 ## [4.20.3] - 2026-09-13
 ### Al apuntar un gasto, la categoría se sugiere sola
 
