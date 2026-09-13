@@ -1,3 +1,12 @@
+## [4.20.0] - 2026-09-13
+### Nueva ronda de beta: la numeración vuelve a empezar
+
+Petición suya: *«resetea la beta, que va por la 108 si me has subido todo lo de antes… pa no seguir
+aumentando»*. Producción está en **4.19.106** con todo lo anterior; la ronda de beta pasa a
+**4.20.x**. Las 4.19.107 («Actualizar» dice qué ha pasado) y 4.19.108 (el cartel de reconectar)
+nunca llegaron a producción: se juntan en **4.20.0**, UNA entrada de Novedades con sus dos tandas.
+Su detalle técnico sigue abajo con sus números originales.
+
 ## [4.19.108] - 2026-09-13
 ### El cartel de «reconecta» se va al volver del banco
 
