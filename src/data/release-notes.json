@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.21.1",
+    "d": "14 sep 2026",
+    "t": {
+      "es": "Más protección para tus datos en el móvil",
+      "en": "Better protection for your data on the phone",
+      "ca": "Més protecció per a les teves dades al mòbil"
+    },
+    "items": {
+      "es": [
+        "La app nueva de Android ya no deja copias de tu cartera en las copias de seguridad del móvil. Si cambias de móvil, solo tienes que iniciar sesión: todo sigue en la nube."
+      ],
+      "en": [
+        "The new Android app no longer leaves copies of your wallet in the phone's backups. If you change phones, just sign in: everything is still in the cloud."
+      ],
+      "ca": [
+        "L'app nova d'Android ja no deixa còpies de la teva cartera a les còpies de seguretat del mòbil. Si canvies de mòbil, només has d'iniciar sessió: tot continua al núvol."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.21.0",
     "d": "14 sep 2026",
     "t": {

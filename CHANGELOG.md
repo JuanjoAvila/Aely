@@ -1,3 +1,13 @@
+## [4.21.1] - 2026-09-14
+### APK 46 en la calle, traída a beta
+
+Con su OK: `release:apk` desde `tanda/apk-46` (base 4.20.4) → release `v4.20.4` con
+`Aely-4.20.4.apk` (código 46). Sin token de ingest (OPS-06 P0) y sin copia de Android:
+`allowBackup="false"` + `dataExtractionRules` que excluyen nube y traspaso de móvil a móvil
+(en Android 12+ `allowBackup` solo no apaga el D2D). `main` avanzó en fast-forward con eso y
+`apk.json`; aquí se mezcla `main` en `beta`. Bump porque el manifiesto y un comentario
+(nit de Cursor en `DEUDA_CAT`) entraron después del de 4.21.0 y `docs-frescura` lo exige.
+
 ## [4.21.0] - 2026-09-14
 ### Las cuotas de las deudas, en Gastos («Deudas» + un filtro por deuda)
 
