@@ -1011,19 +1011,22 @@
     /* Velo verdoso suave: se ve la app, sin el negro seco ni el scale (feedback 2026-07-17). */
     background:rgba(8,28,20,.28);
     pointer-events:auto;}
-  .v4-sheet{width:100%;max-width:520px;max-height:88dvh;overflow:auto;background:var(--bg-2);border:1px solid var(--line);border-bottom:none;
+  .v4-sheet{width:100%;max-width:520px;max-height:88dvh;background:var(--bg-2);border:1px solid var(--line);border-bottom:none;
     border-radius:26px 26px 0 0;
-    /* 36 px abajo (no 18): el halo de `.v4-cta` llega a ~34 px bajo el botón
-       (`0 14px 28px -8px`). Con `overflow:auto` y letra normal la hoja no scrollea,
-       el botón queda al borde y el halo se corta en seco — «sale cortado lo de
-       guardar» (12/9). Con letra grande scrollea y el corte no se veía. */
-    padding:12px 18px calc(36px + var(--safe-bottom));
+    /* Columna: el CTA queda FUERA del scroll. Con overflow:auto en la hoja entera
+       (hasta 4.19.93) el padding-bottom se iba debajo del pliegue cuando el teclado
+       no cabía en 88dvh — el halo (blur ≈ 42 px) se cortaba aunque el pad fuera 52
+       (medido 13/9: scrollH 762 > clientH 748 → solo ~38 px visibles bajo Guardar). */
+    display:flex;flex-direction:column;overflow:hidden;
+    padding:12px 18px calc(52px + var(--safe-bottom));
     animation:sheetup .3s cubic-bezier(.22,1,.36,1);
     transition:transform .22s cubic-bezier(.32,.72,0,1);will-change:transform;touch-action:pan-y;
     box-shadow:0 -8px 28px rgba(0,0,0,.28);}
-  .v4-sheet.dragging{transition:none;}
+  .v4-sheet-body{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;}
+  .v4-sheet > .v4-cta,.v4-sheet > .v4-danger{flex:0 0 auto;}
   .v4-sheet-handle{width:40px;height:5px;border-radius:4px;background:var(--line);margin:6px auto 14px;position:relative;flex:0 0 auto;cursor:grab;}
   .v4-sheet-handle::before{content:"";position:absolute;inset:-16px -48px;}
+  .v4-sheet.dragging{transition:none;}
   html.sheet-open .app-shell{
     pointer-events:none !important;
   }
@@ -1537,7 +1540,7 @@
      pegada al nombre se cortaba con nombres largos o con «· caducado» (2026-07-18). */
   .v4-ob-badge{display:inline-block;font-size:10.5px;font-weight:800;border-radius:8px;padding:2px 7px;margin-left:7px;vertical-align:middle;white-space:nowrap;line-height:1.4;}
   .v4-mov .meta .v4-ob-badge{margin-left:0;}
-  html.sheet-open .v4-sheet,html.sheet-open .v4-chips{touch-action:pan-y pan-x;pointer-events:auto;}
+  html.sheet-open .v4-sheet,html.sheet-open .v4-sheet-body,html.sheet-open .v4-chips{touch-action:pan-y pan-x;pointer-events:auto;}
   html.sheet-open .v4-sheet-back{pointer-events:auto;}
   .v4-link-mini{display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:6px 10px;border-radius:999px;border:none;background:rgba(95,208,138,.16);color:var(--mint);font-weight:800;font-size:12.5px;font-family:inherit;cursor:pointer;}
   /* Los dos accesos de «Tus cuentas» (sincronizar y conectar), en icono (2026-09-11). Iban como

@@ -39,8 +39,11 @@ function AskHost(){
     return function(){ askEmit=null; };
   },[]);
   /* Marca el documento mientras hay diálogo: el CSS apaga el halo de `.v4-cta` debajo
-     (si no, Guardar se lee a través del velo al borrar un gasto — 12/9). */
-  useEffect(function(){
+     (si no, Guardar se lee a través del velo al borrar un gasto — 12/9).
+     useLayoutEffect, no useEffect: con el efecto normal el primer frame pinta el
+     ask encima CON el halo mint todavía encendido, y él lo veía «muy rápido pero
+     se nota» (3er rechazo 13/9). Layout corre antes del paint. */
+  useLayoutEffect(function(){
     var root=document.documentElement;
     if(cur) root.classList.add("ask-open");
     else root.classList.remove("ask-open");

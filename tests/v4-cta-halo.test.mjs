@@ -16,20 +16,28 @@ function t(name, fn) {
 
 console.log("v4-cta-halo");
 
-t("la hoja deja hueco bajo el CTA para el halo (~34 px)", () => {
+t("la hoja deja hueco bajo el CTA y el CTA NO scrollea con el teclado", () => {
+  const css = shell.replace(/\/\*[\s\S]*?\*\//g, "");
   assert.match(
-    shell.replace(/\/\*[\s\S]*?\*\//g, ""),
-    /\.v4-sheet\{[^}]*padding:[^;]*calc\(36px \+ var\(--safe-bottom\)\)/,
-    "padding-bottom de .v4-sheet tiene que cubrir el box-shadow del CTA"
+    css,
+    /\.v4-sheet\{[^}]*display:\s*flex[^}]*flex-direction:\s*column[^}]*overflow:\s*hidden/,
+    ".v4-sheet en columna con overflow:hidden (el body scrollea, no la hoja)"
+  );
+  assert.match(css, /\.v4-sheet-body\{[^}]*overflow:\s*auto/, "falta .v4-sheet-body con scroll");
+  assert.match(
+    css,
+    /\.v4-sheet\{[^}]*padding:[^;]*calc\(52px \+ var\(--safe-bottom\)\)/,
+    "padding-bottom ≥ offset+blur del halo (~42 px → 52)"
   );
 });
 
-t("con ask abierto se apaga el halo (no se «sobrepone» Guardar al borrar)", () => {
+t("con ask abierto se apaga el halo ANTES del paint (no se «sobrepone» Guardar al borrar)", () => {
   assert.match(
     shell.replace(/\/\*[\s\S]*?\*\//g, ""),
     /html\.ask-open\s+\.v4-cta\{box-shadow:\s*none;?\}/,
     "falta html.ask-open .v4-cta{box-shadow:none}"
   );
+  assert.match(ask, /useLayoutEffect\s*\(/, "AskHost marca ask-open en useLayoutEffect (antes del paint)");
   assert.match(ask, /classList\.add\(["']ask-open["']\)/, "AskHost tiene que marcar html.ask-open");
 });
 

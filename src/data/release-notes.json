@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.19.100",
+    "d": "13 sep 2026",
+    "t": {
+      "es": "El botón Guardar se ve entero, también con el teclado largo",
+      "en": "The Save button stays whole, even with the tall keypad",
+      "ca": "El botó Desa es veu sencer, també amb el teclat llarg"
+    },
+    "items": {
+      "es": [
+        "En Apuntar, Guardar ya no parece cortado por abajo: el botón se queda fijo debajo del teclado y la sombra cabe entera.",
+        "Al borrar un gasto, el brillo verde de Guardar ya no asoma un instante detrás del aviso."
+      ],
+      "en": [
+        "In Add, Save no longer looks cut off at the bottom: the button stays fixed under the keypad and the shadow fits in full.",
+        "When deleting an expense, Save’s green glow no longer flashes behind the confirm dialog."
+      ],
+      "ca": [
+        "A Apuntar, Desa ja no sembla tallat per sota: el botó queda fix sota el teclat i l’ombra hi cap sencera.",
+        "En esborrar una despesa, la lluentor verda de Desa ja no asoma un instant darrere de l’avís."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "guardar-pie",
+        "t": {
+          "es": "💾 Guardar entero, sin destello al borrar",
+          "en": "💾 Save whole, no flash on delete",
+          "ca": "💾 Desa sencer, sense flaix en esborrar"
+        },
+        "items": {
+          "es": [
+            "1. Ajustes → letra Normal. Abre Apuntar (+): el botón «Guardar gasto» de abajo se ve ENTERO, con su sombra suave, sin borde duro. No hace falta bajar la hoja.",
+            "2. Prueba también letra Grande y Enorme: igual.",
+            "3. En Gastos, abre un gasto y toca borrar: el aviso NO debe dejar ver ni un instante el brillo verde de Guardar debajo."
+          ],
+          "en": [
+            "1. Settings → Normal font. Open Add (+): the bottom «Save expense» button looks WHOLE, soft shadow, no hard edge. No need to scroll the sheet.",
+            "2. Try Large and Huge font too: same.",
+            "3. In Expenses, open one and tap delete: the confirm must NOT flash Save’s green glow underneath, even for a moment."
+          ],
+          "ca": [
+            "1. Ajustos → lletra Normal. Obre Apuntar (+): el botó «Desar despesa» de baix es veu SENCER, ombra suau. No cal baixar el full.",
+            "2. Prova també lletra Gran i Enorme: igual.",
+            "3. A Despeses, obre’n una i toca esborrar: l’avís NO ha de deixar veure ni un instant la lluentor verda de Desa."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.99",
     "d": "12 sep 2026",
     "t": {
@@ -346,33 +396,7 @@
         "Amb la mida de lletra normal, el botó Desa del full semblava tallat per sota: era l'ombra, retallada. I en esborrar una despesa, la lluentor verda asomava darrere de l'avís. Les dues coses ja estan quietes."
       ]
     },
-    "tandas": [
-      {
-        "id": "guardar-cta",
-        "t": {
-          "es": "💾 Guardar y borrar en la ficha",
-          "en": "💾 Save and delete on the expense sheet",
-          "ca": "💾 Desa i esborra a la fitxa"
-        },
-        "items": {
-          "es": [
-            "1. Ajustes → letra en Normal (si no lo estaba). Abre Apuntar (+): el botón Guardar de abajo tiene que verse entero, con su sombra suave, sin borde duro cortado.",
-            "2. En Gastos, abre un gasto y toca borrar: el aviso de confirmación NO debe dejar ver el brillo verde de Guardar debajo. Si «se sobrepone», dilo.",
-            "3. Vuelve a letra Grande un momento: sigue viéndose bien (antes el fallo solo salía en normal)."
-          ],
-          "en": [
-            "1. Settings → font Normal. Open Add (+): the bottom Save button must look whole, soft shadow, no hard clipped edge.",
-            "2. In Expenses, open one and tap delete: the confirm dialog must NOT show Save's green glow underneath.",
-            "3. Switch to Large font briefly: still fine (the bug only showed on Normal before)."
-          ],
-          "ca": [
-            "1. Ajustos → lletra Normal. Obre Apuntar (+): el botó Desa de baix s'ha de veure sencer, ombra suau, sense vora tallada.",
-            "2. A Despeses, obre'n una i toca esborrar: l'avís NO ha de deixar veure la lluentor verda de Desa a sota.",
-            "3. Torna a lletra Gran un moment: segueix bé."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.19.92",

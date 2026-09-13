@@ -1,3 +1,25 @@
+## [4.19.100] - 2026-09-13
+### Guardar: el CTA fuera del scroll (3er rechazo)
+
+Rechazo en 4.19.99.1 de `guardar-cta`: *«sigue cortado… en todo tipo de letras»* y
+*«sigue viéndose lo que va muy rápido pero se nota»* al borrar.
+
+La 4.19.93 subió el `padding-bottom` de `.v4-sheet` a 36 px (halo geométrico ≈ 34 px) y
+apagó el halo con `html.ask-open`. **No bastó**, y medido el 13/9:
+
+1. **Corte.** Con el teclado de Apuntar, `scrollHeight` 762 > `clientHeight` 748 (`max-height:
+   88dvh`). El padding-bottom se iba **debajo del pliegue** del `overflow:auto` de la hoja:
+   visibles ~38 px bajo el botón, y el blur del `box-shadow` (offset+blur ≈ 42 px) se cortaba
+   en seco. Por eso lo veía en toda letra, no solo en normal.
+2. **Destello.** `ask-open` se marcaba en `useEffect` → un frame con el ask encima y el halo
+   mint todavía encendido.
+
+Arreglo: `.v4-sheet` en columna (`overflow:hidden`), cuerpo scrolleable (`.v4-sheet-body`),
+CTA/danger como hijos directos con pad 52 px; `useLayoutEffect` para `ask-open`. Apuntar y
+ficha de gasto.
+
+Tests: `tests/v4-cta-halo.test.mjs`. Tanda nueva `guardar-pie` (no se reusa `guardar-cta`).
+
 ## [4.19.99] - 2026-09-12
 ### Un banco se comía a otro en el histórico, y lo cantó la sonda
 

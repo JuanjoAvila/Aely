@@ -1011,70 +1011,67 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCardF
     React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
       React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",style:{maxHeight:"90dvh"},ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
-        React.createElement("div",{className:"v4-exp-hero"},
-          React.createElement("div",{className:"v4-exp-ico",style:{borderColor:c.color+"55",color:c.color,background:c.color+"18"}}, c.icon),
-          React.createElement("input",{className:"v4-exp-amt num serif",inputMode:"decimal",value:editExp.amount,onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{amount:v}); }); },onBlur:closeSave,"aria-label":t("v4_exp_amount")}),
-          React.createElement("input",{className:"v4-exp-name",value:editExp.merchant,placeholder:t("v4_exp_merchant_ph"),onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{merchant:v}); }); },onBlur:closeSave}),
-          React.createElement("div",{className:"v4-exp-meta"}, metaBits.join(" · "))
-        ),
-        exp.possibleDup && React.createElement("div",{className:"hint",style:{marginTop:10,padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
-          React.createElement("div",{style:{fontWeight:600,marginBottom:4}}, t("g_dup_title")),
-          React.createElement("div",{style:{marginBottom:10}}, t("g_dup_sub")),
-          React.createElement("div",{className:"row",style:{gap:8}},
-            React.createElement("button",{type:"button",className:"btn btn-primary",style:{flex:1},onClick:function(){ resolveDup && resolveDup(exp,true); onClose(); }}, t("g_dup_same")),
-            React.createElement("button",{type:"button",className:"btn btn-ghost",style:{flex:1},onClick:function(){ resolveDup && resolveDup(exp,false); onClose(); }}, t("g_dup_diff"))
-          )
-        ),
-        React.createElement("div",{className:"v4-exp-sec",style:{marginTop:12}}, t("ap_date")),
-        React.createElement("div",{className:"v4-chips"},
-          React.createElement("button",{type:"button",className:"v4-chip"+(calOpen?" on":""),"data-testid":"exp-date",
-            onClick:function(){ setCalOpen(function(v){ return !v; }); }},
-            "📅 "+fmtIsoCorto(dateIso))
-        ),
-        calOpen && React.createElement(McCal,{value:dateIso, onPick:function(iso){
-          setCalOpen(false);
-          saveEdit(exp, {date:iso});
-        }}),
-        // CONCEPTO (2026-07-24): lo que trae el banco/el bizum, y editable para poder apuntar lo
-        // que sea («comida con los del trabajo»). Se guarda con nota_edit para que el siguiente
-        // sync del banco no pise lo que ha escrito el usuario.
-        React.createElement("div",{className:"v4-exp-sec",style:{marginTop:14}}, t("v4_exp_note")),
-        React.createElement("input",{className:"v4-exp-note-in",value:editExp.note||"",maxLength:160,
-          placeholder:t("v4_exp_note_ph"),
-          onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{note:v}); }); },
-          onBlur:function(){ saveNote(exp, editExp.note); },"aria-label":t("v4_exp_note")}),
-        (exp.note && !exp.noteEdited) && React.createElement("div",{className:"hint",style:{marginTop:5}}, t("v4_exp_note_bank")),
-        !isIncome && React.createElement(React.Fragment,null,
-          React.createElement("div",{className:"v4-exp-sec"}, t("v4_exp_cat")),
-          React.createElement("div",{className:"v4-chips"},
-            CATEGORIES.concat([INVERSION_CAT,TRASPASO_CAT]).map(function(cc){
-              return React.createElement("button",{key:cc.id,type:"button",className:"v4-chip"+(cc.id===exp.category?" on":""),onClick:function(){ setCat(exp,cc.id); }}, cc.icon+" "+catName(cc.id));
-            })
+        React.createElement("div",{className:"v4-sheet-body"},
+          React.createElement("div",{className:"v4-exp-hero"},
+            React.createElement("div",{className:"v4-exp-ico",style:{borderColor:c.color+"55",color:c.color,background:c.color+"18"}}, c.icon),
+            React.createElement("input",{className:"v4-exp-amt num serif",inputMode:"decimal",value:editExp.amount,onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{amount:v}); }); },onBlur:closeSave,"aria-label":t("v4_exp_amount")}),
+            React.createElement("input",{className:"v4-exp-name",value:editExp.merchant,placeholder:t("v4_exp_merchant_ph"),onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{merchant:v}); }); },onBlur:closeSave}),
+            React.createElement("div",{className:"v4-exp-meta"}, metaBits.join(" · "))
           ),
-          React.createElement("button",{type:"button",className:"v4-sheet-row"+(exp.noCard?"":" on"),style:{marginTop:12},onClick:function(){ setCardFlag(exp,!exp.noCard); }},
-            exp.noCard?("💸 "+t("v4_exp_not_card")):("💳 "+t("v4_exp_with_card"))),
-          // Banco del gasto: SOLO editable en apuntes manuales (los de OB/TR traen su banco real).
-          (!auto && setBank) && (function(){
-            const seen={}; const opts=[];
-            (state.accounts||[]).forEach(function(a){ if(a&&a.ent&&!seen[a.ent]){ seen[a.ent]=1; opts.push(a.ent); } });
-            if(!opts.length) return null;
-            return React.createElement(React.Fragment,null,
-              React.createElement("div",{className:"v4-exp-sec",style:{marginTop:14}}, t("ap_bank")),
-              React.createElement("div",{className:"v4-chips"},
-                React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); }}, t("ap_bank_none")),
-                opts.map(function(b){
-                  return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),onClick:function(){ setBank(exp,b); }}, "🏦 "+entOf(b).label);
-                })
-              )
-            );
-          })(),
-          // En cualquier categoría (no solo Otros): KW + IA si el interruptor está on.
-          cloud.enabled() && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:8},disabled:aiBusy,onClick:function(){ suggestAi(exp); }}, aiBusy?t("ai_cat_busy"):t("ai_cat_btn"))
-        ),
-        React.createElement("div",{className:"v4-exp-sec",style:{marginTop:14}}, t("v4_exp_type")),
-        React.createElement("div",{className:"v4-toggle"},
-          React.createElement("button",{type:"button",className:!editExp.income?"on":"",onClick:function(){ setEditExp(function(p){ return Object.assign({},p,{income:false}); }); }},"💸 "+t("v4_gasto")),
-          React.createElement("button",{type:"button",className:editExp.income?"on":"",onClick:function(){ setEditExp(function(p){ return Object.assign({},p,{income:true}); }); }},"💰 "+t("v4_ingreso"))
+          exp.possibleDup && React.createElement("div",{className:"hint",style:{marginTop:10,padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
+            React.createElement("div",{style:{fontWeight:600,marginBottom:4}}, t("g_dup_title")),
+            React.createElement("div",{style:{marginBottom:10}}, t("g_dup_sub")),
+            React.createElement("div",{className:"row",style:{gap:8}},
+              React.createElement("button",{type:"button",className:"btn btn-primary",style:{flex:1},onClick:function(){ resolveDup && resolveDup(exp,true); onClose(); }}, t("g_dup_same")),
+              React.createElement("button",{type:"button",className:"btn btn-ghost",style:{flex:1},onClick:function(){ resolveDup && resolveDup(exp,false); onClose(); }}, t("g_dup_diff"))
+            )
+          ),
+          React.createElement("div",{className:"v4-exp-sec",style:{marginTop:12}}, t("ap_date")),
+          React.createElement("div",{className:"v4-chips"},
+            React.createElement("button",{type:"button",className:"v4-chip"+(calOpen?" on":""),"data-testid":"exp-date",
+              onClick:function(){ setCalOpen(function(v){ return !v; }); }},
+              "📅 "+fmtIsoCorto(dateIso))
+          ),
+          calOpen && React.createElement(McCal,{value:dateIso, onPick:function(iso){
+            setCalOpen(false);
+            saveEdit(exp, {date:iso});
+          }}),
+          React.createElement("div",{className:"v4-exp-sec",style:{marginTop:14}}, t("v4_exp_note")),
+          React.createElement("input",{className:"v4-exp-note-in",value:editExp.note||"",maxLength:160,
+            placeholder:t("v4_exp_note_ph"),
+            onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{note:v}); }); },
+            onBlur:function(){ saveNote(exp, editExp.note); },"aria-label":t("v4_exp_note")}),
+          (exp.note && !exp.noteEdited) && React.createElement("div",{className:"hint",style:{marginTop:5}}, t("v4_exp_note_bank")),
+          !isIncome && React.createElement(React.Fragment,null,
+            React.createElement("div",{className:"v4-exp-sec"}, t("v4_exp_cat")),
+            React.createElement("div",{className:"v4-chips"},
+              CATEGORIES.concat([INVERSION_CAT,TRASPASO_CAT]).map(function(cc){
+                return React.createElement("button",{key:cc.id,type:"button",className:"v4-chip"+(cc.id===exp.category?" on":""),onClick:function(){ setCat(exp,cc.id); }}, cc.icon+" "+catName(cc.id));
+              })
+            ),
+            React.createElement("button",{type:"button",className:"v4-sheet-row"+(exp.noCard?"":" on"),style:{marginTop:12},onClick:function(){ setCardFlag(exp,!exp.noCard); }},
+              exp.noCard?("💸 "+t("v4_exp_not_card")):("💳 "+t("v4_exp_with_card"))),
+            (!auto && setBank) && (function(){
+              const seen={}; const opts=[];
+              (state.accounts||[]).forEach(function(a){ if(a&&a.ent&&!seen[a.ent]){ seen[a.ent]=1; opts.push(a.ent); } });
+              if(!opts.length) return null;
+              return React.createElement(React.Fragment,null,
+                React.createElement("div",{className:"v4-exp-sec",style:{marginTop:14}}, t("ap_bank")),
+                React.createElement("div",{className:"v4-chips"},
+                  React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); }}, t("ap_bank_none")),
+                  opts.map(function(b){
+                    return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),onClick:function(){ setBank(exp,b); }}, "🏦 "+entOf(b).label);
+                  })
+                )
+              );
+            })(),
+            cloud.enabled() && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:8},disabled:aiBusy,onClick:function(){ suggestAi(exp); }}, aiBusy?t("ai_cat_busy"):t("ai_cat_btn"))
+          ),
+          React.createElement("div",{className:"v4-exp-sec",style:{marginTop:14}}, t("v4_exp_type")),
+          React.createElement("div",{className:"v4-toggle"},
+            React.createElement("button",{type:"button",className:!editExp.income?"on":"",onClick:function(){ setEditExp(function(p){ return Object.assign({},p,{income:false}); }); }},"💸 "+t("v4_gasto")),
+            React.createElement("button",{type:"button",className:editExp.income?"on":"",onClick:function(){ setEditExp(function(p){ return Object.assign({},p,{income:true}); }); }},"💰 "+t("v4_ingreso"))
+          )
         ),
         React.createElement("button",{type:"button",className:"v4-cta",style:{marginTop:16},onClick:doSaveClose}, t("fj_save")),
         React.createElement("button",{type:"button",className:"v4-danger",onClick:doDel}, "🗑 "+t("v4_exp_del"))

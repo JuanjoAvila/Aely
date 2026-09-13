@@ -650,46 +650,46 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
       React.createElement("div",Object.assign({className:"v4-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
-        React.createElement("div",{className:"v4-toggle"},
-          React.createElement("button",{className:kind==="gasto"?"on":"",onClick:function(){ setKind("gasto"); }},"💸 "+t("v4_gasto")),
-          React.createElement("button",{className:kind==="ingreso"?"on":"",onClick:function(){ setKind("ingreso"); }},"💰 "+t("v4_ingreso"))
+        /* Cuerpo con scroll; Guardar fuera (shell: .v4-sheet flex + .v4-sheet-body). */
+        React.createElement("div",{className:"v4-sheet-body"},
+          React.createElement("div",{className:"v4-toggle"},
+            React.createElement("button",{className:kind==="gasto"?"on":"",onClick:function(){ setKind("gasto"); }},"💸 "+t("v4_gasto")),
+            React.createElement("button",{className:kind==="ingreso"?"on":"",onClick:function(){ setKind("ingreso"); }},"💰 "+t("v4_ingreso"))
+          ),
+          React.createElement("div",{className:"v4-apuntar-amt serif num"},
+            raw?raw+" "+entrySym:React.createElement("span",{style:{color:"var(--muted-2)"}},"0 "+entrySym)),
+          entryCur!=="EUR" && React.createElement("div",{style:{fontSize:12,color:"var(--muted)",textAlign:"center",marginTop:-4,marginBottom:6}}, t("ap_fx_hint")),
+          React.createElement("div",{className:"v4-chips","aria-label":t("ap_cur_lbl")},
+            curChips.map(function(c){
+              return React.createElement("button",{key:c,type:"button",className:"v4-chip"+(entryCur===c?" on":""),onClick:function(){ pickCur(c); }},
+                (CUR_SYM[c]||c)+" "+c);
+            })
+          ),
+          React.createElement("input",{className:"v4-input",placeholder:t("v4_apuntar_ph"),value:note,onChange:function(e){ setNote(e.target.value); }}),
+          React.createElement("div",{className:"v4-chips"},
+            React.createElement("button",{type:"button",className:"v4-chip"+(calOpen?" on":""),"data-testid":"ap-date",
+              onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }},
+              "📅 "+fmtIsoCorto(date)),
+            bankOpts.length>0 && React.createElement("button",{type:"button",className:"v4-chip"+(bankOpen?" on":""),"data-testid":"ap-bank",
+              onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }},
+              "🏦 "+(bank==null?t("ap_bank_none"):entOf(bank).label))
+          ),
+          calOpen && React.createElement(McCal,{value:date, onPick:function(iso){ setDate(iso); setCalOpen(false); }}),
+          bankOpen && bankOpts.length>0 && React.createElement("div",{className:"v4-chips wrap","data-testid":"ap-bank-list"},
+            React.createElement("button",{type:"button",className:"v4-chip"+(bank==null?" on":""),onClick:function(){ setBank(null); setBankOpen(false); }}, t("ap_bank_none")),
+            bankOpts.map(function(b){
+              return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bank===b?" on":""),onClick:function(){ setBank(b); setBankOpen(false); }},
+                "🏦 "+entOf(b).label);
+            })
+          ),
+          kind==="gasto" && React.createElement("div",{className:"v4-chips"},
+            cats.map(function(c){
+              return React.createElement("button",{key:c.id,className:"v4-chip"+(cat===c.id?" on":""),onClick:function(){ setCat(c.id); }},
+                c.icon+" "+catName(c.id));
+            })
+          ),
+          React.createElement(NumPad,{value:raw, onChange:setRaw})
         ),
-        React.createElement("div",{className:"v4-apuntar-amt serif num"},
-          raw?raw+" "+entrySym:React.createElement("span",{style:{color:"var(--muted-2)"}},"0 "+entrySym)),
-        entryCur!=="EUR" && React.createElement("div",{style:{fontSize:12,color:"var(--muted)",textAlign:"center",marginTop:-4,marginBottom:6}}, t("ap_fx_hint")),
-        // Moneda del apunte (independiente de Ajustes → Moneda de visualización).
-        React.createElement("div",{className:"v4-chips","aria-label":t("ap_cur_lbl")},
-          curChips.map(function(c){
-            return React.createElement("button",{key:c,type:"button",className:"v4-chip"+(entryCur===c?" on":""),onClick:function(){ pickCur(c); }},
-              (CUR_SYM[c]||c)+" "+c);
-          })
-        ),
-        React.createElement("input",{className:"v4-input",placeholder:t("v4_apuntar_ph"),value:note,onChange:function(e){ setNote(e.target.value); }}),
-        React.createElement("div",{className:"v4-chips"},
-          React.createElement("button",{type:"button",className:"v4-chip"+(calOpen?" on":""),"data-testid":"ap-date",
-            onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }},
-            "📅 "+fmtIsoCorto(date)),
-          // Mismo gesto que el cuadradito de filtros en Gastos: cerrado = una pastilla,
-          // tocas y se despliegan los bancos (sin la fila infinita que tapaba el teclado).
-          bankOpts.length>0 && React.createElement("button",{type:"button",className:"v4-chip"+(bankOpen?" on":""),"data-testid":"ap-bank",
-            onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }},
-            "🏦 "+(bank==null?t("ap_bank_none"):entOf(bank).label))
-        ),
-        calOpen && React.createElement(McCal,{value:date, onPick:function(iso){ setDate(iso); setCalOpen(false); }}),
-        bankOpen && bankOpts.length>0 && React.createElement("div",{className:"v4-chips wrap","data-testid":"ap-bank-list"},
-          React.createElement("button",{type:"button",className:"v4-chip"+(bank==null?" on":""),onClick:function(){ setBank(null); setBankOpen(false); }}, t("ap_bank_none")),
-          bankOpts.map(function(b){
-            return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bank===b?" on":""),onClick:function(){ setBank(b); setBankOpen(false); }},
-              "🏦 "+entOf(b).label);
-          })
-        ),
-        kind==="gasto" && React.createElement("div",{className:"v4-chips"},
-          cats.map(function(c){
-            return React.createElement("button",{key:c.id,className:"v4-chip"+(cat===c.id?" on":""),onClick:function(){ setCat(c.id); }},
-              c.icon+" "+catName(c.id));
-          })
-        ),
-        React.createElement(NumPad,{value:raw, onChange:setRaw}),
         React.createElement("button",{className:"v4-cta",onClick:save},
           kind==="ingreso"?t("v4_save_in"):t("v4_save_gasto"))
       )

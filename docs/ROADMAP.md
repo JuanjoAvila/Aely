@@ -1,8 +1,9 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-12 · **v4.19.99** — un banco ya no se come a otro en el historico.
+> Estado a 2026-09-13 · **v4.19.100** — Guardar entero (CTA fijo bajo el teclado).
+> Anterior: **v4.19.99** — un banco ya no se come a otro en el historico.
 > Anterior: **v4.19.97** — el saldo al cambiar de rol, la otra mitad.
-> Anterior: **v4.19.93** — Guardar sin corte ni brillo bajo el diálogo.
+> Anterior: **v4.19.93** — Guardar sin corte ni brillo (superescrito por 100).
 > Anterior: **v4.19.92** — histórico madrugada + notas sin duplicados.
 > Anterior: **v4.19.90** — dismissNews + intento de e2e (hack retirado).
 > Anterior: **v4.19.89** — e2e tandas vacías con prod.
@@ -157,7 +158,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.19.99** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.19.100** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |
