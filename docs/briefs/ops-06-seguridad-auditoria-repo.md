@@ -57,6 +57,19 @@ mano (ver `supabase.yml`, «las dos 0012»). La pasada contra la BD real (`pg_po
 banco) sin freno propio: un bucle podría gastar el consentimiento del usuario («uso robótico»,
 ya pasó con Caixa/Sabadell el 18/7).
 
+## 🟠 P2 — Manifiesto Android (14/9)
+
+- **`android:allowBackup="true"`**: la copia de seguridad de Android (Google Drive / cable) se
+  lleva los datos de la app, incluida la sesión de Supabase y la cartera entera guardada en la
+  WebView, y se pueden restaurar en otro móvil. Para una app de dinero con usuarios de fuera:
+  `allowBackup="false"` o reglas `dataExtractionRules` que excluyan la WebView. Va con una APK.
+- **`REQUEST_INSTALL_PACKAGES`** + instalar APK desde la app: la **Play Store lo restringe** y
+  rechaza apps que se auto-actualizan fuera de Play. Antes de publicar en Play hay que quitar el
+  instalador propio (y el OTA de Capgo revisarlo contra su política). No es un fallo hoy (canal
+  familiar por GitHub); es un bloqueo para DEC-01.
+- **Esquema `micartera://bank`**: cualquier web o app puede abrirlo. Hoy solo dispara un aviso y un
+  sync del propio usuario (inofensivo) y el `msg` se pinta como texto, no HTML. Mantenerlo así.
+
 ## 🟢 Bien (comprobado en el repo)
 
 - `expenses`, `app_state`, `state_backups`, `ingest_tokens`: RLS `auth.uid() = user_id` en
