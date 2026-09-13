@@ -27,7 +27,7 @@ test.use({ viewport: { width: 375, height: 812 } });
 async function abrirCartera(page) {
   await seedLoggedInDashboard(page, {
     accounts, hasBankLink: true,
-    settings: { autoPrices: false, theme: "green", expenseBanks: ["revolut"] },
+    settings: { autoPrices: false, theme: "green", expenseBanks: ["revolut", "efectivo"], dailyOnlyBanks: ["efectivo"] },
   });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
@@ -39,6 +39,16 @@ async function abrirCartera(page) {
 
 const fila = (page, nombre) => page.locator(".v4-card-list button.v4-mov").filter({ hasText: nombre }).first();
 const ficha = (page) => page.locator(".v4-sheet");
+
+test("el Efectivo enseña «Gasto diario», no «Recibos»", async ({ page }) => {
+  await abrirCartera(page);
+  await fila(page, "Efectivo").click();
+  await expect(ficha(page)).toBeVisible();
+  // Hotfix 13/9: solo una opción, y es gasto diario (no recibos domiciliados).
+  await expect(ficha(page).locator(".v4-ficha-op")).toHaveCount(1);
+  await expect(ficha(page).locator(".v4-ficha-op.on")).toContainText(/Gasto diario|Daily spending|Despesa diària/i);
+  await expect(ficha(page)).not.toContainText(/^Recibos$|^Bills$|^Rebuts$/m);
+});
 
 test("tocar una cuenta abre su ficha, y la fila no lleva flecha", async ({ page }) => {
   await abrirCartera(page);

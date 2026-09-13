@@ -21,12 +21,55 @@ async function abrirRevisionBeta(page) {
   await page.waitForFunction(() => Array.isArray(window.RELEASE_NOTES) && window.RELEASE_NOTES.length > 0, null, { timeout: 10_000 });
 }
 
+/* Tras promote a prod con nota única, TODAS las entradas llevan `tandas:[]` → panel a 0
+ * (correcto). Los tests de REGLA (aprobar, heredar, progreso…) necesitan puntos: se borra
+ * `tandas` de esa versión para recuperar la tanda implícita «todo» (≠ array vacío).
+ *
+ * ⚠ El bundle de e2e lleva `APP_VERSION:"dev"`. Si el panel llega a leer producción real
+ * (Pages), `mcIsNewer(…,"dev")` es NaN y la ronda se llena de notas con `tandas:[]` → vacío.
+ * Por eso aquí se sella una versión numérica y se anula prod salvo que el test la fije después. */
+async function seedImplicitChecklist(page, opts) {
+  const ver = opts && opts.ver;
+  const minItems = (opts && opts.minItems) || 3;
+  await page.evaluate(({ ver, minItems }) => {
+    if (ver) {
+      CONFIG.APP_VERSION = ver;
+    } else if (!CONFIG.APP_VERSION || CONFIG.APP_VERSION === "dev" || /[^0-9.]/.test(String(CONFIG.APP_VERSION))) {
+      CONFIG.APP_VERSION = ((RELEASE_NOTES[0] && RELEASE_NOTES[0].v) || "4.19.106") + ".7";
+    }
+    const base = mcVerBase(CONFIG.APP_VERSION);
+    let notes = (RELEASE_NOTES || []).find((n) => n && n.v === base);
+    if (!notes) {
+      notes = {
+        v: base, d: "e2e",
+        t: { es: "e2e", en: "e2e", ca: "e2e" },
+        items: { es: [], en: [], ca: [] },
+      };
+      RELEASE_NOTES.unshift(notes);
+    }
+    delete notes.tandas;
+    if (!notes.items || typeof notes.items !== "object") notes.items = { es: [], en: [], ca: [] };
+    ["es", "en", "ca"].forEach(function (lang) {
+      const arr = Array.isArray(notes.items[lang]) ? notes.items[lang] : (notes.items[lang] = []);
+      while (arr.length < minItems) arr.push("punto sintético e2e " + arr.length);
+    });
+    window._mcProdVersion = function () { return Promise.resolve(null); };
+  }, { ver: ver || null, minItems });
+}
+
 test("el panel de revisión saca la checklist de las notas de la versión", async ({ page }) => {
   await abrirRevisionBeta(page);
 
   // Se abre el panel directamente (la ruta por Ajustes depende del perfil admin del servidor).
+  const hayRonda = await page.evaluate(() =>
+    (RELEASE_NOTES || []).some((n) => Array.isArray(n.tandas) && n.tandas.length > 0));
   const items = await page.evaluate(() => betaChecklist(CONFIG.APP_VERSION).items.length);
-  expect(items, "la versión en curso debería traer notas que sirvan de checklist").toBeGreaterThan(0);
+  if (hayRonda) {
+    expect(items, "con ronda viva tiene que haber checklist").toBeGreaterThan(0);
+  } else {
+    // Promote 4.19.106: todo en prod → `tandas:[]` en todas → panel vacío a propósito.
+    expect(items, "sin ronda viva el panel tiene que quedar a 0").toBe(0);
+  }
 });
 
 test("betaChecklist casa la beta (4.8.0.17) con las notas de su versión base (4.8.0)", async ({ page }) => {
@@ -42,6 +85,7 @@ test("betaChecklist casa la beta (4.8.0.17) con las notas de su versión base (4
 
 test("no se puede aprobar con cosas sin probar ni con fallos marcados", async ({ page }) => {
   await abrirRevisionBeta(page);
+  await seedImplicitChecklist(page);
 
   // Monta el panel a mano: es la unidad que interesa, sin depender del gate de admin del servidor.
   await page.evaluate(() => {
@@ -132,6 +176,7 @@ async function conProduccionEn(page, version) {
 test("con producción por DETRÁS, la beta sigue pidiendo veredicto", async ({ page }) => {
   await abrirRevisionBeta(page);
   await page.evaluate(() => { CONFIG.APP_VERSION = "4.13.0.7"; });   // una beta sellada de verdad
+  await seedImplicitChecklist(page, { ver: "4.13.0.7" });
   const panel = await conProduccionEn(page, "0.0.1");
   await expect(panel).toBeVisible();
   await expect(panel.locator(".beta-tanda").first().getByRole("button", { name: /Aprobar esta (beta|tanda)/i })).toBeVisible();
@@ -152,6 +197,11 @@ test("una versión sin sellar («dev») NO se da por aprobada sola", async ({ pa
   await abrirRevisionBeta(page);
   // El bundle del repo va con APP_VERSION "dev" hasta que `stamp-version` corre. Con el NaN
   // suelto, esto escondía el veredicto en TODAS las betas que se probaran sin sellar.
+  // Tip con tandas implícitas (no `[]`): si no, la ronda > prod sale vacía y el test no mide el NaN.
+  await page.evaluate(() => {
+    const tip = RELEASE_NOTES[0];
+    if (tip) delete tip.tandas;
+  });
   await page.evaluate(() => { CONFIG.APP_VERSION = "dev"; });
   const panel = await conProduccionEn(page, "4.12.1");
   await expect(panel).toBeVisible();
@@ -160,6 +210,7 @@ test("una versión sin sellar («dev») NO se da por aprobada sola", async ({ pa
 
 test("el progreso sobrevive a cerrar la app (se prueba durante días)", async ({ page }) => {
   await abrirRevisionBeta(page);
+  await seedImplicitChecklist(page);
   await page.evaluate(() => {
     const host = document.createElement("div");
     host.id = "e2e-beta";
@@ -170,6 +221,9 @@ test("el progreso sobrevive a cerrar la app (se prueba durante días)", async ({
   await expect(page.locator(".beta-review")).toContainText("1/");
 
   // Recarga completa: el progreso vive en localStorage por versión.
+  // seedImplicitChecklist sella APP_VERSION a X.Y.Z.7 (el bundle es «dev»); tras reload
+  // CONFIG vuelve a «dev», así que la clave se lee con la versión que se usó al marcar.
+  const verMarcada = await page.evaluate(() => CONFIG.APP_VERSION);
   await page.reload();
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   // La clave va por COMPILACIÓN (4.12.0.17), no por versión base (4.12.0) — cambiado el
@@ -177,7 +231,7 @@ test("el progreso sobrevive a cerrar la app (se prueba durante días)", async ({
   // se ponga vacío». Antes, la beta siguiente heredaba las cruces y los comentarios de la
   // anterior, así que el arreglo llegaba ya marcado como fallo. Dentro de la MISMA beta el
   // progreso se conserva, que es lo que prueba este test.
-  const guardado = await page.evaluate(() => store.get("_betaReview_" + CONFIG.APP_VERSION));
+  const guardado = await page.evaluate((v) => store.get("_betaReview_" + v), verMarcada);
   expect(guardado, "el progreso de la revisión se perdió al recargar").toEqual({ 0: "ok" });
 });
 
@@ -295,6 +349,7 @@ test("✓, «no lo puedo probar» Y los ✗ con su comentario se heredan entre c
 
 test("quitar un ✗ heredado se lleva su comentario (no reaparece en la siguiente)", async ({ page }) => {
   await abrirRevisionBeta(page);
+  await seedImplicitChecklist(page);
   await page.evaluate(() => {
     const items = betaChecklist(CONFIG.APP_VERSION).items;
     store.set("_betaReviewOk", { [items[0]]: "ko" });
@@ -371,6 +426,8 @@ test("la versión en curso: tandas (o la implícita) cubren TODOS los puntos ali
   /* Sin la propiedad `tandas` betaTandas inventa una sola «todo» (versiones del histórico).
      Con varias, la lista plana TIENE que ser la concatenación exacta — regresión 2026-08-01. */
   await abrirRevisionBeta(page);
+  // Tras promote con `tandas:[]` en todas, se siembra la implícita para comprobar la forma.
+  await seedImplicitChecklist(page);
   const r = await page.evaluate(() => {
     const p = betaChecklist(CONFIG.APP_VERSION);
     return {
@@ -401,8 +458,12 @@ test("con prod conocida, la checklist junta toda la ronda (no solo la última ve
      de verdad se defiende es que la ronda abarque VARIAS versiones y llegue hasta la más vieja. */
   await abrirRevisionBeta(page);
   const r = await page.evaluate(() => {
-    /* Un tip por encima de todo lo escrito: así la ronda es la de verdad y el test no caduca
-       cada vez que sube la VERSION. */
+    /* Tras un promote limpio todas las notas reales llevan tandas:[]. Se plantan DOS versiones
+       sintéticas con tandas vivas por encima de prod, para no depender de la ronda del día. */
+    RELEASE_NOTES.unshift(
+      { v: "4.99.0", d: "e2e", t: "tip e2e", tandas: [{ id: "nueva", t: "Nueva", items: { es: ["N1"], en: ["N1"], ca: ["N1"] } }], items: { es: ["N1"], en: ["N1"], ca: ["N1"] } },
+      { v: "4.98.0", d: "e2e", t: "vieja e2e", tandas: [{ id: "vieja", t: "Vieja", items: { es: ["V1"], en: ["V1"], ca: ["V1"] } }], items: { es: ["V1"], en: ["V1"], ca: ["V1"] } },
+    );
     const solo = betaChecklist("4.99.0");
     const ronda = betaChecklist("4.99.0", "4.18.7");
     const planos = [];
@@ -418,13 +479,13 @@ test("con prod conocida, la checklist junta toda la ronda (no solo la última ve
   });
   expect(r.rondaN).toBeGreaterThan(r.soloN);
   /* La ronda tiene que venir de VARIAS versiones distintas (eso es lo que se rompió), y la más
-     vieja que quede en el JSON tiene que estar dentro. */
+     vieja sembrada tiene que estar dentro. */
   const versiones = r.ids.map((id) => String(id).split("/")[0]);
-  expect(new Set(versiones).size).toBeGreaterThan(2);
+  expect(new Set(versiones).size).toBeGreaterThan(1);
   expect(versiones[versiones.length - 1]).not.toBe(versiones[0]);
-  expect(r.titulos.every((t) => /^v4\.19\./.test(t))).toBe(true);
+  expect(r.titulos.every((t) => /^v4\./.test(String(t)))).toBe(true);
   expect(r.planosOk, "marks por índice: la lista plana = concat de tandas en el mismo orden").toBe(true);
-  expect(r.rondaItems).toBeGreaterThan(2);
+  expect(r.rondaItems).toBeGreaterThanOrEqual(2);
 });
 
 /* PANEL CON TANDAS DE VARIAS VERSIONES (2026-09-07). Lo de arriba solo ejercita betaChecklist
@@ -596,6 +657,7 @@ test("cada tanda lleva su cuenta propia, no la de la beta entera", async ({ page
  * DOS sitios (fila y panel), así que blindar la función blinda a ambos a la vez. */
 test("betaMarksCount cuenta lo marcado en ESTA compilación (no la versión base)", async ({ page }) => {
   await abrirRevisionBeta(page);
+  await seedImplicitChecklist(page, { minItems: 3 });
   // Hace falta una nota con ≥3 puntos que SÍ viaje en el bundle (tope 20).
   await page.evaluate(() => {
     const base = (RELEASE_NOTES || []).find(function (n) {
@@ -620,6 +682,7 @@ test("betaMarksCount cuenta lo marcado en ESTA compilación (no la versión base
 
 test("betaMarksCount hereda lo aprobado de una compilación anterior, aunque cambie el número", async ({ page }) => {
   await abrirRevisionBeta(page);
+  await seedImplicitChecklist(page, { minItems: 3 });
   await page.evaluate(() => {
     const base = (RELEASE_NOTES || []).find(function (n) {
       return betaChecklist(n.v).items.length >= 3;

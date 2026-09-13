@@ -1680,6 +1680,13 @@ function ensureEfectivoAccount(state, initialValue){
   const eb=(settings.expenseBanks||[]).slice();
   if(eb.indexOf("efectivo")<0) eb.push("efectivo");
   settings.expenseBanks=eb;
+  /* ⚠ Y SOLO GASTO DIARIO (13/9, hotfix suyo y de su padre: «el efectivo te lo crea de gasto
+     diario y recibo… al editarlo no te da a elegir que solo sea para gasto diario»). Sin
+     `dailyOnlyBanks` el sobre salía como «Gasto diario · Recibos»: en expenseBanks cuenta para el
+     día a día y, con rol `fijos`, también para recibos. El efectivo no tiene recibos domiciliados. */
+  const d0=(settings.dailyOnlyBanks||[]).slice();
+  if(d0.indexOf("efectivo")<0) d0.push("efectivo");
+  settings.dailyOnlyBanks=d0;
   return Object.assign({}, state, { accounts:accounts, settings:settings });
 }
 /* Borrar el sobre: no toca los gastos (siguen con ent efectivo); saca efectivo de expenseBanks. */

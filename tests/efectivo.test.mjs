@@ -161,4 +161,35 @@ t("ensureEfectivoAccount crea una sola y la mete en expenseBanks", () => {
   assert.equal(st2.accounts[0].value, 80);
 });
 
+/* HOTFIX 13/9 (suyo y de su padre): «el efectivo te lo crea automáticamente de gasto diario y
+   recibo… al editar el efectivo no te da a elegir que solo sea para gasto diario». */
+t("hotfix: el sobre nace SOLO para gasto diario (no «Gasto diario · Recibos»)", () => {
+  const s = ctx.ensureEfectivoAccount({ accounts: [], settings: {} }, 50);
+  assert.ok(s.settings.expenseBanks.includes("efectivo"), "cuenta para el día a día");
+  assert.ok(s.settings.dailyOnlyBanks.includes("efectivo"), "y NO para recibos");
+});
+
+t("hotfix: un sobre de ANTES se corrige solo al cargar, sin duplicar", () => {
+  const viejo = {
+    accounts: [{ id: "c1", ent: "efectivo", name: "Efectivo", value: 80, role: "fijos" }, { id: "tr", ent: "trade_republic", role: "diario", spendFrom: true }],
+    settings: { expenseBanks: ["efectivo"], dailyOnlyBanks: [] },
+    expenses: [], flows: [], goals: [], debts: [], fixed: [], investments: [],
+  };
+  const una = ctx.seedFlows(JSON.parse(JSON.stringify(viejo)));
+  assert.deepEqual(una.settings.dailyOnlyBanks, ["efectivo"]);
+  const dos = ctx.seedFlows(JSON.parse(JSON.stringify(una)));
+  assert.deepEqual(dos.settings.dailyOnlyBanks, ["efectivo"], "idempotente");
+  assert.equal(dos.accounts.find((a) => a.id === "tr").role, "diario", "Trade Republic sigue siendo la diaria");
+});
+
+t("hotfix: si lo sacó del gasto diario a propósito, no se le vuelve a meter", () => {
+  const s = ctx.seedFlows({
+    accounts: [{ id: "c1", ent: "efectivo", value: 0, role: "fijos" }],
+    settings: { expenseBanks: [], dailyOnlyBanks: [] },
+    expenses: [], flows: [], goals: [], debts: [], fixed: [], investments: [],
+  });
+  assert.deepEqual(s.settings.dailyOnlyBanks, []);
+  assert.deepEqual(s.settings.expenseBanks, []);
+});
+
 console.log("efectivo: OK");

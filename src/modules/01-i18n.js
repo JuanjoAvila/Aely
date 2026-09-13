@@ -1083,7 +1083,6 @@ Object.assign(LANG.es,{
   ef_in_ok:"Sumar",
   ef_in_done:"✓ Efectivo sumado",
   ef_need_bank:"Necesitas otra cuenta para anotar de dónde salió.",
-  ef_no_diario:"El efectivo no puede ser la cuenta de gasto diario.",
   ef_neg_warn:"El sobre queda en negativo ({x}). ¿Olvidaste apuntar un saque del cajero?",
   ef_atm_offer_title:"¿Han entrado {x} en tu efectivo?",
   ef_atm_offer_sub:"El banco ha detectado una retirada. Si el dinero está en tu cartera, súmalo. Si se lo diste a alguien, di que no.",
@@ -1171,7 +1170,6 @@ Object.assign(LANG.en,{
   ef_in_ok:"Add",
   ef_in_done:"✓ Cash added",
   ef_need_bank:"You need another account to say where it came from.",
-  ef_no_diario:"Cash cannot be the daily-spend account.",
   ef_neg_warn:"The envelope goes negative ({x}). Did you forget to log an ATM withdrawal?",
   ef_atm_offer_title:"Did {x} go into your cash?",
   ef_atm_offer_sub:"The bank saw a withdrawal. If the money is in your wallet, add it. If you gave it away, say no.",
@@ -1259,7 +1257,6 @@ Object.assign(LANG.ca,{
   ef_in_ok:"Sumar",
   ef_in_done:"✓ Efectiu sumat",
   ef_need_bank:"Cal un altre compte per dir d'on ha sortit.",
-  ef_no_diario:"L'efectiu no pot ser el compte de despesa diària.",
   ef_neg_warn:"El sobre queda en negatiu ({x}). Has oblidat apuntar una extracció?",
   ef_atm_offer_title:"Han entrat {x} al teu efectiu?",
   ef_atm_offer_sub:"El banc ha detectat una retirada. Si els diners són a la cartera, suma'ls. Si els vas donar a algú, digues que no.",
@@ -3068,6 +3065,14 @@ function fixMovInvasion(state){
 // (nómina + transferencias). Idempotente: no pisa ediciones una vez que ya hay flows.
 function seedFlows(s){
   if(!s) return s;
+  /* EL EFECTIVO QUE YA EXISTE, A «SOLO GASTO DIARIO» — sin flag, en cada carga (13/9, hotfix).
+     Los sobres creados antes de este arreglo están en expenseBanks pero no en dailyOnlyBanks, y
+     salen como «Gasto diario · Recibos». Solo se toca si el efectivo cuenta para el día a día: si
+     alguien lo sacó de ahí a propósito, se respeta. Idempotente. */
+  if((s.accounts||[]).some(isEfectivoEnt) && s.settings && (s.settings.expenseBanks||[]).indexOf("efectivo")>=0
+     && (s.settings.dailyOnlyBanks||[]).indexOf("efectivo")<0){
+    s.settings=Object.assign({}, s.settings, { dailyOnlyBanks:(s.settings.dailyOnlyBanks||[]).concat(["efectivo"]) });
+  }
   /* NINGÚN comercio puede tener "Inversión" como override aprendido — SIN FLAG, en cada carga
      (2026-08-04). "Inversión" es un destino del dinero, no un tipo de tienda: aprenderla como
      override hace que TODO gasto que pase por `autoCategory` con ese comercio se marque solo, una

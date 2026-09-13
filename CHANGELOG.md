@@ -1,3 +1,279 @@
+## [4.19.106] - 2026-09-13
+### La ronda 4.19 sube a producción
+
+Petición suya: *«súbelo a prod, que haya una nota de todo lo que sube, no 818138218 notas en
+Novedades»*. Producción pasa de 4.18.25 a 4.19.106.
+
+- **Una sola nota en Novedades.** Las 4.19.0–4.19.105 se juntan en la entrada 4.19.106, escrita
+  para la familia; el historial de 4.18.x de producción se conserva tal cual. El detalle técnico
+  de cada versión sigue aquí, en el CHANGELOG.
+- **Lo que solo estaba en producción, portado antes de unir.** De los 53 commits de `main` que
+  `beta` no tenía, casi todos eran portes de beta. De los 8 nacidos en main: dup en servidor
+  (4.18.19), saldo con más de un banco (4.18.25) y escrituras mudas (4.18.23/24) ya estaban en beta
+  por otra vía; se portan el rastro del tipo de saldo (4.18.19), `diag-widget.mjs` y la APK 45 /
+  `apk.json` (4.18.22), con `build.gradle` idéntico a main.
+- **Unión sin `-X theirs`:** `merge -s ours origin/main` sobre beta ya portada, para que `main`
+  avance en fast-forward.
+
+<!-- Entradas de la rama main (producción 4.18.8–4.18.25), conservadas al unir en 4.19.106 -->
+## [4.18.25] - 2026-09-11
+### El re-anclaje del saldo usaba el gasto de TODOS los bancos
+
+Su padre: el banco decía **26,46 €** y la app le enseñaba **455,50 €**. Confirmado por él.
+
+`applyBankBalances` despejaba la base con `spentM` = el gasto del mes ENTERO, de todos los
+bancos, mientras que al pintar se resta solo el de esa cuenta (`spentByBank`). Su padre gasta
+con CaixaBank y Trade Republic, así que al re-anclar Revolut se le devolvían ~429 € ajenos.
+
+Era la **sexta copia sin migrar** de `saldoCuentaGasto`. El mismo fallo se arregló en agosto
+—cuando un cargo de Revolut se comió 257,17 € de TR— pero **solo en la mitad que pinta**. Y el
+comentario de `saldoCuentaGasto` ya avisaba: «vivían copiadas en cinco sitios».
+
+- Ahora llama a `valueDesdeSaldo` (la inversa canónica) con `gastoDelMesPorBanco`.
+- `fijos` no cambia: `bal − monthNet` sí es la inversa de `value + paidNet`.
+- Test 7 de `saldo-por-banco` con **DOS bancos**: con uno pasa igual de bien estando roto.
+
+Portado desde `1bfb4b28` (beta 4.19.57). Va SOLO esto a producción: es el único fallo de hoy
+con víctima en `main` que el dueño no puede reproducir en su móvil.
+
+## [4.18.24] — 2026-09-11
+### Las escrituras de gastos a la nube ya dejan rastro
+
+Cazado en vivo (widget 512 → app 497): filas solo en el móvil. Helpers `subirGasto` /
+`borrarGastoNube` + cableado en backfill, OB, apuntar, editar, histórico. Sin cifras nuevas.
+La 4.18.23 quedó con el bump antes de la ampliación; esta punta cierra docs-frescura.
+
+
+## [4.18.22] — 2026-09-11
+### Aely llega a su padre y a su pareja
+
+Hasta hoy el rebrand vivía **solo en beta**. Para el resto de la familia la app seguía llamándose
+«Mi Cartera», con el icono viejo —el que se corta en las notificaciones— y los avisos con el nombre
+antiguo. Nada de eso viaja por OTA: es nativo y necesita APK.
+
+- `app_name`, `title_activity_main` y `widget_title` → **Aely**.
+- Los 15 PNG del icono adaptativo y el fondo (`ic_launcher_background.xml`), con la escala 0,49 que
+  ya no se corta en la máscara redonda. Y el generador `scripts/iconos-aely.mjs`, para poder
+  rehacerlos midiendo en vez de a ojo.
+- Los cinco literales «Mi Cartera» del lado nativo: el título de las notificaciones, el nombre del
+  canal de avisos y los dos del aviso de actualización.
+
+**`versionCode` 42 → 45, y el 45 no es arbitrario.** Producción anuncia la 42, pero SU móvil lleva
+la 44 (la APK de beta). Android no ofrece una actualización con código menor o igual al instalado,
+así que con 43 o 44 él no vería nunca esta. Con 45 les llega a los tres.
+
+**LO QUE NO SE HA TOCADO, Y ES LA RAZÓN DE QUE ESTO SE PUEDA PUBLICAR:**
+
+`applicationId`, `package_name`, `custom_url_scheme` y la configuración de firma **no aparecen en el
+diff**. Comprobado por grep sobre el diff completo contra `main`, no de palabra: 0 coincidencias.
+
+Si cualquiera de esos cambiara, Android trataría esto como una **app distinta**: su padre y su
+pareja se quedarían con la vieja instalada y sus datos dentro, y la «nueva» les llegaría vacía. Su
+condición al autorizarlo fue literal — «siempre y cuando no reviente nada ni pise nada» — y eso es
+exactamente lo que significa aquí.
+
+Él ya les ha avisado del cambio de nombre. Aun así la nota de Novedades lo dice en la primera línea
+y deja claro lo único que les importa: **mismos datos, no hay que hacer nada**.
+
+## [4.18.21] — 2026-09-11
+### Sella las dos de producción del 11/9
+
+- Une **4.18.19** (el servidor deja de acertar por accidente con los movimientos repetidos) y **4.18.20** (rastro de qué saldo manda el banco, para el Revolut de su padre). Las dos con review ejecutada de Cursor.
+- Las notas de las dos se funden aquí: ninguna llegó a publicarse por separado.
+- ⚠ **Este promote DESPLIEGA las Edge Functions**, porque 4.18.19 toca `supabase/functions/_shared/presupuesto.ts` y `supabase.yml` se dispara con cualquier cambio bajo `supabase/**`. Avisado y autorizado por él ANTES de subir — a diferencia de esta mañana, que se desplegaron solas sin que ninguno de los dos lo viéramos venir.
+## [4.18.20] — 2026-09-11
+### Rastro de qué saldo manda el banco (el Revolut de su padre)
+
+Su padre, 11/9: «Revolut no tiene ese dinero y le cambia el valor
+constantemente sin tocar la cuenta». NO es el -204,54 EUR de agosto: aquello
+era la caida ciega a balances[0] y ya esta arreglado. Aqui la cifra BAILA
+entre sincronizaciones.
+
+Y no se podia ni empezar a mirar. El banco manda una LISTA de saldos
+(disponible, contable, pendiente...), elegimos uno por orden de preferencia,
+y NO se guardaba cual. Si Revolut un dia manda ITAV y otro no, cambiamos de
+saldo sin enterarnos y sin dejar rastro: al mirar el estado solo se ve un
+numero distinto, sin nada que explique por que.
+
+ESTO NO ARREGLA EL BAILE. No se aun por que pasa, y no voy a fingir que si.
+Lo que hace es dejar el rastro para poder diagnosticarlo la proxima vez:
+  - `balTipo`  : el saldo que se uso (ITAV, CLBD, ...)
+  - `balTipos` : los que ofrecia el banco
+  - `balSaldo` : el saldo crudo, sin la formula de dynBal encima
+
+Va en las obAccounts Y en las cuentas PRINCIPALES re-ancladas: la Revolut de
+su padre es principal, no obAccount, y era justo la que le bailaba.
+
+Si en la proxima queja el tipo ha cambiado entre sincronizaciones, ahi esta la
+causa. Si es el mismo, el problema lo tiene el banco y hay que ir por otro
+lado. Hoy no podiamos distinguir esas dos cosas.
+
+Tres tests nuevos en finance-core que vigilan el RASTRO, no solo el numero:
+sin ellos cualquiera lo quita sin enterarse.
+
+Ninguna cifra cambia para nadie.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+## [4.18.19] — 2026-09-11
+### El servidor deja de acertar por accidente con los movimientos repetidos
+
+Buscando su descuadre del widget (457 + 2,40 → la app decía 460 y el widget 475) salió esto, que no
+es lo que buscaba pero es peor de dejar como estaba.
+
+- **La regla del posible repetido estaba en el cliente y NO en el servidor.** `expenseCountsCash()`
+  excluye `e.possibleDup`; `cuentaParaPresupuesto()` no tenía nada equivalente. La tanda
+  `posible-repetido` que él aprobó portó a producción la mitad de cliente y dejó fuera la del
+  servidor. Es el patrón de siempre: **la misma regla escrita en dos sitios y solo se cambió uno.**
+- **Y aun así cuadraba, por accidente.** `bancoDeSource("ob:trade_republic#dup")` devolvía
+  `"trade_republic#dup"` —el marcador pegado al nombre del banco— que no casa con ninguna cuenta, así
+  que el movimiento quedaba fuera del presupuesto por el filtro de bancos y no por la regla. El día
+  que alguien limpiara ese parseo (que parece un despiste porque lo es), los repetidos se habrían
+  puesto a contar en el widget **en silencio**, y el cliente habría seguido sin contarlos.
+- Se arreglan **las dos mitades**: el parseo deja de confundir el marcador con el banco, y la regla
+  se escribe de verdad (`esPosibleRepetido`). Ahora coinciden porque lo dicen, no porque se tropiecen.
+
+**El test de espejos tenía un agujero y por eso nada de esto saltó.** `presupuesto-servidor` carga
+las dos implementaciones y exige el mismo número, pero:
+
+1. Su escenario **no incluía ningún posible repetido**, o sea que no tocaba la única regla en la que
+   los dos lados discrepaban. Un espejo que no incluye el caso que difiere no es un espejo.
+2. Al añadir la fila, primero la puse en `ob:revolut#dup` — y **el test seguía verde sin el arreglo**,
+   porque Revolut ya queda fuera por el filtro de bancos. Una fila que se descarta por OTRO motivo no
+   prueba nada. Tiene que ir en el banco del día a día.
+3. `paraCliente` pasaba solo el `source`, así que el cliente **no reconocía el repetido**: el mismo
+   movimiento lleva `possibleDup` en el cliente y `#dup` en el `source` de la nube. Ahora el espejo
+   le da a cada lado su marca, que es como llega en la vida real.
+
+Verificado quitando la regla: el servidor da 155,71 y el cliente 140,71. Los 15 € que faltaban.
+
+⚠ **Esto NO explica su 475 €.** Con el parseo antiguo los dos lados coincidían, así que el descuadre
+del widget que él vio el 10/9 sigue **sin causa conocida**. Lo que se arregla aquí es una trampa que
+habría aparecido sola más adelante.
+
+## [4.18.18] — 2026-09-11
+### Pulido B2/B4/B5
+
+- Cartera recibe su activación por el mismo bus que Gastos y anima el patrimonio al entrar, sin
+  tocar el carrusel que premonta las pestañas vecinas.
+- Inicio muestra siluetas después del splash hasta que termina la carga inicial, y respeta reducir
+  animaciones. En tema claro, el texto verde pequeño usa un tono legible sobre blanco.
+- Guardián: `e2e/pulido-b245.spec.mjs`. OTA; sin Aely, cambios nativos, Edge ni identidad.
+## [4.18.17] — 2026-09-11
+### Acabado v4
+
+- El anillo de presupuesto parte vacío y se completa tras el splash, para que su transición se
+  llegue a ver; con reducir animaciones conserva directamente el valor correcto.
+- El porcentaje usa la tipografía de cifras de la app, las teclas de Apuntar alcanzan 56 px y los
+  carruseles horizontales muestran un borde que indica que hay más contenido.
+- Guardianes: `e2e/acabado-v4.spec.mjs` y `e2e/pulido-apuntar.spec.mjs`. OTA; sin cambios
+  nativos, de Supabase ni de identidad de aplicación.
+## [4.18.16] — 2026-09-11
+### Revisión plegable
+
+- Porte limitado de `revision-plegable`: la cabecera accesible de cada tanda permite encogerla y desplegarla sin tocar sus marcas, notas ni veredicto. Al aprobar, se encoge solo esa tanda; al desplegarla se puede consultar o cambiar de opinión.
+- El estado de desplegado solo vive durante la vista. Se conserva el guardado de veredictos que ya tenía producción, sin importar la recuperación entre compilaciones ni rutas de deshacer/cambio en nube de la tanda beta.
+- Regresión e2e: aprobar una tanda la encoge, se vuelve a desplegar y mantiene disponible el veredicto.
+- Las notas de la versión se añaden a `src/data/release-notes.json`, que es la fuente del histórico fuera del bundle; `RELEASE_NOTES` permanece vacío en el módulo.
+- OTA web; sin APK, Supabase, Edge, Aely ni cambios de identidad/cloud.
+## [4.18.15] — 2026-09-11
+### Panel «Revisar la beta»: ronda entera
+
+- `betaChecklist(version, prodVersion)` reúne las tandas de todas las versiones posteriores a
+  producción y hasta la que corre; cada una conserva su versión en el título y un id propio.
+- `useProdVersion` comparte la lectura de Pages entre el panel y Ajustes, para que el contador y
+  la checklist usen exactamente la misma ronda.
+
+**Por qué:** revisar únicamente la última versión ocultaba tandas que ya estaban en la misma beta.
+Sin versión de producción confirmada se conserva el comportamiento prudente de una sola versión.
+
+OTA; sin Android.
+
+## [4.18.14] — 2026-09-11
+### Orden manual dentro del día en Gastos
+
+Las filas de un mismo día se pueden reordenar arrastrando su asa. El orden se guarda como lista
+de ids por fecha en `settings.expenseOrder`, por lo que sincroniza con la cuenta sin volver a
+serializar el histórico `expenses`, que sigue partido en su propia clave.
+
+**Por qué:** muchas operaciones bancarias solo informan el día. Inventar una hora para alterar el
+orden sería falsear el movimiento; este ajuste conserva la fecha original y deja que la persona
+decida únicamente entre filas del mismo día. El destino se comprueba de nuevo al guardar para no
+mezclar días al cruzar un separador. Guardián: `e2e/gastos-orden.spec.mjs`.
+
+OTA; sin cambios nativos ni de Supabase.
+## [4.18.13] — 2026-09-11
+### Categoría Inteligencia artificial
+
+- Porte manual desde la tanda aprobada `categoria-ia`: añade `ia` a `CATEGORIES`, sus tres
+  traducciones y las palabras clave de ChatGPT, Claude, OpenAI, Cursor y servicios similares.
+  Solo se autodetectan movimientos nuevos; no hay migración ni recategorización del histórico.
+- La lógica compartida de ingest y la lista permitida de `categorize` ya aceptan `ia`, para
+  conservar la paridad con el cliente. El despliegue de la Edge Function queda pendiente de
+  autorización expresa del propietario; este commit no despliega ninguna Edge Function.
+- Guardianes en `categories` e `ingest-classify` comprueban la categoría cliente y compartida.
+
+## [4.18.12] — 2026-09-11
+### Las notas de Novedades salen del bundle (NOTAS-BUNDLE, portado de beta)
+
+- La ronda de prod del 11/9 dejó el **gzip del index a 0,2 KB del tope** (343,8 de 344) porque las 92 versiones de Novedades viajaban pegadas dentro del JS. Portar una tanda más era imposible sin esto, y el gzip es lo que de verdad baja al móvil.
+- El histórico pasa a `src/data/release-notes.json`; el build lo copia a `public/release-notes.json` y deja el array del index VACÍO. `ensureReleaseNotes()` lo carga al abrir Novedades o el panel de revisión. El bundle del móvil lo lleva igual: `build-www.mjs` copia `public/` entero.
+- **Medido: 1212,6 → 1101,1 minificado y 343,8 → 305,8 gzip.** 38 KB menos, un 11 %. Los topes **BAJAN** a 1135 / 318 sobre lo medido hoy: un tope que sube y nunca vuelve a bajar deja de ser un presupuesto y pasa a ser un sello de goma.
+- **Rescatados cinco comentarios** que vivían dentro del array y que un JSON no puede guardar: la práctica de que una tanda aprobada se BORRA del array (si se deja marcada, el panel se la sigue pidiendo), que los puntos de una tanda no se reescriben entre compilaciones (el panel hereda los ✓/✗ casando por texto), y que lo ya promocionado solo no se vuelve a contar. Lo cazó `season-detalle`, que vigilaba uno de ellos; los otros cuatro se habrían perdido en silencio.
+- `docs-frescura` ya no mira el módulo para comprobar la nota de la versión: con el array vacío a propósito, ese guardián habría pasado SIEMPRE. Ahora mira el JSON.
+- `release-notes-max` deja de clavar a mano versiones de beta (`4.19.5`/`4.18.7`), que aquí no existen: la ronda se deriva de los datos, así el guardián dice lo mismo en las dos ramas.
+- `rnItems` aplana las tandas: una versión que declara tandas y se olvida de los `items` de primer nivel salía MUDA en Novedades (le pasó a la 4.18.5).
+
+## [4.18.11] — 2026-09-11
+### Posibles repetidos de Open Banking se revisan, no se pierden
+
+- Un `Movimiento` sin comercio de Open Banking que coincide en el mismo banco, importe y ventana
+  de ±3 días con una notificación o gasto manual entra marcado como posible repetido. Ya no se
+  descarta automáticamente: dos cargos reales iguales se conservan para que se puedan distinguir.
+- La ficha permite confirmar «Es el mismo» (borra la fila OB y deja lápida para que el sync no la
+  reviva) o «Son distintos» (la fila empieza a contar en efectivo y presupuesto).
+- La marca viaja como sufijo seguro `#dup` en `source` (`ob:ent#dup`): sobrevive a pulls y, sin
+  desplegar Edge, un servidor anterior lo interpreta como banco no diario y lo deja fuera.
+  `possibleDupOf` se mantiene local porque solo identifica el gemelo para resolverlo.
+- Se añaden regresiones para la notificación real sin `ent`, el aislamiento entre bancos, decisiones
+  idempotentes, lápidas y serialización/deserialización de `#dup`.
+
+OTA; sin Android. La paridad explícita del cálculo de presupuesto dentro de la Edge Function queda
+pendiente de su propio despliegue: este port no modifica ni despliega servidor.
+## [4.18.10] — 2026-09-11
+### Multicuenta Open Banking (rescate de aprobada)
+
+Porte a mano desde `beta` de **4.19.0/multicuenta**, sola, desde `main`. Sin cherry-pick.
+
+- `flattenBankTx` lee `accounts[].transactions` (todas las cuentas del enlace), no solo `lk.transactions` (primera cuenta). Shape antiguo sin `accounts` sigue valiendo.
+- Test: `flattenBankTx incluye todas las cuentas, no solo la primaria`.
+- Sin `inicioDeMesMs`, sin Aely, sin import histórico.
+## [4.18.9] — 2026-09-11
+### FIN-07 · El histórico entero, y una descarga a medias que ya no borra
+
+- **Producción llevaba un `.limit(2000)` sin paginar** en `pullExpenses`, y `syncCloudExpenses` REEMPLAZA los gastos de origen `supabase` por lo que acaba de llegar. Con más de 2.000 gastos en la nube —lo normal tras importar el histórico de un banco— **cada sincronización borraba de la app los más viejos**. Le pasaba a toda la familia, no solo a él. Su queja del 10/9 («solo baja el histórico un poquito») era esto, y no el importador.
+- Ahora se **pagina por clave** (`fecha` desc + `id` desc, páginas de 1.000) hasta el final. Por clave y no por desplazamiento porque un gasto que entre a mitad de la descarga corre la lista y te hace saltarte una fila o repetirla. El `id` en el orden no es decorativo: sin un segundo criterio ÚNICO, dos gastos del MISMO día pueden salir en distinto orden entre páginas y entonces uno se repite y otro se pierde.
+- **Una descarga a medias ya no es un borrado.** Si se llega al tope de seguridad (50.000), se conserva lo que ya había y solo se añade lo nuevo, en vez de descartar todo lo que no llegó. Regla desde la contención 4.18.6: nunca se borra por ausencia.
+- Aviso en los tres idiomas que dice lo que le importa —que **no ha perdido nada**— y no el número.
+- Guardián `pull-historico-entero` (9 casos) sobre el código real del módulo, verificado en rojo quitando la guarda y en verde al volver a ponerla.
+- Tanda nacida **desde `main`**: sube sola, sin esperar a la ronda de beta.
+
+**Crédito:** la paginación por keyset es de Cursor (`tanda/fin-07-pull`); el tope de seguridad, la guarda de la mezcla y los guardianes, de esta tanda. Se reconcilian las dos en una.
+
+## [4.18.8] — 2026-09-10
+### Las dos tandas que aprobó, subidas solas
+
+- Porte a mano desde `beta` de **informe del mes cerrado** (4.19.12) y **límite por categoría** (4.19.13), las dos aprobadas por él en el móvil. Commits nuevos sobre producción, no cherry-pick: los de `beta` arrastran ~50 commits de contexto y con `-X theirs` el resultado compilaba con `doImport` declarado dos veces.
+- `monthBudgetStats` acepta `nowMs`/`hastaMs`, los dos opcionales. **Sin ellos se comporta exactamente igual que hasta ahora**: desde el día 1 en adelante.
+- `reservedSince` acepta tope superior: una reserva hecha ya en el mes nuevo no baja el presupuesto del informe del mes cerrado.
+- **No se porta `inicioDeMesMs`**, que en `beta` llegó con la ventana de mes — la tanda que él RECHAZÓ. Dentro se usa el `startOfMonth` que producción ya usa: una sola regla de mes, que es el criterio 1 de su propia tanda de categorías.
+- **No sube «revisiones plegables»**: mezcla el panel de beta con el deshacer del import histórico, y producción no tiene ese motor.
+- Regresión añadida por un fallo que cazó Cursor revisando y que habría llegado a la familia: compartir el informe desde Ajustes u Hogar llamaba a `inicioDeMesMs` y reventaba con `ReferenceError`.
+- Topes de tamaño +3 KB con motivo escrito: producción todavía lleva las notas dentro del módulo; el recorte a JSON sube por su cuenta y entonces estos topes bajan.
+
+# Changelog
+
+Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/) y versionado [SemVer](https://semver.org/lang/es/).
+
 ## [4.19.105] - 2026-09-13
 ### Panel de pruebas limpio (sin código)
 

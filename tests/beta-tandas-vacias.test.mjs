@@ -23,6 +23,11 @@ import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 const cli = loadPureLogicFromFile();
 /* La version que corre, leida del fichero VERSION (la canonica del repo, no package.json). */
 const VERSION_ACTUAL = fs.readFileSync(new URL("../VERSION", import.meta.url), "utf8").trim();
+/* ¿Hay ronda viva? Justo después de promocionar (4.19.106, 13/9) NO la hay: todo lo de beta subió
+   a producción y todas las notas llevan `tandas:[]`. Un panel a 0 entonces es lo CORRECTO, así que
+   las comprobaciones de «queda algo por probar» solo aplican cuando alguna nota tiene tandas. */
+const HAY_RONDA = JSON.parse(fs.readFileSync(new URL("../src/data/release-notes.json", import.meta.url), "utf8"))
+  .some((n) => Array.isArray(n.tandas) && n.tandas.length > 0);
 let failed = 0;
 function t(name, fn) {
   try { fn(); console.log(`  ✓ ${name}`); }
@@ -59,6 +64,7 @@ t("con tandas declaradas, salen esas y ninguna «todo»", () => {
    sin red — bug medido en review de 4.19.86: checklist(V,null) devolvía 0. */
 t("★ tip con tandas:[] sin prodVersion → salta a la más nueva con algo que probar", () => {
   const pack = cli.betaChecklist(VERSION_ACTUAL, null);
+  if (!HAY_RONDA) { assert.equal(pack.tandas.length, 0, "sin ronda viva el panel tiene que quedar a 0"); return; }
   assert.ok(pack.tandas.length > 0,
     "sin prod, con tip fontanería, el panel no puede quedar a 0 (tiene media ronda detrás)");
   assert.equal(pack.tandas.some((g) => String(g.id).endsWith("/todo") || g.id === "todo"), false,
@@ -118,7 +124,8 @@ t("y lo que nunca ha probado sigue ahí (no nos hemos pasado de frenada)", () =>
   /* 13/9: las cinco de antes las aprobó (id-fila, cats-plegable, pulsacion-larga,
      logos-inversiones) o las tapó otra aprobada (banco-pendiente-y-quitar). Panel limpio a
      petición suya: quedan estas, sin juzgar. */
-  ["hojas-scroll", "ab-idiomas", "historico-lista", "rol-sin-salto-3", "historico-importar"].forEach((id) => {
+  /* 13/9 tarde: las cinco subieron a producción en 4.19.106. Cuando haya ronda nueva, sus ids van aquí. */
+  ([]).forEach((id) => {
     assert.equal(ids.some((x) => x.endsWith("/" + id)), true, `falta «${id}», que sigue pendiente`);
   });
 });

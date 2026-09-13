@@ -48,8 +48,9 @@ function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, on
   const efectivo=isEfectivoEnt(a);
   /* Las tres opciones con su FRASE. Eran tres chips sueltos y la explicación vivía en letra
      pequeña al final de la tarjeta, así que había que bajar a buscarla para saber qué hacía cada
-     uno. El efectivo no puede llevar recibos domiciliados, así que solo se le ofrece lo suyo. */
-  const roles=efectivo ? [["fijos","rl_fijos","rl_fijos_d"]]
+     uno. El efectivo SOLO es gasto diario (hotfix 13/9): no tiene recibos domiciliados ni puede
+     ser la cuenta principal (eso es TR). */
+  const roles=efectivo ? [["diario","rl_diario","rl_diario_d"]]
     : [["fijos","rl_fijos","rl_fijos_d"],["diario","rl_diario","rl_diario_d"],["ambos","rl_ambos","rl_ambos_d"]];
   /* `rolVista` = lo que se VE (gasto diario efectivo, extras incluidos). `accRole` solo mira el
      campo de la cuenta y mentiría en un EXTRA de expenseBanks. */
@@ -273,8 +274,19 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
        la ficha llama aquí (no a `applyAccountRole` a pelo) para que un EXTRA en expenseBanks
        también salga/entre al tocar Recibos / Gasto diario. */
     const pickRole=function(a,r){
-      if(isEfectivoEnt(a) && (r==="diario"||r==="ambos")){
-        toast("⚠ "+t("ef_no_diario"));
+      /* Efectivo (hotfix 13/9): SOLO «Gasto diario» como EXTRA (expenseBanks + dailyOnlyBanks).
+         Nunca `applyAccountRole` (no puede quitarle el diario a TR) ni toast `ef_no_diario`
+         (ese camino bloqueaba justo lo que él pedía). */
+      if(isEfectivoEnt(a)){
+        if(r!=="diario") return;
+        try{ window.dispatchEvent(new CustomEvent("mc-bank-role-changed")); }catch(e){}
+        set(function(s){
+          const eb=expenseBankEnts(s).slice();
+          const dOnly=dailyOnlyEnts(s).slice();
+          if(eb.indexOf("efectivo")<0) eb.push("efectivo");
+          if(dOnly.indexOf("efectivo")<0) dOnly.push("efectivo");
+          return Object.assign({},s,{settings:Object.assign({},s.settings,{expenseBanks:eb, dailyOnlyBanks:dOnly})});
+        });
         return;
       }
       try{ window.dispatchEvent(new CustomEvent("mc-bank-role-changed")); }catch(e){}
@@ -401,7 +413,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
     const roleChips=function(a){
       const dy=dailyEffOf(a), fx=fixedEffOf(a);
       const on={fijos:fx&&!dy, diario:dy&&!fx, ambos:fx&&dy};
-      const roles=isEfectivoEnt(a) ? [["fijos","rl_fijos"]] : [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]];
+      const roles=isEfectivoEnt(a) ? [["diario","rl_diario"]] : [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]];
       return React.createElement("div",{className:"rolechips",style:{padding:"8px 0 2px"}},
         roles.map(function(rr){
           return React.createElement("button",{key:rr[0],className:"rchip"+(on[rr[0]]?" on":""),onClick:function(){ pickRole(a, rr[0]); }}, t(rr[1]));

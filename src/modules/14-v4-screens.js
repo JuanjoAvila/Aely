@@ -579,14 +579,28 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
   const bankOpts=useMemo(function(){
     const seen={}; const out=[];
     (state.accounts||[]).forEach(function(a){ if(a&&a.ent&&!seen[a.ent]){ seen[a.ent]=1; out.push(a.ent); } });
-    return out;
+    // El sobre tiene chip propio al lado de 📅; fuera de la lista del 🏦 para no duplicarlo.
+    return out.filter(function(e){ return e!=="efectivo"; });
   },[state.accounts]);
+  const hasEfectivo=useMemo(function(){
+    return (state.accounts||[]).some(isEfectivoEnt);
+  },[state.accounts]);
+  // Diario «de verdad» (no el sobre): al apagar el chip 💶 se vuelve aquí.
+  const dailyBankEnt=useMemo(function(){
+    const d=(state.accounts||[]).find(function(a){ return a && accDaily(a) && !isEfectivoEnt(a); })
+      || (state.accounts||[]).find(function(a){ return a && accDaily(a); });
+    return (d&&d.ent)||null;
+  },[state.accounts]);
+  const bankChipLabel=function(ent){
+    if(ent==null) return t("ap_bank_none");
+    return (isEfectivoEnt(ent)?"💶 ":"🏦 ")+entOf(ent).label;
+  };
   useEffect(function(){
     if(open){
       setKind("gasto"); setRaw(""); setNote(""); setCat("super");
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false);
-      const daily=(state.accounts||[]).find(function(a){ return accDaily(a); });
-      setBank((daily&&daily.ent)||null);
+      // Defecto = banco diario, no el sobre (aunque el sobre también sea gasto diario).
+      setBank(dailyBankEnt);
       // Arranca en la moneda de pantalla (o la última que usó al apuntar en este viaje).
       const last=(state.settings&&state.settings.apuntarCur)||(state.settings&&state.settings.currency)||"EUR";
       setEntryCur(String(last).toUpperCase());
@@ -670,16 +684,25 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
             React.createElement("button",{type:"button",className:"v4-chip"+(calOpen?" on":""),"data-testid":"ap-date",
               onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }},
               "📅 "+fmtIsoCorto(date)),
+            /* Chip directo del sobre (hotfix 13/9 review): si solo está dentro de la lista del
+               🏦, no se ve «elegir efectivo» — su queja literal. Alterna con el banco diario. */
+            hasEfectivo && React.createElement("button",{type:"button",
+              className:"v4-chip"+(bank==="efectivo"?" on":""),"data-testid":"ap-efectivo",
+              onClick:function(){
+                setCalOpen(false); setBankOpen(false);
+                setBank(function(b){ return b==="efectivo"?dailyBankEnt:"efectivo"; });
+              }},
+              "💶 "+entOf("efectivo").label),
             bankOpts.length>0 && React.createElement("button",{type:"button",className:"v4-chip"+(bankOpen?" on":""),"data-testid":"ap-bank",
               onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }},
-              "🏦 "+(bank==null?t("ap_bank_none"):entOf(bank).label))
+              bankChipLabel(bank))
           ),
           calOpen && React.createElement(McCal,{value:date, onPick:function(iso){ setDate(iso); setCalOpen(false); }}),
           bankOpen && bankOpts.length>0 && React.createElement("div",{className:"v4-chips wrap","data-testid":"ap-bank-list"},
             React.createElement("button",{type:"button",className:"v4-chip"+(bank==null?" on":""),onClick:function(){ setBank(null); setBankOpen(false); }}, t("ap_bank_none")),
             bankOpts.map(function(b){
               return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bank===b?" on":""),onClick:function(){ setBank(b); setBankOpen(false); }},
-                "🏦 "+entOf(b).label);
+                bankChipLabel(b));
             })
           ),
           kind==="gasto" && React.createElement("div",{className:"v4-chips"},

@@ -85,9 +85,12 @@ function idsRonda(notes, running, prod) {
 const tip = fs.readFileSync(path.join(root, "VERSION"), "utf8").trim();
 /* Lo que corre producción. Se actualiza al promocionar (`npm run salud` lo dice); si se queda
    viejo la ronda sale un poco más larga de lo real, que no rompe nada pero miente en el log. */
-const prod = "4.18.25";
+const prod = "4.19.106";   // 13/9: promocionada la ronda 4.19
 const fullIds = idsRonda(all, tip, prod);
-assert.ok(fullIds.length > 0, "la ronda de prueba tiene que tener tandas en el JSON");
+/* Recién promocionado no hay ronda: nada por encima de prod. Entonces no hay nada que el MAX pueda
+   comerse y las comprobaciones de abajo no aplican. En cuanto beta publique algo, vuelven. */
+if (!fullIds.length) console.log("  · sin ronda de beta por encima de producción (" + prod + "): nada que comprobar del panel");
+else {
 /* Lo que importa: que la ronda llegue MÁS ABAJO que el tope de la UI. Si el pack del index
    volviera a ser la fuente del panel, estas de abajo desaparecerían sin que nadie se entere. */
 const masViejaDeLaRonda = fullIds[fullIds.length - 1];
@@ -101,6 +104,7 @@ assert.ok(
   fullIds.length > maxSrc || masViejaDeLaRonda.indexOf("4.19.1/") === 0 || menor(masViejaDeLaRonda.split("/")[0], ultimaDentroDelMax),
   `la ronda (${fullIds.length}) tiene que pasar del tope de la UI (${maxSrc}), llegar hasta 4.19.1 o incluir una nota anterior a ${ultimaDentroDelMax}; la más vieja es ${masViejaDeLaRonda}`
 );
+}
 /* Bajar MAX no puede comerse tandas: el pack del index ya no es la fuente del panel. */
 const packed = packReleaseNotesForBundle(all, 1, 5);
 void packed;
