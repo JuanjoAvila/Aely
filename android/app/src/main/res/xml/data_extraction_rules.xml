@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- OPS-06 (APK 46): nada de la app sale del móvil por la copia de Android ni por el paso de
+     datos a un móvil nuevo. En Android 12+ `allowBackup="false"` solo apaga la copia en la nube:
+     el traspaso de móvil a móvil seguía llevándose la WebView (sesión de Supabase y la cartera
+     entera) y las preferencias nativas (sesión de Trade Republic). Todo vive en la nube: en el
+     móvil nuevo basta con iniciar sesión. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="external" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="external" path="." />
+    </device-transfer>
+</data-extraction-rules>

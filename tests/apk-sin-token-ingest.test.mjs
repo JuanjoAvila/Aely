@@ -41,5 +41,21 @@ t("release:apk se niega a publicar si BuildConfig.INGEST_URL no está vacía", (
   assert.ok(/INGEST_URL\\s\*=\\s\*""/.test(s) && /No se publica/.test(s));
 });
 
+/* Y la copia de Android no se lleva la cartera ni las sesiones (APK 46). En Android 12+
+   `allowBackup="false"` NO apaga el traspaso de móvil a móvil: hacen falta las reglas. */
+t("sin copia de Android: allowBackup false + reglas que excluyen todo (nube y traspaso)", () => {
+  const m = rd("android/app/src/main/AndroidManifest.xml");
+  assert.ok(/android:allowBackup="false"/.test(m), "allowBackup tiene que ser false");
+  assert.ok(/android:dataExtractionRules="@xml\/data_extraction_rules"/.test(m), "faltan las reglas de Android 12+");
+  const x = rd("android/app/src/main/res/xml/data_extraction_rules.xml");
+  for (const bloque of ["cloud-backup", "device-transfer"]) {
+    const b = x.slice(x.indexOf("<" + bloque + ">"), x.indexOf("</" + bloque + ">"));
+    assert.ok(b.length > 0, "falta <" + bloque + ">");
+    for (const d of ["root", "file", "database", "sharedpref"]) {
+      assert.ok(new RegExp(`<exclude domain="${d}" path="\\."`).test(b), `${bloque} no excluye ${d}`);
+    }
+  }
+});
+
 if (fallos) { console.error(`apk-sin-token-ingest: ${fallos} fallo(s)`); process.exit(1); }
 console.log("apk-sin-token-ingest: OK");
