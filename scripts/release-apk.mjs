@@ -178,6 +178,9 @@ const bc = path.join(root, "android", "app", "build", "generated", "source", "bu
 if (fs.existsSync(bc)) {
   const bcText = fs.readFileSync(bc, "utf8");
   if (!/WEB_DEBUG\s*=\s*false/.test(bcText)) die("BuildConfig.WEB_DEBUG no es false — no se publica");
+  /* ⚠ 14/9 (OPS-06): la APK de release llevaba la URL de ingest con el token del dueño y se
+     publica en un repo PÚBLICO. Si alguien vuelve a meterla en release, no sale. */
+  if (!/INGEST_URL\s*=\s*""/.test(bcText)) die("BuildConfig.INGEST_URL no está vacía en release — llevaría un token de ingest a una APK pública. No se publica");
   if (!new RegExp(`VERSION_NAME\\s*=\\s*"${VERSION.replace(/\./g, "\\.")}"`).test(bcText)) {
     die(`BuildConfig.VERSION_NAME no es ${VERSION}`);
   }

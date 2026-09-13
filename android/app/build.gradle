@@ -34,7 +34,13 @@ android {
            instalado, asi que con 43 o 44 el no veria nunca esta. 45 le llega a los tres. */
         versionCode 45
         versionName "4.18.22"
-        buildConfigField "String", "INGEST_URL", "\"${ingestUrl}\""
+        /* ⚠ INGEST_URL VACÍA POR DEFECTO — solo la APK `.debug` la lleva (14/9/2026, OPS-06).
+           Estaba aquí, en defaultConfig, así que valía TAMBIÉN para release: la APK que publica
+           `release:apk` en un repo PÚBLICO llevaba dentro la URL de ingest con el token del dueño.
+           Cualquiera con la APK podía sacarla y apuntar gastos en su cuenta, y un móvil de la
+           familia sin token propio le mandaba SUS gastos de TR a él (fallback de TrExpenseListener).
+           Ahora release siempre sale con "" (ver buildTypes) y cada persona usa su token propio. */
+        buildConfigField "String", "INGEST_URL", "\"\""
         buildConfigField "boolean", "WEB_DEBUG", "${webDebug}"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -77,6 +83,8 @@ android {
         debug {
             applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
+            // Solo la de pruebas del dueño, que nunca se publica, puede llevar su URL de ingest.
+            buildConfigField "String", "INGEST_URL", "\"${ingestUrl}\""
         }
     }
 }

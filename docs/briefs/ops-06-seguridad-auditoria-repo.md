@@ -8,6 +8,23 @@ mano (ver `supabase.yml`, «las dos 0012»). La pasada contra la BD real (`pg_po
 
 ---
 
+## 🔴🔴 P0 — La APK pública llevaba el token de ingest del dueño (14/9)
+
+- `android/app/build.gradle` metía `MICARTERA_INGEST_URL` (con `?token=`) en `defaultConfig`,
+  o sea **también en release**, y `npm run release:apk` publica esa APK en **Releases de un repo
+  público**. Cualquiera con la APK podía extraer la URL y **apuntar gastos en la cuenta del dueño**
+  (es el token legacy `INGEST_TOKEN` de la Edge `ingest`).
+- `TrExpenseListener` caía a ese `BuildConfig` si el móvil no tenía token propio: un móvil de
+  la familia con el lector de notificaciones activo y sin token propio **mandaba sus gastos de TR a
+  la cuenta del dueño**. No está comprobado que haya pasado.
+- **Arreglado en código** (rama `tanda/sec-ingest-apk`): release sale con `INGEST_URL=""` (solo
+  la APK `.debug` la lleva), el fallback solo en `BuildConfig.DEBUG`, y `release:apk` se niega a
+  publicar si `INGEST_URL` no está vacía. Compilado aquí: release longitud 0, debug 85.
+  Llega con la **APK 46** (no por OTA).
+- **Pendiente del dueño, en este orden:** (1) Ajustes → notificaciones de TR, apagar y encender
+  (genera su token propio); (2) borrar/rotar el secreto `INGEST_TOKEN` de Supabase: el token de las
+  APK 44/45 ya publicadas deja de valer al momento.
+
 ## 🔴 P1 — Entrar en un Hogar ajeno adivinando el código
 
 - El código de invitación son **6 caracteres** de un alfabeto de 32 (`mcInviteCode`,

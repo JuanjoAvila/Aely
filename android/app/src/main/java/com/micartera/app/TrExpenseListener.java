@@ -142,11 +142,12 @@ public class TrExpenseListener extends NotificationListenerService {
      */
     private void handleNotiGasto(StatusBarNotification sbn, String fuente) {
         // MULTIUSUARIO (migración 0008): la URL de `ingest` con el token del usuario la guarda la
-        // web en estas prefs (Ajustes → "Apuntar aquí mis gastos de TR"). Si no la hay, caemos a
-        // BuildConfig.INGEST_URL (solo la tiene el APK del creador). Sin ninguna de las dos, no hay
-        // a dónde mandar → no hacemos nada (evita apuntar en la cuenta de otro).
+        // web en estas prefs (Ajustes → "Apuntar aquí mis gastos de TR"). Sin ella no hay a dónde
+        // mandar → no hacemos nada (evita apuntar en la cuenta de otro).
+        // ⚠ El fallback a BuildConfig.INGEST_URL SOLO en la APK de depuración (14/9, OPS-06): en
+        // release llevaba el token del dueño y un móvil sin token propio le mandaba sus gastos a él.
         String ingestUrl = getSharedPreferences("micartera_ingest", MODE_PRIVATE).getString("url", "");
-        if (ingestUrl == null || ingestUrl.isEmpty()) ingestUrl = BuildConfig.INGEST_URL;
+        if ((ingestUrl == null || ingestUrl.isEmpty()) && BuildConfig.DEBUG) ingestUrl = BuildConfig.INGEST_URL;
         if (ingestUrl == null || ingestUrl.isEmpty()) return;
         final String INGEST_URL = ingestUrl;
 
