@@ -2,15 +2,18 @@ import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
 /* Sugerir categoría al escribir el concepto en Apuntar (13/9, opción A).
- * Palabras clave se aplican solas (Mercadona → supermercado + ✨). Si tocas otro chip a mano,
- * seguir escribiendo no lo mueve. La IA (chip aparte) se cubre en unit de sugerenciaApuntar. */
+ * Palabras clave se aplican solas; la IA ofrece un chip (nunca sola). */
 
 test.use({ viewport: { width: 375, height: 812 } });
 
-async function openApuntar(page) {
-  await seedLoggedInDashboard(page, {
-    settings: { autoPrices: false, theme: "green", currency: "EUR", lang: "es", aiCat: true },
-  });
+async function openApuntar(page, settingsExtra, cloudFns) {
+  const settings = Object.assign(
+    { autoPrices: false, theme: "green", currency: "EUR", lang: "es", aiCat: true },
+    settingsExtra || {}
+  );
+  const overrides = { settings };
+  if (cloudFns) overrides.__cloudFns = cloudFns;
+  await seedLoggedInDashboard(page, overrides);
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
@@ -40,4 +43,29 @@ test("Apuntar: si tocas otra categoría a mano, escribir más no la mueve", asyn
   await page.waitForTimeout(700);
   await expect(sheet.locator('[data-testid="ap-cat-ocio"]'), "tocar a mano manda").toHaveClass(/on/);
   await expect(sheet.locator('[data-testid="ap-cat-super"]')).not.toHaveClass(/on/);
+});
+
+test("Apuntar: la IA ofrece chip ✨ y solo se aplica al tocarlo", async ({ page }) => {
+  const sheet = await openApuntar(page, null, {
+    categorize: { data: { ok: true, category: "ocio", source: "ai" }, error: null },
+  });
+  await sheet.locator(".v4-input").fill("Xyzzy Studio");
+  const ia = sheet.locator('[data-testid="ap-ia-chip"]');
+  await expect(ia, "debe aparecer el chip de IA").toBeVisible({ timeout: 5_000 });
+  await expect(ia).toContainText("Ocio");
+  // Opción A: no se aplica sola — sigue el defecto (supermercado) hasta el toque.
+  await expect(sheet.locator('[data-testid="ap-cat-super"]')).toHaveClass(/on/);
+  await expect(sheet.locator('[data-testid="ap-cat-ocio"]')).not.toHaveClass(/on/);
+  await ia.click();
+  await expect(sheet.locator('[data-testid="ap-cat-ocio"]')).toHaveClass(/on/);
+  await expect(sheet.locator('[data-testid="ap-cat-super"]')).not.toHaveClass(/on/);
+});
+
+test("Apuntar: con IA apagada no sale el chip aunque la Edge respondería", async ({ page }) => {
+  const sheet = await openApuntar(page, { aiCat: false }, {
+    categorize: { data: { ok: true, category: "ocio", source: "ai" }, error: null },
+  });
+  await sheet.locator(".v4-input").fill("Xyzzy Studio");
+  await page.waitForTimeout(1200);
+  await expect(sheet.locator('[data-testid="ap-ia-chip"]')).toHaveCount(0);
 });
