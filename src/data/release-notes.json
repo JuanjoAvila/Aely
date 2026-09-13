@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.22.0",
+    "d": "14 sep 2026",
+    "t": {
+      "es": "Las cuotas de meses pasados, también en Deudas",
+      "en": "Past months' debt payments, in Debts too",
+      "ca": "Les quotes de mesos passats, també a Deutes"
+    },
+    "items": {
+      "es": [
+        "Las cuotas de tus deudas de los últimos meses también pasan a «Deudas», y lo mismo con las que traigas al importar movimientos antiguos del banco. Así cada deuda enseña todos sus pagos, mes a mes."
+      ],
+      "en": [
+        "Your debt payments from recent months also move to “Debts”, and so do the ones you bring in when importing older bank transactions. Each debt now shows all its payments, month by month."
+      ],
+      "ca": [
+        "Les quotes dels teus deutes dels últims mesos també passen a «Deutes», i el mateix amb les que portis en importar moviments antics del banc. Així cada deute ensenya tots els seus pagaments, mes a mes."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "hist-cuotas",
+        "t": {
+          "es": "💳 Cuotas de meses pasados en Deudas",
+          "en": "💳 Past debt payments in Debts",
+          "ca": "💳 Quotes de mesos passats a Deutes"
+        },
+        "items": {
+          "es": [
+            "1. Abre Gastos, cambia el periodo a «Últimos 3 meses» y toca Filtros (🎛️).",
+            "2. En «Deudas», toca una deuda que se cobre por Trade Republic y cierra: tiene que salir una cuota por mes (julio, agosto…), cada una con «Deudas · ya cuenta en el Plan».",
+            "3. Repite con una deuda del otro banco: también una por mes, aunque en el extracto se llame distinto.",
+            "4. Si en algún mes sale una compra normal como cuota, o falta una cuota que sí te cobraron, apúntalo aquí con el mes."
+          ],
+          "en": [
+            "1. Open Spending, set the period to “Last 3 months” and tap Filters (🎛️).",
+            "2. Under “Debts”, tap a debt charged through Trade Republic and close: one payment per month should show (July, August…), each with “Debts · already in your Plan”.",
+            "3. Repeat with a debt from the other bank: also one per month, even if the statement names it differently.",
+            "4. If a normal purchase shows up as a payment in some month, or a payment you were charged is missing, note it here with the month."
+          ],
+          "ca": [
+            "1. Obre Despeses, canvia el període a «Últims 3 mesos» i toca Filtres (🎛️).",
+            "2. A «Deutes», toca un deute que es cobri per Trade Republic i tanca: ha de sortir una quota per mes (juliol, agost…), cadascuna amb «Deutes · ja compta al Pla».",
+            "3. Repeteix amb un deute de l'altre banc: també una per mes, encara que a l'extracte es digui diferent.",
+            "4. Si en algun mes surt una compra normal com a quota, o falta una quota que sí que et van cobrar, apunta-ho aquí amb el mes."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.21.2",
     "d": "14 sep 2026",
     "t": {

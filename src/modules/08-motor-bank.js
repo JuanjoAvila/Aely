@@ -541,37 +541,56 @@ function importObExpenses(s, txs){
    cobra el 31). Por eso se casa así, sobre gastos de cualquier vía salvo los apuntados a mano, y
    con el nombre + importe parecido como segunda red.
    · Una cuota por deuda y mes: una amortización extra el mismo mes se queda como gasto normal.
-   · Ventana: desde 8 días antes del mes (la del sync) — lo de antes es del histórico (2ª tanda).
+   · Ventana: los últimos `CUOTA_MESES` meses (4.22.0, 2ª tanda: «el histórico con la misma
+     regla»). No hay fecha de inicio de la deuda en el Plan, así que el tope evita casar cargos
+     de antes de que existiera; lo que se cuele se saca a mano y deja lápida. Mover un mes pasado
+     a «Deudas» no toca el saldo de hoy (`insumosSaldoGasto` solo mira el mes en curso).
    · `state.cuotaNo`: lo que él sacó a mano de «Deudas» no se vuelve a marcar.
    · Solo cambia la categoría y pone `debtId`: NO toca el saldo (ver `expenseCountsCash`).
    Devuelve las asignaciones `{e, debtId}` sin tocar nada; `marcarCuotasDeDeuda` las aplica. */
 const CUOTA_DIAS=4;
+const CUOTA_MESES=12;
+// El cargo de la deuda más cercano a `ms` (su mes o el contiguo) → {key, dias, importe}.
+function cuotaCargoCercano(d, ms){
+  const f=new Date(ms), dia=debtChargeDay(d);
+  let best=null;
+  [-1,0,1].forEach(function(k){
+    const t=new Date(f.getFullYear(), f.getMonth()+k, 1), y=t.getFullYear(), m=t.getMonth();
+    const ult=new Date(y, m+1, 0).getDate();
+    const c=new Date(y, m, Math.min(dia, ult), 12).getTime();
+    const dias=Math.abs(c-ms)/86400000;
+    if(!best || dias<best.dias) best={ key:y+"-"+(m+1), dias:dias, importe:(d.monthly||0)+debtBalloonIn(d, y, m+1) };
+  });
+  return best;
+}
+/* ¿Este cargo es la cuota de la deuda `d`? La MISMA regla para la pasada y para el importador del
+   histórico (`histClassifyCandidates`) — [[misma-regla-en-dos-sitios]]. → {key, score} o null. */
+function cuotaCasa(d, ent, amount, merchant, ms){
+  if(!d || ent!==(d.account||"sabadell") || !(amount>0) || !isFinite(ms)) return null;
+  const c=cuotaCargoCercano(d, ms);
+  const exacto=Math.abs(amount-c.importe)<=0.005 && c.dias<=CUOTA_DIAS+0.5;
+  const porNombre=recAmtClose(c.importe, amount) && recNameMatch(d.name||"", merchant||"");
+  if(!exacto && !porNombre) return null;
+  return { key:d.id+"|"+c.key, score:(exacto?0:100)+c.dias+(sinComercioReal(merchant)?0.25:0) };
+}
+function cuotaDesdeMs(){ const s=startOfMonth(); return new Date(s.getFullYear(), s.getMonth()-CUOTA_MESES, 1).getTime(); }
+// Qué cuotas (deuda|mes) ya tienen su fila marcada.
+function cuotasUsadas(debts, exps){
+  const usada={};
+  (exps||[]).forEach(function(e){
+    if(!e || !e.debtId) return;
+    const d=debts.find(function(x){ return x.id===e.debtId; });
+    if(d) usada[d.id+"|"+cuotaCargoCercano(d, dateMs(e.date)).key]=1;
+  });
+  return usada;
+}
 function cuotasDeDeudaPorMarcar(s){
   const debts=((s&&s.debts)||[]).filter(function(d){ return d && d.id && debtActive(d); });
   if(!debts.length) return [];
-  const desde=startOfMonth().getTime() - 8*86400000;
+  const desde=cuotaDesdeMs();
   const no={}; ((s&&s.cuotaNo)||[]).forEach(function(k){ no[k]=1; });
   const exps=(s&&s.expenses)||[];
-  const mesDe=function(y,m){ const d=new Date(y,m,1); return {y:d.getFullYear(), m:d.getMonth()}; };
-  // El cargo de la deuda más cercano a `ms` (su mes o el contiguo) → {key, dias, importe}.
-  const cargoCercano=function(d, ms){
-    const f=new Date(ms), dia=debtChargeDay(d);
-    let best=null;
-    [-1,0,1].forEach(function(k){
-      const mm=mesDe(f.getFullYear(), f.getMonth()+k);
-      const ult=new Date(mm.y, mm.m+1, 0).getDate();
-      const c=new Date(mm.y, mm.m, Math.min(dia, ult), 12).getTime();
-      const dias=Math.abs(c-ms)/86400000;
-      if(!best || dias<best.dias) best={ key:mm.y+"-"+(mm.m+1), dias:dias, importe:(d.monthly||0)+debtBalloonIn(d, mm.y, mm.m+1) };
-    });
-    return best;
-  };
-  const usada={};
-  exps.forEach(function(e){
-    if(!e || !e.debtId) return;
-    const d=debts.find(function(x){ return x.id===e.debtId; });
-    if(d) usada[d.id+"|"+cargoCercano(d, dateMs(e.date)).key]=1;
-  });
+  const usada=cuotasUsadas(debts, exps);
   const cands=[];
   exps.forEach(function(e){
     if(!e || e.debtId || !(e.amount>0) || e.possibleDup) return;
@@ -582,12 +601,8 @@ function cuotasDeDeudaPorMarcar(s){
     if(no[keyOfExpense(e)]) return;
     const ent=expenseBankOf(e);
     debts.forEach(function(d){
-      if(ent!==(d.account||"sabadell")) return;
-      const c=cargoCercano(d, ms);
-      const exacto=Math.abs((e.amount||0)-c.importe)<=0.005 && c.dias<=CUOTA_DIAS+0.5;
-      const porNombre=recAmtClose(c.importe, e.amount||0) && recNameMatch(d.name||"", e.obName!=null?e.obName:(e.merchant||""));
-      if(!exacto && !porNombre) return;
-      cands.push({ e:e, d:d, key:d.id+"|"+c.key, score:(exacto?0:100)+c.dias+(sinComercioReal(e.merchant)?0.25:0) });
+      const c=cuotaCasa(d, ent, e.amount||0, e.obName!=null?e.obName:(e.merchant||""), ms);
+      if(c) cands.push({ e:e, d:d, key:c.key, score:c.score });
     });
   });
   cands.sort(function(a,b){ return a.score-b.score; });
@@ -1252,7 +1267,7 @@ function histMatchesModeled(state, cand){
   const modeled=[];
   const push=function(e,name,amt){ if(e&&amt>0) modeled.push({ent:e,name:name,amount:amt}); };
   (state.fixed||[]).forEach(function(f){ if(occursIn(f,ym)) push(accOf(f), f.name, occAmountIn(f,ym)); });
-  (state.debts||[]).forEach(function(db){ if(debtActive(db)) push(db.account||"sabadell", db.name||"Cuota", (db.monthly||0)+debtBalloonIn(db,yy,ym)); });
+  // Las DEUDAS ya no se descartan aquí (4.22.0): entran en «Deudas» por `histCuotasDeDeuda`.
   (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,yy,ym)) push(o.account||"sabadell", o.name||"Cargo", o.amount||0); });
   for(let i=0;i<modeled.length;i++){
     const mm=modeled[i];
@@ -1276,12 +1291,42 @@ function histSignSuspectByBank(cands){
   });
   return flagged;
 }
+/* LAS CUOTAS DE MESES PASADOS, EN «DEUDAS» (4.22.0, 2ª tanda de su idea del 12/9).
+   Antes el histórico TIRABA la cuota que casaba por nombre (`histMatchesModeled` → dup "modeled")
+   y dejaba entrar como gasto normal las que no — que en sus datos eran todas. Ahora usa la MISMA
+   regla que la pasada diaria (`cuotaCasa`): una por deuda y mes, contando lo que ya tiene marcado
+   y lo que entra en este lote, y solo dentro de la ventana de `CUOTA_MESES`.
+   Solo mira candidatos que de otro modo entrarían nuevos. → { índice: debtId }. */
+function histCuotasDeDeuda(cands, state, saltar){
+  const debts=((state&&state.debts)||[]).filter(function(d){ return d && d.id && debtActive(d); });
+  const out={};
+  if(!debts.length) return out;
+  const desde=cuotaDesdeMs();
+  const usada=cuotasUsadas(debts, state&&state.expenses);
+  const posibles=[];
+  (cands||[]).forEach(function(x,i){
+    if(!x || x.kind==="in" || (saltar&&saltar(i))) return;
+    const ms=dateMs(String(x.date||"").slice(0,10)+"T12:00:00");
+    if(!(ms>=desde)) return;
+    debts.forEach(function(d){
+      const c=cuotaCasa(d, x.ent, Math.abs(x.amount||0), x.merchant||"", ms);
+      if(c) posibles.push({ i:i, d:d, key:c.key, score:c.score });
+    });
+  });
+  posibles.sort(function(a,b){ return a.score-b.score; });
+  posibles.forEach(function(p){
+    if(usada[p.key] || out[p.i]) return;
+    usada[p.key]=1; out[p.i]=p.d.id;
+  });
+  return out;
+}
 function histClassifyCandidates(cands, state){
   state=state||{};
   const existing=histCandExisting(cands, state.expenses);
   const cercanos=histCandCercanos(cands, state.expenses, existing);
   const daily=(state.accounts||[]).find(function(a){ return accDaily(a); });
   const pares=histParesCashback(cands, state.expenses);
+  const cuotas=histCuotasDeDeuda(cands, state, function(i){ return !!(existing[i] || cercanos[i] || pares.entrada[i] || pares.salida[i]); });
   const rows=(cands||[]).map(function(x,i){
     if(!x) return null;
     // `cashback-par`: el abono del Saveback con su compra gemela (ver `histParesCashback`).
@@ -1298,6 +1343,8 @@ function histClassifyCandidates(cands, state){
        las descartadas. Ahora esa garantía existe y está en `histFijosFromSelection`. */
     const modeled=histMatchesModeled(state, x);
     if(modeled) return { status:"dup", reason:"modeled", match:modeled, defDest:null, suggestRecibo:false, category:null };
+    // Cuota de una deuda: entra como gasto en «Deudas», nunca como Fijo (ya está en el Plan).
+    if(cuotas[i]) return { status:"new", reason:null, match:null, defDest:"gasto", suggestRecibo:false, category:"deudas", debtId:cuotas[i] };
     if(x.kind==="in"){
       const tx={ amount:-Math.abs(x.amount||0), merchant:x.merchant, ent:x.ent, date:x.date };
       const cat=esTraspasoPropio(state, tx) ? (typeof TRASPASO_CAT!=="undefined"?TRASPASO_CAT.id:"traspaso") : (typeof INGRESO_CAT!=="undefined"?INGRESO_CAT.id:"ingreso");
@@ -1360,6 +1407,8 @@ function histBuildCommit(cands, classifications, state, opts){
       obName:merchant
     };
     if(x.id) e.extId=x.id;
+    // Cuota de deuda (4.22.0), salvo que él la haya pasado a otra categoría en la vista previa.
+    if(c.debtId && e.category==="deudas") e.debtId=c.debtId;
     expAdds.push(e);
   });
   return { expAdds:expAdds, fixAdds:[], batchId:batchId, investmentsSnapshot:investmentsBefore };

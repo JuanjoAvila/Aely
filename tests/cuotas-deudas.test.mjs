@@ -108,7 +108,7 @@ t("NO marca: otro banco, otro importe, lejos del día, a mano, traspasos, fuera 
     g(iso(Y, M, 20), 197, "X", "ob", "sabadell"),                      // lejos del día 3
     g(iso(Y, M, 1), 660.85, "Hipoteca", "manual:sabadell", "sabadell"),// apuntado a mano
     g(iso(Y, M, 1), 660.85, "Y", "ob", "sabadell", { category: "traspaso" }),
-    g(iso(Y, M - 2, 1), 660.85, "Z", "ob", "sabadell"),                // histórico: 2ª tanda
+    g(iso(Y, M - 13, 1), 660.85, "Z", "ob", "sabadell"),               // más allá de CUOTA_MESES
   ];
   assert.equal(cli.marcarCuotasDeDeuda(estado(exps)), null);
 });
@@ -200,6 +200,67 @@ t("★ un servidor VIEJO (split por #) deja FUERA la de OB, no la suma", () => {
 t("el id de la deuda no rompe el formato", () => {
   assert.equal(cli.deudaSufijo("a~b#c.d"), "~deuda.abcd");
   assert.equal(cli.deudaSufijo(null), "");
+});
+
+/* ─── 2ª tanda (4.22.0): el histórico con la misma regla ─── */
+
+t("★ HISTÓRICO: las filas de meses pasados que ya tiene también caen en su deuda", () => {
+  const exps = [
+    g(iso(Y, M - 3, 3), 197, "Nombre De Persona", "ob-hist", "sabadell"),
+    g(iso(Y, M - 2, 3), 197, "Nombre De Persona", "ob-hist", "sabadell"),
+    g(iso(Y, M - 1, 1), 149.75, "Amazon", "macrodroid"),
+  ];
+  const s = marcar(estado(exps));
+  assert.deepEqual(s.expenses.map((e) => e.debtId), ["piso", "piso", "robot"]);
+});
+
+t("★ HISTÓRICO: marcar meses pasados no mueve el saldo de hoy", () => {
+  const antes = estado([g(iso(Y, M - 2, 1), 149.75, "Amazon", "macrodroid"), g(iso(Y, M, 1), 30, "Mercadona", "macrodroid")]);
+  const despues = marcar(antes);
+  assert.equal(deuda(despues, despues.expenses[0].id).debtId, "robot");
+  assert.deepEqual(cli.insumosSaldoGasto(despues).spentByBank, cli.insumosSaldoGasto(antes).spentByBank);
+  assert.equal(+cli.monthBudgetStats(despues).spent.toFixed(2), 30);
+});
+
+const hc = (o) => Object.assign({ kind: "out", card: false, ent: "sabadell" }, o);
+const ymdDe = (y, m, d) => { const t = new Date(y, m, d); return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); };
+
+t("★ IMPORTADOR: la cuota del extracto entra en «Deudas», no como gasto ni como dup", () => {
+  const cands = [
+    hc({ id: "c1", merchant: "PRESTAMOS ADEUDO CUOTA", amount: 660.85, date: ymdDe(Y, M - 2, 1) }),
+    hc({ id: "c2", merchant: "CUOTA HIPOTECA", amount: 660.85, date: ymdDe(Y, M - 3, 1) }),   // antes: dup «modeled»
+    hc({ id: "c3", merchant: "MERCADONA", amount: 42, date: ymdDe(Y, M - 2, 2) }),
+  ];
+  const s = estado();
+  const { rows } = cli.histClassifyCandidates(cands, s);
+  assert.deepEqual(rows.map((r) => [r.status, r.category, r.debtId]), [
+    ["new", "deudas", "hipo"], ["new", "deudas", "hipo"], ["new", rows[2].category, undefined],
+  ]);
+  assert.notEqual(rows[2].category, "deudas");
+  const built = cli.histBuildCommit(cands, rows, s);
+  assert.deepEqual(Array.from(built.expAdds, (e) => e.debtId), ["hipo", "hipo", undefined]);
+});
+
+t("★ IMPORTADOR: una por deuda y mes, contando lo que YA está marcado", () => {
+  const ya = marcar(estado([g(iso(Y, M - 2, 3), 197, "X", "ob", "sabadell")]));
+  assert.equal(ya.expenses[0].debtId, "piso");
+  const cands = [hc({ id: "c1", merchant: "OTRA COSA", amount: 197, date: ymdDe(Y, M - 2, 4) })];
+  const { rows } = cli.histClassifyCandidates(cands, ya);
+  assert.notEqual(rows[0].category, "deudas", "el mes ya tiene su cuota");
+});
+
+t("IMPORTADOR: si él la pasa a otra categoría en la vista previa, entra sin marca", () => {
+  const cands = [hc({ id: "c1", merchant: "X", amount: 197, date: ymdDe(Y, M - 2, 3) })];
+  const s = estado();
+  const { rows } = cli.histClassifyCandidates(cands, s);
+  rows[0] = { ...rows[0], category: "hogar" };
+  assert.equal(cli.histBuildCommit(cands, rows, s).expAdds[0].debtId, undefined);
+});
+
+t("IMPORTADOR: un Fijo casado sigue siendo dup «modeled»", () => {
+  const s = estado([], { fixed: [{ id: "f1", name: "Iberdrola", amount: 12, account: "sabadell", freq: "mes" }] });
+  const { rows } = cli.histClassifyCandidates([hc({ id: "c1", merchant: "IBERDROLA", amount: 12, date: ymdDe(Y, M - 1, 12) })], s);
+  assert.equal(rows[0].reason, "modeled");
 });
 
 console.log("  ok");

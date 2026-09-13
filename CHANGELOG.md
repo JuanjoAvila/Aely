@@ -1,3 +1,22 @@
+## [4.22.0] - 2026-09-14
+### Las cuotas de meses pasados, también en «Deudas» (2ª tanda)
+
+Su decisión del brief: «el histórico en una segunda tanda», con la misma regla. Beta renumerada
+tras el promote de 4.21.2.
+
+- `cuotaCasa` / `cuotaCargoCercano` / `cuotasUsadas` salen de `cuotasDeDeudaPorMarcar` para
+  que la pasada diaria y el importador del histórico usen LA MISMA regla.
+- La pasada mira los últimos `CUOTA_MESES` (12) en vez de «mes −8 días». No hay fecha de inicio de
+  la deuda en el Plan: el tope evita casar cargos de antes de que existiera; lo que se cuele se saca
+  a mano (lápida `cuotaNo`). Marcar meses pasados no toca el saldo (`insumosSaldoGasto` solo mira
+  el mes en curso) — test propio.
+- Importador: `histMatchesModeled` ya no descarta DEUDAS (solo Fijos y puntuales);
+  `histCuotasDeDeuda` las clasifica `new` + `category:"deudas"` + `debtId`, una por deuda y mes
+  contando lo ya marcado y el propio lote. Si él cambia la categoría en la vista previa, entra sin
+  marca.
+- Simulado con la nube: en su usuario marca además las de junio y julio (Roomba, gym, hipoteca,
+  piso); gastado del mes y `spentByBank` iguales. Tests: `cuotas-deudas` 21.
+
 ## [4.21.2] - 2026-09-14
 ### La ronda 4.21 a producción, con una sola nota
 
