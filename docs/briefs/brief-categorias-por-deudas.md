@@ -8,7 +8,7 @@ Estado: **brief, sin código.**
 
 ---
 
-## 1. Cómo está hoy (leído en beta 356616cc)
+## 1. Cómo está hoy (leído en beta al redactar, 14/9)
 
 - Las deudas viven en **Plan** (`state.debts`: nombre, cuota mensual, cuenta, día…) y su cuota ya
   resta de lo que puedes gastar a través del motor de Fijos.
@@ -47,3 +47,10 @@ Estado: **brief, sin código.**
 - **Widget / servidor.** `cuentaParaPresupuesto` (servidor) tiene que excluirla igual que el cliente
   ([[misma-regla-en-dos-sitios]]): espejo en `presupuesto-servidor`.
 - **Deudas en efectivo o sin banco**: no llegan por el banco, no cambian.
+- **La marca viaja a la nube** (apuntes de Cursor): `debtId` y la categoría tienen que guardarse en
+  la fila de `expenses` igual que el banco, para que el filtro y el espejo del servidor no dependan
+  solo del móvil.
+- **Misma deuda, dos cargos el mismo mes** (cuota + amortización extra): casar UNO con la cuota y
+  dejar el otro como gasto normal; no marcar de más. Test propio.
+- **Filtro:** sin deudas, la sección no sale. Si borras una deuda, sus cuotas viejas se quedan en
+  «Deudas» (decidir si además salen como «Deuda borrada»).
