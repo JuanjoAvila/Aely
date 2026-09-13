@@ -105,6 +105,7 @@ const steps = [
   ["hist-uniq-por-banco", ["node", "tests/hist-uniq-por-banco.test.mjs"]],
   ["sync-manual-un-aviso", ["node", "tests/sync-manual-un-aviso.test.mjs"]],
   ["cartel-reconectar", ["node", "tests/cartel-reconectar.test.mjs"]],
+  ["categorize-limitador", ["node", "tests/categorize-limitador.test.mjs"]],
   ["hist-cashback-par", ["node", "tests/hist-cashback-par.test.mjs"]],
   ["notas-sin-duplicados", ["node", "tests/notas-sin-duplicados.test.mjs"]],
   ["v4-cta-halo", ["node", "tests/v4-cta-halo.test.mjs"]],

@@ -10,6 +10,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { categorizar } from "../_shared/ingest_logic.ts";
 import { withCors } from "../_shared/cors.ts";
+import { rateLimit } from "../_shared/ratelimit.ts";
 
 // Misma lista que CATEGORIES en src/modules/00-core.js (más "otros").
 // Si añades una categoría y no está aquí, la IA no puede devolverla — el test
@@ -84,6 +85,19 @@ Deno.serve(withCors(async (req: Request) => {
   const apiKey = Deno.env.get("OPENAI_API_KEY") || "";
   if (!apiKey) {
     return json({ ok: true, category: "otros", source: "kw", ai: false });
+  }
+
+  /* FRENO POR USUARIO SOLO EN EL CAMINO DE PAGO (13/9, SEC-02 y brief «sugerir al escribir»).
+     Hasta ahora esto se pedía a mano, gasto a gasto. En cuanto Apuntar lo pida al escribir el
+     concepto, un bucle del cliente o un dedo nervioso serían llamadas al LLM que cuestan dinero.
+     Las palabras clave de arriba no se frenan (son gratis). Al pasarse NO se devuelve 429: se
+     contesta «otros» con `ai:"limit"`, igual que cuando el modelo falla, para que la app no
+     enseñe un error por algo que no es culpa de nadie. 40 cada 10 minutos da de sobra para
+     apuntar a mano. Si el propio limitador falla, deja pasar (regla de ratelimit.ts). */
+  const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const gate = await rateLimit(admin, "categorize-ai:" + user.id, 40, 600);
+  if (!gate.ok) {
+    return json({ ok: true, category: "otros", source: "kw", ai: "limit" });
   }
 
   try {
