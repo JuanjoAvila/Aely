@@ -31,9 +31,10 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         /* ⚠ 45, NO 43. Produccion anuncia la 42, pero SU movil lleva la 44 (la APK de beta con el
            icono arreglado). Android no ofrece una actualizacion con codigo menor o igual al
-           instalado, asi que con 43 o 44 el no veria nunca esta. 45 le llega a los tres. */
-        versionCode 45
-        versionName "4.18.22"
+           instalado, asi que con 43 o 44 el no veria nunca esta. 45 le llega a los tres.
+           46 (14/9, OPS-06): sin token de ingest y sin copia de Android. */
+        versionCode 46
+        versionName "4.20.4"
         /* ⚠ INGEST_URL VACÍA POR DEFECTO — solo la APK `.debug` la lleva (14/9/2026, OPS-06).
            Estaba aquí, en defaultConfig, así que valía TAMBIÉN para release: la APK que publica
            `release:apk` en un repo PÚBLICO llevaba dentro la URL de ingest con el token del dueño.
