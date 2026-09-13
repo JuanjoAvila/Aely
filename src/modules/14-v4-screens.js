@@ -576,6 +576,17 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
   const [bankOpen,setBankOpen]=useState(false);
   const [date,setDate]=useState(function(){ return isoLocal(); });
   const [calOpen,setCalOpen]=useState(false);
+  /* Sugerir categoría al escribir el concepto (13/9, opción A): palabras clave se aplican solas;
+     la IA solo ofrece un chip. Lo que tocas a mano manda. */
+  const [tocadaAMano,setTocadaAMano]=useState(false);
+  const [iaPara,setIaPara]=useState(null);
+  const [iaCat,setIaCat]=useState(null);
+  const [sugKw,setSugKw]=useState(null);
+  const noteRef=useRef(note); noteRef.current=note;
+  const tocadaRef=useRef(tocadaAMano); tocadaRef.current=tocadaAMano;
+  const iaParaRef=useRef(iaPara); iaParaRef.current=iaPara;
+  const iaCatRef=useRef(iaCat); iaCatRef.current=iaCat;
+  const aiOn=!!(state.settings&&state.settings.aiCat);
   const bankOpts=useMemo(function(){
     const seen={}; const out=[];
     (state.accounts||[]).forEach(function(a){ if(a&&a.ent&&!seen[a.ent]){ seen[a.ent]=1; out.push(a.ent); } });
@@ -598,6 +609,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
   useEffect(function(){
     if(open){
       setKind("gasto"); setRaw(""); setNote(""); setCat("super");
+      setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false);
       // Defecto = banco diario, no el sobre (aunque el sobre también sea gasto diario).
       setBank(dailyBankEnt);
@@ -606,6 +618,35 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
       setEntryCur(String(last).toUpperCase());
     }
   },[open]);
+  /* Debounce 400 ms KW / 900 ms IA (brief opción A). Refs: el timer no debe pillarse el texto viejo. */
+  useEffect(function(){
+    if(!open || kind!=="gasto") return undefined;
+    const tKw=setTimeout(function(){
+      const texto=String(noteRef.current||"").trim();
+      const sug=sugerenciaApuntar({
+        concepto:texto, tocadaAMano:tocadaRef.current, iaOn:aiOn, nube:cloud.enabled(),
+        iaPara:iaParaRef.current, iaCat:iaCatRef.current
+      });
+      if(sug.kwCat){ setCat(sug.kwCat); setSugKw(sug.kwCat); }
+      else if(!tocadaRef.current) setSugKw(null);
+    }, 400);
+    const tIa=setTimeout(function(){
+      const texto=String(noteRef.current||"").trim();
+      const sug=sugerenciaApuntar({
+        concepto:texto, tocadaAMano:tocadaRef.current, iaOn:aiOn, nube:cloud.enabled(),
+        iaPara:iaParaRef.current, iaCat:iaCatRef.current
+      });
+      if(!sug.pedirIA) return;
+      setIaPara(texto);
+      cloud.suggestCategory(texto).then(function(res){
+        if(String(noteRef.current||"").trim()!==texto) return;
+        const c=res&&res.category;
+        if(c && c!=="otros" && CAT[c]) setIaCat(c);
+        else setIaCat(null);
+      }).catch(function(){ /* ya marcamos iaPara: no reintentar en bucle */ });
+    }, 900);
+    return function(){ clearTimeout(tKw); clearTimeout(tIa); };
+  },[open, note, kind, aiOn]);
   useBackClose(!!open, onClose);
   const swipe=useSheetSwipe(!!open, onClose);
   if(!open) return null;
@@ -660,6 +701,13 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     }
   };
   const cats=CATEGORIES.filter(function(c){ return c.id!=="otros"; }).concat(CATEGORIES.filter(function(c){ return c.id==="otros"; }));
+  const chipIA=(kind==="gasto") ? sugerenciaApuntar({
+    concepto:note.trim(), tocadaAMano:tocadaAMano, iaOn:aiOn, nube:cloud.enabled(),
+    iaPara:iaPara, iaCat:iaCat
+  }).chipIA : null;
+  const pickCat=function(id){
+    setCat(id); setTocadaAMano(true); setSugKw(null);
+  };
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
       React.createElement("div",Object.assign({className:"v4-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
@@ -705,10 +753,17 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
                 bankChipLabel(b));
             })
           ),
-          kind==="gasto" && React.createElement("div",{className:"v4-chips"},
+          kind==="gasto" && React.createElement("div",{className:"v4-chips","data-testid":"ap-cats"},
+            chipIA && React.createElement("button",{type:"button",key:"ia_"+chipIA,
+              className:"v4-chip"+(cat===chipIA?" on":""),"data-testid":"ap-ia-chip",
+              onClick:function(){ pickCat(chipIA); }},
+              "✨ "+catName(chipIA)),
             cats.map(function(c){
-              return React.createElement("button",{key:c.id,className:"v4-chip"+(cat===c.id?" on":""),onClick:function(){ setCat(c.id); }},
-                c.icon+" "+catName(c.id));
+              const sugerida=sugKw===c.id && cat===c.id && !tocadaAMano;
+              return React.createElement("button",{key:c.id,type:"button",
+                className:"v4-chip"+(cat===c.id?" on":""),"data-testid":"ap-cat-"+c.id,
+                onClick:function(){ pickCat(c.id); }},
+                c.icon+" "+catName(c.id)+(sugerida?" ✨":""));
             })
           ),
           React.createElement(NumPad,{value:raw, onChange:setRaw})

@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.20.3",
+    "d": "13 sep 2026",
+    "t": {
+      "es": "Al apuntar un gasto, la categoría se sugiere sola",
+      "en": "When you add an expense, the category suggests itself",
+      "ca": "En apuntar una despesa, la categoria es suggereix sola"
+    },
+    "items": {
+      "es": [
+        "Escribes el concepto y, si la app lo reconoce, elige la categoría. Si no, y tienes la sugerencia con IA encendida, te ofrece un chip: un toque y listo."
+      ],
+      "en": [
+        "You type what it was for and, if the app recognizes it, it picks the category. If not, and AI suggestions are on, it offers a chip — one tap and done."
+      ],
+      "ca": [
+        "Escrius el concepte i, si l'app el reconeix, tria la categoria. Si no, i tens el suggeriment amb IA encès, t'ofereix un xip: un toc i llest."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "apuntar-sugerencia",
+        "t": {
+          "es": "✨ Categoría al apuntar",
+          "en": "✨ Category while adding",
+          "ca": "✨ Categoria en apuntar"
+        },
+        "items": {
+          "es": [
+            "1. Ajustes → activa «Sugerir categoría (IA)» si quieres probar también el chip de IA.",
+            "2. Pulsa + (Apuntar) y escribe «Mercadona» en el concepto.",
+            "3. En menos de un segundo debe quedar seleccionado Supermercado, con una ✨.",
+            "4. Toca a mano otra categoría (p. ej. Ocio) y sigue escribiendo: no puede cambiarte el chip.",
+            "5. (Opcional) Escribe un comercio raro: si la IA responde, sale un chip ✨ aparte; un toque lo aplica."
+          ],
+          "en": [
+            "1. Settings → turn on Suggest category (AI) if you also want to try the AI chip.",
+            "2. Tap + (Add) and type Mercadona in the note.",
+            "3. Within a second Supermarket should be selected, with a sparkle.",
+            "4. Tap another category by hand (e.g. Leisure) and keep typing: the chip must not change.",
+            "5. (Optional) Type a weird merchant: if AI answers, a separate sparkle chip appears; one tap applies it."
+          ],
+          "ca": [
+            "1. Ajustos → activa «Suggerir categoria (IA)» si vols provar també el xip d'IA.",
+            "2. Prem + (Apuntar) i escriu «Mercadona» al concepte.",
+            "3. En menys d'un segon ha de quedar seleccionat Super, amb una ✨.",
+            "4. Toca a mà una altra categoria (p. ex. Oci) i continua escrivint: no et pot canviar el xip.",
+            "5. (Opcional) Escriu un comerç rar: si l'IA respon, surt un xip ✨ a part; un toc l'aplica."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.20.2",
     "d": "13 sep 2026",
     "t": {

@@ -1,3 +1,16 @@
+## [4.20.3] - 2026-09-13
+### Al apuntar un gasto, la categoría se sugiere sola
+
+Su petición del 12/9: *«que te salga lo de sugerir categoría con IA en cuanto añadas el concepto,
+que no tengas que ir a otros… guardar… abrir el gasto…»*. Opción A (él): la IA ofrece un chip;
+las palabras clave se aplican solas.
+
+- En Apuntar (+), con ≥3 letras y 400 ms quieto: si las palabras clave saben, se selecciona ese
+  chip (con ✨). Si no saben y «Sugerir categoría (IA)» está encendido, a los 900 ms se pide a
+  `categorize` (ya con freno) y aparece un chip «✨ …» — un toque lo aplica; nunca sola.
+- Lo que tocas a mano manda: seguir escribiendo no te cambia el chip.
+- Función pura `sugerenciaApuntar` (Claude) + UI en `ApuntarSheet` (Cursor). Tests unit + e2e.
+
 ## [4.20.2] - 2026-09-13
 ### Seguridad: nadie entra en un Hogar ajeno adivinando el código (OPS-06)
 
