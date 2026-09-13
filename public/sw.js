@@ -8,6 +8,7 @@ const CACHE = "micartera-" + VERSION;
 const SHELL = [
   "./", "./index.html", "./manifest.json",
   "./release-notes.json",
+  "./i18n/en.json", "./i18n/ca.json",
   "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png",
   "./logos/sabadell.png", "./logos/revolut.png", "./logos/trade_republic.png",
   "./logos/myinvestor.png", "./logos/caixabank.png", "./logos/efectivo.svg",

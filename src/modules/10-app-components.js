@@ -547,8 +547,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
       title:hint||"", "data-dest":id, "data-cand":(cands&&cands[i]&&cands[i].id)||String(i),
       style:{padding:"4px 9px",borderRadius:999,border:"1px solid "+(on?"var(--mint)":"var(--line)"),background:on?"rgba(95,208,138,.18)":"transparent",color:on?"var(--mint)":"var(--muted)",fontWeight:800,fontSize:11,cursor:"pointer"}}, label);
   };
-  const dupHint=function(c){
-    if(c&&c.status==="maybe") return "🗐 "+t("bp_hist_dupmaybe");
+  const dupHint=function(c){
+    if(c&&c.status==="maybe") return "🗐 "+t("bp_hist_dupmaybe");
     if(!c||c.status!=="dup") return null;
     if(c.reason==="modeled") return "🗐 "+t("bp_hist_dupmodel");
     return "🗐 "+t("bp_hist_dupexist");
@@ -2300,7 +2300,13 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       expand==="lang" && React.createElement("div",{className:"set-exp"},
         React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",marginTop:8}},
           LANGS.map(function(L){
-            return React.createElement("button",{key:L[0],onClick:function(){ CURLANG=L[0]; setS({lang:L[0]}); },style:segBtn(curLang===L[0])}, L[1]);
+            return React.createElement("button",{key:L[0],onClick:function(){
+              var lg=L[0];
+              // en/ca pueden no estar en el bundle: carga el JSON antes de cambiar CURLANG
+              // para no pintar un frame a medias en español (A/B idiomas, 4.19.103).
+              var go=function(){ CURLANG=lg; setS({lang:lg}); };
+              if(typeof ensureLangPack==="function") ensureLangPack(lg).then(go, go); else go();
+            },style:segBtn(curLang===L[0])}, L[1]);
           })))
     ),
 

@@ -526,6 +526,53 @@ const t = (k)=>{
 };
 // textos con variables: tf("key",{name:"x"}) reemplaza {name} en la traducción
 function tf(k,vals){ let s=t(k); if(vals) for(const v in vals) s=s.split("{"+v+"}").join(vals[v]); return s; }
+/* en/ca viven en public/i18n/*.json (build, 4.19.103): el bundle solo lleva es. Antes del
+   primer paint con idioma ≠ es hay que tener el diccionario; si falla el fetch (offline
+   en frío), t() cae a es y no rompe. Idempotente. */
+var _langPackLoads={};
+function langPackUrl(lang){
+  try{
+    var base=document.querySelector("base");
+    if(base&&base.href) return new URL("i18n/"+lang+".json", base.href).href;
+  }catch(e){}
+  try{ return new URL("i18n/"+lang+".json", document.baseURI||location.href).href; }catch(e2){}
+  return "i18n/"+lang+".json";
+}
+function langPackReady(lang){
+  if(!lang || lang==="es") return true;
+  var bag=LANG[lang];
+  return !!(bag && Object.keys(bag).length>0);
+}
+function ensureLangPack(lang){
+  lang=lang||"es";
+  if(lang==="es" || langPackReady(lang)) return Promise.resolve(lang);
+  if(_langPackLoads[lang]) return _langPackLoads[lang];
+  _langPackLoads[lang]=fetch(langPackUrl(lang),{credentials:"same-origin"})
+    .then(function(r){ if(!r||!r.ok) throw new Error("i18n HTTP "+(r&&r.status)); return r.json(); })
+    .then(function(dict){
+      if(!dict || typeof dict!=="object") throw new Error("i18n vacío");
+      LANG[lang]=Object.assign(LANG[lang]||{}, dict);
+      return lang;
+    })
+    .catch(function(e){
+      _langPackLoads[lang]=null;
+      try{ console.warn("i18n", lang, e&&e.message||e); }catch(err){}
+      return "es";
+    });
+  return _langPackLoads[lang];
+}
+/** Idioma guardado antes de montar React (sin pasar por loadState entero). */
+function peekSavedLang(){
+  try{
+    var k=(typeof localStorage!=="undefined" && localStorage.getItem("_mcSandbox")==="1")
+      ? "micartera_sandbox" : "micartera_v3";
+    var raw=localStorage.getItem(k);
+    if(!raw) return "es";
+    var s=JSON.parse(raw);
+    var lg=s&&s.settings&&s.settings.lang;
+    return (lg==="en"||lg==="ca"||lg==="es") ? lg : "es";
+  }catch(e){ return "es"; }
+}
 /* Tour guiado + ayuda contextual + accesibilidad (UX para no-técnicos) */
 Object.assign(LANG.es,{
   st_bigtext:"🔍 Letra grande", st_tour:"🎓 Ver el tutorial",

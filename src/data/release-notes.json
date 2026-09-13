@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.19.103",
+    "d": "13 sep 2026",
+    "t": {
+      "es": "La app pesa menos: los idiomas se cargan aparte",
+      "en": "The app is lighter: languages load separately",
+      "ca": "L'app pesa menys: els idiomes es carreguen a part"
+    },
+    "items": {
+      "es": [
+        "Inglés y catalán ya no van dentro del paquete principal: la app arranca más ligera y carga el idioma cuando lo necesitas, también sin conexión después de la primera vez."
+      ],
+      "en": [
+        "English and Catalan are no longer inside the main package: the app starts lighter and loads the language when you need it, including offline after the first time."
+      ],
+      "ca": [
+        "L'anglès i el català ja no van dins del paquet principal: l'app arrenca més lleugera i carrega l'idioma quan el necessites, també sense connexió després de la primera vegada."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "ab-idiomas",
+        "t": {
+          "es": "📦 Inglés y catalán fuera del paquete (más ligera)",
+          "en": "📦 English and Catalan out of the package (lighter)",
+          "ca": "📦 Anglès i català fora del paquet (més lleugera)"
+        },
+        "items": {
+          "es": [
+            "1. En Ajustes → Idioma, pasa a English o Català.",
+            "2. La interfaz tiene que cambiar entera a ese idioma (no un parpadeo en español).",
+            "3. Cierra la app del todo y ábrela otra vez: tiene que seguir en el idioma que elegiste.",
+            "4. Vuelve a Español y comprueba que todo vuelve al castellano.",
+            "5. Si puedes, activa el modo avión tras haber abierto una vez en inglés: al reabrir debe seguir en inglés (el idioma queda en caché)."
+          ],
+          "en": [
+            "1. In Settings → Language, switch to English or Català.",
+            "2. The whole UI must switch to that language (no flash of Spanish).",
+            "3. Force-close the app and open it again: it must stay in the language you chose.",
+            "4. Switch back to Español and check everything returns to Spanish.",
+            "5. If you can, turn on airplane mode after opening once in English: on reopen it should stay in English (language is cached)."
+          ],
+          "ca": [
+            "1. A Ajustaments → Idioma, passa a English o Català.",
+            "2. Tota la interfície ha de canviar a aquest idioma (sense un flaix en castellà).",
+            "3. Tanca l'app del tot i torna-la a obrir: ha de seguir en l'idioma que has triat.",
+            "4. Torna a Español i comprova que tot torna al castellà.",
+            "5. Si pots, activa el mode avió després d'haver obert un cop en anglès: en reobrir ha de seguir en anglès (l'idioma queda a la memòria cau)."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.102",
     "d": "13 sep 2026",
     "t": {

@@ -18,6 +18,7 @@ import {
   packReleaseNotesForBundle,
   contarReleaseNotesEnJs,
 } from "./release-notes-max.mjs";
+import { extraerIdiomasDelBundle } from "./i18n-bundle.mjs";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const order = JSON.parse(fs.readFileSync(path.join(root, "src", "build-order.json"), "utf8"));
@@ -52,6 +53,12 @@ console.log(`  · RELEASE_NOTES: ${allNotes.length} en JSON · ${contarReleaseNo
 const pubNotes = path.join(root, "public", "release-notes.json");
 fs.writeFileSync(pubNotes, JSON.stringify(allNotes));
 console.log(`  · public/release-notes.json (${(fs.statSync(pubNotes).size / 1024).toFixed(0)} KB, ${allNotes.length} versiones)`);
+
+/* A/B idiomas (4.19.103): en/ca fuera del index → public/i18n/*.json. La fuente sigue
+   con los tres; solo se vacía el JS que entra al bundle (si no, el gzip no baja). */
+const i18n = extraerIdiomasDelBundle(js);
+js = i18n.js;
+console.log(`  · public/i18n/en.json + ca.json (${i18n.counts.en}/${i18n.counts.ca} claves; es ${i18n.counts.es} en bundle)`);
 
 let shell = fs.readFileSync(path.join(root, "src", "shell.html"), "utf8");
 const MARK = "<!--MC_APP_SCRIPT-->";

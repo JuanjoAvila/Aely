@@ -449,13 +449,25 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http')===0 && !_mc
    bundle sin soltar el hilo, así que el navegador no llegaba a pintar NADA hasta tener el árbol
    de React entero: pantalla negra y splash invisible (vídeo del usuario, 2026-07-25). Dos rAF
    sueltan el hilo el tiempo justo para que se pinte lo que ya está en el DOM —el splash— antes
-   de empezar. No retrasa nada perceptible: son dos frames. */
+   de empezar. No retrasa nada perceptible: son dos frames.
+   A/B idiomas (4.19.103): si el guardado es en/ca, esperamos el JSON ANTES del montaje para
+   no pintar un frame en español. El splash sigue visible mientras tanto. */
 (function(){
   var montar=function(){
     ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(ErrorBoundary,null,React.createElement(App)));
   };
-  if(typeof requestAnimationFrame!=="function"){ montar(); return; }
-  requestAnimationFrame(function(){ requestAnimationFrame(montar); });
+  var trasSplash=function(){
+    if(typeof requestAnimationFrame!=="function"){ montar(); return; }
+    requestAnimationFrame(function(){ requestAnimationFrame(montar); });
+  };
+  var lg=(typeof peekSavedLang==="function") ? peekSavedLang() : "es";
+  if(typeof ensureLangPack==="function"){
+    ensureLangPack(lg).then(function(ready){
+      if(ready && ready!=="es" && typeof CURLANG!=="undefined") CURLANG=ready;
+      else if(lg==="es" && typeof CURLANG!=="undefined") CURLANG="es";
+      trasSplash();
+    }, trasSplash);
+  } else trasSplash();
 })();
 // Tras pintar Resumen: carga Sentry sin pelearse con el arranque (antes bloqueaba ~340 KB).
 mcScheduleIdle(function(){ mcLoadSentryDeferred(); }, 1800);

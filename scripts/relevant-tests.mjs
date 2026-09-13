@@ -116,6 +116,8 @@ export const CROSSCUTTING = [
   "e2e/pulsacion-larga.spec.mjs",
   /* UX-01: geometría de `.page-scroll-host` en `shell.html` (layout-shift al cambiar tab). */
   "e2e/ux01-layout-shift.spec.mjs",
+  /* A/B idiomas: en/ca fuera del bundle; arranque debe esperar el JSON. */
+  "e2e/i18n-pack.spec.mjs",
 ];
 
 const STEPS_DOCS = ["guard-privacy", "docs-frescura", "memoria-espejo"];

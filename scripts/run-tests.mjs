@@ -30,6 +30,7 @@ const steps = [
   ["guard-privacy", ["node", "scripts/guard-privacy.mjs"]],
   ["check-syntax", ["node", "scripts/check-syntax.mjs"]],
   ["i18n-keys", ["node", "tests/i18n-keys.test.mjs"]],
+  ["i18n-bundle", ["node", "tests/i18n-bundle.test.mjs"]],
   ["novedades-vinnetas", ["node", "tests/novedades-vinnetas.test.mjs"]],
   ["aely-logo-unico", ["node", "tests/aely-logo-unico.test.mjs"]],
   ["release-notes-max", ["node", "tests/release-notes-max.test.mjs"]],

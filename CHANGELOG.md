@@ -1,3 +1,19 @@
+## [4.19.103] - 2026-09-13
+### Idiomas en/ca fuera del bundle (A/B de gzip)
+
+Condición 0 del brief del 13/9: medir si sacar inglés y catalán del `index.html` liberaba
+margen. Medido sobre el minificado de la 102: ~37 KB min / ~11 KB gzip al vaciar los
+diccionarios; al sacarlos de verdad del JS (build → `public/i18n/en.json` + `ca.json`) el
+presupuesto pasó de 1195/1195 KB min a ~1022 KB y el gzip de ~331 a ~279 KB.
+
+`es` se queda en el bundle (defecto + fallback de `t()`). Si el idioma guardado es en/ca, el
+arranque espera el JSON antes de montar React (sin frame en español). El SW precachea los dos
+JSON. Al cambiar idioma en Ajustes también se carga antes de pintar. Primera carga offline en
+en/ca cae a español sin romper.
+
+Guardianes: `i18n-keys` sigue leyendo la fuente; nuevo `i18n-bundle` comprueba que el producto
+no arrastra `Object.assign(LANG.en|ca)` y que los JSON tienen las mismas claves.
+
 ## [4.19.102] - 2026-09-13
 ### El Saveback de Trade Republic ya no sale como ingreso en el histórico
 
