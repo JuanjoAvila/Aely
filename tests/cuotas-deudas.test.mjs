@@ -263,4 +263,71 @@ t("IMPORTADOR: un Fijo casado sigue siendo dup «modeled»", () => {
   assert.equal(rows[0].reason, "modeled");
 });
 
+/* ─── 4.22.2: su rechazo — «Cofidis 24,99 es la cuota, no la puedo cambiar manualmente?» ─── */
+
+const conSuelo = (exps, extra = {}) => {
+  const s = estado(exps, extra);
+  // Financiación ya ACABADA (months 3 desde hace 6 meses): inactiva, 25,02 en el Plan.
+  s.debts = s.debts.concat([{ id: "suelo", name: "Financiación suelo", value: 75.06, monthly: 25.02, account: "trade_republic", day: 6, months: 3, asOf: (Y * 12 + M) - 6 }]);
+  return s;
+};
+
+t("★ SU CASO: Cofidis 24,99 no casa solo (deuda acabada, 24,99≠25,02, otro nombre)", () => {
+  const s = conSuelo([g(iso(Y, M, 8), 24.99, "Cofidis", "macrodroid")]);
+  assert.equal(cli.debtActive(s.debts[3]), false, "el escenario es el suyo: deuda inactiva");
+  assert.equal(cli.marcarCuotasDeDeuda(s), null);
+});
+
+t("★ marcarla a mano: va a «Deudas» con esa deuda, aunque sea manual o traspaso", () => {
+  for (const [source, cat] of [["macrodroid", "recibos"], ["manual:trade_republic", "compras"], ["ob", "traspaso"]]) {
+    const e = g(iso(Y, M, 8), 24.99, "Cofidis", source, "trade_republic", { category: cat });
+    const r = cli.marcarCuotaAMano(conSuelo([e]), e.id, "suelo");
+    assert.equal(r.e.category, "deudas", source);
+    assert.equal(r.e.debtId, "suelo", source);
+    assert.equal(deuda(r.state, e.id).debtId, "suelo");
+  }
+});
+
+t("★ y APRENDE: el Cofidis del mes que viene entra solo, con 24,99 contra 25,02", () => {
+  const este = g(iso(Y, M - 1, 8), 24.99, "Cofidis", "macrodroid");
+  const r = cli.marcarCuotaAMano(conSuelo([este]), este.id, "suelo");
+  assert.equal(r.state.cuotaAlias["trade_republic|cofidis"], "suelo");
+  const sig = g(iso(Y, M, 7), 24.99, "COFIDIS", "macrodroid");
+  const s = marcar(Object.assign({}, r.state, { expenses: r.state.expenses.concat([sig]) }));
+  assert.equal(deuda(s, sig.id).debtId, "suelo");
+});
+
+t("el alias NO cruza de banco, NO casa un importe disparatado, y sigue siendo una por mes", () => {
+  const base = conSuelo([], { cuotaAlias: { "trade_republic|cofidis": "suelo" } });
+  const otroBanco = g(iso(Y, M, 7), 24.99, "Cofidis", "ob", "sabadell");
+  const caro = g(iso(Y, M, 7), 300, "Cofidis", "macrodroid");
+  assert.equal(cli.marcarCuotasDeDeuda(Object.assign({}, base, { expenses: [otroBanco, caro] })), null);
+  const dos = [g(iso(Y, M, 6), 24.99, "Cofidis", "macrodroid"), g(iso(Y, M, 9), 24.99, "Cofidis", "macrodroid")];
+  const s = marcar(Object.assign({}, base, { expenses: dos }));
+  assert.equal(s.expenses.filter((e) => e.debtId).length, 1);
+});
+
+t("un «Movimiento» sin nombre se marca a mano pero NO se aprende", () => {
+  const e = g(iso(Y, M, 10), 24.99, "Movimiento", "ob", "trade_republic", { category: "traspaso" });
+  const r = cli.marcarCuotaAMano(conSuelo([e]), e.id, "suelo");
+  assert.equal(r.e.debtId, "suelo");
+  assert.equal(r.state.cuotaAlias, undefined);
+});
+
+t("un apunte A MANO ya en «Deudas» recupera su deuda tras reinstalar (sin marca en la nube)", () => {
+  const s = conSuelo([g(iso(Y, M, 7), 25.02, "Cofidis", "manual:trade_republic", "trade_republic", { category: "deudas" })],
+    { cuotaAlias: { "trade_republic|cofidis": "suelo" } });
+  assert.equal(marcar(s).expenses[0].debtId, "suelo");
+  // …pero un apunte a mano cualquiera sigue fuera de la pasada
+  const otro = conSuelo([g(iso(Y, M, 7), 25.02, "Cofidis", "manual:trade_republic", "trade_republic", { category: "compras" })],
+    { cuotaAlias: { "trade_republic|cofidis": "suelo" } });
+  assert.equal(cli.marcarCuotasDeDeuda(otro), null);
+});
+
+t("marcar a mano le quita la lápida si la tenía", () => {
+  const e = g(iso(Y, M, 8), 24.99, "Cofidis", "macrodroid");
+  const r = cli.marcarCuotaAMano(conSuelo([e], { cuotaNo: [cli.keyOfExpense(e), "otra"] }), e.id, "suelo");
+  assert.deepEqual(Array.from(r.state.cuotaNo), ["otra"]);
+});
+
 console.log("  ok");

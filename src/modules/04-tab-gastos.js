@@ -230,12 +230,23 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       if((ex.debtId||ex.category==="deudas") && newCat!=="deudas"){
         const k=keyOfExpense(ex), prevNo=s.cuotaNo||[];
         if(prevNo.indexOf(k)<0) fuera.cuotaNo=prevNo.concat([k]).slice(-200);
+        // Y olvida el comercio que se aprendió al marcarla a mano, o el siguiente cargo volvería (4.22.2).
+        const ak=cuotaAliasKey(ex);
+        if(ak && s.cuotaAlias && s.cuotaAlias[ak]){ fuera.cuotaAlias=Object.assign({},s.cuotaAlias); delete fuera.cuotaAlias[ak]; }
       }
       return Object.assign({},invState,fuera);
     });
     setCatEdit(null);
     const cc=CATEGORIES.concat([INGRESO_CAT,INVERSION_CAT,TRASPASO_CAT]).find(function(x){ return x.id===newCat; });
     if(showToast) showToast(tf("v4_moved_cat",{cat:(cc?cc.icon+" ":"")+catName(newCat)}));
+  };
+  /* «Es la cuota de…» desde la ficha (4.22.2, su rechazo: «no la puedo cambiar manualmente?»).
+     La fila va a «Deudas» con esa deuda y el comercio se aprende para el mes que viene. */
+  const setCuota=function(ex,debtId){
+    let subir=null;
+    set(function(s){ const r=marcarCuotaAMano(s, ex.id, debtId); if(!r) return s; subir=r.e; return r.state; });
+    if(subir && cloud.enabled()) cloud.setExpenseDeuda(subir).catch(function(){});
+    if(showToast) showToast(tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
   };
   // Marca/desmarca un gasto como "no tarjeta" (bizum/transferencia) para que no cuente el round-up TR.
   const setCardFlag=function(ex,noCard){
@@ -841,7 +852,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       exp:(state.expenses||[]).find(function(e){ return e.id===detailId; }),
       editExp:editExp, setEditExp:setEditExp,
       onClose:function(){ setDetailId(null); setEditExp(null); },
-      setCat:setCat, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
+      setCat:setCat, setCuota:setCuota, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
       resolveDup:resolveDup,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     })
@@ -1036,7 +1047,7 @@ function PeriodMoreSheet({open, onClose, preset, setPreset}){
 }
 
 /* Sheet detalle/edición de un movimiento. Layout alineado con Apuntar/Cartera (feedback 2026-07-17). */
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -1108,6 +1119,18 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCardF
               CATEGORIES.concat([INVERSION_CAT,TRASPASO_CAT]).map(function(cc){
                 return React.createElement("button",{key:cc.id,type:"button",className:"v4-chip"+(cc.id===exp.category?" on":""),onClick:function(){ setCat(exp,cc.id); }}, cc.icon+" "+catName(cc.id));
               })
+            ),
+            /* «Es la cuota de…» (4.22.2): todas las deudas, también las que ya acabaron — la cuota
+               de Cofidis que él no podía marcar era de una financiación terminada. */
+            (setCuota && (state.debts||[]).some(function(d){ return d && d.id; })) && React.createElement(React.Fragment,null,
+              React.createElement("div",{className:"v4-exp-sec",style:{marginTop:14}}, t("g_cuota_de")),
+              React.createElement("div",{className:"v4-chips","data-testid":"exp-cuota-de"},
+                (state.debts||[]).filter(function(d){ return d && d.id; }).map(function(d){
+                  const on=exp.category==="deudas" && exp.debtId===d.id;
+                  return React.createElement("button",{key:d.id,type:"button",className:"v4-chip"+(on?" on":""),onClick:function(){ if(!on) setCuota(exp,d.id); }},
+                    DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas")));
+                })
+              )
             ),
             React.createElement("button",{type:"button",className:"v4-sheet-row"+(exp.noCard?"":" on"),style:{marginTop:12},onClick:function(){ setCardFlag(exp,!exp.noCard); }},
               exp.noCard?("💸 "+t("v4_exp_not_card")):("💳 "+t("v4_exp_with_card"))),

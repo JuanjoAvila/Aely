@@ -1341,7 +1341,7 @@ Object.assign(LANG.es,{
   // Por qué un movimiento no se come el presupuesto (2026-08-17). Van en la línea pequeña de la
   // fila, así que cortos; el filtro usa los mismos cajones con nombre largo (g_bk_*).
   g_skip_neutra:"no es un gasto", g_skip_otrobanco:"no es del día a día",
-  g_skip_posible:"tócalo: ¿mismo o distinto?", g_skip_deuda:"ya cuenta en el Plan", g_filters_debts:"Deudas",
+  g_skip_posible:"tócalo: ¿mismo o distinto?", g_skip_deuda:"ya cuenta en el Plan", g_filters_debts:"Deudas", g_cuota_de:"Es la cuota de…",
   g_dup_title:"¿Es el mismo movimiento?",
   g_dup_sub:"El banco lo trajo otra vez sin nombre. Si es el mismo que ya tenías, se queda el que tiene el comercio bien puesto. Si son dos cargos distintos, los dos cuentan.",
   g_dup_same:"Es el mismo",
@@ -1441,7 +1441,7 @@ Object.assign(LANG.en,{
   g_month:"This month", g_last:"Last month", g_cycle:"My cycle", g_3m:"Last 3 months", g_all:"All", g_custom:"Range…", g_allcats:"All",
   g_no_budget:"doesn't count",
   g_skip_neutra:"not spending", g_skip_otrobanco:"not day-to-day",
-  g_skip_posible:"tap: same or different?", g_skip_deuda:"already in your Plan", g_filters_debts:"Debts",
+  g_skip_posible:"tap: same or different?", g_skip_deuda:"already in your Plan", g_filters_debts:"Debts", g_cuota_de:"It’s the payment for…",
   g_dup_title:"Is this the same movement?",
   g_dup_sub:"The bank brought it again with no name. If it's the same one you already have, the one with the real merchant stays. If they are two different charges, both count.",
   g_dup_same:"Same one",
@@ -1540,7 +1540,7 @@ Object.assign(LANG.ca,{
   g_month:"Aquest mes", g_last:"Mes passat", g_cycle:"El meu cicle", g_3m:"Últims 3 mesos", g_all:"Tot", g_custom:"Rang…", g_allcats:"Totes",
   g_no_budget:"no afecta",
   g_skip_neutra:"no és una despesa", g_skip_otrobanco:"no és del dia a dia",
-  g_skip_posible:"toca'l: mateix o diferent?", g_skip_deuda:"ja compta al Pla", g_filters_debts:"Deutes",
+  g_skip_posible:"toca'l: mateix o diferent?", g_skip_deuda:"ja compta al Pla", g_filters_debts:"Deutes", g_cuota_de:"És la quota de…",
   g_dup_title:"És el mateix moviment?",
   g_dup_sub:"El banc l'ha tornat a portar sense nom. Si és el mateix que ja tenies, es queda el que té el comerç ben posat. Si són dos càrrecs diferents, els dos compten.",
   g_dup_same:"És el mateix",

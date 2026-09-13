@@ -1081,7 +1081,7 @@ function App(){
     if(cloud.enabled()) r.marcadas.forEach(function(e){
       cloud.setExpenseDeuda(e).catch(function(err){ cloud.logEvent("error","setExpenseDeuda: "+keyOfExpense(e), _errCloudMsg(err)); });
     });
-  },[state.expenses, state.debts, state.cuotaNo]);
+  },[state.expenses, state.debts, state.cuotaNo, state.cuotaAlias]);
 
   const [showAuth,setShowAuth]=useState(false);
   const [recovery,setRecovery]=useState(false);

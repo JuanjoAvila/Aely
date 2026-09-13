@@ -588,17 +588,36 @@ function cuotasUsadas(debts, exps){
   });
   return usada;
 }
+/* LO QUE ÉL MARCA A MANO SE APRENDE (4.22.2, su rechazo del 13/9: «Hay una compra de Cofidis que
+   es la cuota de una deuda, no la puedo cambiar manualmente? Solo funciona automáticamente»).
+   Su caso no casaba por nada: la deuda ya había acabado (inactiva), el banco cobra 24,99 y el Plan
+   dice 25,02, y «Cofidis» no se parece a «Financiación suelo gym». Al marcarla desde la ficha, el
+   comercio de ESE banco queda apuntado a esa deuda (`state.cuotaAlias`) y el siguiente cargo igual
+   entra solo, con importe parecido (`recAmtClose`) y aunque la deuda ya no esté activa.
+   Un «Movimiento» sin nombre NO se aprende: casaría con cualquier cosa. */
+function cuotaAliasKey(e){
+  const nombre=e ? (e.obName!=null ? e.obName : (e.merchant||"")) : "";
+  if(!e || sinComercioReal(nombre)) return null;
+  const ent=expenseBankOf(e)||"_manual";
+  const k=catKey(nombre);
+  return k ? ent+"|"+k : null;
+}
+const CUOTA_ALIAS_DIAS=15;
 function cuotasDeDeudaPorMarcar(s){
-  const debts=((s&&s.debts)||[]).filter(function(d){ return d && d.id && debtActive(d); });
-  if(!debts.length) return [];
+  const todas=((s&&s.debts)||[]).filter(function(d){ return d && d.id; });
+  const debts=todas.filter(function(d){ return debtActive(d); });
+  const alias=(s&&s.cuotaAlias)||{};
+  const hayAlias=Object.keys(alias).length>0;
+  if(!debts.length && !hayAlias) return [];
   const desde=cuotaDesdeMs();
   const no={}; ((s&&s.cuotaNo)||[]).forEach(function(k){ no[k]=1; });
   const exps=(s&&s.expenses)||[];
-  const usada=cuotasUsadas(debts, exps);
+  const usada=cuotasUsadas(todas, exps);
   const cands=[];
   exps.forEach(function(e){
     if(!e || e.debtId || !(e.amount>0) || e.possibleDup) return;
-    if(isManualExpenseSource(e.source)) return;
+    // A mano, solo si ya está en «Deudas» (se re-deduce la deuda tras reinstalar).
+    if(isManualExpenseSource(e.source) && e.category!=="deudas") return;
     if(CAT_NEUTRAS[e.category] && e.category!=="deudas") return;   // un traspaso o una inversión no es una cuota
     const ms=dateMs(e.date);
     if(!(ms>=desde)) return;
@@ -608,6 +627,13 @@ function cuotasDeDeudaPorMarcar(s){
       const c=cuotaCasa(d, ent, e.amount||0, e.obName!=null?e.obName:(e.merchant||""), ms);
       if(c) cands.push({ e:e, d:d, key:c.key, score:c.score });
     });
+    const ak=hayAlias && cuotaAliasKey(e);
+    const da=ak && alias[ak] && todas.find(function(x){ return x.id===alias[ak]; });
+    if(da){
+      const c=cuotaCargoCercano(da, ms);
+      if(recAmtClose(c.importe, e.amount||0) && c.dias<=CUOTA_ALIAS_DIAS)
+        cands.push({ e:e, d:da, key:da.id+"|"+c.key, score:50+c.dias });
+    }
   });
   cands.sort(function(a,b){ return a.score-b.score; });
   const out=[], tomado=new Set();
@@ -632,6 +658,20 @@ function marcarCuotasDeDeuda(s){
     return n;
   });
   return { state:Object.assign({}, s, { expenses:expenses }), marcadas:marcadas };
+}
+/* Marcar a mano desde la ficha. Puro: pone la fila en «Deudas» con esa deuda, le quita la lápida
+   si la tenía y aprende el comercio. → {state, e} (la fila nueva, para subirla) o null. */
+function marcarCuotaAMano(s, expenseId, debtId){
+  const d=((s&&s.debts)||[]).find(function(x){ return x && x.id===debtId; });
+  const orig=((s&&s.expenses)||[]).find(function(x){ return x && x.id===expenseId; });
+  if(!d || !orig || !(orig.amount>0)) return null;
+  const e=Object.assign({}, orig, { category:DEUDA_CAT.id, debtId:d.id });
+  const k=keyOfExpense(orig);
+  const out={ expenses:(s.expenses||[]).map(function(x){ return x===orig ? e : x; }) };
+  if((s.cuotaNo||[]).indexOf(k)>=0) out.cuotaNo=(s.cuotaNo||[]).filter(function(x){ return x!==k; });
+  const ak=cuotaAliasKey(orig);
+  if(ak){ out.cuotaAlias=Object.assign({}, s.cuotaAlias||{}); out.cuotaAlias[ak]=d.id; }
+  return { state:Object.assign({}, s, out), e:e };
 }
 
 /* ============================================================

@@ -1,3 +1,23 @@
+## [4.22.2] - 2026-09-14
+### «Es la cuota de…» a mano desde la ficha, y se aprende
+
+Su rechazo de `hist-cuotas` en 4.22.1.1: *«Hay una compra de Cofidis que es la cuota de una
+deuda, no la puedo cambiar manualmente? Solo funciona automáticamente, es la de 24.99»*.
+Medido: «Financiación suelo gym» 25,02 € TR día 6, ya ACABADA (`debtActive=false`); el banco
+cobra 24,99 como «Cofidis» (noti), y en agosto como «Movimiento» en traspaso. No casaba por cuatro
+lados y no había forma de marcarla. Voto Cursor: sí.
+
+- Ficha del gasto → «Es la cuota de…»: un chip por CADA deuda con id, activa o no.
+  `marcarCuotaAMano` pone `deudas` + `debtId` (vale para manuales y traspasos), quita la lápida
+  y aprende `state.cuotaAlias[banco|comercio] = debtId` (no para «Movimiento» sin nombre).
+- La pasada casa también por alias: mismo banco + comercio + `recAmtClose` + ±15 días, contra
+  cualquier deuda con id; una por deuda y mes y respeta `cuotaNo`. Acepta filas a mano solo si ya
+  están en «Deudas» (re-deduce la deuda tras reinstalar).
+- Sacarla de «Deudas» también olvida el alias. Efecto con `cuotaAlias` en dependencias.
+- El importador del histórico aún no usa alias (sus meses ya están importados).
+- Tests: `cuotas-deudas` 28 (mutaciones del alias, del aprendizaje y del manual comprobadas),
+  `e2e/gastos-deudas` 4.
+
 ## [4.22.1] - 2026-09-14
 ### La ventana de 12 meses de las cuotas, igual en cualquier zona horaria
 

@@ -69,6 +69,27 @@ test("★ el filtro tiene un chip por deuda y cada uno enseña solo su cuota", a
   await expect(fila(page, "Nombre De Persona")).toHaveCount(1);
 });
 
+test("★ su rechazo: desde la ficha se marca a mano «Es la cuota de…», también una deuda ya acabada", async ({ page }) => {
+  /* 4.22.2: «Hay una compra de Cofidis que es la cuota de una deuda, no la puedo cambiar
+     manualmente?». Su financiación ya había terminado y el banco cobraba 24,99 contra 25,02. */
+  const acabada = { id: "suelo", name: "Financiación suelo", value: 75.06, original: 75.06, monthly: 25.02,
+    account: "trade_republic", day: 6, months: 3, asOf: (hoy.getFullYear() * 12 + hoy.getMonth()) - 6 };
+  const cofidis = { id: "e9", date: iso(dia), amount: 24.99, merchant: "Cofidis", category: "compras", source: "macrodroid", ent: "trade_republic" };
+  await seedLoggedInDashboard(page, { accounts, settings, expenses: [cofidis], debts: debts.concat([acabada]), budget: 1000 });
+  await abreGastos(page);
+  await expect(fila(page, "Cofidis")).not.toContainText("Deudas");
+
+  await fila(page, "Cofidis").click();
+  const chips = page.locator('.v4-exp-sheet [data-testid="exp-cuota-de"] button.v4-chip');
+  await expect(chips).toHaveCount(3);
+  await chips.filter({ hasText: "Financiación suelo" }).click();
+  await expect(chips.filter({ hasText: "Financiación suelo" })).toHaveClass(/on/);
+  await cierraSheet(page);
+
+  await expect(fila(page, "Cofidis")).toContainText("Deudas");
+  await expect(fila(page, "Cofidis")).toContainText("ya cuenta en el Plan");
+});
+
 test("sin deudas no sale la sección ni la categoría «Deudas»", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, settings, expenses, debts: [], budget: 1000 });
   await abreGastos(page);
