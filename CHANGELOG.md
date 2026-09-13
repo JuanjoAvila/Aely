@@ -1,3 +1,17 @@
+## [4.19.108] - 2026-09-13
+### El cartel de «reconecta» se va al volver del banco
+
+Su feedback del 12/9: *«cuando te sale reconectar un banco… conectas otra vez y desaparece el
+cartel pero tarda 8 h laborables… luego sí funciona y desaparece»*.
+
+`bankIssues` solo se reescribía al terminar `bankSync`, que pide saldos y movimientos de TODOS
+los bancos a Enable Banking: decenas de segundos con el cartel diciendo «reconecta» ya
+reconectado. Al volver de autorizar (APK `bank|ok` y web `?bank=ok`) se consulta `bank_links`
+(una SELECT) y `issuesTrasReconectar` quita al momento el aviso de los bancos que la nube ya
+tiene `active` (lo escribe `bank-callback`). Los que sigan a medias se quedan, y el sync de
+detrás vuelve a avisar si algo sigue mal. Test `cartel-reconectar` con dos bancos. Voto de
+Cursor: sí.
+
 ## [4.19.107] - 2026-09-13
 ### «Actualizar» dice qué ha pasado, en un solo aviso
 

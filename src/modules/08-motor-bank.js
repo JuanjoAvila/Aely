@@ -1379,6 +1379,21 @@ function bankIssuesOf(links, dbLinks){
 /* Quitar un banco borra la fila en la nube, pero `state.bankIssues` solo se reescribe al
    sincronizar. Si no lo limpiamos aquí, Cartera sigue enseñando «pendiente de conectar» (y el
    toast «✓ al día» no vuelve: issues.length>0) — rechazo 4.19.66 + feedback 12/9. */
+/* EL CARTEL DE «RECONECTA» SE VA EN CUANTO LA NUBE LO SABE, NO CUANDO ACABA EL SYNC (13/9, su
+   feedback del 12/9: «conectas otra vez y desaparece el cartel pero tarda 8 h laborables»).
+   `bankIssues` solo se reescribía al terminar `bankSync`, que pide saldos y movimientos de TODOS
+   los bancos: decenas de segundos con el cartel diciendo «reconecta» ya reconectado. Al volver de
+   autorizar, la fila de `bank_links` ya está `active` (lo escribe `bank-callback`): se quita el
+   aviso de ESOS bancos al momento. Los que sigan `pending`/`expired` se quedan; el sync de detrás
+   vuelve a poner el aviso si algo sigue mal. */
+function issuesTrasReconectar(issues, dbLinks){
+  const prev=issues||[];
+  if(!prev.length) return prev;
+  const activos={};
+  (dbLinks||[]).forEach(function(l){ if(l && String(l.status||"")==="active") activos[String(l.aspsp_name||"").toLowerCase()]=1; });
+  const out=prev.filter(function(is){ return !activos[String(is&&is.aspsp||"").toLowerCase()]; });
+  return out.length===prev.length ? prev : out;
+}
 function dropBankIssue(issues, aspsp){
   const key=String(aspsp||"").toLowerCase();
   if(!key) return issues||[];

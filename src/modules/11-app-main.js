@@ -895,6 +895,17 @@ function App(){
   // "goto" (token) que aquí consumimos: saltamos a la pestaña Gastos y abrimos la ficha del gasto.
   // Token: "exp|<importe>|<comercio>" (o "gastos" a secas). En frío se lee al arrancar; en caliente,
   // al volver a primer plano (visibilitychange). Solo hace algo en la app nativa (natPlugin+consumeGoto).
+  /* Al volver de autorizar un banco: quita YA el cartel de los que la nube marca activos, sin esperar
+     al sync de todos (ver `issuesTrasReconectar`). Si falla la consulta, no pasa nada: el sync de
+     detrás lo arregla como antes. */
+  const limpiaCartelReconectado=function(){
+    Promise.resolve().then(function(){ return cloud.bankLinks(); }).then(function(db){
+      set(function(s){
+        const nx=issuesTrasReconectar(s.bankIssues, db);
+        return nx===s.bankIssues ? s : Object.assign({}, s, { bankIssues:nx });
+      });
+    }).catch(function(){});
+  };
   const handleGoto=function(g){
     if(!g||typeof g!=="string") return;
     if(g.indexOf("bank|")===0){
@@ -902,6 +913,7 @@ function App(){
       if(parts[1]==="ok"){
         showToast("✓ "+t("bank_connected"));
         set(function(s){ return s.hasBankLink?s:Object.assign({},s,{hasBankLink:true}); });
+        limpiaCartelReconectado();
         runBankSync({manual:true});
       } else {
         const m=parts.slice(2).join("|");
@@ -1041,7 +1053,7 @@ function App(){
   //  · la primera vez que hay banco sin movimientos capturados (bootstrap de conciliación).
   useEffect(function(){
     if(!uid) return;
-    if(bankJustConnected.current){ bankJustConnected.current=false; runBankSync({manual:true}); return; }
+    if(bankJustConnected.current){ bankJustConnected.current=false; limpiaCartelReconectado(); runBankSync({manual:true}); return; }
     if(!state.hasBankLink) return;   // nadie ha conectado banco en esta cartera → no llamamos a la función
     if(typeof state.bankTx==="undefined"){ runBankSync({}); return; }   // bootstrap: solo 1 vez en la vida del enlace
   },[uid, state.hasBankLink]);

@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.19.108",
+    "d": "13 sep 2026",
+    "t": {
+      "es": "Reconectar un banco quita el aviso al momento",
+      "en": "Reconnecting a bank clears the notice right away",
+      "ca": "Reconnectar un banc treu l'avís al moment"
+    },
+    "items": {
+      "es": [
+        "Cuando vuelves de dar permiso a tu banco, el aviso de «reconecta» desaparece enseguida, sin esperar a que se actualicen todos los bancos."
+      ],
+      "en": [
+        "When you come back from granting permission to your bank, the “reconnect” notice goes away at once, without waiting for every bank to update."
+      ],
+      "ca": [
+        "Quan tornes de donar permís al teu banc, l'avís de «reconnecta» desapareix de seguida, sense esperar que s'actualitzin tots els bancs."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "cartel-reconectar",
+        "t": {
+          "es": "🏦 El aviso de reconectar se va al volver del banco",
+          "en": "🏦 The reconnect notice clears when you return from the bank",
+          "ca": "🏦 L'avís de reconnectar se'n va en tornar del banc"
+        },
+        "items": {
+          "es": [
+            "1. Esto es tu queja: «conectas otra vez y desaparece el cartel pero tarda 8 horas laborables».",
+            "2. Solo se puede probar si algún banco te pide reconectar (sale el aviso en Cartera). Si no tienes ninguno así ahora, marca «no lo puedo probar».",
+            "3. Toca Reconectar en ese banco y da el permiso en la app o web del banco.",
+            "4. Al volver a Aely, el aviso de ESE banco tiene que desaparecer en uno o dos segundos, no al cabo de un rato.",
+            "5. Si tenías otro banco también pendiente, su aviso tiene que seguir ahí."
+          ],
+          "en": [
+            "1. This is your complaint: “you connect again and the notice goes away but it takes 8 working hours”.",
+            "2. It can only be tested if a bank is asking you to reconnect (the notice shows in Wallet). If none is right now, mark “can't test it”.",
+            "3. Tap Reconnect on that bank and grant permission in the bank's app or website.",
+            "4. When you come back to Aely, THAT bank's notice must disappear within a second or two, not after a while.",
+            "5. If another bank was pending too, its notice must still be there."
+          ],
+          "ca": [
+            "1. Això és la teva queixa: «connectes una altra vegada i el cartell desapareix però triga 8 hores laborables».",
+            "2. Només es pot provar si algun banc et demana reconnectar (surt l'avís a Cartera). Si ara no en tens cap, marca «no ho puc provar».",
+            "3. Toca Reconnecta en aquest banc i dona el permís a l'app o web del banc.",
+            "4. En tornar a Aely, l'avís d'AQUEST banc ha de desaparèixer en un o dos segons, no al cap d'una estona.",
+            "5. Si tenies un altre banc també pendent, el seu avís hi ha de continuar."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.107",
     "d": "13 sep 2026",
     "t": {
