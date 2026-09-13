@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.20.1",
+    "d": "13 sep 2026",
+    "t": {
+      "es": "Gastos ya no se ralentiza de tanto subir y bajar",
+      "en": "Spending no longer slows down from scrolling up and down",
+      "ca": "Despeses ja no s'alenteix de tant pujar i baixar"
+    },
+    "items": {
+      "es": [
+        "Al volver arriba del todo, la lista de gastos se aligera sola. Así, por mucho que bajes y subas, no se va haciendo cada vez más pesada."
+      ],
+      "en": [
+        "When you go back to the very top, the spending list lightens itself. However much you scroll up and down, it no longer gets heavier each time."
+      ],
+      "ca": [
+        "En tornar a dalt de tot, la llista de despeses s'alleugereix sola. Per molt que baixis i pugis, ja no es fa cada cop més pesada."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gastos-suelta-filas",
+        "t": {
+          "es": "🐢 Gastos no se ralentiza al subir y bajar",
+          "en": "🐢 Spending doesn't slow down when scrolling",
+          "ca": "🐢 Despeses no s'alenteix en pujar i baixar"
+        },
+        "items": {
+          "es": [
+            "1. Esto es tu queja: «he bajado y subido varias veces… y de repente se ha comenzado a ralentizar, hasta que la app entera».",
+            "2. Gastos → Más… → Todo, para tener la lista entera.",
+            "3. Baja rápido un buen rato, hasta muy abajo. Luego sube hasta arriba del todo.",
+            "4. Repite eso mismo cinco o seis veces seguidas, como hiciste aquella vez.",
+            "5. No puede ir cada vez más a tirones: la sexta bajada tiene que ir tan fluida como la primera.",
+            "6. Y a mitad de lista, si subes solo un poco, no puede saltar ni desaparecer nada de lo que ves."
+          ],
+          "en": [
+            "1. This is your complaint: “I scrolled down and up several times… and suddenly it started slowing down, until the whole app did”.",
+            "2. Spending → More… → All, to have the whole list.",
+            "3. Scroll down fast for a good while, very far. Then scroll back to the very top.",
+            "4. Repeat that five or six times in a row, like you did that time.",
+            "5. It can't get jerkier each time: the sixth trip down must be as smooth as the first.",
+            "6. And halfway down, if you scroll up just a little, nothing you see can jump or disappear."
+          ],
+          "ca": [
+            "1. Això és la teva queixa: «he baixat i pujat diverses vegades… i de cop ha començat a alentir-se, fins que tota l'app».",
+            "2. Despeses → Més… → Tot, per tenir la llista sencera.",
+            "3. Baixa ràpid una bona estona, fins molt avall. Després puja fins a dalt de tot.",
+            "4. Repeteix això mateix cinc o sis vegades seguides, com vas fer aquella vegada.",
+            "5. No pot anar cada cop més a batzegades: la sisena baixada ha d'anar tan fluida com la primera.",
+            "6. I a mitja llista, si puges només una mica, no pot saltar ni desaparèixer res del que veus."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.20.0",
     "d": "13 sep 2026",
     "t": {

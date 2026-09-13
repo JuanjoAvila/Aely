@@ -156,7 +156,11 @@ test("volver a abrirlo lo deja como estaba, con sus límites y sus barras", asyn
   await cab.click();
   await expect(cab).toHaveAttribute("aria-expanded", "true");
   await expect(page.locator('[data-testid="gastos-cats"] .v4-gastos-cat')).toHaveCount(antes);
-  expect(await page.evaluate(() => (mcLoadRaw("micartera_v3").settings || {}).gastosCatsOff)).toBeUndefined();
+  /* Con poll y no leyendo al momento (13/9): el guardado va diferido ~400 ms, y con la suite entera
+     en paralelo la lectura pillaba el `true` del PRIMER toque antes de que el segundo se guardara.
+     Lo que se defiende es el estado FINAL guardado, no el intermedio. */
+  await expect.poll(() => page.evaluate(() => (mcLoadRaw("micartera_v3").settings || {}).gastosCatsOff),
+    { timeout: 5_000 }).toBeUndefined();
 });
 
 test("plegar el desglose NO toca ni un límite ni una cifra", async ({ page }) => {

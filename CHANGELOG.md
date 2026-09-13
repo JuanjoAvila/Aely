@@ -1,3 +1,20 @@
+## [4.20.1] - 2026-09-13
+### Gastos ya no se ralentiza de tanto subir y bajar
+
+Su queja del 12/9: *«he bajado y subido varias veces… y de repente se ha comenzado a ralentizar»*.
+Medido EN SU ONEPLUS 13 (APK .debug con la web de producción, 2.500 gastos, gestos reales por adb,
+frames por rAF):
+
+- La paginación solo crecía: ciclando arriba/abajo, de 374 a 794 filas, y los frames >33 ms por
+  ciclo subían de 8 a 32.
+- Con 554 filas QUIETAS: 0 frames lentos. El coste está en cada tanda nueva, que cuesta más
+  cuanto más hay pintado. Cambiar de pestaña con muchas filas NO era más lento.
+- `content-visibility:auto` se probó inyectado: EMPEORA (layouts ×3, 48 frames lentos).
+
+Arreglo: al volver arriba del todo (scrollTop ≤ 150 y quieto 300 ms) la lista vuelve a la primera
+tanda. A media lista no se suelta nada. e2e `gastos-suelta-filas` (ROJO sin el arreglo). Voto de
+Cursor: sí.
+
 ## [4.20.0] - 2026-09-13
 ### Nueva ronda de beta: la numeración vuelve a empezar
 

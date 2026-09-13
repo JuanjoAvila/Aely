@@ -506,6 +506,33 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     io.observe(el); ioRef.current=io;
   },[]);
   useEffect(function(){ return function(){ if(ioRef.current) ioRef.current.disconnect(); }; },[]);
+  /* LA LISTA SE SUELTA AL VOLVER ARRIBA (13/9, medido en su OnePlus 13 con 2.500 gastos).
+     Su queja: «he bajado y subido varias veces… y de repente se ha comenzado a ralentizar».
+     La paginación solo CRECÍA: cada vez que bajaba se añadían 60 filas y ninguna se iba al subir.
+     Medido con gestos reales: con 554 filas QUIETAS, 0 frames lentos; pero cada tanda nueva cuesta
+     más cuanto más hay pintado (8 → 26 → 27 → 32 frames >33 ms por ciclo, de 374 a 794 filas), y
+     ciclar arriba/abajo —su gesto— lo acumula sin techo. `content-visibility` se probó y EMPEORA
+     (layouts ×3). Así que al llegar arriba del todo, y quieto un momento, vuelve a la primera tanda:
+     el siguiente viaje hacia abajo empieza barato otra vez. Quitar filas de ABAJO estando arriba no
+     mueve lo que se ve. */
+  const rootRef=useRef(null);
+  const visibleRef=useRef(visible); visibleRef.current=visible;
+  useEffect(function(){
+    const root=rootRef.current;
+    const host=root && root.closest ? root.closest(".page") : null;
+    if(!host) return undefined;
+    let tm=0;
+    const onScroll=function(){
+      if(host.scrollTop>150 || visibleRef.current<=CONFIG.PAGE_SIZE) return;
+      if(tm) clearTimeout(tm);
+      tm=setTimeout(function(){
+        tm=0;
+        if(host.scrollTop<=150 && visibleRef.current>CONFIG.PAGE_SIZE) setVisible(CONFIG.PAGE_SIZE);
+      }, 300);
+    };
+    host.addEventListener("scroll", onScroll, {passive:true});
+    return function(){ host.removeEventListener("scroll", onScroll); if(tm) clearTimeout(tm); };
+  },[]);
 
   // Abrir la ficha de un movimiento. useCallback = referencia ESTABLE: si cambiara en cada render,
   // el React.memo de MovRow no serviría para nada y volveríamos al problema de siempre.
@@ -598,7 +625,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     setForm({merchant:"",amount:"",category:form.category,income:false,noCard:false,date:""}); setAdding(false); showToast(msg);
   };
 
-  return React.createElement("div",{className:"v4-screen"},
+  return React.createElement("div",{className:"v4-screen",ref:rootRef},
     React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),
     React.createElement("section",{className:"v4-gastos-summary"},
       React.createElement("div",{className:"v4-gastos-summary-top"},

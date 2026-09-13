@@ -3,7 +3,7 @@
 // red lenta o sin conexión) y a la vez descarga la versión fresca en segundo plano.
 // La versión nueva queda cacheada y se ve en el SIGUIENTE arranque — mismo comportamiento
 // de actualización que antes (sin recargas a media sesión), pero sin esperar a la red.
-const VERSION = "4.20.0-2026-09-13-6f61bfc6";
+const VERSION = "4.20.1-2026-09-13-5415061f";
 const CACHE = "micartera-" + VERSION;
 const SHELL = [
   "./", "./index.html", "./manifest.json",
