@@ -1,3 +1,11 @@
+## [4.21.2] - 2026-09-14
+### La ronda 4.21 a producción, con una sola nota
+
+Él aprobó `cuotas-deudas` 5/5 en 4.21.0.2 con la APK 46: *«Ya he aprobado la tanda también!
+cuando quieras para prod!»*. Las notas 4.21.0 y 4.21.1 se juntan en la 4.21.2 para la familia;
+todas con `tandas:[]`. Tras el despliegue web va `ingest` sola (`CAT_NEUTRAS.deudas` +
+`esCuotaDeDeuda`), para que el widget no sume las cuotas que llegan por la noti de TR.
+
 ## [4.21.1] - 2026-09-14
 ### APK 46 en la calle, traída a beta
 
