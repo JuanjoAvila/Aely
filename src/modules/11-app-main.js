@@ -542,6 +542,14 @@ function App(){
           invState=ib.state;
           e.investInvId=ib.invId; e.investShares=ib.shares; e.investCInv=ib.cInv; e.investAmountEur=ib.amountEur;
         });
+        // Las cuotas de deuda que entran ahora suben YA marcadas (4.21.0): si esperaran al efecto,
+        // la actualización en la nube podría llegar antes que la fila.
+        if(add){
+          cuotasDeDeudaPorMarcar(Object.assign({},invState,{expenses:add.concat(invState.expenses||[])})).forEach(function(a){
+            if(add.indexOf(a.e)<0) return;
+            a.e.category=DEUDA_CAT.id; a.e.debtId=a.debtId;
+          });
+        }
         obAdded=add||[];
         const baseExp=add? add.concat(invState.expenses||[]) : (invState.expenses||[]);
         // Rellena el CONCEPTO de lo que ya estaba apuntado con lo que acaba de traer el banco
@@ -1062,6 +1070,18 @@ function App(){
   // Brokers: sync suave al abrir (solo si ya conectados). Nunca crea posiciones nuevas.
   // TR/MI: authExpired/softFail/waf se callan — no piden OTP/captcha (feedback 2026-07-17).
   useEffect(function(){ if(uid) mcScheduleIdle(function(){ runBrokerSync(); }); },[uid]);
+
+  /* Cuotas de deuda a «Deudas» (4.21.0): sea cual sea la vía por la que entró el cargo (sync del
+     banco, noti de TR, pull de otro móvil) o si él acaba de crear la deuda. La pasada devuelve
+     null cuando no hay nada nuevo, así que marcar no vuelve a disparar el efecto en bucle. */
+  useEffect(function(){
+    const r=marcarCuotasDeDeuda(stateRef.current);
+    if(!r) return;
+    set(function(prev){ const r2=marcarCuotasDeDeuda(prev); return r2 ? r2.state : prev; });
+    if(cloud.enabled()) r.marcadas.forEach(function(e){
+      cloud.setExpenseDeuda(e).catch(function(err){ cloud.logEvent("error","setExpenseDeuda: "+keyOfExpense(e), _errCloudMsg(err)); });
+    });
+  },[state.expenses, state.debts, state.cuotaNo]);
 
   const [showAuth,setShowAuth]=useState(false);
   const [recovery,setRecovery]=useState(false);

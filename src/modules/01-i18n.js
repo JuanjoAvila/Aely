@@ -1341,7 +1341,7 @@ Object.assign(LANG.es,{
   // Por qué un movimiento no se come el presupuesto (2026-08-17). Van en la línea pequeña de la
   // fila, así que cortos; el filtro usa los mismos cajones con nombre largo (g_bk_*).
   g_skip_neutra:"no es un gasto", g_skip_otrobanco:"no es del día a día",
-  g_skip_posible:"tócalo: ¿mismo o distinto?",
+  g_skip_posible:"tócalo: ¿mismo o distinto?", g_skip_deuda:"ya cuenta en el Plan", g_filters_debts:"Deudas",
   g_dup_title:"¿Es el mismo movimiento?",
   g_dup_sub:"El banco lo trajo otra vez sin nombre. Si es el mismo que ya tenías, se queda el que tiene el comercio bien puesto. Si son dos cargos distintos, los dos cuentan.",
   g_dup_same:"Es el mismo",
@@ -1372,7 +1372,7 @@ Object.assign(LANG.es,{
   g_empty_t:"No hay gastos aquí", g_empty_d:"Cambia el filtro, sincroniza o apunta uno.", g_loadmore:"Cargando más…",
   g_empty_period_t:"Aún no hay gastos en este período", g_empty_period_d:"Es normal si acaba de empezar el mes o tu ciclo — irán apareciendo según sincronices o apuntes alguno.",
   g_today:"Hoy", g_yesterday:"Ayer", g_invalid:"Pon un importe válido", g_saved_g:"✓ Gasto apuntado", g_saved_i:"✓ Ingreso apuntado", g_deleted:"Eliminado", g_changecat:"Cambiar categoría",
-  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso",
+  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Deudas",
   freq_mes:"mensual", freq_bimestral:"bimestral", freq_trimestral:"trimestral", freq_semestral:"semestral", "freq_año":"anual",
   // Fijos
   fj_monthly:"Gasto fijo mensual", fj_peryear:"{x}/año", fj_top_a:"Tu mayor gasto fijo es ", fj_top_b:" ({x}/mes)",
@@ -1441,7 +1441,7 @@ Object.assign(LANG.en,{
   g_month:"This month", g_last:"Last month", g_cycle:"My cycle", g_3m:"Last 3 months", g_all:"All", g_custom:"Range…", g_allcats:"All",
   g_no_budget:"doesn't count",
   g_skip_neutra:"not spending", g_skip_otrobanco:"not day-to-day",
-  g_skip_posible:"tap: same or different?",
+  g_skip_posible:"tap: same or different?", g_skip_deuda:"already in your Plan", g_filters_debts:"Debts",
   g_dup_title:"Is this the same movement?",
   g_dup_sub:"The bank brought it again with no name. If it's the same one you already have, the one with the real merchant stays. If they are two different charges, both count.",
   g_dup_same:"Same one",
@@ -1472,7 +1472,7 @@ Object.assign(LANG.en,{
   g_empty_t:"No expenses here", g_empty_d:"Change the filter, sync or add one.", g_loadmore:"Loading more…",
   g_empty_period_t:"No expenses yet this period", g_empty_period_d:"That's normal if the month or your cycle just started — they'll show up as you sync or add one.",
   g_today:"Today", g_yesterday:"Yesterday", g_invalid:"Enter a valid amount", g_saved_g:"✓ Expense added", g_saved_i:"✓ Income added", g_deleted:"Deleted", g_changecat:"Change category",
-  cat_super:"Groceries", cat_pan:"Bakery", cat_bares:"Bars & restaurants", cat_cine:"Cinema", cat_padel:"Padel", cat_heladeria:"Ice cream", cat_ia:"Artificial intelligence", cat_ocio:"Leisure", cat_gaming:"Games", cat_viajes:"Travel", cat_transporte:"Transport", cat_parking:"Parking", cat_agua:"Water", cat_luz:"Power", cat_gas:"Gas", cat_tasas:"Taxes & fines", cat_recibos:"Bills", cat_compras:"Shopping", cat_educacion:"Education", cat_salud:"Health", cat_pelu:"Hair & beauty", cat_mascotas:"Pets", cat_hogar:"Home", cat_regalos:"Gifts", cat_joyeria:"Jewellery", cat_bizum:"Bizum", cat_otros:"Other", cat_ingreso:"Income", cat_inversion:"Investment", cat_traspaso:"Transfer",
+  cat_super:"Groceries", cat_pan:"Bakery", cat_bares:"Bars & restaurants", cat_cine:"Cinema", cat_padel:"Padel", cat_heladeria:"Ice cream", cat_ia:"Artificial intelligence", cat_ocio:"Leisure", cat_gaming:"Games", cat_viajes:"Travel", cat_transporte:"Transport", cat_parking:"Parking", cat_agua:"Water", cat_luz:"Power", cat_gas:"Gas", cat_tasas:"Taxes & fines", cat_recibos:"Bills", cat_compras:"Shopping", cat_educacion:"Education", cat_salud:"Health", cat_pelu:"Hair & beauty", cat_mascotas:"Pets", cat_hogar:"Home", cat_regalos:"Gifts", cat_joyeria:"Jewellery", cat_bizum:"Bizum", cat_otros:"Other", cat_ingreso:"Income", cat_inversion:"Investment", cat_traspaso:"Transfer", cat_deudas:"Debts",
   freq_mes:"monthly", freq_bimestral:"bimonthly", freq_trimestral:"quarterly", freq_semestral:"biannual", "freq_año":"yearly",
   fj_monthly:"Monthly fixed cost", fj_peryear:"{x}/year", fj_top_a:"Your biggest fixed cost is ", fj_top_b:" ({x}/mo)",
   fj_prox:"Upcoming charges · {m}", fj_prox_sub:"{x} this month",
@@ -1540,7 +1540,7 @@ Object.assign(LANG.ca,{
   g_month:"Aquest mes", g_last:"Mes passat", g_cycle:"El meu cicle", g_3m:"Últims 3 mesos", g_all:"Tot", g_custom:"Rang…", g_allcats:"Totes",
   g_no_budget:"no afecta",
   g_skip_neutra:"no és una despesa", g_skip_otrobanco:"no és del dia a dia",
-  g_skip_posible:"toca'l: mateix o diferent?",
+  g_skip_posible:"toca'l: mateix o diferent?", g_skip_deuda:"ja compta al Pla", g_filters_debts:"Deutes",
   g_dup_title:"És el mateix moviment?",
   g_dup_sub:"El banc l'ha tornat a portar sense nom. Si és el mateix que ja tenies, es queda el que té el comerç ben posat. Si són dos càrrecs diferents, els dos compten.",
   g_dup_same:"És el mateix",
@@ -1571,7 +1571,7 @@ Object.assign(LANG.ca,{
   g_empty_t:"No hi ha despeses aquí", g_empty_d:"Canvia el filtre, sincronitza o apunta'n una.", g_loadmore:"Carregant més…",
   g_empty_period_t:"Encara no hi ha despeses en aquest període", g_empty_period_d:"És normal si acaba de començar el mes o el teu cicle — aniran sortint a mesura que sincronitzis o n'apuntis alguna.",
   g_today:"Avui", g_yesterday:"Ahir", g_invalid:"Posa un import vàlid", g_saved_g:"✓ Despesa apuntada", g_saved_i:"✓ Ingrés apuntat", g_deleted:"Eliminat", g_changecat:"Canvia la categoria",
-  cat_super:"Supermercat", cat_pan:"Fleca", cat_bares:"Bars i restaurants", cat_cine:"Cinema", cat_padel:"Pàdel", cat_heladeria:"Gelateria", cat_ia:"Intel·ligència artificial", cat_ocio:"Oci", cat_gaming:"Videojocs", cat_viajes:"Viatges", cat_transporte:"Transport", cat_parking:"Pàrquing", cat_agua:"Aigua", cat_luz:"Llum", cat_gas:"Gas", cat_tasas:"Impostos i multes", cat_recibos:"Rebuts", cat_compras:"Compres", cat_educacion:"Educació", cat_salud:"Salut", cat_pelu:"Perruqueria", cat_mascotas:"Mascotes", cat_hogar:"Llar", cat_regalos:"Regals", cat_joyeria:"Joieria", cat_bizum:"Bizum", cat_otros:"Altres", cat_ingreso:"Ingrés", cat_inversion:"Inversió", cat_traspaso:"Traspàs",
+  cat_super:"Supermercat", cat_pan:"Fleca", cat_bares:"Bars i restaurants", cat_cine:"Cinema", cat_padel:"Pàdel", cat_heladeria:"Gelateria", cat_ia:"Intel·ligència artificial", cat_ocio:"Oci", cat_gaming:"Videojocs", cat_viajes:"Viatges", cat_transporte:"Transport", cat_parking:"Pàrquing", cat_agua:"Aigua", cat_luz:"Llum", cat_gas:"Gas", cat_tasas:"Impostos i multes", cat_recibos:"Rebuts", cat_compras:"Compres", cat_educacion:"Educació", cat_salud:"Salut", cat_pelu:"Perruqueria", cat_mascotas:"Mascotes", cat_hogar:"Llar", cat_regalos:"Regals", cat_joyeria:"Joieria", cat_bizum:"Bizum", cat_otros:"Altres", cat_ingreso:"Ingrés", cat_inversion:"Inversió", cat_traspaso:"Traspàs", cat_deudas:"Deutes",
   freq_mes:"mensual", freq_bimestral:"bimestral", freq_trimestral:"trimestral", freq_semestral:"semestral", "freq_año":"anual",
   fj_monthly:"Despesa fixa mensual", fj_peryear:"{x}/any", fj_top_a:"La teva despesa fixa més gran és ", fj_top_b:" ({x}/mes)",
   fj_prox:"Pròxims càrrecs · {m}", fj_prox_sub:"{x} aquest mes",
@@ -2460,6 +2460,10 @@ function expenseCountsCash(e, s){
   if(!e) return false;
   // Posible repetido: no mueve saldo ni presupuesto hasta que él diga «son distintos».
   if(e.possibleDup) return false;
+  /* La cuota de una deuda (`debtId`, 4.21.0) NO sale de aquí a propósito: en la cuenta de gasto
+     diario ya resta hoy como cualquier cargo (`paidNet` vale 0 ahí) y `applyBankBalances` ancla el
+     saldo contando con ella. Sacarla haría saltar el saldo hasta el siguiente anclaje — el
+     «6724 → 6681» otra vez. Solo sale del GASTADO, por categoría neutra (`CAT_NEUTRAS`). */
   const ent=expenseBankOf(e);
   if(!ent) return true;
   return expenseBankEnts(s).indexOf(ent)>=0;
@@ -2487,6 +2491,7 @@ function expenseBucket(e, s){
   if(!e) return "cuenta";
   if(e.possibleDup) return "posible";
   if((e.amount||0)<0) return "ingreso";
+  if(e.debtId) return "deuda";        // cuota de una deuda: ya cuenta en el Plan (4.21.0)
   if(CAT_NEUTRAS[e.category]) return "neutra";
   if(!expenseCountsCash(e, s)) return "otrobanco";
   return "cuenta";

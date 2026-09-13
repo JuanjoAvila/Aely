@@ -2103,7 +2103,7 @@ const CONFIG = {
   // --- Supabase (Fase 1). La anon key es pública por diseño (va protegida con RLS). ---
   SUPABASE_URL: "https://sfyfjagbnhbplrljpbvh.supabase.co",
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeWZqYWdibmhicGxybGpwYnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3NzYyODAsImV4cCI6MjA5NzM1MjI4MH0.umMHOZanC4aRSBqiNAjsegyXxcZ-Q-g2oTQtS1JXzZk",
-  APP_VERSION: "4.20.4",          // lo sella el CI en cada deploy (scripts/stamp-version.mjs)
+  APP_VERSION: "dev",          // lo sella el CI en cada deploy (scripts/stamp-version.mjs)
   SENTRY_DSN: "",              // opcional: inyectar SENTRY_DSN en CI (scripts/build-app.mjs)
 };
 
@@ -2304,9 +2304,15 @@ const INVERSION_CAT = { id:"inversion", name:"Inversión", color:"#D4AF37", icon
 // Se apunta —«Mi ciclo» se ancla a él, ver `lastPaydayOf`— pero no es dinero nuevo: no suma a los
 // ingresos del mes, o al conectar también el banco de origen se contaría dos veces (2026-08-04).
 const TRASPASO_CAT = { id:"traspaso", name:"Traspaso", color:"#8AA0B8", icon:"🔄" };
+/* LA CUOTA DE UNA DEUDA QUE MANDA EL BANCO (4.21.0, idea suya del 12/9: «categorías automáticas
+   por las deudas… y así se pudieran filtrar»). Antes `importObExpenses` la TIRABA para no contarla
+   dos veces: ya resta en el Plan. Ahora entra, con `debtId`, pero neutra: se ve y se filtra, y no
+   toca ni el gastado del mes ni el saldo de gasto (`expenseCountsCash`). Solo la pone el sync: no
+   sale en el selector de categorías. */
+const DEUDA_CAT = { id:"deudas", name:"Deudas", color:"#C98A7A", icon:"💳" };
 // Categorías que NO son gasto ni ingreso: mueven dinero, no lo crean ni lo consumen.
-const CAT_NEUTRAS = { inversion:1, traspaso:1 };
-const catOf = (id)=> id==="ingreso" ? INGRESO_CAT : (id==="inversion" ? INVERSION_CAT : (id==="traspaso" ? TRASPASO_CAT : (CAT[id] || CAT.otros)));
+const CAT_NEUTRAS = { inversion:1, traspaso:1, deudas:1 };
+const catOf = (id)=> id==="ingreso" ? INGRESO_CAT : (id==="inversion" ? INVERSION_CAT : (id==="traspaso" ? TRASPASO_CAT : (id==="deudas" ? DEUDA_CAT : (CAT[id] || CAT.otros))));
 const catName = (id)=> t("cat_"+(catOf(id).id));   // nombre traducido de la categoría
 const freqLabel = (f)=> t("freq_"+f);              // frecuencia traducida
 
@@ -2556,7 +2562,7 @@ function resolveCategory(sheetCat, merchant){
   // "ambas": usa la del Sheet; si falta o es "otros", autodetecta por comercio
   // Las especiales están fuera de CAT. Reinterpretarlas al bajar la nube convertía inversión
   // y traspaso en gasto ordinario, aunque el servidor los excluyera (B09-D, 2026-09-08).
-  if(sheetCat==="ingreso"||sheetCat==="inversion"||sheetCat==="traspaso") return sheetCat;
+  if(sheetCat==="ingreso"||sheetCat==="inversion"||sheetCat==="traspaso"||sheetCat==="deudas") return sheetCat;
   if(sheetCat && sheetCat!=="otros" && CAT[sheetCat]) return sheetCat;
   return autoCategory(merchant);
 }
@@ -3082,7 +3088,21 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      const {error}=await expenseCloudEq(sb.from('expenses').update({ cat:String(cat||"otros") }), session.user.id, e);
+      const upd={ cat:String(cat||"otros") };
+      // Sacar una cuota de «Deudas» a mano le quita también la marca en la nube; si no, el
+      // siguiente pull le devolvería el `debtId` (4.21.0).
+      if(e&&e.debtId&&cat!=="deudas") upd.source=expenseSourceForCloud(Object.assign({},e,{debtId:undefined}));
+      const {error}=await expenseCloudEq(sb.from('expenses').update(upd), session.user.id, e);
+      if(error) throw error;
+    },
+    // Cuota de deuda marcada por `marcarCuotasDeDeuda` (4.21.0): categoría y, si es de Open
+    // Banking, la marca en `source`. La de la noti (`macrodroid`) conserva su source: un
+    // `macrodroid~…` lo leería el servidor como «a mano» y lo SUMARÍA; ahí basta `cat:deudas`.
+    async setExpenseDeuda(e){
+      if(!sb) return;
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) return;
+      const {error}=await expenseCloudEq(sb.from('expenses').update({ cat:"deudas", source:expenseSourceForCloud(e) }), session.user.id, e);
       if(error) throw error;
     },
     async deleteExpense(e){
@@ -3479,7 +3499,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","deleteExpense","deleteExpensesByIds",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","setExpenseDeuda","deleteExpense","deleteExpensesByIds",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -3513,6 +3533,22 @@ const CLOUD_READS_QUE_LLENAN=[
   });
 })();
 
+/* LA CUOTA DE DEUDA VIAJA EN `source` COMO `ob:<ent>~deuda.<debtId>` (4.21.0).
+   Sin migración, igual que el banco y el `#dup`. ⚠ `~` y NO `#`: el servidor desplegado hace
+   `split("#")[0]`, así que `ob:sabadell#deuda.x` lo leería como Sabadell y SUMARÍA la cuota al
+   widget. Con `~` cualquier servidor sin esta regla —y cualquier app vieja de la familia— lee un
+   banco raro («sabadell~deuda.x») que no está en la lista de gasto diario y la deja fuera: el
+   lado seguro. Espejo en `_shared/presupuesto.ts` (`esCuotaDeDeuda`). */
+function deudaSufijo(debtId){
+  const id=String(debtId||"").replace(/[^A-Za-z0-9_-]/g,"");
+  return id ? "~deuda."+id : "";
+}
+/* Parte el tramo de banco de un `source` OB: «sabadell~deuda.x» → {ent:"sabadell", debtId:"x"}. */
+function partirEntDeuda(tramo){
+  const s=String(tramo||""), i=s.indexOf("~deuda.");
+  if(i<0) return { ent:s||null, debtId:null };
+  return { ent:s.slice(0,i)||null, debtId:s.slice(i+7)||null };
+}
 /* Codifica el banco en `source` de la tabla (sin migración SQL): ob:caixa, ob-hist:sabadell,
    macrodroid (= Trade Republic). Así el filtro por banco sobrevive a reinstalaciones. */
 function expenseSourceForCloud(e){
@@ -3533,7 +3569,7 @@ function expenseSourceForCloud(e){
   //
   // Lo que NO viaja es `possibleDupOf` (el gemelo): tras reinstalar, «es el mismo» sigue
   // borrando la fila OB pero ya no puede traspasarle el extId al gemelo.
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+((e&&e.possibleDup)?"#dup":"");
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+deudaSufijo(e&&e.debtId)+((e&&e.possibleDup)?"#dup":"");
   if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent;
   if(s==="macrodroid"||s==="tr") return "macrodroid";
   if(s==="supabase") return "manual";
@@ -3649,7 +3685,7 @@ function expenseBankOf(e){
   if(e.ent) return e.ent;
   const s=String(e.source||"");
   if(s==="macrodroid"||s==="tr") return "trade_republic";
-  if(s.indexOf("ob:")===0) return s.slice(3).split("#")[0]||null;   // «#dup» = posible repetido (B09-D)
+  if(s.indexOf("ob:")===0) return partirEntDeuda(s.slice(3).split("#")[0]).ent;   // «#dup» = posible repetido (B09-D); «~deuda.» = cuota
   if(s.indexOf("ob-hist:")===0) return s.slice(8)||null;
   if(s.indexOf("manual:")===0) return s.slice(7)||null;
   return null;
@@ -3968,11 +4004,12 @@ function resolvePossibleDup(state, expenseId, same){
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){
   const raw=String(r.source||"manual");
-  let ent=null, source=raw, dup=false;
+  let ent=null, source=raw, dup=false, debtId=null;
   if(raw==="macrodroid"||raw==="tr"){ ent="trade_republic"; source="macrodroid"; }
   // «ob:ent#dup» = posible repetido que sigue pendiente de su decisión (B09-D): vuelve marcado,
   // así que la app lo sigue dejando fuera del total tras un pull, un reinicio o un segundo móvil.
-  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); ent=p[0]||null; source="ob"; dup=p[1]==="dup"; }
+  // «ob:ent~deuda.id» = cuota de esa deuda (4.21.0): vuelve con su `debtId` para el filtro.
+  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; source="ob"; dup=p[1]==="dup"; }
   else if(raw.indexOf("ob-hist:")===0){ ent=raw.slice(8)||null; source="ob-hist"; }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
@@ -3997,6 +4034,7 @@ function expenseFromRow(r){
     // bajaba—, y aquí perderlo significa que el siguiente sync duplica el gasto renombrado.
     obName: r.ob_name!=null ? String(r.ob_name) : undefined,
     possibleDup: dup ? true : undefined,
+    debtId: debtId || undefined,
   };
 }
 
@@ -4027,7 +4065,10 @@ function refreshExpenseFromCloud(local, incoming){
     if(b===undefined||b===false||b===""){ if(a!=null){ out[k]=undefined; delete out[k]; } return; }
     out[k]=b;
   };
-  if(!manual && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
+  // Una cuota ya marcada no vuelve a «otros» porque la nube aún no se haya enterado (4.21.0): la
+  // subida puede ir por detrás del pull, y la fila de la noti ni siquiera lleva la marca en `source`.
+  const cuotaLocal=local.debtId && local.category==="deudas";
+  if(!manual && !cuotaLocal && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
   if(incoming.amount!=null && isFinite(incoming.amount)) put("amount", incoming.amount);
   if(incoming.merchant!=null && incoming.merchant!=="") put("merchant", incoming.merchant);
   if(Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
@@ -4045,6 +4086,9 @@ function refreshExpenseFromCloud(local, incoming){
     }
   }
   if(incoming.possibleDupOf!=null) put("possibleDupOf", incoming.possibleDupOf);
+  /* Cuota de deuda (4.21.0): la marca que baja se adopta; una fila de la nube SIN marca no borra
+     la local — el upsert con ignoreDuplicates puede dejar la fila vieja de la nube sin el sufijo. */
+  if(incoming.debtId) put("debtId", incoming.debtId);
   if(!local.noteEdited && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
      nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda
@@ -4733,7 +4777,7 @@ Object.assign(LANG.es,{
   // Por qué un movimiento no se come el presupuesto (2026-08-17). Van en la línea pequeña de la
   // fila, así que cortos; el filtro usa los mismos cajones con nombre largo (g_bk_*).
   g_skip_neutra:"no es un gasto", g_skip_otrobanco:"no es del día a día",
-  g_skip_posible:"tócalo: ¿mismo o distinto?",
+  g_skip_posible:"tócalo: ¿mismo o distinto?", g_skip_deuda:"ya cuenta en el Plan", g_filters_debts:"Deudas",
   g_dup_title:"¿Es el mismo movimiento?",
   g_dup_sub:"El banco lo trajo otra vez sin nombre. Si es el mismo que ya tenías, se queda el que tiene el comercio bien puesto. Si son dos cargos distintos, los dos cuentan.",
   g_dup_same:"Es el mismo",
@@ -4764,7 +4808,7 @@ Object.assign(LANG.es,{
   g_empty_t:"No hay gastos aquí", g_empty_d:"Cambia el filtro, sincroniza o apunta uno.", g_loadmore:"Cargando más…",
   g_empty_period_t:"Aún no hay gastos en este período", g_empty_period_d:"Es normal si acaba de empezar el mes o tu ciclo — irán apareciendo según sincronices o apuntes alguno.",
   g_today:"Hoy", g_yesterday:"Ayer", g_invalid:"Pon un importe válido", g_saved_g:"✓ Gasto apuntado", g_saved_i:"✓ Ingreso apuntado", g_deleted:"Eliminado", g_changecat:"Cambiar categoría",
-  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso",
+  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Deudas",
   freq_mes:"mensual", freq_bimestral:"bimestral", freq_trimestral:"trimestral", freq_semestral:"semestral", "freq_año":"anual",
   // Fijos
   fj_monthly:"Gasto fijo mensual", fj_peryear:"{x}/año", fj_top_a:"Tu mayor gasto fijo es ", fj_top_b:" ({x}/mes)",
@@ -5208,6 +5252,10 @@ function expenseCountsCash(e, s){
   if(!e) return false;
   // Posible repetido: no mueve saldo ni presupuesto hasta que él diga «son distintos».
   if(e.possibleDup) return false;
+  /* La cuota de una deuda (`debtId`, 4.21.0) NO sale de aquí a propósito: en la cuenta de gasto
+     diario ya resta hoy como cualquier cargo (`paidNet` vale 0 ahí) y `applyBankBalances` ancla el
+     saldo contando con ella. Sacarla haría saltar el saldo hasta el siguiente anclaje — el
+     «6724 → 6681» otra vez. Solo sale del GASTADO, por categoría neutra (`CAT_NEUTRAS`). */
   const ent=expenseBankOf(e);
   if(!ent) return true;
   return expenseBankEnts(s).indexOf(ent)>=0;
@@ -5235,6 +5283,7 @@ function expenseBucket(e, s){
   if(!e) return "cuenta";
   if(e.possibleDup) return "posible";
   if((e.amount||0)<0) return "ingreso";
+  if(e.debtId) return "deuda";        // cuota de una deuda: ya cuenta en el Plan (4.21.0)
   if(CAT_NEUTRAS[e.category]) return "neutra";
   if(!expenseCountsCash(e, s)) return "otrobanco";
   return "cuenta";
@@ -7675,6 +7724,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         if(!isTarget && !isTwin && !isSibling) return e;
         const wasInv=e.category==="inversion", willBeInv=newCat==="inversion";
         const upd=Object.assign({},e,{category:newCat});
+        // Sacarla de «Deudas» es decir «esto no es la cuota»: pierde la marca (4.21.0).
+        if(isTarget && upd.debtId && newCat!=="deudas") delete upd.debtId;
         // El gemelo solo cambia de categoría: el dinero ya lo compra su pareja, comprarlo dos veces
         // duplicaría las participaciones del fondo.
         if(isTwin) return upd;
@@ -7693,7 +7744,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         cloud.setExpenseCat(ex,newCat).catch(function(){});
         if(twinId){ const tw=s.expenses.find(function(e){ return e.id===twinId; }); if(tw) cloud.setExpenseCat(tw,newCat).catch(function(){}); }
       }
-      return Object.assign({},invState,{expenses:exps,catOverrides:ov});
+      const fuera={expenses:exps,catOverrides:ov};
+      // «Esto no es la cuota»: lápida para que `marcarCuotasDeDeuda` no la vuelva a meter (4.21.0).
+      if((ex.debtId||ex.category==="deudas") && newCat!=="deudas"){
+        const k=keyOfExpense(ex), prevNo=s.cuotaNo||[];
+        if(prevNo.indexOf(k)<0) fuera.cuotaNo=prevNo.concat([k]).slice(-200);
+      }
+      return Object.assign({},invState,fuera);
     });
     setCatEdit(null);
     const cc=CATEGORIES.concat([INGRESO_CAT,INVERSION_CAT,TRASPASO_CAT]).find(function(x){ return x.id===newCat; });
@@ -7835,7 +7892,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     for(let i=0;i<src.length;i++){
       const e=src[i];
       if(!inBounds(dateMs(e.date),bounds)) continue;
-      if(catSet && !catSet.has(e.category)) continue;
+      // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
+      if(catSet && !catSet.has(e.category) && !(e.debtId && catSet.has("debt:"+e.debtId))) continue;
       if(bankSet && !bankSet.has(expenseBankOf(e)||"_manual")) continue;
       if(bkSet && !bkSet.has(expenseBucket(e, state))) continue;
       if(needle){
@@ -8032,7 +8090,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const filterParts=[];
   if(bucketSel.length===1) filterParts.push(t("g_bk_"+bucketSel[0]));
   else if(bucketSel.length>1) filterParts.push(bucketSel.length+" "+t("g_bk_title").toLowerCase());
-  if(nCatSel===1) filterParts.push(catName(sel[0]));
+  if(nCatSel===1) filterParts.push(filterSelLabel(sel[0], state.debts));
   else if(nCatSel>1) filterParts.push(nCatSel+" "+t("g_filters_cats"));
   if(!bankSelIsDefault){
     if(bankSel.length===0) filterParts.push(t("g_allbanks"));
@@ -8296,7 +8354,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       open:filterOpen, onClose:function(){ setFilterOpen(false); },
       sel:sel, setSel:setSel, bankSel:bankSel, setBankSel:setBankSel,
       bucketSel:bucketSel, setBucketSel:setBucketSel,
-      bankOpts:bankOpts, diarioEnts:diarioEnts
+      bankOpts:bankOpts, diarioEnts:diarioEnts, debts:state.debts
     }),
     detailId && React.createElement(ExpenseDetailSheet,{
       exp:(state.expenses||[]).find(function(e){ return e.id===detailId; }),
@@ -8331,7 +8389,7 @@ const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket, dragging, dragOv
   // Un ingreso NO va apagado: entra dinero, no es un gasto que se descarta. Solo se atenúan los
   // dos cajones que no mueven el presupuesto, y cada uno dice el suyo en vez de un «no afecta»
   // genérico que hacía que una inversión y un recibo de Sabadell parecieran lo mismo.
-  const skip=bucket==="neutra"||bucket==="otrobanco"||bucket==="posible";
+  const skip=bucket==="neutra"||bucket==="otrobanco"||bucket==="posible"||bucket==="deuda";
   const skipTxt=skip?t("g_skip_"+bucket):"";
   return React.createElement("button",{type:"button","data-expense-id":e.id,"data-expense-day":String(e.date||"").slice(0,10),
       className:"v4-mov"+(skip?" v4-mov-skip":"")+(dragging?" dragging":"")+(dragOver?" drag-over":""),
@@ -8361,13 +8419,22 @@ const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket, dragging, dragOv
 
 /* Sheet de filtros (2026-08-05): categorías + bancos con buscador, sin la fila infinita de chips.
    Misma mecánica que PeriodMoreSheet (swipe abajo + atrás). */
-function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts}){
+/* Nombre de lo que hay en `sel`: una categoría, o `debt:<id>` = el chip de una deuda (4.21.0).
+   Una deuda borrada ya no tiene chip; si seguía marcada, se lee como «Deudas». */
+function filterSelLabel(id, debts){
+  if(String(id).indexOf("debt:")!==0) return catName(id);
+  const d=(debts||[]).find(function(x){ return x && ("debt:"+x.id)===id; });
+  return d ? (d.name||catName("deudas")) : catName("deudas");
+}
+function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts, debts}){
   useBackClose(!!open, onClose);
   const swipe=useSheetSwipe(!!open, onClose);
   const [qCat,setQCat]=useState("");
   useEffect(function(){ if(!open) setQCat(""); },[open]);
   if(!open) return null;
-  const allCats=CATEGORIES.concat([INGRESO_CAT,INVERSION_CAT,TRASPASO_CAT]);
+  /* Sin deudas no sale ni la categoría «Deudas» ni su sección (apunte de Cursor al brief). */
+  const debtList=(debts||[]).filter(function(d){ return d && d.id; });
+  const allCats=CATEGORIES.concat([INGRESO_CAT,INVERSION_CAT,TRASPASO_CAT]).concat(debtList.length?[DEUDA_CAT]:[]);
   const needle=qCat.trim().toLowerCase();
   const cats=needle
     ? allCats.filter(function(c){ return catName(c.id).toLowerCase().indexOf(needle)!==-1 || c.id.indexOf(needle)!==-1; })
@@ -8434,6 +8501,21 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
               c.icon+" "+catName(c.id));
           })
         ),
+        /* Un chip por deuda: se crean y desaparecen solos con las deudas del Plan (4.21.0). */
+        (function(){
+          const ds=needle ? debtList.filter(function(d){ return String(d.name||"").toLowerCase().indexOf(needle)!==-1; }) : debtList;
+          if(!ds.length) return null;
+          return React.createElement(React.Fragment,null,
+            React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_filters_debts")),
+            React.createElement("div",{"data-testid":"filtro-deudas",style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}},
+              ds.map(function(d){
+                const k="debt:"+d.id;
+                return React.createElement("button",{key:k,type:"button",className:"v4-chip"+(sel.indexOf(k)!==-1?" on":""),onClick:function(){ toggleCat(k); }},
+                  DEUDA_CAT.icon+" "+(d.name||catName("deudas")));
+              })
+            )
+          );
+        })(),
         bankOpts.length>0 && React.createElement(React.Fragment,null,
           React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_filters_banks")),
           React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}},
@@ -11357,12 +11439,17 @@ function importObExpenses(s, txs){
   // Cargos ya modelados ESTE mes por entidad (Fijos/deudas/puntuales), para no duplicar un recibo.
   const now=new Date(), ym=now.getMonth()+1, yy=now.getFullYear();
   const modeledByEnt={};
-  const pushModeled=function(ent,name,amount){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount}); };
+  const pushModeled=function(ent,name,amount,debtId){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount,debtId:debtId||null}); };
   (s.fixed||[]).forEach(function(f){ if(occursIn(f,ym)) pushModeled(accOf(f), f.name, occAmountIn(f,ym)); });
-  (s.debts||[]).forEach(function(d){ if(debtActive(d)) pushModeled(d.account||"sabadell", d.name||"Cuota", (d.monthly||0)+debtBalloonIn(d,yy,ym)); });
+  (s.debts||[]).forEach(function(d){ if(debtActive(d)) pushModeled(d.account||"sabadell", d.name||"Cuota", (d.monthly||0)+debtBalloonIn(d,yy,ym), d.id); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,yy,ym)) pushModeled(o.account||"sabadell", o.name||"Cargo", o.amount||0); });
-  const matchesModeled=function(ent,merchant,amount){
-    return (modeledByEnt[ent]||[]).some(function(mm){ return recAmtClose(mm.amount,amount) && recNameMatch(mm.name,merchant); });
+  /* QUÉ casó, no solo SI casó (4.21.0). Un Fijo o un puntual casado se sigue tirando como siempre;
+     una DEUDA casada ya NO se tira: entra y `marcarCuotasDeDeuda` la pone en «Deudas», fuera del
+     gastado. Si casan las dos cosas, gana el descarte de siempre. */
+  const modeledHit=function(ent,merchant,amount){
+    const hits=(modeledByEnt[ent]||[]).filter(function(mm){ return recAmtClose(mm.amount,amount) && recNameMatch(mm.name,merchant); });
+    if(!hits.length) return null;
+    return hits.find(function(mm){ return !mm.debtId; }) || hits[0];
   };
   const add=[];
   txs.forEach(function(tx){
@@ -11384,8 +11471,9 @@ function importObExpenses(s, txs){
       keys[kOf(e)]=1; add.push(e);
       return;
     }
-    // GASTO: entra de cualquier banco. Modelados (Fijos/deudas) no se duplican.
-    if(matchesModeled(tx.ent, tx.merchant, tx.amount)) return;
+    // GASTO: entra de cualquier banco. Fijos y puntuales modelados no se duplican; las deudas se marcan.
+    const mod=modeledHit(tx.ent, tx.merchant, tx.amount);
+    if(mod && !mod.debtId) return;
     if(!tx.date || parseDate(tx.date)<som) return;
     if(tx.id && seen[tx.id]) return;
     const esDiario=tx.ent===dailyEnt;
@@ -11404,6 +11492,88 @@ function importObExpenses(s, txs){
     add.push(e);
   });
   return add.length? add : null;
+}
+
+/* LAS CUOTAS DE TUS DEUDAS, EN «DEUDAS» (4.21.0).
+   Idea suya del 12/9. Medido con sus datos antes de picar: NINGUNA cuota casa por nombre. El
+   banco llama a la hipoteca «PRESTAMOS ADEUDO CUOTA N.…», al préstamo del piso por el nombre de
+   quien lo cobra, y las de Trade Republic llegan por la NOTI como «Amazon» u «Openbank Pay». Lo que
+   sí cuadra siempre es el banco, el importe AL CÉNTIMO y el día (a ±4: la hipoteca del día 1 se
+   cobra el 31). Por eso se casa así, sobre gastos de cualquier vía salvo los apuntados a mano, y
+   con el nombre + importe parecido como segunda red.
+   · Una cuota por deuda y mes: una amortización extra el mismo mes se queda como gasto normal.
+   · Ventana: desde 8 días antes del mes (la del sync) — lo de antes es del histórico (2ª tanda).
+   · `state.cuotaNo`: lo que él sacó a mano de «Deudas» no se vuelve a marcar.
+   · Solo cambia la categoría y pone `debtId`: NO toca el saldo (ver `expenseCountsCash`).
+   Devuelve las asignaciones `{e, debtId}` sin tocar nada; `marcarCuotasDeDeuda` las aplica. */
+const CUOTA_DIAS=4;
+function cuotasDeDeudaPorMarcar(s){
+  const debts=((s&&s.debts)||[]).filter(function(d){ return d && d.id && debtActive(d); });
+  if(!debts.length) return [];
+  const desde=startOfMonth().getTime() - 8*86400000;
+  const no={}; ((s&&s.cuotaNo)||[]).forEach(function(k){ no[k]=1; });
+  const exps=(s&&s.expenses)||[];
+  const mesDe=function(y,m){ const d=new Date(y,m,1); return {y:d.getFullYear(), m:d.getMonth()}; };
+  // El cargo de la deuda más cercano a `ms` (su mes o el contiguo) → {key, dias, importe}.
+  const cargoCercano=function(d, ms){
+    const f=new Date(ms), dia=debtChargeDay(d);
+    let best=null;
+    [-1,0,1].forEach(function(k){
+      const mm=mesDe(f.getFullYear(), f.getMonth()+k);
+      const ult=new Date(mm.y, mm.m+1, 0).getDate();
+      const c=new Date(mm.y, mm.m, Math.min(dia, ult), 12).getTime();
+      const dias=Math.abs(c-ms)/86400000;
+      if(!best || dias<best.dias) best={ key:mm.y+"-"+(mm.m+1), dias:dias, importe:(d.monthly||0)+debtBalloonIn(d, mm.y, mm.m+1) };
+    });
+    return best;
+  };
+  const usada={};
+  exps.forEach(function(e){
+    if(!e || !e.debtId) return;
+    const d=debts.find(function(x){ return x.id===e.debtId; });
+    if(d) usada[d.id+"|"+cargoCercano(d, dateMs(e.date)).key]=1;
+  });
+  const cands=[];
+  exps.forEach(function(e){
+    if(!e || e.debtId || !(e.amount>0) || e.possibleDup) return;
+    if(isManualExpenseSource(e.source)) return;
+    if(CAT_NEUTRAS[e.category] && e.category!=="deudas") return;   // un traspaso o una inversión no es una cuota
+    const ms=dateMs(e.date);
+    if(!(ms>=desde)) return;
+    if(no[keyOfExpense(e)]) return;
+    const ent=expenseBankOf(e);
+    debts.forEach(function(d){
+      if(ent!==(d.account||"sabadell")) return;
+      const c=cargoCercano(d, ms);
+      const exacto=Math.abs((e.amount||0)-c.importe)<=0.005 && c.dias<=CUOTA_DIAS+0.5;
+      const porNombre=recAmtClose(c.importe, e.amount||0) && recNameMatch(d.name||"", e.obName!=null?e.obName:(e.merchant||""));
+      if(!exacto && !porNombre) return;
+      cands.push({ e:e, d:d, key:d.id+"|"+c.key, score:(exacto?0:100)+c.dias+(sinComercioReal(e.merchant)?0.25:0) });
+    });
+  });
+  cands.sort(function(a,b){ return a.score-b.score; });
+  const out=[], tomado=new Set();
+  cands.forEach(function(c){
+    if(usada[c.key] || tomado.has(c.e)) return;
+    usada[c.key]=1; tomado.add(c.e);
+    out.push({ e:c.e, debtId:c.d.id });
+  });
+  return out;
+}
+/* Aplica la pasada. Puro: devuelve `{state, marcadas}` (las filas YA marcadas, para subirlas) o
+   null si no hay nada que marcar — así el efecto que la llama no entra en bucle. */
+function marcarCuotasDeDeuda(s){
+  const asig=cuotasDeDeudaPorMarcar(s);
+  if(!asig.length) return null;
+  const por=new Map(); asig.forEach(function(a){ por.set(a.e, a.debtId); });
+  const marcadas=[];
+  const expenses=(s.expenses||[]).map(function(e){
+    if(!por.has(e)) return e;
+    const n=Object.assign({}, e, { category:DEUDA_CAT.id, debtId:por.get(e) });
+    marcadas.push(n);
+    return n;
+  });
+  return { state:Object.assign({}, s, { expenses:expenses }), marcadas:marcadas };
 }
 
 /* ============================================================
@@ -19065,6 +19235,14 @@ function App(){
           invState=ib.state;
           e.investInvId=ib.invId; e.investShares=ib.shares; e.investCInv=ib.cInv; e.investAmountEur=ib.amountEur;
         });
+        // Las cuotas de deuda que entran ahora suben YA marcadas (4.21.0): si esperaran al efecto,
+        // la actualización en la nube podría llegar antes que la fila.
+        if(add){
+          cuotasDeDeudaPorMarcar(Object.assign({},invState,{expenses:add.concat(invState.expenses||[])})).forEach(function(a){
+            if(add.indexOf(a.e)<0) return;
+            a.e.category=DEUDA_CAT.id; a.e.debtId=a.debtId;
+          });
+        }
         obAdded=add||[];
         const baseExp=add? add.concat(invState.expenses||[]) : (invState.expenses||[]);
         // Rellena el CONCEPTO de lo que ya estaba apuntado con lo que acaba de traer el banco
@@ -19585,6 +19763,18 @@ function App(){
   // Brokers: sync suave al abrir (solo si ya conectados). Nunca crea posiciones nuevas.
   // TR/MI: authExpired/softFail/waf se callan — no piden OTP/captcha (feedback 2026-07-17).
   useEffect(function(){ if(uid) mcScheduleIdle(function(){ runBrokerSync(); }); },[uid]);
+
+  /* Cuotas de deuda a «Deudas» (4.21.0): sea cual sea la vía por la que entró el cargo (sync del
+     banco, noti de TR, pull de otro móvil) o si él acaba de crear la deuda. La pasada devuelve
+     null cuando no hay nada nuevo, así que marcar no vuelve a disparar el efecto en bucle. */
+  useEffect(function(){
+    const r=marcarCuotasDeDeuda(stateRef.current);
+    if(!r) return;
+    set(function(prev){ const r2=marcarCuotasDeDeuda(prev); return r2 ? r2.state : prev; });
+    if(cloud.enabled()) r.marcadas.forEach(function(e){
+      cloud.setExpenseDeuda(e).catch(function(err){ cloud.logEvent("error","setExpenseDeuda: "+keyOfExpense(e), _errCloudMsg(err)); });
+    });
+  },[state.expenses, state.debts, state.cuotaNo]);
 
   const [showAuth,setShowAuth]=useState(false);
   const [recovery,setRecovery]=useState(false);

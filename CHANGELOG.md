@@ -1,3 +1,36 @@
+## [4.21.0] - 2026-09-14
+### Las cuotas de las deudas, en Gastos («Deudas» + un filtro por deuda)
+
+Idea suya del 12/9 (*«categorías automáticamente por las deudas… y así se pudieran filtrar»*).
+Decidió: categoría «Deudas» con filtro por cada deuda, que NO cuente en el gastado, histórico en
+una 2ª tanda. Primera ronda de beta tras el promote de 4.20.4 (numeración reseteada).
+
+**El brief partía de una premisa que sus datos tumbaron.** Suponía que `importObExpenses` tiraba
+la cuota por casar con la deuda (`matchesModeled`). Medido en la nube: de sus 4 deudas activas
+NINGUNA casa por nombre — el banco llama a la hipoteca «PRESTAMOS ADEUDO CUOTA N.…» y la cobra el
+31, el préstamo del piso sale con el nombre de quien lo cobra, y las de Trade Republic llegan por
+la NOTI («Amazon», «Openbank Pay») y además por OB como «Movimiento». Ya entraban como gasto normal.
+
+- `marcarCuotasDeDeuda` (08-motor-bank): pasada pura sobre gastos de cualquier vía salvo los a mano,
+  desde 8 días antes del mes. Casa por banco + importe al céntimo + día a ±4 (en su mes o el
+  contiguo), o por nombre + importe parecido. Una cuota por deuda y mes (la más cercana al día; a
+  igualdad, la que no es «Movimiento»). Se ejecuta en el sync (antes de subir) y en un efecto sobre
+  `expenses`/`debts`/`cuotaNo`; devuelve null si no hay nada nuevo (sin bucle).
+- `DEUDA_CAT` en `CAT_NEUTRAS` (cliente y `_shared/presupuesto.ts`): sale del gastado.
+  **`expenseCountsCash` NO cambia**: en la cuenta diaria la cuota ya resta como cargo y
+  `applyBankBalances` ancla contando con ella; sacarla haría saltar el saldo (el rol-sin-salto).
+- La marca viaja sin migración: OB como `ob:<ent>~deuda.<id>` (con `~`: el servidor desplegado hace
+  `split("#")[0]` y con `#` la sumaría); la noti conserva `macrodroid` (un `macrodroid~…` lo leería
+  «a mano» y SUMARÍA) y lleva solo `cat:deudas` — el `debtId` se vuelve a deducir.
+  ⚠ **Hasta redesplegar `ingest`**, el widget cuenta las cuotas de la noti (el servidor desplegado
+  no tiene `deudas` en `CAT_NEUTRAS`). En sus datos, la primera es la del 27/9.
+- `importObExpenses` ya no tira la deuda casada por nombre (los Fijos y puntuales sí).
+- `refreshExpenseFromCloud` no devuelve a «otros» una cuota marcada; `setExpenseDeuda` (en
+  `CLOUD_WRITES`); sacarla a mano de «Deudas» deja lápida en `state.cuotaNo`.
+- Gastos: cajón `deuda` («ya cuenta en el Plan»), sección «Deudas» en Filtros con un chip por deuda
+  (`debt:<id>` en `sel`); sin deudas no sale. Una deuda borrada deja sus cuotas en «Deudas».
+- Tests: `cuotas-deudas` (15, con mutaciones comprobadas) y `e2e/gastos-deudas` (3).
+
 ## [4.20.4] - 2026-09-14
 ### La ronda 4.20 a producción, con una sola nota
 

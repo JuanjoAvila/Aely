@@ -75,6 +75,7 @@ const steps = [
   ["presupuesto-categoria", ["node", "tests/presupuesto-categoria.test.mjs"]],
   ["month-window", ["node", "tests/month-window.test.mjs"]],
   ["presupuesto-servidor", ["node", "tests/presupuesto-servidor.test.mjs"]],
+  ["cuotas-deudas", ["node", "tests/cuotas-deudas.test.mjs"]],
   ["widget-coherente", ["node", "tests/widget-coherente.test.mjs"]],
   ["ob-renombrar", ["node", "tests/ob-renombrar.test.mjs"]],
   ["divisa-original", ["node", "tests/divisa-original.test.mjs"]],

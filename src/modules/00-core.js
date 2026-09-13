@@ -211,9 +211,15 @@ const INVERSION_CAT = { id:"inversion", name:"Inversión", color:"#D4AF37", icon
 // Se apunta —«Mi ciclo» se ancla a él, ver `lastPaydayOf`— pero no es dinero nuevo: no suma a los
 // ingresos del mes, o al conectar también el banco de origen se contaría dos veces (2026-08-04).
 const TRASPASO_CAT = { id:"traspaso", name:"Traspaso", color:"#8AA0B8", icon:"🔄" };
+/* LA CUOTA DE UNA DEUDA QUE MANDA EL BANCO (4.21.0, idea suya del 12/9: «categorías automáticas
+   por las deudas… y así se pudieran filtrar»). Antes `importObExpenses` la TIRABA para no contarla
+   dos veces: ya resta en el Plan. Ahora entra, con `debtId`, pero neutra: se ve y se filtra, y no
+   toca ni el gastado del mes ni el saldo de gasto (`expenseCountsCash`). Solo la pone el sync: no
+   sale en el selector de categorías. */
+const DEUDA_CAT = { id:"deudas", name:"Deudas", color:"#C98A7A", icon:"💳" };
 // Categorías que NO son gasto ni ingreso: mueven dinero, no lo crean ni lo consumen.
-const CAT_NEUTRAS = { inversion:1, traspaso:1 };
-const catOf = (id)=> id==="ingreso" ? INGRESO_CAT : (id==="inversion" ? INVERSION_CAT : (id==="traspaso" ? TRASPASO_CAT : (CAT[id] || CAT.otros)));
+const CAT_NEUTRAS = { inversion:1, traspaso:1, deudas:1 };
+const catOf = (id)=> id==="ingreso" ? INGRESO_CAT : (id==="inversion" ? INVERSION_CAT : (id==="traspaso" ? TRASPASO_CAT : (id==="deudas" ? DEUDA_CAT : (CAT[id] || CAT.otros))));
 const catName = (id)=> t("cat_"+(catOf(id).id));   // nombre traducido de la categoría
 const freqLabel = (f)=> t("freq_"+f);              // frecuencia traducida
 
@@ -463,7 +469,7 @@ function resolveCategory(sheetCat, merchant){
   // "ambas": usa la del Sheet; si falta o es "otros", autodetecta por comercio
   // Las especiales están fuera de CAT. Reinterpretarlas al bajar la nube convertía inversión
   // y traspaso en gasto ordinario, aunque el servidor los excluyera (B09-D, 2026-09-08).
-  if(sheetCat==="ingreso"||sheetCat==="inversion"||sheetCat==="traspaso") return sheetCat;
+  if(sheetCat==="ingreso"||sheetCat==="inversion"||sheetCat==="traspaso"||sheetCat==="deudas") return sheetCat;
   if(sheetCat && sheetCat!=="otros" && CAT[sheetCat]) return sheetCat;
   return autoCategory(merchant);
 }
@@ -989,7 +995,21 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      const {error}=await expenseCloudEq(sb.from('expenses').update({ cat:String(cat||"otros") }), session.user.id, e);
+      const upd={ cat:String(cat||"otros") };
+      // Sacar una cuota de «Deudas» a mano le quita también la marca en la nube; si no, el
+      // siguiente pull le devolvería el `debtId` (4.21.0).
+      if(e&&e.debtId&&cat!=="deudas") upd.source=expenseSourceForCloud(Object.assign({},e,{debtId:undefined}));
+      const {error}=await expenseCloudEq(sb.from('expenses').update(upd), session.user.id, e);
+      if(error) throw error;
+    },
+    // Cuota de deuda marcada por `marcarCuotasDeDeuda` (4.21.0): categoría y, si es de Open
+    // Banking, la marca en `source`. La de la noti (`macrodroid`) conserva su source: un
+    // `macrodroid~…` lo leería el servidor como «a mano» y lo SUMARÍA; ahí basta `cat:deudas`.
+    async setExpenseDeuda(e){
+      if(!sb) return;
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) return;
+      const {error}=await expenseCloudEq(sb.from('expenses').update({ cat:"deudas", source:expenseSourceForCloud(e) }), session.user.id, e);
       if(error) throw error;
     },
     async deleteExpense(e){
@@ -1386,7 +1406,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","deleteExpense","deleteExpensesByIds",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","setExpenseDeuda","deleteExpense","deleteExpensesByIds",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -1420,6 +1440,22 @@ const CLOUD_READS_QUE_LLENAN=[
   });
 })();
 
+/* LA CUOTA DE DEUDA VIAJA EN `source` COMO `ob:<ent>~deuda.<debtId>` (4.21.0).
+   Sin migración, igual que el banco y el `#dup`. ⚠ `~` y NO `#`: el servidor desplegado hace
+   `split("#")[0]`, así que `ob:sabadell#deuda.x` lo leería como Sabadell y SUMARÍA la cuota al
+   widget. Con `~` cualquier servidor sin esta regla —y cualquier app vieja de la familia— lee un
+   banco raro («sabadell~deuda.x») que no está en la lista de gasto diario y la deja fuera: el
+   lado seguro. Espejo en `_shared/presupuesto.ts` (`esCuotaDeDeuda`). */
+function deudaSufijo(debtId){
+  const id=String(debtId||"").replace(/[^A-Za-z0-9_-]/g,"");
+  return id ? "~deuda."+id : "";
+}
+/* Parte el tramo de banco de un `source` OB: «sabadell~deuda.x» → {ent:"sabadell", debtId:"x"}. */
+function partirEntDeuda(tramo){
+  const s=String(tramo||""), i=s.indexOf("~deuda.");
+  if(i<0) return { ent:s||null, debtId:null };
+  return { ent:s.slice(0,i)||null, debtId:s.slice(i+7)||null };
+}
 /* Codifica el banco en `source` de la tabla (sin migración SQL): ob:caixa, ob-hist:sabadell,
    macrodroid (= Trade Republic). Así el filtro por banco sobrevive a reinstalaciones. */
 function expenseSourceForCloud(e){
@@ -1440,7 +1476,7 @@ function expenseSourceForCloud(e){
   //
   // Lo que NO viaja es `possibleDupOf` (el gemelo): tras reinstalar, «es el mismo» sigue
   // borrando la fila OB pero ya no puede traspasarle el extId al gemelo.
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+((e&&e.possibleDup)?"#dup":"");
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+deudaSufijo(e&&e.debtId)+((e&&e.possibleDup)?"#dup":"");
   if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent;
   if(s==="macrodroid"||s==="tr") return "macrodroid";
   if(s==="supabase") return "manual";
@@ -1556,7 +1592,7 @@ function expenseBankOf(e){
   if(e.ent) return e.ent;
   const s=String(e.source||"");
   if(s==="macrodroid"||s==="tr") return "trade_republic";
-  if(s.indexOf("ob:")===0) return s.slice(3).split("#")[0]||null;   // «#dup» = posible repetido (B09-D)
+  if(s.indexOf("ob:")===0) return partirEntDeuda(s.slice(3).split("#")[0]).ent;   // «#dup» = posible repetido (B09-D); «~deuda.» = cuota
   if(s.indexOf("ob-hist:")===0) return s.slice(8)||null;
   if(s.indexOf("manual:")===0) return s.slice(7)||null;
   return null;
@@ -1875,11 +1911,12 @@ function resolvePossibleDup(state, expenseId, same){
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){
   const raw=String(r.source||"manual");
-  let ent=null, source=raw, dup=false;
+  let ent=null, source=raw, dup=false, debtId=null;
   if(raw==="macrodroid"||raw==="tr"){ ent="trade_republic"; source="macrodroid"; }
   // «ob:ent#dup» = posible repetido que sigue pendiente de su decisión (B09-D): vuelve marcado,
   // así que la app lo sigue dejando fuera del total tras un pull, un reinicio o un segundo móvil.
-  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); ent=p[0]||null; source="ob"; dup=p[1]==="dup"; }
+  // «ob:ent~deuda.id» = cuota de esa deuda (4.21.0): vuelve con su `debtId` para el filtro.
+  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; source="ob"; dup=p[1]==="dup"; }
   else if(raw.indexOf("ob-hist:")===0){ ent=raw.slice(8)||null; source="ob-hist"; }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
@@ -1904,6 +1941,7 @@ function expenseFromRow(r){
     // bajaba—, y aquí perderlo significa que el siguiente sync duplica el gasto renombrado.
     obName: r.ob_name!=null ? String(r.ob_name) : undefined,
     possibleDup: dup ? true : undefined,
+    debtId: debtId || undefined,
   };
 }
 
@@ -1934,7 +1972,10 @@ function refreshExpenseFromCloud(local, incoming){
     if(b===undefined||b===false||b===""){ if(a!=null){ out[k]=undefined; delete out[k]; } return; }
     out[k]=b;
   };
-  if(!manual && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
+  // Una cuota ya marcada no vuelve a «otros» porque la nube aún no se haya enterado (4.21.0): la
+  // subida puede ir por detrás del pull, y la fila de la noti ni siquiera lleva la marca en `source`.
+  const cuotaLocal=local.debtId && local.category==="deudas";
+  if(!manual && !cuotaLocal && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
   if(incoming.amount!=null && isFinite(incoming.amount)) put("amount", incoming.amount);
   if(incoming.merchant!=null && incoming.merchant!=="") put("merchant", incoming.merchant);
   if(Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
@@ -1952,6 +1993,9 @@ function refreshExpenseFromCloud(local, incoming){
     }
   }
   if(incoming.possibleDupOf!=null) put("possibleDupOf", incoming.possibleDupOf);
+  /* Cuota de deuda (4.21.0): la marca que baja se adopta; una fila de la nube SIN marca no borra
+     la local — el upsert con ignoreDuplicates puede dejar la fila vieja de la nube sin el sufijo. */
+  if(incoming.debtId) put("debtId", incoming.debtId);
   if(!local.noteEdited && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
      nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda

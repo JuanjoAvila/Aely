@@ -205,6 +205,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         if(!isTarget && !isTwin && !isSibling) return e;
         const wasInv=e.category==="inversion", willBeInv=newCat==="inversion";
         const upd=Object.assign({},e,{category:newCat});
+        // Sacarla de «Deudas» es decir «esto no es la cuota»: pierde la marca (4.21.0).
+        if(isTarget && upd.debtId && newCat!=="deudas") delete upd.debtId;
         // El gemelo solo cambia de categoría: el dinero ya lo compra su pareja, comprarlo dos veces
         // duplicaría las participaciones del fondo.
         if(isTwin) return upd;
@@ -223,7 +225,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         cloud.setExpenseCat(ex,newCat).catch(function(){});
         if(twinId){ const tw=s.expenses.find(function(e){ return e.id===twinId; }); if(tw) cloud.setExpenseCat(tw,newCat).catch(function(){}); }
       }
-      return Object.assign({},invState,{expenses:exps,catOverrides:ov});
+      const fuera={expenses:exps,catOverrides:ov};
+      // «Esto no es la cuota»: lápida para que `marcarCuotasDeDeuda` no la vuelva a meter (4.21.0).
+      if((ex.debtId||ex.category==="deudas") && newCat!=="deudas"){
+        const k=keyOfExpense(ex), prevNo=s.cuotaNo||[];
+        if(prevNo.indexOf(k)<0) fuera.cuotaNo=prevNo.concat([k]).slice(-200);
+      }
+      return Object.assign({},invState,fuera);
     });
     setCatEdit(null);
     const cc=CATEGORIES.concat([INGRESO_CAT,INVERSION_CAT,TRASPASO_CAT]).find(function(x){ return x.id===newCat; });
@@ -365,7 +373,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     for(let i=0;i<src.length;i++){
       const e=src[i];
       if(!inBounds(dateMs(e.date),bounds)) continue;
-      if(catSet && !catSet.has(e.category)) continue;
+      // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
+      if(catSet && !catSet.has(e.category) && !(e.debtId && catSet.has("debt:"+e.debtId))) continue;
       if(bankSet && !bankSet.has(expenseBankOf(e)||"_manual")) continue;
       if(bkSet && !bkSet.has(expenseBucket(e, state))) continue;
       if(needle){
@@ -562,7 +571,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const filterParts=[];
   if(bucketSel.length===1) filterParts.push(t("g_bk_"+bucketSel[0]));
   else if(bucketSel.length>1) filterParts.push(bucketSel.length+" "+t("g_bk_title").toLowerCase());
-  if(nCatSel===1) filterParts.push(catName(sel[0]));
+  if(nCatSel===1) filterParts.push(filterSelLabel(sel[0], state.debts));
   else if(nCatSel>1) filterParts.push(nCatSel+" "+t("g_filters_cats"));
   if(!bankSelIsDefault){
     if(bankSel.length===0) filterParts.push(t("g_allbanks"));
@@ -826,7 +835,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       open:filterOpen, onClose:function(){ setFilterOpen(false); },
       sel:sel, setSel:setSel, bankSel:bankSel, setBankSel:setBankSel,
       bucketSel:bucketSel, setBucketSel:setBucketSel,
-      bankOpts:bankOpts, diarioEnts:diarioEnts
+      bankOpts:bankOpts, diarioEnts:diarioEnts, debts:state.debts
     }),
     detailId && React.createElement(ExpenseDetailSheet,{
       exp:(state.expenses||[]).find(function(e){ return e.id===detailId; }),
@@ -861,7 +870,7 @@ const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket, dragging, dragOv
   // Un ingreso NO va apagado: entra dinero, no es un gasto que se descarta. Solo se atenúan los
   // dos cajones que no mueven el presupuesto, y cada uno dice el suyo en vez de un «no afecta»
   // genérico que hacía que una inversión y un recibo de Sabadell parecieran lo mismo.
-  const skip=bucket==="neutra"||bucket==="otrobanco"||bucket==="posible";
+  const skip=bucket==="neutra"||bucket==="otrobanco"||bucket==="posible"||bucket==="deuda";
   const skipTxt=skip?t("g_skip_"+bucket):"";
   return React.createElement("button",{type:"button","data-expense-id":e.id,"data-expense-day":String(e.date||"").slice(0,10),
       className:"v4-mov"+(skip?" v4-mov-skip":"")+(dragging?" dragging":"")+(dragOver?" drag-over":""),
@@ -891,13 +900,22 @@ const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket, dragging, dragOv
 
 /* Sheet de filtros (2026-08-05): categorías + bancos con buscador, sin la fila infinita de chips.
    Misma mecánica que PeriodMoreSheet (swipe abajo + atrás). */
-function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts}){
+/* Nombre de lo que hay en `sel`: una categoría, o `debt:<id>` = el chip de una deuda (4.21.0).
+   Una deuda borrada ya no tiene chip; si seguía marcada, se lee como «Deudas». */
+function filterSelLabel(id, debts){
+  if(String(id).indexOf("debt:")!==0) return catName(id);
+  const d=(debts||[]).find(function(x){ return x && ("debt:"+x.id)===id; });
+  return d ? (d.name||catName("deudas")) : catName("deudas");
+}
+function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts, debts}){
   useBackClose(!!open, onClose);
   const swipe=useSheetSwipe(!!open, onClose);
   const [qCat,setQCat]=useState("");
   useEffect(function(){ if(!open) setQCat(""); },[open]);
   if(!open) return null;
-  const allCats=CATEGORIES.concat([INGRESO_CAT,INVERSION_CAT,TRASPASO_CAT]);
+  /* Sin deudas no sale ni la categoría «Deudas» ni su sección (apunte de Cursor al brief). */
+  const debtList=(debts||[]).filter(function(d){ return d && d.id; });
+  const allCats=CATEGORIES.concat([INGRESO_CAT,INVERSION_CAT,TRASPASO_CAT]).concat(debtList.length?[DEUDA_CAT]:[]);
   const needle=qCat.trim().toLowerCase();
   const cats=needle
     ? allCats.filter(function(c){ return catName(c.id).toLowerCase().indexOf(needle)!==-1 || c.id.indexOf(needle)!==-1; })
@@ -964,6 +982,21 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
               c.icon+" "+catName(c.id));
           })
         ),
+        /* Un chip por deuda: se crean y desaparecen solos con las deudas del Plan (4.21.0). */
+        (function(){
+          const ds=needle ? debtList.filter(function(d){ return String(d.name||"").toLowerCase().indexOf(needle)!==-1; }) : debtList;
+          if(!ds.length) return null;
+          return React.createElement(React.Fragment,null,
+            React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_filters_debts")),
+            React.createElement("div",{"data-testid":"filtro-deudas",style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}},
+              ds.map(function(d){
+                const k="debt:"+d.id;
+                return React.createElement("button",{key:k,type:"button",className:"v4-chip"+(sel.indexOf(k)!==-1?" on":""),onClick:function(){ toggleCat(k); }},
+                  DEUDA_CAT.icon+" "+(d.name||catName("deudas")));
+              })
+            )
+          );
+        })(),
         bankOpts.length>0 && React.createElement(React.Fragment,null,
           React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_filters_banks")),
           React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}},

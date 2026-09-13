@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.21.0",
+    "d": "14 sep 2026",
+    "t": {
+      "es": "Las cuotas de tus deudas, a la vista en Gastos",
+      "en": "Your debt payments, visible in Spending",
+      "ca": "Les quotes dels teus deutes, a la vista a Despeses"
+    },
+    "items": {
+      "es": [
+        "Cuando el banco cobra la cuota de una deuda que tienes en el Plan, ahora sale en Gastos dentro de «Deudas», aunque el banco la llame de otra manera. En Filtros puedes ver cada deuda por separado. No suma a lo gastado del mes: ya la tienes contada en el Plan."
+      ],
+      "en": [
+        "When your bank charges the payment of a debt you have in your Plan, it now shows up in Spending under “Debts”, even if the bank calls it something else. In Filters you can see each debt on its own. It doesn’t add to what you spent this month: it’s already counted in your Plan."
+      ],
+      "ca": [
+        "Quan el banc cobra la quota d'un deute que tens al Pla, ara surt a Despeses dins de «Deutes», encara que el banc l'anomeni d'una altra manera. A Filtres pots veure cada deute per separat. No suma al que has gastat aquest mes: ja el tens comptat al Pla."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "cuotas-deudas",
+        "t": {
+          "es": "💳 Cuotas de tus deudas en Gastos",
+          "en": "💳 Debt payments in Spending",
+          "ca": "💳 Quotes dels deutes a Despeses"
+        },
+        "items": {
+          "es": [
+            "1. Abre Gastos y toca Filtros (🎛️). Debajo de las categorías tiene que salir «Deudas», con un botón por cada deuda que tienes en el Plan.",
+            "2. Toca el botón de una deuda que ya te hayan cobrado este mes (por ejemplo, la que se cobra a primeros) y cierra: sale solo su cuota, con «Deudas · ya cuenta en el Plan» debajo.",
+            "3. Borra los filtros, cambia el periodo a «Mes pasado» y prueba con una deuda que se cobre a finales de mes: sale la cuota de finales de agosto, aunque el banco la llame distinto (un nombre de persona, «Movimiento», «Amazon»…).",
+            "4. Mira que en esa lista cada deuda tenga UNA sola cuota por mes; si una compra normal se ha colado como cuota, apúntalo aquí.",
+            "5. Abre una de esas cuotas y cámbiale la categoría. Sal de Gastos y vuelve: se queda en la que elegiste y no vuelve a «Deudas»."
+          ],
+          "en": [
+            "1. Open Spending and tap Filters (🎛️). Under the categories you should see “Debts”, with one button per debt in your Plan.",
+            "2. Tap a debt that has already been charged this month (e.g. one charged early in the month) and close: only its payment shows, with “Debts · already in your Plan” under it.",
+            "3. Clear the filters, switch the period to “Last month” and try a debt charged at the end of the month: the late-August payment shows, even if the bank calls it something else (a person's name, “Movimiento”, “Amazon”…).",
+            "4. Check each debt has ONE payment per month in that list; if a normal purchase slipped in as a payment, note it here.",
+            "5. Open one of those payments and change its category. Leave Spending and come back: it keeps the one you chose and doesn't go back to “Debts”."
+          ],
+          "ca": [
+            "1. Obre Despeses i toca Filtres (🎛️). Sota les categories ha de sortir «Deutes», amb un botó per cada deute que tens al Pla.",
+            "2. Toca un deute que ja t'hagin cobrat aquest mes (per exemple, el que es cobra a primers) i tanca: només surt la seva quota, amb «Deutes · ja compta al Pla» a sota.",
+            "3. Esborra els filtres, canvia el període a «Mes passat» i prova amb un deute que es cobri a finals de mes: surt la quota de finals d'agost, encara que el banc l'anomeni diferent (un nom de persona, «Movimiento», «Amazon»…).",
+            "4. Mira que a la llista cada deute tingui UNA sola quota per mes; si una compra normal s'ha colat com a quota, apunta-ho aquí.",
+            "5. Obre una d'aquestes quotes i canvia-li la categoria. Surt de Despeses i torna: es queda a la que has triat i no torna a «Deutes»."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.20.4",
     "d": "14 sep 2026",
     "t": {

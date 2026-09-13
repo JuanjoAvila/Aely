@@ -55,6 +55,7 @@ export const E2E_MAP = [
     "e2e/gastos-cajones.spec.mjs", "e2e/gastos-concepto.spec.mjs", "e2e/apuntar-sheet.spec.mjs",
     "e2e/gastos-diario-filtro.spec.mjs", "e2e/gastos-cabecera-bancos.spec.mjs", "e2e/gastos-orden.spec.mjs",
     "e2e/gastos-categorias-presupuesto.spec.mjs", "e2e/gastos-suelta-filas.spec.mjs",
+    "e2e/gastos-deudas.spec.mjs",
   ] },
   { file: "src/modules/05-dialogs-inv.js", specs: [
     "e2e/cartera-inversiones.spec.mjs", "e2e/brokers-selector.spec.mjs",
@@ -65,7 +66,7 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/08-motor-bank.js", specs: [
     "e2e/hist-pagos-mensuales.spec.mjs", "e2e/bancos-historico-filtro.spec.mjs",
-    "e2e/bancos-quitar-pending.spec.mjs",
+    "e2e/bancos-quitar-pending.spec.mjs", "e2e/gastos-deudas.spec.mjs",
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
     "e2e/listas-render.spec.mjs", "e2e/bancos-acordeon.spec.mjs", "e2e/bancos-reconnect.spec.mjs",
@@ -127,7 +128,7 @@ export const CROSSCUTTING = [
 const STEPS_DOCS = ["guard-privacy", "docs-frescura", "memoria-espejo"];
 const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente"];
 const STEPS_SUPABASE = [
-  "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "widget-coherente",
+  "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente",
   "month-window", "wallet-notis", "ingest-classify", "divisa-original", "presupuesto-rendimiento",
 ];
 

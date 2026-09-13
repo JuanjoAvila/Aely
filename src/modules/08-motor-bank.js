@@ -478,12 +478,17 @@ function importObExpenses(s, txs){
   // Cargos ya modelados ESTE mes por entidad (Fijos/deudas/puntuales), para no duplicar un recibo.
   const now=new Date(), ym=now.getMonth()+1, yy=now.getFullYear();
   const modeledByEnt={};
-  const pushModeled=function(ent,name,amount){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount}); };
+  const pushModeled=function(ent,name,amount,debtId){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount,debtId:debtId||null}); };
   (s.fixed||[]).forEach(function(f){ if(occursIn(f,ym)) pushModeled(accOf(f), f.name, occAmountIn(f,ym)); });
-  (s.debts||[]).forEach(function(d){ if(debtActive(d)) pushModeled(d.account||"sabadell", d.name||"Cuota", (d.monthly||0)+debtBalloonIn(d,yy,ym)); });
+  (s.debts||[]).forEach(function(d){ if(debtActive(d)) pushModeled(d.account||"sabadell", d.name||"Cuota", (d.monthly||0)+debtBalloonIn(d,yy,ym), d.id); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,yy,ym)) pushModeled(o.account||"sabadell", o.name||"Cargo", o.amount||0); });
-  const matchesModeled=function(ent,merchant,amount){
-    return (modeledByEnt[ent]||[]).some(function(mm){ return recAmtClose(mm.amount,amount) && recNameMatch(mm.name,merchant); });
+  /* QUÉ casó, no solo SI casó (4.21.0). Un Fijo o un puntual casado se sigue tirando como siempre;
+     una DEUDA casada ya NO se tira: entra y `marcarCuotasDeDeuda` la pone en «Deudas», fuera del
+     gastado. Si casan las dos cosas, gana el descarte de siempre. */
+  const modeledHit=function(ent,merchant,amount){
+    const hits=(modeledByEnt[ent]||[]).filter(function(mm){ return recAmtClose(mm.amount,amount) && recNameMatch(mm.name,merchant); });
+    if(!hits.length) return null;
+    return hits.find(function(mm){ return !mm.debtId; }) || hits[0];
   };
   const add=[];
   txs.forEach(function(tx){
@@ -505,8 +510,9 @@ function importObExpenses(s, txs){
       keys[kOf(e)]=1; add.push(e);
       return;
     }
-    // GASTO: entra de cualquier banco. Modelados (Fijos/deudas) no se duplican.
-    if(matchesModeled(tx.ent, tx.merchant, tx.amount)) return;
+    // GASTO: entra de cualquier banco. Fijos y puntuales modelados no se duplican; las deudas se marcan.
+    const mod=modeledHit(tx.ent, tx.merchant, tx.amount);
+    if(mod && !mod.debtId) return;
     if(!tx.date || parseDate(tx.date)<som) return;
     if(tx.id && seen[tx.id]) return;
     const esDiario=tx.ent===dailyEnt;
@@ -525,6 +531,88 @@ function importObExpenses(s, txs){
     add.push(e);
   });
   return add.length? add : null;
+}
+
+/* LAS CUOTAS DE TUS DEUDAS, EN «DEUDAS» (4.21.0).
+   Idea suya del 12/9. Medido con sus datos antes de picar: NINGUNA cuota casa por nombre. El
+   banco llama a la hipoteca «PRESTAMOS ADEUDO CUOTA N.…», al préstamo del piso por el nombre de
+   quien lo cobra, y las de Trade Republic llegan por la NOTI como «Amazon» u «Openbank Pay». Lo que
+   sí cuadra siempre es el banco, el importe AL CÉNTIMO y el día (a ±4: la hipoteca del día 1 se
+   cobra el 31). Por eso se casa así, sobre gastos de cualquier vía salvo los apuntados a mano, y
+   con el nombre + importe parecido como segunda red.
+   · Una cuota por deuda y mes: una amortización extra el mismo mes se queda como gasto normal.
+   · Ventana: desde 8 días antes del mes (la del sync) — lo de antes es del histórico (2ª tanda).
+   · `state.cuotaNo`: lo que él sacó a mano de «Deudas» no se vuelve a marcar.
+   · Solo cambia la categoría y pone `debtId`: NO toca el saldo (ver `expenseCountsCash`).
+   Devuelve las asignaciones `{e, debtId}` sin tocar nada; `marcarCuotasDeDeuda` las aplica. */
+const CUOTA_DIAS=4;
+function cuotasDeDeudaPorMarcar(s){
+  const debts=((s&&s.debts)||[]).filter(function(d){ return d && d.id && debtActive(d); });
+  if(!debts.length) return [];
+  const desde=startOfMonth().getTime() - 8*86400000;
+  const no={}; ((s&&s.cuotaNo)||[]).forEach(function(k){ no[k]=1; });
+  const exps=(s&&s.expenses)||[];
+  const mesDe=function(y,m){ const d=new Date(y,m,1); return {y:d.getFullYear(), m:d.getMonth()}; };
+  // El cargo de la deuda más cercano a `ms` (su mes o el contiguo) → {key, dias, importe}.
+  const cargoCercano=function(d, ms){
+    const f=new Date(ms), dia=debtChargeDay(d);
+    let best=null;
+    [-1,0,1].forEach(function(k){
+      const mm=mesDe(f.getFullYear(), f.getMonth()+k);
+      const ult=new Date(mm.y, mm.m+1, 0).getDate();
+      const c=new Date(mm.y, mm.m, Math.min(dia, ult), 12).getTime();
+      const dias=Math.abs(c-ms)/86400000;
+      if(!best || dias<best.dias) best={ key:mm.y+"-"+(mm.m+1), dias:dias, importe:(d.monthly||0)+debtBalloonIn(d, mm.y, mm.m+1) };
+    });
+    return best;
+  };
+  const usada={};
+  exps.forEach(function(e){
+    if(!e || !e.debtId) return;
+    const d=debts.find(function(x){ return x.id===e.debtId; });
+    if(d) usada[d.id+"|"+cargoCercano(d, dateMs(e.date)).key]=1;
+  });
+  const cands=[];
+  exps.forEach(function(e){
+    if(!e || e.debtId || !(e.amount>0) || e.possibleDup) return;
+    if(isManualExpenseSource(e.source)) return;
+    if(CAT_NEUTRAS[e.category] && e.category!=="deudas") return;   // un traspaso o una inversión no es una cuota
+    const ms=dateMs(e.date);
+    if(!(ms>=desde)) return;
+    if(no[keyOfExpense(e)]) return;
+    const ent=expenseBankOf(e);
+    debts.forEach(function(d){
+      if(ent!==(d.account||"sabadell")) return;
+      const c=cargoCercano(d, ms);
+      const exacto=Math.abs((e.amount||0)-c.importe)<=0.005 && c.dias<=CUOTA_DIAS+0.5;
+      const porNombre=recAmtClose(c.importe, e.amount||0) && recNameMatch(d.name||"", e.obName!=null?e.obName:(e.merchant||""));
+      if(!exacto && !porNombre) return;
+      cands.push({ e:e, d:d, key:d.id+"|"+c.key, score:(exacto?0:100)+c.dias+(sinComercioReal(e.merchant)?0.25:0) });
+    });
+  });
+  cands.sort(function(a,b){ return a.score-b.score; });
+  const out=[], tomado=new Set();
+  cands.forEach(function(c){
+    if(usada[c.key] || tomado.has(c.e)) return;
+    usada[c.key]=1; tomado.add(c.e);
+    out.push({ e:c.e, debtId:c.d.id });
+  });
+  return out;
+}
+/* Aplica la pasada. Puro: devuelve `{state, marcadas}` (las filas YA marcadas, para subirlas) o
+   null si no hay nada que marcar — así el efecto que la llama no entra en bucle. */
+function marcarCuotasDeDeuda(s){
+  const asig=cuotasDeDeudaPorMarcar(s);
+  if(!asig.length) return null;
+  const por=new Map(); asig.forEach(function(a){ por.set(a.e, a.debtId); });
+  const marcadas=[];
+  const expenses=(s.expenses||[]).map(function(e){
+    if(!por.has(e)) return e;
+    const n=Object.assign({}, e, { category:DEUDA_CAT.id, debtId:por.get(e) });
+    marcadas.push(n);
+    return n;
+  });
+  return { state:Object.assign({}, s, { expenses:expenses }), marcadas:marcadas };
 }
 
 /* ============================================================

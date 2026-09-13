@@ -68,7 +68,7 @@ export function inicioDeMesMs(when: number | Date = Date.now(), timeZone: string
 }
 
 /** Igual que `CAT_NEUTRAS` en el cliente: ni suman gasto ni suman ingreso. */
-const CAT_NEUTRAS: Record<string, number> = { inversion: 1, traspaso: 1 };
+const CAT_NEUTRAS: Record<string, number> = { inversion: 1, traspaso: 1, deudas: 1 };
 
 export type FilaGasto = {
   id?: string | null;
@@ -136,7 +136,7 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
 export function bancoDeSource(source?: string | null): string | null {
   const s = String(source || "");
   if (s === "macrodroid" || s === "tr") return "trade_republic";
-  if (s.indexOf("ob:") === 0) return s.slice(3).split("#")[0] || null;   // «#dup» → B09-D
+  if (s.indexOf("ob:") === 0) return s.slice(3).split("#")[0].split("~deuda.")[0] || null;   // «#dup» → B09-D; «~deuda.» → cuota
   if (s.indexOf("ob-hist:") === 0) return s.slice(8) || null;
   if (s.indexOf("manual:") === 0) return s.slice(7) || null;
   return null;
@@ -182,9 +182,21 @@ export function esPosibleRepetido(source?: string | null): boolean {
   return s.indexOf("ob:") === 0 && s.slice(3).split("#")[1] === "dup";
 }
 
+/**
+ * ¿Es la cuota de una deuda que mandó el banco? (4.21.0). Viaja como `ob:<ent>~deuda.<id>`.
+ * `~` y no `#` a propósito: un servidor sin esta función hace `split("#")[0]`, lee el banco
+ * «sabadell~deuda.x», no lo encuentra en la lista y la deja FUERA. Espejo de `e.debtId` en el
+ * cliente, que la saca del gastado y del saldo (ya resta en el Plan).
+ */
+export function esCuotaDeDeuda(source?: string | null): boolean {
+  const s = String(source || "");
+  return s.indexOf("ob:") === 0 && s.slice(3).split("#")[0].indexOf("~deuda.") > 0;
+}
+
 /** ¿Este movimiento mueve la cifra del presupuesto? Espejo de `expenseCountsBudget()`. */
 export function cuentaParaPresupuesto(fila: FilaGasto, ents: string[]): boolean {
   if (!fila) return false;
+  if (esCuotaDeDeuda(fila.source)) return false;
   // Pendiente de que él diga «es el mismo» o «son distintos»: no mueve saldo ni presupuesto,
   // igual que en `expenseCountsCash()`. Sin esta línea el servidor sumaba lo que la app restaba
   // y el widget decía más que Inicio.
