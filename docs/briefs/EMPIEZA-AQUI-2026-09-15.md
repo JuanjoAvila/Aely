@@ -56,14 +56,17 @@ Si la aprueba → promote igual que 4.21.2 (memoria `promote-4-19-106-como-se-hi
 ## 4. PENDIENTE (por orden)
 
 1. **Su veredicto de 4.22.2** y promote si aprueba.
-2. El importador del histórico no usa `cuotaAlias` (poco valor hoy: sus meses ya están importados).
-3. **OPS-06** restante (`docs/briefs/ops-06-seguridad-auditoria-repo.md`): instalador propio vs Play (DEC-01),
+2. **Nit de Cursor en la review de 4.22.2** (para un .3 o el promote): en `cuotasDeDeudaPorMarcar` el
+   `return` por `CAT_NEUTRAS` va ANTES del alias; si el banco vuelve a meter Cofidis como `traspaso`, el
+   alias no lo caza. Mirar el alias antes de ese corte. Con test.
+3. El importador del histórico no usa `cuotaAlias` (poco valor hoy: sus meses ya están importados).
+4. **OPS-06** restante (`docs/briefs/ops-06-seguridad-auditoria-repo.md`): instalador propio vs Play (DEC-01),
    BD viva (`pg_policies`, necesita SQL Editor y su OK), `localStorage`, SEC-01 (Edge sin sesión).
-4. Verificar en su OnePlus la degradación de Gastos (brief del 14/9, §5.3).
-5. Cursor: UX-02 (tironcillo al abrir Ajustes), long-press.
-6. Diferencia servidor/app vista en la simulación (usuario del dueño, `shown` 511,48 vs 480,93): previa a
+5. Verificar en su OnePlus la degradación de Gastos (brief del 14/9, §5.3).
+6. Cursor: UX-02 (tironcillo al abrir Ajustes), long-press.
+7. Diferencia servidor/app vista en la simulación (usuario del dueño, `shown` 511,48 vs 480,93): previa a
    la tanda de deudas, sin investigar. Mirar con `scripts/diag-widget.mjs` si él nota el widget raro.
-7. Compactar `MEMORY.md` (roza el límite de lectura).
+8. Compactar `MEMORY.md` (roza el límite de lectura).
 
 ## 5. LECCIONES CARAS DE ESTA SESIÓN
 
