@@ -392,6 +392,30 @@ const KW_INICIO={
 /* Categoría al ALTA de un movimiento nuevo (OB/import/ingest). ATM → traspaso.
    NUNCA meter esto en autoCategory: migrate recategoriza «otros» en cada carga y
    cambiaría totales de meses ya cerrados (bloqueo Claude 2026-09-08, misma regla que IA). */
+/* QUÉ CATEGORÍA SUGERIR MIENTRAS ESCRIBES EL CONCEPTO EN APUNTAR (13/9, brief
+   `docs/briefs/brief-ia-al-escribir-concepto.md`, opción A elegida por él).
+   Función pura: la pantalla le pasa lo que hay y ella dice qué hacer. Tres reglas:
+   1. Lo que TÚ tocas manda: si ya elegiste un chip a mano, nada lo mueve (`kwCat` null).
+   2. Palabras clave primero (gratis): si saben, se aplica sola esa categoría y NO se pregunta a la IA.
+   3. La IA solo si las palabras clave dicen «otros», está encendida y hay nube; su respuesta se
+      OFRECE como chip (no se aplica) y solo si es para el texto que hay AHORA (una vieja se tira).
+   o = { concepto, tocadaAMano, iaOn, nube, iaPara, iaCat } */
+function sugerenciaApuntar(o){
+  o=o||{};
+  const texto=String(o.concepto||"").trim();
+  const nada={ kwCat:null, pedirIA:false, chipIA:null };
+  if(texto.length<3) return nada;
+  const kw=categoryOfNewMerchant(texto);
+  if(kw && kw!=="otros" && CAT[kw]){
+    return { kwCat: o.tocadaAMano ? null : kw, pedirIA:false, chipIA:null };
+  }
+  const iaVigente = o.iaPara===texto && o.iaCat && o.iaCat!=="otros" && CAT[o.iaCat] ? o.iaCat : null;
+  return {
+    kwCat:null,
+    pedirIA: !!(o.iaOn && o.nube && o.iaPara!==texto),
+    chipIA: iaVigente
+  };
+}
 function categoryOfNewMerchant(merchant){
   if(isAtmWithdrawal(merchant)) return "traspaso";
   return autoCategory(merchant||"");
