@@ -1347,6 +1347,19 @@ function histCanUndo(state){
    «al sincronizar no sale ni un aviso ni nada, he tenido que venir aquí para ver qué pasaba».
    Se arregla en el CLIENTE a propósito: así le llega por OTA sin esperar a desplegar el servidor
    (que también se arregla, para cuando toque). */
+/* UN aviso para una sincronización a mano (13/9): bancos y brókers dejan cada uno sus mensajes y
+   aquí se juntan. Los ⚠ van DELANTE —son los que piden hacer algo, y la telemetría de toasts solo
+   recoge los que EMPIEZAN por ⚠—, sin repetir, separados por « · ». */
+function juntaAvisosSync(list){
+  const vistos={}; const avisos=[]; const bien=[];
+  (list||[]).forEach(function(m){
+    const s=String(m||"").trim(); if(!s || vistos[s]) return; vistos[s]=1;
+    (/^[⚠✕✗]/.test(s) ? avisos : bien).push(s);
+  });
+  if(!avisos.length) return bien.join(" · ");
+  const resto=avisos.slice(1).map(function(s){ return s.replace(/^[⚠✕✗]\s*/,""); });
+  return [avisos[0]].concat(resto, bien).join(" · ");
+}
 function bankIssuesOf(links, dbLinks){
   const out=(links||[]).filter(function(l){
     return l && l.ok===false && (l.expired || l.noacct || l.pending);

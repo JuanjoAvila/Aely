@@ -1,3 +1,20 @@
+## [4.19.107] - 2026-09-13
+### «Actualizar» dice qué ha pasado, en un solo aviso
+
+Su queja del 12/9: *«si actualizo saldo de un banco… por ejemplo Trade Republic, no me dice nada
+que se ha actualizado correctamente»*, y el rechazo viejo `tr-reactivo` (8/9): *«sale conectado
+pero no te avisa ni nada»*. Tres causas que se sumaban:
+
+1. El botón lanza bancos y brókers a la vez y **cada uno sacaba su toast**: ganaba el último.
+2. `showToast` no cancelaba el temporizador anterior: **el del primer aviso borraba el segundo**.
+3. Con un banco a medias se callaba el «✓ al día» de los demás, y el sync nativo de TR sin
+   respuesta salía en silencio aunque lo pidieras tú.
+
+Arreglo: `sincronizarAMano` junta los avisos de los dos (`opts.collect`) y enseña UNO con
+`juntaAvisosSync` (⚠ delante, sin repetir); el temporizador se cancela y los avisos largos duran
+4 s; con un banco pendiente se dice también lo que fue bien; TR sin respuesta avisa. El sync
+automático sigue callado. Test `sync-manual-un-aviso`. Voto de Cursor: sí.
+
 ## [4.19.106] - 2026-09-13
 ### La ronda 4.19 sube a producción
 

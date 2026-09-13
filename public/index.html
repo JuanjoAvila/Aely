@@ -2103,7 +2103,7 @@ const CONFIG = {
   // --- Supabase (Fase 1). La anon key es pública por diseño (va protegida con RLS). ---
   SUPABASE_URL: "https://sfyfjagbnhbplrljpbvh.supabase.co",
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeWZqYWdibmhicGxybGpwYnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3NzYyODAsImV4cCI6MjA5NzM1MjI4MH0.umMHOZanC4aRSBqiNAjsegyXxcZ-Q-g2oTQtS1JXzZk",
-  APP_VERSION: "4.19.106",          // lo sella el CI en cada deploy (scripts/stamp-version.mjs)
+  APP_VERSION: "4.19.107",          // lo sella el CI en cada deploy (scripts/stamp-version.mjs)
   SENTRY_DSN: "",              // opcional: inyectar SENTRY_DSN en CI (scripts/build-app.mjs)
 };
 
@@ -12174,6 +12174,19 @@ function histCanUndo(state){
    «al sincronizar no sale ni un aviso ni nada, he tenido que venir aquí para ver qué pasaba».
    Se arregla en el CLIENTE a propósito: así le llega por OTA sin esperar a desplegar el servidor
    (que también se arregla, para cuando toque). */
+/* UN aviso para una sincronización a mano (13/9): bancos y brókers dejan cada uno sus mensajes y
+   aquí se juntan. Los ⚠ van DELANTE —son los que piden hacer algo, y la telemetría de toasts solo
+   recoge los que EMPIEZAN por ⚠—, sin repetir, separados por « · ». */
+function juntaAvisosSync(list){
+  const vistos={}; const avisos=[]; const bien=[];
+  (list||[]).forEach(function(m){
+    const s=String(m||"").trim(); if(!s || vistos[s]) return; vistos[s]=1;
+    (/^[⚠✕✗]/.test(s) ? avisos : bien).push(s);
+  });
+  if(!avisos.length) return bien.join(" · ");
+  const resto=avisos.slice(1).map(function(s){ return s.replace(/^[⚠✕✗]\s*/,""); });
+  return [avisos[0]].concat(resto, bien).join(" · ");
+}
 function bankIssuesOf(links, dbLinks){
   const out=(links||[]).filter(function(l){
     return l && l.ok===false && (l.expired || l.noacct || l.pending);
@@ -18734,7 +18747,13 @@ function App(){
       window.removeEventListener("pagehide",flushPersist);
     };
   },[flushPersist]);
-  const showToast=(m)=>{ setToast(m); setTimeout(()=>setToast(null),2200);
+  /* ⚠ EL TEMPORIZADOR DEL TOAST ANTERIOR SE CANCELA (13/9, tanda «actualizo y no me dice nada»).
+     Cada toast programaba su propio `setToast(null)` a 2,2 s sin tocar el de antes, así que dos
+     avisos seguidos se pisaban: el temporizador del PRIMERO borraba el SEGUNDO a mitad. Los largos
+     (un resumen de sincronización) duran algo más para que dé tiempo a leerlos. */
+  const toastTimer=useRef(0);
+  const showToast=(m)=>{ setToast(m); if(toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current=setTimeout(()=>{ toastTimer.current=0; setToast(null); }, String(m||"").length>60 ? 4000 : 2200);
     // Telemetría: TODO error que ve el usuario en pantalla viaja a app_events. Antes solo se
     // subían los crashes/errores no capturados — los fallos "domados" (✕/⚠ en un toast, como el
     // permission denied del ingest) eran invisibles para el admin (bug 2026-07-11).
@@ -18869,6 +18888,10 @@ function App(){
   // pero con el número real). opts.manual = avisa siempre (botón "Actualizar saldo").
   // (Los throttles de auto-sync BANK_SYNC_THROTTLE/BANK_FG_MIN se retiraron el 2026-07-18
   //  junto con el propio auto-sync: el banco solo se consulta a demanda.)
+  /* Al sincronizar A MANO se lanzan a la vez bancos y brókers y cada uno tenía su toast: ganaba el
+     último en acabar y el otro no se veía nunca («si actualizo… no me dice nada», 12/9). Con
+     `opts.collect` cada uno deja su aviso en la lista y `sincronizarAMano` enseña UNO solo. */
+  const avisaSync=function(opts,m){ if(opts&&opts.collect) opts.collect.push(m); else showToast(m); };
   const runBankSync=function(opts){
     opts=opts||{};
     if(!cloud.enabled() || !sessionRef.current || bankSyncing.current) return Promise.resolve();
@@ -18983,7 +19006,7 @@ function App(){
           ? tf("bank_upd_one",{bank:entOf(bancos[0]).label, x:eur(preview.synced[0].bal)})
           : tf("bank_upd_n",{n:bancos.length});
         if(obAdded.length) msg += " · " + (obAdded.length===1 ? t("bank_upd_mov1") : tf("bank_upd_movn",{n:obAdded.length}));
-        showToast(msg);
+        avisaSync(opts, msg);
       }
       // ── BANCO SIN CONECTAR: avisar y dejar el banner de Cartera a la vista ─────────────────
       // Petición del padre (2026-07-24) + corrección 2026-07-26: la noti lleva a Cartera (donde
@@ -18997,7 +19020,14 @@ function App(){
         const msg=issues.length>1
           ? tf("bk_notif_n",{n:issues.length})
           : tf(claveNoti,{bank:lbl});
-        showToast("⚠ "+msg);
+        /* Y lo que SÍ fue bien se dice también: con un banco a medias el «✓ al día» de los demás se
+           callaba entero, y parecía que no había pasado nada. */
+        if(opts.manual && preview.synced.length){
+          const okEnts={}; preview.synced.forEach(function(x){ if(x&&x.ent) okEnts[x.ent]=1; });
+          const okN=Object.keys(okEnts).filter(function(e){ return !issues.some(function(is){ return is.ent===e; }); });
+          if(okN.length) avisaSync(opts, okN.length===1 ? tf("bank_upd_one",{bank:entOf(okN[0]).label, x:eur((preview.synced.filter(function(x){ return x.ent===okN[0]; })[0]||{}).bal||0)}) : tf("bank_upd_n",{n:okN.length}));
+        }
+        avisaSync(opts.manual?opts:null, "⚠ "+msg);
         if(opts.manual){
           const nat=natPlugin();
           if(nat&&nat.showNotification){
@@ -19012,15 +19042,15 @@ function App(){
       // vivo (el servidor ya no lo marca 'expired' por un 403/404), así que no mandamos «reconéctate»
       // — solo un aviso suave y únicamente si lo pediste tú (feedback 2026-07-17: «se caen cada dos
       // por tres» era este falso positivo). En auto-sync nos callamos: se reintenta solo.
-      else if(failed.length && opts.manual){ showToast("⚠ "+tf("bank_syncsoft",{bank:bankLabelOf(failed[0])})); }
+      else if(failed.length && opts.manual){ avisaSync(opts, "⚠ "+tf("bank_syncsoft",{bank:bankLabelOf(failed[0])})); }
       // Ni un solo banco enlazado: en vez del callejón sin salida («No tienes ningún banco
       // conectado») le abrimos el panel para que lo conecte ahí mismo.
       else if(!preview.synced.length && !links.length && opts.manual){
-        showToast(t("bank_none"));
+        avisaSync(opts, t("bank_none"));
         setTimeout(function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){} }, 700);
       }
     }).catch(function(e){
-      if(opts.manual || navigator.onLine!==false) showToast("⚠ "+t("bank_syncfail"));
+      if(opts.manual || navigator.onLine!==false) avisaSync(opts.manual?opts:null, "⚠ "+t("bank_syncfail"));
     }).finally(function(){
       bankSyncing.current=false;
       /* AVISA DE QUE LA LISTA DE BANCOS HA CAMBIADO (2026-09-12, reportado por el desde la app:
@@ -19101,13 +19131,20 @@ function App(){
     if(typeof markTrConnected==="function") markTrConnected(ack?{ack:true}:undefined);
     else try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:true, ack:ack}})); }catch(e){}
   };
+  /* Botón «Actualizar» (Cartera y Ajustes): bancos y brókers a la vez, y UN aviso con todo. */
+  const sincronizarAMano=function(){
+    const col=[];
+    return Promise.all([runBankSync({manual:true, collect:col}), runBrokerSync({manual:true, collect:col})]).then(function(){
+      const m=juntaAvisosSync(col); if(m) showToast(m);
+    });
+  };
   const runBrokerSync=function(opts){
     opts=opts||{};
     if(brokerSyncing.current) return Promise.resolve();
     brokerSyncing.current=true;
     const jobs=[];
     const st=stateRef.current||{};
-    let touched=0; const expiredB=[];
+    let touched=0; const expiredB=[]; let trSinRespuesta=false;
     // Estado de TR: se consulta también en automático (solo status, sin sync) para que el
     // banner de Cartera no se quede mirando un "conectado" viejo tras matar la app.
     const bridge=(typeof trBridge==="function") ? trBridge() : null;
@@ -19122,7 +19159,9 @@ function App(){
         if(!opts.manual || !bridge.sync) return;   // sync TR solo a demanda
         return Promise.resolve(bridge.sync()).then(function(res){
           if(res&&res.authExpired&&!res.softFail&&!res.wafBlocked){ expiredB.push("Trade Republic"); signalTrDead(); return; }
-          if(!res||!res.ok||!Array.isArray(res.positions)) return;   // anti-bot/hipo: silencio, se reintenta luego
+          /* anti-bot/hipo: en automático silencio y se reintenta luego. Pero si lo has pedido TÚ, callarse
+             es el «sale conectado pero no te avisa ni nada» (rechazo tr-reactivo, 8/9): se dice. */
+          if(!res||!res.ok||!Array.isArray(res.positions)){ trSinRespuesta=true; return; }
           applyBrokerPositions(res.positions, "lastTrSync", res.cash); touched++;
         });
       }).catch(function(){}));
@@ -19142,14 +19181,15 @@ function App(){
       brokerSyncing.current=false;
       if(opts.manual){
         if(expiredB.length){
-          showToast(tf("v4_sync_broker_exp",{b:expiredB[0]}));
+          avisaSync(opts, tf("v4_sync_broker_exp",{b:expiredB[0]}));
           // TR: deja Cartera delante para que el banner se vea (mismo patrón que OB).
           if(expiredB[0]==="Trade Republic"){
             const ci=tabOrderOf(stateRef.current).indexOf("cartera");
             if(ci>=0) setTab(ci);
           }
         }
-        else if(touched) showToast(t("v4_sync_brokers_ok"));
+        else if(touched) avisaSync(opts, t("v4_sync_brokers_ok"));
+        if(trSinRespuesta && !expiredB.length) avisaSync(opts, "⚠ "+tf("bank_syncsoft",{bank:"Trade Republic"}));
       }
     });
   };
@@ -21434,7 +21474,7 @@ function App(){
     if(id==="plan") return React.createElement(PlanTab,{state:state,set:set,totals:totals,showToast:showToast,simple:simple,gotoSeg:planGoto,clearGoto:function(){ setPlanGoto(null); }});
     // El «Sincronizar» de Cartera actualiza TODO lo conectado: Open Banking + TR + MyInvestor
     // (petición 2026-07-18: «que también sincronice Trade Republic y MyInvestor»).
-    if(id==="cartera") return React.createElement(CarteraTab,{state:state,set:set,totals:totals,fetchPrices:fetchPrices,pricing:pricing,simple:simple,showToast:showToast,onBankSync:function(){ return Promise.all([runBankSync({manual:true}), runBrokerSync({manual:true})]); },onReconnectBank:reconnectBank});
+    if(id==="cartera") return React.createElement(CarteraTab,{state:state,set:set,totals:totals,fetchPrices:fetchPrices,pricing:pricing,simple:simple,showToast:showToast,onBankSync:sincronizarAMano,onReconnectBank:reconnectBank});
     return null;
   };
 
@@ -21613,7 +21653,7 @@ function App(){
          de Cartera. Antes solo lanzaba `runBankSync` (Open Banking), así que el botón que él usa
          para arreglar TR ni siquiera lo tocaba: para él TR es un banco más —lo tiene en el widget—
          y esperar que adivine que va por otro camino es cosa nuestra, no suya. */
-      drawerMounted && React.createElement(SettingsPanel,{state:state,set:set,onClose:function(){ setDrawerOpen(false); },showToast:showToast,uid:uid,onBankSync:function(){ return Promise.all([runBankSync({manual:true}), runBrokerSync({manual:true})]); },onTour:openTour,totals:totals,fetchPrices:fetchPrices,refreshFx:refreshFx,goBanks:banksGoto,goBanksFocus:banksFocus,
+      drawerMounted && React.createElement(SettingsPanel,{state:state,set:set,onClose:function(){ setDrawerOpen(false); },showToast:showToast,uid:uid,onBankSync:sincronizarAMano,onTour:openTour,totals:totals,fetchPrices:fetchPrices,refreshFx:refreshFx,goBanks:banksGoto,goBanksFocus:banksFocus,
         goGastos:function(){ setDrawerOpen(false); setGastosForceAll(Date.now()); const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i); }})
     ),
     React.createElement("div",{className:"profile-dim-layer"+(profileOpen?" on":""),ref:dimLayerRef,style:profileOpen?{opacity:"1"}:undefined,"aria-hidden":"true"}),

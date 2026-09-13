@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.19.107",
+    "d": "13 sep 2026",
+    "t": {
+      "es": "Al actualizar, la app te dice qué ha pasado",
+      "en": "When you refresh, the app tells you what happened",
+      "ca": "En actualitzar, l'app et diu què ha passat"
+    },
+    "items": {
+      "es": [
+        "Al tocar «Actualizar» sale un solo aviso con todo: qué bancos están al día, las inversiones y si alguno necesita que hagas algo. Antes un aviso tapaba al otro y parecía que no había pasado nada."
+      ],
+      "en": [
+        "Tapping “Refresh” now shows one message with everything: which banks are up to date, your investments, and whether any needs you to do something. Before, one message covered the other and it looked like nothing had happened."
+      ],
+      "ca": [
+        "En tocar «Actualitza» surt un sol avís amb tot: quins bancs estan al dia, les inversions i si algun necessita que facis alguna cosa. Abans un avís tapava l'altre i semblava que no havia passat res."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "sync-un-aviso",
+        "t": {
+          "es": "🔄 «Actualizar» te dice qué ha pasado",
+          "en": "🔄 “Refresh” tells you what happened",
+          "ca": "🔄 «Actualitza» et diu què ha passat"
+        },
+        "items": {
+          "es": [
+            "1. Esto es tu queja: «si actualizo saldo de un banco, por ejemplo Trade Republic, no me dice nada».",
+            "2. Cartera → toca el botón de actualizar (↻) de Tus cuentas.",
+            "3. Espera a que termine: tiene que salir UN aviso que diga cuántos bancos están al día y, si tienes, que las inversiones también.",
+            "4. El aviso tiene que quedarse en pantalla lo suficiente para leerlo entero, sin desaparecer a medias.",
+            "5. Si algún banco necesita reconectarse, el aviso empieza por ⚠ con ese banco, pero también dice los que sí han ido bien.",
+            "6. Repite desde Ajustes → Bancos → Actualizar todos: mismo aviso, uno solo."
+          ],
+          "en": [
+            "1. This is your complaint: “if I refresh a bank, e.g. Trade Republic, it doesn't tell me anything”.",
+            "2. Wallet → tap the refresh button (↻) in Your accounts.",
+            "3. Wait until it finishes: ONE message must appear saying how many banks are up to date and, if you have them, that investments are too.",
+            "4. The message must stay long enough to read it whole, without vanishing halfway.",
+            "5. If a bank needs reconnecting, the message starts with ⚠ and that bank, but also says which ones went fine.",
+            "6. Repeat from Settings → Banks → Refresh all: same message, just one."
+          ],
+          "ca": [
+            "1. Això és la teva queixa: «si actualitzo el saldo d'un banc, per exemple Trade Republic, no em diu res».",
+            "2. Cartera → toca el botó d'actualitzar (↻) dels teus comptes.",
+            "3. Espera que acabi: ha de sortir UN avís que digui quants bancs estan al dia i, si en tens, que les inversions també.",
+            "4. L'avís s'ha de quedar a la pantalla prou temps per llegir-lo sencer, sense desaparèixer a mitges.",
+            "5. Si algun banc s'ha de reconnectar, l'avís comença per ⚠ amb aquest banc, però també diu els que han anat bé.",
+            "6. Repeteix des d'Ajustos → Bancs → Actualitza tots: el mateix avís, només un."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.19.106",
     "d": "13 sep 2026",
     "t": {
