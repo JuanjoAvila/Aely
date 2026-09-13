@@ -1,0 +1,63 @@
+# OPS-06 · Seguridad — auditoría del repo (13/9/2026)
+
+Encargo suyo (12/9): *«intentando “hackearla” a ver si hay fallos de seguridad… antes de
+publicarla en la Play Store»*. Primera pasada, **de solo lectura y sobre lo que dice el REPO**
+(migraciones y código). ⚠ La base de datos viva puede no coincidir: hay migraciones aplicadas a
+mano (ver `supabase.yml`, «las dos 0012»). La pasada contra la BD real (`pg_policies`,
+`information_schema.role_table_grants`) necesita acceso al SQL Editor y su OK.
+
+---
+
+## 🔴 P1 — Entrar en un Hogar ajeno adivinando el código
+
+- El código de invitación son **6 caracteres** de un alfabeto de 32 (`mcInviteCode`,
+  `13-hogar.js`), generados con **`Math.random`** (no criptográfico). Espacio: 32⁶ ≈ 1.070 millones.
+- `join_household_by_code` (`0013_households.sql`) es `SECURITY DEFINER`, lo puede llamar
+  **cualquier usuario con sesión** y **no tiene freno**: cada intento fallido es una excepción y
+  se puede reintentar sin límite.
+- Quien entra como miembro lee `household_snapshots` del hogar: **cuentas y saldos** de cada
+  miembro (`buildHouseholdSnapshot`).
+- Hoy (familia, 3 usuarios, ningún extraño con cuenta) el riesgo es teórico. **Con registro abierto
+  en la Play Store deja de serlo**: con muchos hogares creados, acertar UNO es mucho más fácil que
+  acertar uno concreto.
+
+**Arreglo propuesto (una tanda):** (1) freno dentro del RPC con `check_rate_limit`
+(p.ej. 10 intentos / 10 min por usuario); (2) códigos de 10 caracteres con
+`crypto.getRandomValues`; (3) los códigos actuales siguen valiendo (no romper hogares existentes).
+
+## 🟠 P2 — `app_events` sin tope
+
+- `app_events_insert` deja a cualquier usuario con sesión insertar **sus** eventos sin límite de
+  número ni de tamaño (`detail` sin `char_length`). Un cliente en bucle o malicioso puede inflar la
+  tabla (espacio del plan Free) y enterrar los errores de verdad.
+- **Arreglo:** `check (char_length(detail) <= 8000 and char_length(message) <= 500)` y un freno por
+  usuario (vía RPC o trigger). El cliente ya recorta a 300/8000 en la mayoría de sitios.
+
+## 🟠 P2 — Freno solo en 3 de 13 Edge Functions
+
+`ingest`, `myinvestor-connect` y ahora `categorize` (camino del LLM, rama
+`tanda/categorize-limitador`). `bank-connect`/`bank-sync` llaman a Enable Banking (cuota PSD2 del
+banco) sin freno propio: un bucle podría gastar el consentimiento del usuario («uso robótico»,
+ya pasó con Caixa/Sabadell el 18/7).
+
+## 🟢 Bien (comprobado en el repo)
+
+- `expenses`, `app_state`, `state_backups`, `ingest_tokens`: RLS `auth.uid() = user_id` en
+  lectura Y escritura (`using` + `with check`).
+- `bank_links`, `myinvestor_links`: el usuario solo **lee**; escriben las Edge con service role.
+- `cron_secrets`, `rate_limits`: RLS activado **sin políticas** = nadie desde el cliente.
+  `check_rate_limit` revocado a `anon`/`authenticated`.
+- `app_events` solo lo **lee** el admin, y el admin sale de `profiles.is_admin` (0016), no del
+  email en la política.
+- `households`: solo el creador edita/borra; miembros solo se borran a sí mismos;
+  `household_snapshots` solo escribe cada uno la suya y siendo miembro.
+
+## Pendiente de esta auditoría (siguientes pasadas)
+
+1. **BD viva**: exportar `pg_policies` y grants y compararlos con esto (necesita su OK / SQL Editor).
+2. **`localStorage`**: qué se guarda en claro en el móvil (estado entero, tokens de sesión) y si
+   sobrevive a desinstalar.
+3. **Manifiesto Android**: permisos, `exported`, `usesCleartextTraffic`, backup (`allowBackup`).
+4. **Qué viaja en `app_events`**: rutas que puedan subir comercios/importes/IBAN (SEC-03).
+5. **Edge sin sesión**: `ingest` (token), `bank-callback` (state/code), `bank-aspsps`: entradas
+   no validadas (SEC-01).
