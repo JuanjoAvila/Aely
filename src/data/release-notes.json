@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.22.1",
+    "d": "14 sep 2026",
+    "t": {
+      "es": "Un ajuste en las cuotas de meses pasados",
+      "en": "A tweak to past debt payments",
+      "ca": "Un ajust a les quotes de mesos passats"
+    },
+    "items": {
+      "es": [
+        "Las cuotas de meses pasados se buscan siempre en el mismo periodo, estés donde estés."
+      ],
+      "en": [
+        "Past debt payments are always looked for in the same period, wherever you are."
+      ],
+      "ca": [
+        "Les quotes de mesos passats es busquen sempre en el mateix període, siguis on siguis."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.22.0",
     "d": "14 sep 2026",
     "t": {

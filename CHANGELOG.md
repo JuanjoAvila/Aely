@@ -1,3 +1,11 @@
+## [4.22.1] - 2026-09-14
+### La ventana de 12 meses de las cuotas, igual en cualquier zona horaria
+
+La CI de beta (UTC) tumbó 4.22.0: `cuotaDesdeMs` leía el mes de `startOfMonth()` —día 1 en hora
+de Madrid, que en UTC es el 31 a las 22:00— con `getMonth()` local, y la ventana crecía un mes.
+En su móvil (Madrid) no pasaba; en local tampoco, por eso el test verde no lo vio. Se lee el mes a
+mediodía de ese día 1. Probado con TZ UTC, Madrid, Los Ángeles y Tokio.
+
 ## [4.22.0] - 2026-09-14
 ### Las cuotas de meses pasados, también en «Deudas» (2ª tanda)
 

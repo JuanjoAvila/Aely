@@ -1,6 +1,6 @@
 {
   "name": "aely",
-  "version": "4.22.0",
+  "version": "4.22.1",
   "private": true,
   "description": "Aely — PWA de finanzas personales (+ envoltorio Android con Capacitor)",
   "scripts": {

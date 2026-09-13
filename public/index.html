@@ -11534,7 +11534,11 @@ function cuotaCasa(d, ent, amount, merchant, ms){
   if(!exacto && !porNombre) return null;
   return { key:d.id+"|"+c.key, score:(exacto?0:100)+c.dias+(sinComercioReal(merchant)?0.25:0) };
 }
-function cuotaDesdeMs(){ const s=startOfMonth(); return new Date(s.getFullYear(), s.getMonth()-CUOTA_MESES, 1).getTime(); }
+/* `startOfMonth()` es el día 1 en hora de la CASA (Madrid): en una máquina en UTC cae el día 31
+   a las 22:00 y `getMonth()` leía el mes anterior — la ventana crecía un mes (lo cazó la CI de
+   beta, no el test en local). Se lee el mes a mediodía de ese día 1, que es el mismo día en
+   cualquier zona. */
+function cuotaDesdeMs(){ const s=new Date(startOfMonth().getTime()+12*3600000); return new Date(s.getFullYear(), s.getMonth()-CUOTA_MESES, 1).getTime(); }
 // Qué cuotas (deuda|mes) ya tienen su fila marcada.
 function cuotasUsadas(debts, exps){
   const usada={};

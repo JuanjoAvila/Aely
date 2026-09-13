@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-14 · **v4.22.0** — las cuotas de meses pasados también en «Deudas» (histórico, 2ª tanda). Beta renumerada tras el promote.
+> Estado a 2026-09-14 · **v4.22.1** — la ventana de cuotas se calcula igual en cualquier zona horaria (lo cazó la CI de beta).
+> Anterior: **v4.22.0** — las cuotas de meses pasados también en «Deudas» (histórico, 2ª tanda). Beta renumerada tras el promote.
 > Anterior: **v4.21.2** — la ronda 4.21 a producción (cuotas de deudas en Gastos + APK 46), con UNA nota.
 > Anterior: **v4.21.1** — la APK 46 (sin copia de Android ni token de ingest) ya en la calle; beta sigue con las cuotas de deudas.
 > Anterior: **v4.21.0** — las cuotas de las deudas, en Gastos: categoría «Deudas» y un filtro por deuda (beta; renumerada tras el promote).
@@ -174,7 +175,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.22.0** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.22.1** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |
