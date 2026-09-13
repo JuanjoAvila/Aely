@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.20.2",
+    "d": "13 sep 2026",
+    "t": {
+      "es": "Tu Hogar compartido, más protegido",
+      "en": "Your shared Household, better protected",
+      "ca": "La teva Llar compartida, més protegida"
+    },
+    "items": {
+      "es": [
+        "Los códigos para invitar a alguien a tu Hogar son más largos y más difíciles de adivinar. Los que ya tenías siguen funcionando."
+      ],
+      "en": [
+        "Codes to invite someone to your Household are longer and harder to guess. The ones you already had keep working."
+      ],
+      "ca": [
+        "Els codis per convidar algú a la teva Llar són més llargs i més difícils d'endevinar. Els que ja tenies continuen funcionant."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.20.1",
     "d": "13 sep 2026",
     "t": {

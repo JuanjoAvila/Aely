@@ -2103,7 +2103,7 @@ const CONFIG = {
   // --- Supabase (Fase 1). La anon key es pública por diseño (va protegida con RLS). ---
   SUPABASE_URL: "https://sfyfjagbnhbplrljpbvh.supabase.co",
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeWZqYWdibmhicGxybGpwYnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3NzYyODAsImV4cCI6MjA5NzM1MjI4MH0.umMHOZanC4aRSBqiNAjsegyXxcZ-Q-g2oTQtS1JXzZk",
-  APP_VERSION: "4.20.1",          // lo sella el CI en cada deploy (scripts/stamp-version.mjs)
+  APP_VERSION: "4.20.2",          // lo sella el CI en cada deploy (scripts/stamp-version.mjs)
   SENTRY_DSN: "",              // opcional: inyectar SENTRY_DSN en CI (scripts/build-app.mjs)
 };
 
@@ -3338,7 +3338,8 @@ const cloud = (function(){
       if(!sb) throw new Error("nube no disponible");
       const {data:{session}}=await sb.auth.getSession();
       if(!session) throw new Error("sin sesión");
-      const code=String(inviteCode||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8);
+      // 12 y no 8 (13/9): los códigos nuevos son de 10; con 8 se truncaban al crear y nadie podía unirse.
+      const code=String(inviteCode||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,12);
       if(code.length<4) throw new Error("código inválido");
       // id generado AQUÍ y sin .select(): el RETURNING del insert pasa por la policy de SELECT
       // y el creador aún no es miembro → 0 filas y el alta petaba (error real 2026-07-18:
@@ -4475,10 +4476,10 @@ Object.assign(LANG.es,{
   mr_top:"Más gasto: {cat} ({x})", mr_saved:"Ahorraste {x}", mr_over:"Gastaste {x} más de lo que entró",
   hh_title:"Hogar compartido", hh_intro:"Como la cuenta conjunta del banco: cada uno ve el patrimonio fusionado, sin mezclar datos privados.",
   hh_need_cloud:"Inicia sesión para crear o unirte a un hogar.", hh_need_login:"Inicia sesión para usar el hogar compartido.",
-  hh_create:"Crear hogar", hh_join:"Unirme con código", hh_name_ph:"Nombre (ej. Casa Avila)", hh_code_ph:"Código de 6 letras",
+  hh_create:"Crear hogar", hh_join:"Unirme con código", hh_name_ph:"Nombre (ej. Casa Avila)", hh_code_ph:"Código de invitación",
   hh_create_go:"Crear y obtener código", hh_join_go:"Unirme", hh_default_name:"Mi hogar",
   hh_created:"✓ Hogar creado · comparte el código", hh_joined:"✓ Te has unido al hogar", hh_code_short:"Escribe el código completo",
-  hh_code_bad:"Código no encontrado", hh_code_show:"Código invitación: {c}", hh_fused_net:"Patrimonio del hogar",
+  hh_code_bad:"Código no encontrado", hh_code_wait:"Demasiados intentos seguidos · espera unos minutos", hh_code_show:"Código invitación: {c}", hh_fused_net:"Patrimonio del hogar",
   hh_members_n:"{n} miembro(s) con vista publicada", hh_publish:"Actualizar mi vista en el hogar", hh_pub_ok:"✓ Vista publicada",
   hh_pub_busy:"Publicando…", hh_pub_hint:"Publica cuando cambie algo importante. Los demás solo ven tu snapshot, nunca editan tus datos.",
   hh_updated:"Actualizado", hh_leave:"Salir", hh_leave_q:"¿Salir del hogar?", hh_leave_sub:"Tu vista dejará de mostrarse. Tus datos locales no se borran.",
@@ -17311,9 +17312,15 @@ class ErrorBoundary extends React.Component{
    Fase 2: gastos por categoría + fijos (solo lectura, agregados).
    ============================================================ */
 
+/* 10 caracteres y ALEATORIO DE VERDAD (13/9, OPS-06 P1). Eran 6 con `Math.random`: 32⁶ ≈ mil
+   millones y sin freno al probar. Con 10 (32¹⁰ ≈ 10¹⁵) y el freno de la migración 0022, adivinar
+   un hogar ajeno deja de ser posible. Los códigos viejos de 6 siguen valiendo. Sin I/O/0/1 para
+   que no se confundan al dictarlo. */
 function mcInviteCode(){
   const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let s=""; for(let i=0;i<6;i++) s+=c[Math.floor(Math.random()*c.length)];
+  const buf=new Uint32Array(10);
+  (window.crypto||self.crypto).getRandomValues(buf);
+  let s=""; for(let i=0;i<10;i++) s+=c[buf[i]%c.length];
   return s;
 }
 
@@ -17459,7 +17466,7 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
       return reload();
     }).catch(function(e){
       const m=(e&&e.message)||String(e);
-      showToast(m.indexOf("invalid")>=0?t("hh_code_bad"):("✕ "+m));
+      showToast(m.indexOf("too_many")>=0 ? ("⚠ "+t("hh_code_wait")) : (m.indexOf("invalid")>=0?t("hh_code_bad"):("✕ "+m)));
     }).finally(function(){ setBusy(false); });
   };
 

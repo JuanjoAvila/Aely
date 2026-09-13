@@ -1245,7 +1245,8 @@ const cloud = (function(){
       if(!sb) throw new Error("nube no disponible");
       const {data:{session}}=await sb.auth.getSession();
       if(!session) throw new Error("sin sesión");
-      const code=String(inviteCode||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8);
+      // 12 y no 8 (13/9): los códigos nuevos son de 10; con 8 se truncaban al crear y nadie podía unirse.
+      const code=String(inviteCode||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,12);
       if(code.length<4) throw new Error("código inválido");
       // id generado AQUÍ y sin .select(): el RETURNING del insert pasa por la policy de SELECT
       // y el creador aún no es miembro → 0 filas y el alta petaba (error real 2026-07-18:

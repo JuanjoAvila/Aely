@@ -1,3 +1,23 @@
+## [4.20.2] - 2026-09-13
+### Seguridad: nadie entra en un Hogar ajeno adivinando el código (OPS-06)
+
+Encargo suyo: *«mirarlo bien Cursor y tú y arreglármelo, estas cosas y más es lo que quiero
+evitar»*. Primera auditoría en `docs/briefs/ops-06-seguridad-auditoria-repo.md`.
+
+- **P1 · Hogar.** El código de invitación eran 6 caracteres con `Math.random` y
+  `join_household_by_code` no tenía freno: con registro abierto se podía probar códigos hasta
+  entrar en un hogar ajeno y ver cuentas y saldos. Ahora: códigos de **10** con
+  `crypto.getRandomValues` (`createHousehold` recorta a 12, no a 8), y la migración **0022**
+  frena a 10 intentos cada 10 minutos por usuario ANTES de buscar. Los códigos viejos siguen
+  valiendo. Aviso nuevo «demasiados intentos» en 3 idiomas.
+- **P2 · app_events.** Migración **0023**: tope de tamaño (`not valid`, no revalida lo viejo) y
+  freno de 600 eventos / 10 min por usuario que descarta sin error; las Edge (service role) no
+  pasan por él.
+- ⚠ **Las migraciones NO se aplican con esta beta**: van con el siguiente promote, por el workflow
+  con `migraciones=si`, P2 antes que P1, y con el cliente de 10 caracteres ya servido.
+
+Test `seguridad-hogar-eventos`. Plan votado por Cursor.
+
 ## [4.20.1] - 2026-09-13
 ### Gastos ya no se ralentiza de tanto subir y bajar
 

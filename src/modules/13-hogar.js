@@ -4,9 +4,15 @@
    Fase 2: gastos por categoría + fijos (solo lectura, agregados).
    ============================================================ */
 
+/* 10 caracteres y ALEATORIO DE VERDAD (13/9, OPS-06 P1). Eran 6 con `Math.random`: 32⁶ ≈ mil
+   millones y sin freno al probar. Con 10 (32¹⁰ ≈ 10¹⁵) y el freno de la migración 0022, adivinar
+   un hogar ajeno deja de ser posible. Los códigos viejos de 6 siguen valiendo. Sin I/O/0/1 para
+   que no se confundan al dictarlo. */
 function mcInviteCode(){
   const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let s=""; for(let i=0;i<6;i++) s+=c[Math.floor(Math.random()*c.length)];
+  const buf=new Uint32Array(10);
+  (window.crypto||self.crypto).getRandomValues(buf);
+  let s=""; for(let i=0;i<10;i++) s+=c[buf[i]%c.length];
   return s;
 }
 
@@ -152,7 +158,7 @@ function HogarSection({state, totals, uid, showToast, meEmail}){
       return reload();
     }).catch(function(e){
       const m=(e&&e.message)||String(e);
-      showToast(m.indexOf("invalid")>=0?t("hh_code_bad"):("✕ "+m));
+      showToast(m.indexOf("too_many")>=0 ? ("⚠ "+t("hh_code_wait")) : (m.indexOf("invalid")>=0?t("hh_code_bad"):("✕ "+m)));
     }).finally(function(){ setBusy(false); });
   };
 
