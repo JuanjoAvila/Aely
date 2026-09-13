@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 
-// URL de ingest (con su token) desde local.properties — NUNCA al repo (es público).
+// URL de ingest (con su token) desde local.properties â€” NUNCA al repo (es pÃºblico).
 // Clave: MICARTERA_INGEST_URL=https://<proyecto>.supabase.co/functions/v1/ingest?token=<INGEST_TOKEN>
 def localProps = new Properties()
 def localPropsFile = rootProject.file('local.properties')
@@ -8,13 +8,13 @@ if (localPropsFile.exists()) {
     localPropsFile.withInputStream { localProps.load(it) }
 }
 def ingestUrl = localProps.getProperty('MICARTERA_INGEST_URL', '')
-// Inspección de la WebView (chrome://inspect / CDP por adb). Se enciende SOLO poniendo
-// MICARTERA_WEBDEBUG=1 en local.properties, que no va al repo: así una APK compilada aquí para
-// depurar en su móvil se puede mirar por dentro, y la que publica el CI nunca lleva el socket
-// abierto. Ver docs/LAG-DESLIZAR.md §0 — sin esto no hay forma de medir el lag donde ocurre.
-// ⚠ 2026-08-06: WEBDEBUG=1 en assembleRelease metió el socket de depuración en la APK real
-// (barra/chrome raro bajo la cámara + riesgo). Guardián abajo: assembleRelease FALLA si
-// WEBDEBUG=1, salvo MICARTERA_ALLOW_WEBDEBUG_RELEASE=1 (solo para CDP a propósito).
+// InspecciÃ³n de la WebView (chrome://inspect / CDP por adb). Se enciende SOLO poniendo
+// MICARTERA_WEBDEBUG=1 en local.properties, que no va al repo: asÃ­ una APK compilada aquÃ­ para
+// depurar en su mÃ³vil se puede mirar por dentro, y la que publica el CI nunca lleva el socket
+// abierto. Ver docs/LAG-DESLIZAR.md Â§0 â€” sin esto no hay forma de medir el lag donde ocurre.
+// âš  2026-08-06: WEBDEBUG=1 en assembleRelease metiÃ³ el socket de depuraciÃ³n en la APK real
+// (barra/chrome raro bajo la cÃ¡mara + riesgo). GuardiÃ¡n abajo: assembleRelease FALLA si
+// WEBDEBUG=1, salvo MICARTERA_ALLOW_WEBDEBUG_RELEASE=1 (solo para CDP a propÃ³sito).
 // Para publicar: `npm run release:apk` (exige WEB_DEBUG off y no admite el bypass).
 def webDebug = localProps.getProperty('MICARTERA_WEBDEBUG', '0') == '1'
 def allowWebDebugRelease = localProps.getProperty('MICARTERA_ALLOW_WEBDEBUG_RELEASE', '0') == '1'
@@ -29,8 +29,9 @@ android {
         applicationId "com.micartera.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 44
-        versionName "4.19.40"
+        /* 45: prod ya anuncia 45 (APK Aely 4.18.22). Beta estaba en 44; sin esto el promote ofrece APK mas vieja. */
+        versionCode 45
+        versionName "4.18.22"
         buildConfigField "String", "INGEST_URL", "\"${ingestUrl}\""
         buildConfigField "boolean", "WEB_DEBUG", "${webDebug}"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -62,13 +63,13 @@ android {
                 signingConfig signingConfigs.release
             }
         }
-        /* «SOLO PARA MÍ, EN BETA» — una APK de pruebas instalable EN PARALELO a la real
-           (2026-08-01: pidió una vía para probar cambios nativos sin esperar a la release
-           pública). Sin `applicationIdSuffix` esto habría sido `com.micartera.app` a secas —
-           el MISMO id que la app de producción, firmada con OTRA llave (la de debug de Android,
-           auto-generada) — así que instalarla habría exigido DESINSTALAR la real primero
-           (Android rechaza una actualización con firma distinta al mismo id). Con el sufijo,
-           Android la trata como una app aparte: las dos conviven en el móvil, cada una con sus
+        /* Â«SOLO PARA MÃ, EN BETAÂ» â€” una APK de pruebas instalable EN PARALELO a la real
+           (2026-08-01: pidiÃ³ una vÃ­a para probar cambios nativos sin esperar a la release
+           pÃºblica). Sin `applicationIdSuffix` esto habrÃ­a sido `com.micartera.app` a secas â€”
+           el MISMO id que la app de producciÃ³n, firmada con OTRA llave (la de debug de Android,
+           auto-generada) â€” asÃ­ que instalarla habrÃ­a exigido DESINSTALAR la real primero
+           (Android rechaza una actualizaciÃ³n con firma distinta al mismo id). Con el sufijo,
+           Android la trata como una app aparte: las dos conviven en el mÃ³vil, cada una con sus
            propios datos. `.debug` en el nombre visible para que no se confunda con la de
            siempre en la lista de apps. */
         debug {
@@ -102,16 +103,16 @@ dependencies {
 
 apply from: 'capacitor.build.gradle'
 
-/* Guardián WEB_DEBUG (2026-08-06): no se puede sacar una release «de depuración» sin querer.
-   MICARTERA_ALLOW_WEBDEBUG_RELEASE=1 solo para CDP/lag a propósito (docs/LAG-DESLIZAR.md).
+/* GuardiÃ¡n WEB_DEBUG (2026-08-06): no se puede sacar una release Â«de depuraciÃ³nÂ» sin querer.
+   MICARTERA_ALLOW_WEBDEBUG_RELEASE=1 solo para CDP/lag a propÃ³sito (docs/LAG-DESLIZAR.md).
    `npm run release:apk` NO usa ese bypass: aborta antes si WEBDEBUG=1. */
 gradle.taskGraph.whenReady { graph ->
     def releasing = graph.allTasks.any { it.name == 'assembleRelease' || it.name == 'bundleRelease' }
     if (releasing && webDebug && !allowWebDebugRelease) {
         throw new GradleException(
             "MICARTERA_WEBDEBUG=1 bloquea assembleRelease (incidente 2026-08-06: APK real con socket abierto).\n" +
-            "  → Para publicar: deja MICARTERA_WEBDEBUG=0 (o borra la clave) y usa npm run release:apk.\n" +
-            "  → Para depurar WebView a propósito: MICARTERA_ALLOW_WEBDEBUG_RELEASE=1 en local.properties\n" +
+            "  â†’ Para publicar: deja MICARTERA_WEBDEBUG=0 (o borra la clave) y usa npm run release:apk.\n" +
+            "  â†’ Para depurar WebView a propÃ³sito: MICARTERA_ALLOW_WEBDEBUG_RELEASE=1 en local.properties\n" +
             "    (esa APK NO se sube a GitHub Releases)."
         )
     }
