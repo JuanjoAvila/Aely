@@ -330,4 +330,27 @@ t("marcar a mano le quita la lápida si la tenía", () => {
   assert.deepEqual(Array.from(r.state.cuotaNo), ["otra"]);
 });
 
+/* ─── 4.22.3: nit de Cursor — el alias se mira ANTES del corte por categorías neutras ─── */
+
+const conAlias = (exps, extra = {}) => conSuelo(exps, Object.assign({ cuotaAlias: { "trade_republic|cofidis": "suelo" } }, extra));
+
+t("★ el banco vuelve a meter Cofidis como «traspaso»: el alias la caza igual", () => {
+  const e = g(iso(Y, M, 7), 24.99, "Cofidis", "ob", "trade_republic", { category: "traspaso" });
+  const s = marcar(conAlias([e]));
+  assert.equal(deuda(s, e.id).debtId, "suelo");
+});
+
+t("…pero un traspaso SIN alias sigue fuera, aunque case por importe y día", () => {
+  const e = g(iso(Y, M, 6), 25.02, "Cofidis", "ob", "trade_republic", { category: "traspaso" });
+  assert.equal(cli.marcarCuotasDeDeuda(conSuelo([e])), null);
+});
+
+t("el alias sobre un traspaso respeta la lápida y sigue siendo una por mes", () => {
+  const e = g(iso(Y, M, 7), 24.99, "Cofidis", "ob", "trade_republic", { category: "traspaso" });
+  assert.equal(cli.marcarCuotasDeDeuda(conAlias([e], { cuotaNo: [cli.keyOfExpense(e)] })), null);
+  const dos = [g(iso(Y, M, 6), 24.99, "Cofidis", "ob", "trade_republic", { category: "traspaso" }),
+    g(iso(Y, M, 9), 24.99, "Cofidis", "ob", "trade_republic", { category: "inversion" })];
+  assert.equal(marcar(conAlias(dos)).expenses.filter((x) => x.debtId).length, 1);
+});
+
 console.log("  ok");

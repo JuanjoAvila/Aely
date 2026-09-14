@@ -11602,12 +11602,14 @@ function cuotasDeDeudaPorMarcar(s){
     if(!e || e.debtId || !(e.amount>0) || e.possibleDup) return;
     // A mano, solo si ya está en «Deudas» (se re-deduce la deuda tras reinstalar).
     if(isManualExpenseSource(e.source) && e.category!=="deudas") return;
-    if(CAT_NEUTRAS[e.category] && e.category!=="deudas") return;   // un traspaso o una inversión no es una cuota
+    // Un traspaso o una inversión no casa SOLO con una cuota… salvo que él ya enseñó ese comercio
+    // (4.22.3, nit de Cursor: si el banco vuelve a meter Cofidis como traspaso, el alias la caza).
+    const neutra=CAT_NEUTRAS[e.category] && e.category!=="deudas";
     const ms=dateMs(e.date);
     if(!(ms>=desde)) return;
     if(no[keyOfExpense(e)]) return;
     const ent=expenseBankOf(e);
-    debts.forEach(function(d){
+    if(!neutra) debts.forEach(function(d){
       const c=cuotaCasa(d, ent, e.amount||0, e.obName!=null?e.obName:(e.merchant||""), ms);
       if(c) cands.push({ e:e, d:d, key:c.key, score:c.score });
     });

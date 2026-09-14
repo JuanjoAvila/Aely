@@ -1,95 +1,24 @@
 [
   {
-    "v": "4.22.2",
+    "v": "4.22.3",
     "d": "14 sep 2026",
     "t": {
-      "es": "Marca tú qué gasto es la cuota de una deuda",
-      "en": "Mark yourself which expense is a debt payment",
-      "ca": "Marca tu quina despesa és la quota d'un deute"
+      "es": "Las cuotas de tus deudas, mes a mes",
+      "en": "Your debt payments, month by month",
+      "ca": "Les quotes dels teus deutes, mes a mes"
     },
     "items": {
       "es": [
+        "Las cuotas de tus deudas de los últimos meses también pasan a «Deudas», y lo mismo con las que traigas al importar movimientos antiguos del banco. Así cada deuda enseña todos sus pagos, mes a mes.",
         "Si un cargo es la cuota de una deuda y la app no lo ha reconocido, ábrelo y toca «Es la cuota de…». Pasa a «Deudas», y la próxima vez que llegue ese mismo cargo, la app ya lo sabrá."
       ],
       "en": [
+        "Your debt payments from recent months also move to “Debts”, and so do the ones you bring in when importing older bank transactions. Each debt now shows all its payments, month by month.",
         "If a charge is a debt payment and the app didn't recognize it, open it and tap “It's the payment for…”. It moves to “Debts”, and next time that same charge arrives, the app will already know."
       ],
       "ca": [
+        "Les quotes dels teus deutes dels últims mesos també passen a «Deutes», i el mateix amb les que portis en importar moviments antics del banc. Així cada deute ensenya tots els seus pagaments, mes a mes.",
         "Si un càrrec és la quota d'un deute i l'app no l'ha reconegut, obre'l i toca «És la quota de…». Passa a «Deutes», i la propera vegada que arribi aquest mateix càrrec, l'app ja ho sabrà."
-      ]
-    },
-    "tandas": [
-      {
-        "id": "hist-cuotas",
-        "t": {
-          "es": "💳 Cuotas de meses pasados en Deudas",
-          "en": "💳 Past debt payments in Debts",
-          "ca": "💳 Quotes de mesos passats a Deutes"
-        },
-        "items": {
-          "es": [
-            "1. Esto es tu rechazo, con tus palabras: «Hay una compra de Cofidis que es la cuota de una deuda, no la puedo cambiar manualmente?». Abre ese gasto de 24,99: abajo sale «Es la cuota de…» con todas tus deudas, también las que ya acabaron. Toca la suya: pasa a «Deudas».",
-            "2. Abre Gastos, cambia el periodo a «Últimos 3 meses» y toca Filtros (🎛️).",
-            "3. En «Deudas», toca una deuda que se cobre por Trade Republic y cierra: tiene que salir una cuota por mes (julio, agosto…), cada una con «Deudas · ya cuenta en el Plan».",
-            "4. Repite con una deuda del otro banco: también una por mes, aunque en el extracto se llame distinto.",
-            "5. Si en algún mes sale una compra normal como cuota, o falta una cuota que sí te cobraron, apúntalo aquí con el mes."
-          ],
-          "en": [
-            "1. This is your rejection, in your words: “There's a Cofidis purchase that is a debt payment, can't I change it manually?”. Open that 24.99 expense: at the bottom you'll see “It's the payment for…” with all your debts, including finished ones. Tap the right one: it moves to “Debts”.",
-            "2. Open Spending, set the period to “Last 3 months” and tap Filters (🎛️).",
-            "3. Under “Debts”, tap a debt charged through Trade Republic and close: one payment per month should show (July, August…), each with “Debts · already in your Plan”.",
-            "4. Repeat with a debt from the other bank: also one per month, even if the statement names it differently.",
-            "5. If a normal purchase shows up as a payment in some month, or a payment you were charged is missing, note it here with the month."
-          ],
-          "ca": [
-            "1. Això és el teu rebuig, amb les teves paraules: «Hi ha una compra de Cofidis que és la quota d'un deute, no la puc canviar manualment?». Obre aquesta despesa de 24,99: a baix surt «És la quota de…» amb tots els teus deutes, també els que ja s'han acabat. Toca el seu: passa a «Deutes».",
-            "2. Obre Despeses, canvia el període a «Últims 3 mesos» i toca Filtres (🎛️).",
-            "3. A «Deutes», toca un deute que es cobri per Trade Republic i tanca: ha de sortir una quota per mes (juliol, agost…), cadascuna amb «Deutes · ja compta al Pla».",
-            "4. Repeteix amb un deute de l'altre banc: també una per mes, encara que a l'extracte es digui diferent.",
-            "5. Si en algun mes surt una compra normal com a quota, o falta una quota que sí que et van cobrar, apunta-ho aquí amb el mes."
-          ]
-        }
-      }
-    ]
-  },
-  {
-    "v": "4.22.1",
-    "d": "14 sep 2026",
-    "t": {
-      "es": "Un ajuste en las cuotas de meses pasados",
-      "en": "A tweak to past debt payments",
-      "ca": "Un ajust a les quotes de mesos passats"
-    },
-    "items": {
-      "es": [
-        "Las cuotas de meses pasados se buscan siempre en el mismo periodo, estés donde estés."
-      ],
-      "en": [
-        "Past debt payments are always looked for in the same period, wherever you are."
-      ],
-      "ca": [
-        "Les quotes de mesos passats es busquen sempre en el mateix període, siguis on siguis."
-      ]
-    },
-    "tandas": []
-  },
-  {
-    "v": "4.22.0",
-    "d": "14 sep 2026",
-    "t": {
-      "es": "Las cuotas de meses pasados, también en Deudas",
-      "en": "Past months' debt payments, in Debts too",
-      "ca": "Les quotes de mesos passats, també a Deutes"
-    },
-    "items": {
-      "es": [
-        "Las cuotas de tus deudas de los últimos meses también pasan a «Deudas», y lo mismo con las que traigas al importar movimientos antiguos del banco. Así cada deuda enseña todos sus pagos, mes a mes."
-      ],
-      "en": [
-        "Your debt payments from recent months also move to “Debts”, and so do the ones you bring in when importing older bank transactions. Each debt now shows all its payments, month by month."
-      ],
-      "ca": [
-        "Les quotes dels teus deutes dels últims mesos també passen a «Deutes», i el mateix amb les que portis en importar moviments antics del banc. Així cada deute ensenya tots els seus pagaments, mes a mes."
       ]
     },
     "tandas": []

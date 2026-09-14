@@ -1,3 +1,13 @@
+## [4.22.3] - 2026-09-14
+### La ronda 4.22 a producción, con una sola nota — y el alias antes del corte
+
+Él aprobó `hist-cuotas` 5/5 en 4.22.2.1 (APK 46). Las notas 4.22.0–4.22.2 se juntan en la 4.22.3
+para la familia, con `tandas:[]` (la 4.22.1 era un ajuste interno de la 4.22.0).
+Nit de Cursor en la review de 4.22.2: en `cuotasDeDeudaPorMarcar` el corte por `CAT_NEUTRAS` iba
+antes del alias, así que si el banco vuelve a meter Cofidis como `traspaso` había que marcarla otra
+vez. Ahora una fila neutra solo se salta el casado automático; el alias (con su lápida y una por mes)
+la caza igual. Tres tests nuevos en `cuotas-deudas`. No toca `supabase/`.
+
 ## [4.22.2] - 2026-09-14
 ### «Es la cuota de…» a mano desde la ficha, y se aprende
 
