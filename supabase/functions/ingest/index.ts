@@ -37,26 +37,10 @@ import {
 import { aEuros, parseWallet } from "../_shared/wallet.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
 import { bancosDeGastoDiario, cuentaParaPresupuesto, filasComoLaApp, inicioDeMesMs, statsDelMes } from "../_shared/presupuesto.ts";
-
-/**
- * Comparación en tiempo CONSTANTE del token (2026-07-24).
- *
- * `a === b` en JavaScript corta en el primer byte distinto, así que el tiempo de respuesta filtra
- * cuántos caracteres has acertado. Quien tenga paciencia puede reconstruir el token byte a byte y,
- * con él, meter gastos falsos en la cuenta de cualquiera. Con el jitter de la red es difícil de
- * explotar, pero el arreglo cuesta cuatro líneas y quita el problema de raíz.
- *
- * Se comparan SIEMPRE los mismos bytes (longitud fija) para que ni siquiera la longitud se filtre.
- */
-function timingSafeEqual(a: string, b: string): boolean {
-  const enc = new TextEncoder();
-  const ba = enc.encode(a);
-  const bb = enc.encode(b);
-  const len = Math.max(ba.length, bb.length);
-  let diff = ba.length ^ bb.length;
-  for (let i = 0; i < len; i++) diff |= (ba[i] ?? 0) ^ (bb[i] ?? 0);
-  return diff === 0;
-}
+// Comparación del token en tiempo constante (2026-07-24) y topes de entrada (SEC-01, 14/9): en _shared.
+import {
+  INGEST_MAX_BODY, INGEST_MAX_COMERCIO, INGEST_MAX_NOTA, INGEST_MAX_TEXTO, recortar, timingSafeEqual,
+} from "../_shared/entrada.ts";
 
 function parseFecha(t: string): string {
   const n = parseInt(t);
@@ -110,14 +94,20 @@ Deno.serve(async (req) => {
   }
 
   // 2) Parseo del cuerpo (JSON o form-urlencoded, compat MacroDroid)
+  //    TOPE (SEC-01, 14/9): una notificación son unos cientos de caracteres. Sin tope, quien tenga un
+  //    token podía mandar megas; se corta ANTES de leer el cuerpo si lo anuncia, y después si no.
+  const anunciado = Number(req.headers.get("content-length") || 0);
+  if (anunciado > INGEST_MAX_BODY) return json({ ok: false, error: "cuerpo demasiado grande" }, 413);
   const raw = await req.text();
+  if (raw.length > INGEST_MAX_BODY) return json({ ok: false, error: "cuerpo demasiado grande" }, 413);
   let data: Record<string, string> = {};
   try { data = JSON.parse(raw); }
   catch { data = Object.fromEntries(new URLSearchParams(raw)); }
+  if (!data || typeof data !== "object") data = {};
 
-  const texto = data.texto || data.notiText || "";
-  const titulo = data.titulo || data.notiTitle || "";
-  const triggertime = data.fecha || data.triggertime || "";
+  const texto = recortar(data.texto || data.notiText || "", INGEST_MAX_TEXTO);
+  const titulo = recortar(data.titulo || data.notiTitle || "", INGEST_MAX_TEXTO);
+  const triggertime = recortar(data.fecha || data.triggertime || "", 40);
 
   /* DE QUÉ APP VENÍA (2026-08-06). El lector nativo lo manda desde la 4.16.0; sin el campo se
      asume Trade Republic, que es lo único que había antes — así una APK vieja sigue funcionando
@@ -185,7 +175,9 @@ Deno.serve(async (req) => {
 
   // CONCEPTO (2026-07-24): el mensaje del bizum / la descripción que venía en la noti. Se guarda
   // aparte del título para que el histórico se explique solo y no haya que abrir la app del banco.
-  const nota = extraerConcepto(texto, titulo);
+  const nota = recortar(extraerConcepto(texto, titulo), INGEST_MAX_NOTA);
+  // Antes de la ventana anti-duplicado: el dedup por comercio compara con lo que se guarda.
+  comercio = recortar(comercio, INGEST_MAX_COMERCIO);
 
   // 3) Inserción (service role → salta RLS, cliente creado arriba). Dedup contra expenses_dedup_idx.
   // VENTANA ANTI-DUPLICADO (bug cobro doble 2026-07-10): el índice de dedup exige el MISMO

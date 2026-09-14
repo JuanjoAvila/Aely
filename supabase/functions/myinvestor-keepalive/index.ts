@@ -13,6 +13,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { CORS, jsonResp, MI_BASE, miHeaders } from "../_shared/myinvestor.ts";
 import { miTokensFromRow, miTokensToRow } from "../_shared/token_store.ts";
+import { timingSafeEqual } from "../_shared/entrada.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
@@ -20,7 +21,8 @@ Deno.serve(async (req) => {
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const key = req.headers.get("x-cron-key") || "";
     const { data: sec } = await admin.from("cron_secrets").select("secret").eq("name", "myinvestor-keepalive").maybeSingle();
-    if (!sec || !key || key !== String(sec.secret)) return jsonResp({ ok: false, error: "clave incorrecta" }, 401);
+    // Tiempo constante (SEC-01, 14/9): `!==` cortaba en el primer byte distinto.
+    if (!sec || !key || !timingSafeEqual(key, String(sec.secret))) return jsonResp({ ok: false, error: "clave incorrecta" }, 401);
 
     const { data: links } = await admin.from("myinvestor_links").select("*").eq("status", "active");
     let refreshed = 0, expired = 0, skipped = 0;

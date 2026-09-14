@@ -130,7 +130,7 @@ const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente"];
 const STEPS_SUPABASE = [
   "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente",
   "month-window", "wallet-notis", "ingest-classify", "divisa-original", "presupuesto-rendimiento",
-  "grants-migraciones",
+  "grants-migraciones", "entrada-edge",
 ];
 
 export function posixPath(p) {

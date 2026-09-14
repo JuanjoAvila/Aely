@@ -9,6 +9,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ebApi, ebConfig, makeJWT } from "../_shared/enablebanking.ts";
 import { encryptSessionId } from "../_shared/token_store.ts";
+import { CallbackFallo, codigoCallback, codigoNolink, recortar } from "../_shared/entrada.ts";
 
 const APP_URL = Deno.env.get("APP_URL") || "https://juanjoavila.github.io/Aely/";
 
@@ -31,14 +32,21 @@ Deno.serve(async (req) => {
   const fromApp = !!state && state.endsWith(".app");
   const ebError = url.searchParams.get("error") || url.searchParams.get("error_description");
   const rawQuery = url.search || "(vacío)";
+  /* SEC-01 (14/9): a la URL de vuelta SOLO sale un código de `_shared/entrada.ts`. Antes salía el
+     texto del error con la query dentro, y quien fabricara el enlace ponía su mensaje en Aely. El
+     detalle se queda aquí: en app_events del usuario del `state` (si se sabe) y en el log. */
+  // deno-lint-ignore no-explicit-any
+  let admin: any = null;
+  let userId: string | null = null;
   try {
-    if (ebError) throw new Error("banco devolvió error: " + ebError + " · " + rawQuery);
-    if (!code || !state) throw new Error("faltan code/state · recibido: " + rawQuery);
+    if (ebError) throw new CallbackFallo("eb_error", "banco devolvió error: " + ebError + " · " + rawQuery);
+    if (!code || !state) throw new CallbackFallo("sin_code", "faltan code/state · recibido: " + rawQuery);
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     const { data: link } = await admin.from("bank_links").select("*").eq("state", state).maybeSingle();
-    if (!link) throw new Error("state desconocido");
+    if (!link) throw new CallbackFallo("state", "state desconocido");
+    userId = link.user_id || null;
 
     /* EL `state` CADUCA Y SE GASTA (2026-07-25).
        Este `state` es lo ÚNICO que ata la vuelta del banco con un usuario, y viaja en la URL:
@@ -51,7 +59,7 @@ Deno.serve(async (req) => {
        marca de emisión: se les da por buenos para no romper una reconexión a medias. */
     const issued = link.state_issued_at ? Date.parse(link.state_issued_at) : NaN;
     if (!isNaN(issued) && Date.now() - issued > 30 * 60 * 1000) {
-      throw new Error("la autorización ha caducado — vuelve a darle a «Conectar banco»");
+      throw new CallbackFallo("caducado", "state emitido hace más de 30 min");
     }
     // Se gasta ANTES de canjear el code: si el canje falla a mitad, el state ya no vale igual.
     await admin.from("bank_links").update({ state: null }).eq("id", link.id);
@@ -137,7 +145,7 @@ Deno.serve(async (req) => {
       // No es un bug de código: hay que enlazarla en el control panel. Devolvemos un código corto
       // (`nolink:<banco>`) que la app traduce a un mensaje accionable en el idioma del usuario.
       if (sessionId) {
-        const nolink = "nolink:" + (link.aspsp_name || "");
+        const nolink = codigoNolink(link.aspsp_name || "");
         if (fromApp) return backToApp(false, nolink);
         return Response.redirect(`${APP_URL}?bank=error&msg=${encodeURIComponent(nolink)}`, 302);
       }
@@ -147,14 +155,25 @@ Deno.serve(async (req) => {
       const status = session.status || session.session_status || "?";
       const accessTxt = session.access ? JSON.stringify(session.access).slice(0, 140) : "(sin access)";
       const detail = `sin cuenta · POST a${nAcc}/d${nData} st:${status} · GET ${getDiag} · access:${accessTxt}`;
-      if (fromApp) return backToApp(false, detail);
-      return Response.redirect(`${APP_URL}?bank=error&msg=${encodeURIComponent(detail)}`, 302);
+      throw new CallbackFallo("sin_cuenta", detail);
     }
 
     if (fromApp) return backToApp(true);
     return Response.redirect(`${APP_URL}?bank=ok`, 302);
   } catch (e) {
-    const msg = String((e as Error)?.message || e);
+    const msg = codigoCallback(e);
+    const detalle = e instanceof CallbackFallo ? e.detalle : String((e as Error)?.message || e);
+    console.error("bank-callback " + msg + ": " + recortar(detalle, 500));
+    if (admin && userId) {
+      try {
+        await admin.from("app_events").insert({
+          user_id: userId, email: null, kind: "error",
+          message: "BANK-CALLBACK: " + msg,
+          detail: recortar(detalle, 2000),
+          app_version: "edge", platform: fromApp ? "android" : "web",
+        });
+      } catch (_) { /* diagnóstico opcional */ }
+    }
     if (fromApp) return backToApp(false, msg);
     return Response.redirect(`${APP_URL}?bank=error&msg=${encodeURIComponent(msg)}`, 302);
   }
