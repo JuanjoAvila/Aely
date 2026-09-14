@@ -26,13 +26,20 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     return function(){ window.removeEventListener("mc-splash-gone", on); };
   },[splashGone]);
   useEffect(function(){
-    if(bootReady) return undefined;
+    if(bootReady || !splashGone) return undefined;
     const on=function(){ setBootReady(true); };
     window.addEventListener("mc-boot-ready", on);
     // Por si el evento se emitió entre el useState inicial y este effect.
     try{ if(window.__mcBootReady) setBootReady(true); }catch(e){}
-    return function(){ window.removeEventListener("mc-boot-ready", on); };
-  },[bootReady]);
+    /* Tope duro (14/9): sin internet el pull de la nube puede colgarse y `mc-boot-ready` no
+       llega nunca → 3 esqueletos eternos. Tras ~2 s se pinta el estado LOCAL; si la nube llega
+       después, `set()` repinta solo. No acorta un boot lento CON red: 2 s de skel bastan. */
+    const tope=setTimeout(function(){
+      setBootReady(true);
+      try{ mcBootReady(); }catch(e){}
+    }, 2000);
+    return function(){ window.removeEventListener("mc-boot-ready", on); clearTimeout(tope); };
+  },[bootReady, splashGone]);
   const shownNet=useCountUp(tt.netWorth||0, splashGone);
   const showSkel=splashGone && !bootReady;
 

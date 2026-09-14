@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.24.0",
+    "d": "14 sep 2026",
+    "t": {
+      "es": "Sin internet, Inicio sigue enseñando tus números",
+      "en": "Offline, Home still shows your numbers",
+      "ca": "Sense internet, Inici segueix ensenyant els teus números"
+    },
+    "items": {
+      "es": [
+        "Si no hay red, Inicio ya no se queda en tres rayas grises: enseña tus datos guardados en el móvil y avisa de que estás sin conexión."
+      ],
+      "en": [
+        "If there's no network, Home no longer sticks on three grey bars: it shows the data saved on your phone and tells you you're offline."
+      ],
+      "ca": [
+        "Si no hi ha xarxa, Inici ja no es queda en tres ratlles grises: ensenya les dades desades al mòbil i avisa que estàs sense connexió."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inicio-offline",
+        "t": {
+          "es": "📴 Inicio sin internet",
+          "en": "📴 Home offline",
+          "ca": "📴 Inici sense internet"
+        },
+        "items": {
+          "es": [
+            "1. Activa el modo avión, abre la app: Inicio tiene que mostrar patrimonio/presupuesto (no tres rayas grises eternas) y el aviso de sin conexión.",
+            "2. Si no puedes probarlo hoy, márcalo como «no lo puedo probar»."
+          ],
+          "en": [
+            "1. Turn on airplane mode, open the app: Home must show net worth/budget (not three endless grey bars) and the offline notice.",
+            "2. If you can't test it today, mark it as “I can't test this”."
+          ],
+          "ca": [
+            "1. Activa el mode avió, obre l'app: Inici ha de mostrar patrimoni/pressupost (no tres ratlles grises eternes) i l'avís de sense connexió.",
+            "2. Si no ho pots provar avui, marca-ho com a «no ho puc provar»."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.23.1",
     "d": "14 sep 2026",
     "t": {

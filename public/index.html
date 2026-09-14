@@ -7179,13 +7179,20 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     return function(){ window.removeEventListener("mc-splash-gone", on); };
   },[splashGone]);
   useEffect(function(){
-    if(bootReady) return undefined;
+    if(bootReady || !splashGone) return undefined;
     const on=function(){ setBootReady(true); };
     window.addEventListener("mc-boot-ready", on);
     // Por si el evento se emitió entre el useState inicial y este effect.
     try{ if(window.__mcBootReady) setBootReady(true); }catch(e){}
-    return function(){ window.removeEventListener("mc-boot-ready", on); };
-  },[bootReady]);
+    /* Tope duro (14/9): sin internet el pull de la nube puede colgarse y `mc-boot-ready` no
+       llega nunca → 3 esqueletos eternos. Tras ~2 s se pinta el estado LOCAL; si la nube llega
+       después, `set()` repinta solo. No acorta un boot lento CON red: 2 s de skel bastan. */
+    const tope=setTimeout(function(){
+      setBootReady(true);
+      try{ mcBootReady(); }catch(e){}
+    }, 2000);
+    return function(){ window.removeEventListener("mc-boot-ready", on); clearTimeout(tope); };
+  },[bootReady, splashGone]);
   const shownNet=useCountUp(tt.netWorth||0, splashGone);
   const showSkel=splashGone && !bootReady;
 
@@ -19652,10 +19659,13 @@ function App(){
   // Detecta sesión al cargar y escucha cambios (incluida la vuelta del magic link).
   useEffect(function(){
     if(!cloud.enabled()){ mcBootReady(); return; }   // sin nube no hay nada que esperar detrás del splash
+    // Tope: getSession colgado (offline raro / WebView) no puede dejar Inicio en esqueletos (14/9).
+    const sesTope=setTimeout(mcBootReady, 2500);
     cloud.session().then(function(s){
+      clearTimeout(sesTope);
       sessionRef.current=s; setSession(s);
       if(s) mcScheduleIdle(function(){ syncFromCloud(s); }); else mcBootReady();
-    }, mcBootReady);
+    }, function(){ clearTimeout(sesTope); mcBootReady(); });
     cloud.onAuth(function(s, ev){
       const prev=sessionRef.current;
       const changed=(!prev&&s)||(prev&&!s)||(prev&&s&&prev.user.id!==s.user.id);

@@ -1,3 +1,11 @@
+## [4.24.0] - 2026-09-14
+### Sin internet, Inicio ya no se queda en siluetas
+
+Si la nube no respondía (sin cobertura, pull colgado), Inicio dejaba tres esqueletos
+para siempre: el splash sí tenía tope, pero el panel esperaba `mc-boot-ready` sin límite.
+Tras unos dos segundos se pinta el estado local; si la nube llega después, se actualiza sola.
+Pastilla «sin conexión» como hasta ahora. e2e offline + boot-ready bloqueado + red lenta.
+
 ## [4.23.1] - 2026-09-14
 ### La 4.23.0 a producción, con una sola nota
 

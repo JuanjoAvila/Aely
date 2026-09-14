@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-14 · **v4.23.1** — la 4.23.0 a producción (avisos claros y seguros al conectar un banco), con una sola nota; las tres Edge de SEC-01 se despliegan después de la web.
+> Estado a 2026-09-14 · **v4.24.0** — sin internet, Inicio pinta los datos locales (no se queda en esqueletos).
+> Anterior: **v4.23.1** — la 4.23.0 a producción (avisos claros y seguros al conectar un banco), con una sola nota; las tres Edge de SEC-01 se despliegan después de la web.
 > Anterior: **v4.23.0** — mensajes claros y seguros al conectar un banco (cliente + Edge SEC-01; Edge se despliega aparte tras la web).
 > Anterior: **v4.22.3** — la ronda 4.22 a producción (cuotas de meses pasados + «Es la cuota de…»), con UNA nota; el alias se mira antes del corte por categorías neutras.
 > Anterior: **v4.22.2** — «Es la cuota de…» a mano desde la ficha, y lo aprende (su rechazo de 4.22.1).
@@ -179,7 +180,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.23.1** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.24.0** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

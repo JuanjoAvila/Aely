@@ -810,10 +810,13 @@ function App(){
   // Detecta sesión al cargar y escucha cambios (incluida la vuelta del magic link).
   useEffect(function(){
     if(!cloud.enabled()){ mcBootReady(); return; }   // sin nube no hay nada que esperar detrás del splash
+    // Tope: getSession colgado (offline raro / WebView) no puede dejar Inicio en esqueletos (14/9).
+    const sesTope=setTimeout(mcBootReady, 2500);
     cloud.session().then(function(s){
+      clearTimeout(sesTope);
       sessionRef.current=s; setSession(s);
       if(s) mcScheduleIdle(function(){ syncFromCloud(s); }); else mcBootReady();
-    }, mcBootReady);
+    }, function(){ clearTimeout(sesTope); mcBootReady(); });
     cloud.onAuth(function(s, ev){
       const prev=sessionRef.current;
       const changed=(!prev&&s)||(prev&&!s)||(prev&&s&&prev.user.id!==s.user.id);
