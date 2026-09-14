@@ -1,6 +1,6 @@
 [
   {
-    "v": "4.23.0",
+    "v": "4.23.1",
     "d": "14 sep 2026",
     "t": {
       "es": "Mensajes más claros y seguros al conectar un banco",
@@ -18,30 +18,7 @@
         "Si en connectar un banc alguna cosa falla, l'avís ja no ensenya un text rar: et diu què ha passat i què pots fer, en el teu idioma."
       ]
     },
-    "tandas": [
-      {
-        "id": "sec01-callback",
-        "t": {
-          "es": "🔒 Aviso al fallar la conexión del banco",
-          "en": "🔒 Alert when bank connection fails",
-          "ca": "🔒 Avís quan falla la connexió del banc"
-        },
-        "items": {
-          "es": [
-            "1. Si al conectar o reconectar un banco algo falla, el aviso tiene que decirlo en castellano (o en tu idioma), sin un párrafo técnico en inglés ni un texto inventado.",
-            "2. Si no te ha fallado nada hoy, márcalo como «no lo puedo probar»."
-          ],
-          "en": [
-            "1. If connecting or reconnecting a bank fails, the alert must say so in your language — no technical English paragraph and no made-up text.",
-            "2. If nothing failed today, mark it as “I can't test this”."
-          ],
-          "ca": [
-            "1. Si en connectar o reconnectar un banc alguna cosa falla, l'avís ho ha de dir en el teu idioma, sense un paràgraf tècnic en anglès ni un text inventat.",
-            "2. Si no t'ha fallat res avui, marca-ho com a «no ho puc provar»."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.22.3",

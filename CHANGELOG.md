@@ -1,3 +1,10 @@
+## [4.23.1] - 2026-09-14
+### La 4.23.0 a producción, con una sola nota
+
+Él aprobó la 4.23.0 (tanda `sec01-callback`) en el chat: *«aprobada la 4.23.0, sube a prod y
+despliega las Edge»*. La nota pasa a 4.23.1 con `tandas:[]`. Tras servir Pages, se despliegan de una
+en una `bank-callback`, `ingest` y `myinvestor-keepalive` (código de la 4.23.0, sin migraciones).
+
 ## [4.23.0] - 2026-09-14
 ### Avisos claros si falla al conectar un banco (SEC-01: cliente + Edge)
 
