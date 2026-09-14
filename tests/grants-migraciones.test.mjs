@@ -50,6 +50,7 @@ t("la 0024 reparte el grant de device_id (la BD viva no lo tenía)", () => {
   const sql = fs.readFileSync(path.join(migDir, "0024_grants_reparar.sql"), "utf8");
   assert.match(sql, /grant select \([^)]*device_id[^)]*\)\s*on table public\.myinvestor_links to authenticated/);
   assert.match(sql, /revoke references, trigger, truncate on all tables in schema public from anon, authenticated/);
+  assert.match(sql, /revoke execute on function public\.handle_new_user\(\) from public, anon, authenticated/);
 });
 
 console.log("  ok");
