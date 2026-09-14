@@ -5287,7 +5287,16 @@ function expenseCountsBudget(e, s){
 function expenseBucket(e, s){
   if(!e) return "cuenta";
   if(e.possibleDup) return "posible";
-  if((e.amount||0)<0) return "ingreso";
+  /* UN INGRESO SIGUE LA MISMA REGLA QUE EL BALANCE (14/9, su «el balance no me cuadra»).
+     `monthBudgetStats` solo suma ingresos de los bancos de gasto diario y nunca un traspaso, pero la
+     fila pintaba «ingreso» a todo lo que entraba: los 6 ingresos de Sabadell (49,74 €) y el
+     «+291,25 Traspaso» salían en verde normal sin sumar. Ahora dicen «no es del día a día» / «no es
+     un gasto», igual que un gasto de ese banco o una inversión. */
+  if((e.amount||0)<0){
+    if(CAT_NEUTRAS[e.category]) return "neutra";
+    if(!expenseCountsCash(e, s)) return "otrobanco";
+    return "ingreso";
+  }
   if(e.debtId) return "deuda";        // cuota de una deuda: ya cuenta en el Plan (4.21.0)
   if(CAT_NEUTRAS[e.category]) return "neutra";
   if(!expenseCountsCash(e, s)) return "otrobanco";

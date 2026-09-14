@@ -153,6 +153,20 @@ export type Tipo = "gasto" | "gasto_nocard" | "ingreso" | "ignorado";
 export type Fuente = "tr" | "wallet";
 
 export function clasificar(texto: string, titulo: string, fuente: Fuente = "tr"): Tipo {
+  return clasificarConMotivo(texto, titulo, fuente).tipo;
+}
+
+/* EL MISMO BUG QUE «BAR STOP», POR LA OTRA PUERTA (14/9/2026).
+   El 6/8 se sacó el nombre del comercio de la búsqueda de ruido (IGNORAR), pero «bizum»,
+   «recibido» y «transferencia» se seguían buscando en el texto ENTERO, comercio incluido: una
+   compra con tarjeta en «BAR EL RECIBIDOR» o «TRANSFERENCIAS GARCÍA» se tiraba como no-gasto, en
+   silencio. En una COMPRA CON TARJETA («has gastado / has pagado … en X») lo que va detrás del « en »
+   es dato del datáfono y no se mira. En el resto (bizums, transferencias) se mira todo como antes:
+   ahí el « en » puede ir en medio de la frase y quitarlo cambiaría un ingreso por ruido.
+   Devuelve también el MOTIVO de un descarte: `ingest` lo apunta para que un gasto que no entra deje
+   rastro (el «1331 BAR» del padre, 13/9, no dejó ninguno). */
+const COMPRA_TARJETA = /\b(has gastado|has pagado|pago con tarjeta|compra con tarjeta|you spent|you paid|has gastat|has pagat)\b/;
+export function clasificarConMotivo(texto: string, titulo: string, fuente: Fuente = "tr"): { tipo: Tipo; motivo: string | null } {
   /* EN WALLET EL TÍTULO NO SE ESCANEA (2026-08-06).
      El 6/8 se arregló que el ruido de TR no se buscara en el nombre del comercio, porque «BAR STOP»
      picaba en "stop" y el gasto se tiraba en silencio. Ese arreglo saca el comercio del TEXTO, de
@@ -184,17 +198,20 @@ export function clasificar(texto: string, titulo: string, fuente: Fuente = "tr")
      ejecutada…) va SIEMPRE en la frase; el nombre del comercio es dato del datáfono, no
      descripción. Así que se mira la frase y se deja fuera lo que va detrás del « en ». */
   const frase = norm(escaneable + " " + limpiarTexto(texto).replace(TRAS_EN, "en"));
-  if (IGNORAR.some((k) => frase.includes(k))) return "ignorado";
-  const esBizum  = t.includes("bizum");
-  const recibido = /(has recibido|recibido|recibiste|te ha enviado|te envio|te ha hecho|has rebut|t'ha enviat|received|sent you)/.test(t);
-  const enviado  = /(has enviado|enviaste|le has enviado|has hecho un bizum|has fet un bizum|you sent|enviado a)/.test(t);
+  const ruido = IGNORAR.find((k) => frase.includes(k));
+  if (ruido) return { tipo: "ignorado", motivo: "ruido:" + ruido };
+  const d = COMPRA_TARJETA.test(frase) ? frase : t;
+  const esBizum  = d.includes("bizum");
+  const recibido = /(has recibido|recibido|recibiste|te ha enviado|te envio|te ha hecho|has rebut|t'ha enviat|received|sent you)/.test(d);
+  const enviado  = /(has enviado|enviaste|le has enviado|has hecho un bizum|has fet un bizum|you sent|enviado a)/.test(d);
   if (esBizum) {
-    if (enviado) return "gasto_nocard";
-    if (recibido) return "ingreso";
-    return "ignorado";
+    if (enviado) return { tipo: "gasto_nocard", motivo: null };
+    if (recibido) return { tipo: "ingreso", motivo: null };
+    return { tipo: "ignorado", motivo: "bizum sin enviado/recibido" };
   }
-  if (recibido || t.includes("transferencia")) return "ignorado";
-  return "gasto";
+  if (recibido) return { tipo: "ignorado", motivo: "recibido sin bizum" };
+  if (d.includes("transferencia")) return { tipo: "ignorado", motivo: "transferencia" };
+  return { tipo: "gasto", motivo: null };
 }
 
 export function extraerImporte(texto: string): number {

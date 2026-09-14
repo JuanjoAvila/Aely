@@ -31,7 +31,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
-  categorizar, clasificar, extraerComercio, extraerConcepto, extraerImporte, extraerPersona,
+  categorizar, clasificarConMotivo, extraerComercio, extraerConcepto, extraerImporte, extraerPersona,
   limpiarTexto, type Fuente, type Tipo,
 } from "../_shared/ingest_logic.ts";
 import { aEuros, parseWallet } from "../_shared/wallet.ts";
@@ -114,8 +114,14 @@ Deno.serve(async (req) => {
      exactamente igual y no hay que actualizar para que nada se rompa. */
   const fuente: Fuente = data.fuente === "wallet" ? "wallet" : "tr";
 
-  const tipo = clasificar(texto, titulo, fuente);
-  if (tipo === "ignorado") return json({ ok: true, tipo, skipped: true });
+  /* RASTRO DE LO QUE SE DESCARTA (14/9). El «1331 BAR» del padre no entró y no dejó NADA: ni fila,
+     ni error. Cada `skipped` apunta ahora su motivo en app_events (`kind: ingest_skip`), para que
+     el siguiente se explique en minutos en vez de quedarse en «no se sabe». */
+  const skip = (motivo: string, extra: Record<string, unknown> = {}) =>
+    logIngestSkip(supabase, userId, motivo, texto, titulo, fuente).then(() => json({ ok: true, skipped: true, ...extra }));
+
+  const { tipo, motivo } = clasificarConMotivo(texto, titulo, fuente);
+  if (tipo === "ignorado") return skip(motivo || "ignorado", { tipo });
 
   const fecha = parseFecha(triggertime);
   let importe = 0;
@@ -129,7 +135,7 @@ Deno.serve(async (req) => {
     /* WALLET VA AL REVÉS QUE TR: el comercio en el TÍTULO y el importe en el TEXTO. Y puede venir
        en otra moneda, que es justo el caso del crucero pagando con Revolut. */
     const pago = parseWallet(titulo, texto, limpiarTexto);
-    if (!pago) return json({ ok: true, tipo: "ignorado", skipped: true, error: "wallet: sin importe reconocible" });
+    if (!pago) return skip("wallet: sin importe reconocible", { tipo: "ignorado", error: "wallet: sin importe reconocible" });
     let eur: number | null = pago.divisa === "EUR" ? +pago.importe.toFixed(2) : null;
     if (pago.divisa !== "EUR") {
       const { data: stFx } = await supabase.from("app_state").select("data").eq("user_id", userId).maybeSingle();
@@ -154,7 +160,7 @@ Deno.serve(async (req) => {
   } else {
     // Camino de Trade Republic, el de siempre: la frase lo lleva todo y el importe sale del texto.
     const bruto = extraerImporte(texto);
-    if (!(bruto > 0)) return json({ ok: true, tipo: "ignorado", skipped: true, error: "sin importe" });
+    if (!(bruto > 0)) return skip("sin importe", { tipo: "ignorado", error: "sin importe" });
     importe = bruto;
     if (tipo === "ingreso") {
       importe = -bruto;                                   // resta del gasto del mes
@@ -200,7 +206,7 @@ Deno.serve(async (req) => {
     .gte("fecha", new Date(t0 - 10 * 60 * 1000).toISOString())
     .lte("fecha", new Date(t0 + 10 * 60 * 1000).toISOString())
     .limit(1);
-  if (dupRows && dupRows.length) return json({ ok: true, tipo, skipped: true, dup: true });
+  if (dupRows && dupRows.length) return skip("dup: mismo importe a <10 min", { tipo, dup: true });
 
   // Misma compra, avisos a HORAS distintas (2026-08-17). Wallet avisó a las 11:31 y Trade Republic
   // a las 13:08: 97 min, fuera de la ventana de 10. El banco solo tenía UN cargo; la nube guardó
@@ -215,7 +221,7 @@ Deno.serve(async (req) => {
     .gte("fecha", dia + "T00:00:00.000Z")
     .lte("fecha", dia + "T23:59:59.999Z")
     .limit(1);
-  if (dupDia && dupDia.length) return json({ ok: true, tipo, skipped: true, dup: true, dupDay: true });
+  if (dupDia && dupDia.length) return skip("dup: mismo comercio e importe ese día", { tipo, dup: true, dupDay: true });
 
   const fila: Record<string, unknown> = {
     user_id: userId, fecha, importe, comercio, cat, source: "macrodroid", no_card: noCard, nota: nota || null,
@@ -326,6 +332,22 @@ async function logIngestError(supabase: any, userId: string | null, message: str
       user_id: uid, email: null, kind: "error",
       message: ("INGEST: " + message).slice(0, 500),
       detail: detail ? String(detail).slice(0, 2000) : null,
+      app_version: "edge", platform: "android",
+    });
+  } catch (_) { /* opcional */ }
+}
+
+/* Rastro de un descarte (14/9). Solo del usuario del token (nunca en el panel de otro), con el
+   motivo y el texto recortado: basta para ver si fue ruido, un duplicado o una frase sin importe.
+   Best-effort como el de arriba: si falla, el ingest contesta igual. */
+// deno-lint-ignore no-explicit-any
+async function logIngestSkip(supabase: any, userId: string | null, motivo: string, texto: string, titulo: string, fuente: string) {
+  try {
+    if (!userId) return;
+    await supabase.from("app_events").insert({
+      user_id: userId, email: null, kind: "ingest_skip",
+      message: ("INGEST skip: " + motivo).slice(0, 200),
+      detail: (fuente + " · " + String(titulo || "").slice(0, 40) + " · " + String(texto || "").slice(0, 200)),
       app_version: "edge", platform: "android",
     });
   } catch (_) { /* opcional */ }

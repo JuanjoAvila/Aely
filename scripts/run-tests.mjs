@@ -111,6 +111,7 @@ const steps = [
   ["seguridad-hogar-eventos", ["node", "tests/seguridad-hogar-eventos.test.mjs"]],
   ["grants-migraciones", ["node", "tests/grants-migraciones.test.mjs"]],
   ["entrada-edge", ["node", "tests/entrada-edge.test.mjs"]],
+  ["bucket-igual-que-balance", ["node", "tests/bucket-igual-que-balance.test.mjs"]],
   ["apk-sin-token-ingest", ["node", "tests/apk-sin-token-ingest.test.mjs"]],
   ["sugerencia-apuntar", ["node", "tests/sugerencia-apuntar.test.mjs"]],
   ["hist-cashback-par", ["node", "tests/hist-cashback-par.test.mjs"]],

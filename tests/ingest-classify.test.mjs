@@ -18,7 +18,7 @@ import { transformSync } from "esbuild";
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const src = fs.readFileSync(path.join(root, "supabase/functions/_shared/ingest_logic.ts"), "utf8");
 const js = transformSync(src, { loader: "ts", format: "esm" }).code;
-const { clasificar, extraerComercio, categorizar, limpiarTexto } =
+const { clasificar, clasificarConMotivo, extraerComercio, categorizar, limpiarTexto } =
   await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
 
 // Los caracteres sucios se construyen, no se escriben: si se pegan tal cual, el propio fichero de
@@ -178,6 +178,28 @@ t("teléfono / seguro caen en Recibos; Movistar Plus sigue en ocio", () => {
   assert.equal(categorizar("Mapfre Seguros"), "recibos");
   assert.equal(categorizar("MOVISTAR ES"), "recibos");
   assert.equal(categorizar("Movistar Plus"), "ocio");
+});
+
+/* 14/9: «bizum», «recibido» y «transferencia» se buscaban también en el NOMBRE del comercio. */
+t("★ una compra con tarjeta en un comercio con «recibidor/transferencias/bizum» en el nombre ES un gasto", () => {
+  for (const comercio of ["BAR EL RECIBIDOR", "TRANSFERENCIAS GARCIA SL", "BIZUM CAFE", "1331 BAR"]) {
+    const texto = "Has gastado 65,60 € en " + comercio;
+    assert.equal(clasificar(texto, "Trade Republic"), "gasto", comercio);
+    assert.equal(extraerComercio(texto, "Trade Republic"), comercio);
+  }
+});
+
+t("…y los bizums y transferencias de siempre no cambian", () => {
+  assert.equal(clasificar("Has recibido 20 € de María por Bizum", ""), "ingreso");
+  assert.equal(clasificar("Has enviado 15 € a Pedro por Bizum", ""), "gasto_nocard");
+  assert.equal(clasificar("Has recibido una transferencia de 1500 €", ""), "ignorado");
+  assert.equal(clasificar("Has recibido 14,90 € en tu cuenta por Bizum de Juan", ""), "ingreso");
+});
+
+t("clasificarConMotivo dice POR QUÉ se descarta (para dejar rastro en app_events)", () => {
+  assert.deepEqual(clasificarConMotivo("Has recibido 2,03 € de intereses", ""), { tipo: "ignorado", motivo: "ruido:interes" });
+  assert.deepEqual(clasificarConMotivo("Has recibido una transferencia de 1500 €", ""), { tipo: "ignorado", motivo: "recibido sin bizum" });
+  assert.deepEqual(clasificarConMotivo("Has gastado 3,20 € en BAR STOP", ""), { tipo: "gasto", motivo: null });
 });
 
 console.log("\ningest-classify: OK");

@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.24.1",
+    "d": "15 sep 2026",
+    "t": {
+      "es": "Gastos te dice qué ingresos no cuentan",
+      "en": "Spending shows which income doesn't count",
+      "ca": "Despeses et diu quins ingressos no compten"
+    },
+    "items": {
+      "es": [
+        "En Gastos, un ingreso de una cuenta que no es del día a día —o un traspaso entre tus cuentas— sale apagado y dice por qué no suma, igual que ya pasaba con los gastos. Así lo que ves en la lista cuadra con el balance del mes."
+      ],
+      "en": [
+        "In Spending, income from an account that isn't for day-to-day spending —or a transfer between your own accounts— is greyed out and says why it doesn't add up, just like expenses already did. What you see in the list now matches the month's balance."
+      ],
+      "ca": [
+        "A Despeses, un ingrés d'un compte que no és del dia a dia —o un traspàs entre els teus comptes— surt apagat i diu per què no suma, igual que ja passava amb les despeses. Així el que veus a la llista quadra amb el balanç del mes."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "balance-ingresos",
+        "t": {
+          "es": "🧮 El balance cuadra con la lista",
+          "en": "🧮 The balance matches the list",
+          "ca": "🧮 El balanç quadra amb la llista"
+        },
+        "items": {
+          "es": [
+            "1. Esto es lo que nos contaste: «cuando sumo y resto todos los gastos el balance no es correcto». Abre Gastos en «Este mes» y baja hasta los ingresos de Sabadell (las TRANSFERENCIA de 4,33 €, la de Gisela…): tienen que salir apagados y con «no es del día a día».",
+            "2. Busca el «Movimiento +291,25 €» de Traspaso del 2/9: tiene que salir apagado y con «no es un gasto».",
+            "3. Suma solo los ingresos que NO salen apagados: tiene que darte lo mismo que «Ingresos» arriba del todo."
+          ],
+          "en": [
+            "1. This is what you told us: “when I add up all the expenses the balance isn't right”. Open Spending on “This month” and scroll to the Sabadell income (the 4.33 € TRANSFERENCIA ones, Gisela's…): they should be greyed out with “not day-to-day”.",
+            "2. Find the “Movimiento +291.25 €” Transfer on 2/9: it should be greyed out with “not spending”.",
+            "3. Add up only the income that is NOT greyed out: it should match “Income” at the top."
+          ],
+          "ca": [
+            "1. Això és el que ens vas explicar: «quan sumo i resto totes les despeses el balanç no és correcte». Obre Despeses a «Aquest mes» i baixa fins als ingressos de Sabadell (les TRANSFERENCIA de 4,33 €, la de Gisela…): han de sortir apagats i amb «no és del dia a dia».",
+            "2. Busca el «Movimiento +291,25 €» de Traspàs del 2/9: ha de sortir apagat i amb «no és una despesa».",
+            "3. Suma només els ingressos que NO surten apagats: t'ha de donar el mateix que «Ingressos» a dalt de tot."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.24.0",
     "d": "14 sep 2026",
     "t": {

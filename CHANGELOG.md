@@ -1,3 +1,20 @@
+## [4.24.1] - 2026-09-15
+### La lista de Gastos cuenta lo mismo que el balance; ingest deja rastro de lo que descarta
+
+Su «el balance no me cuadra» (14/9, con capturas): la tarjeta decía Gastos 813,84 / Ingresos
+329,12 y sumando la lista le salían 378,86 de ingresos. La app era coherente: `monthBudgetStats`
+solo suma ingresos de bancos de gasto diario y nunca un traspaso. El fallo era la fila:
+`expenseBucket` devolvía `ingreso` para cualquier importe negativo, así que los 6 ingresos de
+Sabadell (49,74 €) y un «+291,25 Traspaso» salían en verde normal. Ahora un ingreso de otro banco
+es `otrobanco` («no es del día a día») y un traspaso entrante `neutra` («no es un gasto»). Test de
+propiedad `bucket-igual-que-balance` con sus cifras (falla con el código viejo) y e2e en
+`gastos-diario-filtro`. El chip «Ingresos» del filtro enseña solo los que cuentan, como «Gastos».
+
+Servidor (se despliega aparte): el «1331 BAR» de su padre (65,60 €, 13/9) no entró y no dejó ni
+fila ni error. `ingest` apunta ahora cada descarte en app_events (`kind: ingest_skip`, motivo +
+texto recortado) y `clasificarConMotivo` deja de mirar «bizum/recibido/transferencia» en el nombre
+del comercio de una compra con tarjeta («BAR EL RECIBIDOR» se tiraba en silencio; test mutado).
+
 ## [4.24.0] - 2026-09-14
 ### Sin internet, Inicio ya no se queda en siluetas
 

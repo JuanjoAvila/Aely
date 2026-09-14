@@ -78,6 +78,17 @@ t("★ ingest: tope de cuerpo y recortes antes de guardar", () => {
   assert.doesNotMatch(src, /function timingSafeEqual/, "la copia local debe vivir en _shared");
 });
 
+t("★ ingest: ningún descarte sale MUDO (todos pasan por skip → app_events ingest_skip)", () => {
+  const src = lee("supabase/functions/ingest/index.ts");
+  // «sin tipo para <divisa>» ya deja su propio logIngestError justo antes: no es mudo.
+  const mudos = (src.match(/return json\(\{[^}]*skipped: true[^}]*\}\)/g) || []).filter((s) => !/sin tipo para/.test(s));
+  assert.deepEqual(mudos, [], "descartes sin rastro: " + mudos.join(" | "));
+  assert.ok((src.match(/return skip\(/g) || []).length >= 5, "esperaba ≥5 descartes con skip()");
+  assert.match(src, /kind: "ingest_skip"/);
+  // «sin tipo de cambio» ya dejaba error propio: sigue ahí
+  assert.match(src, /sin tipo de cambio para/);
+});
+
 t("★ keepalive: la clave de cron se compara en tiempo constante", () => {
   const src = lee("supabase/functions/myinvestor-keepalive/index.ts");
   assert.match(src, /timingSafeEqual\(key, String\(sec\.secret\)\)/);

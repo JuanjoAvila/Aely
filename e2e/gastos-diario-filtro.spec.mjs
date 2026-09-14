@@ -63,6 +63,27 @@ test("por defecto salen TODAS las cuentas, y solo cuentan las de gasto diario", 
   await expect(resumen).not.toContainText("100,00");
 });
 
+test("★ un ingreso de un banco que no es de gasto diario dice que no cuenta, como un gasto (14/9)", async ({ page }) => {
+  /* Su «el balance no me cuadra»: los ingresos de Sabadell salían en verde normal y el balance no
+     los sumaba. Ahora la fila dice lo mismo que la cifra. Y un traspaso entrante, «no es un gasto». */
+  const conIngresos = expenses.concat([
+    { id: "i1", date: d(1), amount: -14.9, merchant: "Bizum de Ana", category: "ingreso", source: "macrodroid", ent: "trade_republic" },
+    { id: "i2", date: d(1), amount: -4.33, merchant: "TRANSFERENCIA POL", category: "ingreso", source: "ob", ent: "sabadell" },
+    { id: "i3", date: d(1), amount: -291.25, merchant: "Movimiento traspaso", category: "traspaso", source: "ob", ent: "trade_republic" },
+  ]);
+  await seedLoggedInDashboard(page, { accounts, settings, expenses: conIngresos, budget: 1000 });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+
+  await expect(fila(page, "Bizum de Ana")).not.toHaveClass(/v4-mov-skip/);
+  await expect(fila(page, "TRANSFERENCIA POL")).toHaveClass(/v4-mov-skip/);
+  await expect(fila(page, "TRANSFERENCIA POL")).toContainText(/no es del día a día|not day-to-day|no és del dia a dia/i);
+  await expect(fila(page, "Movimiento traspaso")).toHaveClass(/v4-mov-skip/);
+  await expect(fila(page, "Movimiento traspaso")).toContainText(/no es un gasto|not spending|no és una despesa/i);
+});
+
 test("al entrar, Gastos NO cree que ya tiene un filtro puesto", async ({ page }) => {
   /* Lo cazó Cursor en la review de la 4.19.65, no un test: al cambiar el default a «todos los
      bancos» (array vacío), tres sitios seguían pensando que el default era «los de gasto diario».
