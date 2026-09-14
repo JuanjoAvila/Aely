@@ -8,7 +8,11 @@
 <!-- Página PUENTE del retorno de Open Banking en la APK. bank-callback (Supabase) redirige
      aquí porque su gateway ya no permite servir HTML (fuerza Content-Type: text/plain +
      CSP sandbox y el navegador enseñaba el código fuente — visto 2026-07-10). Este puente
-     vive en NUESTRO dominio de Pages y salta al deep-link micartera:// que reabre la app. -->
+     vive en NUESTRO dominio de Pages y salta al deep-link micartera:// que reabre la app.
+
+     SEC-01 (4.23.0): NO pintar ni reenviar `msg` crudo. Quien mande
+     `…/back.html?msg=<texto>` no puede enseñar un aviso falso en una página de Aely.
+     Solo reenviamos códigos cortos o `nolink:…`; el resto → `error`. -->
 <style>
   body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#0B1410;color:#E8F0EB;font-family:sans-serif;text-align:center;padding:24px;box-sizing:border-box}
   .ico{font-size:44px}
@@ -24,14 +28,24 @@
 <a class="btn" id="btn" href="micartera://bank?ok=1">Volver a Aely</a>
 <script>
 (function(){
+  var CODIGOS={eb_error:1,sin_code:1,state:1,caducado:1,sin_cuenta:1,error:1};
+  function sanitizeMsg(raw){
+    var m=String(raw||"");
+    if(CODIGOS[m]) return m;
+    if(m.indexOf("nolink:")===0) return m;
+    return "error";
+  }
   var q=new URLSearchParams(location.search);
   var ok=q.get("ok")==="1";
-  var msg=q.get("msg")||"";
+  var msg=ok?"":sanitizeMsg(q.get("msg"));
   var target="micartera://bank"+(ok?"?ok=1":"?msg="+encodeURIComponent(msg||"error"));
   if(!ok){
     document.getElementById("ico").textContent="⚠️";
     document.getElementById("ttl").textContent="No se pudo conectar el banco";
-    if(msg){ var m=document.getElementById("msg"); m.hidden=false; m.textContent=msg; }
+    // Mensaje fijo: nunca el `msg` de la URL (SEC-01).
+    var m=document.getElementById("msg");
+    m.hidden=false;
+    m.textContent="Volviendo a Aely…";
   }
   document.getElementById("btn").setAttribute("href",target);
   setTimeout(function(){ location.href=target; },400);

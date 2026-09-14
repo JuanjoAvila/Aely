@@ -106,6 +106,7 @@ const steps = [
   ["hist-uniq-por-banco", ["node", "tests/hist-uniq-por-banco.test.mjs"]],
   ["sync-manual-un-aviso", ["node", "tests/sync-manual-un-aviso.test.mjs"]],
   ["cartel-reconectar", ["node", "tests/cartel-reconectar.test.mjs"]],
+  ["bank-callback-msg", ["node", "tests/bank-callback-msg.test.mjs"]],
   ["categorize-limitador", ["node", "tests/categorize-limitador.test.mjs"]],
   ["seguridad-hogar-eventos", ["node", "tests/seguridad-hogar-eventos.test.mjs"]],
   ["grants-migraciones", ["node", "tests/grants-migraciones.test.mjs"]],

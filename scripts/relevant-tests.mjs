@@ -67,6 +67,7 @@ export const E2E_MAP = [
   { file: "src/modules/08-motor-bank.js", specs: [
     "e2e/hist-pagos-mensuales.spec.mjs", "e2e/bancos-historico-filtro.spec.mjs",
     "e2e/bancos-quitar-pending.spec.mjs", "e2e/gastos-deudas.spec.mjs",
+    "e2e/bank-callback-msg.spec.mjs",
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
     "e2e/listas-render.spec.mjs", "e2e/bancos-acordeon.spec.mjs", "e2e/bancos-reconnect.spec.mjs",
@@ -123,6 +124,8 @@ export const CROSSCUTTING = [
   "e2e/i18n-pack.spec.mjs",
   /* Regresión 4.19.100: hojas sin body tienen que scrollear; Apuntar mantiene CTA fijo. */
   "e2e/hojas-scroll.spec.mjs",
+  /* SEC-01: toast del bank-callback sin texto crudo de la URL. */
+  "e2e/bank-callback-msg.spec.mjs",
 ];
 
 const STEPS_DOCS = ["guard-privacy", "docs-frescura", "memoria-espejo"];

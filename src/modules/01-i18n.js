@@ -1963,6 +1963,11 @@ Object.assign(LANG.es,{
   bank_connected:"Banco conectado ✓", bank_error:"No se pudo conectar el banco",
   bank_error_invalid:"Ese permiso ya se usó o caducó · vuelve a pulsar Reconectar y termina solo esa autorización",
   bank_error_busy:"Ya hay una autorización en marcha · termínala antes de abrir otra",
+  // SEC-01 (4.23.0): códigos cortos del bank-callback. El detalle crudo se queda en el servidor.
+  bank_err_eb:"El banco rechazó la autorización · vuelve a intentarlo",
+  bank_err_sin_code:"Faltó el código del banco · vuelve a pulsar Conectar y termina solo esa autorización",
+  bank_err_state:"La autorización no cuadra · vuelve a pulsar Conectar desde la app",
+  bank_err_sin_cuenta:"El banco no devolvió ninguna cuenta · revisa en el banco y vuelve a conectar",
   /* Antes esto era el aviso de un BLOQUEO. Desde el 2026-08-01 TR sí se puede conectar aquí y las
      dos integraciones conviven, así que el texto explica el reparto en vez de cerrar la puerta. */
   bp_tr_ob:"suma tus movimientos (el saldo lo sigue dando el bróker)",
@@ -1988,6 +1993,10 @@ Object.assign(LANG.en,{
   bank_connected:"Bank connected ✓", bank_error:"Couldn't connect the bank",
   bank_error_invalid:"That permission was already used or expired · tap Reconnect again and finish only that one authorization",
   bank_error_busy:"An authorization is already in progress · finish it before opening another",
+  bank_err_eb:"The bank rejected the authorization · try again",
+  bank_err_sin_code:"The bank code was missing · tap Connect again and finish only that authorization",
+  bank_err_state:"That authorization doesn't match · tap Connect again from the app",
+  bank_err_sin_cuenta:"The bank returned no account · check at the bank and reconnect",
   bp_tr_ob:"adds your transactions (the balance still comes from the broker)",
   bank_syncfail:"Couldn't read the bank balance · reconnect", bank_none:"No bank connected",
   bank_syncsoft:"{bank}: the bank didn't answer just now · I'll retry on my own (no need to reconnect)",
@@ -2007,6 +2016,10 @@ Object.assign(LANG.ca,{
   bank_connected:"Banc connectat ✓", bank_error:"No s'ha pogut connectar el banc",
   bank_error_invalid:"Aquest permís ja s'ha usat o ha caducat · torna a prémer Reconnecta i acaba només aquesta autorització",
   bank_error_busy:"Ja hi ha una autorització en marxa · acaba-la abans d'obrir-ne una altra",
+  bank_err_eb:"El banc ha rebutjat l'autorització · torna-ho a provar",
+  bank_err_sin_code:"Ha faltat el codi del banc · torna a prémer Connecta i acaba només aquesta autorització",
+  bank_err_state:"L'autorització no encaixa · torna a prémer Connecta des de l'app",
+  bank_err_sin_cuenta:"El banc no ha tornat cap compte · revisa al banc i torna a connectar",
   bp_tr_ob:"suma els teus moviments (el saldo el continua donant el bróker)",
   bank_syncfail:"No he pogut llegir el saldo del banc · reconnecta't", bank_none:"No tens cap banc connectat",
   bank_syncsoft:"{bank}: el banc no ha respost ara · ho reintento sol (no cal reconnectar)",

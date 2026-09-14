@@ -924,12 +924,8 @@ function App(){
         limpiaCartelReconectado();
         runBankSync({manual:true});
       } else {
-        const m=parts.slice(2).join("|");
-        if(m.indexOf("nolink:")===0){ const nm=m.slice(7), en=entFromAspsp(nm), lbl=en?entOf(en).label:(nm||"🏦"); showToast("⚠ "+lbl+": "+t("bank_nolink")); }
-        // invalid_request = permiso ya gastado o caducado (casi siempre por lanzar dos
-        // autorizaciones a la vez). Mensaje propio, sin el error crudo de Enable Banking.
-        else if(/invalid_request/i.test(m)) showToast("⚠ "+t("bank_error_invalid"));
-        else showToast("⚠ "+t("bank_error")+(m?": "+m:""));
+        // SEC-01: códigos cortos del Edge; el texto crudo de la URL NO se pinta (4.23.0).
+        showToast(bankCallbackErrorToast(parts.slice(2).join("|")));
       }
       return;
     }
@@ -1045,12 +1041,8 @@ function App(){
     try{ history.replaceState(null, "", location.pathname + location.hash); }catch(e){}   // que no se repita al recargar
     if(bankParam==="ok"){ showToast("✓ "+t("bank_connected")); bankJustConnected.current=true; }
     else if(bankParam==="error"){
-      const m=params.get("msg")||"";
-      if(m.indexOf("nolink:")===0){   // autorizó pero la cuenta no está dada de alta (modo restringido EB) → mensaje accionable
-        const nm=m.slice(7), e=entFromAspsp(nm), lbl=e?entOf(e).label:(nm||"🏦");
-        showToast("⚠ "+lbl+": "+t("bank_nolink"));
-      } else if(/invalid_request/i.test(m)){ showToast("⚠ "+t("bank_error_invalid")); }
-      else { showToast("⚠ "+t("bank_error")+(m?": "+m:"")); }
+      // SEC-01: mismos códigos que el puente nativo; NUNCA pintar `msg` crudo (4.23.0).
+      showToast(bankCallbackErrorToast(params.get("msg")||""));
     }
   },[]);
 

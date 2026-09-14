@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.23.0",
+    "d": "14 sep 2026",
+    "t": {
+      "es": "Mensajes más claros y seguros al conectar un banco",
+      "en": "Clearer, safer messages when connecting a bank",
+      "ca": "Missatges més clars i segurs en connectar un banc"
+    },
+    "items": {
+      "es": [
+        "Si al conectar un banco algo falla, el aviso ya no enseña un texto raro: te dice qué ha pasado y qué puedes hacer, en tu idioma."
+      ],
+      "en": [
+        "If connecting a bank fails, the alert no longer shows odd text: it tells you what happened and what you can do, in your language."
+      ],
+      "ca": [
+        "Si en connectar un banc alguna cosa falla, l'avís ja no ensenya un text rar: et diu què ha passat i què pots fer, en el teu idioma."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "sec01-callback",
+        "t": {
+          "es": "🔒 Aviso al fallar la conexión del banco",
+          "en": "🔒 Alert when bank connection fails",
+          "ca": "🔒 Avís quan falla la connexió del banc"
+        },
+        "items": {
+          "es": [
+            "1. Si al conectar o reconectar un banco algo falla, el aviso tiene que decirlo en castellano (o en tu idioma), sin un párrafo técnico en inglés ni un texto inventado.",
+            "2. Si no te ha fallado nada hoy, márcalo como «no lo puedo probar»."
+          ],
+          "en": [
+            "1. If connecting or reconnecting a bank fails, the alert must say so in your language — no technical English paragraph and no made-up text.",
+            "2. If nothing failed today, mark it as “I can't test this”."
+          ],
+          "ca": [
+            "1. Si en connectar o reconnectar un banc alguna cosa falla, l'avís ho ha de dir en el teu idioma, sense un paràgraf tècnic en anglès ni un text inventat.",
+            "2. Si no t'ha fallat res avui, marca-ho com a «no ho puc provar»."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.22.3",
     "d": "14 sep 2026",
     "t": {

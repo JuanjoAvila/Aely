@@ -1,3 +1,22 @@
+## [4.23.0] - 2026-09-14
+### Avisos claros si falla al conectar un banco (SEC-01: cliente + Edge)
+
+El `bank-callback` podía devolver el error crudo por la URL (`?bank=error&msg=…`). El cliente lo
+pintaba tal cual (`t("bank_error")+": "+m`), así que quien fabricara el enlace podía meter un
+texto falso «de tu banco» en el toast. Cliente: `bankCallbackErrorKey` /
+`bankCallbackErrorToast` solo traducen códigos cortos (`eb_error`, `sin_code`, `state`,
+`caducado`, `sin_cuenta`, `error`, `nolink:<banco>`); cualquier otra cosa → genérico, NUNCA el
+texto. Legacy `invalid_request` sigue mapeando a `bank_error_invalid` por si un APK viejo aún
+habla con Edge antiguo. Dos puertas cerradas en review: `nolink:<inventado>` ya no pinta el
+texto (solo etiqueta ENT o 🏦); `public/back.html` no pinta `msg` y solo reenvía códigos /
+`nolink:…`. Unit + e2e `bank-callback-msg`.
+
+Servidor (se despliega aparte, tras la web): `bank-callback` solo devuelve códigos (`eb_error`,
+`sin_code`, `state`, `caducado`, `sin_cuenta`, `error`, `nolink:<banco>`) y guarda el detalle en
+`app_events`; `ingest` rechaza cuerpos de más de 16 KB y recorta texto/comercio/nota;
+`myinvestor-keepalive` compara la clave en tiempo constante (`_shared/entrada.ts`). Test
+`entrada-edge`. Orden: web 4.23.0 beta → veredicto → prod → Edge una a una con OK.
+
 ## [4.22.3] - 2026-09-14
 ### La ronda 4.22 a producción, con una sola nota — y el alias antes del corte
 

@@ -11,6 +11,32 @@ function entFromAspsp(name){
   }
   return null;
 }
+/* Códigos cortos del bank-callback (SEC-01, 4.23.0). El Edge ya no manda el error crudo por la
+   URL (quien fabrique el enlace podía pintar un texto falso «de tu banco»). El cliente: si `msg`
+   no está en la lista ni empieza por `nolink:`, genérico — NUNCA el texto. Puro: no toca DOM. */
+function bankCallbackErrorKey(msg){
+  const m=String(msg||"");
+  if(m.indexOf("nolink:")===0) return { kind:"nolink", bank:m.slice(7) };
+  if(m==="eb_error") return { kind:"code", key:"bank_err_eb" };
+  if(m==="sin_code") return { kind:"code", key:"bank_err_sin_code" };
+  if(m==="state") return { kind:"code", key:"bank_err_state" };
+  if(m==="caducado") return { kind:"code", key:"bank_error_invalid" };
+  if(m==="sin_cuenta") return { kind:"code", key:"bank_err_sin_cuenta" };
+  if(m==="error" || !m) return { kind:"code", key:"bank_error" };
+  // Legacy hasta que el Edge nuevo esté desplegado: Enable Banking devolvía invalid_request.
+  if(/invalid_request/i.test(m)) return { kind:"code", key:"bank_error_invalid" };
+  return { kind:"code", key:"bank_error" };
+}
+function bankCallbackErrorToast(msg){
+  const r=bankCallbackErrorKey(msg);
+  if(r.kind==="nolink"){
+    // Si el banco no casa con ENT, NUNCA pintar r.bank: quien fabrique
+    // `nolink:<texto inventado>` lo metería en el toast (review Claude 14/9).
+    const en=entFromAspsp(r.bank), lbl=en?entOf(en).label:"🏦";
+    return "⚠ "+lbl+": "+t("bank_nolink");
+  }
+  return "⚠ "+t(r.key);
+}
 // Elige el saldo "de hoy" de la lista de balances del banco. Preferimos el disponible/esperado
 // (lo que ves en la app del banco) y caemos al contable. Devuelve número o null.
 //
