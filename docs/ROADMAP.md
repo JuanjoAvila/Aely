@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-15 · **v4.24.2** — Inicio y panel beta sin red (skel corto).
+> Estado a 2026-09-15 · **v4.24.3** — el banco espera a la nube: un móvil con datos viejos ya no repite movimientos.
+> Anterior: **v4.24.2** — Inicio y panel beta sin red (skel corto).
 > Anterior: **v4.24.1** — la lista de Gastos marca los ingresos que no cuentan (otro banco o traspaso), igual que el balance; ingest deja rastro de cada descarte.
 > Anterior: **v4.24.0** — sin internet, Inicio pinta los datos locales (no se queda en esqueletos).
 > Anterior: **v4.23.1** — la 4.23.0 a producción (avisos claros y seguros al conectar un banco), con una sola nota; las tres Edge de SEC-01 se despliegan después de la web.
@@ -182,7 +183,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.24.2** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.24.3** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

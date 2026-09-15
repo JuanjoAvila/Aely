@@ -1,3 +1,22 @@
+## [4.24.3] - 2026-09-15
+### El banco espera a la nube: un móvil con datos viejos ya no repite movimientos
+
+Su «+18,09» del balance (14/9). Medido en la nube: el 13/9 una web con la 4.18.25, abierta por
+última vez el 10/9, sincronizó Trade Republic con su estado local VIEJO y volvió a subir tres
+«Movimiento» que él ya había renombrado desde el móvil (traspaso a Sabadell 18,09, bizum 6,40,
+FTSE 10,34): 24,49 € de más en el gastado. `importObExpenses` deduplica contra lo local, así que
+`runBankSync` ahora espera a que el pull de la nube de esta sesión haya terminado bien
+(`pullOkRef`); si falló, reintenta una vez y, si sigue sin nube, NO llama al banco (ni gastos ni
+saldos) y lo dice al sincronizar a mano. e2e `banco-espera-nube`: nube lenta con la fila ya
+renombrada → una sola fila; nube caída → el banco no se consulta. Los dos fallan con el código
+viejo. Límite: si otro móvil aún no ha subido su cambio, esto no lo ve (FIN-03).
+
+Las tres filas ya duplicadas se marcaron a mano «posible repetido» en la nube, con su OK.
+Retirada la idea de re-marcar repetidos desde el móvil: el comentario B09-D de
+`syncCloudExpenses` ya explicaba por qué deshace decisiones de otro dispositivo.
+El doble de Supabase de los e2e crea una cadena por consulta (con una compartida, una tabla
+pisaba a otra).
+
 ## [4.24.2] - 2026-09-15
 ### Inicio sin internet de verdad: skel corto y panel beta offline
 

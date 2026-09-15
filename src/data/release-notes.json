@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.24.3",
+    "d": "15 sep 2026",
+    "t": {
+      "es": "Sin movimientos repetidos al volver a abrir",
+      "en": "No repeated transactions when you come back",
+      "ca": "Sense moviments repetits en tornar a obrir"
+    },
+    "items": {
+      "es": [
+        "Si abres la app en un móvil o en el ordenador después de días sin usarla, ya no se repiten movimientos del banco: primero se baja lo último de la nube y después se mira el banco. Si la nube no responde, avisa en vez de mirar el banco."
+      ],
+      "en": [
+        "If you open the app on a phone or computer after days without using it, bank transactions are no longer repeated: it first fetches the latest from the cloud and then checks the bank. If the cloud doesn't respond, it tells you instead of checking the bank."
+      ],
+      "ca": [
+        "Si obres l'app en un mòbil o a l'ordinador després de dies sense fer-la servir, ja no es repeteixen moviments del banc: primer es baixa el darrer del núvol i després es mira el banc. Si el núvol no respon, t'avisa en lloc de mirar el banc."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "banco-espera-nube",
+        "t": {
+          "es": "🔁 El banco espera a la nube",
+          "en": "🔁 The bank waits for the cloud",
+          "ca": "🔁 El banc espera el núvol"
+        },
+        "items": {
+          "es": [
+            "1. Esto es tu «+18,09 que no cuadra»: una web vieja volvió a meter tres «Movimiento» que ya habías renombrado. Abre Gastos en «Este mes»: el de 18,09 € del 4/9, el de 6,40 € del 10/9 y el de 10,34 € del 2/9 tienen que salir apagados con «tócalo: ¿mismo o distinto?». Tócalos y elige «Es el mismo» en cada uno y comprueba que queda solo el que renombraste.",
+            "2. Con internet, Cartera → «Sincronizar bancos»: tiene que acabar como siempre y no aparecer ningún movimiento repetido en Gastos.",
+            "3. Cierra la app del todo, activa el modo avión, ábrela y pulsa «Sincronizar bancos»: tiene que avisar de que no ha podido bajar tus datos de la nube (y no mirar el banco)."
+          ],
+          "en": [
+            "1. This is your “+18.09 that doesn't add up”: an old web session re-added three “Movimiento” you had already renamed. Open Spending on “This month”: the 18.09 € one on 4/9, the 6.40 € one on 10/9 and the 10.34 € one on 2/9 should be greyed out with “tap: same or different?”. Tap each and choose “Same one” and check only your renamed one remains.",
+            "2. With internet, Portfolio → “Sync banks”: it should finish as usual and no repeated transaction should appear in Spending.",
+            "3. Close the app completely, turn on airplane mode, open it and tap “Sync banks”: it should tell you it couldn't fetch your data from the cloud (and not check the bank)."
+          ],
+          "ca": [
+            "1. Això és el teu «+18,09 que no quadra»: una web vella va tornar a posar tres «Movimiento» que ja havies reanomenat. Obre Despeses a «Aquest mes»: el de 18,09 € del 4/9, el de 6,40 € del 10/9 i el de 10,34 € del 2/9 han de sortir apagats amb «toca'l: mateix o diferent?». Toca'ls i tria «És el mateix» a cadascun i comprova que només queda el que vas reanomenar.",
+            "2. Amb internet, Cartera → «Sincronitza els bancs»: ha d'acabar com sempre i no ha d'aparèixer cap moviment repetit a Despeses.",
+            "3. Tanca l'app del tot, activa el mode avió, obre-la i prem «Sincronitza els bancs»: t'ha d'avisar que no ha pogut baixar les teves dades del núvol (i no mirar el banc)."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.24.2",
     "d": "15 sep 2026",
     "t": {
