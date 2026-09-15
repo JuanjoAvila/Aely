@@ -6,6 +6,25 @@ cuentas inactivas, aislamiento, timeout y topes. Registrado en `run-tests.mjs`.
 `e2e/bancos-historico-filtro.spec.mjs` comprueba avisos visibles sin perder las filas de otros bancos.
 `tests/tr-open-banking.test.mjs` protege contra el antiguo corte global de 150 movimientos.
 
+## Tiempos y preparación de Novedades
+
+`npm test` conserva los casos seleccionados por el plan y escribe las duraciones de cada etapa
+en `test-results/runner-times.json`. Playwright escribe resultados, reintentos y duraciones por
+prueba en `test-results/playwright.json`; un `--reporter` explícito sustituye esa configuración.
+Son resultados locales ignorados por Git. Comparar el mismo conjunto de casos, navegador,
+trabajadores y zona horaria con la máquina libre; no comparar una pasada aislada con otra
+que compite con las suites de otros agentes.
+
+`seedLoggedInDashboard` marca Novedades como vistas en `dev`. Para probar otra situación,
+usar `__seenVersion` (versión base, o una anterior si debe salir el aviso). `dismissNews` solo
+evita la espera cuando el valor inicial del fixture coincide con `mcVerBase(CONFIG.APP_VERSION)`
+del navegador y no hay panel. En los demás casos mantiene la espera y el cierre de siempre.
+`fixtures-news.spec.mjs` vigila que no aparezca un popup después de esa salida rápida y que
+el aviso tardío siga cerrándose, también con una versión beta con sufijo.
+
+El ajuste de fixtures de `banco-espera-nube` mantiene una cadena Supabase por consulta;
+ambas regresiones están registradas en `CROSSCUTTING`.
+
 Auditoría 4.19.14: `e2e/revisar-beta.spec.mjs` comprueba plegado automático al aprobar,
 desplegar/cambiar de opinión y conservación entre compilaciones. `e2e/bancos-historico-filtro.spec.mjs`
 actualiza el estado durante la confirmación de Deshacer y simula fallo/reintento del DELETE.
