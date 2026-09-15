@@ -1,3 +1,5 @@
+// Motivo con identidad: `runBankSync` no llamó al banco porque no había pull de la nube (15/9).
+const SYNC_SIN_NUBE={motivo:"sync-sin-nube"};
 function App(){
   const [state,setStateRaw]=useState(loadState);
   const [tab,setTab]=useState(0);
@@ -383,6 +385,8 @@ function App(){
   const sessionRef=useRef(null);
   const cloudUpdatedAtRef=useRef(null);   // sello del servidor para sync sin pisar otro dispositivo
   const bankSyncing=useRef(false);          // evita syncs de banco solapados
+  // Promesa → true si el pull de arranque (estado + gastos) terminó bien. La espera `runBankSync`.
+  const pullOkRef=useRef(null);
   const bankJustConnected=useRef(false);    // marca la vuelta de ?bank=ok para sincronizar en cuanto haya sesión
 
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
@@ -453,7 +457,7 @@ function App(){
     if(!s || !s.user) return;
     const u=s.user.id;
     const freshLogin=!!(opts&&opts.freshLogin);   // acaba de INICIAR SESIÓN (no un reconecta del mismo user)
-    cloud.pullState().then(function(cloudPack){
+    const pull=cloud.pullState().then(function(cloudPack){
       const cloudState=cloudPack ? cloudPack.data : null;
       if(cloudPack && cloudPack.updated_at) cloudUpdatedAtRef.current=cloudPack.updated_at;
       if(cloudState && validCloudState(cloudState)){
@@ -482,8 +486,9 @@ function App(){
       } else { return cloud.pushState(u, slimForCloud(stateRef.current), cloudUpdatedAtRef.current).then(function(r){
           if(r && r.updated_at) cloudUpdatedAtRef.current=r.updated_at;
         }); }   // primera vez: sube lo que ya tienes
-    }).then(function(){ return syncCloudExpenses(); })
-      .catch(function(e){ if(navigator.onLine!==false) showToast("✕ Nube: "+((e&&e.message)||e)); })   // si estás sin conexión, ni avisamos (es normal)
+    }).then(function(){ return syncCloudExpenses(); });
+    pullOkRef.current=pull.then(function(){ return true; }, function(){ return false; });
+    pull.catch(function(e){ if(navigator.onLine!==false) showToast("✕ Nube: "+((e&&e.message)||e)); })   // si estás sin conexión, ni avisamos (es normal)
       // Pase lo que pase, el splash se va: lo que se vea a partir de aquí ya es lo definitivo
       // (o lo mejor que hay). Ver el porqué en el script del final de shell.html.
       .then(mcBootReady, mcBootReady);
@@ -507,7 +512,23 @@ function App(){
        «al sincronizar no sale ni un aviso ni nada, he tenido que venir aquí para ver qué pasaba».
        Va con `catch` a lista vacía: si esto falla, el sync sigue como siempre. */
     const pDb=Promise.resolve().then(function(){ return cloud.bankLinks(); }).catch(function(){ return []; });
-    return Promise.all([cloud.bankSync(), pDb]).then(function(par){
+    /* PRIMERO LA NUBE, LUEGO EL BANCO (15/9, el «+18,09» de su balance). El 13/9 una web que
+       llevaba tres días cerrada sincronizó Trade Republic con su estado local VIEJO: no conocía los
+       tres «Movimiento» que él ya había renombrado desde el móvil, los volvió a meter con id nuevo y
+       al bajar la nube había dos de cada (24,49 € de más en el gastado). `importObExpenses` deduplica
+       contra lo LOCAL, así que sin un pull completo de esta sesión no se llama al banco: ni gastos
+       ni saldos (`applyBankBalances` ancla con esos mismos gastos). Si el pull de arranque falló, se
+       reintenta una vez. Límite: si OTRO móvil aún no ha subido su cambio, esto no lo ve (identidad
+       de gastos, FIN-03). */
+    const nubeLista=(pullOkRef.current||Promise.resolve(false)).then(function(ok){
+      if(ok) return true;
+      return syncCloudExpenses().then(function(){ pullOkRef.current=Promise.resolve(true); return true; },
+        function(){ return false; });
+    });
+    return nubeLista.then(function(ok){
+      if(!ok) throw SYNC_SIN_NUBE;
+      return Promise.all([cloud.bankSync(), pDb]);
+    }).then(function(par){
       const res=par[0], dbLinks=par[1]||[];
       const links=(res&&res.links)||[];
       // Telemetría (caso CaixaBank 2026-07-11): banco que sincroniza «bien» (ok!==false) pero no
@@ -663,6 +684,11 @@ function App(){
         setTimeout(function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){} }, 700);
       }
     }).catch(function(e){
+      if(e===SYNC_SIN_NUBE){
+        cloud.logEvent("error","bankSync sin pull de la nube: no se llama al banco", opts.manual?"manual":"auto");
+        if(opts.manual) avisaSync(opts, "⚠ "+t("bank_sync_sin_nube"));
+        return;
+      }
       if(opts.manual || navigator.onLine!==false) avisaSync(opts.manual?opts:null, "⚠ "+t("bank_syncfail"));
     }).finally(function(){
       bankSyncing.current=false;

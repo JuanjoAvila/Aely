@@ -18,8 +18,16 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
     // ya había, que no miran el resultado de ninguna función).
     const cloudFns = overrides.__cloudFns || {};
     delete overrides.__cloudFns;
+    // Retardo (ms) y error por tabla, para ver el ORDEN entre la nube y el banco (15/9): una nube
+    // que tarda o que falla es justo cuando un móvil con el estado viejo repetía movimientos.
+    const cloudDelays = overrides.__cloudDelays || {};
+    delete overrides.__cloudDelays;
+    const cloudErrors = overrides.__cloudErrors || {};
+    delete overrides.__cloudErrors;
     const mockClient = () => {
-      let tabla = "";
+      /* Una cadena POR consulta (15/9): con una sola compartida, un `from("bank_links")` que
+         arrancaba entre el `from("expenses")` y su `await` le cambiaba la tabla a la otra. */
+      const makeChain = (tabla) => {
       const chain = {
         select: () => chain,
         order: () => chain,
@@ -37,7 +45,16 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
         maybeSingle: async () => ({ data: (cloudRows[tabla] || [])[0] || null, error: null }),
         single: async () => ({ data: null, error: null }),
       };
-      chain.then = (resolve) => resolve({ data: cloudRows[tabla] || [], error: null });
+      chain.then = (resolve) => {
+        const t = tabla;
+        const out = cloudErrors[t]
+          ? { data: null, error: { message: cloudErrors[t] } }
+          : { data: cloudRows[t] || [], error: null };
+        if (cloudDelays[t]) setTimeout(() => resolve(out), cloudDelays[t]);
+        else resolve(out);
+      };
+      return chain;
+      };
       return {
         auth: {
           getSession: async () => ({ data: { session } }),
@@ -47,7 +64,7 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
           },
           signOut: async () => {},
         },
-        from: (t) => { tabla = t; return chain; },
+        from: (t) => makeChain(t),
         functions: { invoke: async (nombre) => cloudFns[nombre] || { data: {}, error: null } },
       };
     };
