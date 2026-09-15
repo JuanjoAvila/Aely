@@ -9,7 +9,7 @@ metadata:
   node_type: memory
   type: feedback
   originSessionId: cb603bff-19ee-4f94-bbfa-b137c585f4d1
-  modified: 2026-09-08T17:07:12.597Z
+  modified: 2026-09-15T19:30:29.156Z
 ---
 
 ⚠ 2026-09-08, tras publicarle yo solo un bug que le reapareció en la cara: *«todo absolutamente
@@ -31,6 +31,11 @@ trabajo repetido, que es lo que más le quema ([[feedback-leer-sus-veredictos-pr
   Así que en toda review mía que toque comportamiento de la app, Cursor **corre los e2e** y me
   da el número real de pasados/fallados. Si nadie ejecuta, no es una review, es una lectura.
 - Le digo quién revisó y qué ejecutó, no solo que «está revisado».
+- **Alcance de lo que ejecuta el revisor (decisión suya, 15/9):** el AUTOR pasa la suite completa
+  local + `TZ=UTC` tras el commit y la CI la repite sobre el mismo SHA; el REVISOR ejecuta los
+  tests AFECTADOS + guardianes (en las dos TZ si tocan fechas), lee el diff y mira la CI. Si algo
+  sale rojo o el código cambia tras la review → suite completa otra vez. Sigue siendo ejecutar,
+  no leer: lo que se quitó es la segunda pareja completa idéntica del mismo SHA.
 
 Relacionado: [[feedback-no-dar-por-hecho]], [[feedback-consenso-de-las-tres-ias]],
 [[feedback-publicar-en-beta-sin-preguntar]] (publicar sin preguntarle sigue en pie: lo que cambia
