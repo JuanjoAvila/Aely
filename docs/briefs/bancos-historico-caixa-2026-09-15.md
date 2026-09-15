@@ -4,7 +4,9 @@
 
 15/9/2026. Rama `codex/bancos-historico-caixa`, integrada sobre `fd31aa20` (4.24.3).
 Versión preparada **4.25.0**, con tooling en commits separados. Sin publicar ni desplegar.
-Claude y Cursor han revisado el diff; revisión ejecutada y prueba móvil pendientes.
+Claude y Cursor han revisado el diff; Cursor también ha ejecutado los afectados. Prueba móvil
+y autorización de despliegue pendientes. La beta se retiene hasta poder ofrecer sus pasos con
+el servidor actualizado; si se publica solo cliente, antes hay que adaptar esa checklist.
 No se han sincronizado bancos reales ni modificado carteras para investigar.
 
 Al comenzar se contrastó Pages 4.23.1, beta publicada 4.24.0.1 y el código desplegado de bank-sync mediante
@@ -56,6 +58,8 @@ El fixture rápido expuso una carrera en `bancos-lista-fresca`: el doble ya camb
 no por número de consultas. Mutación: quitar el listener hace fallar con una fila en lugar de
 dos (EXIT 1); restaurado, PASS. El brief de tests explica también el aislamiento de rendimiento.
 Claude y Cursor: verde leyendo paginado, ventana mensual, deadline, avisos y tooling.
+Cursor sobre `bb55475a`: guardianes verdes, paginado 12/12 y TR en ambas zonas; **27/27 E2E en
+Madrid y 27/27 en UTC**, incluidos histórico, refresco, Novedades, persistencia y espera de nube.
 
 ## Evidencia de implementación y primeras pasadas (previas a la integración)
 
