@@ -2,7 +2,8 @@
 
 Lectura bancaria 4.25.0: `tests/bank-sync-paging.test.mjs` ejecuta el handler real con BD y proveedor
 simulados (sin consultar bancos): páginas vacías, fallback de periodo, fallo parcial, cursor cíclico,
-cuentas inactivas, aislamiento, timeout y topes. Registrado en `run-tests.mjs`.
+cuentas inactivas, aislamiento, timeout y topes. Registrado en `run-tests.mjs` y `STEPS_SUPABASE`;
+el recorte de un cambio solo de servidor conserva paginado y `tr-open-banking` sin Chromium.
 `e2e/bancos-historico-filtro.spec.mjs` comprueba avisos visibles sin perder las filas de otros bancos.
 `tests/tr-open-banking.test.mjs` protege contra el antiguo corte global de 150 movimientos.
 
