@@ -224,24 +224,44 @@ if (plan.deno !== false) {
 
 if (!failed && plan.playwright !== false && plan.e2e !== "none") {
   console.log("\n── playwright-e2e ──");
-  const specs = plan.e2e === "all" || !plan.e2e ? [] : plan.e2e;
+  const specs = plan.e2e === "all" || !plan.e2e
+    ? fs.readdirSync(path.join(root, "e2e"), { recursive: true })
+      .filter(p => p.endsWith(".spec.mjs")).map(p => "e2e/" + p.replaceAll("\\", "/"))
+    : plan.e2e;
   /* `npx playwright` depende de los wrappers de node_modules/.bin, y en este repo faltan en
      varias maquinas (Windows incluido): el runner respondia «"playwright" no se reconoce como un
      comando» y marcaba FAILED sin haber ejecutado un solo e2e. Eso es peor que un rojo: parece
      que la suite ha corrido y ha fallado. Si esta el CLI del paquete, se llama directo. */
   const pwCli = path.join(root, "node_modules", "playwright", "cli.js");
-  const started = performance.now();
-  const pw = fs.existsSync(pwCli)
-    ? spawnSync(process.execPath, [pwCli, "test", "--config=playwright.config.mjs"].concat(specs), {
-        cwd: root, stdio: "inherit",
-      })
-    : spawnSync("npx", ["playwright", "test", "--config=playwright.config.mjs"].concat(specs), {
-        cwd: root, stdio: "inherit", shell: process.platform === "win32",
-      });
-  recordTime("playwright-e2e", started);
-  if (pw.status !== 0) {
-    failed = true;
-    console.error("\nFAILED: playwright-e2e");
+  // Las mediciones con CPU frenada competían con otros tres navegadores: scroll→swipe
+  // daba 108/109 ms en dos completas y pasaba aislado (15/9). Medir después conserva
+  // el umbral real; los funcionales siguen en paralelo y ningún caso del plan se pierde.
+  const isPerf = p => /(?:^|\/)rendimiento(?:-tabs)?\.spec\.mjs$/.test(p.replaceAll("\\", "/"));
+  const groups = [["playwright-e2e", specs.filter(p => !isPerf(p)), []],
+    ["playwright-perf", specs.filter(isPerf), ["--workers=1"]]];
+  const reports = [];
+  fs.rmSync(path.join(root, "test-results", "playwright.json"), { force: true });
+  for (const [name, selected, extra] of groups) {
+    if (!selected.length) continue;
+    const reportPath = path.join(root, "test-results", name + ".json");
+    fs.rmSync(reportPath, { force: true });
+    const env = { ...process.env, MC_E2E_REPORT: reportPath,
+      MC_E2E_OUTPUT_DIR: path.join(root, "test-results", name) };
+    const args = ["test", "--config=playwright.config.mjs", ...selected, ...extra];
+    const started = performance.now();
+    const pw = fs.existsSync(pwCli)
+      ? spawnSync(process.execPath, [pwCli, ...args], { cwd: root, stdio: "inherit", env })
+      : spawnSync("npx", ["playwright", ...args], { cwd: root, stdio: "inherit", env, shell: process.platform === "win32" });
+    recordTime(name, started);
+    if (pw.status !== 0) { failed = true; console.error("\nFAILED: " + name); }
+    try { reports.push(JSON.parse(fs.readFileSync(reportPath, "utf8"))); }
+    catch (_) { failed = true; console.error("\nFAILED: falta informe de " + name); }
+  }
+  if (reports.length) {
+    const merged = { ...reports[0], suites: reports.flatMap(r => r.suites), errors: reports.flatMap(r => r.errors || []), stats: { ...reports[0].stats } };
+    for (const key of ["duration", "expected", "skipped", "unexpected", "flaky"])
+      merged.stats[key] = reports.reduce((sum, r) => sum + (r.stats[key] || 0), 0);
+    fs.writeFileSync(path.join(root, "test-results", "playwright.json"), JSON.stringify(merged, null, 2) + "\n");
   }
 } else if (plan.e2e === "none" || plan.playwright === false) {
   console.log("\n── playwright-e2e ── (omitido)");

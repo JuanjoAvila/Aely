@@ -39,6 +39,13 @@ con el mismo bundle: fixture antiguo PASS, optimizado FAIL (Caixa aparecía ante
 El doble ahora cambia al simular la conexión, conservando la comprobación DOM antes/después
 del evento. No se recupera la espera accidental ni se reduce la cobertura.
 
+Mutación ejecutada: retirar temporalmente el listener `mc-bank-links-changed` de BankPanel
+hace fallar el test con una fila en lugar de dos (EXIT 1); fuente y bundle restaurados después.
+La suite integrada también detectó competencia de CPU: scroll→swipe dio 108/109 ms en dos
+completas de cuatro trabajadores y pasó aislado. El runner separa los dos specs `rendimiento*`
+al final, con un trabajador; funcionales en paralelo, mismos casos y umbrales. Conserva informes
+por fase y uno combinado, sin que la limpieza de una ejecución borre las trazas de la otra.
+
 Acuerdo de integración con Claude: commit de tooling separado encima de bancos 4.25.0, tras
 4.24.2 y 4.24.3. Una pareja completa Madrid/UTC valida el árbol final; no se repite antes otra
 batería completa de tooling por separado. Si algo falla, comparar ese spec con/sin el commit
