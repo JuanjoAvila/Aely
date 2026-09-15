@@ -5051,6 +5051,10 @@ Object.assign(LANG.es,{
   bp_hist_suggest_recibo:"¿Es un recibo mensual? Márcalo como Recibo si quieres crear el fijo.",
   bp_hist_bank_unknown:"Banco",
   bp_hist_trunc:"El banco no ha devuelto todo el periodo pedido (tope ~90 días o truncado). Revisa las fechas más antiguas.",
+  bank_read_reconnect:"{bank}: falta completar la conexión. Abre Ajustes → Mis bancos para revisarla.",
+  bank_read_failed:"{bank}: no se han podido leer todos los movimientos. Vuelve a intentarlo más tarde.",
+  bank_read_partial:"{bank}: la descarga está incompleta. Lo recibido se conserva, pero pueden faltar movimientos.",
+  bank_read_retry:"No se han podido consultar los movimientos. Comprueba la conexión y vuelve a buscar.",
   bp_hist_sign:"En {banks} casi todo llega como ingreso: revisa el signo antes de importar.",
   bp_hist_more:"Ver {n} más…",
   bp_hist_confirm_fijos:"¿Crear {n} recibo(s) fijo(s)?",
@@ -11417,7 +11421,7 @@ function reconcileBank(state, y, m, today){
 }
 
 // Aplana los movimientos de los bancos enlazados (que devuelve bank-sync) al formato
-// que usa la conciliación. Adjunta la entidad (sabadell…) y recorta a lo reciente.
+// que usa la conciliación. Conserva todos los bancos; el import diario aplica su ventana de fechas.
 function flattenBankTx(links){
   const out=[];
   (links||[]).forEach(function(lk){
@@ -11437,7 +11441,9 @@ function flattenBankTx(links){
     });
   });
   out.sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
-  return out.slice(0,150);   // últimos ~150 movimientos
+  // El servidor ya acota por cuenta. Un tope GLOBAL de 150 dejaba fuera un banco entero
+  // si otro tenía más actividad reciente, antes incluso de llegar a importObExpenses.
+  return out;
 }
 
 /* GASTO VARIABLE VÍA OPEN BANKING (2026-08-05): entra TODO de CUALQUIER banco sincronizado
@@ -12212,6 +12218,30 @@ function histCandCercanos(cands, expenses, yaExactos){
    Truncado: solo flags explícitos del servidor; minDate>dateFrom se reporta aparte
    (heurística de la UI; no prueba truncado por sí sola). */
 
+/* Un saldo correcto no demuestra que se hayan leído todos los movimientos de sus cuentas. */
+function bankReadWarnings(links, expectedLinks){
+  const out=[], seen={};
+  (links||[]).forEach(function(l){
+    if(!l) return;
+    const name=String(l.aspsp||""), ent=entFromAspsp(name);
+    seen[name.toLowerCase()]=1;
+    const accts=l.accounts||[];
+    let key=null;
+    if(l.pending || l.expired || l.noacct) key="bank_read_reconnect";
+    else if(l.ok===false || accts.some(function(a){ return a&&a.ok===false; })) key="bank_read_failed";
+    else if(l.truncated || accts.some(function(a){ return a&&(a.truncated||a.transactionError); })) key="bank_read_partial";
+    if(key) out.push({bank:ent?entOf(ent).label:(name||t("bp_hist_bank_unknown")),key:key});
+  });
+  // Compatibilidad con servidores antiguos: omitir un enlace pendiente no equivale a cero gastos.
+  (expectedLinks||[]).forEach(function(l){
+    const name=String(l&&l.aspsp_name||"");
+    if(!name || seen[name.toLowerCase()]) return;
+    seen[name.toLowerCase()]=1;
+    const ent=entFromAspsp(name);
+    out.push({bank:ent?entOf(ent).label:name,key:l.status==="active"?"bank_read_failed":"bank_read_reconnect"});
+  });
+  return out;
+}
 /* Mismo pipeline que BankHistoryImport.search() al aplanar links → candidatos. */
 function histFlattenHistoryLinks(res, expenses, allow, opts){
   opts=opts||{};
@@ -14955,7 +14985,7 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
 /* IMPORTAR HISTÓRICO vía Open Banking (~90 días PSD2). Cargos + ingresos; por fila eliges
    destino: Gasto (variable) · Recibo (fijo mensual) · Ingreso. Tarjeta→Gasto, no-tarjeta→Recibo,
    crédito→Ingreso (pre-marcados). TR no aplica (no está en OB). Feedback 2026-07-18. */
-function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
+function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}){
   const expEnts=expenseBankEnts(state);
   const allowList=(linkEnts&&linkEnts.length)? linkEnts : expEnts;
   const allow={}; allowList.forEach(function(e){ allow[e]=1; });
@@ -14968,6 +14998,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
   const [classRows,setClassRows]=useState([]);  // salida de histClassifyCandidates
   const [signSuspect,setSignSuspect]=useState({});
   const [truncWarn,setTruncWarn]=useState(false);
+  const [readWarnings,setReadWarnings]=useState([]);
+  const [readFailed,setReadFailed]=useState(false);
   const [importing,setImporting]=useState(false);
   /* FILTROS (rediseño 3/8, petición suya: «me parece anticuada comparada con el import de Excel»,
      más un bug real que reportó: «seleccioné Trade Republic y salían también movimientos de Banco
@@ -14994,11 +15026,13 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
   const defDest=function(x){ return x.kind==="in" ? "ingreso" : "gasto"; };
   const search=function(){
     if(!allowList.length){ showToast(t("bp_hist_nodaily")); return; }
-    setLoading(true); setCands(null);
+    setLoading(true); setCands(null); setReadWarnings([]); setReadFailed(false);
     setBankFilter([]); setTipoFilter("all"); setMesFilter("all"); setRevelado(0);
     setRenderCap(HIST_RENDER_CAP); setTruncWarn(false); setSignSuspect({}); setClassRows([]);
     const d=new Date(); d.setMonth(d.getMonth()-months); const dateFrom=d.toISOString().slice(0,10);
     cloud.bankSyncHistory(dateFrom).then(function(res){
+      if(!res || !Array.isArray(res.links)) throw new Error("bank_read_failed");
+      setReadWarnings(bankReadWarnings(res.links, bankLinks));
       // Flatten compartido con la sonda (Codex 10/9): un solo pipeline, con card/entKey/merchant.
       const flat=histFlattenHistoryLinks(res, state.expenses, allow, {
         merchantIn:t("cat_ingreso"), merchantOut:"Compra"
@@ -15006,12 +15040,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
       const out=flat.out;
       // Truncado del servidor o del banco: avisamos en preview (agujero F).
       // Nota Codex: minDate>dateFrom NO prueba truncado (puede no haber movs el día 1).
-      let trunc=!!(res&&(res.truncated||res.truncatedAt));
-      if(!trunc && out.length){
-        let minD=out[0].date;
-        out.forEach(function(x){ if(x.date<minD) minD=x.date; });
-        if(minD>dateFrom) trunc=true;
-      }
+      const trunc=!!(res&&(res.truncated||res.truncatedAt));
       setTruncWarn(trunc);
       // Clasificador puro (tanda 1): dups 1:1, modeled por mes, cats traspaso/inversion, signo.
       const classified=histClassifyCandidates(out, state);
@@ -15056,7 +15085,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
         try{ cloud.logEvent("hist", "sonda "+probe.llegan+" llegan / "+probe.nuevos+" nuevos / "+probe.coincideDayAmt+" coinciden dia+importe",
           JSON.stringify(probe)); }catch(_e2){}
       }catch(_e){ /* sonda no tumba el import */ }
-    }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); setCands([]); }).finally(function(){ setLoading(false); });
+    }).catch(function(){ setReadFailed(true); setCands([]); }).finally(function(){ setLoading(false); });
   };
   const toggle=function(i){ setSel(function(p){ const n=Object.assign({},p); n[i]=!n[i]; return n; }); };
   const setDestI=function(i,d){ setDest(function(p){ const n=Object.assign({},p); n[i]=d; return n; }); setSel(function(p){ const n=Object.assign({},p); n[i]=true; return n; }); };
@@ -15273,7 +15302,9 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
     allowList.length>0 && React.createElement(React.Fragment,null,
       React.createElement("div",{style:{display:"flex",gap:8,marginBottom:12}}, [1,2,3].map(chip)),
       React.createElement("button",{style:{width:"100%",padding:"12px",borderRadius:12,border:"1px solid var(--line)",background:"var(--surface)",color:"var(--text)",fontWeight:800,fontSize:14,cursor:"pointer"},disabled:loading,onClick:search}, loading?t("bp_hist_searching"):t("bp_hist_search")),
-      cands!==null && cands.length===0 && !loading && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,textAlign:"center",padding:"20px 0"}}, t("bp_hist_none")),
+      !loading && readWarnings.map(function(w,i){ return React.createElement("div",{key:i,role:"status",className:"hint bank-read-warning",style:{marginTop:12}}, "⚠ "+tf(w.key,{bank:w.bank})); }),
+      !loading && readFailed && React.createElement("div",{role:"status",className:"hint bank-read-warning",style:{marginTop:12}},t("bank_read_retry")),
+      cands!==null && cands.length===0 && !loading && !readFailed && !readWarnings.length && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,textAlign:"center",padding:"20px 0"}}, t("bp_hist_none")),
       cands!==null && cands.length>0 && React.createElement("div",{style:{marginTop:14}},
         React.createElement("div",{style:{fontSize:12,color:"var(--muted-2)",marginBottom:8}}, tf("bp_hist_found",{n:visible.length})),
         truncWarn && React.createElement("div",{style:{fontSize:12,lineHeight:1.45,color:"var(--warn, #E6A23C)",background:"rgba(230,162,60,.12)",borderRadius:10,padding:"8px 10px",marginBottom:8}}, t("bp_hist_trunc")),
@@ -17436,10 +17467,11 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     // Allow-list = bancos OB conectados (misma regla que antes desde Mis bancos).
     histOpen && ReactDOM.createPortal(React.createElement(BankHistoryImport,{
       state:state,set:set,showToast:showToast,onClose:function(){ setHistOpen(false); },
+      bankLinks:bankLinks,
       linkEnts:(function(){
         const ents=[];
         (bankLinks||[]).forEach(function(l){
-          if(!(l&&(l.status==="active"||l.status==="pending"))) return;
+          if(!l) return;
           const e=entFromAspsp(l.aspsp_name||l.aspsp); if(e&&ents.indexOf(e)<0) ents.push(e);
         });
         return ents.length?ents:null;
@@ -19552,7 +19584,11 @@ function App(){
       //      manda es el ⚠ de abajo —que además abre el panel para arreglarlo—, no un «✓ al día»
       //      que dice lo contrario medio segundo después.
       const issues=bankIssuesOf(links, dbLinks);
-      if(opts.manual && preview.synced.length && !issues.length){
+      const readWarnings=bankReadWarnings(links, dbLinks).filter(function(w){ return w.key!=="bank_read_reconnect"; });
+      if(opts.manual && readWarnings.length){
+        avisaSync(opts,"⚠ "+readWarnings.map(function(w){ return tf(w.key,{bank:w.bank}); }).join(" · "));
+      }
+      if(opts.manual && preview.synced.length && !issues.length && !readWarnings.length){
         const ents={}; preview.synced.forEach(function(x){ if(x&&x.ent) ents[x.ent]=1; });
         const bancos=Object.keys(ents);
         let msg = bancos.length===1

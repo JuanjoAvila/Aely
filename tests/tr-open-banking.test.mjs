@@ -130,4 +130,18 @@ t("flattenBankTx incluye todas las cuentas, no solo la primaria", () => {
   assert.equal(txs.some((x) => x.id === "top"), false, "el top-level es copia retrocompatible de la primera cuenta");
 });
 
+t("150 movimientos de otro banco no expulsan a CaixaBank del sync", () => {
+  const many=Array.from({length:151},(_,i)=>({ext_id:"tr-"+i,date:"2026-09-15",amount:1,merchant:"Sintético"}));
+  const txs=ctx.flattenBankTx([{aspsp:"Trade Republic",transactions:many},
+    {aspsp:"CaixaBank",transactions:[{ext_id:"cx",date:"2026-09-14",amount:12,merchant:"Comida"}]}]);
+  assert.equal(txs.length,152);
+  assert.ok(txs.some(x=>x.ent==="caixabank"&&x.id==="cx"));
+});
+
+t("avisos por cuenta aunque el saldo del banco haya sincronizado", () => {
+  const warnings=ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:true,accounts:[{ok:true},{ok:false}]}],[]);
+  assert.equal(warnings.length,1);assert.equal(warnings[0].key,"bank_read_failed");
+  assert.equal(ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:true,accounts:[{ok:true,transactions:[]}]}],[]).length,0);
+});
+
 console.log("tr-open-banking: OK");

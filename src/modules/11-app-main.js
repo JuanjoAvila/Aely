@@ -633,7 +633,11 @@ function App(){
       //      manda es el ⚠ de abajo —que además abre el panel para arreglarlo—, no un «✓ al día»
       //      que dice lo contrario medio segundo después.
       const issues=bankIssuesOf(links, dbLinks);
-      if(opts.manual && preview.synced.length && !issues.length){
+      const readWarnings=bankReadWarnings(links, dbLinks).filter(function(w){ return w.key!=="bank_read_reconnect"; });
+      if(opts.manual && readWarnings.length){
+        avisaSync(opts,"⚠ "+readWarnings.map(function(w){ return tf(w.key,{bank:w.bank}); }).join(" · "));
+      }
+      if(opts.manual && preview.synced.length && !issues.length && !readWarnings.length){
         const ents={}; preview.synced.forEach(function(x){ if(x&&x.ent) ents[x.ent]=1; });
         const bancos=Object.keys(ents);
         let msg = bancos.length===1
