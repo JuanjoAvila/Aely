@@ -32,6 +32,7 @@ funcionales: dos completas midieron 108/109 ms en scroll→swipe mientras el cas
 El plan conserva sus mismos specs; el informe combinado incluye ambas fases. Los informes y
 artefactos separados viven en `test-results/playwright-e2e*` y `test-results/playwright-perf*`.
 Para medir directamente con Playwright, seleccionar solo esos specs y `--workers=1`.
+Un fallo de `playwright-perf` mantiene la suite roja: los umbrales siguen siendo obligatorios.
 
 Auditoría 4.19.14: `e2e/revisar-beta.spec.mjs` comprueba plegado automático al aprobar,
 desplegar/cambiar de opinión y conservación entre compilaciones. `e2e/bancos-historico-filtro.spec.mjs`

@@ -31,7 +31,13 @@ Solo se alternó el fixture original y el optimizado, restaurando este último a
 Ahorro observado: 33,721 s, **73,2 %** en este grupo. No extrapolar ese porcentaje a toda la
 suite: no todos los tests llaman a este helper. Guardianes nuevos: **4/4, EXIT 0, 7,1 s**,
 incluyendo el montaje tardío y el sufijo de beta. Runner de tiempos: tres etapas reales,
-salida 0 e informe JSON correcto. Pasada completa optimizada: pendiente.
+salida 0 e informe JSON correcto.
+
+Integración final `1336fcb8`: `npm test` **EXIT 0 en Europe/Madrid y UTC**, 225,263 s y
+225,276 s respectivamente. En cada pasada: Node + Deno verdes, **298 E2E correctos, una captura
+ya omitida, cero fallos y cero flaky**. El JSON combinado contiene los 299 casos: 292 funcionales
+(uno omitido) y siete de rendimiento. No comparar estos tiempos completos con el A/B de nueve
+casos ni con la primera suite en Edge, que tenía otro navegador y menos casos.
 
 La primera completa integrada detectó una carrera en `bancos-lista-fresca`: el doble cambiaba
 de respuesta por número de consultas, contando también la de Ajustes. Comparación aislada
