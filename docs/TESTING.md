@@ -442,3 +442,7 @@ Reglas:
 - Esto **no sube `VERSION` de `beta`**, sube un PATCH nuevo sobre lo que ya hay en producción — la
   ronda grande sigue en `beta` esperando su turno, intacta.
 
+
+## Categorías personales
+
+`node tests/category-preferences.test.mjs` ejecuta ingest/categorize con proveedor y BD simulados, dos titulares y presupuesto/widget. Registrado en run-tests y STEPS_SUPABASE. `e2e/categorias-ia-respuesta.spec.mjs` comprueba mensajes y selección visible en Gastos; registrado bajo 04-tab-gastos. No necesita movimientos ni llamadas de IA reales.

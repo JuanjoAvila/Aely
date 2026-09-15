@@ -8,7 +8,8 @@
 // ============================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { categorizar } from "../_shared/ingest_logic.ts";
+import { categorizar, personalCategory } from "../_shared/ingest_logic.ts";
+import { readCategoryOverrides } from "../_shared/category_preferences.ts";
 import { withCors } from "../_shared/cors.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
 
@@ -77,27 +78,31 @@ Deno.serve(withCors(async (req: Request) => {
   } catch (_) { /* */ }
   if (!merchant) return json({ ok: false, error: "merchant" }, 400);
 
+  const prefs = await readCategoryOverrides(supabase, user.id);
+  if (prefs.unavailable) console.warn("categorize: categorías personales no disponibles");
+  const personal = personalCategory(merchant, prefs.rules);
+  if (personal !== null) return json({ ok: true, category: personal, source: "personal", reason: "personal" });
   const kw = categorizar(merchant);
   if (kw !== "otros") {
-    return json({ ok: true, category: kw, source: "kw" });
+    return json({ ok: true, category: kw, source: "kw", reason: "keyword", rulesUnavailable: prefs.unavailable });
   }
 
   const apiKey = Deno.env.get("OPENAI_API_KEY") || "";
   if (!apiKey) {
-    return json({ ok: true, category: "otros", source: "kw", ai: false });
+    return json({ ok: true, category: "otros", source: "kw", ai: false, reason: "unavailable", rulesUnavailable: prefs.unavailable });
   }
 
   /* FRENO POR USUARIO SOLO EN EL CAMINO DE PAGO (13/9, SEC-02 y brief «sugerir al escribir»).
      Hasta ahora esto se pedía a mano, gasto a gasto. En cuanto Apuntar lo pida al escribir el
      concepto, un bucle del cliente o un dedo nervioso serían llamadas al LLM que cuestan dinero.
      Las palabras clave de arriba no se frenan (son gratis). Al pasarse NO se devuelve 429: se
-     contesta «otros» con `ai:"limit"`, igual que cuando el modelo falla, para que la app no
-     enseñe un error por algo que no es culpa de nadie. 40 cada 10 minutos da de sobra para
-     apuntar a mano. Si el propio limitador falla, deja pasar (regla de ratelimit.ts). */
+     contesta «otros» con `ai:"limit"` por compatibilidad. `reason` permite a la app distinguir
+     ese límite de una compra que no sabe clasificar, sin cambiar el gasto. Se conserva el
+     límite de 40 cada 10 minutos. Si el limitador falla, deja pasar (regla de ratelimit.ts). */
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const gate = await rateLimit(admin, "categorize-ai:" + user.id, 40, 600);
   if (!gate.ok) {
-    return json({ ok: true, category: "otros", source: "kw", ai: "limit" });
+    return json({ ok: true, category: "otros", source: "kw", ai: "limit", reason: "limited", rulesUnavailable: prefs.unavailable });
   }
 
   try {
@@ -125,21 +130,24 @@ Deno.serve(withCors(async (req: Request) => {
       }),
     });
     if (!res.ok) {
-      return json({ ok: true, category: "otros", source: "kw", ai: "error" });
+      return json({ ok: true, category: "otros", source: "kw", ai: "error", reason: "unavailable", rulesUnavailable: prefs.unavailable });
     }
     const data = await res.json();
     const text = data?.choices?.[0]?.message?.content || "";
     const m = String(text).match(/\{[\s\S]*\}/);
     let cat = "otros";
+    let valid = false;
     if (m) {
       try {
         const parsed = JSON.parse(m[0]);
         const id = String(parsed.category || "").toLowerCase();
-        if ((ALLOWED as readonly string[]).indexOf(id) >= 0) cat = id;
+        if ((ALLOWED as readonly string[]).indexOf(id) >= 0) { cat = id; valid = true; }
       } catch (_) { /* */ }
     }
-    return json({ ok: true, category: cat, source: cat === "otros" ? "kw" : "ai" });
+    return json({ ok: true, category: cat, source: cat === "otros" ? "kw" : "ai",
+      ai: valid ? undefined : "error", reason: valid ? (cat === "otros" ? "uncertain" : "suggested") : "unavailable",
+      rulesUnavailable: prefs.unavailable });
   } catch (_) {
-    return json({ ok: true, category: "otros", source: "kw", ai: "error" });
+    return json({ ok: true, category: "otros", source: "kw", ai: "error", reason: "unavailable", rulesUnavailable: prefs.unavailable });
   }
 }));

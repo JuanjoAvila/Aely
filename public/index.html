@@ -4790,6 +4790,10 @@ Object.assign(LANG.es,{
   g_filters_search:"Buscar categoría…", g_filters_cats:"categorías", g_filters_banks:"bancos",
   g_filters_clear:"Limpiar", g_filters_done:"Listo",
   ai_cat_btn:"✨ Sugerir categoría", ai_cat_busy:"Pensando…", ai_cat_ok:"✓ Categoría: {c}", ai_cat_none:"No hay sugerencia clara — elige a mano", ai_cat_off:"Activa «Sugerir categoría (IA)» en Ajustes → Notificaciones",
+  ai_cat_unavailable:"No se pudo consultar la sugerencia. Inténtalo más tarde o elige la categoría.",
+  ai_cat_limited:"Has alcanzado el límite temporal de sugerencias. Prueba más tarde o elige la categoría.",
+  ai_cat_rules_unavailable:"No se pudieron leer tus categorías guardadas. Inténtalo más tarde.",
+  ai_cat_personal_other:"Tienes guardado «Otros» para este comercio. Puedes elegir otra categoría a mano.",
   g_cycle_from:"Del {d} (cobro de {x}) a hoy",
   g_cycle_none_t:"Sin nómina detectada",
   g_cycle_none:"Para ajustar «Mi ciclo» hace falta tu nómina. Apúntala como 💰 ingreso (con +) y el filtro irá de cobro a cobro.",
@@ -8036,14 +8040,22 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       showToast(tf("ai_cat_ok",{c:catName(local)}));
       return;
     }
-    if(!cloud.enabled()){ showToast(t("ai_cat_none")); return; }
+    if(!cloud.enabled()){ showToast(t("ai_cat_unavailable")); return; }
     setAiBusy(true);
     cloud.suggestCategory(ex.merchant||"").then(function(res){
+      // «Otros» también llegaba cuando el servicio fallaba o alcanzaba su límite. Eso no
+      // es una sugerencia sobre la compra, y no debe presentarse como si la hubiera analizado.
+      if(res && (res.ai==="limit" || res.reason==="limited")){ showToast(t("ai_cat_limited")); return; }
+      if(!res || res.ok===false || res.ai===false || res.ai==="error" || res.reason==="unavailable"){
+        showToast(t("ai_cat_unavailable")); return;
+      }
+      if(res.rulesUnavailable){ showToast(t("ai_cat_rules_unavailable")); return; }
       const cat=res&&res.category;
+      if(cat==="otros" && res.source==="personal"){ showToast(t("ai_cat_personal_other")); return; }
       if(!cat||cat==="otros"||!CAT[cat]){ showToast(t("ai_cat_none")); return; }
       setCat(ex,cat);
       showToast(tf("ai_cat_ok",{c:catName(cat)}));
-    }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); }).finally(function(){ setAiBusy(false); });
+    }).catch(function(){ showToast(t("ai_cat_unavailable")); }).finally(function(){ setAiBusy(false); });
   };
   useEffect(()=>{ setVisible(CONFIG.PAGE_SIZE); },[preset,range,sel,bankSel,bucketSel,q]);
   /* LA PAGINACIÓN DE LA LISTA — sus fallos, y el de 2026-07-27.

@@ -20,6 +20,7 @@
  * en `autoCategory`, para no recategorizarle el histórico. Ver 4.19.10.
  */
 import assert from "node:assert/strict";
+import vm from "node:vm";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -133,6 +134,34 @@ t("el histórico NO se toca: autoCategory sigue sin detectar el cajero", () => {
      le convertiría sus retiradas viejas en traspaso —neutra— y le bajaría meses ya cerrados. */
   assert.equal(cli.autoCategory("RETIRADA CAJERO 4B"), "otros");
   assert.equal(cli.categoryOfNewMerchant("RETIRADA CAJERO 4B"), "traspaso");
+});
+
+t("las reglas personales tienen la misma prioridad en cliente e ingest y no se mezclan", () => {
+  try {
+    for (const rules of [{mapfre:"bares"}, {mapfre:"recibos"}, {}]) {
+      vm.runInNewContext("USER_OVERRIDES=" + JSON.stringify(rules), cli);
+      for (const merchant of ["MAPFRE", "  Mápfre  "]) {
+        const expected = rules.mapfre || "recibos";
+        assert.equal(cli.categoryOfNewMerchant(merchant), expected);
+        assert.equal(categorizar(merchant, rules), expected);
+      }
+    }
+  } finally { vm.runInNewContext("USER_OVERRIDES={}", cli); }
+});
+
+t("una regla neutra no convierte una compra en dinero que no cuenta", () => {
+  try {
+    for (const category of ["inversion", "traspaso", "deudas"]) {
+      const rules = {mapfre:category};
+      vm.runInNewContext("USER_OVERRIDES=" + JSON.stringify(rules), cli);
+      assert.equal(cli.categoryOfNewMerchant("MAPFRE"), "recibos");
+      assert.equal(categorizar("MAPFRE", rules), "recibos");
+    }
+    const rules = {"retirada cajero 4b":"bares"};
+    vm.runInNewContext("USER_OVERRIDES=" + JSON.stringify(rules), cli);
+    assert.equal(cli.categoryOfNewMerchant("RETIRADA CAJERO 4B"), "traspaso");
+    assert.equal(categorizar("RETIRADA CAJERO 4B", rules), "traspaso");
+  } finally { vm.runInNewContext("USER_OVERRIDES={}", cli); }
 });
 
 console.log(failed ? `\n${failed} fallo(s)` : "\ncategorias-dual: OK");

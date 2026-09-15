@@ -488,14 +488,22 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       showToast(tf("ai_cat_ok",{c:catName(local)}));
       return;
     }
-    if(!cloud.enabled()){ showToast(t("ai_cat_none")); return; }
+    if(!cloud.enabled()){ showToast(t("ai_cat_unavailable")); return; }
     setAiBusy(true);
     cloud.suggestCategory(ex.merchant||"").then(function(res){
+      // «Otros» también llegaba cuando el servicio fallaba o alcanzaba su límite. Eso no
+      // es una sugerencia sobre la compra, y no debe presentarse como si la hubiera analizado.
+      if(res && (res.ai==="limit" || res.reason==="limited")){ showToast(t("ai_cat_limited")); return; }
+      if(!res || res.ok===false || res.ai===false || res.ai==="error" || res.reason==="unavailable"){
+        showToast(t("ai_cat_unavailable")); return;
+      }
+      if(res.rulesUnavailable){ showToast(t("ai_cat_rules_unavailable")); return; }
       const cat=res&&res.category;
+      if(cat==="otros" && res.source==="personal"){ showToast(t("ai_cat_personal_other")); return; }
       if(!cat||cat==="otros"||!CAT[cat]){ showToast(t("ai_cat_none")); return; }
       setCat(ex,cat);
       showToast(tf("ai_cat_ok",{c:catName(cat)}));
-    }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); }).finally(function(){ setAiBusy(false); });
+    }).catch(function(){ showToast(t("ai_cat_unavailable")); }).finally(function(){ setAiBusy(false); });
   };
   useEffect(()=>{ setVisible(CONFIG.PAGE_SIZE); },[preset,range,sel,bankSel,bucketSel,q]);
   /* LA PAGINACIÓN DE LA LISTA — sus fallos, y el de 2026-07-27.

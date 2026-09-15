@@ -144,3 +144,7 @@ Mantén el Apps Script activo hasta confirmar que entran gastos por Supabase; lu
 ### Pendiente (futuro)
 - Repuntar MacroDroid a la función `ingest` (Paso 6) y jubilar el Apps Script.
 - Pantalla de login más cuidada (ahora usa el prompt nativo del navegador) e importación de los gastos históricos del Google Sheet.
+
+## Categorías personales (4.26.0, pendiente de despliegue)
+
+Publicar `ingest` y `categorize` junto a `_shared/category_preferences.ts` y `_shared/ingest_logic.ts` solo con aprobación. Primero debe desplegarse y observarse el ingest de 4.24.1; esta tanda va después. Sin nuevas tablas, migraciones ni secretos. Proyección JSON de catOverrides, máximo 2000 claves / 128 KiB UTF-8; ante error se conserva el gasto y se registra aviso genérico. Ver [brief](briefs/categorias-personales-2026-09-15.md).

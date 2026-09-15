@@ -1,3 +1,15 @@
+## [4.26.0] - 2026-09-15
+### Categorías por titular en ingest y errores de sugerencias visibles
+
+La corrección de MAPFRE a restaurante solo vivía en el cliente; ingest y categorize volvían
+a la regla general de seguros. Ahora leen solo app_state.data->catOverrides del titular,
+con prioridad personal exacta, sin caché compartida y sin aceptar categorías contablemente
+neutras. Una lectura fallida conserva el gasto y deja aviso genérico. Se mantienen importes,
+identidad, clasificación de tarjeta/Bizum de 4.24.1 y el histórico. Gastos diferencia límite,
+servicio caído, falta de contexto y Otros personal sin sobrescribir la elección actual al fallar.
+
+Validación y despliegue separado de Edge en [el brief](docs/briefs/categorias-personales-2026-09-15.md).
+
 ## [4.25.0] - 2026-09-15
 ### Lectura bancaria paginada y avisos de histórico incompleto
 

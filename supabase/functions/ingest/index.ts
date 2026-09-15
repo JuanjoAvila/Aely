@@ -35,6 +35,7 @@ import {
   limpiarTexto, type Fuente, type Tipo,
 } from "../_shared/ingest_logic.ts";
 import { aEuros, parseWallet } from "../_shared/wallet.ts";
+import { readCategoryOverrides } from "../_shared/category_preferences.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
 import { bancosDeGastoDiario, cuentaParaPresupuesto, filasComoLaApp, inicioDeMesMs, statsDelMes } from "../_shared/presupuesto.ts";
 // Comparación del token en tiempo constante (2026-07-24) y topes de entrada (SEC-01, 14/9): en _shared.
@@ -130,6 +131,13 @@ Deno.serve(async (req) => {
   let noCard = false;
   let importeOrig: number | null = null;      // lo que marcaba el precio, si no fue en euros
   let divisaOrig: string | null = null;
+  async function categoryFor(merchant: string) {
+    const prefs = await readCategoryOverrides(supabase, userId!);
+    if (prefs.unavailable) {
+      await logIngestError(supabase, userId, "categorías personales no disponibles; se aplican reglas generales");
+    }
+    return categorizar(merchant, prefs.rules);
+  }
 
   if (fuente === "wallet") {
     /* WALLET VA AL REVÉS QUE TR: el comercio en el TÍTULO y el importe en el TEXTO. Y puede venir
@@ -140,23 +148,23 @@ Deno.serve(async (req) => {
     if (pago.divisa !== "EUR") {
       const { data: stFx } = await supabase.from("app_state").select("data").eq("user_id", userId).maybeSingle();
       eur = aEuros(pago.importe, pago.divisa, stFx?.data);
-      if (eur === null) {
-        /* SIN TIPO NO SE GUARDA — misma regla que el botón de apuntar. Convertir «a lo que sea»
-           metería 1.520 € por 1.520 ₺ y no lo cazaría ningún test: se descubre semanas después
-           mirando un histórico que ya no se puede reconstruir. Pero callarse tampoco vale, que es
-           como se perdió el gasto de Splau: queda el rastro en el panel para poder apuntarlo a
-           mano. */
-        await logIngestError(supabase, userId,
-          "sin tipo de cambio para " + pago.divisa + ": el gasto NO se ha apuntado",
-          pago.comercio + " · " + pago.importe + " " + pago.divisa);
-        return json({ ok: true, tipo: "ignorado", skipped: true, error: "sin tipo para " + pago.divisa });
-      }
       importeOrig = pago.importe;
       divisaOrig = pago.divisa;
     }
+    if (eur === null) {
+      /* SIN TIPO NO SE GUARDA — misma regla que el botón de apuntar. Convertir «a lo que sea»
+         metería 1.520 € por 1.520 ₺ y no lo cazaría ningún test: se descubre semanas después
+         mirando un histórico que ya no se puede reconstruir. Pero callarse tampoco vale, que es
+         como se perdió el gasto de Splau: queda el rastro en el panel para poder apuntarlo a
+         mano. */
+      await logIngestError(supabase, userId,
+        "sin tipo de cambio para " + pago.divisa + ": el gasto NO se ha apuntado",
+        pago.comercio + " · " + pago.importe + " " + pago.divisa);
+      return json({ ok: true, tipo: "ignorado", skipped: true, error: "sin tipo para " + pago.divisa });
+    }
     importe = eur;
     comercio = pago.comercio;
-    cat = categorizar(comercio);
+    cat = await categoryFor(comercio);
   } else {
     // Camino de Trade Republic, el de siempre: la frase lo lleva todo y el importe sale del texto.
     const bruto = extraerImporte(texto);
@@ -175,7 +183,7 @@ Deno.serve(async (req) => {
       noCard = true;                                      // no alimenta el round-up
     } else {
       comercio = extraerComercio(texto, titulo);
-      cat = categorizar(comercio);
+      cat = await categoryFor(comercio);
     }
   }
 

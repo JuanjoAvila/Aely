@@ -44,6 +44,7 @@ const steps = [
   ["beta-tandas-vacias", ["node", "tests/beta-tandas-vacias.test.mjs"]],
   ["novedades-idiomas", ["node", "tests/novedades-idiomas.test.mjs"]],
   ["categorias-dual", ["node", "tests/categorias-dual.test.mjs"]],
+  ["category-preferences", ["node", "tests/category-preferences.test.mjs"]],
   ["suministros-legacy", ["node", "tests/suministros-legacy.test.mjs"]],
   ["docs-frescura", ["node", "tests/docs-frescura.test.mjs"]],
   ["relevant-tests", ["node", "tests/relevant-tests.test.mjs"]],

@@ -114,9 +114,20 @@ export function isAtmWithdrawal(comercio: string): boolean {
   if (/\batm\b/.test(c)) return true;
   return false;
 }
-export function categorizar(comercio: string): string {
+export function personalCategory(comercio: string, rules?: Record<string, unknown>): string | null {
+  const key = String(comercio || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  // La clave es exacta, como catKey del cliente: una preferencia no autoriza a clasificar
+  // otras empresas por parecido. Ni un cajero ni un nombre ausente son una compra aprendible.
+  if (!key || key === "movimiento" || isAtmWithdrawal(comercio) || !rules ||
+      !Object.prototype.hasOwnProperty.call(rules, key)) return null;
+  const cat = rules[key];
+  return typeof cat === "string" && (cat === "otros" || Object.prototype.hasOwnProperty.call(CATEGORIAS, cat)) ? cat : null;
+}
+export function categorizar(comercio: string, rules?: Record<string, unknown>): string {
   const c = norm(comercio);
   if (isAtmWithdrawal(comercio)) return "traspaso";
+  const personal = personalCategory(comercio, rules);
+  if (personal !== null) return personal;
   // Keywords cortas con límite de palabra (mismo criterio que el cliente: «bar» ≠ Barcelona).
   // Y las de KW_PALABRA, que pasan por el mismo camino aunque sean largas: «barcelo» es la cadena
   // de hoteles Barceló y casaba dentro de BARCELONA, así que «Aigües de Barcelona» salía como

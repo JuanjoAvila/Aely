@@ -205,3 +205,7 @@ escribir `Access-Control-Allow-Origin: "*"`.
 - **Freemium / suscripciones** (ver ROADMAP — solo diseño, nada implementado).
 - Play Store (Data safety + NotificationListener).
 - Feedback de uso real.
+
+## Categorías personales en el servidor (4.26.0, preparado)
+
+ingest y categorize leen solo `rules:data->catOverrides`, filtrado por el titular autenticado. La regla exacta normalizada precede a palabras clave; neutral/ATM no se reclasifican por una preferencia. Una lectura fallida usa la clasificación general sin rechazar el gasto. La corrección local debe sincronizarse antes de estar disponible en el servidor. No hay caché entre usuarios ni recategorización histórica nueva.

@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.0",
+    "d": "15 sep 2026",
+    "t": {
+      "es": "Tus categorías también al recibir compras",
+      "en": "Your categories for incoming purchases",
+      "ca": "Les teves categories en rebre compres"
+    },
+    "items": {
+      "es": [
+        "Las categorías que guardas para un comercio se respetan también al recibir nuevas compras del banco, una vez sincronizadas.",
+        "Al sugerir una categoría, Aely explica si falta información o si no puede consultar la IA."
+      ],
+      "en": [
+        "Saved merchant categories also apply to newly received bank purchases once synced.",
+        "When suggesting a category, Aely explains whether information is missing or AI is unavailable."
+      ],
+      "ca": [
+        "Les categories que deses per a un comerç es respecten també en rebre noves compres del banc, un cop sincronitzades.",
+        "En suggerir una categoria, Aely explica si falta informació o si no pot consultar la IA."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "categorias-personales",
+        "t": {
+          "es": "Tus categorías también al recibir compras",
+          "en": "Your categories for incoming purchases",
+          "ca": "Les teves categories en rebre compres"
+        },
+        "items": {
+          "es": [
+            "1. Abre un gasto mal clasificado. Si procede, corrige su categoría y guarda.",
+            "2. Cuando llegue la próxima compra habitual del mismo comercio, comprueba que conserva la categoría elegida al sincronizar. No hace falta comprar nada para esta prueba.",
+            "3. En un gasto sin identificar, pulsa Sugerir categoría: si falta contexto o no hay servicio, debe explicarlo y conservar tu elección."
+          ],
+          "en": [
+            "1. Open a misclassified expense. If appropriate, correct its category and save.",
+            "2. When the next regular purchase from the same merchant arrives, check that it keeps your chosen category after syncing. Do not make a purchase just to test this.",
+            "3. On an unidentified expense, tap Suggest category: if context or the service is unavailable, it should explain this and keep your choice."
+          ],
+          "ca": [
+            "1. Obre una despesa mal classificada. Si escau, corregeix-ne la categoria i desa.",
+            "2. Quan arribi la pròxima compra habitual del mateix comerç, comprova que conserva la categoria triada en sincronitzar. No cal comprar res per a aquesta prova.",
+            "3. En una despesa sense identificar, prem Suggerir categoria: si falta context o no hi ha servei, ho ha d’explicar i conservar la tria."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.25.0",
     "d": "15 sep 2026",
     "t": {
