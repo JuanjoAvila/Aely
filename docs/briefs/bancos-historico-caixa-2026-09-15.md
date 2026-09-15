@@ -2,11 +2,12 @@
 
 ## Estado
 
-15/9/2026. Rama `codex/bancos-historico-caixa`, base `origin/main` `c34fe81c` (4.23.1).
-Versión preparada **4.25.0**. Sin integrar ni desplegar. Revisión independiente y prueba móvil
-pendientes. No se han sincronizado bancos reales ni modificado carteras para investigar.
+15/9/2026. Rama `codex/bancos-historico-caixa`, integrada sobre `fd31aa20` (4.24.3).
+Versión preparada **4.25.0**, con tooling en commits separados. Sin publicar ni desplegar.
+Claude y Cursor han revisado el diff; revisión ejecutada y prueba móvil pendientes.
+No se han sincronizado bancos reales ni modificado carteras para investigar.
 
-Se contrastó Pages 4.23.1, beta publicada 4.24.0.1 y el código desplegado de bank-sync mediante
+Al comenzar se contrastó Pages 4.23.1, beta publicada 4.24.0.1 y el código desplegado de bank-sync mediante
 la API de lectura de Supabase. El paquete desplegado conserva los fallos descritos aquí.
 
 ## Evidencia y límites
@@ -43,7 +44,20 @@ y una consulta a demanda, sin importar ni borrar movimientos solo para probar.
 4. Compatibilidad con Edge antiguo: el cliente contrasta los enlaces esperados y señala los omitidos.
 5. Fuera el cupo global 150. La ventana temporal, la identidad y el dedup diario permanecen iguales.
 
-## Pruebas
+## Verificación final integrada
+
+`npm test` sobre `1336fcb8` (bancos + tooling + categorías + ayuda), Chromium oficial 1228:
+Europe/Madrid **EXIT 0**, Node + Deno verdes, **298 E2E correctos / 1 captura omitida / 0 fallos /
+0 flaky**, 225,3 s. Incluye los nueve casos del histórico y siete mediciones de rendimiento.
+UTC del mismo árbol: **EXIT 0**, los mismos 298 correctos / 1 omitido / 0 fallos / 0 flaky,
+225,3 s. Se publica por bloques, bancos primero.
+
+El fixture rápido expuso una carrera en `bancos-lista-fresca`: el doble ya cambia al conectar,
+no por número de consultas. Mutación: quitar el listener hace fallar con una fila en lugar de
+dos (EXIT 1); restaurado, PASS. El brief de tests explica también el aislamiento de rendimiento.
+Claude y Cursor: verde leyendo paginado, ventana mensual, deadline, avisos y tooling.
+
+## Evidencia de implementación y primeras pasadas (previas a la integración)
 
 - `node tests/bank-sync-paging.test.mjs`: 5 regresiones rojas en la base. Tras la corrección,
   12 casos verdes en local y UTC: paginado diario, rango, fallo parcial, cursor cíclico, deadLinks,
@@ -66,10 +80,13 @@ y una consulta a demanda, sin importar ni borrar movimientos solo para probar.
   arco falla también sobre el bundle **exacto de `c34fe81c`**, archivado y servido en otro puerto
   (contenido HTTP contrastado por SHA256). Es un fallo previo reproducible en este entorno,
   no una regresión introducida por el cambio bancario. No se oculta ni se llama «verde» al conjunto.
-- Navegador UTC: pendiente de turno compartido.
+- En aquella fase no se había ejecutado el navegador UTC; ver validación integrada arriba.
 - Segunda revisión de Claude leyendo `07c95bdc`: bloqueantes de presupuesto de tiempo y
-  ventana de fechas resueltos. Para integrar faltan las verificaciones anteriores y rebase
-  sobre la beta que contenga las 4.24.x terminadas.
+  ventana de fechas resueltos. El rebase posterior sobre 4.24.3 conserva ese arreglo.
+
+El fallo de arco de Edge no se reproduce con Chromium oficial 1228, que pasa los tres casos.
+El obstáculo de memoria-espejo desapareció con la documentación actual de 4.24.3. Las primeras
+pasadas rojas descritas arriba no son la validación final.
 
 Mejora posterior fuera de esta tanda: el sync diario sigue descartando el saldo de una cuenta
 si falla la primera página de transacciones, aunque el balance se hubiera recibido. Es previo
