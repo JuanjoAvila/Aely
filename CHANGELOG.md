@@ -3,13 +3,12 @@
 
 Rechazo 4.24.0.1 (15/9): «tarda un rato» y «la zona de beta no se ve sin conexión».
 
-- Skel: el tope de Inicio pasa de 2 s a ~0,5–0,6 s; el de getSession de 2,5 s a 0,4–0,6 s
-  (más corto si `navigator.onLine===false`). Si la nube llega después, `set()` repinta.
-- Panel beta: el SW hace match con `ignoreSearch` (cache-bust / WebView) y ya no sirve
-  index.html como JSON offline. Además, `ensureReleaseNotes` guarda SOLO la cabeza de la
-  versión en curso en localStorage y la usa si el fetch falla.
-
-e2e `inicio-offline`: tope corto, onLine false, y release-notes abortado + cabeza cacheada.
+- Skel: tope corto (~0,5 s) solo si `navigator.onLine===false`; con red se mantiene ~2 s
+  (si se acorta, pinta el patrimonio local y luego saltan las cifras al llegar la nube).
+- Panel beta: SW con `ignoreSearch`, clones antes de devolver la respuesta, fallback
+  encadenado (JSON sin caché no recibe index.html). `ensureReleaseNotes` guarda/lee solo
+  la cabeza de la versión en localStorage.
+- La tanda de 4.24.0 queda vacía para no sumarse; los pasos repiten el rechazo literal.
 
 ## [4.24.1] - 2026-09-15
 ### La lista de Gastos cuenta lo mismo que el balance; ingest deja rastro de lo que descarta

@@ -810,11 +810,12 @@ function App(){
   // Detecta sesión al cargar y escucha cambios (incluida la vuelta del magic link).
   useEffect(function(){
     if(!cloud.enabled()){ mcBootReady(); return; }   // sin nube no hay nada que esperar detrás del splash
-    /* Tope (14/9 → 15/9 rechazo 4.24.0): getSession colgado no puede dejar Inicio en skel.
-       onLine===false → 400 ms; si onLine miente pero el fetch no responde → 600 ms (antes 2500). */
+    /* Tope (14/9 → 15/9 review Claude): onLine===false → 400 ms; CON red → 2500 ms (no 600:
+       un pull normal tarda más y si acortamos pinta local y luego saltan las cifras). Si
+       getSession FALLA, mcBootReady al momento (catch). */
     var offline=false;
     try{ offline=navigator.onLine===false; }catch(e){}
-    const sesTope=setTimeout(mcBootReady, offline?400:600);
+    const sesTope=setTimeout(mcBootReady, offline?400:2500);
     cloud.session().then(function(s){
       clearTimeout(sesTope);
       sessionRef.current=s; setSession(s);

@@ -3,7 +3,7 @@
 // red lenta o sin conexión) y a la vez descarga la versión fresca en segundo plano.
 // La versión nueva queda cacheada y se ve en el SIGUIENTE arranque — mismo comportamiento
 // de actualización que antes (sin recargas a media sesión), pero sin esperar a la red.
-const VERSION = "4.24.2-2026-09-15-offline-rn";
+const VERSION = "4.24.2-2026-09-15-sw-fix";
 const CACHE = "micartera-" + VERSION;
 const SHELL = [
   "./", "./index.html", "./manifest.json",
@@ -49,28 +49,35 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET" || url.origin !== location.origin) return;  // API/nube: siempre red
   /* ignoreSearch (15/9, rechazo 4.24.0): el panel de beta pide release-notes.json; si la URL
-     lleva ?v=/cache-bust (o el WebView normaliza distinto), match exacto fallaba offline y el
-     catch devolvía index.html → JSON roto → checklist vacía («la zona de beta no se ve»). */
+     lleva ?v=/cache-bust (o el WebView normaliza distinto), match exacto fallaba offline.
+     Clonar ANTES de devolver res (si no, body already used). Fallback encadenado: caches.match
+     devuelve Promise (siempre truthy con ||) — review Claude 15/9. JSON sin caché → fallo de
+     red (no index.html); navegación → index.html. */
+  const bare = "./" + url.pathname.replace(/^\//, "");
+  const isJson = url.pathname.endsWith(".json");
+  const isNav = e.request.mode === "navigate";
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then((cached) => {
       const fresh = fetch(e.request)
         .then((res) => {
           if (res && res.ok) {
-            const copy = res.clone();
+            const forReq = res.clone();
+            const forBare = res.clone();
             caches.open(CACHE).then((c) => {
-              c.put(e.request, copy);
-              // Copia sin query para que el próximo avión case aunque cambie el bust.
-              try {
-                const bare = "./" + url.pathname.replace(/^\//, "");
-                c.put(bare, res.clone());
-              } catch (_) {}
+              c.put(e.request, forReq);
+              c.put(bare, forBare).catch(function () {});
             });
           }
           return res;
         })
-        .catch(() => cached
-          || caches.match("./" + url.pathname.replace(/^\//, ""), { ignoreSearch: true })
-          || caches.match("./index.html"));
+        .catch(() =>
+          caches.match(bare, { ignoreSearch: true }).then((r) => {
+            if (r) return r;
+            if (isJson) return Response.error();
+            if (isNav || !cached) return caches.match("./index.html");
+            return cached;
+          })
+        );
       // Con caché: respuesta instantánea (la red actualiza por detrás). Sin caché: espera la red.
       return cached || fresh;
     })

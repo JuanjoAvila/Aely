@@ -1,7 +1,6 @@
-/* 4.24.2: skel corto (~0,5–0,6 s) y panel beta usable sin red.
- * 4.24.0: sin red, Inicio no se queda en 3 esqueletos eternos.
- * El skel espera `mc-boot-ready`; si el pull cuelga hay tope corto tras el splash
- * y se pinta el estado local. También con red lenta (no solo offline). */
+/* 4.24.2: skel corto SOLO offline; panel beta usable sin red (SW ignoreSearch + _rnHead).
+ * Con red el tope sigue ~2 s (review Claude: no pintar local y saltar cifras).
+ * 4.24.0: sin red, Inicio no se queda en 3 esqueletos eternos. */
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
@@ -23,15 +22,15 @@ async function blockBootReadyEvent(page) {
   });
 }
 
-test("★ boot-ready no llega: tras splash, skel cae y se ve el hero (tope ~0,6 s)", async ({ page }) => {
+test("★ boot-ready no llega: tras splash, skel cae y se ve el hero (tope ~2 s con red)", async ({ page }) => {
   await blockBootReadyEvent(page);
   await seedLoggedInDashboard(page, {
     expenses: [{ id: "e1", date: "2026-09-14", amount: 12.5, merchant: "Cafe", category: "bares", source: "manual" }],
   });
   await page.goto("/");
   await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
-  await expect(page.locator("[data-tour=boot-skel]")).toHaveCount(0, { timeout: 2_000 });
-  await expect(page.locator("[data-tour=hero]")).toBeVisible({ timeout: 2_000 });
+  await expect(page.locator("[data-tour=boot-skel]")).toHaveCount(0, { timeout: 5_000 });
+  await expect(page.locator("[data-tour=hero]")).toBeVisible({ timeout: 5_000 });
   await expect(page.locator("[data-tour=hero-amt]")).toBeVisible();
 });
 
@@ -66,8 +65,8 @@ test("★ red lenta: skel no se queda; hero aparece aunque supabase aborte tarde
   });
   await page.goto("/");
   await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
-  await expect(page.locator("[data-tour=boot-skel]")).toHaveCount(0, { timeout: 2_000 });
-  await expect(page.locator("[data-tour=hero]")).toBeVisible({ timeout: 2_000 });
+  await expect(page.locator("[data-tour=boot-skel]")).toHaveCount(0, { timeout: 5_000 });
+  await expect(page.locator("[data-tour=hero]")).toBeVisible({ timeout: 5_000 });
 });
 
 test("★ onLine false al montar: skel cae en <1 s (no espera 2 s)", async ({ page }) => {
@@ -98,7 +97,11 @@ test("★ release-notes falla: panel beta usa la cabeza cacheada (no checklist v
         tandas: [{
           id: "inicio-offline-2",
           t: { es: "📴 Offline", en: "📴 Offline", ca: "📴 Offline" },
-          items: { es: ["1. Activa el modo avión"], en: ["1. Airplane mode"], ca: ["1. Mode avió"] },
+          items: {
+            es: ["1. Activa el modo avión (antes «tarda un rato»)"],
+            en: ["1. Airplane mode"],
+            ca: ["1. Mode avió"],
+          },
         }],
       };
       localStorage.setItem("_rnHead_4.24.2", JSON.stringify(head));
@@ -111,9 +114,7 @@ test("★ release-notes falla: panel beta usa la cabeza cacheada (no checklist v
   await page.goto("/?canal=beta");
   await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
   await dismissNews(page);
-  // Camino estable: evento que usa la app al reabrir el panel
   await page.evaluate(() => { window.dispatchEvent(new Event("mc-open-beta-review")); });
   await expect(page.getByText(/Revisar la beta/i)).toBeVisible({ timeout: 5_000 });
-  // Texto propio de la cabeza cacheada (no el de 4.24.0, que puede seguir en memoria).
-  await expect(page.getByText(/en menos de un segundo/i).first()).toBeVisible({ timeout: 5_000 });
+  await expect(page.getByText(/tarda un rato/i).first()).toBeVisible({ timeout: 5_000 });
 });
