@@ -408,7 +408,7 @@ function reconcileBank(state, y, m, today){
 }
 
 // Aplana los movimientos de los bancos enlazados (que devuelve bank-sync) al formato
-// que usa la conciliación. Adjunta la entidad (sabadell…) y recorta a lo reciente.
+// que usa la conciliación. Conserva todos los bancos; el import diario aplica su ventana de fechas.
 function flattenBankTx(links){
   const out=[];
   (links||[]).forEach(function(lk){
@@ -428,7 +428,9 @@ function flattenBankTx(links){
     });
   });
   out.sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
-  return out.slice(0,150);   // últimos ~150 movimientos
+  // El servidor ya acota por cuenta. Un tope GLOBAL de 150 dejaba fuera un banco entero
+  // si otro tenía más actividad reciente, antes incluso de llegar a importObExpenses.
+  return out;
 }
 
 /* GASTO VARIABLE VÍA OPEN BANKING (2026-08-05): entra TODO de CUALQUIER banco sincronizado
@@ -1203,6 +1205,30 @@ function histCandCercanos(cands, expenses, yaExactos){
    Truncado: solo flags explícitos del servidor; minDate>dateFrom se reporta aparte
    (heurística de la UI; no prueba truncado por sí sola). */
 
+/* Un saldo correcto no demuestra que se hayan leído todos los movimientos de sus cuentas. */
+function bankReadWarnings(links, expectedLinks){
+  const out=[], seen={};
+  (links||[]).forEach(function(l){
+    if(!l) return;
+    const name=String(l.aspsp||""), ent=entFromAspsp(name);
+    seen[name.toLowerCase()]=1;
+    const accts=l.accounts||[];
+    let key=null;
+    if(l.pending || l.expired || l.noacct) key="bank_read_reconnect";
+    else if(l.ok===false || accts.some(function(a){ return a&&a.ok===false; })) key="bank_read_failed";
+    else if(l.truncated || accts.some(function(a){ return a&&(a.truncated||a.transactionError); })) key="bank_read_partial";
+    if(key) out.push({bank:ent?entOf(ent).label:(name||t("bp_hist_bank_unknown")),key:key});
+  });
+  // Compatibilidad con servidores antiguos: omitir un enlace pendiente no equivale a cero gastos.
+  (expectedLinks||[]).forEach(function(l){
+    const name=String(l&&l.aspsp_name||"");
+    if(!name || seen[name.toLowerCase()]) return;
+    seen[name.toLowerCase()]=1;
+    const ent=entFromAspsp(name);
+    out.push({bank:ent?entOf(ent).label:name,key:l.status==="active"?"bank_read_failed":"bank_read_reconnect"});
+  });
+  return out;
+}
 /* Mismo pipeline que BankHistoryImport.search() al aplanar links → candidatos. */
 function histFlattenHistoryLinks(res, expenses, allow, opts){
   opts=opts||{};

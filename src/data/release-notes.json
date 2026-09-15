@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.25.0",
+    "d": "15 sep 2026",
+    "t": {
+      "es": "Movimientos de todos tus bancos, con avisos claros",
+      "en": "Transactions from all your banks, with clear notices",
+      "ca": "Moviments de tots els teus bancs, amb avisos clars"
+    },
+    "items": {
+      "es": [
+        "La sincronización sigue buscando cuando el banco entrega los movimientos por partes. La actividad de un banco ya no deja fuera la de otro.",
+        "Si el histórico no puede leerse o llega incompleto, se explica qué ha pasado y se conserva lo recibido."
+      ],
+      "en": [
+        "Sync keeps fetching when a bank delivers transactions in batches. Activity at one bank no longer leaves another out.",
+        "If history cannot be read or arrives incomplete, the app explains what happened and keeps what was received."
+      ],
+      "ca": [
+        "La sincronització continua cercant quan el banc entrega els moviments per parts. L’activitat d’un banc ja no deixa fora la d’un altre.",
+        "Si l’històric no es pot llegir o arriba incomplet, s’explica què ha passat i es conserva el que s’ha rebut."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "bancos-historico-caixa",
+        "t": {
+          "es": "Movimientos de todos tus bancos, con avisos claros",
+          "en": "Transactions from all your banks, with clear notices",
+          "ca": "Moviments de tots els teus bancs, amb avisos clars"
+        },
+        "items": {
+          "es": [
+            "1. Sincroniza una vez desde Cuentas. Comprueba en Gastos un cargo reciente conocido de CaixaBank o Sabadell y su banco.",
+            "2. En Ajustes → Importaciones → Importar histórico, busca tres meses. Comprueba movimientos conocidos de cada banco; no importes para hacer esta prueba.",
+            "3. Si un banco falla o está pendiente, debe aparecer su aviso y deben seguir visibles los movimientos recibidos de los otros bancos."
+          ],
+          "en": [
+            "1. Sync once from Accounts. Check a known recent CaixaBank or Sabadell charge in Spending and its bank.",
+            "2. In Settings → Imports → Import history, search three months. Check known transactions from each bank; do not import just to test.",
+            "3. If a bank fails or is pending, its notice must appear and transactions received from other banks must remain visible."
+          ],
+          "ca": [
+            "1. Sincronitza una vegada des de Comptes. Comprova a Despeses un càrrec recent conegut de CaixaBank o Sabadell i el seu banc.",
+            "2. A Configuració → Importacions → Importar històric, cerca tres mesos. Comprova moviments coneguts de cada banc; no importis per fer aquesta prova.",
+            "3. Si un banc falla o està pendent, ha de sortir el seu avís i han de continuar visibles els moviments rebuts dels altres bancs."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.24.3",
     "d": "15 sep 2026",
     "t": {

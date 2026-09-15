@@ -69,6 +69,7 @@ const steps = [
   ["presupuesto-rendimiento", ["node", "tests/presupuesto-rendimiento.test.mjs"]],
   ["finance-core", ["node", "tests/finance-core.test.mjs"]],
   ["ob-ingresos", ["node", "tests/ob-ingresos.test.mjs"]],
+  ["bank-sync-paging", ["node", "tests/bank-sync-paging.test.mjs"]],
   ["reserva-dinero", ["node", "tests/reserva-dinero.test.mjs"]],
   ["month-budget-stats", ["node", "tests/month-budget-stats.test.mjs"]],
   ["informe-mes", ["node", "tests/informe-mes.test.mjs"]],

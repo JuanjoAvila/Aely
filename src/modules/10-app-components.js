@@ -246,7 +246,7 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
 /* IMPORTAR HISTÓRICO vía Open Banking (~90 días PSD2). Cargos + ingresos; por fila eliges
    destino: Gasto (variable) · Recibo (fijo mensual) · Ingreso. Tarjeta→Gasto, no-tarjeta→Recibo,
    crédito→Ingreso (pre-marcados). TR no aplica (no está en OB). Feedback 2026-07-18. */
-function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
+function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}){
   const expEnts=expenseBankEnts(state);
   const allowList=(linkEnts&&linkEnts.length)? linkEnts : expEnts;
   const allow={}; allowList.forEach(function(e){ allow[e]=1; });
@@ -259,6 +259,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
   const [classRows,setClassRows]=useState([]);  // salida de histClassifyCandidates
   const [signSuspect,setSignSuspect]=useState({});
   const [truncWarn,setTruncWarn]=useState(false);
+  const [readWarnings,setReadWarnings]=useState([]);
+  const [readFailed,setReadFailed]=useState(false);
   const [importing,setImporting]=useState(false);
   /* FILTROS (rediseño 3/8, petición suya: «me parece anticuada comparada con el import de Excel»,
      más un bug real que reportó: «seleccioné Trade Republic y salían también movimientos de Banco
@@ -285,11 +287,13 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
   const defDest=function(x){ return x.kind==="in" ? "ingreso" : "gasto"; };
   const search=function(){
     if(!allowList.length){ showToast(t("bp_hist_nodaily")); return; }
-    setLoading(true); setCands(null);
+    setLoading(true); setCands(null); setReadWarnings([]); setReadFailed(false);
     setBankFilter([]); setTipoFilter("all"); setMesFilter("all"); setRevelado(0);
     setRenderCap(HIST_RENDER_CAP); setTruncWarn(false); setSignSuspect({}); setClassRows([]);
     const d=new Date(); d.setMonth(d.getMonth()-months); const dateFrom=d.toISOString().slice(0,10);
     cloud.bankSyncHistory(dateFrom).then(function(res){
+      if(!res || !Array.isArray(res.links)) throw new Error("bank_read_failed");
+      setReadWarnings(bankReadWarnings(res.links, bankLinks));
       // Flatten compartido con la sonda (Codex 10/9): un solo pipeline, con card/entKey/merchant.
       const flat=histFlattenHistoryLinks(res, state.expenses, allow, {
         merchantIn:t("cat_ingreso"), merchantOut:"Compra"
@@ -297,12 +301,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
       const out=flat.out;
       // Truncado del servidor o del banco: avisamos en preview (agujero F).
       // Nota Codex: minDate>dateFrom NO prueba truncado (puede no haber movs el día 1).
-      let trunc=!!(res&&(res.truncated||res.truncatedAt));
-      if(!trunc && out.length){
-        let minD=out[0].date;
-        out.forEach(function(x){ if(x.date<minD) minD=x.date; });
-        if(minD>dateFrom) trunc=true;
-      }
+      const trunc=!!(res&&(res.truncated||res.truncatedAt));
       setTruncWarn(trunc);
       // Clasificador puro (tanda 1): dups 1:1, modeled por mes, cats traspaso/inversion, signo.
       const classified=histClassifyCandidates(out, state);
@@ -347,7 +346,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
         try{ cloud.logEvent("hist", "sonda "+probe.llegan+" llegan / "+probe.nuevos+" nuevos / "+probe.coincideDayAmt+" coinciden dia+importe",
           JSON.stringify(probe)); }catch(_e2){}
       }catch(_e){ /* sonda no tumba el import */ }
-    }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); setCands([]); }).finally(function(){ setLoading(false); });
+    }).catch(function(){ setReadFailed(true); setCands([]); }).finally(function(){ setLoading(false); });
   };
   const toggle=function(i){ setSel(function(p){ const n=Object.assign({},p); n[i]=!n[i]; return n; }); };
   const setDestI=function(i,d){ setDest(function(p){ const n=Object.assign({},p); n[i]=d; return n; }); setSel(function(p){ const n=Object.assign({},p); n[i]=true; return n; }); };
@@ -564,7 +563,9 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
     allowList.length>0 && React.createElement(React.Fragment,null,
       React.createElement("div",{style:{display:"flex",gap:8,marginBottom:12}}, [1,2,3].map(chip)),
       React.createElement("button",{style:{width:"100%",padding:"12px",borderRadius:12,border:"1px solid var(--line)",background:"var(--surface)",color:"var(--text)",fontWeight:800,fontSize:14,cursor:"pointer"},disabled:loading,onClick:search}, loading?t("bp_hist_searching"):t("bp_hist_search")),
-      cands!==null && cands.length===0 && !loading && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,textAlign:"center",padding:"20px 0"}}, t("bp_hist_none")),
+      !loading && readWarnings.map(function(w,i){ return React.createElement("div",{key:i,role:"status",className:"hint bank-read-warning",style:{marginTop:12}}, "⚠ "+tf(w.key,{bank:w.bank})); }),
+      !loading && readFailed && React.createElement("div",{role:"status",className:"hint bank-read-warning",style:{marginTop:12}},t("bank_read_retry")),
+      cands!==null && cands.length===0 && !loading && !readFailed && !readWarnings.length && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,textAlign:"center",padding:"20px 0"}}, t("bp_hist_none")),
       cands!==null && cands.length>0 && React.createElement("div",{style:{marginTop:14}},
         React.createElement("div",{style:{fontSize:12,color:"var(--muted-2)",marginBottom:8}}, tf("bp_hist_found",{n:visible.length})),
         truncWarn && React.createElement("div",{style:{fontSize:12,lineHeight:1.45,color:"var(--warn, #E6A23C)",background:"rgba(230,162,60,.12)",borderRadius:10,padding:"8px 10px",marginBottom:8}}, t("bp_hist_trunc")),
@@ -2685,10 +2686,11 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     // Allow-list = bancos OB conectados (misma regla que antes desde Mis bancos).
     histOpen && ReactDOM.createPortal(React.createElement(BankHistoryImport,{
       state:state,set:set,showToast:showToast,onClose:function(){ setHistOpen(false); },
+      bankLinks:bankLinks,
       linkEnts:(function(){
         const ents=[];
         (bankLinks||[]).forEach(function(l){
-          if(!(l&&(l.status==="active"||l.status==="pending"))) return;
+          if(!l) return;
           const e=entFromAspsp(l.aspsp_name||l.aspsp); if(e&&ents.indexOf(e)<0) ents.push(e);
         });
         return ents.length?ents:null;

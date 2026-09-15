@@ -1,3 +1,30 @@
+## [4.25.0] - 2026-09-15
+### Lectura bancaria paginada y avisos de histórico incompleto
+
+Tanda preparada desde producción; pendiente de integración, revisión en móvil y despliegue
+autorizado de `bank-sync`. No cambia datos históricos ni requiere APK.
+
+El sync diario ignoraba `continuation_key`: una primera página vacía podía anunciar éxito sin
+traer movimientos. `fetchBankTransactions` comparte paginado con histórico, mantiene parámetros,
+acota 12 páginas / 2000 filas / 15 segundos por cuenta y 60 segundos globales, y conserva páginas
+previas si falla después. Un test ejecuta el importador para asegurar que la ventana del servidor
+cubre la del cliente, también en el borde de mes Madrid/UTC.
+`WRONG_TRANSACTIONS_PERIOD` permite un único cambio a `strategy=longest`; otros errores no
+provocan reintentos. Los cursores cíclicos y los topes se declaran como resultado parcial.
+
+El histórico devuelve también enlaces pendientes/caducados y muestra avisos por banco incluso
+cuando no hay candidatos. El cliente admite el servidor anterior comprobando los enlaces
+esperados. Se elimina la inferencia «primera fecha posterior al inicio = truncado»: puede no
+haber operaciones ese día. Un fallo de consulta no se presenta como ausencia de movimientos.
+
+`flattenBankTx` deja de cortar globalmente a 150 filas: ese corte expulsaba la actividad de un
+banco cuando otro llenaba el cupo. El servidor mantiene límites por cuenta. No se altera el
+dedup ni la ventana de importación de `importObExpenses`.
+
+Pruebas: handler real con banco/BD simulados en `bank-sync-paging`; 5 regresiones rojas antes
+de corregir. E2E del histórico para error por cuenta, enlace pendiente omitido, resultado parcial
+y fallo de transporte. Detalle y límites en `docs/briefs/bancos-historico-caixa-2026-09-15.md`.
+
 ## [4.24.3] - 2026-09-15
 ### El banco espera a la nube: un móvil con datos viejos ya no repite movimientos
 
