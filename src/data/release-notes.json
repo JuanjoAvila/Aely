@@ -31,16 +31,16 @@
         },
         "items": {
           "es": [
-            "1. Activa el modo avión, abre la app: Inicio muestra patrimonio/presupuesto en menos de un segundo (no tres rayas grises un rato) y el aviso de sin conexión.",
-            "2. Sin red, abre Ajustes → Revisar esta beta: se ven los puntos de la tanda (no una pantalla vacía)."
+            "1. Activa el modo avión, abre la app: Inicio muestra patrimonio/presupuesto en menos de un segundo (antes «tarda un rato») y el aviso de sin conexión.",
+            "2. Sin red, abre Ajustes → Revisar esta beta: se ven los puntos de la tanda (antes «la zona de beta no se ve sin conexión»)."
           ],
           "en": [
-            "1. Turn on airplane mode, open the app: Home shows net worth/budget in under a second (not grey bars for a while) and the offline notice.",
-            "2. Offline, open Settings → Review this beta: the checklist items are visible (not an empty screen)."
+            "1. Turn on airplane mode, open the app: Home shows net worth/budget in under a second (it used to «take a while») and the offline notice.",
+            "2. Offline, open Settings → Review this beta: the checklist is visible (it used to say the beta area was missing offline)."
           ],
           "ca": [
-            "1. Activa el mode avió, obre l'app: Inici mostra patrimoni/pressupost en menys d'un segon (no tres ratlles grises una estona) i l'avís sense connexió.",
-            "2. Sense xarxa, obre Ajustaments → Revisar aquesta beta: es veuen els punts de la tanda (no una pantalla buida)."
+            "1. Activa el mode avió, obre l'app: Inici mostra patrimoni/pressupost en menys d'un segon (abans «triga una estona») i l'avís sense connexió.",
+            "2. Sense xarxa, obre Ajustaments → Revisar aquesta beta: es veuen els punts de la tanda (abans «la zona de beta no es ve sense connexió»)."
           ]
         }
       }
@@ -112,30 +112,7 @@
         "Si no hi ha xarxa, Inici ja no es queda en tres ratlles grises: ensenya les dades desades al mòbil i avisa que estàs sense connexió."
       ]
     },
-    "tandas": [
-      {
-        "id": "inicio-offline",
-        "t": {
-          "es": "📴 Inicio sin internet",
-          "en": "📴 Home offline",
-          "ca": "📴 Inici sense internet"
-        },
-        "items": {
-          "es": [
-            "1. Activa el modo avión, abre la app: Inicio tiene que mostrar patrimonio/presupuesto (no tres rayas grises eternas) y el aviso de sin conexión.",
-            "2. Si no puedes probarlo hoy, márcalo como «no lo puedo probar»."
-          ],
-          "en": [
-            "1. Turn on airplane mode, open the app: Home must show net worth/budget (not three endless grey bars) and the offline notice.",
-            "2. If you can't test it today, mark it as “I can't test this”."
-          ],
-          "ca": [
-            "1. Activa el mode avió, obre l'app: Inici ha de mostrar patrimoni/pressupost (no tres ratlles grises eternes) i l'avís de sense connexió.",
-            "2. Si no ho pots provar avui, marca-ho com a «no ho puc provar»."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.23.1",
