@@ -104,6 +104,7 @@ export const E2E_MAP = [
 /** Specs que no son de una pantalla: persistencia, swipes, frames. Si se toca CUALQUIER
  *  módulo de src (no el núcleo: ese ya dispara todo), van con el recorte. */
 export const CROSSCUTTING = [
+  "e2e/fixtures-news.spec.mjs",
   "e2e/persistencia.spec.mjs",
   "e2e/sync-pull-refresco.spec.mjs",
   /* El banco espera a la nube (15/9): orden entre pull y sync, no una pantalla. */

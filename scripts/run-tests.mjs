@@ -5,6 +5,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const suiteStarted = performance.now();
+const timings = [];
+function recordTime(name, started) {
+  timings.push({ name, ms: Math.round(performance.now() - started) });
+}
 
 function loadPlan() {
   const i = process.argv.indexOf("--plan");
@@ -20,7 +25,9 @@ if (plan.reason) console.log("── plan: " + plan.reason + " ──");
 
 if (plan.build !== false) {
   console.log("── build-app ──");
+  const started = performance.now();
   const build = spawnSync("node", ["scripts/build-app.mjs"], { cwd: root, stdio: "inherit", shell: process.platform === "win32" });
+  recordTime("build-app", started);
   if (build.status !== 0) process.exit(1);
 } else {
   console.log("── build-app ── (omitido)");
@@ -178,7 +185,9 @@ const runSteps = plan.steps === "all" || !plan.steps
   : steps.filter(([name]) => plan.steps.includes(name));
 for (const [name, cmd] of runSteps) {
   console.log(`\n── ${name} ──`);
+  const started = performance.now();
   const r = spawnSync(cmd[0], cmd.slice(1), { cwd: root, stdio: "inherit", shell: process.platform === "win32" });
+  recordTime(name, started);
   if (r.status !== 0) {
     failed = true;
     console.error(`\nFAILED: ${name}`);
@@ -189,6 +198,7 @@ if (plan.deno !== false) {
   console.log("\n── ingest-deno ──");
   const denoTests = denoEnLista;
   for (const testFile of denoTests) {
+    const started = performance.now();
     const denoArgs = testFile.includes("crypto.test")
       ? ["test", "--allow-env", testFile]
       : ["test", testFile];
@@ -196,6 +206,7 @@ if (plan.deno !== false) {
       cwd: root, stdio: "pipe", shell: process.platform === "win32",
     });
     const denoOut = (deno.stderr?.toString() || "") + (deno.stdout?.toString() || "");
+    recordTime(testFile, started);
     if (deno.status === 0) {
       console.log(`  ✓ ${testFile}`);
     } else if (deno.error?.code === "ENOENT" || /not found|no se reconoce|not recognized/i.test(denoOut)) {
@@ -219,6 +230,7 @@ if (!failed && plan.playwright !== false && plan.e2e !== "none") {
      comando» y marcaba FAILED sin haber ejecutado un solo e2e. Eso es peor que un rojo: parece
      que la suite ha corrido y ha fallado. Si esta el CLI del paquete, se llama directo. */
   const pwCli = path.join(root, "node_modules", "playwright", "cli.js");
+  const started = performance.now();
   const pw = fs.existsSync(pwCli)
     ? spawnSync(process.execPath, [pwCli, "test", "--config=playwright.config.mjs"].concat(specs), {
         cwd: root, stdio: "inherit",
@@ -226,6 +238,7 @@ if (!failed && plan.playwright !== false && plan.e2e !== "none") {
     : spawnSync("npx", ["playwright", "test", "--config=playwright.config.mjs"].concat(specs), {
         cwd: root, stdio: "inherit", shell: process.platform === "win32",
       });
+  recordTime("playwright-e2e", started);
   if (pw.status !== 0) {
     failed = true;
     console.error("\nFAILED: playwright-e2e");
@@ -234,4 +247,15 @@ if (!failed && plan.playwright !== false && plan.e2e !== "none") {
   console.log("\n── playwright-e2e ── (omitido)");
 }
 
+// Los tiempos van junto a los resultados, no al repo: sin ellos cada tanda volvía a adivinar
+// si el coste era un test, el arranque o la carga de la máquina (feedback 15/9).
+const totalMs = Math.round(performance.now() - suiteStarted);
+fs.mkdirSync(path.join(root, "test-results"), { recursive: true });
+fs.writeFileSync(path.join(root, "test-results", "runner-times.json"), JSON.stringify({
+  timezone: process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone,
+  totalMs, failed, phases: timings,
+}, null, 2) + "\n");
+console.log("\n── Duración total: " + (totalMs / 1000).toFixed(1) + " s · etapas más lentas ──");
+timings.slice().sort((a, b) => b.ms - a.ms).slice(0, 8).forEach(t =>
+  console.log("  " + (t.ms / 1000).toFixed(2) + " s · " + t.name));
 process.exit(failed ? 1 : 0);

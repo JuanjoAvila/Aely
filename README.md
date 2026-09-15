@@ -36,7 +36,7 @@ mi-cartera/
 ├── supabase/               # Postgres, Auth, Edge Functions
 ├── scripts/
 │   ├── build-app.mjs       # Ensambla src/ → public/index.html
-│   ├── run-tests.mjs       # build + unit + Deno + E2E
+│   ├── run-tests.mjs       # build + unit + Deno + E2E; tiempos por etapa en test-results/
 │   └── stamp-version.mjs
 ├── docs/                   # BACKLOG, ARQUITECTURA, TESTING, SENTRY, ROADMAP…
 ├── playwright.config.mjs
