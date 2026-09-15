@@ -5,7 +5,7 @@ function dashOrderOf(s, allIds){
   const saved=((s.settings&&s.settings.dashOrder)||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
   return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
 }
-function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
+function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, onHelp, showToast}){
   const tt=totals;
   const simple=!!(state.settings&&state.settings.simpleMode);
   const [budgetOpen,setBudgetOpen]=useState(false);
@@ -168,6 +168,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       React.createElement("button",{className:"v4-avatar","data-tour":"avatar","aria-label":t("pf_title"),
         onClick:function(){ if(onOpenProfile) onOpenProfile(); else if(onOpenSettings) onOpenSettings(); }}, initials)
     ),
+
+    onHelp && React.createElement("button",{type:"button",className:"btn btn-ghost aely-help-entry",onClick:onHelp},t("help_title")),
 
     /* B4 — entre splash fuera y nube lista: siluetas, no ceros. Si se pintan detrás del splash
        nadie las ve (misma trampa que el count-up). prefers-reduced-motion: sin brillo (CSS). */

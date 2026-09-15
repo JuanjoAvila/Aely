@@ -562,7 +562,7 @@ function InvToolsSheet({open, onClose, state, set, fetchPrices, pricing}){
    La MONEDA DEL APUNTE es independiente de la de visualización (Ajustes → Dinero):
    en el crucero apuntas en ₺ y sigues viendo la app en € (feedback 2026-08-05).
    Se guarda siempre en €; sin tipo de cambio no se guarda — no inventamos el cambio. */
-function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
+function ApuntarSheet({open, onClose, state, set, showToast, goGastos, preferCash}){
   const [kind,setKind]=useState("gasto"); // gasto | ingreso
   const [raw,setRaw]=useState("");
   const [note,setNote]=useState("");
@@ -612,7 +612,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false);
       // Defecto = banco diario, no el sobre (aunque el sobre también sea gasto diario).
-      setBank(dailyBankEnt);
+      setBank(preferCash&&hasEfectivo?"efectivo":dailyBankEnt);
       // Arranca en la moneda de pantalla (o la última que usó al apuntar en este viaje).
       const last=(state.settings&&state.settings.apuntarCur)||(state.settings&&state.settings.currency)||"EUR";
       setEntryCur(String(last).toUpperCase());

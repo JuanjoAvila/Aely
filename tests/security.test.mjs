@@ -39,7 +39,7 @@ console.log("security");
 
     // Heurística: un método ESCRIBE si su cuerpo hace insert/update/upsert/delete, o si invoca una
     // Edge Function que no sea de solo lectura.
-    const READ_ONLY_FNS = new Set(["prices", "categorize", "bank-sync", "bank-aspsps", "myinvestor-sync", "myinvestor-status"]);
+    const READ_ONLY_FNS = new Set(["help-assistant", "prices", "categorize", "bank-sync", "bank-aspsps", "myinvestor-sync", "myinvestor-status"]);
     const writers = [];
     for (const name of methods) {
       if (name === "if" || name === "enabled") continue;

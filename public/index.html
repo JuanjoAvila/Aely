@@ -1750,6 +1750,19 @@
     #mc-load .mcl-name{animation:none !important;}
     #mc-load .mcl-name.lista{opacity:1;}
   }
+
+/* Ayuda con teclado y scroll propio, por encima de Ajustes. */
+.aely-help{position:fixed;inset:0;z-index:12000;background:var(--surface);color:var(--text);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+.aely-help-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;border-bottom:1px solid var(--surface-2)}
+.aely-help-head h1{font-size:20px;margin:0}
+.aely-help-body{overflow-y:auto;overscroll-behavior:contain;padding:16px 18px calc(24px + env(safe-area-inset-bottom));max-width:640px;width:100%;box-sizing:border-box;margin:auto;flex:1}
+.aely-help-body textarea{width:100%;box-sizing:border-box;resize:vertical;margin:8px 0;min-height:80px}
+.aely-help-body label{font-weight:700}
+.aely-help-body .hint{color:var(--muted)}
+.aely-help-topics,.aely-help-actions{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.aely-help-body h2{font-size:17px}
+.aely-help-remote{margin-top:20px}
+.aely-help-entry{margin:6px 0 10px}
 </style>
 </head>
 <body>
@@ -3122,6 +3135,15 @@ const cloud = (function(){
     },
     // IA / KW: sugiere categoría de gasto (Edge Function `categorize`). Sin OPENAI_API_KEY
     // en Supabase cae a keywords; si hay key, solo se usa cuando KW dice «otros».
+    async askHelp(question,language){
+      if(!sb) throw new Error("nube no disponible");
+      const {data,error}=await sb.functions.invoke("help-assistant",{body:{question:String(question||"").slice(0,600),language:language}});
+      if(error){
+        if(error.context&&error.context.status===429) return {ok:false,error:"limited"};
+        throw error;
+      }
+      return data;
+    },
     async suggestCategory(merchant){
       if(!sb) throw new Error("nube no disponible");
       const {data,error}=await sb.functions.invoke("categorize",{ body:{ merchant:String(merchant||"").slice(0,120) } });
@@ -4241,6 +4263,44 @@ let CURLANG = "es";
 const LANGS = [["es","Español"],["en","English"],["ca","Català"]];
 const LANG = {
   es:{
+    help_title:"Ayuda de Aely",
+    help_intro:"Escribe qué quieres hacer o elige un tema. Te guío paso a paso y abro la pantalla para que lo revises tú.",
+    help_question:"¿En qué necesitas ayuda?",
+    help_placeholder:"Por ejemplo: ¿cómo apunto una comida pagada en efectivo?",
+    help_send:"Ver guía",
+    help_local:"Guía disponible sin conexión.",
+    help_unknown:"No he identificado la duda con suficiente claridad. Elige uno de los temas o explica qué intentabas hacer y en qué pantalla.",
+    help_ai_matched:"La IA ha encontrado estas guías de Aely.",
+    help_unavailable:"No se pudo consultar la IA. Puedes seguir usando las guías de arriba.",
+    help_limited:"Has llegado al límite temporal de consultas. Las guías siguen disponibles.",
+    help_privacy:"¿La guía no encaja? Al consultar la IA se envía tu última duda a OpenAI para buscar otra guía. No se adjuntan tus saldos ni movimientos. Evita escribir claves o datos de cuenta.",
+    help_online:"Buscar guía con IA",
+    help_offline:"Guías locales disponibles · IA requiere conexión y sesión",
+    help_wait:"Buscando una guía…",
+    help_hidden:"Si tienes pantallas ocultas o el modo sencillo, puedes mostrarlas desde Ajustes antes de continuar.",
+    help_show_settings:"Mostrar pantalla desde Ajustes",
+    help_cash:"Gastar en efectivo",
+    help_cash_body:"Sacar dinero del cajero es un traspaso a efectivo; la compra viene después.\n1. Comprueba que tienes una cuenta de Efectivo en Cartera. Si falta, añádela antes de apuntar la compra.\n2. Abre Apuntar en efectivo, introduce el importe y el concepto y elige la categoría.\n3. Revisa que está seleccionado Efectivo y guarda. La retirada del cajero no debe contarse otra vez como esa compra.",
+    help_goals:"Ahorrar para una meta",
+    help_goals_body:"Si estás reuniendo dinero para una compra futura, usa Plan → Metas: crea la meta, indica cuánto quieres reunir y revisa el ahorro que le asignas.\nSi ya tienes un préstamo y estás pagando cuotas, entra en Deudas. Ahorrar para comprar un coche y devolver el préstamo del coche son cosas distintas.",
+    help_debts:"Préstamos y cuotas",
+    help_debts_body:"En Plan → Deudas puedes registrar un préstamo y revisar sus cuotas. Usa el saldo pendiente y las condiciones que consten en tu contrato.\nSi solo estás apartando dinero para una compra futura, crea una Meta. Revisa los movimientos antes de vincularlos para evitar apuntar dos veces la misma cuota.",
+    help_banks:"Faltan movimientos del banco",
+    help_banks_body:"Tener una cuenta añadida y tener una conexión bancaria activa son pasos distintos.\n1. Abre Mis bancos y comprueba la conexión; reconecta si Aely lo pide.\n2. Pulsa Sincronizar y lee los avisos de cada banco.\n3. En Gastos revisa el mes y los filtros de banco. Para fechas anteriores, usa Importar histórico.\nSi sigue vacío, no significa que no haya gastos: anota el banco, el periodo y el aviso que aparece para poder revisar el fallo.",
+    help_history:"Importar histórico",
+    help_history_body:"Abre Importar histórico, elige el periodo y busca los movimientos. Revisa el banco y los filtros.\nAntes de importar, comprueba cada selección y su destino: gasto, recibo o ingreso. Si aparece un aviso de lectura incompleta, el banco puede no haber entregado todo el periodo. No vuelvas a crear manualmente movimientos que ya ves en Gastos.",
+    help_categories:"Corregir una categoría",
+    help_categories_body:"Abre el movimiento en Gastos, cambia su categoría y guarda. El nombre del comercio no siempre explica lo que has comprado: una cafetería dentro de una aseguradora puede ser comida.\nAl guardar una categoría de gasto, Aely recuerda tu elección para ese comercio. No cambies todos los recibos o todos los seguros por un solo caso. Revisa las sugerencias de IA antes de guardarlas.",
+    help_receipts:"Recibos del mes",
+    help_receipts_body:"En Plan → Recibos revisas los pagos periódicos. Si falta un cargo de CaixaBank u otro banco, comprueba primero la conexión y sincroniza a mano.\nPara cargos anteriores, Importar histórico permite revisar el destino antes de añadirlos. Si apuntas un recibo manualmente, comprueba después que no se ha importado el mismo cargo otra vez.",
+    help_open_cash:"Apuntar en efectivo",
+    help_open_accounts:"Abrir cuentas",
+    help_open_goals:"Abrir Metas",
+    help_open_debts:"Abrir Deudas",
+    help_open_banks:"Abrir Mis bancos",
+    help_open_expenses:"Abrir Gastos",
+    help_open_history:"Abrir Importar histórico",
+    help_open_receipts:"Abrir Recibos",
     beta_group:"Revisión", beta_collapse:"Encoger", beta_expand:"Desplegar",
     tab_dash:"Inicio", tab_gastos:"Gastos", tab_plan:"Plan", tab_cartera:"Cartera", tab_fijos:"Fijos", tab_inv:"Inversiones", tab_patri:"Patrimonio", tab_debt:"Deudas", tab_compartido:"Compartido",
     tab_metas:"Metas", tab_logros:"Logros",
@@ -7175,7 +7235,7 @@ function dashOrderOf(s, allIds){
   const saved=((s.settings&&s.settings.dashOrder)||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
   return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
 }
-function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
+function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, onHelp, showToast}){
   const tt=totals;
   const simple=!!(state.settings&&state.settings.simpleMode);
   const [budgetOpen,setBudgetOpen]=useState(false);
@@ -7338,6 +7398,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       React.createElement("button",{className:"v4-avatar","data-tour":"avatar","aria-label":t("pf_title"),
         onClick:function(){ if(onOpenProfile) onOpenProfile(); else if(onOpenSettings) onOpenSettings(); }}, initials)
     ),
+
+    onHelp && React.createElement("button",{type:"button",className:"btn btn-ghost aely-help-entry",onClick:onHelp},t("help_title")),
 
     /* B4 — entre splash fuera y nube lista: siluetas, no ceros. Si se pintan detrás del splash
        nadie las ve (misma trampa que el count-up). prefers-reduced-motion: sin brillo (CSS). */
@@ -16850,7 +16912,7 @@ function CurConverterPanel({state, onClose, refreshFx}){
 }
 
 /* Contenido del cajón de Ajustes (el cajón deslizante lo gestiona App). */
-function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour, totals, fetchPrices, refreshFx, goBanks, goBanksFocus, goGastos}){
+function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour, totals, fetchPrices, refreshFx, goBanks, goBanksFocus, goGastos, onHelp, goHistory}){
   const [expand,setExpand]=useState(null);   // fila-acordeón abierta: "lang" | "gview" | "tabs" | "cur" | null
   const [newsOpen,setNewsOpen]=useState(false);   // histórico de Novedades (WhatsNew reabierto a mano)
   const [privOpen,setPrivOpen]=useState(false);    // política de privacidad DENTRO de la app (no _blank)
@@ -16914,6 +16976,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     return function(){ window.removeEventListener("mc-open-beta-review",h); };
   },[]);
   const [hojaOpen,setHojaOpen]=useState(false);  // importar una hoja de gastos (Excel/CSV)
+  useEffect(function(){ if(goHistory) setHistOpen(true); },[goHistory]);
   const [histOpen,setHistOpen]=useState(false);  // importar histórico del banco (Ajustes → Importaciones)
   const [autoBackOpen,setAutoBackOpen]=useState(false);  // copias automáticas diarias (state_backups)
   const prodVer=useProdVersion();                // Pages ahora (cruda); null mientras pregunta
@@ -17085,6 +17148,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         React.createElement("div",{style:{fontSize:12,color:"var(--mint)",marginTop:4,fontWeight:700}}, uid?t("v4_set_profile_sync"):t("v4_set_profile_local"))
       )
     ),
+    onHelp && React.createElement("button",{type:"button",className:"btn btn-ghost aely-help-entry",onClick:onHelp},t("help_title")),
     React.createElement("input",{style:Object.assign({},inp,{marginTop:12}),placeholder:t("st_search_ph"),value:q,onChange:function(e){ setQ(e.target.value); }}),
 
     React.createElement("div",{className:"v4-set-sec"}, t("v4_set_appear")),
@@ -18612,7 +18676,7 @@ function InvToolsSheet({open, onClose, state, set, fetchPrices, pricing}){
    La MONEDA DEL APUNTE es independiente de la de visualización (Ajustes → Dinero):
    en el crucero apuntas en ₺ y sigues viendo la app en € (feedback 2026-08-05).
    Se guarda siempre en €; sin tipo de cambio no se guarda — no inventamos el cambio. */
-function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
+function ApuntarSheet({open, onClose, state, set, showToast, goGastos, preferCash}){
   const [kind,setKind]=useState("gasto"); // gasto | ingreso
   const [raw,setRaw]=useState("");
   const [note,setNote]=useState("");
@@ -18662,7 +18726,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false);
       // Defecto = banco diario, no el sobre (aunque el sobre también sea gasto diario).
-      setBank(dailyBankEnt);
+      setBank(preferCash&&hasEfectivo?"efectivo":dailyBankEnt);
       // Arranca en la moneda de pantalla (o la última que usó al apuntar en este viaje).
       const last=(state.settings&&state.settings.apuntarCur)||(state.settings&&state.settings.currency)||"EUR";
       setEntryCur(String(last).toUpperCase());
@@ -18959,6 +19023,116 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
     ),
     React.createElement("p",{style:{fontSize:12,color:"var(--muted-2)",lineHeight:1.45,margin:"18px 2px 0"}}, t("pf_hint")),
     onOpenSettings && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:14},onClick:function(){ onClose(); onOpenSettings(); }}, t("pf_to_settings"))
+  );
+}
+/* Guías revisadas y destinos cerrados: la IA interpreta la duda, pero no inventa
+   pantallas ni modifica dinero. Lo habitual funciona también sin conexión. */
+const HELP_TOPICS=[
+  {id:"cash",title:"help_cash",body:"help_cash_body",actions:["cash","accounts"]},
+  {id:"goals",title:"help_goals",body:"help_goals_body",actions:["goals","debts"]},
+  {id:"debts",title:"help_debts",body:"help_debts_body",actions:["debts","goals"]},
+  {id:"banks",title:"help_banks",body:"help_banks_body",actions:["banks","expenses","history"]},
+  {id:"history",title:"help_history",body:"help_history_body",actions:["history","banks"]},
+  {id:"categories",title:"help_categories",body:"help_categories_body",actions:["expenses"]},
+  {id:"receipts",title:"help_receipts",body:"help_receipts_body",actions:["receipts","banks"]}
+];
+const HELP_ACTION_LABELS={cash:"help_open_cash",accounts:"help_open_accounts",goals:"help_open_goals",debts:"help_open_debts",banks:"help_open_banks",expenses:"help_open_expenses",history:"help_open_history",receipts:"help_open_receipts",settings:"settings"};
+function helpTopic(id){ return HELP_TOPICS.find(function(x){ return x.id===id; }); }
+function helpLocalTopics(question){
+  var q=String(question||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  var hits=[];
+  var add=function(id,re){ if(re.test(q)) hits.push(id); };
+  add("cash",/\b(efectivo|efectiu|cash|cajero|caixer|atm|billetes|monedas)\b/);
+  add("categories",/\b(categoria[s]?|categoritz\w*|categoriz\w*|categoris\w*|categor[yi]\w*|mapfre|clasific\w*|classific\w*|otros|altres)\b/);
+  add("history",/\b(historic\w*|history|import\w*|extracto[s]?|extracte[s]?|statement[s]?)\b/);
+  add("goals",/\b(ahorr\w*|estalvi\w*|saving[s]?|save|meta[s]?|goal[s]?)\b/);
+  add("debts",/\b(deuda[s]?|deute[s]?|debt[s]?|prestamo[s]?|prestec[s]?|loan[s]?|hipoteca|mortgage|cuota[s]?)\b/);
+  add("receipts",/\b(recibo[s]?|rebut[s]?|bill[s]?|domicili\w*)\b/);
+  add("banks",/\b(banco[s]?|banc[s]?|bank[s]?|caixa\w*|sabadell|revolut|trade republic|sincron\w*|sync\w*|no (sale|carga|aparece|llega|leyo)|missing)\b/);
+  return hits.slice(0,3);
+}
+function helpValidatedTopics(value){
+  if(!Array.isArray(value)||value.length>3||value.some(function(id){ return typeof id!=="string"||!helpTopic(id); })) return [];
+  return value.filter(function(id,i){ return typeof id==="string"&&helpTopic(id)&&value.indexOf(id)===i; });
+}
+function HelpAssistant({onClose,onAction,online,signedIn,simple,hiddenTabs,hasCash}){
+  const [question,setQuestion]=useState("");
+  const [asked,setAsked]=useState("");
+  const [topics,setTopics]=useState([]);
+  const [status,setStatus]=useState("");
+  const [busy,setBusy]=useState(false);
+  const requestRef=useRef(0);
+  const panelRef=useRef(null);
+  const resultRef=useRef(null);
+  useBackClose(true,onClose);
+  useEffect(function(){
+    var before=document.activeElement;
+    var node=panelRef.current;
+    if(node) node.querySelector("button").focus();
+    // Un botón desactivado mientras consulta puede perder el foco: Escape debe funcionar
+    // también si el navegador ha devuelto el foco al body.
+    var escape=function(e){ if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); onClose(); } };
+    window.addEventListener("keydown",escape,true);
+    return function(){ window.removeEventListener("keydown",escape,true); requestRef.current++; if(before&&before.isConnected) before.focus(); };
+  },[]);
+  useEffect(function(){
+    if((asked||topics.length)&&resultRef.current) resultRef.current.scrollIntoView({block:"start"});
+  },[topics]);
+  const send=function(e){
+    if(e) e.preventDefault();
+    var text=question.trim(); if(!text) return;
+    if(document.activeElement&&document.activeElement.blur) document.activeElement.blur();
+    requestRef.current++; setBusy(false); setAsked(text); setTopics(helpLocalTopics(text)); setStatus("help_local");
+  };
+  const askOnline=async function(){
+    if(busy||!online||!signedIn||!cloud.enabled()||!asked||question.trim()!==asked) return;
+    var id=++requestRef.current; setBusy(true); setStatus("");
+    var timer;
+    try{
+      // La caída de la sesión o de la red también puede bloquear antes de llegar al modelo.
+      // La guía local queda utilizable aunque el transporte tarde en rechazar la petición.
+      var result=await Promise.race([cloud.askHelp(asked,CURLANG),new Promise(function(resolve,reject){ timer=setTimeout(function(){ reject(new Error("timeout")); },20000); })]);
+      if(id!==requestRef.current) return;
+      var selected=helpValidatedTopics(result&&result.topics);
+      if(result&&result.ok&&selected.length){ setTopics(selected); setStatus("help_ai_matched"); }
+      else setStatus(result&&result.error==="limited"?"help_limited":result&&result.ok?"help_unknown":"help_unavailable");
+    }catch(e){ if(id===requestRef.current) setStatus("help_unavailable"); }
+    finally{ clearTimeout(timer); if(id===requestRef.current) setBusy(false); }
+  };
+  const choose=function(id){ requestRef.current++; setBusy(false); setTopics([id]); setStatus("help_local"); };
+  const action=function(id,index){
+    // El modo sencillo puede ocultar destinos: abrir Ajustes explica cómo recuperarlos,
+    // sin cambiar preferencias a escondidas ni acabar en una pestaña distinta.
+    var tab=id==="expenses"?"gastos":id==="accounts"?"cartera":["goals","debts","receipts"].indexOf(id)>=0?"plan":null;
+    var blocked=(simple&&(id==="goals"||id==="debts"))||(tab&&(hiddenTabs||[]).indexOf(tab)>=0);
+    var target=blocked?"settings":id==="cash"&&!hasCash?"accounts":id;
+    return React.createElement("button",{key:target,type:"button",className:index===0?"btn btn-primary":"btn btn-ghost",onClick:function(){ onAction(target); }},t(blocked?"help_show_settings":HELP_ACTION_LABELS[target]));
+  };
+  return React.createElement("div",{className:"aely-help",role:"dialog","aria-modal":"true","aria-labelledby":"help-title",ref:panelRef,onKeyDown:function(e){
+    if(e.key!=="Tab") return;
+    var nodes=Array.from(panelRef.current.querySelectorAll("button:not(:disabled),textarea"));
+    var first=nodes[0],last=nodes[nodes.length-1];
+    if(e.shiftKey&&document.activeElement===first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey&&document.activeElement===last){ e.preventDefault(); first.focus(); }
+  }},
+    React.createElement("div",{className:"aely-help-head"},React.createElement("h1",{id:"help-title"},t("help_title")),React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:onClose,"aria-label":t("v4_back")},"×")),
+    React.createElement("div",{className:"aely-help-body"},
+      React.createElement("p",{className:"hint"},t("help_intro")),
+      React.createElement("form",{onSubmit:send},
+        React.createElement("label",{htmlFor:"help-question"},t("help_question")),
+        React.createElement("textarea",{id:"help-question",className:"v4-input",rows:3,maxLength:600,value:question,placeholder:t("help_placeholder"),onChange:function(e){ setQuestion(e.target.value); }}),
+        React.createElement("button",{type:"submit",className:"btn btn-primary",disabled:!question.trim()},t("help_send"))),
+      React.createElement("div",{className:"aely-help-topics"},HELP_TOPICS.map(function(x){ return React.createElement("button",{key:x.id,className:"chip",type:"button",onClick:function(){ choose(x.id); }},t(x.title)); })),
+      React.createElement("div",{ref:resultRef,role:"status","aria-live":"polite"},status&&React.createElement("p",{className:"hint"},t(status))),
+      asked&&!topics.length&&React.createElement("p",null,t("help_unknown")),
+      topics.map(function(id){ var item=helpTopic(id); return React.createElement("article",{key:id,className:"v4-card","data-help-topic":id},
+        React.createElement("h2",null,t(item.title)),React.createElement("p",{style:{whiteSpace:"pre-line",lineHeight:1.6}},t(item.body)),
+        (simple||hiddenTabs&&hiddenTabs.length>0)&&React.createElement("p",{className:"hint"},t("help_hidden")),
+        React.createElement("div",{className:"aely-help-actions"},item.actions.filter(function(id){ return id!=="cash"||hasCash; }).map(action).filter(function(el,i,list){ return list.findIndex(function(x){ return x.key===el.key; })===i; }))); }),
+      asked&&React.createElement("div",{className:"aely-help-remote"},
+        React.createElement("p",{className:"hint"},t("help_privacy")),
+        React.createElement("button",{type:"button",className:"btn btn-ghost",disabled:busy||!online||!signedIn||!cloud.enabled()||question.trim()!==asked,onClick:askOnline},t(busy?"help_wait":online&&signedIn&&cloud.enabled()?"help_online":"help_offline")))
+    )
   );
 }
 // Motivo con identidad: `runBankSync` no llamó al banco porque no había pull de la nube (15/9).
@@ -20081,6 +20255,9 @@ function App(){
   // v4: Ajustes es push a pantalla completa (SPEC §9). drawerMounted = primera apertura.
   const [drawerMounted,setDrawerMounted]=useState(false);
   const [apuntarOpen,setApuntarOpen]=useState(false);
+  const [apuntarCash,setApuntarCash]=useState(false);
+  const [helpOpen,setHelpOpen]=useState(false);
+  const [helpHistory,setHelpHistory]=useState(0);
   // Perfil pull-down (Inicio): panel hermano al shell, como Ajustes (feedback 2026-07-17).
   const [profileOpen,setProfileOpen]=useState(false);
   const [profileMounted,setProfileMounted]=useState(false);
@@ -22106,6 +22283,7 @@ function App(){
         setProfileMounted(true);
         requestAnimationFrame(function(){ requestAnimationFrame(function(){ profSetOrigin(); setProfileOpen(true); }); });
       },
+      onHelp:function(){ setHelpOpen(true); },
       onGoGastos:function(){ const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i); },
       onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
     // Sin prop `active`: ver `mcOnGastosActive` — si viaja por props, entrar en Gastos
@@ -22252,7 +22430,7 @@ function App(){
           React.createElement("button",{className:"botnav-tab"+(tab===1&&!drawerOpen&&!profileOpen?" active":""),"data-tour":"gastos",onTouchStart:function(){ prepMountTab(1); },onClick:function(){ setDrawerOpen(false); setProfileOpen(false); goTab(1); }},
             React.createElement(I.expense,null), t("tab_gastos")),
           React.createElement("div",{className:"botnav-fab-slot"},
-            React.createElement("button",{className:"botnav-fab","aria-label":t("v4_apuntar"),"data-tour":"apuntar",onClick:function(){ setApuntarOpen(true); }},
+            React.createElement("button",{className:"botnav-fab","aria-label":t("v4_apuntar"),"data-tour":"apuntar",onClick:function(){ setApuntarCash(false); setApuntarOpen(true); }},
               React.createElement(I.plus,{width:26,height:26,stroke:"currentColor"}))
           ),
           React.createElement("button",{className:"botnav-tab"+(tab===2&&!drawerOpen&&!profileOpen?" active":""),"data-tour":"plan",onTouchStart:function(){ prepMountTab(2); },onClick:function(){ setDrawerOpen(false); setProfileOpen(false); goTab(2); }},
@@ -22263,9 +22441,25 @@ function App(){
       )
     ),
     React.createElement(AskHost,null),
+    helpOpen && React.createElement(HelpAssistant,{onClose:function(){ setHelpOpen(false); },online:online,signedIn:!!uid,simple:!!(state.settings&&state.settings.simpleMode),hiddenTabs:hiddenTabIds,hasCash:(state.accounts||[]).some(isEfectivoEnt),
+      onAction:function(id){
+        if(!Object.prototype.hasOwnProperty.call(HELP_ACTION_LABELS,id)) return;
+        setHelpOpen(false); setProfileOpen(false); setDrawerOpen(false);
+        if(id==="cash"){ setApuntarCash(true); setApuntarOpen(true); return; }
+        if(id==="banks"||id==="history"||id==="settings"){
+          setDrawerMounted(true); setDrawerOpen(true);
+          if(id==="banks"){ setBanksFocus(""); setBanksGoto(Date.now()); }
+          if(id==="history") setHelpHistory(Date.now());
+          return;
+        }
+        var dest=id==="expenses"?"gastos":id==="accounts"?"cartera":"plan";
+        if(dest==="plan") setPlanGoto({id:id==="goals"?"metas":id==="debts"?"deudas":"recibos",ts:Date.now()});
+        if(id==="expenses") setGastosForceAll(Date.now());
+        var index=tabIds.indexOf(dest); if(index>=0) goTabTop(index);
+      }}),
     cloud.enabled() && sharedOpen && React.createElement(SharedPanel,{state:state,set:set,uid:uid,totals:totals,showToast:showToast,
       meEmail:(session&&session.user&&session.user.email)||null,onClose:function(){ setSharedOpen(false); }}),
-    React.createElement(ApuntarSheet,{open:apuntarOpen,onClose:function(){ setApuntarOpen(false); },state:state,set:set,showToast:showToast,
+    React.createElement(ApuntarSheet,{open:apuntarOpen,preferCash:apuntarCash,onClose:function(){ setApuntarOpen(false); },state:state,set:set,showToast:showToast,
       goGastos:function(){ const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i); }}),
     tourOpen && React.createElement(Tour,{onDone:endTour, goTab:goTab, tabIds:tabIds}),
     whatsNew && React.createElement(WhatsNew,{onClose:function(){ setWhatsNew(false); },showToast:showToast,set:set,state:state}),
@@ -22301,7 +22495,7 @@ function App(){
       drawerMounted && React.createElement(SettingsPanel,{state:state,set:set,onClose:function(){
           if(typeof betaOlvidarVuelta==="function") betaOlvidarVuelta();
           setDrawerOpen(false);
-        },showToast:showToast,uid:uid,onBankSync:sincronizarAMano,onTour:openTour,totals:totals,fetchPrices:fetchPrices,refreshFx:refreshFx,goBanks:banksGoto,goBanksFocus:banksFocus,
+        },showToast:showToast,uid:uid,onBankSync:sincronizarAMano,onTour:openTour,onHelp:function(){ setHelpOpen(true); },goHistory:helpHistory,totals:totals,fetchPrices:fetchPrices,refreshFx:refreshFx,goBanks:banksGoto,goBanksFocus:banksFocus,
         goGastos:function(){ setDrawerOpen(false); setGastosForceAll(Date.now()); const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i); }})
     ),
     React.createElement("div",{className:"profile-dim-layer"+(profileOpen?" on":""),ref:dimLayerRef,style:profileOpen?{opacity:"1"}:undefined,"aria-hidden":"true"}),

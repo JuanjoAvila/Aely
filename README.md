@@ -25,7 +25,7 @@ mi-cartera/
 ├── src/                    # 👈 Fuente editable (v3.108+)
 │   ├── shell.html          #     HTML shell (React, CSS, vendors)
 │   ├── build-order.json    #     Orden de ensamblado de módulos
-│   └── modules/            #     15 ficheros JS (core, i18n, motor, app, boot, v4…)
+│   └── modules/            #     17 ficheros JS (core, i18n, motor, app, boot, v4, ayuda…)
 ├── public/                 # Artefacto desplegable (generado + estáticos)
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
@@ -80,7 +80,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.0** en el repo — disponibilidad del canal con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.27.0** en el repo — disponibilidad del canal con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.
@@ -101,3 +101,7 @@ Notas rápidas del rediseño v4 (para no perderse):
 ### Categorías personales
 
 Al corregir un comercio en Gastos, su regla guardada se respeta también en nuevas compras de notificaciones cuando haya llegado a la nube. Sugerir categoría distingue falta de contexto y servicio no disponible. [Detalle y límites](docs/briefs/categorias-personales-2026-09-15.md).
+
+### Ayuda de Aely
+
+Botón visible en Inicio y Ajustes: escribe una duda o elige efectivo, metas, deudas, bancos, histórico, categorías o recibos. Las guías funcionan offline y abren formularios reales sin guardar por ti. La búsqueda opcional con IA requiere sesión, conexión y activación del servicio; solo envía la duda escrita. [Arquitectura, pruebas y límites](docs/briefs/asistente-hibrido-2026-09-15.md).

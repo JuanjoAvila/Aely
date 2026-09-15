@@ -209,3 +209,7 @@ escribir `Access-Control-Allow-Origin: "*"`.
 ## Categorías personales en el servidor (4.26.0, preparado)
 
 ingest y categorize leen solo `rules:data->catOverrides`, filtrado por el titular autenticado. La regla exacta normalizada precede a palabras clave; neutral/ATM no se reclasifican por una preferencia. Una lectura fallida usa la clasificación general sin rechazar el gasto. La corrección local debe sincronizarse antes de estar disponible en el servidor. No hay caché entre usuarios ni recategorización histórica nueva.
+
+## Ayuda híbrida (4.27.0, preparada)
+
+`16-help-assistant.js` mantiene el catálogo local y sus destinos; se ensambla antes de App. La navegación es una lista cerrada en App y no invoca sincronizaciones ni guarda dinero. Inicio y Ajustes abren la ayuda. La duda vive solo en memoria del panel. El botón de IA envía únicamente `question` (máx600 caracteres) y `language`; help-assistant ignora otros campos y al proveedor solo pasa question y las instrucciones fijas. No lee app_state ni expenses. Recibe hasta tres ids y pinta siempre texto revisado localmente. Sin sesión/conexión/límite/servicio siguen las guías locales. [Contrato](briefs/asistente-hibrido-2026-09-15.md).

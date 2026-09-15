@@ -1118,6 +1118,9 @@ function App(){
   // v4: Ajustes es push a pantalla completa (SPEC §9). drawerMounted = primera apertura.
   const [drawerMounted,setDrawerMounted]=useState(false);
   const [apuntarOpen,setApuntarOpen]=useState(false);
+  const [apuntarCash,setApuntarCash]=useState(false);
+  const [helpOpen,setHelpOpen]=useState(false);
+  const [helpHistory,setHelpHistory]=useState(0);
   // Perfil pull-down (Inicio): panel hermano al shell, como Ajustes (feedback 2026-07-17).
   const [profileOpen,setProfileOpen]=useState(false);
   const [profileMounted,setProfileMounted]=useState(false);
@@ -3143,6 +3146,7 @@ function App(){
         setProfileMounted(true);
         requestAnimationFrame(function(){ requestAnimationFrame(function(){ profSetOrigin(); setProfileOpen(true); }); });
       },
+      onHelp:function(){ setHelpOpen(true); },
       onGoGastos:function(){ const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i); },
       onGoPlan:function(seg){ if(seg) setPlanGoto({id:seg,ts:Date.now()}); const i=tabIds.indexOf("plan"); if(i>=0) goTabTop(i); }});
     // Sin prop `active`: ver `mcOnGastosActive` — si viaja por props, entrar en Gastos
@@ -3289,7 +3293,7 @@ function App(){
           React.createElement("button",{className:"botnav-tab"+(tab===1&&!drawerOpen&&!profileOpen?" active":""),"data-tour":"gastos",onTouchStart:function(){ prepMountTab(1); },onClick:function(){ setDrawerOpen(false); setProfileOpen(false); goTab(1); }},
             React.createElement(I.expense,null), t("tab_gastos")),
           React.createElement("div",{className:"botnav-fab-slot"},
-            React.createElement("button",{className:"botnav-fab","aria-label":t("v4_apuntar"),"data-tour":"apuntar",onClick:function(){ setApuntarOpen(true); }},
+            React.createElement("button",{className:"botnav-fab","aria-label":t("v4_apuntar"),"data-tour":"apuntar",onClick:function(){ setApuntarCash(false); setApuntarOpen(true); }},
               React.createElement(I.plus,{width:26,height:26,stroke:"currentColor"}))
           ),
           React.createElement("button",{className:"botnav-tab"+(tab===2&&!drawerOpen&&!profileOpen?" active":""),"data-tour":"plan",onTouchStart:function(){ prepMountTab(2); },onClick:function(){ setDrawerOpen(false); setProfileOpen(false); goTab(2); }},
@@ -3300,9 +3304,25 @@ function App(){
       )
     ),
     React.createElement(AskHost,null),
+    helpOpen && React.createElement(HelpAssistant,{onClose:function(){ setHelpOpen(false); },online:online,signedIn:!!uid,simple:!!(state.settings&&state.settings.simpleMode),hiddenTabs:hiddenTabIds,hasCash:(state.accounts||[]).some(isEfectivoEnt),
+      onAction:function(id){
+        if(!Object.prototype.hasOwnProperty.call(HELP_ACTION_LABELS,id)) return;
+        setHelpOpen(false); setProfileOpen(false); setDrawerOpen(false);
+        if(id==="cash"){ setApuntarCash(true); setApuntarOpen(true); return; }
+        if(id==="banks"||id==="history"||id==="settings"){
+          setDrawerMounted(true); setDrawerOpen(true);
+          if(id==="banks"){ setBanksFocus(""); setBanksGoto(Date.now()); }
+          if(id==="history") setHelpHistory(Date.now());
+          return;
+        }
+        var dest=id==="expenses"?"gastos":id==="accounts"?"cartera":"plan";
+        if(dest==="plan") setPlanGoto({id:id==="goals"?"metas":id==="debts"?"deudas":"recibos",ts:Date.now()});
+        if(id==="expenses") setGastosForceAll(Date.now());
+        var index=tabIds.indexOf(dest); if(index>=0) goTabTop(index);
+      }}),
     cloud.enabled() && sharedOpen && React.createElement(SharedPanel,{state:state,set:set,uid:uid,totals:totals,showToast:showToast,
       meEmail:(session&&session.user&&session.user.email)||null,onClose:function(){ setSharedOpen(false); }}),
-    React.createElement(ApuntarSheet,{open:apuntarOpen,onClose:function(){ setApuntarOpen(false); },state:state,set:set,showToast:showToast,
+    React.createElement(ApuntarSheet,{open:apuntarOpen,preferCash:apuntarCash,onClose:function(){ setApuntarOpen(false); },state:state,set:set,showToast:showToast,
       goGastos:function(){ const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i); }}),
     tourOpen && React.createElement(Tour,{onDone:endTour, goTab:goTab, tabIds:tabIds}),
     whatsNew && React.createElement(WhatsNew,{onClose:function(){ setWhatsNew(false); },showToast:showToast,set:set,state:state}),
@@ -3338,7 +3358,7 @@ function App(){
       drawerMounted && React.createElement(SettingsPanel,{state:state,set:set,onClose:function(){
           if(typeof betaOlvidarVuelta==="function") betaOlvidarVuelta();
           setDrawerOpen(false);
-        },showToast:showToast,uid:uid,onBankSync:sincronizarAMano,onTour:openTour,totals:totals,fetchPrices:fetchPrices,refreshFx:refreshFx,goBanks:banksGoto,goBanksFocus:banksFocus,
+        },showToast:showToast,uid:uid,onBankSync:sincronizarAMano,onTour:openTour,onHelp:function(){ setHelpOpen(true); },goHistory:helpHistory,totals:totals,fetchPrices:fetchPrices,refreshFx:refreshFx,goBanks:banksGoto,goBanksFocus:banksFocus,
         goGastos:function(){ setDrawerOpen(false); setGastosForceAll(Date.now()); const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i); }})
     ),
     React.createElement("div",{className:"profile-dim-layer"+(profileOpen?" on":""),ref:dimLayerRef,style:profileOpen?{opacity:"1"}:undefined,"aria-hidden":"true"}),

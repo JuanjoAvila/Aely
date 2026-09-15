@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.27.0",
+    "d": "15 sep 2026",
+    "t": {
+      "es": "Ayuda para saber qué hacer",
+      "en": "Help finding your next step",
+      "ca": "Ajuda per saber què fer"
+    },
+    "items": {
+      "es": [
+        "Desde Inicio y Ajustes puedes escribir una duda o elegir un tema y abrir la pantalla que necesitas.",
+        "Las guías de efectivo, bancos, categorías, recibos, deudas y metas también funcionan sin conexión."
+      ],
+      "en": [
+        "From Home and Settings, write a question or choose a topic and open the screen you need.",
+        "Guides for cash, banks, categories, bills, debts and goals also work offline."
+      ],
+      "ca": [
+        "Des d’Inici i Configuració pots escriure un dubte o triar un tema i obrir la pantalla que necessites.",
+        "Les guies d’efectiu, bancs, categories, rebuts, deutes i metes també funcionen sense connexió."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "ayuda-hibrida",
+        "t": {
+          "es": "Ayuda para saber qué hacer",
+          "en": "Help finding your next step",
+          "ca": "Ajuda per saber què fer"
+        },
+        "items": {
+          "es": [
+            "1. En Inicio abre Ayuda de Aely y escribe cómo apuntar un gasto en efectivo. Comprueba que aparece una guía clara.",
+            "2. Pulsa Apuntar en efectivo: debe abrir el formulario con Efectivo elegido. Si no tienes esa cuenta, abre Cuentas. Cierra sin guardar.",
+            "3. Sin conexión, vuelve a Ayuda y elige Metas o Deudas. La guía debe seguir disponible y abrir su pantalla; en modo sencillo te lleva a Ajustes. La consulta con IA todavía no está disponible; las guías locales sí."
+          ],
+          "en": [
+            "1. From Home open Aely help and ask how to record a cash expense. Check that a clear guide appears.",
+            "2. Tap Record cash expense: the form should open with Cash selected. If you do not have that account, open accounts. Close without saving.",
+            "3. Offline, return to Help and choose Goals or Debts. The guide should remain available and open its screen; simple mode takes you to Settings. AI queries are not available yet; local guides are."
+          ],
+          "ca": [
+            "1. A Inici obre Ajuda d’Aely i escriu com apuntar una despesa en efectiu. Comprova que apareix una guia clara.",
+            "2. Prem Apuntar en efectiu: ha d’obrir el formulari amb Efectiu triat. Si no tens aquest compte, obre Comptes. Tanca sense desar.",
+            "3. Sense connexió, torna a Ajuda i tria Metes o Deutes. La guia ha de continuar disponible i obrir la pantalla; en mode senzill et porta a Configuració. La consulta amb IA encara no està disponible; les guies locals sí."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.0",
     "d": "15 sep 2026",
     "t": {

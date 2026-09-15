@@ -2099,7 +2099,7 @@ function CurConverterPanel({state, onClose, refreshFx}){
 }
 
 /* Contenido del cajón de Ajustes (el cajón deslizante lo gestiona App). */
-function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour, totals, fetchPrices, refreshFx, goBanks, goBanksFocus, goGastos}){
+function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour, totals, fetchPrices, refreshFx, goBanks, goBanksFocus, goGastos, onHelp, goHistory}){
   const [expand,setExpand]=useState(null);   // fila-acordeón abierta: "lang" | "gview" | "tabs" | "cur" | null
   const [newsOpen,setNewsOpen]=useState(false);   // histórico de Novedades (WhatsNew reabierto a mano)
   const [privOpen,setPrivOpen]=useState(false);    // política de privacidad DENTRO de la app (no _blank)
@@ -2163,6 +2163,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     return function(){ window.removeEventListener("mc-open-beta-review",h); };
   },[]);
   const [hojaOpen,setHojaOpen]=useState(false);  // importar una hoja de gastos (Excel/CSV)
+  useEffect(function(){ if(goHistory) setHistOpen(true); },[goHistory]);
   const [histOpen,setHistOpen]=useState(false);  // importar histórico del banco (Ajustes → Importaciones)
   const [autoBackOpen,setAutoBackOpen]=useState(false);  // copias automáticas diarias (state_backups)
   const prodVer=useProdVersion();                // Pages ahora (cruda); null mientras pregunta
@@ -2334,6 +2335,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         React.createElement("div",{style:{fontSize:12,color:"var(--mint)",marginTop:4,fontWeight:700}}, uid?t("v4_set_profile_sync"):t("v4_set_profile_local"))
       )
     ),
+    onHelp && React.createElement("button",{type:"button",className:"btn btn-ghost aely-help-entry",onClick:onHelp},t("help_title")),
     React.createElement("input",{style:Object.assign({},inp,{marginTop:12}),placeholder:t("st_search_ph"),value:q,onChange:function(e){ setQ(e.target.value); }}),
 
     React.createElement("div",{className:"v4-set-sec"}, t("v4_set_appear")),

@@ -1,8 +1,9 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-16 · **v4.26.0** — categorías personales preparadas sobre la 4.25 revisada; integración en beta y despliegue de `ingest`/`categorize` pendientes de su orden y autorización. Producción y beta se consultan con `npm run salud`.
+> Estado a 2026-09-16 · **v4.27.0** — ayuda híbrida preparada sobre la 4.26: guías offline y navegación desde Inicio/Ajustes. La IA remota sigue desactivada; pendiente de revisión e integración.
+> Anterior: **v4.26.0** — categorías personales preparadas sobre la 4.25 revisada; integración en beta y despliegue de `ingest`/`categorize` pendientes de su orden y autorización.
 > Anterior: **v4.25.0** — corrección de lectura bancaria revisada, pendiente de publicar en beta y desplegar `bank-sync` (autorizado).
-> Anterior: **v4.24.4** — Ajustes ya no se abre solo tras probar la beta.
+> Anterior: **v4.24.4** — Ajustes ya no se abre solo tras probar la beta. Producción y beta se consultan con `npm run salud`.
 > Anterior: **v4.24.3** — el banco espera a la nube: un móvil con datos viejos ya no repite movimientos.
 > Anterior: **v4.24.2** — Inicio y panel beta sin red (skel corto).
 > Anterior: **v4.24.1** — la lista de Gastos marca los ingresos que no cuentan (otro banco o traspaso), igual que el balance; ingest deja rastro de cada descarte.
@@ -186,7 +187,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.0** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.27.0** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

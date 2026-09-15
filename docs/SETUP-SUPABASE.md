@@ -148,3 +148,7 @@ Mantén el Apps Script activo hasta confirmar que entran gastos por Supabase; lu
 ## Categorías personales (4.26.0, pendiente de despliegue)
 
 Publicar `ingest` y `categorize` junto a `_shared/category_preferences.ts` y `_shared/ingest_logic.ts` solo con aprobación. Primero debe desplegarse y observarse el ingest de 4.24.1; esta tanda va después. Sin nuevas tablas, migraciones ni secretos. Proyección JSON de catOverrides, máximo 2000 claves / 128 KiB UTF-8; ante error se conserva el gasto y se registra aviso genérico. Ver [brief](briefs/categorias-personales-2026-09-15.md).
+
+## Ayuda opcional con IA (4.27.0, NO activada)
+
+Nueva `help-assistant`, verify_jwt=true y getUser. Reutiliza OPENAI_API_KEY en servidor; exige además AELY_HELP_AI_ENABLED=true. Por defecto no hace llamadas al modelo aunque exista una clave. Snapshot fijo gpt-4o-mini-2024-07-18, /v1/responses, store:false, JSON schema cerrado, salida200tokens y timeout12s. Límites con check_rate_limit: 15/600s por usuario, 30/86400s por usuario y 1000/86400s global; si el contador falla, no se llama al proveedor. Sin migraciones. No activar ni desplegar por separado sin revisión/OK final del dueño. [Coste y verificación](briefs/asistente-hibrido-2026-09-15.md).

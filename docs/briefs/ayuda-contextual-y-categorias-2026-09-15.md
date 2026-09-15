@@ -1,3 +1,7 @@
+> Estado actualizado: el usuario eligió ayuda híbrida. Este texto conserva el diseño inicial;
+> implementación y pruebas actuales en [ayuda](asistente-hibrido-2026-09-15.md) y
+> [categorías personales](categorias-personales-2026-09-15.md).
+
 # Ayuda dentro de Aely y categorías que aprenden
 
 Propuesta de arquitectura, 15/9/2026. Sin chatbot desplegado ni API nueva. Preparada a partir de

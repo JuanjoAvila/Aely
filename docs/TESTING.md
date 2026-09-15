@@ -446,3 +446,7 @@ Reglas:
 ## Categorías personales
 
 `node tests/category-preferences.test.mjs` ejecuta ingest/categorize con proveedor y BD simulados, dos titulares y presupuesto/widget. Registrado en run-tests y STEPS_SUPABASE. `e2e/categorias-ia-respuesta.spec.mjs` comprueba mensajes y selección visible en Gastos; registrado bajo 04-tab-gastos. No necesita movimientos ni llamadas de IA reales.
+
+## Ayuda híbrida
+
+`tests/help-assistant.test.mjs` ejecuta el handler con proveedor/auth/limitador simulados y el catálogo real. Cubre auth, límites, servicio desactivado, proyección de pregunta, ids desconocidos, rechazo e incompleto. Registrado en run-tests y STEPS_SUPABASE. `e2e/help-assistant.spec.mjs` abre Inicio, ayuda, efectivo, Plan y Ajustes; registrado bajo los módulos de navegación/ayuda. No requiere datos de clientes ni API de pago.

@@ -1750,6 +1750,19 @@
     #mc-load .mcl-name{animation:none !important;}
     #mc-load .mcl-name.lista{opacity:1;}
   }
+
+/* Ayuda con teclado y scroll propio, por encima de Ajustes. */
+.aely-help{position:fixed;inset:0;z-index:12000;background:var(--surface);color:var(--text);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+.aely-help-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;border-bottom:1px solid var(--surface-2)}
+.aely-help-head h1{font-size:20px;margin:0}
+.aely-help-body{overflow-y:auto;overscroll-behavior:contain;padding:16px 18px calc(24px + env(safe-area-inset-bottom));max-width:640px;width:100%;box-sizing:border-box;margin:auto;flex:1}
+.aely-help-body textarea{width:100%;box-sizing:border-box;resize:vertical;margin:8px 0;min-height:80px}
+.aely-help-body label{font-weight:700}
+.aely-help-body .hint{color:var(--muted)}
+.aely-help-topics,.aely-help-actions{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.aely-help-body h2{font-size:17px}
+.aely-help-remote{margin-top:20px}
+.aely-help-entry{margin:6px 0 10px}
 </style>
 </head>
 <body>

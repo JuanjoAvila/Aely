@@ -48,7 +48,8 @@ export const CORE = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
-  { file: "src/modules/03-tab-dash.js", specs: [
+  {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs"]},
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/help-assistant.spec.mjs",
     "e2e/pulido-vacios.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs",
     "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: [
@@ -80,7 +81,7 @@ export const E2E_MAP = [
   { file: "src/modules/09-tab-debts-goals.js", specs: [
     "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs", "e2e/pulido-numpad.spec.mjs",
   ] },
-  { file: "src/modules/10-app-components.js", specs: [
+  { file: "src/modules/10-app-components.js", specs: ["e2e/help-assistant.spec.mjs",
     "e2e/modo-inicial.spec.mjs",
     "e2e/profile-anim.spec.mjs", "e2e/perfil-simetria.spec.mjs", "e2e/delete-account.spec.mjs",
     "e2e/revisar-beta.spec.mjs", "e2e/beta-panel-reopen.spec.mjs", "e2e/ajustes-versiones.spec.mjs", "e2e/ajustes-importaciones.spec.mjs",
@@ -93,7 +94,7 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/12-boot.js", specs: ["e2e/splash.spec.mjs", "e2e/smoke.spec.mjs", "e2e/csp.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },
-  { file: "src/modules/14-v4-screens.js", specs: [
+  { file: "src/modules/14-v4-screens.js", specs: ["e2e/help-assistant.spec.mjs",
     "e2e/pulido-apuntar.spec.mjs", "e2e/pulido-numpad.spec.mjs",
     "e2e/apuntar-sheet.spec.mjs", "e2e/apuntar-sugerencia.spec.mjs", "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/cartera-orden-hogar.spec.mjs",
@@ -135,7 +136,7 @@ export const CROSSCUTTING = [
 const STEPS_DOCS = ["guard-privacy", "docs-frescura", "memoria-espejo"];
 const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente"];
 const STEPS_SUPABASE = [
-  "category-preferences", "categorias-dual",
+  "help-assistant", "category-preferences", "categorias-dual",
   "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente",
   "month-window", "wallet-notis", "ingest-classify", "divisa-original", "presupuesto-rendimiento",
   "grants-migraciones", "entrada-edge", "bank-sync-paging", "tr-open-banking",

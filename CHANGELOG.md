@@ -1,3 +1,18 @@
+## [4.27.0] - 2026-09-15
+### Ayuda híbrida: catálogo local y navegación verificada
+
+La familia no encontraba cómo apuntar efectivo, distinguir una meta de una deuda o recuperar
+movimientos bancarios. Nuevo módulo 16-help-assistant: entrada en Inicio y Ajustes, duda escrita,
+siete guías es/en/ca, acceso a pantallas reales. Apuntar admite un preset de efectivo solo si
+existe el sobre; sin cuenta remite a Cartera. Pantallas ocultas/modo sencillo remiten a Ajustes.
+No guarda movimientos ni cambia preferencias al seguir una guía. Teclado, Escape y foco de retorno.
+
+La Edge help-assistant verifica JWT y clasifica solo la duda explícita en ids cerrados con
+Responses/Structured Outputs. No consulta el estado financiero ni registra preguntas. Servicio
+apagado por defecto, límites por usuario/global y proveedor simulado en pruebas. Activación y
+costes requieren revisión final; no se ha llamado al proveedor real ni desplegado la función.
+[Contrato y validación](docs/briefs/asistente-hibrido-2026-09-15.md).
+
 ## [4.26.0] - 2026-09-15
 ### Categorías por titular en ingest y errores de sugerencias visibles
 
