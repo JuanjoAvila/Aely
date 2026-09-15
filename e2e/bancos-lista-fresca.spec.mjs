@@ -11,9 +11,9 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
  * Al volver de autorizar, la pantalla ya estaba montada y seguía enseñando la lista de antes.
  * `runBankSync` avisa ahora al terminar (`mc-bank-links-changed`) y el panel vuelve a leer.
  *
- * El doble de `cloud.bankLinks` va POR LLAMADA a propósito: la primera devuelve lo de antes y la
- * segunda lo de después, que es exactamente la secuencia real (abres la pantalla → conectas →
- * acaba el sync). Con un doble fijo el test pasaría igual sin el arreglo.
+ * El doble cambia cuando se simula la conexión, no por número de consultas: Ajustes también
+ * lee los bancos y la antigua espera de Novedades ocultaba esa carrera (15/9). Sin el evento
+ * de refresco, el panel conserva la lista anterior aunque el servidor ya tenga Caixa.
  */
 
 const SABADELL = {
@@ -31,13 +31,11 @@ test("un banco conectado sale en la lista sin salir y volver a entrar", async ({
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
 
-  // Doble por llamada: 1ª = solo Sabadell (lo que había al abrir), a partir de la 2ª = con Caixa.
+  // La respuesta solo cambia al conectar; una consulta de Ajustes no adelanta el escenario.
   await page.evaluate(([sab, caixa]) => {
-    let n = 0;
-    window.__nBankLinks = () => n;
+    window.__bankConnected = false;
     cloud.bankLinks = function () {
-      n++;
-      return Promise.resolve(n === 1 ? [sab] : [sab, caixa]);
+      return Promise.resolve(window.__bankConnected ? [sab, caixa] : [sab]);
     };
   }, [SABADELL, CAIXA]);
 
@@ -47,7 +45,10 @@ test("un banco conectado sale en la lista sin salir y volver a entrar", async ({
   await expect(filas.first()).toBeVisible({ timeout: 10_000 });
 
   // Lo que hace `runBankSync` al terminar. Sin el arreglo, el panel lo ignora y se queda en 1.
-  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-bank-links-changed")));
+  await page.evaluate(() => {
+    window.__bankConnected = true;
+    window.dispatchEvent(new CustomEvent("mc-bank-links-changed"));
+  });
 
   await expect(filas, "el banco recién conectado tiene que salir sin cerrar la pantalla").toHaveCount(2, { timeout: 10_000 });
 });
