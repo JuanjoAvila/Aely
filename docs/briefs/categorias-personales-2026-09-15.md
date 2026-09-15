@@ -1,6 +1,6 @@
 # Categorías personales coherentes entre app y notificaciones
 
-En preparación en `codex/categorias-personales`, sobre `ded5cd2b` (beta 4.24.1).
+Preparada en `codex/categorias-personales`, integrada sobre 4.24.3 (`fd31aa20`) y bancos 4.25.
 Sin despliegue ni cambios en datos reales. Conserva `clasificarConMotivo` e `ingest_skip` de
 Claude; esta tanda se desplegará después de observar aquella versión, no en el mismo paso.
 
@@ -36,10 +36,16 @@ falló antes del cambio (`recibos` frente a `bares`) y pasa después, alternando
   y `presupuesto-servidor` también pasan.
 - `deno check --no-lock` de ingest y categorize: verde. El guard de `eur===null` se coloca
   después de ambas ramas de moneda para estrechar el tipo sin inventar un importe.
-- Build y `i18n-keys`: verdes tras los últimos textos; pendiente navegador.
-- `categorias-ia-respuesta`: siete casos de UI preparados, pendientes de turno de navegador.
+- Build y `i18n-keys`: verdes tras los últimos textos.
+- `categorias-ia-respuesta`: siete casos de UI verdes en Chromium oficial, también en las completas.
 - UTC: 10 suites dirigidas verdes, incluidas preferencias, categorías, presupuesto/widget, ingest, entrada Edge, limitador, i18n, mapa y seguridad.
-- Versión preparada 4.26.0; pendientes UI, revisión e integración.
+- Versión preparada 4.26.0, integrada sobre 4.24.3 y bancos. Claude y Cursor: verde leyendo.
+- Integración de los cuatro bloques `1336fcb8`: `npm test` EXIT 0 en Europe/Madrid y UTC,
+  Node + Deno verdes, 298 E2E correctos / 1 captura omitida / 0 fallos / 0 flaky en cada pasada.
+  Tiempos completos: 225,263 s y 225,276 s. Revisión ejecutada de afectados pendiente.
+
+La antigua semilla `catOverrides.mapfre=bares` está dentro de `if(isDemo)`, condicionada a
+cuentas legacy/demo del creador. No se aplica a todas las personas; se conserva ese alcance.
 
 ## Límites y despliegue
 
