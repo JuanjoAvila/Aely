@@ -101,6 +101,15 @@ Tras unos dos segundos se pinta el estado local; si la nube llega después, se a
 Pastilla «sin conexión» como hasta ahora. e2e offline + boot-ready bloqueado + red lenta.
 
 ## [4.23.1] - 2026-09-14
+### Herramientas de pruebas preparadas el 15/9 (integración pendiente)
+
+`dismissNews` evita esperar 4 s cuando el fixture sembró la misma versión base que está
+ejecutando el navegador y no hay panel. Conserva la espera ante versiones nuevas o datos
+inciertos. Cuatro guardianes cubren aviso tardío, ausencia de garantía y sufijo beta. A/B
+en nueve casos idénticos: 46,094 s → 12,373 s, ambos sin fallos ni omitidos. El runner y el
+reporter JSON registran duraciones para localizar el siguiente coste. La validación completa
+se hará con el commit de tooling separado encima de bancos 4.25.0, después de integrar 4.24.3.
+
 ### La 4.23.0 a producción, con una sola nota
 
 Él aprobó la 4.23.0 (tanda `sec01-callback`) en el chat: *«aprobada la 4.23.0, sube a prod y

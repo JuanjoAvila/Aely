@@ -5,6 +5,8 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
   await page.addInitScript((overrides) => {
     const seedOnce = !!overrides.__seedOnce;
     delete overrides.__seedOnce;
+    const seenVersion = overrides.__seenVersion ?? "dev";
+    delete overrides.__seenVersion;
     const session = { user: { id: "e2e-user", email: "e2e@test.local" } };
     // Filas por tabla para los tests que necesitan datos de la nube (p.ej. `bank_links` para
     // «Mis bancos»). Viaja dentro de `overrides` con un nombre que no choca con el estado real,
@@ -120,7 +122,10 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       localStorage.setItem("micartera_v3", JSON.stringify(Object.assign(base, overrides)));
       if (seedOnce) sessionStorage.setItem("_e2eSeeded", "1");
     }
-    localStorage.setItem("_seenVersion", "dev");
+    localStorage.setItem("_seenVersion", seenVersion);
+    // Guardamos lo sembrado, no lo que lea el helper después: al abrir el popup la app ya
+    // sella _seenVersion, y confundir ese sello tardío con el inicial escondería la carrera.
+    window.__e2eNewsSeenVersion = seenVersion;
     try {
       ["dash", "metas", "gastos", "fijos", "inv"].forEach((id) =>
         localStorage.setItem("_coach_" + id, "1")
@@ -149,6 +154,17 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
  *  primer tick y un `count()` a pelo lo dejaba abierto — luego interceptaba los clics del
  *  panel de revisión (CI 4.19.89). */
 export async function dismissNews(page) {
+  // La mayoría de pruebas siembran esta versión como vista. Esperar cuatro segundos por
+  // un popup que la app no debe abrir añadía minutos a cada pasada (feedback 15/9).
+  // Se consulta la versión DEL NAVEGADOR con la regla real, también para sufijos de beta.
+  // Una versión vieja, un panel ya montado o cualquier duda conservan la espera de siempre.
+  const alreadySeen = await page.evaluate(() => {
+    if (typeof CONFIG === "undefined" || typeof mcVerBase !== "function") return false;
+    const version = mcVerBase(CONFIG.APP_VERSION);
+    return window.__e2eNewsSeenVersion === version &&
+      localStorage.getItem("_seenVersion") === version && !document.querySelector(".wn-panel");
+  }).catch(() => false);
+  if (alreadySeen) return;
   const btn = page.getByRole("button", { name: /Entendido|Got it|D'acord/i });
   try {
     await btn.first().waitFor({ state: "visible", timeout: 4_000 });
