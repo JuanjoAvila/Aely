@@ -33,6 +33,12 @@ suite: no todos los tests llaman a este helper. Guardianes nuevos: **4/4, EXIT 0
 incluyendo el montaje tardío y el sufijo de beta. Runner de tiempos: tres etapas reales,
 salida 0 e informe JSON correcto. Pasada completa optimizada: pendiente.
 
+La primera completa integrada detectó una carrera en `bancos-lista-fresca`: el doble cambiaba
+de respuesta por número de consultas, contando también la de Ajustes. Comparación aislada
+con el mismo bundle: fixture antiguo PASS, optimizado FAIL (Caixa aparecía antes de conectar).
+El doble ahora cambia al simular la conexión, conservando la comprobación DOM antes/después
+del evento. No se recupera la espera accidental ni se reduce la cobertura.
+
 Acuerdo de integración con Claude: commit de tooling separado encima de bancos 4.25.0, tras
 4.24.2 y 4.24.3. Una pareja completa Madrid/UTC valida el árbol final; no se repite antes otra
 batería completa de tooling por separado. Si algo falla, comparar ese spec con/sin el commit
