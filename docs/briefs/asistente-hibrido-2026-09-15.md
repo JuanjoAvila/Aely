@@ -41,7 +41,8 @@ limitador compartido, no a un día local del teléfono. La ayuda local sigue dis
 
 Tarifa consultada el 15/09/2026: 0,15 USD/millón de tokens de entrada y 0,60 USD/millón de salida.
 Escenario conservador **estimado**, 4096 tokens de entrada y 200 de salida: 0,0007344 USD por
-pregunta; 1000 preguntas equivaldrían a unos 0,74 USD de modelo. No incluye Edge/BD, impuestos,
+pregunta; 1000 preguntas equivaldrían a unos 0,74 USD de modelo (unos 22 USD si se agotase ese
+tope todos los días durante 30 días). No incluye Edge/BD, impuestos,
 ni cambios de tarifa. No es un límite de facturación de la cuenta OpenAI.
 [Modelo, tarifas y compatibilidad](https://developers.openai.com/api/docs/models/gpt-4o-mini).
 
@@ -54,9 +55,17 @@ despliegue final. No requiere APK ni migraciones; cliente por OTA y Edge separad
 - Handler real con proveedor, autenticación y limitador simulados: verde. Incluye límites
   individuales/global, falta de clave/activación/sesión, fallo del contador y aislamiento del
   cuerpo remitido al proveedor. Catálogo cliente/servidor comparado por el test.
-- `deno check --no-lock`, edge-sintaxis, sintaxis del bundle, i18n, mapa y seguridad: verdes
-  durante la implementación; repetir los afectados tras los últimos ajustes.
-- E2E preparados para efectivo offline sin escritura, tres segmentos de Plan, modo sencillo,
-  histórico, consulta explícita e ids inválidos/foco. Pendiente turno de navegador y revisión.
-- Integración local completada conservando los commits por bloque. No pasar a beta
-  ni afirmar que está disponible en móviles hasta cerrar esa validación.
+- `deno check --no-lock`, edge-sintaxis, sintaxis del bundle, i18n, mapa y seguridad: verdes.
+- **10 E2E verdes**: efectivo offline sin escritura, tres segmentos de Plan, modo sencillo,
+  histórico, consulta explícita, ids inválidos/foco y función ausente (404) o apagada (503).
+  En ambos fallos remotos la guía y sus botones siguen usables, sin exponer el error crudo.
+- `npm test` completo de `1336fcb8`, Chromium oficial 1228, **EXIT 0 Madrid y UTC**. Node + Deno
+  verdes; **298 E2E correctos / 1 captura ya omitida / 0 fallos / 0 flaky** en cada pasada.
+  Duración total: 225,263 s y 225,276 s. Incluye las siete pruebas de categorías y las de bancos.
+- Revisión visual de la guía de efectivo a tamaño móvil: botón principal destacado, lectura y
+  desplazamiento correctos. El formulario abre Efectivo y no guarda hasta la confirmación normal.
+- Claude y Cursor: verde leyendo. Revisión ejecutada de ayuda/categorías en curso tras la de bancos.
+  Los rebases posteriores solo incorporan documentación: fuente, tests y bundle idénticos al
+  árbol que pasó las dos completas (comparación Git excluyendo `docs/`).
+- Integración local terminada con commits por bloque. Banco 4.25 primero, categorías 4.26 y ayuda
+  4.27 después. Ninguno de estos bloques se ha publicado todavía ni se ha activado IA de pago.

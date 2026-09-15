@@ -2,7 +2,7 @@
 
 Petición del dueño: 15/9/2026. Rama `codex/tests-eficientes`, preparada sobre `f30fe208`
 para conservar el arreglo de consultas concurrentes del fixture de Claude. Integrada en commits
-separados sobre fd31aa20 junto a bancos, categorías y ayuda; pendiente pareja completa final.
+separados sobre fd31aa20 junto a bancos, categorías y ayuda; pareja completa final verde.
 
 ## Medición y cambios
 
