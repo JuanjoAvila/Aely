@@ -1,3 +1,19 @@
+## [4.24.4] - 2026-09-15
+### Ajustes ya no se abre solo tras probar la beta
+
+Rechazo 4.24.2 (15/9): «se abre todo el rato Ajustes… me la liasteis». Causa: «volver al
+panel de pruebas» (10/9) reabría Ajustes+Revisar beta si `_betaPanelAbierto` < 2 h, y el
+panel al montar reescribía `Date.now()` → renovaba las 2 h en cada muerte de WebView.
+
+- Montar el panel por reapertura automática ya no toca la marca; solo interacción real
+  (scroll, marcar punto, nota, abrir «Revisar esta beta» a mano).
+- Como mucho una reapertura automática por marca (`_betaPanelReabierto`).
+- Cerrar Ajustes (‹, gesto, atrás, botnav) o el panel, o enviar el último veredicto →
+  `betaOlvidarVuelta()`.
+- e2e `beta-panel-reopen`: 1ª carga abre, 2ª sin tocar → Inicio; cerrar cajón → Inicio;
+  último veredicto → Inicio.
+- Tandas de 4.24.1 y 4.24.3 vacías (aprobadas); 4.24.2 paso 2 reescrito; tanda nueva con
+  su frase literal.
 ## [4.24.3] - 2026-09-15
 ### El banco espera a la nube: un móvil con datos viejos ya no repite movimientos
 
@@ -5435,3 +5451,4 @@ Con esto queda **completo el motor dinámico**: calendario de fijos, día de cob
 - Sincronización de gastos con deduplicación.
 - Swipe entre las 6 pestañas con detección de eje.
 - Dashboard: patrimonio neto, sparkline, anillo de presupuesto, racha.
+
