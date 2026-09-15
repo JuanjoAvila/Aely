@@ -3,12 +3,11 @@
 // La llama la app (usuario logueado). Trae SALDO + MOVIMIENTOS de los bancos
 // enlazados del usuario.
 //
-// CAPA 1 (ahora): DRY-RUN — devuelve los datos como JSON, NO escribe nada.
-// CAPA 2/3 (después): usaremos esto para el saldo y, con cuidado, los gastos.
+// El sync actualiza el estado del enlace; el histórico es de solo lectura.
 // ============================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { ebApi, ebConfig, jsonResp, makeJWT, mapTransaction } from "../_shared/enablebanking.ts";
+import { ebApi, ebConfig, jsonResp, makeJWT, mapTransaction, fetchBankTransactions } from "../_shared/enablebanking.ts";
 import { withCors } from "../_shared/cors.ts";
 
 // Diagnóstico del «Movimiento» sin comercio ni concepto que salía como ingreso siendo un gasto
@@ -62,6 +61,9 @@ async function logObAmbiguous(admin: any, userId: string, aspsp: string, raw: an
 }
 
 Deno.serve(withCors(async (req: Request) => {
+  // El límite por cuenta no basta: muchas cuentas lentas podrían agotar la Edge y perder
+  // también las respuestas buenas. Se reserva margen para devolverlas y cerrar la petición.
+  const deadline = Date.now() + 60000;
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const supa = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
@@ -82,13 +84,14 @@ Deno.serve(withCors(async (req: Request) => {
     // ok:false. Antes solo venían los 'active' → un banco caducado desaparecía del sync, la app
     // reconstruía obAccounts sin él y sus cuentas se ESFUMABAN del patrimonio sin ningún aviso.
     const admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const { data: allLinks } = await admin
+    const { data: allLinks, error: linksError } = await admin
       .from("bank_links").select("*")
       // Y también los 'pending' (11/9/2026): un banco que se quedó a medio autorizar no entraba
       // aquí, así que no salía en la respuesta y la app no tenía NADA que avisar. Su CaixaBank
       // estuvo semanas en pendiente sin que ni el sync ni ninguna pantalla lo dijeran: «al
       // sincronizar no sale ni un aviso ni nada, he tenido que venir aquí para ver qué pasaba».
       .eq("user_id", user.id).in("status", ["active", "expired", "error", "pending"]);
+    if (linksError) return jsonResp({ ok: false, error: "bank_links_unavailable" }, 503);
     const links = (allLinks || []).filter((l) => l.status === "active");
     const deadLinks = (allLinks || []).filter((l) => l.status !== "active");
 
@@ -107,25 +110,24 @@ Deno.serve(withCors(async (req: Request) => {
         for (const ac of acctList) {
           const uid = ac?.uid;
           if (!uid || typeof uid !== "string") continue;
+          if (Date.now() >= deadline) {
+            accts.push({ uid, ok: false, truncated: true, transactionError: "timeout", transactions: [] });
+            continue;
+          }
           try {
-            // deno-lint-ignore no-explicit-any
-            let all: any[] = [];
-            let contKey: string | null = null;
-            let pages = 0;
-            do {
-              const qs = `?date_from=${dateFrom}` + (contKey ? `&continuation_key=${encodeURIComponent(contKey)}` : "");
-              const tx = await ebApi(jwt, `/accounts/${uid}/transactions${qs}`);
-              // deno-lint-ignore no-explicit-any
-              all = all.concat((tx.transactions || []).map((t: any) => mapTransaction(t)));
-              contKey = tx.continuation_key || null;
-              pages++;
-            } while (contKey && pages < 12 && all.length < 2000);   // tope duro anti-runaway
-            accts.push({ uid, iban: ac.iban || null, name: ac.name || null, ok: true, count: all.length, transactions: all });
+            const tx = await fetchBankTransactions(jwt, uid, dateFrom, ebApi, Math.min(15000, deadline - Date.now()));
+            const all = tx.transactions.map(mapTransaction);
+            accts.push({ uid, iban: ac.iban || null, name: ac.name || null, ok: true, count: all.length,
+              transactions: all, truncated: tx.truncated, transactionError: tx.transactionError });
           } catch (err) {
-            accts.push({ uid, iban: ac.iban || null, ok: false, error: String((err as Error)?.message || err), transactions: [] });
+            accts.push({ uid, iban: ac.iban || null, ok: false, error: "transactions_unavailable", transactions: [] });
           }
         }
-        hist.push({ aspsp: link.aspsp_name, iban: link.iban, accounts: accts });
+        hist.push({ aspsp: link.aspsp_name, iban: link.iban, ok: accts.some(a => a.ok), accounts: accts });
+      }
+      for (const link of deadLinks) {
+        hist.push({ aspsp: link.aspsp_name, ok: false, pending: link.status === "pending",
+          expired: link.status === "expired", noacct: link.status === "error", accounts: [] });
       }
       return jsonResp({ ok: true, history: true, dateFrom, links: hist });
     }
@@ -156,9 +158,21 @@ Deno.serve(withCors(async (req: Request) => {
       for (const ac of acctList) {
         const uid = ac?.uid;
         if (!uid || typeof uid !== "string") continue;
+        const accountDeadline = Math.min(deadline, Date.now() + 15000);
+        if (Date.now() >= accountDeadline) {
+          lastErr = "timeout";
+          acctOut.push({ uid, iban: ac.iban || null, ok: false, truncated: true, transactionError: "timeout", balances: [], count: 0, transactions: [] });
+          continue;
+        }
+        const balController = new AbortController();
+        const balTimer = setTimeout(() => balController.abort(), accountDeadline - Date.now());
         try {
-          const bal = await ebApi(jwt, `/accounts/${uid}/balances`);
-          const tx = await ebApi(jwt, `/accounts/${uid}/transactions`);
+          const bal = await ebApi(jwt, `/accounts/${uid}/balances`, {signal:balController.signal});
+          const now = new Date();
+          // Debe cubrir al menos `som` de importObExpenses (mes de Madrid menos 8 días).
+          // En el borde de mes UTC puede pedir un mes adicional, pero nunca uno de menos.
+          const recentFrom = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1) - 8 * 86400000).toISOString().slice(0, 10);
+          const tx = await fetchBankTransactions(jwt, uid, recentFrom, ebApi, accountDeadline - Date.now());
           // deno-lint-ignore no-explicit-any
           const balances = (bal.balances || []).map((b: any) => ({
             type: b.balance_type || b.name || "",
@@ -167,7 +181,8 @@ Deno.serve(withCors(async (req: Request) => {
           }));
           // deno-lint-ignore no-explicit-any
           const transactions = (tx.transactions || []).map((t: any) => mapTransaction(t));
-          acctOut.push({ uid, iban: ac.iban || null, name: ac.name || null, currency: ac.currency || null, ok: true, balances, count: transactions.length, transactions });
+          acctOut.push({ uid, iban: ac.iban || null, name: ac.name || null, currency: ac.currency || null, ok: true, balances,
+            count: transactions.length, transactions, truncated: tx.truncated, transactionError: tx.transactionError });
           anyAcctOk = true;
           logObAmbiguous(admin, user.id, link.aspsp_name, tx.transactions || []);
         } catch (err) {
@@ -183,6 +198,8 @@ Deno.serve(withCors(async (req: Request) => {
           }
           lastErr = msg;
           acctOut.push({ uid, iban: ac.iban || null, name: ac.name || null, currency: ac.currency || null, ok: false, error: msg, balances: [], count: 0, transactions: [] });
+        } finally {
+          clearTimeout(balTimer);
         }
       }
       // 401/403/404/"expired" = el permiso del banco caducó → marca SOLO este enlace, sin afectar a los demás.

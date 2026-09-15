@@ -1,5 +1,16 @@
 # Arquitectura — Aely
 
+## Lectura bancaria (4.25.0, preparada; despliegue pendiente)
+
+`bank-sync` usa `fetchBankTransactions` para sync e histórico: continúa aunque una página esté
+vacía si hay cursor; máximo 12 páginas, 2000 filas y 15 segundos por cuenta. El deadline global
+de 60 segundos permite devolver las cuentas leídas y señalar las que no pudieron consultarse. Conserva resultados
+parciales y los declara con `truncated` / `transactionError`. El histórico incluye enlaces
+inactivos sin consultarlos. `bankReadWarnings` traduce errores por banco en la previsualización;
+el sync manual tampoco anuncia «al día» cuando la lectura está incompleta.
+El cliente conserva todas las filas recibidas, sin cupo global de 150. La ventana temporal y
+las reglas de dedup de la importación diaria no cambian. No se añade ninguna sincronización.
+
 Deshacer histórico (4.19.14): calcula sobre el estado actual del updater, conserva el lote con
 `cloudPending` antes del DELETE y solo limpia ese lote tras confirmación. La ausencia de sesión
 es un error recuperable, nunca un borrado exitoso. Un pull concurrente no puede resucitar los ids

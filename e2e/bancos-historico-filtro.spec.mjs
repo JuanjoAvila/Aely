@@ -67,11 +67,11 @@ const histLinks = [
   ] }] },
 ];
 
-async function abrirHistorico(page) {
+async function abrirHistorico(page, opts={}) {
   await seedLoggedInDashboard(page, {
     hasBankLink: true,
-    __cloudRows: { bank_links: bankLinks },
-    __cloudFns: { "bank-sync": { data: { ok: true, links: histLinks }, error: null } },
+    __cloudRows: { bank_links: opts.bankLinks||bankLinks },
+    __cloudFns: { "bank-sync": { data: { ok: true, links: opts.links||histLinks }, error: opts.error||null } },
   });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
@@ -84,8 +84,10 @@ async function abrirHistorico(page) {
   const overlay = page.locator(".hist-import");
   await expect(overlay).toBeVisible();
   await overlay.getByRole("button", { name: /Buscar movimientos/i }).click();
-  await expect(overlay.getByText("Cafe TR")).toBeVisible({ timeout: 10_000 });
-  await expect(overlay.getByText("Super Sabadell")).toBeVisible();
+  if(!opts.custom){
+    await expect(overlay.getByText("Cafe TR")).toBeVisible({ timeout: 10_000 });
+    await expect(overlay.getByText("Super Sabadell")).toBeVisible();
+  }
   return overlay;
 }
 
@@ -129,4 +131,34 @@ test("Importar histórico: volver a «Todos los bancos» recupera la vista compl
   await overlay.getByRole("button", { name: "Todos los bancos" }).click();
   await expect(overlay.getByText("Super Sabadell")).toBeVisible();
   await expect(overlay.getByRole("button", { name: /Importar 2/ })).toBeVisible();
+});
+
+test("CaixaBank fallido se explica y permite importar lo recibido de Sabadell", async ({page}) => {
+  const overlay=await abrirHistorico(page,{custom:true,
+    bankLinks:[{aspsp_name:"CaixaBank",status:"active"},bankLinks[1]],
+    links:[{aspsp:"CaixaBank",accounts:[{ok:false,error:"privado",transactions:[]}]},histLinks[1]]});
+  await expect(overlay.locator(".bank-read-warning")).toContainText("CaixaBank: no se han podido leer");
+  await expect(overlay.getByText("Super Sabadell")).toBeVisible();
+  await expect(overlay.getByRole("button",{name:/Importar 1/})).toBeVisible();
+  await expect(overlay).not.toContainText("privado");
+});
+
+test("histórico pendiente omitido por Edge antiguo no se presenta como sin movimientos", async ({page}) => {
+  const overlay=await abrirHistorico(page,{custom:true,
+    bankLinks:[{aspsp_name:"CaixaBank",status:"pending"}],links:[]});
+  await expect(overlay.locator(".bank-read-warning")).toContainText("CaixaBank: falta completar la conexión");
+  await expect(overlay).not.toContainText("No hay movimientos nuevos");
+});
+
+test("histórico parcial conserva filas y mantiene el aviso aunque no haya candidatos nuevos", async ({page}) => {
+  const overlay=await abrirHistorico(page,{custom:true,bankLinks:[bankLinks[1]],
+    links:[{aspsp:"Sabadell",accounts:[{ok:true,truncated:true,transactions:[]}]}]});
+  await expect(overlay.locator(".bank-read-warning")).toContainText("Sabadell: la descarga está incompleta");
+  await expect(overlay).not.toContainText("No hay movimientos nuevos");
+});
+
+test("fallo de la consulta no afirma que no existen movimientos", async ({page}) => {
+  const overlay=await abrirHistorico(page,{custom:true,error:{message:"sin red"}});
+  await expect(overlay.locator(".bank-read-warning")).toContainText("No se han podido consultar los movimientos");
+  await expect(overlay).not.toContainText("No hay movimientos nuevos");
 });

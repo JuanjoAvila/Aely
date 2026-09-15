@@ -1,5 +1,11 @@
 # Testing — Aely
 
+Lectura bancaria 4.25.0: `tests/bank-sync-paging.test.mjs` ejecuta el handler real con BD y proveedor
+simulados (sin consultar bancos): páginas vacías, fallback de periodo, fallo parcial, cursor cíclico,
+cuentas inactivas, aislamiento, timeout y topes. Registrado en `run-tests.mjs`.
+`e2e/bancos-historico-filtro.spec.mjs` comprueba avisos visibles sin perder las filas de otros bancos.
+`tests/tr-open-banking.test.mjs` protege contra el antiguo corte global de 150 movimientos.
+
 Auditoría 4.19.14: `e2e/revisar-beta.spec.mjs` comprueba plegado automático al aprobar,
 desplegar/cambiar de opinión y conservación entre compilaciones. `e2e/bancos-historico-filtro.spec.mjs`
 actualiza el estado durante la confirmación de Deshacer y simula fallo/reintento del DELETE.
