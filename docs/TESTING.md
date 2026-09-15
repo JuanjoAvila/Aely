@@ -26,6 +26,13 @@ el aviso tardío siga cerrándose, también con una versión beta con sufijo.
 El ajuste de fixtures de `banco-espera-nube` mantiene una cadena Supabase por consulta;
 ambas regresiones están registradas en `CROSSCUTTING`.
 
+El runner ejecuta `rendimiento.spec.mjs` y `rendimiento-tabs.spec.mjs` después de los demás
+e2e, con un trabajador y sin cambiar umbrales. La CPU frenada no debe competir con pruebas
+funcionales: dos completas midieron 108/109 ms en scroll→swipe mientras el caso aislado pasaba.
+El plan conserva sus mismos specs; el informe combinado incluye ambas fases. Los informes y
+artefactos separados viven en `test-results/playwright-e2e*` y `test-results/playwright-perf*`.
+Para medir directamente con Playwright, seleccionar solo esos specs y `--workers=1`.
+
 Auditoría 4.19.14: `e2e/revisar-beta.spec.mjs` comprueba plegado automático al aprobar,
 desplegar/cambiar de opinión y conservación entre compilaciones. `e2e/bancos-historico-filtro.spec.mjs`
 actualiza el estado durante la confirmación de Deshacer y simula fallo/reintento del DELETE.
