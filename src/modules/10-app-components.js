@@ -1902,11 +1902,26 @@ function ensureReleaseNotes(){
     .then(function(arr){
       if(!Array.isArray(arr)||!arr.length) throw new Error("release-notes vacío");
       RELEASE_NOTES=arr;
+      /* Solo la cabeza de ESTA versión (15/9): si el SW falla en avión, el panel no se queda
+         vacío. No guardamos el histórico entero — cuota de localStorage. */
+      try{
+        var base=mcVerBase(CONFIG.APP_VERSION);
+        var head=arr.filter(function(n){ return n&&n.v===base; })[0]||arr[0];
+        if(head&&head.v) localStorage.setItem("_rnHead_"+base, JSON.stringify(head));
+      }catch(e){}
       return RELEASE_NOTES;
     })
     .catch(function(e){
       _rnLoad=null;
       try{ console.warn("release-notes", e&&e.message||e); }catch(err){}
+      try{
+        var base=mcVerBase(CONFIG.APP_VERSION);
+        var raw=localStorage.getItem("_rnHead_"+base);
+        if(raw){
+          var one=JSON.parse(raw);
+          if(one&&one.v){ RELEASE_NOTES=[one]; return RELEASE_NOTES; }
+        }
+      }catch(err2){}
       return RELEASE_NOTES||[];
     });
   return _rnLoad;

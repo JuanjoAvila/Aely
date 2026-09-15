@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.24.2",
+    "d": "15 sep 2026",
+    "t": {
+      "es": "Inicio sin internet, de verdad",
+      "en": "Home offline, for real",
+      "ca": "Inici sense internet, de veritat"
+    },
+    "items": {
+      "es": [
+        "Sin conexión, el patrimonio aparece en menos de un segundo (antes tardaba un rato).",
+        "El panel de revisar la beta sigue visible aunque no haya red."
+      ],
+      "en": [
+        "Offline, your net worth shows up in under a second (it used to take a while).",
+        "The beta review panel still shows up even without a network."
+      ],
+      "ca": [
+        "Sense connexió, el patrimoni apareix en menys d'un segon (abans trigava una estona).",
+        "El panell de revisar la beta segueix visible tot i no haver-hi xarxa."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inicio-offline-2",
+        "t": {
+          "es": "📴 Inicio y beta sin red",
+          "en": "📴 Home and beta offline",
+          "ca": "📴 Inici i beta sense xarxa"
+        },
+        "items": {
+          "es": [
+            "1. Activa el modo avión, abre la app: Inicio muestra patrimonio/presupuesto en menos de un segundo (no tres rayas grises un rato) y el aviso de sin conexión.",
+            "2. Sin red, abre Ajustes → Revisar esta beta: se ven los puntos de la tanda (no una pantalla vacía)."
+          ],
+          "en": [
+            "1. Turn on airplane mode, open the app: Home shows net worth/budget in under a second (not grey bars for a while) and the offline notice.",
+            "2. Offline, open Settings → Review this beta: the checklist items are visible (not an empty screen)."
+          ],
+          "ca": [
+            "1. Activa el mode avió, obre l'app: Inici mostra patrimoni/pressupost en menys d'un segon (no tres ratlles grises una estona) i l'avís sense connexió.",
+            "2. Sense xarxa, obre Ajustaments → Revisar aquesta beta: es veuen els punts de la tanda (no una pantalla buida)."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.24.1",
     "d": "15 sep 2026",
     "t": {

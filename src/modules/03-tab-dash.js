@@ -31,13 +31,19 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     window.addEventListener("mc-boot-ready", on);
     // Por si el evento se emitió entre el useState inicial y este effect.
     try{ if(window.__mcBootReady) setBootReady(true); }catch(e){}
-    /* Tope duro (14/9): sin internet el pull de la nube puede colgarse y `mc-boot-ready` no
-       llega nunca → 3 esqueletos eternos. Tras ~2 s se pinta el estado LOCAL; si la nube llega
-       después, `set()` repinta solo. No acorta un boot lento CON red: 2 s de skel bastan. */
+    /* Tope duro (14/9 → 15/9 rechazo 4.24.0 «tarda un rato»): sin internet el pull puede
+       colgarse y `mc-boot-ready` no llega → 3 esqueletos. `navigator.onLine` en WebView a veces
+       miente (true sin salida), así que:
+         · onLine===false → tope corto (~500 ms)
+         · onLine true pero nadie avisa → tope ~600 ms (antes 2000; el de sesión ya no espera 2,5 s)
+       Si la nube llega después, `set()` repinta solo. */
+    var offline=false;
+    try{ offline=navigator.onLine===false; }catch(e){}
+    const topeMs=offline?500:600;
     const tope=setTimeout(function(){
       setBootReady(true);
       try{ mcBootReady(); }catch(e){}
-    }, 2000);
+    }, topeMs);
     return function(){ window.removeEventListener("mc-boot-ready", on); clearTimeout(tope); };
   },[bootReady, splashGone]);
   const shownNet=useCountUp(tt.netWorth||0, splashGone);
