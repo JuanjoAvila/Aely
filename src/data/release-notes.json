@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.1",
+    "d": "16 sep 2026",
+    "t": {
+      "es": "Cada cuenta tiene su propia ficha",
+      "en": "Every account has its own sheet",
+      "ca": "Cada compte té la seva pròpia fitxa"
+    },
+    "items": {
+      "es": [
+        "Cada cuenta tiene una ficha clara para consultar su saldo, renombrarla, elegir para qué se usa y ver sus últimos movimientos."
+      ],
+      "en": [
+        "Each account has a clear sheet to check its balance, rename it, choose how it is used and see its latest transactions."
+      ],
+      "ca": [
+        "Cada compte té una fitxa clara per consultar-ne el saldo, canviar-ne el nom, triar per a què es fa servir i veure'n els últims moviments."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "ficha-cuenta-v41",
+        "t": {
+          "es": "Nueva ficha de cuenta",
+          "en": "New account sheet",
+          "ca": "Nova fitxa de compte"
+        },
+        "items": {
+          "es": [
+            "1. Abre una cuenta manual: debe permitir renombrarla, corregir el saldo con el teclado y elegir su uso sin botón Guardar.",
+            "2. Abre una cuenta conectada: el saldo debe estar bloqueado y debe aparecer Sincronizar o Reconectar según su estado.",
+            "3. Toca Ver todo en sus últimos movimientos: Gastos debe abrirse filtrado solo por ese banco."
+          ],
+          "en": [
+            "1. Open a manual account: it should allow renaming it, fixing its balance with the keypad and choosing its use without a Save button.",
+            "2. Open a connected account: its balance should be locked and Sync or Reconnect should appear depending on its status.",
+            "3. Tap See all below its latest transactions: Expenses should open filtered to that bank only."
+          ],
+          "ca": [
+            "1. Obre un compte manual: ha de permetre canviar-ne el nom, corregir el saldo amb el teclat i triar-ne l'ús sense botó Desa.",
+            "2. Obre un compte connectat: el saldo ha d'estar bloquejat i hi ha d'aparèixer Sincronitza o Torna a connectar segons l'estat.",
+            "3. Toca Veure-ho tot sota els últims moviments: Despeses s'ha d'obrir filtrat només per aquell banc."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.0",
     "d": "16 sep 2026",
     "t": {

@@ -1106,6 +1106,47 @@
     padding-top:8px;border-top:1px solid var(--line-soft);}
   .v4-ficha-del{min-height:44px;color:var(--coral);font-size:12.5px;font-weight:800;text-align:left;}
   .v4-ficha-saved{color:var(--muted-2);font-size:11.5px;font-weight:700;text-align:right;}
+  /* Ficha de cuenta v4.1: el saldo gana la jerarquía y el histórico solo aparece cuando se puede
+     reconstruir con movimientos reales. Son piezas del sheet, no una tarjeta ajena dentro de él. */
+  .v4-account-head{display:flex;align-items:center;gap:11px;margin-bottom:10px;}
+  .v4-account-head-copy{flex:1;min-width:0;}
+  .v4-account-title{font-size:17px;font-weight:800;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .v4-account-sub{font-size:11.5px;color:var(--muted-2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .v4-account-rename{min-height:44px;padding:0 2px;color:var(--mint);font-size:12.5px;font-weight:800;}
+  .v4-account-name{width:100%;min-height:46px;margin:0 0 10px;padding:11px 13px;border-radius:14px;border:1px solid var(--line-soft);
+    outline:none;background:var(--sur);color:var(--text);font-family:inherit;font-size:14px;font-weight:700;}
+  .v4-account-name:focus{border-color:var(--mint);box-shadow:0 0 0 2px rgba(95,208,138,.12);}
+  .v4-account-balance{padding:16px;border-radius:20px;background:linear-gradient(180deg,var(--sur),var(--bg-2));border:1px solid var(--line-soft);}
+  .v4-account-amount{max-width:100%;font-size:clamp(30px,10vw,38px);font-weight:550;font-variation-settings:"opsz" 36;letter-spacing:-1.2px;line-height:1.05;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .v4-account-balance-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;color:var(--muted);font-size:12px;font-weight:700;}
+  .v4-account-delta{display:inline-flex;align-items:center;min-height:28px;padding:0 9px;border-radius:999px;background:rgba(95,208,138,.13);color:var(--mint);white-space:nowrap;}
+  .v4-account-delta.down{background:rgba(226,112,95,.11);color:var(--coral);}
+  .v4-account-stale{display:inline-flex;min-height:28px;align-items:center;padding:0 9px;border-radius:999px;background:rgba(230,195,106,.1);color:var(--tan);white-space:nowrap;}
+  .v4-account-spark{height:54px;display:grid;grid-template-columns:repeat(14,minmax(0,1fr));align-items:end;gap:4px;margin-top:14px;}
+  .v4-account-spark i{display:block;min-height:5px;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,var(--mint-hi),var(--mint));
+    transform-origin:center bottom;animation:v4growup .55s var(--ease) both;}
+  .v4-account-spark-foot{display:flex;justify-content:space-between;margin-top:5px;color:var(--muted-2);font-size:10.5px;font-weight:650;}
+  .v4-account-spark-new{margin-top:13px;padding-top:11px;border-top:1px solid var(--line-soft);color:var(--muted);font-size:12px;}
+  .v4-account-lock{margin-top:10px;color:var(--muted-2);font-size:10.5px;font-weight:650;line-height:1.35;}
+  .v4-account-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px;}
+  .v4-account-actions>button:only-child{grid-column:1/-1;}
+  .v4-account-action{min-height:46px;padding:8px 9px;border-radius:14px;background:var(--sur2);border:1px solid var(--line);
+    color:var(--text);font-size:12.5px;font-weight:800;line-height:1.2;}
+  .v4-account-action.on{border-color:var(--mint);color:var(--mint);background:rgba(95,208,138,.1);}
+  .v4-account-action.warn{border-color:rgba(226,112,95,.45);color:var(--coral);}
+  .v4-account-action:disabled{opacity:.55;}
+  .v4-account-correct{margin-top:9px;padding:12px;border-radius:18px;background:var(--sur);border:1px solid var(--line-soft);}
+  .v4-account-correct-row{position:relative;display:flex;align-items:center;justify-content:center;min-height:44px;margin-bottom:8px;}
+  .v4-account-correct-amount{text-align:center;font-size:30px;font-weight:550;}
+  .v4-account-sign{position:absolute;left:0;min-width:44px;min-height:44px;border-radius:12px;background:var(--sur2);border:1px solid var(--line);color:var(--text);font-size:18px;font-weight:800;}
+  .v4-account-latest{margin-top:17px;}
+  .v4-account-latest-head{min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;font-weight:800;}
+  .v4-account-latest-head button{min-height:44px;color:var(--mint);font-size:12.5px;font-weight:800;}
+  .v4-account-mov{min-height:58px;padding:7px 9px;margin-top:6px;}
+  .v4-account-mov .tile{width:34px;height:34px;border-radius:11px;font-size:17px;}
+  .v4-account-mov .nm-title{font-size:13.5px;}
+  .v4-account-mov .meta{font-size:11.5px;}
+  .v4-account-mov .am{font-size:14.5px;}
   .v4-undo-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + var(--safe-bottom));z-index:205;
     width:min(calc(100% - 28px),430px);min-height:52px;padding:4px 6px 4px 16px;border-radius:16px;background:var(--sur2);
     border:1px solid var(--line);box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;font-size:14px;font-weight:750;
@@ -1270,9 +1311,10 @@
   @keyframes rise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
   @keyframes v4fade{from{opacity:0;}to{opacity:1;}}
   @keyframes v4bar{from{transform:scaleX(0);}to{transform:scaleX(1);}}
+  @keyframes v4growup{from{transform:scaleY(0);}to{transform:scaleY(1);}}
   .rise{animation:rise .32s var(--ease) both;}
   @media (prefers-reduced-motion:reduce){
-    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-gastos-progress i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast{animation:none !important;transition:none !important;}
+    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-gastos-progress i,.v4-account-spark i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast{animation:none !important;transition:none !important;}
   }
 
   /* «Gestionar recibos» y «Herramientas de inversión» viven en un sheet v4 pero por dentro

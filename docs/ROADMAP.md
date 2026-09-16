@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-16 · **v4.26.0** — rediseño v4.1 en rama: ficha unificada de gasto y borrado con Deshacer; aún no publicado en beta ni producción.
+> Estado a 2026-09-16 · **v4.26.1** — rediseño v4.1 en rama: ficha unificada de gasto, Deshacer y ficha completa de cuenta; aún no publicado en beta ni producción.
+> Anterior: **v4.26.0** — ficha unificada de gasto y borrado con Deshacer, sin publicar por separado.
 > Anterior: **v4.25.6** — la ronda 4.25 está en producción y el panel beta queda vacío al alcanzarla: sin entrada en Ajustes, tandas antiguas ni pruebas repetidas.
 > Anterior: **v4.25.5** — la barra oculta ya no sale físicamente por debajo del viewport ni puede robar el segundo tirón en el fondo; el histórico bancario conserva la espera explícita tras 429.
 > Anterior: **v4.25.3** — el intento de concurrencia limitada seguía provocando 429 y el host de la ola perdía clases al repintarse.
@@ -192,7 +193,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.0** (repo, sin publicar; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.26.1** (repo, sin publicar; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

@@ -1,3 +1,25 @@
+## [4.26.1] - 2026-09-16
+### Rediseño v4.1 — la ficha de cuenta deja de ser un editor encajado
+
+Cada cuenta abre una ficha propia con el nombre como cabecera, saldo protagonista, acciones y rol
+explicado en contexto. Las cuentas manuales corrigen el saldo con el teclado común —también en
+negativo— y las conectadas mantienen el importe bloqueado, con sincronizar o reconectar según su
+estado. Renombrar y elegir rol siguen guardándose al vuelo; una cuenta OB recién conectada no recibe
+un rol inventado.
+
+La previsión de fin de mes solo se muestra cuando corresponde inequívocamente a esa cuenta. El
+gráfico empieza con cierres diarios reales guardados por clave de cuenta, sin reconstruir ni fingir
+los días anteriores; la variación mensual necesita un punto real del día 1. La ficha enseña los tres
+últimos movimientos y «Ver todo» abre Gastos ya filtrado, mediante un evento efímero que no toca los
+montajes de `11-app-main.js`. El historial diario conserva 31 puntos como máximo.
+
+El primer cierre espera a `mc-boot-ready`, para no fijar como inicio de mes un saldo local anterior
+al pull. «Corregir saldo» empieza con el teclado limpio: precargar un float largo agotaba el límite
+de siete dígitos y dejaba la botonera aparentemente bloqueada. La navegación a Gastos conserva el
+banco pendiente hasta que la pestaña termina de montar, y con dos cuentas de la misma entidad la
+cabecera dice honestamente que los movimientos son del banco, porque el extracto no identifica la
+subcuenta.
+
 ## [4.26.0] - 2026-09-16
 ### Rediseño v4.1 — una sola ficha para apuntar y modificar
 

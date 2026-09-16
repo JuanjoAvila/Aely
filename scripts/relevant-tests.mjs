@@ -55,7 +55,7 @@ export const E2E_MAP = [
     "e2e/gastos-cajones.spec.mjs", "e2e/gastos-concepto.spec.mjs", "e2e/apuntar-sheet.spec.mjs",
     "e2e/gastos-diario-filtro.spec.mjs", "e2e/gastos-cabecera-bancos.spec.mjs", "e2e/gastos-orden.spec.mjs",
     "e2e/gastos-categorias-presupuesto.spec.mjs", "e2e/gastos-suelta-filas.spec.mjs",
-    "e2e/gastos-deudas.spec.mjs",
+    "e2e/gastos-deudas.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs",
   ] },
   { file: "src/modules/05-dialogs-inv.js", specs: [
     "e2e/cartera-inversiones.spec.mjs", "e2e/brokers-selector.spec.mjs",
@@ -97,7 +97,7 @@ export const E2E_MAP = [
     "e2e/pulido-apuntar.spec.mjs", "e2e/pulido-numpad.spec.mjs",
     "e2e/apuntar-sheet.spec.mjs", "e2e/apuntar-sugerencia.spec.mjs", "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/cartera-orden-hogar.spec.mjs",
-    "e2e/efectivo-apuntar.spec.mjs",
+    "e2e/efectivo-apuntar.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs",
   ] },
   { file: "src/modules/15-import-hoja.js", specs: ["e2e/import-hoja.spec.mjs", "e2e/import-docx-pdf.spec.mjs"] },
 ];

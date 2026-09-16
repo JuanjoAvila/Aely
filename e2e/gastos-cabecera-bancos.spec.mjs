@@ -54,7 +54,7 @@ test("cabecera Gastos baja al quitar un banco de gasto diario sin sync", async (
   /* Desde 4.19.77 «Editar» solo sale con obAccounts pendientes. El rol se cambia en la ficha. */
   await page.locator(".v4-card-list button.v4-mov").filter({ hasText: /Revolut/ }).first().click();
   await expect(page.locator(".v4-sheet")).toBeVisible();
-  await page.locator(".v4-sheet .v4-ficha-op").filter({ hasText: /Recibos|Bills|Rebuts/ }).click();
+  await page.locator(".v4-sheet .v4-ficha-op").filter({ hasText: /Para los recibos|For the bills|Per als rebuts/i }).click();
   await page.locator(".v4-sheet-back").click({ position: { x: 10, y: 10 } });
 
   await page.locator('.botnav-tab[data-tour="gastos"]').click();

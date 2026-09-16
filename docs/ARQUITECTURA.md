@@ -174,6 +174,12 @@ escribir `Access-Control-Allow-Origin: "*"`.
   (`obLabels`) y solo se promociona con rol mediante una elección explícita (`promoteObAccount`).
   Su posición se guarda en `settings.accountListOrder`, mezclada visualmente con `accounts` sin
   moverla de modelo ni alterar saldo, rol o presupuesto.
+- La ficha guarda un cierre diario real por cuenta en `accountBalanceHistory`, indexado por la
+  misma clave estable del orden (`acc:<id>` / `ob:<key>`) y limitado a 31 puntos. El gráfico de
+  14 días y la variación desde el día 1 solo aparecen cuando existen esos cierres: no se reconstruye
+  saldo histórico a partir de gastos ni se atribuye la previsión agregada si hay dos cuentas del
+  mismo banco. El primer cierre espera `mc-boot-ready`, que ya representa dato local definitivo sin
+  red o el final del primer pull con red; así un snapshot viejo no se convierte en base mensual.
 - El rol (recibos/diario/todo) vive AQUÍ; en v4.0.x quedó inaccesible (solo existía en el
   Wealth v3 no montado) — no volver a dejar el rol sin puerta.
 

@@ -70,7 +70,8 @@
 - [★ Menos texto, más trabajo](feedback-menos-texto-mas-trabajo.md) — no narrar; resumen solo si lo pide.
 - [⚠ Tanda nace desde main](feedback-tanda-desde-main.md) — `tanda/<id>` desde main, nunca al tip de beta.
 - [★ TODO lo mío lo revisa Cursor](feedback-todo-lo-mio-revisado-por-cursor.md) — revisar = EJECUTAR los tests.
-- [★ DIRIJO YO el equipo](canal-equipo-tres-agentes.md) — buzón `.claude/canal-equipo` (gitignored); watcher al empezar.
+- [★ Desde 16/9 DIRIGE CODEX](canal-equipo-tres-agentes.md) — lo dijo él en persona; buzón `.claude/canal-equipo` (gitignored); yo apoyo y reviso lo que me pidan.
 - [⚠ Dirijo, pero NO decido solo](feedback-consenso-de-las-tres-ias.md) — plan y voto de Cursor antes de picar; su «sí» no sustituye al voto.
 - [⚠ Subir a beta SIN preguntar](feedback-publicar-en-beta-sin-preguntar.md) — validada → beta y avisar; main con su OK.
 - [⚠ Codex solo si bloqueados](feedback-escalar-a-codex-solo-si-bloqueados.md) — Cursor+yo → Codex → él; contarle solo qué sube y qué probar.
+- [⚠ Silencio: él habla con Codex](feedback-silencio-habla-con-codex.md) — 16/9: no hablarle salvo que me hable; todo por el buzón.

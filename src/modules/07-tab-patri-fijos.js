@@ -10,9 +10,11 @@
    aprender nada nuevo. Tampoco hay «Guardar»: cada cambio se guarda al vuelo, como en el resto.
    Y lo que rechazó de la primera maqueta: meter todo en una cartilla única («separado como está
    me gusta ya») y la flecha al lado del importe. */
-function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, onRole, rolVista, saldoMostrado, sincronizada}){
+function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSaldo, onRole, rolVista, saldoMostrado, sincronizada, onBankSync, onReconnectBank, bankBusy}){
   const [borrando,setBorrando]=React.useState(false);
   const [saldo,setSaldo]=React.useState("");
+  const [corrigiendo,setCorrigiendo]=React.useState(false);
+  const [renombrando,setRenombrando]=React.useState(false);
   /* Ref del importe tecleado: al cerrar por atrás/swipe, `useBackClose`/`useSheetSwipe` se
      quedan con el `onClose` del primer render (deps solo `[open]`). Sin ref, volcaban el saldo
      vacío de la apertura. Rechazo 4.19.67 paso 5, 2026-09-12: *«si solo pones un número… y lo
@@ -23,8 +25,11 @@ function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, on
   React.useEffect(function(){
     if(!open||!cuenta) return;
     setBorrando(false);
-    const v=String(saldoMostrado(cuenta));
-    setSaldo(v); saldoRef.current=v;
+    setCorrigiendo(false);
+    setRenombrando(false);
+    /* Corregir empieza limpio: precargar un float largo (5585.049999…) llenaba el límite de
+       siete dígitos de NumPad y parecía bloqueado. El saldo vigente ya se ve justo encima. */
+    setSaldo(""); saldoRef.current="";
   },[open,cuenta&&cuenta.id]);
   /* El saldo solo se escribe en las cuentas TUYAS. En una conectada lo manda el banco y editarlo
      aquí sería mentirse: se enseña con su candado y la hora del último sync. */
@@ -50,8 +55,8 @@ function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, on
      pequeña al final de la tarjeta, así que había que bajar a buscarla para saber qué hacía cada
      uno. El efectivo SOLO es gasto diario (hotfix 13/9): no tiene recibos domiciliados ni puede
      ser la cuenta principal (eso es TR). */
-  const roles=efectivo ? [["diario","rl_diario","rl_diario_d"]]
-    : [["fijos","rl_fijos","rl_fijos_d"],["diario","rl_diario","rl_diario_d"],["ambos","rl_ambos","rl_ambos_d"]];
+  const roles=efectivo ? [["diario","ac_role_diario","ac_role_diario_d"]]
+    : [["fijos","ac_role_fijos","ac_role_fijos_d"],["diario","ac_role_diario","ac_role_diario_d"],["ambos","ac_role_ambos","ac_role_ambos_d"]];
   /* `rolVista` = lo que se VE (gasto diario efectivo, extras incluidos). `accRole` solo mira el
      campo de la cuenta y mentiría en un EXTRA de expenseBanks. */
   /* Una cuenta OB nueva todavía NO tiene rol. Pintar «Recibos» por defecto sería afirmar una
@@ -66,35 +71,107 @@ function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, on
       return Object.assign({},s,{accounts:(s.accounts||[]).map(function(x){ return x.id===a.id?Object.assign({},x,{name:v}):x; })});
     });
   };
+  const banco=entOf(a.ent).label||a.aspsp||"🏦";
+  const saldoHoy=Number(saldoMostrado(a))||0;
+  const gastosCuenta=(state.expenses||[]).filter(function(e){ return expenseBankOf(e)===a.ent; })
+    .sort(function(x,y){ return dateMs(y.date)-dateMs(x.date); });
+  const histKey=a.accountOrderKey||(a._obKey?("ob:"+a._obKey):("acc:"+a.id));
+  const limite14=new Date(); limite14.setHours(0,0,0,0); limite14.setDate(limite14.getDate()-13);
+  const allHistory=((state.accountBalanceHistory||{})[histKey]||[]).filter(function(p){
+    return p&&p.day&&Number.isFinite(Number(p.value));
+  }).slice(-31);
+  const history=allHistory.filter(function(p){
+    return p&&p.day&&dateMs(p.day+"T12:00:00")>=limite14.getTime()&&Number.isFinite(Number(p.value));
+  }).slice(-14);
+  const spark=history.map(function(p){ return Number(p.value); });
+  const sparkMin=Math.min.apply(null,spark), sparkMax=Math.max.apply(null,spark), sparkSpan=sparkMax-sparkMin;
+  const hoy=new Date(), inicioMesKey=hoy.getFullYear()+"-"+String(hoy.getMonth()+1).padStart(2,"0")+"-01";
+  const monthPoint=allHistory.find(function(p){ return p.day===inicioMesKey; });
+  const deltaMes=monthPoint?saldoHoy-Number(monthPoint.value):null;
+  const cuentasMismaEnt=(state.accounts||[]).filter(function(x){ return x.ent===a.ent; }).length+
+    (state.obAccounts||[]).filter(function(x){ return x.ent===a.ent; }).length;
+  const projected=cuentasMismaEnt===1&&totals.projectedByBank&&Number.isFinite(totals.projectedByBank[a.ent])
+    ? totals.projectedByBank[a.ent] : null;
+  const issue=(state.bankIssues||[]).find(function(is){
+    if(is.ent&&is.ent===a.ent) return true;
+    return is.aspsp&&typeof entFromAspsp==="function"&&entFromAspsp(is.aspsp)===a.ent;
+  });
+  const accionBanco=function(){
+    if(!conectada){
+      cerrar();
+      try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){}
+      return;
+    }
+    if(issue&&typeof onReconnectBank==="function"){ onReconnectBank(issue.aspsp); return; }
+    if(typeof onBankSync==="function") onBankSync();
+  };
+  const verTodos=function(){
+    const nav=document.querySelector('.botnav-tab[data-tour="gastos"]');
+    if(!nav||typeof nav.click!=="function") return;
+    try{ window.__mcExpBank=a.ent; }catch(e){}
+    cerrar(); nav.click();
+    setTimeout(function(){
+      try{ window.dispatchEvent(new CustomEvent("mc-open-expenses-bank",{detail:{ent:a.ent}})); }catch(e){}
+    },0);
+  };
+  const cambiaSaldo=function(next){
+    setSaldo(function(prev){
+      const v=typeof next==="function"?next(prev):next;
+      saldoRef.current=v; return v;
+    });
+  };
+  const title=a.name||banco;
+  const sub=conectada?tf("ac_synced_sub",{bank:banco}):tf("ac_manual_sub",{bank:banco});
+  const staleAge=conectada&&a.lastSync?Date.now()-dateMs(a.lastSync):0;
+  const stale=staleAge>48*60*60*1000;
+  const staleDay=stale?new Date(a.lastSync).toLocaleDateString(loc(),staleAge>6*24*60*60*1000?{day:"numeric",month:"short"}:{weekday:"long"}):"";
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:cerrar},
       React.createElement("div",Object.assign({className:"v4-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },style:{maxHeight:"88dvh"}}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
-        React.createElement("div",{style:{display:"flex",alignItems:"center",gap:11,marginBottom:2}},
+        React.createElement("div",{className:"v4-account-head"},
           React.createElement(Mono,{ent:a.ent,size:44}),
-          React.createElement("div",{style:{minWidth:0}},
-            React.createElement("div",{style:{fontSize:16,fontWeight:800,lineHeight:1.25}}, entOf(a.ent).label),
-            React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)"}},
-              conectada ? (a.lastSync?tf("pt_ficha_sync",{x:new Date(a.lastSync).toLocaleString()}):t("pt_ob_badge")) : t("pt_ficha_manual"))
-          )
+          React.createElement("div",{className:"v4-account-head-copy"},
+            React.createElement("div",{className:"v4-account-title"}, title),
+            React.createElement("div",{className:"v4-account-sub"}, sub)),
+          React.createElement("button",{type:"button",className:"v4-account-rename",onClick:function(){ setRenombrando(function(v){ return !v; }); }}, t("ac_rename"))
         ),
-        React.createElement("div",{style:{display:"flex",alignItems:"baseline",justifyContent:"space-between",gap:10,padding:"13px 0 12px",borderBottom:"1px solid var(--line)"}},
-          React.createElement("span",{style:{fontSize:11.5,color:"var(--muted)",fontWeight:700}}, t("pt_ficha_saldo")),
-          conectada
-            ? React.createElement("div",{style:{textAlign:"right"}},
-                React.createElement("div",{className:"num",style:{fontSize:21,fontWeight:800}}, eur(saldoMostrado(a))),
-                React.createElement("span",{style:{fontSize:10.5,color:"var(--muted-2)",fontWeight:600}}, "🔒 "+t("pt_ficha_banco")))
-            : React.createElement("input",{className:"af-in num",inputMode:"decimal",value:saldo,
-                style:{width:130,textAlign:"right",fontSize:18,fontWeight:800},
-                onChange:function(e){ const v=e.target.value; saldoRef.current=v; setSaldo(v); },onBlur:guardaSaldo})
+        renombrando && React.createElement("input",{className:"v4-account-name",value:a.name||"",autoFocus:true,
+          placeholder:t("pt_name_ph"),onChange:function(e){ guardaNombre(e.target.value); }}),
+        React.createElement("div",{className:"v4-account-balance"},
+          React.createElement("div",{className:"v4-micro"}, t("ac_balance_today")),
+          React.createElement("div",{className:"v4-account-amount serif num"}, eur(saldoHoy)),
+          (deltaMes!=null&&Math.abs(deltaMes)>=.005 || projected!=null || stale) && React.createElement("div",{className:"v4-account-balance-meta"},
+            deltaMes!=null&&Math.abs(deltaMes)>=.005 && React.createElement("span",{className:"v4-account-delta"+(deltaMes<0?" down":"")},
+              tf(deltaMes<0?"ac_delta_month_down":"ac_delta_month",{x:eur(Math.abs(deltaMes))})),
+            projected!=null && React.createElement("span",null,tf("ac_eom",{x:eur(projected)})),
+            stale && React.createElement("span",{className:"v4-account-stale"},tf("st_stale",{day:staleDay}))),
+          history.length>=2
+            ? React.createElement(React.Fragment,null,
+                React.createElement("div",{className:"v4-account-spark","aria-label":t("ac_spark_from")+" · "+t("ac_spark_to")},
+                  spark.map(function(v,i){
+                    const h=sparkSpan>0?18+((v-sparkMin)/sparkSpan)*82:55;
+                    return React.createElement("i",{key:i,style:{height:h+"%",animationDelay:(i*.025)+"s"}});
+                  })),
+                React.createElement("div",{className:"v4-account-spark-foot"},
+                  React.createElement("span",null,new Date(history[0].day+"T12:00:00").toLocaleDateString(loc(),{day:"numeric",month:"short"})),React.createElement("span",null,t("ac_spark_to"))))
+            : React.createElement("div",{className:"v4-account-spark-new"},t("ac_spark_new")),
+          conectada && React.createElement("div",{className:"v4-account-lock"},"🔒 "+t("pt_ficha_banco")+(a.lastSync?" · "+tf("pt_ficha_sync",{x:new Date(a.lastSync).toLocaleString()}):""))
         ),
+        React.createElement("div",{className:"v4-account-actions"},
+          !conectada && React.createElement("button",{type:"button",className:"v4-account-action"+(corrigiendo?" on":""),onClick:function(){
+            if(corrigiendo) guardaSaldo(); else cambiaSaldo(""); setCorrigiendo(function(v){ return !v; });
+          }},corrigiendo?t("done"):t("ac_fix_balance")),
+          !efectivo && React.createElement("button",{type:"button",className:"v4-account-action"+(issue?" warn":""),disabled:bankBusy,onClick:accionBanco},
+            bankBusy?t("bp_syncing"):t(!conectada?"ac_connect":(issue?"ac_reconnect":"ac_sync_now")))
+        ),
+        corrigiendo && !conectada && React.createElement("div",{className:"v4-account-correct"},
+          React.createElement("div",{className:"v4-account-correct-row"},
+            React.createElement("button",{type:"button",className:"v4-account-sign","aria-label":t("ac_change_sign"),onClick:function(){ cambiaSaldo(function(v){ return String(v||"").charAt(0)==="-"?String(v).slice(1):("-"+String(v||"")); }); }},"±"),
+            React.createElement("div",{className:"v4-account-correct-amount serif num"},saldo?eur(parseNumPadRaw(saldo)):"—")),
+          React.createElement(NumPad,{value:saldo,onChange:cambiaSaldo})),
         React.createElement("div",{style:{padding:"14px 0 4px"}},
-          React.createElement("div",{className:"v4-ficha-k"}, t("pt_ficha_nombre")),
-          React.createElement("input",{className:"af-in",style:{width:"100%",fontSize:14,padding:"11px 13px"},
-            value:a.name||"",placeholder:t("pt_name_ph"),onChange:function(e){ guardaNombre(e.target.value); }})
-        ),
-        React.createElement("div",{style:{padding:"14px 0 4px"}},
-          React.createElement("div",{className:"v4-ficha-k"}, t("pt_ficha_rol")),
+          React.createElement("div",{className:"v4-ficha-k"}, t("ac_role_q")),
           React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:7}},
             roles.map(function(r){
               const on=rolActual===r[0];
@@ -112,6 +189,20 @@ function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, on
             })
           )
         ),
+        gastosCuenta.length>0 && React.createElement("div",{className:"v4-account-latest"},
+          React.createElement("div",{className:"v4-account-latest-head"},
+            React.createElement("span",null,cuentasMismaEnt===1?t("ac_last_movs"):tf("ac_last_bank",{bank:banco})),
+            React.createElement("button",{type:"button",onClick:verTodos},t("ac_see_all"))),
+          gastosCuenta.slice(0,3).map(function(e){
+            const c=catOf(e.category), incoming=Number(e.amount)<0, d=new Date(dateMs(e.date));
+            return React.createElement("div",{className:"v4-mov v4-account-mov",key:e.id},
+              React.createElement("div",{className:"tile",style:{borderColor:c.color+"55",color:c.color,background:c.color+"18"}},c.icon),
+              React.createElement("div",{className:"nm"},
+                React.createElement("div",{className:"nm-title"},e.merchant||"—"),
+                React.createElement("div",{className:"meta"},d.toLocaleDateString(loc(),{day:"numeric",month:"short"}))),
+              React.createElement("div",{className:"am num"+(incoming?" pos":"")},(incoming?"+":"−")+eur(Math.abs(Number(e.amount)||0))));
+          })
+        ),
         a._obKey
           ? React.createElement("div",{className:"hint",style:{marginTop:15}}, t("v4_acc_locked"))
           : borrando
@@ -128,9 +219,17 @@ function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, on
     ), document.body);
 }
 
-function Wealth({state, set, totals, v4Embed, parte, showToast}){
+function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onReconnectBank, bankBusy}){
   const [delAcc,setDelAcc]=React.useState("");   // id de la cuenta manual pendiente de confirmar borrado
   const [sheetAcc,setSheetAcc]=React.useState("");   // id de la cuenta cuya ficha está abierta (v4)
+  const [balanceReady,setBalanceReady]=React.useState(function(){ return !!window.__mcBootReady; });
+  React.useEffect(function(){
+    if(balanceReady) return;
+    const ready=function(){ setBalanceReady(true); };
+    window.addEventListener("mc-boot-ready",ready);
+    if(window.__mcBootReady) ready();
+    return function(){ window.removeEventListener("mc-boot-ready",ready); };
+  },[balanceReady]);
   /* Long-press ordenar cuentas (refs SIEMPRE arriba: no pueden vivir dentro de `if(v4Embed)`).
      Callback ref (no solo useEffect): `OrderableSections` puede remontar el bloque y el efecto
      se quedaba con listeners en un nodo muerto → el HOLD nunca encendía. */
@@ -222,6 +321,37 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
     injTR:totals.injTR||0, spentByBank:totals.spentByBank||{}, paidNetByBank:totals.paidNetByBank||{},
     roundup:ruM, monthlyInvest:miM
   });
+  /* La app no tenía histórico por cuenta. Guardamos un cierre REAL por día (máximo 31), tanto de
+     cuentas propias como de las filas OB aún no promocionadas. No se reconstruye hacia atrás con
+     movimientos potencialmente truncados: hasta el segundo día la ficha dice que empieza hoy. */
+  React.useEffect(function(){
+    if(!v4Embed||parte!=="cuentas"||!balanceReady) return;
+    const today=dayKey(new Date());
+    const rows=(state.accounts||[]).map(function(a){
+      return {key:a.accountOrderKey||("acc:"+a.id),value:+Number(shownAcc(a)).toFixed(2)};
+    }).concat((state.obAccounts||[]).map(function(o){
+      return {key:"ob:"+o.key,value:+Number(toEurAmt(o.value||0,o.cur||"EUR",state)).toFixed(2)};
+    })).filter(function(r){ return r.key&&Number.isFinite(r.value); });
+    const current=state.accountBalanceHistory||{};
+    const needs=rows.some(function(r){
+      const list=current[r.key]||[], last=list[list.length-1];
+      return !last||last.day!==today||Number(last.value)!==r.value;
+    });
+    if(!needs) return;
+    set(function(s){
+      const all=Object.assign({},s.accountBalanceHistory||{}); let changed=false;
+      rows.forEach(function(r){
+        const list=(all[r.key]||[]).filter(function(p){ return p&&p.day&&Number.isFinite(Number(p.value)); }).slice(-30);
+        const last=list[list.length-1];
+        if(last&&last.day===today){
+          if(Number(last.value)===r.value) return;
+          list[list.length-1]={day:today,value:r.value};
+        } else list.push({day:today,value:r.value});
+        all[r.key]=list; changed=true;
+      });
+      return changed?Object.assign({},s,{accountBalanceHistory:all}):s;
+    });
+  },[v4Embed,parte,balanceReady,state.accounts,state.obAccounts,state.accountBalanceHistory,totals]);
   const spendBal=(i)=> shownAcc(i);
   // ROLES DE CUENTA: al cambiar el rol se RE-ANCLA `value` para que el saldo mostrado no cambie
   // (despejamos value de la fórmula del rol nuevo). Solo puede haber UNA cuenta de gasto diario.
@@ -474,11 +604,12 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
       // La ficha de la cuenta que esté abierta. Portal a `body`, así que da igual dónde se monte.
       React.createElement(AccountSheet,{
         open:!!sheetCuenta, cuenta:sheetCuenta,
-        set:set, totals:totals, onClose:function(){ setSheetAcc(""); },
+        state:state, set:set, totals:totals, onClose:function(){ setSheetAcc(""); },
         onRemove:removeAccount, onSaldo:guardarSaldoDe, onRole:pickSheetRole,
         rolVista:sheetRow&&sheetRow.kind==="account"?rolVistaOf(sheetRow.item):null,
         saldoMostrado:function(a){ return a&&a._obKey?a.value:shownAcc(a); },
-        sincronizada:function(a){ return !!(a&&a._obKey)||isSynced(a); }
+        sincronizada:function(a){ return !!(a&&a._obKey)||isSynced(a); },
+        onBankSync:onBankSync, onReconnectBank:onReconnectBank, bankBusy:bankBusy
       }),
       // Editor completo (2026-07-18): nombre + rol (recibos/diario/todo) SIEMPRE; el saldo solo
       // en cuentas manuales — el de las conectadas lo trae el banco y editarlo aquí sería mentirse.
