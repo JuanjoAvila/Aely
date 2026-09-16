@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-16 · **v4.25.0** — corrección de lectura bancaria integrada sobre 4.24.5, pendiente de publicar en beta y desplegar `bank-sync` (autorizado). Producción y beta se consultan con `npm run salud`.
+> Estado a 2026-09-16 · **v4.25.1** — las cuentas recién conectadas abren la misma ficha y se ordenan como las demás, sin recibir un rol ni mover dinero hasta que el usuario lo elige. Pendiente de beta tras el rechazo de 4.25.0.
+> Anterior: **v4.25.0** — lectura bancaria paginada publicada en beta y `bank-sync` desplegada; rechazada en el móvil al comprobar que una CaixaBank nueva seguía sin ficha ni orden.
 > Anterior: **v4.24.5** — la ronda 4.24 a producción, con una sola nota.
 > Anterior: **v4.24.4** — Ajustes ya no se abre solo tras probar la beta.
 > Anterior: **v4.24.3** — el banco espera a la nube: un móvil con datos viejos ya no repite movimientos.
@@ -186,7 +187,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.25.0** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.25.1** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

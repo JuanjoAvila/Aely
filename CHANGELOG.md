@@ -1,8 +1,30 @@
+## [4.25.1] - 2026-09-16
+### Las cuentas recién conectadas tienen la misma ficha y el mismo orden
+
+Rechazo real de la beta 4.25.0: al conectar CaixaBank, su fila no se podía tocar, editar ni mover
+como el resto. No era un fallo de `bank-sync`: las cuentas nuevas viven primero en `obAccounts`
+como saldos puros sin rol, mientras la ficha y el long-press solo aceptaban filas de `accounts`.
+La única puerta era el editor antiguo «Editar» para renombrar o promocionar la cuenta, un hueco de
+UX que la 4.19.77 dejó documentado como diseño y cerró sin cubrirlo en sus E2E.
+
+- `obAccounts` pinta ahora botones con la misma ficha: nombre editable vía `obLabels`, saldo de
+  solo lectura y los tres roles sin ninguno preseleccionado. Elegir un rol sigue pasando por
+  `promoteObAccount`; abrir o mover la fila nunca la promociona ni inventa qué paga.
+- `settings.accountListOrder` guarda únicamente el orden visual combinado. `accounts`,
+  `obAccounts`, saldos, roles y `expenseBanks` permanecen intactos al arrastrar. Sin cuentas OB se
+  conserva el contrato histórico de `accounts`; si ya existía un orden mixto, ambos se alinean y
+  se podan las claves de bancos desconectados.
+- La cuenta promocionada conserva `accountOrderKey`, así que no salta al final al elegir su rol.
+  Las cuentas del banco no muestran «Quitar»: se desconectan desde Ajustes → Bancos.
+- Pruebas: regresión pura roja antes del helper mixto; E2E de una CaixaBank recién conectada para
+  abrir/renombrar/promocionar y para moverla sin alterar dinero. Ficha + orden: 12/12 verdes.
+
 ## [4.25.0] - 2026-09-15
 ### Lectura bancaria paginada y avisos de histórico incompleto
 
-Tanda integrada sobre 4.24.5 y revisada por los tres agentes; pendiente de publicar en beta y
-de desplegar `bank-sync`, ya autorizado por el dueño. No cambia datos históricos ni requiere APK.
+Tanda integrada sobre 4.24.5 y revisada por los tres agentes. Se publicó como beta 4.25.0.1 y se
+desplegó solo `bank-sync`, sin migraciones. La prueba móvil rechazó la ronda por un defecto aparte
+en la ficha de cuentas nuevas, corregido en 4.25.1. No cambia datos históricos ni requiere APK.
 
 El sync diario ignoraba `continuation_key`: una primera página vacía podía anunciar éxito sin
 traer movimientos. `fetchBankTransactions` comparte paginado con histórico, mantiene parámetros,

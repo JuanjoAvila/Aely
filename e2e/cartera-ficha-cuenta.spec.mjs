@@ -37,6 +37,21 @@ async function abrirCartera(page) {
   await expect(page.locator(".v4-card-list button.v4-mov").first()).toBeVisible();
 }
 
+async function abrirCarteraConCaixaNueva(page) {
+  await seedLoggedInDashboard(page, {
+    accounts: [{ id: "rv", ent: "revolut", name: "Del día a día", value: 80, role: "diario", spendFrom: true }],
+    obAccounts: [{ key: "caixa-1", ent: "caixabank", aspsp: "CaixaBank", iban: "ES001", name: "Cuenta corriente", value: 321.45, cur: "EUR" }],
+    obLabels: {}, hasBankLink: true,
+    settings: { autoPrices: false, theme: "green", expenseBanks: ["revolut"] },
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  await expect(page.locator('button.v4-mov[data-ob-key="caixa-1"]')).toBeVisible();
+}
+
 const fila = (page, nombre) => page.locator(".v4-card-list button.v4-mov").filter({ hasText: nombre }).first();
 const ficha = (page) => page.locator(".v4-sheet");
 
@@ -73,6 +88,33 @@ test("una cuenta CONECTADA enseña el saldo del banco, y no deja escribirlo", as
 
   await expect(ficha(page).locator("input.num"), "el saldo de una cuenta del banco no se teclea").toHaveCount(0);
   await expect(ficha(page), "y se dice de quién es el número").toContainText(/lo pone el banco|set by the bank|ho posa el banc/i);
+});
+
+test("una CaixaBank recién conectada abre la misma ficha, se renombra y solo toma rol al elegirlo", async ({ page }) => {
+  await abrirCarteraConCaixaNueva(page);
+  const caixa = page.locator('button.v4-mov[data-ob-key="caixa-1"]');
+  await caixa.click();
+  await expect(ficha(page)).toBeVisible();
+  await expect(ficha(page)).toContainText(/CaixaBank/);
+  await expect(ficha(page)).toContainText("321,45");
+  await expect(ficha(page).locator("input.num"), "el saldo puro del banco no se edita").toHaveCount(0);
+  await expect(ficha(page).locator(".v4-ficha-op.on"), "no se inventa un rol al conectar").toHaveCount(0);
+  await expect(ficha(page).locator(".v4-ficha-quitar"), "se desconecta desde Bancos, no borrando la fila").toHaveCount(0);
+
+  const nombre = ficha(page).locator("input.af-in");
+  await nombre.fill("Cuenta Caixa");
+  await expect.poll(() => page.evaluate(() => {
+    const s=JSON.parse(localStorage.getItem("micartera_v3")||"{}");
+    return s.obLabels&&s.obLabels["caixa-1"];
+  })).toBe("Cuenta Caixa");
+
+  await ficha(page).locator(".v4-ficha-op").filter({ hasText: /Recibos|Bills|Rebuts/ }).click();
+  await expect.poll(() => page.evaluate(() => {
+    const s=JSON.parse(localStorage.getItem("micartera_v3")||"{}");
+    const a=(s.accounts||[]).find((x)=>x.ent==="caixabank");
+    return { role:a&&a.role, orderKey:a&&a.accountOrderKey, ob:(s.obAccounts||[]).length };
+  })).toEqual({ role:"fijos", orderKey:"ob:caixa-1", ob:0 });
+  await expect(ficha(page).locator(".v4-ficha-op.on")).toContainText(/Recibos|Bills|Rebuts/);
 });
 
 test("una cuenta TUYA sí deja escribir el saldo", async ({ page }) => {

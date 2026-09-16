@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.25.1",
+    "d": "16 sep 2026",
+    "t": {
+      "es": "Tus bancos nuevos funcionan como las demás cuentas",
+      "en": "New banks work like your other accounts",
+      "ca": "Els bancs nous funcionen com la resta de comptes"
+    },
+    "items": {
+      "es": [
+        "Una cuenta recién conectada ya se puede tocar para abrir su ficha, cambiarle el nombre y colocarla donde quieras manteniendo pulsado.",
+        "El saldo sigue viniendo del banco y ningún rol se elige por ti: Recibos, Gasto diario o Todo solo cambia cuando lo tocas expresamente."
+      ],
+      "en": [
+        "A newly connected account can now be tapped to open its details, renamed and placed wherever you want with a long press.",
+        "The balance still comes from the bank and no role is chosen for you: Bills, Daily spending or Everything only changes when you explicitly tap it."
+      ],
+      "ca": [
+        "Un compte acabat de connectar ja es pot tocar per obrir-ne la fitxa, canviar-li el nom i col·locar-lo on vulguis mantenint-lo premut.",
+        "El saldo continua venint del banc i no es tria cap rol per tu: Rebuts, Despesa diària o Tot només canvia quan ho toques expressament."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "cuentas-ob-misma-ficha",
+        "t": {
+          "es": "La cuenta nueva de CaixaBank ya no es una fila muerta",
+          "en": "The new CaixaBank account is no longer a dead row",
+          "ca": "El compte nou de CaixaBank ja no és una fila morta"
+        },
+        "items": {
+          "es": [
+            "1. En Cartera → Tus cuentas, toca la CaixaBank recién conectada: debe abrir la misma ficha que el resto, con el saldo bloqueado.",
+            "2. Cambia el nombre. Si quieres usarla para Recibos, Gasto diario o Todo, elige su rol real; antes de tocarlo no debe haber ninguno marcado.",
+            "3. Cierra la ficha, mantén pulsada CaixaBank y muévela una posición. El orden debe guardarse y ningún saldo debe cambiar."
+          ],
+          "en": [
+            "1. In Portfolio → Your accounts, tap the newly connected CaixaBank account: it should open the same details sheet as the others, with its balance locked.",
+            "2. Change its name. If you want to use it for Bills, Daily spending or Everything, choose its real role; none should be selected before you tap one.",
+            "3. Close the sheet, long-press CaixaBank and move it one position. The order should be saved and no balance should change."
+          ],
+          "ca": [
+            "1. A Cartera → Els teus comptes, toca el compte de CaixaBank acabat de connectar: ha d'obrir la mateixa fitxa que la resta, amb el saldo bloquejat.",
+            "2. Canvia'n el nom. Si el vols fer servir per a Rebuts, Despesa diària o Tot, tria'n el rol real; abans de tocar-lo no n'hi ha d'haver cap de marcat.",
+            "3. Tanca la fitxa, mantén premut CaixaBank i mou-lo una posició. L'ordre s'ha de desar i cap saldo no ha de canviar."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.25.0",
     "d": "16 sep 2026",
     "t": {

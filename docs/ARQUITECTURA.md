@@ -152,8 +152,10 @@ escribir `Access-Control-Allow-Origin: "*"`.
 - Cuenta **re-anclada por el banco** (tiene `bankIban`): solo nombre + rol; el saldo lo trae
   el banco (mostrarlo bloqueado, no dejar mentirse). Esta distinción es además la base de la
   posible capa freemium (ver ROADMAP).
-- Cuenta **extra OB** (`obAccounts`): renombrar (`obLabels`) o promocionar con rol
-  (`promoteObAccount`), igual que en v3.
+- Cuenta **extra OB** (`obAccounts`): abre la misma ficha, con saldo bloqueado; permite renombrar
+  (`obLabels`) y solo se promociona con rol mediante una elección explícita (`promoteObAccount`).
+  Su posición se guarda en `settings.accountListOrder`, mezclada visualmente con `accounts` sin
+  moverla de modelo ni alterar saldo, rol o presupuesto.
 - El rol (recibos/diario/todo) vive AQUÍ; en v4.0.x quedó inaccesible (solo existía en el
   Wealth v3 no montado) — no volver a dejar el rol sin puerta.
 

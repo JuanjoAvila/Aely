@@ -119,10 +119,21 @@ function promoteObAccount(s, totals, key, role, id){
   const bal=toEurAmt(o.value||0, o.cur||"EUR", s);
   const base=+((bal - monthNetForAccount(s, o.ent, now.getFullYear(), now.getMonth()+1, now.getDate())).toFixed(2));
   const name=((s.obLabels||{})[o.key]) || niceObName(o);
-  const acc={ id:id||uid(), ent:o.ent, name:name, value:base, role:"fijos", spendFrom:false };
+  /* Conserva la clave de orden de la fila OB: elegir un rol no debe mandar de golpe la cuenta al
+     final de Cartera justo después de haberla colocado (rechazo CaixaBank 2026-09-16). */
+  const acc={ id:id||uid(), ent:o.ent, name:name, value:base, role:"fijos", spendFrom:false,
+    accountOrderKey:"ob:"+o.key };
   if(o.iban) acc.bankIban=o.iban;                            // el sync del banco la re-ancla por IBAN
   let ns=Object.assign({},s,{ accounts:(s.accounts||[]).concat([acc]), obAccounts:(s.obAccounts||[]).filter(function(x){ return x.key!==key; }) });
   if(role && role!=="fijos") ns=applyAccountRole(ns, totals, acc.id, role);
+  /* Si era la última OB, el orden mixto ya contiene toda la lista: alinear `accounts` aquí evita
+     que lectores antiguos vean el orden previo hasta el siguiente arrastre. No cambia sus datos. */
+  const saved=((ns.settings||{}).accountListOrder)||[];
+  if(!(ns.obAccounts||[]).length && Array.isArray(saved) && saved.length){
+    const rows=accountRowsInOrder(ns), keys=rows.map(function(r){ return r.key; });
+    ns=Object.assign({},ns,{accounts:rows.map(function(r){ return r.item; }),
+      settings:Object.assign({},ns.settings,{accountListOrder:keys})});
+  }
   return ns;
 }
 // MULTI-CUENTA: aplica los saldos reales de TODAS las cuentas de los bancos enlazados.

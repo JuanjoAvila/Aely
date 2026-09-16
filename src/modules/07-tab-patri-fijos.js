@@ -54,9 +54,17 @@ function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, on
     : [["fijos","rl_fijos","rl_fijos_d"],["diario","rl_diario","rl_diario_d"],["ambos","rl_ambos","rl_ambos_d"]];
   /* `rolVista` = lo que se VE (gasto diario efectivo, extras incluidos). `accRole` solo mira el
      campo de la cuenta y mentiría en un EXTRA de expenseBanks. */
-  const rolActual=rolVista||accRole(a);
+  /* Una cuenta OB nueva todavía NO tiene rol. Pintar «Recibos» por defecto sería afirmar una
+     decisión que el usuario no ha tomado y, peor, animaría a pensar que ya afecta a los fijos. */
+  const rolActual=a._obKey?null:(rolVista||accRole(a));
   const guardaNombre=function(v){
-    set(function(s){ return Object.assign({},s,{accounts:(s.accounts||[]).map(function(x){ return x.id===a.id?Object.assign({},x,{name:v}):x; })}); });
+    set(function(s){
+      if(a._obKey){
+        const ob=Object.assign({},s.obLabels||{}); ob[a._obKey]=v;
+        return Object.assign({},s,{obLabels:ob});
+      }
+      return Object.assign({},s,{accounts:(s.accounts||[]).map(function(x){ return x.id===a.id?Object.assign({},x,{name:v}):x; })});
+    });
   };
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:cerrar},
@@ -104,7 +112,9 @@ function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, on
             })
           )
         ),
-        borrando
+        a._obKey
+          ? React.createElement("div",{className:"hint",style:{marginTop:15}}, t("v4_acc_locked"))
+          : borrando
           ? React.createElement("div",{style:{marginTop:15}},
               React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginBottom:8,lineHeight:1.45}}, t("pt_acc_del_q")),
               React.createElement("div",{style:{display:"flex",gap:8}},
@@ -135,11 +145,11 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
     if(!node || !v4Embed || parte==="bienes") return;
     const HOLD=380;
     const onTS=function(e){
-      const btn=e.target.closest&&e.target.closest("button.v4-mov[data-account-id]");
+      const btn=e.target.closest&&e.target.closest("button.v4-mov[data-account-key]");
       if(!btn||!node.contains(btn)) return;
       if(e.target.closest&&e.target.closest(".edit-link,.v4-link-mini,a,input")) return;
       const tch=e.touches&&e.touches[0]; if(!tch) return;
-      const id=btn.getAttribute("data-account-id");
+      const id=btn.getAttribute("data-account-key");
       const d={from:id,to:id,startX:tch.clientX,startY:tch.clientY,active:false,timer:null};
       d.timer=setTimeout(function(){
         d.active=true;
@@ -162,9 +172,9 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
       e.preventDefault();
       e.stopPropagation();
       const hit=document.elementFromPoint(tch.clientX,tch.clientY);
-      const row=hit&&hit.closest&&hit.closest("button.v4-mov[data-account-id]");
+      const row=hit&&hit.closest&&hit.closest("button.v4-mov[data-account-key]");
       if(!row||!node.contains(row)) return;
-      const to=row.getAttribute("data-account-id");
+      const to=row.getAttribute("data-account-key");
       if(!to||to===d.to) return;
       d.to=to; setDragAcc({from:d.from,to:d.to});
     };
@@ -332,13 +342,13 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
        lado del dinero que tienes». Si toda la tarjeta responde al toque, el chevron solo mete
        ruido justo al lado del número, que es lo que va a leer.
        Long-press para ordenar: listeners en el efecto de arriba (mismo gesto que las pestañas). */
-    const accRow=function(a){
-      const dragging=!!(dragAcc&&dragAcc.from===a.id);
-      const dragOver=!!(dragAcc&&dragAcc.to===a.id&&dragAcc.from!==a.id);
-      return React.createElement("button",{className:"v4-mov"+(dragging?" dragging":"")+(dragOver?" drag-over":""),key:a.id,type:"button",
-        "data-account-id":a.id,"aria-label":entOf(a.ent).label+" · "+eur(shownAcc(a)),
+    const accRow=function(a,rowKey){
+      const rowDragging=!!(dragAcc&&dragAcc.from===rowKey);
+      const rowOver=!!(dragAcc&&dragAcc.to===rowKey&&dragAcc.from!==rowKey);
+      return React.createElement("button",{className:"v4-mov"+(rowDragging?" dragging":"")+(rowOver?" drag-over":""),key:rowKey,type:"button",
+        "data-account-key":rowKey,"data-account-id":a.id,"aria-label":entOf(a.ent).label+" · "+eur(shownAcc(a)),
         title:t("drag_hint"),
-        onClick:function(){ if(Date.now()<suppressSheetRef.current) return; setSheetAcc(a.id); }},
+        onClick:function(){ if(Date.now()<suppressSheetRef.current) return; setSheetAcc(rowKey); }},
         React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:a.ent,size:44})),
         React.createElement("div",{className:"nm"},
           React.createElement("div",null,entOf(a.ent).label, isSynced(a)&&badge(t("pt_ob_badge"),"#7FB5E8")),
@@ -389,11 +399,15 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
           toast(t("ef_create_done"));
         });
     };
-    const obRow=function(o){
+    const obRow=function(o,rowKey){
       const custom=(state.obLabels||{})[o.key]; const disp=(custom!=null&&custom!=="")?custom:niceObName(o);
       // La badge va en la línea de meta, no pegada al nombre: con nombres largos (o «caducado»)
       // se cortaba y descuadraba la fila (feedback 2026-07-18).
-      return React.createElement("div",{className:"v4-mov",key:"ob_"+o.key},
+      const dragging=!!(dragAcc&&dragAcc.from===rowKey);
+      const dragOver=!!(dragAcc&&dragAcc.to===rowKey&&dragAcc.from!==rowKey);
+      return React.createElement("button",{className:"v4-mov"+(dragging?" dragging":"")+(dragOver?" drag-over":""),key:rowKey,type:"button",
+        "data-account-key":rowKey,"data-ob-key":o.key,"aria-label":disp+" · "+eur(toEurAmt(o.value||0, o.cur||"EUR", state)),
+        title:t("drag_hint"),onClick:function(){ if(Date.now()<suppressSheetRef.current) return; setSheetAcc(rowKey); }},
         React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:o.ent||"",size:44})),
         React.createElement("div",{className:"nm"},
           React.createElement("div",null, disp),
@@ -421,7 +435,21 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
         React.createElement("button",{className:"ex-del",style:{marginLeft:"auto"},title:t("pt_acc_del"),onClick:function(){ setDelAcc(a.id); }},"🗑")
       );
     };
-    const anySynced=state.accounts.some(isSynced);
+    const anySynced=state.accounts.some(isSynced)||(state.obAccounts||[]).length>0;
+    const orderedAccountRows=accountRowsInOrder(state);
+    const sheetRow=orderedAccountRows.find(function(r){ return r.key===sheetAcc; })||null;
+    const sheetCuenta=sheetRow&&sheetRow.kind==="ob" ? (function(){
+      const o=sheetRow.item, custom=(state.obLabels||{})[o.key];
+      return Object.assign({},o,{
+        id:sheetRow.key, name:(custom!=null&&custom!=="")?custom:niceObName(o),
+        value:toEurAmt(o.value||0,o.cur||"EUR",state), _obKey:o.key, accountOrderKey:sheetRow.key
+      });
+    })() : (sheetRow&&sheetRow.item)||null;
+    const pickSheetRole=function(a,r){
+      if(!a||!a._obKey){ if(a) pickRole(a,r); return; }
+      const nid=uid();
+      set(function(s){ return promoteObAccount(s,totals,a._obKey,r,nid); });
+    };
     /* CUENTAS Y BIENES SON DOS BLOQUES, NO UNO (feedback 2026-07-25: «¿por qué has metido bienes
        junto con mis cuentas? sepáralo»). Al hacer Cartera ordenable quedaron dentro del mismo
        bloque, así que el piso y el coche viajaban pegados a las cuentas del banco y no se podían
@@ -429,8 +457,9 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
        dos, que es como lo usa el resto de la app. */
     return React.createElement("div",null,
       parte!=="bienes" && React.createElement("div",{className:"v4-card-list",ref:bindListDrag},
-        state.accounts.map(accRow),
-        (state.obAccounts||[]).map(obRow),
+        orderedAccountRows.map(function(row){
+          return row.kind==="account" ? accRow(row.item,row.key) : obRow(row.item,row.key);
+        }),
         /* «Editar» SOLO cuando hay cuentas EXTRA de Open Banking por promocionar (12/9). Él lo
            veía como resto del rediseño; la ficha ya cubre nombre/saldo/rol de las cuentas reales
            (y el rol pasa por `pickRole`, así un EXTRA también). Si ya está abierto el editor,
@@ -444,11 +473,12 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
       ),
       // La ficha de la cuenta que esté abierta. Portal a `body`, así que da igual dónde se monte.
       React.createElement(AccountSheet,{
-        open:!!sheetAcc, cuenta:(state.accounts||[]).find(function(x){ return x.id===sheetAcc; })||null,
+        open:!!sheetCuenta, cuenta:sheetCuenta,
         set:set, totals:totals, onClose:function(){ setSheetAcc(""); },
-        onRemove:removeAccount, onSaldo:guardarSaldoDe, onRole:pickRole,
-        rolVista:(function(){ const c=(state.accounts||[]).find(function(x){ return x.id===sheetAcc; }); return c?rolVistaOf(c):null; })(),
-        saldoMostrado:shownAcc, sincronizada:isSynced
+        onRemove:removeAccount, onSaldo:guardarSaldoDe, onRole:pickSheetRole,
+        rolVista:sheetRow&&sheetRow.kind==="account"?rolVistaOf(sheetRow.item):null,
+        saldoMostrado:function(a){ return a&&a._obKey?a.value:shownAcc(a); },
+        sincronizada:function(a){ return !!(a&&a._obKey)||isSynced(a); }
       }),
       // Editor completo (2026-07-18): nombre + rol (recibos/diario/todo) SIEMPRE; el saldo solo
       // en cuentas manuales — el de las conectadas lo trae el banco y editarlo aquí sería mentirse.

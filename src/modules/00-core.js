@@ -1870,17 +1870,65 @@ function moveExpenseWithinDay(state, fromId, toId){
   const settings=Object.assign({},state.settings,{expenseOrder:Object.assign({},((state.settings||{}).expenseOrder)||{},{[day]:ids})});
   return Object.assign({},state,{settings:settings});
 }
-/* Cartera → Tus cuentas: el orden es el del array `accounts` (12/9). Mantener pulsado + arrastrar
-   pide exactamente eso — no un campo paralelo que luego haya que reconciliar. */
+/* Cartera → Tus cuentas: una cuenta recién conectada vive en `obAccounts` hasta que el usuario
+   elige su rol. No se puede meter en `accounts` solo para ordenarla: eso inventaría si paga recibos
+   o gasto diario y podría mover presupuesto/saldos. El orden visual mezcla ambas listas mediante
+   una clave estable, sin tocar el modelo financiero (rechazo real CaixaBank 2026-09-16). */
+function accountOrderKeyOf(item, kind){
+  if(kind==="ob") return "ob:"+String(item&&item.key||"");
+  return String((item&&item.accountOrderKey)||("acc:"+String(item&&item.id||"")));
+}
+function accountRowsInOrder(state){
+  const rows=(state&&state.accounts||[]).map(function(a){
+    return {key:accountOrderKeyOf(a,"account"),kind:"account",item:a};
+  }).concat((state&&state.obAccounts||[]).map(function(o){
+    return {key:accountOrderKeyOf(o,"ob"),kind:"ob",item:o};
+  }));
+  const order=((state&&state.settings||{}).accountListOrder)||[];
+  if(!Array.isArray(order)||!order.length) return rows;
+  const byKey={}; rows.forEach(function(r){ byKey[r.key]=r; });
+  const seen={}, out=[];
+  order.forEach(function(k){ if(byKey[k]&&!seen[k]){ seen[k]=true; out.push(byKey[k]); } });
+  rows.forEach(function(r){ if(!seen[r.key]) out.push(r); });
+  return out;
+}
 function moveAccountInList(state, fromId, toId){
-  if(!state || !fromId || !toId || fromId===toId) return state;
-  const acc=(state.accounts||[]).slice();
-  const i=acc.findIndex(function(a){ return a&&a.id===fromId; });
-  const j=acc.findIndex(function(a){ return a&&a.id===toId; });
+  if(!state||!fromId||!toId||fromId===toId) return state;
+  const rows=accountRowsInOrder(state);
+  const keyOf=function(raw){
+    const direct=rows.find(function(r){ return r.key===raw; });
+    if(direct) return direct.key;
+    const legacy=rows.find(function(r){ return r.kind==="account"&&r.item&&r.item.id===raw; });
+    return legacy&&legacy.key;
+  };
+  const from=keyOf(fromId), to=keyOf(toId);
+  if(!from||!to||from===to) return state;
+
+  /* Compatibilidad: si solo hay cuentas con rol y aún no existe orden mixto, conserva el contrato
+     histórico (el array `accounts` ya guarda el orden de todos los móviles publicados). */
+  const saved=((state.settings||{}).accountListOrder)||[];
+  if(!(state.obAccounts||[]).length && (!Array.isArray(saved)||!saved.length)){
+    const acc=(state.accounts||[]).slice();
+    const i=acc.findIndex(function(a){ return accountOrderKeyOf(a,"account")===from; });
+    const j=acc.findIndex(function(a){ return accountOrderKeyOf(a,"account")===to; });
+    if(i<0||j<0||i===j) return state;
+    const item=acc.splice(i,1)[0]; acc.splice(j,0,item);
+    return Object.assign({},state,{accounts:acc});
+  }
+
+  const keys=rows.map(function(r){ return r.key; });
+  const i=keys.indexOf(from), j=keys.indexOf(to);
   if(i<0||j<0||i===j) return state;
-  const item=acc.splice(i,1)[0];
-  acc.splice(j,0,item);
-  return Object.assign({},state,{accounts:acc});
+  const item=keys.splice(i,1)[0]; keys.splice(j,0,item);
+  const next={settings:Object.assign({},state.settings,{accountListOrder:keys})};
+  /* Cuando ya no queda ninguna cuenta pendiente, `accounts` vuelve a ser la lista completa. Se
+     alinea también su orden para que los lectores anteriores al orden mixto no vean otra cosa;
+     las claves guardadas se regeneran desde `rows`, así desaparecen las de bancos desconectados. */
+  if(!(state.obAccounts||[]).length){
+    const byKey={}; (state.accounts||[]).forEach(function(a){ byKey[accountOrderKeyOf(a,"account")]=a; });
+    next.accounts=keys.map(function(k){ return byKey[k]; }).filter(Boolean);
+  }
+  return Object.assign({},state,next);
 }
 /* Resuelve un OB marcado como posible repetido (2026-09-07).
    same=true  → se queda el gemelo con nombre (noti/manual) y se borra la fila OB.
