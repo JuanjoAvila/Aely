@@ -246,9 +246,34 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
 /* IMPORTAR HISTÓRICO vía Open Banking (~90 días PSD2). Cargos + ingresos; por fila eliges
    destino: Gasto (variable) · Recibo (fijo mensual) · Ingreso. Tarjeta→Gasto, no-tarjeta→Recibo,
    crédito→Ingreso (pre-marcados). TR no aplica (no está en OB). Feedback 2026-07-18. */
+function SyncReportSheet({items,onClose}){
+  useBackClose(true,onClose);
+  const rows=listaAvisosSync(items);
+  return React.createElement("div",{className:"v4-sheet-back sync-report-back",onClick:onClose},
+    React.createElement("div",{className:"v4-sheet sync-report",onClick:function(e){ e.stopPropagation(); }},
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("div",{className:"serif",style:{fontSize:22,marginBottom:12}},t("sync_result_title")),
+      React.createElement("div",{className:"v4-sheet-body"},rows.map(function(msg,i){
+        const warn=/^[⚠✕✗]/.test(msg);
+        return React.createElement("div",{key:i,className:"sync-report-row",style:{display:"flex",gap:10,alignItems:"flex-start",padding:"11px 12px",marginBottom:8,borderRadius:12,border:"1px solid var(--line-soft)",background:"var(--surface)",color:"var(--text)",fontSize:13,lineHeight:1.45}},
+          React.createElement("span",{style:{color:warn?"var(--coral)":"var(--mint)",fontWeight:900,flex:"0 0 auto"}},warn?"!":"✓"),
+          React.createElement("span",null,msg.replace(/^[⚠✕✗✓]\s*/,""))
+        );
+      })),
+      React.createElement("button",{type:"button",className:"btn btn-primary",style:{width:"100%",marginTop:8},onClick:onClose},t("sync_result_close"))
+    )
+  );
+}
 function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}){
   const expEnts=expenseBankEnts(state);
-  const allowList=(linkEnts&&linkEnts.length)? linkEnts : expEnts;
+  const bankEnts=((linkEnts&&linkEnts.length)?linkEnts:expEnts).filter(function(e,i,a){ return e&&a.indexOf(e)===i; });
+  /* Arranca SOLO con los bancos marcados como gasto diario. Antes arrancaba con TODOS los
+     conectados y «Buscar» consultaba incluso los que el filtro luego ocultaba: gastaba su cupo
+     PSD2 y era justo lo contrario de lo que indicaba la pantalla. */
+  const [bankFilter,setBankFilter]=useState(function(){
+    return bankEnts.filter(function(e){ return expEnts.indexOf(e)>=0; });
+  });
+  const allowList=bankFilter;
   const allow={}; allowList.forEach(function(e){ allow[e]=1; });
   const banksLbl=allowList.map(function(e){ return entOf(e).label; }).join(", ");
   const [months,setMonths]=useState(3);
@@ -273,7 +298,6 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
      por debajo (para combinar selecciones de varios filtros en una sola importación, basta volver
      a «Todos los bancos» antes de pulsar Importar: los `sel` de cada fila se conservan siempre,
      solo cambia qué se VE y qué CUENTA en cada momento). */
-  const [bankFilter,setBankFilter]=useState([]);
   const [tipoFilter,setTipoFilter]=useState("all");   // "all" | "gasto" | "ingreso"
   const [mesFilter,setMesFilter]=useState("all");     // "all" | "YYYY-MM"
   const [revelado,setRevelado]=useState(0);           // filas ya "entradas" (animación, como el import de Excel)
@@ -286,16 +310,35 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
   // Fallback si aún no hay clasificación (híbrido C: NUNCA recibo a ciegas).
   const defDest=function(x){ return x.kind==="in" ? "ingreso" : "gasto"; };
   const search=function(){
-    if(!allowList.length){ showToast(t("bp_hist_nodaily")); return; }
+    if(!allowList.length){ showToast(t("bp_hist_pickbank")); return; }
     setLoading(true); setCands(null); setReadWarnings([]); setReadFailed(false);
-    setBankFilter([]); setTipoFilter("all"); setMesFilter("all"); setRevelado(0);
+    setTipoFilter("all"); setMesFilter("all"); setRevelado(0);
     setRenderCap(HIST_RENDER_CAP); setTruncWarn(false); setSignSuspect({}); setClassRows([]);
     const d=new Date(); d.setMonth(d.getMonth()-months); const dateFrom=d.toISOString().slice(0,10);
-    cloud.bankSyncHistory(dateFrom).then(function(res){
+    const cooling=allowList.filter(function(ent){ return bankRateUntil(ent)>Date.now(); });
+    const aspsps=(bankLinks||[]).filter(function(l){
+      const ent=entFromAspsp(l&&((l.aspsp_name||l.aspsp)));
+      return l&&l.status==="active"&&allowList.indexOf(ent)>=0&&cooling.indexOf(ent)<0;
+    }).map(function(l){ return l.aspsp_name||l.aspsp; });
+    if(!aspsps.length){
+      const stopped=cooling.map(function(ent){ return {bank:entOf(ent).label,ent:ent,key:"bank_read_rate"}; });
+      (bankLinks||[]).forEach(function(l){
+        const ent=entFromAspsp(l&&(l.aspsp_name||l.aspsp));
+        if(allowList.indexOf(ent)>=0&&cooling.indexOf(ent)<0) stopped.push({bank:ent?entOf(ent).label:(l.aspsp_name||"🏦"),ent:ent,key:"bank_read_reconnect"});
+      });
+      setReadWarnings(stopped);
+      setCands([]); setLoading(false); return;
+    }
+    cloud.bankSyncHistory(dateFrom,aspsps).then(function(res){
       if(!res || !Array.isArray(res.links)) throw new Error("bank_read_failed");
       /* En histórico, cero ya no se disfraza de «quizá estaba todo apuntado»: se dice qué banco
          devolvió cero. En el sync diario no se usa este aviso porque un día sin cargos es normal. */
-      setReadWarnings(bankReadWarnings(res.links, bankLinks, true));
+      const expected=(bankLinks||[]).filter(function(l){ return aspsps.indexOf(l.aspsp_name||l.aspsp)>=0; });
+      const warnings=bankReadWarnings(res.links, expected, true).filter(function(w){
+        return allowList.indexOf(entFromAspsp(w.ent||w.bank))>=0;
+      });
+      warnings.forEach(function(w){ if(w.key==="bank_read_rate") bankRateRemember(w.ent||w.bank); });
+      setReadWarnings(cooling.map(function(ent){ return {bank:entOf(ent).label,ent:ent,key:"bank_read_rate"}; }).concat(warnings));
       // Flatten compartido con la sonda (Codex 10/9): un solo pipeline, con card/entKey/merchant.
       const flat=histFlattenHistoryLinks(res, state.expenses, allow, {
         merchantIn:t("cat_ingreso"), merchantOut:"Compra"
@@ -329,12 +372,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
           stats:flat.stats, res:res, dateFrom:dateFrom
         });
         if(typeof window!=="undefined") window.__histDupProbe=probe;
-        showToast(tf("bp_hist_probe",{
-          bank:probe.bankReported,
-          llegan:probe.llegan,
-          nuevos:probe.nuevos,
-          ya:probe.coincideDayAmt
-        }));
+        /* La sonda sigue en telemetría y DevTools, pero no tapa la app: era instrumentación
+           interna presentada como un aviso gigante después de cada búsqueda real. */
         /* Y LA SONDA TAMBIEN VIAJA (2026-09-12). Hasta hoy solo salia en un aviso de pantalla y
            en `window.__histDupProbe`, asi que para saber que le pasa habia que pedirle a el que
            leyera el aviso a tiempo y lo copiara. Su rechazo del 12/9 —«los que salen que no son
@@ -364,7 +403,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
   })();
   const monthLbl=function(k){ const p=k.split("-"); return monthShort(parseInt(p[1],10)-1)+" "+p[0]; };
   const passFilter=function(x){
-    if(bankFilter.length && bankFilter.indexOf(x.ent)<0) return false;
+    if(bankFilter.indexOf(x.ent)<0) return false;
     if(tipoFilter==="gasto" && x.kind==="in") return false;
     if(tipoFilter==="ingreso" && x.kind!=="in") return false;
     if(mesFilter!=="all" && x.date.slice(0,7)!==mesFilter) return false;
@@ -558,11 +597,18 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
     React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("bp_close")),
     React.createElement("div",{className:"serif",style:{fontSize:24,margin:"4px 0 4px"}}, t("bp_hist_title")),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}},
-      allowList.length? tf("bp_hist_sub",{banks:banksLbl}) : t("bp_hist_nodaily")),
+      allowList.length? tf("bp_hist_sub",{banks:banksLbl}) : t("bp_hist_pickbank")),
     canUndo && React.createElement("button",{type:"button",onClick:doUndoLast,
       style:{width:"100%",padding:"11px",borderRadius:12,border:"1px solid var(--coral)",background:"transparent",color:"var(--coral)",fontWeight:800,fontSize:13,cursor:"pointer",marginBottom:12}},
       t("bp_hist_undo_btn")),
-    allowList.length>0 && React.createElement(React.Fragment,null,
+    bankEnts.length>0 && React.createElement(React.Fragment,null,
+      React.createElement("div",{className:"v4-chips meta-chips wrap",style:{marginBottom:10}},
+        React.createElement("button",{type:"button",className:"v4-chip"+(bankFilter.length===bankEnts.length?" on":""),onClick:function(){ setBankFilter(bankEnts.slice()); }}, t("g_allbanks")),
+        bankEnts.map(function(ent){
+          const on=bankFilter.indexOf(ent)>=0;
+          return React.createElement("button",{key:ent,type:"button",className:"v4-chip"+(on?" on":""),onClick:function(){ toggleBankFilter(ent); }}, entOf(ent).label);
+        })
+      ),
       React.createElement("div",{style:{display:"flex",gap:8,marginBottom:12}}, [1,2,3].map(chip)),
       React.createElement("button",{style:{width:"100%",padding:"12px",borderRadius:12,border:"1px solid var(--line)",background:"var(--surface)",color:"var(--text)",fontWeight:800,fontSize:14,cursor:"pointer"},disabled:loading,onClick:search}, loading?t("bp_hist_searching"):t("bp_hist_search")),
       !loading && readWarnings.map(function(w,i){ return React.createElement("div",{key:i,role:"status",className:"hint bank-read-warning",style:{marginTop:12}}, "⚠ "+tf(w.key,{bank:w.bank})); }),
@@ -577,13 +623,6 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
            nada elegirlo), tipo (gasto/ingreso) y mes (solo si el lote trae más de uno). Mismo
            patrón visual `.v4-chip`/`.v4-chips` que el resto de la app (Gastos ya filtra así por
            banco/categoría) — coherencia en vez de reinventar un control nuevo para esta pantalla. */
-        allowList.length>1 && React.createElement("div",{className:"v4-chips meta-chips wrap"},
-          React.createElement("button",{type:"button",className:"v4-chip"+(bankFilter.length===0?" on":""),onClick:function(){ setBankFilter([]); }}, t("g_allbanks")),
-          allowList.map(function(ent){
-            const on=bankFilter.indexOf(ent)>=0;
-            return React.createElement("button",{key:ent,type:"button",className:"v4-chip"+(on?" on":""),onClick:function(){ toggleBankFilter(ent); }}, entOf(ent).label);
-          })
-        ),
         React.createElement("div",{className:"v4-chips meta-chips wrap"},
           [["all",t("bp_hist_f_all")],["gasto",t("bp_hist_f_gastos")],["ingreso",t("bp_hist_f_ingresos")]].map(function(o){
             const on=tipoFilter===o[0];
@@ -2532,7 +2571,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       const nat=natPlugin();
       if(!nat || !nat.setNotifPrefs) return null;
       const on=!(state.settings&&state.settings.trNotifyConfirm===false);
-      const bankSyncOn=!(state.settings&&state.settings.bankSyncOnNotif===false);
+      const bankSyncOn=!!(state.settings&&state.settings.bankSyncOnNotif===true);
       const ingOn=!!(state.settings&&state.settings.trIngest);
       const toggleIng=function(){
         if(!ingOn){

@@ -1,13 +1,16 @@
 # Arquitectura — Aely
 
-## Lectura bancaria (4.25.0, integrada; despliegue autorizado y pendiente)
+## Lectura bancaria (4.25.4)
 
 `bank-sync` usa `fetchBankTransactions` para sync e histórico: continúa aunque una página esté
-vacía si hay cursor; máximo 12 páginas, 2000 filas y 15 segundos por cuenta. El deadline global
+vacía si hay cursor; máximo 12 páginas, 2000 filas y presupuesto acotado por cuenta. El deadline global
 de 60 segundos permite devolver las cuentas leídas y señalar las que no pudieron consultarse. Conserva resultados
 parciales y los declara con `truncated` / `transactionError`. El histórico incluye enlaces
 inactivos sin consultarlos. `bankReadWarnings` traduce errores por banco en la previsualización;
-el sync manual tampoco anuncia «al día» cuando la lectura está incompleta.
+el sync manual tampoco anuncia «al día» cuando la lectura está incompleta. El histórico acepta
+una lista de bancos, consulta solo esos enlaces y los recorre estrictamente de uno en uno: no abre
+dos sesiones PSD2 simultáneas. Tras un 429 el cliente conserva una espera de seis horas y no vuelve
+a llamar ni recomienda reconectar.
 El cliente conserva todas las filas recibidas, sin cupo global de 150. La ventana temporal y
 las reglas de dedup de la importación diaria no cambian. No se añade ninguna sincronización.
 
@@ -122,8 +125,7 @@ caducaran «cada dos por tres» (feedback 2026-07-18). Syncs que siguen vivos, t
 | Botón «↻ Sincronizar bancos» | Cartera, junto a «Tus cuentas» (visible con `hasBankLink`) |
 | «Actualizar» de un banco | Ajustes → Mis bancos |
 | Recién autorizado (`?bank=ok` / goto `bank\|ok`) | `11-app-main.js` |
-| Bootstrap de conciliación (1ª vez sin `bankTx`) | `11-app-main.js` (solo una vez en la vida del enlace) |
-| Noti del banco (evento real del usuario) | ajuste `st_banksync_notif`; presupuesto persistente de 1 cada 2 h y 4 al día |
+| Noti del banco (evento real del usuario) | apagado por defecto; si se activa expresamente, presupuesto persistente de 1 cada 12 h |
 
 El sincronizador general también consulta el puente nativo de Trade Republic cuando existe. Su
 `availableCash` y la tarjeta específica de TR pasan por el mismo reanclaje (`applyTrCash`), para
@@ -138,8 +140,8 @@ no enciende el aviso de reconexión. Al sincronizar a mano se intenta primero re
 la sesión guardada, y solo una respuesta explícita `authExpired` pide volver a iniciar sesión.
 
 El presupuesto de notificaciones vive en `localStorage`, no solo en memoria, para proteger también
-los APK ya instalados que reciben el cambio por OTA. Limita únicamente el disparo automático; los
-botones de sincronización manual nunca consumen ni consultan ese presupuesto.
+los APK ya instalados que reciben el cambio por OTA. El cooldown por 429 también persiste ahí para
+que repetir un botón no vuelva a gastar peticiones durante la ventana indicada por el proveedor.
 
 **No reintroducir** un sync por apertura/foreground sin repensar esto: el histórico está en el
 CHANGELOG 4.1.0 y en el comentario del propio código.

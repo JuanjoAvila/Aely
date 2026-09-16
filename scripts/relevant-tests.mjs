@@ -110,6 +110,7 @@ export const CROSSCUTTING = [
   "e2e/sync-pull-refresco.spec.mjs",
   /* El banco espera a la nube (15/9): orden entre pull y sync, no una pantalla. */
   "e2e/banco-espera-nube.spec.mjs",
+  "e2e/sync-resumen.spec.mjs",
   "e2e/swipe-pestanas.spec.mjs",
   "e2e/rebote-barra-inferior.spec.mjs",
   /* Hermano del de arriba, y hace falta que sean DOS. Aquél mueve el scroll con `scrollTop` por

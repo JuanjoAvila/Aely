@@ -98,7 +98,15 @@ test("seguir tirando abajo no revela la barra oculta; subir contenido sí", asyn
   await scrollear(page, max);
   expect((await estado(page)).hidden, "el rebote de abajo no es una subida de contenido").toBe(true);
 
-  await scrollear(page, Math.max(0, max - 220));
+  /* Una subida REAL necesita dirección de dedo, no solo fabricar un scrollTop menor: justo esa
+     diferencia es la que separa la intención de la devolución elástica de Android. */
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 187, y: 260 }] });
+  for (let i = 1; i <= 14; i++) {
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 187, y: 260 + i * 18 }] });
+    await page.waitForTimeout(12);
+  }
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
   await expect.poll(async () => (await estado(page)).hidden, {
     message: "al subir de verdad, la barra sí vuelve",
   }).toBe(false);

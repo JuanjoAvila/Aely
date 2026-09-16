@@ -120,17 +120,25 @@ await t("el sync diario conserva el deadline global",async()=>{
   assert.equal(r.calls.filter(p=>p.includes("/transactions?")).length,4);
   assert.equal(r.data.links[5].accounts[0].transactionError,"timeout");
 });
-await t("un banco lento no consume el turno de Caixa en el histórico",async()=>{
-  let soltarLento;
-  const lento=new Promise((resolve,reject)=>{ soltarLento=()=>reject(new Error("EB 429: rate limit")); });
+await t("el histórico consulta bancos en serie y un 429 no cancela el siguiente",async()=>{
+  const order=[];
   const r=await sync([link("Banco de Sabadell"),link("CaixaBank")],u=>{
-    if(u.pathname.includes("Banco%20de%20Sabadell")) return lento;
-    soltarLento();
+    order.push(u.pathname);
+    if(u.pathname.includes("Banco%20de%20Sabadell")) throw new Error("EB 429: rate limit");
     return {transactions:[movement("caixa-ok")]};
   },{dateFrom:"2026-06-15"});
   assert.equal(r.data.links[0].accounts[0].ok,false);
-  assert.equal(r.data.links[1].accounts[0].transactions.length,1,"Caixa recibe su llamada aunque el primer banco siga pendiente");
+  assert.equal(r.data.links[1].accounts[0].transactions.length,1,"Caixa recibe su turno después del fallo de Sabadell");
+  assert.ok(order[0].includes("Banco%20de%20Sabadell"));
+  assert.ok(order[1].includes("CaixaBank"));
   assert.equal(r.events.length,1);
+});
+await t("el filtro del cliente consulta solo los bancos elegidos",async()=>{
+  const r=await sync([link("Banco de Sabadell"),link("CaixaBank"),link("Revolut")],()=>({transactions:[movement()]}),
+    {dateFrom:"2026-06-15",aspsps:["CaixaBank"]});
+  assert.equal(r.data.links.length,1);
+  assert.equal(r.data.links[0].aspsp,"CaixaBank");
+  assert.ok(r.calls.every(p=>p.includes("CaixaBank")));
 });
 await t("solo un EB 401 firme caduca el enlace; 403/404/429 lo conservan",async()=>{
   for(const status of [403,404,429,503]){

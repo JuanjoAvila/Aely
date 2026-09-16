@@ -255,11 +255,14 @@ function App(){
        poniendo la suavidad que él pide. */
     if(dy>0 && y>24){ armNavHide(true); }
     else if(dy<0){
-      const fingerStillDown=fingerScrollDir.current===1 && (Date.now()-fingerScrollAt.current)<900;
-      if(fingerStillDown){ bottomOverscroll.current=true; return; }
-      /* Android puede traducir el rubber-band a `dy<0` aunque el dedo siga tirando hacia abajo.
-         No cuenta como «subir» hasta alejarse claramente del borde con contenido real. */
-      if(bottomOverscroll.current && max>0 && y>max-160) return;
+      /* En el borde, `scrollTop` NO demuestra la intención: el stretch de Android puede devolver
+         cientos de px aunque él siga empujando hacia abajo. La barra solo reaparece si hay una
+         dirección de dedo OPUESTA y reciente (dedo baja = subir contenido). El umbral de 160 px
+         era el fallo real: un rebote grande lo cruzaba y abría la barra sin que él subiera. */
+      if(bottomOverscroll.current){
+        const fingerSubeContenido=fingerScrollDir.current===-1 && (Date.now()-fingerScrollAt.current)<900;
+        if(!fingerSubeContenido) return;
+      }
       bottomOverscroll.current=false;
       revealNav();
     }
@@ -304,6 +307,7 @@ function App(){
   const [planGoto,setPlanGoto]=useState(null);             // segmento de Plan a forzar desde «Ver plan» ({id,ts})
   const [tourOpen,setTourOpen]=useState(false);            // tour guiado (coach-marks)
   const [toast,setToast]=useState(null);
+  const [syncReport,setSyncReport]=useState(null);
   const [syncing,setSyncing]=useState(false);
   const [syncStatus,setSyncStatus]=useState({type:"idle",msg:""});
 
@@ -636,8 +640,9 @@ function App(){
       //      que dice lo contrario medio segundo después.
       const issues=bankIssuesOf(links, dbLinks);
       const readWarnings=bankReadWarnings(links, dbLinks).filter(function(w){ return w.key!=="bank_read_reconnect"; });
+      readWarnings.forEach(function(w){ if(w.key==="bank_read_rate") bankRateRemember(w.ent||w.bank); });
       if(opts.manual && readWarnings.length){
-        avisaSync(opts,"⚠ "+readWarnings.map(function(w){ return tf(w.key,{bank:w.bank}); }).join(" · "));
+        readWarnings.forEach(function(w){ avisaSync(opts,"⚠ "+tf(w.key,{bank:w.bank})); });
       }
       if(opts.manual && preview.synced.length && !issues.length && !readWarnings.length){
         const ents={}; preview.synced.forEach(function(x){ if(x&&x.ent) ents[x.ent]=1; });
@@ -682,7 +687,7 @@ function App(){
       // vivo (el servidor ya no lo marca 'expired' por un 403/404), así que no mandamos «reconéctate»
       // — solo un aviso suave y únicamente si lo pediste tú (feedback 2026-07-17: «se caen cada dos
       // por tres» era este falso positivo). En auto-sync nos callamos: se reintenta solo.
-      else if(failed.length && opts.manual){ avisaSync(opts, "⚠ "+tf("bank_syncsoft",{bank:bankLabelOf(failed[0])})); }
+      else if(failed.length && opts.manual && !readWarnings.length){ avisaSync(opts, "⚠ "+tf("bank_syncsoft",{bank:bankLabelOf(failed[0])})); }
       // Ni un solo banco enlazado: en vez del callejón sin salida («No tienes ningún banco
       // conectado») le abrimos el panel para que lo conecte ahí mismo.
       else if(!preview.synced.length && !links.length && opts.manual){
@@ -781,7 +786,7 @@ function App(){
   const sincronizarAMano=function(){
     const col=[];
     return Promise.all([runBankSync({manual:true, collect:col}), runBrokerSync({manual:true, collect:col})]).then(function(){
-      const m=juntaAvisosSync(col); if(m) showToast(m);
+      const rows=listaAvisosSync(col); if(rows.length) setSyncReport(rows);
     });
   };
   const runBrokerSync=function(opts){
@@ -896,10 +901,13 @@ function App(){
   const allowBankNotifSync=function(){
     const now=Date.now(), day=Math.floor(now/86400000);
     try{
+      /* Las lecturas desatendidas gastaban el cupo PSD2 y dejaban el histórico en 429. Solo se
+         hacen si la persona lo activó de forma expresa; el valor antiguo implícito era ON. */
+      if(!((stateRef.current.settings||{}).bankSyncOnNotif===true)) return false;
       const last=Number(localStorage.getItem("_bankNotifSyncAt")||0);
       const savedDay=Number(localStorage.getItem("_bankNotifSyncDay")||-1);
       const used=savedDay===day?Number(localStorage.getItem("_bankNotifSyncUsed")||0):0;
-      if(now-last < 2*60*60*1000 || used>=4) return false;
+      if(now-last < 12*60*60*1000 || used>=1) return false;
       localStorage.setItem("_bankNotifSyncAt",String(now));
       localStorage.setItem("_bankNotifSyncDay",String(day));
       localStorage.setItem("_bankNotifSyncUsed",String(used+1));
@@ -1107,14 +1115,12 @@ function App(){
 
   // CAPA 2 — al abrir, el banco YA NO se sincroniza solo (2026-07-18): el sync desatendido en
   // cada apertura hacía que Caixa/Sabadell marcaran el consentimiento como uso robótico y lo
-  // caducaran una y otra vez. Quedan solo dos syncs «con motivo»:
-  //  · justo tras autorizar un banco (vuelta del ?bank=ok) — lo acabas de pedir tú;
-  //  · la primera vez que hay banco sin movimientos capturados (bootstrap de conciliación).
+  // caducaran una y otra vez. Solo queda el sync justo tras autorizar un banco (vuelta del
+  // ?bank=ok): lo acaba de pedir la persona. El viejo bootstrap por `bankTx===undefined` también
+  // era una consulta al abrir y consumía el cupo sin tocar ningún botón.
   useEffect(function(){
     if(!uid) return;
     if(bankJustConnected.current){ bankJustConnected.current=false; limpiaCartelReconectado(); runBankSync({manual:true}); return; }
-    if(!state.hasBankLink) return;   // nadie ha conectado banco en esta cartera → no llamamos a la función
-    if(typeof state.bankTx==="undefined"){ runBankSync({}); return; }   // bootstrap: solo 1 vez en la vida del enlace
   },[uid, state.hasBankLink]);
 
   // Y lo mismo para los brókers que SÍ sincronizan solos (TR nativo + MyInvestor): al abrir,
@@ -1913,7 +1919,7 @@ function App(){
     if(!nat || !nat.setNotifPrefs) return;
     try{ nat.setNotifPrefs({
       expenseConfirm:!(state.settings&&state.settings.trNotifyConfirm===false),
-      bankSyncOnNotif:!(state.settings&&state.settings.bankSyncOnNotif===false)
+      bankSyncOnNotif:!!(state.settings&&state.settings.bankSyncOnNotif===true)
     }).catch(function(){}); }catch(e){}
   },[state.settings&&state.settings.trNotifyConfirm, state.settings&&state.settings.bankSyncOnNotif]);
   // Re-propaga al lector nativo la URL de ingest con el token del usuario (apuntado multiusuario
@@ -2375,8 +2381,10 @@ function App(){
      del perfil, que tampoco desenfoca durante el arrastre. A 0,42 s de transición nadie ve la
      diferencia; lo que sí se nota es el tirón. */
   const navBlurT=useRef(0);
+  const navBlurOff=useRef(false);
   const navSinBlur=function(off){
     if(navBlurT.current){ clearTimeout(navBlurT.current); navBlurT.current=0; }
+    navBlurOff.current=!!off;
     if(!appShellRef.current) return;
     appShellRef.current.classList.toggle("nav-sin-blur", !!off);
   };
@@ -2385,6 +2393,7 @@ function App(){
     if(navBlurT.current) clearTimeout(navBlurT.current);
     navBlurT.current=setTimeout(function(){
       navBlurT.current=0;
+      navBlurOff.current=false;
       if(appShellRef.current) appShellRef.current.classList.remove("nav-sin-blur");
     }, 480);
   };
@@ -2465,7 +2474,11 @@ function App(){
   const ensureScrollHost=function(){
     if(settleRaf.current) return;                         // el asentamiento ya lo pondrá
     if(dragging.current && gestureMode.current==="tab") return;
-    if(scrollHostOn.current && hostTabRef.current===tabRef.current) return;
+    /* React vuelve a escribir `className` en cualquier setState. Las refs podían decir «host
+       activo» mientras el DOM ya había perdido las dos clases que dejan libre la ola nativa. */
+    if(scrollHostOn.current && hostTabRef.current===tabRef.current
+      && appShellRef.current&&appShellRef.current.classList.contains("scroll-host-on")
+      && viewportRef.current&&viewportRef.current.classList.contains("scroll-host-open")) return;
     enterScrollHost(tabRef.current);
   };
   /* ASENTAR EL CARRUSEL CON rAF, NO CON transition CSS — 2026-07-27, medido en SU móvil.
@@ -3323,8 +3336,8 @@ function App(){
     mcSandbox() && React.createElement("button",{type:"button",className:"sandbox-bar",
       onClick:function(){ mcExitSandbox(); location.reload(); }},
       "🧪 MODO PRUEBAS · los datos no son reales · toca para salir"),
-    React.createElement("div",{className:"app-shell",ref:appShellRef},
-      React.createElement("div",{className:"viewport",ref:viewportRef},
+    React.createElement("div",{className:"app-shell"+(hostTab>=0?" scroll-host-on":"")+(navBlurOff.current?" nav-sin-blur":""),ref:appShellRef},
+      React.createElement("div",{className:"viewport"+(hostTab>=0?" scroll-host-open":""),ref:viewportRef},
         React.createElement("div",{className:"track"+(hostTab>=0?" scroll-host-park":" scroll-host-swipe"),ref:trackRef}, paginas)
       ),
       React.createElement("nav",{className:"botnav"+((navHidden||navHiddenRef.current)&&!drawerOpen&&!profileOpen?" botnav-hidden":""),"aria-label":"Navegación"},
@@ -3360,6 +3373,7 @@ function App(){
     upd.apkUpd && React.createElement("button",{className:"update-pill",onClick:function(){ upd.installApk(showToast); }}, tf("apk_ready",{v:upd.apkUpd.versionName})),
     !online && React.createElement("div",{className:"offline-pill"}, t("off_pill")),
     toast && React.createElement("div",{className:"toast"},toast),
+    syncReport && ReactDOM.createPortal(React.createElement(SyncReportSheet,{items:syncReport,onClose:function(){ setSyncReport(null); }}),document.body),
     showAuth && React.createElement(AuthPanel,{session:session,onClose:function(){ setShowAuth(false); setRecovery(false); },showToast:showToast,recovery:recovery,startMode:authStart}),
     React.createElement("div",{
       className:"settings-push"+(drawerOpen?" open":""),

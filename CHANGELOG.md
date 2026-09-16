@@ -1,3 +1,27 @@
+## [4.25.4] - 2026-09-16
+### El rechazo real deja tres causas medibles, no otro ajuste a ciegas
+
+La telemetría del móvil confirmó `eb_429` simultáneo en CaixaBank y Sabadell. La documentación del
+proveedor limita muchas lecturas PSD2 en segundo plano y recomienda continuar seis horas después.
+El histórico ya no abre dos bancos a la vez: recibe la selección del cliente, consulta solo esos
+enlaces y los procesa en serie. La pantalla arranca con los bancos marcados como gasto diario,
+permite ampliar a los demás antes de buscar y conserva un cooldown local de seis horas tras 429.
+Las sincronizaciones por notificación quedan apagadas por defecto (una cada 12 h si se activan de
+forma expresa), y se elimina el bootstrap bancario sin toque que aún corría una vez al abrir.
+
+Un fallo transitorio ya no pinta una cuenta Open Banking como «caducada»: `staleKind` distingue
+saldo sin actualizar de permiso vencido. El resultado de la sincronización manual deja de unir
+bancos y brókers en un toast sin límite; abre una hoja con una fila por resultado. La sonda del
+histórico sigue disponible en telemetría y DevTools, pero deja de interrumpir la interfaz.
+
+La ola tenía una causa independiente: `enterScrollHost` añadía clases con `classList`, React las
+borraba en el siguiente render y `ensureScrollHost` no las restauraba porque sus refs seguían en
+`true`. `app-shell` y `viewport` sellan ahora el host en su `className`. Además, el rebote inferior
+no revela la barra por cruzar un umbral de distancia; exige dirección contraria y reciente del
+dedo. El sellado conserva también `nav-sin-blur` cuando el carrusel cambia de modo a mitad del
+gesto. Los e2e fuerzan un repintado con el host activo y distinguen un rebote grande de una subida
+real.
+
 ## [4.25.3] - 2026-09-16
 ### Histórico con margen real, reconexiones firmes y rebote sin revelar la barra
 

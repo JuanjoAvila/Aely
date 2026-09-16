@@ -1,5 +1,66 @@
 [
   {
+    "v": "4.25.4",
+    "d": "16 sep 2026",
+    "t": {
+      "es": "Sincronización bancaria clara y una ola que ya no pierde su sitio",
+      "en": "Clear bank sync and a wave that no longer loses its place",
+      "ca": "Sincronització bancària clara i una ona que ja no perd el lloc"
+    },
+    "items": {
+      "es": [
+        "La sincronización muestra un resumen ordenado por filas en vez de un aviso enorme encima de las cuentas.",
+        "El histórico consulta solo los bancos elegidos, uno detrás de otro. Empieza con los bancos de gasto diario y permite añadir los demás antes de buscar.",
+        "Si un banco alcanza su límite temporal, Aely no vuelve a insistir durante seis horas ni pide reconectar. Una cuenta pendiente de actualizar ya no aparece como caducada.",
+        "Las consultas automáticas por notificaciones quedan apagadas de entrada para reservar el cupo del banco a las acciones manuales.",
+        "La ola de Android conserva su espacio aunque la pantalla se actualice, y la barra solo reaparece al subir de verdad."
+      ],
+      "en": [
+        "Sync results are shown as a tidy list instead of a huge notice covering the accounts.",
+        "History checks only the selected banks, one after another. It starts with daily-spending banks and lets you add others before searching.",
+        "If a bank reaches its temporary limit, Aely does not try again for six hours or ask you to reconnect. An account waiting for an update is no longer shown as expired.",
+        "Automatic notification-triggered checks are off by default so the bank allowance is reserved for manual actions.",
+        "Android's wave keeps its space when the screen updates, and the bar returns only after a real upward scroll."
+      ],
+      "ca": [
+        "La sincronització mostra un resum ordenat per files en comptes d'un avís enorme damunt dels comptes.",
+        "L'històric consulta només els bancs triats, un darrere l'altre. Comença amb els bancs de despesa diària i permet afegir-ne d'altres abans de cercar.",
+        "Si un banc arriba al límit temporal, Aely no hi torna a insistir durant sis hores ni demana reconnectar. Un compte pendent d'actualitzar ja no apareix com a caducat.",
+        "Les consultes automàtiques per notificacions queden apagades d'entrada per reservar el límit del banc a les accions manuals.",
+        "L'ona d'Android conserva el seu espai encara que la pantalla s'actualitzi, i la barra només reapareix en pujar de debò."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "ola-host-react",
+        "t": {"es":"Ola y barra al final","en":"Wave and bar at the bottom","ca":"Ona i barra al final"},
+        "items": {
+          "es":["1. Oculta la barra bajando y llega al final de cualquier pestaña larga.","2. Tira hacia abajo una vez y repite: la ola nativa debe aparecer en ambos gestos sin sacar la barra.","3. Sube por el contenido: solo entonces debe reaparecer la barra."],
+          "en":["1. Hide the bar by scrolling down and reach the bottom of any long tab.","2. Pull down once and repeat: the native wave should appear on both gestures without bringing the bar back.","3. Scroll up through the content: only then should the bar return."],
+          "ca":["1. Amaga la barra baixant i arriba al final de qualsevol pestanya llarga.","2. Estira cap avall una vegada i repeteix: l'ona nativa ha d'aparèixer en tots dos gestos sense fer sortir la barra.","3. Puja pel contingut: només llavors ha de reaparèixer la barra."]
+        }
+      },
+      {
+        "id": "historico-serial-selectivo",
+        "t": {"es":"Histórico de CaixaBank y Sabadell","en":"CaixaBank and Sabadell history","ca":"Històric de CaixaBank i Sabadell"},
+        "items": {
+          "es":["1. No repitas la búsqueda mientras el aviso indique límite temporal; deja pasar seis horas desde el último 429.","2. En Importar histórico, comprueba que de entrada solo están marcados los bancos de gasto diario y elige CaixaBank o Sabadell antes de buscar.","3. Deben aparecer sus movimientos e importes; un límite temporal debe decir que no hace falta reconectar."],
+          "en":["1. Do not repeat the search while the temporary-limit notice is active; allow six hours after the last 429.","2. In Import history, check that only daily-spending banks are initially selected, then choose CaixaBank or Sabadell before searching.","3. Their transactions and amounts should appear; a temporary limit must say that reconnecting is unnecessary."],
+          "ca":["1. No repeteixis la cerca mentre l'avís indiqui límit temporal; deixa passar sis hores des de l'últim 429.","2. A Importar històric, comprova que d'entrada només hi ha marcats els bancs de despesa diària i tria CaixaBank o Sabadell abans de cercar.","3. Han d'aparèixer els moviments i imports; un límit temporal ha de dir que no cal reconnectar."]
+        }
+      },
+      {
+        "id": "resumen-sync-legible",
+        "t": {"es":"Resumen de sincronización legible","en":"Readable sync summary","ca":"Resum de sincronització llegible"},
+        "items": {
+          "es":["1. Pulsa una vez Sincronizar bancos.","2. El resultado debe abrir una hoja con una fila por banco o bróker, sin tapar la pantalla con un bloque de texto.","3. Un banco limitado debe quedar como «sin actualizar», nunca como «caducado»."],
+          "en":["1. Tap Sync banks once.","2. The result should open a sheet with one row per bank or broker, without covering the screen with a block of text.","3. A rate-limited bank should be shown as ‘not updated’, never ‘expired’."],
+          "ca":["1. Prem una vegada Sincronitza bancs.","2. El resultat ha d'obrir un full amb una fila per banc o bróker, sense tapar la pantalla amb un bloc de text.","3. Un banc limitat ha de quedar com a «sense actualitzar», mai com a «caducat»." ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.25.3",
     "d": "16 sep 2026",
     "t": {

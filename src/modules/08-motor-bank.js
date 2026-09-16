@@ -185,7 +185,7 @@ function applyBankBalances(s, links){
       // marcadas rancias (stale) para que Patrimonio enseñe «caducado» en vez de esfumarlas.
       // (Bug CaixaBank 2026-07-11: al reconstruir obAccounts sin el banco caído, desaparecía.)
       const asp=String((lk&&lk.aspsp)||"").toLowerCase();
-      (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true})); });
+      (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true,staleKind:lk.expired?"expired":"temporary"})); });
       return;
     }
     const ent=entFromAspsp(lk && lk.aspsp);
@@ -199,7 +199,7 @@ function applyBankBalances(s, links){
     // obAccounts sin él las esfumaría en silencio (caso CaixaBank 2026-07-11, segunda variante).
     const keepStale=function(){
       const asp=String((lk&&lk.aspsp)||"").toLowerCase();
-      (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true})); });
+      (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true,staleKind:lk&&lk.expired?"expired":"temporary"})); });
     };
     // cuentas del banco: shape nuevo (lk.accounts) o antiguo (una sola, de lk.balances)
     const accs=(Array.isArray(lk.accounts)&&lk.accounts.length)
@@ -1250,7 +1250,7 @@ function bankReadWarnings(links, expectedLinks, includeEmpty){
     else if(includeEmpty && accts.length && accts.every(function(a){
       return a&&a.ok!==false && ((typeof a.count==="number"?a.count:((a.transactions||[]).length))===0);
     })) key="bank_read_empty";
-    if(key) out.push({bank:ent?entOf(ent).label:(name||t("bp_hist_bank_unknown")),key:key});
+    if(key) out.push({bank:ent?entOf(ent).label:(name||t("bp_hist_bank_unknown")),ent:ent||name,key:key});
   });
   // Compatibilidad con servidores antiguos: omitir un enlace pendiente no equivale a cero gastos.
   (expectedLinks||[]).forEach(function(l){
@@ -1258,9 +1258,28 @@ function bankReadWarnings(links, expectedLinks, includeEmpty){
     if(!name || seen[name.toLowerCase()]) return;
     seen[name.toLowerCase()]=1;
     const ent=entFromAspsp(name);
-    out.push({bank:ent?entOf(ent).label:name,key:l.status==="active"?"bank_read_failed":"bank_read_reconnect"});
+    out.push({bank:ent?entOf(ent).label:name,ent:ent||name,key:l.status==="active"?"bank_read_failed":"bank_read_reconnect"});
   });
   return out;
+}
+const BANK_RATE_COOLDOWN_MS=6*60*60*1000;
+function bankRateKey(bank){
+  const ent=entFromAspsp(bank);
+  return ent||String(bank||"").toLowerCase().replace(/[^a-z0-9_]+/g,"_").slice(0,80);
+}
+function bankRateMap(){
+  try{ const x=JSON.parse(localStorage.getItem("_bankRateUntil")||"{}"); return x&&typeof x==="object"?x:{}; }
+  catch(e){ return {}; }
+}
+function bankRateUntil(bank){
+  const map=bankRateMap(), n=Number(map[bankRateKey(bank)]||0);
+  return isFinite(n)?n:0;
+}
+function bankRateRemember(bank){
+  try{
+    const map=bankRateMap(); map[bankRateKey(bank)]=Date.now()+BANK_RATE_COOLDOWN_MS;
+    localStorage.setItem("_bankRateUntil",JSON.stringify(map));
+  }catch(e){}
 }
 /* Mismo pipeline que BankHistoryImport.search() al aplanar links → candidatos. */
 function histFlattenHistoryLinks(res, expenses, allow, opts){
@@ -1624,14 +1643,20 @@ function histCanUndo(state){
    aquí se juntan. Los ⚠ van DELANTE —son los que piden hacer algo, y la telemetría de toasts solo
    recoge los que EMPIEZAN por ⚠—, sin repetir, separados por « · ». */
 function juntaAvisosSync(list){
-  const vistos={}; const avisos=[]; const bien=[];
-  (list||[]).forEach(function(m){
-    const s=String(m||"").trim(); if(!s || vistos[s]) return; vistos[s]=1;
-    (/^[⚠✕✗]/.test(s) ? avisos : bien).push(s);
-  });
+  const unicos=listaAvisosSync(list); const avisos=[]; const bien=[];
+  unicos.forEach(function(s){ (/^[⚠✕✗]/.test(s) ? avisos : bien).push(s); });
   if(!avisos.length) return bien.join(" · ");
   const resto=avisos.slice(1).map(function(s){ return s.replace(/^[⚠✕✗]\s*/,""); });
   return [avisos[0]].concat(resto, bien).join(" · ");
+}
+/* El resumen manual se pinta como filas, no como una frase kilométrica encima de la app. */
+function listaAvisosSync(list){
+  const vistos={}; const out=[];
+  (list||[]).forEach(function(m){
+    const s=String(m||"").trim(); if(!s || vistos[s]) return; vistos[s]=1;
+    out.push(s);
+  });
+  return out;
 }
 function bankIssuesOf(links, dbLinks){
   const out=(links||[]).filter(function(l){

@@ -1093,9 +1093,11 @@ const cloud = (function(){
     },
     // IMPORTAR HISTÓRICO: trae movimientos desde dateFrom (YYYY-MM-DD, tope PSD2 ~90 días).
     // Modo lectura pura del servidor (no toca saldos). Devuelve { links:[{aspsp, accounts:[{transactions}]}] }.
-    async bankSyncHistory(dateFrom){
+    async bankSyncHistory(dateFrom, aspsps){
       if(!sb) throw new Error("nube no disponible");
-      const {data,error}=await sb.functions.invoke('bank-sync',{ body:{ dateFrom:dateFrom } });
+      const body={ dateFrom:dateFrom };
+      if(Array.isArray(aspsps)) body.aspsps=aspsps;
+      const {data,error}=await sb.functions.invoke('bank-sync',{ body:body });
       if(error) throw error;
       if(!data || !data.ok) throw new Error((data&&data.error)||"histórico falló");
       return data;

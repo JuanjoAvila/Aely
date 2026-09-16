@@ -161,6 +161,15 @@ test("si Android CANCELA el scroll vertical, la barra sigue oculta y el estado q
   expect(tras.t, "la barra transformada encima del borde corta el stretch del WebView").toBe("none");
   expect(tras.bottom, "oculta en host se desplaza por bottom, no por transform").toBeLessThan(-50);
 
+  /* Éste era el agujero real que los gestos anteriores no tocaban: un setState cualquiera hacía
+     que React reescribiera `className` y borrara las clases añadidas a mano por enterScrollHost. */
+  await page.evaluate(() => window.dispatchEvent(new Event("offline")));
+  await expect.poll(() => page.evaluate(() => ({
+    shell:document.querySelector(".app-shell")?.classList.contains("scroll-host-on"),
+    viewport:document.querySelector(".viewport")?.classList.contains("scroll-host-open"),
+    transform:getComputedStyle(document.querySelector(".botnav")).transform
+  })), { message:"un re-render no puede desmontar el host de la ola" }).toEqual({shell:true,viewport:true,transform:"none"});
+
   // La app sigue viva y un cambio de pestaña sí la revela, como siempre.
   await page.evaluate(() => {
     const b = [...document.querySelectorAll(".botnav-tab")].find((x) => x.getAttribute("data-tour") === "gastos");

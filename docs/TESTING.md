@@ -1,10 +1,13 @@
 # Testing — Aely
 
-Lectura bancaria 4.25.0: `tests/bank-sync-paging.test.mjs` ejecuta el handler real con BD y proveedor
+Lectura bancaria 4.25.4: `tests/bank-sync-paging.test.mjs` ejecuta el handler real con BD y proveedor
 simulados (sin consultar bancos): páginas vacías, fallback de periodo, fallo parcial, cursor cíclico,
 cuentas inactivas, aislamiento, timeout y topes. Registrado en `run-tests.mjs` y `STEPS_SUPABASE`;
 el recorte de un cambio solo de servidor conserva paginado y `tr-open-banking` sin Chromium.
-`e2e/bancos-historico-filtro.spec.mjs` comprueba avisos visibles sin perder las filas de otros bancos.
+`e2e/bancos-historico-filtro.spec.mjs` comprueba la selección previa, avisos visibles y que un banco
+no esconda las filas recibidas de otro. `e2e/sync-resumen.spec.mjs` impide que los resultados mixtos
+vuelvan a concatenarse en un toast gigante. Los e2e de barra fuerzan además un repintado React con
+el host de scroll activo: la ola debe conservar sus clases después del render, no solo antes.
 `tests/tr-open-banking.test.mjs` protege contra el antiguo corte global de 150 movimientos.
 
 ## Tiempos y preparación de Novedades

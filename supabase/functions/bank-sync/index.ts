@@ -103,6 +103,10 @@ Deno.serve(withCors(async (req: Request) => {
     const body = await req.json().catch(() => ({}));
     const dateFrom = (typeof body?.dateFrom === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.dateFrom))
       ? body.dateFrom : null;
+    const hasAspspFilter = Array.isArray(body?.aspsps);
+    const wantedAspsps = hasAspspFilter
+      ? body.aspsps.map((x: unknown) => String(x || "").trim().toLowerCase()).filter(Boolean).slice(0, 12)
+      : [];
 
     // OJO (bug CaixaBank 2026-07-11): también se devuelven los enlaces caducados/rotos, marcados
     // ok:false. Antes solo venían los 'active' → un banco caducado desaparecía del sync, la app
@@ -116,8 +120,11 @@ Deno.serve(withCors(async (req: Request) => {
       // sincronizar no sale ni un aviso ni nada, he tenido que venir aquí para ver qué pasaba».
       .eq("user_id", user.id).in("status", ["active", "expired", "error", "pending"]);
     if (linksError) return jsonResp({ ok: false, error: "bank_links_unavailable" }, 503);
-    const links = (allLinks || []).filter((l) => l.status === "active");
-    const deadLinks = (allLinks || []).filter((l) => l.status !== "active");
+    const selectedLinks = hasAspspFilter
+      ? (allLinks || []).filter((l) => wantedAspsps.includes(String(l.aspsp_name || "").trim().toLowerCase()))
+      : (allLinks || []);
+    const links = selectedLinks.filter((l) => l.status === "active");
+    const deadLinks = selectedLinks.filter((l) => l.status !== "active");
 
     const { appId, pem } = ebConfig();
     const jwt = await makeJWT(appId, pem);
@@ -166,20 +173,11 @@ Deno.serve(withCors(async (req: Request) => {
         }
         return { aspsp: link.aspsp_name, iban: link.iban, ok: accts.some(a => a.ok), accounts: accts };
       };
-      /* Dos bancos a la vez: uno lento ya no deja Caixa sin turno, pero tampoco abrimos todas
-         las sesiones PSD2 de golpe. El Promise.all sin límite podía provocar el propio 429 que
-         luego parecía una conexión caducada (feedback 16/9: miedo a sincronizar porque obliga a
-         autorizar una y otra vez). */
+      /* Cola ESTRICTA: dos bancos a la vez dispararon el propio 429 en Caixa y Sabadell. Una
+         búsqueda puede seleccionar varios, pero nunca abre dos sesiones PSD2 simultáneas. */
       const activeLinks = links || [];
-      const hist: unknown[] = new Array(activeLinks.length);
-      let nextLink = 0;
-      const worker = async () => {
-        while (nextLink < activeLinks.length) {
-          const i = nextLink++;
-          hist[i] = await readHistoryLink(activeLinks[i]);
-        }
-      };
-      await Promise.all(Array.from({ length: Math.min(2, activeLinks.length) }, () => worker()));
+      const hist: unknown[] = [];
+      for (const link of activeLinks) hist.push(await readHistoryLink(link));
       for (const link of deadLinks) {
         hist.push({ aspsp: link.aspsp_name, ok: false, pending: link.status === "pending",
           expired: link.status === "expired", noacct: link.status === "error", accounts: [] });

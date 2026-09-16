@@ -3185,9 +3185,11 @@ const cloud = (function(){
     },
     // IMPORTAR HISTÓRICO: trae movimientos desde dateFrom (YYYY-MM-DD, tope PSD2 ~90 días).
     // Modo lectura pura del servidor (no toca saldos). Devuelve { links:[{aspsp, accounts:[{transactions}]}] }.
-    async bankSyncHistory(dateFrom){
+    async bankSyncHistory(dateFrom, aspsps){
       if(!sb) throw new Error("nube no disponible");
-      const {data,error}=await sb.functions.invoke('bank-sync',{ body:{ dateFrom:dateFrom } });
+      const body={ dateFrom:dateFrom };
+      if(Array.isArray(aspsps)) body.aspsps=aspsps;
+      const {data,error}=await sb.functions.invoke('bank-sync',{ body:body });
       if(error) throw error;
       if(!data || !data.ok) throw new Error((data&&data.error)||"histórico falló");
       return data;
@@ -4417,7 +4419,7 @@ const LANG = {
     wn_yours:"Tus apuntes", wn_close:"¡Entendido!",
     st_trnotif:"Avisar de cada gasto apuntado (TR)", st_trnotif_hint:"Si lo apagas, Aely deja de confirmar cada gasto con una notificación (Trade Republic ya te avisa del cargo). Los avisos de presupuesto siguen llegando.",
     st_tring:"Apuntar aquí mis gastos de Trade Republic", st_tring_hint:"Al activarlo, esta app lee las notificaciones de gasto de Trade Republic de ESTE móvil y las apunta en TU cuenta (no en la de nadie más). Cada persona lo activa en su propio teléfono. Solo lee la notificación; nunca entra en tu banco. Puedes apagarlo cuando quieras.", st_tring_on:"✓ Listo · tus compras con la tarjeta de Trade Republic entrarán solas en esta cuenta", st_tring_off:"Apuntado de Trade Republic desactivado", st_tring_nornd:"✕ Este navegador no puede generar una clave segura · no se activa (mejor eso que una clave adivinable)",
-    st_banksync_notif:"Al detectar aviso del banco, sincronizar movimientos", st_banksync_notif_hint:"Si Caixa, Sabadell u otro banco te manda una notificación, la app pide los movimientos por Open Banking (no lee el importe de la noti). Como máximo una sync cada 2 minutos.",
+    st_banksync_notif:"Al detectar aviso del banco, sincronizar movimientos", st_banksync_notif_hint:"Opcional y apagado por defecto: cada consulta consume el límite diario del banco. Si lo activas, Aely hará como máximo una cada 12 horas. La sincronización manual sigue disponible.",
     st_aicat:"Sugerir categoría (IA) en «Otros»", st_aicat_hint:"Al apuntar un gasto, las palabras clave eligen categoría solas. Si no saben y esto está encendido, la IA te ofrece un chip (un toque). En la ficha de un gasto ya guardado también puedes pedirlo. No se envía el importe.",
     st_sentry:"Sentry (errores en prod)", st_sentry_test:"Enviar error de prueba", st_sentry_sent:"✓ Enviado a Sentry (mira Issues en unos segundos)", st_sentry_hint:"Solo tú ves este bloque (admin). Sirve para comprobar que los crashes llegan a Sentry; el resto de usuarios no lo ve.",
     bp_empty_hint:"Aquí se conectan tus bancos de verdad (Open Banking): el saldo y los movimientos entran solos. Las cuentas con saldo apuntado a mano viven en Patrimonio — conectar el banco es opcional y puedes hacerlo cuando quieras.",
@@ -4935,7 +4937,7 @@ Object.assign(LANG.es,{
   pj_projvalue:"Valor proyectado", pj_contrib:"Tu contribución", pj_monthly:"Contribución mensual", pj_rate:"Interés anual %", pj_years:"Años",
   pj_gain:"Ganancia estimada en {y} años", pj_hint:"Sobre lo ya invertido ({x}). La banda es ±2% sobre el interés. Estimación, no garantía.",
   pt_accounts:"Cuentas", pt_cash_avail:"Liquidez disponible", pt_monthspent:"Gasto del mes: −{x}", pt_payroll:" · nómina +{x}", pt_total_liquid:"Total líquido",
-  pt_trbreak:"Desglose del efectivo TR", pt_trbreak_sub:"De dónde sale el saldo mostrado", pt_trb_base:"Base (inicio de mes)", pt_trb_payroll:"+ nómina (si ya entró)", pt_trb_spent:"− gasto del mes", pt_trb_roundup:"− round-up del mes", pt_trb_shown:"= saldo mostrado hoy", pt_trb_movs:"Gastos de este mes ({n})", pt_trb_nomovs:"No hay gastos registrados este mes. Si el saldo baja igual, es la nómina/cierre de mes.", pt_trb_ru_of:"round-up: {x}", pt_trb_hint:"💳 = compra con tarjeta (cuenta para el round-up). 🔄 = bizum/transferencia (NO cuenta). Si ves un bizum marcado 💳, cámbialo en Gastos para que no infle el round-up. Este saldo se recalcula solo: base + nómina − gastos − round-up. Un descuadre PEQUEÑO con TR es normal: TR abona intereses del efectivo el día 1 (ponlos en Inversiones → Round-up para que la app los sume sola) e invierte round-ups/saveback los días 2/9/16/23. Si molesta, edita el saldo en Cuentas y se re-ancla.", pt_ob_extra:"Cuenta", pt_ob_badge:"del banco", pt_ob_joint:"Conjunta", pt_ob_saving:"Ahorro", pt_ob_current:"Corriente",
+  pt_trbreak:"Desglose del efectivo TR", pt_trbreak_sub:"De dónde sale el saldo mostrado", pt_trb_base:"Base (inicio de mes)", pt_trb_payroll:"+ nómina (si ya entró)", pt_trb_spent:"− gasto del mes", pt_trb_roundup:"− round-up del mes", pt_trb_shown:"= saldo mostrado hoy", pt_trb_movs:"Gastos de este mes ({n})", pt_trb_nomovs:"No hay gastos registrados este mes. Si el saldo baja igual, es la nómina/cierre de mes.", pt_trb_ru_of:"round-up: {x}", pt_trb_hint:"💳 = compra con tarjeta (cuenta para el round-up). 🔄 = bizum/transferencia (NO cuenta). Si ves un bizum marcado 💳, cámbialo en Gastos para que no infle el round-up. Este saldo se recalcula solo: base + nómina − gastos − round-up. Un descuadre PEQUEÑO con TR es normal: TR abona intereses del efectivo el día 1 (ponlos en Inversiones → Round-up para que la app los sume sola) e invierte round-ups/saveback los días 2/9/16/23. Si molesta, edita el saldo en Cuentas y se re-ancla.", pt_ob_extra:"Cuenta", pt_ob_badge:"del banco", pt_ob_stale:"sin actualizar", pt_ob_joint:"Conjunta", pt_ob_saving:"Ahorro", pt_ob_current:"Corriente",
   pt_investments:"Inversiones", pt_byBroker:"Resumen por bróker", pt_total_inv:"Total invertido", pt_goods:"Bienes", pt_nonliquid:"Activos no líquidos", pt_total_goods:"Total bienes",
   db_total:"Deuda total", db_quota:"Cuota {x}/mes", db_amort:"amortiza {x}/mes", db_amort_q:"amortiza {x}/mes (cuota {y})", db_paidoff:"Amortizado {x} ({p}%)",
   db_pending:"Pendiente", db_pending_sub:"baja solo cada mes", db_delete:"Eliminar esta deuda", db_savechanges:"Guardar cambios", db_editbalances:"Editar saldos pendientes",
@@ -5038,14 +5040,15 @@ Object.assign(LANG.es,{
   /* Antes esto era el aviso de un BLOQUEO. Desde el 2026-08-01 TR sí se puede conectar aquí y las
      dos integraciones conviven, así que el texto explica el reparto en vez de cerrar la puerta. */
   bp_tr_ob:"suma tus movimientos (el saldo lo sigue dando el bróker)",
-  bank_syncfail:"No pude leer el saldo del banco · reconéctate", bank_sync_sin_nube:"No he podido bajar tus datos de la nube, así que no he mirado el banco (para no repetir movimientos). Prueba en un momento", bank_none:"No tienes ningún banco conectado",
-  bank_syncsoft:"{bank}: el banco no respondió ahora · lo reintento solo (no hace falta reconectar)",
+  bank_syncfail:"No pude leer el saldo ahora. No reconectes: vuelve a intentarlo más tarde", bank_sync_sin_nube:"No he podido bajar tus datos de la nube, así que no he mirado el banco (para no repetir movimientos). Prueba en un momento", bank_none:"No tienes ningún banco conectado",
+  bank_syncsoft:"{bank}: el banco no respondió ahora. No hace falta reconectar; inténtalo más tarde",
   // Resultado de «↻ Sincronizar bancos» (2026-07-26). Antes salía «🏦 CaixaBank: 1.234,56 €»:
   // un número suelto sin decir qué había pasado, que además solo enseñaba el PRIMER banco aunque
   // sincronizaras tres, y que llegaba acompañado de un segundo aviso con los movimientos nuevos.
   // Ahora es un solo mensaje y dice qué ha pasado.
   bank_upd_one:"✓ {bank} al día · {x}", bank_upd_n:"✓ {n} bancos al día",
   bank_upd_mov1:"1 movimiento nuevo", bank_upd_movn:"{n} movimientos nuevos",
+  sync_result_title:"Resultado de la sincronización", sync_result_close:"Cerrar",
   bank_expired_re:"permiso caducado · reconéctate",
   bank_nolink:"esta cuenta aún no está dada de alta en Enable Banking (modo restringido). Enlázala en el panel de Enable Banking y vuelve a conectar.",
   bank_refresh:"Actualizar todos", bank_reconnect:"Reconectar",
@@ -5092,6 +5095,7 @@ Object.assign(LANG.es,{
   bp_empty:"Aún no has conectado ningún banco.", bp_add:"Conectar un banco",
   bp_expbanks:"También apuntar gastos de tarjeta de…", bp_expbanks_hint:"Marca bancos EXTRA cuyas compras cuentan en el presupuesto del día a día. La cuenta principal de gasto diario (rol en Patrimonio) siempre cuenta y no se puede desmarcar aquí. Quitar un banco no borra su historial.", bp_expbanks_none:"Conecta un banco Open Banking para poder importar sus compras con tarjeta a Gastos.",
   bp_expbanks_main:"principal (obligatoria)", bp_expbanks_locked:"Esa es tu cuenta de gasto diario: no se desmarca aquí. Cámbiala en Cartera → editar cuenta. Prueba a añadir o quitar un banco EXTRA.",
+  bp_hist_pickbank:"Elige qué banco consultar. De entrada están marcados solo los bancos de gasto diario.",
   bp_hist_btn:"Importar histórico", bp_hist_title:"Importar histórico", bp_hist_sub:"Trae movimientos de los últimos meses de: {banks}. Por defecto van a Gastos (o Ingresos). Un recibo fijo solo se crea si lo marcas tú, y te pedirá confirmación.", bp_hist_nodaily:"Conecta un banco Open Banking (o márcalo como gasto diario en Cartera) para traer el histórico. Trade Republic también vale si lo tienes conectado.", bp_hist_m:"{n} mes(es)", bp_hist_search:"Buscar movimientos", bp_hist_searching:"Buscando…", bp_hist_none:"No hay movimientos nuevos en ese periodo (o ya están todos apuntados). Recuerda: el banco solo deja ver ~90 días.", bp_hist_found:"{n} movimientos · marca y elige destino", bp_hist_notcard:"no es tarjeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importados", bp_hist_as_gasto:"🛒 Gasto", bp_hist_as_recibo:"🧾 Recibo", bp_hist_as_ingreso:"💰 Ingreso", bp_hist_recibo:"Recibo", bp_hist_done_g:"✓ {n} en Gastos", bp_hist_done_i:"✓ {n} ingresos", bp_hist_done_r:"✓ {n} recibos", bp_hist_dup:"ya detectado como recibo mensual · se cuenta una sola vez",
   bp_hist_nuevos:"nuevos", bp_hist_repes:"repetidos", bp_hist_probe:"Sonda: banco {bank} · llegan {llegan} · nuevos {nuevos} · coinciden día+€ {ya}", bp_hist_dupexist:"ya lo tienes apuntado (mismo día e importe)", bp_hist_dupmaybe:"puede que ya lo tengas (mismo importe, fecha cercana)",
   bp_hist_dupmodel:"ya modelado como fijo/deuda/meta",
@@ -5099,7 +5103,7 @@ Object.assign(LANG.es,{
   bp_hist_bank_unknown:"Banco",
   bp_hist_trunc:"El banco no ha devuelto todo el periodo pedido (tope ~90 días o truncado). Revisa las fechas más antiguas.",
   bank_read_reconnect:"{bank}: falta completar la conexión. Abre Ajustes → Mis bancos para revisarla.",
-  bank_read_rate:"{bank}: el banco ha limitado temporalmente las consultas. Espera unos minutos y vuelve a buscar.",
+  bank_read_rate:"{bank}: se alcanzó el límite temporal de lectura. No reconectes; vuelve a buscar dentro de unas 6 horas.",
   bank_read_timeout:"{bank}: el banco ha tardado demasiado en entregar el histórico. Vuelve a buscar; los demás bancos se conservan.",
   bank_read_failed:"{bank}: no se han podido leer todos los movimientos. Vuelve a intentarlo más tarde.",
   bank_read_partial:"{bank}: la descarga está incompleta. Lo recibido se conserva, pero pueden faltar movimientos.",
@@ -10736,7 +10740,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
         React.createElement("div",{className:"nm"},
           React.createElement("div",null, disp),
           React.createElement("div",{className:"meta"}, entOf(o.ent).label,
-            o.stale ? badge(t("pt_ob_badge")+" · "+t("bp_st_expired"),"#E2A05F") : badge(t("pt_ob_badge"),"#7FB5E8"))
+            o.stale ? badge(t("pt_ob_badge")+" · "+t(o.staleKind==="expired"?"bp_st_expired":"pt_ob_stale"),"#E2A05F") : badge(t("pt_ob_badge"),"#7FB5E8"))
         ),
         React.createElement("div",{className:"am num"}, eur(toEurAmt(o.value||0, o.cur||"EUR", state)))
       );
@@ -10938,7 +10942,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
             accEd.editing
               ? React.createElement("input",{className:"af-in",style:{fontSize:13,padding:"5px 9px",maxWidth:170},value:custom!=null?custom:disp,placeholder:disp,onChange:function(e){ const v=e.target.value; set(function(s){ const ob=Object.assign({},s.obLabels); ob[o.key]=v; return Object.assign({},s,{obLabels:ob}); }); }})
               : React.createElement("div",{className:"rname"}, disp, o.stale
-                  ? React.createElement("span",{className:"day-badge",style:{marginLeft:6,background:"#E2A05F22",color:"#E2A05F"}}, t("pt_ob_badge")+" · "+t("bp_st_expired"))
+                  ? React.createElement("span",{className:"day-badge",style:{marginLeft:6,background:"#E2A05F22",color:"#E2A05F"}}, t("pt_ob_badge")+" · "+t(o.staleKind==="expired"?"bp_st_expired":"pt_ob_stale"))
                   : React.createElement("span",{className:"day-badge",style:{marginLeft:6,background:"#7FB5E822",color:"var(--blue)"}}, t("pt_ob_badge"))),
             React.createElement("div",{className:"rsub"}, entOf(o.ent).label))),
         React.createElement("div",{className:"rval num"}, eur(toEurAmt(o.value||0, o.cur||"EUR", state)))
@@ -11284,7 +11288,7 @@ function applyBankBalances(s, links){
       // marcadas rancias (stale) para que Patrimonio enseñe «caducado» en vez de esfumarlas.
       // (Bug CaixaBank 2026-07-11: al reconstruir obAccounts sin el banco caído, desaparecía.)
       const asp=String((lk&&lk.aspsp)||"").toLowerCase();
-      (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true})); });
+      (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true,staleKind:lk.expired?"expired":"temporary"})); });
       return;
     }
     const ent=entFromAspsp(lk && lk.aspsp);
@@ -11298,7 +11302,7 @@ function applyBankBalances(s, links){
     // obAccounts sin él las esfumaría en silencio (caso CaixaBank 2026-07-11, segunda variante).
     const keepStale=function(){
       const asp=String((lk&&lk.aspsp)||"").toLowerCase();
-      (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true})); });
+      (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true,staleKind:lk&&lk.expired?"expired":"temporary"})); });
     };
     // cuentas del banco: shape nuevo (lk.accounts) o antiguo (una sola, de lk.balances)
     const accs=(Array.isArray(lk.accounts)&&lk.accounts.length)
@@ -12349,7 +12353,7 @@ function bankReadWarnings(links, expectedLinks, includeEmpty){
     else if(includeEmpty && accts.length && accts.every(function(a){
       return a&&a.ok!==false && ((typeof a.count==="number"?a.count:((a.transactions||[]).length))===0);
     })) key="bank_read_empty";
-    if(key) out.push({bank:ent?entOf(ent).label:(name||t("bp_hist_bank_unknown")),key:key});
+    if(key) out.push({bank:ent?entOf(ent).label:(name||t("bp_hist_bank_unknown")),ent:ent||name,key:key});
   });
   // Compatibilidad con servidores antiguos: omitir un enlace pendiente no equivale a cero gastos.
   (expectedLinks||[]).forEach(function(l){
@@ -12357,9 +12361,28 @@ function bankReadWarnings(links, expectedLinks, includeEmpty){
     if(!name || seen[name.toLowerCase()]) return;
     seen[name.toLowerCase()]=1;
     const ent=entFromAspsp(name);
-    out.push({bank:ent?entOf(ent).label:name,key:l.status==="active"?"bank_read_failed":"bank_read_reconnect"});
+    out.push({bank:ent?entOf(ent).label:name,ent:ent||name,key:l.status==="active"?"bank_read_failed":"bank_read_reconnect"});
   });
   return out;
+}
+const BANK_RATE_COOLDOWN_MS=6*60*60*1000;
+function bankRateKey(bank){
+  const ent=entFromAspsp(bank);
+  return ent||String(bank||"").toLowerCase().replace(/[^a-z0-9_]+/g,"_").slice(0,80);
+}
+function bankRateMap(){
+  try{ const x=JSON.parse(localStorage.getItem("_bankRateUntil")||"{}"); return x&&typeof x==="object"?x:{}; }
+  catch(e){ return {}; }
+}
+function bankRateUntil(bank){
+  const map=bankRateMap(), n=Number(map[bankRateKey(bank)]||0);
+  return isFinite(n)?n:0;
+}
+function bankRateRemember(bank){
+  try{
+    const map=bankRateMap(); map[bankRateKey(bank)]=Date.now()+BANK_RATE_COOLDOWN_MS;
+    localStorage.setItem("_bankRateUntil",JSON.stringify(map));
+  }catch(e){}
 }
 /* Mismo pipeline que BankHistoryImport.search() al aplanar links → candidatos. */
 function histFlattenHistoryLinks(res, expenses, allow, opts){
@@ -12723,14 +12746,20 @@ function histCanUndo(state){
    aquí se juntan. Los ⚠ van DELANTE —son los que piden hacer algo, y la telemetría de toasts solo
    recoge los que EMPIEZAN por ⚠—, sin repetir, separados por « · ». */
 function juntaAvisosSync(list){
-  const vistos={}; const avisos=[]; const bien=[];
-  (list||[]).forEach(function(m){
-    const s=String(m||"").trim(); if(!s || vistos[s]) return; vistos[s]=1;
-    (/^[⚠✕✗]/.test(s) ? avisos : bien).push(s);
-  });
+  const unicos=listaAvisosSync(list); const avisos=[]; const bien=[];
+  unicos.forEach(function(s){ (/^[⚠✕✗]/.test(s) ? avisos : bien).push(s); });
   if(!avisos.length) return bien.join(" · ");
   const resto=avisos.slice(1).map(function(s){ return s.replace(/^[⚠✕✗]\s*/,""); });
   return [avisos[0]].concat(resto, bien).join(" · ");
+}
+/* El resumen manual se pinta como filas, no como una frase kilométrica encima de la app. */
+function listaAvisosSync(list){
+  const vistos={}; const out=[];
+  (list||[]).forEach(function(m){
+    const s=String(m||"").trim(); if(!s || vistos[s]) return; vistos[s]=1;
+    out.push(s);
+  });
+  return out;
 }
 function bankIssuesOf(links, dbLinks){
   const out=(links||[]).filter(function(l){
@@ -15109,9 +15138,34 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
 /* IMPORTAR HISTÓRICO vía Open Banking (~90 días PSD2). Cargos + ingresos; por fila eliges
    destino: Gasto (variable) · Recibo (fijo mensual) · Ingreso. Tarjeta→Gasto, no-tarjeta→Recibo,
    crédito→Ingreso (pre-marcados). TR no aplica (no está en OB). Feedback 2026-07-18. */
+function SyncReportSheet({items,onClose}){
+  useBackClose(true,onClose);
+  const rows=listaAvisosSync(items);
+  return React.createElement("div",{className:"v4-sheet-back sync-report-back",onClick:onClose},
+    React.createElement("div",{className:"v4-sheet sync-report",onClick:function(e){ e.stopPropagation(); }},
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("div",{className:"serif",style:{fontSize:22,marginBottom:12}},t("sync_result_title")),
+      React.createElement("div",{className:"v4-sheet-body"},rows.map(function(msg,i){
+        const warn=/^[⚠✕✗]/.test(msg);
+        return React.createElement("div",{key:i,className:"sync-report-row",style:{display:"flex",gap:10,alignItems:"flex-start",padding:"11px 12px",marginBottom:8,borderRadius:12,border:"1px solid var(--line-soft)",background:"var(--surface)",color:"var(--text)",fontSize:13,lineHeight:1.45}},
+          React.createElement("span",{style:{color:warn?"var(--coral)":"var(--mint)",fontWeight:900,flex:"0 0 auto"}},warn?"!":"✓"),
+          React.createElement("span",null,msg.replace(/^[⚠✕✗✓]\s*/,""))
+        );
+      })),
+      React.createElement("button",{type:"button",className:"btn btn-primary",style:{width:"100%",marginTop:8},onClick:onClose},t("sync_result_close"))
+    )
+  );
+}
 function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}){
   const expEnts=expenseBankEnts(state);
-  const allowList=(linkEnts&&linkEnts.length)? linkEnts : expEnts;
+  const bankEnts=((linkEnts&&linkEnts.length)?linkEnts:expEnts).filter(function(e,i,a){ return e&&a.indexOf(e)===i; });
+  /* Arranca SOLO con los bancos marcados como gasto diario. Antes arrancaba con TODOS los
+     conectados y «Buscar» consultaba incluso los que el filtro luego ocultaba: gastaba su cupo
+     PSD2 y era justo lo contrario de lo que indicaba la pantalla. */
+  const [bankFilter,setBankFilter]=useState(function(){
+    return bankEnts.filter(function(e){ return expEnts.indexOf(e)>=0; });
+  });
+  const allowList=bankFilter;
   const allow={}; allowList.forEach(function(e){ allow[e]=1; });
   const banksLbl=allowList.map(function(e){ return entOf(e).label; }).join(", ");
   const [months,setMonths]=useState(3);
@@ -15136,7 +15190,6 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
      por debajo (para combinar selecciones de varios filtros en una sola importación, basta volver
      a «Todos los bancos» antes de pulsar Importar: los `sel` de cada fila se conservan siempre,
      solo cambia qué se VE y qué CUENTA en cada momento). */
-  const [bankFilter,setBankFilter]=useState([]);
   const [tipoFilter,setTipoFilter]=useState("all");   // "all" | "gasto" | "ingreso"
   const [mesFilter,setMesFilter]=useState("all");     // "all" | "YYYY-MM"
   const [revelado,setRevelado]=useState(0);           // filas ya "entradas" (animación, como el import de Excel)
@@ -15149,16 +15202,35 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
   // Fallback si aún no hay clasificación (híbrido C: NUNCA recibo a ciegas).
   const defDest=function(x){ return x.kind==="in" ? "ingreso" : "gasto"; };
   const search=function(){
-    if(!allowList.length){ showToast(t("bp_hist_nodaily")); return; }
+    if(!allowList.length){ showToast(t("bp_hist_pickbank")); return; }
     setLoading(true); setCands(null); setReadWarnings([]); setReadFailed(false);
-    setBankFilter([]); setTipoFilter("all"); setMesFilter("all"); setRevelado(0);
+    setTipoFilter("all"); setMesFilter("all"); setRevelado(0);
     setRenderCap(HIST_RENDER_CAP); setTruncWarn(false); setSignSuspect({}); setClassRows([]);
     const d=new Date(); d.setMonth(d.getMonth()-months); const dateFrom=d.toISOString().slice(0,10);
-    cloud.bankSyncHistory(dateFrom).then(function(res){
+    const cooling=allowList.filter(function(ent){ return bankRateUntil(ent)>Date.now(); });
+    const aspsps=(bankLinks||[]).filter(function(l){
+      const ent=entFromAspsp(l&&((l.aspsp_name||l.aspsp)));
+      return l&&l.status==="active"&&allowList.indexOf(ent)>=0&&cooling.indexOf(ent)<0;
+    }).map(function(l){ return l.aspsp_name||l.aspsp; });
+    if(!aspsps.length){
+      const stopped=cooling.map(function(ent){ return {bank:entOf(ent).label,ent:ent,key:"bank_read_rate"}; });
+      (bankLinks||[]).forEach(function(l){
+        const ent=entFromAspsp(l&&(l.aspsp_name||l.aspsp));
+        if(allowList.indexOf(ent)>=0&&cooling.indexOf(ent)<0) stopped.push({bank:ent?entOf(ent).label:(l.aspsp_name||"🏦"),ent:ent,key:"bank_read_reconnect"});
+      });
+      setReadWarnings(stopped);
+      setCands([]); setLoading(false); return;
+    }
+    cloud.bankSyncHistory(dateFrom,aspsps).then(function(res){
       if(!res || !Array.isArray(res.links)) throw new Error("bank_read_failed");
       /* En histórico, cero ya no se disfraza de «quizá estaba todo apuntado»: se dice qué banco
          devolvió cero. En el sync diario no se usa este aviso porque un día sin cargos es normal. */
-      setReadWarnings(bankReadWarnings(res.links, bankLinks, true));
+      const expected=(bankLinks||[]).filter(function(l){ return aspsps.indexOf(l.aspsp_name||l.aspsp)>=0; });
+      const warnings=bankReadWarnings(res.links, expected, true).filter(function(w){
+        return allowList.indexOf(entFromAspsp(w.ent||w.bank))>=0;
+      });
+      warnings.forEach(function(w){ if(w.key==="bank_read_rate") bankRateRemember(w.ent||w.bank); });
+      setReadWarnings(cooling.map(function(ent){ return {bank:entOf(ent).label,ent:ent,key:"bank_read_rate"}; }).concat(warnings));
       // Flatten compartido con la sonda (Codex 10/9): un solo pipeline, con card/entKey/merchant.
       const flat=histFlattenHistoryLinks(res, state.expenses, allow, {
         merchantIn:t("cat_ingreso"), merchantOut:"Compra"
@@ -15192,12 +15264,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
           stats:flat.stats, res:res, dateFrom:dateFrom
         });
         if(typeof window!=="undefined") window.__histDupProbe=probe;
-        showToast(tf("bp_hist_probe",{
-          bank:probe.bankReported,
-          llegan:probe.llegan,
-          nuevos:probe.nuevos,
-          ya:probe.coincideDayAmt
-        }));
+        /* La sonda sigue en telemetría y DevTools, pero no tapa la app: era instrumentación
+           interna presentada como un aviso gigante después de cada búsqueda real. */
         /* Y LA SONDA TAMBIEN VIAJA (2026-09-12). Hasta hoy solo salia en un aviso de pantalla y
            en `window.__histDupProbe`, asi que para saber que le pasa habia que pedirle a el que
            leyera el aviso a tiempo y lo copiara. Su rechazo del 12/9 —«los que salen que no son
@@ -15227,7 +15295,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
   })();
   const monthLbl=function(k){ const p=k.split("-"); return monthShort(parseInt(p[1],10)-1)+" "+p[0]; };
   const passFilter=function(x){
-    if(bankFilter.length && bankFilter.indexOf(x.ent)<0) return false;
+    if(bankFilter.indexOf(x.ent)<0) return false;
     if(tipoFilter==="gasto" && x.kind==="in") return false;
     if(tipoFilter==="ingreso" && x.kind!=="in") return false;
     if(mesFilter!=="all" && x.date.slice(0,7)!==mesFilter) return false;
@@ -15421,11 +15489,18 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
     React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("bp_close")),
     React.createElement("div",{className:"serif",style:{fontSize:24,margin:"4px 0 4px"}}, t("bp_hist_title")),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}},
-      allowList.length? tf("bp_hist_sub",{banks:banksLbl}) : t("bp_hist_nodaily")),
+      allowList.length? tf("bp_hist_sub",{banks:banksLbl}) : t("bp_hist_pickbank")),
     canUndo && React.createElement("button",{type:"button",onClick:doUndoLast,
       style:{width:"100%",padding:"11px",borderRadius:12,border:"1px solid var(--coral)",background:"transparent",color:"var(--coral)",fontWeight:800,fontSize:13,cursor:"pointer",marginBottom:12}},
       t("bp_hist_undo_btn")),
-    allowList.length>0 && React.createElement(React.Fragment,null,
+    bankEnts.length>0 && React.createElement(React.Fragment,null,
+      React.createElement("div",{className:"v4-chips meta-chips wrap",style:{marginBottom:10}},
+        React.createElement("button",{type:"button",className:"v4-chip"+(bankFilter.length===bankEnts.length?" on":""),onClick:function(){ setBankFilter(bankEnts.slice()); }}, t("g_allbanks")),
+        bankEnts.map(function(ent){
+          const on=bankFilter.indexOf(ent)>=0;
+          return React.createElement("button",{key:ent,type:"button",className:"v4-chip"+(on?" on":""),onClick:function(){ toggleBankFilter(ent); }}, entOf(ent).label);
+        })
+      ),
       React.createElement("div",{style:{display:"flex",gap:8,marginBottom:12}}, [1,2,3].map(chip)),
       React.createElement("button",{style:{width:"100%",padding:"12px",borderRadius:12,border:"1px solid var(--line)",background:"var(--surface)",color:"var(--text)",fontWeight:800,fontSize:14,cursor:"pointer"},disabled:loading,onClick:search}, loading?t("bp_hist_searching"):t("bp_hist_search")),
       !loading && readWarnings.map(function(w,i){ return React.createElement("div",{key:i,role:"status",className:"hint bank-read-warning",style:{marginTop:12}}, "⚠ "+tf(w.key,{bank:w.bank})); }),
@@ -15440,13 +15515,6 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
            nada elegirlo), tipo (gasto/ingreso) y mes (solo si el lote trae más de uno). Mismo
            patrón visual `.v4-chip`/`.v4-chips` que el resto de la app (Gastos ya filtra así por
            banco/categoría) — coherencia en vez de reinventar un control nuevo para esta pantalla. */
-        allowList.length>1 && React.createElement("div",{className:"v4-chips meta-chips wrap"},
-          React.createElement("button",{type:"button",className:"v4-chip"+(bankFilter.length===0?" on":""),onClick:function(){ setBankFilter([]); }}, t("g_allbanks")),
-          allowList.map(function(ent){
-            const on=bankFilter.indexOf(ent)>=0;
-            return React.createElement("button",{key:ent,type:"button",className:"v4-chip"+(on?" on":""),onClick:function(){ toggleBankFilter(ent); }}, entOf(ent).label);
-          })
-        ),
         React.createElement("div",{className:"v4-chips meta-chips wrap"},
           [["all",t("bp_hist_f_all")],["gasto",t("bp_hist_f_gastos")],["ingreso",t("bp_hist_f_ingresos")]].map(function(o){
             const on=tipoFilter===o[0];
@@ -17395,7 +17463,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       const nat=natPlugin();
       if(!nat || !nat.setNotifPrefs) return null;
       const on=!(state.settings&&state.settings.trNotifyConfirm===false);
-      const bankSyncOn=!(state.settings&&state.settings.bankSyncOnNotif===false);
+      const bankSyncOn=!!(state.settings&&state.settings.bankSyncOnNotif===true);
       const ingOn=!!(state.settings&&state.settings.trIngest);
       const toggleIng=function(){
         if(!ingOn){
@@ -19367,11 +19435,14 @@ function App(){
        poniendo la suavidad que él pide. */
     if(dy>0 && y>24){ armNavHide(true); }
     else if(dy<0){
-      const fingerStillDown=fingerScrollDir.current===1 && (Date.now()-fingerScrollAt.current)<900;
-      if(fingerStillDown){ bottomOverscroll.current=true; return; }
-      /* Android puede traducir el rubber-band a `dy<0` aunque el dedo siga tirando hacia abajo.
-         No cuenta como «subir» hasta alejarse claramente del borde con contenido real. */
-      if(bottomOverscroll.current && max>0 && y>max-160) return;
+      /* En el borde, `scrollTop` NO demuestra la intención: el stretch de Android puede devolver
+         cientos de px aunque él siga empujando hacia abajo. La barra solo reaparece si hay una
+         dirección de dedo OPUESTA y reciente (dedo baja = subir contenido). El umbral de 160 px
+         era el fallo real: un rebote grande lo cruzaba y abría la barra sin que él subiera. */
+      if(bottomOverscroll.current){
+        const fingerSubeContenido=fingerScrollDir.current===-1 && (Date.now()-fingerScrollAt.current)<900;
+        if(!fingerSubeContenido) return;
+      }
       bottomOverscroll.current=false;
       revealNav();
     }
@@ -19416,6 +19487,7 @@ function App(){
   const [planGoto,setPlanGoto]=useState(null);             // segmento de Plan a forzar desde «Ver plan» ({id,ts})
   const [tourOpen,setTourOpen]=useState(false);            // tour guiado (coach-marks)
   const [toast,setToast]=useState(null);
+  const [syncReport,setSyncReport]=useState(null);
   const [syncing,setSyncing]=useState(false);
   const [syncStatus,setSyncStatus]=useState({type:"idle",msg:""});
 
@@ -19748,8 +19820,9 @@ function App(){
       //      que dice lo contrario medio segundo después.
       const issues=bankIssuesOf(links, dbLinks);
       const readWarnings=bankReadWarnings(links, dbLinks).filter(function(w){ return w.key!=="bank_read_reconnect"; });
+      readWarnings.forEach(function(w){ if(w.key==="bank_read_rate") bankRateRemember(w.ent||w.bank); });
       if(opts.manual && readWarnings.length){
-        avisaSync(opts,"⚠ "+readWarnings.map(function(w){ return tf(w.key,{bank:w.bank}); }).join(" · "));
+        readWarnings.forEach(function(w){ avisaSync(opts,"⚠ "+tf(w.key,{bank:w.bank})); });
       }
       if(opts.manual && preview.synced.length && !issues.length && !readWarnings.length){
         const ents={}; preview.synced.forEach(function(x){ if(x&&x.ent) ents[x.ent]=1; });
@@ -19794,7 +19867,7 @@ function App(){
       // vivo (el servidor ya no lo marca 'expired' por un 403/404), así que no mandamos «reconéctate»
       // — solo un aviso suave y únicamente si lo pediste tú (feedback 2026-07-17: «se caen cada dos
       // por tres» era este falso positivo). En auto-sync nos callamos: se reintenta solo.
-      else if(failed.length && opts.manual){ avisaSync(opts, "⚠ "+tf("bank_syncsoft",{bank:bankLabelOf(failed[0])})); }
+      else if(failed.length && opts.manual && !readWarnings.length){ avisaSync(opts, "⚠ "+tf("bank_syncsoft",{bank:bankLabelOf(failed[0])})); }
       // Ni un solo banco enlazado: en vez del callejón sin salida («No tienes ningún banco
       // conectado») le abrimos el panel para que lo conecte ahí mismo.
       else if(!preview.synced.length && !links.length && opts.manual){
@@ -19893,7 +19966,7 @@ function App(){
   const sincronizarAMano=function(){
     const col=[];
     return Promise.all([runBankSync({manual:true, collect:col}), runBrokerSync({manual:true, collect:col})]).then(function(){
-      const m=juntaAvisosSync(col); if(m) showToast(m);
+      const rows=listaAvisosSync(col); if(rows.length) setSyncReport(rows);
     });
   };
   const runBrokerSync=function(opts){
@@ -20008,10 +20081,13 @@ function App(){
   const allowBankNotifSync=function(){
     const now=Date.now(), day=Math.floor(now/86400000);
     try{
+      /* Las lecturas desatendidas gastaban el cupo PSD2 y dejaban el histórico en 429. Solo se
+         hacen si la persona lo activó de forma expresa; el valor antiguo implícito era ON. */
+      if(!((stateRef.current.settings||{}).bankSyncOnNotif===true)) return false;
       const last=Number(localStorage.getItem("_bankNotifSyncAt")||0);
       const savedDay=Number(localStorage.getItem("_bankNotifSyncDay")||-1);
       const used=savedDay===day?Number(localStorage.getItem("_bankNotifSyncUsed")||0):0;
-      if(now-last < 2*60*60*1000 || used>=4) return false;
+      if(now-last < 12*60*60*1000 || used>=1) return false;
       localStorage.setItem("_bankNotifSyncAt",String(now));
       localStorage.setItem("_bankNotifSyncDay",String(day));
       localStorage.setItem("_bankNotifSyncUsed",String(used+1));
@@ -20219,14 +20295,12 @@ function App(){
 
   // CAPA 2 — al abrir, el banco YA NO se sincroniza solo (2026-07-18): el sync desatendido en
   // cada apertura hacía que Caixa/Sabadell marcaran el consentimiento como uso robótico y lo
-  // caducaran una y otra vez. Quedan solo dos syncs «con motivo»:
-  //  · justo tras autorizar un banco (vuelta del ?bank=ok) — lo acabas de pedir tú;
-  //  · la primera vez que hay banco sin movimientos capturados (bootstrap de conciliación).
+  // caducaran una y otra vez. Solo queda el sync justo tras autorizar un banco (vuelta del
+  // ?bank=ok): lo acaba de pedir la persona. El viejo bootstrap por `bankTx===undefined` también
+  // era una consulta al abrir y consumía el cupo sin tocar ningún botón.
   useEffect(function(){
     if(!uid) return;
     if(bankJustConnected.current){ bankJustConnected.current=false; limpiaCartelReconectado(); runBankSync({manual:true}); return; }
-    if(!state.hasBankLink) return;   // nadie ha conectado banco en esta cartera → no llamamos a la función
-    if(typeof state.bankTx==="undefined"){ runBankSync({}); return; }   // bootstrap: solo 1 vez en la vida del enlace
   },[uid, state.hasBankLink]);
 
   // Y lo mismo para los brókers que SÍ sincronizan solos (TR nativo + MyInvestor): al abrir,
@@ -21025,7 +21099,7 @@ function App(){
     if(!nat || !nat.setNotifPrefs) return;
     try{ nat.setNotifPrefs({
       expenseConfirm:!(state.settings&&state.settings.trNotifyConfirm===false),
-      bankSyncOnNotif:!(state.settings&&state.settings.bankSyncOnNotif===false)
+      bankSyncOnNotif:!!(state.settings&&state.settings.bankSyncOnNotif===true)
     }).catch(function(){}); }catch(e){}
   },[state.settings&&state.settings.trNotifyConfirm, state.settings&&state.settings.bankSyncOnNotif]);
   // Re-propaga al lector nativo la URL de ingest con el token del usuario (apuntado multiusuario
@@ -21487,8 +21561,10 @@ function App(){
      del perfil, que tampoco desenfoca durante el arrastre. A 0,42 s de transición nadie ve la
      diferencia; lo que sí se nota es el tirón. */
   const navBlurT=useRef(0);
+  const navBlurOff=useRef(false);
   const navSinBlur=function(off){
     if(navBlurT.current){ clearTimeout(navBlurT.current); navBlurT.current=0; }
+    navBlurOff.current=!!off;
     if(!appShellRef.current) return;
     appShellRef.current.classList.toggle("nav-sin-blur", !!off);
   };
@@ -21497,6 +21573,7 @@ function App(){
     if(navBlurT.current) clearTimeout(navBlurT.current);
     navBlurT.current=setTimeout(function(){
       navBlurT.current=0;
+      navBlurOff.current=false;
       if(appShellRef.current) appShellRef.current.classList.remove("nav-sin-blur");
     }, 480);
   };
@@ -21577,7 +21654,11 @@ function App(){
   const ensureScrollHost=function(){
     if(settleRaf.current) return;                         // el asentamiento ya lo pondrá
     if(dragging.current && gestureMode.current==="tab") return;
-    if(scrollHostOn.current && hostTabRef.current===tabRef.current) return;
+    /* React vuelve a escribir `className` en cualquier setState. Las refs podían decir «host
+       activo» mientras el DOM ya había perdido las dos clases que dejan libre la ola nativa. */
+    if(scrollHostOn.current && hostTabRef.current===tabRef.current
+      && appShellRef.current&&appShellRef.current.classList.contains("scroll-host-on")
+      && viewportRef.current&&viewportRef.current.classList.contains("scroll-host-open")) return;
     enterScrollHost(tabRef.current);
   };
   /* ASENTAR EL CARRUSEL CON rAF, NO CON transition CSS — 2026-07-27, medido en SU móvil.
@@ -22435,8 +22516,8 @@ function App(){
     mcSandbox() && React.createElement("button",{type:"button",className:"sandbox-bar",
       onClick:function(){ mcExitSandbox(); location.reload(); }},
       "🧪 MODO PRUEBAS · los datos no son reales · toca para salir"),
-    React.createElement("div",{className:"app-shell",ref:appShellRef},
-      React.createElement("div",{className:"viewport",ref:viewportRef},
+    React.createElement("div",{className:"app-shell"+(hostTab>=0?" scroll-host-on":"")+(navBlurOff.current?" nav-sin-blur":""),ref:appShellRef},
+      React.createElement("div",{className:"viewport"+(hostTab>=0?" scroll-host-open":""),ref:viewportRef},
         React.createElement("div",{className:"track"+(hostTab>=0?" scroll-host-park":" scroll-host-swipe"),ref:trackRef}, paginas)
       ),
       React.createElement("nav",{className:"botnav"+((navHidden||navHiddenRef.current)&&!drawerOpen&&!profileOpen?" botnav-hidden":""),"aria-label":"Navegación"},
@@ -22472,6 +22553,7 @@ function App(){
     upd.apkUpd && React.createElement("button",{className:"update-pill",onClick:function(){ upd.installApk(showToast); }}, tf("apk_ready",{v:upd.apkUpd.versionName})),
     !online && React.createElement("div",{className:"offline-pill"}, t("off_pill")),
     toast && React.createElement("div",{className:"toast"},toast),
+    syncReport && ReactDOM.createPortal(React.createElement(SyncReportSheet,{items:syncReport,onClose:function(){ setSyncReport(null); }}),document.body),
     showAuth && React.createElement(AuthPanel,{session:session,onClose:function(){ setShowAuth(false); setRecovery(false); },showToast:showToast,recovery:recovery,startMode:authStart}),
     React.createElement("div",{
       className:"settings-push"+(drawerOpen?" open":""),

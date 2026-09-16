@@ -56,6 +56,13 @@ t("tampoco se cuela como cuenta EXTRA (sería doble conteo en Patrimonio)", () =
   assert.equal(r.synced.some((x) => x.ent === "trade_republic"), false);
 });
 
+t("un 429 conserva la cuenta como sin actualizar, no como permiso caducado", () => {
+  const s=estadoTR({settings:{brokersOn:[]},investments:[],obAccounts:[{key:"cx",aspsp:"CaixaBank",value:100,stale:false}]});
+  const r=ctx.applyBankBalances(s,[{aspsp:"CaixaBank",ok:false,expired:false,accounts:[{ok:false,error:"eb_429"}]}]);
+  assert.equal(r.obAccounts[0].stale,true);
+  assert.equal(r.obAccounts[0].staleKind,"temporary");
+});
+
 t("con el puente APAGADO, TR por Open Banking se comporta como un banco normal", () => {
   // Quien no use el bróker nativo (nadie hoy, pero el reparto no puede dejarle sin saldo).
   const s = estadoTR({ settings: { brokersOn: [] }, investments: [] });
