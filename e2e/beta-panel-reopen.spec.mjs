@@ -114,3 +114,54 @@ test("enviar el último veredicto olvida la marca: recargar aterriza en Inicio",
   await page.waitForTimeout(800);
   expect(await ajustesAbierto(page)).toBe(false);
 });
+
+/* ⚠ LA PUERTA DE ATRÁS DEL MISMO BUCLE (review 16/9).
+ * El panel se reabre A LA MISMA ALTURA: hace `scrollTop=y`, y eso dispara `scroll` igual que un
+ * dedo. Si el scroll a secas renueva la marca, cada reapertura automática la renueva y borra
+ * `_betaPanelReabierto` → vuelve el «se abre todo el rato Ajustes» que arregla 4.24.4.
+ * Aquí se monta el panel SIN tocar nada, con la marca ya usada y una altura guardada: ni la marca
+ * ni el «ya reabierto» pueden moverse. Falla con el código de 4.24.4 tal cual llegó. */
+test("★ restaurar la altura NO cuenta como interacción: la marca no se renueva sola", async ({ page }) => {
+  await bootBeta(page);
+  await page.waitForFunction(() => Array.isArray(window.RELEASE_NOTES) && window.RELEASE_NOTES.length > 0, null, { timeout: 10_000 });
+
+  const marca = await page.evaluate(() => {
+    CONFIG.APP_VERSION = "4.24.4.1";
+    // Lo bastante largo para que el panel tenga scroll de verdad y la altura se pueda restaurar.
+    const items = [];
+    for (let i = 0; i < 25; i++) items.push("punto de prueba " + i + " con texto de sobra para que el panel tenga scroll y la altura guardada se pueda restaurar");
+    RELEASE_NOTES.unshift({
+      v: "4.24.4", d: "e2e",
+      t: { es: "e2e", en: "e2e", ca: "e2e" },
+      items: { es: items, en: items, ca: items },
+      tandas: [{ id: "solo", t: { es: "sola", en: "only", ca: "sola" }, items: { es: items, en: items, ca: items } }],
+    });
+    window._mcProdVersion = function () { return Promise.resolve(null); };
+    const t = String(Date.now() - 60_000);
+    localStorage.setItem("_betaPanelAbierto", t);
+    localStorage.setItem("_betaPanelReabierto", t);   // esta marca YA gastó su reapertura
+    localStorage.setItem("_betaPanelScroll", "300");
+    return t;
+  });
+
+  // Reapertura automática: el panel se monta sin que él toque la pantalla.
+  await page.evaluate(() => {
+    window.dispatchEvent(new CustomEvent("mc-open-settings"));
+    setTimeout(() => window.dispatchEvent(new CustomEvent("mc-open-beta-review")), 0);
+  });
+  await expect(page.locator(".beta-review")).toBeVisible({ timeout: 8_000 });
+  await expect.poll(() => page.evaluate(() => document.querySelector(".beta-review").scrollTop), { timeout: 5_000 }).toBe(300);
+  await page.waitForTimeout(600);
+
+  const d = await page.evaluate(() => ({
+    abierto: localStorage.getItem("_betaPanelAbierto"),
+    reabierto: localStorage.getItem("_betaPanelReabierto"),
+  }));
+  expect(d.abierto, "restaurar la altura no puede renovar la marca").toBe(marca);
+  expect(d.reabierto, "restaurar la altura no puede devolverle la reapertura").toBe(marca);
+
+  // Y el dedo SÍ: mientras lee, la marca no caduca debajo de él.
+  await page.locator(".beta-review").dispatchEvent("pointerdown");
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("_betaPanelAbierto")), { timeout: 3_000 }).not.toBe(marca);
+  expect(await page.evaluate(() => localStorage.getItem("_betaPanelReabierto"))).toBe(null);
+});

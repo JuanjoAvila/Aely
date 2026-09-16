@@ -1269,11 +1269,19 @@ function BetaReviewPanel({onClose, showToast}){
   const wrapRef=useRef(null);
   const scrollPuesto=useRef(false);
   // 15/9: NO setItem al montar — la reapertura automática no debe renovar las 2 h.
+  /* ⚠ Y EL SCROLL SOLO NO ES INTERACCIÓN (review 16/9). Devolverlo a la misma altura hace
+     `scrollTop=y`, y eso dispara `scroll` igual que si hubiera arrastrado el dedo. Con el
+     `betaMarcarAbierto()` colgado del scroll a secas, CADA reapertura automática renovaba la
+     marca y borraba `_betaPanelReabierto` — el mismo bucle de su rechazo de 4.24.2, solo que por
+     la otra puerta. Verificado con `beta-panel-reopen`: la marca cambiaba sola al restaurar.
+     Ahora la renueva el DEDO (`pointerdown`); el scroll posterior (inercia) la mantiene viva
+     mientras lee, pero un scroll sin gesto previo no cuenta. */
+  const gestoReal=useRef(false);
+  const tocar=function(){ gestoReal.current=true; betaMarcarAbierto(); };
   const recordarScroll=function(){
     const el=wrapRef.current; if(!el) return;
     try{ localStorage.setItem(BETA_SCROLL_KEY, String(el.scrollTop)); }catch(e){}
-    // Interacción real: pone/renueva la marca (mientras lee, no caduca debajo de él).
-    betaMarcarAbierto();
+    if(gestoReal.current) betaMarcarAbierto();
   };
   const prod=useProdVersion();
   const [notesReady,setNotesReady]=useState(!!(RELEASE_NOTES&&RELEASE_NOTES.length));
@@ -1537,7 +1545,7 @@ function BetaReviewPanel({onClose, showToast}){
   const btn=function(on,color){ return {flex:1,background:on?color:"var(--surface-2)",color:on?"#06120C":"var(--text)",
     border:on?"none":"1px solid var(--line)",borderRadius:12,padding:"9px 6px",fontSize:13,fontWeight:800,cursor:"pointer"}; };
 
-  return React.createElement("div",{style:wrap,className:"beta-review",ref:wrapRef,onScroll:recordarScroll},
+  return React.createElement("div",{style:wrap,className:"beta-review",ref:wrapRef,onScroll:recordarScroll,onPointerDown:tocar},
     React.createElement("div",{style:inner},
     React.createElement("button",{style:back,onClick:cerrarDeVerdad}, "‹ Ajustes"),
     React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 2px"}}, "🧪 Revisar la beta"),
