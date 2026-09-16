@@ -241,7 +241,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
           className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ setSeg(s.id); }}, s.lab);
       })
     ),
-    capa("recibos", React.createElement(PlanBills,{state:state,set:set,totals:totals,manageOpen:manageOpen,setManageOpen:setManageOpen})),
+    capa("recibos", React.createElement(PlanBills,{state:state,set:set,totals:totals,manageOpen:manageOpen,setManageOpen:setManageOpen,simple:simple,showToast:showToast})),
     !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast})),
     !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast}))
   );
@@ -250,7 +250,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
 /* Recibos prioriza lo que todavía saldrá de la cuenta este mes. Fijos (edición completa,
    simulador, conciliación…) vive SOLO dentro de la hoja «Gestionar» — mezclarlo aquí abajo
    duplicaba próximos cargos y desglose de banco que ya se ven arriba (feedback 2026-07-17). */
-function PlanBills({state, set, totals, manageOpen, setManageOpen}){
+function PlanBills({state, set, totals, manageOpen, setManageOpen, simple, showToast}){
   const [paidExpanded,setPaidExpanded]=useState(false);
   const [pendExpanded,setPendExpanded]=useState(false);
   const month=totals.curMonth, year=totals.curYear, today=totals.today;
@@ -330,29 +330,456 @@ function PlanBills({state, set, totals, manageOpen, setManageOpen}){
       paid.length>3 && React.createElement("button",{className:"v4-link-mini",onClick:function(){ setPaidExpanded(function(v){ return !v; }); }},
         paidExpanded ? t("v4_ver_menos") : tf("v4_ver_mas",{n:paid.length-3}))
     ),
-    React.createElement(BillsManageSheet,{open:manageOpen,onClose:function(){ setManageOpen(false); },state:state,set:set,totals:totals})
+    React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); },state:state,set:set,totals:totals,simple:!!simple,showToast:showToast})
   );
 }
 
-/* Hoja «Gestionar»: aquí vive Fijos entero (servicios, cuotas, flujos, puntuales, simulador,
-   conciliación…). Antes se «dumpeaba» tal cual debajo de Recibos y mezclaba edición con la
-   vista diaria — ahora solo aparece si el usuario pide gestionar (feedback 2026-07-17). */
-function BillsManageSheet({open, onClose, state, set, totals}){
-  useBackClose(!!open, onClose);
-  const swipe=useSheetSwipe(!!open, onClose);
+/* §2 variante A: `.settings-push` hub, sin montar `<Fijos>`. Reconcile → BankPanel (Claude). */
+function gbTxt(key, vars){
+  /* Hasta que Claude pegue `gb_*` en 01-i18n, caemos a castellano (contrato selectores 2026-09-16). */
+  const FALL={
+    gb_title:"Tus recibos", gb_hero_label:"SE TE VAN CADA MES",
+    gb_hero_sub:"De {n} recibos. Los que no son mensuales ya están repartidos a su equivalente al mes.",
+    gb_hero_sub_one:"De 1 recibo. Los que no son mensuales ya están repartidos a su equivalente al mes.",
+    gb_search:"Buscar un recibo", gb_search_empty:"No hay ningún recibo con ese nombre.",
+    gb_g_serv:"Servicios y suministros", gb_g_serv_sub:"{n} · luz, agua, móvil…",
+    gb_g_serv_sub_one:"1 · luz, agua, móvil…",
+    gb_g_debt:"Cuotas de deuda", gb_g_debt_sub:"{n} · se editan en Deudas",
+    gb_g_debt_sub_one:"1 · se edita en Deudas",
+    gb_g_debt_sub_simple:"{n} cuotas · tócala para cambiarla", gb_g_debt_sub_simple_one:"1 cuota · tócala para cambiarla",
+    gb_g_in:"Lo que entra y lo que mueves", gb_g_in_sub:"Nómina y pasos entre tus cuentas",
+    gb_g_once:"Cargos de una sola vez", gb_g_once_sub:"{n} este mes",
+    gb_g_once_sub_one:"1 este mes", gb_this_month:"este mes",
+    gb_add:"Añadir un recibo", gb_locked:"Se edita en Deudas",
+    gb_bill_locked_amt:"Este recibo cambia de importe según el mes: tócalo en cada mes.",
+    gb_step_what:"¿Qué es?", gb_step_how_much:"¿Cuánto?", gb_step_how_often:"¿Cada cuánto?",
+    gb_months_q:"¿En qué meses?", gb_step_monthyear:"¿Qué mes?",
+    gb_step_when:"¿Qué día y de qué cuenta?", gb_step_account:"¿De qué cuenta sale?",
+    gb_freq_m:"Cada mes", gb_freq_2m:"Cada dos meses", gb_freq_3m:"Cada tres meses",
+    gb_freq_6m:"Cada seis meses", gb_freq_y:"Una vez al año", gb_freq_custom:"A medida",
+    gb_preview:"Serán {x} al mes repartidos ({total} al año, en {months}).",
+    gb_preview_m:"Serán {x} cada mes.",
+    gb_empty:"Aún no hay recibos", gb_empty_sub:"Cuando se repita un cargo, lo verás aquí.",
+    gb_empty_sub_linked:"En cuanto pase un cargo que se repita, lo verás aquí.",
+    gb_afford:"¿Me lo puedo permitir?", gb_afford_sub:"Dime un importe y un día y te digo si te cabe este mes.",
+    gb_per_month:"al mes", gb_when_day:"Un día fijo",
+    gb_when_first:"Primer día hábil", gb_when_last:"Último día hábil",
+    gb_del:"Quitar este recibo", gb_removed:"Recibo quitado",
+    gb_save_ok:"Guardado", gb_next:"Siguiente"
+  };
+  const raw=t(key);
+  const base=(raw&&raw!==key)?raw:(FALL[key]||key);
+  if(!vars) return base;
+  return String(base).replace(/\{(\w+)\}/g,function(_,k){ return vars[k]!=null?String(vars[k]):""; });
+}
+function gbSub(key, n){
+  return gbTxt(n===1?key+"_one":key, {n:n});
+}
+
+function BillsManagePush({open, onClose, state, set, totals, simple, showToast}){
+  const [stack,setStack]=React.useState(["hub"]);
+  const [group,setGroup]=React.useState(null);
+  const [q,setQ]=React.useState("");
+  const [detail,setDetail]=React.useState(null);
+  const [addStep,setAddStep]=React.useState(null);
+  const [addForm,setAddForm]=React.useState({name:"",amount:"",freq:"mes",months:[],day:"",when:"",account:"sabadell",kind:"fixed"});
+  const [undoBill,setUndoBill]=React.useState(null);
+  const undoTimer=React.useRef(null);
+  const view=stack[stack.length-1];
+  const cm=totals.curMonth, cy=totals.curYear;
+  React.useEffect(function(){
+    if(!open){
+      setStack(["hub"]); setGroup(null); setQ(""); setDetail(null); setAddStep(null);
+      if(undoTimer.current){ clearTimeout(undoTimer.current); undoTimer.current=null; }
+      setUndoBill(null);
+    }
+  },[open]);
+  React.useEffect(function(){
+    return function(){ if(undoTimer.current) clearTimeout(undoTimer.current); };
+  },[]);
+  const pop=React.useCallback(function(){
+    if(detail){ setDetail(null); return; }
+    if(addStep){ setAddStep(null); return; }
+    setStack(function(s){
+      if(s.length<=1){ onClose(); return s; }
+      const n=s.slice(0,-1);
+      if(n[n.length-1]==="hub") setGroup(null);
+      return n;
+    });
+  },[onClose, detail, addStep]);
+  useBackClose(!!open, pop);
+  // El hub conserva su entrada y cada pantalla hija añade otra. Antes toda la pila compartía
+  // una sola: el primer Atrás volvía al hub, pero el segundo ya sacaba de Plan (QA 2026-09-16).
+  useBackClose(!!open && (view==="list"||view==="afford"), pop);
   if(!open) return null;
+  const banks=Array.from(new Set((state.accounts||[]).map(function(a){ return a.ent; }).filter(Boolean)));
+  if(!banks.length) banks.push("sabadell");
+  const billBanks=(state.accounts||[]).filter(function(a){
+    const r=accRole(a); return r==="fijos"||r==="ambos"||!a.role;
+  });
+  const bankList=billBanks.length?billBanks.map(function(a){ return a.ent; }):banks;
+  const hero=billsHeroTotal(state,totals);
+  const nAll=billsCountAll(state,cm,cy);
+  const groupMeta=function(id){
+    const n=billsGroupRows(state,id,cm,cy).length;
+    const total=billsGroupMonthly(state,id,cm,cy);
+    if(id==="serv") return {id:id,emoji:"💡",title:gbTxt("gb_g_serv"),sub:gbSub("gb_g_serv_sub",n),total:total,n:n};
+    if(id==="debt") return {id:id,emoji:"💳",title:gbTxt("gb_g_debt"),
+      sub:simple?gbTxt(n===1?"gb_g_debt_sub_simple_one":"gb_g_debt_sub_simple",{n:n}):gbSub("gb_g_debt_sub",n),total:total,n:n};
+    if(id==="in") return {id:id,emoji:"💰",title:gbTxt("gb_g_in"),sub:gbTxt("gb_g_in_sub"),total:total,n:n};
+    return {id:id,emoji:"📅",title:gbTxt("gb_g_once"),sub:gbSub("gb_g_once_sub",n),total:total,n:n,once:true};
+  };
+  const groups=["serv","debt","in","once"].map(groupMeta);
+  const push=function(v){ setStack(function(s){ return s.concat([v]); }); };
+  const openGroup=function(id){ setGroup(id); setQ(""); push("list"); };
+  const openDetail=function(row){ setDetail(row); };
+  const startAdd=function(kind){
+    setAddForm({name:"",amount:"",freq:"mes",months:[],day:"",when:"",account:bankList[0]||"sabadell",kind:kind||"fixed",
+      month:cm, year:cy, flowKind:"income"});
+    setAddStep("what");
+  };
+  const removeWithUndo=function(row){
+    const snap={kind:row.kind, item:Object.assign({},row.item)};
+    if(row.kind==="fixed") removeFixedById(set,row.id);
+    else if(row.kind==="flow") removeFlowById(set,row.id);
+    else if(row.kind==="oneoff") removeOneoffById(set,row.id);
+    else return;
+    setDetail(null);
+    if(undoTimer.current) clearTimeout(undoTimer.current);
+    setUndoBill(snap);
+    undoTimer.current=setTimeout(function(){ setUndoBill(null); undoTimer.current=null; },5000);
+  };
+  const undoLastBill=function(){
+    if(!undoBill) return;
+    if(undoTimer.current){ clearTimeout(undoTimer.current); undoTimer.current=null; }
+    if(undoBill.kind==="fixed") addFixedItem(set,undoBill.item);
+    else if(undoBill.kind==="flow") addFlowItem(set,undoBill.item);
+    else if(undoBill.kind==="oneoff") addOneoffItem(set,undoBill.item);
+    setUndoBill(null);
+  };
+  const listRows=(function(){
+    if(view!=="list"&&view!=="hub") return [];
+    let rows=group?billsGroupRows(state,group,cm,cy):[];
+    if(view==="hub"&&q.trim()){
+      const qq=q.trim().toLowerCase();
+      rows=["serv","debt","in","once"].reduce(function(a,g){ return a.concat(billsGroupRows(state,g,cm,cy)); },[])
+        .filter(function(r){ return String(r.name||"").toLowerCase().indexOf(qq)>=0; });
+    } else if(q.trim()){
+      const qq=q.trim().toLowerCase();
+      rows=rows.filter(function(r){ return String(r.name||"").toLowerCase().indexOf(qq)>=0; });
+    }
+    return rows.map(function(r){
+      if(r.kind==="debt") return Object.assign({},r,{locked:!simple});
+      return r;
+    });
+  })();
+  const billRow=function(r){
+    const attrs={"data-bill-id":r.id};
+    if(r.locked) attrs["data-locked"]="1";
+    return React.createElement("button",Object.assign({type:"button",className:"v4-mov v4-bills-row",key:r.kind+"_"+r.id,onClick:function(){ openDetail(r); }},attrs),
+      React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}}, React.createElement(Mono,{ent:r.bank,size:42})),
+      React.createElement("div",{className:"nm"},
+        React.createElement("div",{className:"nm-title"}, r.name||"—"),
+        React.createElement("div",{className:"meta"}, r.locked?gbTxt("gb_locked"):entOf(r.bank).label)),
+      React.createElement("div",{className:"am num"+(r.income?" pos":"")}, (r.income?"+":"")+eur(Math.abs(r.monthly||0))));
+  };
+  const head=function(title){
+    return React.createElement("div",{className:"settings-push-h"},
+      React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:pop},"‹"),
+      React.createElement("h1",null, title));
+  };
+  const hub=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-home"},
+    head(gbTxt("gb_title")),
+    React.createElement("div",{className:"v4-card v4-card-hero v4-bills-hero","data-bills-hero":"1"},
+      React.createElement("div",{className:"v4-micro"}, gbTxt("gb_hero_label")),
+      React.createElement("div",{className:"serif num v4-bills-hero-amt","data-bills-total":"1"}, eur(hero)),
+      React.createElement("div",{className:"v4-bills-hero-sub"}, gbSub("gb_hero_sub",nAll))),
+    React.createElement("div",{className:"v4-bills-search-row"},
+      React.createElement("input",{className:"v4-bills-search","data-bills-search":"1",value:q,placeholder:gbTxt("gb_search"),
+        onChange:function(e){ setQ(e.target.value); }}),
+      React.createElement("button",{type:"button",className:"v4-bills-add","data-act":"bill-add",onClick:function(){ startAdd("fixed"); },
+        "aria-label":gbTxt("gb_add")},"+")),
+    q.trim()
+      ? React.createElement("div",{className:"v4-bills-list"},
+          listRows.length===0 && React.createElement("div",{className:"v4-bills-empty","data-bills-noresults":"1"}, gbTxt("gb_search_empty")),
+          listRows.map(billRow))
+      : React.createElement("div",{className:"v4-bills-groups"},
+          groups.filter(function(g){ return g.n>0; }).map(function(g){
+            return React.createElement("button",{type:"button",className:"v4-bills-group",key:g.id,"data-group":g.id,onClick:function(){ openGroup(g.id); }},
+              React.createElement("div",{className:"v4-bills-group-tile"}, g.emoji),
+              React.createElement("div",{className:"v4-bills-group-copy"},
+                React.createElement("div",{className:"v4-bills-group-t"}, g.title),
+                React.createElement("div",{className:"v4-bills-group-s"}, g.sub)),
+              React.createElement("div",{className:"v4-bills-group-amt serif num"},
+                eur(g.total), React.createElement("span",null, g.once?" "+gbTxt("gb_this_month"):" "+gbTxt("gb_per_month"))),
+              React.createElement("span",{className:"v4-bills-group-chev"},"›"));
+          }),
+          nAll===0 && React.createElement("div",{className:"v4-bills-empty","data-bills-empty":"1"},
+            React.createElement("div",{style:{fontWeight:800}}, gbTxt("gb_empty")),
+            React.createElement("div",null, gbTxt("gb_empty_sub_linked")))),
+    React.createElement("button",{type:"button",className:"v4-bills-afford","data-bills-afford":"1",onClick:function(){ push("afford"); }},
+      React.createElement("div",{className:"v4-bills-afford-t"}, gbTxt("gb_afford")),
+      React.createElement("div",{className:"v4-bills-afford-s"}, gbTxt("gb_afford_sub")))
+  );
+  const listView=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-group","data-group":group||""},
+    head((groups.find(function(g){ return g.id===group; })||{}).title||gbTxt("gb_title")),
+    React.createElement("div",{className:"v4-bills-search-row"},
+      React.createElement("input",{className:"v4-bills-search","data-bills-search":"1",value:q,placeholder:gbTxt("gb_search"),
+        onChange:function(e){ setQ(e.target.value); }}),
+      group!=="debt" && React.createElement("button",{type:"button",className:"v4-bills-add","data-act":"bill-add",onClick:function(){
+        startAdd(group==="in"?"flow":(group==="once"?"oneoff":"fixed"));
+      },"aria-label":gbTxt("gb_add")},"+")),
+    React.createElement("div",{className:"v4-bills-list"},
+      listRows.map(billRow),
+      listRows.length===0 && React.createElement("div",{className:"v4-bills-empty","data-bills-empty":"1"}, gbTxt("gb_empty")))
+  );
+  const affordView=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-afford"},
+    head(gbTxt("gb_afford")),
+    React.createElement("div",{className:"v4-bills-afford-body"},
+      React.createElement(AffordSim,{state:state,totals:totals,set:set})));
+  const body=view==="list"?listView:view==="afford"?affordView:hub;
+  const screenAttr=view==="list"?"bills-group":(view==="afford"?"bills-afford":"bills-home");
   return ReactDOM.createPortal(
-    React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
-      React.createElement("div",Object.assign({className:"v4-sheet",style:{maxHeight:"90dvh"},ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
-        React.createElement("div",{className:"v4-sheet-handle"}),
-        React.createElement("div",{className:"v4-section-h"},
-          React.createElement("span",{className:"serif",style:{fontSize:19,fontWeight:600}}, t("v4_gestionar")),
-          React.createElement("button",{className:"link","aria-label":t("au_close"),onClick:onClose},"✕")
-        ),
-        React.createElement("p",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.45,margin:"0 0 12px"}}, t("v4_gestionar_h")),
-        React.createElement("div",{className:"v4-embed-legacy"}, React.createElement(Fijos,{state:state,set:set,totals:totals}))
-      )
-    ), document.body);
+    React.createElement(React.Fragment,null,
+      React.createElement("div",{className:"settings-push open v4-bills-push","data-bills-manage":"1","data-screen":screenAttr,"data-group":view==="list"?group:undefined}, body),
+      detail && React.createElement(BillsItemSheet,{
+        row:detail, set:set, banks:bankList, simple:simple, showToast:showToast,
+        onClose:function(){ setDetail(null); }, onRemove:removeWithUndo
+      }),
+      addStep && React.createElement(BillsAddWizard,{
+        step:addStep, setStep:setAddStep, form:addForm, setForm:setAddForm, banks:bankList,
+        onClose:function(){ setAddStep(null); }, set:set, showToast:showToast
+      }),
+      undoBill && React.createElement("div",{className:"v4-undo-toast",role:"status"},
+        React.createElement("span",null, gbTxt("gb_removed")),
+        React.createElement("button",{type:"button",onClick:undoLastBill}, t("f_undo")||"Deshacer"))
+    ),
+    document.body);
+}
+
+function BillsItemSheet({row, set, banks, simple, showToast, onClose, onRemove}){
+  const item=row.item;
+  const locked=row.kind==="debt"&&!simple;
+  const [name,setName]=React.useState(item.name||"");
+  const [amount,setAmount]=React.useState("");
+  const [freq,setFreq]=React.useState(item.freq||"mes");
+  const [months,setMonths]=React.useState((item.months||[]).slice());
+  const [day,setDay]=React.useState(item.day?String(item.day):"");
+  const [when,setWhen]=React.useState(item.when||"");
+  const [account,setAccount]=React.useState(row.bank||banks[0]||"sabadell");
+  const [amort,setAmort]=React.useState(item.amort!=null?String(item.amort):"");
+  const hasSched=hasSchedule(item);
+  React.useEffect(function(){ setAmount(""); },[row.id]);
+  useBackClose(true, onClose);
+  const saveAmt=function(){
+    if(locked||hasSched) return;
+    const n=parseFloat(String(amount).replace(",","."));
+    if(!isFinite(n)||String(amount).trim()==="") return;
+    if(row.kind==="fixed") patchFixedById(set,item.id,{amount:n});
+    else if(row.kind==="flow") patchFlowById(set,item.id,{amount:Math.abs(n)});
+    else if(row.kind==="oneoff") patchOneoffById(set,item.id,{amount:n});
+    else if(row.kind==="debt"&&simple) patchDebtFields(set,item.id,{monthly:n});
+    if(showToast) showToast(gbTxt("gb_save_ok"));
+  };
+  const saveMeta=function(patch){
+    if(locked) return;
+    if(row.kind==="fixed") patchFixedById(set,item.id,patch);
+    else if(row.kind==="flow") patchFlowById(set,item.id,patch);
+    else if(row.kind==="oneoff") patchOneoffById(set,item.id,patch);
+    else if(row.kind==="debt"&&simple) patchDebtFields(set,item.id,patch);
+  };
+  const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
+  return React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
+    React.createElement("div",{className:"v4-sheet","data-sheet":"bill",onClick:function(e){ e.stopPropagation(); }},
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("div",{className:"settings-push-h",style:{padding:"0 0 8px"}},
+        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:onClose},"‹"),
+        React.createElement("h1",null, name||row.name||"—")),
+      !locked && React.createElement("input",{className:"v4-bills-search",value:name,placeholder:t("pt_name_ph"),
+        onChange:function(e){ const v=e.target.value; setName(v); saveMeta({name:v}); }}),
+      React.createElement("div",{className:"v4-account-balance",style:{marginTop:12}},
+        React.createElement("div",{className:"v4-micro"}, locked?gbTxt("gb_locked"):t("pt_ficha_saldo")),
+        React.createElement("div",{className:"v4-account-amount serif num"}, eur(Math.abs(row.monthly||item.amount||0))),
+        hasSched && React.createElement("div",{className:"hint"}, gbTxt("gb_bill_locked_amt")),
+        !locked && !hasSched && React.createElement("div",{className:"v4-account-correct",style:{marginTop:10}},
+          React.createElement("div",{className:"v4-account-correct-amount serif num"}, amount?eur(parseNumPadRaw(amount)):"—"),
+          React.createElement(NumPad,{value:amount,onChange:function(next){
+            setAmount(function(prev){ return typeof next==="function"?next(prev):next; });
+          }}),
+          React.createElement("button",{type:"button",className:"v4-bills-add",style:{width:"100%",marginTop:8},onClick:saveAmt}, t("done")))),
+      row.kind==="fixed" && !locked && React.createElement("div",{style:{marginTop:14}},
+        React.createElement("div",{className:"v4-ficha-k"}, gbTxt("gb_step_how_often")),
+        freqs.map(function(f){
+          const on=freq===f[0];
+          return React.createElement("button",{key:f[0],type:"button",className:"v4-ficha-op"+(on?" on":""),
+            onClick:function(){ setFreq(f[0]); const p={freq:f[0]}; if(f[0]==="mes"){ p.months=[]; } setMonths(f[0]==="mes"?[]:months); saveMeta(p); }},
+            React.createElement("span",{className:"v4-ficha-radio"}),
+            React.createElement("span",{className:"v4-ficha-ot"}, gbTxt(f[1])));
+        }),
+        freq!=="mes" && React.createElement("div",{style:{marginTop:8}},
+          React.createElement("div",{className:"v4-ficha-k"}, gbTxt("gb_months_q")),
+          React.createElement(MonthPicker,{selected:months,onToggle:function(m){
+            setMonths(function(cur){
+              const n=cur.slice(); const i=n.indexOf(m); if(i>=0) n.splice(i,1); else n.push(m);
+              saveMeta({months:n.slice().sort(function(a,b){ return a-b; }), freq:freq});
+              return n;
+            });
+          }}))),
+      (row.kind==="flow"||row.kind==="fixed"||(row.kind==="debt"&&simple)) && React.createElement("div",{style:{marginTop:14}},
+        React.createElement("div",{className:"v4-ficha-k"}, gbTxt("gb_step_when")),
+        row.kind==="flow" && [["","gb_when_day"],["first","gb_when_first"],["last","gb_when_last"]].map(function(w){
+          const on=(when||"")===w[0];
+          return React.createElement("button",{key:w[0]||"day",type:"button",className:"v4-ficha-op"+(on?" on":""),
+            onClick:function(){ setWhen(w[0]); if(w[0]){ setDay(""); saveMeta({when:w[0], day:null}); } else saveMeta({when:"", day:cleanDay(day)}); }},
+            React.createElement("span",{className:"v4-ficha-radio"}),
+            React.createElement("span",{className:"v4-ficha-ot"}, gbTxt(w[1])));
+        }),
+        (!when) && React.createElement("input",{className:"v4-bills-search",inputMode:"numeric",placeholder:t("fj_day"),value:day,
+          onChange:function(e){ const v=e.target.value; setDay(v); saveMeta({day:cleanDay(v), when:""}); }})),
+      !locked && React.createElement("div",{style:{marginTop:14}},
+        React.createElement("div",{className:"v4-ficha-k"}, gbTxt("gb_step_account")),
+        bankListButtons(banks, account, function(b){ setAccount(b); const p=row.kind==="flow"?(item.kind==="income"?{to:b}:{from:b}):{account:b}; saveMeta(p); })),
+      row.kind==="debt"&&simple && React.createElement("input",{className:"v4-bills-search",style:{marginTop:8},value:amort,placeholder:t("fj_amort"),
+        onChange:function(e){ setAmort(e.target.value); }, onBlur:function(){ const n=parseFloat(String(amort).replace(",",".")); if(isFinite(n)) saveMeta({amort:n}); }}),
+      !locked && row.kind!=="debt" && React.createElement("button",{type:"button",className:"v4-ficha-quitar","data-act":"bill-remove",style:{width:"100%",marginTop:16},
+        onClick:function(){ onRemove(row); }}, gbTxt("gb_del")),
+      locked && React.createElement("div",{className:"hint",style:{marginTop:16}}, gbTxt("gb_locked"))
+    ));
+}
+
+function bankListButtons(banks, current, onPick){
+  return React.createElement("div",{className:"v4-bills-banks"},
+    (banks||[]).map(function(b){
+      return React.createElement("button",{type:"button",key:b,className:"v4-bills-bank"+(current===b?" on":""),onClick:function(){ onPick(b); }},
+        React.createElement(Mono,{ent:b,size:28}), entOf(b).label);
+    }));
+}
+
+function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, showToast}){
+  const setF=function(patch){ setForm(function(f){ return Object.assign({},f,patch); }); };
+  const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
+  const stepRef=React.useRef(step), formRef=React.useRef(form);
+  stepRef.current=step; formRef.current=form;
+  const stepBack=React.useCallback(function(){
+    const cur=stepRef.current, f=formRef.current||{};
+    if(cur==="what"){ onClose(); return false; }
+    if(cur==="amount") setStep("what");
+    else if(cur==="freq"||cur==="monthyear") setStep("amount");
+    else if(cur==="months") setStep("freq");
+    else if(cur==="when"||cur==="preview") setStep(f.kind==="oneoff"?"monthyear":(f.freq==="mes"?"freq":"months"));
+    else { onClose(); return false; }
+    return true;
+  },[onClose,setStep]);
+  const entryRef=React.useRef(null), stepBackRef=React.useRef(stepBack);
+  stepBackRef.current=stepBack;
+  React.useEffect(function(){
+    _mcBackInitOnce();
+    const arm=function(){
+      const e={close:function(){ if(stepBackRef.current()) arm(); },_byPop:false};
+      entryRef.current=e;
+      _mcBackStack.push(e);
+      try{ history.pushState({mcOverlay:true}, ""); }catch(err){}
+    };
+    arm();
+    return function(){
+      const e=entryRef.current; if(!e) return;
+      const i=_mcBackStack.indexOf(e); if(i>=0) _mcBackStack.splice(i,1);
+      if(!e._byPop){ _mcIgnorePop=true; try{ history.back(); }catch(err){ _mcIgnorePop=false; } }
+      entryRef.current=null;
+    };
+  },[]);
+  const commit=function(){
+    const amt=parseFloat(String(form.amount).replace(",","."))||0;
+    if(!(amt>0)) return;
+    if(form.kind==="flow"){
+      const it={id:uid(),kind:form.flowKind||"income",name:form.name||(form.flowKind==="income"?"Ingreso":"Movimiento"),amount:amt};
+      if(form.when) it.when=form.when; else { const d=cleanDay(form.day); if(d) it.day=d; }
+      if(it.kind==="income") it.to=form.account; else { it.from=form.account; it.to=banks.find(function(b){ return b!==form.account; })||form.account; }
+      addFlowItem(set,it);
+    } else if(form.kind==="oneoff"){
+      const it={id:uid(),name:form.name||"Cargo",amount:amt,month:form.month,year:form.year,account:form.account};
+      const d=cleanDay(form.day); if(d) it.day=d;
+      addOneoffItem(set,it);
+    } else {
+      const it={id:uid(),name:form.name||"Recibo",amount:amt,freq:form.freq||"mes",account:form.account};
+      const d=cleanDay(form.day); if(d) it.day=d;
+      if(form.freq!=="mes"&&form.months&&form.months.length) it.months=form.months.slice().sort(function(a,b){ return a-b; });
+      addFixedItem(set,it);
+    }
+    if(showToast) showToast(gbTxt("gb_save_ok"));
+    onClose();
+  };
+  const preview=function(){
+    const amt=parseFloat(String(form.amount).replace(",","."))||0;
+    if(!(amt>0)||form.kind!=="fixed") return null;
+    const mEq=amt*(FREQ_M[form.freq]||1);
+    if(form.freq==="mes") return gbTxt("gb_preview_m",{x:eur(mEq)});
+    const ms=(form.months&&form.months.length)?form.months:chargeMonths({freq:form.freq,months:form.months});
+    return gbTxt("gb_preview",{x:eur(mEq),total:eur(amt*(ms.length||1)),months:ms.map(function(m){ return monthShort(m-1); }).join(", ")});
+  };
+  const title=step==="what"?gbTxt("gb_step_what"):step==="amount"?gbTxt("gb_step_how_much"):
+    step==="freq"?gbTxt("gb_step_how_often"):step==="months"?gbTxt("gb_months_q"):
+    step==="monthyear"?gbTxt("gb_step_monthyear"):gbTxt("gb_step_when");
+  return React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
+    React.createElement("div",{className:"v4-sheet","data-sheet":"bill-add","data-step":step,onClick:function(e){ e.stopPropagation(); }},
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("div",{className:"settings-push-h",style:{padding:"0 0 8px"}},
+        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:function(){ stepBack(); }},"‹"),
+        React.createElement("h1",null, title)),
+      step==="what" && React.createElement(React.Fragment,null,
+        React.createElement("input",{className:"v4-bills-search",autoFocus:true,value:form.name,placeholder:gbTxt("gb_step_what"),
+          onChange:function(e){ setF({name:e.target.value}); }}),
+        React.createElement("button",{type:"button",className:"v4-cta","data-act":"next",style:{marginTop:16},disabled:!String(form.name||"").trim(),
+          onClick:function(){ setStep("amount"); }}, gbTxt("gb_next"))),
+      step==="amount" && React.createElement(React.Fragment,null,
+        React.createElement("div",{className:"v4-account-correct-amount serif num"}, form.amount?eur(parseNumPadRaw(form.amount)):"—"),
+        React.createElement(NumPad,{value:form.amount||"",onChange:function(next){ setF({amount:typeof next==="function"?next(form.amount||""):next}); }}),
+        React.createElement("button",{type:"button",className:"v4-cta","data-act":"next",style:{marginTop:12},disabled:!(parseFloat(String(form.amount).replace(",","."))>0),
+          onClick:function(){ setStep(form.kind==="oneoff"?"monthyear":"freq"); }}, t("done"))),
+      step==="freq" && form.kind==="fixed" && React.createElement(React.Fragment,null,
+        freqs.map(function(f){
+          return React.createElement("button",{key:f[0],type:"button",className:"v4-ficha-op"+(form.freq===f[0]?" on":""),
+            onClick:function(){ setF({freq:f[0], months:f[0]==="mes"?[]:(form.months||[])}); }},
+            React.createElement("span",{className:"v4-ficha-radio"}),
+            React.createElement("span",{className:"v4-ficha-ot"}, gbTxt(f[1])));
+        }),
+        React.createElement("button",{type:"button",className:"v4-cta","data-act":"next",style:{marginTop:12},onClick:function(){
+          setStep(form.freq==="mes"?"when":"months");
+        }}, t("done"))),
+      step==="freq" && form.kind==="flow" && React.createElement(React.Fragment,null,
+        [["income",gbTxt("gb_flow_income")],["transfer",gbTxt("gb_flow_move")]].map(function(k){
+          return React.createElement("button",{key:k[0],type:"button",className:"v4-ficha-op"+(form.flowKind===k[0]?" on":""),
+            onClick:function(){ setF({flowKind:k[0]}); }},
+            React.createElement("span",{className:"v4-ficha-radio"}),
+            React.createElement("span",{className:"v4-ficha-ot"}, k[1]));
+        }),
+        React.createElement("button",{type:"button",className:"v4-cta","data-act":"next",style:{marginTop:12},onClick:function(){ setStep("when"); }}, t("done"))),
+      step==="months" && React.createElement(React.Fragment,null,
+        React.createElement("div",{className:"v4-ficha-k"}, gbTxt("gb_months_q")),
+        React.createElement(MonthPicker,{selected:form.months||[],onToggle:function(m){
+          setF({months:(function(){ const n=(form.months||[]).slice(); const i=n.indexOf(m); if(i>=0) n.splice(i,1); else n.push(m); return n; })()});
+        }}),
+        preview() && React.createElement("div",{className:"hint",style:{marginTop:10}}, preview()),
+        React.createElement("button",{type:"button",className:"v4-cta","data-act":"next",style:{marginTop:12},onClick:function(){ setStep("when"); }}, t("done"))),
+      step==="monthyear" && React.createElement(React.Fragment,null,
+        React.createElement("div",{className:"af-row",style:{marginBottom:10}},
+          React.createElement("input",{className:"v4-bills-search",inputMode:"numeric",value:String(form.month),onChange:function(e){ setF({month:parseInt(e.target.value,10)||1}); },placeholder:gbTxt("gb_month")}),
+          React.createElement("input",{className:"v4-bills-search",inputMode:"numeric",value:String(form.year),onChange:function(e){ setF({year:parseInt(e.target.value,10)||new Date().getFullYear()}); },placeholder:gbTxt("gb_year")})),
+        React.createElement("button",{type:"button",className:"v4-cta","data-act":"next",style:{marginTop:12},onClick:function(){ setStep("when"); }}, t("done"))),
+      step==="when" && React.createElement(React.Fragment,null,
+        form.kind==="flow" && [["","gb_when_day"],["first","gb_when_first"],["last","gb_when_last"]].map(function(w){
+          return React.createElement("button",{key:w[0]||"d",type:"button",className:"v4-ficha-op"+((form.when||"")===w[0]?" on":""),
+            onClick:function(){ setF({when:w[0], day:w[0]?"":form.day}); }},
+            React.createElement("span",{className:"v4-ficha-radio"}),
+            React.createElement("span",{className:"v4-ficha-ot"}, gbTxt(w[1])));
+        }),
+        !form.when && React.createElement("input",{className:"v4-bills-search",inputMode:"numeric",placeholder:t("fj_day"),value:form.day||"",
+          onChange:function(e){ setF({day:e.target.value}); }}),
+        React.createElement("div",{className:"v4-ficha-k",style:{marginTop:12}}, gbTxt("gb_step_account")),
+        bankListButtons(banks, form.account, function(b){ setF({account:b}); }),
+        form.kind==="fixed" && form.freq==="mes" && preview() && React.createElement("div",{className:"hint",style:{marginTop:10}}, preview()),
+        React.createElement("button",{type:"button",className:"v4-cta","data-act":"confirm",style:{marginTop:16},onClick:commit}, gbTxt("gb_add_btn")))
+    ));
 }
 
 function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, onReconnectBank, showToast}){

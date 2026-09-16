@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.2",
+    "d": "16 sep 2026",
+    "t": {
+      "es": "Tus recibos, claros y rápidos",
+      "en": "Your bills, clear and fast",
+      "ca": "Els teus rebuts, clars i ràpids"
+    },
+    "items": {
+      "es": [
+        "Gestionar recibos abre una pantalla clara y mucho más rápida, con buscador, grupos y fichas que guardan al momento.",
+        "Añadir un recibo se hace paso a paso y, al quitarlo, hay cinco segundos para deshacer.",
+        "La comparación con los cargos reales está ahora en Mis bancos, junto al banco que se quiere revisar."
+      ],
+      "en": [
+        "Managing bills opens a clear, much faster screen with search, groups and sheets that save immediately.",
+        "Adding a bill is now step by step, and removing one gives five seconds to undo.",
+        "The comparison with real charges now lives in My banks, next to the bank being reviewed."
+      ],
+      "ca": [
+        "Gestionar rebuts obre una pantalla clara i molt més ràpida, amb cercador, grups i fitxes que desen al moment.",
+        "Afegir un rebut es fa pas a pas i, en treure'l, hi ha cinc segons per desfer-ho.",
+        "La comparació amb els càrrecs reals és ara a Els meus bancs, al costat del banc que es vol revisar."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gestionar-recibos-v41",
+        "t": {
+          "es": "Nueva pantalla Tus recibos",
+          "en": "New Your bills screen",
+          "ca": "Nova pantalla Els teus rebuts"
+        },
+        "items": {
+          "es": [
+            "1. Entra en Plan → Recibos → Gestionar: debe abrirse con fluidez y enseñar cuatro grupos, buscador y ¿Me lo puedo permitir?.",
+            "2. Abre un recibo, cambia su nombre o sus datos y vuelve atrás: debe conservar meses e importes especiales.",
+            "3. Añade y quita un recibo: el alta debe avanzar paso a paso y Deshacer debe recuperarlo una sola vez."
+          ],
+          "en": [
+            "1. Open Plan → Bills → Manage: it should open smoothly and show four groups, search and Can I afford it?.",
+            "2. Open a bill, change its name or details and go back: special months and amounts should remain intact.",
+            "3. Add and remove a bill: creation should progress step by step and Undo should restore it once."
+          ],
+          "ca": [
+            "1. Entra a Pla → Rebuts → Gestionar: s'ha d'obrir amb fluïdesa i mostrar quatre grups, cercador i M'ho puc permetre?.",
+            "2. Obre un rebut, canvia'n el nom o les dades i torna enrere: ha de conservar mesos i imports especials.",
+            "3. Afegeix i treu un rebut: l'alta ha d'avançar pas a pas i Desfer l'ha de recuperar una sola vegada."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.1",
     "d": "16 sep 2026",
     "t": {

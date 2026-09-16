@@ -1038,6 +1038,10 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       open:openBank==="br:mi", onToggle:function(){ setOpenBank(openBank==="br:mi"?"":"br:mi"); }}),
     brokersOn.indexOf("revolut")>=0 && React.createElement(BrokerImport,{state:state,set:set,fetchPrices:fetchPrices,
       open:openBank==="br:rev", onToggle:function(){ setOpenBank(openBank==="br:rev"?"":"br:rev"); }}),
+    /* «¿Cuadran tus recibos con el banco?» vivía SOLO dentro de Gestionar (`Fijos`). Con la
+       pantalla «Tus recibos» v4.1 (§2) Gestionar ya no monta `Fijos`, y esta era su única puerta:
+       se muda aquí, que es donde se busca lo del banco. Sin datos del banco no pinta nada. */
+    React.createElement("div",{"data-bank-reconcile":""}, React.createElement(Reconcile,{state:state,set:set})),
     React.createElement("div",{className:"bk-ver"}, "v"+(CONFIG.APP_VERSION||"?")),
     // (bp_apk_hint fuera 2026-07-18: párrafo de circunstancias ya resueltas — menos letra aquí)
     // bp_foot fuera 2026-09-11: decía que TR no está en OB y ya sí puede; sobraba.

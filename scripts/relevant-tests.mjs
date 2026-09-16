@@ -67,7 +67,7 @@ export const E2E_MAP = [
   { file: "src/modules/08-motor-bank.js", specs: [
     "e2e/hist-pagos-mensuales.spec.mjs", "e2e/bancos-historico-filtro.spec.mjs",
     "e2e/bancos-quitar-pending.spec.mjs", "e2e/gastos-deudas.spec.mjs",
-    "e2e/bank-callback-msg.spec.mjs",
+    "e2e/bank-callback-msg.spec.mjs", "e2e/plan-gestionar.spec.mjs",
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
     "e2e/listas-render.spec.mjs", "e2e/bancos-acordeon.spec.mjs", "e2e/bancos-reconnect.spec.mjs",
@@ -89,7 +89,7 @@ export const E2E_MAP = [
     "e2e/bancos-quitar-pending.spec.mjs",
     "e2e/hist-pagos-mensuales.spec.mjs",
     "e2e/bancos-historico-filtro.spec.mjs",
-    "e2e/hist-visor.spec.mjs",
+    "e2e/hist-visor.spec.mjs", "e2e/plan-gestionar.spec.mjs",
   ] },
   { file: "src/modules/12-boot.js", specs: ["e2e/splash.spec.mjs", "e2e/smoke.spec.mjs", "e2e/csp.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },
@@ -97,7 +97,7 @@ export const E2E_MAP = [
     "e2e/pulido-apuntar.spec.mjs", "e2e/pulido-numpad.spec.mjs",
     "e2e/apuntar-sheet.spec.mjs", "e2e/apuntar-sugerencia.spec.mjs", "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/cartera-orden-hogar.spec.mjs",
-    "e2e/efectivo-apuntar.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs",
+    "e2e/efectivo-apuntar.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/plan-gestionar.spec.mjs",
   ] },
   { file: "src/modules/15-import-hoja.js", specs: ["e2e/import-hoja.spec.mjs", "e2e/import-docx-pdf.spec.mjs"] },
 ];

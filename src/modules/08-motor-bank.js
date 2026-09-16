@@ -1935,16 +1935,123 @@ function Reconcile({state, set}){
   );
 }
 
+/* Helpers puros para §2 variante A (Gestionar → Tus recibos). Los usa el hub en `14` sin
+   montar `<Fijos>` entero. No tocan UI. */
+function fixedMonthlyOf(e){
+  if(!e) return 0;
+  if(hasSchedule(e)) return e.schedule.reduce(function(a,x){ return a+(Number(x.amt)||0); },0)/12;
+  return (Number(e.amount)||0)*(FREQ_M[e.freq]||1);
+}
+function billsHeroTotal(state, totals){
+  /* Misma cifra que Plan › Recibos / totals.fijosMensual: servicios + cuotas activas. */
+  if(totals&&Number.isFinite(totals.fijosMensual)) return totals.fijosMensual;
+  const serv=(state.fixed||[]).reduce(function(a,e){ return a+fixedMonthlyOf(e); },0);
+  const cuotas=(state.debts||[]).reduce(function(a,d){ return a+(debtActive(d)?(d.monthly||0):0); },0);
+  return serv+cuotas;
+}
+function billsCountAll(state, curMonth, curYear){
+  const one=(state.oneoffs||[]).filter(function(o){ return oneoffOccurs(o,curYear,curMonth); }).length;
+  return (state.fixed||[]).length
+    +(state.debts||[]).filter(debtActive).length
+    +(state.flows||[]).filter(function(f){ return !flowOncePast(f,curYear,curMonth); }).length
+    +one;
+}
+function billsGroupRows(state, group, curMonth, curYear){
+  if(group==="serv"){
+    return (state.fixed||[]).slice().sort(function(a,b){ return fixedMonthlyOf(b)-fixedMonthlyOf(a); })
+      .map(function(e){ return {kind:"fixed",id:e.id,item:e,name:e.name,monthly:fixedMonthlyOf(e),bank:accOf(e)}; });
+  }
+  if(group==="debt"){
+    return (state.debts||[]).filter(debtActive)
+      .map(function(d){ return {kind:"debt",id:d.id,item:d,name:d.name,monthly:d.monthly||0,bank:d.account||"sabadell",locked:true}; });
+  }
+  if(group==="in"){
+    return (state.flows||[]).filter(function(f){ return !flowOncePast(f,curYear,curMonth); })
+      .map(function(f){
+        const inc=f.kind==="income";
+        return {kind:"flow",id:f.id,item:f,name:f.name,monthly:inc?(f.amount||0):-(f.amount||0),bank:inc?(f.to||"sabadell"):(f.from||"sabadell"),income:inc};
+      });
+  }
+  return (state.oneoffs||[]).filter(function(o){ return oneoffOccurs(o,curYear,curMonth); })
+    .map(function(o){ return {kind:"oneoff",id:o.id,item:o,name:o.name,monthly:o.amount||0,bank:o.account||"sabadell",once:true}; });
+}
+function billsGroupMonthly(state, group, curMonth, curYear){
+  return billsGroupRows(state,group,curMonth,curYear).reduce(function(a,r){ return a+Math.abs(Number(r.monthly)||0); },0);
+}
+function patchFixedById(set, id, patch){
+  set(function(s){
+    return Object.assign({},s,{fixed:(s.fixed||[]).map(function(e){
+      if(e.id!==id) return e;
+      const n=Object.assign({},e,patch);
+      if(patch.day==null&&!("day" in patch)) { /* keep */ }
+      else if(!patch.day) delete n.day;
+      if(n.freq==="mes"){ delete n.months; delete n.schedule; }
+      return n;
+    })});
+  });
+}
+function removeFixedById(set, id){
+  set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).filter(function(e){ return e.id!==id; })}); });
+}
+function addFixedItem(set, item){
+  set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).concat([item])}); });
+}
+function patchFlowById(set, id, patch){
+  set(function(s){
+    return Object.assign({},s,{flows:(s.flows||[]).map(function(f){
+      if(f.id!==id) return f;
+      const n=Object.assign({},f,patch);
+      if(n.when){ delete n.day; }
+      else { delete n.when; }
+      return n;
+    })});
+  });
+}
+function removeFlowById(set, id){
+  set(function(s){ return Object.assign({},s,{flows:(s.flows||[]).filter(function(f){ return f.id!==id; })}); });
+}
+function addFlowItem(set, item){
+  set(function(s){ return Object.assign({},s,{flows:(s.flows||[]).concat([item])}); });
+}
+function patchOneoffById(set, id, patch){
+  set(function(s){
+    return Object.assign({},s,{oneoffs:(s.oneoffs||[]).map(function(o){
+      if(o.id!==id) return o;
+      const n=Object.assign({},o,patch);
+      if(!n.day) delete n.day;
+      return n;
+    })});
+  });
+}
+function removeOneoffById(set, id){
+  set(function(s){ return Object.assign({},s,{oneoffs:(s.oneoffs||[]).filter(function(o){ return o.id!==id; })}); });
+}
+function addOneoffItem(set, item){
+  set(function(s){ return Object.assign({},s,{oneoffs:(s.oneoffs||[]).concat([item])}); });
+}
+/* En modo sencillo no hay pestaña Deudas: la ficha de cuota SÍ puede escribir día/cuenta/amort. */
+function patchDebtFields(set, id, patch){
+  set(function(s){
+    return Object.assign({},s,{debts:(s.debts||[]).map(function(d){
+      if(d.id!==id) return d;
+      const n=Object.assign({},d,patch);
+      if(!n.day) delete n.day;
+      if(!(n.amort>0) || Math.abs((n.amort||0)-(n.monthly||0))<0.005) delete n.amort;
+      return n;
+    })});
+  });
+}
+
 function Fijos({state, set, totals}){
   const [editing,setEditing]=useState(false);
   const [draft,setDraft]=useState({});
   const [draftM,setDraftM]=useState({});
   const [adding,setAdding]=useState(false);
   const [form,setForm]=useState({name:"",amount:"",freq:"mes",months:[],day:""});
-  const monthly=(e)=>{ if(hasSchedule(e)){ return e.schedule.reduce((a,x)=>a+(x.amt||0),0)/12; } return e.amount*(FREQ_M[e.freq]||1); };
+  const monthly=fixedMonthlyOf;
   const list=state.fixed.slice().sort((a,b)=>monthly(b)-monthly(a));
-  const servSum=state.fixed.reduce((a,e)=>a+monthly(e),0);
-  const cuotas=state.debts.reduce((a,d)=>a+(debtActive(d)?(d.monthly||0):0),0);
+  const servSum=(state.fixed||[]).reduce(function(a,e){ return a+monthly(e); },0);
+  const cuotas=(state.debts||[]).reduce(function(a,d){ return a+(debtActive(d)?(d.monthly||0):0); },0);
   const grand=servSum+cuotas;
   const top=list.filter(e=>monthly(e)>0)[0];
 

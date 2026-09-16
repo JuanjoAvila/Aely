@@ -1,3 +1,21 @@
+## [4.26.2] - 2026-09-16
+### Rediseño v4.1 — «Tus recibos» deja de montar la pantalla antigua
+
+Plan → Recibos → Gestionar abre ahora una pantalla hija propia: cifra mensual, buscador y cuatro
+grupos que entran en listas ligeras. Las fichas editan sin botón Guardar y conservan periodicidad,
+meses concretos, importes distintos por mes y reglas de primer/último día hábil. Las cuotas siguen
+bloqueadas fuera del modo sencillo; en sencillo pueden ajustarse porque la pantalla Deudas no existe.
+
+El alta se divide en pasos con `NumPad`, selector de meses, día y cuenta. Cada paso conserva su
+entrada de historial para que Atrás quite solo un nivel. Quitar un recibo ofrece Deshacer durante
+cinco segundos con el mismo id. La comparación entre lo apuntado y el banco se ha movido a Ajustes
+→ Mis bancos, su ubicación estable, y no se duplica en Gestionar.
+
+La pantalla ya no monta `<Fijos>` dentro de `.v4-embed-legacy`. Con el mismo estado y CPU ×6, cinco
+muestras bajan el bloqueo mediano al abrir Gestionar de **303 ms a 63 ms** (−79 %); las cinco
+muestras nuevas verifican además que el push nuevo está visible. Un E2E de 15 casos cubre navegación,
+idiomas, altas, edición no destructiva, modo sencillo, estados vacíos y deshacer.
+
 ## [4.26.1] - 2026-09-16
 ### Rediseño v4.1 — la ficha de cuenta deja de ser un editor encajado
 
