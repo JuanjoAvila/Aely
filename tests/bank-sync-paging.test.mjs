@@ -14,12 +14,12 @@ const movement = (id="tx-1") => ({entry_reference:id, booking_date:"2026-09-15",
 const link = (name="CaixaBank", status="active") => ({id:name,aspsp_name:name,status,accounts:[{uid:name+"-cuenta"}]});
 
 async function sync(links, reply, body={}, clock=null) {
-  const calls=[], writes=[];
+  const calls=[], writes=[], events=[];
   let handler;
   const api=async (jwt,p) => { calls.push(p); return p.endsWith("/balances")?{balances:[{balance_type:"ITAV",balance_amount:{amount:"100",currency:"EUR"}}]}:reply(new URL(p,"https://bank.invalid")); };
   const db={auth:{getUser:async()=>({data:{user:{id:"synthetic"}}})},from:()=>({
     select:()=>({eq:()=>({in:async()=>({data:links})})}),
-    update:x=>({eq:async()=>{writes.push(x);return {};}}),insert:async()=>({})
+    update:x=>({eq:async()=>{writes.push(x);return {};}}),insert:async x=>{events.push(x);return {};}
   })};
   const names=["Deno","createClient","ebApi","ebConfig","jsonResp","makeJWT","mapTransaction","withCors","fetchBankTransactions","Date"];
   new Function(...names,src)(
@@ -29,7 +29,7 @@ async function sync(links, reply, body={}, clock=null) {
   );
   const res=await handler(new Request("https://app.invalid",{method:"POST",body:JSON.stringify(body)}));
   assert.equal(res.status,200);
-  return {data:await res.json(),calls,writes};
+  return {data:await res.json(),calls,writes,events};
 }
 let failures=0;
 async function t(name,fn){try{await fn();console.log("  ✓ "+name);}catch(e){failures++;console.error("  ✗ "+name+": "+e.message);}}
@@ -71,6 +71,9 @@ await t("el fallo de CaixaBank no oculta los movimientos de Sabadell",async()=>{
   },{dateFrom:"2026-06-15"});
   assert.equal(r.data.links[0].accounts[0].ok,false);
   assert.equal(r.data.links[1].accounts[0].transactions.length,1);
+  assert.equal(r.events.length,1,"el fallo queda diagnosticado sin cambiar datos bancarios");
+  assert.equal(JSON.parse(r.events[0].detail).code,"eb_503");
+  assert.equal(JSON.stringify(r.events).includes("privado"),false,"el mensaje crudo del proveedor no sale a app_events");
 });
 await t("límite de tiempo cancela la petición y conserva la primera página",async()=>{
   let calls=0;

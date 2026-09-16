@@ -15,7 +15,9 @@ provocan reintentos. Los cursores cíclicos y los topes se declaran como resulta
 El histórico devuelve también enlaces pendientes/caducados y muestra avisos por banco incluso
 cuando no hay candidatos. El cliente admite el servidor anterior comprobando los enlaces
 esperados. Se elimina la inferencia «primera fecha posterior al inicio = truncado»: puede no
-haber operaciones ese día. Un fallo de consulta no se presenta como ausencia de movimientos.
+haber operaciones ese día. Un fallo de consulta no se presenta como ausencia de movimientos;
+`app_events` conserva solo su clase cerrada (`eb_401`, `eb_503`, timeout…), nunca el mensaje crudo
+del proveedor, la cuenta ni el payload.
 
 `flattenBankTx` deja de cortar globalmente a 150 filas: ese corte expulsaba la actividad de un
 banco cuando otro llenaba el cupo. El servidor mantiene límites por cuenta. No se altera el

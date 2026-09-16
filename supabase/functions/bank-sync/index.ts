@@ -60,6 +60,30 @@ async function logObAmbiguous(admin: any, userId: string, aspsp: string, raw: an
   } catch (_) { /* best-effort: nunca rompe el sync */ }
 }
 
+/* El cliente recibe un código estable, pero soporte necesita distinguir un 401 de un 503 sin
+   guardar el texto crudo del proveedor: ese mensaje puede traer referencias o datos bancarios.
+   Solo se conserva una clase cerrada y el banco; nunca uid de cuenta, URL ni payload. */
+function obReadFailureCode(err: unknown) {
+  const msg = String((err as Error)?.message || err || "");
+  const status = msg.match(/\bEB\s+(\d{3})\b/i);
+  if (status) return `eb_${status[1]}`;
+  if (/abort|timeout/i.test(msg)) return "timeout";
+  if (/transactions_invalid/i.test(msg)) return "invalid_response";
+  return "unavailable";
+}
+
+// deno-lint-ignore no-explicit-any
+async function logObReadFailure(admin: any, userId: string, aspsp: string, err: unknown) {
+  try {
+    await admin.from("app_events").insert({
+      user_id: userId, email: null, kind: "error",
+      message: `OB histórico (${String(aspsp || "banco").slice(0, 80)}): lectura no disponible`,
+      detail: JSON.stringify({ code: obReadFailureCode(err) }),
+      app_version: "edge", platform: "server",
+    });
+  } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
+}
+
 Deno.serve(withCors(async (req: Request) => {
   // El límite por cuenta no basta: muchas cuentas lentas podrían agotar la Edge y perder
   // también las respuestas buenas. Se reserva margen para devolverlas y cerrar la petición.
@@ -120,6 +144,7 @@ Deno.serve(withCors(async (req: Request) => {
             accts.push({ uid, iban: ac.iban || null, name: ac.name || null, ok: true, count: all.length,
               transactions: all, truncated: tx.truncated, transactionError: tx.transactionError });
           } catch (err) {
+            await logObReadFailure(admin, user.id, link.aspsp_name, err);
             accts.push({ uid, iban: ac.iban || null, ok: false, error: "transactions_unavailable", transactions: [] });
           }
         }
