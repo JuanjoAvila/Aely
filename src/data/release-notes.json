@@ -1,157 +1,27 @@
 [
   {
-    "v": "4.24.4",
-    "d": "15 sep 2026",
+    "v": "4.24.5",
+    "d": "16 sep 2026",
     "t": {
-      "es": "Ajustes ya no se abre solo",
-      "en": "Settings no longer opens by itself",
-      "ca": "Ajustaments ja no s'obre sol"
+      "es": "Abre sin internet, y las cuentas cuadran",
+      "en": "Opens offline, and the numbers add up",
+      "ca": "S'obre sense internet, i els comptes quadren"
     },
     "items": {
       "es": [
-        "Se acabó lo de abrir Ajustes solo al volver a la app tras probar la beta.",
-        "Si estabas revisando la beta y sales a probar un punto, Ajustes se reabre como mucho una vez."
+        "Sin conexión, Inicio ya no se queda en tres rayas grises: en menos de un segundo enseña tu patrimonio y tu presupuesto con lo que tienes guardado en el móvil, y te avisa de que estás sin internet.",
+        "En Gastos, un ingreso de una cuenta que no es del día a día —o un traspaso entre tus cuentas— sale apagado y dice por qué no suma, igual que ya pasaba con los gastos. Así lo que ves en la lista cuadra con el balance del mes.",
+        "Si abres la app en un móvil o en el ordenador después de días sin usarla, ya no se repiten movimientos del banco: primero se baja lo último de la nube y después se mira el banco. Si la nube no responde, te avisa en vez de mirar el banco."
       ],
       "en": [
-        "Settings no longer opens by itself every time you return after testing the beta.",
-        "If you were reviewing the beta and leave to try a point, Settings reopens at most once."
-      ],
-      "ca": [
-        "S'ha acabat això d'obrir Ajustaments sol en tornar a l'app després de provar la beta.",
-        "Si revisaves la beta i surts a provar un punt, Ajustaments es reobre com a molt una vegada."
-      ]
-    },
-    "tandas": [
-      {
-        "id": "ajustes-no-bucle",
-        "t": {
-          "es": "⚙️ Ajustes sin bucle",
-          "en": "⚙️ Settings without a loop",
-          "ca": "⚙️ Ajustaments sense bucle"
-        },
-        "items": {
-          "es": [
-            "1. «se abre todo el rato Ajustes»: cierra la app con Ajustes o Revisar la beta a la vista, vuelve a abrir: como mucho una vez ves Ajustes; al cerrar con ‹ y volver, aterrizas en Inicio. Y si aun así se abriera solo otra vez, entra en Revisar la beta y pulsa «‹ Ajustes»: eso lo corta en seco (y ese es el fallo, dilo aquí).",
-            "2. (Re-pregunta de 4.24.2) Sin red, abre Ajustes → Revisar esta beta: se ven los puntos. Al terminar pulsa «‹ Ajustes» — no dejes el panel abierto al salir."
-          ],
-          "en": [
-            "1. «Settings keeps opening»: close the app with Settings or Review beta on screen, open again: Settings shows at most once; after closing with ‹ and returning, you land on Home. And if it still opens by itself again, go into Review beta and tap «‹ Settings»: that stops it dead (and that's the bug — say so here).",
-            "2. (Retest from 4.24.2) Offline, open Settings → Review this beta: checklist visible. When done tap «‹ Settings» — do not leave the panel open when you leave."
-          ],
-          "ca": [
-            "1. «s'obre tot l'estona Ajustaments»: tanca l'app amb Ajustaments o Revisar la beta a la vista, torna a obrir: com a molt una vegada veus Ajustaments; en tancar amb ‹ i tornar, aterres a Inici. I si tot i així es tornés a obrir sol, entra a Revisar la beta i prem «‹ Ajustaments»: això ho talla en sec (i aquest és el fallo, digue-ho aquí).",
-            "2. (Re-pregunta de 4.24.2) Sense xarxa, obre Ajustaments → Revisar aquesta beta: es veuen els punts. En acabar prem «‹ Ajustaments» — no deixis el panell obert en sortir."
-          ]
-        }
-      }
-    ]
-  },
-  {
-    "v": "4.24.3",
-    "d": "15 sep 2026",
-    "t": {
-      "es": "Sin movimientos repetidos al volver a abrir",
-      "en": "No repeated transactions when you come back",
-      "ca": "Sense moviments repetits en tornar a obrir"
-    },
-    "items": {
-      "es": [
-        "Si abres la app en un móvil o en el ordenador después de días sin usarla, ya no se repiten movimientos del banco: primero se baja lo último de la nube y después se mira el banco. Si la nube no responde, avisa en vez de mirar el banco."
-      ],
-      "en": [
+        "With no connection, Home no longer sits on three grey lines: in under a second it shows your net worth and your budget from what is saved on your phone, and tells you that you are offline.",
+        "In Spending, income from an account that is not for day-to-day use —or a transfer between your own accounts— is greyed out and says why it does not count, just as it already did for expenses. So what you see in the list matches the month's balance.",
         "If you open the app on a phone or computer after days without using it, bank transactions are no longer repeated: it first fetches the latest from the cloud and then checks the bank. If the cloud doesn't respond, it tells you instead of checking the bank."
       ],
       "ca": [
+        "Sense connexió, Inici ja no es queda en tres ratlles grises: en menys d'un segon ensenya el teu patrimoni i el teu pressupost amb el que tens desat al mòbil, i t'avisa que estàs sense internet.",
+        "A Despeses, un ingrés d'un compte que no és del dia a dia —o un traspàs entre els teus comptes— surt apagat i diu per què no suma, igual que ja passava amb les despeses. Així el que veus a la llista quadra amb el balanç del mes.",
         "Si obres l'app en un mòbil o a l'ordinador després de dies sense fer-la servir, ja no es repeteixen moviments del banc: primer es baixa el darrer del núvol i després es mira el banc. Si el núvol no respon, t'avisa en lloc de mirar el banc."
-      ]
-    },
-    "tandas": []
-  },
-  {
-    "v": "4.24.2",
-    "d": "15 sep 2026",
-    "t": {
-      "es": "Inicio sin internet, de verdad",
-      "en": "Home offline, for real",
-      "ca": "Inici sense internet, de veritat"
-    },
-    "items": {
-      "es": [
-        "Sin conexión, el patrimonio aparece en menos de un segundo (antes tardaba un rato).",
-        "El panel de revisar la beta sigue visible aunque no haya red."
-      ],
-      "en": [
-        "Offline, your net worth shows up in under a second (it used to take a while).",
-        "The beta review panel still shows up even without a network."
-      ],
-      "ca": [
-        "Sense connexió, el patrimoni apareix en menys d'un segon (abans trigava una estona).",
-        "El panell de revisar la beta segueix visible tot i no haver-hi xarxa."
-      ]
-    },
-    "tandas": [
-      {
-        "id": "inicio-offline-2",
-        "t": {
-          "es": "📴 Inicio y beta sin red",
-          "en": "📴 Home and beta offline",
-          "ca": "📴 Inici i beta sense xarxa"
-        },
-        "items": {
-          "es": [
-            "1. Activa el modo avión, abre la app: Inicio muestra patrimonio/presupuesto en menos de un segundo (antes «tarda un rato») y el aviso de sin conexión.",
-            "2. Sin red, abre Ajustes → Revisar esta beta: se ven los puntos. Cuando termines, pulsa «‹ Ajustes» (no dejes el panel abierto al salir: si no, Ajustes se reabre solo)."
-          ],
-          "en": [
-            "1. Turn on airplane mode, open the app: Home shows net worth/budget in under a second (it used to «take a while») and the offline notice.",
-            "2. Offline, open Settings → Review this beta: the checklist is visible. When you are done, tap «‹ Settings» (do not leave the panel open when you leave — Settings would reopen by itself)."
-          ],
-          "ca": [
-            "1. Activa el mode avió, obre l'app: Inici mostra patrimoni/pressupost en menys d'un segon (abans «triga una estona») i l'avís sense connexió.",
-            "2. Sense xarxa, obre Ajustaments → Revisar aquesta beta: es veuen els punts. Quan acabis, prem «‹ Ajustaments» (no deixis el panell obert en sortir: si no, Ajustaments s'obre sol)."
-          ]
-        }
-      }
-    ]
-  },
-  {
-    "v": "4.24.1",
-    "d": "15 sep 2026",
-    "t": {
-      "es": "Gastos te dice qué ingresos no cuentan",
-      "en": "Spending shows which income doesn't count",
-      "ca": "Despeses et diu quins ingressos no compten"
-    },
-    "items": {
-      "es": [
-        "En Gastos, un ingreso de una cuenta que no es del día a día —o un traspaso entre tus cuentas— sale apagado y dice por qué no suma, igual que ya pasaba con los gastos. Así lo que ves en la lista cuadra con el balance del mes."
-      ],
-      "en": [
-        "In Spending, income from an account that isn't for day-to-day spending —or a transfer between your own accounts— is greyed out and says why it doesn't add up, just like expenses already did. What you see in the list now matches the month's balance."
-      ],
-      "ca": [
-        "A Despeses, un ingrés d'un compte que no és del dia a dia —o un traspàs entre els teus comptes— surt apagat i diu per què no suma, igual que ja passava amb les despeses. Així el que veus a la llista quadra amb el balanç del mes."
-      ]
-    },
-    "tandas": []
-  },
-  {
-    "v": "4.24.0",
-    "d": "14 sep 2026",
-    "t": {
-      "es": "Sin internet, Inicio sigue enseñando tus números",
-      "en": "Offline, Home still shows your numbers",
-      "ca": "Sense internet, Inici segueix ensenyant els teus números"
-    },
-    "items": {
-      "es": [
-        "Si no hay red, Inicio ya no se queda en tres rayas grises: enseña tus datos guardados en el móvil y avisa de que estás sin conexión."
-      ],
-      "en": [
-        "If there's no network, Home no longer sticks on three grey bars: it shows the data saved on your phone and tells you you're offline."
-      ],
-      "ca": [
-        "Si no hi ha xarxa, Inici ja no es queda en tres ratlles grises: ensenya les dades desades al mòbil i avisa que estàs sense connexió."
       ]
     },
     "tandas": []

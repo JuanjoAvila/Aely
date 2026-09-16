@@ -1,3 +1,18 @@
+## [4.24.5] - 2026-09-16
+### La ronda 4.24 a producción, con una sola nota
+
+Beta 4.24.4 aprobada por el dueño en el panel (16/9, 06:50Z): ✅ `4.24.4/ajustes-no-bucle`
+y ✅ la re-pregunta `4.24.2/inicio-offline-2`, 2 ok / 0 fallos cada una. Con eso sube a
+producción toda la ronda 4.24 (4.24.0 → 4.24.4).
+
+- Nota ÚNICA para la familia: las cinco entradas 4.24.x del JSON se colapsan en una sola
+  (4.24.5) con `tandas: []`. Sin la propiedad, el panel las resucita como «/todo».
+- El panel de pruebas de la beta (4.24.4) NO se menciona: es del canal beta, no de la familia.
+- Cabeza con `[skip ci]`: la ronda toca `supabase/functions/ingest` y `_shared/ingest_logic`,
+  y un push a `main` dispararía `supabase.yml` desplegando las TRECE funciones de golpe —
+  incluidas `bank-aspsps` (43 días) y `prices` (52) con un mes de `_shared` sin estrenar.
+  `deploy.yml` se lanza a mano y las Edge van después, una a una y con su OK.
+
 ## [4.24.4] - 2026-09-15
 ### Ajustes ya no se abre solo tras probar la beta
 
