@@ -1,6 +1,6 @@
 # Arquitectura — Aely
 
-## Lectura bancaria (4.25.0, preparada; despliegue pendiente)
+## Lectura bancaria (4.25.0, integrada; despliegue autorizado y pendiente)
 
 `bank-sync` usa `fetchBankTransactions` para sync e histórico: continúa aunque una página esté
 vacía si hay cursor; máximo 12 páginas, 2000 filas y 15 segundos por cuenta. El deadline global

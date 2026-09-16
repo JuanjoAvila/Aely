@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-15 · **v4.25.0** — corrección de lectura bancaria preparada en rama, pendiente de integrar y desplegar bank-sync con autorización. Producción y beta se consultan con `npm run salud`.
+> Estado a 2026-09-16 · **v4.25.0** — corrección de lectura bancaria integrada sobre 4.24.4, pendiente de publicar en beta y desplegar `bank-sync` (autorizado). Producción y beta se consultan con `npm run salud`.
 > Anterior: **v4.24.4** — Ajustes ya no se abre solo tras probar la beta.
 > Anterior: **v4.24.3** — el banco espera a la nube: un móvil con datos viejos ya no repite movimientos.
 > Anterior: **v4.24.2** — Inicio y panel beta sin red (skel corto).
