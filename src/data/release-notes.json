@@ -1,5 +1,114 @@
 [
   {
+    "v": "4.25.3",
+    "d": "16 sep 2026",
+    "t": {
+      "es": "Los bancos dejan de pedir permiso por fallos pasajeros",
+      "en": "Banks stop asking for permission after temporary failures",
+      "ca": "Els bancs deixen de demanar permís per errors temporals"
+    },
+    "items": {
+      "es": [
+        "La búsqueda histórica espera más a CaixaBank y consulta los bancos sin saturarlos. Si algo falla, distingue entre límite, espera agotada y permiso caducado.",
+        "CaixaBank y Sabadell ya no piden reconectar por un fallo temporal. Solo lo hacen cuando el banco confirma que el permiso ha caducado.",
+        "Trade Republic intenta reutilizar la sesión guardada antes de pedir otro inicio de sesión.",
+        "Las notificaciones ya no pueden provocar sincronizaciones bancarias sin parar; los botones manuales siguen siempre disponibles.",
+        "En el final de una pantalla, la ola de Android puede aparecer desde el primer tirón y la barra permanece oculta hasta subir de verdad."
+      ],
+      "en": [
+        "History search waits longer for CaixaBank and checks banks without overwhelming them. If something fails, it distinguishes a rate limit, a timeout and an expired permission.",
+        "CaixaBank and Sabadell no longer ask to reconnect after a temporary failure. They do so only when the bank confirms that permission has expired.",
+        "Trade Republic tries to reuse the saved session before asking you to sign in again.",
+        "Notifications can no longer trigger endless bank synchronizations; manual buttons remain available at all times.",
+        "At the end of a screen, Android's wave can appear from the first pull and the bar stays hidden until you actually scroll up."
+      ],
+      "ca": [
+        "La cerca de l'històric espera més CaixaBank i consulta els bancs sense saturar-los. Si alguna cosa falla, distingeix entre límit, espera esgotada i permís caducat.",
+        "CaixaBank i Sabadell ja no demanen reconnectar per un error temporal. Només ho fan quan el banc confirma que el permís ha caducat.",
+        "Trade Republic intenta reutilitzar la sessió desada abans de demanar un altre inici de sessió.",
+        "Les notificacions ja no poden provocar sincronitzacions bancàries sense parar; els botons manuals continuen sempre disponibles.",
+        "Al final d'una pantalla, l'ona d'Android pot aparèixer des de la primera estirada i la barra queda oculta fins que puges de debò."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "historico-caixa-3",
+        "t": {
+          "es": "Importes del histórico de CaixaBank",
+          "en": "CaixaBank history amounts",
+          "ca": "Imports de l'històric de CaixaBank"
+        },
+        "items": {
+          "es": [
+            "1. En Ajustes → Importaciones → Importar histórico, elige tres meses y busca movimientos.",
+            "2. Deben aparecer movimientos conocidos de CaixaBank con sus importes, sin necesidad de importarlos.",
+            "3. Si el banco no los entrega, el aviso debe indicar límite, espera agotada o fallo temporal; solo debe pedir reconectar si el permiso ha caducado de verdad."
+          ],
+          "en": [
+            "1. In Settings → Imports → Import history, choose three months and search for transactions.",
+            "2. Known CaixaBank transactions and their amounts should appear without needing to import them.",
+            "3. If the bank does not provide them, the notice should say rate limit, timeout or temporary failure; it should ask to reconnect only if permission has truly expired."
+          ],
+          "ca": [
+            "1. A Ajustos → Importacions → Importar històric, tria tres mesos i cerca moviments.",
+            "2. Han d'aparèixer moviments coneguts de CaixaBank amb els seus imports, sense haver-los d'importar.",
+            "3. Si el banc no els lliura, l'avís ha d'indicar límit, espera esgotada o error temporal; només ha de demanar reconnectar si el permís ha caducat de debò."
+          ]
+        }
+      },
+      {
+        "id": "ola-barra-final-3",
+        "t": {
+          "es": "Ola nativa con la barra oculta",
+          "en": "Native wave with the bar hidden",
+          "ca": "Ona nativa amb la barra oculta"
+        },
+        "items": {
+          "es": [
+            "1. Oculta la barra bajando por cualquier pestaña y llega al final.",
+            "2. Tira hacia abajo una vez: debe aparecer la ola nativa de Android desde ese primer gesto.",
+            "3. Repite el gesto abajo del todo: la ola puede repetirse, pero la barra no debe salir. La barra solo aparece al subir por el contenido."
+          ],
+          "en": [
+            "1. Hide the bar by scrolling down in any tab and reach the bottom.",
+            "2. Pull down once: Android's native wave should appear from that first gesture.",
+            "3. Repeat at the very bottom: the wave may repeat, but the bar must stay hidden. The bar appears only when scrolling up through content."
+          ],
+          "ca": [
+            "1. Amaga la barra baixant per qualsevol pestanya i arriba al final.",
+            "2. Estira cap avall una vegada: l'ona nativa d'Android ha d'aparèixer des d'aquest primer gest.",
+            "3. Repeteix el gest al final: l'ona es pot repetir, però la barra no ha de sortir. La barra només apareix en pujar pel contingut."
+          ]
+        }
+      },
+      {
+        "id": "reconexion-sin-falsos",
+        "t": {
+          "es": "Sin reconexiones por fallos pasajeros",
+          "en": "No reconnects for temporary failures",
+          "ca": "Sense reconnexions per errors temporals"
+        },
+        "items": {
+          "es": [
+            "1. Abre la app y comprueba que Trade Republic, CaixaBank y Sabadell no piden reconectar solo por haber arrancado o por un fallo temporal anterior.",
+            "2. Pulsa una vez el sincronizador manual. Si la sesión de Trade Republic sigue siendo válida, debe reutilizarla sin mostrar el login.",
+            "3. Un permiso realmente caducado sí debe seguir ofreciendo la reconexión correspondiente."
+          ],
+          "en": [
+            "1. Open the app and check that Trade Republic, CaixaBank and Sabadell do not ask to reconnect merely because the app started or a previous temporary failure occurred.",
+            "2. Tap manual sync once. If the Trade Republic session is still valid, it should reuse it without showing sign-in.",
+            "3. A permission that has genuinely expired should still offer the appropriate reconnect action."
+          ],
+          "ca": [
+            "1. Obre l'app i comprova que Trade Republic, CaixaBank i Sabadell no demanen reconnectar només perquè l'app ha arrencat o hi havia un error temporal anterior.",
+            "2. Prem una vegada la sincronització manual. Si la sessió de Trade Republic encara és vàlida, l'ha de reutilitzar sense mostrar l'inici de sessió.",
+            "3. Un permís realment caducat sí que ha de continuar oferint la reconnexió corresponent."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.25.2",
     "d": "16 sep 2026",
     "t": {

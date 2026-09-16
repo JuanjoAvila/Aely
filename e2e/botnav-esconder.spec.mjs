@@ -152,11 +152,14 @@ test("si Android CANCELA el scroll vertical, la barra sigue oculta y el estado q
       clase: n.className,
       oculta: n.classList.contains("botnav-hidden"),
       t: getComputedStyle(n).transform,
+      bottom: parseFloat(getComputedStyle(n).bottom),
       host: !!(p && p.classList.contains("page-scroll-host"))
     };
   });
   expect(tras.oculta, "touchcancel vertical no equivale a subir contenido").toBe(true);
   expect(tras.host, "el cancel vertical no desmonta el host que permite la ola nativa").toBe(true);
+  expect(tras.t, "la barra transformada encima del borde corta el stretch del WebView").toBe("none");
+  expect(tras.bottom, "oculta en host se desplaza por bottom, no por transform").toBeLessThan(-50);
 
   // La app sigue viva y un cambio de pestaña sí la revela, como siempre.
   await page.evaluate(() => {
@@ -167,7 +170,7 @@ test("si Android CANCELA el scroll vertical, la barra sigue oculta y el estado q
   expect(await escondida(page), "cambiar de pestaña devuelve la barra").toBe(false);
 });
 
-test("★ los tres caminos de soltar el dedo conservan o vuelcan el estado de la barra", () => {
+test("★ al soltar se reconcilia; en el borde no se agenda un render tardío", () => {
   /* Esto NO se puede probar con un gesto sintético, y por eso va como guardián de fuente: en
      Playwright el gesto siempre acaba limpio, así que los cinco casos de arriba pasaban con el
      agujero puesto. Lo cazó Cursor leyendo el código, con el dato que lo cierra: **en su móvil
@@ -176,15 +179,14 @@ test("★ los tres caminos de soltar el dedo conservan o vuelcan el estado de la
      PEOR que no aplazar nada: DOM con la clase, refs en `true`, React creyendo que la barra está
      a la vista, y el siguiente re-render quitándole la clase. */
   const src = readFileSync(new URL("../src/modules/11-app-main.js", import.meta.url), "utf8");
-  const veces = (src.match(/flushNavHide\(\)/g) || []).length;
-  expect(veces, "flushNavHide() tiene que llamarse desde onEnd, onCancel y cancelSwipe").toBeGreaterThanOrEqual(3);
-
-  for (const fn of ["const onEnd=", "const onCancel=function()", "const cancelSwipe=function("]) {
-    const i = src.indexOf(fn);
-    expect(i, `no encuentro ${fn}`).toBeGreaterThan(-1);
-    const bloque = src.slice(i, i + 700);
-    expect(bloque.includes("flushNavHide()"), `${fn} suelta el dedo sin volcar el estado de la barra`).toBe(true);
-  }
+  expect(src.includes("navFlushTimer"), "no puede quedar el timer que repintaba a mitad de ola").toBe(false);
+  expect(src.includes("deferNavHideFlush"), "no puede quedar el diferido de 700 ms").toBe(false);
+  const end=src.slice(src.indexOf("const onEnd="),src.indexOf("const onCancel=function()"));
+  expect(end.includes("discardNavHideFlush()"), "onEnd en el borde debe dejar al navegador pintar la ola").toBe(true);
+  expect(end.includes("flushNavHide()"), "onEnd fuera del borde debe reconciliar React").toBe(true);
+  const cancel=src.slice(src.indexOf("const cancelSwipe=function("),src.indexOf("useEffect(function(){",src.indexOf("const cancelSwipe=function(")));
+  expect(cancel.includes("discardNavHideFlush()"), "touchcancel en el borde no debe programar un render").toBe(true);
+  expect(cancel.includes("flushNavHide()"), "touchcancel normal sí debe reconciliar React").toBe(true);
 });
 
 test("la animación sigue siendo suave: la barra se va con transición, no de golpe", async ({ page }) => {

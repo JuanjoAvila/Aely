@@ -1237,8 +1237,15 @@ function bankReadWarnings(links, expectedLinks, includeEmpty){
     seen[name.toLowerCase()]=1;
     const accts=l.accounts||[];
     let key=null;
-    if(l.pending || l.expired || l.noacct) key="bank_read_reconnect";
-    else if(l.ok===false || accts.some(function(a){ return a&&a.ok===false; })) key="bank_read_failed";
+    const failed=accts.filter(function(a){ return a&&a.ok===false; });
+    const codes=failed.map(function(a){ return String(a.error||a.transactionError||"").toLowerCase(); });
+    /* El histórico es solo lectura y no decide si un consentimiento murió. Solo un 401 firme o
+       un enlace que la nube YA marca caducado pide reconectar; 403/404 suelen ser anti-abuso,
+       cuenta tardía o hipo del ASPSP y autorizar otra vez no los arregla. */
+    if(l.pending || l.expired || l.noacct || codes.some(function(c){ return /^(eb_)?401$/.test(c); })) key="bank_read_reconnect";
+    else if(codes.some(function(c){ return c==="eb_429"; })) key="bank_read_rate";
+    else if(codes.some(function(c){ return c==="timeout"; })) key="bank_read_timeout";
+    else if(l.ok===false || failed.length) key="bank_read_failed";
     else if(l.truncated || accts.some(function(a){ return a&&(a.truncated||a.transactionError); })) key="bank_read_partial";
     else if(includeEmpty && accts.length && accts.every(function(a){
       return a&&a.ok!==false && ((typeof a.count==="number"?a.count:((a.transactions||[]).length))===0);

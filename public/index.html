@@ -669,6 +669,16 @@
     backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
     will-change:auto !important;
     background:var(--bg-2);
+    /* Un `transform` en el hermano que cubre el borde inferior corta el stretch nativo de la
+       WebView. En reposo se anima `bottom`: sigue deslizándose, pero no deja una capa transformada
+       encima justo cuando la página llega al final. Fuera del host conserva el translate de siempre. */
+    transform:none;
+    bottom:0;
+    transition:bottom .55s cubic-bezier(.4,0,.2,1),opacity .4s ease;
+  }
+  .app-shell.scroll-host-on .botnav.botnav-hidden{
+    transform:none;
+    bottom:calc(-110px - var(--safe-bottom));
   }
   /* Tope: clase residual por si queda colgada de una beta anterior. Ya no se arma
      (parpadeaba al llegar arriba / al swipear tabs — 2026-08-05). */
@@ -5089,6 +5099,8 @@ Object.assign(LANG.es,{
   bp_hist_bank_unknown:"Banco",
   bp_hist_trunc:"El banco no ha devuelto todo el periodo pedido (tope ~90 días o truncado). Revisa las fechas más antiguas.",
   bank_read_reconnect:"{bank}: falta completar la conexión. Abre Ajustes → Mis bancos para revisarla.",
+  bank_read_rate:"{bank}: el banco ha limitado temporalmente las consultas. Espera unos minutos y vuelve a buscar.",
+  bank_read_timeout:"{bank}: el banco ha tardado demasiado en entregar el histórico. Vuelve a buscar; los demás bancos se conservan.",
   bank_read_failed:"{bank}: no se han podido leer todos los movimientos. Vuelve a intentarlo más tarde.",
   bank_read_partial:"{bank}: la descarga está incompleta. Lo recibido se conserva, pero pueden faltar movimientos.",
   bank_read_empty:"{bank}: el banco ha devuelto 0 movimientos para ese periodo.",
@@ -9721,6 +9733,14 @@ function trBridge(){
 // Teléfono del último login OK (solo el teléfono, NUNCA el PIN): tras un 401 real el formulario
 // sale ya rellenado y reconectar queda en PIN + código (feedback 2026-07-17).
 function trPhoneSaved(){ try{ return localStorage.getItem("mc_tr_phone")||""; }catch(e){ return ""; } }
+/* Un `status().connected=false` solo dice que el puente no tiene su flag local (APK vieja,
+   reinstalación o arranque frío); NO demuestra que TR haya rechazado el refresh. Guardamos una
+   marca distinta únicamente cuando un sync devuelve `authExpired` de forma explícita. */
+function trAuthExpiredSaved(){ try{ return localStorage.getItem("_trAuthExpired")==="1"; }catch(e){ return false; } }
+function markTrAuthExpired(){
+  try{ localStorage.setItem("_trAuthExpired","1"); }catch(e){}
+  trSignalStatus(false,{authExpired:true});
+}
 // La tarjeta y sus consumidores (resumen de Ajustes + banner de Cartera) viven en componentes
 // distintos. Cambiar solo el useState local dejaba «1 caído» hasta reiniciar aunque el login o
 // el sync acabasen bien — feedback 2026-09-07. Este evento mantiene una única verdad visible.
@@ -9728,9 +9748,9 @@ function trPhoneSaved(){ try{ return localStorage.getItem("mc_tr_phone")||""; }c
  // Las consultas de status (arranque, visibility) NO llevan ack — rechazo 4.19.0/tr-reactivo.
 function trSignalStatus(connected, opts){
   opts=opts||{};
-  try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:!!connected, ack:!!opts.ack}})); }catch(e){}
+  try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:!!connected, ack:!!opts.ack, authExpired:!!opts.authExpired}})); }catch(e){}
 }
-function markTrConnected(opts){ trSignalStatus(true, opts||{}); }
+function markTrConnected(opts){ try{ localStorage.removeItem("_trAuthExpired"); }catch(e){} trSignalStatus(true, opts||{}); }
 function TRSync({state, set, totals, open, onToggle}){
   const bridge=trBridge();
   const [step,setStep]=useState("idle");      // idle | code | preview | done
@@ -9771,7 +9791,7 @@ function TRSync({state, set, totals, open, onToggle}){
       if(r&&r.authExpired && !r.softFail && !r.wafBlocked){
         // 401 REAL (no anti-bot): al formulario directamente, con el teléfono ya puesto. Antes se
         // pedía pulsar «Desconectar» — que además borra el snapshot bueno (feedback 2026-07-17).
-        setConnected(false); trSignalStatus(false); setExpired(true); setStep("idle");
+        setConnected(false); markTrAuthExpired(); setExpired(true); setStep("idle");
         try{ cloud.logEvent('error','TR sync: sesión caducada de verdad (401 real)'); }catch(x){}
         return;
       }
@@ -9852,6 +9872,7 @@ function TRSync({state, set, totals, open, onToggle}){
   };
   const disconnect=function(){
     if(bridge&&bridge.logout){ Promise.resolve(bridge.logout()).catch(function(){}); }
+    try{ localStorage.removeItem("mc_tr_phone"); localStorage.removeItem("_trAuthExpired"); }catch(e){}
     setConnected(false); trSignalStatus(false); setStep("idle"); setPositions(null); setPhone(""); setPin("");
   };
   const inpStyle={marginTop:8};
@@ -12315,8 +12336,15 @@ function bankReadWarnings(links, expectedLinks, includeEmpty){
     seen[name.toLowerCase()]=1;
     const accts=l.accounts||[];
     let key=null;
-    if(l.pending || l.expired || l.noacct) key="bank_read_reconnect";
-    else if(l.ok===false || accts.some(function(a){ return a&&a.ok===false; })) key="bank_read_failed";
+    const failed=accts.filter(function(a){ return a&&a.ok===false; });
+    const codes=failed.map(function(a){ return String(a.error||a.transactionError||"").toLowerCase(); });
+    /* El histórico es solo lectura y no decide si un consentimiento murió. Solo un 401 firme o
+       un enlace que la nube YA marca caducado pide reconectar; 403/404 suelen ser anti-abuso,
+       cuenta tardía o hipo del ASPSP y autorizar otra vez no los arregla. */
+    if(l.pending || l.expired || l.noacct || codes.some(function(c){ return /^(eb_)?401$/.test(c); })) key="bank_read_reconnect";
+    else if(codes.some(function(c){ return c==="eb_429"; })) key="bank_read_rate";
+    else if(codes.some(function(c){ return c==="timeout"; })) key="bank_read_timeout";
+    else if(l.ok===false || failed.length) key="bank_read_failed";
     else if(l.truncated || accts.some(function(a){ return a&&(a.truncated||a.transactionError); })) key="bank_read_partial";
     else if(includeEmpty && accts.length && accts.every(function(a){
       return a&&a.ok!==false && ((typeof a.count==="number"?a.count:((a.transactions||[]).length))===0);
@@ -17055,6 +17083,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const [bankBusy,setBankBusy]=useState(false);
   const [trConn,setTrConn]=useState(false);        // TR también cuenta como banco conectado (feedback 2026-07-10)
   const [trKnown,setTrKnown]=useState(false);      // tuvo TR alguna vez (mc_tr_phone) → puede estar «caído»
+  const [trExpired,setTrExpired]=useState(false);  // solo authExpired firme, no un status frío vacío
   // Versión nativa del APK (hueco 2026-07-26): sin esto Ajustes solo mostraba la OTA y no
   // sabías si el icono/splash nuevos estaban puestos o seguías en la 34.
   const [apkVer,setApkVer]=useState(null);
@@ -17062,13 +17091,19 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     const refreshTr=function(){
       const known=!!(typeof trPhoneSaved==="function"&&trPhoneSaved());
       setTrKnown(known);
-      const b=trBridge(); if(!b||!b.status){ if(!known) setTrConn(false); return; }
-      Promise.resolve(b.status()).then(function(r){ setTrConn(!!(r&&r.connected)); }).catch(function(){});
+      if(!known){ setTrConn(false); setTrExpired(false); }
+      const b=trBridge(); if(!b||!b.status) return;
+      Promise.resolve(b.status()).then(function(r){
+        setTrConn(!!(r&&r.connected));
+        setTrExpired(!!(r&&r.authExpired) || (typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved()));
+      }).catch(function(){});
     };
     refreshTr();
     const onTr=function(e){
       if(e&&e.detail&&typeof e.detail.connected==="boolean"){
-        setTrConn(!!e.detail.connected); setTrKnown(true);
+        setTrConn(!!e.detail.connected);
+        setTrKnown(!!e.detail.connected || !!(typeof trPhoneSaved==="function"&&trPhoneSaved()));
+        setTrExpired(!!e.detail.authExpired || (typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved()));
         // Solo si la acción MANUAL acabó bien (detalle.ack). Status/poll no tosta — rechazo TR.
         if(e.detail.ack && e.detail.connected) showToast(t("tr_connected"));
         return;
@@ -17337,7 +17372,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         return !issueAsp[String(r.aspsp_name||"").toLowerCase()];
       }).length + (!enPruebas && trConn?1:0);
       const nDeadDb=(links||[]).filter(function(r){ return r.status==='expired'||r.status==='error'||issueAsp[String(r.aspsp_name||"").toLowerCase()]; }).length;
-      const trDead=!enPruebas && trKnown&&!trConn;
+      const trDead=!enPruebas && trKnown&&trExpired;
       const nDead=nDeadDb + (trDead?1:0);
       let summary = links===null ? "…"
         : nActive>0 ? (tf("bp_summary_n",{n:nActive}) + (nDead?" · "+tf("bp_summary_exp",{n:nDead}):""))
@@ -17348,7 +17383,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         row("banks","🏦",t("bp_manage"),null,function(){ setManageBanks(true); })
       );
     })(),
-    manageBanks && ReactDOM.createPortal(React.createElement(BankPanel,{state:state,set:set,showToast:showToast,uid:uid,onBankSync:onBankSync,totals:totals,onLinks:setBankLinks,fetchPrices:fetchPrices,focusAspsp:goBanksFocus,onClose:function(){ setManageBanks(false); const b=trBridge(); if(b&&b.status){ Promise.resolve(b.status()).then(function(r){ setTrConn(!!(r&&r.connected)); }).catch(function(){}); } }}), document.body),
+    manageBanks && ReactDOM.createPortal(React.createElement(BankPanel,{state:state,set:set,showToast:showToast,uid:uid,onBankSync:onBankSync,totals:totals,onLinks:setBankLinks,fetchPrices:fetchPrices,focusAspsp:goBanksFocus,onClose:function(){ setManageBanks(false); const b=trBridge(); if(b&&b.status){ Promise.resolve(b.status()).then(function(r){ setTrConn(!!(r&&r.connected)); setTrExpired(!!(r&&r.authExpired)||(typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved())); }).catch(function(){}); } }}), document.body),
     // (Hogar y gastos compartidos se movió FUERA de Ajustes 2026-07-18: es una funcionalidad de
     //  la app, no un ajuste. Ahora se abre desde Cartera → «Hogar y gastos compartidos».)
     !notifOk && React.createElement("div",{className:"alarmbox",style:{marginTop:14}},
@@ -18526,12 +18561,18 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       const b=(typeof trBridge==="function")?trBridge():null;
       if(!b||!b.status) return;
       if(!(typeof trPhoneSaved==="function"&&trPhoneSaved())){ setTrDead(false); return; }
-      Promise.resolve(b.status()).then(function(r){ setTrDead(!(r&&r.connected)); }).catch(function(){});
+      /* Un flag `connected=false` del puente no demuestra que la cookie haya muerto. Solo el
+         resultado firme de un sync manual (`_trAuthExpired`) enciende este banner. */
+      Promise.resolve(b.status()).then(function(r){
+        setTrDead(!!(r&&r.authExpired) || (typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved()));
+      }).catch(function(){});
     };
     check();
     const onVis=function(){ if(document.visibilityState==="visible") check(); };
     const onEvt=function(e){
-      if(e&&e.detail&&typeof e.detail.connected==="boolean"){ setTrDead(!e.detail.connected); return; }
+      if(e&&e.detail&&typeof e.detail.connected==="boolean"){
+        setTrDead(!!e.detail.authExpired || (typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved())); return;
+      }
       check();
     };
     document.addEventListener("visibilitychange", onVis);
@@ -19100,6 +19141,9 @@ function App(){
   const navBotSync=useRef(0);
   const navHideArmed=useRef(false);
   const bottomOverscroll=useRef(false);
+  /* El rubber-band de Android puede devolver `scrollTop` hacia arriba aunque el dedo siga
+     empujando hacia el fondo. La dirección real del dedo separa ese rebote de un «subir» suyo. */
+  const fingerScrollDir=useRef(0), fingerScrollAt=useRef(0), fingerLastY=useRef(0);
   const topClearOn=useRef(false);
   const topClearTimer=useRef(0);
   const revealAfterTopClear=useRef(false);
@@ -19209,7 +19253,6 @@ function App(){
   const lastScrollAt=useRef(0);
   /* ¿Queda un `setState` de la barra pendiente de volcar al levantar el dedo? Ver `applyNavHide`. */
   const navFlush=useRef(false);
-  const navFlushTimer=useRef(0);
   /* PONE A REACT DE ACUERDO CON EL DOM, y hay que llamarlo desde TODOS los caminos por los que se
      suelta el dedo, no solo del limpio.
      ⚠ La primera versión (4.19.69) solo volcaba en `onEnd`, y lo cazó Cursor con el dato que lo
@@ -19219,22 +19262,16 @@ function App(){
      vista, así que **el siguiente re-render le quitaba la clase y la barra reaparecía sola**.
      Los e2e no lo ven: un gesto sintético siempre termina limpio. */
   const flushNavHide=function(){
-    if(navFlushTimer.current){ clearTimeout(navFlushTimer.current); navFlushTimer.current=0; }
     if(!navFlush.current) return;
     navFlush.current=false;
     setNavHidden(!!navHiddenRef.current);
   };
-  const deferNavHideFlush=function(){
-    if(!navFlush.current) return;
-    if(navFlushTimer.current) clearTimeout(navFlushTimer.current);
-    /* Android entrega el scroll vertical al WebView mediante `touchcancel`. Si el dedo llega al
-       fondo con la barra ya oculta, reconciliar React EN ese callback repinta el host justo cuando
-       empieza el stretch nativo: primer tirón muerto. La clase y la ref ya son la verdad visual;
-       el estado puede esperar a que termine la física sin que otro render la quite (el className
-       consulta también `navHiddenRef`). */
-    navFlushTimer.current=setTimeout(function(){ navFlushTimer.current=0; flushNavHide(); },700);
+  const discardNavHideFlush=function(){
+    /* En el borde no hay nada que reconciliar: la clase ya está puesta y el className consulta
+       también la ref. El timer de 700 ms de 4.25.2 solo retrasaba el mismo re-render hasta mitad
+       de la ola nativa, por eso el primer tirón seguía muriendo y el segundo sí entraba. */
+    navFlush.current=false;
   };
-  useEffect(function(){ return function(){ if(navFlushTimer.current) clearTimeout(navFlushTimer.current); }; },[]);
   /* Alto del contenido en el scroll anterior. Sirve para distinguir «ha bajado él» de «la
      pantalla se ha recolocado sola»: al tocar un chip de rol en Cartera la tarjeta estira o
      encoge, el navegador ajusta el `scrollTop` y dispara un `scroll` que NADIE ha pedido. Sin
@@ -19330,6 +19367,8 @@ function App(){
        poniendo la suavidad que él pide. */
     if(dy>0 && y>24){ armNavHide(true); }
     else if(dy<0){
+      const fingerStillDown=fingerScrollDir.current===1 && (Date.now()-fingerScrollAt.current)<900;
+      if(fingerStillDown){ bottomOverscroll.current=true; return; }
       /* Android puede traducir el rubber-band a `dy<0` aunque el dedo siga tirando hacia abajo.
          No cuenta como «subir» hasta alejarse claramente del borde con contenido real. */
       if(bottomOverscroll.current && max>0 && y>max-160) return;
@@ -19823,6 +19862,7 @@ function App(){
   // caducar. Ahora, si la sesión murió de verdad, hay toast + noti estable + evento para que
   // el banner de Cartera se entere, sin meterlo en bankIssuesOf.
   const signalTrDead=function(){
+    try{ localStorage.setItem("_trAuthExpired","1"); }catch(e){}
     try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:false}})); }catch(e){}
     try{
       if(localStorage.getItem("_trDeadNotif")==="1") return;
@@ -19869,19 +19909,24 @@ function App(){
     if(bridge && bridge.status){
       jobs.push(Promise.resolve(bridge.status()).then(function(r){
         const hadPhone=typeof trPhoneSaved==="function"&&!!trPhoneSaved();
-        if(!(r&&r.connected)){
-          if(hadPhone){ expiredB.push("Trade Republic"); signalTrDead(); }
-          return;
-        }
-        signalTrAlive({manual:opts.manual});
-        if(!opts.manual || !bridge.sync) return;   // sync TR solo a demanda
-        return Promise.resolve(bridge.sync()).then(function(res){
+        const syncTr=function(){ return Promise.resolve(bridge.sync()).then(function(res){
           if(res&&res.authExpired&&!res.softFail&&!res.wafBlocked){ expiredB.push("Trade Republic"); signalTrDead(); return; }
           /* anti-bot/hipo: en automático silencio y se reintenta luego. Pero si lo has pedido TÚ, callarse
              es el «sale conectado pero no te avisa ni nada» (rechazo tr-reactivo, 8/9): se dice. */
           if(!res||!res.ok||!Array.isArray(res.positions)){ trSinRespuesta=true; return; }
+          signalTrAlive({manual:opts.manual});
           applyBrokerPositions(res.positions, "lastTrSync", res.cash); touched++;
-        });
+        }); };
+        if(!(r&&r.connected)){
+          /* `connected=false` no es una prueba de caducidad: APK vieja, flag perdido o puente en
+             frío. En automático no molestamos; si él pulsa Sincronizar validamos la cookie real
+             con `sync()` y solo pedimos 2FA si TR responde `authExpired`. */
+          if(!opts.manual || !hadPhone || !bridge.sync) return;
+          return syncTr();
+        }
+        signalTrAlive({manual:opts.manual});
+        if(!opts.manual || !bridge.sync) return;   // sync TR solo a demanda
+        return syncTr();
       }).catch(function(){}));
     }
     // MyInvestor — Edge Function (funciona en web y en app)
@@ -19957,6 +20002,22 @@ function App(){
   // al alternar apps rápido (el sync dispara una descarga y un re-render de toda la app).
   // Además: si hay bancos OB y ≥30 min desde lastBankSync → bankSync en idle (gastos de Caixa/etc.).
   const lastVisSync=useRef(0);
+  /* Red doble para APKs antiguas: el nativo nuevo ya limita estas consultas, pero la OTA debe
+     proteger también el móvil que aún no haya instalado ese APK. La marca vive en localStorage
+     para que matar/abrir la app no reinicie el cupo. Los botones manuales no pasan por aquí. */
+  const allowBankNotifSync=function(){
+    const now=Date.now(), day=Math.floor(now/86400000);
+    try{
+      const last=Number(localStorage.getItem("_bankNotifSyncAt")||0);
+      const savedDay=Number(localStorage.getItem("_bankNotifSyncDay")||-1);
+      const used=savedDay===day?Number(localStorage.getItem("_bankNotifSyncUsed")||0):0;
+      if(now-last < 2*60*60*1000 || used>=4) return false;
+      localStorage.setItem("_bankNotifSyncAt",String(now));
+      localStorage.setItem("_bankNotifSyncDay",String(day));
+      localStorage.setItem("_bankNotifSyncUsed",String(used+1));
+      return true;
+    }catch(e){ return false; }
+  };
   useEffect(function(){
     if(!uid) return;
     const onVis=function(){
@@ -19973,7 +20034,7 @@ function App(){
       const nat=natPlugin();
       if(nat&&nat.consumeBankSyncPing){
         try{ nat.consumeBankSyncPing().then(function(r){
-          if(r&&r.ping) mcScheduleIdle(function(){ runBankSync({}); });
+          if(r&&r.ping&&allowBankNotifSync()) mcScheduleIdle(function(){ runBankSync({}); });
         }).catch(function(){}); }catch(e){}
       }
     };
@@ -19991,7 +20052,6 @@ function App(){
   },[uid]);
 
   // APK alpha22: noti de Caixa/Sabadell/… → evento nativo bankNotif → sync OB (sin parsear importe).
-  const lastBankNotifSync=useRef(0);
   useEffect(function(){
     if(!uid) return;
     const nat=natPlugin();
@@ -19999,8 +20059,7 @@ function App(){
     let h=null;
     const onPing=function(){
       if(!(stateRef.current||{}).hasBankLink) return;
-      if(Date.now()-lastBankNotifSync.current < 120000) return;   // debounce web 2 min (nativo ya frena)
-      lastBankNotifSync.current=Date.now();
+      if(!allowBankNotifSync()) return;
       mcScheduleIdle(function(){ runBankSync({}); });
     };
     try{
@@ -21655,6 +21714,7 @@ function App(){
     pDY.current=0; pT.current=Date.now();
     startX.current=e.touches?e.touches[0].clientX:e.clientX;
     startY.current=e.touches?e.touches[0].clientY:e.clientY;
+    fingerLastY.current=startY.current; fingerScrollDir.current=0; fingerScrollAt.current=Date.now();
     // Ajustes SOLO desde Resumen (feedback 2026-07-27): el borde en el resto de pestañas
     // pillaba gestos normales. No montar Settings/Perfil en touchstart (vídeo 2026-07-18).
   };
@@ -21663,6 +21723,12 @@ function App(){
     if(document.documentElement.classList.contains("sheet-open")) return;
     const x=e.touches?e.touches[0].clientX:e.clientX;
     const y=e.touches?e.touches[0].clientY:e.clientY;
+    const fingerStep=y-fingerLastY.current;
+    if(Math.abs(fingerStep)>=2){
+      // 1 = el dedo sube y empuja el contenido hacia el fondo; -1 = el usuario vuelve hacia arriba.
+      fingerScrollDir.current=fingerStep<0?1:-1;
+      fingerScrollAt.current=Date.now(); fingerLastY.current=y;
+    }
     const ddx=x-startX.current, ddy=y-startY.current;
     // (antes: beginTopClear en tirón al tope → barra off/on en cada swipe y en la ola)
     // Inicio arriba: cortar overscroll/rebote ANTES de fijar eje (vídeo 2026-07-18).
@@ -21819,8 +21885,14 @@ function App(){
     else if(dx.current>24 && tab>0 && prepped.current!==-1){ prepped.current=-1; prepMountTab(tab-1); }
   };
   const onEnd=()=>{
-    if(!dragging.current) return; dragging.current=false;
-    flushNavHide();   // el setState aplazado de la barra (ver applyNavHide)
+    if(!dragging.current) return;
+    const endPages=trackRef.current&&trackRef.current.children;
+    const endPage=endPages&&endPages[tabRef.current];
+    const endMax=endPage?(endPage.scrollHeight-endPage.clientHeight):0;
+    const endAtBottom=axis.current!=="x" && endMax>0 && (endMax-(endPage.scrollTop||0))<=4;
+    dragging.current=false;
+    if(endAtBottom) discardNavHideFlush();
+    else flushNavHide();   // el setState aplazado de la barra (ver applyNavHide)
     // El rAF del arrastre se para AQUÍ: a partir de ahora manda `animarA`, y si los dos escriben
     // el mismo `transform` se pisan y el soltar daría un tirón peor que el que veníamos a quitar.
     pararPintado();
@@ -22139,9 +22211,9 @@ function App(){
   // y ese se dispara antes que los de React (ver `onStart`).
   const stopSwipe={ "data-noswipe":"1", onTouchStart:(e)=>e.stopPropagation(), onTouchMove:(e)=>e.stopPropagation() };
   // Cancela el gesto de tabs/ajustes a mitad (chips de Gastos: scroll interno sin cambiar de pestaña).
-  const cancelSwipe=function(keepNav, deferNav){
+  const cancelSwipe=function(keepNav, keepDomOnly){
     if(!dragging.current) return;
-    if(deferNav) deferNavHideFlush();
+    if(keepDomOnly) discardNavHideFlush();
     else flushNavHide();
     dragging.current=false; axis.current=null; gestureMode.current=null; dx.current=0; ancla.current=0;
     pararPintado();   // touchcancel: el navegador nos quita el gesto, hay que soltar el rAF igual

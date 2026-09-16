@@ -669,6 +669,16 @@
     backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
     will-change:auto !important;
     background:var(--bg-2);
+    /* Un `transform` en el hermano que cubre el borde inferior corta el stretch nativo de la
+       WebView. En reposo se anima `bottom`: sigue deslizándose, pero no deja una capa transformada
+       encima justo cuando la página llega al final. Fuera del host conserva el translate de siempre. */
+    transform:none;
+    bottom:0;
+    transition:bottom .55s cubic-bezier(.4,0,.2,1),opacity .4s ease;
+  }
+  .app-shell.scroll-host-on .botnav.botnav-hidden{
+    transform:none;
+    bottom:calc(-110px - var(--safe-bottom));
   }
   /* Tope: clase residual por si queda colgada de una beta anterior. Ya no se arma
      (parpadeaba al llegar arriba / al swipear tabs — 2026-08-05). */

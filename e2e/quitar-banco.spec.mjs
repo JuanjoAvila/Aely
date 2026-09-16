@@ -120,9 +120,9 @@ test("★ TR por Open Banking dice que es la conexión de BANCO (compras con tar
 
 test("★ TR por su propia API dice que es la sesión de INVERSIONES", async ({ page }) => {
   await appLista(page, { accounts: [{ id: "tr", ent: "trade_republic", name: "TR", value: 100 }] });
-  await page.addInitScript(() => { localStorage.setItem("mc_tr_phone", "600000000"); });
+  await page.evaluate(() => { localStorage.setItem("mc_tr_phone", "600000000"); localStorage.setItem("_trAuthExpired", "1"); });
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
-  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-tr-status", { detail: { connected: false } })));
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-tr-status", { detail: { connected: false, authExpired: true } })));
   const banner = page.locator(".v4-tr-issue");
   await expect(banner).toBeVisible();
   await expect(banner).toContainText(/\(inversiones\)/i);

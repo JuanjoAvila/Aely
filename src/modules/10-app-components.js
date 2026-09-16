@@ -2220,6 +2220,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const [bankBusy,setBankBusy]=useState(false);
   const [trConn,setTrConn]=useState(false);        // TR también cuenta como banco conectado (feedback 2026-07-10)
   const [trKnown,setTrKnown]=useState(false);      // tuvo TR alguna vez (mc_tr_phone) → puede estar «caído»
+  const [trExpired,setTrExpired]=useState(false);  // solo authExpired firme, no un status frío vacío
   // Versión nativa del APK (hueco 2026-07-26): sin esto Ajustes solo mostraba la OTA y no
   // sabías si el icono/splash nuevos estaban puestos o seguías en la 34.
   const [apkVer,setApkVer]=useState(null);
@@ -2227,13 +2228,19 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     const refreshTr=function(){
       const known=!!(typeof trPhoneSaved==="function"&&trPhoneSaved());
       setTrKnown(known);
-      const b=trBridge(); if(!b||!b.status){ if(!known) setTrConn(false); return; }
-      Promise.resolve(b.status()).then(function(r){ setTrConn(!!(r&&r.connected)); }).catch(function(){});
+      if(!known){ setTrConn(false); setTrExpired(false); }
+      const b=trBridge(); if(!b||!b.status) return;
+      Promise.resolve(b.status()).then(function(r){
+        setTrConn(!!(r&&r.connected));
+        setTrExpired(!!(r&&r.authExpired) || (typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved()));
+      }).catch(function(){});
     };
     refreshTr();
     const onTr=function(e){
       if(e&&e.detail&&typeof e.detail.connected==="boolean"){
-        setTrConn(!!e.detail.connected); setTrKnown(true);
+        setTrConn(!!e.detail.connected);
+        setTrKnown(!!e.detail.connected || !!(typeof trPhoneSaved==="function"&&trPhoneSaved()));
+        setTrExpired(!!e.detail.authExpired || (typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved()));
         // Solo si la acción MANUAL acabó bien (detalle.ack). Status/poll no tosta — rechazo TR.
         if(e.detail.ack && e.detail.connected) showToast(t("tr_connected"));
         return;
@@ -2502,7 +2509,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         return !issueAsp[String(r.aspsp_name||"").toLowerCase()];
       }).length + (!enPruebas && trConn?1:0);
       const nDeadDb=(links||[]).filter(function(r){ return r.status==='expired'||r.status==='error'||issueAsp[String(r.aspsp_name||"").toLowerCase()]; }).length;
-      const trDead=!enPruebas && trKnown&&!trConn;
+      const trDead=!enPruebas && trKnown&&trExpired;
       const nDead=nDeadDb + (trDead?1:0);
       let summary = links===null ? "…"
         : nActive>0 ? (tf("bp_summary_n",{n:nActive}) + (nDead?" · "+tf("bp_summary_exp",{n:nDead}):""))
@@ -2513,7 +2520,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         row("banks","🏦",t("bp_manage"),null,function(){ setManageBanks(true); })
       );
     })(),
-    manageBanks && ReactDOM.createPortal(React.createElement(BankPanel,{state:state,set:set,showToast:showToast,uid:uid,onBankSync:onBankSync,totals:totals,onLinks:setBankLinks,fetchPrices:fetchPrices,focusAspsp:goBanksFocus,onClose:function(){ setManageBanks(false); const b=trBridge(); if(b&&b.status){ Promise.resolve(b.status()).then(function(r){ setTrConn(!!(r&&r.connected)); }).catch(function(){}); } }}), document.body),
+    manageBanks && ReactDOM.createPortal(React.createElement(BankPanel,{state:state,set:set,showToast:showToast,uid:uid,onBankSync:onBankSync,totals:totals,onLinks:setBankLinks,fetchPrices:fetchPrices,focusAspsp:goBanksFocus,onClose:function(){ setManageBanks(false); const b=trBridge(); if(b&&b.status){ Promise.resolve(b.status()).then(function(r){ setTrConn(!!(r&&r.connected)); setTrExpired(!!(r&&r.authExpired)||(typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved())); }).catch(function(){}); } }}), document.body),
     // (Hogar y gastos compartidos se movió FUERA de Ajustes 2026-07-18: es una funcionalidad de
     //  la app, no un ajuste. Ahora se abre desde Cartera → «Hogar y gastos compartidos».)
     !notifOk && React.createElement("div",{className:"alarmbox",style:{marginTop:14}},

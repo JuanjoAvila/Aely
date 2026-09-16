@@ -162,6 +162,11 @@ t("150 movimientos de otro banco no expulsan a CaixaBank del sync", () => {
 t("avisos por cuenta aunque el saldo del banco haya sincronizado", () => {
   const warnings=ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:true,accounts:[{ok:true},{ok:false}]}],[]);
   assert.equal(warnings.length,1);assert.equal(warnings[0].key,"bank_read_failed");
+  assert.equal(ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:false,accounts:[{ok:false,error:"timeout"}]}],[])[0].key,"bank_read_timeout");
+  assert.equal(ctx.bankReadWarnings([{aspsp:"Sabadell",ok:false,accounts:[{ok:false,error:"eb_429"}]}],[])[0].key,"bank_read_rate");
+  assert.equal(ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:false,accounts:[{ok:false,error:"eb_401"}]}],[])[0].key,"bank_read_reconnect");
+  assert.equal(ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:false,accounts:[{ok:false,error:"eb_403"}]}],[])[0].key,"bank_read_failed","un 403 temporal no pide OAuth");
+  assert.equal(ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:false,accounts:[{ok:false,error:"eb_404"}]}],[])[0].key,"bank_read_failed","un 404 de cuenta no caduca todo el banco");
   assert.equal(ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:true,accounts:[{ok:true,transactions:[]}]}],[]).length,0);
   const empty=ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:true,accounts:[{ok:true,count:0,transactions:[]}]}],[],true);
   assert.equal(empty.length,1);assert.equal(empty[0].key,"bank_read_empty","el histórico debe decir qué banco devolvió cero");

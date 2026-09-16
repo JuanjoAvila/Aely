@@ -1,3 +1,38 @@
+## [4.25.3] - 2026-09-16
+### Histórico con margen real, reconexiones firmes y rebote sin revelar la barra
+
+El segundo intento seguía repartiendo solo 15 s por banco. En conexiones PSD2 reales ese margen
+puede agotarse antes de que CaixaBank entregue la primera página. `bank-sync` usa ahora el plazo
+real de la petición, reserva 5 s para responder y procesa como máximo dos bancos a la vez: evita
+la ráfaga que provoca 429 sin volver a dejar Caixa detrás de un enlace lento. Dentro de cada banco
+el tiempo restante se reparte entre sus cuentas. Los fallos de primera página vuelven al cliente
+como códigos seguros (`eb_429`, `timeout`, `eb_503`...), nunca con texto crudo del proveedor, para
+que la pantalla distinga límite, espera agotada y fallo temporal.
+
+Las reconexiones dejan de mezclar «no he podido leer ahora» con «el permiso ha caducado». Open
+Banking solo pone el enlace en `expired` ante un `EB 401` firme; 403/404, 429, 5xx y timeouts lo
+conservan activo. Trade Republic persiste `_trAuthExpired` por separado: un arranque en frío donde
+el puente todavía diga `connected:false` ya no pinta ni cuenta una reconexión. Al pulsar sincronizar,
+si queda teléfono guardado se valida primero la sesión existente y solo un `authExpired` explícito
+pide login. Desconectar a mano limpia teléfono y marcador para no dejar un aviso fantasma.
+
+Las notificaciones bancarias podían disparar una sincronización por cada aviso recibido. El cliente
+OTA aplica ahora un presupuesto persistente de una cada 2 h y cuatro al día, compartido por el
+arranque en frío y los eventos en caliente. Los botones manuales no tienen límite y no se añade
+ningún sync por abrir o volver a primer plano.
+
+En el fondo de cada pestaña se elimina el `setTimeout` de 700 ms que reconciliaba el estado y podía
+revelar la barra en mitad del rebote. La dirección se decide con el movimiento real del dedo: el
+scroll de retorno que Android genera mientras el dedo sigue empujando hacia abajo no cuenta como
+una subida. En el host nativo la barra se oculta cambiando `bottom`, sin transformar el elemento
+que comparte el borde con el scroll; así no tapa el overscroll de WebView. La barra solo reaparece
+tras una subida real.
+
+Cobertura añadida para presupuestos y códigos de error del histórico, caducidad 401 frente a
+fallos pasajeros, arranque frío de TR, validación manual de sesión, presupuesto de notificaciones
+y rebote grande en el borde inferior. Cursor revisó el conjunto sin bloqueantes; la comprobación
+real de Caixa y de la ola queda necesariamente en el móvil y en el canal beta.
+
 ## [4.25.2] - 2026-09-16
 ### Caixa tiene turno propio y la ola no desmonta su scroll
 

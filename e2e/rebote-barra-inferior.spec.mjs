@@ -103,3 +103,32 @@ test("seguir tirando abajo no revela la barra oculta; subir contenido sí", asyn
     message: "al subir de verdad, la barra sí vuelve",
   }).toBe(false);
 });
+
+test("el rebote grande con el dedo aún empujando abajo no revela la barra", async ({ page }) => {
+  await seedLoggedInDashboard(page, { expenses: historico(200) });
+  await page.goto("/");
+  await appLista(page);
+  await irAGastosConTodo(page);
+  await scrollear(page, 0);
+  await page.waitForTimeout(500);
+
+  let max = await alturaMax(page);
+  await scrollear(page, Math.round(max * 0.45));
+  await expect.poll(async () => (await estado(page)).hidden).toBe(true);
+  max = await alturaMax(page);
+  await scrollear(page, max);
+
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 187, y: 600 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 187, y: 550 }] });
+  /* Android llega a devolver más de 160 px de scrollTop durante el stretch. Sin mirar la
+     dirección del dedo, ese dy negativo se confundía con subir y sacaba la barra. */
+  await page.evaluate(() => {
+    const h = document.querySelector(".page.page-scroll-host");
+    const m = h.scrollHeight - h.clientHeight;
+    h.scrollTop = Math.max(0, m - 220);
+    h.dispatchEvent(new Event("scroll", { bubbles: true }));
+  });
+  expect((await estado(page)).hidden, "el stretch no es una orden de mostrar navegación").toBe(true);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
+});

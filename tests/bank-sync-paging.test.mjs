@@ -14,9 +14,16 @@ const movement = (id="tx-1") => ({entry_reference:id, booking_date:"2026-09-15",
 const link = (name="CaixaBank", status="active") => ({id:name,aspsp_name:name,status,accounts:[{uid:name+"-cuenta"}]});
 
 async function sync(links, reply, body={}, clock=null) {
-  const calls=[], writes=[], events=[];
+  const calls=[], writes=[], events=[], budgets=[];
   let handler;
-  const api=async (jwt,p) => { calls.push(p); return p.endsWith("/balances")?{balances:[{balance_type:"ITAV",balance_amount:{amount:"100",currency:"EUR"}}]}:reply(new URL(p,"https://bank.invalid")); };
+  const api=async (jwt,p) => {
+    calls.push(p);
+    if(p.endsWith("/balances")){
+      if(reply.balanceError) throw new Error(reply.balanceError);
+      return {balances:[{balance_type:"ITAV",balance_amount:{amount:"100",currency:"EUR"}}]};
+    }
+    return reply(new URL(p,"https://bank.invalid"));
+  };
   const db={auth:{getUser:async()=>({data:{user:{id:"synthetic"}}})},from:()=>({
     select:()=>({eq:()=>({in:async()=>({data:links})})}),
     update:x=>({eq:async()=>{writes.push(x);return {};}}),insert:async x=>{events.push(x);return {};}
@@ -25,11 +32,14 @@ async function sync(links, reply, body={}, clock=null) {
   new Function(...names,src)(
     {serve:f=>{handler=f;},env:{get:()=>"synthetic"}},()=>db,api,()=>({}),
     (x,status=200)=>new Response(JSON.stringify(x),{status}),async()=>"jwt",E.mapTransaction,f=>f,
-    (jwt,uid,from,ignored,timeout,preferLongest)=>E.fetchBankTransactions(jwt,uid,from,api,timeout,preferLongest),clock||Date
+    (jwt,uid,from,ignored,timeout,preferLongest)=>{
+      budgets.push({uid,timeout});
+      return E.fetchBankTransactions(jwt,uid,from,api,timeout,preferLongest);
+    },clock||Date
   );
   const res=await handler(new Request("https://app.invalid",{method:"POST",body:JSON.stringify(body)}));
   assert.equal(res.status,200);
-  return {data:await res.json(),calls,writes,events};
+  return {data:await res.json(),calls,writes,events,budgets};
 }
 let failures=0;
 async function t(name,fn){try{await fn();console.log("  ✓ "+name);}catch(e){failures++;console.error("  ✗ "+name+": "+e.message);}}
@@ -75,7 +85,9 @@ await t("el fallo de CaixaBank no oculta los movimientos de Sabadell",async()=>{
   assert.equal(r.data.links[1].accounts[0].transactions.length,1);
   assert.equal(r.events.length,1,"el fallo queda diagnosticado sin cambiar datos bancarios");
   assert.equal(JSON.parse(r.events[0].detail).code,"eb_503");
+  assert.equal(r.data.links[0].accounts[0].error,"eb_503","el cliente recibe solo la clase segura del fallo");
   assert.equal(JSON.stringify(r.events).includes("privado"),false,"el mensaje crudo del proveedor no sale a app_events");
+  assert.equal(JSON.stringify(r.data).includes("privado"),false,"el mensaje crudo tampoco sale hacia el móvil");
 });
 await t("límite de tiempo cancela la petición y conserva la primera página",async()=>{
   let calls=0;
@@ -119,6 +131,32 @@ await t("un banco lento no consume el turno de Caixa en el histórico",async()=>
   assert.equal(r.data.links[0].accounts[0].ok,false);
   assert.equal(r.data.links[1].accounts[0].transactions.length,1,"Caixa recibe su llamada aunque el primer banco siga pendiente");
   assert.equal(r.events.length,1);
+});
+await t("solo un EB 401 firme caduca el enlace; 403/404/429 lo conservan",async()=>{
+  for(const status of [403,404,429,503]){
+    const reply=()=>({transactions:[]}); reply.balanceError=`EB ${status}: unauthorized temporal`;
+    const r=await sync([link("CaixaBank")],reply);
+    assert.equal(r.data.links[0].expired,false,"EB "+status+" no debe pedir OAuth");
+    assert.equal(r.writes.at(-1).status,"active","EB "+status+" conserva el enlace");
+  }
+  const reply401=()=>({transactions:[]}); reply401.balanceError="EB 401: unauthorized";
+  const r401=await sync([link("CaixaBank")],reply401);
+  assert.equal(r401.data.links[0].expired,true);
+  assert.equal(r401.writes.at(-1).status,"expired");
+});
+await t("una Caixa con dos cuentas no recibe siete segundos por cuenta",async()=>{
+  let now=Date.now(), first=true;
+  class FakeDate extends Date { static now(){return now;} }
+  const caixa=link("CaixaBank");
+  caixa.accounts=[{uid:"caixa-corriente"},{uid:"caixa-ahorro"}];
+  const r=await sync([caixa],()=>{
+    if(first){ first=false; now+=20000; }
+    return {transactions:[movement()]};
+  },{dateFrom:"2026-06-15"},FakeDate);
+  assert.equal(r.budgets.length,2);
+  assert.ok(r.budgets[0].timeout>=27000,"la primera cuenta comparte 55 s, no los antiguos 15 s");
+  assert.ok(r.budgets[1].timeout>=34000,"la segunda conserva el margen que no gastó la primera");
+  assert.equal(r.data.links[0].accounts.every(a=>a.ok),true);
 });
 await t("la ventana diaria del servidor cubre som del cliente, también al cambiar de mes",async()=>{
   for(const instant of ["2026-08-31T22:30:00Z","2026-09-01T12:00:00Z","2026-10-31T23:30:00Z"]){

@@ -123,13 +123,23 @@ caducaran «cada dos por tres» (feedback 2026-07-18). Syncs que siguen vivos, t
 | «Actualizar» de un banco | Ajustes → Mis bancos |
 | Recién autorizado (`?bank=ok` / goto `bank\|ok`) | `11-app-main.js` |
 | Bootstrap de conciliación (1ª vez sin `bankTx`) | `11-app-main.js` (solo una vez en la vida del enlace) |
-| Noti del banco (evento real del usuario) | ajuste `st_banksync_notif`, se puede apagar |
+| Noti del banco (evento real del usuario) | ajuste `st_banksync_notif`; presupuesto persistente de 1 cada 2 h y 4 al día |
 
 El sincronizador general también consulta el puente nativo de Trade Republic cuando existe. Su
 `availableCash` y la tarjeta específica de TR pasan por el mismo reanclaje (`applyTrCash`), para
 que dos botones equivalentes no dejen saldos distintos. En enlaces Open Banking multicuenta, los
 movimientos se leen desde cada `accounts[].transactions`; el bloque superior es solo la copia
 retrocompatible de la primera cuenta y no se suma dos veces.
+
+Un fallo pasajero no equivale a un permiso caducado. Open Banking solo pone el enlace en
+`expired` ante un `EB 401` firme; 403/404, límites 429, 5xx y timeouts conservan el enlace activo.
+Trade Republic guarda aparte `_trAuthExpired`: que el puente arranque todavía sin sesión visible
+no enciende el aviso de reconexión. Al sincronizar a mano se intenta primero reutilizar y validar
+la sesión guardada, y solo una respuesta explícita `authExpired` pide volver a iniciar sesión.
+
+El presupuesto de notificaciones vive en `localStorage`, no solo en memoria, para proteger también
+los APK ya instalados que reciben el cambio por OTA. Limita únicamente el disparo automático; los
+botones de sincronización manual nunca consumen ni consultan ese presupuesto.
 
 **No reintroducir** un sync por apertura/foreground sin repensar esto: el histórico está en el
 CHANGELOG 4.1.0 y en el comentario del propio código.

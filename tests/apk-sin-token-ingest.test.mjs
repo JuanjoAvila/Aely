@@ -36,6 +36,15 @@ t("TrExpenseListener solo cae a BuildConfig.INGEST_URL en la APK de depuración"
   assert.equal(/isEmpty\(\)\) ingestUrl = BuildConfig\.INGEST_URL;/.test(j), false, "el fallback sin DEBUG ha vuelto");
 });
 
+t("las notificaciones bancarias no pueden martillar PSD2 cada dos minutos", () => {
+  const web = rd("src/modules/11-app-main.js");
+  assert.match(web, /_bankNotifSyncAt/);
+  assert.match(web, /now-last\s*<\s*2\*60\*60\*1000\s*\|\|\s*used>=4/,
+    "la OTA también debe proteger las APK anteriores al límite nativo");
+  assert.ok((web.match(/allowBankNotifSync\(\)/g)||[]).length>=2,
+    "tanto el ping en frío como el evento en caliente deben compartir el límite");
+});
+
 t("release:apk se niega a publicar si BuildConfig.INGEST_URL no está vacía", () => {
   const s = rd("scripts/release-apk.mjs");
   assert.ok(/INGEST_URL\\s\*=\\s\*""/.test(s) && /No se publica/.test(s));

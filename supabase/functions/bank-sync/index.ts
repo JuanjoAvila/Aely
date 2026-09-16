@@ -127,8 +127,13 @@ Deno.serve(withCors(async (req: Request) => {
          un deadline común de 60 s: un Sabadell lento/429 podía gastarlo entero y Caixa quedaba
          marcada como timeout sin haber recibido ni una llamada. Paralelizar enlaces no añade
          sincronizaciones automáticas: sigue siendo una sola búsqueda pedida por la persona. */
-      const hist: unknown[] = await Promise.all((links || []).map(async (link) => {
-        const linkDeadline = Date.now() + 15000;
+      const readHistoryLink = async (link: any) => {
+        /* Los bancos ya corren en paralelo, así que cada uno puede usar el presupuesto REAL de la
+           petición sin volver a dejar al siguiente en cola. Los 15 s de la primera versión se
+           dividían además entre las cuentas del enlace: una Caixa con dos cuentas recibía apenas
+           7,5 s por cuenta y caía antes de terminar la primera página del histórico. Se reserva el
+           mismo margen de 5 s para serializar y devolver todo lo que sí haya llegado. */
+        const linkDeadline = deadline - 5000;
         // deno-lint-ignore no-explicit-any
         const acctList: any[] = (Array.isArray(link.accounts) && link.accounts.length)
           ? link.accounts
@@ -146,8 +151,7 @@ Deno.serve(withCors(async (req: Request) => {
             continue;
           }
           try {
-            /* Reparto dentro del banco: una cuenta no puede comerse los 15 s y dejar mudas las
-               demás. Como mínimo 1 s para la última si la anterior agotó su parte. */
+            /* Reparto dentro del banco: una cuenta no puede comerse el margen de las demás. */
             const accountMs = Math.max(1000, Math.floor(remainingMs / remainingAccounts));
             const tx = await fetchBankTransactions(jwt, uid, dateFrom, ebApi, accountMs, true);
             const all = tx.transactions.map(mapTransaction);
@@ -155,11 +159,27 @@ Deno.serve(withCors(async (req: Request) => {
               transactions: all, truncated: tx.truncated, transactionError: tx.transactionError });
           } catch (err) {
             logObReadFailure(admin, user.id, link.aspsp_name, err);
-            accts.push({ uid, iban: ac.iban || null, ok: false, error: "transactions_unavailable", transactions: [] });
+            /* Código cerrado y seguro: explica si fue espera, límite o permiso sin devolver el
+               texto del proveedor, que puede contener referencias bancarias. */
+            accts.push({ uid, iban: ac.iban || null, ok: false, error: obReadFailureCode(err), transactions: [] });
           }
         }
         return { aspsp: link.aspsp_name, iban: link.iban, ok: accts.some(a => a.ok), accounts: accts };
-      }));
+      };
+      /* Dos bancos a la vez: uno lento ya no deja Caixa sin turno, pero tampoco abrimos todas
+         las sesiones PSD2 de golpe. El Promise.all sin límite podía provocar el propio 429 que
+         luego parecía una conexión caducada (feedback 16/9: miedo a sincronizar porque obliga a
+         autorizar una y otra vez). */
+      const activeLinks = links || [];
+      const hist: unknown[] = new Array(activeLinks.length);
+      let nextLink = 0;
+      const worker = async () => {
+        while (nextLink < activeLinks.length) {
+          const i = nextLink++;
+          hist[i] = await readHistoryLink(activeLinks[i]);
+        }
+      };
+      await Promise.all(Array.from({ length: Math.min(2, activeLinks.length) }, () => worker()));
       for (const link of deadLinks) {
         hist.push({ aspsp: link.aspsp_name, ok: false, pending: link.status === "pending",
           expired: link.status === "expired", noacct: link.status === "error", accounts: [] });
@@ -227,8 +247,10 @@ Deno.serve(withCors(async (req: Request) => {
           // otra vez. Pero un 403 de PSD2 casi siempre es rate-limit/anti-abuso momentáneo y un 404
           // un hipo del banco, NO que el consentimiento haya muerto. Igual que el 403 anti-bot de
           // MyInvestor y el 401 momentáneo de TR: NO desconectar por un fallo pasajero.
-          // Solo cuenta como caducado un 401 o un mensaje EXPLÍCITO de consentimiento/sesión muerta.
-          if (/\b401\b/.test(msg) || /expired|revoked|consent|unauthor|invalid[_ ]?(?:token|session|grant)|session[_ ]?not[_ ]?found/i.test(msg)) {
+          // Solo cuenta como caducado el código inequívoco del proveedor. Buscar palabras como
+          // "unauthorized" dentro de un 429/5xx podía convertir un bloqueo temporal en una
+          // reconexión manual y dejar el enlace muerto para siempre hasta hacer OAuth otra vez.
+          if (/\bEB\s+401\b/i.test(msg)) {
             anyExpired = true;
           }
           lastErr = msg;
@@ -237,7 +259,7 @@ Deno.serve(withCors(async (req: Request) => {
           clearTimeout(balTimer);
         }
       }
-      // 401/403/404/"expired" = el permiso del banco caducó → marca SOLO este enlace, sin afectar a los demás.
+      // Solo EB 401 firme caduca el permiso; 403/404/429/5xx conservan el enlace activo.
       if (anyAcctOk) {
         await admin.from("bank_links")
           .update({ last_sync: new Date().toISOString(), status: "active", updated_at: new Date().toISOString() })

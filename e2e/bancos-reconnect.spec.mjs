@@ -142,6 +142,7 @@ test("Mis bancos pinta caducado aunque bank_links diga active, si bankIssues lo 
 test("TR desconectado: banner en Cartera; el CTA abre Mis bancos con TR, no OAuth", async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem("mc_tr_phone", "600000000");
+    localStorage.setItem("_trAuthExpired", "1");
     window.MiCarteraTR = {
       status: async () => ({ connected: false }),
       sync: async () => ({ ok: false, authExpired: true }),
@@ -162,4 +163,22 @@ test("TR desconectado: banner en Cartera; el CTA abre Mis bancos con TR, no OAut
   await expect(page.locator(".v4-banks")).toBeVisible({ timeout: 10_000 });
   // TR no es Open Banking: el CTA NO debe llamar a bankConnect.
   expect(await page.evaluate(() => window.__e2eConnects)).toBe(0);
+});
+
+test("TR en frío: un status desconectado sin authExpired NO inventa otra reconexión", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("mc_tr_phone", "600000000");
+    localStorage.removeItem("_trAuthExpired");
+    window.MiCarteraTR = {
+      status: async () => ({ connected: false }),
+      sync: async () => ({ ok: true, positions: [], cash: 0 }),
+    };
+  });
+  await appLista(page, {
+    settings: { brokersOn: ["trade_republic"] },
+    investments: [{ id: "i1", ent: "trade_republic", name: "VWCE", shares: 1, price: 100, cost: 90 }],
+  });
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  await page.waitForTimeout(500);
+  await expect(page.locator(".v4-tr-issue")).toHaveCount(0);
 });
