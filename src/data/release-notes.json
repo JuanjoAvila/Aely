@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.24.4",
+    "d": "15 sep 2026",
+    "t": {
+      "es": "Ajustes ya no se abre solo",
+      "en": "Settings no longer opens by itself",
+      "ca": "Ajustaments ja no s'obre sol"
+    },
+    "items": {
+      "es": [
+        "Se acabó lo de abrir Ajustes solo al volver a la app tras probar la beta.",
+        "Si estabas revisando la beta y sales a probar un punto, Ajustes se reabre como mucho una vez."
+      ],
+      "en": [
+        "Settings no longer opens by itself every time you return after testing the beta.",
+        "If you were reviewing the beta and leave to try a point, Settings reopens at most once."
+      ],
+      "ca": [
+        "S'ha acabat això d'obrir Ajustaments sol en tornar a l'app després de provar la beta.",
+        "Si revisaves la beta i surts a provar un punt, Ajustaments es reobre com a molt una vegada."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "ajustes-no-bucle",
+        "t": {
+          "es": "⚙️ Ajustes sin bucle",
+          "en": "⚙️ Settings without a loop",
+          "ca": "⚙️ Ajustaments sense bucle"
+        },
+        "items": {
+          "es": [
+            "1. «se abre todo el rato Ajustes»: cierra la app con Ajustes o Revisar la beta a la vista, vuelve a abrir: como mucho una vez ves Ajustes; al cerrar con ‹ y volver, aterrizas en Inicio. Y si aun así se abriera solo otra vez, entra en Revisar la beta y pulsa «‹ Ajustes»: eso lo corta en seco (y ese es el fallo, dilo aquí).",
+            "2. (Re-pregunta de 4.24.2) Sin red, abre Ajustes → Revisar esta beta: se ven los puntos. Al terminar pulsa «‹ Ajustes» — no dejes el panel abierto al salir."
+          ],
+          "en": [
+            "1. «Settings keeps opening»: close the app with Settings or Review beta on screen, open again: Settings shows at most once; after closing with ‹ and returning, you land on Home. And if it still opens by itself again, go into Review beta and tap «‹ Settings»: that stops it dead (and that's the bug — say so here).",
+            "2. (Retest from 4.24.2) Offline, open Settings → Review this beta: checklist visible. When done tap «‹ Settings» — do not leave the panel open when you leave."
+          ],
+          "ca": [
+            "1. «s'obre tot l'estona Ajustaments»: tanca l'app amb Ajustaments o Revisar la beta a la vista, torna a obrir: com a molt una vegada veus Ajustaments; en tancar amb ‹ i tornar, aterres a Inici. I si tot i així es tornés a obrir sol, entra a Revisar la beta i prem «‹ Ajustaments»: això ho talla en sec (i aquest és el fallo, digue-ho aquí).",
+            "2. (Re-pregunta de 4.24.2) Sense xarxa, obre Ajustaments → Revisar aquesta beta: es veuen els punts. En acabar prem «‹ Ajustaments» — no deixis el panell obert en sortir."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.24.3",
     "d": "15 sep 2026",
     "t": {
@@ -18,33 +65,7 @@
         "Si obres l'app en un mòbil o a l'ordinador després de dies sense fer-la servir, ja no es repeteixen moviments del banc: primer es baixa el darrer del núvol i després es mira el banc. Si el núvol no respon, t'avisa en lloc de mirar el banc."
       ]
     },
-    "tandas": [
-      {
-        "id": "banco-espera-nube",
-        "t": {
-          "es": "🔁 El banco espera a la nube",
-          "en": "🔁 The bank waits for the cloud",
-          "ca": "🔁 El banc espera el núvol"
-        },
-        "items": {
-          "es": [
-            "1. Esto es tu «+18,09 que no cuadra»: una web vieja volvió a meter tres «Movimiento» que ya habías renombrado. Abre Gastos en «Este mes»: el de 18,09 € del 4/9, el de 6,40 € del 10/9 y el de 10,34 € del 2/9 tienen que salir apagados con «tócalo: ¿mismo o distinto?». Tócalos y elige «Es el mismo» en cada uno y comprueba que queda solo el que renombraste.",
-            "2. Con internet, Cartera → «Sincronizar bancos»: tiene que acabar como siempre y no aparecer ningún movimiento repetido en Gastos.",
-            "3. Cierra la app del todo, activa el modo avión, ábrela y pulsa «Sincronizar bancos»: tiene que avisar de que no ha podido bajar tus datos de la nube (y no mirar el banco)."
-          ],
-          "en": [
-            "1. This is your “+18.09 that doesn't add up”: an old web session re-added three “Movimiento” you had already renamed. Open Spending on “This month”: the 18.09 € one on 4/9, the 6.40 € one on 10/9 and the 10.34 € one on 2/9 should be greyed out with “tap: same or different?”. Tap each and choose “Same one” and check only your renamed one remains.",
-            "2. With internet, Portfolio → “Sync banks”: it should finish as usual and no repeated transaction should appear in Spending.",
-            "3. Close the app completely, turn on airplane mode, open it and tap “Sync banks”: it should tell you it couldn't fetch your data from the cloud (and not check the bank)."
-          ],
-          "ca": [
-            "1. Això és el teu «+18,09 que no quadra»: una web vella va tornar a posar tres «Movimiento» que ja havies reanomenat. Obre Despeses a «Aquest mes»: el de 18,09 € del 4/9, el de 6,40 € del 10/9 i el de 10,34 € del 2/9 han de sortir apagats amb «toca'l: mateix o diferent?». Toca'ls i tria «És el mateix» a cadascun i comprova que només queda el que vas reanomenar.",
-            "2. Amb internet, Cartera → «Sincronitza els bancs»: ha d'acabar com sempre i no ha d'aparèixer cap moviment repetit a Despeses.",
-            "3. Tanca l'app del tot, activa el mode avió, obre-la i prem «Sincronitza els bancs»: t'ha d'avisar que no ha pogut baixar les teves dades del núvol (i no mirar el banc)."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.24.2",
@@ -79,15 +100,15 @@
         "items": {
           "es": [
             "1. Activa el modo avión, abre la app: Inicio muestra patrimonio/presupuesto en menos de un segundo (antes «tarda un rato») y el aviso de sin conexión.",
-            "2. Sin red, abre Ajustes → Revisar esta beta: se ven los puntos de la tanda (antes «la zona de beta no se ve sin conexión»)."
+            "2. Sin red, abre Ajustes → Revisar esta beta: se ven los puntos. Cuando termines, pulsa «‹ Ajustes» (no dejes el panel abierto al salir: si no, Ajustes se reabre solo)."
           ],
           "en": [
             "1. Turn on airplane mode, open the app: Home shows net worth/budget in under a second (it used to «take a while») and the offline notice.",
-            "2. Offline, open Settings → Review this beta: the checklist is visible (it used to say the beta area was missing offline)."
+            "2. Offline, open Settings → Review this beta: the checklist is visible. When you are done, tap «‹ Settings» (do not leave the panel open when you leave — Settings would reopen by itself)."
           ],
           "ca": [
             "1. Activa el mode avió, obre l'app: Inici mostra patrimoni/pressupost en menys d'un segon (abans «triga una estona») i l'avís sense connexió.",
-            "2. Sense xarxa, obre Ajustaments → Revisar aquesta beta: es veuen els punts de la tanda (abans «la zona de beta no es ve sense connexió»)."
+            "2. Sense xarxa, obre Ajustaments → Revisar aquesta beta: es veuen els punts. Quan acabis, prem «‹ Ajustaments» (no deixis el panell obert en sortir: si no, Ajustaments s'obre sol)."
           ]
         }
       }
@@ -112,33 +133,7 @@
         "A Despeses, un ingrés d'un compte que no és del dia a dia —o un traspàs entre els teus comptes— surt apagat i diu per què no suma, igual que ja passava amb les despeses. Així el que veus a la llista quadra amb el balanç del mes."
       ]
     },
-    "tandas": [
-      {
-        "id": "balance-ingresos",
-        "t": {
-          "es": "🧮 El balance cuadra con la lista",
-          "en": "🧮 The balance matches the list",
-          "ca": "🧮 El balanç quadra amb la llista"
-        },
-        "items": {
-          "es": [
-            "1. Esto es lo que nos contaste: «cuando sumo y resto todos los gastos el balance no es correcto». Abre Gastos en «Este mes» y baja hasta los ingresos de Sabadell (las TRANSFERENCIA de 4,33 €, la de Gisela…): tienen que salir apagados y con «no es del día a día».",
-            "2. Busca el «Movimiento +291,25 €» de Traspaso del 2/9: tiene que salir apagado y con «no es un gasto».",
-            "3. Suma solo los ingresos que NO salen apagados: tiene que darte lo mismo que «Ingresos» arriba del todo."
-          ],
-          "en": [
-            "1. This is what you told us: “when I add up all the expenses the balance isn't right”. Open Spending on “This month” and scroll to the Sabadell income (the 4.33 € TRANSFERENCIA ones, Gisela's…): they should be greyed out with “not day-to-day”.",
-            "2. Find the “Movimiento +291.25 €” Transfer on 2/9: it should be greyed out with “not spending”.",
-            "3. Add up only the income that is NOT greyed out: it should match “Income” at the top."
-          ],
-          "ca": [
-            "1. Això és el que ens vas explicar: «quan sumo i resto totes les despeses el balanç no és correcte». Obre Despeses a «Aquest mes» i baixa fins als ingressos de Sabadell (les TRANSFERENCIA de 4,33 €, la de Gisela…): han de sortir apagats i amb «no és del dia a dia».",
-            "2. Busca el «Movimiento +291,25 €» de Traspàs del 2/9: ha de sortir apagat i amb «no és una despesa».",
-            "3. Suma només els ingressos que NO surten apagats: t'ha de donar el mateix que «Ingressos» a dalt de tot."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.24.0",

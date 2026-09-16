@@ -5,7 +5,9 @@
 # Memoria — Mi Cartera
 
 - [★★★ VOLCADO para su Claude PERSONAL](../../../../../E:/Mi cartera/docs/briefs/EMPIEZA-AQUI-CLAUDE-PERSONAL.md) — `docs/briefs/EMPIEZA-AQUI-CLAUDE-PERSONAL.md` en `beta`: para una sesión SIN esta memoria (arranque, `docs/memoria/`, cómo se trabaja, qué lleva Cursor).
-- [★★ EMPIEZA AQUÍ: traspaso del 14/9 noche](../../../../../E:/Mi cartera/docs/briefs/EMPIEZA-AQUI-2026-09-15.md) — `docs/briefs/EMPIEZA-AQUI-2026-09-15.md` en `beta`: pendientes y lecciones. (15/9: prod ya 4.22.3 + 0024; SEC-01 en curso.)
+- [★★★ EMPIEZA AQUÍ: traspaso del 15/9 noche](../../../../../E:/Mi cartera/docs/briefs/EMPIEZA-AQUI-2026-09-16-TELETRABAJO.md) — rama `docs/traspaso-15-9-noche`: beta 4.24.3; ✅4.24.1 ✅4.24.3 ⛔4.24.2 (Ajustes pegado → 4.24.4 Cursor); luego promote + `ingest`, 4.25 + `bank-sync` (OK dado), 4.26, 4.27.
+- [⚠ Panel beta reabre Ajustes (15/9)](panel-beta-reabre-ajustes.md) — la marca se renovaba al reabrir; ningún paso debe dejarle fuera con el panel abierto.
+- [Traspaso del 14/9 noche](../../../../../E:/Mi cartera/docs/briefs/EMPIEZA-AQUI-2026-09-15.md) — histórico: prod 4.22.3 + 0024; SEC-01.
 - [Traspaso madrugada 12/9](../../../../../E:/Mi cartera/docs/briefs/TRASPASO-2026-09-12-MADRUGADA.md) — histórico: 4.18.25→4.19.74, dos tests que no podían fallar, `npm run servidor` mintió.
 - [★★ Cómo se promociona a prod](promote-4-19-106-como-se-hizo.md) — ⚠ FF o `merge -s ours`; cabeza `[skip ci]`; `deploy.yml` a mano; nota única `tandas:[]`; puente con `gh api PUT`; Edge una a una. Repetido 4.20.4, 4.21.2, 4.22.3.
 - [★★ Seguridad OPS-06](ops-06-seguridad-hallazgos.md) — token de ingest en la APK (cerrado, APK 46), Hogar (0022), app_events (0023), BD viva (0024). DEC-01: Play Store AL FINAL.
