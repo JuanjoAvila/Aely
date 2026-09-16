@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.25.6",
+    "d": "16 sep 2026",
+    "t": {
+      "es": "La revisión beta queda limpia al terminar",
+      "en": "Beta review clears when it is finished",
+      "ca": "La revisió beta queda neta en acabar"
+    },
+    "items": {
+      "es": [
+        "Cuando la versión beta ya está en producción, desaparecen la entrada de revisión y todas las pruebas antiguas o repetidas."
+      ],
+      "en": [
+        "Once the beta version is in production, the review entry and all old or repeated checks disappear."
+      ],
+      "ca": [
+        "Quan la versió beta ja és a producció, desapareixen l'entrada de revisió i totes les proves antigues o repetides."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.5",
     "d": "16 sep 2026",
     "t": {

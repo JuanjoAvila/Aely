@@ -1087,7 +1087,11 @@ function betaChecklist(version, prodVersion){
      versiones > producción y ≤ la que corre. Sin prod (aún preguntando / sin red): se queda el
      comportamiento de siempre —una sola versión—; en la duda, menos, no de más. */
   var round;
-  var conProd=prodVersion!=null&&prodVersion!=="";
+  /* Un bundle sin sellar usa `dev`: no se puede compararlo con producción ni vaciar su cabeza
+     cacheada offline como si ya hubiera sido promocionado. La regla de ronda solo vale cuando
+     ambas puntas son versiones numéricas reales. */
+  var conProd=prodVersion!=null&&prodVersion!==""&&/^\d+\.\d+\.\d+$/.test(base)
+    &&/^\d+\.\d+\.\d+$/.test(mcVerBase(prodVersion));
   /* UNA VERSION SIN NADA QUE PROBAR NO PUEDE VACIARLE EL PANEL (2026-09-12).
      Sin `prodVersion` (aun preguntando, o sin red) la ronda es UNA sola version. El dia que la
      que corre es fontaneria —guardianes, un arreglo de despliegue— declara `tandas:[]` a
@@ -1111,6 +1115,10 @@ function betaChecklist(version, prodVersion){
       return n&&n.v && mcIsNewer(n.v, prod) && !mcIsNewer(n.v, base);
     });
   }
+  /* PRODUCCION AL DIA SIGNIFICA CERO PENDIENTES (feedback 2026-09-16).
+     El fallback de abajo existe para arrancar sin red, pero aplicado tambien cuando prod===beta
+     resucitaba la nota mas nueva y le dejaba un backlog fantasma despues de promocionar. */
+  if(conProd&&!round.length) return { v:base, t:"", items:[], tandas:[] };
   if(!round.length){
     var fb=RELEASE_NOTES.filter(function(n){ return n.v===base && conAlgoQueProbar(n); })[0]
       || RELEASE_NOTES.filter(conAlgoQueProbar)[0]
@@ -1120,14 +1128,20 @@ function betaChecklist(version, prodVersion){
   }
   // El panel de revisión es la consola privada del dueño y va SIN traducir (como «Actividad»),
   // así que la checklist se lee siempre en castellano aunque la app esté en otro idioma.
-  var tandas=[], planos=[], titulo="";
+  var tandas=[], planos=[], titulo="", vistas={};
   round.forEach(function(notes){
     if(!titulo) titulo=rnT(notes.t,"es");
     betaTandas(notes).forEach(function(g){
+      /* Una correccion conserva el id de la tanda. Si atraviesa varias versiones de la misma
+         ronda, solo se prueba la mas nueva: repetirla con otro numero era obligarle a aprobar
+         varias veces exactamente el mismo trabajo. RELEASE_NOTES va de nueva a antigua. */
+      var rawId=String(g.id);
+      if(conProd&&vistas[rawId]) return;
+      vistas[rawId]=true;
       /* Con ronda multi-versión el id lleva la versión: dos tandas «id-fila» de bases distintas
          no se pisan en el veredicto. Sin prod (una sola versión) se conserva el id corto de
          siempre para no resetear lo ya enviado en esta compilación. */
-      var id=conProd?(notes.v+"/"+g.id):g.id;
+      var id=conProd?(notes.v+"/"+rawId):rawId;
       var t=conProd?("v"+notes.v+(g.t?" · "+g.t:"")):g.t;
       tandas.push({ id:id, t:t, items:g.items });
       planos=planos.concat(g.items);
@@ -1597,7 +1611,7 @@ function BetaReviewPanel({onClose, showToast}){
       "v"+CONFIG.APP_VERSION+(apkCode?" · APK "+apkCode:"")+(pack.t?" · "+pack.t:"")),
     React.createElement("div",{style:{color:"var(--muted-2)",fontSize:12,lineHeight:1.5,marginBottom:14}},
       yaEnProd
-        ? "Esta versión ya la subiste tú, así que no hay nada que aprobar. La checklist se queda abajo por si quieres repasar algo."
+        ? "Esta versión ya está en producción, así que no hay nada pendiente ni hace falta aprobarla otra vez."
         : "Pruébalo con calma: esto se guarda y puedes seguir otro día. Tu padre y tu pareja siguen en la versión estable hasta que lo apruebes."),
     // YA ESTÁ EN PRODUCCIÓN → no se pide veredicto (2026-07-28). Promocionar ES aprobar: pedirle
     // que apruebe otra vez lo que él mismo subió hace horas es ruido, y encima ruido que parece
@@ -1617,7 +1631,7 @@ function BetaReviewPanel({onClose, showToast}){
         ". No hace falta que lo vuelvas a teclear: si esta compilación lo arregla, tócalo y ponlo en ✓.")),
 
     // Progreso
-    React.createElement("div",{style:{display:"flex",gap:10,alignItems:"center",marginBottom:14}},
+    !yaEnProd && total>0 && React.createElement("div",{style:{display:"flex",gap:10,alignItems:"center",marginBottom:14}},
       React.createElement("div",{style:{flex:1,height:8,borderRadius:8,background:"var(--surface-2)",overflow:"hidden"}},
         React.createElement("div",{style:{width:(total?Math.round((ok+ko+na)/total*100):0)+"%",height:"100%",
           background:ko?"var(--coral)":"var(--mint)",transition:"width .25s ease"}})),
@@ -1626,7 +1640,7 @@ function BetaReviewPanel({onClose, showToast}){
     /* Dos casos distintos con la lista vacía, y decir el que no es despista (review de Cursor,
        8/9): si la versión declara `tandas` es que las aprobó TODAS —el caso normal a partir de
        ahora—; si no declara ninguna es una versión suelta sin checklist. */
-    pack.items.length===0 && React.createElement("div",{style:{fontSize:13,color:"var(--muted)"}},
+    !yaEnProd && pack.items.length===0 && React.createElement("div",{style:{fontSize:13,color:"var(--muted)"}},
       pack.tandas.length===0 && (RELEASE_NOTES||[]).some(function(n){ return n && n.tandas; })
         ? "✅ No queda nada por probar: has aprobado todas las tandas de esta ronda."
         : "Esta versión no trae notas, así que no hay checklist. Prueba lo que hayas tocado."),
@@ -2754,7 +2768,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
               const c=betaMarksCount(pack);
               // Con la versión ya subida a producción la fila deja de cantar «3/8» — ese contador
               // se leía como trabajo pendiente cada vez que abría Ajustes, y no lo era (2026-07-28).
-              if(yaEnProd) return row("betarev","🔍","Revisar esta beta","✅ ya en producción", function(){ betaMarcarAbierto(); setBetaOpen(true); });
+              if(yaEnProd||!pack.tandas.length) return null;
               return row("betarev","🔍","Revisar esta beta", c.tot?(c.n+"/"+c.tot):null, function(){ betaMarcarAbierto(); setBetaOpen(true); });
             })(),
             (function(){
