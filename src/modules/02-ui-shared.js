@@ -1090,3 +1090,88 @@ function NumPad({value, onChange}){
   );
 }
 
+/* Anatomía común de Apuntar y Modificar (rediseño v4.1). Si cada ficha compone por su cuenta
+   cabecera, importe, metadatos y categorías, vuelven a separarse en cuanto se toca una de ellas;
+   por eso estas piezas viven en el módulo compartido y ambos modos pasan exactamente por aquí. */
+function expenseTopCategories(expenses, currentId, catalog){
+  const all=(catalog||CATEGORIES).slice();
+  const valid={}; all.forEach(function(c){ valid[c.id]=c; });
+  const counts={}; const since=Date.now()-90*86400000;
+  (expenses||[]).forEach(function(e){
+    const ms=e&&dateMs(e.date);
+    if(!e || e.amount<0 || !valid[e.category] || !isFinite(ms) || ms<since) return;
+    counts[e.category]=(counts[e.category]||0)+1;
+  });
+  const order={}; all.forEach(function(c,i){ order[c.id]=i; });
+  const top=all.slice().sort(function(a,b){
+    return (counts[b.id]||0)-(counts[a.id]||0) || order[a.id]-order[b.id];
+  }).slice(0,8);
+  if(currentId && valid[currentId] && !top.some(function(c){ return c.id===currentId; })){
+    if(top.length>=8) top[top.length-1]=valid[currentId]; else top.push(valid[currentId]);
+  }
+  return top;
+}
+function ExpenseCategoryGrid({items, selected, onPick, testPrefix}){
+  return React.createElement("div",{className:"v4-ficha-cats","data-testid":testPrefix||"expense-cats"},
+    (items||[]).map(function(c){
+      return React.createElement("button",{key:c.id,type:"button",className:"v4-ficha-cat"+(selected===c.id?" on":""),
+        "data-testid":(testPrefix||"expense-cat")+"-"+c.id,onClick:function(){ onPick(c.id); }},
+        React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},c.icon),
+        React.createElement("span",null,catName(c.id)+(c.suggested?" ✨":"")));
+    })
+  );
+}
+function ExpenseCategorySheet({open, onClose, items, selected, onPick}){
+  useBackClose(!!open,onClose);
+  const swipe=useSheetSwipe(!!open,onClose);
+  if(!open) return null;
+  return ReactDOM.createPortal(
+    React.createElement("div",{className:"v4-sheet-back v4-ficha-cat-back",onClick:onClose},
+      React.createElement("div",Object.assign({className:"v4-sheet v4-ficha-cat-sheet",ref:swipe.sheetRef,
+        onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
+        React.createElement("div",{className:"v4-sheet-handle"}),
+        React.createElement("div",{className:"v4-section-h"},
+          React.createElement("span",{className:"serif",style:{fontSize:22,fontWeight:600}},t("f_cat_all_title")),
+          React.createElement("button",{type:"button",className:"link","aria-label":t("au_close"),onClick:onClose},"✕")),
+        React.createElement(ExpenseCategoryGrid,{items:items,selected:selected,testPrefix:"expense-all-cat",onPick:function(id){ onPick(id); onClose(); }})
+      )
+    ),document.body);
+}
+function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpty, currency,
+  onCurrency, locked, onLocked, focused, concept, onConcept, onConceptBlur, fxHint, meta,
+  afterMeta, categoryItems, allCategoryItems, category, onCategory, onAllCategories,
+  adjustments, numpad, footer, testPrefix}){
+  const isIn=kind==="ingreso";
+  return React.createElement(React.Fragment,null,
+    React.createElement("div",{className:"v4-sheet-body v4-ficha-body","data-testid":testPrefix||"expense-ficha"},
+      React.createElement("div",{className:"v4-ficha-head"},
+        React.createElement("div",{className:"v4-seg v4-ficha-seg"},
+          React.createElement("button",{type:"button",className:"v4-seg-btn"+(!isIn?" on":""),onClick:function(){ onKind("gasto"); }},t("v4_gasto")),
+          React.createElement("button",{type:"button",className:"v4-seg-btn"+(isIn?" on":""),onClick:function(){ onKind("ingreso"); }},t("v4_ingreso"))),
+        React.createElement("button",{type:"button",className:"v4-ficha-date",onClick:onDate},dateLabel)),
+      React.createElement("div",{className:"v4-ficha-amount-row"},
+        React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),
+          "aria-label":t("f_amount_aria"),onClick:locked?onLocked:undefined},amount),
+        React.createElement("button",{type:"button",className:"v4-ficha-currency"+(locked?" locked":""),
+          onClick:locked?onLocked:onCurrency},currency+(locked?" 🔒":" ▾"))),
+      React.createElement("div",{className:"v4-ficha-focus"+(focused?" on":"")}),
+      fxHint && React.createElement("div",{className:"v4-ficha-fx"},fxHint),
+      React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
+        onChange:function(e){ onConcept(e.target.value); },onBlur:onConceptBlur}),
+      React.createElement("div",{className:"v4-ficha-meta"},(meta||[]).map(function(m){
+        return React.createElement("button",{key:m.id,type:"button",className:"v4-ficha-meta-pill"+(m.on?" on":"")+(m.locked?" locked":""),
+          "data-testid":m.testId,onClick:m.locked?onLocked:m.onClick},m.lead||null,React.createElement("span",null,m.label),m.locked?React.createElement("span",{"aria-hidden":"true"},"🔒"):null);
+      })),
+      afterMeta||null,
+      !isIn && React.createElement(React.Fragment,null,
+        React.createElement("div",{className:"v4-ficha-cat-title"},
+          React.createElement("span",null,t("f_cat")),
+          React.createElement("button",{type:"button",onClick:onAllCategories},tf("f_cat_all",{n:(allCategoryItems||[]).length}))),
+        React.createElement(ExpenseCategoryGrid,{items:categoryItems,selected:category,onPick:onCategory,testPrefix:(testPrefix||"expense")+"-cat"})),
+      adjustments||null,
+      numpad||null
+    ),
+    footer||null
+  );
+}
+

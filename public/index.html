@@ -1054,6 +1054,57 @@
   .v4-exp-name::placeholder{color:var(--muted-2);font-weight:600;}
   .v4-exp-meta{font-size:12.5px;color:var(--muted);font-weight:600;margin-top:2px;}
   .v4-exp-sec{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted-2);margin:4px 2px 8px;}
+  /* Ficha v4.1: Apuntar y Modificar comparten estas piezas. La jerarquía deja el importe y el
+     concepto arriba y evita los tres carruseles que obligaban a buscar cada ajuste. */
+  .v4-ficha-body{padding:0 1px 2px;}
+  .v4-ficha-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;}
+  .v4-ficha-seg{width:174px;margin:0;padding:3px;border-radius:14px;}
+  .v4-ficha-seg .v4-seg-btn{min-height:36px;padding:6px 8px;font-size:12.5px;border-radius:10px;}
+  .v4-ficha-date{min-height:44px;padding:0 4px;color:var(--muted-2);font-size:12.5px;font-weight:700;text-transform:capitalize;}
+  .v4-ficha-amount-row{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:1px;}
+  .v4-ficha-amount{min-height:58px;max-width:calc(100% - 82px);border:0;background:transparent;color:var(--text);
+    font-size:clamp(40px,13vw,56px);font-weight:550;font-variation-settings:"opsz" 40;letter-spacing:-2px;
+    font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0;}
+  .v4-ficha-amount.empty{color:var(--muted-2);}
+  .v4-ficha-currency{height:30px;min-width:58px;padding:0 9px;border-radius:15px;background:var(--sur);border:1px solid var(--line-soft);
+    color:var(--text);font-size:12px;font-weight:800;white-space:nowrap;}
+  .v4-ficha-currency.locked{color:var(--muted);}
+  .v4-ficha-focus{width:96px;height:2px;border-radius:2px;background:var(--mint);margin:1px auto 7px;transform:scaleX(0);
+    transition:transform .5s var(--ease);transform-origin:center;}
+  .v4-ficha-focus.on{transform:scaleX(1);}
+  .v4-ficha-fx{text-align:center;color:var(--muted);font-size:12.5px;line-height:1.35;margin:-1px 0 7px;}
+  .v4-ficha-concept.v4-input{font-size:17px;font-weight:700;padding:2px 10px 10px;margin:0;background:transparent;border:0;border-radius:0;text-align:center;}
+  .v4-ficha-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:0 0 12px;}
+  .v4-ficha-meta-pill{height:40px;min-width:0;padding:0 8px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);
+    display:flex;align-items:center;justify-content:center;gap:5px;color:var(--muted);font-size:11.5px;font-weight:750;white-space:nowrap;overflow:hidden;}
+  .v4-ficha-meta-pill span{overflow:hidden;text-overflow:ellipsis;}
+  .v4-ficha-meta-pill.on{background:rgba(95,208,138,.12);border-color:var(--mint-deep);color:var(--mint);}
+  .v4-ficha-meta-pill.locked{border-style:dashed;}
+  .v4-ficha-trace{display:flex;align-items:flex-start;gap:10px;padding:13px 14px;margin:1px 0 14px;border-radius:18px;
+    background:rgba(127,181,232,.07);border:1px solid rgba(127,181,232,.28);}
+  .v4-ficha-trace-copy{min-width:0;flex:1;}
+  .v4-ficha-trace-title{color:var(--blue);font-size:13.5px;font-weight:800;line-height:1.3;margin-bottom:3px;}
+  .v4-ficha-trace-sub{color:var(--muted);font-size:12px;line-height:1.4;overflow-wrap:anywhere;}
+  .v4-ficha-cat-title{display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px;font-size:11px;font-weight:800;
+    letter-spacing:1.1px;text-transform:uppercase;color:var(--muted-2);}
+  .v4-ficha-cat-title button{min-height:44px;margin:-12px -4px -12px 0;padding:0 4px;color:var(--mint);font-size:12px;font-weight:800;
+    letter-spacing:0;text-transform:none;}
+  .v4-ficha-cats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:12px;}
+  .v4-ficha-cat{min-height:62px;padding:6px 3px;border-radius:15px;background:var(--sur);border:1px solid var(--line-soft);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);font-size:10.5px;font-weight:700;line-height:1.1;overflow:hidden;}
+  .v4-ficha-cat.on{background:rgba(108,198,136,.16);border-color:var(--mint-deep);color:var(--text);}
+  .v4-ficha-cat-icon{font-size:19px;line-height:1;overflow:visible !important;}
+  .v4-ficha-cat-sheet{max-height:80dvh;}
+  .v4-ficha-adjust{border-top:1px solid var(--line-soft);margin:4px 0 10px;}
+  .v4-ficha-adjust-row{width:100%;min-height:44px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line-soft);
+    color:var(--text);font-size:13px;text-align:left;}
+  .v4-ficha-adjust-row .value{margin-left:auto;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);}
+  .v4-ficha-adjust-row .chev{color:var(--muted-2);font-size:17px;}
+  .v4-ficha-adjust-open{padding:9px 0 3px;}
+  .v4-ficha-foot{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;
+    padding-top:8px;border-top:1px solid var(--line-soft);}
+  .v4-ficha-del{min-height:44px;color:var(--coral);font-size:12.5px;font-weight:800;text-align:left;}
+  .v4-ficha-saved{color:var(--muted-2);font-size:11.5px;font-weight:700;text-align:right;}
   html.sheet-open,html.sheet-open body{overflow:hidden;overscroll-behavior:none;}
   /* Solo .page (no .track/.viewport): overflow en el track + translateX de tabs ≠ Inicio
      clippea la página visible y deja el body oscuro detrás del + / editar gasto (2026-07-17). */
@@ -1214,7 +1265,7 @@
   @keyframes v4bar{from{transform:scaleX(0);}to{transform:scaleX(1);}}
   .rise{animation:rise .32s var(--ease) both;}
   @media (prefers-reduced-motion:reduce){
-    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-gastos-progress i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up{animation:none !important;transition:none !important;}
+    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-gastos-progress i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus{animation:none !important;transition:none !important;}
   }
 
   /* «Gestionar recibos» y «Herramientas de inversión» viven en un sheet v4 pero por dentro
@@ -4378,6 +4429,14 @@ const LANG = {
     v4_moved_cat:"Movido a {cat}", v4_exp_auto:"entró solo", v4_exp_manual:"a mano",
     v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Esto no se puede deshacer.",
     v4_exp_amount:"Importe", v4_exp_merchant_ph:"Comercio o concepto",
+    f_amount_aria:"Importe", f_concept_ph:"Toca para escribir el concepto", f_cat:"Categoría",
+    f_cat_all:"Las {n} ›", f_cat_all_title:"Todas las categorías", f_meta_cash:"Efectivo", f_meta_today:"Hoy",
+    f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingreso de {x}", f_autosaved:"Se guarda al momento ✓", f_del:"Borrar gasto",
+    f_note_row:"Nota", f_note_none:"Sin nota", f_debt_row:"Es la cuota de una deuda", f_income_row:"Es un ingreso, no un gasto", f_no:"No",
+    f_from_bank:"Lo trajo una notificación de {bank}", f_from_bank_sub:"{date} · «{raw}» · importe y banco bloqueados 🔒",
+    f_trace_missing:"— texto original no disponible",
+    f_locked_toast:"El importe lo manda el banco. Si está mal, cámbialo desde la app del banco.",
+    f_fx_eq:"= {x} con el cambio del {date}", f_undo_deleted:"Gasto borrado", f_undo:"Deshacer",
     v4_exp_cat:"Categoría", v4_exp_type:"Tipo",
     // Concepto del movimiento (petición del padre 2026-07-24: «solo salía el título y tenía que
     // ir al banco todo el rato para saber lo que era»).
@@ -7229,6 +7288,91 @@ function NumPad({value, onChange}){
   );
 }
 
+/* Anatomía común de Apuntar y Modificar (rediseño v4.1). Si cada ficha compone por su cuenta
+   cabecera, importe, metadatos y categorías, vuelven a separarse en cuanto se toca una de ellas;
+   por eso estas piezas viven en el módulo compartido y ambos modos pasan exactamente por aquí. */
+function expenseTopCategories(expenses, currentId, catalog){
+  const all=(catalog||CATEGORIES).slice();
+  const valid={}; all.forEach(function(c){ valid[c.id]=c; });
+  const counts={}; const since=Date.now()-90*86400000;
+  (expenses||[]).forEach(function(e){
+    const ms=e&&dateMs(e.date);
+    if(!e || e.amount<0 || !valid[e.category] || !isFinite(ms) || ms<since) return;
+    counts[e.category]=(counts[e.category]||0)+1;
+  });
+  const order={}; all.forEach(function(c,i){ order[c.id]=i; });
+  const top=all.slice().sort(function(a,b){
+    return (counts[b.id]||0)-(counts[a.id]||0) || order[a.id]-order[b.id];
+  }).slice(0,8);
+  if(currentId && valid[currentId] && !top.some(function(c){ return c.id===currentId; })){
+    if(top.length>=8) top[top.length-1]=valid[currentId]; else top.push(valid[currentId]);
+  }
+  return top;
+}
+function ExpenseCategoryGrid({items, selected, onPick, testPrefix}){
+  return React.createElement("div",{className:"v4-ficha-cats","data-testid":testPrefix||"expense-cats"},
+    (items||[]).map(function(c){
+      return React.createElement("button",{key:c.id,type:"button",className:"v4-ficha-cat"+(selected===c.id?" on":""),
+        "data-testid":(testPrefix||"expense-cat")+"-"+c.id,onClick:function(){ onPick(c.id); }},
+        React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},c.icon),
+        React.createElement("span",null,catName(c.id)+(c.suggested?" ✨":"")));
+    })
+  );
+}
+function ExpenseCategorySheet({open, onClose, items, selected, onPick}){
+  useBackClose(!!open,onClose);
+  const swipe=useSheetSwipe(!!open,onClose);
+  if(!open) return null;
+  return ReactDOM.createPortal(
+    React.createElement("div",{className:"v4-sheet-back v4-ficha-cat-back",onClick:onClose},
+      React.createElement("div",Object.assign({className:"v4-sheet v4-ficha-cat-sheet",ref:swipe.sheetRef,
+        onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
+        React.createElement("div",{className:"v4-sheet-handle"}),
+        React.createElement("div",{className:"v4-section-h"},
+          React.createElement("span",{className:"serif",style:{fontSize:22,fontWeight:600}},t("f_cat_all_title")),
+          React.createElement("button",{type:"button",className:"link","aria-label":t("au_close"),onClick:onClose},"✕")),
+        React.createElement(ExpenseCategoryGrid,{items:items,selected:selected,testPrefix:"expense-all-cat",onPick:function(id){ onPick(id); onClose(); }})
+      )
+    ),document.body);
+}
+function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpty, currency,
+  onCurrency, locked, onLocked, focused, concept, onConcept, onConceptBlur, fxHint, meta,
+  afterMeta, categoryItems, allCategoryItems, category, onCategory, onAllCategories,
+  adjustments, numpad, footer, testPrefix}){
+  const isIn=kind==="ingreso";
+  return React.createElement(React.Fragment,null,
+    React.createElement("div",{className:"v4-sheet-body v4-ficha-body","data-testid":testPrefix||"expense-ficha"},
+      React.createElement("div",{className:"v4-ficha-head"},
+        React.createElement("div",{className:"v4-seg v4-ficha-seg"},
+          React.createElement("button",{type:"button",className:"v4-seg-btn"+(!isIn?" on":""),onClick:function(){ onKind("gasto"); }},t("v4_gasto")),
+          React.createElement("button",{type:"button",className:"v4-seg-btn"+(isIn?" on":""),onClick:function(){ onKind("ingreso"); }},t("v4_ingreso"))),
+        React.createElement("button",{type:"button",className:"v4-ficha-date",onClick:onDate},dateLabel)),
+      React.createElement("div",{className:"v4-ficha-amount-row"},
+        React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),
+          "aria-label":t("f_amount_aria"),onClick:locked?onLocked:undefined},amount),
+        React.createElement("button",{type:"button",className:"v4-ficha-currency"+(locked?" locked":""),
+          onClick:locked?onLocked:onCurrency},currency+(locked?" 🔒":" ▾"))),
+      React.createElement("div",{className:"v4-ficha-focus"+(focused?" on":"")}),
+      fxHint && React.createElement("div",{className:"v4-ficha-fx"},fxHint),
+      React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
+        onChange:function(e){ onConcept(e.target.value); },onBlur:onConceptBlur}),
+      React.createElement("div",{className:"v4-ficha-meta"},(meta||[]).map(function(m){
+        return React.createElement("button",{key:m.id,type:"button",className:"v4-ficha-meta-pill"+(m.on?" on":"")+(m.locked?" locked":""),
+          "data-testid":m.testId,onClick:m.locked?onLocked:m.onClick},m.lead||null,React.createElement("span",null,m.label),m.locked?React.createElement("span",{"aria-hidden":"true"},"🔒"):null);
+      })),
+      afterMeta||null,
+      !isIn && React.createElement(React.Fragment,null,
+        React.createElement("div",{className:"v4-ficha-cat-title"},
+          React.createElement("span",null,t("f_cat")),
+          React.createElement("button",{type:"button",onClick:onAllCategories},tf("f_cat_all",{n:(allCategoryItems||[]).length}))),
+        React.createElement(ExpenseCategoryGrid,{items:categoryItems,selected:category,onPick:onCategory,testPrefix:(testPrefix||"expense")+"-cat"})),
+      adjustments||null,
+      numpad||null
+    ),
+    footer||null
+  );
+}
+
 /* ============================================================
    TAB: INICIO (v4) — SPEC-v4.md §3
    ============================================================ */
@@ -7865,6 +8009,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // Cambia el BANCO de un gasto manual (petición 2026-07-18). Solo manuales: los de OB/TR ya
   // vienen con su banco real y cambiárselo sería mentirse.
   const setBank=function(ex,b){
+    if(ex && ex.source && ex.source!=="manual") return;
     set(function(s){ return Object.assign({},s,{expenses:s.expenses.map(function(e){ return e.id===ex.id?Object.assign({},e,{ent:b||undefined}):e; })}); });
     if(cloud.enabled()) cloud.setExpenseBank(ex,b).catch(function(){});   // durable (source manual:banco)
   };
@@ -7912,9 +8057,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   },[focusExp, state.expenses]);
   const saveEdit=function(orig, extra){
     const ed=Object.assign({}, editExp, extra||{});
-    const amt=parseFloat(String(ed.amount).replace(',','.'))||0;
+    const locked=!!(orig.source && orig.source!=="manual");
+    const amt=locked?Math.abs(orig.amount):(parseFloat(String(ed.amount).replace(',','.'))||0);
     if(amt<=0){ showToast(t("g_invalid")); return; }
-    const signed=ed.income? -amt : amt;
+    const signed=locked?orig.amount:(ed.income? -amt : amt);
     const merch=(ed.merchant||"").trim()||orig.merchant;
     /* NO se pone `editExp` a null: eso CONGELABA LA PANTALLA (bug suyo 2026-08-17, «al modificarlo
        y guardarlo se bloquea, solo si tiras para atrás puedes seguir»). El sheet decide si pintarse
@@ -8461,7 +8607,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     detailId && React.createElement(ExpenseDetailSheet,{
       exp:(state.expenses||[]).find(function(e){ return e.id===detailId; }),
       editExp:editExp, setEditExp:setEditExp,
-      onClose:function(){ setDetailId(null); setEditExp(null); },
+      // Cerrar también guarda el último dígito del teclado. Borrar pasa `true` para no resucitar
+      // el gasto con un guardado tardío en el mismo lote de React.
+      onClose:function(skipSave){
+        const ex=(state.expenses||[]).find(function(e){ return e.id===detailId; });
+        if(!skipSave && ex && editExp) saveEdit(ex);
+        setDetailId(null); setEditExp(null);
+      },
       setCat:setCat, setCuota:setCuota, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
       resolveDup:resolveDup,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
@@ -8667,109 +8819,124 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   useBackClose(abierto, onClose);
   const swipe=useSheetSwipe(abierto, onClose);
   const [calOpen,setCalOpen]=useState(false);
-  useEffect(function(){ if(!abierto) setCalOpen(false); },[abierto, exp&&exp.id]);
+  const [bankOpen,setBankOpen]=useState(false);
+  const [allCatsOpen,setAllCatsOpen]=useState(false);
+  const [adjustOpen,setAdjustOpen]=useState(null);
+  const auto=!!(exp && exp.source && exp.source!=="manual");
+  const categoryCatalog=useMemo(function(){ return CATEGORIES.concat([INVERSION_CAT,TRASPASO_CAT]); },[]);
+  const fichaCats=useMemo(function(){
+    return expenseTopCategories(state.expenses,exp&&exp.category,categoryCatalog);
+  },[state.expenses,exp&&exp.category]);
+  useEffect(function(){
+    if(!abierto){ setCalOpen(false); setBankOpen(false); setAllCatsOpen(false); setAdjustOpen(null); }
+  },[abierto,exp&&exp.id]);
+  // Modificar no tiene botón Guardar. El pequeño debounce evita una escritura del histórico por
+  // cada dígito sin convertir «se guarda al momento» en «se guarda al cerrar».
+  useEffect(function(){
+    if(!abierto || auto) return undefined;
+    const typed=parseFloat(String(editExp.amount||"").replace(',','.'))||0;
+    if(Math.abs(typed-Math.abs(exp.amount))<0.005) return undefined;
+    const tm=setTimeout(function(){ saveEdit(exp); },350);
+    return function(){ clearTimeout(tm); };
+  },[abierto,auto,exp&&exp.id,exp&&exp.amount,editExp&&editExp.amount]);
   if(!abierto) return null;
-  const c=catOf(exp.category);
   const isIncome=exp.amount<0 || !!editExp.income;
   const bk=expenseBankOf(exp);
-  const auto=exp.source && exp.source!=="manual";
   const dateIso=String(editExp.date||exp.date||"").slice(0,10);
   const closeSave=function(){ saveEdit(exp); };   // blur solo guarda; no cierra (cerrar al cambiar cat saltaba de pantalla — feedback 2026-07-17)
-  const doSaveClose=function(){ saveEdit(exp); onClose(); };
   const doDel=function(){
     askConfirm({ title:tf("v4_exp_del_q",{name:(exp.merchant||"—")+" · "+eur(Math.abs(exp.amount))}), sub:t("v4_exp_del_sub"), ok:t("v4_exp_del"), danger:true })
-      .then(function(yes){ if(!yes) return; delExpense(exp); onClose(); });
+      .then(function(yes){ if(!yes) return; delExpense(exp); onClose(true); });
   };
-  /* LO QUE MARCABA EL PRECIO (2026-08-06, para el crucero). El importe de arriba es el euro
-     convertido —la app cuenta en euros— pero si el apunte se hizo en otra moneda, aquí se ve lo
-     que ponía de verdad: «1.520,00 ₺». Sin esto, un viaje entero queda en el histórico como euros
-     pelados y no hay forma de saber qué se pagó en qué. */
-  const origLbl=(exp.origCur && exp.origAmount>0)
-    ? NF.format(Math.abs(exp.origAmount))+" "+(CUR_SYM[exp.origCur]||exp.origCur)
-    : null;
-  const metaBits=[origLbl, bk?entOf(bk).label:null, auto?t("v4_exp_auto"):t("v4_exp_manual")].filter(Boolean);
-  return ReactDOM.createPortal(
+  const lockedToast=function(){ showToast(t("f_locked_toast")); };
+  const bankOpts=(function(){
+    const seen={},out=[];
+    (state.accounts||[]).forEach(function(a){ if(a&&a.ent&&!seen[a.ent]){ seen[a.ent]=1; out.push(a.ent); } });
+    return out;
+  })();
+  const traceRaw=String(exp.rawText||exp.notificationText||exp.raw||"").trim()||t("f_trace_missing");
+  const traceDate=(function(){
+    const d=exp.notifiedAt||exp.createdAt;
+    if(!d) return fmtIsoCorto(exp.date);
+    const parsed=new Date(d);
+    return isNaN(parsed.getTime())?fmtIsoCorto(exp.date):parsed.toLocaleString(loc(),{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+  })();
+  const fxHint=(exp.origCur&&exp.origAmount>0) ? (
+    NF.format(Math.abs(exp.origAmount))+" "+(CUR_SYM[exp.origCur]||exp.origCur)+" · "+
+    tf("f_fx_eq",{x:NF.format(Math.abs(exp.amount))+" €",date:fmtIsoCorto(state.fxDate||exp.date)})
+  ) : null;
+  const trace=auto && React.createElement("div",{className:"v4-ficha-trace","data-testid":"exp-trace"},
+    bk?React.createElement(Mono,{ent:bk,size:34}):React.createElement("div",{className:"mono",style:{width:34,height:34}},"🏦"),
+    React.createElement("div",{className:"v4-ficha-trace-copy"},
+      React.createElement("div",{className:"v4-ficha-trace-title"},tf("f_from_bank",{bank:bk?entOf(bk).label:t("bp_hist_bank_unknown")})),
+      React.createElement("div",{className:"v4-ficha-trace-sub"},tf("f_from_bank_sub",{date:traceDate,raw:traceRaw}))));
+  const meta=[
+    {id:"bank",testId:"exp-bank",label:bk?entOf(bk).label:t("ap_bank_none"),lead:bk?React.createElement(Mono,{ent:bk,size:18}):React.createElement("span",null,"🏦"),
+      on:bankOpen,locked:auto,onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }},
+    {id:"cash",testId:"exp-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bk==="efectivo",locked:auto,
+      onClick:function(){ setBank(exp,bk==="efectivo"?null:"efectivo"); }},
+    {id:"date",testId:"exp-date",label:fmtIsoCorto(dateIso),lead:React.createElement("span",null,"📅"),on:calOpen,
+      onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }}
+  ];
+  const duplicate=exp.possibleDup && React.createElement("div",{className:"hint",style:{margin:"0 0 12px",padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
+    React.createElement("div",{style:{fontWeight:600,marginBottom:4}},t("g_dup_title")),
+    React.createElement("div",{style:{marginBottom:10}},t("g_dup_sub")),
+    React.createElement("div",{className:"row",style:{gap:8}},
+      React.createElement("button",{type:"button",className:"btn btn-primary",style:{flex:1},onClick:function(){ resolveDup&&resolveDup(exp,true); onClose(true); }},t("g_dup_same")),
+      React.createElement("button",{type:"button",className:"btn btn-ghost",style:{flex:1},onClick:function(){ resolveDup&&resolveDup(exp,false); onClose(true); }},t("g_dup_diff"))));
+  const afterMeta=React.createElement(React.Fragment,null,
+    calOpen && React.createElement(McCal,{value:dateIso,onPick:function(iso){ setCalOpen(false); saveEdit(exp,{date:iso}); }}),
+    bankOpen && !auto && bankOpts.length>0 && React.createElement("div",{className:"v4-chips wrap","data-testid":"exp-bank-list"},
+      React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
+      bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
+        onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
+    trace,duplicate);
+  const debtOptions=(state.debts||[]).filter(function(d){ return d&&d.id; });
+  const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
+    React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="note"?null:"note"); }},
+      React.createElement("span",null,t("f_note_row")),React.createElement("span",{className:"value"},editExp.note||t("f_note_none")),React.createElement("span",{className:"chev"},"›")),
+    adjustOpen==="note" && React.createElement("div",{className:"v4-ficha-adjust-open"},
+      React.createElement("input",{className:"v4-exp-note-in",value:editExp.note||"",maxLength:160,placeholder:t("v4_exp_note_ph"),
+        onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{note:v}); }); },
+        onBlur:function(){ saveNote(exp,editExp.note); },"aria-label":t("v4_exp_note")})),
+    !isIncome && debtOptions.length>0 && React.createElement(React.Fragment,null,
+      React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="debt"?null:"debt"); }},
+        React.createElement("span",null,t("f_debt_row")),React.createElement("span",{className:"value"},exp.debtId?catName("deudas"):t("f_no")),React.createElement("span",{className:"chev"},"›")),
+      adjustOpen==="debt" && React.createElement("div",{className:"v4-chips wrap v4-ficha-adjust-open","data-testid":"exp-cuota-de"},
+        debtOptions.map(function(d){ const on=exp.category==="deudas"&&exp.debtId===d.id; return React.createElement("button",{key:d.id,type:"button",className:"v4-chip"+(on?" on":""),
+          onClick:function(){ if(!on) setCuota(exp,d.id); }},DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas"))); }))),
+    React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){
+      if(auto){ lockedToast(); return; }
+      const income=!editExp.income; setEditExp(function(p){ return Object.assign({},p,{income:income}); }); saveEdit(exp,{income:income});
+    }},React.createElement("span",null,t("f_income_row")),React.createElement("span",{className:"value"},editExp.income?"✓":t("f_no")),React.createElement("span",{className:"chev"},"›")),
+    !isIncome && React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setCardFlag(exp,!exp.noCard); }},
+      React.createElement("span",null,exp.noCard?("💸 "+t("v4_exp_not_card")):("💳 "+t("v4_exp_with_card"))),React.createElement("span",{className:"value"},exp.noCard?t("f_no"):"✓"),React.createElement("span",{className:"chev"},"›")),
+    cloud.enabled() && !isIncome && React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",disabled:aiBusy,onClick:function(){ suggestAi(exp); }},
+      React.createElement("span",null,aiBusy?t("ai_cat_busy"):t("ai_cat_btn")),React.createElement("span",{className:"chev"},"›"))
+  );
+  const amountChange=auto?function(){ lockedToast(); }:function(updater){
+    setEditExp(function(p){ const v=typeof updater==="function"?updater(p.amount):updater; return Object.assign({},p,{amount:v}); });
+  };
+  const footer=React.createElement("div",{className:"v4-ficha-foot"},
+    React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
+    React.createElement("span",{className:"v4-ficha-saved"},t("f_autosaved")));
+  const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
       React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",style:{maxHeight:"90dvh"},ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
-        React.createElement("div",{className:"v4-sheet-body"},
-          React.createElement("div",{className:"v4-exp-hero"},
-            React.createElement("div",{className:"v4-exp-ico",style:{borderColor:c.color+"55",color:c.color,background:c.color+"18"}}, c.icon),
-            React.createElement("input",{className:"v4-exp-amt num serif",inputMode:"decimal",value:editExp.amount,onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{amount:v}); }); },onBlur:closeSave,"aria-label":t("v4_exp_amount")}),
-            React.createElement("input",{className:"v4-exp-name",value:editExp.merchant,placeholder:t("v4_exp_merchant_ph"),onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{merchant:v}); }); },onBlur:closeSave}),
-            React.createElement("div",{className:"v4-exp-meta"}, metaBits.join(" · "))
-          ),
-          exp.possibleDup && React.createElement("div",{className:"hint",style:{marginTop:10,padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
-            React.createElement("div",{style:{fontWeight:600,marginBottom:4}}, t("g_dup_title")),
-            React.createElement("div",{style:{marginBottom:10}}, t("g_dup_sub")),
-            React.createElement("div",{className:"row",style:{gap:8}},
-              React.createElement("button",{type:"button",className:"btn btn-primary",style:{flex:1},onClick:function(){ resolveDup && resolveDup(exp,true); onClose(); }}, t("g_dup_same")),
-              React.createElement("button",{type:"button",className:"btn btn-ghost",style:{flex:1},onClick:function(){ resolveDup && resolveDup(exp,false); onClose(); }}, t("g_dup_diff"))
-            )
-          ),
-          React.createElement("div",{className:"v4-exp-sec",style:{marginTop:12}}, t("ap_date")),
-          React.createElement("div",{className:"v4-chips"},
-            React.createElement("button",{type:"button",className:"v4-chip"+(calOpen?" on":""),"data-testid":"exp-date",
-              onClick:function(){ setCalOpen(function(v){ return !v; }); }},
-              "📅 "+fmtIsoCorto(dateIso))
-          ),
-          calOpen && React.createElement(McCal,{value:dateIso, onPick:function(iso){
-            setCalOpen(false);
-            saveEdit(exp, {date:iso});
-          }}),
-          React.createElement("div",{className:"v4-exp-sec",style:{marginTop:14}}, t("v4_exp_note")),
-          React.createElement("input",{className:"v4-exp-note-in",value:editExp.note||"",maxLength:160,
-            placeholder:t("v4_exp_note_ph"),
-            onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{note:v}); }); },
-            onBlur:function(){ saveNote(exp, editExp.note); },"aria-label":t("v4_exp_note")}),
-          (exp.note && !exp.noteEdited) && React.createElement("div",{className:"hint",style:{marginTop:5}}, t("v4_exp_note_bank")),
-          !isIncome && React.createElement(React.Fragment,null,
-            React.createElement("div",{className:"v4-exp-sec"}, t("v4_exp_cat")),
-            React.createElement("div",{className:"v4-chips"},
-              CATEGORIES.concat([INVERSION_CAT,TRASPASO_CAT]).map(function(cc){
-                return React.createElement("button",{key:cc.id,type:"button",className:"v4-chip"+(cc.id===exp.category?" on":""),onClick:function(){ setCat(exp,cc.id); }}, cc.icon+" "+catName(cc.id));
-              })
-            ),
-            /* «Es la cuota de…» (4.22.2): todas las deudas, también las que ya acabaron — la cuota
-               de Cofidis que él no podía marcar era de una financiación terminada. */
-            (setCuota && (state.debts||[]).some(function(d){ return d && d.id; })) && React.createElement(React.Fragment,null,
-              React.createElement("div",{className:"v4-exp-sec",style:{marginTop:14}}, t("g_cuota_de")),
-              React.createElement("div",{className:"v4-chips","data-testid":"exp-cuota-de"},
-                (state.debts||[]).filter(function(d){ return d && d.id; }).map(function(d){
-                  const on=exp.category==="deudas" && exp.debtId===d.id;
-                  return React.createElement("button",{key:d.id,type:"button",className:"v4-chip"+(on?" on":""),onClick:function(){ if(!on) setCuota(exp,d.id); }},
-                    DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas")));
-                })
-              )
-            ),
-            React.createElement("button",{type:"button",className:"v4-sheet-row"+(exp.noCard?"":" on"),style:{marginTop:12},onClick:function(){ setCardFlag(exp,!exp.noCard); }},
-              exp.noCard?("💸 "+t("v4_exp_not_card")):("💳 "+t("v4_exp_with_card"))),
-            (!auto && setBank) && (function(){
-              const seen={}; const opts=[];
-              (state.accounts||[]).forEach(function(a){ if(a&&a.ent&&!seen[a.ent]){ seen[a.ent]=1; opts.push(a.ent); } });
-              if(!opts.length) return null;
-              return React.createElement(React.Fragment,null,
-                React.createElement("div",{className:"v4-exp-sec",style:{marginTop:14}}, t("ap_bank")),
-                React.createElement("div",{className:"v4-chips"},
-                  React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); }}, t("ap_bank_none")),
-                  opts.map(function(b){
-                    return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),onClick:function(){ setBank(exp,b); }}, "🏦 "+entOf(b).label);
-                  })
-                )
-              );
-            })(),
-            cloud.enabled() && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:8},disabled:aiBusy,onClick:function(){ suggestAi(exp); }}, aiBusy?t("ai_cat_busy"):t("ai_cat_btn"))
-          ),
-          React.createElement("div",{className:"v4-exp-sec",style:{marginTop:14}}, t("v4_exp_type")),
-          React.createElement("div",{className:"v4-toggle"},
-            React.createElement("button",{type:"button",className:!editExp.income?"on":"",onClick:function(){ setEditExp(function(p){ return Object.assign({},p,{income:false}); }); }},"💸 "+t("v4_gasto")),
-            React.createElement("button",{type:"button",className:editExp.income?"on":"",onClick:function(){ setEditExp(function(p){ return Object.assign({},p,{income:true}); }); }},"💰 "+t("v4_ingreso"))
-          )
-        ),
-        React.createElement("button",{type:"button",className:"v4-cta",style:{marginTop:16},onClick:doSaveClose}, t("fj_save")),
-        React.createElement("button",{type:"button",className:"v4-danger",onClick:doDel}, "🗑 "+t("v4_exp_del"))
+        React.createElement(ExpenseFichaLayout,{kind:editExp.income?"ingreso":"gasto",onKind:function(k){
+            if(auto){ lockedToast(); return; }
+            const income=k==="ingreso"; setEditExp(function(p){ return Object.assign({},p,{income:income}); }); saveEdit(exp,{income:income});
+          },dateLabel:fmtIsoCorto(dateIso),onDate:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); },
+          amount:String(editExp.amount||"0"),amountEmpty:!editExp.amount,currency:"€",locked:auto,onLocked:lockedToast,focused:!auto,
+          concept:editExp.merchant,onConcept:function(v){ setEditExp(function(p){ return Object.assign({},p,{merchant:v}); }); },onConceptBlur:closeSave,fxHint:fxHint,
+          meta:meta,afterMeta:afterMeta,categoryItems:fichaCats,allCategoryItems:categoryCatalog,category:exp.category,
+          onCategory:function(id){ setCat(exp,id); },onAllCategories:function(){ setAllCatsOpen(true); },adjustments:adjustments,
+          numpad:React.createElement(NumPad,{value:editExp.amount,onChange:amountChange}),footer:footer,testPrefix:"exp"})
       )
-    ), document.body);
+    ),document.body);
+  return React.createElement(React.Fragment,null,main,
+    React.createElement(ExpenseCategorySheet,{open:allCatsOpen,onClose:function(){ setAllCatsOpen(false); },items:categoryCatalog,selected:exp.category,onPick:function(id){ setCat(exp,id); }}));
 }
 
 function BudgetSheet({open, budget, onClose, onSave}){
@@ -18862,12 +19029,14 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
   // Moneda en la que tecleas el importe (NO la de pantalla). Por defecto la de visualización;
   // se puede cambiar a liras/dólares/… sin tocar Ajustes.
   const [entryCur,setEntryCur]=useState("EUR");
+  const [curOpen,setCurOpen]=useState(false);
   // Banco del apunte (petición 2026-07-18: «poder elegir el banco si apuntas un gasto manual»).
   // Opciones = los bancos de tus cuentas; por defecto la de gasto diario (lo que ya hacía Gastos).
   const [bank,setBank]=useState(null);
   const [bankOpen,setBankOpen]=useState(false);
   const [date,setDate]=useState(function(){ return isoLocal(); });
   const [calOpen,setCalOpen]=useState(false);
+  const [allCatsOpen,setAllCatsOpen]=useState(false);
   /* Sugerir categoría al escribir el concepto (13/9, opción A): palabras clave se aplican solas;
      la IA solo ofrece un chip. Lo que tocas a mano manda. */
   const [tocadaAMano,setTocadaAMano]=useState(false);
@@ -18902,7 +19071,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     if(open){
       setKind("gasto"); setRaw(""); setNote(""); setCat("super");
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
-      setDate(isoLocal()); setCalOpen(false); setBankOpen(false);
+      setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
       // Defecto = banco diario, no el sobre (aunque el sobre también sea gasto diario).
       setBank(dailyBankEnt);
       // Arranca en la moneda de pantalla (o la última que usó al apuntar en este viaje).
@@ -18939,6 +19108,9 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     }, 900);
     return function(){ clearTimeout(tKw); clearTimeout(tIa); };
   },[open, note, kind, aiOn]);
+  const fichaCats=useMemo(function(){
+    return expenseTopCategories(state.expenses,cat,CATEGORIES);
+  },[state.expenses,cat]);
   useBackClose(!!open, onClose);
   const swipe=useSheetSwipe(!!open, onClose);
   if(!open) return null;
@@ -19000,70 +19172,51 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
   const pickCat=function(id){
     setCat(id); setTocadaAMano(true); setSugKw(null);
   };
-  return ReactDOM.createPortal(
+  const visibleCats=fichaCats.map(function(c){
+    return Object.assign({},c,{suggested:sugKw===c.id && cat===c.id && !tocadaAMano});
+  });
+  const bankForPill=bank==="efectivo"?dailyBankEnt:bank;
+  const meta=[
+    {id:"bank",testId:"ap-bank",label:bankForPill?entOf(bankForPill).label:t("ap_bank_none"),
+      lead:bankForPill?React.createElement(Mono,{ent:bankForPill,size:18}):React.createElement("span",null,"🏦"),on:bankOpen,
+      onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); setCurOpen(false); }},
+    {id:"cash",testId:"ap-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bank==="efectivo",
+      onClick:function(){ setBank(function(b){ return b==="efectivo"?dailyBankEnt:"efectivo"; }); setBankOpen(false); setCalOpen(false); }},
+    {id:"date",testId:"ap-date",label:fmtIsoCorto(date),lead:React.createElement("span",null,"📅"),on:calOpen,
+      onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); setCurOpen(false); }}
+  ];
+  const afterMeta=React.createElement(React.Fragment,null,
+    curOpen && React.createElement("div",{className:"v4-chips wrap","aria-label":t("ap_cur_lbl")},
+      curChips.map(function(c){ return React.createElement("button",{key:c,type:"button",className:"v4-chip"+(entryCur===c?" on":""),
+        onClick:function(){ pickCur(c); setCurOpen(false); }},(CUR_SYM[c]||c)+" "+c); })),
+    calOpen && React.createElement(McCal,{value:date,onPick:function(iso){ setDate(iso); setCalOpen(false); }}),
+    bankOpen && bankOpts.length>0 && React.createElement("div",{className:"v4-chips wrap","data-testid":"ap-bank-list"},
+      React.createElement("button",{type:"button",className:"v4-chip"+(bank==null?" on":""),onClick:function(){ setBank(null); setBankOpen(false); }},t("ap_bank_none")),
+      bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bank===b?" on":""),
+        onClick:function(){ setBank(b); setBankOpen(false); }},bankChipLabel(b)); })),
+    chipIA && kind==="gasto" && React.createElement("div",{className:"v4-chips",style:{marginBottom:4}},
+      React.createElement("button",{type:"button",className:"v4-chip"+(cat===chipIA?" on":""),"data-testid":"ap-ia-chip",
+        onClick:function(){ pickCat(chipIA); }},"✨ "+catName(chipIA)))
+  );
+  const fxHint=entryCur!=="EUR" ? tf("f_fx_eq",{
+    x:NF.format(toEurAmt(amt,entryCur,state))+" €",date:fmtIsoCorto(state.fxDate||date)
+  }) : null;
+  const ctaAmount=NF.format(amt)+(entrySym.length>1?" ":"")+entrySym;
+  const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
-      React.createElement("div",Object.assign({className:"v4-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
+      React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
-        /* Cuerpo con scroll; Guardar fuera (shell: .v4-sheet flex + .v4-sheet-body). */
-        React.createElement("div",{className:"v4-sheet-body"},
-          React.createElement("div",{className:"v4-toggle"},
-            React.createElement("button",{className:kind==="gasto"?"on":"",onClick:function(){ setKind("gasto"); }},"💸 "+t("v4_gasto")),
-            React.createElement("button",{className:kind==="ingreso"?"on":"",onClick:function(){ setKind("ingreso"); }},"💰 "+t("v4_ingreso"))
-          ),
-          React.createElement("div",{className:"v4-apuntar-amt serif num"},
-            raw?raw+" "+entrySym:React.createElement("span",{style:{color:"var(--muted-2)"}},"0 "+entrySym)),
-          entryCur!=="EUR" && React.createElement("div",{style:{fontSize:12,color:"var(--muted)",textAlign:"center",marginTop:-4,marginBottom:6}}, t("ap_fx_hint")),
-          React.createElement("div",{className:"v4-chips","aria-label":t("ap_cur_lbl")},
-            curChips.map(function(c){
-              return React.createElement("button",{key:c,type:"button",className:"v4-chip"+(entryCur===c?" on":""),onClick:function(){ pickCur(c); }},
-                (CUR_SYM[c]||c)+" "+c);
-            })
-          ),
-          React.createElement("input",{className:"v4-input",placeholder:t("v4_apuntar_ph"),value:note,onChange:function(e){ setNote(e.target.value); }}),
-          React.createElement("div",{className:"v4-chips"},
-            React.createElement("button",{type:"button",className:"v4-chip"+(calOpen?" on":""),"data-testid":"ap-date",
-              onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }},
-              "📅 "+fmtIsoCorto(date)),
-            /* Chip directo del sobre (hotfix 13/9 review): si solo está dentro de la lista del
-               🏦, no se ve «elegir efectivo» — su queja literal. Alterna con el banco diario. */
-            hasEfectivo && React.createElement("button",{type:"button",
-              className:"v4-chip"+(bank==="efectivo"?" on":""),"data-testid":"ap-efectivo",
-              onClick:function(){
-                setCalOpen(false); setBankOpen(false);
-                setBank(function(b){ return b==="efectivo"?dailyBankEnt:"efectivo"; });
-              }},
-              "💶 "+entOf("efectivo").label),
-            bankOpts.length>0 && React.createElement("button",{type:"button",className:"v4-chip"+(bankOpen?" on":""),"data-testid":"ap-bank",
-              onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }},
-              bankChipLabel(bank))
-          ),
-          calOpen && React.createElement(McCal,{value:date, onPick:function(iso){ setDate(iso); setCalOpen(false); }}),
-          bankOpen && bankOpts.length>0 && React.createElement("div",{className:"v4-chips wrap","data-testid":"ap-bank-list"},
-            React.createElement("button",{type:"button",className:"v4-chip"+(bank==null?" on":""),onClick:function(){ setBank(null); setBankOpen(false); }}, t("ap_bank_none")),
-            bankOpts.map(function(b){
-              return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bank===b?" on":""),onClick:function(){ setBank(b); setBankOpen(false); }},
-                bankChipLabel(b));
-            })
-          ),
-          kind==="gasto" && React.createElement("div",{className:"v4-chips","data-testid":"ap-cats"},
-            chipIA && React.createElement("button",{type:"button",key:"ia_"+chipIA,
-              className:"v4-chip"+(cat===chipIA?" on":""),"data-testid":"ap-ia-chip",
-              onClick:function(){ pickCat(chipIA); }},
-              "✨ "+catName(chipIA)),
-            cats.map(function(c){
-              const sugerida=sugKw===c.id && cat===c.id && !tocadaAMano;
-              return React.createElement("button",{key:c.id,type:"button",
-                className:"v4-chip"+(cat===c.id?" on":""),"data-testid":"ap-cat-"+c.id,
-                onClick:function(){ pickCat(c.id); }},
-                c.icon+" "+catName(c.id)+(sugerida?" ✨":""));
-            })
-          ),
-          React.createElement(NumPad,{value:raw, onChange:setRaw})
-        ),
-        React.createElement("button",{className:"v4-cta",onClick:save},
-          kind==="ingreso"?t("v4_save_in"):t("v4_save_gasto"))
+        React.createElement(ExpenseFichaLayout,{kind:kind,onKind:setKind,dateLabel:fmtIsoCorto(date),
+          onDate:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); setCurOpen(false); },
+          amount:(raw||"0"),amountEmpty:!raw,currency:entrySym,onCurrency:function(){ setCurOpen(function(v){ return !v; }); setCalOpen(false); setBankOpen(false); },
+          focused:true,concept:note,onConcept:setNote,fxHint:fxHint,meta:meta,afterMeta:afterMeta,
+          categoryItems:visibleCats,allCategoryItems:cats,category:cat,onCategory:pickCat,onAllCategories:function(){ setAllCatsOpen(true); },
+          numpad:React.createElement(NumPad,{value:raw,onChange:setRaw}),testPrefix:"ap",
+          footer:React.createElement("button",{className:"v4-cta",onClick:save},kind==="ingreso"?tf("f_cta_add_in",{x:ctaAmount}):tf("f_cta_add",{x:ctaAmount}))})
       )
-    ), document.body);
+    ),document.body);
+  return React.createElement(React.Fragment,null,main,
+    React.createElement(ExpenseCategorySheet,{open:allCatsOpen,onClose:function(){ setAllCatsOpen(false); },items:cats,selected:cat,onPick:pickCat}));
 }
 
 /* Perfil personal (pull-down tipo Revolut). Datos en settings.profile — NUNCA PII de ejemplo

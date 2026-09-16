@@ -66,6 +66,7 @@ test("Ficha del movimiento: el concepto es editable y se guarda", async ({ page 
   await abreGastos(page);
 
   await page.locator("button.v4-mov").filter({ hasText: "Bizum a Pedro" }).click();
+  await page.locator(".v4-ficha-adjust-row").filter({ hasText: "Nota" }).click();
   const campo = page.locator(".v4-exp-note-in");
   await expect(campo).toBeVisible();
   await expect(campo).toHaveValue("Cena del sábado");

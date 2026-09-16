@@ -1,3 +1,17 @@
+## En curso — rediseño v4.1, ficha de gasto
+
+`ApuntarSheet` y `ExpenseDetailSheet` ya no mantienen dos interfaces que divergían: comparten la
+misma anatomía de cabecera, importe, concepto, metadatos, categorías y teclado. La rejilla prioriza
+las ocho categorías más usadas en 90 días sin expulsar la categoría actual, y el selector completo
+queda en una hoja secundaria. La multidivisa conserva el importe original y enseña la conversión
+real a euros con la fecha del tipo.
+
+Los movimientos automáticos muestran su procedencia y bloquean importe y banco tanto en el render
+como en `saveEdit`/`setBank`; una llamada accidental desde otra puerta tampoco puede desanclar el
+movimiento del saldo bancario. Modificar guarda al vuelo y conserva en Ajustes la nota, la cuota de
+deuda y la marca de tarjeta. Los E2E abren las dos fichas reales, comprueban la anatomía compartida,
+el candado bancario y los flujos anteriores de efectivo, FX, sugerencias, concepto y deudas.
+
 ## [4.25.6] - 2026-09-16
 ### El backlog de beta deja de resucitar después de promocionar
 

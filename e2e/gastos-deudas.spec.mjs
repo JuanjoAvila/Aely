@@ -82,6 +82,7 @@ test("★ su rechazo: desde la ficha se marca a mano «Es la cuota de…», tamb
   await expect(fila(page, "Cofidis")).not.toContainText("Deudas");
 
   await fila(page, "Cofidis").click();
+  await page.locator(".v4-ficha-adjust-row").filter({ hasText: "Es la cuota" }).click();
   const chips = page.locator('.v4-exp-sheet [data-testid="exp-cuota-de"] button.v4-chip');
   await expect(chips).toHaveCount(3);
   await chips.filter({ hasText: "Financiación suelo" }).click();

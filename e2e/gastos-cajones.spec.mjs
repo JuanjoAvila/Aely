@@ -117,6 +117,23 @@ test("★ guardar un cambio NO deja la pantalla muerta", async ({ page }) => {
   await expect(fila(page, "Mercadona centro")).toHaveCount(1);
 });
 
+test("ficha v4.1: un movimiento automático enseña su origen y bloquea importe y banco", async ({ page }) => {
+  await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
+  await abreGastos(page);
+
+  await fila(page, "Mercadona").click();
+  const sheet = page.locator(".v4-exp-sheet");
+  await expect(sheet.locator('[data-testid="exp-trace"]')).toBeVisible();
+  await expect(sheet.locator('[data-testid="exp-bank"]')).toHaveClass(/locked/);
+  await expect(sheet.locator(".v4-ficha-foot .v4-cta")).toHaveCount(0);
+  await expect(sheet.locator(".v4-ficha-saved")).toContainText("Se guarda al momento");
+
+  const before = await sheet.locator(".v4-ficha-amount").innerText();
+  await sheet.locator(".v4-keys").getByRole("button", { name: "9", exact: true }).click();
+  await expect(page.locator(".toast")).toContainText("El importe lo manda el banco");
+  await expect(sheet.locator(".v4-ficha-amount")).toHaveText(before);
+});
+
 test("y se puede volver a verlo todo sin dejar el filtro pegado", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
   await abreGastos(page);

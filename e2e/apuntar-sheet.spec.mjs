@@ -57,6 +57,25 @@ test("Apuntar (+): banco en pastilla que se despliega y cierre tirando hacia aba
   await expect(sheet).toHaveCount(0, { timeout: 3_000 });
 });
 
+test("Apuntar usa la ficha v4.1: cabecera compacta, tres metadatos, ocho categorías y CTA con importe", async ({ page }) => {
+  await seedLoggedInDashboard(page);
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  const dismissNews = page.getByRole("button", { name: /Entendido|Got it/i });
+  if (await dismissNews.count()) await dismissNews.first().click();
+
+  await page.locator(".botnav-fab").click();
+  const sheet = page.locator(".v4-exp-sheet");
+  await expect(sheet.locator(".v4-ficha-head .v4-seg")).toBeVisible();
+  await expect(sheet.locator(".v4-ficha-meta-pill")).toHaveCount(3);
+  await expect(sheet.locator(".v4-ficha-cats .v4-ficha-cat")).toHaveCount(8);
+  await expect(sheet.locator(".v4-keys")).toBeVisible();
+
+  await sheet.locator(".v4-keys").getByRole("button", { name: "2", exact: true }).click();
+  await sheet.locator(".v4-keys").getByRole("button", { name: "3", exact: true }).click();
+  await expect(sheet.locator(".v4-cta")).toContainText(/23/);
+});
+
 // Multidivisa 4.14.0: la moneda del apunte es INDEPENDIENTE de la de visualización.
 // Apuntas en ₺ con la app en €; el gasto se guarda convertido a euros.
 test("Apuntar en ₺ con la app en €: convierte y guarda en euros", async ({ page }) => {
@@ -88,8 +107,9 @@ test("Apuntar en ₺ con la app en €: convierte y guarda en euros", async ({ p
   await expect(sheet).toBeVisible();
   await page.waitForTimeout(450);
 
+  await sheet.locator(".v4-ficha-currency").click();
   await sheet.getByRole("button", { name: "₺ TRY", exact: true }).click();
-  await expect(sheet.locator(".v4-apuntar-amt")).toContainText("₺");
+  await expect(sheet.locator(".v4-ficha-currency")).toContainText("₺");
   for (const d of ["1", "5", "0"]) {
     await sheet.locator(".v4-keys").getByRole("button", { name: d, exact: true }).click();
   }

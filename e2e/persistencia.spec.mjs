@@ -132,7 +132,7 @@ test("apuntar un gasto SÍ reescribe el histórico", async ({ page }) => {
   await expect(page.locator(".v4-sheet")).toBeVisible();
   await page.waitForTimeout(450);
   for (const k of ["4", "2"]) await page.locator(".v4-keys button", { hasText: new RegExp(`^${k}$`) }).first().click();
-  await page.getByRole("button", { name: /Guardar gasto|Save expense|Desar despesa/i }).click();
+  await page.locator(".v4-exp-sheet > .v4-cta").click();
   await page.waitForTimeout(900);
 
   const despues = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)), KEY_EXP);
@@ -181,7 +181,7 @@ test("recargar conserva los gastos apuntados (ida y vuelta completa)", async ({ 
   await page.locator(".botnav-fab").click();
   await page.waitForTimeout(450);
   for (const k of ["9", "9"]) await page.locator(".v4-keys button", { hasText: new RegExp(`^${k}$`) }).first().click();
-  await page.getByRole("button", { name: /Guardar gasto|Save expense|Desar despesa/i }).click();
+  await page.locator(".v4-exp-sheet > .v4-cta").click();
   await page.waitForTimeout(900);
 
   await page.reload();

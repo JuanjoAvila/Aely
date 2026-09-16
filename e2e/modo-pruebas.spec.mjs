@@ -68,7 +68,7 @@ test("lo que haces en pruebas NO toca la cartera real", async ({ page }) => {
   await expect(page.locator(".v4-sheet")).toBeVisible();
   await page.waitForTimeout(450);   // fin de la animación sheetup
   for (const k of ["7", "7"]) await page.locator(".v4-keys button", { hasText: new RegExp(`^${k}$`) }).first().click();
-  await page.getByRole("button", { name: /Guardar gasto|Save expense|Desar despesa/i }).click();
+  await page.locator(".v4-exp-sheet > .v4-cta").click();
   await page.waitForTimeout(900);   // el guardado a localStorage va con debounce de 400 ms
 
   // El gasto entra en la cartera de PRUEBAS…
