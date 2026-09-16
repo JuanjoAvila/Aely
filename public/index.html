@@ -1080,6 +1080,7 @@
   .v4-ficha-meta-pill span{overflow:hidden;text-overflow:ellipsis;}
   .v4-ficha-meta-pill.on{background:rgba(95,208,138,.12);border-color:var(--mint-deep);color:var(--mint);}
   .v4-ficha-meta-pill.locked{border-style:dashed;}
+  .v4-ficha-meta-pill.disabled{opacity:.45;cursor:default;}
   .v4-ficha-trace{display:flex;align-items:flex-start;gap:10px;padding:13px 14px;margin:1px 0 14px;border-radius:18px;
     background:rgba(127,181,232,.07);border:1px solid rgba(127,181,232,.28);}
   .v4-ficha-trace-copy{min-width:0;flex:1;}
@@ -1105,6 +1106,12 @@
     padding-top:8px;border-top:1px solid var(--line-soft);}
   .v4-ficha-del{min-height:44px;color:var(--coral);font-size:12.5px;font-weight:800;text-align:left;}
   .v4-ficha-saved{color:var(--muted-2);font-size:11.5px;font-weight:700;text-align:right;}
+  .v4-undo-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + var(--safe-bottom));z-index:205;
+    width:min(calc(100% - 28px),430px);min-height:52px;padding:4px 6px 4px 16px;border-radius:16px;background:var(--sur2);
+    border:1px solid var(--line);box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;font-size:14px;font-weight:750;
+    animation:toastin .3s ease;}
+  .v4-undo-toast span{flex:1;min-width:0;}
+  .v4-undo-toast button{min-width:88px;min-height:44px;padding:0 12px;border-radius:12px;color:var(--mint);font-size:13.5px;font-weight:850;}
   html.sheet-open,html.sheet-open body{overflow:hidden;overscroll-behavior:none;}
   /* Solo .page (no .track/.viewport): overflow en el track + translateX de tabs ≠ Inicio
      clippea la página visible y deja el body oscuro detrás del + / editar gasto (2026-07-17). */
@@ -1265,7 +1272,7 @@
   @keyframes v4bar{from{transform:scaleX(0);}to{transform:scaleX(1);}}
   .rise{animation:rise .32s var(--ease) both;}
   @media (prefers-reduced-motion:reduce){
-    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-gastos-progress i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus{animation:none !important;transition:none !important;}
+    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-gastos-progress i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast{animation:none !important;transition:none !important;}
   }
 
   /* «Gestionar recibos» y «Herramientas de inversión» viven en un sheet v4 pero por dentro
@@ -4427,7 +4434,7 @@ const LANG = {
     v4_set_money:"Dinero", v4_set_app:"App",
     v4_set_tour:"Ver el tutorial", v4_set_adv:"Avanzado",
     v4_moved_cat:"Movido a {cat}", v4_exp_auto:"entró solo", v4_exp_manual:"a mano",
-    v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Esto no se puede deshacer.",
+    v4_exp_del:"Borrar", v4_exp_del_q:"¿Borrar «{name}»?", v4_exp_del_sub:"Podrás recuperarlo durante 5 segundos.",
     v4_exp_amount:"Importe", v4_exp_merchant_ph:"Comercio o concepto",
     f_amount_aria:"Importe", f_concept_ph:"Toca para escribir el concepto", f_cat:"Categoría",
     f_cat_all:"Las {n} ›", f_cat_all_title:"Todas las categorías", f_meta_cash:"Efectivo", f_meta_today:"Hoy",
@@ -7357,8 +7364,10 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
         onChange:function(e){ onConcept(e.target.value); },onBlur:onConceptBlur}),
       React.createElement("div",{className:"v4-ficha-meta"},(meta||[]).map(function(m){
-        return React.createElement("button",{key:m.id,type:"button",className:"v4-ficha-meta-pill"+(m.on?" on":"")+(m.locked?" locked":""),
-          "data-testid":m.testId,onClick:m.locked?onLocked:m.onClick},m.lead||null,React.createElement("span",null,m.label),m.locked?React.createElement("span",{"aria-hidden":"true"},"🔒"):null);
+        return React.createElement("button",{key:m.id,type:"button",disabled:!!m.disabled,
+          className:"v4-ficha-meta-pill"+(m.on?" on":"")+(m.locked?" locked":"")+(m.disabled?" disabled":""),
+          "data-testid":m.testId,onClick:m.disabled?undefined:(m.locked?onLocked:m.onClick)},m.lead||null,
+          React.createElement("span",null,m.label),m.locked?React.createElement("span",{"aria-hidden":"true"},"🔒"):null);
       })),
       afterMeta||null,
       !isIn && React.createElement(React.Fragment,null,
@@ -7861,6 +7870,12 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const [form,setForm]=useState({merchant:"",amount:"",category:"super",income:false,noCard:false,date:""});
   const [catEdit,setCatEdit]=useState(null);   // id del gasto al que estás cambiando la categoría
   const [aiBusy,setAiBusy]=useState(false);
+  const [undoDelete,setUndoDelete]=useState(null);
+  const undoDeleteRef=useRef(null);
+  const undoTimerRef=useRef(null);
+  useEffect(function(){
+    return function(){ if(undoTimerRef.current) clearTimeout(undoTimerRef.current); };
+  },[]);
   // Trabajo pesado (suscripciones) solo la 1ª vez que Gastos está activo. NO resetear al
   // salir: si no, los chips de banco parpadean al ir Resumen↔Gastos (feedback 2026-07-16).
   const [heavyOk,setHeavyOk]=useState(false);
@@ -7902,9 +7917,41 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const expensesDef=useDeferredValue(state.expenses);
   const keyOfE=keyOfExpense;
   const delExpense=function(e){
-    set(function(s){ return Object.assign({},s,{ expenses:s.expenses.filter(function(x){ return x.id!==e.id; }), deleted:pushDeleted(s.deleted, keyOfE(e)) }); });
-    if(cloud.enabled()) borrarGastoNube(e, "gastos-borrar");
-    showToast(t("g_deleted"));
+    if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    const key=keyOfE(e), list=state.expenses||[], index=list.findIndex(function(x){ return x.id===e.id; });
+    const wasCloud=cloud.enabled();
+    // La lápida entra junto con la retirada local: si la nube refresca durante los cinco segundos,
+    // no puede resucitar la fila por detrás del toast. La escritura remota sí se encadena para que
+    // Deshacer vuelva a subir el MISMO id después de que termine cualquier delete aún en vuelo.
+    set(function(s){ return Object.assign({},s,{
+      expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; }),
+      deleted:pushDeleted(s.deleted,key)
+    }); });
+    const pending={expense:e,key:key,index:index<0?list.length:index,wasCloud:wasCloud,
+      cloudDelete:wasCloud?borrarGastoNube(e,"gastos-borrar"):Promise.resolve()};
+    undoDeleteRef.current=pending; setUndoDelete(pending);
+    undoTimerRef.current=setTimeout(function(){
+      if(undoDeleteRef.current!==pending) return;
+      undoDeleteRef.current=null; undoTimerRef.current=null; setUndoDelete(null);
+    },5000);
+  };
+  const undoLastDelete=function(){
+    const pending=undoDeleteRef.current;
+    if(!pending) return;
+    if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    undoTimerRef.current=null; undoDeleteRef.current=null; setUndoDelete(null);
+    set(function(s){
+      const deleted=(s.deleted||[]).slice();
+      const di=deleted.lastIndexOf(pending.key); if(di>=0) deleted.splice(di,1);
+      const expenses=(s.expenses||[]).slice();
+      if(!expenses.some(function(x){ return x.id===pending.expense.id; })){
+        expenses.splice(Math.min(pending.index,expenses.length),0,pending.expense);
+      }
+      return Object.assign({},s,{expenses:expenses,deleted:deleted});
+    });
+    if(pending.wasCloud){
+      Promise.resolve(pending.cloudDelete).then(function(){ return subirGasto(pending.expense,"gastos-deshacer"); });
+    }
   };
   /* Posible repetido OB↔noti (2026-09-07): «es el mismo» borra la fila OB; «son distintos»
      quita la marca y la fila ya cuenta. La lápida solo al borrar (mismo camino que delExpense). */
@@ -8617,7 +8664,11 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       setCat:setCat, setCuota:setCuota, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
       resolveDup:resolveDup,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
-    })
+    }),
+    undoDelete && ReactDOM.createPortal(
+      React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"expense-undo"},
+        React.createElement("span",null,t("f_undo_deleted")),
+        React.createElement("button",{type:"button",onClick:undoLastDelete},t("f_undo"))),document.body)
   );
 }
 
@@ -19180,7 +19231,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     {id:"bank",testId:"ap-bank",label:bankForPill?entOf(bankForPill).label:t("ap_bank_none"),
       lead:bankForPill?React.createElement(Mono,{ent:bankForPill,size:18}):React.createElement("span",null,"🏦"),on:bankOpen,
       onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); setCurOpen(false); }},
-    {id:"cash",testId:"ap-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bank==="efectivo",
+    {id:"cash",testId:"ap-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bank==="efectivo",disabled:!hasEfectivo,
       onClick:function(){ setBank(function(b){ return b==="efectivo"?dailyBankEnt:"efectivo"; }); setBankOpen(false); setCalOpen(false); }},
     {id:"date",testId:"ap-date",label:fmtIsoCorto(date),lead:React.createElement("span",null,"📅"),on:calOpen,
       onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); setCurOpen(false); }}

@@ -134,6 +134,44 @@ test("ficha v4.1: un movimiento automático enseña su origen y bloquea importe 
   await expect(sheet.locator(".v4-ficha-amount")).toHaveText(before);
 });
 
+test("borrar permite deshacer y restaura el mismo id también en la nube", async ({ page }) => {
+  await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
+  await abreGastos(page);
+  await page.evaluate(() => {
+    window.__undoWrites = [];
+    cloud.deleteExpense = async (e) => {
+      window.__undoWrites.push(["delete", e.id]);
+      await new Promise((resolve) => setTimeout(resolve, 80));
+    };
+    cloud.addExpense = async (e) => { window.__undoWrites.push(["add", e.id]); };
+  });
+
+  await fila(page, "Mercadona").click();
+  await page.locator(".v4-ficha-del").click();
+  await expect(page.locator(".askback .ts-hint")).toContainText("5 segundos");
+  await page.locator(".askback .btn-primary").click();
+  await expect(fila(page, "Mercadona")).toHaveCount(0);
+
+  const undo = page.locator('[data-testid="expense-undo"]');
+  await expect(undo).toBeVisible();
+  // El toast anterior moría a 2,2 s; este sigue disponible durante la ventana prometida.
+  await page.waitForTimeout(2500);
+  await expect(undo).toBeVisible();
+  await undo.getByRole("button", { name: "Deshacer" }).click();
+  await expect(fila(page, "Mercadona")).toHaveCount(1);
+
+  await expect.poll(() => page.evaluate(() => window.__undoWrites)).toEqual([
+    ["delete", "e1"], ["add", "e1"],
+  ]);
+  await page.waitForTimeout(600);
+  const saved = await page.evaluate(() => ({
+    expenses: JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]"),
+    deleted: (JSON.parse(localStorage.getItem("micartera_v3") || "{}") || {}).deleted || [],
+  }));
+  expect(saved.expenses.filter((e) => e.id === "e1")).toHaveLength(1);
+  expect(saved.deleted).toHaveLength(0);
+});
+
 test("y se puede volver a verlo todo sin dejar el filtro pegado", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
   await abreGastos(page);

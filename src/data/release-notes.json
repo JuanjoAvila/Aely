@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.0",
+    "d": "16 sep 2026",
+    "t": {
+      "es": "Apuntar y modificar ya hablan el mismo idioma",
+      "en": "Adding and editing now share the same flow",
+      "ca": "Apuntar i modificar ja parlen el mateix idioma"
+    },
+    "items": {
+      "es": [
+        "Apuntar y abrir un gasto comparten ahora el mismo orden, teclado y categorías; la ficha enseña claramente banco, efectivo y fecha.",
+        "Los movimientos traídos por el banco explican de dónde salieron y mantienen bloqueados su importe y su cuenta.",
+        "Al borrar un gasto hay cinco segundos para deshacerlo y recuperarlo exactamente como estaba."
+      ],
+      "en": [
+        "Adding and opening an expense now share the same order, keypad and categories; the sheet clearly shows bank, cash and date.",
+        "Transactions brought in by the bank explain where they came from and keep their amount and account locked.",
+        "After deleting an expense, there are five seconds to undo and recover it exactly as it was."
+      ],
+      "ca": [
+        "Apuntar i obrir una despesa comparteixen ara el mateix ordre, teclat i categories; la fitxa mostra clarament banc, efectiu i data.",
+        "Els moviments portats pel banc expliquen d'on han sortit i mantenen bloquejats l'import i el compte.",
+        "En esborrar una despesa hi ha cinc segons per desfer-ho i recuperar-la exactament com estava."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "ficha-gasto-v41",
+        "t": {
+          "es": "Nueva ficha de gasto",
+          "en": "New expense sheet",
+          "ca": "Nova fitxa de despesa"
+        },
+        "items": {
+          "es": [
+            "1. Toca + y apunta un gasto: importe, concepto, banco, fecha, categorías y teclado deben caber y responder con fluidez.",
+            "2. Abre un movimiento del banco: debe explicar su origen y no permitir cambiar importe ni banco.",
+            "3. Borra un gasto y toca Deshacer antes de cinco segundos: debe volver una sola vez, con el mismo contenido."
+          ],
+          "en": [
+            "1. Tap + and add an expense: amount, concept, bank, date, categories and keypad should fit and respond smoothly.",
+            "2. Open a bank transaction: it should explain its origin and prevent changing its amount or bank.",
+            "3. Delete an expense and tap Undo within five seconds: it should return once with the same content."
+          ],
+          "ca": [
+            "1. Toca + i apunta una despesa: import, concepte, banc, data, categories i teclat han de cabre i respondre amb fluïdesa.",
+            "2. Obre un moviment del banc: ha d'explicar l'origen i no permetre canviar-ne l'import ni el banc.",
+            "3. Esborra una despesa i toca Desfer abans de cinc segons: ha de tornar una sola vegada, amb el mateix contingut."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.25.6",
     "d": "16 sep 2026",
     "t": {

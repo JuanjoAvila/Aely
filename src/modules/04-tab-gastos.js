@@ -100,6 +100,12 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const [form,setForm]=useState({merchant:"",amount:"",category:"super",income:false,noCard:false,date:""});
   const [catEdit,setCatEdit]=useState(null);   // id del gasto al que estás cambiando la categoría
   const [aiBusy,setAiBusy]=useState(false);
+  const [undoDelete,setUndoDelete]=useState(null);
+  const undoDeleteRef=useRef(null);
+  const undoTimerRef=useRef(null);
+  useEffect(function(){
+    return function(){ if(undoTimerRef.current) clearTimeout(undoTimerRef.current); };
+  },[]);
   // Trabajo pesado (suscripciones) solo la 1ª vez que Gastos está activo. NO resetear al
   // salir: si no, los chips de banco parpadean al ir Resumen↔Gastos (feedback 2026-07-16).
   const [heavyOk,setHeavyOk]=useState(false);
@@ -141,9 +147,41 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const expensesDef=useDeferredValue(state.expenses);
   const keyOfE=keyOfExpense;
   const delExpense=function(e){
-    set(function(s){ return Object.assign({},s,{ expenses:s.expenses.filter(function(x){ return x.id!==e.id; }), deleted:pushDeleted(s.deleted, keyOfE(e)) }); });
-    if(cloud.enabled()) borrarGastoNube(e, "gastos-borrar");
-    showToast(t("g_deleted"));
+    if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    const key=keyOfE(e), list=state.expenses||[], index=list.findIndex(function(x){ return x.id===e.id; });
+    const wasCloud=cloud.enabled();
+    // La lápida entra junto con la retirada local: si la nube refresca durante los cinco segundos,
+    // no puede resucitar la fila por detrás del toast. La escritura remota sí se encadena para que
+    // Deshacer vuelva a subir el MISMO id después de que termine cualquier delete aún en vuelo.
+    set(function(s){ return Object.assign({},s,{
+      expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; }),
+      deleted:pushDeleted(s.deleted,key)
+    }); });
+    const pending={expense:e,key:key,index:index<0?list.length:index,wasCloud:wasCloud,
+      cloudDelete:wasCloud?borrarGastoNube(e,"gastos-borrar"):Promise.resolve()};
+    undoDeleteRef.current=pending; setUndoDelete(pending);
+    undoTimerRef.current=setTimeout(function(){
+      if(undoDeleteRef.current!==pending) return;
+      undoDeleteRef.current=null; undoTimerRef.current=null; setUndoDelete(null);
+    },5000);
+  };
+  const undoLastDelete=function(){
+    const pending=undoDeleteRef.current;
+    if(!pending) return;
+    if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    undoTimerRef.current=null; undoDeleteRef.current=null; setUndoDelete(null);
+    set(function(s){
+      const deleted=(s.deleted||[]).slice();
+      const di=deleted.lastIndexOf(pending.key); if(di>=0) deleted.splice(di,1);
+      const expenses=(s.expenses||[]).slice();
+      if(!expenses.some(function(x){ return x.id===pending.expense.id; })){
+        expenses.splice(Math.min(pending.index,expenses.length),0,pending.expense);
+      }
+      return Object.assign({},s,{expenses:expenses,deleted:deleted});
+    });
+    if(pending.wasCloud){
+      Promise.resolve(pending.cloudDelete).then(function(){ return subirGasto(pending.expense,"gastos-deshacer"); });
+    }
   };
   /* Posible repetido OB↔noti (2026-09-07): «es el mismo» borra la fila OB; «son distintos»
      quita la marca y la fila ya cuenta. La lápida solo al borrar (mismo camino que delExpense). */
@@ -856,7 +894,11 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       setCat:setCat, setCuota:setCuota, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
       resolveDup:resolveDup,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
-    })
+    }),
+    undoDelete && ReactDOM.createPortal(
+      React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"expense-undo"},
+        React.createElement("span",null,t("f_undo_deleted")),
+        React.createElement("button",{type:"button",onClick:undoLastDelete},t("f_undo"))),document.body)
   );
 }
 

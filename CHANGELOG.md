@@ -1,4 +1,5 @@
-## En curso — rediseño v4.1, ficha de gasto
+## [4.26.0] - 2026-09-16
+### Rediseño v4.1 — una sola ficha para apuntar y modificar
 
 `ApuntarSheet` y `ExpenseDetailSheet` ya no mantienen dos interfaces que divergían: comparten la
 misma anatomía de cabecera, importe, concepto, metadatos, categorías y teclado. La rejilla prioriza
@@ -11,6 +12,11 @@ como en `saveEdit`/`setBank`; una llamada accidental desde otra puerta tampoco p
 movimiento del saldo bancario. Modificar guarda al vuelo y conserva en Ajustes la nota, la cuota de
 deuda y la marca de tarjeta. Los E2E abren las dos fichas reales, comprueban la anatomía compartida,
 el candado bancario y los flujos anteriores de efectivo, FX, sugerencias, concepto y deudas.
+
+El borrado deja ahora una ventana real de cinco segundos para deshacer. La retirada local y su
+lápida se escriben juntas para que un pull no resucite la fila por detrás; al deshacer se quita solo
+esa lápida, se repone el objeto en su posición y, si ya salió el delete remoto, se encadena después
+un upsert con el mismo id. Así no hay ni duplicado nuevo ni una carrera delete/add en Supabase.
 
 ## [4.25.6] - 2026-09-16
 ### El backlog de beta deja de resucitar después de promocionar

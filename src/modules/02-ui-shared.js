@@ -1159,8 +1159,10 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
       React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
         onChange:function(e){ onConcept(e.target.value); },onBlur:onConceptBlur}),
       React.createElement("div",{className:"v4-ficha-meta"},(meta||[]).map(function(m){
-        return React.createElement("button",{key:m.id,type:"button",className:"v4-ficha-meta-pill"+(m.on?" on":"")+(m.locked?" locked":""),
-          "data-testid":m.testId,onClick:m.locked?onLocked:m.onClick},m.lead||null,React.createElement("span",null,m.label),m.locked?React.createElement("span",{"aria-hidden":"true"},"🔒"):null);
+        return React.createElement("button",{key:m.id,type:"button",disabled:!!m.disabled,
+          className:"v4-ficha-meta-pill"+(m.on?" on":"")+(m.locked?" locked":"")+(m.disabled?" disabled":""),
+          "data-testid":m.testId,onClick:m.disabled?undefined:(m.locked?onLocked:m.onClick)},m.lead||null,
+          React.createElement("span",null,m.label),m.locked?React.createElement("span",{"aria-hidden":"true"},"🔒"):null);
       })),
       afterMeta||null,
       !isIn && React.createElement(React.Fragment,null,

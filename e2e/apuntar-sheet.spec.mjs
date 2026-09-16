@@ -68,6 +68,7 @@ test("Apuntar usa la ficha v4.1: cabecera compacta, tres metadatos, ocho categor
   const sheet = page.locator(".v4-exp-sheet");
   await expect(sheet.locator(".v4-ficha-head .v4-seg")).toBeVisible();
   await expect(sheet.locator(".v4-ficha-meta-pill")).toHaveCount(3);
+  await expect(sheet.locator('[data-testid="ap-efectivo"]')).toBeDisabled();
   await expect(sheet.locator(".v4-ficha-cats .v4-ficha-cat")).toHaveCount(8);
   await expect(sheet.locator(".v4-keys")).toBeVisible();
 

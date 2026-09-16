@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-16 · **v4.25.6** — la ronda 4.25 está en producción y el panel beta queda vacío al alcanzarla: sin entrada en Ajustes, tandas antiguas ni pruebas repetidas.
+> Estado a 2026-09-16 · **v4.26.0** — rediseño v4.1 en rama: ficha unificada de gasto y borrado con Deshacer; aún no publicado en beta ni producción.
+> Anterior: **v4.25.6** — la ronda 4.25 está en producción y el panel beta queda vacío al alcanzarla: sin entrada en Ajustes, tandas antiguas ni pruebas repetidas.
 > Anterior: **v4.25.5** — la barra oculta ya no sale físicamente por debajo del viewport ni puede robar el segundo tirón en el fondo; el histórico bancario conserva la espera explícita tras 429.
 > Anterior: **v4.25.3** — el intento de concurrencia limitada seguía provocando 429 y el host de la ola perdía clases al repintarse.
 > Anterior: **v4.25.2** — el primer refuerzo del histórico seguía sin traer importes de Caixa y la ola continuaba revelando la barra al repetir el gesto.
@@ -191,7 +192,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.25.6** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.26.0** (repo, sin publicar; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |
@@ -205,7 +206,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 | **Widget «Puedes gastar»** | 4.18.2: ingest cuenta como la app (`filasComoLaApp`). Prueba: pago con la app cerrada. Si el widget no se re-pinta en MIUI, quitar y re-añadir. |
 | **Limpieza del repo (tanda 16)** | Basura, docs rancio, código muerto. **No visual, no es rendimiento, no es Clean Code de libro.** El monolito es a propósito (`docs/adr/0002-monolito.md`). Alcance en `docs/briefs/plan-vuelta-crucero.md` §16. |
 | **Play Store** | **Lo último.** Data safety + NotificationListener. No adelantar: si se implementa, se tienta de publicar antes de que esté pulida a su criterio. Cualquier tanda nueva va **antes**. |
-| **Rediseño v4.1 (tanda 17)** | En curso en `codex/diseno-v41-fichas`, siguiendo `handoff/SPEC-v4.1-fichas.md` por secciones y commits. §1 ficha unificada de gasto implementada y cubierta; §1.5 deshacer al borrar es el siguiente bloque. No se publica hasta cerrar la tanda y aprobarla en beta. |
+| **Rediseño v4.1 (tanda 17)** | En curso en `codex/diseno-v41-fichas`, siguiendo `handoff/SPEC-v4.1-fichas.md` por secciones y commits. §1 ficha unificada y §1.5 deshacer al borrar implementados y cubiertos; §3 ficha de cuenta es el siguiente bloque. No se publica hasta cerrar la tanda y aprobarla en beta. |
 | **OPENAI_API_KEY** | Opcional en Supabase Secrets → Edge `categorize`. Ver [CATEGORIZE.md](CATEGORIZE.md) |
 | **IA en gastos antiguos** | 4.19.1 ya escribe categoría (y banco/nota/borrado) por uuid cuando el gasto lo tiene; ids cortos del móvil siguen por atributos. Recategorizar histórico a IA sigue siendo manual y seguro fila a fila. |
 | **Salto a TR/Open Banking al sincronizar automáticamente** | Reportado el 2026-09-07, pero no reproducido ni respaldado por el flujo inspeccionado. No se cambia la navegación a ciegas; recoger pantalla y punto de entrada exacto si vuelve a ocurrir. |

@@ -1080,6 +1080,7 @@
   .v4-ficha-meta-pill span{overflow:hidden;text-overflow:ellipsis;}
   .v4-ficha-meta-pill.on{background:rgba(95,208,138,.12);border-color:var(--mint-deep);color:var(--mint);}
   .v4-ficha-meta-pill.locked{border-style:dashed;}
+  .v4-ficha-meta-pill.disabled{opacity:.45;cursor:default;}
   .v4-ficha-trace{display:flex;align-items:flex-start;gap:10px;padding:13px 14px;margin:1px 0 14px;border-radius:18px;
     background:rgba(127,181,232,.07);border:1px solid rgba(127,181,232,.28);}
   .v4-ficha-trace-copy{min-width:0;flex:1;}
@@ -1105,6 +1106,12 @@
     padding-top:8px;border-top:1px solid var(--line-soft);}
   .v4-ficha-del{min-height:44px;color:var(--coral);font-size:12.5px;font-weight:800;text-align:left;}
   .v4-ficha-saved{color:var(--muted-2);font-size:11.5px;font-weight:700;text-align:right;}
+  .v4-undo-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + var(--safe-bottom));z-index:205;
+    width:min(calc(100% - 28px),430px);min-height:52px;padding:4px 6px 4px 16px;border-radius:16px;background:var(--sur2);
+    border:1px solid var(--line);box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;font-size:14px;font-weight:750;
+    animation:toastin .3s ease;}
+  .v4-undo-toast span{flex:1;min-width:0;}
+  .v4-undo-toast button{min-width:88px;min-height:44px;padding:0 12px;border-radius:12px;color:var(--mint);font-size:13.5px;font-weight:850;}
   html.sheet-open,html.sheet-open body{overflow:hidden;overscroll-behavior:none;}
   /* Solo .page (no .track/.viewport): overflow en el track + translateX de tabs ≠ Inicio
      clippea la página visible y deja el body oscuro detrás del + / editar gasto (2026-07-17). */
@@ -1265,7 +1272,7 @@
   @keyframes v4bar{from{transform:scaleX(0);}to{transform:scaleX(1);}}
   .rise{animation:rise .32s var(--ease) both;}
   @media (prefers-reduced-motion:reduce){
-    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-gastos-progress i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus{animation:none !important;transition:none !important;}
+    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-gastos-progress i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast{animation:none !important;transition:none !important;}
   }
 
   /* «Gestionar recibos» y «Herramientas de inversión» viven en un sheet v4 pero por dentro
