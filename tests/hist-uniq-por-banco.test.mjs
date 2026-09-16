@@ -73,5 +73,28 @@ t("y el signo no los mezcla: un ingreso y un gasto del mismo importe son dos cos
   assert.equal(r.out.length, 2);
 });
 
+t("el mismo ext_id de Sabadell y Caixa son dos identidades", () => {
+  const res = { links: [
+    link("Sabadell", [tx("2026-09-01", 13.72, { ext_id:"shared" })]),
+    link("CaixaBank", [tx("2026-09-02", 28.40, { ext_id:"shared" })]),
+  ] };
+  const r = ctx.histFlattenHistoryLinks(res, [], {}, {});
+  assert.equal(r.out.length, 2);
+  assert.equal(r.stats.skippedExt, 0);
+});
+
+t("un ext_id ya importado solo bloquea al mismo banco", () => {
+  const res = { links: [
+    link("Sabadell", [tx("2026-09-01", 13.72, { ext_id:"shared" })]),
+    link("CaixaBank", [tx("2026-09-02", 28.40, { ext_id:"shared" })]),
+  ] };
+  const expenses = [{ id:"old", extId:"shared", ent:"sabadell", source:"ob-hist",
+    date:"2026-09-01T12:00:00.000Z", amount:13.72, merchant:"Viejo" }];
+  const r = ctx.histFlattenHistoryLinks(res, expenses, {}, {});
+  assert.equal(r.out.length, 1);
+  assert.equal(r.out[0].ent, "caixabank");
+  assert.equal(r.stats.skippedExt, 1);
+});
+
 console.log(fallos ? `hist-uniq-por-banco: ${fallos} fallo(s)` : "hist-uniq-por-banco: OK");
 process.exit(fallos ? 1 : 0);

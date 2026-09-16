@@ -1,5 +1,86 @@
 [
   {
+    "v": "4.25.2",
+    "d": "16 sep 2026",
+    "t": {
+      "es": "El histórico de cada banco llega por separado y la ola vuelve a ser natural",
+      "en": "Each bank's history arrives independently and the wave feels natural again",
+      "ca": "L'històric de cada banc arriba per separat i l'ona torna a ser natural"
+    },
+    "items": {
+      "es": [
+        "Al buscar movimientos antiguos, un banco lento ya no deja a CaixaBank sin turno. Si Caixa devuelve cero, la app lo dice claramente en vez de parecer que no ha pasado nada.",
+        "Los identificadores de un banco ya no pueden ocultar por error un movimiento distinto de otro banco.",
+        "Al llegar al final de una pantalla, la barra inferior conserva su sitio y Android puede dibujar su ola desde el primer tirón."
+      ],
+      "en": [
+        "When searching older transactions, one slow bank no longer prevents CaixaBank from being checked. If Caixa returns zero, the app says so clearly instead of looking like nothing happened.",
+        "Identifiers from one bank can no longer hide a different transaction from another bank by mistake.",
+        "At the end of a screen, the bottom bar keeps its state and Android can draw its wave on the first pull."
+      ],
+      "ca": [
+        "En cercar moviments antics, un banc lent ja no deixa CaixaBank sense torn. Si Caixa torna zero, l'app ho diu clarament en lloc de semblar que no ha passat res.",
+        "Els identificadors d'un banc ja no poden amagar per error un moviment diferent d'un altre banc.",
+        "En arribar al final d'una pantalla, la barra inferior conserva el seu estat i Android pot dibuixar l'ona des de la primera estirada."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "bancos-historico-caixa-2",
+        "t": {
+          "es": "CaixaBank ya no se queda sin histórico",
+          "en": "CaixaBank history is no longer skipped",
+          "ca": "L'històric de CaixaBank ja no queda omès"
+        },
+        "items": {
+          "es": [
+            "1. En Ajustes → Importaciones → Importar histórico, busca tres meses. Deben aparecer movimientos conocidos de CaixaBank con sus importes; no hace falta importarlos.",
+            "2. Si CaixaBank no entrega movimientos, debe salir un aviso que diga expresamente «CaixaBank: el banco ha devuelto 0 movimientos», no el mensaje genérico de que quizá ya estaban apuntados.",
+            "3. Sincroniza bancos una vez. En Gastos toca «Todos los bancos» si CaixaBank no está marcada como gasto diario y comprueba un cargo reciente conocido.",
+            "4. Si Sabadell vuelve a mostrar un aviso de límite o lectura incompleta, CaixaBank debe seguir enseñando sus movimientos."
+          ],
+          "en": [
+            "1. In Settings → Imports → Import history, search three months. Known CaixaBank transactions and their amounts should appear; you do not need to import them.",
+            "2. If CaixaBank returns no transactions, an explicit ‘CaixaBank: the bank returned 0 transactions’ notice should appear instead of the generic already-logged message.",
+            "3. Sync banks once. In Spending tap ‘All banks’ if CaixaBank is not marked for daily spending, then check a known recent charge.",
+            "4. If Sabadell shows a limit or incomplete-read warning again, CaixaBank transactions must still remain visible."
+          ],
+          "ca": [
+            "1. A Configuració → Importacions → Importar històric, cerca tres mesos. Han d'aparèixer moviments coneguts de CaixaBank amb els imports; no cal importar-los.",
+            "2. Si CaixaBank no torna moviments, ha de sortir un avís explícit que digui «CaixaBank: el banc ha tornat 0 moviments», no el missatge genèric que potser ja estaven apuntats.",
+            "3. Sincronitza els bancs una vegada. A Despeses toca «Tots els bancs» si CaixaBank no està marcada com a despesa diària i comprova un càrrec recent conegut.",
+            "4. Si Sabadell torna a mostrar un avís de límit o lectura incompleta, els moviments de CaixaBank han de continuar visibles."
+          ]
+        }
+      },
+      {
+        "id": "ola-barra-final-2",
+        "t": {
+          "es": "La primera ola no hace reaparecer la barra",
+          "en": "The first wave does not bring the bar back",
+          "ca": "La primera ona no fa reaparèixer la barra"
+        },
+        "items": {
+          "es": [
+            "1. En una pestaña larga, baja hasta ocultar la barra y llega al final. En ese primer gesto debe verse ya la ola nativa de Android.",
+            "2. Estando abajo del todo, vuelve a tirar hacia abajo: debe repetirse la ola y la barra debe seguir oculta.",
+            "3. Sube de verdad por el contenido: solo entonces debe reaparecer la barra."
+          ],
+          "en": [
+            "1. In a long tab, scroll until the bar hides and reach the end. Android's native wave should already appear on that first gesture.",
+            "2. While still at the very bottom, pull down again: the wave should repeat and the bar should remain hidden.",
+            "3. Actually scroll up through the content: only then should the bar return."
+          ],
+          "ca": [
+            "1. En una pestanya llarga, baixa fins que la barra s'amagui i arriba al final. L'ona nativa d'Android ja s'ha de veure en aquest primer gest.",
+            "2. Encara a baix de tot, torna a estirar cap avall: l'ona s'ha de repetir i la barra ha de continuar amagada.",
+            "3. Puja de debò pel contingut: només llavors ha de reaparèixer la barra."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.25.1",
     "d": "16 sep 2026",
     "t": {

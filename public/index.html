@@ -5091,6 +5091,7 @@ Object.assign(LANG.es,{
   bank_read_reconnect:"{bank}: falta completar la conexión. Abre Ajustes → Mis bancos para revisarla.",
   bank_read_failed:"{bank}: no se han podido leer todos los movimientos. Vuelve a intentarlo más tarde.",
   bank_read_partial:"{bank}: la descarga está incompleta. Lo recibido se conserva, pero pueden faltar movimientos.",
+  bank_read_empty:"{bank}: el banco ha devuelto 0 movimientos para ese periodo.",
   bank_read_retry:"No se han podido consultar los movimientos. Comprueba la conexión y vuelve a buscar.",
   bp_hist_sign:"En {banks} casi todo llega como ingreso: revisa el signo antes de importar.",
   bp_hist_more:"Ver {n} más…",
@@ -11549,7 +11550,15 @@ function importObExpenses(s, txs){
      histórico en cada sync. Los duplicados que esto pueda rozar ya los para la red de arriba
      (mismo importe ±3 días contra lo que entró por otra vía) más el dedup por ext_id y clave. */
   const som=new Date(startOfMonth().getTime() - 8*86400000);
-  const seen={}; (s.expenses||[]).forEach(function(e){ if(e.extId) seen[e.extId]=1; });
+  /* `entry_reference` solo es única DENTRO de su banco. Sin entidad, un id de Sabadell podía
+     hacer desaparecer un movimiento distinto de Caixa. La identidad local mínima es banco+id. */
+  const seen={}, seenLegacy={}; (s.expenses||[]).forEach(function(e){
+    if(e.extId){
+      const bank=expenseBankOf(e)||e.ent||"";
+      if(bank) seen[bank+"|"+e.extId]=1;
+      else seenLegacy[e.extId]=1;  // filas antiguas: sin banco no se puede acotar sin duplicarlas
+    }
+  });
   /* EL DEDUP USA EL NOMBRE DEL BANCO, NO EL QUE VE EL USUARIO (2026-08-17).
      Petición suya: poder renombrar el «Movimiento» que deja Trade Republic, que «queda feo». El
      problema es que renombrar rompía LAS TRES capas de dedup a la vez y el siguiente sync recreaba
@@ -11562,7 +11571,8 @@ function importObExpenses(s, txs){
      es lo que puso el banco porque nadie las había podido renombrar sin romperlo. */
   const nameForKey=function(e){ return e.obName!=null ? e.obName : (e.merchant||""); };
   const kOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+nameForKey(e); };
-  const keys={}; (s.expenses||[]).forEach(function(e){ keys[kOf(e)]=1; });
+  const scopedKOf=function(e){ return (expenseBankOf(e)||e.ent||"")+"|"+kOf(e); };
+  const keys={}; (s.expenses||[]).forEach(function(e){ keys[scopedKOf(e)]=1; });
   /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
      sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
   const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
@@ -11611,7 +11621,7 @@ function importObExpenses(s, txs){
     const esIngreso = tx.amount<0;
     if(esIngreso){
       if(!tx.date || parseDate(tx.date)<som) return;
-      if(tx.id && seen[tx.id]) return;
+      if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
         category: esTraspasoPropio(s, tx) ? TRASPASO_CAT.id : INGRESO_CAT.id, source:"ob", ent:tx.ent };
@@ -11620,17 +11630,19 @@ function importObExpenses(s, txs){
       if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
       if(tx.id) e.extId=tx.id;
       const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-      if(keys[kOf(e)] || delSet[kOf(e)]) return;
+      if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
       const gemIn=gemeloOtraVia(tx);
       if(gemIn && gemIn.id){ e.possibleDup=true; e.possibleDupOf=gemIn.id; }
-      keys[kOf(e)]=1; add.push(e);
+      keys[scopedKOf(e)]=1;
+      if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
+      add.push(e);
       return;
     }
     // GASTO: entra de cualquier banco. Fijos y puntuales modelados no se duplican; las deudas se marcan.
     const mod=modeledHit(tx.ent, tx.merchant, tx.amount);
     if(mod && !mod.debtId) return;
     if(!tx.date || parseDate(tx.date)<som) return;
-    if(tx.id && seen[tx.id]) return;
+    if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
     const esDiario=tx.ent===dailyEnt;
     const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
     const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
@@ -11640,10 +11652,11 @@ function importObExpenses(s, txs){
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
     if(tx.id) e.extId=tx.id;
     const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-    if(keys[kOf(e)] || delSet[kOf(e)]) return;
+    if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
     const gem=gemeloOtraVia(tx);
     if(gem && gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
-    keys[kOf(e)]=1;
+    keys[scopedKOf(e)]=1;
+    if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
     add.push(e);
   });
   return add.length? add : null;
@@ -12294,7 +12307,7 @@ function histCandCercanos(cands, expenses, yaExactos){
    (heurística de la UI; no prueba truncado por sí sola). */
 
 /* Un saldo correcto no demuestra que se hayan leído todos los movimientos de sus cuentas. */
-function bankReadWarnings(links, expectedLinks){
+function bankReadWarnings(links, expectedLinks, includeEmpty){
   const out=[], seen={};
   (links||[]).forEach(function(l){
     if(!l) return;
@@ -12305,6 +12318,9 @@ function bankReadWarnings(links, expectedLinks){
     if(l.pending || l.expired || l.noacct) key="bank_read_reconnect";
     else if(l.ok===false || accts.some(function(a){ return a&&a.ok===false; })) key="bank_read_failed";
     else if(l.truncated || accts.some(function(a){ return a&&(a.truncated||a.transactionError); })) key="bank_read_partial";
+    else if(includeEmpty && accts.length && accts.every(function(a){
+      return a&&a.ok!==false && ((typeof a.count==="number"?a.count:((a.transactions||[]).length))===0);
+    })) key="bank_read_empty";
     if(key) out.push({bank:ent?entOf(ent).label:(name||t("bp_hist_bank_unknown")),key:key});
   });
   // Compatibilidad con servidores antiguos: omitir un enlace pendiente no equivale a cero gastos.
@@ -12323,7 +12339,12 @@ function histFlattenHistoryLinks(res, expenses, allow, opts){
   allow=allow||{};
   const merchantIn=opts.merchantIn!=null ? opts.merchantIn : "Ingreso";
   const merchantOut=opts.merchantOut!=null ? opts.merchantOut : "Compra";
-  const seen={}; (expenses||[]).forEach(function(e){ if(e.extId) seen[e.extId]=1; });
+  const seen={}, seenLegacy={}; (expenses||[]).forEach(function(e){
+    if(!e.extId) return;
+    const bank=expenseBankOf(e)||e.ent||"";
+    if(bank) seen[bank+"|"+e.extId]=1;
+    else seenLegacy[e.extId]=1;
+  });
   let bankReported=0, bankPayload=0, skippedAllow=0, skippedBad=0, skippedExt=0, skippedUniq=0, acctAtCap=0;
   const out=[], uniq={};
   const kOf=function(dt,am,mc){ return String(dt).slice(0,10)+"|"+am+"|"+(mc||""); };
@@ -12350,7 +12371,7 @@ function histFlattenHistoryLinks(res, expenses, allow, opts){
         const dt=String(tx.date||"").slice(0,10), am=Number(tx.amount)||0;
         if(!dt || !am){ skippedBad++; return; }
         const isIn=am<0, abs=Math.abs(am);
-        if(tx.ext_id && seen[tx.ext_id]){ skippedExt++; return; }
+        if(tx.ext_id && (seen[entKey+"|"+tx.ext_id]||seenLegacy[tx.ext_id])){ skippedExt++; return; }
         /* ⚠ EL BANCO VA EN LA CLAVE, Y NO ESTABA (2026-09-12 noche, medido con la sonda).
            Esta clave existe para no meter DOS VECES la misma transaccion si el banco la manda
            repetida. Pero no llevaba el banco dentro, asi que un cargo de Sabadell y otro de
@@ -15107,7 +15128,9 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
     const d=new Date(); d.setMonth(d.getMonth()-months); const dateFrom=d.toISOString().slice(0,10);
     cloud.bankSyncHistory(dateFrom).then(function(res){
       if(!res || !Array.isArray(res.links)) throw new Error("bank_read_failed");
-      setReadWarnings(bankReadWarnings(res.links, bankLinks));
+      /* En histórico, cero ya no se disfraza de «quizá estaba todo apuntado»: se dice qué banco
+         devolvió cero. En el sync diario no se usa este aviso porque un día sin cargos es normal. */
+      setReadWarnings(bankReadWarnings(res.links, bankLinks, true));
       // Flatten compartido con la sonda (Codex 10/9): un solo pipeline, con card/entKey/merchant.
       const flat=histFlattenHistoryLinks(res, state.expenses, allow, {
         merchantIn:t("cat_ingreso"), merchantOut:"Compra"
@@ -19186,6 +19209,7 @@ function App(){
   const lastScrollAt=useRef(0);
   /* ¿Queda un `setState` de la barra pendiente de volcar al levantar el dedo? Ver `applyNavHide`. */
   const navFlush=useRef(false);
+  const navFlushTimer=useRef(0);
   /* PONE A REACT DE ACUERDO CON EL DOM, y hay que llamarlo desde TODOS los caminos por los que se
      suelta el dedo, no solo del limpio.
      ⚠ La primera versión (4.19.69) solo volcaba en `onEnd`, y lo cazó Cursor con el dato que lo
@@ -19195,10 +19219,22 @@ function App(){
      vista, así que **el siguiente re-render le quitaba la clase y la barra reaparecía sola**.
      Los e2e no lo ven: un gesto sintético siempre termina limpio. */
   const flushNavHide=function(){
+    if(navFlushTimer.current){ clearTimeout(navFlushTimer.current); navFlushTimer.current=0; }
     if(!navFlush.current) return;
     navFlush.current=false;
     setNavHidden(!!navHiddenRef.current);
   };
+  const deferNavHideFlush=function(){
+    if(!navFlush.current) return;
+    if(navFlushTimer.current) clearTimeout(navFlushTimer.current);
+    /* Android entrega el scroll vertical al WebView mediante `touchcancel`. Si el dedo llega al
+       fondo con la barra ya oculta, reconciliar React EN ese callback repinta el host justo cuando
+       empieza el stretch nativo: primer tirón muerto. La clase y la ref ya son la verdad visual;
+       el estado puede esperar a que termine la física sin que otro render la quite (el className
+       consulta también `navHiddenRef`). */
+    navFlushTimer.current=setTimeout(function(){ navFlushTimer.current=0; flushNavHide(); },700);
+  };
+  useEffect(function(){ return function(){ if(navFlushTimer.current) clearTimeout(navFlushTimer.current); }; },[]);
   /* Alto del contenido en el scroll anterior. Sirve para distinguir «ha bajado él» de «la
      pantalla se ha recolocado sola»: al tocar un chip de rol en Cartera la tarjeta estira o
      encoge, el navegador ajusta el `scrollTop` y dispara un `scroll` que NADIE ha pedido. Sin
@@ -21863,9 +21899,15 @@ function App(){
      El perfil, la tabbar y las fichas ya escuchaban `touchcancel`; las pestañas y Ajustes, no. */
   const onCancel=function(){
     if(!dragging.current) return;
-    flushNavHide();   // ANTES del early-return del perfil: en su móvil casi todos los gestos pasan por aquí
+    const cancelledAxis=axis.current;
+    const pages=trackRef.current&&trackRef.current.children;
+    const pageEl=pages&&pages[tabRef.current];
+    const maxY=pageEl?(pageEl.scrollHeight-pageEl.clientHeight):0;
+    const cancelledAtBottom=cancelledAxis!=="x" && maxY>0 && (maxY-(pageEl.scrollTop||0))<=4;
+    const browserScrollCancel=cancelledAxis!=="x";
     scheduleEndTopClear();
     if(gestureMode.current==="profile"){
+      flushNavHide();   // el perfil no usa el overscroll inferior del host
       profileRelease();
       setProfileProgress(profileOpen?1:0);   // el gesto no cuenta: se queda como estaba
       pDY.current=0;
@@ -21876,7 +21918,7 @@ function App(){
     }
     // El desenfoque vuelve YA (no como al soltar): aquí no hay transición del carrusel que proteger.
     navSinBlur(false);
-    cancelSwipe();
+    cancelSwipe(browserScrollCancel, cancelledAtBottom);
   };
   /* LOS TOQUES DE LAS PESTAÑAS, A MANO Y CON `{passive:false}` — el mismo arreglo que necesitó el
      perfil el 18/7 y que aquí nunca se aplicó. React ata `onTouchMove` al contenedor raíz en modo
@@ -22097,16 +22139,24 @@ function App(){
   // y ese se dispara antes que los de React (ver `onStart`).
   const stopSwipe={ "data-noswipe":"1", onTouchStart:(e)=>e.stopPropagation(), onTouchMove:(e)=>e.stopPropagation() };
   // Cancela el gesto de tabs/ajustes a mitad (chips de Gastos: scroll interno sin cambiar de pestaña).
-  const cancelSwipe=function(){
+  const cancelSwipe=function(keepNav, deferNav){
     if(!dragging.current) return;
-    flushNavHide();   // el navegador nos quita el gesto: el estado de la barra se vuelca igual
+    if(deferNav) deferNavHideFlush();
+    else flushNavHide();
     dragging.current=false; axis.current=null; gestureMode.current=null; dx.current=0; ancla.current=0;
     pararPintado();   // touchcancel: el navegador nos quita el gesto, hay que soltar el rAF igual
-    endTopClearNow(true);
-    // `tabRef` por lo mismo que en `goTab`: con el `tab` de cuando se construyó la página, cancelar
-    // el gesto devolvería el carrusel a la pestaña equivocada. Asentar por rAF (no snap a pelo):
-    // si no, el dedo ve un salto seco cuando el navegador se lleva el gesto.
-    asentarTrack(tabRef.current);
+    /* Un `touchcancel` vertical significa «el navegador se quedó el scroll», no «cambia de tab».
+       Revelar aquí era la barra que aparecía al volver a tirar abajo estando ya en el final. */
+    endTopClearNow(!keepNav);
+    if(keepNav){
+      /* En un scroll vertical el host ya está colocado y es precisamente quien pinta el stretch
+         nativo. Sacarlo a transform para «asentar» el carrusel cortaba la primera ola al fondo;
+         aquí solo se comprueba la red de seguridad, que no toca el DOM si el host sigue bien. */
+      ensureScrollHost();
+    } else {
+      // En un swipe horizontal cancelado sí hay que devolver el carrusel a su pestaña real.
+      asentarTrack(tabRef.current);
+    }
     if(drawerRef.current){ drawerRef.current.classList.remove("dragging"); drawerRef.current.style.transform=""; }
     freezeShell(false);
     setSettingsProgress(drawerOpen?1:0);
@@ -22317,7 +22367,7 @@ function App(){
       React.createElement("div",{className:"viewport",ref:viewportRef},
         React.createElement("div",{className:"track"+(hostTab>=0?" scroll-host-park":" scroll-host-swipe"),ref:trackRef}, paginas)
       ),
-      React.createElement("nav",{className:"botnav"+(navHidden&&!drawerOpen&&!profileOpen?" botnav-hidden":""),"aria-label":"Navegación"},
+      React.createElement("nav",{className:"botnav"+((navHidden||navHiddenRef.current)&&!drawerOpen&&!profileOpen?" botnav-hidden":""),"aria-label":"Navegación"},
         React.createElement("div",{className:"botnav-row"},
           React.createElement("div",{className:"botnav-ind"+(drawerOpen||profileOpen?" hide":""),ref:indRef,
             style:{transform:"translateX("+(tab<=1?tab*100:(tab+1)*100)+"%)"}},

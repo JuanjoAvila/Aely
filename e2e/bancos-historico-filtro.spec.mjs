@@ -68,10 +68,13 @@ const histLinks = [
 ];
 
 async function abrirHistorico(page, opts={}) {
+  const historyLinks=opts.links||histLinks;
   await seedLoggedInDashboard(page, {
     hasBankLink: true,
     __cloudRows: { bank_links: opts.bankLinks||bankLinks },
-    __cloudFns: { "bank-sync": { data: { ok: true, links: opts.links||histLinks }, error: opts.error||null } },
+    /* La misma Edge sirve sync diario e histórico. El doble base queda vacío para que abrir
+       Ajustes no importe antes la fila que precisamente queremos comprobar en el histórico. */
+    __cloudFns: { "bank-sync": { data: { ok: true, links: [] }, error: null } },
   });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
@@ -83,6 +86,11 @@ async function abrirHistorico(page, opts={}) {
   await page.locator("button.set-row").filter({ hasText: /Importar histórico/i }).click();
   const overlay = page.locator(".hist-import");
   await expect(overlay).toBeVisible();
+  await page.evaluate(({links,error}) => {
+    cloud.bankSyncHistory = () => error
+      ? Promise.reject(new Error(error.message || "sin red"))
+      : Promise.resolve({ ok:true, links });
+  }, { links:historyLinks, error:opts.error||null });
   await overlay.getByRole("button", { name: /Buscar movimientos/i }).click();
   if(!opts.custom){
     await expect(overlay.getByText("Cafe TR")).toBeVisible({ timeout: 10_000 });
@@ -141,6 +149,25 @@ test("CaixaBank fallido se explica y permite importar lo recibido de Sabadell", 
   await expect(overlay.getByText("Super Sabadell")).toBeVisible();
   await expect(overlay.getByRole("button",{name:/Importar 1/})).toBeVisible();
   await expect(overlay).not.toContainText("privado");
+});
+
+test("CaixaBank con histórico pinta su importe y permite importarlo", async ({page}) => {
+  const overlay=await abrirHistorico(page,{custom:true,
+    bankLinks:[{aspsp_name:"CaixaBank",status:"active"}],
+    links:[{aspsp:"CaixaBank",ok:true,accounts:[{ok:true,count:1,transactions:[
+      {date:"2026-09-02",amount:37.42,merchant:"Compra Caixa",card:true,ext_id:"cx-hist-1"}
+    ]}]}]});
+  await expect(overlay.getByText("Compra Caixa")).toBeVisible();
+  await expect(overlay).toContainText("37,42");
+  await expect(overlay.getByRole("button",{name:/Importar 1/})).toBeVisible();
+});
+
+test("CaixaBank a cero se nombra: no se disfraza de histórico ya apuntado", async ({page}) => {
+  const overlay=await abrirHistorico(page,{custom:true,
+    bankLinks:[{aspsp_name:"CaixaBank",status:"active"}],
+    links:[{aspsp:"CaixaBank",ok:true,accounts:[{ok:true,count:0,transactions:[]}]}]});
+  await expect(overlay.locator(".bank-read-warning")).toContainText("CaixaBank: el banco ha devuelto 0 movimientos");
+  await expect(overlay).not.toContainText("No hay movimientos nuevos");
 });
 
 test("histórico pendiente omitido por Edge antiguo no se presenta como sin movimientos", async ({page}) => {

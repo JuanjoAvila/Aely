@@ -293,7 +293,9 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
     const d=new Date(); d.setMonth(d.getMonth()-months); const dateFrom=d.toISOString().slice(0,10);
     cloud.bankSyncHistory(dateFrom).then(function(res){
       if(!res || !Array.isArray(res.links)) throw new Error("bank_read_failed");
-      setReadWarnings(bankReadWarnings(res.links, bankLinks));
+      /* En histórico, cero ya no se disfraza de «quizá estaba todo apuntado»: se dice qué banco
+         devolvió cero. En el sync diario no se usa este aviso porque un día sin cargos es normal. */
+      setReadWarnings(bankReadWarnings(res.links, bankLinks, true));
       // Flatten compartido con la sonda (Codex 10/9): un solo pipeline, con card/entKey/merchant.
       const flat=histFlattenHistoryLinks(res, state.expenses, allow, {
         merchantIn:t("cat_ingreso"), merchantOut:"Compra"

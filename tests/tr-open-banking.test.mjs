@@ -103,6 +103,27 @@ t("y no se duplican: el mismo ext_id no entra dos veces", () => {
   assert.equal(add, null, "ya estaba importado por su ext_id");
 });
 
+t("el mismo ext_id en otro banco no hace desaparecer Caixa", () => {
+  const hoy = new Date().toISOString().slice(0, 10);
+  const s = estadoTR({ expenses: [{ id:"e-sb", extId:"shared-1", date:hoy+"T12:00:00.000Z",
+    amount:18, merchant:"Cargo Sabadell", ent:"sabadell", source:"ob" }] });
+  const add = ctx.importObExpenses(s, [
+    { id:"shared-1", ent:"caixabank", date:hoy, amount:27, card:true, merchant:"Cargo Caixa" },
+  ]);
+  assert.equal(add && add.length,1,"entry_reference no es global entre proveedores");
+  assert.equal(add[0].ent,"caixabank");
+});
+
+t("la clave fecha+importe+nombre tampoco mezcla dos bancos", () => {
+  const hoy = new Date().toISOString().slice(0, 10);
+  const s = estadoTR({ expenses: [{ id:"e-sb-2", date:hoy+"T12:00:00.000Z",
+    amount:19, merchant:"Movimiento", obName:"Movimiento", ent:"sabadell", source:"ob" }] });
+  const add = ctx.importObExpenses(s, [
+    { id:null, ent:"caixabank", date:hoy, amount:19, card:true, merchant:"Movimiento" },
+  ]);
+  assert.equal(add && add.length,1,"un movimiento de Sabadell no deduplica otro de Caixa");
+});
+
 t("dos cargos iguales sin identidad se conservan: parecido no significa duplicado", () => {
   const hoy = new Date().toISOString().slice(0, 10);
   const s = estadoTR({ expenses: [{ id: "notif23", date: hoy + "T10:00:00.000Z", amount: 23, merchant: "Otro cargo", ent: "trade_republic", source: "macrodroid" }] });
@@ -142,6 +163,8 @@ t("avisos por cuenta aunque el saldo del banco haya sincronizado", () => {
   const warnings=ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:true,accounts:[{ok:true},{ok:false}]}],[]);
   assert.equal(warnings.length,1);assert.equal(warnings[0].key,"bank_read_failed");
   assert.equal(ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:true,accounts:[{ok:true,transactions:[]}]}],[]).length,0);
+  const empty=ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:true,accounts:[{ok:true,count:0,transactions:[]}]}],[],true);
+  assert.equal(empty.length,1);assert.equal(empty[0].key,"bank_read_empty","el histórico debe decir qué banco devolvió cero");
 });
 
 console.log("tr-open-banking: OK");

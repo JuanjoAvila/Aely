@@ -138,6 +138,7 @@ function App(){
   const lastScrollAt=useRef(0);
   /* ¿Queda un `setState` de la barra pendiente de volcar al levantar el dedo? Ver `applyNavHide`. */
   const navFlush=useRef(false);
+  const navFlushTimer=useRef(0);
   /* PONE A REACT DE ACUERDO CON EL DOM, y hay que llamarlo desde TODOS los caminos por los que se
      suelta el dedo, no solo del limpio.
      ⚠ La primera versión (4.19.69) solo volcaba en `onEnd`, y lo cazó Cursor con el dato que lo
@@ -147,10 +148,22 @@ function App(){
      vista, así que **el siguiente re-render le quitaba la clase y la barra reaparecía sola**.
      Los e2e no lo ven: un gesto sintético siempre termina limpio. */
   const flushNavHide=function(){
+    if(navFlushTimer.current){ clearTimeout(navFlushTimer.current); navFlushTimer.current=0; }
     if(!navFlush.current) return;
     navFlush.current=false;
     setNavHidden(!!navHiddenRef.current);
   };
+  const deferNavHideFlush=function(){
+    if(!navFlush.current) return;
+    if(navFlushTimer.current) clearTimeout(navFlushTimer.current);
+    /* Android entrega el scroll vertical al WebView mediante `touchcancel`. Si el dedo llega al
+       fondo con la barra ya oculta, reconciliar React EN ese callback repinta el host justo cuando
+       empieza el stretch nativo: primer tirón muerto. La clase y la ref ya son la verdad visual;
+       el estado puede esperar a que termine la física sin que otro render la quite (el className
+       consulta también `navHiddenRef`). */
+    navFlushTimer.current=setTimeout(function(){ navFlushTimer.current=0; flushNavHide(); },700);
+  };
+  useEffect(function(){ return function(){ if(navFlushTimer.current) clearTimeout(navFlushTimer.current); }; },[]);
   /* Alto del contenido en el scroll anterior. Sirve para distinguir «ha bajado él» de «la
      pantalla se ha recolocado sola»: al tocar un chip de rol en Cartera la tarjeta estira o
      encoge, el navegador ajusta el `scrollTop` y dispara un `scroll` que NADIE ha pedido. Sin
@@ -2815,9 +2828,15 @@ function App(){
      El perfil, la tabbar y las fichas ya escuchaban `touchcancel`; las pestañas y Ajustes, no. */
   const onCancel=function(){
     if(!dragging.current) return;
-    flushNavHide();   // ANTES del early-return del perfil: en su móvil casi todos los gestos pasan por aquí
+    const cancelledAxis=axis.current;
+    const pages=trackRef.current&&trackRef.current.children;
+    const pageEl=pages&&pages[tabRef.current];
+    const maxY=pageEl?(pageEl.scrollHeight-pageEl.clientHeight):0;
+    const cancelledAtBottom=cancelledAxis!=="x" && maxY>0 && (maxY-(pageEl.scrollTop||0))<=4;
+    const browserScrollCancel=cancelledAxis!=="x";
     scheduleEndTopClear();
     if(gestureMode.current==="profile"){
+      flushNavHide();   // el perfil no usa el overscroll inferior del host
       profileRelease();
       setProfileProgress(profileOpen?1:0);   // el gesto no cuenta: se queda como estaba
       pDY.current=0;
@@ -2828,7 +2847,7 @@ function App(){
     }
     // El desenfoque vuelve YA (no como al soltar): aquí no hay transición del carrusel que proteger.
     navSinBlur(false);
-    cancelSwipe();
+    cancelSwipe(browserScrollCancel, cancelledAtBottom);
   };
   /* LOS TOQUES DE LAS PESTAÑAS, A MANO Y CON `{passive:false}` — el mismo arreglo que necesitó el
      perfil el 18/7 y que aquí nunca se aplicó. React ata `onTouchMove` al contenedor raíz en modo
@@ -3049,16 +3068,24 @@ function App(){
   // y ese se dispara antes que los de React (ver `onStart`).
   const stopSwipe={ "data-noswipe":"1", onTouchStart:(e)=>e.stopPropagation(), onTouchMove:(e)=>e.stopPropagation() };
   // Cancela el gesto de tabs/ajustes a mitad (chips de Gastos: scroll interno sin cambiar de pestaña).
-  const cancelSwipe=function(){
+  const cancelSwipe=function(keepNav, deferNav){
     if(!dragging.current) return;
-    flushNavHide();   // el navegador nos quita el gesto: el estado de la barra se vuelca igual
+    if(deferNav) deferNavHideFlush();
+    else flushNavHide();
     dragging.current=false; axis.current=null; gestureMode.current=null; dx.current=0; ancla.current=0;
     pararPintado();   // touchcancel: el navegador nos quita el gesto, hay que soltar el rAF igual
-    endTopClearNow(true);
-    // `tabRef` por lo mismo que en `goTab`: con el `tab` de cuando se construyó la página, cancelar
-    // el gesto devolvería el carrusel a la pestaña equivocada. Asentar por rAF (no snap a pelo):
-    // si no, el dedo ve un salto seco cuando el navegador se lleva el gesto.
-    asentarTrack(tabRef.current);
+    /* Un `touchcancel` vertical significa «el navegador se quedó el scroll», no «cambia de tab».
+       Revelar aquí era la barra que aparecía al volver a tirar abajo estando ya en el final. */
+    endTopClearNow(!keepNav);
+    if(keepNav){
+      /* En un scroll vertical el host ya está colocado y es precisamente quien pinta el stretch
+         nativo. Sacarlo a transform para «asentar» el carrusel cortaba la primera ola al fondo;
+         aquí solo se comprueba la red de seguridad, que no toca el DOM si el host sigue bien. */
+      ensureScrollHost();
+    } else {
+      // En un swipe horizontal cancelado sí hay que devolver el carrusel a su pestaña real.
+      asentarTrack(tabRef.current);
+    }
     if(drawerRef.current){ drawerRef.current.classList.remove("dragging"); drawerRef.current.style.transform=""; }
     freezeShell(false);
     setSettingsProgress(drawerOpen?1:0);
@@ -3269,7 +3296,7 @@ function App(){
       React.createElement("div",{className:"viewport",ref:viewportRef},
         React.createElement("div",{className:"track"+(hostTab>=0?" scroll-host-park":" scroll-host-swipe"),ref:trackRef}, paginas)
       ),
-      React.createElement("nav",{className:"botnav"+(navHidden&&!drawerOpen&&!profileOpen?" botnav-hidden":""),"aria-label":"Navegación"},
+      React.createElement("nav",{className:"botnav"+((navHidden||navHiddenRef.current)&&!drawerOpen&&!profileOpen?" botnav-hidden":""),"aria-label":"Navegación"},
         React.createElement("div",{className:"botnav-row"},
           React.createElement("div",{className:"botnav-ind"+(drawerOpen||profileOpen?" hide":""),ref:indRef,
             style:{transform:"translateX("+(tab<=1?tab*100:(tab+1)*100)+"%)"}},

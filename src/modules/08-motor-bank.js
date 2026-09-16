@@ -472,7 +472,15 @@ function importObExpenses(s, txs){
      histórico en cada sync. Los duplicados que esto pueda rozar ya los para la red de arriba
      (mismo importe ±3 días contra lo que entró por otra vía) más el dedup por ext_id y clave. */
   const som=new Date(startOfMonth().getTime() - 8*86400000);
-  const seen={}; (s.expenses||[]).forEach(function(e){ if(e.extId) seen[e.extId]=1; });
+  /* `entry_reference` solo es única DENTRO de su banco. Sin entidad, un id de Sabadell podía
+     hacer desaparecer un movimiento distinto de Caixa. La identidad local mínima es banco+id. */
+  const seen={}, seenLegacy={}; (s.expenses||[]).forEach(function(e){
+    if(e.extId){
+      const bank=expenseBankOf(e)||e.ent||"";
+      if(bank) seen[bank+"|"+e.extId]=1;
+      else seenLegacy[e.extId]=1;  // filas antiguas: sin banco no se puede acotar sin duplicarlas
+    }
+  });
   /* EL DEDUP USA EL NOMBRE DEL BANCO, NO EL QUE VE EL USUARIO (2026-08-17).
      Petición suya: poder renombrar el «Movimiento» que deja Trade Republic, que «queda feo». El
      problema es que renombrar rompía LAS TRES capas de dedup a la vez y el siguiente sync recreaba
@@ -485,7 +493,8 @@ function importObExpenses(s, txs){
      es lo que puso el banco porque nadie las había podido renombrar sin romperlo. */
   const nameForKey=function(e){ return e.obName!=null ? e.obName : (e.merchant||""); };
   const kOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+nameForKey(e); };
-  const keys={}; (s.expenses||[]).forEach(function(e){ keys[kOf(e)]=1; });
+  const scopedKOf=function(e){ return (expenseBankOf(e)||e.ent||"")+"|"+kOf(e); };
+  const keys={}; (s.expenses||[]).forEach(function(e){ keys[scopedKOf(e)]=1; });
   /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
      sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
   const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
@@ -534,7 +543,7 @@ function importObExpenses(s, txs){
     const esIngreso = tx.amount<0;
     if(esIngreso){
       if(!tx.date || parseDate(tx.date)<som) return;
-      if(tx.id && seen[tx.id]) return;
+      if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
         category: esTraspasoPropio(s, tx) ? TRASPASO_CAT.id : INGRESO_CAT.id, source:"ob", ent:tx.ent };
@@ -543,17 +552,19 @@ function importObExpenses(s, txs){
       if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
       if(tx.id) e.extId=tx.id;
       const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-      if(keys[kOf(e)] || delSet[kOf(e)]) return;
+      if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
       const gemIn=gemeloOtraVia(tx);
       if(gemIn && gemIn.id){ e.possibleDup=true; e.possibleDupOf=gemIn.id; }
-      keys[kOf(e)]=1; add.push(e);
+      keys[scopedKOf(e)]=1;
+      if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
+      add.push(e);
       return;
     }
     // GASTO: entra de cualquier banco. Fijos y puntuales modelados no se duplican; las deudas se marcan.
     const mod=modeledHit(tx.ent, tx.merchant, tx.amount);
     if(mod && !mod.debtId) return;
     if(!tx.date || parseDate(tx.date)<som) return;
-    if(tx.id && seen[tx.id]) return;
+    if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
     const esDiario=tx.ent===dailyEnt;
     const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
     const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
@@ -563,10 +574,11 @@ function importObExpenses(s, txs){
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
     if(tx.id) e.extId=tx.id;
     const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-    if(keys[kOf(e)] || delSet[kOf(e)]) return;
+    if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
     const gem=gemeloOtraVia(tx);
     if(gem && gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
-    keys[kOf(e)]=1;
+    keys[scopedKOf(e)]=1;
+    if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
     add.push(e);
   });
   return add.length? add : null;
@@ -1217,7 +1229,7 @@ function histCandCercanos(cands, expenses, yaExactos){
    (heurística de la UI; no prueba truncado por sí sola). */
 
 /* Un saldo correcto no demuestra que se hayan leído todos los movimientos de sus cuentas. */
-function bankReadWarnings(links, expectedLinks){
+function bankReadWarnings(links, expectedLinks, includeEmpty){
   const out=[], seen={};
   (links||[]).forEach(function(l){
     if(!l) return;
@@ -1228,6 +1240,9 @@ function bankReadWarnings(links, expectedLinks){
     if(l.pending || l.expired || l.noacct) key="bank_read_reconnect";
     else if(l.ok===false || accts.some(function(a){ return a&&a.ok===false; })) key="bank_read_failed";
     else if(l.truncated || accts.some(function(a){ return a&&(a.truncated||a.transactionError); })) key="bank_read_partial";
+    else if(includeEmpty && accts.length && accts.every(function(a){
+      return a&&a.ok!==false && ((typeof a.count==="number"?a.count:((a.transactions||[]).length))===0);
+    })) key="bank_read_empty";
     if(key) out.push({bank:ent?entOf(ent).label:(name||t("bp_hist_bank_unknown")),key:key});
   });
   // Compatibilidad con servidores antiguos: omitir un enlace pendiente no equivale a cero gastos.
@@ -1246,7 +1261,12 @@ function histFlattenHistoryLinks(res, expenses, allow, opts){
   allow=allow||{};
   const merchantIn=opts.merchantIn!=null ? opts.merchantIn : "Ingreso";
   const merchantOut=opts.merchantOut!=null ? opts.merchantOut : "Compra";
-  const seen={}; (expenses||[]).forEach(function(e){ if(e.extId) seen[e.extId]=1; });
+  const seen={}, seenLegacy={}; (expenses||[]).forEach(function(e){
+    if(!e.extId) return;
+    const bank=expenseBankOf(e)||e.ent||"";
+    if(bank) seen[bank+"|"+e.extId]=1;
+    else seenLegacy[e.extId]=1;
+  });
   let bankReported=0, bankPayload=0, skippedAllow=0, skippedBad=0, skippedExt=0, skippedUniq=0, acctAtCap=0;
   const out=[], uniq={};
   const kOf=function(dt,am,mc){ return String(dt).slice(0,10)+"|"+am+"|"+(mc||""); };
@@ -1273,7 +1293,7 @@ function histFlattenHistoryLinks(res, expenses, allow, opts){
         const dt=String(tx.date||"").slice(0,10), am=Number(tx.amount)||0;
         if(!dt || !am){ skippedBad++; return; }
         const isIn=am<0, abs=Math.abs(am);
-        if(tx.ext_id && seen[tx.ext_id]){ skippedExt++; return; }
+        if(tx.ext_id && (seen[entKey+"|"+tx.ext_id]||seenLegacy[tx.ext_id])){ skippedExt++; return; }
         /* ⚠ EL BANCO VA EN LA CLAVE, Y NO ESTABA (2026-09-12 noche, medido con la sonda).
            Esta clave existe para no meter DOS VECES la misma transaccion si el banco la manda
            repetida. Pero no llevaba el banco dentro, asi que un cargo de Sabadell y otro de

@@ -123,23 +123,33 @@ Deno.serve(withCors(async (req: Request) => {
     const jwt = await makeJWT(appId, pem);
 
     if (dateFrom) {
-      const hist: unknown[] = [];
-      for (const link of links || []) {
+      /* Cada enlace tiene SU presupuesto y arranca a la vez. Antes los bancos iban en fila con
+         un deadline común de 60 s: un Sabadell lento/429 podía gastarlo entero y Caixa quedaba
+         marcada como timeout sin haber recibido ni una llamada. Paralelizar enlaces no añade
+         sincronizaciones automáticas: sigue siendo una sola búsqueda pedida por la persona. */
+      const hist: unknown[] = await Promise.all((links || []).map(async (link) => {
+        const linkDeadline = Date.now() + 15000;
         // deno-lint-ignore no-explicit-any
         const acctList: any[] = (Array.isArray(link.accounts) && link.accounts.length)
           ? link.accounts
           : (link.account_uid ? [{ uid: link.account_uid, iban: link.iban, name: null }] : []);
         // deno-lint-ignore no-explicit-any
         const accts: any[] = [];
-        for (const ac of acctList) {
+        for (let accountIndex = 0; accountIndex < acctList.length; accountIndex++) {
+          const ac = acctList[accountIndex];
           const uid = ac?.uid;
           if (!uid || typeof uid !== "string") continue;
-          if (Date.now() >= deadline) {
+          const remainingAccounts = acctList.length - accountIndex;
+          const remainingMs = linkDeadline - Date.now();
+          if (remainingMs <= 0) {
             accts.push({ uid, ok: false, truncated: true, transactionError: "timeout", transactions: [] });
             continue;
           }
           try {
-            const tx = await fetchBankTransactions(jwt, uid, dateFrom, ebApi, Math.min(15000, deadline - Date.now()));
+            /* Reparto dentro del banco: una cuenta no puede comerse los 15 s y dejar mudas las
+               demás. Como mínimo 1 s para la última si la anterior agotó su parte. */
+            const accountMs = Math.max(1000, Math.floor(remainingMs / remainingAccounts));
+            const tx = await fetchBankTransactions(jwt, uid, dateFrom, ebApi, accountMs, true);
             const all = tx.transactions.map(mapTransaction);
             accts.push({ uid, iban: ac.iban || null, name: ac.name || null, ok: true, count: all.length,
               transactions: all, truncated: tx.truncated, transactionError: tx.transactionError });
@@ -148,8 +158,8 @@ Deno.serve(withCors(async (req: Request) => {
             accts.push({ uid, iban: ac.iban || null, ok: false, error: "transactions_unavailable", transactions: [] });
           }
         }
-        hist.push({ aspsp: link.aspsp_name, iban: link.iban, ok: accts.some(a => a.ok), accounts: accts });
-      }
+        return { aspsp: link.aspsp_name, iban: link.iban, ok: accts.some(a => a.ok), accounts: accts };
+      }));
       for (const link of deadLinks) {
         hist.push({ aspsp: link.aspsp_name, ok: false, pending: link.status === "pending",
           expired: link.status === "expired", noacct: link.status === "error", accounts: [] });

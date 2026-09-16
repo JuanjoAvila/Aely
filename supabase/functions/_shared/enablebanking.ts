@@ -75,14 +75,17 @@ export async function ebApi(jwt: string, path: string, init: { method?: string; 
 // y devolver continuation_key. Mismo contrato para sync diario e histórico (15/9/2026).
 // https://enablebanking.com/docs/faq/
 export async function fetchBankTransactions(jwt: string, uid: string, dateFrom: string | null,
-  api = ebApi, timeoutMs = 15000) {
+  api = ebApi, timeoutMs = 15000, preferLongest = false) {
   if (timeoutMs <= 0) throw new Error("transactions_timeout");
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   // deno-lint-ignore no-explicit-any
   const transactions: any[] = [];
   const visited = new Set<string>();
-  let continuation: string | null = null, longest = false, pages = 0;
+  /* En el HISTÓRICO, `longest` va desde la primera petición. Caixa puede aceptar el periodo y
+     devolver vacío sin `WRONG_TRANSACTIONS_PERIOD`; esperar al error dejaba la pantalla a cero.
+     El sync diario no activa `preferLongest`: allí interesa la ventana reciente exacta. */
+  let continuation: string | null = null, longest = !!dateFrom && !!preferLongest, pages = 0;
   try {
     while (pages < 12 && transactions.length < 2000) {
       const qs = new URLSearchParams();

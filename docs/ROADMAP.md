@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-16 · **v4.25.1** — las cuentas recién conectadas ya tienen ficha y orden; el borde inferior deja la ola nativa sin mover la barra; offline arranca con datos y conserva Dev; Gastos abre con los bancos de gasto diario. Preparada para validación en beta tras el rechazo de 4.25.0.
+> Estado a 2026-09-16 · **v4.25.2** — corrección de los dos rechazos pendientes: el histórico da a cada banco su propia lectura y Caixa ya no queda detrás de un 429 ajeno; el `touchcancel` del borde inferior conserva barra y host para la ola nativa. Preparada para validación en beta; las otras tres tandas de 4.25.1 ya están aprobadas.
+> Anterior: **v4.25.1** — ficha y orden de cuentas nuevas, arranque offline/Dev y filtro de bancos diarios aprobados; rechazados histórico Caixa y ola/barra.
 > Anterior: **v4.25.0** — lectura bancaria paginada publicada en beta y `bank-sync` desplegada; rechazada en el móvil al comprobar que una CaixaBank nueva seguía sin ficha ni orden.
 > Anterior: **v4.24.5** — la ronda 4.24 a producción, con una sola nota.
 > Anterior: **v4.24.4** — Ajustes ya no se abre solo tras probar la beta.
@@ -187,7 +188,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.25.1** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.25.2** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

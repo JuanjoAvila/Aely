@@ -121,14 +121,11 @@ test("la pantalla recolocándose sola no esconde la barra", async ({ page }) => 
   expect(await escondida(page), "cambiar el rol de una cuenta tampoco").toBe(false);
 });
 
-test("si el navegador CANCELA el gesto, la barra no reaparece sola", async ({ page }) => {
-  /* El agujero que me cazó Cursor en la 4.19.69, con el dato que lo cierra: **en su móvil 174 de
-     185 gestos acaban en `touchcancel`**, no en `touchend`. Yo aplazaba el `setState` de la barra
-     hasta soltar el dedo, pero solo lo volcaba en el camino limpio. Lo que quedaba era peor que no
-     aplazar nada: DOM con la clase puesta, refs en `true` y React creyendo que la barra está a la
-     vista → **el siguiente re-render le quitaba la clase y la barra reaparecía sola**.
-     Los demás casos de este fichero no lo ven porque un gesto sintético siempre acaba limpio: hay
-     que mandar `touchCancel` a propósito, y luego forzar un re-render. */
+test("si Android CANCELA el scroll vertical, la barra sigue oculta y el estado queda coherente", async ({ page }) => {
+  /* Android entrega el scroll al WebView con `touchcancel` (174 de 185 gestos medidos). En el
+     fondo, ese cancel debe conservar la barra como estaba: revelarla aquí era exactamente el
+     segundo paso del rechazo 4.25.1.1. El estado de React se reconcilia después del stretch, pero
+     cualquier render intermedio también debe respetar la ref visual. */
   await seedLoggedInDashboard(page);
   await page.goto("/");
   await appLista(page);
@@ -136,36 +133,41 @@ test("si el navegador CANCELA el gesto, la barra no reaparece sola", async ({ pa
 
   const y0 = 600;
   await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 187, y: y0 }] });
-  for (let i = 1; i <= 24; i++) {
+  for (let i = 1; i <= 30; i++) {
     await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 187, y: y0 - i * 16 }] });
     await page.waitForTimeout(16);
   }
   // El navegador se lleva el gesto: nada de touchEnd.
   await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
+  await expect.poll(async () => {
+    const s = await alturaScroll(page);
+    return s.max - s.y;
+  }, { message: "el caso solo vale si el dedo llegó al borde inferior" }).toBeLessThanOrEqual(4);
   await page.waitForTimeout(800);
 
-  /* ⚠ Medido, y NO es lo que yo esperaba al escribir este test: al cancelar, la app REVELA la
-     barra a propósito (`endTopClearNow(true)`), así que aquí no sigue escondida. Lo dejo escrito
-     para que nadie «arregle» ese revelado creyendo que es este bug.
-     Lo que sí se puede exigir es que la app quede CONSISTENTE: la barra a la vista, sin la clase
-     colgada, y respondiendo. Un `className` con `botnav-hidden` puesto a mano y React creyendo lo
-     contrario se vería justo aquí. */
   const tras = await page.evaluate(() => {
     const n = document.querySelector(".botnav");
-    return { clase: n.className, oculta: n.classList.contains("botnav-hidden"), t: getComputedStyle(n).transform };
+    const p = document.querySelector(".page.page-scroll-host");
+    return {
+      clase: n.className,
+      oculta: n.classList.contains("botnav-hidden"),
+      t: getComputedStyle(n).transform,
+      host: !!(p && p.classList.contains("page-scroll-host"))
+    };
   });
-  expect(tras.oculta, "tras cancelar, la barra queda a la vista y sin clase colgada").toBe(false);
+  expect(tras.oculta, "touchcancel vertical no equivale a subir contenido").toBe(true);
+  expect(tras.host, "el cancel vertical no desmonta el host que permite la ola nativa").toBe(true);
 
-  // Y la app sigue viva: cambiar de pestaña funciona.
+  // La app sigue viva y un cambio de pestaña sí la revela, como siempre.
   await page.evaluate(() => {
     const b = [...document.querySelectorAll(".botnav-tab")].find((x) => x.getAttribute("data-tour") === "gastos");
     if (b) b.click();
   });
   await page.waitForTimeout(500);
-  expect(await escondida(page), "y después de cambiar de pestaña tampoco se queda escondida").toBe(false);
+  expect(await escondida(page), "cambiar de pestaña devuelve la barra").toBe(false);
 });
 
-test("★ el volcado de estado de la barra se llama desde los TRES caminos de soltar el dedo", () => {
+test("★ los tres caminos de soltar el dedo conservan o vuelcan el estado de la barra", () => {
   /* Esto NO se puede probar con un gesto sintético, y por eso va como guardián de fuente: en
      Playwright el gesto siempre acaba limpio, así que los cinco casos de arriba pasaban con el
      agujero puesto. Lo cazó Cursor leyendo el código, con el dato que lo cierra: **en su móvil
@@ -177,7 +179,7 @@ test("★ el volcado de estado de la barra se llama desde los TRES caminos de so
   const veces = (src.match(/flushNavHide\(\)/g) || []).length;
   expect(veces, "flushNavHide() tiene que llamarse desde onEnd, onCancel y cancelSwipe").toBeGreaterThanOrEqual(3);
 
-  for (const fn of ["const onEnd=", "const onCancel=function()", "const cancelSwipe=function()"]) {
+  for (const fn of ["const onEnd=", "const onCancel=function()", "const cancelSwipe=function("]) {
     const i = src.indexOf(fn);
     expect(i, `no encuentro ${fn}`).toBeGreaterThan(-1);
     const bloque = src.slice(i, i + 700);

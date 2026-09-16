@@ -25,7 +25,7 @@ async function sync(links, reply, body={}, clock=null) {
   new Function(...names,src)(
     {serve:f=>{handler=f;},env:{get:()=>"synthetic"}},()=>db,api,()=>({}),
     (x,status=200)=>new Response(JSON.stringify(x),{status}),async()=>"jwt",E.mapTransaction,f=>f,
-    (jwt,uid,from,ignored,timeout)=>E.fetchBankTransactions(jwt,uid,from,api,timeout),clock||Date
+    (jwt,uid,from,ignored,timeout,preferLongest)=>E.fetchBankTransactions(jwt,uid,from,api,timeout,preferLongest),clock||Date
   );
   const res=await handler(new Request("https://app.invalid",{method:"POST",body:JSON.stringify(body)}));
   assert.equal(res.status,200);
@@ -37,6 +37,7 @@ async function t(name,fn){try{await fn();console.log("  ✓ "+name);}catch(e){fa
 await t("sync diario continúa tras primera página vacía y entrega el gasto",async()=>{
   const r=await sync([link()],u=>u.searchParams.has("continuation_key")?{transactions:[movement()]}:{transactions:[],continuation_key:"next +/="});
   assert.equal(r.data.links[0].accounts[0].transactions.length,1);
+  assert.equal(new URL(r.calls.find(p=>p.includes("/transactions?")),"https://bank.invalid").searchParams.has("strategy"),false,"el sync reciente no pide el tramo histórico más largo");
   assert.equal(new URL(r.calls.at(-1),"https://bank.invalid").searchParams.get("continuation_key"),"next +/=");
 });
 await t("histórico recupera un periodo no disponible con strategy longest",async()=>{
@@ -45,6 +46,7 @@ await t("histórico recupera un periodo no disponible con strategy longest",asyn
     return {transactions:[movement()]};
   },{dateFrom:"2026-06-15"});
   assert.equal(r.data.links[0].accounts[0].transactions.length,1);
+  assert.equal(new URL(r.calls[0],"https://bank.invalid").searchParams.get("strategy"),"longest","Caixa no siempre devuelve WRONG_PERIOD: la primera llamada ya debe pedir el tramo largo");
   assert.equal(r.writes.length,0,"el histórico es solo lectura");
 });
 await t("un fallo posterior conserva las páginas ya leídas y avisa de parcial",async()=>{
@@ -88,26 +90,35 @@ await t("paginación mantiene parámetros y se detiene sin cursor",async()=>{
   const r=await E.fetchBankTransactions("jwt","test","2026-06-15",async(jwt,p)=>{
     urls.push(new URL(p,"https://bank.invalid"));
     return urls.length===1?{transactions:[movement("one")],continuation_key:"two"}:{transactions:[movement("two")]};
-  });
+  },15000,true);
   assert.equal(r.transactions.length,2);assert.equal(r.truncated,false);
   assert.ok(urls.every(u=>u.searchParams.get("date_from")==="2026-06-15"));
+  assert.ok(urls.every(u=>u.searchParams.get("strategy")==="longest"));
 });
 await t("una respuesta inválida nunca se acepta como extracto vacío",async()=>{
   await assert.rejects(()=>E.fetchBankTransactions("jwt","test",null,async()=>({})),/transactions_invalid/);
 });
-await t("seis cuentas lentas respetan el deadline global sin perder las primeras",async()=>{
-  for(const body of [{},{dateFrom:"2026-06-15"}]){
-    let now=Date.now();
-    class FakeDate extends Date { static now(){return now;} }
-    const r=await sync(Array.from({length:6},(_,i)=>link("Banco "+i)),()=>{
-      now+=15000;
-      return {transactions:[movement()]};
-    },body,FakeDate);
-    assert.equal(r.calls.filter(p=>p.includes("/transactions?")).length,4,"las cuentas sin presupuesto no llaman al proveedor");
-    assert.equal(r.data.links.length,6);
-    assert.equal(r.data.links[0].accounts[0].transactions.length,1);
-    assert.equal(r.data.links[5].accounts[0].transactionError,"timeout");
-  }
+await t("el sync diario conserva el deadline global",async()=>{
+  let now=Date.now();
+  class FakeDate extends Date { static now(){return now;} }
+  const r=await sync(Array.from({length:6},(_,i)=>link("Banco "+i)),()=>{
+    now+=15000;
+    return {transactions:[movement()]};
+  },{},FakeDate);
+  assert.equal(r.calls.filter(p=>p.includes("/transactions?")).length,4);
+  assert.equal(r.data.links[5].accounts[0].transactionError,"timeout");
+});
+await t("un banco lento no consume el turno de Caixa en el histórico",async()=>{
+  let soltarLento;
+  const lento=new Promise((resolve,reject)=>{ soltarLento=()=>reject(new Error("EB 429: rate limit")); });
+  const r=await sync([link("Banco de Sabadell"),link("CaixaBank")],u=>{
+    if(u.pathname.includes("Banco%20de%20Sabadell")) return lento;
+    soltarLento();
+    return {transactions:[movement("caixa-ok")]};
+  },{dateFrom:"2026-06-15"});
+  assert.equal(r.data.links[0].accounts[0].ok,false);
+  assert.equal(r.data.links[1].accounts[0].transactions.length,1,"Caixa recibe su llamada aunque el primer banco siga pendiente");
+  assert.equal(r.events.length,1);
 });
 await t("la ventana diaria del servidor cubre som del cliente, también al cambiar de mes",async()=>{
   for(const instant of ["2026-08-31T22:30:00Z","2026-09-01T12:00:00Z","2026-10-31T23:30:00Z"]){

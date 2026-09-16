@@ -1,3 +1,30 @@
+## [4.25.2] - 2026-09-16
+### Caixa tiene turno propio y la ola no desmonta su scroll
+
+Segundo rechazo real de la ronda 4.25. La descarga histórica recorría enlaces en serie con un
+deadline común de 60 s: un Sabadell lento o limitado con 429 podía consumirlo y dejar las cuentas
+posteriores como `timeout` sin haber llamado siquiera a CaixaBank. El histórico procesa ahora los
+enlaces en paralelo, con 15 s independientes por banco y reparto entre sus cuentas. Sigue siendo
+solo lectura y solo se ejecuta al pedir «Buscar movimientos»; no se añade ninguna sincronización
+automática. `strategy=longest` acompaña a `date_from` desde la primera página, porque Caixa puede
+aceptar el periodo pero devolver vacío sin lanzar `WRONG_TRANSACTIONS_PERIOD`.
+
+La identidad de Open Banking deja de tratar `ext_id` y fecha+importe+nombre como globales: ambas
+incluyen el banco, tanto en el sync diario como en el histórico. Así un identificador de Sabadell
+no descarta en silencio un movimiento diferente de Caixa. No se borra ni reclasifica historial.
+Si un banco responde correctamente con cero filas, la pantalla lo nombra expresamente en vez de
+mezclarlo con «quizá ya estaba todo apuntado».
+
+En el borde inferior, Android suele entregar el scroll como `touchcancel`. Ese camino llamaba a
+`endTopClearNow(true)` y `asentarTrack`: revelaba la barra y sacaba la página del host nativo justo
+cuando empezaba el stretch. El cancel vertical conserva ahora la barra, no reasienta el carrusel y
+aplaza únicamente la reconciliación de estado hasta terminar la física. Un E2E llega al fondo,
+envía `touchcancel` y exige simultáneamente barra oculta y `.page-scroll-host` vivo.
+
+Pruebas específicas: histórico con Sabadell pendiente mientras Caixa devuelve una fila; importe
+de Caixa visible e importable en DOM; Caixa a cero explícita; identidad cruzada entre bancos;
+20/20 E2E de histórico+barra tras aislar correctamente sync diario e histórico en el doble.
+
 ## [4.25.1] - 2026-09-16
 ### Cuentas nuevas completas, borde inferior estable y offline inmediato
 
