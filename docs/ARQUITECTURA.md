@@ -9,6 +9,28 @@ Guardar reemplaza el array una vez; Cancelar no toca el estado. Esta pantalla nu
 `expenses`, ingresos, traspasos ni operaciones bancarias. El importe acepta separadores de
 miles y decimales del idioma sin rebajar silenciosamente una aportación.
 
+## Pregúntame híbrido (4.26.3)
+
+`16-help-assistant.js` es una ayuda de una pregunta y una respuesta corta. La capa local funciona
+sin red y es la única que calcula cifras: reutiliza `monthBudgetStats`, `pendingBillsSummary`,
+`saldoCuentaMostrada` y la proyección de la cuenta marcada para recibos. Las acciones pertenecen
+a un catálogo cerrado y solo navegan a pantallas existentes; no escriben dinero ni disparan
+sincronizaciones. `HelpHost` vive fuera de las pestañas y espera el montaje de Plan mediante
+`requestAnimationFrame` acotado, sin cambiar `PlanTab` ni `11-app-main.js`.
+
+La Edge `help-assistant` es un clasificador opcional, no un asesor financiero ni una segunda fuente
+de cifras. Recibe exclusivamente `question` y `language`, verifica sesión y límites y pide a OpenAI
+ids estructurados de tema/intención/banco. Nunca recibe estado, cuentas, movimientos, saldos o
+reglas personales. Cliente y servidor rechazan patrones de IBAN, tarjeta, PIN/CVV, contraseña,
+clave y token; cliente y Edge validan además el cruce tema→frase antes de mostrar una acción.
+
+La consulta requiere consentimiento informado y revocable. Usa Responses, Structured Outputs,
+`store:false`, salida de 180 tokens y `reasoning:low`; el modelo se elige con
+`OPENAI_HELP_MODEL` y por defecto es `gpt-5.6-sol`. Sin `AELY_HELP_AI_ENABLED=true` o
+`OPENAI_API_KEY`, devuelve 503 controlado y la ayuda local continúa. 404, 429, 503 y timeout nunca
+se presentan como una respuesta de IA. Activación, coste y límites están en
+[`briefs/asistente-hibrido-2026-09-16.md`](briefs/asistente-hibrido-2026-09-16.md).
+
 ## Lectura bancaria (4.25.4)
 
 `bank-sync` usa `fetchBankTransactions` para sync e histórico: continúa aunque una página esté

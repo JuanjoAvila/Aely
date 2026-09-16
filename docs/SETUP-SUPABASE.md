@@ -103,8 +103,17 @@ En **Project Settings → Edge Functions → Secrets** (o con la CLI), añade:
 | `FINNHUB_KEY` | tu key de finnhub.io |
 | `INGEST_TOKEN` | un token largo aleatorio que invente (lo usará MacroDroid) |
 | `INGEST_USER_ID` | el UUID de tu usuario del Paso 3 |
+| `OPENAI_API_KEY` | key de OpenAI; necesaria para categorías IA y para la ayuda avanzada |
+| `AELY_HELP_AI_ENABLED` | `true` solo después de aprobar privacidad, coste y despliegue de `help-assistant` |
+| `OPENAI_HELP_MODEL` | opcional; modelo de Pregúntame (por defecto `gpt-5.6-sol`) |
 
 > `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` ya las inyecta Supabase en las funciones; no las pongas a mano.
+
+`help-assistant` permanece cerrado si falta la key o el flag exacto `true`. Desplegar el código no
+activa por sí solo ninguna llamada de pago. La app conserva la guía local/offline y muestra un aviso
+controlado si la función no está disponible. Antes de activar el flag, revisar el consentimiento,
+los topes y la estimación de coste en
+[`briefs/asistente-hibrido-2026-09-16.md`](briefs/asistente-hibrido-2026-09-16.md).
 
 ## Paso 5 — Activar el deploy automático desde GitHub 👤
 

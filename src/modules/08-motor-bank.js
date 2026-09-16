@@ -11,6 +11,24 @@ function entFromAspsp(name){
   }
   return null;
 }
+/* Pregúntame cuenta recibos con la misma regla financiera de Plan. No incluye ingresos ni
+   transferencias: son flujo de caja, no recibos pendientes. */
+function pendingBillsSummary(state,month,year,today){
+  var count=0,total=0;
+  (state.fixed||[]).forEach(function(f){
+    var amount=occAmountIn(f,month);
+    if(!(amount>0)||!occursIn(f,month)||isPaidIn(f,month,today)) return;
+    count++; total+=amount;
+  });
+  (state.debts||[]).forEach(function(d){
+    if(!debtActive(d)||isDebtPaidThisMonth(d,today)) return;
+    var monthly=Number(d.monthly)||0;
+    if(monthly>0){ count++; total+=monthly; }
+    var balloon=debtBalloonIn(d,year,month);
+    if(balloon>0){ count++; total+=balloon; }
+  });
+  return {count:count,total:total};
+}
 /* Códigos cortos del bank-callback (SEC-01, 4.23.0). El Edge ya no manda el error crudo por la
    URL (quien fabrique el enlace podía pintar un texto falso «de tu banco»). El cliente: si `msg`
    no está en la lista ni empieza por `nolink:`, genérico — NUNCA el texto. Puro: no toca DOM. */

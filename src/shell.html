@@ -1841,6 +1841,20 @@
     #mc-load .mcl-name{animation:none !important;}
     #mc-load .mcl-name.lista{opacity:1;}
   }
+
+/* Ayuda: pantalla propia encima de Ajustes; teclado y scroll contenidos. */
+.aely-help-back{z-index:12000;}
+.aely-help-sheet{max-height:92dvh;display:flex;flex-direction:column;}
+.aely-help-sheet-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 0 8px;}
+.aely-help-sheet-h h1{font-size:22px;margin:0;font-weight:550;}
+.aely-help-q{width:100%;min-height:88px;padding:12px 14px;resize:vertical;box-sizing:border-box;}
+.aely-help-topics{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px;}
+.aely-help-answer{margin-top:14px;}
+.aely-help-phrase{font-size:clamp(20px,5.5vw,26px);font-weight:550;letter-spacing:-.3px;line-height:1.25;margin:6px 0 0;}
+.aely-help-entry{margin:6px 0 10px;}
+.aely-help-head-actions{display:flex;align-items:center;gap:8px;}
+.aely-help-entry-mini{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--sur);color:var(--ink);font:550 18px/1 var(--serif,Georgia,serif);padding:0;}
+.aely-help-consent{margin-top:12px;padding:12px;border-radius:14px;background:var(--sur2);border:1px solid var(--line);}
 </style>
 </head>
 <body>
