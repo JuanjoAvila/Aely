@@ -478,7 +478,7 @@ t("sonda: banco→llegan→nuevos→coincideDayAmt (día+€, no identidad)", ()
   };
   const state = {
     expenses: [
-      { id: "e1", date: "2026-09-01T12:00:00.000Z", amount: 10, merchant: "Cafe", extId: "x1" },
+      { id: "e1", date: "2026-09-01T12:00:00.000Z", amount: 10, merchant: "Cafe", extId: "x1", ent:"sabadell", source:"ob-hist" },
       // mismo día+importe que «Movimiento», pero comercio distinto → clasificador NEW; sonda coincideDayAmt++
       { id: "e2", date: "2026-09-02T12:00:00.000Z", amount: 20, merchant: "Super", obName: "Otro" },
     ],

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * ACTUALIZAR A MANO DICE QUÉ HA PASADO, EN UN SOLO AVISO (13/9).
+ * ACTUALIZAR A MANO DICE QUÉ HA PASADO, EN UNA HOJA CON FILAS (16/9).
  *
  * Su queja (12/9): «si actualizo saldo de un banco… por ejemplo Trade Republic, no me dice nada
  * que se ha actualizado correctamente». Y el rechazo viejo `tr-reactivo` (8/9): «sale conectado
@@ -46,11 +46,17 @@ t("dos avisos: un solo ⚠ delante, sin repetir mensajes", () => {
 t("sin nada que decir, nada", () => {
   assert.equal(ctx.juntaAvisosSync([]), "");
 });
+t("el resumen conserva cada resultado en su propia fila y elimina duplicados", () => {
+  assert.deepEqual(Array.from(ctx.listaAvisosSync(["⚠ Caixa", "✓ Sabadell", "⚠ Caixa"])), ["⚠ Caixa", "✓ Sabadell"]);
+});
 
 const src = fs.readFileSync(new URL("../src/modules/11-app-main.js", import.meta.url), "utf8");
 t("el botón Actualizar ya no lanza bancos y brókers con un toast cada uno", () => {
   assert.equal(/onBankSync:function\(\)\{ return Promise\.all\(\[runBankSync\(\{manual:true\}\), runBrokerSync\(\{manual:true\}\)\]\); \}/.test(src), false);
   assert.ok((src.match(/onBankSync:sincronizarAMano/g) || []).length >= 2, "Cartera y Ajustes pasan por sincronizarAMano");
+  const manual=src.slice(src.indexOf("const sincronizarAMano="),src.indexOf("const runBrokerSync="));
+  assert.ok(manual.includes("setSyncReport(rows)"),"el resultado abre la hoja estructurada");
+  assert.equal(manual.includes("showToast(m)"),false,"no vuelve el toast kilométrico de la captura real");
 });
 
 t("showToast cancela el temporizador del aviso anterior", () => {

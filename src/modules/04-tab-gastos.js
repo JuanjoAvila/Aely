@@ -82,17 +82,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const [range,setRange]=useState({from:"",to:""});
   const [calPick,setCalPick]=useState(null);   // "from" | "to" | null — rango a medida, calendario de la casa
   const [sel,setSel]=useState([]);   // categorías seleccionadas; [] = todas
-  /* GASTOS ENSEÑA TODAS SUS CUENTAS, CUENTEN O NO PARA EL PRESUPUESTO (11/9/2026).
-     Suyo, y con razón: «lo de gasto diario es para que cuente cuando gaste desde ese banco a mi
-     límite que ponga, pero TODAS las cuentas deben salir en el apartado de gastos aunque no esté
-     marcado gasto diario. Es importante».
-     Son dos cosas distintas y el filtro las confundía: `expenseBankEnts` dice qué bancos SUMAN al
-     presupuesto, y arrancaba marcado exactamente con esos. Resultado: los movimientos de sus
-     cuentas de recibos —Sabadell, CaixaBank— no salían en la lista, como si no existieran, y solo
-     se veían si él caía en tocar su chip. Lo que se ve y lo que cuenta son decisiones separadas:
-     la lista es su histórico entero, y el presupuesto sigue contando solo lo que él marque.
-     Vacío = todos, que es justo lo que se quiere. */
-  const [bankSel,setBankSel]=useState([]);
+  /* Contrato confirmado 16/9: al entrar se ven los bancos marcados como gasto diario. Vacío
+     sigue significando TODOS y queda disponible como elección explícita en el filtro. */
+  const [bankSel,setBankSel]=useState(function(){ return expenseBankEnts(state).slice(); });
   /* Filtro por cajón (2026-08-17): «cuenta», «ingreso», «neutra», «otrobanco». Es lo que le deja
      separar el caos que describió al volver del crucero. Arranca VACÍO = se ve todo: la lista
      sigue siendo el histórico completo por defecto, esto es para explorar, no un modo nuevo. */
@@ -359,6 +351,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const todayKey=new Date().toDateString();
   const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,todayKey]);
   const diarioEnts=useMemo(function(){ return expenseBankEnts(state); },[state.accounts, state.settings]);
+  const diarioPrev=useRef(diarioEnts.slice());
+  const diarioKey=diarioEnts.slice().sort().join("|");
+  useEffect(function(){
+    const prev=diarioPrev.current;
+    setBankSel(function(cur){ return sameEntList(cur,prev)?diarioEnts.slice():cur; });
+    diarioPrev.current=diarioEnts.slice();
+  },[diarioKey]);
   const bankOpts=useMemo(function(){
     const seen={}; const order=[];
     const add=function(k){ if(!k||seen[k]) return; seen[k]=1; order.push(k); };
@@ -569,15 +568,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // Resumen de filtros activos, para el botón "Filtros" (badge) y la línea de chips debajo.
   // Se calcula aquí (no memoizado: sel/bankSel son arrays cortos) porque lo usan dos sitios:
   // el botón junto al buscador y la línea de resumen + "Borrar filtros".
-  /* SIN NADA MARCADO = SIN FILTRO DE BANCO. Esto era `sameEntList(bankSel, diarioEnts)`, o sea
-     «el default es tener marcados los bancos de gasto diario» — el criterio del 17/8. Desde el
-     11/9 el default es la lista ENTERA (su petición: «TODAS las cuentas deben salir en el apartado
-     de gastos aunque no esté marcado gasto diario»), y con el array vacío aquello daba `false`:
-     el botón Filtros se encendía con un «1» y el chip «Todos los bancos» salía como si él hubiera
-     puesto un filtro nada más entrar. Lo cazó Cursor en la review, no un test. */
-  const bankSelIsDefault=bankSel.length===0;
+  // La preselección automática no cuenta como filtro puesto; «Todos» sí amplía la vista a mano.
+  const bankSelIsDefault=sameEntList(bankSel, diarioEnts);
   const nCatSel=sel.length;
-  const nBankSel=bankSelIsDefault?0:bankSel.length;
+  const nBankSel=bankSelIsDefault?0:Math.max(1,bankSel.length);
   const nFilters=nCatSel+nBankSel+bucketSel.length;
   const filterParts=[];
   if(bucketSel.length===1) filterParts.push(t("g_bk_"+bucketSel[0]));
@@ -784,9 +778,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         React.createElement("button",{type:"button",className:"v4-chip",onClick:function(){
           setSel([]);
           setBucketSel([]);
-          // Borrar filtros = dejarlo como al entrar, y al entrar salen TODOS los bancos (11/9).
-          // Antes volvía a los de gasto diario, o sea que «borrar» ponía un filtro.
-          setBankSel([]);
+          // Borrar filtros = volver a la preselección automática de gasto diario.
+          setBankSel(diarioEnts.slice());
         },style:{padding:"8px 12px"}}, t("g_filters_clear"))
       )
     ),
@@ -946,8 +939,8 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
   const clearAll=function(){
     setSel([]);
     setBucketSel([]);
-    // Igual que el chip de «Borrar filtros»: vacío = todos los bancos, que es como entra (11/9).
-    setBankSel([]);
+    // Igual que el chip de «Borrar filtros»: volver a los bancos de gasto diario.
+    setBankSel(diarioEnts.slice());
   };
   const toggleBucket=function(b){
     setBucketSel(function(prev){

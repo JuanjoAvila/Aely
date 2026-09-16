@@ -361,6 +361,14 @@ function trBridge(){
 // Teléfono del último login OK (solo el teléfono, NUNCA el PIN): tras un 401 real el formulario
 // sale ya rellenado y reconectar queda en PIN + código (feedback 2026-07-17).
 function trPhoneSaved(){ try{ return localStorage.getItem("mc_tr_phone")||""; }catch(e){ return ""; } }
+/* Un `status().connected=false` solo dice que el puente no tiene su flag local (APK vieja,
+   reinstalación o arranque frío); NO demuestra que TR haya rechazado el refresh. Guardamos una
+   marca distinta únicamente cuando un sync devuelve `authExpired` de forma explícita. */
+function trAuthExpiredSaved(){ try{ return localStorage.getItem("_trAuthExpired")==="1"; }catch(e){ return false; } }
+function markTrAuthExpired(){
+  try{ localStorage.setItem("_trAuthExpired","1"); }catch(e){}
+  trSignalStatus(false,{authExpired:true});
+}
 // La tarjeta y sus consumidores (resumen de Ajustes + banner de Cartera) viven en componentes
 // distintos. Cambiar solo el useState local dejaba «1 caído» hasta reiniciar aunque el login o
 // el sync acabasen bien — feedback 2026-09-07. Este evento mantiene una única verdad visible.
@@ -368,9 +376,9 @@ function trPhoneSaved(){ try{ return localStorage.getItem("mc_tr_phone")||""; }c
  // Las consultas de status (arranque, visibility) NO llevan ack — rechazo 4.19.0/tr-reactivo.
 function trSignalStatus(connected, opts){
   opts=opts||{};
-  try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:!!connected, ack:!!opts.ack}})); }catch(e){}
+  try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:!!connected, ack:!!opts.ack, authExpired:!!opts.authExpired}})); }catch(e){}
 }
-function markTrConnected(opts){ trSignalStatus(true, opts||{}); }
+function markTrConnected(opts){ try{ localStorage.removeItem("_trAuthExpired"); }catch(e){} trSignalStatus(true, opts||{}); }
 function TRSync({state, set, totals, open, onToggle}){
   const bridge=trBridge();
   const [step,setStep]=useState("idle");      // idle | code | preview | done
@@ -411,7 +419,7 @@ function TRSync({state, set, totals, open, onToggle}){
       if(r&&r.authExpired && !r.softFail && !r.wafBlocked){
         // 401 REAL (no anti-bot): al formulario directamente, con el teléfono ya puesto. Antes se
         // pedía pulsar «Desconectar» — que además borra el snapshot bueno (feedback 2026-07-17).
-        setConnected(false); trSignalStatus(false); setExpired(true); setStep("idle");
+        setConnected(false); markTrAuthExpired(); setExpired(true); setStep("idle");
         try{ cloud.logEvent('error','TR sync: sesión caducada de verdad (401 real)'); }catch(x){}
         return;
       }
@@ -492,6 +500,7 @@ function TRSync({state, set, totals, open, onToggle}){
   };
   const disconnect=function(){
     if(bridge&&bridge.logout){ Promise.resolve(bridge.logout()).catch(function(){}); }
+    try{ localStorage.removeItem("mc_tr_phone"); localStorage.removeItem("_trAuthExpired"); }catch(e){}
     setConnected(false); trSignalStatus(false); setStep("idle"); setPositions(null); setPhone(""); setPin("");
   };
   const inpStyle={marginTop:8};

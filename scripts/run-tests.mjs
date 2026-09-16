@@ -5,6 +5,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const suiteStarted = performance.now();
+const timings = [];
+function recordTime(name, started) {
+  timings.push({ name, ms: Math.round(performance.now() - started) });
+}
 
 function loadPlan() {
   const i = process.argv.indexOf("--plan");
@@ -20,7 +25,9 @@ if (plan.reason) console.log("── plan: " + plan.reason + " ──");
 
 if (plan.build !== false) {
   console.log("── build-app ──");
+  const started = performance.now();
   const build = spawnSync("node", ["scripts/build-app.mjs"], { cwd: root, stdio: "inherit", shell: process.platform === "win32" });
+  recordTime("build-app", started);
   if (build.status !== 0) process.exit(1);
 } else {
   console.log("── build-app ── (omitido)");
@@ -69,6 +76,7 @@ const steps = [
   ["presupuesto-rendimiento", ["node", "tests/presupuesto-rendimiento.test.mjs"]],
   ["finance-core", ["node", "tests/finance-core.test.mjs"]],
   ["ob-ingresos", ["node", "tests/ob-ingresos.test.mjs"]],
+  ["bank-sync-paging", ["node", "tests/bank-sync-paging.test.mjs"]],
   ["reserva-dinero", ["node", "tests/reserva-dinero.test.mjs"]],
   ["month-budget-stats", ["node", "tests/month-budget-stats.test.mjs"]],
   ["informe-mes", ["node", "tests/informe-mes.test.mjs"]],
@@ -177,7 +185,9 @@ const runSteps = plan.steps === "all" || !plan.steps
   : steps.filter(([name]) => plan.steps.includes(name));
 for (const [name, cmd] of runSteps) {
   console.log(`\n── ${name} ──`);
+  const started = performance.now();
   const r = spawnSync(cmd[0], cmd.slice(1), { cwd: root, stdio: "inherit", shell: process.platform === "win32" });
+  recordTime(name, started);
   if (r.status !== 0) {
     failed = true;
     console.error(`\nFAILED: ${name}`);
@@ -188,6 +198,7 @@ if (plan.deno !== false) {
   console.log("\n── ingest-deno ──");
   const denoTests = denoEnLista;
   for (const testFile of denoTests) {
+    const started = performance.now();
     const denoArgs = testFile.includes("crypto.test")
       ? ["test", "--allow-env", testFile]
       : ["test", testFile];
@@ -195,6 +206,7 @@ if (plan.deno !== false) {
       cwd: root, stdio: "pipe", shell: process.platform === "win32",
     });
     const denoOut = (deno.stderr?.toString() || "") + (deno.stdout?.toString() || "");
+    recordTime(testFile, started);
     if (deno.status === 0) {
       console.log(`  ✓ ${testFile}`);
     } else if (deno.error?.code === "ENOENT" || /not found|no se reconoce|not recognized/i.test(denoOut)) {
@@ -212,25 +224,58 @@ if (plan.deno !== false) {
 
 if (!failed && plan.playwright !== false && plan.e2e !== "none") {
   console.log("\n── playwright-e2e ──");
-  const specs = plan.e2e === "all" || !plan.e2e ? [] : plan.e2e;
+  const specs = plan.e2e === "all" || !plan.e2e
+    ? fs.readdirSync(path.join(root, "e2e"), { recursive: true })
+      .filter(p => p.endsWith(".spec.mjs")).map(p => "e2e/" + p.replaceAll("\\", "/"))
+    : plan.e2e;
   /* `npx playwright` depende de los wrappers de node_modules/.bin, y en este repo faltan en
      varias maquinas (Windows incluido): el runner respondia «"playwright" no se reconoce como un
      comando» y marcaba FAILED sin haber ejecutado un solo e2e. Eso es peor que un rojo: parece
      que la suite ha corrido y ha fallado. Si esta el CLI del paquete, se llama directo. */
   const pwCli = path.join(root, "node_modules", "playwright", "cli.js");
-  const pw = fs.existsSync(pwCli)
-    ? spawnSync(process.execPath, [pwCli, "test", "--config=playwright.config.mjs"].concat(specs), {
-        cwd: root, stdio: "inherit",
-      })
-    : spawnSync("npx", ["playwright", "test", "--config=playwright.config.mjs"].concat(specs), {
-        cwd: root, stdio: "inherit", shell: process.platform === "win32",
-      });
-  if (pw.status !== 0) {
-    failed = true;
-    console.error("\nFAILED: playwright-e2e");
+  // Las mediciones con CPU frenada competían con otros tres navegadores: scroll→swipe
+  // daba 108/109 ms en dos completas y pasaba aislado (15/9). Medir después conserva
+  // el umbral real; los funcionales siguen en paralelo y ningún caso del plan se pierde.
+  const isPerf = p => /(?:^|\/)rendimiento(?:-tabs)?\.spec\.mjs$/.test(p.replaceAll("\\", "/"));
+  const groups = [["playwright-e2e", specs.filter(p => !isPerf(p)), []],
+    ["playwright-perf", specs.filter(isPerf), ["--workers=1"]]];
+  const reports = [];
+  fs.rmSync(path.join(root, "test-results", "playwright.json"), { force: true });
+  for (const [name, selected, extra] of groups) {
+    if (!selected.length) continue;
+    const reportPath = path.join(root, "test-results", name + ".json");
+    fs.rmSync(reportPath, { force: true });
+    const env = { ...process.env, MC_E2E_REPORT: reportPath,
+      MC_E2E_OUTPUT_DIR: path.join(root, "test-results", name) };
+    const args = ["test", "--config=playwright.config.mjs", ...selected, ...extra];
+    const started = performance.now();
+    const pw = fs.existsSync(pwCli)
+      ? spawnSync(process.execPath, [pwCli, ...args], { cwd: root, stdio: "inherit", env })
+      : spawnSync("npx", ["playwright", ...args], { cwd: root, stdio: "inherit", env, shell: process.platform === "win32" });
+    recordTime(name, started);
+    if (pw.status !== 0) { failed = true; console.error("\nFAILED: " + name); }
+    try { reports.push(JSON.parse(fs.readFileSync(reportPath, "utf8"))); }
+    catch (_) { failed = true; console.error("\nFAILED: falta informe de " + name); }
+  }
+  if (reports.length) {
+    const merged = { ...reports[0], suites: reports.flatMap(r => r.suites), errors: reports.flatMap(r => r.errors || []), stats: { ...reports[0].stats } };
+    for (const key of ["duration", "expected", "skipped", "unexpected", "flaky"])
+      merged.stats[key] = reports.reduce((sum, r) => sum + (r.stats[key] || 0), 0);
+    fs.writeFileSync(path.join(root, "test-results", "playwright.json"), JSON.stringify(merged, null, 2) + "\n");
   }
 } else if (plan.e2e === "none" || plan.playwright === false) {
   console.log("\n── playwright-e2e ── (omitido)");
 }
 
+// Los tiempos van junto a los resultados, no al repo: sin ellos cada tanda volvía a adivinar
+// si el coste era un test, el arranque o la carga de la máquina (feedback 15/9).
+const totalMs = Math.round(performance.now() - suiteStarted);
+fs.mkdirSync(path.join(root, "test-results"), { recursive: true });
+fs.writeFileSync(path.join(root, "test-results", "runner-times.json"), JSON.stringify({
+  timezone: process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone,
+  totalMs, failed, phases: timings,
+}, null, 2) + "\n");
+console.log("\n── Duración total: " + (totalMs / 1000).toFixed(1) + " s · etapas más lentas ──");
+timings.slice().sort((a, b) => b.ms - a.ms).slice(0, 8).forEach(t =>
+  console.log("  " + (t.ms / 1000).toFixed(2) + " s · " + t.name));
 process.exit(failed ? 1 : 0);

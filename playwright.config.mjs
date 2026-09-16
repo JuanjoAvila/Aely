@@ -30,6 +30,9 @@ export default defineConfig({
   testDir: "e2e",
   timeout: 60_000,
   retries: process.env.CI ? 1 : 0,
+  // Duraciones y resultados de cada intento: permite comparar sin inferir tiempos del log.
+  reporter: [["list"], ["json", { outputFile: process.env.MC_E2E_REPORT || "test-results/playwright.json" }]],
+  outputDir: process.env.MC_E2E_OUTPUT_DIR || "test-results",
   // La app es móvil-first: si los e2e corren en escritorio se cuelan bugs que solo se ven a
   // 390px (barras que tapan botones, sheets que no caben). Todo se prueba en viewport de móvil.
   use: {

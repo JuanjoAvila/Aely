@@ -400,7 +400,7 @@ function Tour({onDone, goTab, tabIds}){
     // Durante el tour la barra NO puede estar escondida: si lo está, medimos su sitio «fuera»
     // y el foco cae en el aire (fotos Gastos/Plan/Cartera).
     const nav=document.querySelector(".botnav");
-    if(nav){ nav.classList.remove("botnav-hidden","botnav-hidden-fast"); }
+    if(nav){ nav.classList.remove("botnav-hidden"); }
   };
   const inViewport=function(r){
     const H=window.innerHeight||700, W=window.innerWidth||400;

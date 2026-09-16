@@ -662,17 +662,6 @@
      con opacity→0 a mitad de la transición se veía la lista a través de la barra ~1 s
      (feedback 2026-08-05, tras meter la lluvia a z-37 entre página y botnav). */
   .botnav.botnav-hidden{transform:translateY(120%);pointer-events:none;}
-  /* ESCONDIDO RÁPIDO (2026-08-03, bug «rebote raro»/«se queda atascado»): cuando el motivo de
-     esconder la barra es «hemos llegado al final de la lista» (no un scroll normal hacia abajo),
-     la barra tiene que APARTARSE YA, no con la calma de 0,55 s de más arriba. El rebote NATIVO (la
-     "ola") empieza a la vez y tarda ~0,2-0,3 s en asentarse — mucho menos que la barra. Con la
-     misma duración de siempre, la barra se ve deslizándose/desvaneciéndose TODAVÍA por encima de
-     la ola mientras esta ya está en marcha: dos animaciones a ritmos distintos compitiendo por el
-     mismo trozo de pantalla, que es justo lo que él describió («se queda atascado un momento y
-     luego sí que hace la ola, pero es muy raro»). Misma transform de destino que
-     `.botnav-hidden` (no cambia el diseño, solo cuánto tarda en llegar); el escondido por scroll
-     normal (bajar leyendo la lista) sigue con su calma de siempre — eso nunca fue el problema. */
-  .botnav.botnav-hidden-fast{transition:transform .16s cubic-bezier(.4,0,.2,1);}
   /* Con pestaña en host fixed (ola nativa): la barra SIGUE visible, pero sin backdrop-filter
      ni will-change — esa capa encima del stretch del WebView mataba la ola arriba y abajo
      (labs 5/8). Fondo sólido para que no se vea raro sin el blur. */
@@ -680,6 +669,27 @@
     backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
     will-change:auto !important;
     background:var(--bg-2);
+    /* Un `transform` en el hermano que cubre el borde inferior corta el stretch nativo de la
+       WebView. Y sacar la caja con `bottom` negativo crea overflow por DEBAJO del viewport: en el
+       Oppo, con la barra oculta, ese saliente era un stopper antes de la ola (rechazo 16/9).
+       Se recoge dentro del propio borde: la caja nunca abandona la pantalla y el alto/padding
+       conservan la bajada suave. `overflow` solo entra al ocultar, para no recortar el FAB visible. */
+    transform:none;
+    bottom:0;
+    /* border-box: 54 de fila + 8/10 de padding + borde + zona segura. Poner solo 54 aplasta
+       la barra visible precisamente en móviles con safe-bottom (revisión Cursor 16/9). */
+    max-height:calc(73px + var(--safe-bottom));
+    transition:max-height .55s cubic-bezier(.4,0,.2,1),padding .55s cubic-bezier(.4,0,.2,1),
+      border-color .35s ease;
+  }
+  .app-shell.scroll-host-on .botnav.botnav-hidden{
+    transform:none;
+    bottom:0;
+    max-height:0;
+    padding-top:0;
+    padding-bottom:0;
+    border-top-color:transparent;
+    overflow:hidden;
   }
   /* Tope: clase residual por si queda colgada de una beta anterior. Ya no se arma
      (parpadeaba al llegar arriba / al swipear tabs — 2026-08-05). */
@@ -3186,9 +3196,11 @@ const cloud = (function(){
     },
     // IMPORTAR HISTÓRICO: trae movimientos desde dateFrom (YYYY-MM-DD, tope PSD2 ~90 días).
     // Modo lectura pura del servidor (no toca saldos). Devuelve { links:[{aspsp, accounts:[{transactions}]}] }.
-    async bankSyncHistory(dateFrom){
+    async bankSyncHistory(dateFrom, aspsps){
       if(!sb) throw new Error("nube no disponible");
-      const {data,error}=await sb.functions.invoke('bank-sync',{ body:{ dateFrom:dateFrom } });
+      const body={ dateFrom:dateFrom };
+      if(Array.isArray(aspsps)) body.aspsps=aspsps;
+      const {data,error}=await sb.functions.invoke('bank-sync',{ body:body });
       if(error) throw error;
       if(!data || !data.ok) throw new Error((data&&data.error)||"histórico falló");
       return data;
@@ -3963,17 +3975,65 @@ function moveExpenseWithinDay(state, fromId, toId){
   const settings=Object.assign({},state.settings,{expenseOrder:Object.assign({},((state.settings||{}).expenseOrder)||{},{[day]:ids})});
   return Object.assign({},state,{settings:settings});
 }
-/* Cartera → Tus cuentas: el orden es el del array `accounts` (12/9). Mantener pulsado + arrastrar
-   pide exactamente eso — no un campo paralelo que luego haya que reconciliar. */
+/* Cartera → Tus cuentas: una cuenta recién conectada vive en `obAccounts` hasta que el usuario
+   elige su rol. No se puede meter en `accounts` solo para ordenarla: eso inventaría si paga recibos
+   o gasto diario y podría mover presupuesto/saldos. El orden visual mezcla ambas listas mediante
+   una clave estable, sin tocar el modelo financiero (rechazo real CaixaBank 2026-09-16). */
+function accountOrderKeyOf(item, kind){
+  if(kind==="ob") return "ob:"+String(item&&item.key||"");
+  return String((item&&item.accountOrderKey)||("acc:"+String(item&&item.id||"")));
+}
+function accountRowsInOrder(state){
+  const rows=(state&&state.accounts||[]).map(function(a){
+    return {key:accountOrderKeyOf(a,"account"),kind:"account",item:a};
+  }).concat((state&&state.obAccounts||[]).map(function(o){
+    return {key:accountOrderKeyOf(o,"ob"),kind:"ob",item:o};
+  }));
+  const order=((state&&state.settings||{}).accountListOrder)||[];
+  if(!Array.isArray(order)||!order.length) return rows;
+  const byKey={}; rows.forEach(function(r){ byKey[r.key]=r; });
+  const seen={}, out=[];
+  order.forEach(function(k){ if(byKey[k]&&!seen[k]){ seen[k]=true; out.push(byKey[k]); } });
+  rows.forEach(function(r){ if(!seen[r.key]) out.push(r); });
+  return out;
+}
 function moveAccountInList(state, fromId, toId){
-  if(!state || !fromId || !toId || fromId===toId) return state;
-  const acc=(state.accounts||[]).slice();
-  const i=acc.findIndex(function(a){ return a&&a.id===fromId; });
-  const j=acc.findIndex(function(a){ return a&&a.id===toId; });
+  if(!state||!fromId||!toId||fromId===toId) return state;
+  const rows=accountRowsInOrder(state);
+  const keyOf=function(raw){
+    const direct=rows.find(function(r){ return r.key===raw; });
+    if(direct) return direct.key;
+    const legacy=rows.find(function(r){ return r.kind==="account"&&r.item&&r.item.id===raw; });
+    return legacy&&legacy.key;
+  };
+  const from=keyOf(fromId), to=keyOf(toId);
+  if(!from||!to||from===to) return state;
+
+  /* Compatibilidad: si solo hay cuentas con rol y aún no existe orden mixto, conserva el contrato
+     histórico (el array `accounts` ya guarda el orden de todos los móviles publicados). */
+  const saved=((state.settings||{}).accountListOrder)||[];
+  if(!(state.obAccounts||[]).length && (!Array.isArray(saved)||!saved.length)){
+    const acc=(state.accounts||[]).slice();
+    const i=acc.findIndex(function(a){ return accountOrderKeyOf(a,"account")===from; });
+    const j=acc.findIndex(function(a){ return accountOrderKeyOf(a,"account")===to; });
+    if(i<0||j<0||i===j) return state;
+    const item=acc.splice(i,1)[0]; acc.splice(j,0,item);
+    return Object.assign({},state,{accounts:acc});
+  }
+
+  const keys=rows.map(function(r){ return r.key; });
+  const i=keys.indexOf(from), j=keys.indexOf(to);
   if(i<0||j<0||i===j) return state;
-  const item=acc.splice(i,1)[0];
-  acc.splice(j,0,item);
-  return Object.assign({},state,{accounts:acc});
+  const item=keys.splice(i,1)[0]; keys.splice(j,0,item);
+  const next={settings:Object.assign({},state.settings,{accountListOrder:keys})};
+  /* Cuando ya no queda ninguna cuenta pendiente, `accounts` vuelve a ser la lista completa. Se
+     alinea también su orden para que los lectores anteriores al orden mixto no vean otra cosa;
+     las claves guardadas se regeneran desde `rows`, así desaparecen las de bancos desconectados. */
+  if(!(state.obAccounts||[]).length){
+    const byKey={}; (state.accounts||[]).forEach(function(a){ byKey[accountOrderKeyOf(a,"account")]=a; });
+    next.accounts=keys.map(function(k){ return byKey[k]; }).filter(Boolean);
+  }
+  return Object.assign({},state,next);
 }
 /* Resuelve un OB marcado como posible repetido (2026-09-07).
    same=true  → se queda el gemelo con nombre (noti/manual) y se borra la fila OB.
@@ -4370,7 +4430,7 @@ const LANG = {
     wn_yours:"Tus apuntes", wn_close:"¡Entendido!",
     st_trnotif:"Avisar de cada gasto apuntado (TR)", st_trnotif_hint:"Si lo apagas, Aely deja de confirmar cada gasto con una notificación (Trade Republic ya te avisa del cargo). Los avisos de presupuesto siguen llegando.",
     st_tring:"Apuntar aquí mis gastos de Trade Republic", st_tring_hint:"Al activarlo, esta app lee las notificaciones de gasto de Trade Republic de ESTE móvil y las apunta en TU cuenta (no en la de nadie más). Cada persona lo activa en su propio teléfono. Solo lee la notificación; nunca entra en tu banco. Puedes apagarlo cuando quieras.", st_tring_on:"✓ Listo · tus compras con la tarjeta de Trade Republic entrarán solas en esta cuenta", st_tring_off:"Apuntado de Trade Republic desactivado", st_tring_nornd:"✕ Este navegador no puede generar una clave segura · no se activa (mejor eso que una clave adivinable)",
-    st_banksync_notif:"Al detectar aviso del banco, sincronizar movimientos", st_banksync_notif_hint:"Si Caixa, Sabadell u otro banco te manda una notificación, la app pide los movimientos por Open Banking (no lee el importe de la noti). Como máximo una sync cada 2 minutos.",
+    st_banksync_notif:"Al detectar aviso del banco, sincronizar movimientos", st_banksync_notif_hint:"Opcional y apagado por defecto: cada consulta consume el límite diario del banco. Si lo activas, Aely hará como máximo una cada 12 horas. La sincronización manual sigue disponible.",
     st_aicat:"Sugerir categoría (IA) en «Otros»", st_aicat_hint:"Al apuntar un gasto, las palabras clave eligen categoría solas. Si no saben y esto está encendido, la IA te ofrece un chip (un toque). En la ficha de un gasto ya guardado también puedes pedirlo. No se envía el importe.",
     st_sentry:"Sentry (errores en prod)", st_sentry_test:"Enviar error de prueba", st_sentry_sent:"✓ Enviado a Sentry (mira Issues en unos segundos)", st_sentry_hint:"Solo tú ves este bloque (admin). Sirve para comprobar que los crashes llegan a Sentry; el resto de usuarios no lo ve.",
     bp_empty_hint:"Aquí se conectan tus bancos de verdad (Open Banking): el saldo y los movimientos entran solos. Las cuentas con saldo apuntado a mano viven en Patrimonio — conectar el banco es opcional y puedes hacerlo cuando quieras.",
@@ -4888,7 +4948,7 @@ Object.assign(LANG.es,{
   pj_projvalue:"Valor proyectado", pj_contrib:"Tu contribución", pj_monthly:"Contribución mensual", pj_rate:"Interés anual %", pj_years:"Años",
   pj_gain:"Ganancia estimada en {y} años", pj_hint:"Sobre lo ya invertido ({x}). La banda es ±2% sobre el interés. Estimación, no garantía.",
   pt_accounts:"Cuentas", pt_cash_avail:"Liquidez disponible", pt_monthspent:"Gasto del mes: −{x}", pt_payroll:" · nómina +{x}", pt_total_liquid:"Total líquido",
-  pt_trbreak:"Desglose del efectivo TR", pt_trbreak_sub:"De dónde sale el saldo mostrado", pt_trb_base:"Base (inicio de mes)", pt_trb_payroll:"+ nómina (si ya entró)", pt_trb_spent:"− gasto del mes", pt_trb_roundup:"− round-up del mes", pt_trb_shown:"= saldo mostrado hoy", pt_trb_movs:"Gastos de este mes ({n})", pt_trb_nomovs:"No hay gastos registrados este mes. Si el saldo baja igual, es la nómina/cierre de mes.", pt_trb_ru_of:"round-up: {x}", pt_trb_hint:"💳 = compra con tarjeta (cuenta para el round-up). 🔄 = bizum/transferencia (NO cuenta). Si ves un bizum marcado 💳, cámbialo en Gastos para que no infle el round-up. Este saldo se recalcula solo: base + nómina − gastos − round-up. Un descuadre PEQUEÑO con TR es normal: TR abona intereses del efectivo el día 1 (ponlos en Inversiones → Round-up para que la app los sume sola) e invierte round-ups/saveback los días 2/9/16/23. Si molesta, edita el saldo en Cuentas y se re-ancla.", pt_ob_extra:"Cuenta", pt_ob_badge:"del banco", pt_ob_joint:"Conjunta", pt_ob_saving:"Ahorro", pt_ob_current:"Corriente",
+  pt_trbreak:"Desglose del efectivo TR", pt_trbreak_sub:"De dónde sale el saldo mostrado", pt_trb_base:"Base (inicio de mes)", pt_trb_payroll:"+ nómina (si ya entró)", pt_trb_spent:"− gasto del mes", pt_trb_roundup:"− round-up del mes", pt_trb_shown:"= saldo mostrado hoy", pt_trb_movs:"Gastos de este mes ({n})", pt_trb_nomovs:"No hay gastos registrados este mes. Si el saldo baja igual, es la nómina/cierre de mes.", pt_trb_ru_of:"round-up: {x}", pt_trb_hint:"💳 = compra con tarjeta (cuenta para el round-up). 🔄 = bizum/transferencia (NO cuenta). Si ves un bizum marcado 💳, cámbialo en Gastos para que no infle el round-up. Este saldo se recalcula solo: base + nómina − gastos − round-up. Un descuadre PEQUEÑO con TR es normal: TR abona intereses del efectivo el día 1 (ponlos en Inversiones → Round-up para que la app los sume sola) e invierte round-ups/saveback los días 2/9/16/23. Si molesta, edita el saldo en Cuentas y se re-ancla.", pt_ob_extra:"Cuenta", pt_ob_badge:"del banco", pt_ob_stale:"sin actualizar", pt_ob_joint:"Conjunta", pt_ob_saving:"Ahorro", pt_ob_current:"Corriente",
   pt_investments:"Inversiones", pt_byBroker:"Resumen por bróker", pt_total_inv:"Total invertido", pt_goods:"Bienes", pt_nonliquid:"Activos no líquidos", pt_total_goods:"Total bienes",
   db_total:"Deuda total", db_quota:"Cuota {x}/mes", db_amort:"amortiza {x}/mes", db_amort_q:"amortiza {x}/mes (cuota {y})", db_paidoff:"Amortizado {x} ({p}%)",
   db_pending:"Pendiente", db_pending_sub:"baja solo cada mes", db_delete:"Eliminar esta deuda", db_savechanges:"Guardar cambios", db_editbalances:"Editar saldos pendientes",
@@ -4991,14 +5051,15 @@ Object.assign(LANG.es,{
   /* Antes esto era el aviso de un BLOQUEO. Desde el 2026-08-01 TR sí se puede conectar aquí y las
      dos integraciones conviven, así que el texto explica el reparto en vez de cerrar la puerta. */
   bp_tr_ob:"suma tus movimientos (el saldo lo sigue dando el bróker)",
-  bank_syncfail:"No pude leer el saldo del banco · reconéctate", bank_sync_sin_nube:"No he podido bajar tus datos de la nube, así que no he mirado el banco (para no repetir movimientos). Prueba en un momento", bank_none:"No tienes ningún banco conectado",
-  bank_syncsoft:"{bank}: el banco no respondió ahora · lo reintento solo (no hace falta reconectar)",
+  bank_syncfail:"No pude leer el saldo ahora. No reconectes: vuelve a intentarlo más tarde", bank_sync_sin_nube:"No he podido bajar tus datos de la nube, así que no he mirado el banco (para no repetir movimientos). Prueba en un momento", bank_none:"No tienes ningún banco conectado",
+  bank_syncsoft:"{bank}: el banco no respondió ahora. No hace falta reconectar; inténtalo más tarde",
   // Resultado de «↻ Sincronizar bancos» (2026-07-26). Antes salía «🏦 CaixaBank: 1.234,56 €»:
   // un número suelto sin decir qué había pasado, que además solo enseñaba el PRIMER banco aunque
   // sincronizaras tres, y que llegaba acompañado de un segundo aviso con los movimientos nuevos.
   // Ahora es un solo mensaje y dice qué ha pasado.
   bank_upd_one:"✓ {bank} al día · {x}", bank_upd_n:"✓ {n} bancos al día",
   bank_upd_mov1:"1 movimiento nuevo", bank_upd_movn:"{n} movimientos nuevos",
+  sync_result_title:"Resultado de la sincronización", sync_result_close:"Cerrar",
   bank_expired_re:"permiso caducado · reconéctate",
   bank_nolink:"esta cuenta aún no está dada de alta en Enable Banking (modo restringido). Enlázala en el panel de Enable Banking y vuelve a conectar.",
   bank_refresh:"Actualizar todos", bank_reconnect:"Reconectar",
@@ -5045,12 +5106,20 @@ Object.assign(LANG.es,{
   bp_empty:"Aún no has conectado ningún banco.", bp_add:"Conectar un banco",
   bp_expbanks:"También apuntar gastos de tarjeta de…", bp_expbanks_hint:"Marca bancos EXTRA cuyas compras cuentan en el presupuesto del día a día. La cuenta principal de gasto diario (rol en Patrimonio) siempre cuenta y no se puede desmarcar aquí. Quitar un banco no borra su historial.", bp_expbanks_none:"Conecta un banco Open Banking para poder importar sus compras con tarjeta a Gastos.",
   bp_expbanks_main:"principal (obligatoria)", bp_expbanks_locked:"Esa es tu cuenta de gasto diario: no se desmarca aquí. Cámbiala en Cartera → editar cuenta. Prueba a añadir o quitar un banco EXTRA.",
+  bp_hist_pickbank:"Elige qué banco consultar. De entrada están marcados solo los bancos de gasto diario.",
   bp_hist_btn:"Importar histórico", bp_hist_title:"Importar histórico", bp_hist_sub:"Trae movimientos de los últimos meses de: {banks}. Por defecto van a Gastos (o Ingresos). Un recibo fijo solo se crea si lo marcas tú, y te pedirá confirmación.", bp_hist_nodaily:"Conecta un banco Open Banking (o márcalo como gasto diario en Cartera) para traer el histórico. Trade Republic también vale si lo tienes conectado.", bp_hist_m:"{n} mes(es)", bp_hist_search:"Buscar movimientos", bp_hist_searching:"Buscando…", bp_hist_none:"No hay movimientos nuevos en ese periodo (o ya están todos apuntados). Recuerda: el banco solo deja ver ~90 días.", bp_hist_found:"{n} movimientos · marca y elige destino", bp_hist_notcard:"no es tarjeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importados", bp_hist_as_gasto:"🛒 Gasto", bp_hist_as_recibo:"🧾 Recibo", bp_hist_as_ingreso:"💰 Ingreso", bp_hist_recibo:"Recibo", bp_hist_done_g:"✓ {n} en Gastos", bp_hist_done_i:"✓ {n} ingresos", bp_hist_done_r:"✓ {n} recibos", bp_hist_dup:"ya detectado como recibo mensual · se cuenta una sola vez",
   bp_hist_nuevos:"nuevos", bp_hist_repes:"repetidos", bp_hist_probe:"Sonda: banco {bank} · llegan {llegan} · nuevos {nuevos} · coinciden día+€ {ya}", bp_hist_dupexist:"ya lo tienes apuntado (mismo día e importe)", bp_hist_dupmaybe:"puede que ya lo tengas (mismo importe, fecha cercana)",
   bp_hist_dupmodel:"ya modelado como fijo/deuda/meta",
   bp_hist_suggest_recibo:"¿Es un recibo mensual? Márcalo como Recibo si quieres crear el fijo.",
   bp_hist_bank_unknown:"Banco",
   bp_hist_trunc:"El banco no ha devuelto todo el periodo pedido (tope ~90 días o truncado). Revisa las fechas más antiguas.",
+  bank_read_reconnect:"{bank}: falta completar la conexión. Abre Ajustes → Mis bancos para revisarla.",
+  bank_read_rate:"{bank}: se alcanzó el límite temporal de lectura. No reconectes; vuelve a buscar dentro de unas 6 horas.",
+  bank_read_timeout:"{bank}: el banco ha tardado demasiado en entregar el histórico. Vuelve a buscar; los demás bancos se conservan.",
+  bank_read_failed:"{bank}: no se han podido leer todos los movimientos. Vuelve a intentarlo más tarde.",
+  bank_read_partial:"{bank}: la descarga está incompleta. Lo recibido se conserva, pero pueden faltar movimientos.",
+  bank_read_empty:"{bank}: el banco ha devuelto 0 movimientos para ese periodo.",
+  bank_read_retry:"No se han podido consultar los movimientos. Comprueba la conexión y vuelve a buscar.",
   bp_hist_sign:"En {banks} casi todo llega como ingreso: revisa el signo antes de importar.",
   bp_hist_more:"Ver {n} más…",
   bp_hist_confirm_fijos:"¿Crear {n} recibo(s) fijo(s)?",
@@ -6470,7 +6539,7 @@ function Tour({onDone, goTab, tabIds}){
     // Durante el tour la barra NO puede estar escondida: si lo está, medimos su sitio «fuera»
     // y el foco cae en el aire (fotos Gastos/Plan/Cartera).
     const nav=document.querySelector(".botnav");
-    if(nav){ nav.classList.remove("botnav-hidden","botnav-hidden-fast"); }
+    if(nav){ nav.classList.remove("botnav-hidden"); }
   };
   const inViewport=function(r){
     const H=window.innerHeight||700, W=window.innerWidth||400;
@@ -7179,7 +7248,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     try{ return !!(window.__mcSplashGone) || !document.getElementById("mc-load"); }catch(e){ return true; }
   });
   const [bootReady,setBootReady]=useState(function(){
-    try{ return !!window.__mcBootReady; }catch(e){ return true; }
+    try{ return !!window.__mcBootReady || navigator.onLine===false; }catch(e){ return true; }
   });
   useEffect(function(){
     if(splashGone) return undefined;
@@ -7193,13 +7262,17 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     window.addEventListener("mc-boot-ready", on);
     // Por si el evento se emitió entre el useState inicial y este effect.
     try{ if(window.__mcBootReady) setBootReady(true); }catch(e){}
-    /* Tope duro (14/9 → 15/9): sin internet el pull puede colgarse.
-       Review Claude 15/9: NO acortar a 600 ms CON red (pintaba local y luego saltaban cifras).
-         · onLine===false → ~500 ms
-         · con red → 2000 ms; si sesión/pull FALLA, mcBootReady llega antes por el catch */
+    /* Offline-first de verdad (16/9): el estado local ya está cargado de forma síncrona. Esperar
+       medio segundo a una nube que sabemos ausente pintaba Inicio vacío tras el splash. */
     var offline=false;
     try{ offline=navigator.onLine===false; }catch(e){}
-    const topeMs=offline?500:2000;
+    if(offline){
+      setBootReady(true);
+      try{ mcBootReady(); }catch(e){}
+      return function(){ window.removeEventListener("mc-boot-ready", on); };
+    }
+    // Con red sí se conserva el margen: evita pintar local y hacer saltar las cifras tras el pull.
+    const topeMs=2000;
     const tope=setTimeout(function(){
       setBootReady(true);
       try{ mcBootReady(); }catch(e){}
@@ -7626,17 +7699,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const [range,setRange]=useState({from:"",to:""});
   const [calPick,setCalPick]=useState(null);   // "from" | "to" | null — rango a medida, calendario de la casa
   const [sel,setSel]=useState([]);   // categorías seleccionadas; [] = todas
-  /* GASTOS ENSEÑA TODAS SUS CUENTAS, CUENTEN O NO PARA EL PRESUPUESTO (11/9/2026).
-     Suyo, y con razón: «lo de gasto diario es para que cuente cuando gaste desde ese banco a mi
-     límite que ponga, pero TODAS las cuentas deben salir en el apartado de gastos aunque no esté
-     marcado gasto diario. Es importante».
-     Son dos cosas distintas y el filtro las confundía: `expenseBankEnts` dice qué bancos SUMAN al
-     presupuesto, y arrancaba marcado exactamente con esos. Resultado: los movimientos de sus
-     cuentas de recibos —Sabadell, CaixaBank— no salían en la lista, como si no existieran, y solo
-     se veían si él caía en tocar su chip. Lo que se ve y lo que cuenta son decisiones separadas:
-     la lista es su histórico entero, y el presupuesto sigue contando solo lo que él marque.
-     Vacío = todos, que es justo lo que se quiere. */
-  const [bankSel,setBankSel]=useState([]);
+  /* Contrato confirmado 16/9: al entrar se ven los bancos marcados como gasto diario. Vacío
+     sigue significando TODOS y queda disponible como elección explícita en el filtro. */
+  const [bankSel,setBankSel]=useState(function(){ return expenseBankEnts(state).slice(); });
   /* Filtro por cajón (2026-08-17): «cuenta», «ingreso», «neutra», «otrobanco». Es lo que le deja
      separar el caos que describió al volver del crucero. Arranca VACÍO = se ve todo: la lista
      sigue siendo el histórico completo por defecto, esto es para explorar, no un modo nuevo. */
@@ -7903,6 +7968,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const todayKey=new Date().toDateString();
   const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,todayKey]);
   const diarioEnts=useMemo(function(){ return expenseBankEnts(state); },[state.accounts, state.settings]);
+  const diarioPrev=useRef(diarioEnts.slice());
+  const diarioKey=diarioEnts.slice().sort().join("|");
+  useEffect(function(){
+    const prev=diarioPrev.current;
+    setBankSel(function(cur){ return sameEntList(cur,prev)?diarioEnts.slice():cur; });
+    diarioPrev.current=diarioEnts.slice();
+  },[diarioKey]);
   const bankOpts=useMemo(function(){
     const seen={}; const order=[];
     const add=function(k){ if(!k||seen[k]) return; seen[k]=1; order.push(k); };
@@ -8113,15 +8185,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // Resumen de filtros activos, para el botón "Filtros" (badge) y la línea de chips debajo.
   // Se calcula aquí (no memoizado: sel/bankSel son arrays cortos) porque lo usan dos sitios:
   // el botón junto al buscador y la línea de resumen + "Borrar filtros".
-  /* SIN NADA MARCADO = SIN FILTRO DE BANCO. Esto era `sameEntList(bankSel, diarioEnts)`, o sea
-     «el default es tener marcados los bancos de gasto diario» — el criterio del 17/8. Desde el
-     11/9 el default es la lista ENTERA (su petición: «TODAS las cuentas deben salir en el apartado
-     de gastos aunque no esté marcado gasto diario»), y con el array vacío aquello daba `false`:
-     el botón Filtros se encendía con un «1» y el chip «Todos los bancos» salía como si él hubiera
-     puesto un filtro nada más entrar. Lo cazó Cursor en la review, no un test. */
-  const bankSelIsDefault=bankSel.length===0;
+  // La preselección automática no cuenta como filtro puesto; «Todos» sí amplía la vista a mano.
+  const bankSelIsDefault=sameEntList(bankSel, diarioEnts);
   const nCatSel=sel.length;
-  const nBankSel=bankSelIsDefault?0:bankSel.length;
+  const nBankSel=bankSelIsDefault?0:Math.max(1,bankSel.length);
   const nFilters=nCatSel+nBankSel+bucketSel.length;
   const filterParts=[];
   if(bucketSel.length===1) filterParts.push(t("g_bk_"+bucketSel[0]));
@@ -8328,9 +8395,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         React.createElement("button",{type:"button",className:"v4-chip",onClick:function(){
           setSel([]);
           setBucketSel([]);
-          // Borrar filtros = dejarlo como al entrar, y al entrar salen TODOS los bancos (11/9).
-          // Antes volvía a los de gasto diario, o sea que «borrar» ponía un filtro.
-          setBankSel([]);
+          // Borrar filtros = volver a la preselección automática de gasto diario.
+          setBankSel(diarioEnts.slice());
         },style:{padding:"8px 12px"}}, t("g_filters_clear"))
       )
     ),
@@ -8490,8 +8556,8 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
   const clearAll=function(){
     setSel([]);
     setBucketSel([]);
-    // Igual que el chip de «Borrar filtros»: vacío = todos los bancos, que es como entra (11/9).
-    setBankSel([]);
+    // Igual que el chip de «Borrar filtros»: volver a los bancos de gasto diario.
+    setBankSel(diarioEnts.slice());
   };
   const toggleBucket=function(b){
     setBucketSel(function(prev){
@@ -9682,6 +9748,14 @@ function trBridge(){
 // Teléfono del último login OK (solo el teléfono, NUNCA el PIN): tras un 401 real el formulario
 // sale ya rellenado y reconectar queda en PIN + código (feedback 2026-07-17).
 function trPhoneSaved(){ try{ return localStorage.getItem("mc_tr_phone")||""; }catch(e){ return ""; } }
+/* Un `status().connected=false` solo dice que el puente no tiene su flag local (APK vieja,
+   reinstalación o arranque frío); NO demuestra que TR haya rechazado el refresh. Guardamos una
+   marca distinta únicamente cuando un sync devuelve `authExpired` de forma explícita. */
+function trAuthExpiredSaved(){ try{ return localStorage.getItem("_trAuthExpired")==="1"; }catch(e){ return false; } }
+function markTrAuthExpired(){
+  try{ localStorage.setItem("_trAuthExpired","1"); }catch(e){}
+  trSignalStatus(false,{authExpired:true});
+}
 // La tarjeta y sus consumidores (resumen de Ajustes + banner de Cartera) viven en componentes
 // distintos. Cambiar solo el useState local dejaba «1 caído» hasta reiniciar aunque el login o
 // el sync acabasen bien — feedback 2026-09-07. Este evento mantiene una única verdad visible.
@@ -9689,9 +9763,9 @@ function trPhoneSaved(){ try{ return localStorage.getItem("mc_tr_phone")||""; }c
  // Las consultas de status (arranque, visibility) NO llevan ack — rechazo 4.19.0/tr-reactivo.
 function trSignalStatus(connected, opts){
   opts=opts||{};
-  try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:!!connected, ack:!!opts.ack}})); }catch(e){}
+  try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:!!connected, ack:!!opts.ack, authExpired:!!opts.authExpired}})); }catch(e){}
 }
-function markTrConnected(opts){ trSignalStatus(true, opts||{}); }
+function markTrConnected(opts){ try{ localStorage.removeItem("_trAuthExpired"); }catch(e){} trSignalStatus(true, opts||{}); }
 function TRSync({state, set, totals, open, onToggle}){
   const bridge=trBridge();
   const [step,setStep]=useState("idle");      // idle | code | preview | done
@@ -9732,7 +9806,7 @@ function TRSync({state, set, totals, open, onToggle}){
       if(r&&r.authExpired && !r.softFail && !r.wafBlocked){
         // 401 REAL (no anti-bot): al formulario directamente, con el teléfono ya puesto. Antes se
         // pedía pulsar «Desconectar» — que además borra el snapshot bueno (feedback 2026-07-17).
-        setConnected(false); trSignalStatus(false); setExpired(true); setStep("idle");
+        setConnected(false); markTrAuthExpired(); setExpired(true); setStep("idle");
         try{ cloud.logEvent('error','TR sync: sesión caducada de verdad (401 real)'); }catch(x){}
         return;
       }
@@ -9813,6 +9887,7 @@ function TRSync({state, set, totals, open, onToggle}){
   };
   const disconnect=function(){
     if(bridge&&bridge.logout){ Promise.resolve(bridge.logout()).catch(function(){}); }
+    try{ localStorage.removeItem("mc_tr_phone"); localStorage.removeItem("_trAuthExpired"); }catch(e){}
     setConnected(false); trSignalStatus(false); setStep("idle"); setPositions(null); setPhone(""); setPin("");
   };
   const inpStyle={marginTop:8};
@@ -10318,9 +10393,17 @@ function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, on
     : [["fijos","rl_fijos","rl_fijos_d"],["diario","rl_diario","rl_diario_d"],["ambos","rl_ambos","rl_ambos_d"]];
   /* `rolVista` = lo que se VE (gasto diario efectivo, extras incluidos). `accRole` solo mira el
      campo de la cuenta y mentiría en un EXTRA de expenseBanks. */
-  const rolActual=rolVista||accRole(a);
+  /* Una cuenta OB nueva todavía NO tiene rol. Pintar «Recibos» por defecto sería afirmar una
+     decisión que el usuario no ha tomado y, peor, animaría a pensar que ya afecta a los fijos. */
+  const rolActual=a._obKey?null:(rolVista||accRole(a));
   const guardaNombre=function(v){
-    set(function(s){ return Object.assign({},s,{accounts:(s.accounts||[]).map(function(x){ return x.id===a.id?Object.assign({},x,{name:v}):x; })}); });
+    set(function(s){
+      if(a._obKey){
+        const ob=Object.assign({},s.obLabels||{}); ob[a._obKey]=v;
+        return Object.assign({},s,{obLabels:ob});
+      }
+      return Object.assign({},s,{accounts:(s.accounts||[]).map(function(x){ return x.id===a.id?Object.assign({},x,{name:v}):x; })});
+    });
   };
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:cerrar},
@@ -10368,7 +10451,9 @@ function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, on
             })
           )
         ),
-        borrando
+        a._obKey
+          ? React.createElement("div",{className:"hint",style:{marginTop:15}}, t("v4_acc_locked"))
+          : borrando
           ? React.createElement("div",{style:{marginTop:15}},
               React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginBottom:8,lineHeight:1.45}}, t("pt_acc_del_q")),
               React.createElement("div",{style:{display:"flex",gap:8}},
@@ -10399,11 +10484,11 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
     if(!node || !v4Embed || parte==="bienes") return;
     const HOLD=380;
     const onTS=function(e){
-      const btn=e.target.closest&&e.target.closest("button.v4-mov[data-account-id]");
+      const btn=e.target.closest&&e.target.closest("button.v4-mov[data-account-key]");
       if(!btn||!node.contains(btn)) return;
       if(e.target.closest&&e.target.closest(".edit-link,.v4-link-mini,a,input")) return;
       const tch=e.touches&&e.touches[0]; if(!tch) return;
-      const id=btn.getAttribute("data-account-id");
+      const id=btn.getAttribute("data-account-key");
       const d={from:id,to:id,startX:tch.clientX,startY:tch.clientY,active:false,timer:null};
       d.timer=setTimeout(function(){
         d.active=true;
@@ -10426,9 +10511,9 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
       e.preventDefault();
       e.stopPropagation();
       const hit=document.elementFromPoint(tch.clientX,tch.clientY);
-      const row=hit&&hit.closest&&hit.closest("button.v4-mov[data-account-id]");
+      const row=hit&&hit.closest&&hit.closest("button.v4-mov[data-account-key]");
       if(!row||!node.contains(row)) return;
-      const to=row.getAttribute("data-account-id");
+      const to=row.getAttribute("data-account-key");
       if(!to||to===d.to) return;
       d.to=to; setDragAcc({from:d.from,to:d.to});
     };
@@ -10596,13 +10681,13 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
        lado del dinero que tienes». Si toda la tarjeta responde al toque, el chevron solo mete
        ruido justo al lado del número, que es lo que va a leer.
        Long-press para ordenar: listeners en el efecto de arriba (mismo gesto que las pestañas). */
-    const accRow=function(a){
-      const dragging=!!(dragAcc&&dragAcc.from===a.id);
-      const dragOver=!!(dragAcc&&dragAcc.to===a.id&&dragAcc.from!==a.id);
-      return React.createElement("button",{className:"v4-mov"+(dragging?" dragging":"")+(dragOver?" drag-over":""),key:a.id,type:"button",
-        "data-account-id":a.id,"aria-label":entOf(a.ent).label+" · "+eur(shownAcc(a)),
+    const accRow=function(a,rowKey){
+      const rowDragging=!!(dragAcc&&dragAcc.from===rowKey);
+      const rowOver=!!(dragAcc&&dragAcc.to===rowKey&&dragAcc.from!==rowKey);
+      return React.createElement("button",{className:"v4-mov"+(rowDragging?" dragging":"")+(rowOver?" drag-over":""),key:rowKey,type:"button",
+        "data-account-key":rowKey,"data-account-id":a.id,"aria-label":entOf(a.ent).label+" · "+eur(shownAcc(a)),
         title:t("drag_hint"),
-        onClick:function(){ if(Date.now()<suppressSheetRef.current) return; setSheetAcc(a.id); }},
+        onClick:function(){ if(Date.now()<suppressSheetRef.current) return; setSheetAcc(rowKey); }},
         React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:a.ent,size:44})),
         React.createElement("div",{className:"nm"},
           React.createElement("div",null,entOf(a.ent).label, isSynced(a)&&badge(t("pt_ob_badge"),"#7FB5E8")),
@@ -10653,16 +10738,20 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
           toast(t("ef_create_done"));
         });
     };
-    const obRow=function(o){
+    const obRow=function(o,rowKey){
       const custom=(state.obLabels||{})[o.key]; const disp=(custom!=null&&custom!=="")?custom:niceObName(o);
       // La badge va en la línea de meta, no pegada al nombre: con nombres largos (o «caducado»)
       // se cortaba y descuadraba la fila (feedback 2026-07-18).
-      return React.createElement("div",{className:"v4-mov",key:"ob_"+o.key},
+      const dragging=!!(dragAcc&&dragAcc.from===rowKey);
+      const dragOver=!!(dragAcc&&dragAcc.to===rowKey&&dragAcc.from!==rowKey);
+      return React.createElement("button",{className:"v4-mov"+(dragging?" dragging":"")+(dragOver?" drag-over":""),key:rowKey,type:"button",
+        "data-account-key":rowKey,"data-ob-key":o.key,"aria-label":disp+" · "+eur(toEurAmt(o.value||0, o.cur||"EUR", state)),
+        title:t("drag_hint"),onClick:function(){ if(Date.now()<suppressSheetRef.current) return; setSheetAcc(rowKey); }},
         React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:o.ent||"",size:44})),
         React.createElement("div",{className:"nm"},
           React.createElement("div",null, disp),
           React.createElement("div",{className:"meta"}, entOf(o.ent).label,
-            o.stale ? badge(t("pt_ob_badge")+" · "+t("bp_st_expired"),"#E2A05F") : badge(t("pt_ob_badge"),"#7FB5E8"))
+            o.stale ? badge(t("pt_ob_badge")+" · "+t(o.staleKind==="expired"?"bp_st_expired":"pt_ob_stale"),"#E2A05F") : badge(t("pt_ob_badge"),"#7FB5E8"))
         ),
         React.createElement("div",{className:"am num"}, eur(toEurAmt(o.value||0, o.cur||"EUR", state)))
       );
@@ -10685,7 +10774,21 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
         React.createElement("button",{className:"ex-del",style:{marginLeft:"auto"},title:t("pt_acc_del"),onClick:function(){ setDelAcc(a.id); }},"🗑")
       );
     };
-    const anySynced=state.accounts.some(isSynced);
+    const anySynced=state.accounts.some(isSynced)||(state.obAccounts||[]).length>0;
+    const orderedAccountRows=accountRowsInOrder(state);
+    const sheetRow=orderedAccountRows.find(function(r){ return r.key===sheetAcc; })||null;
+    const sheetCuenta=sheetRow&&sheetRow.kind==="ob" ? (function(){
+      const o=sheetRow.item, custom=(state.obLabels||{})[o.key];
+      return Object.assign({},o,{
+        id:sheetRow.key, name:(custom!=null&&custom!=="")?custom:niceObName(o),
+        value:toEurAmt(o.value||0,o.cur||"EUR",state), _obKey:o.key, accountOrderKey:sheetRow.key
+      });
+    })() : (sheetRow&&sheetRow.item)||null;
+    const pickSheetRole=function(a,r){
+      if(!a||!a._obKey){ if(a) pickRole(a,r); return; }
+      const nid=uid();
+      set(function(s){ return promoteObAccount(s,totals,a._obKey,r,nid); });
+    };
     /* CUENTAS Y BIENES SON DOS BLOQUES, NO UNO (feedback 2026-07-25: «¿por qué has metido bienes
        junto con mis cuentas? sepáralo»). Al hacer Cartera ordenable quedaron dentro del mismo
        bloque, así que el piso y el coche viajaban pegados a las cuentas del banco y no se podían
@@ -10693,8 +10796,9 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
        dos, que es como lo usa el resto de la app. */
     return React.createElement("div",null,
       parte!=="bienes" && React.createElement("div",{className:"v4-card-list",ref:bindListDrag},
-        state.accounts.map(accRow),
-        (state.obAccounts||[]).map(obRow),
+        orderedAccountRows.map(function(row){
+          return row.kind==="account" ? accRow(row.item,row.key) : obRow(row.item,row.key);
+        }),
         /* «Editar» SOLO cuando hay cuentas EXTRA de Open Banking por promocionar (12/9). Él lo
            veía como resto del rediseño; la ficha ya cubre nombre/saldo/rol de las cuentas reales
            (y el rol pasa por `pickRole`, así un EXTRA también). Si ya está abierto el editor,
@@ -10708,11 +10812,12 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
       ),
       // La ficha de la cuenta que esté abierta. Portal a `body`, así que da igual dónde se monte.
       React.createElement(AccountSheet,{
-        open:!!sheetAcc, cuenta:(state.accounts||[]).find(function(x){ return x.id===sheetAcc; })||null,
+        open:!!sheetCuenta, cuenta:sheetCuenta,
         set:set, totals:totals, onClose:function(){ setSheetAcc(""); },
-        onRemove:removeAccount, onSaldo:guardarSaldoDe, onRole:pickRole,
-        rolVista:(function(){ const c=(state.accounts||[]).find(function(x){ return x.id===sheetAcc; }); return c?rolVistaOf(c):null; })(),
-        saldoMostrado:shownAcc, sincronizada:isSynced
+        onRemove:removeAccount, onSaldo:guardarSaldoDe, onRole:pickSheetRole,
+        rolVista:sheetRow&&sheetRow.kind==="account"?rolVistaOf(sheetRow.item):null,
+        saldoMostrado:function(a){ return a&&a._obKey?a.value:shownAcc(a); },
+        sincronizada:function(a){ return !!(a&&a._obKey)||isSynced(a); }
       }),
       // Editor completo (2026-07-18): nombre + rol (recibos/diario/todo) SIEMPRE; el saldo solo
       // en cuentas manuales — el de las conectadas lo trae el banco y editarlo aquí sería mentirse.
@@ -10848,7 +10953,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast}){
             accEd.editing
               ? React.createElement("input",{className:"af-in",style:{fontSize:13,padding:"5px 9px",maxWidth:170},value:custom!=null?custom:disp,placeholder:disp,onChange:function(e){ const v=e.target.value; set(function(s){ const ob=Object.assign({},s.obLabels); ob[o.key]=v; return Object.assign({},s,{obLabels:ob}); }); }})
               : React.createElement("div",{className:"rname"}, disp, o.stale
-                  ? React.createElement("span",{className:"day-badge",style:{marginLeft:6,background:"#E2A05F22",color:"#E2A05F"}}, t("pt_ob_badge")+" · "+t("bp_st_expired"))
+                  ? React.createElement("span",{className:"day-badge",style:{marginLeft:6,background:"#E2A05F22",color:"#E2A05F"}}, t("pt_ob_badge")+" · "+t(o.staleKind==="expired"?"bp_st_expired":"pt_ob_stale"))
                   : React.createElement("span",{className:"day-badge",style:{marginLeft:6,background:"#7FB5E822",color:"var(--blue)"}}, t("pt_ob_badge"))),
             React.createElement("div",{className:"rsub"}, entOf(o.ent).label))),
         React.createElement("div",{className:"rval num"}, eur(toEurAmt(o.value||0, o.cur||"EUR", state)))
@@ -11128,10 +11233,21 @@ function promoteObAccount(s, totals, key, role, id){
   const bal=toEurAmt(o.value||0, o.cur||"EUR", s);
   const base=+((bal - monthNetForAccount(s, o.ent, now.getFullYear(), now.getMonth()+1, now.getDate())).toFixed(2));
   const name=((s.obLabels||{})[o.key]) || niceObName(o);
-  const acc={ id:id||uid(), ent:o.ent, name:name, value:base, role:"fijos", spendFrom:false };
+  /* Conserva la clave de orden de la fila OB: elegir un rol no debe mandar de golpe la cuenta al
+     final de Cartera justo después de haberla colocado (rechazo CaixaBank 2026-09-16). */
+  const acc={ id:id||uid(), ent:o.ent, name:name, value:base, role:"fijos", spendFrom:false,
+    accountOrderKey:"ob:"+o.key };
   if(o.iban) acc.bankIban=o.iban;                            // el sync del banco la re-ancla por IBAN
   let ns=Object.assign({},s,{ accounts:(s.accounts||[]).concat([acc]), obAccounts:(s.obAccounts||[]).filter(function(x){ return x.key!==key; }) });
   if(role && role!=="fijos") ns=applyAccountRole(ns, totals, acc.id, role);
+  /* Si era la última OB, el orden mixto ya contiene toda la lista: alinear `accounts` aquí evita
+     que lectores antiguos vean el orden previo hasta el siguiente arrastre. No cambia sus datos. */
+  const saved=((ns.settings||{}).accountListOrder)||[];
+  if(!(ns.obAccounts||[]).length && Array.isArray(saved) && saved.length){
+    const rows=accountRowsInOrder(ns), keys=rows.map(function(r){ return r.key; });
+    ns=Object.assign({},ns,{accounts:rows.map(function(r){ return r.item; }),
+      settings:Object.assign({},ns.settings,{accountListOrder:keys})});
+  }
   return ns;
 }
 // MULTI-CUENTA: aplica los saldos reales de TODAS las cuentas de los bancos enlazados.
@@ -11183,7 +11299,7 @@ function applyBankBalances(s, links){
       // marcadas rancias (stale) para que Patrimonio enseñe «caducado» en vez de esfumarlas.
       // (Bug CaixaBank 2026-07-11: al reconstruir obAccounts sin el banco caído, desaparecía.)
       const asp=String((lk&&lk.aspsp)||"").toLowerCase();
-      (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true})); });
+      (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true,staleKind:lk.expired?"expired":"temporary"})); });
       return;
     }
     const ent=entFromAspsp(lk && lk.aspsp);
@@ -11197,7 +11313,7 @@ function applyBankBalances(s, links){
     // obAccounts sin él las esfumaría en silencio (caso CaixaBank 2026-07-11, segunda variante).
     const keepStale=function(){
       const asp=String((lk&&lk.aspsp)||"").toLowerCase();
-      (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true})); });
+      (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true,staleKind:lk&&lk.expired?"expired":"temporary"})); });
     };
     // cuentas del banco: shape nuevo (lk.accounts) o antiguo (una sola, de lk.balances)
     const accs=(Array.isArray(lk.accounts)&&lk.accounts.length)
@@ -11417,7 +11533,7 @@ function reconcileBank(state, y, m, today){
 }
 
 // Aplana los movimientos de los bancos enlazados (que devuelve bank-sync) al formato
-// que usa la conciliación. Adjunta la entidad (sabadell…) y recorta a lo reciente.
+// que usa la conciliación. Conserva todos los bancos; el import diario aplica su ventana de fechas.
 function flattenBankTx(links){
   const out=[];
   (links||[]).forEach(function(lk){
@@ -11437,7 +11553,9 @@ function flattenBankTx(links){
     });
   });
   out.sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
-  return out.slice(0,150);   // últimos ~150 movimientos
+  // El servidor ya acota por cuenta. Un tope GLOBAL de 150 dejaba fuera un banco entero
+  // si otro tenía más actividad reciente, antes incluso de llegar a importObExpenses.
+  return out;
 }
 
 /* GASTO VARIABLE VÍA OPEN BANKING (2026-08-05): entra TODO de CUALQUIER banco sincronizado
@@ -11468,7 +11586,15 @@ function importObExpenses(s, txs){
      histórico en cada sync. Los duplicados que esto pueda rozar ya los para la red de arriba
      (mismo importe ±3 días contra lo que entró por otra vía) más el dedup por ext_id y clave. */
   const som=new Date(startOfMonth().getTime() - 8*86400000);
-  const seen={}; (s.expenses||[]).forEach(function(e){ if(e.extId) seen[e.extId]=1; });
+  /* `entry_reference` solo es única DENTRO de su banco. Sin entidad, un id de Sabadell podía
+     hacer desaparecer un movimiento distinto de Caixa. La identidad local mínima es banco+id. */
+  const seen={}, seenLegacy={}; (s.expenses||[]).forEach(function(e){
+    if(e.extId){
+      const bank=expenseBankOf(e)||e.ent||"";
+      if(bank) seen[bank+"|"+e.extId]=1;
+      else seenLegacy[e.extId]=1;  // filas antiguas: sin banco no se puede acotar sin duplicarlas
+    }
+  });
   /* EL DEDUP USA EL NOMBRE DEL BANCO, NO EL QUE VE EL USUARIO (2026-08-17).
      Petición suya: poder renombrar el «Movimiento» que deja Trade Republic, que «queda feo». El
      problema es que renombrar rompía LAS TRES capas de dedup a la vez y el siguiente sync recreaba
@@ -11481,7 +11607,8 @@ function importObExpenses(s, txs){
      es lo que puso el banco porque nadie las había podido renombrar sin romperlo. */
   const nameForKey=function(e){ return e.obName!=null ? e.obName : (e.merchant||""); };
   const kOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+nameForKey(e); };
-  const keys={}; (s.expenses||[]).forEach(function(e){ keys[kOf(e)]=1; });
+  const scopedKOf=function(e){ return (expenseBankOf(e)||e.ent||"")+"|"+kOf(e); };
+  const keys={}; (s.expenses||[]).forEach(function(e){ keys[scopedKOf(e)]=1; });
   /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
      sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
   const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
@@ -11530,7 +11657,7 @@ function importObExpenses(s, txs){
     const esIngreso = tx.amount<0;
     if(esIngreso){
       if(!tx.date || parseDate(tx.date)<som) return;
-      if(tx.id && seen[tx.id]) return;
+      if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
         category: esTraspasoPropio(s, tx) ? TRASPASO_CAT.id : INGRESO_CAT.id, source:"ob", ent:tx.ent };
@@ -11539,17 +11666,19 @@ function importObExpenses(s, txs){
       if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
       if(tx.id) e.extId=tx.id;
       const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-      if(keys[kOf(e)] || delSet[kOf(e)]) return;
+      if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
       const gemIn=gemeloOtraVia(tx);
       if(gemIn && gemIn.id){ e.possibleDup=true; e.possibleDupOf=gemIn.id; }
-      keys[kOf(e)]=1; add.push(e);
+      keys[scopedKOf(e)]=1;
+      if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
+      add.push(e);
       return;
     }
     // GASTO: entra de cualquier banco. Fijos y puntuales modelados no se duplican; las deudas se marcan.
     const mod=modeledHit(tx.ent, tx.merchant, tx.amount);
     if(mod && !mod.debtId) return;
     if(!tx.date || parseDate(tx.date)<som) return;
-    if(tx.id && seen[tx.id]) return;
+    if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
     const esDiario=tx.ent===dailyEnt;
     const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
     const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
@@ -11559,10 +11688,11 @@ function importObExpenses(s, txs){
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
     if(tx.id) e.extId=tx.id;
     const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-    if(keys[kOf(e)] || delSet[kOf(e)]) return;
+    if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
     const gem=gemeloOtraVia(tx);
     if(gem && gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
-    keys[kOf(e)]=1;
+    keys[scopedKOf(e)]=1;
+    if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
     add.push(e);
   });
   return add.length? add : null;
@@ -12212,13 +12342,71 @@ function histCandCercanos(cands, expenses, yaExactos){
    Truncado: solo flags explícitos del servidor; minDate>dateFrom se reporta aparte
    (heurística de la UI; no prueba truncado por sí sola). */
 
+/* Un saldo correcto no demuestra que se hayan leído todos los movimientos de sus cuentas. */
+function bankReadWarnings(links, expectedLinks, includeEmpty){
+  const out=[], seen={};
+  (links||[]).forEach(function(l){
+    if(!l) return;
+    const name=String(l.aspsp||""), ent=entFromAspsp(name);
+    seen[name.toLowerCase()]=1;
+    const accts=l.accounts||[];
+    let key=null;
+    const failed=accts.filter(function(a){ return a&&a.ok===false; });
+    const codes=failed.map(function(a){ return String(a.error||a.transactionError||"").toLowerCase(); });
+    /* El histórico es solo lectura y no decide si un consentimiento murió. Solo un 401 firme o
+       un enlace que la nube YA marca caducado pide reconectar; 403/404 suelen ser anti-abuso,
+       cuenta tardía o hipo del ASPSP y autorizar otra vez no los arregla. */
+    if(l.pending || l.expired || l.noacct || codes.some(function(c){ return /^(eb_)?401$/.test(c); })) key="bank_read_reconnect";
+    else if(codes.some(function(c){ return c==="eb_429"; })) key="bank_read_rate";
+    else if(codes.some(function(c){ return c==="timeout"; })) key="bank_read_timeout";
+    else if(l.ok===false || failed.length) key="bank_read_failed";
+    else if(l.truncated || accts.some(function(a){ return a&&(a.truncated||a.transactionError); })) key="bank_read_partial";
+    else if(includeEmpty && accts.length && accts.every(function(a){
+      return a&&a.ok!==false && ((typeof a.count==="number"?a.count:((a.transactions||[]).length))===0);
+    })) key="bank_read_empty";
+    if(key) out.push({bank:ent?entOf(ent).label:(name||t("bp_hist_bank_unknown")),ent:ent||name,key:key});
+  });
+  // Compatibilidad con servidores antiguos: omitir un enlace pendiente no equivale a cero gastos.
+  (expectedLinks||[]).forEach(function(l){
+    const name=String(l&&l.aspsp_name||"");
+    if(!name || seen[name.toLowerCase()]) return;
+    seen[name.toLowerCase()]=1;
+    const ent=entFromAspsp(name);
+    out.push({bank:ent?entOf(ent).label:name,ent:ent||name,key:l.status==="active"?"bank_read_failed":"bank_read_reconnect"});
+  });
+  return out;
+}
+const BANK_RATE_COOLDOWN_MS=6*60*60*1000;
+function bankRateKey(bank){
+  const ent=entFromAspsp(bank);
+  return ent||String(bank||"").toLowerCase().replace(/[^a-z0-9_]+/g,"_").slice(0,80);
+}
+function bankRateMap(){
+  try{ const x=JSON.parse(localStorage.getItem("_bankRateUntil")||"{}"); return x&&typeof x==="object"?x:{}; }
+  catch(e){ return {}; }
+}
+function bankRateUntil(bank){
+  const map=bankRateMap(), n=Number(map[bankRateKey(bank)]||0);
+  return isFinite(n)?n:0;
+}
+function bankRateRemember(bank){
+  try{
+    const map=bankRateMap(); map[bankRateKey(bank)]=Date.now()+BANK_RATE_COOLDOWN_MS;
+    localStorage.setItem("_bankRateUntil",JSON.stringify(map));
+  }catch(e){}
+}
 /* Mismo pipeline que BankHistoryImport.search() al aplanar links → candidatos. */
 function histFlattenHistoryLinks(res, expenses, allow, opts){
   opts=opts||{};
   allow=allow||{};
   const merchantIn=opts.merchantIn!=null ? opts.merchantIn : "Ingreso";
   const merchantOut=opts.merchantOut!=null ? opts.merchantOut : "Compra";
-  const seen={}; (expenses||[]).forEach(function(e){ if(e.extId) seen[e.extId]=1; });
+  const seen={}, seenLegacy={}; (expenses||[]).forEach(function(e){
+    if(!e.extId) return;
+    const bank=expenseBankOf(e)||e.ent||"";
+    if(bank) seen[bank+"|"+e.extId]=1;
+    else seenLegacy[e.extId]=1;
+  });
   let bankReported=0, bankPayload=0, skippedAllow=0, skippedBad=0, skippedExt=0, skippedUniq=0, acctAtCap=0;
   const out=[], uniq={};
   const kOf=function(dt,am,mc){ return String(dt).slice(0,10)+"|"+am+"|"+(mc||""); };
@@ -12245,7 +12433,7 @@ function histFlattenHistoryLinks(res, expenses, allow, opts){
         const dt=String(tx.date||"").slice(0,10), am=Number(tx.amount)||0;
         if(!dt || !am){ skippedBad++; return; }
         const isIn=am<0, abs=Math.abs(am);
-        if(tx.ext_id && seen[tx.ext_id]){ skippedExt++; return; }
+        if(tx.ext_id && (seen[entKey+"|"+tx.ext_id]||seenLegacy[tx.ext_id])){ skippedExt++; return; }
         /* ⚠ EL BANCO VA EN LA CLAVE, Y NO ESTABA (2026-09-12 noche, medido con la sonda).
            Esta clave existe para no meter DOS VECES la misma transaccion si el banco la manda
            repetida. Pero no llevaba el banco dentro, asi que un cargo de Sabadell y otro de
@@ -12569,14 +12757,20 @@ function histCanUndo(state){
    aquí se juntan. Los ⚠ van DELANTE —son los que piden hacer algo, y la telemetría de toasts solo
    recoge los que EMPIEZAN por ⚠—, sin repetir, separados por « · ». */
 function juntaAvisosSync(list){
-  const vistos={}; const avisos=[]; const bien=[];
-  (list||[]).forEach(function(m){
-    const s=String(m||"").trim(); if(!s || vistos[s]) return; vistos[s]=1;
-    (/^[⚠✕✗]/.test(s) ? avisos : bien).push(s);
-  });
+  const unicos=listaAvisosSync(list); const avisos=[]; const bien=[];
+  unicos.forEach(function(s){ (/^[⚠✕✗]/.test(s) ? avisos : bien).push(s); });
   if(!avisos.length) return bien.join(" · ");
   const resto=avisos.slice(1).map(function(s){ return s.replace(/^[⚠✕✗]\s*/,""); });
   return [avisos[0]].concat(resto, bien).join(" · ");
+}
+/* El resumen manual se pinta como filas, no como una frase kilométrica encima de la app. */
+function listaAvisosSync(list){
+  const vistos={}; const out=[];
+  (list||[]).forEach(function(m){
+    const s=String(m||"").trim(); if(!s || vistos[s]) return; vistos[s]=1;
+    out.push(s);
+  });
+  return out;
 }
 function bankIssuesOf(links, dbLinks){
   const out=(links||[]).filter(function(l){
@@ -14955,9 +15149,34 @@ function AuthPanel({session, onClose, showToast, recovery, startMode}){
 /* IMPORTAR HISTÓRICO vía Open Banking (~90 días PSD2). Cargos + ingresos; por fila eliges
    destino: Gasto (variable) · Recibo (fijo mensual) · Ingreso. Tarjeta→Gasto, no-tarjeta→Recibo,
    crédito→Ingreso (pre-marcados). TR no aplica (no está en OB). Feedback 2026-07-18. */
-function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
+function SyncReportSheet({items,onClose}){
+  useBackClose(true,onClose);
+  const rows=listaAvisosSync(items);
+  return React.createElement("div",{className:"v4-sheet-back sync-report-back",onClick:onClose},
+    React.createElement("div",{className:"v4-sheet sync-report",onClick:function(e){ e.stopPropagation(); }},
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("div",{className:"serif",style:{fontSize:22,marginBottom:12}},t("sync_result_title")),
+      React.createElement("div",{className:"v4-sheet-body"},rows.map(function(msg,i){
+        const warn=/^[⚠✕✗]/.test(msg);
+        return React.createElement("div",{key:i,className:"sync-report-row",style:{display:"flex",gap:10,alignItems:"flex-start",padding:"11px 12px",marginBottom:8,borderRadius:12,border:"1px solid var(--line-soft)",background:"var(--surface)",color:"var(--text)",fontSize:13,lineHeight:1.45}},
+          React.createElement("span",{style:{color:warn?"var(--coral)":"var(--mint)",fontWeight:900,flex:"0 0 auto"}},warn?"!":"✓"),
+          React.createElement("span",null,msg.replace(/^[⚠✕✗✓]\s*/,""))
+        );
+      })),
+      React.createElement("button",{type:"button",className:"btn btn-primary",style:{width:"100%",marginTop:8},onClick:onClose},t("sync_result_close"))
+    )
+  );
+}
+function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}){
   const expEnts=expenseBankEnts(state);
-  const allowList=(linkEnts&&linkEnts.length)? linkEnts : expEnts;
+  const bankEnts=((linkEnts&&linkEnts.length)?linkEnts:expEnts).filter(function(e,i,a){ return e&&a.indexOf(e)===i; });
+  /* Arranca SOLO con los bancos marcados como gasto diario. Antes arrancaba con TODOS los
+     conectados y «Buscar» consultaba incluso los que el filtro luego ocultaba: gastaba su cupo
+     PSD2 y era justo lo contrario de lo que indicaba la pantalla. */
+  const [bankFilter,setBankFilter]=useState(function(){
+    return bankEnts.filter(function(e){ return expEnts.indexOf(e)>=0; });
+  });
+  const allowList=bankFilter;
   const allow={}; allowList.forEach(function(e){ allow[e]=1; });
   const banksLbl=allowList.map(function(e){ return entOf(e).label; }).join(", ");
   const [months,setMonths]=useState(3);
@@ -14968,6 +15187,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
   const [classRows,setClassRows]=useState([]);  // salida de histClassifyCandidates
   const [signSuspect,setSignSuspect]=useState({});
   const [truncWarn,setTruncWarn]=useState(false);
+  const [readWarnings,setReadWarnings]=useState([]);
+  const [readFailed,setReadFailed]=useState(false);
   const [importing,setImporting]=useState(false);
   /* FILTROS (rediseño 3/8, petición suya: «me parece anticuada comparada con el import de Excel»,
      más un bug real que reportó: «seleccioné Trade Republic y salían también movimientos de Banco
@@ -14980,7 +15201,6 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
      por debajo (para combinar selecciones de varios filtros en una sola importación, basta volver
      a «Todos los bancos» antes de pulsar Importar: los `sel` de cada fila se conservan siempre,
      solo cambia qué se VE y qué CUENTA en cada momento). */
-  const [bankFilter,setBankFilter]=useState([]);
   const [tipoFilter,setTipoFilter]=useState("all");   // "all" | "gasto" | "ingreso"
   const [mesFilter,setMesFilter]=useState("all");     // "all" | "YYYY-MM"
   const [revelado,setRevelado]=useState(0);           // filas ya "entradas" (animación, como el import de Excel)
@@ -14993,12 +15213,35 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
   // Fallback si aún no hay clasificación (híbrido C: NUNCA recibo a ciegas).
   const defDest=function(x){ return x.kind==="in" ? "ingreso" : "gasto"; };
   const search=function(){
-    if(!allowList.length){ showToast(t("bp_hist_nodaily")); return; }
-    setLoading(true); setCands(null);
-    setBankFilter([]); setTipoFilter("all"); setMesFilter("all"); setRevelado(0);
+    if(!allowList.length){ showToast(t("bp_hist_pickbank")); return; }
+    setLoading(true); setCands(null); setReadWarnings([]); setReadFailed(false);
+    setTipoFilter("all"); setMesFilter("all"); setRevelado(0);
     setRenderCap(HIST_RENDER_CAP); setTruncWarn(false); setSignSuspect({}); setClassRows([]);
     const d=new Date(); d.setMonth(d.getMonth()-months); const dateFrom=d.toISOString().slice(0,10);
-    cloud.bankSyncHistory(dateFrom).then(function(res){
+    const cooling=allowList.filter(function(ent){ return bankRateUntil(ent)>Date.now(); });
+    const aspsps=(bankLinks||[]).filter(function(l){
+      const ent=entFromAspsp(l&&((l.aspsp_name||l.aspsp)));
+      return l&&l.status==="active"&&allowList.indexOf(ent)>=0&&cooling.indexOf(ent)<0;
+    }).map(function(l){ return l.aspsp_name||l.aspsp; });
+    if(!aspsps.length){
+      const stopped=cooling.map(function(ent){ return {bank:entOf(ent).label,ent:ent,key:"bank_read_rate"}; });
+      (bankLinks||[]).forEach(function(l){
+        const ent=entFromAspsp(l&&(l.aspsp_name||l.aspsp));
+        if(allowList.indexOf(ent)>=0&&cooling.indexOf(ent)<0) stopped.push({bank:ent?entOf(ent).label:(l.aspsp_name||"🏦"),ent:ent,key:"bank_read_reconnect"});
+      });
+      setReadWarnings(stopped);
+      setCands([]); setLoading(false); return;
+    }
+    cloud.bankSyncHistory(dateFrom,aspsps).then(function(res){
+      if(!res || !Array.isArray(res.links)) throw new Error("bank_read_failed");
+      /* En histórico, cero ya no se disfraza de «quizá estaba todo apuntado»: se dice qué banco
+         devolvió cero. En el sync diario no se usa este aviso porque un día sin cargos es normal. */
+      const expected=(bankLinks||[]).filter(function(l){ return aspsps.indexOf(l.aspsp_name||l.aspsp)>=0; });
+      const warnings=bankReadWarnings(res.links, expected, true).filter(function(w){
+        return allowList.indexOf(entFromAspsp(w.ent||w.bank))>=0;
+      });
+      warnings.forEach(function(w){ if(w.key==="bank_read_rate") bankRateRemember(w.ent||w.bank); });
+      setReadWarnings(cooling.map(function(ent){ return {bank:entOf(ent).label,ent:ent,key:"bank_read_rate"}; }).concat(warnings));
       // Flatten compartido con la sonda (Codex 10/9): un solo pipeline, con card/entKey/merchant.
       const flat=histFlattenHistoryLinks(res, state.expenses, allow, {
         merchantIn:t("cat_ingreso"), merchantOut:"Compra"
@@ -15006,12 +15249,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
       const out=flat.out;
       // Truncado del servidor o del banco: avisamos en preview (agujero F).
       // Nota Codex: minDate>dateFrom NO prueba truncado (puede no haber movs el día 1).
-      let trunc=!!(res&&(res.truncated||res.truncatedAt));
-      if(!trunc && out.length){
-        let minD=out[0].date;
-        out.forEach(function(x){ if(x.date<minD) minD=x.date; });
-        if(minD>dateFrom) trunc=true;
-      }
+      const trunc=!!(res&&(res.truncated||res.truncatedAt));
       setTruncWarn(trunc);
       // Clasificador puro (tanda 1): dups 1:1, modeled por mes, cats traspaso/inversion, signo.
       const classified=histClassifyCandidates(out, state);
@@ -15037,12 +15275,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
           stats:flat.stats, res:res, dateFrom:dateFrom
         });
         if(typeof window!=="undefined") window.__histDupProbe=probe;
-        showToast(tf("bp_hist_probe",{
-          bank:probe.bankReported,
-          llegan:probe.llegan,
-          nuevos:probe.nuevos,
-          ya:probe.coincideDayAmt
-        }));
+        /* La sonda sigue en telemetría y DevTools, pero no tapa la app: era instrumentación
+           interna presentada como un aviso gigante después de cada búsqueda real. */
         /* Y LA SONDA TAMBIEN VIAJA (2026-09-12). Hasta hoy solo salia en un aviso de pantalla y
            en `window.__histDupProbe`, asi que para saber que le pasa habia que pedirle a el que
            leyera el aviso a tiempo y lo copiara. Su rechazo del 12/9 —«los que salen que no son
@@ -15056,7 +15290,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
         try{ cloud.logEvent("hist", "sonda "+probe.llegan+" llegan / "+probe.nuevos+" nuevos / "+probe.coincideDayAmt+" coinciden dia+importe",
           JSON.stringify(probe)); }catch(_e2){}
       }catch(_e){ /* sonda no tumba el import */ }
-    }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); setCands([]); }).finally(function(){ setLoading(false); });
+    }).catch(function(){ setReadFailed(true); setCands([]); }).finally(function(){ setLoading(false); });
   };
   const toggle=function(i){ setSel(function(p){ const n=Object.assign({},p); n[i]=!n[i]; return n; }); };
   const setDestI=function(i,d){ setDest(function(p){ const n=Object.assign({},p); n[i]=d; return n; }); setSel(function(p){ const n=Object.assign({},p); n[i]=true; return n; }); };
@@ -15072,7 +15306,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
   })();
   const monthLbl=function(k){ const p=k.split("-"); return monthShort(parseInt(p[1],10)-1)+" "+p[0]; };
   const passFilter=function(x){
-    if(bankFilter.length && bankFilter.indexOf(x.ent)<0) return false;
+    if(bankFilter.indexOf(x.ent)<0) return false;
     if(tipoFilter==="gasto" && x.kind==="in") return false;
     if(tipoFilter==="ingreso" && x.kind!=="in") return false;
     if(mesFilter!=="all" && x.date.slice(0,7)!==mesFilter) return false;
@@ -15266,14 +15500,23 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
     React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("bp_close")),
     React.createElement("div",{className:"serif",style:{fontSize:24,margin:"4px 0 4px"}}, t("bp_hist_title")),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}},
-      allowList.length? tf("bp_hist_sub",{banks:banksLbl}) : t("bp_hist_nodaily")),
+      allowList.length? tf("bp_hist_sub",{banks:banksLbl}) : t("bp_hist_pickbank")),
     canUndo && React.createElement("button",{type:"button",onClick:doUndoLast,
       style:{width:"100%",padding:"11px",borderRadius:12,border:"1px solid var(--coral)",background:"transparent",color:"var(--coral)",fontWeight:800,fontSize:13,cursor:"pointer",marginBottom:12}},
       t("bp_hist_undo_btn")),
-    allowList.length>0 && React.createElement(React.Fragment,null,
+    bankEnts.length>0 && React.createElement(React.Fragment,null,
+      React.createElement("div",{className:"v4-chips meta-chips wrap",style:{marginBottom:10}},
+        React.createElement("button",{type:"button",className:"v4-chip"+(bankFilter.length===bankEnts.length?" on":""),onClick:function(){ setBankFilter(bankEnts.slice()); }}, t("g_allbanks")),
+        bankEnts.map(function(ent){
+          const on=bankFilter.indexOf(ent)>=0;
+          return React.createElement("button",{key:ent,type:"button",className:"v4-chip"+(on?" on":""),onClick:function(){ toggleBankFilter(ent); }}, entOf(ent).label);
+        })
+      ),
       React.createElement("div",{style:{display:"flex",gap:8,marginBottom:12}}, [1,2,3].map(chip)),
       React.createElement("button",{style:{width:"100%",padding:"12px",borderRadius:12,border:"1px solid var(--line)",background:"var(--surface)",color:"var(--text)",fontWeight:800,fontSize:14,cursor:"pointer"},disabled:loading,onClick:search}, loading?t("bp_hist_searching"):t("bp_hist_search")),
-      cands!==null && cands.length===0 && !loading && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,textAlign:"center",padding:"20px 0"}}, t("bp_hist_none")),
+      !loading && readWarnings.map(function(w,i){ return React.createElement("div",{key:i,role:"status",className:"hint bank-read-warning",style:{marginTop:12}}, "⚠ "+tf(w.key,{bank:w.bank})); }),
+      !loading && readFailed && React.createElement("div",{role:"status",className:"hint bank-read-warning",style:{marginTop:12}},t("bank_read_retry")),
+      cands!==null && cands.length===0 && !loading && !readFailed && !readWarnings.length && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,textAlign:"center",padding:"20px 0"}}, t("bp_hist_none")),
       cands!==null && cands.length>0 && React.createElement("div",{style:{marginTop:14}},
         React.createElement("div",{style:{fontSize:12,color:"var(--muted-2)",marginBottom:8}}, tf("bp_hist_found",{n:visible.length})),
         truncWarn && React.createElement("div",{style:{fontSize:12,lineHeight:1.45,color:"var(--warn, #E6A23C)",background:"rgba(230,162,60,.12)",borderRadius:10,padding:"8px 10px",marginBottom:8}}, t("bp_hist_trunc")),
@@ -15283,13 +15526,6 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts}){
            nada elegirlo), tipo (gasto/ingreso) y mes (solo si el lote trae más de uno). Mismo
            patrón visual `.v4-chip`/`.v4-chips` que el resto de la app (Gastos ya filtra así por
            banco/categoría) — coherencia en vez de reinventar un control nuevo para esta pantalla. */
-        allowList.length>1 && React.createElement("div",{className:"v4-chips meta-chips wrap"},
-          React.createElement("button",{type:"button",className:"v4-chip"+(bankFilter.length===0?" on":""),onClick:function(){ setBankFilter([]); }}, t("g_allbanks")),
-          allowList.map(function(ent){
-            const on=bankFilter.indexOf(ent)>=0;
-            return React.createElement("button",{key:ent,type:"button",className:"v4-chip"+(on?" on":""),onClick:function(){ toggleBankFilter(ent); }}, entOf(ent).label);
-          })
-        ),
         React.createElement("div",{className:"v4-chips meta-chips wrap"},
           [["all",t("bp_hist_f_all")],["gasto",t("bp_hist_f_gastos")],["ingreso",t("bp_hist_f_ingresos")]].map(function(o){
             const on=tipoFilter===o[0];
@@ -16808,6 +17044,20 @@ function CurConverterPanel({state, onClose, refreshFx}){
 
 /* Contenido del cajón de Ajustes (el cajón deslizante lo gestiona App). */
 function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour, totals, fetchPrices, refreshFx, goBanks, goBanksFocus, goGastos}){
+  const adminCacheKey="_mcAdminProfile";
+  const adminCached=function(id){
+    if(!id) return false;
+    try{
+      const x=JSON.parse(localStorage.getItem(adminCacheKey)||"null");
+      return !!(x&&x.uid===id&&x.isAdmin===true);
+    }catch(e){ return false; }
+  };
+  const saveAdminCached=function(id,on){
+    try{
+      if(id&&on) localStorage.setItem(adminCacheKey,JSON.stringify({uid:id,isAdmin:true}));
+      else localStorage.removeItem(adminCacheKey);
+    }catch(e){}
+  };
   const [expand,setExpand]=useState(null);   // fila-acordeón abierta: "lang" | "gview" | "tabs" | "cur" | null
   const [newsOpen,setNewsOpen]=useState(false);   // histórico de Novedades (WhatsNew reabierto a mano)
   const [privOpen,setPrivOpen]=useState(false);    // política de privacidad DENTRO de la app (no _blank)
@@ -16822,17 +17072,25 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const doSignOut=function(){
     askConfirm({ title:t("au_signout"), ok:t("au_signout"), danger:true }).then(function(yes){
       if(!yes) return;
-      cloud.signOut().then(function(){ showToast(t("au_signedout")); onClose(); });
+      cloud.signOut().then(function(){ saveAdminCached(null,false); showToast(t("au_signedout")); onClose(); });
     });
   };
   // Telemetría: el panel «Actividad» SOLO existe para el admin (gate por email de la sesión;
   // la RLS de app_events lo re-valida en servidor — sin sesión de admin no devuelve filas).
+  // El último sí se guarda por UID: offline no se puede consultar profiles, pero tampoco debe
+  // desaparecer toda la zona Dev. Es una puerta visual, no un permiso de servidor.
   const [meEmail,setMeEmail]=useState(null);
-  const [isAdmin,setIsAdmin]=useState(false);
+  const [isAdmin,setIsAdmin]=useState(function(){ return adminCached(uid); });
   useEffect(function(){
-    if(!cloud.enabled()){ return; }
+    const cached=adminCached(uid);
+    setIsAdmin(cached);
+    if(!cloud.enabled()||!uid){ return; }
     cloud.session().then(function(s){ setMeEmail((s&&s.user&&s.user.email)||null); }).catch(function(){});
-    cloud.fetchProfile().then(function(p){ setIsAdmin(!!(p&&p.is_admin)); }).catch(function(){});
+    cloud.fetchProfile().then(function(p){
+      const on=!!(p&&p.is_admin);
+      saveAdminCached(uid,on);
+      setIsAdmin(on);
+    }).catch(function(){ setIsAdmin(cached); });
   },[uid]);
   // «Buscar actualización» a mano (feedback 2026-07-10: «no me sale ningún botón para actualizar
   // manualmente»): consulta apk.json (APK) y version.json (web) al momento, sin esperar al arranque.
@@ -16904,6 +17162,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const [bankBusy,setBankBusy]=useState(false);
   const [trConn,setTrConn]=useState(false);        // TR también cuenta como banco conectado (feedback 2026-07-10)
   const [trKnown,setTrKnown]=useState(false);      // tuvo TR alguna vez (mc_tr_phone) → puede estar «caído»
+  const [trExpired,setTrExpired]=useState(false);  // solo authExpired firme, no un status frío vacío
   // Versión nativa del APK (hueco 2026-07-26): sin esto Ajustes solo mostraba la OTA y no
   // sabías si el icono/splash nuevos estaban puestos o seguías en la 34.
   const [apkVer,setApkVer]=useState(null);
@@ -16911,13 +17170,19 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     const refreshTr=function(){
       const known=!!(typeof trPhoneSaved==="function"&&trPhoneSaved());
       setTrKnown(known);
-      const b=trBridge(); if(!b||!b.status){ if(!known) setTrConn(false); return; }
-      Promise.resolve(b.status()).then(function(r){ setTrConn(!!(r&&r.connected)); }).catch(function(){});
+      if(!known){ setTrConn(false); setTrExpired(false); }
+      const b=trBridge(); if(!b||!b.status) return;
+      Promise.resolve(b.status()).then(function(r){
+        setTrConn(!!(r&&r.connected));
+        setTrExpired(!!(r&&r.authExpired) || (typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved()));
+      }).catch(function(){});
     };
     refreshTr();
     const onTr=function(e){
       if(e&&e.detail&&typeof e.detail.connected==="boolean"){
-        setTrConn(!!e.detail.connected); setTrKnown(true);
+        setTrConn(!!e.detail.connected);
+        setTrKnown(!!e.detail.connected || !!(typeof trPhoneSaved==="function"&&trPhoneSaved()));
+        setTrExpired(!!e.detail.authExpired || (typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved()));
         // Solo si la acción MANUAL acabó bien (detalle.ack). Status/poll no tosta — rechazo TR.
         if(e.detail.ack && e.detail.connected) showToast(t("tr_connected"));
         return;
@@ -17186,7 +17451,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         return !issueAsp[String(r.aspsp_name||"").toLowerCase()];
       }).length + (!enPruebas && trConn?1:0);
       const nDeadDb=(links||[]).filter(function(r){ return r.status==='expired'||r.status==='error'||issueAsp[String(r.aspsp_name||"").toLowerCase()]; }).length;
-      const trDead=!enPruebas && trKnown&&!trConn;
+      const trDead=!enPruebas && trKnown&&trExpired;
       const nDead=nDeadDb + (trDead?1:0);
       let summary = links===null ? "…"
         : nActive>0 ? (tf("bp_summary_n",{n:nActive}) + (nDead?" · "+tf("bp_summary_exp",{n:nDead}):""))
@@ -17197,7 +17462,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         row("banks","🏦",t("bp_manage"),null,function(){ setManageBanks(true); })
       );
     })(),
-    manageBanks && ReactDOM.createPortal(React.createElement(BankPanel,{state:state,set:set,showToast:showToast,uid:uid,onBankSync:onBankSync,totals:totals,onLinks:setBankLinks,fetchPrices:fetchPrices,focusAspsp:goBanksFocus,onClose:function(){ setManageBanks(false); const b=trBridge(); if(b&&b.status){ Promise.resolve(b.status()).then(function(r){ setTrConn(!!(r&&r.connected)); }).catch(function(){}); } }}), document.body),
+    manageBanks && ReactDOM.createPortal(React.createElement(BankPanel,{state:state,set:set,showToast:showToast,uid:uid,onBankSync:onBankSync,totals:totals,onLinks:setBankLinks,fetchPrices:fetchPrices,focusAspsp:goBanksFocus,onClose:function(){ setManageBanks(false); const b=trBridge(); if(b&&b.status){ Promise.resolve(b.status()).then(function(r){ setTrConn(!!(r&&r.connected)); setTrExpired(!!(r&&r.authExpired)||(typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved())); }).catch(function(){}); } }}), document.body),
     // (Hogar y gastos compartidos se movió FUERA de Ajustes 2026-07-18: es una funcionalidad de
     //  la app, no un ajuste. Ahora se abre desde Cartera → «Hogar y gastos compartidos».)
     !notifOk && React.createElement("div",{className:"alarmbox",style:{marginTop:14}},
@@ -17209,7 +17474,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       const nat=natPlugin();
       if(!nat || !nat.setNotifPrefs) return null;
       const on=!(state.settings&&state.settings.trNotifyConfirm===false);
-      const bankSyncOn=!(state.settings&&state.settings.bankSyncOnNotif===false);
+      const bankSyncOn=!!(state.settings&&state.settings.bankSyncOnNotif===true);
       const ingOn=!!(state.settings&&state.settings.trIngest);
       const toggleIng=function(){
         if(!ingOn){
@@ -17436,10 +17701,11 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     // Allow-list = bancos OB conectados (misma regla que antes desde Mis bancos).
     histOpen && ReactDOM.createPortal(React.createElement(BankHistoryImport,{
       state:state,set:set,showToast:showToast,onClose:function(){ setHistOpen(false); },
+      bankLinks:bankLinks,
       linkEnts:(function(){
         const ents=[];
         (bankLinks||[]).forEach(function(l){
-          if(!(l&&(l.status==="active"||l.status==="pending"))) return;
+          if(!l) return;
           const e=entFromAspsp(l.aspsp_name||l.aspsp); if(e&&ents.indexOf(e)<0) ents.push(e);
         });
         return ents.length?ents:null;
@@ -18374,12 +18640,18 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       const b=(typeof trBridge==="function")?trBridge():null;
       if(!b||!b.status) return;
       if(!(typeof trPhoneSaved==="function"&&trPhoneSaved())){ setTrDead(false); return; }
-      Promise.resolve(b.status()).then(function(r){ setTrDead(!(r&&r.connected)); }).catch(function(){});
+      /* Un flag `connected=false` del puente no demuestra que la cookie haya muerto. Solo el
+         resultado firme de un sync manual (`_trAuthExpired`) enciende este banner. */
+      Promise.resolve(b.status()).then(function(r){
+        setTrDead(!!(r&&r.authExpired) || (typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved()));
+      }).catch(function(){});
     };
     check();
     const onVis=function(){ if(document.visibilityState==="visible") check(); };
     const onEvt=function(e){
-      if(e&&e.detail&&typeof e.detail.connected==="boolean"){ setTrDead(!e.detail.connected); return; }
+      if(e&&e.detail&&typeof e.detail.connected==="boolean"){
+        setTrDead(!!e.detail.authExpired || (typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved())); return;
+      }
       check();
     };
     document.addEventListener("visibilitychange", onVis);
@@ -18937,26 +19209,20 @@ function App(){
   const navHiddenRef=useRef(false);
   const lastScrollY=useRef(0);
   const scrollTab=useRef(0);
-  // Escondido RÁPIDO, sin la curva calmada de .55s (2026-08-03, bug 6 «rebote raro»). El .55s de
-  // abajo es a propósito para el caso normal (bajar leyendo la lista) — «el ocultado de golpe se
-  // sentía brusco» (feedback 2026-07-18) — pero ESE mismo calmado es justo el problema cuando el
-  // motivo de esconder es «hemos llegado al final»: el rebote nativo (la "ola") empieza a la vez
-  // que la barra, y tarda solo ~0,2-0,3 s en asentarse — mucho menos que los 0,55 s de la barra.
-  // Resultado, tal y como lo describió («se queda atascado un momento y luego sí que hace la ola
-  // pero es muy raro»): la barra sigue deslizándose/desvaneciéndose ENCIMA de la ola mientras esta
-  // ya está en marcha, dos animaciones a ritmos distintos peleando por el mismo trozo de pantalla.
-  // `botnav-hidden-fast` (ver shell.html) pone una transición corta SOLO para este caso; el
-  // escondido normal al bajar sigue con su calma de siempre.
-  const [navHiddenFast,setNavHiddenFast]=useState(false);
-  // Botnav y ola nativa (5/8 noche + pulido 5/8 madrugada):
-  // · Abajo LENTO: ok. Abajo RÁPIDO (flick): hide diferido ~450 ms tras scrollend.
+  // Botnav y ola nativa (5/8 noche + corrección 16/9):
+  // · Llegar al final NO cambia la barra. Ocultarla allí creaba el «stopper» antes del rebote
+  //   nativo; volver a tirar disparaba un dy negativo del rubber-band y la enseñaba otra vez.
+  // · La barra solo cambia por desplazamiento REAL: bajar contenido la oculta y subirlo la muestra.
   // · ARRIBA / swipe de tabs: NUNCA `botnav-ola-clear`. Ese clear↔unclear era el
   //   «aparece y desaparece todo el rato» al llegar al tope y al cambiar de pestaña
   //   (feedback 2026-08-05). La barra se queda; la ola sigue debajo.
   // · Pin breve al llegar al tope / al swipear tabs: ni hide ni clear en la racha.
   const navBotSync=useRef(0);
   const navHideArmed=useRef(false);
-  const navHideFastRef=useRef(false);
+  const bottomOverscroll=useRef(false);
+  /* El rubber-band de Android puede devolver `scrollTop` hacia arriba aunque el dedo siga
+     empujando hacia el fondo. La dirección real del dedo separa ese rebote de un «subir» suyo. */
+  const fingerScrollDir=useRef(0), fingerScrollAt=useRef(0), fingerLastY=useRef(0);
   const topClearOn=useRef(false);
   const topClearTimer=useRef(0);
   const revealAfterTopClear=useRef(false);
@@ -18971,9 +19237,10 @@ function App(){
     topClearOn.current=false;
     try{
       const nav=document.querySelector(".botnav");
-      if(nav) nav.classList.remove("botnav-hidden","botnav-hidden-fast","botnav-ola-clear");
+      if(nav) nav.classList.remove("botnav-hidden","botnav-ola-clear");
     }catch(e){}
-    if(navHiddenRef.current){ navHiddenRef.current=false; setNavHidden(false); setNavHiddenFast(false); }
+    bottomOverscroll.current=false;
+    if(navHiddenRef.current){ navHiddenRef.current=false; setNavHidden(false); }
   };
   // clear del tope: solo API residual (enterScrollHost / swipe). Ya no se ARMA en scroll ni
   // en touchmove — eso era el parpadeo.
@@ -19013,13 +19280,9 @@ function App(){
     navBotSync.current=0;
     navHideArmed.current=false;
     navHiddenRef.current=true;
-    const fast=!!navHideFastRef.current;
     try{
       const nav=document.querySelector(".botnav");
-      if(nav){
-        nav.classList.add("botnav-hidden");
-        nav.classList.toggle("botnav-hidden-fast", fast);
-      }
+      if(nav) nav.classList.add("botnav-hidden");
     }catch(e){}
     /* ⚠ CON EL DEDO PUESTO NO SE RE-RENDERIZA APP. Lo que ESCONDE la barra es la clase de arriba;
        el `setState` solo pone a React de acuerdo con el DOM, y hacerlo a mitad de gesto repinta la
@@ -19033,25 +19296,17 @@ function App(){
        idéntico: la clase ya está puesta. */
     if(dragging.current){ navFlush.current=true; return; }
     setNavHidden(true);
-    setNavHiddenFast(fast);
   };
-  const armNavHide=function(fast, inmediato){
+  const armNavHide=function(inmediato){
     if(navPinned()) return;
-    navHideFastRef.current=!!fast;
-    if(navHideArmed.current || navHiddenRef.current){
-      if(fast) navHideFastRef.current=true;
-      return;
-    }
+    if(navHideArmed.current || navHiddenRef.current) return;
     navHideArmed.current=true;
     if(navBotSync.current) clearTimeout(navBotSync.current);
     /* `inmediato` = esconderla YA, sin esperar (2026-09-11). Suyo: «la barra ocúltala antes, en
        cuanto baje, sin quitarme la animación suave». Las dos cosas a la vez sí se pueden: lo que
-       da la suavidad es la TRANSICIÓN CSS de `.botnav`, no este retraso. El retraso solo servía
-       para el caso de ABAJO DEL TODO, donde la ola nativa y la barra se peleaban por el mismo
-       trozo de pantalla — ahí se queda tal cual. */
+       da la suavidad es la TRANSICIÓN CSS de `.botnav`, no este retraso. */
     if(inmediato){ applyNavHide(); return; }
-    // Fallback si no hay scrollend: abajo más margen (ola del flick).
-    navBotSync.current=setTimeout(applyNavHide, fast?800:550);
+    navBotSync.current=setTimeout(applyNavHide, 550);
   };
   const revealNav=function(){
     if(navBotSync.current){ clearTimeout(navBotSync.current); navBotSync.current=0; }
@@ -19061,17 +19316,15 @@ function App(){
     topClearOn.current=false;
     try{
       const nav=document.querySelector(".botnav");
-      if(nav) nav.classList.remove("botnav-hidden","botnav-hidden-fast","botnav-ola-clear");
+      if(nav) nav.classList.remove("botnav-hidden","botnav-ola-clear");
     }catch(e){}
     if(!navHiddenRef.current) return;
     navHiddenRef.current=false;
-    navHideFastRef.current=false;
     /* Misma regla que `applyNavHide` (4.19.69): con el dedo puesto solo se toca el DOM; el
        `setState` espera a soltar. Rechazo 12/9: *«si hago seguido, SUBIR en gastos… se laguea»*
        — el hide ya aplazaba, el reveal no, y al subir se repintaba App entera. */
     if(dragging.current){ navFlush.current=true; return; }
     setNavHidden(false);
-    setNavHiddenFast(false);
   };
   // Marca de tiempo del último scroll REAL de una página. La usa `freezeShell` para no pagar el
   // congelado cuando no hace falta (ver allí). Se apunta antes de cualquier corte: durante el
@@ -19091,7 +19344,12 @@ function App(){
     if(!navFlush.current) return;
     navFlush.current=false;
     setNavHidden(!!navHiddenRef.current);
-    setNavHiddenFast(!!navHideFastRef.current);
+  };
+  const discardNavHideFlush=function(){
+    /* En el borde no hay nada que reconciliar: la clase ya está puesta y el className consulta
+       también la ref. El timer de 700 ms de 4.25.2 solo retrasaba el mismo re-render hasta mitad
+       de la ola nativa, por eso el primer tirón seguía muriendo y el segundo sí entraba. */
+    navFlush.current=false;
   };
   /* Alto del contenido en el scroll anterior. Sirve para distinguir «ha bajado él» de «la
      pantalla se ha recolocado sola»: al tocar un chip de rol en Cartera la tarjeta estira o
@@ -19141,7 +19399,7 @@ function App(){
        barra no puede esconderse hasta un segundo después — con lo que para cuando podía, el dedo
        ya había parado. 320 ms siguen cubriendo el asentamiento del cambio de pestaña, que es para
        lo que está (que no se esconda de golpe al llegar a la pestaña nueva). */
-    if(scrollTab.current!==tab){ scrollTab.current=tab; lastScrollY.current=y; ultimoScrollH.current=e.currentTarget.scrollHeight; revealNav(); pinNavVisible(320); return; }
+    if(scrollTab.current!==tab){ scrollTab.current=tab; lastScrollY.current=y; ultimoScrollH.current=e.currentTarget.scrollHeight; bottomOverscroll.current=false; revealNav(); pinNavVisible(320); return; }
     /* Si el contenido ha cambiado de alto, el motor a veces recoloca `scrollTop` solo
        (chip de rol, lista que pagina). Eso NO es un gesto suyo — no esconder la barra.
        ⚠ PERO con host a pantalla (ola 12/9) el `scrollHeight` también se recalcula tarde
@@ -19161,6 +19419,7 @@ function App(){
     if(y<=8){
       // Tope: barra QUIETA y visible. Sin ola-clear. Pin solo al aterrizar / al revelar,
       // no en cada frame del rubber-band (si no el pin no caduca nunca).
+      bottomOverscroll.current=false;
       if(navHiddenRef.current){
         revealNav();
         pinNavVisible(1000);
@@ -19172,17 +19431,30 @@ function App(){
       return;
     }
     const max=e.currentTarget.scrollHeight-e.currentTarget.clientHeight;
-    if(max>0 && y>=max-4){ armNavHide(true); return; }
+    if(max>0 && y>=max-4){
+      /* El borde pertenece al navegador, no a la navegación de la app. Mantener el estado que ya
+         tuviera la barra deja al WebView reproducir la ola tanto visible como oculta; ocultarla
+         aquí era el primer gesto «muerto» y revelarla en el rebote era el segundo fallo. */
+      bottomOverscroll.current=true;
+      if(navBotSync.current){ clearTimeout(navBotSync.current); navBotSync.current=0; }
+      navHideArmed.current=false;
+      return;
+    }
     if(Math.abs(dy)<6) return;
     /* «En cuanto baje»: antes pedía haber bajado 56 px Y esperaba 550 ms más. Ahora basta con
        haber salido del tope y se esconde en el acto — la curva calmada de `.botnav` sigue
        poniendo la suavidad que él pide. */
-    if(dy>0 && y>24){ armNavHide(false, true); }
+    if(dy>0 && y>24){ armNavHide(true); }
     else if(dy<0){
-      /* Cerca del fondo el rubber-band dispara `dy<0` con `y` aún alta. Revelar ahí pelea con
-         el hide/ola: *«se queda a medias la barra intentando subir, luego acaba… y luego la ola»*
-         (rechazo 4.19.69, 12/9). La barra solo vuelve al subir de verdad, lejos del borde. */
-      if(max>0 && y>max-80) return;
+      /* En el borde, `scrollTop` NO demuestra la intención: el stretch de Android puede devolver
+         cientos de px aunque él siga empujando hacia abajo. La barra solo reaparece si hay una
+         dirección de dedo OPUESTA y reciente (dedo baja = subir contenido). El umbral de 160 px
+         era el fallo real: un rebote grande lo cruzaba y abría la barra sin que él subiera. */
+      if(bottomOverscroll.current){
+        const fingerSubeContenido=fingerScrollDir.current===-1 && (Date.now()-fingerScrollAt.current)<900;
+        if(!fingerSubeContenido) return;
+      }
+      bottomOverscroll.current=false;
       revealNav();
     }
   };
@@ -19204,11 +19476,16 @@ function App(){
         navHideArmed.current=false;
         return;
       }
+      if(atBottom){
+        // Un scrollend en el borde no manda sobre la barra: la ola nativa debe correr sola.
+        if(navBotSync.current){ clearTimeout(navBotSync.current); navBotSync.current=0; }
+        navHideArmed.current=false;
+        bottomOverscroll.current=true;
+        return;
+      }
       if(!navHideArmed.current) return;
       if(navBotSync.current){ clearTimeout(navBotSync.current); navBotSync.current=0; }
-      // Abajo: el stretch sigue tras scrollend — esperar antes del hide.
-      const delay=(atBottom||navHideFastRef.current)?450:0;
-      navBotSync.current=setTimeout(function(){ applyNavHideRef.current(); }, delay);
+      navBotSync.current=setTimeout(function(){ applyNavHideRef.current(); }, 0);
     };
     document.addEventListener("scrollend", onScrollEnd, true);
     return function(){ document.removeEventListener("scrollend", onScrollEnd, true); };
@@ -19221,6 +19498,7 @@ function App(){
   const [planGoto,setPlanGoto]=useState(null);             // segmento de Plan a forzar desde «Ver plan» ({id,ts})
   const [tourOpen,setTourOpen]=useState(false);            // tour guiado (coach-marks)
   const [toast,setToast]=useState(null);
+  const [syncReport,setSyncReport]=useState(null);
   const [syncing,setSyncing]=useState(false);
   const [syncStatus,setSyncStatus]=useState({type:"idle",msg:""});
 
@@ -19552,7 +19830,12 @@ function App(){
       //      manda es el ⚠ de abajo —que además abre el panel para arreglarlo—, no un «✓ al día»
       //      que dice lo contrario medio segundo después.
       const issues=bankIssuesOf(links, dbLinks);
-      if(opts.manual && preview.synced.length && !issues.length){
+      const readWarnings=bankReadWarnings(links, dbLinks).filter(function(w){ return w.key!=="bank_read_reconnect"; });
+      readWarnings.forEach(function(w){ if(w.key==="bank_read_rate") bankRateRemember(w.ent||w.bank); });
+      if(opts.manual && readWarnings.length){
+        readWarnings.forEach(function(w){ avisaSync(opts,"⚠ "+tf(w.key,{bank:w.bank})); });
+      }
+      if(opts.manual && preview.synced.length && !issues.length && !readWarnings.length){
         const ents={}; preview.synced.forEach(function(x){ if(x&&x.ent) ents[x.ent]=1; });
         const bancos=Object.keys(ents);
         let msg = bancos.length===1
@@ -19595,7 +19878,7 @@ function App(){
       // vivo (el servidor ya no lo marca 'expired' por un 403/404), así que no mandamos «reconéctate»
       // — solo un aviso suave y únicamente si lo pediste tú (feedback 2026-07-17: «se caen cada dos
       // por tres» era este falso positivo). En auto-sync nos callamos: se reintenta solo.
-      else if(failed.length && opts.manual){ avisaSync(opts, "⚠ "+tf("bank_syncsoft",{bank:bankLabelOf(failed[0])})); }
+      else if(failed.length && opts.manual && !readWarnings.length){ avisaSync(opts, "⚠ "+tf("bank_syncsoft",{bank:bankLabelOf(failed[0])})); }
       // Ni un solo banco enlazado: en vez del callejón sin salida («No tienes ningún banco
       // conectado») le abrimos el panel para que lo conecte ahí mismo.
       else if(!preview.synced.length && !links.length && opts.manual){
@@ -19663,6 +19946,7 @@ function App(){
   // caducar. Ahora, si la sesión murió de verdad, hay toast + noti estable + evento para que
   // el banner de Cartera se entere, sin meterlo en bankIssuesOf.
   const signalTrDead=function(){
+    try{ localStorage.setItem("_trAuthExpired","1"); }catch(e){}
     try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:false}})); }catch(e){}
     try{
       if(localStorage.getItem("_trDeadNotif")==="1") return;
@@ -19693,7 +19977,7 @@ function App(){
   const sincronizarAMano=function(){
     const col=[];
     return Promise.all([runBankSync({manual:true, collect:col}), runBrokerSync({manual:true, collect:col})]).then(function(){
-      const m=juntaAvisosSync(col); if(m) showToast(m);
+      const rows=listaAvisosSync(col); if(rows.length) setSyncReport(rows);
     });
   };
   const runBrokerSync=function(opts){
@@ -19709,19 +19993,24 @@ function App(){
     if(bridge && bridge.status){
       jobs.push(Promise.resolve(bridge.status()).then(function(r){
         const hadPhone=typeof trPhoneSaved==="function"&&!!trPhoneSaved();
-        if(!(r&&r.connected)){
-          if(hadPhone){ expiredB.push("Trade Republic"); signalTrDead(); }
-          return;
-        }
-        signalTrAlive({manual:opts.manual});
-        if(!opts.manual || !bridge.sync) return;   // sync TR solo a demanda
-        return Promise.resolve(bridge.sync()).then(function(res){
+        const syncTr=function(){ return Promise.resolve(bridge.sync()).then(function(res){
           if(res&&res.authExpired&&!res.softFail&&!res.wafBlocked){ expiredB.push("Trade Republic"); signalTrDead(); return; }
           /* anti-bot/hipo: en automático silencio y se reintenta luego. Pero si lo has pedido TÚ, callarse
              es el «sale conectado pero no te avisa ni nada» (rechazo tr-reactivo, 8/9): se dice. */
           if(!res||!res.ok||!Array.isArray(res.positions)){ trSinRespuesta=true; return; }
+          signalTrAlive({manual:opts.manual});
           applyBrokerPositions(res.positions, "lastTrSync", res.cash); touched++;
-        });
+        }); };
+        if(!(r&&r.connected)){
+          /* `connected=false` no es una prueba de caducidad: APK vieja, flag perdido o puente en
+             frío. En automático no molestamos; si él pulsa Sincronizar validamos la cookie real
+             con `sync()` y solo pedimos 2FA si TR responde `authExpired`. */
+          if(!opts.manual || !hadPhone || !bridge.sync) return;
+          return syncTr();
+        }
+        signalTrAlive({manual:opts.manual});
+        if(!opts.manual || !bridge.sync) return;   // sync TR solo a demanda
+        return syncTr();
       }).catch(function(){}));
     }
     // MyInvestor — Edge Function (funciona en web y en app)
@@ -19755,12 +20044,12 @@ function App(){
   // Detecta sesión al cargar y escucha cambios (incluida la vuelta del magic link).
   useEffect(function(){
     if(!cloud.enabled()){ mcBootReady(); return; }   // sin nube no hay nada que esperar detrás del splash
-    /* Tope (14/9 → 15/9 review Claude): onLine===false → 400 ms; CON red → 2500 ms (no 600:
-       un pull normal tarda más y si acortamos pinta local y luego saltan las cifras). Si
-       getSession FALLA, mcBootReady al momento (catch). */
+    /* Offline conocido: el estado local ya está listo y no debe aparecer un Inicio vacío ni un
+       instante. Con red se conserva el margen de 2500 ms para no pintar cifras que luego saltan. */
     var offline=false;
     try{ offline=navigator.onLine===false; }catch(e){}
-    const sesTope=setTimeout(mcBootReady, offline?400:2500);
+    if(offline) mcBootReady();
+    const sesTope=setTimeout(mcBootReady, 2500);
     cloud.session().then(function(s){
       clearTimeout(sesTope);
       sessionRef.current=s; setSession(s);
@@ -19797,6 +20086,25 @@ function App(){
   // al alternar apps rápido (el sync dispara una descarga y un re-render de toda la app).
   // Además: si hay bancos OB y ≥30 min desde lastBankSync → bankSync en idle (gastos de Caixa/etc.).
   const lastVisSync=useRef(0);
+  /* Red doble para APKs antiguas: el nativo nuevo ya limita estas consultas, pero la OTA debe
+     proteger también el móvil que aún no haya instalado ese APK. La marca vive en localStorage
+     para que matar/abrir la app no reinicie el cupo. Los botones manuales no pasan por aquí. */
+  const allowBankNotifSync=function(){
+    const now=Date.now(), day=Math.floor(now/86400000);
+    try{
+      /* Las lecturas desatendidas gastaban el cupo PSD2 y dejaban el histórico en 429. Solo se
+         hacen si la persona lo activó de forma expresa; el valor antiguo implícito era ON. */
+      if(!((stateRef.current.settings||{}).bankSyncOnNotif===true)) return false;
+      const last=Number(localStorage.getItem("_bankNotifSyncAt")||0);
+      const savedDay=Number(localStorage.getItem("_bankNotifSyncDay")||-1);
+      const used=savedDay===day?Number(localStorage.getItem("_bankNotifSyncUsed")||0):0;
+      if(now-last < 12*60*60*1000 || used>=1) return false;
+      localStorage.setItem("_bankNotifSyncAt",String(now));
+      localStorage.setItem("_bankNotifSyncDay",String(day));
+      localStorage.setItem("_bankNotifSyncUsed",String(used+1));
+      return true;
+    }catch(e){ return false; }
+  };
   useEffect(function(){
     if(!uid) return;
     const onVis=function(){
@@ -19813,7 +20121,7 @@ function App(){
       const nat=natPlugin();
       if(nat&&nat.consumeBankSyncPing){
         try{ nat.consumeBankSyncPing().then(function(r){
-          if(r&&r.ping) mcScheduleIdle(function(){ runBankSync({}); });
+          if(r&&r.ping&&allowBankNotifSync()) mcScheduleIdle(function(){ runBankSync({}); });
         }).catch(function(){}); }catch(e){}
       }
     };
@@ -19831,7 +20139,6 @@ function App(){
   },[uid]);
 
   // APK alpha22: noti de Caixa/Sabadell/… → evento nativo bankNotif → sync OB (sin parsear importe).
-  const lastBankNotifSync=useRef(0);
   useEffect(function(){
     if(!uid) return;
     const nat=natPlugin();
@@ -19839,8 +20146,7 @@ function App(){
     let h=null;
     const onPing=function(){
       if(!(stateRef.current||{}).hasBankLink) return;
-      if(Date.now()-lastBankNotifSync.current < 120000) return;   // debounce web 2 min (nativo ya frena)
-      lastBankNotifSync.current=Date.now();
+      if(!allowBankNotifSync()) return;
       mcScheduleIdle(function(){ runBankSync({}); });
     };
     try{
@@ -20000,14 +20306,12 @@ function App(){
 
   // CAPA 2 — al abrir, el banco YA NO se sincroniza solo (2026-07-18): el sync desatendido en
   // cada apertura hacía que Caixa/Sabadell marcaran el consentimiento como uso robótico y lo
-  // caducaran una y otra vez. Quedan solo dos syncs «con motivo»:
-  //  · justo tras autorizar un banco (vuelta del ?bank=ok) — lo acabas de pedir tú;
-  //  · la primera vez que hay banco sin movimientos capturados (bootstrap de conciliación).
+  // caducaran una y otra vez. Solo queda el sync justo tras autorizar un banco (vuelta del
+  // ?bank=ok): lo acaba de pedir la persona. El viejo bootstrap por `bankTx===undefined` también
+  // era una consulta al abrir y consumía el cupo sin tocar ningún botón.
   useEffect(function(){
     if(!uid) return;
     if(bankJustConnected.current){ bankJustConnected.current=false; limpiaCartelReconectado(); runBankSync({manual:true}); return; }
-    if(!state.hasBankLink) return;   // nadie ha conectado banco en esta cartera → no llamamos a la función
-    if(typeof state.bankTx==="undefined"){ runBankSync({}); return; }   // bootstrap: solo 1 vez en la vida del enlace
   },[uid, state.hasBankLink]);
 
   // Y lo mismo para los brókers que SÍ sincronizan solos (TR nativo + MyInvestor): al abrir,
@@ -20806,7 +21110,7 @@ function App(){
     if(!nat || !nat.setNotifPrefs) return;
     try{ nat.setNotifPrefs({
       expenseConfirm:!(state.settings&&state.settings.trNotifyConfirm===false),
-      bankSyncOnNotif:!(state.settings&&state.settings.bankSyncOnNotif===false)
+      bankSyncOnNotif:!!(state.settings&&state.settings.bankSyncOnNotif===true)
     }).catch(function(){}); }catch(e){}
   },[state.settings&&state.settings.trNotifyConfirm, state.settings&&state.settings.bankSyncOnNotif]);
   // Re-propaga al lector nativo la URL de ingest con el token del usuario (apuntado multiusuario
@@ -21268,8 +21572,10 @@ function App(){
      del perfil, que tampoco desenfoca durante el arrastre. A 0,42 s de transición nadie ve la
      diferencia; lo que sí se nota es el tirón. */
   const navBlurT=useRef(0);
+  const navBlurOff=useRef(false);
   const navSinBlur=function(off){
     if(navBlurT.current){ clearTimeout(navBlurT.current); navBlurT.current=0; }
+    navBlurOff.current=!!off;
     if(!appShellRef.current) return;
     appShellRef.current.classList.toggle("nav-sin-blur", !!off);
   };
@@ -21278,6 +21584,7 @@ function App(){
     if(navBlurT.current) clearTimeout(navBlurT.current);
     navBlurT.current=setTimeout(function(){
       navBlurT.current=0;
+      navBlurOff.current=false;
       if(appShellRef.current) appShellRef.current.classList.remove("nav-sin-blur");
     }, 480);
   };
@@ -21358,7 +21665,11 @@ function App(){
   const ensureScrollHost=function(){
     if(settleRaf.current) return;                         // el asentamiento ya lo pondrá
     if(dragging.current && gestureMode.current==="tab") return;
-    if(scrollHostOn.current && hostTabRef.current===tabRef.current) return;
+    /* React vuelve a escribir `className` en cualquier setState. Las refs podían decir «host
+       activo» mientras el DOM ya había perdido las dos clases que dejan libre la ola nativa. */
+    if(scrollHostOn.current && hostTabRef.current===tabRef.current
+      && appShellRef.current&&appShellRef.current.classList.contains("scroll-host-on")
+      && viewportRef.current&&viewportRef.current.classList.contains("scroll-host-open")) return;
     enterScrollHost(tabRef.current);
   };
   /* ASENTAR EL CARRUSEL CON rAF, NO CON transition CSS — 2026-07-27, medido en SU móvil.
@@ -21495,6 +21806,7 @@ function App(){
     pDY.current=0; pT.current=Date.now();
     startX.current=e.touches?e.touches[0].clientX:e.clientX;
     startY.current=e.touches?e.touches[0].clientY:e.clientY;
+    fingerLastY.current=startY.current; fingerScrollDir.current=0; fingerScrollAt.current=Date.now();
     // Ajustes SOLO desde Resumen (feedback 2026-07-27): el borde en el resto de pestañas
     // pillaba gestos normales. No montar Settings/Perfil en touchstart (vídeo 2026-07-18).
   };
@@ -21503,6 +21815,12 @@ function App(){
     if(document.documentElement.classList.contains("sheet-open")) return;
     const x=e.touches?e.touches[0].clientX:e.clientX;
     const y=e.touches?e.touches[0].clientY:e.clientY;
+    const fingerStep=y-fingerLastY.current;
+    if(Math.abs(fingerStep)>=2){
+      // 1 = el dedo sube y empuja el contenido hacia el fondo; -1 = el usuario vuelve hacia arriba.
+      fingerScrollDir.current=fingerStep<0?1:-1;
+      fingerScrollAt.current=Date.now(); fingerLastY.current=y;
+    }
     const ddx=x-startX.current, ddy=y-startY.current;
     // (antes: beginTopClear en tirón al tope → barra off/on en cada swipe y en la ola)
     // Inicio arriba: cortar overscroll/rebote ANTES de fijar eje (vídeo 2026-07-18).
@@ -21518,9 +21836,10 @@ function App(){
       const eje=gestureAxis(ddx,ddy);
       if(!eje) return;
       /* A MITAD, ABAJO o ARRIBA: el arco del pulgar gana `x` pronto → preventDefault +
-         leaveScrollHost + freezeShell matan scroll/ola. Abajo ya estaba guardado; ARRIBA
-         faltaba — por eso la ola de arriba iba «a veces» (gesto limpio vertical OK; con deriva
-         lateral el carrusel robaba el dedo). Si `x` no está claro, NO fijar eje. */
+         leaveScrollHost + freezeShell matan scroll/ola. En el borde INFERIOR no se negocia:
+         aunque el primer tramo parezca horizontal, pertenece al rebote nativo hasta que el
+         usuario suba contenido. Antes una deriva de 40 px al segundo tirón revelaba la barra y
+         desmontaba el host (vídeo Oppo 16/9). Arriba/mitad aún admiten un horizontal inequívoco. */
       if(eje==="x"){
         const pages0=trackRef.current&&trackRef.current.children;
         const pg0=pages0&&pages0[tab];
@@ -21529,7 +21848,7 @@ function App(){
           const atTop=st0<=2;
           const mid0=st0>2 && max0-st0>2;
           const atBottom=max0>0 && (max0-st0)<=2;
-          if((atTop||mid0||atBottom) && !(Math.abs(ddy)<16 && Math.abs(ddx)>36)){
+          if(atBottom || ((atTop||mid0) && !(Math.abs(ddy)<16 && Math.abs(ddx)>36))){
             return;
           }
         }
@@ -21659,8 +21978,14 @@ function App(){
     else if(dx.current>24 && tab>0 && prepped.current!==-1){ prepped.current=-1; prepMountTab(tab-1); }
   };
   const onEnd=()=>{
-    if(!dragging.current) return; dragging.current=false;
-    flushNavHide();   // el setState aplazado de la barra (ver applyNavHide)
+    if(!dragging.current) return;
+    const endPages=trackRef.current&&trackRef.current.children;
+    const endPage=endPages&&endPages[tabRef.current];
+    const endMax=endPage?(endPage.scrollHeight-endPage.clientHeight):0;
+    const endAtBottom=axis.current!=="x" && endMax>0 && (endMax-(endPage.scrollTop||0))<=4;
+    dragging.current=false;
+    if(endAtBottom) discardNavHideFlush();
+    else flushNavHide();   // el setState aplazado de la barra (ver applyNavHide)
     // El rAF del arrastre se para AQUÍ: a partir de ahora manda `animarA`, y si los dos escriben
     // el mismo `transform` se pisan y el soltar daría un tirón peor que el que veníamos a quitar.
     pararPintado();
@@ -21739,9 +22064,15 @@ function App(){
      El perfil, la tabbar y las fichas ya escuchaban `touchcancel`; las pestañas y Ajustes, no. */
   const onCancel=function(){
     if(!dragging.current) return;
-    flushNavHide();   // ANTES del early-return del perfil: en su móvil casi todos los gestos pasan por aquí
+    const cancelledAxis=axis.current;
+    const pages=trackRef.current&&trackRef.current.children;
+    const pageEl=pages&&pages[tabRef.current];
+    const maxY=pageEl?(pageEl.scrollHeight-pageEl.clientHeight):0;
+    const cancelledAtBottom=cancelledAxis!=="x" && maxY>0 && (maxY-(pageEl.scrollTop||0))<=4;
+    const browserScrollCancel=cancelledAxis!=="x";
     scheduleEndTopClear();
     if(gestureMode.current==="profile"){
+      flushNavHide();   // el perfil no usa el overscroll inferior del host
       profileRelease();
       setProfileProgress(profileOpen?1:0);   // el gesto no cuenta: se queda como estaba
       pDY.current=0;
@@ -21752,7 +22083,7 @@ function App(){
     }
     // El desenfoque vuelve YA (no como al soltar): aquí no hay transición del carrusel que proteger.
     navSinBlur(false);
-    cancelSwipe();
+    cancelSwipe(browserScrollCancel, cancelledAtBottom);
   };
   /* LOS TOQUES DE LAS PESTAÑAS, A MANO Y CON `{passive:false}` — el mismo arreglo que necesitó el
      perfil el 18/7 y que aquí nunca se aplicó. React ata `onTouchMove` al contenedor raíz en modo
@@ -21973,16 +22304,24 @@ function App(){
   // y ese se dispara antes que los de React (ver `onStart`).
   const stopSwipe={ "data-noswipe":"1", onTouchStart:(e)=>e.stopPropagation(), onTouchMove:(e)=>e.stopPropagation() };
   // Cancela el gesto de tabs/ajustes a mitad (chips de Gastos: scroll interno sin cambiar de pestaña).
-  const cancelSwipe=function(){
+  const cancelSwipe=function(keepNav, keepDomOnly){
     if(!dragging.current) return;
-    flushNavHide();   // el navegador nos quita el gesto: el estado de la barra se vuelca igual
+    if(keepDomOnly) discardNavHideFlush();
+    else flushNavHide();
     dragging.current=false; axis.current=null; gestureMode.current=null; dx.current=0; ancla.current=0;
     pararPintado();   // touchcancel: el navegador nos quita el gesto, hay que soltar el rAF igual
-    endTopClearNow(true);
-    // `tabRef` por lo mismo que en `goTab`: con el `tab` de cuando se construyó la página, cancelar
-    // el gesto devolvería el carrusel a la pestaña equivocada. Asentar por rAF (no snap a pelo):
-    // si no, el dedo ve un salto seco cuando el navegador se lleva el gesto.
-    asentarTrack(tabRef.current);
+    /* Un `touchcancel` vertical significa «el navegador se quedó el scroll», no «cambia de tab».
+       Revelar aquí era la barra que aparecía al volver a tirar abajo estando ya en el final. */
+    endTopClearNow(!keepNav);
+    if(keepNav){
+      /* En un scroll vertical el host ya está colocado y es precisamente quien pinta el stretch
+         nativo. Sacarlo a transform para «asentar» el carrusel cortaba la primera ola al fondo;
+         aquí solo se comprueba la red de seguridad, que no toca el DOM si el host sigue bien. */
+      ensureScrollHost();
+    } else {
+      // En un swipe horizontal cancelado sí hay que devolver el carrusel a su pestaña real.
+      asentarTrack(tabRef.current);
+    }
     if(drawerRef.current){ drawerRef.current.classList.remove("dragging"); drawerRef.current.style.transform=""; }
     freezeShell(false);
     setSettingsProgress(drawerOpen?1:0);
@@ -22189,11 +22528,11 @@ function App(){
     mcSandbox() && React.createElement("button",{type:"button",className:"sandbox-bar",
       onClick:function(){ mcExitSandbox(); location.reload(); }},
       "🧪 MODO PRUEBAS · los datos no son reales · toca para salir"),
-    React.createElement("div",{className:"app-shell",ref:appShellRef},
-      React.createElement("div",{className:"viewport",ref:viewportRef},
+    React.createElement("div",{className:"app-shell"+(hostTab>=0?" scroll-host-on":"")+(navBlurOff.current?" nav-sin-blur":""),ref:appShellRef},
+      React.createElement("div",{className:"viewport"+(hostTab>=0?" scroll-host-open":""),ref:viewportRef},
         React.createElement("div",{className:"track"+(hostTab>=0?" scroll-host-park":" scroll-host-swipe"),ref:trackRef}, paginas)
       ),
-      React.createElement("nav",{className:"botnav"+(navHidden&&!drawerOpen&&!profileOpen?" botnav-hidden"+(navHiddenFast?" botnav-hidden-fast":""):""),"aria-label":"Navegación"},
+      React.createElement("nav",{className:"botnav"+((navHidden||navHiddenRef.current)&&!drawerOpen&&!profileOpen?" botnav-hidden":""),"aria-label":"Navegación"},
         React.createElement("div",{className:"botnav-row"},
           React.createElement("div",{className:"botnav-ind"+(drawerOpen||profileOpen?" hide":""),ref:indRef,
             style:{transform:"translateX("+(tab<=1?tab*100:(tab+1)*100)+"%)"}},
@@ -22226,6 +22565,7 @@ function App(){
     upd.apkUpd && React.createElement("button",{className:"update-pill",onClick:function(){ upd.installApk(showToast); }}, tf("apk_ready",{v:upd.apkUpd.versionName})),
     !online && React.createElement("div",{className:"offline-pill"}, t("off_pill")),
     toast && React.createElement("div",{className:"toast"},toast),
+    syncReport && ReactDOM.createPortal(React.createElement(SyncReportSheet,{items:syncReport,onClose:function(){ setSyncReport(null); }}),document.body),
     showAuth && React.createElement(AuthPanel,{session:session,onClose:function(){ setShowAuth(false); setRecovery(false); },showToast:showToast,recovery:recovery,startMode:authStart}),
     React.createElement("div",{
       className:"settings-push"+(drawerOpen?" open":""),

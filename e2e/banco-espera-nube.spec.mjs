@@ -9,9 +9,9 @@ import { seedLoggedInDashboard } from "./fixtures.mjs";
  * nube había dos: el traspaso contaba como gasto.
  *
  * Aquí se reproduce igual: el móvil tiene el estado de antes (sin la fila), la nube la tiene
- * renombrada y TARDA en contestar, y el banco devuelve el «Movimiento». El sync de arranque
- * (`bankTx` sin definir → sync de bootstrap) sale nada más abrir, antes que la nube: con el
- * código viejo acaban dos filas de 18,09.
+ * renombrada y TARDA en contestar, y el banco devuelve el «Movimiento». Se dispara una petición
+ * explícita tras abrir: el bootstrap bancario desatendido se retiró para no gastar el cupo PSD2.
+ * Con el código viejo acababan dos filas de 18,09.
  */
 
 const hoy = () => {
@@ -70,6 +70,7 @@ test("★ con la nube lenta, el banco espera: el «Movimiento» ya renombrado no
   });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-bank-role-changed")));
 
   // Que el banco se llegó a consultar: si no, el verde de abajo no probaría nada.
   await expect.poll(() => page.evaluate(() => window.__nBankSync), { timeout: 15_000 }).toBeGreaterThan(0);

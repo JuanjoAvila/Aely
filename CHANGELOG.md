@@ -1,3 +1,173 @@
+## [4.25.5] - 2026-09-16
+### El fondo real deja de tener una caja invisible debajo
+
+El vídeo del Oppo separó el caso bueno del malo: con la barra visible el stretch funcionaba, y
+solo fallaba cuando se ocultaba. En el host nativo, la regla anterior escondía `.botnav` con un
+`bottom` negativo mientras `.viewport` permitía overflow visible. La barra dejaba de verse, pero
+su caja quedaba por debajo del viewport y creaba el stopper que Android encontraba antes de poder
+dibujar la ola. Ahora permanece anclada en `bottom:0` y se recoge dentro del borde mediante alto y
+padding animados, con overflow recortado solo al ocultarse; conserva la transición suave sin
+transform, clip-path ni geometría bajo la pantalla.
+
+Había una segunda ruta independiente: un primer tramo diagonal de más de 36 px podía reclamar el
+eje horizontal incluso estando en el fondo, llamar a `pinNavVisible` y desmontar el host. El borde
+inferior da ahora prioridad absoluta al WebView hasta que el usuario sube contenido. El e2e nuevo
+recorre la lista incremental hasta su fondo efectivo (no el primer límite virtual), reproduce esa
+deriva lateral y comprueba que la barra siga oculta, el host siga montado y la pestaña no cambie.
+
+## [4.25.4] - 2026-09-16
+### El rechazo real deja tres causas medibles, no otro ajuste a ciegas
+
+La telemetría del móvil confirmó `eb_429` simultáneo en CaixaBank y Sabadell. La documentación del
+proveedor limita muchas lecturas PSD2 en segundo plano y recomienda continuar seis horas después.
+El histórico ya no abre dos bancos a la vez: recibe la selección del cliente, consulta solo esos
+enlaces y los procesa en serie. La pantalla arranca con los bancos marcados como gasto diario,
+permite ampliar a los demás antes de buscar y conserva un cooldown local de seis horas tras 429.
+Las sincronizaciones por notificación quedan apagadas por defecto (una cada 12 h si se activan de
+forma expresa), y se elimina el bootstrap bancario sin toque que aún corría una vez al abrir.
+
+Un fallo transitorio ya no pinta una cuenta Open Banking como «caducada»: `staleKind` distingue
+saldo sin actualizar de permiso vencido. El resultado de la sincronización manual deja de unir
+bancos y brókers en un toast sin límite; abre una hoja con una fila por resultado. La sonda del
+histórico sigue disponible en telemetría y DevTools, pero deja de interrumpir la interfaz.
+
+La ola tenía una causa independiente: `enterScrollHost` añadía clases con `classList`, React las
+borraba en el siguiente render y `ensureScrollHost` no las restauraba porque sus refs seguían en
+`true`. `app-shell` y `viewport` sellan ahora el host en su `className`. Además, el rebote inferior
+no revela la barra por cruzar un umbral de distancia; exige dirección contraria y reciente del
+dedo. El sellado conserva también `nav-sin-blur` cuando el carrusel cambia de modo a mitad del
+gesto. Los e2e fuerzan un repintado con el host activo y distinguen un rebote grande de una subida
+real.
+
+## [4.25.3] - 2026-09-16
+### Histórico con margen real, reconexiones firmes y rebote sin revelar la barra
+
+El segundo intento seguía repartiendo solo 15 s por banco. En conexiones PSD2 reales ese margen
+puede agotarse antes de que CaixaBank entregue la primera página. `bank-sync` usa ahora el plazo
+real de la petición, reserva 5 s para responder y procesa como máximo dos bancos a la vez: evita
+la ráfaga que provoca 429 sin volver a dejar Caixa detrás de un enlace lento. Dentro de cada banco
+el tiempo restante se reparte entre sus cuentas. Los fallos de primera página vuelven al cliente
+como códigos seguros (`eb_429`, `timeout`, `eb_503`...), nunca con texto crudo del proveedor, para
+que la pantalla distinga límite, espera agotada y fallo temporal.
+
+Las reconexiones dejan de mezclar «no he podido leer ahora» con «el permiso ha caducado». Open
+Banking solo pone el enlace en `expired` ante un `EB 401` firme; 403/404, 429, 5xx y timeouts lo
+conservan activo. Trade Republic persiste `_trAuthExpired` por separado: un arranque en frío donde
+el puente todavía diga `connected:false` ya no pinta ni cuenta una reconexión. Al pulsar sincronizar,
+si queda teléfono guardado se valida primero la sesión existente y solo un `authExpired` explícito
+pide login. Desconectar a mano limpia teléfono y marcador para no dejar un aviso fantasma.
+
+Las notificaciones bancarias podían disparar una sincronización por cada aviso recibido. El cliente
+OTA aplica ahora un presupuesto persistente de una cada 2 h y cuatro al día, compartido por el
+arranque en frío y los eventos en caliente. Los botones manuales no tienen límite y no se añade
+ningún sync por abrir o volver a primer plano.
+
+En el fondo de cada pestaña se elimina el `setTimeout` de 700 ms que reconciliaba el estado y podía
+revelar la barra en mitad del rebote. La dirección se decide con el movimiento real del dedo: el
+scroll de retorno que Android genera mientras el dedo sigue empujando hacia abajo no cuenta como
+una subida. En el host nativo la barra se oculta cambiando `bottom`, sin transformar el elemento
+que comparte el borde con el scroll; así no tapa el overscroll de WebView. La barra solo reaparece
+tras una subida real.
+
+Cobertura añadida para presupuestos y códigos de error del histórico, caducidad 401 frente a
+fallos pasajeros, arranque frío de TR, validación manual de sesión, presupuesto de notificaciones
+y rebote grande en el borde inferior. Cursor revisó el conjunto sin bloqueantes; la comprobación
+real de Caixa y de la ola queda necesariamente en el móvil y en el canal beta.
+
+## [4.25.2] - 2026-09-16
+### Caixa tiene turno propio y la ola no desmonta su scroll
+
+Segundo rechazo real de la ronda 4.25. La descarga histórica recorría enlaces en serie con un
+deadline común de 60 s: un Sabadell lento o limitado con 429 podía consumirlo y dejar las cuentas
+posteriores como `timeout` sin haber llamado siquiera a CaixaBank. El histórico procesa ahora los
+enlaces en paralelo, con 15 s independientes por banco y reparto entre sus cuentas. Sigue siendo
+solo lectura y solo se ejecuta al pedir «Buscar movimientos»; no se añade ninguna sincronización
+automática. `strategy=longest` acompaña a `date_from` desde la primera página, porque Caixa puede
+aceptar el periodo pero devolver vacío sin lanzar `WRONG_TRANSACTIONS_PERIOD`.
+
+La identidad de Open Banking deja de tratar `ext_id` y fecha+importe+nombre como globales: ambas
+incluyen el banco, tanto en el sync diario como en el histórico. Así un identificador de Sabadell
+no descarta en silencio un movimiento diferente de Caixa. No se borra ni reclasifica historial.
+Si un banco responde correctamente con cero filas, la pantalla lo nombra expresamente en vez de
+mezclarlo con «quizá ya estaba todo apuntado».
+
+En el borde inferior, Android suele entregar el scroll como `touchcancel`. Ese camino llamaba a
+`endTopClearNow(true)` y `asentarTrack`: revelaba la barra y sacaba la página del host nativo justo
+cuando empezaba el stretch. El cancel vertical conserva ahora la barra, no reasienta el carrusel y
+aplaza únicamente la reconciliación de estado hasta terminar la física. Un E2E llega al fondo,
+envía `touchcancel` y exige simultáneamente barra oculta y `.page-scroll-host` vivo.
+
+Pruebas específicas: histórico con Sabadell pendiente mientras Caixa devuelve una fila; importe
+de Caixa visible e importable en DOM; Caixa a cero explícita; identidad cruzada entre bancos;
+20/20 E2E de histórico+barra tras aislar correctamente sync diario e histórico en el doble.
+
+## [4.25.1] - 2026-09-16
+### Cuentas nuevas completas, borde inferior estable y offline inmediato
+
+Rechazo real de la beta 4.25.0: al conectar CaixaBank, su fila no se podía tocar, editar ni mover
+como el resto. No era un fallo de `bank-sync`: las cuentas nuevas viven primero en `obAccounts`
+como saldos puros sin rol, mientras la ficha y el long-press solo aceptaban filas de `accounts`.
+La única puerta era el editor antiguo «Editar» para renombrar o promocionar la cuenta, un hueco de
+UX que la 4.19.77 dejó documentado como diseño y cerró sin cubrirlo en sus E2E.
+
+- `obAccounts` pinta ahora botones con la misma ficha: nombre editable vía `obLabels`, saldo de
+  solo lectura y los tres roles sin ninguno preseleccionado. Elegir un rol sigue pasando por
+  `promoteObAccount`; abrir o mover la fila nunca la promociona ni inventa qué paga.
+- `settings.accountListOrder` guarda únicamente el orden visual combinado. `accounts`,
+  `obAccounts`, saldos, roles y `expenseBanks` permanecen intactos al arrastrar. Sin cuentas OB se
+  conserva el contrato histórico de `accounts`; si ya existía un orden mixto, ambos se alinean y
+  se podan las claves de bancos desconectados.
+- La cuenta promocionada conserva `accountOrderKey`, así que no salta al final al elegir su rol.
+  Las cuentas del banco no muestran «Quitar»: se desconectan desde Ajustes → Bancos.
+- Pruebas: regresión pura roja antes del helper mixto; E2E de una CaixaBank recién conectada para
+  abrir/renombrar/promocionar y para moverla sin alterar dinero. Ficha + orden: 12/12 verdes.
+
+El borde inferior deja de ordenar cambios de la navegación: alcanzar `scrollTop=max` conserva la
+barra tal como estuviera y un latch separa la oscilación del rubber-band de una subida real de al
+menos 160 px. Se retiran `botnav-hidden-fast` y su estado, que solo existían para ocultar la barra
+al fondo y eran la causa del primer gesto bloqueado. El host mantiene `touch-action:pan-y` y
+`overscroll-behavior-y:auto`; la ola sigue siendo nativa, no una animación duplicada.
+
+Offline, `mcBootReady()` se abre inmediatamente porque `loadState` ya ha leído el estado local de
+forma síncrona. Dashboard tampoco espera su antiguo tope de 500 ms. Ajustes guarda por UID el
+último `profiles.is_admin=true`: conserva la zona Dev sin red, pero no concede permisos —la RLS
+sigue validando cada lectura— y la marca se borra al cerrar sesión.
+
+Gastos vuelve al contrato confirmado el 16/9: `bankSel` arranca con todos los resultados de
+`expenseBankEnts`, se actualiza si cambia esa selección automática y «Limpiar» vuelve a ella.
+`[]` conserva el significado explícito de «Todos los bancos». El default no enciende el contador;
+ampliar a todos sí. Las pruebas de filtro, arranque offline, Dev y rebote cubren los rechazos.
+
+## [4.25.0] - 2026-09-15
+### Lectura bancaria paginada y avisos de histórico incompleto
+
+Tanda integrada sobre 4.24.5 y revisada por los tres agentes. Se publicó como beta 4.25.0.1 y se
+desplegó solo `bank-sync`, sin migraciones. La prueba móvil rechazó la ronda por un defecto aparte
+en la ficha de cuentas nuevas, corregido en 4.25.1. No cambia datos históricos ni requiere APK.
+
+El sync diario ignoraba `continuation_key`: una primera página vacía podía anunciar éxito sin
+traer movimientos. `fetchBankTransactions` comparte paginado con histórico, mantiene parámetros,
+acota 12 páginas / 2000 filas / 15 segundos por cuenta y 60 segundos globales, y conserva páginas
+previas si falla después. Un test ejecuta el importador para asegurar que la ventana del servidor
+cubre la del cliente, también en el borde de mes Madrid/UTC.
+`WRONG_TRANSACTIONS_PERIOD` permite un único cambio a `strategy=longest`; otros errores no
+provocan reintentos. Los cursores cíclicos y los topes se declaran como resultado parcial.
+
+El histórico devuelve también enlaces pendientes/caducados y muestra avisos por banco incluso
+cuando no hay candidatos. El cliente admite el servidor anterior comprobando los enlaces
+esperados. Se elimina la inferencia «primera fecha posterior al inicio = truncado»: puede no
+haber operaciones ese día. Un fallo de consulta no se presenta como ausencia de movimientos;
+`app_events` conserva solo su clase cerrada (`eb_401`, `eb_503`, timeout…), nunca el mensaje crudo
+del proveedor, la cuenta ni el payload.
+
+`flattenBankTx` deja de cortar globalmente a 150 filas: ese corte expulsaba la actividad de un
+banco cuando otro llenaba el cupo. El servidor mantiene límites por cuenta. No se altera el
+dedup ni la ventana de importación de `importObExpenses`.
+
+Pruebas: handler real con banco/BD simulados en `bank-sync-paging`; 5 regresiones rojas antes
+de corregir. E2E del histórico para error por cuenta, enlace pendiente omitido, resultado parcial
+y fallo de transporte. Detalle y límites en `docs/briefs/bancos-historico-caixa-2026-09-15.md`.
+
 ## [4.24.5] - 2026-09-16
 ### La ronda 4.24 a producción, con una sola nota
 
@@ -31,6 +201,7 @@ panel al montar reescribía `Date.now()` → renovaba las 2 h en cada muerte de 
   último veredicto → Inicio; restaurar altura no renueva la marca.
 - Tandas de 4.24.1 y 4.24.3 vacías (aprobadas); 4.24.2 paso 2 reescrito; tanda nueva con
   su frase literal.
+
 ## [4.24.3] - 2026-09-15
 ### El banco espera a la nube: un móvil con datos viejos ya no repite movimientos
 
@@ -88,6 +259,15 @@ Tras unos dos segundos se pinta el estado local; si la nube llega después, se a
 Pastilla «sin conexión» como hasta ahora. e2e offline + boot-ready bloqueado + red lenta.
 
 ## [4.23.1] - 2026-09-14
+### Herramientas de pruebas preparadas el 15/9 (integración pendiente)
+
+`dismissNews` evita esperar 4 s cuando el fixture sembró la misma versión base que está
+ejecutando el navegador y no hay panel. Conserva la espera ante versiones nuevas o datos
+inciertos. Cuatro guardianes cubren aviso tardío, ausencia de garantía y sufijo beta. A/B
+en nueve casos idénticos: 46,094 s → 12,373 s, ambos sin fallos ni omitidos. El runner y el
+reporter JSON registran duraciones para localizar el siguiente coste. La validación completa
+se hará con el commit de tooling separado encima de bancos 4.25.0, después de integrar 4.24.3.
+
 ### La 4.23.0 a producción, con una sola nota
 
 Él aprobó la 4.23.0 (tanda `sec01-callback`) en el chat: *«aprobada la 4.23.0, sube a prod y

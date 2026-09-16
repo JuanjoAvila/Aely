@@ -662,17 +662,6 @@
      con opacity→0 a mitad de la transición se veía la lista a través de la barra ~1 s
      (feedback 2026-08-05, tras meter la lluvia a z-37 entre página y botnav). */
   .botnav.botnav-hidden{transform:translateY(120%);pointer-events:none;}
-  /* ESCONDIDO RÁPIDO (2026-08-03, bug «rebote raro»/«se queda atascado»): cuando el motivo de
-     esconder la barra es «hemos llegado al final de la lista» (no un scroll normal hacia abajo),
-     la barra tiene que APARTARSE YA, no con la calma de 0,55 s de más arriba. El rebote NATIVO (la
-     "ola") empieza a la vez y tarda ~0,2-0,3 s en asentarse — mucho menos que la barra. Con la
-     misma duración de siempre, la barra se ve deslizándose/desvaneciéndose TODAVÍA por encima de
-     la ola mientras esta ya está en marcha: dos animaciones a ritmos distintos compitiendo por el
-     mismo trozo de pantalla, que es justo lo que él describió («se queda atascado un momento y
-     luego sí que hace la ola, pero es muy raro»). Misma transform de destino que
-     `.botnav-hidden` (no cambia el diseño, solo cuánto tarda en llegar); el escondido por scroll
-     normal (bajar leyendo la lista) sigue con su calma de siempre — eso nunca fue el problema. */
-  .botnav.botnav-hidden-fast{transition:transform .16s cubic-bezier(.4,0,.2,1);}
   /* Con pestaña en host fixed (ola nativa): la barra SIGUE visible, pero sin backdrop-filter
      ni will-change — esa capa encima del stretch del WebView mataba la ola arriba y abajo
      (labs 5/8). Fondo sólido para que no se vea raro sin el blur. */
@@ -680,6 +669,27 @@
     backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
     will-change:auto !important;
     background:var(--bg-2);
+    /* Un `transform` en el hermano que cubre el borde inferior corta el stretch nativo de la
+       WebView. Y sacar la caja con `bottom` negativo crea overflow por DEBAJO del viewport: en el
+       Oppo, con la barra oculta, ese saliente era un stopper antes de la ola (rechazo 16/9).
+       Se recoge dentro del propio borde: la caja nunca abandona la pantalla y el alto/padding
+       conservan la bajada suave. `overflow` solo entra al ocultar, para no recortar el FAB visible. */
+    transform:none;
+    bottom:0;
+    /* border-box: 54 de fila + 8/10 de padding + borde + zona segura. Poner solo 54 aplasta
+       la barra visible precisamente en móviles con safe-bottom (revisión Cursor 16/9). */
+    max-height:calc(73px + var(--safe-bottom));
+    transition:max-height .55s cubic-bezier(.4,0,.2,1),padding .55s cubic-bezier(.4,0,.2,1),
+      border-color .35s ease;
+  }
+  .app-shell.scroll-host-on .botnav.botnav-hidden{
+    transform:none;
+    bottom:0;
+    max-height:0;
+    padding-top:0;
+    padding-bottom:0;
+    border-top-color:transparent;
+    overflow:hidden;
   }
   /* Tope: clase residual por si queda colgada de una beta anterior. Ya no se arma
      (parpadeaba al llegar arriba / al swipear tabs — 2026-08-05). */

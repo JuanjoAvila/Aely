@@ -56,6 +56,13 @@ t("tampoco se cuela como cuenta EXTRA (sería doble conteo en Patrimonio)", () =
   assert.equal(r.synced.some((x) => x.ent === "trade_republic"), false);
 });
 
+t("un 429 conserva la cuenta como sin actualizar, no como permiso caducado", () => {
+  const s=estadoTR({settings:{brokersOn:[]},investments:[],obAccounts:[{key:"cx",aspsp:"CaixaBank",value:100,stale:false}]});
+  const r=ctx.applyBankBalances(s,[{aspsp:"CaixaBank",ok:false,expired:false,accounts:[{ok:false,error:"eb_429"}]}]);
+  assert.equal(r.obAccounts[0].stale,true);
+  assert.equal(r.obAccounts[0].staleKind,"temporary");
+});
+
 t("con el puente APAGADO, TR por Open Banking se comporta como un banco normal", () => {
   // Quien no use el bróker nativo (nadie hoy, pero el reparto no puede dejarle sin saldo).
   const s = estadoTR({ settings: { brokersOn: [] }, investments: [] });
@@ -103,6 +110,27 @@ t("y no se duplican: el mismo ext_id no entra dos veces", () => {
   assert.equal(add, null, "ya estaba importado por su ext_id");
 });
 
+t("el mismo ext_id en otro banco no hace desaparecer Caixa", () => {
+  const hoy = new Date().toISOString().slice(0, 10);
+  const s = estadoTR({ expenses: [{ id:"e-sb", extId:"shared-1", date:hoy+"T12:00:00.000Z",
+    amount:18, merchant:"Cargo Sabadell", ent:"sabadell", source:"ob" }] });
+  const add = ctx.importObExpenses(s, [
+    { id:"shared-1", ent:"caixabank", date:hoy, amount:27, card:true, merchant:"Cargo Caixa" },
+  ]);
+  assert.equal(add && add.length,1,"entry_reference no es global entre proveedores");
+  assert.equal(add[0].ent,"caixabank");
+});
+
+t("la clave fecha+importe+nombre tampoco mezcla dos bancos", () => {
+  const hoy = new Date().toISOString().slice(0, 10);
+  const s = estadoTR({ expenses: [{ id:"e-sb-2", date:hoy+"T12:00:00.000Z",
+    amount:19, merchant:"Movimiento", obName:"Movimiento", ent:"sabadell", source:"ob" }] });
+  const add = ctx.importObExpenses(s, [
+    { id:null, ent:"caixabank", date:hoy, amount:19, card:true, merchant:"Movimiento" },
+  ]);
+  assert.equal(add && add.length,1,"un movimiento de Sabadell no deduplica otro de Caixa");
+});
+
 t("dos cargos iguales sin identidad se conservan: parecido no significa duplicado", () => {
   const hoy = new Date().toISOString().slice(0, 10);
   const s = estadoTR({ expenses: [{ id: "notif23", date: hoy + "T10:00:00.000Z", amount: 23, merchant: "Otro cargo", ent: "trade_republic", source: "macrodroid" }] });
@@ -128,6 +156,27 @@ t("flattenBankTx incluye todas las cuentas, no solo la primaria", () => {
   const txs = ctx.flattenBankTx(links);
   assert.equal(txs.some((x) => x.id === "b"), true, "el movimiento nuevo de la segunda cuenta llega a Gastos");
   assert.equal(txs.some((x) => x.id === "top"), false, "el top-level es copia retrocompatible de la primera cuenta");
+});
+
+t("150 movimientos de otro banco no expulsan a CaixaBank del sync", () => {
+  const many=Array.from({length:151},(_,i)=>({ext_id:"tr-"+i,date:"2026-09-15",amount:1,merchant:"Sintético"}));
+  const txs=ctx.flattenBankTx([{aspsp:"Trade Republic",transactions:many},
+    {aspsp:"CaixaBank",transactions:[{ext_id:"cx",date:"2026-09-14",amount:12,merchant:"Comida"}]}]);
+  assert.equal(txs.length,152);
+  assert.ok(txs.some(x=>x.ent==="caixabank"&&x.id==="cx"));
+});
+
+t("avisos por cuenta aunque el saldo del banco haya sincronizado", () => {
+  const warnings=ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:true,accounts:[{ok:true},{ok:false}]}],[]);
+  assert.equal(warnings.length,1);assert.equal(warnings[0].key,"bank_read_failed");
+  assert.equal(ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:false,accounts:[{ok:false,error:"timeout"}]}],[])[0].key,"bank_read_timeout");
+  assert.equal(ctx.bankReadWarnings([{aspsp:"Sabadell",ok:false,accounts:[{ok:false,error:"eb_429"}]}],[])[0].key,"bank_read_rate");
+  assert.equal(ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:false,accounts:[{ok:false,error:"eb_401"}]}],[])[0].key,"bank_read_reconnect");
+  assert.equal(ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:false,accounts:[{ok:false,error:"eb_403"}]}],[])[0].key,"bank_read_failed","un 403 temporal no pide OAuth");
+  assert.equal(ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:false,accounts:[{ok:false,error:"eb_404"}]}],[])[0].key,"bank_read_failed","un 404 de cuenta no caduca todo el banco");
+  assert.equal(ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:true,accounts:[{ok:true,transactions:[]}]}],[]).length,0);
+  const empty=ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:true,accounts:[{ok:true,count:0,transactions:[]}]}],[],true);
+  assert.equal(empty.length,1);assert.equal(empty[0].key,"bank_read_empty","el histórico debe decir qué banco devolvió cero");
 });
 
 console.log("tr-open-banking: OK");

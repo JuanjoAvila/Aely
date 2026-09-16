@@ -1,5 +1,45 @@
 # Testing — Aely
 
+Lectura bancaria 4.25.4: `tests/bank-sync-paging.test.mjs` ejecuta el handler real con BD y proveedor
+simulados (sin consultar bancos): páginas vacías, fallback de periodo, fallo parcial, cursor cíclico,
+cuentas inactivas, aislamiento, timeout y topes. Registrado en `run-tests.mjs` y `STEPS_SUPABASE`;
+el recorte de un cambio solo de servidor conserva paginado y `tr-open-banking` sin Chromium.
+`e2e/bancos-historico-filtro.spec.mjs` comprueba la selección previa, avisos visibles y que un banco
+no esconda las filas recibidas de otro. `e2e/sync-resumen.spec.mjs` impide que los resultados mixtos
+vuelvan a concatenarse en un toast gigante. Los e2e de barra fuerzan además un repintado React con
+el host de scroll activo: la ola debe conservar sus clases después del render, no solo antes.
+Desde 4.25.5 recorren también el fondo incremental real de Gastos, comprueban que la caja oculta
+no quede por debajo del viewport y reproducen la deriva lateral del pulgar que antes convertía el
+segundo tirón en un cambio de pestaña y hacía reaparecer la barra.
+`tests/tr-open-banking.test.mjs` protege contra el antiguo corte global de 150 movimientos.
+
+## Tiempos y preparación de Novedades
+
+`npm test` conserva los casos seleccionados por el plan y escribe las duraciones de cada etapa
+en `test-results/runner-times.json`. Playwright escribe resultados, reintentos y duraciones por
+prueba en `test-results/playwright.json`; un `--reporter` explícito sustituye esa configuración.
+Son resultados locales ignorados por Git. Comparar el mismo conjunto de casos, navegador,
+trabajadores y zona horaria con la máquina libre; no comparar una pasada aislada con otra
+que compite con las suites de otros agentes.
+
+`seedLoggedInDashboard` marca Novedades como vistas en `dev`. Para probar otra situación,
+usar `__seenVersion` (versión base, o una anterior si debe salir el aviso). `dismissNews` solo
+evita la espera cuando el valor inicial del fixture coincide con `mcVerBase(CONFIG.APP_VERSION)`
+del navegador y no hay panel. En los demás casos mantiene la espera y el cierre de siempre.
+`fixtures-news.spec.mjs` vigila que no aparezca un popup después de esa salida rápida y que
+el aviso tardío siga cerrándose, también con una versión beta con sufijo.
+
+El ajuste de fixtures de `banco-espera-nube` mantiene una cadena Supabase por consulta;
+ambas regresiones están registradas en `CROSSCUTTING`.
+
+El runner ejecuta `rendimiento.spec.mjs` y `rendimiento-tabs.spec.mjs` después de los demás
+e2e, con un trabajador y sin cambiar umbrales. La CPU frenada no debe competir con pruebas
+funcionales: dos completas midieron 108/109 ms en scroll→swipe mientras el caso aislado pasaba.
+El plan conserva sus mismos specs; el informe combinado incluye ambas fases. Los informes y
+artefactos separados viven en `test-results/playwright-e2e*` y `test-results/playwright-perf*`.
+Para medir directamente con Playwright, seleccionar solo esos specs y `--workers=1`.
+Un fallo de `playwright-perf` mantiene la suite roja: los umbrales siguen siendo obligatorios.
+
 Auditoría 4.19.14: `e2e/revisar-beta.spec.mjs` comprueba plegado automático al aprobar,
 desplegar/cambiar de opinión y conservación entre compilaciones. `e2e/bancos-historico-filtro.spec.mjs`
 actualiza el estado durante la confirmación de Deshacer y simula fallo/reintento del DELETE.

@@ -1,19 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
-/* GASTOS ENSEÑA TODAS SUS CUENTAS, CUENTEN O NO PARA EL PRESUPUESTO.
- *
- * Dos vueltas de lo mismo, y la segunda la pidió él:
- *  · 2026-08-17: el filtro arrancaba solo en su banco principal, así que Revolut desaparecía de la
- *    lista aunque sí contara en el presupuesto. Se amplió a todos los de gasto diario.
- *  · 2026-09-11: seguía sin ser suficiente. Suyo: «lo de gasto diario es para que cuente cuando
- *    gaste desde ese banco a mi límite que ponga, pero TODAS las cuentas deben salir en el
- *    apartado de gastos aunque no esté marcado gasto diario. Es importante».
- *
- * Son dos decisiones separadas y el filtro las confundía: **lo que se VE** es su histórico entero,
- * **lo que CUENTA** es solo lo que él marque. Este test las prueba juntas a propósito: si alguien
- * vuelve a atar la lista al presupuesto, la primera mitad se pone roja; si alguien hace que
- * cuenten todos, la segunda. */
+/* Contrato confirmado por él el 16/9: Gastos arranca mostrando TODOS los bancos marcados como
+ * gasto diario. «Todos los bancos» sigue disponible como ampliación explícita del histórico. */
 
 const d = (n) => new Date(Date.now() - n * 86400000).toISOString();
 
@@ -33,20 +22,26 @@ const expenses = [
 const lista = (page) => page.locator(".v4-gastos-list-body button.v4-mov");
 const fila = (page, nombre) => lista(page).filter({ hasText: nombre });
 
+async function mostrarTodosLosBancos(page) {
+  await page.locator("button.v4-chip").filter({ hasText: "🎛️" }).first().click();
+  await page.getByRole("button", { name: /Todos los bancos|All banks|Tots els bancs/i }).click();
+  await page.getByRole("button", { name: /Listo|Done|Fet/i }).click();
+}
+
 test.use({ viewport: { width: 375, height: 812 } });
 
-test("por defecto salen TODAS las cuentas, y solo cuentan las de gasto diario", async ({ page }) => {
+test("por defecto salen todos los bancos de gasto diario, no el resto", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
 
-  // SIN tocar ningún filtro. Las CUATRO filas, incluida la del banco de solo recibos.
+  // SIN tocar ningún filtro: los dos bancos diarios, incluida Revolut (no solo el principal).
   await expect(fila(page, "Mercadona TR")).toHaveCount(1);
   await expect(fila(page, "Cafe Revolut")).toHaveCount(1);
   await expect(fila(page, "Aporte TR")).toHaveCount(1);
-  await expect(fila(page, "RECIBO LUZ"), "su petición del 11/9: las cuentas que no son de gasto diario también salen").toHaveCount(1);
+  await expect(fila(page, "RECIBO LUZ"), "Sabadell no está marcado como gasto diario").toHaveCount(0);
 
   // Y lo que CUENTA sigue siendo solo lo suyo del día a día: las otras dos salen apagadas,
   // cada una diciendo POR QUÉ, que son motivos distintos.
@@ -54,10 +49,7 @@ test("por defecto salen TODAS las cuentas, y solo cuentan las de gasto diario", 
   await expect(fila(page, "Cafe Revolut")).not.toHaveClass(/v4-mov-skip/);
   await expect(fila(page, "Aporte TR")).toHaveClass(/v4-mov-skip/);
   await expect(fila(page, "Aporte TR")).toContainText("no es un gasto");
-  await expect(fila(page, "RECIBO LUZ")).toHaveClass(/v4-mov-skip/);
-  await expect(fila(page, "RECIBO LUZ")).toContainText(/no es del día a día|not day-to-day|no és del dia a dia/i);
-
-  // El total del mes: 12 + 8. Ni la inversión ni el recibo de Sabadell pueden colarse.
+  // El total del mes: 12 + 8. La inversión no puede colarse.
   const resumen = page.locator(".v4-gastos-summary");
   await expect(resumen, "enseñar un movimiento no es contarlo").toContainText("20,00");
   await expect(resumen).not.toContainText("100,00");
@@ -76,6 +68,7 @@ test("★ un ingreso de un banco que no es de gasto diario dice que no cuenta, c
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await mostrarTodosLosBancos(page);
 
   await expect(fila(page, "Bizum de Ana")).not.toHaveClass(/v4-mov-skip/);
   await expect(fila(page, "TRANSFERENCIA POL")).toHaveClass(/v4-mov-skip/);
@@ -105,7 +98,7 @@ test("al entrar, Gastos NO cree que ya tiene un filtro puesto", async ({ page })
   await expect(btnFiltros, "ni con un contador al lado").toHaveText("🎛️");
 });
 
-test("«Limpiar» devuelve TODOS los bancos, no solo los de gasto diario", async ({ page }) => {
+test("«Todos los bancos» amplía el histórico y «Limpiar» vuelve a gasto diario", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
@@ -113,17 +106,12 @@ test("«Limpiar» devuelve TODOS los bancos, no solo los de gasto diario", async
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(page.locator(".v4-gastos-summary")).toBeVisible();
 
-  /* Se pone un filtro de banco a mano y se limpia. Antes «limpiar» volvía a los de gasto diario,
-     o sea que borrar los filtros PONÍA uno y Sabadell desaparecía otra vez. */
-  await page.evaluate(() => {
-    const b = [...document.querySelectorAll("button")].find((x) => /Sabadell/i.test(x.textContent || "") && x.className.includes("chip"));
-    if (b) b.click();
-  });
-  await page.waitForTimeout(300);
+  await expect(fila(page, "RECIBO LUZ")).toHaveCount(0);
+  await mostrarTodosLosBancos(page);
+  await expect(fila(page, "RECIBO LUZ"), "Todos los bancos recupera el histórico completo").toHaveCount(1);
+
   const limpiar = page.locator(".v4-chip").filter({ hasText: /Limpiar|Clear|Netejar/i }).first();
-  if (await limpiar.count()) {
-    await limpiar.click();
-    await page.waitForTimeout(300);
-  }
-  await expect(fila(page, "RECIBO LUZ"), "tras limpiar tienen que volver TODAS las cuentas").toHaveCount(1);
+  await expect(limpiar).toBeVisible();
+  await limpiar.click();
+  await expect(fila(page, "RECIBO LUZ"), "tras limpiar vuelve la preselección de gasto diario").toHaveCount(0);
 });

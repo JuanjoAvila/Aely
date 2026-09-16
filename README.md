@@ -30,13 +30,13 @@ mi-cartera/
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
-├── e2e/                    # Playwright (62 specs: arranque, listas, bancos, brókers, perfil, CSV, CSP, rendimiento, beta…)
+├── e2e/                    # Playwright (66 specs: arranque, listas, bancos, brókers, perfil, CSV, CSP, rendimiento, beta…)
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
 ├── scripts/
 │   ├── build-app.mjs       # Ensambla src/ → public/index.html
-│   ├── run-tests.mjs       # build + unit + Deno + E2E
+│   ├── run-tests.mjs       # build + unit + Deno + E2E; tiempos por etapa en test-results/
 │   └── stamp-version.mjs
 ├── docs/                   # BACKLOG, ARQUITECTURA, TESTING, SENTRY, ROADMAP…
 ├── playwright.config.mjs
@@ -80,7 +80,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.24.5** en el repo — disponibilidad del canal con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.25.5** en el repo — disponibilidad del canal con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.

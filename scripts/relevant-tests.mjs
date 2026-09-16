@@ -80,6 +80,7 @@ export const E2E_MAP = [
     "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs", "e2e/pulido-numpad.spec.mjs",
   ] },
   { file: "src/modules/10-app-components.js", specs: [
+    "e2e/inicio-offline.spec.mjs",
     "e2e/modo-inicial.spec.mjs",
     "e2e/profile-anim.spec.mjs", "e2e/perfil-simetria.spec.mjs", "e2e/delete-account.spec.mjs",
     "e2e/revisar-beta.spec.mjs", "e2e/beta-panel-reopen.spec.mjs", "e2e/ajustes-versiones.spec.mjs", "e2e/ajustes-importaciones.spec.mjs",
@@ -104,10 +105,12 @@ export const E2E_MAP = [
 /** Specs que no son de una pantalla: persistencia, swipes, frames. Si se toca CUALQUIER
  *  módulo de src (no el núcleo: ese ya dispara todo), van con el recorte. */
 export const CROSSCUTTING = [
+  "e2e/fixtures-news.spec.mjs",
   "e2e/persistencia.spec.mjs",
   "e2e/sync-pull-refresco.spec.mjs",
   /* El banco espera a la nube (15/9): orden entre pull y sync, no una pantalla. */
   "e2e/banco-espera-nube.spec.mjs",
+  "e2e/sync-resumen.spec.mjs",
   "e2e/swipe-pestanas.spec.mjs",
   "e2e/rebote-barra-inferior.spec.mjs",
   /* Hermano del de arriba, y hace falta que sean DOS. Aquél mueve el scroll con `scrollTop` por
@@ -135,7 +138,7 @@ const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente"];
 const STEPS_SUPABASE = [
   "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente",
   "month-window", "wallet-notis", "ingest-classify", "divisa-original", "presupuesto-rendimiento",
-  "grants-migraciones", "entrada-edge",
+  "grants-migraciones", "entrada-edge", "bank-sync-paging", "tr-open-banking",
 ];
 
 export function posixPath(p) {

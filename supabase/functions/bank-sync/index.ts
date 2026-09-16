@@ -3,12 +3,11 @@
 // La llama la app (usuario logueado). Trae SALDO + MOVIMIENTOS de los bancos
 // enlazados del usuario.
 //
-// CAPA 1 (ahora): DRY-RUN — devuelve los datos como JSON, NO escribe nada.
-// CAPA 2/3 (después): usaremos esto para el saldo y, con cuidado, los gastos.
+// El sync actualiza el estado del enlace; el histórico es de solo lectura.
 // ============================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { ebApi, ebConfig, jsonResp, makeJWT, mapTransaction } from "../_shared/enablebanking.ts";
+import { ebApi, ebConfig, jsonResp, makeJWT, mapTransaction, fetchBankTransactions } from "../_shared/enablebanking.ts";
 import { withCors } from "../_shared/cors.ts";
 
 // Diagnóstico del «Movimiento» sin comercio ni concepto que salía como ingreso siendo un gasto
@@ -61,7 +60,34 @@ async function logObAmbiguous(admin: any, userId: string, aspsp: string, raw: an
   } catch (_) { /* best-effort: nunca rompe el sync */ }
 }
 
+/* El cliente recibe un código estable, pero soporte necesita distinguir un 401 de un 503 sin
+   guardar el texto crudo del proveedor: ese mensaje puede traer referencias o datos bancarios.
+   Solo se conserva una clase cerrada y el banco; nunca uid de cuenta, URL ni payload. */
+function obReadFailureCode(err: unknown) {
+  const msg = String((err as Error)?.message || err || "");
+  const status = msg.match(/\bEB\s+(\d{3})\b/i);
+  if (status) return `eb_${status[1]}`;
+  if (/abort|timeout/i.test(msg)) return "timeout";
+  if (/transactions_invalid/i.test(msg)) return "invalid_response";
+  return "unavailable";
+}
+
+// deno-lint-ignore no-explicit-any
+async function logObReadFailure(admin: any, userId: string, aspsp: string, err: unknown) {
+  try {
+    await admin.from("app_events").insert({
+      user_id: userId, email: null, kind: "error",
+      message: `OB histórico (${String(aspsp || "banco").slice(0, 80)}): lectura no disponible`,
+      detail: JSON.stringify({ code: obReadFailureCode(err) }),
+      app_version: "edge", platform: "server",
+    });
+  } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
+}
+
 Deno.serve(withCors(async (req: Request) => {
+  // El límite por cuenta no basta: muchas cuentas lentas podrían agotar la Edge y perder
+  // también las respuestas buenas. Se reserva margen para devolverlas y cerrar la petición.
+  const deadline = Date.now() + 60000;
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const supa = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
@@ -77,55 +103,84 @@ Deno.serve(withCors(async (req: Request) => {
     const body = await req.json().catch(() => ({}));
     const dateFrom = (typeof body?.dateFrom === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.dateFrom))
       ? body.dateFrom : null;
+    const hasAspspFilter = Array.isArray(body?.aspsps);
+    const wantedAspsps = hasAspspFilter
+      ? body.aspsps.map((x: unknown) => String(x || "").trim().toLowerCase()).filter(Boolean).slice(0, 12)
+      : [];
 
     // OJO (bug CaixaBank 2026-07-11): también se devuelven los enlaces caducados/rotos, marcados
     // ok:false. Antes solo venían los 'active' → un banco caducado desaparecía del sync, la app
     // reconstruía obAccounts sin él y sus cuentas se ESFUMABAN del patrimonio sin ningún aviso.
     const admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const { data: allLinks } = await admin
+    const { data: allLinks, error: linksError } = await admin
       .from("bank_links").select("*")
       // Y también los 'pending' (11/9/2026): un banco que se quedó a medio autorizar no entraba
       // aquí, así que no salía en la respuesta y la app no tenía NADA que avisar. Su CaixaBank
       // estuvo semanas en pendiente sin que ni el sync ni ninguna pantalla lo dijeran: «al
       // sincronizar no sale ni un aviso ni nada, he tenido que venir aquí para ver qué pasaba».
       .eq("user_id", user.id).in("status", ["active", "expired", "error", "pending"]);
-    const links = (allLinks || []).filter((l) => l.status === "active");
-    const deadLinks = (allLinks || []).filter((l) => l.status !== "active");
+    if (linksError) return jsonResp({ ok: false, error: "bank_links_unavailable" }, 503);
+    const selectedLinks = hasAspspFilter
+      ? (allLinks || []).filter((l) => wantedAspsps.includes(String(l.aspsp_name || "").trim().toLowerCase()))
+      : (allLinks || []);
+    const links = selectedLinks.filter((l) => l.status === "active");
+    const deadLinks = selectedLinks.filter((l) => l.status !== "active");
 
     const { appId, pem } = ebConfig();
     const jwt = await makeJWT(appId, pem);
 
     if (dateFrom) {
-      const hist: unknown[] = [];
-      for (const link of links || []) {
+      /* Cada enlace tiene SU presupuesto y arranca a la vez. Antes los bancos iban en fila con
+         un deadline común de 60 s: un Sabadell lento/429 podía gastarlo entero y Caixa quedaba
+         marcada como timeout sin haber recibido ni una llamada. Paralelizar enlaces no añade
+         sincronizaciones automáticas: sigue siendo una sola búsqueda pedida por la persona. */
+      const readHistoryLink = async (link: any) => {
+        /* Los bancos ya corren en paralelo, así que cada uno puede usar el presupuesto REAL de la
+           petición sin volver a dejar al siguiente en cola. Los 15 s de la primera versión se
+           dividían además entre las cuentas del enlace: una Caixa con dos cuentas recibía apenas
+           7,5 s por cuenta y caía antes de terminar la primera página del histórico. Se reserva el
+           mismo margen de 5 s para serializar y devolver todo lo que sí haya llegado. */
+        const linkDeadline = deadline - 5000;
         // deno-lint-ignore no-explicit-any
         const acctList: any[] = (Array.isArray(link.accounts) && link.accounts.length)
           ? link.accounts
           : (link.account_uid ? [{ uid: link.account_uid, iban: link.iban, name: null }] : []);
         // deno-lint-ignore no-explicit-any
         const accts: any[] = [];
-        for (const ac of acctList) {
+        for (let accountIndex = 0; accountIndex < acctList.length; accountIndex++) {
+          const ac = acctList[accountIndex];
           const uid = ac?.uid;
           if (!uid || typeof uid !== "string") continue;
+          const remainingAccounts = acctList.length - accountIndex;
+          const remainingMs = linkDeadline - Date.now();
+          if (remainingMs <= 0) {
+            accts.push({ uid, ok: false, truncated: true, transactionError: "timeout", transactions: [] });
+            continue;
+          }
           try {
-            // deno-lint-ignore no-explicit-any
-            let all: any[] = [];
-            let contKey: string | null = null;
-            let pages = 0;
-            do {
-              const qs = `?date_from=${dateFrom}` + (contKey ? `&continuation_key=${encodeURIComponent(contKey)}` : "");
-              const tx = await ebApi(jwt, `/accounts/${uid}/transactions${qs}`);
-              // deno-lint-ignore no-explicit-any
-              all = all.concat((tx.transactions || []).map((t: any) => mapTransaction(t)));
-              contKey = tx.continuation_key || null;
-              pages++;
-            } while (contKey && pages < 12 && all.length < 2000);   // tope duro anti-runaway
-            accts.push({ uid, iban: ac.iban || null, name: ac.name || null, ok: true, count: all.length, transactions: all });
+            /* Reparto dentro del banco: una cuenta no puede comerse el margen de las demás. */
+            const accountMs = Math.max(1000, Math.floor(remainingMs / remainingAccounts));
+            const tx = await fetchBankTransactions(jwt, uid, dateFrom, ebApi, accountMs, true);
+            const all = tx.transactions.map(mapTransaction);
+            accts.push({ uid, iban: ac.iban || null, name: ac.name || null, ok: true, count: all.length,
+              transactions: all, truncated: tx.truncated, transactionError: tx.transactionError });
           } catch (err) {
-            accts.push({ uid, iban: ac.iban || null, ok: false, error: String((err as Error)?.message || err), transactions: [] });
+            logObReadFailure(admin, user.id, link.aspsp_name, err);
+            /* Código cerrado y seguro: explica si fue espera, límite o permiso sin devolver el
+               texto del proveedor, que puede contener referencias bancarias. */
+            accts.push({ uid, iban: ac.iban || null, ok: false, error: obReadFailureCode(err), transactions: [] });
           }
         }
-        hist.push({ aspsp: link.aspsp_name, iban: link.iban, accounts: accts });
+        return { aspsp: link.aspsp_name, iban: link.iban, ok: accts.some(a => a.ok), accounts: accts };
+      };
+      /* Cola ESTRICTA: dos bancos a la vez dispararon el propio 429 en Caixa y Sabadell. Una
+         búsqueda puede seleccionar varios, pero nunca abre dos sesiones PSD2 simultáneas. */
+      const activeLinks = links || [];
+      const hist: unknown[] = [];
+      for (const link of activeLinks) hist.push(await readHistoryLink(link));
+      for (const link of deadLinks) {
+        hist.push({ aspsp: link.aspsp_name, ok: false, pending: link.status === "pending",
+          expired: link.status === "expired", noacct: link.status === "error", accounts: [] });
       }
       return jsonResp({ ok: true, history: true, dateFrom, links: hist });
     }
@@ -156,9 +211,21 @@ Deno.serve(withCors(async (req: Request) => {
       for (const ac of acctList) {
         const uid = ac?.uid;
         if (!uid || typeof uid !== "string") continue;
+        const accountDeadline = Math.min(deadline, Date.now() + 15000);
+        if (Date.now() >= accountDeadline) {
+          lastErr = "timeout";
+          acctOut.push({ uid, iban: ac.iban || null, ok: false, truncated: true, transactionError: "timeout", balances: [], count: 0, transactions: [] });
+          continue;
+        }
+        const balController = new AbortController();
+        const balTimer = setTimeout(() => balController.abort(), accountDeadline - Date.now());
         try {
-          const bal = await ebApi(jwt, `/accounts/${uid}/balances`);
-          const tx = await ebApi(jwt, `/accounts/${uid}/transactions`);
+          const bal = await ebApi(jwt, `/accounts/${uid}/balances`, {signal:balController.signal});
+          const now = new Date();
+          // Debe cubrir al menos `som` de importObExpenses (mes de Madrid menos 8 días).
+          // En el borde de mes UTC puede pedir un mes adicional, pero nunca uno de menos.
+          const recentFrom = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1) - 8 * 86400000).toISOString().slice(0, 10);
+          const tx = await fetchBankTransactions(jwt, uid, recentFrom, ebApi, accountDeadline - Date.now());
           // deno-lint-ignore no-explicit-any
           const balances = (bal.balances || []).map((b: any) => ({
             type: b.balance_type || b.name || "",
@@ -167,7 +234,8 @@ Deno.serve(withCors(async (req: Request) => {
           }));
           // deno-lint-ignore no-explicit-any
           const transactions = (tx.transactions || []).map((t: any) => mapTransaction(t));
-          acctOut.push({ uid, iban: ac.iban || null, name: ac.name || null, currency: ac.currency || null, ok: true, balances, count: transactions.length, transactions });
+          acctOut.push({ uid, iban: ac.iban || null, name: ac.name || null, currency: ac.currency || null, ok: true, balances,
+            count: transactions.length, transactions, truncated: tx.truncated, transactionError: tx.transactionError });
           anyAcctOk = true;
           logObAmbiguous(admin, user.id, link.aspsp_name, tx.transactions || []);
         } catch (err) {
@@ -177,15 +245,19 @@ Deno.serve(withCors(async (req: Request) => {
           // otra vez. Pero un 403 de PSD2 casi siempre es rate-limit/anti-abuso momentáneo y un 404
           // un hipo del banco, NO que el consentimiento haya muerto. Igual que el 403 anti-bot de
           // MyInvestor y el 401 momentáneo de TR: NO desconectar por un fallo pasajero.
-          // Solo cuenta como caducado un 401 o un mensaje EXPLÍCITO de consentimiento/sesión muerta.
-          if (/\b401\b/.test(msg) || /expired|revoked|consent|unauthor|invalid[_ ]?(?:token|session|grant)|session[_ ]?not[_ ]?found/i.test(msg)) {
+          // Solo cuenta como caducado el código inequívoco del proveedor. Buscar palabras como
+          // "unauthorized" dentro de un 429/5xx podía convertir un bloqueo temporal en una
+          // reconexión manual y dejar el enlace muerto para siempre hasta hacer OAuth otra vez.
+          if (/\bEB\s+401\b/i.test(msg)) {
             anyExpired = true;
           }
           lastErr = msg;
           acctOut.push({ uid, iban: ac.iban || null, name: ac.name || null, currency: ac.currency || null, ok: false, error: msg, balances: [], count: 0, transactions: [] });
+        } finally {
+          clearTimeout(balTimer);
         }
       }
-      // 401/403/404/"expired" = el permiso del banco caducó → marca SOLO este enlace, sin afectar a los demás.
+      // Solo EB 401 firme caduca el permiso; 403/404/429/5xx conservan el enlace activo.
       if (anyAcctOk) {
         await admin.from("bank_links")
           .update({ last_sync: new Date().toISOString(), status: "active", updated_at: new Date().toISOString() })

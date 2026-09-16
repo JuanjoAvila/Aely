@@ -37,6 +37,13 @@ t("solo ingest: Deno sí, Playwright no", () => {
   assert.ok(p.steps.includes("presupuesto-servidor"));
 });
 
+t("solo bank-sync conserva los guardianes de paginado sin arrancar Chromium", () => {
+  const p = planFromFiles(["supabase/functions/bank-sync/index.ts"]);
+  assert.equal(p.playwright, false);
+  assert.ok(p.steps.includes("bank-sync-paging"));
+  assert.ok(p.steps.includes("tr-open-banking"));
+});
+
 t("solo Android: widget, sin e2e", () => {
   const p = planFromFiles(["android/app/src/main/java/com/micartera/app/MiCarteraWidget.java"]);
   assert.equal(p.playwright, false);

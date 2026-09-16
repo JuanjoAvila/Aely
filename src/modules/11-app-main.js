@@ -18,26 +18,20 @@ function App(){
   const navHiddenRef=useRef(false);
   const lastScrollY=useRef(0);
   const scrollTab=useRef(0);
-  // Escondido RÁPIDO, sin la curva calmada de .55s (2026-08-03, bug 6 «rebote raro»). El .55s de
-  // abajo es a propósito para el caso normal (bajar leyendo la lista) — «el ocultado de golpe se
-  // sentía brusco» (feedback 2026-07-18) — pero ESE mismo calmado es justo el problema cuando el
-  // motivo de esconder es «hemos llegado al final»: el rebote nativo (la "ola") empieza a la vez
-  // que la barra, y tarda solo ~0,2-0,3 s en asentarse — mucho menos que los 0,55 s de la barra.
-  // Resultado, tal y como lo describió («se queda atascado un momento y luego sí que hace la ola
-  // pero es muy raro»): la barra sigue deslizándose/desvaneciéndose ENCIMA de la ola mientras esta
-  // ya está en marcha, dos animaciones a ritmos distintos peleando por el mismo trozo de pantalla.
-  // `botnav-hidden-fast` (ver shell.html) pone una transición corta SOLO para este caso; el
-  // escondido normal al bajar sigue con su calma de siempre.
-  const [navHiddenFast,setNavHiddenFast]=useState(false);
-  // Botnav y ola nativa (5/8 noche + pulido 5/8 madrugada):
-  // · Abajo LENTO: ok. Abajo RÁPIDO (flick): hide diferido ~450 ms tras scrollend.
+  // Botnav y ola nativa (5/8 noche + corrección 16/9):
+  // · Llegar al final NO cambia la barra. Ocultarla allí creaba el «stopper» antes del rebote
+  //   nativo; volver a tirar disparaba un dy negativo del rubber-band y la enseñaba otra vez.
+  // · La barra solo cambia por desplazamiento REAL: bajar contenido la oculta y subirlo la muestra.
   // · ARRIBA / swipe de tabs: NUNCA `botnav-ola-clear`. Ese clear↔unclear era el
   //   «aparece y desaparece todo el rato» al llegar al tope y al cambiar de pestaña
   //   (feedback 2026-08-05). La barra se queda; la ola sigue debajo.
   // · Pin breve al llegar al tope / al swipear tabs: ni hide ni clear en la racha.
   const navBotSync=useRef(0);
   const navHideArmed=useRef(false);
-  const navHideFastRef=useRef(false);
+  const bottomOverscroll=useRef(false);
+  /* El rubber-band de Android puede devolver `scrollTop` hacia arriba aunque el dedo siga
+     empujando hacia el fondo. La dirección real del dedo separa ese rebote de un «subir» suyo. */
+  const fingerScrollDir=useRef(0), fingerScrollAt=useRef(0), fingerLastY=useRef(0);
   const topClearOn=useRef(false);
   const topClearTimer=useRef(0);
   const revealAfterTopClear=useRef(false);
@@ -52,9 +46,10 @@ function App(){
     topClearOn.current=false;
     try{
       const nav=document.querySelector(".botnav");
-      if(nav) nav.classList.remove("botnav-hidden","botnav-hidden-fast","botnav-ola-clear");
+      if(nav) nav.classList.remove("botnav-hidden","botnav-ola-clear");
     }catch(e){}
-    if(navHiddenRef.current){ navHiddenRef.current=false; setNavHidden(false); setNavHiddenFast(false); }
+    bottomOverscroll.current=false;
+    if(navHiddenRef.current){ navHiddenRef.current=false; setNavHidden(false); }
   };
   // clear del tope: solo API residual (enterScrollHost / swipe). Ya no se ARMA en scroll ni
   // en touchmove — eso era el parpadeo.
@@ -94,13 +89,9 @@ function App(){
     navBotSync.current=0;
     navHideArmed.current=false;
     navHiddenRef.current=true;
-    const fast=!!navHideFastRef.current;
     try{
       const nav=document.querySelector(".botnav");
-      if(nav){
-        nav.classList.add("botnav-hidden");
-        nav.classList.toggle("botnav-hidden-fast", fast);
-      }
+      if(nav) nav.classList.add("botnav-hidden");
     }catch(e){}
     /* ⚠ CON EL DEDO PUESTO NO SE RE-RENDERIZA APP. Lo que ESCONDE la barra es la clase de arriba;
        el `setState` solo pone a React de acuerdo con el DOM, y hacerlo a mitad de gesto repinta la
@@ -114,25 +105,17 @@ function App(){
        idéntico: la clase ya está puesta. */
     if(dragging.current){ navFlush.current=true; return; }
     setNavHidden(true);
-    setNavHiddenFast(fast);
   };
-  const armNavHide=function(fast, inmediato){
+  const armNavHide=function(inmediato){
     if(navPinned()) return;
-    navHideFastRef.current=!!fast;
-    if(navHideArmed.current || navHiddenRef.current){
-      if(fast) navHideFastRef.current=true;
-      return;
-    }
+    if(navHideArmed.current || navHiddenRef.current) return;
     navHideArmed.current=true;
     if(navBotSync.current) clearTimeout(navBotSync.current);
     /* `inmediato` = esconderla YA, sin esperar (2026-09-11). Suyo: «la barra ocúltala antes, en
        cuanto baje, sin quitarme la animación suave». Las dos cosas a la vez sí se pueden: lo que
-       da la suavidad es la TRANSICIÓN CSS de `.botnav`, no este retraso. El retraso solo servía
-       para el caso de ABAJO DEL TODO, donde la ola nativa y la barra se peleaban por el mismo
-       trozo de pantalla — ahí se queda tal cual. */
+       da la suavidad es la TRANSICIÓN CSS de `.botnav`, no este retraso. */
     if(inmediato){ applyNavHide(); return; }
-    // Fallback si no hay scrollend: abajo más margen (ola del flick).
-    navBotSync.current=setTimeout(applyNavHide, fast?800:550);
+    navBotSync.current=setTimeout(applyNavHide, 550);
   };
   const revealNav=function(){
     if(navBotSync.current){ clearTimeout(navBotSync.current); navBotSync.current=0; }
@@ -142,17 +125,15 @@ function App(){
     topClearOn.current=false;
     try{
       const nav=document.querySelector(".botnav");
-      if(nav) nav.classList.remove("botnav-hidden","botnav-hidden-fast","botnav-ola-clear");
+      if(nav) nav.classList.remove("botnav-hidden","botnav-ola-clear");
     }catch(e){}
     if(!navHiddenRef.current) return;
     navHiddenRef.current=false;
-    navHideFastRef.current=false;
     /* Misma regla que `applyNavHide` (4.19.69): con el dedo puesto solo se toca el DOM; el
        `setState` espera a soltar. Rechazo 12/9: *«si hago seguido, SUBIR en gastos… se laguea»*
        — el hide ya aplazaba, el reveal no, y al subir se repintaba App entera. */
     if(dragging.current){ navFlush.current=true; return; }
     setNavHidden(false);
-    setNavHiddenFast(false);
   };
   // Marca de tiempo del último scroll REAL de una página. La usa `freezeShell` para no pagar el
   // congelado cuando no hace falta (ver allí). Se apunta antes de cualquier corte: durante el
@@ -172,7 +153,12 @@ function App(){
     if(!navFlush.current) return;
     navFlush.current=false;
     setNavHidden(!!navHiddenRef.current);
-    setNavHiddenFast(!!navHideFastRef.current);
+  };
+  const discardNavHideFlush=function(){
+    /* En el borde no hay nada que reconciliar: la clase ya está puesta y el className consulta
+       también la ref. El timer de 700 ms de 4.25.2 solo retrasaba el mismo re-render hasta mitad
+       de la ola nativa, por eso el primer tirón seguía muriendo y el segundo sí entraba. */
+    navFlush.current=false;
   };
   /* Alto del contenido en el scroll anterior. Sirve para distinguir «ha bajado él» de «la
      pantalla se ha recolocado sola»: al tocar un chip de rol en Cartera la tarjeta estira o
@@ -222,7 +208,7 @@ function App(){
        barra no puede esconderse hasta un segundo después — con lo que para cuando podía, el dedo
        ya había parado. 320 ms siguen cubriendo el asentamiento del cambio de pestaña, que es para
        lo que está (que no se esconda de golpe al llegar a la pestaña nueva). */
-    if(scrollTab.current!==tab){ scrollTab.current=tab; lastScrollY.current=y; ultimoScrollH.current=e.currentTarget.scrollHeight; revealNav(); pinNavVisible(320); return; }
+    if(scrollTab.current!==tab){ scrollTab.current=tab; lastScrollY.current=y; ultimoScrollH.current=e.currentTarget.scrollHeight; bottomOverscroll.current=false; revealNav(); pinNavVisible(320); return; }
     /* Si el contenido ha cambiado de alto, el motor a veces recoloca `scrollTop` solo
        (chip de rol, lista que pagina). Eso NO es un gesto suyo — no esconder la barra.
        ⚠ PERO con host a pantalla (ola 12/9) el `scrollHeight` también se recalcula tarde
@@ -242,6 +228,7 @@ function App(){
     if(y<=8){
       // Tope: barra QUIETA y visible. Sin ola-clear. Pin solo al aterrizar / al revelar,
       // no en cada frame del rubber-band (si no el pin no caduca nunca).
+      bottomOverscroll.current=false;
       if(navHiddenRef.current){
         revealNav();
         pinNavVisible(1000);
@@ -253,17 +240,30 @@ function App(){
       return;
     }
     const max=e.currentTarget.scrollHeight-e.currentTarget.clientHeight;
-    if(max>0 && y>=max-4){ armNavHide(true); return; }
+    if(max>0 && y>=max-4){
+      /* El borde pertenece al navegador, no a la navegación de la app. Mantener el estado que ya
+         tuviera la barra deja al WebView reproducir la ola tanto visible como oculta; ocultarla
+         aquí era el primer gesto «muerto» y revelarla en el rebote era el segundo fallo. */
+      bottomOverscroll.current=true;
+      if(navBotSync.current){ clearTimeout(navBotSync.current); navBotSync.current=0; }
+      navHideArmed.current=false;
+      return;
+    }
     if(Math.abs(dy)<6) return;
     /* «En cuanto baje»: antes pedía haber bajado 56 px Y esperaba 550 ms más. Ahora basta con
        haber salido del tope y se esconde en el acto — la curva calmada de `.botnav` sigue
        poniendo la suavidad que él pide. */
-    if(dy>0 && y>24){ armNavHide(false, true); }
+    if(dy>0 && y>24){ armNavHide(true); }
     else if(dy<0){
-      /* Cerca del fondo el rubber-band dispara `dy<0` con `y` aún alta. Revelar ahí pelea con
-         el hide/ola: *«se queda a medias la barra intentando subir, luego acaba… y luego la ola»*
-         (rechazo 4.19.69, 12/9). La barra solo vuelve al subir de verdad, lejos del borde. */
-      if(max>0 && y>max-80) return;
+      /* En el borde, `scrollTop` NO demuestra la intención: el stretch de Android puede devolver
+         cientos de px aunque él siga empujando hacia abajo. La barra solo reaparece si hay una
+         dirección de dedo OPUESTA y reciente (dedo baja = subir contenido). El umbral de 160 px
+         era el fallo real: un rebote grande lo cruzaba y abría la barra sin que él subiera. */
+      if(bottomOverscroll.current){
+        const fingerSubeContenido=fingerScrollDir.current===-1 && (Date.now()-fingerScrollAt.current)<900;
+        if(!fingerSubeContenido) return;
+      }
+      bottomOverscroll.current=false;
       revealNav();
     }
   };
@@ -285,11 +285,16 @@ function App(){
         navHideArmed.current=false;
         return;
       }
+      if(atBottom){
+        // Un scrollend en el borde no manda sobre la barra: la ola nativa debe correr sola.
+        if(navBotSync.current){ clearTimeout(navBotSync.current); navBotSync.current=0; }
+        navHideArmed.current=false;
+        bottomOverscroll.current=true;
+        return;
+      }
       if(!navHideArmed.current) return;
       if(navBotSync.current){ clearTimeout(navBotSync.current); navBotSync.current=0; }
-      // Abajo: el stretch sigue tras scrollend — esperar antes del hide.
-      const delay=(atBottom||navHideFastRef.current)?450:0;
-      navBotSync.current=setTimeout(function(){ applyNavHideRef.current(); }, delay);
+      navBotSync.current=setTimeout(function(){ applyNavHideRef.current(); }, 0);
     };
     document.addEventListener("scrollend", onScrollEnd, true);
     return function(){ document.removeEventListener("scrollend", onScrollEnd, true); };
@@ -302,6 +307,7 @@ function App(){
   const [planGoto,setPlanGoto]=useState(null);             // segmento de Plan a forzar desde «Ver plan» ({id,ts})
   const [tourOpen,setTourOpen]=useState(false);            // tour guiado (coach-marks)
   const [toast,setToast]=useState(null);
+  const [syncReport,setSyncReport]=useState(null);
   const [syncing,setSyncing]=useState(false);
   const [syncStatus,setSyncStatus]=useState({type:"idle",msg:""});
 
@@ -633,7 +639,12 @@ function App(){
       //      manda es el ⚠ de abajo —que además abre el panel para arreglarlo—, no un «✓ al día»
       //      que dice lo contrario medio segundo después.
       const issues=bankIssuesOf(links, dbLinks);
-      if(opts.manual && preview.synced.length && !issues.length){
+      const readWarnings=bankReadWarnings(links, dbLinks).filter(function(w){ return w.key!=="bank_read_reconnect"; });
+      readWarnings.forEach(function(w){ if(w.key==="bank_read_rate") bankRateRemember(w.ent||w.bank); });
+      if(opts.manual && readWarnings.length){
+        readWarnings.forEach(function(w){ avisaSync(opts,"⚠ "+tf(w.key,{bank:w.bank})); });
+      }
+      if(opts.manual && preview.synced.length && !issues.length && !readWarnings.length){
         const ents={}; preview.synced.forEach(function(x){ if(x&&x.ent) ents[x.ent]=1; });
         const bancos=Object.keys(ents);
         let msg = bancos.length===1
@@ -676,7 +687,7 @@ function App(){
       // vivo (el servidor ya no lo marca 'expired' por un 403/404), así que no mandamos «reconéctate»
       // — solo un aviso suave y únicamente si lo pediste tú (feedback 2026-07-17: «se caen cada dos
       // por tres» era este falso positivo). En auto-sync nos callamos: se reintenta solo.
-      else if(failed.length && opts.manual){ avisaSync(opts, "⚠ "+tf("bank_syncsoft",{bank:bankLabelOf(failed[0])})); }
+      else if(failed.length && opts.manual && !readWarnings.length){ avisaSync(opts, "⚠ "+tf("bank_syncsoft",{bank:bankLabelOf(failed[0])})); }
       // Ni un solo banco enlazado: en vez del callejón sin salida («No tienes ningún banco
       // conectado») le abrimos el panel para que lo conecte ahí mismo.
       else if(!preview.synced.length && !links.length && opts.manual){
@@ -744,6 +755,7 @@ function App(){
   // caducar. Ahora, si la sesión murió de verdad, hay toast + noti estable + evento para que
   // el banner de Cartera se entere, sin meterlo en bankIssuesOf.
   const signalTrDead=function(){
+    try{ localStorage.setItem("_trAuthExpired","1"); }catch(e){}
     try{ window.dispatchEvent(new CustomEvent("mc-tr-status",{detail:{connected:false}})); }catch(e){}
     try{
       if(localStorage.getItem("_trDeadNotif")==="1") return;
@@ -774,7 +786,7 @@ function App(){
   const sincronizarAMano=function(){
     const col=[];
     return Promise.all([runBankSync({manual:true, collect:col}), runBrokerSync({manual:true, collect:col})]).then(function(){
-      const m=juntaAvisosSync(col); if(m) showToast(m);
+      const rows=listaAvisosSync(col); if(rows.length) setSyncReport(rows);
     });
   };
   const runBrokerSync=function(opts){
@@ -790,19 +802,24 @@ function App(){
     if(bridge && bridge.status){
       jobs.push(Promise.resolve(bridge.status()).then(function(r){
         const hadPhone=typeof trPhoneSaved==="function"&&!!trPhoneSaved();
-        if(!(r&&r.connected)){
-          if(hadPhone){ expiredB.push("Trade Republic"); signalTrDead(); }
-          return;
-        }
-        signalTrAlive({manual:opts.manual});
-        if(!opts.manual || !bridge.sync) return;   // sync TR solo a demanda
-        return Promise.resolve(bridge.sync()).then(function(res){
+        const syncTr=function(){ return Promise.resolve(bridge.sync()).then(function(res){
           if(res&&res.authExpired&&!res.softFail&&!res.wafBlocked){ expiredB.push("Trade Republic"); signalTrDead(); return; }
           /* anti-bot/hipo: en automático silencio y se reintenta luego. Pero si lo has pedido TÚ, callarse
              es el «sale conectado pero no te avisa ni nada» (rechazo tr-reactivo, 8/9): se dice. */
           if(!res||!res.ok||!Array.isArray(res.positions)){ trSinRespuesta=true; return; }
+          signalTrAlive({manual:opts.manual});
           applyBrokerPositions(res.positions, "lastTrSync", res.cash); touched++;
-        });
+        }); };
+        if(!(r&&r.connected)){
+          /* `connected=false` no es una prueba de caducidad: APK vieja, flag perdido o puente en
+             frío. En automático no molestamos; si él pulsa Sincronizar validamos la cookie real
+             con `sync()` y solo pedimos 2FA si TR responde `authExpired`. */
+          if(!opts.manual || !hadPhone || !bridge.sync) return;
+          return syncTr();
+        }
+        signalTrAlive({manual:opts.manual});
+        if(!opts.manual || !bridge.sync) return;   // sync TR solo a demanda
+        return syncTr();
       }).catch(function(){}));
     }
     // MyInvestor — Edge Function (funciona en web y en app)
@@ -836,12 +853,12 @@ function App(){
   // Detecta sesión al cargar y escucha cambios (incluida la vuelta del magic link).
   useEffect(function(){
     if(!cloud.enabled()){ mcBootReady(); return; }   // sin nube no hay nada que esperar detrás del splash
-    /* Tope (14/9 → 15/9 review Claude): onLine===false → 400 ms; CON red → 2500 ms (no 600:
-       un pull normal tarda más y si acortamos pinta local y luego saltan las cifras). Si
-       getSession FALLA, mcBootReady al momento (catch). */
+    /* Offline conocido: el estado local ya está listo y no debe aparecer un Inicio vacío ni un
+       instante. Con red se conserva el margen de 2500 ms para no pintar cifras que luego saltan. */
     var offline=false;
     try{ offline=navigator.onLine===false; }catch(e){}
-    const sesTope=setTimeout(mcBootReady, offline?400:2500);
+    if(offline) mcBootReady();
+    const sesTope=setTimeout(mcBootReady, 2500);
     cloud.session().then(function(s){
       clearTimeout(sesTope);
       sessionRef.current=s; setSession(s);
@@ -878,6 +895,25 @@ function App(){
   // al alternar apps rápido (el sync dispara una descarga y un re-render de toda la app).
   // Además: si hay bancos OB y ≥30 min desde lastBankSync → bankSync en idle (gastos de Caixa/etc.).
   const lastVisSync=useRef(0);
+  /* Red doble para APKs antiguas: el nativo nuevo ya limita estas consultas, pero la OTA debe
+     proteger también el móvil que aún no haya instalado ese APK. La marca vive en localStorage
+     para que matar/abrir la app no reinicie el cupo. Los botones manuales no pasan por aquí. */
+  const allowBankNotifSync=function(){
+    const now=Date.now(), day=Math.floor(now/86400000);
+    try{
+      /* Las lecturas desatendidas gastaban el cupo PSD2 y dejaban el histórico en 429. Solo se
+         hacen si la persona lo activó de forma expresa; el valor antiguo implícito era ON. */
+      if(!((stateRef.current.settings||{}).bankSyncOnNotif===true)) return false;
+      const last=Number(localStorage.getItem("_bankNotifSyncAt")||0);
+      const savedDay=Number(localStorage.getItem("_bankNotifSyncDay")||-1);
+      const used=savedDay===day?Number(localStorage.getItem("_bankNotifSyncUsed")||0):0;
+      if(now-last < 12*60*60*1000 || used>=1) return false;
+      localStorage.setItem("_bankNotifSyncAt",String(now));
+      localStorage.setItem("_bankNotifSyncDay",String(day));
+      localStorage.setItem("_bankNotifSyncUsed",String(used+1));
+      return true;
+    }catch(e){ return false; }
+  };
   useEffect(function(){
     if(!uid) return;
     const onVis=function(){
@@ -894,7 +930,7 @@ function App(){
       const nat=natPlugin();
       if(nat&&nat.consumeBankSyncPing){
         try{ nat.consumeBankSyncPing().then(function(r){
-          if(r&&r.ping) mcScheduleIdle(function(){ runBankSync({}); });
+          if(r&&r.ping&&allowBankNotifSync()) mcScheduleIdle(function(){ runBankSync({}); });
         }).catch(function(){}); }catch(e){}
       }
     };
@@ -912,7 +948,6 @@ function App(){
   },[uid]);
 
   // APK alpha22: noti de Caixa/Sabadell/… → evento nativo bankNotif → sync OB (sin parsear importe).
-  const lastBankNotifSync=useRef(0);
   useEffect(function(){
     if(!uid) return;
     const nat=natPlugin();
@@ -920,8 +955,7 @@ function App(){
     let h=null;
     const onPing=function(){
       if(!(stateRef.current||{}).hasBankLink) return;
-      if(Date.now()-lastBankNotifSync.current < 120000) return;   // debounce web 2 min (nativo ya frena)
-      lastBankNotifSync.current=Date.now();
+      if(!allowBankNotifSync()) return;
       mcScheduleIdle(function(){ runBankSync({}); });
     };
     try{
@@ -1081,14 +1115,12 @@ function App(){
 
   // CAPA 2 — al abrir, el banco YA NO se sincroniza solo (2026-07-18): el sync desatendido en
   // cada apertura hacía que Caixa/Sabadell marcaran el consentimiento como uso robótico y lo
-  // caducaran una y otra vez. Quedan solo dos syncs «con motivo»:
-  //  · justo tras autorizar un banco (vuelta del ?bank=ok) — lo acabas de pedir tú;
-  //  · la primera vez que hay banco sin movimientos capturados (bootstrap de conciliación).
+  // caducaran una y otra vez. Solo queda el sync justo tras autorizar un banco (vuelta del
+  // ?bank=ok): lo acaba de pedir la persona. El viejo bootstrap por `bankTx===undefined` también
+  // era una consulta al abrir y consumía el cupo sin tocar ningún botón.
   useEffect(function(){
     if(!uid) return;
     if(bankJustConnected.current){ bankJustConnected.current=false; limpiaCartelReconectado(); runBankSync({manual:true}); return; }
-    if(!state.hasBankLink) return;   // nadie ha conectado banco en esta cartera → no llamamos a la función
-    if(typeof state.bankTx==="undefined"){ runBankSync({}); return; }   // bootstrap: solo 1 vez en la vida del enlace
   },[uid, state.hasBankLink]);
 
   // Y lo mismo para los brókers que SÍ sincronizan solos (TR nativo + MyInvestor): al abrir,
@@ -1887,7 +1919,7 @@ function App(){
     if(!nat || !nat.setNotifPrefs) return;
     try{ nat.setNotifPrefs({
       expenseConfirm:!(state.settings&&state.settings.trNotifyConfirm===false),
-      bankSyncOnNotif:!(state.settings&&state.settings.bankSyncOnNotif===false)
+      bankSyncOnNotif:!!(state.settings&&state.settings.bankSyncOnNotif===true)
     }).catch(function(){}); }catch(e){}
   },[state.settings&&state.settings.trNotifyConfirm, state.settings&&state.settings.bankSyncOnNotif]);
   // Re-propaga al lector nativo la URL de ingest con el token del usuario (apuntado multiusuario
@@ -2349,8 +2381,10 @@ function App(){
      del perfil, que tampoco desenfoca durante el arrastre. A 0,42 s de transición nadie ve la
      diferencia; lo que sí se nota es el tirón. */
   const navBlurT=useRef(0);
+  const navBlurOff=useRef(false);
   const navSinBlur=function(off){
     if(navBlurT.current){ clearTimeout(navBlurT.current); navBlurT.current=0; }
+    navBlurOff.current=!!off;
     if(!appShellRef.current) return;
     appShellRef.current.classList.toggle("nav-sin-blur", !!off);
   };
@@ -2359,6 +2393,7 @@ function App(){
     if(navBlurT.current) clearTimeout(navBlurT.current);
     navBlurT.current=setTimeout(function(){
       navBlurT.current=0;
+      navBlurOff.current=false;
       if(appShellRef.current) appShellRef.current.classList.remove("nav-sin-blur");
     }, 480);
   };
@@ -2439,7 +2474,11 @@ function App(){
   const ensureScrollHost=function(){
     if(settleRaf.current) return;                         // el asentamiento ya lo pondrá
     if(dragging.current && gestureMode.current==="tab") return;
-    if(scrollHostOn.current && hostTabRef.current===tabRef.current) return;
+    /* React vuelve a escribir `className` en cualquier setState. Las refs podían decir «host
+       activo» mientras el DOM ya había perdido las dos clases que dejan libre la ola nativa. */
+    if(scrollHostOn.current && hostTabRef.current===tabRef.current
+      && appShellRef.current&&appShellRef.current.classList.contains("scroll-host-on")
+      && viewportRef.current&&viewportRef.current.classList.contains("scroll-host-open")) return;
     enterScrollHost(tabRef.current);
   };
   /* ASENTAR EL CARRUSEL CON rAF, NO CON transition CSS — 2026-07-27, medido en SU móvil.
@@ -2576,6 +2615,7 @@ function App(){
     pDY.current=0; pT.current=Date.now();
     startX.current=e.touches?e.touches[0].clientX:e.clientX;
     startY.current=e.touches?e.touches[0].clientY:e.clientY;
+    fingerLastY.current=startY.current; fingerScrollDir.current=0; fingerScrollAt.current=Date.now();
     // Ajustes SOLO desde Resumen (feedback 2026-07-27): el borde en el resto de pestañas
     // pillaba gestos normales. No montar Settings/Perfil en touchstart (vídeo 2026-07-18).
   };
@@ -2584,6 +2624,12 @@ function App(){
     if(document.documentElement.classList.contains("sheet-open")) return;
     const x=e.touches?e.touches[0].clientX:e.clientX;
     const y=e.touches?e.touches[0].clientY:e.clientY;
+    const fingerStep=y-fingerLastY.current;
+    if(Math.abs(fingerStep)>=2){
+      // 1 = el dedo sube y empuja el contenido hacia el fondo; -1 = el usuario vuelve hacia arriba.
+      fingerScrollDir.current=fingerStep<0?1:-1;
+      fingerScrollAt.current=Date.now(); fingerLastY.current=y;
+    }
     const ddx=x-startX.current, ddy=y-startY.current;
     // (antes: beginTopClear en tirón al tope → barra off/on en cada swipe y en la ola)
     // Inicio arriba: cortar overscroll/rebote ANTES de fijar eje (vídeo 2026-07-18).
@@ -2599,9 +2645,10 @@ function App(){
       const eje=gestureAxis(ddx,ddy);
       if(!eje) return;
       /* A MITAD, ABAJO o ARRIBA: el arco del pulgar gana `x` pronto → preventDefault +
-         leaveScrollHost + freezeShell matan scroll/ola. Abajo ya estaba guardado; ARRIBA
-         faltaba — por eso la ola de arriba iba «a veces» (gesto limpio vertical OK; con deriva
-         lateral el carrusel robaba el dedo). Si `x` no está claro, NO fijar eje. */
+         leaveScrollHost + freezeShell matan scroll/ola. En el borde INFERIOR no se negocia:
+         aunque el primer tramo parezca horizontal, pertenece al rebote nativo hasta que el
+         usuario suba contenido. Antes una deriva de 40 px al segundo tirón revelaba la barra y
+         desmontaba el host (vídeo Oppo 16/9). Arriba/mitad aún admiten un horizontal inequívoco. */
       if(eje==="x"){
         const pages0=trackRef.current&&trackRef.current.children;
         const pg0=pages0&&pages0[tab];
@@ -2610,7 +2657,7 @@ function App(){
           const atTop=st0<=2;
           const mid0=st0>2 && max0-st0>2;
           const atBottom=max0>0 && (max0-st0)<=2;
-          if((atTop||mid0||atBottom) && !(Math.abs(ddy)<16 && Math.abs(ddx)>36)){
+          if(atBottom || ((atTop||mid0) && !(Math.abs(ddy)<16 && Math.abs(ddx)>36))){
             return;
           }
         }
@@ -2740,8 +2787,14 @@ function App(){
     else if(dx.current>24 && tab>0 && prepped.current!==-1){ prepped.current=-1; prepMountTab(tab-1); }
   };
   const onEnd=()=>{
-    if(!dragging.current) return; dragging.current=false;
-    flushNavHide();   // el setState aplazado de la barra (ver applyNavHide)
+    if(!dragging.current) return;
+    const endPages=trackRef.current&&trackRef.current.children;
+    const endPage=endPages&&endPages[tabRef.current];
+    const endMax=endPage?(endPage.scrollHeight-endPage.clientHeight):0;
+    const endAtBottom=axis.current!=="x" && endMax>0 && (endMax-(endPage.scrollTop||0))<=4;
+    dragging.current=false;
+    if(endAtBottom) discardNavHideFlush();
+    else flushNavHide();   // el setState aplazado de la barra (ver applyNavHide)
     // El rAF del arrastre se para AQUÍ: a partir de ahora manda `animarA`, y si los dos escriben
     // el mismo `transform` se pisan y el soltar daría un tirón peor que el que veníamos a quitar.
     pararPintado();
@@ -2820,9 +2873,15 @@ function App(){
      El perfil, la tabbar y las fichas ya escuchaban `touchcancel`; las pestañas y Ajustes, no. */
   const onCancel=function(){
     if(!dragging.current) return;
-    flushNavHide();   // ANTES del early-return del perfil: en su móvil casi todos los gestos pasan por aquí
+    const cancelledAxis=axis.current;
+    const pages=trackRef.current&&trackRef.current.children;
+    const pageEl=pages&&pages[tabRef.current];
+    const maxY=pageEl?(pageEl.scrollHeight-pageEl.clientHeight):0;
+    const cancelledAtBottom=cancelledAxis!=="x" && maxY>0 && (maxY-(pageEl.scrollTop||0))<=4;
+    const browserScrollCancel=cancelledAxis!=="x";
     scheduleEndTopClear();
     if(gestureMode.current==="profile"){
+      flushNavHide();   // el perfil no usa el overscroll inferior del host
       profileRelease();
       setProfileProgress(profileOpen?1:0);   // el gesto no cuenta: se queda como estaba
       pDY.current=0;
@@ -2833,7 +2892,7 @@ function App(){
     }
     // El desenfoque vuelve YA (no como al soltar): aquí no hay transición del carrusel que proteger.
     navSinBlur(false);
-    cancelSwipe();
+    cancelSwipe(browserScrollCancel, cancelledAtBottom);
   };
   /* LOS TOQUES DE LAS PESTAÑAS, A MANO Y CON `{passive:false}` — el mismo arreglo que necesitó el
      perfil el 18/7 y que aquí nunca se aplicó. React ata `onTouchMove` al contenedor raíz en modo
@@ -3054,16 +3113,24 @@ function App(){
   // y ese se dispara antes que los de React (ver `onStart`).
   const stopSwipe={ "data-noswipe":"1", onTouchStart:(e)=>e.stopPropagation(), onTouchMove:(e)=>e.stopPropagation() };
   // Cancela el gesto de tabs/ajustes a mitad (chips de Gastos: scroll interno sin cambiar de pestaña).
-  const cancelSwipe=function(){
+  const cancelSwipe=function(keepNav, keepDomOnly){
     if(!dragging.current) return;
-    flushNavHide();   // el navegador nos quita el gesto: el estado de la barra se vuelca igual
+    if(keepDomOnly) discardNavHideFlush();
+    else flushNavHide();
     dragging.current=false; axis.current=null; gestureMode.current=null; dx.current=0; ancla.current=0;
     pararPintado();   // touchcancel: el navegador nos quita el gesto, hay que soltar el rAF igual
-    endTopClearNow(true);
-    // `tabRef` por lo mismo que en `goTab`: con el `tab` de cuando se construyó la página, cancelar
-    // el gesto devolvería el carrusel a la pestaña equivocada. Asentar por rAF (no snap a pelo):
-    // si no, el dedo ve un salto seco cuando el navegador se lleva el gesto.
-    asentarTrack(tabRef.current);
+    /* Un `touchcancel` vertical significa «el navegador se quedó el scroll», no «cambia de tab».
+       Revelar aquí era la barra que aparecía al volver a tirar abajo estando ya en el final. */
+    endTopClearNow(!keepNav);
+    if(keepNav){
+      /* En un scroll vertical el host ya está colocado y es precisamente quien pinta el stretch
+         nativo. Sacarlo a transform para «asentar» el carrusel cortaba la primera ola al fondo;
+         aquí solo se comprueba la red de seguridad, que no toca el DOM si el host sigue bien. */
+      ensureScrollHost();
+    } else {
+      // En un swipe horizontal cancelado sí hay que devolver el carrusel a su pestaña real.
+      asentarTrack(tabRef.current);
+    }
     if(drawerRef.current){ drawerRef.current.classList.remove("dragging"); drawerRef.current.style.transform=""; }
     freezeShell(false);
     setSettingsProgress(drawerOpen?1:0);
@@ -3270,11 +3337,11 @@ function App(){
     mcSandbox() && React.createElement("button",{type:"button",className:"sandbox-bar",
       onClick:function(){ mcExitSandbox(); location.reload(); }},
       "🧪 MODO PRUEBAS · los datos no son reales · toca para salir"),
-    React.createElement("div",{className:"app-shell",ref:appShellRef},
-      React.createElement("div",{className:"viewport",ref:viewportRef},
+    React.createElement("div",{className:"app-shell"+(hostTab>=0?" scroll-host-on":"")+(navBlurOff.current?" nav-sin-blur":""),ref:appShellRef},
+      React.createElement("div",{className:"viewport"+(hostTab>=0?" scroll-host-open":""),ref:viewportRef},
         React.createElement("div",{className:"track"+(hostTab>=0?" scroll-host-park":" scroll-host-swipe"),ref:trackRef}, paginas)
       ),
-      React.createElement("nav",{className:"botnav"+(navHidden&&!drawerOpen&&!profileOpen?" botnav-hidden"+(navHiddenFast?" botnav-hidden-fast":""):""),"aria-label":"Navegación"},
+      React.createElement("nav",{className:"botnav"+((navHidden||navHiddenRef.current)&&!drawerOpen&&!profileOpen?" botnav-hidden":""),"aria-label":"Navegación"},
         React.createElement("div",{className:"botnav-row"},
           React.createElement("div",{className:"botnav-ind"+(drawerOpen||profileOpen?" hide":""),ref:indRef,
             style:{transform:"translateX("+(tab<=1?tab*100:(tab+1)*100)+"%)"}},
@@ -3307,6 +3374,7 @@ function App(){
     upd.apkUpd && React.createElement("button",{className:"update-pill",onClick:function(){ upd.installApk(showToast); }}, tf("apk_ready",{v:upd.apkUpd.versionName})),
     !online && React.createElement("div",{className:"offline-pill"}, t("off_pill")),
     toast && React.createElement("div",{className:"toast"},toast),
+    syncReport && ReactDOM.createPortal(React.createElement(SyncReportSheet,{items:syncReport,onClose:function(){ setSyncReport(null); }}),document.body),
     showAuth && React.createElement(AuthPanel,{session:session,onClose:function(){ setShowAuth(false); setRecovery(false); },showToast:showToast,recovery:recovery,startMode:authStart}),
     React.createElement("div",{
       className:"settings-push"+(drawerOpen?" open":""),

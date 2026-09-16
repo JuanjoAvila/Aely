@@ -33,6 +33,7 @@ function loteGrande(n) {
 async function abrirConLote(page, n) {
   await seedLoggedInDashboard(page, {
     hasBankLink: true,
+    settings:{autoPrices:false,theme:"green",expenseBanks:["revolut"]},
     __cloudRows: { bank_links: bankLinks },
     __cloudFns: { "bank-sync": { data: { ok: true, links: loteGrande(n) }, error: null } },
   });

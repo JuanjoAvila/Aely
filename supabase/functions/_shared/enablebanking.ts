@@ -56,11 +56,12 @@ export async function makeJWT(appId: string, pem: string): Promise<string> {
 }
 
 // deno-lint-ignore no-explicit-any
-export async function ebApi(jwt: string, path: string, init: { method?: string; body?: unknown } = {}): Promise<any> {
+export async function ebApi(jwt: string, path: string, init: { method?: string; body?: unknown; signal?: AbortSignal } = {}): Promise<any> {
   const res = await fetch(BASE + path, {
     method: init.method || "GET",
     headers: { Authorization: `Bearer ${jwt}`, "Content-Type": "application/json" },
     body: init.body ? JSON.stringify(init.body) : undefined,
+    signal: init.signal,
   });
   const text = await res.text();
   // deno-lint-ignore no-explicit-any
@@ -68,6 +69,58 @@ export async function ebApi(jwt: string, path: string, init: { method?: string; 
   try { data = JSON.parse(text); } catch { data = text; }
   if (!res.ok) throw new Error(`EB ${res.status}: ${typeof data === "string" ? data : JSON.stringify(data)}`);
   return data;
+}
+
+// Una página vacía NO significa que no haya movimientos: el proveedor puede seguir buscando
+// y devolver continuation_key. Mismo contrato para sync diario e histórico (15/9/2026).
+// https://enablebanking.com/docs/faq/
+export async function fetchBankTransactions(jwt: string, uid: string, dateFrom: string | null,
+  api = ebApi, timeoutMs = 15000, preferLongest = false) {
+  if (timeoutMs <= 0) throw new Error("transactions_timeout");
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  // deno-lint-ignore no-explicit-any
+  const transactions: any[] = [];
+  const visited = new Set<string>();
+  /* En el HISTÓRICO, `longest` va desde la primera petición. Caixa puede aceptar el periodo y
+     devolver vacío sin `WRONG_TRANSACTIONS_PERIOD`; esperar al error dejaba la pantalla a cero.
+     El sync diario no activa `preferLongest`: allí interesa la ventana reciente exacta. */
+  let continuation: string | null = null, longest = !!dateFrom && !!preferLongest, pages = 0;
+  try {
+    while (pages < 12 && transactions.length < 2000) {
+      const qs = new URLSearchParams();
+      if (dateFrom) qs.set("date_from", dateFrom);
+      if (longest) qs.set("strategy", "longest");
+      if (continuation) qs.set("continuation_key", continuation);
+      let page;
+      try {
+        page = await api(jwt, `/accounts/${encodeURIComponent(uid)}/transactions?${qs}`, {signal:controller.signal});
+        if (!page || !Array.isArray(page.transactions)) throw new Error("transactions_invalid");
+      } catch (err) {
+        // Solo este error permite buscar el periodo disponible. Un fallo de permiso o red
+        // no se disfraza de histórico vacío ni dispara otro intento contra el banco.
+        if (!longest && pages === 0 && /WRONG_TRANSACTIONS_PERIOD/.test(String(err))) {
+          longest = true;
+          continue;
+        }
+        if (!pages) throw err;
+        return {transactions, truncated:true, transactionError:controller.signal.aborted ? "timeout" : "transactions_unavailable"};
+      }
+      pages++;
+      const rows = page.transactions;
+      const room = 2000 - transactions.length;
+      transactions.push(...rows.slice(0, room));
+      continuation = page.continuation_key || null;
+      if (rows.length > room) return {transactions, truncated:true};
+      if (!continuation) return {transactions, truncated:false};
+      // Un cursor cíclico no autoriza a dar por completo el extracto ni a repetir doce páginas.
+      if (visited.has(continuation)) return {transactions, truncated:true};
+      visited.add(continuation);
+    }
+    return {transactions, truncated:true};
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // Mapea un movimiento de Enable Banking al formato de la app.

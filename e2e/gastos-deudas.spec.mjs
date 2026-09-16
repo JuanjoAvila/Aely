@@ -62,6 +62,8 @@ test("★ el filtro tiene un chip por deuda y cada uno enseña solo su cuota", a
   await abreFiltros(page);
   const chips = page.locator('.v4-sheet [data-testid="filtro-deudas"] button.v4-chip');
   await expect(chips).toHaveCount(2);
+  // La cuota elegida vive en Sabadell, fuera del default de gasto diario: ampliar primero a todos.
+  await page.locator('.v4-sheet button.v4-chip:has-text("Todos los bancos")').click();
   await chips.filter({ hasText: "Préstamo piso" }).click();
   await cierraSheet(page);
 

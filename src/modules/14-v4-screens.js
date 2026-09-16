@@ -368,12 +368,18 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       const b=(typeof trBridge==="function")?trBridge():null;
       if(!b||!b.status) return;
       if(!(typeof trPhoneSaved==="function"&&trPhoneSaved())){ setTrDead(false); return; }
-      Promise.resolve(b.status()).then(function(r){ setTrDead(!(r&&r.connected)); }).catch(function(){});
+      /* Un flag `connected=false` del puente no demuestra que la cookie haya muerto. Solo el
+         resultado firme de un sync manual (`_trAuthExpired`) enciende este banner. */
+      Promise.resolve(b.status()).then(function(r){
+        setTrDead(!!(r&&r.authExpired) || (typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved()));
+      }).catch(function(){});
     };
     check();
     const onVis=function(){ if(document.visibilityState==="visible") check(); };
     const onEvt=function(e){
-      if(e&&e.detail&&typeof e.detail.connected==="boolean"){ setTrDead(!e.detail.connected); return; }
+      if(e&&e.detail&&typeof e.detail.connected==="boolean"){
+        setTrDead(!!e.detail.authExpired || (typeof trAuthExpiredSaved==="function"&&trAuthExpiredSaved())); return;
+      }
       check();
     };
     document.addEventListener("visibilitychange", onVis);

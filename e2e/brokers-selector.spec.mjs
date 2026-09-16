@@ -81,9 +81,10 @@ test("las tarjetas de bróker nacen plegadas y se abren al tocarlas, de una en u
 test("reconectar TR actualiza al momento el resumen de Ajustes, sin reiniciar", async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem("mc_tr_phone", "+34600000000");
+    localStorage.setItem("_trAuthExpired", "1");
     let connected = false;
     window.MiCarteraTR = {
-      status: async function() { return { connected: connected }; },
+      status: async function() { return { connected: connected, authExpired: !connected }; },
       login: async function() { return { ok: true, processId: "e2e-tr" }; },
       verify: async function() { connected = true; return { ok: true }; },
       sync: async function() {
@@ -99,7 +100,8 @@ test("reconectar TR actualiza al momento el resumen de Ajustes, sin reiniciar", 
     investments: [{ id: "i1", ent: "trade_republic", name: "Fondo e2e", isin: "IE00E2E", shares: 1, value: 90, cost: 90, cur: "EUR" }],
   });
 
-  // El puente empieza desconectado: Ajustes conoce el teléfono guardado y lo cuenta como caído.
+  // El puente empieza con una caducidad confirmada: Ajustes lo cuenta como caído. Un simple
+  // `connected:false` ya no basta, porque era el falso positivo constante de los arranques fríos.
   // El resumen sigue montado detrás del portal de Mis bancos, así comprobamos el cambio exacto
   // que antes no ocurría sin introducir un cierre/reapertura que enmascare la regresión.
   const bankSummary = page.locator(".set-card").filter({ hasText: /Gestionar mis bancos/i });

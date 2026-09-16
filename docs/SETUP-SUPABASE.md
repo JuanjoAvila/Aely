@@ -1,5 +1,17 @@
 # Setup Supabase — Fase 1 (Aely)
 
+## Bank-sync 4.25.0: despliegue autorizado y pendiente
+
+La corrección del paginado necesita desplegar **solo `bank-sync`**. El dueño lo autorizó el
+15/9/2026 para acompañar la beta 4.25.0; sigue pendiente hasta que el workflow termine y se
+verifique el paquete vivo.
+El cambio compartido en `enablebanking.ts` se empaqueta con esa función; no hace falta desplegar
+las demás. No hay migración ni backfill. Cliente anterior admite los campos nuevos; cliente nuevo
+avisa también de fallos del servidor anterior, pero no puede completar su paginado desde el móvil.
+Validar el paquete desplegado y hacer una sincronización manual autorizada antes de afirmar que
+CaixaBank/Sabadell están resueltos en datos reales. Para rollback, desplegar el `bank-sync` anterior;
+las filas ya importadas no se borran. Contrato y pruebas en el brief de esta tanda.
+
 Guía paso a paso para arrancar las tripas en la nube. Lo que tú haces (una vez) va marcado con 👤.
 El código (esquema, funciones, CI) ya está en el repo dentro de `supabase/`.
 

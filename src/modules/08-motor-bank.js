@@ -119,10 +119,21 @@ function promoteObAccount(s, totals, key, role, id){
   const bal=toEurAmt(o.value||0, o.cur||"EUR", s);
   const base=+((bal - monthNetForAccount(s, o.ent, now.getFullYear(), now.getMonth()+1, now.getDate())).toFixed(2));
   const name=((s.obLabels||{})[o.key]) || niceObName(o);
-  const acc={ id:id||uid(), ent:o.ent, name:name, value:base, role:"fijos", spendFrom:false };
+  /* Conserva la clave de orden de la fila OB: elegir un rol no debe mandar de golpe la cuenta al
+     final de Cartera justo después de haberla colocado (rechazo CaixaBank 2026-09-16). */
+  const acc={ id:id||uid(), ent:o.ent, name:name, value:base, role:"fijos", spendFrom:false,
+    accountOrderKey:"ob:"+o.key };
   if(o.iban) acc.bankIban=o.iban;                            // el sync del banco la re-ancla por IBAN
   let ns=Object.assign({},s,{ accounts:(s.accounts||[]).concat([acc]), obAccounts:(s.obAccounts||[]).filter(function(x){ return x.key!==key; }) });
   if(role && role!=="fijos") ns=applyAccountRole(ns, totals, acc.id, role);
+  /* Si era la última OB, el orden mixto ya contiene toda la lista: alinear `accounts` aquí evita
+     que lectores antiguos vean el orden previo hasta el siguiente arrastre. No cambia sus datos. */
+  const saved=((ns.settings||{}).accountListOrder)||[];
+  if(!(ns.obAccounts||[]).length && Array.isArray(saved) && saved.length){
+    const rows=accountRowsInOrder(ns), keys=rows.map(function(r){ return r.key; });
+    ns=Object.assign({},ns,{accounts:rows.map(function(r){ return r.item; }),
+      settings:Object.assign({},ns.settings,{accountListOrder:keys})});
+  }
   return ns;
 }
 // MULTI-CUENTA: aplica los saldos reales de TODAS las cuentas de los bancos enlazados.
@@ -174,7 +185,7 @@ function applyBankBalances(s, links){
       // marcadas rancias (stale) para que Patrimonio enseñe «caducado» en vez de esfumarlas.
       // (Bug CaixaBank 2026-07-11: al reconstruir obAccounts sin el banco caído, desaparecía.)
       const asp=String((lk&&lk.aspsp)||"").toLowerCase();
-      (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true})); });
+      (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true,staleKind:lk.expired?"expired":"temporary"})); });
       return;
     }
     const ent=entFromAspsp(lk && lk.aspsp);
@@ -188,7 +199,7 @@ function applyBankBalances(s, links){
     // obAccounts sin él las esfumaría en silencio (caso CaixaBank 2026-07-11, segunda variante).
     const keepStale=function(){
       const asp=String((lk&&lk.aspsp)||"").toLowerCase();
-      (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true})); });
+      (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true,staleKind:lk&&lk.expired?"expired":"temporary"})); });
     };
     // cuentas del banco: shape nuevo (lk.accounts) o antiguo (una sola, de lk.balances)
     const accs=(Array.isArray(lk.accounts)&&lk.accounts.length)
@@ -408,7 +419,7 @@ function reconcileBank(state, y, m, today){
 }
 
 // Aplana los movimientos de los bancos enlazados (que devuelve bank-sync) al formato
-// que usa la conciliación. Adjunta la entidad (sabadell…) y recorta a lo reciente.
+// que usa la conciliación. Conserva todos los bancos; el import diario aplica su ventana de fechas.
 function flattenBankTx(links){
   const out=[];
   (links||[]).forEach(function(lk){
@@ -428,7 +439,9 @@ function flattenBankTx(links){
     });
   });
   out.sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
-  return out.slice(0,150);   // últimos ~150 movimientos
+  // El servidor ya acota por cuenta. Un tope GLOBAL de 150 dejaba fuera un banco entero
+  // si otro tenía más actividad reciente, antes incluso de llegar a importObExpenses.
+  return out;
 }
 
 /* GASTO VARIABLE VÍA OPEN BANKING (2026-08-05): entra TODO de CUALQUIER banco sincronizado
@@ -459,7 +472,15 @@ function importObExpenses(s, txs){
      histórico en cada sync. Los duplicados que esto pueda rozar ya los para la red de arriba
      (mismo importe ±3 días contra lo que entró por otra vía) más el dedup por ext_id y clave. */
   const som=new Date(startOfMonth().getTime() - 8*86400000);
-  const seen={}; (s.expenses||[]).forEach(function(e){ if(e.extId) seen[e.extId]=1; });
+  /* `entry_reference` solo es única DENTRO de su banco. Sin entidad, un id de Sabadell podía
+     hacer desaparecer un movimiento distinto de Caixa. La identidad local mínima es banco+id. */
+  const seen={}, seenLegacy={}; (s.expenses||[]).forEach(function(e){
+    if(e.extId){
+      const bank=expenseBankOf(e)||e.ent||"";
+      if(bank) seen[bank+"|"+e.extId]=1;
+      else seenLegacy[e.extId]=1;  // filas antiguas: sin banco no se puede acotar sin duplicarlas
+    }
+  });
   /* EL DEDUP USA EL NOMBRE DEL BANCO, NO EL QUE VE EL USUARIO (2026-08-17).
      Petición suya: poder renombrar el «Movimiento» que deja Trade Republic, que «queda feo». El
      problema es que renombrar rompía LAS TRES capas de dedup a la vez y el siguiente sync recreaba
@@ -472,7 +493,8 @@ function importObExpenses(s, txs){
      es lo que puso el banco porque nadie las había podido renombrar sin romperlo. */
   const nameForKey=function(e){ return e.obName!=null ? e.obName : (e.merchant||""); };
   const kOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+nameForKey(e); };
-  const keys={}; (s.expenses||[]).forEach(function(e){ keys[kOf(e)]=1; });
+  const scopedKOf=function(e){ return (expenseBankOf(e)||e.ent||"")+"|"+kOf(e); };
+  const keys={}; (s.expenses||[]).forEach(function(e){ keys[scopedKOf(e)]=1; });
   /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
      sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
   const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
@@ -521,7 +543,7 @@ function importObExpenses(s, txs){
     const esIngreso = tx.amount<0;
     if(esIngreso){
       if(!tx.date || parseDate(tx.date)<som) return;
-      if(tx.id && seen[tx.id]) return;
+      if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
         category: esTraspasoPropio(s, tx) ? TRASPASO_CAT.id : INGRESO_CAT.id, source:"ob", ent:tx.ent };
@@ -530,17 +552,19 @@ function importObExpenses(s, txs){
       if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
       if(tx.id) e.extId=tx.id;
       const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-      if(keys[kOf(e)] || delSet[kOf(e)]) return;
+      if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
       const gemIn=gemeloOtraVia(tx);
       if(gemIn && gemIn.id){ e.possibleDup=true; e.possibleDupOf=gemIn.id; }
-      keys[kOf(e)]=1; add.push(e);
+      keys[scopedKOf(e)]=1;
+      if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
+      add.push(e);
       return;
     }
     // GASTO: entra de cualquier banco. Fijos y puntuales modelados no se duplican; las deudas se marcan.
     const mod=modeledHit(tx.ent, tx.merchant, tx.amount);
     if(mod && !mod.debtId) return;
     if(!tx.date || parseDate(tx.date)<som) return;
-    if(tx.id && seen[tx.id]) return;
+    if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
     const esDiario=tx.ent===dailyEnt;
     const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
     const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
@@ -550,10 +574,11 @@ function importObExpenses(s, txs){
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
     if(tx.id) e.extId=tx.id;
     const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-    if(keys[kOf(e)] || delSet[kOf(e)]) return;
+    if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
     const gem=gemeloOtraVia(tx);
     if(gem && gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
-    keys[kOf(e)]=1;
+    keys[scopedKOf(e)]=1;
+    if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
     add.push(e);
   });
   return add.length? add : null;
@@ -1203,13 +1228,71 @@ function histCandCercanos(cands, expenses, yaExactos){
    Truncado: solo flags explícitos del servidor; minDate>dateFrom se reporta aparte
    (heurística de la UI; no prueba truncado por sí sola). */
 
+/* Un saldo correcto no demuestra que se hayan leído todos los movimientos de sus cuentas. */
+function bankReadWarnings(links, expectedLinks, includeEmpty){
+  const out=[], seen={};
+  (links||[]).forEach(function(l){
+    if(!l) return;
+    const name=String(l.aspsp||""), ent=entFromAspsp(name);
+    seen[name.toLowerCase()]=1;
+    const accts=l.accounts||[];
+    let key=null;
+    const failed=accts.filter(function(a){ return a&&a.ok===false; });
+    const codes=failed.map(function(a){ return String(a.error||a.transactionError||"").toLowerCase(); });
+    /* El histórico es solo lectura y no decide si un consentimiento murió. Solo un 401 firme o
+       un enlace que la nube YA marca caducado pide reconectar; 403/404 suelen ser anti-abuso,
+       cuenta tardía o hipo del ASPSP y autorizar otra vez no los arregla. */
+    if(l.pending || l.expired || l.noacct || codes.some(function(c){ return /^(eb_)?401$/.test(c); })) key="bank_read_reconnect";
+    else if(codes.some(function(c){ return c==="eb_429"; })) key="bank_read_rate";
+    else if(codes.some(function(c){ return c==="timeout"; })) key="bank_read_timeout";
+    else if(l.ok===false || failed.length) key="bank_read_failed";
+    else if(l.truncated || accts.some(function(a){ return a&&(a.truncated||a.transactionError); })) key="bank_read_partial";
+    else if(includeEmpty && accts.length && accts.every(function(a){
+      return a&&a.ok!==false && ((typeof a.count==="number"?a.count:((a.transactions||[]).length))===0);
+    })) key="bank_read_empty";
+    if(key) out.push({bank:ent?entOf(ent).label:(name||t("bp_hist_bank_unknown")),ent:ent||name,key:key});
+  });
+  // Compatibilidad con servidores antiguos: omitir un enlace pendiente no equivale a cero gastos.
+  (expectedLinks||[]).forEach(function(l){
+    const name=String(l&&l.aspsp_name||"");
+    if(!name || seen[name.toLowerCase()]) return;
+    seen[name.toLowerCase()]=1;
+    const ent=entFromAspsp(name);
+    out.push({bank:ent?entOf(ent).label:name,ent:ent||name,key:l.status==="active"?"bank_read_failed":"bank_read_reconnect"});
+  });
+  return out;
+}
+const BANK_RATE_COOLDOWN_MS=6*60*60*1000;
+function bankRateKey(bank){
+  const ent=entFromAspsp(bank);
+  return ent||String(bank||"").toLowerCase().replace(/[^a-z0-9_]+/g,"_").slice(0,80);
+}
+function bankRateMap(){
+  try{ const x=JSON.parse(localStorage.getItem("_bankRateUntil")||"{}"); return x&&typeof x==="object"?x:{}; }
+  catch(e){ return {}; }
+}
+function bankRateUntil(bank){
+  const map=bankRateMap(), n=Number(map[bankRateKey(bank)]||0);
+  return isFinite(n)?n:0;
+}
+function bankRateRemember(bank){
+  try{
+    const map=bankRateMap(); map[bankRateKey(bank)]=Date.now()+BANK_RATE_COOLDOWN_MS;
+    localStorage.setItem("_bankRateUntil",JSON.stringify(map));
+  }catch(e){}
+}
 /* Mismo pipeline que BankHistoryImport.search() al aplanar links → candidatos. */
 function histFlattenHistoryLinks(res, expenses, allow, opts){
   opts=opts||{};
   allow=allow||{};
   const merchantIn=opts.merchantIn!=null ? opts.merchantIn : "Ingreso";
   const merchantOut=opts.merchantOut!=null ? opts.merchantOut : "Compra";
-  const seen={}; (expenses||[]).forEach(function(e){ if(e.extId) seen[e.extId]=1; });
+  const seen={}, seenLegacy={}; (expenses||[]).forEach(function(e){
+    if(!e.extId) return;
+    const bank=expenseBankOf(e)||e.ent||"";
+    if(bank) seen[bank+"|"+e.extId]=1;
+    else seenLegacy[e.extId]=1;
+  });
   let bankReported=0, bankPayload=0, skippedAllow=0, skippedBad=0, skippedExt=0, skippedUniq=0, acctAtCap=0;
   const out=[], uniq={};
   const kOf=function(dt,am,mc){ return String(dt).slice(0,10)+"|"+am+"|"+(mc||""); };
@@ -1236,7 +1319,7 @@ function histFlattenHistoryLinks(res, expenses, allow, opts){
         const dt=String(tx.date||"").slice(0,10), am=Number(tx.amount)||0;
         if(!dt || !am){ skippedBad++; return; }
         const isIn=am<0, abs=Math.abs(am);
-        if(tx.ext_id && seen[tx.ext_id]){ skippedExt++; return; }
+        if(tx.ext_id && (seen[entKey+"|"+tx.ext_id]||seenLegacy[tx.ext_id])){ skippedExt++; return; }
         /* ⚠ EL BANCO VA EN LA CLAVE, Y NO ESTABA (2026-09-12 noche, medido con la sonda).
            Esta clave existe para no meter DOS VECES la misma transaccion si el banco la manda
            repetida. Pero no llevaba el banco dentro, asi que un cargo de Sabadell y otro de
@@ -1560,14 +1643,20 @@ function histCanUndo(state){
    aquí se juntan. Los ⚠ van DELANTE —son los que piden hacer algo, y la telemetría de toasts solo
    recoge los que EMPIEZAN por ⚠—, sin repetir, separados por « · ». */
 function juntaAvisosSync(list){
-  const vistos={}; const avisos=[]; const bien=[];
-  (list||[]).forEach(function(m){
-    const s=String(m||"").trim(); if(!s || vistos[s]) return; vistos[s]=1;
-    (/^[⚠✕✗]/.test(s) ? avisos : bien).push(s);
-  });
+  const unicos=listaAvisosSync(list); const avisos=[]; const bien=[];
+  unicos.forEach(function(s){ (/^[⚠✕✗]/.test(s) ? avisos : bien).push(s); });
   if(!avisos.length) return bien.join(" · ");
   const resto=avisos.slice(1).map(function(s){ return s.replace(/^[⚠✕✗]\s*/,""); });
   return [avisos[0]].concat(resto, bien).join(" · ");
+}
+/* El resumen manual se pinta como filas, no como una frase kilométrica encima de la app. */
+function listaAvisosSync(list){
+  const vistos={}; const out=[];
+  (list||[]).forEach(function(m){
+    const s=String(m||"").trim(); if(!s || vistos[s]) return; vistos[s]=1;
+    out.push(s);
+  });
+  return out;
 }
 function bankIssuesOf(links, dbLinks){
   const out=(links||[]).filter(function(l){

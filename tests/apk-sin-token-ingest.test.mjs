@@ -36,6 +36,21 @@ t("TrExpenseListener solo cae a BuildConfig.INGEST_URL en la APK de depuración"
   assert.equal(/isEmpty\(\)\) ingestUrl = BuildConfig\.INGEST_URL;/.test(j), false, "el fallback sin DEBUG ha vuelto");
 });
 
+t("las notificaciones bancarias quedan apagadas salvo permiso expreso y no martillan PSD2", () => {
+  const web = rd("src/modules/11-app-main.js");
+  assert.match(web, /bankSyncOnNotif:!!\(state\.settings&&state\.settings\.bankSyncOnNotif===true\)/,
+    "el puente Android debe recibir OFF cuando el ajuste todavía no existe");
+  assert.match(web, /bankSyncOnNotif===true\)\) return false/,
+    "la OTA no debe consultar sin un opt-in expreso");
+  assert.match(web, /_bankNotifSyncAt/);
+  assert.match(web, /now-last\s*<\s*12\*60\*60\*1000\s*\|\|\s*used>=1/,
+    "la OTA también debe proteger las APK anteriores al límite nativo");
+  assert.equal(/bankRateAnyUntil/.test(web), false,
+    "el 429 histórico de un banco no puede bloquear la actualización manual de todos los demás");
+  assert.ok((web.match(/allowBankNotifSync\(\)/g)||[]).length>=2,
+    "tanto el ping en frío como el evento en caliente deben compartir el límite");
+});
+
 t("release:apk se niega a publicar si BuildConfig.INGEST_URL no está vacía", () => {
   const s = rd("scripts/release-apk.mjs");
   assert.ok(/INGEST_URL\\s\*=\\s\*""/.test(s) && /No se publica/.test(s));

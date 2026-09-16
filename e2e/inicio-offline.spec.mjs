@@ -22,6 +22,21 @@ async function blockBootReadyEvent(page) {
   });
 }
 
+async function watchPostSplashSkeleton(page) {
+  await page.addInitScript(() => {
+    window.__sawOfflineSkeleton = false;
+    addEventListener("DOMContentLoaded", () => {
+      const check = () => {
+        if (!document.getElementById("mc-load") && document.querySelector("[data-tour=boot-skel]")) {
+          window.__sawOfflineSkeleton = true;
+        }
+      };
+      new MutationObserver(check).observe(document.documentElement, { childList: true, subtree: true, attributes: true });
+      check();
+    });
+  });
+}
+
 test("★ boot-ready no llega: tras splash, skel cae y se ve el hero (tope ~2 s con red)", async ({ page }) => {
   await blockBootReadyEvent(page);
   await seedLoggedInDashboard(page, {
@@ -69,8 +84,9 @@ test("★ red lenta: skel no se queda; hero aparece aunque supabase aborte tarde
   await expect(page.locator("[data-tour=hero]")).toBeVisible({ timeout: 5_000 });
 });
 
-test("★ onLine false al montar: skel cae en <1 s (no espera 2 s)", async ({ page }) => {
+test("★ onLine false al montar: tras el splash Inicio ya nace relleno", async ({ page }) => {
   await blockBootReadyEvent(page);
+  await watchPostSplashSkeleton(page);
   await page.addInitScript(() => {
     try {
       Object.defineProperty(navigator, "onLine", { configurable: true, get() { return false; } });
@@ -81,8 +97,27 @@ test("★ onLine false al montar: skel cae en <1 s (no espera 2 s)", async ({ pa
   });
   await page.goto("/");
   await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
-  await expect(page.locator("[data-tour=boot-skel]")).toHaveCount(0, { timeout: 1_500 });
-  await expect(page.locator("[data-tour=hero]")).toBeVisible({ timeout: 1_500 });
+  await expect(page.locator("[data-tour=boot-skel]")).toHaveCount(0);
+  await expect(page.locator("[data-tour=hero]")).toBeVisible();
+  expect(await page.evaluate(() => window.__sawOfflineSkeleton), "offline no debe pintar ni un frame vacío tras el splash").toBe(false);
+});
+
+test("★ offline: Ajustes conserva la zona Dev del admin conocido", async ({ page }) => {
+  await page.addInitScript(() => {
+    try {
+      Object.defineProperty(navigator, "onLine", { configurable: true, get() { return false; } });
+      localStorage.setItem("_mcAdminProfile", JSON.stringify({ uid: "e2e-user", isAdmin: true }));
+    } catch (e) {}
+  });
+  await seedLoggedInDashboard(page, { __cloudErrors: { profiles: "offline" } });
+  await page.goto("/");
+  await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
+  await dismissNews(page);
+  await page.evaluate(() => {
+    window.dispatchEvent(new CustomEvent("mc-open-settings"));
+  });
+  await expect(page.getByText("Dev", { exact: true })).toBeVisible({ timeout: 5_000 });
+  await expect(page.getByText("🧪 Pruebas", { exact: true })).toBeVisible();
 });
 
 /* ⚠ ESTE TEST ESTABA VERDE POR LA RAZÓN EQUIVOCADA (16/9, promote de la ronda 4.24).

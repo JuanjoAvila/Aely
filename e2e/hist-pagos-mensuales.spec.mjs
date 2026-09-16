@@ -32,6 +32,7 @@ const histLinks = [
 async function abrirHistorico(page) {
   await seedLoggedInDashboard(page, {
     hasBankLink: true,
+    settings:{autoPrices:false,theme:"green",expenseBanks:["sabadell"]},
     __cloudRows: { bank_links: bankLinks },
     __cloudFns: { "bank-sync": { data: { ok: true, links: histLinks }, error: null } },
   });

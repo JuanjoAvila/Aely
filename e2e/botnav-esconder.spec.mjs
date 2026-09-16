@@ -121,14 +121,11 @@ test("la pantalla recolocándose sola no esconde la barra", async ({ page }) => 
   expect(await escondida(page), "cambiar el rol de una cuenta tampoco").toBe(false);
 });
 
-test("si el navegador CANCELA el gesto, la barra no reaparece sola", async ({ page }) => {
-  /* El agujero que me cazó Cursor en la 4.19.69, con el dato que lo cierra: **en su móvil 174 de
-     185 gestos acaban en `touchcancel`**, no en `touchend`. Yo aplazaba el `setState` de la barra
-     hasta soltar el dedo, pero solo lo volcaba en el camino limpio. Lo que quedaba era peor que no
-     aplazar nada: DOM con la clase puesta, refs en `true` y React creyendo que la barra está a la
-     vista → **el siguiente re-render le quitaba la clase y la barra reaparecía sola**.
-     Los demás casos de este fichero no lo ven porque un gesto sintético siempre acaba limpio: hay
-     que mandar `touchCancel` a propósito, y luego forzar un re-render. */
+test("si Android CANCELA el scroll vertical, la barra sigue oculta y el estado queda coherente", async ({ page }) => {
+  /* Android entrega el scroll al WebView con `touchcancel` (174 de 185 gestos medidos). En el
+     fondo, ese cancel debe conservar la barra como estaba: revelarla aquí era exactamente el
+     segundo paso del rechazo 4.25.1.1. El estado de React se reconcilia después del stretch, pero
+     cualquier render intermedio también debe respetar la ref visual. */
   await seedLoggedInDashboard(page);
   await page.goto("/");
   await appLista(page);
@@ -136,36 +133,56 @@ test("si el navegador CANCELA el gesto, la barra no reaparece sola", async ({ pa
 
   const y0 = 600;
   await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 187, y: y0 }] });
-  for (let i = 1; i <= 24; i++) {
+  for (let i = 1; i <= 30; i++) {
     await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 187, y: y0 - i * 16 }] });
     await page.waitForTimeout(16);
   }
   // El navegador se lleva el gesto: nada de touchEnd.
   await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
+  await expect.poll(async () => {
+    const s = await alturaScroll(page);
+    return s.max - s.y;
+  }, { message: "el caso solo vale si el dedo llegó al borde inferior" }).toBeLessThanOrEqual(4);
   await page.waitForTimeout(800);
 
-  /* ⚠ Medido, y NO es lo que yo esperaba al escribir este test: al cancelar, la app REVELA la
-     barra a propósito (`endTopClearNow(true)`), así que aquí no sigue escondida. Lo dejo escrito
-     para que nadie «arregle» ese revelado creyendo que es este bug.
-     Lo que sí se puede exigir es que la app quede CONSISTENTE: la barra a la vista, sin la clase
-     colgada, y respondiendo. Un `className` con `botnav-hidden` puesto a mano y React creyendo lo
-     contrario se vería justo aquí. */
   const tras = await page.evaluate(() => {
     const n = document.querySelector(".botnav");
-    return { clase: n.className, oculta: n.classList.contains("botnav-hidden"), t: getComputedStyle(n).transform };
+    const p = document.querySelector(".page.page-scroll-host");
+    return {
+      clase: n.className,
+      oculta: n.classList.contains("botnav-hidden"),
+      t: getComputedStyle(n).transform,
+      bottom: parseFloat(getComputedStyle(n).bottom),
+      rectBottom: n.getBoundingClientRect().bottom,
+      viewport: window.innerHeight,
+      host: !!(p && p.classList.contains("page-scroll-host"))
+    };
   });
-  expect(tras.oculta, "tras cancelar, la barra queda a la vista y sin clase colgada").toBe(false);
+  expect(tras.oculta, "touchcancel vertical no equivale a subir contenido").toBe(true);
+  expect(tras.host, "el cancel vertical no desmonta el host que permite la ola nativa").toBe(true);
+  expect(tras.t, "la barra transformada encima del borde corta el stretch del WebView").toBe("none");
+  expect(tras.bottom, "la caja oculta permanece anclada al borde, no debajo del viewport").toBe(0);
+  expect(tras.rectBottom, "ninguna parte de la caja puede crear overflow bajo la pantalla").toBeLessThanOrEqual(tras.viewport + 1);
 
-  // Y la app sigue viva: cambiar de pestaña funciona.
+  /* Éste era el agujero real que los gestos anteriores no tocaban: un setState cualquiera hacía
+     que React reescribiera `className` y borrara las clases añadidas a mano por enterScrollHost. */
+  await page.evaluate(() => window.dispatchEvent(new Event("offline")));
+  await expect.poll(() => page.evaluate(() => ({
+    shell:document.querySelector(".app-shell")?.classList.contains("scroll-host-on"),
+    viewport:document.querySelector(".viewport")?.classList.contains("scroll-host-open"),
+    transform:getComputedStyle(document.querySelector(".botnav")).transform
+  })), { message:"un re-render no puede desmontar el host de la ola" }).toEqual({shell:true,viewport:true,transform:"none"});
+
+  // La app sigue viva y un cambio de pestaña sí la revela, como siempre.
   await page.evaluate(() => {
     const b = [...document.querySelectorAll(".botnav-tab")].find((x) => x.getAttribute("data-tour") === "gastos");
     if (b) b.click();
   });
   await page.waitForTimeout(500);
-  expect(await escondida(page), "y después de cambiar de pestaña tampoco se queda escondida").toBe(false);
+  expect(await escondida(page), "cambiar de pestaña devuelve la barra").toBe(false);
 });
 
-test("★ el volcado de estado de la barra se llama desde los TRES caminos de soltar el dedo", () => {
+test("★ al soltar se reconcilia; en el borde no se agenda un render tardío", () => {
   /* Esto NO se puede probar con un gesto sintético, y por eso va como guardián de fuente: en
      Playwright el gesto siempre acaba limpio, así que los cinco casos de arriba pasaban con el
      agujero puesto. Lo cazó Cursor leyendo el código, con el dato que lo cierra: **en su móvil
@@ -174,15 +191,14 @@ test("★ el volcado de estado de la barra se llama desde los TRES caminos de so
      PEOR que no aplazar nada: DOM con la clase, refs en `true`, React creyendo que la barra está
      a la vista, y el siguiente re-render quitándole la clase. */
   const src = readFileSync(new URL("../src/modules/11-app-main.js", import.meta.url), "utf8");
-  const veces = (src.match(/flushNavHide\(\)/g) || []).length;
-  expect(veces, "flushNavHide() tiene que llamarse desde onEnd, onCancel y cancelSwipe").toBeGreaterThanOrEqual(3);
-
-  for (const fn of ["const onEnd=", "const onCancel=function()", "const cancelSwipe=function()"]) {
-    const i = src.indexOf(fn);
-    expect(i, `no encuentro ${fn}`).toBeGreaterThan(-1);
-    const bloque = src.slice(i, i + 700);
-    expect(bloque.includes("flushNavHide()"), `${fn} suelta el dedo sin volcar el estado de la barra`).toBe(true);
-  }
+  expect(src.includes("navFlushTimer"), "no puede quedar el timer que repintaba a mitad de ola").toBe(false);
+  expect(src.includes("deferNavHideFlush"), "no puede quedar el diferido de 700 ms").toBe(false);
+  const end=src.slice(src.indexOf("const onEnd="),src.indexOf("const onCancel=function()"));
+  expect(end.includes("discardNavHideFlush()"), "onEnd en el borde debe dejar al navegador pintar la ola").toBe(true);
+  expect(end.includes("flushNavHide()"), "onEnd fuera del borde debe reconciliar React").toBe(true);
+  const cancel=src.slice(src.indexOf("const cancelSwipe=function("),src.indexOf("useEffect(function(){",src.indexOf("const cancelSwipe=function(")));
+  expect(cancel.includes("discardNavHideFlush()"), "touchcancel en el borde no debe programar un render").toBe(true);
+  expect(cancel.includes("flushNavHide()"), "touchcancel normal sí debe reconciliar React").toBe(true);
 });
 
 test("la animación sigue siendo suave: la barra se va con transición, no de golpe", async ({ page }) => {
@@ -191,14 +207,12 @@ test("la animación sigue siendo suave: la barra se va con transición, no de go
   await appLista(page);
 
   /* Él pidió las dos cosas juntas: «ocúltala antes… SIN quitarme la animación suave». Lo que da
-     la suavidad es la transición CSS, no el retraso que se ha quitado — así que se comprueba que
-     la transición sigue ahí, y que no es la corta del caso de la ola. */
+     la suavidad es la transición CSS, no el retraso que se ha quitado. */
   const t = await page.evaluate(() => {
     const n = document.querySelector(".botnav");
     const cs = getComputedStyle(n);
-    return { dur: cs.transitionDuration, prop: cs.transitionProperty, fast: n.classList.contains("botnav-hidden-fast") };
+    return { dur: cs.transitionDuration, prop: cs.transitionProperty };
   });
   const segundos = String(t.dur).split(",").map((s) => parseFloat(s)).filter((n) => !isNaN(n));
   expect(Math.max(...segundos), "la barra tiene que tener transición (si no, desaparece de golpe)").toBeGreaterThan(0.2);
-  expect(t.fast, "el escondido normal NO usa la curva corta, que es solo para la ola de abajo").toBe(false);
 });

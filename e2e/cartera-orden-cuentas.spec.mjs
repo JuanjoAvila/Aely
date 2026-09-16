@@ -79,3 +79,48 @@ test("mantener pulsado una cuenta la eleva y al soltar sobre otra cambia el orde
   await rows.nth(0).click();
   await expect(page.locator(".v4-sheet")).toBeVisible();
 });
+
+test("una CaixaBank recién conectada se mueve con las demás sin cambiar rol ni saldo", async ({ page }) => {
+  await seedLoggedInDashboard(page, {
+    accounts,
+    obAccounts: [{ key: "caixa-1", ent: "caixabank", aspsp: "CaixaBank", iban: "ES001", name: "Corriente", value: 321.45, cur: "EUR" }],
+    settings: { autoPrices: false, theme: "green", expenseBanks: ["revolut"] },
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+
+  const caixa=page.locator('button.v4-mov[data-ob-key="caixa-1"]');
+  const rows=page.locator(".v4-card-list button.v4-mov[data-account-key]");
+  await expect(caixa).toBeVisible();
+  /* Caixa queda debajo de las tres cuentas sembradas. La llevamos sobre la inmediatamente anterior:
+     así los dos centros están dentro del viewport y el CDP prueba el gesto, no un punto fuera. */
+  await caixa.scrollIntoViewIfNeeded();
+  const from=await caixa.boundingBox(), to=await rows.nth(2).boundingBox();
+  const x=Math.round(from.x+from.width/2), y0=Math.round(from.y+from.height/2), y1=Math.round(to.y+to.height/2);
+  const cdp=await page.context().newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x,y:y0}]});
+  await page.waitForTimeout(480);
+  await expect(caixa).toHaveClass(/dragging/);
+  for(let i=1;i<=6;i++) await cdp.send("Input.dispatchTouchEvent",{
+    type:"touchMove",touchPoints:[{x,y:Math.round(y0+(y1-y0)*i/6)}]
+  });
+  await cdp.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
+
+  await expect(rows.nth(2)).toHaveAttribute("data-ob-key","caixa-1");
+  await expect.poll(() => page.evaluate(() => {
+    const s=JSON.parse(localStorage.getItem("micartera_v3")||"{}");
+    return {
+      order:s.settings&&s.settings.accountListOrder,
+      accounts:(s.accounts||[]).map((a)=>[a.id,a.value,a.role]),
+      ob:(s.obAccounts||[]).map((o)=>[o.key,o.value]),
+      expenseBanks:s.settings&&s.settings.expenseBanks,
+    };
+  })).toEqual({
+    order:["acc:a","acc:b","ob:caixa-1","acc:c"],
+    accounts:[["a",500,"fijos"],["b",80,"diario"],["c",40,"fijos"]],
+    ob:[["caixa-1",321.45]], expenseBanks:["revolut"],
+  });
+});

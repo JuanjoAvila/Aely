@@ -1,5 +1,19 @@
 # Arquitectura — Aely
 
+## Lectura bancaria (4.25.4)
+
+`bank-sync` usa `fetchBankTransactions` para sync e histórico: continúa aunque una página esté
+vacía si hay cursor; máximo 12 páginas, 2000 filas y presupuesto acotado por cuenta. El deadline global
+de 60 segundos permite devolver las cuentas leídas y señalar las que no pudieron consultarse. Conserva resultados
+parciales y los declara con `truncated` / `transactionError`. El histórico incluye enlaces
+inactivos sin consultarlos. `bankReadWarnings` traduce errores por banco en la previsualización;
+el sync manual tampoco anuncia «al día» cuando la lectura está incompleta. El histórico acepta
+una lista de bancos, consulta solo esos enlaces y los recorre estrictamente de uno en uno: no abre
+dos sesiones PSD2 simultáneas. Tras un 429 el cliente conserva una espera de seis horas y no vuelve
+a llamar ni recomienda reconectar.
+El cliente conserva todas las filas recibidas, sin cupo global de 150. La ventana temporal y
+las reglas de dedup de la importación diaria no cambian. No se añade ninguna sincronización.
+
 Deshacer histórico (4.19.14): calcula sobre el estado actual del updater, conserva el lote con
 `cloudPending` antes del DELETE y solo limpia ese lote tras confirmación. La ausencia de sesión
 es un error recuperable, nunca un borrado exitoso. Un pull concurrente no puede resucitar los ids
@@ -56,6 +70,12 @@ un segundo después el bueno (vídeo del usuario: 125.899 € → 189.371 €). 
 1,8 s de espera y, si React ni siquiera ha pintado a los 8 s, un botón de reintentar — antes el
 `clearInterval` de emergencia dejaba el splash puesto para siempre y sin salida.
 
+Desde 4.25.1, si `navigator.onLine===false`, App y Dashboard abren `mcBootReady` inmediatamente:
+`loadState` ya terminó de forma síncrona y esperar a la nube solo creaba un frame vacío. Con red se
+mantiene el margen para evitar el salto de cifras. Ajustes guarda `_mcAdminProfile` únicamente con
+`uid` + `isAdmin:true` para conservar la zona Dev sin red; es una preferencia visual por usuario,
+se borra al cerrar sesión y nunca sustituye la RLS que protege los datos administrativos.
+
 **Presupuesto de tamaño (v4.10.0):** `tests/presupuesto-rendimiento.test.mjs` mide el artefacto
 minificado y su gzip contra topes escritos a mano. Es la otra mitad del rendimiento: `e2e/rendimiento`
 vigila que el trabajo no crezca con el histórico; esto vigila lo que hay que bajar y parsear.
@@ -105,14 +125,23 @@ caducaran «cada dos por tres» (feedback 2026-07-18). Syncs que siguen vivos, t
 | Botón «↻ Sincronizar bancos» | Cartera, junto a «Tus cuentas» (visible con `hasBankLink`) |
 | «Actualizar» de un banco | Ajustes → Mis bancos |
 | Recién autorizado (`?bank=ok` / goto `bank\|ok`) | `11-app-main.js` |
-| Bootstrap de conciliación (1ª vez sin `bankTx`) | `11-app-main.js` (solo una vez en la vida del enlace) |
-| Noti del banco (evento real del usuario) | ajuste `st_banksync_notif`, se puede apagar |
+| Noti del banco (evento real del usuario) | apagado por defecto; si se activa expresamente, presupuesto persistente de 1 cada 12 h |
 
 El sincronizador general también consulta el puente nativo de Trade Republic cuando existe. Su
 `availableCash` y la tarjeta específica de TR pasan por el mismo reanclaje (`applyTrCash`), para
 que dos botones equivalentes no dejen saldos distintos. En enlaces Open Banking multicuenta, los
 movimientos se leen desde cada `accounts[].transactions`; el bloque superior es solo la copia
 retrocompatible de la primera cuenta y no se suma dos veces.
+
+Un fallo pasajero no equivale a un permiso caducado. Open Banking solo pone el enlace en
+`expired` ante un `EB 401` firme; 403/404, límites 429, 5xx y timeouts conservan el enlace activo.
+Trade Republic guarda aparte `_trAuthExpired`: que el puente arranque todavía sin sesión visible
+no enciende el aviso de reconexión. Al sincronizar a mano se intenta primero reutilizar y validar
+la sesión guardada, y solo una respuesta explícita `authExpired` pide volver a iniciar sesión.
+
+El presupuesto de notificaciones vive en `localStorage`, no solo en memoria, para proteger también
+los APK ya instalados que reciben el cambio por OTA. El cooldown por 429 también persiste ahí para
+que repetir un botón no vuelva a gastar peticiones durante la ventana indicada por el proveedor.
 
 **No reintroducir** un sync por apertura/foreground sin repensar esto: el histórico está en el
 CHANGELOG 4.1.0 y en el comentario del propio código.
@@ -141,8 +170,10 @@ escribir `Access-Control-Allow-Origin: "*"`.
 - Cuenta **re-anclada por el banco** (tiene `bankIban`): solo nombre + rol; el saldo lo trae
   el banco (mostrarlo bloqueado, no dejar mentirse). Esta distinción es además la base de la
   posible capa freemium (ver ROADMAP).
-- Cuenta **extra OB** (`obAccounts`): renombrar (`obLabels`) o promocionar con rol
-  (`promoteObAccount`), igual que en v3.
+- Cuenta **extra OB** (`obAccounts`): abre la misma ficha, con saldo bloqueado; permite renombrar
+  (`obLabels`) y solo se promociona con rol mediante una elección explícita (`promoteObAccount`).
+  Su posición se guarda en `settings.accountListOrder`, mezclada visualmente con `accounts` sin
+  moverla de modelo ni alterar saldo, rol o presupuesto.
 - El rol (recibos/diario/todo) vive AQUÍ; en v4.0.x quedó inaccesible (solo existía en el
   Wealth v3 no montado) — no volver a dejar el rol sin puerta.
 

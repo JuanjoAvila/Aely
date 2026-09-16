@@ -1,8 +1,13 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-16 · **v4.24.5** — la ronda 4.24 a producción, con una sola nota.
+> Estado a 2026-09-16 · **v4.25.5** — la barra oculta ya no sale físicamente por debajo del viewport ni puede robar el segundo tirón en el fondo; el histórico bancario conserva la espera explícita tras 429. Preparada para validar ola ahora y bancos cuando venza el límite.
+> Anterior: **v4.25.3** — el intento de concurrencia limitada seguía provocando 429 y el host de la ola perdía clases al repintarse.
+> Anterior: **v4.25.2** — el primer refuerzo del histórico seguía sin traer importes de Caixa y la ola continuaba revelando la barra al repetir el gesto.
+> Anterior: **v4.25.1** — ficha y orden de cuentas nuevas, arranque offline/Dev y filtro de bancos diarios aprobados; rechazados histórico Caixa y ola/barra.
+> Anterior: **v4.25.0** — lectura bancaria paginada publicada en beta y `bank-sync` desplegada; rechazada en el móvil al comprobar que una CaixaBank nueva seguía sin ficha ni orden.
+> Anterior: **v4.24.5** — la ronda 4.24 a producción, con una sola nota.
 > Anterior: **v4.24.4** — Ajustes ya no se abre solo tras probar la beta.
-> Anterior: **v4.24.3** — el banco espera a la nube.
+> Anterior: **v4.24.3** — el banco espera a la nube: un móvil con datos viejos ya no repite movimientos.
 > Anterior: **v4.24.2** — Inicio y panel beta sin red (skel corto).
 > Anterior: **v4.24.1** — la lista de Gastos marca los ingresos que no cuentan (otro banco o traspaso), igual que el balance; ingest deja rastro de cada descarte.
 > Anterior: **v4.24.0** — sin internet, Inicio pinta los datos locales (no se queda en esqueletos).
@@ -185,7 +190,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.24.5** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.25.5** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |
@@ -195,7 +200,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 | Tema | Notas |
 |------|--------|
 | **MyInvestor reCAPTCHA** | **4.6.4:** intento OTA — la app carga el reCAPTCHA de Google bajo demanda con el **site key de MyInvestor** (que el usuario pega en la tarjeta MI; su web va tras Incapsula y no se puede extraer desde el CI), ejecuta la acción, y reintenta el login con `X-Recaptcha-Token`. **Riesgo:** reCAPTCHA v3 suele atar el token al dominio registrado (`myinvestor.es`); si MI valida el origen, rechazará el token de nuestra WebView → entonces el único camino es una **WebView nativa** que cargue la web de MI (APK). El intento OTA se prueba en 1 min: si el token cuela, resuelto sin tocar nativo. Palancas previas: `x-myinvestor-app`=3.150.0, mensaje humano, `captchaToken` en cabeceras (plumbing listo). |
-| **Open Banking: sync solo a demanda** | Desde 4.1.0 NO hay auto-sync al abrir/volver (caducaba consentimientos de Caixa/Sabadell por «uso robótico»). Syncs vivos: botón «↻ Sincronizar bancos» en Cartera, «Actualizar» en Mis bancos, tras autorizar (`?bank=ok`), bootstrap 1ª vez, y noti del banco (ajuste). Si aun así caducan, el problema es otro (límite 90 días PSD2 = normal). |
+| **Open Banking: sync solo a demanda** | Desde 4.1.0 NO hay auto-sync al abrir/volver. En 4.25.4 también se retira el bootstrap sin toque y la sincronización por notificación queda apagada por defecto; si se activa expresamente, se limita a una cada 12 h. Un 429 abre una espera local de 6 h sin reconexión. Solo un 401 firme pide renovar el permiso. |
 | **Widget «Puedes gastar»** | 4.18.2: ingest cuenta como la app (`filasComoLaApp`). Prueba: pago con la app cerrada. Si el widget no se re-pinta en MIUI, quitar y re-añadir. |
 | **Limpieza del repo (tanda 16)** | Basura, docs rancio, código muerto. **No visual, no es rendimiento, no es Clean Code de libro.** El monolito es a propósito (`docs/adr/0002-monolito.md`). Alcance en `docs/briefs/plan-vuelta-crucero.md` §16. |
 | **Play Store** | **Lo último.** Data safety + NotificationListener. No adelantar: si se implementa, se tienta de publicar antes de que esté pulida a su criterio. Cualquier tanda nueva va **antes**. |

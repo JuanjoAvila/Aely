@@ -1,28 +1,6 @@
-/* BUG 6 DE LA SESIÓN DEL 2026-08-03 — «rebote raro»: su descripción textual (rechazo tras probar
- * el intento anterior, commit c40a67f): «No va bien se queda atascado durante un momento y luego
- * sí que hace la animación de la ola pero es muy muy raro».
- *
- * El rebote en sí YA es el rubber-band NATIVO del navegador (ver docs/memoria/mi-cartera-roadmap.md,
- * «EL REBOTE ERA EL NAVEGADOR TODO EL TIEMPO») — `.page` no tiene ni `overscroll-behavior` propio
- * ni JS de rebote desde el 1/8. `c40a67f` (2/8) añadió: esconder la barra inferior al llegar al
- * final de la lista, simétrico al caso de arriba, porque si no la barra (z-index 40) tapaba la
- * zona donde ocurre el rebote — «en Gastos no se reproduce la ola, era la barra».
- *
- * Causa real de "atascado... luego raro" encontrada aquí: la barra usa SIEMPRE la misma transición
- * calmada de 0,55 s (`transition:transform .55s ...,opacity .4s`), puesta a propósito para el caso
- * normal de esconderse al leer una lista hacia abajo («el ocultado de golpe se sentía brusco»,
- * feedback 2026-07-18). Pero el rebote NATIVO tarda solo ~0,2-0,3 s en asentarse — bastante menos
- * que esos 0,55 s. Resultado: al llegar al final, la barra seguía deslizándose/desvaneciéndose
- * TODAVÍA por encima de la ola mientras esta ya estaba en marcha — dos animaciones a ritmos
- * distintos peleando por el mismo trozo de pantalla, justo lo que describía.
- *
- * Arreglo (11-app-main.js + shell.html): un modificador `botnav-hidden-fast`, con una transición
- * mucho más corta, que se aplica SOLO cuando el motivo de esconder es «hemos llegado al final»
- * — el escondido normal al bajar sigue con su calma de siempre, que nunca fue el problema.
- *
- * Se comprueba de forma ESTRUCTURAL (clases + duración de transición vía getComputedStyle), no
- * por tiempos de frame (sería flaky en CI): que llegar al final usa la transición corta, y que un
- * scroll normal hacia abajo (sin llegar al final) sigue con la calmada de siempre. */
+/* El rebote de abajo es el rubber-band NATIVO de Android. La barra de la app no debe intentar
+ * ayudar: si estaba visible sigue visible; si se ocultó leyendo, sigue oculta. Solo una subida
+ * real de contenido puede enseñarla. El WebView necesita además touch-action/overscroll en auto. */
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
@@ -30,14 +8,9 @@ function historico(n) {
   const out = [];
   const ahora = Date.now();
   for (let i = 0; i < n; i++) {
-    out.push({
-      id: "x" + i,
-      date: new Date(ahora - i * 3600_000 * 5).toISOString(),
-      amount: (i % 7) + 1.5,
-      merchant: ["Mercadona", "Bar Paco", "Repsol", "Amazon", "Bizum a Ana"][i % 5],
-      category: ["super", "bares", "transporte", "compras", "otros"][i % 5],
-      source: "manual",
-    });
+    out.push({ id: "x" + i, date: new Date(ahora - i * 3600_000 * 5).toISOString(),
+      amount: (i % 7) + 1.5, merchant: ["Mercadona", "Bar Paco", "Repsol", "Amazon", "Bizum a Ana"][i % 5],
+      category: ["super", "bares", "transporte", "compras", "otros"][i % 5], source: "manual" });
   }
   return out;
 }
@@ -48,53 +21,46 @@ async function appLista(page) {
   await dismissNews(page);
 }
 
-async function estadoBarra(page) {
-  return page.evaluate(() => {
-    const el = document.querySelector(".botnav");
-    const cs = getComputedStyle(el);
-    return {
-      escondida: el.classList.contains("botnav-hidden"),
-      rapida: el.classList.contains("botnav-hidden-fast"),
-      transitionDuration: cs.transitionDuration,
-    };
-  });
-}
-
-// `.page-live` la llevan la pestaña activa Y sus vecinas premontadas (para que el swipe no entre
-// en blanco) — no sirve para identificar CUÁL es la activa. Como en swipe-pestanas.spec.mjs: la
-// página de Gastos por el ÍNDICE de su pestaña, no por clase ni por posición en pantalla.
 async function scrollear(page, scrollTop) {
   await page.evaluate((st) => {
     const idx = Array.from(document.querySelectorAll(".botnav-tab")).findIndex((b) => b.classList.contains("active"));
-    const live = document.querySelectorAll(".page")[idx];
+    const live = document.querySelector(".page.page-scroll-host") || document.querySelectorAll(".page")[idx];
     live.scrollTop = st;
     live.dispatchEvent(new Event("scroll", { bubbles: true }));
-    // La app aplica hide/reveal en scrollend (+ margen en bordes para la ola nativa).
     live.dispatchEvent(new Event("scrollend", { bubbles: true }));
   }, scrollTop);
 }
 
-/** Espera a que el botnav asiente tras un scroll a borde (hide diferido ~450 ms / pin tope ~1 s). */
-async function esperarBarra(page) {
-  await page.waitForTimeout(550);
-}
-
-/** Tras estar en el tope la barra queda pineada ~0,7–1 s (anti-parpadeo). Hay que dejar caducar
- *  el pin antes de medir un hide por scroll hacia abajo. */
-async function esperarPinTope(page) {
-  await page.waitForTimeout(1100);
-}
-
 const alturaMax = (page) => page.evaluate(() => {
   const idx = Array.from(document.querySelectorAll(".botnav-tab")).findIndex((b) => b.classList.contains("active"));
-  const live = document.querySelectorAll(".page")[idx];
+  const live = document.querySelector(".page.page-scroll-host") || document.querySelectorAll(".page")[idx];
   return live.scrollHeight - live.clientHeight;
 });
 
-/** Entra en Gastos y pone el filtro de fecha en "Todo": el filtro por defecto es "Este mes", y con
- *  la fecha real de hoy (día 3) la mayoría del histórico sembrado (fechas repartidas en el pasado)
- *  cae fuera — la lista se queda corta y nunca hay nada que scrollear (no es el bug, es el propio
- *  filtro hurtando datos a la prueba). */
+async function irAlFondo(page) {
+  for (let i = 0; i < 12; i++) {
+    await scrollear(page, await alturaMax(page));
+    await page.waitForTimeout(100);
+    const queda = await page.evaluate(() => {
+      const h = document.querySelector(".page.page-scroll-host");
+      return h ? (h.scrollHeight - h.clientHeight - h.scrollTop) : 9999;
+    });
+    if (queda <= 2) return;
+  }
+  throw new Error("la lista incremental no llegó a su fondo real");
+}
+
+async function estado(page) {
+  return page.evaluate(() => {
+    const nav = document.querySelector(".botnav");
+    const idx = Array.from(document.querySelectorAll(".botnav-tab")).findIndex((b) => b.classList.contains("active"));
+    const live = document.querySelector(".page.page-scroll-host") || document.querySelectorAll(".page")[idx];
+    const css = getComputedStyle(live);
+    return { hidden: nav.classList.contains("botnav-hidden"), host: live.classList.contains("page-scroll-host"),
+      touchAction: css.touchAction, overscrollY: css.overscrollBehaviorY };
+  });
+}
+
 async function irAGastosConTodo(page) {
   await page.evaluate(() => document.querySelector('.botnav-tab[data-tour="gastos"]').click());
   await expect.poll(() => page.evaluate(() => document.querySelector(".botnav-tab.active")?.getAttribute("data-tour"))).toBe("gastos");
@@ -107,73 +73,120 @@ async function irAGastosConTodo(page) {
     if (todo) todo.click();
   });
   await expect(page.locator("button.v4-mov").first()).toBeVisible({ timeout: 15_000 });
-  await expect.poll(() => alturaMax(page), { timeout: 15_000, message: "la lista de Gastos tiene que poder scrollear para que la prueba valga" }).toBeGreaterThan(300);
+  await expect.poll(() => alturaMax(page), { timeout: 15_000 }).toBeGreaterThan(300);
 }
 
-test("llegar al final esconde la barra con una transición RÁPIDA, no con la calmada de siempre", async ({ page }) => {
+test("llegar abajo con la barra visible no la cambia y deja libre la ola nativa", async ({ page }) => {
   await seedLoggedInDashboard(page, { expenses: historico(200) });
   await page.goto("/");
   await appLista(page);
   await irAGastosConTodo(page);
-  await page.waitForTimeout(400); // deja asentar el premontaje/carga antes de medir
-  const max = await alturaMax(page);
-
-  // Primer scroll tras cambiar de pestaña: solo sincroniza (scrollTab.current!==tab), no actúa.
   await scrollear(page, 0);
-  await page.waitForTimeout(60);
-  await esperarPinTope(page);
+  await page.waitForTimeout(400);
 
-  // Scroll normal hacia abajo, SIN llegar al final: tiene que esconder con la curva calmada.
-  await scrollear(page, Math.round(max * 0.4));
-  await expect.poll(async () => (await estadoBarra(page)).escondida, {
-    timeout: 3_000,
-    message: "un scroll normal hacia abajo tiene que esconder la barra",
-  }).toBe(true);
-  const normal = await estadoBarra(page);
-  expect(normal.rapida, "un scroll normal (sin llegar al final) NO debe usar la transición rápida").toBe(false);
-  expect(normal.transitionDuration, "el escondido normal tiene que conservar su curva calmada de 0,55 s").toContain("0.55s");
-
-  // Vuelve a enseñar la barra (sube) antes de medir el caso del final, para partir de "visible".
-  await scrollear(page, 0);
-  await esperarBarra(page);
-  await esperarPinTope(page);
-  const trasSubir = await estadoBarra(page);
-  expect(trasSubir.escondida, "subir tiene que volver a enseñar la barra").toBe(false);
-
-  // Llega al final de golpe (el caso real: una lista corta, o un fling que aterriza ya al fondo).
-  await scrollear(page, max);
-  await esperarBarra(page); // hide en borde tras ~450 ms (no matar la ola del fling)
-  const final = await estadoBarra(page);
-  expect(final.escondida, "llegar al final tiene que esconder la barra (si no, tapa el rebote)").toBe(true);
-  expect(final.rapida, "llegar al final tiene que usar la transición RÁPIDA (botnav-hidden-fast)").toBe(true);
-  expect(final.transitionDuration, "el escondido al llegar al final tiene que ser corto, para no competir con el rebote nativo (~0,2-0,3 s)").not.toContain("0.55s");
+  await irAlFondo(page);
+  await irAlFondo(page);
+  const s = await estado(page);
+  const barra = await page.evaluate(() => {
+    const nav = document.querySelector(".botnav");
+    const fab = document.querySelector(".botnav-fab");
+    return { alto:nav.getBoundingClientRect().height, overflow:getComputedStyle(nav).overflow,
+      fabAlto:fab.getBoundingClientRect().height };
+  });
+  expect(s.hidden, "tirar hacia abajo en el borde no puede esconder la barra").toBe(false);
+  expect(["auto", "pan-y"], "Android necesita pan-y/auto para dibujar el rubber-band").toContain(s.touchAction);
+  expect(s.overscrollY, "contain/none mata la ola nativa").toBe("auto");
+  expect(barra.alto, "la zona segura no puede aplastar la barra visible").toBeGreaterThan(68);
+  expect(barra.overflow, "el FAB visible debe poder sobresalir por arriba").toBe("visible");
+  expect(barra.fabAlto, "el FAB debe conservar su tamaño completo").toBeGreaterThan(50);
 });
 
-test("al alejarse del final y volver a bajar hasta abajo, la transición sigue siendo rápida", async ({ page }) => {
+test("seguir tirando abajo no revela la barra oculta; subir contenido sí", async ({ page }) => {
   await seedLoggedInDashboard(page, { expenses: historico(200) });
   await page.goto("/");
   await appLista(page);
   await irAGastosConTodo(page);
-  await page.waitForTimeout(400); // deja asentar el premontaje/carga antes de medir
-  const max = await alturaMax(page);
-
-  await scrollear(page, 0); // sincroniza
-  await page.waitForTimeout(60);
-  await esperarPinTope(page);
-  await scrollear(page, max); // llega al final
-  await esperarBarra(page);
-  let estado = await estadoBarra(page);
-  expect(estado.rapida).toBe(true);
-
-  // Sube (revela) y vuelve a bajar hasta el final: sigue siendo la transición rápida cada vez.
-  // `max` se recalcula: la lista pagina con IntersectionObserver y puede haber crecido, y un
-  // valor viejo aterrizaría por DEBAJO del nuevo final — dando el escondido "normal", no el rápido.
   await scrollear(page, 0);
-  await esperarBarra(page);
-  await esperarPinTope(page);
-  await scrollear(page, await alturaMax(page));
-  await esperarBarra(page);
-  estado = await estadoBarra(page);
-  expect(estado.escondida, "el segundo viaje al final también tiene que esconder la barra").toBe(true);
-  expect(estado.rapida, "el segundo viaje al final también tiene que ser con la transición rápida").toBe(true);
+  await page.waitForTimeout(1100);
+
+  let max = await alturaMax(page);
+  await scrollear(page, Math.round(max * 0.45));
+  await expect.poll(async () => (await estado(page)).hidden).toBe(true);
+
+  await irAlFondo(page);
+  max = await alturaMax(page);
+  await scrollear(page, max - 40); // oscilación típica del rubber-band de Android
+  await scrollear(page, max);
+  expect((await estado(page)).hidden, "el rebote de abajo no es una subida de contenido").toBe(true);
+
+  /* Una subida REAL necesita dirección de dedo, no solo fabricar un scrollTop menor: justo esa
+     diferencia es la que separa la intención de la devolución elástica de Android. */
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 187, y: 260 }] });
+  for (let i = 1; i <= 14; i++) {
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 187, y: 260 + i * 18 }] });
+    await page.waitForTimeout(12);
+  }
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect.poll(async () => (await estado(page)).hidden, {
+    message: "al subir de verdad, la barra sí vuelve",
+  }).toBe(false);
+});
+
+test("el rebote grande con el dedo aún empujando abajo no revela la barra", async ({ page }) => {
+  await seedLoggedInDashboard(page, { expenses: historico(200) });
+  await page.goto("/");
+  await appLista(page);
+  await irAGastosConTodo(page);
+  await scrollear(page, 0);
+  await page.waitForTimeout(500);
+
+  let max = await alturaMax(page);
+  await scrollear(page, Math.round(max * 0.45));
+  await expect.poll(async () => (await estado(page)).hidden).toBe(true);
+  await irAlFondo(page);
+
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 187, y: 600 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 187, y: 550 }] });
+  /* Android llega a devolver más de 160 px de scrollTop durante el stretch. Sin mirar la
+     dirección del dedo, ese dy negativo se confundía con subir y sacaba la barra. */
+  await page.evaluate(() => {
+    const h = document.querySelector(".page.page-scroll-host");
+    const m = h.scrollHeight - h.clientHeight;
+    h.scrollTop = Math.max(0, m - 220);
+    h.dispatchEvent(new Event("scroll", { bubbles: true }));
+  });
+  expect((await estado(page)).hidden, "el stretch no es una orden de mostrar navegación").toBe(true);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
+});
+
+test("una deriva lateral del pulgar en el borde sigue siendo ola y no abre la barra", async ({ page }) => {
+  await seedLoggedInDashboard(page, { expenses: historico(200) });
+  await page.goto("/");
+  await appLista(page);
+  await irAGastosConTodo(page);
+  await scrollear(page, 0);
+  await page.waitForTimeout(500);
+
+  let max = await alturaMax(page);
+  await scrollear(page, Math.round(max * 0.45));
+  await expect.poll(async () => (await estado(page)).hidden).toBe(true);
+  await irAlFondo(page);
+
+  /* Un pulgar real no baja en una vertical perfecta. Este primer tramo era suficientemente
+     horizontal para que el carrusel robara el gesto, llamara a `pinNavVisible` y desmontara el
+     host: justo el segundo tirón del vídeo del Oppo. En el borde manda siempre el WebView. */
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 300, y: 600 }] });
+  expect((await estado(page)).hidden, "apoyar el dedo en el fondo no muestra la barra").toBe(true);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 245, y: 590 }] });
+  expect((await estado(page)).hidden, "la primera deriva lateral no pertenece al carrusel").toBe(true);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 245, y: 540 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+
+  const s = await estado(page);
+  expect(s.hidden, "el arco del pulgar no puede resucitar la barra en el fondo").toBe(true);
+  expect(s.host, "el arco del pulgar no puede desmontar el host de la ola").toBe(true);
+  expect(await page.evaluate(() => document.querySelector(".botnav-tab.active")?.getAttribute("data-tour"))).toBe("gastos");
 });

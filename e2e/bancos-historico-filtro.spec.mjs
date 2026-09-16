@@ -67,11 +67,17 @@ const histLinks = [
   ] }] },
 ];
 
-async function abrirHistorico(page) {
+async function abrirHistorico(page, opts={}) {
+  const historyLinks=opts.links||histLinks;
+  const usedBankLinks=opts.bankLinks||bankLinks;
+  const expenseBanks=opts.expenseBanks||usedBankLinks.map((l)=>l.aspsp_name.toLowerCase().includes("trade")?"trade_republic":l.aspsp_name.toLowerCase().includes("sabadell")?"sabadell":l.aspsp_name.toLowerCase().includes("caixa")?"caixabank":"revolut");
   await seedLoggedInDashboard(page, {
     hasBankLink: true,
-    __cloudRows: { bank_links: bankLinks },
-    __cloudFns: { "bank-sync": { data: { ok: true, links: histLinks }, error: null } },
+    settings:{autoPrices:false,theme:"green",expenseBanks},
+    __cloudRows: { bank_links: usedBankLinks },
+    /* La misma Edge sirve sync diario e histórico. El doble base queda vacío para que abrir
+       Ajustes no importe antes la fila que precisamente queremos comprobar en el histórico. */
+    __cloudFns: { "bank-sync": { data: { ok: true, links: [] }, error: null } },
   });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
@@ -83,9 +89,25 @@ async function abrirHistorico(page) {
   await page.locator("button.set-row").filter({ hasText: /Importar histórico/i }).click();
   const overlay = page.locator(".hist-import");
   await expect(overlay).toBeVisible();
+  await page.evaluate(({links,error}) => {
+    cloud.bankSyncHistory = () => error
+      ? Promise.reject(new Error(error.message || "sin red"))
+      : Promise.resolve({ ok:true, links });
+  }, { links:historyLinks, error:opts.error||null });
+  if(opts.selectOnly){
+    for(const l of usedBankLinks){
+      const chip=overlay.getByRole("button",{name:l.aspsp_name,exact:true});
+      if(!(await chip.count())) continue;
+      const on=((await chip.getAttribute("class"))||"").split(/\s+/).includes("on");
+      const wanted=l.aspsp_name===opts.selectOnly;
+      if(on!==wanted) await chip.click();
+    }
+  }
   await overlay.getByRole("button", { name: /Buscar movimientos/i }).click();
-  await expect(overlay.getByText("Cafe TR")).toBeVisible({ timeout: 10_000 });
-  await expect(overlay.getByText("Super Sabadell")).toBeVisible();
+  if(!opts.custom){
+    if(opts.selectOnly!=="Sabadell") await expect(overlay.getByText("Cafe TR")).toBeVisible({ timeout: 10_000 });
+    if(opts.selectOnly!=="Trade Republic") await expect(overlay.getByText("Super Sabadell")).toBeVisible({ timeout: 10_000 });
+  }
   return overlay;
 }
 
@@ -102,15 +124,15 @@ test("Mis bancos ya no ofrece Importar histórico (solo Importaciones)", async (
   await expect(page.locator("button").filter({ hasText: /^Importar histórico$/ })).toHaveCount(0);
 });
 
-test("Importar histórico: sin tocar el filtro salen los movimientos de TODOS los bancos conectados", async ({ page }) => {
-  const overlay = await abrirHistorico(page);
-  await expect(overlay.getByRole("button", { name: /Importar 2/ })).toBeVisible();
+test("Importar histórico: de entrada consulta solo los bancos marcados para gasto diario", async ({ page }) => {
+  const overlay = await abrirHistorico(page,{expenseBanks:["trade_republic"],selectOnly:"Trade Republic"});
+  await expect(overlay.getByText("Cafe TR")).toBeVisible();
+  await expect(overlay.getByText("Super Sabadell")).toHaveCount(0);
+  await expect(overlay.getByRole("button", { name: /Importar 1/ })).toBeVisible();
 });
 
 test("Importar histórico: filtrar a un banco esconde los del resto Y los saca del botón de importar (el bug reportado)", async ({ page }) => {
-  const overlay = await abrirHistorico(page);
-
-  await overlay.getByRole("button", { name: "Trade Republic", exact: true }).click();
+  const overlay = await abrirHistorico(page,{selectOnly:"Trade Republic"});
 
   // Lo que reportó: Sabadell no puede seguir apareciendo si solo se pidió Trade Republic.
   await expect(overlay.getByText("Super Sabadell")).toHaveCount(0);
@@ -123,10 +145,59 @@ test("Importar histórico: filtrar a un banco esconde los del resto Y los saca d
 
 test("Importar histórico: volver a «Todos los bancos» recupera la vista completa", async ({ page }) => {
   const overlay = await abrirHistorico(page);
-  await overlay.getByRole("button", { name: "Trade Republic", exact: true }).click();
+  await overlay.locator("button.v4-chip").filter({hasText:/^Sabadell$/}).click();
   await expect(overlay.getByText("Super Sabadell")).toHaveCount(0);
 
   await overlay.getByRole("button", { name: "Todos los bancos" }).click();
   await expect(overlay.getByText("Super Sabadell")).toBeVisible();
   await expect(overlay.getByRole("button", { name: /Importar 2/ })).toBeVisible();
+});
+
+test("CaixaBank fallido se explica y permite importar lo recibido de Sabadell", async ({page}) => {
+  const overlay=await abrirHistorico(page,{custom:true,
+    bankLinks:[{aspsp_name:"CaixaBank",status:"active"},bankLinks[1]],
+    links:[{aspsp:"CaixaBank",accounts:[{ok:false,error:"privado",transactions:[]}]},histLinks[1]]});
+  await expect(overlay.locator(".bank-read-warning")).toContainText("CaixaBank: no se han podido leer");
+  await expect(overlay.getByText("Super Sabadell")).toBeVisible();
+  await expect(overlay.getByRole("button",{name:/Importar 1/})).toBeVisible();
+  await expect(overlay).not.toContainText("privado");
+});
+
+test("CaixaBank con histórico pinta su importe y permite importarlo", async ({page}) => {
+  const overlay=await abrirHistorico(page,{custom:true,
+    bankLinks:[{aspsp_name:"CaixaBank",status:"active"}],
+    links:[{aspsp:"CaixaBank",ok:true,accounts:[{ok:true,count:1,transactions:[
+      {date:"2026-09-02",amount:37.42,merchant:"Compra Caixa",card:true,ext_id:"cx-hist-1"}
+    ]}]}]});
+  await expect(overlay.getByText("Compra Caixa")).toBeVisible();
+  await expect(overlay).toContainText("37,42");
+  await expect(overlay.getByRole("button",{name:/Importar 1/})).toBeVisible();
+});
+
+test("CaixaBank a cero se nombra: no se disfraza de histórico ya apuntado", async ({page}) => {
+  const overlay=await abrirHistorico(page,{custom:true,
+    bankLinks:[{aspsp_name:"CaixaBank",status:"active"}],
+    links:[{aspsp:"CaixaBank",ok:true,accounts:[{ok:true,count:0,transactions:[]}]}]});
+  await expect(overlay.locator(".bank-read-warning")).toContainText("CaixaBank: el banco ha devuelto 0 movimientos");
+  await expect(overlay).not.toContainText("No hay movimientos nuevos");
+});
+
+test("histórico pendiente omitido por Edge antiguo no se presenta como sin movimientos", async ({page}) => {
+  const overlay=await abrirHistorico(page,{custom:true,
+    bankLinks:[{aspsp_name:"CaixaBank",status:"pending"}],links:[]});
+  await expect(overlay.locator(".bank-read-warning")).toContainText("CaixaBank: falta completar la conexión");
+  await expect(overlay).not.toContainText("No hay movimientos nuevos");
+});
+
+test("histórico parcial conserva filas y mantiene el aviso aunque no haya candidatos nuevos", async ({page}) => {
+  const overlay=await abrirHistorico(page,{custom:true,bankLinks:[bankLinks[1]],
+    links:[{aspsp:"Sabadell",accounts:[{ok:true,truncated:true,transactions:[]}]}]});
+  await expect(overlay.locator(".bank-read-warning")).toContainText("Sabadell: la descarga está incompleta");
+  await expect(overlay).not.toContainText("No hay movimientos nuevos");
+});
+
+test("fallo de la consulta no afirma que no existen movimientos", async ({page}) => {
+  const overlay=await abrirHistorico(page,{custom:true,error:{message:"sin red"}});
+  await expect(overlay.locator(".bank-read-warning")).toContainText("No se han podido consultar los movimientos");
+  await expect(overlay).not.toContainText("No hay movimientos nuevos");
 });
