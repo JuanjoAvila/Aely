@@ -37,6 +37,19 @@ const alturaMax = (page) => page.evaluate(() => {
   return live.scrollHeight - live.clientHeight;
 });
 
+async function irAlFondo(page) {
+  for (let i = 0; i < 12; i++) {
+    await scrollear(page, await alturaMax(page));
+    await page.waitForTimeout(100);
+    const queda = await page.evaluate(() => {
+      const h = document.querySelector(".page.page-scroll-host");
+      return h ? (h.scrollHeight - h.clientHeight - h.scrollTop) : 9999;
+    });
+    if (queda <= 2) return;
+  }
+  throw new Error("la lista incremental no llegó a su fondo real");
+}
+
 async function estado(page) {
   return page.evaluate(() => {
     const nav = document.querySelector(".botnav");
@@ -71,13 +84,21 @@ test("llegar abajo con la barra visible no la cambia y deja libre la ola nativa"
   await scrollear(page, 0);
   await page.waitForTimeout(400);
 
-  const max = await alturaMax(page);
-  await scrollear(page, max);
-  await scrollear(page, max);
+  await irAlFondo(page);
+  await irAlFondo(page);
   const s = await estado(page);
+  const barra = await page.evaluate(() => {
+    const nav = document.querySelector(".botnav");
+    const fab = document.querySelector(".botnav-fab");
+    return { alto:nav.getBoundingClientRect().height, overflow:getComputedStyle(nav).overflow,
+      fabAlto:fab.getBoundingClientRect().height };
+  });
   expect(s.hidden, "tirar hacia abajo en el borde no puede esconder la barra").toBe(false);
   expect(["auto", "pan-y"], "Android necesita pan-y/auto para dibujar el rubber-band").toContain(s.touchAction);
   expect(s.overscrollY, "contain/none mata la ola nativa").toBe("auto");
+  expect(barra.alto, "la zona segura no puede aplastar la barra visible").toBeGreaterThan(68);
+  expect(barra.overflow, "el FAB visible debe poder sobresalir por arriba").toBe("visible");
+  expect(barra.fabAlto, "el FAB debe conservar su tamaño completo").toBeGreaterThan(50);
 });
 
 test("seguir tirando abajo no revela la barra oculta; subir contenido sí", async ({ page }) => {
@@ -92,8 +113,8 @@ test("seguir tirando abajo no revela la barra oculta; subir contenido sí", asyn
   await scrollear(page, Math.round(max * 0.45));
   await expect.poll(async () => (await estado(page)).hidden).toBe(true);
 
+  await irAlFondo(page);
   max = await alturaMax(page);
-  await scrollear(page, max);
   await scrollear(page, max - 40); // oscilación típica del rubber-band de Android
   await scrollear(page, max);
   expect((await estado(page)).hidden, "el rebote de abajo no es una subida de contenido").toBe(true);
@@ -123,8 +144,7 @@ test("el rebote grande con el dedo aún empujando abajo no revela la barra", asy
   let max = await alturaMax(page);
   await scrollear(page, Math.round(max * 0.45));
   await expect.poll(async () => (await estado(page)).hidden).toBe(true);
-  max = await alturaMax(page);
-  await scrollear(page, max);
+  await irAlFondo(page);
 
   const cdp = await page.context().newCDPSession(page);
   await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 187, y: 600 }] });
@@ -139,4 +159,34 @@ test("el rebote grande con el dedo aún empujando abajo no revela la barra", asy
   });
   expect((await estado(page)).hidden, "el stretch no es una orden de mostrar navegación").toBe(true);
   await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
+});
+
+test("una deriva lateral del pulgar en el borde sigue siendo ola y no abre la barra", async ({ page }) => {
+  await seedLoggedInDashboard(page, { expenses: historico(200) });
+  await page.goto("/");
+  await appLista(page);
+  await irAGastosConTodo(page);
+  await scrollear(page, 0);
+  await page.waitForTimeout(500);
+
+  let max = await alturaMax(page);
+  await scrollear(page, Math.round(max * 0.45));
+  await expect.poll(async () => (await estado(page)).hidden).toBe(true);
+  await irAlFondo(page);
+
+  /* Un pulgar real no baja en una vertical perfecta. Este primer tramo era suficientemente
+     horizontal para que el carrusel robara el gesto, llamara a `pinNavVisible` y desmontara el
+     host: justo el segundo tirón del vídeo del Oppo. En el borde manda siempre el WebView. */
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 300, y: 600 }] });
+  expect((await estado(page)).hidden, "apoyar el dedo en el fondo no muestra la barra").toBe(true);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 245, y: 590 }] });
+  expect((await estado(page)).hidden, "la primera deriva lateral no pertenece al carrusel").toBe(true);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 245, y: 540 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+
+  const s = await estado(page);
+  expect(s.hidden, "el arco del pulgar no puede resucitar la barra en el fondo").toBe(true);
+  expect(s.host, "el arco del pulgar no puede desmontar el host de la ola").toBe(true);
+  expect(await page.evaluate(() => document.querySelector(".botnav-tab.active")?.getAttribute("data-tour"))).toBe("gastos");
 });

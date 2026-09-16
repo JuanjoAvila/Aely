@@ -8,6 +8,9 @@ el recorte de un cambio solo de servidor conserva paginado y `tr-open-banking` s
 no esconda las filas recibidas de otro. `e2e/sync-resumen.spec.mjs` impide que los resultados mixtos
 vuelvan a concatenarse en un toast gigante. Los e2e de barra fuerzan además un repintado React con
 el host de scroll activo: la ola debe conservar sus clases después del render, no solo antes.
+Desde 4.25.5 recorren también el fondo incremental real de Gastos, comprueban que la caja oculta
+no quede por debajo del viewport y reproducen la deriva lateral del pulgar que antes convertía el
+segundo tirón en un cambio de pestaña y hacía reaparecer la barra.
 `tests/tr-open-banking.test.mjs` protege contra el antiguo corte global de 150 movimientos.
 
 ## Tiempos y preparación de Novedades

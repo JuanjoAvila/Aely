@@ -153,13 +153,16 @@ test("si Android CANCELA el scroll vertical, la barra sigue oculta y el estado q
       oculta: n.classList.contains("botnav-hidden"),
       t: getComputedStyle(n).transform,
       bottom: parseFloat(getComputedStyle(n).bottom),
+      rectBottom: n.getBoundingClientRect().bottom,
+      viewport: window.innerHeight,
       host: !!(p && p.classList.contains("page-scroll-host"))
     };
   });
   expect(tras.oculta, "touchcancel vertical no equivale a subir contenido").toBe(true);
   expect(tras.host, "el cancel vertical no desmonta el host que permite la ola nativa").toBe(true);
   expect(tras.t, "la barra transformada encima del borde corta el stretch del WebView").toBe("none");
-  expect(tras.bottom, "oculta en host se desplaza por bottom, no por transform").toBeLessThan(-50);
+  expect(tras.bottom, "la caja oculta permanece anclada al borde, no debajo del viewport").toBe(0);
+  expect(tras.rectBottom, "ninguna parte de la caja puede crear overflow bajo la pantalla").toBeLessThanOrEqual(tras.viewport + 1);
 
   /* Éste era el agujero real que los gestos anteriores no tocaban: un setState cualquiera hacía
      que React reescribiera `className` y borrara las clases añadidas a mano por enterScrollHost. */

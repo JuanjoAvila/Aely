@@ -1,3 +1,20 @@
+## [4.25.5] - 2026-09-16
+### El fondo real deja de tener una caja invisible debajo
+
+El vídeo del Oppo separó el caso bueno del malo: con la barra visible el stretch funcionaba, y
+solo fallaba cuando se ocultaba. En el host nativo, la regla anterior escondía `.botnav` con un
+`bottom` negativo mientras `.viewport` permitía overflow visible. La barra dejaba de verse, pero
+su caja quedaba por debajo del viewport y creaba el stopper que Android encontraba antes de poder
+dibujar la ola. Ahora permanece anclada en `bottom:0` y se recoge dentro del borde mediante alto y
+padding animados, con overflow recortado solo al ocultarse; conserva la transición suave sin
+transform, clip-path ni geometría bajo la pantalla.
+
+Había una segunda ruta independiente: un primer tramo diagonal de más de 36 px podía reclamar el
+eje horizontal incluso estando en el fondo, llamar a `pinNavVisible` y desmontar el host. El borde
+inferior da ahora prioridad absoluta al WebView hasta que el usuario sube contenido. El e2e nuevo
+recorre la lista incremental hasta su fondo efectivo (no el primer límite virtual), reproduce esa
+deriva lateral y comprueba que la barra siga oculta, el host siga montado y la pestaña no cambie.
+
 ## [4.25.4] - 2026-09-16
 ### El rechazo real deja tres causas medibles, no otro ajuste a ciegas
 

@@ -1,5 +1,39 @@
 [
   {
+    "v": "4.25.5",
+    "d": "16 sep 2026",
+    "t": {
+      "es": "La ola inferior ya no tropieza con la barra oculta",
+      "en": "The bottom wave no longer trips over the hidden bar",
+      "ca": "L'ona inferior ja no ensopega amb la barra amagada"
+    },
+    "items": {
+      "es": [
+        "La barra se recoge dentro del borde de la pantalla: ya no deja un bloque invisible debajo que frene la ola de Android.",
+        "En el fondo, una pequeña diagonal del pulgar sigue perteneciendo a la ola y no hace reaparecer la navegación. La barra vuelve solo al subir por el contenido."
+      ],
+      "en": [
+        "The bar now collapses inside the screen edge, so it no longer leaves an invisible block underneath that stops Android's wave.",
+        "At the bottom, a slight diagonal thumb movement still belongs to the wave and does not bring navigation back. The bar returns only when scrolling up through content."
+      ],
+      "ca": [
+        "La barra es recull dins del marge de la pantalla: ja no deixa un bloc invisible a sota que freni l'ona d'Android.",
+        "Al fons, una petita diagonal del polze continua pertanyent a l'ona i no fa reaparèixer la navegació. La barra torna només en pujar pel contingut."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "ola-fondo-sin-caja",
+        "t": {"es":"Ola con la barra oculta","en":"Wave with the bar hidden","ca":"Ona amb la barra amagada"},
+        "items": {
+          "es":["1. En cualquier pestaña larga, baja hasta ocultar la barra y continúa hasta el fondo real.","2. Sigue empujando hacia el fondo dos veces, también dejando que el pulgar haga una ligera diagonal: la ola debe salir desde el primer gesto.","3. La barra debe seguir oculta y reaparecer solo al subir por el contenido."],
+          "en":["1. In any long tab, scroll until the bar hides and continue to the real bottom.","2. Keep pushing towards the bottom twice, also allowing a slight diagonal thumb movement: the wave should appear from the first gesture.","3. The bar must stay hidden and return only when scrolling up through content."],
+          "ca":["1. En qualsevol pestanya llarga, baixa fins que la barra s'amagui i continua fins al fons real.","2. Continua empenyent cap al fons dues vegades, també deixant que el polze faci una diagonal lleu: l'ona ha de sortir des del primer gest.","3. La barra ha de continuar amagada i reaparèixer només en pujar pel contingut."]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.25.4",
     "d": "16 sep 2026",
     "t": {
