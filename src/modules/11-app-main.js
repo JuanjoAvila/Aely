@@ -1122,6 +1122,16 @@ function App(){
   useEffect(function(){ if(drawerOpen) setDrawerMounted(true); },[drawerOpen]);
   useEffect(function(){ if(profileOpen) setProfileMounted(true); },[profileOpen]);
   useBackClose(drawerOpen, function(){ setDrawerOpen(false); });
+  /* 15/9: al CERRAR Ajustes (gesto, atrás, ‹, botnav…) se olvida la marca de reapertura del
+     panel beta. Si no, cada muerte de WebView reabre Ajustes en bucle. No corre en el montaje
+     inicial (drawerOpen ya es false): solo tras haber estado abierto. */
+  const drawerWasOpen=useRef(false);
+  useEffect(function(){
+    if(drawerOpen){ drawerWasOpen.current=true; return; }
+    if(!drawerWasOpen.current) return;
+    drawerWasOpen.current=false;
+    if(typeof betaOlvidarVuelta==="function") betaOlvidarVuelta();
+  },[drawerOpen]);
   useBackClose(profileOpen, function(){ setProfileOpen(false); });
   useEffect(function(){
     try{ window.__mcEmail=(session&&session.user&&session.user.email)||""; }catch(e){}
@@ -1173,16 +1183,17 @@ function App(){
     window.addEventListener("mc-open-settings",h);
     return function(){ window.removeEventListener("mc-open-settings",h); };
   },[]);
-  /* VOLVER AL PANEL DE PRUEBAS DONDE LO DEJÓ (2026-09-10).
+  /* VOLVER AL PANEL DE PRUEBAS DONDE LO DEJÓ (2026-09-10 → 15/9).
      Probar un punto de la beta obliga a SALIR de la app —pagar, mirar el widget, abrir otra app— y
      Android le mata la WebView mientras tanto. Sin esto, cada vuelta aterriza en Inicio y hay que
      rehacer Ajustes → Revisar la beta → bajar hasta donde iba; con cinco puntos por tanda son
-     cinco veces. `betaDebeReabrirse()` solo dice que sí si salió estando dentro y hace menos de
-     2 h; cerrar el panel a propósito borra la marca.
+     cinco veces. `betaDebeReabrirse()` solo dice que sí si salió estando dentro, hace menos de
+     2 h, y aún no se usó esa marca (una sola reapertura automática). Cerrar a propósito borra.
      El evento va en un `setTimeout(0)` a posta: `setDrawerOpen(true)` todavía no ha montado
      Ajustes en este tick, y quien escucha `mc-open-beta-review` vive dentro. */
   useEffect(function(){
     if(typeof betaDebeReabrirse!=="function" || !betaDebeReabrirse()) return;
+    if(typeof betaMarcarReabierto==="function") betaMarcarReabierto();
     setDrawerOpen(true);
     const id=setTimeout(function(){ window.dispatchEvent(new CustomEvent("mc-open-beta-review")); },0);
     return function(){ clearTimeout(id); };
@@ -3308,14 +3319,22 @@ function App(){
       onTouchCancel:drawerOpen?drawerCancel:undefined
     },
       React.createElement("div",{className:"settings-push-h"},
-        React.createElement("button",{className:"back","aria-label":t("v4_back"),onClick:function(){ setDrawerOpen(false); }},"‹"),
+        React.createElement("button",{className:"back","aria-label":t("v4_back"),onClick:function(){
+          // 15/9: cerrar Ajustes con el panel beta abierto también olvida la marca
+          // (si no, Ajustes se reabre en bucle tras cada muerte de WebView).
+          if(typeof betaOlvidarVuelta==="function") betaOlvidarVuelta();
+          setDrawerOpen(false);
+        }},"‹"),
         React.createElement("h1",null, t("settings"))
       ),
       /* «Sincronizar bancos» de Ajustes ahora sincroniza TAMBIÉN Trade Republic, como ya hacía el
          de Cartera. Antes solo lanzaba `runBankSync` (Open Banking), así que el botón que él usa
          para arreglar TR ni siquiera lo tocaba: para él TR es un banco más —lo tiene en el widget—
          y esperar que adivine que va por otro camino es cosa nuestra, no suya. */
-      drawerMounted && React.createElement(SettingsPanel,{state:state,set:set,onClose:function(){ setDrawerOpen(false); },showToast:showToast,uid:uid,onBankSync:sincronizarAMano,onTour:openTour,totals:totals,fetchPrices:fetchPrices,refreshFx:refreshFx,goBanks:banksGoto,goBanksFocus:banksFocus,
+      drawerMounted && React.createElement(SettingsPanel,{state:state,set:set,onClose:function(){
+          if(typeof betaOlvidarVuelta==="function") betaOlvidarVuelta();
+          setDrawerOpen(false);
+        },showToast:showToast,uid:uid,onBankSync:sincronizarAMano,onTour:openTour,totals:totals,fetchPrices:fetchPrices,refreshFx:refreshFx,goBanks:banksGoto,goBanksFocus:banksFocus,
         goGastos:function(){ setDrawerOpen(false); setGastosForceAll(Date.now()); const i=tabIds.indexOf("gastos"); if(i>=0) goTabTop(i); }})
     ),
     React.createElement("div",{className:"profile-dim-layer"+(profileOpen?" on":""),ref:dimLayerRef,style:profileOpen?{opacity:"1"}:undefined,"aria-hidden":"true"}),

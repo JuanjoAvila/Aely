@@ -807,7 +807,11 @@ test("«no lo puedo probar» también encoge; desmarcar vuelve a abrir el punto"
 
 test("salir a probar y volver: el panel se reabre solo y a la misma altura", async ({ page }) => {
   await panelConDosTandas(page);
-  // Estaba leyendo por la mitad cuando Android le mató la app.
+  /* Estaba leyendo por la mitad cuando Android le mató la app.
+     El DEDO va primero a posta (16/9): desde 4.24.4 la marca la pone `pointerdown`, no el scroll
+     a secas, porque restaurar la altura dispara `scroll` sin que él toque nada y eso reabría
+     Ajustes en bucle. Aquí se simula a una persona leyendo, así que hay dedo. */
+  await page.locator(".beta-review").dispatchEvent("pointerdown");
   await page.evaluate(() => {
     const w = document.querySelector(".beta-review");
     w.scrollTop = 240;

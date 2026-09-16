@@ -1212,7 +1212,7 @@ function useYaEnProd(){
   if(!/^\d+\.\d+\.\d+$/.test(base)) return null;
   return !window._mcNewerVer(base, prod) ? prod : false;
 }
-/* VOLVER AL MISMO SITIO DESPUÉS DE PROBAR (2026-09-10).
+/* VOLVER AL MISMO SITIO DESPUÉS DE PROBAR (2026-09-10 → 15/9).
    La otra mitad de su queja, y la que no se ve leyendo el panel: para probar un punto TIENE que
    salir de la app. Android le mata la WebView mientras paga, mira el widget o toca otra app, y al
    volver aterriza en Inicio — con Ajustes cerrado, el panel cerrado y la lista arriba del todo.
@@ -1220,18 +1220,46 @@ function useYaEnProd(){
    Con esto, si salió estando en el panel, vuelve al panel y a la misma altura.
    La marca lleva la HORA y caduca a las 2 h: salir a probar y volver es cosa de minutos; si la
    abre mañana por la mañana quiere entrar en su app, no en el panel de pruebas. Y cerrar a
-   propósito (‹ Ajustes o el gesto atrás) la borra: eso SÍ es «he terminado». */
+   propósito (‹ Ajustes o el gesto atrás) la borra: eso SÍ es «he terminado».
+
+   Rechazo 4.24.2 (15/9): «se abre todo el rato Ajustes». El panel, AL MONTAR, reescribía
+   Date.now() → cada reapertura automática renovaba las 2 h para siempre. Ahora: (a) montar por
+   reapertura NO toca la marca; (b) solo interacción real la pone/renueva; (c) como mucho UNA
+   reapertura automática por marca (`_betaPanelReabierto`); (d) cerrar Ajustes o el panel, o
+   enviar el último veredicto, olvida. */
 const BETA_ABIERTO_KEY="_betaPanelAbierto";
 const BETA_SCROLL_KEY="_betaPanelScroll";
+const BETA_REABIERTO_KEY="_betaPanelReabierto";
 const BETA_VUELTA_MS=2*60*60*1000;
 function betaDebeReabrirse(){
   try{
     var t=parseInt(localStorage.getItem(BETA_ABIERTO_KEY)||"",10);
-    return !!t && (Date.now()-t) < BETA_VUELTA_MS;
+    if(!t || (Date.now()-t) >= BETA_VUELTA_MS) return false;
+    // Una sola reapertura automática por marca: si ya se usó esta hora, aterriza en Inicio.
+    if(localStorage.getItem(BETA_REABIERTO_KEY)===String(t)) return false;
+    return true;
   }catch(e){ return false; }
 }
+function betaMarcarReabierto(){
+  try{
+    var t=localStorage.getItem(BETA_ABIERTO_KEY);
+    if(t) localStorage.setItem(BETA_REABIERTO_KEY, t);
+  }catch(e){}
+}
+function betaMarcarAbierto(){
+  try{
+    var ahora=String(Date.now());
+    localStorage.setItem(BETA_ABIERTO_KEY, ahora);
+    // Marca nueva → otra oportunidad de reapertura (si sale a probar de verdad).
+    localStorage.removeItem(BETA_REABIERTO_KEY);
+  }catch(e){}
+}
 function betaOlvidarVuelta(){
-  try{ localStorage.removeItem(BETA_ABIERTO_KEY); localStorage.removeItem(BETA_SCROLL_KEY); }catch(e){}
+  try{
+    localStorage.removeItem(BETA_ABIERTO_KEY);
+    localStorage.removeItem(BETA_SCROLL_KEY);
+    localStorage.removeItem(BETA_REABIERTO_KEY);
+  }catch(e){}
 }
 function BetaReviewPanel({onClose, showToast}){
   /* Cerrar A PROPÓSITO borra la marca; que la app se muera por detrás, no. Esa es toda la
@@ -1240,14 +1268,20 @@ function BetaReviewPanel({onClose, showToast}){
   useBackClose(true, cerrarDeVerdad);
   const wrapRef=useRef(null);
   const scrollPuesto=useRef(false);
-  useEffect(function(){
-    try{ localStorage.setItem(BETA_ABIERTO_KEY, String(Date.now())); }catch(e){}
-  },[]);
+  // 15/9: NO setItem al montar — la reapertura automática no debe renovar las 2 h.
+  /* ⚠ Y EL SCROLL SOLO NO ES INTERACCIÓN (review 16/9). Devolverlo a la misma altura hace
+     `scrollTop=y`, y eso dispara `scroll` igual que si hubiera arrastrado el dedo. Con el
+     `betaMarcarAbierto()` colgado del scroll a secas, CADA reapertura automática renovaba la
+     marca y borraba `_betaPanelReabierto` — el mismo bucle de su rechazo de 4.24.2, solo que por
+     la otra puerta. Verificado con `beta-panel-reopen`: la marca cambiaba sola al restaurar.
+     Ahora la renueva el DEDO (`pointerdown`); el scroll posterior (inercia) la mantiene viva
+     mientras lee, pero un scroll sin gesto previo no cuenta. */
+  const gestoReal=useRef(false);
+  const tocar=function(){ gestoReal.current=true; betaMarcarAbierto(); };
   const recordarScroll=function(){
     const el=wrapRef.current; if(!el) return;
     try{ localStorage.setItem(BETA_SCROLL_KEY, String(el.scrollTop)); }catch(e){}
-    // Refresca la hora: mientras esté leyendo el panel, la marca no caduca debajo de él.
-    try{ localStorage.setItem(BETA_ABIERTO_KEY, String(Date.now())); }catch(e){}
+    if(gestoReal.current) betaMarcarAbierto();
   };
   const prod=useProdVersion();
   const [notesReady,setNotesReady]=useState(!!(RELEASE_NOTES&&RELEASE_NOTES.length));
@@ -1400,6 +1434,7 @@ function BetaReviewPanel({onClose, showToast}){
     try{ el.scrollIntoView({behavior:"smooth",block:"center"}); }catch(e){ try{ el.scrollIntoView(); }catch(e2){} }
   };
   const mark=function(i,v,g){
+    betaMarcarAbierto();   // tocar un punto = interacción real (15/9)
     setMarks(function(p){ const m=Object.assign({},p); if(m[i]===v) delete m[i]; else m[i]=v; save(m,null); recordarOk(m);
       // Quitar el ✗ se lleva su comentario: si ya no falla, la nota es ruido en el parte siguiente.
       if(m[i]!=="ko") recordarNota(i,"");
@@ -1416,7 +1451,10 @@ function BetaReviewPanel({onClose, showToast}){
       }
       return m; });
   };
-  const setNote=function(i,txt){ setNotes(function(p){ const n=Object.assign({},p); n[i]=txt; store.set(storeKey+"_n",n); recordarNota(i,txt); return n; }); };
+  const setNote=function(i,txt){
+    betaMarcarAbierto();   // escribir nota = interacción real (15/9)
+    setNotes(function(p){ const n=Object.assign({},p); n[i]=txt; store.set(storeKey+"_n",n); recordarNota(i,txt); return n; });
+  };
 
   /* Las tandas comparten la numeración GLOBAL de los puntos (`marks` va por índice), así que
      cada tanda solo necesita saber qué índices son suyos. Se hace así y no con claves por tanda
@@ -1486,6 +1524,10 @@ function BetaReviewPanel({onClose, showToast}){
         setSent(function(p){
           const n=Object.assign({},p); n[g.id]=verdict;
           store.set(storeKey+"_v",n);   // sobrevive a cerrar la app: probar lleva días
+          /* 15/9: si ya no quedan tandas sin veredicto en esta compilación, no reabrir Ajustes. */
+          var ids=grupos.length ? grupos.map(function(x){ return x.id; }) : ["todo"];
+          var todas=ids.every(function(id){ return n[id]==="approved"||n[id]==="rejected"; });
+          if(todas) betaOlvidarVuelta();
           return n;
         });
         // Encoger SIEMPRE al enviar, apruebe o rechace. Dejar la rechazada abierta era lo que le
@@ -1503,7 +1545,7 @@ function BetaReviewPanel({onClose, showToast}){
   const btn=function(on,color){ return {flex:1,background:on?color:"var(--surface-2)",color:on?"#06120C":"var(--text)",
     border:on?"none":"1px solid var(--line)",borderRadius:12,padding:"9px 6px",fontSize:13,fontWeight:800,cursor:"pointer"}; };
 
-  return React.createElement("div",{style:wrap,className:"beta-review",ref:wrapRef,onScroll:recordarScroll},
+  return React.createElement("div",{style:wrap,className:"beta-review",ref:wrapRef,onScroll:recordarScroll,onPointerDown:tocar},
     React.createElement("div",{style:inner},
     React.createElement("button",{style:back,onClick:cerrarDeVerdad}, "‹ Ajustes"),
     React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 2px"}}, "🧪 Revisar la beta"),
@@ -2641,8 +2683,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
               const c=betaMarksCount(pack);
               // Con la versión ya subida a producción la fila deja de cantar «3/8» — ese contador
               // se leía como trabajo pendiente cada vez que abría Ajustes, y no lo era (2026-07-28).
-              if(yaEnProd) return row("betarev","🔍","Revisar esta beta","✅ ya en producción", function(){ setBetaOpen(true); });
-              return row("betarev","🔍","Revisar esta beta", c.tot?(c.n+"/"+c.tot):null, function(){ setBetaOpen(true); });
+              if(yaEnProd) return row("betarev","🔍","Revisar esta beta","✅ ya en producción", function(){ betaMarcarAbierto(); setBetaOpen(true); });
+              return row("betarev","🔍","Revisar esta beta", c.tot?(c.n+"/"+c.tot):null, function(){ betaMarcarAbierto(); setBetaOpen(true); });
             })(),
             (function(){
               // La bandera CRUDA: Ajustes pinta el estado que tendrá la PRÓXIMA sesión, que es lo
