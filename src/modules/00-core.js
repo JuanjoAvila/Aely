@@ -1029,6 +1029,15 @@ const cloud = (function(){
     },
     // IA / KW: sugiere categoría de gasto (Edge Function `categorize`). Sin OPENAI_API_KEY
     // en Supabase cae a keywords; si hay key, solo se usa cuando KW dice «otros».
+    async askHelp(question,language){
+      if(!sb) throw new Error("nube no disponible");
+      const {data,error}=await sb.functions.invoke("help-assistant",{body:{question:String(question||"").slice(0,600),language:language}});
+      if(error){
+        if(error.context&&error.context.status===429) return {ok:false,error:"limited"};
+        throw error;
+      }
+      return data;
+    },
     async suggestCategory(merchant){
       if(!sb) throw new Error("nube no disponible");
       const {data,error}=await sb.functions.invoke("categorize",{ body:{ merchant:String(merchant||"").slice(0,120) } });

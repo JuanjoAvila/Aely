@@ -169,8 +169,15 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         React.createElement("div",{className:"v4-inicio-date"}, new Date().toLocaleDateString(loc(),{weekday:"long",day:"numeric",month:"long"})),
         React.createElement("div",{className:"v4-inicio-hi"}, greetName?tf("v4_hola",{n:greetName}):t("v4_hola_anon"))
       ),
-      React.createElement("button",{className:"v4-avatar","data-tour":"avatar","aria-label":t("pf_title"),
-        onClick:function(){ if(onOpenProfile) onOpenProfile(); else if(onOpenSettings) onOpenSettings(); }}, initials)
+      React.createElement("div",{className:"aely-help-head-actions"},
+        React.createElement("button",{type:"button",className:"aely-help-entry-mini","aria-label":t("help_title"),onClick:function(){
+          try{ window.dispatchEvent(new CustomEvent("mc-open-help",{detail:helpOpenDetail(state, tt, {
+            onConsent:function(ok){ set(function(s){ return Object.assign({},s,{settings:Object.assign({},s.settings,{helpAiOk:!!ok,helpAiAsked:true})}); }); }
+          })})); }catch(e){}
+        }}, "?"),
+        React.createElement("button",{className:"v4-avatar","data-tour":"avatar","aria-label":t("pf_title"),
+          onClick:function(){ if(onOpenProfile) onOpenProfile(); else if(onOpenSettings) onOpenSettings(); }}, initials)
+      )
     ),
 
     /* B4 — entre splash fuera y nube lista: siluetas, no ceros. Si se pintan detrás del splash

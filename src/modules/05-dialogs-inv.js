@@ -49,14 +49,16 @@ function AskHost(){
     else root.classList.remove("ask-open");
     return function(){ root.classList.remove("ask-open"); };
   },[cur]);
-  if(!cur) return null;
+  if(!cur) return React.createElement(HelpHost,null);
   // resolve ANTES de perder cur, y solo una vez: cerrar por el fondo y por «Cancelar» son el mismo camino
   const done=function(r){ const f=cur.resolve; setCur(null); setVal(""); f(r); };
   const ok=function(){ done(cur.input?String(val):true); };
   // Con opciones, cancelar es `null` («no he elegido»), no `false` («he dicho que no»): con tres
   // caminos posibles, un `false` se confundiría con haber elegido el primero.
   const cancel=function(){ done((cur.input||(cur.options||[]).length>0)?null:false); };
-  return ReactDOM.createPortal(
+  return React.createElement(React.Fragment,null,
+    React.createElement(HelpHost,null),
+    ReactDOM.createPortal(
     React.createElement("div",{className:"askback"+(cur.compact?" ask-compact":""),onClick:cancel},
       React.createElement("div",{className:"tabsheet",onClick:function(e){ e.stopPropagation(); }},
         React.createElement("div",{className:"ts-title"},cur.title),
@@ -84,7 +86,7 @@ function AskHost(){
           (cur.options||[]).length===0 && React.createElement("button",{className:"btn btn-primary",style:cur.danger?{background:"linear-gradient(160deg,#E2705F,#C4553F)",color:"#fff"}:null,
             onClick:ok}, cur.ok||t("ask_ok")))
       )
-    ), document.body);
+    ), document.body));
 }
 
 /* ============================================================

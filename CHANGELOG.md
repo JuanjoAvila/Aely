@@ -1,3 +1,26 @@
+## [4.26.3] - 2026-09-16
+### Rediseño v4.1 — «Pregúntame» guía sin inventar ni tocar el dinero
+
+Inicio y Ajustes abren una hoja propia de ayuda. Sin conexión reconoce dudas frecuentes sobre
+presupuesto restante, recibos pendientes, previsión de fin de mes y saldos por banco; las cifras
+se calculan con los mismos motores locales que las pantallas de Aely. Las respuestas conducen a
+Apuntar, Gastos, Cartera, Plan, Mis bancos o Histórico, pero nunca guardan, borran ni sincronizan
+por sí solas. La navegación a los segmentos de Plan espera su montaje real con `requestAnimationFrame`
+acotado, también bajo CPU ×6, sin tocar sus gestos ni `11-app-main.js`.
+
+La interpretación remota es una segunda capa opcional. El consentimiento identifica a OpenAI,
+explica que solo sale la pregunta escrita —nunca saldos, movimientos ni cuentas— y puede rechazarse
+o revocarse desde Ajustes. Cliente y Edge frenan IBAN, tarjetas, PIN/CVV, contraseñas, claves y
+tokens; la Edge verifica JWT, limita cuerpo y frecuencia y solo devuelve ids de un catálogo cerrado.
+El cliente deriva la frase, cifra y acción localmente, y descarta combinaciones incoherentes entre
+tema y botón. Los fallos 404/429/503/timeout dejan un aviso accesible y conservan la guía offline.
+
+El proveedor usa Responses con Structured Outputs, `store:false`, salida corta y modelo configurable
+por `OPENAI_HELP_MODEL` (`gpt-5.6-sol` por defecto). La función permanece desactivada sin
+`AELY_HELP_AI_ENABLED=true` y `OPENAI_API_KEY`: esta versión no activa coste ni transmite preguntas.
+Unitarios y 14 E2E cubren cálculos, privacidad, consentimiento, revocación, fallos remotos,
+accesibilidad, navegación y el caso CPU ×6.
+
 ## [4.26.2] - 2026-09-16
 ### Rediseño v4.1 — «Tus recibos» deja de montar la pantalla antigua
 

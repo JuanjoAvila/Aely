@@ -25,7 +25,7 @@ mi-cartera/
 ├── src/                    # 👈 Fuente editable (v3.108+)
 │   ├── shell.html          #     HTML shell (React, CSS, vendors)
 │   ├── build-order.json    #     Orden de ensamblado de módulos
-│   └── modules/            #     15 ficheros JS (core, i18n, motor, app, boot, v4…)
+│   └── modules/            #     17 ficheros JS (core, i18n, motor, app, boot, v4, ayuda…)
 ├── public/                 # Artefacto desplegable (generado + estáticos)
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
@@ -59,6 +59,7 @@ npm run test:e2e                  # solo Playwright
 
 **Sentry en prod:** secret `SENTRY_DSN` en GitHub Actions (inyectado al deploy) — [docs/SENTRY.md](docs/SENTRY.md).  
 **Categorías IA (opcional):** Edge `categorize` + `OPENAI_API_KEY` en Supabase — [docs/CATEGORIZE.md](docs/CATEGORIZE.md). Sin key, la app ya usa un diccionario amplio de keywords (incluye impuestos/multas).
+**Pregúntame:** guía local y offline para presupuesto, recibos, cuentas y uso de la app. La interpretación con OpenAI es opcional, requiere consentimiento y permanece apagada hasta configurar el backend — [brief y límites](docs/briefs/asistente-hibrido-2026-09-16.md).
 
 ```bash
 # (opcional, local) sellar versión del SW manualmente
@@ -80,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.2** en el repo — rediseño v4.1 en rama, aún sin publicar; disponibilidad de canales con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.26.3** en el repo — rediseño v4.1 y «Pregúntame» en rama, aún sin publicar; disponibilidad de canales con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.

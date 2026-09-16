@@ -51,3 +51,7 @@ verify_jwt = true
 # x-cron-key contra public.cron_secrets (secreto generado en la BD, nunca en el repo).
 [functions.myinvestor-keepalive]
 verify_jwt = false
+
+# Guía de uso: solo usuarios autenticados; no consulta ni modifica movimientos.
+[functions.help-assistant]
+verify_jwt = true

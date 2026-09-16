@@ -1047,9 +1047,10 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
       setKind("gasto"); setRaw(""); setNote(""); setCat("super");
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
-      // Defecto = banco diario, no el sobre (aunque el sobre también sea gasto diario).
-      setBank(dailyBankEnt);
-      // Arranca en la moneda de pantalla (o la última que usó al apuntar en este viaje).
+      // Ayuda «Pregúntame» marca efectivo sin tocar 11 (mismo patrón que __mcExpBank en §3).
+      var wantCash=false;
+      try{ wantCash=!!window.__mcApuntarCash; window.__mcApuntarCash=false; }catch(e){}
+      setBank(wantCash&&hasEfectivo?"efectivo":dailyBankEnt);
       const last=(state.settings&&state.settings.apuntarCur)||(state.settings&&state.settings.currency)||"EUR";
       setEntryCur(String(last).toUpperCase());
     }

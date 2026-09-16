@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-16 · **v4.26.2** — rediseño v4.1 en rama: ficha unificada de gasto, Deshacer, ficha de cuenta y «Tus recibos» sin la pantalla antigua embebida; aún no publicado en beta ni producción.
+> Estado a 2026-09-16 · **v4.26.3** — rediseño v4.1 en rama con «Pregúntame»: ayuda local/offline y puente remoto privado aún apagado; no publicado en beta ni producción.
+> Anterior: **v4.26.2** — «Tus recibos» deja de montar la pantalla antigua y abre listas y fichas ligeras.
 > Anterior: **v4.26.1** — ficha completa de cuenta con saldo, histórico real y últimos movimientos, sin publicar por separado.
 > Anterior: **v4.26.0** — ficha unificada de gasto y borrado con Deshacer, sin publicar por separado.
 > Anterior: **v4.25.6** — la ronda 4.25 está en producción y el panel beta queda vacío al alcanzarla: sin entrada en Ajustes, tandas antiguas ni pruebas repetidas.
@@ -194,7 +195,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.2** (repo, sin publicar; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.26.3** (repo, sin publicar; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

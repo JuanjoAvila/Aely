@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.3",
+    "d": "16 sep 2026",
+    "t": {
+      "es": "Pregúntame, ayuda clara dentro de Aely",
+      "en": "Ask me, clear help inside Aely",
+      "ca": "Pregunta'm, ajuda clara dins d'Aely"
+    },
+    "items": {
+      "es": [
+        "Pregúntame responde incluso sin conexión a dudas sobre presupuesto, recibos, cuentas y cómo usar la app.",
+        "Cada respuesta puede abrir la pantalla adecuada, pero nunca apunta, borra ni sincroniza dinero por su cuenta.",
+        "La ayuda avanzada es opcional: solo puede enviar a OpenAI la pregunta escrita, nunca saldos ni movimientos, y se puede apagar desde Ajustes."
+      ],
+      "en": [
+        "Ask me answers questions about budget, bills, accounts and using the app, even without a connection.",
+        "Each answer can open the right screen, but it never records, deletes or syncs money on its own.",
+        "Advanced help is optional: it may send only the typed question to OpenAI, never balances or transactions, and it can be turned off in Settings."
+      ],
+      "ca": [
+        "Pregunta'm respon fins i tot sense connexió dubtes sobre pressupost, rebuts, comptes i com fer servir l'app.",
+        "Cada resposta pot obrir la pantalla adequada, però mai apunta, esborra ni sincronitza diners tota sola.",
+        "L'ajuda avançada és opcional: només pot enviar a OpenAI la pregunta escrita, mai saldos ni moviments, i es pot apagar des d'Ajustos."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "preguntame-v41",
+        "t": {
+          "es": "Pregúntame",
+          "en": "Ask me",
+          "ca": "Pregunta'm"
+        },
+        "items": {
+          "es": [
+            "1. Abre Pregúntame desde Inicio y pregunta cuánto queda de presupuesto o qué recibos faltan: la cifra debe coincidir con Aely, también sin conexión.",
+            "2. Pregunta cómo apuntar efectivo o abrir Metas, Deudas y Recibos: el botón debe llevar a la pantalla correcta sin guardar nada solo.",
+            "3. Escribe una duda que Aely no reconozca: la ayuda local debe seguir disponible y la opción avanzada debe explicar antes, claramente, qué se enviaría a OpenAI."
+          ],
+          "en": [
+            "1. Open Ask me from Home and ask how much budget remains or which bills are pending: the figure should match Aely, even offline.",
+            "2. Ask how to record cash or open Goals, Debts and Bills: the button should reach the right screen without saving anything on its own.",
+            "3. Type a question Aely does not recognise: local help should remain available and advanced help must clearly explain first what would be sent to OpenAI."
+          ],
+          "ca": [
+            "1. Obre Pregunta'm des d'Inici i pregunta quant pressupost queda o quins rebuts falten: la xifra ha de coincidir amb Aely, també sense connexió.",
+            "2. Pregunta com apuntar efectiu o obrir Metes, Deutes i Rebuts: el botó ha de portar a la pantalla correcta sense desar res tot sol.",
+            "3. Escriu un dubte que Aely no reconegui: l'ajuda local ha de continuar disponible i l'opció avançada ha d'explicar abans, clarament, què s'enviaria a OpenAI."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.2",
     "d": "16 sep 2026",
     "t": {
