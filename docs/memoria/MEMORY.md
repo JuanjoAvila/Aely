@@ -17,6 +17,7 @@
 - [⚠ La CI de beta corre en UTC](ci-beta-corre-en-utc.md) — `TZ=UTC npm test` además del local.
 - [⚠ Cuotas de deuda: NO casan por nombre](cuotas-deudas-no-casan-por-nombre.md) — banco+céntimo+día ±4; `~deuda.` en source (con `#` suma); NO sacar de cash.
 - [Memoria SIEMPRE al repo](feedback-memoria-siempre-al-repo.md) — ⚠ `npm run memoria` tras escribir aquí (si no, `memoria-espejo` tumba la suite); repo PÚBLICO.
+- [⚠ Un test verde por la razón EQUIVOCADA](test-verde-por-razon-equivocada.md) — con SW por delante `page.route` miente; nunca clavar la versión en un test.
 - [⚠ NO dar nada por hecho sin verlo](feedback-no-dar-por-hecho.md) — nombre del test + EXIT real; grep vacío es hallazgo; tabla de estado es afirmación; push OK ≠ CI OK. ⚠ 14/9: un `tail` me escondió su aprobación.
 - [Y el plan compartido también](feedback-traspaso-a-cursor.md) — brief del repo al cerrar tanda para que Cursor retome sin preguntar; Cursor me supera en bugs duros.
 - [★ Un rechazo suyo puede ser ANTERIOR al arreglo](rechazo-anterior-al-arreglo.md) — comparar la HORA del veredicto con la del arreglo antes de re-diagnosticar.
