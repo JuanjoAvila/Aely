@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-16 · **v4.25.1** — las cuentas recién conectadas abren la misma ficha y se ordenan como las demás, sin recibir un rol ni mover dinero hasta que el usuario lo elige. Pendiente de beta tras el rechazo de 4.25.0.
+> Estado a 2026-09-16 · **v4.25.1** — las cuentas recién conectadas ya tienen ficha y orden; el borde inferior deja la ola nativa sin mover la barra; offline arranca con datos y conserva Dev; Gastos abre con los bancos de gasto diario. Preparada para validación en beta tras el rechazo de 4.25.0.
 > Anterior: **v4.25.0** — lectura bancaria paginada publicada en beta y `bank-sync` desplegada; rechazada en el móvil al comprobar que una CaixaBank nueva seguía sin ficha ni orden.
 > Anterior: **v4.24.5** — la ronda 4.24 a producción, con una sola nota.
 > Anterior: **v4.24.4** — Ajustes ya no se abre solo tras probar la beta.

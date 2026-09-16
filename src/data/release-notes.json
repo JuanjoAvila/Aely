@@ -3,22 +3,31 @@
     "v": "4.25.1",
     "d": "16 sep 2026",
     "t": {
-      "es": "Tus bancos nuevos funcionan como las demás cuentas",
-      "en": "New banks work like your other accounts",
-      "ca": "Els bancs nous funcionen com la resta de comptes"
+      "es": "Cuentas nuevas completas y una app más natural, también sin conexión",
+      "en": "Complete new accounts and a more natural app, even offline",
+      "ca": "Comptes nous complets i una app més natural, també sense connexió"
     },
     "items": {
       "es": [
         "Una cuenta recién conectada ya se puede tocar para abrir su ficha, cambiarle el nombre y colocarla donde quieras manteniendo pulsado.",
-        "El saldo sigue viniendo del banco y ningún rol se elige por ti: Recibos, Gasto diario o Todo solo cambia cuando lo tocas expresamente."
+        "El saldo sigue viniendo del banco y ningún rol se elige por ti: Recibos, Gasto diario o Todo solo cambia cuando lo tocas expresamente.",
+        "Al llegar al final de una pantalla, la ola natural de Android funciona sin que la barra inferior aparezca o desaparezca por su cuenta.",
+        "Sin conexión, Inicio muestra los datos locales desde el primer momento y las herramientas de prueba autorizadas siguen disponibles.",
+        "Gastos vuelve a mostrar de entrada todos los bancos marcados como gasto diario; el histórico completo sigue a un toque en Todos los bancos."
       ],
       "en": [
         "A newly connected account can now be tapped to open its details, renamed and placed wherever you want with a long press.",
-        "The balance still comes from the bank and no role is chosen for you: Bills, Daily spending or Everything only changes when you explicitly tap it."
+        "The balance still comes from the bank and no role is chosen for you: Bills, Daily spending or Everything only changes when you explicitly tap it.",
+        "At the end of a screen, Android's natural wave works without the bottom bar appearing or disappearing on its own.",
+        "Offline, Home shows local data from the first moment and authorised testing tools remain available.",
+        "Spending once again starts with every bank marked for daily spending; the full history remains one tap away under All banks."
       ],
       "ca": [
         "Un compte acabat de connectar ja es pot tocar per obrir-ne la fitxa, canviar-li el nom i col·locar-lo on vulguis mantenint-lo premut.",
-        "El saldo continua venint del banc i no es tria cap rol per tu: Rebuts, Despesa diària o Tot només canvia quan ho toques expressament."
+        "El saldo continua venint del banc i no es tria cap rol per tu: Rebuts, Despesa diària o Tot només canvia quan ho toques expressament.",
+        "En arribar al final d'una pantalla, l'ona natural d'Android funciona sense que la barra inferior aparegui o desaparegui tota sola.",
+        "Sense connexió, Inici mostra les dades locals des del primer moment i les eines de prova autoritzades continuen disponibles.",
+        "Despeses torna a mostrar d'entrada tots els bancs marcats com a despesa diària; l'històric complet continua a un toc a Tots els bancs."
       ]
     },
     "tandas": [
@@ -44,6 +53,81 @@
             "1. A Cartera → Els teus comptes, toca el compte de CaixaBank acabat de connectar: ha d'obrir la mateixa fitxa que la resta, amb el saldo bloquejat.",
             "2. Canvia'n el nom. Si el vols fer servir per a Rebuts, Despesa diària o Tot, tria'n el rol real; abans de tocar-lo no n'hi ha d'haver cap de marcat.",
             "3. Tanca la fitxa, mantén premut CaixaBank i mou-lo una posició. L'ordre s'ha de desar i cap saldo no ha de canviar."
+          ]
+        }
+      },
+      {
+        "id": "ola-barra-final",
+        "t": {
+          "es": "La ola de Android ya no pelea con la barra",
+          "en": "Android's wave no longer fights the bar",
+          "ca": "L'ona d'Android ja no lluita amb la barra"
+        },
+        "items": {
+          "es": [
+            "1. En cualquier pestaña larga, baja hasta el final con la barra visible y vuelve a tirar hacia abajo: debe salir la ola nativa y la barra no debe esconderse.",
+            "2. Oculta la barra bajando por la lista, llega al final y vuelve a tirar hacia abajo: debe salir la ola y la barra debe seguir oculta.",
+            "3. Desde el final, sube de verdad por el contenido: solo entonces debe reaparecer la barra."
+          ],
+          "en": [
+            "1. In any long tab, reach the end with the bar visible and pull down again: the native wave should appear and the bar should not hide.",
+            "2. Hide the bar while reading, reach the end and pull down again: the wave should appear and the bar should remain hidden.",
+            "3. From the end, actually scroll up through the content: only then should the bar return."
+          ],
+          "ca": [
+            "1. En qualsevol pestanya llarga, arriba al final amb la barra visible i torna a estirar cap avall: ha de sortir l'ona nativa i la barra no s'ha d'amagar.",
+            "2. Amaga la barra baixant per la llista, arriba al final i torna a estirar cap avall: ha de sortir l'ona i la barra ha de continuar amagada.",
+            "3. Des del final, puja de debò pel contingut: només llavors ha de reaparèixer la barra."
+          ]
+        }
+      },
+      {
+        "id": "offline-inmediato-dev",
+        "t": {
+          "es": "Inicio y herramientas de prueba listos sin conexión",
+          "en": "Home and testing tools ready offline",
+          "ca": "Inici i eines de prova a punt sense connexió"
+        },
+        "items": {
+          "es": [
+            "1. Cierra la app, activa el modo avión y ábrela: al desaparecer el arranque, Inicio debe salir ya relleno, sin un instante vacío.",
+            "2. Entra en Ajustes sin conexión y baja hasta el final: la zona Dev debe seguir apareciendo en tu móvil.",
+            "3. Vuelve a tener conexión: los datos deben sincronizarse como siempre, sin saltos ni duplicados."
+          ],
+          "en": [
+            "1. Close the app, enable airplane mode and open it: when startup disappears, Home should already be filled, with no empty moment.",
+            "2. Open Settings offline and scroll to the end: the Dev area should still appear on your phone.",
+            "3. Go online again: data should sync as usual, without jumps or duplicates."
+          ],
+          "ca": [
+            "1. Tanca l'app, activa el mode avió i obre-la: quan desaparegui l'arrencada, Inici ja ha de sortir ple, sense cap instant buit.",
+            "2. Entra a Ajustos sense connexió i baixa fins al final: la zona Dev ha de continuar apareixent al teu mòbil.",
+            "3. Torna a tenir connexió: les dades s'han de sincronitzar com sempre, sense salts ni duplicats."
+          ]
+        }
+      },
+      {
+        "id": "filtro-bancos-diario",
+        "t": {
+          "es": "Gastos abre con tus bancos del día a día",
+          "en": "Spending opens with your daily banks",
+          "ca": "Despeses s'obre amb els bancs del dia a dia"
+        },
+        "items": {
+          "es": [
+            "1. Marca dos bancos como gasto diario y entra en Gastos: deben salir los movimientos de ambos, no los de todos los bancos.",
+            "2. Abre Filtros → Todos los bancos: debe aparecer también el histórico de los bancos no marcados.",
+            "3. Pulsa Limpiar: debe volver a la selección automática de bancos de gasto diario y el botón Filtros no debe mostrar un contador."
+          ],
+          "en": [
+            "1. Mark two banks for daily spending and open Spending: movements from both should appear, not those from every bank.",
+            "2. Open Filters → All banks: history from unmarked banks should also appear.",
+            "3. Tap Clear: it should return to the automatic daily-bank selection and the Filters button should show no counter."
+          ],
+          "ca": [
+            "1. Marca dos bancs com a despesa diària i entra a Despeses: han de sortir els moviments de tots dos, no els de tots els bancs.",
+            "2. Obre Filtres → Tots els bancs: també ha d'aparèixer l'històric dels bancs no marcats.",
+            "3. Prem Netejar: ha de tornar a la selecció automàtica de bancs de despesa diària i el botó Filtres no ha de mostrar cap comptador."
           ]
         }
       }

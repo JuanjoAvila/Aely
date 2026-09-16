@@ -90,10 +90,11 @@ test("enviar el último veredicto olvida la marca: recargar aterriza en Inicio",
     localStorage.setItem(sk, JSON.stringify({ 0: "ok" }));
   });
 
-  await page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent("mc-open-settings"));
-    setTimeout(() => window.dispatchEvent(new CustomEvent("mc-open-beta-review")), 0);
-  });
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-settings")));
+  // Con la suite cargada, 0 ms podía disparar el segundo evento antes de montar SettingsPanel.
+  // Esperar su pantalla reproduce la puerta real y evita un verde/rojo según la velocidad del PC.
+  await expect(page.getByRole("heading", { name: /Ajustes|Settings|Ajustos/i })).toBeVisible({ timeout: 8_000 });
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-beta-review")));
   await expect(page.locator(".beta-review")).toBeVisible({ timeout: 8_000 });
 
   await page.evaluate(() => {

@@ -1,5 +1,5 @@
 ## [4.25.1] - 2026-09-16
-### Las cuentas recién conectadas tienen la misma ficha y el mismo orden
+### Cuentas nuevas completas, borde inferior estable y offline inmediato
 
 Rechazo real de la beta 4.25.0: al conectar CaixaBank, su fila no se podía tocar, editar ni mover
 como el resto. No era un fallo de `bank-sync`: las cuentas nuevas viven primero en `obAccounts`
@@ -18,6 +18,22 @@ UX que la 4.19.77 dejó documentado como diseño y cerró sin cubrirlo en sus E2
   Las cuentas del banco no muestran «Quitar»: se desconectan desde Ajustes → Bancos.
 - Pruebas: regresión pura roja antes del helper mixto; E2E de una CaixaBank recién conectada para
   abrir/renombrar/promocionar y para moverla sin alterar dinero. Ficha + orden: 12/12 verdes.
+
+El borde inferior deja de ordenar cambios de la navegación: alcanzar `scrollTop=max` conserva la
+barra tal como estuviera y un latch separa la oscilación del rubber-band de una subida real de al
+menos 160 px. Se retiran `botnav-hidden-fast` y su estado, que solo existían para ocultar la barra
+al fondo y eran la causa del primer gesto bloqueado. El host mantiene `touch-action:pan-y` y
+`overscroll-behavior-y:auto`; la ola sigue siendo nativa, no una animación duplicada.
+
+Offline, `mcBootReady()` se abre inmediatamente porque `loadState` ya ha leído el estado local de
+forma síncrona. Dashboard tampoco espera su antiguo tope de 500 ms. Ajustes guarda por UID el
+último `profiles.is_admin=true`: conserva la zona Dev sin red, pero no concede permisos —la RLS
+sigue validando cada lectura— y la marca se borra al cerrar sesión.
+
+Gastos vuelve al contrato confirmado el 16/9: `bankSel` arranca con todos los resultados de
+`expenseBankEnts`, se actualiza si cambia esa selección automática y «Limpiar» vuelve a ella.
+`[]` conserva el significado explícito de «Todos los bancos». El default no enciende el contador;
+ampliar a todos sí. Las pruebas de filtro, arranque offline, Dev y rebote cubren los rechazos.
 
 ## [4.25.0] - 2026-09-15
 ### Lectura bancaria paginada y avisos de histórico incompleto

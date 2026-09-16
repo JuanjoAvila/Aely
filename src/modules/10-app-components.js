@@ -2100,6 +2100,20 @@ function CurConverterPanel({state, onClose, refreshFx}){
 
 /* Contenido del cajón de Ajustes (el cajón deslizante lo gestiona App). */
 function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour, totals, fetchPrices, refreshFx, goBanks, goBanksFocus, goGastos}){
+  const adminCacheKey="_mcAdminProfile";
+  const adminCached=function(id){
+    if(!id) return false;
+    try{
+      const x=JSON.parse(localStorage.getItem(adminCacheKey)||"null");
+      return !!(x&&x.uid===id&&x.isAdmin===true);
+    }catch(e){ return false; }
+  };
+  const saveAdminCached=function(id,on){
+    try{
+      if(id&&on) localStorage.setItem(adminCacheKey,JSON.stringify({uid:id,isAdmin:true}));
+      else localStorage.removeItem(adminCacheKey);
+    }catch(e){}
+  };
   const [expand,setExpand]=useState(null);   // fila-acordeón abierta: "lang" | "gview" | "tabs" | "cur" | null
   const [newsOpen,setNewsOpen]=useState(false);   // histórico de Novedades (WhatsNew reabierto a mano)
   const [privOpen,setPrivOpen]=useState(false);    // política de privacidad DENTRO de la app (no _blank)
@@ -2114,17 +2128,25 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const doSignOut=function(){
     askConfirm({ title:t("au_signout"), ok:t("au_signout"), danger:true }).then(function(yes){
       if(!yes) return;
-      cloud.signOut().then(function(){ showToast(t("au_signedout")); onClose(); });
+      cloud.signOut().then(function(){ saveAdminCached(null,false); showToast(t("au_signedout")); onClose(); });
     });
   };
   // Telemetría: el panel «Actividad» SOLO existe para el admin (gate por email de la sesión;
   // la RLS de app_events lo re-valida en servidor — sin sesión de admin no devuelve filas).
+  // El último sí se guarda por UID: offline no se puede consultar profiles, pero tampoco debe
+  // desaparecer toda la zona Dev. Es una puerta visual, no un permiso de servidor.
   const [meEmail,setMeEmail]=useState(null);
-  const [isAdmin,setIsAdmin]=useState(false);
+  const [isAdmin,setIsAdmin]=useState(function(){ return adminCached(uid); });
   useEffect(function(){
-    if(!cloud.enabled()){ return; }
+    const cached=adminCached(uid);
+    setIsAdmin(cached);
+    if(!cloud.enabled()||!uid){ return; }
     cloud.session().then(function(s){ setMeEmail((s&&s.user&&s.user.email)||null); }).catch(function(){});
-    cloud.fetchProfile().then(function(p){ setIsAdmin(!!(p&&p.is_admin)); }).catch(function(){});
+    cloud.fetchProfile().then(function(p){
+      const on=!!(p&&p.is_admin);
+      saveAdminCached(uid,on);
+      setIsAdmin(on);
+    }).catch(function(){ setIsAdmin(cached); });
   },[uid]);
   // «Buscar actualización» a mano (feedback 2026-07-10: «no me sale ningún botón para actualizar
   // manualmente»): consulta apk.json (APK) y version.json (web) al momento, sin esperar al arranque.

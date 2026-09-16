@@ -191,14 +191,12 @@ test("la animación sigue siendo suave: la barra se va con transición, no de go
   await appLista(page);
 
   /* Él pidió las dos cosas juntas: «ocúltala antes… SIN quitarme la animación suave». Lo que da
-     la suavidad es la transición CSS, no el retraso que se ha quitado — así que se comprueba que
-     la transición sigue ahí, y que no es la corta del caso de la ola. */
+     la suavidad es la transición CSS, no el retraso que se ha quitado. */
   const t = await page.evaluate(() => {
     const n = document.querySelector(".botnav");
     const cs = getComputedStyle(n);
-    return { dur: cs.transitionDuration, prop: cs.transitionProperty, fast: n.classList.contains("botnav-hidden-fast") };
+    return { dur: cs.transitionDuration, prop: cs.transitionProperty };
   });
   const segundos = String(t.dur).split(",").map((s) => parseFloat(s)).filter((n) => !isNaN(n));
   expect(Math.max(...segundos), "la barra tiene que tener transición (si no, desaparece de golpe)").toBeGreaterThan(0.2);
-  expect(t.fast, "el escondido normal NO usa la curva corta, que es solo para la ola de abajo").toBe(false);
 });

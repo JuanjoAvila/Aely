@@ -67,6 +67,12 @@ un segundo después el bueno (vídeo del usuario: 125.899 € → 189.371 €). 
 1,8 s de espera y, si React ni siquiera ha pintado a los 8 s, un botón de reintentar — antes el
 `clearInterval` de emergencia dejaba el splash puesto para siempre y sin salida.
 
+Desde 4.25.1, si `navigator.onLine===false`, App y Dashboard abren `mcBootReady` inmediatamente:
+`loadState` ya terminó de forma síncrona y esperar a la nube solo creaba un frame vacío. Con red se
+mantiene el margen para evitar el salto de cifras. Ajustes guarda `_mcAdminProfile` únicamente con
+`uid` + `isAdmin:true` para conservar la zona Dev sin red; es una preferencia visual por usuario,
+se borra al cerrar sesión y nunca sustituye la RLS que protege los datos administrativos.
+
 **Presupuesto de tamaño (v4.10.0):** `tests/presupuesto-rendimiento.test.mjs` mide el artefacto
 minificado y su gzip contra topes escritos a mano. Es la otra mitad del rendimiento: `e2e/rendimiento`
 vigila que el trabajo no crezca con el histórico; esto vigila lo que hay que bajar y parsear.

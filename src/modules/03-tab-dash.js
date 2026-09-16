@@ -17,7 +17,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     try{ return !!(window.__mcSplashGone) || !document.getElementById("mc-load"); }catch(e){ return true; }
   });
   const [bootReady,setBootReady]=useState(function(){
-    try{ return !!window.__mcBootReady; }catch(e){ return true; }
+    try{ return !!window.__mcBootReady || navigator.onLine===false; }catch(e){ return true; }
   });
   useEffect(function(){
     if(splashGone) return undefined;
@@ -31,13 +31,17 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     window.addEventListener("mc-boot-ready", on);
     // Por si el evento se emitió entre el useState inicial y este effect.
     try{ if(window.__mcBootReady) setBootReady(true); }catch(e){}
-    /* Tope duro (14/9 → 15/9): sin internet el pull puede colgarse.
-       Review Claude 15/9: NO acortar a 600 ms CON red (pintaba local y luego saltaban cifras).
-         · onLine===false → ~500 ms
-         · con red → 2000 ms; si sesión/pull FALLA, mcBootReady llega antes por el catch */
+    /* Offline-first de verdad (16/9): el estado local ya está cargado de forma síncrona. Esperar
+       medio segundo a una nube que sabemos ausente pintaba Inicio vacío tras el splash. */
     var offline=false;
     try{ offline=navigator.onLine===false; }catch(e){}
-    const topeMs=offline?500:2000;
+    if(offline){
+      setBootReady(true);
+      try{ mcBootReady(); }catch(e){}
+      return function(){ window.removeEventListener("mc-boot-ready", on); };
+    }
+    // Con red sí se conserva el margen: evita pintar local y hacer saltar las cifras tras el pull.
+    const topeMs=2000;
     const tope=setTimeout(function(){
       setBootReady(true);
       try{ mcBootReady(); }catch(e){}

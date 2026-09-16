@@ -44,7 +44,11 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
            modo inicial: en el navegador la cartera vacía se quedaba vacía porque no había nube que
            la rellenara, y en su móvil —con sesión de verdad— se rellenaba sola. Ahora el doble
            puede traer estado, poniéndolo en `__cloudRows.app_state`. */
-        maybeSingle: async () => ({ data: (cloudRows[tabla] || [])[0] || null, error: null }),
+        maybeSingle: async () => {
+          if (cloudDelays[tabla]) await new Promise((r) => setTimeout(r, cloudDelays[tabla]));
+          if (cloudErrors[tabla]) return { data: null, error: { message: cloudErrors[tabla] } };
+          return { data: (cloudRows[tabla] || [])[0] || null, error: null };
+        },
         single: async () => ({ data: null, error: null }),
       };
       chain.then = (resolve) => {

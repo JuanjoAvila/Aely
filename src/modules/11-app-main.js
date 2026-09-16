@@ -18,26 +18,17 @@ function App(){
   const navHiddenRef=useRef(false);
   const lastScrollY=useRef(0);
   const scrollTab=useRef(0);
-  // Escondido RÁPIDO, sin la curva calmada de .55s (2026-08-03, bug 6 «rebote raro»). El .55s de
-  // abajo es a propósito para el caso normal (bajar leyendo la lista) — «el ocultado de golpe se
-  // sentía brusco» (feedback 2026-07-18) — pero ESE mismo calmado es justo el problema cuando el
-  // motivo de esconder es «hemos llegado al final»: el rebote nativo (la "ola") empieza a la vez
-  // que la barra, y tarda solo ~0,2-0,3 s en asentarse — mucho menos que los 0,55 s de la barra.
-  // Resultado, tal y como lo describió («se queda atascado un momento y luego sí que hace la ola
-  // pero es muy raro»): la barra sigue deslizándose/desvaneciéndose ENCIMA de la ola mientras esta
-  // ya está en marcha, dos animaciones a ritmos distintos peleando por el mismo trozo de pantalla.
-  // `botnav-hidden-fast` (ver shell.html) pone una transición corta SOLO para este caso; el
-  // escondido normal al bajar sigue con su calma de siempre.
-  const [navHiddenFast,setNavHiddenFast]=useState(false);
-  // Botnav y ola nativa (5/8 noche + pulido 5/8 madrugada):
-  // · Abajo LENTO: ok. Abajo RÁPIDO (flick): hide diferido ~450 ms tras scrollend.
+  // Botnav y ola nativa (5/8 noche + corrección 16/9):
+  // · Llegar al final NO cambia la barra. Ocultarla allí creaba el «stopper» antes del rebote
+  //   nativo; volver a tirar disparaba un dy negativo del rubber-band y la enseñaba otra vez.
+  // · La barra solo cambia por desplazamiento REAL: bajar contenido la oculta y subirlo la muestra.
   // · ARRIBA / swipe de tabs: NUNCA `botnav-ola-clear`. Ese clear↔unclear era el
   //   «aparece y desaparece todo el rato» al llegar al tope y al cambiar de pestaña
   //   (feedback 2026-08-05). La barra se queda; la ola sigue debajo.
   // · Pin breve al llegar al tope / al swipear tabs: ni hide ni clear en la racha.
   const navBotSync=useRef(0);
   const navHideArmed=useRef(false);
-  const navHideFastRef=useRef(false);
+  const bottomOverscroll=useRef(false);
   const topClearOn=useRef(false);
   const topClearTimer=useRef(0);
   const revealAfterTopClear=useRef(false);
@@ -52,9 +43,10 @@ function App(){
     topClearOn.current=false;
     try{
       const nav=document.querySelector(".botnav");
-      if(nav) nav.classList.remove("botnav-hidden","botnav-hidden-fast","botnav-ola-clear");
+      if(nav) nav.classList.remove("botnav-hidden","botnav-ola-clear");
     }catch(e){}
-    if(navHiddenRef.current){ navHiddenRef.current=false; setNavHidden(false); setNavHiddenFast(false); }
+    bottomOverscroll.current=false;
+    if(navHiddenRef.current){ navHiddenRef.current=false; setNavHidden(false); }
   };
   // clear del tope: solo API residual (enterScrollHost / swipe). Ya no se ARMA en scroll ni
   // en touchmove — eso era el parpadeo.
@@ -94,13 +86,9 @@ function App(){
     navBotSync.current=0;
     navHideArmed.current=false;
     navHiddenRef.current=true;
-    const fast=!!navHideFastRef.current;
     try{
       const nav=document.querySelector(".botnav");
-      if(nav){
-        nav.classList.add("botnav-hidden");
-        nav.classList.toggle("botnav-hidden-fast", fast);
-      }
+      if(nav) nav.classList.add("botnav-hidden");
     }catch(e){}
     /* ⚠ CON EL DEDO PUESTO NO SE RE-RENDERIZA APP. Lo que ESCONDE la barra es la clase de arriba;
        el `setState` solo pone a React de acuerdo con el DOM, y hacerlo a mitad de gesto repinta la
@@ -114,25 +102,17 @@ function App(){
        idéntico: la clase ya está puesta. */
     if(dragging.current){ navFlush.current=true; return; }
     setNavHidden(true);
-    setNavHiddenFast(fast);
   };
-  const armNavHide=function(fast, inmediato){
+  const armNavHide=function(inmediato){
     if(navPinned()) return;
-    navHideFastRef.current=!!fast;
-    if(navHideArmed.current || navHiddenRef.current){
-      if(fast) navHideFastRef.current=true;
-      return;
-    }
+    if(navHideArmed.current || navHiddenRef.current) return;
     navHideArmed.current=true;
     if(navBotSync.current) clearTimeout(navBotSync.current);
     /* `inmediato` = esconderla YA, sin esperar (2026-09-11). Suyo: «la barra ocúltala antes, en
        cuanto baje, sin quitarme la animación suave». Las dos cosas a la vez sí se pueden: lo que
-       da la suavidad es la TRANSICIÓN CSS de `.botnav`, no este retraso. El retraso solo servía
-       para el caso de ABAJO DEL TODO, donde la ola nativa y la barra se peleaban por el mismo
-       trozo de pantalla — ahí se queda tal cual. */
+       da la suavidad es la TRANSICIÓN CSS de `.botnav`, no este retraso. */
     if(inmediato){ applyNavHide(); return; }
-    // Fallback si no hay scrollend: abajo más margen (ola del flick).
-    navBotSync.current=setTimeout(applyNavHide, fast?800:550);
+    navBotSync.current=setTimeout(applyNavHide, 550);
   };
   const revealNav=function(){
     if(navBotSync.current){ clearTimeout(navBotSync.current); navBotSync.current=0; }
@@ -142,17 +122,15 @@ function App(){
     topClearOn.current=false;
     try{
       const nav=document.querySelector(".botnav");
-      if(nav) nav.classList.remove("botnav-hidden","botnav-hidden-fast","botnav-ola-clear");
+      if(nav) nav.classList.remove("botnav-hidden","botnav-ola-clear");
     }catch(e){}
     if(!navHiddenRef.current) return;
     navHiddenRef.current=false;
-    navHideFastRef.current=false;
     /* Misma regla que `applyNavHide` (4.19.69): con el dedo puesto solo se toca el DOM; el
        `setState` espera a soltar. Rechazo 12/9: *«si hago seguido, SUBIR en gastos… se laguea»*
        — el hide ya aplazaba, el reveal no, y al subir se repintaba App entera. */
     if(dragging.current){ navFlush.current=true; return; }
     setNavHidden(false);
-    setNavHiddenFast(false);
   };
   // Marca de tiempo del último scroll REAL de una página. La usa `freezeShell` para no pagar el
   // congelado cuando no hace falta (ver allí). Se apunta antes de cualquier corte: durante el
@@ -172,7 +150,6 @@ function App(){
     if(!navFlush.current) return;
     navFlush.current=false;
     setNavHidden(!!navHiddenRef.current);
-    setNavHiddenFast(!!navHideFastRef.current);
   };
   /* Alto del contenido en el scroll anterior. Sirve para distinguir «ha bajado él» de «la
      pantalla se ha recolocado sola»: al tocar un chip de rol en Cartera la tarjeta estira o
@@ -222,7 +199,7 @@ function App(){
        barra no puede esconderse hasta un segundo después — con lo que para cuando podía, el dedo
        ya había parado. 320 ms siguen cubriendo el asentamiento del cambio de pestaña, que es para
        lo que está (que no se esconda de golpe al llegar a la pestaña nueva). */
-    if(scrollTab.current!==tab){ scrollTab.current=tab; lastScrollY.current=y; ultimoScrollH.current=e.currentTarget.scrollHeight; revealNav(); pinNavVisible(320); return; }
+    if(scrollTab.current!==tab){ scrollTab.current=tab; lastScrollY.current=y; ultimoScrollH.current=e.currentTarget.scrollHeight; bottomOverscroll.current=false; revealNav(); pinNavVisible(320); return; }
     /* Si el contenido ha cambiado de alto, el motor a veces recoloca `scrollTop` solo
        (chip de rol, lista que pagina). Eso NO es un gesto suyo — no esconder la barra.
        ⚠ PERO con host a pantalla (ola 12/9) el `scrollHeight` también se recalcula tarde
@@ -242,6 +219,7 @@ function App(){
     if(y<=8){
       // Tope: barra QUIETA y visible. Sin ola-clear. Pin solo al aterrizar / al revelar,
       // no en cada frame del rubber-band (si no el pin no caduca nunca).
+      bottomOverscroll.current=false;
       if(navHiddenRef.current){
         revealNav();
         pinNavVisible(1000);
@@ -253,17 +231,25 @@ function App(){
       return;
     }
     const max=e.currentTarget.scrollHeight-e.currentTarget.clientHeight;
-    if(max>0 && y>=max-4){ armNavHide(true); return; }
+    if(max>0 && y>=max-4){
+      /* El borde pertenece al navegador, no a la navegación de la app. Mantener el estado que ya
+         tuviera la barra deja al WebView reproducir la ola tanto visible como oculta; ocultarla
+         aquí era el primer gesto «muerto» y revelarla en el rebote era el segundo fallo. */
+      bottomOverscroll.current=true;
+      if(navBotSync.current){ clearTimeout(navBotSync.current); navBotSync.current=0; }
+      navHideArmed.current=false;
+      return;
+    }
     if(Math.abs(dy)<6) return;
     /* «En cuanto baje»: antes pedía haber bajado 56 px Y esperaba 550 ms más. Ahora basta con
        haber salido del tope y se esconde en el acto — la curva calmada de `.botnav` sigue
        poniendo la suavidad que él pide. */
-    if(dy>0 && y>24){ armNavHide(false, true); }
+    if(dy>0 && y>24){ armNavHide(true); }
     else if(dy<0){
-      /* Cerca del fondo el rubber-band dispara `dy<0` con `y` aún alta. Revelar ahí pelea con
-         el hide/ola: *«se queda a medias la barra intentando subir, luego acaba… y luego la ola»*
-         (rechazo 4.19.69, 12/9). La barra solo vuelve al subir de verdad, lejos del borde. */
-      if(max>0 && y>max-80) return;
+      /* Android puede traducir el rubber-band a `dy<0` aunque el dedo siga tirando hacia abajo.
+         No cuenta como «subir» hasta alejarse claramente del borde con contenido real. */
+      if(bottomOverscroll.current && max>0 && y>max-160) return;
+      bottomOverscroll.current=false;
       revealNav();
     }
   };
@@ -285,11 +271,16 @@ function App(){
         navHideArmed.current=false;
         return;
       }
+      if(atBottom){
+        // Un scrollend en el borde no manda sobre la barra: la ola nativa debe correr sola.
+        if(navBotSync.current){ clearTimeout(navBotSync.current); navBotSync.current=0; }
+        navHideArmed.current=false;
+        bottomOverscroll.current=true;
+        return;
+      }
       if(!navHideArmed.current) return;
       if(navBotSync.current){ clearTimeout(navBotSync.current); navBotSync.current=0; }
-      // Abajo: el stretch sigue tras scrollend — esperar antes del hide.
-      const delay=(atBottom||navHideFastRef.current)?450:0;
-      navBotSync.current=setTimeout(function(){ applyNavHideRef.current(); }, delay);
+      navBotSync.current=setTimeout(function(){ applyNavHideRef.current(); }, 0);
     };
     document.addEventListener("scrollend", onScrollEnd, true);
     return function(){ document.removeEventListener("scrollend", onScrollEnd, true); };
@@ -840,12 +831,12 @@ function App(){
   // Detecta sesión al cargar y escucha cambios (incluida la vuelta del magic link).
   useEffect(function(){
     if(!cloud.enabled()){ mcBootReady(); return; }   // sin nube no hay nada que esperar detrás del splash
-    /* Tope (14/9 → 15/9 review Claude): onLine===false → 400 ms; CON red → 2500 ms (no 600:
-       un pull normal tarda más y si acortamos pinta local y luego saltan las cifras). Si
-       getSession FALLA, mcBootReady al momento (catch). */
+    /* Offline conocido: el estado local ya está listo y no debe aparecer un Inicio vacío ni un
+       instante. Con red se conserva el margen de 2500 ms para no pintar cifras que luego saltan. */
     var offline=false;
     try{ offline=navigator.onLine===false; }catch(e){}
-    const sesTope=setTimeout(mcBootReady, offline?400:2500);
+    if(offline) mcBootReady();
+    const sesTope=setTimeout(mcBootReady, 2500);
     cloud.session().then(function(s){
       clearTimeout(sesTope);
       sessionRef.current=s; setSession(s);
@@ -3278,7 +3269,7 @@ function App(){
       React.createElement("div",{className:"viewport",ref:viewportRef},
         React.createElement("div",{className:"track"+(hostTab>=0?" scroll-host-park":" scroll-host-swipe"),ref:trackRef}, paginas)
       ),
-      React.createElement("nav",{className:"botnav"+(navHidden&&!drawerOpen&&!profileOpen?" botnav-hidden"+(navHiddenFast?" botnav-hidden-fast":""):""),"aria-label":"Navegación"},
+      React.createElement("nav",{className:"botnav"+(navHidden&&!drawerOpen&&!profileOpen?" botnav-hidden":""),"aria-label":"Navegación"},
         React.createElement("div",{className:"botnav-row"},
           React.createElement("div",{className:"botnav-ind"+(drawerOpen||profileOpen?" hide":""),ref:indRef,
             style:{transform:"translateX("+(tab<=1?tab*100:(tab+1)*100)+"%)"}},

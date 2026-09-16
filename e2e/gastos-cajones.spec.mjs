@@ -126,12 +126,15 @@ test("y se puede volver a verlo todo sin dejar el filtro pegado", async ({ page 
   await cierraSheet(page);
   await expect(lista(page)).toHaveCount(1);
 
-  /* «Limpiar» tiene que llevarse también este, no solo categorías y bancos. Deja el filtro como
-     al entrar — y desde el 11/9 al entrar salen TODAS las cuentas, no solo las de gasto diario
-     (su petición: «TODAS las cuentas deben salir en el apartado de gastos aunque no esté marcado
-     gasto diario»). Así que vuelven los cuatro, incluido el recibo de Sabadell: se VE, pero sigue
-     sin contar para el presupuesto, que es lo que se prueba en `gastos-diario-filtro`. */
+  /* «Limpiar» se lleva el cajón y vuelve al default confirmado el 16/9: bancos de gasto diario.
+     Para ver el histórico entero se elige «Todos los bancos» expresamente. */
   await page.locator('button.v4-chip:has-text("Limpiar")').first().click();
+  await expect(lista(page)).toHaveCount(3);
+  await expect(fila(page, "RECIBO ENDESA")).toHaveCount(0);
+
+  await page.locator('button.v4-chip:has-text("🎛️")').first().click();
+  await page.locator('.v4-sheet button.v4-chip:has-text("Todos los bancos")').click();
+  await cierraSheet(page);
   await expect(lista(page)).toHaveCount(4);
-  await expect(fila(page, "RECIBO ENDESA"), "limpiar no puede dejar fuera una cuenta suya").toHaveCount(1);
+  await expect(fila(page, "RECIBO ENDESA"), "Todos los bancos recupera el histórico completo").toHaveCount(1);
 });
