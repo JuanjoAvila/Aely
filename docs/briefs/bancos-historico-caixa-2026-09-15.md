@@ -2,11 +2,11 @@
 
 ## Estado
 
-15/9/2026. Rama `codex/bancos-historico-caixa`, integrada sobre `fd31aa20` (4.24.3).
+16/9/2026. Rama `codex/bancos-historico-caixa`, rebasada sobre `641c1244` (4.24.4).
 Versión preparada **4.25.0**, con tooling en commits separados. Sin publicar ni desplegar.
-Claude y Cursor han revisado el diff; Cursor también ha ejecutado los afectados. Prueba móvil
-y autorización de despliegue pendientes. La beta se retiene hasta poder ofrecer sus pasos con
-el servidor actualizado; si se publica solo cliente, antes hay que adaptar esa checklist.
+Claude y Cursor han revisado el diff; Cursor también ha ejecutado los afectados. El dueño ya
+autorizó desplegar solo `bank-sync` junto a esta beta. Quedan el verde del SHA rebasado, publicar,
+verificar el paquete vivo y la prueba móvil; no confundir autorización con despliegue ejecutado.
 No se han sincronizado bancos reales ni modificado carteras para investigar.
 
 Al comenzar se contrastó Pages 4.23.1, beta publicada 4.24.0.1 y el código desplegado de bank-sync mediante

@@ -1,8 +1,8 @@
 ## [4.25.0] - 2026-09-15
 ### Lectura bancaria paginada y avisos de histórico incompleto
 
-Tanda preparada desde producción; pendiente de integración, revisión en móvil y despliegue
-autorizado de `bank-sync`. No cambia datos históricos ni requiere APK.
+Tanda integrada sobre 4.24.5 y revisada por los tres agentes; pendiente de publicar en beta y
+de desplegar `bank-sync`, ya autorizado por el dueño. No cambia datos históricos ni requiere APK.
 
 El sync diario ignoraba `continuation_key`: una primera página vacía podía anunciar éxito sin
 traer movimientos. `fetchBankTransactions` comparte paginado con histórico, mantiene parámetros,

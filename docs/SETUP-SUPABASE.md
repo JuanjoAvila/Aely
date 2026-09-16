@@ -1,8 +1,10 @@
 # Setup Supabase — Fase 1 (Aely)
 
-## Bank-sync 4.25.0: despliegue pendiente
+## Bank-sync 4.25.0: despliegue autorizado y pendiente
 
-La corrección del paginado necesita desplegar **solo `bank-sync`**, con autorización del dueño.
+La corrección del paginado necesita desplegar **solo `bank-sync`**. El dueño lo autorizó el
+15/9/2026 para acompañar la beta 4.25.0; sigue pendiente hasta que el workflow termine y se
+verifique el paquete vivo.
 El cambio compartido en `enablebanking.ts` se empaqueta con esa función; no hace falta desplegar
 las demás. No hay migración ni backfill. Cliente anterior admite los campos nuevos; cliente nuevo
 avisa también de fallos del servidor anterior, pero no puede completar su paginado desde el móvil.
