@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-16 · **v4.25.5** — la barra oculta ya no sale físicamente por debajo del viewport ni puede robar el segundo tirón en el fondo; el histórico bancario conserva la espera explícita tras 429. Preparada para validar ola ahora y bancos cuando venza el límite.
+> Estado a 2026-09-16 · **v4.25.6** — la ronda 4.25 está en producción y el panel beta queda vacío al alcanzarla: sin entrada en Ajustes, tandas antiguas ni pruebas repetidas.
+> Anterior: **v4.25.5** — la barra oculta ya no sale físicamente por debajo del viewport ni puede robar el segundo tirón en el fondo; el histórico bancario conserva la espera explícita tras 429.
 > Anterior: **v4.25.3** — el intento de concurrencia limitada seguía provocando 429 y el host de la ola perdía clases al repintarse.
 > Anterior: **v4.25.2** — el primer refuerzo del histórico seguía sin traer importes de Caixa y la ola continuaba revelando la barra al repetir el gesto.
 > Anterior: **v4.25.1** — ficha y orden de cuentas nuevas, arranque offline/Dev y filtro de bancos diarios aprobados; rechazados histórico Caixa y ola/barra.
@@ -190,7 +191,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.25.5** (repo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.25.6** (repo; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

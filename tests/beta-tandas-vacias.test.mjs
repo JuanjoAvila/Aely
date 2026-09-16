@@ -60,6 +60,31 @@ t("con tandas declaradas, salen esas y ninguna «todo»", () => {
   assert.equal(out[0].id, "una");
 });
 
+t("★ producción al día → cero tandas, sin fallback a versiones antiguas", () => {
+  const pack = cli.betaChecklist(VERSION_ACTUAL, VERSION_ACTUAL);
+  assert.equal(pack.tandas.length, 0);
+  assert.equal(pack.items.length, 0);
+});
+
+t("★ una tanda corregida varias veces solo aparece en su versión más nueva", () => {
+  const prev = cli.RELEASE_NOTES;
+  try {
+    cli.RELEASE_NOTES = [
+      { v: "9.9.2", t: { es: "Nueva" }, tandas: [
+        { id: "misma-prueba", t: { es: "Nueva" }, items: { es: ["1. Prueba nueva"] } },
+      ] },
+      { v: "9.9.1", t: { es: "Vieja" }, tandas: [
+        { id: "misma-prueba", t: { es: "Vieja" }, items: { es: ["1. Prueba vieja"] } },
+      ] },
+    ];
+    const pack = cli.betaChecklist("9.9.2.4", "9.9.0");
+    assert.deepEqual(Array.from(pack.tandas, (g) => String(g.id)), ["9.9.2/misma-prueba"]);
+    assert.deepEqual(Array.from(pack.items, String), ["1. Prueba nueva"]);
+  } finally {
+    cli.RELEASE_NOTES = prev;
+  }
+});
+
 /* Fontanería en el tip (`tandas:[]`) no puede vaciarle el panel mientras aún pregunta prod /
    sin red — bug medido en review de 4.19.86: checklist(V,null) devolvía 0. */
 t("★ tip con tandas:[] sin prodVersion → salta a la más nueva con algo que probar", () => {

@@ -190,6 +190,8 @@ test("con producción ya en esta versión, no se pide ningún veredicto", async 
   const panel = await conProduccionEn(page, "999.0.0");
   await expect(panel).toBeVisible();
   await expect(panel).toContainText(/Ya está en producción/i);
+  await expect(panel.locator(".beta-tanda")).toHaveCount(0);
+  await expect(panel).not.toContainText(/\d+\/\d+/);
   await expect(panel.getByRole("button", { name: /Aprobar esta (beta|tanda)/i })).toHaveCount(0);
 });
 

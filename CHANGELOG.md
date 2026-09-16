@@ -1,3 +1,15 @@
+## [4.25.6] - 2026-09-16
+### El backlog de beta deja de resucitar después de promocionar
+
+`betaChecklist` aplicaba su fallback sin conexión también cuando producción ya había alcanzado la
+versión beta. Eso volvía a cargar la nota más reciente y mantenía visible una lista que ya no era
+trabajo pendiente. Ahora una producción alineada devuelve una ronda vacía, Ajustes oculta la
+entrada de revisión y el panel no conserva ni contador ni tandas antiguas. Dentro de una ronda,
+si una corrección reutiliza el mismo identificador estable, solo aparece su versión más nueva.
+
+Los tests cubren tanto el caso producción=beta como la deduplicación entre versiones, y el e2e
+comprueba que un panel ya promocionado no pinte de nuevo ninguna tanda.
+
 ## [4.25.5] - 2026-09-16
 ### El fondo real deja de tener una caja invisible debajo
 

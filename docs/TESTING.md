@@ -87,6 +87,9 @@ el siguiente bump. **Antes de activar el canal beta, comprueba que la release `b
    punto se marca ✓ o ✗ (con ✗ te pide decir qué pasa). **No se puede aprobar con cosas sin probar ni con
    fallos marcados** — si esa puerta se abre, el botón no significa nada. El progreso se guarda por versión,
    porque probar lleva días.
+   Una corrección que continúa en otra versión conserva el mismo `tanda.id`: el panel mantiene solo la más
+   nueva. Cuando producción alcanza la beta, la ronda pasa a cero y «Revisar esta beta» desaparece; nunca se
+   usa una nota antigua como fallback en ese caso.
 4. Cuando esté aprobado, desde el PC: **Actions → «Promote beta» → Run workflow**, escribiendo `SUBIR`.
    Vuelve a pasar la suite y mergea `beta` → `main`, que es lo que ven todos.
 
