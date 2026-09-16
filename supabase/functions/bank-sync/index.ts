@@ -144,7 +144,7 @@ Deno.serve(withCors(async (req: Request) => {
             accts.push({ uid, iban: ac.iban || null, name: ac.name || null, ok: true, count: all.length,
               transactions: all, truncated: tx.truncated, transactionError: tx.transactionError });
           } catch (err) {
-            await logObReadFailure(admin, user.id, link.aspsp_name, err);
+            logObReadFailure(admin, user.id, link.aspsp_name, err);
             accts.push({ uid, iban: ac.iban || null, ok: false, error: "transactions_unavailable", transactions: [] });
           }
         }
