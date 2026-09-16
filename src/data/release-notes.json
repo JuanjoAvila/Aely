@@ -31,15 +31,15 @@
         },
         "items": {
           "es": [
-            "1. «se abre todo el rato Ajustes»: cierra la app con Ajustes o Revisar la beta a la vista, vuelve a abrir: como mucho una vez ves Ajustes; al cerrar con ‹ y volver, aterrizas en Inicio.",
+            "1. «se abre todo el rato Ajustes»: cierra la app con Ajustes o Revisar la beta a la vista, vuelve a abrir: como mucho una vez ves Ajustes; al cerrar con ‹ y volver, aterrizas en Inicio. Y si aun así se abriera solo otra vez, entra en Revisar la beta y pulsa «‹ Ajustes»: eso lo corta en seco (y ese es el fallo, dilo aquí).",
             "2. (Re-pregunta de 4.24.2) Sin red, abre Ajustes → Revisar esta beta: se ven los puntos. Al terminar pulsa «‹ Ajustes» — no dejes el panel abierto al salir."
           ],
           "en": [
-            "1. «Settings keeps opening»: close the app with Settings or Review beta on screen, open again: Settings shows at most once; after closing with ‹ and returning, you land on Home.",
+            "1. «Settings keeps opening»: close the app with Settings or Review beta on screen, open again: Settings shows at most once; after closing with ‹ and returning, you land on Home. And if it still opens by itself again, go into Review beta and tap «‹ Settings»: that stops it dead (and that's the bug — say so here).",
             "2. (Retest from 4.24.2) Offline, open Settings → Review this beta: checklist visible. When done tap «‹ Settings» — do not leave the panel open when you leave."
           ],
           "ca": [
-            "1. «s'obre tot l'estona Ajustaments»: tanca l'app amb Ajustaments o Revisar la beta a la vista, torna a obrir: com a molt una vegada veus Ajustaments; en tancar amb ‹ i tornar, aterres a Inici.",
+            "1. «s'obre tot l'estona Ajustaments»: tanca l'app amb Ajustaments o Revisar la beta a la vista, torna a obrir: com a molt una vegada veus Ajustaments; en tancar amb ‹ i tornar, aterres a Inici. I si tot i així es tornés a obrir sol, entra a Revisar la beta i prem «‹ Ajustaments»: això ho talla en sec (i aquest és el fallo, digue-ho aquí).",
             "2. (Re-pregunta de 4.24.2) Sense xarxa, obre Ajustaments → Revisar aquesta beta: es veuen els punts. En acabar prem «‹ Ajustaments» — no deixis el panell obert en sortir."
           ]
         }
