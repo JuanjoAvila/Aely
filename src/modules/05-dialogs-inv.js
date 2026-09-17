@@ -34,6 +34,8 @@ function askChoice(o){
 function AskHost(){
   const [cur,setCur]=useState(null);
   const [val,setVal]=useState("");
+  const sheetRef=useRef(null);
+  const returnFocusRef=useRef(null);
   useEffect(function(){
     askEmit=function(o){ setVal(o.value!=null?String(o.value):""); setCur(o); };
     return function(){ askEmit=null; };
@@ -49,18 +51,48 @@ function AskHost(){
     else root.classList.remove("ask-open");
     return function(){ root.classList.remove("ask-open"); };
   },[cur]);
-  if(!cur) return React.createElement(HelpHost,null);
   // resolve ANTES de perder cur, y solo una vez: cerrar por el fondo y por «Cancelar» son el mismo camino
   const done=function(r){ const f=cur.resolve; setCur(null); setVal(""); f(r); };
   const ok=function(){ done(cur.input?String(val):true); };
   // Con opciones, cancelar es `null` («no he elegido»), no `false` («he dicho que no»): con tres
   // caminos posibles, un `false` se confundiría con haber elegido el primero.
   const cancel=function(){ done((cur.input||(cur.options||[]).length>0)?null:false); };
+  useEffect(function(){
+    if(!cur) return undefined;
+    returnFocusRef.current=document.activeElement;
+    const id=requestAnimationFrame(function(){
+      const root=sheetRef.current;
+      if(!root) return;
+      const first=root.querySelector('input:not([disabled]),button:not([disabled]),select:not([disabled]),textarea:not([disabled]),[href],[tabindex]:not([tabindex="-1"])');
+      if(first) first.focus(); else root.focus();
+    });
+    const keydown=function(e){
+      const root=sheetRef.current;
+      if(!root) return;
+      if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); cancel(); return; }
+      if(e.key!=="Tab") return;
+      const focusable=Array.from(root.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[href],[tabindex]:not([tabindex="-1"])'))
+        .filter(function(el){ return el.getClientRects().length>0; });
+      if(!focusable.length){ e.preventDefault(); root.focus(); return; }
+      const first=focusable[0],last=focusable[focusable.length-1],active=document.activeElement;
+      const at=focusable.indexOf(active);
+      if(e.shiftKey&&at<=0){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey&&(at<0||active===last)){ e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown",keydown);
+    return function(){
+      cancelAnimationFrame(id);
+      document.removeEventListener("keydown",keydown);
+      const back=returnFocusRef.current;
+      requestAnimationFrame(function(){ if(back&&back.isConnected) back.focus(); });
+    };
+  },[cur]);
+  if(!cur) return React.createElement(HelpHost,null);
   return React.createElement(React.Fragment,null,
     React.createElement(HelpHost,null),
     ReactDOM.createPortal(
     React.createElement("div",{className:"askback"+(cur.compact?" ask-compact":""),onClick:cancel},
-      React.createElement("div",{className:"tabsheet",onClick:function(e){ e.stopPropagation(); }},
+      React.createElement("div",{className:"tabsheet",ref:sheetRef,role:"dialog","aria-modal":"true",tabIndex:-1,onClick:function(e){ e.stopPropagation(); }},
         React.createElement("div",{className:"ts-title"},cur.title),
         cur.sub && React.createElement("div",{className:"ts-hint"},cur.sub),
         cur.input && React.createElement("input",{className:"af-in num ask-in"+(cur.compact?" ask-in-compact":""),autoFocus:true,

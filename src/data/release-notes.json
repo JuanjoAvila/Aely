@@ -10,17 +10,17 @@
     "items": {
       "es": [
         "Si falta el coste de una sola posición, la ganancia total muestra — hasta completarlo: nunca calcula una rentabilidad con media cartera.",
-        "Añadir posición abre ya el formulario completo y permite elegir bróker, nombre, valor, aportado, moneda y fecha.",
+        "Añadir posición abre ya el formulario completo y permite elegir bróker, nombre, valor, aportado y moneda.",
         "El detalle y Saveback funcionan mejor con teclado y lector de pantalla, y actualizar precios confirma la hora del último resultado."
       ],
       "en": [
         "If even one position is missing its cost, total gain shows — until it is completed: returns are never calculated from only part of the portfolio.",
-        "Add position now opens the complete form for broker, name, value, amount invested, currency and date.",
+        "Add position now opens the complete form for broker, name, value, amount invested and currency.",
         "Details and Saveback work better with keyboards and screen readers, and refreshing prices confirms the time of the latest result."
       ],
       "ca": [
         "Si falta el cost d'una sola posició, el guany total mostra — fins a completar-lo: mai calcula una rendibilitat amb mitja cartera.",
-        "Afegir posició ja obre el formulari complet i permet triar bròquer, nom, valor, aportat, moneda i data.",
+        "Afegir posició ja obre el formulari complet i permet triar bròquer, nom, valor, aportat i moneda.",
         "El detall i Saveback funcionen millor amb teclat i lector de pantalla, i actualitzar preus confirma l'hora de l'últim resultat."
       ]
     },

@@ -122,11 +122,36 @@ test("Inversiones v4: coste cero no finge +0%, manual se identifica y solo edita
   await expect(tr.locator('[data-inv-position="manual"] .rsub')).toContainText(/a mano · \d|by hand · \d|a mà · \d/i);
 });
 
+test("Inversiones v4: Ask conserva su foco y Escape no cierra la pantalla hija", async ({ page }) => {
+  await seedLoggedInDashboard(page, { investments: [
+    { id: "ask-row", ent: "trade_republic", name: "Posición para borrar", value: 500, cost: 400, cur: "EUR" },
+  ] });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  await openInvestments(page);
+
+  const broker=page.locator('[data-inv-broker="trade_republic"]');
+  await broker.locator("button.v4-mov").click();
+  await broker.locator('[data-act="inv-edit"]').click();
+  await broker.getByRole("button",{name:/Borrar|Delete|Esborra/i}).click();
+  const ask=page.locator(".askback [role=dialog]");
+  await expect(ask).toBeVisible();
+  await expect.poll(() => page.evaluate(() => !!document.querySelector(".askback [role=dialog]")?.contains(document.activeElement))).toBe(true);
+  await page.keyboard.press("Tab");
+  expect(await page.evaluate(() => document.querySelector(".askback [role=dialog]").contains(document.activeElement))).toBe(true);
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".askback")).toHaveCount(0);
+  await expect(page.locator("[data-inv-screen]")).toBeVisible();
+  await expect(broker).toBeVisible();
+});
+
 test("Inversiones v4: un coste parcial nunca se convierte en ganancia inventada", async ({ page }) => {
+  const lastPriceSync=Date.now()-65_000;
   await seedLoggedInDashboard(page, { investments: [
     { id: "known", ent: "trade_republic", name: "Con dato", ticker: "KNOWN", shares: 1, value: 120, cost: 100, cur: "EUR" },
     { id: "unknown", ent: "revolut", name: "Sin dato", shares: 1, value: 500, cost: 0, cur: "EUR" },
-  ] });
+  ], lastPriceSync });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
@@ -135,8 +160,41 @@ test("Inversiones v4: un coste parcial nunca se convierte en ganancia inventada"
   const hero=page.locator("[data-inv-hero]");
   await expect(hero).toContainText(/Ganancia —|Gain —|Guany —/);
   await expect(hero).toContainText(/Falta lo que pusiste|one or more positions is missing|Falta el que vas posar/i);
+  await expect(hero).toContainText(/Actualizado \d{2}:\d{2}|Updated \d{2}:\d{2}|Actualitzat \d{2}:\d{2}/i);
   await expect(hero).not.toContainText(/Han ganado 520|They gained 520|Han guanyat 520/i);
   await expect(hero).not.toContainText(/520\.00%/);
+});
+
+test("Inversiones v4: alta desde bróker enfoca el nombre, conserva opciones reales y devuelve el foco", async ({ page }) => {
+  await seedLoggedInDashboard(page, {
+    investments: [{ id: "custom", ent: "degiro", name: "Posición existente", value: 300, cost: 250, cur: "EUR" }],
+    accounts: [{ id: "bank", ent: "sabadell", name: "Sabadell", value: 1000 }],
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  await openInvestments(page);
+
+  const broker=page.locator('[data-inv-broker="degiro"]');
+  await broker.locator("button.v4-mov").click();
+  const trigger=broker.locator('[data-act="inv-add"]');
+  await trigger.click();
+  const add=page.locator("[data-inv-manual-add]");
+  const name=add.locator('[data-field="inv-name"]');
+  await expect(name).toBeFocused();
+  const options=await add.locator("select option").evaluateAll((nodes) => nodes.map((n) => ({value:n.value,text:n.textContent})));
+  expect(options.map((o) => o.value)).toEqual(["revolut","trade_republic","myinvestor","degiro"]);
+  expect(options.some((o) => /Sabadell/i.test(o.text))).toBe(false);
+  await add.getByRole("button",{name:/Cancelar|Cancel|Cancel·la/i}).click();
+  await expect(trigger).toBeFocused();
+
+  await trigger.click();
+  await expect(name).toBeFocused();
+  await name.fill("Segunda posición");
+  await add.locator('[data-field="inv-value"]').fill("42");
+  await add.getByRole("button",{name:/Guardar|Save|Desa/i}).click();
+  await expect(trigger).toBeFocused();
+  await expect(broker.getByText("Segunda posición")).toBeVisible();
 });
 
 test("Inversiones v4: vacío accionable", async ({ page }) => {

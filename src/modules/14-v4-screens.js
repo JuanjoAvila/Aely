@@ -995,6 +995,9 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, showT
     const keydown=function(e){
       const root=screenRef.current;
       if(!root) return;
+      // AskHost vive por encima de esta pantalla. Mientras esté abierto, su diálogo es quien
+      // posee Escape y Tab; interceptarlos aquí cerraba Inversiones o sacaba el foco del aviso.
+      if(document.documentElement.classList.contains("ask-open")) return;
       if(e.key==="Escape"){ e.preventDefault(); onClose(); return; }
       if(e.key!=="Tab") return;
       const focusable=Array.from(root.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[href],[tabindex]:not([tabindex="-1"])'))

@@ -720,6 +720,9 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
   const [brokerOpen,setBrokerOpen]=useState({});   // qué bróker tiene las posiciones desplegadas (solo v4Embed)
   const [editBroker,setEditBroker]=useState(null);
   const [manualAdd,setManualAdd]=useState(null);
+  const manualAddRef=useRef(null);
+  const manualNameRef=useRef(null);
+  const manualTriggerRef=useRef(null);
   const [refreshError,setRefreshError]=useState(false);
   const lastPriceRef=useRef(state.lastPriceSync||null);
   const refreshBefore=useRef(null);
@@ -734,10 +737,16 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
     if(autoOn && hasTickers && !didAuto.current && !toolsOnly && !v4Embed && !fullMode){ didAuto.current=true; fetchPrices(true); }
   },[]);
   const toggleAuto=()=> set(s=>Object.assign({},s,{settings:Object.assign({},s.settings,{autoPrices:!(s.settings&&s.settings.autoPrices)})}));
-  // Solo los brókers donde el usuario TIENE posiciones (antes salían los 3 fijos — a un usuario
-  // nuevo le aparecía "MyInvestor" sin haberlo conectado nunca; feedback pareja 2026-07-10).
-  const groupsBase=[["revolut","Revolut","Trading activo (USD)"],["trade_republic","Trade Republic","ETF + acciones"],["myinvestor","MyInvestor","Indexado largo plazo"]]
-    .filter(function(g){ return state.investments.some(function(i){ return i.ent===g[0]; }); });
+  // El selector ofrece los tres brókers soportados y cualquier bróker que YA exista en la
+  // cartera. No toma cuentas bancarias ni inventa entidades: una posición importada con otro
+  // id debe seguir siendo editable, pero no aparentamos que Aely conecte un cuarto bróker.
+  const brokerOptions=[["revolut","Revolut","Trading activo (USD)"],["trade_republic","Trade Republic","ETF + acciones"],["myinvestor","MyInvestor","Indexado largo plazo"]];
+  state.investments.forEach(function(i){
+    if(i.ent&&!brokerOptions.some(function(g){ return g[0]===i.ent; })) brokerOptions.push([i.ent,entOf(i.ent).label,""]);
+  });
+  // Solo los brókers donde el usuario TIENE posiciones se pintan como tarjetas (antes salían
+  // tres bloques vacíos y parecían conexiones activas — feedback pareja 2026-07-10).
+  const groupsBase=brokerOptions.filter(function(g){ return state.investments.some(function(i){ return i.ent===g[0]; }); });
   // Orden fijo de los brókers (2026-07-23: se borró la UI de ordenación en Herramientas;
   // mantengo el orden por defecto de groupsBase). OJO: `groups` son las TERNAS
   // [id, nombre, subtítulo] — abajo se leen g[0]/g[1]/g[2]. No mapear a solo el id.
@@ -797,6 +806,9 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
   const total=state.investments.reduce((a,i)=>a+invValueEur(i, state),0);
   const costTotal=state.investments.reduce((a,i)=>a+invCostEur(i, state),0);
   const costKnown=function(i){
+    // En el histórico antiguo `cost:0` significaba tanto «sin dato» como un coste real cero.
+    // Sin una migración con procedencia no se pueden separar: lo tratamos como desconocido para
+    // no inventar rentabilidad, aunque eso oculte el caso excepcional de una posición regalada.
     return (typeof i.costEur==="number"&&isFinite(i.costEur)&&i.costEur>0)
       || (typeof i.cost==="number"&&isFinite(i.cost)&&i.cost>0);
   };
@@ -861,9 +873,23 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
       },700);
     }).catch(function(){ setRefreshError(true); });
   };
-  const openManualAdd=function(ent){
+  const restoreManualFocus=function(){
+    const target=manualTriggerRef.current;
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ if(target&&target.isConnected) target.focus(); }); });
+  };
+  const openManualAdd=function(ent,trigger){
+    manualTriggerRef.current=trigger||document.activeElement;
     setManualAdd({ent:ent||"trade_republic",name:"",value:"",cost:"",cur:"EUR"});
   };
+  const closeManualAdd=function(){ setManualAdd(null); restoreManualFocus(); };
+  useEffect(function(){
+    if(!manualAdd) return undefined;
+    const id=requestAnimationFrame(function(){
+      if(manualAddRef.current) manualAddRef.current.scrollIntoView({block:"nearest",behavior:"auto"});
+      requestAnimationFrame(function(){ if(manualNameRef.current) manualNameRef.current.focus(); });
+    });
+    return function(){ cancelAnimationFrame(id); };
+  },[!!manualAdd]);
   const setManualField=function(k,v){ setManualAdd(function(x){ return Object.assign({},x,{[k]:v}); }); };
   const manualValue=manualAdd&&parseFloat(String(manualAdd.value).replace(',','.'));
   const manualCostRaw=manualAdd?String(manualAdd.cost).trim():"";
@@ -877,6 +903,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
     set(function(s){ return Object.assign({},s,{investments:s.investments.concat([item])}); });
     setBrokerOpen(function(o){ return Object.assign({},o,{[item.ent]:true}); });
     setManualAdd(null);
+    restoreManualFocus();
     if(showToast) showToast(t("iv_added"));
   };
   const manualLabel=function(it){
@@ -921,6 +948,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
           : React.createElement("div",{className:"hint",style:{marginTop:12}},
               state.investments.length>0 && React.createElement("div",{className:"v4-legend"},React.createElement("span",null,React.createElement("b",{style:{background:"var(--muted-2)"}}),t("iv_gain_unknown"))),
               React.createElement("div",null,costTotal>0?t("iv_missing_cost"):t("iv_no_put")),
+              state.investments.length>0 && React.createElement("div",{style:{marginTop:6}},tf("iv_updated",{time:lastTime})),
               state.investments.length>0 && React.createElement("button",{type:"button",className:"v4-link-mini","data-act":"inv-edit",style:{marginTop:8},onClick:function(){ beginBrokerEdit(missingCost&&missingCost.ent); }},t("iv_no_put_cta"))),
         React.createElement("div",{className:"hint",style:{marginTop:10}},tf("iv_fx_note",{fx:fx>0?fx.toFixed(4):"—"}))),
 
@@ -933,15 +961,13 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
         React.createElement("div",{className:"hint",style:{marginTop:4}},tf("iv_refresh_fail_sub",{time:lastTime})),
         React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:8},onClick:refreshPrices},t("iv_retry"))),
 
-      manualAdd && React.createElement("section",{className:"v4-card","data-inv-manual-add":"1",style:{padding:16}},
+      manualAdd && React.createElement("section",{className:"v4-card","data-inv-manual-add":"1",ref:manualAddRef,style:{padding:16}},
         React.createElement("div",{className:"v4-sec-h",style:{marginBottom:12}},t("iv_add_manual")),
         React.createElement("label",{className:"v4-field-label"},t("iv_broker"),
           React.createElement("select",{className:"af-in",value:manualAdd.ent,onChange:function(e){ setManualField("ent",e.target.value); }},
-            React.createElement("option",{value:"trade_republic"},"Trade Republic"),
-            React.createElement("option",{value:"revolut"},"Revolut"),
-            React.createElement("option",{value:"myinvestor"},"MyInvestor"))),
+            brokerOptions.map(function(g){ return React.createElement("option",{key:g[0],value:g[0]},g[1]); }))),
         React.createElement("label",{className:"v4-field-label"},t("iv_name"),
-          React.createElement("input",{className:"af-in","data-field":"inv-name",value:manualAdd.name,onChange:function(e){ setManualField("name",e.target.value); }})),
+          React.createElement("input",{className:"af-in","data-field":"inv-name",ref:manualNameRef,value:manualAdd.name,onChange:function(e){ setManualField("name",e.target.value); }})),
         React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}},
           React.createElement("label",{className:"v4-field-label"},t("iv_value_field"),
             React.createElement("input",{className:"af-in",inputMode:"decimal","data-field":"inv-value",value:manualAdd.value,onChange:function(e){ setManualField("value",e.target.value); }})),
@@ -952,13 +978,13 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
           React.createElement("button",{type:"button",className:"curbtn"+(manualAdd.cur==="USD"?" on":""),"aria-pressed":manualAdd.cur==="USD",onClick:function(){ setManualField("cur","USD"); }},"$")),
         React.createElement("div",{style:{display:"flex",gap:8,marginTop:14}},
           React.createElement("button",{type:"button",className:"btn btn-primary",style:{minHeight:44,flex:1},disabled:!manualReady,onClick:saveManualAdd},t("inv_save")),
-          React.createElement("button",{type:"button",className:"btn btn-ghost",style:{minHeight:44,flex:1},onClick:function(){ setManualAdd(null); }},t("inv_cancel")))),
+          React.createElement("button",{type:"button",className:"btn btn-ghost",style:{minHeight:44,flex:1},onClick:closeManualAdd},t("inv_cancel")))),
 
       state.investments.length===0 && !manualAdd && React.createElement("div",{"data-inv-empty":"1",className:"v4-empty v4-card",style:{padding:20,textAlign:"center",borderStyle:"dashed"}},
         React.createElement("div",{className:"em"},"📈"),
         React.createElement("div",{className:"ti"},t("iv_empty")),
         React.createElement("div",{className:"ph"},t("iv_empty_sub")),
-        React.createElement("button",{type:"button",className:"v4-cta cta","data-act":"inv-add",onClick:function(){ openManualAdd(null); }},t("iv_add"))),
+        React.createElement("button",{type:"button",className:"v4-cta cta","data-act":"inv-add",onClick:function(e){ openManualAdd(null,e.currentTarget); }},t("iv_add"))),
 
       groups.map(function(g){
         const gid=g[0];
@@ -1000,10 +1026,10 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
                     React.createElement("button",{type:"button",className:"btn btn-primary",style:{minHeight:44,flex:1},onClick:saveBrokerEdit},t("inv_save")),
                     React.createElement("button",{type:"button",className:"btn btn-ghost",style:{minHeight:44,flex:1},onClick:cancelBrokerEdit},t("inv_cancel")))
                 : React.createElement("button",{type:"button",className:"btn btn-ghost","data-act":"inv-edit",style:{minHeight:44,flex:1},onClick:function(){ beginBrokerEdit(gid); }},t("iv_edit")),
-              !isEditing && React.createElement("button",{type:"button",className:"btn btn-ghost","data-act":"inv-add",style:{minHeight:44,flex:1},onClick:function(){ openManualAdd(gid); }},t("iv_add_position")))));
+              !isEditing && React.createElement("button",{type:"button",className:"btn btn-ghost","data-act":"inv-add",style:{minHeight:44,flex:1},onClick:function(e){ openManualAdd(gid,e.currentTarget); }},t("iv_add_position")))));
       }),
 
-      state.investments.length>0 && !manualAdd && React.createElement("button",{type:"button",className:"v4-card","data-act":"inv-add",style:{width:"100%",minHeight:52,borderStyle:"dashed",background:"transparent",color:"var(--mint)",fontWeight:800},onClick:function(){ openManualAdd(null); }},t("iv_add")),
+      state.investments.length>0 && !manualAdd && React.createElement("button",{type:"button",className:"v4-card","data-act":"inv-add",style:{width:"100%",minHeight:52,borderStyle:"dashed",background:"transparent",color:"var(--mint)",fontWeight:800},onClick:function(e){ openManualAdd(null,e.currentTarget); }},t("iv_add")),
       state.soldCash>0 && React.createElement("div",{className:"v4-card",style:{display:"flex",justifyContent:"space-between",padding:15}},
         React.createElement("span",null,t("iv_cash")),React.createElement("strong",{className:"num",style:{color:"var(--mint)"}},f0(state.soldCash))),
       typeSegs.length>0 && React.createElement("section",{className:"v4-card","data-inv-type":"1",style:{padding:16}},
