@@ -723,6 +723,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
   const manualAddRef=useRef(null);
   const manualNameRef=useRef(null);
   const manualTriggerRef=useRef(null);
+  const manualOriginRef=useRef(null);
   const [refreshError,setRefreshError]=useState(false);
   const lastPriceRef=useRef(state.lastPriceSync||null);
   const refreshBefore=useRef(null);
@@ -873,12 +874,23 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
       },700);
     }).catch(function(){ setRefreshError(true); });
   };
-  const restoreManualFocus=function(){
+  const restoreManualFocus=function(preferredEnt){
     const target=manualTriggerRef.current;
-    requestAnimationFrame(function(){ requestAnimationFrame(function(){ if(target&&target.isConnected) target.focus(); }); });
+    const origin=manualOriginRef.current;
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){
+      if(target&&target.isConnected){ target.focus(); return; }
+      let fallback=origin?document.querySelector('[data-inv-add-origin="'+origin+'"]'):null;
+      if(!fallback&&preferredEnt){
+        const card=Array.from(document.querySelectorAll("[data-inv-broker]")).find(function(el){ return el.getAttribute("data-inv-broker")===preferredEnt; });
+        fallback=card&&card.querySelector('[data-act="inv-add"]');
+      }
+      if(!fallback) fallback=document.querySelector("[data-inv-screen] h1");
+      if(fallback) fallback.focus();
+    }); });
   };
   const openManualAdd=function(ent,trigger){
     manualTriggerRef.current=trigger||document.activeElement;
+    manualOriginRef.current=trigger&&trigger.getAttribute("data-inv-add-origin");
     setManualAdd({ent:ent||"trade_republic",name:"",value:"",cost:"",cur:"EUR"});
   };
   const closeManualAdd=function(){ setManualAdd(null); restoreManualFocus(); };
@@ -903,7 +915,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
     set(function(s){ return Object.assign({},s,{investments:s.investments.concat([item])}); });
     setBrokerOpen(function(o){ return Object.assign({},o,{[item.ent]:true}); });
     setManualAdd(null);
-    restoreManualFocus();
+    restoreManualFocus(item.ent);
     if(showToast) showToast(t("iv_added"));
   };
   const manualLabel=function(it){
@@ -984,7 +996,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
         React.createElement("div",{className:"em"},"📈"),
         React.createElement("div",{className:"ti"},t("iv_empty")),
         React.createElement("div",{className:"ph"},t("iv_empty_sub")),
-        React.createElement("button",{type:"button",className:"v4-cta cta","data-act":"inv-add",onClick:function(e){ openManualAdd(null,e.currentTarget); }},t("iv_add"))),
+        React.createElement("button",{type:"button",className:"v4-cta cta","data-act":"inv-add","data-inv-add-origin":"empty",onClick:function(e){ openManualAdd(null,e.currentTarget); }},t("iv_add"))),
 
       groups.map(function(g){
         const gid=g[0];
@@ -1029,7 +1041,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
               !isEditing && React.createElement("button",{type:"button",className:"btn btn-ghost","data-act":"inv-add",style:{minHeight:44,flex:1},onClick:function(e){ openManualAdd(gid,e.currentTarget); }},t("iv_add_position")))));
       }),
 
-      state.investments.length>0 && !manualAdd && React.createElement("button",{type:"button",className:"v4-card","data-act":"inv-add",style:{width:"100%",minHeight:52,borderStyle:"dashed",background:"transparent",color:"var(--mint)",fontWeight:800},onClick:function(e){ openManualAdd(null,e.currentTarget); }},t("iv_add")),
+      state.investments.length>0 && !manualAdd && React.createElement("button",{type:"button",className:"v4-card","data-act":"inv-add","data-inv-add-origin":"global",style:{width:"100%",minHeight:52,borderStyle:"dashed",background:"transparent",color:"var(--mint)",fontWeight:800},onClick:function(e){ openManualAdd(null,e.currentTarget); }},t("iv_add")),
       state.soldCash>0 && React.createElement("div",{className:"v4-card",style:{display:"flex",justifyContent:"space-between",padding:15}},
         React.createElement("span",null,t("iv_cash")),React.createElement("strong",{className:"num",style:{color:"var(--mint)"}},f0(state.soldCash))),
       typeSegs.length>0 && React.createElement("section",{className:"v4-card","data-inv-type":"1",style:{padding:16}},

@@ -135,7 +135,7 @@ test("Inversiones v4: Ask conserva su foco y Escape no cierra la pantalla hija",
   await broker.locator("button.v4-mov").click();
   await broker.locator('[data-act="inv-edit"]').click();
   await broker.getByRole("button",{name:/Borrar|Delete|Esborra/i}).click();
-  const ask=page.locator(".askback [role=dialog]");
+  const ask=page.getByRole("dialog",{name:/Posición para borrar/i});
   await expect(ask).toBeVisible();
   await expect.poll(() => page.evaluate(() => !!document.querySelector(".askback [role=dialog]")?.contains(document.activeElement))).toBe(true);
   await page.keyboard.press("Tab");
@@ -205,10 +205,14 @@ test("Inversiones v4: vacío accionable", async ({ page }) => {
   await openInvestments(page);
 
   await expect(page.locator(".v4-empty[data-inv-empty]")).toBeVisible();
-  await page.locator('.v4-empty [data-act="inv-add"]').click();
+  const emptyTrigger=page.locator('.v4-empty [data-act="inv-add"]');
+  await emptyTrigger.click();
   const add=page.locator("[data-inv-manual-add]");
   await expect(add).toBeVisible();
   await expect(page.locator("[data-inv-screen]")).toBeVisible();
+  await add.getByRole("button",{name:/Cancelar|Cancel|Cancel·la/i}).click();
+  await expect(page.locator('[data-inv-add-origin="empty"]')).toBeFocused();
+  await page.locator('[data-inv-add-origin="empty"]').click();
   await add.locator('[data-field="inv-name"]').fill("Fondo de prueba");
   await add.locator('[data-field="inv-value"]').fill("1250,50");
   await add.locator('[data-field="inv-cost"]').fill("1000");
@@ -218,6 +222,29 @@ test("Inversiones v4: vacío accionable", async ({ page }) => {
   await expect(broker.locator("button.v4-mov")).toHaveAttribute("aria-expanded","true");
   await expect(broker.getByText("Fondo de prueba")).toBeVisible();
   await expect(broker.getByText(/a mano · \d|by hand · \d|a mà · \d/i)).toBeVisible();
+  await expect(broker.locator('[data-act="inv-add"]')).toBeFocused();
+});
+
+test("Inversiones v4: el alta global devuelve el foco al CTA nuevo al cancelar y guardar", async ({ page }) => {
+  await seedLoggedInDashboard(page, { investments: [
+    { id: "global", ent: "trade_republic", name: "Posición existente", value: 300, cost: 250, cur: "EUR" },
+  ] });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  await openInvestments(page);
+
+  const global=page.locator('[data-inv-add-origin="global"]');
+  await global.click();
+  const add=page.locator("[data-inv-manual-add]");
+  await add.getByRole("button",{name:/Cancelar|Cancel|Cancel·la/i}).click();
+  await expect(global).toBeFocused();
+  await global.click();
+  await add.locator('[data-field="inv-name"]').fill("Alta global");
+  await add.locator('[data-field="inv-value"]').fill("50");
+  await add.getByRole("button",{name:/Guardar|Save|Desa/i}).click();
+  await expect(global).toBeFocused();
+  await expect(page.getByText("Alta global")).toBeVisible();
 });
 
 test("Inversiones v4: actualizar precios confirma la hora real", async ({ page }) => {

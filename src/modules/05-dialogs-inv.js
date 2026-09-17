@@ -84,7 +84,13 @@ function AskHost(){
       cancelAnimationFrame(id);
       document.removeEventListener("keydown",keydown);
       const back=returnFocusRef.current;
-      requestAnimationFrame(function(){ if(back&&back.isConnected) back.focus(); });
+      requestAnimationFrame(function(){
+        if(back&&back.isConnected){ back.focus(); return; }
+        // Al confirmar un borrado, el botón que abrió Ask puede desaparecer en el mismo render.
+        // En ese caso dejamos el foco en el título de la pantalla que sigue abierta, no en body.
+        const fallback=document.querySelector("[data-inv-screen] h1")||document.querySelector(".settings-push.open h1")||document.querySelector(".botnav-fab");
+        if(fallback) fallback.focus();
+      });
     };
   },[cur]);
   if(!cur) return React.createElement(HelpHost,null);
@@ -92,8 +98,8 @@ function AskHost(){
     React.createElement(HelpHost,null),
     ReactDOM.createPortal(
     React.createElement("div",{className:"askback"+(cur.compact?" ask-compact":""),onClick:cancel},
-      React.createElement("div",{className:"tabsheet",ref:sheetRef,role:"dialog","aria-modal":"true",tabIndex:-1,onClick:function(e){ e.stopPropagation(); }},
-        React.createElement("div",{className:"ts-title"},cur.title),
+      React.createElement("div",{className:"tabsheet",ref:sheetRef,role:"dialog","aria-modal":"true","aria-labelledby":"ask-dialog-title",tabIndex:-1,onClick:function(e){ e.stopPropagation(); }},
+        React.createElement("div",{className:"ts-title",id:"ask-dialog-title"},cur.title),
         cur.sub && React.createElement("div",{className:"ts-hint"},cur.sub),
         cur.input && React.createElement("input",{className:"af-in num ask-in"+(cur.compact?" ask-in-compact":""),autoFocus:true,
           type:cur.secret?"password":"text",
