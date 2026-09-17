@@ -1,11 +1,28 @@
+## [4.26.8] - 2026-09-17
+### Rediseño v4.1 — Plan usa euros reales y recibos accesibles
+
+La portada de Plan calcula el anillo con importes pagados y pendientes, separa ingresos de cargos
+y elige como referencia la cuenta con menor margen después de sus propios recibos. Una deuda sin
+día sigue contando como pendiente sin inventar una fecha; un mes completamente pagado lo dice de
+forma explícita. Si falta el saldo, muestra un estado desconocido en vez de `0 €`, y un saldo
+negativo conocido nunca recibe tono favorable.
+
+«Gestionar recibos» conserva una única implementación y se abre tanto desde Plan como desde
+Ajustes → Dinero, incluso en arranque frío. Sus fichas y el alta por pasos son diálogos reales con
+nombre accesible, foco contenido y restaurado, escritura continua y cierre con Atrás o Escape. El
+modo simple mantiene el resumen esencial sin duplicar puertas de entrada. Las pruebas cubren
+varias cuentas, importes pagados/pendientes, fechas ausentes, saldos desconocidos o negativos,
+navegación fría y teclado. No cambia el montaje ni los gestos de `PlanTab`, ni
+`11-app-main.js`.
+
 ## [4.26.7] - 2026-09-17
 ### Rediseño v4.1 — Inversiones cierra las cifras, el alta y la accesibilidad
 
 La rentabilidad global solo se calcula cuando todas las posiciones tienen coste conocido; una
 cartera mixta muestra `—` y ofrece completar el dato, en vez de extrapolar una ganancia parcial.
-«Añadir posición» abre ahora un formulario real con bróker, nombre, valor, aportado, moneda y fecha.
-La edición manual conserva una fecha honesta y el refresco confirma con la hora exacta sin borrar
-la última cartera válida.
+«Añadir posición» abre ahora un formulario real con bróker, nombre, valor, aportado y moneda.
+La edición manual conserva los datos existentes y el refresco confirma con la hora exacta sin
+borrar la última cartera válida.
 
 Los controles pequeños pasan de 44 px, Saveback es un botón/switch accesible y el detalle se
 comporta como diálogo: foco inicial, contención con Tab/Shift+Tab, cierre con Escape y bloqueo del

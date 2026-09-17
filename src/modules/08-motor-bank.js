@@ -11,23 +11,129 @@ function entFromAspsp(name){
   }
   return null;
 }
-/* Pregúntame cuenta recibos con la misma regla financiera de Plan. No incluye ingresos ni
-   transferencias: son flujo de caja, no recibos pendientes. */
-function pendingBillsSummary(state,month,year,today){
-  var count=0,total=0;
-  (state.fixed||[]).forEach(function(f){
-    var amount=occAmountIn(f,month);
-    if(!(amount>0)||!occursIn(f,month)||isPaidIn(f,month,today)) return;
-    count++; total+=amount;
+/* UNA sola fuente de cargos del mes para Plan / Pregúntame / segmented (audit Claude 17/9).
+   Recibos = fixed + deudas (+ balloon) + oneoffs. Traspasos e ingresos van aparte y NUNCA
+   suman a «por pagar». Sin tocar totals de 11: solo clasifica con helpers ya existentes. */
+function planChargesMonth(state,month,year,today){
+  state=state||{};
+  var rows=[];
+  (state.fixed||[]).forEach(function(e){
+    var amount=typeof occAmountIn==="function"?occAmountIn(e,month):0;
+    if(!(amount>0)||(typeof occursIn==="function"&&!occursIn(e,month))) return;
+    var day=typeof dayIn==="function"?dayIn(e,month):null;
+    var paid=typeof isPaidIn==="function"?isPaidIn(e,month,today):false;
+    rows.push({id:"fixed_"+e.id,name:e.name,amount:amount,day:day,bank:typeof accOf==="function"?accOf(e):"sabadell",paid:paid,kind:"bill"});
   });
   (state.debts||[]).forEach(function(d){
-    if(!debtActive(d)||isDebtPaidThisMonth(d,today)) return;
+    if(typeof debtActive==="function"&&!debtActive(d)) return;
+    var bank=d.account||"sabadell";
+    // Sin day: pendiente con día desconocido. NO usar debtChargeDay/isDebtPaidThisMonth
+    // (ese fallback a día 1 marcaba la cuota como ya pagada desde el día 1 — NO-GO 17/9).
+    var dayRaw=typeof dayOf==="function"?dayOf(d):(d&&d.day!=null?Number(d.day):null);
+    var day=(dayRaw!=null&&dayRaw>0&&isFinite(dayRaw))?Number(dayRaw):null;
+    var paid=day!=null&&day<=today;
     var monthly=Number(d.monthly)||0;
-    if(monthly>0){ count++; total+=monthly; }
-    var balloon=debtBalloonIn(d,year,month);
-    if(balloon>0){ count++; total+=balloon; }
+    if(monthly>0) rows.push({id:"debt_"+d.id,name:d.name,amount:monthly,day:day,bank:bank,paid:paid,kind:"debt"});
+    var balloon=typeof debtBalloonIn==="function"?debtBalloonIn(d,year,month):0;
+    if(balloon>0) rows.push({id:"balloon_"+d.id,name:d.name+" "+(typeof t==="function"?t("db_balloon_tag"):""),amount:balloon,day:day,bank:bank,paid:paid,kind:"balloon"});
   });
-  return {count:count,total:total};
+  (state.oneoffs||[]).forEach(function(o){
+    if(typeof oneoffOccurs==="function"?!oneoffOccurs(o,year,month):true) return;
+    var amt=Number(o.amount)||0;
+    if(!(amt>0)) return;
+    var day=o.day!=null?Number(o.day):null;
+    var paid=day!=null&&day<=today;
+    rows.push({id:"oneoff_"+o.id,name:o.name||o.merchant||"",amount:amt,day:day,bank:o.account||"sabadell",paid:paid,kind:"oneoff"});
+  });
+  (state.flows||[]).forEach(function(f){
+    if(typeof flowOccursIn==="function"&&!flowOccursIn(f,month,year)) return;
+    var day=typeof flowDay==="function"?flowDay(f,year,month):null;
+    var paid=day!=null&&day<=today;
+    var amt=+(f.amount||0);
+    if(!(amt>0)) return;
+    if(f.kind==="income"){
+      rows.push({id:"flow_"+f.id,name:f.name||(typeof t==="function"?t("fj_income"):"Ingreso"),amount:-amt,day:day,bank:f.to||"sabadell",paid:paid,kind:"income",income:true});
+    } else if(f.kind==="transfer"){
+      rows.push({id:"flow_"+f.id,name:f.name||(typeof t==="function"?t("fj_transfer"):"Traspaso"),amount:amt,day:day,bank:f.from||"sabadell",paid:paid,kind:"transfer",to:f.to||null});
+    }
+  });
+  rows.sort(function(a,b){ return ((a.day==null?99:a.day)-(b.day==null?99:b.day))||(Math.abs(b.amount)-Math.abs(a.amount)); });
+  var isBill=function(x){ return x.kind==="bill"||x.kind==="debt"||x.kind==="balloon"||x.kind==="oneoff"; };
+  var pendingBills=rows.filter(function(x){ return isBill(x)&&!x.paid; });
+  var paidBills=rows.filter(function(x){ return isBill(x)&&x.paid; });
+  var pendingByBank={};
+  pendingBills.forEach(function(x){ var b=x.bank||"sabadell"; pendingByBank[b]=(pendingByBank[b]||0)+Math.abs(x.amount); });
+  var pendingBillsTotal=pendingBills.reduce(function(s,x){ return s+Math.abs(x.amount); },0);
+  var paidBillsTotal=paidBills.reduce(function(s,x){ return s+Math.abs(x.amount); },0);
+  var biggest=pendingBills.slice().sort(function(a,b){ return Math.abs(b.amount)-Math.abs(a.amount); })[0]||null;
+  var transfersPending=rows.filter(function(x){ return x.kind==="transfer"&&!x.paid; });
+  var incomePending=rows.filter(function(x){ return x.kind==="income"&&!x.paid; });
+  return {
+    rows:rows, pendingBills:pendingBills, paidBills:paidBills,
+    pendingBillsCount:pendingBills.length, paidBillsCount:paidBills.length,
+    pendingBillsTotal:pendingBillsTotal, paidBillsTotal:paidBillsTotal,
+    pendingByBank:pendingByBank, biggestPending:biggest,
+    transfersPending:transfersPending, incomePending:incomePending
+  };
+}
+/* Pregúntame = misma regla que Plan: solo recibos, sin ingresos ni traspasos. */
+function pendingBillsSummary(state,month,year,today){
+  var p=planChargesMonth(state,month,year,today);
+  return {count:p.pendingBillsCount,total:p.pendingBillsTotal};
+}
+/* Estado de la portada de Plan: 🔴 min<0, 🟡 min < mayor cargo pendiente del banco, 🟢 resto. */
+function planCoverState(totals, bankEnt, biggestPendingAmt, pendingBills){
+  totals=totals||{};
+  var ent=bankEnt||null;
+  var min=ent!=null&&totals.minByBank?totals.minByBank[ent]:null;
+  var minDay=ent!=null&&totals.minDayByBank?totals.minDayByBank[ent]:null;
+  // Sin tocar 11: las cuotas sin día no entran en minByBank (cae a día 1 «pagado»).
+  // La portada las descuenta aquí del mínimo y deja el día desconocido.
+  if(ent!=null&&min!=null&&isFinite(min)){
+    (pendingBills||[]).forEach(function(x){
+      if(!x||x.bank!==ent) return;
+      if(x.day==null||!(Number(x.day)>0)){
+        min-=Math.abs(Number(x.amount)||0);
+        minDay=null;
+      }
+    });
+  }
+  var biggest=Number(biggestPendingAmt)||0;
+  var tone="ok";
+  if(min!=null&&isFinite(min)&&min<-0.005) tone="bad";
+  else if(min!=null&&isFinite(min)&&biggest>0&&min<biggest-0.005) tone="warn";
+  return {tone:tone,min:min,minDay:minDay,bank:ent,pendingBank:biggest};
+}
+/* Multi-banco: el peor riesgo entre bancos con recibos pendientes (bad>warn>ok).
+   Si no queda nada pendiente, usa el banco del mayor recibo ya pagado (o mainBank)
+   para la frase «todo pagado» — sin esto coverBank=null y salía «Aún no hay recibos». */
+function planCoverPickBank(totals, pendingByBank, pendingBills, paidBills){
+  var banks=Object.keys(pendingByBank||{});
+  if(!banks.length){
+    var paid=paidBills||[];
+    var ent=null;
+    if(paid.length){
+      ent=paid.slice().sort(function(a,b){ return Math.abs(b.amount)-Math.abs(a.amount); })[0].bank||null;
+    } else if(totals&&totals.mainBank) ent=totals.mainBank;
+    return {bank:ent,cover:planCoverState(totals,ent,0,pendingBills),biggest:0,pending:0};
+  }
+  var rank={ok:0,warn:1,bad:2};
+  var best=null;
+  banks.forEach(function(ent){
+    var biggest=(pendingBills||[]).filter(function(x){ return x.bank===ent; })
+      .reduce(function(m,x){ return Math.max(m,Math.abs(x.amount)||0); },0);
+    var cover=planCoverState(totals,ent,biggest,pendingBills);
+    var pending=Number(pendingByBank[ent])||0;
+    if(!best||rank[cover.tone]>rank[best.cover.tone]||(rank[cover.tone]===rank[best.cover.tone]&&pending>best.pending)){
+      best={bank:ent,cover:cover,biggest:biggest,pending:pending};
+    }
+  });
+  return best;
+}
+/* Anillo por EUROS pagados / (pagados+pendientes), no por conteo de filas. */
+function planRingPct(paidTotal, pendingTotal){
+  var p=Number(paidTotal)||0, n=Number(pendingTotal)||0, d=p+n;
+  return d>0?p/d:0;
 }
 /* Códigos cortos del bank-callback (SEC-01, 4.23.0). El Edge ya no manda el error crudo por la
    URL (quien fabrique el enlace podía pintar un texto falso «de tu banco»). El cliente: si `msg`

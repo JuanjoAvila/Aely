@@ -431,9 +431,9 @@ function HelpHost(){
         var frames=0;
         var openSegment=function(){
           try{
-            var label=t(id==="receipts"?"v4_plan_recibos":(id==="debts"?"v4_plan_deudas":"v4_plan_metas"));
-            var buttons=document.querySelectorAll(".page-live .v4-seg-btn");
-            for(var i=0;i<buttons.length;i++) if((buttons[i].textContent||"").trim()===label){ buttons[i].click(); return; }
+            var segId=id==="receipts"?"recibos":(id==="debts"?"deudas":"metas");
+            var buttons=document.querySelectorAll('.page-live .v4-seg-btn[data-seg="'+segId+'"], .v4-seg-btn[data-seg="'+segId+'"]');
+            if(buttons.length){ buttons[0].click(); return; }
           }catch(e){}
           frames++;
           if(frames<36) requestAnimationFrame(openSegment);

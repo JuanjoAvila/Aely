@@ -1,5 +1,13 @@
 # Testing — Aely
 
+Plan v4.1 (4.26.8): `tests/plan-charges.test.mjs` protege la fuente única de cargos con euros
+pagados/pendientes, varias cuentas, deudas sin día y saldos ausentes o negativos. Está registrado
+en `scripts/run-tests.mjs`. `e2e/plan-cover.spec.mjs` abre la pantalla real y cubre el anillo, la
+cuenta con menor margen, estados honestos, modo simple, entrada fría desde Ajustes y los diálogos
+de recibos. Teclea cadenas completas con `pressSequentially` para impedir que un rerender vuelva a
+robar el foco al título. El spec está en `scripts/relevant-tests.mjs`; `plan-gestionar` conserva el
+flujo histórico de alta/edición y ambos se ejecutan al tocar Plan.
+
 Lectura bancaria 4.25.4: `tests/bank-sync-paging.test.mjs` ejecuta el handler real con BD y proveedor
 simulados (sin consultar bancos): páginas vacías, fallback de periodo, fallo parcial, cursor cíclico,
 cuentas inactivas, aislamiento, timeout y topes. Registrado en `run-tests.mjs` y `STEPS_SUPABASE`;

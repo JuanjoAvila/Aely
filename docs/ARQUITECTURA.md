@@ -1,5 +1,20 @@
 # Arquitectura — Aely
 
+## Plan y recibos v4.1 (4.26.8)
+
+`planChargesMonth` en `08-motor-bank.js` es la fuente única para separar cargos pagados,
+pendientes, deudas, traspasos e ingresos del mes. Es un helper puro: Plan (`14-v4-screens.js`) y
+Pregúntame (`16-help-assistant.js`) consumen el mismo resultado, de modo que el anillo, la cuenta
+con menos margen y la respuesta local no pueden discrepar. Una deuda sin día sigue restando como
+pendiente, pero nunca se convierte en una fecha visible inventada. Un saldo ausente conserva el
+estado desconocido; no se normaliza a cero.
+
+`BillsManagePush`, también en `14-v4-screens.js`, es la única pantalla de gestión de recibos. Se
+abre desde Plan o desde Ajustes → Dinero. En un arranque frío, Ajustes deja la intención en
+`window.__mcOpenBillsPending` y Plan la consume cuando su montaje diferido existe; no se fuerza
+el montaje, no se duplica el gestor y no se toca `11-app-main.js`. Las hojas de alta y detalle son
+diálogos hermanos con nombre accesible, contención y restauración de foco y pila Atrás propia.
+
 ## Pregúntame híbrido (4.26.3)
 
 `16-help-assistant.js` es una ayuda de una pregunta y una respuesta corta. La capa local funciona

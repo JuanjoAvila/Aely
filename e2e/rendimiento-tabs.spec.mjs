@@ -97,16 +97,17 @@ test("entrar por primera vez en cada pestaña no bloquea el hilo principal", asy
   // mientras esta prueba pasaba en verde. La lección es la de siempre: medir LO QUE TOCA EL
   // USUARIO, no lo que es cómodo de medir. Estructural, como el de Gastos: los tres segmentos
   // tienen que estar montados ya, con Recibos siendo el único visible.
+  /* data-seg también va en `.v4-seg-btn` (Pregúntame); las capas son hijas directas de `.v4-screen`. */
   for (const seg of ["recibos", "deudas", "metas"]) {
-    await expect(page.locator(`[data-seg="${seg}"]`), `el segmento «${seg}» de Plan no se ha montado por adelantado`).toHaveCount(1);
+    await expect(page.locator(`.v4-screen > [data-seg="${seg}"]`), `el segmento «${seg}» de Plan no se ha montado por adelantado`).toHaveCount(1);
   }
-  expect(await page.locator('[data-seg="deudas"]').isVisible(), "Deudas debería estar montado pero NO visible").toBe(false);
+  expect(await page.locator('.v4-screen > [data-seg="deudas"]').isVisible(), "Deudas debería estar montado pero NO visible").toBe(false);
 
   // Y montado no basta: los segmentos que NO se ven tienen que estar fuera del pintado. Con
   // `visibility:hidden` seguían participando en estilo, capas y pintado, y eso se pagaba en CADA
   // entrada y salida de Plan — medido el 2026-07-27: entrar en Plan 162 ms con `visibility:hidden`
   // contra 89 con `content-visibility:hidden` (la tabla con los tres candidatos, en 14-v4-screens.js).
-  const cv = await page.locator('[data-seg="deudas"]').evaluate((el) => getComputedStyle(el).contentVisibility);
+  const cv = await page.locator('.v4-screen > [data-seg="deudas"]').evaluate((el) => getComputedStyle(el).contentVisibility);
   expect(cv, "el segmento oculto de Plan tiene que estar fuera del pintado (content-visibility:hidden)").toBe("hidden");
 });
 
@@ -145,7 +146,7 @@ test("scrollear Deudas y deslizar acto seguido no bloquea el hilo", async ({ pag
   await page.waitForTimeout(300);
   // Los segmentos se montan ocultos: enseñar Deudas si el click del seg no bastó.
   await page.evaluate(() => {
-    const seg = document.querySelector('[data-seg="deudas"]');
+    const seg = document.querySelector('.v4-screen > [data-seg="deudas"]');
     if (seg && getComputedStyle(seg).visibility === "hidden") {
       const btn = Array.from(document.querySelectorAll(".v4-seg-btn")).find((b) => /deuda|debt|deute/i.test(b.textContent || ""));
       if (btn) btn.click();

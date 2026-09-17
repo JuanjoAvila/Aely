@@ -63,9 +63,21 @@ const grupo = (page, texto) => hub(page).locator(".v4-bills-group").filter({ has
 const fila = (page, texto) => hub(page).locator(".v4-bills-row").filter({ hasText: texto });
 
 async function abreTusRecibos(page) {
-  await page.locator('.botnav-tab[data-tour="plan"]').click();
-  const nombre = await page.evaluate(() => t("v4_gestionar"));
-  await page.locator('[data-seg="recibos"]').getByRole("button", { name: nombre, exact: true }).click();
+  const simple = await page.evaluate(() => {
+    try { return !!(JSON.parse(localStorage.getItem("micartera_v3") || "{}").settings || {}).simpleMode; } catch (e) { return false; }
+  });
+  if (simple) {
+    // §5bis.2: sin link en Plan — puerta Ajustes › Dinero → Plan + BillsManage vivo
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-settings")));
+    const billsBtn = page.getByRole("button", { name: /Cambiar mis recibos|Change my bills|Canviar els meus rebuts/i });
+    await expect(billsBtn).toBeVisible({ timeout: 15_000 });
+    await billsBtn.evaluate((el) => el.scrollIntoView({ block: "center" }));
+    await billsBtn.evaluate((el) => el.click());
+  } else {
+    await page.locator('.botnav-tab[data-tour="plan"]').click();
+    const nombre = await page.evaluate(() => t("v4_gestionar"));
+    await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button", { name: nombre, exact: true }).click();
+  }
   await expect(hub(page)).toBeVisible();
 }
 
@@ -115,6 +127,12 @@ for (const lang of ["es", "en", "ca"]) {
     const txt = await hub(page).innerText();
     expect(txt).not.toMatch(/fij[oa]s?\b|flujo|concilia|modelad|traspaso|\bfixed\b|reconcil|\bfixes\b|\bflux\b|traspàs/i);
     if (lang !== "es") expect(txt).not.toMatch(/Tus recibos|Servicios y suministros|Cargos de una sola vez/);
+    // La ficha de «lo que entra» también ofrece el tipo de día: antes reaparecía «Un día fijo»
+    // al profundizar aunque el hub estuviera limpio (revisión cruzada Cursor 2026-09-17).
+    await hub(page).locator(".v4-bills-group").nth(2).click();
+    await hub(page).locator(".v4-bills-row").first().click();
+    const detailTxt = await ficha(page).innerText();
+    expect(detailTxt).not.toMatch(/fij[oa]s?\b|flujo|concilia|modelad|traspaso|\bfixed\b|reconcil|\bfixes\b|\bflux\b|traspàs/i);
   });
 }
 

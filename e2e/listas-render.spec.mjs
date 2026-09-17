@@ -82,8 +82,16 @@ const fixed = [
 ];
 
 test("Plan › Recibos: salen los fijos mensuales, con su importe", async ({ page }) => {
+  // Reloj fijo: sin él, a partir del día 15 Alquiler+Internet caen en el plegable «Ya has pagado»
+  // y el getByText falla (Claude 1845Z / portada §5bis).
+  await page.clock.install({ time: new Date("2026-09-10T12:00:00Z") });
   await abrirPlan(page, /Recibos|Bills|Rebuts/i, { fixed });
   const activa = paginaActiva(page);
+  const fold = activa.locator(".v4-paid-fold");
+  if (await fold.count()) {
+    await fold.click();
+    await expect(fold).toHaveAttribute("aria-expanded", "true");
+  }
   await expect(activa.getByText("Alquiler", { exact: false }).first()).toBeVisible();
   await expect(activa.getByText("Internet", { exact: false }).first()).toBeVisible();
   await expect(activa.getByText("850", { exact: false }).first()).toBeVisible();

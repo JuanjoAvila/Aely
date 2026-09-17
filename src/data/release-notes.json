@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.8",
+    "d": "17 sep 2026",
+    "t": {
+      "es": "Un Plan más claro para llegar tranquilo a fin de mes",
+      "en": "A clearer Plan for reaching month-end with confidence",
+      "ca": "Un Pla més clar per arribar tranquil a final de mes"
+    },
+    "items": {
+      "es": [
+        "Plan separa lo ya pagado de lo pendiente y muestra los importes reales; si hay varias cuentas, destaca la que necesita más atención.",
+        "Los recibos sin día y los meses ya pagados se explican sin fechas inventadas, y un saldo desconocido nunca se presenta como cero.",
+        "Gestionar recibos vive también en Ajustes → Dinero, con alta y edición más cómodas para teclado, lector de pantalla y navegación Atrás."
+      ],
+      "en": [
+        "Plan separates what is already paid from what is still pending and shows real amounts; with several accounts, it highlights the one needing the most attention.",
+        "Bills without a due day and fully paid months are explained without made-up dates, and an unknown balance is never shown as zero.",
+        "Manage bills is also available in Settings → Money, with easier adding and editing for keyboards, screen readers and Back navigation."
+      ],
+      "ca": [
+        "Pla separa el que ja està pagat del que queda pendent i mostra els imports reals; si hi ha diversos comptes, destaca el que necessita més atenció.",
+        "Els rebuts sense dia i els mesos ja pagats s'expliquen sense dates inventades, i un saldo desconegut mai es presenta com a zero.",
+        "Gestionar rebuts també és a Ajustos → Diners, amb una alta i edició més còmodes per a teclat, lector de pantalla i navegació Enrere."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "plan-v41",
+        "t": {
+          "es": "Plan y recibos",
+          "en": "Plan and bills",
+          "ca": "Pla i rebuts"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan con recibos pagados y pendientes en varias cuentas: el anillo debe mostrar euros reales y el aviso debe señalar la cuenta con menos margen.",
+            "2. Revisa un mes ya pagado, un recibo sin día y una cuenta sin saldo: no debe inventar un próximo día ni un saldo de 0 €, y un saldo negativo no puede verse en verde.",
+            "3. Desde Inicio abre Ajustes → Dinero → Gestionar recibos; añade y edita escribiendo seguido, usa Atrás y comprueba que el teclado mantiene el foco donde estabas."
+          ],
+          "en": [
+            "1. Open Plan with paid and pending bills across several accounts: the ring must show real euros and the warning must identify the account with the least headroom.",
+            "2. Check a fully paid month, a bill without a due day and an account without a balance: it must not invent a next day or a €0 balance, and a negative balance cannot appear green.",
+            "3. From Home open Settings → Money → Manage bills; add and edit by typing continuously, use Back and check that keyboard focus remains where you left it."
+          ],
+          "ca": [
+            "1. Obre Pla amb rebuts pagats i pendents en diversos comptes: l'anell ha de mostrar euros reals i l'avís ha d'assenyalar el compte amb menys marge.",
+            "2. Revisa un mes ja pagat, un rebut sense dia i un compte sense saldo: no ha d'inventar un pròxim dia ni un saldo de 0 €, i un saldo negatiu no es pot veure en verd.",
+            "3. Des d'Inici obre Ajustos → Diners → Gestionar rebuts; afegeix i edita escrivint seguit, usa Enrere i comprova que el teclat manté el focus on eres."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.7",
     "d": "17 sep 2026",
     "t": {

@@ -84,12 +84,11 @@ test("con presupuesto e histórico, el hero vuelve a ser el de siempre", async (
  * (si no, se gasta detrás de la cortina de entrada — ya pasó una vez con el número). */
 test("★ P6: el anillo arranca vacío y se llena, no aparece relleno", async ({ page }) => {
   await inicio(page, { history: [100, 200], budget: 500, expenses: [{ id: "e1", date: "2026-09-09T12:00:00.000Z", amount: 100, merchant: "Super", category: "super" }] });
-  // ⚠ ACOTADO a `.v4-budget` a propósito (11/9). Antes era `page.locator("svg circle").last()`,
-  // y en cuanto los logos de banco entraron en Inicio como SVG inline, el ÚLTIMO círculo de la
-  // página pasó a ser el punto azul del logo de Sabadell (r=3,55, sin `stroke-dasharray`): la
-  // espera no se cumplía nunca y la beta se quedó sin publicar. Un locator por posición en el
-  // documento se rompe con cualquier dibujo nuevo; búscalo DENTRO de su tarjeta.
-  const anillo = page.locator(".v4-budget svg circle").last();
+  // ⚠ ACOTADO a la pantalla de Inicio. Plan comparte ahora `.v4-budget` y se premonta tras el
+  // arranque: un `.last()` global saltaba entonces al anillo oculto de Plan justo antes del poll.
+  // La cabecera de Inicio identifica la tarjeta que la prueba quiere vigilar sin depender del
+  // orden de pestañas ni de cuántos SVG haya en las demás pantallas (regresión 2026-09-17).
+  const anillo = page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget svg circle").last();
   await expect(anillo).toHaveAttribute("stroke-dasharray", /\d/);
   // Ya con el splash fuera, el trazo tiene que haber llegado a su valor final (offset < circunferencia).
   await expect.poll(async () => {
@@ -102,12 +101,8 @@ test("★ P6: el anillo arranca vacío y se llena, no aparece relleno", async ({
 test("P6 con reduced-motion: el valor final, directo y sin animar", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await inicio(page, { history: [100, 200], budget: 500, expenses: [{ id: "e1", date: "2026-09-09T12:00:00.000Z", amount: 100, merchant: "Super", category: "super" }] });
-  // ⚠ ACOTADO a `.v4-budget` a propósito (11/9). Antes era `page.locator("svg circle").last()`,
-  // y en cuanto los logos de banco entraron en Inicio como SVG inline, el ÚLTIMO círculo de la
-  // página pasó a ser el punto azul del logo de Sabadell (r=3,55, sin `stroke-dasharray`): la
-  // espera no se cumplía nunca y la beta se quedó sin publicar. Un locator por posición en el
-  // documento se rompe con cualquier dibujo nuevo; búscalo DENTRO de su tarjeta.
-  const anillo = page.locator(".v4-budget svg circle").last();
+  // Mismo alcance que el caso animado: el Plan premontado también tiene `.v4-budget`.
+  const anillo = page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget svg circle").last();
   const d = Number(await anillo.getAttribute("stroke-dasharray"));
   const o = Number(await anillo.getAttribute("stroke-dashoffset"));
   expect(o).toBeLessThan(d - 0.01);

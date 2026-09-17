@@ -860,7 +860,14 @@
   .v4-legend-btn:not(.off){border-color:var(--line-soft);background:var(--sur2);}
   .v4-legend-btn.off{opacity:.4;}
   .v4-seg{display:flex;gap:4px;background:var(--sur);border:1px solid var(--line-soft);border-radius:16px;padding:4px;margin-bottom:14px;}
-  .v4-seg-btn{flex:1;min-height:40px;border-radius:12px;font-size:13.5px;font-weight:700;color:var(--muted);padding:8px 6px;}
+  .v4-seg-btn{flex:1;min-height:46px;border-radius:12px;font-size:13.5px;font-weight:700;color:var(--muted);padding:6px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+  .v4-seg-lab{line-height:1.2;}
+  .v4-seg-sub{font-size:11.5px;font-weight:600;color:var(--muted);line-height:1.1;}
+  .v4-seg-btn.on .v4-seg-sub{color:var(--on-mint);opacity:.85;}
+  .v4-paid-fold{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:12px 4px;margin-top:8px;background:transparent;border:0;border-top:1px solid var(--line);color:var(--text);font-size:13.5px;font-weight:700;text-align:left;cursor:pointer;}
+  .v4-plan-cover-simple .v4-plan-simple-hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:8px 4px 4px;}
+  .v4-plan-simple-amt{font-size:56px;font-weight:550;line-height:1.05;letter-spacing:-0.5px;}
+  .v4-plan-cover .v4-budget-foot{align-items:baseline;}
   .v4-seg-btn.on{background:var(--mint);color:var(--on-mint);}
   /* Entrada al cambiar de segmento de Plan DESLIZANDO (petición 2026-08-03). Solo transform+
      opacity (compositor, sin repintar) — mismo criterio de coste que el resto de este archivo. */
@@ -901,7 +908,8 @@
   .v4-budget-foot a,.v4-budget-foot button.link{color:var(--mint);font-weight:700;background:none;border:none;padding:0;font-size:12.5px;}
   .v4-section{margin-top:22px;}
   .v4-section-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:15px;font-weight:800;}
-  .v4-section-h button.link{color:var(--mint);font-weight:700;font-size:13px;background:none;border:none;}
+  .v4-section-h button.link{color:var(--mint);font-weight:700;font-size:13px;background:none;border:none;min-height:44px;padding:10px 8px;cursor:pointer;}
+  .v4-section .v4-mov{min-height:60px;}
   .v4-charge{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line-soft);}
   .v4-charge:first-child{border-top:none;}
   .v4-charge .dt{width:44px;text-align:center;flex:0 0 auto;}
@@ -1681,7 +1689,7 @@
   .v4-mov .meta .v4-ob-badge{margin-left:0;}
   html.sheet-open .v4-sheet,html.sheet-open .v4-sheet-body,html.sheet-open .v4-chips{touch-action:pan-y pan-x;pointer-events:auto;}
   html.sheet-open .v4-sheet-back{pointer-events:auto;}
-  .v4-link-mini{display:inline-flex;align-items:center;gap:4px;margin-top:8px;padding:6px 10px;border-radius:999px;border:none;background:rgba(95,208,138,.16);color:var(--mint);font-weight:800;font-size:12.5px;font-family:inherit;cursor:pointer;}
+  .v4-link-mini{display:inline-flex;align-items:center;gap:4px;margin-top:8px;min-height:44px;padding:10px 14px;border-radius:999px;border:none;background:rgba(95,208,138,.16);color:var(--mint);font-weight:800;font-size:12.5px;font-family:inherit;cursor:pointer;}
   /* Los dos accesos de «Tus cuentas» (sincronizar y conectar), en icono (2026-09-11). Iban como
      dos píldoras de texto y entre las tres cosas el título se partía en DOS líneas en su móvil:
      «me falta lo de sincronizar y añadir cuenta quizás con iconos distintivos pequeños, y así

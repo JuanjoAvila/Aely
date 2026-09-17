@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-17 · **v4.26.7** — cierre funcional, financiero y accesible de Inversiones v4.1; nada publicado ni desplegado.
+> Estado a 2026-09-17 · **v4.26.8** — Plan v4.1 usa importes reales, saldos honestos y recibos accesibles; nada publicado ni desplegado.
+> Anterior: **v4.26.7** — cierre funcional, financiero y accesible de Inversiones v4.1.
 > Anterior: **v4.26.6** — histórico aislado por banco y deduplicación estable TR/Wallet.
 > Anterior: **v4.26.5** — barrido de estados y movimiento reducido del rediseño v4.1.
 > Anterior: **v4.26.4** — Inversiones renovadas como pantalla propia, con refresco manual y cifras honestas.
@@ -199,7 +200,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.7** (repo, sin publicar; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.26.8** (repo, sin publicar; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo/publicada: **4.20.4 / 46**. El lector estable TR/Wallet de 4.26.6 aún necesita una APK nueva. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **46** / 4.20.4 |

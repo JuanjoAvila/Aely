@@ -10,6 +10,78 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   const segs=simple
     ? [{id:"recibos",lab:t("v4_plan_recibos")}]
     : [{id:"recibos",lab:t("v4_plan_recibos")},{id:"deudas",lab:t("v4_plan_deudas")},{id:"metas",lab:t("v4_plan_metas")}];
+  const charges=useMemo(function(){
+    return planChargesMonth(state, totals.curMonth, totals.curYear, totals.today);
+  },[state.fixed,state.debts,state.oneoffs,state.flows,totals.curMonth,totals.curYear,totals.today]);
+  const pick=useMemo(function(){
+    return planCoverPickBank(totals, charges.pendingByBank, charges.pendingBills, charges.paidBills);
+  },[totals.minByBank,totals.minDayByBank,totals.mainBank,charges.pendingByBank,charges.pendingBills,charges.paidBills]);
+  const coverBank=pick.bank;
+  const cover=pick.cover;
+  const ringPct=planRingPct(charges.paidBillsTotal, charges.pendingBillsTotal);
+  const billsEuroTotal=charges.paidBillsTotal+charges.pendingBillsTotal;
+  const allBillsPaid=billsEuroTotal>0&&charges.pendingBillsTotal<=0;
+  // Sin inventar 0 € si la cuenta del recibo ya no existe en bankBal (Codex 2050Z).
+  // Antes de coverTone: si va después, var hoisting deja balKnown falsy y all-paid pinta verde con saldo negativo.
+  var balKnown=false, balNow=0;
+  if(coverBank!=null&&totals.bankBal&&Object.prototype.hasOwnProperty.call(totals.bankBal, coverBank)){
+    var balRaw=Number(totals.bankBal[coverBank]);
+    if(isFinite(balRaw)){ balKnown=true; balNow=balRaw; }
+  }
+  // Todo pagado no fuerza verde si el saldo conocido es negativo (Codex 2055Z).
+  const coverTone=allBillsPaid
+    ? ((balKnown&&balNow<0)?"bad":"ok")
+    : cover.tone;
+  const stCls=coverTone==="bad"?"st bad":(coverTone==="warn"?"st warn":"st");
+  const bankLab=coverBank&&typeof entOf==="function"?entOf(coverBank).label:"";
+  const coverHead=coverTone==="bad"?t("v4_plan_state_bad_h"):(coverTone==="warn"?t("v4_plan_state_warn_h"):t("v4_plan_state_ok_h"));
+  const leftForPhrase=coverBank!=null?(pick.pending||0):charges.pendingBillsTotal;
+  const hasMinDay=cover.minDay!=null&&cover.minDay>0;
+  // Frases propias: todo pagado / sin día (minDay 0) — NUNCA «el día ya» (review Claude 1845Z).
+  const coverPhrase=(!billsEuroTotal)
+    ? t("v4_plan_state_none")
+    : (allBillsPaid
+      ? (coverBank&&balKnown
+        ? tf("v4_plan_state_all_paid",{x:eur0(balNow),bank:bankLab})
+        : t("v4_plan_state_all_paid_nobank"))
+      : (coverBank!=null&&cover.min!=null&&isFinite(cover.min)
+        ? tf((coverTone==="bad"?"v4_plan_state_bad":(coverTone==="warn"?"v4_plan_state_warn":"v4_plan_state_ok"))+(hasMinDay?"":"_noday"),{
+            left:eur0(leftForPhrase), end:eur0(cover.min), bank:bankLab, day:hasMinDay?String(cover.minDay):"", min:eur0(cover.min)
+          })
+        : t("v4_plan_state_none")));
+  const coverAria=coverHead+". "+coverPhrase;
+  // Puerta viva desde Ajustes: flag pendiente si Plan aún no montó (cold start / idle).
+  useEffect(function(){
+    var onOpen=function(){
+      try{ window.__mcOpenBillsPending=false; }catch(e){}
+      setSeg("recibos");
+      setManageOpen(true);
+    };
+    try{ if(window.__mcOpenBillsPending) onOpen(); }catch(e){}
+    window.addEventListener("mc-open-bills", onOpen);
+    return function(){ window.removeEventListener("mc-open-bills", onOpen); };
+  },[]);
+  const biggestForCover=(charges.pendingBills||[]).filter(function(x){ return x.bank===coverBank; })
+    .slice().sort(function(a,b){ return Math.abs(b.amount)-Math.abs(a.amount); })[0]||null;
+  const segSub=function(id){
+    if(id==="recibos"){
+      if(charges.pendingBillsCount===1) return tf("v4_seg_bills_one",{n:1});
+      if(charges.pendingBillsCount>0) return tf("v4_seg_bills_n",{n:charges.pendingBillsCount});
+      return "";
+    }
+    if(id==="deudas"){
+      var debtN=(state.debts||[]).filter(function(d){ return debtActive(d); }).length;
+      var debtAmt=(state.debts||[]).reduce(function(s,d){ return debtActive(d)?s+(Number(d.monthly)||0):s; },0);
+      return debtN?tf("v4_seg_debts_amt",{x:eur0(debtAmt)}):"";
+    }
+    if(id==="metas"){
+      var gN=(state.goals||[]).filter(function(g){ return !g.done; }).length;
+      if(gN===1) return tf("v4_seg_goals_one",{n:1});
+      if(gN>0) return tf("v4_seg_goals_n",{n:gN});
+      return "";
+    }
+    return "";
+  };
   useEffect(function(){ if(simple && seg!=="recibos") setSeg("recibos"); },[simple,seg]);
   // «Ver plan» desde Inicio fuerza el segmento (recibos/metas): sin esto quedaba el último
   // que usaste (p.ej. Deudas) y el link engañaba (feedback 2026-07-18). gotoSeg lleva ts para
@@ -234,102 +306,138 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   },[seg]);
 
   return React.createElement("div",{className:"v4-screen",ref:planScreenRef},
-    React.createElement("h1",{className:"v4-title serif"}, t("v4_plan_title")),
-    React.createElement("div",{className:"v4-seg",role:"tablist"},
+    React.createElement("h1",{className:"v4-title serif"}, simple?t("v4s_plan_left_title"):t("v4_plan_title")),
+    React.createElement("div",{className:"v4-card v4-card-hero rise v4-plan-cover"+(simple?" v4-plan-cover-simple":""),"data-plan-state":coverTone,role:"group","aria-label":coverAria},
+      simple
+        ? React.createElement("div",{className:"v4-plan-simple-hero"},
+            React.createElement("div",{className:stCls}, coverHead),
+            React.createElement("div",{className:"v4-plan-simple-amt num serif"}, eur0(charges.pendingBillsTotal)),
+            React.createElement("div",{className:"ph"}, coverPhrase),
+            biggestForCover && React.createElement("div",{className:"ph",style:{marginTop:6}},
+              tf("v4_plan_biggest",{name:biggestForCover.name,amount:eur0(biggestForCover.amount)}))
+          )
+        : React.createElement(React.Fragment,null,
+            React.createElement("div",{className:"v4-budget"},
+              React.createElement(V4Ring,{pct:ringPct,tone:coverTone,label:billsEuroTotal?Math.round(ringPct*100)+"%":"—",sub:billsEuroTotal?t("v4_plan_paid_ring"):null,animate:false}),
+              React.createElement("div",{className:"v4-budget-txt"},
+                React.createElement("div",{className:stCls}, coverHead),
+                React.createElement("div",{className:"ph"}, coverPhrase),
+                biggestForCover && React.createElement("div",{className:"ph",style:{marginTop:6}},
+                  tf("v4_plan_biggest",{name:biggestForCover.name,amount:eur0(biggestForCover.amount)}))
+              )
+            ),
+            React.createElement("div",{className:"v4-budget-foot"},
+              React.createElement("span",{className:"num serif",style:{fontSize:28,fontWeight:550}}, eur0(charges.pendingBillsTotal)),
+              React.createElement("span",null, t("v4_aun_saldra"))
+            )
+          )
+    ),
+    !simple && React.createElement("div",{className:"v4-seg",role:"tablist"},
       segs.map(function(s){
-        return React.createElement("button",{key:s.id,role:"tab","aria-selected":seg===s.id,
-          className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ setSeg(s.id); }}, s.lab);
+        var sub=segSub(s.id);
+        return React.createElement("button",{key:s.id,type:"button",role:"tab","aria-selected":seg===s.id,"data-seg":s.id,
+          className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ setSeg(s.id); }},
+          React.createElement("span",{className:"v4-seg-lab"}, s.lab),
+          sub?React.createElement("span",{className:"v4-seg-sub"}, sub):null);
       })
     ),
-    capa("recibos", React.createElement(PlanBills,{state:state,set:set,totals:totals,manageOpen:manageOpen,setManageOpen:setManageOpen,simple:simple,showToast:showToast})),
+    capa("recibos", React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,manageOpen:manageOpen,setManageOpen:setManageOpen,simple:simple,showToast:showToast})),
     !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast})),
     !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast}))
   );
 }
 
-/* Recibos prioriza lo que todavía saldrá de la cuenta este mes. Fijos (edición completa,
-   simulador, conciliación…) vive SOLO dentro de la hoja «Gestionar» — mezclarlo aquí abajo
-   duplicaba próximos cargos y desglose de banco que ya se ven arriba (feedback 2026-07-17). */
-function PlanBills({state, set, totals, manageOpen, setManageOpen, simple, showToast}){
+/* Recibos: listas + Gestionar. La portada (anillo/frase) vive encima del segmented en PlanTab. */
+function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simple, showToast}){
   const [paidExpanded,setPaidExpanded]=useState(false);
   const [pendExpanded,setPendExpanded]=useState(false);
-  const month=totals.curMonth, year=totals.curYear, today=totals.today;
-  const charges=[];
-  (state.fixed||[]).forEach(function(e){
-    const amount=occAmountIn(e,month);
-    if(occursIn(e,month) && amount>0) charges.push({
-      id:"fixed_"+e.id, name:e.name, amount:amount, day:dayIn(e,month), bank:accOf(e),
-      paid:isPaidIn(e,month,today), sub:t("fj_fixed_tag")
-    });
-  });
-  (state.debts||[]).forEach(function(d){
-    if(!debtActive(d)) return;
-    const bank=d.account||"sabadell", day=debtChargeDay(d), paid=isDebtPaidThisMonth(d,today);
-    if((d.monthly||0)>0) charges.push({id:"debt_"+d.id,name:d.name,amount:d.monthly,day:day,bank:bank,paid:paid,sub:t("fj_debt_tag")});
-    const balloon=debtBalloonIn(d,year,month);
-    if(balloon>0) charges.push({id:"balloon_"+d.id,name:d.name+" "+t("db_balloon_tag"),amount:balloon,day:day,bank:bank,paid:paid,sub:t("fj_debt_tag")});
-  });
-  // Nómina y transferencias del mes (como en Gestionar): lo que ya entró/salió cuenta en «Ya pagado».
-  (state.flows||[]).forEach(function(f){
-    if(!flowOccursIn(f,month,year)) return;
-    const day=flowDay(f,year,month);
-    const paid=day!=null && day<=today;
-    const amt=+(f.amount||0);
-    if(!(amt>0)) return;
-    if(f.kind==="income"){
-      charges.push({id:"flow_"+f.id,name:f.name||t("fj_income"),amount:-amt,day:day,bank:f.to||"sabadell",paid:paid,sub:t("fj_income_tag"),income:true});
-    } else if(f.kind==="transfer"){
-      charges.push({id:"flow_"+f.id,name:f.name||t("fj_transfer"),amount:amt,day:day,bank:f.from||"sabadell",paid:paid,sub:t("fj_transfer_tag")});
+  const paidPanelId="v4-paid-panel";
+  const month=totals.curMonth;
+  const pack=charges||planChargesMonth(state, totals.curMonth, totals.curYear, totals.today);
+  // «Lo que aún saldrá» = recibos + traspasos pendientes. Ingresos NUNCA aquí (NO-GO 17/9).
+  const pending=pack.pendingBills.concat(pack.transfersPending);
+  const paid=pack.paidBills;
+  const incomePend=pack.incomePending||[];
+  // Atrás real (history) pliega el «Ya has pagado»; Escape del e2e no basta (Claude 1845Z).
+  useBackClose(!!paidExpanded, function(){ setPaidExpanded(false); });
+  const openManage=function(){
+    if(setManageOpen) setManageOpen(true);
+    else try{ window.dispatchEvent(new CustomEvent("mc-open-bills")); }catch(e){}
+  };
+  const rowSub=function(x){
+    if(simple){
+      if(x.kind==="income") return tf("v4s_row_income",{bank:entOf(x.bank).label});
+      if(x.kind==="transfer"){
+        var toEnt=x.to||null;
+        var inv=toEnt&&((state.investments||[]).some(function(i){ return i.ent===toEnt; })||(state.accounts||[]).some(function(a){ return a.ent===toEnt&&a.role==="extra"; }));
+        return inv?tf("v4s_row_invest",{bank:entOf(toEnt).label}):tf("v4s_row_to",{bank:entOf(toEnt||x.bank).label});
+      }
+      if(x.kind==="debt"||x.kind==="balloon") return tf("v4s_row_debt",{name:x.name});
+      return tf("v4s_row_from",{bank:entOf(x.bank).label});
     }
-  });
-  charges.sort(function(a,b){ return ((a.day||99)-(b.day||99)) || (Math.abs(b.amount)-Math.abs(a.amount)); });
-  const pending=charges.filter(function(x){ return !x.paid; });
-  // Lista completa (sin agrupar ni «Ver más»): en Gestionar salía todo y aquí faltaban ingresos/traspasos.
-  const paid=charges.filter(function(x){ return x.paid; });
-  const pendingTotal=pending.reduce(function(sum,x){ return sum+(x.income?0:Math.abs(x.amount)); },0);
-  const paidTotal=paid.reduce(function(sum,x){ return sum+(x.income?0:Math.abs(x.amount)); },0);
-  const fixedAccount=(state.accounts||[]).find(function(a){ return accFixed(a); });
-  const projected=fixedAccount && totals.projectedByBank && totals.projectedByBank[fixedAccount.ent];
-  const liquidity=typeof projected==="number" ? tf("v4_plan_liq",{amount:eur0(projected),bank:entOf(fixedAccount.ent).label}) : "—";
+    var tag=x.kind==="income"?t("fj_income_tag"):(x.kind==="transfer"?t("fj_transfer_tag"):(x.kind==="debt"||x.kind==="balloon"?t("fj_debt_tag"):t("fj_fixed_tag")));
+    return tag+(x.bank?" · "+entOf(x.bank).label:"");
+  };
   const row=function(x){
     const income=!!x.income || (x.amount<0);
     const amt=Math.abs(x.amount);
-    return React.createElement("div",{className:"v4-charge"+(x.paid?" v4-paid":""),key:x.id},
+    const cls=simple?("v4-mov"+(x.paid?" v4-paid":"")):("v4-charge"+(x.paid?" v4-paid":""));
+    if(simple){
+      return React.createElement("div",{className:cls,key:x.id},
+        React.createElement("div",{className:"tile","aria-hidden":true}, x.day||"—"),
+        React.createElement("div",{className:"nm"},
+          React.createElement("div",{className:"nm-title"}, x.paid?"✓ "+x.name:x.name),
+          React.createElement("div",{className:"meta"}, rowSub(x))
+        ),
+        React.createElement("div",{className:"am"+(income?" pos":"")}, (income?"+":"")+eur(amt))
+      );
+    }
+    return React.createElement("div",{className:cls,key:x.id},
       React.createElement("div",{className:"dt"},
         React.createElement("div",{className:"d"}, x.day||"—"),
         React.createElement("div",{className:"m"}, monthShort(month-1))
       ),
       React.createElement("div",{className:"nm"},
         React.createElement("div",null, x.paid?"✓ "+x.name:x.name),
-        React.createElement("div",{className:"sub"}, x.sub+(x.bank?" · "+entOf(x.bank).label:""))
+        React.createElement("div",{className:"sub"}, rowSub(x))
       ),
       React.createElement("div",{className:"am"+(income?" pos":"")}, (income?"+":"")+eur(amt))
     );
   };
+  const paidLabel=pack.paidBillsCount===1
+    ? tf("v4_paid_fold_one",{n:1,amount:eur0(pack.paidBillsTotal)})
+    : tf("v4_paid_fold",{n:pack.paidBillsCount,amount:eur0(pack.paidBillsTotal)});
   return React.createElement(React.Fragment,null,
-    React.createElement("div",{className:"v4-card v4-card-hero rise"},
-      React.createElement("div",{className:"v4-micro"}, tf("v4_plan_left",{month:monthLong(month-1)})),
-      React.createElement("div",{className:"serif num",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}}, eur(pendingTotal)),
-      React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center",marginTop:14,fontSize:13.5,color:"var(--muted)"}},
-        React.createElement("span",{style:{width:8,height:8,borderRadius:"50%",background:"var(--mint)",flex:"0 0 auto"}}),
-        liquidity
-      )
-    ),
     React.createElement("div",{className:"v4-section"},
       React.createElement("div",{className:"v4-section-h"},
-        React.createElement("span",null,t("v4_pendiente")),
-        React.createElement("button",{className:"link",onClick:function(){ setManageOpen(true); }},t("v4_gestionar"))
+        React.createElement("span",null,t("v4_aun_saldra")),
+        // Sencillo: sin «Gestionar» aquí — solo Ajustes → Cambiar mis recibos (NO-GO §5bis.2).
+        !simple && React.createElement("button",{type:"button",className:"link",onClick:openManage}, t("v4_gestionar"))
       ),
-      (pendExpanded?pending:pending.slice(0,3)).map(row),
-      pending.length>3 && React.createElement("button",{className:"v4-link-mini",onClick:function(){ setPendExpanded(function(v){ return !v; }); }},
+      pending.length===0
+        ? React.createElement("div",{className:"ph",style:{padding:"8px 4px 4px"}}, t("v4_aun_saldra_empty"))
+        : (pendExpanded?pending:pending.slice(0,3)).map(row),
+      pending.length>3 && React.createElement("button",{type:"button",className:"v4-link-mini",onClick:function(){ setPendExpanded(function(v){ return !v; }); }},
         pendExpanded ? t("v4_ver_menos") : tf("v4_ver_mas",{n:pending.length-3}))
     ),
-    React.createElement("div",{className:"v4-section"},
-      React.createElement("div",{className:"v4-section-h"},t("v4_ya_pagado")+" · "+eur(paidTotal)),
-      (paidExpanded?paid:paid.slice(0,3)).map(row),
-      paid.length>3 && React.createElement("button",{className:"v4-link-mini",onClick:function(){ setPaidExpanded(function(v){ return !v; }); }},
-        paidExpanded ? t("v4_ver_menos") : tf("v4_ver_mas",{n:paid.length-3}))
+    incomePend.length>0 && React.createElement("div",{className:"v4-section"},
+      React.createElement("div",{className:"v4-section-h"},
+        React.createElement("span",null,t("v4_aun_entrara"))
+      ),
+      incomePend.map(row)
     ),
+    pack.paidBillsCount>0 && React.createElement("button",{type:"button",className:"v4-paid-fold",
+      id:"v4-paid-fold-btn",
+      "aria-expanded":paidExpanded?"true":"false",
+      "aria-controls":paidPanelId,
+      onClick:function(){ setPaidExpanded(function(v){ return !v; }); }},
+      React.createElement("span",null, paidLabel),
+      React.createElement("span",{"aria-hidden":true}, paidExpanded?"▾":"▸")
+    ),
+    paidExpanded && React.createElement("div",{className:"v4-section",id:paidPanelId,role:"region","aria-labelledby":"v4-paid-fold-btn"},
+      paid.map(row)
+    ),
+    // También en sencillo: la puerta vive en Ajustes → Dinero (NO-GO §5bis.2).
     React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); },state:state,set:set,totals:totals,simple:!!simple,showToast:showToast})
   );
 }
@@ -362,7 +470,7 @@ function gbTxt(key, vars){
     gb_empty:"Aún no hay recibos", gb_empty_sub:"Cuando se repita un cargo, lo verás aquí.",
     gb_empty_sub_linked:"En cuanto pase un cargo que se repita, lo verás aquí.",
     gb_afford:"¿Me lo puedo permitir?", gb_afford_sub:"Dime un importe y un día y te digo si te cabe este mes.",
-    gb_per_month:"al mes", gb_when_day:"Un día fijo",
+    gb_per_month:"al mes", gb_when_day:"Un día concreto",
     gb_when_first:"Primer día hábil", gb_when_last:"Último día hábil",
     gb_del:"Quitar este recibo", gb_removed:"Recibo quitado",
     gb_save_ok:"Guardado", gb_next:"Siguiente"
@@ -376,6 +484,8 @@ function gbSub(key, n){
   return gbTxt(n===1?key+"_one":key, {n:n});
 }
 
+/* §2 variante A: `.settings-push` hub, sin montar `<Fijos>`. Reconcile → BankPanel (Claude).
+   Ajustes dispara `mc-open-bills` → PlanTab abre este push con state vivo (no snapshot). */
 function BillsManagePush({open, onClose, state, set, totals, simple, showToast}){
   const [stack,setStack]=React.useState(["hub"]);
   const [group,setGroup]=React.useState(null);
@@ -385,6 +495,14 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
   const [addForm,setAddForm]=React.useState({name:"",amount:"",freq:"mes",months:[],day:"",when:"",account:"sabadell",kind:"fixed"});
   const [undoBill,setUndoBill]=React.useState(null);
   const undoTimer=React.useRef(null);
+  const rootRef=React.useRef(null);
+  const titleRef=React.useRef(null);
+  const prevFocus=React.useRef(null);
+  const popRef=React.useRef(null);
+  const detailRef=React.useRef(null);
+  const addStepRef=React.useRef(null);
+  const openerRef=React.useRef(null);
+  const hadSheetRef=React.useRef(false);
   const view=stack[stack.length-1];
   const cm=totals.curMonth, cy=totals.curYear;
   React.useEffect(function(){
@@ -407,10 +525,64 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
       return n;
     });
   },[onClose, detail, addStep]);
+  popRef.current=pop; detailRef.current=detail; addStepRef.current=addStep;
+  const closeDetail=React.useCallback(function(){ setDetail(null); },[]);
+  const closeAdd=React.useCallback(function(){ setAddStep(null); },[]);
   useBackClose(!!open, pop);
   // El hub conserva su entrada y cada pantalla hija añade otra. Antes toda la pila compartía
   // una sola: el primer Atrás volvía al hub, pero el segundo ya sacaba de Plan (QA 2026-09-16).
   useBackClose(!!open && (view==="list"||view==="afford"), pop);
+  // Dialog a11y: foco inicial/restore SOLO al abrir/cerrar el hub (deps=[open]).
+  // Si remonta al cambiar detail/addStep, el cleanup restaura foco y el rAF roba el h1
+  // detrás de la ficha (Claude BAJA + Codex 2100Z).
+  React.useEffect(function(){
+    if(!open) return undefined;
+    prevFocus.current=document.activeElement;
+    var id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus(); });
+    var onKey=function(e){
+      if(document.documentElement.classList.contains("ask-open")) return;
+      if(detailRef.current||addStepRef.current){
+        // Hojas hijas (portal) atrapan Tab/Escape en capture; aquí no robamos foco.
+        return;
+      }
+      if(e.key==="Escape"){ e.preventDefault(); popRef.current&&popRef.current(); return; }
+      if(e.key!=="Tab"||!rootRef.current) return;
+      var nodes=rootRef.current.querySelectorAll('button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])');
+      var list=Array.prototype.filter.call(nodes,function(el){ return !el.disabled&&el.offsetParent!==null; });
+      if(!list.length) return;
+      var first=list[0], last=list[list.length-1];
+      // Título con tabIndex=-1 no está en la lista: sin esto el Tab se escapa al DOM de detrás.
+      var idx=list.indexOf(document.activeElement);
+      if(!rootRef.current.contains(document.activeElement)||idx===-1){
+        e.preventDefault(); (e.shiftKey?last:first).focus(); return;
+      }
+      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", onKey);
+    return function(){
+      cancelAnimationFrame(id);
+      document.removeEventListener("keydown", onKey);
+      var el=prevFocus.current;
+      if(el&&typeof el.focus==="function") try{ el.focus(); }catch(err){}
+    };
+  },[open]);
+  // Al cerrar ficha/alta: devolver foco al control que las abrió (Codex 2100Z).
+  React.useEffect(function(){
+    var sheet=!!(detail||addStep);
+    if(hadSheetRef.current&&!sheet&&open){
+      var el=openerRef.current;
+      var id=requestAnimationFrame(function(){
+        if(el&&typeof el.focus==="function"&&(!rootRef.current||rootRef.current.contains(el))){
+          try{ el.focus(); }catch(err){}
+        }
+      });
+      hadSheetRef.current=false;
+      return function(){ cancelAnimationFrame(id); };
+    }
+    hadSheetRef.current=sheet;
+    return undefined;
+  },[detail, addStep, open]);
   if(!open) return null;
   const banks=Array.from(new Set((state.accounts||[]).map(function(a){ return a.ent; }).filter(Boolean)));
   if(!banks.length) banks.push("sabadell");
@@ -432,8 +604,9 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
   const groups=["serv","debt","in","once"].map(groupMeta);
   const push=function(v){ setStack(function(s){ return s.concat([v]); }); };
   const openGroup=function(id){ setGroup(id); setQ(""); push("list"); };
-  const openDetail=function(row){ setDetail(row); };
+  const openDetail=function(row){ openerRef.current=document.activeElement; setDetail(row); };
   const startAdd=function(kind){
+    openerRef.current=document.activeElement;
     setAddForm({name:"",amount:"",freq:"mes",months:[],day:"",when:"",account:bankList[0]||"sabadell",kind:kind||"fixed",
       month:cm, year:cy, flowKind:"income"});
     setAddStep("what");
@@ -484,9 +657,10 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
       React.createElement("div",{className:"am num"+(r.income?" pos":"")}, (r.income?"+":"")+eur(Math.abs(r.monthly||0))));
   };
   const head=function(title){
+    // id estable en hub/list/afford: aria-labelledby del dialog no puede quedar huérfano.
     return React.createElement("div",{className:"settings-push-h"},
       React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:pop},"‹"),
-      React.createElement("h1",null, title));
+      React.createElement("h1",{id:"bills-manage-title",tabIndex:-1,ref:titleRef}, title));
   };
   const hub=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-home"},
     head(gbTxt("gb_title")),
@@ -543,14 +717,15 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
   const screenAttr=view==="list"?"bills-group":(view==="afford"?"bills-afford":"bills-home");
   return ReactDOM.createPortal(
     React.createElement(React.Fragment,null,
-      React.createElement("div",{className:"settings-push open v4-bills-push","data-bills-manage":"1","data-screen":screenAttr,"data-group":view==="list"?group:undefined}, body),
+      React.createElement("div",{ref:rootRef,className:"settings-push open v4-bills-push","data-bills-manage":"1","data-screen":screenAttr,"data-group":view==="list"?group:undefined,
+        role:"dialog","aria-modal":"true","aria-labelledby":"bills-manage-title"}, body),
       detail && React.createElement(BillsItemSheet,{
         row:detail, set:set, banks:bankList, simple:simple, showToast:showToast,
-        onClose:function(){ setDetail(null); }, onRemove:removeWithUndo
+        onClose:closeDetail, onRemove:removeWithUndo
       }),
       addStep && React.createElement(BillsAddWizard,{
         step:addStep, setStep:setAddStep, form:addForm, setForm:setAddForm, banks:bankList,
-        onClose:function(){ setAddStep(null); }, set:set, showToast:showToast
+        onClose:closeAdd, set:set, showToast:showToast
       }),
       undoBill && React.createElement("div",{className:"v4-undo-toast",role:"status"},
         React.createElement("span",null, gbTxt("gb_removed")),
@@ -571,8 +746,41 @@ function BillsItemSheet({row, set, banks, simple, showToast, onClose, onRemove})
   const [account,setAccount]=React.useState(row.bank||banks[0]||"sabadell");
   const [amort,setAmort]=React.useState(item.amort!=null?String(item.amort):"");
   const hasSched=hasSchedule(item);
+  const sheetRef=React.useRef(null);
+  const titleRef=React.useRef(null);
+  const onCloseRef=React.useRef(onClose);
+  onCloseRef.current=onClose;
+  const titleId="bills-item-title";
   React.useEffect(function(){ setAmount(""); },[row.id]);
   useBackClose(true, onClose);
+  // Portal hermano del hub: dialog propio con trap/Escape; restore lo hace el hub (Codex 2050/2100Z).
+  // deps=[]: si [onClose] remonta, cada tecla (saveMeta→set) reenfoca el h1 (Claude NO-GO / Codex 2120Z).
+  React.useEffect(function(){
+    var id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus(); });
+    var onKey=function(e){
+      if(document.documentElement.classList.contains("ask-open")) return;
+      if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); onCloseRef.current&&onCloseRef.current(); return; }
+      if(e.key!=="Tab"||!sheetRef.current) return;
+      // Siempre cortar: el hub escucha en bubble y ve foco fuera de rootRef (portal) → lo robaba (Codex 2105Z).
+      e.stopPropagation();
+      var nodes=sheetRef.current.querySelectorAll('button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])');
+      var list=Array.prototype.filter.call(nodes,function(el){ return !el.disabled&&el.offsetParent!==null; });
+      if(!list.length) return;
+      var first=list[0], last=list[list.length-1];
+      var idx=list.indexOf(document.activeElement);
+      if(!sheetRef.current.contains(document.activeElement)||idx===-1){
+        e.preventDefault(); (e.shiftKey?last:first).focus(); return;
+      }
+      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", onKey, true);
+    return function(){
+      cancelAnimationFrame(id);
+      document.removeEventListener("keydown", onKey, true);
+      // Restore lo hace el hub (openerRef); aquí no pisar ese foco (Codex 2100Z).
+    };
+  },[]);
   const saveAmt=function(){
     if(locked||hasSched) return;
     const n=parseFloat(String(amount).replace(",","."));
@@ -592,11 +800,12 @@ function BillsItemSheet({row, set, banks, simple, showToast, onClose, onRemove})
   };
   const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
   return React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
-    React.createElement("div",{className:"v4-sheet","data-sheet":"bill",onClick:function(e){ e.stopPropagation(); }},
+    React.createElement("div",{ref:sheetRef,className:"v4-sheet","data-sheet":"bill",role:"dialog","aria-modal":"true","aria-labelledby":titleId,
+      onClick:function(e){ e.stopPropagation(); }},
       React.createElement("div",{className:"v4-sheet-handle"}),
       React.createElement("div",{className:"settings-push-h",style:{padding:"0 0 8px"}},
         React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:onClose},"‹"),
-        React.createElement("h1",null, name||row.name||"—")),
+        React.createElement("h1",{id:titleId,tabIndex:-1,ref:titleRef}, name||row.name||"—")),
       !locked && React.createElement("input",{className:"v4-bills-search",value:name,placeholder:t("pt_name_ph"),
         onChange:function(e){ const v=e.target.value; setName(v); saveMeta({name:v}); }}),
       React.createElement("div",{className:"v4-account-balance",style:{marginTop:12}},
@@ -661,17 +870,22 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, show
   const setF=function(patch){ setForm(function(f){ return Object.assign({},f,patch); }); };
   const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
   const stepRef=React.useRef(step), formRef=React.useRef(form);
+  const sheetRef=React.useRef(null);
+  const titleRef=React.useRef(null);
+  const onCloseRef=React.useRef(onClose);
+  onCloseRef.current=onClose;
+  const titleId="bills-add-title";
   stepRef.current=step; formRef.current=form;
   const stepBack=React.useCallback(function(){
     const cur=stepRef.current, f=formRef.current||{};
-    if(cur==="what"){ onClose(); return false; }
+    if(cur==="what"){ onCloseRef.current&&onCloseRef.current(); return false; }
     if(cur==="amount") setStep("what");
     else if(cur==="freq"||cur==="monthyear") setStep("amount");
     else if(cur==="months") setStep("freq");
     else if(cur==="when"||cur==="preview") setStep(f.kind==="oneoff"?"monthyear":(f.freq==="mes"?"freq":"months"));
-    else { onClose(); return false; }
+    else { onCloseRef.current&&onCloseRef.current(); return false; }
     return true;
-  },[onClose,setStep]);
+  },[setStep]);
   const entryRef=React.useRef(null), stepBackRef=React.useRef(stepBack);
   stepBackRef.current=stepBack;
   React.useEffect(function(){
@@ -689,6 +903,32 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, show
       if(!e._byPop){ _mcIgnorePop=true; try{ history.back(); }catch(err){ _mcIgnorePop=false; } }
       entryRef.current=null;
     };
+  },[]);
+  // Solo reenfocar título al cambiar de paso — nunca al teclear el form (Codex 2120Z).
+  React.useEffect(function(){
+    var id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus(); });
+    return function(){ cancelAnimationFrame(id); };
+  },[step]);
+  // Trap Tab/Escape estable (stepBack vía ref).
+  React.useEffect(function(){
+    var onKey=function(e){
+      if(document.documentElement.classList.contains("ask-open")) return;
+      if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); stepBackRef.current&&stepBackRef.current(); return; }
+      if(e.key!=="Tab"||!sheetRef.current) return;
+      e.stopPropagation();
+      var nodes=sheetRef.current.querySelectorAll('button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])');
+      var list=Array.prototype.filter.call(nodes,function(el){ return !el.disabled&&el.offsetParent!==null; });
+      if(!list.length) return;
+      var first=list[0], last=list[list.length-1];
+      var idx=list.indexOf(document.activeElement);
+      if(!sheetRef.current.contains(document.activeElement)||idx===-1){
+        e.preventDefault(); (e.shiftKey?last:first).focus(); return;
+      }
+      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", onKey, true);
+    return function(){ document.removeEventListener("keydown", onKey, true); };
   },[]);
   const commit=function(){
     const amt=parseFloat(String(form.amount).replace(",","."))||0;
@@ -723,11 +963,12 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, show
     step==="freq"?gbTxt("gb_step_how_often"):step==="months"?gbTxt("gb_months_q"):
     step==="monthyear"?gbTxt("gb_step_monthyear"):gbTxt("gb_step_when");
   return React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
-    React.createElement("div",{className:"v4-sheet","data-sheet":"bill-add","data-step":step,onClick:function(e){ e.stopPropagation(); }},
+    React.createElement("div",{ref:sheetRef,className:"v4-sheet","data-sheet":"bill-add","data-step":step,role:"dialog","aria-modal":"true","aria-labelledby":titleId,
+      onClick:function(e){ e.stopPropagation(); }},
       React.createElement("div",{className:"v4-sheet-handle"}),
       React.createElement("div",{className:"settings-push-h",style:{padding:"0 0 8px"}},
         React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:function(){ stepBack(); }},"‹"),
-        React.createElement("h1",null, title)),
+        React.createElement("h1",{id:titleId,tabIndex:-1,ref:titleRef}, title)),
       step==="what" && React.createElement(React.Fragment,null,
         React.createElement("input",{className:"v4-bills-search",autoFocus:true,value:form.name,placeholder:gbTxt("gb_step_what"),
           onChange:function(e){ setF({name:e.target.value}); }}),

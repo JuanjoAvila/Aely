@@ -2503,7 +2503,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     React.createElement("div",{className:"v4-set-sec"}, t("v4_set_money")),
     // Dinero: moneda de visualización (ahora SÍ convierte) + comparativa + cómo se ve el total
     // de gastos. Presupuesto y bancos de gasto diario viven en Resumen / Cartera (2026-08-05).
-    grp("money","💱",t("v4_set_money"),"moneda divisa currency euro dolar lira try conversor convertir comparar",t("cur_"+curCur.toLowerCase()),
+    grp("money","💱",t("v4_set_money"),"moneda divisa currency euro dolar lira try conversor convertir comparar dinero plan recibos bills rebuts",t("cur_"+curCur.toLowerCase()),
       row("cur","💱",t("currency"),t("cur_"+curCur.toLowerCase()),function(){ toggleExp("cur"); }),
       expand==="cur" && React.createElement("div",{className:"set-exp"},
         React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",marginTop:8}},
@@ -2568,7 +2568,15 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         React.createElement(Projection,{
           invested:totals.invested||0,
           defMonthly:(state.aportaciones||[]).reduce(function(a,x){ return a+(x.amount||0); },0)
-        }))
+        })),
+      // Plan/Dinero: flag pendiente + click Plan + evento (sin setTimeout; cold start idle).
+      row("bills","📋",t("v4s_change_bills"),null,function(){
+        try{ window.__mcOpenBillsPending=true; }catch(e){}
+        if(typeof onClose==="function") onClose();
+        var ptab=document.querySelector('.botnav-tab[data-tour="plan"]');
+        if(ptab) ptab.click();
+        try{ window.dispatchEvent(new CustomEvent("mc-open-bills")); }catch(e){}
+      })
     ),
 
     React.createElement("div",{className:"v4-set-sec"}, t("v4_set_conn")),
