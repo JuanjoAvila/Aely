@@ -973,32 +973,49 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       ) },
       !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise",style:{animationDelay:".12s"}},
         React.createElement("div",{className:"v4-sec-h"}, t("v4_inversiones")),
-        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,v4Embed:true}),
+        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,v4Embed:true,showToast:showToast}),
         React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:10},ref:invLinkRef,onClick:function(){ setInvTools(true); }}, t("iv_see_all")+" ›")
       ) }
     ]}),
     // La hija vive FUERA de los bloques ordenables: es un portal, no una sección, y meterla
     // dentro la desmontaría al reordenar (cerrándose sola a media consulta).
-    !simple && React.createElement(InvestmentsPush,{open:invTools,onClose:closeInvestments,state:state,set:set,fetchPrices:fetchPrices,pricing:pricing})
+    !simple && React.createElement(InvestmentsPush,{open:invTools,onClose:closeInvestments,state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,showToast:showToast})
   );
 }
 
-function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing}){
+function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, showToast}){
   const titleRef=useRef(null);
+  const screenRef=useRef(null);
   useBackClose(!!open, onClose);
   useEffect(function(){
     if(!open) return undefined;
     const id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus(); });
-    return function(){ cancelAnimationFrame(id); };
+    const prevOverflow=document.body.style.overflow;
+    document.body.style.overflow="hidden";
+    const keydown=function(e){
+      const root=screenRef.current;
+      if(!root) return;
+      if(e.key==="Escape"){ e.preventDefault(); onClose(); return; }
+      if(e.key!=="Tab") return;
+      const focusable=Array.from(root.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[href],[tabindex]:not([tabindex="-1"])'))
+        .filter(function(el){ return el.getClientRects().length>0; });
+      if(!focusable.length){ e.preventDefault(); titleRef.current&&titleRef.current.focus(); return; }
+      const first=focusable[0],last=focusable[focusable.length-1],active=document.activeElement;
+      const at=focusable.indexOf(active);
+      if(e.shiftKey&&at<=0){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey&&(at<0||active===last)){ e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown",keydown);
+    return function(){ cancelAnimationFrame(id); document.removeEventListener("keydown",keydown); document.body.style.overflow=prevOverflow; };
   },[open]);
   if(!open) return null;
   return ReactDOM.createPortal(
-    React.createElement("div",{className:"settings-push open","data-inv-screen":"1"},
+    React.createElement("div",{className:"settings-push open","data-inv-screen":"1",ref:screenRef,role:"dialog","aria-modal":"true","aria-labelledby":"iv-screen-title"},
       React.createElement("div",{className:"settings-push-h"},
         React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:onClose},"‹"),
-        React.createElement("h1",{tabIndex:-1,ref:titleRef}, t("iv_title"))
+        React.createElement("h1",{id:"iv-screen-title",tabIndex:-1,ref:titleRef}, t("iv_title"))
       ),
-      React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,fullMode:true})
+      React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,fullMode:true,showToast:showToast})
     ), document.body);
 }
 

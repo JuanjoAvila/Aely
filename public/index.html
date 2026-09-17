@@ -1464,6 +1464,10 @@
   .curtoggle{display:inline-flex;gap:2px;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:10px;padding:2px;}
   .curbtn{font-size:13px;font-weight:800;padding:4px 12px;border-radius:8px;background:transparent;color:var(--muted-2);border:none;cursor:pointer;}
   .curbtn.on{color:#08120C;background:linear-gradient(160deg,var(--mint-bright),var(--mint));}
+  .inv-tap{min-height:44px;}
+  .v4-investments-full .curbtn,.v4-investments-full .v4-link-mini{min-height:44px;}
+  .v4-investments-full .v4-field-label{display:block;color:var(--muted);font-size:12.5px;font-weight:700;margin-top:10px;}
+  .v4-investments-full .v4-field-label .af-in{display:block;min-height:44px;margin-top:5px;color:var(--text);font-weight:500;}
   .edit-extra{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
   .liqbox{background:var(--bg-2);border:1px solid var(--line-soft);border-radius:13px;padding:11px 13px;margin-bottom:10px;}
   .liqbox.danger{border-color:rgba(226,112,95,.5);background:rgba(226,112,95,.07);}
@@ -1522,9 +1526,10 @@
   .editpair label{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--muted-2);font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
   .editpair input{width:96px;text-align:right;background:var(--bg-2);border:1px solid var(--mint-dim);color:var(--text);border-radius:8px;padding:6px 8px;font-size:13px;font-weight:600;}
   .del-btn{width:26px;height:26px;border-radius:8px;background:rgba(226,112,95,.14);color:var(--coral);font-size:12px;font-weight:700;flex:0 0 auto;display:grid;place-items:center;}
-  .costtoggle{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--muted);font-weight:600;background:var(--surface);border:1px solid var(--line-soft);border-radius:13px;padding:11px 14px;margin-bottom:12px;cursor:pointer;}
+  .costtoggle{display:flex;align-items:center;gap:9px;width:100%;min-height:44px;text-align:left;font-family:inherit;font-size:12.5px;color:var(--muted);font-weight:600;background:var(--surface);border:1px solid var(--line-soft);border-radius:13px;padding:11px 14px;margin-bottom:12px;cursor:pointer;}
   .costtoggle .cbx{width:20px;height:20px;border-radius:6px;border:1px solid var(--mint-dim);background:var(--bg-2);color:#08120C;display:grid;place-items:center;font-size:13px;font-weight:800;flex:0 0 auto;}
   .costtoggle .cbx.on{background:linear-gradient(160deg,var(--mint-bright),var(--mint));border-color:transparent;}
+  .inv-row-action{display:inline-flex;align-items:center;min-height:44px;background:none;border:none;cursor:pointer;font-size:11px;font-weight:700;padding:4px 0;}
 
   .subtotal{display:flex;justify-content:space-between;padding:14px 0 2px;margin-top:4px;border-top:1px dashed var(--line);font-weight:700;}
   .subtotal .muted{color:var(--muted);font-weight:600;}
@@ -5460,8 +5465,10 @@ Object.assign(LANG.es,{
   iv_percent:"{pct}% desde que empezaste · Actualizado {time}", iv_never:"sin actualizar",
   iv_no_put:"Dime lo que pusiste y te diré cuánto han ganado.", iv_no_put_cta:"Añadir lo que puse",
   iv_where:"Dónde lo tienes", iv_refresh:"↻ Actualizar precios", iv_refreshing:"Actualizando precios…",
-  iv_refresh_fail:"No se pudieron actualizar los precios", iv_refresh_fail_sub:"Conservamos los últimos datos ({time}). Puedes volver a intentarlo.", iv_retry:"Reintentar",
-  iv_positions:"{n} posiciones", iv_edit:"✎ Editar a mano", iv_add_position:"+ Posición", iv_shares:"{n} participaciones", iv_manual_on:"a mano · {date}",
+  iv_refresh_ok:"✓ Precios actualizados · {time}", iv_refresh_fail:"No se pudieron actualizar los precios", iv_refresh_fail_sub:"Conservamos los últimos datos ({time}). Puedes volver a intentarlo.", iv_retry:"Reintentar",
+  iv_positions:"{n} posiciones", iv_edit:"✎ Editar a mano", iv_add_position:"+ Posición", iv_shares:"{n} participaciones", iv_manual:"a mano", iv_manual_on:"a mano · {date}",
+  iv_gain_unknown:"Ganancia —", iv_missing_cost:"Falta lo que pusiste en alguna posición; por eso aún no calculo la ganancia.",
+  iv_add_manual:"Añadir una posición a mano", iv_broker:"Bróker", iv_name:"Nombre", iv_value_field:"Valor actual (€/$)", iv_cost_field:"Lo que pusiste (€/$)", iv_added:"✓ Posición añadida",
   iv_empty:"Aún no hay inversiones", iv_empty_sub:"Añade un bróker o una posición para empezar a seguirlas aquí.", iv_add:"+ Añadir bróker o posición",
   iv_cash:"Líquido vendido", iv_by_type:"Por tipo de activo", iv_fx_note:"Los importes se calculan en euros. Cambio dólar→euro: {fx}.",
 });
@@ -10416,8 +10423,8 @@ function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDele
         React.createElement("div",null,
           React.createElement("div",{className:"rname"},it.name),
           React.createElement("div",{className:"rsub"}, entOf(it.ent).label + (it.cur==="USD"?" \u00b7 USD":"")),
-          editing && React.createElement("button",{style:{background:"none",border:"none",color:"#9BD0E0",cursor:"pointer",fontSize:11,fontWeight:700,padding:"4px 0 0"},onClick:function(){ onSell(it); }},t("inv_sold_part")),
-          editing && React.createElement("button",{style:{background:"none",border:"none",color:"var(--coral)",cursor:"pointer",fontSize:11,fontWeight:700,padding:"4px 0 0",marginLeft:12},onClick:function(){ onDelete(it); }},"🗑 "+t("inv_delete"))
+          editing && React.createElement("button",{type:"button",className:"inv-row-action",style:{color:"#9BD0E0"},onClick:function(){ onSell(it); }},t("inv_sold_part")),
+          editing && React.createElement("button",{type:"button",className:"inv-row-action",style:{color:"var(--coral)",marginLeft:12},onClick:function(){ onDelete(it); }},"🗑 "+t("inv_delete"))
         )
       ),
       editing
@@ -10504,26 +10511,33 @@ function Projection({invested, defMonthly}){
 
 function InvestmentRewards({state,set}){
   const trAcc=state.accounts.find(function(a){ return a.spendFrom; });
+  const monthStartMs=+startOfMonth();
+  // Cartera permanece montada aunque no sea la pestaña visible. Antes este cálculo solo vivía
+  // dentro de Herramientas; al traerlo a la portada no podemos recorrer todo el histórico en cada
+  // render. La referencia de expenses solo cambia cuando de verdad cambia el historial.
+  const rewardsAuto=useMemo(function(){
+    if(!trAcc) return {ru:0,sb:0};
+    const monthExp=(state.expenses||[]).filter(function(e){ return dateMs(e.date)>=monthStartMs; });
+    return {ru:roundupOf(monthExp,trAcc.roundup||0),sb:trAcc.saveback?savebackOf(monthExp):0};
+  },[state.expenses,monthStartMs,trAcc&&trAcc.roundup,trAcc&&trAcc.saveback]);
   if(!trAcc) return null;
   const setTr=function(patch){ set(function(s){ return Object.assign({},s,{accounts:s.accounts.map(function(a){ return a.spendFrom?Object.assign({},a,patch):a; })}); }); };
   const setTot=function(v){ set(function(s){ return Object.assign({},s,{trRewardsTotal:v}); }); };
   const numOrNull=function(v){ v=String(v).trim(); return v===""?null:(parseFloat(v.replace(',','.'))||0); };
-  const monthStart=startOfMonth();
-  const monthExp=(state.expenses||[]).filter(function(e){ return parseDate(e.date)>=monthStart; });
   const mult=trAcc.roundup||0;
-  const ruAuto=roundupOf(monthExp, mult), sbAuto=trAcc.saveback?savebackOf(monthExp):0;
+  const ruAuto=rewardsAuto.ru, sbAuto=rewardsAuto.sb;
   const ru=(trAcc.roundupManual!=null)?trAcc.roundupManual:ruAuto, sb=(trAcc.savebackManual!=null)?trAcc.savebackManual:sbAuto, tot=state.trRewardsTotal||0;
   const iv=state.investments.find(function(i){ return i.id===trAcc.rewardInv; });
   const invName=iv?iv.name:t("ru_pick");
   return React.createElement(CollapsibleCard,{title:SIMPLEMODE?t("ru_title_simple"):t("ru_title"),sub:SIMPLEMODE?t("ru_sub_simple"):(mult>0?tf("ru_sub_on",{m:mult}):t("ru_sub_off")),dot:"#E6C36A",defaultOpen:false,storageKey:"inv_ru",help:t("h_ru")},
     React.createElement("div",{className:"mlabel",style:{textAlign:"left",marginBottom:6}},t("ru_mult")),
     React.createElement("div",{className:"curtoggle",style:{flexWrap:"wrap",justifyContent:"flex-start"}},
-      RU_MULTS.map(function(m){ return React.createElement("button",{key:m,type:"button",className:"curbtn"+(mult===m?" on":""),onClick:function(){ setTr({roundup:m}); }}, m===0?t("ru_off"):"×"+m); })),
+      RU_MULTS.map(function(m){ return React.createElement("button",{key:m,type:"button",className:"curbtn inv-tap"+(mult===m?" on":""),onClick:function(){ setTr({roundup:m}); }}, m===0?t("ru_off"):"×"+m); })),
     React.createElement("div",{className:"mlabel",style:{textAlign:"left",margin:"12px 0 6px"}},t("ru_dest")),
     React.createElement("select",{className:"af-in",value:trAcc.rewardInv||"",onChange:function(e){ setTr({rewardInv:e.target.value}); }},
       React.createElement("option",{value:""},t("ru_pick")),
       state.investments.map(function(i){ return React.createElement("option",{key:i.id,value:i.id}, i.name); })),
-    React.createElement("div",{className:"costtoggle",style:{marginTop:12},onClick:function(){ setTr({saveback:!trAcc.saveback}); }},
+    React.createElement("button",{type:"button",className:"costtoggle",style:{marginTop:12},role:"switch","aria-checked":!!trAcc.saveback,onClick:function(){ setTr({saveback:!trAcc.saveback}); }},
       React.createElement("span",{className:"cbx"+(trAcc.saveback?" on":"")}, trAcc.saveback?"✓":""),
       React.createElement("span",null,t("ru_saveback"))),
     // Estos campos modelan el efectivo de TR; se conservan juntos para que el resumen y el
@@ -10550,16 +10564,18 @@ function InvestmentRewards({state,set}){
   );
 }
 
-function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, fullMode}){
+function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, fullMode, showToast}){
   const fx=state.fx;   // USD→EUR (legacy + display toggle); GBP/CHF van en state.fxRates
   const [editing,setEditing]=useState(false);
   const [showCost,setShowCost]=useState(false);
   const [draft,setDraft]=useState({});
   const [brokerOpen,setBrokerOpen]=useState({});   // qué bróker tiene las posiciones desplegadas (solo v4Embed)
   const [editBroker,setEditBroker]=useState(null);
+  const [manualAdd,setManualAdd]=useState(null);
   const [refreshError,setRefreshError]=useState(false);
   const lastPriceRef=useRef(state.lastPriceSync||null);
   const refreshBefore=useRef(null);
+  const refreshCheckRef=useRef(0);
   const didAuto=useRef(false);
   const hasTickers=state.investments.some(function(i){ return i.ticker; });
   const autoOn=state.settings && state.settings.autoPrices;
@@ -10581,11 +10597,13 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
   const start=()=>{ const d={}; state.investments.forEach(i=>d[i.id]={value:i.value,cost:i.cost}); setDraft(d); setEditing(true); };
   const cancel=()=>{ setEditing(false); setShowCost(false); };
   const save=()=>{
+    const editedAt=new Date().toISOString();
     set(s=>Object.assign({},s,{investments:s.investments.map(i=>{
       const dd=draft[i.id]||{};
       const value=(dd.value!=null&&dd.value!=="")?(parseFloat(String(dd.value).replace(',','.'))||0):i.value;
       const cost=(showCost&&dd.cost!=null&&dd.cost!=="")?(parseFloat(String(dd.cost).replace(',','.'))||i.cost):i.cost;
       const patch={value:value,cost:cost};
+      if(value!==i.value || cost!==i.cost) patch.manualUpdatedAt=editedAt;
       // Al editar el coste, anclamos el € contable al tipo de hoy (no se recalcula al cambiar FX).
       if(showCost&&dd.cost!=null&&dd.cost!==""){
         const newCost=parseFloat(String(dd.cost).replace(',','.'));
@@ -10630,6 +10648,12 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
   };
   const total=state.investments.reduce((a,i)=>a+invValueEur(i, state),0);
   const costTotal=state.investments.reduce((a,i)=>a+invCostEur(i, state),0);
+  const costKnown=function(i){
+    return (typeof i.costEur==="number"&&isFinite(i.costEur)&&i.costEur>0)
+      || (typeof i.cost==="number"&&isFinite(i.cost)&&i.cost>0);
+  };
+  const completeCost=state.investments.length>0&&state.investments.every(costKnown);
+  const missingCost=state.investments.find(function(i){ return !costKnown(i); });
   const plTotal=costTotal>0?(total-costTotal)/costTotal*100:0;
   // Moneda LOCAL de la pestaña Inversiones (no toca el resto de la app). Todo se calcula en €
   // internamente y se convierte a la moneda elegida para mostrar (€ ↔ $ con el cambio del BCE).
@@ -10663,9 +10687,18 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
   const stale=!!lastPriceMs && Date.now()-lastPriceMs>48*60*60*1000;
   useEffect(function(){
     const next=state.lastPriceSync||null;
-    if(refreshBefore.current!==null && next && next!==refreshBefore.current) setRefreshError(false);
+    if(refreshBefore.current!==null && next && next!==refreshBefore.current){
+      clearTimeout(refreshCheckRef.current);
+      refreshBefore.current=null;
+      setRefreshError(false);
+      if(showToast){
+        const time=new Date(next).toLocaleTimeString(loc(),{hour:"2-digit",minute:"2-digit"});
+        showToast(tf("iv_refresh_ok",{time:time}));
+      }
+    }
     lastPriceRef.current=next;
   },[state.lastPriceSync]);
+  useEffect(function(){ return function(){ clearTimeout(refreshCheckRef.current); }; },[]);
   const refreshPrices=function(){
     if(pricing||!hasTickers) return;
     const before=lastPriceRef.current;
@@ -10674,13 +10707,33 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
     // fetchPrices conserva su contrato actual y sus avisos. Como no devuelve un resultado
     // estructurado, solo damos por buena la lectura cuando cambia su sello real.
     Promise.resolve().then(function(){ return fetchPrices(false); }).then(function(){
-      requestAnimationFrame(function(){ requestAnimationFrame(function(){
-        if(lastPriceRef.current===before) setRefreshError(true);
-      }); });
+      clearTimeout(refreshCheckRef.current);
+      refreshCheckRef.current=setTimeout(function(){
+        if(refreshBefore.current!==null&&lastPriceRef.current===before) setRefreshError(true);
+      },700);
     }).catch(function(){ setRefreshError(true); });
   };
-  const openBrokerSetup=function(ent){
-    try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:ent||null}})); }catch(e){}
+  const openManualAdd=function(ent){
+    setManualAdd({ent:ent||"trade_republic",name:"",value:"",cost:"",cur:"EUR"});
+  };
+  const setManualField=function(k,v){ setManualAdd(function(x){ return Object.assign({},x,{[k]:v}); }); };
+  const manualValue=manualAdd&&parseFloat(String(manualAdd.value).replace(',','.'));
+  const manualCostRaw=manualAdd?String(manualAdd.cost).trim():"";
+  const manualCost=manualCostRaw===""?null:parseFloat(manualCostRaw.replace(',','.'));
+  const manualReady=!!(manualAdd&&manualAdd.name.trim()&&isFinite(manualValue)&&manualValue>=0
+    && (manualCost===null||(isFinite(manualCost)&&manualCost>=0)));
+  const saveManualAdd=function(){
+    if(!manualReady) return;
+    const now=new Date().toISOString();
+    const item={id:uid(),ent:manualAdd.ent,name:manualAdd.name.trim(),value:+manualValue.toFixed(2),cost:manualCost===null?null:+manualCost.toFixed(2),cur:manualAdd.cur,manualUpdatedAt:now};
+    set(function(s){ return Object.assign({},s,{investments:s.investments.concat([item])}); });
+    setBrokerOpen(function(o){ return Object.assign({},o,{[item.ent]:true}); });
+    setManualAdd(null);
+    if(showToast) showToast(t("iv_added"));
+  };
+  const manualLabel=function(it){
+    const ms=new Date(it.manualUpdatedAt||0).getTime();
+    return ms>0?tf("iv_manual_on",{date:new Date(ms).toLocaleDateString(loc(),{day:"2-digit",month:"short"})}):t("iv_manual");
   };
   const beginBrokerEdit=function(gid){
     start();
@@ -10694,8 +10747,8 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
   if(fullMode){
     const lastTime=lastPriceMs?new Date(lastPriceMs).toLocaleTimeString(loc(),{hour:"2-digit",minute:"2-digit"}):t("iv_never");
     const staleDay=lastPriceMs?new Date(lastPriceMs).toLocaleDateString(loc(),{weekday:"long"}):"—";
-    const heroBase=costTotal>0?Math.max(0,Math.min(costTotal,total)):Math.max(total,1);
-    const heroGain=costTotal>0?Math.max(0,gainTotal):0;
+    const heroBase=completeCost?Math.max(0,Math.min(costTotal,total)):Math.max(total,1);
+    const heroGain=completeCost?Math.max(0,gainTotal):0;
     const heroSum=Math.max(1,heroBase+heroGain);
     return React.createElement("div",{className:"v4-investments-full"},
       React.createElement("section",{className:"v4-card v4-card-hero rise","data-inv-hero":"1",style:{padding:20}},
@@ -10708,9 +10761,9 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
             React.createElement("button",{type:"button",className:"curbtn"+(invCur==="USD"?" on":""),"aria-pressed":invCur==="USD",onClick:function(){ setInvCur("USD"); }},"$"))),
         stale && React.createElement("div",{className:"chip",style:{display:"inline-flex",marginTop:12}},tf("st_stale",{day:staleDay})),
         React.createElement("div",{className:"v4-stackbar","aria-hidden":"true",style:{marginTop:16}},
-          React.createElement("i",{style:{flex:Math.max(.02,heroBase/heroSum*100),background:costTotal>0?"var(--cream)":"var(--mint)"}}),
+          React.createElement("i",{style:{flex:Math.max(.02,heroBase/heroSum*100),background:completeCost?"var(--cream)":"var(--mint)"}}),
           heroGain>0 && React.createElement("i",{style:{flex:Math.max(.02,heroGain/heroSum*100),background:"var(--mint)"}})),
-        costTotal>0
+        completeCost
           ? React.createElement(React.Fragment,null,
               React.createElement("div",{className:"v4-legend"},
                 React.createElement("span",null,React.createElement("b",{style:{background:"var(--cream)"}}),tf("iv_put",{amount:f2(costTotal)})),
@@ -10718,8 +10771,9 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
               React.createElement("div",{style:{fontSize:13,fontWeight:750,color:gainTotal>=0?"var(--mint)":"var(--coral)",marginTop:10}},
                 tf("iv_percent",{pct:(plTotal>=0?"+":"")+plTotal.toFixed(2),time:lastTime})))
           : React.createElement("div",{className:"hint",style:{marginTop:12}},
-              React.createElement("div",null,t("iv_no_put")),
-              state.investments.length>0 && React.createElement("button",{type:"button",className:"v4-link-mini","data-act":"inv-edit",style:{marginTop:8},onClick:function(){ beginBrokerEdit((groups[0]||[])[0]); }},t("iv_no_put_cta"))),
+              state.investments.length>0 && React.createElement("div",{className:"v4-legend"},React.createElement("span",null,React.createElement("b",{style:{background:"var(--muted-2)"}}),t("iv_gain_unknown"))),
+              React.createElement("div",null,costTotal>0?t("iv_missing_cost"):t("iv_no_put")),
+              state.investments.length>0 && React.createElement("button",{type:"button",className:"v4-link-mini","data-act":"inv-edit",style:{marginTop:8},onClick:function(){ beginBrokerEdit(missingCost&&missingCost.ent); }},t("iv_no_put_cta"))),
         React.createElement("div",{className:"hint",style:{marginTop:10}},tf("iv_fx_note",{fx:fx>0?fx.toFixed(4):"—"}))),
 
       React.createElement("div",{className:"v4-sec-h",style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,marginTop:22}},
@@ -10731,17 +10785,39 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
         React.createElement("div",{className:"hint",style:{marginTop:4}},tf("iv_refresh_fail_sub",{time:lastTime})),
         React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:8},onClick:refreshPrices},t("iv_retry"))),
 
-      state.investments.length===0 && React.createElement("div",{"data-inv-empty":"1",className:"v4-empty v4-card",style:{padding:20,textAlign:"center",borderStyle:"dashed"}},
+      manualAdd && React.createElement("section",{className:"v4-card","data-inv-manual-add":"1",style:{padding:16}},
+        React.createElement("div",{className:"v4-sec-h",style:{marginBottom:12}},t("iv_add_manual")),
+        React.createElement("label",{className:"v4-field-label"},t("iv_broker"),
+          React.createElement("select",{className:"af-in",value:manualAdd.ent,onChange:function(e){ setManualField("ent",e.target.value); }},
+            React.createElement("option",{value:"trade_republic"},"Trade Republic"),
+            React.createElement("option",{value:"revolut"},"Revolut"),
+            React.createElement("option",{value:"myinvestor"},"MyInvestor"))),
+        React.createElement("label",{className:"v4-field-label"},t("iv_name"),
+          React.createElement("input",{className:"af-in","data-field":"inv-name",value:manualAdd.name,onChange:function(e){ setManualField("name",e.target.value); }})),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}},
+          React.createElement("label",{className:"v4-field-label"},t("iv_value_field"),
+            React.createElement("input",{className:"af-in",inputMode:"decimal","data-field":"inv-value",value:manualAdd.value,onChange:function(e){ setManualField("value",e.target.value); }})),
+          React.createElement("label",{className:"v4-field-label"},t("iv_cost_field"),
+            React.createElement("input",{className:"af-in",inputMode:"decimal","data-field":"inv-cost",value:manualAdd.cost,onChange:function(e){ setManualField("cost",e.target.value); }}))),
+        React.createElement("div",{className:"curtoggle",style:{marginTop:12},"aria-label":t("iv_currency")},
+          React.createElement("button",{type:"button",className:"curbtn"+(manualAdd.cur==="EUR"?" on":""),"aria-pressed":manualAdd.cur==="EUR",onClick:function(){ setManualField("cur","EUR"); }},"€"),
+          React.createElement("button",{type:"button",className:"curbtn"+(manualAdd.cur==="USD"?" on":""),"aria-pressed":manualAdd.cur==="USD",onClick:function(){ setManualField("cur","USD"); }},"$")),
+        React.createElement("div",{style:{display:"flex",gap:8,marginTop:14}},
+          React.createElement("button",{type:"button",className:"btn btn-primary",style:{minHeight:44,flex:1},disabled:!manualReady,onClick:saveManualAdd},t("inv_save")),
+          React.createElement("button",{type:"button",className:"btn btn-ghost",style:{minHeight:44,flex:1},onClick:function(){ setManualAdd(null); }},t("inv_cancel")))),
+
+      state.investments.length===0 && !manualAdd && React.createElement("div",{"data-inv-empty":"1",className:"v4-empty v4-card",style:{padding:20,textAlign:"center",borderStyle:"dashed"}},
         React.createElement("div",{className:"em"},"📈"),
         React.createElement("div",{className:"ti"},t("iv_empty")),
         React.createElement("div",{className:"ph"},t("iv_empty_sub")),
-        React.createElement("button",{type:"button",className:"v4-cta cta","data-act":"inv-add",onClick:function(){ openBrokerSetup(null); }},t("iv_add"))),
+        React.createElement("button",{type:"button",className:"v4-cta cta","data-act":"inv-add",onClick:function(){ openManualAdd(null); }},t("iv_add"))),
 
       groups.map(function(g){
         const gid=g[0];
         const items=state.investments.filter(function(i){ return i.ent===gid; });
         const o=byBroker[gid]||{c:0,v:0};
         const delta=o.v-o.c;
+        const brokerCostComplete=items.length>0&&items.every(costKnown);
         const open=!!brokerOpen[gid];
         const isEditing=editing&&editBroker===gid;
         const panelId="iv_broker_"+gid;
@@ -10754,7 +10830,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
               React.createElement("div",{className:"meta"},tf("iv_positions",{n:items.length}))),
             React.createElement("div",{style:{textAlign:"right",flex:"0 0 auto"}},
               React.createElement("div",{className:"am num"},f0(o.v)),
-              o.c>0 && React.createElement("div",{style:{fontSize:11,fontWeight:750,color:delta>=0?"var(--mint)":"var(--coral)"}},(delta>=0?"+":"")+f0(delta))),
+              brokerCostComplete && React.createElement("div",{style:{fontSize:11,fontWeight:750,color:delta>=0?"var(--mint)":"var(--coral)"}},(delta>=0?"+":"")+f0(delta))),
             React.createElement(I.chev,{className:"chev"+(open?" open":"")})),
           open && React.createElement("div",{id:panelId,className:"v4-inv-drop",style:{padding:"0 14px 14px"}},
             isEditing
@@ -10766,7 +10842,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
                       React.createElement(LogoInv,{nombre:it.name,ent:it.ent,kind:it.kind,size:38}),
                       React.createElement("div",null,
                         React.createElement("div",{className:"rname"},it.name),
-                        React.createElement("div",{className:"rsub"},it.ticker?(it.ticker+(it.shares!=null?" · "+tf("iv_shares",{n:it.shares}):"")):tf("iv_manual_on",{date:"—"})))),
+                        React.createElement("div",{className:"rsub"},it.ticker?(it.ticker+(it.shares!=null?" · "+tf("iv_shares",{n:it.shares}):"")):manualLabel(it)))),
                     React.createElement("div",{className:"rval num"},f2(v),
                       it.ticker&&c>0 && React.createElement("div",{className:"rvsub"+(d<0?" neg":"")},(d>=0?"+":"")+(d/c*100).toFixed(2)+"%")));
                 }),
@@ -10776,10 +10852,10 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
                     React.createElement("button",{type:"button",className:"btn btn-primary",style:{minHeight:44,flex:1},onClick:saveBrokerEdit},t("inv_save")),
                     React.createElement("button",{type:"button",className:"btn btn-ghost",style:{minHeight:44,flex:1},onClick:cancelBrokerEdit},t("inv_cancel")))
                 : React.createElement("button",{type:"button",className:"btn btn-ghost","data-act":"inv-edit",style:{minHeight:44,flex:1},onClick:function(){ beginBrokerEdit(gid); }},t("iv_edit")),
-              !isEditing && React.createElement("button",{type:"button",className:"btn btn-ghost","data-act":"inv-add",style:{minHeight:44,flex:1},onClick:function(){ openBrokerSetup(gid); }},t("iv_add_position")))));
+              !isEditing && React.createElement("button",{type:"button",className:"btn btn-ghost","data-act":"inv-add",style:{minHeight:44,flex:1},onClick:function(){ openManualAdd(gid); }},t("iv_add_position")))));
       }),
 
-      state.investments.length>0 && React.createElement("button",{type:"button",className:"v4-card","data-act":"inv-add",style:{width:"100%",minHeight:52,borderStyle:"dashed",background:"transparent",color:"var(--mint)",fontWeight:800},onClick:function(){ openBrokerSetup(null); }},t("iv_add")),
+      state.investments.length>0 && !manualAdd && React.createElement("button",{type:"button",className:"v4-card","data-act":"inv-add",style:{width:"100%",minHeight:52,borderStyle:"dashed",background:"transparent",color:"var(--mint)",fontWeight:800},onClick:function(){ openManualAdd(null); }},t("iv_add")),
       state.soldCash>0 && React.createElement("div",{className:"v4-card",style:{display:"flex",justifyContent:"space-between",padding:15}},
         React.createElement("span",null,t("iv_cash")),React.createElement("strong",{className:"num",style:{color:"var(--mint)"}},f0(state.soldCash))),
       typeSegs.length>0 && React.createElement("section",{className:"v4-card","data-inv-type":"1",style:{padding:16}},
@@ -20182,32 +20258,49 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       ) },
       !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise",style:{animationDelay:".12s"}},
         React.createElement("div",{className:"v4-sec-h"}, t("v4_inversiones")),
-        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,v4Embed:true}),
+        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,v4Embed:true,showToast:showToast}),
         React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:10},ref:invLinkRef,onClick:function(){ setInvTools(true); }}, t("iv_see_all")+" ›")
       ) }
     ]}),
     // La hija vive FUERA de los bloques ordenables: es un portal, no una sección, y meterla
     // dentro la desmontaría al reordenar (cerrándose sola a media consulta).
-    !simple && React.createElement(InvestmentsPush,{open:invTools,onClose:closeInvestments,state:state,set:set,fetchPrices:fetchPrices,pricing:pricing})
+    !simple && React.createElement(InvestmentsPush,{open:invTools,onClose:closeInvestments,state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,showToast:showToast})
   );
 }
 
-function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing}){
+function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, showToast}){
   const titleRef=useRef(null);
+  const screenRef=useRef(null);
   useBackClose(!!open, onClose);
   useEffect(function(){
     if(!open) return undefined;
     const id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus(); });
-    return function(){ cancelAnimationFrame(id); };
+    const prevOverflow=document.body.style.overflow;
+    document.body.style.overflow="hidden";
+    const keydown=function(e){
+      const root=screenRef.current;
+      if(!root) return;
+      if(e.key==="Escape"){ e.preventDefault(); onClose(); return; }
+      if(e.key!=="Tab") return;
+      const focusable=Array.from(root.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[href],[tabindex]:not([tabindex="-1"])'))
+        .filter(function(el){ return el.getClientRects().length>0; });
+      if(!focusable.length){ e.preventDefault(); titleRef.current&&titleRef.current.focus(); return; }
+      const first=focusable[0],last=focusable[focusable.length-1],active=document.activeElement;
+      const at=focusable.indexOf(active);
+      if(e.shiftKey&&at<=0){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey&&(at<0||active===last)){ e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown",keydown);
+    return function(){ cancelAnimationFrame(id); document.removeEventListener("keydown",keydown); document.body.style.overflow=prevOverflow; };
   },[open]);
   if(!open) return null;
   return ReactDOM.createPortal(
-    React.createElement("div",{className:"settings-push open","data-inv-screen":"1"},
+    React.createElement("div",{className:"settings-push open","data-inv-screen":"1",ref:screenRef,role:"dialog","aria-modal":"true","aria-labelledby":"iv-screen-title"},
       React.createElement("div",{className:"settings-push-h"},
         React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:onClose},"‹"),
-        React.createElement("h1",{tabIndex:-1,ref:titleRef}, t("iv_title"))
+        React.createElement("h1",{id:"iv-screen-title",tabIndex:-1,ref:titleRef}, t("iv_title"))
       ),
-      React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,fullMode:true})
+      React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,fullMode:true,showToast:showToast})
     ), document.body);
 }
 

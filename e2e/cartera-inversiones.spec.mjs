@@ -71,7 +71,16 @@ test("Inversiones v4: abre como pantalla hija, conserva el cálculo y devuelve e
   await dismissNews(page);
 
   const door = await openInvestments(page);
-  await expect(page.locator("[data-inv-screen] h1")).toBeFocused();
+  const screen = page.locator("[data-inv-screen]");
+  await expect(screen).toHaveAttribute("role", "dialog");
+  await expect(screen).toHaveAttribute("aria-modal", "true");
+  await expect(screen.locator("h1")).toBeFocused();
+  // Desde el título, Shift+Tab va al último control de la hija; el Tab siguiente vuelve al
+  // botón Atrás. El foco nunca cae en la navegación que queda cubierta por el portal.
+  await page.keyboard.press("Shift+Tab");
+  expect(await page.evaluate(() => document.querySelector("[data-inv-screen]").contains(document.activeElement))).toBe(true);
+  await page.keyboard.press("Tab");
+  await expect(screen.locator('[data-act="back"]')).toBeFocused();
   await expect(page.locator("[data-inv-hero]")).toContainText(/1[.,]?500/);
   await expect(page.locator("[data-inv-hero]")).toContainText(/Pusiste 1[.,]?200|You put in 1[,]?200|Hi vas posar 1[.]?200/i);
   await expect(page.locator("[data-inv-hero]")).toContainText(/Han ganado 300|They gained 300|Han guanyat 300/i);
@@ -102,12 +111,32 @@ test("Inversiones v4: coste cero no finge +0%, manual se identifica y solo edita
   await expect(trHead).toHaveAttribute("aria-expanded", "false");
   await trHead.click();
   await expect(trHead).toHaveAttribute("aria-expanded", "true");
-  await expect(tr.locator('[data-inv-position="manual"]')).toContainText(/a mano · —|by hand · —|a mà · —/i);
+  await expect(tr.locator('[data-inv-position="manual"]')).toContainText(/a mano|by hand|a mà/i);
+  await expect(tr.locator('[data-inv-position="manual"]')).not.toContainText("· —");
   await tr.locator('[data-act="inv-edit"]').click();
   await expect(tr.locator("input")).toHaveCount(2);
   await revolut.locator("button.v4-mov").click();
   await expect(revolut.locator("input")).toHaveCount(0);
-  await tr.getByRole("button", { name: /Cancelar|Cancel/i }).click();
+  await tr.locator("input").first().fill("501");
+  await tr.getByRole("button", { name: /Guardar|Save|Desa/i }).click();
+  await expect(tr.locator('[data-inv-position="manual"] .rsub')).toContainText(/a mano · \d|by hand · \d|a mà · \d/i);
+});
+
+test("Inversiones v4: un coste parcial nunca se convierte en ganancia inventada", async ({ page }) => {
+  await seedLoggedInDashboard(page, { investments: [
+    { id: "known", ent: "trade_republic", name: "Con dato", ticker: "KNOWN", shares: 1, value: 120, cost: 100, cur: "EUR" },
+    { id: "unknown", ent: "revolut", name: "Sin dato", shares: 1, value: 500, cost: 0, cur: "EUR" },
+  ] });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  await openInvestments(page);
+
+  const hero=page.locator("[data-inv-hero]");
+  await expect(hero).toContainText(/Ganancia —|Gain —|Guany —/);
+  await expect(hero).toContainText(/Falta lo que pusiste|one or more positions is missing|Falta el que vas posar/i);
+  await expect(hero).not.toContainText(/Han ganado 520|They gained 520|Han guanyat 520/i);
+  await expect(hero).not.toContainText(/520\.00%/);
 });
 
 test("Inversiones v4: vacío accionable", async ({ page }) => {
@@ -118,7 +147,34 @@ test("Inversiones v4: vacío accionable", async ({ page }) => {
   await openInvestments(page);
 
   await expect(page.locator(".v4-empty[data-inv-empty]")).toBeVisible();
-  await expect(page.locator('.v4-empty [data-act="inv-add"]')).toBeEnabled();
+  await page.locator('.v4-empty [data-act="inv-add"]').click();
+  const add=page.locator("[data-inv-manual-add]");
+  await expect(add).toBeVisible();
+  await expect(page.locator("[data-inv-screen]")).toBeVisible();
+  await add.locator('[data-field="inv-name"]').fill("Fondo de prueba");
+  await add.locator('[data-field="inv-value"]').fill("1250,50");
+  await add.locator('[data-field="inv-cost"]').fill("1000");
+  await add.getByRole("button",{name:/Guardar|Save|Desa/i}).click();
+  const broker=page.locator('[data-inv-broker="trade_republic"]');
+  await expect(broker).toBeVisible();
+  await expect(broker.locator("button.v4-mov")).toHaveAttribute("aria-expanded","true");
+  await expect(broker.getByText("Fondo de prueba")).toBeVisible();
+  await expect(broker.getByText(/a mano · \d|by hand · \d|a mà · \d/i)).toBeVisible();
+});
+
+test("Inversiones v4: actualizar precios confirma la hora real", async ({ page }) => {
+  await seedLoggedInDashboard(page, {
+    investments: [{ id: "live", ent: "trade_republic", name: "ETF", ticker: "TEST", shares: 2, value: 100, cost: 80, cur: "EUR" }],
+    lastPriceSync: Date.now()-60_000,
+    __cloudFns: { prices: { data: { prices: { TEST: 160 } }, error: null } },
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  await openInvestments(page);
+  await page.locator('[data-act="inv-refresh"]').click();
+  await expect(page.locator(".toast")).toContainText(/Precios actualizados · \d{2}:\d{2}|Prices updated · \d{2}:\d{2}|Preus actualitzats · \d{2}:\d{2}/i);
+  await expect(page.locator("[data-inv-hero]")).toContainText("320");
 });
 
 test("Inversiones v4: datos viejos siguen visibles y un fallo conserva los datos con reintento", async ({ page }) => {
@@ -204,7 +260,12 @@ test("Ajustes › Dinero conserva actualización automática y proyección", asy
 
 test("Inversiones v4: apertura medida con CPU x6", async ({ page, browserName }) => {
   test.skip(browserName !== "chromium", "El freno de CPU usa CDP");
-  await seedLoggedInDashboard(page, { investments });
+  const largeExpenses=Array.from({length:5000},(_,i)=>({
+    id:"perf-exp-"+i,date:"2026-09-"+String(1+(i%16)).padStart(2,"0")+"T12:00:00.000Z",
+    merchant:"Compra "+i,amount:1+(i%40),category:"otros",source:"manual",
+  }));
+  await seedLoggedInDashboard(page, { investments, expenses:largeExpenses,
+    accounts:[{id:"daily",ent:"trade_republic",name:"Trade Republic",value:1000,spendFrom:true}] });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);

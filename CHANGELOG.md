@@ -1,3 +1,18 @@
+## [4.26.7] - 2026-09-17
+### Rediseño v4.1 — Inversiones cierra las cifras, el alta y la accesibilidad
+
+La rentabilidad global solo se calcula cuando todas las posiciones tienen coste conocido; una
+cartera mixta muestra `—` y ofrece completar el dato, en vez de extrapolar una ganancia parcial.
+«Añadir posición» abre ahora un formulario real con bróker, nombre, valor, aportado, moneda y fecha.
+La edición manual conserva una fecha honesta y el refresco confirma con la hora exacta sin borrar
+la última cartera válida.
+
+Los controles pequeños pasan de 44 px, Saveback es un botón/switch accesible y el detalle se
+comporta como diálogo: foco inicial, contención con Tab/Shift+Tab, cierre con Escape y bloqueo del
+scroll de fondo. `InvestmentRewards` memoiza el filtrado por referencia y usa `dateMs`, para no
+recorrer el histórico en cada render. Doce E2E cubren coste mixto, alta, refresco, teclado y foco;
+con CPU ×6 y 5.000 gastos, la mediana de apertura medida es 42,6 ms.
+
 ## [4.26.6] - 2026-09-17
 ### Histórico bancario — cada banco dispone de su propio tiempo de lectura
 

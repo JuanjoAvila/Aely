@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.7",
+    "d": "17 sep 2026",
+    "t": {
+      "es": "Inversiones completas y cifras honestas",
+      "en": "Complete investments with honest figures",
+      "ca": "Inversions completes i xifres honestes"
+    },
+    "items": {
+      "es": [
+        "Si falta el coste de una sola posición, la ganancia total muestra — hasta completarlo: nunca calcula una rentabilidad con media cartera.",
+        "Añadir posición abre ya el formulario completo y permite elegir bróker, nombre, valor, aportado, moneda y fecha.",
+        "El detalle y Saveback funcionan mejor con teclado y lector de pantalla, y actualizar precios confirma la hora del último resultado."
+      ],
+      "en": [
+        "If even one position is missing its cost, total gain shows — until it is completed: returns are never calculated from only part of the portfolio.",
+        "Add position now opens the complete form for broker, name, value, amount invested, currency and date.",
+        "Details and Saveback work better with keyboards and screen readers, and refreshing prices confirms the time of the latest result."
+      ],
+      "ca": [
+        "Si falta el cost d'una sola posició, el guany total mostra — fins a completar-lo: mai calcula una rendibilitat amb mitja cartera.",
+        "Afegir posició ja obre el formulari complet i permet triar bròquer, nom, valor, aportat, moneda i data.",
+        "El detall i Saveback funcionen millor amb teclat i lector de pantalla, i actualitzar preus confirma l'hora de l'últim resultat."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inversiones-v41",
+        "t": {
+          "es": "Inversiones",
+          "en": "Investments",
+          "ca": "Inversions"
+        },
+        "items": {
+          "es": [
+            "1. Abre Inversiones con alguna posición sin coste: coste, ganancia y porcentaje global deben mostrar —, nunca una rentabilidad parcial.",
+            "2. Pulsa Añadir posición, rellena el formulario y guarda: debe aparecer en el bróker elegido sin modificar los demás.",
+            "3. Actualiza precios y abre/cierra un bróker: debe verse la hora del resultado y el diálogo debe mantener el foco y cerrar con Atrás o Escape."
+          ],
+          "en": [
+            "1. Open Investments with any position missing its cost: global cost, gain and percentage must show —, never a partial return.",
+            "2. Tap Add position, complete the form and save: it should appear under the chosen broker without changing the others.",
+            "3. Refresh prices and open/close a broker: the result time should be visible and the dialog must keep focus and close with Back or Escape."
+          ],
+          "ca": [
+            "1. Obre Inversions amb alguna posició sense cost: cost, guany i percentatge globals han de mostrar —, mai una rendibilitat parcial.",
+            "2. Prem Afegir posició, omple el formulari i desa: ha d'aparèixer al bròquer triat sense modificar els altres.",
+            "3. Actualitza preus i obre/tanca un bròquer: s'ha de veure l'hora del resultat i el diàleg ha de mantenir el focus i tancar amb Enrere o Escape."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.6",
     "d": "17 sep 2026",
     "t": {
@@ -127,33 +180,7 @@
         "Les eines de preus i projecció són ara a Ajustos, i Arrodoniment i Saveback continuen a Cartera."
       ]
     },
-    "tandas": [
-      {
-        "id": "inversiones-v41",
-        "t": {
-          "es": "Inversiones",
-          "en": "Investments",
-          "ca": "Inversions"
-        },
-        "items": {
-          "es": [
-            "1. Abre Cartera → Inversiones: el valor, coste y ganancia deben coincidir con tus datos; si falta coste debe verse —, nunca una rentabilidad inventada.",
-            "2. Abre un bróker, edita una posición y vuelve atrás: solo debe cambiar ese bróker y la navegación debe conservar el resto.",
-            "3. Pulsa actualizar: debe ser manual y mostrar claramente si terminó, si los precios son antiguos o si falló conservando los últimos datos."
-          ],
-          "en": [
-            "1. Open Portfolio → Investments: value, cost and gain must match your data; when cost is missing it must show —, never an invented return.",
-            "2. Open a broker, edit a position and go back: only that broker should change and navigation must preserve everything else.",
-            "3. Tap refresh: it must be manual and clearly show success, stale prices or failure while keeping the latest data."
-          ],
-          "ca": [
-            "1. Obre Cartera → Inversions: el valor, cost i guany han de coincidir amb les teves dades; si falta el cost s'ha de veure —, mai una rendibilitat inventada.",
-            "2. Obre un bròquer, edita una posició i torna enrere: només ha de canviar aquell bròquer i la navegació ha de conservar la resta.",
-            "3. Prem actualitzar: ha de ser manual i mostrar clarament si ha acabat, si els preus són antics o si ha fallat conservant les últimes dades."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.3",
