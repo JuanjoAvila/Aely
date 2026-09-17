@@ -140,10 +140,10 @@ export const CROSSCUTTING = [
 ];
 
 const STEPS_DOCS = ["guard-privacy", "docs-frescura", "memoria-espejo"];
-const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente"];
+const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente", "ingest-identity", "ingest-handler"];
 const STEPS_SUPABASE = [
   "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente",
-  "month-window", "wallet-notis", "ingest-classify", "divisa-original", "presupuesto-rendimiento",
+  "month-window", "wallet-notis", "ingest-classify", "ingest-identity", "ingest-handler", "divisa-original", "presupuesto-rendimiento",
   "grants-migraciones", "entrada-edge", "bank-sync-paging", "tr-open-banking",
 ];
 

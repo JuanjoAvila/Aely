@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.6",
+    "d": "17 sep 2026",
+    "t": {
+      "es": "Bancos más fiables, sin gastos repetidos",
+      "en": "More reliable banks, without repeated expenses",
+      "ca": "Bancs més fiables, sense despeses repetides"
+    },
+    "items": {
+      "es": [
+        "Al buscar movimientos antiguos, cada banco dispone de su propio tiempo de lectura: uno lento ya no deja al siguiente sin turno.",
+        "Una misma compra recibida desde Trade Republic y Wallet ya no se apunta dos veces; si existe una duda real, Aely la aparta del total para que puedas decidir.",
+        "Los avisos distinguen ahora entre un banco sin movimientos y una lectura incompleta, sin mostrar ni guardar datos privados en el diagnóstico."
+      ],
+      "en": [
+        "When searching older transactions, each bank gets its own reading time, so a slow bank cannot deprive the next one of its turn.",
+        "The same purchase received from Trade Republic and Wallet is no longer recorded twice; when there is genuine doubt, Aely keeps it out of the total for you to decide.",
+        "Messages now distinguish a bank with no transactions from an incomplete read, without showing or storing private data in diagnostics."
+      ],
+      "ca": [
+        "En cercar moviments antics, cada banc disposa del seu propi temps de lectura: un banc lent ja no deixa el següent sense torn.",
+        "La mateixa compra rebuda des de Trade Republic i Wallet ja no s'apunta dues vegades; si hi ha un dubte real, Aely l'aparta del total perquè puguis decidir.",
+        "Els avisos distingeixen ara entre un banc sense moviments i una lectura incompleta, sense mostrar ni desar dades privades al diagnòstic."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "bancos-sin-duplicados-4266",
+        "t": {
+          "es": "Histórico y gastos repetidos",
+          "en": "History and repeated expenses",
+          "ca": "Històric i despeses repetides"
+        },
+        "items": {
+          "es": [
+            "1. En Importar histórico, selecciona solo CaixaBank y busca tres meses: deben aparecer los movimientos disponibles de agosto o un aviso preciso, sin que Sabadell consuma su turno.",
+            "2. Tras instalar la APK de esta versión, una compra de Trade Republic que también notifique Wallet debe aparecer una sola vez.",
+            "3. Dos compras reales del mismo importe y comercio deben seguir apareciendo como dos movimientos distintos."
+          ],
+          "en": [
+            "1. In Import history, select only CaixaBank and search three months: available August transactions or a precise message should appear, without Sabadell consuming its turn.",
+            "2. After installing this version's APK, a Trade Republic purchase also notified by Wallet should appear only once.",
+            "3. Two real purchases with the same amount and merchant must still appear as two separate transactions."
+          ],
+          "ca": [
+            "1. A Importar històric, selecciona només CaixaBank i cerca tres mesos: han d'aparèixer els moviments disponibles d'agost o un avís precís, sense que Sabadell consumeixi el seu torn.",
+            "2. Després d'instal·lar l'APK d'aquesta versió, una compra de Trade Republic que també notifiqui Wallet ha d'aparèixer una sola vegada.",
+            "3. Dues compres reals amb el mateix import i comerç han de continuar apareixent com dos moviments diferents."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.5",
     "d": "17 sep 2026",
     "t": {

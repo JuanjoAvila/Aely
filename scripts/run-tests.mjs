@@ -96,6 +96,8 @@ const steps = [
   ["revo-num", ["node", "tests/revo-num.test.mjs"]],
   ["debts", ["node", "tests/debts.test.mjs"]],
   ["ingest-classify", ["node", "tests/ingest-classify.test.mjs"]],
+  ["ingest-identity", ["node", "tests/ingest-identity.test.mjs"]],
+  ["ingest-handler", ["node", "tests/ingest-handler.test.mjs"]],
   ["revo-golden", ["node", "tests/revo-golden.test.mjs"]],
   ["import-hoja", ["node", "tests/import-hoja.test.mjs"]],
   ["import-docx-pdf", ["node", "tests/import-docx-pdf.test.mjs"]],

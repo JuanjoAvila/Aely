@@ -1,3 +1,32 @@
+## [4.26.6] - 2026-09-17
+### Histórico bancario — cada banco dispone de su propio tiempo de lectura
+
+La cola estricta introducida para evitar 429 seguía usando un único deadline de 60 segundos:
+si Sabadell agotaba casi todo paginando, CaixaBank quedaba después sin tiempo aunque su enlace
+estuviera activo. El cliente abre ahora una invocación `bank-sync` por banco, siempre de una en
+una; no hay sesiones PSD2 simultáneas, pero cada banco estrena su propio reloj. Los resultados se
+agregan sin dejar que el fallo de uno tape los demás.
+
+La Edge registra para cada lectura solo estado, número de cuentas, número de filas, duración y
+rango solicitado: nunca uid, IBAN, comercio, importe ni payload. Así un cero real se distingue de
+timeout/parcial sin pedir datos privados. El preview conserva efectivo, transferencias y compras;
+un `ext_id` igual en dos bancos sigue siendo dos identidades. `possibleDup` viaja también desde
+`ob-hist`, por lo que una coincidencia dudosa queda fuera del total hasta que la persona decida.
+
+### Notificaciones — identidad estable y confirmación real de Trade Republic/Wallet
+
+Android escuchaba Trade Republic y Wallet, y una reentrega podía cambiar el texto y recibir una
+hora nueva. El debounce de una sola firma no impedía que Aely confirmase dos veces la misma compra.
+El lector envía ahora una identidad estable basada en origen, paquete, clave de Android y `postTime`,
+sin título ni texto financiero mutable. La migración `0025_expenses_ingest_event.sql` hace esa
+identidad única en `expenses`; `ingest` solo confirma después de insertar y trata una carrera
+`23505` como reintento idempotente.
+
+Una coincidencia TR/Wallet entre fuentes no se borra: se conserva como `possibleDup`, no suma y
+espera «es el mismo» o «son distintos». Dos compras legítimas iguales mantienen identidades
+distintas. No se migra ni recategoriza el histórico existente. El despliegue seguro es indivisible:
+migración 0025, Edge `ingest`, Edge `bank-sync`, OTA y APK nueva; una OTA sola no completa el arreglo.
+
 ## [4.26.5] - 2026-09-17
 ### Rediseño v4.1 — estados vacíos y movimiento reducido coherentes
 

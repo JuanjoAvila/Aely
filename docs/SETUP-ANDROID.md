@@ -170,6 +170,12 @@ trae **basura de codificación** (una compra real salió como `10638 CORNELLAÂ�
 que cuela es un NUL, **Postgres rechaza el INSERT entero**. `limpiarTexto()` los quita antes de
 guardar.
 
+Desde 4.26.6 el lector no deduplica por título o texto: Wallet y Trade Republic pueden describir
+la misma compra de forma distinta. La identidad se forma con origen, paquete, clave de Android y
+`postTime` (o paquete, id y tag como fallback) y viaja a `ingest`. Este cambio exige **APK nueva**
+y debe publicarse solo después de aplicar la migración 0025 y desplegar la Edge `ingest`; de otro
+modo el móvil conserva la deduplicación anterior aunque reciba la OTA.
+
 ## 7. Distribuir (para que la usen otros)
 
 - En Android Studio: **Build → Generate Signed Bundle / APK** → crea un keystore (guárdalo bien) → genera el APK firmado.

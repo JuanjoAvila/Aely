@@ -33,6 +33,12 @@ el sync manual tampoco anuncia «al día» cuando la lectura está incompleta. E
 una lista de bancos, consulta solo esos enlaces y los recorre estrictamente de uno en uno: no abre
 dos sesiones PSD2 simultáneas. Tras un 429 el cliente conserva una espera de seis horas y no vuelve
 a llamar ni recomienda reconectar.
+La UI no manda varios bancos dentro de la misma invocación: los recorre en serie y hace una
+petición `bank-sync(dateFrom,[banco])` por cada uno. Así conserva la cola estricta que evita 429,
+pero cada banco estrena el deadline de 60 segundos; uno lento no puede dejar al siguiente sin
+turno. La Edge deja un diagnóstico cerrado por lectura (`ok`/`empty`/`partial`/`error`, cuentas,
+filas, duración y `dateFrom`) sin uid, IBAN, comercio, importe ni payload bancario.
+
 El cliente conserva todas las filas recibidas, sin cupo global de 150. La ventana temporal y
 las reglas de dedup de la importación diaria no cambian. No se añade ninguna sincronización.
 
@@ -133,6 +139,14 @@ y `traspaso` se conservan aunque no pertenezcan al catálogo ordinario de catego
         ▼
 [Edge `categorize`]  KW → si otros y OPENAI_API_KEY → LLM acotado
 ```
+
+El lector Android asigna a cada notificación de compra una identidad estable con origen, paquete,
+`StatusBarNotification.getKey()` y `postTime`; el fallback usa paquete, id y tag. No incluye título
+ni texto porque Wallet puede reformular una compra ya entregada. La Edge `ingest` persiste esa
+identidad en `expenses.ingest_event_id` (migración 0025) y solo devuelve confirmación después de
+insertar. Un reintento o una carrera `23505` devuelve el gasto ya existente; una coincidencia
+entre fuentes distintas se conserva como `possibleDup` y no suma hasta resolverla. El orden de
+despliegue es migración 0025 → `ingest` → APK: una OTA sin APK no cambia la identidad nativa.
 
 Cotizaciones: Edge `prices` → Finnhub/Yahoo. FX: Frankfurter `EUR→USD,GBP,CHF` → `state.fxRates` (XXX→EUR) + `state.fx` (USD legado). Coste invertido editable ancla `costEur`. Moneda de visualización (`DISP`): EUR/USD/GBP/CHF desde 4.1.0; sin FX descargado se queda en € (nunca inventar tipo).
 

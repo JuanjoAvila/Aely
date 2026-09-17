@@ -35,6 +35,7 @@ import {
   limpiarTexto, type Fuente, type Tipo,
 } from "../_shared/ingest_logic.ts";
 import { aEuros, parseWallet } from "../_shared/wallet.ts";
+import { claveEvento, esPosibleGemeloIngest } from "../_shared/ingest_identity.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
 import { bancosDeGastoDiario, cuentaParaPresupuesto, filasComoLaApp, inicioDeMesMs, statsDelMes } from "../_shared/presupuesto.ts";
 // Comparación del token en tiempo constante (2026-07-24) y topes de entrada (SEC-01, 14/9): en _shared.
@@ -120,6 +121,19 @@ Deno.serve(async (req) => {
   const skip = (motivo: string, extra: Record<string, unknown> = {}) =>
     logIngestSkip(supabase, userId, motivo, texto, titulo, fuente).then(() => json({ ok: true, skipped: true, ...extra }));
 
+  /* ACK EXACTO (17/9). Un timeout puede ocurrir DESPUÉS del INSERT y antes de que el móvil reciba
+     la respuesta. Reintentar entonces no es otro gasto: es el mismo evento esperando acuse. La
+     huella no contiene texto ni dinero, y el índice único cierra también la carrera entre dos POST.
+     Una APK anterior no manda `evento`: conserva temporalmente la red legacy de abajo. */
+  let eventKey = claveEvento(data.evento, fuente, texto);
+  if (eventKey) {
+    const { data: ack, error: ackError } = await supabase.from("expenses")
+      .select("id").eq("user_id", userId).eq("ingest_event_id", eventKey).limit(1);
+    if (!ackError && ack && ack.length) return skip("dup: mismo evento nativo", { dup: true, ack: ack[0].id });
+    // Despliegue compatible: si la migración aún no ha llegado, sigue con el camino antiguo.
+    if (ackError && /ingest_event_id|column/i.test(String(ackError.message || ""))) eventKey = null;
+  }
+
   const { tipo, motivo } = clasificarConMotivo(texto, titulo, fuente);
   if (tipo === "ignorado") return skip(motivo || "ignorado", { tipo });
 
@@ -185,66 +199,78 @@ Deno.serve(async (req) => {
   // Antes de la ventana anti-duplicado: el dedup por comercio compara con lo que se guarda.
   comercio = recortar(comercio, INGEST_MAX_COMERCIO);
 
-  // 3) Inserción (service role → salta RLS, cliente creado arriba). Dedup contra expenses_dedup_idx.
-  // VENTANA ANTI-DUPLICADO (bug cobro doble 2026-07-10): el índice de dedup exige el MISMO
-  // timestamp, pero un pago con confirmación genera dos notis con minutos de diferencia
-  // (autorizar → cargo) y entraba dos veces. Mismo usuario + mismo importe a <10 min = el
-  // mismo movimiento → se ignora. (Dos compras REALES idénticas en <10 min es rarísimo;
-  // si pasa, se apunta a mano — mejor eso que cobros fantasma duplicados.)
-  //
-  // WALLET DUPLICA LAS DE TR (2026-08-06): una compra con la tarjeta de Trade Republic dispara LAS
-  // DOS notis. Mientras las dos digan el mismo euro, esta ventana ya las junta. Pero si una viene
-  // en divisa, el euro convertido puede bailar un céntimo contra el que anuncia TR y entrarían las
-  // dos. Por eso se compara con margen de 2 céntimos en vez de exacto: dos compras REALES en menos
-  // de 10 minutos que además se parezcan en dos céntimos no pasa, y un cobro fantasma duplicado
-  // sí que se nota.
+  // 3) Inserción (service role → salta RLS).
+  // Con identidad nativa, importe/nombre/hora NO descartan nada: dos compras reales pueden coincidir.
+  // Si TR y Wallet describen el mismo importe con nombres distintos, la segunda fila se CONSERVA
+  // como posible repetido y no cuenta hasta que el usuario elija «es el mismo» / «son distintos».
   const t0 = new Date(fecha).getTime();
-  const { data: dupRows } = await supabase
-    .from("expenses").select("fecha")
-    .eq("user_id", userId)
-    .gte("importe", importe - 0.02).lte("importe", importe + 0.02)
-    .gte("fecha", new Date(t0 - 10 * 60 * 1000).toISOString())
-    .lte("fecha", new Date(t0 + 10 * 60 * 1000).toISOString())
-    .limit(1);
-  if (dupRows && dupRows.length) return skip("dup: mismo importe a <10 min", { tipo, dup: true });
-
-  // Misma compra, avisos a HORAS distintas (2026-08-17). Wallet avisó a las 11:31 y Trade Republic
-  // a las 13:08: 97 min, fuera de la ventana de 10. El banco solo tenía UN cargo; la nube guardó
-  // dos y el widget los sumó. La app ya los junta por día|importe|comercio — ingest tiene que
-  // hacer lo mismo al INSERTAR, no solo al contar, o la tabla sigue criando gemelos.
-  const dia = String(fecha).slice(0, 10);
-  const { data: dupDia } = await supabase
-    .from("expenses").select("fecha")
-    .eq("user_id", userId)
-    .eq("comercio", comercio)
-    .gte("importe", importe - 0.02).lte("importe", importe + 0.02)
-    .gte("fecha", dia + "T00:00:00.000Z")
-    .lte("fecha", dia + "T23:59:59.999Z")
-    .limit(1);
-  if (dupDia && dupDia.length) return skip("dup: mismo comercio e importe ese día", { tipo, dup: true, dupDay: true });
+  let possibleDup = false;
+  if (eventKey) {
+    const { data: cercanos } = await supabase.from("expenses")
+      .select("fecha,importe,ingest_event_id")
+      .eq("user_id", userId)
+      .gte("importe", importe - 0.02).lte("importe", importe + 0.02)
+      .gte("fecha", new Date(t0 - 2 * 60 * 60 * 1000).toISOString())
+      .lte("fecha", new Date(t0 + 2 * 60 * 60 * 1000).toISOString());
+    possibleDup = (cercanos || []).some((r) => esPosibleGemeloIngest(
+      { fecha, importe, ingest_event_id: eventKey }, r,
+    ));
+  } else {
+    /* Compatibilidad con APK antiguas, que no tienen una identidad reintentable. Se conserva su
+       barrera débil para no reabrir duplicados hasta que se actualicen; la ruta nueva jamás borra
+       por parecido. */
+    const { data: dupRows } = await supabase.from("expenses").select("fecha")
+      .eq("user_id", userId)
+      .gte("importe", importe - 0.02).lte("importe", importe + 0.02)
+      .gte("fecha", new Date(t0 - 10 * 60 * 1000).toISOString())
+      .lte("fecha", new Date(t0 + 10 * 60 * 1000).toISOString()).limit(1);
+    if (dupRows && dupRows.length) return skip("dup legacy: mismo importe a <10 min", { tipo, dup: true });
+    const dia = String(fecha).slice(0, 10);
+    const { data: dupDia } = await supabase.from("expenses").select("fecha")
+      .eq("user_id", userId).eq("comercio", comercio)
+      .gte("importe", importe - 0.02).lte("importe", importe + 0.02)
+      .gte("fecha", dia + "T00:00:00.000Z").lte("fecha", dia + "T23:59:59.999Z").limit(1);
+    if (dupDia && dupDia.length) return skip("dup legacy: mismo comercio e importe ese día", { tipo, dup: true, dupDay: true });
+  }
 
   const fila: Record<string, unknown> = {
-    user_id: userId, fecha, importe, comercio, cat, source: "macrodroid", no_card: noCard, nota: nota || null,
+    user_id: userId, fecha, importe, comercio, cat,
+    /* Compatibilidad con las OTA que ya usan el protocolo #dup: mientras está sin decidir viaja
+       como `ob:trade_republic#dup`, que incluso un cliente anterior deja fuera de las cifras. La
+       columna ingest_event_id conserva el origen real; la OTA nueva lo presenta como notificación
+       y, al elegir «son distintos», lo devuelve a `macrodroid`. */
+    source: possibleDup ? "ob:trade_republic#dup" : "macrodroid", no_card: noCard, nota: nota || null,
   };
+  if (eventKey) fila.ingest_event_id = eventKey;
   // Solo cuando hubo divisa de verdad: así una noti normal en euros escribe EXACTAMENTE las mismas
   // columnas que antes y no depende de que la migración 0020 esté aplicada.
   if (divisaOrig) { fila.importe_orig = importeOrig; fila.divisa = divisaOrig; }
   const guardar = () => supabase
     .from("expenses")
-    .upsert(fila, { onConflict: "user_id,fecha,importe,comercio", ignoreDuplicates: true });
-  let { error } = await guardar();
+    .upsert(fila, { onConflict: "user_id,fecha,importe,comercio", ignoreDuplicates: true })
+    .select("id");
+  let { data: inserted, error } = await guardar();
   // Si la migración 0020 va por detrás de la función, se reintenta SIN el rastro de la divisa:
   // mejor el gasto sin «eran liras» que ningún gasto. El aviso queda en el panel.
   if (error && divisaOrig && /importe_orig|divisa/i.test(String(error.message || ""))) {
     await logIngestError(supabase, userId, "faltan las columnas de divisa (migración 0020): apuntado solo en euros",
       comercio + " · " + importeOrig + " " + divisaOrig);
     delete fila.importe_orig; delete fila.divisa;
-    ({ error } = await guardar());
+    ({ data: inserted, error } = await guardar());
+  }
+  // Respuesta perdida + reintento simultáneo: el índice exacto puede ganar entre SELECT e INSERT.
+  if (error && eventKey && String(error.code || "") === "23505") {
+    const { data: ack } = await supabase.from("expenses").select("id")
+      .eq("user_id", userId).eq("ingest_event_id", eventKey).limit(1);
+    if (ack && ack.length) return skip("dup: carrera del mismo evento nativo", { tipo, dup: true, ack: ack[0].id });
   }
   if (error) {
     await logIngestError(supabase, userId, "no se pudo guardar el gasto: " + error.message, comercio + " · " + importe + "€");
     return json({ ok: false, error: error.message }, 500);
   }
+  // `ignoreDuplicates` no es un INSERT: antes se respondía éxito y Android confirmaba otro gasto.
+  if (!inserted || !inserted.length) return skip("dup: conflicto exacto sin nueva fila", { tipo, dup: true });
+  const ackId = inserted[0].id;
 
   // 4) Total del mes + alerta de presupuesto server-side (best-effort): el lector
   //    nativo lo usa para refrescar el WIDGET y lanzar la notificación aunque la
@@ -271,7 +297,7 @@ Deno.serve(async (req) => {
     // Y si el gasto recién apuntado NO cuenta para el presupuesto —banco de recibos, inversión,
     // traspaso— la cifra no se ha movido: avisar sería avisar por algo que él no ve subir.
     const mueveElPresupuesto = cuentaParaPresupuesto(
-      { importe, cat, source: "macrodroid" }, bancosDeGastoDiario(st?.data),
+      { importe, cat, source: String(fila.source) }, bancosDeGastoDiario(st?.data),
     );
     // `spent` va con la cifra que PINTA la app (shown), no con el bruto: el widget y la cabecera
     // de Gastos tienen que decir lo mismo («misma cifra en todos sitios», 2026-08-05).
@@ -310,7 +336,8 @@ Deno.serve(async (req) => {
     }
   } catch (_) { /* opcional; el movimiento ya está guardado */ }
 
-  return json({ ok: true, tipo, fecha, importe, comercio, cat, nota: nota || null, alert, month });
+  return json({ ok: true, tipo, fecha, importe, comercio, cat, nota: nota || null,
+    possibleDup, ack: ackId, alert, month });
 });
 
 function json(obj: unknown, status = 200) {

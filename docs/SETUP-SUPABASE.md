@@ -72,6 +72,19 @@ pequeño en uno grande.
 caduca a los 30 minutos y el `state` se **gasta** al usarlo. Los enlaces creados antes de esta
 migración no tienen marca y se dan por buenos, para no romper una reconexión a medias.
 
+### Migración 0025 — identidad idempotente de notificaciones (4.26.6)
+
+`0025_expenses_ingest_event.sql` añade `expenses.ingest_event_id` y un índice único parcial por
+usuario. No hace backfill ni toca movimientos anteriores. El lector Android nuevo manda la
+identidad estable del evento y `ingest` la confirma solo cuando la fila existe; una reentrega o
+una carrera concurrente recupera la fila anterior en vez de crear o anunciar otro gasto.
+
+Despliegue obligatorio, en este orden: **migración 0025 → Edge `ingest` → APK nueva**. La Edge
+tolera clientes antiguos sin `ingest_event_id`, pero una OTA sola no puede corregir la identidad
+que genera el lector instalado. Para el histórico de CaixaBank se despliega además `bank-sync` y
+después el cliente web que invoca un banco por petición. No afirmar que está resuelto con datos
+reales hasta probar CaixaBank seleccionada en solitario.
+
 ### CORS: lista blanca, no `*` (4.10.0)
 
 Las Edge Functions ya no responden `Access-Control-Allow-Origin: *`. El origen permitido lo pone

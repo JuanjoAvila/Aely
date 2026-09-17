@@ -1299,6 +1299,33 @@ function bankRateRemember(bank){
     localStorage.setItem("_bankRateUntil",JSON.stringify(map));
   }catch(e){}
 }
+/* UN BANCO POR PETICION (17/9/2026). `bank-sync` tiene un reloj global de 60 s. Al poner los
+   enlaces en cola para no provocar 429, el segundo heredaba lo que hubiese dejado el primero:
+   Sabadell podia completar sus paginas y Caixa ni siquiera recibia una llamada. La cola sigue
+   siendo estricta, pero cada banco abre su propia invocacion Edge y estrena reloj. Un fallo se
+   convierte en un link fallido para conservar y enseñar los resultados de los demas. */
+async function histReadBanksSerial(readOne, dateFrom, aspsps){
+  const names=[], seen={};
+  (aspsps||[]).forEach(function(name){
+    const key=String(name||"").trim().toLowerCase();
+    if(key&&!seen[key]){ seen[key]=1; names.push(name); }
+  });
+  const out={ok:true,history:true,dateFrom:dateFrom,links:[]};
+  for(let i=0;i<names.length;i++){
+    const name=names[i];
+    try{
+      const r=await readOne(dateFrom,[name]);
+      const wanted=String(name).trim().toLowerCase();
+      const got=(r&&Array.isArray(r.links)?r.links:[]).filter(function(l){
+        return String((l&&l.aspsp)||"").trim().toLowerCase()===wanted;
+      });
+      if(got.length) out.links=out.links.concat(got);
+      else out.links.push({aspsp:name,ok:false,error:"unavailable",accounts:[]});
+      if(r&&(r.truncated||r.truncatedAt)){ out.truncated=true; if(r.truncatedAt) out.truncatedAt=r.truncatedAt; }
+    }catch(e){ out.links.push({aspsp:name,ok:false,error:"unavailable",accounts:[]}); }
+  }
+  return out;
+}
 /* Mismo pipeline que BankHistoryImport.search() al aplanar links → candidatos. */
 function histFlattenHistoryLinks(res, expenses, allow, opts){
   opts=opts||{};
@@ -1556,6 +1583,13 @@ function histFijosFromSelection(cands, idxs, opts){
     out.push(it);
   });
   return out;
+}
+function histKeepAmbiguity(e,c){
+  if(e&&c&&c.status==="maybe"){
+    e.possibleDup=true;
+    if(c.match&&c.match.id) e.possibleDupOf=c.match.id;
+  }
+  return e;
 }
 function histBuildCommit(cands, classifications, state, opts){
   opts=opts||{};

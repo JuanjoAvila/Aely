@@ -329,7 +329,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
       setReadWarnings(stopped);
       setCands([]); setLoading(false); return;
     }
-    cloud.bankSyncHistory(dateFrom,aspsps).then(function(res){
+    histReadBanksSerial(cloud.bankSyncHistory.bind(cloud),dateFrom,aspsps).then(function(res){
       if(!res || !Array.isArray(res.links)) throw new Error("bank_read_failed");
       /* En histórico, cero ya no se disfraza de «quizá estaba todo apuntado»: se dice qué banco
          devolvió cero. En el sync diario no se usa este aviso porque un día sin cargos es normal. */
@@ -467,6 +467,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
         const cat=(c&&c.defDest==="ingreso"&&c.category)?c.category:"ingreso";
         const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:-Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, noCard:true, income:true, importBatchId:batchId };
         if(x.id) e.extId=x.id;
+        histKeepAmbiguity(e,c);
         const nti=cleanNote(x.note, e.merchant); if(nti) e.note=nti;
         expAdds.push(e); return;
       }
@@ -476,6 +477,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
       const cat=(c&&c.category)||categoryOfNewMerchant(x.merchant||"");
       const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, importBatchId:batchId };
       if(x.id) e.extId=x.id;
+      histKeepAmbiguity(e,c);
       const nt=cleanNote(x.note, e.merchant); if(nt) e.note=nt;
       expAdds.push(e);
     });

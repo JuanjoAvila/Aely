@@ -84,6 +84,24 @@ async function logObReadFailure(admin: any, userId: string, aspsp: string, err: 
   } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
 }
 
+// Diagnóstico cerrado del resultado, sin uid/IBAN/movimientos/importes. Hace falta distinguir
+// «Caixa respondió vacío» de «no llegó a leer» sin pedir capturas privadas a la familia.
+// deno-lint-ignore no-explicit-any
+async function logObHistoryResult(admin: any, userId: string, aspsp: string, dateFrom: string, accounts: any[], elapsedMs: number) {
+  try {
+    const count = (accounts || []).reduce((n, a) => n + (typeof a?.count === "number" ? a.count : (a?.transactions || []).length), 0);
+    const failed = (accounts || []).filter((a) => a?.ok === false).length;
+    const partial = !(accounts || []).length || failed > 0 || (accounts || []).some((a) => !!(a?.truncated || a?.transactionError));
+    const status = partial ? (count ? "partial" : "error") : (count ? "ok" : "empty");
+    await admin.from("app_events").insert({
+      user_id: userId, email: null, kind: "performance",
+      message: `OB histórico (${String(aspsp || "banco").slice(0, 80)}): ${status}`,
+      detail: JSON.stringify({ status, accounts: (accounts || []).length, count, partial, elapsedMs: Math.max(0, Math.round(elapsedMs)), dateFrom }),
+      app_version: "edge", platform: "server",
+    });
+  } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
+}
+
 Deno.serve(withCors(async (req: Request) => {
   // El límite por cuenta no basta: muchas cuentas lentas podrían agotar la Edge y perder
   // también las respuestas buenas. Se reserva margen para devolverlas y cerrar la petición.
@@ -130,16 +148,15 @@ Deno.serve(withCors(async (req: Request) => {
     const jwt = await makeJWT(appId, pem);
 
     if (dateFrom) {
-      /* Cada enlace tiene SU presupuesto y arranca a la vez. Antes los bancos iban en fila con
-         un deadline común de 60 s: un Sabadell lento/429 podía gastarlo entero y Caixa quedaba
-         marcada como timeout sin haber recibido ni una llamada. Paralelizar enlaces no añade
-         sincronizaciones automáticas: sigue siendo una sola búsqueda pedida por la persona. */
+      /* El cliente actual manda UN enlace por invocación para que cada banco estrene estos 60 s,
+         sin abrir sesiones PSD2 simultáneas. La cola de abajo se conserva por compatibilidad con
+         clientes anteriores, pero en ellos los enlaces posteriores a uno lento pueden agotar el
+         reloj común y quedan declarados como timeout, nunca como cero movimientos. */
       const readHistoryLink = async (link: any) => {
-        /* Los bancos ya corren en paralelo, así que cada uno puede usar el presupuesto REAL de la
-           petición sin volver a dejar al siguiente en cola. Los 15 s de la primera versión se
-           dividían además entre las cuentas del enlace: una Caixa con dos cuentas recibía apenas
-           7,5 s por cuenta y caía antes de terminar la primera página del histórico. Se reserva el
-           mismo margen de 5 s para serializar y devolver todo lo que sí haya llegado. */
+        const startedAt = Date.now();
+        /* Dentro del banco, los 15 s de la primera versión se dividían además entre sus cuentas:
+           una Caixa con dos recibía apenas 7,5 s por cuenta y caía antes de terminar la primera
+           página. Se reservan 5 s para diagnóstico, serialización y respuesta. */
         const linkDeadline = deadline - 5000;
         // deno-lint-ignore no-explicit-any
         const acctList: any[] = (Array.isArray(link.accounts) && link.accounts.length)
@@ -171,6 +188,7 @@ Deno.serve(withCors(async (req: Request) => {
             accts.push({ uid, iban: ac.iban || null, ok: false, error: obReadFailureCode(err), transactions: [] });
           }
         }
+        await logObHistoryResult(admin, user.id, link.aspsp_name, dateFrom, accts, Date.now() - startedAt);
         return { aspsp: link.aspsp_name, iban: link.iban, ok: accts.some(a => a.ok), accounts: accts };
       };
       /* Cola ESTRICTA: dos bancos a la vez dispararon el propio 429 en Caixa y Sabadell. Una

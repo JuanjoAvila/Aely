@@ -198,6 +198,7 @@ test("histórico parcial conserva filas y mantiene el aviso aunque no haya candi
 
 test("fallo de la consulta no afirma que no existen movimientos", async ({page}) => {
   const overlay=await abrirHistorico(page,{custom:true,error:{message:"sin red"}});
-  await expect(overlay.locator(".bank-read-warning")).toContainText("No se han podido consultar los movimientos");
+  await expect(overlay.locator(".bank-read-warning")).toHaveCount(2);
+  await expect(overlay.locator(".bank-read-warning").first()).toContainText("no se han podido leer");
   await expect(overlay).not.toContainText("No hay movimientos nuevos");
 });

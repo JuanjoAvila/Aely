@@ -3727,8 +3727,10 @@ function expenseSourceForCloud(e){
   // Lo que NO viaja es `possibleDupOf` (el gemelo): tras reinstalar, «es el mismo» sigue
   // borrando la fila OB pero ya no puede traspasarle el extId al gemelo.
   if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+deudaSufijo(e&&e.debtId)+((e&&e.possibleDup)?"#dup":"");
-  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent;
-  if(s==="macrodroid"||s==="tr") return "macrodroid";
+  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+((e&&e.possibleDup)?"#dup":"");
+  // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
+  // anteriores; al resolver «son distintos» vuelve a su origen real `macrodroid`.
+  if(s==="macrodroid"||s==="tr") return (e&&e.possibleDup)?"ob:trade_republic#dup":"macrodroid";
   if(s==="supabase") return "manual";
   // Manual CON banco elegido (2026-07-18): mismo truco que ob: — el banco viaja en source
   // y sobrevive a reinstalaciones sin migración SQL.
@@ -4214,8 +4216,8 @@ function expenseFromRow(r){
   // «ob:ent#dup» = posible repetido que sigue pendiente de su decisión (B09-D): vuelve marcado,
   // así que la app lo sigue dejando fuera del total tras un pull, un reinicio o un segundo móvil.
   // «ob:ent~deuda.id» = cuota de esa deuda (4.21.0): vuelve con su `debtId` para el filtro.
-  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; source="ob"; dup=p[1]==="dup"; }
-  else if(raw.indexOf("ob-hist:")===0){ ent=raw.slice(8)||null; source="ob-hist"; }
+  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; source=(r.ingest_event_id&&p[1]==="dup")?"macrodroid":"ob"; dup=p[1]==="dup"; }
+  else if(raw.indexOf("ob-hist:")===0){ const p=raw.slice(8).split("#"); ent=p[0]||null; source="ob-hist"; dup=p[1]==="dup"; }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
   return {
@@ -13141,6 +13143,33 @@ function bankRateRemember(bank){
     localStorage.setItem("_bankRateUntil",JSON.stringify(map));
   }catch(e){}
 }
+/* UN BANCO POR PETICION (17/9/2026). `bank-sync` tiene un reloj global de 60 s. Al poner los
+   enlaces en cola para no provocar 429, el segundo heredaba lo que hubiese dejado el primero:
+   Sabadell podia completar sus paginas y Caixa ni siquiera recibia una llamada. La cola sigue
+   siendo estricta, pero cada banco abre su propia invocacion Edge y estrena reloj. Un fallo se
+   convierte en un link fallido para conservar y enseñar los resultados de los demas. */
+async function histReadBanksSerial(readOne, dateFrom, aspsps){
+  const names=[], seen={};
+  (aspsps||[]).forEach(function(name){
+    const key=String(name||"").trim().toLowerCase();
+    if(key&&!seen[key]){ seen[key]=1; names.push(name); }
+  });
+  const out={ok:true,history:true,dateFrom:dateFrom,links:[]};
+  for(let i=0;i<names.length;i++){
+    const name=names[i];
+    try{
+      const r=await readOne(dateFrom,[name]);
+      const wanted=String(name).trim().toLowerCase();
+      const got=(r&&Array.isArray(r.links)?r.links:[]).filter(function(l){
+        return String((l&&l.aspsp)||"").trim().toLowerCase()===wanted;
+      });
+      if(got.length) out.links=out.links.concat(got);
+      else out.links.push({aspsp:name,ok:false,error:"unavailable",accounts:[]});
+      if(r&&(r.truncated||r.truncatedAt)){ out.truncated=true; if(r.truncatedAt) out.truncatedAt=r.truncatedAt; }
+    }catch(e){ out.links.push({aspsp:name,ok:false,error:"unavailable",accounts:[]}); }
+  }
+  return out;
+}
 /* Mismo pipeline que BankHistoryImport.search() al aplanar links → candidatos. */
 function histFlattenHistoryLinks(res, expenses, allow, opts){
   opts=opts||{};
@@ -13398,6 +13427,13 @@ function histFijosFromSelection(cands, idxs, opts){
     out.push(it);
   });
   return out;
+}
+function histKeepAmbiguity(e,c){
+  if(e&&c&&c.status==="maybe"){
+    e.possibleDup=true;
+    if(c.match&&c.match.id) e.possibleDupOf=c.match.id;
+  }
+  return e;
 }
 function histBuildCommit(cands, classifications, state, opts){
   opts=opts||{};
@@ -16085,7 +16121,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
       setReadWarnings(stopped);
       setCands([]); setLoading(false); return;
     }
-    cloud.bankSyncHistory(dateFrom,aspsps).then(function(res){
+    histReadBanksSerial(cloud.bankSyncHistory.bind(cloud),dateFrom,aspsps).then(function(res){
       if(!res || !Array.isArray(res.links)) throw new Error("bank_read_failed");
       /* En histórico, cero ya no se disfraza de «quizá estaba todo apuntado»: se dice qué banco
          devolvió cero. En el sync diario no se usa este aviso porque un día sin cargos es normal. */
@@ -16223,6 +16259,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
         const cat=(c&&c.defDest==="ingreso"&&c.category)?c.category:"ingreso";
         const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:-Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, noCard:true, income:true, importBatchId:batchId };
         if(x.id) e.extId=x.id;
+        histKeepAmbiguity(e,c);
         const nti=cleanNote(x.note, e.merchant); if(nti) e.note=nti;
         expAdds.push(e); return;
       }
@@ -16232,6 +16269,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
       const cat=(c&&c.category)||categoryOfNewMerchant(x.merchant||"");
       const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, importBatchId:batchId };
       if(x.id) e.extId=x.id;
+      histKeepAmbiguity(e,c);
       const nt=cleanNote(x.note, e.merchant); if(nt) e.note=nt;
       expAdds.push(e);
     });
