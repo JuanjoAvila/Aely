@@ -459,3 +459,6 @@ Reglas:
 - Esto **no sube `VERSION` de `beta`**, sube un PATCH nuevo sobre lo que ya hay en producción — la
   ronda grande sigue en `beta` esperando su turno, intacta.
 
+> En un worktree no hace falta instalar otra copia de Playwright: `scripts/run-tests.mjs`
+> reutiliza el CLI de `node_modules` del checkout compartido. Evita `npx playwright`, porque una
+> versión distinta a la que carga la configuración hace fallar todos los specs antes de correr.

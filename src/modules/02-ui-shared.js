@@ -809,27 +809,52 @@ function useBackClose(open, onClose){
   },[open]);
 }
 
+let _mcSheetLocks=0, _mcSheetPrevOverflow="";
+function mcSheetLock(){
+  if(_mcSheetLocks===0){
+    _mcSheetPrevOverflow=document.body.style.overflow;
+    document.documentElement.classList.add("sheet-open");
+  }
+  _mcSheetLocks++;
+  document.body.style.overflow="hidden";
+}
+function mcSheetUnlock(){
+  _mcSheetLocks=Math.max(0,_mcSheetLocks-1);
+  if(_mcSheetLocks===0){
+    document.body.style.overflow=_mcSheetPrevOverflow;
+    document.documentElement.classList.remove("sheet-open");
+  }
+}
 /* Sheet bottom: swipe hacia abajo para cerrar en TODA la ficha (no solo el asa).
-   Si el contenido está scrolleado, primero sube; al llegar arriba, tira cierra. */
+   Un gesto que empezó desplazando contenido le pertenece entero al scroller; solo una bajada
+   NUEVA, ya desde el borde superior, mueve la hoja. Transferirlo a mitad era el salto del vídeo. */
 function useSheetSwipe(open, onClose){
   const sheetRef=useRef(null);
-  const startY=useRef(0), startX=useRef(0), dy=useRef(0), dragging=useRef(false), armed=useRef(false), axis=useRef(null), closing=useRef(false);
-  useEffect(function(){
+  const closeTimer=useRef(null);
+  const startY=useRef(0), startX=useRef(0), dy=useRef(0), dragging=useRef(false), armed=useRef(false), axis=useRef(null), closing=useRef(false), scrollHost=useRef(null);
+  /* El candado entra antes del primer paint de la hoja. Con useEffect había un fotograma en que
+     el fondo aún podía desplazarse y el siguiente recalculaba todo al bloquearlo: en el vídeo
+     real la ficha parecía recolocarse justo después de abrir (feedback 2026-09-17). */
+  useLayoutEffect(function(){
     if(!open) return undefined;
     closing.current=false;
-    const prev=document.body.style.overflow;
-    document.body.style.overflow="hidden";
-    document.documentElement.classList.add("sheet-open");
+    mcSheetLock();
     const block=function(e){
       const sheet=sheetRef.current;
-      if(sheet && sheet.contains(e.target)) return;
+      /* Las hojas hijas son portales hermanos en body, no descendientes del `sheetRef` padre.
+         Dejar pasar cualquier `.v4-sheet` evita que el candado del padre mate el scroll táctil
+         de «Todas las categorías» mientras mantiene bloqueado todo lo que queda detrás. */
+      const inSheet=e.target&&e.target.closest&&e.target.closest(".v4-sheet");
+      if((sheet && sheet.contains(e.target))||inSheet) return;
       if(e.cancelable) e.preventDefault();
     };
     document.addEventListener("touchmove", block, {passive:false, capture:true});
     return function(){
-      document.body.style.overflow=prev;
-      document.documentElement.classList.remove("sheet-open");
       document.removeEventListener("touchmove", block, {capture:true});
+      /* Hay hojas anidadas (Modificar > Todas las categorías). Solo la última devuelve el
+         scroll: si la hija lo soltaba, la lista se movía detrás durante su salida de 200 ms. */
+      if(closeTimer.current){ clearTimeout(closeTimer.current); closeTimer.current=null; }
+      mcSheetUnlock();
     };
   },[open]);
   const onTouchStart=function(e){
@@ -841,6 +866,11 @@ function useSheetSwipe(open, onClose){
     armed.current=true;
     dragging.current=true; dy.current=0; axis.current=null;
     startY.current=e.touches[0].clientY; startX.current=e.touches[0].clientX;
+    /* En Apuntar/Modificar scrollea `.v4-sheet-body`, no la hoja exterior (esta lleva
+       overflow:hidden para fijar la CTA). Mirar siempre `sheet.scrollTop` daba cero y convertía
+       un scroll normal hacia arriba en un tirón de cierre de toda la ficha. */
+    const target=e.target&&e.target.closest?e.target.closest(".v4-sheet-body"):null;
+    scrollHost.current=target&&sheetRef.current&&sheetRef.current.contains(target)?target:sheetRef.current;
   };
   const onTouchMove=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
@@ -854,11 +884,20 @@ function useSheetSwipe(open, onClose){
       }
       axis.current="y";
     }
-    if(el && el.scrollTop>0){
-      dy.current=0; el.classList.remove("dragging"); el.style.transform="";
+    const scroller=scrollHost.current;
+    if(scroller && scroller.scrollTop>0){
+      dy.current=0; if(el){ el.classList.remove("dragging"); el.style.transform=""; }
+      // Este gesto ya pertenece al scroll. Si alcanza el borde a mitad, no saltamos de golpe a
+      // mover la hoja con todo el recorrido acumulado; un tirón nuevo sí podrá cerrarla.
+      dragging.current=false; armed.current=false;
       return;
     }
-    if(ddy<=0){ dy.current=0; if(el) el.style.transform=""; return; }
+    if(ddy<=0){
+      dy.current=0; if(el) el.style.transform="";
+      // Dedo hacia arriba = bajar por el contenido. Queda en manos del scroller hasta soltar.
+      dragging.current=false; armed.current=false;
+      return;
+    }
     // Resistencia tipo sheet (no 1:1): se siente más natural al tirar.
     const resist=Math.min(ddy*0.92, ddy);
     dy.current=resist;
@@ -868,30 +907,49 @@ function useSheetSwipe(open, onClose){
     }
     if(e.cancelable) e.preventDefault();
   };
+  const closeAnimated=function(done){
+    if(closing.current) return;
+    const el=sheetRef.current;
+    if(!el){ (typeof done==="function"?done:onClose)(); return; }
+    closing.current=true;
+    // El transform arranca antes del setState/guardado que pueda ejecutar quien cierra: al vivir
+    // en el compositor sigue avanzando aunque React tenga que recalcular la lista de Gastos.
+    el.classList.remove("dragging");
+    el.style.transition="transform .2s cubic-bezier(.32,.72,0,1)";
+    el.style.transform="translate3d(0,110%,0)";
+    closeTimer.current=setTimeout(function(){
+      closeTimer.current=null;
+      closing.current=false;
+      (typeof done==="function"?done:onClose)();
+    },200);
+  };
   const onTouchEnd=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
     if(closing.current) return;
-    if(!dragging.current && dy.current<=0){ armed.current=false; axis.current=null; return; }
+    if(!dragging.current && dy.current<=0){ armed.current=false; axis.current=null; scrollHost.current=null; return; }
     dragging.current=false; armed.current=false; axis.current=null;
-    const dist=dy.current; dy.current=0;
+    const dist=dy.current; dy.current=0; scrollHost.current=null;
     const el=sheetRef.current;
     if(!el){ if(dist>80) onClose(); return; }
     el.classList.remove("dragging");
     if(dist>80){
-      closing.current=true;
-      // Desbloquea el fondo YA (el hitch era quitar sheet-open al unmount).
-      document.documentElement.classList.remove("sheet-open");
-      document.body.style.overflow="";
-      el.style.transition="transform .2s cubic-bezier(.32,.72,0,1)";
-      el.style.transform="translate3d(0,110%,0)";
-      setTimeout(function(){ onClose(); }, 200);
+      closeAnimated();
     } else {
       el.style.transition="transform .22s cubic-bezier(.32,.72,0,1)";
       el.style.transform="translate3d(0,0,0)";
       setTimeout(function(){ try{ el.style.transition=""; el.style.transform=""; }catch(err){} }, 220);
     }
   };
-  return { sheetRef:sheetRef, sheetTouch:{ onTouchStart:onTouchStart, onTouchMove:onTouchMove, onTouchEnd:onTouchEnd, onTouchCancel:onTouchEnd } };
+  const onTouchCancel=function(e){
+    if(e&&e.stopPropagation) e.stopPropagation();
+    // Android puede cancelar un toque al entregar el scroll al WebView. No es un `touchend`:
+    // confirmar aquí el cierre hacía que una ficha desapareciera o rebotara sin que él la soltara.
+    dragging.current=false; armed.current=false; axis.current=null; dy.current=0; scrollHost.current=null;
+    const el=sheetRef.current;
+    if(el){ el.classList.remove("dragging"); el.style.transition=""; el.style.transform=""; }
+  };
+  return { sheetRef:sheetRef, close:closeAnimated,
+    sheetTouch:{ onTouchStart:onTouchStart, onTouchMove:onTouchMove, onTouchEnd:onTouchEnd, onTouchCancel:onTouchCancel } };
 }
 
 /* lista editable genérica; valFmt recibe el item entero */
@@ -1116,7 +1174,7 @@ function NumPad({value, onChange}){
 /* Anatomía común de Apuntar y Modificar (rediseño v4.1). Si cada ficha compone por su cuenta
    cabecera, importe, metadatos y categorías, vuelven a separarse en cuanto se toca una de ellas;
    por eso estas piezas viven en el módulo compartido y ambos modos pasan exactamente por aquí. */
-function expenseTopCategories(expenses, currentId, catalog){
+function expenseTopCategoryRanking(expenses, catalog){
   const all=(catalog||CATEGORIES).slice();
   const valid={}; all.forEach(function(c){ valid[c.id]=c; });
   const counts={}; const since=Date.now()-90*86400000;
@@ -1126,13 +1184,21 @@ function expenseTopCategories(expenses, currentId, catalog){
     counts[e.category]=(counts[e.category]||0)+1;
   });
   const order={}; all.forEach(function(c,i){ order[c.id]=i; });
-  const top=all.slice().sort(function(a,b){
+  return all.slice().sort(function(a,b){
     return (counts[b.id]||0)-(counts[a.id]||0) || order[a.id]-order[b.id];
   }).slice(0,8);
+}
+function expenseTopCategoryPick(ranked, currentId, catalog){
+  const all=(catalog||CATEGORIES), valid={};
+  all.forEach(function(c){ valid[c.id]=c; });
+  const top=(ranked||[]).slice();
   if(currentId && valid[currentId] && !top.some(function(c){ return c.id===currentId; })){
     if(top.length>=8) top[top.length-1]=valid[currentId]; else top.push(valid[currentId]);
   }
   return top;
+}
+function expenseTopCategories(expenses, currentId, catalog){
+  return expenseTopCategoryPick(expenseTopCategoryRanking(expenses,catalog),currentId,catalog);
 }
 function ExpenseCategoryGrid({items, selected, onPick, testPrefix}){
   return React.createElement("div",{className:"v4-ficha-cats","data-testid":testPrefix||"expense-cats"},
@@ -1145,18 +1211,18 @@ function ExpenseCategoryGrid({items, selected, onPick, testPrefix}){
   );
 }
 function ExpenseCategorySheet({open, onClose, items, selected, onPick}){
-  useBackClose(!!open,onClose);
   const swipe=useSheetSwipe(!!open,onClose);
+  useBackClose(!!open,swipe.close);
   if(!open) return null;
   return ReactDOM.createPortal(
-    React.createElement("div",{className:"v4-sheet-back v4-ficha-cat-back",onClick:onClose},
+    React.createElement("div",{className:"v4-sheet-back v4-ficha-cat-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet v4-ficha-cat-sheet",ref:swipe.sheetRef,
         onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement("div",{className:"v4-section-h"},
           React.createElement("span",{className:"serif",style:{fontSize:22,fontWeight:600}},t("f_cat_all_title")),
-          React.createElement("button",{type:"button",className:"link","aria-label":t("au_close"),onClick:onClose},"✕")),
-        React.createElement(ExpenseCategoryGrid,{items:items,selected:selected,testPrefix:"expense-all-cat",onPick:function(id){ onPick(id); onClose(); }})
+          React.createElement("button",{type:"button",className:"link","aria-label":t("au_close"),onClick:swipe.close},"✕")),
+        React.createElement(ExpenseCategoryGrid,{items:items,selected:selected,testPrefix:"expense-all-cat",onPick:function(id){ onPick(id); swipe.close(); }})
       )
     ),document.body);
 }

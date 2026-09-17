@@ -20,10 +20,10 @@ async function openPlan(page, overrides = {}) {
   await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
-  await expect(page.locator(".v4-plan-cover")).toBeVisible();
+  await expect(page.locator('.botnav-tab.active')).toHaveAttribute("data-tour", "plan");
 }
 
-test("traspaso+oneoff+nómina: titular = solo recibos; traspaso no suma; nómina en «entrará»", async ({ page }) => {
+test("portada compacta: solo lo pendiente; traspaso no suma y nómina va en «entrará»", async ({ page }) => {
   await openPlan(page, {
     fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 28, account: "sabadell" }],
     oneoffs: [{ id: "itv", name: "ITV", amount: 50, year: 2026, month: 9, day: 20, account: "sabadell" }],
@@ -33,25 +33,28 @@ test("traspaso+oneoff+nómina: titular = solo recibos; traspaso no suma; nómina
     ],
     debts: [],
   });
-  const cover = page.locator(".v4-plan-cover");
-  await expect(cover).toContainText(/90/);
-  await expect(cover).not.toContainText(/590|2090/);
+  const hero = page.locator('.v4-screen > [data-seg="recibos"] .v4-card-hero');
+  await expect(hero).toContainText(/90/);
+  await expect(hero).not.toContainText(/590|2090/);
+  await expect(page.locator(".v4-plan-cover")).toHaveCount(0);
   const recibos = page.locator(".v4-screen > [data-seg='recibos']");
+  await expect(recibos.locator(".v4-ring")).toHaveCount(0);
   await expect(recibos).toContainText("A TR");
   await expect(recibos).toContainText(/Lo que aún entrará/);
   await expect(recibos).toContainText("Nómina");
 });
 
-test("anillo por euros: 1€ pagado + 999 pendiente ≈ 0%", async ({ page }) => {
+test("pagado y pendiente se separan sin anillo ni mensaje diagnóstico", async ({ page }) => {
   await openPlan(page, {
     fixed: [
       { id: "a", name: "Mini", amount: 1, freq: "mes", day: 2, account: "sabadell" },
       { id: "b", name: "Gordo", amount: 999, freq: "mes", day: 28, account: "sabadell" },
     ],
   });
-  const cover = page.locator(".v4-plan-cover");
-  await expect(cover).toContainText("0%");
-  await expect(cover).not.toContainText("50%");
+  const recibos = page.locator(".v4-screen > [data-seg='recibos']");
+  await expect(recibos.locator(".v4-card-hero")).toContainText(/999/);
+  await expect(recibos).toContainText(/Ya pagado.*1,00|Ya pagado.*1 €/i);
+  await expect(recibos).not.toContainText(/%|sin contar compras del día a día/i);
 });
 
 test("deuda sin día queda pendiente con —", async ({ page }) => {
@@ -63,24 +66,34 @@ test("deuda sin día queda pendiente con —", async ({ page }) => {
   const recibos = page.locator(".v4-screen > [data-seg='recibos']");
   await expect(recibos).toContainText("Sin día");
   await expect(recibos.locator(".v4-charge").filter({ hasText: "Sin día" })).toContainText("—");
-  // Portada local: descuenta la cuota aunque 11 no la proyecte (min 500→420).
-  const cover = page.locator(".v4-plan-cover");
-  await expect(cover).toContainText(/420|80/);
-  await expect(cover).not.toContainText(/día ya|day already|dia ja/i);
+  await expect(recibos.locator(".v4-card-hero")).toContainText(/80.*420|420.*80/s);
+  await expect(recibos).not.toContainText(/día ya|day already|dia ja/i);
 });
 
-test("min bajo → warn/bad con frase sin compras del día a día", async ({ page }) => {
+test("una devolución puntual antigua no se descuenta dos veces de la liquidez", async ({ page }) => {
+  await openPlan(page, {
+    accounts: [{ id: "sb", ent: "sabadell", name: "Sabadell", value: 800, role: "fijos" }],
+    fixed: [], debts: [], flows: [],
+    oneoffs: [{ id: "refund", name: "Devolución", amount: -50, year: 2026, month: 9, day: 20, account: "sabadell" }],
+  });
+  const hero = page.locator('.v4-screen > [data-seg="recibos"] .v4-card-hero');
+  await expect(hero).toContainText(/0/);
+  await expect(hero).toContainText(/850/);
+  await expect(hero).not.toContainText(/800/);
+});
+
+test("la vista normal conserva el segmented compacto de una sola línea", async ({ page }) => {
   await openPlan(page, {
     accounts: [{ id: "sb", ent: "sabadell", name: "Sabadell", value: 100, role: "fijos" }],
     fixed: [{ id: "luz", name: "Luz", amount: 200, freq: "mes", day: 28, account: "sabadell" }],
     flows: [{ id: "nom", kind: "income", name: "Nómina", amount: 50, to: "sabadell", day: 30 }],
   });
-  const cover = page.locator(".v4-plan-cover");
-  expect(["warn", "bad"]).toContain(await cover.getAttribute("data-plan-state"));
-  await expect(cover).toContainText(/sin contar compras del día a día/i);
+  await expect(page.locator(".v4-seg-sub")).toHaveCount(0);
+  await expect(page.locator('.v4-seg-btn[data-seg="recibos"]')).toHaveText("Recibos");
+  await expect(page.locator('.v4-screen > [data-seg="recibos"] .v4-card-hero')).toContainText(/200/);
 });
 
-test("todo pagado → 100% sin NaN ni «día ya»", async ({ page }) => {
+test("todo pagado → 0 pendiente y lista pagada, sin NaN ni diagnóstico", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-30T12:00:00Z") });
   await seedLoggedInDashboard(page, {
     accounts: accountsFijos,
@@ -91,72 +104,11 @@ test("todo pagado → 100% sin NaN ni «día ya»", async ({ page }) => {
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 60_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
-  const cover = page.locator(".v4-plan-cover");
-  await expect(cover).toContainText("100%");
-  await expect(cover).not.toContainText(/NaN/);
-  await expect(cover).not.toContainText(/día ya|day already|dia ja/i);
-  await expect(cover).toContainText(/Ya has pagado todos los recibos/i);
-  await expect(cover).toHaveAttribute("role", "group");
-  await expect(page.locator(".v4-screen > [data-seg='recibos']")).toContainText(/Nada pendiente|ya no sale/i);
-});
-
-test("todo pagado con cuenta borrada: frase genérica, no 0 € inventado", async ({ page }) => {
-  await page.clock.install({ time: new Date("2026-09-30T12:00:00Z") });
-  await seedLoggedInDashboard(page, {
-    // Solo Sabadell vivo; el recibo pagado apunta a un banco que ya no está.
-    accounts: accountsFijos,
-    fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 5, account: "banco_fantasma" }],
-    budget: 500,
-  });
-  await page.goto("/");
-  await expect(page.locator(".botnav")).toBeVisible({ timeout: 60_000 });
-  await dismissNews(page);
-  await page.locator('.botnav-tab[data-tour="plan"]').click();
-  const cover = page.locator(".v4-plan-cover");
-  await expect(cover).toContainText(/Ya has pagado todos los recibos/i);
-  await expect(cover).not.toContainText(/tienes 0\s*€|0,00\s*€ en/i);
-  await expect(cover).not.toContainText(/día ya|day already|dia ja/i);
-});
-
-test("todo pagado con saldo conocido negativo: no titular verde", async ({ page }) => {
-  await page.clock.install({ time: new Date("2026-09-30T12:00:00Z") });
-  await seedLoggedInDashboard(page, {
-    accounts: [{ id: "sb", ent: "sabadell", name: "Sabadell", value: -80, role: "fijos" }],
-    fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 5, account: "sabadell" }],
-    budget: 500,
-  });
-  await page.goto("/");
-  await expect(page.locator(".botnav")).toBeVisible({ timeout: 60_000 });
-  await dismissNews(page);
-  await page.locator('.botnav-tab[data-tour="plan"]').click();
-  const cover = page.locator(".v4-plan-cover");
-  await expect(cover).toHaveAttribute("data-plan-state", "bad");
-  await expect(cover).not.toContainText(/Vas bien este mes/i);
-  await expect(cover).toContainText(/Ya has pagado todos los recibos/i);
-  await expect(cover).toContainText(/-80/);
-});
-
-test("dos bancos: el rojo manda la frase; el total global no mezcla", async ({ page }) => {
-  await openPlan(page, {
-    accounts: [
-      { id: "sb", ent: "sabadell", name: "Sabadell", value: 5000, role: "fijos" },
-      { id: "rv", ent: "revolut", name: "Revolut", value: 10, role: "ambos" },
-    ],
-    fixed: [
-      { id: "luz", name: "Luz", amount: 40, freq: "mes", day: 28, account: "sabadell" },
-      { id: "netflix", name: "Netflix", amount: 90, freq: "mes", day: 25, account: "revolut" },
-    ],
-    flows: [],
-  });
-  const cover = page.locator(".v4-plan-cover");
-  // Total global 130 en el pie
-  await expect(cover).toContainText(/130/);
-  // Si Revolut queda corto, la frase nombra Revolut (peor riesgo)
-  const phrase = await cover.locator(".ph").first().innerText();
-  if ((await cover.getAttribute("data-plan-state")) === "bad" || (await cover.getAttribute("data-plan-state")) === "warn") {
-    expect(phrase).toMatch(/Revolut/i);
-    expect(phrase).not.toMatch(/Sabadell/i);
-  }
+  const recibos = page.locator(".v4-screen > [data-seg='recibos']");
+  await expect(recibos.locator(".v4-card-hero")).toContainText(/0/);
+  await expect(recibos).toContainText(/Nada pendiente|ya no sale/i);
+  await expect(recibos).toContainText(/Ya pagado.*40/i);
+  await expect(recibos).not.toContainText(/NaN|día ya|day already|dia ja/i);
 });
 
 test("modo sencillo §5bis.2: título, sin anillo/%, sin Gestionar, sin jerga", async ({ page }) => {
@@ -174,7 +126,69 @@ test("modo sencillo §5bis.2: título, sin anillo/%, sin Gestionar, sin jerga", 
   await expect(plan.locator(".v4-mov").first()).toBeVisible();
 });
 
-test("plegable Ya has pagado solo recibos; Atrás real no sale de Plan", async ({ page }) => {
+test("modo sencillo: todo pagado conserva una frase honesta y el saldo conocido", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-09-30T12:00:00Z") });
+  await seedLoggedInDashboard(page, {
+    accounts: accountsFijos,
+    fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 5, account: "sabadell" }],
+    settings: { autoPrices: false, theme: "green", lang: "es", simpleMode: true },
+    budget: 500,
+  });
+  await page.goto("/");
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  const cover = page.locator(".page-live .v4-plan-cover-simple");
+  await expect(cover).toContainText(/Ya has pagado todos los recibos/i);
+  await expect(cover).toContainText(/800/);
+  await expect(cover).not.toContainText(/día ya|day already|dia ja/i);
+});
+
+test("modo sencillo: cuenta borrada no inventa un saldo de 0 €", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-09-30T12:00:00Z") });
+  await seedLoggedInDashboard(page, {
+    accounts: accountsFijos,
+    fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 5, account: "banco_fantasma" }],
+    settings: { autoPrices: false, theme: "green", lang: "es", simpleMode: true },
+    budget: 500,
+  });
+  await page.goto("/");
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  const cover = page.locator(".page-live .v4-plan-cover-simple");
+  await expect(cover).toContainText(/Ya has pagado todos los recibos/i);
+  await expect(cover).not.toContainText(/tienes 0\s*€|0,00\s*€ en/i);
+});
+
+test("modo sencillo: saldo negativo conocido nunca recibe el titular verde", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-09-30T12:00:00Z") });
+  await seedLoggedInDashboard(page, {
+    accounts: [{ id: "sb", ent: "sabadell", name: "Sabadell", value: -80, role: "fijos" }],
+    fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 5, account: "sabadell" }],
+    settings: { autoPrices: false, theme: "green", lang: "es", simpleMode: true },
+    budget: 500,
+  });
+  await page.goto("/");
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  const cover = page.locator(".page-live .v4-plan-cover-simple");
+  await expect(cover).toHaveAttribute("data-plan-state", "bad");
+  await expect(cover).not.toContainText(/Vas bien este mes/i);
+  await expect(cover).toContainText(/-80/);
+});
+
+test("modo sencillo: una cuota sin día sigue pendiente sin inventar fecha", async ({ page }) => {
+  await openPlan(page, {
+    accounts: [{ id: "sb", ent: "sabadell", name: "Sabadell", value: 500, role: "fijos" }],
+    fixed: [],
+    debts: [{ id: "x", name: "Sin día", monthly: 80, value: 800, account: "sabadell" }],
+    settings: { autoPrices: false, theme: "green", lang: "es", simpleMode: true },
+  });
+  const cover = page.locator(".page-live .v4-plan-cover-simple");
+  await expect(cover).toContainText(/80/);
+  await expect(cover).not.toContainText(/día ya|day already|dia ja/i);
+});
+
+test("Ya pagado es compacto y Ver más enseña solo recibos", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-20T12:00:00Z") });
   await seedLoggedInDashboard(page, {
     accounts: accountsFijos,
@@ -189,20 +203,13 @@ test("plegable Ya has pagado solo recibos; Atrás real no sale de Plan", async (
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 60_000 });
   await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
-  const fold = page.locator(".v4-paid-fold");
-  await expect(fold).toHaveAttribute("aria-expanded", "false");
-  await fold.click();
-  await expect(fold).toHaveAttribute("aria-expanded", "true");
-  await expect(fold).toHaveAttribute("aria-controls", "v4-paid-panel");
-  await expect(page.locator(".v4-screen > [data-seg='recibos']")).toContainText("Luz");
-  await expect(page.locator(".v4-screen > [data-seg='recibos']")).not.toContainText("Nómina");
-  // Atrás real (history), no Escape (Claude 1845Z).
-  await page.goBack();
-  await expect(fold).toHaveAttribute("aria-expanded", "false");
-  await expect(page.locator('.botnav-tab.active')).toHaveAttribute("data-tour", "plan");
+  const recibos = page.locator(".v4-screen > [data-seg='recibos']");
+  await expect(recibos).toContainText(/Ya pagado.*40/i);
+  await expect(recibos).toContainText("Luz");
+  await expect(recibos).not.toContainText("Nómina");
 });
 
-test("Pregúntame abre Deudas con segmented de dos líneas", async ({ page }) => {
+test("Pregúntame abre Deudas en el segmented compacto", async ({ page }) => {
   await page.clock.install({ time: RELOJ });
   await seedLoggedInDashboard(page, {
     accounts: accountsFijos,

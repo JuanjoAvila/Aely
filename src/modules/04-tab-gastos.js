@@ -901,8 +901,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       bucketSel:bucketSel, setBucketSel:setBucketSel,
       bankOpts:bankOpts, diarioEnts:diarioEnts, debts:state.debts
     }),
-    detailId && React.createElement(ExpenseDetailSheet,{
-      exp:(state.expenses||[]).find(function(e){ return e.id===detailId; }),
+    React.createElement(ExpenseDetailSheet,{
+      exp:detailId?(state.expenses||[]).find(function(e){ return e.id===detailId; }):null,
       editExp:editExp, setEditExp:setEditExp,
       // Cerrar también guarda el último dígito del teclado. Borrar pasa `true` para no resucitar
       // el gasto con un guardado tardío en el mismo lote de React.
@@ -1117,17 +1117,22 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
      hasta darle a atrás (bug 2026-08-17). La causa concreta ya está arreglada en `saveEdit`; esto
      es para que ninguna otra vía que vacíe `editExp` pueda volver a dejar la app muerta. */
   const abierto=!!exp && !!editExp;
-  useBackClose(abierto, onClose);
   const swipe=useSheetSwipe(abierto, onClose);
+  useBackClose(abierto, swipe.close);
   const [calOpen,setCalOpen]=useState(false);
   const [bankOpen,setBankOpen]=useState(false);
   const [allCatsOpen,setAllCatsOpen]=useState(false);
   const [adjustOpen,setAdjustOpen]=useState(null);
   const auto=!!(exp && exp.source && exp.source!=="manual");
   const categoryCatalog=useMemo(function(){ return CATEGORIES.concat([INVERSION_CAT,TRASPASO_CAT]); },[]);
+  // ExpenseDetailSheet permanece premontado: esta pasada O(n) ocurre al preparar Gastos, no al
+  // tocar una fila. Al abrir solo se garantiza que la categoría actual esté entre ocho chips.
+  const fichaCatsBase=useMemo(function(){
+    return expenseTopCategoryRanking(state.expenses,categoryCatalog);
+  },[state.expenses,categoryCatalog]);
   const fichaCats=useMemo(function(){
-    return expenseTopCategories(state.expenses,exp&&exp.category,categoryCatalog);
-  },[state.expenses,exp&&exp.category]);
+    return expenseTopCategoryPick(fichaCatsBase,exp&&exp.category,categoryCatalog);
+  },[fichaCatsBase,exp&&exp.category,categoryCatalog]);
   useEffect(function(){
     if(!abierto){ setCalOpen(false); setBankOpen(false); setAllCatsOpen(false); setAdjustOpen(null); }
   },[abierto,exp&&exp.id]);
@@ -1147,7 +1152,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const closeSave=function(){ saveEdit(exp); };   // blur solo guarda; no cierra (cerrar al cambiar cat saltaba de pantalla — feedback 2026-07-17)
   const doDel=function(){
     askConfirm({ title:tf("v4_exp_del_q",{name:(exp.merchant||"—")+" · "+eur(Math.abs(exp.amount))}), sub:t("v4_exp_del_sub"), ok:t("v4_exp_del"), danger:true })
-      .then(function(yes){ if(!yes) return; delExpense(exp); onClose(true); });
+      .then(function(yes){ if(!yes) return; swipe.close(function(){ delExpense(exp); onClose(true); }); });
   };
   const lockedToast=function(){ showToast(t("f_locked_toast")); };
   const bankOpts=(function(){
@@ -1222,7 +1227,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
     React.createElement("span",{className:"v4-ficha-saved"},t("f_autosaved")));
   const main=ReactDOM.createPortal(
-    React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
+    React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",style:{maxHeight:"90dvh"},ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement(ExpenseFichaLayout,{kind:editExp.income?"ingreso":"gasto",onKind:function(k){

@@ -105,6 +105,19 @@ test("Gestionar abre «Tus recibos», sin la app vieja y sin segunda puerta al b
   await expect(hub(page).locator(".v4-bills-afford")).toContainText("¿Me lo puedo permitir?");
   // La comparación con el banco vive en Mis bancos: aquí no se duplica.
   await expect(hub(page).locator(".v4-bills-recon")).toHaveCount(0);
+  // Precondiciones de la ola nativa de Android: el push es el scroller físico, sin textura
+  // transformada ni overscroll bloqueado. Chromium no dibuja la ola; el móvil valida el efecto.
+  const scrollCss = await hub(page).evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { overflowY: cs.overflowY, overscrollY: cs.overscrollBehaviorY,
+      transform: cs.transform, touchAction: cs.touchAction,
+      scrollHeight: el.scrollHeight, clientHeight: el.clientHeight };
+  });
+  expect(scrollCss.overflowY).toBe("auto");
+  expect(scrollCss.overscrollY).toBe("auto");
+  expect(scrollCss.transform).toBe("none");
+  expect(scrollCss.touchAction).toBe("auto");
+  expect(scrollCss.scrollHeight).toBeGreaterThan(scrollCss.clientHeight);
 });
 
 test("cuatro grupos con su cuenta, y el de una sola vez no dice «al mes»", async ({ page }) => {

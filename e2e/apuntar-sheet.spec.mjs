@@ -72,6 +72,35 @@ test("Apuntar usa la ficha v4.1: cabecera compacta, tres metadatos, ocho categor
   await expect(sheet.locator(".v4-ficha-cats .v4-ficha-cat")).toHaveCount(8);
   await expect(sheet.locator(".v4-keys")).toBeVisible();
 
+  // Al cerrar la hoja hija de categorías, Apuntar sigue vivo debajo: el fondo no puede
+  // desbloquearse durante los 200 ms de salida ni al desmontarse solo la hija.
+  await sheet.locator(".v4-ficha-cat-title button").click();
+  const categorySheet = page.locator(".v4-ficha-cat-sheet");
+  await expect(categorySheet).toBeVisible();
+  // La hija es un portal hermano: el candado táctil de Apuntar no puede cancelar su touchmove.
+  // El scroll nativo de CDP no es estable en headless; `defaultPrevented` prueba la causa exacta.
+  const childMoveBlocked = await categorySheet.locator("button").first().evaluate((el) => {
+    const ev = new Event("touchmove", { bubbles: true, cancelable: true });
+    Object.defineProperty(ev, "touches", { value: [{ clientX: 10, clientY: 10 }] });
+    el.dispatchEvent(ev);
+    return ev.defaultPrevented;
+  });
+  expect(childMoveBlocked).toBe(false);
+  const duringClose = await categorySheet.locator('[data-testid="expense-all-cat-ocio"]').evaluate((el) => {
+    el.click();
+    return {
+      sheetOpen: document.documentElement.classList.contains("sheet-open"),
+      overflow: document.body.style.overflow,
+    };
+  });
+  expect(duringClose).toEqual({ sheetOpen: true, overflow: "hidden" });
+  await expect(categorySheet).toHaveCount(0);
+  await expect(sheet).toBeVisible();
+  await expect.poll(() => page.evaluate(() => ({
+    sheetOpen: document.documentElement.classList.contains("sheet-open"),
+    overflow: document.body.style.overflow,
+  }))).toEqual({ sheetOpen: true, overflow: "hidden" });
+
   await sheet.locator(".v4-keys").getByRole("button", { name: "2", exact: true }).click();
   await sheet.locator(".v4-keys").getByRole("button", { name: "3", exact: true }).click();
   await expect(sheet.locator(".v4-cta")).toContainText(/23/);

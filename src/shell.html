@@ -862,8 +862,6 @@
   .v4-seg{display:flex;gap:4px;background:var(--sur);border:1px solid var(--line-soft);border-radius:16px;padding:4px;margin-bottom:14px;}
   .v4-seg-btn{flex:1;min-height:46px;border-radius:12px;font-size:13.5px;font-weight:700;color:var(--muted);padding:6px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
   .v4-seg-lab{line-height:1.2;}
-  .v4-seg-sub{font-size:11.5px;font-weight:600;color:var(--muted);line-height:1.1;}
-  .v4-seg-btn.on .v4-seg-sub{color:var(--on-mint);opacity:.85;}
   .v4-paid-fold{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:12px 4px;margin-top:8px;background:transparent;border:0;border-top:1px solid var(--line);color:var(--text);font-size:13.5px;font-weight:700;text-align:left;cursor:pointer;}
   .v4-plan-cover-simple .v4-plan-simple-hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:8px 4px 4px;}
   .v4-plan-simple-amt{font-size:56px;font-weight:550;line-height:1.05;letter-spacing:-0.5px;}
@@ -1152,8 +1150,15 @@
   .v4-account-mov .tile{width:34px;height:34px;border-radius:11px;font-size:17px;}
   .v4-account-mov .nm-title{font-size:13.5px;}
   /* §2 Tus recibos (variante A) */
-  .v4-bills-push{z-index:72;padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px));}
-  .v4-bills-hub{max-width:520px;margin:0 auto;}
+  /* «Gestionar recibos» es una pantalla completa, no una capa transformada. Android solo pinta
+     su ola nativa cuando el scroller llega físicamente a los bordes del viewport; mantener aquí
+     el translate3d/will-change heredado de Settings lo convertía en una textura y se la comía. */
+  .v4-bills-push{z-index:72;padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px));
+    transform:none!important;will-change:auto;touch-action:auto;contain:none;overflow-y:auto;
+    -webkit-overflow-scrolling:touch;overscroll-behavior:auto;overscroll-behavior-y:auto;}
+  /* Un píxel de recorrido conserva la ola también con una cartera vacía, sin alterar el aspecto. */
+  .v4-bills-hub{max-width:520px;min-height:calc(100% + 1px);margin:0 auto;animation:v4BillsIn .28s cubic-bezier(.32,.72,0,1) both;}
+  @keyframes v4BillsIn{from{opacity:.35;transform:translate3d(16px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
   .v4-bills-hero{margin-bottom:14px;}
   .v4-bills-hero-amt{font-size:clamp(32px,10vw,40px);font-weight:550;letter-spacing:-1px;margin-top:6px;}
   .v4-bills-hero-sub{margin-top:8px;color:var(--muted);font-size:12.5px;line-height:1.4;}
@@ -1183,6 +1188,7 @@
   .v4-bills-bank.on{border-color:var(--mint);background:rgba(95,208,138,.1);}
   @media (prefers-reduced-motion:reduce){
     .v4-bills-push{transition:none !important;}
+    .v4-bills-hub{animation:none !important;}
   }
   .v4-account-mov .meta{font-size:11.5px;}
   .v4-account-mov .am{font-size:14.5px;}

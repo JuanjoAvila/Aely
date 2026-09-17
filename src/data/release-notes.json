@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.26.9",
+    "d": "17 sep 2026",
+    "t": {
+      "es": "Plan más directo y fichas de gastos más suaves",
+      "en": "A more direct Plan and smoother expense details",
+      "ca": "Un Pla més directe i fitxes de despeses més suaus"
+    },
+    "items": {
+      "es": [
+        "La vista normal de Plan vuelve a enseñar primero lo pendiente, lo pagado y las listas, sin ocupar la pantalla con un resumen gigante.",
+        "Gestionar recibos conserva el editor nuevo y responde mejor al llegar al principio o al final de la pantalla.",
+        "Abrir, recorrer y cerrar un gasto o Apuntar se siente más continuo, también al desplegar todas las categorías."
+      ],
+      "en": [
+        "The normal Plan view once again puts pending, paid and list information first, without filling the screen with an oversized summary.",
+        "Manage bills keeps the new editor and responds better when reaching the top or bottom of the screen.",
+        "Opening, browsing and closing an expense or Add feels smoother, including when expanding all categories."
+      ],
+      "ca": [
+        "La vista normal de Pla torna a ensenyar primer el que queda pendent, el que ja està pagat i les llistes, sense ocupar la pantalla amb un resum gegant.",
+        "Gestionar rebuts conserva l'editor nou i respon millor en arribar al principi o al final de la pantalla.",
+        "Obrir, recórrer i tancar una despesa o Apuntar se sent més continu, també en desplegar totes les categories."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "pulido-plan-gastos-4269",
+        "t": {
+          "es": "Plan y fluidez de gastos",
+          "en": "Plan and expense smoothness",
+          "ca": "Pla i fluïdesa de despeses"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan: deben verse enseguida lo pendiente y las listas, sin el anillo ni el mensaje grande; Gestionar debe seguir abriendo el editor nuevo.",
+            "2. En Gestionar, recorre la pantalla hasta arriba y abajo: en Android debe aparecer la respuesta elástica normal del borde.",
+            "3. Abre un gasto, desplázate por toda la ficha y entra en Todas las categorías; al volver, la ficha debe seguir quieta y la lista del fondo no debe moverse.",
+            "4. Abre Apuntar, recorre la ficha y ciérrala con el botón, el fondo y un tirón hacia abajo: todas las salidas deben sentirse continuas."
+          ],
+          "en": [
+            "1. Open Plan: pending amounts and lists should appear immediately, without the ring or oversized message; Manage must still open the new editor.",
+            "2. In Manage, scroll to the top and bottom: Android should show its normal elastic edge response.",
+            "3. Open an expense, scroll through the whole detail and enter All categories; when returning, the detail must stay still and the list behind it must not move.",
+            "4. Open Add, browse the detail and close it with the button, backdrop and a downward pull: every exit should feel continuous."
+          ],
+          "ca": [
+            "1. Obre Pla: els imports pendents i les llistes s'han de veure de seguida, sense l'anell ni el missatge gegant; Gestionar ha de continuar obrint l'editor nou.",
+            "2. A Gestionar, recorre la pantalla fins a dalt i a baix: Android ha de mostrar la resposta elàstica normal de la vora.",
+            "3. Obre una despesa, desplaça't per tota la fitxa i entra a Totes les categories; en tornar, la fitxa ha de continuar quieta i la llista del fons no s'ha de moure.",
+            "4. Obre Apuntar, recorre la fitxa i tanca-la amb el botó, el fons i un gest cap avall: totes les sortides s'han de sentir contínues."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.8",
     "d": "17 sep 2026",
     "t": {

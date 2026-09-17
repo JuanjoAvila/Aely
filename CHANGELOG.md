@@ -1,3 +1,29 @@
+## [4.26.9] - 2026-09-17
+### Plan compacto y gestos de las fichas de gasto
+
+La vista normal de Plan recupera el segmented de una línea y la portada compacta de pendiente y
+liquidez que ya usaba la familia. El hub nuevo de «Gestionar recibos» se conserva completo, pero
+su scroller vuelve a ser físico, sin transform ni contención, para que Android pueda dibujar la
+respuesta nativa de borde. El modo sencillo conserva su resumen propio.
+
+`useSheetSwipe` fija al iniciar el gesto qué `.v4-sheet-body` posee el scroll; si el movimiento
+empieza desplazando contenido o hacia arriba, ya no se transfiere a la hoja al alcanzar el borde.
+`touchcancel` limpia el gesto sin cerrarlo y la salida se ejecuta en el compositor antes de
+guardar o repintar Gastos. Las hojas anidadas comparten un contador de candados: cerrar «Todas
+las categorías» no libera `overflow` ni `sheet-open` mientras la ficha padre siga abierta.
+
+La ficha de gasto queda premontada y el ranking histórico de categorías se calcula fuera del
+toque de apertura. `Apuntar` reutiliza la misma salida para CTA, backdrop y Atrás. Los E2E
+existentes cubren scroll interior, cancelación táctil, cierre anidado, bloqueo del fondo y las
+precondiciones CSS de la ola; la ola real sigue requiriendo Android. Con 1.000 gastos y CPU ×6,
+cinco ciclos dan mediana de 0 ms de tareas largas al abrir; el cierre da 0 ms en las cinco
+muestras y 16,8 ms de frame máximo mediano. La primera apertura en frío fue la única atípica
+(319 ms estrangulados), por lo que la validación final del tacto sigue siendo en el móvil real.
+
+La conciliación de liquidez acota a cero el pendiente legado negativo antes de compararlo con
+Plan: una devolución puntual antigua conserva su suma en el saldo proyectado y ya no se descuenta
+una segunda vez. Un E2E fija el caso de 800 € de saldo + 50 € de devolución = 850 €.
+
 ## [4.26.8] - 2026-09-17
 ### Rediseño v4.1 — Plan usa euros reales y recibos accesibles
 

@@ -178,7 +178,7 @@ test("los recibos pendientes cuadran con la cifra de Plan → Recibos",async({pa
   await dialog.getByRole("button",{name:"Abrir Recibos",exact:true}).click();
   await expect(page.locator('.botnav-tab.active')).toHaveAttribute("data-tour","plan");
   await expect(page.locator('.page-live .v4-seg-btn.on')).toHaveAttribute("data-seg","recibos");
-  await expect(page.locator(".v4-plan-cover")).toContainText(/100/);
+  await expect(page.locator('.page-live .v4-screen > [data-seg="recibos"] .v4-card-hero')).toContainText(/100/);
 });
 
 test("Escape cierra el diálogo y devuelve el foco al botón",async({page})=>{

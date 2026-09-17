@@ -132,6 +132,32 @@ test("ficha v4.1: un movimiento automático enseña su origen y bloquea importe 
   await sheet.locator(".v4-keys").getByRole("button", { name: "9", exact: true }).click();
   await expect(page.locator(".toast")).toContainText("El importe lo manda el banco");
   await expect(sheet.locator(".v4-ficha-amount")).toHaveText(before);
+
+  // Regresión del vídeo 17/9: quien scrollea es el body interior. Una bajada cuando ya está
+  // desplazado debe seguir moviendo contenido, no aplicar translate3d a toda la ficha.
+  const body = sheet.locator(".v4-sheet-body");
+  const scrolled = await body.evaluate((el) => {
+    el.scrollTop = Math.min(260, Math.max(1, el.scrollHeight - el.clientHeight));
+    return el.scrollTop;
+  });
+  expect(scrolled).toBeGreaterThan(0);
+  const bb = await body.boundingBox();
+  const cdp = await page.context().newCDPSession(page);
+  const x = Math.round(bb.x + bb.width / 2);
+  const y = Math.round(bb.y + Math.min(120, bb.height / 2));
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y: y + 70 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect(sheet).toBeVisible();
+  await expect.poll(() => sheet.evaluate((el) => el.style.transform || "none")).toBe("none");
+
+  // `touchcancel` es frecuente cuando Android entrega el gesto al WebView: cancela, no cierra.
+  await body.evaluate((el) => { el.scrollTop = 0; });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y: y + 70 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
+  await expect(sheet).toBeVisible();
+  await expect.poll(() => sheet.evaluate((el) => el.style.transform || "none")).toBe("none");
 });
 
 test("borrar permite deshacer y restaura el mismo id también en la nube", async ({ page }) => {

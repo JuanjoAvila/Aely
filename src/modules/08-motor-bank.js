@@ -130,11 +130,6 @@ function planCoverPickBank(totals, pendingByBank, pendingBills, paidBills){
   });
   return best;
 }
-/* Anillo por EUROS pagados / (pagados+pendientes), no por conteo de filas. */
-function planRingPct(paidTotal, pendingTotal){
-  var p=Number(paidTotal)||0, n=Number(pendingTotal)||0, d=p+n;
-  return d>0?p/d:0;
-}
 /* Códigos cortos del bank-callback (SEC-01, 4.23.0). El Edge ya no manda el error crudo por la
    URL (quien fabrique el enlace podía pintar un texto falso «de tu banco»). El cliente: si `msg`
    no está en la lista ni empieza por `nolink:`, genérico — NUNCA el texto. Puro: no toca DOM. */

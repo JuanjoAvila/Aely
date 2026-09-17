@@ -46,12 +46,6 @@ console.log("plan-charges");
 }
 
 {
-  // Anillo por €: 1 pagado + 999 pendiente → ~0,1%, no 50%
-  assert.ok(Math.abs(c.planRingPct(1, 999) - 0.001) < 1e-9);
-  assert.equal(c.planRingPct(0, 0), 0);
-}
-
-{
   // Deuda SIN day: pendiente, day null (no fallback día 1)
   const p = c.planChargesMonth(base({
     fixed: [], oneoffs: [], flows: [],

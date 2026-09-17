@@ -66,8 +66,7 @@ test("nube conserva inversión y traspaso al pintar Inicio y Gastos", async ({ p
   });
   await page.goto("/");
   await dismissNews(page);
-  // Plan comparte `.v4-budget-txt` y se premonta en segundo plano: la cifra que este caso
-  // protege es la de Inicio, identificada por su cabecera propia (rediseño Plan 2026-09-17).
+  // La cifra que este caso protege es la de Inicio; se acota porque las pestañas se premontan.
   await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("Has gastado 20 €");
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(page.locator("button.v4-mov").filter({ hasText: "Aporte prueba" })).toHaveClass(/v4-mov-skip/);

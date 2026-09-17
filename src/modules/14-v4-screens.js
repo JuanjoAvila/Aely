@@ -18,7 +18,6 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   },[totals.minByBank,totals.minDayByBank,totals.mainBank,charges.pendingByBank,charges.pendingBills,charges.paidBills]);
   const coverBank=pick.bank;
   const cover=pick.cover;
-  const ringPct=planRingPct(charges.paidBillsTotal, charges.pendingBillsTotal);
   const billsEuroTotal=charges.paidBillsTotal+charges.pendingBillsTotal;
   const allBillsPaid=billsEuroTotal>0&&charges.pendingBillsTotal<=0;
   // Sin inventar 0 € si la cuenta del recibo ya no existe en bankBal (Codex 2050Z).
@@ -63,25 +62,6 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   },[]);
   const biggestForCover=(charges.pendingBills||[]).filter(function(x){ return x.bank===coverBank; })
     .slice().sort(function(a,b){ return Math.abs(b.amount)-Math.abs(a.amount); })[0]||null;
-  const segSub=function(id){
-    if(id==="recibos"){
-      if(charges.pendingBillsCount===1) return tf("v4_seg_bills_one",{n:1});
-      if(charges.pendingBillsCount>0) return tf("v4_seg_bills_n",{n:charges.pendingBillsCount});
-      return "";
-    }
-    if(id==="deudas"){
-      var debtN=(state.debts||[]).filter(function(d){ return debtActive(d); }).length;
-      var debtAmt=(state.debts||[]).reduce(function(s,d){ return debtActive(d)?s+(Number(d.monthly)||0):s; },0);
-      return debtN?tf("v4_seg_debts_amt",{x:eur0(debtAmt)}):"";
-    }
-    if(id==="metas"){
-      var gN=(state.goals||[]).filter(function(g){ return !g.done; }).length;
-      if(gN===1) return tf("v4_seg_goals_one",{n:1});
-      if(gN>0) return tf("v4_seg_goals_n",{n:gN});
-      return "";
-    }
-    return "";
-  };
   useEffect(function(){ if(simple && seg!=="recibos") setSeg("recibos"); },[simple,seg]);
   // «Ver plan» desde Inicio fuerza el segmento (recibos/metas): sin esto quedaba el último
   // que usaste (p.ej. Deudas) y el link engañaba (feedback 2026-07-18). gotoSeg lleva ts para
@@ -307,38 +287,19 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
 
   return React.createElement("div",{className:"v4-screen",ref:planScreenRef},
     React.createElement("h1",{className:"v4-title serif"}, simple?t("v4s_plan_left_title"):t("v4_plan_title")),
-    React.createElement("div",{className:"v4-card v4-card-hero rise v4-plan-cover"+(simple?" v4-plan-cover-simple":""),"data-plan-state":coverTone,role:"group","aria-label":coverAria},
-      simple
-        ? React.createElement("div",{className:"v4-plan-simple-hero"},
-            React.createElement("div",{className:stCls}, coverHead),
-            React.createElement("div",{className:"v4-plan-simple-amt num serif"}, eur0(charges.pendingBillsTotal)),
-            React.createElement("div",{className:"ph"}, coverPhrase),
-            biggestForCover && React.createElement("div",{className:"ph",style:{marginTop:6}},
-              tf("v4_plan_biggest",{name:biggestForCover.name,amount:eur0(biggestForCover.amount)}))
-          )
-        : React.createElement(React.Fragment,null,
-            React.createElement("div",{className:"v4-budget"},
-              React.createElement(V4Ring,{pct:ringPct,tone:coverTone,label:billsEuroTotal?Math.round(ringPct*100)+"%":"—",sub:billsEuroTotal?t("v4_plan_paid_ring"):null,animate:false}),
-              React.createElement("div",{className:"v4-budget-txt"},
-                React.createElement("div",{className:stCls}, coverHead),
-                React.createElement("div",{className:"ph"}, coverPhrase),
-                biggestForCover && React.createElement("div",{className:"ph",style:{marginTop:6}},
-                  tf("v4_plan_biggest",{name:biggestForCover.name,amount:eur0(biggestForCover.amount)}))
-              )
-            ),
-            React.createElement("div",{className:"v4-budget-foot"},
-              React.createElement("span",{className:"num serif",style:{fontSize:28,fontWeight:550}}, eur0(charges.pendingBillsTotal)),
-              React.createElement("span",null, t("v4_aun_saldra"))
-            )
-          )
+    simple && React.createElement("div",{className:"v4-card v4-card-hero rise v4-plan-cover v4-plan-cover-simple","data-plan-state":coverTone,role:"group","aria-label":coverAria},
+      React.createElement("div",{className:"v4-plan-simple-hero"},
+        React.createElement("div",{className:stCls}, coverHead),
+        React.createElement("div",{className:"v4-plan-simple-amt num serif"}, eur0(charges.pendingBillsTotal)),
+        React.createElement("div",{className:"ph"}, coverPhrase),
+        biggestForCover && React.createElement("div",{className:"ph",style:{marginTop:6}},
+          tf("v4_plan_biggest",{name:biggestForCover.name,amount:eur0(biggestForCover.amount)}))
+      )
     ),
     !simple && React.createElement("div",{className:"v4-seg",role:"tablist"},
       segs.map(function(s){
-        var sub=segSub(s.id);
         return React.createElement("button",{key:s.id,type:"button",role:"tab","aria-selected":seg===s.id,"data-seg":s.id,
-          className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ setSeg(s.id); }},
-          React.createElement("span",{className:"v4-seg-lab"}, s.lab),
-          sub?React.createElement("span",{className:"v4-seg-sub"}, sub):null);
+          className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ setSeg(s.id); }}, s.lab);
       })
     ),
     capa("recibos", React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,manageOpen:manageOpen,setManageOpen:setManageOpen,simple:simple,showToast:showToast})),
@@ -347,7 +308,9 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   );
 }
 
-/* Recibos: listas + Gestionar. La portada (anillo/frase) vive encima del segmented en PlanTab. */
+/* Recibos conserva la portada compacta que ya funcionaba: el diagnóstico largo y el anillo
+   convertían Plan en un mensaje gigante y alejaban lo que la familia viene a mirar. «Gestionar»
+   sí se mantiene como puerta al editor nuevo (feedback real 2026-09-17). */
 function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simple, showToast}){
   const [paidExpanded,setPaidExpanded]=useState(false);
   const [pendExpanded,setPendExpanded]=useState(false);
@@ -408,9 +371,33 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
     ? tf("v4_paid_fold_one",{n:1,amount:eur0(pack.paidBillsTotal)})
     : tf("v4_paid_fold",{n:pack.paidBillsCount,amount:eur0(pack.paidBillsTotal)});
   return React.createElement(React.Fragment,null,
+    !simple && React.createElement("div",{className:"v4-card v4-card-hero rise"},
+      React.createElement("div",{className:"v4-micro"}, tf("v4_plan_left",{month:monthLong(month-1)})),
+      React.createElement("div",{className:"serif num",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}}, eur(pack.pendingBillsTotal)),
+      React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center",marginTop:14,fontSize:13.5,color:"var(--muted)"}},
+        React.createElement("span",{style:{width:8,height:8,borderRadius:"50%",background:"var(--mint)",flex:"0 0 auto"}}),
+        (function(){
+          const fixedAccount=(state.accounts||[]).find(function(a){ return accFixed(a); });
+          const bank=fixedAccount&&fixedAccount.ent;
+          const projected=bank&&totals.projectedByBank&&totals.projectedByBank[bank];
+          /* `totals` aún puede dar por pagada desde el día 1 una cuota sin fecha. La cifra grande
+             usa `planChargesMonth`; esta línea descuenta la misma diferencia para que una sola
+             tarjeta no prometa dos saldos distintos (review Claude 2026-09-17). */
+          const planPending=bank&&pack.pendingByBank?Number(pack.pendingByBank[bank])||0:0;
+          // Los cargos puntuales antiguos podían guardar devoluciones negativas. `pack` las
+          // excluye de «por pagar», así que al conciliar ambas fuentes tampoco deben convertirse
+          // en una diferencia positiva y descontarse por segunda vez (review Claude 2026-09-17).
+          const totalsPending=bank&&totals.pendingByBank?Math.max(0,Number(totals.pendingByBank[bank])||0):0;
+          const adjusted=typeof projected==="number"?projected-Math.max(0,planPending-totalsPending):null;
+          return typeof adjusted==="number"
+            ? tf("v4_plan_liq",{amount:eur0(adjusted),bank:entOf(bank).label})
+            : "—";
+        })()
+      )
+    ),
     React.createElement("div",{className:"v4-section"},
       React.createElement("div",{className:"v4-section-h"},
-        React.createElement("span",null,t("v4_aun_saldra")),
+        React.createElement("span",null,simple?t("v4_aun_saldra"):t("v4_pendiente")),
         // Sencillo: sin «Gestionar» aquí — solo Ajustes → Cambiar mis recibos (NO-GO §5bis.2).
         !simple && React.createElement("button",{type:"button",className:"link",onClick:openManage}, t("v4_gestionar"))
       ),
@@ -426,17 +413,17 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
       ),
       incomePend.map(row)
     ),
-    pack.paidBillsCount>0 && React.createElement("button",{type:"button",className:"v4-paid-fold",
-      id:"v4-paid-fold-btn",
-      "aria-expanded":paidExpanded?"true":"false",
-      "aria-controls":paidPanelId,
+    !simple && React.createElement("div",{className:"v4-section"},
+      React.createElement("div",{className:"v4-section-h"},t("v4_ya_pagado")+" · "+eur(pack.paidBillsTotal)),
+      (paidExpanded?paid:paid.slice(0,3)).map(row),
+      paid.length>3 && React.createElement("button",{type:"button",className:"v4-link-mini",onClick:function(){ setPaidExpanded(function(v){ return !v; }); }},
+        paidExpanded?t("v4_ver_menos"):tf("v4_ver_mas",{n:paid.length-3}))
+    ),
+    simple && pack.paidBillsCount>0 && React.createElement("button",{type:"button",className:"v4-paid-fold",
+      id:"v4-paid-fold-btn","aria-expanded":paidExpanded?"true":"false","aria-controls":paidPanelId,
       onClick:function(){ setPaidExpanded(function(v){ return !v; }); }},
-      React.createElement("span",null, paidLabel),
-      React.createElement("span",{"aria-hidden":true}, paidExpanded?"▾":"▸")
-    ),
-    paidExpanded && React.createElement("div",{className:"v4-section",id:paidPanelId,role:"region","aria-labelledby":"v4-paid-fold-btn"},
-      paid.map(row)
-    ),
+      React.createElement("span",null, paidLabel),React.createElement("span",{"aria-hidden":true}, paidExpanded?"▾":"▸")),
+    simple && paidExpanded && React.createElement("div",{className:"v4-section",id:paidPanelId,role:"region","aria-labelledby":"v4-paid-fold-btn"}, paid.map(row)),
     // También en sencillo: la puerta vive en Ajustes → Dinero (NO-GO §5bis.2).
     React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); },state:state,set:set,totals:totals,simple:!!simple,showToast:showToast})
   );
@@ -1231,8 +1218,8 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, showT
   useEffect(function(){
     if(!open) return undefined;
     const id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus(); });
-    const prevOverflow=document.body.style.overflow;
-    document.body.style.overflow="hidden";
+    // Comparte candado con las hojas: si en el futuro se solapan, cerrar una no libera la otra.
+    mcSheetLock();
     const keydown=function(e){
       const root=screenRef.current;
       if(!root) return;
@@ -1250,7 +1237,7 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, showT
       else if(!e.shiftKey&&(at<0||active===last)){ e.preventDefault(); first.focus(); }
     };
     document.addEventListener("keydown",keydown);
-    return function(){ cancelAnimationFrame(id); document.removeEventListener("keydown",keydown); document.body.style.overflow=prevOverflow; };
+    return function(){ cancelAnimationFrame(id); document.removeEventListener("keydown",keydown); mcSheetUnlock(); };
   },[open]);
   if(!open) return null;
   return ReactDOM.createPortal(
@@ -1355,11 +1342,16 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     }, 900);
     return function(){ clearTimeout(tKw); clearTimeout(tIa); };
   },[open, note, kind, aiOn]);
-  const fichaCats=useMemo(function(){
-    return expenseTopCategories(state.expenses,cat,CATEGORIES);
-  },[state.expenses,cat]);
-  useBackClose(!!open, onClose);
   const swipe=useSheetSwipe(!!open, onClose);
+  useBackClose(!!open, swipe.close);
+  // La pasada por todo el histórico queda preparada con la hoja cerrada; cambiar de categoría
+  // ya solo recoloca ocho chips y no mete trabajo O(n) en mitad del gesto (vídeo 2026-09-17).
+  const fichaCatsBase=useMemo(function(){
+    return expenseTopCategoryRanking(state.expenses,CATEGORIES);
+  },[state.expenses]);
+  const fichaCats=useMemo(function(){
+    return expenseTopCategoryPick(fichaCatsBase,cat,CATEGORIES);
+  },[fichaCatsBase,cat]);
   if(!open) return null;
   const entrySym=CUR_SYM[entryCur]||entryCur;
   // Chips: siempre EUR + las de viaje más usadas (aunque el FX aún no haya llegado — al
@@ -1396,7 +1388,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     if(entryCur!=="EUR"){ e.origAmount=amt; e.origCur=entryCur; }
     set(function(s){ return Object.assign({},s,{expenses:(s.expenses||[]).concat([e])}); });
     if(cloud.enabled()) subirGasto(e, "v4-apuntar");
-    onClose();
+    swipe.close();
     if(goGastos) goGastos();
     showToast(isIn?t("v4_apuntar_ok_in"):t("v4_apuntar_ok"));
     if(!isIn && e.ent==="efectivo"){
@@ -1450,7 +1442,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
   }) : null;
   const ctaAmount=NF.format(amt)+(entrySym.length>1?" ":"")+entrySym;
   const main=ReactDOM.createPortal(
-    React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
+    React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement(ExpenseFichaLayout,{kind:kind,onKind:setKind,dateLabel:fmtIsoCorto(date),
