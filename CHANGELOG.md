@@ -1,3 +1,18 @@
+## [4.26.4] - 2026-09-17
+### Rediseño v4.1 — Inversiones deja atrás el montaje antiguo
+
+La vista de Inversiones es ahora una pantalla propia: cabecera con cartera, coste y ganancia,
+recuento animado y tarjetas por bróker que conservan sus posiciones, efectivo y edición manual.
+Los valores sin coste siguen mostrando `—`; no se inventa rentabilidad. La actualización continúa
+siendo exclusivamente manual y distingue datos al día, antiguos y errores sin borrar la última
+cartera válida.
+
+Se elimina el último montaje `.v4-embed-legacy` de esta sección. Auto precios y Proyección pasan a
+Ajustes → Dinero, mientras Redondeo y Saveback siguen accesibles desde Cartera. El alta de posición,
+la venta a efectivo y la edición aislada por bróker permanecen operativas. Nueve E2E verifican
+render, navegación, estados de actualización, accesibilidad, reducción de movimiento e integridad
+de las fichas; con CPU ×6, la mediana medida de apertura queda en 35,1 ms.
+
 ## [4.26.3] - 2026-09-16
 ### Rediseño v4.1 — «Pregúntame» guía sin inventar ni tocar el dinero
 

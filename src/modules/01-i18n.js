@@ -2701,6 +2701,41 @@ Object.assign(LANG.ca,{
   pf_to_settings:"Ves a Ajustos",
 });
 
+// --- Inversions v4.1: pantalla filla completa ---
+Object.assign(LANG.es,{
+  iv_see_all:"Ver todas tus inversiones", iv_title:"Tus inversiones", iv_now:"VALEN AHORA", iv_currency:"Moneda de visualización",
+  iv_put:"Pusiste {amount}", iv_gained:"Han ganado {amount}", iv_lost:"Han perdido {amount}",
+  iv_percent:"{pct}% desde que empezaste · Actualizado {time}", iv_never:"sin actualizar",
+  iv_no_put:"Dime lo que pusiste y te diré cuánto han ganado.", iv_no_put_cta:"Añadir lo que puse",
+  iv_where:"Dónde lo tienes", iv_refresh:"↻ Actualizar precios", iv_refreshing:"Actualizando precios…",
+  iv_refresh_fail:"No se pudieron actualizar los precios", iv_refresh_fail_sub:"Conservamos los últimos datos ({time}). Puedes volver a intentarlo.", iv_retry:"Reintentar",
+  iv_positions:"{n} posiciones", iv_edit:"✎ Editar a mano", iv_add_position:"+ Posición", iv_shares:"{n} participaciones", iv_manual_on:"a mano · {date}",
+  iv_empty:"Aún no hay inversiones", iv_empty_sub:"Añade un bróker o una posición para empezar a seguirlas aquí.", iv_add:"+ Añadir bróker o posición",
+  iv_cash:"Líquido vendido", iv_by_type:"Por tipo de activo", iv_fx_note:"Los importes se calculan en euros. Cambio dólar→euro: {fx}.",
+});
+Object.assign(LANG.en,{
+  iv_see_all:"See all your investments", iv_title:"Your investments", iv_now:"WORTH NOW", iv_currency:"Display currency",
+  iv_put:"You put in {amount}", iv_gained:"They gained {amount}", iv_lost:"They lost {amount}",
+  iv_percent:"{pct}% since you started · Updated {time}", iv_never:"not updated yet",
+  iv_no_put:"Tell me what you put in and I'll show you how much they gained.", iv_no_put_cta:"Add what I put in",
+  iv_where:"Where you keep them", iv_refresh:"↻ Update prices", iv_refreshing:"Updating prices…",
+  iv_refresh_fail:"Prices could not be updated", iv_refresh_fail_sub:"Your latest data is still here ({time}). You can try again.", iv_retry:"Try again",
+  iv_positions:"{n} positions", iv_edit:"✎ Edit by hand", iv_add_position:"+ Position", iv_shares:"{n} shares", iv_manual_on:"by hand · {date}",
+  iv_empty:"No investments yet", iv_empty_sub:"Add a broker or position to start following them here.", iv_add:"+ Add broker or position",
+  iv_cash:"Cash from sales", iv_by_type:"By asset type", iv_fx_note:"Amounts are calculated in euros. Dollar→euro rate: {fx}.",
+});
+Object.assign(LANG.ca,{
+  iv_see_all:"Veure totes les inversions", iv_title:"Les teves inversions", iv_now:"VALEN ARA", iv_currency:"Moneda de visualització",
+  iv_put:"Hi vas posar {amount}", iv_gained:"Han guanyat {amount}", iv_lost:"Han perdut {amount}",
+  iv_percent:"{pct}% des que vas començar · Actualitzat {time}", iv_never:"sense actualitzar",
+  iv_no_put:"Digues-me què hi vas posar i et diré quant han guanyat.", iv_no_put_cta:"Afegir el que hi vaig posar",
+  iv_where:"On ho tens", iv_refresh:"↻ Actualitzar preus", iv_refreshing:"Actualitzant preus…",
+  iv_refresh_fail:"No s'han pogut actualitzar els preus", iv_refresh_fail_sub:"Conservem les últimes dades ({time}). Ho pots tornar a provar.", iv_retry:"Torna-ho a provar",
+  iv_positions:"{n} posicions", iv_edit:"✎ Editar a mà", iv_add_position:"+ Posició", iv_shares:"{n} participacions", iv_manual_on:"a mà · {date}",
+  iv_empty:"Encara no hi ha inversions", iv_empty_sub:"Afegeix un bróker o una posició per començar a seguir-les aquí.", iv_add:"+ Afegir bróker o posició",
+  iv_cash:"Líquid venut", iv_by_type:"Per tipus d'actiu", iv_fx_note:"Els imports es calculen en euros. Canvi dòlar→euro: {fx}.",
+});
+
 const MONTHS=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 /* parseDate es LA función más llamada de la app: filtrar y ordenar el histórico la invoca una vez
    por gasto y comparación (un sort de 2.000 movimientos son ~22.000 llamadas… en CADA render de

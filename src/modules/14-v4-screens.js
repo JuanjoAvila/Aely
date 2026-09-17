@@ -784,6 +784,13 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, show
 
 function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, onReconnectBank, showToast}){
   const [invTools,setInvTools]=useState(false);
+  const invLinkRef=useRef(null);
+  const closeInvestments=function(){
+    setInvTools(false);
+    // La pantalla hija devuelve el foco a la puerta que la abrio; sin esto, al cerrar con
+    // Atrás el lector de pantalla se queda apuntando a un nodo que ya no existe.
+    requestAnimationFrame(function(){ if(invLinkRef.current) invLinkRef.current.focus(); });
+  };
   // TR desconectado (y el usuario SÍ lo tuvo conectado alguna vez → mc_tr_phone guardado):
   // banner con botón que abre Mis bancos directamente. UX padre 2026-07-18: al ver el saldo
   // descuadrado se fue a la app de Trade Republic — el arreglo debe estar donde está el problema.
@@ -965,30 +972,31 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise",style:{animationDelay:".12s"}},
         React.createElement("div",{className:"v4-sec-h"}, t("v4_inversiones")),
         React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,v4Embed:true}),
-        React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:10},onClick:function(){ setInvTools(true); }}, t("v4_inv_tools")+" ›")
+        React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:10},ref:invLinkRef,onClick:function(){ setInvTools(true); }}, t("iv_see_all")+" ›")
       ) }
     ]}),
-    // El sheet vive FUERA de los bloques ordenables: es un portal, no una sección, y meterlo
-    // dentro lo desmontaría al reordenar (cerrándose solo a media consulta).
-    !simple && React.createElement(InvToolsSheet,{open:invTools,onClose:function(){ setInvTools(false); },state:state,set:set,fetchPrices:fetchPrices,pricing:pricing})
+    // La hija vive FUERA de los bloques ordenables: es un portal, no una sección, y meterla
+    // dentro la desmontaría al reordenar (cerrándose sola a media consulta).
+    !simple && React.createElement(InvestmentsPush,{open:invTools,onClose:closeInvestments,state:state,set:set,fetchPrices:fetchPrices,pricing:pricing})
   );
 }
 
-function InvToolsSheet({open, onClose, state, set, fetchPrices, pricing}){
+function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing}){
+  const titleRef=useRef(null);
   useBackClose(!!open, onClose);
-  const swipe=useSheetSwipe(!!open, onClose);
+  useEffect(function(){
+    if(!open) return undefined;
+    const id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus(); });
+    return function(){ cancelAnimationFrame(id); };
+  },[open]);
   if(!open) return null;
   return ReactDOM.createPortal(
-    React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
-      React.createElement("div",Object.assign({className:"v4-sheet",style:{maxHeight:"92dvh"},ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
-        React.createElement("div",{className:"v4-sheet-handle"}),
-        React.createElement("div",{className:"v4-section-h"},
-          React.createElement("span",{className:"serif",style:{fontSize:19,fontWeight:600}}, t("v4_inv_tools")),
-          React.createElement("button",{className:"link","aria-label":t("au_close"),onClick:onClose},"✕")
-        ),
-        React.createElement("p",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.45,margin:"0 0 12px"}}, t("v4_inv_tools_h")),
-        React.createElement("div",{className:"v4-embed-legacy"}, React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,v4Embed:false,toolsMode:true}))
-      )
+    React.createElement("div",{className:"settings-push open","data-inv-screen":"1"},
+      React.createElement("div",{className:"settings-push-h"},
+        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:onClose},"‹"),
+        React.createElement("h1",{tabIndex:-1,ref:titleRef}, t("iv_title"))
+      ),
+      React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,fullMode:true})
     ), document.body);
 }
 

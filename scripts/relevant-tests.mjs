@@ -84,6 +84,7 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/10-app-components.js", specs: [
     "e2e/help-assistant.spec.mjs",
+    "e2e/cartera-inversiones.spec.mjs",
     "e2e/inicio-offline.spec.mjs",
     "e2e/modo-inicial.spec.mjs",
     "e2e/profile-anim.spec.mjs", "e2e/perfil-simetria.spec.mjs", "e2e/delete-account.spec.mjs",

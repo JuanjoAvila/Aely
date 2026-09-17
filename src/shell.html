@@ -976,9 +976,7 @@
   html[data-theme="light"] .tab-add:active,
   html[data-theme="light"] .icon-btn,
   html[data-theme="light"] .v4-goal-pct,
-  html[data-theme="light"] .v4-budget-txt .st,
-  html[data-theme="light"] .v4-embed-legacy .edit-link,
-  html[data-theme="light"] .v4-embed-legacy .link{
+  html[data-theme="light"] .v4-budget-txt .st{
     color:var(--mint-ink);
   }
   html[data-theme="light"] .v4-pill,
@@ -1350,17 +1348,6 @@
     .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-gastos-progress i,.v4-account-spark i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast{animation:none !important;transition:none !important;}
   }
 
-  /* «Gestionar recibos» y «Herramientas de inversión» viven en un sheet v4 pero por dentro
-     reusan componentes antiguos (Fijos/Investments). Este wrapper los armoniza con la estética
-     v4: tarjetas más redondeadas y planas, inputs y enlaces con el mismo lenguaje que el resto
-     (feedback 2026-07-18: «rompía un poco la estética general»). */
-  .v4-embed-legacy{animation:rise .3s var(--ease) both;}
-  .v4-embed-legacy .card{border-radius:20px;box-shadow:none;background:var(--sur);border:1px solid var(--line-soft);}
-  .v4-embed-legacy .card-head{padding:15px 16px;}
-  .v4-embed-legacy .af-in,.v4-embed-legacy .editv{border-radius:12px;border:1px solid var(--line-soft);background:var(--bg-2);}
-  .v4-embed-legacy .edit-link,.v4-embed-legacy .link{color:var(--mint);font-weight:700;}
-  .v4-embed-legacy .btn-primary{border-radius:14px;}
-  .v4-embed-legacy .hint{font-size:11.5px;line-height:1.5;color:var(--muted-2);}
   .card{background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--line-soft);border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--shadow);overflow:hidden;}
   .card-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer;user-select:none;}
   .card-title{display:flex;align-items:center;gap:11px;font-weight:700;font-size:15px;}

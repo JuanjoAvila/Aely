@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.4",
+    "d": "17 sep 2026",
+    "t": {
+      "es": "Tus inversiones, claras y al día",
+      "en": "Your investments, clear and up to date",
+      "ca": "Les teves inversions, clares i al dia"
+    },
+    "items": {
+      "es": [
+        "Inversiones estrena una pantalla más clara con la cartera, el coste y la ganancia sin inventar cifras cuando falta información.",
+        "Cada bróker conserva sus posiciones, efectivo y edición manual, con avisos claros si los precios están antiguos o no se pueden actualizar.",
+        "Las herramientas de precios y proyección están ahora en Ajustes, y Redondeo y Saveback siguen en Cartera."
+      ],
+      "en": [
+        "Investments has a clearer screen for portfolio value, cost and gain, without inventing figures when information is missing.",
+        "Each broker keeps its positions, cash and manual editing, with clear notices when prices are old or cannot be refreshed.",
+        "Price and projection tools are now in Settings, while Roundup and Saveback remain in Portfolio."
+      ],
+      "ca": [
+        "Inversions estrena una pantalla més clara amb la cartera, el cost i el guany, sense inventar xifres quan falta informació.",
+        "Cada bròquer conserva les posicions, l'efectiu i l'edició manual, amb avisos clars si els preus són antics o no es poden actualitzar.",
+        "Les eines de preus i projecció són ara a Ajustos, i Arrodoniment i Saveback continuen a Cartera."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inversiones-v41",
+        "t": {
+          "es": "Inversiones",
+          "en": "Investments",
+          "ca": "Inversions"
+        },
+        "items": {
+          "es": [
+            "1. Abre Cartera → Inversiones: el valor, coste y ganancia deben coincidir con tus datos; si falta coste debe verse —, nunca una rentabilidad inventada.",
+            "2. Abre un bróker, edita una posición y vuelve atrás: solo debe cambiar ese bróker y la navegación debe conservar el resto.",
+            "3. Pulsa actualizar: debe ser manual y mostrar claramente si terminó, si los precios son antiguos o si falló conservando los últimos datos."
+          ],
+          "en": [
+            "1. Open Portfolio → Investments: value, cost and gain must match your data; when cost is missing it must show —, never an invented return.",
+            "2. Open a broker, edit a position and go back: only that broker should change and navigation must preserve everything else.",
+            "3. Tap refresh: it must be manual and clearly show success, stale prices or failure while keeping the latest data."
+          ],
+          "ca": [
+            "1. Obre Cartera → Inversions: el valor, cost i guany han de coincidir amb les teves dades; si falta el cost s'ha de veure —, mai una rendibilitat inventada.",
+            "2. Obre un bròquer, edita una posició i torna enrere: només ha de canviar aquell bròquer i la navegació ha de conservar la resta.",
+            "3. Prem actualitzar: ha de ser manual i mostrar clarament si ha acabat, si els preus són antics o si ha fallat conservant les últimes dades."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.3",
     "d": "16 sep 2026",
     "t": {

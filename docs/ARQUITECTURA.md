@@ -204,6 +204,9 @@ escribir `Access-Control-Allow-Origin: "*"`.
   red o el final del primer pull con red; así un snapshot viejo no se convierte en base mensual.
 - El rol (recibos/diario/todo) vive AQUÍ; en v4.0.x quedó inaccesible (solo existía en el
   Wealth v3 no montado) — no volver a dejar el rol sin puerta.
+- Inversiones abre como pantalla hija propia desde Cartera y solo actualiza precios cuando se pulsa
+  su acción: no hay sincronización al montar. Auto precios y Proyección viven en Ajustes → Dinero;
+  Redondeo y Saveback siguen en Cartera porque afectan al flujo diario, no a la valoración.
 
 > **Apps Script / `GAS_URL`: archivado.** No reabrir.
 
