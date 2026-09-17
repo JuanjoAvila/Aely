@@ -593,7 +593,8 @@ function useCountUp(target, ready){
     if(!ready) return undefined;
     const tgt=+(target||0);
     cancelAnimationFrame(rafRef.current);
-    const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+    const reduce=(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)
+      || document.documentElement.classList.contains("reduce-motion");
     if(reduce){
       shownRef.current=tgt; setShown(tgt); primeraRef.current=false;
       return undefined;

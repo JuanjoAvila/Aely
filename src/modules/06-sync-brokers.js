@@ -887,9 +887,10 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
         React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:8},onClick:refreshPrices},t("iv_retry"))),
 
       state.investments.length===0 && React.createElement("div",{"data-inv-empty":"1",className:"v4-empty v4-card",style:{padding:20,textAlign:"center",borderStyle:"dashed"}},
-        React.createElement("div",{style:{fontWeight:800,fontSize:16}},t("iv_empty")),
-        React.createElement("div",{className:"hint",style:{marginTop:5}},t("iv_empty_sub")),
-        React.createElement("button",{type:"button",className:"v4-cta","data-act":"inv-add",style:{marginTop:14},onClick:function(){ openBrokerSetup(null); }},t("iv_add"))),
+        React.createElement("div",{className:"em"},"📈"),
+        React.createElement("div",{className:"ti"},t("iv_empty")),
+        React.createElement("div",{className:"ph"},t("iv_empty_sub")),
+        React.createElement("button",{type:"button",className:"v4-cta cta","data-act":"inv-add",onClick:function(){ openBrokerSetup(null); }},t("iv_add"))),
 
       groups.map(function(g){
         const gid=g[0];

@@ -934,10 +934,10 @@
   /* Tarjeta fantasma de estado vacio (P3/P4 del pulido v4): mismo borde punteado que ya usan
      `.tab-add` y `.v4-mov-skip`. Una sola clase para los tres huecos, cero componentes nuevos. */
   .v4-empty{border:1px dashed var(--line);border-radius:20px;padding:22px 18px;text-align:center;}
-  .v4-empty .em{font-size:40px;line-height:1;}
-  .v4-empty .ti{font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:600;margin-top:8px;color:var(--text);}
+  .v4-empty .em{font-size:34px;line-height:1;}
+  .v4-empty .ti{font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:600;margin-top:8px;color:var(--text);}
   .v4-empty .ph{color:var(--muted);font-size:13px;line-height:1.5;margin-top:6px;text-wrap:pretty;}
-  .v4-empty .cta{margin-top:14px;}
+  .v4-empty .cta{margin-top:14px;min-height:44px;}
   /* B4 — siluetas de primera carga (spec §27): solo visibles tras splash y antes de la nube. */
   .v4-skel{height:92px;border-radius:20px;background:var(--sur2);margin-bottom:12px;opacity:.6;
     animation:v4skel 1.2s ease-in-out alternate infinite;}
@@ -1811,6 +1811,8 @@
   .btn-block{display:flex;width:100%;}
   .btn[disabled]{opacity:.55;pointer-events:none;}
   .btn .spin{width:15px;height:15px;border:2px solid rgba(8,18,12,.3);border-top-color:#08120C;border-radius:50%;animation:sp .7s linear infinite;}
+  html.reduce-motion .spin{display:none;}
+  @media (prefers-reduced-motion:reduce){.spin{display:none;}}
   @keyframes sp{to{transform:rotate(360deg);}}
 
   .edit-link{font-size:12.5px;font-weight:700;color:var(--mint);padding:5px 9px;border-radius:9px;background:rgba(95,208,138,.10);}
@@ -7004,7 +7006,8 @@ function useCountUp(target, ready){
     if(!ready) return undefined;
     const tgt=+(target||0);
     cancelAnimationFrame(rafRef.current);
-    const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+    const reduce=(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)
+      || document.documentElement.classList.contains("reduce-motion");
     if(reduce){
       shownRef.current=tgt; setShown(tgt); primeraRef.current=false;
       return undefined;
@@ -10727,9 +10730,10 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
         React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:8},onClick:refreshPrices},t("iv_retry"))),
 
       state.investments.length===0 && React.createElement("div",{"data-inv-empty":"1",className:"v4-empty v4-card",style:{padding:20,textAlign:"center",borderStyle:"dashed"}},
-        React.createElement("div",{style:{fontWeight:800,fontSize:16}},t("iv_empty")),
-        React.createElement("div",{className:"hint",style:{marginTop:5}},t("iv_empty_sub")),
-        React.createElement("button",{type:"button",className:"v4-cta","data-act":"inv-add",style:{marginTop:14},onClick:function(){ openBrokerSetup(null); }},t("iv_add"))),
+        React.createElement("div",{className:"em"},"📈"),
+        React.createElement("div",{className:"ti"},t("iv_empty")),
+        React.createElement("div",{className:"ph"},t("iv_empty_sub")),
+        React.createElement("button",{type:"button",className:"v4-cta cta","data-act":"inv-add",onClick:function(){ openBrokerSetup(null); }},t("iv_add"))),
 
       groups.map(function(g){
         const gid=g[0];
@@ -19681,9 +19685,11 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
                 eur(g.total), React.createElement("span",null, g.once?" "+gbTxt("gb_this_month"):" "+gbTxt("gb_per_month"))),
               React.createElement("span",{className:"v4-bills-group-chev"},"›"));
           }),
-          nAll===0 && React.createElement("div",{className:"v4-bills-empty","data-bills-empty":"1"},
-            React.createElement("div",{style:{fontWeight:800}}, gbTxt("gb_empty")),
-            React.createElement("div",null, gbTxt("gb_empty_sub_linked")))),
+          nAll===0 && React.createElement("div",{className:"v4-empty","data-bills-empty":"1"},
+            React.createElement("div",{className:"em"},"🧾"),
+            React.createElement("div",{className:"ti"}, gbTxt("gb_empty")),
+            React.createElement("div",{className:"ph"}, gbTxt("gb_empty_sub")),
+            React.createElement("button",{type:"button",className:"v4-cta cta","data-act":"bill-empty-add",onClick:function(){ startAdd("fixed"); }}, gbTxt("gb_add")))),
     React.createElement("button",{type:"button",className:"v4-bills-afford","data-bills-afford":"1",onClick:function(){ push("afford"); }},
       React.createElement("div",{className:"v4-bills-afford-t"}, gbTxt("gb_afford")),
       React.createElement("div",{className:"v4-bills-afford-s"}, gbTxt("gb_afford_sub")))

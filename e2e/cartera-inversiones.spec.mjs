@@ -162,6 +162,24 @@ test("Inversiones v4: reducir movimiento evita animaciones y el total no espera 
   expect(motion.bar).toBe("none");
 });
 
+test("Inversiones v4: Reducir animaciones de Aely también evita el count-up y el spinner", async ({ page }) => {
+  await seedLoggedInDashboard(page, {
+    investments: [{ id: "rm-app", ent: "trade_republic", name: "ETF", value: 1234, cost: 1000, cur: "EUR" }],
+    settings: { reduceMotion: true, theme: "green" },
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  await openInvestments(page);
+
+  await expect(page.locator("[data-inv-hero]")).toContainText(/1[.,]?234/);
+  await page.evaluate(() => {
+    const spin=document.createElement("span"); spin.className="spin"; spin.dataset.rmProbe="1";
+    document.querySelector("[data-inv-screen]").appendChild(spin);
+  });
+  await expect(page.locator('[data-rm-probe="1"]')).toHaveCSS("display","none");
+});
+
 test("Ajustes › Dinero conserva actualización automática y proyección", async ({ page }) => {
   await seedLoggedInDashboard(page, { investments, settings: { autoPrices: false, theme: "green" } });
   await page.goto("/");

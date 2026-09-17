@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.5",
+    "d": "17 sep 2026",
+    "t": {
+      "es": "Pantallas vacías que ayudan de verdad",
+      "en": "Empty screens that genuinely help",
+      "ca": "Pantalles buides que ajuden de debò"
+    },
+    "items": {
+      "es": [
+        "Cuando todavía no hay recibos o inversiones, Aely explica qué falta y ofrece el botón adecuado para empezar.",
+        "Reducir animaciones muestra las cifras finales directamente y evita también los indicadores que giran."
+      ],
+      "en": [
+        "When there are no bills or investments yet, Aely explains what is missing and offers the right button to get started.",
+        "Reduce motion shows final figures immediately and also stops spinning indicators."
+      ],
+      "ca": [
+        "Quan encara no hi ha rebuts o inversions, Aely explica què falta i ofereix el botó adequat per començar.",
+        "Reduir animacions mostra les xifres finals directament i també atura els indicadors que giren."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "estados-v41",
+        "t": {
+          "es": "Estados vacíos y movimiento",
+          "en": "Empty states and motion",
+          "ca": "Estats buits i moviment"
+        },
+        "items": {
+          "es": [
+            "1. Con Recibos vacío, abre Gestionar: debe aparecer una explicación con un botón que inicia el alta.",
+            "2. Con Inversiones vacío, abre la pantalla: debe aparecer una explicación y el botón para añadir la primera posición.",
+            "3. Activa Ajustes → Reducir animaciones y vuelve a Inversiones: la cifra debe aparecer completa, sin conteo ni giros."
+          ],
+          "en": [
+            "1. With no bills, open Manage: an explanation should appear with a button that starts adding one.",
+            "2. With no investments, open the screen: an explanation and the button to add the first position should appear.",
+            "3. Enable Settings → Reduce motion and return to Investments: the full figure should appear without counting or spinning."
+          ],
+          "ca": [
+            "1. Sense rebuts, obre Gestionar: ha d'aparèixer una explicació amb un botó que n'inicia l'alta.",
+            "2. Sense inversions, obre la pantalla: ha d'aparèixer una explicació i el botó per afegir la primera posició.",
+            "3. Activa Ajustos → Reduir animacions i torna a Inversions: la xifra ha d'aparèixer completa, sense recompte ni girs."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.4",
     "d": "17 sep 2026",
     "t": {

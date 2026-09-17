@@ -934,10 +934,10 @@
   /* Tarjeta fantasma de estado vacio (P3/P4 del pulido v4): mismo borde punteado que ya usan
      `.tab-add` y `.v4-mov-skip`. Una sola clase para los tres huecos, cero componentes nuevos. */
   .v4-empty{border:1px dashed var(--line);border-radius:20px;padding:22px 18px;text-align:center;}
-  .v4-empty .em{font-size:40px;line-height:1;}
-  .v4-empty .ti{font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:600;margin-top:8px;color:var(--text);}
+  .v4-empty .em{font-size:34px;line-height:1;}
+  .v4-empty .ti{font-family:'Fraunces',Georgia,serif;font-size:19px;font-weight:600;margin-top:8px;color:var(--text);}
   .v4-empty .ph{color:var(--muted);font-size:13px;line-height:1.5;margin-top:6px;text-wrap:pretty;}
-  .v4-empty .cta{margin-top:14px;}
+  .v4-empty .cta{margin-top:14px;min-height:44px;}
   /* B4 — siluetas de primera carga (spec §27): solo visibles tras splash y antes de la nube. */
   .v4-skel{height:92px;border-radius:20px;background:var(--sur2);margin-bottom:12px;opacity:.6;
     animation:v4skel 1.2s ease-in-out alternate infinite;}
@@ -1811,6 +1811,8 @@
   .btn-block{display:flex;width:100%;}
   .btn[disabled]{opacity:.55;pointer-events:none;}
   .btn .spin{width:15px;height:15px;border:2px solid rgba(8,18,12,.3);border-top-color:#08120C;border-radius:50%;animation:sp .7s linear infinite;}
+  html.reduce-motion .spin{display:none;}
+  @media (prefers-reduced-motion:reduce){.spin{display:none;}}
   @keyframes sp{to{transform:rotate(360deg);}}
 
   .edit-link{font-size:12.5px;font-weight:700;color:var(--mint);padding:5px 9px;border-radius:9px;background:rgba(95,208,138,.10);}

@@ -514,9 +514,11 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
                 eur(g.total), React.createElement("span",null, g.once?" "+gbTxt("gb_this_month"):" "+gbTxt("gb_per_month"))),
               React.createElement("span",{className:"v4-bills-group-chev"},"›"));
           }),
-          nAll===0 && React.createElement("div",{className:"v4-bills-empty","data-bills-empty":"1"},
-            React.createElement("div",{style:{fontWeight:800}}, gbTxt("gb_empty")),
-            React.createElement("div",null, gbTxt("gb_empty_sub_linked")))),
+          nAll===0 && React.createElement("div",{className:"v4-empty","data-bills-empty":"1"},
+            React.createElement("div",{className:"em"},"🧾"),
+            React.createElement("div",{className:"ti"}, gbTxt("gb_empty")),
+            React.createElement("div",{className:"ph"}, gbTxt("gb_empty_sub")),
+            React.createElement("button",{type:"button",className:"v4-cta cta","data-act":"bill-empty-add",onClick:function(){ startAdd("fixed"); }}, gbTxt("gb_add")))),
     React.createElement("button",{type:"button",className:"v4-bills-afford","data-bills-afford":"1",onClick:function(){ push("afford"); }},
       React.createElement("div",{className:"v4-bills-afford-t"}, gbTxt("gb_afford")),
       React.createElement("div",{className:"v4-bills-afford-s"}, gbTxt("gb_afford_sub")))

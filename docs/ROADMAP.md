@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-17 · **v4.26.4** — rediseño v4.1 en rama con Inversiones renovadas y «Pregúntame»; puente remoto privado aún apagado y nada publicado en beta ni producción.
+> Estado a 2026-09-17 · **v4.26.5** — barrido de estados y movimiento reducido del rediseño v4.1; nada publicado en beta ni producción.
+> Anterior: **v4.26.4** — Inversiones renovadas como pantalla propia, con refresco manual y cifras honestas.
 > Anterior: **v4.26.3** — «Pregúntame» aporta ayuda local/offline y prepara un puente remoto privado aún apagado.
 > Anterior: **v4.26.2** — «Tus recibos» deja de montar la pantalla antigua y abre listas y fichas ligeras.
 > Anterior: **v4.26.1** — ficha completa de cuenta con saldo, histórico real y últimos movimientos, sin publicar por separado.
@@ -196,7 +197,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.4** (repo, sin publicar; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.26.5** (repo, sin publicar; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

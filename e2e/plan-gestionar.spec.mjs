@@ -263,7 +263,11 @@ test("quitar un recibo tiene Deshacer y vuelve con el MISMO id", async ({ page }
 test("sin nada apuntado: una tarjeta que explica", async ({ page }) => {
   await appLista(page, { fixed: [], debts: [], flows: [], oneoffs: [] });
   await abreTusRecibos(page);
-  await expect(hub(page).locator(".v4-bills-empty")).toContainText("Aún no hay recibos");
+  const empty=hub(page).locator(".v4-empty[data-bills-empty]");
+  await expect(empty).toContainText("Aún no hay recibos");
+  await expect(empty).toContainText("Conecta tu banco y los detecto solos.");
+  await empty.getByRole("button",{name:/Añadir un recibo/}).click();
+  await expect(alta(page)).toHaveAttribute("data-step","what");
 });
 
 test("buscar algo que no existe lo dice, y un nombre larguísimo no rompe el ancho", async ({ page }) => {

@@ -1,3 +1,16 @@
+## [4.26.5] - 2026-09-17
+### Rediseño v4.1 — estados vacíos y movimiento reducido coherentes
+
+Gestionar recibos e Inversiones comparten ahora la tarjeta vacía del diseño: icono, título Fraunces,
+explicación y una acción real de al menos 44 px. El vacío de Recibos abre directamente el alta y
+explica que el banco puede detectar cargos repetidos; el de Inversiones abre el alta de bróker o
+posición sin dejar un bloque meramente decorativo.
+
+`useCountUp` respeta tanto la preferencia del sistema como «Reducir animaciones» de Aely. Los
+spinners dejan de girar —y se ocultan— en ambos modos, mientras su texto de estado permanece. Las
+pruebas de Recibos e Inversiones cubren la acción del vacío, el valor final inmediato y la clase de
+accesibilidad interna.
+
 ## [4.26.4] - 2026-09-17
 ### Rediseño v4.1 — Inversiones deja atrás el montaje antiguo
 
