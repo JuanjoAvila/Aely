@@ -66,9 +66,16 @@ test("★ P5: la racha a cero se dice en positivo, no «0 meses sin pasarte»", 
   await expect(page.getByText(/Tu primer mes empieza hoy/i)).toBeVisible();
 });
 
-test("con racha de verdad vuelve el fuego", async ({ page }) => {
-  await inicio(page, { history: [100, 200], budget: 500, streak: 3 });
-  await expect(page.getByText(/3 meses sin pasarte/i)).toBeVisible();
+test("tres presupuestos mensuales cerrados crean racha sin llama", async ({ page }) => {
+  const now=new Date(), budgetByMonth={};
+  for(let back=1;back<=3;back++){
+    const d=new Date(now.getFullYear(),now.getMonth()-back,1);
+    budgetByMonth[d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")]=500;
+  }
+  await inicio(page, { history: [100, 200], budget: 500, budgetByMonth, streak: 99 });
+  const streak=page.getByTestId("dash-budget-streak");
+  await expect(streak).toHaveText(/3 meses sin pasarte/i);
+  await expect(streak).not.toContainText("🔥");
 });
 
 test("con presupuesto e histórico, el hero vuelve a ser el de siempre", async ({ page }) => {
