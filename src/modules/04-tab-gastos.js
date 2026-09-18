@@ -1239,9 +1239,16 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const amountChange=auto?function(){ lockedToast(); }:function(updater){
     setEditExp(function(p){ const v=typeof updater==="function"?updater(p.amount):updater; return Object.assign({},p,{amount:v}); });
   };
+  const done=function(){
+    saveEdit(exp);
+    // «Listo» confirma y acompaña el cierre; antes solo se guardaba en segundo plano y la ficha
+    // seguía bloqueando toda la pantalla, aunque el dato sí hubiera cambiado (feedback 18/9).
+    swipe.close(function(){ onClose(true); });
+  };
   const footer=React.createElement("div",{className:"v4-ficha-foot"},
     React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
-    React.createElement("span",{className:"v4-ficha-saved"},t("f_autosaved")));
+    React.createElement("span",{className:"v4-ficha-saved"},t("f_autosaved")),
+    React.createElement("button",{type:"button",className:"v4-ficha-done",onClick:done},t("done")));
   const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",style:{maxHeight:"90dvh"},ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),

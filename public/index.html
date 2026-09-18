@@ -1111,8 +1111,8 @@
     /* Por defecto la hoja ENTERA scrollea (filtro de Gastos, Más…, fijos…). */
     overflow:auto;-webkit-overflow-scrolling:touch;
     padding:12px 18px calc(36px + var(--safe-bottom));
-    animation:sheetup .3s cubic-bezier(.22,1,.36,1);
-    transition:transform .22s cubic-bezier(.32,.72,0,1);will-change:transform;touch-action:pan-y;
+    animation:sheetup .36s cubic-bezier(.22,1,.36,1);
+    transition:transform .3s cubic-bezier(.22,1,.36,1);will-change:transform;touch-action:pan-y;
     box-shadow:0 -8px 28px rgba(0,0,0,.28);}
   /* Solo hojas con cuerpo (Apuntar / ficha de gasto): CTA fijo fuera del scroll.
      :has OK en WebView Chromium 150+. Regresión 4.19.100: flex+overflow:hidden en TODAS
@@ -1190,7 +1190,8 @@
   .v4-ficha-foot{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;
     padding-top:8px;border-top:1px solid var(--line-soft);}
   .v4-ficha-del{min-height:44px;color:var(--coral);font-size:12.5px;font-weight:800;text-align:left;}
-  .v4-ficha-saved{color:var(--muted-2);font-size:11.5px;font-weight:700;text-align:right;}
+  .v4-ficha-saved{color:var(--muted-2);font-size:11px;font-weight:700;text-align:center;line-height:1.2;}
+  .v4-ficha-done{min-height:44px;padding:0 16px;border-radius:14px;background:var(--mint);color:var(--on-mint);font-size:13px;font-weight:850;white-space:nowrap;}
   /* Ficha de cuenta v4.1: el saldo gana la jerarquía y el histórico solo aparece cuando se puede
      reconstruir con movimientos reales. Son piezas del sheet, no una tarjeta ajena dentro de él. */
   .v4-account-head{display:flex;align-items:center;gap:11px;margin-bottom:10px;}
@@ -7446,7 +7447,7 @@ function useSheetSwipe(open, onClose, opts){
     return function(){
       document.removeEventListener("touchmove", block, {capture:true});
       /* Hay hojas anidadas (Modificar > Todas las categorías). Solo la última devuelve el
-         scroll: si la hija lo soltaba, la lista se movía detrás durante su salida de 200 ms. */
+         scroll: si la hija lo soltaba, la lista se movía detrás durante su salida animada. */
       if(closeTimer.current){ clearTimeout(closeTimer.current); closeTimer.current=null; }
       if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
     };
@@ -9491,9 +9492,16 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const amountChange=auto?function(){ lockedToast(); }:function(updater){
     setEditExp(function(p){ const v=typeof updater==="function"?updater(p.amount):updater; return Object.assign({},p,{amount:v}); });
   };
+  const done=function(){
+    saveEdit(exp);
+    // «Listo» confirma y acompaña el cierre; antes solo se guardaba en segundo plano y la ficha
+    // seguía bloqueando toda la pantalla, aunque el dato sí hubiera cambiado (feedback 18/9).
+    swipe.close(function(){ onClose(true); });
+  };
   const footer=React.createElement("div",{className:"v4-ficha-foot"},
     React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
-    React.createElement("span",{className:"v4-ficha-saved"},t("f_autosaved")));
+    React.createElement("span",{className:"v4-ficha-saved"},t("f_autosaved")),
+    React.createElement("button",{type:"button",className:"v4-ficha-done",onClick:done},t("done")));
   const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",style:{maxHeight:"90dvh"},ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),

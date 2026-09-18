@@ -104,11 +104,14 @@ test("★ guardar un cambio NO deja la pantalla muerta", async ({ page }) => {
   await nombre.fill("Mercadona centro");
   await nombre.blur();                                   // el blur es el que guarda
 
-  // El sheet sigue en pie con lo guardado dentro: «al perder el foco se guarda, no se cierra».
+  // El blur guarda mientras sigues editando; el botón explícito confirma y cierra con animación.
   await expect(nombre).toHaveValue("Mercadona centro");
-
-  // Y al cerrarlo de verdad, la app tiene que quedar viva: sin candado de scroll y respondiendo.
-  await cierraSheet(page);
+  const done = page.locator(".v4-exp-sheet .v4-ficha-done");
+  await expect(done).toBeVisible();
+  await done.click();
+  await expect(page.locator(".v4-exp-sheet")).toHaveCSS("transform", /matrix|translate3d/);
+  await expect(page.locator(".v4-exp-sheet")).toHaveCount(0);
+  // Al terminar, la app tiene que quedar viva: sin candado de scroll y respondiendo.
   await expect(page.locator("html")).not.toHaveClass(/sheet-open/);
   await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
   // La prueba de que se puede seguir usando: cambiar de pestaña y volver.
@@ -127,6 +130,7 @@ test("ficha v4.1: un movimiento automático enseña su origen y bloquea importe 
   await expect(sheet.locator('[data-testid="exp-bank"]')).toHaveClass(/locked/);
   await expect(sheet.locator(".v4-ficha-foot .v4-cta")).toHaveCount(0);
   await expect(sheet.locator(".v4-ficha-saved")).toContainText("Se guarda al momento");
+  await expect(sheet.locator(".v4-ficha-done")).toBeVisible();
 
   const before = await sheet.locator(".v4-ficha-amount").innerText();
   await sheet.locator(".v4-keys").getByRole("button", { name: "9", exact: true }).click();

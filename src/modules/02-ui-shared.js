@@ -852,7 +852,7 @@ function useSheetSwipe(open, onClose, opts){
     return function(){
       document.removeEventListener("touchmove", block, {capture:true});
       /* Hay hojas anidadas (Modificar > Todas las categorías). Solo la última devuelve el
-         scroll: si la hija lo soltaba, la lista se movía detrás durante su salida de 200 ms. */
+         scroll: si la hija lo soltaba, la lista se movía detrás durante su salida animada. */
       if(closeTimer.current){ clearTimeout(closeTimer.current); closeTimer.current=null; }
       if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
     };
