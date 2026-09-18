@@ -21451,7 +21451,7 @@ function helpLocalTopics(question){
 function helpCashWantsAccounts(question){
   var q=helpNorm(question);
   if(!/\b(efectivo|efectiu|cash)\b/.test(q)) return false;
-  if(/\b(apunt\w*|gast\w*|compr\w*|pag\w*|sac\w*|retir\w*|treur\w*|record\w*|spend\w*|spent|purchas\w*|expens\w*|bought|buy\w*|despes\w*|withdraw\w*|cajero|caixer|atm|billete|moneda)/.test(q)) return false;
+  if(/\b(apunt\w*|gast\w*|compr\w*|pag\w*|sac\w*|retir\w*|treur\w*|tret\w*|record\w*|spend\w*|spent|purchas\w*|expens\w*|bought|buy\w*|despes\w*|withdr[ae]w\w*|cajero|caixer|atm|billete|moneda)/.test(q)) return false;
   return /\b(donde|where|on|anadir|afegir|agregar|crear|create|add|cuenta|account|poner|tenir|tener)\b/.test(q);
 }
 function helpPrimaryForTopic(topicId, question){
