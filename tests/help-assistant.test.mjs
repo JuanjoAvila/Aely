@@ -40,6 +40,10 @@ assert.equal(ctx.helpValidatedCue("help_cue_cash"),"help_cue_cash");
 assert.equal(ctx.helpValidatedCue("free prose"),null);
 assert.equal(ctx.helpCueForTopic("cash","help_cue_debts"),"help_cue_cash");
 assert.equal(ctx.helpCueForTopic("delete_all","help_cue_cash"),null);
+assert.equal(ctx.helpCashWantsAccounts("¿dónde puedo añadir efectivo?"),true);
+assert.equal(ctx.helpCashWantsAccounts("on puc afegir efectiu?"),true);
+assert.equal(ctx.helpCashWantsAccounts("¿dónde apunto un gasto en efectivo?"),false);
+assert.equal(ctx.helpCashWantsAccounts("where do I record a cash purchase"),false);
 {
   const a=ctx.helpAnswerFromSnap("budget_left",{budget:1000,spent:250,remaining:750});
   assert.equal(a.cue,"help_cue_budget_left");

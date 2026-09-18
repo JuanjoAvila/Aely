@@ -104,9 +104,9 @@ test("Ajustes revoca OpenAI y volver a activarlo exige consentimiento informado"
   await page.evaluate(()=>window.dispatchEvent(new CustomEvent("mc-open-settings")));
   await expect(page.locator(".settings-push.open")).toBeVisible();
   await page.getByRole("button",{name:/Tu cuenta/i}).click();
-  const toggle=page.locator("button.set-row").filter({hasText:"Preguntas difíciles con OpenAI"});
+  const toggle=page.locator("button.set-row").filter({hasText:/Más ayuda con OpenAI|OpenAI/i});
   await expect(toggle).toBeVisible();
-  await expect(page.getByText(/OpenAI recibe solo la pregunta escrita.*revocar/i)).toBeVisible();
+  await expect(page.getByText(/No cambia las respuestas normales/i)).toBeVisible();
   await toggle.click();
   await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).settings.helpAiOk)).toBe(false);
   await toggle.click();
@@ -186,4 +186,57 @@ test("Escape cierra el diálogo y devuelve el foco al botón",async({page})=>{
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
   await expect(trigger).toBeFocused();
+});
+
+test("añadir efectivo abre Cuentas pero apuntar compras sigue en Apuntar",async({page})=>{
+  const {dialog}=await openHelp(page,{accounts:[
+    {id:"cash",ent:"efectivo",value:80,role:"diario"},
+    {id:"bank",ent:"sabadell",value:200,role:"diario"},
+  ],expenses:[]});
+  for(const question of ["¿dónde apunto un gasto en efectivo?","where do I record a cash purchase"]){
+    await ask(dialog,question);
+    await expect(dialog.getByTestId("help-cta")).toHaveText("Apuntar en efectivo");
+  }
+  for(const question of ["¿dónde puedo añadir efectivo?","on puc afegir efectiu?"]){
+    await ask(dialog,question);
+    await expect(dialog.getByRole("status")).toContainText(/Cartera/i);
+    await expect(dialog.getByTestId("help-cta")).toHaveText("Abrir cuentas");
+  }
+  await expect(dialog.locator(".aely-help-phrase")).not.toHaveClass(/serif/);
+  await dialog.getByTestId("help-cta").click();
+  await expect(page.locator('.botnav-tab.active')).toHaveAttribute("data-tour","cartera");
+  await expect(page.locator('[data-testid="ap-efectivo"]')).toHaveCount(0);
+});
+
+test("el composer queda visible cuando aparece el teclado",async({page})=>{
+  const {dialog}=await openHelp(page);
+  const input=dialog.getByLabel("¿En qué necesitas ayuda?");
+  await expect(input).toBeVisible();
+  await expect.poll(()=>input.evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(16);
+  await page.evaluate(()=>{
+    const vv=window.visualViewport;
+    Object.defineProperty(vv,"height",{configurable:true,value:window.innerHeight-260});
+    Object.defineProperty(vv,"offsetTop",{configurable:true,value:0});
+    vv.dispatchEvent(new Event("resize"));
+  });
+  await expect(page.locator(".aely-help-back")).toHaveAttribute("data-help-kb","1");
+  await expect(dialog).toHaveCSS("margin-bottom","260px");
+  await expect(dialog.locator(".aely-help-composer")).toBeVisible();
+});
+
+test("el cierre anima la hoja mientras todavía sigue montada",async({page})=>{
+  const {dialog}=await openHelp(page);
+  const sawExit=page.waitForFunction(()=>{
+    const el=document.querySelector('.v4-sheet[data-sheet="help"]');
+    return !!el && (el.style.transform||"").includes("110%");
+  },null,{timeout:3000});
+  await dialog.locator('[data-act="back"]').click();
+  await sawExit;
+  await expect(dialog).toHaveCount(1);
+  await expect(dialog).toHaveCount(0);
+});
+
+test("OpenAI activo explica que no sustituye la guía local",async({page})=>{
+  const {dialog}=await openHelp(page,{settings:{helpAiOk:true,helpAiAsked:true}});
+  await expect(dialog.getByTestId("help-remote-status")).toContainText(/no cambia/i);
 });
