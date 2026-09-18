@@ -1967,19 +1967,30 @@
     #mc-load .mcl-name.lista{opacity:1;}
   }
 
-/* Ayuda: pantalla propia encima de Ajustes; teclado y scroll contenidos. */
+/* Ayuda: composer fijo abajo; el teclado (visualViewport) sube la hoja, no la tapa.
+   La frase NO usa .serif: con temática de temporada el subrayado decorativo la hincha. */
 .aely-help-back{z-index:12000;}
-.aely-help-sheet{max-height:92dvh;display:flex;flex-direction:column;}
-.aely-help-sheet-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 0 8px;}
-.aely-help-sheet-h h1{font-size:22px;margin:0;font-weight:550;}
-.aely-help-q{width:100%;min-height:88px;padding:12px 14px;resize:vertical;box-sizing:border-box;}
-.aely-help-topics{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px;}
-.aely-help-answer{margin-top:14px;}
-.aely-help-phrase{font-size:clamp(20px,5.5vw,26px);font-weight:550;letter-spacing:-.3px;line-height:1.25;margin:6px 0 0;}
+.aely-help-sheet{max-height:min(92dvh,100%);display:flex;flex-direction:column;padding-bottom:0;transition:max-height .22s cubic-bezier(.32,.72,0,1),margin-bottom .22s cubic-bezier(.32,.72,0,1);}
+.aely-help-sheet-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 0 6px;flex:0 0 auto;}
+.aely-help-sheet-h h1{font-size:20px;margin:0;font-weight:550;}
+.aely-help-body{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:0 0 8px;}
+.aely-help-intro{margin:0 0 8px;}
+.aely-help-composer{flex:0 0 auto;display:flex;flex-direction:column;gap:8px;padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--surface,var(--sur));}
+.aely-help-q{width:100%;min-height:52px;max-height:96px;padding:10px 12px;resize:none;box-sizing:border-box;font-size:16px;}
+.aely-help-send{width:100%;height:44px;border-radius:12px;font-size:14px;font-weight:700;}
+.aely-help-topics{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px;}
+.aely-help-topic{font-size:12.5px !important;min-height:36px;padding:7px 10px !important;}
+.aely-help-answer{margin-top:8px;}
+.aely-help-phrase{font-size:15px;font-weight:550;letter-spacing:-.1px;line-height:1.4;margin:4px 0 0;text-decoration:none !important;}
+.aely-help-cta{width:auto !important;align-self:flex-start;margin-top:10px;padding:8px 12px !important;font-size:13.5px !important;font-weight:650 !important;}
 .aely-help-entry{margin:6px 0 10px;}
 .aely-help-head-actions{display:flex;align-items:center;gap:8px;}
 .aely-help-entry-mini{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--sur);color:var(--ink);font:550 18px/1 var(--serif,Georgia,serif);padding:0;}
 .aely-help-consent{margin-top:12px;padding:12px;border-radius:14px;background:var(--sur2);border:1px solid var(--line);}
+.aely-help-remote-status{margin:0 0 8px;font-size:12px;}
+@media (prefers-reduced-motion:reduce){
+  .aely-help-sheet{transition:none;}
+}
 </style>
 </head>
 <body>
@@ -4573,6 +4584,7 @@ const LANG = {
     help_show_settings:"Mostrar pantalla desde Ajustes",
     help_title:"Pregúntame",
     help_cue_cash:"Sacar del cajero no es gastar. Lo que apuntas es lo que compras luego.",
+    help_cue_cash_add:"El efectivo se añade en Cartera → Cuentas. Luego apuntas las compras desde Apuntar.",
     help_cue_goals:"Si estás apartando para una compra, crea una Meta en Plan.",
     help_cue_debts:"Si ya pagas cuotas de un préstamo, revísalas en Deudas.",
     help_cue_banks:"Primero comprueba la conexión en Mis bancos y pulsa Actualizar.",
@@ -4581,12 +4593,13 @@ const LANG = {
     help_cue_receipts:"En Recibos ves lo pendiente del mes y lo ya cobrado.",
     help_cue_budget_left:"Te quedan {x} de {b} este mes.",
     help_remote_try:"Probar con más ayuda",
+    help_remote_status_on:"OpenAI solo si la guía local no basta: hay que pulsar «Probar con más ayuda». No cambia el resto de respuestas.",
     help_consent_no:"No, gracias",
     help_consent_yes:"Sí",
     help_consent_body:"Aely enviará a OpenAI solo la pregunta que has escrito. Nunca envía saldos ni movimientos. Puedes quitar este permiso en Ajustes.",
     help_consent_title:"¿Usar OpenAI para entender esta pregunta?",
-    help_remote_setting:"Preguntas difíciles con OpenAI",
-    help_remote_setting_hint:"OpenAI recibe solo la pregunta escrita; nunca saldos ni movimientos. Puedes revocar este permiso aquí.",
+    help_remote_setting:"Más ayuda con OpenAI (solo dudas difíciles)",
+    help_remote_setting_hint:"No cambia las respuestas normales. Solo permite, cuando la guía local no basta, pulsar «Probar con más ayuda» para que OpenAI elija otra guía. Recibe solo la pregunta escrita; nunca saldos ni movimientos. Puedes revocar este permiso aquí.",
     help_cue_goals_simple:"Metas está escondido en el modo sencillo. Te lo enseño en Ajustes.",
     help_cue_next_bills_amount:"Te quedan recibos por {x} este mes.",
     help_cue_next_bills_one:"Te queda 1 recibo por {x} este mes.",
@@ -21388,7 +21401,7 @@ const HELP_TOPICS=[
   {id:"receipts",title:"help_receipts",body:"help_receipts_body",cue:"help_cue_receipts",actions:["receipts","banks"]}
 ];
 const HELP_ACTION_LABELS={cash:"help_open_cash",accounts:"help_open_accounts",goals:"help_open_goals",debts:"help_open_debts",banks:"help_open_banks",expenses:"help_open_expenses",history:"help_open_history",receipts:"help_open_receipts",settings:"settings"};
-const HELP_CUES=["help_cue_cash","help_cue_goals","help_cue_goals_simple","help_cue_debts","help_cue_banks","help_cue_history","help_cue_categories","help_cue_receipts","help_cue_budget_left","help_cue_budget_none","help_cue_budget_over","help_cue_next_bills","help_cue_next_bills_one","help_cue_next_bills_amount","help_cue_next_bills_none","help_cue_end_ok","help_cue_end_warn","help_cue_end_unknown","help_cue_clarify","help_cue_balance","help_cue_balance_miss","help_cue_balance_many"];
+const HELP_CUES=["help_cue_cash","help_cue_cash_add","help_cue_goals","help_cue_goals_simple","help_cue_debts","help_cue_banks","help_cue_history","help_cue_categories","help_cue_receipts","help_cue_budget_left","help_cue_budget_none","help_cue_budget_over","help_cue_next_bills","help_cue_next_bills_one","help_cue_next_bills_amount","help_cue_next_bills_none","help_cue_end_ok","help_cue_end_warn","help_cue_end_unknown","help_cue_clarify","help_cue_balance","help_cue_balance_miss","help_cue_balance_many"];
 const HELP_INTENTS=["budget_left","next_bills","end_of_month","account_balance"];
 /* Ents reales del catálogo (misma clave que state.accounts[].ent). */
 const HELP_BANKS=["sabadell","caixabank","revolut","trade_republic","myinvestor","efectivo","other"];
@@ -21433,6 +21446,23 @@ function helpLocalTopics(question){
   add("receipts",/\b(recibo[s]?|rebut[s]?|bill[s]?|domicili\w*)\b/);
   add("banks",/\b(banco[s]?|banc[s]?|bank[s]?|caixa\w*|sabadell|revolut|trade republic|sincron\w*|actualiz\w*|sync\w*|no (sale|carga|aparece|llega|leyo)|missing)\b/);
   return hits.slice(0,3);
+}
+/* «Dónde añado el efectivo» crea/abre la cuenta; «dónde apunto una compra» sigue llevando a
+   Apuntar. Las raíces son deliberadas: «apunto», «apuntar» y «compras» no pueden escaparse. */
+function helpCashWantsAccounts(question){
+  var q=helpNorm(question);
+  if(!/\b(efectivo|efectiu|cash)\b/.test(q)) return false;
+  if(/\b(apunt\w*|gast\w*|compr\w*|pag\w*|record\w*|spend\w*|purchas\w*|cajero|caixer|atm|billete|moneda)/.test(q)) return false;
+  return /\b(donde|where|on|anadir|afegir|agregar|crear|create|add|cuenta|account|poner|tenir|tener)\b/.test(q);
+}
+function helpPrimaryForTopic(topicId, question){
+  var item=helpTopic(topicId);
+  if(!item) return null;
+  if(topicId==="cash"&&helpCashWantsAccounts(question)) return "accounts";
+  return item.actions[0];
+}
+function helpCueForCashQuestion(question){
+  return helpCashWantsAccounts(question)?"help_cue_cash_add":"help_cue_cash";
 }
 function helpLocalIntent(question){
   var q=helpNorm(question);
@@ -21616,17 +21646,19 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
   const [remoteOk,setRemoteOk]=useState(!!helpAiOk);
   const [remoteAsked,setRemoteAsked]=useState(!!helpAiAsked);
   const [remoteNotice,setRemoteNotice]=useState(null);
+  const [kbPad,setKbPad]=useState(0);
   const requestRef=useRef(0);
   const dialogRef=useRef(null);
   const swipe=useSheetSwipe(true, onClose);
-  useBackClose(true,onClose);
+  const requestClose=function(){ swipe.close(onClose); };
+  useBackClose(true, requestClose);
   useEffect(function(){
     var root=dialogRef.current;
     if(!root) return undefined;
     var first=root.querySelector("#help-question");
     if(first) first.focus({preventScroll:true});
     var keys=function(e){
-      if(e.key==="Escape"){ e.preventDefault(); onClose(); return; }
+      if(e.key==="Escape"){ e.preventDefault(); requestClose(); return; }
       if(e.key!=="Tab") return;
       var xs=Array.prototype.filter.call(root.querySelectorAll('button:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'),function(x){ return x.offsetParent!==null; });
       if(!xs.length){ e.preventDefault(); return; }
@@ -21636,6 +21668,30 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
     };
     document.addEventListener("keydown",keys);
     return function(){ document.removeEventListener("keydown",keys); };
+  },[]);
+  /* El teclado móvil reduce visualViewport: recolocamos la hoja encima, no debajo. */
+  useEffect(function(){
+    var sync=function(){
+      try{
+        var vv=window.visualViewport;
+        if(!vv){ setKbPad(0); return; }
+        var pad=Math.max(0, window.innerHeight-(vv.height+vv.offsetTop));
+        setKbPad(pad>24?Math.round(pad):0);
+      }catch(e){ setKbPad(0); }
+    };
+    sync();
+    if(window.visualViewport){
+      window.visualViewport.addEventListener("resize",sync);
+      window.visualViewport.addEventListener("scroll",sync);
+    }
+    window.addEventListener("resize",sync);
+    return function(){
+      if(window.visualViewport){
+        window.visualViewport.removeEventListener("resize",sync);
+        window.visualViewport.removeEventListener("scroll",sync);
+      }
+      window.removeEventListener("resize",sync);
+    };
   },[]);
 
   const paintLocal=function(text){
@@ -21653,9 +21709,11 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
     }
     var topics=helpLocalTopics(text);
     if(topics.length===1){
-      var item=helpTopic(topics[0]);
-      var cue1=(simple&&topics[0]==="goals")?"help_cue_goals_simple":(item.cue||item.title);
-      setAnswer({phrase:t(cue1),action:item.actions[0],topicIds:topics,stepsId:topics[0],low:false});
+      var tid=topics[0];
+      var item=helpTopic(tid);
+      var cue1=tid==="cash"?helpCueForCashQuestion(text)
+        :((simple&&tid==="goals")?"help_cue_goals_simple":(item.cue||item.title));
+      setAnswer({phrase:t(cue1),action:helpPrimaryForTopic(tid,text),topicIds:topics,stepsId:tid,low:false});
       return;
     }
     if(topics.length>1){
@@ -21693,9 +21751,9 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
         if(built){ setAnswer({phrase:helpPhrase(built.cue, helpFormatVars(built.vars)),action:built.action,topicIds:[],stepsId:null,low:result.confidence==="low",intent:intent}); return; }
       }
       if(selected.length){
-        var top=helpTopic(selected[0]);
-        var cue=helpCueForTopic(selected[0],result&&result.cue);
-        setAnswer({phrase:t(cue),action:top.actions[0],topicIds:selected,stepsId:selected[0],low:result.confidence==="low"});
+        var topId=selected[0];
+        var cue=topId==="cash"?helpCueForCashQuestion(asked):helpCueForTopic(topId,result&&result.cue);
+        setAnswer({phrase:t(cue),action:helpPrimaryForTopic(topId,asked),topicIds:selected,stepsId:topId,low:result.confidence==="low"});
       } else {
         setAnswer({phrase:t("help_unknown"),action:null,topicIds:[],stepsId:null,low:true});
       }
@@ -21709,53 +21767,60 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
     setAnswer({phrase:t(cueT),action:item.actions[0],topicIds:[tid],stepsId:tid,low:false});
     setStepsOpen(false);
   };
+  const runAction=function(id){
+    swipe.close(function(){ onAction(id); });
+  };
   const primaryAction=answer&&answer.action;
   const primaryBlocked=primaryAction&&((simple&&(primaryAction==="goals"||primaryAction==="debts"))||(["expenses","accounts","goals","debts","receipts"].indexOf(primaryAction)>=0&&(hiddenTabs||[]).indexOf(primaryAction==="expenses"?"gastos":primaryAction==="accounts"?"cartera":"plan")>=0));
   const ctaId=primaryBlocked?"settings":(primaryAction==="cash"&&!hasCash?"accounts":primaryAction);
   const ctaLabel=primaryBlocked?"help_show_settings":(ctaId==="accounts"&&primaryAction==="cash"&&!hasCash?"help_create_cash":HELP_ACTION_LABELS[ctaId]);
+  const sheetStyle=kbPad?{maxHeight:"calc(100dvh - "+kbPad+"px)",marginBottom:kbPad+"px"}:null;
 
-  return React.createElement("div",{className:"v4-sheet-back aely-help-back",onClick:onClose},
-    React.createElement("div",Object.assign({className:"v4-sheet aely-help-sheet","data-sheet":"help",role:"dialog","aria-modal":"true","aria-labelledby":"help-title",ref:function(el){ swipe.sheetRef.current=el; dialogRef.current=el; },onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
+  return React.createElement("div",{className:"v4-sheet-back aely-help-back",onClick:requestClose,"data-help-kb":kbPad?"1":"0"},
+    React.createElement("div",Object.assign({className:"v4-sheet aely-help-sheet","data-sheet":"help",role:"dialog","aria-modal":"true","aria-labelledby":"help-title",style:sheetStyle,ref:function(el){ swipe.sheetRef.current=el; dialogRef.current=el; },onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
       React.createElement("div",{className:"v4-sheet-handle"}),
       React.createElement("div",{className:"aely-help-sheet-h"},
         React.createElement("h1",{id:"help-title",className:"serif"}, t("help_title")),
-        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:onClose},"‹")),
-      React.createElement("p",{className:"hint"}, t("help_intro")),
-      React.createElement("form",{onSubmit:send},
-        React.createElement("textarea",{id:"help-question",className:"v4-bills-search aely-help-q",rows:3,maxLength:600,value:question,
+        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:requestClose},"‹")),
+      React.createElement("div",{className:"aely-help-body v4-sheet-body"},
+        React.createElement("p",{className:"hint aely-help-intro"}, t("help_intro")),
+        remoteOk && React.createElement("p",{className:"hint aely-help-remote-status","data-testid":"help-remote-status"}, t("help_remote_status_on")),
+        !answer && React.createElement("div",{className:"aely-help-topics"},
+          HELP_TOPICS.map(function(x){
+            return React.createElement("button",{key:x.id,type:"button",className:"rchip aely-help-topic",onClick:function(){ setQuestion(t(x.title)); chooseTopic(x.id); setAsked(t(x.title)); }}, t(x.title));
+          })),
+        answer && React.createElement("div",{className:"aely-help-answer",role:"status","aria-live":"polite"},
+          answer.low && React.createElement("div",{className:"hint"}, t("help_maybe")),
+          React.createElement("p",{className:"aely-help-phrase"}, answer.phrase),
+          ctaId && React.createElement("button",{type:"button",className:"btn btn-ghost aely-help-cta","data-testid":"help-cta",onClick:function(){ runAction(ctaId); }},
+            t(ctaLabel)),
+          answer.stepsId && React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:8},onClick:function(){ setStepsOpen(function(v){ return !v; }); }},
+            stepsOpen?t("help_steps_hide"):t("help_steps_show")),
+          stepsOpen && answer.stepsId && React.createElement("p",{className:"hint",style:{whiteSpace:"pre-line",marginTop:8}}, t(helpTopic(answer.stepsId).body)),
+          answer.topicIds && answer.topicIds.length>1 && React.createElement("div",{className:"aely-help-topics",style:{marginTop:10}},
+            answer.topicIds.map(function(tid){
+              return React.createElement("button",{key:tid,type:"button",className:"rchip aely-help-topic",onClick:function(){ chooseTopic(tid); }}, t(helpTopic(tid).title));
+            })),
+          answer.low && React.createElement("div",{className:"aely-help-topics",style:{marginTop:10}},
+            HELP_TOPICS.slice(0,4).map(function(x){
+              return React.createElement("button",{key:x.id,type:"button",className:"rchip aely-help-topic",onClick:function(){ chooseTopic(x.id); }}, t(x.title));
+            })),
+          online && signedIn && cloud.enabled() && asked && answer.low && remoteOk && React.createElement("button",{type:"button",className:"btn btn-ghost",style:{marginTop:8},disabled:busy,onClick:function(){ askOnline(false); }}, t("help_try_again")),
+          online && signedIn && cloud.enabled() && asked && answer.low && !remoteOk && !remoteAsked && React.createElement("button",{type:"button",className:"btn btn-ghost",style:{marginTop:8},onClick:function(){ setConsentOpen(true); }}, t("help_remote_try")),
+          consentOpen && React.createElement("div",{className:"aely-help-consent"},
+            React.createElement("div",{style:{fontWeight:800}},t("help_consent_title")),
+            React.createElement("p",{className:"hint",style:{margin:"7px 0 0"}},t("help_consent_body")),
+            React.createElement("div",{className:"ask-btns",style:{marginTop:12}},
+              React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){ setConsentOpen(false); setRemoteAsked(true); if(onConsent) onConsent(false); }},t("help_consent_no")),
+              React.createElement("button",{type:"button",className:"btn btn-primary",onClick:function(){ setConsentOpen(false); setRemoteAsked(true); setRemoteOk(true); if(onConsent) onConsent(true); askOnline(true); }},t("help_consent_yes"))))
+        ),
+        remoteNotice && React.createElement("div",{className:"hint aely-help-remote-note",role:"alert","aria-live":"assertive",style:{marginTop:10}},t(remoteNotice))
+      ),
+      React.createElement("form",{className:"aely-help-composer",onSubmit:send},
+        React.createElement("textarea",{id:"help-question",className:"v4-bills-search aely-help-q",rows:2,maxLength:600,value:question,
           placeholder:t("help_placeholder"),"aria-label":t("help_question"),
           onChange:function(e){ setQuestion(e.target.value); }}),
-        React.createElement("button",{type:"submit",className:"v4-cta",style:{marginTop:12},disabled:!question.trim()||busy}, t(busy?"help_wait":"help_send"))),
-      !answer && React.createElement("div",{className:"aely-help-topics"},
-        HELP_TOPICS.map(function(x){
-          return React.createElement("button",{key:x.id,type:"button",className:"rchip",onClick:function(){ setQuestion(t(x.title)); chooseTopic(x.id); setAsked(t(x.title)); }}, t(x.title));
-        })),
-      answer && React.createElement("div",{className:"aely-help-answer",role:"status","aria-live":"polite"},
-        answer.low && React.createElement("div",{className:"hint"}, t("help_maybe")),
-        React.createElement("p",{className:"serif aely-help-phrase"}, answer.phrase),
-        ctaId && React.createElement("button",{type:"button",className:"v4-cta",style:{marginTop:12},onClick:function(){ onAction(ctaId); }},
-          t(ctaLabel)),
-        answer.stepsId && React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:10},onClick:function(){ setStepsOpen(function(v){ return !v; }); }},
-          stepsOpen?t("help_steps_hide"):t("help_steps_show")),
-        stepsOpen && answer.stepsId && React.createElement("p",{className:"hint",style:{whiteSpace:"pre-line",marginTop:8}}, t(helpTopic(answer.stepsId).body)),
-        answer.topicIds && answer.topicIds.length>1 && React.createElement("div",{className:"aely-help-topics",style:{marginTop:12}},
-          answer.topicIds.map(function(tid){
-            return React.createElement("button",{key:tid,type:"button",className:"rchip",onClick:function(){ chooseTopic(tid); }}, t(helpTopic(tid).title));
-          })),
-        answer.low && React.createElement("div",{className:"aely-help-topics",style:{marginTop:12}},
-          HELP_TOPICS.slice(0,4).map(function(x){
-            return React.createElement("button",{key:x.id,type:"button",className:"rchip",onClick:function(){ chooseTopic(x.id); }}, t(x.title));
-          })),
-        online && signedIn && cloud.enabled() && asked && answer.low && remoteOk && React.createElement("button",{type:"button",className:"btn btn-ghost",style:{marginTop:10},disabled:busy,onClick:function(){ askOnline(false); }}, t("help_try_again")),
-        online && signedIn && cloud.enabled() && asked && answer.low && !remoteOk && !remoteAsked && React.createElement("button",{type:"button",className:"btn btn-ghost",style:{marginTop:10},onClick:function(){ setConsentOpen(true); }}, t("help_remote_try")),
-        consentOpen && React.createElement("div",{className:"aely-help-consent"},
-          React.createElement("div",{style:{fontWeight:800}},t("help_consent_title")),
-          React.createElement("p",{className:"hint",style:{margin:"7px 0 0"}},t("help_consent_body")),
-          React.createElement("div",{className:"ask-btns",style:{marginTop:12}},
-            React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){ setConsentOpen(false); setRemoteAsked(true); if(onConsent) onConsent(false); }},t("help_consent_no")),
-            React.createElement("button",{type:"button",className:"btn btn-primary",onClick:function(){ setConsentOpen(false); setRemoteAsked(true); setRemoteOk(true); if(onConsent) onConsent(true); askOnline(true); }},t("help_consent_yes"))))
-      ),
-      remoteNotice && React.createElement("div",{className:"hint aely-help-remote-note",role:"alert","aria-live":"assertive",style:{marginTop:12}},t(remoteNotice))
+        React.createElement("button",{type:"submit",className:"btn btn-primary aely-help-send",disabled:!question.trim()||busy}, t(busy?"help_wait":"help_send")))
     )
   );
 }
