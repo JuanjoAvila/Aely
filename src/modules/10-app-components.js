@@ -2421,10 +2421,10 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     React.createElement("input",{style:Object.assign({},inp,{marginTop:12}),placeholder:t("st_search_ph"),value:q,onChange:function(e){ setQ(e.target.value); }}),
 
     React.createElement("div",{className:"v4-set-sec"}, t("v4_set_appear")),
-    grp("general","🎨",t("v4_set_appear"),"idioma language tema theme color temática temporada mundial halloween navidad verano invierno apariencia look",null,
+    grp("general","🎨",t("v4_set_appear"),"idioma language tema theme color temática temporada mundial halloween navidad verano invierno pascua otoño otono primavera cyberpunk neon apariencia look",null,
       React.createElement("div",{className:"v4-theme-row","aria-label":t("theme")},
         THEMES.map(function(th){
-          return React.createElement("button",{key:th[0],type:"button",title:t("th_"+th[0]),
+          return React.createElement("button",{key:th[0],type:"button",title:t("th_"+th[0]),"aria-label":t("th_"+th[0]),"aria-pressed":curTheme===th[0],"data-theme-id":th[0],
             className:"v4-theme-sw"+(curTheme===th[0]?" on":""),
             style:{background:th[2]},
             onClick:function(){ applyTheme(th[0]); setS({theme:th[0]}); }});

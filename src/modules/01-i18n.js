@@ -140,7 +140,7 @@ const LANG = {
     st_aicat:"Sugerir categoría (IA) en «Otros»", st_aicat_hint:"Al apuntar un gasto, las palabras clave eligen categoría solas. Si no saben y esto está encendido, la IA te ofrece un chip (un toque). En la ficha de un gasto ya guardado también puedes pedirlo. No se envía el importe.",
     st_sentry:"Sentry (errores en prod)", st_sentry_test:"Enviar error de prueba", st_sentry_sent:"✓ Enviado a Sentry (mira Issues en unos segundos)", st_sentry_hint:"Solo tú ves este bloque (admin). Sirve para comprobar que los crashes llegan a Sentry; el resto de usuarios no lo ve.",
     bp_empty_hint:"Aquí se conectan tus bancos de verdad (Open Banking): el saldo y los movimientos entran solos. Las cuentas con saldo apuntado a mano viven en Patrimonio — conectar el banco es opcional y puedes hacerlo cuando quieras.",
-    th_green:"Verde", th_dark:"Oscuro", th_light:"Claro", th_blue:"Azul", cur_eur:"€ Euro", cur_usd:"$ Dólar", cur_gbp:"£ Libra", cur_chf:"CHF Franco suizo",
+    th_green:"Verde", th_dark:"Oscuro", th_light:"Claro", th_blue:"Azul", th_cyber:"Cyberpunk", cur_eur:"€ Euro", cur_usd:"$ Dólar", cur_gbp:"£ Libra", cur_chf:"CHF Franco suizo",
     rp_saved:"✓ Informe guardado en Descargas (busca «mi-cartera-…png»)",
     rp_saved_notif:"📊 Informe del mes guardado en Descargas: {f}. Ábrelo desde tu app de Archivos o la galería.",
     ob_welcome:"Bienvenido/a 👋",
@@ -161,7 +161,7 @@ const LANG = {
     st_contrast:"Más contraste", st_contrast_hint:"Sube el contraste del texto para que se lea mejor.",
     // Temáticas de temporada
     st_theme_season:"Temática", st_theme_season_hint:"Cambia los colores y deja caer un detalle muy suave por detrás de las cartillas (nieve, hojas, sol…). Quítalo cuando quieras.",
-    th_none:"Ninguna", th_mundial:"Mundial 🇪🇸", th_halloween:"Halloween 🎃", th_navidad:"Navidad 🎄", th_verano:"Verano ☀️", th_invierno:"Invierno ❄️", th_pascua:"Pascua 🐣",
+    th_none:"Ninguna", th_mundial:"Mundial 🇪🇸", th_halloween:"Halloween 🎃", th_navidad:"Navidad 🎄", th_verano:"Verano ☀️", th_invierno:"Invierno ❄️", th_pascua:"Pascua 🐣", th_otono:"Otoño 🍂", th_primavera:"Primavera 🌸",
     // Bancos de gasto diario (varios)
     st_expense_banks:"Bancos de gasto diario", st_expense_banks_hint:"Marca todos los bancos cuyas compras cuentan en tu presupuesto del día a día (p. ej. Trade Republic + Revolut en un viaje). El saldo de gasto sigue saliendo del principal.",
     st_expense_banks_none:"Aún no tienes cuentas para elegir.",
@@ -309,7 +309,7 @@ const LANG = {
     st_aicat:"Suggest category (AI) for “Other”", st_aicat_hint:"When you add an expense, keywords pick a category on their own. If they don’t know and this is on, AI offers a chip (one tap). You can also ask from a saved expense. Amount is never sent.",
     st_sentry:"Sentry (prod errors)", st_sentry_test:"Send test error", st_sentry_sent:"✓ Sent to Sentry (check Issues in a few seconds)", st_sentry_hint:"Only you see this block (admin). Use it to verify crashes reach Sentry; other users never see it.",
     bp_empty_hint:"This is where your real banks connect (Open Banking): balance and transactions come in on their own. Accounts with a hand-typed balance live in Net worth — connecting the bank is optional and you can do it anytime.",
-    th_green:"Green", th_dark:"Dark", th_light:"Light", th_blue:"Blue", cur_eur:"€ Euro", cur_usd:"$ Dollar", cur_gbp:"£ Pound", cur_chf:"CHF Swiss franc",
+    th_green:"Green", th_dark:"Dark", th_light:"Light", th_blue:"Blue", th_cyber:"Cyberpunk", cur_eur:"€ Euro", cur_usd:"$ Dollar", cur_gbp:"£ Pound", cur_chf:"CHF Swiss franc",
     rp_saved:"✓ Report saved to Downloads (look for “mi-cartera-…png”)",
     rp_saved_notif:"📊 Monthly report saved to Downloads: {f}. Open it from your Files app or gallery.",
     ob_welcome:"Welcome 👋",
@@ -327,7 +327,7 @@ const LANG = {
     st_reduce_motion:"Reduce motion", st_reduce_motion_hint:"Removes slides and bounces: the app feels calmer and more direct. Useful if motion bothers you.",
     st_contrast:"More contrast", st_contrast_hint:"Boosts text contrast for easier reading.",
     st_theme_season:"Theme", st_theme_season_hint:"Changes colors and gently drifts a seasonal touch behind the cards (snow, leaves, sun…). Turn it off anytime.",
-    th_none:"None", th_mundial:"World Cup 🇪🇸", th_halloween:"Halloween 🎃", th_navidad:"Christmas 🎄", th_verano:"Summer ☀️", th_invierno:"Winter ❄️", th_pascua:"Easter 🐣",
+    th_none:"None", th_mundial:"World Cup 🇪🇸", th_halloween:"Halloween 🎃", th_navidad:"Christmas 🎄", th_verano:"Summer ☀️", th_invierno:"Winter ❄️", th_pascua:"Easter 🐣", th_otono:"Autumn 🍂", th_primavera:"Spring 🌸",
     st_expense_banks:"Daily-spending banks", st_expense_banks_hint:"Tick every bank whose card spending counts toward your daily budget (e.g. Trade Republic + Revolut on a trip). The spending balance still comes from the main one.",
     st_expense_banks_none:"No accounts to choose yet.",
     v4_shared_sub:"Household, partner and expense groups",
@@ -473,7 +473,7 @@ const LANG = {
     st_aicat:"Suggerir categoria (IA) a «Altres»", st_aicat_hint:"En apuntar una despesa, les paraules clau trien categoria soles. Si no saben i això està encès, l'IA et ofereix un xip (un toc). També ho pots demanar des d'una despesa ja desada. No s'envia l'import.",
     st_sentry:"Sentry (errors en prod)", st_sentry_test:"Envia error de prova", st_sentry_sent:"✓ Enviat a Sentry (mira Issues en uns segons)", st_sentry_hint:"Només tu veus aquest bloc (admin). Serveix per comprovar que els crashes arriben a Sentry; la resta d'usuaris no el veuen.",
     bp_empty_hint:"Aquí es connecten els teus bancs de debò (Open Banking): el saldo i els moviments entren sols. Els comptes amb saldo apuntat a mà viuen a Patrimoni — connectar el banc és opcional i ho pots fer quan vulguis.",
-    th_green:"Verd", th_dark:"Fosc", th_light:"Clar", th_blue:"Blau", cur_eur:"€ Euro", cur_usd:"$ Dòlar", cur_gbp:"£ Lliura", cur_chf:"CHF Franc suís",
+    th_green:"Verd", th_dark:"Fosc", th_light:"Clar", th_blue:"Blau", th_cyber:"Cyberpunk", cur_eur:"€ Euro", cur_usd:"$ Dòlar", cur_gbp:"£ Lliura", cur_chf:"CHF Franc suís",
     rp_saved:"✓ Informe desat a Baixades (busca «mi-cartera-…png»)",
     rp_saved_notif:"📊 Informe del mes desat a Baixades: {f}. Obre'l des de l'app d'Arxius o la galeria.",
     ob_welcome:"Benvingut/da 👋",
@@ -491,7 +491,7 @@ const LANG = {
     st_reduce_motion:"Reduir animacions", st_reduce_motion_hint:"Treu lliscaments i rebots: l'app va més sòbria i directa. Útil si et mareges.",
     st_contrast:"Més contrast", st_contrast_hint:"Puja el contrast del text perquè es llegeixi millor.",
     st_theme_season:"Temàtica", st_theme_season_hint:"Canvia els colors i deixa caure un detall molt suau per darrere de les cartilles (neu, fulles, sol…). Treu-lo quan vulguis.",
-    th_none:"Cap", th_mundial:"Mundial 🇪🇸", th_halloween:"Halloween 🎃", th_navidad:"Nadal 🎄", th_verano:"Estiu ☀️", th_invierno:"Hivern ❄️", th_pascua:"Pasqua 🐣",
+    th_none:"Cap", th_mundial:"Mundial 🇪🇸", th_halloween:"Halloween 🎃", th_navidad:"Nadal 🎄", th_verano:"Estiu ☀️", th_invierno:"Hivern ❄️", th_pascua:"Pasqua 🐣", th_otono:"Tardor 🍂", th_primavera:"Primavera 🌸",
     st_expense_banks:"Bancs de despesa diària", st_expense_banks_hint:"Marca tots els bancs les compres dels quals compten al teu pressupost diari (p. ex. Trade Republic + Revolut en un viatge). El saldo de despesa continua sortint del principal.",
     st_expense_banks_none:"Encara no tens comptes per triar.",
     v4_shared_sub:"Llar, parella i grups de despeses",
@@ -3276,19 +3276,21 @@ function applyA11y(s){
   applyContrast(!!(s&&s.settings&&s.settings.hiContrast));
   applySeason(s&&s.settings&&s.settings.season);
 }
-const THEMES=[["green","Verde","#5FD08A"],["dark","Oscuro","#3A3A40"],["light","Claro","#F2F4F2"],["blue","Azul","#7FB5E8"]];
+const THEMES=[["green","Verde","#5FD08A"],["dark","Oscuro","#3A3A40"],["light","Claro","#F2F4F2"],["blue","Azul","#7FB5E8"],["cyber","Cyberpunk","linear-gradient(135deg,#FF2E97,#3CE7FF)"]];
   // Temáticas de temporada seleccionables (id, emoji para el chip). El color base (claro/oscuro)
   // lo sigue mandando el tema de arriba; la temporada añade acentos + icono en títulos + ambientación
   // suave DETRÁS de las cartillas (`.season-amb` en shell.html). El pool viejo `SEASON_FX` (capa
   // encima + ráfagas al cambiar de tab) se retiró 2026-08-03; este es el suave de 2026-08-05.
-  const SEASONS=[["none","—"],["mundial","🇪🇸"],["halloween","🎃"],["navidad","🎄"],["verano","☀️"],["invierno","❄️"],["pascua","🐣"]];
+  const SEASONS=[["none","—"],["mundial","🇪🇸"],["halloween","🎃"],["navidad","🎄"],["verano","☀️"],["invierno","❄️"],["pascua","🐣"],["otono","🍂"],["primavera","🌸"]];
   const SEASON_AMB={
     mundial:["⚽","🇪🇸","🏆","⚽","🥅"],
     halloween:["🎃","👻","🦇","🍬","🕷️"],
     navidad:["❄️","🎄","⭐","🎁","❄️"],
     verano:["☀️","🌴","🌊","🍦","🐚"],
     invierno:["❄️","⛄","❄️","🧣","🌨️"],
-    pascua:["🐣","🥚","🐰","🌷","🌸"]
+    pascua:["🐣","🥚","🐰","🌷","🌸"],
+    otono:["🍂","🍁","🍄","🌰","🍁"],
+    primavera:["🌸","🌿","🦋","🌼","🌸"]
   };
 function loadState(){
   const saved = mcLoadRaw(mcStateKey());
