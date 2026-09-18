@@ -194,7 +194,7 @@ test("añadir efectivo abre Cuentas pero apuntar compras sigue en Apuntar",async
     {id:"cash",ent:"efectivo",value:80,role:"diario"},
     {id:"bank",ent:"sabadell",value:200,role:"diario"},
   ],expenses:[]});
-  for(const question of ["¿dónde apunto un gasto en efectivo?","where do I record a cash purchase"]){
+  for(const question of ["¿dónde apunto un gasto en efectivo?","where do I record a cash purchase","how do I add a cash expense","afegir una despesa en efectiu"]){
     await ask(dialog,question);
     await expect(dialog.getByTestId("help-cta")).toHaveText("Apuntar en efectivo");
   }
