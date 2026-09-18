@@ -44,6 +44,8 @@ assert.equal(ctx.helpCashWantsAccounts("¿dónde puedo añadir efectivo?"),true)
 assert.equal(ctx.helpCashWantsAccounts("on puc afegir efectiu?"),true);
 assert.equal(ctx.helpCashWantsAccounts("¿dónde apunto un gasto en efectivo?"),false);
 assert.equal(ctx.helpCashWantsAccounts("where do I record a cash purchase"),false);
+assert.equal(ctx.helpCashWantsAccounts("¿dónde saco efectivo?"),false);
+assert.equal(ctx.helpCashWantsAccounts("where do I withdraw cash?"),false);
 {
   const a=ctx.helpAnswerFromSnap("budget_left",{budget:1000,spent:250,remaining:750});
   assert.equal(a.cue,"help_cue_budget_left");
