@@ -88,7 +88,7 @@ const LANG = {
     tab_dash:"Inicio", tab_gastos:"Gastos", tab_plan:"Plan", tab_cartera:"Cartera", tab_fijos:"Fijos", tab_inv:"Inversiones", tab_patri:"Patrimonio", tab_debt:"Deudas", tab_compartido:"Compartido",
     tab_metas:"Metas", tab_logros:"Logros",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
-    v4_money_total:"Tu dinero en total", v4_this_month:"este mes", v4_of_month:"del mes",
+    v4_money_total:"Tu dinero en total", v4_of_month:"del mes",
     v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.",
     v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Tu primer mes empieza hoy", v4_hist_empty:"Tu histórico empieza hoy", v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_empty:"Nada pendiente este mes. Los recibos aparecen aquí.",
@@ -367,7 +367,7 @@ const LANG = {
     tab_dash:"Home", tab_gastos:"Spending", tab_plan:"Plan", tab_cartera:"Portfolio", tab_fijos:"Fixed", tab_inv:"Investments", tab_patri:"Net worth", tab_debt:"Debts", tab_compartido:"Shared",
     tab_metas:"Goals", tab_logros:"Achievements",
     v4_hola:"Hi, {n}", v4_hola_anon:"Hi",
-    v4_money_total:"All your money", v4_this_month:"this month", v4_of_month:"of month",
+    v4_money_total:"All your money", v4_of_month:"of month",
     v4_budget_spent:"You've spent {spent} of your {budget}.", v4_budget_daily:"You can spend {x}/day until month end.",
     v4_streak:"{n} months on track", v4_streak_zero:"Your first month starts today", v4_hist_empty:"Your history starts today", v4_nobud_t:"Set a monthly budget", v4_nobud_p:"It is half the app: without a monthly cap there is no way to know what you have left. You can change it whenever you want.", v4_nobud_cta:"Set a budget", v4_noup_t:"No bills yet", v4_noup_p:"Connect your bank and this month's bills show up on their own, with day and amount.", v4_noup_cta:"Connect your bank", v4_nogoal_t:"Set your first goal", v4_nogoal_p:"A trip, a safety net, anything: the app tells you how much is missing and when you get there.", v4_nogoal_cta:"Create a goal", v4_see_gastos:"See spending ›", v4_see_plan:"See plan ›",
     v4_upcoming:"Upcoming", v4_upcoming_empty:"Nothing pending this month. Bills show up here.",
@@ -633,7 +633,7 @@ const LANG = {
     tab_dash:"Inici", tab_gastos:"Despeses", tab_plan:"Pla", tab_cartera:"Cartera", tab_fijos:"Fixes", tab_inv:"Inversions", tab_patri:"Patrimoni", tab_debt:"Deutes", tab_compartido:"Compartit",
     tab_metas:"Metes", tab_logros:"Assoliments",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
-    v4_money_total:"Els teus diners en total", v4_this_month:"aquest mes", v4_of_month:"del mes",
+    v4_money_total:"Els teus diners en total", v4_of_month:"del mes",
     v4_budget_spent:"Has gastat {spent} dels teus {budget}.", v4_budget_daily:"Pots gastar {x}/dia fins a fi de mes.",
     v4_streak:"{n} mesos sense passar-te", v4_streak_zero:"El teu primer mes comença avui", v4_hist_empty:"El teu històric comença avui", v4_nobud_t:"Posa-li un pressupost", v4_nobud_p:"És la meitat de l'app: sense un límit al mes no es pot saber quant et queda. El pots canviar quan vulguis.", v4_nobud_cta:"Posa-li un pressupost", v4_noup_t:"Encara no hi ha rebuts", v4_noup_p:"Connecta el teu banc i els rebuts del mes apareixen sols, amb el seu dia i el seu import.", v4_noup_cta:"Connecta el teu banc", v4_nogoal_t:"Posa't el teu primer objectiu", v4_nogoal_p:"Un viatge, un coixí, el que sigui: l'app et diu quant falta i quan hi arribes.", v4_nogoal_cta:"Crear un objectiu", v4_see_gastos:"Veure despeses ›", v4_see_plan:"Veure pla ›",
     v4_upcoming:"Pròxims càrrecs", v4_upcoming_empty:"Res pendent aquest mes. Els rebuts surten aquí.",
@@ -1026,7 +1026,7 @@ Object.assign(LANG.es,{
   rl_hint:"«Recibos» = pagos fijos (luz, cuotas…). «Gasto diario» = compras del día a día (presupuesto y round-up; la primera cuenta marcada es la principal). «Todo» = ambas en la misma. Varios bancos de tarjeta: pon «Gasto diario» o «Todo» en cada uno. Al cambiar el rol, el saldo mostrado se conserva.",
   ob_imported:"🏦 {n} compras con tarjeta añadidas a Gastos",
   rp_btn:"📸 Informe del mes (imagen)", rp_spent:"Gastado este mes", rp_of_budget:"de {b} de presupuesto ({p}%)",
-  rp_top:"Top categorías", rp_networth:"Patrimonio", rp_delta:"{x} este mes", rp_footer:"hecho con Aely",
+  rp_top:"Top categorías", rp_networth:"Patrimonio", rp_footer:"hecho con Aely",
   mr_title:"Así acabó {mes}", mr_sub:"Resumen del mes que acaba de cerrar. Compártelo o descártalo como imagen.",
   mr_share:"📸 Crear imagen del informe", mr_later:"Descartar", mr_shared:"✓ Informe listo para compartir",
   mr_top:"Más gasto: {cat} ({x})", mr_saved:"Ahorraste {x}", mr_over:"Gastaste {x} más de lo que entró",
@@ -1073,7 +1073,7 @@ Object.assign(LANG.en,{
   rl_hint:"“Bills” = fixed payments (utilities, instalments…). “Daily spending” = day-to-day purchases (budget and round-up; the first marked account is the main one). “Everything” = both in the same account. Several card banks: set “Daily spending” or “Everything” on each. Switching roles keeps the shown balance.",
   ob_imported:"🏦 {n} card purchases added to Spending",
   rp_btn:"📸 Month report (image)", rp_spent:"Spent this month", rp_of_budget:"of {b} budget ({p}%)",
-  rp_top:"Top categories", rp_networth:"Net worth", rp_delta:"{x} this month", rp_footer:"made with Aely",
+  rp_top:"Top categories", rp_networth:"Net worth", rp_footer:"made with Aely",
   mr_title:"How {mes} ended", mr_sub:"Summary of the month that just closed. Share it or save it as an image.",
   mr_share:"📸 Create report image", mr_later:"Dismiss", mr_shared:"✓ Report ready to share",
   mr_top:"Top spend: {cat} ({x})", mr_saved:"You saved {x}", mr_over:"You spent {x} more than came in",
@@ -1120,7 +1120,7 @@ Object.assign(LANG.ca,{
   rl_hint:"«Rebuts» = pagaments fixos (llum, quotes…). «Despesa diària» = compres del dia a dia (pressupost i round-up; el primer compte marcat és el principal). «Tot» = les dues al mateix. Diversos bancs de targeta: posa «Despesa diària» o «Tot» a cadascun. En canviar el rol, el saldo mostrat es conserva.",
   ob_imported:"🏦 {n} compres amb targeta afegides a Despeses",
   rp_btn:"📸 Informe del mes (imatge)", rp_spent:"Gastat aquest mes", rp_of_budget:"de {b} de pressupost ({p}%)",
-  rp_top:"Top categories", rp_networth:"Patrimoni", rp_delta:"{x} aquest mes", rp_footer:"fet amb Aely",
+  rp_top:"Top categories", rp_networth:"Patrimoni", rp_footer:"fet amb Aely",
   mr_title:"Així va acabar {mes}", mr_sub:"Resum del mes que acaba de tancar. Comparteix-lo o desa'l com a imatge.",
   mr_share:"📸 Crear imatge de l'informe", mr_later:"Descartar", mr_shared:"✓ Informe llest per compartir",
   mr_top:"Més despesa: {cat} ({x})", mr_saved:"Has estalviat {x}", mr_over:"Has gastat {x} més del que va entrar",
@@ -2233,7 +2233,7 @@ Object.assign(LANG.es,{
   gm_retos:"Retos del mes", gm_logros:"Logros",
   gm_reto_budget:"Mes bajo presupuesto", gm_reto_budget_ok:"Te quedan {x} de margen 🟢", gm_reto_budget_over:"Te has pasado {x} 🔴", gm_reto_budget_done:"¡Mes cerrado bajo presupuesto! 🏆",
   gm_reto_roundup:"Reto round-up", gm_reto_roundup_sub:"{x} de {y} este mes", gm_reto_done:"✓ Conseguido",
-  gm_streak:"🔥 {n} meses seguidos bajo presupuesto", gm_streak_1:"🔥 1 mes bajo presupuesto", gm_streak_none:"Aún sin racha · cierra un mes bajo presupuesto", gm_streak_best:"Mejor racha: {n}",
+  gm_streak:"{n} meses seguidos bajo presupuesto", gm_streak_1:"1 mes bajo presupuesto", gm_streak_none:"Aún sin racha · cierra un mes bajo presupuesto", gm_streak_best:"Mejor racha: {n}",
   gm_locked:"Pendiente", gm_levelup:"🎉 ¡Subiste al nivel {n}!", gm_badge_new:"🏅 Logro: {x}",
   gm_b_first_goal:"1ª meta cumplida", gm_b_first_underbudget:"1er mes bajo presupuesto", gm_b_first_reto:"1er reto completado", gm_b_streak_3:"Racha de 3 meses",
   gm_b_save_100:"100 € ahorrado", gm_b_save_500:"500 € ahorrado", gm_b_save_1000:"1.000 € ahorrado", gm_b_save_5000:"5.000 € ahorrado",
@@ -2277,7 +2277,7 @@ Object.assign(LANG.en,{
   gm_retos:"Monthly challenges", gm_logros:"Achievements",
   gm_reto_budget:"Month under budget", gm_reto_budget_ok:"{x} margin left 🟢", gm_reto_budget_over:"{x} over 🔴", gm_reto_budget_done:"Month closed under budget! 🏆",
   gm_reto_roundup:"Round-up challenge", gm_reto_roundup_sub:"{x} of {y} this month", gm_reto_done:"✓ Done",
-  gm_streak:"🔥 {n} months in a row under budget", gm_streak_1:"🔥 1 month under budget", gm_streak_none:"No streak yet · close a month under budget", gm_streak_best:"Best streak: {n}",
+  gm_streak:"{n} months in a row under budget", gm_streak_1:"1 month under budget", gm_streak_none:"No streak yet · close a month under budget", gm_streak_best:"Best streak: {n}",
   gm_locked:"Pending", gm_levelup:"🎉 You reached level {n}!", gm_badge_new:"🏅 Achievement: {x}",
   gm_b_first_goal:"1st goal reached", gm_b_first_underbudget:"1st month under budget", gm_b_first_reto:"1st challenge done", gm_b_streak_3:"3-month streak",
   gm_b_save_100:"€100 saved", gm_b_save_500:"€500 saved", gm_b_save_1000:"€1,000 saved", gm_b_save_5000:"€5,000 saved",
@@ -2321,7 +2321,7 @@ Object.assign(LANG.ca,{
   gm_retos:"Reptes del mes", gm_logros:"Assoliments",
   gm_reto_budget:"Mes sota pressupost", gm_reto_budget_ok:"Et queden {x} de marge 🟢", gm_reto_budget_over:"T'has passat {x} 🔴", gm_reto_budget_done:"Mes tancat sota pressupost! 🏆",
   gm_reto_roundup:"Repte round-up", gm_reto_roundup_sub:"{x} de {y} aquest mes", gm_reto_done:"✓ Aconseguit",
-  gm_streak:"🔥 {n} mesos seguits sota pressupost", gm_streak_1:"🔥 1 mes sota pressupost", gm_streak_none:"Encara sense ratxa · tanca un mes sota pressupost", gm_streak_best:"Millor ratxa: {n}",
+  gm_streak:"{n} mesos seguits sota pressupost", gm_streak_1:"1 mes sota pressupost", gm_streak_none:"Encara sense ratxa · tanca un mes sota pressupost", gm_streak_best:"Millor ratxa: {n}",
   gm_locked:"Pendent", gm_levelup:"🎉 Has pujat al nivell {n}!", gm_badge_new:"🏅 Assoliment: {x}",
   gm_b_first_goal:"1r objectiu assolit", gm_b_first_underbudget:"1r mes sota pressupost", gm_b_first_reto:"1r repte completat", gm_b_streak_3:"Ratxa de 3 mesos",
   gm_b_save_100:"100 € estalviats", gm_b_save_500:"500 € estalviats", gm_b_save_1000:"1.000 € estalviats", gm_b_save_5000:"5.000 € estalviats",
@@ -3275,16 +3275,37 @@ function detectSubscriptions(expenses){
   });
   return subs.sort(function(a,b){ return b.amount-a.amount; });
 }
-// Racha de meses CERRADOS consecutivos bajo presupuesto + mejor racha histórica.
-function underBudgetStreak(expenses, budget){
-  if(!budget||budget<=0) return {current:0,best:0,ever:false};
+/* Presupuesto por mes: no se usa el tope actual para juzgar meses antiguos. Antes ese atajo
+   convertía cualquier cambio de presupuesto en una racha falsa (feedback 18/9). */
+function budgetYmKey(nowMs){
+  return madridYmdParts(nowMs!=null?nowMs:Date.now()).ym;
+}
+function ensureBudgetMonthSnap(state,nowMs){
+  const b=Number(state&&state.budget)||0,k=budgetYmKey(nowMs),old=(state&&state.budgetByMonth)||{};
+  if(!(b>0)||old[k]!=null) return null;
+  const map=Object.assign({},old); map[k]=b;
+  return {budgetByMonth:map};
+}
+function underBudgetStreak(expenses, budgetByMonth, nowMs){
+  const budgets=budgetByMonth||{};
   const sb=spendByMonth(expenses);
-  const now=new Date(); const curKey=mk(now.getFullYear(),now.getMonth());
-  const keys=Object.keys(sb).filter(function(k){ return k<curKey; }).sort();   // meses cerrados, ascendente
-  let best=0,run=0,ever=false;
-  keys.forEach(function(k){ if(sb[k]<=budget){ run++; if(run>best)best=run; ever=true; } else run=0; });
-  let cur=0; for(let i=keys.length-1;i>=0;i--){ if(sb[keys[i]]<=budget) cur++; else break; }
-  return {current:cur,best:best,ever:ever};
+  const num=function(k){ return +k.slice(0,4)*12 + +k.slice(5)-1; };
+  const curNum=num(budgetYmKey(nowMs));
+  const keys=Object.keys(budgets).filter(function(k){ return num(k)<curNum; }).sort(function(a,b){ return num(a)-num(b); });
+  let best=0,run=0,prev=null;
+  keys.forEach(function(k){
+    const n=num(k), bud=Number(budgets[k]);
+    if(prev==null||n!==prev+1) run=0;
+    if(bud>0&&(+sb[k]||0)<=bud+.005){ run++; best=Math.max(best,run); } else run=0;
+    prev=n;
+  });
+  let cur=0,n=curNum-1;
+  while(cur<120){
+    const k=mk(Math.floor(n/12),n%12), bud=Number(budgets[k]);
+    if(!(bud>0)||(+sb[k]||0)>bud+.005) break;
+    cur++; n--;
+  }
+  return {current:cur,best:best,ever:best>0};
 }
 // Estado completo de gamificación (puro, sin efectos).
 function gamifOf(state, totals){
@@ -3302,7 +3323,7 @@ function gamifOf(state, totals){
   const ruCur=+(((tt.roundupThisMonth||0)+(tt.savebackThisMonth||0))).toFixed(2);
   const budgetReto={ id:"budget", spent:spent, budget:budget, margin:+(budget-spent).toFixed(2), done:budget>0&&spent<=budget, pct: budget>0?Math.min(100,spent/budget*100):0 };
   const ruReto={ id:"roundup", cur:ruCur, goal:RU_GOAL, done:ruCur>=RU_GOAL, pct:Math.min(100,ruCur/RU_GOAL*100) };
-  const streak=underBudgetStreak(state.expenses, budget);
+  const streak=underBudgetStreak(state.expenses, state.budgetByMonth);
   const anyGoalDone=goals.some(function(g){return g.done;});
   const badges=[
     {id:"first_goal", unlocked:anyGoalDone},
@@ -3374,7 +3395,7 @@ function buildEmpty(){
   return {
     fx: 0.92, budget: 0, monthStartNet: 0, history: [],
     accounts: [], investments: [], assets: [], debts: [], fixed: [], flows: [], oneoffs: [], aportaciones: [],
-    expenses: [], goals: [], shared: [], catOverrides: {}, obAccounts: [], obLabels: {}, verNotes: [], streak: 0,
+    expenses: [], goals: [], shared: [], catOverrides: {}, obAccounts: [], obLabels: {}, verNotes: [],
     tourSeen: false,   // usuario nuevo → tour de bienvenida tras el onboarding
     setupHint: true,   // tarjeta «primeros pasos» en el Resumen hasta que la cierren
     settings: { autoPrices:false },
@@ -3402,7 +3423,6 @@ function buildInitial(){
     shared: [],
     obAccounts: [],
     obLabels: {},
-    streak: 4,
     settings: { autoPrices:false },
     lastSync: null,
     lastPriceSync: null,

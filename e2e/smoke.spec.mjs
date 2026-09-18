@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { seedLoggedInDashboard } from "./fixtures.mjs";
 
 test("arranca y muestra la marca", async ({ page }) => {
   await page.goto("/");
@@ -15,4 +16,18 @@ test("onboarding o dashboard visible", async ({ page }) => {
   const onboarding = page.getByText(/Bienvenido\/a|Welcome|Benvingut\/da/i);
   const dash = page.locator(".botnav");
   await expect(onboarding.or(dash)).toBeVisible({ timeout: 15_000 });
+});
+
+test("Inicio no inventa una ganancia mensual ni hereda la racha antigua", async ({ page }) => {
+  await seedLoggedInDashboard(page,{
+    monthStartNet:-9000,
+    streak:99,
+    budgetByMonth:{},
+  });
+  await page.goto("/");
+  await expect(page.locator('[data-tour="hero"]')).toBeVisible({timeout:15_000});
+  await expect(page.locator('[data-tour="hero"] .v4-pill')).toHaveCount(0);
+  const streak=page.getByTestId("dash-budget-streak");
+  await expect(streak).toHaveText("Tu primer mes empieza hoy");
+  await expect(streak).not.toContainText("🔥");
 });

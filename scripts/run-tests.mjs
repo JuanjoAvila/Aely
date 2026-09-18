@@ -81,6 +81,7 @@ const steps = [
   ["bank-sync-paging", ["node", "tests/bank-sync-paging.test.mjs"]],
   ["reserva-dinero", ["node", "tests/reserva-dinero.test.mjs"]],
   ["month-budget-stats", ["node", "tests/month-budget-stats.test.mjs"]],
+  ["dash-metricas", ["node", "tests/dash-metricas.test.mjs"]],
   ["informe-mes", ["node", "tests/informe-mes.test.mjs"]],
   ["presupuesto-categoria", ["node", "tests/presupuesto-categoria.test.mjs"]],
   ["month-window", ["node", "tests/month-window.test.mjs"]],

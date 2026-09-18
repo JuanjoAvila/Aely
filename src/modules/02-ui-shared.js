@@ -244,14 +244,11 @@ function shareMonthReport(state, tt, showToast, opt){
       y+=112;
     });
     if(!top.length){ g.fillStyle=muted; g.font="600 30px Manrope, sans-serif"; g.fillText("—", 72, y); y+=80; }
-    // tarjeta: patrimonio + delta del mes
+    // Tarjeta de patrimonio. El delta mensual se retiró: sin foto real del día 1 era engañoso.
     const py=Math.max(y+30, 1030);
     g.fillStyle=surface; round(72,py,W-144,190,28); g.fill(); g.strokeStyle=line; round(72,py,W-144,190,28); g.stroke();
     g.fillStyle=muted; g.font="700 27px Manrope, sans-serif"; g.fillText(t("rp_networth").toUpperCase(), 116, py+38);
     g.fillStyle=text;  g.font="700 64px Manrope, sans-serif"; g.fillText(eur0(tt.netWorth), 112, py+80);
-    const dl=(tt.delta>=0?"+":"")+eur0(tt.delta);
-    g.textAlign="right"; g.fillStyle=tt.delta>=0?mint:coral; g.font="700 34px Manrope, sans-serif";
-    g.fillText(tf("rp_delta",{x:dl}), W-108, py+95); g.textAlign="left";
     g.fillStyle=muted; g.font="600 26px Manrope, sans-serif"; g.fillText(t("rp_footer")+" · v"+CONFIG.APP_VERSION, 72, H-72);
     cv.toBlob(function(b){
       if(!b){ if(showToast) showToast("✕ Informe: canvas vacío"); return; }
