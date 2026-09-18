@@ -60,6 +60,13 @@ test("★ el filtro tiene un chip por deuda y cada uno enseña solo su cuota", a
   await expect(fila(page, "Amazon")).toContainText("Deudas");
 
   await abreFiltros(page);
+  const categoriesToggle = page.locator('.v4-sheet .v4-filter-cats-toggle');
+  await expect(categoriesToggle).toHaveAttribute("aria-expanded", "false");
+  await expect(page.locator('#gastos-filter-cats-body')).toHaveAttribute("aria-hidden", "true");
+  await expect(page.locator('#gastos-filter-cats-body')).toHaveCSS("visibility", "hidden");
+  await categoriesToggle.click();
+  await expect(categoriesToggle).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator('#gastos-filter-cats-body')).toHaveCSS("visibility", "visible");
   const chips = page.locator('.v4-sheet [data-testid="filtro-deudas"] button.v4-chip');
   await expect(chips).toHaveCount(2);
   // La cuota elegida vive en Sabadell, fuera del default de gasto diario: ampliar primero a todos.
@@ -97,6 +104,7 @@ test("sin deudas no sale la sección ni la categoría «Deudas»", async ({ page
   await seedLoggedInDashboard(page, { accounts, settings, expenses, debts: [], budget: 1000 });
   await abreGastos(page);
   await abreFiltros(page);
+  await page.locator('.v4-sheet .v4-filter-cats-toggle').click();
   await expect(page.locator('.v4-sheet [data-testid="filtro-deudas"]')).toHaveCount(0);
   await expect(page.locator('.v4-sheet button.v4-chip:has-text("💳")')).toHaveCount(0);
 });

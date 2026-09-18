@@ -768,8 +768,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
                      : (catBreakdown.length===1 ? t("v4_gastos_cats_n1") : tf("v4_gastos_cats_n",{n:catBreakdown.length}))),
           React.createElement("span",{className:"v4-gastos-cats-fold"},
             (catsOpen?"▾ ":"▸ ")+t(catsOpen?"v4_gastos_cats_hide":"v4_gastos_cats_show"))),
-        React.createElement("div",{id:"gastos-cats-body",hidden:!catsOpen},
-        catBreakdown.map(function(row){
+        React.createElement("div",{id:"gastos-cats-body",className:"v4-gastos-cats-body"+(catsOpen?" abierto":""),"aria-hidden":!catsOpen},
+        React.createElement("div",{className:"v4-gastos-cats-inner"},catBreakdown.map(function(row){
           const cat=catOf(row.id);
           const lim=row.limit;
           const pct=lim>0?Math.min(100, row.spent/lim*100):0;
@@ -784,7 +784,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
                   React.createElement("div",{className:"bar",role:"progressbar","aria-valuemin":0,"aria-valuemax":lim,"aria-valuenow":row.spent},
                     React.createElement("i",{style:{width:pct+"%",background:cat.color||"var(--mint)"}})))
               : null);
-        }))
+        })))
       )
     ),
     React.createElement("div",{className:"filters"},
@@ -985,7 +985,10 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
   useBackClose(!!open, onClose);
   const swipe=useSheetSwipe(!!open, onClose);
   const [qCat,setQCat]=useState("");
-  useEffect(function(){ if(!open) setQCat(""); },[open]);
+  const [filterCatsOpen,setFilterCatsOpen]=useState(false);
+  useEffect(function(){
+    if(open){ setQCat(""); setFilterCatsOpen(false); }
+  },[open]);
   if(!open) return null;
   /* Sin deudas no sale ni la categoría «Deudas» ni su sección (apunte de Cursor al brief). */
   const debtList=(debts||[]).filter(function(d){ return d && d.id; });
@@ -1024,11 +1027,6 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement("div",{className:"serif",style:{fontSize:22,fontWeight:550,marginBottom:6}}, t("g_filters")),
         React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",lineHeight:1.45,marginBottom:12}}, t("g_filters_hint")),
-        React.createElement("div",Object.assign({className:"searchbar",style:{marginBottom:14}},{}),
-          React.createElement("span",{className:"searchbar-ic"},"🔍"),
-          React.createElement("input",{className:"searchbar-in",type:"search",placeholder:t("g_filters_search"),value:qCat,onChange:function(e){ setQCat(e.target.value); }}),
-          qCat && React.createElement("button",{className:"searchbar-x",type:"button",onClick:function(){ setQCat(""); }},"✕")
-        ),
         /* «Qué contar» va PRIMERO y sin buscador: son cuatro y es lo que él vino a separar
            («hay bastante caos entre gastos que cuentan, ingresos y movimientos que no cuentan»).
            Las categorías y los bancos siguen debajo, igual que siempre. */
@@ -1048,29 +1046,47 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
               p[1]+" "+t("g_bk_"+p[0]));
           })
         ),
-        React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_filters_cats")),
-        React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}},
-          React.createElement("button",{type:"button",className:"v4-chip"+(sel.length===0?" on":""),onClick:function(){ setSel([]); }}, t("g_allcats")),
-          cats.map(function(c){
-            return React.createElement("button",{key:c.id,type:"button",className:"v4-chip"+(sel.indexOf(c.id)!==-1?" on":""),onClick:function(){ toggleCat(c.id); }},
-              c.icon+" "+catName(c.id));
-          })
-        ),
-        /* Un chip por deuda: se crean y desaparecen solos con las deudas del Plan (4.21.0). */
-        (function(){
-          const ds=needle ? debtList.filter(function(d){ return String(d.name||"").toLowerCase().indexOf(needle)!==-1; }) : debtList;
-          if(!ds.length) return null;
-          return React.createElement(React.Fragment,null,
-            React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_filters_debts")),
-            React.createElement("div",{"data-testid":"filtro-deudas",style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}},
-              ds.map(function(d){
-                const k="debt:"+d.id;
-                return React.createElement("button",{key:k,type:"button",className:"v4-chip"+(sel.indexOf(k)!==-1?" on":""),onClick:function(){ toggleCat(k); }},
-                  DEUDA_CAT.icon+" "+(d.name||catName("deudas")));
-              })
+        /* Las categorías son la lista larga del filtro. Cerradas dejan una sola fila y el número
+           activo; así bancos y «Qué contar» siguen a mano sin obligar a atravesar veinte chips. */
+        React.createElement("div",{className:"v4-filter-cats"+(filterCatsOpen?" abierto":"")},
+          React.createElement("button",{type:"button",className:"v4-filter-cats-toggle","aria-expanded":filterCatsOpen,
+              "aria-controls":"gastos-filter-cats-body",onClick:function(){ setFilterCatsOpen(function(v){ return !v; }); }},
+            React.createElement("span",null,t("g_filters_cats")),
+            React.createElement("span",{className:"v4-filter-cats-state"},
+              (sel.length ? tf(sel.length===1?"g_filters_cat_active_one":"g_filters_cat_active",{n:sel.length}) : t("g_filters_cat_none"))+" "+(filterCatsOpen?"▾":"▸"))
+          ),
+          React.createElement("div",{id:"gastos-filter-cats-body",className:"v4-filter-cats-body","aria-hidden":!filterCatsOpen},
+            React.createElement("div",{className:"v4-filter-cats-inner"},
+              React.createElement("div",{className:"searchbar",style:{marginBottom:12}},
+                React.createElement("span",{className:"searchbar-ic"},"🔍"),
+                React.createElement("input",{className:"searchbar-in",type:"search",placeholder:t("g_filters_search"),value:qCat,onChange:function(e){ setQCat(e.target.value); }}),
+                qCat && React.createElement("button",{className:"searchbar-x",type:"button",onClick:function(){ setQCat(""); }},"✕")
+              ),
+              React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}},
+                React.createElement("button",{type:"button",className:"v4-chip"+(sel.length===0?" on":""),onClick:function(){ setSel([]); }}, t("g_allcats")),
+                cats.map(function(c){
+                  return React.createElement("button",{key:c.id,type:"button",className:"v4-chip"+(sel.indexOf(c.id)!==-1?" on":""),onClick:function(){ toggleCat(c.id); }},
+                    c.icon+" "+catName(c.id));
+                })
+              ),
+              /* Un chip por deuda: se crean y desaparecen solos con las deudas del Plan (4.21.0). */
+              (function(){
+                const ds=needle ? debtList.filter(function(d){ return String(d.name||"").toLowerCase().indexOf(needle)!==-1; }) : debtList;
+                if(!ds.length) return null;
+                return React.createElement(React.Fragment,null,
+                  React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_filters_debts")),
+                  React.createElement("div",{"data-testid":"filtro-deudas",style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}},
+                    ds.map(function(d){
+                      const k="debt:"+d.id;
+                      return React.createElement("button",{key:k,type:"button",className:"v4-chip"+(sel.indexOf(k)!==-1?" on":""),onClick:function(){ toggleCat(k); }},
+                        DEUDA_CAT.icon+" "+(d.name||catName("deudas")));
+                    })
+                  )
+                );
+              })()
             )
-          );
-        })(),
+          )
+        ),
         bankOpts.length>0 && React.createElement(React.Fragment,null,
           React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_filters_banks")),
           React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}},

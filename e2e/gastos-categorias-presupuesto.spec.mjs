@@ -119,12 +119,17 @@ test("★ plegarlo deja UNA línea, y dice cuántas categorías esconde", async 
   await gastosSembrado(page);
   const bloque = page.locator('[data-testid="gastos-cats"]');
   const cab = bloque.locator(".v4-gastos-cats-h");
+  const cuerpo = bloque.locator(".v4-gastos-cats-body");
   const cuantas = await bloque.locator(".v4-gastos-cat").count();
   expect(cuantas).toBeGreaterThan(0);
+  expect(await cuerpo.evaluate((el) => getComputedStyle(el).transitionProperty)).toContain("grid-template-rows");
 
   await cab.click();
   await expect(cab).toHaveAttribute("aria-expanded", "false");
-  await expect(bloque.locator(".v4-gastos-cat").first()).toBeHidden();
+  await expect(cuerpo).toHaveAttribute("aria-hidden", "true");
+  await expect(cuerpo).toHaveCSS("visibility", "hidden");
+  await expect(cuerpo).not.toHaveAttribute("hidden", "");
+  await expect.poll(async () => cuerpo.evaluate((el) => el.getBoundingClientRect().height)).toBe(0);
   // Plegado no puede quedarse mudo: tiene que decir qué hay debajo, o parece que se ha perdido.
   await expect(bloque.locator(".v4-gastos-cats-t")).toContainText(String(cuantas));
   await expect(bloque.locator(".v4-gastos-cats-fold")).toContainText(/Ver/i);
