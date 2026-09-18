@@ -547,7 +547,7 @@ function Achievements({state, totals}){
       ),
       React.createElement("div",{className:"gm-badges"}, gm.badges.map(function(b){
         return React.createElement("div",{key:b.id,className:"gm-badge"+(b.unlocked?" on":""),title:b.unlocked?t("gm_b_"+b.id):t("gm_locked")},
-          React.createElement("span",{className:"gm-badge-ic"}, b.unlocked?"🏅":"🔒"),
+          React.createElement("span",{className:"gm-badge-ic"}, b.unlocked?"🏅":"○"),
           React.createElement("span",{className:"gm-badge-lbl"}, t("gm_b_"+b.id))
         );
       }))

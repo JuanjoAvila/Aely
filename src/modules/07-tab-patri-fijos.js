@@ -156,7 +156,7 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
                 React.createElement("div",{className:"v4-account-spark-foot"},
                   React.createElement("span",null,new Date(history[0].day+"T12:00:00").toLocaleDateString(loc(),{day:"numeric",month:"short"})),React.createElement("span",null,t("ac_spark_to"))))
             : React.createElement("div",{className:"v4-account-spark-new"},t("ac_spark_new")),
-          conectada && React.createElement("div",{className:"v4-account-lock"},"🔒 "+t("pt_ficha_banco")+(a.lastSync?" · "+tf("pt_ficha_sync",{x:new Date(a.lastSync).toLocaleString()}):""))
+          conectada && React.createElement("div",{className:"v4-account-lock"},t("pt_ficha_banco")+(a.lastSync?" · "+tf("pt_ficha_sync",{x:new Date(a.lastSync).toLocaleString()}):""))
         ),
         React.createElement("div",{className:"v4-account-actions"},
           !conectada && React.createElement("button",{type:"button",className:"v4-account-action"+(corrigiendo?" on":""),onClick:function(){

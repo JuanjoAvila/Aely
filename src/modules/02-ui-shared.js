@@ -1243,7 +1243,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),
           "aria-label":t("f_amount_aria"),onClick:locked?onLocked:undefined},amount),
         React.createElement("button",{type:"button",className:"v4-ficha-currency"+(locked?" locked":""),
-          onClick:locked?onLocked:onCurrency},currency+(locked?" 🔒":" ▾"))),
+          onClick:locked?onLocked:onCurrency},currency+(locked?"":" ▾"))),
       React.createElement("div",{className:"v4-ficha-focus"+(focused?" on":"")}),
       fxHint && React.createElement("div",{className:"v4-ficha-fx"},fxHint),
       React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
@@ -1252,7 +1252,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         return React.createElement("button",{key:m.id,type:"button",disabled:!!m.disabled,
           className:"v4-ficha-meta-pill"+(m.on?" on":"")+(m.locked?" locked":"")+(m.disabled?" disabled":""),
           "data-testid":m.testId,onClick:m.disabled?undefined:(m.locked?onLocked:m.onClick)},m.lead||null,
-          React.createElement("span",null,m.label),m.locked?React.createElement("span",{"aria-hidden":"true"},"🔒"):null);
+          React.createElement("span",null,m.label));
       })),
       afterMeta||null,
       !isIn && React.createElement(React.Fragment,null,

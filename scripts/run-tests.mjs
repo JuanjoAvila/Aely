@@ -68,6 +68,7 @@ const steps = [
   ["move-account", ["node", "tests/move-account.test.mjs"]],
   ["merge-expenses-cloud", ["node", "tests/merge-expenses-cloud.test.mjs"]],
   ["security", ["node", "tests/security.test.mjs"]],
+  ["no-lock-icons", ["node", "tests/no-lock-icons.test.mjs"]],
   ["webdebug-guard", ["node", "tests/webdebug-guard.test.mjs"]],
   ["gastos-active-bus", ["node", "tests/gastos-active-bus.test.mjs"]],
   ["budget-notis-deps", ["node", "tests/budget-notis-deps.test.mjs"]],

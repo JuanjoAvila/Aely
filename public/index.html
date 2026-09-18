@@ -4647,7 +4647,7 @@ const LANG = {
     ap_bank:"Banco", ap_bank_none:"Sin banco", ap_date:"Fecha",
     cal_today:"Hoy", cal_prev:"Mes anterior", cal_next:"Mes siguiente",
     bk_issue:"⚠ {bank} necesita tu permiso otra vez", bk_issue_sub:"El permiso de lectura caducó (obligatorio cada ~3 meses): el saldo puede estar desfasado. Un toque y listo.",
-    bk_issue_cta:"🔓 Reconectar {bank}", bk_tr_dead:"⚠ Trade Republic (inversiones): sesión caducada",
+    bk_issue_cta:"Reconectar {bank}", bk_tr_dead:"⚠ Trade Republic (inversiones): sesión caducada",
     // Aviso al sincronizar con algún banco caído (petición 2026-07-24): sale como notificación de
     // verdad y al tocarla lleva a Cartera → Mis bancos, que era lo que no se encontraba.
     bk_notif_title:"Un banco necesita que lo reconectes",
@@ -4659,11 +4659,11 @@ const LANG = {
     bk_issue_pending:"⚠ {bank} se quedó a medio conectar", bk_issue_pending_sub:"Empezaste a conectarlo pero el banco no llegó a dar el permiso, así que no trae ni saldo ni movimientos. Vuelve a intentarlo desde aquí.", bk_notif_pending:"{bank} no llegó a conectarse · toca para terminar",
     bk_issue_noacct:"⚠ {bank} está conectado a medias", bk_issue_noacct_sub:"El enlace existe pero el banco no da ninguna cuenta. Vuelve a conectarlo y elige las cuentas que quieres ver.",
     bk_tr_sub:"Su sesión caducó: las posiciones y el efectivo no se actualizan. Se reconecta aquí, en la app (PIN + código SMS) — no en la app de Trade Republic.",
-    bk_tr_cta:"🔓 Reconectar Trade Republic",
+    bk_tr_cta:"Reconectar Trade Republic",
     bk_tr_ob:"⚠ Trade Republic (banco): permiso caducado",
     bk_tr_ob_noacct:"⚠ Trade Republic (banco): no devuelve ninguna cuenta",
     bk_tr_ob_sub:"Esto es la conexión de BANCO, la que trae tus compras con tarjeta. Se renueva entrando en Trade Republic desde aquí. Tus posiciones y tu efectivo van por otro camino y no se ven afectados.",
-    bk_tr_ob_cta:"🔓 Renovar el permiso del banco",
+    bk_tr_ob_cta:"Renovar el permiso del banco",
     v4_acc_locked:"El saldo de las cuentas conectadas lo trae el banco solo; el nombre y el rol sí puedes cambiarlos.",
     v4_sel_partial:"Seleccionado", v4_edit_goods:"Editar bienes",
     v4_gestionar_h:"Edita fijos, cuotas, flujos y conciliación del banco — sin llenar la vista diaria.",
@@ -4700,7 +4700,7 @@ const LANG = {
     f_cat_all:"Las {n} ›", f_cat_all_title:"Todas las categorías", f_meta_cash:"Efectivo", f_meta_today:"Hoy",
     f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingreso de {x}", f_autosaved:"Se guarda al momento ✓", f_del:"Borrar gasto",
     f_note_row:"Nota", f_note_none:"Sin nota", f_debt_row:"Es la cuota de una deuda", f_income_row:"Es un ingreso, no un gasto", f_no:"No",
-    f_from_bank:"Lo trajo una notificación de {bank}", f_from_bank_sub:"{date} · «{raw}» · importe y banco bloqueados 🔒",
+    f_from_bank:"Lo trajo una notificación de {bank}", f_from_bank_sub:"{date} · «{raw}» · el banco fija el importe y la cuenta",
     f_trace_missing:"— texto original no disponible",
     f_locked_toast:"El importe lo manda el banco. Si está mal, cámbialo desde la app del banco.",
     f_fx_eq:"= {x} con el cambio del {date}", f_undo_deleted:"Gasto borrado", f_undo:"Deshacer",
@@ -5139,7 +5139,7 @@ Object.assign(LANG.es,{
   mi_hint:"Login con tu usuario de MyInvestor · la contraseña no se guarda nunca.",
   mi_need_login:"Para conectar MyInvestor primero inicia sesión en Aely (arriba, «Iniciar sesión»).",
   mi_user_ph:"Usuario / DNI de MyInvestor", mi_pass_ph:"Contraseña de MyInvestor",
-  mi_connect:"Conectar", mi_connecting:"Conectando…", mi_nostore:"🔒 Tu contraseña no se guarda. Viaja cifrada solo para el login.",
+  mi_connect:"Conectar", mi_connecting:"Conectando…", mi_nostore:"Tu contraseña no se guarda. Viaja cifrada solo para el login.",
   mi_otp_intro:"MyInvestor te ha mandado un código por SMS. Escríbelo aquí:", mi_otp_ph:"Código SMS", mi_verify:"Verificar", mi_verifying:"Verificando…",
   mi_recaptcha:"🛡 El anti-bot de MyInvestor pide captcha ahora mismo y la app no puede resolverlo. No insistas seguido (alarga el bloqueo): espera unas horas y reintenta desde el WiFi de casa. Suele desbloquearse solo.",
   mi_solving_captcha:"🛡 Resolviendo el captcha de MyInvestor…",
@@ -5334,7 +5334,7 @@ Object.assign(LANG.es,{
   da_est:"Estimación con el modelo lineal de la app: la cifra exacta depende de cómo calcule tu banco.",
   lk_unlock:"Desbloquea para continuar", lk_failed:"No se pudo verificar. Inténtalo de nuevo.", lk_unlockbtn:"Desbloquear con huella", lk_cant:"No puedo desbloquear",
   lk_escape:"¿Quitar el candado de huella?", lk_escape_sub:"Solo en este dispositivo. Podrás volver a activarlo desde tu cuenta.", lk_escape_ok:"Quitar el candado",
-  au_account:"Tu cuenta", au_bio_off:"🔒 Desactivar desbloqueo con huella", au_bio_on:"🔓 Activar desbloqueo con huella", au_nobio:"Este dispositivo/navegador no soporta huella.",
+  au_account:"Tu cuenta", au_bio_off:"Desactivar desbloqueo con huella", au_bio_on:"Activar desbloqueo con huella", au_nobio:"Este dispositivo/navegador no soporta huella.",
   au_signout:"Cerrar sesión", au_close:"Cerrar", au_signin:"Iniciar sesión", au_signup:"Crear cuenta", au_email:"Email", au_pass:"Contraseña", au_enter:"Entrar",
   au_toup:"¿No tienes cuenta? Crear una", au_toin:"¿Ya tienes cuenta? Inicia sesión", au_cancel:"Cancelar",
   au_forgot:"¿Olvidaste tu contraseña?", au_reset_title:"Recuperar contraseña", au_reset_send:"Enviar email de recuperación", au_reset_sent:"📩 Si el email existe, te hemos enviado un enlace para cambiarla.", au_need_email:"Pon tu email", au_newpass_title:"Nueva contraseña", au_newpass_save:"Guardar contraseña", au_pass_changed:"✓ Contraseña actualizada", au_pass_short:"Mínimo 6 caracteres", au_back:"← Volver",
@@ -5368,7 +5368,7 @@ Object.assign(LANG.es,{
   gm_reto_budget:"Mes bajo presupuesto", gm_reto_budget_ok:"Te quedan {x} de margen 🟢", gm_reto_budget_over:"Te has pasado {x} 🔴", gm_reto_budget_done:"¡Mes cerrado bajo presupuesto! 🏆",
   gm_reto_roundup:"Reto round-up", gm_reto_roundup_sub:"{x} de {y} este mes", gm_reto_done:"✓ Conseguido",
   gm_streak:"🔥 {n} meses seguidos bajo presupuesto", gm_streak_1:"🔥 1 mes bajo presupuesto", gm_streak_none:"Aún sin racha · cierra un mes bajo presupuesto", gm_streak_best:"Mejor racha: {n}",
-  gm_locked:"🔒 Bloqueado", gm_levelup:"🎉 ¡Subiste al nivel {n}!", gm_badge_new:"🏅 Logro: {x}",
+  gm_locked:"Pendiente", gm_levelup:"🎉 ¡Subiste al nivel {n}!", gm_badge_new:"🏅 Logro: {x}",
   gm_b_first_goal:"1ª meta cumplida", gm_b_first_underbudget:"1er mes bajo presupuesto", gm_b_first_reto:"1er reto completado", gm_b_streak_3:"Racha de 3 meses",
   gm_b_save_100:"100 € ahorrado", gm_b_save_500:"500 € ahorrado", gm_b_save_1000:"1.000 € ahorrado", gm_b_save_5000:"5.000 € ahorrado",
   sh_newdefault:"Grupo", sh_newgroup:"Nuevo grupo compartido", sh_groups_title:"Gastos a medias (viajes, eventos)", sh_name_ph:"Nombre (ej. Crucero)", sh_you:"Tú", sh_other_ph:"Otra persona (ej. Pareja)", sh_create:"Crear grupo", sh_cancel:"Cancelar",
@@ -5378,7 +5378,7 @@ Object.assign(LANG.es,{
   sh_back:"Grupos", sh_delgroup:"Borrar grupo", sh_delgroup_q:"¿Borrar este grupo y sus gastos?",
   gl_empty_t:"Aún no tienes metas", gl_empty_d:"Crea tu primera meta de ahorro y mira cómo se acerca cada mes.",
   gl_widget_title:"Tu meta", wl_goal:"Meta",
-  rr_title:"🔒 Reservar dinero de tu nómina", rr_sub:"{n} regla(s)", rr_sub_empty:"sin reglas",
+  rr_title:"Reservar dinero de tu nómina", rr_sub:"{n} regla(s)", rr_sub_empty:"sin reglas",
   rr_none:"Aún no tienes ninguna regla. Añade una para que parte de tu nómina vaya sola a una meta.",
   rr_add:"+ Añadir regla", rr_save:"Guardar regla",
   rr_name_ph:"Nombre (opcional, ej. Parking recibos)",
@@ -7758,7 +7758,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),
           "aria-label":t("f_amount_aria"),onClick:locked?onLocked:undefined},amount),
         React.createElement("button",{type:"button",className:"v4-ficha-currency"+(locked?" locked":""),
-          onClick:locked?onLocked:onCurrency},currency+(locked?" 🔒":" ▾"))),
+          onClick:locked?onLocked:onCurrency},currency+(locked?"":" ▾"))),
       React.createElement("div",{className:"v4-ficha-focus"+(focused?" on":"")}),
       fxHint && React.createElement("div",{className:"v4-ficha-fx"},fxHint),
       React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
@@ -7767,7 +7767,7 @@ function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpt
         return React.createElement("button",{key:m.id,type:"button",disabled:!!m.disabled,
           className:"v4-ficha-meta-pill"+(m.on?" on":"")+(m.locked?" locked":"")+(m.disabled?" disabled":""),
           "data-testid":m.testId,onClick:m.disabled?undefined:(m.locked?onLocked:m.onClick)},m.lead||null,
-          React.createElement("span",null,m.label),m.locked?React.createElement("span",{"aria-hidden":"true"},"🔒"):null);
+          React.createElement("span",null,m.label));
       })),
       afterMeta||null,
       !isIn && React.createElement(React.Fragment,null,
@@ -11424,7 +11424,7 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
                 React.createElement("div",{className:"v4-account-spark-foot"},
                   React.createElement("span",null,new Date(history[0].day+"T12:00:00").toLocaleDateString(loc(),{day:"numeric",month:"short"})),React.createElement("span",null,t("ac_spark_to"))))
             : React.createElement("div",{className:"v4-account-spark-new"},t("ac_spark_new")),
-          conectada && React.createElement("div",{className:"v4-account-lock"},"🔒 "+t("pt_ficha_banco")+(a.lastSync?" · "+tf("pt_ficha_sync",{x:new Date(a.lastSync).toLocaleString()}):""))
+          conectada && React.createElement("div",{className:"v4-account-lock"},t("pt_ficha_banco")+(a.lastSync?" · "+tf("pt_ficha_sync",{x:new Date(a.lastSync).toLocaleString()}):""))
         ),
         React.createElement("div",{className:"v4-account-actions"},
           !conectada && React.createElement("button",{type:"button",className:"v4-account-action"+(corrigiendo?" on":""),onClick:function(){
@@ -15351,7 +15351,7 @@ function Achievements({state, totals}){
       ),
       React.createElement("div",{className:"gm-badges"}, gm.badges.map(function(b){
         return React.createElement("div",{key:b.id,className:"gm-badge"+(b.unlocked?" on":""),title:b.unlocked?t("gm_b_"+b.id):t("gm_locked")},
-          React.createElement("span",{className:"gm-badge-ic"}, b.unlocked?"🏅":"🔒"),
+          React.createElement("span",{className:"gm-badge-ic"}, b.unlocked?"🏅":"○"),
           React.createElement("span",{className:"gm-badge-lbl"}, t("gm_b_"+b.id))
         );
       }))
@@ -16359,7 +16359,7 @@ function LockScreen({onUnlock}){
   };
   const link={background:"none",border:"none",color:"var(--muted-2)",cursor:"pointer",fontSize:"12px",marginTop:"10px",textDecoration:"underline"};
   return React.createElement("div",{style:wrap},
-    React.createElement("div",{style:{width:64,height:64,borderRadius:"50%",background:"#5FD08A22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"30px"}},"🔒"),
+    React.createElement("div",{style:{width:64,height:64,borderRadius:"50%",background:"#5FD08A22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"30px"}},"◎"),
     React.createElement("div",{style:{fontWeight:700,fontSize:"22px",fontFamily:"Fraunces, serif"}},"Aely"),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:"14px"}}, err?t("lk_failed"):t("lk_unlock")),
     React.createElement("button",{style:btn,onClick:tryUnlock},t("lk_unlockbtn")),
@@ -18052,7 +18052,7 @@ function PrivacyPanel({onClose}){
   };
   return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
     React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("st_back_settings")),
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 4px"}}, "🔒 "+t("pv_title")),
+    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 4px"}}, "🛡️ "+t("pv_title")),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:12.5,marginBottom:4}}, t("pv_updated")),
     sec(t("pv_s1_h"), t("pv_s1")),
     sec(t("pv_s2_h"), t("pv_s2")),
@@ -18837,7 +18837,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     !notifOk && React.createElement("div",{className:"alarmbox",style:{marginTop:14}},
       t("na_body"),
       React.createElement("button",{style:Object.assign({},btn,{marginTop:10}),onClick:function(){ const nat=natPlugin(); if(nat&&nat.openNotifAccess){ try{ nat.openNotifAccess().catch(function(){}); }catch(e){} } }},t("na_fix")),
-      React.createElement("div",{style:{fontSize:11.5,lineHeight:1.5,marginTop:10,opacity:.85}}, "🔓 "+t("na_restricted"))
+      React.createElement("div",{style:{fontSize:11.5,lineHeight:1.5,marginTop:10,opacity:.85}}, t("na_restricted"))
     ),
     (function(){
       const nat=natPlugin();
@@ -18910,7 +18910,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       // Huella y cerrar sesión volvieron aquí (2026-07-18): con el rediseño solo existían
       // dentro del AuthPanel, al que ya no se llegaba estando logueado.
       bio.supported()
-        ? row("biolock","🔐",(bioOn?t("au_bio_off"):t("au_bio_on")).replace(/^[^ ]+ /,""),null,toggleBio, sw(bioOn))
+        ? row("biolock","◎",bioOn?t("au_bio_off"):t("au_bio_on"),null,toggleBio, sw(bioOn))
         : React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}}, t("au_nobio")),
       row("signout","🚪",t("au_signout"),null,doSignOut),
       row("helpai","✨",t("help_remote_setting"),null,function(){
@@ -18920,7 +18920,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
           .then(function(ok){ setS({helpAiOk:!!ok,helpAiAsked:true}); });
       },sw(!!(state.settings&&state.settings.helpAiOk))),
       React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}},t("help_remote_setting_hint")),
-      row("priv","🔒",t("st_privacy"),null,function(){ setPrivOpen(true); }),
+      row("priv","🛡️",t("st_privacy"),null,function(){ setPrivOpen(true); }),
       row("delacc","🗑️",t("st_delete_acc"),null,function(){
         askConfirm({ title:t("st_delete_acc"), sub:t("st_delete_acc_sub"), ok:t("st_delete_acc_ok"), danger:true })
           .then(function(ok){
