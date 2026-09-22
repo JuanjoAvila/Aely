@@ -402,7 +402,6 @@ function SavingsPlanCard({state, set, totals, showToast}){
 function Goals({state, set, totals, showToast}){
   const tt=totals||{};
   const goals=state.goals||[];
-  const gm=gamifOf(state, totals);
   const [adding,setAdding]=useState(false);
   const [editing,setEditing]=useState(false);
   const [drafts,setDrafts]=useState({});
@@ -582,7 +581,11 @@ function ContributeGoalSheet({goal, state, onClose, onContribute}){
 /* Pantalla "Logros" (rediseño 1a): la gamificación (nivel + retos + medallas) vive aquí, FUERA de
    "Metas". El Resumen resume racha+nivel en un titular; el detalle (medallas/retos) vive en esta pantalla. */
 function Achievements({state, totals}){
-  const gm=gamifOf(state, totals);
+  const streakMonth=budgetYmKey();
+  const budgetStreak=useMemo(function(){ return underBudgetStreak(state); },
+    [state.expenses,state.budgetByMonth,state.accounts,state.reservaLog,
+     state.settings&&state.settings.expenseBanks,state.settings&&state.settings.gTotalMode,streakMonth]);
+  const gm=gamifOf(state, totals, budgetStreak);
   return React.createElement("div",null,
     /* ---------- NIVEL ---------- */
     React.createElement("div",{className:"card gm-level",style:{marginTop:4,padding:"15px 16px"}},

@@ -67,12 +67,22 @@ test("★ P5: la racha a cero se dice en positivo, no «0 meses sin pasarte»", 
 });
 
 test("tres presupuestos mensuales cerrados crean racha sin llama", async ({ page }) => {
-  const now=new Date(), budgetByMonth={};
+  const now=new Date(), budgetByMonth={}, expenses=[];
   for(let back=1;back<=3;back++){
     const d=new Date(now.getFullYear(),now.getMonth()-back,1);
-    budgetByMonth[d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")]=500;
+    const ym=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+    budgetByMonth[ym]=500;
+    expenses.push({id:"daily-"+ym,date:ym+"-10T12:00:00.000Z",amount:300,merchant:"Super",category:"super",ent:"trade_republic"});
+    // Un recibo real de otro banco no entra en el presupuesto diario ni puede romper su racha.
+    expenses.push({id:"fixed-"+ym,date:ym+"-11T12:00:00.000Z",amount:800,merchant:"Hipoteca",category:"vivienda",ent:"sabadell"});
   }
-  await inicio(page, { history: [100, 200], budget: 500, budgetByMonth, streak: 99 });
+  await inicio(page, {
+    history:[100,200],budget:500,budgetByMonth,expenses,streak:99,
+    accounts:[
+      {id:"daily",ent:"trade_republic",name:"Diario",value:1000,role:"diario",spendFrom:true},
+      {id:"fixed",ent:"sabadell",name:"Recibos",value:1000,role:"fijos",spendFrom:false},
+    ],
+  });
   const streak=page.getByTestId("dash-budget-streak");
   await expect(streak).toHaveText(/3 meses sin pasarte/i);
   await expect(streak).not.toContainText("🔥");

@@ -3248,8 +3248,6 @@ const RU_GOAL=30;                       // €/mes objetivo de round-up+saveback
 const SAVE_HITOS=[100,500,1000,5000];   // hitos de ahorro (medallas)
 const GM_LEVELS=[0,250,1000,3000,8000]; // umbrales de savedScore por nivel
 const GM_ICONS=["🐣","🐢","🦊","🦅","👑"];
-// Gasto mensual (solo gastos reales, amount>0) por clave YYYY-MM.
-function spendByMonth(expenses){ const m={}; (expenses||[]).forEach(function(e){ if(e.amount>0 && !CAT_NEUTRAS[e.category]){ const k=mkOf(parseDate(e.date)); m[k]=(m[k]||0)+e.amount; } }); return m; }
 function median(arr){ const a=(arr||[]).slice().sort(function(x,y){return x-y;}); const n=a.length; if(!n) return 0; return n%2?a[(n-1)/2]:(a[n/2-1]+a[n/2])/2; }
 // Detector de SUSCRIPCIONES / cargos recurrentes: mismo comercio en ≥3 meses distintos con importe
 // estable (≥60% dentro de ±25% de la mediana). Devuelve {name,cat,amount,months,last,active,yearly}.
@@ -3286,29 +3284,53 @@ function ensureBudgetMonthSnap(state,nowMs){
   const map=Object.assign({},old); map[k]=b;
   return {budgetByMonth:map};
 }
-function underBudgetStreak(expenses, budgetByMonth, nowMs){
-  const budgets=budgetByMonth||{};
-  const sb=spendByMonth(expenses);
+function underBudgetStreak(state, nowMs){
+  state=state||{};
+  const budgets=state.budgetByMonth||{};
   const num=function(k){ return +k.slice(0,4)*12 + +k.slice(5)-1; };
   const curNum=num(budgetYmKey(nowMs));
   const keys=Object.keys(budgets).filter(function(k){ return num(k)<curNum; }).sort(function(a,b){ return num(a)-num(b); });
+  const wanted={}, byMonth={};
+  keys.forEach(function(k){ wanted[k]=true; byMonth[k]={spent:0,income:0,reserved:0}; });
+  /* La racha usa exactamente los mismos cajones que la tarjeta de presupuesto: solo bancos de
+     gasto diario, sin neutras/posibles duplicados, y respeta bruto/neto y reservas. Antes sumaba
+     TODOS los gastos del histórico; un recibo de Sabadell podía romper una racha que Inicio
+     enseñaba correctamente como cumplida (auditoría Claude 5.5, feedback 18/9). Se agrega en una
+     sola pasada para no releer miles de movimientos por cada mes guardado. */
+  (state.expenses||[]).forEach(function(e){
+    const k=budgetYmKey(dateMs(e.date));
+    if(!wanted[k] || !expenseCountsBudget(e,state)) return;
+    if(e.amount>0) byMonth[k].spent+=e.amount;
+    else if(e.amount<0) byMonth[k].income+=Math.abs(e.amount);
+  });
+  (state.reservaLog||[]).forEach(function(x){
+    const ms=new Date(x&&x.date).getTime();
+    if(!isFinite(ms)) return;
+    const k=budgetYmKey(ms);
+    if(wanted[k]) byMonth[k].reserved+=(x&&x.amount||0);
+  });
+  const good={};
+  keys.forEach(function(k){
+    const m=byMonth[k], stats=budgetStatsFromAmounts(m.spent,m.income,Number(budgets[k]),m.reserved,(state.settings&&state.settings.gTotalMode)||"split");
+    good[k]=stats.budget!=null&&stats.against<=stats.budget+.005;
+  });
   let best=0,run=0,prev=null;
   keys.forEach(function(k){
-    const n=num(k), bud=Number(budgets[k]);
+    const n=num(k);
     if(prev==null||n!==prev+1) run=0;
-    if(bud>0&&(+sb[k]||0)<=bud+.005){ run++; best=Math.max(best,run); } else run=0;
+    if(good[k]){ run++; best=Math.max(best,run); } else run=0;
     prev=n;
   });
   let cur=0,n=curNum-1;
   while(cur<120){
-    const k=mk(Math.floor(n/12),n%12), bud=Number(budgets[k]);
-    if(!(bud>0)||(+sb[k]||0)>bud+.005) break;
+    const k=mk(Math.floor(n/12),n%12);
+    if(!good[k]) break;
     cur++; n--;
   }
   return {current:cur,best:best,ever:best>0};
 }
 // Estado completo de gamificación (puro, sin efectos).
-function gamifOf(state, totals){
+function gamifOf(state, totals, budgetStreak){
   const tt=totals||{};
   const goals=state.goals||[];
   const savedScore=goals.reduce(function(a,g){return a+(g.saved||0);},0) + (tt.trRewardsTotal||state.trRewardsTotal||0);
@@ -3323,7 +3345,7 @@ function gamifOf(state, totals){
   const ruCur=+(((tt.roundupThisMonth||0)+(tt.savebackThisMonth||0))).toFixed(2);
   const budgetReto={ id:"budget", spent:spent, budget:budget, margin:+(budget-spent).toFixed(2), done:budget>0&&spent<=budget, pct: budget>0?Math.min(100,spent/budget*100):0 };
   const ruReto={ id:"roundup", cur:ruCur, goal:RU_GOAL, done:ruCur>=RU_GOAL, pct:Math.min(100,ruCur/RU_GOAL*100) };
-  const streak=underBudgetStreak(state.expenses, state.budgetByMonth);
+  const streak=budgetStreak||underBudgetStreak(state);
   const anyGoalDone=goals.some(function(g){return g.done;});
   const badges=[
     {id:"first_goal", unlocked:anyGoalDone},

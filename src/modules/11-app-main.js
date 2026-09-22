@@ -2206,7 +2206,7 @@ function App(){
 
   // GAMIFICACIÓN: detecta logros nuevos y subidas de nivel → toast/confeti (1ª vez siembra sin avisar).
   useEffect(function(){
-    const g=gamifOf(state, totals);
+    const g=gamifOf(state, totals, underBudgetStreak(state));
     const stored=state.badges||[];
     const nowUnlocked=g.badges.filter(function(b){return b.unlocked;}).map(function(b){return b.id;});
     const fresh=nowUnlocked.filter(function(id){ return stored.indexOf(id)<0; });
@@ -2216,7 +2216,9 @@ function App(){
     set(function(s){ return Object.assign({},s,{badges:Array.from(new Set((s.badges||[]).concat(nowUnlocked))),gmLevel:g.lvl}); });
     if(levelUp){ showToast(tf("gm_levelup",{n:g.lvl+1})); }   // rediseño 1c: subir de nivel = aviso tranquilo, sin confeti (el confeti se reserva a metas)
     else if(fresh.length && seeded){ showToast(tf("gm_badge_new",{x:t("gm_b_"+fresh[0])})); }
-  },[state.expenses,state.goals,state.budget,state.trRewardsTotal]);
+  },[state.expenses,state.goals,state.budget,state.budgetByMonth,state.trRewardsTotal,
+     state.accounts,state.reservaLog,state.settings&&state.settings.expenseBanks,
+     state.settings&&state.settings.gTotalMode]);
   const fetchPrices=function(silent){
     refreshFx();   // y también al pulsar "Precios USD"
     const withTicker=state.investments.filter(function(i){ return i.ticker; });

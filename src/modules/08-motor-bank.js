@@ -932,6 +932,15 @@ function reservedSince(state, fromMs, hastaMs){
     return a+(x&&x.amount||0);
   },0);
 }
+function budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode){
+  const budget=budgetRaw>0?Math.max(0,+(budgetRaw-reserved).toFixed(2)):null;
+  const balance=income-spent;
+  const against=mode==="net"?(spent-income):spent;
+  const shown=mode==="net"?Math.abs(balance):spent;
+  const remaining=budget==null?null:budget-against;
+  return {spent:spent, income:income, balance:balance, mode:mode, budget:budget, reserved:reserved,
+    remaining:remaining, against:against, shown:shown};
+}
 /* Misma cifra en Gastos, Resumen y el widget (2026-08-05). `totals.thisMonthSpent` suma TODO
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
@@ -953,15 +962,9 @@ function monthBudgetStats(state, nowMs, hastaMs){
     else if(e.amount<0) income+=Math.abs(e.amount);
   });
   const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs);
-  const budgetRaw=typeof state.budget==="number" && state.budget>0 ? state.budget : null;
-  const budget=budgetRaw==null?null:Math.max(0,+(budgetRaw-reserved).toFixed(2));
+  const budgetRaw=typeof state.budget==="number" ? state.budget : 0;
   const mode=(state.settings&&state.settings.gTotalMode)||"split";
-  const balance=income-spent;
-  const against=mode==="net"?(spent-income):spent;
-  const shown=mode==="net"?Math.abs(balance):spent;
-  const remaining=budget==null?null:budget-against;
-  return {spent:spent, income:income, balance:balance, mode:mode, budget:budget, reserved:reserved,
-    remaining:remaining, against:against, shown:shown};
+  return budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode);
 }
 
 /* Desglose del mes por categoría (brief PRESUPUESTO-POR-CATEGORIA). Misma ventana y misma
@@ -1004,8 +1007,10 @@ function categorySpentByMonth(state, nowMs, hastaMs){
 /* INFORME DEL MES CERRADO (brief 2026-09-08). Primeros días del mes nuevo: tarjeta en Inicio
    con cifras del mes ANTERIOR (monthBudgetStats + hastaMs). Descartar = settings.closedMonthDismissed. */
 var CLOSED_MONTH_CARD_DAYS=5;
+var _mcMadridYmdFmt=null;
 function madridYmdParts(ms){
-  const s=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(ms));
+  if(!_mcMadridYmdFmt) _mcMadridYmdFmt=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"});
+  const s=_mcMadridYmdFmt.format(new Date(ms));
   const p=s.split("-");
   return {y:+p[0], m:+p[1], d:+p[2], ym:p[0]+"-"+p[1]};
 }
