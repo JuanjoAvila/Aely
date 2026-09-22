@@ -1,5 +1,11 @@
 # Testing — Aely
 
+La tanda de apariencia 4.25.7 quedó aprobada en beta 4.26.10.1. El e2e
+`e2e/apariencia-temas.spec.mjs` abre Ajustes → Apariencia y protege el selector de Cyberpunk,
+Otoño y Primavera, su persistencia y los modos de movimiento reducido. Está registrado en
+`scripts/relevant-tests.mjs` para ejecutarse cuando cambie esta pantalla. La publicación
+selectiva 4.25.7 no incluye ninguna otra tanda 4.26.
+
 Lectura bancaria 4.25.4: `tests/bank-sync-paging.test.mjs` ejecuta el handler real con BD y proveedor
 simulados (sin consultar bancos): páginas vacías, fallback de periodo, fallo parcial, cursor cíclico,
 cuentas inactivas, aislamiento, timeout y topes. Registrado en `run-tests.mjs` y `STEPS_SUPABASE`;

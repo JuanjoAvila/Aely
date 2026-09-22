@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.25.7",
+    "d": "22 sep 2026",
+    "t": {
+      "es": "Nuevos colores para hacer la app más tuya",
+      "en": "New colours to make the app your own",
+      "ca": "Nous colors per fer l'app més teva"
+    },
+    "items": {
+      "es": [
+        "Cyberpunk trae una apariencia oscura con detalles de neón rosa y cian. Los importes positivos y negativos conservan colores fáciles de distinguir.",
+        "Otoño y Primavera se suman a las temáticas de Ajustes → Apariencia, con colores y detalles propios. Puedes combinarlas con tu color de app favorito."
+      ],
+      "en": [
+        "Cyberpunk brings a dark look with pink and cyan neon accents. Positive and negative amounts keep their easy-to-tell-apart colours.",
+        "Autumn and Spring join the themes in Settings → Appearance, each with its own colours and details. You can pair them with your favourite app colour."
+      ],
+      "ca": [
+        "Cyberpunk porta una aparença fosca amb detalls de neó rosa i cian. Els imports positius i negatius conserven colors fàcils de distingir.",
+        "Tardor i Primavera se sumen a les temàtiques d'Ajustos → Aparença, amb colors i detalls propis. Les pots combinar amb el teu color preferit per a l'app."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.6",
     "d": "16 sep 2026",
     "t": {

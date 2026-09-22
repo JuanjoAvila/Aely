@@ -1,3 +1,14 @@
+## [4.25.7] - 2026-09-22
+### Cyberpunk, Otoño y Primavera aprobados como tanda independiente
+
+Se porta únicamente la tanda de apariencia probada en beta 4.26.10.1 sobre la base de
+producción 4.25.6. Cyberpunk añade una paleta propia con acentos neón, conservando verde para
+importes positivos y rojo para negativos; Otoño y Primavera amplían el sistema de temáticas
+estacionales. El selector, los colores, la ambientación y el informe compartido quedan alineados.
+Los efectos respetan «Reducir animaciones» y la preferencia del sistema. El e2e de apariencia
+queda registrado en `relevant-tests`. No se incorpora ningún cambio de las demás tandas 4.26,
+ni se modifica el envoltorio Android.
+
 ## [4.25.6] - 2026-09-16
 ### El backlog de beta deja de resucitar después de promocionar
 
