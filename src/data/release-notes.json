@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.26.10",
+    "d": "22 sep 2026",
+    "t": {
+      "es": "Nuevos colores: Cyberpunk, Otoño y Primavera",
+      "en": "New looks: Cyberpunk, Autumn and Spring",
+      "ca": "Colors nous: Cyberpunk, Tardor i Primavera"
+    },
+    "items": {
+      "es": [
+        "Nuevo tema de color Cyberpunk, con neón rosa y cian sobre fondo oscuro; lo que gastas y lo que entra se sigue leyendo en rojo y verde.",
+        "Dos temáticas nuevas, Otoño y Primavera, en Ajustes → Apariencia."
+      ],
+      "en": [
+        "New Cyberpunk colour theme, with pink and cyan neon on a dark background; spending and income still read in red and green.",
+        "Two new themes, Autumn and Spring, in Settings → Look & feel."
+      ],
+      "ca": [
+        "Nou tema de color Cyberpunk, amb neó rosa i cian sobre fons fosc; el que gastes i el que entra es continua llegint en vermell i verd.",
+        "Dues temàtiques noves, Tardor i Primavera, a Ajustos → Aparença."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "temas-cyber-otono-primavera",
+        "t": {
+          "es": "Cyberpunk, Otoño y Primavera",
+          "en": "Cyberpunk, Autumn and Spring",
+          "ca": "Cyberpunk, Tardor i Primavera"
+        },
+        "items": {
+          "es": [
+            "1. Ajustes → Apariencia → toca el círculo rosa y cian (Cyberpunk): fondo morado muy oscuro, el + de abajo en degradado rosa-cian y los títulos con un borde de neón. Los gastos siguen en rojo y los ingresos en verde.",
+            "2. Con Cyberpunk puesto, recorre Inicio, Gastos, Plan y Cartera: todo se lee bien y ningún importe o gráfico desaparece contra el fondo.",
+            "3. Cierra la app del todo y vuelve a abrirla: sigue en Cyberpunk.",
+            "4. Ajustes → Apariencia → Temática → Otoño 🍂: el + cambia a ámbar y caen hojas muy suaves detrás de las tarjetas. Luego elige Primavera 🌸: flores y tono lila.",
+            "5. Con Cyberpunk puesto, activa «Reducir animaciones»: nada parpadea ni se mueve (ni los títulos, ni el + ni la línea de la barra de abajo)."
+          ],
+          "en": [
+            "1. Settings → Look & feel → tap the pink and cyan circle (Cyberpunk): very dark purple background, the + at the bottom in a pink-cyan gradient and titles with a neon edge. Spending stays red and income green.",
+            "2. With Cyberpunk on, go through Home, Spending, Plan and Portfolio: everything is readable and no amount or chart disappears against the background.",
+            "3. Close the app completely and open it again: it is still Cyberpunk.",
+            "4. Settings → Look & feel → Theme → Autumn 🍂: the + turns amber and very soft leaves fall behind the cards. Then choose Spring 🌸: flowers and a lilac tone.",
+            "5. With Cyberpunk on, turn on “Reduce motion”: nothing flickers or moves (not the titles, the + or the line on the bottom bar)."
+          ],
+          "ca": [
+            "1. Ajustos → Aparença → toca el cercle rosa i cian (Cyberpunk): fons lila molt fosc, el + de baix en degradat rosa-cian i els títols amb una vora de neó. Les despeses continuen en vermell i els ingressos en verd.",
+            "2. Amb Cyberpunk posat, recorre Inici, Despeses, Pla i Cartera: tot es llegeix bé i cap import ni gràfic desapareix contra el fons.",
+            "3. Tanca l'app del tot i torna-la a obrir: continua en Cyberpunk.",
+            "4. Ajustos → Aparença → Temàtica → Tardor 🍂: el + passa a ambre i cauen fulles molt suaus darrere les targetes. Després tria Primavera 🌸: flors i to lila.",
+            "5. Amb Cyberpunk posat, activa «Reduir animacions»: res no parpelleja ni es mou (ni els títols, ni el + ni la línia de la barra de baix)."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.9",
     "d": "17 sep 2026",
     "t": {
@@ -24,36 +80,7 @@
         "Obrir, recórrer i tancar una despesa o Apuntar se sent més continu, també en desplegar totes les categories."
       ]
     },
-    "tandas": [
-      {
-        "id": "pulido-plan-gastos-4269",
-        "t": {
-          "es": "Plan y fluidez de gastos",
-          "en": "Plan and expense smoothness",
-          "ca": "Pla i fluïdesa de despeses"
-        },
-        "items": {
-          "es": [
-            "1. Abre Plan: deben verse enseguida lo pendiente y las listas, sin el anillo ni el mensaje grande; Gestionar debe seguir abriendo el editor nuevo.",
-            "2. En Gestionar, recorre la pantalla hasta arriba y abajo: en Android debe aparecer la respuesta elástica normal del borde.",
-            "3. Abre un gasto, desplázate por toda la ficha y entra en Todas las categorías; al volver, la ficha debe seguir quieta y la lista del fondo no debe moverse.",
-            "4. Abre Apuntar, recorre la ficha y ciérrala con el botón, el fondo y un tirón hacia abajo: todas las salidas deben sentirse continuas."
-          ],
-          "en": [
-            "1. Open Plan: pending amounts and lists should appear immediately, without the ring or oversized message; Manage must still open the new editor.",
-            "2. In Manage, scroll to the top and bottom: Android should show its normal elastic edge response.",
-            "3. Open an expense, scroll through the whole detail and enter All categories; when returning, the detail must stay still and the list behind it must not move.",
-            "4. Open Add, browse the detail and close it with the button, backdrop and a downward pull: every exit should feel continuous."
-          ],
-          "ca": [
-            "1. Obre Pla: els imports pendents i les llistes s'han de veure de seguida, sense l'anell ni el missatge gegant; Gestionar ha de continuar obrint l'editor nou.",
-            "2. A Gestionar, recorre la pantalla fins a dalt i a baix: Android ha de mostrar la resposta elàstica normal de la vora.",
-            "3. Obre una despesa, desplaça't per tota la fitxa i entra a Totes les categories; en tornar, la fitxa ha de continuar quieta i la llista del fons no s'ha de moure.",
-            "4. Obre Apuntar, recorre la fitxa i tanca-la amb el botó, el fons i un gest cap avall: totes les sortides s'han de sentir contínues."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.8",
@@ -80,33 +107,7 @@
         "Gestionar rebuts també és a Ajustos → Diners, amb una alta i edició més còmodes per a teclat, lector de pantalla i navegació Enrere."
       ]
     },
-    "tandas": [
-      {
-        "id": "plan-v41",
-        "t": {
-          "es": "Plan y recibos",
-          "en": "Plan and bills",
-          "ca": "Pla i rebuts"
-        },
-        "items": {
-          "es": [
-            "1. Abre Plan con recibos pagados y pendientes en varias cuentas: el anillo debe mostrar euros reales y el aviso debe señalar la cuenta con menos margen.",
-            "2. Revisa un mes ya pagado, un recibo sin día y una cuenta sin saldo: no debe inventar un próximo día ni un saldo de 0 €, y un saldo negativo no puede verse en verde.",
-            "3. Desde Inicio abre Ajustes → Dinero → Gestionar recibos; añade y edita escribiendo seguido, usa Atrás y comprueba que el teclado mantiene el foco donde estabas."
-          ],
-          "en": [
-            "1. Open Plan with paid and pending bills across several accounts: the ring must show real euros and the warning must identify the account with the least headroom.",
-            "2. Check a fully paid month, a bill without a due day and an account without a balance: it must not invent a next day or a €0 balance, and a negative balance cannot appear green.",
-            "3. From Home open Settings → Money → Manage bills; add and edit by typing continuously, use Back and check that keyboard focus remains where you left it."
-          ],
-          "ca": [
-            "1. Obre Pla amb rebuts pagats i pendents en diversos comptes: l'anell ha de mostrar euros reals i l'avís ha d'assenyalar el compte amb menys marge.",
-            "2. Revisa un mes ja pagat, un rebut sense dia i un compte sense saldo: no ha d'inventar un pròxim dia ni un saldo de 0 €, i un saldo negatiu no es pot veure en verd.",
-            "3. Des d'Inici obre Ajustos → Diners → Gestionar rebuts; afegeix i edita escrivint seguit, usa Enrere i comprova que el teclat manté el focus on eres."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.7",
@@ -133,33 +134,7 @@
         "El detall i Saveback funcionen millor amb teclat i lector de pantalla, i actualitzar preus confirma l'hora de l'últim resultat."
       ]
     },
-    "tandas": [
-      {
-        "id": "inversiones-v41",
-        "t": {
-          "es": "Inversiones",
-          "en": "Investments",
-          "ca": "Inversions"
-        },
-        "items": {
-          "es": [
-            "1. Abre Inversiones con alguna posición sin coste: coste, ganancia y porcentaje global deben mostrar —, nunca una rentabilidad parcial.",
-            "2. Pulsa Añadir posición, rellena el formulario y guarda: debe aparecer en el bróker elegido sin modificar los demás.",
-            "3. Actualiza precios y abre/cierra un bróker: debe verse la hora del resultado y el diálogo debe mantener el foco y cerrar con Atrás o Escape."
-          ],
-          "en": [
-            "1. Open Investments with any position missing its cost: global cost, gain and percentage must show —, never a partial return.",
-            "2. Tap Add position, complete the form and save: it should appear under the chosen broker without changing the others.",
-            "3. Refresh prices and open/close a broker: the result time should be visible and the dialog must keep focus and close with Back or Escape."
-          ],
-          "ca": [
-            "1. Obre Inversions amb alguna posició sense cost: cost, guany i percentatge globals han de mostrar —, mai una rendibilitat parcial.",
-            "2. Prem Afegir posició, omple el formulari i desa: ha d'aparèixer al bròquer triat sense modificar els altres.",
-            "3. Actualitza preus i obre/tanca un bròquer: s'ha de veure l'hora del resultat i el diàleg ha de mantenir el focus i tancar amb Enrere o Escape."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.6",
@@ -186,33 +161,7 @@
         "Els avisos distingeixen ara entre un banc sense moviments i una lectura incompleta, sense mostrar ni desar dades privades al diagnòstic."
       ]
     },
-    "tandas": [
-      {
-        "id": "bancos-sin-duplicados-4266",
-        "t": {
-          "es": "Histórico y gastos repetidos",
-          "en": "History and repeated expenses",
-          "ca": "Històric i despeses repetides"
-        },
-        "items": {
-          "es": [
-            "1. En Importar histórico, selecciona solo CaixaBank y busca tres meses: deben aparecer los movimientos disponibles de agosto o un aviso preciso, sin que Sabadell consuma su turno.",
-            "2. Tras instalar la APK de esta versión, una compra de Trade Republic que también notifique Wallet debe aparecer una sola vez.",
-            "3. Dos compras reales del mismo importe y comercio deben seguir apareciendo como dos movimientos distintos."
-          ],
-          "en": [
-            "1. In Import history, select only CaixaBank and search three months: available August transactions or a precise message should appear, without Sabadell consuming its turn.",
-            "2. After installing this version's APK, a Trade Republic purchase also notified by Wallet should appear only once.",
-            "3. Two real purchases with the same amount and merchant must still appear as two separate transactions."
-          ],
-          "ca": [
-            "1. A Importar històric, selecciona només CaixaBank i cerca tres mesos: han d'aparèixer els moviments disponibles d'agost o un avís precís, sense que Sabadell consumeixi el seu torn.",
-            "2. Després d'instal·lar l'APK d'aquesta versió, una compra de Trade Republic que també notifiqui Wallet ha d'aparèixer una sola vegada.",
-            "3. Dues compres reals amb el mateix import i comerç han de continuar apareixent com dos moviments diferents."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.5",
@@ -236,33 +185,7 @@
         "Reduir animacions mostra les xifres finals directament i també atura els indicadors que giren."
       ]
     },
-    "tandas": [
-      {
-        "id": "estados-v41",
-        "t": {
-          "es": "Estados vacíos y movimiento",
-          "en": "Empty states and motion",
-          "ca": "Estats buits i moviment"
-        },
-        "items": {
-          "es": [
-            "1. Con Recibos vacío, abre Gestionar: debe aparecer una explicación con un botón que inicia el alta.",
-            "2. Con Inversiones vacío, abre la pantalla: debe aparecer una explicación y el botón para añadir la primera posición.",
-            "3. Activa Ajustes → Reducir animaciones y vuelve a Inversiones: la cifra debe aparecer completa, sin conteo ni giros."
-          ],
-          "en": [
-            "1. With no bills, open Manage: an explanation should appear with a button that starts adding one.",
-            "2. With no investments, open the screen: an explanation and the button to add the first position should appear.",
-            "3. Enable Settings → Reduce motion and return to Investments: the full figure should appear without counting or spinning."
-          ],
-          "ca": [
-            "1. Sense rebuts, obre Gestionar: ha d'aparèixer una explicació amb un botó que n'inicia l'alta.",
-            "2. Sense inversions, obre la pantalla: ha d'aparèixer una explicació i el botó per afegir la primera posició.",
-            "3. Activa Ajustos → Reduir animacions i torna a Inversions: la xifra ha d'aparèixer completa, sense recompte ni girs."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.4",
@@ -316,33 +239,7 @@
         "L'ajuda avançada és opcional: només pot enviar a OpenAI la pregunta escrita, mai saldos ni moviments, i es pot apagar des d'Ajustos."
       ]
     },
-    "tandas": [
-      {
-        "id": "preguntame-v41",
-        "t": {
-          "es": "Pregúntame",
-          "en": "Ask me",
-          "ca": "Pregunta'm"
-        },
-        "items": {
-          "es": [
-            "1. Abre Pregúntame desde Inicio y pregunta cuánto queda de presupuesto o qué recibos faltan: la cifra debe coincidir con Aely, también sin conexión.",
-            "2. Pregunta cómo apuntar efectivo o abrir Metas, Deudas y Recibos: el botón debe llevar a la pantalla correcta sin guardar nada solo.",
-            "3. Escribe una duda que Aely no reconozca: la ayuda local debe seguir disponible y la opción avanzada debe explicar antes, claramente, qué se enviaría a OpenAI."
-          ],
-          "en": [
-            "1. Open Ask me from Home and ask how much budget remains or which bills are pending: the figure should match Aely, even offline.",
-            "2. Ask how to record cash or open Goals, Debts and Bills: the button should reach the right screen without saving anything on its own.",
-            "3. Type a question Aely does not recognise: local help should remain available and advanced help must clearly explain first what would be sent to OpenAI."
-          ],
-          "ca": [
-            "1. Obre Pregunta'm des d'Inici i pregunta quant pressupost queda o quins rebuts falten: la xifra ha de coincidir amb Aely, també sense connexió.",
-            "2. Pregunta com apuntar efectiu o obrir Metes, Deutes i Rebuts: el botó ha de portar a la pantalla correcta sense desar res tot sol.",
-            "3. Escriu un dubte que Aely no reconegui: l'ajuda local ha de continuar disponible i l'opció avançada ha d'explicar abans, clarament, què s'enviaria a OpenAI."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.2",
@@ -369,33 +266,7 @@
         "La comparació amb els càrrecs reals és ara a Els meus bancs, al costat del banc que es vol revisar."
       ]
     },
-    "tandas": [
-      {
-        "id": "gestionar-recibos-v41",
-        "t": {
-          "es": "Nueva pantalla Tus recibos",
-          "en": "New Your bills screen",
-          "ca": "Nova pantalla Els teus rebuts"
-        },
-        "items": {
-          "es": [
-            "1. Entra en Plan → Recibos → Gestionar: debe abrirse con fluidez y enseñar cuatro grupos, buscador y ¿Me lo puedo permitir?.",
-            "2. Abre un recibo, cambia su nombre o sus datos y vuelve atrás: debe conservar meses e importes especiales.",
-            "3. Añade y quita un recibo: el alta debe avanzar paso a paso y Deshacer debe recuperarlo una sola vez."
-          ],
-          "en": [
-            "1. Open Plan → Bills → Manage: it should open smoothly and show four groups, search and Can I afford it?.",
-            "2. Open a bill, change its name or details and go back: special months and amounts should remain intact.",
-            "3. Add and remove a bill: creation should progress step by step and Undo should restore it once."
-          ],
-          "ca": [
-            "1. Entra a Pla → Rebuts → Gestionar: s'ha d'obrir amb fluïdesa i mostrar quatre grups, cercador i M'ho puc permetre?.",
-            "2. Obre un rebut, canvia'n el nom o les dades i torna enrere: ha de conservar mesos i imports especials.",
-            "3. Afegeix i treu un rebut: l'alta ha d'avançar pas a pas i Desfer l'ha de recuperar una sola vegada."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.1",
@@ -416,33 +287,7 @@
         "Cada compte té una fitxa clara per consultar-ne el saldo, canviar-ne el nom, triar per a què es fa servir i veure'n els últims moviments."
       ]
     },
-    "tandas": [
-      {
-        "id": "ficha-cuenta-v41",
-        "t": {
-          "es": "Nueva ficha de cuenta",
-          "en": "New account sheet",
-          "ca": "Nova fitxa de compte"
-        },
-        "items": {
-          "es": [
-            "1. Abre una cuenta manual: debe permitir renombrarla, corregir el saldo con el teclado y elegir su uso sin botón Guardar.",
-            "2. Abre una cuenta conectada: el saldo debe estar bloqueado y debe aparecer Sincronizar o Reconectar según su estado.",
-            "3. Toca Ver todo en sus últimos movimientos: Gastos debe abrirse filtrado solo por ese banco."
-          ],
-          "en": [
-            "1. Open a manual account: it should allow renaming it, fixing its balance with the keypad and choosing its use without a Save button.",
-            "2. Open a connected account: its balance should be locked and Sync or Reconnect should appear depending on its status.",
-            "3. Tap See all below its latest transactions: Expenses should open filtered to that bank only."
-          ],
-          "ca": [
-            "1. Obre un compte manual: ha de permetre canviar-ne el nom, corregir el saldo amb el teclat i triar-ne l'ús sense botó Desa.",
-            "2. Obre un compte connectat: el saldo ha d'estar bloquejat i hi ha d'aparèixer Sincronitza o Torna a connectar segons l'estat.",
-            "3. Toca Veure-ho tot sota els últims moviments: Despeses s'ha d'obrir filtrat només per aquell banc."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.0",
@@ -469,33 +314,7 @@
         "En esborrar una despesa hi ha cinc segons per desfer-ho i recuperar-la exactament com estava."
       ]
     },
-    "tandas": [
-      {
-        "id": "ficha-gasto-v41",
-        "t": {
-          "es": "Nueva ficha de gasto",
-          "en": "New expense sheet",
-          "ca": "Nova fitxa de despesa"
-        },
-        "items": {
-          "es": [
-            "1. Toca + y apunta un gasto: importe, concepto, banco, fecha, categorías y teclado deben caber y responder con fluidez.",
-            "2. Abre un movimiento del banco: debe explicar su origen y no permitir cambiar importe ni banco.",
-            "3. Borra un gasto y toca Deshacer antes de cinco segundos: debe volver una sola vez, con el mismo contenido."
-          ],
-          "en": [
-            "1. Tap + and add an expense: amount, concept, bank, date, categories and keypad should fit and respond smoothly.",
-            "2. Open a bank transaction: it should explain its origin and prevent changing its amount or bank.",
-            "3. Delete an expense and tap Undo within five seconds: it should return once with the same content."
-          ],
-          "ca": [
-            "1. Toca + i apunta una despesa: import, concepte, banc, data, categories i teclat han de cabre i respondre amb fluïdesa.",
-            "2. Obre un moviment del banc: ha d'explicar l'origen i no permetre canviar-ne l'import ni el banc.",
-            "3. Esborra una despesa i toca Desfer abans de cinc segons: ha de tornar una sola vegada, amb el mateix contingut."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.25.6",

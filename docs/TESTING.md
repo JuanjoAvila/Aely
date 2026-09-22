@@ -1,5 +1,14 @@
 # Testing — Aely
 
+Apariencia 4.26.10: `e2e/apariencia-temas.spec.mjs` pinta Cyberpunk de verdad y comprueba que el
+dinero conserva verde/rojo y que el tema persiste tras recargar. También cubre que «Reducir
+animaciones» apaga todo lo que se mueve y las temáticas Otoño y Primavera (tinte, ambientación y
+persistencia). Va en CROSSCUTTING porque lo pueden romper `shell.html` o Ajustes, no una sola
+pantalla. `revisar-beta.spec.mjs` comprueba que el veredicto ya recibido de la 4.26.9.1 no
+reactiva las nueve checklists antiguas: Novedades conserva el histórico, pero el panel solo pide
+los cinco pasos nuevos de temas. El gesto de Ajustes y el retoque de importes/anillo tendrán
+tandas y pruebas propias.
+
 Plan v4.1 (4.26.8): `tests/plan-charges.test.mjs` protege la fuente única de cargos con euros
 pagados/pendientes, varias cuentas, deudas sin día y saldos ausentes o negativos. Está registrado
 en `scripts/run-tests.mjs`. `e2e/plan-cover.spec.mjs` abre la pantalla real y cubre el anillo, la

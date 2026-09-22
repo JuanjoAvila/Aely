@@ -72,6 +72,24 @@ test("el panel de revisión saca la checklist de las notas de la versión", asyn
   }
 });
 
+test("4.26.10 solo pide probar los temas; el veredicto antiguo no reaparece", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  const ronda = await page.evaluate(() => {
+    const previas = RELEASE_NOTES.filter(function(n){ return /^4\.26\.(?:[0-9])$/.test(n.v); });
+    const pack = betaChecklist("4.26.10.1", "4.25.6");
+    return {
+      previas: previas.map(function(n){ return {v:n.v, pendientes:(n.tandas||[]).length}; }),
+      ids: pack.tandas.map(function(g){ return g.id; }),
+      pasos: pack.items.length,
+    };
+  });
+  expect(ronda.previas).toHaveLength(10);
+  expect(ronda.previas.every(function(n){ return n.pendientes===0; }),
+    "los pasos ya evaluados de la 4.26.9.1 no deben repetirse").toBe(true);
+  expect(ronda.ids).toEqual(["4.26.10/temas-cyber-otono-primavera"]);
+  expect(ronda.pasos).toBe(5);
+});
+
 test("betaChecklist casa la beta (4.8.0.17) con las notas de su versión base (4.8.0)", async ({ page }) => {
   await abrirRevisionBeta(page);
   const r = await page.evaluate(() => {

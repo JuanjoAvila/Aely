@@ -1,3 +1,31 @@
+## [4.26.10] - 2026-09-22
+### Apariencia: Cyberpunk, Otoño y Primavera (feedback 18/9, punto 20)
+
+Tanda separada a petición del dueño, sobre la beta 4.26.9 y sin el resto de la ronda del 18/9.
+El dueño ya probó la beta 4.26.9.1 y entregó su veredicto en 22 puntos. Las nueve checklists
+anteriores de la 4.26.0–4.26.9 se vacían (`tandas:[]`) para no obligarle a repetir 28 pasos, varios
+solapados y uno ya contrario a la portada actual de Plan. Sus notas para la familia siguen intactas.
+Vaciar el panel antiguo **no significa aprobar ni promocionar** esas funciones: cada corrección
+volverá con su tanda y sus pasos concretos.
+
+**Cyberpunk** es un tema de color propio (`html[data-theme="cyber"]`), no una temática: define todas
+las variables que definen Verde/Oscuro/Claro/Azul, así que ninguna cae al valor por defecto. El
+dinero conserva su semántica: `--mint` sigue siendo verde (positivo) y `--coral` rojo-rosa
+(negativo), en versión neón. Los acentos nuevos van en `--cyber-*` y solo decoran. Contraste medido
+sobre `--surface`: texto 16,8, muted 8,9, mint 13,2 y coral 5,9. El movimiento (parpadeo de los
+títulos una vez al montarse, anillo del + y corriente de la barra) usa solo `opacity`/`transform` y
+se apaga con «Reducir animaciones» y con `prefers-reduced-motion`. El informe PNG del mes tiene su
+paleta. La persistencia no necesita lista blanca: el script del `<head>` y `applyTheme` aceptan
+cualquier id.
+
+**Otoño y Primavera** entran en `SEASONS`, `SEASON_AMB` y en `--season-tinte`/`--season-glow-top`, con
+la misma intensidad que las demás. Otoño va en ámbar/óxido para no confundirse con Halloween, y
+Primavera en lila/brote para no confundirse con Pascua.
+
+Sin cambios nativos: no hace falta APK. `apariencia-temas.spec.mjs` va en CROSSCUTTING, porque es
+CSS global de `shell.html` y selección persistida en Ajustes. El salto del gesto y los retoques de
+importes/anillo se mantienen en tandas independientes: no se anuncian ni se prueban aquí.
+
 ## [4.26.9] - 2026-09-17
 ### Plan compacto y gestos de las fichas de gasto
 
@@ -5858,4 +5886,3 @@ Con esto queda **completo el motor dinámico**: calendario de fijos, día de cob
 - Sincronización de gastos con deduplicación.
 - Swipe entre las 6 pestañas con detección de eje.
 - Dashboard: patrimonio neto, sparkline, anillo de presupuesto, racha.
-

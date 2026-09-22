@@ -182,7 +182,8 @@ function shareMonthReport(state, tt, showToast, opt){
       green:{ bg:"#0B1410", surface:"#122319", line:"#1f3a2c", text:"#E8F0EA", muted:"#8FA89A", mint:"#5FD08A", coral:"#E2705F" },
       dark: { bg:"#0A0A0C", surface:"#17171B", line:"#2B2B32", text:"#ECECEF", muted:"#9A9AA4", mint:"#5FD08A", coral:"#E2705F" },
       light:{ bg:"#F3F6F3", surface:"#FFFFFF", line:"#DCE4DD", text:"#15201A", muted:"#566A5E", mint:"#2FA866", coral:"#D2563F" },
-      blue: { bg:"#0A1320", surface:"#13243B", line:"#213D5C", text:"#E6EEF8", muted:"#93A8C2", mint:"#5FD08A", coral:"#E2705F" }
+      blue: { bg:"#0A1320", surface:"#13243B", line:"#213D5C", text:"#E6EEF8", muted:"#93A8C2", mint:"#5FD08A", coral:"#E2705F" },
+      cyber:{ bg:"#0A0612", surface:"#150D26", line:"#33235A", text:"#F4F0FF", muted:"#B9ACDC", mint:"#39F5A0", coral:"#FF4D7D" }
     };
     const P=PAL[(state.settings&&state.settings.theme)||"green"]||PAL.green;
     const mint=P.mint, text=P.text, muted=P.muted, surface=P.surface, line=P.line, coral=P.coral, bg=P.bg;
