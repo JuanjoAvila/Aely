@@ -8,7 +8,8 @@
  * Lo que este fichero ata, que son las tres decisiones suyas:
  *  · Tocar la fila ENTERA abre la ficha (y **sin flecha** al lado del importe: «pero sin la flecha
  *    esa que sale al lado del dinero que tienes»).
- *  · En una cuenta CONECTADA el saldo no se escribe: lo manda el banco, y se dice con su candado.
+ *  · En una cuenta CONECTADA el saldo no se escribe: lo manda el banco, y se dice con palabras
+ *    («lo pone el banco»; el candado se retiró en el feedback del 18/9, la protección no).
  *    En una cuenta suya, ahí sí hay casilla. Editarlo en una conectada sería mentirse.
  *  · El rol deja de ser tres chips sueltos con la explicación en letra pequeña al final de la
  *    tarjeta: cada opción lleva SU frase de qué hace.
@@ -88,6 +89,7 @@ test("una cuenta CONECTADA enseña el saldo del banco, y no deja escribirlo", as
 
   await expect(ficha(page).locator("input.num"), "el saldo de una cuenta del banco no se teclea").toHaveCount(0);
   await expect(ficha(page), "y se dice de quién es el número").toContainText(/lo pone el banco|set by the bank|ho posa el banc/i);
+  await expect(ficha(page), "sin candado visible (feedback 18/9)").not.toContainText("🔒");
 });
 
 test("una CaixaBank recién conectada abre la misma ficha, se renombra y solo toma rol al elegirlo", async ({ page }) => {

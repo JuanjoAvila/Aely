@@ -83,7 +83,7 @@ function AccountSheet({open, cuenta, set, totals, onClose, onRemove, onSaldo, on
           conectada
             ? React.createElement("div",{style:{textAlign:"right"}},
                 React.createElement("div",{className:"num",style:{fontSize:21,fontWeight:800}}, eur(saldoMostrado(a))),
-                React.createElement("span",{style:{fontSize:10.5,color:"var(--muted-2)",fontWeight:600}}, "🔒 "+t("pt_ficha_banco")))
+                React.createElement("span",{style:{fontSize:10.5,color:"var(--muted-2)",fontWeight:600}}, t("pt_ficha_banco")))
             : React.createElement("input",{className:"af-in num",inputMode:"decimal",value:saldo,
                 style:{width:130,textAlign:"right",fontSize:18,fontWeight:800},
                 onChange:function(e){ const v=e.target.value; saldoRef.current=v; setSaldo(v); },onBlur:guardaSaldo})

@@ -136,7 +136,7 @@ function LockScreen({onUnlock}){
   };
   const link={background:"none",border:"none",color:"var(--muted-2)",cursor:"pointer",fontSize:"12px",marginTop:"10px",textDecoration:"underline"};
   return React.createElement("div",{style:wrap},
-    React.createElement("div",{style:{width:64,height:64,borderRadius:"50%",background:"#5FD08A22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"30px"}},"🔒"),
+    React.createElement("div",{style:{width:64,height:64,borderRadius:"50%",background:"#5FD08A22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"30px"}},"◎"),
     React.createElement("div",{style:{fontWeight:700,fontSize:"22px",fontFamily:"Fraunces, serif"}},"Aely"),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:"14px"}}, err?t("lk_failed"):t("lk_unlock")),
     React.createElement("button",{style:btn,onClick:tryUnlock},t("lk_unlockbtn")),
@@ -1823,7 +1823,7 @@ function PrivacyPanel({onClose}){
   };
   return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
     React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("st_back_settings")),
-    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 4px"}}, "🔒 "+t("pv_title")),
+    React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 4px"}}, "🛡️ "+t("pv_title")),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:12.5,marginBottom:4}}, t("pv_updated")),
     sec(t("pv_s1_h"), t("pv_s1")),
     sec(t("pv_s2_h"), t("pv_s2")),
@@ -2579,7 +2579,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     !notifOk && React.createElement("div",{className:"alarmbox",style:{marginTop:14}},
       t("na_body"),
       React.createElement("button",{style:Object.assign({},btn,{marginTop:10}),onClick:function(){ const nat=natPlugin(); if(nat&&nat.openNotifAccess){ try{ nat.openNotifAccess().catch(function(){}); }catch(e){} } }},t("na_fix")),
-      React.createElement("div",{style:{fontSize:11.5,lineHeight:1.5,marginTop:10,opacity:.85}}, "🔓 "+t("na_restricted"))
+      React.createElement("div",{style:{fontSize:11.5,lineHeight:1.5,marginTop:10,opacity:.85}}, t("na_restricted"))
     ),
     (function(){
       const nat=natPlugin();
@@ -2652,10 +2652,10 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       // Huella y cerrar sesión volvieron aquí (2026-07-18): con el rediseño solo existían
       // dentro del AuthPanel, al que ya no se llegaba estando logueado.
       bio.supported()
-        ? row("biolock","🔐",(bioOn?t("au_bio_off"):t("au_bio_on")).replace(/^[^ ]+ /,""),null,toggleBio, sw(bioOn))
+        ? row("biolock","◎",bioOn?t("au_bio_off"):t("au_bio_on"),null,toggleBio, sw(bioOn))
         : React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}}, t("au_nobio")),
       row("signout","🚪",t("au_signout"),null,doSignOut),
-      row("priv","🔒",t("st_privacy"),null,function(){ setPrivOpen(true); }),
+      row("priv","🛡️",t("st_privacy"),null,function(){ setPrivOpen(true); }),
       row("delacc","🗑️",t("st_delete_acc"),null,function(){
         askConfirm({ title:t("st_delete_acc"), sub:t("st_delete_acc_sub"), ok:t("st_delete_acc_ok"), danger:true })
           .then(function(ok){
