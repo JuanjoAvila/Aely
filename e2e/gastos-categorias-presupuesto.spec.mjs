@@ -123,6 +123,8 @@ test("★ plegarlo deja UNA línea, y dice cuántas categorías esconde", async 
   const cuantas = await bloque.locator(".v4-gastos-cat").count();
   expect(cuantas).toBeGreaterThan(0);
   expect(await cuerpo.evaluate((el) => getComputedStyle(el).transitionProperty)).toContain("grid-template-rows");
+  expect(await bloque.evaluate((el) => getComputedStyle(el).transitionProperty)).toContain("margin-top");
+  expect(await cab.evaluate((el) => getComputedStyle(el).transitionProperty)).toContain("margin-bottom");
 
   await cab.click();
   await expect(cab).toHaveAttribute("aria-expanded", "false");
