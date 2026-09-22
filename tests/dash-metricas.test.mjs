@@ -107,5 +107,6 @@ assert.equal(streakSource.includes("budgetYmKey(dateMs"),false,"la racha no ejec
 assert.match(streakSource,/function\(ms\)[\s\S]*while\(lo<=hi\)/,"los meses se localizan entre límites con búsqueda binaria");
 assert.equal(dash.includes("gamifOf(state,tt).streak"),false,"Inicio memoriza la racha y no recalcula toda la gamificación al pintar");
 assert.equal(goals.slice(goals.indexOf("function Goals"),goals.indexOf("function ContributeGoalSheet")).includes("gamifOf("),false,"Metas no calcula logros que ni siquiera pinta");
+assert.equal(goals.includes("function Achievements"),false,"no queda una pantalla de Logros huérfana recorriendo la racha por su cuenta");
 
 console.log("dash-metricas: OK");
