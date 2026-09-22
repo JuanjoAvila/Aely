@@ -1865,6 +1865,12 @@ function App(){
     if(patch) set(function(s){ return Object.assign({},s,patch); });
   },[budgetMonth,state.budget,state.budgetByMonth]);
 
+  /* Una sola racha compartida por Inicio y el detector de logros. Con históricos grandes,
+     calcularla otra vez dentro de cada pantalla triplicaba el recorrido al terminar un sync. */
+  const budgetStreak=useMemo(function(){ return underBudgetStreak(state); },
+    [state.expenses,state.budgetByMonth,state.accounts,state.reservaLog,
+     state.settings&&state.settings.expenseBanks,state.settings&&state.settings.gTotalMode,budgetMonth]);
+
   const [pricing,setPricing]=useState(false);
   // Tipos BCE vía frankfurter (gratis, sin key). URL canónica: api.frankfurter.dev.
   // ⚠ 2026-08-05: api.frankfurter.app hace 301 → .dev; la CSP solo tenía .app, así que en el
@@ -2206,7 +2212,7 @@ function App(){
 
   // GAMIFICACIÓN: detecta logros nuevos y subidas de nivel → toast/confeti (1ª vez siembra sin avisar).
   useEffect(function(){
-    const g=gamifOf(state, totals, underBudgetStreak(state));
+    const g=gamifOf(state, totals, budgetStreak);
     const stored=state.badges||[];
     const nowUnlocked=g.badges.filter(function(b){return b.unlocked;}).map(function(b){return b.id;});
     const fresh=nowUnlocked.filter(function(id){ return stored.indexOf(id)<0; });
@@ -2218,7 +2224,7 @@ function App(){
     else if(fresh.length && seeded){ showToast(tf("gm_badge_new",{x:t("gm_b_"+fresh[0])})); }
   },[state.expenses,state.goals,state.budget,state.budgetByMonth,state.trRewardsTotal,
      state.accounts,state.reservaLog,state.settings&&state.settings.expenseBanks,
-     state.settings&&state.settings.gTotalMode]);
+     state.settings&&state.settings.gTotalMode,budgetStreak]);
   const fetchPrices=function(silent){
     refreshFx();   // y también al pulsar "Precios USD"
     const withTicker=state.investments.filter(function(i){ return i.ticker; });
@@ -3229,7 +3235,7 @@ function App(){
   const hiddenTabIds = TABS.map(function(tt){return tt.id;}).filter(function(id){ return tabIds.indexOf(id)<0; });
   const pageFor=function(id){
     const simple=!!(state.settings&&state.settings.simpleMode);
-    if(id==="dash") return React.createElement(Dashboard,{state:state,totals:totals,set:set,showToast:showToast,
+    if(id==="dash") return React.createElement(Dashboard,{state:state,totals:totals,budgetStreak:budgetStreak,set:set,showToast:showToast,
       onOpenSettings:function(){ setDrawerOpen(true); },
       onOpenProfile:function(){
         // Montar cerrado un frame y luego abrir: si montas ya con .open no hay animación de entrada.
@@ -3279,7 +3285,7 @@ function App(){
     tabIds.forEach(function(id){ if(id!=="gastos") out[id]=pageFor(id); });
     return out;
     // eslint-disable-next-line
-  },[state, totals, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, drawerOpen, locked]);
+  },[state, totals, budgetStreak, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, drawerOpen, locked]);
   /* Gastos iba en memo aparte POR la prop `active` — y esa prop era el lag. Ahora se entera
      por bus (`mcSetGastosActive` abajo) y comparte deps con las otras: entrar/salir de Gastos
      ya NO reconstruye Expenses. Se deja el memo propio por si mañana vuelve a necesitar algo

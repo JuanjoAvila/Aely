@@ -3290,24 +3290,38 @@ function underBudgetStreak(state, nowMs){
   const num=function(k){ return +k.slice(0,4)*12 + +k.slice(5)-1; };
   const curNum=num(budgetYmKey(nowMs));
   const keys=Object.keys(budgets).filter(function(k){ return num(k)<curNum; }).sort(function(a,b){ return num(a)-num(b); });
-  const wanted={}, byMonth={};
-  keys.forEach(function(k){ wanted[k]=true; byMonth[k]={spent:0,income:0,reserved:0}; });
+  const byMonth={}, windows=keys.map(function(k){
+    const y=+k.slice(0,4),m=+k.slice(5)-1;
+    byMonth[k]={spent:0,income:0,reserved:0};
+    return {k:k,start:inicioDeMesMs(Date.UTC(y,m,15,12)),end:inicioDeMesMs(Date.UTC(y,m+1,15,12))};
+  });
+  const monthOf=function(ms){
+    let lo=0,hi=windows.length-1;
+    while(lo<=hi){
+      const i=(lo+hi)>>1,w=windows[i];
+      if(ms<w.start) hi=i-1;
+      else if(ms>=w.end) lo=i+1;
+      else return w.k;
+    }
+    return null;
+  };
   /* La racha usa exactamente los mismos cajones que la tarjeta de presupuesto: solo bancos de
      gasto diario, sin neutras/posibles duplicados, y respeta bruto/neto y reservas. Antes sumaba
      TODOS los gastos del histórico; un recibo de Sabadell podía romper una racha que Inicio
      enseñaba correctamente como cumplida (auditoría Claude 5.5, feedback 18/9). Se agrega en una
-     sola pasada para no releer miles de movimientos por cada mes guardado. */
+     sola pasada para no releer miles de movimientos por cada mes guardado. Los límites se
+     calculan una vez en hora Madrid; hacer `Intl.format` por movimiento costaba ~220 ms a CPU x6. */
   (state.expenses||[]).forEach(function(e){
-    const k=budgetYmKey(dateMs(e.date));
-    if(!wanted[k] || !expenseCountsBudget(e,state)) return;
+    const k=monthOf(dateMs(e.date));
+    if(!k || !expenseCountsBudget(e,state)) return;
     if(e.amount>0) byMonth[k].spent+=e.amount;
     else if(e.amount<0) byMonth[k].income+=Math.abs(e.amount);
   });
   (state.reservaLog||[]).forEach(function(x){
     const ms=new Date(x&&x.date).getTime();
     if(!isFinite(ms)) return;
-    const k=budgetYmKey(ms);
-    if(wanted[k]) byMonth[k].reserved+=(x&&x.amount||0);
+    const k=monthOf(ms);
+    if(k) byMonth[k].reserved+=(x&&x.amount||0);
   });
   const good={};
   keys.forEach(function(k){

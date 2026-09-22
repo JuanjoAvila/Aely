@@ -580,11 +580,7 @@ function ContributeGoalSheet({goal, state, onClose, onContribute}){
 
 /* Pantalla "Logros" (rediseño 1a): la gamificación (nivel + retos + medallas) vive aquí, FUERA de
    "Metas". El Resumen resume racha+nivel en un titular; el detalle (medallas/retos) vive en esta pantalla. */
-function Achievements({state, totals}){
-  const streakMonth=budgetYmKey();
-  const budgetStreak=useMemo(function(){ return underBudgetStreak(state); },
-    [state.expenses,state.budgetByMonth,state.accounts,state.reservaLog,
-     state.settings&&state.settings.expenseBanks,state.settings&&state.settings.gTotalMode,streakMonth]);
+function Achievements({state, totals, budgetStreak}){
   const gm=gamifOf(state, totals, budgetStreak);
   return React.createElement("div",null,
     /* ---------- NIVEL ---------- */

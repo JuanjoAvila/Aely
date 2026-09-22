@@ -5,7 +5,7 @@ function dashOrderOf(s, allIds){
   const saved=((s.settings&&s.settings.dashOrder)||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
   return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
 }
-function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
+function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
   const tt=totals;
   const simple=!!(state.settings&&state.settings.simpleMode);
   const [budgetOpen,setBudgetOpen]=useState(false);
@@ -71,10 +71,6 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
 
   // Misma cifra que la cabecera de Gastos / widget (no `thisMonthSpent`, que mete neutras).
   const bud=monthBudgetStats(state);
-  const streakMonth=budgetYmKey();
-  const budgetStreak=useMemo(function(){ return underBudgetStreak(state); },
-    [state.expenses,state.budgetByMonth,state.accounts,state.reservaLog,
-     state.settings&&state.settings.expenseBanks,state.settings&&state.settings.gTotalMode,streakMonth]);
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
   const spentAgainst=Math.max(0, bud.against);
   const ratio=budAmt>0 ? spentAgainst/budAmt : 0;
@@ -261,7 +257,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       ),
       React.createElement("div",{className:"v4-budget-foot"},
         (function(){
-          const n=budgetStreak.current;
+          const n=budgetStreak?budgetStreak.current:0;
           return React.createElement("span",{"data-testid":"dash-budget-streak"},n>0?tf("v4_streak",{n:n}):t("v4_streak_zero"));
         })(),
         React.createElement("button",{className:"link",onClick:function(e){ e.stopPropagation(); if(onGoGastos) onGoGastos(); }}, t("v4_see_gastos"))
