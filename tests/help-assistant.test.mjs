@@ -50,6 +50,10 @@ assert.equal(ctx.helpCashWantsAccounts("where do I record a cash purchase"),fals
 assert.equal(ctx.helpCashWantsAccounts("how do I add a cash expense"),false);
 assert.equal(ctx.helpCashWantsAccounts("where do I add something I bought with cash"),false);
 assert.equal(ctx.helpCashWantsAccounts("afegir una despesa en efectiu"),false);
+assert.equal(ctx.helpCashWantsAccounts("he comprat amb efectiu, on ho poso?"),false);
+assert.equal(ctx.helpCashWantsAccounts("compraste en efectivo, ¿dónde lo pongo?"),false);
+assert.equal(ctx.helpCashWantsAccounts("I paid cash, where does it go"),false);
+assert.equal(ctx.helpCashWantsAccounts("where do I put cash I paid with"),false);
 assert.equal(ctx.helpCashWantsAccounts("where do I add cash I withdrew"),false);
 assert.equal(ctx.helpCashWantsAccounts("he tret efectiu, on l'apunto"),false);
 assert.equal(ctx.helpCashWantsAccounts("¿dónde saco efectivo?"),false);

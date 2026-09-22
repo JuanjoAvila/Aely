@@ -64,7 +64,7 @@ function helpCashWantsAccounts(question){
   /* `compr\w*` también casaba con «compruebo», así que consultar dónde ver el efectivo acababa
      en Apuntar. Enumeramos formas de compra y dejamos las raíces flexibles solo donde no hay esa
      colisión; las variantes «añado/meto/pongo» sí son crear o alimentar la cuenta. */
-  if(/\b(apunt\w*|gast\w*|compr(?:a(?:s|r|do|da|dos|das)?|o|e)|pag\w*|sac\w*|retir\w*|treur\w*|tret\w*|record\w*|spend\w*|spent|purchas\w*|expens\w*|bought|buy\w*|despes\w*|withdr[ae]w\w*|cajero|caixer|atm|billete|moneda)\b/.test(q)) return false;
+  if(/\b(apunt\w*|gast\w*|compr(?!ob|ueb)\w*|pag\w*|paid|pay\w*|sac\w*|retir\w*|treur\w*|tret\w*|record\w*|spend\w*|spent|purchas\w*|expens\w*|bought|buy\w*|despes\w*|withdr[ae]w\w*|cajero|caixer|atm|billete|moneda)\b/.test(q)) return false;
   return /\b(donde|where|on|anad\w*|afeg\w*|agreg\w*|crea\w*|add\w*|cuenta|account|pon\w*|met\w*|tenir|tener)\b/.test(q);
 }
 function helpPrimaryForTopic(topicId, question){
@@ -340,7 +340,7 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
     if(e) e.preventDefault();
     var text=question.trim(); if(!text) return;
     if(document.activeElement&&document.activeElement.blur) document.activeElement.blur();
-    requestRef.current++; setBusy(false); setAsked(text); setStepsOpen(false); setRemoteNotice(null);
+    requestRef.current++; setBusy(false); setAsked(text); setStepsOpen(false); setRemoteTried(false); setRemoteNotice(null);
     paintLocal(text);
     // OpenAI es opcional: solo con consentimiento, sesión y una duda local poco clara.
   };
