@@ -2739,7 +2739,10 @@ function App(){
     if(axis.current!=="x") return;
     dx.current=ddx;
     if(gestureMode.current==="drawer"){
-      const prog=Math.min(1,Math.max(0,ddx/drawerW()));
+      /* La guarda de eje retiene ~36 px antes de reclamar el gesto: pintar el delta crudo hacía
+         aparecer Ajustes de golpe. Se pinta desde el ancla, igual que las pestañas; la decisión
+         al soltar conserva `dx.current` para no endurecer la apertura (feedback 18/9, punto 22). */
+      const prog=Math.min(1,Math.max(0,(ddx-ancla.current)/drawerW()));
       if(drawerRef.current) drawerRef.current.style.transform="translate3d("+(-100+prog*100)+"%,0,0)";
       if(e.cancelable) e.preventDefault();
       return;
