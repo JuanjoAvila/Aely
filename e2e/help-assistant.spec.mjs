@@ -130,7 +130,7 @@ test("404, 429, 503, timeout y flag OFF avisan sin borrar la ayuda local",async(
   for(const kind of ["404","429","503","timeout","flag OFF"]){
     await page.evaluate(k=>{ window.__helpFailure=k; },kind);
     await ask(dialog,"No sé explicar esta duda");
-    await dialog.getByRole("button",{name:"Probar otra vez",exact:true}).click();
+    await dialog.getByRole("button",{name:kind==="404"?"Probar con más ayuda":"Probar otra vez",exact:true}).click();
     await expect(dialog.getByRole("alert")).toContainText(kind==="429"?/límite temporal/i:/ayuda local sigue disponible/i);
     await expect(dialog.getByRole("button",{name:"Gastar en efectivo",exact:true})).toBeVisible();
   }
@@ -198,7 +198,7 @@ test("añadir efectivo abre Cuentas pero apuntar compras sigue en Apuntar",async
     await ask(dialog,question);
     await expect(dialog.getByTestId("help-cta")).toHaveText("Apuntar en efectivo");
   }
-  for(const question of ["¿dónde puedo añadir efectivo?","on puc afegir efectiu?"]){
+  for(const question of ["¿dónde puedo añadir efectivo?","¿cómo añado dinero en efectivo?","¿dónde meto el efectivo?","¿dónde compruebo mi efectivo?","on puc afegir efectiu?"]){
     await ask(dialog,question);
     await expect(dialog.getByRole("status")).toContainText(/Cartera/i);
     await expect(dialog.getByTestId("help-cta")).toHaveText("Abrir cuentas");
@@ -207,6 +207,14 @@ test("añadir efectivo abre Cuentas pero apuntar compras sigue en Apuntar",async
   await dialog.getByTestId("help-cta").click();
   await expect(page.locator('.botnav-tab.active')).toHaveAttribute("data-tour","cartera");
   await expect(page.locator('[data-testid="ap-efectivo"]')).toHaveCount(0);
+});
+
+test("al aclarar una duda mixta, Efectivo conserva la intención de abrir Cuentas",async({page})=>{
+  const {dialog}=await openHelp(page,{accounts:[{id:"cash",ent:"efectivo",value:80,role:"diario"}],expenses:[]});
+  await ask(dialog,"¿Dónde actualizo el efectivo que tengo en la cartera?");
+  await dialog.getByRole("button",{name:"Gastar en efectivo",exact:true}).first().click();
+  await expect(dialog.getByRole("status")).toContainText(/Cartera/i);
+  await expect(dialog.getByTestId("help-cta")).toHaveText("Abrir cuentas");
 });
 
 test("el composer queda visible cuando aparece el teclado",async({page})=>{
