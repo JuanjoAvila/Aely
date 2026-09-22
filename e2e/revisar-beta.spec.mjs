@@ -90,6 +90,19 @@ test("4.26.10 solo pide probar los temas; el veredicto antiguo no reaparece", as
   expect(ronda.pasos).toBe(5);
 });
 
+test("4.26.11 separa Ajustes y temas en dos veredictos sin repetir lo antiguo", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  const ronda = await page.evaluate(() => {
+    const pack = betaChecklist("4.26.11.1", "4.25.6");
+    return { ids:pack.tandas.map(function(g){ return g.id; }), pasos:pack.items.length };
+  });
+  expect(ronda.ids).toEqual([
+    "4.26.11/ajustes-sin-salto",
+    "4.26.10/temas-cyber-otono-primavera",
+  ]);
+  expect(ronda.pasos).toBe(7);
+});
+
 test("betaChecklist casa la beta (4.8.0.17) con las notas de su versión base (4.8.0)", async ({ page }) => {
   await abrirRevisionBeta(page);
   const r = await page.evaluate(() => {

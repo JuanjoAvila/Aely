@@ -1,3 +1,14 @@
+## [4.26.11] - 2026-09-22
+### Ajustes sigue al dedo desde el primer fotograma (feedback 18/9, punto 22)
+
+La guarda del eje horizontal tarda unos 36 px en reclamar el gesto. El carrusel de pestañas ya
+restaba `ancla` al pintar, pero el cajón de Ajustes seguía usando el desplazamiento crudo y aparecía
+de golpe al cruzar la guarda. Solo cambia lo que se pinta: la decisión de abrir/cerrar al soltar
+mantiene el delta original para no endurecer el gesto. La prueba CDP de `swipe-pestanas.spec.mjs`
+mide el primer fotograma (<12 px) y confirma que el cajón termina abriéndose; los ocho gestos del
+spec pasan tanto sobre producción 4.25.6 como sobre esta beta. Sin cambios nativos ni APK nueva.
+Es una tanda distinta de los temas de la 4.26.10 y puede recibir un veredicto independiente.
+
 ## [4.26.10] - 2026-09-22
 ### Apariencia: Cyberpunk, Otoño y Primavera (feedback 18/9, punto 20)
 

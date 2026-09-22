@@ -1,5 +1,10 @@
 # Testing — Aely
 
+Ajustes 4.26.11: el nuevo caso de `e2e/swipe-pestanas.spec.mjs` arrastra despacio desde Inicio
+y mide por CDP que el primer fotograma del cajón avance menos de 12 px; también comprueba que
+termine abriéndose. `revisar-beta.spec.mjs` exige dos veredictos separados (Ajustes y temas),
+sin resucitar los 28 pasos antiguos. No requiere APK nueva.
+
 Apariencia 4.26.10: `e2e/apariencia-temas.spec.mjs` pinta Cyberpunk de verdad y comprueba que el
 dinero conserva verde/rojo y que el tema persiste tras recargar. También cubre que «Reducir
 animaciones» apaga todo lo que se mueve y las temáticas Otoño y Primavera (tinte, ambientación y

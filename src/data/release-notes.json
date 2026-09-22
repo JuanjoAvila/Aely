@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.11",
+    "d": "22 sep 2026",
+    "t": {
+      "es": "Ajustes se abre con más suavidad",
+      "en": "Settings opens more smoothly",
+      "ca": "Ajustos s'obre amb més suavitat"
+    },
+    "items": {
+      "es": [
+        "Al abrir Ajustes deslizando desde Inicio, el panel empieza a moverse sin dar un salto y acompaña el dedo."
+      ],
+      "en": [
+        "When you swipe from Home to open Settings, the panel starts moving without a jump and follows your finger."
+      ],
+      "ca": [
+        "En lliscar des d'Inici per obrir Ajustos, el panell comença a moure's sense fer cap salt i segueix el dit."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "ajustes-sin-salto",
+        "t": {
+          "es": "Ajustes sin salto",
+          "en": "Settings without a jump",
+          "ca": "Ajustos sense salt"
+        },
+        "items": {
+          "es": [
+            "1. En Inicio, desliza muy despacio hacia la derecha: al empezar a abrirse, Ajustes debe avanzar desde el borde sin pegar un salto.",
+            "2. Suelta el dedo a mitad de camino y vuelve a intentarlo más rápido: el panel debe completar o deshacer el gesto con suavidad."
+          ],
+          "en": [
+            "1. On Home, swipe very slowly to the right: when Settings starts opening, it should move from the edge without jumping.",
+            "2. Let go halfway and try again faster: the panel should complete or cancel the gesture smoothly."
+          ],
+          "ca": [
+            "1. A Inici, llisca molt a poc a poc cap a la dreta: quan Ajustos comenci a obrir-se, ha d'avançar des de la vora sense saltar.",
+            "2. Deixa anar el dit a mig camí i torna-ho a provar més ràpid: el panell ha de completar o desfer el gest amb suavitat."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.10",
     "d": "22 sep 2026",
     "t": {
