@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-22 · **v4.26.11** preparada para beta — Ajustes abre sin salto; los temas Cyberpunk, Otoño y Primavera conservan su propia tanda. Comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-22 · **v4.26.11** preparada para beta — Ajustes abre sin salto; los temas Cyberpunk, Otoño y Primavera ya se aprobaron y publicaron en producción 4.25.7. Comprobar disponibilidad real con `npm run salud`.
 > Anterior: **v4.26.10** — tema Cyberpunk y temáticas Otoño y Primavera.
 > Anterior: **v4.26.9** — Plan recupera su vista compacta y las fichas de Gastos y Apuntar comparten gestos más suaves.
 > Anterior: **v4.26.8** — Plan v4.1 usa importes reales, saldos honestos y recibos accesibles.

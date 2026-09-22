@@ -2,17 +2,17 @@
 
 Ajustes 4.26.11: el nuevo caso de `e2e/swipe-pestanas.spec.mjs` arrastra despacio desde Inicio
 y mide por CDP que el primer fotograma del cajón avance menos de 12 px; también comprueba que
-termine abriéndose. `revisar-beta.spec.mjs` exige dos veredictos separados (Ajustes y temas),
-sin resucitar los 28 pasos antiguos. No requiere APK nueva.
+termine abriéndose. `revisar-beta.spec.mjs` exige solo el veredicto de Ajustes después de la
+aprobación y publicación de temas, sin resucitar los 28 pasos antiguos. No requiere APK nueva.
 
 Apariencia 4.26.10: `e2e/apariencia-temas.spec.mjs` pinta Cyberpunk de verdad y comprueba que el
 dinero conserva verde/rojo y que el tema persiste tras recargar. También cubre que «Reducir
 animaciones» apaga todo lo que se mueve y las temáticas Otoño y Primavera (tinte, ambientación y
 persistencia). Va en CROSSCUTTING porque lo pueden romper `shell.html` o Ajustes, no una sola
 pantalla. `revisar-beta.spec.mjs` comprueba que el veredicto ya recibido de la 4.26.9.1 no
-reactiva las nueve checklists antiguas: Novedades conserva el histórico, pero el panel solo pide
-los cinco pasos nuevos de temas. El gesto de Ajustes y el retoque de importes/anillo tendrán
-tandas y pruebas propias.
+reactiva las nueve checklists antiguas: Novedades conserva el histórico, pero el panel ya no pide
+los cinco pasos de temas aprobados. El gesto de Ajustes conserva su tanda propia; el retoque de
+importes/anillo tendrá otra tanda y pruebas propias.
 
 Plan v4.1 (4.26.8): `tests/plan-charges.test.mjs` protege la fuente única de cargos con euros
 pagados/pendientes, varias cuentas, deudas sin día y saldos ausentes o negativos. Está registrado

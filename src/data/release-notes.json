@@ -65,39 +65,7 @@
         "Dues temàtiques noves, Tardor i Primavera, a Ajustos → Aparença."
       ]
     },
-    "tandas": [
-      {
-        "id": "temas-cyber-otono-primavera",
-        "t": {
-          "es": "Cyberpunk, Otoño y Primavera",
-          "en": "Cyberpunk, Autumn and Spring",
-          "ca": "Cyberpunk, Tardor i Primavera"
-        },
-        "items": {
-          "es": [
-            "1. Ajustes → Apariencia → toca el círculo rosa y cian (Cyberpunk): fondo morado muy oscuro, el + de abajo en degradado rosa-cian y los títulos con un borde de neón. Los gastos siguen en rojo y los ingresos en verde.",
-            "2. Con Cyberpunk puesto, recorre Inicio, Gastos, Plan y Cartera: todo se lee bien y ningún importe o gráfico desaparece contra el fondo.",
-            "3. Cierra la app del todo y vuelve a abrirla: sigue en Cyberpunk.",
-            "4. Ajustes → Apariencia → Temática → Otoño 🍂: el + cambia a ámbar y caen hojas muy suaves detrás de las tarjetas. Luego elige Primavera 🌸: flores y tono lila.",
-            "5. Con Cyberpunk puesto, activa «Reducir animaciones»: nada parpadea ni se mueve (ni los títulos, ni el + ni la línea de la barra de abajo)."
-          ],
-          "en": [
-            "1. Settings → Look & feel → tap the pink and cyan circle (Cyberpunk): very dark purple background, the + at the bottom in a pink-cyan gradient and titles with a neon edge. Spending stays red and income green.",
-            "2. With Cyberpunk on, go through Home, Spending, Plan and Portfolio: everything is readable and no amount or chart disappears against the background.",
-            "3. Close the app completely and open it again: it is still Cyberpunk.",
-            "4. Settings → Look & feel → Theme → Autumn 🍂: the + turns amber and very soft leaves fall behind the cards. Then choose Spring 🌸: flowers and a lilac tone.",
-            "5. With Cyberpunk on, turn on “Reduce motion”: nothing flickers or moves (not the titles, the + or the line on the bottom bar)."
-          ],
-          "ca": [
-            "1. Ajustos → Aparença → toca el cercle rosa i cian (Cyberpunk): fons lila molt fosc, el + de baix en degradat rosa-cian i els títols amb una vora de neó. Les despeses continuen en vermell i els ingressos en verd.",
-            "2. Amb Cyberpunk posat, recorre Inici, Despeses, Pla i Cartera: tot es llegeix bé i cap import ni gràfic desapareix contra el fons.",
-            "3. Tanca l'app del tot i torna-la a obrir: continua en Cyberpunk.",
-            "4. Ajustos → Aparença → Temàtica → Tardor 🍂: el + passa a ambre i cauen fulles molt suaus darrere les targetes. Després tria Primavera 🌸: flors i to lila.",
-            "5. Amb Cyberpunk posat, activa «Reduir animacions»: res no parpelleja ni es mou (ni els títols, ni el + ni la línia de la barra de baix)."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.9",

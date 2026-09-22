@@ -6,8 +6,10 @@ restaba `ancla` al pintar, pero el cajón de Ajustes seguía usando el desplazam
 de golpe al cruzar la guarda. Solo cambia lo que se pinta: la decisión de abrir/cerrar al soltar
 mantiene el delta original para no endurecer el gesto. La prueba CDP de `swipe-pestanas.spec.mjs`
 mide el primer fotograma (<12 px) y confirma que el cajón termina abriéndose; los ocho gestos del
-spec pasan tanto sobre producción 4.25.6 como sobre esta beta. Sin cambios nativos ni APK nueva.
+spec pasan sobre `main` más este arreglo y sobre esta beta. Sin cambios nativos ni APK nueva.
 Es una tanda distinta de los temas de la 4.26.10 y puede recibir un veredicto independiente.
+Al estar ya aprobados y publicados en producción 4.25.7, sus cinco pasos dejan de aparecer en el
+panel beta, pero sus notas históricas permanecen en Novedades.
 
 ## [4.26.10] - 2026-09-22
 ### Apariencia: Cyberpunk, Otoño y Primavera (feedback 18/9, punto 20)
