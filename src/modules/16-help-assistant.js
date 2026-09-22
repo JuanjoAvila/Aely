@@ -61,8 +61,11 @@ function helpLocalTopics(question){
 function helpCashWantsAccounts(question){
   var q=helpNorm(question);
   if(!/\b(efectivo|efectiu|cash)\b/.test(q)) return false;
-  if(/\b(apunt\w*|gast\w*|compr\w*|pag\w*|sac\w*|retir\w*|treur\w*|tret\w*|record\w*|spend\w*|spent|purchas\w*|expens\w*|bought|buy\w*|despes\w*|withdr[ae]w\w*|cajero|caixer|atm|billete|moneda)/.test(q)) return false;
-  return /\b(donde|where|on|anadir|afegir|agregar|crear|create|add|cuenta|account|poner|tenir|tener)\b/.test(q);
+  /* `compr\w*` también casaba con «compruebo», así que consultar dónde ver el efectivo acababa
+     en Apuntar. Enumeramos formas de compra y dejamos las raíces flexibles solo donde no hay esa
+     colisión; las variantes «añado/meto/pongo» sí son crear o alimentar la cuenta. */
+  if(/\b(apunt\w*|gast\w*|compr(?:a(?:s|r|do|da|dos|das)?|o|e)|pag\w*|sac\w*|retir\w*|treur\w*|tret\w*|record\w*|spend\w*|spent|purchas\w*|expens\w*|bought|buy\w*|despes\w*|withdr[ae]w\w*|cajero|caixer|atm|billete|moneda)\b/.test(q)) return false;
+  return /\b(donde|where|on|anad\w*|afeg\w*|agreg\w*|crea\w*|add\w*|cuenta|account|pon\w*|met\w*|tenir|tener)\b/.test(q);
 }
 function helpPrimaryForTopic(topicId, question){
   var item=helpTopic(topicId);
@@ -254,6 +257,7 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
   const [consentOpen,setConsentOpen]=useState(false);
   const [remoteOk,setRemoteOk]=useState(!!helpAiOk);
   const [remoteAsked,setRemoteAsked]=useState(!!helpAiAsked);
+  const [remoteTried,setRemoteTried]=useState(false);
   const [remoteNotice,setRemoteNotice]=useState(null);
   const [kbPad,setKbPad]=useState(0);
   const requestRef=useRef(0);
@@ -343,7 +347,7 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
   const askOnline=async function(forceOk){
     if(busy||!online||!signedIn||!cloud.enabled()||!(remoteOk||forceOk)||!asked) return;
     if(helpLooksSecret(asked)) return;
-    var id=++requestRef.current; setBusy(true); setRemoteNotice(null);
+    var id=++requestRef.current; setRemoteTried(true); setBusy(true); setRemoteNotice(null);
     var timer;
     try{
       var result=await Promise.race([cloud.askHelp(asked,CURLANG),new Promise(function(resolve,reject){ timer=setTimeout(function(){ reject(new Error("timeout")); },20000); })]);
@@ -370,10 +374,12 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
       if(id===requestRef.current) setRemoteNotice("help_unavailable");
     }finally{ clearTimeout(timer); if(id===requestRef.current) setBusy(false); }
   };
-  const chooseTopic=function(tid){
+  const chooseTopic=function(tid,sourceQuestion){
     var item=helpTopic(tid); if(!item) return;
-    var cueT=(simple&&tid==="goals")?"help_cue_goals_simple":(item.cue||item.title);
-    setAnswer({phrase:t(cueT),action:item.actions[0],topicIds:[tid],stepsId:tid,low:false});
+    var source=sourceQuestion!=null?sourceQuestion:(asked||question);
+    var cueT=tid==="cash"?helpCueForCashQuestion(source)
+      :((simple&&tid==="goals")?"help_cue_goals_simple":(item.cue||item.title));
+    setAnswer({phrase:t(cueT),action:helpPrimaryForTopic(tid,source),topicIds:[tid],stepsId:tid,low:false});
     setStepsOpen(false);
   };
   const runAction=function(id){
@@ -396,7 +402,7 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
         remoteOk && React.createElement("p",{className:"hint aely-help-remote-status","data-testid":"help-remote-status"}, t("help_remote_status_on")),
         !answer && React.createElement("div",{className:"aely-help-topics"},
           HELP_TOPICS.map(function(x){
-            return React.createElement("button",{key:x.id,type:"button",className:"rchip aely-help-topic",onClick:function(){ setQuestion(t(x.title)); chooseTopic(x.id); setAsked(t(x.title)); }}, t(x.title));
+            return React.createElement("button",{key:x.id,type:"button",className:"rchip aely-help-topic",onClick:function(){ var title=t(x.title); setQuestion(title); chooseTopic(x.id,title); setAsked(title); }}, t(x.title));
           })),
         answer && React.createElement("div",{className:"aely-help-answer",role:"status","aria-live":"polite"},
           answer.low && React.createElement("div",{className:"hint"}, t("help_maybe")),
@@ -408,13 +414,13 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
           stepsOpen && answer.stepsId && React.createElement("p",{className:"hint",style:{whiteSpace:"pre-line",marginTop:8}}, t(helpTopic(answer.stepsId).body)),
           answer.topicIds && answer.topicIds.length>1 && React.createElement("div",{className:"aely-help-topics",style:{marginTop:10}},
             answer.topicIds.map(function(tid){
-              return React.createElement("button",{key:tid,type:"button",className:"rchip aely-help-topic",onClick:function(){ chooseTopic(tid); }}, t(helpTopic(tid).title));
+              return React.createElement("button",{key:tid,type:"button",className:"rchip aely-help-topic",onClick:function(){ chooseTopic(tid,asked); }}, t(helpTopic(tid).title));
             })),
           answer.low && React.createElement("div",{className:"aely-help-topics",style:{marginTop:10}},
             HELP_TOPICS.slice(0,4).map(function(x){
-              return React.createElement("button",{key:x.id,type:"button",className:"rchip aely-help-topic",onClick:function(){ chooseTopic(x.id); }}, t(x.title));
+              return React.createElement("button",{key:x.id,type:"button",className:"rchip aely-help-topic",onClick:function(){ chooseTopic(x.id,asked); }}, t(x.title));
             })),
-          online && signedIn && cloud.enabled() && asked && answer.low && remoteOk && React.createElement("button",{type:"button",className:"btn btn-ghost",style:{marginTop:8},disabled:busy,onClick:function(){ askOnline(false); }}, t("help_try_again")),
+          online && signedIn && cloud.enabled() && asked && answer.low && remoteOk && React.createElement("button",{type:"button",className:"btn btn-ghost",style:{marginTop:8},disabled:busy,onClick:function(){ askOnline(false); }}, t(remoteTried?"help_try_again":"help_remote_try")),
           online && signedIn && cloud.enabled() && asked && answer.low && !remoteOk && !remoteAsked && React.createElement("button",{type:"button",className:"btn btn-ghost",style:{marginTop:8},onClick:function(){ setConsentOpen(true); }}, t("help_remote_try")),
           consentOpen && React.createElement("div",{className:"aely-help-consent"},
             React.createElement("div",{style:{fontWeight:800}},t("help_consent_title")),
@@ -428,6 +434,7 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
       React.createElement("form",{className:"aely-help-composer",onSubmit:send},
         React.createElement("textarea",{id:"help-question",className:"v4-bills-search aely-help-q",rows:2,maxLength:600,value:question,
           placeholder:t("help_placeholder"),"aria-label":t("help_question"),
+          onTouchStart:function(e){ e.stopPropagation(); },onTouchMove:function(e){ e.stopPropagation(); },
           onChange:function(e){ setQuestion(e.target.value); }}),
         React.createElement("button",{type:"submit",className:"btn btn-primary aely-help-send",disabled:!question.trim()||busy}, t(busy?"help_wait":"help_send")))
     )
