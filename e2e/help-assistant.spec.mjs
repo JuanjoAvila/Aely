@@ -129,8 +129,10 @@ test("404, 429, 503, timeout y flag OFF avisan sin borrar la ayuda local",async(
   for(const kind of ["404","429","503","timeout","flag OFF"]){
     await page.evaluate(k=>{ window.__helpFailure=k; },kind);
     await ask(dialog,"No sé explicar esta duda");
-    await dialog.getByRole("button",{name:kind==="404"?"Probar con más ayuda":"Probar otra vez",exact:true}).click();
+    // Cada pregunta nueva empieza limpia; «otra vez» solo aparece tras fallar SU intento.
+    await dialog.getByRole("button",{name:"Probar con más ayuda",exact:true}).click();
     await expect(dialog.getByRole("alert")).toContainText(kind==="429"?/límite temporal/i:/ayuda local sigue disponible/i);
+    await expect(dialog.getByRole("button",{name:"Probar otra vez",exact:true})).toBeVisible();
     await expect(dialog.getByRole("button",{name:"Gastar en efectivo",exact:true})).toBeVisible();
   }
 });
