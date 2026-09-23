@@ -1,3 +1,17 @@
+## [4.25.9] - 2026-09-23
+### Beneficio en euros y porcentaje sin depender del rediseño (feedback 18/9, punto 15)
+
+Se porta sobre la interfaz estable únicamente la lógica aprobada en beta: al desplegar un bróker
+en la tarjeta de Inversiones, `InvRows` enseña para cada posición la ganancia o pérdida absoluta
+en euros y su porcentaje. Ambos valores usan `invValueEur` e `invCostEur`, por lo que respetan el
+cambio de divisa y no mezclan el valor crudo de una posición en dólares con un coste convertido.
+
+Una posición sin valor actual válido o sin coste positivo no pinta rentabilidad. Los valores casi
+cero se normalizan para evitar `−0`, y pérdidas/ganancias mantienen signo y color. El E2E cubre
+ganancia, pérdida y dato desconocido en la propia portada estable. No se incorpora la pantalla
+completa de Inversiones v4.1, su gesto, la sincronización conjunta ni ningún otro cambio 4.26.
+Sin cambios de datos, backend, Android ni APK nueva.
+
 ## [4.25.8] - 2026-09-23
 ### Ajustes sin salto y protecciones sin candados visuales (aprobados en beta)
 

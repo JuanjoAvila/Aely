@@ -10,6 +10,8 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 const investments = [
   { id: "i1", ent: "revolut", name: "Apple", shares: 5, value: 900, cost: 700, cur: "USD" },
   { id: "i2", ent: "trade_republic", name: "MSCI World", shares: 10, value: 1500, cost: 1200, cur: "EUR" },
+  { id: "i4", ent: "trade_republic", name: "Fondo en pérdida", shares: 4, value: 800, cost: 1000, cur: "EUR" },
+  { id: "i5", ent: "trade_republic", name: "Sin valor actual", shares: 2, value: null, cost: 500, cur: "EUR" },
   { id: "i3", ent: "myinvestor", name: "Indexado SP500", shares: 3, value: 2000, cost: 1800, cur: "EUR" },
 ];
 
@@ -33,6 +35,13 @@ test("Cartera › Inversiones: los tres brókers se pintan, en orden, con sus im
   await expect(blocks.nth(0)).toContainText("Revolut");
   await expect(blocks.nth(1)).toContainText("Trade Republic");
   await expect(blocks.nth(2)).toContainText("MyInvestor");
+  // Sin entrar en otra pantalla, cada posición enseña beneficio en euros Y porcentaje.
+  await blocks.nth(1).click();
+  const trPos = listaInv.locator(".row").filter({hasText:"MSCI World"});
+  await expect(trPos).toContainText(/\+300(?:[.,]00)?\s*€\s*·\s*\+25[.,]00%/);
+  const lossPos = listaInv.locator(".row").filter({hasText:"Fondo en pérdida"});
+  await expect(lossPos.locator(".rvsub.neg")).toContainText(/−200(?:[.,]00)?\s*€\s*·\s*−20[.,]00%/);
+  await expect(listaInv.locator(".row").filter({hasText:"Sin valor actual"}).locator(".rvsub")).toHaveCount(0);
 });
 
 test("Cartera › Inversiones: bróker sin posiciones no deja bloque fantasma", async ({ page }) => {
