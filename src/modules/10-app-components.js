@@ -465,7 +465,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
       if(d==="recibo"){ reciboIdx.push(i); return; }
       if(d==="ingreso"){
         const cat=(c&&c.defDest==="ingreso"&&c.category)?c.category:"ingreso";
-        const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:-Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, noCard:true, income:true, importBatchId:batchId };
+        const e={ id:mcExpenseId(), date:x.stamp||histDate(x.date), merchant:x.merchant, amount:-Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, noCard:true, income:true, importBatchId:batchId };
         if(x.id) e.extId=x.id;
         histKeepAmbiguity(e,c);
         const nti=cleanNote(x.note, e.merchant); if(nti) e.note=nti;
@@ -475,7 +475,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
       // `categoryOfNewMerchant` y no `autoCategory`: el cajero solo se detecta en ALTAS
       // NUEVAS, nunca desde la migracion que recategoriza el historico (tanda 6).
       const cat=(c&&c.category)||categoryOfNewMerchant(x.merchant||"");
-      const e={ id:mcExpenseId(), date:new Date(x.date+"T12:00:00").toISOString(), merchant:x.merchant, amount:Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, importBatchId:batchId };
+      const e={ id:mcExpenseId(), date:x.stamp||histDate(x.date), merchant:x.merchant, amount:Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, importBatchId:batchId };
       if(x.id) e.extId=x.id;
       histKeepAmbiguity(e,c);
       const nt=cleanNote(x.note, e.merchant); if(nt) e.note=nt;

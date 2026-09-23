@@ -56,6 +56,49 @@ t("dentro del MISMO banco, la repetida se sigue tirando (para eso está la clave
   assert.equal(r.stats.skippedUniq, 1);
 });
 
+t("dos cuentas del mismo banco conservan el mismo cargo y reciben identidad de nube distinta", () => {
+  const res = { links: [{ aspsp:"CaixaBank", accounts:[
+    { uid:"cx-corriente", transactions:[tx("2026-09-10", 12.50, { merchant:"MERCADONA" })] },
+    { uid:"cx-ahorro", transactions:[tx("2026-09-10", 12.50, { merchant:"MERCADONA" })] },
+  ] }] };
+  const r = ctx.histFlattenHistoryLinks(res, [], {}, {});
+  assert.equal(r.out.length, 2);
+  assert.equal(r.stats.skippedUniq, 0);
+  assert.notEqual(r.out[0].stamp, r.out[1].stamp);
+  assert.equal(r.out[0].stamp.slice(0,10), "2026-09-10");
+  assert.equal(r.out[0].stamp,new Date("2026-09-10T12:00:00").toISOString(),
+    "la primera cuenta conserva la misma terna que el sync diario");
+  const ahorro=r.out.find(x=>x.stamp===ctx.histDate("2026-09-10", "caixabank|cx-ahorro|"));
+  assert.ok(ahorro, "la segunda cuenta recibe identidad estable al reimportar");
+  assert.match(ahorro.stamp,/^2026-09-10T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+});
+
+t("una sola cuenta conserva exactamente el sello de mediodía del sync diario", () => {
+  const r=ctx.histFlattenHistoryLinks({links:[link("CaixaBank",[
+    tx("2026-09-10",12.50,{merchant:"MERCADONA"})
+  ])]},[],{},{});
+  assert.equal(r.out[0].stamp,new Date("2026-09-10T12:00:00").toISOString());
+  assert.equal(ctx.histDate("2026-09-10"),new Date("2026-09-10T12:00:00").toISOString());
+});
+
+t("la misma fila repetida dentro de una cuenta mantiene una sola identidad", () => {
+  const row=tx("2026-09-10", 12.50, { merchant:"MERCADONA" });
+  const res={links:[{aspsp:"CaixaBank",accounts:[{uid:"cx-corriente",transactions:[row,Object.assign({},row)]}]}]};
+  const r=ctx.histFlattenHistoryLinks(res,[],{},{});
+  assert.equal(r.out.length,1);
+  assert.equal(r.stats.skippedUniq,1);
+});
+
+t("dos cargos iguales con ids bancarios distintos sobreviven también dentro de una cuenta", () => {
+  const res={links:[{aspsp:"CaixaBank",accounts:[{uid:"cx-corriente",transactions:[
+    tx("2026-09-10",12.50,{merchant:"MERCADONA",ext_id:"cargo-a"}),
+    tx("2026-09-10",12.50,{merchant:"MERCADONA",ext_id:"cargo-b"}),
+  ]}]}]};
+  const r=ctx.histFlattenHistoryLinks(res,[],{},{});
+  assert.equal(r.out.length,2);
+  assert.notEqual(r.out[0].stamp,r.out[1].stamp);
+});
+
 t("tres bancos con el mismo cargo: tres filas, cero descartes", () => {
   const res = { links: [
     link("Sabadell", [tx("2026-08-31", 50)]),

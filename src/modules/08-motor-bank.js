@@ -1440,7 +1440,7 @@ function histFlattenHistoryLinks(res, expenses, allow, opts){
     else seenLegacy[e.extId]=1;
   });
   let bankReported=0, bankPayload=0, skippedAllow=0, skippedBad=0, skippedExt=0, skippedUniq=0, acctAtCap=0;
-  const out=[], uniq={};
+  const out=[], uniq={}, cloudOwners={};
   const kOf=function(dt,am,mc){ return String(dt).slice(0,10)+"|"+am+"|"+(mc||""); };
   ((res&&res.links)||[]).forEach(function(lk){
     const ent=entFromAspsp(lk&&lk.aspsp);
@@ -1460,11 +1460,15 @@ function histFlattenHistoryLinks(res, expenses, allow, opts){
     }
     const entKey=ent || ("aspsp:"+String((lk&&lk.aspsp)||"desconocido").toLowerCase().replace(/\s+/g,"_"));
     const entLabel=ent ? (typeof entOf==="function" ? entOf(ent).label : ent) : (String((lk&&lk.aspsp)||"").trim()||null);
-    accts.forEach(function(ac){
+    accts.forEach(function(ac,ai){
+      // Dos cuentas del mismo banco pueden tener el mismo cargo el mismo día. La cuenta forma
+      // parte de la identidad; una repetición de paginación sí conserva la misma cuenta.
+      const acct=entKey+"|"+((ac&&(ac.uid||ac.iban))||("#"+ai));
       ((ac&&ac.transactions)||[]).forEach(function(tx){
         const dt=String(tx.date||"").slice(0,10), am=Number(tx.amount)||0;
         if(!dt || !am){ skippedBad++; return; }
         const isIn=am<0, abs=Math.abs(am);
+        const merchant=tx.merchant||(isIn?merchantIn:merchantOut);
         if(tx.ext_id && (seen[entKey+"|"+tx.ext_id]||seenLegacy[tx.ext_id])){ skippedExt++; return; }
         /* ⚠ EL BANCO VA EN LA CLAVE, Y NO ESTABA (2026-09-12 noche, medido con la sonda).
            Esta clave existe para no meter DOS VECES la misma transaccion si el banco la manda
@@ -1483,13 +1487,20 @@ function histFlattenHistoryLinks(res, expenses, allow, opts){
            comia el primero que pasara por aqui con la misma fecha e importe.
 
            Es la MISMA familia que los otros dos de hoy: una clave de identidad sin banco. */
-        const k=entKey+"|"+(tx.ext_id||"")+"|"+(isIn?"in":"out")+"|"+kOf(dt,abs,tx.merchant);
+        const k=acct+"|"+(tx.ext_id||"")+"|"+(isIn?"in":"out")+"|"+kOf(dt,abs,tx.merchant);
         if(uniq[k]){ skippedUniq++; return; }
         uniq[k]=1;
+        // La nube conserva la terna histórica de las filas normales. Solo si OTRA cuenta —o un
+        // id bancario distinto que prueba otra fila— chocaría con ella se aparta su hora: así no
+        // se desactiva la última red contra reimportaciones desde un móvil aún atrasado.
+        const cloudK=entKey+"|"+(isIn?"in":"out")+"|"+kOf(dt,abs,merchant);
+        const rowIdentity=acct+"|"+(tx.ext_id||"");
+        const owner=cloudOwners[cloudK]; if(!owner) cloudOwners[cloudK]=rowIdentity;
         out.push({
           id:tx.ext_id||null, date:dt, amount:abs,
-          merchant:tx.merchant||(isIn?merchantIn:merchantOut),
+          merchant:merchant,
           note:tx.note||"", card:!!tx.card, ent:entKey, entLabel:entLabel,
+          stamp:owner&&owner!==rowIdentity ? histDate(dt,rowIdentity) : histDate(dt),
           kind:isIn?"in":"out"
         });
       });
@@ -1504,6 +1515,21 @@ function histFlattenHistoryLinks(res, expenses, allow, opts){
       acctAtCap:acctAtCap
     }
   };
+}
+
+/* La tabla deduplica por fecha COMPLETA pero el histórico solo trae el día. Sin `k` se conserva
+   EXACTAMENTE el antiguo mediodía local: también es la red de la nube contra un sync diario o una
+   importación previa que el estado local todavía no conoce. Solo una segunda cuenta que chocaría
+   usa una hora sintética —nunca se enseña— estable por banco+cuenta. */
+function histDate(d,k){
+  d=String(d||"").slice(0,10); k=String(k||"");
+  const legacy=new Date(d+"T12:00:00").toISOString();
+  if(!k) return legacy;
+  let h=0; for(const c of k) h=h*33+c.charCodeAt()>>>0;
+  // UTC estabiliza la excepción ante DST; un milisegundo evita el remoto caso de casar `legacy`.
+  let ms=+new Date(d+"T06:00:00Z")+(h%432e5);
+  if(new Date(ms).toISOString()===legacy) ms++;
+  return new Date(ms).toISOString();
 }
 
 /* Contadores sobre el flatten + classRows REALES (no volver a clasificar otro conjunto). */
@@ -1705,7 +1731,7 @@ function histBuildCommit(cands, classifications, state, opts){
     const merchant=x.merchant||(x.kind==="in"?"Ingreso":"Compra");
     const e={
       id:(typeof mcExpenseId==="function"?mcExpenseId():("h"+i)),
-      date:new Date(String(x.date||"").slice(0,10)+"T12:00:00").toISOString(),
+      date:x.stamp||histDate(x.date),
       merchant:merchant,
       amount:signed,
       category:c.category||"otros",

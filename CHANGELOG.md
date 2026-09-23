@@ -1,3 +1,23 @@
+## [4.26.17] - 2026-09-23
+### Importar histórico conserva movimientos iguales de cuentas distintas (feedback 18/9, punto 19a)
+
+`histFlattenHistoryLinks` incorpora la cuenta (`uid`, con `iban` o índice solo como respaldo) a la
+identidad del candidato. Dos cargos con el mismo banco, día, importe y comercio dejan de comerse
+entre sí si proceden de cuentas distintas; una repetición de la misma cuenta conserva la misma
+identidad. El identificador de cuenta solo se usa en memoria y no se guarda ni se muestra.
+
+La tabla remota aún deduplica por `user_id + fecha + importe + comercio`. Para que admita las dos
+filas sin retirar su red de seguridad, la primera conserva exactamente el antiguo mediodía local y
+solo una segunda identidad que chocaría recibe una hora sintética estable dentro del mismo día. El
+mismo sello se usa en gastos e ingresos, tanto en el constructor puro como en la pantalla real. Así
+un móvil con estado atrasado sigue protegido ante una reimportación normal.
+
+La sincronización diaria (`flattenBankTx`/`importObExpenses`) no cambia en esta tanda: dos cargos
+iguales de cuentas distintas todavía pueden chocar allí y quedan apuntados como punto 19b. Tampoco
+se despliega `bank-sync` ni se afirma que CaixaBank entregue un periodo concreto. Unitarios y E2E
+cubren dos cuentas Caixa, la identidad remota distinta y la terna histórica intacta para una sola
+cuenta. Sin migración, backend, Android ni APK nueva.
+
 ## [4.26.16] - 2026-09-23
 ### Inversiones entra como pantalla hija y vuelve con gesto de borde (feedback 18/9, punto 18)
 

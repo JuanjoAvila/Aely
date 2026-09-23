@@ -174,6 +174,34 @@ test("CaixaBank con histórico pinta su importe y permite importarlo", async ({p
   await expect(overlay.getByRole("button",{name:/Importar 1/})).toBeVisible();
 });
 
+test("dos cuentas Caixa con el mismo cargo conservan dos filas y dos identidades al importar", async ({page}) => {
+  const overlay=await abrirHistorico(page,{custom:true,
+    bankLinks:[{aspsp_name:"CaixaBank",status:"active"}],
+    links:[{aspsp:"CaixaBank",ok:true,accounts:[
+      {uid:"cx-corriente",ok:true,count:1,transactions:[
+        {date:"2026-09-02",amount:37.42,merchant:"Compra repetida",card:true}
+      ]},
+      {uid:"cx-ahorro",ok:true,count:1,transactions:[
+        {date:"2026-09-02",amount:37.42,merchant:"Compra repetida",card:true}
+      ]},
+    ]}]});
+  await expect(overlay.getByText("Compra repetida")).toHaveCount(2);
+  const importar=overlay.getByRole("button",{name:/Importar 2/});
+  await expect(importar).toBeVisible();
+  await page.evaluate(() => {
+    window.__histSaved=null;
+    cloud.addExpensesBatch=async rows => {
+      window.__histSaved=rows;
+      return {cloudIds:rows.map(x=>x.id),offline:false};
+    };
+  });
+  await importar.click();
+  await expect.poll(() => page.evaluate(() => window.__histSaved)).toHaveLength(2);
+  const dates=await page.evaluate(() => window.__histSaved.map(x=>x.date));
+  expect(new Set(dates).size).toBe(2);
+  expect(dates.every(d=>d.slice(0,10)==="2026-09-02")).toBe(true);
+});
+
 test("CaixaBank a cero se nombra: no se disfraza de histórico ya apuntado", async ({page}) => {
   const overlay=await abrirHistorico(page,{custom:true,
     bankLinks:[{aspsp_name:"CaixaBank",status:"active"}],

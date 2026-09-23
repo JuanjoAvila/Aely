@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.17",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "El histórico respeta cada cuenta",
+      "en": "History keeps each account separate",
+      "ca": "L'històric respecta cada compte"
+    },
+    "items": {
+      "es": [
+        "Al importar el histórico, los cargos iguales que proceden de dos cuentas distintas del mismo banco ya se conservan por separado.",
+        "Los movimientos habituales siguen protegidos frente a repeticiones. Este cambio actúa en Importar histórico; la actualización diaria y el periodo que entrega cada banco no cambian."
+      ],
+      "en": [
+        "When importing history, matching charges from two different accounts at the same bank are now kept separately.",
+        "Regular transactions remain protected against repeats. This change applies to Import history; daily updates and the period supplied by each bank are unchanged."
+      ],
+      "ca": [
+        "En importar l'històric, els càrrecs iguals que venen de dos comptes diferents del mateix banc ara es conserven per separat.",
+        "Els moviments habituals continuen protegits contra repeticions. Aquest canvi actua a Importar l'històric; l'actualització diària i el període que lliura cada banc no canvien."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "historico-varias-cuentas",
+        "t": {
+          "es": "Movimientos de cada cuenta al importar",
+          "en": "Transactions from each account when importing",
+          "ca": "Moviments de cada compte en importar"
+        },
+        "items": {
+          "es": [
+            "1. En Ajustes → Importaciones → Importar histórico, deja solo CaixaBank, elige un periodo con movimientos de dos cuentas enlazadas y busca una sola vez.",
+            "2. Si ambas cuentas tienen un cargo con la misma fecha, importe y concepto, deben aparecer dos filas, no una; los demás movimientos no deben repetirse.",
+            "3. Importa solo movimientos que realmente falten: los dos cargos coincidentes deben guardarse por separado. Si no existe un par real para comprobarlo, indícalo en el comentario en lugar de dar este caso por probado."
+          ],
+          "en": [
+            "1. In Settings → Imports → Import history, leave only CaixaBank selected, choose a period with transactions from two linked accounts and search once.",
+            "2. If both accounts contain a charge with the same date, amount and description, two rows should appear instead of one; other transactions should not repeat.",
+            "3. Import only transactions that are genuinely missing: the two matching charges should be saved separately. If there is no real pair to check, mention that in the comment instead of marking this case as proven."
+          ],
+          "ca": [
+            "1. A Ajustos → Importacions → Importar històric, deixa només CaixaBank, tria un període amb moviments de dos comptes enllaçats i cerca una sola vegada.",
+            "2. Si tots dos comptes tenen un càrrec amb la mateixa data, import i concepte, han d'aparèixer dues files, no una; els altres moviments no s'han de repetir.",
+            "3. Importa només moviments que realment faltin: els dos càrrecs coincidents s'han de desar per separat. Si no hi ha cap parell real per comprovar-ho, indica-ho al comentari en lloc de donar el cas per provat."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.16",
     "d": "23 sep 2026",
     "t": {
