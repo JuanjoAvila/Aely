@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-23 · **v4.26.25** preparada para beta — Ahorro mensual vuelve a Plan → Metas como planificación editable que no crea movimientos; los formatos 1.000 y 1.200,50 conservan su valor real. Producción sirve 4.25.8 y la promoción de 4.25.9 está en curso; comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-23 · **v4.26.25** preparada para beta — Ahorro mensual vuelve a Plan → Metas como planificación editable que no crea movimientos; los formatos 1.000 y 1.200,50 conservan su valor real. Producción sirve 4.25.9 con el beneficio aprobado en euros y porcentaje; comprobar disponibilidad real con `npm run salud`.
 > Anterior: **v4.26.24** — el gesto horizontal vuelve a cambiar de pestaña desde el fondo, los gestos verticales conservan el rebote nativo y las barras laterales no se dibujan, también en Ajustes.
 > Anterior: **v4.26.23** — «Pregúntame» responde primero en una frase, deja el paso a paso bajo petición y diferencia entre añadir efectivo y apuntar una compra.
 > Anterior: **v4.26.17** — el histórico que solo devuelve movimientos ya guardados permite abrirlos en Gastos con el periodo completo y ese banco filtrado.

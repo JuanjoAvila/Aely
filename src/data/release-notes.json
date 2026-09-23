@@ -330,27 +330,7 @@
         "Si falta el cost o el valor actual d'una posició, Aely no n'inventa la rendibilitat."
       ]
     },
-    "tandas": [
-      {
-        "id": "beneficio-euros-porcentaje",
-        "t": {
-          "es": "Beneficio en euros y porcentaje",
-          "en": "Gain in euros and percent",
-          "ca": "Guany en euros i percentatge"
-        },
-        "items": {
-          "es": [
-            "1. En Cartera, abre un bróker desde el resumen de Inversiones sin tocar «Ver todas»: cada posición con coste y valor conocidos debe enseñar la ganancia o pérdida en € y %, y si falta uno de ellos no debe inventarla."
-          ],
-          "en": [
-            "1. In Portfolio, open a broker from the Investments overview without tapping See all: every position with a known cost and value should show its gain or loss in € and %, while a position missing either must not invent one."
-          ],
-          "ca": [
-            "1. A Cartera, obre un bròquer des del resum d'Inversions sense tocar «Veure totes les inversions»: cada posició amb cost i valor coneguts ha de mostrar el guany o la pèrdua en € i %, i si en falta un no se l'ha d'inventar."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.13",
@@ -702,6 +682,30 @@
         "Apuntar i obrir una despesa comparteixen ara el mateix ordre, teclat i categories; la fitxa mostra clarament banc, efectiu i data.",
         "Els moviments portats pel banc expliquen d'on han sortit i mantenen bloquejats l'import i el compte.",
         "En esborrar una despesa hi ha cinc segons per desfer-ho i recuperar-la exactament com estava."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.25.9",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "El beneficio de cada inversión, en euros y porcentaje",
+      "en": "Each investment's gain, in euros and percentage",
+      "ca": "El benefici de cada inversió, en euros i percentatge"
+    },
+    "items": {
+      "es": [
+        "Al desplegar un bróker en Cartera, cada posición muestra cuánto ha ganado o perdido en euros y en porcentaje.",
+        "Si falta el coste o el valor actual, Aely deja la rentabilidad sin calcular en vez de inventar una cifra."
+      ],
+      "en": [
+        "When expanding a broker in Portfolio, each position shows how much it has gained or lost in euros and as a percentage.",
+        "If its cost or current value is missing, Aely leaves the return uncalculated instead of making up a figure."
+      ],
+      "ca": [
+        "En desplegar un bròquer a Cartera, cada posició mostra quant ha guanyat o perdut en euros i en percentatge.",
+        "Si falta el cost o el valor actual, Aely deixa la rendibilitat sense calcular en lloc d'inventar una xifra."
       ]
     },
     "tandas": []

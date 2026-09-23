@@ -399,6 +399,15 @@ lápida se escriben juntas para que un pull no resucite la fila por detrás; al 
 esa lápida, se repone el objeto en su posición y, si ya salió el delete remoto, se encadena después
 un upsert con el mismo id. Así no hay ni duplicado nuevo ni una carrera delete/add en Supabase.
 
+## [4.25.9] - 2026-09-23
+### Beneficio en euros y porcentaje sin depender del rediseño (feedback 18/9, punto 15)
+
+Se publica sobre la interfaz estable únicamente la lógica aprobada en beta: al desplegar un bróker,
+cada posición enseña la ganancia o pérdida absoluta y su porcentaje usando `invValueEur` e
+`invCostEur`. Si falta valor actual válido o coste positivo, no pinta rentabilidad; los valores
+casi cero tampoco producen `−0`. No incorpora la pantalla de Inversiones v4.1, su gesto ni la
+sincronización conjunta. Sin cambios de datos, backend, Android ni APK nueva.
+
 ## [4.25.8] - 2026-09-23
 ### Ajustes sin salto y protecciones sin candados visuales (aprobados en beta)
 
