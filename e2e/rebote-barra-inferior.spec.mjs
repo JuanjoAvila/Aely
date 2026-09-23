@@ -214,6 +214,25 @@ test("en el fondo un gesto horizontal claro cambia de pantalla sin tener que sub
     .toBe("plan");
 });
 
+test("en el fondo reclama pronto un horizontal corto y recto, sin esperar varios intentos", async ({ page }) => {
+  await seedLoggedInDashboard(page, { expenses: historico(200) });
+  await page.goto("/");
+  await appLista(page);
+  await irAGastosConTodo(page);
+  await irAlFondo(page);
+
+  const cdp = await page.context().newCDPSession(page);
+  const y = 200, x0 = 300;
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: x0, y }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x0 - 38, y: y - 2 }] });
+  expect((await estado(page)).host, "un horizontal recto debe reclamarse antes de que Android lo cancele").toBe(false);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x0 - 110, y: y - 3 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+
+  await expect.poll(() => page.evaluate(() => document.querySelector(".botnav-tab.active")?.getAttribute("data-tour")))
+    .toBe("plan");
+});
+
 test("las pantallas y Ajustes conservan scroll pero no dibujan la barra lateral", async ({ page }) => {
   await seedLoggedInDashboard(page, { expenses: historico(200) });
   await page.goto("/");

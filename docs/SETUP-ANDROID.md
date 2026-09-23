@@ -20,6 +20,10 @@ nuevo vía `apk.json` → `installApk`.
 > `BuildConfig.java` → `WEB_DEBUG = false`. El tema de splash debe llevar
 > `postSplashScreenTheme` → `AppTheme.NoActionBar` o tras el arranque puede quedar una franja
 > nativa bajo la cámara.
+>
+> La barra fina de desplazamiento del borde se desactiva sobre la WebView de Capacitor en
+> `MainActivity`, después de `super.onCreate()`. Es solo el indicador nativo: el scroll, la inercia
+> y el rebote siguen activos. Un cambio aquí requiere APK nueva; una OTA no puede modificarlo.
 
 ---
 

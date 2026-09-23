@@ -2684,12 +2684,16 @@ function App(){
           const atTop=st0<=2;
           const mid0=st0>2 && max0-st0>2;
           const atBottom=max0>0 && (max0-st0)<=2;
-          /* En el fondo esperamos algo más: la primera deriva del arco puede parecer lateral
-             durante 55 px y girar después hacia la ola. A partir de 60 px casi rectos ya es
-             una intención horizontal real, no ese arranque diagonal. */
-          const horizontalClaro=atBottom
-            ? Math.abs(ddy)<12 && Math.abs(ddx)>60
-            : Math.abs(ddy)<16 && Math.abs(ddx)>36;
+          /* El arco real del Oppo llegó a 55 px laterales, pero ya llevaba 10 px verticales antes
+             de girar hacia la ola. Esperar siempre a 60 px hacía que Android cancelara muchos
+             horizontales antes de que el carrusel pudiera reclamarlos. Un gesto casi recto
+             (menos de 4 px verticales) se acepta desde 36 px; si deriva más, conserva el umbral
+             seguro de 60 px que protege aquel arco. */
+          let horizontalClaro=Math.abs(ddy)<16 && Math.abs(ddx)>36;
+          if(atBottom){
+            horizontalClaro=(Math.abs(ddy)<4 && Math.abs(ddx)>36)
+              || (Math.abs(ddy)<12 && Math.abs(ddx)>60);
+          }
           if((atBottom||atTop||mid0) && !horizontalClaro){
             return;
           }
