@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.25.8",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Ajustes se mueve contigo y deja una interfaz más limpia",
+      "en": "Settings follows your gesture with a cleaner interface",
+      "ca": "Ajustos acompanya el gest amb una interfície més neta"
+    },
+    "items": {
+      "es": [
+        "Ajustes ya no da un salto al empezar a abrirlo desde el borde: aparece desde el mismo punto en que el gesto queda claro.",
+        "Los candados dibujados desaparecen de cuentas, privacidad y logros; las protecciones de acceso y de datos siguen funcionando igual."
+      ],
+      "en": [
+        "Settings no longer jumps when opening it from the edge: it starts moving from the point where the gesture becomes clear.",
+        "Drawn padlocks have been removed from accounts, privacy and achievements; access and data protections still work as before."
+      ],
+      "ca": [
+        "Ajustos ja no fa un salt en començar a obrir-lo des de la vora: es mou des del punt on el gest queda clar.",
+        "Els cadenats dibuixats desapareixen de comptes, privacitat i assoliments; les proteccions d'accés i de dades continuen funcionant igual."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.7",
     "d": "22 sep 2026",
     "t": {
