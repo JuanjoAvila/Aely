@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.25.9",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "El beneficio de cada inversión, en euros y porcentaje",
+      "en": "Each investment's gain, in euros and percentage",
+      "ca": "El benefici de cada inversió, en euros i percentatge"
+    },
+    "items": {
+      "es": [
+        "Al desplegar un bróker en Cartera, cada posición muestra cuánto ha ganado o perdido en euros y en porcentaje.",
+        "Si falta el coste o el valor actual, Aely deja la rentabilidad sin calcular en vez de inventar una cifra."
+      ],
+      "en": [
+        "When expanding a broker in Portfolio, each position shows how much it has gained or lost in euros and as a percentage.",
+        "If its cost or current value is missing, Aely leaves the return uncalculated instead of making up a figure."
+      ],
+      "ca": [
+        "En desplegar un bróker a Cartera, cada posició mostra quant ha guanyat o perdut en euros i en percentatge.",
+        "Si falta el cost o el valor actual, Aely deixa la rendibilitat sense calcular en lloc d'inventar una xifra."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.8",
     "d": "23 sep 2026",
     "t": {
