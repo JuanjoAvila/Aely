@@ -431,41 +431,9 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
 
 /* §2 variante A: `.settings-push` hub, sin montar `<Fijos>`. Reconcile → BankPanel (Claude). */
 function gbTxt(key, vars){
-  /* Hasta que Claude pegue `gb_*` en 01-i18n, caemos a castellano (contrato selectores 2026-09-16). */
-  const FALL={
-    gb_title:"Tus recibos", gb_hero_label:"SE TE VAN CADA MES",
-    gb_hero_sub:"De {n} recibos. Los que no son mensuales ya están repartidos a su equivalente al mes.",
-    gb_hero_sub_one:"De 1 recibo. Los que no son mensuales ya están repartidos a su equivalente al mes.",
-    gb_search:"Buscar un recibo", gb_search_empty:"No hay ningún recibo con ese nombre.",
-    gb_g_serv:"Servicios y suministros", gb_g_serv_sub:"{n} · luz, agua, móvil…",
-    gb_g_serv_sub_one:"1 · luz, agua, móvil…",
-    gb_g_debt:"Cuotas de deuda", gb_g_debt_sub:"{n} · se editan en Deudas",
-    gb_g_debt_sub_one:"1 · se edita en Deudas",
-    gb_g_debt_sub_simple:"{n} cuotas · tócala para cambiarla", gb_g_debt_sub_simple_one:"1 cuota · tócala para cambiarla",
-    gb_g_in:"Lo que entra y lo que mueves", gb_g_in_sub:"Nómina y pasos entre tus cuentas",
-    gb_g_once:"Cargos de una sola vez", gb_g_once_sub:"{n} este mes",
-    gb_g_once_sub_one:"1 este mes", gb_this_month:"este mes",
-    gb_add:"Añadir un recibo", gb_locked:"Se edita en Deudas",
-    gb_bill_locked_amt:"Este recibo cambia de importe según el mes: tócalo en cada mes.",
-    gb_step_what:"¿Qué es?", gb_step_how_much:"¿Cuánto?", gb_step_how_often:"¿Cada cuánto?",
-    gb_months_q:"¿En qué meses?", gb_step_monthyear:"¿Qué mes?",
-    gb_step_when:"¿Qué día y de qué cuenta?", gb_step_account:"¿De qué cuenta sale?",
-    gb_freq_m:"Cada mes", gb_freq_2m:"Cada dos meses", gb_freq_3m:"Cada tres meses",
-    gb_freq_6m:"Cada seis meses", gb_freq_y:"Una vez al año", gb_freq_custom:"A medida",
-    gb_preview:"Serán {x} al mes repartidos ({total} al año, en {months}).",
-    gb_preview_m:"Serán {x} cada mes.",
-    gb_empty:"Aún no hay recibos", gb_empty_sub:"Cuando se repita un cargo, lo verás aquí.",
-    gb_empty_sub_linked:"En cuanto pase un cargo que se repita, lo verás aquí.",
-    gb_afford:"¿Me lo puedo permitir?", gb_afford_sub:"Dime un importe y un día y te digo si te cabe este mes.",
-    gb_per_month:"al mes", gb_when_day:"Un día concreto",
-    gb_when_first:"Primer día hábil", gb_when_last:"Último día hábil",
-    gb_del:"Quitar este recibo", gb_removed:"Recibo quitado",
-    gb_save_ok:"Guardado", gb_next:"Siguiente"
-  };
-  const raw=t(key);
-  const base=(raw&&raw!==key)?raw:(FALL[key]||key);
-  if(!vars) return base;
-  return String(base).replace(/\{(\w+)\}/g,function(_,k){ return vars[k]!=null?String(vars[k]):""; });
+  // Las claves ya viven en LANG.es/en/ca; conservar el antiguo respaldo castellano duplicaba
+  // texto y podía tapar una traducción ausente en vez de dejar que i18n-keys la detectase.
+  return vars?tf(key,vars):t(key);
 }
 function gbSub(key, n){
   return gbTxt(n===1?key+"_one":key, {n:n});
@@ -1212,39 +1180,95 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
 }
 
 function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncInv, showToast}){
-  const titleRef=useRef(null);
-  const screenRef=useRef(null);
-  useBackClose(!!open, onClose);
+  // Locales deliberadamente compactos: el gesto vive en un único efecto y el bundle tiene un
+  // presupuesto estricto; los nombres largos no aportaban contexto fuera de estas pocas líneas.
+  const tr=useRef(null), sr=useRef(null), ct=useRef(null), cr=useRef(onClose); cr.current=onClose;
+  const [shown,setShown]=useState(false);
+  const closePush=useCallback(function(){
+    if(ct.current) return;
+    setShown(false);
+    ct.current=setTimeout(function(){ ct.current=null; cr.current(); },
+      document.documentElement.classList.contains("reduce-motion")?0:430);
+  },[]);
+  useBackClose(!!open, closePush);
+  useLayoutEffect(function(){
+    if(!open) return undefined;
+    const root=sr.current;
+    let sx=0,sy=0,dx=0,t0=0,drag=false,axis=null,st=0,e2=0;
+    const e1=requestAnimationFrame(function(){ e2=requestAnimationFrame(function(){ setShown(true); }); });
+    // El gesto se reclama solo desde el borde: el scroll y los controles del cuerpo siguen siendo
+    // nativos. `touchmove` va a mano porque React lo registra pasivo y no deja acompañar el dedo.
+    const start=function(e){
+      const p=e.touches&&e.touches[0];
+      if(!p||p.clientX>32||document.documentElement.classList.contains("ask-open")) return;
+      sx=p.clientX; sy=p.clientY; dx=0; t0=Date.now(); drag=true; axis=null;
+    };
+    const move=function(e){
+      if(!drag||!(e.touches&&e.touches[0])) return;
+      const p=e.touches[0],x=p.clientX-sx,y=p.clientY-sy;
+      if(axis===null){ axis=gestureAxis(x,y); if(!axis) return; if(axis!=="x"){ drag=false; return; } }
+      dx=Math.max(0,x);
+      if(!dx) return;
+      root.classList.add("dragging"); root.style.transform="translateX("+dx+"px)";
+      if(e.cancelable) e.preventDefault();
+    };
+    const finish=function(commit){
+      if(!drag){ axis=null; return; }
+      drag=false; axis=null;
+      const go=commit&&(dx>(root.clientWidth||360)*.28||(dx/Math.max(1,Date.now()-t0)>.45&&dx>52));
+      root.classList.remove("dragging");
+      root.style.transition="transform .24s cubic-bezier(.32,.72,0,1)";
+      if(go){
+        root.style.transform="translateX(105%)";
+        ct.current=setTimeout(function(){ ct.current=null; cr.current(); },document.documentElement.classList.contains("reduce-motion")?0:240);
+      } else {
+        root.style.transform="";
+        st=setTimeout(function(){ root.style.transition=""; },250);
+      }
+      dx=0;
+    };
+    const end=function(){ finish(true); }, cancel=function(){ finish(false); };
+    mcSheetLock();
+    root.addEventListener("touchstart",start,{passive:true});
+    root.addEventListener("touchmove",move,{passive:false});
+    root.addEventListener("touchend",end,{passive:true});
+    root.addEventListener("touchcancel",cancel,{passive:true});
+    return function(){
+      cancelAnimationFrame(e1); if(e2) cancelAnimationFrame(e2); if(st) clearTimeout(st);
+      root.removeEventListener("touchstart",start); root.removeEventListener("touchmove",move);
+      root.removeEventListener("touchend",end); root.removeEventListener("touchcancel",cancel);
+      root.style.transform=""; root.style.transition=""; mcSheetUnlock(); setShown(false);
+      if(ct.current){ clearTimeout(ct.current); ct.current=null; }
+    };
+  },[open]);
   useEffect(function(){
     if(!open) return undefined;
-    const id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus(); });
-    // Comparte candado con las hojas: si en el futuro se solapan, cerrar una no libera la otra.
-    mcSheetLock();
+    const id=requestAnimationFrame(function(){ if(tr.current) tr.current.focus(); });
     const keydown=function(e){
-      const root=screenRef.current;
+      const root=sr.current;
       if(!root) return;
       // AskHost vive por encima de esta pantalla. Mientras esté abierto, su diálogo es quien
       // posee Escape y Tab; interceptarlos aquí cerraba Inversiones o sacaba el foco del aviso.
       if(document.documentElement.classList.contains("ask-open")) return;
-      if(e.key==="Escape"){ e.preventDefault(); onClose(); return; }
+      if(e.key==="Escape"){ e.preventDefault(); closePush(); return; }
       if(e.key!=="Tab") return;
       const focusable=Array.from(root.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[href],[tabindex]:not([tabindex="-1"])'))
         .filter(function(el){ return el.getClientRects().length>0; });
-      if(!focusable.length){ e.preventDefault(); titleRef.current&&titleRef.current.focus(); return; }
+      if(!focusable.length){ e.preventDefault(); tr.current&&tr.current.focus(); return; }
       const first=focusable[0],last=focusable[focusable.length-1],active=document.activeElement;
       const at=focusable.indexOf(active);
       if(e.shiftKey&&at<=0){ e.preventDefault(); last.focus(); }
       else if(!e.shiftKey&&(at<0||active===last)){ e.preventDefault(); first.focus(); }
     };
     document.addEventListener("keydown",keydown);
-    return function(){ cancelAnimationFrame(id); document.removeEventListener("keydown",keydown); mcSheetUnlock(); };
+    return function(){ cancelAnimationFrame(id); document.removeEventListener("keydown",keydown); };
   },[open]);
   if(!open) return null;
   return ReactDOM.createPortal(
-    React.createElement("div",{className:"settings-push open","data-inv-screen":"1",ref:screenRef,role:"dialog","aria-modal":"true","aria-labelledby":"iv-screen-title"},
+    React.createElement("div",{className:"settings-push v4-investments-push"+(shown?" open":""),"data-inv-screen":"1",ref:sr,role:"dialog","aria-modal":"true","aria-labelledby":"iv-screen-title"},
       React.createElement("div",{className:"settings-push-h"},
-        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:onClose},"‹"),
-        React.createElement("h1",{id:"iv-screen-title",tabIndex:-1,ref:titleRef}, t("iv_title"))
+        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:closePush},"‹"),
+        React.createElement("h1",{id:"iv-screen-title",tabIndex:-1,ref:tr}, t("iv_title"))
       ),
       React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,fullMode:true,showToast:showToast})
     ), document.body);

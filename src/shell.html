@@ -1314,6 +1314,10 @@
     transform:translate3d(-100%,0,0);transition:transform .42s cubic-bezier(.32,.72,0,1);will-change:transform;
     box-shadow:8px 0 32px rgba(0,0,0,.35);}
   .settings-push.open,.settings-slide.open{transform:translate3d(0,0,0);}
+  /* Inversiones es una pantalla hija de Cartera: entra por la derecha y vuelve en la misma
+     dirección que el gesto de borde, no como el cajón de Ajustes que nace a la izquierda. */
+  .settings-push.v4-investments-push{transform:translate3d(100%,0,0);}
+  .settings-push.v4-investments-push.open{transform:translate3d(0,0,0);}
   .settings-push.dragging,.settings-slide.dragging{transition:none;}
   .settings-push-h,.settings-slide-h{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
   .settings-push-h .back,.settings-slide-h .back{width:44px;height:44px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:20px;border:1px solid var(--line-soft);background:var(--sur);color:var(--text);}

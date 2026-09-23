@@ -399,7 +399,8 @@ test("Inversiones v4: datos viejos siguen visibles y un fallo conserva los datos
   await expect(page.locator("[data-inv-hero]")).toContainText("500");
 });
 
-test("Inversiones v4: reducir movimiento evita animaciones y el total no espera un count-up", async ({ page }) => {
+test("Inversiones v4: reducir movimiento evita animaciones y el total no espera un count-up", async ({ page, browserName }) => {
+  test.skip(browserName !== "chromium", "El gesto táctil real usa CDP");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await seedLoggedInDashboard(page, { investments: [{ id: "rm", ent: "trade_republic", name: "ETF", value: 1234, cost: 1000, cur: "EUR" }] });
   await page.goto("/");
@@ -416,6 +417,12 @@ test("Inversiones v4: reducir movimiento evita animaciones y el total no espera 
   expect(motion.push).toBe("0s");
   expect(motion.hero).toBe("none");
   expect(motion.bar).toBe("none");
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 8, y: 250 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 240, y: 250 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await page.waitForTimeout(30);
+  await expect(page.locator("[data-inv-screen]")).toHaveCount(0);
 });
 
 test("Inversiones v4: Reducir animaciones de Aely también evita el count-up y el spinner", async ({ page }) => {
@@ -506,4 +513,64 @@ test("Inversiones v4: apertura medida con CPU x6", async ({ page, browserName })
   const median = ordered[Math.floor(ordered.length / 2)];
   console.log(`INV_OPEN_CPU_X6 median=${median.toFixed(1)}ms samples=${samples.map((x) => x.toFixed(1)).join(",")}`);
   expect(median).toBeLessThan(600);
+});
+
+test("Inversiones v4: la pantalla entra como página y el gesto de borde acompaña, cancela y cierra", async ({ page, browserName }) => {
+  test.skip(browserName !== "chromium", "El gesto táctil real usa CDP");
+  await seedLoggedInDashboard(page, { investments });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+
+  const entered = await page.evaluate(() => new Promise((resolve, reject) => {
+    const door = [...document.querySelectorAll("button")].find((b) => /Ver todas tus inversiones|See all your investments|Veure totes les inversions/i.test(b.textContent || ""));
+    if (!door) return reject(new Error("puerta de inversiones no encontrada"));
+    let bornWithoutOpen = false;
+    let timeout;
+    const obs = new MutationObserver(() => {
+      const el = document.querySelector("[data-inv-screen]");
+      if (!el) return;
+      if (!el.classList.contains("open")) bornWithoutOpen = true;
+      if (el.classList.contains("open")) {
+        obs.disconnect(); clearTimeout(timeout);
+        resolve({ bornWithoutOpen, transition: getComputedStyle(el).transitionDuration });
+      }
+    });
+    obs.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+    door.click();
+    timeout = setTimeout(() => { obs.disconnect(); reject(new Error("la entrada lateral no terminó")); }, 1500);
+  }));
+  expect(entered.bornWithoutOpen).toBe(true);
+  expect(entered.transition).not.toBe("0s");
+  const screen = page.locator("[data-inv-screen]");
+  await expect(screen).toHaveClass(/open/);
+  await expect.poll(() => screen.evaluate((el) => Math.abs(new DOMMatrix(getComputedStyle(el).transform).m41))).toBeLessThan(2);
+  const cdp = await page.context().newCDPSession(page);
+
+  // Un arrastre corto sigue el dedo, pero al soltar vuelve a su sitio y no cierra.
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 8, y: 250 }] });
+  await page.waitForTimeout(300);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 86, y: 250 }] });
+  const dragged = await screen.evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41);
+  expect(dragged).toBeGreaterThan(55);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect.poll(() => screen.evaluate((el) => Math.abs(new DOMMatrix(getComputedStyle(el).transform).m41))).toBeLessThan(2);
+  await expect(screen).toHaveCount(1);
+
+  // Si Android cancela el toque, tampoco cuenta como Atrás.
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 8, y: 250 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 120, y: 250 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
+  await expect.poll(() => screen.evaluate((el) => Math.abs(new DOMMatrix(getComputedStyle(el).transform).m41))).toBeLessThan(2);
+  await expect(screen).toHaveCount(1);
+
+  // El gesto completo sale hacia la derecha y devuelve el foco a su puerta en Cartera.
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 8, y: 250 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 240, y: 250 }] });
+  const closing = await screen.evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41);
+  expect(closing).toBeGreaterThan(180);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect(screen).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Ver todas tus inversiones|See all your investments|Veure totes les inversions/i })).toBeFocused();
 });

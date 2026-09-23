@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.16",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Inversiones entra y vuelve contigo",
+      "en": "Investments moves in and back with you",
+      "ca": "Inversions entra i torna amb tu"
+    },
+    "items": {
+      "es": [
+        "La pantalla completa de Inversiones entra de lado, como una página, en lugar de aparecer de golpe.",
+        "Para volver, puedes usar el botón o deslizar desde el borde izquierdo: la pantalla acompaña el dedo y solo se cierra si completas el gesto."
+      ],
+      "en": [
+        "The full Investments screen now slides in like a page instead of appearing all at once.",
+        "To go back, use the button or swipe from the left edge: the screen follows your finger and closes only when you complete the gesture."
+      ],
+      "ca": [
+        "La pantalla completa d'Inversions entra de costat, com una pàgina, en lloc d'aparèixer de cop.",
+        "Per tornar, pots usar el botó o lliscar des de la vora esquerra: la pantalla acompanya el dit i només es tanca si completes el gest."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inversiones-ficha-fluida",
+        "t": {
+          "es": "Entrada lateral y gesto para volver",
+          "en": "Side entry and back gesture",
+          "ca": "Entrada lateral i gest per tornar"
+        },
+        "items": {
+          "es": [
+            "1. En Cartera, toca «Ver todas tus inversiones»: la pantalla debe entrar suavemente desde la derecha, sin aparecer de golpe.",
+            "2. Desliza un poco desde el borde izquierdo y vuelve atrás: la pantalla debe seguir el dedo y regresar a su sitio sin cerrarse.",
+            "3. Repite el gesto hasta más de un cuarto de pantalla: debe cerrarse hacia la derecha y dejar Cartera lista para seguir usándola."
+          ],
+          "en": [
+            "1. In Portfolio, tap See all your investments: the screen should slide in smoothly from the right instead of appearing all at once.",
+            "2. Swipe a short way from the left edge, then move back: the screen should follow your finger and return to place without closing.",
+            "3. Repeat past a quarter of the screen: it should close to the right and leave Portfolio ready to use."
+          ],
+          "ca": [
+            "1. A Cartera, toca «Veure totes les inversions»: la pantalla ha d'entrar suaument des de la dreta, sense aparèixer de cop.",
+            "2. Llisca una mica des de la vora esquerra i torna enrere: la pantalla ha de seguir el dit i tornar al seu lloc sense tancar-se.",
+            "3. Repeteix el gest fins més d'un quart de pantalla: s'ha de tancar cap a la dreta i deixar Cartera a punt per continuar."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.15",
     "d": "23 sep 2026",
     "t": {
