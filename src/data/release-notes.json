@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.27",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Una compra no vuelve a contarse dos veces",
+      "en": "One purchase is no longer counted twice",
+      "ca": "Una compra ja no es compta dues vegades"
+    },
+    "items": {
+      "es": [
+        "Si Wallet y la tarjeta avisan de la misma compra casi a la vez con nombres distintos, Aely cuenta un solo gasto y no muestra dos confirmaciones.",
+        "La segunda entrada se conserva como posible repetida para revisarla; nunca se borra una compra solo porque coincidan el importe y la hora."
+      ],
+      "en": [
+        "If Wallet and the card report the same purchase almost simultaneously under different names, Aely counts one expense and does not show two confirmations.",
+        "The second entry is kept as a possible duplicate for review; a purchase is never deleted merely because its amount and time match."
+      ],
+      "ca": [
+        "Si Wallet i la targeta avisen de la mateixa compra gairebé alhora amb noms diferents, Aely compta una sola despesa i no mostra dues confirmacions.",
+        "La segona entrada es conserva com a possible repetida per revisar-la; mai no s'esborra una compra només perquè coincideixin l'import i l'hora."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "notificaciones-sin-doble-cuenta",
+        "t": {
+          "es": "Una compra, una sola cifra",
+          "en": "One purchase, one total",
+          "ca": "Una compra, una sola xifra"
+        },
+        "items": {
+          "es": [
+            "1. Paga una cantidad pequeña con la tarjeta de Trade Republic añadida a Google Wallet y espera a que lleguen ambos avisos.",
+            "2. Aely debe mostrar una sola confirmación y el total de Gastos debe subir una sola vez, aunque Wallet y Trade Republic usen nombres distintos.",
+            "3. Si aparece «Posible repetido», comprueba que queda fuera del total hasta elegir «Es el mismo» o «Son distintos»."
+          ],
+          "en": [
+            "1. Make a small payment with the Trade Republic card added to Google Wallet and wait for both alerts.",
+            "2. Aely should show one confirmation and the Spending total should increase once, even if Wallet and Trade Republic use different names.",
+            "3. If “Possible duplicate” appears, check that it stays out of the total until you choose “Same purchase” or “Different purchases”."
+          ],
+          "ca": [
+            "1. Fes un pagament petit amb la targeta de Trade Republic afegida a Google Wallet i espera que arribin tots dos avisos.",
+            "2. Aely ha de mostrar una sola confirmació i el total de Despeses ha de pujar una sola vegada, encara que Wallet i Trade Republic facin servir noms diferents.",
+            "3. Si apareix «Possible repetit», comprova que queda fora del total fins que triïs «És el mateix» o «Són diferents»."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.26",
     "d": "23 sep 2026",
     "t": {

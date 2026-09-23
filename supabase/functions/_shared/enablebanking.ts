@@ -67,7 +67,21 @@ export async function ebApi(jwt: string, path: string, init: { method?: string; 
   // deno-lint-ignore no-explicit-any
   let data: any;
   try { data = JSON.parse(text); } catch { data = text; }
-  if (!res.ok) throw new Error(`EB ${res.status}: ${typeof data === "string" ? data : JSON.stringify(data)}`);
+  if (!res.ok) {
+    // La excepción acaba a veces en app_events. La respuesta del proveedor puede traer datos de
+    // sesión o cuenta: solo sale un código corto, nunca el cuerpo ni el texto crudo.
+    const errorCode = data && typeof data === "object"
+      ? (typeof data.error === "string" ? data.error : data.error?.code)
+      : "";
+    const topCode = data && typeof data === "object" && typeof data.code === "string" && !/^\d+$/.test(data.code)
+      ? data.code
+      : "";
+    // Enable Banking usa `code` numérico para repetir el HTTP y `error` para el identificador
+    // (p. ej. WRONG_TRANSACTIONS_PERIOD). Priorizar `code` rompía el fallback `strategy=longest`.
+    const rawCode = errorCode || topCode;
+    const code = String(rawCode).replace(/[^a-z0-9_.-]/gi, "").slice(0, 60);
+    throw new Error(`EB ${res.status}${code ? " " + code : ""}`);
+  }
   return data;
 }
 

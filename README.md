@@ -81,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.26** preparada para beta — el editor del presupuesto mensual entra y sale con un ritmo más tranquilo, mantiene la cifra compacta y respeta el movimiento reducido. Producción sirve 4.25.9 con el beneficio aprobado en euros y porcentaje; disponibilidad real con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.26.27** preparada localmente — dos avisos casi simultáneos de Wallet y Trade Republic conservan la duda, pero solo una compra cuenta y no aparecen dos confirmaciones. Requiere autorización para desplegar `ingest`; producción sigue en 4.25.9. Disponibilidad real con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.

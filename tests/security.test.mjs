@@ -165,5 +165,41 @@ console.log("security");
   else ok("el ingest no apunta trozos del token en la telemetría");
 }
 
+/* ---- 6. La telemetría financiera no guarda movimientos ni payloads del proveedor ---- */
+{
+  const bankSync = read("supabase/functions/bank-sync/index.ts");
+  const inserts = [...bankSync.matchAll(/admin\.from\("app_events"\)\.insert\(\{([\s\S]*?)\}\);/g)]
+    .map((m) => m[1]);
+  const sinks = [...bankSync.matchAll(/\.from\(["']app_events["']\)/g)].length;
+  const camposMovimiento = /\b(?:transactions?|transaction_amount|remittance_information|creditor|debtor|entry_reference|sospechosos|payload\s+CRUDO)\b/i;
+  const leaks = inserts.filter((body) => camposMovimiento.test(body));
+  if (sinks !== inserts.length) {
+    bad("el guardián cubre todos los app_events de bank-sync",
+      `${sinks} destino(s), pero solo ${inserts.length} insert(s) con forma auditada`);
+  } else ok(`el guardián cubre los ${sinks} app_events de bank-sync`);
+  if (leaks.length || /logObAmbiguous|payload\s+CRUDO/i.test(bankSync)) {
+    bad("app_events no guarda payloads ni movimientos bancarios",
+      "bank-sync solo puede registrar códigos cerrados y recuentos; nunca importes, comercios, fechas, referencias o titulares");
+  } else ok("app_events no guarda payloads ni movimientos bancarios");
+
+  const callback = read("supabase/functions/bank-callback/index.ts");
+  if (/JSON\.stringify\(session\.access\)|accessTxt|rawQuery|url\.search\s*\|\|/.test(callback))
+    bad("bank-callback no serializa access ni la query OAuth", "access puede contener IBAN y la query lleva code/state");
+  else ok("bank-callback solo registra la forma agregada de access y la query OAuth");
+
+  const enableBanking = read("supabase/functions/_shared/enablebanking.ts");
+  if (/EB \$\{res\.status\}:[^\n]*(?:JSON\.stringify\(data\)|\btext\b)/.test(enableBanking))
+    bad("los errores de Enable Banking no incluyen el cuerpo del proveedor");
+  else ok("los errores de Enable Banking conservan solo estado y código corto");
+
+  const ingest = read("supabase/functions/ingest/index.ts");
+  const beforeLoggers = ingest.slice(0, ingest.indexOf("async function logIngestError"));
+  const rawDetail = /logIngestError\([\s\S]{0,260}(?:comercio\s*\+|importe(?:Orig)?\s*\+|\btexto\b|\btitulo\b)/.test(beforeLoggers);
+  const skipLengths = /logIngestSkip\(supabase, userId, motivo, fuente, texto\.length, titulo\.length\)/.test(ingest);
+  if (rawDetail || !skipLengths)
+    bad("ingest registra motivos y longitudes, no el movimiento ni la notificación");
+  else ok("ingest registra motivos y longitudes, no el movimiento ni la notificación");
+}
+
 console.log(failed ? "\nsecurity: FALLA" : "\nsecurity: OK");
 process.exit(failed ? 1 : 0);

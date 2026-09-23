@@ -47,6 +47,18 @@ test("refreshExpenseFromCloud actualiza cat de un OB y no toca un manual", () =>
   assert.equal(outM.category, "bares", "manual no se pisa");
 });
 
+test("al liberarse el pendiente de ingest, el pull adopta también su origen confirmado", () => {
+  const cli = loadPureLogicFromFile();
+  const local = { id:"loc", date:"2026-09-23T13:21:06.996Z", amount:15.02,
+    merchant:"Consum", category:"super", source:"ob", ent:"trade_republic", possibleDup:true };
+  const cloud = { id:"cloud", date:local.date, amount:15.02, merchant:"Consum",
+    category:"super", source:"macrodroid", ent:"trade_republic", possibleDup:false };
+  const out = cli.refreshExpenseFromCloud(local, cloud);
+  assert.equal(out.possibleDup, undefined);
+  assert.equal(out.source, "macrodroid");
+  assert.equal(out.ent, "trade_republic");
+});
+
 test("mergeExpensesFromCloud refresca y no borra lo que solo está en local", () => {
   const cli = loadPureLogicFromFile();
   const prev = [

@@ -85,6 +85,22 @@ que genera el lector instalado. Para el histórico de CaixaBank se despliega ade
 después el cliente web que invoca un banco por petición. No afirmar que está resuelto con datos
 reales hasta probar CaixaBank seleccionada en solitario.
 
+### Telemetría financiera de las Edge
+
+Los eventos de soporte de `bank-sync` son deliberadamente cerrados: banco, estado, número de
+cuentas/filas, duración y código de error conocido. No se guardan payloads de Enable Banking,
+movimientos, importes, comercios, fechas, referencias ni titulares. Esta garantía vive también en
+`tests/security.test.mjs`. `bank-callback` tampoco serializa `session.access` —puede contener IBAN—
+ni la query OAuth —lleva `code` y `state`—: solo conserva su forma y recuentos. El cliente común de
+Enable Banking convierte una respuesta fallida en estado HTTP + código corto y nunca incluye el
+cuerpo del proveedor. `ingest` registra el motivo, la fuente y las longitudes de una notificación
+descartada, o códigos cerrados de error; nunca su texto, comercio o importe.
+
+Para aplicar toda la frontera hay que desplegar **`bank-aspsps`**, **`bank-connect`**,
+**`bank-disconnect`**, **`bank-callback`** y **`bank-sync`** —todas empaquetan el cliente compartido—,
+más **`ingest`**. Modificar los ficheros en una rama o publicar una OTA no cambia las Edge que están
+sirviendo a los móviles.
+
 ### CORS: lista blanca, no `*` (4.10.0)
 
 Las Edge Functions ya no responden `Access-Control-Allow-Origin: *`. El origen permitido lo pone

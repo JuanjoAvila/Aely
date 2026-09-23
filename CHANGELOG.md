@@ -1,3 +1,23 @@
+## [4.26.27] - 2026-09-23
+### La carrera Wallet + Trade Republic deja una sola compra confirmada
+
+La captura del 23/9 mostró dos avisos de Aely para el mismo pago de 15,02 €: Wallet lo llamó
+`Consum` y Trade Republic `CONSUM CHARTER`. Las dos peticiones concurrentes podían consultar antes
+de que ninguna hubiera terminado su INSERT; como fecha y comercio diferían, el índice exacto no
+podía resolver la carrera.
+
+Las compras de notificación entran temporalmente con el protocolo reversible `#dup`. Tras insertar,
+se repite la comprobación sobre la fila visible y solo la candidata más antigua se libera como
+confirmada; la posterior queda como `possibleDup`, fuera de Gastos, presupuesto y widget. Con una
+APK anterior se responde `skipped` para que no pinte una segunda confirmación. No se borra ninguna
+fila: «Es el mismo» / «Son distintos» sigue siendo la decisión final. Requiere desplegar `ingest`.
+
+`tieneGemeloAnterior` decide de forma estable por `created_at` e id y limita los SELECT a orígenes
+de notificación: una fila de Open Banking con el mismo importe ya no puede dejar una compra real
+pendiente por casualidad. Si el pull cae entre INSERT y liberación, adopta después el origen
+confirmado. La telemetría nueva solo registra código cerrado y origen, nunca comercio ni importe.
+Los tests fuerzan la carrera, el cruce casual con Open Banking y el modo seguro si falla liberar.
+
 ## [4.26.26] - 2026-09-23
 ### El editor de presupuesto tiene un ritmo propio
 

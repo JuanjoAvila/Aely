@@ -10,7 +10,8 @@ import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const src = fs.readFileSync(path.join(root, "supabase/functions/_shared/ingest_identity.ts"), "utf8");
 const js = transformSync(src, { loader: "ts", format: "esm" }).code;
-const { claveEvento, origenEvento, esPosibleGemeloIngest, normalizarEventoId } =
+const { claveEvento, origenEvento, esPosibleGemeloIngest, esPosibleGemeloLegacy,
+  tieneGemeloAnterior, normalizarEventoId } =
   await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
 const cli = loadPureLogicFromFile();
 
@@ -64,6 +65,22 @@ t("un Wallet de otra tarjeta no se mezcla con Trade Republic", () => {
   const rev = { fecha: "2026-09-17T14:25:00+02:00", importe: 9.95,
     ingest_event_id: "wallet:unknown:v1_b" };
   assert.equal(esPosibleGemeloIngest(rev, tr), false);
+});
+
+t("la carrera legacy Consum/Wallet conserva solo la fila posterior como posible repetido", () => {
+  const tr = { id: "a", fecha: "2026-09-23T15:21:06.996+02:00", importe: 15.02,
+    created_at: "2026-09-23T15:21:18.085911+02:00" };
+  const wallet = { id: "b", fecha: "2026-09-23T15:21:16.886+02:00", importe: 15.02,
+    created_at: "2026-09-23T15:21:18.119320+02:00" };
+  assert.equal(esPosibleGemeloLegacy(wallet, tr), true);
+  assert.equal(tieneGemeloAnterior(tr, [tr, wallet]), false);
+  assert.equal(tieneGemeloAnterior(wallet, [tr, wallet]), true);
+});
+
+t("dos cargos legacy separados no se confunden por compartir importe", () => {
+  const a = { id: "a", fecha: "2026-09-23T15:00:00+02:00", importe: 15.02 };
+  const b = { id: "b", fecha: "2026-09-23T15:20:01+02:00", importe: 15.02 };
+  assert.equal(esPosibleGemeloLegacy(b, a), false);
 });
 
 t("la marca de incertidumbre viaja nube → app → nube sin contar como confirmada", () => {

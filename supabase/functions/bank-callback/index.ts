@@ -30,8 +30,10 @@ Deno.serve(async (req) => {
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
   const fromApp = !!state && state.endsWith(".app");
-  const ebError = url.searchParams.get("error") || url.searchParams.get("error_description");
-  const rawQuery = url.search || "(vacío)";
+  const ebError = url.searchParams.get("error");
+  const hasErrorDescription = url.searchParams.has("error_description");
+  const ebErrorCode = String(ebError || "").replace(/[^a-z0-9_.-]/gi, "").slice(0, 60);
+  const callbackShape = `code:${code ? "sí" : "no"} state:${state ? "sí" : "no"} error:${ebErrorCode || (hasErrorDescription ? "descripción" : "no")}`;
   /* SEC-01 (14/9): a la URL de vuelta SOLO sale un código de `_shared/entrada.ts`. Antes salía el
      texto del error con la query dentro, y quien fabricara el enlace ponía su mensaje en Aely. El
      detalle se queda aquí: en app_events del usuario del `state` (si se sabe) y en el log. */
@@ -39,8 +41,8 @@ Deno.serve(async (req) => {
   let admin: any = null;
   let userId: string | null = null;
   try {
-    if (ebError) throw new CallbackFallo("eb_error", "banco devolvió error: " + ebError + " · " + rawQuery);
-    if (!code || !state) throw new CallbackFallo("sin_code", "faltan code/state · recibido: " + rawQuery);
+    if (ebError || hasErrorDescription) throw new CallbackFallo("eb_error", "banco devolvió error · " + callbackShape);
+    if (!code || !state) throw new CallbackFallo("sin_code", "faltan code/state · " + callbackShape);
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
@@ -149,12 +151,14 @@ Deno.serve(async (req) => {
         if (fromApp) return backToApp(false, nolink);
         return Response.redirect(`${APP_URL}?bank=error&msg=${encodeURIComponent(nolink)}`, 302);
       }
-      // Caso raro y distinto (ni siquiera hubo sesión): diagnóstico crudo para depurar.
+      // Caso raro y distinto (ni siquiera hubo sesión): solo forma y recuentos. `access.accounts`
+      // puede incluir IBAN; serializarlo en app_events convertiría un fallo OAuth en una fuga.
       const nAcc = Array.isArray(session.accounts) ? session.accounts.length : -1;
       const nData = Array.isArray(session.accounts_data) ? session.accounts_data.length : -1;
       const status = session.status || session.session_status || "?";
-      const accessTxt = session.access ? JSON.stringify(session.access).slice(0, 140) : "(sin access)";
-      const detail = `sin cuenta · POST a${nAcc}/d${nData} st:${status} · GET ${getDiag} · access:${accessTxt}`;
+      const accessAccounts = Array.isArray(session?.access?.accounts) ? session.access.accounts.length : -1;
+      const hasAccess = !!(session.access && typeof session.access === "object");
+      const detail = `sin cuenta · POST a${nAcc}/d${nData} st:${status} · GET ${getDiag} · access:${hasAccess ? "sí" : "no"}/a${accessAccounts}`;
       throw new CallbackFallo("sin_cuenta", detail);
     }
 

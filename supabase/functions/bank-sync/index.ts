@@ -10,55 +10,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ebApi, ebConfig, jsonResp, makeJWT, mapTransaction, fetchBankTransactions } from "../_shared/enablebanking.ts";
 import { withCors } from "../_shared/cors.ts";
 
-// Diagnóstico del «Movimiento» sin comercio ni concepto que salía como ingreso siendo un gasto
-// (feedback 2026-08-01, Trade Republic por Open Banking). `mapTransaction` solo tiene el
-// `credit_debit_indicator` del banco para decidir el signo — si un ASPSP lo manda mal para
-// ciertos movimientos, no hay forma de arreglarlo sin ver el payload real. Mejor registrar el
-// caso (ambiguo, o TODO Trade Republic mientras se cierra el signo) que adivinar y arriesgarse a
-// invertir un ingreso de verdad para otro banco que sí cumple la spec.
-// ⚠ 2026-08-03: el usuario sigue viendo gastos de TR contados como ingresos tras el fix de abs()
-// (commit anterior) — ese fix protege de un doble-signo, pero si el ASPSP manda el
-// `credit_debit_indicator` YA MAL para ciertos movimientos (p.ej. los ligados a la tarjeta/cash
-// de un bróker), abs() no lo arregla. En vez de adivinar OTRA VEZ sin datos (mismo error que costó
-// 7 alphas en la saga TR-en-frío, ver memoria `tr-frio-saga`), esto registra el payload CRUDO de
-// CUALQUIER movimiento de Trade Republic —tenga o no comercio/concepto— para diagnosticarlo con
-// certeza en cuanto el usuario sincronice una vez más. Quitar el `siempreTR` cuando se cierre.
-// deno-lint-ignore no-explicit-any
-async function logObAmbiguous(admin: any, userId: string, aspsp: string, raw: any[]) {
-  try {
-    const siempreTR = /trade republic|traderepublic/i.test(String(aspsp || ""));
-    // deno-lint-ignore no-explicit-any
-    const sospechosos = (raw || []).filter((t: any) => {
-      if (siempreTR) return true;
-      const remit = Array.isArray(t?.remittance_information) ? t.remittance_information.join(" ") : (t?.remittance_information || "");
-      const nombre = t?.debtor?.name || t?.creditor?.name || "";
-      return !remit && !nombre;
-    }).slice(0, 8);
-    if (!sospechosos.length) return;
-    // ⚠ 2026-08-03 (ronda 2): el diagnóstico anterior solo guardaba 6 campos curados y para TR
-    // TODOS salían null salvo importe/signo/fecha — no bastaba para saber si `entry_reference`
-    // existe (dedup), qué distingue un roundup/cashback de un gasto real, ni si un "ingreso" y un
-    // "gasto" del mismo importe en días distintos son dos apuntes reales de TR (round-up/cashback
-    // que entra en el saldo + ese mismo dinero auto-invertido) o un fallo nuestro. Para TR se manda
-    // el objeto CRUDO tal cual lo da Enable Banking, sin filtrar ningún campo — una sola vez, hasta
-    // cerrar esto con certeza (quitar cuando se cierre, igual que el `siempreTR` de arriba).
-    const detail = siempreTR
-      ? JSON.stringify(sospechosos)
-      : JSON.stringify(sospechosos.map((t: any) => ({
-          amt: t?.transaction_amount?.amount, ind: t?.credit_debit_indicator,
-          code: t?.bank_transaction_code?.description || t?.bank_transaction_code || null, status: t?.status,
-          remit: Array.isArray(t?.remittance_information) ? t.remittance_information.join(" ") : (t?.remittance_information || null),
-          creditor: t?.creditor?.name || null, debtor: t?.debtor?.name || null,
-          date: t?.booking_date || t?.value_date || null,
-        })));
-    await admin.from("app_events").insert({
-      user_id: userId, email: null, kind: "error",
-      message: `OB (${aspsp}): ${sospechosos.length} movimiento(s) — payload ${siempreTR ? "CRUDO completo" : "para revisar el signo"}`,
-      detail: detail.slice(0, 8000),
-      app_version: "edge", platform: "server",
-    });
-  } catch (_) { /* best-effort: nunca rompe el sync */ }
-}
+/* Los movimientos crudos no salen a `app_events`. El diagnóstico temporal del signo de TR
+   guardaba hasta ocho payloads completos y seguía activo el 23/9, cuando apareció en telemetría
+   durante una sincronización normal. Ese caso ya tiene una regresión con los datos mínimos que
+   demostraron su forma (`hist-cashback-par`); soporte conserva debajo solo clases y recuentos
+   cerrados, nunca importes, comercios, fechas, referencias ni titulares. */
 
 /* El cliente recibe un código estable, pero soporte necesita distinguir un 401 de un 503 sin
    guardar el texto crudo del proveedor: ese mensaje puede traer referencias o datos bancarios.
@@ -255,7 +211,6 @@ Deno.serve(withCors(async (req: Request) => {
           acctOut.push({ uid, iban: ac.iban || null, name: ac.name || null, currency: ac.currency || null, ok: true, balances,
             count: transactions.length, transactions, truncated: tx.truncated, transactionError: tx.transactionError });
           anyAcctOk = true;
-          logObAmbiguous(admin, user.id, link.aspsp_name, tx.transactions || []);
         } catch (err) {
           const msg = String((err as Error)?.message || err);
           // CADUCIDAD REAL vs FALLO TRANSITORIO (feedback 2026-07-17: «se me caen cada dos por
