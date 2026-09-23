@@ -1,3 +1,18 @@
+## [4.26.26] - 2026-09-23
+### El editor de presupuesto tiene un ritmo propio
+
+La hoja del presupuesto mensual entra en 420 ms, reduce su cifra de 52 px a un máximo de 42 px y
+conserva el nodo durante los 320 ms de salida al guardar, tocar fuera, pulsar Atrás o arrastrar
+hacia abajo. `useSheetSwipe` acepta duraciones opcionales sobre la implementación ya integrada:
+mantiene un único `closeAnimated`, el candado con contador para hojas anidadas y los valores de
+200/220 ms del resto de fichas.
+
+Con movimiento reducido la salida es inmediata. El presupuesto se guarda antes de empezar el
+cierre y el desbloqueo anticipado de esta hoja no descuenta dos veces el candado al desmontar.
+`presupuesto-fluido.spec.mjs` entra desde la tarjeta real de Inicio, mide animación y tipografía,
+cambia el importe, comprueba la persistencia y protege la salida sin espera. Sin cambios de datos,
+backend, Android ni APK nueva.
+
 ## [4.26.25] - 2026-09-23
 ### Ahorro mensual vuelve a Metas sin crear movimientos
 

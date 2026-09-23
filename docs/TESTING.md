@@ -1,5 +1,11 @@
 # Testing — Aely
 
+La beta 4.26.26 aísla el punto 8. `e2e/presupuesto-fluido.spec.mjs` abre el editor desde la tarjeta
+real de Inicio, exige una entrada de al menos 400 ms, limita la cifra a 42 px, comprueba que Guardar
+conserva la hoja durante la salida y que el presupuesto persiste. Un segundo caso activa movimiento
+reducido y exige cierre inmediato. El spec está mapeado a Inicio y Gastos en
+`scripts/relevant-tests.mjs`.
+
 Sin candados (feedback 18/9, punto 14): `tests/no-lock-icons.test.mjs` falla si vuelve un 🔒/🔓/🔐
 a `src/modules` o `shell.html`. También falla si reaparece el recorte «hasta el primer espacio» del
 texto de huella, que sin emoji se comería el verbo. `e2e/sin-candados.spec.mjs` abre Ajustes → Tu

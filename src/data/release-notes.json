@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.26",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Editar el presupuesto se siente más tranquilo",
+      "en": "Editing your budget feels calmer",
+      "ca": "Editar el pressupost se sent més tranquil"
+    },
+    "items": {
+      "es": [
+        "La ventana del presupuesto mensual entra y sale de forma más pausada, con una cifra más contenida.",
+        "Si has reducido las animaciones, se cierra al instante como hasta ahora."
+      ],
+      "en": [
+        "The monthly budget window now opens and closes at a calmer pace, with a more compact amount.",
+        "If you have reduced motion enabled, it closes instantly as before."
+      ],
+      "ca": [
+        "La finestra del pressupost mensual ara entra i surt amb més calma, amb una xifra més continguda.",
+        "Si tens reduït el moviment, es tanca a l'instant com fins ara."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "presupuesto-editor-fluido",
+        "t": {
+          "es": "Editor de presupuesto más fluido",
+          "en": "Smoother budget editor",
+          "ca": "Editor de pressupost més fluid"
+        },
+        "items": {
+          "es": [
+            "1. En Inicio, toca la tarjeta del presupuesto: la ventana debe entrar de forma suave y la cifra debe caber con aire.",
+            "2. Cambia el importe y pulsa «Guardar»: la ventana debe salir suavemente y el nuevo presupuesto debe quedar guardado.",
+            "3. Con «Reducir animaciones» activado, abre y guarda otra vez: la ventana debe cerrarse al instante."
+          ],
+          "en": [
+            "1. On Home, tap the budget card: the window should open smoothly and the amount should have room around it.",
+            "2. Change the amount and tap “Save”: the window should leave smoothly and the new budget should remain saved.",
+            "3. With “Reduce motion” enabled, open and save again: the window should close instantly."
+          ],
+          "ca": [
+            "1. A Inici, toca la targeta del pressupost: la finestra ha d'entrar suaument i la xifra ha de tenir aire.",
+            "2. Canvia l'import i toca «Desa»: la finestra ha de sortir suaument i el pressupost nou ha de quedar desat.",
+            "3. Amb «Redueix el moviment» activat, obre i desa una altra vegada: la finestra s'ha de tancar a l'instant."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.25",
     "d": "23 sep 2026",
     "t": {

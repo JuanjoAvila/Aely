@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-23 · **v4.26.25** preparada para beta — Ahorro mensual vuelve a Plan → Metas como planificación editable que no crea movimientos; los formatos 1.000 y 1.200,50 conservan su valor real. Producción sirve 4.25.9 con el beneficio aprobado en euros y porcentaje; comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-23 · **v4.26.26** preparada para beta — el editor del presupuesto mensual entra y sale con un ritmo propio, usa una cifra compacta y respeta el movimiento reducido. Producción sirve 4.25.9 con el beneficio aprobado en euros y porcentaje; comprobar disponibilidad real con `npm run salud`.
+> Anterior: **v4.26.25** — Ahorro mensual vuelve a Plan → Metas como planificación editable que no crea movimientos; los formatos 1.000 y 1.200,50 conservan su valor real.
 > Anterior: **v4.26.24** — el gesto horizontal vuelve a cambiar de pestaña desde el fondo, los gestos verticales conservan el rebote nativo y las barras laterales no se dibujan, también en Ajustes.
 > Anterior: **v4.26.23** — «Pregúntame» responde primero en una frase, deja el paso a paso bajo petición y diferencia entre añadir efectivo y apuntar una compra.
 > Anterior: **v4.26.17** — el histórico que solo devuelve movimientos ya guardados permite abrirlos en Gastos con el periodo completo y ese banco filtrado.
@@ -212,7 +213,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.25** (Ahorro mensual editable en Metas, preparada para beta; canal real = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.26.26** (editor de presupuesto fluido y compacto, preparado para beta; canal real = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo/publicada: **4.20.4 / 46**. El lector estable TR/Wallet de 4.26.6 aún necesita una APK nueva. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **46** / 4.20.4 |

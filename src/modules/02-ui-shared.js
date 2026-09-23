@@ -829,9 +829,11 @@ function mcSheetUnlock(){
 /* Sheet bottom: swipe hacia abajo para cerrar en TODA la ficha (no solo el asa).
    Un gesto que empezó desplazando contenido le pertenece entero al scroller; solo una bajada
    NUEVA, ya desde el borde superior, mueve la hoja. Transferirlo a mitad era el salto del vídeo. */
-function useSheetSwipe(open, onClose){
+function useSheetSwipe(open, onClose, opts){
+  opts=opts||{};
   const sheetRef=useRef(null);
   const closeTimer=useRef(null);
+  const lockHeld=useRef(false);
   const startY=useRef(0), startX=useRef(0), dy=useRef(0), dragging=useRef(false), armed=useRef(false), axis=useRef(null), closing=useRef(false), scrollHost=useRef(null);
   /* El candado entra antes del primer paint de la hoja. Con useEffect había un fotograma en que
      el fondo aún podía desplazarse y el siguiente recalculaba todo al bloquearlo: en el vídeo
@@ -839,7 +841,7 @@ function useSheetSwipe(open, onClose){
   useLayoutEffect(function(){
     if(!open) return undefined;
     closing.current=false;
-    mcSheetLock();
+    mcSheetLock(); lockHeld.current=true;
     const block=function(e){
       const sheet=sheetRef.current;
       /* Las hojas hijas son portales hermanos en body, no descendientes del `sheetRef` padre.
@@ -855,7 +857,7 @@ function useSheetSwipe(open, onClose){
       /* Hay hojas anidadas (Modificar > Todas las categorías). Solo la última devuelve el
          scroll: si la hija lo soltaba, la lista se movía detrás durante su salida de 200 ms. */
       if(closeTimer.current){ clearTimeout(closeTimer.current); closeTimer.current=null; }
-      mcSheetUnlock();
+      if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
     };
   },[open]);
   const onTouchStart=function(e){
@@ -910,19 +912,24 @@ function useSheetSwipe(open, onClose){
   };
   const closeAnimated=function(done){
     if(closing.current) return;
+    const finish=typeof done==="function"?done:onClose;
     const el=sheetRef.current;
-    if(!el){ (typeof done==="function"?done:onClose)(); return; }
+    const reduce=(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)
+      ||document.documentElement.classList.contains("reduce-motion");
+    if(!el||reduce){ finish(); return; }
     closing.current=true;
     // El transform arranca antes del setState/guardado que pueda ejecutar quien cierra: al vivir
     // en el compositor sigue avanzando aunque React tenga que recalcular la lista de Gastos.
     el.classList.remove("dragging");
-    el.style.transition="transform .2s cubic-bezier(.32,.72,0,1)";
+    const ms=opts.closeMs||200;
+    if(opts.unlockOnClose&&lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
+    el.style.transition="transform "+ms+"ms "+(opts.closeEase||"cubic-bezier(.32,.72,0,1)");
     el.style.transform="translate3d(0,110%,0)";
     closeTimer.current=setTimeout(function(){
       closeTimer.current=null;
       closing.current=false;
-      (typeof done==="function"?done:onClose)();
-    },200);
+      finish();
+    },ms);
   };
   const onTouchEnd=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
@@ -936,9 +943,10 @@ function useSheetSwipe(open, onClose){
     if(dist>80){
       closeAnimated();
     } else {
-      el.style.transition="transform .22s cubic-bezier(.32,.72,0,1)";
+      const snapMs=opts.snapMs||220;
+      el.style.transition="transform "+snapMs+"ms "+(opts.snapEase||"cubic-bezier(.32,.72,0,1)");
       el.style.transform="translate3d(0,0,0)";
-      setTimeout(function(){ try{ el.style.transition=""; el.style.transform=""; }catch(err){} }, 220);
+      setTimeout(function(){ try{ el.style.transition=""; el.style.transform=""; }catch(err){} },snapMs);
     }
   };
   const onTouchCancel=function(e){
