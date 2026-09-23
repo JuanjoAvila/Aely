@@ -81,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.30** preparada para beta — Gastos recoge la lista larga de categorías, anima el desglose sin saltos y cierra la ficha después de guardar con Listo. La 4.26.29 conserva el gesto inferior corregido y la APK 47 sin barra gris nativa. Producción sirve 4.25.9; disponibilidad real con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.26.31** preparada para beta — Plan → Gestionar repite la cifra y la ola al entrar, conserva el total real y deja sitio a importes largos. La 4.26.30 mantiene el filtro y la ficha de Gastos más claros. Producción sirve 4.25.9; disponibilidad real con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.

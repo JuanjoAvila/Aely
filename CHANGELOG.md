@@ -1,3 +1,14 @@
+## [4.26.31] - 2026-09-23
+### Gestionar repite su lectura visual sin alterar las cifras
+
+`BillsManagePush` usa la puerta opcional de repetición de `useCountUp`: al cerrar devuelve el
+contador a cero y al volver a entrar reproduce la cifra, sin cambiar Inicio ni Cartera. La barra
+animada comparte el patrón de Inversiones, pero solo reparte servicios y cuotas porque son los dos
+componentes de `billsHeroTotal`; ingresos y cargos puntuales no se mezclan en esa cifra. Los importes
+de grupo reducen tipografía en pantallas estrechas y una regla específica evita el subrayado de las
+temáticas. El E2E abre dos veces, verifica que el nodo de la ola se vuelve a montar y comprueba un
+importe de siete cifras a 360 px sin recorte ni cambio de cantidades.
+
 ## [4.26.30] - 2026-09-23
 ### Gastos agrupa el filtro largo y conserva el DOM durante las transiciones
 

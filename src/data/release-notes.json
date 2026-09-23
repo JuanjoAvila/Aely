@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.26.31",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Gestionar recibos se entiende de un vistazo",
+      "en": "Bills management is clearer at a glance",
+      "ca": "Gestionar rebuts s'entén d'un cop d'ull"
+    },
+    "items": {
+      "es": [
+        "La cifra mensual y su reparto se animan cada vez que entras en Gestionar.",
+        "Los importes largos caben mejor y dejan de parecer enlaces con las temáticas activas.",
+        "La barra reparte solo servicios y cuotas, exactamente lo que suma la cifra mensual."
+      ],
+      "en": [
+        "The monthly amount and its breakdown animate every time you open Manage.",
+        "Long amounts fit better and no longer look like links when a seasonal theme is active.",
+        "The bar splits only services and instalments, exactly what the monthly amount adds up."
+      ],
+      "ca": [
+        "La xifra mensual i el seu repartiment s'animen cada vegada que entres a Gestionar.",
+        "Els imports llargs hi caben millor i deixen de semblar enllaços amb les temàtiques actives.",
+        "La barra reparteix només serveis i quotes, exactament el que suma la xifra mensual."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "plan-gestionar-claro",
+        "t": {
+          "es": "Gestionar recibos más claro",
+          "en": "Clearer bill management",
+          "ca": "Gestió de rebuts més clara"
+        },
+        "items": {
+          "es": [
+            "1. En Plan → Recibos, abre Gestionar: la cifra debe crecer y la barra aparecer como una ola.",
+            "2. Vuelve atrás y entra otra vez: las dos animaciones deben repetirse.",
+            "3. Comprueba que el total y los importes de cada grupo siguen siendo los mismos.",
+            "4. Activa una temática y revisa un importe largo: debe caber y no tener subrayado."
+          ],
+          "en": [
+            "1. In Plan → Bills, open Manage: the amount should count up and the bar should appear as a wave.",
+            "2. Go back and open it again: both animations should replay.",
+            "3. Check that the total and each group's amounts remain unchanged.",
+            "4. Turn on a seasonal theme and check a long amount: it should fit without an underline."
+          ],
+          "ca": [
+            "1. A Pla → Rebuts, obre Gestionar: la xifra ha de créixer i la barra ha d'aparèixer com una ona.",
+            "2. Torna enrere i entra-hi una altra vegada: les dues animacions s'han de repetir.",
+            "3. Comprova que el total i els imports de cada grup continuen sent els mateixos.",
+            "4. Activa una temàtica i revisa un import llarg: hi ha de cabre i no ha d'estar subratllat."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.30",
     "d": "23 sep 2026",
     "t": {
