@@ -30,7 +30,7 @@ mi-cartera/
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
-├── e2e/                    # Playwright (66 specs: arranque, listas, bancos, brókers, perfil, CSV, CSP, rendimiento, beta…)
+├── e2e/                    # Playwright (68 specs: arranque, listas, bancos, ahorro, brókers, perfil, CSV, CSP, rendimiento, beta…)
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
@@ -81,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.24** preparada para beta — al final de una pantalla vuelve a funcionar el gesto horizontal entre pestañas, el rebote vertical se conserva y las barras laterales dejan de verse también en Ajustes. Producción tiene preparada 4.25.8 con las tandas aprobadas; disponibilidad real de canales con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.26.25** preparada para beta — Ahorro mensual vuelve a Plan → Metas y se edita sin crear movimientos; 1.000 y 1.200,50 se guardan con su valor real. Producción sirve 4.25.8 y la promoción de 4.25.9 está en curso; disponibilidad real con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.

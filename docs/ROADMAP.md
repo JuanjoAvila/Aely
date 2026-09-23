@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-23 · **v4.26.24** preparada para beta — el gesto horizontal vuelve a cambiar de pestaña desde el fondo, los gestos verticales conservan el rebote nativo y las barras laterales no se dibujan, también en Ajustes. Producción tiene preparada 4.25.8 con las tandas aprobadas; comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-23 · **v4.26.25** preparada para beta — Ahorro mensual vuelve a Plan → Metas como planificación editable que no crea movimientos; los formatos 1.000 y 1.200,50 conservan su valor real. Producción sirve 4.25.8 y la promoción de 4.25.9 está en curso; comprobar disponibilidad real con `npm run salud`.
+> Anterior: **v4.26.24** — el gesto horizontal vuelve a cambiar de pestaña desde el fondo, los gestos verticales conservan el rebote nativo y las barras laterales no se dibujan, también en Ajustes.
 > Anterior: **v4.26.23** — «Pregúntame» responde primero en una frase, deja el paso a paso bajo petición y diferencia entre añadir efectivo y apuntar una compra.
 > Anterior: **v4.26.17** — el histórico que solo devuelve movimientos ya guardados permite abrirlos en Gastos con el periodo completo y ese banco filtrado.
 > Anterior: **v4.26.16** — la pantalla completa de Inversiones entra desde la derecha y vuelve con un gesto desde cualquier zona no interactiva.
@@ -211,7 +212,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.24** (navegación desde el fondo y barras laterales ocultas, preparada para beta; canal real = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.26.25** (Ahorro mensual editable en Metas, preparada para beta; canal real = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo/publicada: **4.20.4 / 46**. El lector estable TR/Wallet de 4.26.6 aún necesita una APK nueva. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **46** / 4.20.4 |

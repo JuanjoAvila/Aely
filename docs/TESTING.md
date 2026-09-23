@@ -154,6 +154,8 @@ Desde la 4.9.1 esto lo vigila `tests/docs-frescura.test.mjs`: si quedan cambios 
   app tarda cinco segundos en abrir y no hay un commit al que señalar.
 - **`e2e/gastos-orden.spec.mjs`** — arrastra un movimiento con gesto táctil, comprueba el DOM y el
   orden guardado tras recargar, y garantiza que las fechas originales no cambian.
+- **`e2e/plan-ahorro.spec.mjs`** — abre Plan → Metas, comprueba que el ahorro mensual se guarda
+  y persiste sin crear movimientos, que Cancelar no escribe y que una cifra larga cabe a 320 px.
 
 ## Flujo local (CMD o PowerShell)
 

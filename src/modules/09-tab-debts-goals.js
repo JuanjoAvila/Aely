@@ -320,6 +320,85 @@ function ReservaDetect({state, set, showToast}){
     )
   );
 }
+/* AHORRO MENSUAL — la puerta que el rediseño v4 dejó huérfana (feedback 18/9, punto 6).
+   `state.aportaciones` sigue alimentando `totals.ahorroMensual`, que es con lo que `goalEta`
+   calcula cuándo llegas a cada meta, y la proyección de Inversiones; pero desde la v4 no había
+   dónde editarlo. Vive aquí, en Metas, porque es justo lo que mueve esas fechas.
+   Es PLANIFICACIÓN: no crea movimientos ni toca saldos. Se edita en borrador y solo se escribe
+   al Guardar (el editor v3, commit 87191f41, añadía y borraba en vivo y Cancelar no deshacía). */
+function SavingsPlanCard({state, set, totals, showToast}){
+  const aps=state.aportaciones||[];
+  const total=(totals&&typeof totals.ahorroMensual==="number")?totals.ahorroMensual
+    :aps.reduce(function(a,x){ return a+(Number(x.amount)||0); },0);
+  const [drafts,setDrafts]=useState(null);   // null = cerrado; array = editando
+  const AP_ENTS=Object.keys(ENT).filter(function(k){ return k!=="familia"; });
+  const start=function(){
+    setDrafts(aps.map(function(a){ return {id:a.id,name:a.name||"",amount:a.amount?String(a.amount).replace(".",","):"",ent:a.ent||"myinvestor"}; }));
+  };
+  const setD=function(id,k,v){ setDrafts(function(ds){ return ds.map(function(d){ return d.id===id?Object.assign({},d,{[k]:v}):d; }); }); };
+  const add=function(){ setDrafts(function(ds){ return ds.concat([{id:uid(),name:"",amount:"",ent:"myinvestor",nuevo:true}]); }); };
+  const del=function(id){ setDrafts(function(ds){ return ds.filter(function(d){ return d.id!==id; }); }); };
+  const amountOf=function(raw){
+    /* El campo usa el teclado del sistema y puede traer «1.200,50» o «1,200.50». Interpretar
+       el separador ajeno al idioma como miles solo cuando deja tres cifras evita el fallo real
+       de guardar 1 € al escribir 1.000 €, sin convertir «1.50» en 150 (review 23/9). */
+    let s=String(raw==null?"":raw).trim().replace(/\s/g,"").replace(/[^0-9.,]/g,"");
+    if(!s) return 0;
+    if(s.indexOf(".")>=0 && s.indexOf(",")>=0){
+      s=s.lastIndexOf(",")>s.lastIndexOf(".")?s.replace(/\./g,"").replace(/,/g,"."):s.replace(/,/g,"");
+    }else{
+      const sep=s.indexOf(",")>=0?",":(s.indexOf(".")>=0?".":"");
+      if(sep){
+        const parts=s.split(sep); const decimal=numPadDecSep();
+        if(parts.length>2) s=parts.join("");
+        else if(sep!==decimal && parts[1]&&parts[1].length===3) s=parts.join("");
+        else if(sep===",") s=parts.join(".");
+      }
+    }
+    const n=parseFloat(s); return isFinite(n)?Math.max(0,n):0;
+  };
+  const save=function(){
+    const prev={}; aps.forEach(function(a){ prev[a.id]=a; });
+    const next=drafts.map(function(d){
+      const n=amountOf(d.amount);
+      return Object.assign({}, prev[d.id]||{}, {id:d.id, name:d.name.trim()||t("d_saving"), amount:+n.toFixed(2), ent:d.ent});
+    }).filter(function(a){ return a.amount>0 || prev[a.id]; });   // una fila nueva vacía no se guarda
+    set(function(s){ return Object.assign({},s,{aportaciones:next}); });
+    setDrafts(null);
+    if(showToast) showToast(t("sv_saved"));
+  };
+  const editing=!!drafts;
+  return React.createElement("div",{className:"v4-card rise aely-savings","data-savings-plan":"1"},
+    React.createElement("div",{className:"aely-savings-h"},
+      React.createElement("div",{style:{minWidth:0}},
+        React.createElement("div",{className:"v4-micro"}, t("sv_title")),
+        React.createElement("div",{className:"serif num aely-savings-total","data-savings-total":"1"}, tf("fj_permonth",{x:eur(total)}))),
+      React.createElement("button",{type:"button",className:"btn btn-ghost aely-savings-edit","data-savings-edit":"1",
+        onClick:function(){ editing?setDrafts(null):start(); }}, editing?t("fj_cancel"):t("fj_edit"))),
+    React.createElement("p",{className:"hint aely-savings-note"}, t("sv_note")),
+    !editing && aps.length===0 && React.createElement("div",{className:"hint"}, t("sv_empty")),
+    !editing && aps.map(function(ap){
+      return React.createElement("div",{className:"aely-savings-row",key:ap.id,"data-savings-row":ap.id},
+        React.createElement("span",{className:"aely-savings-name"}, ap.name, React.createElement("span",{className:"aely-savings-bank"}, entOf(ap.ent).label)),
+        React.createElement("span",{className:"num aely-savings-amt"}, tf("fj_permonth",{x:eur(Number(ap.amount)||0)})));
+    }),
+    editing && drafts.map(function(d){
+      return React.createElement("div",{className:"aely-savings-edit-row",key:d.id,"data-savings-draft":d.id},
+        React.createElement("input",{className:"af-in","aria-label":t("sv_name_aria"),placeholder:t("sv_name_ph"),value:d.name,
+          onChange:function(e){ setD(d.id,"name",e.target.value); }}),
+        React.createElement("div",{className:"aely-savings-edit-line"},
+          React.createElement("input",{className:"af-in num","aria-label":t("sv_amount_aria"),placeholder:"0 €",inputMode:"decimal",value:d.amount,
+            onFocus:function(e){ e.target.select(); },onChange:function(e){ setD(d.id,"amount",e.target.value); }}),
+          React.createElement("select",{className:"af-in","aria-label":t("sv_bank_aria"),value:d.ent,onChange:function(e){ setD(d.id,"ent",e.target.value); }},
+            AP_ENTS.map(function(k){ return React.createElement("option",{key:k,value:k},entOf(k).label); })),
+          React.createElement("button",{type:"button",className:"ex-del","aria-label":t("sv_del_aria"),onClick:function(){ del(d.id); }},"✕")));
+    }),
+    editing && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:add}, "+ "+t("sv_add")),
+    editing && React.createElement("button",{type:"button",className:"btn btn-primary btn-block",style:{marginTop:8},"data-savings-save":"1",onClick:save}, t("fj_save"))
+  );
+}
+
+
 function Goals({state, set, totals, showToast}){
   const tt=totals||{};
   const goals=state.goals||[];
@@ -386,6 +465,7 @@ function Goals({state, set, totals, showToast}){
       React.createElement("div",{className:"serif num",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6,color:"var(--mint)"}},eur(totalSaved)),
       totalTarget>0 && React.createElement("div",{style:{marginTop:10,fontSize:13.5,color:"var(--muted)"}},tf("gl_total_sub",{x:eur0(totalTarget)}))
     ),
+    React.createElement(SavingsPlanCard,{state:state,set:set,totals:totals,showToast:showToast}),
     React.createElement(ReservaDetect,{state:state,set:set,showToast:showToast}),
     goals.length===0 && !adding && React.createElement("div",{className:"empty"},
       React.createElement("div",{className:"ttl"},t("gl_empty_t")), t("gl_empty_d")),

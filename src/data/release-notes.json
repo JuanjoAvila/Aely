@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.25",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Tu ahorro mensual vuelve a estar en Metas",
+      "en": "Your monthly saving is back in Goals",
+      "ca": "El teu estalvi mensual torna a ser a Metes"
+    },
+    "items": {
+      "es": [
+        "Plan → Metas vuelve a enseñar cuánto apartas cada mes y permite cambiar el concepto, el importe o el banco.",
+        "Es una planificación: no mueve dinero ni crea movimientos. También entiende importes como 1.000 y 1.200,50."
+      ],
+      "en": [
+        "Plan → Goals once again shows how much you set aside each month and lets you change the name, amount, or bank.",
+        "It is a plan: it does not move money or create transactions. It also understands amounts such as 1,000 and 1,200.50."
+      ],
+      "ca": [
+        "Pla → Metes torna a mostrar quant apartes cada mes i permet canviar el concepte, l'import o el banc.",
+        "És una planificació: no mou diners ni crea moviments. També entén imports com 1.000 i 1.200,50."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "ahorro-mensual-metas",
+        "t": {
+          "es": "Ahorro mensual en Metas",
+          "en": "Monthly saving in Goals",
+          "ca": "Estalvi mensual a Metes"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan → Metas: debe aparecer «Ahorro mensual» con el total y cada aportación.",
+            "2. Edita dos importes usando 1.000 y 1.200,50, guarda y vuelve a abrir la app: deben conservarse como mil y mil doscientos con cincuenta.",
+            "3. Comprueba en Gastos que guardar el plan no ha creado ningún gasto, ingreso ni traspaso.",
+            "4. Vuelve a editar, haz cambios y toca «Cancelar»: debe volver exactamente a lo guardado."
+          ],
+          "en": [
+            "1. Open Plan → Goals: “Monthly saving” should appear with the total and each contribution.",
+            "2. Edit two amounts using 1,000 and 1,200.50, save, and reopen the app: both values should remain unchanged.",
+            "3. Check Spending: saving the plan must not create any expense, income, or transfer.",
+            "4. Edit again, make changes, and tap “Cancel”: it should return exactly to the saved values."
+          ],
+          "ca": [
+            "1. Obre Pla → Metes: ha d'aparèixer «Estalvi mensual» amb el total i cada aportació.",
+            "2. Edita dos imports amb 1.000 i 1.200,50, desa i torna a obrir l'app: s'han de conservar com mil i mil dos-cents amb cinquanta.",
+            "3. Comprova a Despeses que desar el pla no ha creat cap despesa, ingrés ni traspàs.",
+            "4. Torna a editar, fes canvis i toca «Cancel·la»: ha de tornar exactament als valors desats."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.24",
     "d": "23 sep 2026",
     "t": {

@@ -1,3 +1,15 @@
+## [4.26.25] - 2026-09-23
+### Ahorro mensual vuelve a Metas sin crear movimientos
+
+`state.aportaciones` seguía alimentando las fechas estimadas de las metas y la proyección de
+Inversiones, pero el rediseño había dejado esa planificación sin puerta visible. Plan → Metas
+incorpora una tarjeta compacta con total, desglose y editor de concepto, importe y banco.
+
+El editor trabaja en borrador: Guardar sustituye `aportaciones` una sola vez y Cancelar descarta
+altas, bajas y cambios. No crea gastos, ingresos, traspasos ni movimientos bancarios. El parser
+distingue miles y decimales del idioma para que «1.000» y «1.200,50» no se conviertan en 1 y 1,2.
+El E2E cubre guardado, persistencia, cancelación, integridad de movimientos y móvil estrecho.
+
 ## [4.26.24] - 2026-09-23
 ### El carrusel vuelve a responder en el fondo sin romper la ola nativa
 

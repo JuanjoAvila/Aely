@@ -1645,6 +1645,22 @@
   .v4-paid{opacity:.55;}
   .v4-liq{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13.5px;color:var(--muted);line-height:1.4;}
   .v4-liq::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--mint);flex:0 0 auto;}
+  /* Ahorro mensual en Metas (punto 6, 18/9). Importes largos: la cifra nunca se parte ni se
+     corta — el nombre cede (ellipsis) y la cifra baja de línea si no cabe. */
+  .aely-savings{margin-top:12px;padding:16px;}
+  .aely-savings-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .aely-savings-total{font-size:26px;font-weight:550;letter-spacing:-.5px;line-height:1.15;margin-top:4px;white-space:nowrap;}
+  .aely-savings-edit{width:auto;flex:0 0 auto;padding:8px 14px;font-size:13.5px;margin:0;}
+  .aely-savings-note{margin:8px 0 4px;font-size:12.5px;line-height:1.45;}
+  .aely-savings-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:9px 0;border-top:1px solid var(--line-soft);}
+  .aely-savings-name{min-width:0;flex:1 1 140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650;}
+  .aely-savings-bank{display:block;font-weight:500;font-size:12px;color:var(--muted);}
+  .aely-savings-amt{white-space:nowrap;font-weight:700;color:var(--mint);margin-left:auto;}
+  .aely-savings-edit-row{padding:10px 0;border-top:1px solid var(--line-soft);display:flex;flex-direction:column;gap:6px;}
+  .aely-savings-edit-line{display:flex;gap:6px;align-items:center;}
+  .aely-savings-edit-line .af-in.num{flex:1 1 90px;min-width:0;}
+  .aely-savings-edit-line select.af-in{flex:1 1 110px;min-width:0;width:auto;}
+  .aely-savings-edit-line .ex-del{flex:0 0 40px;height:40px;}
   .v4-roundup{background:rgba(95,208,138,.07);border:1px solid rgba(95,208,138,.25);border-radius:18px;padding:14px 16px;margin-top:14px;font-size:14px;line-height:1.45;color:var(--muted);}
   .v4-roundup strong{color:var(--text);}
   .v4-debt-card,.v4-goal-card{background:var(--sur);border:1px solid var(--line-soft);border-radius:20px;padding:16px;margin-top:12px;box-shadow:var(--shadow);}
