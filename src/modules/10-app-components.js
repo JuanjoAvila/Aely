@@ -286,6 +286,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
   const [truncWarn,setTruncWarn]=useState(false);
   const [readWarnings,setReadWarnings]=useState([]);
   const [readFailed,setReadFailed]=useState(false);
+  const [emptyInfo,setEmptyInfo]=useState(null);
   const [importing,setImporting]=useState(false);
   /* FILTROS (rediseño 3/8, petición suya: «me parece anticuada comparada con el import de Excel»,
      más un bug real que reportó: «seleccioné Trade Republic y salían también movimientos de Banco
@@ -311,7 +312,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
   const defDest=function(x){ return x.kind==="in" ? "ingreso" : "gasto"; };
   const search=function(){
     if(!allowList.length){ showToast(t("bp_hist_pickbank")); return; }
-    setLoading(true); setCands(null); setReadWarnings([]); setReadFailed(false);
+    setLoading(true); setCands(null); setReadWarnings([]); setReadFailed(false); setEmptyInfo(null);
     setTipoFilter("all"); setMesFilter("all"); setRevelado(0);
     setRenderCap(HIST_RENDER_CAP); setTruncWarn(false); setSignSuspect({}); setClassRows([]);
     const d=new Date(); d.setMonth(d.getMonth()-months); const dateFrom=d.toISOString().slice(0,10);
@@ -340,10 +341,19 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
       warnings.forEach(function(w){ if(w.key==="bank_read_rate") bankRateRemember(w.ent||w.bank); });
       setReadWarnings(cooling.map(function(ent){ return {bank:entOf(ent).label,ent:ent,key:"bank_read_rate"}; }).concat(warnings));
       // Flatten compartido con la sonda (Codex 10/9): un solo pipeline, con card/entKey/merchant.
-      const flat=histFlattenHistoryLinks(res, state.expenses, allow, {
-        merchantIn:t("cat_ingreso"), merchantOut:"Compra"
-      });
+      const flat=histFlattenHistoryLinks(res, state.expenses, allow);
       const out=flat.out;
+      /* Un cero no siempre significa que el banco vino vacío. En el rechazo real del 23/9,
+         Caixa entregó una cuenta y dos filas, pero ambas ya estaban apuntadas. Decir los recuentos
+         evita presentar como fallo lo que fue dedup y señala la cuenta ausente sin inventarla. */
+      let info=null;
+      if(!out.length&&allowList.length===1&&flat.stats.bankReported>0&&
+        flat.stats.skippedExt===flat.stats.bankReported&&!flat.stats.skippedAllow&&!flat.stats.skippedBad&&!flat.stats.skippedUniq){
+        const ent=allowList[0], links=(res.links||[]).filter(function(l){ return entFromAspsp(l&&l.aspsp)===ent; });
+        const accountN=Math.max(1,links.reduce(function(n,l){ return n+((l&&l.accounts)||[]).length; },0));
+        info={bank:entOf(ent).label,accounts:accountN,n:flat.stats.bankReported};
+      }
+      setEmptyInfo(info);
       // Truncado del servidor o del banco: avisamos en preview (agujero F).
       // Nota Codex: minDate>dateFrom NO prueba truncado (puede no haber movs el día 1).
       const trunc=!!(res&&(res.truncated||res.truncatedAt));
@@ -615,7 +625,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
       React.createElement("button",{style:{width:"100%",padding:"12px",borderRadius:12,border:"1px solid var(--line)",background:"var(--surface)",color:"var(--text)",fontWeight:800,fontSize:14,cursor:"pointer"},disabled:loading,onClick:search}, loading?t("bp_hist_searching"):t("bp_hist_search")),
       !loading && readWarnings.map(function(w,i){ return React.createElement("div",{key:i,role:"status",className:"hint bank-read-warning",style:{marginTop:12}}, "⚠ "+tf(w.key,{bank:w.bank})); }),
       !loading && readFailed && React.createElement("div",{role:"status",className:"hint bank-read-warning",style:{marginTop:12}},t("bank_read_retry")),
-      cands!==null && cands.length===0 && !loading && !readFailed && !readWarnings.length && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,textAlign:"center",padding:"20px 0"}}, t("bp_hist_none")),
+      cands!==null && cands.length===0 && !loading && !readFailed && !readWarnings.length && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,textAlign:"center",padding:"20px 0"}}, emptyInfo?tf("bp_hist_all_logged",emptyInfo):t("bp_hist_none")),
       cands!==null && cands.length>0 && React.createElement("div",{style:{marginTop:14}},
         React.createElement("div",{style:{fontSize:12,color:"var(--muted-2)",marginBottom:8}}, tf("bp_hist_found",{n:visible.length})),
         truncWarn && React.createElement("div",{style:{fontSize:12,lineHeight:1.45,color:"var(--warn, #E6A23C)",background:"rgba(230,162,60,.12)",borderRadius:10,padding:"8px 10px",marginBottom:8}}, t("bp_hist_trunc")),

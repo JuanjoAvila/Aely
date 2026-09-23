@@ -3,22 +3,25 @@
     "v": "4.26.17",
     "d": "23 sep 2026",
     "t": {
-      "es": "El histórico respeta cada cuenta",
-      "en": "History keeps each account separate",
-      "ca": "L'històric respecta cada compte"
+      "es": "El histórico distingue cuentas y explica los ceros",
+      "en": "History separates accounts and explains empty results",
+      "ca": "L'històric separa comptes i explica els resultats buits"
     },
     "items": {
       "es": [
         "Al importar el histórico, los cargos iguales que proceden de dos cuentas distintas del mismo banco ya se conservan por separado.",
-        "Los movimientos habituales siguen protegidos frente a repeticiones. Este cambio actúa en Importar histórico; la actualización diaria y el periodo que entrega cada banco no cambian."
+        "Un cargo pendiente y su versión contabilizada de la misma cuenta siguen siendo un solo movimiento.",
+        "Si el banco solo comparte movimientos que ya estaban apuntados, ahora se muestra cuántas cuentas y movimientos entregó y qué comprobar si falta una cuenta. La actualización diaria no cambia."
       ],
       "en": [
         "When importing history, matching charges from two different accounts at the same bank are now kept separately.",
-        "Regular transactions remain protected against repeats. This change applies to Import history; daily updates and the period supplied by each bank are unchanged."
+        "A pending charge and its booked version from the same account remain a single transaction.",
+        "If the bank only shares transactions that were already logged, the app now shows how many accounts and transactions it supplied and what to check if an account is missing. Daily updates are unchanged."
       ],
       "ca": [
         "En importar l'històric, els càrrecs iguals que venen de dos comptes diferents del mateix banc ara es conserven per separat.",
-        "Els moviments habituals continuen protegits contra repeticions. Aquest canvi actua a Importar l'històric; l'actualització diària i el període que lliura cada banc no canvien."
+        "Un càrrec pendent i la seva versió comptabilitzada del mateix compte continuen sent un sol moviment.",
+        "Si el banc només comparteix moviments que ja estaven apuntats, ara es mostra quants comptes i moviments ha lliurat i què cal comprovar si falta un compte. L'actualització diària no canvia."
       ]
     },
     "tandas": [
@@ -31,19 +34,19 @@
         },
         "items": {
           "es": [
-            "1. En Ajustes → Importaciones → Importar histórico, deja solo CaixaBank, elige un periodo con movimientos de dos cuentas enlazadas y busca una sola vez.",
-            "2. Si ambas cuentas tienen un cargo con la misma fecha, importe y concepto, deben aparecer dos filas, no una; los demás movimientos no deben repetirse.",
-            "3. Importa solo movimientos que realmente falten: los dos cargos coincidentes deben guardarse por separado. Si no existe un par real para comprobarlo, indícalo en el comentario en lugar de dar este caso por probado."
+            "1. En Ajustes → Importaciones → Importar histórico, deja solo CaixaBank y busca una vez. Si todo estaba apuntado, debe indicar cuántas cuentas y movimientos compartió el banco.",
+            "2. Si esperabas otra cuenta y el aviso muestra solo una, vuelve a conectar CaixaBank seleccionando las dos cuentas y repite la búsqueda una sola vez. Si sigue mostrando una, indícalo en el comentario.",
+            "3. Si ambas cuentas tienen un cargo con la misma fecha, importe y concepto, deben aparecer dos filas y guardarse por separado. No marques este caso como probado si el banco sigue compartiendo una sola cuenta."
           ],
           "en": [
-            "1. In Settings → Imports → Import history, leave only CaixaBank selected, choose a period with transactions from two linked accounts and search once.",
-            "2. If both accounts contain a charge with the same date, amount and description, two rows should appear instead of one; other transactions should not repeat.",
-            "3. Import only transactions that are genuinely missing: the two matching charges should be saved separately. If there is no real pair to check, mention that in the comment instead of marking this case as proven."
+            "1. In Settings → Imports → Import history, leave only CaixaBank selected and search once. If everything was already logged, it should show how many accounts and transactions the bank shared.",
+            "2. If you expected another account and the message shows only one, reconnect CaixaBank, select both accounts, and search once more. If it still shows one, mention it in the comment.",
+            "3. If both accounts contain a charge with the same date, amount and description, two rows should appear and be saved separately. Do not mark this case as proven while the bank still shares only one account."
           ],
           "ca": [
-            "1. A Ajustos → Importacions → Importar històric, deixa només CaixaBank, tria un període amb moviments de dos comptes enllaçats i cerca una sola vegada.",
-            "2. Si tots dos comptes tenen un càrrec amb la mateixa data, import i concepte, han d'aparèixer dues files, no una; els altres moviments no s'han de repetir.",
-            "3. Importa només moviments que realment faltin: els dos càrrecs coincidents s'han de desar per separat. Si no hi ha cap parell real per comprovar-ho, indica-ho al comentari en lloc de donar el cas per provat."
+            "1. A Ajustos → Importacions → Importar històric, deixa només CaixaBank i cerca una vegada. Si tot ja estava apuntat, ha d'indicar quants comptes i moviments ha compartit el banc.",
+            "2. Si esperaves un altre compte i l'avís només en mostra un, torna a connectar CaixaBank, selecciona els dos comptes i repeteix la cerca una sola vegada. Si encara en mostra un, indica-ho al comentari.",
+            "3. Si tots dos comptes tenen un càrrec amb la mateixa data, import i concepte, han d'aparèixer dues files i desar-se per separat. No marquis aquest cas com a provat mentre el banc continuï compartint un sol compte."
           ]
         }
       }

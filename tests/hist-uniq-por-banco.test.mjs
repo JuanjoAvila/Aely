@@ -68,7 +68,7 @@ t("dos cuentas del mismo banco conservan el mismo cargo y reciben identidad de n
   assert.equal(r.out[0].stamp.slice(0,10), "2026-09-10");
   assert.equal(r.out[0].stamp,new Date("2026-09-10T12:00:00").toISOString(),
     "la primera cuenta conserva la misma terna que el sync diario");
-  const ahorro=r.out.find(x=>x.stamp===ctx.histDate("2026-09-10", "caixabank|cx-ahorro|"));
+  const ahorro=r.out.find(x=>x.stamp===ctx.histDate("2026-09-10", "ob-slot|caixabank|2026-09-10|12.5|MERCADONA|1"));
   assert.ok(ahorro, "la segunda cuenta recibe identidad estable al reimportar");
   assert.match(ahorro.stamp,/^2026-09-10T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
 });
@@ -89,14 +89,22 @@ t("la misma fila repetida dentro de una cuenta mantiene una sola identidad", () 
   assert.equal(r.stats.skippedUniq,1);
 });
 
-t("dos cargos iguales con ids bancarios distintos sobreviven también dentro de una cuenta", () => {
+t("pendiente y contabilizado dentro de una cuenta conservan solo la versión final", () => {
   const res={links:[{aspsp:"CaixaBank",accounts:[{uid:"cx-corriente",transactions:[
-    tx("2026-09-10",12.50,{merchant:"MERCADONA",ext_id:"cargo-a"}),
-    tx("2026-09-10",12.50,{merchant:"MERCADONA",ext_id:"cargo-b"}),
+    tx("2026-09-10",12.50,{merchant:"MERCADONA",status:"PDNG"}),
+    tx("2026-09-10",12.50,{merchant:"MERCADONA",ext_id:"cargo-book",status:"BOOK"}),
   ]}]}]};
   const r=ctx.histFlattenHistoryLinks(res,[],{},{});
-  assert.equal(r.out.length,2);
-  assert.notEqual(r.out[0].stamp,r.out[1].stamp);
+  assert.equal(r.out.length,1);
+  assert.equal(r.out[0].id,"cargo-book");
+  assert.equal(r.stats.skippedUniq,1);
+});
+
+t("el fallback de ingreso no cambia con el idioma", () => {
+  const r=ctx.histFlattenHistoryLinks({links:[link("CaixaBank",[
+    tx("2026-09-10",-12.50)
+  ])]},[],{},{merchantIn:"Income"});
+  assert.equal(r.out[0].merchant,"Ingreso");
 });
 
 t("tres bancos con el mismo cargo: tres filas, cero descartes", () => {

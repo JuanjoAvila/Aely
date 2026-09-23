@@ -1,6 +1,19 @@
 ## [4.26.17] - 2026-09-23
 ### Importar histórico conserva movimientos iguales de cuentas distintas (feedback 18/9, punto 19a)
 
+La beta 4.26.17.1 se rechazó porque al consultar solo CaixaBank no apareció ninguna fila. La
+telemetría cerró la ambigüedad: el enlace activo compartió **una cuenta**, el proveedor entregó
+dos movimientos para tres meses y ambos se descartaron correctamente porque sus `ext_id` ya
+estaban guardados (`skippedExt=2`, el resto de descartes a cero). 4.26.17.2 explica ahora esos
+recuentos en pantalla y avisa de que, si falta otra cuenta, hay que reconectar el banco y
+seleccionarla; no resucita duplicados para aparentar que llegó histórico.
+
+La revisión posterior encontró además que una misma cuenta podía ofrecer el pendiente sin id y el
+contabilizado con id como dos candidatos. El aplanado agrupa ahora por banco+día+importe con
+signo+comercio y por cuenta, conserva una sola versión por cuenta —prefiriendo BOOK/POST con id— y
+solo da otra ranura remota a una cuenta distinta. Los fallbacks `Ingreso`/`Compra` son estables en
+cualquier idioma para que dos móviles no creen identidades distintas.
+
 `histFlattenHistoryLinks` incorpora la cuenta (`uid`, con `iban` o índice solo como respaldo) a la
 identidad del candidato. Dos cargos con el mismo banco, día, importe y comercio dejan de comerse
 entre sí si proceden de cuentas distintas; una repetición de la misma cuenta conserva la misma
@@ -8,15 +21,14 @@ identidad. El identificador de cuenta solo se usa en memoria y no se guarda ni s
 
 La tabla remota aún deduplica por `user_id + fecha + importe + comercio`. Para que admita las dos
 filas sin retirar su red de seguridad, la primera conserva exactamente el antiguo mediodía local y
-solo una segunda identidad que chocaría recibe una hora sintética estable dentro del mismo día. El
-mismo sello se usa en gastos e ingresos, tanto en el constructor puro como en la pantalla real. Así
-un móvil con estado atrasado sigue protegido ante una reimportación normal.
+solo una segunda cuenta que chocaría recibe una hora sintética estable dentro del mismo día. Así un
+móvil con estado atrasado sigue protegido ante una reimportación normal.
 
 La sincronización diaria (`flattenBankTx`/`importObExpenses`) no cambia en esta tanda: dos cargos
 iguales de cuentas distintas todavía pueden chocar allí y quedan apuntados como punto 19b. Tampoco
 se despliega `bank-sync` ni se afirma que CaixaBank entregue un periodo concreto. Unitarios y E2E
-cubren dos cuentas Caixa, la identidad remota distinta y la terna histórica intacta para una sola
-cuenta. Sin migración, backend, Android ni APK nueva.
+cubren dos cuentas Caixa, pendiente+contabilizado, los recuentos del cero real y la terna histórica
+intacta para una sola cuenta. Sin migración, backend, Android ni APK nueva.
 
 ## [4.26.16] - 2026-09-23
 ### Inversiones entra como pantalla hija y vuelve con gesto de borde (feedback 18/9, punto 18)

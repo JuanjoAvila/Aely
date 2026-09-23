@@ -74,6 +74,7 @@ async function abrirHistorico(page, opts={}) {
   await seedLoggedInDashboard(page, {
     hasBankLink: true,
     settings:{autoPrices:false,theme:"green",expenseBanks},
+    expenses:opts.expenses||[],
     __cloudRows: { bank_links: usedBankLinks },
     /* La misma Edge sirve sync diario e histórico. El doble base queda vacío para que abrir
        Ajustes no importe antes la fila que precisamente queremos comprobar en el histórico. */
@@ -208,6 +209,22 @@ test("CaixaBank a cero se nombra: no se disfraza de histórico ya apuntado", asy
     links:[{aspsp:"CaixaBank",ok:true,accounts:[{ok:true,count:0,transactions:[]}]}]});
   await expect(overlay.locator(".bank-read-warning")).toContainText("CaixaBank: el banco ha devuelto 0 movimientos");
   await expect(overlay).not.toContainText("No hay movimientos nuevos");
+});
+
+test("CaixaBank explica cuántas cuentas compartió cuando todo ya estaba apuntado", async ({page}) => {
+  const expenses=[
+    {id:"cx-old-1",date:"2026-09-02T12:00:00.000Z",amount:37.42,merchant:"Compra uno",category:"otros",source:"ob",ent:"caixabank",extId:"cx-hist-1"},
+    {id:"cx-old-2",date:"2026-09-03T12:00:00.000Z",amount:18.75,merchant:"Compra dos",category:"otros",source:"ob",ent:"caixabank",extId:"cx-hist-2"},
+  ];
+  const overlay=await abrirHistorico(page,{custom:true,expenses,
+    bankLinks:[{aspsp_name:"CaixaBank",status:"active"}],
+    links:[{aspsp:"CaixaBank",ok:true,accounts:[{uid:"cx-unica",ok:true,count:2,transactions:[
+      {date:"2026-09-02",amount:37.42,merchant:"Compra uno",card:true,ext_id:"cx-hist-1"},
+      {date:"2026-09-03",amount:18.75,merchant:"Compra dos",card:true,ext_id:"cx-hist-2"},
+    ]}]}]});
+  await expect(overlay).toContainText("Cuentas compartidas por CaixaBank: 1");
+  await expect(overlay).toContainText("Movimientos entregados: 2, todos ya apuntados");
+  await expect(overlay).toContainText("si aun así no aparece");
 });
 
 test("histórico pendiente omitido por Edge antiguo no se presenta como sin movimientos", async ({page}) => {

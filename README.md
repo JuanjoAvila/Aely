@@ -81,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.17** preparada para beta — Importar histórico conserva por separado los cargos iguales de cuentas distintas del mismo banco sin debilitar la protección normal frente a repeticiones; producción continúa en 4.25.7 y no se ha tocado. Disponibilidad real de canales con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.26.17** preparada para beta — Importar histórico conserva por separado los cargos iguales de cuentas distintas, no duplica pendiente+contabilizado y explica cuándo el banco solo comparte movimientos ya apuntados; producción continúa en 4.25.7 y no se ha tocado. Disponibilidad real de canales con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.
