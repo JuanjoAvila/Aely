@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-23 · **v4.26.17** preparada para beta — la corrección del rechazo 4.26.17.1 conserva cargos de cuentas distintas, colapsa pendiente+contabilizado por cuenta y explica el cero cuando el banco solo comparte movimientos ya apuntados; producción continúa en 4.25.7 y no se ha tocado. Comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-23 · **v4.26.17** preparada para beta — tras el rechazo en vídeo de 4.26.17.2, el histórico que solo devuelve movimientos ya guardados permite abrirlos en Gastos con el periodo completo y ese banco filtrado; conserva además cargos de cuentas distintas y colapsa pendiente+contabilizado por cuenta. Producción continúa en 4.25.7 y no se ha tocado. Comprobar disponibilidad real con `npm run salud`.
 > Anterior: **v4.26.16** — la pantalla completa de Inversiones entra desde la derecha y vuelve con un gesto desde cualquier zona no interactiva.
 > Anterior: **v4.26.15** — «Actualizar inversiones» consulta brókers y precios y conserva los fallos parciales en un único aviso.
 > Anterior: **v4.26.14** — el resumen de Inversiones enseña beneficio en euros y porcentaje sin inventarlo cuando falta el coste.
@@ -209,7 +209,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.17** (corrección 4.26.17.2 preparada para beta; canal real = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.26.17** (corrección posterior al rechazo 4.26.17.2 preparada localmente; canal real = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo/publicada: **4.20.4 / 46**. El lector estable TR/Wallet de 4.26.6 aún necesita una APK nueva. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **46** / 4.20.4 |

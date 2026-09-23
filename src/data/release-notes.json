@@ -11,17 +11,17 @@
       "es": [
         "Al importar el histórico, los cargos iguales que proceden de dos cuentas distintas del mismo banco ya se conservan por separado.",
         "Un cargo pendiente y su versión contabilizada de la misma cuenta siguen siendo un solo movimiento.",
-        "Si el banco solo comparte movimientos que ya estaban apuntados, ahora se muestra cuántas cuentas y movimientos entregó y qué comprobar si falta una cuenta. La actualización diaria no cambia."
+        "Si el banco solo comparte movimientos que ya estaban apuntados, ahora se muestra cuántas cuentas y movimientos entregó y se pueden abrir directamente en Gastos, con el periodo completo y ese banco filtrado. La actualización diaria no cambia."
       ],
       "en": [
         "When importing history, matching charges from two different accounts at the same bank are now kept separately.",
         "A pending charge and its booked version from the same account remain a single transaction.",
-        "If the bank only shares transactions that were already logged, the app now shows how many accounts and transactions it supplied and what to check if an account is missing. Daily updates are unchanged."
+        "If the bank only shares transactions that were already logged, the app now shows how many accounts and transactions it supplied and can open them directly in Spending, with the full period and that bank selected. Daily updates are unchanged."
       ],
       "ca": [
         "En importar l'històric, els càrrecs iguals que venen de dos comptes diferents del mateix banc ara es conserven per separat.",
         "Un càrrec pendent i la seva versió comptabilitzada del mateix compte continuen sent un sol moviment.",
-        "Si el banc només comparteix moviments que ja estaven apuntats, ara es mostra quants comptes i moviments ha lliurat i què cal comprovar si falta un compte. L'actualització diària no canvia."
+        "Si el banc només comparteix moviments que ja estaven apuntats, ara es mostra quants comptes i moviments ha lliurat i es poden obrir directament a Despeses, amb el període complet i aquest banc filtrat. L'actualització diària no canvia."
       ]
     },
     "tandas": [
@@ -35,18 +35,21 @@
         "items": {
           "es": [
             "1. En Ajustes → Importaciones → Importar histórico, deja solo CaixaBank y busca una vez. Si todo estaba apuntado, debe indicar cuántas cuentas y movimientos compartió el banco.",
-            "2. Si esperabas otra cuenta y el aviso muestra solo una, vuelve a conectar CaixaBank seleccionando las dos cuentas y repite la búsqueda una sola vez. Si sigue mostrando una, indícalo en el comentario.",
-            "3. Si ambas cuentas tienen un cargo con la misma fecha, importe y concepto, deben aparecer dos filas y guardarse por separado. No marques este caso como probado si el banco sigue compartiendo una sola cuenta."
+            "2. Toca «Verlos en Gastos»: debe abrir el periodo completo, filtrado a CaixaBank, y enseñar también los movimientos de meses anteriores.",
+            "3. Si esperabas otra cuenta y el aviso muestra solo una, vuelve a conectar CaixaBank seleccionando las dos cuentas y repite la búsqueda una sola vez. Si sigue mostrando una, indícalo en el comentario.",
+            "4. Si ambas cuentas tienen un cargo con la misma fecha, importe y concepto, deben aparecer dos filas y guardarse por separado. No marques este caso como probado si el banco sigue compartiendo una sola cuenta."
           ],
           "en": [
             "1. In Settings → Imports → Import history, leave only CaixaBank selected and search once. If everything was already logged, it should show how many accounts and transactions the bank shared.",
-            "2. If you expected another account and the message shows only one, reconnect CaixaBank, select both accounts, and search once more. If it still shows one, mention it in the comment.",
-            "3. If both accounts contain a charge with the same date, amount and description, two rows should appear and be saved separately. Do not mark this case as proven while the bank still shares only one account."
+            "2. Tap “View them in Spending”: it should open the full period filtered to CaixaBank and also show transactions from previous months.",
+            "3. If you expected another account and the message shows only one, reconnect CaixaBank, select both accounts, and search once more. If it still shows one, mention it in the comment.",
+            "4. If both accounts contain a charge with the same date, amount and description, two rows should appear and be saved separately. Do not mark this case as proven while the bank still shares only one account."
           ],
           "ca": [
             "1. A Ajustos → Importacions → Importar històric, deixa només CaixaBank i cerca una vegada. Si tot ja estava apuntat, ha d'indicar quants comptes i moviments ha compartit el banc.",
-            "2. Si esperaves un altre compte i l'avís només en mostra un, torna a connectar CaixaBank, selecciona els dos comptes i repeteix la cerca una sola vegada. Si encara en mostra un, indica-ho al comentari.",
-            "3. Si tots dos comptes tenen un càrrec amb la mateixa data, import i concepte, han d'aparèixer dues files i desar-se per separat. No marquis aquest cas com a provat mentre el banc continuï compartint un sol compte."
+            "2. Toca «Veure'ls a Despeses»: ha d'obrir el període complet, filtrat a CaixaBank, i mostrar també els moviments de mesos anteriors.",
+            "3. Si esperaves un altre compte i l'avís només en mostra un, torna a connectar CaixaBank, selecciona els dos comptes i repeteix la cerca una sola vegada. Si encara en mostra un, indica-ho al comentari.",
+            "4. Si tots dos comptes tenen un càrrec amb la mateixa data, import i concepte, han d'aparèixer dues files i desar-se per separat. No marquis aquest cas com a provat mentre el banc continuï compartint un sol compte."
           ]
         }
       }

@@ -8,6 +8,15 @@ estaban guardados (`skippedExt=2`, el resto de descartes a cero). 4.26.17.2 expl
 recuentos en pantalla y avisa de que, si falta otra cuenta, hay que reconectar el banco y
 seleccionarla; no resucita duplicados para aparentar que llegó histórico.
 
+El vídeo con audio del 23/9 rechazó también 4.26.17.2: en la app nativa de CaixaBank se veían dos
+movimientos del 6 de agosto, mientras Aely terminaba en una pantalla sin filas. La lectura mínima
+de nube confirmó que ambos ya estaban guardados con `source=ob:caixabank` y que CaixaBank estaba
+configurado como banco diario. El fallo visible era de navegación: Gastos abre en «Este mes»
+(septiembre), y el importador retiraba los `ext_id` ya existentes antes del preview sin ofrecer
+una ruta para encontrarlos. Cuando todos los movimientos entregados ya existen, aparece ahora
+«Verlos en Gastos»: cierra Ajustes, abre el periodo completo y filtra por ese banco. El E2E
+reproduce el movimiento de agosto y comprueba que una fila de otro banco no queda visible.
+
 La revisión posterior encontró además que una misma cuenta podía ofrecer el pendiente sin id y el
 contabilizado con id como dos candidatos. El aplanado agrupa ahora por banco+día+importe con
 signo+comercio y por cuenta, conserva una sola versión por cuenta —prefiriendo BOOK/POST con id— y

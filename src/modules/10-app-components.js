@@ -264,7 +264,7 @@ function SyncReportSheet({items,onClose}){
     )
   );
 }
-function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}){
+function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks, goGastos}){
   const expEnts=expenseBankEnts(state);
   const bankEnts=((linkEnts&&linkEnts.length)?linkEnts:expEnts).filter(function(e,i,a){ return e&&a.indexOf(e)===i; });
   /* Arranca SOLO con los bancos marcados como gasto diario. Antes arrancaba con TODOS los
@@ -351,7 +351,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
         flat.stats.skippedExt===flat.stats.bankReported&&!flat.stats.skippedAllow&&!flat.stats.skippedBad&&!flat.stats.skippedUniq){
         const ent=allowList[0], links=(res.links||[]).filter(function(l){ return entFromAspsp(l&&l.aspsp)===ent; });
         const accountN=Math.max(1,links.reduce(function(n,l){ return n+((l&&l.accounts)||[]).length; },0));
-        info={bank:entOf(ent).label,accounts:accountN,n:flat.stats.bankReported};
+        info={bank:entOf(ent).label,accounts:accountN,n:flat.stats.bankReported,ent:ent};
       }
       setEmptyInfo(info);
       // Truncado del servidor o del banco: avisamos en preview (agujero F).
@@ -400,6 +400,18 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
     }).catch(function(){ setReadFailed(true); setCands([]); }).finally(function(){ setLoading(false); });
   };
   const toggle=function(i){ setSel(function(p){ const n=Object.assign({},p); n[i]=!n[i]; return n; }); };
+  const seeExisting=function(){
+    if(!emptyInfo||!emptyInfo.ent||!goGastos) return;
+    /* El importador ya sabe que esas filas existen, pero pueden quedar fuera del mes visible.
+       Llevar a Gastos sin abrir el periodo completo repite el rechazo real de Caixa del 23/9:
+       dos cargos de agosto estaban guardados y la pantalla de septiembre parecía vacía. */
+    try{ window.__mcExpBank=emptyInfo.ent; }catch(e){}
+    onClose();
+    goGastos();
+    setTimeout(function(){
+      try{ window.dispatchEvent(new CustomEvent("mc-open-expenses-bank",{detail:{ent:emptyInfo.ent}})); }catch(e){}
+    },0);
+  };
   const setDestI=function(i,d){ setDest(function(p){ const n=Object.assign({},p); n[i]=d; return n; }); setSel(function(p){ const n=Object.assign({},p); n[i]=true; return n; }); };
   const toggleBankFilter=function(ent){
     setBankFilter(function(p){ const i=p.indexOf(ent); if(i>=0) return p.filter(function(e){ return e!==ent; }); return p.concat([ent]); });
@@ -625,7 +637,9 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
       React.createElement("button",{style:{width:"100%",padding:"12px",borderRadius:12,border:"1px solid var(--line)",background:"var(--surface)",color:"var(--text)",fontWeight:800,fontSize:14,cursor:"pointer"},disabled:loading,onClick:search}, loading?t("bp_hist_searching"):t("bp_hist_search")),
       !loading && readWarnings.map(function(w,i){ return React.createElement("div",{key:i,role:"status",className:"hint bank-read-warning",style:{marginTop:12}}, "⚠ "+tf(w.key,{bank:w.bank})); }),
       !loading && readFailed && React.createElement("div",{role:"status",className:"hint bank-read-warning",style:{marginTop:12}},t("bank_read_retry")),
-      cands!==null && cands.length===0 && !loading && !readFailed && !readWarnings.length && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,textAlign:"center",padding:"20px 0"}}, emptyInfo?tf("bp_hist_all_logged",emptyInfo):t("bp_hist_none")),
+      cands!==null && cands.length===0 && !loading && !readFailed && !readWarnings.length && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,textAlign:"center",padding:"20px 0"}},
+        React.createElement("div",null,emptyInfo?tf("bp_hist_all_logged",emptyInfo):t("bp_hist_none")),
+        emptyInfo && goGastos && React.createElement("button",{type:"button",className:"btn btn-primary",style:{marginTop:14},onClick:seeExisting},t("bp_hist_view_logged"))),
       cands!==null && cands.length>0 && React.createElement("div",{style:{marginTop:14}},
         React.createElement("div",{style:{fontSize:12,color:"var(--muted-2)",marginBottom:8}}, tf("bp_hist_found",{n:visible.length})),
         truncWarn && React.createElement("div",{style:{fontSize:12,lineHeight:1.45,color:"var(--warn, #E6A23C)",background:"rgba(230,162,60,.12)",borderRadius:10,padding:"8px 10px",marginBottom:8}}, t("bp_hist_trunc")),
@@ -2864,7 +2878,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     // Allow-list = bancos OB conectados (misma regla que antes desde Mis bancos).
     histOpen && ReactDOM.createPortal(React.createElement(BankHistoryImport,{
       state:state,set:set,showToast:showToast,onClose:function(){ setHistOpen(false); },
-      bankLinks:bankLinks,
+      bankLinks:bankLinks,goGastos:goGastos,
       linkEnts:(function(){
         const ents=[];
         (bankLinks||[]).forEach(function(l){

@@ -5468,7 +5468,7 @@ Object.assign(LANG.es,{
   bp_expbanks:"También apuntar gastos de tarjeta de…", bp_expbanks_hint:"Marca bancos EXTRA cuyas compras cuentan en el presupuesto del día a día. La cuenta principal de gasto diario (rol en Patrimonio) siempre cuenta y no se puede desmarcar aquí. Quitar un banco no borra su historial.", bp_expbanks_none:"Conecta un banco Open Banking para poder importar sus compras con tarjeta a Gastos.",
   bp_expbanks_main:"principal (obligatoria)", bp_expbanks_locked:"Esa es tu cuenta de gasto diario: no se desmarca aquí. Cámbiala en Cartera → editar cuenta. Prueba a añadir o quitar un banco EXTRA.",
   bp_hist_pickbank:"Elige qué banco consultar. De entrada están marcados solo los bancos de gasto diario.",
-  bp_hist_btn:"Importar histórico", bp_hist_title:"Importar histórico", bp_hist_sub:"Trae movimientos de los últimos meses de: {banks}. Por defecto van a Gastos (o Ingresos). Un recibo fijo solo se crea si lo marcas tú, y te pedirá confirmación.", bp_hist_nodaily:"Conecta un banco Open Banking (o márcalo como gasto diario en Cartera) para traer el histórico. Trade Republic también vale si lo tienes conectado.", bp_hist_m:"{n} mes(es)", bp_hist_search:"Buscar movimientos", bp_hist_searching:"Buscando…", bp_hist_none:"No hay movimientos nuevos en ese periodo (o ya están todos apuntados). Recuerda: el banco solo deja ver ~90 días.", bp_hist_all_logged:"Cuentas compartidas por {bank}: {accounts}. Movimientos entregados: {n}, todos ya apuntados. Si falta otra cuenta, vuelve a conectar el banco y selecciónala; si aun así no aparece, el banco no la está compartiendo con Aely.", bp_hist_found:"{n} movimientos · marca y elige destino", bp_hist_notcard:"no es tarjeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importados", bp_hist_as_gasto:"🛒 Gasto", bp_hist_as_recibo:"🧾 Recibo", bp_hist_as_ingreso:"💰 Ingreso", bp_hist_recibo:"Recibo", bp_hist_done_g:"✓ {n} en Gastos", bp_hist_done_i:"✓ {n} ingresos", bp_hist_done_r:"✓ {n} recibos", bp_hist_dup:"ya detectado como recibo mensual · se cuenta una sola vez",
+  bp_hist_btn:"Importar histórico", bp_hist_title:"Importar histórico", bp_hist_sub:"Trae movimientos de los últimos meses de: {banks}. Por defecto van a Gastos (o Ingresos). Un recibo fijo solo se crea si lo marcas tú, y te pedirá confirmación.", bp_hist_nodaily:"Conecta un banco Open Banking (o márcalo como gasto diario en Cartera) para traer el histórico. Trade Republic también vale si lo tienes conectado.", bp_hist_m:"{n} mes(es)", bp_hist_search:"Buscar movimientos", bp_hist_searching:"Buscando…", bp_hist_none:"No hay movimientos nuevos en ese periodo (o ya están todos apuntados). Recuerda: el banco solo deja ver ~90 días.", bp_hist_all_logged:"Cuentas compartidas por {bank}: {accounts}. Movimientos entregados: {n}, todos ya apuntados. Si falta otra cuenta, vuelve a conectar el banco y selecciónala; si aun así no aparece, el banco no la está compartiendo con Aely.", bp_hist_view_logged:"Verlos en Gastos", bp_hist_found:"{n} movimientos · marca y elige destino", bp_hist_notcard:"no es tarjeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importados", bp_hist_as_gasto:"🛒 Gasto", bp_hist_as_recibo:"🧾 Recibo", bp_hist_as_ingreso:"💰 Ingreso", bp_hist_recibo:"Recibo", bp_hist_done_g:"✓ {n} en Gastos", bp_hist_done_i:"✓ {n} ingresos", bp_hist_done_r:"✓ {n} recibos", bp_hist_dup:"ya detectado como recibo mensual · se cuenta una sola vez",
   bp_hist_nuevos:"nuevos", bp_hist_repes:"repetidos", bp_hist_probe:"Sonda: banco {bank} · llegan {llegan} · nuevos {nuevos} · coinciden día+€ {ya}", bp_hist_dupexist:"ya lo tienes apuntado (mismo día e importe)", bp_hist_dupmaybe:"puede que ya lo tengas (mismo importe, fecha cercana)",
   bp_hist_dupmodel:"ya modelado como fijo/deuda/meta",
   bp_hist_suggest_recibo:"¿Es un recibo mensual? Márcalo como Recibo si quieres crear el fijo.",
@@ -16569,7 +16569,7 @@ function SyncReportSheet({items,onClose}){
     )
   );
 }
-function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}){
+function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks, goGastos}){
   const expEnts=expenseBankEnts(state);
   const bankEnts=((linkEnts&&linkEnts.length)?linkEnts:expEnts).filter(function(e,i,a){ return e&&a.indexOf(e)===i; });
   /* Arranca SOLO con los bancos marcados como gasto diario. Antes arrancaba con TODOS los
@@ -16656,7 +16656,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
         flat.stats.skippedExt===flat.stats.bankReported&&!flat.stats.skippedAllow&&!flat.stats.skippedBad&&!flat.stats.skippedUniq){
         const ent=allowList[0], links=(res.links||[]).filter(function(l){ return entFromAspsp(l&&l.aspsp)===ent; });
         const accountN=Math.max(1,links.reduce(function(n,l){ return n+((l&&l.accounts)||[]).length; },0));
-        info={bank:entOf(ent).label,accounts:accountN,n:flat.stats.bankReported};
+        info={bank:entOf(ent).label,accounts:accountN,n:flat.stats.bankReported,ent:ent};
       }
       setEmptyInfo(info);
       // Truncado del servidor o del banco: avisamos en preview (agujero F).
@@ -16705,6 +16705,18 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
     }).catch(function(){ setReadFailed(true); setCands([]); }).finally(function(){ setLoading(false); });
   };
   const toggle=function(i){ setSel(function(p){ const n=Object.assign({},p); n[i]=!n[i]; return n; }); };
+  const seeExisting=function(){
+    if(!emptyInfo||!emptyInfo.ent||!goGastos) return;
+    /* El importador ya sabe que esas filas existen, pero pueden quedar fuera del mes visible.
+       Llevar a Gastos sin abrir el periodo completo repite el rechazo real de Caixa del 23/9:
+       dos cargos de agosto estaban guardados y la pantalla de septiembre parecía vacía. */
+    try{ window.__mcExpBank=emptyInfo.ent; }catch(e){}
+    onClose();
+    goGastos();
+    setTimeout(function(){
+      try{ window.dispatchEvent(new CustomEvent("mc-open-expenses-bank",{detail:{ent:emptyInfo.ent}})); }catch(e){}
+    },0);
+  };
   const setDestI=function(i,d){ setDest(function(p){ const n=Object.assign({},p); n[i]=d; return n; }); setSel(function(p){ const n=Object.assign({},p); n[i]=true; return n; }); };
   const toggleBankFilter=function(ent){
     setBankFilter(function(p){ const i=p.indexOf(ent); if(i>=0) return p.filter(function(e){ return e!==ent; }); return p.concat([ent]); });
@@ -16930,7 +16942,9 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks}
       React.createElement("button",{style:{width:"100%",padding:"12px",borderRadius:12,border:"1px solid var(--line)",background:"var(--surface)",color:"var(--text)",fontWeight:800,fontSize:14,cursor:"pointer"},disabled:loading,onClick:search}, loading?t("bp_hist_searching"):t("bp_hist_search")),
       !loading && readWarnings.map(function(w,i){ return React.createElement("div",{key:i,role:"status",className:"hint bank-read-warning",style:{marginTop:12}}, "⚠ "+tf(w.key,{bank:w.bank})); }),
       !loading && readFailed && React.createElement("div",{role:"status",className:"hint bank-read-warning",style:{marginTop:12}},t("bank_read_retry")),
-      cands!==null && cands.length===0 && !loading && !readFailed && !readWarnings.length && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,textAlign:"center",padding:"20px 0"}}, emptyInfo?tf("bp_hist_all_logged",emptyInfo):t("bp_hist_none")),
+      cands!==null && cands.length===0 && !loading && !readFailed && !readWarnings.length && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,textAlign:"center",padding:"20px 0"}},
+        React.createElement("div",null,emptyInfo?tf("bp_hist_all_logged",emptyInfo):t("bp_hist_none")),
+        emptyInfo && goGastos && React.createElement("button",{type:"button",className:"btn btn-primary",style:{marginTop:14},onClick:seeExisting},t("bp_hist_view_logged"))),
       cands!==null && cands.length>0 && React.createElement("div",{style:{marginTop:14}},
         React.createElement("div",{style:{fontSize:12,color:"var(--muted-2)",marginBottom:8}}, tf("bp_hist_found",{n:visible.length})),
         truncWarn && React.createElement("div",{style:{fontSize:12,lineHeight:1.45,color:"var(--warn, #E6A23C)",background:"rgba(230,162,60,.12)",borderRadius:10,padding:"8px 10px",marginBottom:8}}, t("bp_hist_trunc")),
@@ -19169,7 +19183,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     // Allow-list = bancos OB conectados (misma regla que antes desde Mis bancos).
     histOpen && ReactDOM.createPortal(React.createElement(BankHistoryImport,{
       state:state,set:set,showToast:showToast,onClose:function(){ setHistOpen(false); },
-      bankLinks:bankLinks,
+      bankLinks:bankLinks,goGastos:goGastos,
       linkEnts:(function(){
         const ents=[];
         (bankLinks||[]).forEach(function(l){
