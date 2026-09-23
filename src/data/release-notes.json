@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.24",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Desliza entre pantallas también desde el final",
+      "en": "Swipe between screens even from the bottom",
+      "ca": "Llisca entre pantalles també des del final"
+    },
+    "items": {
+      "es": [
+        "Al llegar al final de una pantalla, un gesto horizontal claro vuelve a cambiar de pestaña sin obligarte a subir antes.",
+        "El rebote vertical de Android sigue funcionando y las barras laterales dejan de verse, también en Ajustes."
+      ],
+      "en": [
+        "At the bottom of a screen, a clear horizontal gesture switches tabs again without making you scroll up first.",
+        "Android's vertical bounce still works, and side scrollbars are no longer visible, including in Settings."
+      ],
+      "ca": [
+        "En arribar al final d'una pantalla, un gest horitzontal clar torna a canviar de pestanya sense obligar-te a pujar abans.",
+        "El rebot vertical d'Android continua funcionant i les barres laterals deixen de veure's, també a Ajustos."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "scroll-fondo-sin-barra",
+        "t": {
+          "es": "Navegación desde el fondo sin barras",
+          "en": "Bottom navigation without scrollbars",
+          "ca": "Navegació des del final sense barres"
+        },
+        "items": {
+          "es": [
+            "1. En una pantalla larga, baja hasta el final y desliza claramente en horizontal: debe cambiar de pantalla sin tener que subir antes.",
+            "2. Vuelve al final y arrastra en vertical o diagonal: debe aparecer el rebote normal sin cambiar de pantalla por error.",
+            "3. Recorre una pantalla larga y Ajustes: todo debe seguir desplazándose, pero no debe verse la barra lateral derecha."
+          ],
+          "en": [
+            "1. On a long screen, scroll to the bottom and swipe clearly sideways: it should switch screens without making you scroll up first.",
+            "2. Return to the bottom and drag vertically or diagonally: the normal bounce should appear without switching screens by mistake.",
+            "3. Scroll through a long screen and Settings: both should still scroll, but the right-hand scrollbar should not be visible."
+          ],
+          "ca": [
+            "1. En una pantalla llarga, baixa fins al final i llisca clarament en horitzontal: ha de canviar de pantalla sense haver de pujar abans.",
+            "2. Torna al final i arrossega en vertical o diagonal: ha d'aparèixer el rebot normal sense canviar de pantalla per error.",
+            "3. Recorre una pantalla llarga i Ajustos: tot ha de continuar desplaçant-se, però no s'ha de veure la barra lateral dreta."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.23",
     "d": "23 sep 2026",
     "t": {
@@ -268,27 +318,7 @@
         "Les icones de cadenat desapareixen dels comptes, la reconnexió, l'empremta i la privacitat. Les proteccions continuen intactes: un saldo que porta el banc encara no es pot editar i l'accés protegit funciona igual."
       ]
     },
-    "tandas": [
-      {
-        "id": "sin-candados",
-        "t": {
-          "es": "Sin candados visuales",
-          "en": "No visible lock icons",
-          "ca": "Sense cadenats visuals"
-        },
-        "items": {
-          "es": [
-            "1. Recorre Ajustes → Tu cuenta y Privacidad, una cuenta conectada en Cartera y el aviso de reconectar un banco: no debe quedar ningún candado, y el saldo que trae el banco debe seguir sin poder editarse."
-          ],
-          "en": [
-            "1. Check Settings → Your account and Privacy, a connected account in Portfolio and the bank reconnection notice: no lock icon should remain, and a balance supplied by the bank must still be read-only."
-          ],
-          "ca": [
-            "1. Recorre Ajustos → El teu compte i Privacitat, un compte connectat a Cartera i l'avís de reconnectar un banc: no hi ha de quedar cap cadenat, i el saldo que porta el banc ha de continuar sense poder-se editar."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.12",
@@ -336,30 +366,7 @@
         "En lliscar des d'Inici per obrir Ajustos, el panell comença a moure's sense fer cap salt i segueix el dit."
       ]
     },
-    "tandas": [
-      {
-        "id": "ajustes-sin-salto",
-        "t": {
-          "es": "Ajustes sin salto",
-          "en": "Settings without a jump",
-          "ca": "Ajustos sense salt"
-        },
-        "items": {
-          "es": [
-            "1. En Inicio, desliza muy despacio hacia la derecha: al empezar a abrirse, Ajustes debe avanzar desde el borde sin pegar un salto.",
-            "2. Suelta el dedo a mitad de camino y vuelve a intentarlo más rápido: el panel debe completar o deshacer el gesto con suavidad."
-          ],
-          "en": [
-            "1. On Home, swipe very slowly to the right: when Settings starts opening, it should move from the edge without jumping.",
-            "2. Let go halfway and try again faster: the panel should complete or cancel the gesture smoothly."
-          ],
-          "ca": [
-            "1. A Inici, llisca molt a poc a poc cap a la dreta: quan Ajustos comenci a obrir-se, ha d'avançar des de la vora sense saltar.",
-            "2. Deixa anar el dit a mig camí i torna-ho a provar més ràpid: el panell ha de completar o desfer el gest amb suavitat."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.10",
@@ -642,6 +649,54 @@
         "Apuntar i obrir una despesa comparteixen ara el mateix ordre, teclat i categories; la fitxa mostra clarament banc, efectiu i data.",
         "Els moviments portats pel banc expliquen d'on han sortit i mantenen bloquejats l'import i el compte.",
         "En esborrar una despesa hi ha cinc segons per desfer-ho i recuperar-la exactament com estava."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.25.8",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Ajustes se mueve contigo y deja una interfaz más limpia",
+      "en": "Settings follows your gesture with a cleaner interface",
+      "ca": "Ajustos acompanya el gest amb una interfície més neta"
+    },
+    "items": {
+      "es": [
+        "Ajustes ya no da un salto al empezar a abrirlo desde el borde: aparece desde el mismo punto en que el gesto queda claro.",
+        "Los candados dibujados desaparecen de cuentas, privacidad y logros; las protecciones de acceso y de datos siguen funcionando igual."
+      ],
+      "en": [
+        "Settings no longer jumps when opening it from the edge: it starts moving from the point where the gesture becomes clear.",
+        "Drawn padlocks have been removed from accounts, privacy and achievements; access and data protections still work as before."
+      ],
+      "ca": [
+        "Ajustos ja no fa un salt en començar a obrir-lo des de la vora: es mou des del punt on el gest queda clar.",
+        "Els cadenats dibuixats desapareixen de comptes, privacitat i assoliments; les proteccions d'accés i de dades continuen funcionant igual."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.25.7",
+    "d": "22 sep 2026",
+    "t": {
+      "es": "Nuevos colores para hacer la app más tuya",
+      "en": "New colours to make the app your own",
+      "ca": "Nous colors per fer l'app més teva"
+    },
+    "items": {
+      "es": [
+        "Cyberpunk trae una apariencia oscura con detalles de neón rosa y cian. Los importes positivos y negativos conservan colores fáciles de distinguir.",
+        "Otoño y Primavera se suman a las temáticas de Ajustes → Apariencia, con colores y detalles propios. Puedes combinarlas con tu color de app favorito."
+      ],
+      "en": [
+        "Cyberpunk brings a dark look with pink and cyan neon accents. Positive and negative amounts keep their easy-to-tell-apart colours.",
+        "Autumn and Spring join the themes in Settings → Appearance, each with its own colours and details. You can pair them with your favourite app colour."
+      ],
+      "ca": [
+        "Cyberpunk porta una aparença fosca amb detalls de neó rosa i cian. Els imports positius i negatius conserven colors fàcils de distingir.",
+        "Tardor i Primavera se sumen a les temàtiques d'Ajustos → Aparença, amb colors i detalls propis. Les pots combinar amb el teu color preferit per a l'app."
       ]
     },
     "tandas": []

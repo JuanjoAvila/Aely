@@ -81,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.23** preparada para beta — «Pregúntame» responde primero en una frase, deja el paso a paso bajo petición y lleva a la pantalla adecuada; la ayuda remota sigue siendo opcional y no recibe datos financieros. Producción continúa en 4.25.7 y no se ha tocado. Disponibilidad real de canales con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.26.24** preparada para beta — al final de una pantalla vuelve a funcionar el gesto horizontal entre pestañas, el rebote vertical se conserva y las barras laterales dejan de verse también en Ajustes. Producción tiene preparada 4.25.8 con las tandas aprobadas; disponibilidad real de canales con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.

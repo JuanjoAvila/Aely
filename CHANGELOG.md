@@ -1,3 +1,16 @@
+## [4.26.24] - 2026-09-23
+### El carrusel vuelve a responder en el fondo sin romper la ola nativa
+
+La guarda del borde inferior rechazaba cualquier eje horizontal para proteger el rebote de Android.
+Eso evitaba una regresión anterior, pero también obligaba a subir contenido antes de poder cambiar
+de pestaña. En el fondo se conserva la prioridad del scroll para gestos verticales y diagonales, y
+solo se entrega al carrusel un horizontal deliberado de más de 60 px con deriva vertical mínima.
+
+Las superficies mantienen su `overflow` y el desplazamiento táctil, pero ocultan el indicador con
+las propiedades nativas de Firefox, motores antiguos y WebKit. El E2E baja hasta el fondo real,
+comprueba tanto el cambio de pestaña como las diagonales de rebote y abre Ajustes para verificar que
+la barra lateral no se dibuja. Sin cambios de datos, backend, Android ni APK nueva.
+
 ## [4.26.23] - 2026-09-23
 ### «Pregúntame» prioriza una respuesta breve y una acción directa (feedback 18/9)
 
@@ -373,6 +386,24 @@ El borrado deja ahora una ventana real de cinco segundos para deshacer. La retir
 lápida se escriben juntas para que un pull no resucite la fila por detrás; al deshacer se quita solo
 esa lápida, se repone el objeto en su posición y, si ya salió el delete remoto, se encadena después
 un upsert con el mismo id. Así no hay ni duplicado nuevo ni una carrera delete/add en Supabase.
+
+## [4.25.8] - 2026-09-23
+### Ajustes sin salto y protecciones sin candados visuales (aprobados en beta)
+
+Se publican sobre producción únicamente las dos tandas aprobadas. El gesto lateral de Ajustes
+descuenta el tramo reservado para decidir el eje antes de calcular el progreso visual, sin cambiar
+el umbral de apertura al soltar. También se retiran los candados dibujados sin quitar protecciones:
+los saldos bancarios siguen sin poder editarse, la biometría conserva su interruptor y las cuentas
+protegidas mantienen sus reglas. No incorpora el rediseño 4.26 ni las tandas de Inversiones.
+
+## [4.25.7] - 2026-09-22
+### Cyberpunk, Otoño y Primavera aprobados como tanda independiente
+
+Se porta únicamente la tanda de apariencia probada en beta 4.26.10.1 sobre la base de producción
+4.25.6. Cyberpunk añade una paleta propia con acentos neón, conservando verde para importes
+positivos y rojo para negativos; Otoño y Primavera amplían las temáticas estacionales. El selector,
+los colores, la ambientación y el informe compartido quedan alineados. No se incorpora ningún
+cambio de las demás tandas 4.26 ni se modifica el envoltorio Android.
 
 ## [4.25.6] - 2026-09-16
 ### El backlog de beta deja de resucitar después de promocionar

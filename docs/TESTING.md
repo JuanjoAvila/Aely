@@ -38,7 +38,10 @@ vuelvan a concatenarse en un toast gigante. Los e2e de barra fuerzan además un 
 el host de scroll activo: la ola debe conservar sus clases después del render, no solo antes.
 Desde 4.25.5 recorren también el fondo incremental real de Gastos, comprueban que la caja oculta
 no quede por debajo del viewport y reproducen la deriva lateral del pulgar que antes convertía el
-segundo tirón en un cambio de pestaña y hacía reaparecer la barra.
+segundo tirón en un cambio de pestaña y hacía reaparecer la barra. Desde 4.26.24 distinguen esa
+diagonal de un gesto horizontal deliberado: el primero conserva la ola y el segundo cambia de
+pestaña sin obligar a subir antes. También verifican que Gastos y Ajustes conserven `overflow`
+desplazable sin dibujar la barra lateral.
 `tests/tr-open-banking.test.mjs` protege contra el antiguo corte global de 150 movimientos.
 
 ## Tiempos y preparación de Novedades
