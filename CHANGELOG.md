@@ -1,3 +1,17 @@
+## [4.26.12] - 2026-09-23
+### Novedades refleja el bundle que ejecutaba el móvil, no solo el diff de producción
+
+Pages y el OTA estable siguen sirviendo 4.25.7, cuyo diff sobre `d65986e8` solo contiene los temas
+y sus notas. El móvil del dueño conservó `_mcChannel=beta` después de publicar producción, porque
+el canal se guarda localmente y una promoción no lo desactiva. Por eso ejecutaba 4.26.10.1 con las
+funciones acumuladas de 4.26.0–4.26.9, aunque la entrada más reciente de Novedades solo enumeraba
+la apariencia. La 4.26.12 reúne en es/en/ca las fichas renovadas, Deshacer, Recibos, Pregúntame,
+Plan e Inversiones que el bundle beta sí contiene. No cambia lógica, backend, Android ni APK, y no
+atribuye esas funciones a la producción estable.
+
+El Action `35784943994` terminó correctamente y publicó 4.26.11.1 en la release `beta`; esta tanda
+de texto parte de ese commit y sigue sin tocar producción.
+
 ## [4.26.11] - 2026-09-22
 ### Ajustes sigue al dedo desde el primer fotograma (feedback 18/9, punto 22)
 

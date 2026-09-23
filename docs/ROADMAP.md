@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-22 · **v4.26.11** preparada para beta — Ajustes abre sin salto; los temas Cyberpunk, Otoño y Primavera ya se aprobaron y publicaron en producción 4.25.7. Comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-23 · **v4.26.12** preparada para beta — Novedades enumera las funciones que ya ejecutaba el móvil en beta; producción continúa en 4.25.7 y no se ha tocado. Comprobar disponibilidad real con `npm run salud`.
+> Anterior: **v4.26.11** — Ajustes abre sin salto; Action `35784943994` publicó el bundle beta 4.26.11.1.
 > Anterior: **v4.26.10** — tema Cyberpunk y temáticas Otoño y Primavera.
 > Anterior: **v4.26.9** — Plan recupera su vista compacta y las fichas de Gastos y Apuntar comparten gestos más suaves.
 > Anterior: **v4.26.8** — Plan v4.1 usa importes reales, saldos honestos y recibos accesibles.
@@ -203,7 +204,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.11** (preparada para beta; canal real = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.26.12** (preparada para beta; canal real = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo/publicada: **4.20.4 / 46**. El lector estable TR/Wallet de 4.26.6 aún necesita una APK nueva. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **46** / 4.20.4 |

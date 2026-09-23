@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.26.12",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Todo lo que ya está disponible, bien contado",
+      "en": "Everything already available, clearly explained",
+      "ca": "Tot el que ja està disponible, ben explicat"
+    },
+    "items": {
+      "es": [
+        "Novedades reúne ahora las funciones que ya estaban visibles: fichas renovadas de gastos y cuentas, deshacer al borrar, la nueva gestión de recibos y Pregúntame.",
+        "Plan e Inversiones conservan sus pantallas renovadas y sus cifras honestas; Cyberpunk, Otoño y Primavera siguen disponibles en Apariencia."
+      ],
+      "en": [
+        "What's new now brings together the features that were already visible: redesigned expense and account details, undo after deleting, the new bill manager and Ask me.",
+        "Plan and Investments keep their redesigned screens and honest figures; Cyberpunk, Autumn and Spring remain available under Look & feel."
+      ],
+      "ca": [
+        "Novetats reuneix ara les funcions que ja eren visibles: fitxes renovades de despeses i comptes, desfer després d'esborrar, la nova gestió de rebuts i Pregunta'm.",
+        "Pla i Inversions conserven les pantalles renovades i les xifres honestes; Cyberpunk, Tardor i Primavera continuen disponibles a Aparença."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.11",
     "d": "22 sep 2026",
     "t": {
@@ -47,22 +71,28 @@
     "v": "4.26.10",
     "d": "22 sep 2026",
     "t": {
-      "es": "Nuevos colores: Cyberpunk, Otoño y Primavera",
-      "en": "New looks: Cyberpunk, Autumn and Spring",
-      "ca": "Colors nous: Cyberpunk, Tardor i Primavera"
+      "es": "Nuevos colores y pantallas renovadas",
+      "en": "New looks and redesigned screens",
+      "ca": "Colors nous i pantalles renovades"
     },
     "items": {
       "es": [
         "Nuevo tema de color Cyberpunk, con neón rosa y cian sobre fondo oscuro; lo que gastas y lo que entra se sigue leyendo en rojo y verde.",
-        "Dos temáticas nuevas, Otoño y Primavera, en Ajustes → Apariencia."
+        "Dos temáticas nuevas, Otoño y Primavera, en Ajustes → Apariencia.",
+        "Esta versión también reúne las fichas renovadas de gastos y cuentas, la nueva gestión de recibos, Pregúntame y las pantallas renovadas de Plan e Inversiones.",
+        "Puedes deshacer un borrado durante cinco segundos; Plan separa lo pagado de lo pendiente, e Inversiones no calcula ganancias si faltan datos."
       ],
       "en": [
         "New Cyberpunk colour theme, with pink and cyan neon on a dark background; spending and income still read in red and green.",
-        "Two new themes, Autumn and Spring, in Settings → Look & feel."
+        "Two new themes, Autumn and Spring, in Settings → Look & feel.",
+        "This version also brings together redesigned expense and account details, the new bill manager, Ask me, and refreshed Plan and Investments screens.",
+        "You can undo a deletion for five seconds; Plan separates paid and pending bills, and Investments does not calculate gains when data is missing."
       ],
       "ca": [
         "Nou tema de color Cyberpunk, amb neó rosa i cian sobre fons fosc; el que gastes i el que entra es continua llegint en vermell i verd.",
-        "Dues temàtiques noves, Tardor i Primavera, a Ajustos → Aparença."
+        "Dues temàtiques noves, Tardor i Primavera, a Ajustos → Aparença.",
+        "Aquesta versió també reuneix les fitxes renovades de despeses i comptes, la nova gestió de rebuts, Pregunta'm i les pantalles renovades de Pla i Inversions.",
+        "Pots desfer una eliminació durant cinc segons; Pla separa el que ja s'ha pagat del que queda pendent, i Inversions no calcula guanys si falten dades."
       ]
     },
     "tandas": []
