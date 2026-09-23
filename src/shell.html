@@ -1112,9 +1112,14 @@
     /* Por defecto la hoja ENTERA scrollea (filtro de Gastos, Más…, fijos…). */
     overflow:auto;-webkit-overflow-scrolling:touch;
     padding:12px 18px calc(36px + var(--safe-bottom));
-    animation:sheetup .36s cubic-bezier(.22,1,.36,1);
-    transition:transform .3s cubic-bezier(.22,1,.36,1);will-change:transform;touch-action:pan-y;
+    animation:sheetup .3s cubic-bezier(.22,1,.36,1);
+    transition:transform .22s cubic-bezier(.32,.72,0,1);will-change:transform;touch-action:pan-y;
     box-shadow:0 -8px 28px rgba(0,0,0,.28);}
+  /* Esta tanda afina las dos hojas de Gastos; el resto conserva su ritmo probado para que una
+     mejora local no cambie de rebote la sensación de toda la app (revisión 23/9). */
+  .v4-sheet.v4-gastos-filter-sheet,.v4-sheet.v4-exp-sheet{
+    animation-duration:.36s;animation-timing-function:cubic-bezier(.22,1,.36,1);
+    transition:transform .3s cubic-bezier(.22,1,.36,1);}
   /* Solo hojas con cuerpo (Apuntar / ficha de gasto): CTA fijo fuera del scroll.
      :has OK en WebView Chromium 150+. Regresión 4.19.100: flex+overflow:hidden en TODAS
      las hojas dejaba el filtro de Gastos sin poder bajar (feedback 13/9). */

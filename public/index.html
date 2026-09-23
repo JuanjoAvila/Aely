@@ -1112,9 +1112,14 @@
     /* Por defecto la hoja ENTERA scrollea (filtro de Gastos, Más…, fijos…). */
     overflow:auto;-webkit-overflow-scrolling:touch;
     padding:12px 18px calc(36px + var(--safe-bottom));
-    animation:sheetup .36s cubic-bezier(.22,1,.36,1);
-    transition:transform .3s cubic-bezier(.22,1,.36,1);will-change:transform;touch-action:pan-y;
+    animation:sheetup .3s cubic-bezier(.22,1,.36,1);
+    transition:transform .22s cubic-bezier(.32,.72,0,1);will-change:transform;touch-action:pan-y;
     box-shadow:0 -8px 28px rgba(0,0,0,.28);}
+  /* Esta tanda afina las dos hojas de Gastos; el resto conserva su ritmo probado para que una
+     mejora local no cambie de rebote la sensación de toda la app (revisión 23/9). */
+  .v4-sheet.v4-gastos-filter-sheet,.v4-sheet.v4-exp-sheet{
+    animation-duration:.36s;animation-timing-function:cubic-bezier(.22,1,.36,1);
+    transition:transform .3s cubic-bezier(.22,1,.36,1);}
   /* Solo hojas con cuerpo (Apuntar / ficha de gasto): CTA fijo fuera del scroll.
      :has OK en WebView Chromium 150+. Regresión 4.19.100: flex+overflow:hidden en TODAS
      las hojas dejaba el filtro de Gastos sin poder bajar (feedback 13/9). */
@@ -9282,7 +9287,7 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
   };
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
-      React.createElement("div",Object.assign({className:"v4-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },style:{maxHeight:"88vh"}}, swipe.sheetTouch),
+      React.createElement("div",Object.assign({className:"v4-sheet v4-gastos-filter-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },style:{maxHeight:"88vh"}}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement("div",{className:"serif",style:{fontSize:22,fontWeight:550,marginBottom:6}}, t("g_filters")),
         React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",lineHeight:1.45,marginBottom:12}}, t("g_filters_hint")),
