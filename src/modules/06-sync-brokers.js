@@ -583,7 +583,20 @@ function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDele
               React.createElement("input",{className:"num",value:(draft[it.id]||{}).cost,inputMode:"decimal",onFocus:e=>e.target.select(),onChange:e=>setF(it.id,"cost",e.target.value)}))
           )
         : React.createElement("div",{className:"rval num"}, show(eurVal(it)),
-            (function(){ if(it.cost==null||it.cost<=0) return null; const pl=(it.value-it.cost)/it.cost*100; return React.createElement("div",{className:"rvsub"+(pl<0?" neg":"")}, (pl>=0?"+":"")+pl.toFixed(2)+"%"); })())
+            (function(){
+              if(it.value==null||it.value===""||!isFinite(Number(it.value))) return null;
+              const cost=invCostEur(it,st);
+              if(!(cost>0)) return null;   // sin coste conocido no se inventa una rentabilidad
+              const gain=eurVal(it)-cost;
+              const pl=gain/cost*100;
+              const gainShown=Math.abs(gain)<0.005?0:gain;
+              const plShown=Math.abs(pl)<0.005?0:pl;
+              // La portada de Cartera tiene que dejar comparar importe y porcentaje de un vistazo
+              // (feedback 18/9); ambos salen de los conversores contables en €, no del valor crudo.
+              return React.createElement("div",{className:"rvsub"+(gainShown<0?" neg":"")},
+                (gainShown>=0?"+":"−")+show(Math.abs(gainShown))+" · "+
+                (plShown>=0?"+":"−")+NF.format(Math.abs(plShown))+"%");
+            })())
     );
   });
 }

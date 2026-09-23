@@ -10,6 +10,8 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 const investments = [
   { id: "i1", ent: "revolut", name: "Apple", ticker: "AAPL", shares: 5, value: 900, cost: 700, cur: "USD" },
   { id: "i2", ent: "trade_republic", name: "MSCI World", ticker: "IWDA", shares: 10, value: 1500, cost: 1200, cur: "EUR" },
+  { id: "i4", ent: "trade_republic", name: "Fondo en pérdida", ticker: "LOSS", shares: 4, value: 800, cost: 1000, cur: "EUR" },
+  { id: "i5", ent: "trade_republic", name: "Sin valor actual", ticker: "NOPRICE", shares: 2, value: null, cost: 500, cur: "EUR" },
   { id: "i3", ent: "myinvestor", name: "Indexado SP500", shares: 3, value: 2000, cost: 1800, cur: "EUR" },
 ];
 
@@ -41,6 +43,13 @@ test("Cartera › Inversiones: los tres brókers se pintan, en orden, con sus im
   await expect(blocks.nth(0)).toContainText("Revolut");
   await expect(blocks.nth(1)).toContainText("Trade Republic");
   await expect(blocks.nth(2)).toContainText("MyInvestor");
+  // En la portada, sin entrar en «Ver todas», cada posición enseña beneficio en euros Y en %.
+  await blocks.nth(1).click();
+  const trPos = listaInv.locator('[data-inv-position="i2"]');
+  await expect(trPos).toContainText(/\+300(?:[.,]00)?\s*€\s*·\s*\+25[.,]00%/);
+  const lossPos = listaInv.locator('[data-inv-position="i4"]');
+  await expect(lossPos.locator(".rvsub.neg")).toContainText(/−200(?:[.,]00)?\s*€\s*·\s*−20[.,]00%/);
+  await expect(listaInv.locator('[data-inv-position="i5"] .rvsub')).toHaveCount(0);
   // El redondeo/Saveback no pertenecía al sheet que se retira: sigue en Cartera y operativo.
   await expect(page.getByText(/Round-up & Saveback \(TR\)/).first()).toBeVisible();
 });
@@ -101,6 +110,10 @@ test("Inversiones v4: coste cero no finge +0%, manual se identifica y solo edita
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  const overview=page.locator(".v4-card-list").filter({ hasText: /posiciones|positions|posicions/ }).first();
+  await overview.locator("button.v4-mov").filter({hasText:"Trade Republic"}).click();
+  await expect(overview.locator('[data-inv-position="manual"] .rvsub')).toHaveCount(0);
   await openInvestments(page);
 
   await expect(page.locator("[data-inv-hero]")).not.toContainText("+0.00%");

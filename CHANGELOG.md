@@ -1,3 +1,17 @@
+## [4.26.14] - 2026-09-23
+### Beneficio en euros y porcentaje antes de «Ver todas» (feedback 18/9, punto 15)
+
+Las posiciones del resumen desplegable de Cartera enseñan ahora la ganancia o pérdida absoluta
+junto a su porcentaje. Ambos valores usan `invValueEur` e `invCostEur`, de modo que respetan
+`costEur` y la conversión de divisa en vez de restar importes nativos incompatibles. Si el coste o
+el valor actual no se conocen, la rentabilidad continúa oculta; los redondeos próximos a cero
+evitan signos engañosos.
+
+`cartera-inversiones.spec.mjs` abre el bróker desde la portada, antes de «Ver todas», comprueba
+ganancia y pérdida en € + %, y vigila que una posición sin coste o sin valor no muestre una
+rentabilidad inventada. Sin cambios de sincronización, backend, Android ni APK nueva; el punto 16
+queda fuera de esta tanda.
+
 ## [4.26.13] - 2026-09-23
 ### Candados fuera de la interfaz, protecciones intactas (feedback 18/9, punto 14)
 

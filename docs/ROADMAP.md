@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-23 · **v4.26.13** preparada para beta — los candados desaparecen de la interfaz sin retirar ninguna protección; producción continúa en 4.25.7 y no se ha tocado. Comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-23 · **v4.26.14** preparada para beta — el resumen de Inversiones enseña beneficio en euros y porcentaje sin inventarlo cuando falta el coste; producción continúa en 4.25.7 y no se ha tocado. Comprobar disponibilidad real con `npm run salud`.
+> Anterior: **v4.26.13** — los candados desaparecen de la interfaz sin retirar ninguna protección.
 > Anterior: **v4.26.12** — Novedades enumera las funciones que el móvil ya ejecutaba en beta, sin atribuirlas a producción.
 > Anterior: **v4.26.11** — Ajustes abre sin salto; Action `35784943994` publicó el bundle beta 4.26.11.1.
 > Anterior: **v4.26.10** — tema Cyberpunk y temáticas Otoño y Primavera.
@@ -205,7 +206,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.13** (preparada para beta; canal real = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.26.14** (preparada para beta; canal real = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo/publicada: **4.20.4 / 46**. El lector estable TR/Wallet de 4.26.6 aún necesita una APK nueva. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **46** / 4.20.4 |
