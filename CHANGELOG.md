@@ -1,3 +1,14 @@
+## [4.26.30] - 2026-09-23
+### Gastos agrupa el filtro largo y conserva el DOM durante las transiciones
+
+El filtro dejaba a la vista todas las categorías antes de llegar a bancos y tipo de movimiento.
+Ahora ese bloque nace plegado, informa cuántas selecciones hay y mantiene buscador, categorías y
+deudas dentro de un cuerpo animable. El desglose mensual sustituye `hidden` por una rejilla de
+altura intrínseca: las filas permanecen montadas durante los 340 ms y los importes no se recalculan
+al plegar. La ficha de gasto añade `Listo`, guarda antes de iniciar el cierre y conserva el nodo
+hasta acabar la transición; movimiento reducido evita esperas invisibles. Los E2E verifican estado,
+persistencia, cifras, cierre y que la pantalla no quede bloqueada.
+
 ## [4.26.29] - 2026-09-23
 ### El gesto inferior se reclama antes y la barra se apaga en la WebView
 

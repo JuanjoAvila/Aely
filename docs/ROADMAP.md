@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-23 · **v4.26.29** preparada para beta — el gesto horizontal desde el fondo se reclama antes y la APK 47 desactiva la barra gris nativa sin perder scroll ni rebote. Producción sirve 4.25.9; comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-23 · **v4.26.30** preparada para beta — Gastos pliega el filtro largo de categorías, anima el desglose sin desmontarlo y cierra la ficha con confirmación. Producción sirve 4.25.9; comprobar disponibilidad real con `npm run salud`.
+> Anterior: **v4.26.29** — el gesto horizontal desde el fondo se reclama antes y la APK 47 desactiva la barra gris nativa sin perder scroll ni rebote.
 > Anterior: **v4.26.28** — Inicio retira la supuesta ganancia mensual sin foto fiable del día uno y calcula la racha con presupuestos guardados de meses cerrados, sin llama.
 > Anterior: **v4.26.27** — el paso a paso del Asistente queda en tres instrucciones cortas y numeradas, sin mostrar `/n` ni volver al texto largo.
 > Anterior: **v4.26.26** — el editor del presupuesto mensual entra y sale con un ritmo propio, usa una cifra compacta y respeta el movimiento reducido.
@@ -216,8 +217,8 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.29** (gesto inferior temprano y barra nativa desactivada, preparada para beta; canal real = `npm run salud`) |
-| APK (`versionName` / `versionCode`) | Repo/candidata: **4.26.29 / 47**. No darla por publicada hasta que `release:apk` y el asset real estén verificados. |
+| Web / OTA (`VERSION`) | **4.26.30** (filtros y ficha de Gastos, preparada para beta; canal real = `npm run salud`) |
+| APK (`versionName` / `versionCode`) | Repo/publicada: **4.26.29 / 47**. El asset firmado existe; la beta la ofrece para quitar la barra nativa. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **47** / 4.26.29 |
 

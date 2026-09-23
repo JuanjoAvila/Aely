@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.26.30",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Gastos más limpio y fácil de revisar",
+      "en": "A cleaner, easier-to-review Expenses screen",
+      "ca": "Despeses més net i fàcil de revisar"
+    },
+    "items": {
+      "es": [
+        "Las categorías del filtro quedan detrás de una fila desplegable que indica cuántas hay seleccionadas.",
+        "El desglose mensual se abre y se pliega sin saltos, manteniendo sus límites e importes.",
+        "La ficha de un movimiento confirma con Listo y se cierra de forma fluida."
+      ],
+      "en": [
+        "Filter categories now sit behind a collapsible row that shows how many are selected.",
+        "The monthly breakdown opens and folds without jumps while keeping its limits and amounts.",
+        "A transaction detail now confirms with Done and closes smoothly."
+      ],
+      "ca": [
+        "Les categories del filtre queden darrere d'una fila desplegable que indica quantes n'hi ha seleccionades.",
+        "El desglossament mensual s'obre i es plega sense salts, mantenint els límits i els imports.",
+        "La fitxa d'un moviment confirma amb Fet i es tanca de manera fluida."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gastos-filtros-fluidos",
+        "t": {
+          "es": "Filtros y ficha de Gastos",
+          "en": "Expense filters and details",
+          "ca": "Filtres i fitxa de Despeses"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, abre Filtros: Qué contar y Bancos deben quedar visibles, con Categorías recogido en una sola fila.",
+            "2. Despliega Categorías, marca una y cierra el filtro; al volver debe indicar una seleccionada y conservarla.",
+            "3. Pliega y abre el desglose por categorías del mes: debe moverse sin salto y mantener exactamente los mismos importes.",
+            "4. Abre un movimiento, cambia un dato y pulsa Listo: la ficha debe cerrarse con fluidez y el cambio debe quedar guardado."
+          ],
+          "en": [
+            "1. In Expenses, open Filters: What to count and Banks should stay visible, with Categories folded into one row.",
+            "2. Expand Categories, select one and close the filter; reopening it should show one selected and keep it.",
+            "3. Fold and reopen the month's category breakdown: it should move without a jump and keep exactly the same amounts.",
+            "4. Open a transaction, change a field and tap Done: the detail should close smoothly and keep the change."
+          ],
+          "ca": [
+            "1. A Despeses, obre Filtres: Què comptar i Bancs han de quedar visibles, amb Categories recollit en una sola fila.",
+            "2. Desplega Categories, marca'n una i tanca el filtre; en tornar-hi ha d'indicar una seleccionada i conservar-la.",
+            "3. Plega i torna a obrir el desglossament per categories del mes: s'ha de moure sense salt i mantenir exactament els mateixos imports.",
+            "4. Obre un moviment, canvia una dada i prem Fet: la fitxa s'ha de tancar amb fluïdesa i el canvi ha de quedar desat."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.29",
     "d": "23 sep 2026",
     "t": {
