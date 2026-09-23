@@ -1481,13 +1481,6 @@
   .ring-foot{display:flex;justify-content:space-between;width:100%;margin-top:10px;font-size:12px;}
   .ring-foot .muted{color:var(--muted-2);}
 
-  .streak-flame{font-size:38px;line-height:1;filter:drop-shadow(0 4px 10px rgba(230,195,106,.35));}
-  .streak-n{font-size:42px;font-weight:700;line-height:1;font-family:'Fraunces',serif;color:var(--mint);}
-  .streak-row{display:flex;align-items:center;gap:14px;margin:10px 0 8px;}
-  .pips{display:flex;gap:5px;flex-wrap:wrap;}
-  .pip{width:13px;height:13px;border-radius:5px;background:var(--surface-2);border:1px solid var(--line);}
-  .pip.on{background:linear-gradient(160deg,var(--mint-bright),var(--mint));border-color:transparent;}
-
   .culprit-row{display:flex;align-items:center;gap:16px;margin-top:8px;}
   .legend{flex:1;display:flex;flex-direction:column;gap:7px;}
   .legend-item{display:flex;align-items:center;gap:8px;font-size:12.5px;}
@@ -1860,29 +1853,7 @@
   .emoji-pick button.on{border-color:var(--mint);background:rgba(95,208,138,.16);}
   .confetti{position:fixed;top:-14px;width:9px;height:14px;border-radius:2px;z-index:200;pointer-events:none;animation:conffall linear forwards;}
   @keyframes conffall{to{transform:translateY(106vh) rotate(720deg);}}
-  /* Gamificación: nivel, retos, logros */
-  .gm-level{background:linear-gradient(135deg,rgba(201,166,240,.12),rgba(127,181,232,.10))!important;border-color:rgba(201,166,240,.35)!important;}
-  .gm-lvl-top{display:flex;align-items:center;gap:12px;}
-  .gm-lvl-ic{font-size:30px;line-height:1;}
-  .gm-lvl-name{font-weight:800;font-size:15px;}
-  .gm-lvl-sub{font-size:12.5px;color:var(--muted);margin-top:2px;}
-  .gm-lvl-badge{font-size:10.5px;font-weight:700;color:#C9A6F0;text-transform:uppercase;letter-spacing:.04em;}
-  .gm-lvl-next{font-size:12px;color:var(--muted);margin-top:7px;text-align:right;}
   .gm-sec-h{font-weight:800;font-size:14px;margin-bottom:12px;}
-  .gm-reto-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
-  .gm-reto-name{font-weight:700;font-size:13.5px;}
-  .gm-reto-pct{font-size:12.5px;color:var(--muted);font-weight:700;}
-  .gm-reto-pct.over{color:#E2705F;}
-  .gm-reto-sub{font-size:12px;margin-top:6px;}
-  .gm-reto-sub.ok{color:var(--mint);} .gm-reto-sub.warn{color:#E2705F;}
-  .gm-streak{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:12px;}
-  .gm-streak.on{color:#F2914E;}
-  .gm-streak-best{color:var(--muted);font-weight:500;}
-  .gm-badges{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
-  .gm-badge{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:11px;background:var(--bg-2);border:1px solid var(--line-soft);opacity:.5;}
-  .gm-badge.on{opacity:1;background:rgba(242,193,78,.12);border-color:rgba(242,193,78,.45);}
-  .gm-badge-ic{font-size:16px;line-height:1;}
-  .gm-badge-lbl{font-size:11.5px;font-weight:600;line-height:1.2;}
   /* Compartido */
   .sh-card{display:flex;align-items:center;gap:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;}
   .sh-emoji{font-size:26px;line-height:1;}
@@ -3053,7 +3024,7 @@ function mcSeedSandboxVacio(){
   try{ localStorage.setItem("_mcSandboxVacio","1"); }catch(e){}
   mcSaveRaw(STATE_KEY_TEST, {
     _dataVer:6, onboarded:false, tourSeen:false, setupHint:false,
-    budget:0, monthStartNet:0, history:[], streak:0,
+    budget:0, monthStartNet:0, history:[],
     accounts:[], investments:[], assets:[], debts:[], fixed:[], flows:[], oneoffs:[], goals:[],
     expenses:[], settings:{}
   });
@@ -4648,7 +4619,7 @@ const LANG = {
     tab_dash:"Inicio", tab_gastos:"Gastos", tab_plan:"Plan", tab_cartera:"Cartera", tab_fijos:"Fijos", tab_inv:"Inversiones", tab_patri:"Patrimonio", tab_debt:"Deudas", tab_compartido:"Compartido",
     tab_metas:"Metas", tab_logros:"Logros",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
-    v4_money_total:"Tu dinero en total", v4_this_month:"este mes", v4_of_month:"del mes",
+    v4_money_total:"Tu dinero en total", v4_of_month:"del mes",
     v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.",
     v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Tu primer mes empieza hoy", v4_hist_empty:"Tu histórico empieza hoy", v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_empty:"Nada pendiente este mes. Los recibos aparecen aquí.",
@@ -4970,7 +4941,7 @@ Object.assign(LANG.es,{
   rl_hint:"«Recibos» = pagos fijos (luz, cuotas…). «Gasto diario» = compras del día a día (presupuesto y round-up; la primera cuenta marcada es la principal). «Todo» = ambas en la misma. Varios bancos de tarjeta: pon «Gasto diario» o «Todo» en cada uno. Al cambiar el rol, el saldo mostrado se conserva.",
   ob_imported:"🏦 {n} compras con tarjeta añadidas a Gastos",
   rp_btn:"📸 Informe del mes (imagen)", rp_spent:"Gastado este mes", rp_of_budget:"de {b} de presupuesto ({p}%)",
-  rp_top:"Top categorías", rp_networth:"Patrimonio", rp_delta:"{x} este mes", rp_footer:"hecho con Aely",
+  rp_top:"Top categorías", rp_networth:"Patrimonio", rp_footer:"hecho con Aely",
   mr_title:"Así acabó {mes}", mr_sub:"Resumen del mes que acaba de cerrar. Compártelo o descártalo como imagen.",
   mr_share:"📸 Crear imagen del informe", mr_later:"Descartar", mr_shared:"✓ Informe listo para compartir",
   mr_top:"Más gasto: {cat} ({x})", mr_saved:"Ahorraste {x}", mr_over:"Gastaste {x} más de lo que entró",
@@ -5399,17 +5370,11 @@ Object.assign(LANG.es,{
   gl_eta_ok:"Vas bien 🟢 · faltan {x}", gl_eta_behind:"Necesitas {x}/mes para llegar a tiempo 🟠",
   gl_eta_reached:"🎉 ¡Conseguida!", gl_eta_overdue:"La fecha ya pasó 🟠 · ajústala", gl_eta_nosaving:"Empieza a ahorrar para ver la previsión",
   gl_done_badge:"🏅 Cumplida", gl_celebrate:"🎉 ¡Meta «{name}» cumplida!",
-  gm_level:"Tu nivel", gm_next:"{x} para nivel {n}", gm_maxlvl:"¡Nivel máximo alcanzado! 👑", gm_score:"Ahorro acumulado",
   st_start_h:"Aquí empieza el mes",
   st_good_h:"Vas muy bien", st_good_l:"Sigues dentro de tu presupuesto, mes tras mes.",
   st_tight_h:"Ojo, apurando", st_tight_l:"Te queda poco margen, pero aún dentro de lo tuyo.",
   st_over_h:"Te has pasado un poco", st_over_l:"Este mes te fuiste del presupuesto. Se ajusta y ya.",
-  gm_lvl_0:"Aprendiz", gm_lvl_1:"Ahorrador", gm_lvl_2:"Constante", gm_lvl_3:"Experto", gm_lvl_4:"Maestro del ahorro",
-  gm_retos:"Retos del mes", gm_logros:"Logros",
-  gm_reto_budget:"Mes bajo presupuesto", gm_reto_budget_ok:"Te quedan {x} de margen 🟢", gm_reto_budget_over:"Te has pasado {x} 🔴", gm_reto_budget_done:"¡Mes cerrado bajo presupuesto! 🏆",
-  gm_reto_roundup:"Reto round-up", gm_reto_roundup_sub:"{x} de {y} este mes", gm_reto_done:"✓ Conseguido",
-  gm_streak:"🔥 {n} meses seguidos bajo presupuesto", gm_streak_1:"🔥 1 mes bajo presupuesto", gm_streak_none:"Aún sin racha · cierra un mes bajo presupuesto", gm_streak_best:"Mejor racha: {n}",
-  gm_locked:"Pendiente", gm_levelup:"🎉 ¡Subiste al nivel {n}!", gm_badge_new:"🏅 Logro: {x}",
+  gm_levelup:"🎉 ¡Subiste al nivel {n}!", gm_badge_new:"🏅 Logro: {x}",
   gm_b_first_goal:"1ª meta cumplida", gm_b_first_underbudget:"1er mes bajo presupuesto", gm_b_first_reto:"1er reto completado", gm_b_streak_3:"Racha de 3 meses",
   gm_b_save_100:"100 € ahorrado", gm_b_save_500:"500 € ahorrado", gm_b_save_1000:"1.000 € ahorrado", gm_b_save_5000:"5.000 € ahorrado",
   sh_newdefault:"Grupo", sh_newgroup:"Nuevo grupo compartido", sh_groups_title:"Gastos a medias (viajes, eventos)", sh_name_ph:"Nombre (ej. Crucero)", sh_you:"Tú", sh_other_ph:"Otra persona (ej. Pareja)", sh_create:"Crear grupo", sh_cancel:"Cancelar",
@@ -6058,9 +6023,6 @@ function mixHex(a,b,t){
 const RU_GOAL=30;                       // €/mes objetivo de round-up+saveback (reto)
 const SAVE_HITOS=[100,500,1000,5000];   // hitos de ahorro (medallas)
 const GM_LEVELS=[0,250,1000,3000,8000]; // umbrales de savedScore por nivel
-const GM_ICONS=["🐣","🐢","🦊","🦅","👑"];
-// Gasto mensual (solo gastos reales, amount>0) por clave YYYY-MM.
-function spendByMonth(expenses){ const m={}; (expenses||[]).forEach(function(e){ if(e.amount>0 && !CAT_NEUTRAS[e.category]){ const k=mkOf(parseDate(e.date)); m[k]=(m[k]||0)+e.amount; } }); return m; }
 function median(arr){ const a=(arr||[]).slice().sort(function(x,y){return x-y;}); const n=a.length; if(!n) return 0; return n%2?a[(n-1)/2]:(a[n/2-1]+a[n/2])/2; }
 // Detector de SUSCRIPCIONES / cargos recurrentes: mismo comercio en ≥3 meses distintos con importe
 // estable (≥60% dentro de ±25% de la mediana). Devuelve {name,cat,amount,months,last,active,yearly}.
@@ -6086,19 +6048,78 @@ function detectSubscriptions(expenses){
   });
   return subs.sort(function(a,b){ return b.amount-a.amount; });
 }
-// Racha de meses CERRADOS consecutivos bajo presupuesto + mejor racha histórica.
-function underBudgetStreak(expenses, budget){
-  if(!budget||budget<=0) return {current:0,best:0,ever:false};
-  const sb=spendByMonth(expenses);
-  const now=new Date(); const curKey=mk(now.getFullYear(),now.getMonth());
-  const keys=Object.keys(sb).filter(function(k){ return k<curKey; }).sort();   // meses cerrados, ascendente
-  let best=0,run=0,ever=false;
-  keys.forEach(function(k){ if(sb[k]<=budget){ run++; if(run>best)best=run; ever=true; } else run=0; });
-  let cur=0; for(let i=keys.length-1;i>=0;i--){ if(sb[keys[i]]<=budget) cur++; else break; }
-  return {current:cur,best:best,ever:ever};
+/* Presupuesto por mes: no se usa el tope actual para juzgar meses antiguos. Antes ese atajo
+   convertía cualquier cambio de presupuesto en una racha falsa (feedback 18/9). */
+function budgetYmKey(nowMs){
+  return madridYmdParts(nowMs!=null?nowMs:Date.now()).ym;
+}
+function ensureBudgetMonthSnap(state,nowMs){
+  const b=Number(state&&state.budget)||0,k=budgetYmKey(nowMs),old=(state&&state.budgetByMonth)||{};
+  if(!(b>0)||old[k]!=null) return null;
+  const map=Object.assign({},old); map[k]=b;
+  return {budgetByMonth:map};
+}
+function underBudgetStreak(state, nowMs){
+  state=state||{};
+  const budgets=state.budgetByMonth||{};
+  const num=function(k){ return +k.slice(0,4)*12 + +k.slice(5)-1; };
+  const curNum=num(budgetYmKey(nowMs));
+  const keys=Object.keys(budgets).filter(function(k){ return num(k)<curNum; }).sort(function(a,b){ return num(a)-num(b); });
+  const byMonth={}, windows=keys.map(function(k){
+    const y=+k.slice(0,4),m=+k.slice(5)-1;
+    byMonth[k]={spent:0,income:0,reserved:0};
+    return {k:k,start:inicioDeMesMs(Date.UTC(y,m,15,12)),end:inicioDeMesMs(Date.UTC(y,m+1,15,12))};
+  });
+  const monthOf=function(ms){
+    let lo=0,hi=windows.length-1;
+    while(lo<=hi){
+      const i=(lo+hi)>>1,w=windows[i];
+      if(ms<w.start) hi=i-1;
+      else if(ms>=w.end) lo=i+1;
+      else return w.k;
+    }
+    return null;
+  };
+  /* La racha usa exactamente los mismos cajones que la tarjeta de presupuesto: solo bancos de
+     gasto diario, sin neutras/posibles duplicados, y respeta bruto/neto y reservas. Antes sumaba
+     TODOS los gastos del histórico; un recibo de Sabadell podía romper una racha que Inicio
+     enseñaba correctamente como cumplida (auditoría Claude 5.5, feedback 18/9). Se agrega en una
+     sola pasada para no releer miles de movimientos por cada mes guardado. Los límites se
+     calculan una vez en hora Madrid; hacer `Intl.format` por movimiento costaba ~220 ms a CPU x6. */
+  (state.expenses||[]).forEach(function(e){
+    const k=monthOf(dateMs(e.date));
+    if(!k || !expenseCountsBudget(e,state)) return;
+    if(e.amount>0) byMonth[k].spent+=e.amount;
+    else if(e.amount<0) byMonth[k].income+=Math.abs(e.amount);
+  });
+  (state.reservaLog||[]).forEach(function(x){
+    const ms=new Date(x&&x.date).getTime();
+    if(!isFinite(ms)) return;
+    const k=monthOf(ms);
+    if(k) byMonth[k].reserved+=(x&&x.amount||0);
+  });
+  const good={};
+  keys.forEach(function(k){
+    const m=byMonth[k], stats=budgetStatsFromAmounts(m.spent,m.income,Number(budgets[k]),m.reserved,(state.settings&&state.settings.gTotalMode)||"split");
+    good[k]=stats.budget!=null&&stats.against<=stats.budget+.005;
+  });
+  let best=0,run=0,prev=null;
+  keys.forEach(function(k){
+    const n=num(k);
+    if(prev==null||n!==prev+1) run=0;
+    if(good[k]){ run++; best=Math.max(best,run); } else run=0;
+    prev=n;
+  });
+  let cur=0,n=curNum-1;
+  while(cur<120){
+    const k=mk(Math.floor(n/12),n%12);
+    if(!good[k]) break;
+    cur++; n--;
+  }
+  return {current:cur,best:best,ever:best>0};
 }
 // Estado completo de gamificación (puro, sin efectos).
-function gamifOf(state, totals){
+function gamifOf(state, totals, budgetStreak){
   const tt=totals||{};
   const goals=state.goals||[];
   const savedScore=goals.reduce(function(a,g){return a+(g.saved||0);},0) + (tt.trRewardsTotal||state.trRewardsTotal||0);
@@ -6113,7 +6134,7 @@ function gamifOf(state, totals){
   const ruCur=+(((tt.roundupThisMonth||0)+(tt.savebackThisMonth||0))).toFixed(2);
   const budgetReto={ id:"budget", spent:spent, budget:budget, margin:+(budget-spent).toFixed(2), done:budget>0&&spent<=budget, pct: budget>0?Math.min(100,spent/budget*100):0 };
   const ruReto={ id:"roundup", cur:ruCur, goal:RU_GOAL, done:ruCur>=RU_GOAL, pct:Math.min(100,ruCur/RU_GOAL*100) };
-  const streak=underBudgetStreak(state.expenses, budget);
+  const streak=budgetStreak||underBudgetStreak(state);
   const anyGoalDone=goals.some(function(g){return g.done;});
   const badges=[
     {id:"first_goal", unlocked:anyGoalDone},
@@ -6185,7 +6206,7 @@ function buildEmpty(){
   return {
     fx: 0.92, budget: 0, monthStartNet: 0, history: [],
     accounts: [], investments: [], assets: [], debts: [], fixed: [], flows: [], oneoffs: [], aportaciones: [],
-    expenses: [], goals: [], shared: [], catOverrides: {}, obAccounts: [], obLabels: {}, verNotes: [], streak: 0,
+    expenses: [], goals: [], shared: [], catOverrides: {}, obAccounts: [], obLabels: {}, verNotes: [],
     tourSeen: false,   // usuario nuevo → tour de bienvenida tras el onboarding
     setupHint: true,   // tarjeta «primeros pasos» en el Resumen hasta que la cierren
     settings: { autoPrices:false },
@@ -6213,7 +6234,6 @@ function buildInitial(){
     shared: [],
     obAccounts: [],
     obLabels: {},
-    streak: 4,
     settings: { autoPrices:false },
     lastSync: null,
     lastPriceSync: null,
@@ -6800,14 +6820,11 @@ function shareMonthReport(state, tt, showToast, opt){
       y+=112;
     });
     if(!top.length){ g.fillStyle=muted; g.font="600 30px Manrope, sans-serif"; g.fillText("—", 72, y); y+=80; }
-    // tarjeta: patrimonio + delta del mes
+    // Tarjeta de patrimonio. El delta mensual se retiró: sin foto real del día 1 era engañoso.
     const py=Math.max(y+30, 1030);
     g.fillStyle=surface; round(72,py,W-144,190,28); g.fill(); g.strokeStyle=line; round(72,py,W-144,190,28); g.stroke();
     g.fillStyle=muted; g.font="700 27px Manrope, sans-serif"; g.fillText(t("rp_networth").toUpperCase(), 116, py+38);
     g.fillStyle=text;  g.font="700 64px Manrope, sans-serif"; g.fillText(eur0(tt.netWorth), 112, py+80);
-    const dl=(tt.delta>=0?"+":"")+eur0(tt.delta);
-    g.textAlign="right"; g.fillStyle=tt.delta>=0?mint:coral; g.font="700 34px Manrope, sans-serif";
-    g.fillText(tf("rp_delta",{x:dl}), W-108, py+95); g.textAlign="left";
     g.fillStyle=muted; g.font="600 26px Manrope, sans-serif"; g.fillText(t("rp_footer")+" · v"+CONFIG.APP_VERSION, 72, H-72);
     cv.toBlob(function(b){
       if(!b){ if(showToast) showToast("✕ Informe: canvas vacío"); return; }
@@ -7838,7 +7855,7 @@ function dashOrderOf(s, allIds){
   const saved=((s.settings&&s.settings.dashOrder)||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
   return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
 }
-function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
+function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
   const tt=totals;
   const simple=!!(state.settings&&state.settings.simpleMode);
   const [budgetOpen,setBudgetOpen]=useState(false);
@@ -8046,13 +8063,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
       React.createElement("div",{className:"v4-hero-amt num","data-tour":"hero-amt"},
         p.sign+p.ent, React.createElement("span",{style:{fontSize:28,color:"var(--muted)"}},","+(p.dec||"00")+" "+p.sym)),
-      // La pastilla del mes solo si dice algo (P2): recien instalado, «+0 € este mes» no informa
-      // de nada y dejaba el hero con dos elementos muertos, ella y el grafico plano de P1.
-      ((tt.delta||0)!==0 || (state.history&&state.history.length>0)) && React.createElement("div",{style:{marginTop:12}},
-        React.createElement("span",{className:"v4-pill"},
-          React.createElement(tt.delta>=0?I.up:I.down,null),
-          (tt.delta>=0?"+":"")+eur0(tt.delta)+" "+t("v4_this_month"))
-      ),
+      // Sin una foto real del día 1, «este mes» era patrimonio menos un seed antiguo: parecía
+      // una ganancia de miles de euros. Se retira en vez de inventar una base (feedback 18/9).
       React.createElement("div",{style:{marginTop:14}},
         // Sin al menos dos puntos, `Sparkline` devuelve null (P1). Se reserva el hueco con una
         // linea discreta para que el hero no pegue un salto en cuanto haya histórico.
@@ -8094,13 +8106,18 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         )
       ),
       React.createElement("div",{className:"v4-budget-foot"},
-        // Con 0, «0 meses sin pasarte» resta en vez de sumar: el primer mes se dice en positivo (P5).
-        React.createElement("span",null, (state.streak||0)>0 ? ("🔥 "+tf("v4_streak",{n:state.streak})) : t("v4_streak_zero")),
+        (function(){
+          const n=budgetStreak?budgetStreak.current:0;
+          return React.createElement("span",{"data-testid":"dash-budget-streak"},n>0?tf("v4_streak",{n:n}):t("v4_streak_zero"));
+        })(),
         React.createElement("button",{className:"link",onClick:function(e){ e.stopPropagation(); if(onGoGastos) onGoGastos(); }}, t("v4_see_gastos"))
       )
     ),
     React.createElement(BudgetSheet,{open:budgetOpen,budget:state.budget,onClose:function(){ setBudgetOpen(false); },onSave:function(b){
-      set(function(s){ return Object.assign({},s,{budget:b}); });
+      set(function(s){
+        const map=Object.assign({},s.budgetByMonth||{}); map[budgetYmKey()]=b;
+        return Object.assign({},s,{budget:b,budgetByMonth:map});
+      });
     }}),
 
     !showSkel && partyDebts.length>0 && React.createElement("div",{className:"v4-card rise v4-party",style:{animationDelay:".12s",marginTop:8,padding:"14px 16px"}},
@@ -13200,6 +13217,15 @@ function reservedSince(state, fromMs, hastaMs){
     return a+(x&&x.amount||0);
   },0);
 }
+function budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode){
+  const budget=budgetRaw>0?Math.max(0,+(budgetRaw-reserved).toFixed(2)):null;
+  const balance=income-spent;
+  const against=mode==="net"?(spent-income):spent;
+  const shown=mode==="net"?Math.abs(balance):spent;
+  const remaining=budget==null?null:budget-against;
+  return {spent:spent, income:income, balance:balance, mode:mode, budget:budget, reserved:reserved,
+    remaining:remaining, against:against, shown:shown};
+}
 /* Misma cifra en Gastos, Resumen y el widget (2026-08-05). `totals.thisMonthSpent` suma TODO
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
@@ -13221,15 +13247,9 @@ function monthBudgetStats(state, nowMs, hastaMs){
     else if(e.amount<0) income+=Math.abs(e.amount);
   });
   const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs);
-  const budgetRaw=typeof state.budget==="number" && state.budget>0 ? state.budget : null;
-  const budget=budgetRaw==null?null:Math.max(0,+(budgetRaw-reserved).toFixed(2));
+  const budgetRaw=typeof state.budget==="number" ? state.budget : 0;
   const mode=(state.settings&&state.settings.gTotalMode)||"split";
-  const balance=income-spent;
-  const against=mode==="net"?(spent-income):spent;
-  const shown=mode==="net"?Math.abs(balance):spent;
-  const remaining=budget==null?null:budget-against;
-  return {spent:spent, income:income, balance:balance, mode:mode, budget:budget, reserved:reserved,
-    remaining:remaining, against:against, shown:shown};
+  return budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode);
 }
 
 /* Desglose del mes por categoría (brief PRESUPUESTO-POR-CATEGORIA). Misma ventana y misma
@@ -13272,8 +13292,10 @@ function categorySpentByMonth(state, nowMs, hastaMs){
 /* INFORME DEL MES CERRADO (brief 2026-09-08). Primeros días del mes nuevo: tarjeta en Inicio
    con cifras del mes ANTERIOR (monthBudgetStats + hastaMs). Descartar = settings.closedMonthDismissed. */
 var CLOSED_MONTH_CARD_DAYS=5;
+var _mcMadridYmdFmt=null;
 function madridYmdParts(ms){
-  const s=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(ms));
+  if(!_mcMadridYmdFmt) _mcMadridYmdFmt=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"});
+  const s=_mcMadridYmdFmt.format(new Date(ms));
   const p=s.split("-");
   return {y:+p[0], m:+p[1], d:+p[2], ym:p[0]+"-"+p[1]};
 }
@@ -15334,7 +15356,6 @@ function SavingsPlanCard({state, set, totals, showToast}){
 function Goals({state, set, totals, showToast}){
   const tt=totals||{};
   const goals=state.goals||[];
-  const gm=gamifOf(state, totals);
   const [adding,setAdding]=useState(false);
   const [editing,setEditing]=useState(false);
   const [drafts,setDrafts]=useState({});
@@ -15509,62 +15530,6 @@ function ContributeGoalSheet({goal, state, onClose, onContribute}){
           amt>0?tf("gl_contribute_save",{x:eur(amt)}):t("gl_contribute"))
       )
     ), document.body);
-}
-
-/* Pantalla "Logros" (rediseño 1a): la gamificación (nivel + retos + medallas) vive aquí, FUERA de
-   "Metas". El Resumen resume racha+nivel en un titular; el detalle (medallas/retos) vive en esta pantalla. */
-function Achievements({state, totals}){
-  const gm=gamifOf(state, totals);
-  return React.createElement("div",null,
-    /* ---------- NIVEL ---------- */
-    React.createElement("div",{className:"card gm-level",style:{marginTop:4,padding:"15px 16px"}},
-      React.createElement("div",{className:"gm-lvl-top"},
-        React.createElement("span",{className:"gm-lvl-ic"}, GM_ICONS[gm.lvl]),
-        React.createElement("div",{style:{flex:1,minWidth:0}},
-          React.createElement("div",{className:"gm-lvl-name"}, "Nv "+(gm.lvl+1)+" · "+t("gm_lvl_"+gm.lvl)),
-          React.createElement("div",{className:"gm-lvl-sub num"}, t("gm_score")+": "+eur0(gm.savedScore))),
-        React.createElement("span",{className:"gm-lvl-badge"}, t("gm_level"))
-      ),
-      React.createElement("div",{className:"bar",style:{marginTop:10}},React.createElement("i",{style:{width:gm.lvlProg+"%",background:"linear-gradient(90deg,#C9A6F0,#7FB5E8)"}})),
-      React.createElement("div",{className:"gm-lvl-next"}, gm.nextMin!=null ? tf("gm_next",{x:eur0(Math.max(0,gm.nextMin-gm.savedScore)),n:gm.lvl+2}) : t("gm_maxlvl"))
-    ),
-
-    /* ---------- RETOS DEL MES ---------- */
-    React.createElement("div",{className:"card",style:{marginTop:12,padding:"15px 16px"}},
-      React.createElement("div",{className:"gm-sec-h"}, t("gm_retos")),
-      (function(){ const r=gm.budgetReto; const over=r.budget>0&&r.margin<0;
-        return React.createElement("div",{className:"gm-reto"},
-          React.createElement("div",{className:"gm-reto-top"},
-            React.createElement("span",{className:"gm-reto-name"}, "🎯 "+t("gm_reto_budget")),
-            React.createElement("span",{className:"gm-reto-pct num"+(over?" over":"")}, eur0(r.spent)+" / "+eur0(r.budget))),
-          React.createElement("div",{className:"bar"},React.createElement("i",{style:{width:Math.min(100,r.pct)+"%",background: over?"linear-gradient(90deg,#E2705F,#E2705F)":"linear-gradient(90deg,var(--mint),var(--mint-bright))"}})),
-          React.createElement("div",{className:"gm-reto-sub"+(over?" warn":" ok")}, r.budget<=0 ? "—" : (over?tf("gm_reto_budget_over",{x:eur0(-r.margin)}):tf("gm_reto_budget_ok",{x:eur0(r.margin)})))
-        ); })(),
-      (function(){ const r=gm.ruReto;
-        return React.createElement("div",{className:"gm-reto",style:{marginTop:12}},
-          React.createElement("div",{className:"gm-reto-top"},
-            React.createElement("span",{className:"gm-reto-name"}, "🪙 "+t("gm_reto_roundup")),
-            React.createElement("span",{className:"gm-reto-pct num"}, r.done?t("gm_reto_done"):(Math.round(r.pct)+"%"))),
-          React.createElement("div",{className:"bar"},React.createElement("i",{style:{width:Math.min(100,r.pct)+"%",background:r.done?"linear-gradient(90deg,#F2C14E,#F2C14E)":"linear-gradient(90deg,#E6C36A,#F2C14E)"}})),
-          React.createElement("div",{className:"gm-reto-sub ok"}, tf("gm_reto_roundup_sub",{x:eur(r.cur),y:eur0(r.goal)}))
-        ); })()
-    ),
-
-    /* ---------- LOGROS ---------- */
-    React.createElement("div",{className:"card",style:{marginTop:12,padding:"15px 16px"}},
-      React.createElement("div",{className:"gm-sec-h"}, t("gm_logros")),
-      React.createElement("div",{className:"gm-streak"+(gm.streak.current>0?" on":"")},
-        gm.streak.current>=2 ? tf("gm_streak",{n:gm.streak.current}) : (gm.streak.current===1?t("gm_streak_1"):t("gm_streak_none")),
-        gm.streak.best>gm.streak.current && React.createElement("span",{className:"gm-streak-best"}, " · "+tf("gm_streak_best",{n:gm.streak.best}))
-      ),
-      React.createElement("div",{className:"gm-badges"}, gm.badges.map(function(b){
-        return React.createElement("div",{key:b.id,className:"gm-badge"+(b.unlocked?" on":""),title:b.unlocked?t("gm_b_"+b.id):t("gm_locked")},
-          React.createElement("span",{className:"gm-badge-ic"}, b.unlocked?"🏅":"○"),
-          React.createElement("span",{className:"gm-badge-lbl"}, t("gm_b_"+b.id))
-        );
-      }))
-    )
-  );
 }
 
 /* ============================================================
@@ -23844,8 +23809,6 @@ function App(){
     const debtTotal=state.debts.reduce((a,d)=>a+debtBalance(d),0);   // saldo proyectado (baja solo cada mes)
     const activos=liquid+invested+assetsTotal;
     const netWorth=activos-debtTotal;
-    const delta=netWorth-state.monthStartNet;
-    const deltaPct=state.monthStartNet?delta/state.monthStartNet*100:0;
     const fijosVar=state.fixed.reduce((a,e)=>a+e.amount*(FREQ_M[e.freq]||1),0);
     const cuotas=state.debts.reduce((a,d)=>a+(debtActive(d)?(d.monthly||0):0),0);
     const fijosMensual=fijosVar+cuotas;
@@ -23909,15 +23872,27 @@ function App(){
     /* DEPENDENCIAS: ojo al tocar este bloque — la lista de abajo tiene que incluir TODO
        `state.loQueSea` que se lea aquí dentro (incluidos los que leen las funciones auxiliares:
        monthNetForAccount → fixed/debts/oneoffs/flows; toEurAmt/invValueEur → fx y fxRates). */
-    return {liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,delta,deltaPct,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
+    return {liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
   // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` en CADA cambio, el
   // objeto de estado es nuevo siempre → el memo NUNCA acertaba y este cálculo (que recorre gastos,
   // fijos, deudas, flujos y simula el mes día a día) se rehacía al abrir una ficha, al escribir en
   // el buscador, al salir un toast… Con las porciones reales solo se recalcula cuando cambia el
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.investments,state.assets,state.debts,state.fixed,
-     state.flows,state.oneoffs,state.aportaciones,state.obAccounts,state.monthStartNet,
+     state.flows,state.oneoffs,state.aportaciones,state.obAccounts,
      state.trRewardsTotal,state.fx,state.fxRates]);
+
+  const budgetMonth=budgetYmKey();
+  useEffect(function(){
+    const patch=ensureBudgetMonthSnap(state);
+    if(patch) set(function(s){ return Object.assign({},s,patch); });
+  },[budgetMonth,state.budget,state.budgetByMonth]);
+
+  /* Una sola racha compartida por Inicio y el detector de logros. Con históricos grandes,
+     calcularla otra vez dentro de cada pantalla triplicaba el recorrido al terminar un sync. */
+  const budgetStreak=useMemo(function(){ return underBudgetStreak(state); },
+    [state.expenses,state.budgetByMonth,state.accounts,state.reservaLog,
+     state.settings&&state.settings.expenseBanks,state.settings&&state.settings.gTotalMode,budgetMonth]);
 
   const [pricing,setPricing]=useState(false);
   // Tipos BCE vía frankfurter (gratis, sin key). URL canónica: api.frankfurter.dev.
@@ -24260,7 +24235,7 @@ function App(){
 
   // GAMIFICACIÓN: detecta logros nuevos y subidas de nivel → toast/confeti (1ª vez siembra sin avisar).
   useEffect(function(){
-    const g=gamifOf(state, totals);
+    const g=gamifOf(state, totals, budgetStreak);
     const stored=state.badges||[];
     const nowUnlocked=g.badges.filter(function(b){return b.unlocked;}).map(function(b){return b.id;});
     const fresh=nowUnlocked.filter(function(id){ return stored.indexOf(id)<0; });
@@ -24270,7 +24245,9 @@ function App(){
     set(function(s){ return Object.assign({},s,{badges:Array.from(new Set((s.badges||[]).concat(nowUnlocked))),gmLevel:g.lvl}); });
     if(levelUp){ showToast(tf("gm_levelup",{n:g.lvl+1})); }   // rediseño 1c: subir de nivel = aviso tranquilo, sin confeti (el confeti se reserva a metas)
     else if(fresh.length && seeded){ showToast(tf("gm_badge_new",{x:t("gm_b_"+fresh[0])})); }
-  },[state.expenses,state.goals,state.budget,state.trRewardsTotal]);
+  },[state.expenses,state.goals,state.budget,state.budgetByMonth,state.trRewardsTotal,
+     state.accounts,state.reservaLog,state.settings&&state.settings.expenseBanks,
+     state.settings&&state.settings.gTotalMode,budgetStreak]);
   const fetchPrices=function(silent){
     refreshFx();   // y también al pulsar "Precios USD"
     const withTicker=state.investments.filter(function(i){ return i.ticker; });
@@ -25281,7 +25258,7 @@ function App(){
   const hiddenTabIds = TABS.map(function(tt){return tt.id;}).filter(function(id){ return tabIds.indexOf(id)<0; });
   const pageFor=function(id){
     const simple=!!(state.settings&&state.settings.simpleMode);
-    if(id==="dash") return React.createElement(Dashboard,{state:state,totals:totals,set:set,showToast:showToast,
+    if(id==="dash") return React.createElement(Dashboard,{state:state,totals:totals,budgetStreak:budgetStreak,set:set,showToast:showToast,
       onOpenSettings:function(){ setDrawerOpen(true); },
       onOpenProfile:function(){
         // Montar cerrado un frame y luego abrir: si montas ya con .open no hay animación de entrada.
@@ -25331,7 +25308,7 @@ function App(){
     tabIds.forEach(function(id){ if(id!=="gastos") out[id]=pageFor(id); });
     return out;
     // eslint-disable-next-line
-  },[state, totals, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, drawerOpen, locked]);
+  },[state, totals, budgetStreak, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, drawerOpen, locked]);
   /* Gastos iba en memo aparte POR la prop `active` — y esa prop era el lag. Ahora se entera
      por bus (`mcSetGastosActive` abajo) y comparte deps con las otras: entrar/salir de Gastos
      ya NO reconstruye Expenses. Se deja el memo propio por si mañana vuelve a necesitar algo

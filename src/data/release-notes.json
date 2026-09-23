@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.28",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Inicio cuenta solo lo que puede demostrar",
+      "en": "Home only counts what it can prove",
+      "ca": "Inici només compta el que pot demostrar"
+    },
+    "items": {
+      "es": [
+        "Ya no aparece como ganancia del mes una cifra que podía mezclar aportaciones y cambios de saldo.",
+        "La racha usa presupuestos guardados de meses cerrados y deja atrás la llama; cambiar el presupuesto actual no modifica meses anteriores."
+      ],
+      "en": [
+        "A figure that could mix contributions and balance changes is no longer shown as a monthly gain.",
+        "The streak uses saved budgets from closed months and no longer shows a flame; changing this month's budget does not alter earlier months."
+      ],
+      "ca": [
+        "Ja no es mostra com a guany del mes una xifra que podia barrejar aportacions i canvis de saldo.",
+        "La ratxa usa pressupostos desats de mesos tancats i deixa enrere la flama; canviar el pressupost actual no modifica mesos anteriors."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inicio-metricas-honestas",
+        "t": {
+          "es": "Cifras honestas en Inicio",
+          "en": "Honest figures on Home",
+          "ca": "Xifres honestes a Inici"
+        },
+        "items": {
+          "es": [
+            "1. Abre Inicio: bajo el patrimonio total no debe aparecer una ganancia verde de «este mes».",
+            "2. Mira la racha del presupuesto: no debe llevar llama; si aún no hay meses cerrados con presupuesto guardado, debe decir «Tu primer mes empieza hoy».",
+            "3. Cambia el presupuesto actual y vuelve a Inicio: la racha de meses anteriores no debe saltar."
+          ],
+          "en": [
+            "1. Open Home: no green “this month” gain should appear below total net worth.",
+            "2. Check the budget streak: it should have no flame; if no closed month has a saved budget yet, it should say “Your first month starts today”.",
+            "3. Change this month's budget and return to Home: the streak for earlier months should not jump."
+          ],
+          "ca": [
+            "1. Obre Inici: sota el patrimoni total no ha d'aparèixer cap guany verd d'«aquest mes».",
+            "2. Mira la ratxa del pressupost: no ha de portar flama; si encara no hi ha mesos tancats amb pressupost desat, ha de dir «El teu primer mes comença avui».",
+            "3. Canvia el pressupost actual i torna a Inici: la ratxa dels mesos anteriors no ha de saltar."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.27",
     "d": "23 sep 2026",
     "t": {

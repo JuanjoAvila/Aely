@@ -1,3 +1,18 @@
+## [4.26.28] - 2026-09-23
+### Inicio deja de convertir una base incompleta en una ganancia
+
+La cifra verde bajo patrimonio comparaba el total actual con `monthStartNet`, un dato que no tenía
+una foto fiable y homogénea del día uno. Podía presentar aportaciones o cambios de saldo como una
+ganancia del mes. Se retira tanto de Inicio como del informe compartido: sin base comprobable no se
+muestra una cifra.
+
+La racha deja de reutilizar el presupuesto actual para juzgar meses anteriores. Desde ahora guarda
+el presupuesto de cada mes y solo cuenta meses cerrados, consecutivos y con dato propio, usando la
+misma regla financiera que Inicio y Gastos para bancos diarios, reservas, ingresos, neutras y
+posibles repetidos. Cambiar el presupuesto actual no reescribe el pasado. Se retiran la llama y la
+pantalla de Logros que había quedado sin entrada; la racha se calcula una sola vez por cambio.
+`dash-metricas.test.mjs` contrasta la regla con 40 estados deterministas y los E2E protegen el DOM.
+
 ## [4.26.27] - 2026-09-23
 ### El paso a paso deja de ser otro bloque de texto
 

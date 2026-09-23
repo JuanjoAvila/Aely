@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-23 · **v4.26.27** preparada para beta — el paso a paso del Asistente queda en tres instrucciones cortas y numeradas, sin mostrar `/n` ni volver al texto largo. Producción sirve 4.25.9 con el beneficio aprobado en euros y porcentaje; comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-23 · **v4.26.28** preparada para beta — Inicio retira la supuesta ganancia mensual sin foto fiable del día uno y calcula la racha con presupuestos guardados de meses cerrados, sin llama. La 4.26.27 conserva el paso a paso breve y numerado del Asistente. Producción sirve 4.25.9 con el beneficio aprobado en euros y porcentaje; comprobar disponibilidad real con `npm run salud`.
+> Anterior: **v4.26.27** — el paso a paso del Asistente queda en tres instrucciones cortas y numeradas, sin mostrar `/n` ni volver al texto largo.
 > Anterior: **v4.26.26** — el editor del presupuesto mensual entra y sale con un ritmo propio, usa una cifra compacta y respeta el movimiento reducido.
 > Anterior: **v4.26.25** — Ahorro mensual vuelve a Plan → Metas como planificación editable que no crea movimientos; los formatos 1.000 y 1.200,50 conservan su valor real.
 > Anterior: **v4.26.24** — el gesto horizontal vuelve a cambiar de pestaña desde el fondo, los gestos verticales conservan el rebote nativo y las barras laterales no se dibujan, también en Ajustes.
@@ -214,7 +215,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.27** (paso a paso breve y numerado en el Asistente, preparada para beta; canal real = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.26.28** (métricas de Inicio honestas y racha por presupuesto histórico, preparada para beta; canal real = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo/publicada: **4.20.4 / 46**. El lector estable TR/Wallet de 4.26.6 aún necesita una APK nueva. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **46** / 4.20.4 |
