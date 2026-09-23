@@ -5,10 +5,12 @@
 y entra con la transición lateral de las pantallas hijas. El botón, Escape y Atrás recorren la
 misma salida antes de desmontar, mantienen el candado compartido y devuelven el foco a «Ver todas».
 
-Un listener táctil no pasivo, limitado a los primeros 32 px, permite arrastrar la pantalla con el
-dedo. El eje vertical se abandona al scroll nativo; un recorrido corto o `touchcancel` vuelve a su
+El rechazo de la beta 4.26.16.1 demostró que limitar el inicio a los primeros 32 px no funciona en
+el móvil: Android se queda ese borde antes de que la WebView reciba el dedo. El listener acepta
+ahora el gesto desde cualquier punto de la pantalla. El eje vertical se abandona al scroll nativo;
+un recorrido corto o `touchcancel` vuelve a su
 sitio y solo un cuarto de pantalla —o un gesto rápido inequívoco— cierra. El E2E comprueba entrada,
-seguimiento, cancelación, cierre y foco. Se elimina además el diccionario castellano `gb_*` que ya
+seguimiento desde el centro, scroll vertical, cancelación, cierre y foco. Se elimina además el diccionario castellano `gb_*` que ya
 duplicaba `LANG.es/en/ca`: ahora una clave ausente vuelve a fallar en `i18n-keys` en vez de quedar
 tapada. Sin cambios de datos, backend, Android ni APK nueva.
 

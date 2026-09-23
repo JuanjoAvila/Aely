@@ -1196,11 +1196,14 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncI
     const root=sr.current;
     let sx=0,sy=0,dx=0,t0=0,drag=false,axis=null,st=0,e2=0;
     const e1=requestAnimationFrame(function(){ e2=requestAnimationFrame(function(){ setShown(true); }); });
-    // El gesto se reclama solo desde el borde: el scroll y los controles del cuerpo siguen siendo
-    // nativos. `touchmove` va a mano porque React lo registra pasivo y no deja acompañar el dedo.
+    // El gesto puede empezar en toda la pantalla (rechazo beta 4.26.16.1): en Android el sistema
+    // se queda el borde y la WebView no llega a ver ese dedo. El eje vertical se abandona al
+    // scroll nativo; `touchmove` va a mano porque React lo registra pasivo.
     const start=function(e){
       const p=e.touches&&e.touches[0];
-      if(!p||p.clientX>32||document.documentElement.classList.contains("ask-open")) return;
+      const target=e.target;
+      if(!p||document.documentElement.classList.contains("ask-open")||
+        (target&&target.closest&&target.closest("input,textarea,select,[data-noswipe]"))) return;
       sx=p.clientX; sy=p.clientY; dx=0; t0=Date.now(); drag=true; axis=null;
     };
     const move=function(e){

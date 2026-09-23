@@ -10,15 +10,15 @@
     "items": {
       "es": [
         "La pantalla completa de Inversiones entra de lado, como una página, en lugar de aparecer de golpe.",
-        "Para volver, puedes usar el botón o deslizar desde el borde izquierdo: la pantalla acompaña el dedo y solo se cierra si completas el gesto."
+        "Para volver, puedes usar el botón o deslizar hacia la derecha desde cualquier punto de la pantalla: acompaña el dedo y solo se cierra si completas el gesto."
       ],
       "en": [
         "The full Investments screen now slides in like a page instead of appearing all at once.",
-        "To go back, use the button or swipe from the left edge: the screen follows your finger and closes only when you complete the gesture."
+        "To go back, use the button or swipe right from anywhere on the screen: it follows your finger and closes only when you complete the gesture."
       ],
       "ca": [
         "La pantalla completa d'Inversions entra de costat, com una pàgina, en lloc d'aparèixer de cop.",
-        "Per tornar, pots usar el botó o lliscar des de la vora esquerra: la pantalla acompanya el dit i només es tanca si completes el gest."
+        "Per tornar, pots usar el botó o lliscar cap a la dreta des de qualsevol punt de la pantalla: acompanya el dit i només es tanca si completes el gest."
       ]
     },
     "tandas": [
@@ -32,17 +32,17 @@
         "items": {
           "es": [
             "1. En Cartera, toca «Ver todas tus inversiones»: la pantalla debe entrar suavemente desde la derecha, sin aparecer de golpe.",
-            "2. Desliza un poco desde el borde izquierdo y vuelve atrás: la pantalla debe seguir el dedo y regresar a su sitio sin cerrarse.",
+            "2. Desliza un poco hacia la derecha desde el centro de la pantalla y vuelve atrás: debe seguir el dedo y regresar a su sitio sin cerrarse.",
             "3. Repite el gesto hasta más de un cuarto de pantalla: debe cerrarse hacia la derecha y dejar Cartera lista para seguir usándola."
           ],
           "en": [
             "1. In Portfolio, tap See all your investments: the screen should slide in smoothly from the right instead of appearing all at once.",
-            "2. Swipe a short way from the left edge, then move back: the screen should follow your finger and return to place without closing.",
+            "2. Swipe a short way to the right from the middle of the screen, then move back: it should follow your finger and return to place without closing.",
             "3. Repeat past a quarter of the screen: it should close to the right and leave Portfolio ready to use."
           ],
           "ca": [
             "1. A Cartera, toca «Veure totes les inversions»: la pantalla ha d'entrar suaument des de la dreta, sense aparèixer de cop.",
-            "2. Llisca una mica des de la vora esquerra i torna enrere: la pantalla ha de seguir el dit i tornar al seu lloc sense tancar-se.",
+            "2. Llisca una mica cap a la dreta des del centre de la pantalla i torna enrere: ha de seguir el dit i tornar al seu lloc sense tancar-se.",
             "3. Repeteix el gest fins més d'un quart de pantalla: s'ha de tancar cap a la dreta i deixar Cartera a punt per continuar."
           ]
         }

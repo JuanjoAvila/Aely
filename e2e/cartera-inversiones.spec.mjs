@@ -418,8 +418,8 @@ test("Inversiones v4: reducir movimiento evita animaciones y el total no espera 
   expect(motion.hero).toBe("none");
   expect(motion.bar).toBe("none");
   const cdp = await page.context().newCDPSession(page);
-  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 8, y: 250 }] });
-  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 240, y: 250 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 150, y: 250 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 340, y: 250 }] });
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
   await page.waitForTimeout(30);
   await expect(page.locator("[data-inv-screen]")).toHaveCount(0);
@@ -515,7 +515,7 @@ test("Inversiones v4: apertura medida con CPU x6", async ({ page, browserName })
   expect(median).toBeLessThan(600);
 });
 
-test("Inversiones v4: la pantalla entra como página y el gesto de borde acompaña, cancela y cierra", async ({ page, browserName }) => {
+test("Inversiones v4: la pantalla entra como página y el gesto desde cualquier punto acompaña, cancela y cierra", async ({ page, browserName }) => {
   test.skip(browserName !== "chromium", "El gesto táctil real usa CDP");
   await seedLoggedInDashboard(page, { investments });
   await page.goto("/");
@@ -548,10 +548,27 @@ test("Inversiones v4: la pantalla entra como página y el gesto de borde acompa�
   await expect.poll(() => screen.evaluate((el) => Math.abs(new DOMMatrix(getComputedStyle(el).transform).m41))).toBeLessThan(2);
   const cdp = await page.context().newCDPSession(page);
 
+  // Arrastrar para seleccionar o mover el cursor dentro de un campo no reclama el gesto de página.
+  await page.locator('[data-inv-add-origin="global"]').click();
+  const add=page.locator("[data-inv-manual-add]");
+  const name=add.locator('[data-field="inv-name"]');
+  const field=await name.boundingBox();
+  expect(field).not.toBeNull();
+  const hit=await page.evaluate(function(p){
+    const el=document.elementFromPoint(p.x,p.y);
+    return !!(el&&el.closest&&el.closest('[data-field="inv-name"]'));
+  },{x:field.x+20,y:field.y+field.height/2});
+  expect(hit,"el toque de prueba debe caer dentro del campo").toBe(true);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: field.x+20, y: field.y+field.height/2 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: field.x+90, y: field.y+field.height/2 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect.poll(() => screen.evaluate((el) => Math.abs(new DOMMatrix(getComputedStyle(el).transform).m41))).toBeLessThan(2);
+  await add.getByRole("button",{name:/Cancelar|Cancel|Cancel·la/i}).click();
+
   // Un arrastre corto sigue el dedo, pero al soltar vuelve a su sitio y no cierra.
-  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 8, y: 250 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 190, y: 250 }] });
   await page.waitForTimeout(300);
-  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 86, y: 250 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 268, y: 250 }] });
   const dragged = await screen.evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41);
   expect(dragged).toBeGreaterThan(55);
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
@@ -559,15 +576,23 @@ test("Inversiones v4: la pantalla entra como página y el gesto de borde acompa�
   await expect(screen).toHaveCount(1);
 
   // Si Android cancela el toque, tampoco cuenta como Atrás.
-  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 8, y: 250 }] });
-  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 120, y: 250 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 190, y: 250 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 300, y: 250 }] });
   await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
   await expect.poll(() => screen.evaluate((el) => Math.abs(new DOMMatrix(getComputedStyle(el).transform).m41))).toBeLessThan(2);
   await expect(screen).toHaveCount(1);
 
   // El gesto completo sale hacia la derecha y devuelve el foco a su puerta en Cartera.
-  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 8, y: 250 }] });
-  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 240, y: 250 }] });
+  // Una bajada normal desde el centro sigue perteneciendo al scroll y no desplaza la hija.
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 190, y: 420 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 194, y: 320 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect.poll(() => screen.evaluate((el) => Math.abs(new DOMMatrix(getComputedStyle(el).transform).m41))).toBeLessThan(2);
+  await expect(screen).toHaveCount(1);
+
+  // El gesto completo también puede nacer en el centro, no en el borde que Android intercepta.
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 150, y: 250 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 340, y: 250 }] });
   const closing = await screen.evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41);
   expect(closing).toBeGreaterThan(180);
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });

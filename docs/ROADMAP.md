@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-23 · **v4.26.16** preparada para beta — la pantalla completa de Inversiones entra desde la derecha y vuelve con un gesto de borde que acompaña el dedo; producción continúa en 4.25.7 y no se ha tocado. Comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-23 · **v4.26.16** preparada para beta — la pantalla completa de Inversiones entra desde la derecha y vuelve deslizando hacia la derecha desde cualquier punto; producción continúa en 4.25.7 y no se ha tocado. Comprobar disponibilidad real con `npm run salud`.
 > Anterior: **v4.26.15** — «Actualizar inversiones» consulta brókers y precios y conserva los fallos parciales en un único aviso.
 > Anterior: **v4.26.14** — el resumen de Inversiones enseña beneficio en euros y porcentaje sin inventarlo cuando falta el coste.
 > Anterior: **v4.26.13** — los candados desaparecen de la interfaz sin retirar ninguna protección.
