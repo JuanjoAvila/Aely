@@ -2660,10 +2660,10 @@ function App(){
       const eje=gestureAxis(ddx,ddy);
       if(!eje) return;
       /* A MITAD, ABAJO o ARRIBA: el arco del pulgar gana `x` pronto → preventDefault +
-         leaveScrollHost + freezeShell matan scroll/ola. En el borde INFERIOR no se negocia:
-         aunque el primer tramo parezca horizontal, pertenece al rebote nativo hasta que el
-         usuario suba contenido. Antes una deriva de 40 px al segundo tirón revelaba la barra y
-         desmontaba el host (vídeo Oppo 16/9). Arriba/mitad aún admiten un horizontal inequívoco. */
+         leaveScrollHost + freezeShell matan scroll/ola. Una diagonal sigue siendo scroll/ola,
+         también en el fondo; pero un horizontal inequívoco tiene que cambiar de pestaña sin
+         obligarle a subir antes (feedback 23/9). El vídeo Oppo del 16/9 queda cubierto porque su
+         deriva tenía componente vertical y no supera esta guarda. */
       if(eje==="x"){
         const pages0=trackRef.current&&trackRef.current.children;
         const pg0=pages0&&pages0[tab];
@@ -2672,7 +2672,13 @@ function App(){
           const atTop=st0<=2;
           const mid0=st0>2 && max0-st0>2;
           const atBottom=max0>0 && (max0-st0)<=2;
-          if(atBottom || ((atTop||mid0) && !(Math.abs(ddy)<16 && Math.abs(ddx)>36))){
+          /* En el fondo esperamos algo más: la primera deriva del arco puede parecer lateral
+             durante 55 px y girar después hacia la ola. A partir de 60 px casi rectos ya es
+             una intención horizontal real, no ese arranque diagonal. */
+          const horizontalClaro=atBottom
+            ? Math.abs(ddy)<12 && Math.abs(ddx)>60
+            : Math.abs(ddy)<16 && Math.abs(ddx)>36;
+          if((atBottom||atTop||mid0) && !horizontalClaro){
             return;
           }
         }

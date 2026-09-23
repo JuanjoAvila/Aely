@@ -190,3 +190,52 @@ test("una deriva lateral del pulgar en el borde sigue siendo ola y no abre la ba
   expect(s.host, "el arco del pulgar no puede desmontar el host de la ola").toBe(true);
   expect(await page.evaluate(() => document.querySelector(".botnav-tab.active")?.getAttribute("data-tour"))).toBe("gastos");
 });
+
+test("en el fondo un gesto horizontal claro cambia de pantalla sin tener que subir antes", async ({ page }) => {
+  await seedLoggedInDashboard(page, { expenses: historico(200) });
+  await page.goto("/");
+  await appLista(page);
+  await irAGastosConTodo(page);
+  await irAlFondo(page);
+
+  const cdp = await page.context().newCDPSession(page);
+  /* y=200 evita los scrollers propios de Gastos; el gesto pertenece al carrusel. */
+  const y = 200, x0 = 300;
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: x0, y }] });
+  /* El borde espera a distinguir el horizontal del arco de la ola: el primer tramo ya tiene
+     72 px y cero deriva vertical, como un swipe deliberado entre pestañas. */
+  for (let i = 3; i <= 12; i++) {
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x0 - i * 20, y }] });
+    await page.waitForTimeout(12);
+  }
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+
+  await expect.poll(() => page.evaluate(() => document.querySelector(".botnav-tab.active")?.getAttribute("data-tour")))
+    .toBe("plan");
+});
+
+test("las pantallas y Ajustes conservan scroll pero no dibujan la barra lateral", async ({ page }) => {
+  await seedLoggedInDashboard(page, { expenses: historico(200) });
+  await page.goto("/");
+  await appLista(page);
+  await irAGastosConTodo(page);
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-settings")));
+  await expect(page.locator(".settings-push.open")).toBeVisible();
+
+  const superficies = await page.evaluate(() => {
+    const els = [document.querySelector(".page.page-live"), document.querySelector(".settings-push.open")];
+    return els.map((el) => {
+      if (!el) return { existe:false };
+      const css = getComputedStyle(el);
+      const bar = getComputedStyle(el, "::-webkit-scrollbar");
+      return { existe:!!el, overflowY:css.overflowY, ancho:css.scrollbarWidth, display:bar.display,
+        barWidth:bar.width };
+    });
+  });
+  for (const s of superficies) {
+    expect(s.existe).toBe(true);
+    expect(["auto", "scroll"]).toContain(s.overflowY);
+    expect(s.ancho).toBe("none");
+    expect(s.display).toBe("none");
+  }
+});

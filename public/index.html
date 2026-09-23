@@ -146,7 +146,7 @@
     --cyber-mag:#FF2E97; --cyber-cyan:#3CE7FF;
     --shadow:0 18px 40px -22px rgba(255,46,151,.28);
   }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;scrollbar-width:none;-ms-overflow-style:none;}
   /* color-scheme: evita que el "modo oscuro automático" del navegador (Chrome Android)
      oscurezca a la fuerza el tema claro. Base = oscuro; el tema claro lo marca como light. */
   html{color-scheme:dark;}
@@ -206,7 +206,10 @@
      (`user-select` de la fila), y el veredicto de verdad es el suyo en el móvil. */
   button,.v4-mov,.v4-charge{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
   input,select{font-family:inherit;}
-  ::-webkit-scrollbar{width:0;height:0;}
+  /* La WebView puede seguir dibujando el indicador lateral aunque mida cero. `display:none`
+     quita solo la barra visual: todas las superficies conservan overflow y gesto (feedback
+     2026-09-23, también visible en Ajustes). Firefox/Chromium nuevo quedan cubiertos arriba. */
+  ::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;background:transparent!important;}
 
   /* FONDO OPACO (feedback 5/8 22:00: «sale ese verde clarito cuando scrolleas»). `.app` era
      transparente, así que al deslizar entre pestañas —cuando se quita `page-scroll-host` y con él
@@ -24597,10 +24600,10 @@ function App(){
       const eje=gestureAxis(ddx,ddy);
       if(!eje) return;
       /* A MITAD, ABAJO o ARRIBA: el arco del pulgar gana `x` pronto → preventDefault +
-         leaveScrollHost + freezeShell matan scroll/ola. En el borde INFERIOR no se negocia:
-         aunque el primer tramo parezca horizontal, pertenece al rebote nativo hasta que el
-         usuario suba contenido. Antes una deriva de 40 px al segundo tirón revelaba la barra y
-         desmontaba el host (vídeo Oppo 16/9). Arriba/mitad aún admiten un horizontal inequívoco. */
+         leaveScrollHost + freezeShell matan scroll/ola. Una diagonal sigue siendo scroll/ola,
+         también en el fondo; pero un horizontal inequívoco tiene que cambiar de pestaña sin
+         obligarle a subir antes (feedback 23/9). El vídeo Oppo del 16/9 queda cubierto porque su
+         deriva tenía componente vertical y no supera esta guarda. */
       if(eje==="x"){
         const pages0=trackRef.current&&trackRef.current.children;
         const pg0=pages0&&pages0[tab];
@@ -24609,7 +24612,13 @@ function App(){
           const atTop=st0<=2;
           const mid0=st0>2 && max0-st0>2;
           const atBottom=max0>0 && (max0-st0)<=2;
-          if(atBottom || ((atTop||mid0) && !(Math.abs(ddy)<16 && Math.abs(ddx)>36))){
+          /* En el fondo esperamos algo más: la primera deriva del arco puede parecer lateral
+             durante 55 px y girar después hacia la ola. A partir de 60 px casi rectos ya es
+             una intención horizontal real, no ese arranque diagonal. */
+          const horizontalClaro=atBottom
+            ? Math.abs(ddy)<12 && Math.abs(ddx)>60
+            : Math.abs(ddy)<16 && Math.abs(ddx)>36;
+          if((atBottom||atTop||mid0) && !horizontalClaro){
             return;
           }
         }
