@@ -12,6 +12,7 @@
 - [★★ Cómo se promociona a prod](promote-4-19-106-como-se-hizo.md) — ⚠ FF o `merge -s ours`; cabeza `[skip ci]`; `deploy.yml` a mano; nota única `tandas:[]`; puente con `gh api PUT`; Edge una a una. Repetido 4.20.4, 4.21.2, 4.22.3.
 - [★★ Seguridad OPS-06](ops-06-seguridad-hallazgos.md) — token de ingest en la APK (cerrado, APK 46), Hogar (0022), app_events (0023), BD viva (0024). DEC-01: Play Store AL FINAL.
 - [★ BD viva: faltaba el grant de la 0012 (14/9)](bd-viva-grants-0024.md) — ⚠ MyInvestor no sincronizaba solo; 0024 aplicada y verificada. SQL Editor con monaco + gridcell + begin/rollback.
+- [★ Revisar el worktree de otro agente](revisar-worktree-de-otro-agente.md) — patch de su trabajo + worktree detached propio + junction de `node_modules` por PowerShell (`mklink` desde Bash crea enlace roto); build limpia = bundle que cuadra con `src`.
 - [⚠ e2e: un solo npm test a la vez EN LA MÁQUINA](e2e-puerto-compartido.md) — puerto por cwd desde 10/9, pero dos suites dan rojos de infra (`ERR_CONNECTION_REFUSED`, `ERR_NO_BUFFER_SPACE`). Avisar por el buzón antes de lanzar.
 - [★ Un móvil viejo repite movimientos (15/9)](movil-viejo-repite-movimientos.md) — el +18,09: web con estado de 3 días sincronizó antes del pull; el banco espera a la nube; NO re-marcar repetidos desde el móvil.
 - [⚠ La CI de beta corre en UTC](ci-beta-corre-en-utc.md) — `TZ=UTC npm test` además del local.
