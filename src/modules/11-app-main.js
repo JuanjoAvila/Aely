@@ -2686,13 +2686,14 @@ function App(){
           const atBottom=max0>0 && (max0-st0)<=2;
           /* El arco real del Oppo llegó a 55 px laterales, pero ya llevaba 10 px verticales antes
              de girar hacia la ola. Esperar siempre a 60 px hacía que Android cancelara muchos
-             horizontales antes de que el carrusel pudiera reclamarlos. Un gesto casi recto
-             (menos de 4 px verticales) se acepta desde 36 px; si deriva más, conserva el umbral
-             seguro de 60 px que protege aquel arco. */
+             horizontales antes de que el carrusel pudiera reclamarlos. Android puede cancelar
+             la segunda muestra si la primera se deja al scroll, así que la frontera debe poder
+             decidir con una: solo menos de 3 px verticales desde 36 px es recto; 38/3 seguido de
+             un giro conserva la ola. Si deriva más, sigue el umbral seguro de 60 px. */
           let horizontalClaro=Math.abs(ddy)<16 && Math.abs(ddx)>36;
           if(atBottom){
-            horizontalClaro=(Math.abs(ddy)<4 && Math.abs(ddx)>36)
-              || (Math.abs(ddy)<12 && Math.abs(ddx)>60);
+            const adx=Math.abs(ddx), ady=Math.abs(ddy);
+            horizontalClaro=(ady<3 && adx>36) || (ady<12 && adx>60);
           }
           if((atBottom||atTop||mid0) && !horizontalClaro){
             return;

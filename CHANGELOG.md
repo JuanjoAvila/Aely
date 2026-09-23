@@ -1,3 +1,17 @@
+## [4.26.29] - 2026-09-23
+### El gesto inferior se reclama antes y la barra se apaga en la WebView
+
+El rechazo real de 4.26.24.1 separó dos fallos. En el fondo, esperar siempre más de 60 px antes de
+reclamar el eje horizontal daba tiempo a Android a cancelar el toque; ahora un movimiento casi
+recto se reclama desde 36 px, mientras una deriva de 10 px conserva el umbral anterior y sigue
+acabando en el rebote vertical. El E2E comprueba ambos recorridos y que el primero funciona con un
+solo intento.
+
+La barra que sobrevivía a `scrollbar-width:none` y `::-webkit-scrollbar` era el indicador de la
+WebView. `MainActivity`, después de crear el Bridge, desactiva solo sus indicadores vertical y
+horizontal; no toca el overflow, la inercia ni el rubber-band. El guardián Android exige ambas
+llamadas y Java compila contra la WebView real de Capacitor. Es un cambio nativo: APK 47 / 4.26.29.
+
 ## [4.26.28] - 2026-09-23
 ### Inicio deja de convertir una base incompleta en una ganancia
 

@@ -191,6 +191,29 @@ test("una deriva lateral del pulgar en el borde sigue siendo ola y no abre la ba
   expect(await page.evaluate(() => document.querySelector(".botnav-tab.active")?.getAttribute("data-tour"))).toBe("gastos");
 });
 
+test("un gesto que empieza lateral y gira hacia arriba sigue siendo ola", async ({ page }) => {
+  await seedLoggedInDashboard(page, { expenses: historico(200) });
+  await page.goto("/");
+  await appLista(page);
+  await irAGastosConTodo(page);
+  await irAlFondo(page);
+
+  const cdp = await page.context().newCDPSession(page);
+  const x0 = 300, y0 = 200;
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: x0, y: y0 }] });
+  /* Aunque una muestra aislada parezca casi recta y cruce 36 px, con 3 px de deriva el giro
+     posterior debe conservar la ola. Es la frontera que señaló la revisión externa. */
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x0 - 38, y: y0 - 3 }] });
+  expect((await estado(page)).host, "una sola muestra a 38/3 todavía pertenece al scroll nativo").toBe(true);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x0 - 45, y: y0 - 6 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x0 - 55, y: y0 - 10 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x0 - 55, y: y0 - 60 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+
+  expect((await estado(page)).host, "el giro vertical no puede desmontar el host de la ola").toBe(true);
+  expect(await page.evaluate(() => document.querySelector(".botnav-tab.active")?.getAttribute("data-tour"))).toBe("gastos");
+});
+
 test("en el fondo un gesto horizontal claro cambia de pantalla sin tener que subir antes", async ({ page }) => {
   await seedLoggedInDashboard(page, { expenses: historico(200) });
   await page.goto("/");
@@ -224,8 +247,8 @@ test("en el fondo reclama pronto un horizontal corto y recto, sin esperar varios
   const cdp = await page.context().newCDPSession(page);
   const y = 200, x0 = 300;
   await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: x0, y }] });
-  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x0 - 38, y: y - 2 }] });
-  expect((await estado(page)).host, "un horizontal recto debe reclamarse antes de que Android lo cancele").toBe(false);
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x0 - 38, y: y - 1 }] });
+  expect((await estado(page)).host, "un horizontal recto debe reclamarse antes de que Android cancele").toBe(false);
   await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x0 - 110, y: y - 3 }] });
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
 

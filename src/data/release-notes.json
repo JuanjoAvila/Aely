@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.29",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Deslizar desde el final responde a la primera",
+      "en": "Swiping from the bottom responds first time",
+      "ca": "Lliscar des del final respon a la primera"
+    },
+    "items": {
+      "es": [
+        "Un gesto horizontal corto y recto cambia de pantalla desde el final sin obligarte a insistir.",
+        "La actualización de la app quita la barra gris lateral de Android sin perder el desplazamiento ni el rebote."
+      ],
+      "en": [
+        "A short, straight horizontal gesture switches screens from the bottom without making you try again.",
+        "The app update removes Android's grey side scrollbar without losing scrolling or bounce."
+      ],
+      "ca": [
+        "Un gest horitzontal curt i recte canvia de pantalla des del final sense obligar-te a insistir.",
+        "L'actualització de l'app treu la barra grisa lateral d'Android sense perdre el desplaçament ni el rebot."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "scroll-fondo-sin-barra",
+        "t": {
+          "es": "Navegación desde el fondo sin barra",
+          "en": "Bottom navigation without a scrollbar",
+          "ca": "Navegació des del final sense barra"
+        },
+        "items": {
+          "es": [
+            "1. Comprueba en Ajustes que pone web 4.26.29 y app 4.26.29; si la app es anterior, instala la actualización ofrecida y vuelve a abrirla.",
+            "2. Baja al final de una pantalla larga y haz un gesto horizontal corto y recto: debe cambiar a la primera.",
+            "3. Desde el mismo final, empieza hacia un lado y gira hacia arriba: debe mantener el rebote sin cambiar de pantalla.",
+            "4. Recorre una pantalla larga y Ajustes: deben desplazarse sin mostrar la barra gris de la derecha."
+          ],
+          "en": [
+            "1. In Settings, check that it says web 4.26.29 and app 4.26.29; if the app is older, install the offered update and reopen it.",
+            "2. Scroll to the bottom of a long screen and make a short, straight horizontal gesture: it should switch first time.",
+            "3. From the same bottom edge, start sideways and turn upwards: the bounce should remain without switching screens.",
+            "4. Scroll through a long screen and Settings: both should move without showing the grey bar on the right."
+          ],
+          "ca": [
+            "1. Comprova a Ajustos que posa web 4.26.29 i app 4.26.29; si l'app és anterior, instal·la l'actualització oferta i torna-la a obrir.",
+            "2. Baixa al final d'una pantalla llarga i fes un gest horitzontal curt i recte: ha de canviar a la primera.",
+            "3. Des del mateix final, comença cap a un costat i gira cap amunt: ha de mantenir el rebot sense canviar de pantalla.",
+            "4. Recorre una pantalla llarga i Ajustos: s'han de desplaçar sense mostrar la barra grisa de la dreta."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.28",
     "d": "23 sep 2026",
     "t": {
@@ -224,33 +277,7 @@
         "El rebot vertical d'Android continua funcionant i les barres laterals deixen de veure's, també a Ajustos."
       ]
     },
-    "tandas": [
-      {
-        "id": "scroll-fondo-sin-barra",
-        "t": {
-          "es": "Navegación desde el fondo sin barras",
-          "en": "Bottom navigation without scrollbars",
-          "ca": "Navegació des del final sense barres"
-        },
-        "items": {
-          "es": [
-            "1. En una pantalla larga, baja hasta el final y desliza claramente en horizontal: debe cambiar de pantalla sin tener que subir antes.",
-            "2. Vuelve al final y arrastra en vertical o diagonal: debe aparecer el rebote normal sin cambiar de pantalla por error.",
-            "3. Recorre una pantalla larga y Ajustes: todo debe seguir desplazándose, pero no debe verse la barra lateral derecha."
-          ],
-          "en": [
-            "1. On a long screen, scroll to the bottom and swipe clearly sideways: it should switch screens without making you scroll up first.",
-            "2. Return to the bottom and drag vertically or diagonally: the normal bounce should appear without switching screens by mistake.",
-            "3. Scroll through a long screen and Settings: both should still scroll, but the right-hand scrollbar should not be visible."
-          ],
-          "ca": [
-            "1. En una pantalla llarga, baixa fins al final i llisca clarament en horitzontal: ha de canviar de pantalla sense haver de pujar abans.",
-            "2. Torna al final i arrossega en vertical o diagonal: ha d'aparèixer el rebot normal sense canviar de pantalla per error.",
-            "3. Recorre una pantalla llarga i Ajustos: tot ha de continuar desplaçant-se, però no s'ha de veure la barra lateral dreta."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.23",
