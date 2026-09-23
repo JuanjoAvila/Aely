@@ -1,3 +1,21 @@
+## [4.26.15] - 2026-09-23
+### «Actualizar inversiones» sincroniza brókers y precios sin ocultar fallos (feedback 18/9, punto 16)
+
+El botón de la pantalla de Inversiones ejecuta dos fases solo a demanda: primero `runBrokerSync`
+para Trade Republic/MyInvestor y después `fetchPrices(true)` para las cotizaciones. No llama a Open
+Banking ni reintroduce sincronización automática al abrir. `runBrokerSync` devuelve ahora un
+resultado estructurado de ocupación/intentos junto a los avisos recogidos, y la pantalla conserva esos
+avisos hasta componer un único resultado con el de precios. Así una sesión caducada
+o una respuesta blanda no queda tapada por un «Precios actualizados» posterior.
+La ruta específica de Inversiones reconoce también MyInvestor si ya llega con `status="expired"`;
+los avisos blandos nuevos de MyInvestor
+quedan acotados a este botón y no cambian el contrato del sincronizador global.
+
+Si no hay ticker, la fase de bróker sigue disponible; si tampoco existe una conexión real, se dice
+sin fingir una consulta. Tres regresiones E2E cubren el refresco MyInvestor sin ticker, el resultado
+parcial con consentimiento caducado y el caso sin bróker conectado. Sin cambios de backend,
+Android ni APK nueva; el punto 17 queda fuera de esta tanda.
+
 ## [4.26.14] - 2026-09-23
 ### Beneficio en euros y porcentaje antes de «Ver todas» (feedback 18/9, punto 15)
 

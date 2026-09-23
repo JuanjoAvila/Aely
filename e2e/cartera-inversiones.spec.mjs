@@ -275,6 +275,108 @@ test("Inversiones v4: actualizar precios confirma la hora real", async ({ page }
   await expect(page.locator("[data-inv-hero]")).toContainText("320");
 });
 
+test("Inversiones v4: actualizar inversiones resincroniza el bróker aunque no haya ticker", async ({ page }) => {
+  await seedLoggedInDashboard(page, {
+    investments: [{ id:"mi", ent:"myinvestor", name:"Fondo indexado", isin:"IE00TEST", shares:2, value:100, cost:80, cur:"EUR" }],
+    lastMiSync: Date.now(), // evita el sync automático; el botón manual debe saltarse el throttle
+    __cloudRows: { myinvestor_links:[{ status:"active" }] },
+    __cloudFns: {
+      "myinvestor-sync": { data:{ ok:true, positions:[{ isin:"IE00TEST", name:"Fondo indexado", shares:2, value:250, cost:80 }] }, error:null },
+    },
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout:15_000 });
+  await dismissNews(page);
+  await openInvestments(page);
+
+  const refresh=page.locator('[data-act="inv-refresh"]');
+  await expect(refresh).toContainText(/Actualizar inversiones|Update investments|Actualitzar inversions/i);
+  await expect(refresh).toBeEnabled();
+  await refresh.click();
+  await expect(page.locator("[data-inv-hero]")).toContainText("250");
+  await expect(page.locator(".toast")).toContainText(/Brókers al día|Brokers up to date|Brókers al dia/i);
+});
+
+test("Inversiones v4: un bróker caducado no queda tapado por el éxito de precios", async ({ page }) => {
+  await seedLoggedInDashboard(page, {
+    investments: [{ id:"mi-exp", ent:"myinvestor", name:"Fondo", ticker:"TEST", shares:2, value:100, cost:80, cur:"EUR" }],
+    lastMiSync: Date.now(),
+    lastPriceSync: Date.now()-60_000,
+    __cloudRows: { myinvestor_links:[{ status:"active" }] },
+    __cloudFns: {
+      "myinvestor-sync": { data:{ ok:false, authExpired:true }, error:null },
+      prices: { data:{ prices:{ TEST:160 } }, error:null },
+    },
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout:15_000 });
+  await dismissNews(page);
+  await openInvestments(page);
+
+  await page.locator('[data-act="inv-refresh"]').click();
+  const toast=page.locator(".toast");
+  await expect(toast).toContainText("MyInvestor");
+  await expect(toast).toContainText(/caducada|expired|caducada/i);
+  await expect(toast).toContainText(/Precios actualizados|Prices updated|Preus actualitzats/i);
+  await expect(page.locator("[data-inv-hero]")).toContainText("320");
+});
+
+test("Inversiones v4: MyInvestor ya caducado no se confunde con ningún bróker conectado", async ({ page }) => {
+  await seedLoggedInDashboard(page, {
+    investments: [{ id:"mi-expired", ent:"myinvestor", name:"Fondo", value:100, cost:80, cur:"EUR" }],
+    lastMiSync: Date.now(),
+    __cloudRows: { myinvestor_links:[{ status:"expired" }] },
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout:15_000 });
+  await dismissNews(page);
+  await openInvestments(page);
+
+  await page.locator('[data-act="inv-refresh"]').click();
+  const toast=page.locator(".toast");
+  await expect(toast).toContainText("MyInvestor");
+  await expect(toast).toContainText(/caducada|expired/i);
+  await expect(toast).not.toContainText(/Sin brókers|No brokers|Sense bròkers/i);
+});
+
+test("Inversiones v4: un bróker sin respuesta tampoco queda tapado por el éxito de precios", async ({ page }) => {
+  await seedLoggedInDashboard(page, {
+    investments: [{ id:"mi-soft", ent:"myinvestor", name:"Fondo", ticker:"TEST", shares:2, value:100, cost:80, cur:"EUR" }],
+    lastMiSync: Date.now(),
+    lastPriceSync: Date.now()-60_000,
+    __cloudRows: { myinvestor_links:[{ status:"active" }] },
+    __cloudFns: {
+      "myinvestor-sync": { data:{ ok:false }, error:null },
+      prices: { data:{ prices:{ TEST:160 } }, error:null },
+    },
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout:15_000 });
+  await dismissNews(page);
+  await openInvestments(page);
+
+  await page.locator('[data-act="inv-refresh"]').click();
+  const toast=page.locator(".toast");
+  await expect(toast).toContainText("MyInvestor");
+  await expect(toast).toContainText(/no respondió|didn't answer|no ha respost/i);
+  await expect(toast).toContainText(/Precios actualizados|Prices updated|Preus actualitzats/i);
+  await expect(page.locator("[data-inv-hero]")).toContainText("320");
+});
+
+test("Inversiones v4: sin conexión ni ticker no finge haber consultado un bróker", async ({ page }) => {
+  await seedLoggedInDashboard(page, {
+    investments:[{id:"manual",ent:"myinvestor",name:"Fondo manual",value:100,cost:80,cur:"EUR"}],
+    __cloudRows:{myinvestor_links:[]},
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({timeout:15_000});
+  await dismissNews(page);
+  await openInvestments(page);
+
+  await page.locator('[data-act="inv-refresh"]').click();
+  await expect(page.locator(".toast")).toContainText(/Sin brókers conectados|No brokers connected|Sense bròkers connectats/i);
+});
+
 test("Inversiones v4: datos viejos siguen visibles y un fallo conserva los datos con reintento", async ({ page }) => {
   const old = Date.now() - 72 * 60 * 60 * 1000;
   await seedLoggedInDashboard(page, {

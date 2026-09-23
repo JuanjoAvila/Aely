@@ -1012,7 +1012,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, show
     ));
 }
 
-function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, onReconnectBank, showToast}){
+function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, syncInv, onReconnectBank, showToast}){
   const [invTools,setInvTools]=useState(false);
   const invLinkRef=useRef(null);
   const closeInvestments=function(){
@@ -1201,17 +1201,17 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       ) },
       !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise",style:{animationDelay:".12s"}},
         React.createElement("div",{className:"v4-sec-h"}, t("v4_inversiones")),
-        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,v4Embed:true,showToast:showToast}),
+        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,v4Embed:true,showToast:showToast}),
         React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:10},ref:invLinkRef,onClick:function(){ setInvTools(true); }}, t("iv_see_all")+" ›")
       ) }
     ]}),
     // La hija vive FUERA de los bloques ordenables: es un portal, no una sección, y meterla
     // dentro la desmontaría al reordenar (cerrándose sola a media consulta).
-    !simple && React.createElement(InvestmentsPush,{open:invTools,onClose:closeInvestments,state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,showToast:showToast})
+    !simple && React.createElement(InvestmentsPush,{open:invTools,onClose:closeInvestments,state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast})
   );
 }
 
-function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, showToast}){
+function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncInv, showToast}){
   const titleRef=useRef(null);
   const screenRef=useRef(null);
   useBackClose(!!open, onClose);
@@ -1246,7 +1246,7 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, showT
         React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:onClose},"‹"),
         React.createElement("h1",{id:"iv-screen-title",tabIndex:-1,ref:titleRef}, t("iv_title"))
       ),
-      React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,fullMode:true,showToast:showToast})
+      React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,fullMode:true,showToast:showToast})
     ), document.body);
 }
 

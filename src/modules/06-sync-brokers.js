@@ -725,7 +725,7 @@ function InvestmentRewards({state,set}){
   );
 }
 
-function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, fullMode, showToast}){
+function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsMode, fullMode, showToast}){
   const fx=state.fx;   // USD→EUR (legacy + display toggle); GBP/CHF van en state.fxRates
   const [editing,setEditing]=useState(false);
   const [showCost,setShowCost]=useState(false);
@@ -738,7 +738,9 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
   const manualTriggerRef=useRef(null);
   const manualOriginRef=useRef(null);
   const [refreshError,setRefreshError]=useState(false);
+  const [invBusy,setInvBusy]=useState(false);
   const lastPriceRef=useRef(state.lastPriceSync||null);
+  const notes=useRef([]);
   const refreshBefore=useRef(null);
   const refreshCheckRef=useRef(0);
   const didAuto=useRef(false);
@@ -865,27 +867,57 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
       clearTimeout(refreshCheckRef.current);
       refreshBefore.current=null;
       setRefreshError(false);
+      const notices=notes.current.splice(0);
       if(showToast){
         const time=new Date(next).toLocaleTimeString(loc(),{hour:"2-digit",minute:"2-digit"});
-        showToast(tf("iv_refresh_ok",{time:time}));
+        showToast(notices.concat([tf("iv_refresh_ok",{time:time})]).join(" · "));
       }
     }
     lastPriceRef.current=next;
   },[state.lastPriceSync]);
   useEffect(function(){ return function(){ clearTimeout(refreshCheckRef.current); }; },[]);
   const refreshPrices=function(){
-    if(pricing||!hasTickers) return;
+    if(pricing||invBusy||(!hasTickers&&!syncInv)) return;
     const before=lastPriceRef.current;
     refreshBefore.current=before;
+    notes.current=[];
     setRefreshError(false);
-    // fetchPrices conserva su contrato actual y sus avisos. Como no devuelve un resultado
-    // estructurado, solo damos por buena la lectura cuando cambia su sello real.
-    Promise.resolve().then(function(){ return fetchPrices(false); }).then(function(){
+    setInvBusy(true);
+    /* «Actualizar inversiones» son dos fases explícitas: primero la foto de TR/MyInvestor y luego
+       las cotizaciones. Nunca llama a Open Banking ni corre al abrir la pantalla. */
+    Promise.resolve().then(function(){ return syncInv?syncInv():null; }).then(function(r){
+      if(r&&r.b){
+        refreshBefore.current=null;
+        if(showToast) showToast(t("g_syncing"));
+        return false;
+      }
+      notes.current=r&&Array.isArray(r.msgs)?r.msgs.slice():[];
+      if(!hasTickers){
+        refreshBefore.current=null;
+        if(showToast) showToast(notes.current.join(" · ")||t(r&&r.n===0?"iv_broker_none":"v4_sync_brokers_ok"));
+        notes.current=[];
+        return false;
+      }
+      /* `silent` evita que «actualizando/✓ precios» tape una caducidad o fallo de bróker. El aviso
+         único se compone al cambiar el sello real de precios. */
+      return Promise.resolve(fetchPrices(true)).then(function(){ return true; });
+    }).then(function(didFetch){
+      if(!didFetch) return;
       clearTimeout(refreshCheckRef.current);
       refreshCheckRef.current=setTimeout(function(){
-        if(refreshBefore.current!==null&&lastPriceRef.current===before) setRefreshError(true);
+        if(refreshBefore.current!==null&&lastPriceRef.current===before){
+          setRefreshError(true);
+          refreshBefore.current=null;
+          if(showToast&&notes.current.length) showToast(notes.current.join(" · "));
+          notes.current=[];
+        }
       },700);
-    }).catch(function(){ setRefreshError(true); });
+    }).catch(function(){
+      setRefreshError(true);
+      refreshBefore.current=null;
+      if(showToast&&notes.current.length) showToast(notes.current.join(" · "));
+      notes.current=[];
+    }).then(function(){ setInvBusy(false); });
   };
   const restoreManualFocus=function(preferredEnt){
     const target=manualTriggerRef.current;
@@ -979,8 +1011,7 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode, full
 
       React.createElement("div",{className:"v4-sec-h",style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,marginTop:22}},
         React.createElement("span",null,t("iv_where")),
-        React.createElement("button",{type:"button",className:"v4-link-mini","data-act":"inv-refresh",disabled:pricing||!hasTickers,"aria-busy":pricing?"true":"false",onClick:refreshPrices},pricing?t("iv_refreshing"):t("iv_refresh"))),
-      pricing && React.createElement("div",{role:"status",className:"hint",style:{margin:"-2px 2px 10px"}},t("iv_refreshing")),
+        React.createElement("button",{type:"button",className:"v4-link-mini","data-act":"inv-refresh",disabled:pricing||invBusy||(!hasTickers&&!syncInv),"aria-busy":pricing||invBusy?"true":"false",onClick:refreshPrices},pricing||invBusy?t("iv_refreshing"):t("iv_refresh"))),
       refreshError && React.createElement("div",{role:"alert",className:"v4-card",style:{padding:14,border:"1px solid rgba(226,112,95,.45)",background:"rgba(226,112,95,.08)",marginBottom:12}},
         React.createElement("div",{style:{fontWeight:800}},t("iv_refresh_fail")),
         React.createElement("div",{className:"hint",style:{marginTop:4}},tf("iv_refresh_fail_sub",{time:lastTime})),
