@@ -6,6 +6,12 @@ Otoño y Primavera, su persistencia y los modos de movimiento reducido. Está re
 `scripts/relevant-tests.mjs` para ejecutarse cuando cambie esta pantalla. La publicación
 selectiva 4.25.7 no incluye ninguna otra tanda 4.26.
 
+Sin candados (feedback 18/9, punto 14): `tests/no-lock-icons.test.mjs` falla si vuelve un 🔒/🔓/🔐
+a `src/modules` o `shell.html`. También falla si reaparece el recorte «hasta el primer espacio» del
+texto de huella, que sin emoji se comería el verbo. `e2e/sin-candados.spec.mjs` abre Ajustes → Tu
+cuenta y Privacidad y comprueba lo pintado. `cartera-ficha-cuenta` y `listas-render` comprueban que
+la cuenta conectada y el banner de reconectar siguen protegidos, pero sin el icono.
+
 Lectura bancaria 4.25.4: `tests/bank-sync-paging.test.mjs` ejecuta el handler real con BD y proveedor
 simulados (sin consultar bancos): páginas vacías, fallback de periodo, fallo parcial, cursor cíclico,
 cuentas inactivas, aislamiento, timeout y topes. Registrado en `run-tests.mjs` y `STEPS_SUPABASE`;

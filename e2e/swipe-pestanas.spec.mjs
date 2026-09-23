@@ -293,3 +293,36 @@ test("★ al reclamar el gesto, el carrusel arranca donde está y no pega un sal
   expect(primerMovimiento, "el primer fotograma pintado pega un salto: eso es el tironcillo que él ve al ir lento")
     .toBeLessThan(12);
 });
+
+/* El cajón de Ajustes reutiliza la misma guarda de eje del carrusel. Sin restar el ancla, el
+ * primer fotograma saltaba los ~36 px retenidos aunque el resto del arrastre siguiera al dedo. */
+test("★ Ajustes empieza a moverse sin salto y termina abriéndose", async ({ page }) => {
+  await seedLoggedInDashboard(page);
+  await page.goto("/");
+  await appLista(page);
+  const cdp = await page.context().newCDPSession(page);
+  await page.waitForFunction(() => !!document.querySelector(".settings-push"), null, { timeout: 10_000 });
+
+  const leerX = () => page.evaluate(() => {
+    const d = document.querySelector(".settings-push");
+    return d ? new DOMMatrixReadOnly(getComputedStyle(d).transform).m41 : null;
+  });
+  const y = 200, x0 = 60, base = await leerX();
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: x0, y }] });
+  let primero = null;
+  for (let d = 3; d <= 90 && primero === null; d += 3) {
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x0 + d, y }] });
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    const ahora = await leerX();
+    if (ahora !== null && base !== null && Math.abs(ahora - base) > 0.5) primero = Math.abs(ahora - base);
+  }
+  for (let d = 100; d <= 260; d += 20) {
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x0 + d, y }] });
+    await new Promise((r) => setTimeout(r, 16));
+  }
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+
+  expect(primero, "Ajustes no se movió con el arrastre").not.toBeNull();
+  expect(primero, "el primer fotograma del cajón debe seguir al dedo").toBeLessThan(12);
+  await expect(page.locator(".settings-push.open")).toHaveCount(1);
+});

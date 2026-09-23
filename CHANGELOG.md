@@ -1,3 +1,21 @@
+## [4.25.8] - 2026-09-23
+### Ajustes sin salto y protecciones sin candados visuales (aprobados en beta)
+
+Se portan sobre producción únicamente dos tandas aprobadas. El gesto lateral de Ajustes descuenta
+el tramo que se reserva para decidir el eje antes de calcular el progreso visual: la hoja empieza
+en su ancla real y no salta unos 36 px al reclamar el gesto. El umbral de apertura al soltar no
+cambia, porque continúa usando el desplazamiento completo.
+
+Los iconos de candado se retiran de la pantalla de desbloqueo, cuentas conectadas, privacidad,
+notificaciones, biometría y logros. No se elimina ninguna protección: los saldos bancarios siguen
+sin poder editarse, la biometría conserva su interruptor, las cuentas protegidas mantienen sus
+reglas y los logros pendientes siguen diferenciados con un círculo. El texto de huella deja de
+recortarse por el primer espacio, ya que el recorte solo compensaba el emoji anterior.
+
+Unitarios y E2E vigilan que no reaparezcan candados y que las protecciones continúen activas. La
+publicación selectiva no incorpora el rediseño 4.26 ni las tandas de Inversiones. Sin cambios de
+datos, backend, Android ni APK nueva.
+
 ## [4.25.7] - 2026-09-22
 ### Cyberpunk, Otoño y Primavera aprobados como tanda independiente
 
