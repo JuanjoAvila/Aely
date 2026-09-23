@@ -90,14 +90,14 @@ test("4.26.10 aprobada ya no pide temas ni repite veredictos antiguos", async ({
   expect(ronda.pasos).toBe(0);
 });
 
-test("4.26.11 pide solo Ajustes tras aprobar y publicar los temas", async ({ page }) => {
+test("4.26.11 aprobada y publicada ya no vuelve a pedir Ajustes", async ({ page }) => {
   await abrirRevisionBeta(page);
   const ronda = await page.evaluate(() => {
     const pack = betaChecklist("4.26.11.1", "4.25.7");
     return { ids:pack.tandas.map(function(g){ return g.id; }), pasos:pack.items.length };
   });
-  expect(ronda.ids).toEqual(["4.26.11/ajustes-sin-salto"]);
-  expect(ronda.pasos).toBe(2);
+  expect(ronda.ids).toEqual([]);
+  expect(ronda.pasos).toBe(0);
 });
 
 test("betaChecklist casa la beta (4.8.0.17) con las notas de su versión base (4.8.0)", async ({ page }) => {
