@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.23",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Pregúntame responde corto y te lleva al sitio",
+      "en": "Ask me answers briefly and takes you there",
+      "ca": "Pregunta'm respon breu i et porta al lloc"
+    },
+    "items": {
+      "es": [
+        "Pregúntame da primero una respuesta corta y un botón para ir directamente a la pantalla adecuada; el paso a paso solo aparece si se pide.",
+        "Añadir efectivo lleva a Cuentas, mientras que apuntar una compra en efectivo lleva a Apuntar.",
+        "La ayuda con OpenAI sigue siendo opcional: solo se usa al pedir más ayuda y nunca envía saldos ni movimientos."
+      ],
+      "en": [
+        "Ask me starts with a short answer and a button that opens the right screen; step-by-step details only appear when requested.",
+        "Adding cash opens Accounts, while recording a cash purchase opens Add.",
+        "OpenAI help remains optional: it is only used when more help is requested and never sends balances or transactions."
+      ],
+      "ca": [
+        "Pregunta'm mostra primer una resposta breu i un botó que obre la pantalla adequada; el pas a pas només apareix quan es demana.",
+        "Afegir efectiu obre Comptes, mentre que apuntar una compra en efectiu obre Apuntar.",
+        "L'ajuda amb OpenAI continua sent opcional: només s'usa quan es demana més ajuda i mai no envia saldos ni moviments."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "asistente-claro",
+        "t": {
+          "es": "Ayuda breve y con rutas claras",
+          "en": "Short help with clear routes",
+          "ca": "Ajuda breu i amb rutes clares"
+        },
+        "items": {
+          "es": [
+            "1. En Ajustes, abre «Pregúntame» y escribe «¿Dónde añado efectivo?»: debe responder en una frase y ofrecer «Abrir cuentas».",
+            "2. Pregunta «¿Cómo apunto una compra en efectivo?»: debe ofrecer «Apuntar en efectivo». Tócalo y comprueba que abre Apuntar.",
+            "3. En una respuesta, abre «Paso a paso»: debe ampliar la explicación sin convertir la respuesta inicial en un texto largo."
+          ],
+          "en": [
+            "1. In Settings, open “Ask me” and type “Where do I add cash?”: it should answer in one sentence and offer “Open accounts”.",
+            "2. Ask “How do I record a cash purchase?”: it should offer “Record cash expense”. Tap it and check that Add opens.",
+            "3. On an answer, open “Step by step”: it should expand the explanation without turning the initial answer into a long block of text."
+          ],
+          "ca": [
+            "1. A Ajustos, obre «Pregunta'm» i escriu «On afegeixo efectiu?»: ha de respondre en una frase i oferir «Obrir comptes».",
+            "2. Pregunta «Com apunto una compra en efectiu?»: ha d'oferir «Apuntar en efectiu». Toca-ho i comprova que obre Apuntar.",
+            "3. En una resposta, obre «Pas a pas»: ha d'ampliar l'explicació sense convertir la resposta inicial en un text llarg."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.17",
     "d": "23 sep 2026",
     "t": {

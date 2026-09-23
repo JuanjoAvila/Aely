@@ -1,3 +1,23 @@
+## [4.26.23] - 2026-09-23
+### «Pregúntame» prioriza una respuesta breve y una acción directa (feedback 18/9)
+
+La hoja del asistente separa ahora la conversación del compositor fijo: al aparecer el teclado,
+`visualViewport` eleva la hoja y mantiene visibles tanto la pregunta como el botón. La respuesta
+local empieza en una frase normal, con una acción secundaria compacta; el detalle sigue detrás de
+«Paso a paso» y no ocupa la pantalla por defecto. El cierre por botón, fondo, Escape o Atrás pasa
+por la misma animación antes de desmontar.
+
+Las preguntas sobre efectivo distinguen intención: añadir o comprobar saldo abre Cartera →
+Cuentas; comprar, gastar, retirar o apuntar abre Apuntar en efectivo. La detección cubre castellano,
+inglés y catalán y evita confundir «compruebo» con «compro». La ruta se conserva también cuando
+OpenAI propone la guía de efectivo: el servicio solo elige una guía local y nunca recibe saldos ni
+movimientos.
+
+El permiso remoto se explica como ayuda opcional para dudas difíciles. Cada pregunta nueva reinicia
+su intento: primero aparece «Probar con más ayuda» y «Probar otra vez» solo después de un fallo de
+esa misma consulta. Unitarios y E2E cubren rutas, privacidad, 404/429/503/timeout, teclado móvil,
+cierre animado y los tres idiomas. Sin cambios de datos, backend, Android ni APK nueva.
+
 ## [4.26.17] - 2026-09-23
 ### Importar histórico conserva movimientos iguales de cuentas distintas (feedback 18/9, punto 19a)
 
