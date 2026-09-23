@@ -40,6 +40,17 @@ assert.equal(ctx.helpValidatedCue("help_cue_cash"),"help_cue_cash");
 assert.equal(ctx.helpValidatedCue("free prose"),null);
 assert.equal(ctx.helpCueForTopic("cash","help_cue_debts"),"help_cue_cash");
 assert.equal(ctx.helpCueForTopic("delete_all","help_cue_cash"),null);
+ctx.t=()=>"Uno/nDos\\nTres";
+assert.deepEqual(Array.from(ctx.helpStepLines("cash")),["Uno","Dos","Tres"],"normaliza packs cacheados que traigan /n o \\n");
+const i18nSource=fs.readFileSync("src/modules/01-i18n.js","utf8");
+const bodies=Array.from(i18nSource.matchAll(/help_(?:cash|goals|debts|banks|history|categories|receipts)_body:"([^"]*)"/g),m=>m[1]);
+assert.equal(bodies.length,21,"siete guías por tres idiomas");
+for(const raw of bodies){
+  assert.equal(raw.includes("\\\\n"),false,"ninguna guía conserva el separador literal");
+  const lines=JSON.parse('"'+raw+'"').split("\n");
+  assert.equal(lines.length,3,"cada guía tiene tres pasos");
+  assert.ok(lines.every(x=>x.length<=95),"cada paso sigue siendo corto");
+}
 assert.equal(ctx.helpCashWantsAccounts("¿dónde puedo añadir efectivo?"),true);
 assert.equal(ctx.helpCashWantsAccounts("¿cómo añado dinero en efectivo?"),true);
 assert.equal(ctx.helpCashWantsAccounts("¿dónde meto el efectivo?"),true);

@@ -247,6 +247,13 @@ function helpPhrase(cue, vars){
   if(!vars) return raw;
   return String(raw).replace(/\{(\w+)\}/g,function(_,k){ return vars[k]!=null?String(vars[k]):""; });
 }
+function helpStepLines(topicId){
+  var item=helpTopic(topicId);
+  if(!item) return [];
+  /* Una beta llegó a pintar el separador como «/n». Normalizamos también packs de idioma ya
+     cacheados y devolvemos tres instrucciones cortas, no un párrafo dentro de otro párrafo. */
+  return String(t(item.body)||"").replace(/[\\/]n/g,"\n").split(/\n+/).map(function(x){ return x.trim(); }).filter(Boolean).slice(0,3);
+}
 
 function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hiddenTabs,hasCash,snap,helpAiOk,helpAiAsked}){
   const [question,setQuestion]=useState("");
@@ -411,7 +418,8 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
             t(ctaLabel)),
           answer.stepsId && React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:8},onClick:function(){ setStepsOpen(function(v){ return !v; }); }},
             stepsOpen?t("help_steps_hide"):t("help_steps_show")),
-          stepsOpen && answer.stepsId && React.createElement("p",{className:"hint",style:{whiteSpace:"pre-line",marginTop:8}}, t(helpTopic(answer.stepsId).body)),
+          stepsOpen && answer.stepsId && React.createElement("ol",{className:"hint aely-help-steps","data-testid":"help-steps"},
+            helpStepLines(answer.stepsId).map(function(line,i){ return React.createElement("li",{key:i},line); })),
           answer.topicIds && answer.topicIds.length>1 && React.createElement("div",{className:"aely-help-topics",style:{marginTop:10}},
             answer.topicIds.map(function(tid){
               return React.createElement("button",{key:tid,type:"button",className:"rchip aely-help-topic",onClick:function(){ chooseTopic(tid,asked); }}, t(helpTopic(tid).title));
