@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.27",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "El paso a paso va al grano",
+      "en": "Step by step gets to the point",
+      "ca": "El pas a pas va al gra"
+    },
+    "items": {
+      "es": [
+        "Las explicaciones ampliadas son ahora tres instrucciones cortas y numeradas.",
+        "Los saltos de línea se muestran correctamente y ya no aparece «/n» dentro del texto."
+      ],
+      "en": [
+        "Expanded explanations are now three short, numbered instructions.",
+        "Line breaks are displayed correctly and “/n” no longer appears in the text."
+      ],
+      "ca": [
+        "Les explicacions ampliades ara són tres instruccions curtes i numerades.",
+        "Els salts de línia es mostren correctament i «/n» ja no apareix dins del text."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "asistente-claro",
+        "t": {
+          "es": "Ayuda breve y con rutas claras",
+          "en": "Short help with clear routes",
+          "ca": "Ajuda breu i amb rutes clares"
+        },
+        "items": {
+          "es": [
+            "1. Abre «Pregúntame» y pregunta cómo apuntar una compra en efectivo: la primera respuesta debe ser una sola frase.",
+            "2. Pulsa «Paso a paso»: deben salir exactamente tres instrucciones cortas, numeradas como 1, 2 y 3.",
+            "3. Comprueba que no aparece «/n» ni un párrafo largo; «Apuntar en efectivo» debe seguir llevando al sitio correcto."
+          ],
+          "en": [
+            "1. Open “Ask me” and ask how to record a cash purchase: the first answer should be a single sentence.",
+            "2. Tap “Step by step”: exactly three short instructions numbered 1, 2, and 3 should appear.",
+            "3. Check that “/n” and long paragraphs are gone; “Record cash expense” should still take you to the right place."
+          ],
+          "ca": [
+            "1. Obre «Pregunta'm» i demana com apuntar una compra en efectiu: la primera resposta ha de ser una sola frase.",
+            "2. Prem «Pas a pas»: han de sortir exactament tres instruccions curtes, numerades com a 1, 2 i 3.",
+            "3. Comprova que no apareix «/n» ni un paràgraf llarg; «Apuntar en efectiu» t'ha de continuar portant al lloc correcte."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.26",
     "d": "23 sep 2026",
     "t": {
@@ -177,33 +227,7 @@
         "L'ajuda amb OpenAI continua sent opcional: només s'usa quan es demana més ajuda i mai no envia saldos ni moviments."
       ]
     },
-    "tandas": [
-      {
-        "id": "asistente-claro",
-        "t": {
-          "es": "Ayuda breve y con rutas claras",
-          "en": "Short help with clear routes",
-          "ca": "Ajuda breu i amb rutes clares"
-        },
-        "items": {
-          "es": [
-            "1. En Ajustes, abre «Pregúntame» y escribe «¿Dónde añado efectivo?»: debe responder en una frase y ofrecer «Abrir cuentas».",
-            "2. Pregunta «¿Cómo apunto una compra en efectivo?»: debe ofrecer «Apuntar en efectivo». Tócalo y comprueba que abre Apuntar.",
-            "3. En una respuesta, abre «Paso a paso»: debe ampliar la explicación sin convertir la respuesta inicial en un texto largo."
-          ],
-          "en": [
-            "1. In Settings, open “Ask me” and type “Where do I add cash?”: it should answer in one sentence and offer “Open accounts”.",
-            "2. Ask “How do I record a cash purchase?”: it should offer “Record cash expense”. Tap it and check that Add opens.",
-            "3. On an answer, open “Step by step”: it should expand the explanation without turning the initial answer into a long block of text."
-          ],
-          "ca": [
-            "1. A Ajustos, obre «Pregunta'm» i escriu «On afegeixo efectiu?»: ha de respondre en una frase i oferir «Obrir comptes».",
-            "2. Pregunta «Com apunto una compra en efectiu?»: ha d'oferir «Apuntar en efectiu». Toca-ho i comprova que obre Apuntar.",
-            "3. En una resposta, obre «Pas a pas»: ha d'ampliar l'explicació sense convertir la resposta inicial en un text llarg."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.17",

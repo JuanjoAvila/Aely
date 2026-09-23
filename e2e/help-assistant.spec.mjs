@@ -219,6 +219,16 @@ test("al aclarar una duda mixta, Efectivo conserva la intención de abrir Cuenta
   await expect(dialog.getByTestId("help-cta")).toHaveText("Abrir cuentas");
 });
 
+test("Paso a paso son tres líneas cortas y nunca pinta /n",async({page})=>{
+  const {dialog}=await openHelp(page);
+  await ask(dialog,"¿Cómo apunto una compra en efectivo?");
+  await dialog.getByRole("button",{name:/Paso a paso/}).click();
+  const steps=dialog.getByTestId("help-steps");
+  await expect(steps.getByRole("listitem")).toHaveCount(3);
+  await expect(steps).not.toContainText(/[/\\]n/);
+  expect((await steps.innerText()).length).toBeLessThan(240);
+});
+
 test("el composer queda visible cuando aparece el teclado",async({page})=>{
   const {dialog}=await openHelp(page);
   const input=dialog.getByLabel("¿En qué necesitas ayuda?");

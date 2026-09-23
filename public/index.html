@@ -2005,6 +2005,7 @@
 .aely-help-topic{font-size:12.5px !important;min-height:36px;padding:7px 10px !important;}
 .aely-help-answer{margin-top:8px;}
 .aely-help-phrase{font-size:15px;font-weight:550;letter-spacing:-.1px;line-height:1.4;margin:4px 0 0;text-decoration:none !important;}
+.aely-help-steps{margin:8px 0 0;padding-left:22px;display:grid;gap:5px;line-height:1.35;}
 .aely-help-cta{width:auto !important;align-self:flex-start;margin-top:10px;padding:8px 12px !important;font-size:13.5px !important;font-weight:650 !important;}
 .aely-help-entry{margin:6px 0 10px;}
 .aely-help-head-actions{display:flex;align-items:center;gap:8px;}
@@ -4573,18 +4574,18 @@ const LANG = {
     help_cue_balance:"En {bank} tienes {x}.",
     help_cue_balance_many:"Tienes {n} cuentas en {bank}: míralas en Cartera.",
     help_banks:"Faltan movimientos del banco",
-    help_banks_body:"Tener una cuenta añadida y tener una conexión bancaria activa son pasos distintos.\\n1. Abre Mis bancos y comprueba la conexión; reconecta si Aely lo pide.\\n2. Pulsa Actualizar y lee los avisos de cada banco.\\n3. En Gastos revisa el mes y los filtros de banco. Para fechas anteriores, usa Importar histórico.\\nSi sigue vacío, no significa que no haya gastos: anota el banco, el periodo y el aviso que aparece para poder revisar el fallo.",
+    help_banks_body:"Abre Mis bancos y reconecta si aparece un aviso.\nPulsa Actualizar una vez.\nRevisa el mes y el banco en Gastos; para meses anteriores usa Importar histórico.",
     help_cash:"Gastar en efectivo",
-    help_cash_body:"Sacar del cajero no es gastar. Lo que apuntas es lo que compras luego.\\n1. Comprueba que tienes una cuenta de Efectivo en Cartera. Si falta, añádela antes de apuntar la compra.\\n2. Abre Apuntar en efectivo, introduce el importe y el concepto y elige la categoría.\\n3. Revisa que está seleccionado Efectivo y guarda. La retirada del cajero no debe contarse otra vez como esa compra.",
+    help_cash_body:"Crea Efectivo en Cartera si aún no existe.\nAbre Apuntar en efectivo e indica la compra y el importe.\nGuarda con Efectivo seleccionado; el cajero no cuenta como compra.",
     help_categories:"Corregir una categoría",
-    help_categories_body:"Abre el movimiento en Gastos, cambia su categoría y guarda. El nombre del comercio no siempre explica lo que has comprado: una cafetería dentro de una aseguradora puede ser comida.\\nAl guardar una categoría de gasto, Aely recuerda tu elección para ese comercio. No cambies todos los recibos o todos los seguros por un solo caso. Revisa las sugerencias de IA antes de guardarlas.",
+    help_categories_body:"Abre el movimiento en Gastos.\nElige la categoría correcta.\nGuarda y revisa futuras sugerencias antes de aceptarlas.",
     help_debts:"Préstamos y cuotas",
-    help_debts_body:"En Plan → Deudas puedes registrar un préstamo y revisar sus cuotas. Usa el saldo pendiente y las condiciones que consten en tu contrato.\\nSi solo estás apartando dinero para una compra futura, crea una Meta. Revisa los movimientos antes de vincularlos para evitar apuntar dos veces la misma cuota.",
+    help_debts_body:"Abre Plan → Deudas.\nAñade el préstamo con su saldo y su cuota.\nVincula cada cobro solo una vez.",
     help_goals:"Ahorrar para una meta",
-    help_goals_body:"Si estás reuniendo dinero para una compra futura, usa Plan → Metas: crea la meta, indica cuánto quieres reunir y revisa el ahorro que le asignas.\\nSi ya tienes un préstamo y estás pagando cuotas, entra en Deudas. Ahorrar para comprar un coche y devolver el préstamo del coche son cosas distintas.",
+    help_goals_body:"Abre Plan → Metas.\nCrea la meta e indica el objetivo y la fecha.\nRevisa el ahorro mensual que le asignas.",
     help_hidden:"Si tienes pantallas ocultas o el modo sencillo, puedes mostrarlas desde Ajustes antes de continuar.",
     help_history:"Importar histórico",
-    help_history_body:"Abre Importar histórico, elige el periodo y busca los movimientos. Revisa el banco y los filtros.\\nAntes de importar, comprueba cada selección y su destino: gasto, recibo o ingreso. Si aparece un aviso de lectura incompleta, el banco puede no haber entregado todo el periodo. No vuelvas a crear manualmente movimientos que ya ves en Gastos.",
+    help_history_body:"Abre Importar histórico.\nElige el banco y el periodo.\nRevisa cada movimiento antes de importarlo.",
     help_intro:"Escribe o dicta qué quieres hacer. Te respondo en una frase y te llevo al sitio.",
     help_limited:"Has llegado al límite temporal de consultas. Las guías siguen disponibles.",
     help_local:"Guía disponible sin conexión.",
@@ -4602,7 +4603,7 @@ const LANG = {
     help_privacy:"¿La guía no encaja? Al consultar la IA se envía tu última duda a OpenAI para buscar otra guía. No se adjuntan tus saldos ni movimientos. Evita escribir claves o datos de cuenta.",
     help_question:"¿En qué necesitas ayuda?",
     help_receipts:"Recibos del mes",
-    help_receipts_body:"En Plan → Recibos revisas los pagos periódicos. Si falta un cargo de CaixaBank u otro banco, comprueba primero la conexión y actualiza a mano.\\nPara cargos anteriores, Importar histórico permite revisar el destino antes de añadirlos. Si apuntas un recibo manualmente, comprueba después que no se ha importado el mismo cargo otra vez.",
+    help_receipts_body:"Abre Plan → Recibos.\nRevisa lo pendiente y lo cobrado.\nSi falta un cargo antiguo, usa Importar histórico y no lo apuntes dos veces.",
     help_send:"Preguntar",
     help_show_settings:"Mostrar pantalla desde Ajustes",
     help_title:"Pregúntame",
@@ -21750,6 +21751,13 @@ function helpPhrase(cue, vars){
   if(!vars) return raw;
   return String(raw).replace(/\{(\w+)\}/g,function(_,k){ return vars[k]!=null?String(vars[k]):""; });
 }
+function helpStepLines(topicId){
+  var item=helpTopic(topicId);
+  if(!item) return [];
+  /* Una beta llegó a pintar el separador como «/n». Normalizamos también packs de idioma ya
+     cacheados y devolvemos tres instrucciones cortas, no un párrafo dentro de otro párrafo. */
+  return String(t(item.body)||"").replace(/[\\/]n/g,"\n").split(/\n+/).map(function(x){ return x.trim(); }).filter(Boolean).slice(0,3);
+}
 
 function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hiddenTabs,hasCash,snap,helpAiOk,helpAiAsked}){
   const [question,setQuestion]=useState("");
@@ -21914,7 +21922,8 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
             t(ctaLabel)),
           answer.stepsId && React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:8},onClick:function(){ setStepsOpen(function(v){ return !v; }); }},
             stepsOpen?t("help_steps_hide"):t("help_steps_show")),
-          stepsOpen && answer.stepsId && React.createElement("p",{className:"hint",style:{whiteSpace:"pre-line",marginTop:8}}, t(helpTopic(answer.stepsId).body)),
+          stepsOpen && answer.stepsId && React.createElement("ol",{className:"hint aely-help-steps","data-testid":"help-steps"},
+            helpStepLines(answer.stepsId).map(function(line,i){ return React.createElement("li",{key:i},line); })),
           answer.topicIds && answer.topicIds.length>1 && React.createElement("div",{className:"aely-help-topics",style:{marginTop:10}},
             answer.topicIds.map(function(tid){
               return React.createElement("button",{key:tid,type:"button",className:"rchip aely-help-topic",onClick:function(){ chooseTopic(tid,asked); }}, t(helpTopic(tid).title));

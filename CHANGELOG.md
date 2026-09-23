@@ -1,3 +1,15 @@
+## [4.26.27] - 2026-09-23
+### El paso a paso deja de ser otro bloque de texto
+
+El veredicto real de 4.26.24.1 mostró dos fallos juntos: las guías ampliadas seguían siendo largas
+y los separadores `\\n` podían llegar pintados como `/n`. Las siete guías se reducen a tres acciones
+concretas en castellano, inglés y catalán, y se renderizan como una lista numerada real.
+
+`helpStepLines` normaliza también un pack de idioma cacheado que aún traiga cualquiera de los dos
+separadores literales. Los unitarios exigen 21 guías con exactamente tres pasos cortos, y el E2E
+abre la ruta rechazada, cuenta tres filas y comprueba que no aparece ningún `/n`. Sin cambios en
+las decisiones del asistente, el consentimiento remoto ni las acciones de dinero.
+
 ## [4.26.26] - 2026-09-23
 ### El editor de presupuesto tiene un ritmo propio
 
