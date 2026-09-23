@@ -190,6 +190,16 @@ test("Escape cierra el diálogo y devuelve el foco al botón",async({page})=>{
   await expect(trigger).toBeFocused();
 });
 
+test("al abrir permite leer la ayuda sin levantar el teclado",async({page})=>{
+  const {dialog}=await openHelp(page);
+  const input=dialog.getByLabel("¿En qué necesitas ayuda?");
+  await expect(input).not.toBeFocused();
+  await expect(dialog.locator('[data-act="back"]')).toBeFocused();
+  await expect(page.locator(".aely-help-back")).toHaveAttribute("data-help-kb","0");
+  await input.click();
+  await expect(input).toBeFocused();
+});
+
 test("añadir efectivo abre Cuentas pero apuntar compras sigue en Apuntar",async({page})=>{
   const {dialog}=await openHelp(page,{accounts:[
     {id:"cash",ent:"efectivo",value:80,role:"diario"},
