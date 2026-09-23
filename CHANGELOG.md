@@ -1,3 +1,12 @@
+## [4.26.33] - 2026-09-24
+### El Asistente abre para leer, no para escribir a ciegas
+
+`HelpAssistant` deja de enfocar el `textarea` al montar: en Android ese foco levantaba el teclado
+antes de que se pudiera leer la introducción y reducía la hoja a casi toda la pantalla ocupada. El
+foco inicial queda en el botón Volver, dentro del mismo diálogo y de su trampa accesible. Tocar la
+pregunta conserva el foco y el teclado normales; el ajuste por `visualViewport`, la restauración al
+cerrar y el movimiento reducido no cambian. El E2E protege ambos estados en la misma apertura.
+
 ## [4.26.32] - 2026-09-24
 ### Inversiones y Recibos comparten el gesto Atrás nativo y una salida segura
 

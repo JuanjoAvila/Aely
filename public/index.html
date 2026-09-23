@@ -21929,7 +21929,9 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
   useEffect(function(){
     var root=dialogRef.current;
     if(!root) return undefined;
-    var first=root.querySelector("#help-question");
+    // Abrir con el textarea enfocado levantaba el teclado y tapaba toda la explicación antes de
+    // poder leerla. El diálogo conserva foco accesible en Volver; el teclado nace al tocar la caja.
+    var first=root.querySelector('[data-act="back"]');
     if(first) first.focus({preventScroll:true});
     var keys=function(e){
       if(e.key==="Escape"){ e.preventDefault(); requestClose(); return; }

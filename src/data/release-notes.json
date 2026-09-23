@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.33",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Pregúntame abre sin tapar la ayuda",
+      "en": "Ask me opens without covering the help",
+      "ca": "Pregunta'm s'obre sense tapar l'ajuda"
+    },
+    "items": {
+      "es": [
+        "Al abrir Pregúntame, el teclado ya no ocupa la pantalla antes de poder leer la ayuda.",
+        "El teclado aparece al tocar la caja de la pregunta y la respuesta sigue quedando a la vista."
+      ],
+      "en": [
+        "When Ask me opens, the keyboard no longer fills the screen before the help can be read.",
+        "The keyboard appears when the question box is tapped, while the answer stays in view."
+      ],
+      "ca": [
+        "En obrir Pregunta'm, el teclat ja no ocupa la pantalla abans de poder llegir l'ajuda.",
+        "El teclat apareix en tocar la caixa de la pregunta i la resposta continua a la vista."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "asistente-sin-teclado-inicial",
+        "t": {
+          "es": "Asistente sin teclado al abrir",
+          "en": "Assistant without the keyboard on open",
+          "ca": "Assistent sense teclat en obrir"
+        },
+        "items": {
+          "es": [
+            "1. Abre Pregúntame: debes poder leer la ayuda y ver las opciones sin que aparezca el teclado.",
+            "2. Toca la caja de la pregunta: el teclado debe abrirse y la zona para escribir debe seguir visible."
+          ],
+          "en": [
+            "1. Open Ask me: the help and its options should be readable without the keyboard appearing.",
+            "2. Tap the question box: the keyboard should open and the writing area should remain visible."
+          ],
+          "ca": [
+            "1. Obre Pregunta'm: has de poder llegir l'ajuda i veure les opcions sense que aparegui el teclat.",
+            "2. Toca la caixa de la pregunta: el teclat s'ha d'obrir i la zona per escriure ha de continuar visible."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.32",
     "d": "24 sep 2026",
     "t": {

@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-24 · **v4.26.32** preparada para beta — Inversiones y Plan → Gestionar comparten el gesto Atrás que acompaña al dedo; Recibos usa iconos por tipo, cierra al guardar y evita el doble alta. Requiere APK 48 para el progreso nativo. Producción sirve 4.25.9; comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-24 · **v4.26.33** preparada para beta — Pregúntame abre sin enfocar la pregunta, de modo que la guía se puede leer antes de que aparezca el teclado. La APK 48 sigue vigente para el gesto Atrás nativo. Producción sirve 4.25.9; comprobar disponibilidad real con `npm run salud`.
+> Anterior: **v4.26.32** — Inversiones y Plan → Gestionar comparten el gesto Atrás que acompaña al dedo; Recibos usa iconos por tipo, cierra al guardar y evita el doble alta.
 > Anterior: **v4.26.31** — Plan → Gestionar repite la cifra y su reparto al entrar, mantiene los importes reales y deja sitio a cantidades largas.
 > Anterior: **v4.26.30** — Gastos pliega el filtro largo de categorías, anima el desglose sin desmontarlo y cierra la ficha con confirmación.
 > Anterior: **v4.26.29** — el gesto horizontal desde el fondo se reclama antes y la APK 47 desactiva la barra gris nativa sin perder scroll ni rebote.
@@ -219,7 +220,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.32** (gestos compartidos e iconos de Recibos, preparada para beta; canal real = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.26.33** (Pregúntame abre sin teclado, preparada para beta; canal real = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo/publicada: **4.26.32 / 48**. El asset firmado existe y la beta puede ofrecer el gesto Atrás nativo. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **48** / 4.26.32 |
