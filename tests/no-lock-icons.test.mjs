@@ -14,6 +14,10 @@ for(const file of files){
   const txt=fs.readFileSync(file,"utf8");
   if(/[🔒🔓🔐]/u.test(txt)) hits.push(path.relative(root,file));
 }
+/* Los textos de huella ya no empiezan por emoji: recortar «hasta el primer espacio» se comería
+   «Activar»/«Desactivar» y la fila diría «desbloqueo con huella» sin verbo. */
+const settings=fs.readFileSync(path.join(root,"src","modules","10-app-components.js"),"utf8");
+if(settings.includes('t("au_bio_on")).replace(')) hits.push("10-app-components.js (recorte del texto de huella)");
 if(hits.length){
   console.error("no-lock-icons: reaparecieron candados visibles en "+hits.join(", "));
   process.exit(1);

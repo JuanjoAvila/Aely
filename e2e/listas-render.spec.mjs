@@ -122,6 +122,8 @@ test("Cartera: un banco caducado saca el banner con su botón de reconectar", as
   await expect(banner).toHaveCount(1);
   await expect(banner).toContainText(/necesita tu permiso|needs your permission|necessita el teu perm/i);
   await expect(banner.getByRole("button")).toBeVisible();
+  // El botón dice «Reconectar …» a secas: el candado abierto se retiró (feedback 18/9).
+  await expect(banner.getByRole("button")).not.toContainText("🔓");
 });
 
 test("Cartera: un banco enlazado SIN cuentas dice lo suyo, no «permiso caducado»", async ({ page }) => {

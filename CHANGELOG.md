@@ -1,3 +1,17 @@
+## [4.26.13] - 2026-09-23
+### Candados fuera de la interfaz, protecciones intactas (feedback 18/9, punto 14)
+
+Se retiran los glifos `🔒`, `🔓` y `🔐` de textos, fichas y Ajustes, incluidos los metadatos
+bloqueados de la ficha v4.1. No se toca ninguna decisión `locked`, la biometría, `LockScreen`, los
+avisos de acceso restringido ni la imposibilidad de editar el saldo que trae un banco. Al quitar el
+emoji de la fila de huella también se elimina su recorte de la primera palabra, que de otro modo se
+habría comido «Activar» o «Desactivar».
+
+`tests/no-lock-icons.test.mjs` vigila toda la fuente y el texto de huella. El E2E
+`sin-candados.spec.mjs` abre Tu cuenta y Privacidad; `cartera-ficha-cuenta` y `listas-render`
+comprueban además que las cuentas conectadas y la reconexión siguen protegidas sin icono. Sin
+cambios nativos ni APK nueva. Es una tanda independiente del ajuste de Novedades 4.26.12.
+
 ## [4.26.12] - 2026-09-23
 ### Novedades refleja el bundle que ejecutaba el móvil, no solo el diff de producción
 

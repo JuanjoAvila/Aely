@@ -1,5 +1,11 @@
 # Testing — Aely
 
+Sin candados (feedback 18/9, punto 14): `tests/no-lock-icons.test.mjs` falla si vuelve un 🔒/🔓/🔐
+a `src/modules` o `shell.html`. También falla si reaparece el recorte «hasta el primer espacio» del
+texto de huella, que sin emoji se comería el verbo. `e2e/sin-candados.spec.mjs` abre Ajustes → Tu
+cuenta y Privacidad y comprueba lo pintado. `cartera-ficha-cuenta` y `listas-render` comprueban que
+la cuenta conectada y el banner de reconectar siguen protegidos, pero sin el icono.
+
 Ajustes 4.26.11: el nuevo caso de `e2e/swipe-pestanas.spec.mjs` arrastra despacio desde Inicio
 y mide por CDP que el primer fotograma del cajón avance menos de 12 px; también comprueba que
 termine abriéndose. `revisar-beta.spec.mjs` exige solo el veredicto de Ajustes después de la

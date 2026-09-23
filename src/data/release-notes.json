@@ -1,24 +1,68 @@
 [
   {
-    "v": "4.26.12",
+    "v": "4.26.13",
     "d": "23 sep 2026",
     "t": {
-      "es": "Todo lo que ya está disponible, bien contado",
-      "en": "Everything already available, clearly explained",
-      "ca": "Tot el que ja està disponible, ben explicat"
+      "es": "Adiós a los candados",
+      "en": "No more lock icons",
+      "ca": "Adéu als cadenats"
     },
     "items": {
       "es": [
-        "Novedades reúne ahora las funciones que ya estaban visibles: fichas renovadas de gastos y cuentas, deshacer al borrar, la nueva gestión de recibos y Pregúntame.",
-        "Plan e Inversiones conservan sus pantallas renovadas y sus cifras honestas; Cyberpunk, Otoño y Primavera siguen disponibles en Apariencia."
+        "Los iconos de candado desaparecen de cuentas, reconexiones, huella y privacidad. Las protecciones siguen intactas: el saldo que trae el banco continúa sin poder editarse y el acceso protegido funciona igual."
       ],
       "en": [
-        "What's new now brings together the features that were already visible: redesigned expense and account details, undo after deleting, the new bill manager and Ask me.",
-        "Plan and Investments keep their redesigned screens and honest figures; Cyberpunk, Autumn and Spring remain available under Look & feel."
+        "Lock icons disappear from accounts, reconnection, fingerprint and privacy. The protections stay intact: a balance supplied by the bank still cannot be edited, and protected access works as before."
       ],
       "ca": [
-        "Novetats reuneix ara les funcions que ja eren visibles: fitxes renovades de despeses i comptes, desfer després d'esborrar, la nova gestió de rebuts i Pregunta'm.",
-        "Pla i Inversions conserven les pantalles renovades i les xifres honestes; Cyberpunk, Tardor i Primavera continuen disponibles a Aparença."
+        "Les icones de cadenat desapareixen dels comptes, la reconnexió, l'empremta i la privacitat. Les proteccions continuen intactes: un saldo que porta el banc encara no es pot editar i l'accés protegit funciona igual."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "sin-candados",
+        "t": {
+          "es": "Sin candados visuales",
+          "en": "No visible lock icons",
+          "ca": "Sense cadenats visuals"
+        },
+        "items": {
+          "es": [
+            "1. Recorre Ajustes → Tu cuenta y Privacidad, una cuenta conectada en Cartera y el aviso de reconectar un banco: no debe quedar ningún candado, y el saldo que trae el banco debe seguir sin poder editarse."
+          ],
+          "en": [
+            "1. Check Settings → Your account and Privacy, a connected account in Portfolio and the bank reconnection notice: no lock icon should remain, and a balance supplied by the bank must still be read-only."
+          ],
+          "ca": [
+            "1. Recorre Ajustos → El teu compte i Privacitat, un compte connectat a Cartera i l'avís de reconnectar un banc: no hi ha de quedar cap cadenat, i el saldo que porta el banc ha de continuar sense poder-se editar."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.12",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Fichas, recibos, Plan e Inversiones renovados",
+      "en": "Redesigned details, bills, Plan and Investments",
+      "ca": "Fitxes, rebuts, Pla i Inversions renovats"
+    },
+    "items": {
+      "es": [
+        "Los gastos y las cuentas tienen fichas más claras, y ahora puedes deshacer un borrado durante cinco segundos.",
+        "Gestionar recibos es más directo y Pregúntame te guía incluso sin conexión, sin apuntar ni mover dinero por su cuenta.",
+        "Plan separa lo pagado de lo pendiente e Inversiones deja la ganancia en blanco (—) si faltan datos, en vez de inventarla."
+      ],
+      "en": [
+        "Expenses and accounts have clearer details, and you can now undo a deletion for five seconds.",
+        "Managing bills is more direct, and Ask me guides you even when offline without recording or moving money on its own.",
+        "Plan separates paid and pending bills, while Investments leaves the gain blank (—) when data is missing instead of guessing it."
+      ],
+      "ca": [
+        "Les despeses i els comptes tenen fitxes més clares, i ara pots desfer una eliminació durant cinc segons.",
+        "Gestionar rebuts és més directe i Pregunta’m et guia fins i tot sense connexió, sense apuntar ni moure diners pel seu compte.",
+        "Pla separa el que ja està pagat del que queda pendent i Inversions deixa el guany en blanc (—) si falten dades, en lloc d'inventar-lo."
       ]
     },
     "tandas": []
@@ -71,28 +115,22 @@
     "v": "4.26.10",
     "d": "22 sep 2026",
     "t": {
-      "es": "Nuevos colores y pantallas renovadas",
-      "en": "New looks and redesigned screens",
-      "ca": "Colors nous i pantalles renovades"
+      "es": "Nuevos colores: Cyberpunk, Otoño y Primavera",
+      "en": "New looks: Cyberpunk, Autumn and Spring",
+      "ca": "Colors nous: Cyberpunk, Tardor i Primavera"
     },
     "items": {
       "es": [
         "Nuevo tema de color Cyberpunk, con neón rosa y cian sobre fondo oscuro; lo que gastas y lo que entra se sigue leyendo en rojo y verde.",
-        "Dos temáticas nuevas, Otoño y Primavera, en Ajustes → Apariencia.",
-        "Esta versión también reúne las fichas renovadas de gastos y cuentas, la nueva gestión de recibos, Pregúntame y las pantallas renovadas de Plan e Inversiones.",
-        "Puedes deshacer un borrado durante cinco segundos; Plan separa lo pagado de lo pendiente, e Inversiones no calcula ganancias si faltan datos."
+        "Dos temáticas nuevas, Otoño y Primavera, en Ajustes → Apariencia."
       ],
       "en": [
         "New Cyberpunk colour theme, with pink and cyan neon on a dark background; spending and income still read in red and green.",
-        "Two new themes, Autumn and Spring, in Settings → Look & feel.",
-        "This version also brings together redesigned expense and account details, the new bill manager, Ask me, and refreshed Plan and Investments screens.",
-        "You can undo a deletion for five seconds; Plan separates paid and pending bills, and Investments does not calculate gains when data is missing."
+        "Two new themes, Autumn and Spring, in Settings → Look & feel."
       ],
       "ca": [
         "Nou tema de color Cyberpunk, amb neó rosa i cian sobre fons fosc; el que gastes i el que entra es continua llegint en vermell i verd.",
-        "Dues temàtiques noves, Tardor i Primavera, a Ajustos → Aparença.",
-        "Aquesta versió també reuneix les fitxes renovades de despeses i comptes, la nova gestió de rebuts, Pregunta'm i les pantalles renovades de Pla i Inversions.",
-        "Pots desfer una eliminació durant cinc segons; Pla separa el que ja s'ha pagat del que queda pendent, i Inversions no calcula guanys si falten dades."
+        "Dues temàtiques noves, Tardor i Primavera, a Ajustos → Aparença."
       ]
     },
     "tandas": []
