@@ -131,6 +131,46 @@ test("cuatro grupos con su cuenta, y el de una sola vez no dice «al mes»", asy
   await expect(once).toContainText("este mes");
   await expect(once).not.toContainText("al mes");
   await expect(hub(page).locator(".v4-bills-hero-amt")).toHaveText(/\d/);
+  // La ola solo reparte la cifra que sale cada mes: servicios y cuotas, no ingresos ni puntuales.
+  await expect(hub(page).locator(".v4-bills-hero-bar i")).toHaveCount(2);
+});
+
+test("la cifra y la ola vuelven a empezar cada vez que se abre Gestionar", async ({ page }) => {
+  await appLista(page);
+  await abreTusRecibos(page);
+  const amount=hub(page).locator(".v4-bills-hero-amt");
+  const wave=hub(page).locator(".v4-bills-hero-bar i").first();
+  await expect(wave).toHaveCSS("animation-name","v4bar");
+  await wave.evaluate((el) => { window.__billsWaveNode=el; });
+  await expect.poll(async()=>Number((await amount.innerText()).replace(/[^0-9]/g,""))).toBeGreaterThan(0);
+  await page.waitForTimeout(1100);
+  const finalText=await amount.innerText();
+  await hub(page).locator(".settings-push-h .back").click();
+  await expect(hub(page)).toHaveCount(0);
+
+  await abreTusRecibos(page);
+  const first=Number((await hub(page).locator(".v4-bills-hero-amt").innerText()).replace(/[^0-9]/g,""));
+  const target=Number(finalText.replace(/[^0-9]/g,""));
+  expect(first).toBeLessThan(target);
+  expect(await hub(page).locator(".v4-bills-hero-bar i").first().evaluate((el) => el!==window.__billsWaveNode)).toBe(true);
+  await expect.poll(async()=>await hub(page).locator(".v4-bills-hero-amt").innerText(),{timeout:2500}).toBe(finalText);
+});
+
+test("los importes mensuales largos caben y siguen sin subrayado", async ({ page }) => {
+  await page.setViewportSize({width:360,height:740});
+  await appLista(page,{settings:{season:"otono"},fixed:[{id:"alto",name:"Recibo extraordinario",amount:1234567.89,freq:"mes",account:"sabadell"}],debts:[],flows:[],oneoffs:[]});
+  await abreTusRecibos(page);
+  const amount=grupo(page,"Servicios y suministros").locator(".v4-bills-group-amt");
+  await expect(amount).toContainText(/1[.\s]234[.\s]567/);
+  const fit=await amount.evaluate((el)=>{
+    const box=el.getBoundingClientRect(), parent=el.parentElement.getBoundingClientRect(), cs=getComputedStyle(el);
+    return {left:box.left,right:box.right,parentLeft:parent.left,parentRight:parent.right,
+      scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,decoration:cs.textDecorationLine};
+  });
+  expect(fit.left).toBeGreaterThanOrEqual(fit.parentLeft-1);
+  expect(fit.right).toBeLessThanOrEqual(fit.parentRight+1);
+  expect(fit.scrollWidth).toBeLessThanOrEqual(fit.clientWidth+1);
+  expect(fit.decoration).toBe("none");
 });
 
 for (const lang of ["es", "en", "ca"]) {

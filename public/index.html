@@ -1250,6 +1250,7 @@
   .v4-bills-hero{margin-bottom:14px;}
   .v4-bills-hero-amt{font-size:clamp(32px,10vw,40px);font-weight:550;letter-spacing:-1px;margin-top:6px;}
   .v4-bills-hero-sub{margin-top:8px;color:var(--muted);font-size:12.5px;line-height:1.4;}
+  .v4-bills-hero-bar{margin-top:14px;}
   .v4-bills-search-row{display:flex;gap:8px;align-items:center;margin:4px 0 12px;}
   .v4-bills-search{flex:1;min-height:46px;padding:0 14px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);color:var(--text);font-size:14px;}
   .v4-bills-search:focus{border-color:var(--mint);outline:none;}
@@ -1260,8 +1261,11 @@
   .v4-bills-group-copy{min-width:0;flex:1;}
   .v4-bills-group-t{font-size:14.5px;font-weight:800;line-height:1.25;}
   .v4-bills-group-s{font-size:11.5px;color:var(--muted-2);margin-top:2px;}
-  .v4-bills-group-amt{flex:0 0 auto;text-align:right;font-size:17px;font-weight:550;line-height:1.15;}
-  .v4-bills-group-amt span{display:block;font-family:inherit;font-size:10.5px;color:var(--muted-2);font-weight:700;}
+  .v4-bills-group-amt{flex:0 0 auto;min-width:max-content;text-align:right;font-size:clamp(13px,4.2vw,17px);font-weight:550;line-height:1.15;white-space:nowrap;}
+  .v4-bills-group-amt span{display:block;font-family:inherit;font-size:10.5px;color:var(--muted-2);font-weight:700;white-space:nowrap;}
+  /* Los importes no son titulares decorativos: el subrayado de temporada parecía un enlace y
+     restaba espacio justo a las cifras largas (feedback 18/9). */
+  html[data-season] .v4-bills-group-amt.serif.num{text-decoration:none;}
   .v4-bills-group-chev{color:var(--muted-2);font-size:18px;flex:0 0 auto;}
   .v4-bills-list{display:flex;flex-direction:column;gap:6px;}
   .v4-bills-row{width:100%;text-align:left;}
@@ -7183,13 +7187,19 @@ function CollapsibleCard({title, sub, dot, defaultOpen, right, children, storage
 /* Count-up compartido (B2). `ready` es la puerta: Inicio espera `mc-splash-gone`; Cartera espera
    el bus `mcOnCarteraActive`. Sin puerta, la animación se gasta con la pestaña premontada (o
    detrás del splash) y al llegar el número ya está puesto — peor que no animar. */
-function useCountUp(target, ready){
+function useCountUp(target, ready, replay){
   const [shown,setShown]=useState(0);
   const rafRef=useRef(0);
   const shownRef=useRef(0);
   const primeraRef=useRef(true);
   useEffect(function(){
-    if(!ready) return undefined;
+    /* Gestionar queda montado detrás de Plan. Si solo paramos el RAF al cerrarlo, conserva el
+       total final y la siguiente entrada ya no tiene animación; `replay` devuelve el contador a
+       cero mientras está oculto sin cambiar Inicio ni Cartera (feedback 2026-09-18). */
+    if(!ready){
+      if(replay){ shownRef.current=0; primeraRef.current=true; setShown(0); }
+      return undefined;
+    }
     const tgt=+(target||0);
     cancelAnimationFrame(rafRef.current);
     const reduce=(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)
@@ -7213,7 +7223,7 @@ function useCountUp(target, ready){
     };
     rafRef.current=requestAnimationFrame(step);
     return function(){ cancelado=true; cancelAnimationFrame(rafRef.current); };
-  },[target, ready]);
+  },[target, ready, replay]);
   return shown;
 }
 
@@ -20436,6 +20446,8 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
     hadSheetRef.current=sheet;
     return undefined;
   },[detail, addStep, open]);
+  const hero=billsHeroTotal(state,totals);
+  const shownHero=useCountUp(hero,!!open,true);
   if(!open) return null;
   const banks=Array.from(new Set((state.accounts||[]).map(function(a){ return a.ent; }).filter(Boolean)));
   if(!banks.length) banks.push("sabadell");
@@ -20443,7 +20455,6 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
     const r=accRole(a); return r==="fijos"||r==="ambos"||!a.role;
   });
   const bankList=billBanks.length?billBanks.map(function(a){ return a.ent; }):banks;
-  const hero=billsHeroTotal(state,totals);
   const nAll=billsCountAll(state,cm,cy);
   const groupMeta=function(id){
     const n=billsGroupRows(state,id,cm,cy).length;
@@ -20455,6 +20466,9 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
     return {id:id,emoji:"📅",title:gbTxt("gb_g_once"),sub:gbSub("gb_g_once_sub",n),total:total,n:n,once:true};
   };
   const groups=["serv","debt","in","once"].map(groupMeta);
+  /* La ola representa exactamente la cifra «se te van cada mes»: servicios y cuotas. Ingresos
+     y cargos puntuales siguen en sus grupos, pero meterlos aquí falsearía el reparto del total. */
+  const heroGroups=groups.filter(function(g){ return (g.id==="serv"||g.id==="debt")&&g.total>0; });
   const push=function(v){ setStack(function(s){ return s.concat([v]); }); };
   const openGroup=function(id){ setGroup(id); setQ(""); push("list"); };
   const openDetail=function(row){ openerRef.current=document.activeElement; setDetail(row); };
@@ -20519,8 +20533,13 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
     head(gbTxt("gb_title")),
     React.createElement("div",{className:"v4-card v4-card-hero v4-bills-hero","data-bills-hero":"1"},
       React.createElement("div",{className:"v4-micro"}, gbTxt("gb_hero_label")),
-      React.createElement("div",{className:"serif num v4-bills-hero-amt","data-bills-total":"1"}, eur(hero)),
-      React.createElement("div",{className:"v4-bills-hero-sub"}, gbSub("gb_hero_sub",nAll))),
+      React.createElement("div",{className:"serif num v4-bills-hero-amt","data-bills-total":"1"}, eur(shownHero)),
+      React.createElement("div",{className:"v4-bills-hero-sub"}, gbSub("gb_hero_sub",nAll)),
+      hero>0 && React.createElement("div",{className:"v4-stackbar v4-bills-hero-bar","data-bills-wave":"1","aria-hidden":"true"},
+        heroGroups.map(function(g,i){
+          const colors=["var(--mint)","var(--blue)"];
+          return React.createElement("i",{key:g.id,style:{flex:Math.max(.02,g.total/hero*100),background:colors[i%colors.length]}});
+        }))),
     React.createElement("div",{className:"v4-bills-search-row"},
       React.createElement("input",{className:"v4-bills-search","data-bills-search":"1",value:q,placeholder:gbTxt("gb_search"),
         onChange:function(e){ setQ(e.target.value); }}),

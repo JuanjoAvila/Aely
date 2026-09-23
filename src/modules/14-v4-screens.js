@@ -538,6 +538,8 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
     hadSheetRef.current=sheet;
     return undefined;
   },[detail, addStep, open]);
+  const hero=billsHeroTotal(state,totals);
+  const shownHero=useCountUp(hero,!!open,true);
   if(!open) return null;
   const banks=Array.from(new Set((state.accounts||[]).map(function(a){ return a.ent; }).filter(Boolean)));
   if(!banks.length) banks.push("sabadell");
@@ -545,7 +547,6 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
     const r=accRole(a); return r==="fijos"||r==="ambos"||!a.role;
   });
   const bankList=billBanks.length?billBanks.map(function(a){ return a.ent; }):banks;
-  const hero=billsHeroTotal(state,totals);
   const nAll=billsCountAll(state,cm,cy);
   const groupMeta=function(id){
     const n=billsGroupRows(state,id,cm,cy).length;
@@ -557,6 +558,9 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
     return {id:id,emoji:"📅",title:gbTxt("gb_g_once"),sub:gbSub("gb_g_once_sub",n),total:total,n:n,once:true};
   };
   const groups=["serv","debt","in","once"].map(groupMeta);
+  /* La ola representa exactamente la cifra «se te van cada mes»: servicios y cuotas. Ingresos
+     y cargos puntuales siguen en sus grupos, pero meterlos aquí falsearía el reparto del total. */
+  const heroGroups=groups.filter(function(g){ return (g.id==="serv"||g.id==="debt")&&g.total>0; });
   const push=function(v){ setStack(function(s){ return s.concat([v]); }); };
   const openGroup=function(id){ setGroup(id); setQ(""); push("list"); };
   const openDetail=function(row){ openerRef.current=document.activeElement; setDetail(row); };
@@ -621,8 +625,13 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
     head(gbTxt("gb_title")),
     React.createElement("div",{className:"v4-card v4-card-hero v4-bills-hero","data-bills-hero":"1"},
       React.createElement("div",{className:"v4-micro"}, gbTxt("gb_hero_label")),
-      React.createElement("div",{className:"serif num v4-bills-hero-amt","data-bills-total":"1"}, eur(hero)),
-      React.createElement("div",{className:"v4-bills-hero-sub"}, gbSub("gb_hero_sub",nAll))),
+      React.createElement("div",{className:"serif num v4-bills-hero-amt","data-bills-total":"1"}, eur(shownHero)),
+      React.createElement("div",{className:"v4-bills-hero-sub"}, gbSub("gb_hero_sub",nAll)),
+      hero>0 && React.createElement("div",{className:"v4-stackbar v4-bills-hero-bar","data-bills-wave":"1","aria-hidden":"true"},
+        heroGroups.map(function(g,i){
+          const colors=["var(--mint)","var(--blue)"];
+          return React.createElement("i",{key:g.id,style:{flex:Math.max(.02,g.total/hero*100),background:colors[i%colors.length]}});
+        }))),
     React.createElement("div",{className:"v4-bills-search-row"},
       React.createElement("input",{className:"v4-bills-search","data-bills-search":"1",value:q,placeholder:gbTxt("gb_search"),
         onChange:function(e){ setQ(e.target.value); }}),

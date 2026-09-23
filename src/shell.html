@@ -1250,6 +1250,7 @@
   .v4-bills-hero{margin-bottom:14px;}
   .v4-bills-hero-amt{font-size:clamp(32px,10vw,40px);font-weight:550;letter-spacing:-1px;margin-top:6px;}
   .v4-bills-hero-sub{margin-top:8px;color:var(--muted);font-size:12.5px;line-height:1.4;}
+  .v4-bills-hero-bar{margin-top:14px;}
   .v4-bills-search-row{display:flex;gap:8px;align-items:center;margin:4px 0 12px;}
   .v4-bills-search{flex:1;min-height:46px;padding:0 14px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);color:var(--text);font-size:14px;}
   .v4-bills-search:focus{border-color:var(--mint);outline:none;}
@@ -1260,8 +1261,11 @@
   .v4-bills-group-copy{min-width:0;flex:1;}
   .v4-bills-group-t{font-size:14.5px;font-weight:800;line-height:1.25;}
   .v4-bills-group-s{font-size:11.5px;color:var(--muted-2);margin-top:2px;}
-  .v4-bills-group-amt{flex:0 0 auto;text-align:right;font-size:17px;font-weight:550;line-height:1.15;}
-  .v4-bills-group-amt span{display:block;font-family:inherit;font-size:10.5px;color:var(--muted-2);font-weight:700;}
+  .v4-bills-group-amt{flex:0 0 auto;min-width:max-content;text-align:right;font-size:clamp(13px,4.2vw,17px);font-weight:550;line-height:1.15;white-space:nowrap;}
+  .v4-bills-group-amt span{display:block;font-family:inherit;font-size:10.5px;color:var(--muted-2);font-weight:700;white-space:nowrap;}
+  /* Los importes no son titulares decorativos: el subrayado de temporada parecía un enlace y
+     restaba espacio justo a las cifras largas (feedback 18/9). */
+  html[data-season] .v4-bills-group-amt.serif.num{text-decoration:none;}
   .v4-bills-group-chev{color:var(--muted-2);font-size:18px;flex:0 0 auto;}
   .v4-bills-list{display:flex;flex-direction:column;gap:6px;}
   .v4-bills-row{width:100%;text-align:left;}

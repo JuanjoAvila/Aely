@@ -582,13 +582,19 @@ function CollapsibleCard({title, sub, dot, defaultOpen, right, children, storage
 /* Count-up compartido (B2). `ready` es la puerta: Inicio espera `mc-splash-gone`; Cartera espera
    el bus `mcOnCarteraActive`. Sin puerta, la animación se gasta con la pestaña premontada (o
    detrás del splash) y al llegar el número ya está puesto — peor que no animar. */
-function useCountUp(target, ready){
+function useCountUp(target, ready, replay){
   const [shown,setShown]=useState(0);
   const rafRef=useRef(0);
   const shownRef=useRef(0);
   const primeraRef=useRef(true);
   useEffect(function(){
-    if(!ready) return undefined;
+    /* Gestionar queda montado detrás de Plan. Si solo paramos el RAF al cerrarlo, conserva el
+       total final y la siguiente entrada ya no tiene animación; `replay` devuelve el contador a
+       cero mientras está oculto sin cambiar Inicio ni Cartera (feedback 2026-09-18). */
+    if(!ready){
+      if(replay){ shownRef.current=0; primeraRef.current=true; setShown(0); }
+      return undefined;
+    }
     const tgt=+(target||0);
     cancelAnimationFrame(rafRef.current);
     const reduce=(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)
@@ -612,7 +618,7 @@ function useCountUp(target, ready){
     };
     rafRef.current=requestAnimationFrame(step);
     return function(){ cancelado=true; cancelAnimationFrame(rafRef.current); };
-  },[target, ready]);
+  },[target, ready, replay]);
   return shown;
 }
 
