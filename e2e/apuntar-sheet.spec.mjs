@@ -15,8 +15,11 @@ test("Apuntar (+): banco en pastilla que se despliega y cierre tirando hacia aba
   await page.locator(".botnav-fab").click();
   const sheet = page.locator(".v4-sheet");
   await expect(sheet).toBeVisible();
-  // Esperar sheetup (.3s): si mides/arrastras a mitad de animación el gesto no cierra (flaky).
-  await page.waitForTimeout(450);
+  const ritmo=await sheet.evaluate(el=>{ const s=getComputedStyle(el); return {entrada:parseFloat(s.animationDuration)*1000,salida:parseFloat(s.transitionDuration)*1000}; });
+  expect(ritmo.entrada).toBeGreaterThanOrEqual(400);
+  expect(ritmo.salida).toBeGreaterThanOrEqual(300);
+  // Esperar sheetup (.42s): si mides/arrastras a mitad de animación el gesto no cierra (flaky).
+  await page.waitForTimeout(560);
 
   // Banco del apunte: una pastilla (como filtros en Gastos). Al tocarla salen
   // «Sin banco» y los bancos de las cuentas (Sabadell en el seed).
@@ -43,9 +46,9 @@ test("Apuntar (+): banco en pastilla que se despliega y cierre tirando hacia aba
   // También debe cerrar arrastrando desde el TECLADO numérico (la zona que más se toca).
   await page.locator(".botnav-fab").click();
   await expect(sheet).toBeVisible();
-  // Esperar el fin de la animación de entrada (300 ms): medir el teclado a mitad de sheetup
+  // Esperar el fin de la animación de entrada (420 ms): medir el teclado a mitad de sheetup
   // da coordenadas fuera del viewport y los toques no llegan (falso negativo del test).
-  await page.waitForTimeout(450);
+  await page.waitForTimeout(560);
   const keys = await page.locator(".v4-keys").boundingBox();
   const kx = Math.round(keys.x + keys.width / 2);
   const ky = Math.round(keys.y + 10);
@@ -73,7 +76,7 @@ test("Apuntar usa la ficha v4.1: cabecera compacta, tres metadatos, ocho categor
   await expect(sheet.locator(".v4-keys")).toBeVisible();
 
   // Al cerrar la hoja hija de categorías, Apuntar sigue vivo debajo: el fondo no puede
-  // desbloquearse durante los 200 ms de salida ni al desmontarse solo la hija.
+  // desbloquearse durante los 300 ms de salida ni al desmontarse solo la hija.
   await sheet.locator(".v4-ficha-cat-title button").click();
   const categorySheet = page.locator(".v4-ficha-cat-sheet");
   await expect(categorySheet).toBeVisible();

@@ -1,3 +1,14 @@
+## [4.26.34] - 2026-09-24
+### Las hojas comparten un movimiento más pausado y continuo
+
+La entrada común de `.v4-sheet` pasa de 300 a 420 ms y sustituye la curva con aceleración brusca
+por la misma progresión estable que ya usaba Presupuesto. La salida que dispara `useSheetSwipe`
+pasa de 200 a 300 ms y el rebote de un arrastre cancelado de 220 a 280 ms, de modo que el contenido
+acompaña al gesto en lugar de desaparecer de golpe. Esto alcanza, entre otras, Pregúntame, Apuntar
+y las fichas de Gastos sin introducir animaciones nuevas ni tocar su lógica. La media de movimiento
+reducido sigue anulando la transición y desmontando la hoja de inmediato. Los E2E comprueban el
+ritmo computado en esas tres superficies y conservan el guardián específico de Presupuesto.
+
 ## [4.26.33] - 2026-09-24
 ### El Asistente abre para leer, no para escribir a ciegas
 

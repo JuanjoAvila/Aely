@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.34",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Las ventanas se mueven con más calma",
+      "en": "Panels move at a calmer pace",
+      "ca": "Les finestres es mouen amb més calma"
+    },
+    "items": {
+      "es": [
+        "Pregúntame, Apuntar y las fichas de Gastos se abren y cierran de forma más pausada y continua.",
+        "Si está activado Reducir animaciones, las ventanas siguen respondiendo al instante."
+      ],
+      "en": [
+        "Ask me, Add and expense details now open and close with a calmer, smoother motion.",
+        "When Reduce motion is enabled, panels still respond immediately."
+      ],
+      "ca": [
+        "Pregunta'm, Apuntar i les fitxes de Despeses ara s'obren i es tanquen amb un moviment més pausat i continu.",
+        "Si Reduir animacions està activat, les finestres continuen responent a l'instant."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "hojas-ritmo-suave",
+        "t": {
+          "es": "Ventanas más suaves",
+          "en": "Smoother panels",
+          "ca": "Finestres més suaus"
+        },
+        "items": {
+          "es": [
+            "1. Abre Pregúntame: la ventana debe subir con calma, sin dar un salto brusco.",
+            "2. Abre Apuntar y una compra de Gastos, y ciérralas: las tres deben sentirse continuas y responder bien.",
+            "3. Activa Reducir animaciones: esas ventanas deben abrirse y cerrarse al instante."
+          ],
+          "en": [
+            "1. Open Ask me: the panel should rise calmly without an abrupt jump.",
+            "2. Open Add and an expense, then close them: all three should feel smooth and remain responsive.",
+            "3. Enable Reduce motion: those panels should open and close immediately."
+          ],
+          "ca": [
+            "1. Obre Pregunta'm: la finestra ha de pujar amb calma, sense fer un salt brusc.",
+            "2. Obre Apuntar i una compra de Despeses, i tanca-les: totes tres s'han de notar contínues i respondre bé.",
+            "3. Activa Reduir animacions: aquestes finestres s'han d'obrir i tancar a l'instant."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.33",
     "d": "24 sep 2026",
     "t": {

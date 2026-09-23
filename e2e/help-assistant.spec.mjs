@@ -257,12 +257,15 @@ test("el composer queda visible cuando aparece el teclado",async({page})=>{
 
 test("el cierre anima la hoja mientras todavía sigue montada",async({page})=>{
   const {dialog}=await openHelp(page);
+  const sheet=dialog;
+  expect(await sheet.evaluate(el=>parseFloat(getComputedStyle(el).animationDuration)*1000)).toBeGreaterThanOrEqual(400);
   const sawExit=page.waitForFunction(()=>{
     const el=document.querySelector('.v4-sheet[data-sheet="help"]');
     return !!el && (el.style.transform||"").includes("110%");
   },null,{timeout:3000});
   await dialog.locator('[data-act="back"]').click();
   await sawExit;
+  expect(await sheet.evaluate(el=>parseFloat(el.style.transitionDuration)*1000)).toBeGreaterThanOrEqual(300);
   await expect(dialog).toHaveCount(1);
   await expect(dialog).toHaveCount(0);
 });

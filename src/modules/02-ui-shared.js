@@ -1041,7 +1041,7 @@ function useSheetSwipe(open, onClose, opts){
     // El transform arranca antes del setState/guardado que pueda ejecutar quien cierra: al vivir
     // en el compositor sigue avanzando aunque React tenga que recalcular la lista de Gastos.
     el.classList.remove("dragging");
-    const ms=opts.closeMs||200;
+    const ms=opts.closeMs||300;
     if(opts.unlockOnClose&&lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
     el.style.transition="transform "+ms+"ms "+(opts.closeEase||"cubic-bezier(.32,.72,0,1)");
     el.style.transform="translate3d(0,110%,0)";
@@ -1065,7 +1065,7 @@ function useSheetSwipe(open, onClose, opts){
     } else if(mcReduced()){
       el.style.transition=""; el.style.transform="";
     } else {
-      const snapMs=opts.snapMs||220;
+      const snapMs=opts.snapMs||280;
       el.style.transition="transform "+snapMs+"ms "+(opts.snapEase||"cubic-bezier(.32,.72,0,1)");
       el.style.transform="translate3d(0,0,0)";
       setTimeout(function(){ try{ el.style.transition=""; el.style.transform=""; }catch(err){} },snapMs);
