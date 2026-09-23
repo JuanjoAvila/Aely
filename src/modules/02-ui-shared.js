@@ -832,6 +832,9 @@ function useSheetSwipe(open, onClose, opts){
   const closeTimer=useRef(null);
   const lockHeld=useRef(false);
   const startY=useRef(0), startX=useRef(0), dy=useRef(0), dragging=useRef(false), armed=useRef(false), axis=useRef(null), closing=useRef(false), scrollHost=useRef(null);
+  const reduceMotion=function(){
+    try{ return document.documentElement.classList.contains("reduce-motion") || (window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches); }catch(e){ return false; }
+  };
   /* El candado entra antes del primer paint de la hoja. Con useEffect había un fotograma en que
      el fondo aún podía desplazarse y el siguiente recalculaba todo al bloquearlo: en el vídeo
      real la ficha parecía recolocarse justo después de abrir (feedback 2026-09-17). */
@@ -939,6 +942,8 @@ function useSheetSwipe(open, onClose, opts){
     el.classList.remove("dragging");
     if(dist>80){
       closeAnimated();
+    } else if(reduceMotion()){
+      el.style.transition=""; el.style.transform="";
     } else {
       const snapMs=opts.snapMs||220;
       el.style.transition="transform "+snapMs+"ms "+(opts.snapEase||"cubic-bezier(.32,.72,0,1)");

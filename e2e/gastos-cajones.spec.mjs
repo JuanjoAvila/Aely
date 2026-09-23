@@ -120,6 +120,27 @@ test("★ guardar un cambio NO deja la pantalla muerta", async ({ page }) => {
   await expect(fila(page, "Mercadona centro")).toHaveCount(1);
 });
 
+test("reducir movimiento cierra la ficha sin esperar una animación invisible", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
+  await abreGastos(page);
+  await fila(page, "Mercadona").click();
+  await expect(page.locator(".v4-exp-sheet")).toBeVisible();
+
+  const elapsed = await page.evaluate(() => new Promise((resolve, reject) => {
+    const start=performance.now();
+    const timeout=setTimeout(() => { observer.disconnect(); reject(new Error("la ficha no se cerró")); },1000);
+    const observer=new MutationObserver(() => {
+      if(document.querySelector(".v4-exp-sheet")) return;
+      clearTimeout(timeout); observer.disconnect(); resolve(performance.now()-start);
+    });
+    observer.observe(document.body,{childList:true,subtree:true});
+    document.querySelector(".v4-exp-sheet .v4-ficha-done").click();
+  }));
+  expect(elapsed).toBeLessThan(100);
+  await expect(page.locator("html")).not.toHaveClass(/sheet-open/);
+});
+
 test("ficha v4.1: un movimiento automático enseña su origen y bloquea importe y banco", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
   await abreGastos(page);
