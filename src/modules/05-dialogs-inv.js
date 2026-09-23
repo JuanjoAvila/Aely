@@ -57,6 +57,18 @@ function AskHost(){
   // Con opciones, cancelar es `null` («no he elegido»), no `false` («he dicho que no»): con tres
   // caminos posibles, un `false` se confundiría con haber elegido el primero.
   const cancel=function(){ done((cur.input||(cur.options||[]).length>0)?null:false); };
+  const cancelRef=useRef(null); cancelRef.current=cancel;
+  // `cur` puede pasar de un diálogo a otro dentro del mismo render. La entrada de historial no se
+  // remonta en ese caso, así que lee siempre el cancel actual y no el del primer Ask de la cadena.
+  useBackClose(!!cur,function(){ if(cancelRef.current) cancelRef.current(); });
+  useEffect(function(){
+    if(!cur) return undefined;
+    // El callback predictivo vive fuera de React y tiene prioridad sobre AndroidX mientras una
+    // pantalla hija está abierta. Esta puerta le permite cerrar primero el Ask que la cubre.
+    const close=function(){ cancel(); };
+    window.__mcCloseTopAsk=close;
+    return function(){ if(window.__mcCloseTopAsk===close) delete window.__mcCloseTopAsk; };
+  },[cur]);
   useEffect(function(){
     if(!cur) return undefined;
     returnFocusRef.current=document.activeElement;

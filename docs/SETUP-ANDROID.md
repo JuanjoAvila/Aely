@@ -24,6 +24,13 @@ nuevo vía `apk.json` → `installApk`.
 > La barra fina de desplazamiento del borde se desactiva sobre la WebView de Capacitor en
 > `MainActivity`, después de `super.onCreate()`. Es solo el indicador nativo: el scroll, la inercia
 > y el rebote siguen activos. Un cambio aquí requiere APK nueva; una OTA no puede modificarlo.
+>
+> Desde APK 48, `MainActivity` registra bajo demanda `OnBackAnimationCallback` (API 34) para las
+> pantallas hijas de Inversiones y Recibos. El plugin envía progreso/cancelación/invocación a la
+> web y se desregistra al cerrar, destruir o recargar; fuera de esas pantallas, Capacitor conserva
+> Atrás. Mientras una hija está abierta usa prioridad `OVERLAY`, por encima del callback general de
+> AndroidX; al cerrarla se retira. `android:enableOnBackInvokedCallback="true"` y ese puente son
+> nativos: requieren APK nueva.
 
 ---
 

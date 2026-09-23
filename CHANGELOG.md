@@ -1,3 +1,30 @@
+## [4.26.32] - 2026-09-24
+### Inversiones y Recibos comparten el gesto Atrás nativo y una salida segura
+
+`useEdgePageClose` unifica las dos pantallas hijas: el arrastre web puede nacer en cualquier zona
+no interactiva y el callback predictivo de Android 14+ entrega `start/progress/cancel/invoke` para
+que la página acompañe al dedo desde el borde. El callback solo se registra mientras una hija lo
+necesita, usa prioridad `OVERLAY` sobre el callback general de AndroidX y se limpia al desmontar o
+recargar; si la WebView no confirma que hay un receptor, cede Atrás a Capacitor. Si un diálogo de
+confirmación cubre la página, conserva el primer Atrás y el fondo no se mueve. El segundo gesto
+también borra la transición inline del rebote anterior: sin
+eso, cancelar y volver a tirar movía el dedo pero dejaba quieta la pantalla durante 240 ms. Es un
+cambio nativo y requiere APK 48 / 4.26.32; una OTA no puede añadir el callback API 34. El asset
+firmado se publicó en `v4.26.32` y `public/apk.json` apunta a ese fichero real.
+
+Gestionar reemplaza los logos repetidos de banco por pictogramas locales según el tipo de recibo;
+no añade librerías, red ni cambia la cuenta asociada, que continúa en el subtítulo. Las hojas de
+detalle y alta usan el mismo compositor vertical del resto de la app. `Listo` guarda, confirma y
+cierra; el alta se protege mientras termina la salida para que dos toques rápidos no creen dos ids.
+Los E2E cubren progreso, cancelación, reintento, gesto desde el centro, movimiento reducido, iconos,
+persistencia y doble toque. Java compila contra la API real de Capacitor.
+
+El panel de revisión ya no puede reabrirse solo después de cerrarlo: algunos WebView entregaban un
+último `scroll` durante el desmontaje y volvían a sembrar la marca de retorno que el cierre acababa
+de borrar. El cierre deja ahora una señal terminal antes de desmontar. También se estabiliza el
+guardián del arco inferior comprobando cada estado confirmado; el arco limpio sigue midiéndose por
+fotogramas, pero una ráfaga ya no depende de que `requestAnimationFrame` capture un frame efímero.
+
 ## [4.26.31] - 2026-09-23
 ### Gestionar repite su lectura visual sin alterar las cifras
 

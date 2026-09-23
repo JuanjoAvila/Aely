@@ -1,5 +1,67 @@
 [
   {
+    "v": "4.26.32",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Atrás acompaña al dedo en Inversiones y Recibos",
+      "en": "Back follows your finger in Investments and Bills",
+      "ca": "Enrere acompanya el dit a Inversions i Rebuts"
+    },
+    "items": {
+      "es": [
+        "Inversiones y Gestionar recibos entran y salen como páginas, también con el gesto Atrás del borde.",
+        "También puedes volver deslizando a la derecha desde cualquier zona que no sea un control.",
+        "Cada recibo se reconoce por lo que es —luz, agua, teléfono…— en vez de repetir el logo del banco.",
+        "Listo guarda y cierra la ficha; tocar dos veces al crear ya no puede duplicar el recibo."
+      ],
+      "en": [
+        "Investments and Manage bills now enter and leave like pages, including with the edge Back gesture.",
+        "You can also go back by swiping right from anywhere that is not a control.",
+        "Each bill is identified by what it is —electricity, water, phone…— instead of repeating the bank logo.",
+        "Done saves and closes the detail; tapping twice while creating can no longer duplicate a bill."
+      ],
+      "ca": [
+        "Inversions i Gestionar rebuts entren i surten com pàgines, també amb el gest Enrere de la vora.",
+        "També pots tornar lliscant cap a la dreta des de qualsevol zona que no sigui un control.",
+        "Cada rebut es reconeix pel que és —llum, aigua, telèfon…— en comptes de repetir el logotip del banc.",
+        "Fet desa i tanca la fitxa; tocar dues vegades en crear ja no pot duplicar el rebut."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "recibos-gestos-iconos",
+        "t": {
+          "es": "Gestos y fichas de Inversiones y Recibos",
+          "en": "Investment and bill gestures and details",
+          "ca": "Gestos i fitxes d'Inversions i Rebuts"
+        },
+        "items": {
+          "es": [
+            "1. Instala la APK 48 si aparece y abre Inversiones: al tirar despacio desde el borde, la página debe acompañar al dedo; si cancelas, debe volver a su sitio.",
+            "2. Completa el gesto de borde en Inversiones y en Plan → Recibos → Gestionar: ambas deben salir hacia la derecha.",
+            "3. En las dos pantallas, desliza a la derecha desde el centro sobre una zona sin botones: también debe volver.",
+            "4. En Gestionar, abre un grupo: deben verse iconos de luz, agua o tipo de recibo, no logos de bancos.",
+            "5. Cambia un importe y toca Listo: debe confirmar, cerrar y guardar una sola vez."
+          ],
+          "en": [
+            "1. Install APK 48 if offered and open Investments: slowly pull from the edge; the page should follow your finger and return if you cancel.",
+            "2. Complete the edge gesture in Investments and in Plan → Bills → Manage: both should leave towards the right.",
+            "3. On both screens, swipe right from the centre over an area without buttons: it should also go back.",
+            "4. In Manage, open a group: electricity, water or bill-type icons should appear instead of bank logos.",
+            "5. Change an amount and tap Done: it should confirm, close and save exactly once."
+          ],
+          "ca": [
+            "1. Instal·la l'APK 48 si apareix i obre Inversions: estira lentament des de la vora; la pàgina ha d'acompanyar el dit i tornar si cancel·les.",
+            "2. Completa el gest de vora a Inversions i a Pla → Rebuts → Gestionar: totes dues han de sortir cap a la dreta.",
+            "3. A totes dues pantalles, llisca cap a la dreta des del centre sobre una zona sense botons: també ha de tornar.",
+            "4. A Gestionar, obre un grup: s'hi han de veure icones de llum, aigua o tipus de rebut, no logotips de bancs.",
+            "5. Canvia un import i toca Fet: ha de confirmar, tancar i desar una sola vegada."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.31",
     "d": "23 sep 2026",
     "t": {

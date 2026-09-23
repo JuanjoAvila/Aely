@@ -158,9 +158,6 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     // (visto en el e2e: el primer deslizamiento no cambiaba de segmento y el segundo sí).
     const order=["recibos","deudas","metas"];
     const TH=0.07, FLICK_V=0.4, FLICK_MIN=26, MAX_PULL=46;
-    const reduceMotion=function(){
-      try{ return (window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches) || document.documentElement.classList.contains("reduce-motion"); }catch(e){ return false; }
-    };
     // Solo ARRIBA → abajo cambia de segmento. Abajo = ola. Plan en reposo va SIEMPRE en pan-y
     // (si `mc-touch-own` queda puesto al estar arriba, `touch-action:none` bloquea también
     // BAJAR a ver el contenido — feedback 5/8). `mc-touch-own` solo durante el gesto que nace
@@ -224,7 +221,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       dyRaw=Math.abs(ddy);
       lastY=tt.clientY;
       if(e.cancelable) e.preventDefault();
-      queue(reduceMotion()?0:dir*resist(dyRaw));
+      queue(mcReduced()?0:dir*resist(dyRaw));
     };
     const finish=function(allowCommit){
       if(raf){ cancelAnimationFrame(raf); raf=0; }
@@ -246,7 +243,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
         enterDirRef.current=dir>0?"down":"up";
         setSegMounted(function(m){ return m[nextId]?m:Object.assign({},m,{[nextId]:true}); });
         setSeg(nextId);
-      } else if(el && !reduceMotion()){
+      } else if(el && !mcReduced()){
         el.style.transition="transform .22s cubic-bezier(.32,.72,0,1)";
         el.style.transform="";
         setTimeout(function(){ cleanup(el); }, 230);
@@ -439,6 +436,26 @@ function gbSub(key, n){
   return gbTxt(n===1?key+"_one":key, {n:n});
 }
 
+/* En una lista de recibos el logo del banco dice de dónde sale, no QUÉ es, y mezclaba todas las
+   filas a ojos de quien solo quiere encontrar luz, agua o teléfono (feedback del padre, 23/9).
+   Son pictogramas locales y ligeros: nada de una librería ni de una petición de red. */
+function billGlyph(row){
+  const s=String((row&&row.name)||"").toLowerCase();
+  if(/luz|electric|energ|endesa|iberdrola|gas\b/.test(s)) return "⚡";
+  if(/agua|aig[uü]a/.test(s)) return "💧";
+  if(/m[oó]vil|telefon|internet|fibra|wifi/.test(s)) return "📶";
+  if(/seguro|asseguran|insurance/.test(s)) return "🛡️";
+  if(/alquiler|lloguer|rent|hipoteca|mortgage/.test(s)) return "🏠";
+  if(/pr[eé]stamo|pr[eé]stec|loan|deuda|deute/.test(s)||(row&&row.kind==="debt")) return "💳";
+  if(/netflix|spotify|disney|prime|hbo|stream/.test(s)) return "🎬";
+  if(/gimnas|gym|fitness/.test(s)) return "🏋️";
+  if(/coleg|escola|guarder|school|univers/.test(s)) return "🎓";
+  if(/ibi|impuesto|impost|tax/.test(s)) return "🏛️";
+  if(/n[oó]mina|salari|salary/.test(s)||(row&&row.income)) return "💼";
+  if(/dent|m[eé]dic|metge|salud|salut|health/.test(s)) return "🩺";
+  return row&&row.kind==="flow"?"↔️":row&&row.kind==="oneoff"?"📅":"🧾";
+}
+
 /* §2 variante A: `.settings-push` hub, sin montar `<Fijos>`. Reconcile → BankPanel (Claude).
    Ajustes dispara `mc-open-bills` → PlanTab abre este push con state vivo (no snapshot). */
 function BillsManagePush({open, onClose, state, set, totals, simple, showToast}){
@@ -459,6 +476,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
   const openerRef=React.useRef(null);
   const hadSheetRef=React.useRef(false);
   const view=stack[stack.length-1];
+  const pageSwipe=useEdgePageClose(!!open,onClose,view==="hub"&&!detail&&!addStep,rootRef);
   const cm=totals.curMonth, cy=totals.curYear;
   React.useEffect(function(){
     if(!open){
@@ -473,13 +491,13 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
   const pop=React.useCallback(function(){
     if(detail){ setDetail(null); return; }
     if(addStep){ setAddStep(null); return; }
+    if(view==="hub"){ pageSwipe.close(); return; }
     setStack(function(s){
-      if(s.length<=1){ onClose(); return s; }
       const n=s.slice(0,-1);
       if(n[n.length-1]==="hub") setGroup(null);
       return n;
     });
-  },[onClose, detail, addStep]);
+  },[view, detail, addStep]);
   popRef.current=pop; detailRef.current=detail; addStepRef.current=addStep;
   const closeDetail=React.useCallback(function(){ setDetail(null); },[]);
   const closeAdd=React.useCallback(function(){ setAddStep(null); },[]);
@@ -609,7 +627,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
     const attrs={"data-bill-id":r.id};
     if(r.locked) attrs["data-locked"]="1";
     return React.createElement("button",Object.assign({type:"button",className:"v4-mov v4-bills-row",key:r.kind+"_"+r.id,onClick:function(){ openDetail(r); }},attrs),
-      React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}}, React.createElement(Mono,{ent:r.bank,size:42})),
+      React.createElement("div",{className:"tile v4-bill-kind-icon","data-bill-icon":billGlyph(r),"aria-hidden":"true"}, billGlyph(r)),
       React.createElement("div",{className:"nm"},
         React.createElement("div",{className:"nm-title"}, r.name||"—"),
         React.createElement("div",{className:"meta"}, r.locked?gbTxt("gb_locked"):entOf(r.bank).label)),
@@ -681,7 +699,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
   const screenAttr=view==="list"?"bills-group":(view==="afford"?"bills-afford":"bills-home");
   return ReactDOM.createPortal(
     React.createElement(React.Fragment,null,
-      React.createElement("div",{ref:rootRef,className:"settings-push open v4-bills-push","data-bills-manage":"1","data-screen":screenAttr,"data-group":view==="list"?group:undefined,
+      React.createElement("div",{ref:rootRef,className:"settings-push open v4-bills-push mc-page-enter","data-bills-manage":"1","data-screen":screenAttr,"data-group":view==="list"?group:undefined,
         role:"dialog","aria-modal":"true","aria-labelledby":"bills-manage-title"}, body),
       detail && React.createElement(BillsItemSheet,{
         row:detail, set:set, banks:bankList, simple:simple, showToast:showToast,
@@ -710,20 +728,21 @@ function BillsItemSheet({row, set, banks, simple, showToast, onClose, onRemove})
   const [account,setAccount]=React.useState(row.bank||banks[0]||"sabadell");
   const [amort,setAmort]=React.useState(item.amort!=null?String(item.amort):"");
   const hasSched=hasSchedule(item);
-  const sheetRef=React.useRef(null);
   const titleRef=React.useRef(null);
   const onCloseRef=React.useRef(onClose);
   onCloseRef.current=onClose;
+  const swipe=useSheetSwipe(true,function(){ onCloseRef.current&&onCloseRef.current(); });
+  const sheetRef=swipe.sheetRef;
   const titleId="bills-item-title";
   React.useEffect(function(){ setAmount(""); },[row.id]);
-  useBackClose(true, onClose);
+  useBackClose(true, swipe.close);
   // Portal hermano del hub: dialog propio con trap/Escape; restore lo hace el hub (Codex 2050/2100Z).
   // deps=[]: si [onClose] remonta, cada tecla (saveMeta→set) reenfoca el h1 (Claude NO-GO / Codex 2120Z).
   React.useEffect(function(){
     var id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus(); });
     var onKey=function(e){
       if(document.documentElement.classList.contains("ask-open")) return;
-      if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); onCloseRef.current&&onCloseRef.current(); return; }
+      if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); swipe.close(); return; }
       if(e.key!=="Tab"||!sheetRef.current) return;
       // Siempre cortar: el hub escucha en bubble y ve foco fuera de rootRef (portal) → lo robaba (Codex 2105Z).
       e.stopPropagation();
@@ -754,6 +773,7 @@ function BillsItemSheet({row, set, banks, simple, showToast, onClose, onRemove})
     else if(row.kind==="oneoff") patchOneoffById(set,item.id,{amount:n});
     else if(row.kind==="debt"&&simple) patchDebtFields(set,item.id,{monthly:n});
     if(showToast) showToast(gbTxt("gb_save_ok"));
+    swipe.close();
   };
   const saveMeta=function(patch){
     if(locked) return;
@@ -763,12 +783,12 @@ function BillsItemSheet({row, set, banks, simple, showToast, onClose, onRemove})
     else if(row.kind==="debt"&&simple) patchDebtFields(set,item.id,patch);
   };
   const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
-  return React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
-    React.createElement("div",{ref:sheetRef,className:"v4-sheet","data-sheet":"bill",role:"dialog","aria-modal":"true","aria-labelledby":titleId,
-      onClick:function(e){ e.stopPropagation(); }},
+  return React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+    React.createElement("div",Object.assign({ref:sheetRef,className:"v4-sheet","data-sheet":"bill",role:"dialog","aria-modal":"true","aria-labelledby":titleId,
+      onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
       React.createElement("div",{className:"v4-sheet-handle"}),
       React.createElement("div",{className:"settings-push-h",style:{padding:"0 0 8px"}},
-        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:onClose},"‹"),
+        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:swipe.close},"‹"),
         React.createElement("h1",{id:titleId,tabIndex:-1,ref:titleRef}, name||row.name||"—")),
       !locked && React.createElement("input",{className:"v4-bills-search",value:name,placeholder:t("pt_name_ph"),
         onChange:function(e){ const v=e.target.value; setName(v); saveMeta({name:v}); }}),
@@ -834,20 +854,22 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, show
   const setF=function(patch){ setForm(function(f){ return Object.assign({},f,patch); }); };
   const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
   const stepRef=React.useRef(step), formRef=React.useRef(form);
-  const sheetRef=React.useRef(null);
+  const savedRef=React.useRef(false);
   const titleRef=React.useRef(null);
   const onCloseRef=React.useRef(onClose);
   onCloseRef.current=onClose;
+  const swipe=useSheetSwipe(true,function(){ onCloseRef.current&&onCloseRef.current(); });
+  const sheetRef=swipe.sheetRef;
   const titleId="bills-add-title";
   stepRef.current=step; formRef.current=form;
   const stepBack=React.useCallback(function(){
     const cur=stepRef.current, f=formRef.current||{};
-    if(cur==="what"){ onCloseRef.current&&onCloseRef.current(); return false; }
+    if(cur==="what"){ swipe.close(); return false; }
     if(cur==="amount") setStep("what");
     else if(cur==="freq"||cur==="monthyear") setStep("amount");
     else if(cur==="months") setStep("freq");
     else if(cur==="when"||cur==="preview") setStep(f.kind==="oneoff"?"monthyear":(f.freq==="mes"?"freq":"months"));
-    else { onCloseRef.current&&onCloseRef.current(); return false; }
+    else { swipe.close(); return false; }
     return true;
   },[setStep]);
   const entryRef=React.useRef(null), stepBackRef=React.useRef(stepBack);
@@ -895,8 +917,12 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, show
     return function(){ document.removeEventListener("keydown", onKey, true); };
   },[]);
   const commit=function(){
+    if(savedRef.current) return;
     const amt=parseFloat(String(form.amount).replace(",","."))||0;
     if(!(amt>0)) return;
+    // La hoja sigue montada durante la salida. Sin este guardo, dos toques rápidos creaban
+    // dos recibos distintos antes de que acabara la animación (feedback 2026-09-18, punto 12).
+    savedRef.current=true;
     if(form.kind==="flow"){
       const it={id:uid(),kind:form.flowKind||"income",name:form.name||(form.flowKind==="income"?"Ingreso":"Movimiento"),amount:amt};
       if(form.when) it.when=form.when; else { const d=cleanDay(form.day); if(d) it.day=d; }
@@ -913,7 +939,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, show
       addFixedItem(set,it);
     }
     if(showToast) showToast(gbTxt("gb_save_ok"));
-    onClose();
+    swipe.close();
   };
   const preview=function(){
     const amt=parseFloat(String(form.amount).replace(",","."))||0;
@@ -926,9 +952,9 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, show
   const title=step==="what"?gbTxt("gb_step_what"):step==="amount"?gbTxt("gb_step_how_much"):
     step==="freq"?gbTxt("gb_step_how_often"):step==="months"?gbTxt("gb_months_q"):
     step==="monthyear"?gbTxt("gb_step_monthyear"):gbTxt("gb_step_when");
-  return React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
-    React.createElement("div",{ref:sheetRef,className:"v4-sheet","data-sheet":"bill-add","data-step":step,role:"dialog","aria-modal":"true","aria-labelledby":titleId,
-      onClick:function(e){ e.stopPropagation(); }},
+  return React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+    React.createElement("div",Object.assign({ref:sheetRef,className:"v4-sheet","data-sheet":"bill-add","data-step":step,role:"dialog","aria-modal":"true","aria-labelledby":titleId,
+      onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
       React.createElement("div",{className:"v4-sheet-handle"}),
       React.createElement("div",{className:"settings-push-h",style:{padding:"0 0 8px"}},
         React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:function(){ stepBack(); }},"‹"),
@@ -1189,68 +1215,21 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
 }
 
 function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncInv, showToast}){
-  // Locales deliberadamente compactos: el gesto vive en un único efecto y el bundle tiene un
-  // presupuesto estricto; los nombres largos no aportaban contexto fuera de estas pocas líneas.
-  const tr=useRef(null), sr=useRef(null), ct=useRef(null), cr=useRef(onClose); cr.current=onClose;
+  const tr=useRef(null), sr=useRef(null);
   const [shown,setShown]=useState(false);
-  const closePush=useCallback(function(){
-    if(ct.current) return;
-    setShown(false);
-    ct.current=setTimeout(function(){ ct.current=null; cr.current(); },
-      document.documentElement.classList.contains("reduce-motion")?0:430);
-  },[]);
+  // Inversiones y Gestionar comparten compositor: el arrastre web nace en cualquier punto y el
+  // borde nativo de Android 14+ entrega su progreso real sin esperar a que se levante el dedo.
+  const pageSwipe=useEdgePageClose(!!open,onClose,!!open,sr);
+  const closePush=pageSwipe.close;
   useBackClose(!!open, closePush);
   useLayoutEffect(function(){
     if(!open) return undefined;
-    const root=sr.current;
-    let sx=0,sy=0,dx=0,t0=0,drag=false,axis=null,st=0,e2=0;
+    let e2=0;
     const e1=requestAnimationFrame(function(){ e2=requestAnimationFrame(function(){ setShown(true); }); });
-    // El gesto puede empezar en toda la pantalla (rechazo beta 4.26.16.1): en Android el sistema
-    // se queda el borde y la WebView no llega a ver ese dedo. El eje vertical se abandona al
-    // scroll nativo; `touchmove` va a mano porque React lo registra pasivo.
-    const start=function(e){
-      const p=e.touches&&e.touches[0];
-      const target=e.target;
-      if(!p||document.documentElement.classList.contains("ask-open")||
-        (target&&target.closest&&target.closest("input,textarea,select,[data-noswipe]"))) return;
-      sx=p.clientX; sy=p.clientY; dx=0; t0=Date.now(); drag=true; axis=null;
-    };
-    const move=function(e){
-      if(!drag||!(e.touches&&e.touches[0])) return;
-      const p=e.touches[0],x=p.clientX-sx,y=p.clientY-sy;
-      if(axis===null){ axis=gestureAxis(x,y); if(!axis) return; if(axis!=="x"){ drag=false; return; } }
-      dx=Math.max(0,x);
-      if(!dx) return;
-      root.classList.add("dragging"); root.style.transform="translateX("+dx+"px)";
-      if(e.cancelable) e.preventDefault();
-    };
-    const finish=function(commit){
-      if(!drag){ axis=null; return; }
-      drag=false; axis=null;
-      const go=commit&&(dx>(root.clientWidth||360)*.28||(dx/Math.max(1,Date.now()-t0)>.45&&dx>52));
-      root.classList.remove("dragging");
-      root.style.transition="transform .24s cubic-bezier(.32,.72,0,1)";
-      if(go){
-        root.style.transform="translateX(105%)";
-        ct.current=setTimeout(function(){ ct.current=null; cr.current(); },document.documentElement.classList.contains("reduce-motion")?0:240);
-      } else {
-        root.style.transform="";
-        st=setTimeout(function(){ root.style.transition=""; },250);
-      }
-      dx=0;
-    };
-    const end=function(){ finish(true); }, cancel=function(){ finish(false); };
     mcSheetLock();
-    root.addEventListener("touchstart",start,{passive:true});
-    root.addEventListener("touchmove",move,{passive:false});
-    root.addEventListener("touchend",end,{passive:true});
-    root.addEventListener("touchcancel",cancel,{passive:true});
     return function(){
-      cancelAnimationFrame(e1); if(e2) cancelAnimationFrame(e2); if(st) clearTimeout(st);
-      root.removeEventListener("touchstart",start); root.removeEventListener("touchmove",move);
-      root.removeEventListener("touchend",end); root.removeEventListener("touchcancel",cancel);
-      root.style.transform=""; root.style.transition=""; mcSheetUnlock(); setShown(false);
-      if(ct.current){ clearTimeout(ct.current); ct.current=null; }
+      cancelAnimationFrame(e1); if(e2) cancelAnimationFrame(e2);
+      mcSheetUnlock(); setShown(false);
     };
   },[open]);
   useEffect(function(){

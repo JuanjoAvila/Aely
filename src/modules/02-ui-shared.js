@@ -579,6 +579,10 @@ function CollapsibleCard({title, sub, dot, defaultOpen, right, children, storage
   );
 }
 
+function mcReduced(){
+  try{ return document.documentElement.classList.contains("reduce-motion")||(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches); }catch(e){ return false; }
+}
+
 /* Count-up compartido (B2). `ready` es la puerta: Inicio espera `mc-splash-gone`; Cartera espera
    el bus `mcOnCarteraActive`. Sin puerta, la animación se gasta con la pestaña premontada (o
    detrás del splash) y al llegar el número ya está puesto — peor que no animar. */
@@ -597,9 +601,7 @@ function useCountUp(target, ready, replay){
     }
     const tgt=+(target||0);
     cancelAnimationFrame(rafRef.current);
-    const reduce=(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)
-      || document.documentElement.classList.contains("reduce-motion");
-    if(reduce){
+    if(mcReduced()){
       shownRef.current=tgt; setShown(tgt); primeraRef.current=false;
       return undefined;
     }
@@ -813,6 +815,123 @@ function useBackClose(open, onClose){
   },[open]);
 }
 
+/* Pantallas hijas a página completa: dentro de la WebView se puede volver desde cualquier punto,
+   como en Inversiones; en Android 14+ el borde pertenece al sistema y llega por su progreso
+   predictivo. La hija acompaña al dedo y solo se desmonta después de cerrar. */
+function useEdgePageClose(open,onClose,on,ref){
+  const tm=useRef(null), busy=useRef(false);
+  const cb=useRef(onClose); cb.current=onClose;
+  const dr=useRef(null);
+  useEffect(function(){
+    if(open) busy.current=false;
+    return function(){ if(tm.current) clearTimeout(tm.current); };
+  },[open]);
+  const close=function(){
+    if(busy.current) return;
+    const el=ref.current;
+    if(!el||mcReduced()){ cb.current&&cb.current(); return; }
+    busy.current=true;
+    el.classList.remove("mc-page-dragging");
+    el.style.transition="transform .42s cubic-bezier(.32,.72,0,1), opacity .34s ease";
+    el.style.setProperty("transform","translate3d(104%,0,0) rotateY(-1.2deg)","important");
+    el.style.opacity=".78";
+    tm.current=setTimeout(function(){
+      tm.current=null;
+      cb.current&&cb.current();
+    },420);
+  };
+  const reset=function(){
+    const el=ref.current; if(!el) return;
+    el.classList.remove("mc-page-dragging");
+    if(mcReduced()){
+      el.style.transition=""; el.style.transform=""; el.style.opacity="";
+      return;
+    }
+    el.style.transition="transform .24s cubic-bezier(.32,.72,0,1), opacity .2s ease";
+    el.style.setProperty("transform","translate3d(0,0,0)","important");
+    el.style.opacity="1";
+  };
+  const move=function(x,p){
+    const el=ref.current; if(!el||busy.current||mcReduced()) return;
+    el.classList.add("mc-page-dragging");
+    // Gestionar conserva `transform:none!important` para que Android pinte su ola nativa; el
+    // compositor debe ganar solo mientras el gesto está vivo y no puede fiarlo a una clase.
+    el.style.setProperty("transition","none","important");
+    el.style.setProperty("transform","translate3d("+x+"px,0,0) rotateY("+(-1.2*p)+"deg)","important");
+    el.style.opacity=String(1-p*.22);
+  };
+  useEffect(function(){
+    if(!open||!on) return undefined;
+    const nat=natPlugin(), tog=function(v){
+      if(nat&&nat.setEdgeBackEnabled){ try{ nat.setEdgeBackEnabled({enabled:v}).catch(function(){}); }catch(e){} }
+    };
+    const back=function(e){
+      const ph=e.phase;
+      // Un AskHost vive por encima de la página. Con el callback OVERLAY, Android ya no llega al
+      // back general de Capacitor: primero cerramos ese diálogo y nunca movemos el fondo debajo.
+      if(document.documentElement.classList.contains("ask-open")){
+        if(ph==="cancel") reset();
+        if(ph==="invoke"){
+          reset();
+          try{ if(typeof window.__mcCloseTopAsk==="function") window.__mcCloseTopAsk(); }catch(err){}
+        }
+        return;
+      }
+      if(ph==="invoke"){ close(); return; }
+      if(ph==="cancel"){ reset(); return; }
+      if(ph!=="start"&&ph!=="progress") return;
+      const p=Math.max(0,Math.min(1,Number(e.progress)||0));
+      move(p*(window.innerWidth||360),p);
+    };
+    window.addEventListener("mcNativeEdgeBack",back);
+    window.__mcNativeEdgeBackActive=true;
+    tog(true);
+    const el=ref.current;
+    const ev=[["touchstart",start,true],["touchmove",motion,false],["touchend",end,true],["touchcancel",cancel,true]];
+    if(el){
+      // React registra touchmove pasivo en esta WebView. El listener manual permite que, una vez
+      // decidido el eje horizontal, el navegador no cancele el gesto antes de llegar al cierre.
+      ev.forEach(function(x){ el.addEventListener(x[0],x[1],{passive:x[2]}); });
+    }
+    return function(){
+      window.__mcNativeEdgeBackActive=false;
+      window.removeEventListener("mcNativeEdgeBack",back);
+      tog(false);
+      if(el) ev.forEach(function(x){ el.removeEventListener(x[0],x[1]); });
+    };
+  },[open,on]);
+  const start=function(e){
+    if(!open||!on||busy.current||!(e.touches&&e.touches[0])) return;
+    const target=e.target;
+    if(target&&target.closest&&target.closest("input,textarea,select,[data-noswipe]")) return;
+    const t=e.touches[0];
+    dr.current={x:t.clientX,y:t.clientY,d:0,t:Date.now(),axis:null};
+  };
+  const motion=function(e){
+    if(!dr.current||busy.current||!(e.touches&&e.touches[0])) return;
+    const t=e.touches[0], dx=t.clientX-dr.current.x, dy=t.clientY-dr.current.y;
+    if(dr.current.axis===null){
+      dr.current.axis=gestureAxis(dx,dy);
+      if(!dr.current.axis) return;
+      if(dr.current.axis!=="x"){ dr.current=null; return; }
+    }
+    if(dx<=0) return;
+    dr.current.d=dx;
+    move(dx,Math.min(1,dx/(window.innerWidth||360)));
+    if(e.cancelable) e.preventDefault();
+    if(e.stopPropagation) e.stopPropagation();
+  };
+  const fin=function(no){
+    const d=dr.current; dr.current=null;
+    if(!d) return;
+    const w=(ref.current&&ref.current.clientWidth)||window.innerWidth||360;
+    if(!no&&(d.d>w*.28||(d.d/Math.max(1,Date.now()-d.t)>.45&&d.d>52))){ close(); return; }
+    reset();
+  };
+  const end=function(){ fin(false); }, cancel=function(){ fin(true); };
+  return {close:close};
+}
+
 let _mcSheetLocks=0, _mcSheetPrevOverflow="";
 function mcSheetLock(){
   if(_mcSheetLocks===0){
@@ -838,9 +957,6 @@ function useSheetSwipe(open, onClose, opts){
   const closeTimer=useRef(null);
   const lockHeld=useRef(false);
   const startY=useRef(0), startX=useRef(0), dy=useRef(0), dragging=useRef(false), armed=useRef(false), axis=useRef(null), closing=useRef(false), scrollHost=useRef(null);
-  const reduceMotion=function(){
-    try{ return document.documentElement.classList.contains("reduce-motion") || (window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches); }catch(e){ return false; }
-  };
   /* El candado entra antes del primer paint de la hoja. Con useEffect había un fotograma en que
      el fondo aún podía desplazarse y el siguiente recalculaba todo al bloquearlo: en el vídeo
      real la ficha parecía recolocarse justo después de abrir (feedback 2026-09-17). */
@@ -920,9 +1036,7 @@ function useSheetSwipe(open, onClose, opts){
     if(closing.current) return;
     const finish=typeof done==="function"?done:onClose;
     const el=sheetRef.current;
-    const reduce=(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)
-      ||document.documentElement.classList.contains("reduce-motion");
-    if(!el||reduce){ finish(); return; }
+    if(!el||mcReduced()){ finish(); return; }
     closing.current=true;
     // El transform arranca antes del setState/guardado que pueda ejecutar quien cierra: al vivir
     // en el compositor sigue avanzando aunque React tenga que recalcular la lista de Gastos.
@@ -948,7 +1062,7 @@ function useSheetSwipe(open, onClose, opts){
     el.classList.remove("dragging");
     if(dist>80){
       closeAnimated();
-    } else if(reduceMotion()){
+    } else if(mcReduced()){
       el.style.transition=""; el.style.transform="";
     } else {
       const snapMs=opts.snapMs||220;

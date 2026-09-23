@@ -135,6 +135,15 @@ test("cuatro grupos con su cuenta, y el de una sola vez no dice «al mes»", asy
   await expect(hub(page).locator(".v4-bills-hero-bar i")).toHaveCount(2);
 });
 
+test("cada recibo lleva un icono de lo que es, no el logo del banco", async ({ page }) => {
+  await appLista(page);
+  await abreTusRecibos(page);
+  await grupo(page, "Servicios y suministros").click();
+  await expect(fila(page, "Luz").locator('[data-bill-icon="⚡"]')).toHaveCount(1);
+  await expect(fila(page, "Agua").locator('[data-bill-icon="💧"]')).toHaveCount(1);
+  await expect(hub(page).locator(".v4-bills-row .mono-logo img")).toHaveCount(0);
+});
+
 test("la cifra y la ola vuelven a empezar cada vez que se abre Gestionar", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
@@ -203,6 +212,54 @@ test("atrás de Android quita UNA pantalla cada vez", async ({ page }) => {
   await expect(page.locator('.botnav-tab[data-tour="plan"]')).toHaveClass(/active/);
 });
 
+test("el gesto Atrás nativo acompaña al dedo, cancela y cierra Tus recibos", async ({ page }) => {
+  await appLista(page);
+  await abreTusRecibos(page);
+  const pantalla=hub(page);
+  await expect.poll(() => page.evaluate(() => window.__mcNativeEdgeBackActive)).toBe(true);
+
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="start"; e.progress=0; window.dispatchEvent(e); });
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="progress"; e.progress=.4; window.dispatchEvent(e); });
+  const moved=await pantalla.evaluate((el)=>({x:new DOMMatrix(getComputedStyle(el).transform).m41,w:innerWidth}));
+  expect(moved.x).toBeGreaterThan(moved.w*.35);
+  expect(moved.x).toBeLessThan(moved.w*.45);
+
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="cancel"; e.progress=0; window.dispatchEvent(e); });
+  await expect.poll(() => pantalla.evaluate((el)=>new DOMMatrix(getComputedStyle(el).transform).m41)).toBeLessThan(1);
+  await expect(pantalla).toBeVisible();
+
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="start"; e.progress=0; window.dispatchEvent(e); });
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="progress"; e.progress=.65; window.dispatchEvent(e); });
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="invoke"; e.progress=1; window.dispatchEvent(e); });
+  await expect(pantalla).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => window.__mcNativeEdgeBackActive)).toBe(false);
+});
+
+test("Gestionar también vuelve arrastrando desde el centro de toda la pantalla", async ({ page, browserName }) => {
+  test.skip(browserName!=="chromium", "El gesto táctil real usa CDP");
+  await appLista(page);
+  await abreTusRecibos(page);
+  const pantalla=hub(page);
+  const cdp=await page.context().newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:150,y:250}]});
+  await cdp.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:[{x:340,y:250}]});
+  const moved=await pantalla.evaluate((el)=>new DOMMatrix(getComputedStyle(el).transform).m41);
+  expect(moved).toBeGreaterThan(180);
+  await cdp.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
+  await expect(pantalla).toHaveCount(0,{timeout:1600});
+});
+
+test("el atrás nativo anima la salida de Tus recibos antes de desmontarla", async ({ page }) => {
+  await appLista(page);
+  await abreTusRecibos(page);
+  const pantalla=hub(page);
+  await page.evaluate(()=>history.back());
+  await expect.poll(()=>pantalla.evaluate((el)=>getComputedStyle(el).transform!=="none")).toBe(true);
+  await expect(pantalla).toHaveCount(1);
+  await expect(pantalla).toHaveCount(0,{timeout:1600});
+  await expect(page.locator('.botnav-tab[data-tour="plan"]')).toHaveClass(/active/);
+});
+
 test("renombrar no aplana el importe por mes, los meses ni el día hábil", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
@@ -238,6 +295,37 @@ test("renombrar no aplana el importe por mes, los meses ni el día hábil", asyn
   });
 });
 
+test("Listo guarda el importe del recibo, confirma y cierra con animación", async ({ page }) => {
+  await appLista(page);
+  await abreTusRecibos(page);
+  await grupo(page, "Servicios y suministros").click();
+  await fila(page, "Luz").click();
+
+  const hoja=ficha(page);
+  for(const k of ["1","2","3"]) await hoja.getByRole("button",{name:k,exact:true}).click();
+  await hoja.getByRole("button",{name:/Listo|Done|Fet/i,exact:true}).click();
+
+  // El compositor termina la salida y solo después se desmonta la ficha.
+  await expect(hoja).toHaveCount(1);
+  await expect.poll(async()=>hoja.first().evaluate((n)=>getComputedStyle(n).transform!=="none")).toBe(true);
+  await expect(hoja).toHaveCount(0,{timeout:1500});
+  await expect(page.locator(".toast")).toContainText(/Guardado|Saved|Desat/i);
+  await expect.poll(async()=>{
+    const luz=((await estado(page)).fixed||[]).find((x)=>x.id==="luz");
+    return luz&&luz.amount;
+  }).toBe(123);
+});
+
+test("Reducir animaciones cierra la ficha sin esperar la transición", async ({ page }) => {
+  await appLista(page, { settings: { reduceMotion: true } });
+  await abreTusRecibos(page);
+  await grupo(page, "Servicios y suministros").click();
+  await fila(page, "Luz").click();
+  const hoja=ficha(page);
+  await hoja.locator(".settings-push-h .back").click();
+  await expect(hoja).toHaveCount(0,{timeout:250});
+});
+
 test("alta por pasos: cada dos meses pregunta EN QUÉ meses y el teclado empieza vacío", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
@@ -269,12 +357,18 @@ test("alta por pasos: cada dos meses pregunta EN QUÉ meses y el teclado empieza
 
   // Un recibo no tiene «último día hábil» (`when` es solo de lo que entra): no se ofrece.
   await expect(alta(page).locator(".v4-ficha-op").filter({ hasText: "Último día hábil" })).toHaveCount(0);
-  await alta(page).locator(".v4-cta").click();
+  const hojaAlta=alta(page);
+  // Dos toques dentro del mismo frame no pueden crear dos recibos mientras la hoja sale.
+  await hojaAlta.locator(".v4-cta").evaluate((el)=>{ el.click(); el.click(); });
+  await expect(hojaAlta).toHaveCount(1);
+  await expect.poll(async()=>hojaAlta.first().evaluate((n)=>getComputedStyle(n).transform!=="none")).toBe(true);
+  await expect(hojaAlta).toHaveCount(0,{timeout:1500});
 
   await expect.poll(async () => {
-    const f = ((await estado(page)).fixed || []).find((x) => x.name === "Basuras");
-    return f ? { amount: f.amount, freq: f.freq, feb: (f.months || []).includes(2), ene: (f.months || []).includes(1) } : null;
-  }).toEqual({ amount: 35, freq: "bimestral", feb: true, ene: false });
+    const rows=((await estado(page)).fixed || []).filter((x) => x.name === "Basuras");
+    const f=rows[0];
+    return f ? { count:rows.length, amount: f.amount, freq: f.freq, feb: (f.months || []).includes(2), ene: (f.months || []).includes(1) } : null;
+  }).toEqual({ count:1, amount: 35, freq: "bimestral", feb: true, ene: false });
 });
 
 test("un cargo de una sola vez se apunta por mes y año, no por periodicidad", async ({ page }) => {

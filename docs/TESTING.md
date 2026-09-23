@@ -1,5 +1,12 @@
 # Testing — Aely
 
+La beta 4.26.32 comparte `useEdgePageClose` entre Inversiones y Plan → Gestionar. Los casos de
+`cartera-inversiones` y `plan-gestionar` simulan progreso/cancelación/invocación nativos, un segundo
+intento después del rebote y el arrastre desde el centro; también protegen el scroll vertical y
+movimiento reducido. `plan-gestionar` comprueba iconos por tipo sin logos bancarios, que `Listo`
+persiste antes de cerrar y que un doble toque solo crea un recibo. El callback Java se compila con
+API 34 y la prueba real del borde requiere APK 48 en Android compatible.
+
 La beta 4.26.26 aísla el punto 8. `e2e/presupuesto-fluido.spec.mjs` abre el editor desde la tarjeta
 real de Inicio, exige una entrada de al menos 400 ms, limita la cifra a 42 px, comprueba que Guardar
 conserva la hoja durante la salida y que el presupuesto persiste. Un segundo caso activa movimiento

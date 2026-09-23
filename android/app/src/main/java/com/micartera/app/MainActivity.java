@@ -8,6 +8,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.window.BackEvent;
+import android.window.OnBackAnimationCallback;
+import android.window.OnBackInvokedCallback;
+import android.window.OnBackInvokedDispatcher;
 
 import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.WindowCompat;
@@ -16,6 +20,8 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
+    private Object edgeBackCallback;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         /* ACTIVA de verdad la librería de compatibilidad del splash (2026-08-01). Estaba en
@@ -99,6 +105,100 @@ public class MainActivity extends BridgeActivity {
         super.onNewIntent(intent);
         setIntent(intent);
         stashGoto(intent);                           // punto 5: la app YA estaba abierta y tocas la noti
+    }
+
+    /* Las hijas de Inversiones y Recibos se dibujan dentro de la WebView. Android se queda el
+       touchmove web no llega y la página solo empezaba a salir al soltar el dedo (prueba física
+       2026-09-18). Mientras esa hija está abierta, este callback API 34 entrega el progreso real
+       a la web. Fuera de ella se quita y el callback normal de Capacitor conserva Atrás. */
+    void setEdgeBackEnabled(boolean enabled) {
+        if (Build.VERSION.SDK_INT < 34) return;
+        if (enabled && edgeBackCallback == null) {
+            edgeBackCallback = EdgeBackApi34.register(this);
+        } else if (!enabled && edgeBackCallback != null) {
+            EdgeBackApi34.unregister(this, edgeBackCallback);
+            edgeBackCallback = null;
+        }
+    }
+
+    private void emitEdgeBack(String phase, float progress) {
+        if (bridge == null) return;
+        float p = Math.max(0f, Math.min(1f, progress));
+        bridge.triggerWindowJSEvent("mcNativeEdgeBack",
+                "{\"phase\":\"" + phase + "\",\"progress\":" + Float.toString(p) + "}");
+    }
+
+    /* Una recarga de la WebView no ejecuta el cleanup de React. Si ocurrió con una hija abierta,
+       el callback podría sobrevivir sin oyente: antes de consumirlo exigimos la marca viva y,
+       si el renderer no responde en 300 ms, lo soltamos y delegamos a Capacitor. */
+    private void invokeEdgeBack() {
+        if (bridge == null || bridge.getWebView() == null) {
+            setEdgeBackEnabled(false);
+            getOnBackPressedDispatcher().onBackPressed();
+            return;
+        }
+        final android.webkit.WebView webView = bridge.getWebView();
+        final boolean[] settled = { false };
+        final Runnable handoff = () -> {
+            if (settled[0]) return;
+            settled[0] = true;
+            setEdgeBackEnabled(false);
+            getOnBackPressedDispatcher().onBackPressed();
+        };
+        webView.postDelayed(handoff, 300);
+        webView.evaluateJavascript("Boolean(window.__mcNativeEdgeBackActive)", value -> {
+            if (settled[0]) return;
+            if ("true".equals(value)) {
+                settled[0] = true;
+                webView.removeCallbacks(handoff);
+                emitEdgeBack("invoke", 1f);
+            } else {
+                handoff.run();
+            }
+        });
+    }
+
+    private static final class EdgeBackApi34 {
+        static Object register(MainActivity activity) {
+            OnBackAnimationCallback callback = new OnBackAnimationCallback() {
+                @Override
+                public void onBackStarted(BackEvent event) {
+                    activity.emitEdgeBack("start", event.getProgress());
+                }
+
+                @Override
+                public void onBackProgressed(BackEvent event) {
+                    activity.emitEdgeBack("progress", event.getProgress());
+                }
+
+                @Override
+                public void onBackCancelled() {
+                    activity.emitEdgeBack("cancel", 0f);
+                }
+
+                @Override
+                public void onBackInvoked() {
+                    activity.invokeEdgeBack();
+                }
+            };
+            activity.getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    // AndroidX usa DEFAULT y puede volver a registrar su callback al cambiar el
+                    // foco. Mientras la hija está abierta, OVERLAY garantiza que el progreso siga
+                    // llegando a su compositor; al cerrarla lo quitamos y Capacitor recupera Atrás.
+                    OnBackInvokedDispatcher.PRIORITY_OVERLAY, callback);
+            return callback;
+        }
+
+        static void unregister(MainActivity activity, Object callback) {
+            activity.getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(
+                    (OnBackInvokedCallback) callback);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        setEdgeBackEnabled(false);
+        super.onDestroy();
     }
 
     // Guarda el deep-link en prefs; la web lo consume al volver a primer plano con

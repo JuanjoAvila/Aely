@@ -1350,7 +1350,7 @@ function betaOlvidarVuelta(){
 function BetaReviewPanel({onClose, showToast}){
   /* Cerrar A PROPÓSITO borra la marca; que la app se muera por detrás, no. Esa es toda la
      diferencia entre «he terminado» y «he salido a probar». */
-  const cerrarDeVerdad=function(){ betaOlvidarVuelta(); if(onClose) onClose(); };
+  const cerrarDeVerdad=function(){ gestoReal.current=null; betaOlvidarVuelta(); if(onClose) onClose(); };
   useBackClose(true, cerrarDeVerdad);
   const wrapRef=useRef(null);
   const scrollPuesto=useRef(false);
@@ -1365,6 +1365,9 @@ function BetaReviewPanel({onClose, showToast}){
   const gestoReal=useRef(false);
   const tocar=function(){ gestoReal.current=true; betaMarcarAbierto(); };
   const recordarScroll=function(){
+    // El último scroll del desmontaje llega después de ‹ Ajustes en algunos WebView. `null` es
+    // terminal: cerrar a propósito no puede volver a sembrar la marca que acaba de borrar.
+    if(gestoReal.current===null) return;
     const el=wrapRef.current; if(!el) return;
     try{ localStorage.setItem(BETA_SCROLL_KEY, String(el.scrollTop)); }catch(e){}
     if(gestoReal.current) betaMarcarAbierto();

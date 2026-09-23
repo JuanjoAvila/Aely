@@ -101,6 +101,28 @@ test("Inversiones v4: abre como pantalla hija, conserva el cálculo y devuelve e
   await expect(door).toBeFocused();
 });
 
+test("Inversiones y Gestionar comparten el Atrás nativo que acompaña al dedo", async ({ page }) => {
+  await seedLoggedInDashboard(page, { investments });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await dismissNews(page);
+  await openInvestments(page);
+  const screen=page.locator("[data-inv-screen]");
+  await expect.poll(() => page.evaluate(() => window.__mcNativeEdgeBackActive)).toBe(true);
+
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="start"; e.progress=0; window.dispatchEvent(e); });
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="progress"; e.progress=.38; window.dispatchEvent(e); });
+  const moved=await screen.evaluate((el)=>({x:new DOMMatrix(getComputedStyle(el).transform).m41,w:innerWidth}));
+  expect(moved.x).toBeGreaterThan(moved.w*.33);
+  expect(moved.x).toBeLessThan(moved.w*.43);
+
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="cancel"; e.progress=0; window.dispatchEvent(e); });
+  await expect.poll(() => screen.evaluate((el)=>new DOMMatrix(getComputedStyle(el).transform).m41)).toBeLessThan(1);
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="invoke"; e.progress=1; window.dispatchEvent(e); });
+  await expect(screen).toHaveCount(0,{timeout:1600});
+  await expect.poll(() => page.evaluate(() => window.__mcNativeEdgeBackActive)).toBe(false);
+});
+
 test("Inversiones v4: coste cero no finge +0%, manual se identifica y solo edita su bróker", async ({ page }) => {
   const rows = [
     { id: "manual", ent: "trade_republic", name: "Fondo manual", shares: 2, value: 500, cost: 0, cur: "EUR" },
@@ -135,7 +157,7 @@ test("Inversiones v4: coste cero no finge +0%, manual se identifica y solo edita
   await expect(tr.locator('[data-inv-position="manual"] .rsub')).toContainText(/a mano · \d|by hand · \d|a mà · \d/i);
 });
 
-test("Inversiones v4: Ask conserva su foco y Escape no cierra la pantalla hija", async ({ page }) => {
+test("Inversiones v4: Ask posee Escape y el Atrás predictivo sin cerrar la pantalla hija", async ({ page }) => {
   await seedLoggedInDashboard(page, { investments: [
     { id: "ask-row", ent: "trade_republic", name: "Posición para borrar", value: 500, cost: 400, cur: "EUR" },
   ] });
@@ -153,6 +175,15 @@ test("Inversiones v4: Ask conserva su foco y Escape no cierra la pantalla hija",
   await expect.poll(() => page.evaluate(() => !!document.querySelector(".askback [role=dialog]")?.contains(document.activeElement))).toBe(true);
   await page.keyboard.press("Tab");
   expect(await page.evaluate(() => document.querySelector(".askback [role=dialog]").contains(document.activeElement))).toBe(true);
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="start"; e.progress=0; window.dispatchEvent(e); });
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="progress"; e.progress=.55; window.dispatchEvent(e); });
+  await expect.poll(() => page.locator("[data-inv-screen]").evaluate((el)=>Math.abs(new DOMMatrix(getComputedStyle(el).transform).m41))).toBeLessThan(1);
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="invoke"; e.progress=1; window.dispatchEvent(e); });
+  await expect(page.locator(".askback")).toHaveCount(0);
+  await expect(page.locator("[data-inv-screen]")).toBeVisible();
+
+  await broker.getByRole("button",{name:/Borrar|Delete|Esborra/i}).click();
+  await expect(ask).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.locator(".askback")).toHaveCount(0);
   await expect(page.locator("[data-inv-screen]")).toBeVisible();

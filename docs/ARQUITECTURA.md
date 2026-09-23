@@ -23,6 +23,12 @@ abre desde Plan o desde Ajustes → Dinero. En un arranque frío, Ajustes deja l
 `window.__mcOpenBillsPending` y Plan la consume cuando su montaje diferido existe; no se fuerza
 el montaje, no se duplica el gestor y no se toca `11-app-main.js`. Las hojas de alta y detalle son
 diálogos hermanos con nombre accesible, contención y restauración de foco y pila Atrás propia.
+`useEdgePageClose` es el compositor compartido con `InvestmentsPush`: dentro de la WebView acepta
+el deslizamiento horizontal desde cualquier zona no interactiva; en Android 14+ consume el progreso
+predictivo del borde a través de `MiCartera.setEdgeBackEnabled`. Solo hay un callback mientras una
+de esas hijas está abierta y se devuelve Atrás a Capacitor si la web no confirma un receptor.
+Los pictogramas de los recibos salen de `billGlyph`, un mapa local por nombre/tipo; no cambian el
+banco del movimiento ni cargan una librería o servicio externo.
 
 ## Pregúntame híbrido (4.26.3)
 
