@@ -10,15 +10,15 @@
     "items": {
       "es": [
         "Un recibo ya cobrado sigue contando una sola vez aunque cambies su día dentro del mismo mes.",
-        "La nueva fecha se conserva sin mover los saldos ni alterar los gastos anteriores."
+        "El día nuevo queda para los próximos cobros; el actual conserva la fecha real del banco sin mover saldos ni gastos anteriores."
       ],
       "en": [
         "A bill that has already been paid still counts once when you change its day within the same month.",
-        "The new date is kept without changing account balances or earlier spending."
+        "The new day applies to future charges; the current one keeps the bank’s actual date without changing balances or earlier spending."
       ],
       "ca": [
         "Un rebut ja cobrat continua comptant una sola vegada encara que en canviïs el dia dins del mateix mes.",
-        "La data nova es conserva sense moure els saldos ni alterar les despeses anteriors."
+        "El dia nou s'aplica als cobraments futurs; l'actual conserva la data real del banc sense moure saldos ni despeses anteriors."
       ]
     },
     "tandas": [
@@ -32,17 +32,17 @@
         "items": {
           "es": [
             "1. En Plan → Recibos, abre un recibo que el banco ya haya cobrado este mes y cambia su día por otro posterior del mismo mes.",
-            "2. Al volver a Recibos, debe aparecer una sola vez en «Ya pagado», con el día nuevo, y no también entre lo pendiente.",
+            "2. Al volver a Recibos, debe aparecer una sola vez en «Ya pagado», con el día real del banco; el día nuevo queda guardado para los próximos meses y no aparece también entre lo pendiente.",
             "3. Comprueba que no han cambiado el saldo de esa cuenta, el de otro banco ni los movimientos anteriores de Gastos."
           ],
           "en": [
             "1. In Plan → Bills, open a bill already charged by the bank this month and change it to a later day in the same month.",
-            "2. Back in Bills, it should appear once under “Already paid”, with the new day, and not again as pending.",
+            "2. Back in Bills, it should appear once under “Already paid”, with the bank’s actual day; the new day is saved for future months and it must not also appear as pending.",
             "3. Check that neither that account balance, another bank balance nor earlier Spending entries have changed."
           ],
           "ca": [
             "1. A Pla → Rebuts, obre un rebut que el banc ja hagi cobrat aquest mes i canvia'l a un dia posterior del mateix mes.",
-            "2. En tornar a Rebuts, ha d'aparèixer una sola vegada a «Ja pagat», amb el dia nou, i no també entre els pendents.",
+            "2. En tornar a Rebuts, ha d'aparèixer una sola vegada a «Ja pagat», amb el dia real del banc; el dia nou queda desat per als mesos següents i no apareix també entre els pendents.",
             "3. Comprova que no han canviat el saldo d'aquest compte, el d'un altre banc ni els moviments anteriors de Despeses."
           ]
         }

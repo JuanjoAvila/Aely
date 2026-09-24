@@ -17,11 +17,14 @@ function entFromAspsp(name){
 function planChargesMonth(state,month,year,today){
   state=state||{};
   var rows=[];
+  // La primera beta solo guardaba el mes pagado. Recuperar la fecha real del banco permite que
+  // ese estado ya existente deje de enseñar un cobro futuro sin obligar a editarlo otra vez.
+  var bp=reconcileBank(state,year,month,today).paidAt;
   (state.fixed||[]).forEach(function(e){
     var amount=occAmountIn(e,month);
     if(!(amount>0)||!occursIn(e,month)) return;
-    var day=dayIn(e,month);
-    rows.push({id:"fixed_"+e.id,name:e.name,amount:amount,day:day,bank:accOf(e),paid:isPaidIn(e,month,today,year),kind:"bill"});
+    var day=dayIn(e,month),pd=e.paidYm===year*12+month&&(e.paidDay||bp[e.id]);
+    rows.push({id:"fixed_"+e.id,name:e.name,amount:amount,day:pd||day,bank:accOf(e),paid:isPaidIn(e,month,today,year),kind:"bill"});
   });
   (state.debts||[]).forEach(function(d){
     if(!debtActive(d)) return;
@@ -64,21 +67,19 @@ function planChargesMonth(state,month,year,today){
   pendingBills.forEach(function(x){ var b=x.bank||"sabadell"; pendingByBank[b]=(pendingByBank[b]||0)+Math.abs(x.amount); });
   var pendingBillsTotal=pendingBills.reduce(function(s,x){ return s+Math.abs(x.amount); },0);
   var paidBillsTotal=paidBills.reduce(function(s,x){ return s+Math.abs(x.amount); },0);
-  var biggest=pendingBills.slice().sort(function(a,b){ return Math.abs(b.amount)-Math.abs(a.amount); })[0]||null;
   var transfersPending=rows.filter(function(x){ return x.kind==="transfer"&&!x.paid; });
   var incomePending=rows.filter(function(x){ return x.kind==="income"&&!x.paid; });
   return {
-    rows:rows, pendingBills:pendingBills, paidBills:paidBills,
-    pendingBillsCount:pendingBills.length, paidBillsCount:paidBills.length,
+    pendingBills:pendingBills, paidBills:paidBills,
     pendingBillsTotal:pendingBillsTotal, paidBillsTotal:paidBillsTotal,
-    pendingByBank:pendingByBank, biggestPending:biggest,
+    pendingByBank:pendingByBank,
     transfersPending:transfersPending, incomePending:incomePending
   };
 }
 /* Pregúntame = misma regla que Plan: solo recibos, sin ingresos ni traspasos. */
 function pendingBillsSummary(state,month,year,today){
   var p=planChargesMonth(state,month,year,today);
-  return {count:p.pendingBillsCount,total:p.pendingBillsTotal};
+  return {count:p.pendingBills.length,total:p.pendingBillsTotal};
 }
 /* Estado de la portada de Plan: 🔴 min<0, 🟡 min < mayor cargo pendiente del banco, 🟢 resto. */
 function planCoverState(totals, bankEnt, biggestPendingAmt, pendingBills){
@@ -447,7 +448,7 @@ function recDay(ds){ const p=String(ds||"").slice(0,10).split("-"); return p.len
 const REC_GRACE=3;   // días de gracia antes de avisar "aún no aparece" (cargos que se cobran tarde, p.ej. hipoteca a fin de mes)
 function reconcileBank(state, y, m, today){
   const tx=(state && state.bankTx)||[];
-  const res={ hasData:tx.length>0, confirmed:[], shared:[], mismatch:[], missing:[], newCharges:[], income:[], feed:[], fixedPaid:{} };
+  const res={ hasData:tx.length>0, confirmed:[], shared:[], mismatch:[], missing:[], newCharges:[], income:[], feed:[], paidAt:{} };
   if(!tx.length) return res;
   const ym=y+"-"+(m<10?"0":"")+m;
   // bancos OB del usuario (cuentas con rol de fijos, incluida "ambos"; el gasto de tarjeta de TR no es OB)
@@ -474,7 +475,8 @@ function reconcileBank(state, y, m, today){
   // como "aún no aparece" — se buscan también ahí y cuentan como confirmados.
   const prevY=(m===1)?y-1:y, prevM=(m===1)?12:m-1;
   const pym=prevY+"-"+(prevM<10?"0":"")+prevM;
-  const prevTail=tx.filter(function(t){ return String(t.date||"").slice(0,7)===pym && obEnts[t.ent] && (t.amount||0)>0 && (recDay(t.date)||0)>=15; });
+  const prevTail=tx.filter(function(t){ return String(t.date||"").slice(0,7)===pym && obEnts[t.ent] && (t.amount||0)>0 && (recDay(t.date)||0)>=15; })
+    .map(function(t){ return Object.assign({},t); });
   // avisos que el usuario ha ocultado ("Ocultar aviso") y movimientos ignorados
   const dismissed={}; (state.bankDismissed||[]).forEach(function(k){ dismissed[k]=1; });
   res.ym=ym;
@@ -498,7 +500,7 @@ function reconcileBank(state, y, m, today){
     if(best){
       best._used=true;
       if(recAmtClose(target, best.amount)){
-        if(mc.kind==="fixed") res.fixedPaid[mc.id]=1;
+        if(mc.kind==="fixed") res.paidAt[mc.id]=recDay(best.date)||-1;
         if(typeof mc.bankAmount==="number" && Math.abs(mc.bankAmount-mc.amount)>0.005)
           res.shared.push({name:mc.name, net:mc.amount, gross:best.amount, ent:mc.ent, id:mc.id, kind:mc.kind});
         else res.confirmed.push({name:mc.name, amount:best.amount, ent:mc.ent});
@@ -506,7 +508,7 @@ function reconcileBank(state, y, m, today){
     } else {
       // ¿se cobró a FINAL del mes pasado? (último día hábil / pago adelantado) → confirmado
       const prev=prevTail.find(function(d){ return !d._used2 && d.ent===mc.ent && (recAmtClose(target,d.amount)||(recNameMatch(mc.name,d.merchant)&&recSane(target,d.amount))); });
-      if(prev){ prev._used2=true; if(mc.kind==="fixed") res.fixedPaid[mc.id]=1; res.confirmed.push({name:mc.name, amount:prev.amount, ent:mc.ent}); }
+      if(prev){ prev._used2=true; if(mc.kind==="fixed") res.paidAt[mc.id]=mc.day||1; res.confirmed.push({name:mc.name, amount:prev.amount, ent:mc.ent}); }
       else if(mc.day!=null && (today-mc.day)>=REC_GRACE && feedCovers(mc.ent, mc.day) && !dismissed["miss|"+mc.id+"|"+ym]){
         // "no aparece" solo si: (1) el día ya pasó con margen (gracia, no llora por cargos de fin de mes)
         // Y (2) el feed del banco realmente cubre ese día (si no, la sync no ha llegado: no inventamos avisos).
@@ -2185,8 +2187,13 @@ function patchFixedById(set, id, patch){
     const next=Object.assign({},s,{fixed:fixed});
     if(item&&(("day" in patch)||("amount" in patch)||("account" in patch))){
       const now=new Date(),y=now.getFullYear(),m=now.getMonth()+1;
-      if(reconcileBank(next,y,m,now.getDate()).fixedPaid[id]) item.paidYm=y*12+m;
-      else if(("amount" in patch)||("account" in patch)) delete item.paidYm;
+      const paid=reconcileBank(next,y,m,now.getDate()).paidAt[id];
+      if(paid){
+        item.paidYm=y*12+m;
+        item.paidDay=paid;
+      } else if(("amount" in patch)||("account" in patch)){
+        delete item.paidYm; delete item.paidDay;
+      }
     }
     return next;
   });

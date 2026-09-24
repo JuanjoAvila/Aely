@@ -13,11 +13,23 @@ después cambia el importe o el banco, se reconcilia otra vez el fijo ya editado
 importe que aún coincide conserva el pago; un cargo distinto pierde la marca. No se migra, duplica ni
 recategoriza ningún movimiento histórico.
 
-El unitario `fixed-day-reconcile` reproduce Iberdrola 120 € en Sabadell, el cambio 20 → 28 y otro
+La beta `4.26.46.1` evitó el segundo descuento, pero el rechazo móvil descubrió una segunda mitad:
+un cargo real del día 24 editado para cobrarse los próximos meses el 27 aparecía como «pagado el 27» cuando aún
+era 24. `paidAt` devuelve ahora el día del movimiento casado y el fijo persiste `paidDay` junto
+al mes. El calendario nuevo sigue siendo editable y se aplica a las próximas ocurrencias; la fila
+ya pagada enseña la fecha real del banco. Para reparar también el estado creado por la primera beta,
+Plan recupera ese día de `bankTx` cuando encuentra un `paidYm` antiguo sin `paidDay`, sin mutar el
+feed. Si el banco adelantó el cobro al mes anterior, la fila conserva el día previsto del mes
+actual en vez de presentar una fecha con el mes equivocado; esa cola se clona antes de marcar
+coincidencias para no tocar `bankTx`.
+
+El unitario `fixed-day-reconcile` reproduce Iberdrola 120 € cobrada el 24 en Sabadell, el cambio de
+previsión 24 → 27 y otro
 banco con gasto propio. Exige una sola ocurrencia pagada, cero pendientes duplicados, los dos
-saldos invariantes, el histórico idéntico y persistencia sin `bankTx`. El E2E hace la edición en
-Plan y comprueba el DOM y el estado guardado. El comportamiento sin movimiento bancario no cambia:
-un recibo futuro sigue pendiente.
+saldos invariantes, el histórico idéntico, fecha real 24 visible, previsión 27 guardada y
+persistencia sin `bankTx`. También cubre la reparación en lectura de la beta rechazada. El E2E hace
+la edición en Plan y comprueba el DOM y el estado guardado. El comportamiento sin movimiento
+bancario no cambia: un recibo futuro sigue pendiente.
 
 ## [4.26.45] - 2026-09-24
 ### Las cuotas conservan su enlace sin fingir que son una categoría de consumo

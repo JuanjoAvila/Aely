@@ -28,20 +28,20 @@ console.log("plan-charges");
 
 {
   const p = c.planChargesMonth(base(), 9, 2026, 10);
-  assert.equal(p.pendingBillsCount, 3, "luz+coche+itv pendientes el día 10");
+  assert.equal(p.pendingBills.length, 3, "luz+coche+itv pendientes el día 10");
   assert.equal(p.pendingBillsTotal, 290);
   assert.equal(p.transfersPending.length, 1);
   assert.equal(p.incomePending.length, 0, "nómina día 1 ya pagada");
   assert.ok(p.pendingBills.every((x) => x.kind !== "transfer" && x.kind !== "income"));
   const s = c.pendingBillsSummary(base(), 9, 2026, 10);
-  assert.equal(s.count, p.pendingBillsCount);
+  assert.equal(s.count, p.pendingBills.length);
   assert.equal(s.total, p.pendingBillsTotal);
 }
 
 {
   const p = c.planChargesMonth(base(), 9, 2026, 30);
-  assert.equal(p.pendingBillsCount, 0);
-  assert.equal(p.paidBillsCount, 3);
+  assert.equal(p.pendingBills.length, 0);
+  assert.equal(p.paidBills.length, 3);
   assert.equal(p.transfersPending.length, 0);
 }
 
@@ -51,7 +51,7 @@ console.log("plan-charges");
     fixed: [], oneoffs: [], flows: [],
     debts: [{ id: "x", name: "Sin día", monthly: 80, value: 800, account: "sabadell" }],
   }), 9, 2026, 15);
-  assert.equal(p.pendingBillsCount, 1);
+  assert.equal(p.pendingBills.length, 1);
   assert.equal(p.pendingBills[0].day, null);
   assert.equal(p.pendingBills[0].paid, false);
 }

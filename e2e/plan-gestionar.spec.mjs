@@ -359,7 +359,7 @@ test("renombrar no aplana el importe por mes, los meses ni el día hábil", asyn
   });
 });
 
-test("cambiar el día de un recibo ya cobrado cambia solo la previsión", async ({ page }) => {
+test("cambiar el día de un recibo cobrado conserva su fecha real", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-24T12:00:00+02:00") });
   const gastos = [
     { id: "hist-ago", ent: "sabadell", date: "2026-08-20T12:00:00.000Z", amount: 120, merchant: "Iberdrola agosto" },
@@ -370,9 +370,9 @@ test("cambiar el día de un recibo ya cobrado cambia solo la previsión", async 
       { id: "sab", ent: "sabadell", name: "Recibos", value: 1500, role: "fijos" },
       { id: "rev", ent: "revolut", name: "Diario", value: 700, role: "fijos" },
     ],
-    fixed: [{ id: "luz", name: "Iberdrola luz", amount: 120, freq: "mes", day: 20, account: "sabadell" }],
+    fixed: [{ id: "luz", name: "Iberdrola luz", amount: 120, freq: "mes", day: 24, account: "sabadell" }],
     debts: [], flows: [], oneoffs: [], expenses: gastos,
-    bankTx: [{ id: "tx-luz-sep", ent: "sabadell", date: "2026-09-20", amount: 120, merchant: "IBERDROLA LUZ" }],
+    bankTx: [{ id: "tx-luz-sep", ent: "sabadell", date: "2026-09-24", amount: 120, merchant: "IBERDROLA LUZ" }],
     settings: { expenseBanks: ["revolut"] },
   });
   await page.locator('.botnav-tab[data-tour="plan"]').click();
@@ -390,8 +390,11 @@ test("cambiar el día de un recibo ya cobrado cambia solo la previsión", async 
   await abreTusRecibos(page);
   await grupo(page, "Servicios y suministros").click();
   await fila(page, "Iberdrola luz").click();
-  await ficha(page).locator('input[inputmode="numeric"]').fill("28");
-  await expect.poll(async () => ((await estado(page)).fixed||[]).find((x)=>x.id==="luz")?.day).toBe(28);
+  await ficha(page).locator('input[inputmode="numeric"]').fill("27");
+  await expect.poll(async () => {
+    const fijo=((await estado(page)).fixed||[]).find((x)=>x.id==="luz")||{};
+    return [fijo.day,fijo.paidDay];
+  }).toEqual([27,24]);
   await ficha(page).locator(".settings-push-h .back").click();
   await expect(ficha(page)).toHaveCount(0);
   await hub(page).locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
@@ -410,7 +413,8 @@ test("cambiar el día de un recibo ya cobrado cambia solo la previsión", async 
   expect(despues).toEqual(Object.assign({},antes,{fixed:1,pending:0}));
   await expect(recibos.locator(".v4-charge").filter({hasText:"Iberdrola luz"})).toHaveCount(1);
   await expect(recibos.locator(".v4-charge").filter({hasText:"Iberdrola luz"})).toHaveClass(/v4-paid/);
-  await expect(recibos.locator(".v4-charge").filter({hasText:"Iberdrola luz"}).locator(".d")).toHaveText("28");
+  await expect(recibos.locator(".v4-charge").filter({hasText:"Iberdrola luz"}).locator(".d")).toHaveText("24");
+  await expect(recibos.locator(".v4-charge").filter({hasText:"Iberdrola luz"}).locator(".m")).toHaveText(/sep/i);
 });
 
 test("Listo confirma a la vista, guarda una sola vez y después cierra", async ({ page }) => {

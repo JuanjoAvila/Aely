@@ -364,9 +364,9 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
       React.createElement("div",{className:"am"+(income?" pos":"")}, (income?"+":"")+eur(amt))
     );
   };
-  const paidLabel=pack.paidBillsCount===1
+  const paidLabel=pack.paidBills.length===1
     ? tf("v4_paid_fold_one",{n:1,amount:eur0(pack.paidBillsTotal)})
-    : tf("v4_paid_fold",{n:pack.paidBillsCount,amount:eur0(pack.paidBillsTotal)});
+    : tf("v4_paid_fold",{n:pack.paidBills.length,amount:eur0(pack.paidBillsTotal)});
   return React.createElement(React.Fragment,null,
     !simple && React.createElement("div",{className:"v4-card v4-card-hero rise"},
       React.createElement("div",{className:"v4-micro"}, tf("v4_plan_left",{month:monthLong(month-1)})),
@@ -410,7 +410,7 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
       paid.length>3 && React.createElement("button",{type:"button",className:"v4-link-mini",onClick:function(){ setPaidExpanded(function(v){ return !v; }); }},
         paidExpanded?t("v4_ver_menos"):tf("v4_ver_mas",{n:paid.length-3}))
     ),
-    simple && pack.paidBillsCount>0 && React.createElement("button",{type:"button",className:"v4-paid-fold",
+    simple && pack.paidBills.length>0 && React.createElement("button",{type:"button",className:"v4-paid-fold",
       id:"v4-paid-fold-btn","aria-expanded":paidExpanded?"true":"false","aria-controls":paidPanelId,
       onClick:function(){ setPaidExpanded(function(v){ return !v; }); }},
       React.createElement("span",null, paidLabel),React.createElement("span",{"aria-hidden":true}, paidExpanded?"▾":"▸")),
