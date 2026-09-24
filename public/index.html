@@ -7647,7 +7647,9 @@ function useSheetSwipe(open, onClose, opts){
     // en el compositor sigue avanzando aunque React tenga que recalcular la lista de Gastos.
     el.classList.remove("dragging");
     const ms=opts.closeMs||300;
-    if(opts.unlockOnClose&&lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
+    // El fondo se libera al empezar la salida, no al desmontar: esperar esos 200–320 ms
+    // recupera el tirón que ya se había eliminado (revisión independiente 2026-09-24).
+    if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
     el.style.transition="transform "+ms+"ms "+(opts.closeEase||"cubic-bezier(.32,.72,0,1)");
     el.style.transform="translate3d(0,110%,0)";
     closeTimer.current=setTimeout(function(){
@@ -9656,7 +9658,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
 function BudgetSheet({open, budget, onClose, onSave}){
   const [b,setB]=useState(budget||700);
   useEffect(function(){ if(open) setB(Math.max(100, Math.round(budget||700))); },[open,budget]);
-  const swipe=useSheetSwipe(!!open, onClose,{closeMs:320,snapMs:300,unlockOnClose:true,
+  const swipe=useSheetSwipe(!!open, onClose,{closeMs:320,snapMs:300,
     closeEase:"cubic-bezier(.22,1,.36,1)",snapEase:"cubic-bezier(.22,1,.36,1)"});
   useBackClose(!!open, swipe.close);
   if(!open) return null;

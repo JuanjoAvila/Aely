@@ -1,3 +1,18 @@
+## [4.26.38] - 2026-09-24
+### Las hojas liberan el fondo desde el primer fotograma de salida
+
+La reconstrucción selectiva de Presupuesto había dejado `mcSheetUnlock()` condicionado a
+`unlockOnClose`, una opción que solo pasaba `BudgetSheet`. Apuntar y el resto de hojas conservaban
+`sheet-open` y `body.overflow="hidden"` durante sus 200–300 ms de cierre, recuperando un tirón ya
+eliminado. `closeAnimated` libera ahora el candado que posee cualquier hoja al iniciar la salida;
+el contador compartido mantiene protegidas las hojas anidadas. El listener táctil permanece hasta
+el desmontaje para que un gesto no atraviese la hoja mientras aún se ve. Se retira la opción ya
+innecesaria.
+
+Un E2E táctil cierra Apuntar por arrastre y comprueba en el mismo instante que el nodo sigue montado
+mientras el fondo ya está libre. Los tres casos de Presupuesto y cierre común pasan, incluido
+movimiento reducido.
+
 ## [4.26.37] - 2026-09-24
 ### Plan recupera el mínimo de caja real del mes
 

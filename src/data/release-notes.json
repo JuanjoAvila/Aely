@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.38",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Las ventanas terminan de cerrar sin tirón",
+      "en": "Panels now finish closing without a hitch",
+      "ca": "Les finestres acaben de tancar sense estrebada"
+    },
+    "items": {
+      "es": [
+        "Al cerrar una ventana, la pantalla de detrás recupera su posición desde que empieza la salida y ya no espera al último instante.",
+        "El cierre mantiene su animación y las ventanas abiertas una encima de otra siguen protegidas."
+      ],
+      "en": [
+        "When a panel closes, the screen behind it recovers its position as soon as the exit begins instead of waiting until the last moment.",
+        "The closing animation remains, and panels opened on top of one another stay protected."
+      ],
+      "ca": [
+        "En tancar una finestra, la pantalla del darrere recupera la posició des que comença la sortida i ja no espera fins a l'últim instant.",
+        "L'animació de tancament es manté i les finestres obertes una damunt de l'altra continuen protegides."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "hojas-desbloqueo-cierre",
+        "t": {
+          "es": "Cierre sin tirón final",
+          "en": "Closing without a final hitch",
+          "ca": "Tancament sense estrebada final"
+        },
+        "items": {
+          "es": [
+            "1. Abre Apuntar, espera a que termine de entrar y ciérralo arrastrando hacia abajo: debe salir seguido, sin frenarse al final.",
+            "2. Repite el cierre con una ficha de Gastos: debe salir con el mismo ritmo, sin un pequeño salto al desaparecer.",
+            "3. Con Reducir animaciones activado, ambas ventanas deben cerrarse al instante."
+          ],
+          "en": [
+            "1. Open Add, wait for it to finish entering, then drag it down to close: it should leave continuously, without stalling at the end.",
+            "2. Repeat with an Expense detail: it should leave at the same pace, without a small jump as it disappears.",
+            "3. With Reduce animations enabled, both panels should close immediately."
+          ],
+          "ca": [
+            "1. Obre Apuntar, espera que acabi d'entrar i tanca'l arrossegant cap avall: ha de sortir seguit, sense frenar-se al final.",
+            "2. Repeteix el tancament amb una fitxa de Despeses: ha de sortir al mateix ritme, sense un petit salt quan desapareix.",
+            "3. Amb Reduir animacions activat, totes dues finestres s'han de tancar a l'instant."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.37",
     "d": "24 sep 2026",
     "t": {
