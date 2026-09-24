@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.25.15",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Bizum deja sitio a la categoría real",
+      "en": "Bizum no longer hides what the expense was",
+      "ca": "Bizum deixa lloc a la categoria real"
+    },
+    "items": {
+      "es": [
+        "Al apuntar un Bizum o una transferencia, la forma de pago se elige aparte: el gasto puede seguir contando como Salud, Restaurantes o la categoría que corresponda.",
+        "Los Bizum antiguos se conservan tal cual y se pueden pasar uno a uno a su categoría real, sin cambiar el histórico a ciegas."
+      ],
+      "en": [
+        "When adding a Bizum or bank transfer, the payment method is chosen separately, so the expense can still count as Health, Eating out or whichever category fits.",
+        "Existing Bizum entries stay unchanged and can be moved one by one to their real category, without guessing through past expenses."
+      ],
+      "ca": [
+        "En apuntar un Bizum o una transferència, la forma de pagament es tria a part: la despesa pot continuar comptant com a Salut, Restaurants o la categoria que correspongui.",
+        "Els Bizum antics es conserven tal com estan i es poden passar un a un a la categoria real, sense canviar l'històric a cegues."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.14",
     "d": "24 sep 2026",
     "t": {

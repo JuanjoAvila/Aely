@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-24 · **v4.25.14** — Pregúntame aprobado llega a producción con guía local breve, rutas reales y apertura sin teclado; la ayuda remota sigue opcional y no se despliega en esta tanda.
+> Estado a 2026-09-24 · **v4.25.15** — Bizum y transferencia son formas de pago: la categoría real sigue contando y el histórico no se recategoriza a ciegas.
+> Anterior: **v4.25.14** — Pregúntame aprobado llega a producción con guía local breve, rutas reales y apertura sin teclado; la ayuda remota sigue opcional y no se despliega en esta tanda.
 > Anterior: **v4.25.13** — Plan → Recibos enseña el saldo más bajo previsto y su día; port selectivo aprobado sin incorporar otras tandas 4.26.
 > Anterior: **v4.25.12** — todas las hojas liberan el fondo al empezar a cerrarse; el editor de presupuesto conserva su ritmo propio y no se incorporan otras tandas 4.26.
 > Anterior: **v4.25.11** — el editor del presupuesto mensual aprobado abre y cierra con más calma y mantiene la cifra legible; port selectivo sin incorporar otras tandas 4.26.
@@ -199,7 +200,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.25.14** (Pregúntame local y apertura sin teclado; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.25.15** (Bizum como forma de pago separada de la categoría; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

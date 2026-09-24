@@ -58,5 +58,11 @@ t("la IA diciendo «otros» o una categoría que no existe no ofrece nada", () =
   assert.equal(s({ concepto: "Xyzzy", iaPara: "Xyzzy", iaCat: "inventada" }).chipIA, null);
 });
 
+t("la IA no puede confundir Bizum con la finalidad del gasto", () => {
+  const r = s({ concepto: "Pago a Ana", iaPara: "Pago a Ana", iaCat: "bizum" });
+  assert.equal(r.chipIA, null);
+  assert.equal(r.kwCat, null);
+});
+
 if (fallos) { console.error(`sugerencia-apuntar: ${fallos} fallo(s)`); process.exit(1); }
 console.log("sugerencia-apuntar: OK");

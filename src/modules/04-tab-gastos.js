@@ -1053,6 +1053,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   useEffect(function(){ if(!abierto) setCalOpen(false); },[abierto, exp&&exp.id]);
   if(!abierto) return null;
   const c=catOf(exp.category);
+  const catList=XC.concat(exp.category==="bizum"?[CAT.bizum]:[],[INVERSION_CAT,TRASPASO_CAT]);
   const isIncome=exp.amount<0 || !!editExp.income;
   const bk=expenseBankOf(exp);
   const auto=exp.source && exp.source!=="manual";
@@ -1109,8 +1110,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
           !isIncome && React.createElement(React.Fragment,null,
             React.createElement("div",{className:"v4-exp-sec"}, t("v4_exp_cat")),
             React.createElement("div",{className:"v4-chips"},
-              CATEGORIES.concat([INVERSION_CAT,TRASPASO_CAT]).map(function(cc){
-                return React.createElement("button",{key:cc.id,type:"button",className:"v4-chip"+(cc.id===exp.category?" on":""),onClick:function(){ setCat(exp,cc.id); }}, cc.icon+" "+catName(cc.id));
+              catList.map(function(cc){
+                return React.createElement("button",{key:cc.id,type:"button",className:"v4-chip"+(cc.id===exp.category?" on":""),"data-testid":"exp-cat-"+cc.id,onClick:function(){ setCat(exp,cc.id); }}, cc.icon+" "+catName(cc.id));
               })
             ),
             /* «Es la cuota de…» (4.22.2): todas las deudas, también las que ya acabaron — la cuota
@@ -1125,8 +1126,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
                 })
               )
             ),
-            React.createElement("button",{type:"button",className:"v4-sheet-row"+(exp.noCard?"":" on"),style:{marginTop:12},onClick:function(){ setCardFlag(exp,!exp.noCard); }},
-              exp.noCard?("💸 "+t("v4_exp_not_card")):("💳 "+t("v4_exp_with_card"))),
+            React.createElement("button",{type:"button",className:"v4-sheet-row"+(exp.noCard?"":" on"),style:{marginTop:12},"data-testid":"exp-payment",onClick:function(){ setCardFlag(exp,!exp.noCard); }},
+              t(exp.noCard?"g_nocard":"g_card")),
             (!auto && setBank) && (function(){
               const seen={}; const opts=[];
               (state.accounts||[]).forEach(function(a){ if(a&&a.ent&&!seen[a.ent]){ seen[a.ent]=1; opts.push(a.ent); } });

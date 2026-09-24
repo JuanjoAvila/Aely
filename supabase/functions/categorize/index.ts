@@ -18,7 +18,7 @@ import { rateLimit } from "../_shared/ratelimit.ts";
 const ALLOWED = [
   "super", "pan", "bares", "cine", "padel", "heladeria", "ia", "ocio", "gaming", "viajes",
   "transporte", "parking", "agua", "luz", "gas", "tasas", "recibos", "compras", "educacion",
-  "salud", "pelu", "mascotas", "hogar", "regalos", "joyeria", "bizum", "otros",
+  "salud", "pelu", "mascotas", "hogar", "regalos", "joyeria", "otros",
 ] as const;
 
 const HINTS =
@@ -36,7 +36,7 @@ const HINTS =
   "recibos=facturas periódicas: teléfono, internet, seguro NO médico, alquiler, comunidad, alarma; " +
   "compras=ropa y tiendas; educacion=cursos y colegios; salud=farmacia, médico, seguro médico; " +
   "pelu=peluquería y estética; mascotas=veterinario y pienso; hogar=IKEA, bricolaje; " +
-  "regalos=flores y regalos; joyeria=joyas; bizum=Bizum enviado a personas; otros=solo si no encaja ninguna. " +
+  "regalos=flores y regalos; joyeria=joyas; otros=solo si no encaja ninguna. " +
   /* PASARELAS DE PAGO (rechazo suyo del 12/9: «Mangopay» → Compras). Las palabras clave YA lo
      dejan en `otros` —«mango» está en KW_PALABRA y no casa dentro de MANGOpay—, pero entonces
      se le pregunta al modelo, que lee «Mango» y contesta Compras. Y no es una tienda: es la

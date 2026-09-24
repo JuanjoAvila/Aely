@@ -2409,12 +2409,16 @@ const CATEGORIES = [
   { id:"hogar",      name:"Hogar",               color:"#B7C98A", icon:"🏠" },
   { id:"regalos",    name:"Regalos",             color:"#E89CB0", icon:"🎁" },
   { id:"joyeria",    name:"Joyería",             color:"#D4AF37", icon:"💍" },
-  /* Bizum ANTES de otros (feedback 10/9): manda y recibe a menudo; quiere verlo aparte
-     en el desglose y en el límite por categoría, no mezclado en «Otros». */
+  /* Se conserva para LEER el histórico que ya se guardó como Bizum. Desde 4.25.15 no se ofrece
+     al apuntar ni se adivina: Bizum es la forma de pago; el gasto real sigue siendo restaurante,
+     salud, etc. No migramos filas antiguas a ciegas porque no podemos saber para qué eran. */
   { id:"bizum",      name:"Bizum",               color:"#5B9FE8", icon:"📲" },
   { id:"otros",      name:"Otros",               color:"#8FA89A", icon:"📦" },
 ];
 const CAT = Object.fromEntries(CATEGORIES.map(c=>[c.id,c]));
+// Catálogo para CLASIFICAR gastos nuevos. `CATEGORIES` sigue completo para pintar y filtrar los
+// Bizum antiguos hasta que el usuario les asigne su finalidad real uno a uno.
+const XC=CATEGORIES.filter(c=>c.id!=="bizum");
 const INGRESO_CAT = { id:"ingreso", name:"Ingreso", color:"#5FD08A", icon:"💰" };
 // Ni gasto ni ingreso: dinero que sale del efectivo pero va a un fondo (round-up/cashback/aporte
 // automático de un bróker). Ver `applyInvestBuy` en 08-motor-bank.js y `reconcileTR` en este fichero.
@@ -2519,9 +2523,6 @@ const KW = {
   hogar:["ikea","leroy","bricomart","bauhaus","ferreteria","muebles","sofa","sofá","lampara","lámpara","tintoreria","tintorería","lavanderia","lavandería","mrw","seur","correos","amazon locker","bricodepot","bricodépôt","aki ","aki.","ferretería","manitas","limpieza hogar","limpiapro","blink ","dyson","rowenta","bosch electro","balay","teka"],
   regalos:["regalo","flores","floristeria","floristería","perfumeria","perfumería","interflora","teleflorist","rosas ","ramo ","douglas"],
   joyeria:["joyeria","joyeros","tiffany","cartier","swarovski","tous ","pandora"],
-  /* Bizum al final del vocabulario de gasto (antes de caer en otros). Los BIZUM RECIBIDOS
-     suelen entrar como ingreso por el signo; esto pilla los enviados / el comercio «BIZUM …». */
-  bizum:["bizum","bizum a ","bizum de ","envio bizum","envío bizum","pago bizum","bizum movistar","bizum bbva","bizum caixa","bizum sabadell","bizum santander"],
 };
 /* ¿QUÉ DÍA ES ESTO? EN HORA LOCAL, COMO LO QUE SE LEE EN PANTALLA (2026-09-11/12).
    `dayKey` era `d.toISOString().slice(0,10)` —**UTC**— mientras la etiqueta de la cabecera sale de
@@ -2627,7 +2628,7 @@ function sugerenciaApuntar(o){
   if(kw && kw!=="otros" && CAT[kw]){
     return { kwCat: o.tocadaAMano ? null : kw, pedirIA:false, chipIA:null };
   }
-  const iaVigente = o.iaPara===texto && o.iaCat && o.iaCat!=="otros" && CAT[o.iaCat] ? o.iaCat : null;
+  const iaVigente = o.iaPara===texto && o.iaCat && o.iaCat!=="otros" && o.iaCat!=="bizum" && CAT[o.iaCat] ? o.iaCat : null;
   return {
     kwCat:null,
     pedirIA: !!(o.iaOn && o.nube && o.iaPara!==texto),
@@ -3254,6 +3255,7 @@ const cloud = (function(){
       if(!sb) throw new Error("nube no disponible");
       const {data,error}=await sb.functions.invoke("categorize",{ body:{ merchant:String(merchant||"").slice(0,120) } });
       if(error) throw error;
+      if(data?.category==="bizum") data.category="otros";
       return data;
     },
     // Copia de seguridad diaria del estado COMPLETO (idempotente por día) + poda a 30 días.
@@ -4578,7 +4580,6 @@ const LANG = {
     // ir al banco todo el rato para saber lo que era»).
     v4_exp_note:"Concepto", v4_exp_note_ph:"De qué era (ej. cena del sábado)",
     v4_exp_note_bank:"Lo ha puesto el banco · puedes cambiarlo",
-    v4_exp_with_card:"Pagado con tarjeta", v4_exp_not_card:"Bizum o transferencia",
     v4_budget_sheet:"Tu presupuesto del mes", v4_budget_sheet_h:"Solo el día a día: súper, bares, caprichos. Los recibos van aparte.",
     // Estas tres estaban SOLO en inglés y catalán: en castellano (el idioma de la casa) la app
     // pintaba la clave pelada «tb_removed» / «tb_nodel» en el toast (bug encontrado 2026-07-24
@@ -5059,7 +5060,7 @@ Object.assign(LANG.es,{
   g_lastsync:"Última sincronización: {d}", g_nosync:"Sin sincronizar todavía",
   g_gasto:"💸 Gasto", g_ingreso:"💰 Ingreso", g_concept_g:"Concepto (ej. Cena)", g_concept_i:"Concepto (ej. me devolvió Ana)",
   g_addgasto:"Añadir gasto", g_addingreso:"Añadir ingreso", g_date:"Fecha (vacía = hoy)",
-  g_card:"Con tarjeta (cuenta round-up)", g_nocard:"Bizum/transfer · sin round-up",
+  g_card:"Con tarjeta", g_nocard:"Bizum o transferencia",
   g_empty_t:"No hay gastos aquí", g_empty_d:"Cambia el filtro, sincroniza o apunta uno.", g_loadmore:"Cargando más…",
   g_empty_period_t:"Aún no hay gastos en este período", g_empty_period_d:"Es normal si acaba de empezar el mes o tu ciclo — irán apareciendo según sincronices o apuntes alguno.",
   g_today:"Hoy", g_yesterday:"Ayer", g_invalid:"Pon un importe válido", g_saved_g:"✓ Gasto apuntado", g_saved_i:"✓ Ingreso apuntado", g_deleted:"Eliminado", g_changecat:"Cambiar categoría",
@@ -8895,6 +8896,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   useEffect(function(){ if(!abierto) setCalOpen(false); },[abierto, exp&&exp.id]);
   if(!abierto) return null;
   const c=catOf(exp.category);
+  const catList=XC.concat(exp.category==="bizum"?[CAT.bizum]:[],[INVERSION_CAT,TRASPASO_CAT]);
   const isIncome=exp.amount<0 || !!editExp.income;
   const bk=expenseBankOf(exp);
   const auto=exp.source && exp.source!=="manual";
@@ -8951,8 +8953,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
           !isIncome && React.createElement(React.Fragment,null,
             React.createElement("div",{className:"v4-exp-sec"}, t("v4_exp_cat")),
             React.createElement("div",{className:"v4-chips"},
-              CATEGORIES.concat([INVERSION_CAT,TRASPASO_CAT]).map(function(cc){
-                return React.createElement("button",{key:cc.id,type:"button",className:"v4-chip"+(cc.id===exp.category?" on":""),onClick:function(){ setCat(exp,cc.id); }}, cc.icon+" "+catName(cc.id));
+              catList.map(function(cc){
+                return React.createElement("button",{key:cc.id,type:"button",className:"v4-chip"+(cc.id===exp.category?" on":""),"data-testid":"exp-cat-"+cc.id,onClick:function(){ setCat(exp,cc.id); }}, cc.icon+" "+catName(cc.id));
               })
             ),
             /* «Es la cuota de…» (4.22.2): todas las deudas, también las que ya acabaron — la cuota
@@ -8967,8 +8969,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
                 })
               )
             ),
-            React.createElement("button",{type:"button",className:"v4-sheet-row"+(exp.noCard?"":" on"),style:{marginTop:12},onClick:function(){ setCardFlag(exp,!exp.noCard); }},
-              exp.noCard?("💸 "+t("v4_exp_not_card")):("💳 "+t("v4_exp_with_card"))),
+            React.createElement("button",{type:"button",className:"v4-sheet-row"+(exp.noCard?"":" on"),style:{marginTop:12},"data-testid":"exp-payment",onClick:function(){ setCardFlag(exp,!exp.noCard); }},
+              t(exp.noCard?"g_nocard":"g_card")),
             (!auto && setBank) && (function(){
               const seen={}; const opts=[];
               (state.accounts||[]).forEach(function(a){ if(a&&a.ent&&!seen[a.ent]){ seen[a.ent]=1; opts.push(a.ent); } });
@@ -19244,6 +19246,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
   const [raw,setRaw]=useState("");
   const [note,setNote]=useState("");
   const [cat,setCat]=useState("super");
+  const [nc,setNc]=useState(false);
   // Moneda en la que tecleas el importe (NO la de pantalla). Por defecto la de visualización;
   // se puede cambiar a liras/dólares/… sin tocar Ajustes.
   const [entryCur,setEntryCur]=useState("EUR");
@@ -19285,7 +19288,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
   };
   useEffect(function(){
     if(open){
-      setKind("gasto"); setRaw(""); setNote(""); setCat("super");
+      setKind("gasto"); setRaw(""); setNote(""); setCat("super"); setNc(false);
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false);
       // Ayuda «Pregúntame» marca efectivo sin tocar 11 (mismo patrón que __mcExpBank en §3).
@@ -19357,8 +19360,9 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
       id:mcExpenseId(), date:date||isoLocal(),
       amount:isIn?-Math.abs(amtEur):Math.abs(amtEur),
       merchant:note.trim()||(isIn?t("cat_ingreso"):catName(cat)),
-      category:isIn?"ingreso":cat, source:"manual", card:!isIn
+      category:isIn?"ingreso":cat, source:"manual"
     };
+    if(!isIn && nc) e.noCard=true;
     if(bank) e.ent=bank;   // banco elegido → filtro por banco en Gastos (y viaja en source)
     // Rastro del importe original (informativo; la lista sigue en la moneda de visualización).
     if(entryCur!=="EUR"){ e.origAmount=amt; e.origCur=entryCur; }
@@ -19379,7 +19383,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
       }
     }
   };
-  const cats=CATEGORIES.filter(function(c){ return c.id!=="otros"; }).concat(CATEGORIES.filter(function(c){ return c.id==="otros"; }));
+  const cats=XC.filter(function(c){ return c.id!=="otros"; }).concat(XC.filter(function(c){ return c.id==="otros"; }));
   const chipIA=(kind==="gasto") ? sugerenciaApuntar({
     concepto:note.trim(), tocadaAMano:tocadaAMano, iaOn:aiOn, nube:cloud.enabled(),
     iaPara:iaPara, iaCat:iaCat
@@ -19431,6 +19435,10 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
               return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bank===b?" on":""),onClick:function(){ setBank(b); setBankOpen(false); }},
                 bankChipLabel(b));
             })
+          ),
+          kind==="gasto" && React.createElement("div",{className:"v4-chips"},
+            React.createElement("button",{type:"button",className:"v4-chip"+(nc?" on":""),"data-testid":"ap-payment",onClick:function(){ setNc(function(v){ return !v; }); }},
+              t(nc?"g_nocard":"g_card"))
           ),
           kind==="gasto" && React.createElement("div",{className:"v4-chips","data-testid":"ap-cats"},
             chipIA && React.createElement("button",{type:"button",key:"ia_"+chipIA,
