@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-24 · **v4.26.35** preparada para beta — el filtro de Gastos usa las mismas fichas de icono y nombre que Apuntar y Modificar, conservando plegado, búsqueda y multiselección. La APK 48 sigue vigente para el gesto Atrás nativo. Producción sirve 4.25.9; comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-24 · **v4.26.35** preparada para beta — el filtro de Gastos usa las mismas fichas de icono y nombre que Apuntar y Modificar, conservando plegado, búsqueda y multiselección. La APK 48 sigue vigente para el gesto Atrás nativo. Producción sirve 4.25.10 con Ahorro mensual en Metas; comprobar disponibilidad real con `npm run salud`.
 > Anterior: **v4.26.34** — Pregúntame, Apuntar y las fichas de Gastos comparten una entrada y salida más pausada y continua, sin ralentizar el modo de movimiento reducido.
 > Anterior: **v4.26.33** — Pregúntame abre sin enfocar la pregunta, de modo que la guía se puede leer antes de que aparezca el teclado.
 > Anterior: **v4.26.32** — Inversiones y Plan → Gestionar comparten el gesto Atrás que acompaña al dedo; Recibos usa iconos por tipo, cierra al guardar y evita el doble alta.

@@ -535,6 +535,14 @@ lápida se escriben juntas para que un pull no resucite la fila por detrás; al 
 esa lápida, se repone el objeto en su posición y, si ya salió el delete remoto, se encadena después
 un upsert con el mismo id. Así no hay ni duplicado nuevo ni una carrera delete/add en Supabase.
 
+## [4.25.10] - 2026-09-24
+### Ahorro mensual en Metas publicado como tanda selectiva
+
+Producción recupera únicamente el editor aprobado de `state.aportaciones`: Guardar reemplaza la
+planificación, Cancelar no escribe y nunca se crean movimientos ni se tocan saldos. El parser
+conserva separadores de miles y decimales, y el E2E cubre persistencia y móvil estrecho. No se
+incorpora ninguna otra tanda 4.26, backend ni Android.
+
 ## [4.25.9] - 2026-09-23
 ### Beneficio en euros y porcentaje sin depender del rediseño (feedback 18/9, punto 15)
 
