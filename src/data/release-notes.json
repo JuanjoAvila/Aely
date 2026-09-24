@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.40",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Pregúntame ya no se esconde al escribir",
+      "en": "Ask me no longer hides when typing",
+      "ca": "Pregunta'm ja no s'amaga en escriure"
+    },
+    "items": {
+      "es": [
+        "Pregúntame conserva el título y la pregunta completa por debajo de la parte superior del móvil cuando aparece el teclado.",
+        "La ayuda deja de rebotar al recolocarse y su contenido se desplaza sin enseñar una barra lateral."
+      ],
+      "en": [
+        "Ask me keeps its title and question fully below the top of the phone when the keyboard appears.",
+        "The help no longer bounces while repositioning, and its content scrolls without showing a side bar."
+      ],
+      "ca": [
+        "Pregunta'm manté el títol i la pregunta sencera per sota de la part superior del mòbil quan apareix el teclat.",
+        "L'ajuda deixa de rebotar en recol·locar-se i el contingut es desplaça sense mostrar una barra lateral."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "asistente-sin-teclado-inicial",
+        "t": {
+          "es": "Pregúntame completo y estable",
+          "en": "Ask me stays complete and steady",
+          "ca": "Pregunta'm complet i estable"
+        },
+        "items": {
+          "es": [
+            "1. Abre Pregúntame: debe verse entero y sin abrir el teclado ni mostrar una barra lateral.",
+            "2. Toca la caja de la pregunta: el teclado debe aparecer sin tapar el título ni producir un rebote brusco.",
+            "3. Escribe y desplaza la ayuda: la pregunta y el botón deben seguir accesibles, con movimiento suave."
+          ],
+          "en": [
+            "1. Open Ask me: it should be fully visible without opening the keyboard or showing a side bar.",
+            "2. Tap the question box: the keyboard should appear without covering the title or causing a hard bounce.",
+            "3. Type and scroll the help: the question and button should remain accessible with smooth movement."
+          ],
+          "ca": [
+            "1. Obre Pregunta'm: s'ha de veure sencer sense obrir el teclat ni mostrar una barra lateral.",
+            "2. Toca la caixa de la pregunta: el teclat ha d'aparèixer sense tapar el títol ni provocar un rebot brusc.",
+            "3. Escriu i desplaça l'ajuda: la pregunta i el botó han de continuar accessibles, amb moviment suau."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.39",
     "d": "24 sep 2026",
     "t": {
@@ -274,30 +324,7 @@
         "El teclat apareix en tocar la caixa de la pregunta i la resposta continua a la vista."
       ]
     },
-    "tandas": [
-      {
-        "id": "asistente-sin-teclado-inicial",
-        "t": {
-          "es": "Asistente sin teclado al abrir",
-          "en": "Assistant without the keyboard on open",
-          "ca": "Assistent sense teclat en obrir"
-        },
-        "items": {
-          "es": [
-            "1. Abre Pregúntame: debes poder leer la ayuda y ver las opciones sin que aparezca el teclado.",
-            "2. Toca la caja de la pregunta: el teclado debe abrirse y la zona para escribir debe seguir visible."
-          ],
-          "en": [
-            "1. Open Ask me: the help and its options should be readable without the keyboard appearing.",
-            "2. Tap the question box: the keyboard should open and the writing area should remain visible."
-          ],
-          "ca": [
-            "1. Obre Pregunta'm: has de poder llegir l'ajuda i veure les opcions sense que aparegui el teclat.",
-            "2. Toca la caixa de la pregunta: el teclat s'ha d'obrir i la zona per escriure ha de continuar visible."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.32",

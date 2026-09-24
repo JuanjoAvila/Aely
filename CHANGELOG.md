@@ -1,3 +1,17 @@
+## [4.26.40] - 2026-09-24
+### Pregúntame respeta el borde superior al aparecer el teclado
+
+Al reducirse `visualViewport`, la hoja restaba la altura del teclado y añadía el mismo margen
+inferior sin reservar `--safe-top`: en el caso real el borde acababa a unos 7,5 px y el título
+quedaba bajo la barra del móvil. Ahora la altura máxima descuenta también la zona segura y 8 px de
+aire. El navegador ya anima el teclado; retirar la segunda transición de altura/margen evita que la
+hoja persiga cada `resize` con retraso y rebote.
+
+El cuerpo del Asistente limita el desplazamiento al eje vertical, no encadena el rebote al fondo y
+oculta expresamente el indicador de scroll en Firefox/WebView. El E2E reproduce un teclado de 260 px
+y una zona segura de 36 px: exige título por debajo de 42 px, compositor visible y ausencia de barra
+y overscroll. La entrada/salida común de las hojas y el movimiento reducido no cambian.
+
 ## [4.26.39] - 2026-09-24
 ### Wallet y Trade Republic dejan una sola compra confirmada
 
