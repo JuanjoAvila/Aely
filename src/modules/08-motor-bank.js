@@ -91,7 +91,9 @@ function planCoverState(totals, bankEnt, biggestPendingAmt, pendingBills){
   // La portada las descuenta aquí del mínimo y deja el día desconocido.
   if(ent!=null&&min!=null&&isFinite(min)){
     (pendingBills||[]).forEach(function(x){
-      if(!x||x.bank!==ent) return;
+      // Fijos y puntuales sin día ya entran en `minByBank` como evento del día 0. Solo las
+      // cuotas caen a «pagadas el día 1» en el motor y necesitan este ajuste (review 24/9).
+      if(!x||x.bank!==ent||(x.kind!=="debt"&&x.kind!=="balloon")) return;
       if(x.day==null||!(Number(x.day)>0)){
         min-=Math.abs(Number(x.amount)||0);
         minDay=null;

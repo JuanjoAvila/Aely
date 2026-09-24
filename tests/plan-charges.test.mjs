@@ -97,7 +97,7 @@ console.log("plan-charges");
     { minByBank: { sabadell: 500 }, minDayByBank: { sabadell: 12 } },
     "sabadell",
     80,
-    [{ bank: "sabadell", amount: 80, day: null, name: "Sin día" }]
+    [{ bank: "sabadell", amount: 80, day: null, kind: "debt", name: "Sin día" }]
   );
   assert.equal(st.min, 420);
   assert.equal(st.minDay, null);
@@ -107,10 +107,26 @@ console.log("plan-charges");
     { minByBank: { sabadell: 100 }, minDayByBank: { sabadell: 12 } },
     "sabadell",
     80,
-    [{ bank: "sabadell", amount: 80, day: null }]
+    [{ bank: "sabadell", amount: 80, day: null, kind: "debt" }]
   );
   assert.equal(tight.min, 20);
   assert.equal(tight.tone, "warn");
+}
+
+{
+  // El fijo sin día ya llevó 500 → 400 en minByBank; solo falta descontar la deuda de 50.
+  // Restar ambos otra vez daría 250 y anunciaría un descubierto ficticio.
+  const st = c.planCoverState(
+    { minByBank: { sabadell: 400 }, minDayByBank: { sabadell: 0 } },
+    "sabadell",
+    100,
+    [
+      { bank: "sabadell", amount: 100, day: null, kind: "fixed", name: "Luz" },
+      { bank: "sabadell", amount: 50, day: null, kind: "debt", name: "Préstamo" },
+    ]
+  );
+  assert.equal(st.min, 350);
+  assert.equal(st.minDay, null);
 }
 
 console.log("  ok");

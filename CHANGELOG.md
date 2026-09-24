@@ -13,6 +13,11 @@ mostrar −200 € el día 15, nunca los 1.800 € del cierre. Cuatro variantes 
 que las devoluciones anteriores o posteriores al recibo producen el mismo mínimo en modo normal
 y sencillo.
 
+La revisión independiente detectó además que `planCoverState` ajustaba cualquier cargo sin fecha,
+aunque los fijos y puntuales ya entran en `minByBank` como evento del día 0. El ajuste queda
+limitado a `debt`/`balloon`, que son las únicas cuotas que el motor da por pagadas el día 1. Un
+unitario mixto fija 500 − 100 de luz − 50 de préstamo = 350, no 250.
+
 ## [4.26.35] - 2026-09-24
 ### El filtro de Gastos comparte el selector visual de categorías
 
