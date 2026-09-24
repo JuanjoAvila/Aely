@@ -1,3 +1,15 @@
+## [4.26.45] - 2026-09-24
+### Las cuotas conservan su enlace sin fingir que son una categoría de consumo
+
+La marca interna `category:"deudas"` sigue intacta: excluye la cuota del gasto mensual porque ya
+la descuenta Plan, conserva `debtId`, filtra el histórico y no migra ninguna fila. El cambio es de
+presentación. La lista de Gastos muestra ahora el nombre de la deuda enlazada en vez del genérico
+«Deudas».
+
+El filtro retira `DEUDA_CAT` de la cuadrícula de categorías reales. Cada deuda conserva su filtro
+propio dentro de «Cuotas de tus deudas». El E2E comprueba nombre, explicación de doble cuenta
+evitada, ausencia de categoría duplicada y filtros.
+
 ## [4.26.44] - 2026-09-24
 ### La ficha confirma el guardado antes de empezar a salir
 

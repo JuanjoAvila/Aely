@@ -664,7 +664,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       const label=k===today?t("g_today"):k===dayKey(yesterday)?t("g_yesterday"):d.toLocaleDateString(loc(),{weekday:"long",day:"numeric",month:"short"});
       groups.push({sep:label}); last=k;
     }
-    groups.push({e:e,ms:ms});
+    groups.push({e:e,ms:ms,l:e.debtId&&filterSelLabel("debt:"+e.debtId,state.debts)});
   });
 
   const addExpense=()=>{
@@ -887,7 +887,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
             })()
           : groups.map(function(g,i){ return g.sep
               ? React.createElement("div",{className:"day-sep",key:"s"+i},g.sep)
-              : React.createElement(MovRow,{key:g.e.id||i, e:g.e, ms:g.ms, onOpen:openDetail, l10n:l10nKey,
+              : React.createElement(MovRow,{key:g.e.id||i, e:g.e, ms:g.ms, l:g.l, onOpen:openDetail, l10n:l10nKey,
                   bucket:expenseBucket(g.e, state),dragging:!!(dragExpense&&dragExpense.from===g.e.id),
                   dragOver:!!(dragExpense&&dragExpense.to===g.e.id&&dragExpense.from!==g.e.id),
                   onDragStart:startExpenseDrag,onDragMove:moveExpenseDrag,onDragEnd:endExpenseDrag}); }),
@@ -932,7 +932,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
    `l10n` (idioma|símbolo de moneda) es un prop a posta: catName/entOf/eur leen globales que memo
    no puede ver, así que sin él cambiar de idioma o de moneda dejaría las filas en el idioma viejo.
    `onOpen` tiene que ser ESTABLE (useCallback) o el memo no sirve de nada. */
-const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket, dragging, dragOver, onDragStart, onDragMove, onDragEnd}){
+const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, dragging, dragOver, onDragStart, onDragMove, onDragEnd}){
   // `ms` y no un `Date`: ver el porqué donde se construyen los grupos. El objeto se crea aquí,
   // que es la única línea que lo necesita, y solo cuando la fila se pinta de verdad.
   // `bucket` (string) lo pasa el padre: si se pasara `state` entero, el memo no acertaría nunca.
@@ -953,7 +953,7 @@ const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket, dragging, dragOv
     React.createElement("div",{className:"nm"},
       React.createElement("div",{className:"nm-title"}, e.merchant||"—"),
       note && React.createElement("div",{className:"nm-note"}, note),
-      React.createElement("div",{className:"nm-cat",style:{color:c.color}}, catName(e.category)),
+      React.createElement("div",{className:"nm-cat",style:{color:c.color}}, l||catName(e.category)),
       React.createElement("div",{className:"meta"},
         React.createElement("span",null,d.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'})),
         bk?React.createElement(React.Fragment,null,
@@ -975,11 +975,11 @@ const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket, dragging, dragOv
 /* Sheet de filtros (2026-08-05): categorías + bancos con buscador, sin la fila infinita de chips.
    Misma mecánica que PeriodMoreSheet (swipe abajo + atrás). */
 /* Nombre de lo que hay en `sel`: una categoría, o `debt:<id>` = el chip de una deuda (4.21.0).
-   Una deuda borrada ya no tiene chip; si seguía marcada, se lee como «Deudas». */
+   Una deuda borrada ya no tiene chip; si seguía marcada, se lee como «Cuota de deuda». */
 function filterSelLabel(id, debts){
-  if(String(id).indexOf("debt:")!==0) return catName(id);
+  if(!id.startsWith("debt:")) return catName(id);
   const d=(debts||[]).find(function(x){ return x && ("debt:"+x.id)===id; });
-  return d ? (d.name||catName("deudas")) : catName("deudas");
+  return d&&d.name||catName("deudas");
 }
 function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts, debts}){
   useBackClose(!!open, onClose);
@@ -990,9 +990,10 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
     if(open){ setQCat(""); setFilterCatsOpen(false); }
   },[open]);
   if(!open) return null;
-  /* Sin deudas no sale ni la categoría «Deudas» ni su sección (apunte de Cursor al brief). */
+  /* `deudas` sigue siendo la marca interna que evita contar dos veces la cuota, pero no se pinta
+     como categoría normal: cada deuda del Plan tiene su filtro propio (feedback 24/9). */
   const debtList=(debts||[]).filter(function(d){ return d && d.id; });
-  const allCats=CATEGORIES.concat([INGRESO_CAT,INVERSION_CAT,TRASPASO_CAT]).concat(debtList.length?[DEUDA_CAT]:[]);
+  const allCats=CATEGORIES.concat([INGRESO_CAT,INVERSION_CAT,TRASPASO_CAT]);
   const needle=qCat.trim().toLowerCase();
   const cats=needle
     ? allCats.filter(function(c){ return catName(c.id).toLowerCase().indexOf(needle)!==-1 || c.id.indexOf(needle)!==-1; })

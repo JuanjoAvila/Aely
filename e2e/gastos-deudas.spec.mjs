@@ -1,10 +1,9 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
-/* LAS CUOTAS DE TUS DEUDAS, FILTRABLES EN GASTOS (4.21.0). Idea suya del 12/9: «categorías
-   automáticamente por las deudas… y así se pudieran filtrar». La pasada que las marca está en
-   `tests/cuotas-deudas`; esto es lo que `npm test` no ve: que al abrir Gastos la fila salga en
-   «Deudas» y que el filtro tenga una ficha por cada deuda (y ninguna si no hay deudas). */
+/* LAS CUOTAS DE TUS DEUDAS, FILTRABLES EN GASTOS (4.21.0). La marca interna no es una categoría
+   de consumo: la fila nombra la deuda y el filtro la separa de las categorías reales. La pasada
+   que las marca está en `tests/cuotas-deudas`; aquí se protege lo que ve el usuario. */
 
 const hoy = new Date();
 const dia = hoy.getDate();
@@ -44,11 +43,11 @@ async function cierraSheet(page) {
   await expect(page.locator(".v4-sheet-back")).toHaveCount(0);
 }
 
-test("★ la cuota que llega con otro nombre sale en «Deudas» y dice por qué no cuenta", async ({ page }) => {
+test("★ la cuota que llega con otro nombre enseña su deuda y dice por qué no cuenta", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, settings, expenses, debts, budget: 1000 });
   await abreGastos(page);
 
-  await expect(fila(page, "Amazon")).toContainText("Deudas");
+  await expect(fila(page, "Amazon")).toContainText("Financiación robot");
   await expect(fila(page, "Amazon")).toContainText("ya cuenta en el Plan");
   await expect(fila(page, "Amazon")).toHaveClass(/v4-mov-skip/);
   await expect(fila(page, "Mercadona")).not.toHaveClass(/v4-mov-skip/);
@@ -57,7 +56,7 @@ test("★ la cuota que llega con otro nombre sale en «Deudas» y dice por qué 
 test("★ el filtro tiene una ficha por deuda y cada una enseña solo su cuota", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, settings, expenses, debts, budget: 1000 });
   await abreGastos(page);
-  await expect(fila(page, "Amazon")).toContainText("Deudas");
+  await expect(fila(page, "Amazon")).toContainText("Financiación robot");
 
   await abreFiltros(page);
   const categoriesToggle = page.locator('.v4-sheet .v4-filter-cats-toggle');
@@ -69,6 +68,7 @@ test("★ el filtro tiene una ficha por deuda y cada una enseña solo su cuota",
   await expect(page.locator('#gastos-filter-cats-body')).toHaveCSS("visibility", "visible");
   const cards = page.locator('.v4-sheet [data-testid="filtro-deudas"] button.v4-ficha-cat');
   await expect(cards).toHaveCount(2);
+  await expect(page.getByTestId("gastos-filter-cat-deudas")).toHaveCount(0);
   // La cuota elegida vive en Sabadell, fuera del default de gasto diario: ampliar primero a todos.
   await page.locator('.v4-sheet button.v4-chip:has-text("Todos los bancos")').click();
   await cards.filter({ hasText: "Préstamo piso" }).click();
@@ -96,11 +96,11 @@ test("★ su rechazo: desde la ficha se marca a mano «Es la cuota de…», tamb
   await expect(chips.filter({ hasText: "Financiación suelo" })).toHaveClass(/on/);
   await cierraSheet(page);
 
-  await expect(fila(page, "Cofidis")).toContainText("Deudas");
+  await expect(fila(page, "Cofidis")).toContainText("Financiación suelo");
   await expect(fila(page, "Cofidis")).toContainText("ya cuenta en el Plan");
 });
 
-test("sin deudas no sale la sección ni la categoría «Deudas»", async ({ page }) => {
+test("sin deudas no sale la sección de cuotas ni una categoría duplicada", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, settings, expenses, debts: [], budget: 1000 });
   await abreGastos(page);
   await abreFiltros(page);

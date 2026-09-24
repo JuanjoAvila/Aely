@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.45",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Las cuotas dejan de parecer una categoría de gasto",
+      "en": "Debt payments no longer look like a spending category",
+      "ca": "Les quotes deixen de semblar una categoria de despesa"
+    },
+    "items": {
+      "es": [
+        "Cada cuota muestra la deuda a la que pertenece y sigue avisando de que ya cuenta en el Plan.",
+        "El filtro separa las cuotas de las categorías de consumo, con un acceso para cada deuda."
+      ],
+      "en": [
+        "Each payment shows which debt it belongs to and still explains that it is already included in Plan.",
+        "The filter separates debt payments from spending categories, with a shortcut for each debt."
+      ],
+      "ca": [
+        "Cada quota mostra a quin deute pertany i continua avisant que ja compta al Pla.",
+        "El filtre separa les quotes de les categories de consum, amb un accés per a cada deute."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "deudas-sin-categoria-duplicada",
+        "t": {
+          "es": "Cuotas claras en Gastos",
+          "en": "Clear debt payments in Spending",
+          "ca": "Quotes clares a Despeses"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, busca una cuota enlazada: debe mostrar el nombre de su deuda y «ya cuenta en el Plan».",
+            "2. En Filtros → Categorías, «Deudas» no debe aparecer como categoría normal; debajo debe haber «Cuotas», con cada deuda por separado."
+          ],
+          "en": [
+            "1. In Spending, find a linked payment: it should show its debt name and “already in your Plan”.",
+            "2. In Filters → Categories, “Debts” should not appear as a regular category; below it, “Your debt payments” should offer each debt separately."
+          ],
+          "ca": [
+            "1. A Despeses, busca una quota enllaçada: ha de mostrar el nom del deute i «ja compta al Pla».",
+            "2. A Filtres → Categories, «Deutes» no ha d'aparèixer com una categoria normal; a sota hi ha d'haver «Quotes dels teus deutes», amb cada deute per separat."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.44",
     "d": "24 sep 2026",
     "t": {
