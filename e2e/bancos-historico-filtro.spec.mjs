@@ -74,6 +74,7 @@ async function abrirHistorico(page, opts={}) {
   await seedLoggedInDashboard(page, {
     hasBankLink: true,
     settings:{autoPrices:false,theme:"green",expenseBanks},
+    expenses:opts.expenses||[],
     __cloudRows: { bank_links: usedBankLinks },
     /* La misma Edge sirve sync diario e histórico. El doble base queda vacío para que abrir
        Ajustes no importe antes la fila que precisamente queremos comprobar en el histórico. */
@@ -174,12 +175,82 @@ test("CaixaBank con histórico pinta su importe y permite importarlo", async ({p
   await expect(overlay.getByRole("button",{name:/Importar 1/})).toBeVisible();
 });
 
+test("dos cuentas Caixa con el mismo cargo conservan dos filas y dos identidades al importar", async ({page}) => {
+  const overlay=await abrirHistorico(page,{custom:true,
+    bankLinks:[{aspsp_name:"CaixaBank",status:"active"}],
+    links:[{aspsp:"CaixaBank",ok:true,accounts:[
+      {uid:"cx-corriente",ok:true,count:1,transactions:[
+        {date:"2026-09-02",amount:37.42,merchant:"Compra repetida",card:true}
+      ]},
+      {uid:"cx-ahorro",ok:true,count:1,transactions:[
+        {date:"2026-09-02",amount:37.42,merchant:"Compra repetida",card:true}
+      ]},
+    ]}]});
+  await expect(overlay.getByText("Compra repetida")).toHaveCount(2);
+  const importar=overlay.getByRole("button",{name:/Importar 2/});
+  await expect(importar).toBeVisible();
+  await page.evaluate(() => {
+    window.__histSaved=null;
+    cloud.addExpensesBatch=async rows => {
+      window.__histSaved=rows;
+      return {cloudIds:rows.map(x=>x.id),offline:false};
+    };
+  });
+  await importar.click();
+  await expect.poll(() => page.evaluate(() => window.__histSaved)).toHaveLength(2);
+  const dates=await page.evaluate(() => window.__histSaved.map(x=>x.date));
+  expect(new Set(dates).size).toBe(2);
+  expect(dates.every(d=>d.slice(0,10)==="2026-09-02")).toBe(true);
+});
+
 test("CaixaBank a cero se nombra: no se disfraza de histórico ya apuntado", async ({page}) => {
   const overlay=await abrirHistorico(page,{custom:true,
     bankLinks:[{aspsp_name:"CaixaBank",status:"active"}],
     links:[{aspsp:"CaixaBank",ok:true,accounts:[{ok:true,count:0,transactions:[]}]}]});
   await expect(overlay.locator(".bank-read-warning")).toContainText("CaixaBank: el banco ha devuelto 0 movimientos");
   await expect(overlay).not.toContainText("No hay movimientos nuevos");
+});
+
+test("CaixaBank explica cuántas cuentas compartió cuando todo ya estaba apuntado", async ({page}) => {
+  const expenses=[
+    {id:"cx-old-1",date:"2026-09-02T12:00:00.000Z",amount:37.42,merchant:"Compra uno",category:"otros",source:"ob",ent:"caixabank",extId:"cx-hist-1"},
+    {id:"cx-old-2",date:"2026-09-03T12:00:00.000Z",amount:18.75,merchant:"Compra dos",category:"otros",source:"ob",ent:"caixabank",extId:"cx-hist-2"},
+  ];
+  const overlay=await abrirHistorico(page,{custom:true,expenses,
+    bankLinks:[{aspsp_name:"CaixaBank",status:"active"}],
+    links:[{aspsp:"CaixaBank",ok:true,accounts:[{uid:"cx-unica",ok:true,count:2,transactions:[
+      {date:"2026-09-02",amount:37.42,merchant:"Compra uno",card:true,ext_id:"cx-hist-1"},
+      {date:"2026-09-03",amount:18.75,merchant:"Compra dos",card:true,ext_id:"cx-hist-2"},
+    ]}]}]});
+  await expect(overlay).toContainText("Cuentas compartidas por CaixaBank: 1");
+  await expect(overlay).toContainText("Movimientos entregados: 2, todos ya apuntados");
+  await expect(overlay).toContainText("si aun así no aparece");
+});
+
+test("CaixaBank ya apuntado abre Gastos completo y filtrado, también si era de agosto", async ({page}) => {
+  const expenses=[
+    {id:"cx-old-1",date:"2026-08-06T12:00:00.000Z",amount:37.42,merchant:"Compra agosto Caixa",category:"otros",source:"ob",ent:"caixabank",extId:"cx-hist-1"},
+    {id:"sb-current",date:"2026-09-02T12:00:00.000Z",amount:18.75,merchant:"Compra Sabadell",category:"otros",source:"ob",ent:"sabadell",extId:"sb-1"},
+  ];
+  const overlay=await abrirHistorico(page,{custom:true,expenses,expenseBanks:["sabadell"],selectOnly:"CaixaBank",
+    bankLinks:[{aspsp_name:"CaixaBank",status:"active"}],
+    links:[{aspsp:"CaixaBank",ok:true,accounts:[{uid:"cx-unica",ok:true,count:1,transactions:[
+      {date:"2026-08-06",amount:37.42,merchant:"Compra agosto Caixa",card:true,ext_id:"cx-hist-1"},
+    ]}]}]});
+  const ver=overlay.getByRole("button",{name:"Verlos en Gastos"});
+  await expect(ver).toBeVisible();
+  await ver.click();
+  await expect(overlay).toHaveCount(0);
+  await expect(page.locator('.botnav-tab[data-tour="gastos"]')).toHaveClass(/active/);
+  const list=page.locator(".v4-gastos-list");
+  await expect(list.getByText("Compra agosto Caixa",{exact:true})).toBeVisible();
+  await expect(list.getByText("Compra Sabadell",{exact:true})).toHaveCount(0);
+  const gastosPage=page.locator(".page").filter({has:list});
+  await gastosPage.locator('button[title="Filtros"]').click();
+  const filterSheet=page.locator(".v4-sheet").last();
+  const caixaChip=filterSheet.getByRole("button",{name:"CaixaBank",exact:true});
+  await expect(caixaChip).toHaveClass(/\bon\b/);
+  await expect(filterSheet.getByRole("button",{name:"Sabadell",exact:true})).not.toHaveClass(/\bon\b/);
 });
 
 test("histórico pendiente omitido por Edge antiguo no se presenta como sin movimientos", async ({page}) => {

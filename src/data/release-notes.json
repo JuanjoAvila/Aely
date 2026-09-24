@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.25.17",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "CaixaBank aclara y abre el histórico",
+      "en": "CaixaBank clarifies and opens history",
+      "ca": "CaixaBank aclareix i obre l'històric"
+    },
+    "items": {
+      "es": [
+        "Si CaixaBank devuelve movimientos que ya estaban apuntados, Importar histórico lo explica y ofrece abrirlos directamente en Gastos.",
+        "Gastos muestra entonces todo el histórico de CaixaBank, también meses anteriores, y conserva por separado los cargos iguales que pertenezcan a cuentas distintas."
+      ],
+      "en": [
+        "If CaixaBank returns transactions that were already logged, Import history explains it and offers to open them directly in Spending.",
+        "Spending then shows the full CaixaBank history, including earlier months, and keeps matching charges from different accounts separate."
+      ],
+      "ca": [
+        "Si CaixaBank retorna moviments que ja estaven apuntats, Importar històric ho explica i permet obrir-los directament a Despeses.",
+        "Despeses mostra llavors tot l'històric de CaixaBank, també mesos anteriors, i conserva per separat els càrrecs iguals que pertanyen a comptes diferents."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.16",
     "d": "24 sep 2026",
     "t": {
