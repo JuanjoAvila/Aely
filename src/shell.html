@@ -1845,10 +1845,12 @@
 /* Ayuda: composer fijo abajo; el teclado (visualViewport) sube la hoja, no la tapa.
    La frase NO usa .serif: con temática de temporada el subrayado decorativo la hincha. */
 .aely-help-back{z-index:12000;}
-.aely-help-sheet{max-height:min(92dvh,100%);display:flex;flex-direction:column;padding-bottom:0;transition:max-height .22s cubic-bezier(.32,.72,0,1),margin-bottom .22s cubic-bezier(.32,.72,0,1);}
+.aely-help-sheet{max-height:min(92dvh,100%);display:flex;flex-direction:column;padding-bottom:0;}
 .aely-help-sheet-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 0 6px;flex:0 0 auto;}
 .aely-help-sheet-h h1{font-size:20px;margin:0;font-weight:550;}
-.aely-help-body{flex:1 1 auto;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;padding:0 0 8px;}
+.aely-help-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:none;scrollbar-width:none;padding:0 0 8px;}
+.aely-help-body::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}
 .aely-help-intro{margin:0 0 8px;}
 .aely-help-composer{flex:0 0 auto;display:flex;flex-direction:column;gap:8px;padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--surface,var(--sur));}
 .aely-help-q{width:100%;min-height:52px;max-height:96px;padding:10px 12px;resize:none;box-sizing:border-box;font-size:16px;}

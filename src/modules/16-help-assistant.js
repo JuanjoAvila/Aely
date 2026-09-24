@@ -398,7 +398,10 @@ function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hidden
   const primaryBlocked=primaryAction&&((simple&&(primaryAction==="goals"||primaryAction==="debts"))||(["expenses","accounts","goals","debts","receipts"].indexOf(primaryAction)>=0&&(hiddenTabs||[]).indexOf(primaryAction==="expenses"?"gastos":primaryAction==="accounts"?"cartera":"plan")>=0));
   const ctaId=primaryBlocked?"settings":(primaryAction==="cash"&&!hasCash?"accounts":primaryAction);
   const ctaLabel=primaryBlocked?"help_show_settings":(ctaId==="accounts"&&primaryAction==="cash"&&!hasCash?"help_create_cash":HELP_ACTION_LABELS[ctaId]);
-  const sheetStyle=kbPad?{maxHeight:"calc(100dvh - "+kbPad+"px)",marginBottom:kbPad+"px"}:null;
+  /* `100dvh - teclado` llevaba el borde superior a 0: en Android el título quedaba debajo de la
+     barra de estado. Reservar safe-top evita el recorte; no interpolamos cada resize del teclado,
+     porque perseguir una visualViewport animada con otra transición producía el rebote duro. */
+  const sheetStyle=kbPad?{maxHeight:"calc(100dvh - "+kbPad+"px - var(--safe-top) - 8px)",marginBottom:kbPad+"px"}:null;
 
   return React.createElement("div",{className:"v4-sheet-back aely-help-back",onClick:requestClose,"data-help-kb":kbPad?"1":"0"},
     React.createElement("div",Object.assign({className:"v4-sheet aely-help-sheet","data-sheet":"help",role:"dialog","aria-modal":"true","aria-labelledby":"help-title",style:sheetStyle,ref:function(el){ swipe.sheetRef.current=el; dialogRef.current=el; },onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),

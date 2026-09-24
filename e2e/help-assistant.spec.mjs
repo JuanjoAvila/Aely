@@ -244,6 +244,7 @@ test("el composer queda visible cuando aparece el teclado",async({page})=>{
   await expect(input).toBeVisible();
   await expect.poll(()=>input.evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(16);
   await page.evaluate(()=>{
+    document.documentElement.style.setProperty("--safe-top","36px");
     const vv=window.visualViewport;
     Object.defineProperty(vv,"height",{configurable:true,value:window.innerHeight-260});
     Object.defineProperty(vv,"offsetTop",{configurable:true,value:0});
@@ -252,6 +253,18 @@ test("el composer queda visible cuando aparece el teclado",async({page})=>{
   await expect(page.locator(".aely-help-back")).toHaveAttribute("data-help-kb","1");
   await expect(dialog).toHaveCSS("margin-bottom","260px");
   await expect(dialog.locator(".aely-help-composer")).toBeVisible();
+  const layout=await dialog.evaluate(el=>{
+    const body=el.querySelector(".aely-help-body"), h=el.querySelector(".aely-help-sheet-h");
+    const bodyCss=getComputedStyle(body), bar=getComputedStyle(body,"::-webkit-scrollbar");
+    return {top:el.getBoundingClientRect().top,headerTop:h.getBoundingClientRect().top,
+      bodyOverscroll:bodyCss.overscrollBehaviorY,scrollbarWidth:bodyCss.scrollbarWidth,
+      webkitBar:bar.display};
+  });
+  expect(layout.top).toBeGreaterThanOrEqual(42);
+  expect(layout.headerTop).toBeGreaterThanOrEqual(42);
+  expect(layout.bodyOverscroll).toBe("none");
+  expect(layout.scrollbarWidth).toBe("none");
+  expect(layout.webkitBar).toBe("none");
 });
 
 test("el cierre anima la hoja mientras todavía sigue montada",async({page})=>{
