@@ -353,4 +353,29 @@ t("el alias sobre un traspaso respeta la lápida y sigue siendo una por mes", ()
   assert.equal(marcar(conAlias(dos)).expenses.filter((x) => x.debtId).length, 1);
 });
 
+/* ─── 4.25.13: Plan enseña el peor momento y no descuenta dos veces ─── */
+
+t("Plan descuenta del mínimo una cuota pendiente sin fecha sin inventar día", () => {
+  const cover = cli.planCoverState(
+    { minByBank: { sabadell: 500 }, minDayByBank: { sabadell: 12 } },
+    "sabadell",
+    [{ bank: "sabadell", amount: 80, day: null, kind: "debt" }],
+  );
+  assert.equal(cover.min, 420);
+  assert.equal(cover.minDay, null);
+});
+
+t("Plan no vuelve a descontar un fijo sin fecha ya incluido en minByBank", () => {
+  const cover = cli.planCoverState(
+    { minByBank: { sabadell: 400 }, minDayByBank: { sabadell: 0 } },
+    "sabadell",
+    [
+      { bank: "sabadell", amount: 100, day: null, kind: "fixed" },
+      { bank: "sabadell", amount: 50, day: null, kind: "debt" },
+    ],
+  );
+  assert.equal(cover.min, 350);
+  assert.equal(cover.minDay, null);
+});
+
 console.log("  ok");

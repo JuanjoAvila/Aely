@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-24 · **v4.25.12** — todas las hojas liberan el fondo al empezar a cerrarse; el editor de presupuesto conserva su ritmo propio y no se incorporan otras tandas 4.26.
+> Estado a 2026-09-24 · **v4.25.13** — Plan → Recibos enseña el saldo más bajo previsto y su día; port selectivo aprobado sin incorporar otras tandas 4.26.
+> Anterior: **v4.25.12** — todas las hojas liberan el fondo al empezar a cerrarse; el editor de presupuesto conserva su ritmo propio y no se incorporan otras tandas 4.26.
 > Anterior: **v4.25.11** — el editor del presupuesto mensual aprobado abre y cierra con más calma y mantiene la cifra legible; port selectivo sin incorporar otras tandas 4.26.
 > Anterior: **v4.25.10** — Plan → Metas recupera el ahorro mensual aprobado, editable sin crear movimientos ni tocar saldos; port selectivo sin incorporar otras tandas 4.26.
 > Anterior: **v4.25.9** — cada posición de Inversiones enseña beneficio en euros y porcentaje sin inventarlo cuando faltan datos.
@@ -197,7 +198,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.25.12** (cierre de hojas sin bloquear el fondo; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.25.13** (mínimo de caja de Plan; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |
