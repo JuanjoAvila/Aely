@@ -696,7 +696,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
         hub,
         view!=="hub" && React.createElement("div",{ref:subRef,className:"settings-push open v4-bills-push mc-page-enter"}, view==="list"?listView:affordView)),
       detail && React.createElement(BillsItemSheet,{
-        row:detail, set:set, banks:bankList, simple:simple, showToast:showToast,
+        row:detail, set:set, banks:bankList, simple:simple,
         onClose:closeDetail, onRemove:removeWithUndo
       }),
       addStep && React.createElement(BillsAddWizard,{
@@ -710,7 +710,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
     document.body);
 }
 
-function BillsItemSheet({row, set, banks, simple, showToast, onClose, onRemove}){
+function BillsItemSheet({row, set, banks, simple, onClose, onRemove}){
   const item=row.item;
   const locked=row.kind==="debt"&&!simple;
   const [name,setName]=React.useState(item.name||"");
@@ -758,16 +758,20 @@ function BillsItemSheet({row, set, banks, simple, showToast, onClose, onRemove})
       // Restore lo hace el hub (openerRef); aquí no pisar ese foco (Codex 2100Z).
     };
   },[]);
-  const saveAmt=function(){
-    if(locked||hasSched) return;
-    const n=parseFloat(String(amount).replace(",","."));
-    if(!isFinite(n)||String(amount).trim()==="") return;
+  const saveAmt=function(e){
+    const b=e.currentTarget;
+    if(locked||hasSched||b.disabled) return;
+    const n=parseNumPadRaw(amount);
+    if(!amount.trim()) return;
+    // La ficha se cerraba en el mismo toque y «Guardado» apenas llegaba a verse. Sellar primero
+    // evita un segundo set si el usuario repite el toque y deja una confirmación breve en su sitio.
+    b.disabled=true;
+    b.textContent="✓ "+gbTxt("gb_save_ok");
     if(row.kind==="fixed") patchFixedById(set,item.id,{amount:n});
     else if(row.kind==="flow") patchFlowById(set,item.id,{amount:Math.abs(n)});
     else if(row.kind==="oneoff") patchOneoffById(set,item.id,{amount:n});
     else if(row.kind==="debt"&&simple) patchDebtFields(set,item.id,{monthly:n});
-    if(showToast) showToast(gbTxt("gb_save_ok"));
-    swipe.close();
+    setTimeout(function(){ if(b.isConnected) swipe.close(); },650);
   };
   const saveMeta=function(patch){
     if(locked) return;
@@ -795,7 +799,7 @@ function BillsItemSheet({row, set, banks, simple, showToast, onClose, onRemove})
           React.createElement(NumPad,{value:amount,onChange:function(next){
             setAmount(function(prev){ return typeof next==="function"?next(prev):next; });
           }}),
-          React.createElement("button",{type:"button",className:"v4-bills-add",style:{width:"100%",marginTop:8},onClick:saveAmt}, t("done")))),
+          React.createElement("button",{type:"button",className:"v4-bills-add",style:{width:"100%",marginTop:8},onClick:saveAmt,"aria-live":"polite"}, t("done")))),
       row.kind==="fixed" && !locked && React.createElement("div",{style:{marginTop:14}},
         React.createElement("div",{className:"v4-ficha-k"}, gbTxt("gb_step_how_often")),
         freqs.map(function(f){

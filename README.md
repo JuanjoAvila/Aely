@@ -81,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.43** preparada para beta — los avisos de Google Wallet y Trade Republic que describen el mismo pago se convierten en un solo gasto, sin pedir revisar un falso duplicado. La APK 48 sigue vigente y producción sirve 4.25.15; disponibilidad real con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.26.44** preparada para beta — al guardar el importe de un recibo, la ficha confirma el cambio antes de cerrarse y bloquea el doble toque. La APK 48 sigue vigente y producción sirve 4.25.15; disponibilidad real con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.
@@ -97,6 +97,6 @@ Notas rápidas del rediseño v4 (para no perderse):
 - **Open Banking se sincroniza a demanda** (botón en Cartera), no al abrir la app.
 - **Orden manual de movimientos:** en Gastos, arrastra el asa de una fila para colocarla dentro del mismo día; la fecha real no cambia.
 - **Ficha de gasto v4.1 (en desarrollo):** Apuntar y Modificar comparten importe, concepto, banco/efectivo/fecha, categorías y teclado; los movimientos del banco mantienen bloqueados importe y cuenta.
-- **Tus recibos v4.1:** Plan → Recibos → Gestionar —o Ajustes → Dinero— abre una pantalla propia con buscador, grupos, iconos por tipo, fichas y alta por pasos; comparte con Inversiones el gesto Atrás lateral y la comparación con el banco vive en Ajustes → Mis bancos.
+- **Tus recibos v4.1:** Plan → Recibos → Gestionar —o Ajustes → Dinero— abre una pantalla propia con buscador, grupos, iconos por tipo, fichas y alta por pasos; comparte con Inversiones el gesto Atrás lateral, confirma antes de cerrar al guardar y la comparación con el banco vive en Ajustes → Mis bancos.
 - **Updates:** transporte en `12-boot.js`, estado de UI en `useUpdates()` (`10-app-components.js`).
 - **Canal beta y banco de pruebas** (solo `is_admin`): Ajustes → Dev → Pruebas — [docs/TESTING.md](docs/TESTING.md).

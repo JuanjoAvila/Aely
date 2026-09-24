@@ -1,3 +1,21 @@
+## [4.26.44] - 2026-09-24
+### La ficha confirma el guardado antes de empezar a salir
+
+El paso rechazado de 4.26.32 cerraba la ficha en el mismo turno en que persistía el importe. El
+toast llegaba a existir, pero la salida ya había empezado y la confirmación no se podía leer. Al
+tocar Listo, la CTA queda ahora desactivada y muestra `✓ Guardado` durante 650 ms; después reutiliza
+el mismo cierre animado. El propio botón bloquea el segundo toque antes de escribir, de modo que
+solo se ejecutan una escritura y un temporizador.
+
+El botón expone la confirmación como región viva. El cierre comprueba además que la CTA original
+siga montada: cerrar enseguida y abrir otro recibo no permite que el temporizador viejo cierre la
+ficha nueva.
+
+El E2E reproduce dos clics en el mismo turno, exige que la confirmación permanezca visible antes de
+la salida, comprueba el desmontaje posterior y verifica el importe persistido. La tarjeta antigua
+de 4.26.32 se retira del panel: sus cuatro primeros puntos ya fueron aprobados y este reemplazo
+vuelve a ofrecer únicamente el quinto, que fue el rechazado.
+
 ## [4.26.43] - 2026-09-24
 ### El doble aviso Wallet/TR deja una sola fila, no una duda para revisar
 

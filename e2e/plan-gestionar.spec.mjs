@@ -359,7 +359,7 @@ test("renombrar no aplana el importe por mes, los meses ni el día hábil", asyn
   });
 });
 
-test("Listo guarda el importe del recibo, confirma y cierra con animación", async ({ page }) => {
+test("Listo confirma a la vista, guarda una sola vez y después cierra", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
   await grupo(page, "Servicios y suministros").click();
@@ -367,17 +367,40 @@ test("Listo guarda el importe del recibo, confirma y cierra con animación", asy
 
   const hoja=ficha(page);
   for(const k of ["1","2","3"]) await hoja.getByRole("button",{name:k,exact:true}).click();
-  await hoja.getByRole("button",{name:/Listo|Done|Fet/i,exact:true}).click();
+  const guardar=hoja.locator(".v4-account-correct .v4-bills-add");
+  await expect(guardar).toHaveAttribute("aria-live","polite");
+  // Dos toques rápidos reproducen el caso real: solo el primero puede escribir y programar cierre.
+  await guardar.evaluate((el)=>{ el.click(); el.click(); });
 
-  // El compositor termina la salida y solo después se desmonta la ficha.
+  await expect(guardar).toBeDisabled();
+  await expect(guardar).toContainText(/✓.*(Guardado|Saved|Desat)/i);
+  // La confirmación debe poder leerse antes de que empiece la salida.
+  await page.waitForTimeout(350);
   await expect(hoja).toHaveCount(1);
+  await expect(hoja).toContainText(/Guardado|Saved|Desat/i);
+  // El compositor termina la salida y solo después se desmonta la ficha.
   await expect.poll(async()=>hoja.first().evaluate((n)=>getComputedStyle(n).transform!=="none")).toBe(true);
   await expect(hoja).toHaveCount(0,{timeout:1500});
-  await expect(page.locator(".toast")).toContainText(/Guardado|Saved|Desat/i);
   await expect.poll(async()=>{
     const luz=((await estado(page)).fixed||[]).find((x)=>x.id==="luz");
     return luz&&luz.amount;
   }).toBe(123);
+});
+
+test("el cierre pendiente de un guardado no cierra la ficha siguiente", async ({ page }) => {
+  await appLista(page);
+  await abreTusRecibos(page);
+  await grupo(page, "Servicios y suministros").click();
+  await fila(page, "Luz").click();
+  const hoja=ficha(page);
+  await hoja.getByRole("button",{name:"1",exact:true}).click();
+  await hoja.locator(".v4-account-correct .v4-bills-add").click();
+  await hoja.locator(".settings-push-h .back").click();
+  await expect(hoja).toHaveCount(0,{timeout:1000});
+  await fila(page, "Agua").click();
+  await page.waitForTimeout(700);
+  await expect(ficha(page)).toBeVisible();
+  await expect(ficha(page).locator("h1")).toHaveText("Agua");
 });
 
 test("Reducir animaciones cierra la ficha sin esperar la transición", async ({ page }) => {

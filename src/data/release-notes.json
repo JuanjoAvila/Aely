@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.44",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Guardar un recibo ya se ve antes de cerrar",
+      "en": "Saving a bill is now visible before closing",
+      "ca": "Desar un rebut ja es veu abans de tancar"
+    },
+    "items": {
+      "es": [
+        "Al cambiar el importe de un recibo, el botón confirma «Guardado» durante un instante y después cierra la ficha con suavidad.",
+        "Aunque se toque dos veces muy rápido, el cambio se guarda una sola vez."
+      ],
+      "en": [
+        "After changing a bill amount, the button confirms “Saved” for a moment before smoothly closing the detail.",
+        "Even if it is tapped twice very quickly, the change is saved only once."
+      ],
+      "ca": [
+        "En canviar l'import d'un rebut, el botó confirma «Desat» durant un instant i després tanca la fitxa amb suavitat.",
+        "Encara que es toqui dues vegades molt de pressa, el canvi es desa una sola vegada."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "recibos-guardado-visible",
+        "t": {
+          "es": "Confirmación clara al guardar",
+          "en": "Clear save confirmation",
+          "ca": "Confirmació clara en desar"
+        },
+        "items": {
+          "es": [
+            "1. En Gestionar, abre un recibo, cambia su importe y toca Listo: debe verse «✓ Guardado» un instante, cerrarse después y conservar el importe al volver a abrirlo."
+          ],
+          "en": [
+            "1. In Manage, open a bill, change its amount and tap Done: “✓ Saved” should remain visible briefly, then close and keep the amount when reopened."
+          ],
+          "ca": [
+            "1. A Gestionar, obre un rebut, canvia'n l'import i toca Fet: s'ha de veure «✓ Desat» un instant, tancar-se després i conservar l'import en tornar-lo a obrir."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.43",
     "d": "24 sep 2026",
     "t": {
@@ -525,39 +569,7 @@
         "Fet desa i tanca la fitxa; tocar dues vegades en crear ja no pot duplicar el rebut."
       ]
     },
-    "tandas": [
-      {
-        "id": "recibos-gestos-iconos",
-        "t": {
-          "es": "Gestos y fichas de Inversiones y Recibos",
-          "en": "Investment and bill gestures and details",
-          "ca": "Gestos i fitxes d'Inversions i Rebuts"
-        },
-        "items": {
-          "es": [
-            "1. Instala la APK 48 si aparece y abre Inversiones: al tirar despacio desde el borde, la página debe acompañar al dedo; si cancelas, debe volver a su sitio.",
-            "2. Completa el gesto de borde en Inversiones y en Plan → Recibos → Gestionar: ambas deben salir hacia la derecha.",
-            "3. En las dos pantallas, desliza a la derecha desde el centro sobre una zona sin botones: también debe volver.",
-            "4. En Gestionar, abre un grupo: deben verse iconos de luz, agua o tipo de recibo, no logos de bancos.",
-            "5. Cambia un importe y toca Listo: debe confirmar, cerrar y guardar una sola vez."
-          ],
-          "en": [
-            "1. Install APK 48 if offered and open Investments: slowly pull from the edge; the page should follow your finger and return if you cancel.",
-            "2. Complete the edge gesture in Investments and in Plan → Bills → Manage: both should leave towards the right.",
-            "3. On both screens, swipe right from the centre over an area without buttons: it should also go back.",
-            "4. In Manage, open a group: electricity, water or bill-type icons should appear instead of bank logos.",
-            "5. Change an amount and tap Done: it should confirm, close and save exactly once."
-          ],
-          "ca": [
-            "1. Instal·la l'APK 48 si apareix i obre Inversions: estira lentament des de la vora; la pàgina ha d'acompanyar el dit i tornar si cancel·les.",
-            "2. Completa el gest de vora a Inversions i a Pla → Rebuts → Gestionar: totes dues han de sortir cap a la dreta.",
-            "3. A totes dues pantalles, llisca cap a la dreta des del centre sobre una zona sense botons: també ha de tornar.",
-            "4. A Gestionar, obre un grup: s'hi han de veure icones de llum, aigua o tipus de rebut, no logotips de bancs.",
-            "5. Canvia un import i toca Fet: ha de confirmar, tancar i desar una sola vegada."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.31",

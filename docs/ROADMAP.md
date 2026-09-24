@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-24 · **v4.26.43** preparada para beta — el doble aviso Wallet/TR conserva una sola fila y una sola confirmación, sin convertirlo en una revisión manual. La APK 48 sigue vigente y producción sirve 4.25.15; comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-24 · **v4.26.44** preparada para beta — la ficha de un recibo confirma el guardado antes de cerrarse y un doble toque solo puede persistir una vez. La APK 48 sigue vigente y producción sirve 4.25.15; comprobar disponibilidad real con `npm run salud`.
+> Anterior: **v4.26.43** — el doble aviso Wallet/TR conserva una sola fila y una sola confirmación, sin convertirlo en una revisión manual.
 > Anterior: **v4.26.41** — las capas interiores de Recibos acompañan el Atrás nativo y el arrastre desde el centro, dejando visible su pantalla padre.
 > Anterior: **v4.26.40** — Pregúntame respeta la zona segura con teclado, se recoloca sin rebote y oculta el indicador lateral.
 > Anterior: **v4.26.42** — Bizum es una forma de pago separada de la finalidad real del gasto; el histórico no se recategoriza a ciegas.
@@ -228,7 +229,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.43** (doble aviso Wallet/TR convertido en un solo gasto, preparada para beta; canal real = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.26.44** (confirmación visible y una sola escritura al guardar un recibo, preparada para beta; canal real = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo/publicada: **4.26.32 / 48**. El asset firmado existe y la beta puede ofrecer el gesto Atrás nativo. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **48** / 4.26.32 |
