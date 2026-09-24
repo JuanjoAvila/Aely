@@ -469,33 +469,7 @@
         "Si tens reduït el moviment, es tanca a l'instant com fins ara."
       ]
     },
-    "tandas": [
-      {
-        "id": "presupuesto-editor-fluido",
-        "t": {
-          "es": "Editor de presupuesto más fluido",
-          "en": "Smoother budget editor",
-          "ca": "Editor de pressupost més fluid"
-        },
-        "items": {
-          "es": [
-            "1. En Inicio, toca la tarjeta del presupuesto: la ventana debe entrar de forma suave y la cifra debe caber con aire.",
-            "2. Cambia el importe y pulsa «Guardar»: la ventana debe salir suavemente y el nuevo presupuesto debe quedar guardado.",
-            "3. Con «Reducir animaciones» activado, abre y guarda otra vez: la ventana debe cerrarse al instante."
-          ],
-          "en": [
-            "1. On Home, tap the budget card: the window should open smoothly and the amount should have room around it.",
-            "2. Change the amount and tap “Save”: the window should leave smoothly and the new budget should remain saved.",
-            "3. With “Reduce motion” enabled, open and save again: the window should close instantly."
-          ],
-          "ca": [
-            "1. A Inici, toca la targeta del pressupost: la finestra ha d'entrar suaument i la xifra ha de tenir aire.",
-            "2. Canvia l'import i toca «Desa»: la finestra ha de sortir suaument i el pressupost nou ha de quedar desat.",
-            "3. Amb «Redueix el moviment» activat, obre i desa una altra vegada: la finestra s'ha de tancar a l'instant."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.25",
@@ -1100,6 +1074,21 @@
         "Els moviments portats pel banc expliquen d'on han sortit i mantenen bloquejats l'import i el compte.",
         "En esborrar una despesa hi ha cinc segons per desfer-ho i recuperar-la exactament com estava."
       ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.25.11",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "El presupuesto se edita con más calma",
+      "en": "A calmer way to edit the budget",
+      "ca": "El pressupost s'edita amb més calma"
+    },
+    "items": {
+      "es": ["El editor del presupuesto mensual se abre y se cierra de forma más suave.", "La cifra ocupa menos espacio para que se lea bien también en pantallas estrechas."],
+      "en": ["The monthly budget editor now opens and closes more smoothly.", "The amount takes up less room, so it remains easy to read on narrow screens."],
+      "ca": ["L'editor del pressupost mensual ara s'obre i es tanca de manera més suau.", "La xifra ocupa menys espai perquè també es llegeixi bé en pantalles estretes."]
     },
     "tandas": []
   },

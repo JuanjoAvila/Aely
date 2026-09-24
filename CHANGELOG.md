@@ -535,6 +535,14 @@ lápida se escriben juntas para que un pull no resucite la fila por detrás; al 
 esa lápida, se repone el objeto en su posición y, si ya salió el delete remoto, se encadena después
 un upsert con el mismo id. Así no hay ni duplicado nuevo ni una carrera delete/add en Supabase.
 
+## [4.25.11] - 2026-09-24
+### Editor de presupuesto publicado como tanda selectiva
+
+Producción incorpora únicamente el punto 8 aprobado: entrada de 420 ms, salida de 320 ms y cifra
+de 36–42 px en el editor mensual. Fondo, Atrás, Guardar y gesto vertical comparten el cierre;
+«Reducir animaciones» continúa cerrando al instante. Los valores por defecto de las demás hojas no
+cambian. No se incorpora ninguna otra tanda 4.26, backend ni Android.
+
 ## [4.25.10] - 2026-09-24
 ### Ahorro mensual en Metas publicado como tanda selectiva
 
