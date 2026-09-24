@@ -17,6 +17,18 @@ anterior y cualquier despliegue del servidor seguirá necesitando autorización 
 Los unitarios fijan la compatibilidad histórica y la exclusión de la IA. El E2E crea 47 € de Fisio,
 elige Bizum o transferencia y exige `{category:"salud", noCard:true}` en persistencia.
 
+## [4.25.14] - 2026-09-24
+### Pregúntame aprobado, portado sobre la interfaz estable
+
+Producción incorpora únicamente las tandas aprobadas `asistente-claro` (4.26.27) y
+`asistente-sin-teclado-inicial` (4.26.40), sin arrastrar notificaciones, gestos de
+Recibos ni tandas rechazadas. La guía local funciona sin conexión, usa los mismos
+cálculos que Plan y abre destinos cerrados sin escribir movimientos ni saldos.
+
+La hoja abre sin teclado, mantiene la pregunta accesible al escribir y resume cada
+paso a paso en tres líneas. La ayuda remota permanece opcional: exige consentimiento,
+solo envía pregunta e idioma y no se ha desplegado ni activado en esta promoción web.
+
 ## [4.25.13] - 2026-09-24
 ### Mínimo de caja aprobado, portado sin arrastrar el rediseño
 

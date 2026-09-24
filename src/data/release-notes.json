@@ -50,6 +50,33 @@
     ]
   },
   {
+    "v": "4.25.14",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Pregúntame ayuda sin tapar la pantalla",
+      "en": "Ask helps without covering the screen",
+      "ca": "Pregunta'm ajuda sense tapar la pantalla"
+    },
+    "items": {
+      "es": [
+        "Pregúntame ofrece respuestas breves y botones que abren el lugar adecuado, también sin conexión.",
+        "Se abre sin levantar el teclado y el paso a paso cabe en tres líneas; para escribir basta con tocar el campo.",
+        "La ayuda remota solo se intenta después de aceptarla y nunca recibe saldos, cuentas ni movimientos."
+      ],
+      "en": [
+        "Ask provides short answers and buttons that open the right place, even while offline.",
+        "It opens without raising the keyboard and each walkthrough fits into three lines; tap the field when you want to type.",
+        "Remote help is only attempted after consent and never receives balances, accounts or transactions."
+      ],
+      "ca": [
+        "Pregunta'm ofereix respostes breus i botons que obren el lloc adequat, també sense connexió.",
+        "S'obre sense aixecar el teclat i cada pas a pas cap en tres línies; per escriure només cal tocar el camp.",
+        "L'ajuda remota només s'intenta després d'acceptar-la i mai rep saldos, comptes ni moviments."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.13",
     "d": "24 sep 2026",
     "t": {
@@ -169,33 +196,7 @@
         "L'ajuda deixa de rebotar en recol·locar-se i el contingut es desplaça sense mostrar una barra lateral."
       ]
     },
-    "tandas": [
-      {
-        "id": "asistente-sin-teclado-inicial",
-        "t": {
-          "es": "Pregúntame completo y estable",
-          "en": "Ask me stays complete and steady",
-          "ca": "Pregunta'm complet i estable"
-        },
-        "items": {
-          "es": [
-            "1. Abre Pregúntame: debe verse entero y sin abrir el teclado ni mostrar una barra lateral.",
-            "2. Toca la caja de la pregunta: el teclado debe aparecer sin tapar el título ni producir un rebote brusco.",
-            "3. Escribe y desplaza la ayuda: la pregunta y el botón deben seguir accesibles, con movimiento suave."
-          ],
-          "en": [
-            "1. Open Ask me: it should be fully visible without opening the keyboard or showing a side bar.",
-            "2. Tap the question box: the keyboard should appear without covering the title or causing a hard bounce.",
-            "3. Type and scroll the help: the question and button should remain accessible with smooth movement."
-          ],
-          "ca": [
-            "1. Obre Pregunta'm: s'ha de veure sencer sense obrir el teclat ni mostrar una barra lateral.",
-            "2. Toca la caixa de la pregunta: el teclat ha d'aparèixer sense tapar el títol ni provocar un rebot brusc.",
-            "3. Escriu i desplaça l'ajuda: la pregunta i el botó han de continuar accessibles, amb moviment suau."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.39",
@@ -744,33 +745,7 @@
         "Els salts de línia es mostren correctament i «/n» ja no apareix dins del text."
       ]
     },
-    "tandas": [
-      {
-        "id": "asistente-claro",
-        "t": {
-          "es": "Ayuda breve y con rutas claras",
-          "en": "Short help with clear routes",
-          "ca": "Ajuda breu i amb rutes clares"
-        },
-        "items": {
-          "es": [
-            "1. Abre «Pregúntame» y pregunta cómo apuntar una compra en efectivo: la primera respuesta debe ser una sola frase.",
-            "2. Pulsa «Paso a paso»: deben salir exactamente tres instrucciones cortas, numeradas como 1, 2 y 3.",
-            "3. Comprueba que no aparece «/n» ni un párrafo largo; «Apuntar en efectivo» debe seguir llevando al sitio correcto."
-          ],
-          "en": [
-            "1. Open “Ask me” and ask how to record a cash purchase: the first answer should be a single sentence.",
-            "2. Tap “Step by step”: exactly three short instructions numbered 1, 2, and 3 should appear.",
-            "3. Check that “/n” and long paragraphs are gone; “Record cash expense” should still take you to the right place."
-          ],
-          "ca": [
-            "1. Obre «Pregunta'm» i demana com apuntar una compra en efectiu: la primera resposta ha de ser una sola frase.",
-            "2. Prem «Pas a pas»: han de sortir exactament tres instruccions curtes, numerades com a 1, 2 i 3.",
-            "3. Comprova que no apareix «/n» ni un paràgraf llarg; «Apuntar en efectiu» t'ha de continuar portant al lloc correcte."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.26",
