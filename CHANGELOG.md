@@ -1,3 +1,22 @@
+## [4.25.20] - 2026-09-24
+### Inicio honesto y racha calculada con meses reales
+
+Se reconstruye sobre la candidata de producción 4.25.19 únicamente la tanda aprobada 4.26.28.
+Inicio y la imagen del informe dejan de mostrar un cambio de patrimonio «este mes»: el valor se
+calculaba contra `monthStartNet`, una semilla antigua que no garantizaba ser una foto del día 1 y
+podía presentar como ganancia un salto inexistente. El patrimonio total y su histórico no cambian.
+
+Cada presupuesto pasa a conservar una instantánea en `budgetByMonth`. La racha solo juzga meses
+cerrados que tengan esa instantánea, exige continuidad y usa la misma verdad financiera que la
+tarjeta mensual: bancos de gasto diario, categorías no neutras, posibles duplicados fuera del
+cálculo, modo bruto/neto y reservas. Un recibo de otra cuenta ya no puede romperla. El cálculo
+agrega el histórico una sola vez, localiza cada mes por búsqueda binaria y se memoriza en `App`.
+
+Se retira la pantalla huérfana de Logros y sus estilos, pero se mantienen las insignias internas y
+sus avisos. El estado antiguo `streak` deja de decidir la cifra visible y no se migra ni reescribe el
+histórico. Unitarios de equivalencia y E2E abren Inicio con meses reales, presupuesto vacío,
+cuentas separadas y movimiento reducido.
+
 ## [4.25.19] - 2026-09-24
 ### Ficha completa y navegación gestual de inversiones aprobadas
 
