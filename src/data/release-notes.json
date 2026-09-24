@@ -47,6 +47,30 @@
     ]
   },
   {
+    "v": "4.25.17",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "CaixaBank aclara y abre el histórico",
+      "en": "CaixaBank clarifies and opens history",
+      "ca": "CaixaBank aclareix i obre l'històric"
+    },
+    "items": {
+      "es": [
+        "Si CaixaBank devuelve movimientos que ya estaban apuntados, Importar histórico lo explica y ofrece abrirlos directamente en Gastos.",
+        "Gastos muestra entonces todo el histórico de CaixaBank, también meses anteriores, y conserva por separado los cargos iguales que pertenezcan a cuentas distintas."
+      ],
+      "en": [
+        "If CaixaBank returns transactions that were already logged, Import history explains it and offers to open them directly in Spending.",
+        "Spending then shows the full CaixaBank history, including earlier months, and keeps matching charges from different accounts separate."
+      ],
+      "ca": [
+        "Si CaixaBank retorna moviments que ja estaven apuntats, Importar històric ho explica i permet obrir-los directament a Despeses.",
+        "Despeses mostra llavors tot l'històric de CaixaBank, també mesos anteriors, i conserva per separat els càrrecs iguals que pertanyen a comptes diferents."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.44",
     "d": "24 sep 2026",
     "t": {
@@ -950,36 +974,7 @@
         "Si el banc només comparteix moviments que ja estaven apuntats, ara es mostra quants comptes i moviments ha lliurat i es poden obrir directament a Despeses, amb el període complet i aquest banc filtrat. L'actualització diària no canvia."
       ]
     },
-    "tandas": [
-      {
-        "id": "historico-varias-cuentas",
-        "t": {
-          "es": "Movimientos de cada cuenta al importar",
-          "en": "Transactions from each account when importing",
-          "ca": "Moviments de cada compte en importar"
-        },
-        "items": {
-          "es": [
-            "1. En Ajustes → Importaciones → Importar histórico, deja solo CaixaBank y busca una vez. Si todo estaba apuntado, debe indicar cuántas cuentas y movimientos compartió el banco.",
-            "2. Toca «Verlos en Gastos»: debe abrir el periodo completo, filtrado a CaixaBank, y enseñar también los movimientos de meses anteriores.",
-            "3. Si esperabas otra cuenta y el aviso muestra solo una, vuelve a conectar CaixaBank seleccionando las dos cuentas y repite la búsqueda una sola vez. Si sigue mostrando una, indícalo en el comentario.",
-            "4. Si ambas cuentas tienen un cargo con la misma fecha, importe y concepto, deben aparecer dos filas y guardarse por separado. No marques este caso como probado si el banco sigue compartiendo una sola cuenta."
-          ],
-          "en": [
-            "1. In Settings → Imports → Import history, leave only CaixaBank selected and search once. If everything was already logged, it should show how many accounts and transactions the bank shared.",
-            "2. Tap “View them in Spending”: it should open the full period filtered to CaixaBank and also show transactions from previous months.",
-            "3. If you expected another account and the message shows only one, reconnect CaixaBank, select both accounts, and search once more. If it still shows one, mention it in the comment.",
-            "4. If both accounts contain a charge with the same date, amount and description, two rows should appear and be saved separately. Do not mark this case as proven while the bank still shares only one account."
-          ],
-          "ca": [
-            "1. A Ajustos → Importacions → Importar històric, deixa només CaixaBank i cerca una vegada. Si tot ja estava apuntat, ha d'indicar quants comptes i moviments ha compartit el banc.",
-            "2. Toca «Veure'ls a Despeses»: ha d'obrir el període complet, filtrat a CaixaBank, i mostrar també els moviments de mesos anteriors.",
-            "3. Si esperaves un altre compte i l'avís només en mostra un, torna a connectar CaixaBank, selecciona els dos comptes i repeteix la cerca una sola vegada. Si encara en mostra un, indica-ho al comentari.",
-            "4. Si tots dos comptes tenen un càrrec amb la mateixa data, import i concepte, han d'aparèixer dues files i desar-se per separat. No marquis aquest cas com a provat mentre el banc continuï compartint un sol compte."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.16",
