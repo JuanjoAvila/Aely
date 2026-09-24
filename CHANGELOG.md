@@ -1,3 +1,16 @@
+## [4.25.12] - 2026-09-24
+### Cierre de hojas sin volver a bloquear el fondo
+
+El port selectivo de 4.25.11 convirtió el desbloqueo inmediato de `useSheetSwipe` en una opción
+que solo activaba `BudgetSheet`. Las demás hojas conservaban `sheet-open` y
+`body.style.overflow="hidden"` durante sus 200 ms de salida, recuperando el tirón que producción
+ya había eliminado. El cierre animado vuelve a liberar el fondo de forma incondicional al empezar,
+sin cambiar las duraciones: Presupuesto mantiene 320 ms y las demás hojas sus valores previos.
+
+El E2E abre Apuntar, confirma el candado mientras la hoja está visible, la cierra con un gesto
+táctil real y comprueba que el nodo sigue montado durante la animación mientras el fondo ya está
+libre. Así se vigila la regresión concreta que no medían las pruebas de Presupuesto.
+
 ## [4.25.11] - 2026-09-24
 ### Editor de presupuesto aprobado, sin arrastrar el resto de beta
 
