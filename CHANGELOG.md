@@ -1,3 +1,18 @@
+## [4.26.36] - 2026-09-24
+### Plan recupera el mínimo de caja real del mes
+
+La integración efectiva de beta había conservado en la portada de Plan el valor de
+`projectedByBank`, es decir, el saldo final. Una nómina posterior podía dejar ese cierre positivo
+y ocultar un descubierto anterior, pese a que el punto 13 ya estaba corregido y revisado en otra
+rama. La portada vuelve a usar `planCoverState`: enseña el mínimo diario de `minByBank`, su día
+cuando se conoce y descuenta las cuotas pendientes sin fecha sin inventarles un día. Si no existe
+una cuenta o un mínimo fiable, enseña «—».
+
+El E2E siembra 500 €, un cargo de 700 € el día 15 y una nómina de 2.000 € el 25: la portada debe
+mostrar −200 € el día 15, nunca los 1.800 € del cierre. Cuatro variantes adicionales comprueban
+que las devoluciones anteriores o posteriores al recibo producen el mismo mínimo en modo normal
+y sencillo.
+
 ## [4.26.35] - 2026-09-24
 ### El filtro de Gastos comparte el selector visual de categorías
 

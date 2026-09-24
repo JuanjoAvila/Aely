@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.36",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Plan enseña el momento más justo del mes",
+      "en": "Plan shows the tightest point of the month",
+      "ca": "Pla mostra el moment més just del mes"
+    },
+    "items": {
+      "es": [
+        "Plan muestra el saldo más bajo previsto y el día en que se alcanza, en vez de quedarse solo con la cifra de final de mes.",
+        "Una nómina posterior ya no puede ocultar que antes falta dinero; si no se conoce una fecha o un saldo, no se inventa."
+      ],
+      "en": [
+        "Plan shows the lowest expected balance and the day it is reached, instead of only showing the month-end figure.",
+        "A later salary payment can no longer hide an earlier shortfall; when a date or balance is unknown, it is not made up."
+      ],
+      "ca": [
+        "Pla mostra el saldo més baix previst i el dia en què s'assoleix, en comptes de quedar-se només amb la xifra de final de mes.",
+        "Una nòmina posterior ja no pot amagar que abans falten diners; si no es coneix una data o un saldo, no se n'inventa cap."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "plan-minimo-caja",
+        "t": {
+          "es": "Saldo mínimo del mes",
+          "en": "Lowest balance this month",
+          "ca": "Saldo mínim del mes"
+        },
+        "items": {
+          "es": [
+            "1. En Plan → Recibos, mira la frase bajo lo que queda por pagar: debe hablar del saldo más bajo, no solo del final de mes.",
+            "2. Si hay un recibo antes de la próxima nómina, debe enseñar el importe mínimo y el día en que ocurre, aunque después el mes termine en positivo.",
+            "3. Un recibo sin fecha o una cuenta sin saldo conocido no debe inventar un día ni una cifra."
+          ],
+          "en": [
+            "1. In Plan → Bills, read the line below what is left to pay: it should describe the lowest balance, not only month end.",
+            "2. If a bill falls before the next salary payment, it should show the minimum amount and the day it occurs even when the month later ends positive.",
+            "3. A bill without a date or an account without a known balance must not invent a day or an amount."
+          ],
+          "ca": [
+            "1. A Pla → Rebuts, mira la frase sota el que queda per pagar: ha de parlar del saldo més baix, no només del final de mes.",
+            "2. Si hi ha un rebut abans de la pròxima nòmina, ha de mostrar l'import mínim i el dia en què passa encara que després el mes acabi en positiu.",
+            "3. Un rebut sense data o un compte sense saldo conegut no ha d'inventar ni un dia ni una xifra."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.35",
     "d": "24 sep 2026",
     "t": {

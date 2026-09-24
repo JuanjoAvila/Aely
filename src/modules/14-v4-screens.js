@@ -374,21 +374,15 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
       React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center",marginTop:14,fontSize:13.5,color:"var(--muted)"}},
         React.createElement("span",{style:{width:8,height:8,borderRadius:"50%",background:"var(--mint)",flex:"0 0 auto"}}),
         (function(){
-          const fixedAccount=(state.accounts||[]).find(function(a){ return accFixed(a); });
-          const bank=fixedAccount&&fixedAccount.ent;
-          const projected=bank&&totals.projectedByBank&&totals.projectedByBank[bank];
-          /* `totals` aún puede dar por pagada desde el día 1 una cuota sin fecha. La cifra grande
-             usa `planChargesMonth`; esta línea descuenta la misma diferencia para que una sola
-             tarjeta no prometa dos saldos distintos (review Claude 2026-09-17). */
-          const planPending=bank&&pack.pendingByBank?Number(pack.pendingByBank[bank])||0:0;
-          // Los cargos puntuales antiguos podían guardar devoluciones negativas. `pack` las
-          // excluye de «por pagar», así que al conciliar ambas fuentes tampoco deben convertirse
-          // en una diferencia positiva y descontarse por segunda vez (review Claude 2026-09-17).
-          const totalsPending=bank&&totals.pendingByBank?Math.max(0,Number(totals.pendingByBank[bank])||0):0;
-          const adjusted=typeof projected==="number"?projected-Math.max(0,planPending-totalsPending):null;
-          return typeof adjusted==="number"
-            ? tf("v4_plan_liq",{amount:eur0(adjusted),bank:entOf(bank).label})
-            : "—";
+          const account=(state.accounts||[]).find(accFixed);
+          const bank=account&&account.ent;
+          /* Una sola fuente para normal y sencillo: `planCoverState` parte del mínimo diario y
+             descuenta únicamente las cuotas SIN fecha. El saldo final podía quedar positivo por
+             una nómina posterior y ocultar un descubierto anterior (feedback 2026-09-18). */
+          const cover=bank&&planCoverState(totals,bank,0,pack.pendingBills);
+          if(!cover||typeof cover.min!=="number"||!isFinite(cover.min)) return "—";
+          const day=cover.minDay>0?cover.minDay:0;
+          return tf("v4_plan_liq",{amount:eur0(cover.min),when:day?" "+tf("v4_plan_liq_day",{d:day}):"",bank:entOf(bank).label});
         })()
       )
     ),

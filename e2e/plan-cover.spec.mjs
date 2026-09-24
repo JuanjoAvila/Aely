@@ -78,8 +78,10 @@ test("una devolución puntual antigua no se descuenta dos veces de la liquidez",
   });
   const hero = page.locator('.v4-screen > [data-seg="recibos"] .v4-card-hero');
   await expect(hero).toContainText(/0/);
-  await expect(hero).toContainText(/850/);
-  await expect(hero).not.toContainText(/800/);
+  // El mínimo desde hoy sigue siendo 800: la devolución futura sube a 850 después, pero no
+  // puede reescribir hacia arriba el peor momento que ya existe antes de que llegue.
+  await expect(hero).toContainText(/800/);
+  await expect(hero).not.toContainText(/750|850/);
 });
 
 test("la vista normal conserva el segmented compacto de una sola línea", async ({ page }) => {
@@ -92,6 +94,37 @@ test("la vista normal conserva el segmented compacto de una sola línea", async 
   await expect(page.locator('.v4-seg-btn[data-seg="recibos"]')).toHaveText("Recibos");
   await expect(page.locator('.v4-screen > [data-seg="recibos"] .v4-card-hero')).toContainText(/200/);
 });
+
+test("la portada enseña el saldo más bajo y no el cierre que la nómina maquilla", async ({ page }) => {
+  await openPlan(page, {
+    accounts: [{ id: "sb", ent: "sabadell", name: "Sabadell", value: 500, role: "fijos" }],
+    fixed: [{ id: "seguro", name: "Seguro", amount: 700, freq: "mes", day: 15, account: "sabadell" }],
+    flows: [{ id: "nom", kind: "income", name: "Nómina", amount: 2000, to: "sabadell", day: 25 }],
+  });
+  const hero = page.locator('.v4-screen > [data-seg="recibos"] .v4-card-hero');
+  await expect(hero).toContainText(/saldo más bajo de aquí a fin de mes/i);
+  await expect(hero).toContainText(/-200.*el día 15/i);
+  await expect(hero).not.toContainText(/1[.]?800/);
+});
+
+for (const caso of [
+  { day:15, expected:"750" }, // devolución antes del recibo: 800 → 850 → 750
+  { day:25, expected:"700" }, // devolución después: 800 → 700 → 750
+]) {
+  for (const simple of [false,true]) {
+    test(`devolución día ${caso.day}: mínimo ${caso.expected} igual en modo ${simple?"sencillo":"normal"}`, async ({ page }) => {
+      await openPlan(page, {
+        accounts: [{ id:"sb", ent:"sabadell", name:"Sabadell", value:800, role:"fijos" }],
+        fixed: [{ id:"luz", name:"Luz", amount:100, freq:"mes", day:20, account:"sabadell" }],
+        oneoffs: [{ id:"dev", name:"Devolución", amount:-50, year:2026, month:9, day:caso.day, account:"sabadell" }],
+        settings: { autoPrices:false, theme:"green", lang:"es", simpleMode:simple },
+      });
+      const hero=simple?page.locator(".v4-plan-cover-simple"):page.locator('.v4-screen > [data-seg="recibos"] .v4-card-hero');
+      await expect(hero).toContainText(new RegExp(caso.expected));
+      await expect(hero).not.toContainText(new RegExp(caso.expected==="750"?"700|650":"750|650"));
+    });
+  }
+}
 
 test("todo pagado → 0 pendiente y lista pagada, sin NaN ni diagnóstico", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-30T12:00:00Z") });
