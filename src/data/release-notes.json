@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.25.21",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Desliza con naturalidad desde cualquier altura",
+      "en": "Swipe naturally from any height",
+      "ca": "Llisca amb naturalitat des de qualsevol altura"
+    },
+    "items": {
+      "es": [
+        "Puedes cambiar de pantalla con un gesto horizontal incluso cuando has llegado abajo del todo, sin tener que subir primero.",
+        "Desaparece la barra lateral de desplazamiento en todas las pantallas, también en Ajustes, pero puedes seguir subiendo y bajando con normalidad."
+      ],
+      "en": [
+        "You can switch screens with a horizontal swipe even at the very bottom, without having to scroll up first.",
+        "The side scroll indicator is gone from every screen, including Settings, while normal vertical scrolling still works."
+      ],
+      "ca": [
+        "Pots canviar de pantalla amb un gest horitzontal fins i tot quan has arribat al final, sense haver de pujar abans.",
+        "Desapareix la barra lateral de desplaçament de totes les pantalles, també d'Ajustos, però pots continuar pujant i baixant amb normalitat."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.20",
     "d": "24 sep 2026",
     "t": {

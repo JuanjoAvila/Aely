@@ -2671,10 +2671,10 @@ function App(){
       const eje=gestureAxis(ddx,ddy);
       if(!eje) return;
       /* A MITAD, ABAJO o ARRIBA: el arco del pulgar gana `x` pronto → preventDefault +
-         leaveScrollHost + freezeShell matan scroll/ola. En el borde INFERIOR no se negocia:
-         aunque el primer tramo parezca horizontal, pertenece al rebote nativo hasta que el
-         usuario suba contenido. Antes una deriva de 40 px al segundo tirón revelaba la barra y
-         desmontaba el host (vídeo Oppo 16/9). Arriba/mitad aún admiten un horizontal inequívoco. */
+         leaveScrollHost + freezeShell matan scroll/ola. Una diagonal sigue siendo scroll/ola,
+         también en el fondo; pero un horizontal inequívoco tiene que cambiar de pestaña sin
+         obligarle a subir antes (feedback 23/9). El vídeo Oppo del 16/9 queda cubierto porque su
+         deriva tenía componente vertical y no supera esta guarda. */
       if(eje==="x"){
         const pages0=trackRef.current&&trackRef.current.children;
         const pg0=pages0&&pages0[tab];
@@ -2683,7 +2683,17 @@ function App(){
           const atTop=st0<=2;
           const mid0=st0>2 && max0-st0>2;
           const atBottom=max0>0 && (max0-st0)<=2;
-          if(atBottom || ((atTop||mid0) && !(Math.abs(ddy)<16 && Math.abs(ddx)>36))){
+          /* El arco real del Oppo llegó a 55 px laterales, pero ya llevaba 10 px verticales antes
+             de girar hacia la ola. Esperar siempre a 60 px hacía que Android cancelara muchos
+             horizontales antes de que el carrusel pudiera reclamarlos. Un gesto casi recto
+             (menos de 4 px verticales) se acepta desde 36 px; si deriva más, conserva el umbral
+             seguro de 60 px que protege aquel arco. */
+          let horizontalClaro=Math.abs(ddy)<16 && Math.abs(ddx)>36;
+          if(atBottom){
+            horizontalClaro=(Math.abs(ddy)<4 && Math.abs(ddx)>36)
+              || (Math.abs(ddy)<12 && Math.abs(ddx)>60);
+          }
+          if((atBottom||atTop||mid0) && !horizontalClaro){
             return;
           }
         }

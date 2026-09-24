@@ -28,6 +28,19 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(MiCarteraPlugin.class);       // antes de super.onCreate (así lo pide Capacitor)
         registerPlugin(TradeRepublicPlugin.class);   // puente TR (beta)
         super.onCreate(savedInstanceState);
+        /* La barra fina que Android dibuja en el borde pertenece a la WebView, no a los scrollers
+           CSS: `scrollbar-width:none` y `::-webkit-scrollbar` ya estaban aplicados a toda la app
+           y aun así seguía visible en cada pantalla (feedback real 2026-09-23). Desactivar solo
+           el indicador nativo conserva el scroll, la inercia y el rubber-band; no cambia ningún
+           `overflow` ni la navegación de la web. Tiene que ir después de `super`, cuando
+           Capacitor ya ha creado el Bridge y su WebView. */
+        try {
+            android.webkit.WebView webView = getBridge() != null ? getBridge().getWebView() : null;
+            if (webView != null) {
+                webView.setVerticalScrollBarEnabled(false);
+                webView.setHorizontalScrollBarEnabled(false);
+            }
+        } catch (Throwable ignored) {}
         /* Si el splash no encadenó bien al NoActionBar (falta postSplashScreenTheme o OEM raro),
            la ActionBar nativa deja una franja bajo la cámara encima de la WebView (2026-08-06). */
         try {

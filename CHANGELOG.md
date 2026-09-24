@@ -1,3 +1,21 @@
+## [4.25.21] - 2026-09-24
+### Gesto horizontal desde el fondo y barras invisibles sin perder scroll
+
+Se reconstruyen sobre la candidata 4.25.20 únicamente los dos ajustes de navegación aprobados en
+beta. El carrusel principal ya no exige subir antes de cambiar de pestaña cuando el contenido está
+abajo del todo: un gesto casi recto se reclama desde 36 px y uno con una deriva pequeña desde 60
+px. Las diagonales conservan el scroll y el rebote nativo, incluido el arco del pulgar del vídeo
+Oppo que motivó la protección anterior.
+
+Todas las superficies mantienen su `overflow`, inercia y desplazamiento, pero ocultan el indicador
+visual con las reglas CSS globales. Android desactiva además las barras vertical y horizontal de la
+WebView después de que Capacitor cree el puente; esto requiere APK nueva. Se prepara
+`versionName 4.25.21` / `versionCode 49`, superior a la beta 48, sin publicar todavía el asset ni
+el manifiesto en ningún canal.
+
+Tres E2E añaden los casos de gesto horizontal al fondo, reclamación temprana y superficies aún
+desplazables; el guardián nativo comprueba que ambas barras de la WebView permanecen desactivadas.
+
 ## [4.25.20] - 2026-09-24
 ### Inicio honesto y racha calculada con meses reales
 
