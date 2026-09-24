@@ -21,33 +21,31 @@
         "La categoria continua sent la finalitat real, com Restaurants o Salut; els Bizum antics es conserven fins que es revisin un a un."
       ]
     },
-    "tandas": [
-      {
-        "id": "bizum-forma-pago",
-        "t": {
-          "es": "Bizum como forma de pago",
-          "en": "Bizum as a payment method",
-          "ca": "Bizum com a forma de pagament"
-        },
-        "items": {
-          "es": [
-            "1. Abre Apuntar y toca la pastilla «Con tarjeta»: debe cambiar a «Bizum o transferencia» y no debe aparecer una categoría Bizum.",
-            "2. Apunta 47 € de Fisio dejando la pastilla en «Bizum o transferencia» y elige Salud: en Gastos debe contar dentro de Salud.",
-            "3. Abre un Bizum antiguo: debe seguir intacto y permitir cambiar su categoría real y su forma de pago por separado."
-          ],
-          "en": [
-            "1. Open Add and tap the “Card” chip: it should change to “Bizum or transfer”, and there should be no Bizum category.",
-            "2. Add €47 for Physio with the chip set to “Bizum or transfer” and choose Health: it should count under Health in Spending.",
-            "3. Open an old Bizum entry: it should remain unchanged and let you edit its real category and payment method separately."
-          ],
-          "ca": [
-            "1. Obre Apuntar i toca la pastilla «Amb targeta»: ha de canviar a «Bizum o transferència» i no hi ha d'aparèixer una categoria Bizum.",
-            "2. Apunta 47 € de Fisio deixant la pastilla en «Bizum o transferència» i tria Salut: a Despeses ha de comptar dins de Salut.",
-            "3. Obre un Bizum antic: ha de continuar intacte i permetre canviar per separat la categoria real i la forma de pagament."
-          ]
-        }
-      }
-    ]
+    "tandas": []
+  },
+  {
+    "v": "4.25.15",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Bizum deja sitio a la categoría real",
+      "en": "Bizum no longer hides what the expense was",
+      "ca": "Bizum deixa lloc a la categoria real"
+    },
+    "items": {
+      "es": [
+        "Al apuntar un Bizum o una transferencia, la forma de pago se elige aparte: el gasto puede seguir contando como Salud, Restaurantes o la categoría que corresponda.",
+        "Los Bizum antiguos se conservan tal cual y se pueden pasar uno a uno a su categoría real, sin cambiar el histórico a ciegas."
+      ],
+      "en": [
+        "When adding a Bizum or bank transfer, the payment method is chosen separately, so the expense can still count as Health, Eating out or whichever category fits.",
+        "Existing Bizum entries stay unchanged and can be moved one by one to their real category, without guessing through past expenses."
+      ],
+      "ca": [
+        "En apuntar un Bizum o una transferència, la forma de pagament es tria a part: la despesa pot continuar comptant com a Salut, Restaurants o la categoria que correspongui.",
+        "Els Bizum antics es conserven tal com estan i es poden passar un a un a la categoria real, sense canviar l'històric a cegues."
+      ]
+    },
+    "tandas": []
   },
   {
     "v": "4.25.14",

@@ -17,6 +17,18 @@ anterior y cualquier despliegue del servidor seguirá necesitando autorización 
 Los unitarios fijan la compatibilidad histórica y la exclusión de la IA. El E2E crea 47 € de Fisio,
 elige Bizum o transferencia y exige `{category:"salud", noCard:true}` en persistencia.
 
+## [4.25.15] - 2026-09-24
+### Bizum aprobado y publicado sobre producción estable
+
+Producción incorpora únicamente `bizum-forma-pago`, reconstruida sobre 4.25.14 sin arrastrar
+el rediseño ni tandas rechazadas. Bizum y transferencia se guardan como `noCard`; la categoría
+real continúa siendo Salud, Restaurantes o la que corresponda. Las filas históricas con
+`category:"bizum"` permanecen intactas hasta que se revisen una a una.
+
+El cliente protege también frente a una respuesta `bizum` de una Edge anterior. El código fuente
+de `categorize` e `ingest_logic` queda alineado, pero esta promoción web no despliega ninguna
+Edge Function. Claude revisó el SHA final y los E2E de Apuntar pasaron 6/6.
+
 ## [4.25.14] - 2026-09-24
 ### Pregúntame aprobado, portado sobre la interfaz estable
 

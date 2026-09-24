@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-24 · **v4.26.42** preparada para beta — Bizum es una forma de pago separada de la finalidad real del gasto; el histórico no se recategoriza a ciegas. La APK 48 sigue vigente y producción sirve 4.25.14 con Pregúntame aprobado; comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-24 · **v4.26.42** preparada para beta — Bizum es una forma de pago separada de la finalidad real del gasto; el histórico no se recategoriza a ciegas. La APK 48 sigue vigente y producción sirve 4.25.15 con esta mejora aprobada; comprobar disponibilidad real con `npm run salud`.
 > Anterior: **v4.26.41** — las capas interiores de Recibos acompañan el Atrás nativo y el arrastre desde el centro, dejando visible su pantalla padre.
 > Anterior: **v4.26.40** — Pregúntame respeta la zona segura con teclado, se recoloca sin rebote y oculta el indicador lateral.
 > Anterior: **v4.26.39** — Wallet y Trade Republic ya no pueden sumar dos veces la misma compra; la segunda señal queda como posible repetida y fuera del total.
