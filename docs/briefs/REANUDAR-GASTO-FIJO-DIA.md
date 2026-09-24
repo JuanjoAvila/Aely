@@ -4,9 +4,9 @@ Fecha: 2026-09-24
 
 Rama de trabajo: `codex/gasto-fijo-dia-24sep`
 
-Betas previas: `4.26.46.1` rechazada; `4.26.46.2` aprobada inicialmente y reabierta por un caso inverso comunicado antes de producción
+Betas previas: `4.26.46.1` rechazada; `4.26.46.2` aprobada inicialmente y reabierta por un caso inverso comunicado antes de producción; `4.26.46.3` bloqueada por revisión externa antes de la prueba móvil
 
-Siguiente beta objetivo: `4.26.46.3`
+Siguiente beta objetivo: `4.26.46.4`
 
 ## Alcance único
 
@@ -38,14 +38,17 @@ el inverso: hoy 25, recibo previsto para el 24 todavía no cobrado y cambio al 2
 demostró que `isPaidIn` lo clasificaba pagado solo por `día <= hoy`, sin `bankTx`. Esa pregunta
 reabre y sustituye el veredicto anterior: no se promociona `.2`.
 
-La edición guarda en `wait` el año-mes únicamente cuando el día corregido ya ha llegado y
-la conciliación no encuentra cargo. `isPaidIn` no puede entonces inventar el pago por calendario;
-un movimiento real sí prevalece. Una edición posterior con el cargo ya presente convierte la
-espera en `paidYm` + `paidDay`; `bankTx` sigue siendo local y no se muta.
+La edición guarda en `wait` el año-mes únicamente cuando el día corregido ya ha llegado, la
+conciliación no encuentra cargo y el feed sincronizado de esa cuenta cubre esa fecha. `isPaidIn`
+no puede entonces inventar el pago por calendario; un movimiento real sí prevalece. Una edición
+posterior con el cargo ya presente convierte la espera en `paidYm` + `paidDay`; `bankTx` sigue
+siendo local y no se muta. Sin cobertura bancaria suficiente no se inventa una ausencia y el modo
+solo-calendario conserva su comportamiento anterior.
 
-Retirar el falso pago cambia el neto de Sabadell de −120 € a 0. Para que esa corrección contable
-no infle 120 € el saldo que ve la familia, se reancla una sola vez la base interna de esa cuenta
-por −120 €; el saldo visible queda idéntico. Revolut y cualquier otra cuenta permanecen intactos.
+Claude bloqueó `4.26.46.3` porque reanclar `accounts[].value` suponía conocer cuándo se había
+fijado el saldo base, dato que no existe. La solución final no modifica ninguna cuenta. Retirar el
+falso pago cambia el neto de Sabadell de −120 € a 0 y hace visibles esos 120 € porque aún siguen
+en el banco; el saldo almacenado, Revolut y cualquier otra cuenta permanecen intactos.
 
 ## Evidencia exigida
 
@@ -55,38 +58,44 @@ por −120 €; el saldo visible queda idéntico. Revolut y cualquier otra cuent
 - `e2e/plan-gestionar.spec.mjs`: edición real 24 → 27 desde Plan; una sola fila en «Ya pagado» con
   el día bancario 24, previsión 27 guardada y ninguna copia pendiente.
 - Sin movimiento bancario, un recibo del día 27 continúa pendiente.
-- Caso inverso exacto: reloj en 25/09, recibo de Iberdrola 120 € previsto el 24 y sin `bankTx`;
-  editarlo al 25 deja una sola fila pendiente, cero pagadas y neto de Sabadell 0. El saldo visible
-  de Sabadell queda igual mediante el reanclaje interno; Revolut y los gastos históricos no cambian.
-  Al añadir el movimiento real del 25 pasa una sola vez a pagado y el neto queda en −120 €.
-- El E2E edita 24 → 25 desde Plan sin cargo y exige la espera mensual, una fila pendiente, cero pagadas,
-  saldo visible estable, histórico idéntico y ningún cambio en el otro banco.
+- Caso inverso exacto: reloj en 25/09, recibo de Iberdrola 120 € previsto el 24 y un feed de
+  Sabadell que llega al día 10 pero no contiene ese cargo; editarlo al 25 deja una sola fila
+  pendiente, cero pagadas y neto de Sabadell 0. Los 120 € vuelven al saldo visible porque no han
+  salido; ninguna base de cuenta, Revolut ni los gastos históricos cambian. Al añadir el movimiento
+  real del 25 pasa una sola vez a pagado y el neto queda en −120 €.
+- Sin feed bancario, editar 24 → 25 conserva la regla solo-calendario y no crea una espera que no
+  podría resolverse.
+- El E2E edita 24 → 25 desde Plan con cobertura bancaria pero sin cargo y exige la espera mensual,
+  una fila pendiente, cero pagadas, el saldo honesto y ningún cambio en cuentas o histórico.
 - El bundle se reconstruye desde `src/`; el presupuesto minificado no se amplía.
 
 ## Límite conocido
 
 La corrección prueba el cambio desde la ficha vigente de Plan y la confirmación de Open Banking.
-No inventa confirmaciones para recibos sin movimiento bancario y no migra ni recategoriza el
-histórico. La espera explícita nace al editar el recibo; no reinterpreta en masa los fijos antiguos
-que nadie ha tocado. El dispositivo que no tenga todavía ese `bankTx` seguirá mostrando la espera
-hasta su propia sincronización; no se inventa una confirmación entre dispositivos. Es un cambio
-web/OTA; no requiere APK nueva.
+No inventa confirmaciones ni ausencias cuando falta cobertura bancaria y no migra ni recategoriza
+el histórico. La espera explícita nace al editar el recibo en un dispositivo cuyo feed cubre la
+fecha; no reinterpreta en masa los fijos antiguos que nadie ha tocado. Como `bankTx` es local pero
+`wait` se sincroniza, otro dispositivo respetará esa espera hasta recibir el cargo o una edición
+posterior. Quien use solo calendario conserva la regla por fecha. Es un cambio web/OTA; no requiere
+APK nueva.
 
 ## Verificación local del 25/09
 
-- Build, sintaxis, presupuesto sin ampliar, `fixed-day-reconcile`, `plan-charges` y
-  `reconcile-bank`: OK.
-- `plan-gestionar.spec.mjs`: 29/29, incluidos los dos sentidos 24 → 27 cobrado y 24 → 25 sin
-  cobro.
-- Suite Playwright completa: 421 aprobadas y 1 captura opcional omitida (422 en total).
+- Build, sintaxis, presupuesto sin ampliar, `fixed-day-reconcile`, `plan-charges`,
+  `reconcile-bank`, notas en tres idiomas y mapa de pruebas: OK sobre la corrección final.
+- `plan-gestionar.spec.mjs`: 29/29 sobre la corrección final, incluidos los dos sentidos 24 → 27
+  cobrado y 24 → 25 sin cobro pero con feed que cubre la fecha.
+- Suite Playwright completa sobre `4.26.46.3`: 421 aprobadas y 1 captura opcional omitida (422 en
+  total). El delta final vuelve a ejecutar localmente su spec completa; la CI de la nueva beta
+  debe repetir la suite global por tocar el núcleo.
 - Todos los unitarios del plan relevante pasan salvo `docs-frescura` al ejecutarlo desde
   `codex/gasto-fijo-dia-24sep`: detecta correctamente commits posteriores al bump. En la rama
   `beta` esa comprobación se omite por diseño porque las correcciones de una ronda conservan
   `VERSION` y se publican como `4.26.46.RUN_NUMBER`; la CI de beta debe quedar verde.
-- Claude 5.5 Opus confirmó que `7f51d065` era financieramente correcto y bloqueó solo por ese
-  guardián de rama. Se incorporaron sus observaciones aplicables: dependencias reactivas de
-  `bankTx`/`accounts` y no fabricar `paidDay=-1`. Falta su revisión específica del nuevo caso
-  inverso antes de dar la ronda por cerrada.
+- Claude 5.5 Opus confirmó que `7f51d065` era financieramente correcto y retiró la objeción al
+  guardián de rama. Después bloqueó `50aae61f` (`4.26.46.3`) por el reanclaje ciego del saldo base
+  y porque una espera sin cobertura bancaria rompería el modo solo-calendario. Ambos puntos quedan
+  corregidos en la siguiente beta; falta su nueva revisión antes de ofrecerla como candidata.
 
 Antes de preguntar por un rechazo, ejecutar siempre `node scripts/errores.mjs --kind=beta`: el
 comentario escrito en Ajustes → Revisar esta beta es la fuente del veredicto.
@@ -109,8 +118,8 @@ en el canal beta, queda a la espera del veredicto móvil del dueño:
 > Continúa el objetivo activo «gasto fijo: cambio de día sin doble descuento». Lee
 > `docs/briefs/REANUDAR-GASTO-FIJO-DIA.md`, verifica primero `origin/beta`, Actions, el manifiesto y
 > `npm run salud` y lee primero `node scripts/errores.mjs --kind=beta`; no pidas que repita un
-> comentario escrito en el panel. La aprobación de 4.26.46.2 quedó revocada por el caso inverso
-> descrito en este documento; no promociones esa build. Pregúntame por el veredicto móvil de la
+> comentario escrito en el panel. La aprobación de 4.26.46.2 quedó revocada por el caso inverso y
+> 4.26.46.3 fue bloqueada por revisión externa; no promociones ninguna. Pregúntame por el veredicto móvil de la
 > última beta 4.26.46.x. Si la he rechazado,
 > reproduce exactamente el fallo, corrige esta misma tanda y vuelve a subirla a beta; el objetivo
 > sigue abierto. Si la he aprobado expresamente, promueve la ronda completa a producción, revisa

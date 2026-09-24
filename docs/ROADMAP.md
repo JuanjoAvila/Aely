@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-24 · **v4.26.46** en nueva corrección beta — mover el día de un recibo conserva una sola ocurrencia: si ya se cobró mantiene la fecha bancaria real y, si aún no aparece, sigue pendiente hasta el cargo real. No duplica movimientos ni altera históricos u otros bancos. La APK 48 sigue vigente y producción sirve 4.25.20; comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-25 · **v4.26.46** en nueva corrección beta — mover el día de un recibo conserva una sola ocurrencia: si ya se cobró mantiene la fecha bancaria real y, si el feed sincronizado cubre el día pero el cargo no aparece, sigue pendiente hasta el movimiento real. No duplica movimientos ni reescribe saldos, históricos u otros bancos. La APK 48 sigue vigente y producción sirve 4.25.20; comprobar disponibilidad real con `npm run salud`.
 > Anterior: **v4.26.44** — la ficha de un recibo confirma el guardado antes de cerrarse y un doble toque solo puede persistir una vez.
 > Anterior: **v4.26.43** — el doble aviso Wallet/TR conserva una sola fila y una sola confirmación, sin convertirlo en una revisión manual.
 > Anterior: **v4.26.41** — las capas interiores de Recibos acompañan el Atrás nativo y el arrastre desde el centro, dejando visible su pantalla padre.
@@ -230,7 +230,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.46** (día de recibo sin doble descuento: cobrado conserva fecha real y no cobrado sigue pendiente, en nueva corrección beta; canal real = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.26.46** (día de recibo sin doble descuento: cobrado conserva fecha real y, con feed que cubre el día, no cobrado sigue pendiente; nueva corrección beta; canal real = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo/publicada: **4.26.32 / 48**. El asset firmado existe y la beta puede ofrecer el gesto Atrás nativo. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **48** / 4.26.32 |

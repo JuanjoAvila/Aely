@@ -34,19 +34,25 @@ bancario no cambia: un recibo futuro sigue pendiente.
 Tras aprobar inicialmente `4.26.46.2`, la comprobación inversa antes de producción destapó otro
 caso: el día 25, un recibo previsto para el 24 pero aún ausente del banco se marcaba pagado solo
 porque `isPaidIn` usaba `día <= hoy`; editarlo al 25 perpetuaba ese falso descuento. La edición
-guarda ahora en `wait` el año-mes cuando no existe coincidencia bancaria y el día corregido ya ha llegado.
-Mientras esa marca corresponda al mes, el calendario no puede confirmar el pago; una coincidencia
-real de `reconcileBank` sí prevalece inmediatamente. Una edición posterior con el cargo ya
-presente convierte esa espera en `paidYm` + `paidDay`, sin subir ni mutar `bankTx`.
-Al retirar el falso pago, `patchFixedById` reancla únicamente la base interna de la cuenta del
-recibo por el mismo importe: el neto pasa de −120 € a 0, pero el saldo visible permanece idéntico.
-Es la misma separación base + movimientos que ya usa el motor; no toca el otro banco.
+guarda ahora en `wait` el año-mes cuando no existe coincidencia bancaria, el día corregido ya ha
+llegado **y el feed sincronizado de esa cuenta cubre esa fecha**. Mientras esa marca corresponda
+al mes, el calendario no puede confirmar el pago; una coincidencia real de `reconcileBank` sí
+prevalece inmediatamente. Una edición posterior con el cargo ya presente convierte esa espera en
+`paidYm` + `paidDay`, sin subir ni mutar `bankTx`. Sin feed suficiente se conserva la regla
+anterior de calendario: la app no inventa una ausencia que el banco no puede demostrar.
 
-El unitario añade el escenario exacto 24 → 25 sin cargo: una ocurrencia pendiente, cero pagadas,
-neto bancario 0, saldo visible estable, base de Sabadell reanclada una sola vez y Revolut e
-histórico byte a byte iguales. También inyecta después el cargo real del 25 y exige una sola
-ocurrencia pagada y un único descuento de 120 €. El E2E repite la edición desde la ficha y
-comprueba tanto el DOM como el neto financiero.
+La revisión externa bloqueó un intento intermedio que reanclaba `accounts[].value`: no existe una
+marca temporal que permita saber cuándo se fijó esa base, así que podía sobrescribir un saldo
+manual válido. El arreglo final no escribe ninguna cuenta. Al retirar el falso pago, el neto pasa
+de −120 € a 0 y el saldo visible recupera esos 120 € precisamente porque el dinero no ha salido;
+el saldo base, el otro banco y el histórico permanecen byte a byte iguales.
+
+El unitario añade el escenario exacto 24 → 25 con un feed de Sabadell que cubre el día pero sin el
+cargo: una ocurrencia pendiente, cero pagadas, neto bancario 0, 120 € que vuelven a verse y todas
+las cuentas y el histórico byte a byte iguales. También inyecta después el cargo real del 25 y
+exige una sola ocurrencia pagada y un único descuento de 120 €. Un segundo caso sin feed conserva
+el funcionamiento solo-calendario. El E2E repite la edición desde la ficha y comprueba el DOM, el
+neto financiero y que no se reescriba ningún saldo guardado.
 
 La revisión externa señaló que el memo de Plan no observaba `bankTx` ni `accounts`: tras una
 sincronización podía conservar la clasificación anterior hasta otro cambio. Ambas referencias

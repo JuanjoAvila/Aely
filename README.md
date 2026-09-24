@@ -81,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.46** en nueva corrección beta — cambiar el día conserva una sola ocurrencia: si ya se cobró mantiene la fecha bancaria real y, si todavía no aparece en el banco, sigue pendiente hasta el cargo real. No duplica movimientos ni altera históricos u otros bancos. La APK 48 sigue vigente y producción sirve 4.25.20; disponibilidad real con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.26.46** en nueva corrección beta — cambiar el día conserva una sola ocurrencia: si ya se cobró mantiene la fecha bancaria real y, si el feed sincronizado cubre el día pero el cargo no aparece, sigue pendiente hasta el movimiento real. No duplica movimientos ni reescribe saldos, históricos u otros bancos. La APK 48 sigue vigente y producción sirve 4.25.20; disponibilidad real con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.

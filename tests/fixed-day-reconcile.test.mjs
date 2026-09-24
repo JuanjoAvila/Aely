@@ -112,9 +112,11 @@ console.log("fixed-day-reconcile");
 {
   reloj = new Date("2026-09-25T12:00:00+02:00");
   const sinCobro = estado(24);
-  sinCobro.bankTx = [];
+  sinCobro.bankTx = [
+    { id: "tx-seguro-sep", ent: "sabadell", date: "2026-09-10", amount: 45, merchant: "SEGURO COCHE" },
+  ];
   const gastosAntes = JSON.stringify(sinCobro.expenses);
-  const cuentaOtroBancoAntes = JSON.stringify(sinCobro.accounts[1]);
+  const cuentasAntes = JSON.stringify(sinCobro.accounts);
   let despues;
   c.patchFixedById((updater) => { despues = updater(sinCobro); }, "luz", { day: 25 });
 
@@ -133,13 +135,11 @@ console.log("fixed-day-reconcile");
     "un cobro ausente no se resta de Sabadell");
   assert.equal(c.monthNetForAccount(despues, "revolut", 2026, 9, 25), 0,
     "editar el recibo tampoco mueve otro banco");
-  assert.equal(saldoMostrado(despues, "sabadell"), saldoMostrado(sinCobro, "sabadell"),
-    "reanclar la base evita que corregir el estado de pago mueva el saldo visible");
+  assert.equal(saldoMostrado(despues, "sabadell")-saldoMostrado(sinCobro, "sabadell"), 120,
+    "al retirar el falso pago vuelve a verse el dinero que todavía no ha salido");
   assert.equal(saldoMostrado(despues, "revolut"), saldoMostrado(sinCobro, "revolut"));
   assert.equal(JSON.stringify(despues.expenses), gastosAntes, "el histórico no cambia");
-  assert.equal(despues.accounts[0].value, sinCobro.accounts[0].value-120,
-    "solo se reancla la base interna de la cuenta del recibo");
-  assert.equal(JSON.stringify(despues.accounts[1]), cuentaOtroBancoAntes, "el otro banco no cambia");
+  assert.equal(JSON.stringify(despues.accounts), cuentasAntes, "ningún saldo guardado se reescribe a ciegas");
   assert.equal(despues.fixed.length, 1, "la edición no duplica el fijo");
 
   const cobrado = Object.assign({}, despues, { bankTx: [
@@ -158,6 +158,18 @@ console.log("fixed-day-reconcile");
   assert.equal(confirmado.fixed[0].wait, undefined, "la confirmación bancaria retira la espera");
   assert.equal(confirmado.fixed[0].paidYm, 2026 * 12 + 9);
   assert.equal(confirmado.fixed[0].paidDay, 25);
+}
+
+{
+  const soloCalendario = estado(24);
+  soloCalendario.bankTx = [];
+  let despues;
+  c.patchFixedById((updater) => { despues = updater(soloCalendario); }, "luz", { day: 25 });
+  assert.equal(despues.fixed[0].wait, undefined,
+    "sin feed que cubra el día no se inventa que el banco aún no ha cobrado");
+  assert.equal(c.planChargesMonth(despues, 9, 2026, 25).paidBills.length, 1,
+    "quien usa solo calendario conserva la regla de día ya ocurrido");
+  assert.equal(JSON.stringify(despues.accounts), JSON.stringify(soloCalendario.accounts));
 }
 
 {

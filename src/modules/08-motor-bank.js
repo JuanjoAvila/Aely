@@ -448,7 +448,7 @@ function recDay(ds){ const p=String(ds||"").slice(0,10).split("-"); return p.len
 const REC_GRACE=3;   // días de gracia antes de avisar "aún no aparece" (cargos que se cobran tarde, p.ej. hipoteca a fin de mes)
 function reconcileBank(state, y, m, today){
   const tx=(state && state.bankTx)||[];
-  const res={ hasData:tx.length>0, confirmed:[], shared:[], mismatch:[], missing:[], newCharges:[], income:[], feed:[], paidAt:{} };
+  const res={ hasData:tx.length>0, confirmed:[], shared:[], mismatch:[], missing:[], newCharges:[], income:[], feed:[], paidAt:{}, covered:{} };
   if(!tx.length) return res;
   const ym=y+"-"+(m<10?"0":"")+m;
   // bancos OB del usuario (cuentas con rol de fijos, incluida "ambos"; el gasto de tarjeta de TR no es OB)
@@ -464,7 +464,7 @@ function reconcileBank(state, y, m, today){
   const feedCovers=function(ent,day){ const md=entCoverMinDay[ent]; return md!=null && day>=md; };
   // cargos modelados de este mes por entidad
   const modeled=[];
-  (state.fixed||[]).forEach(function(e){ const ent=accOf(e); if(!obEnts[ent]||!occursIn(e,m)) return; const amt=occAmountIn(e,m); if(amt<=0) return; modeled.push({name:e.name,amount:amt,day:dayIn(e,m),ent:ent,id:e.id,kind:"fixed",bankAmount:(typeof e.bankAmount==="number"?e.bankAmount:null)}); });
+  (state.fixed||[]).forEach(function(e){ const ent=accOf(e); if(!obEnts[ent]||!occursIn(e,m)) return; const amt=occAmountIn(e,m),day=dayIn(e,m); if(amt<=0) return; modeled.push({name:e.name,amount:amt,day:day,ent:ent,id:e.id,kind:"fixed",bankAmount:(typeof e.bankAmount==="number"?e.bankAmount:null)}); if(feedCovers(ent,day)) res.covered[e.id]=1; });
   (state.debts||[]).forEach(function(d){ const ent=d.account||"sabadell"; if(!obEnts[ent]||!debtActive(d)) return; const amt=(d.monthly||0)+debtBalloonIn(d,y,m); if(amt<=0) return; modeled.push({name:d.name||"Cuota",amount:amt,day:d.day||null,ent:ent,id:d.id,kind:"debt",bankAmount:(typeof d.bankAmount==="number"?d.bankAmount:null)}); });
   (state.oneoffs||[]).forEach(function(o){ const ent=o.account||"sabadell"; if(!obEnts[ent]||!oneoffOccurs(o,y,m)||(o.amount||0)<=0) return; modeled.push({name:o.name||"Cargo",amount:o.amount,day:o.day||null,ent:ent,id:o.id,kind:"oneoff",bankAmount:(typeof o.bankAmount==="number"?o.bankAmount:null)}); });
 
@@ -2176,32 +2176,26 @@ function billsGroupMonthly(state, group, curMonth, curYear){
 }
 function patchFixedById(set, id, p){
   set(function(s){
-    let it=null,o=null;
+    let it=null;
     const fx=(s.fixed||[]).map(function(e){
       if(e.id!==id) return e;
       const n=Object.assign({},e,p);
       if(("day" in p)&&!p.day) delete n.day;
       if(n.freq==="mes"){ delete n.months; delete n.schedule; }
-      o=e; it=n; return n;
+      it=n; return n;
     });
     const n=Object.assign({},s,{fixed:fx});
     if(it&&(("day" in p)||("amount" in p)||("account" in p))){
       const d=new Date(),y=d.getFullYear(),m=d.getMonth()+1,t=d.getDate();
-      const ym=y*12+m,pd=reconcileBank(n,y,m,t).paidAt[id];
+      const ym=y*12+m,rec=reconcileBank(n,y,m,t),pd=rec.paidAt[id];
       if(pd){
         it.paidYm=ym;
         it.paidDay=pd;
         delete it.wait;
       } else {
         if(("amount" in p)||("account" in p)){ delete it.paidYm; delete it.paidDay; }
-        if(it.paidYm!==ym && dayIn(it,m)<=t) it.wait=ym;
+        if(it.paidYm!==ym && dayIn(it,m)<=t && rec.covered[id]) it.wait=ym;
         else delete it.wait;
-      }
-      // Quitar un falso «pagado» no puede inflar el saldo que ve la familia. Se desplaza la base
-      // de esa cuenta por el mismo importe y el neto pasa de −importe a 0: la cifra visible queda.
-      if(("day" in p)&&it.wait===ym&&isPaidIn(o,m,t,y)){
-        const ent=accOf(it),amt=occAmountIn(it,m);
-        n.accounts=(s.accounts||[]).map(function(a){ return accFixed(a)&&a.ent===ent?Object.assign({},a,{value:(a.value||0)-amt}):a; });
       }
     }
     return n;

@@ -429,7 +429,8 @@ test("cambiar al día de hoy un recibo aún no cobrado lo mantiene pendiente", a
       { id: "rev", ent: "revolut", name: "Diario", value: 700, role: "fijos" },
     ],
     fixed: [{ id: "luz", name: "Iberdrola luz", amount: 120, freq: "mes", day: 24, account: "sabadell" }],
-    debts: [], flows: [], oneoffs: [], expenses: gastos, bankTx: [],
+    debts: [], flows: [], oneoffs: [], expenses: gastos,
+    bankTx: [{ id: "tx-seguro-sep", ent: "sabadell", date: "2026-09-10", amount: 45, merchant: "SEGURO COCHE" }],
     settings: { expenseBanks: ["revolut"] },
   });
   await page.locator('.botnav-tab[data-tour="plan"]').click();
@@ -438,7 +439,7 @@ test("cambiar al día de hoy un recibo aún no cobrado lo mantiene pendiente", a
     const s=JSON.parse(localStorage.getItem("micartera_v3")||"{}");
     const ins=insumosSaldoGasto(s);
     const saldo=function(ent){ const a=s.accounts.find(function(x){ return x.ent===ent; }); return saldoCuentaMostrada(a,{injTR:ins.injTR,spentByBank:ins.spentByBank,paidNetByBank:ins.paidNetByBank,roundup:ins.roundup,monthlyInvest:ins.monthlyInvest}); };
-    return {sab:saldo("sabadell"),rev:saldo("revolut"),expenses:JSON.stringify(s.expenses),revAccount:JSON.stringify(s.accounts.find(function(a){ return a.ent==="revolut"; }))};
+    return {sab:saldo("sabadell"),rev:saldo("revolut"),expenses:JSON.stringify(s.expenses),accounts:JSON.stringify(s.accounts)};
   });
 
   await abreTusRecibos(page);
@@ -461,12 +462,11 @@ test("cambiar al día de hoy un recibo aún no cobrado lo mantiene pendiente", a
     const ins=insumosSaldoGasto(s);
     const saldo=function(ent){ const a=s.accounts.find(function(x){ return x.ent===ent; }); return saldoCuentaMostrada(a,{injTR:ins.injTR,spentByBank:ins.spentByBank,paidNetByBank:ins.paidNetByBank,roundup:ins.roundup,monthlyInvest:ins.monthlyInvest}); };
     const plan=planChargesMonth(s,9,2026,25);
-    return {sab:saldo("sabadell"),rev:saldo("revolut"),expenses:JSON.stringify(s.expenses),revAccount:JSON.stringify(s.accounts.find(function(a){ return a.ent==="revolut"; })),
+    return {sab:saldo("sabadell"),rev:saldo("revolut"),expenses:JSON.stringify(s.expenses),accounts:JSON.stringify(s.accounts),
       fixed:s.fixed.filter(function(x){ return x.id==="luz"; }).length,pending:plan.pendingBills.filter(function(x){ return x.id==="fixed_luz"; }).length,
       paid:plan.paidBills.filter(function(x){ return x.id==="fixed_luz"; }).length,net:monthNetForAccount(s,"sabadell",2026,9,25)};
   });
-  expect(despues).toEqual(Object.assign({},antes,{fixed:1,pending:1,paid:0,net:0}));
-  expect(despues.sab).toBe(1500);
+  expect(despues).toEqual(Object.assign({},antes,{sab:antes.sab+120,fixed:1,pending:1,paid:0,net:0}));
   const luz=recibos.locator(".v4-charge").filter({hasText:"Iberdrola luz"});
   await expect(luz).toHaveCount(1);
   await expect(luz).not.toHaveClass(/v4-paid/);
