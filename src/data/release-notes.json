@@ -1,5 +1,32 @@
 [
   {
+    "v": "4.25.14",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Pregúntame ayuda sin tapar la pantalla",
+      "en": "Ask helps without covering the screen",
+      "ca": "Pregunta'm ajuda sense tapar la pantalla"
+    },
+    "items": {
+      "es": [
+        "Pregúntame ofrece respuestas breves y botones que abren el lugar adecuado, también sin conexión.",
+        "Se abre sin levantar el teclado y el paso a paso cabe en tres líneas; para escribir basta con tocar el campo.",
+        "La ayuda remota solo se intenta después de aceptarla y nunca recibe saldos, cuentas ni movimientos."
+      ],
+      "en": [
+        "Ask provides short answers and buttons that open the right place, even while offline.",
+        "It opens without raising the keyboard and each walkthrough fits into three lines; tap the field when you want to type.",
+        "Remote help is only attempted after consent and never receives balances, accounts or transactions."
+      ],
+      "ca": [
+        "Pregunta'm ofereix respostes breus i botons que obren el lloc adequat, també sense connexió.",
+        "S'obre sense aixecar el teclat i cada pas a pas cap en tres línies; per escriure només cal tocar el camp.",
+        "L'ajuda remota només s'intenta després d'acceptar-la i mai rep saldos, comptes ni moviments."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.13",
     "d": "24 sep 2026",
     "t": {

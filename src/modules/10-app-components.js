@@ -2241,6 +2241,11 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   },[]);
   const [hojaOpen,setHojaOpen]=useState(false);  // importar una hoja de gastos (Excel/CSV)
   const [histOpen,setHistOpen]=useState(false);  // importar histórico del banco (Ajustes → Importaciones)
+  useEffect(function(){
+    const h=function(){ setHistOpen(true); };
+    window.addEventListener("mc-open-history", h);
+    return function(){ window.removeEventListener("mc-open-history", h); };
+  },[]);
   const [autoBackOpen,setAutoBackOpen]=useState(false);  // copias automáticas diarias (state_backups)
   const prodVer=useProdVersion();                // Pages ahora (cruda); null mientras pregunta
   // Misma regla que useYaEnProd, sin segundo fetch (compartimos prodVer con betaChecklist).
@@ -2418,6 +2423,11 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         React.createElement("div",{style:{fontSize:12,color:"var(--mint)",marginTop:4,fontWeight:700}}, uid?t("v4_set_profile_sync"):t("v4_set_profile_local"))
       )
     ),
+    React.createElement("button",{type:"button",className:"btn btn-ghost aely-help-entry",onClick:function(){
+      try{ window.dispatchEvent(new CustomEvent("mc-open-help",{detail:helpOpenDetail(state, totals, {
+        onConsent:function(ok){ setS({helpAiOk:!!ok, helpAiAsked:true}); }
+      })})); }catch(e){}
+    }}, t("help_title")),
     React.createElement("input",{style:Object.assign({},inp,{marginTop:12}),placeholder:t("st_search_ph"),value:q,onChange:function(e){ setQ(e.target.value); }}),
 
     React.createElement("div",{className:"v4-set-sec"}, t("v4_set_appear")),
@@ -2655,6 +2665,13 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         ? row("biolock","◎",bioOn?t("au_bio_off"):t("au_bio_on"),null,toggleBio, sw(bioOn))
         : React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}}, t("au_nobio")),
       row("signout","🚪",t("au_signout"),null,doSignOut),
+      row("helpai","✨",t("help_remote_setting"),null,function(){
+        var enabled=!!(state.settings&&state.settings.helpAiOk);
+        if(enabled){ setS({helpAiOk:false,helpAiAsked:true}); return; }
+        askConfirm({title:t("help_consent_title"),sub:t("help_consent_body"),ok:t("help_consent_yes"),cancel:t("help_consent_no")})
+          .then(function(ok){ setS({helpAiOk:!!ok,helpAiAsked:true}); });
+      },sw(!!(state.settings&&state.settings.helpAiOk))),
+      React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}},t("help_remote_setting_hint")),
       row("priv","🛡️",t("st_privacy"),null,function(){ setPrivOpen(true); }),
       row("delacc","🗑️",t("st_delete_acc"),null,function(){
         askConfirm({ title:t("st_delete_acc"), sub:t("st_delete_acc_sub"), ok:t("st_delete_acc_ok"), danger:true })
