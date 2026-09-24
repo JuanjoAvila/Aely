@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.25.22",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Las ventanas se mueven con más calma",
+      "en": "Panels move at a calmer pace",
+      "ca": "Les finestres es mouen amb més calma"
+    },
+    "items": {
+      "es": [
+        "Pregúntame, Apuntar y las fichas de Gastos se abren y cierran de forma más pausada y continua.",
+        "Si está activado Reducir animaciones, las ventanas siguen respondiendo al instante."
+      ],
+      "en": [
+        "Ask me, Add and expense details now open and close with a calmer, smoother motion.",
+        "When Reduce motion is enabled, panels still respond immediately."
+      ],
+      "ca": [
+        "Pregunta'm, Apuntar i les fitxes de Despeses ara s'obren i es tanquen amb un moviment més pausat i continu.",
+        "Si Reduir animacions està activat, les finestres continuen responent a l'instant."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.21",
     "d": "24 sep 2026",
     "t": {

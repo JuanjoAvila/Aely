@@ -101,6 +101,9 @@ test("★ guardar un cambio NO deja la pantalla muerta", async ({ page }) => {
   await fila(page, "Mercadona").click();
   const nombre = page.locator(".v4-exp-name");
   await expect(nombre).toBeVisible();
+  const ritmo=await page.locator(".v4-exp-sheet").evaluate(el=>{ const s=getComputedStyle(el); return {entrada:parseFloat(s.animationDuration)*1000,salida:parseFloat(s.transitionDuration)*1000}; });
+  expect(ritmo.entrada).toBeGreaterThanOrEqual(400);
+  expect(ritmo.salida).toBeGreaterThanOrEqual(300);
   await nombre.fill("Mercadona centro");
   await nombre.blur();                                   // el blur es el que guarda
 

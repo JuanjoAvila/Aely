@@ -872,11 +872,11 @@ function useSheetSwipe(open, onClose, opts){
     if(!el||reduce){ finish(); return; }
     closing.current=true;
     el.classList.remove("dragging");
-    // El fondo se libera al empezar la salida, no al desmontar: esperar esos 200–320 ms
+    // El fondo se libera al empezar la salida, no al desmontar: esperar esos 300–320 ms
     // recupera el tirón que ya se había eliminado en producción (revisión 2026-09-24).
     document.documentElement.classList.remove("sheet-open");
     document.body.style.overflow="";
-    const ms=opts.closeMs||200;
+    const ms=opts.closeMs||300;
     el.style.transition="transform "+ms+"ms "+(opts.closeEase||"cubic-bezier(.32,.72,0,1)");
     el.style.transform="translate3d(0,110%,0)";
     closeTimer.current=setTimeout(function(){
@@ -897,7 +897,7 @@ function useSheetSwipe(open, onClose, opts){
     if(dist>80){
       closeAnimated();
     } else {
-      const snapMs=opts.snapMs||220;
+      const snapMs=opts.snapMs||280;
       el.style.transition="transform "+snapMs+"ms "+(opts.snapEase||"cubic-bezier(.32,.72,0,1)");
       el.style.transform="translate3d(0,0,0)";
       setTimeout(function(){ try{ el.style.transition=""; el.style.transform=""; }catch(err){} },snapMs);

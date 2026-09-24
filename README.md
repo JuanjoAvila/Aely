@@ -80,7 +80,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.25.21** preparada para producción — el gesto horizontal funciona también al final de una pantalla y las barras laterales desaparecen sin quitar el desplazamiento. Requiere APK nueva para ocultar además el indicador nativo de Android. Disponibilidad del canal con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.25.22** preparada para producción — Pregúntame, Apuntar y las fichas de Gastos se abren y cierran con un movimiento más pausado y continuo. La APK candidata 4.25.21/49 sigue pendiente para ocultar el indicador nativo de Android. Disponibilidad del canal con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.

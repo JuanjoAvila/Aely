@@ -1,3 +1,16 @@
+## [4.25.22] - 2026-09-24
+### Las hojas aprobadas comparten un movimiento más pausado
+
+Se reconstruye sobre la candidata 4.25.21 únicamente la tanda aprobada 4.26.34. La entrada común
+de las hojas pasa de 300 a 420 ms y usa una progresión estable sin la aceleración brusca anterior.
+La salida acompañada pasa de 200 a 300 ms y el rebote de un gesto cancelado de 220 a 280 ms.
+Pregúntame, Apuntar y las fichas de Gastos quedan cubiertas expresamente; Presupuesto conserva la
+cifra compacta y ahora comparte el mismo ritmo común.
+
+Reducir animaciones sigue anulando la transición y desmontando la hoja de inmediato. Los E2E
+comprueban la duración computada en las tres superficies además de sus cierres y gestos existentes.
+No cambia datos, cálculos, backend ni Android; la APK candidata continúa en 4.25.21/49.
+
 ## [4.25.21] - 2026-09-24
 ### Gesto horizontal desde el fondo y barras invisibles sin perder scroll
 

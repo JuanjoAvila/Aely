@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-24 · **v4.25.21** — el gesto horizontal funciona también abajo del todo y las barras visuales desaparecen sin desactivar el scroll; APK 49 preparada, aún no publicada.
+> Estado a 2026-09-24 · **v4.25.22** — Pregúntame, Apuntar y las fichas de Gastos comparten una entrada y salida más pausada y continua, sin ralentizar Reducir animaciones.
+> Anterior: **v4.25.21** — el gesto horizontal funciona también abajo del todo y las barras visuales desaparecen sin desactivar el scroll; APK 49 preparada, aún no publicada.
 > Anterior: **v4.25.20** — Inicio retira el cambio mensual sin base fiable y calcula la racha con presupuestos reales de meses cerrados.
 > Anterior: **v4.25.19** — Inversiones estrena ficha completa, entrada lateral y gesto atrás que acompaña al dedo desde cualquier zona libre.
 > Anterior: **v4.25.18** — Actualizar inversiones consulta TR/MyInvestor y precios sin ocultar sesiones caducadas ni fallos parciales.
@@ -206,7 +207,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.25.21** (gesto horizontal al fondo y barras visuales ocultas; candidata aislada, aún sin publicar) |
+| Web / OTA (`VERSION`) | **4.25.22** (hojas con movimiento más pausado; candidata aislada, aún sin publicar) |
 | APK (`versionName` / `versionCode`) | Candidata: **4.25.21 / 49**. Producción sigue en **4.20.4 / 46** hasta publicar el asset y su manifiesto. |
 | Anterior | **4.18.3 / 42**, **4.17.1 / 41**, **4.16.1 / 39**. |
 | `public/apk.json` | Candidata de rama: **49** / 4.25.21; no se sirve hasta que exista el release real. |

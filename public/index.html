@@ -1090,8 +1090,10 @@
     /* Por defecto la hoja ENTERA scrollea (filtro de Gastos, Más…, fijos…). */
     overflow:auto;-webkit-overflow-scrolling:touch;
     padding:12px 18px calc(36px + var(--safe-bottom));
-    animation:sheetup .3s cubic-bezier(.22,1,.36,1);
-    transition:transform .22s cubic-bezier(.32,.72,0,1);will-change:transform;touch-action:pan-y;
+    /* El mismo ritmo pausado que ya funcionaba en Presupuesto: a 300/220 ms la hoja recorría
+       toda la pantalla de golpe (feedback familiar 2026-09-23: IA, Gastos y Apuntar). */
+    animation:sheetup .42s cubic-bezier(.22,.61,.36,1);
+    transition:transform .3s cubic-bezier(.22,.61,.36,1);will-change:transform;touch-action:pan-y;
     box-shadow:0 -8px 28px rgba(0,0,0,.28);}
   /* Solo hojas con cuerpo (Apuntar / ficha de gasto): CTA fijo fuera del scroll.
      :has OK en WebView Chromium 150+. Regresión 4.19.100: flex+overflow:hidden en TODAS
@@ -1579,9 +1581,7 @@
   .v4-ob-stepper{display:flex;align-items:center;justify-content:center;gap:18px;margin:28px 0 8px;}
   .v4-ob-stepper button{width:56px;height:56px;border-radius:16px;border:1px solid var(--line-soft);background:var(--sur);color:var(--text);font-size:28px;font-weight:700;cursor:pointer;font-family:inherit;}
   .v4-ob-stepper .serif{font-size:52px;font-weight:550;letter-spacing:-1.5px;min-width:4.5ch;text-align:center;font-variant-numeric:tabular-nums;}
-  /* El editor mensual necesita menos golpe que el onboarding: cifra compacta y entrada propia,
-     sin ralentizar las demás hojas de la app (feedback 18/9, punto 8). */
-  .v4-sheet.v4-budget-sheet{animation-duration:.42s;transition-duration:.3s;}
+  /* El editor mensual conserva su cifra compacta; el ritmo que estrenó aquí ya es el común. */
   .v4-budget-sheet .v4-ob-stepper .serif{font-size:clamp(36px,11vw,42px);letter-spacing:-1px;min-width:4.1ch;}
   .v4-card-list{display:flex;flex-direction:column;gap:0;}
   html[data-theme="light"] .chip.active,html[data-theme="light"] .v4-period-btn.on{color:#fff;}
@@ -7253,11 +7253,11 @@ function useSheetSwipe(open, onClose, opts){
     if(!el||reduce){ finish(); return; }
     closing.current=true;
     el.classList.remove("dragging");
-    // El fondo se libera al empezar la salida, no al desmontar: esperar esos 200–320 ms
+    // El fondo se libera al empezar la salida, no al desmontar: esperar esos 300–320 ms
     // recupera el tirón que ya se había eliminado en producción (revisión 2026-09-24).
     document.documentElement.classList.remove("sheet-open");
     document.body.style.overflow="";
-    const ms=opts.closeMs||200;
+    const ms=opts.closeMs||300;
     el.style.transition="transform "+ms+"ms "+(opts.closeEase||"cubic-bezier(.32,.72,0,1)");
     el.style.transform="translate3d(0,110%,0)";
     closeTimer.current=setTimeout(function(){
@@ -7278,7 +7278,7 @@ function useSheetSwipe(open, onClose, opts){
     if(dist>80){
       closeAnimated();
     } else {
-      const snapMs=opts.snapMs||220;
+      const snapMs=opts.snapMs||280;
       el.style.transition="transform "+snapMs+"ms "+(opts.snapEase||"cubic-bezier(.32,.72,0,1)");
       el.style.transform="translate3d(0,0,0)";
       setTimeout(function(){ try{ el.style.transition=""; el.style.transform=""; }catch(err){} },snapMs);
