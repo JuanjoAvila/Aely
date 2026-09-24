@@ -1,16 +1,11 @@
 # Setup Supabase — Fase 1 (Aely)
 
-## Bank-sync 4.25.0: despliegue autorizado y pendiente
+## Bank-sync 4.25.0: desplegado y comprobado
 
-La corrección del paginado necesita desplegar **solo `bank-sync`**. El dueño lo autorizó el
-15/9/2026 para acompañar la beta 4.25.0; sigue pendiente hasta que el workflow termine y se
-verifique el paquete vivo.
-El cambio compartido en `enablebanking.ts` se empaqueta con esa función; no hace falta desplegar
-las demás. No hay migración ni backfill. Cliente anterior admite los campos nuevos; cliente nuevo
-avisa también de fallos del servidor anterior, pero no puede completar su paginado desde el móvil.
-Validar el paquete desplegado y hacer una sincronización manual autorizada antes de afirmar que
-CaixaBank/Sabadell están resueltos en datos reales. Para rollback, desplegar el `bank-sync` anterior;
-las filas ya importadas no se borran. Contrato y pruebas en el brief de esta tanda.
+La corrección del paginado de `bank-sync` quedó comprobada el 24/9/2026 con datos reales de
+CaixaBank: los movimientos de agosto, incluidos unos 100 €, ya estaban en Gastos. Por eso repetir
+«Importar histórico» no ofrecía filas nuevas; no era una pérdida de datos. No hay backfill ni se
+borran filas existentes. Para rollback, desplegar el `bank-sync` anterior.
 
 Guía paso a paso para arrancar las tripas en la nube. Lo que tú haces (una vez) va marcado con 👤.
 El código (esquema, funciones, CI) ya está en el repo dentro de `supabase/`.
@@ -71,6 +66,14 @@ pequeño en uno grande.
 `state_issued_at` la escribe `bank-connect` y la lee `bank-callback`: la autorización del banco
 caduca a los 30 minutos y el `state` se **gasta** al usarlo. Los enlaces creados antes de esta
 migración no tienen marca y se dan por buenos, para no romper una reconexión a medias.
+
+### Migración 0025 — identidad exacta de avisos (4.25.16)
+
+`0025_expenses_ingest_event.sql` añade `expenses.ingest_event_id` y un índice único por
+`(user_id, ingest_event_id)`. La columna solo identifica el evento nativo: no contiene comercio,
+importe ni texto. No rellena ni modifica filas antiguas. Debe aplicarse antes o junto al despliegue
+de `ingest`; si llega más tarde, la función detecta la ausencia de la columna y mantiene el camino
+conservador compatible con APK antiguas.
 
 ### CORS: lista blanca, no `*` (4.10.0)
 

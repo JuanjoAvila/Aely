@@ -1,3 +1,19 @@
+## [4.25.16] - 2026-09-24
+### Servidor preparado para la identidad exacta de los avisos
+
+Se reconstruye sobre producción únicamente el servidor aprobado de la beta 4.26.43. La APK beta
+manda una identidad opaca del evento y `ingest_event_id`, protegido por índice único por usuario,
+permite responder al reintento exacto sin crear otra fila. Si Trade Republic y Google Wallet
+nombran la tarjeta TR, el importe coincide con margen de dos céntimos y los avisos caen dentro de
+dos horas, la segunda fila se retira antes de entrar en cifras y solo se confirma una vez.
+
+La comprobación posterior al INSERT cierra la carrera observada cuando los dos avisos llegan a la
+vez. Dos eventos de la misma fuente siguen siendo dos compras reales. La APK estable 46 / 4.20.4
+todavía no manda esa identidad: hasta publicar una APK con el `TrExpenseListener` nuevo, conserva
+el segundo candidato fuera de los totales para revisión en vez de borrarlo a ciegas. No hay
+migración histórica ni recategorización. Los unitarios cubren reintento exacto, fuentes cruzadas,
+otra tarjeta, compras iguales reales, carrera y fallo seguro.
+
 ## [4.25.15] - 2026-09-24
 ### Bizum aprobado como forma de pago, sin arrastrar el rediseño
 
