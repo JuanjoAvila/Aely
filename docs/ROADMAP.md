@@ -1,9 +1,9 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-24 · **v4.26.42** preparada para beta — Bizum es una forma de pago separada de la finalidad real del gasto; el histórico no se recategoriza a ciegas. La APK 48 sigue vigente y producción sirve 4.25.15 con esta mejora aprobada; comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-24 · **v4.26.43** preparada para beta — el doble aviso Wallet/TR conserva una sola fila y una sola confirmación, sin convertirlo en una revisión manual. La APK 48 sigue vigente y producción sirve 4.25.15; comprobar disponibilidad real con `npm run salud`.
 > Anterior: **v4.26.41** — las capas interiores de Recibos acompañan el Atrás nativo y el arrastre desde el centro, dejando visible su pantalla padre.
 > Anterior: **v4.26.40** — Pregúntame respeta la zona segura con teclado, se recoloca sin rebote y oculta el indicador lateral.
-> Anterior: **v4.26.39** — Wallet y Trade Republic ya no pueden sumar dos veces la misma compra; la segunda señal queda como posible repetida y fuera del total.
+> Anterior: **v4.26.42** — Bizum es una forma de pago separada de la finalidad real del gasto; el histórico no se recategoriza a ciegas.
 > Anterior: **v4.26.38** — el fondo recupera su posición al empezar la salida de una hoja, sin conservar el bloqueo visual hasta el desmontaje.
 > Anterior: **v4.26.37** — Plan enseña el saldo más bajo del mes y el día crítico, sin permitir que una nómina posterior maquille un descubierto anterior.
 > Anterior: **v4.26.35** — el filtro de Gastos usa las mismas fichas de icono y nombre que Apuntar y Modificar, conservando plegado, búsqueda y multiselección.
@@ -228,7 +228,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.42** (Bizum como forma de pago, categoría real intacta, preparada para beta; canal real = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.26.43** (doble aviso Wallet/TR convertido en un solo gasto, preparada para beta; canal real = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo/publicada: **4.26.32 / 48**. El asset firmado existe y la beta puede ofrecer el gesto Atrás nativo. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **48** / 4.26.32 |

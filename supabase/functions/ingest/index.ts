@@ -35,7 +35,7 @@ import {
   limpiarTexto, type Fuente, type Tipo,
 } from "../_shared/ingest_logic.ts";
 import { aEuros, parseWallet } from "../_shared/wallet.ts";
-import { claveEvento, esPosibleGemeloIngest, tieneGemeloAnterior } from "../_shared/ingest_identity.ts";
+import { claveEvento, esGemeloIngest, tieneGemeloAnterior } from "../_shared/ingest_identity.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
 import { bancosDeGastoDiario, cuentaParaPresupuesto, filasComoLaApp, inicioDeMesMs, statsDelMes } from "../_shared/presupuesto.ts";
 // Comparación del token en tiempo constante (2026-07-24) y topes de entrada (SEC-01, 14/9): en _shared.
@@ -199,27 +199,28 @@ Deno.serve(async (req) => {
   comercio = recortar(comercio, INGEST_MAX_COMERCIO);
 
   // 3) Inserción (service role → salta RLS).
-  // Con identidad nativa, importe/nombre/hora NO descartan nada: dos compras reales pueden coincidir.
-  // Si TR y Wallet describen el mismo importe con nombres distintos, la segunda fila se CONSERVA
-  // como posible repetido y no cuenta hasta que el usuario elija «es el mismo» / «son distintos».
+  // Dos compras reales iguales notificadas por la MISMA puerta se conservan. Si TR y Wallet
+  // describen el mismo pago de la tarjeta TR, la segunda notificación se descarta en silencio:
+  // no es una duda financiera ni debe crear una segunda fila para que el usuario la resuelva.
   const t0 = new Date(fecha).getTime();
   const fuentesIngest = ["macrodroid", "wallet", "ob:trade_republic#dup", "ob:wallet#dup"];
   let possibleDup = false;
   if (eventKey) {
     const { data: cercanos } = await supabase.from("expenses")
-      .select("fecha,importe,ingest_event_id")
+      .select("id,fecha,importe,ingest_event_id")
       .eq("user_id", userId)
       .in("source", fuentesIngest)
       .gte("importe", importe - 0.02).lte("importe", importe + 0.02)
       .gte("fecha", new Date(t0 - 2 * 60 * 60 * 1000).toISOString())
       .lte("fecha", new Date(t0 + 2 * 60 * 60 * 1000).toISOString());
-    possibleDup = (cercanos || []).some((r) => esPosibleGemeloIngest(
+    const gemelo = (cercanos || []).find((r) => esGemeloIngest(
       { fecha, importe, ingest_event_id: eventKey }, r,
     ));
+    if (gemelo) return skip("dup: mismo pago avisado por TR y Wallet", { tipo, dup: true, ack: gemelo.id });
   } else {
-    /* Compatibilidad con APK antiguas, que no tienen una identidad reintentable. Antes se tiraba
-       el segundo candidato; ahora se conserva marcado. Perder una compra legítima es peor que
-       pedir que se resuelva una duda, y además la marca permite cerrar la carrera tras el INSERT. */
+    /* Una APK antigua no aporta identidad suficiente para borrar por parecido. Conservamos la
+       segunda señal fuera de las cifras y respondemos skipped para que no confirme dos veces;
+       el usuario puede revisarla después sin haber perdido una compra real. */
     const { data: dupRows } = await supabase.from("expenses").select("fecha")
       .eq("user_id", userId)
       .in("source", fuentesIngest)
@@ -238,14 +239,13 @@ Deno.serve(async (req) => {
 
   /* La compra entra PENDIENTE y se libera después del INSERT. Es lo que cierra la carrera real
      Consum/Wallet + TR del 23/9: las dos peticiones consultaron antes de que la otra fila existiese.
-     Si algo falla entre insertar y comprobar, queda visible para revisar pero NO infla las cifras. */
+     Si se descubre el gemelo después, se borra solo la fila recién creada; el primer gasto queda. */
   const necesitaPuertaCarrera = tipo === "gasto";
   const fila: Record<string, unknown> = {
     user_id: userId, fecha, importe, comercio, cat,
-    /* Compatibilidad con las OTA que ya usan el protocolo #dup: mientras está sin decidir viaja
-       como `ob:trade_republic#dup`, que incluso un cliente anterior deja fuera de las cifras. La
-       columna ingest_event_id conserva el origen real; la OTA nueva lo presenta como notificación
-       y, al elegir «son distintos», lo devuelve a `macrodroid`. */
+    /* `#dup` es aquí una puerta TRANSITORIA: incluso un cliente anterior deja la fila fuera de
+       las cifras mientras cerramos la carrera posterior al INSERT. En el camino normal se libera
+       a `macrodroid` o se retira antes de responder; no se convierte en una decisión del usuario. */
     source: necesitaPuertaCarrera || possibleDup ? "ob:trade_republic#dup" : "macrodroid",
     no_card: noCard, nota: nota || null,
   };
@@ -294,31 +294,38 @@ Deno.serve(async (req) => {
       .lte("fecha", new Date(t0 + ventana).toISOString());
     const actual = (trasInsert || []).find((r) => String(r.id) === String(ackId));
     if (raceError || !actual) {
-      possibleDup = true;
       await logIngestError(supabase, userId,
         "no se pudo cerrar la comprobación anti-duplicado: queda pendiente y fuera de las cifras",
         { code: "race_check", source: fuente });
-    } else {
-      possibleDup = possibleDup || tieneGemeloAnterior(actual, trasInsert || []);
+      return skip("anti-dup: comprobación pendiente", { tipo, deferred: true, ack: ackId });
     }
-    if (!possibleDup) {
-      const { error: liberarError } = await supabase.from("expenses")
-        .update({ source: "macrodroid" }).eq("user_id", userId).eq("id", ackId);
-      if (liberarError) {
-        possibleDup = true;
-        await logIngestError(supabase, userId,
-          "no se pudo confirmar el gasto: queda pendiente y fuera de las cifras",
-          { code: "release", source: fuente });
-      } else {
-        fila.source = "macrodroid";
-      }
-    }
-    if (possibleDup && !eventKey) {
-      /* El APK anterior no entiende `possibleDup`: con `skipped` no enseña un segundo
-         «Gasto apuntado». La fila sigue en Gastos, marcada y reversible; no se ha borrado. */
+    const gemeloAnterior=tieneGemeloAnterior(actual, trasInsert || []);
+    if (!eventKey && (possibleDup || gemeloAnterior)) {
+      /* Sin identidad nativa no hay prueba bastante para borrar. El APK antiguo recibe skipped
+         y no duplica la confirmación; la fila queda fuera del total y se puede resolver. */
       return skip("dup legacy: candidato conservado para revisar",
         { tipo, dup: true, possibleDup: true, ack: ackId });
     }
+    if (gemeloAnterior) {
+      const { error: borrarError } = await supabase.from("expenses")
+        .delete().eq("user_id", userId).eq("id", ackId);
+      if (borrarError) {
+        await logIngestError(supabase, userId,
+          "se detectó el aviso duplicado pero no se pudo retirar: queda fuera de las cifras",
+          { code: "dup_delete", source: fuente });
+        return skip("dup: retirada pendiente", { tipo, dup: true, deferred: true, ack: ackId });
+      }
+      return skip("dup: mismo pago avisado por TR y Wallet", { tipo, dup: true, ack: ackId });
+    }
+    const { error: liberarError } = await supabase.from("expenses")
+      .update({ source: "macrodroid" }).eq("user_id", userId).eq("id", ackId);
+    if (liberarError) {
+      await logIngestError(supabase, userId,
+        "no se pudo confirmar el gasto: queda pendiente y fuera de las cifras",
+        { code: "release", source: fuente });
+      return skip("anti-dup: confirmación pendiente", { tipo, deferred: true, ack: ackId });
+    }
+    fila.source = "macrodroid";
   }
 
   // 4) Total del mes + alerta de presupuesto server-side (best-effort): el lector
@@ -386,7 +393,7 @@ Deno.serve(async (req) => {
   } catch (_) { /* opcional; el movimiento ya está guardado */ }
 
   return json({ ok: true, tipo, fecha, importe, comercio, cat, nota: nota || null,
-    possibleDup, ack: ackId, alert, month });
+    ack: ackId, alert, month });
 });
 
 function json(obj: unknown, status = 200) {

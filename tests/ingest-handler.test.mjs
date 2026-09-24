@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Ejecuta el handler REAL de ingest contra una BD en memoria: identidad, ACK y ambigüedad. */
+/** Ejecuta el handler REAL de ingest contra una BD en memoria: identidad, ACK y deduplicación. */
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { transformSync } from "esbuild";
@@ -36,6 +36,7 @@ function fakeDb(opts = {}) {
       limit() { return api; },
       upsert(row) { q.op = "upsert"; q.row = { ...row }; return api; },
       update(row) { q.op = "update"; q.row = { ...row }; return api; },
+      delete() { q.op = "delete"; return api; },
       insert(row) { q.op = "insert"; q.row = row; return api; },
       maybeSingle: async () => {
         if (name === "app_state") return { data: { data: { accounts: [{ ent: "trade_republic", role: "diario" }], settings: {} } } };
@@ -70,6 +71,10 @@ function fakeDb(opts = {}) {
           opts.hideLegacyPrecheckOnce = false;
           return { data: [], error: null };
         }
+        if (opts.hideEventPrecheckOnce && q.cols === "id,fecha,importe,ingest_event_id") {
+          opts.hideEventPrecheckOnce = false;
+          return { data: [], error: null };
+        }
         return { data: filtered(), error: null };
       }
       if (q.op === "upsert") {
@@ -85,6 +90,12 @@ function fakeDb(opts = {}) {
       if (q.op === "update") {
         if (opts.updateError) return { data: null, error: { message: "update failed" } };
         for (const row of filtered()) Object.assign(row, q.row);
+        return { data: null, error: null };
+      }
+      if (q.op === "delete") {
+        if (opts.deleteError) return { data: null, error: { message: "delete failed" } };
+        const borrar = new Set(filtered());
+        for (let i = rows.length - 1; i >= 0; i--) if (borrar.has(rows[i])) rows.splice(i, 1);
         return { data: null, error: null };
       }
       return { data: null, error: null };
@@ -103,14 +114,14 @@ function makeHandler(db) {
   const names = [
     "Deno", "createClient", "categorizar", "clasificarConMotivo", "extraerComercio",
     "extraerConcepto", "extraerImporte", "extraerPersona", "limpiarTexto", "aEuros", "parseWallet",
-    "claveEvento", "esPosibleGemeloIngest", "tieneGemeloAnterior", "bucketKey", "callerIp", "rateLimit",
+    "claveEvento", "esGemeloIngest", "tieneGemeloAnterior", "bucketKey", "callerIp", "rateLimit",
     "bancosDeGastoDiario", "cuentaParaPresupuesto", "filasComoLaApp", "inicioDeMesMs", "statsDelMes",
     "INGEST_MAX_BODY", "INGEST_MAX_COMERCIO", "INGEST_MAX_NOTA", "INGEST_MAX_TEXTO", "recortar", "timingSafeEqual",
   ];
   new Function(...names, handlerJs)(
     Deno, () => db, logic.categorizar, logic.clasificarConMotivo, logic.extraerComercio,
     logic.extraerConcepto, logic.extraerImporte, logic.extraerPersona, logic.limpiarTexto,
-    wallet.aEuros, wallet.parseWallet, identity.claveEvento, identity.esPosibleGemeloIngest,
+    wallet.aEuros, wallet.parseWallet, identity.claveEvento, identity.esGemeloIngest,
     identity.tieneGemeloAnterior,
     async () => "bucket", () => "127.0.0.1", async () => ({ ok: true }),
     budget.bancosDeGastoDiario, budget.cuentaParaPresupuesto, budget.filasComoLaApp,
@@ -154,12 +165,13 @@ await t("carrera SELECT/UNIQUE 23505 recupera el ACK y no confirma otra fila", a
   assert.equal(r.data.skipped, true); assert.equal(r.data.ack, "race-ack"); assert.equal(env.rows.length, 1);
 });
 
-await t("sin migración conserva el candidato legacy marcado en vez de perderlo", async () => {
+await t("sin migración conserva la segunda compra legacy fuera de cifras, nunca la borra", async () => {
   const env = fakeDb({ columnMissing: true });
   const base = { fuente: "tr", titulo: "Trade Republic", texto: "Has gastado 9,95 € en Pans & Company" };
   const a = await post(env, { ...base, fecha: String(Date.parse("2026-09-17T14:24:00+02:00")), evento: "v1_a" });
   const b = await post(env, { ...base, fecha: String(Date.parse("2026-09-17T14:29:00+02:00")), evento: "v1_b" });
   assert.equal(a.status, 200); assert.equal(b.data.skipped, true); assert.equal(env.rows.length, 2);
+  assert.equal(b.data.possibleDup, true);
   assert.equal(env.rows.filter((r) => r.source === "macrodroid").length, 1);
   assert.equal(env.rows.filter((r) => String(r.source).endsWith("#dup")).length, 1);
 });
@@ -168,33 +180,34 @@ await t("caso real Consum Wallet + CONSUM CHARTER TR: una sola compra cuenta y u
   const env = fakeDb();
   const wallet = await post(env, { fuente: "wallet", titulo: "Consum",
     texto: "15,02 € con Trade Republic Visa Card ••9116",
-    fecha: String(Date.parse("2026-09-23T15:21:06.996+02:00")) });
+    fecha: String(Date.parse("2026-09-23T15:21:06.996+02:00")), evento: "v1_consum_wallet" });
   const tr = await post(env, { fuente: "tr", titulo: "Trade Republic",
     texto: "Has gastado 15,02 € en CONSUM CHARTER",
-    fecha: String(Date.parse("2026-09-23T15:21:16.886+02:00")) });
+    fecha: String(Date.parse("2026-09-23T15:21:16.886+02:00")), evento: "v1_consum_tr" });
   assert.equal(wallet.data.skipped, undefined);
   assert.equal(tr.data.skipped, true, "el APK anterior no debe enseñar otro Gasto apuntado");
-  assert.equal(tr.data.possibleDup, true);
-  assert.equal(env.rows.length, 2, "la duda se conserva para poder decidir, no se borra");
-  assert.equal(env.rows.filter((r) => r.source === "macrodroid").length, 1);
-  assert.equal(env.rows.filter((r) => String(r.source).endsWith("#dup")).length, 1);
+  assert.equal(tr.data.possibleDup, undefined, "un pago notificado no pide revisión manual");
+  assert.equal(env.rows.length, 1, "TR y Wallet describen el mismo pago, no dos gastos");
+  assert.equal(env.rows[0].source, "macrodroid");
 });
 
 await t("la comprobación posterior al INSERT cierra la carrera aunque el SELECT previo no viera Consum", async () => {
   const env = fakeDb({
-    hideLegacyPrecheckOnce: true,
+    hideEventPrecheckOnce: true,
     insertCreatedAt: "2026-09-23T13:21:18.119320Z",
     rows: [{ id: "consum-wallet", user_id: "user", fecha: "2026-09-23T13:21:06.996Z",
       importe: 15.02, comercio: "Consum", source: "macrodroid", cat: "super", no_card: false,
-      created_at: "2026-09-23T13:21:18.085911Z" }],
+      created_at: "2026-09-23T13:21:18.085911Z",
+      ingest_event_id: "wallet:trade_republic:v1_consum_wallet" }],
   });
   const tr = await post(env, { fuente: "tr", titulo: "Trade Republic",
     texto: "Has gastado 15,02 € en CONSUM CHARTER",
-    fecha: String(Date.parse("2026-09-23T15:21:16.886+02:00")) });
+    fecha: String(Date.parse("2026-09-23T15:21:16.886+02:00")), evento: "v1_consum_tr" });
   assert.equal(tr.data.skipped, true);
-  assert.equal(tr.data.possibleDup, true);
+  assert.equal(tr.data.possibleDup, undefined);
   assert.equal(env.rows.find((r) => r.comercio === "Consum").source, "macrodroid");
-  assert.equal(env.rows.find((r) => r.comercio === "CONSUM CHARTER").source, "ob:trade_republic#dup");
+  assert.equal(env.rows.some((r) => r.comercio === "CONSUM CHARTER"), false,
+    "la fila posterior se retira al cerrar la carrera");
 });
 
 await t("un movimiento Open Banking parecido no bloquea una compra de notificación", async () => {
@@ -205,22 +218,23 @@ await t("un movimiento Open Banking parecido no bloquea una compra de notificaci
     texto: "Has gastado 15,02 € en CONSUM CHARTER",
     fecha: String(Date.parse("2026-09-23T15:21:16.886+02:00")) });
   assert.equal(r.data.skipped, undefined);
-  assert.equal(r.data.possibleDup, false);
+  assert.equal(r.data.possibleDup, undefined);
   assert.equal(env.rows.find((x) => x.comercio === "CONSUM CHARTER").source, "macrodroid");
 });
 
-await t("si falla liberar una compra, no se cuenta a ciegas ni se muestra como confirmada", async () => {
+await t("si falla liberar una compra, no se cuenta a ciegas ni se pide resolver un duplicado", async () => {
   const env = fakeDb({ updateError: true });
   const r = await post(env, { fuente: "wallet", titulo: "Consum",
     texto: "15,02 € con Trade Republic Visa Card ••9116",
     fecha: String(Date.parse("2026-09-23T15:21:06.996+02:00")) });
   assert.equal(r.data.skipped, true);
-  assert.equal(r.data.possibleDup, true);
+  assert.equal(r.data.possibleDup, undefined);
+  assert.equal(r.data.deferred, true);
   assert.equal(env.rows[0].source, "ob:trade_republic#dup");
   assert.ok(env.events.some((e) => String(e.message).includes("queda pendiente")));
 });
 
-await t("Pans TR + alias Wallet 35m: evidencia conservada #dup; el 3,00 real entra limpio", async () => {
+await t("Pans TR + alias Wallet 35m: un gasto; el 3,00 real entra aparte", async () => {
   const env = fakeDb();
   await post(env, { fuente: "tr", titulo: "Trade Republic", texto: "Has gastado 9,95 € en Pans & Company",
     fecha: String(Date.parse("2026-09-17T14:24:00+02:00")), evento: "v1_pans" });
@@ -229,10 +243,27 @@ await t("Pans TR + alias Wallet 35m: evidencia conservada #dup; el 3,00 real ent
     fecha: String(Date.parse("2026-09-17T14:59:00+02:00")), evento: "v1_alias" });
   const real = await post(env, { fuente: "tr", titulo: "Trade Republic", texto: "Has gastado 3,00 € en Otro comercio",
     fecha: String(Date.parse("2026-09-17T14:59:00+02:00")), evento: "v1_three" });
-  assert.equal(alias.data.possibleDup, true); assert.equal(real.data.possibleDup, false);
-  assert.equal(env.rows.length, 3);
-  assert.equal(env.rows.find((r) => r.comercio.includes("271 - PC")).source, "ob:trade_republic#dup");
+  assert.equal(alias.data.skipped, true); assert.equal(alias.data.possibleDup, undefined);
+  assert.equal(real.data.skipped, undefined); assert.equal(real.data.possibleDup, undefined);
+  assert.equal(env.rows.length, 2);
+  assert.equal(env.rows.some((r) => r.comercio.includes("271 - PC")), false);
   assert.equal(env.rows.find((r) => Number(r.importe) === 3).source, "macrodroid");
+});
+
+await t("si falla retirar el gemelo actual, queda fuera de cifras y sin pedir una decisión", async () => {
+  const env = fakeDb({ deleteError: true, hideEventPrecheckOnce: true,
+    insertCreatedAt: "2026-09-23T13:21:18.119320Z",
+    rows: [{ id: "consum-wallet", user_id: "user", fecha: "2026-09-23T13:21:06.996Z",
+      importe: 15.02, comercio: "Consum", source: "macrodroid", cat: "super", no_card: false,
+      created_at: "2026-09-23T13:21:18.085911Z",
+      ingest_event_id: "wallet:trade_republic:v1_consum_wallet" }] });
+  const tr = await post(env, { fuente: "tr", titulo: "Trade Republic",
+    texto: "Has gastado 15,02 € en CONSUM CHARTER",
+    fecha: String(Date.parse("2026-09-23T15:21:16.886+02:00")), evento: "v1_consum_tr" });
+  assert.equal(tr.data.skipped, true); assert.equal(tr.data.deferred, true);
+  assert.equal(tr.data.possibleDup, undefined);
+  assert.equal(env.rows.filter((r) => r.source === "macrodroid").length, 1);
+  assert.equal(env.rows.filter((r) => String(r.source).endsWith("#dup")).length, 1);
 });
 
 await t("dos compras legítimas idénticas por TR se conservan como dos filas limpias", async () => {
@@ -240,7 +271,7 @@ await t("dos compras legítimas idénticas por TR se conservan como dos filas li
   const base = { fuente: "tr", titulo: "Trade Republic", texto: "Has gastado 9,95 € en Pans & Company" };
   await post(env, { ...base, fecha: String(Date.parse("2026-09-17T14:24:00+02:00")), evento: "v1_buy_a" });
   const b = await post(env, { ...base, fecha: String(Date.parse("2026-09-17T14:29:00+02:00")), evento: "v1_buy_b" });
-  assert.equal(b.data.skipped, undefined); assert.equal(b.data.possibleDup, false);
+  assert.equal(b.data.skipped, undefined); assert.equal(b.data.possibleDup, undefined);
   assert.equal(env.rows.length, 2); assert.ok(env.rows.every((r) => r.source === "macrodroid"));
 });
 

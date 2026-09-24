@@ -1,3 +1,29 @@
+## [4.26.43] - 2026-09-24
+### El doble aviso Wallet/TR deja una sola fila, no una duda para revisar
+
+La 4.26.39 impedía que las dos señales sumaran, pero conservaba la segunda como `possibleDup` y
+trasladaba al usuario una decisión que aquí no existe: Google Wallet y Trade Republic están
+describiendo el mismo pago de la misma tarjeta. `ingest` ahora descarta en silencio la señal
+posterior cuando los orígenes son cruzados, Wallet nombra la tarjeta TR, el importe coincide y los
+avisos caen dentro de dos horas. Dos eventos de la misma puerta se conservan como compras reales.
+
+La fila nace fuera de las cifras y se vuelve a comparar después del INSERT para cerrar la carrera
+entre dos POST simultáneos. La más antigua se libera; la posterior se borra y responde `skipped`,
+así Android solo confirma una vez. Si leer, borrar o liberar falla, la fila permanece pendiente y
+fuera de las cifras. No hay migración ni limpieza del histórico existente. Las coincidencias de
+Open Banking conservan su flujo `possibleDup` y sus decisiones «Es el mismo» / «Son distintos».
+
+La retirada silenciosa se limita a eventos con `ingest_event_id`, que permite distinguir la puerta
+y conservar dos compras reales avisadas por la misma aplicación. Una APK antigua sin esa identidad
+mantiene el defecto conservador de 4.26.39: la segunda señal queda como `possibleDup`, fuera de las
+cifras, y recibe `skipped` para no enseñar otra confirmación. No se borra por importe/hora cuando
+faltan pruebas suficientes.
+
+Los unitarios ejecutan el handler real contra la BD en memoria: Consum/CONSUM CHARTER, carrera
+posterior al INSERT, alias con 35 minutos, dos compras iguales por TR, Wallet de otra tarjeta y
+fallos al liberar o retirar. Esta tanda no despliega `ingest`: Supabase es compartido y solo se
+activará al promocionar la tanda aprobada o con autorización expresa para lanzar el workflow.
+
 ## [4.26.42] - 2026-09-24
 ### Bizum pasa de categoría a forma de pago
 

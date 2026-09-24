@@ -157,6 +157,11 @@ En el repo: **Settings → Secrets and variables → Actions**:
 A partir de aquí, cualquier cambio en `supabase/**` despliega las funciones solo (workflow `Deploy Supabase`).
 Mientras no estén configurados, el workflow se salta el deploy sin fallar.
 
+El proyecto Supabase es compartido: `beta` no tiene una Edge separada. Por eso una corrección de
+`ingest` puede prepararse y revisarse en beta, pero solo se activa al promocionarla a `main` o al
+lanzar expresamente `supabase.yml`. No se debe presentar una prueba móvil de servidor como activa
+antes de ese despliegue.
+
 ## Paso 6 — Repuntar MacroDroid (cuando esté probado) 👤
 
 Cambia la URL del POST de MacroDroid del Apps Script a:

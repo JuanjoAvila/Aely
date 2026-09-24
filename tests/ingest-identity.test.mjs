@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Identidad exacta del lector TR/Wallet: reintentar no duplica y parecerse no borra. */
+/** Identidad exacta del lector TR/Wallet: reintentar no duplica y el doble aviso cuenta una vez. */
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -10,7 +10,7 @@ import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const src = fs.readFileSync(path.join(root, "supabase/functions/_shared/ingest_identity.ts"), "utf8");
 const js = transformSync(src, { loader: "ts", format: "esm" }).code;
-const { claveEvento, origenEvento, esPosibleGemeloIngest, esPosibleGemeloLegacy,
+const { claveEvento, origenEvento, esGemeloIngest, esGemeloLegacy,
   tieneGemeloAnterior, normalizarEventoId } =
   await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
 const cli = loadPureLogicFromFile();
@@ -43,12 +43,12 @@ t("la huella rechaza texto libre y Wallet solo se atribuye a la tarjeta nombrada
   assert.equal(origenEvento("wallet", "9,95 € con Revolut Visa ••1234"), "wallet:unknown");
 });
 
-t("TR Pans + Wallet alias retrasado se conserva como posible repetido", () => {
+t("TR Pans + Wallet alias retrasado se reconoce como el mismo pago", () => {
   const tr = { fecha: "2026-09-17T14:24:00+02:00", importe: 9.95,
     ingest_event_id: "tr:trade_republic:v1_tr" };
   const wallet = { fecha: "2026-09-17T14:59:00+02:00", importe: 9.95,
     ingest_event_id: "wallet:trade_republic:v1_wallet" };
-  assert.equal(esPosibleGemeloIngest(wallet, tr), true);
+  assert.equal(esGemeloIngest(wallet, tr), true);
 });
 
 t("dos compras legítimas iguales por la misma puerta NO se fusionan ni marcan", () => {
@@ -56,7 +56,7 @@ t("dos compras legítimas iguales por la misma puerta NO se fusionan ni marcan",
     ingest_event_id: "tr:trade_republic:v1_a" };
   const b = { fecha: "2026-09-17T14:25:00+02:00", importe: 9.95,
     ingest_event_id: "tr:trade_republic:v1_b" };
-  assert.equal(esPosibleGemeloIngest(b, a), false);
+  assert.equal(esGemeloIngest(b, a), false);
 });
 
 t("un Wallet de otra tarjeta no se mezcla con Trade Republic", () => {
@@ -64,15 +64,15 @@ t("un Wallet de otra tarjeta no se mezcla con Trade Republic", () => {
     ingest_event_id: "tr:trade_republic:v1_a" };
   const rev = { fecha: "2026-09-17T14:25:00+02:00", importe: 9.95,
     ingest_event_id: "wallet:unknown:v1_b" };
-  assert.equal(esPosibleGemeloIngest(rev, tr), false);
+  assert.equal(esGemeloIngest(rev, tr), false);
 });
 
-t("la carrera legacy Consum/Wallet conserva solo la fila posterior como posible repetido", () => {
+t("la carrera legacy Consum/Wallet identifica solo la fila posterior como duplicada", () => {
   const tr = { id: "a", fecha: "2026-09-23T15:21:06.996+02:00", importe: 15.02,
     created_at: "2026-09-23T15:21:18.085911+02:00" };
   const wallet = { id: "b", fecha: "2026-09-23T15:21:16.886+02:00", importe: 15.02,
     created_at: "2026-09-23T15:21:18.119320+02:00" };
-  assert.equal(esPosibleGemeloLegacy(wallet, tr), true);
+  assert.equal(esGemeloLegacy(wallet, tr), true);
   assert.equal(tieneGemeloAnterior(tr, [tr, wallet]), false);
   assert.equal(tieneGemeloAnterior(wallet, [tr, wallet]), true);
 });
@@ -80,19 +80,18 @@ t("la carrera legacy Consum/Wallet conserva solo la fila posterior como posible 
 t("dos cargos legacy separados no se confunden por compartir importe", () => {
   const a = { id: "a", fecha: "2026-09-23T15:00:00+02:00", importe: 15.02 };
   const b = { id: "b", fecha: "2026-09-23T15:20:01+02:00", importe: 15.02 };
-  assert.equal(esPosibleGemeloLegacy(b, a), false);
+  assert.equal(esGemeloLegacy(b, a), false);
 });
 
-t("la marca de incertidumbre viaja nube → app → nube sin contar como confirmada", () => {
+t("la duda de Open Banking sigue viajando nube → app → nube sin contar", () => {
   const e = cli.expenseFromRow({ id: "f0000000-0000-4000-8000-000000000001",
-    fecha: "2026-09-17T12:59:00Z", importe: 9.95, comercio: "271 - PC RSC SANT CUGAT",
-    cat: "restaurantes", source: "ob:trade_republic#dup",
-    ingest_event_id: "wallet:trade_republic:v1_wallet" });
-  assert.equal(e.source, "macrodroid");
+    fecha: "2026-09-17T12:59:00Z", importe: 9.95, comercio: "Movimiento",
+    cat: "restaurantes", source: "ob:trade_republic#dup" });
+  assert.equal(e.source, "ob");
   assert.equal(e.ent, "trade_republic");
   assert.equal(e.possibleDup, true);
   assert.equal(cli.expenseSourceForCloud(e), "ob:trade_republic#dup");
-  assert.equal(cli.expenseSourceForCloud({ ...e, possibleDup: false }), "macrodroid");
+  assert.equal(cli.expenseSourceForCloud({ ...e, possibleDup: false }), "ob:trade_republic");
 });
 
 t("APK usa postTime y Edge solo confirma si hubo INSERT con ACK", () => {

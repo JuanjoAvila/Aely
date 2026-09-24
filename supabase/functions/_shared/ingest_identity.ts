@@ -1,10 +1,10 @@
 /**
- * Identidad e incertidumbre del lector de notificaciones.
+ * Identidad y emparejado del lector de notificaciones.
  *
  * Una compra con la tarjeta de Trade Republic puede avisar por DOS aplicaciones: TR enseña el
- * nombre comercial y Wallet el descriptor del datáfono. Importe y hora parecidos no demuestran que
- * sean el mismo cargo; solo permiten dejar el segundo pendiente de decisión. Lo único que se puede
- * descartar sin perder una compra real es el MISMO evento nativo reintentado.
+ * nombre comercial y Wallet el descriptor del datáfono. Cuando ambas puertas nombran la misma
+ * tarjeta, el importe casa y los avisos están cerca, son dos descripciones del mismo pago: solo se
+ * conserva la primera. Dos avisos por la MISMA puerta siguen siendo dos compras distintas.
  */
 
 export type FuenteIngest = "tr" | "wallet";
@@ -49,11 +49,11 @@ function origenDeClave(k: unknown): string {
 }
 
 /**
- * Dos eventos DISTINTOS solo son un posible gemelo si vienen de las dos puertas TR/Wallet, Wallet
- * identifica explícitamente la tarjeta de TR, el importe casa y están cerca. Nunca devuelve
- * «descartar»: la fila entra marcada para que el usuario decida.
+ * Dos eventos DISTINTOS son el mismo pago solo si vienen de las dos puertas TR/Wallet, Wallet
+ * identifica explícitamente la tarjeta de TR, el importe casa y están cerca. La propia puerta
+ * forma parte de la identidad para no juntar dos compras reales iguales notificadas por TR.
  */
-export function esPosibleGemeloIngest(actual: CandidatoIngest, anterior: CandidatoIngest): boolean {
+export function esGemeloIngest(actual: CandidatoIngest, anterior: CandidatoIngest): boolean {
   const ka = String(actual?.ingest_event_id || ""), kb = String(anterior?.ingest_event_id || "");
   if (!ka || !kb || ka === kb) return false;
   const oa = origenDeClave(ka), ob = origenDeClave(kb);
@@ -66,12 +66,11 @@ export function esPosibleGemeloIngest(actual: CandidatoIngest, anterior: Candida
 }
 
 /**
- * Una APK anterior no manda identidad nativa. Ahí no se puede demostrar que sean el mismo cargo:
- * dos importes iguales y cercanos solo se conservan como duda, nunca se borran. Esta es la ventana
- * que ya usaba `ingest`; se comparte para que el control posterior al INSERT cierre también la
- * carrera entre dos notificaciones que llegan a la vez.
+ * Una APK anterior no manda identidad nativa. Conserva la barrera histórica de diez minutos: es
+ * menos precisa, pero impide que dos avisos simultáneos vuelvan a inflar las cifras mientras ese
+ * APK siga instalado. Se comparte para cerrar también la carrera posterior al INSERT.
  */
-export function esPosibleGemeloLegacy(actual: CandidatoIngest, anterior: CandidatoIngest): boolean {
+export function esGemeloLegacy(actual: CandidatoIngest, anterior: CandidatoIngest): boolean {
   if (actual?.ingest_event_id || anterior?.ingest_event_id) return false;
   if (Math.abs(Number(actual.importe) - Number(anterior.importe)) > 0.02) return false;
   const ta = new Date(actual.fecha).getTime(), tb = new Date(anterior.fecha).getTime();
@@ -85,11 +84,11 @@ function esAnterior(a: CandidatoIngest, b: CandidatoIngest): boolean {
   return String(a.id || "") < String(b.id || "");
 }
 
-/** Solo la fila posterior queda pendiente: dos peticiones concurrentes toman la misma decisión. */
+/** Solo la fila posterior se descarta: dos peticiones concurrentes toman la misma decisión. */
 export function tieneGemeloAnterior(actual: CandidatoIngest, filas: CandidatoIngest[]): boolean {
   return (filas || []).some((otra) => {
     if (!otra || String(otra.id || "") === String(actual?.id || "")) return false;
-    const gemela = esPosibleGemeloIngest(actual, otra) || esPosibleGemeloLegacy(actual, otra);
+    const gemela = esGemeloIngest(actual, otra) || esGemeloLegacy(actual, otra);
     return gemela && esAnterior(otra, actual);
   });
 }

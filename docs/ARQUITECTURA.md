@@ -178,17 +178,21 @@ El lector Android asigna a cada notificación de compra una identidad estable co
 `StatusBarNotification.getKey()` y `postTime`; el fallback usa paquete, id y tag. No incluye título
 ni texto porque Wallet puede reformular una compra ya entregada. La Edge `ingest` persiste esa
 identidad en `expenses.ingest_event_id` (migración 0025) y solo devuelve confirmación después de
-insertar. Un reintento o una carrera `23505` devuelve el gasto ya existente; una coincidencia
-entre fuentes distintas se conserva como `possibleDup` y no suma hasta resolverla. El orden de
+insertar. Un reintento o una carrera `23505` devuelve el gasto ya existente. Si Wallet identifica
+la tarjeta de TR y coincide el importe dentro de dos horas, la segunda señal se descarta en silencio;
+dos avisos de la misma puerta se conservan porque pueden ser dos compras reales. El orden de
 despliegue es migración 0025 → `ingest` → APK: una OTA sin APK no cambia la identidad nativa.
 
 Mientras siga instalada una APK anterior, Wallet y TR pueden llegar sin `ingest_event_id`. Para
 cerrar también la carrera entre dos POST simultáneos, `ingest` inserta cada compra como pendiente,
-repite la comparación cuando la fila ya existe y solo entonces libera la más antigua. La posterior
-se conserva con `#dup`, fuera de todas las cifras; al cliente antiguo se responde `skipped` para que
-no enseñe dos confirmaciones. No se borra por parecido: la decisión «Es el mismo» / «Son distintos»
-sigue disponible. Si la comprobación o la liberación falla, el defecto seguro es dejar la compra
-pendiente y visible para revisar, nunca sumarla a ciegas. La búsqueda se limita a orígenes de
+repite la comparación cuando la fila ya existe y solo entonces libera la más antigua. Sin identidad
+nativa no se borra por parecido: la posterior se conserva con `#dup`, fuera de las cifras, y al
+APK antiguo se responde `skipped` para no duplicar la confirmación. Con identidad actual, la señal
+cruzada posterior sí se retira. Si la
+comprobación, retirada o liberación falla, el defecto seguro es dejar la fila posterior pendiente y
+fuera de las cifras, nunca sumarla a ciegas ni pedir al usuario que resuelva el doble aviso normal.
+La decisión «Es el mismo» / «Son distintos» se mantiene para coincidencias de Open Banking, que sí
+pueden ser ambiguas. La búsqueda del lector se limita a orígenes de
 notificación —no a filas de Open Banking— y un pull que coincida con la breve fase pendiente adopta
 después también el origen confirmado por el servidor.
 
