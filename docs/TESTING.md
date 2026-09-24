@@ -1,5 +1,11 @@
 # Testing — Aely
 
+La publicación 4.25.11 aísla el punto 8 aprobado. `e2e/presupuesto-fluido.spec.mjs` abre el editor
+desde la tarjeta real de Inicio, exige una entrada de al menos 400 ms, limita la cifra a 42 px,
+comprueba que Guardar conserva la hoja durante la salida y que el presupuesto persiste. Un segundo
+caso activa movimiento reducido y exige cierre inmediato. El spec está mapeado a Inicio y Gastos
+en `scripts/relevant-tests.mjs`.
+
 La tanda de apariencia 4.25.7 quedó aprobada en beta 4.26.10.1. El e2e
 `e2e/apariencia-temas.spec.mjs` abre Ajustes → Apariencia y protege el selector de Cyberpunk,
 Otoño y Primavera, su persistencia y los modos de movimiento reducido. Está registrado en

@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-24 · **v4.25.10** — Plan → Metas recupera el ahorro mensual aprobado, editable sin crear movimientos ni tocar saldos; port selectivo sin incorporar otras tandas 4.26.
+> Estado a 2026-09-24 · **v4.25.11** — el editor del presupuesto mensual aprobado abre y cierra con más calma y mantiene la cifra legible; port selectivo sin incorporar otras tandas 4.26.
+> Anterior: **v4.25.10** — Plan → Metas recupera el ahorro mensual aprobado, editable sin crear movimientos ni tocar saldos; port selectivo sin incorporar otras tandas 4.26.
 > Anterior: **v4.25.9** — cada posición de Inversiones enseña beneficio en euros y porcentaje sin inventarlo cuando faltan datos.
 > Anterior: **v4.25.8** — Ajustes abre sin salto desde el borde y la interfaz deja de dibujar candados sin retirar ninguna protección.
 > Anterior: **v4.25.7** — Cyberpunk, Otoño y Primavera aprobados en beta y publicados como tanda independiente.
@@ -195,7 +196,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.25.10** (ahorro mensual en Metas preparado como publicación selectiva; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.25.11** (editor de presupuesto aprobado preparado como publicación selectiva; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo: **4.18.3 / 42**. Live hasta instalarla: **4.17.1 / 41**. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **42** / 4.18.3 |

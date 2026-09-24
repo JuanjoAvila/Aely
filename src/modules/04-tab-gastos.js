@@ -1158,12 +1158,13 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
 function BudgetSheet({open, budget, onClose, onSave}){
   const [b,setB]=useState(budget||700);
   useEffect(function(){ if(open) setB(Math.max(100, Math.round(budget||700))); },[open,budget]);
-  useBackClose(!!open, onClose);
-  const swipe=useSheetSwipe(!!open, onClose);
+  const swipe=useSheetSwipe(!!open, onClose,{closeMs:320,snapMs:300,unlockOnClose:true,
+    closeEase:"cubic-bezier(.22,1,.36,1)",snapEase:"cubic-bezier(.22,1,.36,1)"});
+  useBackClose(!!open, swipe.close);
   if(!open) return null;
   return ReactDOM.createPortal(
-    React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
-      React.createElement("div",Object.assign({className:"v4-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
+    React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+      React.createElement("div",Object.assign({className:"v4-sheet v4-budget-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement("div",{className:"serif",style:{fontSize:22,fontWeight:550,marginBottom:8}}, t("v4_budget_sheet")),
         React.createElement("p",{style:{color:"var(--muted)",fontSize:13.5,lineHeight:1.45,margin:"0 0 18px"}}, t("v4_budget_sheet_h")),
@@ -1172,7 +1173,7 @@ function BudgetSheet({open, budget, onClose, onSave}){
           React.createElement("div",{className:"serif num"}, eur0(b)),
           React.createElement("button",{type:"button","aria-label":"+",onClick:function(){ setB(function(x){ return x+50; }); }},"+")
         ),
-        React.createElement("button",{className:"v4-cta",style:{marginTop:18},onClick:function(){ onSave(b); onClose(); }}, t("save"))
+        React.createElement("button",{className:"v4-cta",style:{marginTop:18},onClick:function(){ onSave(b); swipe.close(); }}, t("save"))
       )
     ), document.body);
 }

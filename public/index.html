@@ -1575,6 +1575,10 @@
   .v4-ob-stepper{display:flex;align-items:center;justify-content:center;gap:18px;margin:28px 0 8px;}
   .v4-ob-stepper button{width:56px;height:56px;border-radius:16px;border:1px solid var(--line-soft);background:var(--sur);color:var(--text);font-size:28px;font-weight:700;cursor:pointer;font-family:inherit;}
   .v4-ob-stepper .serif{font-size:52px;font-weight:550;letter-spacing:-1.5px;min-width:4.5ch;text-align:center;font-variant-numeric:tabular-nums;}
+  /* El editor mensual necesita menos golpe que el onboarding: cifra compacta y entrada propia,
+     sin ralentizar las demás hojas de la app (feedback 18/9, punto 8). */
+  .v4-sheet.v4-budget-sheet{animation-duration:.42s;transition-duration:.3s;}
+  .v4-budget-sheet .v4-ob-stepper .serif{font-size:clamp(36px,11vw,42px);letter-spacing:-1px;min-width:4.1ch;}
   .v4-card-list{display:flex;flex-direction:column;gap:0;}
   html[data-theme="light"] .chip.active,html[data-theme="light"] .v4-period-btn.on{color:#fff;}
   .v4-set-profile{display:flex;align-items:center;gap:14px;background:linear-gradient(180deg,var(--sur),var(--bg-2));border:1px solid var(--line-soft);border-radius:20px;padding:16px;margin-top:4px;box-shadow:var(--shadow);}
@@ -7007,8 +7011,10 @@ function useBackClose(open, onClose){
 
 /* Sheet bottom: swipe hacia abajo para cerrar en TODA la ficha (no solo el asa).
    Si el contenido está scrolleado, primero sube; al llegar arriba, tira cierra. */
-function useSheetSwipe(open, onClose){
+function useSheetSwipe(open, onClose, opts){
+  opts=opts||{};
   const sheetRef=useRef(null);
+  const closeTimer=useRef(null);
   const startY=useRef(0), startX=useRef(0), dy=useRef(0), dragging=useRef(false), armed=useRef(false), axis=useRef(null), closing=useRef(false);
   useEffect(function(){
     if(!open) return undefined;
@@ -7023,6 +7029,7 @@ function useSheetSwipe(open, onClose){
     };
     document.addEventListener("touchmove", block, {passive:false, capture:true});
     return function(){
+      if(closeTimer.current){ clearTimeout(closeTimer.current); closeTimer.current=null; }
       document.body.style.overflow=prev;
       document.documentElement.classList.remove("sheet-open");
       document.removeEventListener("touchmove", block, {capture:true});
@@ -7064,6 +7071,28 @@ function useSheetSwipe(open, onClose){
     }
     if(e.cancelable) e.preventDefault();
   };
+  const closeAnimated=function(done){
+    if(closing.current) return;
+    const finish=typeof done==="function"?done:onClose;
+    const el=sheetRef.current;
+    const reduce=(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)
+      ||document.documentElement.classList.contains("reduce-motion");
+    if(!el||reduce){ finish(); return; }
+    closing.current=true;
+    el.classList.remove("dragging");
+    if(opts.unlockOnClose){
+      document.documentElement.classList.remove("sheet-open");
+      document.body.style.overflow="";
+    }
+    const ms=opts.closeMs||200;
+    el.style.transition="transform "+ms+"ms "+(opts.closeEase||"cubic-bezier(.32,.72,0,1)");
+    el.style.transform="translate3d(0,110%,0)";
+    closeTimer.current=setTimeout(function(){
+      closeTimer.current=null;
+      closing.current=false;
+      finish();
+    },ms);
+  };
   const onTouchEnd=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
     if(closing.current) return;
@@ -7074,20 +7103,15 @@ function useSheetSwipe(open, onClose){
     if(!el){ if(dist>80) onClose(); return; }
     el.classList.remove("dragging");
     if(dist>80){
-      closing.current=true;
-      // Desbloquea el fondo YA (el hitch era quitar sheet-open al unmount).
-      document.documentElement.classList.remove("sheet-open");
-      document.body.style.overflow="";
-      el.style.transition="transform .2s cubic-bezier(.32,.72,0,1)";
-      el.style.transform="translate3d(0,110%,0)";
-      setTimeout(function(){ onClose(); }, 200);
+      closeAnimated();
     } else {
-      el.style.transition="transform .22s cubic-bezier(.32,.72,0,1)";
+      const snapMs=opts.snapMs||220;
+      el.style.transition="transform "+snapMs+"ms "+(opts.snapEase||"cubic-bezier(.32,.72,0,1)");
       el.style.transform="translate3d(0,0,0)";
-      setTimeout(function(){ try{ el.style.transition=""; el.style.transform=""; }catch(err){} }, 220);
+      setTimeout(function(){ try{ el.style.transition=""; el.style.transform=""; }catch(err){} },snapMs);
     }
   };
-  return { sheetRef:sheetRef, sheetTouch:{ onTouchStart:onTouchStart, onTouchMove:onTouchMove, onTouchEnd:onTouchEnd, onTouchCancel:onTouchEnd } };
+  return { sheetRef:sheetRef, close:closeAnimated, sheetTouch:{ onTouchStart:onTouchStart, onTouchMove:onTouchMove, onTouchEnd:onTouchEnd, onTouchCancel:onTouchEnd } };
 }
 
 /* lista editable genérica; valFmt recibe el item entero */
@@ -8855,12 +8879,13 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
 function BudgetSheet({open, budget, onClose, onSave}){
   const [b,setB]=useState(budget||700);
   useEffect(function(){ if(open) setB(Math.max(100, Math.round(budget||700))); },[open,budget]);
-  useBackClose(!!open, onClose);
-  const swipe=useSheetSwipe(!!open, onClose);
+  const swipe=useSheetSwipe(!!open, onClose,{closeMs:320,snapMs:300,unlockOnClose:true,
+    closeEase:"cubic-bezier(.22,1,.36,1)",snapEase:"cubic-bezier(.22,1,.36,1)"});
+  useBackClose(!!open, swipe.close);
   if(!open) return null;
   return ReactDOM.createPortal(
-    React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
-      React.createElement("div",Object.assign({className:"v4-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
+    React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+      React.createElement("div",Object.assign({className:"v4-sheet v4-budget-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement("div",{className:"serif",style:{fontSize:22,fontWeight:550,marginBottom:8}}, t("v4_budget_sheet")),
         React.createElement("p",{style:{color:"var(--muted)",fontSize:13.5,lineHeight:1.45,margin:"0 0 18px"}}, t("v4_budget_sheet_h")),
@@ -8869,7 +8894,7 @@ function BudgetSheet({open, budget, onClose, onSave}){
           React.createElement("div",{className:"serif num"}, eur0(b)),
           React.createElement("button",{type:"button","aria-label":"+",onClick:function(){ setB(function(x){ return x+50; }); }},"+")
         ),
-        React.createElement("button",{className:"v4-cta",style:{marginTop:18},onClick:function(){ onSave(b); onClose(); }}, t("save"))
+        React.createElement("button",{className:"v4-cta",style:{marginTop:18},onClick:function(){ onSave(b); swipe.close(); }}, t("save"))
       )
     ), document.body);
 }

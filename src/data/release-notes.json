@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.25.11",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "El presupuesto se edita con más calma",
+      "en": "A calmer way to edit the budget",
+      "ca": "El pressupost s'edita amb més calma"
+    },
+    "items": {
+      "es": [
+        "El editor del presupuesto mensual se abre y se cierra de forma más suave.",
+        "La cifra ocupa menos espacio para que se lea bien también en pantallas estrechas."
+      ],
+      "en": [
+        "The monthly budget editor now opens and closes more smoothly.",
+        "The amount takes up less room, so it remains easy to read on narrow screens."
+      ],
+      "ca": [
+        "L'editor del pressupost mensual ara s'obre i es tanca de manera més suau.",
+        "La xifra ocupa menys espai perquè també es llegeixi bé en pantalles estretes."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.10",
     "d": "24 sep 2026",
     "t": {

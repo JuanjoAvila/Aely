@@ -1575,6 +1575,10 @@
   .v4-ob-stepper{display:flex;align-items:center;justify-content:center;gap:18px;margin:28px 0 8px;}
   .v4-ob-stepper button{width:56px;height:56px;border-radius:16px;border:1px solid var(--line-soft);background:var(--sur);color:var(--text);font-size:28px;font-weight:700;cursor:pointer;font-family:inherit;}
   .v4-ob-stepper .serif{font-size:52px;font-weight:550;letter-spacing:-1.5px;min-width:4.5ch;text-align:center;font-variant-numeric:tabular-nums;}
+  /* El editor mensual necesita menos golpe que el onboarding: cifra compacta y entrada propia,
+     sin ralentizar las demás hojas de la app (feedback 18/9, punto 8). */
+  .v4-sheet.v4-budget-sheet{animation-duration:.42s;transition-duration:.3s;}
+  .v4-budget-sheet .v4-ob-stepper .serif{font-size:clamp(36px,11vw,42px);letter-spacing:-1px;min-width:4.1ch;}
   .v4-card-list{display:flex;flex-direction:column;gap:0;}
   html[data-theme="light"] .chip.active,html[data-theme="light"] .v4-period-btn.on{color:#fff;}
   .v4-set-profile{display:flex;align-items:center;gap:14px;background:linear-gradient(180deg,var(--sur),var(--bg-2));border:1px solid var(--line-soft);border-radius:20px;padding:16px;margin-top:4px;box-shadow:var(--shadow);}
