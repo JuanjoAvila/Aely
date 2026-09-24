@@ -143,6 +143,13 @@ y `traspaso` se conservan aunque no pertenezcan al catálogo ordinario de catego
 [Edge `categorize`]  KW → si otros y OPENAI_API_KEY → LLM acotado
 ```
 
+Cada aviso nativo reciente lleva una huella opaca que `ingest` guarda como `ingest_event_id`.
+El índice único por usuario hace idempotente un reintento exacto. Si Trade Republic y Wallet
+identifican la tarjeta TR, el importe coincide (±0,02 €) y los avisos quedan a menos de dos horas,
+solo se conserva la primera fila. La comprobación se repite después del INSERT para cerrar dos
+peticiones simultáneas. Dos eventos de la misma fuente nunca se fusionan por parecido. Una APK
+antigua sin huella deja el candidato dudoso fuera de las cifras, sin borrarlo ni tocar históricos.
+
 Cotizaciones: Edge `prices` → Finnhub/Yahoo. FX: Frankfurter `EUR→USD,GBP,CHF` → `state.fxRates` (XXX→EUR) + `state.fx` (USD legado). Coste invertido editable ancla `costEur`. Moneda de visualización (`DISP`): EUR/USD/GBP/CHF desde 4.1.0; sin FX descargado se queda en € (nunca inventar tipo).
 
 ### Open Banking: sync SOLO a demanda (v4.1.0)

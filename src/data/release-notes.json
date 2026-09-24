@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.25.16",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Preparando avisos sin duplicados",
+      "en": "Preparing duplicate-free alerts",
+      "ca": "Preparant avisos sense duplicats"
+    },
+    "items": {
+      "es": [
+        "En móviles compatibles, Trade Republic y Google Wallet pueden reconocerse como dos avisos del mismo pago y dejar una sola confirmación.",
+        "En los demás móviles, el segundo aviso parecido queda apartado fuera del total para revisarlo; las compras reales y los movimientos anteriores no se modifican."
+      ],
+      "en": [
+        "On compatible phones, Trade Republic and Google Wallet can be recognised as two alerts for the same payment and leave a single confirmation.",
+        "On other phones, the second similar alert stays aside outside the total for review; real purchases and earlier transactions are not changed."
+      ],
+      "ca": [
+        "En mòbils compatibles, Trade Republic i Google Wallet es poden reconèixer com dos avisos del mateix pagament i deixar una sola confirmació.",
+        "En els altres mòbils, el segon avís semblant queda apartat fora del total per revisar-lo; les compres reals i els moviments anteriors no es modifiquen."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.15",
     "d": "24 sep 2026",
     "t": {
