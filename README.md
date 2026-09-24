@@ -81,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.40** preparada para beta — Pregúntame conserva el título fuera de la barra superior, sigue al teclado sin rebote y no enseña un indicador lateral. La APK 48 sigue siendo la vigente para el gesto Atrás nativo. Producción sirve 4.25.11; disponibilidad real con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.26.41** preparada para beta — las listas, el simulador y las fichas de Recibos vuelven acompañando al dedo y enseñan la pantalla anterior debajo. La APK 48 sigue siendo la vigente para el gesto Atrás nativo. Producción está recibiendo el parche 4.25.12; disponibilidad real con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.

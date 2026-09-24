@@ -1,3 +1,16 @@
+## [4.26.41] - 2026-09-24
+### Atrás predictivo en las capas interiores de Recibos
+
+`BillsManagePush` solo activaba `useEdgePageClose` en el hub. Las listas de grupos y el simulador
+respondían al historial, pero no acompañaban el gesto nativo ni el arrastre horizontal. Ahora cada
+pantalla hija vive encima del hub en su propio scroller: al volver, se mueve únicamente la hija y
+queda visible el destino real debajo, sin desplazar Plan ni desmontar la pila antes de tiempo.
+
+La ficha de un recibo conserva el arrastre vertical de hoja y añade el mismo cierre lateral sobre
+su fondo completo. Inputs y selectores siguen excluidos del gesto; Atrás cierra una sola capa. Los
+E2E cubren progreso e invocación nativos, arrastre desde el centro, permanencia de la pantalla
+padre y las regresiones de renombrado, periodicidad y alta de cargos.
+
 ## [4.26.40] - 2026-09-24
 ### Pregúntame respeta el borde superior al aparecer el teclado
 

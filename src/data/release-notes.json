@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.41",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Volver dentro de Recibos también acompaña al dedo",
+      "en": "Back gestures inside Bills now follow your finger too",
+      "ca": "Tornar dins de Rebuts també acompanya el dit"
+    },
+    "items": {
+      "es": [
+        "Los grupos de recibos y «¿Me lo puedo permitir?» vuelven enseñando la pantalla anterior mientras se deslizan.",
+        "La ficha de cada recibo también se puede cerrar desde el borde o arrastrando hacia la derecha, sin sacar de la lista."
+      ],
+      "en": [
+        "Bill groups and “Can I afford it?” now reveal the previous screen while sliding back.",
+        "Each bill detail can also be closed from the edge or by swiping right, without leaving the list."
+      ],
+      "ca": [
+        "Els grups de rebuts i «M'ho puc permetre?» tornen mostrant la pantalla anterior mentre llisquen.",
+        "La fitxa de cada rebut també es pot tancar des de la vora o arrossegant cap a la dreta, sense sortir de la llista."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "recibos-atras-anidado",
+        "t": {
+          "es": "Volver dentro de Recibos con el dedo",
+          "en": "Swipe back inside Bills",
+          "ca": "Tornar dins de Rebuts amb el dit"
+        },
+        "items": {
+          "es": [
+            "1. En Gestionar, entra en «Servicios y suministros» y vuelve despacio desde el borde: la pantalla debe acompañar al dedo y dejar «Tus recibos» debajo.",
+            "2. Entra en «¿Me lo puedo permitir?» y arrastra hacia la derecha desde el centro: debe volver a «Tus recibos» con la misma animación.",
+            "3. Abre la ficha de un recibo y repite el gesto desde el borde o el centro: debe cerrarse solo la ficha y quedarse en su lista."
+          ],
+          "en": [
+            "1. In Manage, open “Services and utilities” and slowly go back from the edge: the screen should follow your finger with “Your bills” underneath.",
+            "2. Open “Can I afford it?” and swipe right from the middle: it should return to “Your bills” with the same animation.",
+            "3. Open a bill detail and repeat from the edge or middle: only the detail should close, leaving you in its list."
+          ],
+          "ca": [
+            "1. A Gestionar, entra a «Serveis i subministraments» i torna lentament des de la vora: la pantalla ha d'acompanyar el dit i deixar «Els teus rebuts» a sota.",
+            "2. Entra a «M'ho puc permetre?» i arrossega cap a la dreta des del centre: ha de tornar a «Els teus rebuts» amb la mateixa animació.",
+            "3. Obre la fitxa d'un rebut i repeteix el gest des de la vora o el centre: només s'ha de tancar la fitxa i has de continuar a la seva llista."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.40",
     "d": "24 sep 2026",
     "t": {

@@ -1241,6 +1241,8 @@
   .v4-bills-push{z-index:72;padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px));
     transform:none!important;will-change:auto;touch-action:auto;contain:none;overflow-y:auto;
     -webkit-overflow-scrolling:touch;overscroll-behavior:auto;overscroll-behavior-y:auto;}
+  /* La subpantalla queda por encima del hub para que Atrás enseñe su destino mientras acompaña
+     al dedo, igual que Inversiones. Ella es su propio scroller y no dibuja barra lateral. */
   /* Un píxel de recorrido conserva la ola también con una cartera vacía, sin alterar el aspecto. */
   .v4-bills-hub{max-width:520px;min-height:calc(100% + 1px);margin:0 auto;animation:v4BillsIn .28s cubic-bezier(.32,.72,0,1) both;}
   @keyframes v4BillsIn{from{opacity:.35;transform:translate3d(16px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
@@ -1353,7 +1355,7 @@
   .settings-push.mc-page-dragging{transition:none!important;will-change:transform,opacity;}
   @keyframes mcPageEnter{from{opacity:.62;clip-path:inset(0 0 0 12%)}to{opacity:1;clip-path:inset(0)}}
   .settings-push-h,.settings-slide-h{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
-  .settings-push-h .back,.settings-slide-h .back{width:44px;height:44px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:20px;border:1px solid var(--line-soft);background:var(--sur);color:var(--text);}
+  .settings-push-h .back,.settings-slide-h .back{width:44px;height:44px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);display:grid;place-items:center;font-size:20px;color:var(--text);}
   .settings-push-h h1,.settings-slide-h h1{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:560;margin:0;}
 
   /* Perfil tipo Revolut (vídeo 2026-07-17, frame t_5_25): el panel ENTERO es una miniatura que
@@ -20509,6 +20511,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
   const [undoBill,setUndoBill]=React.useState(null);
   const undoTimer=React.useRef(null);
   const rootRef=React.useRef(null);
+  const subRef=React.useRef(null);
   const titleRef=React.useRef(null);
   const prevFocus=React.useRef(null);
   const popRef=React.useRef(null);
@@ -20518,6 +20521,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
   const hadSheetRef=React.useRef(false);
   const view=stack[stack.length-1];
   const pageSwipe=useEdgePageClose(!!open,onClose,view==="hub"&&!detail&&!addStep,rootRef);
+  const sub=useEdgePageClose(!!open,function(){ setStack(["hub"]); setGroup(null); },view!=="hub"&&!detail&&!addStep,subRef);
   const cm=totals.curMonth, cy=totals.curYear;
   React.useEffect(function(){
     if(!open){
@@ -20533,11 +20537,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
     if(detail){ setDetail(null); return; }
     if(addStep){ setAddStep(null); return; }
     if(view==="hub"){ pageSwipe.close(); return; }
-    setStack(function(s){
-      const n=s.slice(0,-1);
-      if(n[n.length-1]==="hub") setGroup(null);
-      return n;
-    });
+    sub.close();
   },[view, detail, addStep]);
   popRef.current=pop; detailRef.current=detail; addStepRef.current=addStep;
   const closeDetail=React.useCallback(function(){ setDetail(null); },[]);
@@ -20674,14 +20674,15 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
         React.createElement("div",{className:"meta"}, r.locked?gbTxt("gb_locked"):entOf(r.bank).label)),
       React.createElement("div",{className:"am num"+(r.income?" pos":"")}, (r.income?"+":"")+eur(Math.abs(r.monthly||0))));
   };
-  const head=function(title){
-    // id estable en hub/list/afford: aria-labelledby del dialog no puede quedar huérfano.
+  const head=function(title,active){
+    // La pantalla padre queda pintada debajo mientras la hija acompaña al dedo. Solo el título
+    // activo recibe el foco y etiqueta el diálogo; así no duplicamos IDs ni tabulamos por detrás.
     return React.createElement("div",{className:"settings-push-h"},
       React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:pop},"‹"),
-      React.createElement("h1",{id:"bills-manage-title",tabIndex:-1,ref:titleRef}, title));
+      React.createElement("h1",{id:active&&"bills-manage-title",tabIndex:-1,ref:active?titleRef:null}, title));
   };
-  const hub=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-home"},
-    head(gbTxt("gb_title")),
+  const hub=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-home",inert:view!=="hub"},
+    head(gbTxt("gb_title"),view==="hub"),
     React.createElement("div",{className:"v4-card v4-card-hero v4-bills-hero","data-bills-hero":"1"},
       React.createElement("div",{className:"v4-micro"}, gbTxt("gb_hero_label")),
       React.createElement("div",{className:"serif num v4-bills-hero-amt","data-bills-total":"1"}, eur(shownHero)),
@@ -20721,7 +20722,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
       React.createElement("div",{className:"v4-bills-afford-s"}, gbTxt("gb_afford_sub")))
   );
   const listView=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-group","data-group":group||""},
-    head((groups.find(function(g){ return g.id===group; })||{}).title||gbTxt("gb_title")),
+    head((groups.find(function(g){ return g.id===group; })||{}).title||gbTxt("gb_title"),view==="list"),
     React.createElement("div",{className:"v4-bills-search-row"},
       React.createElement("input",{className:"v4-bills-search","data-bills-search":"1",value:q,placeholder:gbTxt("gb_search"),
         onChange:function(e){ setQ(e.target.value); }}),
@@ -20733,15 +20734,16 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
       listRows.length===0 && React.createElement("div",{className:"v4-bills-empty","data-bills-empty":"1"}, gbTxt("gb_empty")))
   );
   const affordView=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-afford"},
-    head(gbTxt("gb_afford")),
+    head(gbTxt("gb_afford"),view==="afford"),
     React.createElement("div",{className:"v4-bills-afford-body"},
       React.createElement(AffordSim,{state:state,totals:totals,set:set})));
-  const body=view==="list"?listView:view==="afford"?affordView:hub;
   const screenAttr=view==="list"?"bills-group":(view==="afford"?"bills-afford":"bills-home");
   return ReactDOM.createPortal(
     React.createElement(React.Fragment,null,
-      React.createElement("div",{ref:rootRef,className:"settings-push open v4-bills-push mc-page-enter","data-bills-manage":"1","data-screen":screenAttr,"data-group":view==="list"?group:undefined,
-        role:"dialog","aria-modal":"true","aria-labelledby":"bills-manage-title"}, body),
+      React.createElement("div",{ref:rootRef,className:"settings-push open v4-bills-push mc-page-enter","data-bills-manage":"1","data-screen":screenAttr,
+        role:"dialog","aria-modal":"true","aria-labelledby":"bills-manage-title"},
+        hub,
+        view!=="hub" && React.createElement("div",{ref:subRef,className:"settings-push open v4-bills-push mc-page-enter"}, view==="list"?listView:affordView)),
       detail && React.createElement(BillsItemSheet,{
         row:detail, set:set, banks:bankList, simple:simple, showToast:showToast,
         onClose:closeDetail, onRemove:removeWithUndo
@@ -20770,20 +20772,20 @@ function BillsItemSheet({row, set, banks, simple, showToast, onClose, onRemove})
   const [amort,setAmort]=React.useState(item.amort!=null?String(item.amort):"");
   const hasSched=hasSchedule(item);
   const titleRef=React.useRef(null);
-  const onCloseRef=React.useRef(onClose);
-  onCloseRef.current=onClose;
-  const swipe=useSheetSwipe(true,function(){ onCloseRef.current&&onCloseRef.current(); });
+  const sideRef=React.useRef(null);
+  const swipe=useSheetSwipe(true,onClose);
+  const side=useEdgePageClose(true,onClose,true,sideRef);
   const sheetRef=swipe.sheetRef;
   const titleId="bills-item-title";
   React.useEffect(function(){ setAmount(""); },[row.id]);
-  useBackClose(true, swipe.close);
+  useBackClose(true, side.close);
   // Portal hermano del hub: dialog propio con trap/Escape; restore lo hace el hub (Codex 2050/2100Z).
   // deps=[]: si [onClose] remonta, cada tecla (saveMeta→set) reenfoca el h1 (Claude NO-GO / Codex 2120Z).
   React.useEffect(function(){
     var id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus(); });
     var onKey=function(e){
       if(document.documentElement.classList.contains("ask-open")) return;
-      if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); swipe.close(); return; }
+      if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); side.close(); return; }
       if(e.key!=="Tab"||!sheetRef.current) return;
       // Siempre cortar: el hub escucha en bubble y ve foco fuera de rootRef (portal) → lo robaba (Codex 2105Z).
       e.stopPropagation();
@@ -20824,12 +20826,12 @@ function BillsItemSheet({row, set, banks, simple, showToast, onClose, onRemove})
     else if(row.kind==="debt"&&simple) patchDebtFields(set,item.id,patch);
   };
   const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
-  return React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+  return React.createElement("div",{ref:sideRef,className:"v4-sheet-back",onClick:swipe.close},
     React.createElement("div",Object.assign({ref:sheetRef,className:"v4-sheet","data-sheet":"bill",role:"dialog","aria-modal":"true","aria-labelledby":titleId,
       onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
       React.createElement("div",{className:"v4-sheet-handle"}),
       React.createElement("div",{className:"settings-push-h",style:{padding:"0 0 8px"}},
-        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:swipe.close},"‹"),
+        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:side.close},"‹"),
         React.createElement("h1",{id:titleId,tabIndex:-1,ref:titleRef}, name||row.name||"—")),
       !locked && React.createElement("input",{className:"v4-bills-search",value:name,placeholder:t("pt_name_ph"),
         onChange:function(e){ const v=e.target.value; setName(v); saveMeta({name:v}); }}),

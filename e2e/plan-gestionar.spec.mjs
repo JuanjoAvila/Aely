@@ -55,7 +55,8 @@ async function appLista(page, overrides = {}) {
 }
 
 const hub = (page) => page.locator("[data-bills-manage]");
-const titulo = (page) => hub(page).locator(".settings-push-h h1");
+// Las hijas permanecen encima del hub para que el gesto enseñe su destino; la última es la activa.
+const titulo = (page) => hub(page).locator(".settings-push-h h1").last();
 const ficha = (page) => page.locator('.v4-sheet[data-sheet="bill"]');
 const alta = (page) => page.locator('.v4-sheet[data-sheet="bill-add"]');
 const tituloHoja = (sheet) => sheet.locator(".settings-push-h h1");
@@ -249,6 +250,55 @@ test("Gestionar también vuelve arrastrando desde el centro de toda la pantalla"
   await expect(pantalla).toHaveCount(0,{timeout:1600});
 });
 
+test("Servicios acompaña el atrás nativo y deja Tus recibos debajo", async ({ page }) => {
+  await appLista(page);
+  await abreTusRecibos(page);
+  await grupo(page, "Servicios y suministros").click();
+  const hija=hub(page).locator(":scope > .v4-bills-push");
+  await expect(hija).toBeVisible();
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="progress"; e.progress=.45; window.dispatchEvent(e); });
+  const pos=await hija.evaluate((el)=>({x:new DOMMatrix(getComputedStyle(el).transform).m41,w:innerWidth}));
+  expect(pos.x).toBeGreaterThan(pos.w*.4);
+  expect(pos.x).toBeLessThan(pos.w*.5);
+  await expect(hub(page).locator('[data-screen="bills-home"]')).toBeVisible();
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="invoke"; e.progress=1; window.dispatchEvent(e); });
+  await expect(hija).toHaveCount(0,{timeout:1600});
+  await expect(titulo(page)).toHaveText("Tus recibos");
+});
+
+test("¿Me lo puedo permitir? vuelve arrastrando desde el centro", async ({ page, browserName }) => {
+  test.skip(browserName!=="chromium", "El gesto táctil real usa CDP");
+  await appLista(page);
+  await abreTusRecibos(page);
+  await hub(page).locator(".v4-bills-afford").click();
+  const hija=hub(page).locator(":scope > .v4-bills-push");
+  await expect(hija).toBeVisible();
+  const cdp=await page.context().newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:150,y:250}]});
+  await cdp.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:[{x:340,y:250}]});
+  expect(await hija.evaluate((el)=>new DOMMatrix(getComputedStyle(el).transform).m41)).toBeGreaterThan(180);
+  await cdp.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
+  await expect(hija).toHaveCount(0,{timeout:1600});
+  await expect(titulo(page)).toHaveText("Tus recibos");
+});
+
+test("la ficha de un recibo vuelve de lado sin mover su lista", async ({ page }) => {
+  await appLista(page);
+  await abreTusRecibos(page);
+  await grupo(page, "Servicios y suministros").click();
+  await fila(page, "Luz").click();
+  const fondo=page.locator(".v4-sheet-back").filter({has:ficha(page)});
+  await expect(fondo).toBeVisible();
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="progress"; e.progress=.5; window.dispatchEvent(e); });
+  const pos=await fondo.evaluate((el)=>({x:new DOMMatrix(getComputedStyle(el).transform).m41,w:innerWidth}));
+  expect(pos.x).toBeGreaterThan(pos.w*.45);
+  expect(pos.x).toBeLessThan(pos.w*.55);
+  await expect(hub(page).locator(":scope > .v4-bills-push")).toBeVisible();
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="invoke"; e.progress=1; window.dispatchEvent(e); });
+  await expect(ficha(page)).toHaveCount(0,{timeout:1600});
+  await expect(titulo(page)).toHaveText("Servicios y suministros");
+});
+
 test("el atrás nativo anima la salida de Tus recibos antes de desmontarla", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
@@ -268,12 +318,15 @@ test("renombrar no aplana el importe por mes, los meses ni el día hábil", asyn
   await fila(page, "IBI").click();
   await expect(ficha(page)).toContainText("cambia de importe según el mes");
   await ficha(page).locator("input.v4-bills-search").first().fill("IBI casa");
-  await ficha(page).locator(".settings-push-h .back").click();
+  await ficha(page).locator(".settings-push-h .back").evaluate((el)=>el.click());
+  await expect(ficha(page)).toHaveCount(0);
 
   await fila(page, "Agua").click();
   await ficha(page).locator("input.v4-bills-search").first().fill("Agua del pueblo");
-  await ficha(page).locator(".settings-push-h .back").click();
-  await hub(page).locator(".settings-push-h .back").click();
+  await ficha(page).locator(".settings-push-h .back").evaluate((el)=>el.click());
+  await expect(ficha(page)).toHaveCount(0);
+  await hub(page).locator(".settings-push-h .back").last().evaluate((el)=>el.click());
+  await expect(titulo(page)).toHaveText("Tus recibos");
 
   await grupo(page, "Lo que entra y lo que mueves").click();
   await fila(page, "Nómina").click();
@@ -375,7 +428,7 @@ test("un cargo de una sola vez se apunta por mes y año, no por periodicidad", a
   await appLista(page);
   await abreTusRecibos(page);
   await grupo(page, "Cargos de una sola vez").click();
-  await hub(page).locator(".v4-bills-add").click();
+  await hub(page).locator(".v4-bills-add").last().click();
 
   await alta(page).locator("input.v4-bills-search").fill("Dentista");
   await alta(page).locator(".v4-cta").click();
