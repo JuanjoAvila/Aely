@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-24 · **v4.25.17** — CaixaBank distingue cuentas, explica cuándo el histórico ya estaba apuntado y permite abrirlo completo en Gastos.
+> Estado a 2026-09-24 · **v4.25.18** — Actualizar inversiones consulta TR/MyInvestor y precios sin ocultar sesiones caducadas ni fallos parciales.
+> Anterior: **v4.25.17** — CaixaBank distingue cuentas, explica cuándo el histórico ya estaba apuntado y permite abrirlo completo en Gastos.
 > Anterior: **v4.25.16** — el servidor reconoce la identidad exacta de los avisos compatibles; la APK estable conserva los candidatos dudosos fuera del total hasta recibir esa identidad.
 > Anterior: **v4.25.15** — Bizum y transferencia son formas de pago: la categoría real sigue contando y el histórico no se recategoriza a ciegas.
 > Anterior: **v4.25.14** — Pregúntame aprobado llega a producción con guía local breve, rutas reales y apertura sin teclado; la ayuda remota sigue opcional y no se despliega en esta tanda.
@@ -202,7 +203,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.25.17** (histórico Caixa aprobado y accesible desde Gastos; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.25.18** (actualización completa de brókers y precios aprobada; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo y producción: **4.20.4 / 46**. |
 | Anterior | **4.18.3 / 42**, **4.17.1 / 41**, **4.16.1 / 39**. |
 | `public/apk.json` | **46** / 4.20.4 |

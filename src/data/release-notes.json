@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.25.18",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Actualizar inversiones cuenta toda la verdad",
+      "en": "Investment updates tell the whole story",
+      "ca": "L'actualització d'inversions ho explica tot"
+    },
+    "items": {
+      "es": [
+        "Actualizar inversiones consulta primero Trade Republic y MyInvestor y después pone al día las cotizaciones.",
+        "Si una conexión ha caducado o no responde, el aviso lo dice aunque los precios sí se hayan actualizado; si no hay ningún bróker conectado, también lo deja claro."
+      ],
+      "en": [
+        "Update investments checks Trade Republic and MyInvestor first, then refreshes market quotes.",
+        "If a connection has expired or does not respond, the message says so even when prices were updated; it also makes clear when no broker is connected."
+      ],
+      "ca": [
+        "Actualitzar inversions consulta primer Trade Republic i MyInvestor i després posa al dia les cotitzacions.",
+        "Si una connexió ha caducat o no respon, l'avís ho diu encara que els preus sí que s'hagin actualitzat; si no hi ha cap bròker connectat, també ho deixa clar."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.17",
     "d": "24 sep 2026",
     "t": {

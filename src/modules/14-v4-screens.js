@@ -360,7 +360,7 @@ function BillsManageSheet({open, onClose, state, set, totals}){
     ), document.body);
 }
 
-function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, onReconnectBank, showToast}){
+function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, syncInv, onReconnectBank, showToast}){
   const [invTools,setInvTools]=useState(false);
   // TR desconectado (y el usuario SÍ lo tuvo conectado alguna vez → mc_tr_phone guardado):
   // banner con botón que abre Mis bancos directamente. UX padre 2026-07-18: al ver el saldo
@@ -541,17 +541,17 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       ) },
       !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise",style:{animationDelay:".12s"}},
         React.createElement("div",{className:"v4-sec-h"}, t("v4_inversiones")),
-        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,v4Embed:true}),
+        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,v4Embed:true,showToast:showToast}),
         React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:10},onClick:function(){ setInvTools(true); }}, t("v4_inv_tools")+" ›")
       ) }
     ]}),
     // El sheet vive FUERA de los bloques ordenables: es un portal, no una sección, y meterlo
     // dentro lo desmontaría al reordenar (cerrándose solo a media consulta).
-    !simple && React.createElement(InvToolsSheet,{open:invTools,onClose:function(){ setInvTools(false); },state:state,set:set,fetchPrices:fetchPrices,pricing:pricing})
+    !simple && React.createElement(InvToolsSheet,{open:invTools,onClose:function(){ setInvTools(false); },state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast})
   );
 }
 
-function InvToolsSheet({open, onClose, state, set, fetchPrices, pricing}){
+function InvToolsSheet({open, onClose, state, set, fetchPrices, pricing, syncInv, showToast}){
   useBackClose(!!open, onClose);
   const swipe=useSheetSwipe(!!open, onClose);
   if(!open) return null;
@@ -564,7 +564,7 @@ function InvToolsSheet({open, onClose, state, set, fetchPrices, pricing}){
           React.createElement("button",{className:"link","aria-label":t("au_close"),onClick:onClose},"✕")
         ),
         React.createElement("p",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.45,margin:"0 0 12px"}}, t("v4_inv_tools_h")),
-        React.createElement("div",{className:"v4-embed-legacy"}, React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,v4Embed:false,toolsMode:true}))
+        React.createElement("div",{className:"v4-embed-legacy"}, React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,v4Embed:false,toolsMode:true,showToast:showToast}))
       )
     ), document.body);
 }
