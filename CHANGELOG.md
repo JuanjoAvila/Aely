@@ -1,3 +1,22 @@
+## [4.25.17] - 2026-09-24
+### Histórico de CaixaBank aprobado con datos reales
+
+Se reconstruye sobre producción únicamente la tanda bancaria aprobada en beta 4.26.17. El caso
+real queda cerrado: CaixaBank sí entregó los cargos de agosto —incluido el importe cercano a
+100 €—, pero ya estaban en Gastos y por eso el importador no ofrecía filas nuevas.
+
+Cuando un único banco devuelve movimientos y todos coinciden por identidad con gastos existentes,
+el importador enseña cuántas cuentas y filas compartió el banco y ofrece «Verlos en Gastos». Esa
+salida abre el histórico completo, no solo el mes actual, y aplica el filtro del banco para que un
+cargo de agosto resulte visible sin mezclar Sabadell u otras entidades.
+
+La identidad del importador conserva cargos iguales que proceden de cuentas distintas del mismo
+banco mediante una hora interna estable que nunca se enseña. Dentro de una misma cuenta, las
+versiones pendiente y contabilizada del mismo cargo siguen colapsando en una sola fila y se
+prefiere la final con identificador. La primera fila conserva el sello histórico de mediodía para
+seguir coincidiendo con el sync diario y con móviles atrasados. No se migra ni modifica ningún
+movimiento existente, y no se despliega backend ni APK.
+
 ## [4.25.16] - 2026-09-24
 ### Servidor preparado para la identidad exacta de los avisos
 

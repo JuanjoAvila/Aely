@@ -1325,11 +1325,8 @@ function bankRateRemember(bank){
   }catch(e){}
 }
 /* Mismo pipeline que BankHistoryImport.search() al aplanar links → candidatos. */
-function histFlattenHistoryLinks(res, expenses, allow, opts){
-  opts=opts||{};
+function histFlattenHistoryLinks(res, expenses, allow){
   allow=allow||{};
-  const merchantIn=opts.merchantIn!=null ? opts.merchantIn : "Ingreso";
-  const merchantOut=opts.merchantOut!=null ? opts.merchantOut : "Compra";
   const seen={}, seenLegacy={}; (expenses||[]).forEach(function(e){
     if(!e.extId) return;
     const bank=expenseBankOf(e)||e.ent||"";
@@ -1337,8 +1334,9 @@ function histFlattenHistoryLinks(res, expenses, allow, opts){
     else seenLegacy[e.extId]=1;
   });
   let bankReported=0, bankPayload=0, skippedAllow=0, skippedBad=0, skippedExt=0, skippedUniq=0, acctAtCap=0;
-  const out=[], uniq={};
+  const out=[], groups={}, groupOrder=[];
   const kOf=function(dt,am,mc){ return String(dt).slice(0,10)+"|"+am+"|"+(mc||""); };
+  const quality=function(tx){ return (tx.ext_id?2:0)+(/book|post/i.test(String(tx.status||""))?1:0); };
   ((res&&res.links)||[]).forEach(function(lk){
     const ent=entFromAspsp(lk&&lk.aspsp);
     const accts=(lk&&lk.accounts)||[];
@@ -1357,12 +1355,17 @@ function histFlattenHistoryLinks(res, expenses, allow, opts){
     }
     const entKey=ent || ("aspsp:"+String((lk&&lk.aspsp)||"desconocido").toLowerCase().replace(/\s+/g,"_"));
     const entLabel=ent ? (typeof entOf==="function" ? entOf(ent).label : ent) : (String((lk&&lk.aspsp)||"").trim()||null);
-    accts.forEach(function(ac){
+    accts.forEach(function(ac,ai){
+      // Dos cuentas del mismo banco pueden tener el mismo cargo el mismo día. La cuenta forma
+      // parte de la identidad; una repetición de paginación sí conserva la misma cuenta.
+      const acct=entKey+"|"+((ac&&(ac.uid||ac.iban))||("#"+ai));
       ((ac&&ac.transactions)||[]).forEach(function(tx){
         const dt=String(tx.date||"").slice(0,10), am=Number(tx.amount)||0;
         if(!dt || !am){ skippedBad++; return; }
         const isIn=am<0, abs=Math.abs(am);
-        if(tx.ext_id && (seen[entKey+"|"+tx.ext_id]||seenLegacy[tx.ext_id])){ skippedExt++; return; }
+        // El fallback no se traduce: también forma parte de la identidad que comparte el sync
+        // diario. Si dependiera del idioma, el mismo ingreso cabría dos veces en la nube.
+        const merchant=tx.merchant||(isIn?"Ingreso":"Compra");
         /* ⚠ EL BANCO VA EN LA CLAVE, Y NO ESTABA (2026-09-12 noche, medido con la sonda).
            Esta clave existe para no meter DOS VECES la misma transaccion si el banco la manda
            repetida. Pero no llevaba el banco dentro, asi que un cargo de Sabadell y otro de
@@ -1380,15 +1383,31 @@ function histFlattenHistoryLinks(res, expenses, allow, opts){
            comia el primero que pasara por aqui con la misma fecha e importe.
 
            Es la MISMA familia que los otros dos de hoy: una clave de identidad sin banco. */
-        const k=entKey+"|"+(tx.ext_id||"")+"|"+(isIn?"in":"out")+"|"+kOf(dt,abs,tx.merchant);
-        if(uniq[k]){ skippedUniq++; return; }
-        uniq[k]=1;
-        out.push({
-          id:tx.ext_id||null, date:dt, amount:abs,
-          merchant:tx.merchant||(isIn?merchantIn:merchantOut),
-          note:tx.note||"", card:!!tx.card, ent:entKey, entLabel:entLabel,
-          kind:isIn?"in":"out"
-        });
+        const cloudK=entKey+"|"+kOf(dt,isIn?-abs:abs,merchant);
+        let g=groups[cloudK]; if(!g){ g=groups[cloudK]={rows:[],byAcct:{}}; groupOrder.push(cloudK); }
+        const prevI=g.byAcct[acct];
+        if(prevI!=null){
+          // El pendiente y el contabilizado de UNA cuenta siguen siendo un solo cargo. Se elige
+          // el final con id; solo una cuenta distinta gana otra ranura en la nube.
+          skippedUniq++;
+          if(quality(tx)>quality(g.rows[prevI].tx)) g.rows[prevI]={tx:tx,dt:dt,abs:abs,isIn:isIn,merchant:merchant,entKey:entKey,entLabel:entLabel};
+          return;
+        }
+        g.byAcct[acct]=g.rows.length;
+        g.rows.push({tx:tx,dt:dt,abs:abs,isIn:isIn,merchant:merchant,entKey:entKey,entLabel:entLabel});
+      });
+    });
+  });
+  groupOrder.forEach(function(cloudK){
+    groups[cloudK].rows.forEach(function(row,slot){
+      const tx=row.tx;
+      if(tx.ext_id && (seen[row.entKey+"|"+tx.ext_id]||seenLegacy[tx.ext_id])){ skippedExt++; return; }
+      out.push({
+        id:tx.ext_id||null, date:row.dt, amount:row.abs,
+        merchant:row.merchant,
+        note:tx.note||"", card:!!tx.card, ent:row.entKey, entLabel:row.entLabel,
+        stamp:slot ? histDate(row.dt,"ob-slot|"+cloudK+"|"+slot) : histDate(row.dt),
+        kind:row.isIn?"in":"out"
       });
     });
   });
@@ -1401,6 +1420,21 @@ function histFlattenHistoryLinks(res, expenses, allow, opts){
       acctAtCap:acctAtCap
     }
   };
+}
+
+/* La tabla deduplica por fecha COMPLETA pero el histórico solo trae el día. Sin `k` se conserva
+   EXACTAMENTE el antiguo mediodía local: también es la red de la nube contra un sync diario o una
+   importación previa que el estado local todavía no conoce. Solo una segunda fila que chocaría
+   usa una hora sintética —nunca se enseña— por grupo+ranura. */
+function histDate(d,k){
+  d=String(d||"").slice(0,10); k=String(k||"");
+  const legacy=new Date(d+"T12:00:00").toISOString();
+  if(!k) return legacy;
+  let h=0; for(const c of k) h=h*33+c.charCodeAt()>>>0;
+  // UTC estabiliza la excepción ante DST; un milisegundo evita el remoto caso de casar `legacy`.
+  let ms=+new Date(d+"T06:00:00Z")+(h%432e5);
+  if(new Date(ms).toISOString()===legacy) ms++;
+  return new Date(ms).toISOString();
 }
 
 /* Contadores sobre el flatten + classRows REALES (no volver a clasificar otro conjunto). */
@@ -1595,7 +1629,7 @@ function histBuildCommit(cands, classifications, state, opts){
     const merchant=x.merchant||(x.kind==="in"?"Ingreso":"Compra");
     const e={
       id:(typeof mcExpenseId==="function"?mcExpenseId():("h"+i)),
-      date:new Date(String(x.date||"").slice(0,10)+"T12:00:00").toISOString(),
+      date:x.stamp||histDate(x.date),
       merchant:merchant,
       amount:signed,
       category:c.category||"otros",

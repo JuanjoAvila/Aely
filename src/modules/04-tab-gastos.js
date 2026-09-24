@@ -75,7 +75,11 @@ function SubRow({sp, state, set, showToast}){
   );
 }
 function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs}){
-  const [preset,setPreset]=useState("month");
+  /* «Verlos en Gastos» puede navegar antes de que la pestaña termine de montar. La marca
+     efímera cubre ese primer render y el evento de abajo cubre una pestaña que ya estaba viva;
+     ninguna de las dos se guarda como preferencia. */
+  const bankPending=typeof window!=="undefined"&&window.__mcExpBank||"";
+  const [preset,setPreset]=useState(bankPending?"all":"month");
   // Tras importar una hoja: salta a "Todo" — lo importado suele traer fechas fuera del mes en
   // curso, y "Este mes" las tapaba en silencio (feedback 2026-08-01).
   useEffect(function(){ if(forceAllTs) setPreset("all"); },[forceAllTs]);
@@ -84,7 +88,23 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const [sel,setSel]=useState([]);   // categorías seleccionadas; [] = todas
   /* Contrato confirmado 16/9: al entrar se ven los bancos marcados como gasto diario. Vacío
      sigue significando TODOS y queda disponible como elección explícita en el filtro. */
-  const [bankSel,setBankSel]=useState(function(){ return expenseBankEnts(state).slice(); });
+  const [bankSel,setBankSel]=useState(function(){
+    const ent=typeof window!=="undefined"&&window.__mcExpBank||"";
+    if(ent){ try{ window.__mcExpBank=""; }catch(e){} return [ent]; }
+    return expenseBankEnts(state).slice();
+  });
+  /* El importador puede abrir Gastos sin remontarlo. En ese caso se aplica aquí el banco y el
+     histórico completo, y se limpian los demás filtros para que no vuelvan a esconder la fila
+     que acaba de explicar como ya apuntada (rechazo real de Caixa, 2026-09-23). */
+  useEffect(function(){
+    const h=function(e){
+      const ent=e&&e.detail&&e.detail.ent||window.__mcExpBank; if(!ent) return;
+      try{ window.__mcExpBank=""; }catch(err){}
+      setPreset("all"); setBankSel([ent]); setBucketSel([]); setSel([]); setQ(""); setFilterOpen(false);
+    };
+    window.addEventListener("mc-open-expenses-bank",h);
+    return function(){ window.removeEventListener("mc-open-expenses-bank",h); };
+  },[]);
   /* Filtro por cajón (2026-08-17): «cuenta», «ingreso», «neutra», «otrobanco». Es lo que le deja
      separar el caos que describió al volver del crucero. Arranca VACÍO = se ve todo: la lista
      sigue siendo el histórico completo por defecto, esto es para explorar, no un modo nuevo. */

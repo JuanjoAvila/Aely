@@ -80,7 +80,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.25.16** preparada para producción — el servidor reconoce la identidad exacta de los avisos compatibles; los demás candidatos repetidos siguen apartados fuera del total sin tocar el histórico. Disponibilidad del canal con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.25.17** preparada para producción — el histórico de CaixaBank abre directamente en Gastos los movimientos que ya estaban apuntados, también de meses anteriores, sin mezclar cuentas ni duplicar cargos. Disponibilidad del canal con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.
