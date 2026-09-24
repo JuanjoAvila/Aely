@@ -96,6 +96,18 @@ test("Plan › Recibos: un anual de otro mes NO se cuela en el mes en curso", as
   await expect(paginaActiva(page).getByText("Seguro coche anual", { exact: false })).toHaveCount(esMarzo ? 1 : 0);
 });
 
+test("Plan › Recibos: pinta el saldo más bajo y no inventa el día de una cuota sin fecha", async ({ page }) => {
+  await abrirPlan(page, /Recibos|Bills|Rebuts/i, {
+    accounts: [{ id: "a1", ent: "sabadell", name: "Cuenta recibos", value: 500, role: "fijos" }],
+    fixed: [], oneoffs: [], flows: [],
+    debts: [{ id: "d1", name: "Préstamo sin fecha", value: 800, monthly: 80, account: "sabadell" }],
+  });
+  const hero=paginaActiva(page).locator(".v4-card-hero").first();
+  await expect(hero).toContainText(/saldo más bajo|lowest balance|saldo més baix/i);
+  await expect(hero).toContainText("420 €");
+  await expect(hero).not.toContainText(/día 1|day 1|dia 1/i);
+});
+
 /* ---------------- Cartera › Tus cuentas ---------------- */
 const accounts = [
   { id: "a1", ent: "sabadell", name: "Cuenta nómina", value: 2400 },

@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.25.13",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Plan enseña el momento más justo del mes",
+      "en": "Plan shows the tightest point of the month",
+      "ca": "Pla mostra el moment més just del mes"
+    },
+    "items": {
+      "es": [
+        "Plan muestra el saldo más bajo previsto y el día en que se alcanza, en vez de quedarse solo con la cifra de final de mes.",
+        "Una nómina posterior ya no puede ocultar que antes falta dinero; si no se conoce una fecha o un saldo, no se inventa."
+      ],
+      "en": [
+        "Plan shows the lowest expected balance and the day it is reached, instead of only showing the month-end figure.",
+        "A later salary payment can no longer hide an earlier shortfall; when a date or balance is unknown, it is not made up."
+      ],
+      "ca": [
+        "Pla mostra el saldo més baix previst i el dia en què s'assoleix, en comptes de quedar-se només amb la xifra de final de mes.",
+        "Una nòmina posterior ja no pot amagar que abans falten diners; si no es coneix una data o un saldo, no se n'inventa cap."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.12",
     "d": "24 sep 2026",
     "t": {

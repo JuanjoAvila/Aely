@@ -259,15 +259,18 @@ function PlanBills({state, set, totals, manageOpen, setManageOpen}){
     const amount=occAmountIn(e,month);
     if(occursIn(e,month) && amount>0) charges.push({
       id:"fixed_"+e.id, name:e.name, amount:amount, day:dayIn(e,month), bank:accOf(e),
-      paid:isPaidIn(e,month,today), sub:t("fj_fixed_tag")
+      paid:isPaidIn(e,month,today), sub:t("fj_fixed_tag"), kind:"fixed"
     });
   });
   (state.debts||[]).forEach(function(d){
     if(!debtActive(d)) return;
-    const bank=d.account||"sabadell", day=debtChargeDay(d), paid=isDebtPaidThisMonth(d,today);
-    if((d.monthly||0)>0) charges.push({id:"debt_"+d.id,name:d.name,amount:d.monthly,day:day,bank:bank,paid:paid,sub:t("fj_debt_tag")});
+    // Sin fecha sigue pendiente y se muestra como desconocida; el fallback histórico a día 1 la
+    // marcaba pagada y escondía tanto la cuota como el mínimo real (feedback 18/9).
+    const rawDay=dayOf(d), day=rawDay!=null&&Number(rawDay)>0?Number(rawDay):null;
+    const bank=d.account||"sabadell", paid=day!=null&&day<=today;
+    if((d.monthly||0)>0) charges.push({id:"debt_"+d.id,name:d.name,amount:d.monthly,day:day,bank:bank,paid:paid,sub:t("fj_debt_tag"),kind:"debt"});
     const balloon=debtBalloonIn(d,year,month);
-    if(balloon>0) charges.push({id:"balloon_"+d.id,name:d.name+" "+t("db_balloon_tag"),amount:balloon,day:day,bank:bank,paid:paid,sub:t("fj_debt_tag")});
+    if(balloon>0) charges.push({id:"balloon_"+d.id,name:d.name+" "+t("db_balloon_tag"),amount:balloon,day:day,bank:bank,paid:paid,sub:t("fj_debt_tag"),kind:"balloon"});
   });
   // Nómina y transferencias del mes (como en Gestionar): lo que ya entró/salió cuenta en «Ya pagado».
   (state.flows||[]).forEach(function(f){
@@ -289,8 +292,10 @@ function PlanBills({state, set, totals, manageOpen, setManageOpen}){
   const pendingTotal=pending.reduce(function(sum,x){ return sum+(x.income?0:Math.abs(x.amount)); },0);
   const paidTotal=paid.reduce(function(sum,x){ return sum+(x.income?0:Math.abs(x.amount)); },0);
   const fixedAccount=(state.accounts||[]).find(function(a){ return accFixed(a); });
-  const projected=fixedAccount && totals.projectedByBank && totals.projectedByBank[fixedAccount.ent];
-  const liquidity=typeof projected==="number" ? tf("v4_plan_liq",{amount:eur0(projected),bank:entOf(fixedAccount.ent).label}) : "—";
+  const cover=fixedAccount&&planCoverState(totals,fixedAccount.ent,pending);
+  const liquidity=cover&&typeof cover.min==="number"&&isFinite(cover.min)
+    ? tf("v4_plan_liq",{amount:eur0(cover.min),when:cover.minDay>0?" "+tf("v4_plan_liq_day",{d:cover.minDay}):"",bank:entOf(fixedAccount.ent).label})
+    : "—";
   const row=function(x){
     const income=!!x.income || (x.amount<0);
     const amt=Math.abs(x.amount);

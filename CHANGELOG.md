@@ -1,3 +1,19 @@
+## [4.25.13] - 2026-09-24
+### Mínimo de caja aprobado, portado sin arrastrar el rediseño
+
+Se porta sobre producción únicamente la tanda `plan-minimo-caja` aprobada en beta 4.26.37.
+La frase de Plan → Recibos deja de usar `projectedByBank`, que solo describe el cierre del mes,
+y parte de `minByBank` / `minDayByBank`: una nómina posterior ya no oculta un descubierto que
+ocurre antes. Si el banco o el mínimo no se conocen se mantiene «—», sin fabricar una cifra.
+
+Las cuotas sin fecha requerían una excepción: el motor histórico usa día 1 como fallback y por
+eso ya no aparecen entre sus eventos pendientes. `PlanBills` conserva ahora el día desconocido,
+las deja pendientes y `planCoverState` las descuenta del mínimo sin inventar fecha. Los fijos sin
+fecha no se restan otra vez porque ya están incluidos en `minByBank`. Dos unitarios vigilan ambas
+ramas y el E2E abre Plan real, comprueba 500 − 80 = 420 € y que no aparezca «día 1».
+
+No se incorpora ninguna otra tanda 4.26, pantalla rediseñada, backend, Android ni APK.
+
 ## [4.25.12] - 2026-09-24
 ### Cierre de hojas sin volver a bloquear el fondo
 

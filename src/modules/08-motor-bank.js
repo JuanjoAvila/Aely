@@ -298,6 +298,27 @@ function minWalk(startBal, evs){
   return {min:mn, minDay:md, end:run};
 }
 
+// La portada de Plan parte del peor momento real, no del saldo de cierre. Las cuotas sin fecha
+// no entran en minByBank porque el motor histórico cae a día 1: se descuentan aquí sin inventar día.
+function planCoverState(totals, bankEnt, pendingBills){
+  totals=totals||{};
+  var ent=bankEnt||null;
+  var min=ent!=null&&totals.minByBank?totals.minByBank[ent]:null;
+  var minDay=ent!=null&&totals.minDayByBank?totals.minDayByBank[ent]:null;
+  if(ent!=null&&min!=null&&isFinite(min)){
+    (pendingBills||[]).forEach(function(x){
+      // Fijos sin día ya entran en minByBank como evento del día 0; restarlos otra vez inventaría
+      // un descubierto. Solo falta corregir cuotas y pagos finales sin fecha (review 24/9).
+      if(!x||x.bank!==ent||(x.kind!=="debt"&&x.kind!=="balloon")) return;
+      if(x.day==null||!(Number(x.day)>0)){
+        min-=Math.abs(Number(x.amount)||0);
+        minDay=null;
+      }
+    });
+  }
+  return {min:min,minDay:minDay,bank:ent};
+}
+
 /* ============================================================
    CAPA 3 — Conciliación: el banco confirma tus fijos (o te avisa).
    PURA y ADVISORY: NO muta gastos ni saldo (eso lo hace la Capa 2).
