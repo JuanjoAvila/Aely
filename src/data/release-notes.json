@@ -1,5 +1,103 @@
 [
   {
+    "v": "4.26.42",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Bizum deja ver en qué se gastó el dinero",
+      "en": "Bizum now shows what the money was spent on",
+      "ca": "Bizum deixa veure en què s'han gastat els diners"
+    },
+    "items": {
+      "es": [
+        "Al apuntar un gasto, una pastilla permite cambiar entre «Con tarjeta» y «Bizum o transferencia» sin alterar su categoría.",
+        "La categoría sigue siendo la finalidad real, como Restaurantes o Salud; los Bizum antiguos se conservan hasta revisarlos uno a uno."
+      ],
+      "en": [
+        "When adding an expense, one chip switches between “Card” and “Bizum or transfer” without changing its category.",
+        "The category remains its real purpose, such as Eating out or Health; old Bizum entries stay unchanged until reviewed one by one."
+      ],
+      "ca": [
+        "En apuntar una despesa, una pastilla permet canviar entre «Amb targeta» i «Bizum o transferència» sense alterar-ne la categoria.",
+        "La categoria continua sent la finalitat real, com Restaurants o Salut; els Bizum antics es conserven fins que es revisin un a un."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "bizum-forma-pago",
+        "t": {
+          "es": "Bizum como forma de pago",
+          "en": "Bizum as a payment method",
+          "ca": "Bizum com a forma de pagament"
+        },
+        "items": {
+          "es": [
+            "1. Abre Apuntar y toca la pastilla «Con tarjeta»: debe cambiar a «Bizum o transferencia» y no debe aparecer una categoría Bizum.",
+            "2. Apunta 47 € de Fisio dejando la pastilla en «Bizum o transferencia» y elige Salud: en Gastos debe contar dentro de Salud.",
+            "3. Abre un Bizum antiguo: debe seguir intacto y permitir cambiar su categoría real y su forma de pago por separado."
+          ],
+          "en": [
+            "1. Open Add and tap the “Card” chip: it should change to “Bizum or transfer”, and there should be no Bizum category.",
+            "2. Add €47 for Physio with the chip set to “Bizum or transfer” and choose Health: it should count under Health in Spending.",
+            "3. Open an old Bizum entry: it should remain unchanged and let you edit its real category and payment method separately."
+          ],
+          "ca": [
+            "1. Obre Apuntar i toca la pastilla «Amb targeta»: ha de canviar a «Bizum o transferència» i no hi ha d'aparèixer una categoria Bizum.",
+            "2. Apunta 47 € de Fisio deixant la pastilla en «Bizum o transferència» i tria Salut: a Despeses ha de comptar dins de Salut.",
+            "3. Obre un Bizum antic: ha de continuar intacte i permetre canviar per separat la categoria real i la forma de pagament."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.25.13",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Plan enseña el momento más justo del mes",
+      "en": "Plan shows the tightest point of the month",
+      "ca": "Pla mostra el moment més just del mes"
+    },
+    "items": {
+      "es": [
+        "Plan muestra el saldo más bajo previsto y el día en que se alcanza, en vez de quedarse solo con la cifra de final de mes.",
+        "Una nómina posterior ya no puede ocultar que antes falta dinero; si no se conoce una fecha o un saldo, no se inventa."
+      ],
+      "en": [
+        "Plan shows the lowest expected balance and the day it is reached, instead of only showing the month-end figure.",
+        "A later salary payment can no longer hide an earlier shortfall; when a date or balance is unknown, it is not made up."
+      ],
+      "ca": [
+        "Pla mostra el saldo més baix previst i el dia en què s'assoleix, en comptes de quedar-se només amb la xifra de final de mes.",
+        "Una nòmina posterior ja no pot amagar que abans falten diners; si no es coneix una data o un saldo, no se n'inventa cap."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.25.12",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Las ventanas vuelven a cerrar sin tirones",
+      "en": "Panels close smoothly again",
+      "ca": "Les finestres tornen a tancar sense estrebades"
+    },
+    "items": {
+      "es": [
+        "Al cerrar cualquier ventana con un gesto, el fondo vuelve a desbloquearse desde el primer instante.",
+        "El editor del presupuesto conserva su entrada y salida más pausadas."
+      ],
+      "en": [
+        "When closing any panel with a gesture, the background is unlocked from the very first moment.",
+        "The budget editor keeps its calmer opening and closing motion."
+      ],
+      "ca": [
+        "En tancar qualsevol finestra amb un gest, el fons es torna a desbloquejar des del primer instant.",
+        "L'editor del pressupost manté una entrada i una sortida més pausades."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.41",
     "d": "24 sep 2026",
     "t": {

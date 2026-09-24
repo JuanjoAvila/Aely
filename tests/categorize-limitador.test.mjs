@@ -35,5 +35,11 @@ t("al pasarse contesta «otros» con ai:\"limit\", no un 429", () => {
   assert.equal(/429/.test(trozo), false, "un 429 lo enseñaría la app como error");
 });
 
+t("el LLM no puede devolver Bizum como categoría de gasto", () => {
+  const allowed = src.match(/const ALLOWED = \[([\s\S]*?)\]/)?.[1] || "";
+  assert.equal(/\"bizum\"/.test(allowed), false);
+  assert.equal(/bizum=/.test(src), false);
+});
+
 if (fallos) { console.error(`categorize-limitador: ${fallos} fallo(s)`); process.exit(1); }
 console.log("categorize-limitador: OK");

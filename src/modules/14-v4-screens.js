@@ -1268,6 +1268,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
   const [raw,setRaw]=useState("");
   const [note,setNote]=useState("");
   const [cat,setCat]=useState("super");
+  const [nc,setNc]=useState(false);
   // Moneda en la que tecleas el importe (NO la de pantalla). Por defecto la de visualización;
   // se puede cambiar a liras/dólares/… sin tocar Ajustes.
   const [entryCur,setEntryCur]=useState("EUR");
@@ -1311,7 +1312,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
   };
   useEffect(function(){
     if(open){
-      setKind("gasto"); setRaw(""); setNote(""); setCat("super");
+      setKind("gasto"); setRaw(""); setNote(""); setCat("super"); setNc(false);
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
       // Ayuda «Pregúntame» marca efectivo sin tocar 11 (mismo patrón que __mcExpBank en §3).
@@ -1356,10 +1357,10 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
   // La pasada por todo el histórico queda preparada con la hoja cerrada; cambiar de categoría
   // ya solo recoloca ocho chips y no mete trabajo O(n) en mitad del gesto (vídeo 2026-09-17).
   const fichaCatsBase=useMemo(function(){
-    return expenseTopCategoryRanking(state.expenses,CATEGORIES);
+    return expenseTopCategoryRanking(state.expenses,XC);
   },[state.expenses]);
   const fichaCats=useMemo(function(){
-    return expenseTopCategoryPick(fichaCatsBase,cat,CATEGORIES);
+    return expenseTopCategoryPick(fichaCatsBase,cat,XC);
   },[fichaCatsBase,cat]);
   if(!open) return null;
   const entrySym=CUR_SYM[entryCur]||entryCur;
@@ -1390,8 +1391,9 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
       id:mcExpenseId(), date:date||isoLocal(),
       amount:isIn?-Math.abs(amtEur):Math.abs(amtEur),
       merchant:note.trim()||(isIn?t("cat_ingreso"):catName(cat)),
-      category:isIn?"ingreso":cat, source:"manual", card:!isIn
+      category:isIn?"ingreso":cat, source:"manual"
     };
+    if(!isIn && nc) e.noCard=true;
     if(bank) e.ent=bank;   // banco elegido → filtro por banco en Gastos (y viaja en source)
     // Rastro del importe original (informativo; la lista sigue en la moneda de visualización).
     if(entryCur!=="EUR"){ e.origAmount=amt; e.origCur=entryCur; }
@@ -1412,7 +1414,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
       }
     }
   };
-  const cats=CATEGORIES.filter(function(c){ return c.id!=="otros"; }).concat(CATEGORIES.filter(function(c){ return c.id==="otros"; }));
+  const cats=XC.filter(function(c){ return c.id!=="otros"; }).concat(XC.filter(function(c){ return c.id==="otros"; }));
   const chipIA=(kind==="gasto") ? sugerenciaApuntar({
     concepto:note.trim(), tocadaAMano:tocadaAMano, iaOn:aiOn, nube:cloud.enabled(),
     iaPara:iaPara, iaCat:iaCat
@@ -1434,6 +1436,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
       onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); setCurOpen(false); }}
   ];
   const afterMeta=React.createElement(React.Fragment,null,
+    kind==="gasto" && React.createElement("button",{className:"v4-chip"+(nc?" on":""),"data-testid":"ap-payment",onClick:function(){ setNc(!nc); }},t(nc?"g_nocard":"g_card")),
     curOpen && React.createElement("div",{className:"v4-chips wrap","aria-label":t("ap_cur_lbl")},
       curChips.map(function(c){ return React.createElement("button",{key:c,type:"button",className:"v4-chip"+(entryCur===c?" on":""),
         onClick:function(){ pickCur(c); setCurOpen(false); }},(CUR_SYM[c]||c)+" "+c); })),

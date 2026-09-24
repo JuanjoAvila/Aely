@@ -1,3 +1,51 @@
+## [4.26.42] - 2026-09-24
+### Bizum pasa de categoría a forma de pago
+
+`bizum` se conserva en `CATEGORIES` únicamente para representar filas antiguas: no se migra ni se
+borra ninguna porque el nombre de la persona no permite saber si fue restaurante, salud u otra
+finalidad. El catálogo de alta/edición y las sugerencias locales o remotas usan ahora
+`EXPENSE_CATEGORIES`, que excluye Bizum. Una fila antigua lo sigue mostrando como selección actual
+hasta que el usuario la recategoriza.
+
+Apuntar separa la categoría de la forma de pago mediante Tarjeta / Bizum o transferencia y persiste
+`noCard` sin alterar la categoría elegida. La ficha de un gasto presenta ambas dimensiones por
+separado. Se retiró la palabra clave Bizum del espejo cliente/ingest y del vocabulario de
+`categorize`; la app ignora además respuestas antiguas del Edge que todavía propongan `bizum`.
+Este commit no despliega ninguna Edge Function: la beta web queda protegida aun con el backend
+anterior y cualquier despliegue del servidor seguirá necesitando autorización expresa.
+
+Los unitarios fijan la compatibilidad histórica y la exclusión de la IA. El E2E crea 47 € de Fisio,
+elige Bizum o transferencia y exige `{category:"salud", noCard:true}` en persistencia.
+
+## [4.25.13] - 2026-09-24
+### Mínimo de caja aprobado, portado sin arrastrar el rediseño
+
+Se porta sobre producción únicamente la tanda `plan-minimo-caja` aprobada en beta 4.26.37.
+La frase de Plan → Recibos deja de usar `projectedByBank`, que solo describe el cierre del mes,
+y parte de `minByBank` / `minDayByBank`: una nómina posterior ya no oculta un descubierto que
+ocurre antes. Si el banco o el mínimo no se conocen se mantiene «—», sin fabricar una cifra.
+
+Las cuotas sin fecha requerían una excepción: el motor histórico usa día 1 como fallback y por
+eso ya no aparecen entre sus eventos pendientes. `PlanBills` conserva ahora el día desconocido,
+las deja pendientes y `planCoverState` las descuenta del mínimo sin inventar fecha. Los fijos sin
+fecha no se restan otra vez porque ya están incluidos en `minByBank`. Dos unitarios vigilan ambas
+ramas y el E2E abre Plan real, comprueba 500 − 80 = 420 € y que no aparezca «día 1».
+
+No se incorpora ninguna otra tanda 4.26, pantalla rediseñada, backend, Android ni APK.
+
+## [4.25.12] - 2026-09-24
+### Cierre de hojas sin volver a bloquear el fondo
+
+El port selectivo de 4.25.11 convirtió el desbloqueo inmediato de `useSheetSwipe` en una opción
+que solo activaba `BudgetSheet`. Las demás hojas conservaban `sheet-open` y
+`body.style.overflow="hidden"` durante sus 200 ms de salida, recuperando el tirón que producción
+ya había eliminado. El cierre animado vuelve a liberar el fondo de forma incondicional al empezar,
+sin cambiar las duraciones: Presupuesto mantiene 320 ms y las demás hojas sus valores previos.
+
+El E2E abre Apuntar, confirma el candado mientras la hoja está visible, la cierra con un gesto
+táctil real y comprueba que el nodo sigue montado durante la animación mientras el fondo ya está
+libre. Así se vigila la regresión concreta que no medían las pruebas de Presupuesto.
+
 ## [4.26.41] - 2026-09-24
 ### Atrás predictivo en las capas interiores de Recibos
 

@@ -1136,15 +1136,15 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const [allCatsOpen,setAllCatsOpen]=useState(false);
   const [adjustOpen,setAdjustOpen]=useState(null);
   const auto=!!(exp && exp.source && exp.source!=="manual");
-  const categoryCatalog=useMemo(function(){ return CATEGORIES.concat([INVERSION_CAT,TRASPASO_CAT]); },[]);
+  const catList=useMemo(()=>XC.concat(exp&&exp.category==="bizum"?[CAT.bizum]:[],INVERSION_CAT,TRASPASO_CAT),[exp&&exp.category]);
   // ExpenseDetailSheet permanece premontado: esta pasada O(n) ocurre al preparar Gastos, no al
   // tocar una fila. Al abrir solo se garantiza que la categoría actual esté entre ocho chips.
   const fichaCatsBase=useMemo(function(){
-    return expenseTopCategoryRanking(state.expenses,categoryCatalog);
-  },[state.expenses,categoryCatalog]);
+    return expenseTopCategoryRanking(state.expenses,catList);
+  },[state.expenses,catList]);
   const fichaCats=useMemo(function(){
-    return expenseTopCategoryPick(fichaCatsBase,exp&&exp.category,categoryCatalog);
-  },[fichaCatsBase,exp&&exp.category,categoryCatalog]);
+    return expenseTopCategoryPick(fichaCatsBase,exp&&exp.category,catList);
+  },[fichaCatsBase,exp&&exp.category,catList]);
   useEffect(function(){
     if(!abierto){ setCalOpen(false); setBankOpen(false); setAllCatsOpen(false); setAdjustOpen(null); }
   },[abierto,exp&&exp.id]);
@@ -1227,8 +1227,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       if(auto){ lockedToast(); return; }
       const income=!editExp.income; setEditExp(function(p){ return Object.assign({},p,{income:income}); }); saveEdit(exp,{income:income});
     }},React.createElement("span",null,t("f_income_row")),React.createElement("span",{className:"value"},editExp.income?"✓":t("f_no")),React.createElement("span",{className:"chev"},"›")),
-    !isIncome && React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setCardFlag(exp,!exp.noCard); }},
-      React.createElement("span",null,exp.noCard?("💸 "+t("v4_exp_not_card")):("💳 "+t("v4_exp_with_card"))),React.createElement("span",{className:"value"},exp.noCard?t("f_no"):"✓"),React.createElement("span",{className:"chev"},"›")),
+    !isIncome && React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-payment",onClick:function(){ setCardFlag(exp,!exp.noCard); }},
+      React.createElement("span",null,t(exp.noCard?"g_nocard":"g_card")),React.createElement("span",{className:"chev"},"›")),
     cloud.enabled() && !isIncome && React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",disabled:aiBusy,onClick:function(){ suggestAi(exp); }},
       React.createElement("span",null,aiBusy?t("ai_cat_busy"):t("ai_cat_btn")),React.createElement("span",{className:"chev"},"›"))
   );
@@ -1255,13 +1255,13 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
           },dateLabel:fmtIsoCorto(dateIso),onDate:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); },
           amount:String(editExp.amount||"0"),amountEmpty:!editExp.amount,currency:"€",locked:auto,onLocked:lockedToast,focused:!auto,
           concept:editExp.merchant,onConcept:function(v){ setEditExp(function(p){ return Object.assign({},p,{merchant:v}); }); },onConceptBlur:closeSave,fxHint:fxHint,
-          meta:meta,afterMeta:afterMeta,categoryItems:fichaCats,allCategoryItems:categoryCatalog,category:exp.category,
+          meta:meta,afterMeta:afterMeta,categoryItems:fichaCats,allCategoryItems:catList,category:exp.category,
           onCategory:function(id){ setCat(exp,id); },onAllCategories:function(){ setAllCatsOpen(true); },adjustments:adjustments,
           numpad:React.createElement(NumPad,{value:editExp.amount,onChange:amountChange}),footer:footer,testPrefix:"exp"})
       )
     ),document.body);
   return React.createElement(React.Fragment,null,main,
-    React.createElement(ExpenseCategorySheet,{open:allCatsOpen,onClose:function(){ setAllCatsOpen(false); },items:categoryCatalog,selected:exp.category,onPick:function(id){ setCat(exp,id); }}));
+    React.createElement(ExpenseCategorySheet,{open:allCatsOpen,onClose:function(){ setAllCatsOpen(false); },items:catList,selected:exp.category,onPick:function(id){ setCat(exp,id); }}));
 }
 
 function BudgetSheet({open, budget, onClose, onSave}){
