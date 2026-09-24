@@ -1,3 +1,25 @@
+## [4.25.19] - 2026-09-24
+### Ficha completa y navegación gestual de inversiones aprobadas
+
+Se reconstruye sobre producción únicamente la experiencia de Inversiones aprobada en beta
+4.26.16, sin arrastrar el resto de la rama 4.26. La antigua hoja de Herramientas se sustituye
+por una pantalla hija de Cartera que entra desde la derecha tras dos frames, mantiene el cálculo
+contable existente y reúne total, coste, ganancia, brókers, posiciones, alta manual, moneda y
+actualización a demanda. La proyección y la actualización automática conservan puerta propia en
+Ajustes → Dinero, para no dejar funciones huérfanas al retirar la hoja anterior.
+
+El gesto horizontal se reclama desde cualquier zona libre porque Android intercepta el borde:
+decide el eje con `gestureAxis`, deja el scroll vertical al navegador, excluye inputs y selectores,
+sigue el dedo, vuelve al origen si no supera distancia/velocidad y cierra hacia la derecha cuando
+sí confirma. `touchcancel` nunca cierra. Atrás, Escape y el botón comparten una salida de 430 ms;
+el gesto confirmado usa 240 ms, y Reducir animaciones elimina espera, contador y spinner.
+
+El portal bloquea el fondo con un contador compartido, devuelve el foco a la puerta de Cartera y
+encierra el foco dentro del diálogo. Los avisos de confirmación conservan su propio foco y Escape,
+sin cerrar la pantalla que queda debajo. Veintiún E2E cubren render financiero, coste desconocido,
+alta y edición manual, fallos/caducidad, ajustes conservados, accesibilidad, CPU x6 y gesto táctil
+real desde centro, corto, vertical y cancelado. No cambia backend, Open Banking, datos ni APK.
+
 ## [4.25.18] - 2026-09-24
 ### Actualización completa de inversiones aprobada
 

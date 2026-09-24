@@ -362,6 +362,13 @@ function BillsManageSheet({open, onClose, state, set, totals}){
 
 function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, syncInv, onReconnectBank, showToast}){
   const [invTools,setInvTools]=useState(false);
+  const invLinkRef=useRef(null);
+  const closeInvestments=function(){
+    setInvTools(false);
+    // La pantalla hija devuelve el foco a la puerta que la abrió; sin esto, al cerrar con
+    // Atrás el lector de pantalla se queda apuntando a un nodo que ya no existe.
+    requestAnimationFrame(function(){ if(invLinkRef.current) invLinkRef.current.focus(); });
+  };
   // TR desconectado (y el usuario SÍ lo tuvo conectado alguna vez → mc_tr_phone guardado):
   // banner con botón que abre Mis bancos directamente. UX padre 2026-07-18: al ver el saldo
   // descuadrado se fue a la app de Trade Republic — el arreglo debe estar donde está el problema.
@@ -542,30 +549,110 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise",style:{animationDelay:".12s"}},
         React.createElement("div",{className:"v4-sec-h"}, t("v4_inversiones")),
         React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,v4Embed:true,showToast:showToast}),
-        React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:10},onClick:function(){ setInvTools(true); }}, t("v4_inv_tools")+" ›")
+        React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:10},ref:invLinkRef,onClick:function(){ setInvTools(true); }}, t("iv_see_all")+" ›")
       ) }
     ]}),
-    // El sheet vive FUERA de los bloques ordenables: es un portal, no una sección, y meterlo
-    // dentro lo desmontaría al reordenar (cerrándose solo a media consulta).
-    !simple && React.createElement(InvToolsSheet,{open:invTools,onClose:function(){ setInvTools(false); },state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast})
+    // La hija vive FUERA de los bloques ordenables: es un portal, no una sección, y meterla
+    // dentro la desmontaría al reordenar (cerrándose sola a media consulta).
+    !simple && React.createElement(InvestmentsPush,{open:invTools,onClose:closeInvestments,state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast})
   );
 }
 
-function InvToolsSheet({open, onClose, state, set, fetchPrices, pricing, syncInv, showToast}){
-  useBackClose(!!open, onClose);
-  const swipe=useSheetSwipe(!!open, onClose);
+function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncInv, showToast}){
+  // Locales deliberadamente compactos: el gesto vive en un único efecto y el bundle tiene un
+  // presupuesto estricto; los nombres largos no aportaban contexto fuera de estas pocas líneas.
+  const tr=useRef(null), sr=useRef(null), ct=useRef(null), cr=useRef(onClose); cr.current=onClose;
+  const [shown,setShown]=useState(false);
+  const closePush=useCallback(function(){
+    if(ct.current) return;
+    setShown(false);
+    ct.current=setTimeout(function(){ ct.current=null; cr.current(); },
+      document.documentElement.classList.contains("reduce-motion")?0:430);
+  },[]);
+  useBackClose(!!open, closePush);
+  useLayoutEffect(function(){
+    if(!open) return undefined;
+    const root=sr.current;
+    let sx=0,sy=0,dx=0,t0=0,drag=false,axis=null,st=0,e2=0;
+    const e1=requestAnimationFrame(function(){ e2=requestAnimationFrame(function(){ setShown(true); }); });
+    // El gesto puede empezar en toda la pantalla (rechazo beta 4.26.16.1): en Android el sistema
+    // se queda el borde y la WebView no llega a ver ese dedo. El eje vertical se abandona al
+    // scroll nativo; `touchmove` va a mano porque React lo registra pasivo.
+    const start=function(e){
+      const p=e.touches&&e.touches[0];
+      const target=e.target;
+      if(!p||document.documentElement.classList.contains("ask-open")||
+        (target&&target.closest&&target.closest("input,textarea,select,[data-noswipe]"))) return;
+      sx=p.clientX; sy=p.clientY; dx=0; t0=Date.now(); drag=true; axis=null;
+    };
+    const move=function(e){
+      if(!drag||!(e.touches&&e.touches[0])) return;
+      const p=e.touches[0],x=p.clientX-sx,y=p.clientY-sy;
+      if(axis===null){ axis=gestureAxis(x,y); if(!axis) return; if(axis!=="x"){ drag=false; return; } }
+      dx=Math.max(0,x);
+      if(!dx) return;
+      root.classList.add("dragging"); root.style.transform="translateX("+dx+"px)";
+      if(e.cancelable) e.preventDefault();
+    };
+    const finish=function(commit){
+      if(!drag){ axis=null; return; }
+      drag=false; axis=null;
+      const go=commit&&(dx>(root.clientWidth||360)*.28||(dx/Math.max(1,Date.now()-t0)>.45&&dx>52));
+      root.classList.remove("dragging");
+      root.style.transition="transform .24s cubic-bezier(.32,.72,0,1)";
+      if(go){
+        root.style.transform="translateX(105%)";
+        ct.current=setTimeout(function(){ ct.current=null; cr.current(); },document.documentElement.classList.contains("reduce-motion")?0:240);
+      } else {
+        root.style.transform="";
+        st=setTimeout(function(){ root.style.transition=""; },250);
+      }
+      dx=0;
+    };
+    const end=function(){ finish(true); }, cancel=function(){ finish(false); };
+    mcSheetLock();
+    root.addEventListener("touchstart",start,{passive:true});
+    root.addEventListener("touchmove",move,{passive:false});
+    root.addEventListener("touchend",end,{passive:true});
+    root.addEventListener("touchcancel",cancel,{passive:true});
+    return function(){
+      cancelAnimationFrame(e1); if(e2) cancelAnimationFrame(e2); if(st) clearTimeout(st);
+      root.removeEventListener("touchstart",start); root.removeEventListener("touchmove",move);
+      root.removeEventListener("touchend",end); root.removeEventListener("touchcancel",cancel);
+      root.style.transform=""; root.style.transition=""; mcSheetUnlock(); setShown(false);
+      if(ct.current){ clearTimeout(ct.current); ct.current=null; }
+    };
+  },[open]);
+  useEffect(function(){
+    if(!open) return undefined;
+    const id=requestAnimationFrame(function(){ if(tr.current) tr.current.focus(); });
+    const keydown=function(e){
+      const root=sr.current;
+      if(!root) return;
+      // AskHost vive por encima de esta pantalla. Mientras esté abierto, su diálogo es quien
+      // posee Escape y Tab; interceptarlos aquí cerraba Inversiones o sacaba el foco del aviso.
+      if(document.documentElement.classList.contains("ask-open")) return;
+      if(e.key==="Escape"){ e.preventDefault(); closePush(); return; }
+      if(e.key!=="Tab") return;
+      const focusable=Array.from(root.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[href],[tabindex]:not([tabindex="-1"])'))
+        .filter(function(el){ return el.getClientRects().length>0; });
+      if(!focusable.length){ e.preventDefault(); tr.current&&tr.current.focus(); return; }
+      const first=focusable[0],last=focusable[focusable.length-1],active=document.activeElement;
+      const at=focusable.indexOf(active);
+      if(e.shiftKey&&at<=0){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey&&(at<0||active===last)){ e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown",keydown);
+    return function(){ cancelAnimationFrame(id); document.removeEventListener("keydown",keydown); };
+  },[open]);
   if(!open) return null;
   return ReactDOM.createPortal(
-    React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
-      React.createElement("div",Object.assign({className:"v4-sheet",style:{maxHeight:"92dvh"},ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
-        React.createElement("div",{className:"v4-sheet-handle"}),
-        React.createElement("div",{className:"v4-section-h"},
-          React.createElement("span",{className:"serif",style:{fontSize:19,fontWeight:600}}, t("v4_inv_tools")),
-          React.createElement("button",{className:"link","aria-label":t("au_close"),onClick:onClose},"✕")
-        ),
-        React.createElement("p",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.45,margin:"0 0 12px"}}, t("v4_inv_tools_h")),
-        React.createElement("div",{className:"v4-embed-legacy"}, React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,v4Embed:false,toolsMode:true,showToast:showToast}))
-      )
+    React.createElement("div",{className:"settings-push v4-investments-push"+(shown?" open":""),"data-inv-screen":"1",ref:sr,role:"dialog","aria-modal":"true","aria-labelledby":"iv-screen-title"},
+      React.createElement("div",{className:"settings-push-h"},
+        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:closePush},"‹"),
+        React.createElement("h1",{id:"iv-screen-title",tabIndex:-1,ref:tr}, t("iv_title"))
+      ),
+      React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,fullMode:true,showToast:showToast})
     ), document.body);
 }
 
