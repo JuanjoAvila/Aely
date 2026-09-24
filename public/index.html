@@ -4408,6 +4408,13 @@ function refreshExpenseFromCloud(local, incoming){
        y la propiedad existe en el literal de expenseFromRow). No tocar possibleDupOf. */
     if(Object.prototype.hasOwnProperty.call(incoming,"possibleDup") && !incoming.possibleDup){
       put("possibleDup", undefined);
+      /* Ventana mínima del anti-race de ingest: la fila nace #dup y después se libera. Si un pull
+         cae justo entre ambos pasos, el siguiente debe adoptar también el origen confirmado;
+         apagar solo la marca dejaba una notificación TR localmente disfrazada de Open Banking. */
+      if((incoming.source==="macrodroid"||incoming.source==="wallet") && local.possibleDup){
+        put("source",incoming.source);
+        if(Object.prototype.hasOwnProperty.call(incoming,"ent")) put("ent",incoming.ent);
+      }
     }
   }
   if(incoming.possibleDupOf!=null) put("possibleDupOf", incoming.possibleDupOf);

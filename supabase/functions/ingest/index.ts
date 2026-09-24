@@ -35,7 +35,7 @@ import {
   limpiarTexto, type Fuente, type Tipo,
 } from "../_shared/ingest_logic.ts";
 import { aEuros, parseWallet } from "../_shared/wallet.ts";
-import { claveEvento, esPosibleGemeloIngest } from "../_shared/ingest_identity.ts";
+import { claveEvento, esPosibleGemeloIngest, tieneGemeloAnterior } from "../_shared/ingest_identity.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
 import { bancosDeGastoDiario, cuentaParaPresupuesto, filasComoLaApp, inicioDeMesMs, statsDelMes } from "../_shared/presupuesto.ts";
 // Comparación del token en tiempo constante (2026-07-24) y topes de entrada (SEC-01, 14/9): en _shared.
@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
     // NO se apunta ni un trozo del token: es una credencial, y una tabla de diagnóstico no es
     // sitio para guardar credenciales ni a medias. Con la longitud basta para distinguir «token
     // viejo/truncado» de «token de otro proyecto» (2026-07-24).
-    await logIngestError(supabase, null, "token inválido (lector nativo con token no registrado)", "len=" + token.length);
+    await logIngestError(supabase, null, "token inválido (lector nativo con token no registrado)", { tokenLength: token.length });
     return json({ ok: false, error: "token inválido" }, 403);
   }
 
@@ -115,11 +115,10 @@ Deno.serve(async (req) => {
      exactamente igual y no hay que actualizar para que nada se rompa. */
   const fuente: Fuente = data.fuente === "wallet" ? "wallet" : "tr";
 
-  /* RASTRO DE LO QUE SE DESCARTA (14/9). El «1331 BAR» del padre no entró y no dejó NADA: ni fila,
-     ni error. Cada `skipped` apunta ahora su motivo en app_events (`kind: ingest_skip`), para que
-     el siguiente se explique en minutos en vez de quedarse en «no se sabe». */
+  /* RASTRO DE LO QUE SE DESCARTA (14/9). Conserva el motivo y la forma, no la notificación: texto,
+     comercio e importe ya son datos financieros aunque el panel sea solo-admin. */
   const skip = (motivo: string, extra: Record<string, unknown> = {}) =>
-    logIngestSkip(supabase, userId, motivo, texto, titulo, fuente).then(() => json({ ok: true, skipped: true, ...extra }));
+    logIngestSkip(supabase, userId, motivo, fuente, texto.length, titulo.length).then(() => json({ ok: true, skipped: true, ...extra }));
 
   /* ACK EXACTO (17/9). Un timeout puede ocurrir DESPUÉS del INSERT y antes de que el móvil reciba
      la respuesta. Reintentar entonces no es otro gasto: es el mismo evento esperando acuse. La
@@ -162,7 +161,7 @@ Deno.serve(async (req) => {
            mano. */
         await logIngestError(supabase, userId,
           "sin tipo de cambio para " + pago.divisa + ": el gasto NO se ha apuntado",
-          pago.comercio + " · " + pago.importe + " " + pago.divisa);
+          { currency: pago.divisa });
         return json({ ok: true, tipo: "ignorado", skipped: true, error: "sin tipo para " + pago.divisa });
       }
       importeOrig = pago.importe;
@@ -204,11 +203,13 @@ Deno.serve(async (req) => {
   // Si TR y Wallet describen el mismo importe con nombres distintos, la segunda fila se CONSERVA
   // como posible repetido y no cuenta hasta que el usuario elija «es el mismo» / «son distintos».
   const t0 = new Date(fecha).getTime();
+  const fuentesIngest = ["macrodroid", "wallet", "ob:trade_republic#dup", "ob:wallet#dup"];
   let possibleDup = false;
   if (eventKey) {
     const { data: cercanos } = await supabase.from("expenses")
       .select("fecha,importe,ingest_event_id")
       .eq("user_id", userId)
+      .in("source", fuentesIngest)
       .gte("importe", importe - 0.02).lte("importe", importe + 0.02)
       .gte("fecha", new Date(t0 - 2 * 60 * 60 * 1000).toISOString())
       .lte("fecha", new Date(t0 + 2 * 60 * 60 * 1000).toISOString());
@@ -216,30 +217,37 @@ Deno.serve(async (req) => {
       { fecha, importe, ingest_event_id: eventKey }, r,
     ));
   } else {
-    /* Compatibilidad con APK antiguas, que no tienen una identidad reintentable. Se conserva su
-       barrera débil para no reabrir duplicados hasta que se actualicen; la ruta nueva jamás borra
-       por parecido. */
+    /* Compatibilidad con APK antiguas, que no tienen una identidad reintentable. Antes se tiraba
+       el segundo candidato; ahora se conserva marcado. Perder una compra legítima es peor que
+       pedir que se resuelva una duda, y además la marca permite cerrar la carrera tras el INSERT. */
     const { data: dupRows } = await supabase.from("expenses").select("fecha")
       .eq("user_id", userId)
+      .in("source", fuentesIngest)
       .gte("importe", importe - 0.02).lte("importe", importe + 0.02)
       .gte("fecha", new Date(t0 - 10 * 60 * 1000).toISOString())
       .lte("fecha", new Date(t0 + 10 * 60 * 1000).toISOString()).limit(1);
-    if (dupRows && dupRows.length) return skip("dup legacy: mismo importe a <10 min", { tipo, dup: true });
+    possibleDup = !!(dupRows && dupRows.length);
     const dia = String(fecha).slice(0, 10);
     const { data: dupDia } = await supabase.from("expenses").select("fecha")
       .eq("user_id", userId).eq("comercio", comercio)
+      .in("source", fuentesIngest)
       .gte("importe", importe - 0.02).lte("importe", importe + 0.02)
       .gte("fecha", dia + "T00:00:00.000Z").lte("fecha", dia + "T23:59:59.999Z").limit(1);
-    if (dupDia && dupDia.length) return skip("dup legacy: mismo comercio e importe ese día", { tipo, dup: true, dupDay: true });
+    possibleDup = possibleDup || !!(dupDia && dupDia.length);
   }
 
+  /* La compra entra PENDIENTE y se libera después del INSERT. Es lo que cierra la carrera real
+     Consum/Wallet + TR del 23/9: las dos peticiones consultaron antes de que la otra fila existiese.
+     Si algo falla entre insertar y comprobar, queda visible para revisar pero NO infla las cifras. */
+  const necesitaPuertaCarrera = tipo === "gasto";
   const fila: Record<string, unknown> = {
     user_id: userId, fecha, importe, comercio, cat,
     /* Compatibilidad con las OTA que ya usan el protocolo #dup: mientras está sin decidir viaja
        como `ob:trade_republic#dup`, que incluso un cliente anterior deja fuera de las cifras. La
        columna ingest_event_id conserva el origen real; la OTA nueva lo presenta como notificación
        y, al elegir «son distintos», lo devuelve a `macrodroid`. */
-    source: possibleDup ? "ob:trade_republic#dup" : "macrodroid", no_card: noCard, nota: nota || null,
+    source: necesitaPuertaCarrera || possibleDup ? "ob:trade_republic#dup" : "macrodroid",
+    no_card: noCard, nota: nota || null,
   };
   if (eventKey) fila.ingest_event_id = eventKey;
   // Solo cuando hubo divisa de verdad: así una noti normal en euros escribe EXACTAMENTE las mismas
@@ -254,7 +262,7 @@ Deno.serve(async (req) => {
   // mejor el gasto sin «eran liras» que ningún gasto. El aviso queda en el panel.
   if (error && divisaOrig && /importe_orig|divisa/i.test(String(error.message || ""))) {
     await logIngestError(supabase, userId, "faltan las columnas de divisa (migración 0020): apuntado solo en euros",
-      comercio + " · " + importeOrig + " " + divisaOrig);
+      { currency: divisaOrig });
     delete fila.importe_orig; delete fila.divisa;
     ({ data: inserted, error } = await guardar());
   }
@@ -265,12 +273,53 @@ Deno.serve(async (req) => {
     if (ack && ack.length) return skip("dup: carrera del mismo evento nativo", { tipo, dup: true, ack: ack[0].id });
   }
   if (error) {
-    await logIngestError(supabase, userId, "no se pudo guardar el gasto: " + error.message, comercio + " · " + importe + "€");
+    await logIngestError(supabase, userId, "no se pudo guardar el gasto",
+      { code: String(error.code || "unknown"), source: fuente });
     return json({ ok: false, error: error.message }, 500);
   }
   // `ignoreDuplicates` no es un INSERT: antes se respondía éxito y Android confirmaba otro gasto.
   if (!inserted || !inserted.length) return skip("dup: conflicto exacto sin nueva fila", { tipo, dup: true });
   const ackId = inserted[0].id;
+
+  if (necesitaPuertaCarrera) {
+    const ventana = eventKey ? 2 * 60 * 60 * 1000 : 10 * 60 * 1000;
+    const columnas = eventKey
+      ? "id,fecha,importe,ingest_event_id,created_at,source"
+      : "id,fecha,importe,created_at,source";
+    const { data: trasInsert, error: raceError } = await supabase.from("expenses")
+      .select(columnas).eq("user_id", userId)
+      .in("source", fuentesIngest)
+      .gte("importe", importe - 0.02).lte("importe", importe + 0.02)
+      .gte("fecha", new Date(t0 - ventana).toISOString())
+      .lte("fecha", new Date(t0 + ventana).toISOString());
+    const actual = (trasInsert || []).find((r) => String(r.id) === String(ackId));
+    if (raceError || !actual) {
+      possibleDup = true;
+      await logIngestError(supabase, userId,
+        "no se pudo cerrar la comprobación anti-duplicado: queda pendiente y fuera de las cifras",
+        { code: "race_check", source: fuente });
+    } else {
+      possibleDup = possibleDup || tieneGemeloAnterior(actual, trasInsert || []);
+    }
+    if (!possibleDup) {
+      const { error: liberarError } = await supabase.from("expenses")
+        .update({ source: "macrodroid" }).eq("user_id", userId).eq("id", ackId);
+      if (liberarError) {
+        possibleDup = true;
+        await logIngestError(supabase, userId,
+          "no se pudo confirmar el gasto: queda pendiente y fuera de las cifras",
+          { code: "release", source: fuente });
+      } else {
+        fila.source = "macrodroid";
+      }
+    }
+    if (possibleDup && !eventKey) {
+      /* El APK anterior no entiende `possibleDup`: con `skipped` no enseña un segundo
+         «Gasto apuntado». La fila sigue en Gastos, marcada y reversible; no se ha borrado. */
+      return skip("dup legacy: candidato conservado para revisar",
+        { tipo, dup: true, possibleDup: true, ack: ackId });
+    }
+  }
 
   // 4) Total del mes + alerta de presupuesto server-side (best-effort): el lector
   //    nativo lo usa para refrescar el WIDGET y lanzar la notificación aunque la
@@ -351,30 +400,31 @@ function json(obj: unknown, status = 200) {
 // de la app → app_events no se enteraba y el gasto "desaparecía" sin rastro — bug 2026-07-11).
 // Best-effort: nunca rompe el ingest. Sin user resuelto se apunta al del creador (es su panel).
 // deno-lint-ignore no-explicit-any
-async function logIngestError(supabase: any, userId: string | null, message: string, detail?: string) {
+async function logIngestError(supabase: any, userId: string | null, message: string,
+  detail: Record<string, string | number | boolean | null> = {}) {
   try {
     const uid = userId || Deno.env.get("INGEST_USER_ID");
     if (!uid) return;
     await supabase.from("app_events").insert({
       user_id: uid, email: null, kind: "error",
       message: ("INGEST: " + message).slice(0, 500),
-      detail: detail ? String(detail).slice(0, 2000) : null,
+      detail: Object.keys(detail).length ? JSON.stringify(detail).slice(0, 1000) : null,
       app_version: "edge", platform: "android",
     });
   } catch (_) { /* opcional */ }
 }
 
-/* Rastro de un descarte (14/9). Solo del usuario del token (nunca en el panel de otro), con el
-   motivo y el texto recortado: basta para ver si fue ruido, un duplicado o una frase sin importe.
-   Best-effort como el de arriba: si falla, el ingest contesta igual. */
+/* Rastro de un descarte (14/9). Solo del usuario del token y sin contenido de la notificación:
+   motivo, fuente y longitudes bastan para distinguir vacío/formato/duplicado sin retener dinero. */
 // deno-lint-ignore no-explicit-any
-async function logIngestSkip(supabase: any, userId: string | null, motivo: string, texto: string, titulo: string, fuente: string) {
+async function logIngestSkip(supabase: any, userId: string | null, motivo: string, fuente: string,
+  textLength: number, titleLength: number) {
   try {
     if (!userId) return;
     await supabase.from("app_events").insert({
       user_id: userId, email: null, kind: "ingest_skip",
       message: ("INGEST skip: " + motivo).slice(0, 200),
-      detail: (fuente + " · " + String(titulo || "").slice(0, 40) + " · " + String(texto || "").slice(0, 200)),
+      detail: JSON.stringify({ source: fuente, textLength, titleLength }),
       app_version: "edge", platform: "android",
     });
   } catch (_) { /* opcional */ }

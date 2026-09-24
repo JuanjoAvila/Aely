@@ -52,7 +52,7 @@ await t("sync diario continúa tras primera página vacía y entrega el gasto",a
 });
 await t("histórico recupera un periodo no disponible con strategy longest",async()=>{
   const r=await sync([link("Banco de Sabadell")],u=>{
-    if(u.searchParams.get("strategy")!=="longest") throw new Error('EB 400: {"error":"WRONG_TRANSACTIONS_PERIOD"}');
+    if(u.searchParams.get("strategy")!=="longest") throw new Error("EB 422 WRONG_TRANSACTIONS_PERIOD");
     return {transactions:[movement()]};
   },{dateFrom:"2026-06-15"});
   assert.equal(r.data.links[0].accounts[0].transactions.length,1);

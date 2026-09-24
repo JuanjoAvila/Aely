@@ -68,6 +68,10 @@ petición `bank-sync(dateFrom,[banco])` por cada uno. Así conserva la cola estr
 pero cada banco estrena el deadline de 60 segundos; uno lento no puede dejar al siguiente sin
 turno. La Edge deja un diagnóstico cerrado por lectura (`ok`/`empty`/`partial`/`error`, cuentas,
 filas, duración y `dateFrom`) sin uid, IBAN, comercio, importe ni payload bancario.
+La misma frontera rige el sync diario: `app_events` puede guardar el banco, una clase estable y
+recuentos agregados, pero nunca transacciones ni campos del proveedor. El volcado temporal usado
+para diagnosticar el signo de Trade Republic se retiró al encontrarlo todavía activo en una
+sincronización normal; `tests/security.test.mjs` impide reintroducirlo con otro mensaje.
 
 El cliente conserva todas las filas recibidas, sin cupo global de 150. La ventana temporal y
 las reglas de dedup de la importación diaria no cambian. No se añade ninguna sincronización.
@@ -177,6 +181,16 @@ identidad en `expenses.ingest_event_id` (migración 0025) y solo devuelve confir
 insertar. Un reintento o una carrera `23505` devuelve el gasto ya existente; una coincidencia
 entre fuentes distintas se conserva como `possibleDup` y no suma hasta resolverla. El orden de
 despliegue es migración 0025 → `ingest` → APK: una OTA sin APK no cambia la identidad nativa.
+
+Mientras siga instalada una APK anterior, Wallet y TR pueden llegar sin `ingest_event_id`. Para
+cerrar también la carrera entre dos POST simultáneos, `ingest` inserta cada compra como pendiente,
+repite la comparación cuando la fila ya existe y solo entonces libera la más antigua. La posterior
+se conserva con `#dup`, fuera de todas las cifras; al cliente antiguo se responde `skipped` para que
+no enseñe dos confirmaciones. No se borra por parecido: la decisión «Es el mismo» / «Son distintos»
+sigue disponible. Si la comprobación o la liberación falla, el defecto seguro es dejar la compra
+pendiente y visible para revisar, nunca sumarla a ciegas. La búsqueda se limita a orígenes de
+notificación —no a filas de Open Banking— y un pull que coincida con la breve fase pendiente adopta
+después también el origen confirmado por el servidor.
 
 Cotizaciones: Edge `prices` → Finnhub/Yahoo. FX: Frankfurter `EUR→USD,GBP,CHF` → `state.fxRates` (XXX→EUR) + `state.fx` (USD legado). Coste invertido editable ancla `costEur`. Moneda de visualización (`DISP`): EUR/USD/GBP/CHF desde 4.1.0; sin FX descargado se queda en € (nunca inventar tipo).
 

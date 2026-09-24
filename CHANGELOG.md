@@ -1,3 +1,19 @@
+## [4.26.39] - 2026-09-24
+### Wallet y Trade Republic dejan una sola compra confirmada
+
+Dos POST simultáneos podían consultar antes de que ninguno terminara de insertar: si Wallet y
+Trade Republic daban nombres distintos al mismo pago, el índice exacto no resolvía la carrera.
+`ingest` crea cada candidata como pendiente, repite la comparación sobre las filas ya visibles y
+solo libera la más antigua. La posterior queda como `possibleDup`, fuera de totales y con decisión
+reversible; no se elimina ninguna fila por parecido. El cliente adopta también el origen confirmado
+si sincroniza durante esa ventana mínima.
+
+La búsqueda se limita a fuentes de notificación, para no confundir una compra con su movimiento de
+Open Banking. La telemetría financiera ya no conserva payloads bancarios, movimientos, comercio,
+importe, `access`, `code` ni `state`; los tests fijan esa frontera. `bank-sync`, `bank-callback` e
+`ingest` se desplegaron una a una, sin migraciones, en los Actions `35978144828`, `35978233778` y
+`35978304257` después del permiso expreso del dueño.
+
 ## [4.26.38] - 2026-09-24
 ### Las hojas liberan el fondo desde el primer fotograma de salida
 
