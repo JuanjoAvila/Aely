@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
 const c = loadPureLogicFromFile();
-const reloj = new Date("2026-09-24T12:00:00+02:00");
+let reloj = new Date("2026-09-24T12:00:00+02:00");
 c.Date = class extends Date {
   constructor(...args) { super(...(args.length ? args : [reloj.getTime()])); }
   static now() { return reloj.getTime(); }
@@ -110,6 +110,57 @@ console.log("fixed-day-reconcile");
 }
 
 {
+  reloj = new Date("2026-09-25T12:00:00+02:00");
+  const sinCobro = estado(24);
+  sinCobro.bankTx = [];
+  const gastosAntes = JSON.stringify(sinCobro.expenses);
+  const cuentaOtroBancoAntes = JSON.stringify(sinCobro.accounts[1]);
+  let despues;
+  c.patchFixedById((updater) => { despues = updater(sinCobro); }, "luz", { day: 25 });
+
+  assert.equal(despues.fixed[0].day, 25, "la nueva fecha prevista queda guardada");
+  assert.equal(despues.fixed[0].wait, 2026 * 12 + 9,
+    "si el banco aún no ha cobrado, llegar al día editado no inventa una confirmación");
+  assert.equal(despues.fixed[0].paidYm, undefined);
+  assert.equal(despues.fixed[0].paidDay, undefined);
+  assert.equal(c.reconcileBank(despues, 2026, 9, 25).confirmed.length, 0);
+
+  const pendiente = c.planChargesMonth(despues, 9, 2026, 25);
+  assert.equal(pendiente.pendingBills.filter((x) => x.id === "fixed_luz").length, 1,
+    "el recibo continúa pendiente el día 25 mientras no exista movimiento bancario");
+  assert.equal(pendiente.paidBills.filter((x) => x.id === "fixed_luz").length, 0);
+  assert.equal(c.monthNetForAccount(despues, "sabadell", 2026, 9, 25), 0,
+    "un cobro ausente no se resta de Sabadell");
+  assert.equal(c.monthNetForAccount(despues, "revolut", 2026, 9, 25), 0,
+    "editar el recibo tampoco mueve otro banco");
+  assert.equal(saldoMostrado(despues, "sabadell"), saldoMostrado(sinCobro, "sabadell"),
+    "reanclar la base evita que corregir el estado de pago mueva el saldo visible");
+  assert.equal(saldoMostrado(despues, "revolut"), saldoMostrado(sinCobro, "revolut"));
+  assert.equal(JSON.stringify(despues.expenses), gastosAntes, "el histórico no cambia");
+  assert.equal(despues.accounts[0].value, sinCobro.accounts[0].value-120,
+    "solo se reancla la base interna de la cuenta del recibo");
+  assert.equal(JSON.stringify(despues.accounts[1]), cuentaOtroBancoAntes, "el otro banco no cambia");
+  assert.equal(despues.fixed.length, 1, "la edición no duplica el fijo");
+
+  const cobrado = Object.assign({}, despues, { bankTx: [
+    { id: "tx-luz-sep-25", ent: "sabadell", date: "2026-09-25", amount: 120, merchant: "IBERDROLA LUZ" },
+  ] });
+  const pagado = c.planChargesMonth(cobrado, 9, 2026, 25);
+  assert.equal(pagado.pendingBills.filter((x) => x.id === "fixed_luz").length, 0,
+    "cuando llega el cargo real deja de estar pendiente");
+  assert.equal(pagado.paidBills.filter((x) => x.id === "fixed_luz").length, 1);
+  assert.equal(pagado.paidBills.find((x) => x.id === "fixed_luz").day, 25);
+  assert.equal(c.monthNetForAccount(cobrado, "sabadell", 2026, 9, 25), -120,
+    "el cargo real se descuenta una sola vez");
+
+  let confirmado;
+  c.patchFixedById((updater) => { confirmado = updater(cobrado); }, "luz", { day: 25 });
+  assert.equal(confirmado.fixed[0].wait, undefined, "la confirmación bancaria retira la espera");
+  assert.equal(confirmado.fixed[0].paidYm, 2026 * 12 + 9);
+  assert.equal(confirmado.fixed[0].paidDay, 25);
+}
+
+{
   const primeraBeta = estado(27);
   primeraBeta.fixed[0].paidYm = 2026 * 12 + 9;
   const antes = JSON.stringify(primeraBeta);
@@ -120,6 +171,7 @@ console.log("fixed-day-reconcile");
 }
 
 {
+  reloj = new Date("2026-09-24T12:00:00+02:00");
   const sinCobro = estado(27);
   sinCobro.bankTx = [];
   assert.equal(c.monthNetForAccount(sinCobro, "sabadell", 2026, 9, 24), 0,

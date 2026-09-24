@@ -14,66 +14,66 @@ function entFromAspsp(name){
 /* UNA sola fuente de cargos del mes para Plan / Pregúntame / segmented (audit Claude 17/9).
    Recibos = fixed + deudas (+ balloon) + oneoffs. Traspasos e ingresos van aparte y NUNCA
    suman a «por pagar». Sin tocar totals de 11: solo clasifica con helpers ya existentes. */
-function planChargesMonth(state,month,year,today){
-  state=state||{};
-  var rows=[];
+function planChargesMonth(s,m,y,t){
+  s=s||{};
+  var r=[];
   // La primera beta solo guardaba el mes pagado. Recuperar la fecha real del banco permite que
   // ese estado ya existente deje de enseñar un cobro futuro sin obligar a editarlo otra vez.
-  var bp=reconcileBank(state,year,month,today).paidAt;
-  (state.fixed||[]).forEach(function(e){
-    var amount=occAmountIn(e,month);
-    if(!(amount>0)||!occursIn(e,month)) return;
-    var day=dayIn(e,month),pd=e.paidYm===year*12+month&&(e.paidDay||bp[e.id]);
-    rows.push({id:"fixed_"+e.id,name:e.name,amount:amount,day:pd||day,bank:accOf(e),paid:isPaidIn(e,month,today,year),kind:"bill"});
+  var q=reconcileBank(s,y,m,t).paidAt;
+  (s.fixed||[]).forEach(function(e){
+    var a=occAmountIn(e,m);
+    if(!(a>0)||!occursIn(e,m)) return;
+    var d=dayIn(e,m),bd=q[e.id],pd=e.paidYm===y*12+m&&e.paidDay||bd;
+    r.push({id:"fixed_"+e.id,name:e.name,amount:a,day:pd||d,bank:accOf(e),paid:!!bd||isPaidIn(e,m,t,y)});
   });
-  (state.debts||[]).forEach(function(d){
+  (s.debts||[]).forEach(function(d){
     if(!debtActive(d)) return;
-    var bank=d.account||"sabadell";
+    var b=d.account||"sabadell";
     // Sin day: pendiente con día desconocido. NO usar debtChargeDay/isDebtPaidThisMonth
     // (ese fallback a día 1 marcaba la cuota como ya pagada desde el día 1 — NO-GO 17/9).
-    var dayRaw=dayOf(d);
-    var day=(dayRaw!=null&&dayRaw>0&&isFinite(dayRaw))?Number(dayRaw):null;
-    var paid=day!=null&&day<=today;
-    var monthly=Number(d.monthly)||0;
-    if(monthly>0) rows.push({id:"debt_"+d.id,name:d.name,amount:monthly,day:day,bank:bank,paid:paid,kind:"debt"});
-    var balloon=debtBalloonIn(d,year,month);
-    if(balloon>0) rows.push({id:"balloon_"+d.id,name:d.name+" "+t("db_balloon_tag"),amount:balloon,day:day,bank:bank,paid:paid,kind:"balloon"});
+    var dr=dayOf(d);
+    var dy=(dr!=null&&dr>0&&isFinite(dr))?Number(dr):null;
+    var p=dy!=null&&dy<=t;
+    var a=Number(d.monthly)||0;
+    if(a>0) r.push({id:"debt_"+d.id,name:d.name,amount:a,day:dy,bank:b,paid:p,kind:"debt"});
+    var bl=debtBalloonIn(d,y,m);
+    if(bl>0) r.push({id:"balloon_"+d.id,name:d.name+" "+t("db_balloon_tag"),amount:bl,day:dy,bank:b,paid:p,kind:"balloon"});
   });
-  (state.oneoffs||[]).forEach(function(o){
-    if(!oneoffOccurs(o,year,month)) return;
-    var amt=Number(o.amount)||0;
-    if(!(amt>0)) return;
-    var day=o.day!=null?Number(o.day):null;
-    var paid=day!=null&&day<=today;
-    rows.push({id:"oneoff_"+o.id,name:o.name||o.merchant||"",amount:amt,day:day,bank:o.account||"sabadell",paid:paid,kind:"oneoff"});
+  (s.oneoffs||[]).forEach(function(o){
+    if(!oneoffOccurs(o,y,m)) return;
+    var a=Number(o.amount)||0;
+    if(!(a>0)) return;
+    var d=o.day!=null?Number(o.day):null;
+    var p=d!=null&&d<=t;
+    r.push({id:"oneoff_"+o.id,name:o.name||o.merchant||"",amount:a,day:d,bank:o.account||"sabadell",paid:p,kind:"oneoff"});
   });
-  (state.flows||[]).forEach(function(f){
-    if(!flowOccursIn(f,month,year)) return;
-    var day=flowDay(f,year,month);
-    var paid=day!=null&&day<=today;
-    var amt=+(f.amount||0);
-    if(!(amt>0)) return;
+  (s.flows||[]).forEach(function(f){
+    if(!flowOccursIn(f,m,y)) return;
+    var d=flowDay(f,y,m);
+    var p=d!=null&&d<=t;
+    var a=+(f.amount||0);
+    if(!(a>0)) return;
     if(f.kind==="income"){
-      rows.push({id:"flow_"+f.id,name:f.name||t("fj_income"),amount:-amt,day:day,bank:f.to||"sabadell",paid:paid,kind:"income",income:true});
+      r.push({id:"flow_"+f.id,name:f.name||t("fj_income"),amount:-a,day:d,bank:f.to||"sabadell",paid:p,kind:"income"});
     } else if(f.kind==="transfer"){
-      rows.push({id:"flow_"+f.id,name:f.name||t("fj_transfer"),amount:amt,day:day,bank:f.from||"sabadell",paid:paid,kind:"transfer",to:f.to||null});
+      r.push({id:"flow_"+f.id,name:f.name||t("fj_transfer"),amount:a,day:d,bank:f.from||"sabadell",paid:p,kind:"transfer",to:f.to||null});
     }
   });
-  rows.sort(function(a,b){ return ((a.day==null?99:a.day)-(b.day==null?99:b.day))||(Math.abs(b.amount)-Math.abs(a.amount)); });
-  var isBill=function(x){ return x.kind==="bill"||x.kind==="debt"||x.kind==="balloon"||x.kind==="oneoff"; };
-  var pendingBills=rows.filter(function(x){ return isBill(x)&&!x.paid; });
-  var paidBills=rows.filter(function(x){ return isBill(x)&&x.paid; });
-  var pendingByBank={};
-  pendingBills.forEach(function(x){ var b=x.bank||"sabadell"; pendingByBank[b]=(pendingByBank[b]||0)+Math.abs(x.amount); });
-  var pendingBillsTotal=pendingBills.reduce(function(s,x){ return s+Math.abs(x.amount); },0);
-  var paidBillsTotal=paidBills.reduce(function(s,x){ return s+Math.abs(x.amount); },0);
-  var transfersPending=rows.filter(function(x){ return x.kind==="transfer"&&!x.paid; });
-  var incomePending=rows.filter(function(x){ return x.kind==="income"&&!x.paid; });
+  r.sort(function(a,b){ return ((a.day==null?99:a.day)-(b.day==null?99:b.day))||(Math.abs(b.amount)-Math.abs(a.amount)); });
+  var b=function(x){ return x.amount>0&&x.kind!=="transfer"; };
+  var pb=r.filter(function(x){ return b(x)&&!x.paid; });
+  var qb=r.filter(function(x){ return b(x)&&x.paid; });
+  var by={};
+  pb.forEach(function(x){ var b=x.bank||"sabadell"; by[b]=(by[b]||0)+Math.abs(x.amount); });
+  var pt=pb.reduce(function(s,x){ return s+Math.abs(x.amount); },0);
+  var qt=qb.reduce(function(s,x){ return s+Math.abs(x.amount); },0);
+  var tp=r.filter(function(x){ return x.kind==="transfer"&&!x.paid; });
+  var ip=r.filter(function(x){ return x.kind==="income"&&!x.paid; });
   return {
-    pendingBills:pendingBills, paidBills:paidBills,
-    pendingBillsTotal:pendingBillsTotal, paidBillsTotal:paidBillsTotal,
-    pendingByBank:pendingByBank,
-    transfersPending:transfersPending, incomePending:incomePending
+    pendingBills:pb, paidBills:qb,
+    pendingBillsTotal:pt, paidBillsTotal:qt,
+    pendingByBank:by,
+    transfersPending:tp, incomePending:ip
   };
 }
 /* Pregúntame = misma regla que Plan: solo recibos, sin ingresos ni traspasos. */
@@ -500,7 +500,7 @@ function reconcileBank(state, y, m, today){
     if(best){
       best._used=true;
       if(recAmtClose(target, best.amount)){
-        if(mc.kind==="fixed") res.paidAt[mc.id]=recDay(best.date)||-1;
+        if(mc.kind==="fixed") res.paidAt[mc.id]=recDay(best.date);
         if(typeof mc.bankAmount==="number" && Math.abs(mc.bankAmount-mc.amount)>0.005)
           res.shared.push({name:mc.name, net:mc.amount, gross:best.amount, ent:mc.ent, id:mc.id, kind:mc.kind});
         else res.confirmed.push({name:mc.name, amount:best.amount, ent:mc.ent});
@@ -2174,28 +2174,37 @@ function billsGroupRows(state, group, curMonth, curYear){
 function billsGroupMonthly(state, group, curMonth, curYear){
   return billsGroupRows(state,group,curMonth,curYear).reduce(function(a,r){ return a+Math.abs(Number(r.monthly)||0); },0);
 }
-function patchFixedById(set, id, patch){
+function patchFixedById(set, id, p){
   set(function(s){
-    let item=null;
-    const fixed=(s.fixed||[]).map(function(e){
+    let it=null,o=null;
+    const fx=(s.fixed||[]).map(function(e){
       if(e.id!==id) return e;
-      const n=Object.assign({},e,patch);
-      if(("day" in patch)&&!patch.day) delete n.day;
+      const n=Object.assign({},e,p);
+      if(("day" in p)&&!p.day) delete n.day;
       if(n.freq==="mes"){ delete n.months; delete n.schedule; }
-      item=n; return n;
+      o=e; it=n; return n;
     });
-    const next=Object.assign({},s,{fixed:fixed});
-    if(item&&(("day" in patch)||("amount" in patch)||("account" in patch))){
-      const now=new Date(),y=now.getFullYear(),m=now.getMonth()+1;
-      const paid=reconcileBank(next,y,m,now.getDate()).paidAt[id];
-      if(paid){
-        item.paidYm=y*12+m;
-        item.paidDay=paid;
-      } else if(("amount" in patch)||("account" in patch)){
-        delete item.paidYm; delete item.paidDay;
+    const n=Object.assign({},s,{fixed:fx});
+    if(it&&(("day" in p)||("amount" in p)||("account" in p))){
+      const d=new Date(),y=d.getFullYear(),m=d.getMonth()+1,t=d.getDate();
+      const ym=y*12+m,pd=reconcileBank(n,y,m,t).paidAt[id];
+      if(pd){
+        it.paidYm=ym;
+        it.paidDay=pd;
+        delete it.wait;
+      } else {
+        if(("amount" in p)||("account" in p)){ delete it.paidYm; delete it.paidDay; }
+        if(it.paidYm!==ym && dayIn(it,m)<=t) it.wait=ym;
+        else delete it.wait;
+      }
+      // Quitar un falso «pagado» no puede inflar el saldo que ve la familia. Se desplaza la base
+      // de esa cuenta por el mismo importe y el neto pasa de −importe a 0: la cifra visible queda.
+      if(("day" in p)&&it.wait===ym&&isPaidIn(o,m,t,y)){
+        const ent=accOf(it),amt=occAmountIn(it,m);
+        n.accounts=(s.accounts||[]).map(function(a){ return accFixed(a)&&a.ent===ent?Object.assign({},a,{value:(a.value||0)-amt}):a; });
       }
     }
-    return next;
+    return n;
   });
 }
 function removeFixedById(set, id){

@@ -10,15 +10,18 @@
     "items": {
       "es": [
         "Un recibo ya cobrado sigue contando una sola vez aunque cambies su día dentro del mismo mes.",
-        "El día nuevo queda para los próximos cobros; el actual conserva la fecha real del banco sin mover saldos ni gastos anteriores."
+        "El día nuevo queda para los próximos cobros; el actual conserva la fecha real del banco sin mover saldos ni gastos anteriores.",
+        "Si todavía no lo han cobrado, corregir su día lo mantiene pendiente hasta que aparezca el movimiento real."
       ],
       "en": [
         "A bill that has already been paid still counts once when you change its day within the same month.",
-        "The new day applies to future charges; the current one keeps the bank’s actual date without changing balances or earlier spending."
+        "The new day applies to future charges; the current one keeps the bank’s actual date without changing balances or earlier spending.",
+        "If it has not been charged yet, correcting its day keeps it pending until the real transaction appears."
       ],
       "ca": [
         "Un rebut ja cobrat continua comptant una sola vegada encara que en canviïs el dia dins del mateix mes.",
-        "El dia nou s'aplica als cobraments futurs; l'actual conserva la data real del banc sense moure saldos ni despeses anteriors."
+        "El dia nou s'aplica als cobraments futurs; l'actual conserva la data real del banc sense moure saldos ni despeses anteriors.",
+        "Si encara no l'han cobrat, corregir-ne el dia el manté pendent fins que aparegui el moviment real."
       ]
     },
     "tandas": [
@@ -33,17 +36,20 @@
           "es": [
             "1. En Plan → Recibos, abre un recibo que el banco ya haya cobrado este mes y cambia su día por otro posterior del mismo mes.",
             "2. Al volver a Recibos, debe aparecer una sola vez en «Ya pagado», con el día real del banco; el día nuevo queda guardado para los próximos meses y no aparece también entre lo pendiente.",
-            "3. Comprueba que no han cambiado el saldo de esa cuenta, el de otro banco ni los movimientos anteriores de Gastos."
+            "3. Comprueba que no han cambiado el saldo de esa cuenta, el de otro banco ni los movimientos anteriores de Gastos.",
+            "4. Caso contrario: si hoy es 25 y el recibo del 24 aún no aparece en el banco, cámbialo al 25. Debe seguir una sola vez en «Pendiente», sin descontarlo como pagado; cuando llegue el cargo real pasará a «Ya pagado»."
           ],
           "en": [
             "1. In Plan → Bills, open a bill already charged by the bank this month and change it to a later day in the same month.",
             "2. Back in Bills, it should appear once under “Already paid”, with the bank’s actual day; the new day is saved for future months and it must not also appear as pending.",
-            "3. Check that neither that account balance, another bank balance nor earlier Spending entries have changed."
+            "3. Check that neither that account balance, another bank balance nor earlier Spending entries have changed.",
+            "4. Opposite case: if today is the 25th and the bill due on the 24th is still absent from the bank, change it to the 25th. It must remain once under “Pending”, without being deducted as paid; when the real charge arrives it will move to “Already paid”."
           ],
           "ca": [
             "1. A Pla → Rebuts, obre un rebut que el banc ja hagi cobrat aquest mes i canvia'l a un dia posterior del mateix mes.",
             "2. En tornar a Rebuts, ha d'aparèixer una sola vegada a «Ja pagat», amb el dia real del banc; el dia nou queda desat per als mesos següents i no apareix també entre els pendents.",
-            "3. Comprova que no han canviat el saldo d'aquest compte, el d'un altre banc ni els moviments anteriors de Despeses."
+            "3. Comprova que no han canviat el saldo d'aquest compte, el d'un altre banc ni els moviments anteriors de Despeses.",
+            "4. Cas contrari: si avui és 25 i el rebut del 24 encara no apareix al banc, canvia'l al 25. Ha de continuar una sola vegada a «Pendent», sense descomptar-lo com a pagat; quan arribi el càrrec real passarà a «Ja pagat»."
           ]
         }
       }

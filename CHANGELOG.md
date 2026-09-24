@@ -31,6 +31,28 @@ persistencia sin `bankTx`. También cubre la reparación en lectura de la beta r
 la edición en Plan y comprueba el DOM y el estado guardado. El comportamiento sin movimiento
 bancario no cambia: un recibo futuro sigue pendiente.
 
+Tras aprobar inicialmente `4.26.46.2`, la comprobación inversa antes de producción destapó otro
+caso: el día 25, un recibo previsto para el 24 pero aún ausente del banco se marcaba pagado solo
+porque `isPaidIn` usaba `día <= hoy`; editarlo al 25 perpetuaba ese falso descuento. La edición
+guarda ahora en `wait` el año-mes cuando no existe coincidencia bancaria y el día corregido ya ha llegado.
+Mientras esa marca corresponda al mes, el calendario no puede confirmar el pago; una coincidencia
+real de `reconcileBank` sí prevalece inmediatamente. Una edición posterior con el cargo ya
+presente convierte esa espera en `paidYm` + `paidDay`, sin subir ni mutar `bankTx`.
+Al retirar el falso pago, `patchFixedById` reancla únicamente la base interna de la cuenta del
+recibo por el mismo importe: el neto pasa de −120 € a 0, pero el saldo visible permanece idéntico.
+Es la misma separación base + movimientos que ya usa el motor; no toca el otro banco.
+
+El unitario añade el escenario exacto 24 → 25 sin cargo: una ocurrencia pendiente, cero pagadas,
+neto bancario 0, saldo visible estable, base de Sabadell reanclada una sola vez y Revolut e
+histórico byte a byte iguales. También inyecta después el cargo real del 25 y exige una sola
+ocurrencia pagada y un único descuento de 120 €. El E2E repite la edición desde la ficha y
+comprueba tanto el DOM como el neto financiero.
+
+La revisión externa señaló que el memo de Plan no observaba `bankTx` ni `accounts`: tras una
+sincronización podía conservar la clasificación anterior hasta otro cambio. Ambas referencias
+forman ahora parte de sus dependencias. Una fecha bancaria que no se pueda interpretar deja
+`paidAt` vacío en vez de fabricar el día −1. El bundle sigue dentro del mismo presupuesto.
+
 ## [4.26.45] - 2026-09-24
 ### Las cuotas conservan su enlace sin fingir que son una categoría de consumo
 

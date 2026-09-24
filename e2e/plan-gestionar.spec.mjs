@@ -417,6 +417,62 @@ test("cambiar el día de un recibo cobrado conserva su fecha real", async ({ pag
   await expect(recibos.locator(".v4-charge").filter({hasText:"Iberdrola luz"}).locator(".m")).toHaveText(/sep/i);
 });
 
+test("cambiar al día de hoy un recibo aún no cobrado lo mantiene pendiente", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-09-25T12:00:00+02:00") });
+  const gastos = [
+    { id: "hist-ago", ent: "sabadell", date: "2026-08-20T12:00:00.000Z", amount: 120, merchant: "Iberdrola agosto" },
+    { id: "compra-sep", ent: "revolut", date: "2026-09-10T12:00:00.000Z", amount: 30, merchant: "Compra" },
+  ];
+  await appLista(page, {
+    accounts: [
+      { id: "sab", ent: "sabadell", name: "Recibos", value: 1500, role: "fijos" },
+      { id: "rev", ent: "revolut", name: "Diario", value: 700, role: "fijos" },
+    ],
+    fixed: [{ id: "luz", name: "Iberdrola luz", amount: 120, freq: "mes", day: 24, account: "sabadell" }],
+    debts: [], flows: [], oneoffs: [], expenses: gastos, bankTx: [],
+    settings: { expenseBanks: ["revolut"] },
+  });
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  const recibos=page.locator('.v4-screen > [data-seg="recibos"]');
+  const antes=await page.evaluate(() => {
+    const s=JSON.parse(localStorage.getItem("micartera_v3")||"{}");
+    const ins=insumosSaldoGasto(s);
+    const saldo=function(ent){ const a=s.accounts.find(function(x){ return x.ent===ent; }); return saldoCuentaMostrada(a,{injTR:ins.injTR,spentByBank:ins.spentByBank,paidNetByBank:ins.paidNetByBank,roundup:ins.roundup,monthlyInvest:ins.monthlyInvest}); };
+    return {sab:saldo("sabadell"),rev:saldo("revolut"),expenses:JSON.stringify(s.expenses),revAccount:JSON.stringify(s.accounts.find(function(a){ return a.ent==="revolut"; }))};
+  });
+
+  await abreTusRecibos(page);
+  await grupo(page, "Servicios y suministros").click();
+  await fila(page, "Iberdrola luz").click();
+  await ficha(page).locator('input[inputmode="numeric"]').fill("25");
+  await expect.poll(async () => {
+    const fijo=((await estado(page)).fixed||[]).find((x)=>x.id==="luz")||{};
+    return [fijo.day,fijo.wait,fijo.paidYm||null];
+  }).toEqual([25,2026*12+9,null]);
+  await ficha(page).locator(".settings-push-h .back").click();
+  await expect(ficha(page)).toHaveCount(0);
+  await hub(page).locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
+  await expect(titulo(page)).toHaveText("Tus recibos");
+  await hub(page).locator(':scope > [data-screen="bills-home"] > .settings-push-h .back').click();
+  await expect(hub(page)).toHaveCount(0);
+
+  const despues=await page.evaluate(() => {
+    const s=JSON.parse(localStorage.getItem("micartera_v3")||"{}");
+    const ins=insumosSaldoGasto(s);
+    const saldo=function(ent){ const a=s.accounts.find(function(x){ return x.ent===ent; }); return saldoCuentaMostrada(a,{injTR:ins.injTR,spentByBank:ins.spentByBank,paidNetByBank:ins.paidNetByBank,roundup:ins.roundup,monthlyInvest:ins.monthlyInvest}); };
+    const plan=planChargesMonth(s,9,2026,25);
+    return {sab:saldo("sabadell"),rev:saldo("revolut"),expenses:JSON.stringify(s.expenses),revAccount:JSON.stringify(s.accounts.find(function(a){ return a.ent==="revolut"; })),
+      fixed:s.fixed.filter(function(x){ return x.id==="luz"; }).length,pending:plan.pendingBills.filter(function(x){ return x.id==="fixed_luz"; }).length,
+      paid:plan.paidBills.filter(function(x){ return x.id==="fixed_luz"; }).length,net:monthNetForAccount(s,"sabadell",2026,9,25)};
+  });
+  expect(despues).toEqual(Object.assign({},antes,{fixed:1,pending:1,paid:0,net:0}));
+  expect(despues.sab).toBe(1500);
+  const luz=recibos.locator(".v4-charge").filter({hasText:"Iberdrola luz"});
+  await expect(luz).toHaveCount(1);
+  await expect(luz).not.toHaveClass(/v4-paid/);
+  await expect(luz.locator(".d")).toHaveText("25");
+});
+
 test("Listo confirma a la vista, guarda una sola vez y después cierra", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
