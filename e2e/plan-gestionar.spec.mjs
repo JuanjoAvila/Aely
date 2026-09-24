@@ -256,6 +256,7 @@ test("Servicios acompaña el atrás nativo y deja Tus recibos debajo", async ({ 
   await grupo(page, "Servicios y suministros").click();
   const hija=hub(page).locator(":scope > .v4-bills-push");
   await expect(hija).toBeVisible();
+  await expect(hub(page).locator(':scope > [data-screen="bills-home"]')).toHaveAttribute("inert","");
   await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="progress"; e.progress=.45; window.dispatchEvent(e); });
   const pos=await hija.evaluate((el)=>({x:new DOMMatrix(getComputedStyle(el).transform).m41,w:innerWidth}));
   expect(pos.x).toBeGreaterThan(pos.w*.4);
@@ -263,6 +264,11 @@ test("Servicios acompaña el atrás nativo y deja Tus recibos debajo", async ({ 
   await expect(hub(page).locator('[data-screen="bills-home"]')).toBeVisible();
   await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="invoke"; e.progress=1; window.dispatchEvent(e); });
   await expect(hija).toHaveCount(0,{timeout:1600});
+  await expect(titulo(page)).toHaveText("Tus recibos");
+
+  // El hook vive mientras Gestionar siga abierto: volver a entrar tiene que rearmar busy.
+  await grupo(page, "Servicios y suministros").click();
+  await hub(page).locator(".settings-push-h .back").last().evaluate((el)=>el.click());
   await expect(titulo(page)).toHaveText("Tus recibos");
 });
 
@@ -279,6 +285,11 @@ test("¿Me lo puedo permitir? vuelve arrastrando desde el centro", async ({ page
   expect(await hija.evaluate((el)=>new DOMMatrix(getComputedStyle(el).transform).m41)).toBeGreaterThan(180);
   await cdp.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
   await expect(hija).toHaveCount(0,{timeout:1600});
+  await expect(titulo(page)).toHaveText("Tus recibos");
+
+  await hub(page).locator(".v4-bills-afford").click();
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="progress"; e.progress=.55; window.dispatchEvent(e); });
+  await page.evaluate(() => { const e=new Event("mcNativeEdgeBack"); e.phase="invoke"; e.progress=1; window.dispatchEvent(e); });
   await expect(titulo(page)).toHaveText("Tus recibos");
 });
 

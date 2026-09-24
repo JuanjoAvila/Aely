@@ -823,9 +823,11 @@ function useEdgePageClose(open,onClose,on,ref){
   const cb=useRef(onClose); cb.current=onClose;
   const dr=useRef(null);
   useEffect(function(){
-    if(open) busy.current=false;
+    // Una misma pantalla puede montar varias hijas seguidas sin cerrar el push padre. Cada vez
+    // que esta capa vuelve a ser la activa necesita recuperar el gesto (review Claude 24/9).
+    if(open&&on) busy.current=false;
     return function(){ if(tm.current) clearTimeout(tm.current); };
-  },[open]);
+  },[open,on]);
   const close=function(){
     if(busy.current) return;
     const el=ref.current;

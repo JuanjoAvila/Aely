@@ -632,7 +632,7 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
       React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:pop},"‹"),
       React.createElement("h1",{id:active&&"bills-manage-title",tabIndex:-1,ref:active?titleRef:null}, title));
   };
-  const hub=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-home",inert:view!=="hub"},
+  const hub=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-home",inert:view!=="hub"?"":undefined},
     head(gbTxt("gb_title"),view==="hub"),
     React.createElement("div",{className:"v4-card v4-card-hero v4-bills-hero","data-bills-hero":"1"},
       React.createElement("div",{className:"v4-micro"}, gbTxt("gb_hero_label")),
