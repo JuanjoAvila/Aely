@@ -78,6 +78,7 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/09-tab-debts-goals.js", specs: [
     "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs", "e2e/pulido-numpad.spec.mjs",
+    "e2e/plan-ahorro.spec.mjs",
   ] },
   { file: "src/modules/10-app-components.js", specs: [
     "e2e/inicio-offline.spec.mjs",
