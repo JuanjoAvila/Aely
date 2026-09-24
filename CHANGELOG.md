@@ -1,3 +1,24 @@
+## [4.26.46] - 2026-09-24
+### Cambiar el día de un fijo conciliado ya no crea un segundo descuento
+
+La causa estaba en que `isPaidIn` decidía el estado únicamente por el día planificado. Si el banco
+ya había confirmado un recibo y después se movía del día 20 al 28, la conciliación seguía
+reconociendo el movimiento real, pero el motor lo volvía a clasificar como pendiente hasta el 28.
+El saldo real y la previsión nueva convivían entonces como si fueran dos ocurrencias.
+
+`reconcileBank` conserva ahora la identidad de los fijos confirmados. Al cambiar el día desde la
+ficha, se guarda en el propio fijo únicamente el mes conciliado (`paidYm`); esa marca viaja con el
+estado, mientras que `bankTx` no se sincroniza. `isPaidIn` la consulta antes del calendario. Si
+después cambia el importe o el banco, se reconcilia otra vez el fijo ya editado: una corrección de
+importe que aún coincide conserva el pago; un cargo distinto pierde la marca. No se migra, duplica ni
+recategoriza ningún movimiento histórico.
+
+El unitario `fixed-day-reconcile` reproduce Iberdrola 120 € en Sabadell, el cambio 20 → 28 y otro
+banco con gasto propio. Exige una sola ocurrencia pagada, cero pendientes duplicados, los dos
+saldos invariantes, el histórico idéntico y persistencia sin `bankTx`. El E2E hace la edición en
+Plan y comprueba el DOM y el estado guardado. El comportamiento sin movimiento bancario no cambia:
+un recibo futuro sigue pendiente.
+
 ## [4.26.45] - 2026-09-24
 ### Las cuotas conservan su enlace sin fingir que son una categoría de consumo
 

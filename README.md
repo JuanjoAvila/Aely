@@ -81,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.45** preparada para beta — las cuotas nombran su deuda y viven fuera de las categorías de consumo, sin cambiar cálculos ni históricos. La APK 48 sigue vigente y producción sirve 4.25.16; disponibilidad real con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.26.46** preparada para beta — cambiar el día de un recibo ya cobrado conserva una sola ocurrencia, sin mover saldos ni históricos. La APK 48 sigue vigente y producción sirve 4.25.16; disponibilidad real con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.

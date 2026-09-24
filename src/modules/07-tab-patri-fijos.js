@@ -843,7 +843,9 @@ function isDebtPaidThisMonth(d,today){ return debtChargeDay(d)<=today; }
 // ¿ya se cobró en el mes m? (su día ya pasó o ES HOY). Solo tiene sentido para el mes actual.
 // `<=`: lo programado para HOY cuenta como hecho. Clave para no duplicar la nómina/cargos del día
 // con el saldo real del banco (que ya los refleja) → si no, fin de mes los sumaría por segunda vez.
-const isPaidIn=(e,m,today)=>{ const d=dayIn(e,m); return d!=null && d<=today; };
+// El día es una previsión editable: `paidYm` conserva el mes que el banco ya confirmó para que
+// moverlo no convierta el mismo recibo en otro pendiente.
+const isPaidIn=(e,m,today,y)=>{ const d=dayIn(e,m); return e.paidYm===(y||new Date().getFullYear())*12+m || d!=null&&d<=today; };
 const isPaidThisMonth=(e,today)=>{ const d=dayOf(e); return d!=null && d<=today; };
 // ¿el gasto necesita que el usuario le asigne un mes? (anual sin programar)
 const needsMonth=(e)=> (e.freq==="año"||e.freq==="anual") && !(e.months&&e.months.length) && !(e.schedule&&e.schedule.length);
@@ -897,7 +899,7 @@ function monthNetForAccount(s, ent, y, m, todayLim){
   const closed=(todayLim==null);
   const hit=function(d){ return closed ? true : (d!=null && d<=todayLim); };
   let net=0;
-  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m) && hit(dayIn(e,m))) net -= occAmountIn(e,m); });
+  (s.fixed||[]).forEach(function(e){ if((e.account||"sabadell")===ent && occursIn(e,m) && (closed||isPaidIn(e,m,todayLim,y))) net -= occAmountIn(e,m); });
   (s.debts||[]).forEach(function(d){ if(debtActive(d) && (d.account||"sabadell")===ent && hit(debtChargeDay(d))) net -= (d.monthly||0) + debtBalloonIn(d,y,m); });
   (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m) && (o.account||"sabadell")===ent && (o.amount||0)!==0 && hit(o.day!=null?o.day:null)) net -= o.amount; });
   (s.flows||[]).forEach(function(f){ if(flowOccursIn(f,m,y)){ const dd=flowDay(f,y,m); if(hit(dd)){ if(f.kind==="income" && (f.to||"sabadell")===ent) net += (f.amount||0); else if(f.kind==="transfer" && (f.from||"sabadell")===ent) net -= (f.amount||0); } } });

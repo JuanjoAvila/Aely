@@ -105,6 +105,7 @@ const steps = [
   ["import-docx-pdf", ["node", "tests/import-docx-pdf.test.mjs"]],
   ["hist-import-dup", ["node", "tests/hist-import-dup.test.mjs"]],
   ["plan-charges", ["node", "tests/plan-charges.test.mjs"]],
+  ["fixed-day-reconcile", ["node", "tests/fixed-day-reconcile.test.mjs"]],
   ["hist-pagos-mensuales", ["node", "tests/hist-pagos-mensuales.test.mjs"]],
   ["revo-metales-coste", ["node", "tests/revo-metales-coste.test.mjs"]],
   ["parsers-revolut", ["node", "tests/parsers/revolut.test.mjs"]],

@@ -4,6 +4,8 @@
 
 # Memoria — Mi Cartera
 
+- [★★★ 24/9 mañana: conversación NUEVA](traspaso-2026-09-24-manana.md) — prod 4.25.12; ⛔4.26.36 (mínimo cuenta doble fijos/puntuales sin día); presupuesto bundle al límite; Caixa whitelist; 99 filas TR y Edge pendientes de su OK; rearmar vigía.
+- [★★ Codex: 1 tarea = 1 chat (24/9)](codex-una-tarea-por-chat.md) — se fundió la cuota semanal; cada chat arranca en frío: PASS/BLOCK autocontenidos; si me lanza por CLI, al buzón.
 - [★★★ VOLCADO para su Claude PERSONAL](../../../../../E:/Mi cartera/docs/briefs/EMPIEZA-AQUI-CLAUDE-PERSONAL.md) — `docs/briefs/EMPIEZA-AQUI-CLAUDE-PERSONAL.md` en `beta`: para una sesión SIN esta memoria (arranque, `docs/memoria/`, cómo se trabaja, qué lleva Cursor).
 - [★★★ EMPIEZA AQUÍ: traspaso del 15/9 noche](../../../../../E:/Mi cartera/docs/briefs/EMPIEZA-AQUI-2026-09-16-TELETRABAJO.md) — rama `docs/traspaso-15-9-noche`: beta 4.24.3; ✅4.24.1 ✅4.24.3 ⛔4.24.2 (Ajustes pegado → 4.24.4 Cursor); luego promote + `ingest`, 4.25 + `bank-sync` (OK dado), 4.26, 4.27.
 - [⚠ Panel beta reabre Ajustes (15/9)](panel-beta-reabre-ajustes.md) — la marca se renovaba al reabrir; ningún paso debe dejarle fuera con el panel abierto.

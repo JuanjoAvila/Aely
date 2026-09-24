@@ -18,27 +18,26 @@ function planChargesMonth(state,month,year,today){
   state=state||{};
   var rows=[];
   (state.fixed||[]).forEach(function(e){
-    var amount=typeof occAmountIn==="function"?occAmountIn(e,month):0;
-    if(!(amount>0)||(typeof occursIn==="function"&&!occursIn(e,month))) return;
-    var day=typeof dayIn==="function"?dayIn(e,month):null;
-    var paid=typeof isPaidIn==="function"?isPaidIn(e,month,today):false;
-    rows.push({id:"fixed_"+e.id,name:e.name,amount:amount,day:day,bank:typeof accOf==="function"?accOf(e):"sabadell",paid:paid,kind:"bill"});
+    var amount=occAmountIn(e,month);
+    if(!(amount>0)||!occursIn(e,month)) return;
+    var day=dayIn(e,month);
+    rows.push({id:"fixed_"+e.id,name:e.name,amount:amount,day:day,bank:accOf(e),paid:isPaidIn(e,month,today,year),kind:"bill"});
   });
   (state.debts||[]).forEach(function(d){
-    if(typeof debtActive==="function"&&!debtActive(d)) return;
+    if(!debtActive(d)) return;
     var bank=d.account||"sabadell";
     // Sin day: pendiente con día desconocido. NO usar debtChargeDay/isDebtPaidThisMonth
     // (ese fallback a día 1 marcaba la cuota como ya pagada desde el día 1 — NO-GO 17/9).
-    var dayRaw=typeof dayOf==="function"?dayOf(d):(d&&d.day!=null?Number(d.day):null);
+    var dayRaw=dayOf(d);
     var day=(dayRaw!=null&&dayRaw>0&&isFinite(dayRaw))?Number(dayRaw):null;
     var paid=day!=null&&day<=today;
     var monthly=Number(d.monthly)||0;
     if(monthly>0) rows.push({id:"debt_"+d.id,name:d.name,amount:monthly,day:day,bank:bank,paid:paid,kind:"debt"});
-    var balloon=typeof debtBalloonIn==="function"?debtBalloonIn(d,year,month):0;
-    if(balloon>0) rows.push({id:"balloon_"+d.id,name:d.name+" "+(typeof t==="function"?t("db_balloon_tag"):""),amount:balloon,day:day,bank:bank,paid:paid,kind:"balloon"});
+    var balloon=debtBalloonIn(d,year,month);
+    if(balloon>0) rows.push({id:"balloon_"+d.id,name:d.name+" "+t("db_balloon_tag"),amount:balloon,day:day,bank:bank,paid:paid,kind:"balloon"});
   });
   (state.oneoffs||[]).forEach(function(o){
-    if(typeof oneoffOccurs==="function"?!oneoffOccurs(o,year,month):true) return;
+    if(!oneoffOccurs(o,year,month)) return;
     var amt=Number(o.amount)||0;
     if(!(amt>0)) return;
     var day=o.day!=null?Number(o.day):null;
@@ -46,15 +45,15 @@ function planChargesMonth(state,month,year,today){
     rows.push({id:"oneoff_"+o.id,name:o.name||o.merchant||"",amount:amt,day:day,bank:o.account||"sabadell",paid:paid,kind:"oneoff"});
   });
   (state.flows||[]).forEach(function(f){
-    if(typeof flowOccursIn==="function"&&!flowOccursIn(f,month,year)) return;
-    var day=typeof flowDay==="function"?flowDay(f,year,month):null;
+    if(!flowOccursIn(f,month,year)) return;
+    var day=flowDay(f,year,month);
     var paid=day!=null&&day<=today;
     var amt=+(f.amount||0);
     if(!(amt>0)) return;
     if(f.kind==="income"){
-      rows.push({id:"flow_"+f.id,name:f.name||(typeof t==="function"?t("fj_income"):"Ingreso"),amount:-amt,day:day,bank:f.to||"sabadell",paid:paid,kind:"income",income:true});
+      rows.push({id:"flow_"+f.id,name:f.name||t("fj_income"),amount:-amt,day:day,bank:f.to||"sabadell",paid:paid,kind:"income",income:true});
     } else if(f.kind==="transfer"){
-      rows.push({id:"flow_"+f.id,name:f.name||(typeof t==="function"?t("fj_transfer"):"Traspaso"),amount:amt,day:day,bank:f.from||"sabadell",paid:paid,kind:"transfer",to:f.to||null});
+      rows.push({id:"flow_"+f.id,name:f.name||t("fj_transfer"),amount:amt,day:day,bank:f.from||"sabadell",paid:paid,kind:"transfer",to:f.to||null});
     }
   });
   rows.sort(function(a,b){ return ((a.day==null?99:a.day)-(b.day==null?99:b.day))||(Math.abs(b.amount)-Math.abs(a.amount)); });
@@ -405,7 +404,7 @@ function applyBankBalances(s, links){
 // por el simulador "¿me lo puedo permitir?". today = día de hoy (solo cuenta lo no pagado).
 function bankPendingEvents(state, bank, y, m, today){
   const evs=[];
-  (state.fixed||[]).forEach(function(e){ if(occursIn(e,m)&&accOf(e)===bank&&!isPaidIn(e,m,today)) evs.push({day:dayIn(e,m)||0, amt:-occAmountIn(e,m)}); });
+  (state.fixed||[]).forEach(function(e){ if(occursIn(e,m)&&accOf(e)===bank&&!isPaidIn(e,m,today,y)) evs.push({day:dayIn(e,m)||0, amt:-occAmountIn(e,m)}); });
   (state.debts||[]).forEach(function(d){ if(debtActive(d)&&(d.account||"sabadell")===bank&&!isDebtPaidThisMonth(d,today)){ evs.push({day:debtChargeDay(d), amt:-(d.monthly||0)}); const bl=debtBalloonIn(d,y,m); if(bl>0) evs.push({day:debtChargeDay(d), amt:-bl}); } });
   (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.account||"sabadell")===bank&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({day:o.day||0, amt:-o.amount}); });
   (state.flows||[]).forEach(function(f){ if(!flowOccursIn(f,m,y)||flowPaid(f,y,m,today))return; const dd=flowDay(f,y,m); if(f.kind==="income"&&(f.to||"sabadell")===bank) evs.push({day:dd||99, amt:f.amount}); else if(f.kind==="transfer"&&(f.from||"sabadell")===bank) evs.push({day:dd||0, amt:-f.amount}); });
@@ -448,7 +447,7 @@ function recDay(ds){ const p=String(ds||"").slice(0,10).split("-"); return p.len
 const REC_GRACE=3;   // días de gracia antes de avisar "aún no aparece" (cargos que se cobran tarde, p.ej. hipoteca a fin de mes)
 function reconcileBank(state, y, m, today){
   const tx=(state && state.bankTx)||[];
-  const res={ hasData:tx.length>0, confirmed:[], shared:[], mismatch:[], missing:[], newCharges:[], income:[], feed:[] };
+  const res={ hasData:tx.length>0, confirmed:[], shared:[], mismatch:[], missing:[], newCharges:[], income:[], feed:[], fixedPaid:{} };
   if(!tx.length) return res;
   const ym=y+"-"+(m<10?"0":"")+m;
   // bancos OB del usuario (cuentas con rol de fijos, incluida "ambos"; el gasto de tarjeta de TR no es OB)
@@ -499,6 +498,7 @@ function reconcileBank(state, y, m, today){
     if(best){
       best._used=true;
       if(recAmtClose(target, best.amount)){
+        if(mc.kind==="fixed") res.fixedPaid[mc.id]=1;
         if(typeof mc.bankAmount==="number" && Math.abs(mc.bankAmount-mc.amount)>0.005)
           res.shared.push({name:mc.name, net:mc.amount, gross:best.amount, ent:mc.ent, id:mc.id, kind:mc.kind});
         else res.confirmed.push({name:mc.name, amount:best.amount, ent:mc.ent});
@@ -506,7 +506,7 @@ function reconcileBank(state, y, m, today){
     } else {
       // ¿se cobró a FINAL del mes pasado? (último día hábil / pago adelantado) → confirmado
       const prev=prevTail.find(function(d){ return !d._used2 && d.ent===mc.ent && (recAmtClose(target,d.amount)||(recNameMatch(mc.name,d.merchant)&&recSane(target,d.amount))); });
-      if(prev){ prev._used2=true; res.confirmed.push({name:mc.name, amount:prev.amount, ent:mc.ent}); }
+      if(prev){ prev._used2=true; if(mc.kind==="fixed") res.fixedPaid[mc.id]=1; res.confirmed.push({name:mc.name, amount:prev.amount, ent:mc.ent}); }
       else if(mc.day!=null && (today-mc.day)>=REC_GRACE && feedCovers(mc.ent, mc.day) && !dismissed["miss|"+mc.id+"|"+ym]){
         // "no aparece" solo si: (1) el día ya pasó con margen (gracia, no llora por cargos de fin de mes)
         // Y (2) el feed del banco realmente cubre ese día (si no, la sync no ha llegado: no inventamos avisos).
@@ -2174,14 +2174,21 @@ function billsGroupMonthly(state, group, curMonth, curYear){
 }
 function patchFixedById(set, id, patch){
   set(function(s){
-    return Object.assign({},s,{fixed:(s.fixed||[]).map(function(e){
+    let item=null;
+    const fixed=(s.fixed||[]).map(function(e){
       if(e.id!==id) return e;
       const n=Object.assign({},e,patch);
-      if(patch.day==null&&!("day" in patch)) { /* keep */ }
-      else if(!patch.day) delete n.day;
+      if(("day" in patch)&&!patch.day) delete n.day;
       if(n.freq==="mes"){ delete n.months; delete n.schedule; }
-      return n;
-    })});
+      item=n; return n;
+    });
+    const next=Object.assign({},s,{fixed:fixed});
+    if(item&&(("day" in patch)||("amount" in patch)||("account" in patch))){
+      const now=new Date(),y=now.getFullYear(),m=now.getMonth()+1;
+      if(reconcileBank(next,y,m,now.getDate()).fixedPaid[id]) item.paidYm=y*12+m;
+      else if(("amount" in patch)||("account" in patch)) delete item.paidYm;
+    }
+    return next;
   });
 }
 function removeFixedById(set, id){
@@ -2327,7 +2334,7 @@ function Fijos({state, set, totals}){
   const cm=totals.curMonth, nm=cm===12?1:cm+1, today=totals.today, cy=totals.curYear, ny=cm===12?cy+1:cy;
   const oneoffs=state.oneoffs||[];
   const chargesOf=(mo,yr)=>{ const items=[];
-    state.fixed.forEach(e=>{ if(occursIn(e,mo)&&occAmountIn(e,mo)!==0) items.push({key:e.id,name:e.name,amount:occAmountIn(e,mo),bank:accOf(e),day:dayIn(e,mo),paid:mo===cm&&isPaidIn(e,mo,today)}); });
+    state.fixed.forEach(e=>{ if(occursIn(e,mo)&&occAmountIn(e,mo)!==0) items.push({key:e.id,name:e.name,amount:occAmountIn(e,mo),bank:accOf(e),day:dayIn(e,mo),paid:mo===cm&&yr===cy&&isPaidIn(e,mo,today,yr)}); });
     state.debts.forEach(d=>{ if(debtActive(d)){ items.push({key:d.id,name:d.name,amount:d.monthly,debt:true,bank:d.account||"sabadell",day:debtChargeDay(d),paid:mo===cm&&isDebtPaidThisMonth(d,today)}); const bl=debtBalloonIn(d,yr,mo); if(bl>0) items.push({key:d.id+"_balloon",name:d.name+" "+t("db_balloon_tag"),amount:bl,debt:true,bank:d.account||"sabadell",day:debtChargeDay(d),paid:mo===cm&&isDebtPaidThisMonth(d,today)}); } });
     oneoffs.forEach(o=>{ if(oneoffOccurs(o,yr,mo)&&(o.amount||0)!==0) items.push({key:o.id,name:o.name,amount:o.amount,oneoff:true,bank:o.account||"sabadell",day:o.day||null,paid:mo===cm&&yr===cy&&isPaidThisMonth(o,today)}); });
     return items; };
