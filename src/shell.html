@@ -1344,13 +1344,6 @@
   .ring-foot{display:flex;justify-content:space-between;width:100%;margin-top:10px;font-size:12px;}
   .ring-foot .muted{color:var(--muted-2);}
 
-  .streak-flame{font-size:38px;line-height:1;filter:drop-shadow(0 4px 10px rgba(230,195,106,.35));}
-  .streak-n{font-size:42px;font-weight:700;line-height:1;font-family:'Fraunces',serif;color:var(--mint);}
-  .streak-row{display:flex;align-items:center;gap:14px;margin:10px 0 8px;}
-  .pips{display:flex;gap:5px;flex-wrap:wrap;}
-  .pip{width:13px;height:13px;border-radius:5px;background:var(--surface-2);border:1px solid var(--line);}
-  .pip.on{background:linear-gradient(160deg,var(--mint-bright),var(--mint));border-color:transparent;}
-
   .culprit-row{display:flex;align-items:center;gap:16px;margin-top:8px;}
   .legend{flex:1;display:flex;flex-direction:column;gap:7px;}
   .legend-item{display:flex;align-items:center;gap:8px;font-size:12.5px;}
@@ -1722,29 +1715,7 @@
   .emoji-pick button.on{border-color:var(--mint);background:rgba(95,208,138,.16);}
   .confetti{position:fixed;top:-14px;width:9px;height:14px;border-radius:2px;z-index:200;pointer-events:none;animation:conffall linear forwards;}
   @keyframes conffall{to{transform:translateY(106vh) rotate(720deg);}}
-  /* Gamificación: nivel, retos, logros */
-  .gm-level{background:linear-gradient(135deg,rgba(201,166,240,.12),rgba(127,181,232,.10))!important;border-color:rgba(201,166,240,.35)!important;}
-  .gm-lvl-top{display:flex;align-items:center;gap:12px;}
-  .gm-lvl-ic{font-size:30px;line-height:1;}
-  .gm-lvl-name{font-weight:800;font-size:15px;}
-  .gm-lvl-sub{font-size:12.5px;color:var(--muted);margin-top:2px;}
-  .gm-lvl-badge{font-size:10.5px;font-weight:700;color:#C9A6F0;text-transform:uppercase;letter-spacing:.04em;}
-  .gm-lvl-next{font-size:12px;color:var(--muted);margin-top:7px;text-align:right;}
   .gm-sec-h{font-weight:800;font-size:14px;margin-bottom:12px;}
-  .gm-reto-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
-  .gm-reto-name{font-weight:700;font-size:13.5px;}
-  .gm-reto-pct{font-size:12.5px;color:var(--muted);font-weight:700;}
-  .gm-reto-pct.over{color:#E2705F;}
-  .gm-reto-sub{font-size:12px;margin-top:6px;}
-  .gm-reto-sub.ok{color:var(--mint);} .gm-reto-sub.warn{color:#E2705F;}
-  .gm-streak{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:12px;}
-  .gm-streak.on{color:#F2914E;}
-  .gm-streak-best{color:var(--muted);font-weight:500;}
-  .gm-badges{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
-  .gm-badge{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:11px;background:var(--bg-2);border:1px solid var(--line-soft);opacity:.5;}
-  .gm-badge.on{opacity:1;background:rgba(242,193,78,.12);border-color:rgba(242,193,78,.45);}
-  .gm-badge-ic{font-size:16px;line-height:1;}
-  .gm-badge-lbl{font-size:11.5px;font-weight:600;line-height:1.2;}
   /* Compartido */
   .sh-card{display:flex;align-items:center;gap:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;}
   .sh-emoji{font-size:26px;line-height:1;}

@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.25.20",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Inicio cuenta solo lo que puede comprobar",
+      "en": "Home only reports what it can verify",
+      "ca": "Inici només explica el que pot comprovar"
+    },
+    "items": {
+      "es": [
+        "Desaparece el cambio de patrimonio «este mes» cuando no existe una foto fiable del día 1; el total de tu dinero no cambia.",
+        "La racha usa presupuestos guardados de meses cerrados y los mismos gastos que el presupuesto diario, sin llamas ni recibos de otra cuenta falseándola."
+      ],
+      "en": [
+        "The “this month” net-worth change is no longer shown without a reliable snapshot from day one; your total money does not change.",
+        "The streak uses saved budgets from closed months and the same spending rules as the daily budget, without flames or bills from another account distorting it."
+      ],
+      "ca": [
+        "El canvi de patrimoni «aquest mes» deixa de mostrar-se quan no hi ha una foto fiable del dia 1; el total dels teus diners no canvia.",
+        "La ratxa usa pressupostos desats de mesos tancats i les mateixes despeses que el pressupost diari, sense flames ni rebuts d'un altre compte que la falsegin."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.19",
     "d": "24 sep 2026",
     "t": {

@@ -696,7 +696,7 @@ function mcSeedSandboxVacio(){
   try{ localStorage.setItem("_mcSandboxVacio","1"); }catch(e){}
   mcSaveRaw(STATE_KEY_TEST, {
     _dataVer:6, onboarded:false, tourSeen:false, setupHint:false,
-    budget:0, monthStartNet:0, history:[], streak:0,
+    budget:0, monthStartNet:0, history:[],
     accounts:[], investments:[], assets:[], debts:[], fixed:[], flows:[], oneoffs:[], goals:[],
     expenses:[], settings:{}
   });

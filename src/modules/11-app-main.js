@@ -1785,8 +1785,6 @@ function App(){
     const debtTotal=state.debts.reduce((a,d)=>a+debtBalance(d),0);   // saldo proyectado (baja solo cada mes)
     const activos=liquid+invested+assetsTotal;
     const netWorth=activos-debtTotal;
-    const delta=netWorth-state.monthStartNet;
-    const deltaPct=state.monthStartNet?delta/state.monthStartNet*100:0;
     const fijosVar=state.fixed.reduce((a,e)=>a+e.amount*(FREQ_M[e.freq]||1),0);
     const cuotas=state.debts.reduce((a,d)=>a+(debtActive(d)?(d.monthly||0):0),0);
     const fijosMensual=fijosVar+cuotas;
@@ -1850,15 +1848,27 @@ function App(){
     /* DEPENDENCIAS: ojo al tocar este bloque — la lista de abajo tiene que incluir TODO
        `state.loQueSea` que se lea aquí dentro (incluidos los que leen las funciones auxiliares:
        monthNetForAccount → fixed/debts/oneoffs/flows; toEurAmt/invValueEur → fx y fxRates). */
-    return {liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,delta,deltaPct,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
+    return {liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
   // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` en CADA cambio, el
   // objeto de estado es nuevo siempre → el memo NUNCA acertaba y este cálculo (que recorre gastos,
   // fijos, deudas, flujos y simula el mes día a día) se rehacía al abrir una ficha, al escribir en
   // el buscador, al salir un toast… Con las porciones reales solo se recalcula cuando cambia el
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.investments,state.assets,state.debts,state.fixed,
-     state.flows,state.oneoffs,state.aportaciones,state.obAccounts,state.monthStartNet,
+     state.flows,state.oneoffs,state.aportaciones,state.obAccounts,
      state.trRewardsTotal,state.fx,state.fxRates]);
+
+  const budgetMonth=budgetYmKey();
+  useEffect(function(){
+    const patch=ensureBudgetMonthSnap(state);
+    if(patch) set(function(s){ return Object.assign({},s,patch); });
+  },[budgetMonth,state.budget,state.budgetByMonth]);
+
+  /* Una sola racha compartida por Inicio y el detector de logros. Con históricos grandes,
+     calcularla otra vez dentro de cada pantalla triplicaba el recorrido al terminar un sync. */
+  const budgetStreak=useMemo(function(){ return underBudgetStreak(state); },
+    [state.expenses,state.budgetByMonth,state.accounts,state.reservaLog,
+     state.settings&&state.settings.expenseBanks,state.settings&&state.settings.gTotalMode,budgetMonth]);
 
   const [pricing,setPricing]=useState(false);
   // Tipos BCE vía frankfurter (gratis, sin key). URL canónica: api.frankfurter.dev.
@@ -2201,7 +2211,7 @@ function App(){
 
   // GAMIFICACIÓN: detecta logros nuevos y subidas de nivel → toast/confeti (1ª vez siembra sin avisar).
   useEffect(function(){
-    const g=gamifOf(state, totals);
+    const g=gamifOf(state, totals, budgetStreak);
     const stored=state.badges||[];
     const nowUnlocked=g.badges.filter(function(b){return b.unlocked;}).map(function(b){return b.id;});
     const fresh=nowUnlocked.filter(function(id){ return stored.indexOf(id)<0; });
@@ -2211,7 +2221,9 @@ function App(){
     set(function(s){ return Object.assign({},s,{badges:Array.from(new Set((s.badges||[]).concat(nowUnlocked))),gmLevel:g.lvl}); });
     if(levelUp){ showToast(tf("gm_levelup",{n:g.lvl+1})); }   // rediseño 1c: subir de nivel = aviso tranquilo, sin confeti (el confeti se reserva a metas)
     else if(fresh.length && seeded){ showToast(tf("gm_badge_new",{x:t("gm_b_"+fresh[0])})); }
-  },[state.expenses,state.goals,state.budget,state.trRewardsTotal]);
+  },[state.expenses,state.goals,state.budget,state.budgetByMonth,state.trRewardsTotal,
+     state.accounts,state.reservaLog,state.settings&&state.settings.expenseBanks,
+     state.settings&&state.settings.gTotalMode,budgetStreak]);
   const fetchPrices=function(silent){
     refreshFx();   // y también al pulsar "Precios USD"
     const withTicker=state.investments.filter(function(i){ return i.ticker; });
@@ -3216,7 +3228,7 @@ function App(){
   const hiddenTabIds = TABS.map(function(tt){return tt.id;}).filter(function(id){ return tabIds.indexOf(id)<0; });
   const pageFor=function(id){
     const simple=!!(state.settings&&state.settings.simpleMode);
-    if(id==="dash") return React.createElement(Dashboard,{state:state,totals:totals,set:set,showToast:showToast,
+    if(id==="dash") return React.createElement(Dashboard,{state:state,totals:totals,budgetStreak:budgetStreak,set:set,showToast:showToast,
       onOpenSettings:function(){ setDrawerOpen(true); },
       onOpenProfile:function(){
         // Montar cerrado un frame y luego abrir: si montas ya con .open no hay animación de entrada.
@@ -3266,7 +3278,7 @@ function App(){
     tabIds.forEach(function(id){ if(id!=="gastos") out[id]=pageFor(id); });
     return out;
     // eslint-disable-next-line
-  },[state, totals, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, drawerOpen, locked]);
+  },[state, totals, budgetStreak, tabIds.join("|"), syncing, syncStatus, gotoExp, planGoto, pricing, uid, drawerOpen, locked]);
   /* Gastos iba en memo aparte POR la prop `active` — y esa prop era el lag. Ahora se entera
      por bus (`mcSetGastosActive` abajo) y comparte deps con las otras: entrar/salir de Gastos
      ya NO reconstruye Expenses. Se deja el memo propio por si mañana vuelve a necesitar algo

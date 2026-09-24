@@ -5,7 +5,7 @@ function dashOrderOf(s, allIds){
   const saved=((s.settings&&s.settings.dashOrder)||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
   return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
 }
-function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
+function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
   const tt=totals;
   const simple=!!(state.settings&&state.settings.simpleMode);
   const [budgetOpen,setBudgetOpen]=useState(false);
@@ -214,13 +214,8 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
       React.createElement("div",{className:"v4-hero-amt num","data-tour":"hero-amt"},
         p.sign+p.ent, React.createElement("span",{style:{fontSize:28,color:"var(--muted)"}},","+(p.dec||"00")+" "+p.sym)),
-      // La pastilla del mes solo si dice algo (P2): recien instalado, «+0 € este mes» no informa
-      // de nada y dejaba el hero con dos elementos muertos, ella y el grafico plano de P1.
-      ((tt.delta||0)!==0 || (state.history&&state.history.length>0)) && React.createElement("div",{style:{marginTop:12}},
-        React.createElement("span",{className:"v4-pill"},
-          React.createElement(tt.delta>=0?I.up:I.down,null),
-          (tt.delta>=0?"+":"")+eur0(tt.delta)+" "+t("v4_this_month"))
-      ),
+      // Sin una foto real del día 1, «este mes» era patrimonio menos un seed antiguo: parecía
+      // una ganancia de miles de euros. Se retira en vez de inventar una base (feedback 18/9).
       React.createElement("div",{style:{marginTop:14}},
         // Sin al menos dos puntos, `Sparkline` devuelve null (P1). Se reserva el hueco con una
         // linea discreta para que el hero no pegue un salto en cuanto haya histórico.
@@ -270,13 +265,18 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         )
       ),
       React.createElement("div",{className:"v4-budget-foot"},
-        // Con 0, «0 meses sin pasarte» resta en vez de sumar: el primer mes se dice en positivo (P5).
-        React.createElement("span",null, (state.streak||0)>0 ? ("🔥 "+tf("v4_streak",{n:state.streak})) : t("v4_streak_zero")),
+        (function(){
+          const n=budgetStreak?budgetStreak.current:0;
+          return React.createElement("span",{"data-testid":"dash-budget-streak"},n>0?tf("v4_streak",{n:n}):t("v4_streak_zero"));
+        })(),
         React.createElement("button",{className:"link",onClick:function(e){ e.stopPropagation(); if(onGoGastos) onGoGastos(); }}, t("v4_see_gastos"))
       )
     ),
     React.createElement(BudgetSheet,{open:budgetOpen,budget:state.budget,onClose:function(){ setBudgetOpen(false); },onSave:function(b){
-      set(function(s){ return Object.assign({},s,{budget:b}); });
+      set(function(s){
+        const map=Object.assign({},s.budgetByMonth||{}); map[budgetYmKey()]=b;
+        return Object.assign({},s,{budget:b,budgetByMonth:map});
+      });
     }}),
 
     !showSkel && partyDebts.length>0 && React.createElement("div",{className:"v4-card rise v4-party",style:{animationDelay:".12s",marginTop:8,padding:"14px 16px"}},

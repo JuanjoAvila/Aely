@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-24 · **v4.25.19** — Inversiones estrena ficha completa, entrada lateral y gesto atrás que acompaña al dedo desde cualquier zona libre.
+> Estado a 2026-09-24 · **v4.25.20** — Inicio retira el cambio mensual sin base fiable y calcula la racha con presupuestos reales de meses cerrados.
+> Anterior: **v4.25.19** — Inversiones estrena ficha completa, entrada lateral y gesto atrás que acompaña al dedo desde cualquier zona libre.
 > Anterior: **v4.25.18** — Actualizar inversiones consulta TR/MyInvestor y precios sin ocultar sesiones caducadas ni fallos parciales.
 > Anterior: **v4.25.17** — CaixaBank distingue cuentas, explica cuándo el histórico ya estaba apuntado y permite abrirlo completo en Gastos.
 > Anterior: **v4.25.16** — el servidor reconoce la identidad exacta de los avisos compatibles; la APK estable conserva los candidatos dudosos fuera del total hasta recibir esa identidad.
@@ -204,7 +205,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.25.19** (ficha completa y navegación gestual de inversiones aprobadas; canal = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.25.20** (Inicio honesto y racha con presupuestos históricos reales; canal = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo y producción: **4.20.4 / 46**. |
 | Anterior | **4.18.3 / 42**, **4.17.1 / 41**, **4.16.1 / 39**. |
 | `public/apk.json` | **46** / 4.20.4 |
