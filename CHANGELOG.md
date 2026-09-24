@@ -1,3 +1,27 @@
+## [4.25.14] - 2026-09-24
+### Pregúntame aprobado, portado sobre la interfaz estable
+
+Se reconstruyen sobre producción las tandas aprobadas asistente-claro (4.26.27) y
+asistente-sin-teclado-inicial (4.26.40), sin incorporar las notificaciones 4.26.39,
+los gestos de Recibos 4.26.41 ni ninguna tanda rechazada. HelpHost ofrece primero
+guías locales: calcula únicamente con helpers financieros ya existentes, abre destinos
+del catálogo cerrado y no escribe movimientos, saldos ni sincronizaciones.
+
+La hoja abre sin enfocar el campo, mantiene el compositor por encima del teclado y reduce
+el paso a paso a tres líneas cortas. Las rutas de efectivo distinguen añadir saldo de
+apuntar una compra; Metas, Deudas y Recibos aterrizan en el segmento real de Plan.
+
+El resumen de recibos replica también la regla estrenada en 4.25.13: una cuota de deuda sin
+día explícito sigue pendiente y conserva la fecha desconocida, en vez de usar el día 1 del
+motor histórico para darla por pagada. Un unitario cubre cuota y pago final sin día y el E2E
+comprueba que Pregúntame y Plan muestran tres pendientes y los mismos 180 €.
+
+La consulta remota permanece opcional y revocable: exige consentimiento, solo envía la
+pregunta y el idioma, filtra secretos y continúa con la guía local ante 404, 429, 503 o
+timeout. Se incorpora su Edge Function al repositorio, pero esta promoción web no la
+despliega ni activa el servicio de pago. Veintiún E2E recorren la ayuda sobre la base
+estable, además de los guardianes de privacidad, idiomas, sintaxis y presupuesto.
+
 ## [4.25.13] - 2026-09-24
 ### Mínimo de caja aprobado, portado sin arrastrar el rediseño
 

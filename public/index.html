@@ -1841,6 +1841,34 @@
     #mc-load .mcl-name{animation:none !important;}
     #mc-load .mcl-name.lista{opacity:1;}
   }
+
+/* Ayuda: composer fijo abajo; el teclado (visualViewport) sube la hoja, no la tapa.
+   La frase NO usa .serif: con temática de temporada el subrayado decorativo la hincha. */
+.aely-help-back{z-index:12000;}
+.aely-help-sheet{max-height:min(92dvh,100%);display:flex;flex-direction:column;padding-bottom:0;}
+.aely-help-sheet-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 0 6px;flex:0 0 auto;}
+.aely-help-sheet-h h1{font-size:20px;margin:0;font-weight:550;}
+.aely-help-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:none;scrollbar-width:none;padding:0 0 8px;}
+.aely-help-body::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}
+.aely-help-intro{margin:0 0 8px;}
+.aely-help-composer{flex:0 0 auto;display:flex;flex-direction:column;gap:8px;padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--surface,var(--sur));}
+.aely-help-q{width:100%;min-height:52px;max-height:96px;padding:10px 12px;resize:none;box-sizing:border-box;font-size:16px;}
+.aely-help-send{width:100%;height:44px;border-radius:12px;font-size:14px;font-weight:700;}
+.aely-help-topics{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px;}
+.aely-help-topic{font-size:12.5px !important;min-height:36px;padding:7px 10px !important;}
+.aely-help-answer{margin-top:8px;}
+.aely-help-phrase{font-size:15px;font-weight:550;letter-spacing:-.1px;line-height:1.4;margin:4px 0 0;text-decoration:none !important;}
+.aely-help-steps{margin:8px 0 0;padding-left:22px;display:grid;gap:5px;line-height:1.35;}
+.aely-help-cta{width:auto !important;align-self:flex-start;margin-top:10px;padding:8px 12px !important;font-size:13.5px !important;font-weight:650 !important;}
+.aely-help-entry{margin:6px 0 10px;}
+.aely-help-head-actions{display:flex;align-items:center;gap:8px;}
+.aely-help-entry-mini{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--sur);color:var(--ink);font:550 18px/1 var(--serif,Georgia,serif);padding:0;}
+.aely-help-consent{margin-top:12px;padding:12px;border-radius:14px;background:var(--sur2);border:1px solid var(--line);}
+.aely-help-remote-status{margin:0 0 8px;font-size:12px;}
+@media (prefers-reduced-motion:reduce){
+  .aely-help-sheet{transition:none;}
+}
 </style>
 </head>
 <body>
@@ -3213,6 +3241,15 @@ const cloud = (function(){
     },
     // IA / KW: sugiere categoría de gasto (Edge Function `categorize`). Sin OPENAI_API_KEY
     // en Supabase cae a keywords; si hay key, solo se usa cuando KW dice «otros».
+    async askHelp(question,language){
+      if(!sb) throw new Error("nube no disponible");
+      const {data,error}=await sb.functions.invoke("help-assistant",{body:{question:String(question||"").slice(0,600),language:language}});
+      if(error){
+        if(error.context&&error.context.status===429) return {ok:false,error:"limited"};
+        throw error;
+      }
+      return data;
+    },
     async suggestCategory(merchant){
       if(!sb) throw new Error("nube no disponible");
       const {data,error}=await sb.functions.invoke("categorize",{ body:{ merchant:String(merchant||"").slice(0,120) } });
@@ -4382,6 +4419,83 @@ let CURLANG = "es";
 const LANGS = [["es","Español"],["en","English"],["ca","Català"]];
 const LANG = {
   es:{
+    help_ai_matched:"La IA ha encontrado estas guías de Aely.",
+    help_create_cash:"Crear el efectivo",
+    help_offline_simple:"Sin internet solo entiendo preguntas sencillas. Prueba con uno de estos temas.",
+    help_cue_balance_miss:"No encuentro esa cuenta en tu cartera.",
+    help_cue_balance:"En {bank} tienes {x}.",
+    help_cue_balance_many:"Tienes {n} cuentas en {bank}: míralas en Cartera.",
+    help_banks:"Faltan movimientos del banco",
+    help_banks_body:"Abre Mis bancos y reconecta si aparece un aviso.\nPulsa Actualizar una vez.\nRevisa el mes y el banco en Gastos; para meses anteriores usa Importar histórico.",
+    help_cash:"Gastar en efectivo",
+    help_cash_body:"Crea Efectivo en Cartera si aún no existe.\nAbre Apuntar en efectivo e indica la compra y el importe.\nGuarda con Efectivo seleccionado; el cajero no cuenta como compra.",
+    help_categories:"Corregir una categoría",
+    help_categories_body:"Abre el movimiento en Gastos.\nElige la categoría correcta.\nGuarda y revisa futuras sugerencias antes de aceptarlas.",
+    help_debts:"Préstamos y cuotas",
+    help_debts_body:"Abre Plan → Deudas.\nAñade el préstamo con su saldo y su cuota.\nVincula cada cobro solo una vez.",
+    help_goals:"Ahorrar para una meta",
+    help_goals_body:"Abre Plan → Metas.\nCrea la meta e indica el objetivo y la fecha.\nRevisa el ahorro mensual que le asignas.",
+    help_hidden:"Si tienes pantallas ocultas o el modo sencillo, puedes mostrarlas desde Ajustes antes de continuar.",
+    help_history:"Importar histórico",
+    help_history_body:"Abre Importar histórico.\nElige el banco y el periodo.\nRevisa cada movimiento antes de importarlo.",
+    help_intro:"Escribe o dicta qué quieres hacer. Te respondo en una frase y te llevo al sitio.",
+    help_limited:"Has llegado al límite temporal de consultas. Las guías siguen disponibles.",
+    help_local:"Guía disponible sin conexión.",
+    help_offline:"Guías locales disponibles · IA requiere conexión y sesión",
+    help_online:"Buscar guía con IA",
+    help_open_accounts:"Abrir cuentas",
+    help_open_banks:"Abrir Mis bancos",
+    help_open_cash:"Apuntar en efectivo",
+    help_open_debts:"Abrir Deudas",
+    help_open_expenses:"Abrir Gastos",
+    help_open_goals:"Abrir Metas",
+    help_open_history:"Abrir Importar histórico",
+    help_open_receipts:"Abrir Recibos",
+    help_placeholder:"Puedes dictarlo con el micro del teclado",
+    help_privacy:"¿La guía no encaja? Al consultar la IA se envía tu última duda a OpenAI para buscar otra guía. No se adjuntan tus saldos ni movimientos. Evita escribir claves o datos de cuenta.",
+    help_question:"¿En qué necesitas ayuda?",
+    help_receipts:"Recibos del mes",
+    help_receipts_body:"Abre Plan → Recibos.\nRevisa lo pendiente y lo cobrado.\nSi falta un cargo antiguo, usa Importar histórico y no lo apuntes dos veces.",
+    help_send:"Preguntar",
+    help_show_settings:"Mostrar pantalla desde Ajustes",
+    help_title:"Pregúntame",
+    help_cue_cash:"Sacar del cajero no es gastar. Lo que apuntas es lo que compras luego.",
+    help_cue_cash_add:"El efectivo se añade en Cartera → Cuentas. Luego apuntas las compras desde Apuntar.",
+    help_cue_goals:"Si estás apartando para una compra, crea una Meta en Plan.",
+    help_cue_debts:"Si ya pagas cuotas de un préstamo, revísalas en Deudas.",
+    help_cue_banks:"Primero comprueba la conexión en Mis bancos y pulsa Actualizar.",
+    help_cue_history:"Para meses anteriores, usa Importar histórico y revisa cada movimiento.",
+    help_cue_categories:"Abre el movimiento en Gastos y cambia la categoría; Aely la recordará.",
+    help_cue_receipts:"En Recibos ves lo pendiente del mes y lo ya cobrado.",
+    help_cue_budget_left:"Te quedan {x} de {b} este mes.",
+    help_remote_try:"Probar con más ayuda",
+    help_remote_status_on:"OpenAI solo se usa si la guía local no basta y tú pides más ayuda. No cambia el resto de respuestas.",
+    help_consent_no:"No, gracias",
+    help_consent_yes:"Sí",
+    help_consent_body:"Aely enviará a OpenAI solo la pregunta que has escrito. Nunca envía saldos ni movimientos. Puedes quitar este permiso en Ajustes.",
+    help_consent_title:"¿Usar OpenAI para entender esta pregunta?",
+    help_remote_setting:"Más ayuda con OpenAI (solo dudas difíciles)",
+    help_remote_setting_hint:"No cambia las respuestas normales. Solo permite pedir más ayuda cuando la guía local no basta, para que OpenAI elija otra guía. Recibe solo la pregunta escrita; nunca saldos ni movimientos. Puedes revocar este permiso aquí.",
+    help_cue_goals_simple:"Metas está escondido en el modo sencillo. Te lo enseño en Ajustes.",
+    help_cue_next_bills_amount:"Te quedan recibos por {x} este mes.",
+    help_cue_next_bills_one:"Te queda 1 recibo por {x} este mes.",
+    help_cue_end_unknown:"Todavía no puedo calcular cómo acabas el mes.",
+    help_cue_budget_over:"Este mes te has pasado {x} del presupuesto.",
+    help_cue_budget_none:"Aún no hay un presupuesto del mes. Puedes ver el gasto en Gastos.",
+    help_cue_next_bills:"Te quedan {n} recibos por {x} este mes.",
+    help_cue_next_bills_none:"No veo recibos pendientes este mes.",
+    help_cue_end_ok:"Con lo que falta por pagar, en {bank} acabarías el mes con unos {x}.",
+    help_cue_end_warn:"Ojo: con lo que falta por pagar, {bank} acabaría en {x}.",
+    help_cue_clarify:"¿Cuál de estos temas buscas?",
+    help_maybe:"Creo que buscas esto:",
+    help_secret:"No escribas números de cuenta ni claves. Pregunta sin esos datos.",
+    help_steps_show:"Paso a paso ▾",
+    help_steps_hide:"Paso a paso ▴",
+    help_try_again:"Probar otra vez",
+    help_unavailable:"OpenAI no ha podido responder ahora. La ayuda local sigue disponible.",
+    help_unknown:"No lo tengo claro. Elige un tema o explica qué querías hacer.",
+    help_wait:"Buscando una guía…",
+
     beta_group:"Revisión", beta_collapse:"Encoger", beta_expand:"Desplegar",
     tab_dash:"Inicio", tab_gastos:"Gastos", tab_plan:"Plan", tab_cartera:"Cartera", tab_fijos:"Fijos", tab_inv:"Inversiones", tab_patri:"Patrimonio", tab_debt:"Deudas", tab_compartido:"Compartido",
     tab_metas:"Metas", tab_logros:"Logros",
@@ -7504,8 +7618,15 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         React.createElement("div",{className:"v4-inicio-date"}, new Date().toLocaleDateString(loc(),{weekday:"long",day:"numeric",month:"long"})),
         React.createElement("div",{className:"v4-inicio-hi"}, greetName?tf("v4_hola",{n:greetName}):t("v4_hola_anon"))
       ),
-      React.createElement("button",{className:"v4-avatar","data-tour":"avatar","aria-label":t("pf_title"),
-        onClick:function(){ if(onOpenProfile) onOpenProfile(); else if(onOpenSettings) onOpenSettings(); }}, initials)
+      React.createElement("div",{className:"aely-help-head-actions"},
+        React.createElement("button",{type:"button",className:"aely-help-entry-mini","aria-label":t("help_title"),onClick:function(){
+          try{ window.dispatchEvent(new CustomEvent("mc-open-help",{detail:helpOpenDetail(state, tt, {
+            onConsent:function(ok){ set(function(s){ return Object.assign({},s,{settings:Object.assign({},s.settings,{helpAiOk:!!ok,helpAiAsked:true})}); }); }
+          })})); }catch(e){}
+        }}, "?"),
+        React.createElement("button",{className:"v4-avatar","data-tour":"avatar","aria-label":t("pf_title"),
+          onClick:function(){ if(onOpenProfile) onOpenProfile(); else if(onOpenSettings) onOpenSettings(); }}, initials)
+      )
     ),
 
     /* B4 — entre splash fuera y nube lista: siluetas, no ceros. Si se pintan detrás del splash
@@ -8949,14 +9070,16 @@ function AskHost(){
     else root.classList.remove("ask-open");
     return function(){ root.classList.remove("ask-open"); };
   },[cur]);
-  if(!cur) return null;
+  if(!cur) return React.createElement(HelpHost,null);
   // resolve ANTES de perder cur, y solo una vez: cerrar por el fondo y por «Cancelar» son el mismo camino
   const done=function(r){ const f=cur.resolve; setCur(null); setVal(""); f(r); };
   const ok=function(){ done(cur.input?String(val):true); };
   // Con opciones, cancelar es `null` («no he elegido»), no `false` («he dicho que no»): con tres
   // caminos posibles, un `false` se confundiría con haber elegido el primero.
   const cancel=function(){ done((cur.input||(cur.options||[]).length>0)?null:false); };
-  return ReactDOM.createPortal(
+  return React.createElement(React.Fragment,null,
+    React.createElement(HelpHost,null),
+    ReactDOM.createPortal(
     React.createElement("div",{className:"askback"+(cur.compact?" ask-compact":""),onClick:cancel},
       React.createElement("div",{className:"tabsheet",onClick:function(e){ e.stopPropagation(); }},
         React.createElement("div",{className:"ts-title"},cur.title),
@@ -8984,7 +9107,7 @@ function AskHost(){
           (cur.options||[]).length===0 && React.createElement("button",{className:"btn btn-primary",style:cur.danger?{background:"linear-gradient(160deg,#E2705F,#C4553F)",color:"#fff"}:null,
             onClick:ok}, cur.ok||t("ask_ok")))
       )
-    ), document.body);
+    ), document.body));
 }
 
 /* ============================================================
@@ -11242,6 +11365,28 @@ function entFromAspsp(name){
     if(n.indexOf(k)>=0 || n.indexOf(String(ENT[k].label).toLowerCase())>=0) return k;
   }
   return null;
+}
+/* Pregúntame cuenta recibos con la misma regla financiera de Plan. No incluye ingresos ni
+   transferencias: son flujo de caja, no recibos pendientes. */
+function pendingBillsSummary(state,month,year,today){
+  var count=0,total=0;
+  (state.fixed||[]).forEach(function(f){
+    var amount=occAmountIn(f,month);
+    if(!(amount>0)||!occursIn(f,month)||isPaidIn(f,month,today)) return;
+    count++; total+=amount;
+  });
+  (state.debts||[]).forEach(function(d){
+    if(!debtActive(d)) return;
+    // Plan deja una cuota sin día como pendiente y enseña «—»: usar aquí el fallback histórico
+    // a día 1 hacía que Pregúntame dijera 0 € mientras Plan enseñaba la deuda (review 24/9).
+    var rawDay=dayOf(d), day=rawDay!=null&&Number(rawDay)>0?Number(rawDay):null;
+    if(day!=null&&day<=today) return;
+    var monthly=Number(d.monthly)||0;
+    if(monthly>0){ count++; total+=monthly; }
+    var balloon=debtBalloonIn(d,year,month);
+    if(balloon>0){ count++; total+=balloon; }
+  });
+  return {count:count,total:total};
 }
 /* Códigos cortos del bank-callback (SEC-01, 4.23.0). El Edge ya no manda el error crudo por la
    URL (quien fabrique el enlace podía pintar un texto falso «de tu banco»). El cliente: si `msg`
@@ -17362,6 +17507,11 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   },[]);
   const [hojaOpen,setHojaOpen]=useState(false);  // importar una hoja de gastos (Excel/CSV)
   const [histOpen,setHistOpen]=useState(false);  // importar histórico del banco (Ajustes → Importaciones)
+  useEffect(function(){
+    const h=function(){ setHistOpen(true); };
+    window.addEventListener("mc-open-history", h);
+    return function(){ window.removeEventListener("mc-open-history", h); };
+  },[]);
   const [autoBackOpen,setAutoBackOpen]=useState(false);  // copias automáticas diarias (state_backups)
   const prodVer=useProdVersion();                // Pages ahora (cruda); null mientras pregunta
   // Misma regla que useYaEnProd, sin segundo fetch (compartimos prodVer con betaChecklist).
@@ -17539,6 +17689,11 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         React.createElement("div",{style:{fontSize:12,color:"var(--mint)",marginTop:4,fontWeight:700}}, uid?t("v4_set_profile_sync"):t("v4_set_profile_local"))
       )
     ),
+    React.createElement("button",{type:"button",className:"btn btn-ghost aely-help-entry",onClick:function(){
+      try{ window.dispatchEvent(new CustomEvent("mc-open-help",{detail:helpOpenDetail(state, totals, {
+        onConsent:function(ok){ setS({helpAiOk:!!ok, helpAiAsked:true}); }
+      })})); }catch(e){}
+    }}, t("help_title")),
     React.createElement("input",{style:Object.assign({},inp,{marginTop:12}),placeholder:t("st_search_ph"),value:q,onChange:function(e){ setQ(e.target.value); }}),
 
     React.createElement("div",{className:"v4-set-sec"}, t("v4_set_appear")),
@@ -17776,6 +17931,13 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         ? row("biolock","◎",bioOn?t("au_bio_off"):t("au_bio_on"),null,toggleBio, sw(bioOn))
         : React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}}, t("au_nobio")),
       row("signout","🚪",t("au_signout"),null,doSignOut),
+      row("helpai","✨",t("help_remote_setting"),null,function(){
+        var enabled=!!(state.settings&&state.settings.helpAiOk);
+        if(enabled){ setS({helpAiOk:false,helpAiAsked:true}); return; }
+        askConfirm({title:t("help_consent_title"),sub:t("help_consent_body"),ok:t("help_consent_yes"),cancel:t("help_consent_no")})
+          .then(function(ok){ setS({helpAiOk:!!ok,helpAiAsked:true}); });
+      },sw(!!(state.settings&&state.settings.helpAiOk))),
+      React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}},t("help_remote_setting_hint")),
       row("priv","🛡️",t("st_privacy"),null,function(){ setPrivOpen(true); }),
       row("delacc","🗑️",t("st_delete_acc"),null,function(){
         askConfirm({ title:t("st_delete_acc"), sub:t("st_delete_acc_sub"), ok:t("st_delete_acc_ok"), danger:true })
@@ -19126,8 +19288,10 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
       setKind("gasto"); setRaw(""); setNote(""); setCat("super");
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
       setDate(isoLocal()); setCalOpen(false); setBankOpen(false);
-      // Defecto = banco diario, no el sobre (aunque el sobre también sea gasto diario).
-      setBank(dailyBankEnt);
+      // Ayuda «Pregúntame» marca efectivo sin tocar 11 (mismo patrón que __mcExpBank en §3).
+      var wantCash=false;
+      try{ wantCash=!!window.__mcApuntarCash; window.__mcApuntarCash=false; }catch(e){}
+      setBank(wantCash&&hasEfectivo?"efectivo":dailyBankEnt);
       // Arranca en la moneda de pantalla (o la última que usó al apuntar en este viaje).
       const last=(state.settings&&state.settings.apuntarCur)||(state.settings&&state.settings.currency)||"EUR";
       setEntryCur(String(last).toUpperCase());
@@ -19425,6 +19589,565 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
     React.createElement("p",{style:{fontSize:12,color:"var(--muted-2)",lineHeight:1.45,margin:"18px 2px 0"}}, t("pf_hint")),
     onOpenSettings && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:14},onClick:function(){ onClose(); onOpenSettings(); }}, t("pf_to_settings"))
   );
+}
+/* Pregúntame: una pregunta → una frase + un botón. Cifras solo en el móvil.
+   Destinos cerrados; la Edge (si se activa) solo elige ids/cue, nunca prosa ni dinero. */
+const HELP_TOPICS=[
+  {id:"cash",title:"help_cash",body:"help_cash_body",cue:"help_cue_cash",actions:["cash","accounts"]},
+  {id:"goals",title:"help_goals",body:"help_goals_body",cue:"help_cue_goals",actions:["goals","debts"]},
+  {id:"debts",title:"help_debts",body:"help_debts_body",cue:"help_cue_debts",actions:["debts","goals"]},
+  {id:"banks",title:"help_banks",body:"help_banks_body",cue:"help_cue_banks",actions:["banks","expenses"]},
+  {id:"history",title:"help_history",body:"help_history_body",cue:"help_cue_history",actions:["history","banks"]},
+  {id:"categories",title:"help_categories",body:"help_categories_body",cue:"help_cue_categories",actions:["expenses"]},
+  {id:"receipts",title:"help_receipts",body:"help_receipts_body",cue:"help_cue_receipts",actions:["receipts","banks"]}
+];
+const HELP_ACTION_LABELS={cash:"help_open_cash",accounts:"help_open_accounts",goals:"help_open_goals",debts:"help_open_debts",banks:"help_open_banks",expenses:"help_open_expenses",history:"help_open_history",receipts:"help_open_receipts",settings:"settings"};
+const HELP_CUES=["help_cue_cash","help_cue_cash_add","help_cue_goals","help_cue_goals_simple","help_cue_debts","help_cue_banks","help_cue_history","help_cue_categories","help_cue_receipts","help_cue_budget_left","help_cue_budget_none","help_cue_budget_over","help_cue_next_bills","help_cue_next_bills_one","help_cue_next_bills_amount","help_cue_next_bills_none","help_cue_end_ok","help_cue_end_warn","help_cue_end_unknown","help_cue_clarify","help_cue_balance","help_cue_balance_miss","help_cue_balance_many"];
+const HELP_INTENTS=["budget_left","next_bills","end_of_month","account_balance"];
+/* Ents reales del catálogo (misma clave que state.accounts[].ent). */
+const HELP_BANKS=["sabadell","caixabank","revolut","trade_republic","myinvestor","efectivo","other"];
+const HELP_BANK_RE=[
+  ["sabadell",/\bsabadell\b/],
+  ["caixabank",/\b(caixa|caixabank)\b/],
+  ["revolut",/\brevolut\b/],
+  ["trade_republic",/\b(trade republic|traderepublic|\btr\b)\b/],
+  ["myinvestor",/\bmyinvestor\b/],
+  ["efectivo",/\b(efectivo|efectiu|cash)\b/]
+];
+function helpBankLabel(key){
+  if(key==="trade_republic") return "Trade Republic";
+  if(key==="caixabank") return "CaixaBank";
+  if(!key||key==="other") return "";
+  return key.charAt(0).toUpperCase()+key.slice(1);
+}
+function helpTopic(id){ return HELP_TOPICS.find(function(x){ return x.id===id; }); }
+function helpNorm(q){ return String(q||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
+function helpLooksSecret(q){
+  var s=String(q||"");
+  if(/\b[A-Z]{2}\d{2}(?:[ -]?[A-Z0-9]){11,30}\b/i.test(s)) return true;
+  if(/\b(?:\d[ -]*?){13,19}\b/.test(s)) return true;
+  if(/\b(pin|cvv|cvc|password|contrasena|contraseña|clave|token)\b\s*(?:es\s+|[:=]\s*)[^\s]{3,}/i.test(s)) return true;
+  if(/\b(?:sk|pk|tok)_[A-Za-z0-9_-]{12,}\b/.test(s)) return true;
+  return false;
+}
+function helpLocalBank(question){
+  var q=helpNorm(question);
+  for(var i=0;i<HELP_BANK_RE.length;i++){ if(HELP_BANK_RE[i][1].test(q)) return HELP_BANK_RE[i][0]; }
+  return null;
+}
+function helpLocalTopics(question){
+  var q=helpNorm(question);
+  var hits=[];
+  var add=function(id,re){ if(re.test(q)) hits.push(id); };
+  add("cash",/\b(efectivo|efectiu|cash|cajero|caixer|atm|billetes|monedas)\b/);
+  add("categories",/\b(categoria[s]?|categoritz\w*|categoriz\w*|categoris\w*|categor[yi]\w*|mapfre|clasific\w*|classific\w*|otros|altres)\b/);
+  add("history",/\b(historic\w*|history|import\w*|extracto[s]?|extracte[s]?|statement[s]?)\b/);
+  add("goals",/\b(ahorr\w*|estalvi\w*|saving[s]?|save|meta[s]?|goal[s]?)\b/);
+  add("debts",/\b(deuda[s]?|deute[s]?|debt[s]?|prestamo[s]?|prestec[s]?|loan[s]?|hipoteca|mortgage|cuota[s]?)\b/);
+  add("receipts",/\b(recibo[s]?|rebut[s]?|bill[s]?|domicili\w*)\b/);
+  add("banks",/\b(banco[s]?|banc[s]?|bank[s]?|caixa\w*|sabadell|revolut|trade republic|sincron\w*|actualiz\w*|sync\w*|no (sale|carga|aparece|llega|leyo)|missing)\b/);
+  return hits.slice(0,3);
+}
+/* «Dónde añado el efectivo» crea/abre la cuenta; «dónde apunto una compra» sigue llevando a
+   Apuntar. Las raíces son deliberadas: «apunto», «apuntar» y «compras» no pueden escaparse. */
+function helpCashWantsAccounts(question){
+  var q=helpNorm(question);
+  if(!/\b(efectivo|efectiu|cash)\b/.test(q)) return false;
+  /* `compr\w*` también casaba con «compruebo», así que consultar dónde ver el efectivo acababa
+     en Apuntar. Enumeramos formas de compra y dejamos las raíces flexibles solo donde no hay esa
+     colisión; las variantes «añado/meto/pongo» sí son crear o alimentar la cuenta. */
+  if(/\b(apunt\w*|gast\w*|compr(?!ob|ueb)\w*|pag\w*|paid|pay\w*|sac\w*|retir\w*|treur\w*|tret\w*|record\w*|spend\w*|spent|purchas\w*|expens\w*|bought|buy\w*|despes\w*|withdr[ae]w\w*|cajero|caixer|atm|billete|moneda)\b/.test(q)) return false;
+  return /\b(donde|where|on|anad\w*|afeg\w*|agreg\w*|crea\w*|add\w*|cuenta|account|pon\w*|met\w*|tenir|tener)\b/.test(q);
+}
+function helpPrimaryForTopic(topicId, question){
+  var item=helpTopic(topicId);
+  if(!item) return null;
+  if(topicId==="cash"&&helpCashWantsAccounts(question)) return "accounts";
+  return item.actions[0];
+}
+function helpCueForCashQuestion(question){
+  return helpCashWantsAccounts(question)?"help_cue_cash_add":"help_cue_cash";
+}
+function helpLocalIntent(question){
+  var q=helpNorm(question);
+  // «¿cómo cambio el presupuesto?» es guía, no cifra (P2 Claude 16/9).
+  if(/\b(como|how)\b/.test(q) && /\b(presupuesto|pressupost|budget|recibo|rebut|bill|meta|goal|deuda|deute|debt)\b/.test(q))
+    return null;
+  if(/\b(cuanto|quant|how much)\b/.test(q) && /\b(queda|remain|left|presupuesto|pressupost|budget)\b/.test(q))
+    return "budget_left";
+  if(/\b(me queda|em queda)\b/.test(q) && /\b(mes|month|presupuesto|budget)\b/.test(q)
+    && !/\b(cuota|recibo|rebut|deuda|deute|bill|debt)\b/.test(q))
+    return "budget_left";
+  if(/\b(que recibos|quin(s)? rebut|what bills|recibos.*falt|rebuts.*falt|proximos cargos|propers carrecs)\b/.test(q)
+    || /\b(recibo|rebut|bill)\b/.test(q) && /\b(falt|pend|queda|next)\b/.test(q))
+    return "next_bills";
+  if(/\b(llego|arribo|fin de mes|fi de mes|end of (the )?month|llegare)\b/.test(q))
+    return "end_of_month";
+  if(/\b(cuanto (tengo|hay)|quant (tinc|hi ha)|how much.*(have|in)|saldo|balance)\b/.test(q) && helpLocalBank(question))
+    return "account_balance";
+  return null;
+}
+/* Pregúntame reutiliza el resumen financiero puro: pendiente = fixed+deudas no
+   cobrados del mes (misma regla que totals.pendingThisMonth), no nº de bancos. */
+function helpSnap(state, totals){
+  state=state||{}; totals=totals||{};
+  var budAmt=0, spent=0, rem=0;
+  try{
+    if(typeof monthBudgetStats==="function"){
+      var bud=monthBudgetStats(state);
+      budAmt=bud.budget!=null?bud.budget:(state.budget||0);
+      spent=Math.max(0, bud.against||0);
+      rem=bud.remaining!=null?bud.remaining:(budAmt-spent);
+    }else{
+      budAmt=Number(state.budget)||0;
+      spent=Number(totals.spent)||0;
+      rem=totals.remaining!=null?Number(totals.remaining):(budAmt-spent);
+    }
+  }catch(e){ budAmt=Number(state.budget)||0; }
+  var pendN=0, pendTot=0;
+  try{
+    var today=totals.today||new Date().getDate();
+    var cm=totals.curMonth!=null?totals.curMonth:(new Date().getMonth()+1);
+    var cy=totals.curYear!=null?totals.curYear:new Date().getFullYear();
+    if(typeof pendingBillsSummary==="function"){
+      var pending=pendingBillsSummary(state,cm,cy,today);
+      pendN=pending.count; pendTot=pending.total;
+    }else if(totals.pendingThisMonth!=null){
+      pendTot=Number(totals.pendingThisMonth)||0;
+      pendN=pendTot>0?1:0;
+    }
+  }catch(e2){
+    pendTot=Number(totals.pendingThisMonth)||0;
+    pendN=pendTot>0?1:0;
+  }
+  var bals={}, balsCount={};
+  try{
+    var shownOpts={
+      injTR:totals.injTR||0,
+      spentByBank:totals.spentByBank||{},
+      paidNetByBank:totals.paidNetByBank||{},
+      roundup:totals.roundupThisMonth||0,
+      monthlyInvest:totals.monthlyInvestThisMonth||0
+    };
+    (state.accounts||[]).forEach(function(a){
+      if(!a||!a.ent) return;
+      balsCount[a.ent]=(balsCount[a.ent]||0)+1;
+      // Misma cifra que la fila de Cartera (no a.bal / dynBal inexistente).
+      var shown=typeof saldoCuentaMostrada==="function"
+        ? saldoCuentaMostrada(a, shownOpts)
+        : (Number(a.value)||0);
+      bals[a.ent]=(bals[a.ent]||0)+shown;
+    });
+  }catch(e3){
+    bals=Object.assign({},totals.bankBal||{});
+  }
+  var fixedAcc=(state.accounts||[]).find(function(a){ return typeof accFixed==="function"&&accFixed(a); });
+  // La proyección solo se atribuye a la cuenta marcada para recibos; sin ella no se adivina banco.
+  var mainKey=(fixedAcc&&fixedAcc.ent)||null;
+  var mainLabel=mainKey;
+  try{ if(mainKey&&typeof entOf==="function") mainLabel=(entOf(mainKey).label)||mainKey; }catch(e4){}
+  var projected=mainKey&&totals.projectedByBank&&isFinite(Number(totals.projectedByBank[mainKey]))
+    ? Number(totals.projectedByBank[mainKey]) : null;
+  return {
+    budget:budAmt, spent:spent, remaining:rem,
+    pendingCount:pendN, pendingTotal:pendTot,
+    mainProjected:projected,
+    mainBank:mainLabel||"",
+    balances:bals,
+    balanceCounts:balsCount
+  };
+}
+function helpOpenDetail(state, totals, opts){
+  state=state||{}; opts=opts||{};
+  return {
+    simple:!!(state.settings&&state.settings.simpleMode),
+    hiddenTabs:typeof tabHiddenOf==="function"?tabHiddenOf(state):[],
+    hasCash:(state.accounts||[]).some(function(a){ return typeof isEfectivoEnt==="function"?isEfectivoEnt(a):a.ent==="efectivo"; }),
+    helpAiOk:!!(state.settings&&state.settings.helpAiOk),
+    helpAiAsked:!!(state.settings&&state.settings.helpAiAsked),
+    onConsent:typeof opts.onConsent==="function"?opts.onConsent:null,
+    snap:helpSnap(state, totals)
+  };
+}
+function helpValidatedTopics(value){
+  if(!Array.isArray(value)||value.length>3||value.some(function(id){ return typeof id!=="string"||!helpTopic(id); })) return [];
+  return value.filter(function(id,i){ return typeof id==="string"&&helpTopic(id)&&value.indexOf(id)===i; });
+}
+function helpValidatedCue(value){
+  return (typeof value==="string"&&HELP_CUES.indexOf(value)>=0)?value:null;
+}
+function helpCueForTopic(topicId, value){
+  var item=helpTopic(topicId);
+  if(!item) return null;
+  // El proveedor solo clasifica: la frase siempre queda ligada al tema local elegido.
+  var cue=helpValidatedCue(value);
+  if(cue&&cue!==item.cue) cue=null;
+  return cue||item.cue;
+}
+function helpAnswerFromSnap(intent, snap, bank){
+  snap=snap||{};
+  if(intent==="budget_left"){
+    var bud=Number(snap.budget)||0;
+    var rem=snap.remaining!=null?Number(snap.remaining):(bud-(Number(snap.spent)||0));
+    if(!(bud>0)) return {cue:"help_cue_budget_none",action:"expenses",vars:null};
+    if(rem< -0.005) return {cue:"help_cue_budget_over",action:"expenses",vars:{x:Math.abs(rem),money:true}};
+    return {cue:"help_cue_budget_left",action:"expenses",vars:{x:Math.max(0,rem),b:bud,money:true}};
+  }
+  if(intent==="next_bills"){
+    var n=snap.pendingCount==null?null:(Number(snap.pendingCount)||0);
+    var tot=Number(snap.pendingTotal)||0;
+    if(!(tot>0)&&!(n>0)) return {cue:"help_cue_next_bills_none",action:"receipts",vars:null};
+    if(!(n>0)) return {cue:"help_cue_next_bills_amount",action:"receipts",vars:{x:tot,moneyX:true}};
+    if(n===1) return {cue:"help_cue_next_bills_one",action:"receipts",vars:{n:1,x:tot,moneyX:true}};
+    return {cue:"help_cue_next_bills",action:"receipts",vars:{n:n,x:tot,moneyX:true}};
+  }
+  if(intent==="end_of_month"){
+    var proj=snap.mainProjected;
+    var bankName=snap.mainBank||"";
+    if(proj==null||!isFinite(Number(proj))) return {cue:"help_cue_end_unknown",action:"receipts",vars:null};
+    var ok=Number(proj)>=0;
+    return {cue:ok?"help_cue_end_ok":"help_cue_end_warn",action:"receipts",vars:{x:Number(proj),bank:bankName,money:true}};
+  }
+  if(intent==="account_balance"){
+    var bals=snap.balances||{};
+    var counts=snap.balanceCounts||{};
+    var key=bank&&HELP_BANKS.indexOf(bank)>=0?bank:null;
+    if(!key||key==="other") return {cue:"help_cue_balance_miss",action:"accounts",vars:null};
+    var label=helpBankLabel(key);
+    if((counts[key]||0)>1)
+      return {cue:"help_cue_balance_many",action:"accounts",vars:{bank:label,n:String(counts[key])}};
+    if(bals[key]==null||!isFinite(Number(bals[key])))
+      return {cue:"help_cue_balance_miss",action:"accounts",vars:null};
+    return {cue:"help_cue_balance",action:"accounts",vars:{bank:label,x:Number(bals[key]),moneyX:true}};
+  }
+  return null;
+}
+function helpFormatVars(vars){
+  if(!vars) return null;
+  var out={};
+  Object.keys(vars).forEach(function(k){
+    if(k==="money"||k==="moneyX") return;
+    var v=vars[k];
+    if((vars.money&&(k==="x"||k==="b"))||(vars.moneyX&&k==="x")) out[k]=typeof eur0==="function"?eur0(v):String(v);
+    else out[k]=String(v);
+  });
+  return out;
+}
+function helpPhrase(cue, vars){
+  if(!cue) return "";
+  var raw=t(cue);
+  if(!vars) return raw;
+  return String(raw).replace(/\{(\w+)\}/g,function(_,k){ return vars[k]!=null?String(vars[k]):""; });
+}
+function helpStepLines(topicId){
+  var item=helpTopic(topicId);
+  if(!item) return [];
+  /* Una beta llegó a pintar el separador como «/n». Normalizamos también packs de idioma ya
+     cacheados y devolvemos tres instrucciones cortas, no un párrafo dentro de otro párrafo. */
+  return String(t(item.body)||"").replace(/[\\/]n/g,"\n").split(/\n+/).map(function(x){ return x.trim(); }).filter(Boolean).slice(0,3);
+}
+
+function HelpAssistant({onClose,onAction,onConsent,online,signedIn,simple,hiddenTabs,hasCash,snap,helpAiOk,helpAiAsked}){
+  const [question,setQuestion]=useState("");
+  const [asked,setAsked]=useState("");
+  const [answer,setAnswer]=useState(null); /* {phrase, action, topicIds, stepsId, low} */
+  const [busy,setBusy]=useState(false);
+  const [stepsOpen,setStepsOpen]=useState(false);
+  const [consentOpen,setConsentOpen]=useState(false);
+  const [remoteOk,setRemoteOk]=useState(!!helpAiOk);
+  const [remoteAsked,setRemoteAsked]=useState(!!helpAiAsked);
+  const [remoteTried,setRemoteTried]=useState(false);
+  const [remoteNotice,setRemoteNotice]=useState(null);
+  const [kbPad,setKbPad]=useState(0);
+  const requestRef=useRef(0);
+  const dialogRef=useRef(null);
+  const swipe=useSheetSwipe(true, onClose);
+  const requestClose=function(){ swipe.close(onClose); };
+  useBackClose(true, requestClose);
+  useEffect(function(){
+    var root=dialogRef.current;
+    if(!root) return undefined;
+    // Abrir con el textarea enfocado levantaba el teclado y tapaba toda la explicación antes de
+    // poder leerla. El diálogo conserva foco accesible en Volver; el teclado nace al tocar la caja.
+    var first=root.querySelector('[data-act="back"]');
+    if(first) first.focus({preventScroll:true});
+    var keys=function(e){
+      if(e.key==="Escape"){ e.preventDefault(); requestClose(); return; }
+      if(e.key!=="Tab") return;
+      var xs=Array.prototype.filter.call(root.querySelectorAll('button:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'),function(x){ return x.offsetParent!==null; });
+      if(!xs.length){ e.preventDefault(); return; }
+      var a=xs[0],b=xs[xs.length-1];
+      if(e.shiftKey&&document.activeElement===a){ e.preventDefault(); b.focus(); }
+      else if(!e.shiftKey&&document.activeElement===b){ e.preventDefault(); a.focus(); }
+    };
+    document.addEventListener("keydown",keys);
+    return function(){ document.removeEventListener("keydown",keys); };
+  },[]);
+  /* El teclado móvil reduce visualViewport: recolocamos la hoja encima, no debajo. */
+  useEffect(function(){
+    var sync=function(){
+      try{
+        var vv=window.visualViewport;
+        if(!vv){ setKbPad(0); return; }
+        var pad=Math.max(0, window.innerHeight-(vv.height+vv.offsetTop));
+        setKbPad(pad>24?Math.round(pad):0);
+      }catch(e){ setKbPad(0); }
+    };
+    sync();
+    if(window.visualViewport){
+      window.visualViewport.addEventListener("resize",sync);
+      window.visualViewport.addEventListener("scroll",sync);
+    }
+    window.addEventListener("resize",sync);
+    return function(){
+      if(window.visualViewport){
+        window.visualViewport.removeEventListener("resize",sync);
+        window.visualViewport.removeEventListener("scroll",sync);
+      }
+      window.removeEventListener("resize",sync);
+    };
+  },[]);
+
+  const paintLocal=function(text){
+    if(helpLooksSecret(text)){
+      setAnswer({phrase:t("help_secret"),action:null,topicIds:[],stepsId:null,low:false});
+      return;
+    }
+    var intent=helpLocalIntent(text);
+    if(intent){
+      var built=helpAnswerFromSnap(intent, snap, helpLocalBank(text));
+      if(built){
+        setAnswer({phrase:helpPhrase(built.cue, helpFormatVars(built.vars)),action:built.action,topicIds:[],stepsId:null,low:false,intent:intent});
+        return;
+      }
+    }
+    var topics=helpLocalTopics(text);
+    if(topics.length===1){
+      var tid=topics[0];
+      var item=helpTopic(tid);
+      var cue1=tid==="cash"?helpCueForCashQuestion(text)
+        :((simple&&tid==="goals")?"help_cue_goals_simple":(item.cue||item.title));
+      setAnswer({phrase:t(cue1),action:helpPrimaryForTopic(tid,text),topicIds:topics,stepsId:tid,low:false});
+      return;
+    }
+    if(topics.length>1){
+      setAnswer({phrase:t("help_cue_clarify"),action:null,topicIds:topics,stepsId:null,low:true});
+      return;
+    }
+    setAnswer({phrase:t("help_unknown"),action:null,topicIds:[],stepsId:null,low:true});
+  };
+
+  const send=function(e){
+    if(e) e.preventDefault();
+    var text=question.trim(); if(!text) return;
+    if(document.activeElement&&document.activeElement.blur) document.activeElement.blur();
+    requestRef.current++; setBusy(false); setAsked(text); setStepsOpen(false); setRemoteTried(false); setRemoteNotice(null);
+    paintLocal(text);
+    // OpenAI es opcional: solo con consentimiento, sesión y una duda local poco clara.
+  };
+  const askOnline=async function(forceOk){
+    if(busy||!online||!signedIn||!cloud.enabled()||!(remoteOk||forceOk)||!asked) return;
+    if(helpLooksSecret(asked)) return;
+    var id=++requestRef.current; setRemoteTried(true); setBusy(true); setRemoteNotice(null);
+    var timer;
+    try{
+      var result=await Promise.race([cloud.askHelp(asked,CURLANG),new Promise(function(resolve,reject){ timer=setTimeout(function(){ reject(new Error("timeout")); },20000); })]);
+      if(id!==requestRef.current) return;
+      if(!result||result.ok===false){
+        setRemoteNotice(result&&result.error==="limited"?"help_limited":"help_unavailable");
+        return;
+      }
+      var selected=helpValidatedTopics(result&&result.topics);
+      var intent=(result&&HELP_INTENTS.indexOf(result.intent)>=0)?result.intent:null;
+      var bank=(result&&HELP_BANKS.indexOf(result.bank)>=0)?result.bank:helpLocalBank(asked);
+      if(intent){
+        var built=helpAnswerFromSnap(intent, snap, bank);
+        if(built){ setAnswer({phrase:helpPhrase(built.cue, helpFormatVars(built.vars)),action:built.action,topicIds:[],stepsId:null,low:result.confidence==="low",intent:intent}); return; }
+      }
+      if(selected.length){
+        var topId=selected[0];
+        var cue=topId==="cash"?helpCueForCashQuestion(asked):helpCueForTopic(topId,result&&result.cue);
+        setAnswer({phrase:t(cue),action:helpPrimaryForTopic(topId,asked),topicIds:selected,stepsId:topId,low:result.confidence==="low"});
+      } else {
+        setAnswer({phrase:t("help_unknown"),action:null,topicIds:[],stepsId:null,low:true});
+      }
+    }catch(err){
+      if(id===requestRef.current) setRemoteNotice("help_unavailable");
+    }finally{ clearTimeout(timer); if(id===requestRef.current) setBusy(false); }
+  };
+  const chooseTopic=function(tid,sourceQuestion){
+    var item=helpTopic(tid); if(!item) return;
+    var source=sourceQuestion!=null?sourceQuestion:(asked||question);
+    var cueT=tid==="cash"?helpCueForCashQuestion(source)
+      :((simple&&tid==="goals")?"help_cue_goals_simple":(item.cue||item.title));
+    setAnswer({phrase:t(cueT),action:helpPrimaryForTopic(tid,source),topicIds:[tid],stepsId:tid,low:false});
+    setStepsOpen(false);
+  };
+  const runAction=function(id){
+    swipe.close(function(){ onAction(id); });
+  };
+  const primaryAction=answer&&answer.action;
+  const primaryBlocked=primaryAction&&((simple&&(primaryAction==="goals"||primaryAction==="debts"))||(["expenses","accounts","goals","debts","receipts"].indexOf(primaryAction)>=0&&(hiddenTabs||[]).indexOf(primaryAction==="expenses"?"gastos":primaryAction==="accounts"?"cartera":"plan")>=0));
+  const ctaId=primaryBlocked?"settings":(primaryAction==="cash"&&!hasCash?"accounts":primaryAction);
+  const ctaLabel=primaryBlocked?"help_show_settings":(ctaId==="accounts"&&primaryAction==="cash"&&!hasCash?"help_create_cash":HELP_ACTION_LABELS[ctaId]);
+  /* `100dvh - teclado` llevaba el borde superior a 0: en Android el título quedaba debajo de la
+     barra de estado. Reservar safe-top evita el recorte; no interpolamos cada resize del teclado,
+     porque perseguir una visualViewport animada con otra transición producía el rebote duro. */
+  const sheetStyle=kbPad?{maxHeight:"calc(100dvh - "+kbPad+"px - var(--safe-top) - 8px)",marginBottom:kbPad+"px"}:null;
+
+  return React.createElement("div",{className:"v4-sheet-back aely-help-back",onClick:requestClose,"data-help-kb":kbPad?"1":"0"},
+    React.createElement("div",Object.assign({className:"v4-sheet aely-help-sheet","data-sheet":"help",role:"dialog","aria-modal":"true","aria-labelledby":"help-title",style:sheetStyle,ref:function(el){ swipe.sheetRef.current=el; dialogRef.current=el; },onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("div",{className:"aely-help-sheet-h"},
+        React.createElement("h1",{id:"help-title",className:"serif"}, t("help_title")),
+        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:requestClose},"‹")),
+      React.createElement("div",{className:"aely-help-body v4-sheet-body"},
+        React.createElement("p",{className:"hint aely-help-intro"}, t("help_intro")),
+        remoteOk && React.createElement("p",{className:"hint aely-help-remote-status","data-testid":"help-remote-status"}, t("help_remote_status_on")),
+        !answer && React.createElement("div",{className:"aely-help-topics"},
+          HELP_TOPICS.map(function(x){
+            return React.createElement("button",{key:x.id,type:"button",className:"rchip aely-help-topic",onClick:function(){ var title=t(x.title); setQuestion(title); chooseTopic(x.id,title); setAsked(title); }}, t(x.title));
+          })),
+        answer && React.createElement("div",{className:"aely-help-answer",role:"status","aria-live":"polite"},
+          answer.low && React.createElement("div",{className:"hint"}, t("help_maybe")),
+          React.createElement("p",{className:"aely-help-phrase"}, answer.phrase),
+          ctaId && React.createElement("button",{type:"button",className:"btn btn-ghost aely-help-cta","data-testid":"help-cta",onClick:function(){ runAction(ctaId); }},
+            t(ctaLabel)),
+          answer.stepsId && React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:8},onClick:function(){ setStepsOpen(function(v){ return !v; }); }},
+            stepsOpen?t("help_steps_hide"):t("help_steps_show")),
+          stepsOpen && answer.stepsId && React.createElement("ol",{className:"hint aely-help-steps","data-testid":"help-steps"},
+            helpStepLines(answer.stepsId).map(function(line,i){ return React.createElement("li",{key:i},line); })),
+          answer.topicIds && answer.topicIds.length>1 && React.createElement("div",{className:"aely-help-topics",style:{marginTop:10}},
+            answer.topicIds.map(function(tid){
+              return React.createElement("button",{key:tid,type:"button",className:"rchip aely-help-topic",onClick:function(){ chooseTopic(tid,asked); }}, t(helpTopic(tid).title));
+            })),
+          answer.low && React.createElement("div",{className:"aely-help-topics",style:{marginTop:10}},
+            HELP_TOPICS.slice(0,4).map(function(x){
+              return React.createElement("button",{key:x.id,type:"button",className:"rchip aely-help-topic",onClick:function(){ chooseTopic(x.id,asked); }}, t(x.title));
+            })),
+          online && signedIn && cloud.enabled() && asked && answer.low && remoteOk && React.createElement("button",{type:"button",className:"btn btn-ghost",style:{marginTop:8},disabled:busy,onClick:function(){ askOnline(false); }}, t(remoteTried?"help_try_again":"help_remote_try")),
+          online && signedIn && cloud.enabled() && asked && answer.low && !remoteOk && !remoteAsked && React.createElement("button",{type:"button",className:"btn btn-ghost",style:{marginTop:8},onClick:function(){ setConsentOpen(true); }}, t("help_remote_try")),
+          consentOpen && React.createElement("div",{className:"aely-help-consent"},
+            React.createElement("div",{style:{fontWeight:800}},t("help_consent_title")),
+            React.createElement("p",{className:"hint",style:{margin:"7px 0 0"}},t("help_consent_body")),
+            React.createElement("div",{className:"ask-btns",style:{marginTop:12}},
+              React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){ setConsentOpen(false); setRemoteAsked(true); if(onConsent) onConsent(false); }},t("help_consent_no")),
+              React.createElement("button",{type:"button",className:"btn btn-primary",onClick:function(){ setConsentOpen(false); setRemoteAsked(true); setRemoteOk(true); if(onConsent) onConsent(true); askOnline(true); }},t("help_consent_yes"))))
+        ),
+        remoteNotice && React.createElement("div",{className:"hint aely-help-remote-note",role:"alert","aria-live":"assertive",style:{marginTop:10}},t(remoteNotice))
+      ),
+      React.createElement("form",{className:"aely-help-composer",onSubmit:send},
+        React.createElement("textarea",{id:"help-question",className:"v4-bills-search aely-help-q",rows:2,maxLength:600,value:question,
+          placeholder:t("help_placeholder"),"aria-label":t("help_question"),
+          onTouchStart:function(e){ e.stopPropagation(); },onTouchMove:function(e){ e.stopPropagation(); },
+          onChange:function(e){ setQuestion(e.target.value); }}),
+        React.createElement("button",{type:"submit",className:"btn btn-primary aely-help-send",disabled:!question.trim()||busy}, t(busy?"help_wait":"help_send")))
+    )
+  );
+}
+
+function HelpHost(){
+  const [open,setOpen]=React.useState(false);
+  const [ctx,setCtx]=React.useState({simple:false,hiddenTabs:[],hasCash:true,snap:{},helpAiOk:false,helpAiAsked:false,onConsent:null});
+  const [online,setOnline]=React.useState(typeof navigator!=="undefined"?navigator.onLine:true);
+  const triggerRef=React.useRef(null);
+  React.useEffect(function(){
+    const onOpen=function(e){
+      const d=(e&&e.detail)||{};
+      triggerRef.current=document.activeElement;
+      setCtx({
+        simple:!!d.simple,
+        hiddenTabs:Array.isArray(d.hiddenTabs)?d.hiddenTabs:[],
+        hasCash:d.hasCash!==false,
+        snap:d.snap&&typeof d.snap==="object"?d.snap:{},
+        helpAiOk:!!d.helpAiOk,
+        helpAiAsked:!!d.helpAiAsked,
+        onConsent:typeof d.onConsent==="function"?d.onConsent:null
+      });
+      setOpen(true);
+    };
+    const onNet=function(){ setOnline(!!navigator.onLine); };
+    window.addEventListener("mc-open-help", onOpen);
+    window.addEventListener("online", onNet);
+    window.addEventListener("offline", onNet);
+    return function(){
+      window.removeEventListener("mc-open-help", onOpen);
+      window.removeEventListener("online", onNet);
+      window.removeEventListener("offline", onNet);
+    };
+  },[]);
+  if(!open) return null;
+  const signedIn=!!(typeof window!=="undefined"&&window.__mcEmail);
+  const navigate=function(id){
+    try{
+      if(id==="cash"){
+        var fab=document.querySelector('.botnav-fab[data-tour="apuntar"]');
+        if(!fab) return;
+        window.__mcApuntarCash=true;
+        fab.click();
+        return;
+      }
+      if(id==="expenses"){ var g=document.querySelector('.botnav-tab[data-tour="gastos"]'); if(g) g.click(); return; }
+      if(id==="accounts"){ var c=document.querySelector('.botnav-tab[data-tour="cartera"]'); if(c) c.click(); return; }
+      if(id==="goals"||id==="debts"||id==="receipts"){
+        var ptab=document.querySelector('.botnav-tab[data-tour="plan"]');
+        if(ptab) ptab.click();
+        var frames=0;
+        var openSegment=function(){
+          try{
+            var label=t(id==="receipts"?"v4_plan_recibos":(id==="debts"?"v4_plan_deudas":"v4_plan_metas"));
+            var buttons=document.querySelectorAll(".page-live .v4-seg-btn");
+            for(var i=0;i<buttons.length;i++) if((buttons[i].textContent||"").trim()===label){ buttons[i].click(); return; }
+          }catch(e){}
+          frames++;
+          if(frames<36) requestAnimationFrame(openSegment);
+        };
+        requestAnimationFrame(openSegment);
+        return;
+      }
+      if(id==="banks"){ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); return; }
+      if(id==="history"){
+        window.dispatchEvent(new CustomEvent("mc-open-settings"));
+        setTimeout(function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-history")); }catch(e){} }, 80);
+        return;
+      }
+      if(id==="settings"){ window.dispatchEvent(new CustomEvent("mc-open-settings")); }
+    }catch(e){}
+  };
+  /* Cierre: useBackClose hace history.back con _mcIgnorePop (el popstate no sirve
+     para saber cuándo abrir OTRO overlay). Botnav basta con 2 rAF; bancos/ajustes
+     esperan a que baje _mcIgnorePop (tope 400 ms). */
+  const afterClose=function(then, waitHistory){
+    setOpen(false);
+    if(!waitHistory){
+      requestAnimationFrame(function(){ requestAnimationFrame(then); });
+      return;
+    }
+    var done=false, n=0;
+    var finish=function(){
+      if(done) return; done=true; clearInterval(iv); then();
+    };
+    var iv=setInterval(function(){
+      n++;
+      try{ if(!_mcIgnorePop||n>20) finish(); }catch(e){ finish(); }
+    }, 20);
+  };
+  const closeAndRestore=function(){
+    var el=triggerRef.current;
+    setOpen(false);
+    requestAnimationFrame(function(){ if(el&&document.contains(el)&&el.focus) el.focus({preventScroll:true}); });
+  };
+  return React.createElement(HelpAssistant,{
+    onClose:closeAndRestore,
+    online:online, signedIn:signedIn,
+    simple:!!ctx.simple, hiddenTabs:ctx.hiddenTabs||[], hasCash:!!ctx.hasCash,
+    snap:ctx.snap||{}, helpAiOk:!!ctx.helpAiOk, helpAiAsked:!!ctx.helpAiAsked, onConsent:ctx.onConsent,
+    onAction:function(id){
+      if(!Object.prototype.hasOwnProperty.call(HELP_ACTION_LABELS,id)) return;
+      var overlay=id==="banks"||id==="history"||id==="settings";
+      afterClose(function(){ navigate(id); }, overlay);
+    }
+  });
 }
 // Motivo con identidad: `runBankSync` no llamó al banco porque no había pull de la nube (15/9).
 const SYNC_SIN_NUBE={motivo:"sync-sin-nube"};

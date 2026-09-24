@@ -21,7 +21,11 @@ function pendingBillsSummary(state,month,year,today){
     count++; total+=amount;
   });
   (state.debts||[]).forEach(function(d){
-    if(!debtActive(d)||isDebtPaidThisMonth(d,today)) return;
+    if(!debtActive(d)) return;
+    // Plan deja una cuota sin día como pendiente y enseña «—»: usar aquí el fallback histórico
+    // a día 1 hacía que Pregúntame dijera 0 € mientras Plan enseñaba la deuda (review 24/9).
+    var rawDay=dayOf(d), day=rawDay!=null&&Number(rawDay)>0?Number(rawDay):null;
+    if(day!=null&&day<=today) return;
     var monthly=Number(d.monthly)||0;
     if(monthly>0){ count++; total+=monthly; }
     var balloon=debtBalloonIn(d,year,month);

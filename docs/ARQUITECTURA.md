@@ -9,7 +9,7 @@ Guardar reemplaza el array una vez; Cancelar no toca el estado. Esta pantalla nu
 `expenses`, ingresos, traspasos ni operaciones bancarias. El importe acepta separadores de
 miles y decimales del idioma sin rebajar silenciosamente una aportación.
 
-## Pregúntame híbrido (4.26.3)
+## Pregúntame híbrido (4.25.14)
 
 `16-help-assistant.js` es una ayuda de una pregunta y una respuesta corta. La capa local funciona
 sin red y es la única que calcula cifras: reutiliza `monthBudgetStats`, `pendingBillsSummary`,

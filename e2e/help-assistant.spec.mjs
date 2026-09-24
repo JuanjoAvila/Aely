@@ -172,14 +172,16 @@ test("los recibos pendientes cuadran con la cifra de Plan → Recibos",async({pa
       {id:"f1",name:"Luz",amount:40,freq:"mes",day:28,account:"sabadell"},
       {id:"f2",name:"Internet",amount:60,freq:"mes",day:29,account:"sabadell"},
     ],
+    // Una deuda sin día se muestra pendiente con «—» en Plan; Pregúntame debe sumar lo mismo.
+    debts:[{id:"d1",name:"Préstamo",monthly:80,value:1000,account:"sabadell"}],
     expenses:[],
   });
   await ask(dialog,"¿Qué recibos me faltan?");
-  await expect(dialog.getByRole("status")).toContainText(/2 recibos.*100/);
+  await expect(dialog.getByRole("status")).toContainText(/3 recibos.*180/);
   await dialog.getByRole("button",{name:"Abrir Recibos",exact:true}).click();
   await expect(page.locator('.botnav-tab.active')).toHaveAttribute("data-tour","plan");
   await expect(page.locator('.page-live .v4-seg-btn.on')).toHaveText("Recibos");
-  await expect(page.locator(".v4-card-hero").filter({hasText:"Queda por pagar"}).last()).toContainText(/100/);
+  await expect(page.locator(".v4-card-hero").filter({hasText:"Queda por pagar"}).last()).toContainText(/180/);
 });
 
 test("Escape cierra el diálogo y devuelve el foco al botón",async({page})=>{

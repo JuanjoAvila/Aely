@@ -25,12 +25,12 @@ mi-cartera/
 ├── src/                    # 👈 Fuente editable (v3.108+)
 │   ├── shell.html          #     HTML shell (React, CSS, vendors)
 │   ├── build-order.json    #     Orden de ensamblado de módulos
-│   └── modules/            #     15 ficheros JS (core, i18n, motor, app, boot, v4…)
+│   └── modules/            #     17 ficheros JS (core, i18n, motor, app, boot, v4, ayuda…)
 ├── public/                 # Artefacto desplegable (generado + estáticos)
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
-├── e2e/                    # Playwright (66 specs: arranque, listas, bancos, brókers, perfil, CSV, CSP, rendimiento, beta…)
+├── e2e/                    # Playwright (71 specs: arranque, listas, bancos, brókers, ayuda, CSV, CSP, rendimiento, beta…)
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
@@ -80,7 +80,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.25.13** preparada para producción — Plan → Recibos muestra el saldo más bajo previsto del mes y su día, sin inventarlos si faltan datos; disponibilidad del canal con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.25.14** preparada para producción — Pregúntame ofrece ayuda breve y local, abre la pantalla adecuada y aparece sin levantar el teclado; la consulta remota sigue siendo opcional y requiere consentimiento. Disponibilidad del canal con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.
