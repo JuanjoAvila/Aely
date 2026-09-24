@@ -94,6 +94,27 @@ t("la duda de Open Banking sigue viajando nube → app → nube sin contar", () 
   assert.equal(cli.expenseSourceForCloud({ ...e, possibleDup: false }), "ob:trade_republic");
 });
 
+t("APK usa postTime, conserva identidad nativa y aparta posibles repetidos", () => {
+  const java = fs.readFileSync(path.join(root,
+    "android/app/src/main/java/com/micartera/app/TrExpenseListener.java"), "utf8");
+  assert.match(java, /sbn\.getPostTime\(\)/);
+  assert.match(java, /\.put\("evento", evento\)/);
+  const stable = /static String stableEventId\(([^)]*)\)\s*\{([\s\S]*?)\n    \}/.exec(java);
+  assert.ok(stable, "falta la identidad nativa estable");
+  assert.equal(/title|text/i.test(stable[1] + stable[2]), false,
+    "un update con mismo key/postTime y texto distinto tiene que conservar el mismo id");
+  assert.match(stable[1], /String key, long postedAt/,
+    "otro key o postTime debe producir otra huella");
+  assert.match(java, /sbn\.getId\(\).*sbn\.getTag\(\)/s,
+    "si Android no da key, el fallback usa su id/tag nativo, no el texto");
+  const possibleDup = /if \(r\.optBoolean\("possibleDup", false\)\) \{[\s\S]*?\n\s*\}/.exec(java);
+  assert.ok(possibleDup, "la APK debe reconocer la respuesta possibleDup del servidor");
+  assert.match(possibleDup[0], /return;/,
+    "un posible repetido debe salir antes de actualizar cifras y widget");
+  assert.doesNotMatch(possibleDup[0], /saveMonth|MiCarteraWidget/,
+    "un posible repetido no puede entrar en las cifras del widget");
+});
+
 t("Edge solo confirma si hubo INSERT con ACK exacto", () => {
   const edge = fs.readFileSync(path.join(root, "supabase/functions/ingest/index.ts"), "utf8");
   const mig = fs.readFileSync(path.join(root, "supabase/migrations/0025_expenses_ingest_event.sql"), "utf8");

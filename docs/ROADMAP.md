@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-24 · **v4.25.20** — Inicio retira el cambio mensual sin base fiable y calcula la racha con presupuestos reales de meses cerrados.
+> Estado a 2026-09-24 · **v4.25.21** — el gesto horizontal funciona también abajo del todo, las barras visuales desaparecen sin desactivar el scroll y la APK 49 conserva la identidad nativa anti-duplicados; asset preparado, manifiesto aún no publicado.
+> Anterior: **v4.25.20** — Inicio retira el cambio mensual sin base fiable y calcula la racha con presupuestos reales de meses cerrados.
 > Anterior: **v4.25.19** — Inversiones estrena ficha completa, entrada lateral y gesto atrás que acompaña al dedo desde cualquier zona libre.
 > Anterior: **v4.25.18** — Actualizar inversiones consulta TR/MyInvestor y precios sin ocultar sesiones caducadas ni fallos parciales.
 > Anterior: **v4.25.17** — CaixaBank distingue cuentas, explica cuándo el histórico ya estaba apuntado y permite abrirlo completo en Gastos.
@@ -205,10 +206,10 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.25.20** (Inicio honesto y racha con presupuestos históricos reales; canal = `npm run salud`) |
-| APK (`versionName` / `versionCode`) | Repo y producción: **4.20.4 / 46**. |
+| Web / OTA (`VERSION`) | **4.25.21** (gesto horizontal al fondo, barras visuales ocultas y APK sin regresión de duplicados; candidata aislada, aún sin publicar) |
+| APK (`versionName` / `versionCode`) | Candidata firmada: **4.25.21 / 49**. Producción sigue en **4.20.4 / 46** hasta publicar su manifiesto. |
 | Anterior | **4.18.3 / 42**, **4.17.1 / 41**, **4.16.1 / 39**. |
-| `public/apk.json` | **46** / 4.20.4 |
+| `public/apk.json` | Candidata de rama: **49** / 4.25.21; el asset real existe en `v4.25.21`, pero el manifiesto no se sirve hasta promover. |
 
 ## Pendiente / limitaciones conocidas
 

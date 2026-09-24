@@ -1,5 +1,32 @@
 [
   {
+    "v": "4.25.21",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Desliza con naturalidad desde cualquier altura",
+      "en": "Swipe naturally from any height",
+      "ca": "Llisca amb naturalitat des de qualsevol altura"
+    },
+    "items": {
+      "es": [
+        "Puedes cambiar de pantalla con un gesto horizontal incluso cuando has llegado abajo del todo, sin tener que subir primero.",
+        "Desaparece la barra lateral de desplazamiento en todas las pantallas, también en Ajustes, pero puedes seguir subiendo y bajando con normalidad.",
+        "Si Android vuelve a entregar el aviso de un mismo pago, la app reconoce que es el mismo; si queda alguna duda, lo aparta para revisar sin sumarlo dos veces."
+      ],
+      "en": [
+        "You can switch screens with a horizontal swipe even at the very bottom, without having to scroll up first.",
+        "The side scroll indicator is gone from every screen, including Settings, while normal vertical scrolling still works.",
+        "If Android delivers the same payment alert again, the app recognises it as the same event; if there is any doubt, it leaves it for review without counting it twice."
+      ],
+      "ca": [
+        "Pots canviar de pantalla amb un gest horitzontal fins i tot quan has arribat al final, sense haver de pujar abans.",
+        "Desapareix la barra lateral de desplaçament de totes les pantalles, també d'Ajustos, però pots continuar pujant i baixant amb normalitat.",
+        "Si Android torna a lliurar l'avís d'un mateix pagament, l'app reconeix que és el mateix; si queda algun dubte, l'aparta per revisar sense comptar-lo dues vegades."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.20",
     "d": "24 sep 2026",
     "t": {

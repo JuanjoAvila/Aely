@@ -13,6 +13,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.NumberFormat;
+import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
@@ -161,9 +162,9 @@ public class TrExpenseListener extends NotificationListenerService {
         if (!text.contains("€") && !HAS_AMOUNT.matcher(text).find()) return;
 
         // DEDUPE (bug pareja 2026-07-10): Android re-entrega la MISMA notificación cuando TR la
-        // actualiza (y al reconectar el listener) → cada re-entrega disparaba otro POST y otra
-        // noti de confirmación ("a veces 2"). El servidor ya dedupea el GASTO (expenses_dedup_idx),
-        // pero la confirmación local salía igual. Mismo texto en <3 min ⇒ ya procesada, fuera.
+        // actualiza → cada re-entrega inmediata disparaba otro POST. Esto solo es un debounce para
+        // la ráfaga local; la identidad duradera y el ACK viven en el servidor porque otra noti
+        // intercalada reemplaza esta única firma. Mismo texto en <3 min ⇒ no hace falta ni enviarla.
         android.content.SharedPreferences dd =
                 getSharedPreferences("micartera_ingest_dedupe", MODE_PRIVATE);
         int sig = (title + "|" + text).hashCode();
@@ -171,18 +172,30 @@ public class TrExpenseListener extends NotificationListenerService {
         if (dd.getInt("sig", 0) == sig && now - dd.getLong("ts", 0) < 180000) return;
         dd.edit().putInt("sig", sig).putLong("ts", now).apply();
 
+        /* Identidad del EVENTO, no de sus datos financieros. Android conserva key/postTime al
+           reentregar una notificación activa; dos compras reales conservan ids distintos aunque
+           coincidan importe y comercio. El SHA evita mandar al servidor package/key/texto. */
+        final long postedAt = sbn.getPostTime() > 0 ? sbn.getPostTime() : now;
+        String nativeKey = sbn.getKey();
+        // `getKey()` existe desde API 21, pero el fallback deja identidad estable en fabricantes
+        // que devuelvan vacío: package + id + tag son los campos con los que Android casa updates.
+        if (nativeKey == null || nativeKey.isEmpty()) {
+            nativeKey = sbn.getPackageName() + "|" + sbn.getId() + "|" + String.valueOf(sbn.getTag());
+        }
+        final String evento = stableEventId(fuente, sbn.getPackageName(), nativeKey, postedAt);
+
         new Thread(() -> {
             String body;
             try {
-                /* La FECHA se sella AQUÍ, con el reloj del momento de la compra, y viaja en el
-                   cuerpo. Por eso un reintento tardío sigue apuntando el gasto en su día y su hora
-                   —no en la de la reconexión— y el dedup del servidor (mismo importe a <10 min) lo
-                   reconoce como el mismo movimiento si el primer envío llegó a colarse. */
+                /* `postTime`, no el reloj de este hilo: Android puede reentregar una notificación
+                   antigua al reconectar el listener. Sellarla otra vez con «ahora» convirtió el
+                   mismo pago de las 14:24 en otro de las 14:59. */
                 body = new JSONObject()
                         .put("texto", text)
                         .put("titulo", title)
                         .put("fuente", fuente)
-                        .put("fecha", String.valueOf(System.currentTimeMillis()))
+                        .put("fecha", String.valueOf(postedAt))
+                        .put("evento", evento)
                         .toString();
             } catch (Exception e) {
                 return;   // JSONObject.put solo lanza con claves nulas; aquí no puede pasar.
@@ -190,6 +203,20 @@ public class TrExpenseListener extends NotificationListenerService {
             if (postIngest(INGEST_URL, body) == REINTENTAR) encolar(INGEST_URL, body);
             vaciarCola();
         }).start();
+    }
+
+    /** Huella estable y opaca. Si SHA-256 no existiera, se omite: nunca se usa un hash débil. */
+    static String stableEventId(String fuente, String pkg, String key, long postedAt) {
+        try {
+            String raw = String.valueOf(fuente) + "\n" + String.valueOf(pkg) + "\n" +
+                    String.valueOf(key) + "\n" + postedAt;
+            byte[] dig = MessageDigest.getInstance("SHA-256").digest(raw.getBytes(StandardCharsets.UTF_8));
+            StringBuilder out = new StringBuilder("v1_");
+            for (byte b : dig) out.append(String.format(Locale.ROOT, "%02x", b & 0xff));
+            return out.toString();
+        } catch (Exception ignored) {
+            return "";
+        }
     }
 
     // ---- Envío + COLA DE REINTENTOS -------------------------------------------------------
@@ -361,6 +388,15 @@ public class TrExpenseListener extends NotificationListenerService {
 
             double importe = r.optDouble("importe", 0);
             String comercio = r.optString("comercio", "");
+            if (r.optBoolean("possibleDup", false)) {
+                /* Un alias TR/Wallet no es otro gasto confirmado ni algo que podamos borrar solos.
+                   Queda fuera de las cifras y se abre en Gastos para decidir con el movimiento real. */
+                String ack = r.optString("ack", comercio);
+                Notif.show(this, "⚠ Posible repetido",
+                        eur(importe) + " · revísalo en Gastos", Notif.idFor("dup|" + ack),
+                        "exp|" + importe + "|" + comercio);
+                return;
+            }
             /* Id derivado del GASTO, no del reloj: si el mismo cargo se procesa dos veces (Android
                reentrega `onNotificationPosted` cuando el banco actualiza su propia noti), la
                confirmación sustituye a la anterior en vez de apilarse («las notis se duplican»,

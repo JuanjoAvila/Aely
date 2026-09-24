@@ -17,6 +17,14 @@ assert.match(gradle, /MICARTERA_WEBDEBUG/, "build.gradle menciona MICARTERA_WEBD
 assert.match(gradle, /assembleRelease/, "guardián debe mirar assembleRelease");
 assert.match(gradle, /ALLOW_WEBDEBUG_RELEASE/, "bypass explícito documentado en gradle");
 
+const mainActivity = read("android/app/src/main/java/com/micartera/app/MainActivity.java");
+assert.match(mainActivity, /getBridge\(\)\.getWebView\(\)/,
+  "la barra nativa se desactiva sobre la WebView real de Capacitor");
+assert.match(mainActivity, /setVerticalScrollBarEnabled\(false\)/,
+  "la WebView no debe dibujar el indicador vertical de Android");
+assert.match(mainActivity, /setHorizontalScrollBarEnabled\(false\)/,
+  "la WebView no debe dibujar el indicador horizontal de Android");
+
 const pkg = JSON.parse(read("package.json"));
 assert.match(pkg.scripts["apk:prep"] || "", /guard-webdebug/, "apk:prep debe llamar a guard-webdebug");
 assert.equal(pkg.scripts["release:apk"], "node scripts/release-apk.mjs", "falta script release:apk");

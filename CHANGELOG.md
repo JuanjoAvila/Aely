@@ -1,3 +1,30 @@
+## [4.25.21] - 2026-09-24
+### Gesto horizontal desde el fondo y barras invisibles sin perder scroll
+
+Se reconstruyen sobre la candidata 4.25.20 únicamente los dos ajustes de navegación aprobados en
+beta. El carrusel principal ya no exige subir antes de cambiar de pestaña cuando el contenido está
+abajo del todo: un gesto casi recto se reclama desde 36 px y uno con una deriva pequeña desde 60
+px. Las diagonales conservan el scroll y el rebote nativo, incluido el arco del pulgar del vídeo
+Oppo que motivó la protección anterior.
+
+Todas las superficies mantienen su `overflow`, inercia y desplazamiento, pero ocultan el indicador
+visual con las reglas CSS globales. Android desactiva además las barras vertical y horizontal de la
+WebView después de que Capacitor cree el puente; esto requiere APK nueva. Se prepara
+`versionName 4.25.21` / `versionCode 49`, superior a la beta 48. El asset firmado ya existe en
+la release `v4.25.21`; el manifiesto no se sirve hasta promover esta tanda.
+
+La APK 49 conserva además la identidad nativa de evento que ya llevaba la beta 48. Android envía
+`notification key + postTime` como una huella SHA-256 opaca al servidor de 4.25.16, usa el tiempo
+original cuando reentrega una notificación antigua y presenta una respuesta `possibleDup` como
+revisión pendiente fuera de cifras. Sin este bloque, instalar la nueva APK estable habría
+reintroducido el doble conteo que motivó la corrección.
+
+Tres E2E añaden los casos de gesto horizontal al fondo, reclamación temprana y superficies aún
+desplazables; el guardián nativo comprueba que ambas barras de la WebView permanecen desactivadas.
+La compilación release verifica también paquete, código, WEBDEBUG apagado, `INGEST_URL` vacía y
+firma. El asset reemplazado mide 6.404.173 bytes y GitHub confirma el SHA-256
+`4462eace7a4d65f40068fc3631989c9b3a2c2e7ebc3a82d253a4570fa57cf5c4`.
+
 ## [4.25.20] - 2026-09-24
 ### Inicio honesto y racha calculada con meses reales
 
