@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.25.10",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "El ahorro mensual vuelve a estar en Metas",
+      "en": "Monthly saving is back in Goals",
+      "ca": "L'estalvi mensual torna a ser a Metes"
+    },
+    "items": {
+      "es": [
+        "Plan → Metas vuelve a enseñar cuánto apartas al mes y permite editar, añadir o quitar aportaciones.",
+        "Es una planificación para calcular cuándo alcanzas tus metas: no crea movimientos ni cambia saldos reales."
+      ],
+      "en": [
+        "Plan → Goals once again shows how much you set aside each month and lets you edit, add or remove contributions.",
+        "It is a plan for estimating when you reach your goals: it does not create transactions or change real balances."
+      ],
+      "ca": [
+        "Pla → Metes torna a mostrar quant apartes cada mes i permet editar, afegir o treure aportacions.",
+        "És una planificació per calcular quan arribes a les metes: no crea moviments ni canvia saldos reals."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.9",
     "d": "23 sep 2026",
     "t": {

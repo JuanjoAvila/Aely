@@ -1,3 +1,16 @@
+## [4.25.10] - 2026-09-24
+### Ahorro mensual vuelve a Plan → Metas como tanda aprobada
+
+Se porta sobre producción únicamente el editor de `state.aportaciones` aprobado en beta 4.26.25.
+`SavingsPlanCard` enseña el total mensual, permite editar una copia local y solo reemplaza el
+array al pulsar Guardar; Cancelar no escribe y una fila nueva vacía no se persiste. La pantalla
+explica que es planificación: no crea movimientos, no cambia saldos y no llama a ningún banco.
+
+El parser admite separadores europeos y anglosajones sin convertir `1.000` en `1`, y el diseño
+cede el espacio del nombre antes de cortar importes largos en un móvil estrecho. El E2E abre la
+puerta real de Plan → Metas y comprueba edición, altas, bajas, persistencia, cancelación, ausencia
+de movimientos inventados y ancho de 320 px. No incorpora otras tandas 4.26, backend ni APK.
+
 ## [4.25.9] - 2026-09-23
 ### Beneficio en euros y porcentaje sin depender del rediseño (feedback 18/9, punto 15)
 

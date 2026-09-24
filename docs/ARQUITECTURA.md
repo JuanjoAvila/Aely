@@ -1,5 +1,14 @@
 # Arquitectura — Aely
 
+## Ahorro mensual en Metas (4.25.10)
+
+`state.aportaciones` es planificación, no un libro de movimientos. Sus importes alimentan
+`totals.ahorroMensual`, que usan las fechas estimadas de las metas y la proyección de
+Inversiones. `SavingsPlanCard` devuelve la puerta a Plan → Metas y edita una copia local:
+Guardar reemplaza el array una vez; Cancelar no toca el estado. Esta pantalla nunca crea
+`expenses`, ingresos, traspasos ni operaciones bancarias. El importe acepta separadores de
+miles y decimales del idioma sin rebajar silenciosamente una aportación.
+
 ## Lectura bancaria (4.25.4)
 
 `bank-sync` usa `fetchBankTransactions` para sync e histórico: continúa aunque una página esté
