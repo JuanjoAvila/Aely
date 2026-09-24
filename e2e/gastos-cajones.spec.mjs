@@ -88,6 +88,38 @@ test("el filtro «Qué contar» deja ver un cajón a solas", async ({ page }) =>
   await expect(fila(page, "Aporte FTSE")).toHaveCount(1);
 });
 
+test("Categorías usa las mismas fichas de Apuntar y permite elegir varias", async ({ page }) => {
+  await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
+  await abreGastos(page);
+
+  await page.locator('button.v4-chip:has-text("🎛️")').first().click();
+  const toggle=page.locator(".v4-gastos-filter-sheet .v4-filter-cats-toggle");
+  await expect(toggle).toHaveAttribute("aria-expanded","false");
+  await toggle.click();
+
+  const grid=page.getByTestId("gastos-filter-cat");
+  await expect(grid).toHaveClass(/v4-ficha-cats/);
+  const all=page.locator(".v4-filter-cats-inner .v4-ficha-cat-title button");
+  await expect(all).toHaveAttribute("aria-pressed","true");
+  await expect(all).toContainText("✓");
+  const superCard=page.getByTestId("gastos-filter-cat-super");
+  const hogarCard=page.getByTestId("gastos-filter-cat-hogar");
+  await expect(superCard).toHaveClass(/v4-ficha-cat/);
+  await expect(superCard).toHaveAttribute("aria-pressed","false");
+  await expect(superCard.locator(".v4-ficha-cat-icon")).toBeVisible();
+  await superCard.click();
+  await hogarCard.click();
+  await expect(superCard).toHaveClass(/on/);
+  await expect(superCard).toHaveAttribute("aria-pressed","true");
+  await expect(hogarCard).toHaveClass(/on/);
+  await expect(all).toHaveAttribute("aria-pressed","false");
+  await cierraSheet(page);
+
+  await expect(lista(page)).toHaveCount(2);
+  await expect(fila(page,"Mercadona")).toHaveCount(1);
+  await expect(fila(page,"RECIBO ENDESA")).toHaveCount(1);
+});
+
 test("★ guardar un cambio NO deja la pantalla muerta", async ({ page }) => {
   /* Rechazo suyo de la 4.17.0.1: «al modificarlo y guardarlo se bloquea la pantalla, no deja hacer
      nada, solo si tiras para atrás ahí puedes seguir». El sheet decidía pintarse con

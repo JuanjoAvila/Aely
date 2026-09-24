@@ -4,7 +4,7 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 /* LAS CUOTAS DE TUS DEUDAS, FILTRABLES EN GASTOS (4.21.0). Idea suya del 12/9: «categorías
    automáticamente por las deudas… y así se pudieran filtrar». La pasada que las marca está en
    `tests/cuotas-deudas`; esto es lo que `npm test` no ve: que al abrir Gastos la fila salga en
-   «Deudas» y que el filtro tenga un chip por cada deuda (y ninguno si no hay deudas). */
+   «Deudas» y que el filtro tenga una ficha por cada deuda (y ninguna si no hay deudas). */
 
 const hoy = new Date();
 const dia = hoy.getDate();
@@ -54,7 +54,7 @@ test("★ la cuota que llega con otro nombre sale en «Deudas» y dice por qué 
   await expect(fila(page, "Mercadona")).not.toHaveClass(/v4-mov-skip/);
 });
 
-test("★ el filtro tiene un chip por deuda y cada uno enseña solo su cuota", async ({ page }) => {
+test("★ el filtro tiene una ficha por deuda y cada una enseña solo su cuota", async ({ page }) => {
   await seedLoggedInDashboard(page, { accounts, settings, expenses, debts, budget: 1000 });
   await abreGastos(page);
   await expect(fila(page, "Amazon")).toContainText("Deudas");
@@ -67,11 +67,11 @@ test("★ el filtro tiene un chip por deuda y cada uno enseña solo su cuota", a
   await categoriesToggle.click();
   await expect(categoriesToggle).toHaveAttribute("aria-expanded", "true");
   await expect(page.locator('#gastos-filter-cats-body')).toHaveCSS("visibility", "visible");
-  const chips = page.locator('.v4-sheet [data-testid="filtro-deudas"] button.v4-chip');
-  await expect(chips).toHaveCount(2);
+  const cards = page.locator('.v4-sheet [data-testid="filtro-deudas"] button.v4-ficha-cat');
+  await expect(cards).toHaveCount(2);
   // La cuota elegida vive en Sabadell, fuera del default de gasto diario: ampliar primero a todos.
   await page.locator('.v4-sheet button.v4-chip:has-text("Todos los bancos")').click();
-  await chips.filter({ hasText: "Préstamo piso" }).click();
+  await cards.filter({ hasText: "Préstamo piso" }).click();
   await cierraSheet(page);
 
   await expect(lista(page)).toHaveCount(1);
@@ -106,5 +106,5 @@ test("sin deudas no sale la sección ni la categoría «Deudas»", async ({ page
   await abreFiltros(page);
   await page.locator('.v4-sheet .v4-filter-cats-toggle').click();
   await expect(page.locator('.v4-sheet [data-testid="filtro-deudas"]')).toHaveCount(0);
-  await expect(page.locator('.v4-sheet button.v4-chip:has-text("💳")')).toHaveCount(0);
+  await expect(page.getByTestId("gastos-filter-cat-deudas")).toHaveCount(0);
 });

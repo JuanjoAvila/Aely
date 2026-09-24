@@ -1,3 +1,14 @@
+## [4.26.35] - 2026-09-24
+### El filtro de Gastos comparte el selector visual de categorías
+
+`ExpenseCategoryGrid` admite ahora selección única o múltiple y una etiqueta explícita, de modo
+que Gastos reutiliza las mismas fichas de icono y nombre que Apuntar y Modificar sin duplicar el
+componente. El filtro conserva su fila plegable, búsqueda, selección múltiple y borrado; las
+deudas dinámicas usan también fichas y mantienen su identificador `debt:*`. El cambio sustituye
+los chips rechazados; «Todas» conserva su ✓ cuando no hay filtro y cada ficha expone
+`aria-pressed`. Los E2E cubren el mismo DOM visual, dos categorías simultáneas, filtrado
+resultante, cuotas y ausencia de categorías fantasma.
+
 ## [4.26.34] - 2026-09-24
 ### Las hojas comparten un movimiento más pausado y continuo
 
