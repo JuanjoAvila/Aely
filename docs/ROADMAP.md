@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-24 · **v4.26.36** preparada para beta — Plan enseña el saldo más bajo del mes y el día crítico, sin permitir que una nómina posterior maquille un descubierto anterior. La APK 48 sigue vigente. Producción sirve 4.25.11 y el parche 4.25.12 espera aprobación; comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-24 · **v4.26.37** preparada para beta — Plan enseña el saldo más bajo del mes y el día crítico, sin permitir que una nómina posterior maquille un descubierto anterior. La APK 48 sigue vigente. Producción sirve 4.25.11 y el parche 4.25.12 espera aprobación; comprobar disponibilidad real con `npm run salud`.
 > Anterior: **v4.26.35** — el filtro de Gastos usa las mismas fichas de icono y nombre que Apuntar y Modificar, conservando plegado, búsqueda y multiselección.
 > Anterior: **v4.26.34** — Pregúntame, Apuntar y las fichas de Gastos comparten una entrada y salida más pausada y continua, sin ralentizar el modo de movimiento reducido.
 > Anterior: **v4.26.33** — Pregúntame abre sin enfocar la pregunta, de modo que la guía se puede leer antes de que aparezca el teclado.
@@ -223,7 +223,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.36** (mínimo de caja y día crítico en Plan, preparada para beta; canal real = `npm run salud`) |
+| Web / OTA (`VERSION`) | **4.26.37** (mínimo de caja y día crítico en Plan, preparada para beta; canal real = `npm run salud`) |
 | APK (`versionName` / `versionCode`) | Repo/publicada: **4.26.32 / 48**. El asset firmado existe y la beta puede ofrecer el gesto Atrás nativo. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **48** / 4.26.32 |

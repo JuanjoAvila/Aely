@@ -1,4 +1,4 @@
-## [4.26.36] - 2026-09-24
+## [4.26.37] - 2026-09-24
 ### Plan recupera el mínimo de caja real del mes
 
 La integración efectiva de beta había conservado en la portada de Plan el valor de
