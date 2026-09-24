@@ -47,6 +47,30 @@
     ]
   },
   {
+    "v": "4.25.18",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Actualizar inversiones cuenta toda la verdad",
+      "en": "Investment updates tell the whole story",
+      "ca": "L'actualització d'inversions ho explica tot"
+    },
+    "items": {
+      "es": [
+        "Actualizar inversiones consulta primero Trade Republic y MyInvestor y después pone al día las cotizaciones.",
+        "Si una conexión ha caducado o no responde, el aviso lo dice aunque los precios sí se hayan actualizado; si no hay ningún bróker conectado, también lo deja claro."
+      ],
+      "en": [
+        "Update investments checks Trade Republic and MyInvestor first, then refreshes market quotes.",
+        "If a connection has expired or does not respond, the message says so even when prices were updated; it also makes clear when no broker is connected."
+      ],
+      "ca": [
+        "Actualitzar inversions consulta primer Trade Republic i MyInvestor i després posa al dia les cotitzacions.",
+        "Si una connexió ha caducat o no respon, l'avís ho diu encara que els preus sí que s'hagin actualitzat; si no hi ha cap bròker connectat, també ho deixa clar."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.17",
     "d": "24 sep 2026",
     "t": {
@@ -1048,30 +1072,7 @@
         "Si una connexió ha caducat o no respon, l'avís ho diu encara que els preus sí que s'hagin actualitzat; si no hi ha cap bròker connectat, també ho deixa clar."
       ]
     },
-    "tandas": [
-      {
-        "id": "actualizar-inversiones-completo",
-        "t": {
-          "es": "Brókers y precios, con un resultado claro",
-          "en": "Brokers and prices, with a clear result",
-          "ca": "Bròkers i preus, amb un resultat clar"
-        },
-        "items": {
-          "es": [
-            "1. En Cartera, abre «Ver todas tus inversiones» y toca «Actualizar inversiones»: debe mostrar que sincroniza brókers y precios y terminar con un único aviso que no oculte una conexión caducada o sin respuesta.",
-            "2. Si no tienes Trade Republic ni MyInvestor conectados y tus posiciones no llevan cotización automática, el botón debe decir que no hay ningún bróker conectado, no fingir que ha actualizado algo."
-          ],
-          "en": [
-            "1. In Portfolio, open See all your investments and tap Update investments: it should show that it is syncing brokers and prices, then finish with one message that does not hide an expired or unresponsive connection.",
-            "2. If neither Trade Republic nor MyInvestor is connected and your positions have no automatic quote, the button should say that no broker is connected instead of pretending something was updated."
-          ],
-          "ca": [
-            "1. A Cartera, obre «Veure totes les inversions» i toca «Actualitzar inversions»: ha de mostrar que sincronitza bròkers i preus i acabar amb un únic avís que no amagui una connexió caducada o sense resposta.",
-            "2. Si no tens Trade Republic ni MyInvestor connectats i les posicions no porten cotització automàtica, el botó ha de dir que no hi ha cap bròker connectat, no fingir que ha actualitzat res."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.14",
