@@ -791,22 +791,22 @@ function App(){
   };
   const runBrokerSync=function(opts){
     opts=opts||{};
-    if(brokerSyncing.current) return Promise.resolve();
+    if(brokerSyncing.current) return Promise.resolve({b:1,n:0});
     brokerSyncing.current=true;
     const jobs=[];
     const st=stateRef.current||{};
-    let touched=0; const expiredB=[]; let trSinRespuesta=false;
+    let touched=0; const expiredB=[],soft=[]; let tried=0;
     // Estado de TR: se consulta también en automático (solo status, sin sync) para que el
     // banner de Cartera no se quede mirando un "conectado" viejo tras matar la app.
     const bridge=(typeof trBridge==="function") ? trBridge() : null;
     if(bridge && bridge.status){
       jobs.push(Promise.resolve(bridge.status()).then(function(r){
         const hadPhone=typeof trPhoneSaved==="function"&&!!trPhoneSaved();
-        const syncTr=function(){ return Promise.resolve(bridge.sync()).then(function(res){
+        const syncTr=function(){ tried++; return Promise.resolve(bridge.sync()).then(function(res){
           if(res&&res.authExpired&&!res.softFail&&!res.wafBlocked){ expiredB.push("Trade Republic"); signalTrDead(); return; }
           /* anti-bot/hipo: en automático silencio y se reintenta luego. Pero si lo has pedido TÚ, callarse
              es el «sale conectado pero no te avisa ni nada» (rechazo tr-reactivo, 8/9): se dice. */
-          if(!res||!res.ok||!Array.isArray(res.positions)){ trSinRespuesta=true; return; }
+          if(!res||!res.ok||!Array.isArray(res.positions)){ soft.push("Trade Republic"); return; }
           signalTrAlive({manual:opts.manual});
           applyBrokerPositions(res.positions, "lastTrSync", res.cash); touched++;
         }); };
@@ -825,13 +825,18 @@ function App(){
     // MyInvestor — Edge Function (funciona en web y en app)
     if(cloud.enabled() && sessionRef.current && (opts.manual || Date.now()-(st.lastMiSync||0) >= BROKER_SYNC_THROTTLE)){
       jobs.push(cloud.myinvestorStatus().then(function(r){
-        if(!(r && r.status==="active")) return;               // caducada → se reconecta a mano
+        if(r&&r.status==="expired"){
+          if(opts.inv){ tried++; expiredB.push("MyInvestor"); }
+          return;
+        }
+        if(!(r && r.status==="active")) return;
+        tried++;
         return cloud.myinvestorSync().then(function(res){
           if(res&&res.authExpired){ expiredB.push("MyInvestor"); return; }
-          if(!res || !res.ok || !Array.isArray(res.positions)) return;
+          if(!res || !res.ok || !Array.isArray(res.positions)){ if(opts.inv) soft.push("MyInvestor"); return; }
           applyBrokerPositions(res.positions, "lastMiSync"); touched++;
         });
-      }).catch(function(){}));
+      }).catch(function(){ if(opts.inv) soft.push("MyInvestor"); }));
     }
     return Promise.all(jobs).catch(function(){}).then(function(){
       brokerSyncing.current=false;
@@ -845,8 +850,17 @@ function App(){
           }
         }
         else if(touched) avisaSync(opts, t("v4_sync_brokers_ok"));
-        if(trSinRespuesta && !expiredB.length) avisaSync(opts, "⚠ "+tf("bank_syncsoft",{bank:"Trade Republic"}));
+        soft.forEach(function(bank){ if(expiredB.indexOf(bank)<0) avisaSync(opts, "⚠ "+tf("bank_syncsoft",{bank:bank})); });
       }
+      return {b:0,n:tried};
+    });
+  };
+  /* Inversiones actualiza solo TR/MyInvestor y devuelve sus avisos para unirlos con el resultado
+     de precios. Open Banking conserva su botón separado en Cartera. */
+  const syncInv=function(){
+    const rows=[];
+    return runBrokerSync({manual:true,collect:rows,inv:true}).then(function(r){
+      r.msgs=rows; return r;
     });
   };
 
@@ -3217,7 +3231,7 @@ function App(){
     if(id==="plan") return React.createElement(PlanTab,{state:state,set:set,totals:totals,showToast:showToast,simple:simple,gotoSeg:planGoto,clearGoto:function(){ setPlanGoto(null); }});
     // El «Sincronizar» de Cartera actualiza TODO lo conectado: Open Banking + TR + MyInvestor
     // (petición 2026-07-18: «que también sincronice Trade Republic y MyInvestor»).
-    if(id==="cartera") return React.createElement(CarteraTab,{state:state,set:set,totals:totals,fetchPrices:fetchPrices,pricing:pricing,simple:simple,showToast:showToast,onBankSync:sincronizarAMano,onReconnectBank:reconnectBank});
+    if(id==="cartera") return React.createElement(CarteraTab,{state:state,set:set,totals:totals,fetchPrices:fetchPrices,pricing:pricing,simple:simple,showToast:showToast,onBankSync:sincronizarAMano,syncInv:syncInv,onReconnectBank:reconnectBank});
     return null;
   };
 

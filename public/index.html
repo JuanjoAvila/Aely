@@ -5115,6 +5115,8 @@ Object.assign(LANG.es,{
 /* --- Diccionario: Inversiones, Proyección, Patrimonio, Deudas y login --- */
 Object.assign(LANG.es,{
   inv_total:"Total invertido", inv_save:"Guardar", inv_cancel:"Cancelar", inv_prices:"Precios USD", inv_pricing:"Precios…", inv_editmanual:"Editar a mano",
+  iv_refresh:"↻ Actualizar inversiones", iv_refreshing:"Sincronizando brókers y precios…", iv_broker_none:"Sin brókers conectados",
+  iv_refresh_ok:"✓ Precios actualizados · {time}", iv_refresh_fail:"No se pudieron actualizar los precios", iv_refresh_fail_sub:"Conservamos los últimos datos ({time}). Puedes volver a intentarlo.", iv_retry:"Reintentar", iv_never:"sin actualizar",
   inv_autoprices:"Actualizar precios USD al abrir la app", inv_lastprice:" · última: {d}", inv_alsoinvested:"También ajustar lo invertido (si he comprado o vendido)",
   inv_cvg:"Contribuciones vs ganancias", inv_invested_lbl:"invertido {x}", inv_invested_tot:"Invertido (coste) total", inv_value_tot:"Valor actual total", inv_gain_lat:"Ganancia (plusvalía latente)", inv_contributed:"Aportado", inv_gain:"Ganancia",
   inv_cvg_hint:"«Invertido» es el coste de lo que tienes ahora (base de coste). Tras ventas parciales puede no cuadrar con las «contribuciones netas» que muestra tu bróker. La ganancia aquí es la plusvalía latente (valor − coste).",
@@ -10307,12 +10309,18 @@ function Projection({invested, defMonthly}){
   );
 }
 
-function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
+function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsMode, showToast}){
   const fx=state.fx;   // USD→EUR (legacy + display toggle); GBP/CHF van en state.fxRates
   const [editing,setEditing]=useState(false);
   const [showCost,setShowCost]=useState(false);
   const [draft,setDraft]=useState({});
   const [brokerOpen,setBrokerOpen]=useState({});   // qué bróker tiene las posiciones desplegadas (solo v4Embed)
+  const [refreshError,setRefreshError]=useState(false);
+  const [invBusy,setInvBusy]=useState(false);
+  const lastPriceRef=useRef(state.lastPriceSync||null);
+  const refreshNotes=useRef([]);
+  const refreshBefore=useRef(null);
+  const refreshCheckRef=useRef(0);
   const didAuto=useRef(false);
   const hasTickers=state.investments.some(function(i){ return i.ticker; });
   const autoOn=state.settings && state.settings.autoPrices;
@@ -10408,7 +10416,76 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
   const typeMeta=[["acciones","var(--mint)"],["etf","var(--blue)"],["fondo","#C9A0E0"],["materias","#E6C36A"]];
   const typeSegs=typeMeta.filter(function(ty){ return byType[ty[0]]>0; }).map(function(ty){ return {label:t("type_"+ty[0])+" · "+(total>0?Math.round(byType[ty[0]]/total*100):0)+"%", value:byType[ty[0]], color:ty[1]}; });
 
+  useEffect(function(){
+    const next=state.lastPriceSync||null;
+    if(refreshBefore.current!==null && next && next!==refreshBefore.current){
+      clearTimeout(refreshCheckRef.current);
+      refreshBefore.current=null;
+      setRefreshError(false);
+      const notices=refreshNotes.current.splice(0);
+      if(showToast){
+        const time=new Date(next).toLocaleTimeString(loc(),{hour:"2-digit",minute:"2-digit"});
+        showToast(notices.concat([tf("iv_refresh_ok",{time:time})]).join(" · "));
+      }
+    }
+    lastPriceRef.current=next;
+  },[state.lastPriceSync]);
+  useEffect(function(){ return function(){ clearTimeout(refreshCheckRef.current); }; },[]);
+  const refreshInvestments=function(){
+    if(pricing||invBusy||(!hasTickers&&!syncInv)) return;
+    const before=lastPriceRef.current;
+    refreshBefore.current=before;
+    refreshNotes.current=[];
+    setRefreshError(false);
+    setInvBusy(true);
+    /* El botón de Inversiones no toca Open Banking: primero pide la foto de TR/MyInvestor y
+       después las cotizaciones. Sigue siendo una acción expresa para no caducar sesiones. */
+    Promise.resolve().then(function(){ return syncInv?syncInv():null; }).then(function(r){
+      if(r&&r.b){
+        refreshBefore.current=null;
+        if(showToast) showToast(t("g_syncing"));
+        return false;
+      }
+      refreshNotes.current=r&&Array.isArray(r.msgs)?r.msgs.slice():[];
+      if(!hasTickers){
+        refreshBefore.current=null;
+        if(showToast) showToast(refreshNotes.current.join(" · ")||t(r&&r.n===0?"iv_broker_none":"v4_sync_brokers_ok"));
+        refreshNotes.current=[];
+        return false;
+      }
+      // El aviso final se compone aquí para que un precio correcto no tape un bróker caducado.
+      return Promise.resolve(fetchPrices(true)).then(function(){ return true; });
+    }).then(function(didFetch){
+      if(!didFetch) return;
+      clearTimeout(refreshCheckRef.current);
+      refreshCheckRef.current=setTimeout(function(){
+        if(refreshBefore.current!==null&&lastPriceRef.current===before){
+          setRefreshError(true);
+          refreshBefore.current=null;
+          if(showToast&&refreshNotes.current.length) showToast(refreshNotes.current.join(" · "));
+          refreshNotes.current=[];
+        }
+      },700);
+    }).catch(function(){
+      setRefreshError(true);
+      refreshBefore.current=null;
+      if(showToast&&refreshNotes.current.length) showToast(refreshNotes.current.join(" · "));
+      refreshNotes.current=[];
+    }).then(function(){ setInvBusy(false); });
+  };
+  const lastRefreshTime=state.lastPriceSync
+    ?new Date(state.lastPriceSync).toLocaleTimeString(loc(),{hour:"2-digit",minute:"2-digit"})
+    :t("iv_never");
+
   return React.createElement("div",null,
+    toolsOnly && React.createElement(React.Fragment,null,
+      React.createElement("button",{type:"button",className:"btn btn-primary","data-act":"inv-refresh",style:{width:"100%"},
+        disabled:pricing||invBusy||(!hasTickers&&!syncInv),"aria-busy":pricing||invBusy?"true":"false",onClick:refreshInvestments},
+        pricing||invBusy?t("iv_refreshing"):t("iv_refresh")),
+      refreshError && React.createElement("div",{role:"alert",className:"v4-card",style:{padding:14,border:"1px solid rgba(226,112,95,.45)",background:"rgba(226,112,95,.08)",margin:"10px 0 12px"}},
+        React.createElement("div",{style:{fontWeight:800}},t("iv_refresh_fail")),
+        React.createElement("div",{className:"hint",style:{marginTop:4}},tf("iv_refresh_fail_sub",{time:lastRefreshTime})),
+        React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:8},onClick:refreshInvestments},t("iv_retry")))),
     !v4Embed && !toolsOnly && React.createElement("div",{className:"total-bar"},
       React.createElement("div",null,
         React.createElement("div",{className:"tl"},t("inv_total")),
@@ -19106,7 +19183,7 @@ function BillsManageSheet({open, onClose, state, set, totals}){
     ), document.body);
 }
 
-function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, onReconnectBank, showToast}){
+function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, syncInv, onReconnectBank, showToast}){
   const [invTools,setInvTools]=useState(false);
   // TR desconectado (y el usuario SÍ lo tuvo conectado alguna vez → mc_tr_phone guardado):
   // banner con botón que abre Mis bancos directamente. UX padre 2026-07-18: al ver el saldo
@@ -19287,17 +19364,17 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       ) },
       !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise",style:{animationDelay:".12s"}},
         React.createElement("div",{className:"v4-sec-h"}, t("v4_inversiones")),
-        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,v4Embed:true}),
+        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,v4Embed:true,showToast:showToast}),
         React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:10},onClick:function(){ setInvTools(true); }}, t("v4_inv_tools")+" ›")
       ) }
     ]}),
     // El sheet vive FUERA de los bloques ordenables: es un portal, no una sección, y meterlo
     // dentro lo desmontaría al reordenar (cerrándose solo a media consulta).
-    !simple && React.createElement(InvToolsSheet,{open:invTools,onClose:function(){ setInvTools(false); },state:state,set:set,fetchPrices:fetchPrices,pricing:pricing})
+    !simple && React.createElement(InvToolsSheet,{open:invTools,onClose:function(){ setInvTools(false); },state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast})
   );
 }
 
-function InvToolsSheet({open, onClose, state, set, fetchPrices, pricing}){
+function InvToolsSheet({open, onClose, state, set, fetchPrices, pricing, syncInv, showToast}){
   useBackClose(!!open, onClose);
   const swipe=useSheetSwipe(!!open, onClose);
   if(!open) return null;
@@ -19310,7 +19387,7 @@ function InvToolsSheet({open, onClose, state, set, fetchPrices, pricing}){
           React.createElement("button",{className:"link","aria-label":t("au_close"),onClick:onClose},"✕")
         ),
         React.createElement("p",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.45,margin:"0 0 12px"}}, t("v4_inv_tools_h")),
-        React.createElement("div",{className:"v4-embed-legacy"}, React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,v4Embed:false,toolsMode:true}))
+        React.createElement("div",{className:"v4-embed-legacy"}, React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,v4Embed:false,toolsMode:true,showToast:showToast}))
       )
     ), document.body);
 }
@@ -21028,22 +21105,22 @@ function App(){
   };
   const runBrokerSync=function(opts){
     opts=opts||{};
-    if(brokerSyncing.current) return Promise.resolve();
+    if(brokerSyncing.current) return Promise.resolve({b:1,n:0});
     brokerSyncing.current=true;
     const jobs=[];
     const st=stateRef.current||{};
-    let touched=0; const expiredB=[]; let trSinRespuesta=false;
+    let touched=0; const expiredB=[],soft=[]; let tried=0;
     // Estado de TR: se consulta también en automático (solo status, sin sync) para que el
     // banner de Cartera no se quede mirando un "conectado" viejo tras matar la app.
     const bridge=(typeof trBridge==="function") ? trBridge() : null;
     if(bridge && bridge.status){
       jobs.push(Promise.resolve(bridge.status()).then(function(r){
         const hadPhone=typeof trPhoneSaved==="function"&&!!trPhoneSaved();
-        const syncTr=function(){ return Promise.resolve(bridge.sync()).then(function(res){
+        const syncTr=function(){ tried++; return Promise.resolve(bridge.sync()).then(function(res){
           if(res&&res.authExpired&&!res.softFail&&!res.wafBlocked){ expiredB.push("Trade Republic"); signalTrDead(); return; }
           /* anti-bot/hipo: en automático silencio y se reintenta luego. Pero si lo has pedido TÚ, callarse
              es el «sale conectado pero no te avisa ni nada» (rechazo tr-reactivo, 8/9): se dice. */
-          if(!res||!res.ok||!Array.isArray(res.positions)){ trSinRespuesta=true; return; }
+          if(!res||!res.ok||!Array.isArray(res.positions)){ soft.push("Trade Republic"); return; }
           signalTrAlive({manual:opts.manual});
           applyBrokerPositions(res.positions, "lastTrSync", res.cash); touched++;
         }); };
@@ -21062,13 +21139,18 @@ function App(){
     // MyInvestor — Edge Function (funciona en web y en app)
     if(cloud.enabled() && sessionRef.current && (opts.manual || Date.now()-(st.lastMiSync||0) >= BROKER_SYNC_THROTTLE)){
       jobs.push(cloud.myinvestorStatus().then(function(r){
-        if(!(r && r.status==="active")) return;               // caducada → se reconecta a mano
+        if(r&&r.status==="expired"){
+          if(opts.inv){ tried++; expiredB.push("MyInvestor"); }
+          return;
+        }
+        if(!(r && r.status==="active")) return;
+        tried++;
         return cloud.myinvestorSync().then(function(res){
           if(res&&res.authExpired){ expiredB.push("MyInvestor"); return; }
-          if(!res || !res.ok || !Array.isArray(res.positions)) return;
+          if(!res || !res.ok || !Array.isArray(res.positions)){ if(opts.inv) soft.push("MyInvestor"); return; }
           applyBrokerPositions(res.positions, "lastMiSync"); touched++;
         });
-      }).catch(function(){}));
+      }).catch(function(){ if(opts.inv) soft.push("MyInvestor"); }));
     }
     return Promise.all(jobs).catch(function(){}).then(function(){
       brokerSyncing.current=false;
@@ -21082,8 +21164,17 @@ function App(){
           }
         }
         else if(touched) avisaSync(opts, t("v4_sync_brokers_ok"));
-        if(trSinRespuesta && !expiredB.length) avisaSync(opts, "⚠ "+tf("bank_syncsoft",{bank:"Trade Republic"}));
+        soft.forEach(function(bank){ if(expiredB.indexOf(bank)<0) avisaSync(opts, "⚠ "+tf("bank_syncsoft",{bank:bank})); });
       }
+      return {b:0,n:tried};
+    });
+  };
+  /* Inversiones actualiza solo TR/MyInvestor y devuelve sus avisos para unirlos con el resultado
+     de precios. Open Banking conserva su botón separado en Cartera. */
+  const syncInv=function(){
+    const rows=[];
+    return runBrokerSync({manual:true,collect:rows,inv:true}).then(function(r){
+      r.msgs=rows; return r;
     });
   };
 
@@ -23454,7 +23545,7 @@ function App(){
     if(id==="plan") return React.createElement(PlanTab,{state:state,set:set,totals:totals,showToast:showToast,simple:simple,gotoSeg:planGoto,clearGoto:function(){ setPlanGoto(null); }});
     // El «Sincronizar» de Cartera actualiza TODO lo conectado: Open Banking + TR + MyInvestor
     // (petición 2026-07-18: «que también sincronice Trade Republic y MyInvestor»).
-    if(id==="cartera") return React.createElement(CarteraTab,{state:state,set:set,totals:totals,fetchPrices:fetchPrices,pricing:pricing,simple:simple,showToast:showToast,onBankSync:sincronizarAMano,onReconnectBank:reconnectBank});
+    if(id==="cartera") return React.createElement(CarteraTab,{state:state,set:set,totals:totals,fetchPrices:fetchPrices,pricing:pricing,simple:simple,showToast:showToast,onBankSync:sincronizarAMano,syncInv:syncInv,onReconnectBank:reconnectBank});
     return null;
   };
 

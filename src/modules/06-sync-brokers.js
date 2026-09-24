@@ -670,12 +670,18 @@ function Projection({invested, defMonthly}){
   );
 }
 
-function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
+function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsMode, showToast}){
   const fx=state.fx;   // USD→EUR (legacy + display toggle); GBP/CHF van en state.fxRates
   const [editing,setEditing]=useState(false);
   const [showCost,setShowCost]=useState(false);
   const [draft,setDraft]=useState({});
   const [brokerOpen,setBrokerOpen]=useState({});   // qué bróker tiene las posiciones desplegadas (solo v4Embed)
+  const [refreshError,setRefreshError]=useState(false);
+  const [invBusy,setInvBusy]=useState(false);
+  const lastPriceRef=useRef(state.lastPriceSync||null);
+  const refreshNotes=useRef([]);
+  const refreshBefore=useRef(null);
+  const refreshCheckRef=useRef(0);
   const didAuto=useRef(false);
   const hasTickers=state.investments.some(function(i){ return i.ticker; });
   const autoOn=state.settings && state.settings.autoPrices;
@@ -771,7 +777,76 @@ function Investments({state, set, fetchPrices, pricing, v4Embed, toolsMode}){
   const typeMeta=[["acciones","var(--mint)"],["etf","var(--blue)"],["fondo","#C9A0E0"],["materias","#E6C36A"]];
   const typeSegs=typeMeta.filter(function(ty){ return byType[ty[0]]>0; }).map(function(ty){ return {label:t("type_"+ty[0])+" · "+(total>0?Math.round(byType[ty[0]]/total*100):0)+"%", value:byType[ty[0]], color:ty[1]}; });
 
+  useEffect(function(){
+    const next=state.lastPriceSync||null;
+    if(refreshBefore.current!==null && next && next!==refreshBefore.current){
+      clearTimeout(refreshCheckRef.current);
+      refreshBefore.current=null;
+      setRefreshError(false);
+      const notices=refreshNotes.current.splice(0);
+      if(showToast){
+        const time=new Date(next).toLocaleTimeString(loc(),{hour:"2-digit",minute:"2-digit"});
+        showToast(notices.concat([tf("iv_refresh_ok",{time:time})]).join(" · "));
+      }
+    }
+    lastPriceRef.current=next;
+  },[state.lastPriceSync]);
+  useEffect(function(){ return function(){ clearTimeout(refreshCheckRef.current); }; },[]);
+  const refreshInvestments=function(){
+    if(pricing||invBusy||(!hasTickers&&!syncInv)) return;
+    const before=lastPriceRef.current;
+    refreshBefore.current=before;
+    refreshNotes.current=[];
+    setRefreshError(false);
+    setInvBusy(true);
+    /* El botón de Inversiones no toca Open Banking: primero pide la foto de TR/MyInvestor y
+       después las cotizaciones. Sigue siendo una acción expresa para no caducar sesiones. */
+    Promise.resolve().then(function(){ return syncInv?syncInv():null; }).then(function(r){
+      if(r&&r.b){
+        refreshBefore.current=null;
+        if(showToast) showToast(t("g_syncing"));
+        return false;
+      }
+      refreshNotes.current=r&&Array.isArray(r.msgs)?r.msgs.slice():[];
+      if(!hasTickers){
+        refreshBefore.current=null;
+        if(showToast) showToast(refreshNotes.current.join(" · ")||t(r&&r.n===0?"iv_broker_none":"v4_sync_brokers_ok"));
+        refreshNotes.current=[];
+        return false;
+      }
+      // El aviso final se compone aquí para que un precio correcto no tape un bróker caducado.
+      return Promise.resolve(fetchPrices(true)).then(function(){ return true; });
+    }).then(function(didFetch){
+      if(!didFetch) return;
+      clearTimeout(refreshCheckRef.current);
+      refreshCheckRef.current=setTimeout(function(){
+        if(refreshBefore.current!==null&&lastPriceRef.current===before){
+          setRefreshError(true);
+          refreshBefore.current=null;
+          if(showToast&&refreshNotes.current.length) showToast(refreshNotes.current.join(" · "));
+          refreshNotes.current=[];
+        }
+      },700);
+    }).catch(function(){
+      setRefreshError(true);
+      refreshBefore.current=null;
+      if(showToast&&refreshNotes.current.length) showToast(refreshNotes.current.join(" · "));
+      refreshNotes.current=[];
+    }).then(function(){ setInvBusy(false); });
+  };
+  const lastRefreshTime=state.lastPriceSync
+    ?new Date(state.lastPriceSync).toLocaleTimeString(loc(),{hour:"2-digit",minute:"2-digit"})
+    :t("iv_never");
+
   return React.createElement("div",null,
+    toolsOnly && React.createElement(React.Fragment,null,
+      React.createElement("button",{type:"button",className:"btn btn-primary","data-act":"inv-refresh",style:{width:"100%"},
+        disabled:pricing||invBusy||(!hasTickers&&!syncInv),"aria-busy":pricing||invBusy?"true":"false",onClick:refreshInvestments},
+        pricing||invBusy?t("iv_refreshing"):t("iv_refresh")),
+      refreshError && React.createElement("div",{role:"alert",className:"v4-card",style:{padding:14,border:"1px solid rgba(226,112,95,.45)",background:"rgba(226,112,95,.08)",margin:"10px 0 12px"}},
+        React.createElement("div",{style:{fontWeight:800}},t("iv_refresh_fail")),
+        React.createElement("div",{className:"hint",style:{marginTop:4}},tf("iv_refresh_fail_sub",{time:lastRefreshTime})),
+        React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:8},onClick:refreshInvestments},t("iv_retry")))),
     !v4Embed && !toolsOnly && React.createElement("div",{className:"total-bar"},
       React.createElement("div",null,
         React.createElement("div",{className:"tl"},t("inv_total")),

@@ -1,3 +1,17 @@
+## [4.25.18] - 2026-09-24
+### Actualización completa de inversiones aprobada
+
+Se reconstruye sobre producción únicamente la tanda aprobada 4.26.15. El botón de Herramientas
+de inversión deja de limitarse a las cotizaciones: primero consulta a demanda Trade Republic y
+MyInvestor, sin llamar a Open Banking, y después actualiza los precios de las posiciones con
+ticker. El sincronizado automático y sus límites no cambian.
+
+El resultado se compone en un solo aviso. Una sesión caducada o un bróker sin respuesta se
+conservan junto al éxito de precios, en vez de quedar tapados por el último toast. Sin conexión
+ni ticker se explica que no hay ningún bróker conectado; un fondo de MyInvestor sin ticker sí
+puede actualizarse desde su bróker. Siete E2E abren la interfaz real y cubren render, éxito,
+caducidad, fallo parcial y ausencia de conexión.
+
 ## [4.25.17] - 2026-09-24
 ### Histórico de CaixaBank aprobado con datos reales
 

@@ -1849,6 +1849,8 @@ Object.assign(LANG.ca,{
 /* --- Diccionario: Inversiones, Proyección, Patrimonio, Deudas y login --- */
 Object.assign(LANG.es,{
   inv_total:"Total invertido", inv_save:"Guardar", inv_cancel:"Cancelar", inv_prices:"Precios USD", inv_pricing:"Precios…", inv_editmanual:"Editar a mano",
+  iv_refresh:"↻ Actualizar inversiones", iv_refreshing:"Sincronizando brókers y precios…", iv_broker_none:"Sin brókers conectados",
+  iv_refresh_ok:"✓ Precios actualizados · {time}", iv_refresh_fail:"No se pudieron actualizar los precios", iv_refresh_fail_sub:"Conservamos los últimos datos ({time}). Puedes volver a intentarlo.", iv_retry:"Reintentar", iv_never:"sin actualizar",
   inv_autoprices:"Actualizar precios USD al abrir la app", inv_lastprice:" · última: {d}", inv_alsoinvested:"También ajustar lo invertido (si he comprado o vendido)",
   inv_cvg:"Contribuciones vs ganancias", inv_invested_lbl:"invertido {x}", inv_invested_tot:"Invertido (coste) total", inv_value_tot:"Valor actual total", inv_gain_lat:"Ganancia (plusvalía latente)", inv_contributed:"Aportado", inv_gain:"Ganancia",
   inv_cvg_hint:"«Invertido» es el coste de lo que tienes ahora (base de coste). Tras ventas parciales puede no cuadrar con las «contribuciones netas» que muestra tu bróker. La ganancia aquí es la plusvalía latente (valor − coste).",
@@ -1917,6 +1919,8 @@ Object.assign(LANG.es,{
 });
 Object.assign(LANG.en,{
   inv_total:"Total invested", inv_save:"Save", inv_cancel:"Cancel", inv_prices:"USD prices", inv_pricing:"Prices…", inv_editmanual:"Edit manually",
+  iv_refresh:"↻ Update investments", iv_refreshing:"Syncing brokers and prices…", iv_broker_none:"No brokers connected",
+  iv_refresh_ok:"✓ Prices updated · {time}", iv_refresh_fail:"Prices could not be updated", iv_refresh_fail_sub:"Your latest data is still here ({time}). You can try again.", iv_retry:"Try again", iv_never:"not updated yet",
   inv_autoprices:"Update USD prices on app open", inv_lastprice:" · last: {d}", inv_alsoinvested:"Also adjust what's invested (if I bought or sold)",
   inv_cvg:"Contributions vs gains", inv_invested_lbl:"invested {x}", inv_invested_tot:"Invested (cost) total", inv_value_tot:"Current value total", inv_gain_lat:"Gain (unrealised)", inv_contributed:"Contributed", inv_gain:"Gain",
   inv_cvg_hint:"«Invested» is the cost of what you hold now (cost basis). After partial sells it may not match the «net contributions» your broker shows. The gain here is unrealised (value − cost).",
@@ -1985,6 +1989,8 @@ Object.assign(LANG.en,{
 });
 Object.assign(LANG.ca,{
   inv_total:"Total invertit", inv_save:"Desa", inv_cancel:"Cancel·la", inv_prices:"Preus USD", inv_pricing:"Preus…", inv_editmanual:"Edita a mà",
+  iv_refresh:"↻ Actualitzar inversions", iv_refreshing:"Sincronitzant bròkers i preus…", iv_broker_none:"Sense bròkers connectats",
+  iv_refresh_ok:"✓ Preus actualitzats · {time}", iv_refresh_fail:"No s'han pogut actualitzar els preus", iv_refresh_fail_sub:"Conservem les últimes dades ({time}). Ho pots tornar a provar.", iv_retry:"Torna-ho a provar", iv_never:"sense actualitzar",
   inv_autoprices:"Actualitza preus USD en obrir l'app", inv_lastprice:" · última: {d}", inv_alsoinvested:"Ajusta també l'invertit (si he comprat o venut)",
   inv_cvg:"Contribucions vs guanys", inv_invested_lbl:"invertit {x}", inv_invested_tot:"Invertit (cost) total", inv_value_tot:"Valor actual total", inv_gain_lat:"Guany (plusvàlua latent)", inv_contributed:"Aportat", inv_gain:"Guany",
   inv_cvg_hint:"«Invertit» és el cost del que tens ara (base de cost). Després de vendes parcials pot no quadrar amb les «contribucions netes» que mostra el teu bròker. El guany aquí és la plusvàlua latent (valor − cost).",
