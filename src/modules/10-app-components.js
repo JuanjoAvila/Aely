@@ -2575,7 +2575,18 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
             })
           )
         );
-      })()
+      })(),
+      // Estas dos puertas salieron de la antigua hoja de Inversiones: son preferencias y
+      // simulaciones, no parte del saldo. Aquí siguen accesibles al estrenar la ficha completa.
+      row("invauto","↻",t("inv_autoprices"),null,function(){
+        setS({autoPrices:!(state.settings&&state.settings.autoPrices)});
+      },sw(!!(state.settings&&state.settings.autoPrices))),
+      row("invproj","📈",t("inv_proj"),t("inv_proj_sub"),function(){ toggleExp("invproj"); }),
+      expand==="invproj" && React.createElement("div",{className:"set-exp","data-inv-settings-projection":"1"},
+        React.createElement(Projection,{
+          invested:totals.invested||0,
+          defMonthly:(state.aportaciones||[]).reduce(function(a,x){ return a+(x.amount||0); },0)
+        }))
     ),
 
     React.createElement("div",{className:"v4-set-sec"}, t("v4_set_conn")),

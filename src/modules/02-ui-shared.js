@@ -594,7 +594,8 @@ function useCountUp(target, ready){
     if(!ready) return undefined;
     const tgt=+(target||0);
     cancelAnimationFrame(rafRef.current);
-    const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+    const reduce=(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)
+      || document.documentElement.classList.contains("reduce-motion");
     if(reduce){
       shownRef.current=tgt; setShown(tgt); primeraRef.current=false;
       return undefined;
@@ -787,6 +788,22 @@ function useBackClose(open, onClose){
   },[open]);
 }
 
+let _mcSheetLocks=0, _mcSheetPrevOverflow="";
+function mcSheetLock(){
+  if(_mcSheetLocks===0){
+    _mcSheetPrevOverflow=document.body.style.overflow;
+    document.documentElement.classList.add("sheet-open");
+  }
+  _mcSheetLocks++;
+  document.body.style.overflow="hidden";
+}
+function mcSheetUnlock(){
+  _mcSheetLocks=Math.max(0,_mcSheetLocks-1);
+  if(_mcSheetLocks===0){
+    document.body.style.overflow=_mcSheetPrevOverflow;
+    document.documentElement.classList.remove("sheet-open");
+  }
+}
 /* Sheet bottom: swipe hacia abajo para cerrar en TODA la ficha (no solo el asa).
    Si el contenido está scrolleado, primero sube; al llegar arriba, tira cierra. */
 function useSheetSwipe(open, onClose, opts){

@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.25.19",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Tus inversiones, en una vista completa",
+      "en": "Your investments, in one complete view",
+      "ca": "Les teves inversions, en una vista completa"
+    },
+    "items": {
+      "es": [
+        "Al abrir tus inversiones, la ficha entra suavemente desde la derecha y reúne el total, la ganancia, los brókers y las posiciones en una sola pantalla.",
+        "Puedes volver con Atrás o deslizando hacia la derecha desde cualquier zona libre: la pantalla acompaña al dedo sin molestar al desplazamiento vertical ni a los campos."
+      ],
+      "en": [
+        "Opening your investments now brings in a smooth full view from the right, with the total, gain, brokers and positions together on one screen.",
+        "Go back with Back or swipe right from any free area: the screen follows your finger without getting in the way of vertical scrolling or fields."
+      ],
+      "ca": [
+        "En obrir les teves inversions, la fitxa entra suaument des de la dreta i reuneix el total, el guany, els bròkers i les posicions en una sola pantalla.",
+        "Pots tornar amb Enrere o lliscant cap a la dreta des de qualsevol zona lliure: la pantalla acompanya el dit sense molestar el desplaçament vertical ni els camps."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.18",
     "d": "24 sep 2026",
     "t": {
