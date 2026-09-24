@@ -789,8 +789,10 @@ function useBackClose(open, onClose){
 
 /* Sheet bottom: swipe hacia abajo para cerrar en TODA la ficha (no solo el asa).
    Si el contenido está scrolleado, primero sube; al llegar arriba, tira cierra. */
-function useSheetSwipe(open, onClose){
+function useSheetSwipe(open, onClose, opts){
+  opts=opts||{};
   const sheetRef=useRef(null);
+  const closeTimer=useRef(null);
   const startY=useRef(0), startX=useRef(0), dy=useRef(0), dragging=useRef(false), armed=useRef(false), axis=useRef(null), closing=useRef(false);
   useEffect(function(){
     if(!open) return undefined;
@@ -805,6 +807,7 @@ function useSheetSwipe(open, onClose){
     };
     document.addEventListener("touchmove", block, {passive:false, capture:true});
     return function(){
+      if(closeTimer.current){ clearTimeout(closeTimer.current); closeTimer.current=null; }
       document.body.style.overflow=prev;
       document.documentElement.classList.remove("sheet-open");
       document.removeEventListener("touchmove", block, {capture:true});
@@ -846,6 +849,28 @@ function useSheetSwipe(open, onClose){
     }
     if(e.cancelable) e.preventDefault();
   };
+  const closeAnimated=function(done){
+    if(closing.current) return;
+    const finish=typeof done==="function"?done:onClose;
+    const el=sheetRef.current;
+    const reduce=(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)
+      ||document.documentElement.classList.contains("reduce-motion");
+    if(!el||reduce){ finish(); return; }
+    closing.current=true;
+    el.classList.remove("dragging");
+    if(opts.unlockOnClose){
+      document.documentElement.classList.remove("sheet-open");
+      document.body.style.overflow="";
+    }
+    const ms=opts.closeMs||200;
+    el.style.transition="transform "+ms+"ms "+(opts.closeEase||"cubic-bezier(.32,.72,0,1)");
+    el.style.transform="translate3d(0,110%,0)";
+    closeTimer.current=setTimeout(function(){
+      closeTimer.current=null;
+      closing.current=false;
+      finish();
+    },ms);
+  };
   const onTouchEnd=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
     if(closing.current) return;
@@ -856,20 +881,15 @@ function useSheetSwipe(open, onClose){
     if(!el){ if(dist>80) onClose(); return; }
     el.classList.remove("dragging");
     if(dist>80){
-      closing.current=true;
-      // Desbloquea el fondo YA (el hitch era quitar sheet-open al unmount).
-      document.documentElement.classList.remove("sheet-open");
-      document.body.style.overflow="";
-      el.style.transition="transform .2s cubic-bezier(.32,.72,0,1)";
-      el.style.transform="translate3d(0,110%,0)";
-      setTimeout(function(){ onClose(); }, 200);
+      closeAnimated();
     } else {
-      el.style.transition="transform .22s cubic-bezier(.32,.72,0,1)";
+      const snapMs=opts.snapMs||220;
+      el.style.transition="transform "+snapMs+"ms "+(opts.snapEase||"cubic-bezier(.32,.72,0,1)");
       el.style.transform="translate3d(0,0,0)";
-      setTimeout(function(){ try{ el.style.transition=""; el.style.transform=""; }catch(err){} }, 220);
+      setTimeout(function(){ try{ el.style.transition=""; el.style.transform=""; }catch(err){} },snapMs);
     }
   };
-  return { sheetRef:sheetRef, sheetTouch:{ onTouchStart:onTouchStart, onTouchMove:onTouchMove, onTouchEnd:onTouchEnd, onTouchCancel:onTouchEnd } };
+  return { sheetRef:sheetRef, close:closeAnimated, sheetTouch:{ onTouchStart:onTouchStart, onTouchMove:onTouchMove, onTouchEnd:onTouchEnd, onTouchCancel:onTouchEnd } };
 }
 
 /* lista editable genérica; valFmt recibe el item entero */

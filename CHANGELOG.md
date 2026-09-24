@@ -1,3 +1,17 @@
+## [4.25.11] - 2026-09-24
+### Editor de presupuesto aprobado, sin arrastrar el resto de beta
+
+Se porta sobre producción únicamente el punto 8 aprobado en beta 4.26.26. La hoja del presupuesto
+mensual usa una entrada propia de 420 ms, una salida de 320 ms y una cifra de 36–42 px; no cambia
+el ritmo de las demás hojas. Guardar actualiza `budget` antes de iniciar la salida, pero conserva
+el nodo montado hasta que termina para que no desaparezca de golpe. Fondo, Atrás y gesto vertical
+comparten el mismo cierre y «Reducir animaciones» continúa cerrando sin espera.
+
+`useSheetSwipe` acepta opciones conservadoras de duración y curva, con los valores anteriores como
+defecto, de modo que ninguna otra hoja hereda este ritmo. El E2E entra desde la tarjeta real de
+Inicio, mide la animación y la cifra, comprueba persistencia y vigila movimiento reducido. No se
+incorpora ninguna otra tanda 4.26, backend ni cambio Android.
+
 ## [4.25.10] - 2026-09-24
 ### Ahorro mensual vuelve a Plan → Metas como tanda aprobada
 
