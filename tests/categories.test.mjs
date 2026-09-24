@@ -121,13 +121,14 @@ t("Barcelona no cae en bares por el substring «bar»", () => {
   assert.notEqual(ctx.autoCategory("Parking Barcelona Centro"), "bares");
 });
 
-t("Bizum cae en bizum (no otros)", () => {
-  assert.equal(ctx.autoCategory("BIZUM A MARIA"), "bizum");
-  assert.equal(ctx.autoCategory("Bizum de Pedro"), "bizum");
-  assert.equal(ctx.autoCategory("Envio Bizum Ana"), "bizum");
+t("Bizum es forma de pago, no sustituye la categoría real", () => {
+  assert.equal(ctx.autoCategory("BIZUM A MARIA"), "otros");
+  assert.equal(ctx.autoCategory("Bizum de Pedro"), "otros");
+  assert.equal(ctx.autoCategory("Envio Bizum Ana"), "otros");
+  assert.equal(ctx.resolveCategory("bizum", "Bizum a María"), "bizum", "el histórico explícito se conserva");
 });
 
-t("la IA (categorize) conoce todas las categorías del cliente", () => {
+t("la IA conoce las finalidades de gasto, pero no propone Bizum", () => {
   const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
   const core = fs.readFileSync(path.join(root, "src/modules/00-core.js"), "utf8");
   const block = core.match(/const CATEGORIES = \[([\s\S]*?)\];/);
@@ -135,9 +136,10 @@ t("la IA (categorize) conoce todas las categorías del cliente", () => {
   const ids = [...block[1].matchAll(/id:"([a-z]+)"/g)].map(function(m){ return m[1]; });
   assert.ok(ids.indexOf("recibos")>=0, "CATEGORIES tiene Recibos");
   const src = fs.readFileSync(path.join(root, "supabase/functions/categorize/index.ts"), "utf8");
-  ids.forEach(function(id){
+  ids.filter(function(id){ return id!=="bizum"; }).forEach(function(id){
     assert.ok(src.indexOf('"'+id+'"')>=0, "categorize ALLOWED falta "+id);
   });
+  assert.equal(src.indexOf('"bizum"'),-1,"Bizum se conserva solo para leer histórico");
 });
 
 /* KW_INICIO (2026-09-12). Cuatro marcas que casaban DENTRO de otra palabra, todas sacadas de

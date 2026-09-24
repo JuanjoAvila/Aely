@@ -1,3 +1,21 @@
+## [4.25.15] - 2026-09-24
+### Bizum aprobado como forma de pago, sin arrastrar el rediseño
+
+Se reconstruye sobre producción únicamente la tanda `bizum-forma-pago` aprobada en beta
+4.26.42. Bizum deja de ser una finalidad de gasto para los apuntes nuevos: Apuntar separa
+`noCard` de la categoría real y la ficha permite cambiar ambos datos por separado. El catálogo
+de altas y reclasificaciones excluye Bizum, mientras `CATEGORIES` lo conserva para leer, filtrar
+y corregir uno a uno los movimientos históricos; no hay migración ni recategorización masiva.
+
+Las palabras clave del cliente, el clasificador Edge y el catálogo permitido del LLM dejan de
+proponer Bizum. El cliente también neutraliza una respuesta `bizum` de una Edge antigua hasta
+que el backend se despliegue por separado. Esta promoción web incorpora el código fuente de la
+Edge, pero no la despliega ni activa servicios remotos.
+
+Los unitarios vigilan histórico, sugerencias y catálogo remoto. Dos E2E sobre la interfaz estable
+comprueban que un Fisio pagado por Bizum guarda Salud + `noCard`, y que un Bizum anterior no
+cambia solo pero puede pasar manualmente a Restaurantes.
+
 ## [4.25.14] - 2026-09-24
 ### Pregúntame aprobado, portado sobre la interfaz estable
 

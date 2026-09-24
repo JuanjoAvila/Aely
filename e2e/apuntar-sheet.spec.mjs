@@ -57,6 +57,60 @@ test("Apuntar (+): banco en pastilla que se despliega y cierre tirando hacia aba
   await expect(sheet).toHaveCount(0, { timeout: 3_000 });
 });
 
+test("Bizum es forma de pago: el gasto conserva Salud como categoría real", async ({ page }) => {
+  await seedLoggedInDashboard(page);
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  const dismissNews = page.getByRole("button", { name: /Entendido|Got it/i });
+  if (await dismissNews.count()) await dismissNews.first().click();
+
+  await page.locator(".botnav-fab").click();
+  const sheet = page.locator(".v4-sheet");
+  await expect(sheet.locator('[data-testid="ap-payment"]')).toContainText(/Con tarjeta/);
+  await expect(sheet.locator('[data-testid="ap-cat-bizum"]')).toHaveCount(0);
+  await sheet.locator(".v4-input").fill("Fisio");
+  await sheet.locator('[data-testid="ap-payment"]').click();
+  await expect(sheet.locator('[data-testid="ap-payment"]')).toContainText(/Bizum o transferencia/);
+  await sheet.locator('[data-testid="ap-cat-salud"]').click();
+  for (const d of ["4", "7"]) {
+    await sheet.locator(".v4-keys").getByRole("button", { name: d, exact: true }).click();
+  }
+  await sheet.locator(".v4-cta").click();
+  await expect(sheet).toHaveCount(0, { timeout: 3_000 });
+
+  await expect.poll(() => page.evaluate(() => {
+    const xs=JSON.parse(localStorage.getItem("micartera_v3_exp")||"[]");
+    const e=xs.find((x) => x.merchant==="Fisio");
+    return e && { category:e.category, noCard:e.noCard, amount:e.amount };
+  })).toEqual({ category:"salud", noCard:true, amount:47 });
+});
+
+test("un Bizum antiguo no cambia solo y se puede pasar a su categoría real", async ({ page }) => {
+  await seedLoggedInDashboard(page, { expenses:[{
+    id:"bizum-antiguo", date:"2026-09-24", amount:47, merchant:"Bizum a Ana",
+    category:"bizum", source:"macrodroid", noCard:true
+  }] });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  const dismissNews = page.getByRole("button", { name: /Entendido|Got it/i });
+  if (await dismissNews.count()) await dismissNews.first().click();
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  const row=page.locator('[data-expense-id="bizum-antiguo"]');
+  await expect(row).toBeVisible();
+  await row.evaluate((el) => el.click());
+
+  const sheet=page.locator(".v4-exp-sheet");
+  await expect(sheet.locator('[data-testid="exp-cat-bizum"]')).toHaveClass(/on/);
+  await expect(sheet.locator('[data-testid="exp-payment"]')).toContainText(/Bizum o transferencia/);
+  await sheet.locator('[data-testid="exp-cat-bares"]').click();
+
+  await expect.poll(() => page.evaluate(() => {
+    const xs=JSON.parse(localStorage.getItem("micartera_v3_exp")||"[]");
+    const e=xs.find((x) => x.id==="bizum-antiguo");
+    return e && { category:e.category, noCard:e.noCard };
+  })).toEqual({ category:"bares", noCard:true });
+});
+
 // Multidivisa 4.14.0: la moneda del apunte es INDEPENDIENTE de la de visualización.
 // Apuntas en ₺ con la app en €; el gasto se guarda convertido a euros.
 test("Apuntar en ₺ con la app en €: convierte y guarda en euros", async ({ page }) => {

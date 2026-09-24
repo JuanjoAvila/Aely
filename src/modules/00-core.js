@@ -197,12 +197,16 @@ const CATEGORIES = [
   { id:"hogar",      name:"Hogar",               color:"#B7C98A", icon:"🏠" },
   { id:"regalos",    name:"Regalos",             color:"#E89CB0", icon:"🎁" },
   { id:"joyeria",    name:"Joyería",             color:"#D4AF37", icon:"💍" },
-  /* Bizum ANTES de otros (feedback 10/9): manda y recibe a menudo; quiere verlo aparte
-     en el desglose y en el límite por categoría, no mezclado en «Otros». */
+  /* Se conserva para LEER el histórico que ya se guardó como Bizum. Desde 4.25.15 no se ofrece
+     al apuntar ni se adivina: Bizum es la forma de pago; el gasto real sigue siendo restaurante,
+     salud, etc. No migramos filas antiguas a ciegas porque no podemos saber para qué eran. */
   { id:"bizum",      name:"Bizum",               color:"#5B9FE8", icon:"📲" },
   { id:"otros",      name:"Otros",               color:"#8FA89A", icon:"📦" },
 ];
 const CAT = Object.fromEntries(CATEGORIES.map(c=>[c.id,c]));
+// Catálogo para CLASIFICAR gastos nuevos. `CATEGORIES` sigue completo para pintar y filtrar los
+// Bizum antiguos hasta que el usuario les asigne su finalidad real uno a uno.
+const XC=CATEGORIES.filter(c=>c.id!=="bizum");
 const INGRESO_CAT = { id:"ingreso", name:"Ingreso", color:"#5FD08A", icon:"💰" };
 // Ni gasto ni ingreso: dinero que sale del efectivo pero va a un fondo (round-up/cashback/aporte
 // automático de un bróker). Ver `applyInvestBuy` en 08-motor-bank.js y `reconcileTR` en este fichero.
@@ -307,9 +311,6 @@ const KW = {
   hogar:["ikea","leroy","bricomart","bauhaus","ferreteria","muebles","sofa","sofá","lampara","lámpara","tintoreria","tintorería","lavanderia","lavandería","mrw","seur","correos","amazon locker","bricodepot","bricodépôt","aki ","aki.","ferretería","manitas","limpieza hogar","limpiapro","blink ","dyson","rowenta","bosch electro","balay","teka"],
   regalos:["regalo","flores","floristeria","floristería","perfumeria","perfumería","interflora","teleflorist","rosas ","ramo ","douglas"],
   joyeria:["joyeria","joyeros","tiffany","cartier","swarovski","tous ","pandora"],
-  /* Bizum al final del vocabulario de gasto (antes de caer en otros). Los BIZUM RECIBIDOS
-     suelen entrar como ingreso por el signo; esto pilla los enviados / el comercio «BIZUM …». */
-  bizum:["bizum","bizum a ","bizum de ","envio bizum","envío bizum","pago bizum","bizum movistar","bizum bbva","bizum caixa","bizum sabadell","bizum santander"],
 };
 /* ¿QUÉ DÍA ES ESTO? EN HORA LOCAL, COMO LO QUE SE LEE EN PANTALLA (2026-09-11/12).
    `dayKey` era `d.toISOString().slice(0,10)` —**UTC**— mientras la etiqueta de la cabecera sale de
@@ -415,7 +416,7 @@ function sugerenciaApuntar(o){
   if(kw && kw!=="otros" && CAT[kw]){
     return { kwCat: o.tocadaAMano ? null : kw, pedirIA:false, chipIA:null };
   }
-  const iaVigente = o.iaPara===texto && o.iaCat && o.iaCat!=="otros" && CAT[o.iaCat] ? o.iaCat : null;
+  const iaVigente = o.iaPara===texto && o.iaCat && o.iaCat!=="otros" && o.iaCat!=="bizum" && CAT[o.iaCat] ? o.iaCat : null;
   return {
     kwCat:null,
     pedirIA: !!(o.iaOn && o.nube && o.iaPara!==texto),
@@ -1042,6 +1043,7 @@ const cloud = (function(){
       if(!sb) throw new Error("nube no disponible");
       const {data,error}=await sb.functions.invoke("categorize",{ body:{ merchant:String(merchant||"").slice(0,120) } });
       if(error) throw error;
+      if(data?.category==="bizum") data.category="otros";
       return data;
     },
     // Copia de seguridad diaria del estado COMPLETO (idempotente por día) + poda a 30 días.
