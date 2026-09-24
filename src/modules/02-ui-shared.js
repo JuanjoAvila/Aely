@@ -858,10 +858,10 @@ function useSheetSwipe(open, onClose, opts){
     if(!el||reduce){ finish(); return; }
     closing.current=true;
     el.classList.remove("dragging");
-    if(opts.unlockOnClose){
-      document.documentElement.classList.remove("sheet-open");
-      document.body.style.overflow="";
-    }
+    // El fondo se libera al empezar la salida, no al desmontar: esperar esos 200–320 ms
+    // recupera el tirón que ya se había eliminado en producción (revisión 2026-09-24).
+    document.documentElement.classList.remove("sheet-open");
+    document.body.style.overflow="";
     const ms=opts.closeMs||200;
     el.style.transition="transform "+ms+"ms "+(opts.closeEase||"cubic-bezier(.32,.72,0,1)");
     el.style.transform="translate3d(0,110%,0)";

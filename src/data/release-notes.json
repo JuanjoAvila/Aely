@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.25.12",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Las ventanas vuelven a cerrar sin tirones",
+      "en": "Panels close smoothly again",
+      "ca": "Les finestres tornen a tancar sense estrebades"
+    },
+    "items": {
+      "es": [
+        "Al cerrar cualquier ventana con un gesto, el fondo vuelve a desbloquearse desde el primer instante.",
+        "El editor del presupuesto conserva su entrada y salida más pausadas."
+      ],
+      "en": [
+        "When closing any panel with a gesture, the background is unlocked from the very first moment.",
+        "The budget editor keeps its calmer opening and closing motion."
+      ],
+      "ca": [
+        "En tancar qualsevol finestra amb un gest, el fons es torna a desbloquejar des del primer instant.",
+        "L'editor del pressupost manté una entrada i una sortida més pausades."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.11",
     "d": "24 sep 2026",
     "t": {

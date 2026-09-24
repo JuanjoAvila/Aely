@@ -7080,10 +7080,10 @@ function useSheetSwipe(open, onClose, opts){
     if(!el||reduce){ finish(); return; }
     closing.current=true;
     el.classList.remove("dragging");
-    if(opts.unlockOnClose){
-      document.documentElement.classList.remove("sheet-open");
-      document.body.style.overflow="";
-    }
+    // El fondo se libera al empezar la salida, no al desmontar: esperar esos 200–320 ms
+    // recupera el tirón que ya se había eliminado en producción (revisión 2026-09-24).
+    document.documentElement.classList.remove("sheet-open");
+    document.body.style.overflow="";
     const ms=opts.closeMs||200;
     el.style.transition="transform "+ms+"ms "+(opts.closeEase||"cubic-bezier(.32,.72,0,1)");
     el.style.transform="translate3d(0,110%,0)";
@@ -8879,7 +8879,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
 function BudgetSheet({open, budget, onClose, onSave}){
   const [b,setB]=useState(budget||700);
   useEffect(function(){ if(open) setB(Math.max(100, Math.round(budget||700))); },[open,budget]);
-  const swipe=useSheetSwipe(!!open, onClose,{closeMs:320,snapMs:300,unlockOnClose:true,
+  const swipe=useSheetSwipe(!!open, onClose,{closeMs:320,snapMs:300,
     closeEase:"cubic-bezier(.22,1,.36,1)",snapEase:"cubic-bezier(.22,1,.36,1)"});
   useBackClose(!!open, swipe.close);
   if(!open) return null;
