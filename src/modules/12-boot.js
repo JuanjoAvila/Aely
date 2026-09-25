@@ -8,6 +8,16 @@
    Notificación al móvil cuando hay update lista (pareja no depende de enterarse a mano). */
 var _mcNative=false;
 try{ _mcNative=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()); }catch(e){}
+/* Una recarga no desmonta React limpiamente. Si ocurrió con Recibos abierto, el callback
+   predictivo podía sobrevivir sin oyente y tragarse Atrás en la raíz. La marca y el registro se
+   ponen a cero antes de montar nada; el hook los activará de nuevo si abre una hija. */
+window.__mcNativeEdgeBackActive=false;
+if(_mcNative){
+  try{
+    var _mcBN=natPlugin();
+    if(_mcBN&&_mcBN.setEdgeBackEnabled) _mcBN.setEdgeBackEnabled({enabled:false});
+  }catch(e){}
+}
 var _mcOtaBASE="https://juanjoavila.github.io/Aely/";
 var _mcOtaChecking=false;
 

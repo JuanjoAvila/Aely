@@ -1,19 +1,44 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-24 · **v4.25.20** — Inicio retira el cambio mensual sin base fiable y calcula la racha con presupuestos reales de meses cerrados.
-> Anterior: **v4.25.19** — Inversiones estrena ficha completa, entrada lateral y gesto atrás que acompaña al dedo desde cualquier zona libre.
-> Anterior: **v4.25.18** — Actualizar inversiones consulta TR/MyInvestor y precios sin ocultar sesiones caducadas ni fallos parciales.
-> Anterior: **v4.25.17** — CaixaBank distingue cuentas, explica cuándo el histórico ya estaba apuntado y permite abrirlo completo en Gastos.
-> Anterior: **v4.25.16** — el servidor reconoce la identidad exacta de los avisos compatibles; la APK estable conserva los candidatos dudosos fuera del total hasta recibir esa identidad.
-> Anterior: **v4.25.15** — Bizum y transferencia son formas de pago: la categoría real sigue contando y el histórico no se recategoriza a ciegas.
-> Anterior: **v4.25.14** — Pregúntame aprobado llega a producción con guía local breve, rutas reales y apertura sin teclado; la ayuda remota sigue opcional y no se despliega en esta tanda.
-> Anterior: **v4.25.13** — Plan → Recibos enseña el saldo más bajo previsto y su día; port selectivo aprobado sin incorporar otras tandas 4.26.
-> Anterior: **v4.25.12** — todas las hojas liberan el fondo al empezar a cerrarse; el editor de presupuesto conserva su ritmo propio y no se incorporan otras tandas 4.26.
-> Anterior: **v4.25.11** — el editor del presupuesto mensual aprobado abre y cierra con más calma y mantiene la cifra legible; port selectivo sin incorporar otras tandas 4.26.
-> Anterior: **v4.25.10** — Plan → Metas recupera el ahorro mensual aprobado, editable sin crear movimientos ni tocar saldos; port selectivo sin incorporar otras tandas 4.26.
-> Anterior: **v4.25.9** — cada posición de Inversiones enseña beneficio en euros y porcentaje sin inventarlo cuando faltan datos.
-> Anterior: **v4.25.8** — Ajustes abre sin salto desde el borde y la interfaz deja de dibujar candados sin retirar ninguna protección.
-> Anterior: **v4.25.7** — Cyberpunk, Otoño y Primavera aprobados en beta y publicados como tanda independiente.
+> Estado a 2026-09-25 · **v4.26.46** en nueva corrección beta — mover el día de un recibo conserva una sola ocurrencia: si ya se cobró mantiene la fecha bancaria real; solo una sincronización reciente puede dejar pendiente un cargo de hoy que aún no aparece. Un extracto antiguo no reclasifica el recibo ni mueve saldos. No duplica movimientos ni altera históricos u otros bancos. La APK 48 sigue vigente y producción sirve 4.25.20; comprobar disponibilidad real con `npm run salud`.
+> Anterior: **v4.26.44** — la ficha de un recibo confirma el guardado antes de cerrarse y un doble toque solo puede persistir una vez.
+> Anterior: **v4.26.43** — el doble aviso Wallet/TR conserva una sola fila y una sola confirmación, sin convertirlo en una revisión manual.
+> Anterior: **v4.26.41** — las capas interiores de Recibos acompañan el Atrás nativo y el arrastre desde el centro, dejando visible su pantalla padre.
+> Anterior: **v4.26.40** — Pregúntame respeta la zona segura con teclado, se recoloca sin rebote y oculta el indicador lateral.
+> Anterior: **v4.26.42** — Bizum es una forma de pago separada de la finalidad real del gasto; el histórico no se recategoriza a ciegas.
+> Anterior: **v4.26.38** — el fondo recupera su posición al empezar la salida de una hoja, sin conservar el bloqueo visual hasta el desmontaje.
+> Anterior: **v4.26.37** — Plan enseña el saldo más bajo del mes y el día crítico, sin permitir que una nómina posterior maquille un descubierto anterior.
+> Anterior: **v4.26.35** — el filtro de Gastos usa las mismas fichas de icono y nombre que Apuntar y Modificar, conservando plegado, búsqueda y multiselección.
+> Anterior: **v4.26.34** — Pregúntame, Apuntar y las fichas de Gastos comparten una entrada y salida más pausada y continua, sin ralentizar el modo de movimiento reducido.
+> Anterior: **v4.26.33** — Pregúntame abre sin enfocar la pregunta, de modo que la guía se puede leer antes de que aparezca el teclado.
+> Anterior: **v4.26.32** — Inversiones y Plan → Gestionar comparten el gesto Atrás que acompaña al dedo; Recibos usa iconos por tipo, cierra al guardar y evita el doble alta.
+> Anterior: **v4.26.31** — Plan → Gestionar repite la cifra y su reparto al entrar, mantiene los importes reales y deja sitio a cantidades largas.
+> Anterior: **v4.26.30** — Gastos pliega el filtro largo de categorías, anima el desglose sin desmontarlo y cierra la ficha con confirmación.
+> Anterior: **v4.26.29** — el gesto horizontal desde el fondo se reclama antes y la APK 47 desactiva la barra gris nativa sin perder scroll ni rebote.
+> Anterior: **v4.26.28** — Inicio retira la supuesta ganancia mensual sin foto fiable del día uno y calcula la racha con presupuestos guardados de meses cerrados, sin llama.
+> Anterior: **v4.26.27** — el paso a paso del Asistente queda en tres instrucciones cortas y numeradas, sin mostrar `/n` ni volver al texto largo.
+> Anterior: **v4.26.26** — el editor del presupuesto mensual entra y sale con un ritmo propio, usa una cifra compacta y respeta el movimiento reducido.
+> Anterior: **v4.26.25** — Ahorro mensual vuelve a Plan → Metas como planificación editable que no crea movimientos; los formatos 1.000 y 1.200,50 conservan su valor real.
+> Anterior: **v4.26.24** — el gesto horizontal vuelve a cambiar de pestaña desde el fondo, los gestos verticales conservan el rebote nativo y las barras laterales no se dibujan, también en Ajustes.
+> Anterior: **v4.26.23** — «Pregúntame» responde primero en una frase, deja el paso a paso bajo petición y diferencia entre añadir efectivo y apuntar una compra.
+> Anterior: **v4.26.17** — el histórico que solo devuelve movimientos ya guardados permite abrirlos en Gastos con el periodo completo y ese banco filtrado.
+> Anterior: **v4.26.16** — la pantalla completa de Inversiones entra desde la derecha y vuelve con un gesto desde cualquier zona no interactiva.
+> Anterior: **v4.26.15** — «Actualizar inversiones» consulta brókers y precios y conserva los fallos parciales en un único aviso.
+> Anterior: **v4.26.14** — el resumen de Inversiones enseña beneficio en euros y porcentaje sin inventarlo cuando falta el coste.
+> Anterior: **v4.26.13** — los candados desaparecen de la interfaz sin retirar ninguna protección.
+> Anterior: **v4.26.12** — Novedades enumera las funciones que el móvil ya ejecutaba en beta, sin atribuirlas a producción.
+> Anterior: **v4.26.11** — Ajustes abre sin salto; Action `35784943994` publicó el bundle beta 4.26.11.1.
+> Anterior: **v4.26.10** — tema Cyberpunk y temáticas Otoño y Primavera.
+> Anterior: **v4.26.9** — Plan recupera su vista compacta y las fichas de Gastos y Apuntar comparten gestos más suaves.
+> Anterior: **v4.26.8** — Plan v4.1 usa importes reales, saldos honestos y recibos accesibles.
+> Anterior: **v4.26.7** — cierre funcional, financiero y accesible de Inversiones v4.1.
+> Anterior: **v4.26.6** — histórico aislado por banco y deduplicación estable TR/Wallet.
+> Anterior: **v4.26.5** — barrido de estados y movimiento reducido del rediseño v4.1.
+> Anterior: **v4.26.4** — Inversiones renovadas como pantalla propia, con refresco manual y cifras honestas.
+> Anterior: **v4.26.3** — «Pregúntame» aporta ayuda local/offline y prepara un puente remoto privado aún apagado.
+> Anterior: **v4.26.2** — «Tus recibos» deja de montar la pantalla antigua y abre listas y fichas ligeras.
+> Anterior: **v4.26.1** — ficha completa de cuenta con saldo, histórico real y últimos movimientos, sin publicar por separado.
+> Anterior: **v4.26.0** — ficha unificada de gasto y borrado con Deshacer, sin publicar por separado.
 > Anterior: **v4.25.6** — la ronda 4.25 está en producción y el panel beta queda vacío al alcanzarla: sin entrada en Ajustes, tandas antiguas ni pruebas repetidas.
 > Anterior: **v4.25.5** — la barra oculta ya no sale físicamente por debajo del viewport ni puede robar el segundo tirón en el fondo; el histórico bancario conserva la espera explícita tras 429.
 > Anterior: **v4.25.3** — el intento de concurrencia limitada seguía provocando 429 y el host de la ola perdía clases al repintarse.
@@ -199,16 +224,16 @@
 
 ## Listo para uso diario
 
-Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas, Open Banking, MyInvestor, RGPD mínimo, tests unit + E2E, código modular, **Hogar Fase 1+2** (+ fix RLS `0014`), informe mensual, fin de mes en paz, presupuesto por categoría, recibos gordos, widget Android, export JSON + informe imagen, **multi-banco en Gastos** + filtro por banco, tutorial/roles claros, **FX multi-divisa (USD/GBP/CHF + costEur)**, **sugerencia de categoría (KW + IA opcional)**, **diccionario ampliado de comercios** (impuestos/multas, **Pádel**), **Sentry en prod**, perfil pull-down, sheets sin velo negro, brókers en tarjetas planas, **APK nueva se ofrece sola** (noti + instalador al abrir), **OB a demanda** (botón en Cartera), **gráfico de Cartera multiseleccionable**, **editor de cuentas v4** (nombre+rol, saldo bloqueado si viene del banco), **bienes editables**, **monedas £/CHF**, **huella + logout en Ajustes**, **Hogar accesible desde el perfil** (4.10.0; antes en Cartera), **bloques de Cartera ordenables**, **«¿Me lo puedo permitir?» a plazos** (cuota + crear deuda), **banco elegible en gastos manuales**, **Sincronizar de Cartera con TR/MI**, **temáticas de temporada** (Mundial/Halloween/Navidad/Verano/Invierno/Pascua con animación ambiental), **accesibilidad** (letra grande a nivel body sin descuadres, reducir animaciones, contraste), **aportar a metas con teclado propio + banco**, **15 monedas + comparativa**, **varios bancos de gasto diario**, **selección de Cartera persistida**, **Ajustes reordenados/encogidos**, **widget con «lo que te puedes permitir»**.
+Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas, Open Banking, MyInvestor, RGPD mínimo, tests unit + E2E, código modular, **Hogar Fase 1+2** (+ fix RLS `0014`), informe mensual, fin de mes en paz, presupuesto por categoría, recibos gordos, widget Android, export JSON + informe imagen, **multi-banco en Gastos** + filtro por banco, tutorial/roles claros, **FX multi-divisa (USD/GBP/CHF + costEur)**, **sugerencia de categoría (KW + IA opcional)**, **diccionario ampliado de comercios** (impuestos/multas, **Pádel**), **Sentry en prod**, perfil pull-down, sheets sin velo negro, brókers en tarjetas planas, **APK nueva se ofrece sola** (noti + instalador al abrir), **OB a demanda** (botón en Cartera), **gráfico de Cartera multiseleccionable**, **editor de cuentas v4** (nombre+rol, saldo bloqueado si viene del banco), **bienes editables**, **monedas £/CHF**, **huella + logout en Ajustes**, **Hogar accesible desde el perfil** (4.10.0; antes en Cartera), **bloques de Cartera ordenables**, **«¿Me lo puedo permitir?» a plazos** (cuota + crear deuda), **banco elegible en gastos manuales**, **Sincronizar de Cartera con TR/MI**, **temáticas de temporada** (Mundial/Halloween/Navidad/Verano/Invierno/Pascua/Otoño/Primavera con animación ambiental), **tema Cyberpunk** (4.26.10), **accesibilidad** (letra grande a nivel body sin descuadres, reducir animaciones, contraste), **aportar a metas con teclado propio + banco**, **15 monedas + comparativa**, **varios bancos de gasto diario**, **selección de Cartera persistida**, **Ajustes reordenados/encogidos**, **widget con «lo que te puedes permitir»**.
 
 ## Versión actual (alineación)
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.25.20** (Inicio honesto y racha con presupuestos históricos reales; canal = `npm run salud`) |
-| APK (`versionName` / `versionCode`) | Repo y producción: **4.20.4 / 46**. |
-| Anterior | **4.18.3 / 42**, **4.17.1 / 41**, **4.16.1 / 39**. |
-| `public/apk.json` | **46** / 4.20.4 |
+| Web / OTA (`VERSION`) | **4.26.46** (día de recibo sin doble descuento: cobrado conserva fecha real; solo un feed reciente puede negar el cobro de hoy; nueva corrección beta; canal real = `npm run salud`) |
+| APK (`versionName` / `versionCode`) | Repo/publicada: **4.26.32 / 48**. El asset firmado existe y la beta puede ofrecer el gesto Atrás nativo. |
+| Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
+| `public/apk.json` | **48** / 4.26.32 |
 
 ## Pendiente / limitaciones conocidas
 
@@ -219,7 +244,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 | **Widget «Puedes gastar»** | 4.18.2: ingest cuenta como la app (`filasComoLaApp`). Prueba: pago con la app cerrada. Si el widget no se re-pinta en MIUI, quitar y re-añadir. |
 | **Limpieza del repo (tanda 16)** | Basura, docs rancio, código muerto. **No visual, no es rendimiento, no es Clean Code de libro.** El monolito es a propósito (`docs/adr/0002-monolito.md`). Alcance en `docs/briefs/plan-vuelta-crucero.md` §16. |
 | **Play Store** | **Lo último.** Data safety + NotificationListener. No adelantar: si se implementa, se tienta de publicar antes de que esté pulida a su criterio. Cualquier tanda nueva va **antes**. |
-| **Pulido de diseño (tanda 17)** | Mock Claude Design: `docs/design/handoff/` (SPEC-v4 + mockup HTML). **No tocar a ciegas.** Hogar, Apuntar, Gastos, el look. Tanda propia, no mezclar con dinero. |
+| **Rediseño v4.1 (tanda 17)** | En curso en `codex/diseno-v41-fichas`, siguiendo `handoff/SPEC-v4.1-fichas.md` por secciones y commits. §1 ficha unificada y §1.5 deshacer al borrar implementados y cubiertos; §3 ficha de cuenta es el siguiente bloque. No se publica hasta cerrar la tanda y aprobarla en beta. |
 | **OPENAI_API_KEY** | Opcional en Supabase Secrets → Edge `categorize`. Ver [CATEGORIZE.md](CATEGORIZE.md) |
 | **IA en gastos antiguos** | 4.19.1 ya escribe categoría (y banco/nota/borrado) por uuid cuando el gasto lo tiene; ids cortos del móvil siguen por atributos. Recategorizar histórico a IA sigue siendo manual y seguro fila a fila. |
 | **Salto a TR/Open Banking al sincronizar automáticamente** | Reportado el 2026-09-07, pero no reproducido ni respaldado por el flujo inspeccionado. No se cambia la navegación a ciegas; recoger pantalla y punto de entrada exacto si vuelve a ocurrir. |

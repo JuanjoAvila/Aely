@@ -4,7 +4,7 @@
 
 ---
 name: canal-equipo-tres-agentes
-description: "Buzón local Codex/Cursor/Claude en .claude/canal-equipo (gitignored, el repo NO lo menciona). Desde el 7/9 DIRIJO yo el equipo; mi watcher no sobrevive a cerrar la app."
+description: "Buzón local Codex/Cursor/Claude en .claude/canal-equipo (gitignored). ⚠ Desde el 16/9 DIRIGE CODEX (dicho por el dueño en persona); yo apoyo. Mi watcher no sobrevive a cerrar la app."
 metadata: 
   node_type: memory
   type: project
@@ -21,7 +21,9 @@ sin fusionar.
 
 **Reparto ORIGINAL (6/9):** Codex dirigía; Cursor implementaba; yo revisaba.
 
-⚠ **REPARTO ACTUAL, desde el 2026-09-07: DIRIJO YO.** Decisión expresa suya, dicha en persona
+⚠⚠ **16/9: DIRIGE CODEX de nuevo** — me lo dijo el dueño EN PERSONA (no por el buzón): le pagó la suscripción de 100 €, va en modo alto y «lo hace de puta madre». Relevo en `docs/briefs/RELEVO-A-CODEX-2026-09-16.md` (main). Codex encarga, Cursor revisa (review-request → GO/NO-GO), yo entro cuando me pidan. No reordenar su plan ni reservar ficheros sin preguntarle.
+
+**Reparto 7/9–16/9 (histórico): DIRIGÍA YO.** Decisión expresa suya, dicha en persona
 y puesta por Codex en el canal (`20260907T170128Z-codex-claude-asume-direccion`). Yo priorizo
 y reparto; **Cursor implementa** lo que yo le dé, acotado y por PR contra `beta`; **Codex queda
 como apoyo puntual** para arquitectura difícil, discrepancias o publicación — no coordina.

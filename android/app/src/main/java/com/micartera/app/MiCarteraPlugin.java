@@ -52,6 +52,7 @@ import com.getcapacitor.annotation.PermissionCallback;
  *                                "instalar apps desconocidas" (se abre el ajuste; reintentar).
  *   - syncOtaState({version, markNotifiedVer?}) -> alinea versión web con el worker de fondo
  *                                y evita doble noti (nativo ya avisó ↔ JS al abrir).
+ *   - setEdgeBackEnabled({enabled}) -> progreso de Atrás nativo para pantallas hijas
  *   - setNotifPrefs({expenseConfirm, bankSyncOnNotif}) -> prefs del lector de notis
  *   - consumeBankSyncPing()   -> { ping } si una noti de banco pidió sync (app en frío)
  *   - setAlertData({ym, charges, fired}) -> calendario de recibos del mes para las notis
@@ -95,11 +96,26 @@ public class MiCarteraPlugin extends Plugin {
 
     @Override
     protected void handleOnDestroy() {
+        AppCompatActivity act = getActivity();
+        if (act instanceof MainActivity) ((MainActivity) act).setEdgeBackEnabled(false);
         if (bankNotifReceiver != null) {
             try { getContext().unregisterReceiver(bankNotifReceiver); } catch (Exception ignored) {}
             bankNotifReceiver = null;
         }
         super.handleOnDestroy();
+    }
+
+    @PluginMethod
+    public void setEdgeBackEnabled(PluginCall call) {
+        final AppCompatActivity act = getActivity();
+        if (!(act instanceof MainActivity)) { call.reject("sin actividad"); return; }
+        final Boolean requested = call.getBoolean("enabled", false);
+        act.runOnUiThread(() -> {
+            ((MainActivity) act).setEdgeBackEnabled(requested != null && requested);
+            JSObject r = new JSObject();
+            r.put("supported", Build.VERSION.SDK_INT >= 34);
+            call.resolve(r);
+        });
     }
 
     @PluginMethod

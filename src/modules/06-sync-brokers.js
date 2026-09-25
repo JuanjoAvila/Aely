@@ -991,7 +991,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
           React.createElement("div",{className:"curtoggle","aria-label":t("iv_currency")},
             React.createElement("button",{type:"button",className:"curbtn"+(invCur==="EUR"?" on":""),"aria-pressed":invCur==="EUR",onClick:function(){ setInvCur("EUR"); }},"€"),
             React.createElement("button",{type:"button",className:"curbtn"+(invCur==="USD"?" on":""),"aria-pressed":invCur==="USD",onClick:function(){ setInvCur("USD"); }},"$"))),
-        stale && React.createElement("div",{className:"chip",style:{display:"inline-flex",marginTop:12}},tf("iv_updated",{time:staleDay})),
+        stale && React.createElement("div",{className:"chip",style:{display:"inline-flex",marginTop:12}},tf("st_stale",{day:staleDay})),
         React.createElement("div",{className:"v4-stackbar","aria-hidden":"true",style:{marginTop:16}},
           React.createElement("i",{style:{flex:Math.max(.02,heroBase/heroSum*100),background:completeCost?"var(--cream)":"var(--mint)"}}),
           heroGain>0 && React.createElement("i",{style:{flex:Math.max(.02,heroGain/heroSum*100),background:"var(--mint)"}})),

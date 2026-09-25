@@ -94,9 +94,21 @@ t("la duda de Open Banking sigue viajando nube → app → nube sin contar", () 
   assert.equal(cli.expenseSourceForCloud({ ...e, possibleDup: false }), "ob:trade_republic");
 });
 
-t("Edge solo confirma si hubo INSERT con ACK exacto", () => {
+t("APK usa postTime y Edge solo confirma si hubo INSERT con ACK", () => {
+  const java = fs.readFileSync(path.join(root,
+    "android/app/src/main/java/com/micartera/app/TrExpenseListener.java"), "utf8");
   const edge = fs.readFileSync(path.join(root, "supabase/functions/ingest/index.ts"), "utf8");
   const mig = fs.readFileSync(path.join(root, "supabase/migrations/0025_expenses_ingest_event.sql"), "utf8");
+  assert.match(java, /sbn\.getPostTime\(\)/);
+  assert.match(java, /\.put\("evento", evento\)/);
+  const stable = /static String stableEventId\(([^)]*)\)\s*\{([\s\S]*?)\n    \}/.exec(java);
+  assert.ok(stable, "falta la identidad nativa estable");
+  assert.equal(/title|text/i.test(stable[1] + stable[2]), false,
+    "un update con mismo key/postTime y texto distinto tiene que conservar el mismo id");
+  assert.match(stable[1], /String key, long postedAt/,
+    "otro key o postTime debe producir otra huella");
+  assert.match(java, /sbn\.getId\(\).*sbn\.getTag\(\)/s,
+    "si Android no da key, el fallback usa su id/tag nativo, no el texto");
   assert.match(edge, /\.eq\("ingest_event_id", eventKey\)/);
   assert.match(edge, /\.select\("id"\)/);
   assert.match(edge, /!inserted \|\| !inserted\.length/);

@@ -75,9 +75,9 @@ function SubRow({sp, state, set, showToast}){
   );
 }
 function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs}){
-  /* «Verlos en Gastos» puede navegar antes de que la pestaña termine de montar. La marca
-     efímera cubre ese primer render y el evento de abajo cubre una pestaña que ya estaba viva;
-     ninguna de las dos se guarda como preferencia. */
+  /* «Ver todo» desde una ficha puede llegar antes de que Gastos termine de montar. Conservamos
+     ese destino solo durante la navegación: el estado inicial lo consume y el evento cubre el
+     caso en que la pestaña ya estaba viva. No se guarda en preferencias. */
   const bankPending=typeof window!=="undefined"&&window.__mcExpBank||"";
   const [preset,setPreset]=useState(bankPending?"all":"month");
   // Tras importar una hoja: salta a "Todo" — lo importado suele traer fechas fuera del mes en
@@ -93,9 +93,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(ent){ try{ window.__mcExpBank=""; }catch(e){} return [ent]; }
     return expenseBankEnts(state).slice();
   });
-  /* El importador puede abrir Gastos sin remontarlo. En ese caso se aplica aquí el banco y el
-     histórico completo, y se limpian los demás filtros para que no vuelvan a esconder la fila
-     que acaba de explicar como ya apuntada (rechazo real de Caixa, 2026-09-23). */
+  /* La ficha de una cuenta puede mandar aquí sin pasar por `11-app-main.js`: primero activa la
+     pestaña mediante su botón real y después este evento efímero deja el histórico filtrado por
+     esa cuenta. No se persiste, así volver a entrar en Gastos conserva su comportamiento normal. */
   useEffect(function(){
     const h=function(e){
       const ent=e&&e.detail&&e.detail.ent||window.__mcExpBank; if(!ent) return;
@@ -120,6 +120,12 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const [form,setForm]=useState({merchant:"",amount:"",category:"super",income:false,noCard:false,date:""});
   const [catEdit,setCatEdit]=useState(null);   // id del gasto al que estás cambiando la categoría
   const [aiBusy,setAiBusy]=useState(false);
+  const [undoDelete,setUndoDelete]=useState(null);
+  const undoDeleteRef=useRef(null);
+  const undoTimerRef=useRef(null);
+  useEffect(function(){
+    return function(){ if(undoTimerRef.current) clearTimeout(undoTimerRef.current); };
+  },[]);
   // Trabajo pesado (suscripciones) solo la 1ª vez que Gastos está activo. NO resetear al
   // salir: si no, los chips de banco parpadean al ir Resumen↔Gastos (feedback 2026-07-16).
   const [heavyOk,setHeavyOk]=useState(false);
@@ -161,9 +167,41 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const expensesDef=useDeferredValue(state.expenses);
   const keyOfE=keyOfExpense;
   const delExpense=function(e){
-    set(function(s){ return Object.assign({},s,{ expenses:s.expenses.filter(function(x){ return x.id!==e.id; }), deleted:pushDeleted(s.deleted, keyOfE(e)) }); });
-    if(cloud.enabled()) borrarGastoNube(e, "gastos-borrar");
-    showToast(t("g_deleted"));
+    if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    const key=keyOfE(e), list=state.expenses||[], index=list.findIndex(function(x){ return x.id===e.id; });
+    const wasCloud=cloud.enabled();
+    // La lápida entra junto con la retirada local: si la nube refresca durante los cinco segundos,
+    // no puede resucitar la fila por detrás del toast. La escritura remota sí se encadena para que
+    // Deshacer vuelva a subir el MISMO id después de que termine cualquier delete aún en vuelo.
+    set(function(s){ return Object.assign({},s,{
+      expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; }),
+      deleted:pushDeleted(s.deleted,key)
+    }); });
+    const pending={expense:e,key:key,index:index<0?list.length:index,wasCloud:wasCloud,
+      cloudDelete:wasCloud?borrarGastoNube(e,"gastos-borrar"):Promise.resolve()};
+    undoDeleteRef.current=pending; setUndoDelete(pending);
+    undoTimerRef.current=setTimeout(function(){
+      if(undoDeleteRef.current!==pending) return;
+      undoDeleteRef.current=null; undoTimerRef.current=null; setUndoDelete(null);
+    },5000);
+  };
+  const undoLastDelete=function(){
+    const pending=undoDeleteRef.current;
+    if(!pending) return;
+    if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    undoTimerRef.current=null; undoDeleteRef.current=null; setUndoDelete(null);
+    set(function(s){
+      const deleted=(s.deleted||[]).slice();
+      const di=deleted.lastIndexOf(pending.key); if(di>=0) deleted.splice(di,1);
+      const expenses=(s.expenses||[]).slice();
+      if(!expenses.some(function(x){ return x.id===pending.expense.id; })){
+        expenses.splice(Math.min(pending.index,expenses.length),0,pending.expense);
+      }
+      return Object.assign({},s,{expenses:expenses,deleted:deleted});
+    });
+    if(pending.wasCloud){
+      Promise.resolve(pending.cloudDelete).then(function(){ return subirGasto(pending.expense,"gastos-deshacer"); });
+    }
   };
   /* Posible repetido OB↔noti (2026-09-07): «es el mismo» borra la fila OB; «son distintos»
      quita la marca y la fila ya cuenta. La lápida solo al borrar (mismo camino que delExpense). */
@@ -268,6 +306,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // Cambia el BANCO de un gasto manual (petición 2026-07-18). Solo manuales: los de OB/TR ya
   // vienen con su banco real y cambiárselo sería mentirse.
   const setBank=function(ex,b){
+    if(ex && ex.source && ex.source!=="manual") return;
     set(function(s){ return Object.assign({},s,{expenses:s.expenses.map(function(e){ return e.id===ex.id?Object.assign({},e,{ent:b||undefined}):e; })}); });
     if(cloud.enabled()) cloud.setExpenseBank(ex,b).catch(function(){});   // durable (source manual:banco)
   };
@@ -315,9 +354,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   },[focusExp, state.expenses]);
   const saveEdit=function(orig, extra){
     const ed=Object.assign({}, editExp, extra||{});
-    const amt=parseFloat(String(ed.amount).replace(',','.'))||0;
+    const locked=!!(orig.source && orig.source!=="manual");
+    const amt=locked?Math.abs(orig.amount):(parseFloat(String(ed.amount).replace(',','.'))||0);
     if(amt<=0){ showToast(t("g_invalid")); return; }
-    const signed=ed.income? -amt : amt;
+    const signed=locked?orig.amount:(ed.income? -amt : amt);
     const merch=(ed.merchant||"").trim()||orig.merchant;
     /* NO se pone `editExp` a null: eso CONGELABA LA PANTALLA (bug suyo 2026-08-17, «al modificarlo
        y guardarlo se bloquea, solo si tiras para atrás puedes seguir»). El sheet decide si pintarse
@@ -624,7 +664,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       const label=k===today?t("g_today"):k===dayKey(yesterday)?t("g_yesterday"):d.toLocaleDateString(loc(),{weekday:"long",day:"numeric",month:"short"});
       groups.push({sep:label}); last=k;
     }
-    groups.push({e:e,ms:ms});
+    groups.push({e:e,ms:ms,l:e.debtId&&filterSelLabel("debt:"+e.debtId,state.debts)});
   });
 
   const addExpense=()=>{
@@ -728,8 +768,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
                      : (catBreakdown.length===1 ? t("v4_gastos_cats_n1") : tf("v4_gastos_cats_n",{n:catBreakdown.length}))),
           React.createElement("span",{className:"v4-gastos-cats-fold"},
             (catsOpen?"▾ ":"▸ ")+t(catsOpen?"v4_gastos_cats_hide":"v4_gastos_cats_show"))),
-        React.createElement("div",{id:"gastos-cats-body",hidden:!catsOpen},
-        catBreakdown.map(function(row){
+        React.createElement("div",{id:"gastos-cats-body",className:"v4-gastos-cats-body"+(catsOpen?" abierto":""),"aria-hidden":!catsOpen},
+        React.createElement("div",{className:"v4-gastos-cats-inner"},catBreakdown.map(function(row){
           const cat=catOf(row.id);
           const lim=row.limit;
           const pct=lim>0?Math.min(100, row.spent/lim*100):0;
@@ -744,7 +784,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
                   React.createElement("div",{className:"bar",role:"progressbar","aria-valuemin":0,"aria-valuemax":lim,"aria-valuenow":row.spent},
                     React.createElement("i",{style:{width:pct+"%",background:cat.color||"var(--mint)"}})))
               : null);
-        }))
+        })))
       )
     ),
     React.createElement("div",{className:"filters"},
@@ -847,7 +887,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
             })()
           : groups.map(function(g,i){ return g.sep
               ? React.createElement("div",{className:"day-sep",key:"s"+i},g.sep)
-              : React.createElement(MovRow,{key:g.e.id||i, e:g.e, ms:g.ms, onOpen:openDetail, l10n:l10nKey,
+              : React.createElement(MovRow,{key:g.e.id||i, e:g.e, ms:g.ms, l:g.l, onOpen:openDetail, l10n:l10nKey,
                   bucket:expenseBucket(g.e, state),dragging:!!(dragExpense&&dragExpense.from===g.e.id),
                   dragOver:!!(dragExpense&&dragExpense.to===g.e.id&&dragExpense.from!==g.e.id),
                   onDragStart:startExpenseDrag,onDragMove:moveExpenseDrag,onDragEnd:endExpenseDrag}); }),
@@ -861,14 +901,24 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       bucketSel:bucketSel, setBucketSel:setBucketSel,
       bankOpts:bankOpts, diarioEnts:diarioEnts, debts:state.debts
     }),
-    detailId && React.createElement(ExpenseDetailSheet,{
-      exp:(state.expenses||[]).find(function(e){ return e.id===detailId; }),
+    React.createElement(ExpenseDetailSheet,{
+      exp:detailId?(state.expenses||[]).find(function(e){ return e.id===detailId; }):null,
       editExp:editExp, setEditExp:setEditExp,
-      onClose:function(){ setDetailId(null); setEditExp(null); },
+      // Cerrar también guarda el último dígito del teclado. Borrar pasa `true` para no resucitar
+      // el gasto con un guardado tardío en el mismo lote de React.
+      onClose:function(skipSave){
+        const ex=(state.expenses||[]).find(function(e){ return e.id===detailId; });
+        if(!skipSave && ex && editExp) saveEdit(ex);
+        setDetailId(null); setEditExp(null);
+      },
       setCat:setCat, setCuota:setCuota, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
       resolveDup:resolveDup,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
-    })
+    }),
+    undoDelete && ReactDOM.createPortal(
+      React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"expense-undo"},
+        React.createElement("span",null,t("f_undo_deleted")),
+        React.createElement("button",{type:"button",onClick:undoLastDelete},t("f_undo"))),document.body)
   );
 }
 
@@ -882,7 +932,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
    `l10n` (idioma|símbolo de moneda) es un prop a posta: catName/entOf/eur leen globales que memo
    no puede ver, así que sin él cambiar de idioma o de moneda dejaría las filas en el idioma viejo.
    `onOpen` tiene que ser ESTABLE (useCallback) o el memo no sirve de nada. */
-const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket, dragging, dragOver, onDragStart, onDragMove, onDragEnd}){
+const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, dragging, dragOver, onDragStart, onDragMove, onDragEnd}){
   // `ms` y no un `Date`: ver el porqué donde se construyen los grupos. El objeto se crea aquí,
   // que es la única línea que lo necesita, y solo cuando la fila se pinta de verdad.
   // `bucket` (string) lo pasa el padre: si se pasara `state` entero, el memo no acertaría nunca.
@@ -903,7 +953,7 @@ const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket, dragging, dragOv
     React.createElement("div",{className:"nm"},
       React.createElement("div",{className:"nm-title"}, e.merchant||"—"),
       note && React.createElement("div",{className:"nm-note"}, note),
-      React.createElement("div",{className:"nm-cat",style:{color:c.color}}, catName(e.category)),
+      React.createElement("div",{className:"nm-cat",style:{color:c.color}}, l||catName(e.category)),
       React.createElement("div",{className:"meta"},
         React.createElement("span",null,d.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'})),
         bk?React.createElement(React.Fragment,null,
@@ -925,21 +975,25 @@ const MovRow=React.memo(function MovRow({e, ms, onOpen, bucket, dragging, dragOv
 /* Sheet de filtros (2026-08-05): categorías + bancos con buscador, sin la fila infinita de chips.
    Misma mecánica que PeriodMoreSheet (swipe abajo + atrás). */
 /* Nombre de lo que hay en `sel`: una categoría, o `debt:<id>` = el chip de una deuda (4.21.0).
-   Una deuda borrada ya no tiene chip; si seguía marcada, se lee como «Deudas». */
+   Una deuda borrada ya no tiene chip; si seguía marcada, se lee como «Cuota de deuda». */
 function filterSelLabel(id, debts){
-  if(String(id).indexOf("debt:")!==0) return catName(id);
+  if(!id.startsWith("debt:")) return catName(id);
   const d=(debts||[]).find(function(x){ return x && ("debt:"+x.id)===id; });
-  return d ? (d.name||catName("deudas")) : catName("deudas");
+  return d&&d.name||catName("deudas");
 }
 function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts, debts}){
   useBackClose(!!open, onClose);
   const swipe=useSheetSwipe(!!open, onClose);
   const [qCat,setQCat]=useState("");
-  useEffect(function(){ if(!open) setQCat(""); },[open]);
+  const [filterCatsOpen,setFilterCatsOpen]=useState(false);
+  useEffect(function(){
+    if(open){ setQCat(""); setFilterCatsOpen(false); }
+  },[open]);
   if(!open) return null;
-  /* Sin deudas no sale ni la categoría «Deudas» ni su sección (apunte de Cursor al brief). */
+  /* `deudas` sigue siendo la marca interna que evita contar dos veces la cuota, pero no se pinta
+     como categoría normal: cada deuda del Plan tiene su filtro propio (feedback 24/9). */
   const debtList=(debts||[]).filter(function(d){ return d && d.id; });
-  const allCats=CATEGORIES.concat([INGRESO_CAT,INVERSION_CAT,TRASPASO_CAT]).concat(debtList.length?[DEUDA_CAT]:[]);
+  const allCats=CATEGORIES.concat([INGRESO_CAT,INVERSION_CAT,TRASPASO_CAT]);
   const needle=qCat.trim().toLowerCase();
   const cats=needle
     ? allCats.filter(function(c){ return catName(c.id).toLowerCase().indexOf(needle)!==-1 || c.id.indexOf(needle)!==-1; })
@@ -970,15 +1024,10 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
   };
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
-      React.createElement("div",Object.assign({className:"v4-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },style:{maxHeight:"88vh"}}, swipe.sheetTouch),
+      React.createElement("div",Object.assign({className:"v4-sheet v4-gastos-filter-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },style:{maxHeight:"88vh"}}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
         React.createElement("div",{className:"serif",style:{fontSize:22,fontWeight:550,marginBottom:6}}, t("g_filters")),
         React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",lineHeight:1.45,marginBottom:12}}, t("g_filters_hint")),
-        React.createElement("div",Object.assign({className:"searchbar",style:{marginBottom:14}},{}),
-          React.createElement("span",{className:"searchbar-ic"},"🔍"),
-          React.createElement("input",{className:"searchbar-in",type:"search",placeholder:t("g_filters_search"),value:qCat,onChange:function(e){ setQCat(e.target.value); }}),
-          qCat && React.createElement("button",{className:"searchbar-x",type:"button",onClick:function(){ setQCat(""); }},"✕")
-        ),
         /* «Qué contar» va PRIMERO y sin buscador: son cuatro y es lo que él vino a separar
            («hay bastante caos entre gastos que cuentan, ingresos y movimientos que no cuentan»).
            Las categorías y los bancos siguen debajo, igual que siempre. */
@@ -998,29 +1047,43 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
               p[1]+" "+t("g_bk_"+p[0]));
           })
         ),
-        React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_filters_cats")),
-        React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}},
-          React.createElement("button",{type:"button",className:"v4-chip"+(sel.length===0?" on":""),onClick:function(){ setSel([]); }}, t("g_allcats")),
-          cats.map(function(c){
-            return React.createElement("button",{key:c.id,type:"button",className:"v4-chip"+(sel.indexOf(c.id)!==-1?" on":""),onClick:function(){ toggleCat(c.id); }},
-              c.icon+" "+catName(c.id));
-          })
-        ),
-        /* Un chip por deuda: se crean y desaparecen solos con las deudas del Plan (4.21.0). */
-        (function(){
-          const ds=needle ? debtList.filter(function(d){ return String(d.name||"").toLowerCase().indexOf(needle)!==-1; }) : debtList;
-          if(!ds.length) return null;
-          return React.createElement(React.Fragment,null,
-            React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_filters_debts")),
-            React.createElement("div",{"data-testid":"filtro-deudas",style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}},
-              ds.map(function(d){
-                const k="debt:"+d.id;
-                return React.createElement("button",{key:k,type:"button",className:"v4-chip"+(sel.indexOf(k)!==-1?" on":""),onClick:function(){ toggleCat(k); }},
-                  DEUDA_CAT.icon+" "+(d.name||catName("deudas")));
-              })
+        /* Las categorías son la lista larga del filtro. Cerradas dejan una sola fila y el número
+           activo; así bancos y «Qué contar» siguen a mano sin obligar a atravesar veinte chips. */
+        React.createElement("div",{className:"v4-filter-cats"+(filterCatsOpen?" abierto":"")},
+          React.createElement("button",{type:"button",className:"v4-filter-cats-toggle","aria-expanded":filterCatsOpen,
+              "aria-controls":"gastos-filter-cats-body",onClick:function(){ setFilterCatsOpen(function(v){ return !v; }); }},
+            React.createElement("span",null,t("g_filters_cats")),
+            React.createElement("span",{className:"v4-filter-cats-state"},
+              (sel.length ? tf(sel.length===1?"g_filters_cat_active_one":"g_filters_cat_active",{n:sel.length}) : t("g_filters_cat_none"))+" "+(filterCatsOpen?"▾":"▸"))
+          ),
+          React.createElement("div",{id:"gastos-filter-cats-body",className:"v4-filter-cats-body","aria-hidden":!filterCatsOpen},
+            React.createElement("div",{className:"v4-filter-cats-inner"},
+              React.createElement("div",{className:"searchbar",style:{marginBottom:12}},
+                React.createElement("span",{className:"searchbar-ic"},"🔍"),
+                React.createElement("input",{className:"searchbar-in",type:"search",placeholder:t("g_filters_search"),value:qCat,onChange:function(e){ setQCat(e.target.value); }}),
+                qCat && React.createElement("button",{className:"searchbar-x",type:"button",onClick:function(){ setQCat(""); }},"✕")
+              ),
+              /* El filtro conserva la multiselección, pero comparte la anatomía de Apuntar y
+                 Modificar: icono arriba, nombre debajo y selección visible. Los chips antiguos
+                 daban la impresión de ser otro sistema de categorías (rechazo 23/9). */
+              React.createElement("div",{className:"v4-ficha-cat-title"},
+                React.createElement("span",null,t("g_filters_cats")),
+                React.createElement("button",{type:"button","aria-pressed":sel.length===0,onClick:function(){ setSel([]); }},
+                  t("g_allcats")+(sel.length===0?" ✓":""))),
+              React.createElement(ExpenseCategoryGrid,{items:cats,selectedMany:sel,onPick:toggleCat,testPrefix:"gastos-filter-cat"}),
+              /* Una ficha por deuda: se crean y desaparecen solas con las deudas del Plan (4.21.0). */
+              (function(){
+                const ds=needle ? debtList.filter(function(d){ return String(d.name||"").toLowerCase().indexOf(needle)!==-1; }) : debtList;
+                if(!ds.length) return null;
+                return React.createElement(React.Fragment,null,
+                  React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_filters_debts")),
+                  React.createElement(ExpenseCategoryGrid,{items:ds.map(function(d){ return {id:"debt:"+d.id,icon:DEUDA_CAT.icon,label:d.name||catName("deudas")}; }),
+                    selectedMany:sel,onPick:toggleCat,testPrefix:"filtro-deudas"})
+                );
+              })()
             )
-          );
-        })(),
+          )
+        ),
         bankOpts.length>0 && React.createElement(React.Fragment,null,
           React.createElement("div",{style:{fontSize:12,fontWeight:800,color:"var(--muted-2)",letterSpacing:".04em",textTransform:"uppercase",marginBottom:8}}, t("g_filters_banks")),
           React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}},
@@ -1067,113 +1130,139 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
      hasta darle a atrás (bug 2026-08-17). La causa concreta ya está arreglada en `saveEdit`; esto
      es para que ninguna otra vía que vacíe `editExp` pueda volver a dejar la app muerta. */
   const abierto=!!exp && !!editExp;
-  useBackClose(abierto, onClose);
   const swipe=useSheetSwipe(abierto, onClose);
+  useBackClose(abierto, swipe.close);
   const [calOpen,setCalOpen]=useState(false);
-  useEffect(function(){ if(!abierto) setCalOpen(false); },[abierto, exp&&exp.id]);
+  const [bankOpen,setBankOpen]=useState(false);
+  const [allCatsOpen,setAllCatsOpen]=useState(false);
+  const [adjustOpen,setAdjustOpen]=useState(null);
+  const auto=!!(exp && exp.source && exp.source!=="manual");
+  const catList=useMemo(()=>XC.concat(exp&&exp.category==="bizum"?[CAT.bizum]:[],INVERSION_CAT,TRASPASO_CAT),[exp&&exp.category]);
+  // ExpenseDetailSheet permanece premontado: esta pasada O(n) ocurre al preparar Gastos, no al
+  // tocar una fila. Al abrir solo se garantiza que la categoría actual esté entre ocho chips.
+  const fichaCatsBase=useMemo(function(){
+    return expenseTopCategoryRanking(state.expenses,catList);
+  },[state.expenses,catList]);
+  const fichaCats=useMemo(function(){
+    return expenseTopCategoryPick(fichaCatsBase,exp&&exp.category,catList);
+  },[fichaCatsBase,exp&&exp.category,catList]);
+  useEffect(function(){
+    if(!abierto){ setCalOpen(false); setBankOpen(false); setAllCatsOpen(false); setAdjustOpen(null); }
+  },[abierto,exp&&exp.id]);
+  // Modificar no tiene botón Guardar. El pequeño debounce evita una escritura del histórico por
+  // cada dígito sin convertir «se guarda al momento» en «se guarda al cerrar».
+  useEffect(function(){
+    if(!abierto || auto) return undefined;
+    const typed=parseFloat(String(editExp.amount||"").replace(',','.'))||0;
+    if(Math.abs(typed-Math.abs(exp.amount))<0.005) return undefined;
+    const tm=setTimeout(function(){ saveEdit(exp); },350);
+    return function(){ clearTimeout(tm); };
+  },[abierto,auto,exp&&exp.id,exp&&exp.amount,editExp&&editExp.amount]);
   if(!abierto) return null;
-  const c=catOf(exp.category);
-  const catList=XC.concat(exp.category==="bizum"?[CAT.bizum]:[],[INVERSION_CAT,TRASPASO_CAT]);
   const isIncome=exp.amount<0 || !!editExp.income;
   const bk=expenseBankOf(exp);
-  const auto=exp.source && exp.source!=="manual";
   const dateIso=String(editExp.date||exp.date||"").slice(0,10);
   const closeSave=function(){ saveEdit(exp); };   // blur solo guarda; no cierra (cerrar al cambiar cat saltaba de pantalla — feedback 2026-07-17)
-  const doSaveClose=function(){ saveEdit(exp); onClose(); };
   const doDel=function(){
     askConfirm({ title:tf("v4_exp_del_q",{name:(exp.merchant||"—")+" · "+eur(Math.abs(exp.amount))}), sub:t("v4_exp_del_sub"), ok:t("v4_exp_del"), danger:true })
-      .then(function(yes){ if(!yes) return; delExpense(exp); onClose(); });
+      .then(function(yes){ if(!yes) return; swipe.close(function(){ delExpense(exp); onClose(true); }); });
   };
-  /* LO QUE MARCABA EL PRECIO (2026-08-06, para el crucero). El importe de arriba es el euro
-     convertido —la app cuenta en euros— pero si el apunte se hizo en otra moneda, aquí se ve lo
-     que ponía de verdad: «1.520,00 ₺». Sin esto, un viaje entero queda en el histórico como euros
-     pelados y no hay forma de saber qué se pagó en qué. */
-  const origLbl=(exp.origCur && exp.origAmount>0)
-    ? NF.format(Math.abs(exp.origAmount))+" "+(CUR_SYM[exp.origCur]||exp.origCur)
-    : null;
-  const metaBits=[origLbl, bk?entOf(bk).label:null, auto?t("v4_exp_auto"):t("v4_exp_manual")].filter(Boolean);
-  return ReactDOM.createPortal(
-    React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
+  const lockedToast=function(){ showToast(t("f_locked_toast")); };
+  const bankOpts=(function(){
+    const seen={},out=[];
+    (state.accounts||[]).forEach(function(a){ if(a&&a.ent&&!seen[a.ent]){ seen[a.ent]=1; out.push(a.ent); } });
+    return out;
+  })();
+  const traceRaw=String(exp.rawText||exp.notificationText||exp.raw||"").trim()||t("f_trace_missing");
+  const traceDate=(function(){
+    const d=exp.notifiedAt||exp.createdAt;
+    if(!d) return fmtIsoCorto(exp.date);
+    const parsed=new Date(d);
+    return isNaN(parsed.getTime())?fmtIsoCorto(exp.date):parsed.toLocaleString(loc(),{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+  })();
+  const fxHint=(exp.origCur&&exp.origAmount>0) ? (
+    NF.format(Math.abs(exp.origAmount))+" "+(CUR_SYM[exp.origCur]||exp.origCur)+" · "+
+    tf("f_fx_eq",{x:NF.format(Math.abs(exp.amount))+" €",date:fmtIsoCorto(state.fxDate||exp.date)})
+  ) : null;
+  const trace=auto && React.createElement("div",{className:"v4-ficha-trace","data-testid":"exp-trace"},
+    bk?React.createElement(Mono,{ent:bk,size:34}):React.createElement("div",{className:"mono",style:{width:34,height:34}},"🏦"),
+    React.createElement("div",{className:"v4-ficha-trace-copy"},
+      React.createElement("div",{className:"v4-ficha-trace-title"},tf("f_from_bank",{bank:bk?entOf(bk).label:t("bp_hist_bank_unknown")})),
+      React.createElement("div",{className:"v4-ficha-trace-sub"},tf("f_from_bank_sub",{date:traceDate,raw:traceRaw}))));
+  const meta=[
+    {id:"bank",testId:"exp-bank",label:bk?entOf(bk).label:t("ap_bank_none"),lead:bk?React.createElement(Mono,{ent:bk,size:18}):React.createElement("span",null,"🏦"),
+      on:bankOpen,locked:auto,onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }},
+    {id:"cash",testId:"exp-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bk==="efectivo",locked:auto,
+      onClick:function(){ setBank(exp,bk==="efectivo"?null:"efectivo"); }},
+    {id:"date",testId:"exp-date",label:fmtIsoCorto(dateIso),lead:React.createElement("span",null,"📅"),on:calOpen,
+      onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }}
+  ];
+  const duplicate=exp.possibleDup && React.createElement("div",{className:"hint",style:{margin:"0 0 12px",padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
+    React.createElement("div",{style:{fontWeight:600,marginBottom:4}},t("g_dup_title")),
+    React.createElement("div",{style:{marginBottom:10}},t("g_dup_sub")),
+    React.createElement("div",{className:"row",style:{gap:8}},
+      React.createElement("button",{type:"button",className:"btn btn-primary",style:{flex:1},onClick:function(){ resolveDup&&resolveDup(exp,true); onClose(true); }},t("g_dup_same")),
+      React.createElement("button",{type:"button",className:"btn btn-ghost",style:{flex:1},onClick:function(){ resolveDup&&resolveDup(exp,false); onClose(true); }},t("g_dup_diff"))));
+  const afterMeta=React.createElement(React.Fragment,null,
+    calOpen && React.createElement(McCal,{value:dateIso,onPick:function(iso){ setCalOpen(false); saveEdit(exp,{date:iso}); }}),
+    bankOpen && !auto && bankOpts.length>0 && React.createElement("div",{className:"v4-chips wrap","data-testid":"exp-bank-list"},
+      React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
+      bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
+        onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
+    trace,duplicate);
+  const debtOptions=(state.debts||[]).filter(function(d){ return d&&d.id; });
+  const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
+    React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="note"?null:"note"); }},
+      React.createElement("span",null,t("f_note_row")),React.createElement("span",{className:"value"},editExp.note||t("f_note_none")),React.createElement("span",{className:"chev"},"›")),
+    adjustOpen==="note" && React.createElement("div",{className:"v4-ficha-adjust-open"},
+      React.createElement("input",{className:"v4-exp-note-in",value:editExp.note||"",maxLength:160,placeholder:t("v4_exp_note_ph"),
+        onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{note:v}); }); },
+        onBlur:function(){ saveNote(exp,editExp.note); },"aria-label":t("v4_exp_note")})),
+    !isIncome && debtOptions.length>0 && React.createElement(React.Fragment,null,
+      React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="debt"?null:"debt"); }},
+        React.createElement("span",null,t("f_debt_row")),React.createElement("span",{className:"value"},exp.debtId?catName("deudas"):t("f_no")),React.createElement("span",{className:"chev"},"›")),
+      adjustOpen==="debt" && React.createElement("div",{className:"v4-chips wrap v4-ficha-adjust-open","data-testid":"exp-cuota-de"},
+        debtOptions.map(function(d){ const on=exp.category==="deudas"&&exp.debtId===d.id; return React.createElement("button",{key:d.id,type:"button",className:"v4-chip"+(on?" on":""),
+          onClick:function(){ if(!on) setCuota(exp,d.id); }},DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas"))); }))),
+    React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){
+      if(auto){ lockedToast(); return; }
+      const income=!editExp.income; setEditExp(function(p){ return Object.assign({},p,{income:income}); }); saveEdit(exp,{income:income});
+    }},React.createElement("span",null,t("f_income_row")),React.createElement("span",{className:"value"},editExp.income?"✓":t("f_no")),React.createElement("span",{className:"chev"},"›")),
+    !isIncome && React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-payment",onClick:function(){ setCardFlag(exp,!exp.noCard); }},
+      React.createElement("span",null,t(exp.noCard?"g_nocard":"g_card")),React.createElement("span",{className:"chev"},"›")),
+    cloud.enabled() && !isIncome && React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",disabled:aiBusy,onClick:function(){ suggestAi(exp); }},
+      React.createElement("span",null,aiBusy?t("ai_cat_busy"):t("ai_cat_btn")),React.createElement("span",{className:"chev"},"›"))
+  );
+  const amountChange=auto?function(){ lockedToast(); }:function(updater){
+    setEditExp(function(p){ const v=typeof updater==="function"?updater(p.amount):updater; return Object.assign({},p,{amount:v}); });
+  };
+  const done=function(){
+    saveEdit(exp);
+    // «Listo» confirma y acompaña el cierre; antes solo se guardaba en segundo plano y la ficha
+    // seguía bloqueando toda la pantalla, aunque el dato sí hubiera cambiado (feedback 18/9).
+    swipe.close(function(){ onClose(true); });
+  };
+  const footer=React.createElement("div",{className:"v4-ficha-foot"},
+    React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
+    React.createElement("span",{className:"v4-ficha-saved"},t("f_autosaved")),
+    React.createElement("button",{type:"button",className:"v4-ficha-done",onClick:done},t("done")));
+  const main=ReactDOM.createPortal(
+    React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
       React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",style:{maxHeight:"90dvh"},ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
-        React.createElement("div",{className:"v4-sheet-body"},
-          React.createElement("div",{className:"v4-exp-hero"},
-            React.createElement("div",{className:"v4-exp-ico",style:{borderColor:c.color+"55",color:c.color,background:c.color+"18"}}, c.icon),
-            React.createElement("input",{className:"v4-exp-amt num serif",inputMode:"decimal",value:editExp.amount,onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{amount:v}); }); },onBlur:closeSave,"aria-label":t("v4_exp_amount")}),
-            React.createElement("input",{className:"v4-exp-name",value:editExp.merchant,placeholder:t("v4_exp_merchant_ph"),onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{merchant:v}); }); },onBlur:closeSave}),
-            React.createElement("div",{className:"v4-exp-meta"}, metaBits.join(" · "))
-          ),
-          exp.possibleDup && React.createElement("div",{className:"hint",style:{marginTop:10,padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
-            React.createElement("div",{style:{fontWeight:600,marginBottom:4}}, t("g_dup_title")),
-            React.createElement("div",{style:{marginBottom:10}}, t("g_dup_sub")),
-            React.createElement("div",{className:"row",style:{gap:8}},
-              React.createElement("button",{type:"button",className:"btn btn-primary",style:{flex:1},onClick:function(){ resolveDup && resolveDup(exp,true); onClose(); }}, t("g_dup_same")),
-              React.createElement("button",{type:"button",className:"btn btn-ghost",style:{flex:1},onClick:function(){ resolveDup && resolveDup(exp,false); onClose(); }}, t("g_dup_diff"))
-            )
-          ),
-          React.createElement("div",{className:"v4-exp-sec",style:{marginTop:12}}, t("ap_date")),
-          React.createElement("div",{className:"v4-chips"},
-            React.createElement("button",{type:"button",className:"v4-chip"+(calOpen?" on":""),"data-testid":"exp-date",
-              onClick:function(){ setCalOpen(function(v){ return !v; }); }},
-              "📅 "+fmtIsoCorto(dateIso))
-          ),
-          calOpen && React.createElement(McCal,{value:dateIso, onPick:function(iso){
-            setCalOpen(false);
-            saveEdit(exp, {date:iso});
-          }}),
-          React.createElement("div",{className:"v4-exp-sec",style:{marginTop:14}}, t("v4_exp_note")),
-          React.createElement("input",{className:"v4-exp-note-in",value:editExp.note||"",maxLength:160,
-            placeholder:t("v4_exp_note_ph"),
-            onChange:function(e){ const v=e.target.value; setEditExp(function(p){ return Object.assign({},p,{note:v}); }); },
-            onBlur:function(){ saveNote(exp, editExp.note); },"aria-label":t("v4_exp_note")}),
-          (exp.note && !exp.noteEdited) && React.createElement("div",{className:"hint",style:{marginTop:5}}, t("v4_exp_note_bank")),
-          !isIncome && React.createElement(React.Fragment,null,
-            React.createElement("div",{className:"v4-exp-sec"}, t("v4_exp_cat")),
-            React.createElement("div",{className:"v4-chips"},
-              catList.map(function(cc){
-                return React.createElement("button",{key:cc.id,type:"button",className:"v4-chip"+(cc.id===exp.category?" on":""),"data-testid":"exp-cat-"+cc.id,onClick:function(){ setCat(exp,cc.id); }}, cc.icon+" "+catName(cc.id));
-              })
-            ),
-            /* «Es la cuota de…» (4.22.2): todas las deudas, también las que ya acabaron — la cuota
-               de Cofidis que él no podía marcar era de una financiación terminada. */
-            (setCuota && (state.debts||[]).some(function(d){ return d && d.id; })) && React.createElement(React.Fragment,null,
-              React.createElement("div",{className:"v4-exp-sec",style:{marginTop:14}}, t("g_cuota_de")),
-              React.createElement("div",{className:"v4-chips","data-testid":"exp-cuota-de"},
-                (state.debts||[]).filter(function(d){ return d && d.id; }).map(function(d){
-                  const on=exp.category==="deudas" && exp.debtId===d.id;
-                  return React.createElement("button",{key:d.id,type:"button",className:"v4-chip"+(on?" on":""),onClick:function(){ if(!on) setCuota(exp,d.id); }},
-                    DEUDA_CAT.icon+" "+(String(d.name||"").trim()||catName("deudas")));
-                })
-              )
-            ),
-            React.createElement("button",{type:"button",className:"v4-sheet-row"+(exp.noCard?"":" on"),style:{marginTop:12},"data-testid":"exp-payment",onClick:function(){ setCardFlag(exp,!exp.noCard); }},
-              t(exp.noCard?"g_nocard":"g_card")),
-            (!auto && setBank) && (function(){
-              const seen={}; const opts=[];
-              (state.accounts||[]).forEach(function(a){ if(a&&a.ent&&!seen[a.ent]){ seen[a.ent]=1; opts.push(a.ent); } });
-              if(!opts.length) return null;
-              return React.createElement(React.Fragment,null,
-                React.createElement("div",{className:"v4-exp-sec",style:{marginTop:14}}, t("ap_bank")),
-                React.createElement("div",{className:"v4-chips"},
-                  React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); }}, t("ap_bank_none")),
-                  opts.map(function(b){
-                    return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),onClick:function(){ setBank(exp,b); }}, "🏦 "+entOf(b).label);
-                  })
-                )
-              );
-            })(),
-            cloud.enabled() && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:8},disabled:aiBusy,onClick:function(){ suggestAi(exp); }}, aiBusy?t("ai_cat_busy"):t("ai_cat_btn"))
-          ),
-          React.createElement("div",{className:"v4-exp-sec",style:{marginTop:14}}, t("v4_exp_type")),
-          React.createElement("div",{className:"v4-toggle"},
-            React.createElement("button",{type:"button",className:!editExp.income?"on":"",onClick:function(){ setEditExp(function(p){ return Object.assign({},p,{income:false}); }); }},"💸 "+t("v4_gasto")),
-            React.createElement("button",{type:"button",className:editExp.income?"on":"",onClick:function(){ setEditExp(function(p){ return Object.assign({},p,{income:true}); }); }},"💰 "+t("v4_ingreso"))
-          )
-        ),
-        React.createElement("button",{type:"button",className:"v4-cta",style:{marginTop:16},onClick:doSaveClose}, t("fj_save")),
-        React.createElement("button",{type:"button",className:"v4-danger",onClick:doDel}, "🗑 "+t("v4_exp_del"))
+        React.createElement(ExpenseFichaLayout,{kind:editExp.income?"ingreso":"gasto",onKind:function(k){
+            if(auto){ lockedToast(); return; }
+            const income=k==="ingreso"; setEditExp(function(p){ return Object.assign({},p,{income:income}); }); saveEdit(exp,{income:income});
+          },dateLabel:fmtIsoCorto(dateIso),onDate:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); },
+          amount:String(editExp.amount||"0"),amountEmpty:!editExp.amount,currency:"€",locked:auto,onLocked:lockedToast,focused:!auto,
+          concept:editExp.merchant,onConcept:function(v){ setEditExp(function(p){ return Object.assign({},p,{merchant:v}); }); },onConceptBlur:closeSave,fxHint:fxHint,
+          meta:meta,afterMeta:afterMeta,categoryItems:fichaCats,allCategoryItems:catList,category:exp.category,
+          onCategory:function(id){ setCat(exp,id); },onAllCategories:function(){ setAllCatsOpen(true); },adjustments:adjustments,
+          numpad:React.createElement(NumPad,{value:editExp.amount,onChange:amountChange}),footer:footer,testPrefix:"exp"})
       )
-    ), document.body);
+    ),document.body);
+  return React.createElement(React.Fragment,null,main,
+    React.createElement(ExpenseCategorySheet,{open:allCatsOpen,onClose:function(){ setAllCatsOpen(false); },items:catList,selected:exp.category,onPick:function(id){ setCat(exp,id); }}));
 }
 
 function BudgetSheet({open, budget, onClose, onSave}){

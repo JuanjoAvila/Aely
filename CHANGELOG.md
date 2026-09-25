@@ -1,134 +1,184 @@
-## [4.25.20] - 2026-09-24
-### Inicio honesto y racha calculada con meses reales
+## [4.26.46] - 2026-09-24
+### Cambiar el día de un fijo conciliado ya no crea un segundo descuento
 
-Se reconstruye sobre la candidata de producción 4.25.19 únicamente la tanda aprobada 4.26.28.
-Inicio y la imagen del informe dejan de mostrar un cambio de patrimonio «este mes»: el valor se
-calculaba contra `monthStartNet`, una semilla antigua que no garantizaba ser una foto del día 1 y
-podía presentar como ganancia un salto inexistente. El patrimonio total y su histórico no cambian.
+La causa estaba en que `isPaidIn` decidía el estado únicamente por el día planificado. Si el banco
+ya había confirmado un recibo y después se movía del día 20 al 28, la conciliación seguía
+reconociendo el movimiento real, pero el motor lo volvía a clasificar como pendiente hasta el 28.
+El saldo real y la previsión nueva convivían entonces como si fueran dos ocurrencias.
 
-Cada presupuesto pasa a conservar una instantánea en `budgetByMonth`. La racha solo juzga meses
-cerrados que tengan esa instantánea, exige continuidad y usa la misma verdad financiera que la
-tarjeta mensual: bancos de gasto diario, categorías no neutras, posibles duplicados fuera del
-cálculo, modo bruto/neto y reservas. Un recibo de otra cuenta ya no puede romperla. El cálculo
-agrega el histórico una sola vez, localiza cada mes por búsqueda binaria y se memoriza en `App`.
+`reconcileBank` conserva ahora la identidad de los fijos confirmados. Al cambiar el día desde la
+ficha, se guarda en el propio fijo únicamente el mes conciliado (`paidYm`); esa marca viaja con el
+estado, mientras que `bankTx` no se sincroniza. `isPaidIn` la consulta antes del calendario. Si
+después cambia el importe o el banco, se reconcilia otra vez el fijo ya editado: una corrección de
+importe que aún coincide conserva el pago; un cargo distinto pierde la marca. No se migra, duplica ni
+recategoriza ningún movimiento histórico.
 
-Se retira la pantalla huérfana de Logros y sus estilos, pero se mantienen las insignias internas y
-sus avisos. El estado antiguo `streak` deja de decidir la cifra visible y no se migra ni reescribe el
-histórico. Unitarios de equivalencia y E2E abren Inicio con meses reales, presupuesto vacío,
-cuentas separadas y movimiento reducido.
+La beta `4.26.46.1` evitó el segundo descuento, pero el rechazo móvil descubrió una segunda mitad:
+un cargo real del día 24 editado para cobrarse los próximos meses el 27 aparecía como «pagado el 27» cuando aún
+era 24. `paidAt` devuelve ahora el día del movimiento casado y el fijo persiste `paidDay` junto
+al mes. El calendario nuevo sigue siendo editable y se aplica a las próximas ocurrencias; la fila
+ya pagada enseña la fecha real del banco. Para reparar también el estado creado por la primera beta,
+Plan recupera ese día de `bankTx` cuando encuentra un `paidYm` antiguo sin `paidDay`, sin mutar el
+feed. Si el banco adelantó el cobro al mes anterior, la fila conserva el día previsto del mes
+actual en vez de presentar una fecha con el mes equivocado; esa cola se clona antes de marcar
+coincidencias para no tocar `bankTx`.
 
-## [4.25.19] - 2026-09-24
-### Ficha completa y navegación gestual de inversiones aprobadas
+El unitario `fixed-day-reconcile` reproduce Iberdrola 120 € cobrada el 24 en Sabadell, el cambio de
+previsión 24 → 27 y otro
+banco con gasto propio. Exige una sola ocurrencia pagada, cero pendientes duplicados, los dos
+saldos invariantes, el histórico idéntico, fecha real 24 visible, previsión 27 guardada y
+persistencia sin `bankTx`. También cubre la reparación en lectura de la beta rechazada. El E2E hace
+la edición en Plan y comprueba el DOM y el estado guardado. El comportamiento sin movimiento
+bancario no cambia: un recibo futuro sigue pendiente.
 
-Se reconstruye sobre producción únicamente la experiencia de Inversiones aprobada en beta
-4.26.16, sin arrastrar el resto de la rama 4.26. La antigua hoja de Herramientas se sustituye
-por una pantalla hija de Cartera que entra desde la derecha tras dos frames, mantiene el cálculo
-contable existente y reúne total, coste, ganancia, brókers, posiciones, alta manual, moneda y
-actualización a demanda. La proyección y la actualización automática conservan puerta propia en
-Ajustes → Dinero, para no dejar funciones huérfanas al retirar la hoja anterior.
+Tras aprobar inicialmente `4.26.46.2`, la comprobación inversa antes de producción destapó otro
+caso: el día 25, un recibo previsto para el 24 pero aún ausente del banco se marcaba pagado solo
+porque `isPaidIn` usaba `día <= hoy`; editarlo al 25 perpetuaba ese falso descuento. La edición
+guarda ahora en `wait` el año-mes cuando no existe coincidencia bancaria, el día corregido ya ha
+llegado **y el feed recién sincronizado de esa cuenta cubre esa fecha**. Mientras esa marca corresponda
+al mes, el calendario no puede confirmar el pago; una coincidencia real de `reconcileBank` sí
+prevalece inmediatamente. Una edición posterior con el cargo ya presente convierte esa espera en
+`paidYm` + `paidDay`, sin subir ni mutar `bankTx`. Sin feed suficiente se conserva la regla
+anterior de calendario: la app no inventa una ausencia que el banco no puede demostrar.
 
-El gesto horizontal se reclama desde cualquier zona libre porque Android intercepta el borde:
-decide el eje con `gestureAxis`, deja el scroll vertical al navegador, excluye inputs y selectores,
-sigue el dedo, vuelve al origen si no supera distancia/velocidad y cierra hacia la derecha cuando
-sí confirma. `touchcancel` nunca cierra. Atrás, Escape y el botón comparten una salida de 430 ms;
-el gesto confirmado usa 240 ms, y Reducir animaciones elimina espera, contador y spinner.
+La revisión externa bloqueó un intento intermedio que reanclaba `accounts[].value`: no existe una
+marca temporal que permita saber cuándo se fijó esa base, así que podía sobrescribir un saldo
+manual válido. El arreglo final no escribe ninguna cuenta. Al retirar el falso pago, el neto pasa
+de −120 € a 0 y el saldo visible recupera esos 120 € precisamente porque el dinero no ha salido;
+el saldo base, el otro banco y el histórico permanecen byte a byte iguales.
 
-El portal bloquea el fondo con un contador compartido, devuelve el foco a la puerta de Cartera y
-encierra el foco dentro del diálogo. Los avisos de confirmación conservan su propio foco y Escape,
-sin cerrar la pantalla que queda debajo. Veintiún E2E cubren render financiero, coste desconocido,
-alta y edición manual, fallos/caducidad, ajustes conservados, accesibilidad, CPU x6 y gesto táctil
-real desde centro, corto, vertical y cancelado. No cambia backend, Open Banking, datos ni APK.
+El unitario añade el escenario exacto 24 → 25 con un feed de Sabadell que cubre el día pero sin el
+cargo: una ocurrencia pendiente, cero pagadas, neto bancario 0, 120 € que vuelven a verse y todas
+las cuentas y el histórico byte a byte iguales. También inyecta después el cargo real del 25 y
+exige una sola ocurrencia pagada y un único descuento de 120 €. Un segundo caso sin feed conserva
+el funcionamiento solo-calendario. El E2E repite la edición desde la ficha y comprueba el DOM, el
+neto financiero y que no se reescriba ningún saldo guardado.
 
-## [4.25.18] - 2026-09-24
-### Actualización completa de inversiones aprobada
+La revisión externa señaló que el memo de Plan no observaba `bankTx` ni `accounts`: tras una
+sincronización podía conservar la clasificación anterior hasta otro cambio. Ambas referencias
+forman ahora parte de sus dependencias. Una fecha bancaria que no se pueda interpretar deja
+`paidAt` vacío en vez de fabricar el día −1. El bundle sigue dentro del mismo presupuesto.
 
-Se reconstruye sobre producción únicamente la tanda aprobada 4.26.15. El botón de Herramientas
-de inversión deja de limitarse a las cotizaciones: primero consulta a demanda Trade Republic y
-MyInvestor, sin llamar a Open Banking, y después actualiza los precios de las posiciones con
-ticker. El sincronizado automático y sus límites no cambian.
+El rechazo móvil de `4.26.46.4` reprodujo Pepegas a la 01:06: el cargo real había entrado el 25,
+pero el `bankTx` local todavía solo contenía movimientos antiguos. `covered` demostraba que el
+extracto empezaba antes del día previsto, no que estuviera actualizado después del cobro, y
+`patchFixedById` lo interpretaba como ausencia: marcaba `wait`, devolvía el recibo a pendiente y el
+neto visible de Sabadell subía por un dinero que sí había salido.
 
-El resultado se compone en un solo aviso. Una sesión caducada o un bróker sin respuesta se
-conservan junto al éxito de precios, en vez de quedar tapados por el último toast. Sin conexión
-ni ticker se explica que no hay ningún bróker conectado; un fondo de MyInvestor sin ticker sí
-puede actualizarse desde su bróker. Siete E2E abren la interfaz real y cubren render, éxito,
-caducidad, fallo parcial y ausencia de conexión.
+La ausencia bancaria exige ahora además que `lastBankSync` sea del mismo día **local** y tenga
+menos de 30 minutos. Una coincidencia real sigue ganando aunque el feed sea antiguo; un feed
+obsoleto ya no puede negar un cobro de hoy. No se añade ninguna sincronización automática ni se
+reescribe `accounts[].value`: con datos viejos se conserva la clasificación de calendario y solo
+cambia la fecha prevista. El caso inverso continúa disponible tras sincronizar el banco justo
+antes de editar: si el cargo sigue ausente, queda pendiente hasta que llegue el movimiento.
+La frescura reduce falsos negativos, pero no convierte la API bancaria en confirmación instantánea:
+una domiciliación recién cargada puede tardar en aparecer o llegar en un extracto truncado. Este
+cambio no interpreta esa ausencia como una certeza fuera de la ventana reciente; propagar al
+estado la marca `truncated` por banco queda inventariado como refuerzo separado.
 
-## [4.25.17] - 2026-09-24
-### Histórico de CaixaBank aprobado con datos reales
+El unitario fija el reloj a 25/09 01:06 y reproduce Pepegas 12,50 € cambiado 20 → 25 con la última
+sync a las 23:50: una ocurrencia pagada, cero pendientes, neto −12,50 €, saldos de Sabadell y
+Revolut invariantes, cuentas e histórico idénticos y ningún duplicado. El escenario sin cobro usa
+una sync de un minuto y continúa pendiente. El E2E ejecuta ambos caminos desde la ficha real.
 
-Se reconstruye sobre producción únicamente la tanda bancaria aprobada en beta 4.26.17. El caso
-real queda cerrado: CaixaBank sí entregó los cargos de agosto —incluido el importe cercano a
-100 €—, pero ya estaban en Gastos y por eso el importador no ofrecía filas nuevas.
+## [4.26.45] - 2026-09-24
+### Las cuotas conservan su enlace sin fingir que son una categoría de consumo
 
-Cuando un único banco devuelve movimientos y todos coinciden por identidad con gastos existentes,
-el importador enseña cuántas cuentas y filas compartió el banco y ofrece «Verlos en Gastos». Esa
-salida abre el histórico completo, no solo el mes actual, y aplica el filtro del banco para que un
-cargo de agosto resulte visible sin mezclar Sabadell u otras entidades.
+La marca interna `category:"deudas"` sigue intacta: excluye la cuota del gasto mensual porque ya
+la descuenta Plan, conserva `debtId`, filtra el histórico y no migra ninguna fila. El cambio es de
+presentación. La lista de Gastos muestra ahora el nombre de la deuda enlazada en vez del genérico
+«Deudas».
 
-La identidad del importador conserva cargos iguales que proceden de cuentas distintas del mismo
-banco mediante una hora interna estable que nunca se enseña. Dentro de una misma cuenta, las
-versiones pendiente y contabilizada del mismo cargo siguen colapsando en una sola fila y se
-prefiere la final con identificador. La primera fila conserva el sello histórico de mediodía para
-seguir coincidiendo con el sync diario y con móviles atrasados. No se migra ni modifica ningún
-movimiento existente, y no se despliega backend ni APK.
+El filtro retira `DEUDA_CAT` de la cuadrícula de categorías reales. Cada deuda conserva su filtro
+propio dentro de «Cuotas de tus deudas». El E2E comprueba nombre, explicación de doble cuenta
+evitada, ausencia de categoría duplicada y filtros.
 
-## [4.25.16] - 2026-09-24
-### Servidor preparado para la identidad exacta de los avisos
+## [4.26.44] - 2026-09-24
+### La ficha confirma el guardado antes de empezar a salir
 
-Se reconstruye sobre producción únicamente el servidor aprobado de la beta 4.26.43. La APK beta
-manda una identidad opaca del evento y `ingest_event_id`, protegido por índice único por usuario,
-permite responder al reintento exacto sin crear otra fila. Si Trade Republic y Google Wallet
-nombran la tarjeta TR, el importe coincide con margen de dos céntimos y los avisos caen dentro de
-dos horas, la segunda fila se retira antes de entrar en cifras y solo se confirma una vez.
+El paso rechazado de 4.26.32 cerraba la ficha en el mismo turno en que persistía el importe. El
+toast llegaba a existir, pero la salida ya había empezado y la confirmación no se podía leer. Al
+tocar Listo, la CTA queda ahora desactivada y muestra `✓ Guardado` durante 650 ms; después reutiliza
+el mismo cierre animado. El propio botón bloquea el segundo toque antes de escribir, de modo que
+solo se ejecutan una escritura y un temporizador.
 
-La comprobación posterior al INSERT cierra la carrera observada cuando los dos avisos llegan a la
-vez. Dos eventos de la misma fuente siguen siendo dos compras reales. La APK estable 46 / 4.20.4
-todavía no manda esa identidad: hasta publicar una APK con el `TrExpenseListener` nuevo, conserva
-el segundo candidato fuera de los totales para revisión en vez de borrarlo a ciegas. No hay
-migración histórica ni recategorización. Los unitarios cubren reintento exacto, fuentes cruzadas,
-otra tarjeta, compras iguales reales, carrera y fallo seguro.
+El botón expone la confirmación como región viva. El cierre comprueba además que la CTA original
+siga montada: cerrar enseguida y abrir otro recibo no permite que el temporizador viejo cierre la
+ficha nueva.
+
+El E2E reproduce dos clics en el mismo turno, exige que la confirmación permanezca visible antes de
+la salida, comprueba el desmontaje posterior y verifica el importe persistido. La tarjeta antigua
+de 4.26.32 se retira del panel: sus cuatro primeros puntos ya fueron aprobados y este reemplazo
+vuelve a ofrecer únicamente el quinto, que fue el rechazado.
+
+## [4.26.43] - 2026-09-24
+### El doble aviso Wallet/TR deja una sola fila, no una duda para revisar
+
+La 4.26.39 impedía que las dos señales sumaran, pero conservaba la segunda como `possibleDup` y
+trasladaba al usuario una decisión que aquí no existe: Google Wallet y Trade Republic están
+describiendo el mismo pago de la misma tarjeta. `ingest` ahora descarta en silencio la señal
+posterior cuando los orígenes son cruzados, Wallet nombra la tarjeta TR, el importe coincide y los
+avisos caen dentro de dos horas. Dos eventos de la misma puerta se conservan como compras reales.
+
+La fila nace fuera de las cifras y se vuelve a comparar después del INSERT para cerrar la carrera
+entre dos POST simultáneos. La más antigua se libera; la posterior se borra y responde `skipped`,
+así Android solo confirma una vez. Si leer, borrar o liberar falla, la fila permanece pendiente y
+fuera de las cifras. No hay migración ni limpieza del histórico existente. Las coincidencias de
+Open Banking conservan su flujo `possibleDup` y sus decisiones «Es el mismo» / «Son distintos».
+
+La retirada silenciosa se limita a eventos con `ingest_event_id`, que permite distinguir la puerta
+y conservar dos compras reales avisadas por la misma aplicación. Una APK antigua sin esa identidad
+mantiene el defecto conservador de 4.26.39: la segunda señal queda como `possibleDup`, fuera de las
+cifras, y recibe `skipped` para no enseñar otra confirmación. No se borra por importe/hora cuando
+faltan pruebas suficientes.
+
+Los unitarios ejecutan el handler real contra la BD en memoria: Consum/CONSUM CHARTER, carrera
+posterior al INSERT, alias con 35 minutos, dos compras iguales por TR, Wallet de otra tarjeta y
+fallos al liberar o retirar. Esta tanda no despliega `ingest`: Supabase es compartido y solo se
+activará al promocionar la tanda aprobada o con autorización expresa para lanzar el workflow.
+
+## [4.26.42] - 2026-09-24
+### Bizum pasa de categoría a forma de pago
+
+`bizum` se conserva en `CATEGORIES` únicamente para representar filas antiguas: no se migra ni se
+borra ninguna porque el nombre de la persona no permite saber si fue restaurante, salud u otra
+finalidad. El catálogo de alta/edición y las sugerencias locales o remotas usan ahora
+`EXPENSE_CATEGORIES`, que excluye Bizum. Una fila antigua lo sigue mostrando como selección actual
+hasta que el usuario la recategoriza.
+
+Apuntar separa la categoría de la forma de pago mediante Tarjeta / Bizum o transferencia y persiste
+`noCard` sin alterar la categoría elegida. La ficha de un gasto presenta ambas dimensiones por
+separado. Se retiró la palabra clave Bizum del espejo cliente/ingest y del vocabulario de
+`categorize`; la app ignora además respuestas antiguas del Edge que todavía propongan `bizum`.
+Este commit no despliega ninguna Edge Function: la beta web queda protegida aun con el backend
+anterior y cualquier despliegue del servidor seguirá necesitando autorización expresa.
+
+Los unitarios fijan la compatibilidad histórica y la exclusión de la IA. El E2E crea 47 € de Fisio,
+elige Bizum o transferencia y exige `{category:"salud", noCard:true}` en persistencia.
 
 ## [4.25.15] - 2026-09-24
-### Bizum aprobado como forma de pago, sin arrastrar el rediseño
+### Bizum aprobado y publicado sobre producción estable
 
-Se reconstruye sobre producción únicamente la tanda `bizum-forma-pago` aprobada en beta
-4.26.42. Bizum deja de ser una finalidad de gasto para los apuntes nuevos: Apuntar separa
-`noCard` de la categoría real y la ficha permite cambiar ambos datos por separado. El catálogo
-de altas y reclasificaciones excluye Bizum, mientras `CATEGORIES` lo conserva para leer, filtrar
-y corregir uno a uno los movimientos históricos; no hay migración ni recategorización masiva.
+Producción incorpora únicamente `bizum-forma-pago`, reconstruida sobre 4.25.14 sin arrastrar
+el rediseño ni tandas rechazadas. Bizum y transferencia se guardan como `noCard`; la categoría
+real continúa siendo Salud, Restaurantes o la que corresponda. Las filas históricas con
+`category:"bizum"` permanecen intactas hasta que se revisen una a una.
 
-Las palabras clave del cliente, el clasificador Edge y el catálogo permitido del LLM dejan de
-proponer Bizum. El cliente también neutraliza una respuesta `bizum` de una Edge antigua hasta
-que el backend se despliegue por separado. Esta promoción web incorpora el código fuente de la
-Edge, pero no la despliega ni activa servicios remotos.
-
-Los unitarios vigilan histórico, sugerencias y catálogo remoto. Dos E2E sobre la interfaz estable
-comprueban que un Fisio pagado por Bizum guarda Salud + `noCard`, y que un Bizum anterior no
-cambia solo pero puede pasar manualmente a Restaurantes.
+El cliente protege también frente a una respuesta `bizum` de una Edge anterior. El código fuente
+de `categorize` e `ingest_logic` queda alineado, pero esta promoción web no despliega ninguna
+Edge Function. Claude revisó el SHA final y los E2E de Apuntar pasaron 6/6.
 
 ## [4.25.14] - 2026-09-24
 ### Pregúntame aprobado, portado sobre la interfaz estable
 
-Se reconstruyen sobre producción las tandas aprobadas asistente-claro (4.26.27) y
-asistente-sin-teclado-inicial (4.26.40), sin incorporar las notificaciones 4.26.39,
-los gestos de Recibos 4.26.41 ni ninguna tanda rechazada. HelpHost ofrece primero
-guías locales: calcula únicamente con helpers financieros ya existentes, abre destinos
-del catálogo cerrado y no escribe movimientos, saldos ni sincronizaciones.
+Producción incorpora únicamente las tandas aprobadas `asistente-claro` (4.26.27) y
+`asistente-sin-teclado-inicial` (4.26.40), sin arrastrar notificaciones, gestos de
+Recibos ni tandas rechazadas. La guía local funciona sin conexión, usa los mismos
+cálculos que Plan y abre destinos cerrados sin escribir movimientos ni saldos.
 
-La hoja abre sin enfocar el campo, mantiene el compositor por encima del teclado y reduce
-el paso a paso a tres líneas cortas. Las rutas de efectivo distinguen añadir saldo de
-apuntar una compra; Metas, Deudas y Recibos aterrizan en el segmento real de Plan.
-
-El resumen de recibos replica también la regla estrenada en 4.25.13: una cuota de deuda sin
-día explícito sigue pendiente y conserva la fecha desconocida, en vez de usar el día 1 del
-motor histórico para darla por pagada. Un unitario cubre cuota y pago final sin día y el E2E
-comprueba que Pregúntame y Plan muestran tres pendientes y los mismos 180 €.
-
-La consulta remota permanece opcional y revocable: exige consentimiento, solo envía la
-pregunta y el idioma, filtra secretos y continúa con la guía local ante 404, 429, 503 o
-timeout. Se incorpora su Edge Function al repositorio, pero esta promoción web no la
-despliega ni activa el servicio de pago. Veintiún E2E recorren la ayuda sobre la base
-estable, además de los guardianes de privacidad, idiomas, sintaxis y presupuesto.
+La hoja abre sin teclado, mantiene la pregunta accesible al escribir y resume cada
+paso a paso en tres líneas. La ayuda remota permanece opcional: exige consentimiento,
+solo envía pregunta e idioma y no se ha desplegado ni activado en esta promoción web.
 
 ## [4.25.13] - 2026-09-24
 ### Mínimo de caja aprobado, portado sin arrastrar el rediseño
@@ -159,75 +209,663 @@ El E2E abre Apuntar, confirma el candado mientras la hoja está visible, la cier
 táctil real y comprueba que el nodo sigue montado durante la animación mientras el fondo ya está
 libre. Así se vigila la regresión concreta que no medían las pruebas de Presupuesto.
 
+## [4.26.41] - 2026-09-24
+### Atrás predictivo en las capas interiores de Recibos
+
+`BillsManagePush` solo activaba `useEdgePageClose` en el hub. Las listas de grupos y el simulador
+respondían al historial, pero no acompañaban el gesto nativo ni el arrastre horizontal. Ahora cada
+pantalla hija vive encima del hub en su propio scroller: al volver, se mueve únicamente la hija y
+queda visible el destino real debajo, sin desplazar Plan ni desmontar la pila antes de tiempo.
+
+La ficha de un recibo conserva el arrastre vertical de hoja y añade el mismo cierre lateral sobre
+su fondo completo. Inputs y selectores siguen excluidos del gesto; Atrás cierra una sola capa. Los
+E2E cubren progreso e invocación nativos, arrastre desde el centro, permanencia de la pantalla
+padre y las regresiones de renombrado, periodicidad y alta de cargos.
+
+## [4.26.40] - 2026-09-24
+### Pregúntame respeta el borde superior al aparecer el teclado
+
+Al reducirse `visualViewport`, la hoja restaba la altura del teclado y añadía el mismo margen
+inferior sin reservar `--safe-top`: en el caso real el borde acababa a unos 7,5 px y el título
+quedaba bajo la barra del móvil. Ahora la altura máxima descuenta también la zona segura y 8 px de
+aire. El navegador ya anima el teclado; retirar la segunda transición de altura/margen evita que la
+hoja persiga cada `resize` con retraso y rebote.
+
+El cuerpo del Asistente limita el desplazamiento al eje vertical, no encadena el rebote al fondo y
+oculta expresamente el indicador de scroll en Firefox/WebView. El E2E reproduce un teclado de 260 px
+y una zona segura de 36 px: exige título por debajo de 42 px, compositor visible y ausencia de barra
+y overscroll. La entrada/salida común de las hojas y el movimiento reducido no cambian.
+
+## [4.26.39] - 2026-09-24
+### Wallet y Trade Republic dejan una sola compra confirmada
+
+Dos POST simultáneos podían consultar antes de que ninguno terminara de insertar: si Wallet y
+Trade Republic daban nombres distintos al mismo pago, el índice exacto no resolvía la carrera.
+`ingest` crea cada candidata como pendiente, repite la comparación sobre las filas ya visibles y
+solo libera la más antigua. La posterior queda como `possibleDup`, fuera de totales y con decisión
+reversible; no se elimina ninguna fila por parecido. El cliente adopta también el origen confirmado
+si sincroniza durante esa ventana mínima.
+
+La búsqueda se limita a fuentes de notificación, para no confundir una compra con su movimiento de
+Open Banking. La telemetría financiera ya no conserva payloads bancarios, movimientos, comercio,
+importe, `access`, `code` ni `state`; los tests fijan esa frontera. `bank-sync`, `bank-callback` e
+`ingest` se desplegaron una a una, sin migraciones, en los Actions `35978144828`, `35978233778` y
+`35978304257` después del permiso expreso del dueño.
+
+## [4.26.38] - 2026-09-24
+### Las hojas liberan el fondo desde el primer fotograma de salida
+
+La reconstrucción selectiva de Presupuesto había dejado `mcSheetUnlock()` condicionado a
+`unlockOnClose`, una opción que solo pasaba `BudgetSheet`. Apuntar y el resto de hojas conservaban
+`sheet-open` y `body.overflow="hidden"` durante sus 200–300 ms de cierre, recuperando un tirón ya
+eliminado. `closeAnimated` libera ahora el candado que posee cualquier hoja al iniciar la salida;
+el contador compartido mantiene protegidas las hojas anidadas. El listener táctil permanece hasta
+el desmontaje para que un gesto no atraviese la hoja mientras aún se ve. Se retira la opción ya
+innecesaria.
+
+Un E2E táctil cierra Apuntar por arrastre y comprueba en el mismo instante que el nodo sigue montado
+mientras el fondo ya está libre. Los tres casos de Presupuesto y cierre común pasan, incluido
+movimiento reducido.
+
+## [4.26.37] - 2026-09-24
+### Plan recupera el mínimo de caja real del mes
+
+La integración efectiva de beta había conservado en la portada de Plan el valor de
+`projectedByBank`, es decir, el saldo final. Una nómina posterior podía dejar ese cierre positivo
+y ocultar un descubierto anterior, pese a que el punto 13 ya estaba corregido y revisado en otra
+rama. La portada vuelve a usar `planCoverState`: enseña el mínimo diario de `minByBank`, su día
+cuando se conoce y descuenta las cuotas pendientes sin fecha sin inventarles un día. Si no existe
+una cuenta o un mínimo fiable, enseña «—».
+
+El E2E siembra 500 €, un cargo de 700 € el día 15 y una nómina de 2.000 € el 25: la portada debe
+mostrar −200 € el día 15, nunca los 1.800 € del cierre. Cuatro variantes adicionales comprueban
+que las devoluciones anteriores o posteriores al recibo producen el mismo mínimo en modo normal
+y sencillo.
+
+La revisión independiente detectó además que `planCoverState` ajustaba cualquier cargo sin fecha,
+aunque los fijos y puntuales ya entran en `minByBank` como evento del día 0. El ajuste queda
+limitado a `debt`/`balloon`, que son las únicas cuotas que el motor da por pagadas el día 1. Un
+unitario mixto fija 500 − 100 de luz − 50 de préstamo = 350, no 250.
+
+## [4.26.35] - 2026-09-24
+### El filtro de Gastos comparte el selector visual de categorías
+
+`ExpenseCategoryGrid` admite ahora selección única o múltiple y una etiqueta explícita, de modo
+que Gastos reutiliza las mismas fichas de icono y nombre que Apuntar y Modificar sin duplicar el
+componente. El filtro conserva su fila plegable, búsqueda, selección múltiple y borrado; las
+deudas dinámicas usan también fichas y mantienen su identificador `debt:*`. El cambio sustituye
+los chips rechazados; «Todas» conserva su ✓ cuando no hay filtro y cada ficha expone
+`aria-pressed`. Los E2E cubren el mismo DOM visual, dos categorías simultáneas, filtrado
+resultante, cuotas y ausencia de categorías fantasma.
+
+## [4.26.34] - 2026-09-24
+### Las hojas comparten un movimiento más pausado y continuo
+
+La entrada común de `.v4-sheet` pasa de 300 a 420 ms y sustituye la curva con aceleración brusca
+por la misma progresión estable que ya usaba Presupuesto. La salida que dispara `useSheetSwipe`
+pasa de 200 a 300 ms y el rebote de un arrastre cancelado de 220 a 280 ms, de modo que el contenido
+acompaña al gesto en lugar de desaparecer de golpe. Esto alcanza, entre otras, Pregúntame, Apuntar
+y las fichas de Gastos sin introducir animaciones nuevas ni tocar su lógica. La media de movimiento
+reducido sigue anulando la transición y desmontando la hoja de inmediato. Los E2E comprueban el
+ritmo computado en esas tres superficies y conservan el guardián específico de Presupuesto.
+
+## [4.26.33] - 2026-09-24
+### El Asistente abre para leer, no para escribir a ciegas
+
+`HelpAssistant` deja de enfocar el `textarea` al montar: en Android ese foco levantaba el teclado
+antes de que se pudiera leer la introducción y reducía la hoja a casi toda la pantalla ocupada. El
+foco inicial queda en el botón Volver, dentro del mismo diálogo y de su trampa accesible. Tocar la
+pregunta conserva el foco y el teclado normales; el ajuste por `visualViewport`, la restauración al
+cerrar y el movimiento reducido no cambian. El E2E protege ambos estados en la misma apertura.
+
+## [4.26.32] - 2026-09-24
+### Inversiones y Recibos comparten el gesto Atrás nativo y una salida segura
+
+`useEdgePageClose` unifica las dos pantallas hijas: el arrastre web puede nacer en cualquier zona
+no interactiva y el callback predictivo de Android 14+ entrega `start/progress/cancel/invoke` para
+que la página acompañe al dedo desde el borde. El callback solo se registra mientras una hija lo
+necesita, usa prioridad `OVERLAY` sobre el callback general de AndroidX y se limpia al desmontar o
+recargar; si la WebView no confirma que hay un receptor, cede Atrás a Capacitor. Si un diálogo de
+confirmación cubre la página, conserva el primer Atrás y el fondo no se mueve. El segundo gesto
+también borra la transición inline del rebote anterior: sin
+eso, cancelar y volver a tirar movía el dedo pero dejaba quieta la pantalla durante 240 ms. Es un
+cambio nativo y requiere APK 48 / 4.26.32; una OTA no puede añadir el callback API 34. El asset
+firmado se publicó en `v4.26.32` y `public/apk.json` apunta a ese fichero real.
+
+Gestionar reemplaza los logos repetidos de banco por pictogramas locales según el tipo de recibo;
+no añade librerías, red ni cambia la cuenta asociada, que continúa en el subtítulo. Las hojas de
+detalle y alta usan el mismo compositor vertical del resto de la app. `Listo` guarda, confirma y
+cierra; el alta se protege mientras termina la salida para que dos toques rápidos no creen dos ids.
+Los E2E cubren progreso, cancelación, reintento, gesto desde el centro, movimiento reducido, iconos,
+persistencia y doble toque. Java compila contra la API real de Capacitor.
+
+El panel de revisión ya no puede reabrirse solo después de cerrarlo: algunos WebView entregaban un
+último `scroll` durante el desmontaje y volvían a sembrar la marca de retorno que el cierre acababa
+de borrar. El cierre deja ahora una señal terminal antes de desmontar. También se estabiliza el
+guardián del arco inferior comprobando cada estado confirmado; el arco limpio sigue midiéndose por
+fotogramas, pero una ráfaga ya no depende de que `requestAnimationFrame` capture un frame efímero.
+
+## [4.26.31] - 2026-09-23
+### Gestionar repite su lectura visual sin alterar las cifras
+
+`BillsManagePush` usa la puerta opcional de repetición de `useCountUp`: al cerrar devuelve el
+contador a cero y al volver a entrar reproduce la cifra, sin cambiar Inicio ni Cartera. La barra
+animada comparte el patrón de Inversiones, pero solo reparte servicios y cuotas porque son los dos
+componentes de `billsHeroTotal`; ingresos y cargos puntuales no se mezclan en esa cifra. Los importes
+de grupo reducen tipografía en pantallas estrechas y una regla específica evita el subrayado de las
+temáticas. El E2E abre dos veces, verifica que el nodo de la ola se vuelve a montar y comprueba un
+importe de siete cifras a 360 px sin recorte ni cambio de cantidades.
+
+## [4.26.30] - 2026-09-23
+### Gastos agrupa el filtro largo y conserva el DOM durante las transiciones
+
+El filtro dejaba a la vista todas las categorías antes de llegar a bancos y tipo de movimiento.
+Ahora ese bloque nace plegado, informa cuántas selecciones hay y mantiene buscador, categorías y
+deudas dentro de un cuerpo animable. El desglose mensual sustituye `hidden` por una rejilla de
+altura intrínseca: las filas permanecen montadas durante los 340 ms y los importes no se recalculan
+al plegar. La ficha de gasto añade `Listo`, guarda antes de iniciar el cierre y conserva el nodo
+hasta acabar la transición; movimiento reducido evita esperas invisibles. Los E2E verifican estado,
+persistencia, cifras, cierre y que la pantalla no quede bloqueada.
+
+## [4.26.29] - 2026-09-23
+### El gesto inferior se reclama antes y la barra se apaga en la WebView
+
+El rechazo real de 4.26.24.1 separó dos fallos. En el fondo, esperar siempre más de 60 px antes de
+reclamar el eje horizontal daba tiempo a Android a cancelar el toque; ahora un movimiento casi
+recto se reclama desde 36 px, mientras una deriva de 10 px conserva el umbral anterior y sigue
+acabando en el rebote vertical. El E2E comprueba ambos recorridos y que el primero funciona con un
+solo intento.
+
+La barra que sobrevivía a `scrollbar-width:none` y `::-webkit-scrollbar` era el indicador de la
+WebView. `MainActivity`, después de crear el Bridge, desactiva solo sus indicadores vertical y
+horizontal; no toca el overflow, la inercia ni el rubber-band. El guardián Android exige ambas
+llamadas y Java compila contra la WebView real de Capacitor. Es un cambio nativo: APK 47 / 4.26.29.
+
+## [4.26.28] - 2026-09-23
+### Inicio deja de convertir una base incompleta en una ganancia
+
+La cifra verde bajo patrimonio comparaba el total actual con `monthStartNet`, un dato que no tenía
+una foto fiable y homogénea del día uno. Podía presentar aportaciones o cambios de saldo como una
+ganancia del mes. Se retira tanto de Inicio como del informe compartido: sin base comprobable no se
+muestra una cifra.
+
+La racha deja de reutilizar el presupuesto actual para juzgar meses anteriores. Desde ahora guarda
+el presupuesto de cada mes y solo cuenta meses cerrados, consecutivos y con dato propio, usando la
+misma regla financiera que Inicio y Gastos para bancos diarios, reservas, ingresos, neutras y
+posibles repetidos. Cambiar el presupuesto actual no reescribe el pasado. Se retiran la llama y la
+pantalla de Logros que había quedado sin entrada; la racha se calcula una sola vez por cambio.
+`dash-metricas.test.mjs` contrasta la regla con 40 estados deterministas y los E2E protegen el DOM.
+
+## [4.26.27] - 2026-09-23
+### El paso a paso deja de ser otro bloque de texto
+
+El veredicto real de 4.26.24.1 mostró dos fallos juntos: las guías ampliadas seguían siendo largas
+y los separadores `\\n` podían llegar pintados como `/n`. Las siete guías se reducen a tres acciones
+concretas en castellano, inglés y catalán, y se renderizan como una lista numerada real.
+
+`helpStepLines` normaliza también un pack de idioma cacheado que aún traiga cualquiera de los dos
+separadores literales. Los unitarios exigen 21 guías con exactamente tres pasos cortos, y el E2E
+abre la ruta rechazada, cuenta tres filas y comprueba que no aparece ningún `/n`. Sin cambios en
+las decisiones del asistente, el consentimiento remoto ni las acciones de dinero.
+
+## [4.26.26] - 2026-09-23
+### El editor de presupuesto tiene un ritmo propio
+
+La hoja del presupuesto mensual entra en 420 ms, reduce su cifra de 52 px a un máximo de 42 px y
+conserva el nodo durante los 320 ms de salida al guardar, tocar fuera, pulsar Atrás o arrastrar
+hacia abajo. `useSheetSwipe` acepta duraciones opcionales sobre la implementación ya integrada:
+mantiene un único `closeAnimated`, el candado con contador para hojas anidadas y los valores de
+200/220 ms del resto de fichas.
+
+Con movimiento reducido la salida es inmediata. El presupuesto se guarda antes de empezar el
+cierre y el desbloqueo anticipado de esta hoja no descuenta dos veces el candado al desmontar.
+`presupuesto-fluido.spec.mjs` entra desde la tarjeta real de Inicio, mide animación y tipografía,
+cambia el importe, comprueba la persistencia y protege la salida sin espera. Sin cambios de datos,
+backend, Android ni APK nueva.
+
+## [4.26.25] - 2026-09-23
+### Ahorro mensual vuelve a Metas sin crear movimientos
+
+`state.aportaciones` seguía alimentando las fechas estimadas de las metas y la proyección de
+Inversiones, pero el rediseño había dejado esa planificación sin puerta visible. Plan → Metas
+incorpora una tarjeta compacta con total, desglose y editor de concepto, importe y banco.
+
+El editor trabaja en borrador: Guardar sustituye `aportaciones` una sola vez y Cancelar descarta
+altas, bajas y cambios. No crea gastos, ingresos, traspasos ni movimientos bancarios. El parser
+distingue miles y decimales del idioma para que «1.000» y «1.200,50» no se conviertan en 1 y 1,2.
+El E2E cubre guardado, persistencia, cancelación, integridad de movimientos y móvil estrecho.
+
+## [4.26.24] - 2026-09-23
+### El carrusel vuelve a responder en el fondo sin romper la ola nativa
+
+La guarda del borde inferior rechazaba cualquier eje horizontal para proteger el rebote de Android.
+Eso evitaba una regresión anterior, pero también obligaba a subir contenido antes de poder cambiar
+de pestaña. En el fondo se conserva la prioridad del scroll para gestos verticales y diagonales, y
+solo se entrega al carrusel un horizontal deliberado de más de 60 px con deriva vertical mínima.
+
+Las superficies mantienen su `overflow` y el desplazamiento táctil, pero ocultan el indicador con
+las propiedades nativas de Firefox, motores antiguos y WebKit. El E2E baja hasta el fondo real,
+comprueba tanto el cambio de pestaña como las diagonales de rebote y abre Ajustes para verificar que
+la barra lateral no se dibuja. Sin cambios de datos, backend, Android ni APK nueva.
+
+## [4.26.23] - 2026-09-23
+### «Pregúntame» prioriza una respuesta breve y una acción directa (feedback 18/9)
+
+La hoja del asistente separa ahora la conversación del compositor fijo: al aparecer el teclado,
+`visualViewport` eleva la hoja y mantiene visibles tanto la pregunta como el botón. La respuesta
+local empieza en una frase normal, con una acción secundaria compacta; el detalle sigue detrás de
+«Paso a paso» y no ocupa la pantalla por defecto. El cierre por botón, fondo, Escape o Atrás pasa
+por la misma animación antes de desmontar.
+
+Las preguntas sobre efectivo distinguen intención: añadir o comprobar saldo abre Cartera →
+Cuentas; comprar, gastar, retirar o apuntar abre Apuntar en efectivo. La detección cubre castellano,
+inglés y catalán y evita confundir «compruebo» con «compro». La ruta se conserva también cuando
+OpenAI propone la guía de efectivo: el servicio solo elige una guía local y nunca recibe saldos ni
+movimientos.
+
+El permiso remoto se explica como ayuda opcional para dudas difíciles. Cada pregunta nueva reinicia
+su intento: primero aparece «Probar con más ayuda» y «Probar otra vez» solo después de un fallo de
+esa misma consulta. Unitarios y E2E cubren rutas, privacidad, 404/429/503/timeout, teclado móvil,
+cierre animado y los tres idiomas. Sin cambios de datos, backend, Android ni APK nueva.
+
+## [4.26.17] - 2026-09-23
+### Importar histórico conserva movimientos iguales de cuentas distintas (feedback 18/9, punto 19a)
+
+La beta 4.26.17.1 se rechazó porque al consultar solo CaixaBank no apareció ninguna fila. La
+telemetría cerró la ambigüedad: el enlace activo compartió **una cuenta**, el proveedor entregó
+dos movimientos para tres meses y ambos se descartaron correctamente porque sus `ext_id` ya
+estaban guardados (`skippedExt=2`, el resto de descartes a cero). 4.26.17.2 explica ahora esos
+recuentos en pantalla y avisa de que, si falta otra cuenta, hay que reconectar el banco y
+seleccionarla; no resucita duplicados para aparentar que llegó histórico.
+
+El vídeo con audio del 23/9 rechazó también 4.26.17.2: en la app nativa de CaixaBank se veían dos
+movimientos del 6 de agosto, mientras Aely terminaba en una pantalla sin filas. La lectura mínima
+de nube confirmó que ambos ya estaban guardados con `source=ob:caixabank` y que CaixaBank estaba
+configurado como banco diario. El fallo visible era de navegación: Gastos abre en «Este mes»
+(septiembre), y el importador retiraba los `ext_id` ya existentes antes del preview sin ofrecer
+una ruta para encontrarlos. Cuando todos los movimientos entregados ya existen, aparece ahora
+«Verlos en Gastos»: cierra Ajustes, abre el periodo completo y filtra por ese banco. El E2E
+reproduce el movimiento de agosto y comprueba que una fila de otro banco no queda visible.
+
+La revisión posterior encontró además que una misma cuenta podía ofrecer el pendiente sin id y el
+contabilizado con id como dos candidatos. El aplanado agrupa ahora por banco+día+importe con
+signo+comercio y por cuenta, conserva una sola versión por cuenta —prefiriendo BOOK/POST con id— y
+solo da otra ranura remota a una cuenta distinta. Los fallbacks `Ingreso`/`Compra` son estables en
+cualquier idioma para que dos móviles no creen identidades distintas.
+
+`histFlattenHistoryLinks` incorpora la cuenta (`uid`, con `iban` o índice solo como respaldo) a la
+identidad del candidato. Dos cargos con el mismo banco, día, importe y comercio dejan de comerse
+entre sí si proceden de cuentas distintas; una repetición de la misma cuenta conserva la misma
+identidad. El identificador de cuenta solo se usa en memoria y no se guarda ni se muestra.
+
+La tabla remota aún deduplica por `user_id + fecha + importe + comercio`. Para que admita las dos
+filas sin retirar su red de seguridad, la primera conserva exactamente el antiguo mediodía local y
+solo una segunda cuenta que chocaría recibe una hora sintética estable dentro del mismo día. Así un
+móvil con estado atrasado sigue protegido ante una reimportación normal.
+
+La sincronización diaria (`flattenBankTx`/`importObExpenses`) no cambia en esta tanda: dos cargos
+iguales de cuentas distintas todavía pueden chocar allí y quedan apuntados como punto 19b. Tampoco
+se despliega `bank-sync` ni se afirma que CaixaBank entregue un periodo concreto. Unitarios y E2E
+cubren dos cuentas Caixa, pendiente+contabilizado, los recuentos del cero real y la terna histórica
+intacta para una sola cuenta. Sin migración, backend, Android ni APK nueva.
+
+## [4.26.16] - 2026-09-23
+### Inversiones entra como pantalla hija y vuelve con gesto de borde (feedback 18/9, punto 18)
+
+`InvestmentsPush` ya no se monta directamente en su posición final: parte fuera del borde derecho
+y entra con la transición lateral de las pantallas hijas. El botón, Escape y Atrás recorren la
+misma salida antes de desmontar, mantienen el candado compartido y devuelven el foco a «Ver todas».
+
+El rechazo de la beta 4.26.16.1 demostró que limitar el inicio a los primeros 32 px no funciona en
+el móvil: Android se queda ese borde antes de que la WebView reciba el dedo. El listener acepta
+ahora el gesto desde cualquier punto de la pantalla. El eje vertical se abandona al scroll nativo;
+un recorrido corto o `touchcancel` vuelve a su
+sitio y solo un cuarto de pantalla —o un gesto rápido inequívoco— cierra. El E2E comprueba entrada,
+seguimiento desde el centro, scroll vertical, cancelación, cierre y foco. Se elimina además el diccionario castellano `gb_*` que ya
+duplicaba `LANG.es/en/ca`: ahora una clave ausente vuelve a fallar en `i18n-keys` en vez de quedar
+tapada. Sin cambios de datos, backend, Android ni APK nueva.
+
+## [4.26.15] - 2026-09-23
+### «Actualizar inversiones» sincroniza brókers y precios sin ocultar fallos (feedback 18/9, punto 16)
+
+El botón de la pantalla de Inversiones ejecuta dos fases solo a demanda: primero `runBrokerSync`
+para Trade Republic/MyInvestor y después `fetchPrices(true)` para las cotizaciones. No llama a Open
+Banking ni reintroduce sincronización automática al abrir. `runBrokerSync` devuelve ahora un
+resultado estructurado de ocupación/intentos junto a los avisos recogidos, y la pantalla conserva esos
+avisos hasta componer un único resultado con el de precios. Así una sesión caducada
+o una respuesta blanda no queda tapada por un «Precios actualizados» posterior.
+La ruta específica de Inversiones reconoce también MyInvestor si ya llega con `status="expired"`;
+los avisos blandos nuevos de MyInvestor
+quedan acotados a este botón y no cambian el contrato del sincronizador global.
+
+Si no hay ticker, la fase de bróker sigue disponible; si tampoco existe una conexión real, se dice
+sin fingir una consulta. Tres regresiones E2E cubren el refresco MyInvestor sin ticker, el resultado
+parcial con consentimiento caducado y el caso sin bróker conectado. Sin cambios de backend,
+Android ni APK nueva; el punto 17 queda fuera de esta tanda.
+
+## [4.26.14] - 2026-09-23
+### Beneficio en euros y porcentaje antes de «Ver todas» (feedback 18/9, punto 15)
+
+Las posiciones del resumen desplegable de Cartera enseñan ahora la ganancia o pérdida absoluta
+junto a su porcentaje. Ambos valores usan `invValueEur` e `invCostEur`, de modo que respetan
+`costEur` y la conversión de divisa en vez de restar importes nativos incompatibles. Si el coste o
+el valor actual no se conocen, la rentabilidad continúa oculta; los redondeos próximos a cero
+evitan signos engañosos.
+
+`cartera-inversiones.spec.mjs` abre el bróker desde la portada, antes de «Ver todas», comprueba
+ganancia y pérdida en € + %, y vigila que una posición sin coste o sin valor no muestre una
+rentabilidad inventada. Sin cambios de sincronización, backend, Android ni APK nueva; el punto 16
+queda fuera de esta tanda.
+
+## [4.26.13] - 2026-09-23
+### Candados fuera de la interfaz, protecciones intactas (feedback 18/9, punto 14)
+
+Se retiran los glifos `🔒`, `🔓` y `🔐` de textos, fichas y Ajustes, incluidos los metadatos
+bloqueados de la ficha v4.1. No se toca ninguna decisión `locked`, la biometría, `LockScreen`, los
+avisos de acceso restringido ni la imposibilidad de editar el saldo que trae un banco. Al quitar el
+emoji de la fila de huella también se elimina su recorte de la primera palabra, que de otro modo se
+habría comido «Activar» o «Desactivar».
+
+`tests/no-lock-icons.test.mjs` vigila toda la fuente y el texto de huella. El E2E
+`sin-candados.spec.mjs` abre Tu cuenta y Privacidad; `cartera-ficha-cuenta` y `listas-render`
+comprueban además que las cuentas conectadas y la reconexión siguen protegidas sin icono. Sin
+cambios nativos ni APK nueva. Es una tanda independiente del ajuste de Novedades 4.26.12.
+
+## [4.26.12] - 2026-09-23
+### Novedades refleja el bundle que ejecutaba el móvil, no solo el diff de producción
+
+Pages y el OTA estable siguen sirviendo 4.25.7, cuyo diff sobre `d65986e8` solo contiene los temas
+y sus notas. El móvil del dueño conservó `_mcChannel=beta` después de publicar producción, porque
+el canal se guarda localmente y una promoción no lo desactiva. Por eso ejecutaba 4.26.10.1 con las
+funciones acumuladas de 4.26.0–4.26.9, aunque la entrada más reciente de Novedades solo enumeraba
+la apariencia. La 4.26.12 reúne en es/en/ca las fichas renovadas, Deshacer, Recibos, Pregúntame,
+Plan e Inversiones que el bundle beta sí contiene. No cambia lógica, backend, Android ni APK, y no
+atribuye esas funciones a la producción estable.
+
+El Action `35784943994` terminó correctamente y publicó 4.26.11.1 en la release `beta`; esta tanda
+de texto parte de ese commit y sigue sin tocar producción.
+
+## [4.26.11] - 2026-09-22
+### Ajustes sigue al dedo desde el primer fotograma (feedback 18/9, punto 22)
+
+La guarda del eje horizontal tarda unos 36 px en reclamar el gesto. El carrusel de pestañas ya
+restaba `ancla` al pintar, pero el cajón de Ajustes seguía usando el desplazamiento crudo y aparecía
+de golpe al cruzar la guarda. Solo cambia lo que se pinta: la decisión de abrir/cerrar al soltar
+mantiene el delta original para no endurecer el gesto. La prueba CDP de `swipe-pestanas.spec.mjs`
+mide el primer fotograma (<12 px) y confirma que el cajón termina abriéndose; los ocho gestos del
+spec pasan sobre `main` más este arreglo y sobre esta beta. Sin cambios nativos ni APK nueva.
+Es una tanda distinta de los temas de la 4.26.10 y puede recibir un veredicto independiente.
+Al estar ya aprobados y publicados en producción 4.25.7, sus cinco pasos dejan de aparecer en el
+panel beta, pero sus notas históricas permanecen en Novedades.
+
+## [4.26.10] - 2026-09-22
+### Apariencia: Cyberpunk, Otoño y Primavera (feedback 18/9, punto 20)
+
+Tanda separada a petición del dueño, sobre la beta 4.26.9 y sin el resto de la ronda del 18/9.
+El dueño ya probó la beta 4.26.9.1 y entregó su veredicto en 22 puntos. Las nueve checklists
+anteriores de la 4.26.0–4.26.9 se vacían (`tandas:[]`) para no obligarle a repetir 28 pasos, varios
+solapados y uno ya contrario a la portada actual de Plan. Sus notas para la familia siguen intactas.
+Vaciar el panel antiguo **no significa aprobar ni promocionar** esas funciones: cada corrección
+volverá con su tanda y sus pasos concretos.
+
+**Cyberpunk** es un tema de color propio (`html[data-theme="cyber"]`), no una temática: define todas
+las variables que definen Verde/Oscuro/Claro/Azul, así que ninguna cae al valor por defecto. El
+dinero conserva su semántica: `--mint` sigue siendo verde (positivo) y `--coral` rojo-rosa
+(negativo), en versión neón. Los acentos nuevos van en `--cyber-*` y solo decoran. Contraste medido
+sobre `--surface`: texto 16,8, muted 8,9, mint 13,2 y coral 5,9. El movimiento (parpadeo de los
+títulos una vez al montarse, anillo del + y corriente de la barra) usa solo `opacity`/`transform` y
+se apaga con «Reducir animaciones» y con `prefers-reduced-motion`. El informe PNG del mes tiene su
+paleta. La persistencia no necesita lista blanca: el script del `<head>` y `applyTheme` aceptan
+cualquier id.
+
+**Otoño y Primavera** entran en `SEASONS`, `SEASON_AMB` y en `--season-tinte`/`--season-glow-top`, con
+la misma intensidad que las demás. Otoño va en ámbar/óxido para no confundirse con Halloween, y
+Primavera en lila/brote para no confundirse con Pascua.
+
+Sin cambios nativos: no hace falta APK. `apariencia-temas.spec.mjs` va en CROSSCUTTING, porque es
+CSS global de `shell.html` y selección persistida en Ajustes. El salto del gesto y los retoques de
+importes/anillo se mantienen en tandas independientes: no se anuncian ni se prueban aquí.
+
+## [4.26.9] - 2026-09-17
+### Plan compacto y gestos de las fichas de gasto
+
+La vista normal de Plan recupera el segmented de una línea y la portada compacta de pendiente y
+liquidez que ya usaba la familia. El hub nuevo de «Gestionar recibos» se conserva completo, pero
+su scroller vuelve a ser físico, sin transform ni contención, para que Android pueda dibujar la
+respuesta nativa de borde. El modo sencillo conserva su resumen propio.
+
+`useSheetSwipe` fija al iniciar el gesto qué `.v4-sheet-body` posee el scroll; si el movimiento
+empieza desplazando contenido o hacia arriba, ya no se transfiere a la hoja al alcanzar el borde.
+`touchcancel` limpia el gesto sin cerrarlo y la salida se ejecuta en el compositor antes de
+guardar o repintar Gastos. Las hojas anidadas comparten un contador de candados: cerrar «Todas
+las categorías» no libera `overflow` ni `sheet-open` mientras la ficha padre siga abierta.
+
+La ficha de gasto queda premontada y el ranking histórico de categorías se calcula fuera del
+toque de apertura. `Apuntar` reutiliza la misma salida para CTA, backdrop y Atrás. Los E2E
+existentes cubren scroll interior, cancelación táctil, cierre anidado, bloqueo del fondo y las
+precondiciones CSS de la ola; la ola real sigue requiriendo Android. Con 1.000 gastos y CPU ×6,
+cinco ciclos dan mediana de 0 ms de tareas largas al abrir; el cierre da 0 ms en las cinco
+muestras y 16,8 ms de frame máximo mediano. La primera apertura en frío fue la única atípica
+(319 ms estrangulados), por lo que la validación final del tacto sigue siendo en el móvil real.
+
+La conciliación de liquidez acota a cero el pendiente legado negativo antes de compararlo con
+Plan: una devolución puntual antigua conserva su suma en el saldo proyectado y ya no se descuenta
+una segunda vez. Un E2E fija el caso de 800 € de saldo + 50 € de devolución = 850 €.
+
+## [4.26.8] - 2026-09-17
+### Rediseño v4.1 — Plan usa euros reales y recibos accesibles
+
+La portada de Plan calcula el anillo con importes pagados y pendientes, separa ingresos de cargos
+y elige como referencia la cuenta con menor margen después de sus propios recibos. Una deuda sin
+día sigue contando como pendiente sin inventar una fecha; un mes completamente pagado lo dice de
+forma explícita. Si falta el saldo, muestra un estado desconocido en vez de `0 €`, y un saldo
+negativo conocido nunca recibe tono favorable.
+
+«Gestionar recibos» conserva una única implementación y se abre tanto desde Plan como desde
+Ajustes → Dinero, incluso en arranque frío. Sus fichas y el alta por pasos son diálogos reales con
+nombre accesible, foco contenido y restaurado, escritura continua y cierre con Atrás o Escape. El
+modo simple mantiene el resumen esencial sin duplicar puertas de entrada. Las pruebas cubren
+varias cuentas, importes pagados/pendientes, fechas ausentes, saldos desconocidos o negativos,
+navegación fría y teclado. No cambia el montaje ni los gestos de `PlanTab`, ni
+`11-app-main.js`.
+
+## [4.26.7] - 2026-09-17
+### Rediseño v4.1 — Inversiones cierra las cifras, el alta y la accesibilidad
+
+La rentabilidad global solo se calcula cuando todas las posiciones tienen coste conocido; una
+cartera mixta muestra `—` y ofrece completar el dato, en vez de extrapolar una ganancia parcial.
+«Añadir posición» abre ahora un formulario real con bróker, nombre, valor, aportado y moneda.
+La edición manual conserva los datos existentes y el refresco confirma con la hora exacta sin
+borrar la última cartera válida.
+
+Los controles pequeños pasan de 44 px, Saveback es un botón/switch accesible y el detalle se
+comporta como diálogo: foco inicial, contención con Tab/Shift+Tab, cierre con Escape y bloqueo del
+scroll de fondo. `InvestmentRewards` memoiza el filtrado por referencia y usa `dateMs`, para no
+recorrer el histórico en cada render. Doce E2E cubren coste mixto, alta, refresco, teclado y foco;
+con CPU ×6 y 5.000 gastos, la mediana de apertura medida es 42,6 ms.
+
+## [4.26.6] - 2026-09-17
+### Histórico bancario — cada banco dispone de su propio tiempo de lectura
+
+La cola estricta introducida para evitar 429 seguía usando un único deadline de 60 segundos:
+si Sabadell agotaba casi todo paginando, CaixaBank quedaba después sin tiempo aunque su enlace
+estuviera activo. El cliente abre ahora una invocación `bank-sync` por banco, siempre de una en
+una; no hay sesiones PSD2 simultáneas, pero cada banco estrena su propio reloj. Los resultados se
+agregan sin dejar que el fallo de uno tape los demás.
+
+La Edge registra para cada lectura solo estado, número de cuentas, número de filas, duración y
+rango solicitado: nunca uid, IBAN, comercio, importe ni payload. Así un cero real se distingue de
+timeout/parcial sin pedir datos privados. El preview conserva efectivo, transferencias y compras;
+un `ext_id` igual en dos bancos sigue siendo dos identidades. `possibleDup` viaja también desde
+`ob-hist`, por lo que una coincidencia dudosa queda fuera del total hasta que la persona decida.
+
+### Notificaciones — identidad estable y confirmación real de Trade Republic/Wallet
+
+Android escuchaba Trade Republic y Wallet, y una reentrega podía cambiar el texto y recibir una
+hora nueva. El debounce de una sola firma no impedía que Aely confirmase dos veces la misma compra.
+El lector envía ahora una identidad estable basada en origen, paquete, clave de Android y `postTime`,
+sin título ni texto financiero mutable. La migración `0025_expenses_ingest_event.sql` hace esa
+identidad única en `expenses`; `ingest` solo confirma después de insertar y trata una carrera
+`23505` como reintento idempotente.
+
+Una coincidencia TR/Wallet entre fuentes no se borra: se conserva como `possibleDup`, no suma y
+espera «es el mismo» o «son distintos». Dos compras legítimas iguales mantienen identidades
+distintas. No se migra ni recategoriza el histórico existente. El despliegue seguro es indivisible:
+migración 0025, Edge `ingest`, Edge `bank-sync`, OTA y APK nueva; una OTA sola no completa el arreglo.
+
+## [4.26.5] - 2026-09-17
+### Rediseño v4.1 — estados vacíos y movimiento reducido coherentes
+
+Gestionar recibos e Inversiones comparten ahora la tarjeta vacía del diseño: icono, título Fraunces,
+explicación y una acción real de al menos 44 px. El vacío de Recibos abre directamente el alta y
+explica que el banco puede detectar cargos repetidos; el de Inversiones abre el alta de bróker o
+posición sin dejar un bloque meramente decorativo.
+
+`useCountUp` respeta tanto la preferencia del sistema como «Reducir animaciones» de Aely. Los
+spinners dejan de girar —y se ocultan— en ambos modos, mientras su texto de estado permanece. Las
+pruebas de Recibos e Inversiones cubren la acción del vacío, el valor final inmediato y la clase de
+accesibilidad interna.
+
+## [4.26.4] - 2026-09-17
+### Rediseño v4.1 — Inversiones deja atrás el montaje antiguo
+
+La vista de Inversiones es ahora una pantalla propia: cabecera con cartera, coste y ganancia,
+recuento animado y tarjetas por bróker que conservan sus posiciones, efectivo y edición manual.
+Los valores sin coste siguen mostrando `—`; no se inventa rentabilidad. La actualización continúa
+siendo exclusivamente manual y distingue datos al día, antiguos y errores sin borrar la última
+cartera válida.
+
+Se elimina el último montaje `.v4-embed-legacy` de esta sección. Auto precios y Proyección pasan a
+Ajustes → Dinero, mientras Redondeo y Saveback siguen accesibles desde Cartera. El alta de posición,
+la venta a efectivo y la edición aislada por bróker permanecen operativas. Nueve E2E verifican
+render, navegación, estados de actualización, accesibilidad, reducción de movimiento e integridad
+de las fichas; con CPU ×6, la mediana medida de apertura queda en 35,1 ms.
+
+## [4.26.3] - 2026-09-16
+### Rediseño v4.1 — «Pregúntame» guía sin inventar ni tocar el dinero
+
+Inicio y Ajustes abren una hoja propia de ayuda. Sin conexión reconoce dudas frecuentes sobre
+presupuesto restante, recibos pendientes, previsión de fin de mes y saldos por banco; las cifras
+se calculan con los mismos motores locales que las pantallas de Aely. Las respuestas conducen a
+Apuntar, Gastos, Cartera, Plan, Mis bancos o Histórico, pero nunca guardan, borran ni sincronizan
+por sí solas. La navegación a los segmentos de Plan espera su montaje real con `requestAnimationFrame`
+acotado, también bajo CPU ×6, sin tocar sus gestos ni `11-app-main.js`.
+
+La interpretación remota es una segunda capa opcional. El consentimiento identifica a OpenAI,
+explica que solo sale la pregunta escrita —nunca saldos, movimientos ni cuentas— y puede rechazarse
+o revocarse desde Ajustes. Cliente y Edge frenan IBAN, tarjetas, PIN/CVV, contraseñas, claves y
+tokens; la Edge verifica JWT, limita cuerpo y frecuencia y solo devuelve ids de un catálogo cerrado.
+El cliente deriva la frase, cifra y acción localmente, y descarta combinaciones incoherentes entre
+tema y botón. Los fallos 404/429/503/timeout dejan un aviso accesible y conservan la guía offline.
+
+El proveedor usa Responses con Structured Outputs, `store:false`, salida corta y modelo configurable
+por `OPENAI_HELP_MODEL` (`gpt-5.6-sol` por defecto). La función permanece desactivada sin
+`AELY_HELP_AI_ENABLED=true` y `OPENAI_API_KEY`: esta versión no activa coste ni transmite preguntas.
+Unitarios y 14 E2E cubren cálculos, privacidad, consentimiento, revocación, fallos remotos,
+accesibilidad, navegación y el caso CPU ×6.
+
+## [4.26.2] - 2026-09-16
+### Rediseño v4.1 — «Tus recibos» deja de montar la pantalla antigua
+
+Plan → Recibos → Gestionar abre ahora una pantalla hija propia: cifra mensual, buscador y cuatro
+grupos que entran en listas ligeras. Las fichas editan sin botón Guardar y conservan periodicidad,
+meses concretos, importes distintos por mes y reglas de primer/último día hábil. Las cuotas siguen
+bloqueadas fuera del modo sencillo; en sencillo pueden ajustarse porque la pantalla Deudas no existe.
+
+El alta se divide en pasos con `NumPad`, selector de meses, día y cuenta. Cada paso conserva su
+entrada de historial para que Atrás quite solo un nivel. Quitar un recibo ofrece Deshacer durante
+cinco segundos con el mismo id. La comparación entre lo apuntado y el banco se ha movido a Ajustes
+→ Mis bancos, su ubicación estable, y no se duplica en Gestionar.
+
+La pantalla ya no monta `<Fijos>` dentro de `.v4-embed-legacy`. Con el mismo estado y CPU ×6, cinco
+muestras bajan el bloqueo mediano al abrir Gestionar de **303 ms a 63 ms** (−79 %); las cinco
+muestras nuevas verifican además que el push nuevo está visible. Un E2E de 15 casos cubre navegación,
+idiomas, altas, edición no destructiva, modo sencillo, estados vacíos y deshacer.
+
+## [4.26.1] - 2026-09-16
+### Rediseño v4.1 — la ficha de cuenta deja de ser un editor encajado
+
+Cada cuenta abre una ficha propia con el nombre como cabecera, saldo protagonista, acciones y rol
+explicado en contexto. Las cuentas manuales corrigen el saldo con el teclado común —también en
+negativo— y las conectadas mantienen el importe bloqueado, con sincronizar o reconectar según su
+estado. Renombrar y elegir rol siguen guardándose al vuelo; una cuenta OB recién conectada no recibe
+un rol inventado.
+
+La previsión de fin de mes solo se muestra cuando corresponde inequívocamente a esa cuenta. El
+gráfico empieza con cierres diarios reales guardados por clave de cuenta, sin reconstruir ni fingir
+los días anteriores; la variación mensual necesita un punto real del día 1. La ficha enseña los tres
+últimos movimientos y «Ver todo» abre Gastos ya filtrado, mediante un evento efímero que no toca los
+montajes de `11-app-main.js`. El historial diario conserva 31 puntos como máximo.
+
+El primer cierre espera a `mc-boot-ready`, para no fijar como inicio de mes un saldo local anterior
+al pull. «Corregir saldo» empieza con el teclado limpio: precargar un float largo agotaba el límite
+de siete dígitos y dejaba la botonera aparentemente bloqueada. La navegación a Gastos conserva el
+banco pendiente hasta que la pestaña termina de montar, y con dos cuentas de la misma entidad la
+cabecera dice honestamente que los movimientos son del banco, porque el extracto no identifica la
+subcuenta.
+
+## [4.26.0] - 2026-09-16
+### Rediseño v4.1 — una sola ficha para apuntar y modificar
+
+`ApuntarSheet` y `ExpenseDetailSheet` ya no mantienen dos interfaces que divergían: comparten la
+misma anatomía de cabecera, importe, concepto, metadatos, categorías y teclado. La rejilla prioriza
+las ocho categorías más usadas en 90 días sin expulsar la categoría actual, y el selector completo
+queda en una hoja secundaria. La multidivisa conserva el importe original y enseña la conversión
+real a euros con la fecha del tipo.
+
+Los movimientos automáticos muestran su procedencia y bloquean importe y banco tanto en el render
+como en `saveEdit`/`setBank`; una llamada accidental desde otra puerta tampoco puede desanclar el
+movimiento del saldo bancario. Modificar guarda al vuelo y conserva en Ajustes la nota, la cuota de
+deuda y la marca de tarjeta. Los E2E abren las dos fichas reales, comprueban la anatomía compartida,
+el candado bancario y los flujos anteriores de efectivo, FX, sugerencias, concepto y deudas.
+
+El borrado deja ahora una ventana real de cinco segundos para deshacer. La retirada local y su
+lápida se escriben juntas para que un pull no resucite la fila por detrás; al deshacer se quita solo
+esa lápida, se repone el objeto en su posición y, si ya salió el delete remoto, se encadena después
+un upsert con el mismo id. Así no hay ni duplicado nuevo ni una carrera delete/add en Supabase.
+
 ## [4.25.11] - 2026-09-24
-### Editor de presupuesto aprobado, sin arrastrar el resto de beta
+### Editor de presupuesto publicado como tanda selectiva
 
-Se porta sobre producción únicamente el punto 8 aprobado en beta 4.26.26. La hoja del presupuesto
-mensual usa una entrada propia de 420 ms, una salida de 320 ms y una cifra de 36–42 px; no cambia
-el ritmo de las demás hojas. Guardar actualiza `budget` antes de iniciar la salida, pero conserva
-el nodo montado hasta que termina para que no desaparezca de golpe. Fondo, Atrás y gesto vertical
-comparten el mismo cierre y «Reducir animaciones» continúa cerrando sin espera.
-
-`useSheetSwipe` acepta opciones conservadoras de duración y curva, con los valores anteriores como
-defecto, de modo que ninguna otra hoja hereda este ritmo. El E2E entra desde la tarjeta real de
-Inicio, mide la animación y la cifra, comprueba persistencia y vigila movimiento reducido. No se
-incorpora ninguna otra tanda 4.26, backend ni cambio Android.
+Producción incorpora únicamente el punto 8 aprobado: entrada de 420 ms, salida de 320 ms y cifra
+de 36–42 px en el editor mensual. Fondo, Atrás, Guardar y gesto vertical comparten el cierre;
+«Reducir animaciones» continúa cerrando al instante. Los valores por defecto de las demás hojas no
+cambian. No se incorpora ninguna otra tanda 4.26, backend ni Android.
 
 ## [4.25.10] - 2026-09-24
-### Ahorro mensual vuelve a Plan → Metas como tanda aprobada
+### Ahorro mensual en Metas publicado como tanda selectiva
 
-Se porta sobre producción únicamente el editor de `state.aportaciones` aprobado en beta 4.26.25.
-`SavingsPlanCard` enseña el total mensual, permite editar una copia local y solo reemplaza el
-array al pulsar Guardar; Cancelar no escribe y una fila nueva vacía no se persiste. La pantalla
-explica que es planificación: no crea movimientos, no cambia saldos y no llama a ningún banco.
-
-El parser admite separadores europeos y anglosajones sin convertir `1.000` en `1`, y el diseño
-cede el espacio del nombre antes de cortar importes largos en un móvil estrecho. El E2E abre la
-puerta real de Plan → Metas y comprueba edición, altas, bajas, persistencia, cancelación, ausencia
-de movimientos inventados y ancho de 320 px. No incorpora otras tandas 4.26, backend ni APK.
+Producción recupera únicamente el editor aprobado de `state.aportaciones`: Guardar reemplaza la
+planificación, Cancelar no escribe y nunca se crean movimientos ni se tocan saldos. El parser
+conserva separadores de miles y decimales, y el E2E cubre persistencia y móvil estrecho. No se
+incorpora ninguna otra tanda 4.26, backend ni Android.
 
 ## [4.25.9] - 2026-09-23
 ### Beneficio en euros y porcentaje sin depender del rediseño (feedback 18/9, punto 15)
 
-Se porta sobre la interfaz estable únicamente la lógica aprobada en beta: al desplegar un bróker
-en la tarjeta de Inversiones, `InvRows` enseña para cada posición la ganancia o pérdida absoluta
-en euros y su porcentaje. Ambos valores usan `invValueEur` e `invCostEur`, por lo que respetan el
-cambio de divisa y no mezclan el valor crudo de una posición en dólares con un coste convertido.
-
-Una posición sin valor actual válido o sin coste positivo no pinta rentabilidad. Los valores casi
-cero se normalizan para evitar `−0`, y pérdidas/ganancias mantienen signo y color. El E2E cubre
-ganancia, pérdida y dato desconocido en la propia portada estable. No se incorpora la pantalla
-completa de Inversiones v4.1, su gesto, la sincronización conjunta ni ningún otro cambio 4.26.
-Sin cambios de datos, backend, Android ni APK nueva.
+Se publica sobre la interfaz estable únicamente la lógica aprobada en beta: al desplegar un bróker,
+cada posición enseña la ganancia o pérdida absoluta y su porcentaje usando `invValueEur` e
+`invCostEur`. Si falta valor actual válido o coste positivo, no pinta rentabilidad; los valores
+casi cero tampoco producen `−0`. No incorpora la pantalla de Inversiones v4.1, su gesto ni la
+sincronización conjunta. Sin cambios de datos, backend, Android ni APK nueva.
 
 ## [4.25.8] - 2026-09-23
 ### Ajustes sin salto y protecciones sin candados visuales (aprobados en beta)
 
-Se portan sobre producción únicamente dos tandas aprobadas. El gesto lateral de Ajustes descuenta
-el tramo que se reserva para decidir el eje antes de calcular el progreso visual: la hoja empieza
-en su ancla real y no salta unos 36 px al reclamar el gesto. El umbral de apertura al soltar no
-cambia, porque continúa usando el desplazamiento completo.
-
-Los iconos de candado se retiran de la pantalla de desbloqueo, cuentas conectadas, privacidad,
-notificaciones, biometría y logros. No se elimina ninguna protección: los saldos bancarios siguen
-sin poder editarse, la biometría conserva su interruptor, las cuentas protegidas mantienen sus
-reglas y los logros pendientes siguen diferenciados con un círculo. El texto de huella deja de
-recortarse por el primer espacio, ya que el recorte solo compensaba el emoji anterior.
-
-Unitarios y E2E vigilan que no reaparezcan candados y que las protecciones continúen activas. La
-publicación selectiva no incorpora el rediseño 4.26 ni las tandas de Inversiones. Sin cambios de
-datos, backend, Android ni APK nueva.
+Se publican sobre producción únicamente las dos tandas aprobadas. El gesto lateral de Ajustes
+descuenta el tramo reservado para decidir el eje antes de calcular el progreso visual, sin cambiar
+el umbral de apertura al soltar. También se retiran los candados dibujados sin quitar protecciones:
+los saldos bancarios siguen sin poder editarse, la biometría conserva su interruptor y las cuentas
+protegidas mantienen sus reglas. No incorpora el rediseño 4.26 ni las tandas de Inversiones.
 
 ## [4.25.7] - 2026-09-22
 ### Cyberpunk, Otoño y Primavera aprobados como tanda independiente
 
-Se porta únicamente la tanda de apariencia probada en beta 4.26.10.1 sobre la base de
-producción 4.25.6. Cyberpunk añade una paleta propia con acentos neón, conservando verde para
-importes positivos y rojo para negativos; Otoño y Primavera amplían el sistema de temáticas
-estacionales. El selector, los colores, la ambientación y el informe compartido quedan alineados.
-Los efectos respetan «Reducir animaciones» y la preferencia del sistema. El e2e de apariencia
-queda registrado en `relevant-tests`. No se incorpora ningún cambio de las demás tandas 4.26,
-ni se modifica el envoltorio Android.
+Se porta únicamente la tanda de apariencia probada en beta 4.26.10.1 sobre la base de producción
+4.25.6. Cyberpunk añade una paleta propia con acentos neón, conservando verde para importes
+positivos y rojo para negativos; Otoño y Primavera amplían las temáticas estacionales. El selector,
+los colores, la ambientación y el informe compartido quedan alineados. No se incorpora ningún
+cambio de las demás tandas 4.26 ni se modifica el envoltorio Android.
 
 ## [4.25.6] - 2026-09-16
 ### El backlog de beta deja de resucitar después de promocionar
@@ -5891,4 +6529,3 @@ Con esto queda **completo el motor dinámico**: calendario de fijos, día de cob
 - Sincronización de gastos con deduplicación.
 - Swipe entre las 6 pestañas con detección de eje.
 - Dashboard: patrimonio neto, sparkline, anillo de presupuesto, racha.
-

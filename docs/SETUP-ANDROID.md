@@ -20,6 +20,17 @@ nuevo vía `apk.json` → `installApk`.
 > `BuildConfig.java` → `WEB_DEBUG = false`. El tema de splash debe llevar
 > `postSplashScreenTheme` → `AppTheme.NoActionBar` o tras el arranque puede quedar una franja
 > nativa bajo la cámara.
+>
+> La barra fina de desplazamiento del borde se desactiva sobre la WebView de Capacitor en
+> `MainActivity`, después de `super.onCreate()`. Es solo el indicador nativo: el scroll, la inercia
+> y el rebote siguen activos. Un cambio aquí requiere APK nueva; una OTA no puede modificarlo.
+>
+> Desde APK 48, `MainActivity` registra bajo demanda `OnBackAnimationCallback` (API 34) para las
+> pantallas hijas de Inversiones y Recibos. El plugin envía progreso/cancelación/invocación a la
+> web y se desregistra al cerrar, destruir o recargar; fuera de esas pantallas, Capacitor conserva
+> Atrás. Mientras una hija está abierta usa prioridad `OVERLAY`, por encima del callback general de
+> AndroidX; al cerrarla se retira. `android:enableOnBackInvokedCallback="true"` y ese puente son
+> nativos: requieren APK nueva.
 
 ---
 
@@ -169,6 +180,12 @@ Y un tercero que sí deja error en el panel: el nombre del comercio llega del da
 trae **basura de codificación** (una compra real salió como `10638 CORNELLAÂ▯ SPLAU SC`). Si lo
 que cuela es un NUL, **Postgres rechaza el INSERT entero**. `limpiarTexto()` los quita antes de
 guardar.
+
+Desde 4.26.6 el lector no deduplica por título o texto: Wallet y Trade Republic pueden describir
+la misma compra de forma distinta. La identidad se forma con origen, paquete, clave de Android y
+`postTime` (o paquete, id y tag como fallback) y viaja a `ingest`. Este cambio exige **APK nueva**
+y debe publicarse solo después de aplicar la migración 0025 y desplegar la Edge `ingest`; de otro
+modo el móvil conserva la deduplicación anterior aunque reciba la OTA.
 
 ## 7. Distribuir (para que la usen otros)
 

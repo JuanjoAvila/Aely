@@ -15,8 +15,16 @@ console.log("expense-bank");
 t("expenseSourceForCloud: embebe ent en ob", () => {
   assert.equal(ctx.expenseSourceForCloud({ source: "ob", ent: "caixabank" }), "ob:caixabank");
   assert.equal(ctx.expenseSourceForCloud({ source: "ob-hist", ent: "sabadell" }), "ob-hist:sabadell");
+  assert.equal(ctx.expenseSourceForCloud({ source: "ob-hist", ent: "caixabank", possibleDup:true }), "ob-hist:caixabank#dup");
   assert.equal(ctx.expenseSourceForCloud({ source: "macrodroid" }), "macrodroid");
   assert.equal(ctx.expenseSourceForCloud({ source: "manual" }), "manual");
+});
+
+t("possibleDup del histórico vuelve marcado desde la nube", () => {
+  const e=ctx.expenseFromRow({id:"x",fecha:"2026-08-01",importe:12,comercio:"Compra",cat:"otros",source:"ob-hist:caixabank#dup"});
+  assert.equal(e.ent,"caixabank");
+  assert.equal(e.source,"ob-hist");
+  assert.equal(e.possibleDup,true);
 });
 
 t("expenseBankOf: lee ent o source", () => {

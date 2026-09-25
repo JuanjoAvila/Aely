@@ -512,6 +512,55 @@ t("sonda: cuenta en tope 2000 marca acctAtCap (sospecha Edge)", () => {
   assert.equal(p.llegan, 5);
 });
 
+t("★ dos cuentas de Caixa conservan los movimientos de las dos", () => {
+  const res = { links:[{ aspsp:"CaixaBank", accounts:[
+    { uid:"caixa-corriente", ok:true, count:1, transactions:[{date:"2026-08-06",amount:12.34,merchant:"Compra Caixa",card:true,ext_id:"cx-1"}] },
+    { uid:"caixa-ahorro", ok:true, count:1, transactions:[{date:"2026-08-07",amount:8.2,merchant:"Otra Caixa",card:true,ext_id:"cx-2"}] },
+  ] }] };
+  const flat=ctx.histFlattenHistoryLinks(res,[],{caixabank:1},{});
+  assert.equal(flat.out.length,2);
+});
+
+t("★ el mismo ext_id en Caixa y Sabadell son dos movimientos", () => {
+  const res={links:[
+    {aspsp:"CaixaBank",accounts:[{uid:"cx",transactions:[{date:"2026-08-10",amount:9,merchant:"CAIXA",ext_id:"same"}]}]},
+    {aspsp:"Banco de Sabadell",accounts:[{uid:"sb",transactions:[{date:"2026-08-10",amount:9,merchant:"SABADELL",ext_id:"same"}]}]},
+  ]};
+  const flat=ctx.histFlattenHistoryLinks(res,[],{caixabank:1,sabadell:1},{});
+  assert.equal(flat.out.length,2);
+  assert.equal(JSON.stringify(flat.out.map(x=>x.ent).sort()),JSON.stringify(["caixabank","sabadell"]));
+});
+
+t("★ efectivo, transferencia y compras de Caixa llegan todos al preview", () => {
+  const res={links:[{aspsp:"CaixaBank",accounts:[{uid:"caixa-real",ok:true,count:4,transactions:[
+    {date:"2026-08-06",amount:100,merchant:"RETIRADA CAJERO",ext_id:"atm"},
+    {date:"2026-08-06",amount:-100,merchant:"TRANSFERENCIA INMEDIATA",ext_id:"transfer"},
+    {date:"2026-08-12",amount:18.2,merchant:"COMPRA UNO",card:true,ext_id:"buy-1"},
+    {date:"2026-08-20",amount:7.8,merchant:"COMPRA DOS",card:true,ext_id:"buy-2"},
+  ]}]}]};
+  const flat=ctx.histFlattenHistoryLinks(res,[],{caixabank:1},{});
+  assert.equal(flat.out.length,4,"clasificar el tipo no puede ocultar filas del extracto");
+  assert.equal(JSON.stringify(flat.out.map(x=>x.kind).sort()),JSON.stringify(["in","out","out","out"]));
+});
+
+t("★ cero completo y lectura incompleta no se presentan como el mismo resultado", () => {
+  const expected=[{aspsp_name:"CaixaBank",status:"active"}];
+  const zero=ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:true,accounts:[{ok:true,count:0,transactions:[]}]}],expected,true);
+  const partial=ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:true,accounts:[{ok:false,transactionError:"timeout",transactions:[]}]}],expected,true);
+  assert.equal(zero[0].key,"bank_read_empty");
+  assert.equal(partial[0].key,"bank_read_timeout");
+});
+
+t("★ aceptar una coincidencia ambigua conserva possibleDup", () => {
+  const cands=[{id:"bank",date:"2026-08-10",amount:12,merchant:"Movimiento",kind:"out",ent:"caixabank"}];
+  const state={expenses:[{id:"manual",date:"2026-08-11T12:00:00.000Z",amount:12,merchant:"Otro",ent:"caixabank",source:"manual"}],accounts:[],fixed:[],debts:[],oneoffs:[]};
+  const classified=ctx.histClassifyCandidates(cands,state);
+  assert.equal(classified.rows[0].status,"maybe");
+  const saved=ctx.histKeepAmbiguity({source:"ob-hist"},classified.rows[0]);
+  assert.equal(saved.possibleDup,true);
+  assert.equal(saved.possibleDupOf,"manual");
+});
+
 /* BLOQUEADOR Codex 10/9: card:true + fijo → UI NEW; sonda vieja (sin card) mentía DUP. */
 t("sonda=UI: tarjeta que casa con fijo sigue NEW (no reclasificar sin card)", () => {
   const res = {

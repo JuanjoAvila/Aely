@@ -1,51 +1,109 @@
 [
   {
-    "v": "4.25.20",
+    "v": "4.26.46",
     "d": "24 sep 2026",
     "t": {
-      "es": "Inicio cuenta solo lo que puede comprobar",
-      "en": "Home only reports what it can verify",
-      "ca": "Inici només explica el que pot comprovar"
+      "es": "Cambiar el día de un recibo ya cobrado no lo duplica",
+      "en": "Changing the day of a paid bill no longer duplicates it",
+      "ca": "Canviar el dia d'un rebut ja cobrat no el duplica"
     },
     "items": {
       "es": [
-        "Desaparece el cambio de patrimonio «este mes» cuando no existe una foto fiable del día 1; el total de tu dinero no cambia.",
-        "La racha usa presupuestos guardados de meses cerrados y los mismos gastos que el presupuesto diario, sin llamas ni recibos de otra cuenta falseándola."
+        "Un recibo ya cobrado sigue contando una sola vez aunque cambies su día dentro del mismo mes.",
+        "El día nuevo queda para los próximos cobros; el actual conserva la fecha real del banco sin mover saldos ni gastos anteriores.",
+        "Si hoy todavía no lo han cobrado, sincroniza el banco justo antes de cambiar el día: quedará pendiente. Un extracto antiguo no puede devolver dinero al saldo."
       ],
       "en": [
-        "The “this month” net-worth change is no longer shown without a reliable snapshot from day one; your total money does not change.",
-        "The streak uses saved budgets from closed months and the same spending rules as the daily budget, without flames or bills from another account distorting it."
+        "A bill that has already been paid still counts once when you change its day within the same month.",
+        "The new day applies to future charges; the current one keeps the bank’s actual date without changing balances or earlier spending.",
+        "If it has not been charged today, sync the bank just before changing the day: it will stay pending. An old statement cannot add money back to the balance."
       ],
       "ca": [
-        "El canvi de patrimoni «aquest mes» deixa de mostrar-se quan no hi ha una foto fiable del dia 1; el total dels teus diners no canvia.",
-        "La ratxa usa pressupostos desats de mesos tancats i les mateixes despeses que el pressupost diari, sense flames ni rebuts d'un altre compte que la falsegin."
+        "Un rebut ja cobrat continua comptant una sola vegada encara que en canviïs el dia dins del mateix mes.",
+        "El dia nou s'aplica als cobraments futurs; l'actual conserva la data real del banc sense moure saldos ni despeses anteriors.",
+        "Si avui encara no l'han cobrat, sincronitza el banc just abans de canviar el dia: quedarà pendent. Un extracte antic no pot tornar diners al saldo."
       ]
     },
-    "tandas": []
+    "tandas": [
+      {
+        "id": "recibo-dia-sin-doble-descuento",
+        "t": {
+          "es": "Cambiar el día de un recibo cobrado",
+          "en": "Change the day of a paid bill",
+          "ca": "Canviar el dia d'un rebut cobrat"
+        },
+        "items": {
+          "es": [
+            "1. En Plan → Recibos, abre un recibo que el banco ya haya cobrado este mes y cambia su día por otro posterior del mismo mes.",
+            "2. Al volver a Recibos, debe aparecer una sola vez en «Ya pagado», con el día real del banco; el día nuevo queda guardado para los próximos meses y no aparece también entre lo pendiente.",
+            "3. Comprueba que no han cambiado el saldo de esa cuenta, el de otro banco ni los movimientos anteriores de Gastos.",
+            "4. Caso contrario: si hoy es 25 y el recibo del 24 aún no se ha cobrado, pulsa «Sincronizar bancos» justo antes de cambiarlo al 25. Debe seguir una sola vez en «Pendiente»; cuando llegue el cargo real pasará a «Ya pagado».",
+            "5. Caso madrugada: si el cobro ya entró hoy pero el último extracto era de ayer, cambia el día antiguo al de hoy. Debe quedar una sola vez en «Ya pagado» y el saldo no debe subir."
+          ],
+          "en": [
+            "1. In Plan → Bills, open a bill already charged by the bank this month and change it to a later day in the same month.",
+            "2. Back in Bills, it should appear once under “Already paid”, with the bank’s actual day; the new day is saved for future months and it must not also appear as pending.",
+            "3. Check that neither that account balance, another bank balance nor earlier Spending entries have changed.",
+            "4. Opposite case: if today is the 25th and the bill due on the 24th has not been charged, tap “Sync banks” just before changing it to the 25th. It must remain once under “Pending”; when the real charge arrives it will move to “Already paid”.",
+            "5. Overnight case: if the charge arrived today but the latest statement was from yesterday, change the old day to today. It must remain once under “Already paid” and the balance must not increase."
+          ],
+          "ca": [
+            "1. A Pla → Rebuts, obre un rebut que el banc ja hagi cobrat aquest mes i canvia'l a un dia posterior del mateix mes.",
+            "2. En tornar a Rebuts, ha d'aparèixer una sola vegada a «Ja pagat», amb el dia real del banc; el dia nou queda desat per als mesos següents i no apareix també entre els pendents.",
+            "3. Comprova que no han canviat el saldo d'aquest compte, el d'un altre banc ni els moviments anteriors de Despeses.",
+            "4. Cas contrari: si avui és 25 i el rebut del 24 encara no s'ha cobrat, prem «Sincronitzar bancs» just abans de canviar-lo al 25. Ha de continuar una sola vegada a «Pendent»; quan arribi el càrrec real passarà a «Ja pagat».",
+            "5. Cas de matinada: si el cobrament ja ha entrat avui però l'últim extracte era d'ahir, canvia el dia antic pel d'avui. Ha de quedar una sola vegada a «Ja pagat» i el saldo no ha de pujar."
+          ]
+        }
+      }
+    ]
   },
   {
-    "v": "4.25.19",
+    "v": "4.26.45",
     "d": "24 sep 2026",
     "t": {
-      "es": "Tus inversiones, en una vista completa",
-      "en": "Your investments, in one complete view",
-      "ca": "Les teves inversions, en una vista completa"
+      "es": "Las cuotas dejan de parecer una categoría de gasto",
+      "en": "Debt payments no longer look like a spending category",
+      "ca": "Les quotes deixen de semblar una categoria de despesa"
     },
     "items": {
       "es": [
-        "Al abrir tus inversiones, la ficha entra suavemente desde la derecha y reúne el total, la ganancia, los brókers y las posiciones en una sola pantalla.",
-        "Puedes volver con Atrás o deslizando hacia la derecha desde cualquier zona libre: la pantalla acompaña al dedo sin molestar al desplazamiento vertical ni a los campos."
+        "Cada cuota muestra la deuda a la que pertenece y sigue avisando de que ya cuenta en el Plan.",
+        "El filtro separa las cuotas de las categorías de consumo, con un acceso para cada deuda."
       ],
       "en": [
-        "Opening your investments now brings in a smooth full view from the right, with the total, gain, brokers and positions together on one screen.",
-        "Go back with Back or swipe right from any free area: the screen follows your finger without getting in the way of vertical scrolling or fields."
+        "Each payment shows which debt it belongs to and still explains that it is already included in Plan.",
+        "The filter separates debt payments from spending categories, with a shortcut for each debt."
       ],
       "ca": [
-        "En obrir les teves inversions, la fitxa entra suaument des de la dreta i reuneix el total, el guany, els bròkers i les posicions en una sola pantalla.",
-        "Pots tornar amb Enrere o lliscant cap a la dreta des de qualsevol zona lliure: la pantalla acompanya el dit sense molestar el desplaçament vertical ni els camps."
+        "Cada quota mostra a quin deute pertany i continua avisant que ja compta al Pla.",
+        "El filtre separa les quotes de les categories de consum, amb un accés per a cada deute."
       ]
     },
-    "tandas": []
+    "tandas": [
+      {
+        "id": "deudas-sin-categoria-duplicada",
+        "t": {
+          "es": "Cuotas claras en Gastos",
+          "en": "Clear debt payments in Spending",
+          "ca": "Quotes clares a Despeses"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, busca una cuota enlazada: debe mostrar el nombre de su deuda y «ya cuenta en el Plan».",
+            "2. En Filtros → Categorías, «Deudas» no debe aparecer como categoría normal; debajo debe haber «Cuotas», con cada deuda por separado."
+          ],
+          "en": [
+            "1. In Spending, find a linked payment: it should show its debt name and “already in your Plan”.",
+            "2. In Filters → Categories, “Debts” should not appear as a regular category; below it, “Your debt payments” should offer each debt separately."
+          ],
+          "ca": [
+            "1. A Despeses, busca una quota enllaçada: ha de mostrar el nom del deute i «ja compta al Pla».",
+            "2. A Filtres → Categories, «Deutes» no ha d'aparèixer com una categoria normal; a sota hi ha d'haver «Quotes dels teus deutes», amb cada deute per separat."
+          ]
+        }
+      }
+    ]
   },
   {
     "v": "4.25.18",
@@ -96,6 +154,50 @@
     "tandas": []
   },
   {
+    "v": "4.26.44",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Guardar un recibo ya se ve antes de cerrar",
+      "en": "Saving a bill is now visible before closing",
+      "ca": "Desar un rebut ja es veu abans de tancar"
+    },
+    "items": {
+      "es": [
+        "Al cambiar el importe de un recibo, el botón confirma «Guardado» durante un instante y después cierra la ficha con suavidad.",
+        "Aunque se toque dos veces muy rápido, el cambio se guarda una sola vez."
+      ],
+      "en": [
+        "After changing a bill amount, the button confirms “Saved” for a moment before smoothly closing the detail.",
+        "Even if it is tapped twice very quickly, the change is saved only once."
+      ],
+      "ca": [
+        "En canviar l'import d'un rebut, el botó confirma «Desat» durant un instant i després tanca la fitxa amb suavitat.",
+        "Encara que es toqui dues vegades molt de pressa, el canvi es desa una sola vegada."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "recibos-guardado-visible",
+        "t": {
+          "es": "Confirmación clara al guardar",
+          "en": "Clear save confirmation",
+          "ca": "Confirmació clara en desar"
+        },
+        "items": {
+          "es": [
+            "1. En Gestionar, abre un recibo, cambia su importe y toca Listo: debe verse «✓ Guardado» un instante, cerrarse después y conservar el importe al volver a abrirlo."
+          ],
+          "en": [
+            "1. In Manage, open a bill, change its amount and tap Done: “✓ Saved” should remain visible briefly, then close and keep the amount when reopened."
+          ],
+          "ca": [
+            "1. A Gestionar, obre un rebut, canvia'n l'import i toca Fet: s'ha de veure «✓ Desat» un instant, tancar-se després i conservar l'import en tornar-lo a obrir."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.25.16",
     "d": "24 sep 2026",
     "t": {
@@ -115,6 +217,54 @@
       "ca": [
         "En mòbils compatibles, Trade Republic i Google Wallet es poden reconèixer com dos avisos del mateix pagament i deixar una sola confirmació.",
         "En els altres mòbils, el segon avís semblant queda apartat fora del total per revisar-lo; les compres reals i els moviments anteriors no es modifiquen."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.43",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Cada pago aparece una sola vez",
+      "en": "Each payment appears only once",
+      "ca": "Cada pagament apareix una sola vegada"
+    },
+    "items": {
+      "es": [
+        "Si Google Wallet y Trade Republic avisan del mismo pago con nombres distintos, Aely conserva un solo gasto y muestra una sola confirmación.",
+        "Los dobles avisos ya no se presentan como «Posible repetido»; esa revisión se mantiene para movimientos bancarios que sí sean dudosos."
+      ],
+      "en": [
+        "If Google Wallet and Trade Republic report the same payment under different names, Aely keeps one expense and shows one confirmation.",
+        "Duplicate alerts are no longer shown as “Possible duplicate”; that review remains for bank movements that are genuinely uncertain."
+      ],
+      "ca": [
+        "Si Google Wallet i Trade Republic avisen del mateix pagament amb noms diferents, Aely conserva una sola despesa i mostra una sola confirmació.",
+        "Els avisos dobles ja no es presenten com a «Possible repetit»; aquesta revisió es manté per als moviments bancaris que sí que siguin dubtosos."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.42",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Bizum deja ver en qué se gastó el dinero",
+      "en": "Bizum now shows what the money was spent on",
+      "ca": "Bizum deixa veure en què s'han gastat els diners"
+    },
+    "items": {
+      "es": [
+        "Al apuntar un gasto, una pastilla permite cambiar entre «Con tarjeta» y «Bizum o transferencia» sin alterar su categoría.",
+        "La categoría sigue siendo la finalidad real, como Restaurantes o Salud; los Bizum antiguos se conservan hasta revisarlos uno a uno."
+      ],
+      "en": [
+        "When adding an expense, one chip switches between “Card” and “Bizum or transfer” without changing its category.",
+        "The category remains its real purpose, such as Eating out or Health; old Bizum entries stay unchanged until reviewed one by one."
+      ],
+      "ca": [
+        "En apuntar una despesa, una pastilla permet canviar entre «Amb targeta» i «Bizum o transferència» sense alterar-ne la categoria.",
+        "La categoria continua sent la finalitat real, com Restaurants o Salut; els Bizum antics es conserven fins que es revisin un a un."
       ]
     },
     "tandas": []
@@ -219,6 +369,1149 @@
     "tandas": []
   },
   {
+    "v": "4.26.41",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Volver dentro de Recibos también acompaña al dedo",
+      "en": "Back gestures inside Bills now follow your finger too",
+      "ca": "Tornar dins de Rebuts també acompanya el dit"
+    },
+    "items": {
+      "es": [
+        "Los grupos de recibos y «¿Me lo puedo permitir?» vuelven enseñando la pantalla anterior mientras se deslizan.",
+        "La ficha de cada recibo también se puede cerrar desde el borde o arrastrando hacia la derecha, sin sacar de la lista."
+      ],
+      "en": [
+        "Bill groups and “Can I afford it?” now reveal the previous screen while sliding back.",
+        "Each bill detail can also be closed from the edge or by swiping right, without leaving the list."
+      ],
+      "ca": [
+        "Els grups de rebuts i «M'ho puc permetre?» tornen mostrant la pantalla anterior mentre llisquen.",
+        "La fitxa de cada rebut també es pot tancar des de la vora o arrossegant cap a la dreta, sense sortir de la llista."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "recibos-atras-anidado",
+        "t": {
+          "es": "Volver dentro de Recibos con el dedo",
+          "en": "Swipe back inside Bills",
+          "ca": "Tornar dins de Rebuts amb el dit"
+        },
+        "items": {
+          "es": [
+            "1. En Gestionar, entra en «Servicios y suministros» y vuelve despacio desde el borde: la pantalla debe acompañar al dedo y dejar «Tus recibos» debajo.",
+            "2. Entra en «¿Me lo puedo permitir?» y arrastra hacia la derecha desde el centro: debe volver a «Tus recibos» con la misma animación.",
+            "3. Abre la ficha de un recibo y repite el gesto desde el borde o el centro: debe cerrarse solo la ficha y quedarse en su lista."
+          ],
+          "en": [
+            "1. In Manage, open “Services and utilities” and slowly go back from the edge: the screen should follow your finger with “Your bills” underneath.",
+            "2. Open “Can I afford it?” and swipe right from the middle: it should return to “Your bills” with the same animation.",
+            "3. Open a bill detail and repeat from the edge or middle: only the detail should close, leaving you in its list."
+          ],
+          "ca": [
+            "1. A Gestionar, entra a «Serveis i subministraments» i torna lentament des de la vora: la pantalla ha d'acompanyar el dit i deixar «Els teus rebuts» a sota.",
+            "2. Entra a «M'ho puc permetre?» i arrossega cap a la dreta des del centre: ha de tornar a «Els teus rebuts» amb la mateixa animació.",
+            "3. Obre la fitxa d'un rebut i repeteix el gest des de la vora o el centre: només s'ha de tancar la fitxa i has de continuar a la seva llista."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.40",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Pregúntame ya no se esconde al escribir",
+      "en": "Ask me no longer hides when typing",
+      "ca": "Pregunta'm ja no s'amaga en escriure"
+    },
+    "items": {
+      "es": [
+        "Pregúntame conserva el título y la pregunta completa por debajo de la parte superior del móvil cuando aparece el teclado.",
+        "La ayuda deja de rebotar al recolocarse y su contenido se desplaza sin enseñar una barra lateral."
+      ],
+      "en": [
+        "Ask me keeps its title and question fully below the top of the phone when the keyboard appears.",
+        "The help no longer bounces while repositioning, and its content scrolls without showing a side bar."
+      ],
+      "ca": [
+        "Pregunta'm manté el títol i la pregunta sencera per sota de la part superior del mòbil quan apareix el teclat.",
+        "L'ajuda deixa de rebotar en recol·locar-se i el contingut es desplaça sense mostrar una barra lateral."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.39",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Una compra no vuelve a contarse dos veces",
+      "en": "One purchase is no longer counted twice",
+      "ca": "Una compra ja no es compta dues vegades"
+    },
+    "items": {
+      "es": [
+        "Si Wallet y la tarjeta avisan de la misma compra casi a la vez con nombres distintos, Aely cuenta un solo gasto y no muestra dos confirmaciones.",
+        "La segunda entrada se conserva como posible repetida para revisarla; nunca se borra una compra solo porque coincidan el importe y la hora."
+      ],
+      "en": [
+        "If Wallet and the card report the same purchase almost simultaneously under different names, Aely counts one expense and does not show two confirmations.",
+        "The second entry is kept as a possible duplicate for review; a purchase is never deleted merely because its amount and time match."
+      ],
+      "ca": [
+        "Si Wallet i la targeta avisen de la mateixa compra gairebé alhora amb noms diferents, Aely compta una sola despesa i no mostra dues confirmacions.",
+        "La segona entrada es conserva com a possible repetida per revisar-la; mai no s'esborra una compra només perquè coincideixin l'import i l'hora."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.38",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Las ventanas terminan de cerrar sin tirón",
+      "en": "Panels now finish closing without a hitch",
+      "ca": "Les finestres acaben de tancar sense estrebada"
+    },
+    "items": {
+      "es": [
+        "Al cerrar una ventana, la pantalla de detrás recupera su posición desde que empieza la salida y ya no espera al último instante.",
+        "El cierre mantiene su animación y las ventanas abiertas una encima de otra siguen protegidas."
+      ],
+      "en": [
+        "When a panel closes, the screen behind it recovers its position as soon as the exit begins instead of waiting until the last moment.",
+        "The closing animation remains, and panels opened on top of one another stay protected."
+      ],
+      "ca": [
+        "En tancar una finestra, la pantalla del darrere recupera la posició des que comença la sortida i ja no espera fins a l'últim instant.",
+        "L'animació de tancament es manté i les finestres obertes una damunt de l'altra continuen protegides."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "hojas-desbloqueo-cierre",
+        "t": {
+          "es": "Cierre sin tirón final",
+          "en": "Closing without a final hitch",
+          "ca": "Tancament sense estrebada final"
+        },
+        "items": {
+          "es": [
+            "1. Abre Apuntar, espera a que termine de entrar y ciérralo arrastrando hacia abajo: debe salir seguido, sin frenarse al final.",
+            "2. Repite el cierre con una ficha de Gastos: debe salir con el mismo ritmo, sin un pequeño salto al desaparecer.",
+            "3. Con Reducir animaciones activado, ambas ventanas deben cerrarse al instante."
+          ],
+          "en": [
+            "1. Open Add, wait for it to finish entering, then drag it down to close: it should leave continuously, without stalling at the end.",
+            "2. Repeat with an Expense detail: it should leave at the same pace, without a small jump as it disappears.",
+            "3. With Reduce animations enabled, both panels should close immediately."
+          ],
+          "ca": [
+            "1. Obre Apuntar, espera que acabi d'entrar i tanca'l arrossegant cap avall: ha de sortir seguit, sense frenar-se al final.",
+            "2. Repeteix el tancament amb una fitxa de Despeses: ha de sortir al mateix ritme, sense un petit salt quan desapareix.",
+            "3. Amb Reduir animacions activat, totes dues finestres s'han de tancar a l'instant."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.37",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Plan enseña el momento más justo del mes",
+      "en": "Plan shows the tightest point of the month",
+      "ca": "Pla mostra el moment més just del mes"
+    },
+    "items": {
+      "es": [
+        "Plan muestra el saldo más bajo previsto y el día en que se alcanza, en vez de quedarse solo con la cifra de final de mes.",
+        "Una nómina posterior ya no puede ocultar que antes falta dinero; si no se conoce una fecha o un saldo, no se inventa."
+      ],
+      "en": [
+        "Plan shows the lowest expected balance and the day it is reached, instead of only showing the month-end figure.",
+        "A later salary payment can no longer hide an earlier shortfall; when a date or balance is unknown, it is not made up."
+      ],
+      "ca": [
+        "Pla mostra el saldo més baix previst i el dia en què s'assoleix, en comptes de quedar-se només amb la xifra de final de mes.",
+        "Una nòmina posterior ja no pot amagar que abans falten diners; si no es coneix una data o un saldo, no se n'inventa cap."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "plan-minimo-caja",
+        "t": {
+          "es": "Saldo mínimo del mes",
+          "en": "Lowest balance this month",
+          "ca": "Saldo mínim del mes"
+        },
+        "items": {
+          "es": [
+            "1. En Plan → Recibos, mira la frase bajo lo que queda por pagar: debe hablar del saldo más bajo, no solo del final de mes.",
+            "2. Si hay un recibo antes de la próxima nómina, debe enseñar el importe mínimo y el día en que ocurre, aunque después el mes termine en positivo.",
+            "3. Un recibo sin fecha o una cuenta sin saldo conocido no debe inventar un día ni una cifra."
+          ],
+          "en": [
+            "1. In Plan → Bills, read the line below what is left to pay: it should describe the lowest balance, not only month end.",
+            "2. If a bill falls before the next salary payment, it should show the minimum amount and the day it occurs even when the month later ends positive.",
+            "3. A bill without a date or an account without a known balance must not invent a day or an amount."
+          ],
+          "ca": [
+            "1. A Pla → Rebuts, mira la frase sota el que queda per pagar: ha de parlar del saldo més baix, no només del final de mes.",
+            "2. Si hi ha un rebut abans de la pròxima nòmina, ha de mostrar l'import mínim i el dia en què passa encara que després el mes acabi en positiu.",
+            "3. Un rebut sense data o un compte sense saldo conegut no ha d'inventar ni un dia ni una xifra."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.35",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Las categorías de Gastos hablan el mismo idioma",
+      "en": "Expense categories now share one design",
+      "ca": "Les categories de Despeses comparteixen disseny"
+    },
+    "items": {
+      "es": [
+        "El filtro de Gastos usa las mismas fichas con icono y nombre que aparecen al crear o modificar una compra.",
+        "Siguen disponibles el plegado, la búsqueda y la selección de varias categorías a la vez."
+      ],
+      "en": [
+        "The Expenses filter uses the same icon-and-name cards shown when adding or editing a purchase.",
+        "Folding, search and selecting several categories at once all remain available."
+      ],
+      "ca": [
+        "El filtre de Despeses usa les mateixes fitxes amb icona i nom que apareixen en crear o modificar una compra.",
+        "Continuen disponibles el plegat, la cerca i la selecció de diverses categories alhora."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "gastos-filtros-fluidos",
+        "t": {
+          "es": "Filtros y ficha de Gastos",
+          "en": "Expense filters and details",
+          "ca": "Filtres i fitxa de Despeses"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, abre Filtros y despliega Categorías: debe verse con fichas de icono y nombre como al crear o modificar una compra.",
+            "2. Despliega Categorías, marca una y cierra el filtro; al volver debe indicar una seleccionada y conservarla.",
+            "3. Pliega y abre el desglose por categorías del mes: debe moverse sin salto y mantener exactamente los mismos importes.",
+            "4. Abre un movimiento, cambia un dato y pulsa Listo: la ficha debe cerrarse con fluidez y el cambio debe quedar guardado."
+          ],
+          "en": [
+            "1. In Expenses, open Filters and expand Categories: it should use icon-and-name cards like those shown when adding or editing a purchase.",
+            "2. Expand Categories, select one and close the filter; reopening it should show one selected and keep it.",
+            "3. Fold and reopen the month's category breakdown: it should move without a jump and keep exactly the same amounts.",
+            "4. Open a transaction, change a field and tap Done: the detail should close smoothly and keep the change."
+          ],
+          "ca": [
+            "1. A Despeses, obre Filtres i desplega Categories: s'ha de veure amb fitxes d'icona i nom com en crear o modificar una compra.",
+            "2. Desplega Categories, marca'n una i tanca el filtre; en tornar-hi ha d'indicar una seleccionada i conservar-la.",
+            "3. Plega i torna a obrir el desglossament per categories del mes: s'ha de moure sense salt i mantenir exactament els mateixos imports.",
+            "4. Obre un moviment, canvia una dada i prem Fet: la fitxa s'ha de tancar amb fluïdesa i el canvi ha de quedar desat."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.34",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Las ventanas se mueven con más calma",
+      "en": "Panels move at a calmer pace",
+      "ca": "Les finestres es mouen amb més calma"
+    },
+    "items": {
+      "es": [
+        "Pregúntame, Apuntar y las fichas de Gastos se abren y cierran de forma más pausada y continua.",
+        "Si está activado Reducir animaciones, las ventanas siguen respondiendo al instante."
+      ],
+      "en": [
+        "Ask me, Add and expense details now open and close with a calmer, smoother motion.",
+        "When Reduce motion is enabled, panels still respond immediately."
+      ],
+      "ca": [
+        "Pregunta'm, Apuntar i les fitxes de Despeses ara s'obren i es tanquen amb un moviment més pausat i continu.",
+        "Si Reduir animacions està activat, les finestres continuen responent a l'instant."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "hojas-ritmo-suave",
+        "t": {
+          "es": "Ventanas más suaves",
+          "en": "Smoother panels",
+          "ca": "Finestres més suaus"
+        },
+        "items": {
+          "es": [
+            "1. Abre Pregúntame: la ventana debe subir con calma, sin dar un salto brusco.",
+            "2. Abre Apuntar y una compra de Gastos, y ciérralas: las tres deben sentirse continuas y responder bien.",
+            "3. Activa Reducir animaciones: esas ventanas deben abrirse y cerrarse al instante."
+          ],
+          "en": [
+            "1. Open Ask me: the panel should rise calmly without an abrupt jump.",
+            "2. Open Add and an expense, then close them: all three should feel smooth and remain responsive.",
+            "3. Enable Reduce motion: those panels should open and close immediately."
+          ],
+          "ca": [
+            "1. Obre Pregunta'm: la finestra ha de pujar amb calma, sense fer un salt brusc.",
+            "2. Obre Apuntar i una compra de Despeses, i tanca-les: totes tres s'han de notar contínues i respondre bé.",
+            "3. Activa Reduir animacions: aquestes finestres s'han d'obrir i tancar a l'instant."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.33",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Pregúntame abre sin tapar la ayuda",
+      "en": "Ask me opens without covering the help",
+      "ca": "Pregunta'm s'obre sense tapar l'ajuda"
+    },
+    "items": {
+      "es": [
+        "Al abrir Pregúntame, el teclado ya no ocupa la pantalla antes de poder leer la ayuda.",
+        "El teclado aparece al tocar la caja de la pregunta y la respuesta sigue quedando a la vista."
+      ],
+      "en": [
+        "When Ask me opens, the keyboard no longer fills the screen before the help can be read.",
+        "The keyboard appears when the question box is tapped, while the answer stays in view."
+      ],
+      "ca": [
+        "En obrir Pregunta'm, el teclat ja no ocupa la pantalla abans de poder llegir l'ajuda.",
+        "El teclat apareix en tocar la caixa de la pregunta i la resposta continua a la vista."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.32",
+    "d": "24 sep 2026",
+    "t": {
+      "es": "Atrás acompaña al dedo en Inversiones y Recibos",
+      "en": "Back follows your finger in Investments and Bills",
+      "ca": "Enrere acompanya el dit a Inversions i Rebuts"
+    },
+    "items": {
+      "es": [
+        "Inversiones y Gestionar recibos entran y salen como páginas, también con el gesto Atrás del borde.",
+        "También puedes volver deslizando a la derecha desde cualquier zona que no sea un control.",
+        "Cada recibo se reconoce por lo que es —luz, agua, teléfono…— en vez de repetir el logo del banco.",
+        "Listo guarda y cierra la ficha; tocar dos veces al crear ya no puede duplicar el recibo."
+      ],
+      "en": [
+        "Investments and Manage bills now enter and leave like pages, including with the edge Back gesture.",
+        "You can also go back by swiping right from anywhere that is not a control.",
+        "Each bill is identified by what it is —electricity, water, phone…— instead of repeating the bank logo.",
+        "Done saves and closes the detail; tapping twice while creating can no longer duplicate a bill."
+      ],
+      "ca": [
+        "Inversions i Gestionar rebuts entren i surten com pàgines, també amb el gest Enrere de la vora.",
+        "També pots tornar lliscant cap a la dreta des de qualsevol zona que no sigui un control.",
+        "Cada rebut es reconeix pel que és —llum, aigua, telèfon…— en comptes de repetir el logotip del banc.",
+        "Fet desa i tanca la fitxa; tocar dues vegades en crear ja no pot duplicar el rebut."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.31",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Gestionar recibos se entiende de un vistazo",
+      "en": "Bills management is clearer at a glance",
+      "ca": "Gestionar rebuts s'entén d'un cop d'ull"
+    },
+    "items": {
+      "es": [
+        "La cifra mensual y su reparto se animan cada vez que entras en Gestionar.",
+        "Los importes largos caben mejor y dejan de parecer enlaces con las temáticas activas.",
+        "La barra reparte solo servicios y cuotas, exactamente lo que suma la cifra mensual."
+      ],
+      "en": [
+        "The monthly amount and its breakdown animate every time you open Manage.",
+        "Long amounts fit better and no longer look like links when a seasonal theme is active.",
+        "The bar splits only services and instalments, exactly what the monthly amount adds up."
+      ],
+      "ca": [
+        "La xifra mensual i el seu repartiment s'animen cada vegada que entres a Gestionar.",
+        "Els imports llargs hi caben millor i deixen de semblar enllaços amb les temàtiques actives.",
+        "La barra reparteix només serveis i quotes, exactament el que suma la xifra mensual."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "plan-gestionar-claro",
+        "t": {
+          "es": "Gestionar recibos más claro",
+          "en": "Clearer bill management",
+          "ca": "Gestió de rebuts més clara"
+        },
+        "items": {
+          "es": [
+            "1. En Plan → Recibos, abre Gestionar: la cifra debe crecer y la barra aparecer como una ola.",
+            "2. Vuelve atrás y entra otra vez: las dos animaciones deben repetirse.",
+            "3. Comprueba que el total y los importes de cada grupo siguen siendo los mismos.",
+            "4. Activa una temática y revisa un importe largo: debe caber y no tener subrayado."
+          ],
+          "en": [
+            "1. In Plan → Bills, open Manage: the amount should count up and the bar should appear as a wave.",
+            "2. Go back and open it again: both animations should replay.",
+            "3. Check that the total and each group's amounts remain unchanged.",
+            "4. Turn on a seasonal theme and check a long amount: it should fit without an underline."
+          ],
+          "ca": [
+            "1. A Pla → Rebuts, obre Gestionar: la xifra ha de créixer i la barra ha d'aparèixer com una ona.",
+            "2. Torna enrere i entra-hi una altra vegada: les dues animacions s'han de repetir.",
+            "3. Comprova que el total i els imports de cada grup continuen sent els mateixos.",
+            "4. Activa una temàtica i revisa un import llarg: hi ha de cabre i no ha d'estar subratllat."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.30",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Gastos más limpio y fácil de revisar",
+      "en": "A cleaner, easier-to-review Expenses screen",
+      "ca": "Despeses més net i fàcil de revisar"
+    },
+    "items": {
+      "es": [
+        "Las categorías del filtro quedan detrás de una fila desplegable que indica cuántas hay seleccionadas.",
+        "El desglose mensual se abre y se pliega sin saltos, manteniendo sus límites e importes.",
+        "La ficha de un movimiento confirma con Listo y se cierra de forma fluida."
+      ],
+      "en": [
+        "Filter categories now sit behind a collapsible row that shows how many are selected.",
+        "The monthly breakdown opens and folds without jumps while keeping its limits and amounts.",
+        "A transaction detail now confirms with Done and closes smoothly."
+      ],
+      "ca": [
+        "Les categories del filtre queden darrere d'una fila desplegable que indica quantes n'hi ha seleccionades.",
+        "El desglossament mensual s'obre i es plega sense salts, mantenint els límits i els imports.",
+        "La fitxa d'un moviment confirma amb Fet i es tanca de manera fluida."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.29",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Deslizar desde el final responde a la primera",
+      "en": "Swiping from the bottom responds first time",
+      "ca": "Lliscar des del final respon a la primera"
+    },
+    "items": {
+      "es": [
+        "Un gesto horizontal corto y recto cambia de pantalla desde el final sin obligarte a insistir.",
+        "La actualización de la app quita la barra gris lateral de Android sin perder el desplazamiento ni el rebote."
+      ],
+      "en": [
+        "A short, straight horizontal gesture switches screens from the bottom without making you try again.",
+        "The app update removes Android's grey side scrollbar without losing scrolling or bounce."
+      ],
+      "ca": [
+        "Un gest horitzontal curt i recte canvia de pantalla des del final sense obligar-te a insistir.",
+        "L'actualització de l'app treu la barra grisa lateral d'Android sense perdre el desplaçament ni el rebot."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "scroll-fondo-sin-barra",
+        "t": {
+          "es": "Navegación desde el fondo sin barra",
+          "en": "Bottom navigation without a scrollbar",
+          "ca": "Navegació des del final sense barra"
+        },
+        "items": {
+          "es": [
+            "1. Comprueba en Ajustes que pone web 4.26.29 y app 4.26.29; si la app es anterior, instala la actualización ofrecida y vuelve a abrirla.",
+            "2. Baja al final de una pantalla larga y haz un gesto horizontal corto y recto: debe cambiar a la primera.",
+            "3. Desde el mismo final, empieza hacia un lado y gira hacia arriba: debe mantener el rebote sin cambiar de pantalla.",
+            "4. Recorre una pantalla larga y Ajustes: deben desplazarse sin mostrar la barra gris de la derecha."
+          ],
+          "en": [
+            "1. In Settings, check that it says web 4.26.29 and app 4.26.29; if the app is older, install the offered update and reopen it.",
+            "2. Scroll to the bottom of a long screen and make a short, straight horizontal gesture: it should switch first time.",
+            "3. From the same bottom edge, start sideways and turn upwards: the bounce should remain without switching screens.",
+            "4. Scroll through a long screen and Settings: both should move without showing the grey bar on the right."
+          ],
+          "ca": [
+            "1. Comprova a Ajustos que posa web 4.26.29 i app 4.26.29; si l'app és anterior, instal·la l'actualització oferta i torna-la a obrir.",
+            "2. Baixa al final d'una pantalla llarga i fes un gest horitzontal curt i recte: ha de canviar a la primera.",
+            "3. Des del mateix final, comença cap a un costat i gira cap amunt: ha de mantenir el rebot sense canviar de pantalla.",
+            "4. Recorre una pantalla llarga i Ajustos: s'han de desplaçar sense mostrar la barra grisa de la dreta."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.28",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Inicio cuenta solo lo que puede demostrar",
+      "en": "Home only counts what it can prove",
+      "ca": "Inici només compta el que pot demostrar"
+    },
+    "items": {
+      "es": [
+        "Ya no aparece como ganancia del mes una cifra que podía mezclar aportaciones y cambios de saldo.",
+        "La racha usa presupuestos guardados de meses cerrados y deja atrás la llama; cambiar el presupuesto actual no modifica meses anteriores."
+      ],
+      "en": [
+        "A figure that could mix contributions and balance changes is no longer shown as a monthly gain.",
+        "The streak uses saved budgets from closed months and no longer shows a flame; changing this month's budget does not alter earlier months."
+      ],
+      "ca": [
+        "Ja no es mostra com a guany del mes una xifra que podia barrejar aportacions i canvis de saldo.",
+        "La ratxa usa pressupostos desats de mesos tancats i deixa enrere la flama; canviar el pressupost actual no modifica mesos anteriors."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inicio-metricas-honestas",
+        "t": {
+          "es": "Cifras honestas en Inicio",
+          "en": "Honest figures on Home",
+          "ca": "Xifres honestes a Inici"
+        },
+        "items": {
+          "es": [
+            "1. Abre Inicio: bajo el patrimonio total no debe aparecer una ganancia verde de «este mes».",
+            "2. Mira la racha del presupuesto: no debe llevar llama; si aún no hay meses cerrados con presupuesto guardado, debe decir «Tu primer mes empieza hoy».",
+            "3. Cambia el presupuesto actual y vuelve a Inicio: la racha de meses anteriores no debe saltar."
+          ],
+          "en": [
+            "1. Open Home: no green “this month” gain should appear below total net worth.",
+            "2. Check the budget streak: it should have no flame; if no closed month has a saved budget yet, it should say “Your first month starts today”.",
+            "3. Change this month's budget and return to Home: the streak for earlier months should not jump."
+          ],
+          "ca": [
+            "1. Obre Inici: sota el patrimoni total no ha d'aparèixer cap guany verd d'«aquest mes».",
+            "2. Mira la ratxa del pressupost: no ha de portar flama; si encara no hi ha mesos tancats amb pressupost desat, ha de dir «El teu primer mes comença avui».",
+            "3. Canvia el pressupost actual i torna a Inici: la ratxa dels mesos anteriors no ha de saltar."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.27",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "El paso a paso va al grano",
+      "en": "Step by step gets to the point",
+      "ca": "El pas a pas va al gra"
+    },
+    "items": {
+      "es": [
+        "Las explicaciones ampliadas son ahora tres instrucciones cortas y numeradas.",
+        "Los saltos de línea se muestran correctamente y ya no aparece «/n» dentro del texto."
+      ],
+      "en": [
+        "Expanded explanations are now three short, numbered instructions.",
+        "Line breaks are displayed correctly and “/n” no longer appears in the text."
+      ],
+      "ca": [
+        "Les explicacions ampliades ara són tres instruccions curtes i numerades.",
+        "Els salts de línia es mostren correctament i «/n» ja no apareix dins del text."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.26",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Editar el presupuesto se siente más tranquilo",
+      "en": "Editing your budget feels calmer",
+      "ca": "Editar el pressupost se sent més tranquil"
+    },
+    "items": {
+      "es": [
+        "La ventana del presupuesto mensual entra y sale de forma más pausada, con una cifra más contenida.",
+        "Si has reducido las animaciones, se cierra al instante como hasta ahora."
+      ],
+      "en": [
+        "The monthly budget window now opens and closes at a calmer pace, with a more compact amount.",
+        "If you have reduced motion enabled, it closes instantly as before."
+      ],
+      "ca": [
+        "La finestra del pressupost mensual ara entra i surt amb més calma, amb una xifra més continguda.",
+        "Si tens reduït el moviment, es tanca a l'instant com fins ara."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.25",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Tu ahorro mensual vuelve a estar en Metas",
+      "en": "Your monthly saving is back in Goals",
+      "ca": "El teu estalvi mensual torna a ser a Metes"
+    },
+    "items": {
+      "es": [
+        "Plan → Metas vuelve a enseñar cuánto apartas cada mes y permite cambiar el concepto, el importe o el banco.",
+        "Es una planificación: no mueve dinero ni crea movimientos. También entiende importes como 1.000 y 1.200,50."
+      ],
+      "en": [
+        "Plan → Goals once again shows how much you set aside each month and lets you change the name, amount, or bank.",
+        "It is a plan: it does not move money or create transactions. It also understands amounts such as 1,000 and 1,200.50."
+      ],
+      "ca": [
+        "Pla → Metes torna a mostrar quant apartes cada mes i permet canviar el concepte, l'import o el banc.",
+        "És una planificació: no mou diners ni crea moviments. També entén imports com 1.000 i 1.200,50."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.24",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Desliza entre pantallas también desde el final",
+      "en": "Swipe between screens even from the bottom",
+      "ca": "Llisca entre pantalles també des del final"
+    },
+    "items": {
+      "es": [
+        "Al llegar al final de una pantalla, un gesto horizontal claro vuelve a cambiar de pestaña sin obligarte a subir antes.",
+        "El rebote vertical de Android sigue funcionando y las barras laterales dejan de verse, también en Ajustes."
+      ],
+      "en": [
+        "At the bottom of a screen, a clear horizontal gesture switches tabs again without making you scroll up first.",
+        "Android's vertical bounce still works, and side scrollbars are no longer visible, including in Settings."
+      ],
+      "ca": [
+        "En arribar al final d'una pantalla, un gest horitzontal clar torna a canviar de pestanya sense obligar-te a pujar abans.",
+        "El rebot vertical d'Android continua funcionant i les barres laterals deixen de veure's, també a Ajustos."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.23",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Pregúntame responde corto y te lleva al sitio",
+      "en": "Ask me answers briefly and takes you there",
+      "ca": "Pregunta'm respon breu i et porta al lloc"
+    },
+    "items": {
+      "es": [
+        "Pregúntame da primero una respuesta corta y un botón para ir directamente a la pantalla adecuada; el paso a paso solo aparece si se pide.",
+        "Añadir efectivo lleva a Cuentas, mientras que apuntar una compra en efectivo lleva a Apuntar.",
+        "La ayuda con OpenAI sigue siendo opcional: solo se usa al pedir más ayuda y nunca envía saldos ni movimientos."
+      ],
+      "en": [
+        "Ask me starts with a short answer and a button that opens the right screen; step-by-step details only appear when requested.",
+        "Adding cash opens Accounts, while recording a cash purchase opens Add.",
+        "OpenAI help remains optional: it is only used when more help is requested and never sends balances or transactions."
+      ],
+      "ca": [
+        "Pregunta'm mostra primer una resposta breu i un botó que obre la pantalla adequada; el pas a pas només apareix quan es demana.",
+        "Afegir efectiu obre Comptes, mentre que apuntar una compra en efectiu obre Apuntar.",
+        "L'ajuda amb OpenAI continua sent opcional: només s'usa quan es demana més ajuda i mai no envia saldos ni moviments."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.17",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "El histórico distingue cuentas y explica los ceros",
+      "en": "History separates accounts and explains empty results",
+      "ca": "L'històric separa comptes i explica els resultats buits"
+    },
+    "items": {
+      "es": [
+        "Al importar el histórico, los cargos iguales que proceden de dos cuentas distintas del mismo banco ya se conservan por separado.",
+        "Un cargo pendiente y su versión contabilizada de la misma cuenta siguen siendo un solo movimiento.",
+        "Si el banco solo comparte movimientos que ya estaban apuntados, ahora se muestra cuántas cuentas y movimientos entregó y se pueden abrir directamente en Gastos, con el periodo completo y ese banco filtrado. La actualización diaria no cambia."
+      ],
+      "en": [
+        "When importing history, matching charges from two different accounts at the same bank are now kept separately.",
+        "A pending charge and its booked version from the same account remain a single transaction.",
+        "If the bank only shares transactions that were already logged, the app now shows how many accounts and transactions it supplied and can open them directly in Spending, with the full period and that bank selected. Daily updates are unchanged."
+      ],
+      "ca": [
+        "En importar l'històric, els càrrecs iguals que venen de dos comptes diferents del mateix banc ara es conserven per separat.",
+        "Un càrrec pendent i la seva versió comptabilitzada del mateix compte continuen sent un sol moviment.",
+        "Si el banc només comparteix moviments que ja estaven apuntats, ara es mostra quants comptes i moviments ha lliurat i es poden obrir directament a Despeses, amb el període complet i aquest banc filtrat. L'actualització diària no canvia."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.16",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Inversiones entra y vuelve contigo",
+      "en": "Investments moves in and back with you",
+      "ca": "Inversions entra i torna amb tu"
+    },
+    "items": {
+      "es": [
+        "La pantalla completa de Inversiones entra de lado, como una página, en lugar de aparecer de golpe.",
+        "Para volver, puedes usar el botón o deslizar hacia la derecha desde cualquier punto de la pantalla: acompaña el dedo y solo se cierra si completas el gesto."
+      ],
+      "en": [
+        "The full Investments screen now slides in like a page instead of appearing all at once.",
+        "To go back, use the button or swipe right from anywhere on the screen: it follows your finger and closes only when you complete the gesture."
+      ],
+      "ca": [
+        "La pantalla completa d'Inversions entra de costat, com una pàgina, en lloc d'aparèixer de cop.",
+        "Per tornar, pots usar el botó o lliscar cap a la dreta des de qualsevol punt de la pantalla: acompanya el dit i només es tanca si completes el gest."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inversiones-ficha-fluida",
+        "t": {
+          "es": "Entrada lateral y gesto para volver",
+          "en": "Side entry and back gesture",
+          "ca": "Entrada lateral i gest per tornar"
+        },
+        "items": {
+          "es": [
+            "1. En Cartera, toca «Ver todas tus inversiones»: la pantalla debe entrar suavemente desde la derecha, sin aparecer de golpe.",
+            "2. Desliza un poco hacia la derecha desde el centro de la pantalla y vuelve atrás: debe seguir el dedo y regresar a su sitio sin cerrarse.",
+            "3. Repite el gesto hasta más de un cuarto de pantalla: debe cerrarse hacia la derecha y dejar Cartera lista para seguir usándola."
+          ],
+          "en": [
+            "1. In Portfolio, tap See all your investments: the screen should slide in smoothly from the right instead of appearing all at once.",
+            "2. Swipe a short way to the right from the middle of the screen, then move back: it should follow your finger and return to place without closing.",
+            "3. Repeat past a quarter of the screen: it should close to the right and leave Portfolio ready to use."
+          ],
+          "ca": [
+            "1. A Cartera, toca «Veure totes les inversions»: la pantalla ha d'entrar suaument des de la dreta, sense aparèixer de cop.",
+            "2. Llisca una mica cap a la dreta des del centre de la pantalla i torna enrere: ha de seguir el dit i tornar al seu lloc sense tancar-se.",
+            "3. Repeteix el gest fins més d'un quart de pantalla: s'ha de tancar cap a la dreta i deixar Cartera a punt per continuar."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.15",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Actualizar inversiones cuenta toda la verdad",
+      "en": "Investment updates tell the whole story",
+      "ca": "L'actualització d'inversions ho explica tot"
+    },
+    "items": {
+      "es": [
+        "Actualizar inversiones consulta primero Trade Republic y MyInvestor y después pone al día las cotizaciones.",
+        "Si una conexión ha caducado o no responde, el aviso lo dice aunque los precios sí se hayan actualizado; si no hay ningún bróker conectado, también lo deja claro."
+      ],
+      "en": [
+        "Update investments checks Trade Republic and MyInvestor first, then refreshes market quotes.",
+        "If a connection has expired or does not respond, the message says so even when prices were updated; it also makes clear when no broker is connected."
+      ],
+      "ca": [
+        "Actualitzar inversions consulta primer Trade Republic i MyInvestor i després posa al dia les cotitzacions.",
+        "Si una connexió ha caducat o no respon, l'avís ho diu encara que els preus sí que s'hagin actualitzat; si no hi ha cap bròker connectat, també ho deixa clar."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.14",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Tu beneficio, en euros y porcentaje",
+      "en": "Your gain, in euros and percent",
+      "ca": "El teu guany, en euros i percentatge"
+    },
+    "items": {
+      "es": [
+        "En la portada de Cartera, cada posición muestra cuánto ha ganado o perdido en euros y en porcentaje, antes de abrir Ver todas.",
+        "Si falta el coste o el valor actual de una posición, Aely no inventa su rentabilidad."
+      ],
+      "en": [
+        "On the Portfolio overview, each position shows how much it has gained or lost in euros and as a percentage before you open See all.",
+        "If a position is missing its cost or current value, Aely does not invent its return."
+      ],
+      "ca": [
+        "A la portada de Cartera, cada posició mostra quant ha guanyat o perdut en euros i en percentatge, abans d'obrir Veure totes les inversions.",
+        "Si falta el cost o el valor actual d'una posició, Aely no n'inventa la rendibilitat."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.13",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Adiós a los candados",
+      "en": "No more lock icons",
+      "ca": "Adéu als cadenats"
+    },
+    "items": {
+      "es": [
+        "Los iconos de candado desaparecen de cuentas, reconexiones, huella y privacidad. Las protecciones siguen intactas: el saldo que trae el banco continúa sin poder editarse y el acceso protegido funciona igual."
+      ],
+      "en": [
+        "Lock icons disappear from accounts, reconnection, fingerprint and privacy. The protections stay intact: a balance supplied by the bank still cannot be edited, and protected access works as before."
+      ],
+      "ca": [
+        "Les icones de cadenat desapareixen dels comptes, la reconnexió, l'empremta i la privacitat. Les proteccions continuen intactes: un saldo que porta el banc encara no es pot editar i l'accés protegit funciona igual."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.12",
+    "d": "23 sep 2026",
+    "t": {
+      "es": "Fichas, recibos, Plan e Inversiones renovados",
+      "en": "Redesigned details, bills, Plan and Investments",
+      "ca": "Fitxes, rebuts, Pla i Inversions renovats"
+    },
+    "items": {
+      "es": [
+        "Los gastos y las cuentas tienen fichas más claras, y ahora puedes deshacer un borrado durante cinco segundos.",
+        "Gestionar recibos es más directo y Pregúntame te guía incluso sin conexión, sin apuntar ni mover dinero por su cuenta.",
+        "Plan separa lo pagado de lo pendiente e Inversiones deja la ganancia en blanco (—) si faltan datos, en vez de inventarla."
+      ],
+      "en": [
+        "Expenses and accounts have clearer details, and you can now undo a deletion for five seconds.",
+        "Managing bills is more direct, and Ask me guides you even when offline without recording or moving money on its own.",
+        "Plan separates paid and pending bills, while Investments leaves the gain blank (—) when data is missing instead of guessing it."
+      ],
+      "ca": [
+        "Les despeses i els comptes tenen fitxes més clares, i ara pots desfer una eliminació durant cinc segons.",
+        "Gestionar rebuts és més directe i Pregunta’m et guia fins i tot sense connexió, sense apuntar ni moure diners pel seu compte.",
+        "Pla separa el que ja està pagat del que queda pendent i Inversions deixa el guany en blanc (—) si falten dades, en lloc d'inventar-lo."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.11",
+    "d": "22 sep 2026",
+    "t": {
+      "es": "Ajustes se abre con más suavidad",
+      "en": "Settings opens more smoothly",
+      "ca": "Ajustos s'obre amb més suavitat"
+    },
+    "items": {
+      "es": [
+        "Al abrir Ajustes deslizando desde Inicio, el panel empieza a moverse sin dar un salto y acompaña el dedo."
+      ],
+      "en": [
+        "When you swipe from Home to open Settings, the panel starts moving without a jump and follows your finger."
+      ],
+      "ca": [
+        "En lliscar des d'Inici per obrir Ajustos, el panell comença a moure's sense fer cap salt i segueix el dit."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.10",
+    "d": "22 sep 2026",
+    "t": {
+      "es": "Nuevos colores: Cyberpunk, Otoño y Primavera",
+      "en": "New looks: Cyberpunk, Autumn and Spring",
+      "ca": "Colors nous: Cyberpunk, Tardor i Primavera"
+    },
+    "items": {
+      "es": [
+        "Nuevo tema de color Cyberpunk, con neón rosa y cian sobre fondo oscuro; lo que gastas y lo que entra se sigue leyendo en rojo y verde.",
+        "Dos temáticas nuevas, Otoño y Primavera, en Ajustes → Apariencia."
+      ],
+      "en": [
+        "New Cyberpunk colour theme, with pink and cyan neon on a dark background; spending and income still read in red and green.",
+        "Two new themes, Autumn and Spring, in Settings → Look & feel."
+      ],
+      "ca": [
+        "Nou tema de color Cyberpunk, amb neó rosa i cian sobre fons fosc; el que gastes i el que entra es continua llegint en vermell i verd.",
+        "Dues temàtiques noves, Tardor i Primavera, a Ajustos → Aparença."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.9",
+    "d": "17 sep 2026",
+    "t": {
+      "es": "Plan más directo y fichas de gastos más suaves",
+      "en": "A more direct Plan and smoother expense details",
+      "ca": "Un Pla més directe i fitxes de despeses més suaus"
+    },
+    "items": {
+      "es": [
+        "La vista normal de Plan vuelve a enseñar primero lo pendiente, lo pagado y las listas, sin ocupar la pantalla con un resumen gigante.",
+        "Gestionar recibos conserva el editor nuevo y responde mejor al llegar al principio o al final de la pantalla.",
+        "Abrir, recorrer y cerrar un gasto o Apuntar se siente más continuo, también al desplegar todas las categorías."
+      ],
+      "en": [
+        "The normal Plan view once again puts pending, paid and list information first, without filling the screen with an oversized summary.",
+        "Manage bills keeps the new editor and responds better when reaching the top or bottom of the screen.",
+        "Opening, browsing and closing an expense or Add feels smoother, including when expanding all categories."
+      ],
+      "ca": [
+        "La vista normal de Pla torna a ensenyar primer el que queda pendent, el que ja està pagat i les llistes, sense ocupar la pantalla amb un resum gegant.",
+        "Gestionar rebuts conserva l'editor nou i respon millor en arribar al principi o al final de la pantalla.",
+        "Obrir, recórrer i tancar una despesa o Apuntar se sent més continu, també en desplegar totes les categories."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.8",
+    "d": "17 sep 2026",
+    "t": {
+      "es": "Un Plan más claro para llegar tranquilo a fin de mes",
+      "en": "A clearer Plan for reaching month-end with confidence",
+      "ca": "Un Pla més clar per arribar tranquil a final de mes"
+    },
+    "items": {
+      "es": [
+        "Plan separa lo ya pagado de lo pendiente y muestra los importes reales; si hay varias cuentas, destaca la que necesita más atención.",
+        "Los recibos sin día y los meses ya pagados se explican sin fechas inventadas, y un saldo desconocido nunca se presenta como cero.",
+        "Gestionar recibos vive también en Ajustes → Dinero, con alta y edición más cómodas para teclado, lector de pantalla y navegación Atrás."
+      ],
+      "en": [
+        "Plan separates what is already paid from what is still pending and shows real amounts; with several accounts, it highlights the one needing the most attention.",
+        "Bills without a due day and fully paid months are explained without made-up dates, and an unknown balance is never shown as zero.",
+        "Manage bills is also available in Settings → Money, with easier adding and editing for keyboards, screen readers and Back navigation."
+      ],
+      "ca": [
+        "Pla separa el que ja està pagat del que queda pendent i mostra els imports reals; si hi ha diversos comptes, destaca el que necessita més atenció.",
+        "Els rebuts sense dia i els mesos ja pagats s'expliquen sense dates inventades, i un saldo desconegut mai es presenta com a zero.",
+        "Gestionar rebuts també és a Ajustos → Diners, amb una alta i edició més còmodes per a teclat, lector de pantalla i navegació Enrere."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.7",
+    "d": "17 sep 2026",
+    "t": {
+      "es": "Inversiones completas y cifras honestas",
+      "en": "Complete investments with honest figures",
+      "ca": "Inversions completes i xifres honestes"
+    },
+    "items": {
+      "es": [
+        "Si falta el coste de una sola posición, la ganancia total muestra — hasta completarlo: nunca calcula una rentabilidad con media cartera.",
+        "Añadir posición abre ya el formulario completo y permite elegir bróker, nombre, valor, aportado y moneda.",
+        "El detalle y Saveback funcionan mejor con teclado y lector de pantalla, y actualizar precios confirma la hora del último resultado."
+      ],
+      "en": [
+        "If even one position is missing its cost, total gain shows — until it is completed: returns are never calculated from only part of the portfolio.",
+        "Add position now opens the complete form for broker, name, value, amount invested and currency.",
+        "Details and Saveback work better with keyboards and screen readers, and refreshing prices confirms the time of the latest result."
+      ],
+      "ca": [
+        "Si falta el cost d'una sola posició, el guany total mostra — fins a completar-lo: mai calcula una rendibilitat amb mitja cartera.",
+        "Afegir posició ja obre el formulari complet i permet triar bròquer, nom, valor, aportat i moneda.",
+        "El detall i Saveback funcionen millor amb teclat i lector de pantalla, i actualitzar preus confirma l'hora de l'últim resultat."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.6",
+    "d": "17 sep 2026",
+    "t": {
+      "es": "Bancos más fiables, sin gastos repetidos",
+      "en": "More reliable banks, without repeated expenses",
+      "ca": "Bancs més fiables, sense despeses repetides"
+    },
+    "items": {
+      "es": [
+        "Al buscar movimientos antiguos, cada banco dispone de su propio tiempo de lectura: uno lento ya no deja al siguiente sin turno.",
+        "Una misma compra recibida desde Trade Republic y Wallet ya no se apunta dos veces; si existe una duda real, Aely la aparta del total para que puedas decidir.",
+        "Los avisos distinguen ahora entre un banco sin movimientos y una lectura incompleta, sin mostrar ni guardar datos privados en el diagnóstico."
+      ],
+      "en": [
+        "When searching older transactions, each bank gets its own reading time, so a slow bank cannot deprive the next one of its turn.",
+        "The same purchase received from Trade Republic and Wallet is no longer recorded twice; when there is genuine doubt, Aely keeps it out of the total for you to decide.",
+        "Messages now distinguish a bank with no transactions from an incomplete read, without showing or storing private data in diagnostics."
+      ],
+      "ca": [
+        "En cercar moviments antics, cada banc disposa del seu propi temps de lectura: un banc lent ja no deixa el següent sense torn.",
+        "La mateixa compra rebuda des de Trade Republic i Wallet ja no s'apunta dues vegades; si hi ha un dubte real, Aely l'aparta del total perquè puguis decidir.",
+        "Els avisos distingeixen ara entre un banc sense moviments i una lectura incompleta, sense mostrar ni desar dades privades al diagnòstic."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.5",
+    "d": "17 sep 2026",
+    "t": {
+      "es": "Pantallas vacías que ayudan de verdad",
+      "en": "Empty screens that genuinely help",
+      "ca": "Pantalles buides que ajuden de debò"
+    },
+    "items": {
+      "es": [
+        "Cuando todavía no hay recibos o inversiones, Aely explica qué falta y ofrece el botón adecuado para empezar.",
+        "Reducir animaciones muestra las cifras finales directamente y evita también los indicadores que giran."
+      ],
+      "en": [
+        "When there are no bills or investments yet, Aely explains what is missing and offers the right button to get started.",
+        "Reduce motion shows final figures immediately and also stops spinning indicators."
+      ],
+      "ca": [
+        "Quan encara no hi ha rebuts o inversions, Aely explica què falta i ofereix el botó adequat per començar.",
+        "Reduir animacions mostra les xifres finals directament i també atura els indicadors que giren."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.4",
+    "d": "17 sep 2026",
+    "t": {
+      "es": "Tus inversiones, claras y al día",
+      "en": "Your investments, clear and up to date",
+      "ca": "Les teves inversions, clares i al dia"
+    },
+    "items": {
+      "es": [
+        "Inversiones estrena una pantalla más clara con la cartera, el coste y la ganancia sin inventar cifras cuando falta información.",
+        "Cada bróker conserva sus posiciones, efectivo y edición manual, con avisos claros si los precios están antiguos o no se pueden actualizar.",
+        "Las herramientas de precios y proyección están ahora en Ajustes, y Redondeo y Saveback siguen en Cartera."
+      ],
+      "en": [
+        "Investments has a clearer screen for portfolio value, cost and gain, without inventing figures when information is missing.",
+        "Each broker keeps its positions, cash and manual editing, with clear notices when prices are old or cannot be refreshed.",
+        "Price and projection tools are now in Settings, while Roundup and Saveback remain in Portfolio."
+      ],
+      "ca": [
+        "Inversions estrena una pantalla més clara amb la cartera, el cost i el guany, sense inventar xifres quan falta informació.",
+        "Cada bròquer conserva les posicions, l'efectiu i l'edició manual, amb avisos clars si els preus són antics o no es poden actualitzar.",
+        "Les eines de preus i projecció són ara a Ajustos, i Arrodoniment i Saveback continuen a Cartera."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.3",
+    "d": "16 sep 2026",
+    "t": {
+      "es": "Pregúntame, ayuda clara dentro de Aely",
+      "en": "Ask me, clear help inside Aely",
+      "ca": "Pregunta'm, ajuda clara dins d'Aely"
+    },
+    "items": {
+      "es": [
+        "Pregúntame responde incluso sin conexión a dudas sobre presupuesto, recibos, cuentas y cómo usar la app.",
+        "Cada respuesta puede abrir la pantalla adecuada, pero nunca apunta, borra ni sincroniza dinero por su cuenta.",
+        "La ayuda avanzada es opcional: solo puede enviar a OpenAI la pregunta escrita, nunca saldos ni movimientos, y se puede apagar desde Ajustes."
+      ],
+      "en": [
+        "Ask me answers questions about budget, bills, accounts and using the app, even without a connection.",
+        "Each answer can open the right screen, but it never records, deletes or syncs money on its own.",
+        "Advanced help is optional: it may send only the typed question to OpenAI, never balances or transactions, and it can be turned off in Settings."
+      ],
+      "ca": [
+        "Pregunta'm respon fins i tot sense connexió dubtes sobre pressupost, rebuts, comptes i com fer servir l'app.",
+        "Cada resposta pot obrir la pantalla adequada, però mai apunta, esborra ni sincronitza diners tota sola.",
+        "L'ajuda avançada és opcional: només pot enviar a OpenAI la pregunta escrita, mai saldos ni moviments, i es pot apagar des d'Ajustos."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.2",
+    "d": "16 sep 2026",
+    "t": {
+      "es": "Tus recibos, claros y rápidos",
+      "en": "Your bills, clear and fast",
+      "ca": "Els teus rebuts, clars i ràpids"
+    },
+    "items": {
+      "es": [
+        "Gestionar recibos abre una pantalla clara y mucho más rápida, con buscador, grupos y fichas que guardan al momento.",
+        "Añadir un recibo se hace paso a paso y, al quitarlo, hay cinco segundos para deshacer.",
+        "La comparación con los cargos reales está ahora en Mis bancos, junto al banco que se quiere revisar."
+      ],
+      "en": [
+        "Managing bills opens a clear, much faster screen with search, groups and sheets that save immediately.",
+        "Adding a bill is now step by step, and removing one gives five seconds to undo.",
+        "The comparison with real charges now lives in My banks, next to the bank being reviewed."
+      ],
+      "ca": [
+        "Gestionar rebuts obre una pantalla clara i molt més ràpida, amb cercador, grups i fitxes que desen al moment.",
+        "Afegir un rebut es fa pas a pas i, en treure'l, hi ha cinc segons per desfer-ho.",
+        "La comparació amb els càrrecs reals és ara a Els meus bancs, al costat del banc que es vol revisar."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.1",
+    "d": "16 sep 2026",
+    "t": {
+      "es": "Cada cuenta tiene su propia ficha",
+      "en": "Every account has its own sheet",
+      "ca": "Cada compte té la seva pròpia fitxa"
+    },
+    "items": {
+      "es": [
+        "Cada cuenta tiene una ficha clara para consultar su saldo, renombrarla, elegir para qué se usa y ver sus últimos movimientos."
+      ],
+      "en": [
+        "Each account has a clear sheet to check its balance, rename it, choose how it is used and see its latest transactions."
+      ],
+      "ca": [
+        "Cada compte té una fitxa clara per consultar-ne el saldo, canviar-ne el nom, triar per a què es fa servir i veure'n els últims moviments."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.0",
+    "d": "16 sep 2026",
+    "t": {
+      "es": "Apuntar y modificar ya hablan el mismo idioma",
+      "en": "Adding and editing now share the same flow",
+      "ca": "Apuntar i modificar ja parlen el mateix idioma"
+    },
+    "items": {
+      "es": [
+        "Apuntar y abrir un gasto comparten ahora el mismo orden, teclado y categorías; la ficha enseña claramente banco, efectivo y fecha.",
+        "Los movimientos traídos por el banco explican de dónde salieron y mantienen bloqueados su importe y su cuenta.",
+        "Al borrar un gasto hay cinco segundos para deshacerlo y recuperarlo exactamente como estaba."
+      ],
+      "en": [
+        "Adding and opening an expense now share the same order, keypad and categories; the sheet clearly shows bank, cash and date.",
+        "Transactions brought in by the bank explain where they came from and keep their amount and account locked.",
+        "After deleting an expense, there are five seconds to undo and recover it exactly as it was."
+      ],
+      "ca": [
+        "Apuntar i obrir una despesa comparteixen ara el mateix ordre, teclat i categories; la fitxa mostra clarament banc, efectiu i data.",
+        "Els moviments portats pel banc expliquen d'on han sortit i mantenen bloquejats l'import i el compte.",
+        "En esborrar una despesa hi ha cinc segons per desfer-ho i recuperar-la exactament com estava."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.25.11",
     "d": "24 sep 2026",
     "t": {
@@ -227,18 +1520,9 @@
       "ca": "El pressupost s'edita amb més calma"
     },
     "items": {
-      "es": [
-        "El editor del presupuesto mensual se abre y se cierra de forma más suave.",
-        "La cifra ocupa menos espacio para que se lea bien también en pantallas estrechas."
-      ],
-      "en": [
-        "The monthly budget editor now opens and closes more smoothly.",
-        "The amount takes up less room, so it remains easy to read on narrow screens."
-      ],
-      "ca": [
-        "L'editor del pressupost mensual ara s'obre i es tanca de manera més suau.",
-        "La xifra ocupa menys espai perquè també es llegeixi bé en pantalles estretes."
-      ]
+      "es": ["El editor del presupuesto mensual se abre y se cierra de forma más suave.", "La cifra ocupa menos espacio para que se lea bien también en pantallas estrechas."],
+      "en": ["The monthly budget editor now opens and closes more smoothly.", "The amount takes up less room, so it remains easy to read on narrow screens."],
+      "ca": ["L'editor del pressupost mensual ara s'obre i es tanca de manera més suau.", "La xifra ocupa menys espai perquè també es llegeixi bé en pantalles estretes."]
     },
     "tandas": []
   },
@@ -251,18 +1535,9 @@
       "ca": "L'estalvi mensual torna a ser a Metes"
     },
     "items": {
-      "es": [
-        "Plan → Metas vuelve a enseñar cuánto apartas al mes y permite editar, añadir o quitar aportaciones.",
-        "Es una planificación para calcular cuándo alcanzas tus metas: no crea movimientos ni cambia saldos reales."
-      ],
-      "en": [
-        "Plan → Goals once again shows how much you set aside each month and lets you edit, add or remove contributions.",
-        "It is a plan for estimating when you reach your goals: it does not create transactions or change real balances."
-      ],
-      "ca": [
-        "Pla → Metes torna a mostrar quant apartes cada mes i permet editar, afegir o treure aportacions.",
-        "És una planificació per calcular quan arribes a les metes: no crea moviments ni canvia saldos reals."
-      ]
+      "es": ["Plan → Metas vuelve a enseñar cuánto apartas al mes y permite editar, añadir o quitar aportaciones.", "Es una planificación para calcular cuándo alcanzas tus metas: no crea movimientos ni cambia saldos reales."],
+      "en": ["Plan → Goals once again shows how much you set aside each month and lets you edit, add or remove contributions.", "It is a plan for estimating when you reach your goals: it does not create transactions or change real balances."],
+      "ca": ["Pla → Metes torna a mostrar quant apartes cada mes i permet editar, afegir o treure aportacions.", "És una planificació per calcular quan arribes a les metes: no crea moviments ni canvia saldos reals."]
     },
     "tandas": []
   },
@@ -284,7 +1559,7 @@
         "If its cost or current value is missing, Aely leaves the return uncalculated instead of making up a figure."
       ],
       "ca": [
-        "En desplegar un bróker a Cartera, cada posició mostra quant ha guanyat o perdut en euros i en percentatge.",
+        "En desplegar un bròquer a Cartera, cada posició mostra quant ha guanyat o perdut en euros i en percentatge.",
         "Si falta el cost o el valor actual, Aely deixa la rendibilitat sense calcular en lloc d'inventar una xifra."
       ]
     },

@@ -10,55 +10,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ebApi, ebConfig, jsonResp, makeJWT, mapTransaction, fetchBankTransactions } from "../_shared/enablebanking.ts";
 import { withCors } from "../_shared/cors.ts";
 
-// Diagnóstico del «Movimiento» sin comercio ni concepto que salía como ingreso siendo un gasto
-// (feedback 2026-08-01, Trade Republic por Open Banking). `mapTransaction` solo tiene el
-// `credit_debit_indicator` del banco para decidir el signo — si un ASPSP lo manda mal para
-// ciertos movimientos, no hay forma de arreglarlo sin ver el payload real. Mejor registrar el
-// caso (ambiguo, o TODO Trade Republic mientras se cierra el signo) que adivinar y arriesgarse a
-// invertir un ingreso de verdad para otro banco que sí cumple la spec.
-// ⚠ 2026-08-03: el usuario sigue viendo gastos de TR contados como ingresos tras el fix de abs()
-// (commit anterior) — ese fix protege de un doble-signo, pero si el ASPSP manda el
-// `credit_debit_indicator` YA MAL para ciertos movimientos (p.ej. los ligados a la tarjeta/cash
-// de un bróker), abs() no lo arregla. En vez de adivinar OTRA VEZ sin datos (mismo error que costó
-// 7 alphas en la saga TR-en-frío, ver memoria `tr-frio-saga`), esto registra el payload CRUDO de
-// CUALQUIER movimiento de Trade Republic —tenga o no comercio/concepto— para diagnosticarlo con
-// certeza en cuanto el usuario sincronice una vez más. Quitar el `siempreTR` cuando se cierre.
-// deno-lint-ignore no-explicit-any
-async function logObAmbiguous(admin: any, userId: string, aspsp: string, raw: any[]) {
-  try {
-    const siempreTR = /trade republic|traderepublic/i.test(String(aspsp || ""));
-    // deno-lint-ignore no-explicit-any
-    const sospechosos = (raw || []).filter((t: any) => {
-      if (siempreTR) return true;
-      const remit = Array.isArray(t?.remittance_information) ? t.remittance_information.join(" ") : (t?.remittance_information || "");
-      const nombre = t?.debtor?.name || t?.creditor?.name || "";
-      return !remit && !nombre;
-    }).slice(0, 8);
-    if (!sospechosos.length) return;
-    // ⚠ 2026-08-03 (ronda 2): el diagnóstico anterior solo guardaba 6 campos curados y para TR
-    // TODOS salían null salvo importe/signo/fecha — no bastaba para saber si `entry_reference`
-    // existe (dedup), qué distingue un roundup/cashback de un gasto real, ni si un "ingreso" y un
-    // "gasto" del mismo importe en días distintos son dos apuntes reales de TR (round-up/cashback
-    // que entra en el saldo + ese mismo dinero auto-invertido) o un fallo nuestro. Para TR se manda
-    // el objeto CRUDO tal cual lo da Enable Banking, sin filtrar ningún campo — una sola vez, hasta
-    // cerrar esto con certeza (quitar cuando se cierre, igual que el `siempreTR` de arriba).
-    const detail = siempreTR
-      ? JSON.stringify(sospechosos)
-      : JSON.stringify(sospechosos.map((t: any) => ({
-          amt: t?.transaction_amount?.amount, ind: t?.credit_debit_indicator,
-          code: t?.bank_transaction_code?.description || t?.bank_transaction_code || null, status: t?.status,
-          remit: Array.isArray(t?.remittance_information) ? t.remittance_information.join(" ") : (t?.remittance_information || null),
-          creditor: t?.creditor?.name || null, debtor: t?.debtor?.name || null,
-          date: t?.booking_date || t?.value_date || null,
-        })));
-    await admin.from("app_events").insert({
-      user_id: userId, email: null, kind: "error",
-      message: `OB (${aspsp}): ${sospechosos.length} movimiento(s) — payload ${siempreTR ? "CRUDO completo" : "para revisar el signo"}`,
-      detail: detail.slice(0, 8000),
-      app_version: "edge", platform: "server",
-    });
-  } catch (_) { /* best-effort: nunca rompe el sync */ }
-}
+/* Los movimientos crudos no salen a `app_events`. El diagnóstico temporal del signo de TR
+   guardaba hasta ocho payloads completos y seguía activo el 23/9, cuando apareció en telemetría
+   durante una sincronización normal. Ese caso ya tiene una regresión con los datos mínimos que
+   demostraron su forma (`hist-cashback-par`); soporte conserva debajo solo clases y recuentos
+   cerrados, nunca importes, comercios, fechas, referencias ni titulares. */
 
 /* El cliente recibe un código estable, pero soporte necesita distinguir un 401 de un 503 sin
    guardar el texto crudo del proveedor: ese mensaje puede traer referencias o datos bancarios.
@@ -79,6 +35,24 @@ async function logObReadFailure(admin: any, userId: string, aspsp: string, err: 
       user_id: userId, email: null, kind: "error",
       message: `OB histórico (${String(aspsp || "banco").slice(0, 80)}): lectura no disponible`,
       detail: JSON.stringify({ code: obReadFailureCode(err) }),
+      app_version: "edge", platform: "server",
+    });
+  } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
+}
+
+// Diagnóstico cerrado del resultado, sin uid/IBAN/movimientos/importes. Hace falta distinguir
+// «Caixa respondió vacío» de «no llegó a leer» sin pedir capturas privadas a la familia.
+// deno-lint-ignore no-explicit-any
+async function logObHistoryResult(admin: any, userId: string, aspsp: string, dateFrom: string, accounts: any[], elapsedMs: number) {
+  try {
+    const count = (accounts || []).reduce((n, a) => n + (typeof a?.count === "number" ? a.count : (a?.transactions || []).length), 0);
+    const failed = (accounts || []).filter((a) => a?.ok === false).length;
+    const partial = !(accounts || []).length || failed > 0 || (accounts || []).some((a) => !!(a?.truncated || a?.transactionError));
+    const status = partial ? (count ? "partial" : "error") : (count ? "ok" : "empty");
+    await admin.from("app_events").insert({
+      user_id: userId, email: null, kind: "performance",
+      message: `OB histórico (${String(aspsp || "banco").slice(0, 80)}): ${status}`,
+      detail: JSON.stringify({ status, accounts: (accounts || []).length, count, partial, elapsedMs: Math.max(0, Math.round(elapsedMs)), dateFrom }),
       app_version: "edge", platform: "server",
     });
   } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
@@ -130,16 +104,15 @@ Deno.serve(withCors(async (req: Request) => {
     const jwt = await makeJWT(appId, pem);
 
     if (dateFrom) {
-      /* Cada enlace tiene SU presupuesto y arranca a la vez. Antes los bancos iban en fila con
-         un deadline común de 60 s: un Sabadell lento/429 podía gastarlo entero y Caixa quedaba
-         marcada como timeout sin haber recibido ni una llamada. Paralelizar enlaces no añade
-         sincronizaciones automáticas: sigue siendo una sola búsqueda pedida por la persona. */
+      /* El cliente actual manda UN enlace por invocación para que cada banco estrene estos 60 s,
+         sin abrir sesiones PSD2 simultáneas. La cola de abajo se conserva por compatibilidad con
+         clientes anteriores, pero en ellos los enlaces posteriores a uno lento pueden agotar el
+         reloj común y quedan declarados como timeout, nunca como cero movimientos. */
       const readHistoryLink = async (link: any) => {
-        /* Los bancos ya corren en paralelo, así que cada uno puede usar el presupuesto REAL de la
-           petición sin volver a dejar al siguiente en cola. Los 15 s de la primera versión se
-           dividían además entre las cuentas del enlace: una Caixa con dos cuentas recibía apenas
-           7,5 s por cuenta y caía antes de terminar la primera página del histórico. Se reserva el
-           mismo margen de 5 s para serializar y devolver todo lo que sí haya llegado. */
+        const startedAt = Date.now();
+        /* Dentro del banco, los 15 s de la primera versión se dividían además entre sus cuentas:
+           una Caixa con dos recibía apenas 7,5 s por cuenta y caía antes de terminar la primera
+           página. Se reservan 5 s para diagnóstico, serialización y respuesta. */
         const linkDeadline = deadline - 5000;
         // deno-lint-ignore no-explicit-any
         const acctList: any[] = (Array.isArray(link.accounts) && link.accounts.length)
@@ -171,6 +144,7 @@ Deno.serve(withCors(async (req: Request) => {
             accts.push({ uid, iban: ac.iban || null, ok: false, error: obReadFailureCode(err), transactions: [] });
           }
         }
+        await logObHistoryResult(admin, user.id, link.aspsp_name, dateFrom, accts, Date.now() - startedAt);
         return { aspsp: link.aspsp_name, iban: link.iban, ok: accts.some(a => a.ok), accounts: accts };
       };
       /* Cola ESTRICTA: dos bancos a la vez dispararon el propio 429 en Caixa y Sabadell. Una
@@ -237,7 +211,6 @@ Deno.serve(withCors(async (req: Request) => {
           acctOut.push({ uid, iban: ac.iban || null, name: ac.name || null, currency: ac.currency || null, ok: true, balances,
             count: transactions.length, transactions, truncated: tx.truncated, transactionError: tx.transactionError });
           anyAcctOk = true;
-          logObAmbiguous(admin, user.id, link.aspsp_name, tx.transactions || []);
         } catch (err) {
           const msg = String((err as Error)?.message || err);
           // CADUCIDAD REAL vs FALLO TRANSITORIO (feedback 2026-07-17: «se me caen cada dos por

@@ -140,7 +140,6 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,4);
   const recent=(state.expenses||[]).slice().sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); }).slice(0,3);
   const p=eurParts(shownNet);
-  const ringC=2*Math.PI*48;
   const ringPct=Math.max(0,Math.min(1,ratio));
   /* P6 — EL ANILLO SE DIBUJA, NO APARECE YA LLENO.
      El circulo recibia el `strokeDashoffset` FINAL y una `transition` de 1s, y una transicion no
@@ -238,23 +237,15 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
 
     !showSkel && state.budget>0 && React.createElement("div",{className:"v4-card rise",style:{animationDelay:".1s",marginTop:8}},
       React.createElement("div",{className:"v4-budget",role:"button",tabIndex:0,onClick:function(){ setBudgetOpen(true); },onKeyDown:function(e){ if(e.key==="Enter") setBudgetOpen(true); }},
-        React.createElement("div",{style:{position:"relative",width:104,height:104,flex:"0 0 auto"}},
-          React.createElement("svg",{width:104,height:104,viewBox:"0 0 104 104"},
-            React.createElement("circle",{cx:52,cy:52,r:48,fill:"none",stroke:"var(--sur2)",strokeWidth:10}),
-            React.createElement("circle",{cx:52,cy:52,r:48,fill:"none",stroke:stCls.indexOf("bad")>=0?"var(--coral)":(stCls.indexOf("warn")>=0?"var(--tan)":"var(--mint)"),
-              strokeWidth:10,strokeLinecap:"round",strokeDasharray:String(ringC),
-              strokeDashoffset:String(ringDraw ? ringC*(1-ringPct) : ringC),
-              transform:"rotate(-90 52 52)",style:{transition:"stroke-dashoffset 1s var(--ease)"}})
-          ),
-          React.createElement("div",{style:{position:"absolute",inset:0,display:"grid",placeItems:"center",textAlign:"center",pointerEvents:"none"}},
-            React.createElement("div",null,
-              // P7 — es el numero mas mirado de la app y era el unico que iba en Manrope: desentonaba
-              // con el resto de cifras grandes, que son Fraunces. Mismo tamaño y peso que el mockup.
-              React.createElement("div",{className:"num",style:{fontFamily:"'Fraunces',Georgia,serif",fontWeight:600,fontSize:24,lineHeight:1,letterSpacing:"-0.5px"}}, Math.round(ringPct*100)+"%"),
-              React.createElement("div",{style:{fontSize:10.5,color:"var(--muted-2)",fontWeight:600,marginTop:1}}, t("v4_of_month"))
-            )
-          )
-        ),
+        /* Misma geometría que Plan (V4Ring). ringDraw=false al montar → 0% y luego anima al % real
+           tras el splash (mc-splash-gone); en Plan animate=false a propósito. */
+        React.createElement(V4Ring,{
+          pct:ringDraw?ringPct:0,
+          tone:stCls.indexOf("bad")>=0?"bad":(stCls.indexOf("warn")>=0?"warn":"ok"),
+          label:Math.round(ringPct*100)+"%",
+          sub:t("v4_of_month"),
+          animate:true
+        }),
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:stCls}, stHead),
           React.createElement("div",{className:"ph"},

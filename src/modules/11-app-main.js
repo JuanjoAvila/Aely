@@ -852,11 +852,12 @@ function App(){
         else if(touched) avisaSync(opts, t("v4_sync_brokers_ok"));
         soft.forEach(function(bank){ if(expiredB.indexOf(bank)<0) avisaSync(opts, "⚠ "+tf("bank_syncsoft",{bank:bank})); });
       }
+      // Contrato compacto por presupuesto: b=ocupado, n=intentos; syncInv añade msgs=avisos.
       return {b:0,n:tried};
     });
   };
-  /* Inversiones actualiza solo TR/MyInvestor y devuelve sus avisos para unirlos con el resultado
-     de precios. Open Banking conserva su botón separado en Cartera. */
+  /* La pantalla de Inversiones no debe sincronizar también los BANCOS. Su botón actualiza primero
+     TR/MyInvestor y después las cotizaciones; sigue siendo a demanda para no caducar sesiones. */
   const syncInv=function(){
     const rows=[];
     return runBrokerSync({manual:true,collect:rows,inv:true}).then(function(r){
@@ -2671,10 +2672,10 @@ function App(){
       const eje=gestureAxis(ddx,ddy);
       if(!eje) return;
       /* A MITAD, ABAJO o ARRIBA: el arco del pulgar gana `x` pronto → preventDefault +
-         leaveScrollHost + freezeShell matan scroll/ola. En el borde INFERIOR no se negocia:
-         aunque el primer tramo parezca horizontal, pertenece al rebote nativo hasta que el
-         usuario suba contenido. Antes una deriva de 40 px al segundo tirón revelaba la barra y
-         desmontaba el host (vídeo Oppo 16/9). Arriba/mitad aún admiten un horizontal inequívoco. */
+         leaveScrollHost + freezeShell matan scroll/ola. Una diagonal sigue siendo scroll/ola,
+         también en el fondo; pero un horizontal inequívoco tiene que cambiar de pestaña sin
+         obligarle a subir antes (feedback 23/9). El vídeo Oppo del 16/9 queda cubierto porque su
+         deriva tenía componente vertical y no supera esta guarda. */
       if(eje==="x"){
         const pages0=trackRef.current&&trackRef.current.children;
         const pg0=pages0&&pages0[tab];
@@ -2683,7 +2684,18 @@ function App(){
           const atTop=st0<=2;
           const mid0=st0>2 && max0-st0>2;
           const atBottom=max0>0 && (max0-st0)<=2;
-          if(atBottom || ((atTop||mid0) && !(Math.abs(ddy)<16 && Math.abs(ddx)>36))){
+          /* El arco real del Oppo llegó a 55 px laterales, pero ya llevaba 10 px verticales antes
+             de girar hacia la ola. Esperar siempre a 60 px hacía que Android cancelara muchos
+             horizontales antes de que el carrusel pudiera reclamarlos. Android puede cancelar
+             la segunda muestra si la primera se deja al scroll, así que la frontera debe poder
+             decidir con una: solo menos de 3 px verticales desde 36 px es recto; 38/3 seguido de
+             un giro conserva la ola. Si deriva más, sigue el umbral seguro de 60 px. */
+          let horizontalClaro=Math.abs(ddy)<16 && Math.abs(ddx)>36;
+          if(atBottom){
+            const adx=Math.abs(ddx), ady=Math.abs(ddy);
+            horizontalClaro=(ady<3 && adx>36) || (ady<12 && adx>60);
+          }
+          if((atBottom||atTop||mid0) && !horizontalClaro){
             return;
           }
         }
@@ -3243,7 +3255,7 @@ function App(){
     if(id==="plan") return React.createElement(PlanTab,{state:state,set:set,totals:totals,showToast:showToast,simple:simple,gotoSeg:planGoto,clearGoto:function(){ setPlanGoto(null); }});
     // El «Sincronizar» de Cartera actualiza TODO lo conectado: Open Banking + TR + MyInvestor
     // (petición 2026-07-18: «que también sincronice Trade Republic y MyInvestor»).
-    if(id==="cartera") return React.createElement(CarteraTab,{state:state,set:set,totals:totals,fetchPrices:fetchPrices,pricing:pricing,simple:simple,showToast:showToast,onBankSync:sincronizarAMano,syncInv:syncInv,onReconnectBank:reconnectBank});
+    if(id==="cartera") return React.createElement(CarteraTab,{state:state,set:set,totals:totals,fetchPrices:fetchPrices,pricing:pricing,simple:simple,showToast:showToast,onBankSync:sincronizarAMano,syncInv,onReconnectBank:reconnectBank});
     return null;
   };
 

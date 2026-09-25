@@ -99,11 +99,11 @@ test("activar EXTRA en Cartera 40→60 sella el 50%; desactivar no borra filas",
 
   const before = await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]"));
   await abrirFicha(page, /CaixaBank|Caixa/);
-  await tocarRol(page, /Gasto diario|Daily spending|Despesa diària/);
+  await tocarRol(page, /Para el día a día|For day to day|Per al dia a dia/i);
   await expect.poll(() => expenseBanksOf(page)).toEqual(["caixabank", "sabadell"]);
   await expect.poll(() => page.evaluate((k) => localStorage.getItem(k), "_bn50_" + ym)).toBe("1");
 
-  await tocarRol(page, /Recibos|Bills|Rebuts/);
+  await tocarRol(page, /Para los recibos|For the bills|Per als rebuts/i);
   await expect.poll(() => expenseBanksOf(page)).toEqual(["sabadell"]);
   const after = await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]"));
   expect(after, "desactivar EXTRA no borra filas").toEqual(before);
@@ -127,7 +127,7 @@ async function cruzarUmbral(page, fromSpent, addSpent, bnKey) {
     await page.evaluate(({ k }) => { try { localStorage.removeItem(k); } catch (e) {} }, { k: "_bn" + th + "_" + ym });
   }
   await abrirFicha(page, /CaixaBank|Caixa/);
-  await tocarRol(page, /Gasto diario|Daily spending|Despesa diària/);
+  await tocarRol(page, /Para el día a día|For day to day|Per al dia a dia/i);
   await expect.poll(() => expenseBanksOf(page)).toEqual(["caixabank", "sabadell"]);
   await expect.poll(() => page.evaluate((k) => localStorage.getItem(k), "_bn" + bnKey + "_" + ym)).toBe("1");
 }

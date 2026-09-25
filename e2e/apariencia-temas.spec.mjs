@@ -118,4 +118,3 @@ for (const [id, nombre, tinte] of [["otono", /Otoño/, "#E3A04F"], ["primavera",
     await expect(page.locator(".season-amb span").first()).toBeAttached();
   });
 }
-

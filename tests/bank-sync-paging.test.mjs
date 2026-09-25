@@ -52,7 +52,7 @@ await t("sync diario continúa tras primera página vacía y entrega el gasto",a
 });
 await t("histórico recupera un periodo no disponible con strategy longest",async()=>{
   const r=await sync([link("Banco de Sabadell")],u=>{
-    if(u.searchParams.get("strategy")!=="longest") throw new Error('EB 400: {"error":"WRONG_TRANSACTIONS_PERIOD"}');
+    if(u.searchParams.get("strategy")!=="longest") throw new Error("EB 422 WRONG_TRANSACTIONS_PERIOD");
     return {transactions:[movement()]};
   },{dateFrom:"2026-06-15"});
   assert.equal(r.data.links[0].accounts[0].transactions.length,1);
@@ -83,8 +83,9 @@ await t("el fallo de CaixaBank no oculta los movimientos de Sabadell",async()=>{
   },{dateFrom:"2026-06-15"});
   assert.equal(r.data.links[0].accounts[0].ok,false);
   assert.equal(r.data.links[1].accounts[0].transactions.length,1);
-  assert.equal(r.events.length,1,"el fallo queda diagnosticado sin cambiar datos bancarios");
-  assert.equal(JSON.parse(r.events[0].detail).code,"eb_503");
+  const errors=r.events.filter(e=>e.kind==="error");
+  assert.equal(errors.length,1,"el fallo queda diagnosticado sin cambiar datos bancarios");
+  assert.equal(JSON.parse(errors[0].detail).code,"eb_503");
   assert.equal(r.data.links[0].accounts[0].error,"eb_503","el cliente recibe solo la clase segura del fallo");
   assert.equal(JSON.stringify(r.events).includes("privado"),false,"el mensaje crudo del proveedor no sale a app_events");
   assert.equal(JSON.stringify(r.data).includes("privado"),false,"el mensaje crudo tampoco sale hacia el móvil");
@@ -131,7 +132,30 @@ await t("el histórico consulta bancos en serie y un 429 no cancela el siguiente
   assert.equal(r.data.links[1].accounts[0].transactions.length,1,"Caixa recibe su turno después del fallo de Sabadell");
   assert.ok(order[0].includes("Banco%20de%20Sabadell"));
   assert.ok(order[1].includes("CaixaBank"));
-  assert.equal(r.events.length,1);
+  assert.equal(r.events.filter(e=>e.kind==="error").length,1);
+  assert.equal(r.events.filter(e=>e.kind==="performance").length,2);
+});
+await t("cada banco histórico viaja en su propia petición: un Sabadell lento no deja a Caixa sin reloj",async()=>{
+  const c=loadPureLogicFromFile();
+  const calls=[]; let inFlight=0,maxInFlight=0;
+  const r=await c.histReadBanksSerial(async(dateFrom,aspsps)=>{
+    inFlight++; maxInFlight=Math.max(maxInFlight,inFlight);
+    calls.push(aspsps.slice());
+    assert.equal(aspsps.length,1,"nunca comparte los 60 s de Edge con otro banco");
+    if(aspsps[0]==="Banco de Sabadell") await new Promise(resolve=>setTimeout(resolve,5));
+    const out={ok:true,dateFrom,links:[{aspsp:aspsps[0],ok:true,accounts:[{ok:true,count:1,transactions:[movement(aspsps[0])]}]}]};
+    inFlight--; return out;
+  },"2026-06-15",["Banco de Sabadell","Banco de Sabadell","CaixaBank"]);
+  assert.equal(JSON.stringify(calls),JSON.stringify([["Banco de Sabadell"],["CaixaBank"]]));
+  assert.equal(maxInFlight,1,"la cura no puede reintroducir dos sesiones PSD2 simultáneas");
+  assert.equal(r.links[1].accounts[0].transactions[0].entry_reference,"CaixaBank");
+});
+await t("un cero completo deja diagnóstico seguro y distinto de una lectura parcial",async()=>{
+  const r=await sync([link("CaixaBank")],()=>({transactions:[]}),{dateFrom:"2026-06-15",aspsps:["CaixaBank"]});
+  const ev=r.events.find(e=>e.kind==="performance");
+  const d=JSON.parse(ev.detail);
+  assert.equal(d.status,"empty"); assert.equal(d.count,0); assert.equal(d.partial,false);
+  assert.equal(JSON.stringify(ev).includes("cuenta"),false,"no registra uid ni payload bancario");
 });
 await t("el filtro del cliente consulta solo los bancos elegidos",async()=>{
   const r=await sync([link("Banco de Sabadell"),link("CaixaBank"),link("Revolut")],()=>({transactions:[movement()]}),

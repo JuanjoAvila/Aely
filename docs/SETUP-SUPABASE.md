@@ -67,13 +67,34 @@ pequeño en uno grande.
 caduca a los 30 minutos y el `state` se **gasta** al usarlo. Los enlaces creados antes de esta
 migración no tienen marca y se dan por buenos, para no romper una reconexión a medias.
 
-### Migración 0025 — identidad exacta de avisos (4.25.16)
+### Migración 0025 — identidad idempotente de notificaciones (4.26.6)
 
-`0025_expenses_ingest_event.sql` añade `expenses.ingest_event_id` y un índice único por
-`(user_id, ingest_event_id)`. La columna solo identifica el evento nativo: no contiene comercio,
-importe ni texto. No rellena ni modifica filas antiguas. Debe aplicarse antes o junto al despliegue
-de `ingest`; si llega más tarde, la función detecta la ausencia de la columna y mantiene el camino
-conservador compatible con APK antiguas.
+`0025_expenses_ingest_event.sql` añade `expenses.ingest_event_id` y un índice único parcial por
+usuario. No hace backfill ni toca movimientos anteriores. El lector Android nuevo manda la
+identidad estable del evento y `ingest` la confirma solo cuando la fila existe; una reentrega o
+una carrera concurrente recupera la fila anterior en vez de crear o anunciar otro gasto.
+
+Despliegue obligatorio, en este orden: **migración 0025 → Edge `ingest` → APK nueva**. La Edge
+tolera clientes antiguos sin `ingest_event_id`, pero una OTA sola no puede corregir la identidad
+que genera el lector instalado. Para el histórico de CaixaBank se despliega además `bank-sync` y
+después el cliente web que invoca un banco por petición. No afirmar que está resuelto con datos
+reales hasta probar CaixaBank seleccionada en solitario.
+
+### Telemetría financiera de las Edge
+
+Los eventos de soporte de `bank-sync` son deliberadamente cerrados: banco, estado, número de
+cuentas/filas, duración y código de error conocido. No se guardan payloads de Enable Banking,
+movimientos, importes, comercios, fechas, referencias ni titulares. Esta garantía vive también en
+`tests/security.test.mjs`. `bank-callback` tampoco serializa `session.access` —puede contener IBAN—
+ni la query OAuth —lleva `code` y `state`—: solo conserva su forma y recuentos. El cliente común de
+Enable Banking convierte una respuesta fallida en estado HTTP + código corto y nunca incluye el
+cuerpo del proveedor. `ingest` registra el motivo, la fuente y las longitudes de una notificación
+descartada, o códigos cerrados de error; nunca su texto, comercio o importe.
+
+Para aplicar toda la frontera hay que desplegar **`bank-aspsps`**, **`bank-connect`**,
+**`bank-disconnect`**, **`bank-callback`** y **`bank-sync`** —todas empaquetan el cliente compartido—,
+más **`ingest`**. Modificar los ficheros en una rama o publicar una OTA no cambia las Edge que están
+sirviendo a los móviles.
 
 ### CORS: lista blanca, no `*` (4.10.0)
 
@@ -130,6 +151,11 @@ En el repo: **Settings → Secrets and variables → Actions**:
 
 A partir de aquí, cualquier cambio en `supabase/**` despliega las funciones solo (workflow `Deploy Supabase`).
 Mientras no estén configurados, el workflow se salta el deploy sin fallar.
+
+El proyecto Supabase es compartido: `beta` no tiene una Edge separada. Por eso una corrección de
+`ingest` puede prepararse y revisarse en beta, pero solo se activa al promocionarla a `main` o al
+lanzar expresamente `supabase.yml`. No se debe presentar una prueba móvil de servidor como activa
+antes de ese despliegue.
 
 ## Paso 6 — Repuntar MacroDroid (cuando esté probado) 👤
 

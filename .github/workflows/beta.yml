@@ -185,11 +185,25 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -o pipefail
           if ! gh release view beta >/dev/null 2>&1; then
             gh release create beta --prerelease --title "Beta (canal de pruebas)" \
               --notes "Canal de pruebas del dueño. Se activa en Ajustes → Dev → Pruebas. No es la versión publicada para el resto."
           fi
-          gh release upload beta bundle.zip version.json apk.json --clobber
+          # `gh release upload --clobber` lista los assets por REST y GitHub puede devolver una
+          # foto cacheada con IDs que ya no existen: al borrar el primero contesta 404 y deja la
+          # beta anterior intacta (Action 35839330620). Pedir la lista sin caché, borrar los IDs
+          # reales y subir sin clobber evita depender de esa foto obsoleta.
+          RELEASE_ID=$(gh api -H 'Cache-Control: no-cache' "repos/$GITHUB_REPOSITORY/releases/tags/beta" --jq .id)
+          gh api -H 'Cache-Control: no-cache' "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets" --paginate \
+            --jq '.[] | select(.name=="bundle.zip" or .name=="version.json" or .name=="apk.json") | .id' \
+            | while read -r ASSET_ID; do
+                [ -z "$ASSET_ID" ] || gh api --method DELETE "repos/$GITHUB_REPOSITORY/releases/assets/$ASSET_ID"
+              done
+          gh release upload beta bundle.zip version.json apk.json || {
+            sleep 5
+            gh release upload beta bundle.zip version.json apk.json
+          }
           gh release edit beta --title "Beta ${{ steps.pack.outputs.beta }}"
 
       - name: Resumen

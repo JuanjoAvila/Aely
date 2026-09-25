@@ -330,7 +330,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
       setReadWarnings(stopped);
       setCands([]); setLoading(false); return;
     }
-    cloud.bankSyncHistory(dateFrom,aspsps).then(function(res){
+    histReadBanksSerial(cloud.bankSyncHistory.bind(cloud),dateFrom,aspsps).then(function(res){
       if(!res || !Array.isArray(res.links)) throw new Error("bank_read_failed");
       /* En histórico, cero ya no se disfraza de «quizá estaba todo apuntado»: se dice qué banco
          devolvió cero. En el sync diario no se usa este aviso porque un día sin cargos es normal. */
@@ -489,6 +489,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
         const cat=(c&&c.defDest==="ingreso"&&c.category)?c.category:"ingreso";
         const e={ id:mcExpenseId(), date:x.stamp||histDate(x.date), merchant:x.merchant, amount:-Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, noCard:true, income:true, importBatchId:batchId };
         if(x.id) e.extId=x.id;
+        histKeepAmbiguity(e,c);
         const nti=cleanNote(x.note, e.merchant); if(nti) e.note=nti;
         expAdds.push(e); return;
       }
@@ -498,6 +499,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
       const cat=(c&&c.category)||categoryOfNewMerchant(x.merchant||"");
       const e={ id:mcExpenseId(), date:x.stamp||histDate(x.date), merchant:x.merchant, amount:Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, importBatchId:batchId };
       if(x.id) e.extId=x.id;
+      histKeepAmbiguity(e,c);
       const nt=cleanNote(x.note, e.merchant); if(nt) e.note=nt;
       expAdds.push(e);
     });
@@ -1062,6 +1064,10 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       open:openBank==="br:mi", onToggle:function(){ setOpenBank(openBank==="br:mi"?"":"br:mi"); }}),
     brokersOn.indexOf("revolut")>=0 && React.createElement(BrokerImport,{state:state,set:set,fetchPrices:fetchPrices,
       open:openBank==="br:rev", onToggle:function(){ setOpenBank(openBank==="br:rev"?"":"br:rev"); }}),
+    /* «¿Cuadran tus recibos con el banco?» vivía SOLO dentro de Gestionar (`Fijos`). Con la
+       pantalla «Tus recibos» v4.1 (§2) Gestionar ya no monta `Fijos`, y esta era su única puerta:
+       se muda aquí, que es donde se busca lo del banco. Sin datos del banco no pinta nada. */
+    React.createElement("div",{"data-bank-reconcile":""}, React.createElement(Reconcile,{state:state,set:set})),
     React.createElement("div",{className:"bk-ver"}, "v"+(CONFIG.APP_VERSION||"?")),
     // (bp_apk_hint fuera 2026-07-18: párrafo de circunstancias ya resueltas — menos letra aquí)
     // bp_foot fuera 2026-09-11: decía que TR no está en OB y ya sí puede; sobraba.
@@ -1344,7 +1350,7 @@ function betaOlvidarVuelta(){
 function BetaReviewPanel({onClose, showToast}){
   /* Cerrar A PROPÓSITO borra la marca; que la app se muera por detrás, no. Esa es toda la
      diferencia entre «he terminado» y «he salido a probar». */
-  const cerrarDeVerdad=function(){ betaOlvidarVuelta(); if(onClose) onClose(); };
+  const cerrarDeVerdad=function(){ gestoReal.current=null; betaOlvidarVuelta(); if(onClose) onClose(); };
   useBackClose(true, cerrarDeVerdad);
   const wrapRef=useRef(null);
   const scrollPuesto=useRef(false);
@@ -1359,6 +1365,9 @@ function BetaReviewPanel({onClose, showToast}){
   const gestoReal=useRef(false);
   const tocar=function(){ gestoReal.current=true; betaMarcarAbierto(); };
   const recordarScroll=function(){
+    // El último scroll del desmontaje llega después de ‹ Ajustes en algunos WebView. `null` es
+    // terminal: cerrar a propósito no puede volver a sembrar la marca que acaba de borrar.
+    if(gestoReal.current===null) return;
     const el=wrapRef.current; if(!el) return;
     try{ localStorage.setItem(BETA_SCROLL_KEY, String(el.scrollTop)); }catch(e){}
     if(gestoReal.current) betaMarcarAbierto();
@@ -2521,7 +2530,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     React.createElement("div",{className:"v4-set-sec"}, t("v4_set_money")),
     // Dinero: moneda de visualización (ahora SÍ convierte) + comparativa + cómo se ve el total
     // de gastos. Presupuesto y bancos de gasto diario viven en Resumen / Cartera (2026-08-05).
-    grp("money","💱",t("v4_set_money"),"moneda divisa currency euro dolar lira try conversor convertir comparar",t("cur_"+curCur.toLowerCase()),
+    grp("money","💱",t("v4_set_money"),"moneda divisa currency euro dolar lira try conversor convertir comparar dinero plan recibos bills rebuts",t("cur_"+curCur.toLowerCase()),
       row("cur","💱",t("currency"),t("cur_"+curCur.toLowerCase()),function(){ toggleExp("cur"); }),
       expand==="cur" && React.createElement("div",{className:"set-exp"},
         React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",marginTop:8}},
@@ -2576,8 +2585,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
           )
         );
       })(),
-      // Estas dos puertas salieron de la antigua hoja de Inversiones: son preferencias y
-      // simulaciones, no parte del saldo. Aquí siguen accesibles al estrenar la ficha completa.
+      // Estas dos puertas salieron de la ficha de Inversiones: son preferencias/simulaciones,
+      // no parte del saldo. Aquí siguen accesibles sin montar el panel financiero antiguo.
       row("invauto","↻",t("inv_autoprices"),null,function(){
         setS({autoPrices:!(state.settings&&state.settings.autoPrices)});
       },sw(!!(state.settings&&state.settings.autoPrices))),
@@ -2586,7 +2595,15 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         React.createElement(Projection,{
           invested:totals.invested||0,
           defMonthly:(state.aportaciones||[]).reduce(function(a,x){ return a+(x.amount||0); },0)
-        }))
+        })),
+      // Plan/Dinero: flag pendiente + click Plan + evento (sin setTimeout; cold start idle).
+      row("bills","📋",t("v4s_change_bills"),null,function(){
+        try{ window.__mcOpenBillsPending=true; }catch(e){}
+        if(typeof onClose==="function") onClose();
+        var ptab=document.querySelector('.botnav-tab[data-tour="plan"]');
+        if(ptab) ptab.click();
+        try{ window.dispatchEvent(new CustomEvent("mc-open-bills")); }catch(e){}
+      })
     ),
 
     React.createElement("div",{className:"v4-set-sec"}, t("v4_set_conn")),

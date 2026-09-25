@@ -82,6 +82,8 @@ const fixed = [
 ];
 
 test("Plan › Recibos: salen los fijos mensuales, con su importe", async ({ page }) => {
+  // Reloj fijo: mantiene ambos recibos en la lista pendiente que este caso verifica.
+  await page.clock.install({ time: new Date("2026-09-10T12:00:00Z") });
   await abrirPlan(page, /Recibos|Bills|Rebuts/i, { fixed });
   const activa = paginaActiva(page);
   await expect(activa.getByText("Alquiler", { exact: false }).first()).toBeVisible();

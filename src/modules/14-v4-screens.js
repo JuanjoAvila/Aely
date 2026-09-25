@@ -10,6 +10,58 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   const segs=simple
     ? [{id:"recibos",lab:t("v4_plan_recibos")}]
     : [{id:"recibos",lab:t("v4_plan_recibos")},{id:"deudas",lab:t("v4_plan_deudas")},{id:"metas",lab:t("v4_plan_metas")}];
+  const charges=useMemo(function(){
+    return planChargesMonth(state, totals.curMonth, totals.curYear, totals.today);
+  },[state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,totals.curMonth,totals.curYear,totals.today]);
+  const pick=useMemo(function(){
+    return planCoverPickBank(totals, charges.pendingByBank, charges.pendingBills, charges.paidBills);
+  },[totals.minByBank,totals.minDayByBank,totals.mainBank,charges.pendingByBank,charges.pendingBills,charges.paidBills]);
+  const coverBank=pick.bank;
+  const cover=pick.cover;
+  const billsEuroTotal=charges.paidBillsTotal+charges.pendingBillsTotal;
+  const allBillsPaid=billsEuroTotal>0&&charges.pendingBillsTotal<=0;
+  // Sin inventar 0 € si la cuenta del recibo ya no existe en bankBal (Codex 2050Z).
+  // Antes de coverTone: si va después, var hoisting deja balKnown falsy y all-paid pinta verde con saldo negativo.
+  var balKnown=false, balNow=0;
+  if(coverBank!=null&&totals.bankBal&&Object.prototype.hasOwnProperty.call(totals.bankBal, coverBank)){
+    var balRaw=Number(totals.bankBal[coverBank]);
+    if(isFinite(balRaw)){ balKnown=true; balNow=balRaw; }
+  }
+  // Todo pagado no fuerza verde si el saldo conocido es negativo (Codex 2055Z).
+  const coverTone=allBillsPaid
+    ? ((balKnown&&balNow<0)?"bad":"ok")
+    : cover.tone;
+  const stCls=coverTone==="bad"?"st bad":(coverTone==="warn"?"st warn":"st");
+  const bankLab=coverBank&&typeof entOf==="function"?entOf(coverBank).label:"";
+  const coverHead=coverTone==="bad"?t("v4_plan_state_bad_h"):(coverTone==="warn"?t("v4_plan_state_warn_h"):t("v4_plan_state_ok_h"));
+  const leftForPhrase=coverBank!=null?(pick.pending||0):charges.pendingBillsTotal;
+  const hasMinDay=cover.minDay!=null&&cover.minDay>0;
+  // Frases propias: todo pagado / sin día (minDay 0) — NUNCA «el día ya» (review Claude 1845Z).
+  const coverPhrase=(!billsEuroTotal)
+    ? t("v4_plan_state_none")
+    : (allBillsPaid
+      ? (coverBank&&balKnown
+        ? tf("v4_plan_state_all_paid",{x:eur0(balNow),bank:bankLab})
+        : t("v4_plan_state_all_paid_nobank"))
+      : (coverBank!=null&&cover.min!=null&&isFinite(cover.min)
+        ? tf((coverTone==="bad"?"v4_plan_state_bad":(coverTone==="warn"?"v4_plan_state_warn":"v4_plan_state_ok"))+(hasMinDay?"":"_noday"),{
+            left:eur0(leftForPhrase), end:eur0(cover.min), bank:bankLab, day:hasMinDay?String(cover.minDay):"", min:eur0(cover.min)
+          })
+        : t("v4_plan_state_none")));
+  const coverAria=coverHead+". "+coverPhrase;
+  // Puerta viva desde Ajustes: flag pendiente si Plan aún no montó (cold start / idle).
+  useEffect(function(){
+    var onOpen=function(){
+      try{ window.__mcOpenBillsPending=false; }catch(e){}
+      setSeg("recibos");
+      setManageOpen(true);
+    };
+    try{ if(window.__mcOpenBillsPending) onOpen(); }catch(e){}
+    window.addEventListener("mc-open-bills", onOpen);
+    return function(){ window.removeEventListener("mc-open-bills", onOpen); };
+  },[]);
+  const biggestForCover=(charges.pendingBills||[]).filter(function(x){ return x.bank===coverBank; })
+    .slice().sort(function(a,b){ return Math.abs(b.amount)-Math.abs(a.amount); })[0]||null;
   useEffect(function(){ if(simple && seg!=="recibos") setSeg("recibos"); },[simple,seg]);
   // «Ver plan» desde Inicio fuerza el segmento (recibos/metas): sin esto quedaba el último
   // que usaste (p.ej. Deudas) y el link engañaba (feedback 2026-07-18). gotoSeg lleva ts para
@@ -106,9 +158,6 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     // (visto en el e2e: el primer deslizamiento no cambiaba de segmento y el segundo sí).
     const order=["recibos","deudas","metas"];
     const TH=0.07, FLICK_V=0.4, FLICK_MIN=26, MAX_PULL=46;
-    const reduceMotion=function(){
-      try{ return (window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches) || document.documentElement.classList.contains("reduce-motion"); }catch(e){ return false; }
-    };
     // Solo ARRIBA → abajo cambia de segmento. Abajo = ola. Plan en reposo va SIEMPRE en pan-y
     // (si `mc-touch-own` queda puesto al estar arriba, `touch-action:none` bloquea también
     // BAJAR a ver el contenido — feedback 5/8). `mc-touch-own` solo durante el gesto que nace
@@ -172,7 +221,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       dyRaw=Math.abs(ddy);
       lastY=tt.clientY;
       if(e.cancelable) e.preventDefault();
-      queue(reduceMotion()?0:dir*resist(dyRaw));
+      queue(mcReduced()?0:dir*resist(dyRaw));
     };
     const finish=function(allowCommit){
       if(raf){ cancelAnimationFrame(raf); raf=0; }
@@ -194,7 +243,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
         enterDirRef.current=dir>0?"down":"up";
         setSegMounted(function(m){ return m[nextId]?m:Object.assign({},m,{[nextId]:true}); });
         setSeg(nextId);
-      } else if(el && !reduceMotion()){
+      } else if(el && !mcReduced()){
         el.style.transition="transform .22s cubic-bezier(.32,.72,0,1)";
         el.style.transform="";
         setTimeout(function(){ cleanup(el); }, 230);
@@ -234,130 +283,734 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
   },[seg]);
 
   return React.createElement("div",{className:"v4-screen",ref:planScreenRef},
-    React.createElement("h1",{className:"v4-title serif"}, t("v4_plan_title")),
-    React.createElement("div",{className:"v4-seg",role:"tablist"},
+    React.createElement("h1",{className:"v4-title serif"}, simple?t("v4s_plan_left_title"):t("v4_plan_title")),
+    simple && React.createElement("div",{className:"v4-card v4-card-hero rise v4-plan-cover v4-plan-cover-simple","data-plan-state":coverTone,role:"group","aria-label":coverAria},
+      React.createElement("div",{className:"v4-plan-simple-hero"},
+        React.createElement("div",{className:stCls}, coverHead),
+        React.createElement("div",{className:"v4-plan-simple-amt num serif"}, eur0(charges.pendingBillsTotal)),
+        React.createElement("div",{className:"ph"}, coverPhrase),
+        biggestForCover && React.createElement("div",{className:"ph",style:{marginTop:6}},
+          tf("v4_plan_biggest",{name:biggestForCover.name,amount:eur0(biggestForCover.amount)}))
+      )
+    ),
+    !simple && React.createElement("div",{className:"v4-seg",role:"tablist"},
       segs.map(function(s){
-        return React.createElement("button",{key:s.id,role:"tab","aria-selected":seg===s.id,
+        return React.createElement("button",{key:s.id,type:"button",role:"tab","aria-selected":seg===s.id,"data-seg":s.id,
           className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ setSeg(s.id); }}, s.lab);
       })
     ),
-    capa("recibos", React.createElement(PlanBills,{state:state,set:set,totals:totals,manageOpen:manageOpen,setManageOpen:setManageOpen})),
+    capa("recibos", React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,manageOpen:manageOpen,setManageOpen:setManageOpen,simple:simple,showToast:showToast})),
     !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast})),
     !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast}))
   );
 }
 
-/* Recibos prioriza lo que todavía saldrá de la cuenta este mes. Fijos (edición completa,
-   simulador, conciliación…) vive SOLO dentro de la hoja «Gestionar» — mezclarlo aquí abajo
-   duplicaba próximos cargos y desglose de banco que ya se ven arriba (feedback 2026-07-17). */
-function PlanBills({state, set, totals, manageOpen, setManageOpen}){
+/* Recibos conserva la portada compacta que ya funcionaba: el diagnóstico largo y el anillo
+   convertían Plan en un mensaje gigante y alejaban lo que la familia viene a mirar. «Gestionar»
+   sí se mantiene como puerta al editor nuevo (feedback real 2026-09-17). */
+function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simple, showToast}){
   const [paidExpanded,setPaidExpanded]=useState(false);
   const [pendExpanded,setPendExpanded]=useState(false);
-  const month=totals.curMonth, year=totals.curYear, today=totals.today;
-  const charges=[];
-  (state.fixed||[]).forEach(function(e){
-    const amount=occAmountIn(e,month);
-    if(occursIn(e,month) && amount>0) charges.push({
-      id:"fixed_"+e.id, name:e.name, amount:amount, day:dayIn(e,month), bank:accOf(e),
-      paid:isPaidIn(e,month,today), sub:t("fj_fixed_tag"), kind:"fixed"
-    });
-  });
-  (state.debts||[]).forEach(function(d){
-    if(!debtActive(d)) return;
-    // Sin fecha sigue pendiente y se muestra como desconocida; el fallback histórico a día 1 la
-    // marcaba pagada y escondía tanto la cuota como el mínimo real (feedback 18/9).
-    const rawDay=dayOf(d), day=rawDay!=null&&Number(rawDay)>0?Number(rawDay):null;
-    const bank=d.account||"sabadell", paid=day!=null&&day<=today;
-    if((d.monthly||0)>0) charges.push({id:"debt_"+d.id,name:d.name,amount:d.monthly,day:day,bank:bank,paid:paid,sub:t("fj_debt_tag"),kind:"debt"});
-    const balloon=debtBalloonIn(d,year,month);
-    if(balloon>0) charges.push({id:"balloon_"+d.id,name:d.name+" "+t("db_balloon_tag"),amount:balloon,day:day,bank:bank,paid:paid,sub:t("fj_debt_tag"),kind:"balloon"});
-  });
-  // Nómina y transferencias del mes (como en Gestionar): lo que ya entró/salió cuenta en «Ya pagado».
-  (state.flows||[]).forEach(function(f){
-    if(!flowOccursIn(f,month,year)) return;
-    const day=flowDay(f,year,month);
-    const paid=day!=null && day<=today;
-    const amt=+(f.amount||0);
-    if(!(amt>0)) return;
-    if(f.kind==="income"){
-      charges.push({id:"flow_"+f.id,name:f.name||t("fj_income"),amount:-amt,day:day,bank:f.to||"sabadell",paid:paid,sub:t("fj_income_tag"),income:true});
-    } else if(f.kind==="transfer"){
-      charges.push({id:"flow_"+f.id,name:f.name||t("fj_transfer"),amount:amt,day:day,bank:f.from||"sabadell",paid:paid,sub:t("fj_transfer_tag")});
+  const paidPanelId="v4-paid-panel";
+  const month=totals.curMonth;
+  const pack=charges||planChargesMonth(state, totals.curMonth, totals.curYear, totals.today);
+  // «Lo que aún saldrá» = recibos + traspasos pendientes. Ingresos NUNCA aquí (NO-GO 17/9).
+  const pending=pack.pendingBills.concat(pack.transfersPending);
+  const paid=pack.paidBills;
+  const incomePend=pack.incomePending||[];
+  // Atrás real (history) pliega el «Ya has pagado»; Escape del e2e no basta (Claude 1845Z).
+  useBackClose(!!paidExpanded, function(){ setPaidExpanded(false); });
+  const openManage=function(){
+    if(setManageOpen) setManageOpen(true);
+    else try{ window.dispatchEvent(new CustomEvent("mc-open-bills")); }catch(e){}
+  };
+  const rowSub=function(x){
+    if(simple){
+      if(x.kind==="income") return tf("v4s_row_income",{bank:entOf(x.bank).label});
+      if(x.kind==="transfer"){
+        var toEnt=x.to||null;
+        var inv=toEnt&&((state.investments||[]).some(function(i){ return i.ent===toEnt; })||(state.accounts||[]).some(function(a){ return a.ent===toEnt&&a.role==="extra"; }));
+        return inv?tf("v4s_row_invest",{bank:entOf(toEnt).label}):tf("v4s_row_to",{bank:entOf(toEnt||x.bank).label});
+      }
+      if(x.kind==="debt"||x.kind==="balloon") return tf("v4s_row_debt",{name:x.name});
+      return tf("v4s_row_from",{bank:entOf(x.bank).label});
     }
-  });
-  charges.sort(function(a,b){ return ((a.day||99)-(b.day||99)) || (Math.abs(b.amount)-Math.abs(a.amount)); });
-  const pending=charges.filter(function(x){ return !x.paid; });
-  // Lista completa (sin agrupar ni «Ver más»): en Gestionar salía todo y aquí faltaban ingresos/traspasos.
-  const paid=charges.filter(function(x){ return x.paid; });
-  const pendingTotal=pending.reduce(function(sum,x){ return sum+(x.income?0:Math.abs(x.amount)); },0);
-  const paidTotal=paid.reduce(function(sum,x){ return sum+(x.income?0:Math.abs(x.amount)); },0);
-  const fixedAccount=(state.accounts||[]).find(function(a){ return accFixed(a); });
-  const cover=fixedAccount&&planCoverState(totals,fixedAccount.ent,pending);
-  const liquidity=cover&&typeof cover.min==="number"&&isFinite(cover.min)
-    ? tf("v4_plan_liq",{amount:eur0(cover.min),when:cover.minDay>0?" "+tf("v4_plan_liq_day",{d:cover.minDay}):"",bank:entOf(fixedAccount.ent).label})
-    : "—";
+    var tag=x.kind==="income"?t("fj_income_tag"):(x.kind==="transfer"?t("fj_transfer_tag"):(x.kind==="debt"||x.kind==="balloon"?t("fj_debt_tag"):t("fj_fixed_tag")));
+    return tag+(x.bank?" · "+entOf(x.bank).label:"");
+  };
   const row=function(x){
     const income=!!x.income || (x.amount<0);
     const amt=Math.abs(x.amount);
-    return React.createElement("div",{className:"v4-charge"+(x.paid?" v4-paid":""),key:x.id},
+    const cls=simple?("v4-mov"+(x.paid?" v4-paid":"")):("v4-charge"+(x.paid?" v4-paid":""));
+    if(simple){
+      return React.createElement("div",{className:cls,key:x.id},
+        React.createElement("div",{className:"tile","aria-hidden":true}, x.day||"—"),
+        React.createElement("div",{className:"nm"},
+          React.createElement("div",{className:"nm-title"}, x.paid?"✓ "+x.name:x.name),
+          React.createElement("div",{className:"meta"}, rowSub(x))
+        ),
+        React.createElement("div",{className:"am"+(income?" pos":"")}, (income?"+":"")+eur(amt))
+      );
+    }
+    return React.createElement("div",{className:cls,key:x.id},
       React.createElement("div",{className:"dt"},
         React.createElement("div",{className:"d"}, x.day||"—"),
         React.createElement("div",{className:"m"}, monthShort(month-1))
       ),
       React.createElement("div",{className:"nm"},
         React.createElement("div",null, x.paid?"✓ "+x.name:x.name),
-        React.createElement("div",{className:"sub"}, x.sub+(x.bank?" · "+entOf(x.bank).label:""))
+        React.createElement("div",{className:"sub"}, rowSub(x))
       ),
       React.createElement("div",{className:"am"+(income?" pos":"")}, (income?"+":"")+eur(amt))
     );
   };
+  const paidLabel=pack.paidBills.length===1
+    ? tf("v4_paid_fold_one",{n:1,amount:eur0(pack.paidBillsTotal)})
+    : tf("v4_paid_fold",{n:pack.paidBills.length,amount:eur0(pack.paidBillsTotal)});
   return React.createElement(React.Fragment,null,
-    React.createElement("div",{className:"v4-card v4-card-hero rise"},
+    !simple && React.createElement("div",{className:"v4-card v4-card-hero rise"},
       React.createElement("div",{className:"v4-micro"}, tf("v4_plan_left",{month:monthLong(month-1)})),
-      React.createElement("div",{className:"serif num",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}}, eur(pendingTotal)),
+      React.createElement("div",{className:"serif num",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}}, eur(pack.pendingBillsTotal)),
       React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center",marginTop:14,fontSize:13.5,color:"var(--muted)"}},
         React.createElement("span",{style:{width:8,height:8,borderRadius:"50%",background:"var(--mint)",flex:"0 0 auto"}}),
-        liquidity
+        (function(){
+          const account=(state.accounts||[]).find(accFixed);
+          const bank=account&&account.ent;
+          /* Una sola fuente para normal y sencillo: `planCoverState` parte del mínimo diario y
+             descuenta únicamente las cuotas SIN fecha. El saldo final podía quedar positivo por
+             una nómina posterior y ocultar un descubierto anterior (feedback 2026-09-18). */
+          const cover=bank&&planCoverState(totals,bank,0,pack.pendingBills);
+          if(!cover||typeof cover.min!=="number"||!isFinite(cover.min)) return "—";
+          const day=cover.minDay>0?cover.minDay:0;
+          return tf("v4_plan_liq",{amount:eur0(cover.min),when:day?" "+tf("v4_plan_liq_day",{d:day}):"",bank:entOf(bank).label});
+        })()
       )
     ),
     React.createElement("div",{className:"v4-section"},
       React.createElement("div",{className:"v4-section-h"},
-        React.createElement("span",null,t("v4_pendiente")),
-        React.createElement("button",{className:"link",onClick:function(){ setManageOpen(true); }},t("v4_gestionar"))
+        React.createElement("span",null,simple?t("v4_aun_saldra"):t("v4_pendiente")),
+        // Sencillo: sin «Gestionar» aquí — solo Ajustes → Cambiar mis recibos (NO-GO §5bis.2).
+        !simple && React.createElement("button",{type:"button",className:"link",onClick:openManage}, t("v4_gestionar"))
       ),
-      (pendExpanded?pending:pending.slice(0,3)).map(row),
-      pending.length>3 && React.createElement("button",{className:"v4-link-mini",onClick:function(){ setPendExpanded(function(v){ return !v; }); }},
+      pending.length===0
+        ? React.createElement("div",{className:"ph",style:{padding:"8px 4px 4px"}}, t("v4_aun_saldra_empty"))
+        : (pendExpanded?pending:pending.slice(0,3)).map(row),
+      pending.length>3 && React.createElement("button",{type:"button",className:"v4-link-mini",onClick:function(){ setPendExpanded(function(v){ return !v; }); }},
         pendExpanded ? t("v4_ver_menos") : tf("v4_ver_mas",{n:pending.length-3}))
     ),
-    React.createElement("div",{className:"v4-section"},
-      React.createElement("div",{className:"v4-section-h"},t("v4_ya_pagado")+" · "+eur(paidTotal)),
-      (paidExpanded?paid:paid.slice(0,3)).map(row),
-      paid.length>3 && React.createElement("button",{className:"v4-link-mini",onClick:function(){ setPaidExpanded(function(v){ return !v; }); }},
-        paidExpanded ? t("v4_ver_menos") : tf("v4_ver_mas",{n:paid.length-3}))
+    incomePend.length>0 && React.createElement("div",{className:"v4-section"},
+      React.createElement("div",{className:"v4-section-h"},
+        React.createElement("span",null,t("v4_aun_entrara"))
+      ),
+      incomePend.map(row)
     ),
-    React.createElement(BillsManageSheet,{open:manageOpen,onClose:function(){ setManageOpen(false); },state:state,set:set,totals:totals})
+    !simple && React.createElement("div",{className:"v4-section"},
+      React.createElement("div",{className:"v4-section-h"},t("v4_ya_pagado")+" · "+eur(pack.paidBillsTotal)),
+      (paidExpanded?paid:paid.slice(0,3)).map(row),
+      paid.length>3 && React.createElement("button",{type:"button",className:"v4-link-mini",onClick:function(){ setPaidExpanded(function(v){ return !v; }); }},
+        paidExpanded?t("v4_ver_menos"):tf("v4_ver_mas",{n:paid.length-3}))
+    ),
+    simple && pack.paidBills.length>0 && React.createElement("button",{type:"button",className:"v4-paid-fold",
+      id:"v4-paid-fold-btn","aria-expanded":paidExpanded?"true":"false","aria-controls":paidPanelId,
+      onClick:function(){ setPaidExpanded(function(v){ return !v; }); }},
+      React.createElement("span",null, paidLabel),React.createElement("span",{"aria-hidden":true}, paidExpanded?"▾":"▸")),
+    simple && paidExpanded && React.createElement("div",{className:"v4-section",id:paidPanelId,role:"region","aria-labelledby":"v4-paid-fold-btn"}, paid.map(row)),
+    // También en sencillo: la puerta vive en Ajustes → Dinero (NO-GO §5bis.2).
+    React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); },state:state,set:set,totals:totals,simple:!!simple,showToast:showToast})
   );
 }
 
-/* Hoja «Gestionar»: aquí vive Fijos entero (servicios, cuotas, flujos, puntuales, simulador,
-   conciliación…). Antes se «dumpeaba» tal cual debajo de Recibos y mezclaba edición con la
-   vista diaria — ahora solo aparece si el usuario pide gestionar (feedback 2026-07-17). */
-function BillsManageSheet({open, onClose, state, set, totals}){
-  useBackClose(!!open, onClose);
-  const swipe=useSheetSwipe(!!open, onClose);
+/* §2 variante A: `.settings-push` hub, sin montar `<Fijos>`. Reconcile → BankPanel (Claude). */
+function gbTxt(key, vars){
+  // Las claves ya viven en LANG.es/en/ca; conservar el antiguo respaldo castellano duplicaba
+  // texto y podía tapar una traducción ausente en vez de dejar que i18n-keys la detectase.
+  return vars?tf(key,vars):t(key);
+}
+function gbSub(key, n){
+  return gbTxt(n===1?key+"_one":key, {n:n});
+}
+
+/* En una lista de recibos el logo del banco dice de dónde sale, no QUÉ es, y mezclaba todas las
+   filas a ojos de quien solo quiere encontrar luz, agua o teléfono (feedback del padre, 23/9).
+   Son pictogramas locales y ligeros: nada de una librería ni de una petición de red. */
+function billGlyph(row){
+  const s=String((row&&row.name)||"").toLowerCase();
+  if(/luz|electric|energ|endesa|iberdrola|gas\b/.test(s)) return "⚡";
+  if(/agua|aig[uü]a/.test(s)) return "💧";
+  if(/m[oó]vil|telefon|internet|fibra|wifi/.test(s)) return "📶";
+  if(/seguro|asseguran|insurance/.test(s)) return "🛡️";
+  if(/alquiler|lloguer|rent|hipoteca|mortgage/.test(s)) return "🏠";
+  if(/pr[eé]stamo|pr[eé]stec|loan|deuda|deute/.test(s)||(row&&row.kind==="debt")) return "💳";
+  if(/netflix|spotify|disney|prime|hbo|stream/.test(s)) return "🎬";
+  if(/gimnas|gym|fitness/.test(s)) return "🏋️";
+  if(/coleg|escola|guarder|school|univers/.test(s)) return "🎓";
+  if(/ibi|impuesto|impost|tax/.test(s)) return "🏛️";
+  if(/n[oó]mina|salari|salary/.test(s)||(row&&row.income)) return "💼";
+  if(/dent|m[eé]dic|metge|salud|salut|health/.test(s)) return "🩺";
+  return row&&row.kind==="flow"?"↔️":row&&row.kind==="oneoff"?"📅":"🧾";
+}
+
+/* §2 variante A: `.settings-push` hub, sin montar `<Fijos>`. Reconcile → BankPanel (Claude).
+   Ajustes dispara `mc-open-bills` → PlanTab abre este push con state vivo (no snapshot). */
+function BillsManagePush({open, onClose, state, set, totals, simple, showToast}){
+  const [stack,setStack]=React.useState(["hub"]);
+  const [group,setGroup]=React.useState(null);
+  const [q,setQ]=React.useState("");
+  const [detail,setDetail]=React.useState(null);
+  const [addStep,setAddStep]=React.useState(null);
+  const [addForm,setAddForm]=React.useState({name:"",amount:"",freq:"mes",months:[],day:"",when:"",account:"sabadell",kind:"fixed"});
+  const [undoBill,setUndoBill]=React.useState(null);
+  const undoTimer=React.useRef(null);
+  const rootRef=React.useRef(null);
+  const subRef=React.useRef(null);
+  const titleRef=React.useRef(null);
+  const prevFocus=React.useRef(null);
+  const popRef=React.useRef(null);
+  const detailRef=React.useRef(null);
+  const addStepRef=React.useRef(null);
+  const openerRef=React.useRef(null);
+  const hadSheetRef=React.useRef(false);
+  const view=stack[stack.length-1];
+  const pageSwipe=useEdgePageClose(!!open,onClose,view==="hub"&&!detail&&!addStep,rootRef);
+  const sub=useEdgePageClose(!!open,function(){ setStack(["hub"]); setGroup(null); },view!=="hub"&&!detail&&!addStep,subRef);
+  const cm=totals.curMonth, cy=totals.curYear;
+  React.useEffect(function(){
+    if(!open){
+      setStack(["hub"]); setGroup(null); setQ(""); setDetail(null); setAddStep(null);
+      if(undoTimer.current){ clearTimeout(undoTimer.current); undoTimer.current=null; }
+      setUndoBill(null);
+    }
+  },[open]);
+  React.useEffect(function(){
+    return function(){ if(undoTimer.current) clearTimeout(undoTimer.current); };
+  },[]);
+  const pop=React.useCallback(function(){
+    if(detail){ setDetail(null); return; }
+    if(addStep){ setAddStep(null); return; }
+    if(view==="hub"){ pageSwipe.close(); return; }
+    sub.close();
+  },[view, detail, addStep]);
+  popRef.current=pop; detailRef.current=detail; addStepRef.current=addStep;
+  const closeDetail=React.useCallback(function(){ setDetail(null); },[]);
+  const closeAdd=React.useCallback(function(){ setAddStep(null); },[]);
+  useBackClose(!!open, pop);
+  // El hub conserva su entrada y cada pantalla hija añade otra. Antes toda la pila compartía
+  // una sola: el primer Atrás volvía al hub, pero el segundo ya sacaba de Plan (QA 2026-09-16).
+  useBackClose(!!open && (view==="list"||view==="afford"), pop);
+  // Dialog a11y: foco inicial/restore SOLO al abrir/cerrar el hub (deps=[open]).
+  // Si remonta al cambiar detail/addStep, el cleanup restaura foco y el rAF roba el h1
+  // detrás de la ficha (Claude BAJA + Codex 2100Z).
+  React.useEffect(function(){
+    if(!open) return undefined;
+    prevFocus.current=document.activeElement;
+    var id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus(); });
+    var onKey=function(e){
+      if(document.documentElement.classList.contains("ask-open")) return;
+      if(detailRef.current||addStepRef.current){
+        // Hojas hijas (portal) atrapan Tab/Escape en capture; aquí no robamos foco.
+        return;
+      }
+      if(e.key==="Escape"){ e.preventDefault(); popRef.current&&popRef.current(); return; }
+      if(e.key!=="Tab"||!rootRef.current) return;
+      var nodes=rootRef.current.querySelectorAll('button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])');
+      var list=Array.prototype.filter.call(nodes,function(el){ return !el.disabled&&el.offsetParent!==null; });
+      if(!list.length) return;
+      var first=list[0], last=list[list.length-1];
+      // Título con tabIndex=-1 no está en la lista: sin esto el Tab se escapa al DOM de detrás.
+      var idx=list.indexOf(document.activeElement);
+      if(!rootRef.current.contains(document.activeElement)||idx===-1){
+        e.preventDefault(); (e.shiftKey?last:first).focus(); return;
+      }
+      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", onKey);
+    return function(){
+      cancelAnimationFrame(id);
+      document.removeEventListener("keydown", onKey);
+      var el=prevFocus.current;
+      if(el&&typeof el.focus==="function") try{ el.focus(); }catch(err){}
+    };
+  },[open]);
+  // Al cerrar ficha/alta: devolver foco al control que las abrió (Codex 2100Z).
+  React.useEffect(function(){
+    var sheet=!!(detail||addStep);
+    if(hadSheetRef.current&&!sheet&&open){
+      var el=openerRef.current;
+      var id=requestAnimationFrame(function(){
+        if(el&&typeof el.focus==="function"&&(!rootRef.current||rootRef.current.contains(el))){
+          try{ el.focus(); }catch(err){}
+        }
+      });
+      hadSheetRef.current=false;
+      return function(){ cancelAnimationFrame(id); };
+    }
+    hadSheetRef.current=sheet;
+    return undefined;
+  },[detail, addStep, open]);
+  const hero=billsHeroTotal(state,totals);
+  const shownHero=useCountUp(hero,!!open,true);
   if(!open) return null;
+  const banks=Array.from(new Set((state.accounts||[]).map(function(a){ return a.ent; }).filter(Boolean)));
+  if(!banks.length) banks.push("sabadell");
+  const billBanks=(state.accounts||[]).filter(function(a){
+    const r=accRole(a); return r==="fijos"||r==="ambos"||!a.role;
+  });
+  const bankList=billBanks.length?billBanks.map(function(a){ return a.ent; }):banks;
+  const nAll=billsCountAll(state,cm,cy);
+  const groupMeta=function(id){
+    const n=billsGroupRows(state,id,cm,cy).length;
+    const total=billsGroupMonthly(state,id,cm,cy);
+    if(id==="serv") return {id:id,emoji:"💡",title:gbTxt("gb_g_serv"),sub:gbSub("gb_g_serv_sub",n),total:total,n:n};
+    if(id==="debt") return {id:id,emoji:"💳",title:gbTxt("gb_g_debt"),
+      sub:simple?gbTxt(n===1?"gb_g_debt_sub_simple_one":"gb_g_debt_sub_simple",{n:n}):gbSub("gb_g_debt_sub",n),total:total,n:n};
+    if(id==="in") return {id:id,emoji:"💰",title:gbTxt("gb_g_in"),sub:gbTxt("gb_g_in_sub"),total:total,n:n};
+    return {id:id,emoji:"📅",title:gbTxt("gb_g_once"),sub:gbSub("gb_g_once_sub",n),total:total,n:n,once:true};
+  };
+  const groups=["serv","debt","in","once"].map(groupMeta);
+  /* La ola representa exactamente la cifra «se te van cada mes»: servicios y cuotas. Ingresos
+     y cargos puntuales siguen en sus grupos, pero meterlos aquí falsearía el reparto del total. */
+  const heroGroups=groups.filter(function(g){ return (g.id==="serv"||g.id==="debt")&&g.total>0; });
+  const push=function(v){ setStack(function(s){ return s.concat([v]); }); };
+  const openGroup=function(id){ setGroup(id); setQ(""); push("list"); };
+  const openDetail=function(row){ openerRef.current=document.activeElement; setDetail(row); };
+  const startAdd=function(kind){
+    openerRef.current=document.activeElement;
+    setAddForm({name:"",amount:"",freq:"mes",months:[],day:"",when:"",account:bankList[0]||"sabadell",kind:kind||"fixed",
+      month:cm, year:cy, flowKind:"income"});
+    setAddStep("what");
+  };
+  const removeWithUndo=function(row){
+    const snap={kind:row.kind, item:Object.assign({},row.item)};
+    if(row.kind==="fixed") removeFixedById(set,row.id);
+    else if(row.kind==="flow") removeFlowById(set,row.id);
+    else if(row.kind==="oneoff") removeOneoffById(set,row.id);
+    else return;
+    setDetail(null);
+    if(undoTimer.current) clearTimeout(undoTimer.current);
+    setUndoBill(snap);
+    undoTimer.current=setTimeout(function(){ setUndoBill(null); undoTimer.current=null; },5000);
+  };
+  const undoLastBill=function(){
+    if(!undoBill) return;
+    if(undoTimer.current){ clearTimeout(undoTimer.current); undoTimer.current=null; }
+    if(undoBill.kind==="fixed") addFixedItem(set,undoBill.item);
+    else if(undoBill.kind==="flow") addFlowItem(set,undoBill.item);
+    else if(undoBill.kind==="oneoff") addOneoffItem(set,undoBill.item);
+    setUndoBill(null);
+  };
+  const listRows=(function(){
+    if(view!=="list"&&view!=="hub") return [];
+    let rows=group?billsGroupRows(state,group,cm,cy):[];
+    if(view==="hub"&&q.trim()){
+      const qq=q.trim().toLowerCase();
+      rows=["serv","debt","in","once"].reduce(function(a,g){ return a.concat(billsGroupRows(state,g,cm,cy)); },[])
+        .filter(function(r){ return String(r.name||"").toLowerCase().indexOf(qq)>=0; });
+    } else if(q.trim()){
+      const qq=q.trim().toLowerCase();
+      rows=rows.filter(function(r){ return String(r.name||"").toLowerCase().indexOf(qq)>=0; });
+    }
+    return rows.map(function(r){
+      if(r.kind==="debt") return Object.assign({},r,{locked:!simple});
+      return r;
+    });
+  })();
+  const billRow=function(r){
+    const attrs={"data-bill-id":r.id};
+    if(r.locked) attrs["data-locked"]="1";
+    return React.createElement("button",Object.assign({type:"button",className:"v4-mov v4-bills-row",key:r.kind+"_"+r.id,onClick:function(){ openDetail(r); }},attrs),
+      React.createElement("div",{className:"tile v4-bill-kind-icon","data-bill-icon":billGlyph(r),"aria-hidden":"true"}, billGlyph(r)),
+      React.createElement("div",{className:"nm"},
+        React.createElement("div",{className:"nm-title"}, r.name||"—"),
+        React.createElement("div",{className:"meta"}, r.locked?gbTxt("gb_locked"):entOf(r.bank).label)),
+      React.createElement("div",{className:"am num"+(r.income?" pos":"")}, (r.income?"+":"")+eur(Math.abs(r.monthly||0))));
+  };
+  const head=function(title,active){
+    // La pantalla padre queda pintada debajo mientras la hija acompaña al dedo. Solo el título
+    // activo recibe el foco y etiqueta el diálogo; así no duplicamos IDs ni tabulamos por detrás.
+    return React.createElement("div",{className:"settings-push-h"},
+      React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:pop},"‹"),
+      React.createElement("h1",{id:active&&"bills-manage-title",tabIndex:-1,ref:active?titleRef:null}, title));
+  };
+  const hub=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-home",inert:view!=="hub"?"":undefined},
+    head(gbTxt("gb_title"),view==="hub"),
+    React.createElement("div",{className:"v4-card v4-card-hero v4-bills-hero","data-bills-hero":"1"},
+      React.createElement("div",{className:"v4-micro"}, gbTxt("gb_hero_label")),
+      React.createElement("div",{className:"serif num v4-bills-hero-amt","data-bills-total":"1"}, eur(shownHero)),
+      React.createElement("div",{className:"v4-bills-hero-sub"}, gbSub("gb_hero_sub",nAll)),
+      hero>0 && React.createElement("div",{className:"v4-stackbar v4-bills-hero-bar","data-bills-wave":"1","aria-hidden":"true"},
+        heroGroups.map(function(g,i){
+          const colors=["var(--mint)","var(--blue)"];
+          return React.createElement("i",{key:g.id,style:{flex:Math.max(.02,g.total/hero*100),background:colors[i%colors.length]}});
+        }))),
+    React.createElement("div",{className:"v4-bills-search-row"},
+      React.createElement("input",{className:"v4-bills-search","data-bills-search":"1",value:q,placeholder:gbTxt("gb_search"),
+        onChange:function(e){ setQ(e.target.value); }}),
+      React.createElement("button",{type:"button",className:"v4-bills-add","data-act":"bill-add",onClick:function(){ startAdd("fixed"); },
+        "aria-label":gbTxt("gb_add")},"+")),
+    q.trim()
+      ? React.createElement("div",{className:"v4-bills-list"},
+          listRows.length===0 && React.createElement("div",{className:"v4-bills-empty","data-bills-noresults":"1"}, gbTxt("gb_search_empty")),
+          listRows.map(billRow))
+      : React.createElement("div",{className:"v4-bills-groups"},
+          groups.filter(function(g){ return g.n>0; }).map(function(g){
+            return React.createElement("button",{type:"button",className:"v4-bills-group",key:g.id,"data-group":g.id,onClick:function(){ openGroup(g.id); }},
+              React.createElement("div",{className:"v4-bills-group-tile"}, g.emoji),
+              React.createElement("div",{className:"v4-bills-group-copy"},
+                React.createElement("div",{className:"v4-bills-group-t"}, g.title),
+                React.createElement("div",{className:"v4-bills-group-s"}, g.sub)),
+              React.createElement("div",{className:"v4-bills-group-amt serif num"},
+                eur(g.total), React.createElement("span",null, g.once?" "+gbTxt("gb_this_month"):" "+gbTxt("gb_per_month"))),
+              React.createElement("span",{className:"v4-bills-group-chev"},"›"));
+          }),
+          nAll===0 && React.createElement("div",{className:"v4-empty","data-bills-empty":"1"},
+            React.createElement("div",{className:"em"},"🧾"),
+            React.createElement("div",{className:"ti"}, gbTxt("gb_empty")),
+            React.createElement("div",{className:"ph"}, gbTxt("gb_empty_sub")),
+            React.createElement("button",{type:"button",className:"v4-cta cta","data-act":"bill-empty-add",onClick:function(){ startAdd("fixed"); }}, gbTxt("gb_add")))),
+    React.createElement("button",{type:"button",className:"v4-bills-afford","data-bills-afford":"1",onClick:function(){ push("afford"); }},
+      React.createElement("div",{className:"v4-bills-afford-t"}, gbTxt("gb_afford")),
+      React.createElement("div",{className:"v4-bills-afford-s"}, gbTxt("gb_afford_sub")))
+  );
+  const listView=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-group","data-group":group||""},
+    head((groups.find(function(g){ return g.id===group; })||{}).title||gbTxt("gb_title"),view==="list"),
+    React.createElement("div",{className:"v4-bills-search-row"},
+      React.createElement("input",{className:"v4-bills-search","data-bills-search":"1",value:q,placeholder:gbTxt("gb_search"),
+        onChange:function(e){ setQ(e.target.value); }}),
+      group!=="debt" && React.createElement("button",{type:"button",className:"v4-bills-add","data-act":"bill-add",onClick:function(){
+        startAdd(group==="in"?"flow":(group==="once"?"oneoff":"fixed"));
+      },"aria-label":gbTxt("gb_add")},"+")),
+    React.createElement("div",{className:"v4-bills-list"},
+      listRows.map(billRow),
+      listRows.length===0 && React.createElement("div",{className:"v4-bills-empty","data-bills-empty":"1"}, gbTxt("gb_empty")))
+  );
+  const affordView=React.createElement("div",{className:"v4-bills-hub","data-screen":"bills-afford"},
+    head(gbTxt("gb_afford"),view==="afford"),
+    React.createElement("div",{className:"v4-bills-afford-body"},
+      React.createElement(AffordSim,{state:state,totals:totals,set:set})));
+  const screenAttr=view==="list"?"bills-group":(view==="afford"?"bills-afford":"bills-home");
   return ReactDOM.createPortal(
-    React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
-      React.createElement("div",Object.assign({className:"v4-sheet",style:{maxHeight:"90dvh"},ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
-        React.createElement("div",{className:"v4-sheet-handle"}),
-        React.createElement("div",{className:"v4-section-h"},
-          React.createElement("span",{className:"serif",style:{fontSize:19,fontWeight:600}}, t("v4_gestionar")),
-          React.createElement("button",{className:"link","aria-label":t("au_close"),onClick:onClose},"✕")
-        ),
-        React.createElement("p",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.45,margin:"0 0 12px"}}, t("v4_gestionar_h")),
-        React.createElement("div",{className:"v4-embed-legacy"}, React.createElement(Fijos,{state:state,set:set,totals:totals}))
-      )
-    ), document.body);
+    React.createElement(React.Fragment,null,
+      React.createElement("div",{ref:rootRef,className:"settings-push open v4-bills-push mc-page-enter","data-bills-manage":"1","data-screen":screenAttr,
+        role:"dialog","aria-modal":"true","aria-labelledby":"bills-manage-title"},
+        hub,
+        view!=="hub" && React.createElement("div",{ref:subRef,className:"settings-push open v4-bills-push mc-page-enter"}, view==="list"?listView:affordView)),
+      detail && React.createElement(BillsItemSheet,{
+        row:detail, set:set, banks:bankList, simple:simple,
+        onClose:closeDetail, onRemove:removeWithUndo
+      }),
+      addStep && React.createElement(BillsAddWizard,{
+        step:addStep, setStep:setAddStep, form:addForm, setForm:setAddForm, banks:bankList,
+        onClose:closeAdd, set:set, showToast:showToast
+      }),
+      undoBill && React.createElement("div",{className:"v4-undo-toast",role:"status"},
+        React.createElement("span",null, gbTxt("gb_removed")),
+        React.createElement("button",{type:"button",onClick:undoLastBill}, t("f_undo")||"Deshacer"))
+    ),
+    document.body);
+}
+
+function BillsItemSheet({row, set, banks, simple, onClose, onRemove}){
+  const item=row.item;
+  const locked=row.kind==="debt"&&!simple;
+  const [name,setName]=React.useState(item.name||"");
+  const [amount,setAmount]=React.useState("");
+  const [freq,setFreq]=React.useState(item.freq||"mes");
+  const [months,setMonths]=React.useState((item.months||[]).slice());
+  const [day,setDay]=React.useState(item.day?String(item.day):"");
+  const [when,setWhen]=React.useState(item.when||"");
+  const [account,setAccount]=React.useState(row.bank||banks[0]||"sabadell");
+  const [amort,setAmort]=React.useState(item.amort!=null?String(item.amort):"");
+  const hasSched=hasSchedule(item);
+  const titleRef=React.useRef(null);
+  const sideRef=React.useRef(null);
+  const swipe=useSheetSwipe(true,onClose);
+  const side=useEdgePageClose(true,onClose,true,sideRef);
+  const sheetRef=swipe.sheetRef;
+  const titleId="bills-item-title";
+  React.useEffect(function(){ setAmount(""); },[row.id]);
+  useBackClose(true, side.close);
+  // Portal hermano del hub: dialog propio con trap/Escape; restore lo hace el hub (Codex 2050/2100Z).
+  // deps=[]: si [onClose] remonta, cada tecla (saveMeta→set) reenfoca el h1 (Claude NO-GO / Codex 2120Z).
+  React.useEffect(function(){
+    var id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus(); });
+    var onKey=function(e){
+      if(document.documentElement.classList.contains("ask-open")) return;
+      if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); side.close(); return; }
+      if(e.key!=="Tab"||!sheetRef.current) return;
+      // Siempre cortar: el hub escucha en bubble y ve foco fuera de rootRef (portal) → lo robaba (Codex 2105Z).
+      e.stopPropagation();
+      var nodes=sheetRef.current.querySelectorAll('button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])');
+      var list=Array.prototype.filter.call(nodes,function(el){ return !el.disabled&&el.offsetParent!==null; });
+      if(!list.length) return;
+      var first=list[0], last=list[list.length-1];
+      var idx=list.indexOf(document.activeElement);
+      if(!sheetRef.current.contains(document.activeElement)||idx===-1){
+        e.preventDefault(); (e.shiftKey?last:first).focus(); return;
+      }
+      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", onKey, true);
+    return function(){
+      cancelAnimationFrame(id);
+      document.removeEventListener("keydown", onKey, true);
+      // Restore lo hace el hub (openerRef); aquí no pisar ese foco (Codex 2100Z).
+    };
+  },[]);
+  const saveAmt=function(e){
+    const b=e.currentTarget;
+    if(locked||hasSched||b.disabled) return;
+    const n=parseNumPadRaw(amount);
+    if(!amount.trim()) return;
+    // La ficha se cerraba en el mismo toque y «Guardado» apenas llegaba a verse. Sellar primero
+    // evita un segundo set si el usuario repite el toque y deja una confirmación breve en su sitio.
+    b.disabled=true;
+    b.textContent="✓ "+gbTxt("gb_save_ok");
+    if(row.kind==="fixed") patchFixedById(set,item.id,{amount:n});
+    else if(row.kind==="flow") patchFlowById(set,item.id,{amount:Math.abs(n)});
+    else if(row.kind==="oneoff") patchOneoffById(set,item.id,{amount:n});
+    else if(row.kind==="debt"&&simple) patchDebtFields(set,item.id,{monthly:n});
+    setTimeout(function(){ if(b.isConnected) swipe.close(); },650);
+  };
+  const saveMeta=function(patch){
+    if(locked) return;
+    if(row.kind==="fixed") patchFixedById(set,item.id,patch);
+    else if(row.kind==="flow") patchFlowById(set,item.id,patch);
+    else if(row.kind==="oneoff") patchOneoffById(set,item.id,patch);
+    else if(row.kind==="debt"&&simple) patchDebtFields(set,item.id,patch);
+  };
+  const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
+  return React.createElement("div",{ref:sideRef,className:"v4-sheet-back",onClick:swipe.close},
+    React.createElement("div",Object.assign({ref:sheetRef,className:"v4-sheet","data-sheet":"bill",role:"dialog","aria-modal":"true","aria-labelledby":titleId,
+      onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("div",{className:"settings-push-h",style:{padding:"0 0 8px"}},
+        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:side.close},"‹"),
+        React.createElement("h1",{id:titleId,tabIndex:-1,ref:titleRef}, name||row.name||"—")),
+      !locked && React.createElement("input",{className:"v4-bills-search",value:name,placeholder:t("pt_name_ph"),
+        onChange:function(e){ const v=e.target.value; setName(v); saveMeta({name:v}); }}),
+      React.createElement("div",{className:"v4-account-balance",style:{marginTop:12}},
+        React.createElement("div",{className:"v4-micro"}, locked?gbTxt("gb_locked"):t("pt_ficha_saldo")),
+        React.createElement("div",{className:"v4-account-amount serif num"}, eur(Math.abs(row.monthly||item.amount||0))),
+        hasSched && React.createElement("div",{className:"hint"}, gbTxt("gb_bill_locked_amt")),
+        !locked && !hasSched && React.createElement("div",{className:"v4-account-correct",style:{marginTop:10}},
+          React.createElement("div",{className:"v4-account-correct-amount serif num"}, amount?eur(parseNumPadRaw(amount)):"—"),
+          React.createElement(NumPad,{value:amount,onChange:function(next){
+            setAmount(function(prev){ return typeof next==="function"?next(prev):next; });
+          }}),
+          React.createElement("button",{type:"button",className:"v4-bills-add",style:{width:"100%",marginTop:8},onClick:saveAmt,"aria-live":"polite"}, t("done")))),
+      row.kind==="fixed" && !locked && React.createElement("div",{style:{marginTop:14}},
+        React.createElement("div",{className:"v4-ficha-k"}, gbTxt("gb_step_how_often")),
+        freqs.map(function(f){
+          const on=freq===f[0];
+          return React.createElement("button",{key:f[0],type:"button",className:"v4-ficha-op"+(on?" on":""),
+            onClick:function(){ setFreq(f[0]); const p={freq:f[0]}; if(f[0]==="mes"){ p.months=[]; } setMonths(f[0]==="mes"?[]:months); saveMeta(p); }},
+            React.createElement("span",{className:"v4-ficha-radio"}),
+            React.createElement("span",{className:"v4-ficha-ot"}, gbTxt(f[1])));
+        }),
+        freq!=="mes" && React.createElement("div",{style:{marginTop:8}},
+          React.createElement("div",{className:"v4-ficha-k"}, gbTxt("gb_months_q")),
+          React.createElement(MonthPicker,{selected:months,onToggle:function(m){
+            setMonths(function(cur){
+              const n=cur.slice(); const i=n.indexOf(m); if(i>=0) n.splice(i,1); else n.push(m);
+              saveMeta({months:n.slice().sort(function(a,b){ return a-b; }), freq:freq});
+              return n;
+            });
+          }}))),
+      (row.kind==="flow"||row.kind==="fixed"||(row.kind==="debt"&&simple)) && React.createElement("div",{style:{marginTop:14}},
+        React.createElement("div",{className:"v4-ficha-k"}, gbTxt("gb_step_when")),
+        row.kind==="flow" && [["","gb_when_day"],["first","gb_when_first"],["last","gb_when_last"]].map(function(w){
+          const on=(when||"")===w[0];
+          return React.createElement("button",{key:w[0]||"day",type:"button",className:"v4-ficha-op"+(on?" on":""),
+            onClick:function(){ setWhen(w[0]); if(w[0]){ setDay(""); saveMeta({when:w[0], day:null}); } else saveMeta({when:"", day:cleanDay(day)}); }},
+            React.createElement("span",{className:"v4-ficha-radio"}),
+            React.createElement("span",{className:"v4-ficha-ot"}, gbTxt(w[1])));
+        }),
+        (!when) && React.createElement("input",{className:"v4-bills-search",inputMode:"numeric",placeholder:t("fj_day"),value:day,
+          onChange:function(e){ const v=e.target.value; setDay(v); saveMeta({day:cleanDay(v), when:""}); }})),
+      !locked && React.createElement("div",{style:{marginTop:14}},
+        React.createElement("div",{className:"v4-ficha-k"}, gbTxt("gb_step_account")),
+        bankListButtons(banks, account, function(b){ setAccount(b); const p=row.kind==="flow"?(item.kind==="income"?{to:b}:{from:b}):{account:b}; saveMeta(p); })),
+      row.kind==="debt"&&simple && React.createElement("input",{className:"v4-bills-search",style:{marginTop:8},value:amort,placeholder:t("fj_amort"),
+        onChange:function(e){ setAmort(e.target.value); }, onBlur:function(){ const n=parseFloat(String(amort).replace(",",".")); if(isFinite(n)) saveMeta({amort:n}); }}),
+      !locked && row.kind!=="debt" && React.createElement("button",{type:"button",className:"v4-ficha-quitar","data-act":"bill-remove",style:{width:"100%",marginTop:16},
+        onClick:function(){ onRemove(row); }}, gbTxt("gb_del")),
+      locked && React.createElement("div",{className:"hint",style:{marginTop:16}}, gbTxt("gb_locked"))
+    ));
+}
+
+function bankListButtons(banks, current, onPick){
+  return React.createElement("div",{className:"v4-bills-banks"},
+    (banks||[]).map(function(b){
+      return React.createElement("button",{type:"button",key:b,className:"v4-bills-bank"+(current===b?" on":""),onClick:function(){ onPick(b); }},
+        React.createElement(Mono,{ent:b,size:28}), entOf(b).label);
+    }));
+}
+
+function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, showToast}){
+  const setF=function(patch){ setForm(function(f){ return Object.assign({},f,patch); }); };
+  const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
+  const stepRef=React.useRef(step), formRef=React.useRef(form);
+  const savedRef=React.useRef(false);
+  const titleRef=React.useRef(null);
+  const onCloseRef=React.useRef(onClose);
+  onCloseRef.current=onClose;
+  const swipe=useSheetSwipe(true,function(){ onCloseRef.current&&onCloseRef.current(); });
+  const sheetRef=swipe.sheetRef;
+  const titleId="bills-add-title";
+  stepRef.current=step; formRef.current=form;
+  const stepBack=React.useCallback(function(){
+    const cur=stepRef.current, f=formRef.current||{};
+    if(cur==="what"){ swipe.close(); return false; }
+    if(cur==="amount") setStep("what");
+    else if(cur==="freq"||cur==="monthyear") setStep("amount");
+    else if(cur==="months") setStep("freq");
+    else if(cur==="when"||cur==="preview") setStep(f.kind==="oneoff"?"monthyear":(f.freq==="mes"?"freq":"months"));
+    else { swipe.close(); return false; }
+    return true;
+  },[setStep]);
+  const entryRef=React.useRef(null), stepBackRef=React.useRef(stepBack);
+  stepBackRef.current=stepBack;
+  React.useEffect(function(){
+    _mcBackInitOnce();
+    const arm=function(){
+      const e={close:function(){ if(stepBackRef.current()) arm(); },_byPop:false};
+      entryRef.current=e;
+      _mcBackStack.push(e);
+      try{ history.pushState({mcOverlay:true}, ""); }catch(err){}
+    };
+    arm();
+    return function(){
+      const e=entryRef.current; if(!e) return;
+      const i=_mcBackStack.indexOf(e); if(i>=0) _mcBackStack.splice(i,1);
+      if(!e._byPop){ _mcIgnorePop=true; try{ history.back(); }catch(err){ _mcIgnorePop=false; } }
+      entryRef.current=null;
+    };
+  },[]);
+  // Solo reenfocar título al cambiar de paso — nunca al teclear el form (Codex 2120Z).
+  React.useEffect(function(){
+    var id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus(); });
+    return function(){ cancelAnimationFrame(id); };
+  },[step]);
+  // Trap Tab/Escape estable (stepBack vía ref).
+  React.useEffect(function(){
+    var onKey=function(e){
+      if(document.documentElement.classList.contains("ask-open")) return;
+      if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); stepBackRef.current&&stepBackRef.current(); return; }
+      if(e.key!=="Tab"||!sheetRef.current) return;
+      e.stopPropagation();
+      var nodes=sheetRef.current.querySelectorAll('button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])');
+      var list=Array.prototype.filter.call(nodes,function(el){ return !el.disabled&&el.offsetParent!==null; });
+      if(!list.length) return;
+      var first=list[0], last=list[list.length-1];
+      var idx=list.indexOf(document.activeElement);
+      if(!sheetRef.current.contains(document.activeElement)||idx===-1){
+        e.preventDefault(); (e.shiftKey?last:first).focus(); return;
+      }
+      if(e.shiftKey&&idx===0){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey&&idx===list.length-1){ e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", onKey, true);
+    return function(){ document.removeEventListener("keydown", onKey, true); };
+  },[]);
+  const commit=function(){
+    if(savedRef.current) return;
+    const amt=parseFloat(String(form.amount).replace(",","."))||0;
+    if(!(amt>0)) return;
+    // La hoja sigue montada durante la salida. Sin este guardo, dos toques rápidos creaban
+    // dos recibos distintos antes de que acabara la animación (feedback 2026-09-18, punto 12).
+    savedRef.current=true;
+    if(form.kind==="flow"){
+      const it={id:uid(),kind:form.flowKind||"income",name:form.name||(form.flowKind==="income"?"Ingreso":"Movimiento"),amount:amt};
+      if(form.when) it.when=form.when; else { const d=cleanDay(form.day); if(d) it.day=d; }
+      if(it.kind==="income") it.to=form.account; else { it.from=form.account; it.to=banks.find(function(b){ return b!==form.account; })||form.account; }
+      addFlowItem(set,it);
+    } else if(form.kind==="oneoff"){
+      const it={id:uid(),name:form.name||"Cargo",amount:amt,month:form.month,year:form.year,account:form.account};
+      const d=cleanDay(form.day); if(d) it.day=d;
+      addOneoffItem(set,it);
+    } else {
+      const it={id:uid(),name:form.name||"Recibo",amount:amt,freq:form.freq||"mes",account:form.account};
+      const d=cleanDay(form.day); if(d) it.day=d;
+      if(form.freq!=="mes"&&form.months&&form.months.length) it.months=form.months.slice().sort(function(a,b){ return a-b; });
+      addFixedItem(set,it);
+    }
+    if(showToast) showToast(gbTxt("gb_save_ok"));
+    swipe.close();
+  };
+  const preview=function(){
+    const amt=parseFloat(String(form.amount).replace(",","."))||0;
+    if(!(amt>0)||form.kind!=="fixed") return null;
+    const mEq=amt*(FREQ_M[form.freq]||1);
+    if(form.freq==="mes") return gbTxt("gb_preview_m",{x:eur(mEq)});
+    const ms=(form.months&&form.months.length)?form.months:chargeMonths({freq:form.freq,months:form.months});
+    return gbTxt("gb_preview",{x:eur(mEq),total:eur(amt*(ms.length||1)),months:ms.map(function(m){ return monthShort(m-1); }).join(", ")});
+  };
+  const title=step==="what"?gbTxt("gb_step_what"):step==="amount"?gbTxt("gb_step_how_much"):
+    step==="freq"?gbTxt("gb_step_how_often"):step==="months"?gbTxt("gb_months_q"):
+    step==="monthyear"?gbTxt("gb_step_monthyear"):gbTxt("gb_step_when");
+  return React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+    React.createElement("div",Object.assign({ref:sheetRef,className:"v4-sheet","data-sheet":"bill-add","data-step":step,role:"dialog","aria-modal":"true","aria-labelledby":titleId,
+      onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("div",{className:"settings-push-h",style:{padding:"0 0 8px"}},
+        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:function(){ stepBack(); }},"‹"),
+        React.createElement("h1",{id:titleId,tabIndex:-1,ref:titleRef}, title)),
+      step==="what" && React.createElement(React.Fragment,null,
+        React.createElement("input",{className:"v4-bills-search",autoFocus:true,value:form.name,placeholder:gbTxt("gb_step_what"),
+          onChange:function(e){ setF({name:e.target.value}); }}),
+        React.createElement("button",{type:"button",className:"v4-cta","data-act":"next",style:{marginTop:16},disabled:!String(form.name||"").trim(),
+          onClick:function(){ setStep("amount"); }}, gbTxt("gb_next"))),
+      step==="amount" && React.createElement(React.Fragment,null,
+        React.createElement("div",{className:"v4-account-correct-amount serif num"}, form.amount?eur(parseNumPadRaw(form.amount)):"—"),
+        React.createElement(NumPad,{value:form.amount||"",onChange:function(next){ setF({amount:typeof next==="function"?next(form.amount||""):next}); }}),
+        React.createElement("button",{type:"button",className:"v4-cta","data-act":"next",style:{marginTop:12},disabled:!(parseFloat(String(form.amount).replace(",","."))>0),
+          onClick:function(){ setStep(form.kind==="oneoff"?"monthyear":"freq"); }}, t("done"))),
+      step==="freq" && form.kind==="fixed" && React.createElement(React.Fragment,null,
+        freqs.map(function(f){
+          return React.createElement("button",{key:f[0],type:"button",className:"v4-ficha-op"+(form.freq===f[0]?" on":""),
+            onClick:function(){ setF({freq:f[0], months:f[0]==="mes"?[]:(form.months||[])}); }},
+            React.createElement("span",{className:"v4-ficha-radio"}),
+            React.createElement("span",{className:"v4-ficha-ot"}, gbTxt(f[1])));
+        }),
+        React.createElement("button",{type:"button",className:"v4-cta","data-act":"next",style:{marginTop:12},onClick:function(){
+          setStep(form.freq==="mes"?"when":"months");
+        }}, t("done"))),
+      step==="freq" && form.kind==="flow" && React.createElement(React.Fragment,null,
+        [["income",gbTxt("gb_flow_income")],["transfer",gbTxt("gb_flow_move")]].map(function(k){
+          return React.createElement("button",{key:k[0],type:"button",className:"v4-ficha-op"+(form.flowKind===k[0]?" on":""),
+            onClick:function(){ setF({flowKind:k[0]}); }},
+            React.createElement("span",{className:"v4-ficha-radio"}),
+            React.createElement("span",{className:"v4-ficha-ot"}, k[1]));
+        }),
+        React.createElement("button",{type:"button",className:"v4-cta","data-act":"next",style:{marginTop:12},onClick:function(){ setStep("when"); }}, t("done"))),
+      step==="months" && React.createElement(React.Fragment,null,
+        React.createElement("div",{className:"v4-ficha-k"}, gbTxt("gb_months_q")),
+        React.createElement(MonthPicker,{selected:form.months||[],onToggle:function(m){
+          setF({months:(function(){ const n=(form.months||[]).slice(); const i=n.indexOf(m); if(i>=0) n.splice(i,1); else n.push(m); return n; })()});
+        }}),
+        preview() && React.createElement("div",{className:"hint",style:{marginTop:10}}, preview()),
+        React.createElement("button",{type:"button",className:"v4-cta","data-act":"next",style:{marginTop:12},onClick:function(){ setStep("when"); }}, t("done"))),
+      step==="monthyear" && React.createElement(React.Fragment,null,
+        React.createElement("div",{className:"af-row",style:{marginBottom:10}},
+          React.createElement("input",{className:"v4-bills-search",inputMode:"numeric",value:String(form.month),onChange:function(e){ setF({month:parseInt(e.target.value,10)||1}); },placeholder:gbTxt("gb_month")}),
+          React.createElement("input",{className:"v4-bills-search",inputMode:"numeric",value:String(form.year),onChange:function(e){ setF({year:parseInt(e.target.value,10)||new Date().getFullYear()}); },placeholder:gbTxt("gb_year")})),
+        React.createElement("button",{type:"button",className:"v4-cta","data-act":"next",style:{marginTop:12},onClick:function(){ setStep("when"); }}, t("done"))),
+      step==="when" && React.createElement(React.Fragment,null,
+        form.kind==="flow" && [["","gb_when_day"],["first","gb_when_first"],["last","gb_when_last"]].map(function(w){
+          return React.createElement("button",{key:w[0]||"d",type:"button",className:"v4-ficha-op"+((form.when||"")===w[0]?" on":""),
+            onClick:function(){ setF({when:w[0], day:w[0]?"":form.day}); }},
+            React.createElement("span",{className:"v4-ficha-radio"}),
+            React.createElement("span",{className:"v4-ficha-ot"}, gbTxt(w[1])));
+        }),
+        !form.when && React.createElement("input",{className:"v4-bills-search",inputMode:"numeric",placeholder:t("fj_day"),value:form.day||"",
+          onChange:function(e){ setF({day:e.target.value}); }}),
+        React.createElement("div",{className:"v4-ficha-k",style:{marginTop:12}}, gbTxt("gb_step_account")),
+        bankListButtons(banks, form.account, function(b){ setF({account:b}); }),
+        form.kind==="fixed" && form.freq==="mes" && preview() && React.createElement("div",{className:"hint",style:{marginTop:10}}, preview()),
+        React.createElement("button",{type:"button",className:"v4-cta","data-act":"confirm",style:{marginTop:16},onClick:commit}, gbTxt("gb_add_btn")))
+    ));
 }
 
 function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSync, syncInv, onReconnectBank, showToast}){
@@ -365,7 +1018,7 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
   const invLinkRef=useRef(null);
   const closeInvestments=function(){
     setInvTools(false);
-    // La pantalla hija devuelve el foco a la puerta que la abrió; sin esto, al cerrar con
+    // La pantalla hija devuelve el foco a la puerta que la abrio; sin esto, al cerrar con
     // Atrás el lector de pantalla se queda apuntando a un nodo que ya no existe.
     requestAnimationFrame(function(){ if(invLinkRef.current) invLinkRef.current.focus(); });
   };
@@ -538,7 +1191,8 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
                 React.createElement("path",{d:"M18 16v6M15 19h6"})))
           )
         ),
-        React.createElement(Wealth,{state:state,set:set,totals:totals,v4Embed:true,parte:"cuentas",showToast:showToast})
+        React.createElement(Wealth,{state:state,set:set,totals:totals,v4Embed:true,parte:"cuentas",showToast:showToast,
+          onBankSync:doBankSync,onReconnectBank:onReconnectBank,bankBusy:bankBusy})
       ) },
       // Bienes (piso, coche…) es su propio bloque: no son cuentas de banco y el usuario quiere
       // colocarlos donde le apetezca (feedback 2026-07-25).
@@ -559,68 +1213,21 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
 }
 
 function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncInv, showToast}){
-  // Locales deliberadamente compactos: el gesto vive en un único efecto y el bundle tiene un
-  // presupuesto estricto; los nombres largos no aportaban contexto fuera de estas pocas líneas.
-  const tr=useRef(null), sr=useRef(null), ct=useRef(null), cr=useRef(onClose); cr.current=onClose;
+  const tr=useRef(null), sr=useRef(null);
   const [shown,setShown]=useState(false);
-  const closePush=useCallback(function(){
-    if(ct.current) return;
-    setShown(false);
-    ct.current=setTimeout(function(){ ct.current=null; cr.current(); },
-      document.documentElement.classList.contains("reduce-motion")?0:430);
-  },[]);
+  // Inversiones y Gestionar comparten compositor: el arrastre web nace en cualquier punto y el
+  // borde nativo de Android 14+ entrega su progreso real sin esperar a que se levante el dedo.
+  const pageSwipe=useEdgePageClose(!!open,onClose,!!open,sr);
+  const closePush=pageSwipe.close;
   useBackClose(!!open, closePush);
   useLayoutEffect(function(){
     if(!open) return undefined;
-    const root=sr.current;
-    let sx=0,sy=0,dx=0,t0=0,drag=false,axis=null,st=0,e2=0;
+    let e2=0;
     const e1=requestAnimationFrame(function(){ e2=requestAnimationFrame(function(){ setShown(true); }); });
-    // El gesto puede empezar en toda la pantalla (rechazo beta 4.26.16.1): en Android el sistema
-    // se queda el borde y la WebView no llega a ver ese dedo. El eje vertical se abandona al
-    // scroll nativo; `touchmove` va a mano porque React lo registra pasivo.
-    const start=function(e){
-      const p=e.touches&&e.touches[0];
-      const target=e.target;
-      if(!p||document.documentElement.classList.contains("ask-open")||
-        (target&&target.closest&&target.closest("input,textarea,select,[data-noswipe]"))) return;
-      sx=p.clientX; sy=p.clientY; dx=0; t0=Date.now(); drag=true; axis=null;
-    };
-    const move=function(e){
-      if(!drag||!(e.touches&&e.touches[0])) return;
-      const p=e.touches[0],x=p.clientX-sx,y=p.clientY-sy;
-      if(axis===null){ axis=gestureAxis(x,y); if(!axis) return; if(axis!=="x"){ drag=false; return; } }
-      dx=Math.max(0,x);
-      if(!dx) return;
-      root.classList.add("dragging"); root.style.transform="translateX("+dx+"px)";
-      if(e.cancelable) e.preventDefault();
-    };
-    const finish=function(commit){
-      if(!drag){ axis=null; return; }
-      drag=false; axis=null;
-      const go=commit&&(dx>(root.clientWidth||360)*.28||(dx/Math.max(1,Date.now()-t0)>.45&&dx>52));
-      root.classList.remove("dragging");
-      root.style.transition="transform .24s cubic-bezier(.32,.72,0,1)";
-      if(go){
-        root.style.transform="translateX(105%)";
-        ct.current=setTimeout(function(){ ct.current=null; cr.current(); },document.documentElement.classList.contains("reduce-motion")?0:240);
-      } else {
-        root.style.transform="";
-        st=setTimeout(function(){ root.style.transition=""; },250);
-      }
-      dx=0;
-    };
-    const end=function(){ finish(true); }, cancel=function(){ finish(false); };
     mcSheetLock();
-    root.addEventListener("touchstart",start,{passive:true});
-    root.addEventListener("touchmove",move,{passive:false});
-    root.addEventListener("touchend",end,{passive:true});
-    root.addEventListener("touchcancel",cancel,{passive:true});
     return function(){
-      cancelAnimationFrame(e1); if(e2) cancelAnimationFrame(e2); if(st) clearTimeout(st);
-      root.removeEventListener("touchstart",start); root.removeEventListener("touchmove",move);
-      root.removeEventListener("touchend",end); root.removeEventListener("touchcancel",cancel);
-      root.style.transform=""; root.style.transition=""; mcSheetUnlock(); setShown(false);
-      if(ct.current){ clearTimeout(ct.current); ct.current=null; }
+      cancelAnimationFrame(e1); if(e2) cancelAnimationFrame(e2);
+      mcSheetUnlock(); setShown(false);
     };
   },[open]);
   useEffect(function(){
@@ -669,12 +1276,14 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
   // Moneda en la que tecleas el importe (NO la de pantalla). Por defecto la de visualización;
   // se puede cambiar a liras/dólares/… sin tocar Ajustes.
   const [entryCur,setEntryCur]=useState("EUR");
+  const [curOpen,setCurOpen]=useState(false);
   // Banco del apunte (petición 2026-07-18: «poder elegir el banco si apuntas un gasto manual»).
   // Opciones = los bancos de tus cuentas; por defecto la de gasto diario (lo que ya hacía Gastos).
   const [bank,setBank]=useState(null);
   const [bankOpen,setBankOpen]=useState(false);
   const [date,setDate]=useState(function(){ return isoLocal(); });
   const [calOpen,setCalOpen]=useState(false);
+  const [allCatsOpen,setAllCatsOpen]=useState(false);
   /* Sugerir categoría al escribir el concepto (13/9, opción A): palabras clave se aplican solas;
      la IA solo ofrece un chip. Lo que tocas a mano manda. */
   const [tocadaAMano,setTocadaAMano]=useState(false);
@@ -709,12 +1318,11 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     if(open){
       setKind("gasto"); setRaw(""); setNote(""); setCat("super"); setNc(false);
       setTocadaAMano(false); setIaPara(null); setIaCat(null); setSugKw(null);
-      setDate(isoLocal()); setCalOpen(false); setBankOpen(false);
+      setDate(isoLocal()); setCalOpen(false); setBankOpen(false); setCurOpen(false); setAllCatsOpen(false);
       // Ayuda «Pregúntame» marca efectivo sin tocar 11 (mismo patrón que __mcExpBank en §3).
       var wantCash=false;
       try{ wantCash=!!window.__mcApuntarCash; window.__mcApuntarCash=false; }catch(e){}
       setBank(wantCash&&hasEfectivo?"efectivo":dailyBankEnt);
-      // Arranca en la moneda de pantalla (o la última que usó al apuntar en este viaje).
       const last=(state.settings&&state.settings.apuntarCur)||(state.settings&&state.settings.currency)||"EUR";
       setEntryCur(String(last).toUpperCase());
     }
@@ -748,8 +1356,16 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     }, 900);
     return function(){ clearTimeout(tKw); clearTimeout(tIa); };
   },[open, note, kind, aiOn]);
-  useBackClose(!!open, onClose);
   const swipe=useSheetSwipe(!!open, onClose);
+  useBackClose(!!open, swipe.close);
+  // La pasada por todo el histórico queda preparada con la hoja cerrada; cambiar de categoría
+  // ya solo recoloca ocho chips y no mete trabajo O(n) en mitad del gesto (vídeo 2026-09-17).
+  const fichaCatsBase=useMemo(function(){
+    return expenseTopCategoryRanking(state.expenses,XC);
+  },[state.expenses]);
+  const fichaCats=useMemo(function(){
+    return expenseTopCategoryPick(fichaCatsBase,cat,XC);
+  },[fichaCatsBase,cat]);
   if(!open) return null;
   const entrySym=CUR_SYM[entryCur]||entryCur;
   // Chips: siempre EUR + las de viaje más usadas (aunque el FX aún no haya llegado — al
@@ -787,7 +1403,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
     if(entryCur!=="EUR"){ e.origAmount=amt; e.origCur=entryCur; }
     set(function(s){ return Object.assign({},s,{expenses:(s.expenses||[]).concat([e])}); });
     if(cloud.enabled()) subirGasto(e, "v4-apuntar");
-    onClose();
+    swipe.close();
     if(goGastos) goGastos();
     showToast(isIn?t("v4_apuntar_ok_in"):t("v4_apuntar_ok"));
     if(!isIn && e.ent==="efectivo"){
@@ -810,74 +1426,52 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
   const pickCat=function(id){
     setCat(id); setTocadaAMano(true); setSugKw(null);
   };
-  return ReactDOM.createPortal(
-    React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
-      React.createElement("div",Object.assign({className:"v4-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
+  const visibleCats=fichaCats.map(function(c){
+    return Object.assign({},c,{suggested:sugKw===c.id && cat===c.id && !tocadaAMano});
+  });
+  const bankForPill=bank==="efectivo"?dailyBankEnt:bank;
+  const meta=[
+    {id:"bank",testId:"ap-bank",label:bankForPill?entOf(bankForPill).label:t("ap_bank_none"),
+      lead:bankForPill?React.createElement(Mono,{ent:bankForPill,size:18}):React.createElement("span",null,"🏦"),on:bankOpen,
+      onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); setCurOpen(false); }},
+    {id:"cash",testId:"ap-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bank==="efectivo",disabled:!hasEfectivo,
+      onClick:function(){ setBank(function(b){ return b==="efectivo"?dailyBankEnt:"efectivo"; }); setBankOpen(false); setCalOpen(false); }},
+    {id:"date",testId:"ap-date",label:fmtIsoCorto(date),lead:React.createElement("span",null,"📅"),on:calOpen,
+      onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); setCurOpen(false); }}
+  ];
+  const afterMeta=React.createElement(React.Fragment,null,
+    kind==="gasto" && React.createElement("button",{className:"v4-chip"+(nc?" on":""),"data-testid":"ap-payment",onClick:function(){ setNc(!nc); }},t(nc?"g_nocard":"g_card")),
+    curOpen && React.createElement("div",{className:"v4-chips wrap","aria-label":t("ap_cur_lbl")},
+      curChips.map(function(c){ return React.createElement("button",{key:c,type:"button",className:"v4-chip"+(entryCur===c?" on":""),
+        onClick:function(){ pickCur(c); setCurOpen(false); }},(CUR_SYM[c]||c)+" "+c); })),
+    calOpen && React.createElement(McCal,{value:date,onPick:function(iso){ setDate(iso); setCalOpen(false); }}),
+    bankOpen && bankOpts.length>0 && React.createElement("div",{className:"v4-chips wrap","data-testid":"ap-bank-list"},
+      React.createElement("button",{type:"button",className:"v4-chip"+(bank==null?" on":""),onClick:function(){ setBank(null); setBankOpen(false); }},t("ap_bank_none")),
+      bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bank===b?" on":""),
+        onClick:function(){ setBank(b); setBankOpen(false); }},bankChipLabel(b)); })),
+    chipIA && kind==="gasto" && React.createElement("div",{className:"v4-chips",style:{marginBottom:4}},
+      React.createElement("button",{type:"button",className:"v4-chip"+(cat===chipIA?" on":""),"data-testid":"ap-ia-chip",
+        onClick:function(){ pickCat(chipIA); }},"✨ "+catName(chipIA)))
+  );
+  const fxHint=entryCur!=="EUR" ? tf("f_fx_eq",{
+    x:NF.format(toEurAmt(amt,entryCur,state))+" €",date:fmtIsoCorto(state.fxDate||date)
+  }) : null;
+  const ctaAmount=NF.format(amt)+(entrySym.length>1?" ":"")+entrySym;
+  const main=ReactDOM.createPortal(
+    React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+      React.createElement("div",Object.assign({className:"v4-sheet v4-exp-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
         React.createElement("div",{className:"v4-sheet-handle"}),
-        /* Cuerpo con scroll; Guardar fuera (shell: .v4-sheet flex + .v4-sheet-body). */
-        React.createElement("div",{className:"v4-sheet-body"},
-          React.createElement("div",{className:"v4-toggle"},
-            React.createElement("button",{className:kind==="gasto"?"on":"",onClick:function(){ setKind("gasto"); }},"💸 "+t("v4_gasto")),
-            React.createElement("button",{className:kind==="ingreso"?"on":"",onClick:function(){ setKind("ingreso"); }},"💰 "+t("v4_ingreso"))
-          ),
-          React.createElement("div",{className:"v4-apuntar-amt serif num"},
-            raw?raw+" "+entrySym:React.createElement("span",{style:{color:"var(--muted-2)"}},"0 "+entrySym)),
-          entryCur!=="EUR" && React.createElement("div",{style:{fontSize:12,color:"var(--muted)",textAlign:"center",marginTop:-4,marginBottom:6}}, t("ap_fx_hint")),
-          React.createElement("div",{className:"v4-chips","aria-label":t("ap_cur_lbl")},
-            curChips.map(function(c){
-              return React.createElement("button",{key:c,type:"button",className:"v4-chip"+(entryCur===c?" on":""),onClick:function(){ pickCur(c); }},
-                (CUR_SYM[c]||c)+" "+c);
-            })
-          ),
-          React.createElement("input",{className:"v4-input",placeholder:t("v4_apuntar_ph"),value:note,onChange:function(e){ setNote(e.target.value); }}),
-          React.createElement("div",{className:"v4-chips"},
-            React.createElement("button",{type:"button",className:"v4-chip"+(calOpen?" on":""),"data-testid":"ap-date",
-              onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }},
-              "📅 "+fmtIsoCorto(date)),
-            /* Chip directo del sobre (hotfix 13/9 review): si solo está dentro de la lista del
-               🏦, no se ve «elegir efectivo» — su queja literal. Alterna con el banco diario. */
-            hasEfectivo && React.createElement("button",{type:"button",
-              className:"v4-chip"+(bank==="efectivo"?" on":""),"data-testid":"ap-efectivo",
-              onClick:function(){
-                setCalOpen(false); setBankOpen(false);
-                setBank(function(b){ return b==="efectivo"?dailyBankEnt:"efectivo"; });
-              }},
-              "💶 "+entOf("efectivo").label),
-            bankOpts.length>0 && React.createElement("button",{type:"button",className:"v4-chip"+(bankOpen?" on":""),"data-testid":"ap-bank",
-              onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }},
-              bankChipLabel(bank))
-          ),
-          calOpen && React.createElement(McCal,{value:date, onPick:function(iso){ setDate(iso); setCalOpen(false); }}),
-          bankOpen && bankOpts.length>0 && React.createElement("div",{className:"v4-chips wrap","data-testid":"ap-bank-list"},
-            React.createElement("button",{type:"button",className:"v4-chip"+(bank==null?" on":""),onClick:function(){ setBank(null); setBankOpen(false); }}, t("ap_bank_none")),
-            bankOpts.map(function(b){
-              return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bank===b?" on":""),onClick:function(){ setBank(b); setBankOpen(false); }},
-                bankChipLabel(b));
-            })
-          ),
-          kind==="gasto" && React.createElement("div",{className:"v4-chips"},
-            React.createElement("button",{type:"button",className:"v4-chip"+(nc?" on":""),"data-testid":"ap-payment",onClick:function(){ setNc(function(v){ return !v; }); }},
-              t(nc?"g_nocard":"g_card"))
-          ),
-          kind==="gasto" && React.createElement("div",{className:"v4-chips","data-testid":"ap-cats"},
-            chipIA && React.createElement("button",{type:"button",key:"ia_"+chipIA,
-              className:"v4-chip"+(cat===chipIA?" on":""),"data-testid":"ap-ia-chip",
-              onClick:function(){ pickCat(chipIA); }},
-              "✨ "+catName(chipIA)),
-            cats.map(function(c){
-              const sugerida=sugKw===c.id && cat===c.id && !tocadaAMano;
-              return React.createElement("button",{key:c.id,type:"button",
-                className:"v4-chip"+(cat===c.id?" on":""),"data-testid":"ap-cat-"+c.id,
-                onClick:function(){ pickCat(c.id); }},
-                c.icon+" "+catName(c.id)+(sugerida?" ✨":""));
-            })
-          ),
-          React.createElement(NumPad,{value:raw, onChange:setRaw})
-        ),
-        React.createElement("button",{className:"v4-cta",onClick:save},
-          kind==="ingreso"?t("v4_save_in"):t("v4_save_gasto"))
+        React.createElement(ExpenseFichaLayout,{kind:kind,onKind:setKind,dateLabel:fmtIsoCorto(date),
+          onDate:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); setCurOpen(false); },
+          amount:(raw||"0"),amountEmpty:!raw,currency:entrySym,onCurrency:function(){ setCurOpen(function(v){ return !v; }); setCalOpen(false); setBankOpen(false); },
+          focused:true,concept:note,onConcept:setNote,fxHint:fxHint,meta:meta,afterMeta:afterMeta,
+          categoryItems:visibleCats,allCategoryItems:cats,category:cat,onCategory:pickCat,onAllCategories:function(){ setAllCatsOpen(true); },
+          numpad:React.createElement(NumPad,{value:raw,onChange:setRaw}),testPrefix:"ap",
+          footer:React.createElement("button",{className:"v4-cta",onClick:save},kind==="ingreso"?tf("f_cta_add_in",{x:ctaAmount}):tf("f_cta_add",{x:ctaAmount}))})
       )
-    ), document.body);
+    ),document.body);
+  return React.createElement(React.Fragment,null,main,
+    React.createElement(ExpenseCategorySheet,{open:allCatsOpen,onClose:function(){ setAllCatsOpen(false); },items:cats,selected:cat,onPick:pickCat}));
 }
 
 /* Perfil personal (pull-down tipo Revolut). Datos en settings.profile — NUNCA PII de ejemplo

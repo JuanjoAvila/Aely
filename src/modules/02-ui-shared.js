@@ -579,21 +579,29 @@ function CollapsibleCard({title, sub, dot, defaultOpen, right, children, storage
   );
 }
 
+function mcReduced(){
+  try{ return document.documentElement.classList.contains("reduce-motion")||(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches); }catch(e){ return false; }
+}
+
 /* Count-up compartido (B2). `ready` es la puerta: Inicio espera `mc-splash-gone`; Cartera espera
    el bus `mcOnCarteraActive`. Sin puerta, la animación se gasta con la pestaña premontada (o
    detrás del splash) y al llegar el número ya está puesto — peor que no animar. */
-function useCountUp(target, ready){
+function useCountUp(target, ready, replay){
   const [shown,setShown]=useState(0);
   const rafRef=useRef(0);
   const shownRef=useRef(0);
   const primeraRef=useRef(true);
   useEffect(function(){
-    if(!ready) return undefined;
+    /* Gestionar queda montado detrás de Plan. Si solo paramos el RAF al cerrarlo, conserva el
+       total final y la siguiente entrada ya no tiene animación; `replay` devuelve el contador a
+       cero mientras está oculto sin cambiar Inicio ni Cartera (feedback 2026-09-18). */
+    if(!ready){
+      if(replay){ shownRef.current=0; primeraRef.current=true; setShown(0); }
+      return undefined;
+    }
     const tgt=+(target||0);
     cancelAnimationFrame(rafRef.current);
-    const reduce=(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)
-      || document.documentElement.classList.contains("reduce-motion");
-    if(reduce){
+    if(mcReduced()){
       shownRef.current=tgt; setShown(tgt); primeraRef.current=false;
       return undefined;
     }
@@ -612,7 +620,7 @@ function useCountUp(target, ready){
     };
     rafRef.current=requestAnimationFrame(step);
     return function(){ cancelado=true; cancelAnimationFrame(rafRef.current); };
-  },[target, ready]);
+  },[target, ready, replay]);
   return shown;
 }
 
@@ -738,6 +746,28 @@ function Ring({ratio, spent, budget}){
   );
 }
 
+/* Anillo v4.1 compartido (Inicio y portada de Plan). Geometría 104/r=48/stroke10 — la de 96/r=54
+   de la spec se sale del viewBox (audit Claude 17/9). Sin animación al montar en Plan. */
+function V4Ring({pct, tone, label, sub, animate}){
+  const ringC=2*Math.PI*48;
+  const p=Math.max(0,Math.min(1,Number(pct)||0));
+  const stroke=tone==="bad"?"var(--coral)":(tone==="warn"?"var(--tan)":"var(--mint)");
+  return React.createElement("div",{className:"v4-ring",style:{position:"relative",width:104,height:104,flex:"0 0 auto"},"aria-hidden":true},
+    React.createElement("svg",{width:104,height:104,viewBox:"0 0 104 104"},
+      React.createElement("circle",{cx:52,cy:52,r:48,fill:"none",stroke:"var(--sur2)",strokeWidth:10}),
+      React.createElement("circle",{cx:52,cy:52,r:48,fill:"none",stroke:stroke,strokeWidth:10,strokeLinecap:"round",
+        strokeDasharray:String(ringC),strokeDashoffset:String(ringC*(1-p)),
+        transform:"rotate(-90 52 52)",style:animate?{transition:"stroke-dashoffset 1s var(--ease)"}:null})
+    ),
+    React.createElement("div",{style:{position:"absolute",inset:0,display:"grid",placeItems:"center",textAlign:"center",pointerEvents:"none"}},
+      React.createElement("div",null,
+        React.createElement("div",{className:"num",style:{fontFamily:"'Fraunces',Georgia,serif",fontWeight:600,fontSize:22,lineHeight:1}}, label!=null?label:(Math.round(p*100)+"%")),
+        sub && React.createElement("div",{style:{fontSize:10.5,color:"var(--muted-2)",fontWeight:600,marginTop:1}}, sub)
+      )
+    )
+  );
+}
+
 function MiniPie({slices}){
   const total=slices.reduce((a,s)=>a+s.value,0)||1;
   let acc=0; const r=42,cx=48,cy=48;
@@ -785,6 +815,125 @@ function useBackClose(open, onClose){
   },[open]);
 }
 
+/* Pantallas hijas a página completa: dentro de la WebView se puede volver desde cualquier punto,
+   como en Inversiones; en Android 14+ el borde pertenece al sistema y llega por su progreso
+   predictivo. La hija acompaña al dedo y solo se desmonta después de cerrar. */
+function useEdgePageClose(open,onClose,on,ref){
+  const tm=useRef(null), busy=useRef(false);
+  const cb=useRef(onClose); cb.current=onClose;
+  const dr=useRef(null);
+  useEffect(function(){
+    // Una misma pantalla puede montar varias hijas seguidas sin cerrar el push padre. Cada vez
+    // que esta capa vuelve a ser la activa necesita recuperar el gesto (review Claude 24/9).
+    if(open&&on) busy.current=false;
+    return function(){ if(tm.current) clearTimeout(tm.current); };
+  },[open,on]);
+  const close=function(){
+    if(busy.current) return;
+    const el=ref.current;
+    if(!el||mcReduced()){ cb.current&&cb.current(); return; }
+    busy.current=true;
+    el.classList.remove("mc-page-dragging");
+    el.style.transition="transform .42s cubic-bezier(.32,.72,0,1), opacity .34s ease";
+    el.style.setProperty("transform","translate3d(104%,0,0) rotateY(-1.2deg)","important");
+    el.style.opacity=".78";
+    tm.current=setTimeout(function(){
+      tm.current=null;
+      cb.current&&cb.current();
+    },420);
+  };
+  const reset=function(){
+    const el=ref.current; if(!el) return;
+    el.classList.remove("mc-page-dragging");
+    if(mcReduced()){
+      el.style.transition=""; el.style.transform=""; el.style.opacity="";
+      return;
+    }
+    el.style.transition="transform .24s cubic-bezier(.32,.72,0,1), opacity .2s ease";
+    el.style.setProperty("transform","translate3d(0,0,0)","important");
+    el.style.opacity="1";
+  };
+  const move=function(x,p){
+    const el=ref.current; if(!el||busy.current||mcReduced()) return;
+    el.classList.add("mc-page-dragging");
+    // Gestionar conserva `transform:none!important` para que Android pinte su ola nativa; el
+    // compositor debe ganar solo mientras el gesto está vivo y no puede fiarlo a una clase.
+    el.style.setProperty("transition","none","important");
+    el.style.setProperty("transform","translate3d("+x+"px,0,0) rotateY("+(-1.2*p)+"deg)","important");
+    el.style.opacity=String(1-p*.22);
+  };
+  useEffect(function(){
+    if(!open||!on) return undefined;
+    const nat=natPlugin(), tog=function(v){
+      if(nat&&nat.setEdgeBackEnabled){ try{ nat.setEdgeBackEnabled({enabled:v}).catch(function(){}); }catch(e){} }
+    };
+    const back=function(e){
+      const ph=e.phase;
+      // Un AskHost vive por encima de la página. Con el callback OVERLAY, Android ya no llega al
+      // back general de Capacitor: primero cerramos ese diálogo y nunca movemos el fondo debajo.
+      if(document.documentElement.classList.contains("ask-open")){
+        if(ph==="cancel") reset();
+        if(ph==="invoke"){
+          reset();
+          try{ if(typeof window.__mcCloseTopAsk==="function") window.__mcCloseTopAsk(); }catch(err){}
+        }
+        return;
+      }
+      if(ph==="invoke"){ close(); return; }
+      if(ph==="cancel"){ reset(); return; }
+      if(ph!=="start"&&ph!=="progress") return;
+      const p=Math.max(0,Math.min(1,Number(e.progress)||0));
+      move(p*(window.innerWidth||360),p);
+    };
+    window.addEventListener("mcNativeEdgeBack",back);
+    window.__mcNativeEdgeBackActive=true;
+    tog(true);
+    const el=ref.current;
+    const ev=[["touchstart",start,true],["touchmove",motion,false],["touchend",end,true],["touchcancel",cancel,true]];
+    if(el){
+      // React registra touchmove pasivo en esta WebView. El listener manual permite que, una vez
+      // decidido el eje horizontal, el navegador no cancele el gesto antes de llegar al cierre.
+      ev.forEach(function(x){ el.addEventListener(x[0],x[1],{passive:x[2]}); });
+    }
+    return function(){
+      window.__mcNativeEdgeBackActive=false;
+      window.removeEventListener("mcNativeEdgeBack",back);
+      tog(false);
+      if(el) ev.forEach(function(x){ el.removeEventListener(x[0],x[1]); });
+    };
+  },[open,on]);
+  const start=function(e){
+    if(!open||!on||busy.current||!(e.touches&&e.touches[0])) return;
+    const target=e.target;
+    if(target&&target.closest&&target.closest("input,textarea,select,[data-noswipe]")) return;
+    const t=e.touches[0];
+    dr.current={x:t.clientX,y:t.clientY,d:0,t:Date.now(),axis:null};
+  };
+  const motion=function(e){
+    if(!dr.current||busy.current||!(e.touches&&e.touches[0])) return;
+    const t=e.touches[0], dx=t.clientX-dr.current.x, dy=t.clientY-dr.current.y;
+    if(dr.current.axis===null){
+      dr.current.axis=gestureAxis(dx,dy);
+      if(!dr.current.axis) return;
+      if(dr.current.axis!=="x"){ dr.current=null; return; }
+    }
+    if(dx<=0) return;
+    dr.current.d=dx;
+    move(dx,Math.min(1,dx/(window.innerWidth||360)));
+    if(e.cancelable) e.preventDefault();
+    if(e.stopPropagation) e.stopPropagation();
+  };
+  const fin=function(no){
+    const d=dr.current; dr.current=null;
+    if(!d) return;
+    const w=(ref.current&&ref.current.clientWidth)||window.innerWidth||360;
+    if(!no&&(d.d>w*.28||(d.d/Math.max(1,Date.now()-d.t)>.45&&d.d>52))){ close(); return; }
+    reset();
+  };
+  const end=function(){ fin(false); }, cancel=function(){ fin(true); };
+  return {close:close};
+}
+
 let _mcSheetLocks=0, _mcSheetPrevOverflow="";
 function mcSheetLock(){
   if(_mcSheetLocks===0){
@@ -802,29 +951,37 @@ function mcSheetUnlock(){
   }
 }
 /* Sheet bottom: swipe hacia abajo para cerrar en TODA la ficha (no solo el asa).
-   Si el contenido está scrolleado, primero sube; al llegar arriba, tira cierra. */
+   Un gesto que empezó desplazando contenido le pertenece entero al scroller; solo una bajada
+   NUEVA, ya desde el borde superior, mueve la hoja. Transferirlo a mitad era el salto del vídeo. */
 function useSheetSwipe(open, onClose, opts){
   opts=opts||{};
   const sheetRef=useRef(null);
   const closeTimer=useRef(null);
-  const startY=useRef(0), startX=useRef(0), dy=useRef(0), dragging=useRef(false), armed=useRef(false), axis=useRef(null), closing=useRef(false);
-  useEffect(function(){
+  const lockHeld=useRef(false);
+  const startY=useRef(0), startX=useRef(0), dy=useRef(0), dragging=useRef(false), armed=useRef(false), axis=useRef(null), closing=useRef(false), scrollHost=useRef(null);
+  /* El candado entra antes del primer paint de la hoja. Con useEffect había un fotograma en que
+     el fondo aún podía desplazarse y el siguiente recalculaba todo al bloquearlo: en el vídeo
+     real la ficha parecía recolocarse justo después de abrir (feedback 2026-09-17). */
+  useLayoutEffect(function(){
     if(!open) return undefined;
     closing.current=false;
-    const prev=document.body.style.overflow;
-    document.body.style.overflow="hidden";
-    document.documentElement.classList.add("sheet-open");
+    mcSheetLock(); lockHeld.current=true;
     const block=function(e){
       const sheet=sheetRef.current;
-      if(sheet && sheet.contains(e.target)) return;
+      /* Las hojas hijas son portales hermanos en body, no descendientes del `sheetRef` padre.
+         Dejar pasar cualquier `.v4-sheet` evita que el candado del padre mate el scroll táctil
+         de «Todas las categorías» mientras mantiene bloqueado todo lo que queda detrás. */
+      const inSheet=e.target&&e.target.closest&&e.target.closest(".v4-sheet");
+      if((sheet && sheet.contains(e.target))||inSheet) return;
       if(e.cancelable) e.preventDefault();
     };
     document.addEventListener("touchmove", block, {passive:false, capture:true});
     return function(){
-      if(closeTimer.current){ clearTimeout(closeTimer.current); closeTimer.current=null; }
-      document.body.style.overflow=prev;
-      document.documentElement.classList.remove("sheet-open");
       document.removeEventListener("touchmove", block, {capture:true});
+      /* Hay hojas anidadas (Modificar > Todas las categorías). Solo la última devuelve el
+         scroll: si la hija lo soltaba, la lista se movía detrás durante su salida animada. */
+      if(closeTimer.current){ clearTimeout(closeTimer.current); closeTimer.current=null; }
+      if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
     };
   },[open]);
   const onTouchStart=function(e){
@@ -836,6 +993,11 @@ function useSheetSwipe(open, onClose, opts){
     armed.current=true;
     dragging.current=true; dy.current=0; axis.current=null;
     startY.current=e.touches[0].clientY; startX.current=e.touches[0].clientX;
+    /* En Apuntar/Modificar scrollea `.v4-sheet-body`, no la hoja exterior (esta lleva
+       overflow:hidden para fijar la CTA). Mirar siempre `sheet.scrollTop` daba cero y convertía
+       un scroll normal hacia arriba en un tirón de cierre de toda la ficha. */
+    const target=e.target&&e.target.closest?e.target.closest(".v4-sheet-body"):null;
+    scrollHost.current=target&&sheetRef.current&&sheetRef.current.contains(target)?target:sheetRef.current;
   };
   const onTouchMove=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
@@ -849,11 +1011,20 @@ function useSheetSwipe(open, onClose, opts){
       }
       axis.current="y";
     }
-    if(el && el.scrollTop>0){
-      dy.current=0; el.classList.remove("dragging"); el.style.transform="";
+    const scroller=scrollHost.current;
+    if(scroller && scroller.scrollTop>0){
+      dy.current=0; if(el){ el.classList.remove("dragging"); el.style.transform=""; }
+      // Este gesto ya pertenece al scroll. Si alcanza el borde a mitad, no saltamos de golpe a
+      // mover la hoja con todo el recorrido acumulado; un tirón nuevo sí podrá cerrarla.
+      dragging.current=false; armed.current=false;
       return;
     }
-    if(ddy<=0){ dy.current=0; if(el) el.style.transform=""; return; }
+    if(ddy<=0){
+      dy.current=0; if(el) el.style.transform="";
+      // Dedo hacia arriba = bajar por el contenido. Queda en manos del scroller hasta soltar.
+      dragging.current=false; armed.current=false;
+      return;
+    }
     // Resistencia tipo sheet (no 1:1): se siente más natural al tirar.
     const resist=Math.min(ddy*0.92, ddy);
     dy.current=resist;
@@ -867,16 +1038,15 @@ function useSheetSwipe(open, onClose, opts){
     if(closing.current) return;
     const finish=typeof done==="function"?done:onClose;
     const el=sheetRef.current;
-    const reduce=(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)
-      ||document.documentElement.classList.contains("reduce-motion");
-    if(!el||reduce){ finish(); return; }
+    if(!el||mcReduced()){ finish(); return; }
     closing.current=true;
+    // El transform arranca antes del setState/guardado que pueda ejecutar quien cierra: al vivir
+    // en el compositor sigue avanzando aunque React tenga que recalcular la lista de Gastos.
     el.classList.remove("dragging");
+    const ms=opts.closeMs||300;
     // El fondo se libera al empezar la salida, no al desmontar: esperar esos 200–320 ms
-    // recupera el tirón que ya se había eliminado en producción (revisión 2026-09-24).
-    document.documentElement.classList.remove("sheet-open");
-    document.body.style.overflow="";
-    const ms=opts.closeMs||200;
+    // recupera el tirón que ya se había eliminado (revisión independiente 2026-09-24).
+    if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
     el.style.transition="transform "+ms+"ms "+(opts.closeEase||"cubic-bezier(.32,.72,0,1)");
     el.style.transform="translate3d(0,110%,0)";
     closeTimer.current=setTimeout(function(){
@@ -888,22 +1058,33 @@ function useSheetSwipe(open, onClose, opts){
   const onTouchEnd=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
     if(closing.current) return;
-    if(!dragging.current && dy.current<=0){ armed.current=false; axis.current=null; return; }
+    if(!dragging.current && dy.current<=0){ armed.current=false; axis.current=null; scrollHost.current=null; return; }
     dragging.current=false; armed.current=false; axis.current=null;
-    const dist=dy.current; dy.current=0;
+    const dist=dy.current; dy.current=0; scrollHost.current=null;
     const el=sheetRef.current;
     if(!el){ if(dist>80) onClose(); return; }
     el.classList.remove("dragging");
     if(dist>80){
       closeAnimated();
+    } else if(mcReduced()){
+      el.style.transition=""; el.style.transform="";
     } else {
-      const snapMs=opts.snapMs||220;
+      const snapMs=opts.snapMs||280;
       el.style.transition="transform "+snapMs+"ms "+(opts.snapEase||"cubic-bezier(.32,.72,0,1)");
       el.style.transform="translate3d(0,0,0)";
       setTimeout(function(){ try{ el.style.transition=""; el.style.transform=""; }catch(err){} },snapMs);
     }
   };
-  return { sheetRef:sheetRef, close:closeAnimated, sheetTouch:{ onTouchStart:onTouchStart, onTouchMove:onTouchMove, onTouchEnd:onTouchEnd, onTouchCancel:onTouchEnd } };
+  const onTouchCancel=function(e){
+    if(e&&e.stopPropagation) e.stopPropagation();
+    // Android puede cancelar un toque al entregar el scroll al WebView. No es un `touchend`:
+    // confirmar aquí el cierre hacía que una ficha desapareciera o rebotara sin que él la soltara.
+    dragging.current=false; armed.current=false; axis.current=null; dy.current=0; scrollHost.current=null;
+    const el=sheetRef.current;
+    if(el){ el.classList.remove("dragging"); el.style.transition=""; el.style.transform=""; }
+  };
+  return { sheetRef:sheetRef, close:closeAnimated,
+    sheetTouch:{ onTouchStart:onTouchStart, onTouchMove:onTouchMove, onTouchEnd:onTouchEnd, onTouchCancel:onTouchCancel } };
 }
 
 /* lista editable genérica; valFmt recibe el item entero */
@@ -1122,6 +1303,102 @@ function NumPad({value, onChange}){
         onPointerLeave:isDel?stopHold:undefined
       }, k);
     })
+  );
+}
+
+/* Anatomía común de Apuntar y Modificar (rediseño v4.1). Si cada ficha compone por su cuenta
+   cabecera, importe, metadatos y categorías, vuelven a separarse en cuanto se toca una de ellas;
+   por eso estas piezas viven en el módulo compartido y ambos modos pasan exactamente por aquí. */
+function expenseTopCategoryRanking(expenses, catalog){
+  const all=(catalog||CATEGORIES).slice();
+  const valid={}; all.forEach(function(c){ valid[c.id]=c; });
+  const counts={}; const since=Date.now()-90*86400000;
+  (expenses||[]).forEach(function(e){
+    const ms=e&&dateMs(e.date);
+    if(!e || e.amount<0 || !valid[e.category] || !isFinite(ms) || ms<since) return;
+    counts[e.category]=(counts[e.category]||0)+1;
+  });
+  const order={}; all.forEach(function(c,i){ order[c.id]=i; });
+  return all.slice().sort(function(a,b){
+    return (counts[b.id]||0)-(counts[a.id]||0) || order[a.id]-order[b.id];
+  }).slice(0,8);
+}
+function expenseTopCategoryPick(ranked, currentId, catalog){
+  const all=(catalog||CATEGORIES), valid={};
+  all.forEach(function(c){ valid[c.id]=c; });
+  const top=(ranked||[]).slice();
+  if(currentId && valid[currentId] && !top.some(function(c){ return c.id===currentId; })){
+    if(top.length>=8) top[top.length-1]=valid[currentId]; else top.push(valid[currentId]);
+  }
+  return top;
+}
+function expenseTopCategories(expenses, currentId, catalog){
+  return expenseTopCategoryPick(expenseTopCategoryRanking(expenses,catalog),currentId,catalog);
+}
+function ExpenseCategoryGrid({items, selected, selectedMany, onPick, testPrefix}){
+  return React.createElement("div",{className:"v4-ficha-cats","data-testid":testPrefix||"expense-cats"},
+    (items||[]).map(function(c){
+      const on=selectedMany ? selectedMany.indexOf(c.id)!==-1 : selected===c.id;
+      return React.createElement("button",{key:c.id,type:"button",className:"v4-ficha-cat"+(on?" on":""),
+        "data-testid":(testPrefix||"expense-cat")+"-"+c.id,"aria-pressed":on,onClick:function(){ onPick(c.id); }},
+        React.createElement("span",{className:"v4-ficha-cat-icon","aria-hidden":"true"},c.icon),
+        React.createElement("span",null,(c.label||catName(c.id))+(c.suggested?" ✨":"")));
+    })
+  );
+}
+function ExpenseCategorySheet({open, onClose, items, selected, onPick}){
+  const swipe=useSheetSwipe(!!open,onClose);
+  useBackClose(!!open,swipe.close);
+  if(!open) return null;
+  return ReactDOM.createPortal(
+    React.createElement("div",{className:"v4-sheet-back v4-ficha-cat-back",onClick:swipe.close},
+      React.createElement("div",Object.assign({className:"v4-sheet v4-ficha-cat-sheet",ref:swipe.sheetRef,
+        onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
+        React.createElement("div",{className:"v4-sheet-handle"}),
+        React.createElement("div",{className:"v4-section-h"},
+          React.createElement("span",{className:"serif",style:{fontSize:22,fontWeight:600}},t("f_cat_all_title")),
+          React.createElement("button",{type:"button",className:"link","aria-label":t("au_close"),onClick:swipe.close},"✕")),
+        React.createElement(ExpenseCategoryGrid,{items:items,selected:selected,testPrefix:"expense-all-cat",onPick:function(id){ onPick(id); swipe.close(); }})
+      )
+    ),document.body);
+}
+function ExpenseFichaLayout({kind, onKind, dateLabel, onDate, amount, amountEmpty, currency,
+  onCurrency, locked, onLocked, focused, concept, onConcept, onConceptBlur, fxHint, meta,
+  afterMeta, categoryItems, allCategoryItems, category, onCategory, onAllCategories,
+  adjustments, numpad, footer, testPrefix}){
+  const isIn=kind==="ingreso";
+  return React.createElement(React.Fragment,null,
+    React.createElement("div",{className:"v4-sheet-body v4-ficha-body","data-testid":testPrefix||"expense-ficha"},
+      React.createElement("div",{className:"v4-ficha-head"},
+        React.createElement("div",{className:"v4-seg v4-ficha-seg"},
+          React.createElement("button",{type:"button",className:"v4-seg-btn"+(!isIn?" on":""),onClick:function(){ onKind("gasto"); }},t("v4_gasto")),
+          React.createElement("button",{type:"button",className:"v4-seg-btn"+(isIn?" on":""),onClick:function(){ onKind("ingreso"); }},t("v4_ingreso"))),
+        React.createElement("button",{type:"button",className:"v4-ficha-date",onClick:onDate},dateLabel)),
+      React.createElement("div",{className:"v4-ficha-amount-row"},
+        React.createElement("button",{type:"button",className:"v4-ficha-amount v4-apuntar-amt serif num"+(amountEmpty?" empty":""),
+          "aria-label":t("f_amount_aria"),onClick:locked?onLocked:undefined},amount),
+        React.createElement("button",{type:"button",className:"v4-ficha-currency"+(locked?" locked":""),
+          onClick:locked?onLocked:onCurrency},currency+(locked?"":" ▾"))),
+      React.createElement("div",{className:"v4-ficha-focus"+(focused?" on":"")}),
+      fxHint && React.createElement("div",{className:"v4-ficha-fx"},fxHint),
+      React.createElement("input",{className:"v4-input v4-exp-name v4-ficha-concept",value:concept||"",placeholder:t("f_concept_ph"),
+        onChange:function(e){ onConcept(e.target.value); },onBlur:onConceptBlur}),
+      React.createElement("div",{className:"v4-ficha-meta"},(meta||[]).map(function(m){
+        return React.createElement("button",{key:m.id,type:"button",disabled:!!m.disabled,
+          className:"v4-ficha-meta-pill"+(m.on?" on":"")+(m.locked?" locked":"")+(m.disabled?" disabled":""),
+          "data-testid":m.testId,onClick:m.disabled?undefined:(m.locked?onLocked:m.onClick)},m.lead||null,
+          React.createElement("span",null,m.label));
+      })),
+      afterMeta||null,
+      !isIn && React.createElement(React.Fragment,null,
+        React.createElement("div",{className:"v4-ficha-cat-title"},
+          React.createElement("span",null,t("f_cat")),
+          React.createElement("button",{type:"button",onClick:onAllCategories},tf("f_cat_all",{n:(allCategoryItems||[]).length}))),
+        React.createElement(ExpenseCategoryGrid,{items:categoryItems,selected:category,onPick:onCategory,testPrefix:(testPrefix||"expense")+"-cat"})),
+      adjustments||null,
+      numpad||null
+    ),
+    footer||null
   );
 }
 

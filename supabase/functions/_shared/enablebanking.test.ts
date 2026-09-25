@@ -1,5 +1,5 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { mapTransaction } from "./enablebanking.ts";
+import { assertEquals, assertRejects } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { ebApi, mapTransaction } from "./enablebanking.ts";
 
 /* Convención del cliente: amount POSITIVO = gasto, NEGATIVO = ingreso.
    Fija por escrito en tests/ob-ingresos.test.mjs — aquí se fija el otro extremo: cómo se
@@ -43,4 +43,32 @@ Deno.test("mapTransaction: ASPSP no conforme — abono con importe ya firmado si
     booking_date: "2026-07-31",
   });
   assertEquals(tx.amount, -900);
+});
+
+Deno.test("ebApi: el error conserva estado/código pero no el payload del proveedor", async () => {
+  const oldFetch = globalThis.fetch;
+  globalThis.fetch = () => Promise.resolve(new Response(JSON.stringify({
+    code: 422,
+    error: "WRONG_TRANSACTIONS_PERIOD",
+    message: "No se permite este periodo",
+    detail: { reason: "dato privado que no debe salir" },
+    session: { id: "secreto-sesion", accounts: [{ iban: "ES0000000000000000000000" }] },
+  }), { status: 422 }));
+  try {
+    const err = await assertRejects(() => ebApi("jwt", "/transactions"), Error);
+    assertEquals(err.message, "EB 422 WRONG_TRANSACTIONS_PERIOD");
+  } finally {
+    globalThis.fetch = oldFetch;
+  }
+});
+
+Deno.test("ebApi: una respuesta de texto no sale en la excepción", async () => {
+  const oldFetch = globalThis.fetch;
+  globalThis.fetch = () => Promise.resolve(new Response("token=secreto&iban=ES000", { status: 503 }));
+  try {
+    const err = await assertRejects(() => ebApi("jwt", "/sessions"), Error);
+    assertEquals(err.message, "EB 503");
+  } finally {
+    globalThis.fetch = oldFetch;
+  }
 });

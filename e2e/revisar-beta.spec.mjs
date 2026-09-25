@@ -72,6 +72,34 @@ test("el panel de revisión saca la checklist de las notas de la versión", asyn
   }
 });
 
+test("4.26.10 aprobada ya no pide temas ni repite veredictos antiguos", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  const ronda = await page.evaluate(() => {
+    const previas = RELEASE_NOTES.filter(function(n){ return /^4\.26\.(?:[0-9])$/.test(n.v); });
+    const pack = betaChecklist("4.26.10.1", "4.25.7");
+    return {
+      previas: previas.map(function(n){ return {v:n.v, pendientes:(n.tandas||[]).length}; }),
+      ids: pack.tandas.map(function(g){ return g.id; }),
+      pasos: pack.items.length,
+    };
+  });
+  expect(ronda.previas).toHaveLength(10);
+  expect(ronda.previas.every(function(n){ return n.pendientes===0; }),
+    "los pasos ya evaluados de la 4.26.9.1 no deben repetirse").toBe(true);
+  expect(ronda.ids).toEqual([]);
+  expect(ronda.pasos).toBe(0);
+});
+
+test("4.26.11 aprobada y publicada ya no vuelve a pedir Ajustes", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  const ronda = await page.evaluate(() => {
+    const pack = betaChecklist("4.26.11.1", "4.25.7");
+    return { ids:pack.tandas.map(function(g){ return g.id; }), pasos:pack.items.length };
+  });
+  expect(ronda.ids).toEqual([]);
+  expect(ronda.pasos).toBe(0);
+});
+
 test("betaChecklist casa la beta (4.8.0.17) con las notas de su versión base (4.8.0)", async ({ page }) => {
   await abrirRevisionBeta(page);
   const r = await page.evaluate(() => {
@@ -569,8 +597,9 @@ test("panel: ronda multi-versión pinta tandas, marks por índice y aprobar una 
 });
 
 /** Siembra dos tandas de mentira en la entrada de RELEASE_NOTES que resuelve la versión en curso.
- *  Devuelve la versión ANTERIOR (para pasar como prod): así la ronda del panel es solo esa
- *  entrada — si prod fuera 0.0.1, `betaChecklist` juntaría toda la historia (2026-09-07). */
+ *  Devuelve la versión numérica inmediatamente anterior (para pasar como prod): así la ronda del
+ *  panel es solo esa entrada. No vale mirar la fila siguiente del JSON: las notas estables 4.25
+ *  se intercalan con beta 4.26 y dejaban entrar toda la ronda real (fallo CI 2026-09-24). */
 async function conTandasDePrueba(page) {
   return page.evaluate(() => {
     const base = typeof mcVerBase === "function"
@@ -582,10 +611,11 @@ async function conTandasDePrueba(page) {
       { id: "a", t: "Tanda A de prueba", items: { es: ["Punto A1", "Punto A2"] } },
       { id: "b", t: "Tanda B de prueba", items: { es: ["Punto B1", "Punto B2"] } },
     ];
-    const idx = RELEASE_NOTES.indexOf(n);
-    return (idx >= 0 && RELEASE_NOTES[idx + 1] && RELEASE_NOTES[idx + 1].v)
-      ? RELEASE_NOTES[idx + 1].v
-      : "0.0.1";
+    const prev = (RELEASE_NOTES || []).reduce(function(best, x) {
+      if (!x || !x.v || !mcIsNewer(base, x.v)) return best;
+      return !best || mcIsNewer(x.v, best) ? x.v : best;
+    }, "");
+    return prev || "0.0.1";
   });
 }
 

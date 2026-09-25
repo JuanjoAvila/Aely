@@ -1,6 +1,6 @@
 # Arquitectura — Aely
 
-## Ahorro mensual en Metas (4.25.10)
+## Ahorro mensual en Metas (4.26.25)
 
 `state.aportaciones` es planificación, no un libro de movimientos. Sus importes alimentan
 `totals.ahorroMensual`, que usan las fechas estimadas de las metas y la proyección de
@@ -9,7 +9,37 @@ Guardar reemplaza el array una vez; Cancelar no toca el estado. Esta pantalla nu
 `expenses`, ingresos, traspasos ni operaciones bancarias. El importe acepta separadores de
 miles y decimales del idioma sin rebajar silenciosamente una aportación.
 
-## Pregúntame híbrido (4.25.14)
+## Plan y recibos v4.1 (4.26.8)
+
+`planChargesMonth` en `08-motor-bank.js` es la fuente única para separar cargos pagados,
+pendientes, deudas, traspasos e ingresos del mes. Es un helper puro: Plan (`14-v4-screens.js`) y
+Pregúntame (`16-help-assistant.js`) consumen el mismo resultado, de modo que el anillo, la cuenta
+con menos margen y la respuesta local no pueden discrepar. Una deuda sin día sigue restando como
+pendiente, pero nunca se convierte en una fecha visible inventada. Un saldo ausente conserva el
+estado desconocido; no se normaliza a cero.
+
+Al editar el día de un fijo, `reconcileBank` separa la fecha prevista de la ocurrencia real mediante
+`paidYm` + `paidDay`. La ausencia de pareja solo crea `wait` si el feed de esa cuenta cubre el día
+y `lastBankSync` pertenece al mismo día local y tiene menos de 30 minutos. El límite evita que un
+movimiento antiguo del mes niegue un cobro de madrugada que aún no estaba en el extracto guardado.
+No dispara una sincronización automática: con feed viejo manda el calendario; tras sincronizar,
+una coincidencia exacta gana siempre y una ausencia reciente puede mantener el recibo pendiente.
+La ausencia sigue siendo una inferencia conservadora, no una confirmación del banco: una
+domiciliación puede tardar en contabilizarse aunque la lectura sea reciente.
+
+`BillsManagePush`, también en `14-v4-screens.js`, es la única pantalla de gestión de recibos. Se
+abre desde Plan o desde Ajustes → Dinero. En un arranque frío, Ajustes deja la intención en
+`window.__mcOpenBillsPending` y Plan la consume cuando su montaje diferido existe; no se fuerza
+el montaje, no se duplica el gestor y no se toca `11-app-main.js`. Las hojas de alta y detalle son
+diálogos hermanos con nombre accesible, contención y restauración de foco y pila Atrás propia.
+`useEdgePageClose` es el compositor compartido con `InvestmentsPush`: dentro de la WebView acepta
+el deslizamiento horizontal desde cualquier zona no interactiva; en Android 14+ consume el progreso
+predictivo del borde a través de `MiCartera.setEdgeBackEnabled`. Solo hay un callback mientras una
+de esas hijas está abierta y se devuelve Atrás a Capacitor si la web no confirma un receptor.
+Los pictogramas de los recibos salen de `billGlyph`, un mapa local por nombre/tipo; no cambian el
+banco del movimiento ni cargan una librería o servicio externo.
+
+## Pregúntame híbrido (4.26.3)
 
 `16-help-assistant.js` es una ayuda de una pregunta y una respuesta corta. La capa local funciona
 sin red y es la única que calcula cifras: reutiliza `monthBudgetStats`, `pendingBillsSummary`,
@@ -42,6 +72,16 @@ el sync manual tampoco anuncia «al día» cuando la lectura está incompleta. E
 una lista de bancos, consulta solo esos enlaces y los recorre estrictamente de uno en uno: no abre
 dos sesiones PSD2 simultáneas. Tras un 429 el cliente conserva una espera de seis horas y no vuelve
 a llamar ni recomienda reconectar.
+La UI no manda varios bancos dentro de la misma invocación: los recorre en serie y hace una
+petición `bank-sync(dateFrom,[banco])` por cada uno. Así conserva la cola estricta que evita 429,
+pero cada banco estrena el deadline de 60 segundos; uno lento no puede dejar al siguiente sin
+turno. La Edge deja un diagnóstico cerrado por lectura (`ok`/`empty`/`partial`/`error`, cuentas,
+filas, duración y `dateFrom`) sin uid, IBAN, comercio, importe ni payload bancario.
+La misma frontera rige el sync diario: `app_events` puede guardar el banco, una clase estable y
+recuentos agregados, pero nunca transacciones ni campos del proveedor. El volcado temporal usado
+para diagnosticar el signo de Trade Republic se retiró al encontrarlo todavía activo en una
+sincronización normal; `tests/security.test.mjs` impide reintroducirlo con otro mensaje.
+
 El cliente conserva todas las filas recibidas, sin cupo global de 150. La ventana temporal y
 las reglas de dedup de la importación diaria no cambian. No se añade ninguna sincronización.
 
@@ -143,12 +183,27 @@ y `traspaso` se conservan aunque no pertenezcan al catálogo ordinario de catego
 [Edge `categorize`]  KW → si otros y OPENAI_API_KEY → LLM acotado
 ```
 
-Cada aviso nativo reciente lleva una huella opaca que `ingest` guarda como `ingest_event_id`.
-El índice único por usuario hace idempotente un reintento exacto. Si Trade Republic y Wallet
-identifican la tarjeta TR, el importe coincide (±0,02 €) y los avisos quedan a menos de dos horas,
-solo se conserva la primera fila. La comprobación se repite después del INSERT para cerrar dos
-peticiones simultáneas. Dos eventos de la misma fuente nunca se fusionan por parecido. Una APK
-antigua sin huella deja el candidato dudoso fuera de las cifras, sin borrarlo ni tocar históricos.
+El lector Android asigna a cada notificación de compra una identidad estable con origen, paquete,
+`StatusBarNotification.getKey()` y `postTime`; el fallback usa paquete, id y tag. No incluye título
+ni texto porque Wallet puede reformular una compra ya entregada. La Edge `ingest` persiste esa
+identidad en `expenses.ingest_event_id` (migración 0025) y solo devuelve confirmación después de
+insertar. Un reintento o una carrera `23505` devuelve el gasto ya existente. Si Wallet identifica
+la tarjeta de TR y coincide el importe dentro de dos horas, la segunda señal se descarta en silencio;
+dos avisos de la misma puerta se conservan porque pueden ser dos compras reales. El orden de
+despliegue es migración 0025 → `ingest` → APK: una OTA sin APK no cambia la identidad nativa.
+
+Mientras siga instalada una APK anterior, Wallet y TR pueden llegar sin `ingest_event_id`. Para
+cerrar también la carrera entre dos POST simultáneos, `ingest` inserta cada compra como pendiente,
+repite la comparación cuando la fila ya existe y solo entonces libera la más antigua. Sin identidad
+nativa no se borra por parecido: la posterior se conserva con `#dup`, fuera de las cifras, y al
+APK antiguo se responde `skipped` para no duplicar la confirmación. Con identidad actual, la señal
+cruzada posterior sí se retira. Si la
+comprobación, retirada o liberación falla, el defecto seguro es dejar la fila posterior pendiente y
+fuera de las cifras, nunca sumarla a ciegas ni pedir al usuario que resuelva el doble aviso normal.
+La decisión «Es el mismo» / «Son distintos» se mantiene para coincidencias de Open Banking, que sí
+pueden ser ambiguas. La búsqueda del lector se limita a orígenes de
+notificación —no a filas de Open Banking— y un pull que coincida con la breve fase pendiente adopta
+después también el origen confirmado por el servidor.
 
 Cotizaciones: Edge `prices` → Finnhub/Yahoo. FX: Frankfurter `EUR→USD,GBP,CHF` → `state.fxRates` (XXX→EUR) + `state.fx` (USD legado). Coste invertido editable ancla `costEur`. Moneda de visualización (`DISP`): EUR/USD/GBP/CHF desde 4.1.0; sin FX descargado se queda en € (nunca inventar tipo).
 
@@ -212,8 +267,17 @@ escribir `Access-Control-Allow-Origin: "*"`.
   (`obLabels`) y solo se promociona con rol mediante una elección explícita (`promoteObAccount`).
   Su posición se guarda en `settings.accountListOrder`, mezclada visualmente con `accounts` sin
   moverla de modelo ni alterar saldo, rol o presupuesto.
+- La ficha guarda un cierre diario real por cuenta en `accountBalanceHistory`, indexado por la
+  misma clave estable del orden (`acc:<id>` / `ob:<key>`) y limitado a 31 puntos. El gráfico de
+  14 días y la variación desde el día 1 solo aparecen cuando existen esos cierres: no se reconstruye
+  saldo histórico a partir de gastos ni se atribuye la previsión agregada si hay dos cuentas del
+  mismo banco. El primer cierre espera `mc-boot-ready`, que ya representa dato local definitivo sin
+  red o el final del primer pull con red; así un snapshot viejo no se convierte en base mensual.
 - El rol (recibos/diario/todo) vive AQUÍ; en v4.0.x quedó inaccesible (solo existía en el
   Wealth v3 no montado) — no volver a dejar el rol sin puerta.
+- Inversiones abre como pantalla hija propia desde Cartera y solo actualiza precios cuando se pulsa
+  su acción: no hay sincronización al montar. Auto precios y Proyección viven en Ajustes → Dinero;
+  Redondeo y Saveback siguen en Cartera porque afectan al flujo diario, no a la valoración.
 
 > **Apps Script / `GAS_URL`: archivado.** No reabrir.
 

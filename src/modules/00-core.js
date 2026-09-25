@@ -197,7 +197,7 @@ const CATEGORIES = [
   { id:"hogar",      name:"Hogar",               color:"#B7C98A", icon:"🏠" },
   { id:"regalos",    name:"Regalos",             color:"#E89CB0", icon:"🎁" },
   { id:"joyeria",    name:"Joyería",             color:"#D4AF37", icon:"💍" },
-  /* Se conserva para LEER el histórico que ya se guardó como Bizum. Desde 4.25.15 no se ofrece
+  /* Se conserva para LEER el histórico que ya se guardó como Bizum. Desde 4.26.42 no se ofrece
      al apuntar ni se adivina: Bizum es la forma de pago; el gasto real sigue siendo restaurante,
      salud, etc. No migramos filas antiguas a ciegas porque no podemos saber para qué eran. */
   { id:"bizum",      name:"Bizum",               color:"#5B9FE8", icon:"📲" },
@@ -1490,8 +1490,10 @@ function expenseSourceForCloud(e){
   // Lo que NO viaja es `possibleDupOf` (el gemelo): tras reinstalar, «es el mismo» sigue
   // borrando la fila OB pero ya no puede traspasarle el extId al gemelo.
   if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+deudaSufijo(e&&e.debtId)+((e&&e.possibleDup)?"#dup":"");
-  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent;
-  if(s==="macrodroid"||s==="tr") return "macrodroid";
+  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+((e&&e.possibleDup)?"#dup":"");
+  // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
+  // anteriores; al resolver «son distintos» vuelve a su origen real `macrodroid`.
+  if(s==="macrodroid"||s==="tr") return (e&&e.possibleDup)?"ob:trade_republic#dup":"macrodroid";
   if(s==="supabase") return "manual";
   // Manual CON banco elegido (2026-07-18): mismo truco que ob: — el banco viaja en source
   // y sobrevive a reinstalaciones sin migración SQL.
@@ -1977,8 +1979,8 @@ function expenseFromRow(r){
   // «ob:ent#dup» = posible repetido que sigue pendiente de su decisión (B09-D): vuelve marcado,
   // así que la app lo sigue dejando fuera del total tras un pull, un reinicio o un segundo móvil.
   // «ob:ent~deuda.id» = cuota de esa deuda (4.21.0): vuelve con su `debtId` para el filtro.
-  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; source="ob"; dup=p[1]==="dup"; }
-  else if(raw.indexOf("ob-hist:")===0){ ent=raw.slice(8)||null; source="ob-hist"; }
+  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; source=(r.ingest_event_id&&p[1]==="dup")?"macrodroid":"ob"; dup=p[1]==="dup"; }
+  else if(raw.indexOf("ob-hist:")===0){ const p=raw.slice(8).split("#"); ent=p[0]||null; source="ob-hist"; dup=p[1]==="dup"; }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
   return {
@@ -2051,6 +2053,13 @@ function refreshExpenseFromCloud(local, incoming){
        y la propiedad existe en el literal de expenseFromRow). No tocar possibleDupOf. */
     if(Object.prototype.hasOwnProperty.call(incoming,"possibleDup") && !incoming.possibleDup){
       put("possibleDup", undefined);
+      /* Ventana mínima del anti-race de ingest: la fila nace #dup y después se libera. Si un pull
+         cae justo entre ambos pasos, el siguiente debe adoptar también el origen confirmado;
+         apagar solo la marca dejaba una notificación TR localmente disfrazada de Open Banking. */
+      if((incoming.source==="macrodroid"||incoming.source==="wallet") && local.possibleDup){
+        put("source",incoming.source);
+        if(Object.prototype.hasOwnProperty.call(incoming,"ent")) put("ent",incoming.ent);
+      }
     }
   }
   if(incoming.possibleDupOf!=null) put("possibleDupOf", incoming.possibleDupOf);

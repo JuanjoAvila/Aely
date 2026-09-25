@@ -104,6 +104,8 @@ const steps = [
   ["import-hoja", ["node", "tests/import-hoja.test.mjs"]],
   ["import-docx-pdf", ["node", "tests/import-docx-pdf.test.mjs"]],
   ["hist-import-dup", ["node", "tests/hist-import-dup.test.mjs"]],
+  ["plan-charges", ["node", "tests/plan-charges.test.mjs"]],
+  ["fixed-day-reconcile", ["node", "tests/fixed-day-reconcile.test.mjs"]],
   ["hist-pagos-mensuales", ["node", "tests/hist-pagos-mensuales.test.mjs"]],
   ["revo-metales-coste", ["node", "tests/revo-metales-coste.test.mjs"]],
   ["parsers-revolut", ["node", "tests/parsers/revolut.test.mjs"]],
@@ -237,7 +239,14 @@ if (!failed && plan.playwright !== false && plan.e2e !== "none") {
      varias maquinas (Windows incluido): el runner respondia «"playwright" no se reconoce como un
      comando» y marcaba FAILED sin haber ejecutado un solo e2e. Eso es peor que un rojo: parece
      que la suite ha corrido y ha fallado. Si esta el CLI del paquete, se llama directo. */
-  const pwCli = path.join(root, "node_modules", "playwright", "cli.js");
+  /* Un worktree no duplica `node_modules`: vive dos niveles bajo el checkout compartido. Si
+     caemos a `npx`, puede arrancar otra versión de Playwright y todos los specs fallan antes de
+     ejecutarse con «test() did not expect to be called here». Reutiliza primero el CLI exacto
+     del checkout, igual que hacemos a mano en Windows (incidente 2026-09-17). */
+  const pwCli = [
+    path.join(root, "node_modules", "playwright", "cli.js"),
+    path.resolve(root, "..", "..", "node_modules", "playwright", "cli.js"),
+  ].find(p => fs.existsSync(p));
   // Las mediciones con CPU frenada competían con otros tres navegadores: scroll→swipe
   // daba 108/109 ms en dos completas y pasaba aislado (15/9). Medir después conserva
   // el umbral real; los funcionales siguen en paralelo y ningún caso del plan se pierde.
@@ -254,7 +263,7 @@ if (!failed && plan.playwright !== false && plan.e2e !== "none") {
       MC_E2E_OUTPUT_DIR: path.join(root, "test-results", name) };
     const args = ["test", "--config=playwright.config.mjs", ...selected, ...extra];
     const started = performance.now();
-    const pw = fs.existsSync(pwCli)
+    const pw = pwCli
       ? spawnSync(process.execPath, [pwCli, ...args], { cwd: root, stdio: "inherit", env })
       : spawnSync("npx", ["playwright", ...args], { cwd: root, stdio: "inherit", env, shell: process.platform === "win32" });
     recordTime(name, started);

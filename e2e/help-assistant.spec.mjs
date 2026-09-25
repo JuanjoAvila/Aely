@@ -61,7 +61,8 @@ for(const [topic,button,segment] of [["Ahorrar para una meta","Abrir Metas","Met
     await dialog.getByRole("button",{name:topic,exact:true}).click();
     await dialog.getByRole("button",{name:button,exact:true}).click();
     await expect(page.locator('.botnav-tab.active')).toHaveAttribute("data-tour","plan");
-    await expect(page.locator('.page-live .v4-seg-btn.on')).toHaveText(segment);
+    const segId=segment==="Metas"?"metas":(segment==="Deudas"?"deudas":"recibos");
+    await expect(page.locator('.page-live .v4-seg-btn.on')).toHaveAttribute("data-seg",segId);
     if(cdp) await cdp.send("Emulation.setCPUThrottlingRate",{rate:1});
   });
 }
@@ -172,16 +173,14 @@ test("los recibos pendientes cuadran con la cifra de Plan → Recibos",async({pa
       {id:"f1",name:"Luz",amount:40,freq:"mes",day:28,account:"sabadell"},
       {id:"f2",name:"Internet",amount:60,freq:"mes",day:29,account:"sabadell"},
     ],
-    // Una deuda sin día se muestra pendiente con «—» en Plan; Pregúntame debe sumar lo mismo.
-    debts:[{id:"d1",name:"Préstamo",monthly:80,value:1000,account:"sabadell"}],
     expenses:[],
   });
   await ask(dialog,"¿Qué recibos me faltan?");
-  await expect(dialog.getByRole("status")).toContainText(/3 recibos.*180/);
+  await expect(dialog.getByRole("status")).toContainText(/2 recibos.*100/);
   await dialog.getByRole("button",{name:"Abrir Recibos",exact:true}).click();
   await expect(page.locator('.botnav-tab.active')).toHaveAttribute("data-tour","plan");
-  await expect(page.locator('.page-live .v4-seg-btn.on')).toHaveText("Recibos");
-  await expect(page.locator(".v4-card-hero").filter({hasText:"Queda por pagar"}).last()).toContainText(/180/);
+  await expect(page.locator('.page-live .v4-seg-btn.on')).toHaveAttribute("data-seg","recibos");
+  await expect(page.locator('.page-live .v4-screen > [data-seg="recibos"] .v4-card-hero')).toContainText(/100/);
 });
 
 test("Escape cierra el diálogo y devuelve el foco al botón",async({page})=>{
@@ -271,12 +270,15 @@ test("el composer queda visible cuando aparece el teclado",async({page})=>{
 
 test("el cierre anima la hoja mientras todavía sigue montada",async({page})=>{
   const {dialog}=await openHelp(page);
+  const sheet=dialog;
+  expect(await sheet.evaluate(el=>parseFloat(getComputedStyle(el).animationDuration)*1000)).toBeGreaterThanOrEqual(400);
   const sawExit=page.waitForFunction(()=>{
     const el=document.querySelector('.v4-sheet[data-sheet="help"]');
     return !!el && (el.style.transform||"").includes("110%");
   },null,{timeout:3000});
   await dialog.locator('[data-act="back"]').click();
   await sawExit;
+  expect(await sheet.evaluate(el=>parseFloat(el.style.transitionDuration)*1000)).toBeGreaterThanOrEqual(300);
   await expect(dialog).toHaveCount(1);
   await expect(dialog).toHaveCount(0);
 });

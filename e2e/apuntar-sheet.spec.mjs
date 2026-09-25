@@ -15,8 +15,11 @@ test("Apuntar (+): banco en pastilla que se despliega y cierre tirando hacia aba
   await page.locator(".botnav-fab").click();
   const sheet = page.locator(".v4-sheet");
   await expect(sheet).toBeVisible();
-  // Esperar sheetup (.3s): si mides/arrastras a mitad de animación el gesto no cierra (flaky).
-  await page.waitForTimeout(450);
+  const ritmo=await sheet.evaluate(el=>{ const s=getComputedStyle(el); return {entrada:parseFloat(s.animationDuration)*1000,salida:parseFloat(s.transitionDuration)*1000}; });
+  expect(ritmo.entrada).toBeGreaterThanOrEqual(400);
+  expect(ritmo.salida).toBeGreaterThanOrEqual(300);
+  // Esperar sheetup (.42s): si mides/arrastras a mitad de animación el gesto no cierra (flaky).
+  await page.waitForTimeout(560);
 
   // Banco del apunte: una pastilla (como filtros en Gastos). Al tocarla salen
   // «Sin banco» y los bancos de las cuentas (Sabadell en el seed).
@@ -43,9 +46,9 @@ test("Apuntar (+): banco en pastilla que se despliega y cierre tirando hacia aba
   // También debe cerrar arrastrando desde el TECLADO numérico (la zona que más se toca).
   await page.locator(".botnav-fab").click();
   await expect(sheet).toBeVisible();
-  // Esperar el fin de la animación de entrada (300 ms): medir el teclado a mitad de sheetup
+  // Esperar el fin de la animación de entrada (420 ms): medir el teclado a mitad de sheetup
   // da coordenadas fuera del viewport y los toques no llegan (falso negativo del test).
-  await page.waitForTimeout(450);
+  await page.waitForTimeout(560);
   const keys = await page.locator(".v4-keys").boundingBox();
   const kx = Math.round(keys.x + keys.width / 2);
   const ky = Math.round(keys.y + 10);
@@ -57,6 +60,58 @@ test("Apuntar (+): banco en pastilla que se despliega y cierre tirando hacia aba
   await expect(sheet).toHaveCount(0, { timeout: 3_000 });
 });
 
+test("Apuntar usa la ficha v4.1: cabecera compacta, tres metadatos, ocho categorías y CTA con importe", async ({ page }) => {
+  await seedLoggedInDashboard(page);
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  const dismissNews = page.getByRole("button", { name: /Entendido|Got it/i });
+  if (await dismissNews.count()) await dismissNews.first().click();
+
+  await page.locator(".botnav-fab").click();
+  const sheet = page.locator(".v4-exp-sheet");
+  await expect(sheet.locator(".v4-ficha-head .v4-seg")).toBeVisible();
+  await expect(sheet.locator(".v4-ficha-meta-pill")).toHaveCount(3);
+  await expect(sheet.locator('[data-testid="ap-efectivo"]')).toBeDisabled();
+  await expect(sheet.locator(".v4-ficha-cats .v4-ficha-cat")).toHaveCount(8);
+  await expect(sheet.locator(".v4-keys")).toBeVisible();
+  await expect(sheet.locator('[data-testid="ap-payment"]')).toBeVisible();
+  await expect(sheet.locator('[data-testid="ap-payment"]')).toContainText(/Con tarjeta/);
+  await expect(sheet.locator('[data-testid="ap-cat-bizum"]')).toHaveCount(0);
+
+  // Al cerrar la hoja hija de categorías, Apuntar sigue vivo debajo: el fondo no puede
+  // desbloquearse durante los 300 ms de salida ni al desmontarse solo la hija.
+  await sheet.locator(".v4-ficha-cat-title button").click();
+  const categorySheet = page.locator(".v4-ficha-cat-sheet");
+  await expect(categorySheet).toBeVisible();
+  // La hija es un portal hermano: el candado táctil de Apuntar no puede cancelar su touchmove.
+  // El scroll nativo de CDP no es estable en headless; `defaultPrevented` prueba la causa exacta.
+  const childMoveBlocked = await categorySheet.locator("button").first().evaluate((el) => {
+    const ev = new Event("touchmove", { bubbles: true, cancelable: true });
+    Object.defineProperty(ev, "touches", { value: [{ clientX: 10, clientY: 10 }] });
+    el.dispatchEvent(ev);
+    return ev.defaultPrevented;
+  });
+  expect(childMoveBlocked).toBe(false);
+  const duringClose = await categorySheet.locator('[data-testid="expense-all-cat-ocio"]').evaluate((el) => {
+    el.click();
+    return {
+      sheetOpen: document.documentElement.classList.contains("sheet-open"),
+      overflow: document.body.style.overflow,
+    };
+  });
+  expect(duringClose).toEqual({ sheetOpen: true, overflow: "hidden" });
+  await expect(categorySheet).toHaveCount(0);
+  await expect(sheet).toBeVisible();
+  await expect.poll(() => page.evaluate(() => ({
+    sheetOpen: document.documentElement.classList.contains("sheet-open"),
+    overflow: document.body.style.overflow,
+  }))).toEqual({ sheetOpen: true, overflow: "hidden" });
+
+  await sheet.locator(".v4-keys").getByRole("button", { name: "2", exact: true }).click();
+  await sheet.locator(".v4-keys").getByRole("button", { name: "3", exact: true }).click();
+  await expect(sheet.locator(".v4-cta")).toContainText(/23/);
+});
+
 test("Bizum es forma de pago: el gasto conserva Salud como categoría real", async ({ page }) => {
   await seedLoggedInDashboard(page);
   await page.goto("/");
@@ -65,13 +120,17 @@ test("Bizum es forma de pago: el gasto conserva Salud como categoría real", asy
   if (await dismissNews.count()) await dismissNews.first().click();
 
   await page.locator(".botnav-fab").click();
-  const sheet = page.locator(".v4-sheet");
-  await expect(sheet.locator('[data-testid="ap-payment"]')).toContainText(/Con tarjeta/);
-  await expect(sheet.locator('[data-testid="ap-cat-bizum"]')).toHaveCount(0);
-  await sheet.locator(".v4-input").fill("Fisio");
+  const sheet = page.locator(".v4-exp-sheet");
+  await sheet.locator(".v4-exp-name").fill("Fisio");
   await sheet.locator('[data-testid="ap-payment"]').click();
   await expect(sheet.locator('[data-testid="ap-payment"]')).toContainText(/Bizum o transferencia/);
-  await sheet.locator('[data-testid="ap-cat-salud"]').click();
+
+  await sheet.locator(".v4-ficha-cat-title button").click();
+  const categorySheet = page.locator(".v4-ficha-cat-sheet");
+  await expect(categorySheet.locator('[data-testid="expense-all-cat-bizum"]')).toHaveCount(0);
+  await categorySheet.locator('[data-testid="expense-all-cat-salud"]').click();
+  await expect(categorySheet).toHaveCount(0);
+
   for (const d of ["4", "7"]) {
     await sheet.locator(".v4-keys").getByRole("button", { name: d, exact: true }).click();
   }
@@ -97,12 +156,17 @@ test("un Bizum antiguo no cambia solo y se puede pasar a su categoría real", as
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   const row=page.locator('[data-expense-id="bizum-antiguo"]');
   await expect(row).toBeVisible();
+  // La pestaña termina de asentarse con transform; click crudo evita que Playwright confunda esa
+  // animación legítima con una fila inestable durante toda la espera de actionability.
   await row.evaluate((el) => el.click());
 
-  const sheet=page.locator(".v4-exp-sheet");
+  const sheet=page.locator('.v4-exp-sheet');
   await expect(sheet.locator('[data-testid="exp-cat-bizum"]')).toHaveClass(/on/);
   await expect(sheet.locator('[data-testid="exp-payment"]')).toContainText(/Bizum o transferencia/);
-  await sheet.locator('[data-testid="exp-cat-bares"]').click();
+  await sheet.locator(".v4-ficha-cat-title button").click();
+  const categorySheet=page.locator(".v4-ficha-cat-sheet");
+  await expect(categorySheet.locator('[data-testid="expense-all-cat-bizum"]')).toHaveClass(/on/);
+  await categorySheet.locator('[data-testid="expense-all-cat-bares"]').click();
 
   await expect.poll(() => page.evaluate(() => {
     const xs=JSON.parse(localStorage.getItem("micartera_v3_exp")||"[]");
@@ -142,8 +206,9 @@ test("Apuntar en ₺ con la app en €: convierte y guarda en euros", async ({ p
   await expect(sheet).toBeVisible();
   await page.waitForTimeout(450);
 
+  await sheet.locator(".v4-ficha-currency").click();
   await sheet.getByRole("button", { name: "₺ TRY", exact: true }).click();
-  await expect(sheet.locator(".v4-apuntar-amt")).toContainText("₺");
+  await expect(sheet.locator(".v4-ficha-currency")).toContainText("₺");
   for (const d of ["1", "5", "0"]) {
     await sheet.locator(".v4-keys").getByRole("button", { name: d, exact: true }).click();
   }

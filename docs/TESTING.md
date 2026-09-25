@@ -1,22 +1,45 @@
 # Testing — Aely
 
-La publicación 4.25.11 aísla el punto 8 aprobado. `e2e/presupuesto-fluido.spec.mjs` abre el editor
-desde la tarjeta real de Inicio, exige una entrada de al menos 400 ms, limita la cifra a 42 px,
-comprueba que Guardar conserva la hoja durante la salida y que el presupuesto persiste. Un segundo
-caso activa movimiento reducido y exige cierre inmediato. El spec está mapeado a Inicio y Gastos
-en `scripts/relevant-tests.mjs`.
+La beta 4.26.32 comparte `useEdgePageClose` entre Inversiones y Plan → Gestionar. Los casos de
+`cartera-inversiones` y `plan-gestionar` simulan progreso/cancelación/invocación nativos, un segundo
+intento después del rebote y el arrastre desde el centro; también protegen el scroll vertical y
+movimiento reducido. `plan-gestionar` comprueba iconos por tipo sin logos bancarios, que `Listo`
+persiste antes de cerrar y que un doble toque solo crea un recibo. El callback Java se compila con
+API 34 y la prueba real del borde requiere APK 48 en Android compatible.
 
-La tanda de apariencia 4.25.7 quedó aprobada en beta 4.26.10.1. El e2e
-`e2e/apariencia-temas.spec.mjs` abre Ajustes → Apariencia y protege el selector de Cyberpunk,
-Otoño y Primavera, su persistencia y los modos de movimiento reducido. Está registrado en
-`scripts/relevant-tests.mjs` para ejecutarse cuando cambie esta pantalla. La publicación
-selectiva 4.25.7 no incluye ninguna otra tanda 4.26.
+La beta 4.26.26 aísla el punto 8. `e2e/presupuesto-fluido.spec.mjs` abre el editor desde la tarjeta
+real de Inicio, exige una entrada de al menos 400 ms, limita la cifra a 42 px, comprueba que Guardar
+conserva la hoja durante la salida y que el presupuesto persiste. Un segundo caso activa movimiento
+reducido y exige cierre inmediato. El spec está mapeado a Inicio y Gastos en
+`scripts/relevant-tests.mjs`.
 
 Sin candados (feedback 18/9, punto 14): `tests/no-lock-icons.test.mjs` falla si vuelve un 🔒/🔓/🔐
 a `src/modules` o `shell.html`. También falla si reaparece el recorte «hasta el primer espacio» del
 texto de huella, que sin emoji se comería el verbo. `e2e/sin-candados.spec.mjs` abre Ajustes → Tu
 cuenta y Privacidad y comprueba lo pintado. `cartera-ficha-cuenta` y `listas-render` comprueban que
 la cuenta conectada y el banner de reconectar siguen protegidos, pero sin el icono.
+
+Ajustes 4.26.11: el nuevo caso de `e2e/swipe-pestanas.spec.mjs` arrastra despacio desde Inicio
+y mide por CDP que el primer fotograma del cajón avance menos de 12 px; también comprueba que
+termine abriéndose. `revisar-beta.spec.mjs` exige solo el veredicto de Ajustes después de la
+aprobación y publicación de temas, sin resucitar los 28 pasos antiguos. No requiere APK nueva.
+
+Apariencia 4.26.10: `e2e/apariencia-temas.spec.mjs` pinta Cyberpunk de verdad y comprueba que el
+dinero conserva verde/rojo y que el tema persiste tras recargar. También cubre que «Reducir
+animaciones» apaga todo lo que se mueve y las temáticas Otoño y Primavera (tinte, ambientación y
+persistencia). Va en CROSSCUTTING porque lo pueden romper `shell.html` o Ajustes, no una sola
+pantalla. `revisar-beta.spec.mjs` comprueba que el veredicto ya recibido de la 4.26.9.1 no
+reactiva las nueve checklists antiguas: Novedades conserva el histórico, pero el panel ya no pide
+los cinco pasos de temas aprobados. El gesto de Ajustes conserva su tanda propia; el retoque de
+importes/anillo tendrá otra tanda y pruebas propias.
+
+Plan v4.1 (4.26.8): `tests/plan-charges.test.mjs` protege la fuente única de cargos con euros
+pagados/pendientes, varias cuentas, deudas sin día y saldos ausentes o negativos. Está registrado
+en `scripts/run-tests.mjs`. `e2e/plan-cover.spec.mjs` abre la pantalla real y cubre el anillo, la
+cuenta con menor margen, estados honestos, modo simple, entrada fría desde Ajustes y los diálogos
+de recibos. Teclea cadenas completas con `pressSequentially` para impedir que un rerender vuelva a
+robar el foco al título. El spec está en `scripts/relevant-tests.mjs`; `plan-gestionar` conserva el
+flujo histórico de alta/edición y ambos se ejecutan al tocar Plan.
 
 Lectura bancaria 4.25.4: `tests/bank-sync-paging.test.mjs` ejecuta el handler real con BD y proveedor
 simulados (sin consultar bancos): páginas vacías, fallback de periodo, fallo parcial, cursor cíclico,
@@ -28,7 +51,10 @@ vuelvan a concatenarse en un toast gigante. Los e2e de barra fuerzan además un 
 el host de scroll activo: la ola debe conservar sus clases después del render, no solo antes.
 Desde 4.25.5 recorren también el fondo incremental real de Gastos, comprueban que la caja oculta
 no quede por debajo del viewport y reproducen la deriva lateral del pulgar que antes convertía el
-segundo tirón en un cambio de pestaña y hacía reaparecer la barra.
+segundo tirón en un cambio de pestaña y hacía reaparecer la barra. Desde 4.26.24 distinguen esa
+diagonal de un gesto horizontal deliberado: el primero conserva la ola y el segundo cambia de
+pestaña sin obligar a subir antes. También verifican que Gastos y Ajustes conserven `overflow`
+desplazable sin dibujar la barra lateral.
 `tests/tr-open-banking.test.mjs` protege contra el antiguo corte global de 150 movimientos.
 
 ## Tiempos y preparación de Novedades
@@ -471,3 +497,6 @@ Reglas:
 - Esto **no sube `VERSION` de `beta`**, sube un PATCH nuevo sobre lo que ya hay en producción — la
   ronda grande sigue en `beta` esperando su turno, intacta.
 
+> En un worktree no hace falta instalar otra copia de Playwright: `scripts/run-tests.mjs`
+> reutiliza el CLI de `node_modules` del checkout compartido. Evita `npx playwright`, porque una
+> versión distinta a la que carga la configuración hace fallar todos los specs antes de correr.

@@ -88,6 +88,38 @@ test("el filtro «Qué contar» deja ver un cajón a solas", async ({ page }) =>
   await expect(fila(page, "Aporte FTSE")).toHaveCount(1);
 });
 
+test("Categorías usa las mismas fichas de Apuntar y permite elegir varias", async ({ page }) => {
+  await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
+  await abreGastos(page);
+
+  await page.locator('button.v4-chip:has-text("🎛️")').first().click();
+  const toggle=page.locator(".v4-gastos-filter-sheet .v4-filter-cats-toggle");
+  await expect(toggle).toHaveAttribute("aria-expanded","false");
+  await toggle.click();
+
+  const grid=page.getByTestId("gastos-filter-cat");
+  await expect(grid).toHaveClass(/v4-ficha-cats/);
+  const all=page.locator(".v4-filter-cats-inner .v4-ficha-cat-title button");
+  await expect(all).toHaveAttribute("aria-pressed","true");
+  await expect(all).toContainText("✓");
+  const superCard=page.getByTestId("gastos-filter-cat-super");
+  const hogarCard=page.getByTestId("gastos-filter-cat-hogar");
+  await expect(superCard).toHaveClass(/v4-ficha-cat/);
+  await expect(superCard).toHaveAttribute("aria-pressed","false");
+  await expect(superCard.locator(".v4-ficha-cat-icon")).toBeVisible();
+  await superCard.click();
+  await hogarCard.click();
+  await expect(superCard).toHaveClass(/on/);
+  await expect(superCard).toHaveAttribute("aria-pressed","true");
+  await expect(hogarCard).toHaveClass(/on/);
+  await expect(all).toHaveAttribute("aria-pressed","false");
+  await cierraSheet(page);
+
+  await expect(lista(page)).toHaveCount(2);
+  await expect(fila(page,"Mercadona")).toHaveCount(1);
+  await expect(fila(page,"RECIBO ENDESA")).toHaveCount(1);
+});
+
 test("★ guardar un cambio NO deja la pantalla muerta", async ({ page }) => {
   /* Rechazo suyo de la 4.17.0.1: «al modificarlo y guardarlo se bloquea la pantalla, no deja hacer
      nada, solo si tiras para atrás ahí puedes seguir». El sheet decidía pintarse con
@@ -101,20 +133,129 @@ test("★ guardar un cambio NO deja la pantalla muerta", async ({ page }) => {
   await fila(page, "Mercadona").click();
   const nombre = page.locator(".v4-exp-name");
   await expect(nombre).toBeVisible();
+  const ritmo=await page.locator(".v4-exp-sheet").evaluate(el=>{ const s=getComputedStyle(el); return {entrada:parseFloat(s.animationDuration)*1000,salida:parseFloat(s.transitionDuration)*1000}; });
+  expect(ritmo.entrada).toBeGreaterThanOrEqual(400);
+  expect(ritmo.salida).toBeGreaterThanOrEqual(300);
   await nombre.fill("Mercadona centro");
   await nombre.blur();                                   // el blur es el que guarda
 
-  // El sheet sigue en pie con lo guardado dentro: «al perder el foco se guarda, no se cierra».
+  // El blur guarda mientras sigues editando; el botón explícito confirma y cierra con animación.
   await expect(nombre).toHaveValue("Mercadona centro");
-
-  // Y al cerrarlo de verdad, la app tiene que quedar viva: sin candado de scroll y respondiendo.
-  await cierraSheet(page);
+  const done = page.locator(".v4-exp-sheet .v4-ficha-done");
+  await expect(done).toBeVisible();
+  await done.click();
+  await expect(page.locator(".v4-exp-sheet")).toHaveCSS("transform", /matrix|translate3d/);
+  await expect(page.locator(".v4-exp-sheet")).toHaveCount(0);
+  // Al terminar, la app tiene que quedar viva: sin candado de scroll y respondiendo.
   await expect(page.locator("html")).not.toHaveClass(/sheet-open/);
   await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
   // La prueba de que se puede seguir usando: cambiar de pestaña y volver.
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(fila(page, "Mercadona centro")).toHaveCount(1);
+});
+
+test("reducir movimiento cierra la ficha sin esperar una animación invisible", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
+  await abreGastos(page);
+  await fila(page, "Mercadona").click();
+  await expect(page.locator(".v4-exp-sheet")).toBeVisible();
+
+  const elapsed = await page.evaluate(() => new Promise((resolve, reject) => {
+    const start=performance.now();
+    const timeout=setTimeout(() => { observer.disconnect(); reject(new Error("la ficha no se cerró")); },1000);
+    const observer=new MutationObserver(() => {
+      if(document.querySelector(".v4-exp-sheet")) return;
+      clearTimeout(timeout); observer.disconnect(); resolve(performance.now()-start);
+    });
+    observer.observe(document.body,{childList:true,subtree:true});
+    document.querySelector(".v4-exp-sheet .v4-ficha-done").click();
+  }));
+  expect(elapsed).toBeLessThan(100);
+  await expect(page.locator("html")).not.toHaveClass(/sheet-open/);
+});
+
+test("ficha v4.1: un movimiento automático enseña su origen y bloquea importe y banco", async ({ page }) => {
+  await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
+  await abreGastos(page);
+
+  await fila(page, "Mercadona").click();
+  const sheet = page.locator(".v4-exp-sheet");
+  await expect(sheet.locator('[data-testid="exp-trace"]')).toBeVisible();
+  await expect(sheet.locator('[data-testid="exp-bank"]')).toHaveClass(/locked/);
+  await expect(sheet.locator(".v4-ficha-foot .v4-cta")).toHaveCount(0);
+  await expect(sheet.locator(".v4-ficha-saved")).toContainText("Se guarda al momento");
+  await expect(sheet.locator(".v4-ficha-done")).toBeVisible();
+
+  const before = await sheet.locator(".v4-ficha-amount").innerText();
+  await sheet.locator(".v4-keys").getByRole("button", { name: "9", exact: true }).click();
+  await expect(page.locator(".toast")).toContainText("El importe lo manda el banco");
+  await expect(sheet.locator(".v4-ficha-amount")).toHaveText(before);
+
+  // Regresión del vídeo 17/9: quien scrollea es el body interior. Una bajada cuando ya está
+  // desplazado debe seguir moviendo contenido, no aplicar translate3d a toda la ficha.
+  const body = sheet.locator(".v4-sheet-body");
+  const scrolled = await body.evaluate((el) => {
+    el.scrollTop = Math.min(260, Math.max(1, el.scrollHeight - el.clientHeight));
+    return el.scrollTop;
+  });
+  expect(scrolled).toBeGreaterThan(0);
+  const bb = await body.boundingBox();
+  const cdp = await page.context().newCDPSession(page);
+  const x = Math.round(bb.x + bb.width / 2);
+  const y = Math.round(bb.y + Math.min(120, bb.height / 2));
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y: y + 70 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect(sheet).toBeVisible();
+  await expect.poll(() => sheet.evaluate((el) => el.style.transform || "none")).toBe("none");
+
+  // `touchcancel` es frecuente cuando Android entrega el gesto al WebView: cancela, no cierra.
+  await body.evaluate((el) => { el.scrollTop = 0; });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y: y + 70 }] });
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
+  await expect(sheet).toBeVisible();
+  await expect.poll(() => sheet.evaluate((el) => el.style.transform || "none")).toBe("none");
+});
+
+test("borrar permite deshacer y restaura el mismo id también en la nube", async ({ page }) => {
+  await seedLoggedInDashboard(page, { accounts, settings, expenses, budget: 1000 });
+  await abreGastos(page);
+  await page.evaluate(() => {
+    window.__undoWrites = [];
+    cloud.deleteExpense = async (e) => {
+      window.__undoWrites.push(["delete", e.id]);
+      await new Promise((resolve) => setTimeout(resolve, 80));
+    };
+    cloud.addExpense = async (e) => { window.__undoWrites.push(["add", e.id]); };
+  });
+
+  await fila(page, "Mercadona").click();
+  await page.locator(".v4-ficha-del").click();
+  await expect(page.locator(".askback .ts-hint")).toContainText("5 segundos");
+  await page.locator(".askback .btn-primary").click();
+  await expect(fila(page, "Mercadona")).toHaveCount(0);
+
+  const undo = page.locator('[data-testid="expense-undo"]');
+  await expect(undo).toBeVisible();
+  // El toast anterior moría a 2,2 s; este sigue disponible durante la ventana prometida.
+  await page.waitForTimeout(2500);
+  await expect(undo).toBeVisible();
+  await undo.getByRole("button", { name: "Deshacer" }).click();
+  await expect(fila(page, "Mercadona")).toHaveCount(1);
+
+  await expect.poll(() => page.evaluate(() => window.__undoWrites)).toEqual([
+    ["delete", "e1"], ["add", "e1"],
+  ]);
+  await page.waitForTimeout(600);
+  const saved = await page.evaluate(() => ({
+    expenses: JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]"),
+    deleted: (JSON.parse(localStorage.getItem("micartera_v3") || "{}") || {}).deleted || [],
+  }));
+  expect(saved.expenses.filter((e) => e.id === "e1")).toHaveLength(1);
+  expect(saved.deleted).toHaveLength(0);
 });
 
 test("y se puede volver a verlo todo sin dejar el filtro pegado", async ({ page }) => {

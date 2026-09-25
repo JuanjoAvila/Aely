@@ -122,6 +122,6 @@ test("un importe largo no se corta en móvil estrecho", async ({ page }) => {
   expect(medidas.totFuera, "el total se sale de la tarjeta").toBe(false);
   expect(medidas.totCortado, "el total se corta").toBe(false);
   expect(medidas.amtFuera, "el importe de la fila se sale").toBe(false);
-  expect(medidas.amtCortado, "el importe se corta").toBe(false);
+  expect(medidas.amtCortado, "el importe de la fila se corta").toBe(false);
   expect(medidas.paginaAncha).toBe(false);
 });

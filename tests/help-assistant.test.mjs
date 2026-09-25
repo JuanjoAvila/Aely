@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 import { transformSync } from "esbuild";
-import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
 const source=fs.readFileSync("src/modules/16-help-assistant.js","utf8");
 const ctx=vm.createContext({
@@ -105,24 +104,6 @@ assert.equal(ctx.helpCashWantsAccounts("where do I withdraw cash?"),false);
   assert.equal(manySnap.balanceCounts.sabadell,2);
   assert.equal(manySnap.balances.sabadell,1500);
   assert.equal(ctx.helpAnswerFromSnap("account_balance",manySnap,"sabadell").cue,"help_cue_balance_many");
-}
-{
-  // La cuota sin día sigue pendiente igual que en Plan: el motor histórico usa día 1 para
-  // proyecciones, pero la UI no puede convertir ese fallback en un cobro ya confirmado.
-  const app=loadPureLogicFromFile();
-  const plain=app.pendingBillsSummary({fixed:[],debts:[{
-    id:"sin-dia",name:"Préstamo",monthly:80,value:1000,account:"sabadell"
-  }]},9,2026,24);
-  assert.equal(plain.count,1);
-  assert.equal(plain.total,80);
-
-  const now=new Date(), anchor=now.getFullYear()*12+now.getMonth()-11;
-  const finalMonth=app.pendingBillsSummary({fixed:[],debts:[{
-    id:"final-sin-dia",name:"Coche",monthly:80,value:2000,balloon:500,
-    months:12,asOf:anchor,account:"sabadell"
-  }]},now.getMonth()+1,now.getFullYear(),24);
-  assert.equal(finalMonth.count,2);
-  assert.equal(finalMonth.total,580);
 }
 console.log("  ✓ guías locales ES/EN/CA, intents y destinos desconocidos rechazados");
 

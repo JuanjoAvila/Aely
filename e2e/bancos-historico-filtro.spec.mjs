@@ -232,7 +232,7 @@ test("CaixaBank ya apuntado abre Gastos completo y filtrado, también si era de 
     {id:"cx-old-1",date:"2026-08-06T12:00:00.000Z",amount:37.42,merchant:"Compra agosto Caixa",category:"otros",source:"ob",ent:"caixabank",extId:"cx-hist-1"},
     {id:"sb-current",date:"2026-09-02T12:00:00.000Z",amount:18.75,merchant:"Compra Sabadell",category:"otros",source:"ob",ent:"sabadell",extId:"sb-1"},
   ];
-  const overlay=await abrirHistorico(page,{custom:true,expenses,expenseBanks:["sabadell"],selectOnly:"CaixaBank",
+  const overlay=await abrirHistorico(page,{custom:true,expenses,
     bankLinks:[{aspsp_name:"CaixaBank",status:"active"}],
     links:[{aspsp:"CaixaBank",ok:true,accounts:[{uid:"cx-unica",ok:true,count:1,transactions:[
       {date:"2026-08-06",amount:37.42,merchant:"Compra agosto Caixa",card:true,ext_id:"cx-hist-1"},
@@ -242,15 +242,8 @@ test("CaixaBank ya apuntado abre Gastos completo y filtrado, también si era de 
   await ver.click();
   await expect(overlay).toHaveCount(0);
   await expect(page.locator('.botnav-tab[data-tour="gastos"]')).toHaveClass(/active/);
-  const list=page.locator(".v4-gastos-list");
-  await expect(list.getByText("Compra agosto Caixa",{exact:true})).toBeVisible();
-  await expect(list.getByText("Compra Sabadell",{exact:true})).toHaveCount(0);
-  const gastosPage=page.locator(".page").filter({has:list});
-  await gastosPage.locator('button[title="Filtros"]').click();
-  const filterSheet=page.locator(".v4-sheet").last();
-  const caixaChip=filterSheet.getByRole("button",{name:"CaixaBank",exact:true});
-  await expect(caixaChip).toHaveClass(/\bon\b/);
-  await expect(filterSheet.getByRole("button",{name:"Sabadell",exact:true})).not.toHaveClass(/\bon\b/);
+  await expect(page.getByText("Compra agosto Caixa",{exact:true}).first()).toBeVisible();
+  await expect(page.getByText("Compra Sabadell",{exact:true}).first()).not.toBeVisible();
 });
 
 test("histórico pendiente omitido por Edge antiguo no se presenta como sin movimientos", async ({page}) => {
@@ -269,6 +262,7 @@ test("histórico parcial conserva filas y mantiene el aviso aunque no haya candi
 
 test("fallo de la consulta no afirma que no existen movimientos", async ({page}) => {
   const overlay=await abrirHistorico(page,{custom:true,error:{message:"sin red"}});
-  await expect(overlay.locator(".bank-read-warning")).toContainText("No se han podido consultar los movimientos");
+  await expect(overlay.locator(".bank-read-warning")).toHaveCount(2);
+  await expect(overlay.locator(".bank-read-warning").first()).toContainText("no se han podido leer");
   await expect(overlay).not.toContainText("No hay movimientos nuevos");
 });

@@ -36,7 +36,7 @@ test("widget se refresca al volver por el evento nativo sin visibilitychange", a
   });
   await page.goto("/");
   await dismissNews(page);
-  await expect(page.locator(".v4-budget-txt .ph")).toContainText("Has gastado 40 €");
+  await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("Has gastado 40 €");
   await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(40);
   // Ingest puede sobrescribir las preferencias mientras la app está en segundo plano.
   // Algunos Android solo notifican appStateChange: simular también visibilitychange escondería el bug.
@@ -49,7 +49,7 @@ test("widget se refresca al volver por el evento nativo sin visibilitychange", a
     for (const cb of window.__nativeListeners.appStateChange || []) cb({ isActive: true });
   });
   await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(40);
-  await expect(page.locator(".v4-budget-txt .ph")).toContainText("Has gastado 40 €");
+  await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("Has gastado 40 €");
 });
 
 test("nube conserva inversión y traspaso al pintar Inicio y Gastos", async ({ page }) => {
@@ -66,7 +66,8 @@ test("nube conserva inversión y traspaso al pintar Inicio y Gastos", async ({ p
   });
   await page.goto("/");
   await dismissNews(page);
-  await expect(page.locator(".v4-budget-txt .ph")).toContainText("Has gastado 20 €");
+  // La cifra que este caso protege es la de Inicio; se acota porque las pestañas se premontan.
+  await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("Has gastado 20 €");
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(page.locator("button.v4-mov").filter({ hasText: "Aporte prueba" })).toHaveClass(/v4-mov-skip/);
   await expect(page.locator("button.v4-mov").filter({ hasText: "Traspaso prueba" })).toHaveClass(/v4-mov-skip/);
@@ -132,7 +133,7 @@ test("apuntar un gasto SÍ reescribe el histórico", async ({ page }) => {
   await expect(page.locator(".v4-sheet")).toBeVisible();
   await page.waitForTimeout(450);
   for (const k of ["4", "2"]) await page.locator(".v4-keys button", { hasText: new RegExp(`^${k}$`) }).first().click();
-  await page.getByRole("button", { name: /Guardar gasto|Save expense|Desar despesa/i }).click();
+  await page.locator(".v4-exp-sheet > .v4-cta").click();
   await page.waitForTimeout(900);
 
   const despues = await page.evaluate((k) => JSON.parse(localStorage.getItem(k)), KEY_EXP);
@@ -181,7 +182,7 @@ test("recargar conserva los gastos apuntados (ida y vuelta completa)", async ({ 
   await page.locator(".botnav-fab").click();
   await page.waitForTimeout(450);
   for (const k of ["9", "9"]) await page.locator(".v4-keys button", { hasText: new RegExp(`^${k}$`) }).first().click();
-  await page.getByRole("button", { name: /Guardar gasto|Save expense|Desar despesa/i }).click();
+  await page.locator(".v4-exp-sheet > .v4-cta").click();
   await page.waitForTimeout(900);
 
   await page.reload();
