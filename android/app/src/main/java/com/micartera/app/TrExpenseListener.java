@@ -238,6 +238,7 @@ public class TrExpenseListener extends NotificationListenerService {
 
     private int postIngest(String ingestUrl, String body) {
         HttpURLConnection conn = null;
+        long widgetTicket = MiCarteraWidget.beginIngest(this);
         try {
             // EL TOKEN VIAJA EN CABECERA, NO EN LA URL (seguridad, 2026-07-25). Un `?token=…`
             // acaba en sitios donde no debería: logs de acceso del proxy, historial de
@@ -258,7 +259,7 @@ public class TrExpenseListener extends NotificationListenerService {
             int code = conn.getResponseCode();
             String resp = readAll(code >= 400 ? conn.getErrorStream() : conn.getInputStream());
             if (code >= 200 && code < 300) {
-                if (!resp.isEmpty()) handleResponse(resp);
+                if (!resp.isEmpty()) handleResponse(resp, widgetTicket, new JSONObject(body).optString("evento", ""));
                 return OK;
             }
             // 429 es el freno por IP de la Edge Function y 408 un timeout: ambos pasan solos.
@@ -379,7 +380,7 @@ public class TrExpenseListener extends NotificationListenerService {
     }
 
     /** Confirmación + alerta de presupuesto + widget, con lo que devuelve `ingest`. */
-    private void handleResponse(String resp) {
+    private void handleResponse(String resp, long widgetTicket, String event) {
         try {
             JSONObject r = new JSONObject(resp);
             if (!r.optBoolean("ok", false)) return;
@@ -447,19 +448,36 @@ public class TrExpenseListener extends NotificationListenerService {
 
             JSONObject month = r.optJSONObject("month");
             if (month != null) {
-                // `counts` lo decide el servidor con la misma regla que la app (un recibo o una
-                // inversión no mueven el presupuesto ni salen de la cuenta de gasto diario). Si
-                // `ingest` es viejo y no lo manda, se asume que sí cuenta solo cuando es un gasto:
-                // un ingreso nunca debe bajar el saldo del widget.
+                // Presupuesto y efectivo tienen reglas distintas: una inversión no gasta
+                // presupuesto pero sí resta saldo. La Edge vieja solo mandaba `counts`.
                 boolean counts = month.has("counts")
                         ? month.optInt("counts", 0) == 1
                         : tipo.startsWith("gasto");
-                MiCarteraWidget.saveMonth(this,
+                boolean cashCounts = month.has("cashCounts")
+                        ? month.optInt("cashCounts", 0) == 1 : counts;
+                long periodStart = month.optLong("periodStart", 0);
+                if (periodStart == 0) {
+                    // Edge anterior: la fecha del gasto permite rechazar una respuesta de otro mes.
+                    try {
+                        java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ROOT);
+                        fmt.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                        periodStart = MiCarteraWidget.monthStart(fmt.parse(r.optString("fecha", "")).getTime());
+                    } catch (Exception ignored) { return; }
+                }
+                String widgetEvent = month.optString("eventKey", "");
+                // La Edge anterior no devolvía eventKey: su ACK es el ID de fila, que también
+                // cubre el pull. El evento crudo carece del prefijo guardado por la Edge (FIN-05).
+                if (widgetEvent.isEmpty()) widgetEvent = r.optString("ack", "");
+                if (widgetEvent.isEmpty()) widgetEvent = event;
+                MiCarteraWidget.saveMonth(this, widgetTicket, periodStart, month.optLong("readAt", 0),
+                        widgetEvent, month.optString("expenseKey", ""),
                         month.optDouble("spent", 0),
                         month.optDouble("budget", 0),
                         month.optDouble("budgetLeft", -1),   // −1 = ingest viejo, no lo manda
+                        month.has("shownDelta") ? month.optDouble("shownDelta", Double.NaN) : Double.NaN,
+                        month.has("againstDelta") ? month.optDouble("againstDelta", Double.NaN) : Double.NaN,
                         importe,
-                        counts);
+                        counts, cashCounts);
             }
         } catch (Exception ignored) {}
     }

@@ -125,7 +125,10 @@ function cuerpoDe(src, firma) {
 }
 
 const build = cuerpoDe(widget, "private static RemoteViews build(");
-const saveMonth = cuerpoDe(widget, "static void saveMonth(");
+const saveMonth = cuerpoDe(widget, "static synchronized void saveMonth(");
+const saveApp = cuerpoDe(widget, "static synchronized void saveApp(");
+const readPrefs = cuerpoDe(widget, "private static WidgetSnapshotArbiter.State read(");
+const write = cuerpoDe(widget, "private static void write(");
 const updateWidget = cuerpoDe(plugin, "public void updateWidget(");
 
 /** Las cifras que `build()` pinta y que un gasto nuevo mueve. `cashLabel` no: es texto fijo. */
@@ -141,24 +144,39 @@ t("build() lee las primitivas, no un «afford» ya cocinado", () => {
 });
 
 t("la app empuja TODAS las cifras vivas", () => {
-  for (const k of CIFRAS_VIVAS) {
-    assert.match(updateWidget, new RegExp(`putFloat\\("${k}"`), `updateWidget no escribe ${k}`);
-  }
+  assert.match(updateWidget, /MiCarteraWidget\.saveApp\(/);
+  assert.match(saveApp, /WidgetSnapshotArbiter\.app\(/);
+  for (const k of CIFRAS_VIVAS) assert.match(write, new RegExp(`putFloat\\("${k}"`));
 });
 
 t("y la noti, con la app cerrada, mantiene TODAS las cifras vivas (el bug de agosto)", () => {
-  for (const k of CIFRAS_VIVAS) {
-    assert.match(saveMonth, new RegExp(`putFloat\\("${k}"`),
-      `saveMonth no mantiene ${k}: el widget volverá a contradecirse con la app cerrada`);
-  }
+  assert.match(saveMonth, /WidgetSnapshotArbiter\.ingest\(/);
+  assert.match(saveMonth, /write\(ed, s\)/);
+  assert.match(listener, /MiCarteraWidget\.saveMonth\(/);
 });
 
 t("no queda basura del «afford» viejo en las prefs", () => {
-  assert.match(updateWidget, /remove\("afford"\)/, "hay que limpiar el afford de la versión anterior");
+  assert.match(write, /remove\("afford"\)/, "hay que limpiar el afford de la versión anterior");
+});
+
+t("al instalar sobre la APK anterior no vuelve a restar el saldo ya neto", () => {
+  assert.match(readPrefs, /getFloat\("cashDelta", 0\)/);
+  assert.doesNotMatch(readPrefs, /getFloat\("cashDelta",\s*p\.getFloat\("delta"/,
+    "el cash antiguo ya incluía su delta y heredarlo lo cobraría dos veces");
+});
+
+t("con la Edge anterior usa el ACK antes del evento crudo", () => {
+  const ident = listener.slice(listener.indexOf('String widgetEvent = month.optString("eventKey"'),
+    listener.indexOf("MiCarteraWidget.saveMonth("));
+  assert.match(ident, /widgetEvent = r\.optString\("ack", ""\)/,
+    "la Edge antigua entrega el ID de fila en ack");
+  assert.ok(ident.indexOf('r.optString("ack", "")') < ident.indexOf("widgetEvent = event"),
+    "el evento crudo no lleva el prefijo de ingest_event_id; va detrás del ACK");
 });
 
 t("saveMonth distingue «el servidor no manda budgetLeft» de «te quedan 0 €»", () => {
-  assert.match(saveMonth, /budgetLeft >= 0/,
+  const arbiter = read("android/app/src/main/java/com/micartera/app/WidgetSnapshotArbiter.java");
+  assert.match(arbiter, /budgetLeft >= 0/,
     "sin sentinela, una APK nueva contra un ingest viejo pintaría «Puedes gastar 0 €»");
   assert.match(listener, /optDouble\("budgetLeft", -1\)/, "el lector debe pedir la sentinela −1");
 });
@@ -166,8 +184,9 @@ t("saveMonth distingue «el servidor no manda budgetLeft» de «te quedan 0 €�
 t("un ingreso no baja el saldo del widget", () => {
   // `ingest` manda los ingresos en negativo, así que restar el importe los SUMA. Lo que no puede
   // pasar es que se filtre por «> 0» y un ingreso deje el saldo por debajo de lo real.
-  assert.match(saveMonth, /importe != 0/, "saveMonth debe mover el saldo también con ingresos");
-  assert.ok(!/importe > 0/.test(saveMonth), "filtrar por > 0 se come los ingresos");
+  const arbiter = read("android/app/src/main/java/com/micartera/app/WidgetSnapshotArbiter.java");
+  assert.match(arbiter, /amount != 0/, "el árbitro debe mover el saldo también con ingresos");
+  assert.ok(!/amount > 0/.test(arbiter), "filtrar por > 0 se come los ingresos");
 });
 
 t("el servidor manda las dos piezas nuevas", () => {

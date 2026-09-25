@@ -164,7 +164,6 @@ public class MiCarteraPlugin extends Plugin {
     @PluginMethod
     public void updateWidget(PluginCall call) {
         Context ctx = getContext();
-        SharedPreferences.Editor ed = ctx.getSharedPreferences(MiCarteraWidget.PREFS, Context.MODE_PRIVATE).edit();
         Double spent = call.getDouble("spent");
         Double budget = call.getDouble("budget");
         Double cash = call.getDouble("cash");
@@ -175,17 +174,12 @@ public class MiCarteraPlugin extends Plugin {
         // vive la fórmula. `safeLiq` sale de simular el mes día a día: eso solo lo sabe la app.
         Double budgetLeft = call.getDouble("budgetLeft");
         Double safeLiq = call.getDouble("safeLiq");
-        ed.putFloat("spent", spent != null ? spent.floatValue() : 0f);
-        ed.putFloat("budget", budget != null ? budget.floatValue() : 0f);
-        if (cash != null) ed.putFloat("cash", cash.floatValue()); else ed.remove("cash");
-        if (budgetLeft != null) ed.putFloat("budgetLeft", budgetLeft.floatValue()); else ed.remove("budgetLeft");
-        if (safeLiq != null) ed.putFloat("safeLiq", safeLiq.floatValue()); else ed.remove("safeLiq");
-        ed.remove("afford");   // resto de la versión anterior: ya no se lee, que no quede basura
         String label = call.getString("cashLabel");
-        ed.putString("cashLabel", label != null ? label : "");
-        ed.putLong("updated", System.currentTimeMillis());
-        ed.apply();
-        MiCarteraWidget.refreshAll(ctx);
+        Double period = call.getDouble("periodStart");
+        MiCarteraWidget.saveApp(ctx, period != null ? period.longValue() : MiCarteraWidget.monthStart(System.currentTimeMillis()),
+                spent != null ? spent : 0, budget != null ? budget : 0,
+                budgetLeft, safeLiq, cash, call.getString("cashEnt"), label,
+                call.getString("coveredEvents"), call.getString("deletedKeys"));
         call.resolve();
     }
 

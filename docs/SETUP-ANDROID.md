@@ -187,6 +187,16 @@ la misma compra de forma distinta. La identidad se forma con origen, paquete, cl
 y debe publicarse solo después de aplicar la migración 0025 y desplegar la Edge `ingest`; de otro
 modo el móvil conserva la deduplicación anterior aunque reciba la OTA.
 
+FIN-05 añade arbitraje de los dos escritores del widget en Java. Cada POST reserva un ticket;
+`ingest` devuelve el mes, el instante de lectura y la contribución del evento. Un snapshot de
+la app acompaña su snapshot con los IDs vistos y las lápidas; el nativo reaplica los eventos
+que aún no han llegado al pull y retira los ya cubiertos o borrados. Una respuesta pendiente
+añade su contribución sin imponer un total antiguo. El saldo de TR
+resta cada evento confirmado una vez, incluso si es una inversión que no gasta presupuesto.
+La liquidez segura distingue lo ya planificado de la caída real del saldo. Este contrato requiere **APK
+nueva**: una OTA no cambia `MiCarteraWidget` ni `TrExpenseListener`. Si falla la lectura mensual,
+el gasto queda guardado pero el widget conserva el último dato conocido hasta el siguiente pull.
+
 ## 7. Distribuir (para que la usen otros)
 
 - En Android Studio: **Build → Generate Signed Bundle / APK** → crea un keystore (guárdalo bien) → genera el APK firmado.

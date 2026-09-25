@@ -157,6 +157,14 @@ El proyecto Supabase es compartido: `beta` no tiene una Edge separada. Por eso u
 lanzar expresamente `supabase.yml`. No se debe presentar una prueba móvil de servidor como activa
 antes de ese despliegue.
 
+FIN-05 amplía la respuesta mensual de `ingest` con `periodStart` (inicio del mes en
+Europe/Madrid), `readAt` (instante anterior al SELECT), `eventKey` (identidad persistida),
+`shownDelta`/`againstDelta` (contribución de esa fila), `expenseKey` (clave de lápida),
+`counts` (presupuesto) y `cashCounts`
+(efectivo de TR). Si el SELECT falla, `month` es `null`: una compra confirmada no autoriza
+fabricar un total cero. La Edge compartida debe revisarse y desplegarse de forma expresa antes
+de atribuir a la APK nueva la corrección completa de respuestas invertidas.
+
 ## Paso 6 — Repuntar MacroDroid (cuando esté probado) 👤
 
 Cambia la URL del POST de MacroDroid del Apps Script a:

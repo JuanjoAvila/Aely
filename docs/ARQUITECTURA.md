@@ -156,10 +156,16 @@ vigila que el trabajo no crezca con el histórico; esto vigila lo que hay que ba
 
 ## Flujo de datos
 
-El widget recibe `monthBudgetStats` desde la app al cambiar sus cifras y al volver a primer plano,
-tanto por `visibilitychange` como por `App.appStateChange` de Capacitor. Son señales distintas en
-Android; escuchar solo la primera podía dejar el último total escrito por ingest aunque la app
-ya mostrase otro. La reactivación solo reenvía el snapshot local, no sincroniza Open Banking.
+El widget recibe `monthBudgetStats` desde la app al cambiar sus cifras. Al volver a primer plano,
+`visibilitychange` o `App.appStateChange` disparan primero la lectura de gastos de Supabase y
+solo tras completarla se envía el snapshot local: el estado anterior a la notificación no puede
+deshacer su cifra. No se sincroniza Open Banking. En Android, `WidgetSnapshotArbiter` asigna un
+ticket a cada ingest: el absoluto mensual más reciente gana por `readAt`, cada evento mueve el
+efectivo de TR una sola vez. Cada push lleva los IDs vistos y las lápidas; el nativo reaplica
+los eventos todavía ausentes del pull y descarta los cubiertos o borrados. Los eventos aún en
+vuelo se aplican por su contribución a gasto y presupuesto; una inversión
+planificada baja el efectivo sin volver a reservarse en la liquidez segura. El período
+es Europe/Madrid; si cambia sin una lectura nueva, el widget muestra «—» hasta recibir datos.
 Al convertir `expenses` con `expenseFromRow`, las categorías especiales `ingreso`, `inversion`
 y `traspaso` se conservan aunque no pertenezcan al catálogo ordinario de categorías.
 
@@ -170,7 +176,7 @@ y `traspaso` se conservan aunque no pertenezcan al catálogo ordinario de catego
 [POST → Edge Function `ingest`]   (?token= por usuario)
         │  clasifica + categoriza (KW)
         ▼
-[Postgres: expenses]  → app al Sincronizar
+[Postgres: expenses]  → app al volver a primer plano o al Sincronizar
 
 [Notificación Caixa/Sabadell/…]
         │  bankNotif → runBankSync (sin parsear importe)

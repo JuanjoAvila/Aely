@@ -1,5 +1,30 @@
 [
   {
+    "v": "4.26.49",
+    "d": "25 sep 2026",
+    "t": {
+      "es": "El widget muestra el gasto del mes con más fiabilidad",
+      "en": "The widget shows this month's spending more reliably",
+      "ca": "El giny mostra la despesa del mes amb més fiabilitat"
+    },
+    "items": {
+      "es": ["Al recibir varios movimientos o volver a abrir la app, el widget mantiene el gasto, el saldo y lo que puedes gastar en sintonía con la cartera.", "Al empezar un mes nuevo, espera a tener cifras de ese mes antes de mostrarlas."],
+      "en": ["When several transactions arrive or you reopen the app, the widget keeps spending, balance and what you can spend in step with your accounts.", "At the start of a new month, it waits for that month's figures before showing them."],
+      "ca": ["Quan arriben diversos moviments o tornes a obrir l'app, el giny manté la despesa, el saldo i el que pots gastar d'acord amb els comptes.", "Quan comença un mes nou, espera a tenir-ne les xifres abans de mostrar-les."]
+    },
+    "tandas": [
+      {
+        "id": "widget-app-cerrada",
+        "t": { "es": "Widget con la app cerrada", "en": "Widget while the app is closed", "ca": "Giny amb l'app tancada" },
+        "items": {
+          "es": ["1. Con la nueva APK instalada, abre la app y compara el gasto del mes, el saldo y «Puedes gastar» con el widget.", "2. Cierra la app y espera a recibir dos movimientos reales de Trade Republic. Comprueba que el widget incorpora ambos sin retroceder a una cifra anterior.", "3. Vuelve a abrir la app y compara de nuevo el widget con Inicio y Gastos. Ningún movimiento debe desaparecer ni repetirse."],
+          "en": ["1. With the new APK installed, open the app and compare monthly spending, balance and 'You can spend' with the widget.", "2. Close the app and wait for two real Trade Republic transactions. Check that the widget includes both without returning to an earlier figure.", "3. Reopen the app and compare the widget with Home and Spending again. No transaction should disappear or appear twice."],
+          "ca": ["1. Amb l'APK nova instal·lada, obre l'app i compara la despesa del mes, el saldo i «Pots gastar» amb el giny.", "2. Tanca l'app i espera dos moviments reals de Trade Republic. Comprova que el giny incorpora tots dos sense tornar a una xifra anterior.", "3. Torna a obrir l'app i compara el giny amb Inici i Despeses. Cap moviment no ha de desaparèixer ni repetir-se."]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.48",
     "d": "25 sep 2026",
     "t": {

@@ -13,6 +13,8 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
     // y se saca antes de mezclarlo para no sembrarlo como si fuera un campo de la cartera.
     const cloudRows = overrides.__cloudRows || {};
     delete overrides.__cloudRows;
+    // Permite que una prueba simule una notificación recibida mientras la app está cerrada.
+    window.__e2eCloudRows = cloudRows;
     // Respuestas de `supabase.functions.invoke(nombre, …)` por nombre de función Edge (p.ej.
     // "bank-sync", que sirve tanto el sync diario como el histórico). Solo datos JSON —nada de
     // funciones— porque `overrides` viaja serializado a `page.addInitScript`. Sin entrada para
@@ -24,6 +26,7 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
     // que tarda o que falla es justo cuando un móvil con el estado viejo repetía movimientos.
     const cloudDelays = overrides.__cloudDelays || {};
     delete overrides.__cloudDelays;
+    window.__e2eCloudDelays = cloudDelays;
     const cloudErrors = overrides.__cloudErrors || {};
     delete overrides.__cloudErrors;
     const mockClient = () => {
@@ -53,10 +56,11 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       };
       chain.then = (resolve) => {
         const t = tabla;
+        const delay = Array.isArray(cloudDelays[t]) ? cloudDelays[t].shift() : cloudDelays[t];
         const out = cloudErrors[t]
           ? { data: null, error: { message: cloudErrors[t] } }
-          : { data: cloudRows[t] || [], error: null };
-        if (cloudDelays[t]) setTimeout(() => resolve(out), cloudDelays[t]);
+          : { data: Array.isArray(cloudRows[t]) ? cloudRows[t].slice() : [], error: null };
+        if (delay) setTimeout(() => resolve(out), delay);
         else resolve(out);
       };
       return chain;

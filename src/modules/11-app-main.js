@@ -393,11 +393,20 @@ function App(){
   const bankSyncing=useRef(false);          // evita syncs de banco solapados
   // Promesa → true si el pull de arranque (estado + gastos) terminó bien. La espera `runBankSync`.
   const pullOkRef=useRef(null);
+  const wR=useRef(false),wS=useRef(0),wP=useRef(null),wC=useRef("");
   const bankJustConnected=useRef(false);    // marca la vuelta de ?bank=ok para sincronizar en cuanto haya sesión
 
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
   const syncCloudExpenses=function(){
-    return cloud.pullExpenses().then(function(rows){
+    const ps=++wS.current;
+    wR.current=false;
+    const pull=cloud.pullExpenses().then(function(rows){
+      // Si otra lectura empezó después, este resultado puede ser una foto anterior aunque
+      // haya llegado el último. No mezclarlo con el estado ni reenviarlo al widget (FIN-05).
+      if(ps!==wS.current) return wP.current;
+      const m=inicioDeMesMs(Date.now());
+      wC.current="|"+rows.filter(function(r){ return Date.parse(r.fecha)>=m && (r.ingest_event_id || r.source==="macrodroid"); })
+        .map(function(r){ return (r.ingest_event_id||r.id)+"|"+r.id; }).join("|")+"|";
       // O: el SELECT lleva .limit(2000). Si llega lleno, hay más en la nube que no vemos — avisar.
       /* FIN-07: una descarga a medias NO es un borrado. Sin esta distinción, un pull corto
          descarta de la app todo lo de origen `supabase` que no haya llegado — que es exactamente
@@ -454,8 +463,11 @@ function App(){
         }
         return rec.state;
       });
+      wR.current=true;
       return { total:incoming.length, nuevos:count };
     });
+    wP.current=pull;
+    return pull;
   };
 
   // Al iniciar sesión: adopta el estado de la nube (o sube el local la 1ª vez) y trae gastos.
@@ -905,11 +917,8 @@ function App(){
     return function(){ clearTimeout(tmr); };
   },[state,uid]);
 
-  // Auto-sincroniza los gastos al volver a primer plano (abrir la app o cambiar de app y volver).
-  // THROTTLE: si acabas de sincronizar (<30s) no repetimos el pull+merge de red → evita el "lagazo"
-  // al alternar apps rápido (el sync dispara una descarga y un re-render de toda la app).
-  // Además: si hay bancos OB y ≥30 min desde lastBankSync → bankSync en idle (gastos de Caixa/etc.).
-  const lastVisSync=useRef(0);
+  // Al volver, los gastos pueden haber cambiado en la nube aunque el pull anterior sea reciente.
+  // Bancos OB siguen sin consulta automática; su cupo PSD2 no depende de esta lectura.
   /* Red doble para APKs antiguas: el nativo nuevo ya limita estas consultas, pero la OTA debe
      proteger también el móvil que aún no haya instalado ese APK. La marca vive en localStorage
      para que matar/abrir la app no reinicie el cupo. Los botones manuales no pasan por aquí. */
@@ -933,8 +942,9 @@ function App(){
     if(!uid) return;
     const onVis=function(){
       if(document.visibilityState!=="visible") return;
-      if(Date.now()-lastVisSync.current < 30000) return;   // ya sincronizado hace nada: no recargues
-      lastVisSync.current=Date.now();
+      setCalendarDay(madridDay());
+      // Un ingest puede escribir mientras la app está oculta incluso tras un pull reciente.
+      // Releer antes de dejar que el widget reciba el snapshot local de reentrada (FIN-05).
       syncCloudExpenses().catch(function(){});
       // (2026-07-18) Aquí había un bankSync automático al volver a primer plano. RETIRADO:
       // cada apertura disparaba una consulta PSD2 desatendida y los bancos (Caixa, Sabadell)
@@ -1743,6 +1753,13 @@ function App(){
   };
   const tabbarRef=useRef(null);
 
+  const madridDay=function(){ return new Date().toLocaleDateString("en-CA",{timeZone:MC_TZ}); };
+  const [calendarDay,setCalendarDay]=useState(madridDay);
+  useEffect(function(){
+    const onVis=function(){ if(document.visibilityState==="visible") setCalendarDay(madridDay()); };
+    document.addEventListener("visibilitychange",onVis);
+    return function(){ document.removeEventListener("visibilitychange",onVis); };
+  },[]);
   const totals=useMemo(()=>{
     // Solo lo que sale de bancos de gasto diario (y a mano): si no, un cargo de Sabadell
     // «solo para ver» restaría del efectivo de TR (2026-08-05).
@@ -1857,7 +1874,7 @@ function App(){
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.investments,state.assets,state.debts,state.fixed,
      state.flows,state.oneoffs,state.aportaciones,state.obAccounts,
-     state.trRewardsTotal,state.fx,state.fxRates]);
+     state.trRewardsTotal,state.fx,state.fxRates,calendarDay]);
 
   const budgetMonth=budgetYmKey();
   useEffect(function(){
@@ -1987,11 +2004,15 @@ function App(){
   useEffect(function(){
     const nat=natPlugin();
     if(!nat || !nat.updateWidget) return;
+    if(cloud.enabled() && (!uid || !wR.current)) return;
     const data={
+      periodStart:inicioDeMesMs(Date.now()),
+      coveredEvents:wC.current,
+      deletedKeys:"|"+(state.deleted||[]).map(encodeURIComponent).join("|")+"|",
       spent:Math.round((budW.shown||0)*100)/100,
       budget:budW.budget!=null?budW.budget:(state.budget||0)
     };
-    if(widgetCash!=null){ data.cash=widgetCash; data.cashLabel=entOf(trAccW.ent).label; }
+    if(widgetCash!=null){ data.cash=widgetCash; data.cashEnt=trAccW.ent; data.cashLabel=entOf(trAccW.ent).label; }
     if(widgetBudgetLeft!=null) data.budgetLeft=widgetBudgetLeft;
     if(widgetSafeLiq!=null) data.safeLiq=widgetSafeLiq;
     // APK 41 (la de producción) todavía lee `afford` y si no llega BORRA «Puedes gastar».
@@ -2005,7 +2026,7 @@ function App(){
     // Re-empuja al VOLVER a primer plano (feedback 2026-07-20: el widget de MIUI/HyperOS no
     // siempre coge el dato nuevo con la app cerrada). Reenvía lo último bueno para forzar el
     // re-pintado del widget aunque el estado no haya cambiado.
-    const onVis=function(){ if(document.visibilityState==="visible") push(); };
+    const onVis=function(){ if(document.visibilityState==="visible" && !cloud.enabled()) push(); };
     document.addEventListener("visibilitychange", onVis);
     // Android puede volver sin visibilitychange. Si ingest pisó el widget mientras estaba
     // cerrada y las cifras locales no cambian, las deps tampoco fuerzan otro push (B09-D).
@@ -2013,7 +2034,7 @@ function App(){
     let sub=null, disposed=false;
     if(A&&A.addListener){
       try{
-        sub=Promise.resolve(A.addListener("appStateChange", function(st){ if(!disposed&&st&&st.isActive) push(); }));
+        sub=Promise.resolve(A.addListener("appStateChange", function(st){ if(!disposed&&st&&st.isActive){ setCalendarDay(madridDay()); if(!cloud.enabled()) push(); } }));
         sub.catch(function(){});
       }catch(e){}
     }
@@ -2023,7 +2044,7 @@ function App(){
       // addListener puede resolver después del cleanup: liberar también ese handle tardío.
       if(sub) sub.then(function(h){ if(h&&h.remove) return h.remove(); }).catch(function(){});
     };
-  },[budW.shown,budW.budget,state.budget,widgetCash,widgetBudgetLeft,widgetSafeLiq]);
+  },[budW.shown,budW.budget,state.budget,state.deleted,state.lastSync,widgetCash,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){
     // No arrancar el tour encima del login (showAuth) ni con el cajón abierto: causaba el caos

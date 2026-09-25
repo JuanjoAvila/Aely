@@ -111,6 +111,13 @@ Regresiones de widget/nube (4.19.6): `e2e/persistencia.spec.mjs` cubre reactivac
 Está registrado en `CROSSCUTTING`. `tests/presupuesto-servidor.test.mjs` convierte las filas con
 `expenseFromRow` antes de comparar totales: construir directamente `category:cat` no probaba el pull.
 Estas pruebas no ejecutan las preferencias Java ni sustituyen la comprobación final en el móvil.
+FIN-05 añade `tests/widget-arbitraje.test.mjs`, que compila y ejecuta el árbitro Java real con
+dos respuestas invertidas, reentrada, cambio de mes, banco distinto y `possibleDup`; cruza las
+mismas filas sintéticas entre app y servidor. `e2e/persistencia.spec.mjs` retrasa el pull para
+comprobar que la reentrada no sobrescribe el widget antes de recibir el gasto nuevo. La
+prueba también push con un evento pendiente, cobertura posterior sin doble suma y borrado con
+lápida. La compilación Android verifica el cableado nativo, pero queda por probar la APK firmada y la Edge
+real con un móvil.
 
 ## Para el dueño: los dos interruptores de Ajustes → Dev → Pruebas
 

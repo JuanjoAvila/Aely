@@ -14,6 +14,7 @@ const KEY_EXP = "micartera_v3_exp";
 test("widget se refresca al volver por el evento nativo sin visibilitychange", async ({ page }) => {
   await seedLoggedInDashboard(page, {
     budget: 100,
+    deleted: ["x|1|y"],
     accounts: [{ id: "a", ent: "sabadell", role: "diario", spendFrom: true, value: 1000 }],
     expenses: [{ id: "a", date: new Date().toISOString(), amount: 40, merchant: "Compra", category: "otros", source: "manual", ent: "sabadell" }],
     settings: { autoPrices: false, theme: "green", expenseBanks: ["sabadell"] },
@@ -38,6 +39,10 @@ test("widget se refresca al volver por el evento nativo sin visibilitychange", a
   await dismissNews(page);
   await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("Has gastado 40 €");
   await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(40);
+  expect(await page.evaluate(() => ({ budget: window.__widgetSnapshot.budget,
+    left: window.__widgetSnapshot.budgetLeft, bank: window.__widgetSnapshot.cashEnt })))
+    .toEqual({ budget: 100, left: 60, bank: "sabadell" });
+  expect(await page.evaluate(() => window.__widgetSnapshot.deletedKeys)).toContain("|x%7C1%7Cy|");
   // Ingest puede sobrescribir las preferencias mientras la app está en segundo plano.
   // Algunos Android solo notifican appStateChange: simular también visibilitychange escondería el bug.
   await page.evaluate(() => {
@@ -50,6 +55,104 @@ test("widget se refresca al volver por el evento nativo sin visibilitychange", a
   });
   await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(40);
   await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("Has gastado 40 €");
+});
+
+test("al cambiar de mes en segundo plano, Inicio y el push nativo dejan el gasto anterior", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-09-30T21:30:00Z") });
+  await seedLoggedInDashboard(page, {
+    budget: 100,
+    accounts: [{ id: "a", ent: "trade_republic", role: "diario", spendFrom: true, value: 200 }],
+    expenses: [{ id: "a", date: "2026-09-30T12:00:00Z", amount: 40,
+      merchant: "Compra", category: "otros", source: "macrodroid" }],
+    settings: { autoPrices: false, theme: "green", expenseBanks: ["trade_republic"] },
+  });
+  await page.addInitScript(() => {
+    window.__nativeListeners = {};
+    const addListener = (name, cb) => {
+      (window.__nativeListeners[name] ||= []).push(cb);
+      return Promise.resolve({ remove() {} });
+    };
+    window.Capacitor = { isNativePlatform: () => false, Plugins: {
+      App: { addListener },
+      MiCartera: new Proxy({ addListener, updateWidget: async data => { window.__widgetSnapshot = data; } },
+        { get: (target, key) => target[key] || (() => Promise.resolve({})) }),
+    } };
+  });
+  await page.goto("/");
+  await dismissNews(page);
+  const title = page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph");
+  await expect(title).toContainText("Has gastado 40 €");
+  await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(40);
+  const oldPeriod = await page.evaluate(() => window.__widgetSnapshot.periodStart);
+  // UTC sigue en 30/9: solo Europe/Madrid ha pasado a octubre.
+  await page.clock.setFixedTime(new Date("2026-09-30T22:05:00Z"));
+  await page.evaluate(() => { for (const cb of window.__nativeListeners.appStateChange || []) cb({ isActive: true }); });
+  await expect(title).toContainText("Has gastado 0 €");
+  await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(0);
+  expect(await page.evaluate(() => window.__widgetSnapshot.periodStart)).toBeGreaterThan(oldPeriod);
+  expect(await page.evaluate(() => window.__widgetSnapshot.budgetLeft)).toBe(100);
+});
+
+test("reentrada espera el gasto nuevo de la nube antes de sobrescribir el widget", async ({ page }) => {
+  const fecha = new Date().toISOString();
+  await seedLoggedInDashboard(page, {
+    budget: 100,
+    accounts: [{ id: "a", ent: "trade_republic", role: "diario", spendFrom: true, value: 200 }],
+    expenses: [{ id: "a", date: fecha, amount: 40, merchant: "Primera", category: "otros",
+      source: "macrodroid", ent: "trade_republic" }],
+    __cloudRows: { expenses: [{ id: "550e8400-e29b-41d4-a716-446655440001", fecha,
+      importe: 40, comercio: "Primera", cat: "otros", source: "macrodroid",
+      ingest_event_id: "tr:trade_republic:v1_first" }] },
+    __cloudDelays: { expenses: 350 },
+  });
+  await page.addInitScript(() => {
+    window.__widgetCalls = [];
+    window.__nativeListeners = {};
+    const addListener = (name, cb) => {
+      (window.__nativeListeners[name] ||= []).push(cb);
+      return Promise.resolve({ remove() {} });
+    };
+    window.Capacitor = { isNativePlatform: () => false, Plugins: {
+      App: { addListener },
+      MiCartera: new Proxy({ addListener, updateWidget: async data => {
+        window.__widgetCalls.push(data);
+        window.__widgetSnapshot = data;
+      } }, { get: (target, key) => target[key] || (() => Promise.resolve({})) }),
+    } };
+  });
+  await page.goto("/");
+  await dismissNews(page);
+  await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(40);
+  await page.evaluate(() => {
+    window.__widgetSnapshot = { spent: 70 };
+    window.__e2eCloudRows.expenses.push({ id: "550e8400-e29b-41d4-a716-446655440002",
+      fecha: new Date().toISOString(), importe: 30, comercio: "Segunda", cat: "otros", source: "macrodroid",
+      ingest_event_id: "tr:trade_republic:v1_second" });
+    window.__widgetCalls = [];
+    for (const cb of window.__nativeListeners.appStateChange || []) cb({ isActive: true });
+  });
+  await page.waitForTimeout(120);
+  expect(await page.evaluate(() => window.__widgetSnapshot.spent)).toBe(70);
+  expect(await page.evaluate(() => window.__widgetCalls.length)).toBe(0);
+  await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.budgetLeft)).toBe(30);
+  expect(await page.evaluate(() => window.__widgetSnapshot.coveredEvents)).toContain("|tr:trade_republic:v1_second|");
+  expect(await page.evaluate(() => window.__widgetSnapshot.coveredEvents)).toContain("|550e8400-e29b-41d4-a716-446655440002|");
+  await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("Has gastado 70 €");
+  expect(await page.evaluate(() => window.__widgetSnapshot.spent)).toBe(70);
+  await page.evaluate(() => {
+    window.__e2eCloudDelays.expenses = [400, 50];
+    for (const cb of window.__nativeListeners.appStateChange || []) cb({ isActive: true });
+  });
+  await page.waitForTimeout(30);
+  await page.evaluate(() => {
+    window.__e2eCloudRows.expenses.push({ id: "550e8400-e29b-41d4-a716-446655440003",
+      fecha: new Date().toISOString(), importe: 10, comercio: "Tercera", cat: "otros", source: "macrodroid" });
+    for (const cb of window.__nativeListeners.appStateChange || []) cb({ isActive: true });
+  });
+  await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(80);
+  await page.waitForTimeout(430);
+  expect(await page.evaluate(() => window.__widgetSnapshot.spent)).toBe(80);
+  await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("Has gastado 80 €");
 });
 
 test("nube conserva inversión y traspaso al pintar Inicio y Gastos", async ({ page }) => {

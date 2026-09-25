@@ -1,3 +1,34 @@
+## [4.26.49] - 2026-09-25
+### FIN-05: arbitraje del widget entre app y notificaciones
+
+El lector nativo podía recibir dos respuestas de `ingest` en orden inverso y la más antigua
+retrasaba el gasto, el presupuesto y el disponible del widget. `WidgetSnapshotArbiter` separa
+el total absoluto del servidor, ordenado por instante de lectura, de los cambios de saldo,
+aplicados una sola vez por evento. La app envía los IDs que vio y sus lápidas; el nativo conserva
+encima de cada push la contribución de los eventos aún no vistos, sin volver a sumar los cubiertos
+ni resucitar los borrados. Un ingest aún en vuelo añade su contribución sin imponer un absoluto
+viejo. La Edge devuelve `periodStart` y `readAt` sellado antes de la lectura; un
+error al leer el mes ya no fabrica un total cero. El efectivo se mueve también con compras que
+no cuentan para presupuesto, sin restarlas dos veces de la liquidez si ya estaban planificadas.
+Al actualizar desde la APK anterior, el saldo guardado ya era neto: el lector nuevo no hereda
+su `delta` antiguo, porque lo descontaría una segunda vez con la app cerrada.
+Si el `ingest` aún desplegado carece de los deltas nuevos y responde después de un push de la
+app, el widget muestra «—» hasta que el pull cubra el evento: el contrato viejo no permite
+reconstruir esa cifra sin inventarla.
+La Edge anterior devuelve `ack` como ID de fila, mientras el `ingest_event_id` añade un prefijo
+al evento nativo: el nativo usa ese ACK cuando falta `month.eventKey`, y la app cubre ambos IDs
+para retirar siempre el asiento cuando la fila aparece.
+
+Al volver a primer plano se descarga la tabla de gastos antes de reenviar el estado local al
+widget; así la reentrada no deshace una notificación aún ausente del móvil. El día y el mes
+se recalculan al reactivar la app. Un mes nuevo sin lectura muestra «—», no 0 € inventados.
+La suite ejecuta el árbitro Java real, compara las mismas filas con la lógica de app/Edge y
+abre Inicio en navegador con una descarga de gastos retrasada. Requiere desplegar la Edge
+compartida y entregar una APK nueva antes de probar el circuito completo en un móvil; ambos
+pasos siguen pendientes de revisión y autorización del dueño.
+El guardo de reentrada ocupaba 829 bytes por encima del límite crudo del HTML; se subió 1 KB
+medido en `presupuesto-rendimiento`, con el límite gzip intacto.
+
 ## [4.26.48] - 2026-09-25
 ### El alta de Recibos muestra qué elemento se guardó
 

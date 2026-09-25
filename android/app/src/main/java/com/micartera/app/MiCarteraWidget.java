@@ -14,6 +14,7 @@ import android.widget.RemoteViews;
 import java.text.NumberFormat;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * Widget de pantalla de inicio: gasto del mes vs presupuesto + saldo de la cuenta
@@ -54,37 +55,112 @@ public class MiCarteraWidget extends AppWidgetProvider {
      * app todo cuadraba (un push escribe las cinco cosas a la vez) y a la primera noti volvía a
      * mentir — exactamente el «se arregla y al rato vuelve» que él describía.
      *
-     * Ahora esta función mantiene TODAS las piezas que mueve un gasto nuevo:
-     *   · `budgetLeft` viene calculado del servidor (exacto, misma regla que la cabecera de Gastos).
-     *   · `safeLiq` y `cash` los baja aquí el importe del gasto: un gasto de la cuenta diaria hunde
-     *     el saldo de hoy y todo el resto del mes en la misma cantidad, así que restar es exacto
-     *     sin tener que resimular el mes (que es cosa de la app, no de aquí).
-     * Si el gasto no cuenta para el presupuesto (`counts=false`: recibo, inversión, traspaso), no
-     * se toca ninguna de las dos: no ha salido de la cuenta de gasto diario.
+     * El servidor aporta el gasto y el presupuesto del mes; el árbitro conserva los eventos que
+     * aún no cubre la última lectura de la app. Una inversión puede bajar el efectivo de TR sin
+     * consumir presupuesto, por eso las dos contribuciones se guardan separadas (FIN-05).
      */
-    static void saveMonth(Context ctx, double spent, double budget, double budgetLeft,
-                          double importe, boolean counts) {
-        SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        SharedPreferences.Editor ed = p.edit();
-        ed.putFloat("spent", (float) spent);
-        if (budget > 0) ed.putFloat("budget", (float) budget);
-        // `budgetLeft < 0` es la sentinela de «este ingest no lo manda» (APK nueva + función sin
-        // desplegar). Ahí se deja el último bueno en vez de pintar «Puedes gastar 0 €».
-        if (budgetLeft >= 0) ed.putFloat("budgetLeft", (float) budgetLeft);
-        if (counts && importe != 0) {
-            // Se resta el importe: un gasto va en positivo (baja el saldo) y un ingreso en
-            // negativo (lo sube), que es como los manda `ingest`.
-            // Solo si la app las había dejado puestas: sin base no hay nada que mover, y un 0
-            // inventado aquí sería otra cifra mentirosa.
-            if (p.contains("safeLiq")) {
-                ed.putFloat("safeLiq", (float) Math.max(0, p.getFloat("safeLiq", 0f) - importe));
-            }
-            if (p.contains("cash")) {
-                ed.putFloat("cash", (float) (p.getFloat("cash", 0f) - importe));
-            }
-        }
+    static long monthStart(long when) {
+        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Europe/Madrid"));
+        c.setTimeInMillis(when);
+        c.set(Calendar.DAY_OF_MONTH, 1);
+        c.set(Calendar.HOUR_OF_DAY, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        return c.getTimeInMillis();
+    }
+
+    private static WidgetSnapshotArbiter.State read(SharedPreferences p) {
+        WidgetSnapshotArbiter.State s = new WidgetSnapshotArbiter.State();
+        s.periodStart = p.getLong("periodStart", 0);
+        s.issued = p.getLong("issued", 0);
+        s.appFence = p.getLong("appFence", 0);
+        s.serverReadAt = p.getLong("serverReadAt", 0);
+        s.serverTicket = p.getLong("serverTicket", 0);
+        s.spent = p.getFloat("spent", 0);
+        s.budget = p.getFloat("budget", 0);
+        s.hasBudgetLeft = p.contains("budgetLeft");
+        s.budgetLeft = p.getFloat("budgetLeft", 0);
+        s.hasSafeLiq = p.contains("safeLiq");
+        s.baseSafeLiq = p.getFloat("baseSafeLiq", p.getFloat("safeLiq", 0));
+        s.hasCash = p.contains("cash");
+        s.baseCash = p.getFloat("baseCash", p.getFloat("cash", 0));
+        s.spendDelta = p.getFloat("spendDelta", 0);
+        // La APK anterior ya guardaba `cash` neto de su delta: heredarlo aquí lo restaría dos veces.
+        s.cashDelta = p.getFloat("cashDelta", 0);
+        s.cashEnt = p.getString("cashEnt", "");
+        s.cashLabel = p.getString("cashLabel", "");
+        s.events = p.getString("events", "");
+        s.journal = p.getString("journal", "");
+        s.journalFull = p.getBoolean("journalFull", false);
+        s.unknownPending = p.getBoolean("unknownPending", false);
+        s.coveredEvents = p.getString("coveredEvents", "");
+        s.deletedKeys = p.getString("deletedKeys", "");
+        return s;
+    }
+
+    private static void write(SharedPreferences.Editor ed, WidgetSnapshotArbiter.State s) {
+        ed.putLong("periodStart", s.periodStart).putLong("issued", s.issued)
+          .putLong("appFence", s.appFence).putLong("serverReadAt", s.serverReadAt)
+          .putLong("serverTicket", s.serverTicket);
+        ed.putFloat("spent", (float) s.spent).putFloat("budget", (float) s.budget);
+        if (s.hasBudgetLeft) ed.putFloat("budgetLeft", (float) s.budgetLeft); else ed.remove("budgetLeft");
+        if (s.hasSafeLiq) ed.putFloat("safeLiq", (float) s.safeLiq()); else ed.remove("safeLiq");
+        if (s.hasCash) ed.putFloat("cash", (float) s.cash()); else ed.remove("cash");
+        ed.putFloat("baseSafeLiq", (float) s.baseSafeLiq).putFloat("baseCash", (float) s.baseCash)
+          .putFloat("spendDelta", (float) s.spendDelta).putFloat("cashDelta", (float) s.cashDelta)
+          .remove("delta").putString("cashEnt", s.cashEnt)
+          .putString("cashLabel", s.cashLabel).putString("events", s.events)
+          .putString("journal", s.journal).putBoolean("journalFull", s.journalFull)
+          .putBoolean("unknownPending", s.unknownPending)
+          .putString("coveredEvents", s.coveredEvents).putString("deletedKeys", s.deletedKeys);
+        ed.remove("afford");
         ed.putLong("updated", System.currentTimeMillis());
-        ed.apply();
+    }
+
+    static synchronized long beginIngest(Context ctx) {
+        SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        WidgetSnapshotArbiter.State s = read(p);
+        long ticket = WidgetSnapshotArbiter.begin(s);
+        p.edit().putLong("issued", s.issued).commit();
+        return ticket;
+    }
+
+    static synchronized void saveApp(Context ctx, long periodStart, double spent, double budget,
+                                      Double budgetLeft, Double safeLiq, Double cash,
+                                      String cashEnt, String cashLabel,
+                                      String coveredEvents, String deletedKeys) {
+        // El callback de reentrada puede ejecutar el push viejo antes de que React recalcule
+        // el mes nuevo. No sellarlo con la hora de hoy como si sus cifras fueran de hoy.
+        if (periodStart != monthStart(System.currentTimeMillis())) return;
+        SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        WidgetSnapshotArbiter.State s = read(p);
+        if (!WidgetSnapshotArbiter.app(s, periodStart, spent, budget, budgetLeft, safeLiq, cash,
+                cashEnt, cashLabel, coveredEvents, deletedKeys)) {
+            if (s.journalFull) {
+                p.edit().putBoolean("journalFull", true).commit();
+                refreshAll(ctx);
+            }
+            return;
+        }
+        SharedPreferences.Editor ed = p.edit();
+        write(ed, s);
+        ed.commit();
+        refreshAll(ctx);
+    }
+
+    static synchronized void saveMonth(Context ctx, long ticket, long periodStart, long readAt,
+                          String event, String expenseKey, double spent, double budget, double budgetLeft,
+                          double shownDelta, double againstDelta, double importe,
+                          boolean counts, boolean cashCounts) {
+        SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        WidgetSnapshotArbiter.State s = read(p);
+        if (!WidgetSnapshotArbiter.ingest(s, ticket, monthStart(System.currentTimeMillis()),
+                periodStart, readAt, event, expenseKey, spent, budget, budgetLeft, shownDelta, againstDelta,
+                importe, counts, cashCounts)) return;
+        SharedPreferences.Editor ed = p.edit();
+        write(ed, s);
+        ed.commit();
         refreshAll(ctx);
     }
 
@@ -129,20 +205,22 @@ public class MiCarteraWidget extends AppWidgetProvider {
            No hay forma de recalcular AQUÍ el gasto real del mes nuevo (los datos viven en el
            almacenamiento de la WebView, no accesible desde este provider sin abrir la app) — pero
            SÍ se sabe que un número de un mes distinto no puede seguir enseñándose como si fuera de
-           HOY. Se compara el mes de `updated` contra el mes de AHORA; si no coinciden, se pinta
-           como si no hubiera datos todavía (0 €, sin "puedes gastar") en vez de mentir con la
-           cifra vieja. En cuanto la app empuje el dato real del mes nuevo, esto se sustituye solo. */
-        boolean mesDistinto = false;
-        if (updated > 0) {
+           HOY. Se compara el período del snapshot con el mes de AHORA; si no coinciden, se pinta
+           «—» sin disponible ni saldo en vez de inventar un cero. En cuanto la app empuje el
+           dato real del mes nuevo, esto se sustituye solo. */
+        boolean sinDato = p.getBoolean("journalFull", false) || p.getBoolean("unknownPending", false);
+        boolean mesDistinto = p.getLong("periodStart", 0) > 0
+                ? p.getLong("periodStart", 0) != monthStart(System.currentTimeMillis()) : false;
+        if (!mesDistinto && p.getLong("periodStart", 0) == 0 && updated > 0) {
             Calendar cUpd = Calendar.getInstance(); cUpd.setTimeInMillis(updated);
             Calendar cNow = Calendar.getInstance();
             mesDistinto = cUpd.get(Calendar.MONTH) != cNow.get(Calendar.MONTH)
                     || cUpd.get(Calendar.YEAR) != cNow.get(Calendar.YEAR);
         }
-        if (mesDistinto) { spent = 0; hasAfford = false; }
+        if (mesDistinto || sinDato) { hasAfford = false; hasCash = false; }
 
         RemoteViews rv = new RemoteViews(ctx.getPackageName(), R.layout.widget_micartera);
-        rv.setTextViewText(R.id.w_amount, eur0(spent));
+        rv.setTextViewText(R.id.w_amount, mesDistinto || sinDato ? "—" : eur0(spent));
         rv.setTextColor(R.id.w_amount, (budget > 0 && spent > budget) ? CORAL : MINT);
 
         // «Lo que te puedes permitir» (gasto seguro): lo que puedes gastar sin pasarte ni quedarte
@@ -155,7 +233,10 @@ public class MiCarteraWidget extends AppWidgetProvider {
             rv.setViewVisibility(R.id.w_afford, View.GONE);
         }
 
-        if (budget > 0) {
+        if (mesDistinto || sinDato) {
+            rv.setTextViewText(R.id.w_sub, mesDistinto ? "Sin datos de este mes" : "Abre la app para actualizar");
+            rv.setViewVisibility(R.id.w_bar, View.GONE);
+        } else if (budget > 0) {
             double left = budget - spent;
             rv.setTextViewText(R.id.w_sub, left >= 0
                     ? "de " + eur0(budget) + " este mes · te quedan " + eur0(left)
@@ -169,7 +250,7 @@ public class MiCarteraWidget extends AppWidgetProvider {
 
         String foot = "";
         if (hasCash) foot = "💳 " + (cashLabel.isEmpty() ? "Cuenta" : cashLabel) + ": " + eur0(cash);
-        if (updated > 0) {
+        if (!mesDistinto && !sinDato && updated > 0) {
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(updated);
             String hm = String.format(Locale.ROOT, "%02d:%02d", c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
