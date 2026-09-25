@@ -1,6 +1,6 @@
 {
-  "versionCode": 48,
-  "versionName": "4.26.32",
-  "url": "https://github.com/JuanjoAvila/Aely/releases/download/v4.26.32/Aely-4.26.32.apk",
-  "notes": "APK 4.26.32 (48): gestos Atrás que acompañan al dedo y recibos con iconos claros."
+  "versionCode": 50,
+  "versionName": "4.26.49",
+  "url": "https://github.com/JuanjoAvila/Aely/releases/download/v4.26.49/Aely-4.26.49.apk",
+  "notes": "APK 4.26.49 (50): el widget mantiene las cifras al apuntar gastos con la app cerrada."
 }
