@@ -299,7 +299,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
           className:"v4-seg-btn"+(seg===s.id?" on":""),onClick:function(){ setSeg(s.id); }}, s.lab);
       })
     ),
-    capa("recibos", React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,manageOpen:manageOpen,setManageOpen:setManageOpen,simple:simple,showToast:showToast})),
+    capa("recibos", React.createElement(PlanBills,{state:state,set:set,totals:totals,charges:charges,manageOpen:manageOpen,setManageOpen:setManageOpen,simple:simple})),
     !simple && capa("deudas", React.createElement(Debts,{state:state,set:set,showToast:showToast})),
     !simple && capa("metas", React.createElement(Goals,{state:state,set:set,totals:totals,showToast:showToast}))
   );
@@ -308,7 +308,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
 /* Recibos conserva la portada compacta que ya funcionaba: el diagnóstico largo y el anillo
    convertían Plan en un mensaje gigante y alejaban lo que la familia viene a mirar. «Gestionar»
    sí se mantiene como puerta al editor nuevo (feedback real 2026-09-17). */
-function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simple, showToast}){
+function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simple}){
   const [paidExpanded,setPaidExpanded]=useState(false);
   const [pendExpanded,setPendExpanded]=useState(false);
   const paidPanelId="v4-paid-panel";
@@ -416,7 +416,7 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
       React.createElement("span",null, paidLabel),React.createElement("span",{"aria-hidden":true}, paidExpanded?"▾":"▸")),
     simple && paidExpanded && React.createElement("div",{className:"v4-section",id:paidPanelId,role:"region","aria-labelledby":"v4-paid-fold-btn"}, paid.map(row)),
     // También en sencillo: la puerta vive en Ajustes → Dinero (NO-GO §5bis.2).
-    React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); },state:state,set:set,totals:totals,simple:!!simple,showToast:showToast})
+    React.createElement(BillsManagePush,{open:manageOpen,onClose:function(){ setManageOpen(false); },state:state,set:set,totals:totals,simple:!!simple})
   );
 }
 
@@ -452,7 +452,7 @@ function billGlyph(row){
 
 /* §2 variante A: `.settings-push` hub, sin montar `<Fijos>`. Reconcile → BankPanel (Claude).
    Ajustes dispara `mc-open-bills` → PlanTab abre este push con state vivo (no snapshot). */
-function BillsManagePush({open, onClose, state, set, totals, simple, showToast}){
+function BillsManagePush({open, onClose, state, set, totals, simple}){
   const [stack,setStack]=React.useState(["hub"]);
   const [group,setGroup]=React.useState(null);
   const [q,setQ]=React.useState("");
@@ -461,6 +461,8 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
   const [addForm,setAddForm]=React.useState({name:"",amount:"",freq:"mes",months:[],day:"",when:"",account:"sabadell",kind:"fixed"});
   const [undoBill,setUndoBill]=React.useState(null);
   const undoTimer=React.useRef(null);
+  const [savedBill,setSavedBill]=React.useState(null);
+  const savedTimer=React.useRef(null);
   const rootRef=React.useRef(null);
   const subRef=React.useRef(null);
   const titleRef=React.useRef(null);
@@ -479,10 +481,15 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
       setStack(["hub"]); setGroup(null); setQ(""); setDetail(null); setAddStep(null);
       if(undoTimer.current){ clearTimeout(undoTimer.current); undoTimer.current=null; }
       setUndoBill(null);
+      if(savedTimer.current){ clearTimeout(savedTimer.current); savedTimer.current=null; }
+      setSavedBill(null);
     }
   },[open]);
   React.useEffect(function(){
-    return function(){ if(undoTimer.current) clearTimeout(undoTimer.current); };
+    return function(){
+      if(undoTimer.current) clearTimeout(undoTimer.current);
+      if(savedTimer.current) clearTimeout(savedTimer.current);
+    };
   },[]);
   const pop=React.useCallback(function(){
     if(detail){ setDetail(null); return; }
@@ -573,14 +580,30 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
   const heroGroups=groups.filter(function(g){ return (g.id==="serv"||g.id==="debt")&&g.total>0; });
   const push=function(v){ setStack(function(s){ return s.concat([v]); }); };
   const openGroup=function(id){ setGroup(id); setQ(""); push("list"); };
-  const openDetail=function(row){ openerRef.current=document.activeElement; setDetail(row); };
+  const openDetail=function(row){
+    openerRef.current=document.activeElement;
+    if(savedTimer.current){ clearTimeout(savedTimer.current); savedTimer.current=null; }
+    setSavedBill(null);
+    setDetail(row);
+  };
   const startAdd=function(kind){
     openerRef.current=document.activeElement;
+    if(savedTimer.current){ clearTimeout(savedTimer.current); savedTimer.current=null; }
+    setSavedBill(null);
     setAddForm({name:"",amount:"",freq:"mes",months:[],day:"",when:"",account:bankList[0]||"sabadell",kind:kind||"fixed",
       month:cm, year:cy, flowKind:"income"});
     setAddStep("what");
   };
+  const confirmSaved=function(kind,name){
+    // El toast global decía solo «Guardado» mientras el alta se iba: aquí queda visible
+    // qué se añadió en la pantalla de Recibos, también al salir de una lista hija.
+    if(savedTimer.current) clearTimeout(savedTimer.current);
+    setSavedBill({kind:kind,name:name});
+    savedTimer.current=setTimeout(function(){ setSavedBill(null); savedTimer.current=null; },4500);
+  };
   const removeWithUndo=function(row){
+    if(savedTimer.current){ clearTimeout(savedTimer.current); savedTimer.current=null; }
+    setSavedBill(null);
     const snap={kind:row.kind, item:Object.assign({},row.item)};
     if(row.kind==="fixed") removeFixedById(set,row.id);
     else if(row.kind==="flow") removeFlowById(set,row.id);
@@ -701,8 +724,13 @@ function BillsManagePush({open, onClose, state, set, totals, simple, showToast})
       }),
       addStep && React.createElement(BillsAddWizard,{
         step:addStep, setStep:setAddStep, form:addForm, setForm:setAddForm, banks:bankList,
-        onClose:closeAdd, set:set, showToast:showToast
+        onClose:closeAdd, set:set, onSaved:confirmSaved
       }),
+      savedBill && !addStep && React.createElement("div",{className:"v4-bills-saved",role:"status"},
+        React.createElement("span",{className:"v4-bills-saved-mark","aria-hidden":"true"},"✓"),
+        React.createElement("span",null,
+          React.createElement("strong",null,gbTxt(savedBill.kind==="oneoff"?"gb_saved_oneoff":savedBill.kind==="income"?"gb_saved_income":savedBill.kind==="transfer"?"gb_saved_transfer":"gb_saved_fixed")),
+          React.createElement("span",null,savedBill.name))),
       undoBill && React.createElement("div",{className:"v4-undo-toast",role:"status"},
         React.createElement("span",null, gbTxt("gb_removed")),
         React.createElement("button",{type:"button",onClick:undoLastBill}, t("f_undo")||"Deshacer"))
@@ -848,7 +876,7 @@ function bankListButtons(banks, current, onPick){
     }));
 }
 
-function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, showToast}){
+function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSaved}){
   const setF=function(patch){ setForm(function(f){ return Object.assign({},f,patch); }); };
   const freqs=[["mes","gb_freq_m"],["bimestral","gb_freq_2m"],["trimestral","gb_freq_3m"],["semestral","gb_freq_6m"],["año","gb_freq_y"]];
   const stepRef=React.useRef(step), formRef=React.useRef(form);
@@ -945,7 +973,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, show
       if(form.freq!=="mes"&&form.months&&form.months.length) it.months=form.months.slice().sort(function(a,b){ return a-b; });
       addFixedItem(set,it);
     }
-    if(showToast) showToast(gbTxt("gb_save_ok"));
+    if(onSaved) onSaved(form.kind==="flow"?(form.flowKind||"income"):form.kind,String(form.name||"").trim());
     swipe.close();
   };
   const preview=function(){

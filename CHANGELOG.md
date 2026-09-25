@@ -1,3 +1,13 @@
+## [4.26.48] - 2026-09-25
+### El alta de Recibos muestra qué elemento se guardó
+
+El asistente de alta cerraba la hoja tras guardar y usaba el toast global «Guardado» para
+recibos periódicos, cargos puntuales e ingresos. Esa frase no indicaba qué elemento se había
+creado. `BillsManagePush` muestra ahora una confirmación propia con el tipo y nombre tras el
+cierre, en es/en/ca, sin duplicar el toast global. El aviso desaparece solo o al iniciar otra
+alta. Las tres rutas de `commit`, sus importes y el guardo contra doble toque siguen iguales.
+`plan-gestionar` recorre las tres altas reales, comprueba el aviso y exige una sola fila.
+
 ## [4.26.47] - 2026-09-25
 ### La promoción espera al deploy correspondiente
 

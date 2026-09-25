@@ -1,5 +1,10 @@
 # Testing — Aely
 
+REC-GUARDADO-01 (4.26.48): `e2e/plan-gestionar.spec.mjs`, ya registrado para el módulo 14 en
+`scripts/relevant-tests.mjs`, recorre el alta real de recibo, cargo puntual e ingreso en
+es/en/ca. Exige una confirmación visible con tipo y nombre tras cerrar la hoja y una sola fila
+guardada. La prueba móvil queda pendiente de aprobación; el cambio es web/OTA y usa la APK 48.
+
 La beta 4.26.32 comparte `useEdgePageClose` entre Inversiones y Plan → Gestionar. Los casos de
 `cartera-inversiones` y `plan-gestionar` simulan progreso/cancelación/invocación nativos, un segundo
 intento después del rebote y el arrastre desde el centro; también protegen el scroll vertical y
