@@ -23,9 +23,11 @@ Al volver a primer plano se descarga la tabla de gastos antes de reenviar el est
 widget; así la reentrada no deshace una notificación aún ausente del móvil. El día y el mes
 se recalculan al reactivar la app. Un mes nuevo sin lectura muestra «—», no 0 € inventados.
 La suite ejecuta el árbitro Java real, compara las mismas filas con la lógica de app/Edge y
-abre Inicio en navegador con una descarga de gastos retrasada. Requiere desplegar la Edge
-compartida y entregar una APK nueva antes de probar el circuito completo en un móvil; ambos
-pasos siguen pendientes de revisión y autorización del dueño.
+abre Inicio en navegador con una descarga de gastos retrasada. El 26/9 el dueño autorizó beta
+y despliegue expreso de `ingest`: beta OTA 4.26.49.1 pasó la Action 36195486950; la APK
+4.26.49/code 50 firmada se publicó como prerelease; la Action 36196554737 desplegó solo
+`ingest` desde `be59e27c`, sin migraciones. Falta la prueba del circuito completo en su móvil
+y verificar de forma independiente la revisión activa de la Edge. `main` no se promocionó.
 El guardo de reentrada ocupaba 829 bytes por encima del límite crudo del HTML; se subió 1 KB
 medido en `presupuesto-rendimiento`, con el límite gzip intacto.
 

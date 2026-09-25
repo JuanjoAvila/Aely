@@ -162,8 +162,10 @@ Europe/Madrid), `readAt` (instante anterior al SELECT), `eventKey` (identidad pe
 `shownDelta`/`againstDelta` (contribución de esa fila), `expenseKey` (clave de lápida),
 `counts` (presupuesto) y `cashCounts`
 (efectivo de TR). Si el SELECT falla, `month` es `null`: una compra confirmada no autoriza
-fabricar un total cero. La Edge compartida debe revisarse y desplegarse de forma expresa antes
-de atribuir a la APK nueva la corrección completa de respuestas invertidas.
+fabricar un total cero. El 26/9 se desplegó expresamente solo `ingest` desde `beta` en
+`be59e27c` ([Action 36196554737](https://github.com/JuanjoAvila/Aely/actions/runs/36196554737));
+no se ejecutaron migraciones nuevas. Aún falta verificar por separado la revisión activa que
+responde y probar el circuito completo con la APK nueva en el móvil.
 
 ## Paso 6 — Repuntar MacroDroid (cuando esté probado) 👤
 
