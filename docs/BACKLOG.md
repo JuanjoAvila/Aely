@@ -24,13 +24,15 @@ Las rondas aprobadas de apariencia (4.25.7), Ajustes/candados (.8), beneficio de
 CaixaBank (.17), actualizar Inversiones (.18), ficha y gesto de Inversiones (.19) e Inicio
 honesto (.20) tienen commits de promoción en la primera línea de `main`. El recibo que cambia
 de día sin doble descuento quedó aprobado como beta 4.26.46.5 y publicado en 4.26.46.
+El alta de Recibos con Atrás nativo quedó aprobada como beta 4.26.47.1 y publicada en 4.26.47
+mediante el merge completo `54b21925`.
 
 Los commits `97289fe1`, `346323ba`, `3bcc5f57`, `398342ca`, `3b11ccb3`, `e23dd1fd`,
 `6a894d2e` y `d59c1ab0` retiraron **checklists del panel beta** después de publicar. Su diff
 no toca `src/modules/`, `src/shell.html`, `supabase/` ni `android/`: no retiró las funciones.
-En el tip comprobado `origin/beta` (`a187686d`) y `origin/main` (`3edde295`) tampoco hay
+En el corte anterior, `origin/beta` (`a187686d`) y `origin/main` (`3edde295`) tampoco tenían
 diferencias en `src/`, `supabase/`, `android/` ni `public/`. Por eso no queda una entrega de
-código exclusiva de beta que haya que rescatar o promocionar otra vez.
+código de aquellas rondas que haya que rescatar o promocionar otra vez.
 
 Evidencia de publicación: `test.yml` [36162229852](https://github.com/JuanjoAvila/Aely/actions/runs/36162229852)
 ejecutó build, unitarios, Deno y E2E con éxito; `deploy.yml`
@@ -40,11 +42,26 @@ confirmó bundle y APK 4.26.32/48 disponibles. Esta evidencia acredita publicaci
 código, no una nueva prueba manual de cada pantalla en producción. `npm run listo` no pudo
 leer los veredictos de `app_events` en este entorno: falta `SUPABASE_SERVICE_ROLE_KEY`.
 
+Para 4.26.47, beta [36170019559](https://github.com/JuanjoAvila/Aely/actions/runs/36170019559)
+pasó 418 E2E y 7 Deno; la promoción
+[36172956860](https://github.com/JuanjoAvila/Aely/actions/runs/36172956860) pasó su suite y fusionó
+`60fb486f` a `main` como `54b21925`. El árbol del merge es idéntico al de beta y
+`npm run test:syntax` pasó sobre el merge real. El deploy
+[36174101720](https://github.com/JuanjoAvila/Aely/actions/runs/36174101720) terminó verde; Pages
+sirve `version.json` 4.26.47, bundle HTTP 200 y SW `4.26.47-2026-09-25-54b2192`.
+`npm run salud` confirmó además la APK vigente 4.26.32/48. No se declara una prueba manual
+adicional en producción: la aprobación móvil fue de la misma lógica en beta.
+
+El Action de promoción acabó rojo únicamente en su espera de Pages: consultó 40 veces durante
+diez minutos y agotó el plazo a las 18:42:43 UTC; el deploy, que repite toda la suite, terminó
+después con éxito. Queda como arreglo separado del circuito de publicación: esperar al Action
+de deploy correspondiente o ampliar la espera sin lanzar un segundo despliegue.
+
 ### Estado de las entradas antiguas
 
-**Objetivo único en curso: alta de Recibos con Atrás nativo, v4.26.47.** El asistente rearma
+**Objetivo único cerrado: alta de Recibos con Atrás nativo, v4.26.47.** El asistente rearma
 la ola en cada paso de recibo periódico, cargo puntual e ingreso; conserva lo escrito y no guarda
-al salir. La beta necesita el veredicto móvil del dueño antes de cualquier promoción. No incluye
+al salir. El dueño aprobó expresamente beta 4.26.47.1 y el merge completo fue `54b21925`. No incluye
 el diseño del aviso «Guardado» ni cambios de importes, bancos o histórico.
 
 | Estado actual | Entradas | Qué falta para cerrarlas |

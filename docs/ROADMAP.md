@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-25 · **v4.26.47** en preparación para beta — el alta de Recibos acompaña el gesto Atrás en cada paso de recibo periódico, cargo único e ingreso, y conserva lo escrito. Producción continúa en 4.26.46 hasta aprobación móvil expresa. La APK 48 sigue vigente; comprobar disponibilidad real con `npm run salud`.
+> Estado a 2026-09-25 · **v4.26.47** en producción tras aprobarse la beta 4.26.47.1 — el alta de Recibos acompaña el gesto Atrás en cada paso de recibo periódico, cargo único e ingreso, y conserva lo escrito. La APK 48 sigue vigente; comprobar disponibilidad real con `npm run salud`.
 > Anterior: **v4.26.46** — cambiar el día de un recibo conserva una sola ocurrencia y la fecha bancaria real.
 > Anterior: **v4.26.44** — la ficha de un recibo confirma el guardado antes de cerrarse y un doble toque solo puede persistir una vez.
 > Anterior: **v4.26.43** — el doble aviso Wallet/TR conserva una sola fila y una sola confirmación, sin convertirlo en una revisión manual.
@@ -231,7 +231,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.47** (en preparación para beta; gesto Atrás en el alta de Recibos) |
+| Web / OTA (`VERSION`) | **4.26.47** (producción; gesto Atrás en el alta de Recibos) |
 | APK (`versionName` / `versionCode`) | Repo/publicada: **4.26.32 / 48**. El asset firmado existe y la beta puede ofrecer el gesto Atrás nativo. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **48** / 4.26.32 |
