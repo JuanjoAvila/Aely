@@ -54,8 +54,8 @@ adicional en producción: la aprobación móvil fue de la misma lógica en beta.
 
 El Action de promoción acabó rojo únicamente en su espera de Pages: consultó 40 veces durante
 diez minutos y agotó el plazo a las 18:42:43 UTC; el deploy, que repite toda la suite, terminó
-después con éxito. Queda como arreglo separado del circuito de publicación: esperar al Action
-de deploy correspondiente o ampliar la espera sin lanzar un segundo despliegue.
+después con éxito. El arreglo aislado del circuito sigue el run de deploy del SHA promocionado,
+distingue un fallo real de una suite lenta y después coteja manifiesto y sello de Pages.
 
 ### Estado de las entradas antiguas
 

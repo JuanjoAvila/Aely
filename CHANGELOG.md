@@ -1,4 +1,12 @@
 ## [4.26.47] - 2026-09-25
+### La promoción espera al deploy correspondiente
+
+El promote de `54b21925` marcó rojo tras diez minutos mientras `deploy.yml` aún ejecutaba su
+suite; Pages publicó poco después. El workflow sigue ahora el run `workflow_dispatch` nuevo del
+SHA fusionado durante un plazo acotado, falla si ese run falla y solo cierra en verde cuando
+Pages sirve el manifiesto y el Service Worker sellado con ese commit. Un test reproduce la suite
+lenta y la distinción entre éxito tardío y fallo real. Es tooling; no cambia la app ni su versión.
+
 ### El alta de Recibos acompaña el Atrás nativo en todos sus pasos
 
 `BillsAddWizard` ya conservaba el formulario al volver con History API, pero el gesto predictivo

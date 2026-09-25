@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
 > Estado a 2026-09-25 · **v4.26.47** en producción tras aprobarse la beta 4.26.47.1 — el alta de Recibos acompaña el gesto Atrás en cada paso de recibo periódico, cargo único e ingreso, y conserva lo escrito. La APK 48 sigue vigente; comprobar disponibilidad real con `npm run salud`.
+> Publicación: el promote sigue el deploy de su commit y coteja el sello de Pages antes de cerrar; la suite lenta de 4.26.47 ya no se confunde con un fallo.
 > Anterior: **v4.26.46** — cambiar el día de un recibo conserva una sola ocurrencia y la fecha bancaria real.
 > Anterior: **v4.26.44** — la ficha de un recibo confirma el guardado antes de cerrarse y un doble toque solo puede persistir una vez.
 > Anterior: **v4.26.43** — el doble aviso Wallet/TR conserva una sola fila y una sola confirmación, sin convertirlo en una revisión manual.

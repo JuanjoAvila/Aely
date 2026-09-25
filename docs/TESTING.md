@@ -229,6 +229,8 @@ Tras v3.108.0 la lógica vive en **`src/modules/*.js`**. No edites `public/index
 
 - `.github/workflows/test.yml` — push/PR a **main**: suite **entera**
 - `.github/workflows/promote-beta.yml` — al subir a producción: suite **entera**
+- `tests/wait-promote-deploy.test.mjs` — reproduce un deploy cuya suite supera diez minutos,
+  un fallo real y la comprobación del sello de Pages; se ejecuta desde `scripts/run-tests.mjs`.
 - `.github/workflows/beta.yml` — push a **beta**: recorte por carpetas (`scripts/relevant-tests.mjs`).
   Docs → sin Chromium. Ingest → Deno, sin e2e. Gastos → sus specs + transversales (persistencia,
   swipe, frames). Núcleo (motor, i18n, shell, runner) o un workflow → todo.

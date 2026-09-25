@@ -9,7 +9,11 @@ apk.json a releases fantasma, promote encolado…). Detalle técnico en `AGENTS.
 2. **Él prueba en el móvil** y aprueba en Ajustes → Revisar esta beta.
 3. **Promote:** `gh workflow run promote-beta.yml -f confirmar=SUBIR`  
    Si Actions está caído/encolado → merge manual `beta`→`main` y dilo en el parte.  
-   Tras el promote: `npm run test:syntax` y revisa el diff `main` vs `beta` (`-X theirs` traga cosas).
+   El promote espera al run de `deploy.yml` del SHA recién fusionado. Si su suite tarda,
+   continúa esperando; si el run termina rojo, falla de inmediato. Tras el verde comprueba
+   `version.json` y el sello del Service Worker de ese SHA en Pages. No relances el deploy por
+   un promote aún en curso. Tras el promote: `npm run test:syntax` y revisa el diff `main` vs
+   `beta` (`-X theirs` traga cosas).
 4. **Espera Supabase verde** (migraciones + Edge Functions) antes de cantar Wallet/ingest.
 5. **APK nativa (si tocó Java/Kotlin/iconos o quieres APK alineada):**
    ```bash

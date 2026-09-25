@@ -247,30 +247,11 @@ jobs:
       # `main` con la versión nueva y producción sirviendo la vieja. Pasó la primera vez que esto
       # se usó de verdad (2026-07-26, promoción de la 4.11.0): los tres runs en verde y Pages
       # todavía en la 4.10.2. Un `workflow_dispatch` por API sí arranca, aun con el mismo token.
-      - name: Arrancar el deploy de Pages (el push no lo hace)
+      - name: Arrancar y esperar el deploy de Pages (el push no lo hace)
+        timeout-minutes: 55
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run deploy.yml --ref main
-
-      # Y no nos fiamos de que haya arrancado: se comprueba que producción sirve de verdad la
-      # versión nueva. Una promoción que no llega a Pages no es una promoción.
-      - name: Comprobar que producción ya sirve la versión nueva
-        run: |
-          # La versión que tiene que servir Pages es la de LO QUE SE ACABA DE SUBIR, no la de
-          # `beta`: promocionando por tandas, `beta` puede ir por delante de lo aprobado.
-          VERSION=$(git show main:VERSION | tr -d '[:space:]')
-          echo "Esperando a que Pages sirva $VERSION…"
-          LIVE=""
-          for i in $(seq 1 40); do
-            LIVE=$(curl -sL "https://juanjoavila.github.io/Aely/version.json" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p')
-            if [ "$LIVE" = "$VERSION" ]; then
-              echo "✅ Producción sirve $LIVE" >> $GITHUB_STEP_SUMMARY
-              exit 0
-            fi
-            sleep 15
-          done
-          echo "::error::Pages sigue sirviendo «$LIVE» y esperábamos «$VERSION». Mira el run de «Deploy a GitHub Pages»."
-          exit 1
+        run: node scripts/wait-promote-deploy.mjs
 
       - name: Resumen
         run: |

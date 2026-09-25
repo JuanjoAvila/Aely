@@ -48,6 +48,8 @@ const steps = [
   ["suministros-legacy", ["node", "tests/suministros-legacy.test.mjs"]],
   ["docs-frescura", ["node", "tests/docs-frescura.test.mjs"]],
   ["relevant-tests", ["node", "tests/relevant-tests.test.mjs"]],
+  // La suite de Pages puede durar más que el antiguo tope de diez minutos del promote.
+  ["wait-promote-deploy", ["node", "tests/wait-promote-deploy.test.mjs"]],
   // El espejo de la memoria en docs/memoria/ tiene que ir al día: es lo único que ve una sesión
   // que no corra en este PC (móvil, Cursor, otra IA). En una máquina sin memoria local —el CI—
   // el script sale en verde sin hacer nada, así que esto solo pincha aquí, que es donde se arregla.
