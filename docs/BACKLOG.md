@@ -1,13 +1,58 @@
 # Backlog operativo — Aely
 
-Actualizado el **16 de septiembre de 2026** a petición del dueño: dejar trabajo concreto para
-Claude y Cursor durante la tarde/noche. **El backlog completo NO está terminado.** El panel de
+Inventario original actualizado el **16 de septiembre de 2026** a petición del dueño: dejar trabajo
+concreto para Claude y Cursor durante la tarde/noche. La reconciliación vigente está debajo.
+**El backlog completo NO está terminado.** El panel de
 beta solo enumera entregas para probar; no enumera todo lo que falta construir o verificar.
 
 Este es el índice operativo. Los briefs conservan el detalle y los espejos de `docs/memoria/`
 conservan historia; sus antiguos «todo cerrado» o «ninguna empezada» no son el estado actual.
 Actualizar esta tabla al entregar: commit, pruebas, versión publicada y siguiente paso.
 Una tarea implementada, una verificada por tests y una aprobada en móvil son estados distintos.
+
+## Reconciliación vigente · 25 de septiembre de 2026
+
+**La foto detallada que empieza en «Base y límites de la revisión» es del 9/9 y conserva su
+valor histórico; no es la cola de publicación de hoy.** El dueño confirmó el 25/9 que los
+cargos de Sabadell ya entran. No se abre un arreglo de «cargos ausentes» sin un caso nuevo.
+
+### Aprobado en beta y ya publicado
+
+Las rondas aprobadas de apariencia (4.25.7), Ajustes/candados (.8), beneficio de Inversiones
+(.9), Ahorro (.10), editor del presupuesto (.11), desbloqueo de hojas (.12), mínimo de Plan
+(.13), Asistente (.14), Bizum como forma de pago (.15), avisos sin duplicar (.16), histórico
+CaixaBank (.17), actualizar Inversiones (.18), ficha y gesto de Inversiones (.19) e Inicio
+honesto (.20) tienen commits de promoción en la primera línea de `main`. El recibo que cambia
+de día sin doble descuento quedó aprobado como beta 4.26.46.5 y publicado en 4.26.46.
+
+Los commits `97289fe1`, `346323ba`, `3bcc5f57`, `398342ca`, `3b11ccb3`, `e23dd1fd`,
+`6a894d2e` y `d59c1ab0` retiraron **checklists del panel beta** después de publicar. Su diff
+no toca `src/modules/`, `src/shell.html`, `supabase/` ni `android/`: no retiró las funciones.
+En el tip comprobado `origin/beta` (`a187686d`) y `origin/main` (`3edde295`) tampoco hay
+diferencias en `src/`, `supabase/`, `android/` ni `public/`. Por eso no queda una entrega de
+código exclusiva de beta que haya que rescatar o promocionar otra vez.
+
+Evidencia de publicación: `test.yml` [36162229852](https://github.com/JuanjoAvila/Aely/actions/runs/36162229852)
+ejecutó build, unitarios, Deno y E2E con éxito; `deploy.yml`
+[36162229834](https://github.com/JuanjoAvila/Aely/actions/runs/36162229834) terminó con éxito.
+Pages devuelve `version.json` 4.26.46 y SW `4.26.46-2026-09-25-3edde29`; `npm run salud`
+confirmó bundle y APK 4.26.32/48 disponibles. Esta evidencia acredita publicación del
+código, no una nueva prueba manual de cada pantalla en producción. `npm run listo` no pudo
+leer los veredictos de `app_events` en este entorno: falta `SUPABASE_SERVICE_ROLE_KEY`.
+
+### Estado de las entradas antiguas
+
+| Estado actual | Entradas | Qué falta para cerrarlas |
+|---|---|---|
+| **Cerradas; no reconstruir** | UX-04 (mensaje de bancos y acceso superior), UX-05 (un filtro de histórico), UX-07 (temas Otoño, Primavera y Cyberpunk). También están publicados los bloques aprobados enumerados arriba. | Reabrir solo con un fallo actual reproducible. |
+| **Código publicado, alcance mayor aún sin acreditar entero** | FIN-01 (cierre por cuenta), FIN-02 (pagos mensuales del histórico), BRAND-01 (identidad web/nativa), UX-01/02/06 (fluidez y rediseño), PRO-02/03 (proyección y avisos), PRO-09 (ayuda local), SEC-01/03 (endpoints y privacidad). | Confrontar el criterio completo de cada fila con prueba móvil, servidor o dispositivo; no confundir una versión publicada con cierre total. La ayuda remota de PRO-09 sigue apagada. |
+| **Abiertas o parciales** | FIN-03/04/05/06/07/08; OPS-01/02/03/04/05/06; SEC-02; UX-03; PRO-01/04/05/06/07/08; TEC-01/02; DEC-01/02. | Conservar el alcance y límites de las filas de abajo; elegir una sola tarea concreta cada vez. |
+
+OPS-05 ya no tiene las cinco PR que enumera su foto del 9/9: al consultar GitHub el 25/9
+solo permanecían abiertas [#43](https://github.com/JuanjoAvila/Aely/pull/43) (FIN-04) y
+[#44](https://github.com/JuanjoAvila/Aely/pull/44) (widget). Recibos tiene un WIP aparte
+para la ola nativa del asistente de alta; no está incluido en el cierre ya publicado de
+sus capas interiores (4.26.41). No mezclarlo con la presentación «Guardado».
 
 ## Base y límites de la revisión
 
