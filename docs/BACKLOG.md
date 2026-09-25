@@ -42,6 +42,11 @@ leer los veredictos de `app_events` en este entorno: falta `SUPABASE_SERVICE_ROL
 
 ### Estado de las entradas antiguas
 
+**Objetivo único en curso: alta de Recibos con Atrás nativo, v4.26.47.** El asistente rearma
+la ola en cada paso de recibo periódico, cargo puntual e ingreso; conserva lo escrito y no guarda
+al salir. La beta necesita el veredicto móvil del dueño antes de cualquier promoción. No incluye
+el diseño del aviso «Guardado» ni cambios de importes, bancos o histórico.
+
 | Estado actual | Entradas | Qué falta para cerrarlas |
 |---|---|---|
 | **Cerradas; no reconstruir** | UX-04 (mensaje de bancos y acceso superior), UX-05 (un filtro de histórico), UX-07 (temas Otoño, Primavera y Cyberpunk). También están publicados los bloques aprobados enumerados arriba. | Reabrir solo con un fallo actual reproducible. |
@@ -50,9 +55,9 @@ leer los veredictos de `app_events` en este entorno: falta `SUPABASE_SERVICE_ROL
 
 OPS-05 ya no tiene las cinco PR que enumera su foto del 9/9: al consultar GitHub el 25/9
 solo permanecían abiertas [#43](https://github.com/JuanjoAvila/Aely/pull/43) (FIN-04) y
-[#44](https://github.com/JuanjoAvila/Aely/pull/44) (widget). Recibos tiene un WIP aparte
-para la ola nativa del asistente de alta; no está incluido en el cierre ya publicado de
-sus capas interiores (4.26.41). No mezclarlo con la presentación «Guardado».
+[#44](https://github.com/JuanjoAvila/Aely/pull/44) (widget). El WIP anterior de Recibos se
+reimplementó desde la base actual en `codex/recibos-ola-25sep`; sus capas interiores ya estaban
+publicadas en 4.26.41. La presentación «Guardado» queda fuera de este objetivo.
 
 ## Base y límites de la revisión
 
