@@ -2193,8 +2193,11 @@ function patchFixedById(set, id, p){
         it.paidDay=pd;
         delete it.wait;
       } else {
+        // Un movimiento antiguo del mes NO demuestra que el banco ya haya informado de hoy. Solo
+        // una sync reciente y del mismo día local puede negar el cobro (Pepegas, 01:06 del 25/9).
+        const bs=Number(n.lastBankSync)||0,age=d-bs;
         if(("amount" in p)||("account" in p)){ delete it.paidYm; delete it.paidDay; }
-        if(it.paidYm!==ym && dayIn(it,m)<=t && rec.covered[id]) it.wait=ym;
+        if(it.paidYm!==ym && dayIn(it,m)<=t && rec.covered[id] && bs>0&&age>=0&&age<=1800000&&dayKey(new Date(bs))===dayKey(d)) it.wait=ym;
         else delete it.wait;
       }
     }

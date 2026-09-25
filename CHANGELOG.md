@@ -35,7 +35,7 @@ Tras aprobar inicialmente `4.26.46.2`, la comprobación inversa antes de producc
 caso: el día 25, un recibo previsto para el 24 pero aún ausente del banco se marcaba pagado solo
 porque `isPaidIn` usaba `día <= hoy`; editarlo al 25 perpetuaba ese falso descuento. La edición
 guarda ahora en `wait` el año-mes cuando no existe coincidencia bancaria, el día corregido ya ha
-llegado **y el feed sincronizado de esa cuenta cubre esa fecha**. Mientras esa marca corresponda
+llegado **y el feed recién sincronizado de esa cuenta cubre esa fecha**. Mientras esa marca corresponda
 al mes, el calendario no puede confirmar el pago; una coincidencia real de `reconcileBank` sí
 prevalece inmediatamente. Una edición posterior con el cargo ya presente convierte esa espera en
 `paidYm` + `paidDay`, sin subir ni mutar `bankTx`. Sin feed suficiente se conserva la regla
@@ -58,6 +58,28 @@ La revisión externa señaló que el memo de Plan no observaba `bankTx` ni `acco
 sincronización podía conservar la clasificación anterior hasta otro cambio. Ambas referencias
 forman ahora parte de sus dependencias. Una fecha bancaria que no se pueda interpretar deja
 `paidAt` vacío en vez de fabricar el día −1. El bundle sigue dentro del mismo presupuesto.
+
+El rechazo móvil de `4.26.46.4` reprodujo Pepegas a la 01:06: el cargo real había entrado el 25,
+pero el `bankTx` local todavía solo contenía movimientos antiguos. `covered` demostraba que el
+extracto empezaba antes del día previsto, no que estuviera actualizado después del cobro, y
+`patchFixedById` lo interpretaba como ausencia: marcaba `wait`, devolvía el recibo a pendiente y el
+neto visible de Sabadell subía por un dinero que sí había salido.
+
+La ausencia bancaria exige ahora además que `lastBankSync` sea del mismo día **local** y tenga
+menos de 30 minutos. Una coincidencia real sigue ganando aunque el feed sea antiguo; un feed
+obsoleto ya no puede negar un cobro de hoy. No se añade ninguna sincronización automática ni se
+reescribe `accounts[].value`: con datos viejos se conserva la clasificación de calendario y solo
+cambia la fecha prevista. El caso inverso continúa disponible tras sincronizar el banco justo
+antes de editar: si el cargo sigue ausente, queda pendiente hasta que llegue el movimiento.
+La frescura reduce falsos negativos, pero no convierte la API bancaria en confirmación instantánea:
+una domiciliación recién cargada puede tardar en aparecer o llegar en un extracto truncado. Este
+cambio no interpreta esa ausencia como una certeza fuera de la ventana reciente; propagar al
+estado la marca `truncated` por banco queda inventariado como refuerzo separado.
+
+El unitario fija el reloj a 25/09 01:06 y reproduce Pepegas 12,50 € cambiado 20 → 25 con la última
+sync a las 23:50: una ocurrencia pagada, cero pendientes, neto −12,50 €, saldos de Sabadell y
+Revolut invariantes, cuentas e histórico idénticos y ningún duplicado. El escenario sin cobro usa
+una sync de un minuto y continúa pendiente. El E2E ejecuta ambos caminos desde la ficha real.
 
 ## [4.26.45] - 2026-09-24
 ### Las cuotas conservan su enlace sin fingir que son una categoría de consumo

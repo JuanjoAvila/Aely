@@ -110,8 +110,9 @@ console.log("fixed-day-reconcile");
 }
 
 {
-  reloj = new Date("2026-09-25T12:00:00+02:00");
+  reloj = new Date(2026,8,25,12,0);
   const sinCobro = estado(24);
+  sinCobro.lastBankSync = reloj.getTime()-60*1000;
   sinCobro.bankTx = [
     { id: "tx-seguro-sep", ent: "sabadell", date: "2026-09-10", amount: 45, merchant: "SEGURO COCHE" },
   ];
@@ -158,6 +159,51 @@ console.log("fixed-day-reconcile");
   assert.equal(confirmado.fixed[0].wait, undefined, "la confirmación bancaria retira la espera");
   assert.equal(confirmado.fixed[0].paidYm, 2026 * 12 + 9);
   assert.equal(confirmado.fixed[0].paidDay, 25);
+}
+
+{
+  reloj = new Date(2026,8,25,12,0);
+  const feedViejo = estado(24);
+  feedViejo.lastBankSync = new Date(2026,8,25,11,0).getTime();
+  feedViejo.bankTx = [
+    { id: "tx-seguro-sep", ent: "sabadell", date: "2026-09-10", amount: 45, merchant: "SEGURO COCHE" },
+  ];
+  let despues;
+  c.patchFixedById((updater) => { despues = updater(feedViejo); }, "luz", { day: 25 });
+  assert.equal(despues.fixed[0].wait,undefined,
+    "un feed del mismo día pero con más de 30 minutos tampoco demuestra que el cargo falte");
+  assert.equal(c.planChargesMonth(despues,9,2026,25).paidBills.length,1);
+}
+
+{
+  reloj = new Date(2026,8,25,1,6);
+  const pepegas = estado(20);
+  pepegas.fixed[0] = { id: "luz", name: "Pepegas", amount: 12.5, freq: "mes", day: 20, account: "sabadell" };
+  pepegas.lastBankSync = new Date(2026,8,24,23,50).getTime();
+  pepegas.bankTx = [
+    { id: "tx-seguro-sep", ent: "sabadell", date: "2026-09-10", amount: 45, merchant: "SEGURO COCHE" },
+  ];
+  const saldoAntes=saldoMostrado(pepegas,"sabadell");
+  const gastosAntes=JSON.stringify(pepegas.expenses),cuentasAntes=JSON.stringify(pepegas.accounts);
+  let despues;
+  c.patchFixedById((updater) => { despues = updater(pepegas); }, "luz", { day: 25 });
+
+  assert.equal(despues.fixed[0].day,25,"la previsión cambia del 20 al 25");
+  assert.equal(despues.fixed[0].wait,undefined,
+    "a la una de la madrugada el extracto de ayer no puede negar un cobro de hoy");
+  const plan=c.planChargesMonth(despues,9,2026,25);
+  assert.equal(plan.pendingBills.filter((x)=>x.id==="fixed_luz").length,0,
+    "Pepegas no reaparece pendiente por reutilizar movimientos antiguos");
+  assert.equal(plan.paidBills.filter((x)=>x.id==="fixed_luz").length,1,
+    "el recibo del día 25 cuenta una sola vez como ocurrido");
+  assert.equal(c.monthNetForAccount(despues,"sabadell",2026,9,25),-12.5);
+  assert.equal(saldoMostrado(despues,"sabadell"),saldoAntes,
+    "cambiar el día con un feed nocturno obsoleto no suma dinero a Sabadell");
+  assert.equal(saldoMostrado(despues,"revolut"),saldoMostrado(pepegas,"revolut"),
+    "el saldo de otro banco tampoco se mueve");
+  assert.equal(JSON.stringify(despues.expenses),gastosAntes,"el histórico permanece intacto");
+  assert.equal(JSON.stringify(despues.accounts),cuentasAntes,"no se reescribe ninguna cuenta");
+  assert.equal(despues.fixed.length,1,"no se duplica el recibo");
 }
 
 {

@@ -18,6 +18,15 @@ con menos margen y la respuesta local no pueden discrepar. Una deuda sin día si
 pendiente, pero nunca se convierte en una fecha visible inventada. Un saldo ausente conserva el
 estado desconocido; no se normaliza a cero.
 
+Al editar el día de un fijo, `reconcileBank` separa la fecha prevista de la ocurrencia real mediante
+`paidYm` + `paidDay`. La ausencia de pareja solo crea `wait` si el feed de esa cuenta cubre el día
+y `lastBankSync` pertenece al mismo día local y tiene menos de 30 minutos. El límite evita que un
+movimiento antiguo del mes niegue un cobro de madrugada que aún no estaba en el extracto guardado.
+No dispara una sincronización automática: con feed viejo manda el calendario; tras sincronizar,
+una coincidencia exacta gana siempre y una ausencia reciente puede mantener el recibo pendiente.
+La ausencia sigue siendo una inferencia conservadora, no una confirmación del banco: una
+domiciliación puede tardar en contabilizarse aunque la lectura sea reciente.
+
 `BillsManagePush`, también en `14-v4-screens.js`, es la única pantalla de gestión de recibos. Se
 abre desde Plan o desde Ajustes → Dinero. En un arranque frío, Ajustes deja la intención en
 `window.__mcOpenBillsPending` y Plan la consume cuando su montaje diferido existe; no se fuerza

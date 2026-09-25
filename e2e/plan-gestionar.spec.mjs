@@ -418,7 +418,7 @@ test("cambiar el día de un recibo cobrado conserva su fecha real", async ({ pag
 });
 
 test("cambiar al día de hoy un recibo aún no cobrado lo mantiene pendiente", async ({ page }) => {
-  await page.clock.install({ time: new Date("2026-09-25T12:00:00+02:00") });
+  await page.clock.install({ time: new Date(2026,8,25,12,0) });
   const gastos = [
     { id: "hist-ago", ent: "sabadell", date: "2026-08-20T12:00:00.000Z", amount: 120, merchant: "Iberdrola agosto" },
     { id: "compra-sep", ent: "revolut", date: "2026-09-10T12:00:00.000Z", amount: 30, merchant: "Compra" },
@@ -430,6 +430,7 @@ test("cambiar al día de hoy un recibo aún no cobrado lo mantiene pendiente", a
     ],
     fixed: [{ id: "luz", name: "Iberdrola luz", amount: 120, freq: "mes", day: 24, account: "sabadell" }],
     debts: [], flows: [], oneoffs: [], expenses: gastos,
+    lastBankSync: new Date(2026,8,25,11,59).getTime(),
     bankTx: [{ id: "tx-seguro-sep", ent: "sabadell", date: "2026-09-10", amount: 45, merchant: "SEGURO COCHE" }],
     settings: { expenseBanks: ["revolut"] },
   });
@@ -471,6 +472,62 @@ test("cambiar al día de hoy un recibo aún no cobrado lo mantiene pendiente", a
   await expect(luz).toHaveCount(1);
   await expect(luz).not.toHaveClass(/v4-paid/);
   await expect(luz.locator(".d")).toHaveText("25");
+});
+
+test("cambiar Pepegas del 20 al 25 a la una no reutiliza el extracto de ayer", async ({ page }) => {
+  await page.clock.install({ time: new Date(2026,8,25,1,6) });
+  const gastos = [
+    { id: "hist-ago", ent: "sabadell", date: "2026-08-20T12:00:00.000Z", amount: 12.5, merchant: "Pepegas agosto" },
+    { id: "compra-sep", ent: "revolut", date: "2026-09-10T12:00:00.000Z", amount: 30, merchant: "Compra" },
+  ];
+  await appLista(page, {
+    accounts: [
+      { id: "sab", ent: "sabadell", name: "Recibos", value: 1500, role: "fijos" },
+      { id: "rev", ent: "revolut", name: "Diario", value: 700, role: "fijos" },
+    ],
+    fixed: [{ id: "pepegas", name: "Pepegas", amount: 12.5, freq: "mes", day: 20, account: "sabadell" }],
+    debts: [], flows: [], oneoffs: [], expenses: gastos,
+    lastBankSync: new Date(2026,8,24,23,50).getTime(),
+    bankTx: [{ id: "tx-seguro-sep", ent: "sabadell", date: "2026-09-10", amount: 45, merchant: "SEGURO COCHE" }],
+    settings: { expenseBanks: ["revolut"] },
+  });
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  const recibos=page.locator('.v4-screen > [data-seg="recibos"]');
+  const antes=await page.evaluate(() => {
+    const s=JSON.parse(localStorage.getItem("micartera_v3")||"{}");
+    const ins=insumosSaldoGasto(s);
+    const saldo=function(ent){ const a=s.accounts.find(function(x){ return x.ent===ent; }); return saldoCuentaMostrada(a,{injTR:ins.injTR,spentByBank:ins.spentByBank,paidNetByBank:ins.paidNetByBank,roundup:ins.roundup,monthlyInvest:ins.monthlyInvest}); };
+    return {sab:saldo("sabadell"),rev:saldo("revolut"),expenses:JSON.stringify(s.expenses),accounts:JSON.stringify(s.accounts)};
+  });
+
+  await abreTusRecibos(page);
+  await grupo(page, "Servicios y suministros").click();
+  await fila(page, "Pepegas").click();
+  await ficha(page).locator('input[inputmode="numeric"]').fill("25");
+  await expect.poll(async () => {
+    const fijo=((await estado(page)).fixed||[]).find((x)=>x.id==="pepegas")||{};
+    return [fijo.day,fijo.wait||null];
+  }).toEqual([25,null]);
+  await ficha(page).locator(".settings-push-h .back").click();
+  await expect(ficha(page)).toHaveCount(0);
+  await hub(page).locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
+  await expect(titulo(page)).toHaveText("Tus recibos");
+  await hub(page).locator(':scope > [data-screen="bills-home"] > .settings-push-h .back').click();
+
+  const despues=await page.evaluate(() => {
+    const s=JSON.parse(localStorage.getItem("micartera_v3")||"{}");
+    const ins=insumosSaldoGasto(s);
+    const saldo=function(ent){ const a=s.accounts.find(function(x){ return x.ent===ent; }); return saldoCuentaMostrada(a,{injTR:ins.injTR,spentByBank:ins.spentByBank,paidNetByBank:ins.paidNetByBank,roundup:ins.roundup,monthlyInvest:ins.monthlyInvest}); };
+    const plan=planChargesMonth(s,9,2026,25);
+    return {sab:saldo("sabadell"),rev:saldo("revolut"),expenses:JSON.stringify(s.expenses),accounts:JSON.stringify(s.accounts),
+      fixed:s.fixed.filter(function(x){ return x.id==="pepegas"; }).length,pending:plan.pendingBills.filter(function(x){ return x.id==="fixed_pepegas"; }).length,
+      paid:plan.paidBills.filter(function(x){ return x.id==="fixed_pepegas"; }).length,net:monthNetForAccount(s,"sabadell",2026,9,25)};
+  });
+  expect(despues).toEqual(Object.assign({},antes,{fixed:1,pending:0,paid:1,net:-12.5}));
+  const pepegas=recibos.locator(".v4-charge").filter({hasText:"Pepegas"});
+  await expect(pepegas).toHaveCount(1);
+  await expect(pepegas).toHaveClass(/v4-paid/);
+  await expect(pepegas.locator(".d")).toHaveText("25");
 });
 
 test("Listo confirma a la vista, guarda una sola vez y después cierra", async ({ page }) => {

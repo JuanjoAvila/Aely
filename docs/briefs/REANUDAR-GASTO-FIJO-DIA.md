@@ -4,9 +4,9 @@ Fecha: 2026-09-24
 
 Rama de trabajo: `codex/gasto-fijo-dia-24sep`
 
-Betas previas: `4.26.46.1` rechazada; `4.26.46.2` aprobada inicialmente y reabierta por un caso inverso comunicado antes de producción; `4.26.46.3` bloqueada por revisión externa antes de la prueba móvil
+Betas previas: `4.26.46.1` rechazada; `4.26.46.2` aprobada inicialmente y reabierta por un caso inverso comunicado antes de producción; `4.26.46.3` bloqueada por revisión externa; `4.26.46.4` rechazada por el caso Pepegas de madrugada
 
-Siguiente beta objetivo: `4.26.46.4`
+Siguiente beta objetivo: `4.26.46.5`
 
 ## Alcance único
 
@@ -39,7 +39,8 @@ demostró que `isPaidIn` lo clasificaba pagado solo por `día <= hoy`, sin `bank
 reabre y sustituye el veredicto anterior: no se promociona `.2`.
 
 La edición guarda en `wait` el año-mes únicamente cuando el día corregido ya ha llegado, la
-conciliación no encuentra cargo y el feed sincronizado de esa cuenta cubre esa fecha. `isPaidIn`
+conciliación no encuentra cargo, el feed sincronizado de esa cuenta cubre esa fecha y
+`lastBankSync` es del mismo día local y tiene menos de 30 minutos. `isPaidIn`
 no puede entonces inventar el pago por calendario; un movimiento real sí prevalece. Una edición
 posterior con el cargo ya presente convierte la espera en `paidYm` + `paidDay`; `bankTx` sigue
 siendo local y no se muta. Sin cobertura bancaria suficiente no se inventa una ausencia y el modo
@@ -49,6 +50,13 @@ Claude bloqueó `4.26.46.3` porque reanclar `accounts[].value` suponía conocer 
 fijado el saldo base, dato que no existe. La solución final no modifica ninguna cuenta. Retirar el
 falso pago cambia el neto de Sabadell de −120 € a 0 y hace visibles esos 120 € porque aún siguen
 en el banco; el saldo almacenado, Revolut y cualquier otra cuenta permanecen intactos.
+
+El dueño rechazó `4.26.46.4` con Pepegas: a la 01:06 del 25 cambió el día ficticio 20 por el día
+real 25 después de que el banco ya lo hubiera cobrado de madrugada. El feed local aún era el de
+la noche anterior y solo contenía movimientos antiguos; `covered` probaba el inicio de la ventana,
+pero no su actualidad. El motor lo tomó como ausencia, lo puso pendiente y elevó el saldo visible
+de Sabadell. Ahora un feed viejo nunca puede negar un cobro de hoy. Una coincidencia exacta gana
+siempre; para el caso no cobrado hay que sincronizar justo antes de editar.
 
 ## Evidencia exigida
 
@@ -67,24 +75,37 @@ en el banco; el saldo almacenado, Revolut y cualquier otra cuenta permanecen int
   podría resolverse.
 - El E2E edita 24 → 25 desde Plan con cobertura bancaria pero sin cargo y exige la espera mensual,
   una fila pendiente, cero pagadas, el saldo honesto y ningún cambio en cuentas o histórico.
+- Caso Pepegas exacto: reloj 25/09 01:06, previsión antigua 20, edición a 25, última sync 24/09
+  23:50 y feed con movimientos anteriores. Exige una fila pagada, cero pendientes, neto −12,50 €,
+  ambos saldos invariantes, cuentas e histórico idénticos y ningún duplicado. El E2E repite la
+  edición desde la ficha y comprueba el DOM.
 - El bundle se reconstruye desde `src/`; el presupuesto minificado no se amplía.
 
 ## Límite conocido
 
 La corrección prueba el cambio desde la ficha vigente de Plan y la confirmación de Open Banking.
-No inventa confirmaciones ni ausencias cuando falta cobertura bancaria y no migra ni recategoriza
+No inventa confirmaciones ni ausencias cuando falta cobertura bancaria reciente y no migra ni recategoriza
 el histórico. La espera explícita nace al editar el recibo en un dispositivo cuyo feed cubre la
-fecha; no reinterpreta en masa los fijos antiguos que nadie ha tocado. Como `bankTx` es local pero
+fecha, fue sincronizado el mismo día local y tiene como máximo 30 minutos; no reinterpreta en masa
+los fijos antiguos que nadie ha tocado. Como `bankTx` es local pero
 `wait` se sincroniza, otro dispositivo respetará esa espera hasta recibir el cargo o una edición
 posterior. Quien use solo calendario conserva la regla por fecha. Es un cambio web/OTA; no requiere
 APK nueva.
+
+La sync reciente no garantiza que Sabadell ya haya contabilizado una domiciliación de hace pocos
+minutos. Además, `flattenBankTx` aún no persiste por entidad la marca `truncated` que devuelve la
+Edge cuando corta páginas por tiempo, tope o cursor cíclico. Claude no lo considera bloqueo de
+esta tanda; queda inventariado como refuerzo separado para no convertir una lectura parcial en
+prueba de ausencia.
 
 ## Verificación local del 25/09
 
 - Build, sintaxis, presupuesto sin ampliar, `fixed-day-reconcile`, `plan-charges`,
   `reconcile-bank`, notas en tres idiomas y mapa de pruebas: OK sobre la corrección final.
-- `plan-gestionar.spec.mjs`: 29/29 sobre la corrección final, incluidos los dos sentidos 24 → 27
-  cobrado y 24 → 25 sin cobro pero con feed que cubre la fecha.
+- `plan-gestionar.spec.mjs`: 30/30 sobre la corrección final, incluidos 24 → 27 cobrado, 24 → 25
+  sin cobro con feed reciente y Pepegas 20 → 25 a la 01:06 con el feed de ayer.
+- `fixed-day-reconcile` y los dos E2E financieros pasan tanto con la zona local como con `TZ=UTC`,
+  que es la zona de la CI; los relojes del test se construyen como hora local, no como ISO fijo.
 - Suite Playwright completa sobre `4.26.46.3`: 421 aprobadas y 1 captura opcional omitida (422 en
   total). El delta final vuelve a ejecutar localmente su spec completa; la CI de la nueva beta
   debe repetir la suite global por tocar el núcleo.
@@ -95,7 +116,9 @@ APK nueva.
 - Claude 5.5 Opus confirmó que `7f51d065` era financieramente correcto y retiró la objeción al
   guardián de rama. Después bloqueó `50aae61f` (`4.26.46.3`) por el reanclaje ciego del saldo base
   y porque una espera sin cobertura bancaria rompería el modo solo-calendario. Ambos puntos quedan
-  corregidos en la siguiente beta; falta su nueva revisión antes de ofrecerla como candidata.
+  corregidos en `31ca7226`. Su PASS dejó anotado que `covered` era laxo; el rechazo móvil de
+  `4.26.46.4` confirmó ese límite. Falta su revisión de la nueva barrera por `lastBankSync` antes de
+  ofrecer `4.26.46.5` como candidata.
 
 Antes de preguntar por un rechazo, ejecutar siempre `node scripts/errores.mjs --kind=beta`: el
 comentario escrito en Ajustes → Revisar esta beta es la fuente del veredicto.
@@ -120,7 +143,8 @@ en el canal beta, queda a la espera del veredicto móvil del dueño:
 > `npm run salud` y lee primero `node scripts/errores.mjs --kind=beta`; no pidas que repita un
 > comentario escrito en el panel. La aprobación de 4.26.46.2 quedó revocada por el caso inverso y
 > 4.26.46.3 fue bloqueada por revisión externa; no promociones ninguna. Pregúntame por el veredicto móvil de la
-> última beta 4.26.46.x. Si la he rechazado,
+> última beta 4.26.46.x. `4.26.46.4` quedó rechazada por Pepegas a la 01:06: un feed de ayer lo
+> devolvía a pendiente y subía Sabadell. Si la he rechazado,
 > reproduce exactamente el fallo, corrige esta misma tanda y vuelve a subirla a beta; el objetivo
 > sigue abierto. Si la he aprobado expresamente, promueve la ronda completa a producción, revisa
 > el merge y la sintaxis, verifica el estado publicado y solo entonces completa el objetivo. No

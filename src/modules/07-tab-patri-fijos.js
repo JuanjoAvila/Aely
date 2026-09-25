@@ -845,7 +845,8 @@ function isDebtPaidThisMonth(d,today){ return debtChargeDay(d)<=today; }
 // con el saldo real del banco (que ya los refleja) → si no, fin de mes los sumaría por segunda vez.
 // El día es una previsión editable: `paidYm` conserva el mes que el banco ya confirmó para que
 // moverlo no convierta el mismo recibo en otro pendiente. Si se corrige a un día que ya ha llegado
-// con feed que cubre el día pero sin cargo, `wait` guarda ese año-mes e impide inventar el pago.
+// con feed RECIÉN sincronizado que cubre el día pero sin cargo, `wait` guarda ese año-mes e
+// impide inventar el pago. Un feed viejo no sirve para negar un cobro de hoy (feedback 25/9).
 const isPaidIn=(e,m,t,y)=>{ const ym=(y||new Date().getFullYear())*12+m,d=dayIn(e,m); return e.paidYm===ym || e.wait!==ym&&d!=null&&d<=t; };
 const isPaidThisMonth=(e,today)=>{ const d=dayOf(e); return d!=null && d<=today; };
 // ¿el gasto necesita que el usuario le asigne un mes? (anual sin programar)
