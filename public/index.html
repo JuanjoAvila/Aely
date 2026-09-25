@@ -1290,13 +1290,8 @@
     animation:toastin .3s ease;}
   .v4-undo-toast span{flex:1;min-width:0;}
   .v4-undo-toast button{min-width:88px;min-height:44px;padding:0 12px;border-radius:12px;color:var(--mint);font-size:13.5px;font-weight:850;}
-  .v4-bills-saved{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + var(--safe-bottom));z-index:205;
-    width:min(calc(100% - 28px),430px);min-height:64px;padding:10px 16px;border-radius:16px;background:var(--sur2);
-    border:1px solid var(--line);box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;color:var(--text);pointer-events:none;animation:toastin .3s ease;}
-  .v4-bills-saved-mark{width:34px;height:34px;border-radius:11px;background:var(--mint);color:var(--on-mint);display:grid;place-items:center;font-weight:850;flex:none;}
-  .v4-bills-saved strong,.v4-bills-saved span span{display:block;}
-  .v4-bills-saved strong{font-size:14px;}
-  .v4-bills-saved span span{font-size:12.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:calc(100vw - 110px);}
+  .v4-bills-saved{pointer-events:none;}
+  .v4-bills-saved small{display:block;color:var(--muted);}
   html.sheet-open,html.sheet-open body{overflow:hidden;overscroll-behavior:none;}
   /* Solo .page (no .track/.viewport): overflow en el track + translateX de tabs ≠ Inicio
      clippea la página visible y deja el body oscuro detrás del + / editar gasto (2026-07-17). */
@@ -1466,7 +1461,7 @@
   @keyframes v4growup{from{transform:scaleY(0);}to{transform:scaleY(1);}}
   .rise{animation:rise .32s var(--ease) both;}
   @media (prefers-reduced-motion:reduce){
-    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-gastos-progress i,.v4-account-spark i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast,.v4-bills-saved{animation:none !important;transition:none !important;}
+    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-account-spark i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast{animation:none !important;transition:none !important;}
   }
 
   .card{background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--line-soft);border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--shadow);overflow:hidden;}
@@ -20547,7 +20542,6 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
   const [undoBill,setUndoBill]=React.useState(null);
   const undoTimer=React.useRef(null);
   const [savedBill,setSavedBill]=React.useState(null);
-  const savedTimer=React.useRef(null);
   const rootRef=React.useRef(null);
   const subRef=React.useRef(null);
   const titleRef=React.useRef(null);
@@ -20566,16 +20560,17 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
       setStack(["hub"]); setGroup(null); setQ(""); setDetail(null); setAddStep(null);
       if(undoTimer.current){ clearTimeout(undoTimer.current); undoTimer.current=null; }
       setUndoBill(null);
-      if(savedTimer.current){ clearTimeout(savedTimer.current); savedTimer.current=null; }
       setSavedBill(null);
     }
   },[open]);
   React.useEffect(function(){
-    return function(){
-      if(undoTimer.current) clearTimeout(undoTimer.current);
-      if(savedTimer.current) clearTimeout(savedTimer.current);
-    };
+    return function(){ if(undoTimer.current) clearTimeout(undoTimer.current); };
   },[]);
+  React.useEffect(function(){
+    if(!savedBill) return undefined;
+    const id=setTimeout(function(){ setSavedBill(null); },4500);
+    return function(){ clearTimeout(id); };
+  },[savedBill]);
   const pop=React.useCallback(function(){
     if(detail){ setDetail(null); return; }
     if(addStep){ setAddStep(null); return; }
@@ -20667,13 +20662,11 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
   const openGroup=function(id){ setGroup(id); setQ(""); push("list"); };
   const openDetail=function(row){
     openerRef.current=document.activeElement;
-    if(savedTimer.current){ clearTimeout(savedTimer.current); savedTimer.current=null; }
     setSavedBill(null);
     setDetail(row);
   };
   const startAdd=function(kind){
     openerRef.current=document.activeElement;
-    if(savedTimer.current){ clearTimeout(savedTimer.current); savedTimer.current=null; }
     setSavedBill(null);
     setAddForm({name:"",amount:"",freq:"mes",months:[],day:"",when:"",account:bankList[0]||"sabadell",kind:kind||"fixed",
       month:cm, year:cy, flowKind:"income"});
@@ -20682,12 +20675,9 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
   const confirmSaved=function(kind,name){
     // El toast global decía solo «Guardado» mientras el alta se iba: aquí queda visible
     // qué se añadió en la pantalla de Recibos, también al salir de una lista hija.
-    if(savedTimer.current) clearTimeout(savedTimer.current);
     setSavedBill({kind:kind,name:name});
-    savedTimer.current=setTimeout(function(){ setSavedBill(null); savedTimer.current=null; },4500);
   };
   const removeWithUndo=function(row){
-    if(savedTimer.current){ clearTimeout(savedTimer.current); savedTimer.current=null; }
     setSavedBill(null);
     const snap={kind:row.kind, item:Object.assign({},row.item)};
     if(row.kind==="fixed") removeFixedById(set,row.id);
@@ -20811,11 +20801,10 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
         step:addStep, setStep:setAddStep, form:addForm, setForm:setAddForm, banks:bankList,
         onClose:closeAdd, set:set, onSaved:confirmSaved
       }),
-      savedBill && !addStep && React.createElement("div",{className:"v4-bills-saved",role:"status"},
-        React.createElement("span",{className:"v4-bills-saved-mark","aria-hidden":"true"},"✓"),
+      savedBill && !addStep && React.createElement("div",{className:"v4-undo-toast v4-bills-saved",role:"status"},
         React.createElement("span",null,
-          React.createElement("strong",null,gbTxt(savedBill.kind==="oneoff"?"gb_saved_oneoff":savedBill.kind==="income"?"gb_saved_income":savedBill.kind==="transfer"?"gb_saved_transfer":"gb_saved_fixed")),
-          React.createElement("span",null,savedBill.name))),
+          React.createElement("strong",null,gbTxt("gb_saved_"+savedBill.kind)),
+          React.createElement("small",null,savedBill.name))),
       undoBill && React.createElement("div",{className:"v4-undo-toast",role:"status"},
         React.createElement("span",null, gbTxt("gb_removed")),
         React.createElement("button",{type:"button",onClick:undoLastBill}, t("f_undo")||"Deshacer"))
@@ -21058,7 +21047,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
       if(form.freq!=="mes"&&form.months&&form.months.length) it.months=form.months.slice().sort(function(a,b){ return a-b; });
       addFixedItem(set,it);
     }
-    if(onSaved) onSaved(form.kind==="flow"?(form.flowKind||"income"):form.kind,String(form.name||"").trim());
+    onSaved(form.kind==="flow"?(form.flowKind||"income"):form.kind,String(form.name||"").trim());
     swipe.close();
   };
   const preview=function(){

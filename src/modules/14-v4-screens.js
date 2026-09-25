@@ -462,7 +462,6 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
   const [undoBill,setUndoBill]=React.useState(null);
   const undoTimer=React.useRef(null);
   const [savedBill,setSavedBill]=React.useState(null);
-  const savedTimer=React.useRef(null);
   const rootRef=React.useRef(null);
   const subRef=React.useRef(null);
   const titleRef=React.useRef(null);
@@ -481,16 +480,17 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
       setStack(["hub"]); setGroup(null); setQ(""); setDetail(null); setAddStep(null);
       if(undoTimer.current){ clearTimeout(undoTimer.current); undoTimer.current=null; }
       setUndoBill(null);
-      if(savedTimer.current){ clearTimeout(savedTimer.current); savedTimer.current=null; }
       setSavedBill(null);
     }
   },[open]);
   React.useEffect(function(){
-    return function(){
-      if(undoTimer.current) clearTimeout(undoTimer.current);
-      if(savedTimer.current) clearTimeout(savedTimer.current);
-    };
+    return function(){ if(undoTimer.current) clearTimeout(undoTimer.current); };
   },[]);
+  React.useEffect(function(){
+    if(!savedBill) return undefined;
+    const id=setTimeout(function(){ setSavedBill(null); },4500);
+    return function(){ clearTimeout(id); };
+  },[savedBill]);
   const pop=React.useCallback(function(){
     if(detail){ setDetail(null); return; }
     if(addStep){ setAddStep(null); return; }
@@ -582,13 +582,11 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
   const openGroup=function(id){ setGroup(id); setQ(""); push("list"); };
   const openDetail=function(row){
     openerRef.current=document.activeElement;
-    if(savedTimer.current){ clearTimeout(savedTimer.current); savedTimer.current=null; }
     setSavedBill(null);
     setDetail(row);
   };
   const startAdd=function(kind){
     openerRef.current=document.activeElement;
-    if(savedTimer.current){ clearTimeout(savedTimer.current); savedTimer.current=null; }
     setSavedBill(null);
     setAddForm({name:"",amount:"",freq:"mes",months:[],day:"",when:"",account:bankList[0]||"sabadell",kind:kind||"fixed",
       month:cm, year:cy, flowKind:"income"});
@@ -597,12 +595,9 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
   const confirmSaved=function(kind,name){
     // El toast global decía solo «Guardado» mientras el alta se iba: aquí queda visible
     // qué se añadió en la pantalla de Recibos, también al salir de una lista hija.
-    if(savedTimer.current) clearTimeout(savedTimer.current);
     setSavedBill({kind:kind,name:name});
-    savedTimer.current=setTimeout(function(){ setSavedBill(null); savedTimer.current=null; },4500);
   };
   const removeWithUndo=function(row){
-    if(savedTimer.current){ clearTimeout(savedTimer.current); savedTimer.current=null; }
     setSavedBill(null);
     const snap={kind:row.kind, item:Object.assign({},row.item)};
     if(row.kind==="fixed") removeFixedById(set,row.id);
@@ -726,11 +721,10 @@ function BillsManagePush({open, onClose, state, set, totals, simple}){
         step:addStep, setStep:setAddStep, form:addForm, setForm:setAddForm, banks:bankList,
         onClose:closeAdd, set:set, onSaved:confirmSaved
       }),
-      savedBill && !addStep && React.createElement("div",{className:"v4-bills-saved",role:"status"},
-        React.createElement("span",{className:"v4-bills-saved-mark","aria-hidden":"true"},"✓"),
+      savedBill && !addStep && React.createElement("div",{className:"v4-undo-toast v4-bills-saved",role:"status"},
         React.createElement("span",null,
-          React.createElement("strong",null,gbTxt(savedBill.kind==="oneoff"?"gb_saved_oneoff":savedBill.kind==="income"?"gb_saved_income":savedBill.kind==="transfer"?"gb_saved_transfer":"gb_saved_fixed")),
-          React.createElement("span",null,savedBill.name))),
+          React.createElement("strong",null,gbTxt("gb_saved_"+savedBill.kind)),
+          React.createElement("small",null,savedBill.name))),
       undoBill && React.createElement("div",{className:"v4-undo-toast",role:"status"},
         React.createElement("span",null, gbTxt("gb_removed")),
         React.createElement("button",{type:"button",onClick:undoLastBill}, t("f_undo")||"Deshacer"))
@@ -973,7 +967,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
       if(form.freq!=="mes"&&form.months&&form.months.length) it.months=form.months.slice().sort(function(a,b){ return a-b; });
       addFixedItem(set,it);
     }
-    if(onSaved) onSaved(form.kind==="flow"?(form.flowKind||"income"):form.kind,String(form.name||"").trim());
+    onSaved(form.kind==="flow"?(form.flowKind||"income"):form.kind,String(form.name||"").trim());
     swipe.close();
   };
   const preview=function(){
