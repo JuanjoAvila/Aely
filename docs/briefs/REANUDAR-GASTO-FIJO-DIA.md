@@ -1,12 +1,12 @@
 # Reanudar · día de recibo fijo sin doble descuento
 
-Fecha: 2026-09-24
+Fecha: 2026-09-25 · objetivo cerrado en producción
 
 Rama de trabajo: `codex/gasto-fijo-dia-24sep`
 
 Betas previas: `4.26.46.1` rechazada; `4.26.46.2` aprobada inicialmente y reabierta por un caso inverso comunicado antes de producción; `4.26.46.3` bloqueada por revisión externa; `4.26.46.4` rechazada por el caso Pepegas de madrugada
 
-Siguiente beta objetivo: `4.26.46.5`
+Beta final: `4.26.46.5`, aprobada por el dueño. Producción: `4.26.46`, commit `1dc3be91`.
 
 ## Alcance único
 
@@ -107,18 +107,37 @@ prueba de ausencia.
 - `fixed-day-reconcile` y los dos E2E financieros pasan tanto con la zona local como con `TZ=UTC`,
   que es la zona de la CI; los relojes del test se construyen como hora local, no como ISO fijo.
 - Suite Playwright completa sobre `4.26.46.3`: 421 aprobadas y 1 captura opcional omitida (422 en
-  total). El delta final vuelve a ejecutar localmente su spec completa; la CI de la nueva beta
-  debe repetir la suite global por tocar el núcleo.
+  total). El delta final volvió a ejecutar localmente su spec completa y la CI de beta quedó verde.
 - Todos los unitarios del plan relevante pasan salvo `docs-frescura` al ejecutarlo desde
   `codex/gasto-fijo-dia-24sep`: detecta correctamente commits posteriores al bump. En la rama
   `beta` esa comprobación se omite por diseño porque las correcciones de una ronda conservan
-  `VERSION` y se publican como `4.26.46.RUN_NUMBER`; la CI de beta debe quedar verde.
+  `VERSION` y se publican como `4.26.46.RUN_NUMBER`; la CI de beta quedó verde.
 - Claude 5.5 Opus confirmó que `7f51d065` era financieramente correcto y retiró la objeción al
   guardián de rama. Después bloqueó `50aae61f` (`4.26.46.3`) por el reanclaje ciego del saldo base
   y porque una espera sin cobertura bancaria rompería el modo solo-calendario. Ambos puntos quedan
   corregidos en `31ca7226`. Su PASS dejó anotado que `covered` era laxo; el rechazo móvil de
-  `4.26.46.4` confirmó ese límite. Falta su revisión de la nueva barrera por `lastBankSync` antes de
-  ofrecer `4.26.46.5` como candidata.
+  `4.26.46.4` confirmó ese límite. Claude aprobó después la barrera por `lastBankSync` y revisó
+  también el merge de producción `1dc3be91` con PASS independiente.
+
+## Cierre verificado el 25/09
+
+- El dueño aprobó la beta `4.26.46.5` en el panel móvil: 5/5 comprobaciones y ningún fallo.
+- El promote oficial fusionó beta en `main` como `944dde6a`, pero el deploy detectó una función
+  `planCoverState` duplicada y claves `iv_*` duplicadas. No llegó a publicarse esa build fallida.
+- En el worktree aislado se retiró solo la duplicidad del merge y se conservaron los tests de
+  `main`; Claude 5.5 Opus dio PASS a `1dc3be91`. `git diff origin/beta 1dc3be91 -- src supabase`
+  quedó vacío: la lógica financiera publicada es la misma que aprobó el dueño.
+- `deploy.yml` [36160528039](https://github.com/JuanjoAvila/Aely/actions/runs/36160528039) y
+  `test.yml` [36160527952](https://github.com/JuanjoAvila/Aely/actions/runs/36160527952): verdes.
+  Pages sirve `4.26.46`, el service worker lleva `4.26.46-2026-09-25-1dc3be9`, y
+  `npm run salud` confirmó bundle y manifiesto; APK 4.26.32/48 sin cambios nativos.
+- Supabase no pudo cotejarse en `salud` sin credenciales de solo lectura. Esta tanda no modificó
+  migraciones ni Edge. La comprobación móvil fue en beta; no se declara prueba manual posterior
+  en producción. Las limitaciones funcionales del apartado anterior siguen vigentes.
+- `docs-frescura` pasa todas las comprobaciones de números y textos, pero ejecutado localmente
+  sobre el commit posterior al promote falla su guardián de «código tras el último bump» porque
+  recorre toda la ronda beta ya publicada. La CI con checkout superficial no lo evalúa. No se
+  relaja ni modifica ese guardián dentro de este objetivo financiero.
 
 Antes de preguntar por un rechazo, ejecutar siempre `node scripts/errores.mjs --kind=beta`: el
 comentario escrito en Ajustes → Revisar esta beta es la fuente del veredicto.
@@ -138,14 +157,12 @@ en el canal beta, queda a la espera del veredicto móvil del dueño:
 
 ## Prompt para la siguiente conversación
 
-> Continúa el objetivo activo «gasto fijo: cambio de día sin doble descuento». Lee
-> `docs/briefs/REANUDAR-GASTO-FIJO-DIA.md`, verifica primero `origin/beta`, Actions, el manifiesto y
-> `npm run salud` y lee primero `node scripts/errores.mjs --kind=beta`; no pidas que repita un
-> comentario escrito en el panel. La aprobación de 4.26.46.2 quedó revocada por el caso inverso y
-> 4.26.46.3 fue bloqueada por revisión externa; no promociones ninguna. Pregúntame por el veredicto móvil de la
-> última beta 4.26.46.x. `4.26.46.4` quedó rechazada por Pepegas a la 01:06: un feed de ayer lo
-> devolvía a pendiente y subía Sabadell. Si la he rechazado,
-> reproduce exactamente el fallo, corrige esta misma tanda y vuelve a subirla a beta; el objetivo
-> sigue abierto. Si la he aprobado expresamente, promueve la ronda completa a producción, revisa
-> el merge y la sintaxis, verifica el estado publicado y solo entonces completa el objetivo. No
-> avances a otra tarea antes de cerrar esta y no publiques producción sin mi aprobación.
+> Abre un objetivo nuevo de una sola tarea en Aely. El objetivo «gasto fijo: cambio de día sin
+> doble descuento» quedó cerrado en producción `4.26.46` (`1dc3be91`), tras aprobación móvil de
+> beta `4.26.46.5` y PASS de Claude. Lee `EMPIEZA-AQUI.md`, este brief, el canal compartido y los
+> handoffs; verifica base, worktrees, Actions y `npm run salud` antes de editar. No reutilices el
+> checkout raíz. Selecciona conmigo una sola tarea concreta del backlog, delimítala y publícala
+> primero en beta. Si la rechazo, lee siempre mis comentarios del panel con
+> `node scripts/errores.mjs --kind=beta`, corrige y repite beta. Si la apruebo expresamente,
+> promociona la ronda completa a producción, audita el merge y confirma Pages/manifiesto antes
+> de completar ese objetivo. No publiques producción por inferencia.
