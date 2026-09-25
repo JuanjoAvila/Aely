@@ -854,6 +854,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, show
   const stepRef=React.useRef(step), formRef=React.useRef(form);
   const savedRef=React.useRef(false);
   const titleRef=React.useRef(null);
+  const sideRef=React.useRef(null);
   const onCloseRef=React.useRef(onClose);
   onCloseRef.current=onClose;
   const swipe=useSheetSwipe(true,function(){ onCloseRef.current&&onCloseRef.current(); });
@@ -862,7 +863,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, show
   stepRef.current=step; formRef.current=form;
   const stepBack=React.useCallback(function(){
     const cur=stepRef.current, f=formRef.current||{};
-    if(cur==="what"){ swipe.close(); return false; }
+    if(cur==="what"){ onCloseRef.current&&onCloseRef.current(); return false; }
     if(cur==="amount") setStep("what");
     else if(cur==="freq"||cur==="monthyear") setStep("amount");
     else if(cur==="months") setStep("freq");
@@ -872,6 +873,14 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, show
   },[setStep]);
   const entryRef=React.useRef(null), stepBackRef=React.useRef(stepBack);
   stepBackRef.current=stepBack;
+  // El primer paso ya sale con la ola: el callback de Atrás desmonta sin otra salida vertical.
+  const side=useEdgePageClose(true,stepBack,step,sideRef);
+  React.useLayoutEffect(function(){
+    // El fondo persiste entre pasos; cada Atrás debe dejar el anterior centrado y listo para otro.
+    const el=sideRef.current; if(!el) return;
+    el.classList.remove("mc-page-dragging");
+    el.style.cssText="";
+  },[step]);
   React.useEffect(function(){
     _mcBackInitOnce();
     const arm=function(){
@@ -897,7 +906,7 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, show
   React.useEffect(function(){
     var onKey=function(e){
       if(document.documentElement.classList.contains("ask-open")) return;
-      if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); stepBackRef.current&&stepBackRef.current(); return; }
+      if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); side.close(); return; }
       if(e.key!=="Tab"||!sheetRef.current) return;
       e.stopPropagation();
       var nodes=sheetRef.current.querySelectorAll('button,a,input,select,textarea,[tabindex]:not([tabindex="-1"])');
@@ -950,12 +959,12 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, show
   const title=step==="what"?gbTxt("gb_step_what"):step==="amount"?gbTxt("gb_step_how_much"):
     step==="freq"?gbTxt("gb_step_how_often"):step==="months"?gbTxt("gb_months_q"):
     step==="monthyear"?gbTxt("gb_step_monthyear"):gbTxt("gb_step_when");
-  return React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+  return React.createElement("div",{ref:sideRef,className:"v4-sheet-back",onClick:swipe.close},
     React.createElement("div",Object.assign({ref:sheetRef,className:"v4-sheet","data-sheet":"bill-add","data-step":step,role:"dialog","aria-modal":"true","aria-labelledby":titleId,
       onClick:function(e){ e.stopPropagation(); }},swipe.sheetTouch),
       React.createElement("div",{className:"v4-sheet-handle"}),
       React.createElement("div",{className:"settings-push-h",style:{padding:"0 0 8px"}},
-        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:function(){ stepBack(); }},"‹"),
+        React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:side.close},"‹"),
         React.createElement("h1",{id:titleId,tabIndex:-1,ref:titleRef}, title)),
       step==="what" && React.createElement(React.Fragment,null,
         React.createElement("input",{className:"v4-bills-search",autoFocus:true,value:form.name,placeholder:gbTxt("gb_step_what"),

@@ -1,5 +1,46 @@
 [
   {
+    "v": "4.26.47",
+    "d": "25 sep 2026",
+    "t": {
+      "es": "Volver paso a paso al añadir un recibo",
+      "en": "Go back step by step when adding a bill",
+      "ca": "Torna pas a pas en afegir un rebut"
+    },
+    "items": {
+      "es": ["Al añadir un recibo, un cargo puntual o un ingreso, el gesto Atrás acompaña al dedo y vuelve al paso anterior sin perder lo escrito."],
+      "en": ["When adding a bill, a one-off charge or an income, the Back gesture follows your finger and returns to the previous step without losing what you entered."],
+      "ca": ["En afegir un rebut, un càrrec puntual o un ingrés, el gest Enrere segueix el dit i torna al pas anterior sense perdre el que has escrit."]
+    },
+    "tandas": [
+      {
+        "id": "recibos-alta-atras-pasos",
+        "t": {
+          "es": "Volver durante el alta de Recibos",
+          "en": "Go back while adding a bill",
+          "ca": "Tornar durant l'alta de Rebuts"
+        },
+        "items": {
+          "es": [
+            "1. Plan → Recibos → Gestionar → +: escribe un nombre y un importe, elige «Cada dos meses», marca un mes y avanza hasta el día y la cuenta.",
+            "2. Desliza Atrás desde el borde en cada paso. La hoja debe acompañar al dedo, volver solo un paso y conservar nombre, importe y meses. Si cancelas el gesto, sigues en el mismo paso.",
+            "3. Vuelve desde el primer paso: se cierra el alta y sigues en «Tus recibos» sin haber creado nada. Comprueba también la vuelta en un cargo de una sola vez y un ingreso."
+          ],
+          "en": [
+            "1. Plan → Bills → Manage → +: enter a name and amount, choose “Every two months”, select a month and continue to the day and account.",
+            "2. Swipe Back from the edge at each step. The sheet should follow your finger, go back only one step and keep the name, amount and months. Cancelling the gesture should leave you on the same step.",
+            "3. Go back from the first step: the form closes and you remain in “Your bills” without creating anything. Also try going back while adding a one-off charge and an income."
+          ],
+          "ca": [
+            "1. Pla → Rebuts → Gestionar → +: escriu un nom i un import, tria «Cada dos mesos», marca un mes i avança fins al dia i el compte.",
+            "2. Fes el gest Enrere des de la vora en cada pas. El full ha de seguir el dit, tornar només un pas i conservar el nom, l'import i els mesos. Si cancel·les el gest, et quedes al mateix pas.",
+            "3. Torna des del primer pas: es tanca l'alta i continues a «Els teus rebuts» sense haver creat res. Prova també de tornar en un càrrec puntual i un ingrés."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.46",
     "d": "24 sep 2026",
     "t": {

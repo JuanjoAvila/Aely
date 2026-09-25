@@ -629,6 +629,94 @@ test("alta por pasos: cada dos meses pregunta EN QUÉ meses y el teclado empieza
   }).toEqual({ count:1, amount: 35, freq: "bimestral", feb: true, ene: false });
 });
 
+test("la ola nativa vuelve por todos los pasos de un recibo sin crear nada", async ({ page }) => {
+  await appLista(page);
+  await abreTusRecibos(page);
+  await hub(page).locator(".v4-bills-add").first().click();
+  const hoja=alta(page);
+  const fondo=page.locator(".v4-sheet-back").filter({has:hoja});
+  await hoja.locator("input.v4-bills-search").fill("Basuras");
+  await hoja.locator(".v4-cta").click();
+  await hoja.getByRole("button",{name:"3",exact:true}).click();
+  await hoja.locator(".v4-cta").click();
+  await hoja.locator(".v4-ficha-op").filter({hasText:"Cada dos meses"}).click();
+  await hoja.locator(".v4-cta").click();
+  await hoja.locator(".mchip").filter({hasText:/^feb/i}).click();
+  await hoja.locator(".v4-cta").click();
+  await expect(hoja).toHaveAttribute("data-step","when");
+
+  const native=async function(phase,progress){
+    await page.evaluate(([ph,p])=>{
+      const e=new Event("mcNativeEdgeBack"); e.phase=ph; e.progress=p; window.dispatchEvent(e);
+    },[phase,progress]);
+  };
+  const x=async()=>fondo.evaluate((el)=>new DOMMatrix(getComputedStyle(el).transform).m41);
+  await native("progress",.5);
+  expect(await x()).toBeGreaterThan(150);
+  await native("cancel",0);
+  await expect.poll(x).toBe(0);
+  await expect(hoja).toHaveAttribute("data-step","when");
+
+  for(const prev of ["months","freq","amount","what"]){
+    await native("progress",.5);
+    expect(await x()).toBeGreaterThan(150);
+    await native("invoke",1);
+    await expect(hoja).toHaveAttribute("data-step",prev,{timeout:1600});
+    await expect.poll(x).toBe(0);
+  }
+  await expect(hoja.locator("input.v4-bills-search")).toHaveValue("Basuras");
+  await native("progress",.5);
+  expect(await x()).toBeGreaterThan(150);
+  await native("invoke",1);
+  await expect(hoja).toHaveCount(0,{timeout:1600});
+  await expect(titulo(page)).toHaveText("Tus recibos");
+  expect(((await estado(page)).fixed||[]).filter((f)=>f.name==="Basuras")).toHaveLength(0);
+});
+
+test("la ola nativa vuelve por el mes del cargo único y por la clase del ingreso", async ({ page }) => {
+  await appLista(page);
+  await abreTusRecibos(page);
+  const back=async function(){
+    await page.evaluate(()=>{ const e=new Event("mcNativeEdgeBack"); e.phase="invoke"; e.progress=1; window.dispatchEvent(e); });
+  };
+  await grupo(page,"Cargos de una sola vez").click();
+  await hub(page).locator(".v4-bills-add").last().click();
+  await alta(page).locator("input.v4-bills-search").fill("Dentista");
+  await alta(page).locator(".v4-cta").click();
+  await alta(page).getByRole("button",{name:"9",exact:true}).click();
+  await alta(page).locator(".v4-cta").click();
+  await alta(page).locator(".v4-cta").click();
+  await expect(alta(page)).toHaveAttribute("data-step","when");
+  await back();
+  await expect(alta(page)).toHaveAttribute("data-step","monthyear");
+  await back();
+  await expect(alta(page)).toHaveAttribute("data-step","amount");
+  await back();
+  await expect(alta(page)).toHaveAttribute("data-step","what");
+  await back();
+  await expect(alta(page)).toHaveCount(0);
+  expect(((await estado(page)).oneoffs||[]).filter((o)=>o.name==="Dentista")).toHaveLength(0);
+
+  await hub(page).locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
+  await hub(page).locator('.v4-bills-group[data-group="in"]').click();
+  await hub(page).locator(".v4-bills-add").last().click();
+  await alta(page).locator("input.v4-bills-search").fill("Nómina prueba");
+  await alta(page).locator(".v4-cta").click();
+  await alta(page).getByRole("button",{name:"9",exact:true}).click();
+  await alta(page).locator(".v4-cta").click();
+  await alta(page).locator(".v4-cta").click();
+  await expect(alta(page)).toHaveAttribute("data-step","when");
+  await back();
+  await expect(alta(page)).toHaveAttribute("data-step","freq");
+  await back();
+  await expect(alta(page)).toHaveAttribute("data-step","amount");
+  await back();
+  await expect(alta(page)).toHaveAttribute("data-step","what");
+  await back();
+  await expect(alta(page)).toHaveCount(0);
+  expect(((await estado(page)).flows||[]).filter((f)=>f.name==="Nómina prueba")).toHaveLength(0);
+});
+
 test("un cargo de una sola vez se apunta por mes y año, no por periodicidad", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);

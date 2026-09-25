@@ -81,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.46** en producción tras aprobarse la beta 4.26.46.5 — cambiar el día conserva una sola ocurrencia: si ya se cobró mantiene la fecha bancaria real; solo una sincronización reciente puede dejar pendiente un cargo de hoy que aún no aparece. Un extracto antiguo no reclasifica el recibo ni mueve saldos. No duplica movimientos ni altera históricos u otros bancos. La APK 48 sigue vigente; disponibilidad real con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.26.47** en preparación para beta — el gesto Atrás acompaña cada paso del alta de Recibos y conserva lo escrito. Producción sigue en 4.26.46 hasta aprobación móvil expresa. La APK 48 sigue vigente; disponibilidad real con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.
@@ -97,6 +97,6 @@ Notas rápidas del rediseño v4 (para no perderse):
 - **Open Banking se sincroniza a demanda** (botón en Cartera), no al abrir la app.
 - **Orden manual de movimientos:** en Gastos, arrastra el asa de una fila para colocarla dentro del mismo día; la fecha real no cambia.
 - **Ficha de gasto v4.1 (en desarrollo):** Apuntar y Modificar comparten importe, concepto, banco/efectivo/fecha, categorías y teclado; los movimientos del banco mantienen bloqueados importe y cuenta.
-- **Tus recibos v4.1:** Plan → Recibos → Gestionar —o Ajustes → Dinero— abre una pantalla propia con buscador, grupos, iconos por tipo, fichas y alta por pasos; comparte con Inversiones el gesto Atrás lateral, confirma antes de cerrar al guardar y la comparación con el banco vive en Ajustes → Mis bancos.
+- **Tus recibos v4.1:** Plan → Recibos → Gestionar —o Ajustes → Dinero— abre una pantalla propia con buscador, grupos, iconos por tipo, fichas y alta por pasos; el gesto Atrás acompaña también cada paso del alta, confirma antes de cerrar al guardar y la comparación con el banco vive en Ajustes → Mis bancos.
 - **Updates:** transporte en `12-boot.js`, estado de UI en `useUpdates()` (`10-app-components.js`).
 - **Canal beta y banco de pruebas** (solo `is_admin`): Ajustes → Dev → Pruebas — [docs/TESTING.md](docs/TESTING.md).

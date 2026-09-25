@@ -1,3 +1,14 @@
+## [4.26.47] - 2026-09-25
+### El alta de Recibos acompaña el Atrás nativo en todos sus pasos
+
+`BillsAddWizard` ya conservaba el formulario al volver con History API, pero el gesto predictivo
+de Android no movía la hoja: su callback nativo quedaba en la pantalla de detrás. La hoja usa
+ahora `useEdgePageClose` con el paso como clave de rearme. El primer paso se desmonta después
+de la ola, sin encadenar otra salida vertical; cada paso anterior recupera la posición central.
+Escape y el botón Atrás comparten el cierre. El alta, la lógica de guardado y los movimientos
+existentes no cambian. El E2E recorre la ruta de recibo periódico, cargo único e ingreso,
+incluido cancelar el gesto y salir sin guardar.
+
 ## [4.26.46] - 2026-09-24
 ### Cambiar el día de un fijo conciliado ya no crea un segundo descuento
 
