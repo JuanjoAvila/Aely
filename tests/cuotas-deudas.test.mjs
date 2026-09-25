@@ -359,6 +359,7 @@ t("Plan descuenta del mínimo una cuota pendiente sin fecha sin inventar día", 
   const cover = cli.planCoverState(
     { minByBank: { sabadell: 500 }, minDayByBank: { sabadell: 12 } },
     "sabadell",
+    0,
     [{ bank: "sabadell", amount: 80, day: null, kind: "debt" }],
   );
   assert.equal(cover.min, 420);
@@ -369,6 +370,7 @@ t("Plan no vuelve a descontar un fijo sin fecha ya incluido en minByBank", () =>
   const cover = cli.planCoverState(
     { minByBank: { sabadell: 400 }, minDayByBank: { sabadell: 0 } },
     "sabadell",
+    0,
     [
       { bank: "sabadell", amount: 100, day: null, kind: "fixed" },
       { bank: "sabadell", amount: 50, day: null, kind: "debt" },

@@ -5329,17 +5329,6 @@ Object.assign(LANG.es,{
 /* --- Diccionario: Inversiones, Proyección, Patrimonio, Deudas y login --- */
 Object.assign(LANG.es,{
   inv_total:"Total invertido", inv_save:"Guardar", inv_cancel:"Cancelar", inv_prices:"Precios USD", inv_pricing:"Precios…", inv_editmanual:"Editar a mano",
-  iv_refresh:"↻ Actualizar inversiones", iv_refreshing:"Sincronizando brókers y precios…", iv_broker_none:"Sin brókers conectados",
-  iv_refresh_ok:"✓ Precios actualizados · {time}", iv_refresh_fail:"No se pudieron actualizar los precios", iv_refresh_fail_sub:"Conservamos los últimos datos ({time}). Puedes volver a intentarlo.", iv_retry:"Reintentar", iv_never:"sin actualizar",
-  iv_see_all:"Ver todas tus inversiones", iv_title:"Tus inversiones", iv_now:"VALEN AHORA", iv_currency:"Moneda de visualización",
-  iv_put:"Pusiste {amount}", iv_gained:"Han ganado {amount}", iv_lost:"Han perdido {amount}",
-  iv_percent:"{pct}% desde que empezaste · Actualizado {time}", iv_updated:"Actualizado {time}",
-  iv_no_put:"Dime lo que pusiste y te diré cuánto han ganado.", iv_no_put_cta:"Añadir lo que puse", iv_where:"Dónde lo tienes",
-  iv_positions:"{n} posiciones", iv_edit:"✎ Editar a mano", iv_add_position:"+ Posición", iv_shares:"{n} participaciones", iv_manual:"a mano", iv_manual_on:"a mano · {date}",
-  iv_gain_unknown:"Ganancia —", iv_missing_cost:"Falta lo que pusiste en alguna posición; por eso aún no calculo la ganancia.",
-  iv_add_manual:"Añadir una posición a mano", iv_broker:"Bróker", iv_name:"Nombre", iv_value_field:"Valor actual (€/$)", iv_cost_field:"Lo que pusiste (€/$)", iv_added:"✓ Posición añadida",
-  iv_empty:"Aún no hay inversiones", iv_empty_sub:"Añade un bróker o una posición para empezar a seguirlas aquí.", iv_add:"+ Añadir bróker o posición",
-  iv_cash:"Líquido vendido", iv_by_type:"Por tipo de activo", iv_fx_note:"Los importes se calculan en euros. Cambio dólar→euro: {fx}.",
   inv_autoprices:"Actualizar precios USD al abrir la app", inv_lastprice:" · última: {d}", inv_alsoinvested:"También ajustar lo invertido (si he comprado o vendido)",
   inv_cvg:"Contribuciones vs ganancias", inv_invested_lbl:"invertido {x}", inv_invested_tot:"Invertido (coste) total", inv_value_tot:"Valor actual total", inv_gain_lat:"Ganancia (plusvalía latente)", inv_contributed:"Aportado", inv_gain:"Ganancia",
   inv_cvg_hint:"«Invertido» es el coste de lo que tienes ahora (base de coste). Tras ventas parciales puede no cuadrar con las «contribuciones netas» que muestra tu bróker. La ganancia aquí es la plusvalía latente (valor − coste).",
@@ -12921,27 +12910,6 @@ function minWalk(startBal, evs){
   let run=startBal, mn=startBal, md=0;
   s.forEach(function(ev){ run+=ev.amt; if(run<mn-0.005){ mn=run; md=ev.day; } });
   return {min:mn, minDay:md, end:run};
-}
-
-// La portada de Plan parte del peor momento real, no del saldo de cierre. Las cuotas sin fecha
-// no entran en minByBank porque el motor histórico cae a día 1: se descuentan aquí sin inventar día.
-function planCoverState(totals, bankEnt, pendingBills){
-  totals=totals||{};
-  var ent=bankEnt||null;
-  var min=ent!=null&&totals.minByBank?totals.minByBank[ent]:null;
-  var minDay=ent!=null&&totals.minDayByBank?totals.minDayByBank[ent]:null;
-  if(ent!=null&&min!=null&&isFinite(min)){
-    (pendingBills||[]).forEach(function(x){
-      // Fijos sin día ya entran en minByBank como evento del día 0; restarlos otra vez inventaría
-      // un descubierto. Solo falta corregir cuotas y pagos finales sin fecha (review 24/9).
-      if(!x||x.bank!==ent||(x.kind!=="debt"&&x.kind!=="balloon")) return;
-      if(x.day==null||!(Number(x.day)>0)){
-        min-=Math.abs(Number(x.amount)||0);
-        minDay=null;
-      }
-    });
-  }
-  return {min:min,minDay:minDay,bank:ent};
 }
 
 /* ============================================================

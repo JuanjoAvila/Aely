@@ -81,6 +81,14 @@ sync a las 23:50: una ocurrencia pagada, cero pendientes, neto −12,50 €, sal
 Revolut invariantes, cuentas e histórico idénticos y ningún duplicado. El escenario sin cobro usa
 una sync de un minuto y continúa pendiente. El E2E ejecuta ambos caminos desde la ficha real.
 
+La primera promoción no llegó a Pages: el merge conservó una segunda declaración antigua de
+`planCoverState` que solo existía en `main`; al declararse después, ocultaba la función aprobada de
+beta y rompía Plan al recibir su firma de cuatro argumentos. La comprobación post-merge lo detectó
+antes de publicar. Se eliminó esa copia obsoleta, se alinearon sus dos unitarios históricos con la
+firma canónica y se reconstruyó el bundle desde las fuentes. El mismo diff reveló dos copias
+idénticas del diccionario `iv_*`; se conservó una sola en cada idioma, sin cambiar ningún texto, y
+el bundle volvió a quedar dentro del presupuesto.
+
 ## [4.26.45] - 2026-09-24
 ### Las cuotas conservan su enlace sin fingir que son una categoría de consumo
 
