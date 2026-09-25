@@ -59,10 +59,14 @@ distingue un fallo real de una suite lenta y después coteja manifiesto y sello 
 
 ### Estado de las entradas antiguas
 
-**REC-GUARDADO-01 · candidata 4.26.48 para beta.** El alta de recibo periódico, cargo puntual
-e ingreso presenta tipo y nombre después de guardar. E2E cubre los tres recorridos en es/en/ca
-y una sola creación por recorrido. Pendiente: CI beta, comprobación del manifiesto y prueba
-móvil del dueño antes de considerar producción; no se abre otro objetivo del backlog.
+**REC-GUARDADO-01 · 4.26.48 en beta, pendiente de prueba móvil.** El código en `9ad3121f`
+y su ajuste de tamaño `b883ea2b` hacen que el alta de recibo periódico, cargo puntual e ingreso
+presente tipo y nombre después de guardar. Los tres E2E nuevos pasaron en es/en/ca y la regresión
+local de Recibos pasó 35/35. La primera publicación beta
+[36183635059](https://github.com/JuanjoAvila/Aely/actions/runs/36183635059) pasó 421 E2E
+funcionales y 7 de rendimiento; sirvió 4.26.48.1 con bundle HTTP 200. La versión beta vigente
+se comprueba con `npm run salud`; falta el veredicto del dueño en el móvil antes de producción.
+No se abre otro objetivo del backlog en esta tarea.
 
 **Objetivo único cerrado: alta de Recibos con Atrás nativo, v4.26.47.** El asistente rearma
 la ola en cada paso de recibo periódico, cargo puntual e ingreso; conserva lo escrito y no guarda
