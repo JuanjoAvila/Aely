@@ -4,8 +4,9 @@ REC-GUARDADO-01 (4.26.48): `e2e/plan-gestionar.spec.mjs`, ya registrado para el 
 `scripts/relevant-tests.mjs`, recorre el alta real de recibo, cargo puntual e ingreso en
 es/en/ca. Exige una confirmación visible con tipo y nombre tras cerrar la hoja y una sola fila
 guardada. La primera compilación beta 4.26.48.1 pasó en
-[Actions](https://github.com/JuanjoAvila/Aely/actions/runs/36183635059); la prueba móvil queda
-pendiente de aprobación. El cambio es web/OTA y usa la APK 48.
+[Actions](https://github.com/JuanjoAvila/Aely/actions/runs/36183635059); el dueño la aprobó y
+la promoción [36185465579](https://github.com/JuanjoAvila/Aely/actions/runs/36185465579)
+publicó 4.26.48. El cambio es web/OTA y usa la APK 48.
 
 La beta 4.26.32 comparte `useEdgePageClose` entre Inversiones y Plan → Gestionar. Los casos de
 `cartera-inversiones` y `plan-gestionar` simulan progreso/cancelación/invocación nativos, un segundo

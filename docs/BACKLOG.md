@@ -26,6 +26,8 @@ honesto (.20) tienen commits de promoción en la primera línea de `main`. El re
 de día sin doble descuento quedó aprobado como beta 4.26.46.5 y publicado en 4.26.46.
 El alta de Recibos con Atrás nativo quedó aprobada como beta 4.26.47.1 y publicada en 4.26.47
 mediante el merge completo `54b21925`.
+La confirmación con tipo y nombre al añadir en Recibos quedó aprobada como beta 4.26.48.1 y
+publicada en 4.26.48 mediante el merge completo `490d402d`.
 
 Los commits `97289fe1`, `346323ba`, `3bcc5f57`, `398342ca`, `3b11ccb3`, `e23dd1fd`,
 `6a894d2e` y `d59c1ab0` retiraron **checklists del panel beta** después de publicar. Su diff
@@ -59,14 +61,18 @@ distingue un fallo real de una suite lenta y después coteja manifiesto y sello 
 
 ### Estado de las entradas antiguas
 
-**REC-GUARDADO-01 · 4.26.48 en beta, pendiente de prueba móvil.** El código en `9ad3121f`
+**REC-GUARDADO-01 · cerrado y publicado en 4.26.48.** El código en `9ad3121f`
 y su ajuste de tamaño `b883ea2b` hacen que el alta de recibo periódico, cargo puntual e ingreso
 presente tipo y nombre después de guardar. Los tres E2E nuevos pasaron en es/en/ca y la regresión
 local de Recibos pasó 35/35. La primera publicación beta
 [36183635059](https://github.com/JuanjoAvila/Aely/actions/runs/36183635059) pasó 421 E2E
-funcionales y 7 de rendimiento; sirvió 4.26.48.1 con bundle HTTP 200. La versión beta vigente
-se comprueba con `npm run salud`; falta el veredicto del dueño en el móvil antes de producción.
-No se abre otro objetivo del backlog en esta tarea.
+funcionales y 7 de rendimiento; sirvió 4.26.48.1 con bundle HTTP 200. El dueño la aprobó;
+la promoción [36185465579](https://github.com/JuanjoAvila/Aely/actions/runs/36185465579)
+pasó y fusionó la beta en `490d402d`, con el mismo árbol y sintaxis verificada. El deploy
+[36186511199](https://github.com/JuanjoAvila/Aely/actions/runs/36186511199) pasó; Pages sirve
+`version.json` 4.26.48, bundle HTTP 200 y SW `4.26.48-2026-09-25-490d402`.
+`npm run salud` confirmó la APK vigente 4.26.32/48 y beta alineada. La aprobación móvil fue
+de la beta; no se declara otra prueba manual sobre producción.
 
 **Objetivo único cerrado: alta de Recibos con Atrás nativo, v4.26.47.** El asistente rearma
 la ola en cada paso de recibo periódico, cargo puntual e ingreso; conserva lo escrito y no guarda
