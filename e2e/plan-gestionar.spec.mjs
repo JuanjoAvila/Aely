@@ -737,6 +737,37 @@ test("un cargo de una sola vez se apunta por mes y año, no por periodicidad", a
   }).toEqual({ amount: 90, hasMonth: true, hasYear: true });
 });
 
+for (const caso of [
+  { kind:"fixed", lang:"es", name:"Basuras", title:"Recibo añadido", amount:35, field:"fixed" },
+  { kind:"oneoff", lang:"en", name:"Dentist", title:"One-off charge added", amount:90, field:"oneoffs", group:"once" },
+  { kind:"flow", lang:"ca", name:"Nòmina prova", title:"Ingrés afegit", amount:120, field:"flows", group:"in" },
+]) {
+  test(`el alta de ${caso.kind} enseña qué se guardó en ${caso.lang}`, async ({ page }) => {
+    await appLista(page, { settings:{lang:caso.lang} });
+    await abreTusRecibos(page);
+    if(caso.group) await hub(page).locator(`.v4-bills-group[data-group="${caso.group}"]`).click();
+    await hub(page).locator(".v4-bills-add").last().click();
+    await alta(page).locator("input.v4-bills-search").fill(caso.name);
+    await alta(page).locator('[data-act="next"]').click();
+    for(const k of String(caso.amount)) await alta(page).getByRole("button",{name:k,exact:true}).click();
+    await alta(page).locator('[data-act="next"]').click();
+    await alta(page).locator('[data-act="next"]').click();
+    await alta(page).locator('[data-act="confirm"]').click();
+    await expect(alta(page)).toHaveCount(0);
+    const aviso=page.locator(".v4-bills-saved[role='status']");
+    await expect(aviso).toBeVisible();
+    await expect(aviso).toContainText(caso.title);
+    await expect(aviso).toContainText(caso.name);
+    await expect(page.locator(".toast")).toHaveCount(0);
+    await expect.poll(async()=>((await estado(page))[caso.field]||[]).filter((x)=>x.name===caso.name).length).toBe(1);
+    if(caso.kind==="oneoff"){
+      await fila(page,caso.name).click();
+      await expect(aviso).toHaveCount(0);
+      await expect(ficha(page)).toBeVisible();
+    }
+  });
+}
+
 test("en modo sencillo las cuotas se cambian aquí: Deudas no existe", async ({ page }) => {
   await appLista(page, { settings: { simpleMode: true } });
   await abreTusRecibos(page);

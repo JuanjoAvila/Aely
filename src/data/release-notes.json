@@ -1,5 +1,34 @@
 [
   {
+    "v": "4.26.48",
+    "d": "25 sep 2026",
+    "t": {
+      "es": "Recibos confirma lo que acabas de añadir",
+      "en": "Bills confirms what you have added",
+      "ca": "Rebuts confirma el que acabes d'afegir"
+    },
+    "items": {
+      "es": ["Al añadir un recibo, un cargo puntual o un ingreso, aparece una confirmación con su nombre para saber qué se ha guardado."],
+      "en": ["After adding a bill, a one-off charge or an income, a confirmation shows its name so you know what was saved."],
+      "ca": ["En afegir un rebut, un càrrec puntual o un ingrés, apareix una confirmació amb el nom perquè sàpigues què s'ha desat."]
+    },
+    "tandas": [
+      {
+        "id": "recibos-confirmacion-alta",
+        "t": {
+          "es": "Confirmación al añadir en Recibos",
+          "en": "Confirmation when adding to Bills",
+          "ca": "Confirmació en afegir a Rebuts"
+        },
+        "items": {
+          "es": ["1. Plan → Recibos → Gestionar → +: añade un recibo con nombre e importe. Al cerrarse el formulario, comprueba que el aviso diga «Recibo añadido» y muestre ese nombre.", "2. En «Cargos de una sola vez», añade un cargo y comprueba «Cargo puntual añadido» con su nombre.", "3. En «Lo que entra y lo que mueves», añade un ingreso y comprueba «Ingreso añadido» con su nombre. Cada alta debe aparecer una sola vez en su grupo."],
+          "en": ["1. Plan → Bills → Manage → +: add a bill with a name and amount. When the form closes, check that the confirmation says “Bill added” and shows its name.", "2. Under “One-off charges”, add a charge and check “One-off charge added” with its name.", "3. Under “What comes in and what you move”, add an income and check “Income added” with its name. Each item should appear only once in its group."],
+          "ca": ["1. Pla → Rebuts → Gestionar → +: afegeix un rebut amb nom i import. Quan es tanqui el formulari, comprova que la confirmació digui «Rebut afegit» i mostri el nom.", "2. A «Càrrecs d'una sola vegada», afegeix un càrrec i comprova «Càrrec puntual afegit» amb el nom.", "3. A «El que entra i el que mous», afegeix un ingrés i comprova «Ingrés afegit» amb el nom. Cada alta ha d'aparèixer una sola vegada al grup."]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.47",
     "d": "25 sep 2026",
     "t": {

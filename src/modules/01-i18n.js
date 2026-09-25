@@ -1172,7 +1172,7 @@ Object.assign(LANG.es,{
   gb_empty_sub_linked:"En cuanto pase un cargo que se repita, lo verás aquí.", gb_afford:"¿Me lo puedo permitir?",
   gb_afford_sub:"Dime un importe y un día y te digo si te cabe este mes.", gb_del:"Quitar este recibo", gb_removed:"Recibo quitado",
   gb_bill_locked_amt:"Este recibo cambia de importe según el mes: cámbialo en cada mes.",
-  gb_when_day:"Un día concreto", gb_save_ok:"Guardado", gb_next:"Siguiente", gb_back_group:"Grupos", gb_recon:"¿Cuadran con el banco?", gb_recon_sub:"Compara lo que tienes apuntado con lo que cobró el banco.", gb_flow_income:"Lo que cobras", gb_flow_move:"Paso entre tus cuentas", gb_month:"Mes", gb_year:"Año", gb_add_btn:"Añadir",
+  gb_when_day:"Un día concreto", gb_save_ok:"Guardado", gb_saved_fixed:"Recibo añadido", gb_saved_oneoff:"Cargo puntual añadido", gb_saved_income:"Ingreso añadido", gb_saved_transfer:"Traspaso añadido", gb_next:"Siguiente", gb_back_group:"Grupos", gb_recon:"¿Cuadran con el banco?", gb_recon_sub:"Compara lo que tienes apuntado con lo que cobró el banco.", gb_flow_income:"Lo que cobras", gb_flow_move:"Paso entre tus cuentas", gb_month:"Mes", gb_year:"Año", gb_add_btn:"Añadir",
 });
 Object.assign(LANG.en,{
   gb_title:"Your bills", gb_hero_label:"GOES OUT EVERY MONTH",
@@ -1195,7 +1195,7 @@ Object.assign(LANG.en,{
   gb_afford:"Can I afford it?", gb_afford_sub:"Give me an amount and a day and I'll tell you if it fits this month.",
   gb_del:"Remove this bill", gb_removed:"Bill removed",
   gb_bill_locked_amt:"This bill's amount changes by month: change it in each month.",
-  gb_when_day:"A chosen day", gb_save_ok:"Saved", gb_next:"Next", gb_back_group:"Groups", gb_recon:"Do they match the bank?", gb_recon_sub:"Compares what you have written down with what the bank charged.", gb_flow_income:"What you get paid", gb_flow_move:"Move between your accounts", gb_month:"Month", gb_year:"Year", gb_add_btn:"Add",
+  gb_when_day:"A chosen day", gb_save_ok:"Saved", gb_saved_fixed:"Bill added", gb_saved_oneoff:"One-off charge added", gb_saved_income:"Income added", gb_saved_transfer:"Transfer added", gb_next:"Next", gb_back_group:"Groups", gb_recon:"Do they match the bank?", gb_recon_sub:"Compares what you have written down with what the bank charged.", gb_flow_income:"What you get paid", gb_flow_move:"Move between your accounts", gb_month:"Month", gb_year:"Year", gb_add_btn:"Add",
 });
 Object.assign(LANG.ca,{
   gb_title:"Els teus rebuts", gb_hero_label:"SE'T VAN CADA MES",
@@ -1217,7 +1217,7 @@ Object.assign(LANG.ca,{
   gb_empty_sub:"Connecta el teu banc i els detecto sols.", gb_empty_sub_linked:"Tan bon punt passi un càrrec que es repeteixi, el veuràs aquí.",
   gb_afford:"M'ho puc permetre?", gb_afford_sub:"Digue'm un import i un dia i et dic si t'hi cap aquest mes.", gb_del:"Treu aquest rebut",
   gb_removed:"Rebut tret", gb_bill_locked_amt:"L'import d'aquest rebut canvia segons el mes: canvia'l a cada mes.",
-  gb_when_day:"Un dia concret", gb_save_ok:"Desat", gb_next:"Següent", gb_back_group:"Grups", gb_recon:"Quadren amb el banc?", gb_recon_sub:"Compara el que tens apuntat amb el que ha cobrat el banc.", gb_flow_income:"El que cobres", gb_flow_move:"Pas entre els teus comptes", gb_month:"Mes", gb_year:"Any", gb_add_btn:"Afegeix",
+  gb_when_day:"Un dia concret", gb_save_ok:"Desat", gb_saved_fixed:"Rebut afegit", gb_saved_oneoff:"Càrrec puntual afegit", gb_saved_income:"Ingrés afegit", gb_saved_transfer:"Traspàs afegit", gb_next:"Següent", gb_back_group:"Grups", gb_recon:"Quadren amb el banc?", gb_recon_sub:"Compara el que tens apuntat amb el que ha cobrat el banc.", gb_flow_income:"El que cobres", gb_flow_move:"Pas entre els teus comptes", gb_month:"Mes", gb_year:"Any", gb_add_btn:"Afegeix",
 });
 /* Importador CSV del bróker (Inversiones) */
 Object.assign(LANG.es,{
