@@ -1,5 +1,9 @@
 # Setup Supabase — Fase 1 (Aely)
 
+## Candidato bank-sync 4.26.53: concepto y MCC opcionales
+
+El cambio en `_shared/enablebanking.ts` añade concept separado de la descripción bancaria y MCC opcional normalizado; mantiene signo, identidad, merchant, note y contrato anterior. Lo consume bank-sync en diario e histórico. No exige migraciones, secretos, nuevas llamadas al proveedor ni cambios en ingest. Está preparado sin desplegar: bank-sync es compartido con producción y requiere autorización explícita para desplegar únicamente esa función, con migraciones=no. Su último despliegue bank-sync comprobado es Action 35978144828, SHA f53e865277f676998d76844fd047357f4adc1569; los posteriores consultados desplegaron ingest o bank-callback. Comparados bank-sync, enablebanking y cors (sus imports locales) contra ese SHA, solo cambia la adición de estos campos. Rollback por ese SHA. No usar despliegue general. Cliente antiguo ignora los campos; cliente nuevo conserva la clasificación previa sin ellos. No se promete que TR real entregue datos útiles.
+
 ## Bank-sync 4.25.0: desplegado y comprobado
 
 La corrección del paginado de `bank-sync` quedó comprobada el 24/9/2026 con datos reales de

@@ -87,7 +87,10 @@ const PRESUPUESTO = {
      excluyen euros desconocidos y marcan totales parciales. Medido: 1.230.055 bytes crudos,
      +3.107 sobre 4.26.50; gzip 333.795 bytes (326 KB), sin mover su límite de 332 KB.
      Se añaden solo 3 KB al tope crudo para estos controles y las 14 monedas adicionales. */
-  minificado: 1202 * 1024,
+  // TR 4.26.53: concepto separado del código bancario y MCC suman el clasificador seguro.
+  // El candidato anterior medía 1.230.845 B: solo 3 B de margen, insuficiente al sellar versión.
+  // Se añade 1 KB solo al crudo; el límite de descarga gzip permanece en 332 KB.
+  minificado: 1203 * 1024,
   gzip: 332 * 1024,         // 12/9: 330,03 con suministros; aire mínimo a propósito
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };

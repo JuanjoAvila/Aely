@@ -1,5 +1,24 @@
 [
   {
+    "v": "4.26.53",
+    "d": "26 sep 2026",
+    "t": {"es":"Más información al clasificar gastos", "en":"More information for expense categories", "ca":"Més informació per classificar despeses"},
+    "items": {
+      "es": ["Los gastos nuevos con tarjeta pueden clasificarse por el concepto o el tipo de comercio que envía el banco, aunque tengan un título genérico. Se conservan las categorías elegidas a mano."],
+      "en": ["New card expenses can use the description or merchant type supplied by the bank for their category, even with a generic title. Manually chosen categories are preserved."],
+      "ca": ["Les despeses noves amb targeta es poden classificar pel concepte o el tipus de comerç que envia el banc, encara que tinguin un títol genèric. Es conserven les categories triades a mà."]
+    },
+    "tandas": [{
+      "id": "tr-descripcion-clasificacion",
+      "t": {"es":"Clasificación de gastos bancarios", "en":"Bank expense categories", "ca":"Classificació de despeses bancàries"},
+      "items": {
+        "es": ["1. Cuando haya un cargo nuevo, sincroniza Trade Republic a demanda y revisa su categoría y nota en Gastos. Si llega información útil del comercio, puede clasificarse aunque el título sea «Movimiento»; sin ella seguirá en Otros. No hace falta comprar nada.", "2. Un movimiento antiguo renombrado o clasificado a mano debe conservarse una sola vez, con sus cambios, después de repetir la sincronización."],
+        "en": ["1. When a new charge exists, sync Trade Republic on demand and check its category and note in Expenses. Useful merchant information can supply a category even with a generic title; without it the category remains Other. No purchase is needed.", "2. An older transaction renamed or categorised manually should remain once, with its changes, after syncing again."],
+        "ca": ["1. Quan hi hagi un càrrec nou, sincronitza Trade Republic a demanda i revisa’n la categoria i la nota a Despeses. Si arriba informació útil del comerç, es pot classificar encara que el títol sigui «Moviment»; sense informació continuarà a Altres. No cal comprar res.", "2. Un moviment antic reanomenat o classificat a mà s’ha de conservar una sola vegada, amb els canvis, després de repetir la sincronització."]
+      }
+    }]
+  },
+  {
     "v": "4.26.52",
     "d": "26 sep 2026",
     "t": {

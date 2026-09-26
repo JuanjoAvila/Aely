@@ -13076,8 +13076,26 @@ function reconcileBank(state, y, m, today){
   return res;
 }
 
-// Aplana los movimientos de los bancos enlazados (que devuelve bank-sync) al formato
-// que usa la conciliación. Conserva todos los bancos; el import diario aplica su ventana de fechas.
+function categoryOfBankTx(tx){
+  const m=tx.merchant||"", cat=categoryOfNewMerchant(m);
+  // El MCC solo completa comercios sin categoría: no pisa aprendizaje manual ni retiradas.
+  // Tabla acotada a correspondencias claras del manual Visa (abril 2026); el resto queda en Otros.
+  if(cat!=="otros" || USER_OVERRIDES[catKey(m)]==="otros") return cat;
+  const note=String(tx.concept||"");
+  // «Pago alquiler día 5» no identifica una tienda: nunca se clasifica por texto libre de
+  // transferencias/recibos. El nombre OB sigue intacto para dedup y lápidas de TR sin id.
+  if(tx.card && /^(movimiento|movement|transaction)?$/i.test(m.trim()) && !/transfer|bizum|recibo|alquiler|n[oó]mina|devoluci|refund/i.test(note)){
+    const c=categoryOfNewMerchant(note);
+    if(c!=="otros" || USER_OVERRIDES[catKey(note)]==="otros") return c;
+  }
+  switch(tx.mcc){
+    case "5411": return "super";
+    case "5462": return "pan";
+    case "5812": case "5813": case "5814": return "bares";
+    default: return cat;
+  }
+}
+// Aplana los movimientos enlazados conservando bancos; el diario aplica su ventana de fechas.
 function flattenBankTx(links){
   const out=[];
   (links||[]).forEach(function(lk){
@@ -13093,7 +13111,7 @@ function flattenBankTx(links){
     txs.forEach(function(t){
       // `note` = concepto del extracto (remittance_information): lo que hace que el histórico se
       // entienda sin abrir la app del banco (2026-07-24).
-      out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"" });
+      out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}) });
     });
   });
   out.sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
@@ -13227,7 +13245,7 @@ function importObExpenses(s, txs){
     const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
     const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
       merchant:tx.merchant||"Compra", amount:tx.amount,
-      category: esAporteInv ? "inversion" : categoryOfNewMerchant(tx.merchant||""), source:"ob", ent:tx.ent };
+      category: esAporteInv ? "inversion" : categoryOfBankTx(tx), source:"ob", ent:tx.ent };
     e.obName=e.merchant;   // lo que dijo el banco: el dedup se queda con esto aunque él lo renombre
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
     if(tx.id) e.extId=tx.id;
@@ -14053,6 +14071,8 @@ function histFlattenHistoryLinks(res, expenses, allow){
       out.push({
         id:tx.ext_id||null, date:row.dt, amount:row.abs,
         merchant:row.merchant,
+        ...(tx.mcc?{mcc:tx.mcc}:{}),
+        ...(tx.concept?{concept:tx.concept}:{}),
         note:tx.note||"", card:!!tx.card, ent:row.entKey, entLabel:row.entLabel,
         stamp:slot ? histDate(row.dt,"ob-slot|"+cloudK+"|"+slot) : histDate(row.dt),
         kind:row.isIn?"in":"out"
@@ -14232,7 +14252,7 @@ function histClassifyCandidates(cands, state){
     }
     const amt=Math.abs(x.amount||0);
     const esAporte=!!(daily && daily.ent===x.ent && daily.monthlyInvest>0 && Math.abs(amt-daily.monthlyInvest)<0.01);
-    const cat=(esAporte || pares.salida[i]) ? "inversion" : (typeof categoryOfNewMerchant==="function"?categoryOfNewMerchant(x.merchant||""):(typeof autoCategory==="function"?autoCategory(x.merchant||""):"otros"));
+    const cat=(esAporte || pares.salida[i]) ? "inversion" : categoryOfBankTx(x);
     // Híbrido C: default Gasto; recibo solo si el usuario lo marca (suggestRecibo).
     return { status:"new", reason:null, match:null, defDest:"gasto", suggestRecibo:!x.card, category:cat };
   });

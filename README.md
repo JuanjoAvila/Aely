@@ -81,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.52** FIN-07 aprobado y publicado exclusivamente en producción **4.26.52**, main 8cd41f09; Claude PASS y Promote 36257644323/Pages 36258292782 verdes. Beta 4.26.52.1 conserva FIN-05 y selector pendientes. APK beta 4.26.49/code 50, estable 4.26.32/code 48. FIN-06 cliente aprobado; sin backend ni APK nuevos.
+Estado actual: **v4.26.53** candidato TR: clasificación de entradas nuevas con concepto/MCC cuando el banco los ofrece; identidad e histórico conservados. Pendiente de publicación y despliegue aislado bank-sync autorizado. Producción verificada previamente 4.26.52 (FIN-07), beta 4.26.52.1 conserva FIN-05/selector pendientes. APK beta 4.26.49/code 50, estable 4.26.32/code 48. FIN-06 cliente aprobado; sin backend ni APK nuevos.
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.
