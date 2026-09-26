@@ -9,7 +9,10 @@ vuelve a la cuenta diaria, preservando incluso Efectivo como automático si ya e
 son iguales. No cambia Java ni Edge; usa el contrato existente y la APK 4.26.49/code 50.
 El selector añade 1.415 bytes minificados sobre FIN-05: 1.226.948 bytes medidos.
 Se amplía en 2 KB solo el presupuesto crudo; descarga gzip 325 KB, dentro del límite
-existente de 332 KB. Candidata aislada, revisión Claude satisfecha con 6 E2E y árbitro Java verdes; pendiente beta. FIN-05 mantiene
+existente de 332 KB. Publicada en beta OTA 4.26.50.1 por Action 36237247665 verde, Claude PASS a f3960dd0.
+CI: 428 E2E aprobadas, 1 recuperada al reintentar pulido-numpad:92 y 1 omitida;
+7 E2E de rendimiento aprobadas y los cuatro grupos Deno verdes. Las seis pruebas
+del selector pasaron en CI. Bundle público y SHA-256 cotejados; queda prueba móvil. FIN-05 mantiene
 pendiente su veredicto móvil; main no se promociona.
 
 ## [4.26.49] - 2026-09-25

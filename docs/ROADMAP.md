@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-26 · **v4.26.50** candidata aislada: selector del banco del widget en Ajustes. Beta publicada 4.26.49.1; producción 4.26.48. APK prerelease 4.26.49/code 50 sin nuevo cambio nativo. FIN-05 sigue pendiente de prueba móvil. No promocionar a main sin aprobación.
+> Estado a 2026-09-26 · **v4.26.50** publicada en beta OTA 4.26.50.1: selector del banco del widget en Ajustes, revisado y verificado en CI. Producción sigue en 4.26.48. APK prerelease 4.26.49/code 50, sin nuevo cambio nativo. Selector y FIN-05 pendientes de veredicto móvil; main requiere aprobación.
 > Publicación: el promote sigue el deploy de su commit y coteja el sello de Pages antes de cerrar; la suite lenta de 4.26.47 ya no se confunde con un fallo.
 > Anterior: **v4.26.46** — cambiar el día de un recibo conserva una sola ocurrencia y la fecha bancaria real.
 > Anterior: **v4.26.44** — la ficha de un recibo confirma el guardado antes de cerrarse y un doble toque solo puede persistir una vez.
@@ -232,7 +232,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.50** candidata del selector; beta publicada 4.26.49.1 y producción 4.26.48. |
+| Web / OTA (`VERSION`) | **4.26.50** en beta OTA 4.26.50.1; producción 4.26.48. |
 | APK (`versionName` / `versionCode`) | Beta prerelease: **4.26.49 / 50**, firmada y publicada, sin prueba móvil. Estable: 4.26.32 / 48. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **50** / 4.26.49 en esta rama beta; estable sigue en 48 / 4.26.32. |
