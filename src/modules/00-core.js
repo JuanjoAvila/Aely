@@ -793,26 +793,33 @@ async function withNotaFallback(run){
   return r;
 }
 
-/* FIN-07 — EL HISTÓRICO ENTERO. Aquí había un `.limit(2000)` sin paginar, y `syncCloudExpenses`
-   REEMPLAZA los gastos de origen "supabase" por lo que acaba de llegar: con más de 2.000 en la nube
-   —lo normal tras importar el histórico de un banco— cada sincronización BORRABA los más viejos.
-   Se pagina por CLAVE (keyset), no por desplazamiento: un gasto que entre a mitad de la descarga
-   corre la lista y te hace saltarte una fila o repetirla. El `id` en el orden no es decorativo —
-   sin un segundo criterio ÚNICO, dos gastos del MISMO día pueden salir en distinto orden entre
-   páginas y entonces uno se repite y otro se pierde.
-   (Paginación por keyset: de Cursor. Tope de seguridad y guarda de la mezcla: de esta tanda.) */
-async function mcPullExpensesPaged(fetchPage, pageSize, maxPages){
+/* FIN-07 (26/9): `fecha` es editable y moverla entre páginas saltaba una fila existente.
+   El UUID es único y estable: recorrerlo no depende de empates ni de cambios de fecha.
+   No hay snapshot entre SELECT: un alta en un tramo ya recorrido llega en el siguiente pull.
+   Una página corta puede ser el límite del servidor; solo una vacía confirma el final.
+   El progreso estricto frena respuestas repetidas sin imponer un techo al histórico. */
+async function mcPullExpensesPaged(fetchPage){
   const all=[];
   let cursor=null;
-  for(let p=0;p<maxPages;p++){
+  for(;;){
     const chunk=await fetchPage(cursor);
-    if(!chunk || !chunk.length) return { rows:all, capped:false };
-    for(let i=0;i<chunk.length;i++) all.push(chunk[i]);
-    if(chunk.length<pageSize) return { rows:all, capped:false };
-    const last=chunk[chunk.length-1];
-    cursor={ fecha:last.fecha, id:last.id };
+    if(!Array.isArray(chunk)) throw new Error("expenses: invalid page");
+    if(!chunk.length){
+      // La mezcla conserva el primer gemelo de cada clave. Mantener el orden previo por fecha
+      // evita que el UUID aleatorio cambie la fila elegida o el orden de coveredEvents (FIN-05).
+      all.sort(function(a,b){ return Date.parse(b.fecha)-Date.parse(a.fecha) ||
+        (a.id<b.id?1:a.id>b.id?-1:0); });
+      return all;
+    }
+    for(let i=0;i<chunk.length;i++){
+      const row=chunk[i], id=row&&row.id;
+      if(typeof id!=="string" || !id) throw new Error("expenses: invalid cursor");
+      const key=id.toLowerCase();   // Postgres compara UUID sin distinguir mayúsculas.
+      if(cursor && key>=cursor) throw new Error("expenses: invalid cursor");
+      cursor=key;
+      all.push(row);
+    }
   }
-  return { rows:all, capped:true };
 }
 
 
@@ -864,24 +871,16 @@ const cloud = (function(){
     async pullExpenses(){
       if(!sb) return [];
       const PAGE=1000;
-      const MAX_PAGES=50;   // 50.000 filas: red de seguridad contra un bucle, no un techo de producto.
       const fetchPage=async function(cursor){
         let q=sb.from('expenses').select('*')
-          .order('fecha',{ascending:false})
           .order('id',{ascending:false})
           .limit(PAGE);
-        if(cursor){
-          const f=String(cursor.fecha), id=String(cursor.id);
-          q=q.or('fecha.lt.'+f+',and(fecha.eq.'+f+',id.lt.'+id+')');
-        }
+        if(cursor) q=q.lt('id',cursor);
         const {data,error}=await q;
         if(error) throw error;
-        return data||[];
+        return data;
       };
-      const pulled=await mcPullExpensesPaged(fetchPage, PAGE, MAX_PAGES);
-      const rows=pulled.rows;
-      if(pulled.capped) rows._mcPullCapped=true;
-      return rows;
+      return mcPullExpensesPaged(fetchPage);
     },
     async addExpense(e){
       if(!sb) return;

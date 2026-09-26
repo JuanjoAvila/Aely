@@ -33,15 +33,16 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       /* Una cadena POR consulta (15/9): con una sola compartida, un `from("bank_links")` que
          arrancaba entre el `from("expenses")` y su `await` le cambiaba la tabla a la otra. */
       const makeChain = (tabla) => {
+      let rowLimit=Infinity, beforeId=null, rowOrders=[], read=true;
       const chain = {
         select: () => chain,
-        order: () => chain,
-        limit: () => chain,
+        order: (key,opts) => { rowOrders.push([key,opts]); return chain; },
+        limit: (n) => { rowLimit=n; return chain; },
         eq: () => chain,
-        lt: () => chain,
-        update: () => chain,
-        upsert: () => chain,
-        delete: () => chain,
+        lt: (key,value) => { if(key==="id") beforeId=value; return chain; },
+        update: () => { read=false; return chain; },
+        upsert: () => { read=false; return chain; },
+        delete: () => { read=false; return chain; },
         /* Antes devolvía SIEMPRE null, así que `cloud.pullState()` nunca traía nada y NINGÚN test
            podía ver lo que pasa cuando la nube SÍ tiene cartera. Ese agujero escondió el fallo del
            modo inicial: en el navegador la cartera vacía se quedaba vacía porque no había nube que
@@ -57,9 +58,17 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       chain.then = (resolve) => {
         const t = tabla;
         const delay = Array.isArray(cloudDelays[t]) ? cloudDelays[t].shift() : cloudDelays[t];
+        let data=Array.isArray(cloudRows[t]) ? cloudRows[t].slice() : [];
+        if(t==="expenses" && read){
+          // FIN-07: el doble debe respetar la consulta o repetiría la primera página sin fin.
+          rowOrders.slice().reverse().forEach(([key,opts]) => data.sort((a,b) =>
+            (a[key]<b[key]?-1:a[key]>b[key]?1:0)*(opts?.ascending===false?-1:1)));
+          if(beforeId) data=data.filter(r => r.id<beforeId);
+          data=data.slice(0,rowLimit);
+        }
         const out = cloudErrors[t]
           ? { data: null, error: { message: cloudErrors[t] } }
-          : { data: Array.isArray(cloudRows[t]) ? cloudRows[t].slice() : [], error: null };
+          : { data, error: null };
         if (delay) setTimeout(() => resolve(out), delay);
         else resolve(out);
       };

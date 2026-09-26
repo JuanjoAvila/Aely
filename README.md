@@ -81,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.51** FIN-06: Cartera conserva importe/moneda originales sin cambio y avisa del total incompleto; Conversor ofrece 30 monedas con cambios guardados para offline. Beta OTA 4.26.51.1 publicada y verificada (Action 36242414362, código f60df6f5, Claude PASS); producción 4.26.51 contiene solo FIN-06 aprobado (merge 2ea992b2, Promote 36251080004 y Pages 36251710852 verdes). APK 4.26.49/code 50. FIN-05 y selector conservan sus veredictos móviles pendientes en beta; no se promovió la beta completa. Servidor FIN-06 preparado, sin desplegar. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md) y [CHANGELOG.md](CHANGELOG.md).
+Estado actual: **v4.26.52** FIN-07: descarga cloud por UUID estable hasta página vacía, sin techo de 50.000; conserva histórico local y guardado partido. Candidato sin publicar, pendiente de review Claude y suite final. Producción verificada 4.26.51/main e9ba4558; beta previa 4.26.51.1/d237478e. FIN-05 y selector siguen pendientes en beta; FIN-06 ya aprobado. APK beta 4.26.49/code 50, estable 4.26.32/code 48. Sin backend ni APK nuevos. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md) y [brief FIN-07](docs/briefs/fin07-historico-cloud-2026-09-26.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.

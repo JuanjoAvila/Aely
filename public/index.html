@@ -3156,26 +3156,33 @@ async function withNotaFallback(run){
   return r;
 }
 
-/* FIN-07 — EL HISTÓRICO ENTERO. Aquí había un `.limit(2000)` sin paginar, y `syncCloudExpenses`
-   REEMPLAZA los gastos de origen "supabase" por lo que acaba de llegar: con más de 2.000 en la nube
-   —lo normal tras importar el histórico de un banco— cada sincronización BORRABA los más viejos.
-   Se pagina por CLAVE (keyset), no por desplazamiento: un gasto que entre a mitad de la descarga
-   corre la lista y te hace saltarte una fila o repetirla. El `id` en el orden no es decorativo —
-   sin un segundo criterio ÚNICO, dos gastos del MISMO día pueden salir en distinto orden entre
-   páginas y entonces uno se repite y otro se pierde.
-   (Paginación por keyset: de Cursor. Tope de seguridad y guarda de la mezcla: de esta tanda.) */
-async function mcPullExpensesPaged(fetchPage, pageSize, maxPages){
+/* FIN-07 (26/9): `fecha` es editable y moverla entre páginas saltaba una fila existente.
+   El UUID es único y estable: recorrerlo no depende de empates ni de cambios de fecha.
+   No hay snapshot entre SELECT: un alta en un tramo ya recorrido llega en el siguiente pull.
+   Una página corta puede ser el límite del servidor; solo una vacía confirma el final.
+   El progreso estricto frena respuestas repetidas sin imponer un techo al histórico. */
+async function mcPullExpensesPaged(fetchPage){
   const all=[];
   let cursor=null;
-  for(let p=0;p<maxPages;p++){
+  for(;;){
     const chunk=await fetchPage(cursor);
-    if(!chunk || !chunk.length) return { rows:all, capped:false };
-    for(let i=0;i<chunk.length;i++) all.push(chunk[i]);
-    if(chunk.length<pageSize) return { rows:all, capped:false };
-    const last=chunk[chunk.length-1];
-    cursor={ fecha:last.fecha, id:last.id };
+    if(!Array.isArray(chunk)) throw new Error("expenses: invalid page");
+    if(!chunk.length){
+      // La mezcla conserva el primer gemelo de cada clave. Mantener el orden previo por fecha
+      // evita que el UUID aleatorio cambie la fila elegida o el orden de coveredEvents (FIN-05).
+      all.sort(function(a,b){ return Date.parse(b.fecha)-Date.parse(a.fecha) ||
+        (a.id<b.id?1:a.id>b.id?-1:0); });
+      return all;
+    }
+    for(let i=0;i<chunk.length;i++){
+      const row=chunk[i], id=row&&row.id;
+      if(typeof id!=="string" || !id) throw new Error("expenses: invalid cursor");
+      const key=id.toLowerCase();   // Postgres compara UUID sin distinguir mayúsculas.
+      if(cursor && key>=cursor) throw new Error("expenses: invalid cursor");
+      cursor=key;
+      all.push(row);
+    }
   }
-  return { rows:all, capped:true };
 }
 
 
@@ -3227,24 +3234,16 @@ const cloud = (function(){
     async pullExpenses(){
       if(!sb) return [];
       const PAGE=1000;
-      const MAX_PAGES=50;   // 50.000 filas: red de seguridad contra un bucle, no un techo de producto.
       const fetchPage=async function(cursor){
         let q=sb.from('expenses').select('*')
-          .order('fecha',{ascending:false})
           .order('id',{ascending:false})
           .limit(PAGE);
-        if(cursor){
-          const f=String(cursor.fecha), id=String(cursor.id);
-          q=q.or('fecha.lt.'+f+',and(fecha.eq.'+f+',id.lt.'+id+')');
-        }
+        if(cursor) q=q.lt('id',cursor);
         const {data,error}=await q;
         if(error) throw error;
-        return data||[];
+        return data;
       };
-      const pulled=await mcPullExpensesPaged(fetchPage, PAGE, MAX_PAGES);
-      const rows=pulled.rows;
-      if(pulled.capped) rows._mcPullCapped=true;
-      return rows;
+      return mcPullExpensesPaged(fetchPage);
     },
     async addExpense(e){
       if(!sb) return;
@@ -5554,7 +5553,6 @@ Object.assign(LANG.es,{
   bp_hist_undo_cloud_fail:"Quitado en el móvil, pero la nube no ha confirmado el borrado. Si vuelven a aparecer, vuelve a deshacer con conexión.",
   bp_hist_f_all:"Todos", bp_hist_f_gastos:"🛒 Gastos", bp_hist_f_ingresos:"💰 Ingresos", bp_hist_f_allmonths:"Todos los meses",
   bp_hist_nofilter:"Ningún movimiento con este filtro. Prueba a quitar alguno.",
-  exp_pull_capped:"No ha cabido todo el historial de una vez. NO se ha borrado nada: vuelve a sincronizar para traer el resto.",
   bp_summary_n:"{n} conectado(s)", bp_summary_exp:"⚠ {n} caducado(s) — reconéctalo", bp_summary_none:"Ningún banco conectado todavía",
   bp_summary_tr_dead:"⚠ Trade Republic desconectado",
   st_ver_web:"web v{v}", st_ver_app:"app {v}", st_ver_both:"web v{w} · app {a}",
@@ -22733,18 +22731,10 @@ function App(){
       const m=inicioDeMesMs(Date.now());
       wC.current="|"+rows.filter(function(r){ return Date.parse(r.fecha)>=m && (r.ingest_event_id || r.source==="macrodroid"); })
         .map(function(r){ return (r.ingest_event_id||r.id)+"|"+r.id; }).join("|")+"|";
-      // O: el SELECT lleva .limit(2000). Si llega lleno, hay más en la nube que no vemos — avisar.
-      /* FIN-07: una descarga a medias NO es un borrado. Sin esta distinción, un pull corto
-         descarta de la app todo lo de origen `supabase` que no haya llegado — que es exactamente
-         cómo se le borraban los gastos viejos. Regla desde la contención 4.18.6: nunca se borra
-         por ausencia. */
-      const parcial=!!(rows&&rows._mcPullCapped);
-      if(parcial) showToast("⚠ "+t("exp_pull_capped"));
+      // FIN-07: el paginador solo resuelve al terminar; un error intermedio no mezcla ni
+      // confirma páginas sueltas. La ausencia sigue sin significar borrado, incluso al terminar.
       const delSet={}; (stateRef.current.deleted||[]).forEach(function(k){ delSet[k]=1; });
       const incoming=rows.map(expenseFromRow).filter(function(e){ return e.amount!==0 && !expenseIsTombstoned(e, delSet); });
-      // La tabla `expenses` es la FUENTE DE VERDAD de los gastos de la nube: se reemplazan los
-      // de origen "supabase" con lo que hay en la tabla (refresca categorías, importes y borrados).
-      // Los manuales/sheet locales NO se tocan nunca (por eso esto es seguro y no borra datos).
       // Backfill: sube a la tabla TODO gasto local que aún no esté en ella (no solo los manuales).
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
@@ -22769,11 +22759,8 @@ function App(){
       let count=0; const seenC={};
       incoming.forEach(function(e){ const k=keyOfExpense(e); if(!seenC[k]){ seenC[k]=1; if(!prevKeys[k]) count++; } });
       set(function(prev){
-        /* ANTES: `keep = filter(source!=="supabase")` + solo añadir claves nuevas. Muerto desde
-           que `expenseFromRow` convierte `"supabase"`→`"manual"`: keep se quedaba con TODO lo
-           local y una categoría cambiada en la nube NUNCA bajaba (Aigües viajes vs energia, 12/9).
-           Ahora: `mergeExpensesFromCloud` refresca campo a campo y NUNCA borra por ausencia
-           (parcial o no — la regla 4.18.6 se queda). */
+        // Refrescar una sola vez conserva el guardado partido: no reescribir el histórico
+        // por página ni cuando las filas recibidas son iguales a las que ya había.
         const merged=mergeExpensesFromCloud(prev.expenses, incoming);
         const next=merged.list;
         const igual=!merged.changed && next.length===(prev.expenses||[]).length

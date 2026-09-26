@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.52",
+    "d": "26 sep 2026",
+    "t": {
+      "es": "Histórico completo desde la nube",
+      "en": "Complete history from the cloud",
+      "ca": "Historial complet des del núvol"
+    },
+    "items": {
+      "es": [
+        "Los movimientos antiguos siguen descargándose aunque el historial sea largo. Si se interrumpe la conexión, se conserva lo guardado y se puede volver a intentar."
+      ],
+      "en": [
+        "Older transactions keep downloading even with a long history. If the connection is interrupted, saved transactions remain and you can retry."
+      ],
+      "ca": [
+        "Els moviments antics es continuen descarregant encara que l’historial sigui llarg. Si s’interromp la connexió, es conserva el que s’ha desat i es pot tornar a intentar."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "fin07-historico-cloud",
+        "t": {
+          "es": "Histórico completo desde la nube",
+          "en": "Complete history from the cloud",
+          "ca": "Historial complet des del núvol"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, abre Más → Todo y busca un movimiento antiguo que ya estuviera guardado en la nube. Debe conservar importe, banco y nota. No hace falta importar ni comprar nada.",
+            "2. Vuelve a abrir la app y repite la búsqueda: el movimiento sigue una sola vez. Los posibles repetidos mantienen su aviso.",
+            "3. Sin conexión, el histórico guardado sigue visible. Al recuperar conexión y volver a la app, se puede descargar de nuevo sin perder movimientos."
+          ],
+          "en": [
+            "1. In Expenses, open More → All and search for an older transaction already saved in the cloud. It should keep its amount, bank and note. No import or purchase is needed.",
+            "2. Reopen the app and repeat the search: the transaction appears once. Possible duplicates keep their warning.",
+            "3. Offline, saved history remains visible. Restore the connection and return to the app to download again without losing transactions."
+          ],
+          "ca": [
+            "1. A Despeses, obre Més → Tot i cerca un moviment antic que ja estigués desat al núvol. Ha de conservar import, banc i nota. No cal importar ni comprar res.",
+            "2. Torna a obrir l’app i repeteix la cerca: el moviment continua una sola vegada. Els possibles repetits mantenen l’avís.",
+            "3. Sense connexió, l’historial desat continua visible. En recuperar la connexió i tornar a l’app, es pot descarregar de nou sense perdre moviments."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.51",
     "d": "26 sep 2026",
     "t": {

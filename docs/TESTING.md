@@ -521,3 +521,8 @@ Reglas:
 > versión distinta a la que carga la configuración hace fallar todos los specs antes de correr.
 
 FIN-06: `tests/fx-multi.test.mjs` cruza cliente/Wallet, catálogo y desconocidos. `e2e/divisas-sin-cambio.spec.mjs` está en CROSSCUTTING y abre Cartera/Inversiones/Apuntar en es/en/ca con fixtures sintéticos; comprueba sumas parciales, originales, costes, roles, historial y offline.
+
+
+## FIN-07 · histórico cloud completo
+
+`pull-historico-entero` (runner unitario) ejecuta el paginador y `cloud.pullExpenses` reales con tabla sintética: 4501/50001 filas, respuesta corta, empates, ediciones de fecha, altas concurrentes, errores, reintentos, progreso y campos. Ejecuta también el sync de App para comprobar ausencia de mezcla/backfill/ACK tras error y descarte de lectura vieja. `cloud-historico-completo.spec.mjs` (CROSSCUTTING) abre Gastos y busca la fila antigua entre 2501; comprueba guardado partido, vuelta a primer plano sin reescritura y recuperación de fallo. No usa cartera real ni acredita un snapshot servidor o la latencia de RLS real.

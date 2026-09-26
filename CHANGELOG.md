@@ -1,3 +1,12 @@
+## [4.26.52] — 2026-09-26
+
+### FIN-07 · completitud cloud sin borrado por ausencia
+- Base beta d237478e: ya había keyset fecha/id, no limit(2000) simple. Reproducción ejecutada: servidor cap=317 devolvía solo 317 de 2501; 50001 filas quedaban en 50000; una fecha editada durante el pull saltaba una fila previa.
+- Cursor por UUID id DESC, estable frente a ediciones de fecha; sin offset, count previo ni techo de páginas. Solo página vacía confirma fin; formato/progreso inválido o error rechaza todo antes de mezcla, backfill y coveredEvents. Orden final fecha DESC/id DESC mantiene elección de gemelos y ACK de FIN-05.
+- Consistencia por consulta, sin snapshot entre páginas: todas las filas previas con UUID y visibilidad estables se recorren una vez; altas en tramo ya recorrido y ediciones posteriores a leer una fila esperan el siguiente pull. Ausencia nunca borra ni crea lápidas; FIN-03 y merge permanecen intactos.
+- Guardado partido: acumulación en memoria y una mezcla final, con referencias previas si no cambia nada. Test del call site real cubre rechazo y arbitraje de lecturas; E2E abre Gastos y encuentra el histórico antiguo con 2501 filas, límite de 317, fallo y recuperación. Unitario registrado existente y nuevo E2E en CROSSCUTTING; fixture respeta order/limit/lt.
+- flattenBankTx ya recorre todas las cuentas y no recorta globalmente; su snapshot bankTx es el feed diario, no todo el historial del proveedor. Límites bancarios 2000/12 páginas/tiempo y procedencia de cuenta en el diario siguen como alcance separado. Sin backend, migración, APK ni cambios retrospectivos. Estado y pruebas en docs/briefs/fin07-historico-cloud-2026-09-26.md.
+
 ## [4.26.51] — 2026-09-26
 
 ### FIN-06 · divisas sin tipo, entrega independiente

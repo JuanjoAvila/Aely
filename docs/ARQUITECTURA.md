@@ -1,5 +1,13 @@
 # Arquitectura — Aely
 
+## Descarga de gastos cloud (FIN-07, 4.26.52)
+
+`pullExpenses` recorre la tabla accesible por RLS con `id DESC` y `id < cursor`, en páginas de hasta 1000. Una página corta puede reflejar un límite de PostgREST; solo una página vacía termina. UUID es clave primaria estable; `fecha` puede editarse y no sirve de cursor. Se valida progreso estricto y se acumula en memoria, sin mezclar ni guardar por página. El resultado vuelve en fecha DESC/id DESC para conservar la prioridad previa de la mezcla y los ACK de FIN-05. Un error/payload inválido rechaza todo; `syncCloudExpenses` no actualiza estado ni coveredEvents con páginas parciales.
+
+No hay snapshot común entre peticiones: filas existentes que conservan UUID y visibilidad se recorren una vez; altas en un tramo ya recorrido y ediciones posteriores a la lectura se recuperan en otro pull. Una ausencia nunca se convierte en borrado, lápida ni decisión de duplicado. `mergeExpensesFromCloud` mantiene su identidad FIN-03 y reglas de notas; una sola mezcla final conserva referencias cuando no cambia nada y el guardado partido. Con backend actual no se promete detectar filas que pierden visibilidad mientras se descarga.
+
+`flattenBankTx` ya reúne `accounts[].transactions` sin tope global y guarda el feed diario en `bankTx`. No equivale a un histórico bancario completo: Edge diario pide mes vigente con margen, y el proveedor tiene límites de 2000 filas/12 páginas/tiempo por cuenta. El import histórico separado conserva UID/cuenta y avisos de recorte. El aplanado diario conserva banco, no UID; ampliar esa identidad exige otro objetivo. Una descarga completa de expenses no elimina estos límites externos. Sin cambio ni despliegue de Edge/migraciones. El orden por PK funciona sin nuevo índice compuesto user_id/id; su coste bajo RLS queda pendiente de medición backend autorizada.
+
 ## Ahorro mensual en Metas (4.26.25)
 
 `state.aportaciones` es planificación, no un libro de movimientos. Sus importes alimentan
