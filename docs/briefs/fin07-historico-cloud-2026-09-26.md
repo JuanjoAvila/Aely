@@ -73,7 +73,7 @@ excluye bankTx del snapshot app_state. La ausencia en ese feed tampoco autoriza 
 
 Estado de esta nota: FIN-07 publicado solo en beta **4.26.52.1**, código final
 `94bca134670692a55725d915551194c17315771c`. Review Claude PASS y CI completo verde;
-prueba móvil y aprobación de producción pendientes.
+beta aprobada por el usuario y producción exclusiva 4.26.52 verificada; ver cierre al final.
 FIN-05 y selector del widget conservan checklists/veredictos pendientes de beta. FIN-06 ya está
 aprobado en producción 4.26.51; conservar su código. APK beta 4.26.49/code 50, estable
 4.26.32/code 48. `salud` compara VERSION y su frase de beta en producción no acredita contenido.
@@ -89,7 +89,7 @@ aprobado en producción 4.26.51; conservar su código. APK beta 4.26.49/code 50,
 
 El móvil prueba OTA/presentación/offline. Los casos >2000, concurrencia y error de página se
 acreditan con datos sintéticos, sin pedir sembrar miles de movimientos ni borrar datos reales.
-Producción espera aprobación posterior del dueño. No abrir el siguiente objetivo.
+El usuario aprobó esta prueba y la producción exclusiva. El siguiente objetivo se abre solo en otra conversación.
 
 
 ## Verificación local y corte antes de publicar
@@ -109,4 +109,16 @@ Action 36255068235 sobre c3e54b91 detenido durante Tests antes de publicar: se d
 
 ## Aprobación y candidato exclusivo a producción
 
-El usuario aprobó FIN-07 el 26/9: «ya lo aprobe, listo para subir». Se prepara solo el delta FIN-07 sobre main e9ba4558. FIN-05, selector, APK estable 4.26.32/code48 y backend no se promueven. No se copia el árbol beta: hay cambios pendientes ajenos. Se resuelve el call site de App conservando el sync previo de producción, sin incorporar el árbitro FIN-05. El test de arbitraje FIN-05 permanece solo en beta; producción conserva pruebas de fallo, mezcla y guardado del histórico, junto a los cinco E2E FIN-07. Notas familiares idénticas, sin checklist aprobada pendiente en producción. Candidato exacto `126b8e8443a790d7ad07839920f4312020e3d701`: Claude PASS por mensaje real `20260926T1740Z-claude-fin07-prod-126b8e84`; 435 E2E funcionales + 7 rendimiento aislados verdes, uno omitido. 11 unitarios del histórico, sintaxis, docs-frescura y presupuesto verdes. Resto unitarios verdes salvo memoria-espejo por dos memorias externas ya desfasadas (no se modifican); Deno no instalado localmente. El E2E recibe sus propias filas y no depende del hook de FIN-05. Promote y Pages aún pendientes; no confundir este candidato con producción.
+El usuario aprobó FIN-07 el 26/9: «ya lo aprobe, listo para subir». Se prepara solo el delta FIN-07 sobre main e9ba4558. FIN-05, selector, APK estable 4.26.32/code48 y backend no se promueven. No se copia el árbol beta: hay cambios pendientes ajenos. Se resuelve el call site de App conservando el sync previo de producción, sin incorporar el árbitro FIN-05. El test de arbitraje FIN-05 permanece solo en beta; producción conserva pruebas de fallo, mezcla y guardado del histórico, junto a los cinco E2E FIN-07. Notas familiares idénticas, sin checklist aprobada pendiente en producción. Candidato exacto `126b8e8443a790d7ad07839920f4312020e3d701`: Claude PASS por mensaje real `20260926T1740Z-claude-fin07-prod-126b8e84`; 435 E2E funcionales + 7 rendimiento aislados verdes, uno omitido. 11 unitarios del histórico, sintaxis, docs-frescura y presupuesto verdes. Resto unitarios verdes salvo memoria-espejo por dos memorias externas ya desfasadas (no se modifican); Deno no instalado localmente. El E2E recibe sus propias filas y no depende del hook de FIN-05. Promote y Pages completados SUCCESS; evidencia real de producción al final.
+
+## Producción exclusiva verificada · 26/9/2026
+
+El usuario aprobó FIN-07 y ordenó subirlo. Código exclusivo `126b8e8443a790d7ad07839920f4312020e3d701`, Claude PASS `20260926T1740Z-claude-fin07-prod-126b8e84`; docs de revisión `39d97c74`. Promote [36257644323](https://github.com/JuanjoAvila/Aely/actions/runs/36257644323) SUCCESS, tanda fin07-produccion. Merge real `8cd41f093f6f718f39aeb1a41755993d40889aef`: árbol idéntico a 39d97c74, sintaxis comprobada sobre el merge.
+
+Pages [36258292782](https://github.com/JuanjoAvila/Aely/actions/runs/36258292782) SUCCESS: unitarios y privacidad verdes, 435 funcionales + 7 rendimiento, uno omitido. Promote ejecutó 443 + 7 sobre beta antes de fusionar solo la tanda. Deno omitido en ambos workflows por no estar instalado; el CI beta FIN-07 anterior sí ejecutó los cuatro ficheros Deno verdes. No afirmar Deno ejecutado en Pages.
+
+HTTP 200: version.json y APP_VERSION 4.26.52, Service Worker `4.26.52-2026-09-26-8cd41f0`; ZIP 860819 bytes, SHA-256 `ad52c418f455f179f465b31670ccb481a8142d2f6b9769db4d4109483be4a75b`, huella reconstruida `c883cfeb5ac6e38d`. HTML/SW públicos idénticos a los del ZIP; notas del ZIP idénticas a fuente de la tanda exclusiva. Paginador y aviso localizado presentes, antiguo límite ausente; selector y árbitro FIN-05 ausentes de la app de producción. APK estable 4.26.32/code 48, URL HTTP 200.
+
+Beta permanece 4.26.52.1 con FIN-05, selector y APK 4.26.49/code 50 pendientes; no borrar sus checklists ni interpretar la aprobación FIN-07 como aprobación de toda beta. Último Supabase permanece Action 36196554737/be59e27c: sin backend nuevo, migraciones ni reparación de movimientos reales. FIN-06 cliente conserva su aprobación.
+
+FIN-07 cerrado y publicado. Siguiente conversación autorizada: FIN-08, investigación y propuesta revisable de daños históricos; cualquier reparación real requiere otra aprobación. Identidad FIN-03 y restauración OPS-02 siguen siendo dependencias. No se inicia esa investigación en el chat de publicación.

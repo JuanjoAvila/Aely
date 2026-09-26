@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-26 · **v4.26.52** FIN-07 aprobado por el usuario y candidato exclusivo a producción 4.26.52 desde main e9ba4558; solo descarga cloud completa, sin cambios de identidad ni datos reales. Beta 4.26.52.1 aprobada. FIN-05 y selector conservan su código y checklists pendientes en beta. APK estable 4.26.32/code 48 intacta; sin backend ni APK nuevos. Publicación aún no acreditada.
+> Estado a 2026-09-26 · **v4.26.52** FIN-07 aprobado y publicado exclusivamente en producción **4.26.52**, main 8cd41f09. Claude PASS 126b8e84; Promote 36257644323 y Pages 36258292782 verdes, 435 E2E + 7 rendimiento en Pages (uno omitido). Manifiesto, HTML/SW y ZIP HTTP cotejados. Beta 4.26.52.1 conserva FIN-05 y selector pendientes; APK estable 4.26.32/code 48 intacta. Sin backend ni APK nuevos.
 > Publicación: el promote sigue el deploy de su commit y coteja el sello de Pages antes de cerrar; la suite lenta de 4.26.47 ya no se confunde con un fallo.
 > Anterior: **v4.26.46** — cambiar el día de un recibo conserva una sola ocurrencia y la fecha bancaria real.
 > Anterior: **v4.26.44** — la ficha de un recibo confirma el guardado antes de cerrarse y un doble toque solo puede persistir una vez.
@@ -232,7 +232,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.52** · candidato exclusivo FIN-07; producción previa 4.26.51; beta 4.26.52.1 aprobada. |
+| Web / OTA (`VERSION`) | **4.26.52** · FIN-07 exclusivo publicado/verificado, main 8cd41f09, Pages 36258292782; beta 4.26.52.1 conserva pendientes FIN-05/selector. |
 | APK (`versionName` / `versionCode`) | Repo/publicada: **4.26.32 / 48**. El asset firmado existe y la beta puede ofrecer el gesto Atrás nativo. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **48** / 4.26.32 |

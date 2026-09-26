@@ -7,6 +7,8 @@
 - Guardado partido: acumulación en memoria y una mezcla final, con referencias previas si no cambia nada. Test del call site real cubre rechazo y arbitraje de lecturas; E2E abre Gastos y encuentra el histórico antiguo con 2501 filas, límite de 317, fallo y recuperación. Unitario registrado existente y nuevo E2E en CROSSCUTTING; fixture respeta order/limit/lt. Respuesta inválida avisa en es/en/ca sin perder lo guardado, probado en el DOM.
 - flattenBankTx ya recorre todas las cuentas y no recorta globalmente; su snapshot bankTx es el feed diario, no todo el historial del proveedor. Límites bancarios 2000/12 páginas/tiempo y procedencia de cuenta en el diario siguen como alcance separado. Sin backend, migración, APK ni cambios retrospectivos. Estado y pruebas en docs/briefs/fin07-historico-cloud-2026-09-26.md.
 
+- Aprobado y publicado exclusivamente en producción 4.26.52, merge 8cd41f09; Claude PASS 126b8e84, Promote 36257644323 y Pages 36258292782 verdes, 435 E2E + 7 rendimiento y HTTP/sellos/ZIP cotejados. FIN-05, selector, APK estable y backend no se promueven.
+
 ## [4.26.51] — 2026-09-26
 
 ### FIN-06 · divisas sin tipo, entrega independiente
