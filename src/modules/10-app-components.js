@@ -2689,6 +2689,12 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     ),
     newsOpen && React.createElement(WhatsNew,{onClose:function(){ setNewsOpen(false); },showToast:showToast,set:set,state:state}),
     fbOpen && ReactDOM.createPortal(React.createElement(FeedbackPanel,{state:state,set:set,showToast:showToast,onClose:function(){ setFbOpen(false); }}), document.body),
+    natPlugin() && grp("widget","💳",t("st_widget_bank"),"widget banco bank cuenta tarjeta puedes gastar",null,
+      React.createElement("select",{className:"af-in","aria-label":t("st_widget_bank"),value:widgetBankAccounts(state).some(function(a){ return a.ent===(state.settings||{}).widgetBank; })?(state.settings||{}).widgetBank:"",onChange:function(e){ setS({widgetBank:e.target.value}); }},
+        [""].concat(Array.from(new Set(widgetBankAccounts(state).map(function(a){ return a.ent; })))).map(function(e){ return React.createElement("option",{key:e,value:e},e?entOf(e).label:t("st_widget_auto")); })
+      ),
+      React.createElement("div",{className:"hint",style:{padding:12}},t("st_widget_bank_hint"))
+    ),
     natPlugin() && grp("updates","⬇️",t("st_updates"),"actualizar update version apk buscar widget",
       apkVer ? tf("st_ver_both",{w:CONFIG.APP_VERSION,a:apkVer}) : tf("st_ver_web",{v:CONFIG.APP_VERSION}),
       row("upd","⬇️",t("st_update"),

@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.50",
+    "d": "26 sep 2026",
+    "t": {
+      "es": "Elige el banco del widget",
+      "en": "Choose the widget bank",
+      "ca": "Tria el banc del giny"
+    },
+    "items": {
+      "es": [
+        "En Ajustes puedes elegir qué banco muestra el widget junto a su saldo y cuánto puedes gastar. La elección se recuerda sin cambiar las cuentas ni el presupuesto."
+      ],
+      "en": [
+        "In Settings you can choose which bank the widget shows alongside its balance and how much you can spend. Your choice is remembered without changing your accounts or budget."
+      ],
+      "ca": [
+        "A Ajustos pots triar quin banc mostra el giny juntament amb el saldo i quant pots gastar. La tria es recorda sense canviar els comptes ni el pressupost."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "widget-banco",
+        "t": {
+          "es": "Banco del widget",
+          "en": "Widget bank",
+          "ca": "Banc del giny"
+        },
+        "items": {
+          "es": [
+            "1. Abre Ajustes → Banco del widget y elige otro banco. Comprueba el nombre, saldo y «Puedes gastar» en el widget.",
+            "2. Cierra y vuelve a abrir la app: debe conservar la elección. «Cuenta de gasto diario» recupera la elección automática."
+          ],
+          "en": [
+            "1. Open Settings → Widget bank and choose another bank. Check the name, balance and spending limit in the widget.",
+            "2. Close and reopen the app: your choice should remain. Daily spending account restores automatic selection."
+          ],
+          "ca": [
+            "1. Obre Ajustos → Banc del widget i tria un altre banc. Comprova el nom, el saldo i «Pots gastar» al giny.",
+            "2. Tanca i torna a obrir l’app: ha de conservar la tria. Compte de despesa diària recupera la tria automàtica."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.49",
     "d": "25 sep 2026",
     "t": {

@@ -86,6 +86,11 @@ public class WidgetSnapshotArbiterTest {
     long tr=WidgetSnapshotArbiter.begin(other);
     ing(other,tr,sep,sep,100,"tr",50,100,50,10,true,true);
     eq(other.spent,50); eq(other.cash(),200); eq(other.safeLiq(),150);
+    // Cambiar de banco con una notificación sin cubrir rehace solo sus deltas de saldo.
+    ok(WidgetSnapshotArbiter.app(other,sep,40,100,60.0,150.0,200.0,"trade_republic","TR","",""));
+    eq(other.cash(),190); eq(other.safeLiq(),140); eq(other.budgetLeft,50);
+    ok(WidgetSnapshotArbiter.app(other,sep,40,100,60.0,150.0,200.0,"sabadell","Sabadell","",""));
+    eq(other.cash(),200); eq(other.safeLiq(),150); eq(other.budgetLeft,50);
     WidgetSnapshotArbiter.State neutral=base(sep,"trade_republic");
     long inv=WidgetSnapshotArbiter.begin(neutral);
     ing(neutral,inv,sep,sep,100,"inversion",40,100,60,20,false,true);

@@ -1978,18 +1978,10 @@ function App(){
   // App Android: alimenta el widget de pantalla de inicio (gasto del mes + saldo de la cuenta diaria).
   // Misma cifra que Gastos/Resumen (`monthBudgetStats`), no `thisMonthSpent` (neutras/ingresos).
   const budW=monthBudgetStats(state);
-  const trAccW=state.accounts.find(function(a){ return a.spendFrom; });
+  const trAccW=widgetBankOf(state);
   const widgetCash=trAccW ? Math.round((totals.bankBal[trAccW.ent]||0)*100)/100 : null;
-  // «Lo que te puedes permitir» (petición 2026-07-18): lo que puedes gastar SIN pasarte ni quedarte
-  // en rojo = mínimo entre lo que te deja el presupuesto y la liquidez segura de la cuenta de gasto
-  // (su peor saldo del mes; no puedes gastar lo que no tienes). Nunca negativo.
-  //
-  // Se mandan las DOS PIEZAS por separado, sin combinar (2026-08-17). Antes se empujaba el mínimo
-  // ya hecho y el widget lo guardaba tal cual; con la app cerrada, una noti de TR/Wallet
-  // actualizaba el gasto pero NO esto, así que el widget acababa diciendo «te quedan 109» y
-  // «puedes gastar 324» a la vez. Ahora la resta la hace el widget con las piezas frescas:
-  // `budgetLeft` se lo recalcula el servidor en cada noti, y `safeLiq` lo baja él restando el
-  // importe. Aquí se sigue calculando igual — esta es la referencia de la que copia el nativo.
+  // El límite combina presupuesto global y liquidez del banco elegido. Se mandan las piezas
+  // por separado para que el nativo las actualice con la app cerrada (FIN-05).
   const widgetBudgetLeft=(function(){
     const bl = budW.remaining!=null ? Math.max(0, budW.remaining)
       : ((state.budget>0) ? Math.max(0, state.budget - (totals.thisMonthSpent||0)) : null);
@@ -2044,7 +2036,7 @@ function App(){
       // addListener puede resolver después del cleanup: liberar también ese handle tardío.
       if(sub) sub.then(function(h){ if(h&&h.remove) return h.remove(); }).catch(function(){});
     };
-  },[budW.shown,budW.budget,state.budget,state.deleted,state.lastSync,widgetCash,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid]);
+  },[budW.shown,budW.budget,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){
     // No arrancar el tour encima del login (showAuth) ni con el cajón abierto: causaba el caos

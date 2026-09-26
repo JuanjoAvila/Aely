@@ -2882,6 +2882,18 @@ function nominaYaEntro(now){                                        // ¿ya pas�
    UNA cuenta diario/ambos a la vez (la UI degrada las demás a fijos). */
 function accRole(a){ return (a&&a.role) || (a&&a.spendFrom ? "diario" : "fijos"); }
 function accDaily(a){ const r=accRole(a); return r==="diario"||r==="ambos"; }   // gasto variable sale de aquí
+// El sobre y las cuentas familiares no se ofrecen como elección de banco del widget.
+function widgetBankAccounts(s){
+  return (s.accounts||[]).filter(function(a){ return a.ent && !isEfectivoEnt(a) && a.ent!=="familia"; });
+}
+// El widget elige banco sin cambiar roles ni qué compras cuentan para el presupuesto.
+function widgetBankOf(s){
+  const accounts=s.accounts||[], chosen=s.settings&&s.settings.widgetBank;
+  return widgetBankAccounts(s).find(function(a){ return a.ent===chosen; }) || accounts.find(function(a){ return a.spendFrom; }) || null;
+}
+Object.assign(LANG.es,{st_widget_bank:"Banco del widget",st_widget_auto:"Cuenta de gasto diario",st_widget_bank_hint:"El saldo y cuánto puedes gastar se calculan para este banco. Sus cuentas se suman. El presupuesto no cambia."});
+Object.assign(LANG.en,{st_widget_bank:"Widget bank",st_widget_auto:"Daily spending account",st_widget_bank_hint:"Choose which bank's balance and spending limit to show. Accounts at the same bank are added together. This does not change which expenses count towards your budget."});
+Object.assign(LANG.ca,{st_widget_bank:"Banc del giny",st_widget_auto:"Compte de despesa diària",st_widget_bank_hint:"Tria de quin banc mostrar el saldo i quant pots gastar. Si tens diversos comptes del mateix banc, se sumen. No canvia quines despeses compten en el pressupost."});
 /* Bancos cuyas compras con tarjeta Open Banking entran en Gastos. Independiente del
    spendFrom único (presupuesto/round-up). Por defecto = ent de la cuenta diaria, y la cuenta
    diaria SIEMPRE entra aunque `expenseBanks` ya tenga otros bancos guardados (bug 2026-07-31:

@@ -262,3 +262,7 @@ en el Kotlin. Para que cada persona reciba SUS gastos:
 - `ingest` pasaría a `verify_jwt = true` y derivaría el `user_id` del token, en vez de usar `INGEST_USER_ID`.
 
 Lo montamos cuando llegue ese momento; para ti solo (single user) lo de ahora vale.
+
+### Banco del widget (4.26.50)
+
+Ajustes → Banco del widget elige `settings.widgetBank` (entidad bancaria), sin modificar roles ni `expenseBanks`. El envío existente usa el saldo agregado y liquidez mínima de ese banco; si ya no existe, vuelve a la cuenta diaria. No cambia Java ni requiere otra APK sobre 4.26.49/code 50. Con varias cuentas del mismo banco, el selector muestra una opción y suma las cuentas del estado principal, como el cálculo bancario actual.

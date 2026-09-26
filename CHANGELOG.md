@@ -1,3 +1,17 @@
+## [4.26.50] - 2026-09-26
+### Elección del banco del widget
+
+El widget tomaba siempre la primera cuenta con spendFrom, por lo que no permitía elegir
+otro banco. Ajustes guarda settings.widgetBank y el push usa su saldo y liquidez mínima
+por banco, conservando el presupuesto global y los roles. Se deduplican los bancos en
+el selector (excluye Efectivo/Familia) y se explica que las cuentas del mismo banco se suman. Si el banco desaparece,
+vuelve a la cuenta diaria, preservando incluso Efectivo como automático si ya era diario. La dependencia del banco fuerza el push incluso si dos saldos
+son iguales. No cambia Java ni Edge; usa el contrato existente y la APK 4.26.49/code 50.
+El selector añade 1.415 bytes minificados sobre FIN-05: 1.226.948 bytes medidos.
+Se amplía en 2 KB solo el presupuesto crudo; descarga gzip 325 KB, dentro del límite
+existente de 332 KB. Candidata aislada, revisión Claude satisfecha con 6 E2E y árbitro Java verdes; pendiente beta. FIN-05 mantiene
+pendiente su veredicto móvil; main no se promociona.
+
 ## [4.26.49] - 2026-09-25
 ### FIN-05: arbitraje del widget entre app y notificaciones
 

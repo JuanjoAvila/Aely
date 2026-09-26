@@ -81,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.49** publicada en beta OTA 4.26.49.1 y APK prerelease code 50; producción sigue en 4.26.48 con APK estable code 48. El widget espera los gastos nuevos al volver a abrir la app y ordena las notificaciones tardías; faltan instalación y prueba móvil. Disponibilidad real con `npm run salud`. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md), [CHANGELOG.md](CHANGELOG.md) y [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md).
+Estado actual: **v4.26.50** candidata aislada: elección del banco del widget en Ajustes. Beta publicada 4.26.49.1 y APK prerelease 4.26.49/code 50; producción 4.26.48. Pendientes las pruebas del selector y el veredicto móvil de FIN-05. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md) y [CHANGELOG.md](CHANGELOG.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.

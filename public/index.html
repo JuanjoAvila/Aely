@@ -5719,6 +5719,18 @@ function nominaYaEntro(now){                                        // ¿ya pas�
    UNA cuenta diario/ambos a la vez (la UI degrada las demás a fijos). */
 function accRole(a){ return (a&&a.role) || (a&&a.spendFrom ? "diario" : "fijos"); }
 function accDaily(a){ const r=accRole(a); return r==="diario"||r==="ambos"; }   // gasto variable sale de aquí
+// El sobre y las cuentas familiares no se ofrecen como elección de banco del widget.
+function widgetBankAccounts(s){
+  return (s.accounts||[]).filter(function(a){ return a.ent && !isEfectivoEnt(a) && a.ent!=="familia"; });
+}
+// El widget elige banco sin cambiar roles ni qué compras cuentan para el presupuesto.
+function widgetBankOf(s){
+  const accounts=s.accounts||[], chosen=s.settings&&s.settings.widgetBank;
+  return widgetBankAccounts(s).find(function(a){ return a.ent===chosen; }) || accounts.find(function(a){ return a.spendFrom; }) || null;
+}
+Object.assign(LANG.es,{st_widget_bank:"Banco del widget",st_widget_auto:"Cuenta de gasto diario",st_widget_bank_hint:"El saldo y cuánto puedes gastar se calculan para este banco. Sus cuentas se suman. El presupuesto no cambia."});
+
+
 /* Bancos cuyas compras con tarjeta Open Banking entran en Gastos. Independiente del
    spendFrom único (presupuesto/round-up). Por defecto = ent de la cuenta diaria, y la cuenta
    diaria SIEMPRE entra aunque `expenseBanks` ya tenga otros bancos guardados (bug 2026-07-31:
@@ -19317,6 +19329,12 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     ),
     newsOpen && React.createElement(WhatsNew,{onClose:function(){ setNewsOpen(false); },showToast:showToast,set:set,state:state}),
     fbOpen && ReactDOM.createPortal(React.createElement(FeedbackPanel,{state:state,set:set,showToast:showToast,onClose:function(){ setFbOpen(false); }}), document.body),
+    natPlugin() && grp("widget","💳",t("st_widget_bank"),"widget banco bank cuenta tarjeta puedes gastar",null,
+      React.createElement("select",{className:"af-in","aria-label":t("st_widget_bank"),value:widgetBankAccounts(state).some(function(a){ return a.ent===(state.settings||{}).widgetBank; })?(state.settings||{}).widgetBank:"",onChange:function(e){ setS({widgetBank:e.target.value}); }},
+        [""].concat(Array.from(new Set(widgetBankAccounts(state).map(function(a){ return a.ent; })))).map(function(e){ return React.createElement("option",{key:e,value:e},e?entOf(e).label:t("st_widget_auto")); })
+      ),
+      React.createElement("div",{className:"hint",style:{padding:12}},t("st_widget_bank_hint"))
+    ),
     natPlugin() && grp("updates","⬇️",t("st_updates"),"actualizar update version apk buscar widget",
       apkVer ? tf("st_ver_both",{w:CONFIG.APP_VERSION,a:apkVer}) : tf("st_ver_web",{v:CONFIG.APP_VERSION}),
       row("upd","⬇️",t("st_update"),
@@ -24261,18 +24279,10 @@ function App(){
   // App Android: alimenta el widget de pantalla de inicio (gasto del mes + saldo de la cuenta diaria).
   // Misma cifra que Gastos/Resumen (`monthBudgetStats`), no `thisMonthSpent` (neutras/ingresos).
   const budW=monthBudgetStats(state);
-  const trAccW=state.accounts.find(function(a){ return a.spendFrom; });
+  const trAccW=widgetBankOf(state);
   const widgetCash=trAccW ? Math.round((totals.bankBal[trAccW.ent]||0)*100)/100 : null;
-  // «Lo que te puedes permitir» (petición 2026-07-18): lo que puedes gastar SIN pasarte ni quedarte
-  // en rojo = mínimo entre lo que te deja el presupuesto y la liquidez segura de la cuenta de gasto
-  // (su peor saldo del mes; no puedes gastar lo que no tienes). Nunca negativo.
-  //
-  // Se mandan las DOS PIEZAS por separado, sin combinar (2026-08-17). Antes se empujaba el mínimo
-  // ya hecho y el widget lo guardaba tal cual; con la app cerrada, una noti de TR/Wallet
-  // actualizaba el gasto pero NO esto, así que el widget acababa diciendo «te quedan 109» y
-  // «puedes gastar 324» a la vez. Ahora la resta la hace el widget con las piezas frescas:
-  // `budgetLeft` se lo recalcula el servidor en cada noti, y `safeLiq` lo baja él restando el
-  // importe. Aquí se sigue calculando igual — esta es la referencia de la que copia el nativo.
+  // El límite combina presupuesto global y liquidez del banco elegido. Se mandan las piezas
+  // por separado para que el nativo las actualice con la app cerrada (FIN-05).
   const widgetBudgetLeft=(function(){
     const bl = budW.remaining!=null ? Math.max(0, budW.remaining)
       : ((state.budget>0) ? Math.max(0, state.budget - (totals.thisMonthSpent||0)) : null);
@@ -24327,7 +24337,7 @@ function App(){
       // addListener puede resolver después del cleanup: liberar también ese handle tardío.
       if(sub) sub.then(function(h){ if(h&&h.remove) return h.remove(); }).catch(function(){});
     };
-  },[budW.shown,budW.budget,state.budget,state.deleted,state.lastSync,widgetCash,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid]);
+  },[budW.shown,budW.budget,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){
     // No arrancar el tour encima del login (showAuth) ni con el cajón abierto: causaba el caos

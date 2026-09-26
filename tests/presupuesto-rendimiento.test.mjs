@@ -79,8 +79,11 @@ const PRESUPUESTO = {
      Se añade solo 1 KB al límite crudo; gzip permanece en 332 KB.
      25/9 (4.26.49, FIN-05): el guardo de reentrada espera el pull y recalcula el mes al volver.
      Medido: 1.225.533 bytes minificados, 829 sobre el tope; gzip sigue en 325 KB. Se añade
-     1 KB al crudo para este código de coherencia, sin mover el límite de descarga gzip. */
-  minificado: 1197 * 1024,
+     1 KB al crudo para este código de coherencia, sin mover el límite de descarga gzip.
+     26/9 (4.26.50): selector persistente del banco del widget y textos de ayuda. Medido:
+     1.226.948 bytes minificados (1.220 sobre el límite), gzip 325 KB. Se añaden 2 KB
+     solo al crudo para este selector; el límite de descarga gzip permanece intacto. */
+  minificado: 1199 * 1024,
   gzip: 332 * 1024,         // 12/9: 330,03 con suministros; aire mínimo a propósito
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
