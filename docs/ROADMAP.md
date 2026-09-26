@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-26 · **v4.26.52** FIN-07: descarga cloud por UUID estable hasta página vacía, sin techo de 50.000; conserva histórico local y guardado partido. Candidato sin publicar, pendiente de review Claude y suite final. Producción verificada 4.26.51/main e9ba4558; beta previa 4.26.51.1/d237478e. FIN-05 y selector siguen pendientes en beta; FIN-06 ya aprobado. APK beta 4.26.49/code 50, estable 4.26.32/code 48. Sin backend ni APK nuevos.
+> Estado a 2026-09-26 · **v4.26.52** FIN-07 publicado solo en beta **4.26.52.1**, código 94bca134, review Claude PASS y Action 36255600639 verde. Descarga cloud por UUID estable hasta página vacía, conserva histórico local y guardado partido. Producción verificada 4.26.51/main e9ba4558. FIN-05 y selector siguen pendientes en beta; FIN-06 ya aprobado. APK beta 4.26.49/code 50, estable 4.26.32/code 48. Sin backend ni APK nuevos.
 > Publicación: el promote sigue el deploy de su commit y coteja el sello de Pages antes de cerrar; la suite lenta de 4.26.47 ya no se confunde con un fallo.
 > Anterior: **v4.26.46** — cambiar el día de un recibo conserva una sola ocurrencia y la fecha bancaria real.
 > Anterior: **v4.26.44** — la ficha de un recibo confirma el guardado antes de cerrarse y un doble toque solo puede persistir una vez.
@@ -232,7 +232,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.52** · candidato FIN-07 sin publicar; beta previa 4.26.51.1; producción 4.26.51 (solo FIN-06). |
+| Web / OTA (`VERSION`) | **4.26.52** · FIN-07 publicado en beta **4.26.52.1** (94bca134; Action 36255600639); producción 4.26.51 (solo FIN-06). |
 | APK (`versionName` / `versionCode`) | Beta prerelease: **4.26.49 / 50**, firmada y publicada, sin prueba móvil. Estable: 4.26.32 / 48. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **50** / 4.26.49 en esta rama beta; estable sigue en 48 / 4.26.32. |

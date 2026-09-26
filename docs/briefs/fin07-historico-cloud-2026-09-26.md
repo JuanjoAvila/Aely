@@ -67,18 +67,20 @@ excluye bankTx del snapshot app_state. La ausencia en ese feed tampoco autoriza 
   con viewport Pixel 5, 2501 filas ficticias y límite 317. Abre Gastos → Todo, busca la fila
   antigua; guardado inicial local más una única escritura final; vuelta a primer plano sin
   reescritura y fallo/recuperación sin pérdida local. Respuesta inválida avisa en es/en/ca sin mezclar. Ninguna cartera ni banco real usados.
-- Regresión `sync-pull-refresco`: 3/3 verdes. Suite global y CI finales pendientes.
+- Regresión `sync-pull-refresco`: 3/3 verdes. Global local: 440 funcionales + 7 rendimiento verdes y 1 omitido; CI final verde: 443 funcionales + 7 rendimiento aprobados y 1 omitido.
 - Claude real aportó riesgos en `20260926T1620Z-claude-fin07-riesgos`: conservar orden previo,
-  rechazo sin ACK, progreso estricto, coste/RLS y arbitraje. Review del SHA final pendiente.
+  rechazo sin ACK, progreso estricto, coste/RLS y arbitraje. Review PASS del SHA final `94bca134670692a55725d915551194c17315771c`, mensaje `20260926T1710Z-claude-fin07-94bca134`.
 
-Estado de esta nota: candidato 4.26.52 sin publicar. No confundir pruebas locales con publicación.
+Estado de esta nota: FIN-07 publicado solo en beta **4.26.52.1**, código final
+`94bca134670692a55725d915551194c17315771c`. Review Claude PASS y CI completo verde;
+prueba móvil y aprobación de producción pendientes.
 FIN-05 y selector del widget conservan checklists/veredictos pendientes de beta. FIN-06 ya está
 aprobado en producción 4.26.51; conservar su código. APK beta 4.26.49/code 50, estable
 4.26.32/code 48. `salud` compara VERSION y su frase de beta en producción no acredita contenido.
 
 ## Guion móvil tras publicación verificada
 
-1. Instalar la OTA exacta anunciada al cierre y mantener canal beta. No hace falta APK nueva
+1. Instalar la OTA **4.26.52.1** y mantener canal beta. No hace falta APK nueva
    para FIN-07; FIN-05 mantiene su requisito APK beta 4.26.49/code 50 y pago real pendiente.
 2. Gastos → Más → Todo: buscar un movimiento antiguo ya guardado en nube. Debe conservar
    importe, banco y nota; no hace falta importación, compra ni modificar nada.
@@ -94,4 +96,13 @@ Producción espera aprobación posterior del dueño. No abrir el siguiente objet
 
 Claude PASS eaf3a88e y revalidación PASS c3e54b9116914e41880907673183a27cb3cecddc por canal real (mensajes 20260926T1650Z-claude-fin07-eaf3a88e y 20260926T1700Z-claude-fin07-c3e54b91). Global local eaf3a88e: 440 funcionales + 7 rendimiento verdes, 1 omitido. Sobre c3e54b91: 20 pruebas de cloud/refresco/persistencia/widget y 7 rendimiento aisladas verdes; 12 unitarios, sintaxis y presupuesto verdes. npm test ejecutó todos los unitarios, solo falló memoria-espejo por dos memorias externas conocidas; Deno omitido por no estar instalado. No se modifican esas memorias.
 
-Action 36255068235 sobre c3e54b91 detenido durante Tests antes de publicar: se descubrió que el nuevo error de respuesta inválida podía verse en inglés al arrancar. Se localiza en es/en/ca y se añaden tres E2E del aviso real; foco cloud/refresco 8/8 verde. Mantener VERSION 4.26.52: no se consumió una beta pública ni se alteraron assets 4.26.51.1. Review final y CI del ajuste de texto pendientes antes de publicar.
+Action 36255068235 sobre c3e54b91 detenido durante Tests antes de publicar: se descubrió que el nuevo error de respuesta inválida podía verse en inglés al arrancar. Se localiza en es/en/ca y se añaden tres E2E del aviso real; foco cloud/refresco 8/8 verde. Mantener VERSION 4.26.52: no se consumió una beta pública ni se alteraron assets 4.26.51.1. Claude PASS del ajuste final en `94bca134`; CI 36255600639 completado verde y publicación comprobada por HTTP.
+
+## Publicación comprobada
+
+- [Action 36255600639](https://github.com/JuanjoAvila/Aely/actions/runs/36255600639), SHA exacto `94bca134670692a55725d915551194c17315771c`: todos los pasos unitarios verdes (incluidos memoria-espejo, docs-frescura, sintaxis, i18n, presupuesto y mapa), cuatro ficheros Deno ejecutados y verdes; 443 E2E funcionales + 7 de rendimiento aislados, una prueba omitida.
+- Release `Beta 4.26.52.1`; `version.json` HTTP anuncia channel beta y huella `8a6a9b83a255cc0e`. ZIP real descargado: 863167 bytes, SHA-256 `b5135c78f806d19e1d73fbdbc7fdb0b16f623e5a899ebf37dd1522b0ae83198f`, coincidente con digest del asset GitHub. Huella recalculada sobre el ZIP coincide con manifest.
+- `APP_VERSION` real 4.26.52.1; Service Worker `4.26.52.1-2026-09-26-94bca13`. Paginador, aviso traducido, widgetBankOf y coveredEvents presentes; marcador antiguo de límite ausente. Notas/checklists del ZIP idénticas al JSON fuente y entradas previas conservadas.
+- APK anunciada sigue 4.26.49/code 50, URL HTTP 200; digest de apk.json idéntico al anterior `12fa66d06f0b62ec3411cd27696b4f1b8b1dbeae68f239610c1fe55a73fce2d6`. No se necesita APK nueva para FIN-07.
+- `npm run salud`: producción HTTP 4.26.51, bundle y APK HTTP 200; beta 4.26.52.1. Main remoto permanece `e9ba4558803e45bb30682368bba3d04428e76d38`; último Action Supabase permanece 36196554737/be59e27c. No hay promoción, cambios de datos reales ni nuevo despliegue backend.
+- Límite de evidencia: navegador con fixtures sintéticos, no acceso a cuentas ni bancos reales; veredicto móvil pendiente. Sin garantía de snapshot global ni ampliación de límites del proveedor bancario.

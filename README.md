@@ -81,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.52** FIN-07: descarga cloud por UUID estable hasta página vacía, sin techo de 50.000; conserva histórico local y guardado partido. Candidato sin publicar, pendiente de review Claude y suite final. Producción verificada 4.26.51/main e9ba4558; beta previa 4.26.51.1/d237478e. FIN-05 y selector siguen pendientes en beta; FIN-06 ya aprobado. APK beta 4.26.49/code 50, estable 4.26.32/code 48. Sin backend ni APK nuevos. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md) y [brief FIN-07](docs/briefs/fin07-historico-cloud-2026-09-26.md).
+Estado actual: **v4.26.52** FIN-07 publicado solo en beta **4.26.52.1**, código 94bca134, review Claude PASS y Action 36255600639 verde. Descarga cloud por UUID estable hasta página vacía, conserva histórico local y guardado partido. Producción verificada 4.26.51/main e9ba4558. FIN-05 y selector siguen pendientes en beta; FIN-06 ya aprobado. APK beta 4.26.49/code 50, estable 4.26.32/code 48. Sin backend ni APK nuevos. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md) y [brief FIN-07](docs/briefs/fin07-historico-cloud-2026-09-26.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.
