@@ -1,3 +1,11 @@
+## [4.26.53] — 2026-09-26
+
+### TR · clasificar entradas nuevas sin cambiar la identidad bancaria
+- Un nombre genérico como «Movimiento» ocultaba el concepto al clasificador y `mapTransaction` descartaba el MCC opcional. El mapper conserva merchant/ext_id/signo/fechas/nota y añade `concept` solo desde remittance_information y `mcc` válido de cuatro dígitos. No inventa comercio ni consulta detalles adicionales. La descripción del código bancario no entra en concept: «Card transaction» no debe activar la tienda Action.
+- Diario e histórico conservan concept/MCC y usan el mismo clasificador solo para nuevas filas: categoría aprendida o reconocida por nombre, después concepto útil solo con tarjeta y título genérico, después MCC acotado 5411/5462/5812/5813/5814. El concepto se excluye si contiene transferencia, Bizum, recibo, alquiler, nómina o devolución/refund: texto libre como «alquiler día 5» no debe activar la marca DIA. Decisiones personales, incluidos Otros, retiradas de efectivo, aportes/deudas/modelados e ingresos conservan prioridad. Los campos no se guardan como nuevas columnas de expenses ni exigen migración.
+- Se conserva «Movimiento» como identidad/título cuando así llega: sustituirlo con el concepto rompería dedup y lápidas de TR sin ext_id. Los datos útiles siguen visibles en la nota. No se recategoriza ni renombra el histórico, no hay sync automático ni cambio de claves/ACK/duplicados.
+- Pruebas sintéticas ejecutan mapper TS real → flatten → import e histórico; DOM real sincroniza explícitamente el fixture bancario y comprueba categorías, nota, conservación del apunte renombrado y repetición. Revisión real de Claude pidió limitar texto libre y separar concepto/código bancario; aplicado y cubierto. Sin payload TR real no se garantiza que el banco entregue concepto o MCC. Ambos campos requieren despliegue aislado autorizado de bank-sync compartido con producción; cliente antiguo los ignora y cliente nuevo conserva clasificación previa con backend antiguo. Límite crudo +1 KB por el clasificador y sellado (anterior margen 3 bytes); gzip permanece en 332 KB. Sin publicación todavía.
+
 ## [4.26.52] — 2026-09-26
 
 ### FIN-07 · completitud cloud sin borrado por ausencia

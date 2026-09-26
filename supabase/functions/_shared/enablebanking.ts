@@ -156,6 +156,7 @@ export function mapTransaction(t: any) {
     : (t?.remittance_information || "");
   const counterparty = (isCredit ? t?.debtor?.name : t?.creditor?.name) || "";
   const merchant = counterparty || remit || "Movimiento";
+  const mcc = String(t?.merchant_category_code || "").trim();
   const haystack = `${remit} ${t?.creditor?.name || ""} ${t?.debtor?.name || ""} ${t?.bank_transaction_code?.description || ""}`;
   // CONCEPTO (petición 2026-07-24): hasta ahora `remittance_information` solo se usaba de comodín
   // para el título y, si el banco mandaba el nombre del ordenante, se TIRABA. Es justo el mensaje
@@ -171,6 +172,10 @@ export function mapTransaction(t: any) {
     amount: isCredit ? -amt : amt,
     merchant: String(merchant).trim().slice(0, 80),
     note: note.slice(0, 160),
+    // El código bancario no identifica una tienda («transaction» contiene la marca Action).
+    // Se conserva el concepto separado para clasificar sin usar esa descripción genérica.
+    concept: String(remit).replace(/\s+/g, " ").trim().slice(0, 160),
+    ...(/^\d{4}$/.test(mcc) ? { mcc } : {}),
     // best-effort: compra con tarjeta. Solo texto en español lo detectaba (TARJ/TARJETA); un
     // ASPSP que informa en inglés (Trade Republic, Revolut…) no lo mencionaba nunca y el cargo
     // se perdía en silencio (petición 2026-08-03). Con la cuenta de gasto diario esto ya no

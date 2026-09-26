@@ -2,6 +2,8 @@ Widget banco (4.26.50): `e2e/widget-banco.spec.mjs` abre Ajustes y cambia el ban
 
 # Testing — Aely
 
+TR clasificación (candidato 4.26.53): `tests/bank-merchant-category.test.mjs` ejecuta mapper TS real, diario e histórico con datos ficticios; cubre MCC conocidos/desconocidos, concepto separado de código bancario (Card transaction no es Action), transferencias/recibos excluidos, decisiones personales Otros, ingresos/aportes/cajero, identidad, lápidas y no recategorización. Registrado en run-tests. `e2e/bank-merchant-category.spec.mjs` usa respuesta del mapper real, dispara sincronización explícita, abre Gastos y comprueba categorías/notas, histórico renombrado y repetición. Registrado en CROSSCUTTING. No demuestra que TR real entregue MCC/concepto; falta comprobarlo tras despliegue autorizado.
+
 REC-GUARDADO-01 (4.26.48): `e2e/plan-gestionar.spec.mjs`, ya registrado para el módulo 14 en
 `scripts/relevant-tests.mjs`, recorre el alta real de recibo, cargo puntual e ingreso en
 es/en/ca. Exige una confirmación visible con tipo y nombre tras cerrar la hoja y una sola fila

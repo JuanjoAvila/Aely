@@ -1,5 +1,11 @@
 # Arquitectura — Aely
 
+## Clasificación bancaria opcional (candidato 4.26.53)
+
+`mapTransaction` mantiene nombre/nota/identidad y transmite `concept` solo desde remittance_information más `mcc` opcional de cuatro dígitos. La descripción del código bancario sigue en note pero nunca se usa para clasificar como comercio. `flattenBankTx` y `histFlattenHistoryLinks` transmiten esos campos a `categoryOfBankTx`, usado solo al crear nuevos gastos. La categoría aprendida/reconocida por nombre gana; después concept solo con tarjeta y nombre genérico Movimiento/Movement/Transaction/vacío, excluyendo transferencia/Bizum/recibo/alquiler/nómina/devolución/refund; después MCC acotado (5411 super, 5462 pan, 5812/5813/5814 bares). Un Otros aprendido gana también; categorías neutras/modelados/ingresos conservan sus rutas. No cambia identidad, nombre persistido, dedup, lápidas, ACK ni histórico existente. Note conserva el concepto visible. Sin datos útiles, Otros. Cliente antiguo ignora ambos campos y cliente nuevo mantiene comportamiento anterior sin ellos; necesitan despliegue aislado autorizado de bank-sync compartido, todavía no efectuado.
+
+Contratos oficiales: [Enable Banking Transaction](https://enablebanking.com/docs/api/reference/#transaction) y [Visa Merchant Data Standards, abril 2026](https://usa.visa.com/dam/VCOM/download/merchants/visa-merchant-data-standards-manual.pdf). No se ha verificado que TR entregue estos campos en una conexión real.
+
 ## Descarga de gastos cloud (FIN-07, 4.26.52)
 
 `pullExpenses` recorre la tabla accesible por RLS con `id DESC` y `id < cursor`, en páginas de hasta 1000. Una página corta puede reflejar un límite de PostgREST; solo una página vacía termina. UUID es clave primaria estable; `fecha` puede editarse y no sirve de cursor. Se valida progreso estricto y se acumula en memoria, sin mezclar ni guardar por página. El resultado vuelve en fecha DESC/id DESC para conservar la prioridad previa de la mezcla y los ACK de FIN-05. Un error/payload inválido rechaza todo; `syncCloudExpenses` no actualiza estado ni coveredEvents con páginas parciales.
