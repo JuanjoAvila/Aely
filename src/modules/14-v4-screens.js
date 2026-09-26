@@ -1129,6 +1129,7 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
     React.createElement("h1",{className:"v4-title serif"}, t("v4_cartera_title")),
     React.createElement("div",{className:"v4-card v4-card-hero rise",style:{animationDelay:".05s"}},
       React.createElement("div",{className:"v4-micro"}, heroLab),
+      React.createElement(FxNotice,{missing:totals.fxMissing}),
       React.createElement("div",{className:"serif num cartera-hero-amt",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
         ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},","+ph.dec+" "+ph.sym)),
       React.createElement("div",{className:"v4-stackbar",style:{marginTop:16}},
@@ -1484,9 +1485,9 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
       React.createElement("button",{type:"button",className:"v4-chip"+(cat===chipIA?" on":""),"data-testid":"ap-ia-chip",
         onClick:function(){ pickCat(chipIA); }},"✨ "+catName(chipIA)))
   );
-  const fxHint=entryCur!=="EUR" ? tf("f_fx_eq",{
+  const fxHint=entryCur!=="EUR" ? (toEurAmt(amt,entryCur,state)==null?t("fx_no_rate"):tf("f_fx_eq",{
     x:NF.format(toEurAmt(amt,entryCur,state))+" €",date:fmtIsoCorto(state.fxDate||date)
-  }) : null;
+  })) : null;
   const ctaAmount=NF.format(amt)+(entrySym.length>1?" ":"")+entrySym;
   const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},

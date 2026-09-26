@@ -238,6 +238,7 @@ function promoteObAccount(s, totals, key, role, id){
   if(!o || !o.ent) return s;
   const now=new Date();
   const bal=toEurAmt(o.value||0, o.cur||"EUR", s);
+  if(bal==null) return s;
   const base=+((bal - monthNetForAccount(s, o.ent, now.getFullYear(), now.getMonth()+1, now.getDate())).toFixed(2));
   const name=((s.obLabels||{})[o.key]) || niceObName(o);
   /* Conserva la clave de orden de la fila OB: elegir un rol no debe mandar de golpe la cuenta al
@@ -1166,7 +1167,8 @@ function applyInvestBuy(state, ent, amountEur){
   if(!acc) return null;
   const inv=(state.investments||[]).find(function(i){ return i.id===acc.rewardInv; });
   if(!inv) return null;
-  const cInv = inv.cur==="USD" ? amountEur/(state.fx||1) : amountEur;   // a la moneda de la inversión
+  const cInv = fromEurAmt(amountEur,inv.cur||"EUR",state);
+  if(cInv==null) return null;   // a la moneda de la inversión
   const boughtShares = (inv.shares>0 && inv.value>0) ? +(cInv/(inv.value/inv.shares)).toFixed(6) : 0;
   const newInv=Object.assign({},inv,{
     shares: +(((inv.shares||0)+boughtShares)).toFixed(6),
