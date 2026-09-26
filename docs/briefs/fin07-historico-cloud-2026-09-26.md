@@ -59,10 +59,10 @@ excluye bankTx del snapshot app_state. La ausencia en ese feed tampoco autoriza 
 
 ## Pruebas y revisión
 
-- `pull-historico-entero` registrado en runner existente, ahora 11 casos ejecutados verdes:
+- `pull-historico-entero` registrado en runner existente, ahora 12 casos ejecutados verdes:
   4501/50001 filas, campos/UUID/conteos, empates, respuesta 317, fechas editadas, altas en ambos
   lados del cursor, reintento, fallo intermedio, payload inválido/progreso, orden/gemelos,
-  merge con nota editada/possibleDupOf/local adicional y sync de App (ACK y arbitraje).
+  merge con nota editada/possibleDupOf/local adicional y sync de App (ACK y arbitraje, microsegundos/offsets).
 - E2E nuevo `cloud-historico-completo` registrado en CROSSCUTTING: 2/2 verdes en Chromium
   con viewport Pixel 5, 2501 filas ficticias y límite 317. Abre Gastos → Todo, busca la fila
   antigua; guardado inicial local más una única escritura final; vuelta a primer plano sin

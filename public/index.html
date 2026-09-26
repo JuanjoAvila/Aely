@@ -3170,8 +3170,15 @@ async function mcPullExpensesPaged(fetchPage){
     if(!chunk.length){
       // La mezcla conserva el primer gemelo de cada clave. Mantener el orden previo por fecha
       // evita que el UUID aleatorio cambie la fila elegida o el orden de coveredEvents (FIN-05).
-      all.sort(function(a,b){ return Date.parse(b.fecha)-Date.parse(a.fecha) ||
-        (a.id<b.id?1:a.id>b.id?-1:0); });
+      all.sort(function(a,b){
+        const ms=Date.parse(b.fecha)-Date.parse(a.fecha);
+        if(ms) return ms;
+        // timestamptz conserva microsegundos; Date.parse pierde los tres últimos. Mantenerlos
+        // evita elegir otro gemelo cuando dos fechas caen en el mismo milisegundo.
+        const af=String(a.fecha).match(/\.(\d+)/), bf=String(b.fecha).match(/\.(\d+)/);
+        const au=(af?af[1]:"").padEnd(6,"0"), bu=(bf?bf[1]:"").padEnd(6,"0");
+        return au<bu?1:au>bu?-1:(a.id<b.id?1:a.id>b.id?-1:0);
+      });
       return all;
     }
     for(let i=0;i<chunk.length;i++){

@@ -33,8 +33,7 @@ function client(table,{cap=1000,before=()=>{},response}={}){
   }};
   const ini=core.indexOf("async function mcPullExpensesPaged(");
   const end=core.indexOf("\n})();",ini)+7;
-  const ctx=vm.createContext({window:{supabase:{createClient:()=>sb}},CONFIG:{SUPABASE_URL:"test",SUPABASE_ANON_KEY:"test"},
-    isExpenseUuid:x=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(x)});
+  const ctx=vm.createContext({window:{supabase:{createClient:()=>sb}},CONFIG:{SUPABASE_URL:"test",SUPABASE_ANON_KEY:"test"}});
   vm.runInContext(core.slice(ini,end)+"\nglobalThis.client=cloud;",ctx);
   return {pull:()=>ctx.client.pullExpenses(),queries};
 }
@@ -64,6 +63,15 @@ test("FIN07: salida conserva fecha DESC/id DESC y el gemelo elegido por la mezcl
   const cli=loadPureLogicFromFile();
   assert.deepEqual(cli.mergeExpensesFromCloud([],plain(out).map(cli.expenseFromRow)),
     cli.mergeExpensesFromCloud([],expected.map(cli.expenseFromRow)));
+});
+test("FIN07: el orden fecha conserva microsegundos y normaliza offsets equivalentes",async()=>{
+  const data=rows(4);
+  data[0].fecha="2020-01-01T12:00:00.123999+00:00";
+  data[1].fecha="2020-01-01T13:00:00.123001+01:00";
+  data[2].fecha="2020-01-01T12:00:00.123000+00:00";
+  data[3].fecha="2020-01-01T12:00:00.123+00:00";
+  const out=await client(data,{cap:2}).pull();
+  assert.deepEqual(plain(out).map(r=>r.id),[data[0].id,data[1].id,data[3].id,data[2].id]);
 });
 test("FIN07: alta concurrente y edición de fecha no saltan ninguna fila previa",async()=>{
   const data=rows(2501), initial=plain(data), added={...data[0],id:uuid(9999)};
