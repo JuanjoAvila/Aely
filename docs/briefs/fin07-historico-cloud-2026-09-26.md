@@ -63,10 +63,10 @@ excluye bankTx del snapshot app_state. La ausencia en ese feed tampoco autoriza 
   4501/50001 filas, campos/UUID/conteos, empates, respuesta 317, fechas editadas, altas en ambos
   lados del cursor, reintento, fallo intermedio, payload inválido/progreso, orden/gemelos,
   merge con nota editada/possibleDupOf/local adicional y sync de App (ACK y arbitraje, microsegundos/offsets).
-- E2E nuevo `cloud-historico-completo` registrado en CROSSCUTTING: 2/2 verdes en Chromium
+- E2E nuevo `cloud-historico-completo` registrado en CROSSCUTTING: 5/5 verdes en Chromium
   con viewport Pixel 5, 2501 filas ficticias y límite 317. Abre Gastos → Todo, busca la fila
   antigua; guardado inicial local más una única escritura final; vuelta a primer plano sin
-  reescritura y fallo/recuperación sin pérdida local. Ninguna cartera ni banco real usados.
+  reescritura y fallo/recuperación sin pérdida local. Respuesta inválida avisa en es/en/ca sin mezclar. Ninguna cartera ni banco real usados.
 - Regresión `sync-pull-refresco`: 3/3 verdes. Suite global y CI finales pendientes.
 - Claude real aportó riesgos en `20260926T1620Z-claude-fin07-riesgos`: conservar orden previo,
   rechazo sin ACK, progreso estricto, coste/RLS y arbitraje. Review del SHA final pendiente.
@@ -88,3 +88,10 @@ aprobado en producción 4.26.51; conservar su código. APK beta 4.26.49/code 50,
 El móvil prueba OTA/presentación/offline. Los casos >2000, concurrencia y error de página se
 acreditan con datos sintéticos, sin pedir sembrar miles de movimientos ni borrar datos reales.
 Producción espera aprobación posterior del dueño. No abrir el siguiente objetivo.
+
+
+## Verificación local y corte antes de publicar
+
+Claude PASS eaf3a88e y revalidación PASS c3e54b9116914e41880907673183a27cb3cecddc por canal real (mensajes 20260926T1650Z-claude-fin07-eaf3a88e y 20260926T1700Z-claude-fin07-c3e54b91). Global local eaf3a88e: 440 funcionales + 7 rendimiento verdes, 1 omitido. Sobre c3e54b91: 20 pruebas de cloud/refresco/persistencia/widget y 7 rendimiento aisladas verdes; 12 unitarios, sintaxis y presupuesto verdes. npm test ejecutó todos los unitarios, solo falló memoria-espejo por dos memorias externas conocidas; Deno omitido por no estar instalado. No se modifican esas memorias.
+
+Action 36255068235 sobre c3e54b91 detenido durante Tests antes de publicar: se descubrió que el nuevo error de respuesta inválida podía verse en inglés al arrancar. Se localiza en es/en/ca y se añaden tres E2E del aviso real; foco cloud/refresco 8/8 verde. Mantener VERSION 4.26.52: no se consumió una beta pública ni se alteraron assets 4.26.51.1. Review final y CI del ajuste de texto pendientes antes de publicar.

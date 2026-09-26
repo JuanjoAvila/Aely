@@ -3166,7 +3166,7 @@ async function mcPullExpensesPaged(fetchPage){
   let cursor=null;
   for(;;){
     const chunk=await fetchPage(cursor);
-    if(!Array.isArray(chunk)) throw new Error("expenses: invalid page");
+    if(!Array.isArray(chunk)) throw new Error(t("exp_pull_invalid"));
     if(!chunk.length){
       // La mezcla conserva el primer gemelo de cada clave. Mantener el orden previo por fecha
       // evita que el UUID aleatorio cambie la fila elegida o el orden de coveredEvents (FIN-05).
@@ -3183,9 +3183,9 @@ async function mcPullExpensesPaged(fetchPage){
     }
     for(let i=0;i<chunk.length;i++){
       const row=chunk[i], id=row&&row.id;
-      if(typeof id!=="string" || !id) throw new Error("expenses: invalid cursor");
+      if(typeof id!=="string" || !id) throw new Error(t("exp_pull_invalid"));
       const key=id.toLowerCase();   // Postgres compara UUID sin distinguir mayúsculas.
-      if(cursor && key>=cursor) throw new Error("expenses: invalid cursor");
+      if(cursor && key>=cursor) throw new Error(t("exp_pull_invalid"));
       cursor=key;
       all.push(row);
     }
@@ -5562,6 +5562,7 @@ Object.assign(LANG.es,{
   bp_hist_nofilter:"Ningún movimiento con este filtro. Prueba a quitar alguno.",
   bp_summary_n:"{n} conectado(s)", bp_summary_exp:"⚠ {n} caducado(s) — reconéctalo", bp_summary_none:"Ningún banco conectado todavía",
   bp_summary_tr_dead:"⚠ Trade Republic desconectado",
+  exp_pull_invalid:"No se pudo completar la descarga. Lo guardado se conserva; vuelve a intentarlo.",
   st_ver_web:"web v{v}", st_ver_app:"app {v}", st_ver_both:"web v{w} · app {a}",
   bp_pick_title:"Elige tu banco", bp_pick_sub:"Solo verás las cuentas que autorices.",
   bp_search:"Buscar banco…", bp_loading:"Cargando bancos…", bp_noresults:"Ningún banco coincide.", bp_already:"ya conectado",

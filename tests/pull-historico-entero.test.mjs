@@ -33,7 +33,7 @@ function client(table,{cap=1000,before=()=>{},response}={}){
   }};
   const ini=core.indexOf("async function mcPullExpensesPaged(");
   const end=core.indexOf("\n})();",ini)+7;
-  const ctx=vm.createContext({window:{supabase:{createClient:()=>sb}},CONFIG:{SUPABASE_URL:"test",SUPABASE_ANON_KEY:"test"}});
+  const ctx=vm.createContext({window:{supabase:{createClient:()=>sb}},CONFIG:{SUPABASE_URL:"test",SUPABASE_ANON_KEY:"test"},t:key=>key});
   vm.runInContext(core.slice(ini,end)+"\nglobalThis.client=cloud;",ctx);
   return {pull:()=>ctx.client.pullExpenses(),queries};
 }
@@ -95,10 +95,10 @@ test("FIN07: fallo intermedio no devuelve parcial; recuperación comienza de cer
 test("FIN07: payload ausente, no array, repetido, desordenado o ID ausente rechazan",async()=>{
   for(const payload of [null,{},[rows(1)[0],rows(1)[0]],[...rows(2)],[{id:null}]]){
     const c=client(rows(2),{response(){return {data:payload,error:null};}});
-    await assert.rejects(c.pull());
+    await assert.rejects(c.pull(),/exp_pull_invalid/);
   }
   const c=client(rows(2501),{response(n){if(n===2)return {data:[rows(2501).at(-1)],error:null};}});
-  await assert.rejects(c.pull());
+  await assert.rejects(c.pull(),/exp_pull_invalid/);
 });
 test("FIN07: mezcla conserva adicionales, lápidas, notas editadas y possibleDupOf sin reinterpretar identidad",async()=>{
   const cli=loadPureLogicFromFile();

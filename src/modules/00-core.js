@@ -803,7 +803,7 @@ async function mcPullExpensesPaged(fetchPage){
   let cursor=null;
   for(;;){
     const chunk=await fetchPage(cursor);
-    if(!Array.isArray(chunk)) throw new Error("expenses: invalid page");
+    if(!Array.isArray(chunk)) throw new Error(t("exp_pull_invalid"));
     if(!chunk.length){
       // La mezcla conserva el primer gemelo de cada clave. Mantener el orden previo por fecha
       // evita que el UUID aleatorio cambie la fila elegida o el orden de coveredEvents (FIN-05).
@@ -820,9 +820,9 @@ async function mcPullExpensesPaged(fetchPage){
     }
     for(let i=0;i<chunk.length;i++){
       const row=chunk[i], id=row&&row.id;
-      if(typeof id!=="string" || !id) throw new Error("expenses: invalid cursor");
+      if(typeof id!=="string" || !id) throw new Error(t("exp_pull_invalid"));
       const key=id.toLowerCase();   // Postgres compara UUID sin distinguir mayúsculas.
-      if(cursor && key>=cursor) throw new Error("expenses: invalid cursor");
+      if(cursor && key>=cursor) throw new Error(t("exp_pull_invalid"));
       cursor=key;
       all.push(row);
     }

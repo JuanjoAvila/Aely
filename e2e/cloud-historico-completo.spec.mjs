@@ -6,15 +6,15 @@ const rows=Array.from({length:2501},(_,i)=>({id:uuid(i+1),fecha:"2020-01-01T12:0
   comercio:i===0?"Archivo antiguo FIN07":"Histórico "+i,cat:"otros",source:"manual:sabadell",nota:"Concepto "+i}));
 const local={id:uuid(9999),date:"2019-01-01T12:00:00.000Z",amount:5,merchant:"Solo local FIN07",category:"otros",source:"manual",ent:"sabadell"};
 
-async function setup(page,{fail=false}={}){
+async function setup(page,{fail=false,invalid=false,lang="es"}={}){
   await seedLoggedInDashboard(page,{__seedOnce:true,expenses:[local],
     accounts:[{id:"s",ent:"sabadell",name:"Sabadell",value:500,role:"diario",spendFrom:true}],
-    settings:{autoPrices:false,theme:"green",expenseBanks:["sabadell"]},__cloudRows:{expenses:rows}});
-  await page.addInitScript(({fail})=>{
+    settings:{autoPrices:false,lang,theme:"green",expenseBanks:["sabadell"]},__cloudRows:{expenses:rows}});
+  await page.addInitScript(({fail,invalid})=>{
     const seed=JSON.parse(localStorage.getItem("micartera_v3"));
     localStorage.setItem("micartera_v3_exp",JSON.stringify(seed.expenses));
     delete seed.expenses;localStorage.setItem("micartera_v3",JSON.stringify(seed));
-    window.__fin07={fail,queries:[],writes:[]};
+    window.__fin07={fail,invalid,queries:[],writes:[]};
     const raw=localStorage.setItem.bind(localStorage);
     localStorage.setItem=(k,v)=>{if(k==="micartera_v3_exp")window.__fin07.writes.push(JSON.parse(v).length);return raw(k,v);};
     const descriptor=Object.getOwnPropertyDescriptor(window,"supabase");
@@ -35,6 +35,7 @@ async function setup(page,{fail=false}={}){
             if(!read)return then(resolve);
             window.__fin07.queries.push(cursor);
             if(window.__fin07.fail&&cursor){resolve({data:null,error:{message:"offline página 2"}});return;}
+            if(window.__fin07.invalid&&cursor){resolve({data:window.__e2eCloudRows.expenses.slice(-317).reverse(),error:null});return;}
             return then(resolve);
           };
           return chain;
@@ -42,7 +43,7 @@ async function setup(page,{fail=false}={}){
         return sb;
       };
     }});
-  },{fail});
+  },{fail,invalid});
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible();
   await dismissNews(page);
@@ -83,3 +84,11 @@ test("FIN07: fallo de página mantiene histórico local; reintento recupera todo
   expect(new Set((await expenses(page)).map(r=>r.id)).size).toBe(2502);
   expect(await page.evaluate(()=>window.__fin07.writes)).toEqual([1,2502]);
 });
+for(const [lang,message] of [["es","No se pudo completar la descarga"],["en","The download could not be completed"],["ca","No s'ha pogut completar la descàrrega"]]){
+  test(`FIN07 ${lang}: respuesta inválida avisa sin mezclar ni perder lo guardado`,async({page})=>{
+    await setup(page,{invalid:true,lang});
+    await expect(page.locator(".toast")).toContainText(message);
+    expect(await expenses(page)).toEqual([local]);
+    expect(await page.evaluate(()=>window.__fin07.queries.length)).toBe(2);
+  });
+}
