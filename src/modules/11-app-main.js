@@ -377,7 +377,7 @@ function App(){
   // que enseñar un número inventado (regla de la casa: nunca inventar un tipo de cambio).
   (function(){
     const c=(state.settings&&state.settings.currency)||"EUR";
-    const r=c==="EUR"?1:fxTableOf(state)[c];
+    const r=fxRateOf(c,state);
     if(c!=="EUR" && r>0){ DISP.sym=CUR_SYM[c]||c; DISP.k=1/r; }
     else { DISP.sym="€"; DISP.k=1; }
   })();
@@ -746,8 +746,8 @@ function App(){
         const patch={};
         if(po.shares!=null) patch.shares=po.shares;
         // el bróker da € (TR/MI); si la posición se muestra en $, se convierte con el cambio del BCE
-        if(po.value!=null) patch.value = i.cur==="EUR" ? po.value : fromEurAmt(po.value, i.cur, s);
-        if(po.cost!=null)  patch.cost  = i.cur==="EUR" ? po.cost  : fromEurAmt(po.cost,  i.cur, s);
+        if(po.value!=null){ const native=fromEurAmt(po.value,i.cur||"EUR",s); if(native!=null) patch.value=native; }
+        if(po.cost!=null){ const native=fromEurAmt(po.cost,i.cur||"EUR",s); if(native!=null) patch.cost=native; }
         if(po.isin && !i.isin) patch.isin=po.isin;
         return Object.assign({},i,patch);
       });
@@ -1794,10 +1794,10 @@ function App(){
       });
     };
     // cuentas extra de Open Banking (2ª cuenta de un banco, compartidas…): saldo puro, suma al líquido
-    const obLiquid=(state.obAccounts||[]).reduce((a,o)=> a + toEurAmt(o.value||0, o.cur||"EUR", state), 0);
+    const obLiquid=(state.obAccounts||[]).reduce((a,o)=> a + (toEurAmt(o.value||0, o.cur||"EUR", state)||0), 0);
     const liquid=state.accounts.reduce((a,i)=> a + dynBal(i), 0) + obLiquid;
-    const investedBase=state.investments.reduce((a,i)=>a+invValueEur(i, state),0);
-    const investedCost=state.investments.reduce((a,i)=>a+invCostEur(i, state),0);
+    const investedBase=state.investments.reduce((a,i)=>a+(invValueEur(i, state)||0),0);
+    const investedCost=state.investments.reduce((a,i)=>a+(invCostEur(i, state)||0),0);
     const invested=investedBase + roundupThisMonth + savebackThisMonth + monthlyInvestThisMonth;
     const assetsTotal=state.assets.reduce((a,i)=>a+i.value,0);
     const debtTotal=state.debts.reduce((a,d)=>a+debtBalance(d),0);   // saldo proyectado (baja solo cada mes)
@@ -1866,7 +1866,7 @@ function App(){
     /* DEPENDENCIAS: ojo al tocar este bloque — la lista de abajo tiene que incluir TODO
        `state.loQueSea` que se lea aquí dentro (incluidos los que leen las funciones auxiliares:
        monthNetForAccount → fixed/debts/oneoffs/flows; toEurAmt/invValueEur → fx y fxRates). */
-    return {liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
+    return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
   // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` en CADA cambio, el
   // objeto de estado es nuevo siempre → el memo NUNCA acertaba y este cálculo (que recorre gastos,
   // fijos, deudas, flujos y simula el mes día a día) se rehacía al abrir una ficha, al escribir en
@@ -1893,23 +1893,23 @@ function App(){
   // ⚠ 2026-08-05: api.frankfurter.app hace 301 → .dev; la CSP solo tenía .app, así que en el
   // WebView el fetch moría en el redirect (mismo patrón que release-assets de GitHub). El dólar
   // «funcionaba» por el state.fx legacy; lira/libra/… daban «Sin tipo de cambio».
-  // La lista sale de CUR_LIST para no desfasar selector y BCE.
+  // Traemos el catálogo completo del proveedor actual, sin descartar tipos por un selector corto.
   const refreshFx=function(){
-    const to=CUR_LIST.filter(function(c){ return c!=="EUR"; }).join(",");
-    const url="https://api.frankfurter.dev/v1/latest?from=EUR&to="+encodeURIComponent(to);
+    const url="https://api.frankfurter.dev/v1/latest?from=EUR";
     return fetch(url).then(function(r){ if(!r||!r.ok) return null; return r.json(); }).then(function(d){
       const rates=d&&d.rates;
       if(!rates) return null;
       const fxRates={};
-      for(const c in rates){ if(rates[c]>0) fxRates[c]=+(1/rates[c]).toFixed(6); }   // XXX→EUR
+      for(const c in rates){ if(Number.isFinite(Number(rates[c]))&&rates[c]>0) fxRates[c]=+(1/rates[c]).toFixed(12); }   // XXX→EUR
       const usd=fxRates.USD;
       const fxDate=d.date||null;
       set(function(s){
         const prev=fxTableOf(s);
         let changed=false;
-        for(const k in fxRates){ if(Math.abs((prev[k]||0)-fxRates[k])>=0.000001){ changed=true; break; } }
+        for(const k in fxRates){ if(Math.abs((prev[k]||0)-fxRates[k])>=0.000000000001){ changed=true; break; } }
+        if(!Object.keys(fxRates).length) return s;
         if(!changed && (usd==null || Math.abs((s.fx||0)-(usd||0))<0.0001) && s.fxDate===fxDate) return s;
-        const patch={fxRates:fxRates};
+        const patch={fxRates:Object.assign({},prev,fxRates)};
         if(usd>0) patch.fx=+(usd.toFixed(4));
         if(fxDate) patch.fxDate=fxDate;
         return Object.assign({},s,patch);
@@ -2210,7 +2210,7 @@ function App(){
   // Snapshot diario del total invertido (€) para el gráfico de evolución (#6). Se actualiza si cambia valor/coste hoy.
   const invSnapRef=useRef("");
   useEffect(function(){
-    if(!(totals.invested>0)) return;
+    if(!(totals.invested>0)||totals.fxMissing>0) return;
     const today=new Date().toISOString().slice(0,10);
     const v=+totals.invested.toFixed(2);
     const c=+(totals.investedCost||0).toFixed(2);
@@ -2221,7 +2221,7 @@ function App(){
       const h=recordInvSnapshot(s.invHistory, today, v, c);
       return Object.assign({},s,{invHistory:h});
     });
-  },[totals.invested, totals.investedCost]);
+  },[totals.invested, totals.investedCost, totals.fxMissing]);
 
   // GAMIFICACIÓN: detecta logros nuevos y subidas de nivel → toast/confeti (1ª vez siembra sin avisar).
   useEffect(function(){

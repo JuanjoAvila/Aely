@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.51",
+    "d": "26 sep 2026",
+    "t": {
+      "es": "Divisas sin cifras inventadas",
+      "en": "Currencies without invented amounts",
+      "ca": "Divises sense xifres inventades"
+    },
+    "items": {
+      "es": [
+        "Si falta el cambio de una cuenta o inversión, se conserva su importe y moneda originales y se avisa de que el total está incompleto.",
+        "Hay más monedas disponibles y los cambios guardados siguen funcionando sin conexión."
+      ],
+      "en": [
+        "If an account or investment exchange rate is missing, its original amount and currency remain visible and the total is marked as incomplete.",
+        "More currencies are available and saved exchange rates keep working offline."
+      ],
+      "ca": [
+        "Si falta el canvi d’un compte o inversió, es conserva l’import i la moneda originals i s’avisa que el total és incomplet.",
+        "Hi ha més monedes disponibles i els canvis desats continuen funcionant sense connexió."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "fin06-divisas",
+        "t": {
+          "es": "Divisas sin cambio",
+          "en": "Missing exchange rates",
+          "ca": "Divises sense canvi"
+        },
+        "items": {
+          "es": [
+            "1. En Ajustes → Dinero → Conversor, busca CZK o ZAR y convierte 100 unidades a EUR. No hace falta comprar ni guardar un movimiento.",
+            "2. Repite sin conexión con un cambio ya descargado: debe conservar el resultado. Si falta el cambio, debe avisar, sin inventar euros.",
+            "3. En Cartera, una cuenta o inversión sin cambio conserva su cifra original y marca el total incompleto. No se muestra una ganancia inventada."
+          ],
+          "en": [
+            "1. In Settings → Money → Converter, find CZK or ZAR and convert 100 units to EUR. No purchase or saved transaction is needed.",
+            "2. Repeat offline with an already downloaded rate: the result should remain. A missing rate should show a warning, without inventing euros.",
+            "3. In Portfolio, an account or investment without a rate keeps its original amount and marks the total as incomplete. No invented profit is shown."
+          ],
+          "ca": [
+            "1. A Ajustos → Diners → Conversor, cerca CZK o ZAR i converteix 100 unitats a EUR. No cal comprar ni desar cap moviment.",
+            "2. Repeteix sense connexió amb un canvi ja descarregat: ha de conservar el resultat. Si falta el canvi, ha d’avisar, sense inventar euros.",
+            "3. A Cartera, un compte o inversió sense canvi conserva la xifra original i marca el total incomplet. No es mostra cap guany inventat."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.50",
     "d": "26 sep 2026",
     "t": {

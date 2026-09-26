@@ -2110,7 +2110,7 @@ function WhatsNew({onClose, showToast, set, state}){
    hacía Ajustes interminable en el móvil — feedback 2026-08-05: «ponlo en una pantalla nueva,
    hay un montón de divisas». El buscador filtra por código o nombre (p.ej. «lira», «try», «corona»)
    y afecta a las DOS listas de chips a la vez, porque comparten el mismo catálogo. No inventa
-   tipos: reutiliza toEurAmt/fromEurAmt y los `fxRates` que ya trae Ajustes → Dinero. */
+   tipos: usa los `fxRates` que ya trae Ajustes → Dinero y redondea solo al mostrar el resultado. */
 function CurConverterPanel({state, onClose, refreshFx}){
   useBackClose(true, onClose);   // gesto atrás del móvil: cierra esta pantalla
   const [amt,setAmt]=useState("1");
@@ -2143,11 +2143,12 @@ function CurConverterPanel({state, onClose, refreshFx}){
   const raw=parseFloat(String(amt).replace(",","."))||0;
   const needFrom=from!=="EUR" && !(tbl[from]>0);
   const needTo=to!=="EUR" && !(tbl[to]>0);
-  const eurMid=(!needFrom && raw>0)?toEurAmt(raw, from, state):null;
-  const out=(!needTo && eurMid!=null)?fromEurAmt(eurMid, to, state):null;
+  // Redondear EUR a mitad de camino perdería unidades pequeñas de IDR/JPY/KRW.
+  const converted=(!needFrom&&!needTo&&raw>0)?raw*fxRateOf(from,state)/fxRateOf(to,state):null;
+  const out=Number.isFinite(converted)?converted:null;
   const rateTxt=(function(){
     if(needFrom||needTo||!(raw>0)||out==null) return null;
-    const one=fromEurAmt(toEurAmt(1, from, state), to, state);
+    const one=fxRateOf(from,state)/fxRateOf(to,state);
     if(!(one>0)) return null;
     return "1 "+(CUR_SYM[from]||from)+" = "+NF.format(one)+" "+(CUR_SYM[to]||to);
   })();

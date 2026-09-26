@@ -82,8 +82,12 @@ const PRESUPUESTO = {
      1 KB al crudo para este código de coherencia, sin mover el límite de descarga gzip.
      26/9 (4.26.50): selector persistente del banco del widget y textos de ayuda. Medido:
      1.226.948 bytes minificados (1.220 sobre el límite), gzip 325 KB. Se añaden 2 KB
-     solo al crudo para este selector; el límite de descarga gzip permanece intacto. */
-  minificado: 1199 * 1024,
+     solo al crudo para este selector; el límite de descarga gzip permanece intacto.
+     26/9 (4.26.51, FIN-06): catálogo BCE completo y consumidores que conservan originales,
+     excluyen euros desconocidos y marcan totales parciales. Medido: 1.230.055 bytes crudos,
+     +3.107 sobre 4.26.50; gzip 333.795 bytes (326 KB), sin mover su límite de 332 KB.
+     Se añaden solo 3 KB al tope crudo para estos controles y las 14 monedas adicionales. */
+  minificado: 1202 * 1024,
   gzip: 332 * 1024,         // 12/9: 330,03 con suministros; aire mínimo a propósito
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };

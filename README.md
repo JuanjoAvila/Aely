@@ -81,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.50** publicada en beta OTA 4.26.50.1: Ajustes → Banco del widget permite elegir qué banco muestra el saldo y cuánto puedes gastar. APK prerelease 4.26.49/code 50; este selector no requiere otra APK. Producción sigue en 4.26.48. Pendientes veredictos móviles del selector y FIN-05. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md) y [CHANGELOG.md](CHANGELOG.md).
+Estado actual: **v4.26.51** candidata FIN-06: Cartera conserva importe/moneda originales sin cambio y avisa del total incompleto; Conversor ofrece 30 monedas con cambios guardados para offline. Beta publicada todavía 4.26.50.1; producción 4.26.48. APK 4.26.49/code 50. FIN-05 y selector conservan sus veredictos móviles pendientes. Servidor FIN-06 preparado, sin desplegar. Detalle en [docs/ROADMAP.md](docs/ROADMAP.md) y [CHANGELOG.md](CHANGELOG.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.

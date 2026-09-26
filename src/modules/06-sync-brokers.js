@@ -466,8 +466,8 @@ function TRSync({state, set, totals, open, onToggle}){
         if(!po) return i;
         const patch={shares:po.shares, isin:po.isin};
         // dato EN VIVO de TR (€). Si la posición se muestra en $, se convierte con el cambio del BCE.
-        if(po.value!=null) patch.value = i.cur==="EUR" ? po.value : fromEurAmt(po.value, i.cur, state);
-        if(po.cost!=null)  patch.cost  = i.cur==="EUR" ? po.cost  : fromEurAmt(po.cost,  i.cur, state);
+        if(po.value!=null){ const native=fromEurAmt(po.value,i.cur||"EUR",state); if(native!=null) patch.value=native; }
+        if(po.cost!=null){ const native=fromEurAmt(po.cost,i.cur||"EUR",state); if(native!=null) patch.cost=native; }
         return Object.assign({},i,patch);
       })});
       // Posiciones mapeadas a "__new" → se CREAN en Inversiones (usuario sin cartera previa).
@@ -577,16 +577,16 @@ function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDele
       ),
       editing
         ? React.createElement("div",{className:"editpair"},
-            React.createElement("label",null, React.createElement("span",null, t("inv_value")+(it.cur==="USD"?" $":" \u20ac")),
+            React.createElement("label",null, React.createElement("span",null, t("inv_value")+" "+(it.cur||"EUR")),
               React.createElement("input",{className:"num",value:(draft[it.id]||{}).value,inputMode:"decimal",onFocus:e=>e.target.select(),onChange:e=>setF(it.id,"value",e.target.value)})),
             showCost && React.createElement("label",null, React.createElement("span",null,t("inv_invested")),
               React.createElement("input",{className:"num",value:(draft[it.id]||{}).cost,inputMode:"decimal",onFocus:e=>e.target.select(),onChange:e=>setF(it.id,"cost",e.target.value)}))
           )
-        : React.createElement("div",{className:"rval num"}, show(eurVal(it)),
+        : React.createElement("div",{className:"rval num"}, fxAmountText(it.value,it.cur,st,show),
             (function(){
               if(it.value==null||it.value===""||!isFinite(Number(it.value))) return null;
               const cost=invCostEur(it,st);
-              if(!(cost>0)) return null;   // sin coste conocido no se inventa una rentabilidad
+              if(!(cost>0)||eurVal(it)==null) return null;   // sin coste conocido no se inventa una rentabilidad
               const gain=eurVal(it)-cost;
               const pl=gain/cost*100;
               const gainShown=Math.abs(gain)<0.005?0:gain;
@@ -726,7 +726,7 @@ function InvestmentRewards({state,set}){
 }
 
 function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsMode, fullMode, showToast}){
-  const fx=state.fx;   // USD→EUR (legacy + display toggle); GBP/CHF van en state.fxRates
+  const fx=fxRateOf("USD",state);   // USD→EUR (legacy + display toggle); GBP/CHF van en state.fxRates
   const [editing,setEditing]=useState(false);
   const [showCost,setShowCost]=useState(false);
   const [draft,setDraft]=useState({});
@@ -805,7 +805,9 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
   const sellPct=function(it,pct){
     if(!(pct>0 && pct<=100)){ return; }
     const f=pct/100;
-    const realizado=invValueEur(it, state)*f;   // líquido sacado, en €
+    const valueEur=invValueEur(it,state);
+    if(valueEur==null){ if(showToast) showToast(t("fx_no_rate")); return; }
+    const realizado=valueEur*f;   // líquido sacado, en €
     set(function(s){
       return Object.assign({},s,{
         investments:s.investments.map(function(i){
@@ -819,8 +821,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
       });
     });
   };
-  const total=state.investments.reduce((a,i)=>a+invValueEur(i, state),0);
-  const costTotal=state.investments.reduce((a,i)=>a+invCostEur(i, state),0);
+  const total=state.investments.reduce((a,i)=>a+(invValueEur(i, state)||0),0);
+  const costTotal=state.investments.reduce((a,i)=>a+(invCostEur(i, state)||0),0);
   const costKnown=function(i){
     // En el histórico antiguo `cost:0` significaba tanto «sin dato» como un coste real cero.
     // Sin una migración con procedencia no se pueden separar: lo tratamos como desconocido para
@@ -828,21 +830,22 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
     return (typeof i.costEur==="number"&&isFinite(i.costEur)&&i.costEur>0)
       || (typeof i.cost==="number"&&isFinite(i.cost)&&i.cost>0);
   };
-  const completeCost=state.investments.length>0&&state.investments.every(costKnown);
+  const missingFx=state.investments.filter(function(i){ return invValueEur(i,state)==null||invCostEur(i,state)==null; }).length;
+  const completeCost=state.investments.length>0&&!missingFx&&state.investments.every(costKnown);
   const missingCost=state.investments.find(function(i){ return !costKnown(i); });
   const plTotal=costTotal>0?(total-costTotal)/costTotal*100:0;
   // Moneda LOCAL de la pestaña Inversiones (no toca el resto de la app). Todo se calcula en €
   // internamente y se convierte a la moneda elegida para mostrar (€ ↔ $ con el cambio del BCE).
   const [invCur,setInvCur]=useState(function(){ return (state.settings&&state.settings.currency)||"EUR"; });
-  const dk = invCur==="USD" ? (fx>0?1/fx:1) : 1;
-  const dsym = invCur==="USD" ? "$" : "€";
-  const f2  = (eurVal)=> NF.format((eurVal||0)*dk)+" "+dsym;
-  const f0  = (eurVal)=> NF0.format(Math.round((eurVal||0)*dk))+" "+dsym;
+  const dk = invCur==="USD"&&fx>0 ? 1/fx : 1;
+  const dsym = invCur==="USD"&&fx>0 ? "$" : "€";
+  const f2  = (eurVal)=> (eurVal==null?"—":NF.format(eurVal*dk)+" "+dsym);
+  const f0  = (eurVal)=> (eurVal==null?"—":NF0.format(Math.round(eurVal*dk))+" "+dsym);
   // valor y coste por bróker (en €) para el desglose de contribuciones
   const byBroker={};
-  state.investments.forEach(function(i){ const v=invValueEur(i, state); const c=invCostEur(i, state); const o=byBroker[i.ent]||(byBroker[i.ent]={c:0,v:0}); o.c+=c; o.v+=v; });
+  state.investments.forEach(function(i){ const v=invValueEur(i, state); const c=invCostEur(i, state); const o=byBroker[i.ent]||(byBroker[i.ent]={c:0,v:0}); o.c+=c||0; o.v+=v||0; });
   // rendimiento por posición (en €), ordenado de mejor a peor
-  const posList=state.investments.map(function(i){ const v=invValueEur(i, state); const c=invCostEur(i, state); return {id:i.id,name:i.name,ent:i.ent,v:v,c:c,gain:v-c,pl:c>0?(v-c)/c*100:0}; }).sort(function(a,b){ return b.gain-a.gain; });
+  const posList=state.investments.filter(function(i){ return invValueEur(i,state)!=null&&invCostEur(i,state)!=null; }).map(function(i){ const v=invValueEur(i, state); const c=invCostEur(i, state); return {id:i.id,name:i.name,ent:i.ent,v:v,c:c,gain:v-c,pl:c>0?(v-c)/c*100:0}; }).sort(function(a,b){ return b.gain-a.gain; });
   const maxAbsGain=Math.max.apply(null,posList.map(function(p){return Math.abs(p.gain);}).concat([1]));
   const best=posList[0], worst=posList[posList.length-1];
   const invHist=(state.invHistory||[]);
@@ -851,7 +854,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
   const TYPE_BY_ID={ "0mrszi5":"materias", "7zjaw0y":"etf", "0itlr5k":"fondo" };
   const invType=function(it){ if(TYPE_BY_ID[it.id]) return TYPE_BY_ID[it.id]; if(/oro|xau|materia|plata/i.test(it.name)) return "materias"; if(/etf|all.?world|s&p|amundi/i.test(it.name)) return "etf"; if(/fondo|indexad|fidelity|msci world/i.test(it.name)) return "fondo"; return "acciones"; };
   const byType={acciones:0,etf:0,fondo:0,materias:0};
-  state.investments.forEach(function(i){ byType[invType(i)]+=invValueEur(i, state); });
+  state.investments.forEach(function(i){ byType[invType(i)]+=invValueEur(i, state)||0; });
   const typeMeta=[["acciones","var(--mint)"],["etf","var(--blue)"],["fondo","#C9A0E0"],["materias","#E6C36A"]];
   const typeSegs=typeMeta.filter(function(ty){ return byType[ty[0]]>0; }).map(function(ty){ return {label:t("type_"+ty[0])+" · "+(total>0?Math.round(byType[ty[0]]/total*100):0)+"%", value:byType[ty[0]], color:ty[1]}; });
 
@@ -991,6 +994,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
           React.createElement("div",{className:"curtoggle","aria-label":t("iv_currency")},
             React.createElement("button",{type:"button",className:"curbtn"+(invCur==="EUR"?" on":""),"aria-pressed":invCur==="EUR",onClick:function(){ setInvCur("EUR"); }},"€"),
             React.createElement("button",{type:"button",className:"curbtn"+(invCur==="USD"?" on":""),"aria-pressed":invCur==="USD",onClick:function(){ setInvCur("USD"); }},"$"))),
+        React.createElement(FxNotice,{missing:missingFx}),
         stale && React.createElement("div",{className:"chip",style:{display:"inline-flex",marginTop:12}},tf("st_stale",{day:staleDay})),
         React.createElement("div",{className:"v4-stackbar","aria-hidden":"true",style:{marginTop:16}},
           React.createElement("i",{style:{flex:Math.max(.02,heroBase/heroSum*100),background:completeCost?"var(--cream)":"var(--mint)"}}),
@@ -1004,9 +1008,9 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
                 tf("iv_percent",{pct:(plTotal>=0?"+":"")+plTotal.toFixed(2),time:lastTime})))
           : React.createElement("div",{className:"hint",style:{marginTop:12}},
               state.investments.length>0 && React.createElement("div",{className:"v4-legend"},React.createElement("span",null,React.createElement("b",{style:{background:"var(--muted-2)"}}),t("iv_gain_unknown"))),
-              React.createElement("div",null,costTotal>0?t("iv_missing_cost"):t("iv_no_put")),
+              !missingFx && React.createElement("div",null,costTotal>0?t("iv_missing_cost"):t("iv_no_put")),
               state.investments.length>0 && React.createElement("div",{style:{marginTop:6}},tf("iv_updated",{time:lastTime})),
-              state.investments.length>0 && React.createElement("button",{type:"button",className:"v4-link-mini","data-act":"inv-edit",style:{marginTop:8},onClick:function(){ beginBrokerEdit(missingCost&&missingCost.ent); }},t("iv_no_put_cta"))),
+              state.investments.length>0&&!missingFx && React.createElement("button",{type:"button",className:"v4-link-mini","data-act":"inv-edit",style:{marginTop:8},onClick:function(){ beginBrokerEdit(missingCost&&missingCost.ent); }},t("iv_no_put_cta"))),
         React.createElement("div",{className:"hint",style:{marginTop:10}},tf("iv_fx_note",{fx:fx>0?fx.toFixed(4):"—"}))),
 
       React.createElement("div",{className:"v4-sec-h",style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,marginTop:22}},
@@ -1047,7 +1051,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
         const items=state.investments.filter(function(i){ return i.ent===gid; });
         const o=byBroker[gid]||{c:0,v:0};
         const delta=o.v-o.c;
-        const brokerCostComplete=items.length>0&&items.every(costKnown);
+        const brokerMissing=items.some(function(i){ return invValueEur(i,state)==null||invCostEur(i,state)==null; });
+        const brokerCostComplete=items.length>0&&!brokerMissing&&items.every(costKnown);
         const open=!!brokerOpen[gid];
         const isEditing=editing&&editBroker===gid;
         const panelId="iv_broker_"+gid;
@@ -1057,7 +1062,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:gid,size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
-              React.createElement("div",{className:"meta"},tf("iv_positions",{n:items.length}))),
+              React.createElement("div",{className:"meta"},tf("iv_positions",{n:items.length}),brokerMissing&&React.createElement("div",{className:"hint"},t("fx_unconverted")))),
             React.createElement("div",{style:{textAlign:"right",flex:"0 0 auto"}},
               React.createElement("div",{className:"am num"},f0(o.v)),
               brokerCostComplete && React.createElement("div",{style:{fontSize:11,fontWeight:750,color:delta>=0?"var(--mint)":"var(--coral)"}},(delta>=0?"+":"")+f0(delta))),
@@ -1073,8 +1078,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
                       React.createElement("div",null,
                         React.createElement("div",{className:"rname"},it.name),
                         React.createElement("div",{className:"rsub"},it.ticker?(it.ticker+(it.shares!=null?" · "+tf("iv_shares",{n:it.shares}):"")):manualLabel(it)))),
-                    React.createElement("div",{className:"rval num"},f2(v),
-                      it.ticker&&c>0 && React.createElement("div",{className:"rvsub"+(d<0?" neg":"")},(d>=0?"+":"")+(d/c*100).toFixed(2)+"%")));
+                    React.createElement("div",{className:"rval num"},fxAmountText(it.value,it.cur,state,f2),
+                      v!=null&&it.ticker&&c>0 && React.createElement("div",{className:"rvsub"+(d<0?" neg":"")},(d>=0?"+":"")+(d/c*100).toFixed(2)+"%")));
                 }),
             React.createElement("div",{style:{display:"flex",gap:8,marginTop:10,flexWrap:"wrap"}},
               isEditing
@@ -1095,11 +1100,13 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
   }
 
   return React.createElement("div",null,
+    React.createElement(FxNotice,{missing:missingFx}),
     !v4Embed && !toolsOnly && React.createElement("div",{className:"total-bar"},
       React.createElement("div",null,
         React.createElement("div",{className:"tl"},t("inv_total")),
         React.createElement("div",{className:"tn num"},f2(total)),
-        React.createElement("div",{style:{fontSize:12,fontWeight:700,marginTop:2,color:plTotal>=0?"var(--mint)":"var(--coral)"}},(plTotal>=0?"+":"")+plTotal.toFixed(2)+"% global"),
+        React.createElement(FxNotice,{missing:missingFx}),
+        React.createElement("div",{style:{fontSize:12,fontWeight:700,marginTop:2,color:plTotal>=0?"var(--mint)":"var(--coral)"}},completeCost?(plTotal>=0?"+":"")+plTotal.toFixed(2)+"% global":"—"),
         React.createElement("div",{className:"curtoggle",style:{marginTop:8}},
           React.createElement("button",{type:"button",className:"curbtn"+(invCur==="EUR"?" on":""),onClick:()=>setInvCur("EUR")},"€"),
           React.createElement("button",{type:"button",className:"curbtn"+(invCur==="USD"?" on":""),onClick:()=>setInvCur("USD")},"$")
@@ -1132,7 +1139,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
         groups.map(function(g){
         const items=state.investments.filter(function(i){ return i.ent===g[0]; });
         if(items.length===0) return null;
-        const sub=items.reduce(function(a,i){ return a+invValueEur(i,state); },0);
+        const sub=items.reduce(function(a,i){ return a+(invValueEur(i,state)||0); },0);
         // Editando: todos los brókers desplegados con sus inputs (si no, había que ir uno a uno).
         const open=editing||!!brokerOpen[g[0]];
         return React.createElement(React.Fragment,{key:g[0]},
@@ -1166,19 +1173,19 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
     !v4Embed && React.createElement(OrderableSections,{tab:"inv",state:state,set:set,items:[
       {id:"ru",label:SIMPLEMODE?t("ru_title_simple"):t("ru_title"),el:React.createElement(InvestmentRewards,{state:state,set:set})},
       {id:"cvg",label:t("inv_cvg"),el:
-    React.createElement(CollapsibleCard,{title:t("inv_cvg"),sub:(plTotal>=0?"+":"")+plTotal.toFixed(1)+"%",dot:"#5FD08A",defaultOpen:false,storageKey:"inv_cvg",help:t("h_cvg")},
+    React.createElement(CollapsibleCard,{title:t("inv_cvg"),sub:completeCost?(plTotal>=0?"+":"")+plTotal.toFixed(1)+"%":"—",dot:"#5FD08A",defaultOpen:false,storageKey:"inv_cvg",help:t("h_cvg")},
       // desglose por bróker, para poder comparar cada uno con su app (p.ej. Revolut en $)
       groups.map(function(g){ const o=byBroker[g[0]]; if(!o||o.v===0) return null; const gain=o.v-o.c; const pl=o.c>0?gain/o.c*100:0;
         return React.createElement("div",{className:"row",key:g[0]},
           React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g[0],size:34}),
             React.createElement("div",null,React.createElement("div",{className:"rname"},g[1]),React.createElement("div",{className:"rsub"},tf("inv_invested_lbl",{x:f0(o.c)})))),
           React.createElement("div",{className:"rval num"}, f0(o.v),
-            React.createElement("div",{className:"rvsub"+(gain<0?" neg":""),style:{color:gain>=0?"var(--mint)":"var(--coral)"}}, (gain>=0?"+":"")+f0(gain)+" ("+(pl>=0?"+":"")+pl.toFixed(1)+"%)")));
+            completeCost && React.createElement("div",{className:"rvsub"+(gain<0?" neg":""),style:{color:gain>=0?"var(--mint)":"var(--coral)"}}, (gain>=0?"+":"")+f0(gain)+" ("+(pl>=0?"+":"")+pl.toFixed(1)+"%)")));
       }),
       React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("inv_invested_tot")),React.createElement("span",{className:"num"},f0(costTotal))),
       React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("inv_value_tot")),React.createElement("span",{className:"num",style:{fontWeight:700}},f0(total))),
-      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("inv_gain_lat")),React.createElement("span",{className:"num",style:{fontWeight:700,color:(total-costTotal)>=0?"var(--mint)":"var(--coral)"}},((total-costTotal)>=0?"+":"")+f0(total-costTotal))),
-      React.createElement("div",{style:{marginTop:10}}, React.createElement(StackedBar,{segments:[{label:t("inv_contributed"),value:costTotal,color:"#2f6b4a"},{label:t("inv_gain"),value:Math.max(0,total-costTotal),color:"var(--mint)"}]})),
+      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("inv_gain_lat")),React.createElement("span",{className:"num",style:{fontWeight:700,color:(total-costTotal)>=0?"var(--mint)":"var(--coral)"}},completeCost?((total-costTotal)>=0?"+":"")+f0(total-costTotal):"—")),
+      React.createElement("div",{style:{marginTop:10}}, completeCost && React.createElement(StackedBar,{segments:[{label:t("inv_contributed"),value:costTotal,color:"#2f6b4a"},{label:t("inv_gain"),value:Math.max(0,total-costTotal),color:"var(--mint)"}]})),
       React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:8}},t("inv_cvg_hint"))
     )},
       {id:"bytype",label:t("inv_bytype"),el:
@@ -1200,7 +1207,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
       })
     )},
       {id:"evo",label:t("inv_evo"),el:React.createElement(React.Fragment,null,
-    invHist.length>=1 && total>0 && React.createElement(CollapsibleCard,{title:t("inv_evo"),sub:evoChg?tf("inv_evo_period",{sign:evoChg.pct>=0?"+":"",pct:Math.abs(evoChg.pct).toFixed(1),days:evoChg.days,x:f2(Math.abs(evoChg.abs))}):t("inv_evo_sub"),dot:"#7FB5E8",defaultOpen:false,storageKey:"inv_evo",help:t("h_evo")},
+    !missingFx && invHist.length>=1 && total>0 && React.createElement(CollapsibleCard,{title:t("inv_evo"),sub:evoChg?tf("inv_evo_period",{sign:evoChg.pct>=0?"+":"",pct:Math.abs(evoChg.pct).toFixed(1),days:evoChg.days,x:f2(Math.abs(evoChg.abs))}):t("inv_evo_sub"),dot:"#7FB5E8",defaultOpen:false,storageKey:"inv_evo",help:t("h_evo")},
       invHist.length>=2 ? React.createElement(SparklineInv,{hist:invHist}) : React.createElement("div",{className:"hint",style:{marginBottom:8}},t("inv_evo_today")),
       invHist.length>=2 && React.createElement("div",{style:{display:"flex",justifyContent:"space-between",fontSize:12,color:"var(--muted)",marginTop:6}},
         React.createElement("span",null,new Date(invHist[0].d).toLocaleDateString(loc(),{day:'2-digit',month:'short'})),
@@ -1213,7 +1220,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
     groups.map(function(g){
       const items=state.investments.filter(i=>i.ent===g[0]);
       if(items.length===0) return null;
-      const sub=items.reduce((a,i)=>a+invValueEur(i, state),0);
+      const sub=items.reduce((a,i)=>a+(invValueEur(i, state)||0),0);
       return React.createElement(CollapsibleCard,{key:g[0],title:g[1],sub:f0(sub),dot:entOf(g[0]).color,storageKey:"inv_"+g[0]},
         React.createElement(InvRows,{items:items,st:state,fmt:f2,editing:editing,showCost:showCost,draft:draft,setF:setF,onSell:onSell,onDelete:onDelete})
       );

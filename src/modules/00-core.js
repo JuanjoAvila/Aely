@@ -504,29 +504,37 @@ function isEfectivoEnt(aOrEnt){
 }
 
 function fxTableOf(s){
-  const t=s&&s.fxRates;
-  if(t&&typeof t==="object") return t;
-  const usd=(s&&s.fx)>0?s.fx:0.92;
-  return { USD:usd };
+  const tbl=Object.assign({},s&&s.fxRates||{});
+  // El respaldo USD es un tipo guardado, nunca una cotización ficticia para un estado vacío.
+  if((!Number.isFinite(Number(tbl.USD))||!(Number(tbl.USD)>0))&&Number.isFinite(Number(s&&s.fx))&&Number(s&&s.fx)>0) tbl.USD=Number(s.fx);
+  return tbl;
 }
-/** Importe en `cur` → EUR. fxRates guarda XXX→EUR (1 USD = r EUR). */
+function fxRateOf(cur,s){
+  const c=String(cur||"EUR").trim().toUpperCase();
+  const r=c==="EUR"?1:Number(fxTableOf(s)[c]);
+  return Number.isFinite(r)&&r>0?r:null;
+}
+/** Sin cambio no hay EUR: los consumidores conservan el original y avisan del total parcial. */
 function toEurAmt(amount, cur, s){
-  const n=Number(amount)||0;
-  const c=String(cur||"EUR").toUpperCase();
-  if(!c||c==="EUR") return n;
-  const r=fxTableOf(s)[c];
-  if(r>0) return n*r;
-  if(c==="USD"&&s&&s.fx>0) return n*s.fx;
-  return n; // divisa desconocida: no inventar tipo
+  if(amount==null) return null;
+  const n=Number(amount), r=fxRateOf(cur,s);
+  return Number.isFinite(n)&&r!=null&&Number.isFinite(n*r)?+(n*r).toFixed(2):null;
 }
 function fromEurAmt(amountEur, cur, s){
-  const n=Number(amountEur)||0;
-  const c=String(cur||"EUR").toUpperCase();
-  if(!c||c==="EUR") return n;
-  const r=fxTableOf(s)[c];
-  if(r>0) return n/r;
-  if(c==="USD"&&s&&s.fx>0) return n/s.fx;
-  return n;
+  if(amountEur==null) return null;
+  const n=Number(amountEur), r=fxRateOf(cur,s);
+  return Number.isFinite(n)&&r!=null&&Number.isFinite(n/r)?n/r:null;
+}
+function fxAmountText(amount,cur,s,fmt){
+  const converted=toEurAmt(amount,cur,s);
+  return converted==null ? NF.format(Number(amount)||0)+" "+String(cur||"EUR").toUpperCase()+" · "+t("fx_unconverted") : (fmt||eur)(converted);
+}
+function fxMissingOf(s){
+  return (s.obAccounts||[]).filter(function(o){ return toEurAmt(o.value,o.cur,s)==null; }).length+
+    (s.investments||[]).filter(function(i){ return invValueEur(i,s)==null||invCostEur(i,s)==null; }).length;
+}
+function FxNotice({missing}){
+  return missing>0 ? React.createElement("div",{className:"hint","data-fx-incomplete":"1",role:"status"},t("fx_total_incomplete")) : null;
 }
 /** Coste en € anclado (costEur) o conversión spot del cost nativo. */
 function invCostEur(i, s){
@@ -535,7 +543,7 @@ function invCostEur(i, s){
   return toEurAmt(i.cost||0, i.cur||"EUR", s);
 }
 function invValueEur(i, s){
-  return toEurAmt(i&&i.value, i&&i.cur||"EUR", s);
+  return toEurAmt(i&&i.value||0, i&&i.cur||"EUR", s);
 }
 
 /* ---------- Storage (localStorage con fallback) ---------- */
@@ -2206,6 +2214,6 @@ let DISP = { sym:"€", k:1 };
 // del viaje y la «moneda de visualización» parecía no hacer nada al no haber tipo.
 const CUR_SYM = { EUR:"€", USD:"$", GBP:"£", CHF:"CHF", JPY:"¥", CAD:"C$", AUD:"A$", CNY:"CN¥", MXN:"MX$", SEK:"kr", NOK:"kr", DKK:"kr", PLN:"zł", BRL:"R$", INR:"₹", TRY:"₺" };
 // Monedas ofrecidas en el selector y la comparativa (deben venir en el fetch del BCE / frankfurter).
-const CUR_LIST = ["EUR","USD","GBP","CHF","TRY","JPY","CAD","AUD","CNY","MXN","SEK","NOK","DKK","PLN","BRL","INR"];
+const CUR_LIST = ["EUR","USD","GBP","CHF","TRY","JPY","CAD","AUD","CNY","MXN","SEK","NOK","DKK","PLN","BRL","INR","CZK","HKD","HUF","IDR","ILS","ISK","KRW","MYR","NZD","PHP","RON","SGD","THB","ZAR"];
 const eur  = (n)=> NF.format((n||0)*DISP.k)+" "+DISP.sym;
 const eur0 = (n)=> NF0.format(Math.round((n||0)*DISP.k))+" "+DISP.sym;

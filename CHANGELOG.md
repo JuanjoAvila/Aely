@@ -1,3 +1,15 @@
+## [4.26.51] — 2026-09-26
+
+### FIN-06 · divisas sin tipo, entrega independiente
+- Reproducción sobre 9520bdaa: cliente 500 XYZ → 500 €, servidor null; TRY 1520 → 27.756719999999998 frente a 27.76; USD legacy → 92 frente a null. El fallback 1:1 falseaba patrimonio y podía anclar costes persistentes.
+- `toEurAmt` y `aEuros` devuelven null sin tipo y redondean a céntimos; USD usa únicamente un respaldo guardado. Se retira 0.92 del estado vacío nuevo, sin migrar estados existentes. `fromEurAmt` propaga el desconocido.
+- Cuentas OB e inversiones conservan original/ISO con aviso, suman solo conversiones conocidas y muestran total incompleto. No promoción de cuenta OB, venta, anclaje en EUR ni snapshot de euros sin conversión. Los brókers conservan valores previos si no pueden convertir la respuesta.
+- Frankfurter v1/BCE descarga todas sus cotizaciones, conserva las guardadas para offline y ofrece las 30 monedas del catálogo actual en cliente/Wallet. Sin red en cálculos puros, dependencias nuevas ni escrituras retroactivas de movimientos. Apuntar e ingest mantienen su freno previo al guardado sin cambio.
+- Paridad y catálogo en `fx-multi`; E2E transversal `divisas-sin-cambio` protege original, sumas, ausencia de ganancias, ficha/roles, historial, costes, Apuntar y offline en es/en/ca.
+- Cliente candidato a beta; código servidor preparado y probado, SIN despliegue de backend compartido. FIN-05 y selector conservan sus pruebas móviles pendientes; sin promoción a main.
+
+- Review real de Claude: conversor cruzado sin redondeo EUR intermedio (evita pérdida de IDR/JPY/KRW pequeños), aviso de coste solo si faltan costes y originales OB sin solapamiento ni recorte móvil; E2E de geometría y conversor.
+
 ## [4.26.50] - 2026-09-26
 ### Elección del banco del widget
 
