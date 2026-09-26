@@ -398,18 +398,10 @@ function App(){
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
   const syncCloudExpenses=function(){
     return cloud.pullExpenses().then(function(rows){
-      // O: el SELECT lleva .limit(2000). Si llega lleno, hay más en la nube que no vemos — avisar.
-      /* FIN-07: una descarga a medias NO es un borrado. Sin esta distinción, un pull corto
-         descarta de la app todo lo de origen `supabase` que no haya llegado — que es exactamente
-         cómo se le borraban los gastos viejos. Regla desde la contención 4.18.6: nunca se borra
-         por ausencia. */
-      const parcial=!!(rows&&rows._mcPullCapped);
-      if(parcial) showToast("⚠ "+t("exp_pull_capped"));
+      // FIN-07: un error intermedio rechaza el pull antes de mezclar o subir datos locales.
+      // La ausencia sigue sin significar borrado, incluso tras descargar todas las páginas.
       const delSet={}; (stateRef.current.deleted||[]).forEach(function(k){ delSet[k]=1; });
       const incoming=rows.map(expenseFromRow).filter(function(e){ return e.amount!==0 && !expenseIsTombstoned(e, delSet); });
-      // La tabla `expenses` es la FUENTE DE VERDAD de los gastos de la nube: se reemplazan los
-      // de origen "supabase" con lo que hay en la tabla (refresca categorías, importes y borrados).
-      // Los manuales/sheet locales NO se tocan nunca (por eso esto es seguro y no borra datos).
       // Backfill: sube a la tabla TODO gasto local que aún no esté en ella (no solo los manuales).
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
@@ -434,11 +426,8 @@ function App(){
       let count=0; const seenC={};
       incoming.forEach(function(e){ const k=keyOfExpense(e); if(!seenC[k]){ seenC[k]=1; if(!prevKeys[k]) count++; } });
       set(function(prev){
-        /* ANTES: `keep = filter(source!=="supabase")` + solo añadir claves nuevas. Muerto desde
-           que `expenseFromRow` convierte `"supabase"`→`"manual"`: keep se quedaba con TODO lo
-           local y una categoría cambiada en la nube NUNCA bajaba (Aigües viajes vs energia, 12/9).
-           Ahora: `mergeExpensesFromCloud` refresca campo a campo y NUNCA borra por ausencia
-           (parcial o no — la regla 4.18.6 se queda). */
+        // Refrescar una sola vez conserva el guardado partido: no reescribir el histórico
+        // por página ni cuando las filas recibidas son iguales a las que ya había.
         const merged=mergeExpensesFromCloud(prev.expenses, incoming);
         const next=merged.list;
         const igual=!merged.changed && next.length===(prev.expenses||[]).length
