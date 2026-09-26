@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-26 · **v4.26.51** candidata FIN-06: originales y totales incompletos en Cartera, catálogo FX de 30 monedas. Beta pública aún 4.26.50.1; producción 4.26.48. APK 4.26.49/code 50. FIN-05 y selector siguen pendientes. Servidor FIN-06 sin desplegar; main necesita aprobación.
+> Estado a 2026-09-26 · **v4.26.51** FIN-06: originales y totales incompletos en Cartera, catálogo FX de 30 monedas. Beta OTA 4.26.51.1 publicada y verificada: Action 36242414362, código f60df6f5, Claude PASS; producción sigue en 4.26.48. APK 4.26.49/code 50. FIN-05 y selector siguen pendientes. Servidor FIN-06 sin desplegar; main necesita aprobación.
 > Publicación: el promote sigue el deploy de su commit y coteja el sello de Pages antes de cerrar; la suite lenta de 4.26.47 ya no se confunde con un fallo.
 > Anterior: **v4.26.46** — cambiar el día de un recibo conserva una sola ocurrencia y la fecha bancaria real.
 > Anterior: **v4.26.44** — la ficha de un recibo confirma el guardado antes de cerrarse y un doble toque solo puede persistir una vez.
@@ -232,7 +232,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.51** candidata; beta pública 4.26.50.1; producción 4.26.48. |
+| Web / OTA (`VERSION`) | **4.26.51** · beta OTA 4.26.51.1 verificada; producción 4.26.48. |
 | APK (`versionName` / `versionCode`) | Beta prerelease: **4.26.49 / 50**, firmada y publicada, sin prueba móvil. Estable: 4.26.32 / 48. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **50** / 4.26.49 en esta rama beta; estable sigue en 48 / 4.26.32. |
