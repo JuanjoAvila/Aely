@@ -1,5 +1,9 @@
 # FIN-05: relevo de beta 4.26.49.1 y APK 4.26.49
 
+## Decisión del dueño · 26/9
+
+FIN-05 sigue abierto, pendiente de validar un pago real en el móvil. El dueño no tiene nada que pagar hoy y pide avanzar con la siguiente tarea en otro chat. No interpretar esta espera como aprobación ni como un nuevo fallo; no promocionar FIN-05 ni retirar su prueba pendiente. El selector del banco también conserva su veredicto móvil pendiente. La siguiente tarea independiente es FIN-06, según su criterio ya decidido de divisas sin conversión.
+
 - Base: `main` en `95070a37`. Rama aislada: `codex/fin05-widget-arbitraje`.
 - Código revisado: `e1168c6de3dcb5c39726eb3d619fb3b59cad3581`. Claude respondió PASS por el canal compartido tras tres rondas; la última fue sobre ese SHA. El árbol quedó limpio tras la revisión.
 - Publicación original de FIN-05 a 26/9: `beta` publicada en `be59e27c` como [4.26.49.1](https://github.com/JuanjoAvila/Aely/releases/tag/beta); [Action 36195486950](https://github.com/JuanjoAvila/Aely/actions/runs/36195486950) verde (423 E2E, 7 E2E de rendimiento, 1 omitida). Manifiestos beta y assets OTA/APK públicos responden HTTP 200. `main` y Pages estables siguen en 4.26.48; APK estable 4.26.32/code 48. `public/apk.json` y `android/app/build.gradle` de beta están alineados en 4.26.49/code 50. El asset firmado existe en [release prerelease v4.26.49](https://github.com/JuanjoAvila/Aely/releases/tag/v4.26.49), anclado a `0f1ee105`; todavía no hay prueba de instalación en el móvil.
