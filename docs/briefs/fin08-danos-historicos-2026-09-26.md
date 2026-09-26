@@ -256,7 +256,15 @@ El diff FIN-08 contra 8bf229d4 es exclusivamente documental. Guard-privacy mira 
 no sustituye la inspección del nuevo brief: este contiene solo fixtures y referencias de código,
 sin extractos, datos de cartera, secretos ni identificadores de origen reales.
 
-Review solicitada a **Claude real** por el canal local; veredicto pendiente del resultado exacto.
+**Claude real: PASS** al SHA `e482c200e4915c920c0d13b2ae7c155746a6a865`, mensaje
+`20260926T1830Z-claude-fin08-e482c200`. Revisó brief y backlog, ejecutó los dos bloques tal cual
+con EXIT=0 en su worktree, contrastó clave manual/lápidas/retención/DELETE histórico y privacidad.
+El resultado de investigación/propuesta está revisado; la recuperación de datos reales sigue pendiente.
+
+Condiciones no bloqueantes del reviewer para el encargo siguiente: lectura cloud por el
+propietario con su sesión o exportación propia, sin service_role de agente ni contraseña en
+herramientas; nombrar antes de empezar una ubicación privada fuera del repo **y** del canal
+local compartido. R5/R6 requieren reloj fijo si se convierten en tests permanentes.
 Cambios de este ticket: este brief y únicamente la fila FIN-08 del backlog. Sin feature/APK,
 publicación visible, despliegue ni acceso/escritura en movimientos reales.
 
