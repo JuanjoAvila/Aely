@@ -327,3 +327,5 @@ escribir `Access-Control-Allow-Origin: "*"`.
 - **Freemium / suscripciones** (ver ROADMAP — solo diseño, nada implementado).
 - Play Store (Data safety + NotificationListener).
 - Feedback de uso real.
+
+FIN-06: FX puro devuelve null sin tipo (nunca 1:1). Las sumas vivas omiten conversiones desconocidas con aviso de total incompleto; el original permanece en cuentas OB/inversiones. No se ancla ni registra histórico EUR incompleto. Frankfurter v1 descarga todo el catálogo BCE y conserva tipos guardados para offline; USD de respaldo procede de state.fx, sin valor ficticio para estados nuevos. Movimientos persistidos siguen en EUR y no se migran.

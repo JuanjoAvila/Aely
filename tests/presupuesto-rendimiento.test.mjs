@@ -76,8 +76,11 @@ const PRESUPUESTO = {
      tendrá que recortar o volver a decidir.
      25/9 (4.26.47): la hoja de alta de Recibos rearma la ola nativa en cada paso y conserva
      la posición al volver. Medido: 1.223.845 bytes minificados, 165 sobre el tope anterior.
-     Se añade solo 1 KB al límite crudo; gzip permanece en 332 KB. */
-  minificado: 1196 * 1024,
+     Se añade solo 1 KB al límite crudo; gzip permanece en 332 KB.
+     26/9 (FIN-06 aprobado): catálogo de 30 divisas, originales/avisos y guardas null.
+     Candidato aislado sobre main, sin FIN-05 ni selector. Medido: 1.228.080 bytes minificados, gzip 333.214 bytes. Se añaden 4 KB
+     solo al crudo (1200 KB); límite gzip 332 KB intacto. */
+  minificado: 1200 * 1024,
   gzip: 332 * 1024,         // 12/9: 330,03 con suministros; aire mínimo a propósito
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };

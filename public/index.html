@@ -2867,29 +2867,37 @@ function isEfectivoEnt(aOrEnt){
 }
 
 function fxTableOf(s){
-  const t=s&&s.fxRates;
-  if(t&&typeof t==="object") return t;
-  const usd=(s&&s.fx)>0?s.fx:0.92;
-  return { USD:usd };
+  const tbl=Object.assign({},s&&s.fxRates||{});
+  // El respaldo USD es un tipo guardado, nunca una cotización ficticia para un estado vacío.
+  if((!Number.isFinite(Number(tbl.USD))||!(Number(tbl.USD)>0))&&Number.isFinite(Number(s&&s.fx))&&Number(s&&s.fx)>0) tbl.USD=Number(s.fx);
+  return tbl;
 }
-/** Importe en `cur` → EUR. fxRates guarda XXX→EUR (1 USD = r EUR). */
+function fxRateOf(cur,s){
+  const c=String(cur||"EUR").trim().toUpperCase();
+  const r=c==="EUR"?1:Number(fxTableOf(s)[c]);
+  return Number.isFinite(r)&&r>0?r:null;
+}
+/** Sin cambio no hay EUR: los consumidores conservan el original y avisan del total parcial. */
 function toEurAmt(amount, cur, s){
-  const n=Number(amount)||0;
-  const c=String(cur||"EUR").toUpperCase();
-  if(!c||c==="EUR") return n;
-  const r=fxTableOf(s)[c];
-  if(r>0) return n*r;
-  if(c==="USD"&&s&&s.fx>0) return n*s.fx;
-  return n; // divisa desconocida: no inventar tipo
+  if(amount==null) return null;
+  const n=Number(amount), r=fxRateOf(cur,s);
+  return Number.isFinite(n)&&r!=null&&Number.isFinite(n*r)?+(n*r).toFixed(2):null;
 }
 function fromEurAmt(amountEur, cur, s){
-  const n=Number(amountEur)||0;
-  const c=String(cur||"EUR").toUpperCase();
-  if(!c||c==="EUR") return n;
-  const r=fxTableOf(s)[c];
-  if(r>0) return n/r;
-  if(c==="USD"&&s&&s.fx>0) return n/s.fx;
-  return n;
+  if(amountEur==null) return null;
+  const n=Number(amountEur), r=fxRateOf(cur,s);
+  return Number.isFinite(n)&&r!=null&&Number.isFinite(n/r)?n/r:null;
+}
+function fxAmountText(amount,cur,s,fmt){
+  const converted=toEurAmt(amount,cur,s);
+  return converted==null ? NF.format(Number(amount)||0)+" "+String(cur||"EUR").toUpperCase()+" · "+t("fx_unconverted") : (fmt||eur)(converted);
+}
+function fxMissingOf(s){
+  return (s.obAccounts||[]).filter(function(o){ return toEurAmt(o.value,o.cur,s)==null; }).length+
+    (s.investments||[]).filter(function(i){ return invValueEur(i,s)==null||invCostEur(i,s)==null; }).length;
+}
+function FxNotice({missing}){
+  return missing>0 ? React.createElement("div",{className:"hint","data-fx-incomplete":"1",role:"status"},t("fx_total_incomplete")) : null;
 }
 /** Coste en € anclado (costEur) o conversión spot del cost nativo. */
 function invCostEur(i, s){
@@ -2898,7 +2906,7 @@ function invCostEur(i, s){
   return toEurAmt(i.cost||0, i.cur||"EUR", s);
 }
 function invValueEur(i, s){
-  return toEurAmt(i&&i.value, i&&i.cur||"EUR", s);
+  return toEurAmt(i&&i.value||0, i&&i.cur||"EUR", s);
 }
 
 /* ---------- Storage (localStorage con fallback) ---------- */
@@ -4569,7 +4577,7 @@ let DISP = { sym:"€", k:1 };
 // del viaje y la «moneda de visualización» parecía no hacer nada al no haber tipo.
 const CUR_SYM = { EUR:"€", USD:"$", GBP:"£", CHF:"CHF", JPY:"¥", CAD:"C$", AUD:"A$", CNY:"CN¥", MXN:"MX$", SEK:"kr", NOK:"kr", DKK:"kr", PLN:"zł", BRL:"R$", INR:"₹", TRY:"₺" };
 // Monedas ofrecidas en el selector y la comparativa (deben venir en el fetch del BCE / frankfurter).
-const CUR_LIST = ["EUR","USD","GBP","CHF","TRY","JPY","CAD","AUD","CNY","MXN","SEK","NOK","DKK","PLN","BRL","INR"];
+const CUR_LIST = ["EUR","USD","GBP","CHF","TRY","JPY","CAD","AUD","CNY","MXN","SEK","NOK","DKK","PLN","BRL","INR","CZK","HKD","HUF","IDR","ILS","ISK","KRW","MYR","NZD","PHP","RON","SGD","THB","ZAR"];
 const eur  = (n)=> NF.format((n||0)*DISP.k)+" "+DISP.sym;
 const eur0 = (n)=> NF0.format(Math.round((n||0)*DISP.k))+" "+DISP.sym;
 function eurParts(n){ const s=NF.format(Math.abs((n||0)*DISP.k)); const p=s.split(','); return {sign:n<0?"-":"", ent:p[0], dec:p[1], sym:DISP.sym}; }
@@ -4853,6 +4861,8 @@ const LANG = {
     st_cur_convert_hint:"Tipos del BCE (referencia). El resultado usa el cambio del día.",
     st_cur_convert_search_ph:"🔎 Buscar moneda…", st_cur_convert_search_none:"Ninguna moneda con ese nombre.",
     currency_hint:"Cambia cómo se ven los importes en toda la app (pantallas, totales, gráficos). Al apuntar un gasto eliges la moneda ahí mismo, aparte.",
+    fx_unconverted:"Sin conversión", fx_total_incomplete:"Total incompleto: faltan tipos de cambio. Los importes sin convertir no se incluyen en euros.",
+    cur_czk:"Corona checa", cur_hkd:"Dólar de Hong Kong", cur_huf:"Forinto húngaro", cur_idr:"Rupia indonesia", cur_ils:"Séquel israelí", cur_isk:"Corona islandesa", cur_krw:"Won surcoreano", cur_myr:"Ringgit malasio", cur_nzd:"Dólar neozelandés", cur_php:"Peso filipino", cur_ron:"Leu rumano", cur_sgd:"Dólar de Singapur", cur_thb:"Baht tailandés", cur_zar:"Rand sudafricano",
     fx_waiting:"⏳ Trayendo el tipo de cambio…", fx_no_rate:"✕ Sin tipo de cambio para esa moneda. Prueba con conexión.",
     ap_cur_lbl:"Moneda del apunte", ap_fx_hint:"Se convierte a euros al guardar (tipo del BCE).",
     cur_jpy:"¥ Yen", cur_cad:"C$ Dólar canadiense", cur_aud:"A$ Dólar australiano", cur_cny:"¥ Yuan", cur_mxn:"$ Peso mexicano", cur_sek:"kr Corona sueca", cur_nok:"kr Corona noruega", cur_dkk:"kr Corona danesa", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupia", cur_try:"₺ Lira turca",
@@ -6247,7 +6257,7 @@ const DATA = {
 // Estado VACÍO para usuarios nuevos (no heredan la cartera de ejemplo). Pasan por el onboarding.
 function buildEmpty(){
   return {
-    fx: 0.92, budget: 0, monthStartNet: 0, history: [],
+    fx: null, budget: 0, monthStartNet: 0, history: [],
     accounts: [], investments: [], assets: [], debts: [], fixed: [], flows: [], oneoffs: [], aportaciones: [],
     expenses: [], goals: [], shared: [], catOverrides: {}, obAccounts: [], obLabels: {}, verNotes: [],
     tourSeen: false,   // usuario nuevo → tour de bienvenida tras el onboarding
@@ -10806,8 +10816,8 @@ function TRSync({state, set, totals, open, onToggle}){
         if(!po) return i;
         const patch={shares:po.shares, isin:po.isin};
         // dato EN VIVO de TR (€). Si la posición se muestra en $, se convierte con el cambio del BCE.
-        if(po.value!=null) patch.value = i.cur==="EUR" ? po.value : fromEurAmt(po.value, i.cur, state);
-        if(po.cost!=null)  patch.cost  = i.cur==="EUR" ? po.cost  : fromEurAmt(po.cost,  i.cur, state);
+        if(po.value!=null){ const native=fromEurAmt(po.value,i.cur||"EUR",state); if(native!=null) patch.value=native; }
+        if(po.cost!=null){ const native=fromEurAmt(po.cost,i.cur||"EUR",state); if(native!=null) patch.cost=native; }
         return Object.assign({},i,patch);
       })});
       // Posiciones mapeadas a "__new" → se CREAN en Inversiones (usuario sin cartera previa).
@@ -10917,16 +10927,16 @@ function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDele
       ),
       editing
         ? React.createElement("div",{className:"editpair"},
-            React.createElement("label",null, React.createElement("span",null, t("inv_value")+(it.cur==="USD"?" $":" \u20ac")),
+            React.createElement("label",null, React.createElement("span",null, t("inv_value")+" "+(it.cur||"EUR")),
               React.createElement("input",{className:"num",value:(draft[it.id]||{}).value,inputMode:"decimal",onFocus:e=>e.target.select(),onChange:e=>setF(it.id,"value",e.target.value)})),
             showCost && React.createElement("label",null, React.createElement("span",null,t("inv_invested")),
               React.createElement("input",{className:"num",value:(draft[it.id]||{}).cost,inputMode:"decimal",onFocus:e=>e.target.select(),onChange:e=>setF(it.id,"cost",e.target.value)}))
           )
-        : React.createElement("div",{className:"rval num"}, show(eurVal(it)),
+        : React.createElement("div",{className:"rval num"}, fxAmountText(it.value,it.cur,st,show),
             (function(){
               if(it.value==null||it.value===""||!isFinite(Number(it.value))) return null;
               const cost=invCostEur(it,st);
-              if(!(cost>0)) return null;   // sin coste conocido no se inventa una rentabilidad
+              if(!(cost>0)||eurVal(it)==null) return null;   // sin coste conocido no se inventa una rentabilidad
               const gain=eurVal(it)-cost;
               const pl=gain/cost*100;
               const gainShown=Math.abs(gain)<0.005?0:gain;
@@ -11066,7 +11076,7 @@ function InvestmentRewards({state,set}){
 }
 
 function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsMode, fullMode, showToast}){
-  const fx=state.fx;   // USD→EUR (legacy + display toggle); GBP/CHF van en state.fxRates
+  const fx=fxRateOf("USD",state);   // USD→EUR (legacy + display toggle); GBP/CHF van en state.fxRates
   const [editing,setEditing]=useState(false);
   const [showCost,setShowCost]=useState(false);
   const [draft,setDraft]=useState({});
@@ -11145,7 +11155,9 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
   const sellPct=function(it,pct){
     if(!(pct>0 && pct<=100)){ return; }
     const f=pct/100;
-    const realizado=invValueEur(it, state)*f;   // líquido sacado, en €
+    const valueEur=invValueEur(it,state);
+    if(valueEur==null){ if(showToast) showToast(t("fx_no_rate")); return; }
+    const realizado=valueEur*f;   // líquido sacado, en €
     set(function(s){
       return Object.assign({},s,{
         investments:s.investments.map(function(i){
@@ -11159,8 +11171,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
       });
     });
   };
-  const total=state.investments.reduce((a,i)=>a+invValueEur(i, state),0);
-  const costTotal=state.investments.reduce((a,i)=>a+invCostEur(i, state),0);
+  const total=state.investments.reduce((a,i)=>a+(invValueEur(i, state)||0),0);
+  const costTotal=state.investments.reduce((a,i)=>a+(invCostEur(i, state)||0),0);
   const costKnown=function(i){
     // En el histórico antiguo `cost:0` significaba tanto «sin dato» como un coste real cero.
     // Sin una migración con procedencia no se pueden separar: lo tratamos como desconocido para
@@ -11168,21 +11180,22 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
     return (typeof i.costEur==="number"&&isFinite(i.costEur)&&i.costEur>0)
       || (typeof i.cost==="number"&&isFinite(i.cost)&&i.cost>0);
   };
-  const completeCost=state.investments.length>0&&state.investments.every(costKnown);
+  const missingFx=state.investments.filter(function(i){ return invValueEur(i,state)==null||invCostEur(i,state)==null; }).length;
+  const completeCost=state.investments.length>0&&!missingFx&&state.investments.every(costKnown);
   const missingCost=state.investments.find(function(i){ return !costKnown(i); });
   const plTotal=costTotal>0?(total-costTotal)/costTotal*100:0;
   // Moneda LOCAL de la pestaña Inversiones (no toca el resto de la app). Todo se calcula en €
   // internamente y se convierte a la moneda elegida para mostrar (€ ↔ $ con el cambio del BCE).
   const [invCur,setInvCur]=useState(function(){ return (state.settings&&state.settings.currency)||"EUR"; });
-  const dk = invCur==="USD" ? (fx>0?1/fx:1) : 1;
-  const dsym = invCur==="USD" ? "$" : "€";
-  const f2  = (eurVal)=> NF.format((eurVal||0)*dk)+" "+dsym;
-  const f0  = (eurVal)=> NF0.format(Math.round((eurVal||0)*dk))+" "+dsym;
+  const dk = invCur==="USD"&&fx>0 ? 1/fx : 1;
+  const dsym = invCur==="USD"&&fx>0 ? "$" : "€";
+  const f2  = (eurVal)=> (eurVal==null?"—":NF.format(eurVal*dk)+" "+dsym);
+  const f0  = (eurVal)=> (eurVal==null?"—":NF0.format(Math.round(eurVal*dk))+" "+dsym);
   // valor y coste por bróker (en €) para el desglose de contribuciones
   const byBroker={};
-  state.investments.forEach(function(i){ const v=invValueEur(i, state); const c=invCostEur(i, state); const o=byBroker[i.ent]||(byBroker[i.ent]={c:0,v:0}); o.c+=c; o.v+=v; });
+  state.investments.forEach(function(i){ const v=invValueEur(i, state); const c=invCostEur(i, state); const o=byBroker[i.ent]||(byBroker[i.ent]={c:0,v:0}); o.c+=c||0; o.v+=v||0; });
   // rendimiento por posición (en €), ordenado de mejor a peor
-  const posList=state.investments.map(function(i){ const v=invValueEur(i, state); const c=invCostEur(i, state); return {id:i.id,name:i.name,ent:i.ent,v:v,c:c,gain:v-c,pl:c>0?(v-c)/c*100:0}; }).sort(function(a,b){ return b.gain-a.gain; });
+  const posList=state.investments.filter(function(i){ return invValueEur(i,state)!=null&&invCostEur(i,state)!=null; }).map(function(i){ const v=invValueEur(i, state); const c=invCostEur(i, state); return {id:i.id,name:i.name,ent:i.ent,v:v,c:c,gain:v-c,pl:c>0?(v-c)/c*100:0}; }).sort(function(a,b){ return b.gain-a.gain; });
   const maxAbsGain=Math.max.apply(null,posList.map(function(p){return Math.abs(p.gain);}).concat([1]));
   const best=posList[0], worst=posList[posList.length-1];
   const invHist=(state.invHistory||[]);
@@ -11191,7 +11204,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
   const TYPE_BY_ID={ "0mrszi5":"materias", "7zjaw0y":"etf", "0itlr5k":"fondo" };
   const invType=function(it){ if(TYPE_BY_ID[it.id]) return TYPE_BY_ID[it.id]; if(/oro|xau|materia|plata/i.test(it.name)) return "materias"; if(/etf|all.?world|s&p|amundi/i.test(it.name)) return "etf"; if(/fondo|indexad|fidelity|msci world/i.test(it.name)) return "fondo"; return "acciones"; };
   const byType={acciones:0,etf:0,fondo:0,materias:0};
-  state.investments.forEach(function(i){ byType[invType(i)]+=invValueEur(i, state); });
+  state.investments.forEach(function(i){ byType[invType(i)]+=invValueEur(i, state)||0; });
   const typeMeta=[["acciones","var(--mint)"],["etf","var(--blue)"],["fondo","#C9A0E0"],["materias","#E6C36A"]];
   const typeSegs=typeMeta.filter(function(ty){ return byType[ty[0]]>0; }).map(function(ty){ return {label:t("type_"+ty[0])+" · "+(total>0?Math.round(byType[ty[0]]/total*100):0)+"%", value:byType[ty[0]], color:ty[1]}; });
 
@@ -11331,6 +11344,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
           React.createElement("div",{className:"curtoggle","aria-label":t("iv_currency")},
             React.createElement("button",{type:"button",className:"curbtn"+(invCur==="EUR"?" on":""),"aria-pressed":invCur==="EUR",onClick:function(){ setInvCur("EUR"); }},"€"),
             React.createElement("button",{type:"button",className:"curbtn"+(invCur==="USD"?" on":""),"aria-pressed":invCur==="USD",onClick:function(){ setInvCur("USD"); }},"$"))),
+        React.createElement(FxNotice,{missing:missingFx}),
         stale && React.createElement("div",{className:"chip",style:{display:"inline-flex",marginTop:12}},tf("st_stale",{day:staleDay})),
         React.createElement("div",{className:"v4-stackbar","aria-hidden":"true",style:{marginTop:16}},
           React.createElement("i",{style:{flex:Math.max(.02,heroBase/heroSum*100),background:completeCost?"var(--cream)":"var(--mint)"}}),
@@ -11344,9 +11358,9 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
                 tf("iv_percent",{pct:(plTotal>=0?"+":"")+plTotal.toFixed(2),time:lastTime})))
           : React.createElement("div",{className:"hint",style:{marginTop:12}},
               state.investments.length>0 && React.createElement("div",{className:"v4-legend"},React.createElement("span",null,React.createElement("b",{style:{background:"var(--muted-2)"}}),t("iv_gain_unknown"))),
-              React.createElement("div",null,costTotal>0?t("iv_missing_cost"):t("iv_no_put")),
+              !missingFx && React.createElement("div",null,costTotal>0?t("iv_missing_cost"):t("iv_no_put")),
               state.investments.length>0 && React.createElement("div",{style:{marginTop:6}},tf("iv_updated",{time:lastTime})),
-              state.investments.length>0 && React.createElement("button",{type:"button",className:"v4-link-mini","data-act":"inv-edit",style:{marginTop:8},onClick:function(){ beginBrokerEdit(missingCost&&missingCost.ent); }},t("iv_no_put_cta"))),
+              state.investments.length>0&&!missingFx && React.createElement("button",{type:"button",className:"v4-link-mini","data-act":"inv-edit",style:{marginTop:8},onClick:function(){ beginBrokerEdit(missingCost&&missingCost.ent); }},t("iv_no_put_cta"))),
         React.createElement("div",{className:"hint",style:{marginTop:10}},tf("iv_fx_note",{fx:fx>0?fx.toFixed(4):"—"}))),
 
       React.createElement("div",{className:"v4-sec-h",style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,marginTop:22}},
@@ -11387,7 +11401,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
         const items=state.investments.filter(function(i){ return i.ent===gid; });
         const o=byBroker[gid]||{c:0,v:0};
         const delta=o.v-o.c;
-        const brokerCostComplete=items.length>0&&items.every(costKnown);
+        const brokerMissing=items.some(function(i){ return invValueEur(i,state)==null||invCostEur(i,state)==null; });
+        const brokerCostComplete=items.length>0&&!brokerMissing&&items.every(costKnown);
         const open=!!brokerOpen[gid];
         const isEditing=editing&&editBroker===gid;
         const panelId="iv_broker_"+gid;
@@ -11397,7 +11412,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:gid,size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
-              React.createElement("div",{className:"meta"},tf("iv_positions",{n:items.length}))),
+              React.createElement("div",{className:"meta"},tf("iv_positions",{n:items.length}),brokerMissing&&React.createElement("div",{className:"hint"},t("fx_unconverted")))),
             React.createElement("div",{style:{textAlign:"right",flex:"0 0 auto"}},
               React.createElement("div",{className:"am num"},f0(o.v)),
               brokerCostComplete && React.createElement("div",{style:{fontSize:11,fontWeight:750,color:delta>=0?"var(--mint)":"var(--coral)"}},(delta>=0?"+":"")+f0(delta))),
@@ -11413,8 +11428,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
                       React.createElement("div",null,
                         React.createElement("div",{className:"rname"},it.name),
                         React.createElement("div",{className:"rsub"},it.ticker?(it.ticker+(it.shares!=null?" · "+tf("iv_shares",{n:it.shares}):"")):manualLabel(it)))),
-                    React.createElement("div",{className:"rval num"},f2(v),
-                      it.ticker&&c>0 && React.createElement("div",{className:"rvsub"+(d<0?" neg":"")},(d>=0?"+":"")+(d/c*100).toFixed(2)+"%")));
+                    React.createElement("div",{className:"rval num"},fxAmountText(it.value,it.cur,state,f2),
+                      v!=null&&it.ticker&&c>0 && React.createElement("div",{className:"rvsub"+(d<0?" neg":"")},(d>=0?"+":"")+(d/c*100).toFixed(2)+"%")));
                 }),
             React.createElement("div",{style:{display:"flex",gap:8,marginTop:10,flexWrap:"wrap"}},
               isEditing
@@ -11435,11 +11450,13 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
   }
 
   return React.createElement("div",null,
+    React.createElement(FxNotice,{missing:missingFx}),
     !v4Embed && !toolsOnly && React.createElement("div",{className:"total-bar"},
       React.createElement("div",null,
         React.createElement("div",{className:"tl"},t("inv_total")),
         React.createElement("div",{className:"tn num"},f2(total)),
-        React.createElement("div",{style:{fontSize:12,fontWeight:700,marginTop:2,color:plTotal>=0?"var(--mint)":"var(--coral)"}},(plTotal>=0?"+":"")+plTotal.toFixed(2)+"% global"),
+        React.createElement(FxNotice,{missing:missingFx}),
+        React.createElement("div",{style:{fontSize:12,fontWeight:700,marginTop:2,color:plTotal>=0?"var(--mint)":"var(--coral)"}},completeCost?(plTotal>=0?"+":"")+plTotal.toFixed(2)+"% global":"—"),
         React.createElement("div",{className:"curtoggle",style:{marginTop:8}},
           React.createElement("button",{type:"button",className:"curbtn"+(invCur==="EUR"?" on":""),onClick:()=>setInvCur("EUR")},"€"),
           React.createElement("button",{type:"button",className:"curbtn"+(invCur==="USD"?" on":""),onClick:()=>setInvCur("USD")},"$")
@@ -11472,7 +11489,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
         groups.map(function(g){
         const items=state.investments.filter(function(i){ return i.ent===g[0]; });
         if(items.length===0) return null;
-        const sub=items.reduce(function(a,i){ return a+invValueEur(i,state); },0);
+        const sub=items.reduce(function(a,i){ return a+(invValueEur(i,state)||0); },0);
         // Editando: todos los brókers desplegados con sus inputs (si no, había que ir uno a uno).
         const open=editing||!!brokerOpen[g[0]];
         return React.createElement(React.Fragment,{key:g[0]},
@@ -11506,19 +11523,19 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
     !v4Embed && React.createElement(OrderableSections,{tab:"inv",state:state,set:set,items:[
       {id:"ru",label:SIMPLEMODE?t("ru_title_simple"):t("ru_title"),el:React.createElement(InvestmentRewards,{state:state,set:set})},
       {id:"cvg",label:t("inv_cvg"),el:
-    React.createElement(CollapsibleCard,{title:t("inv_cvg"),sub:(plTotal>=0?"+":"")+plTotal.toFixed(1)+"%",dot:"#5FD08A",defaultOpen:false,storageKey:"inv_cvg",help:t("h_cvg")},
+    React.createElement(CollapsibleCard,{title:t("inv_cvg"),sub:completeCost?(plTotal>=0?"+":"")+plTotal.toFixed(1)+"%":"—",dot:"#5FD08A",defaultOpen:false,storageKey:"inv_cvg",help:t("h_cvg")},
       // desglose por bróker, para poder comparar cada uno con su app (p.ej. Revolut en $)
       groups.map(function(g){ const o=byBroker[g[0]]; if(!o||o.v===0) return null; const gain=o.v-o.c; const pl=o.c>0?gain/o.c*100:0;
         return React.createElement("div",{className:"row",key:g[0]},
           React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g[0],size:34}),
             React.createElement("div",null,React.createElement("div",{className:"rname"},g[1]),React.createElement("div",{className:"rsub"},tf("inv_invested_lbl",{x:f0(o.c)})))),
           React.createElement("div",{className:"rval num"}, f0(o.v),
-            React.createElement("div",{className:"rvsub"+(gain<0?" neg":""),style:{color:gain>=0?"var(--mint)":"var(--coral)"}}, (gain>=0?"+":"")+f0(gain)+" ("+(pl>=0?"+":"")+pl.toFixed(1)+"%)")));
+            completeCost && React.createElement("div",{className:"rvsub"+(gain<0?" neg":""),style:{color:gain>=0?"var(--mint)":"var(--coral)"}}, (gain>=0?"+":"")+f0(gain)+" ("+(pl>=0?"+":"")+pl.toFixed(1)+"%)")));
       }),
       React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("inv_invested_tot")),React.createElement("span",{className:"num"},f0(costTotal))),
       React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("inv_value_tot")),React.createElement("span",{className:"num",style:{fontWeight:700}},f0(total))),
-      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("inv_gain_lat")),React.createElement("span",{className:"num",style:{fontWeight:700,color:(total-costTotal)>=0?"var(--mint)":"var(--coral)"}},((total-costTotal)>=0?"+":"")+f0(total-costTotal))),
-      React.createElement("div",{style:{marginTop:10}}, React.createElement(StackedBar,{segments:[{label:t("inv_contributed"),value:costTotal,color:"#2f6b4a"},{label:t("inv_gain"),value:Math.max(0,total-costTotal),color:"var(--mint)"}]})),
+      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("inv_gain_lat")),React.createElement("span",{className:"num",style:{fontWeight:700,color:(total-costTotal)>=0?"var(--mint)":"var(--coral)"}},completeCost?((total-costTotal)>=0?"+":"")+f0(total-costTotal):"—")),
+      React.createElement("div",{style:{marginTop:10}}, completeCost && React.createElement(StackedBar,{segments:[{label:t("inv_contributed"),value:costTotal,color:"#2f6b4a"},{label:t("inv_gain"),value:Math.max(0,total-costTotal),color:"var(--mint)"}]})),
       React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:8}},t("inv_cvg_hint"))
     )},
       {id:"bytype",label:t("inv_bytype"),el:
@@ -11540,7 +11557,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
       })
     )},
       {id:"evo",label:t("inv_evo"),el:React.createElement(React.Fragment,null,
-    invHist.length>=1 && total>0 && React.createElement(CollapsibleCard,{title:t("inv_evo"),sub:evoChg?tf("inv_evo_period",{sign:evoChg.pct>=0?"+":"",pct:Math.abs(evoChg.pct).toFixed(1),days:evoChg.days,x:f2(Math.abs(evoChg.abs))}):t("inv_evo_sub"),dot:"#7FB5E8",defaultOpen:false,storageKey:"inv_evo",help:t("h_evo")},
+    !missingFx && invHist.length>=1 && total>0 && React.createElement(CollapsibleCard,{title:t("inv_evo"),sub:evoChg?tf("inv_evo_period",{sign:evoChg.pct>=0?"+":"",pct:Math.abs(evoChg.pct).toFixed(1),days:evoChg.days,x:f2(Math.abs(evoChg.abs))}):t("inv_evo_sub"),dot:"#7FB5E8",defaultOpen:false,storageKey:"inv_evo",help:t("h_evo")},
       invHist.length>=2 ? React.createElement(SparklineInv,{hist:invHist}) : React.createElement("div",{className:"hint",style:{marginBottom:8}},t("inv_evo_today")),
       invHist.length>=2 && React.createElement("div",{style:{display:"flex",justifyContent:"space-between",fontSize:12,color:"var(--muted)",marginTop:6}},
         React.createElement("span",null,new Date(invHist[0].d).toLocaleDateString(loc(),{day:'2-digit',month:'short'})),
@@ -11553,7 +11570,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
     groups.map(function(g){
       const items=state.investments.filter(i=>i.ent===g[0]);
       if(items.length===0) return null;
-      const sub=items.reduce((a,i)=>a+invValueEur(i, state),0);
+      const sub=items.reduce((a,i)=>a+(invValueEur(i, state)||0),0);
       return React.createElement(CollapsibleCard,{key:g[0],title:g[1],sub:f0(sub),dot:entOf(g[0]).color,storageKey:"inv_"+g[0]},
         React.createElement(InvRows,{items:items,st:state,fmt:f2,editing:editing,showCost:showCost,draft:draft,setF:setF,onSell:onSell,onDelete:onDelete})
       );
@@ -11656,7 +11673,8 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
     });
   };
   const banco=entOf(a.ent).label||a.aspsp||"🏦";
-  const saldoHoy=Number(saldoMostrado(a))||0;
+  const missingFx=!!a._obKey&&a.value==null;
+  const saldoHoy=missingFx?null:(Number(saldoMostrado(a))||0);
   const gastosCuenta=(state.expenses||[]).filter(function(e){ return expenseBankOf(e)===a.ent; })
     .sort(function(x,y){ return dateMs(y.date)-dateMs(x.date); });
   const histKey=a.accountOrderKey||(a._obKey?("ob:"+a._obKey):("acc:"+a.id));
@@ -11671,10 +11689,10 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
   const sparkMin=Math.min.apply(null,spark), sparkMax=Math.max.apply(null,spark), sparkSpan=sparkMax-sparkMin;
   const hoy=new Date(), inicioMesKey=hoy.getFullYear()+"-"+String(hoy.getMonth()+1).padStart(2,"0")+"-01";
   const monthPoint=allHistory.find(function(p){ return p.day===inicioMesKey; });
-  const deltaMes=monthPoint?saldoHoy-Number(monthPoint.value):null;
+  const deltaMes=!missingFx&&monthPoint?saldoHoy-Number(monthPoint.value):null;
   const cuentasMismaEnt=(state.accounts||[]).filter(function(x){ return x.ent===a.ent; }).length+
     (state.obAccounts||[]).filter(function(x){ return x.ent===a.ent; }).length;
-  const projected=cuentasMismaEnt===1&&totals.projectedByBank&&Number.isFinite(totals.projectedByBank[a.ent])
+  const projected=!missingFx&&cuentasMismaEnt===1&&totals.projectedByBank&&Number.isFinite(totals.projectedByBank[a.ent])
     ? totals.projectedByBank[a.ent] : null;
   const issue=(state.bankIssues||[]).find(function(is){
     if(is.ent&&is.ent===a.ent) return true;
@@ -11724,13 +11742,13 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
           placeholder:t("pt_name_ph"),onChange:function(e){ guardaNombre(e.target.value); }}),
         React.createElement("div",{className:"v4-account-balance"},
           React.createElement("div",{className:"v4-micro"}, t("ac_balance_today")),
-          React.createElement("div",{className:"v4-account-amount serif num"}, eur(saldoHoy)),
+          React.createElement("div",{className:"v4-account-amount serif num",style:missingFx?{whiteSpace:"normal",fontSize:22,letterSpacing:0,overflowWrap:"anywhere"}:null}, missingFx?fxAmountText(a._nativeValue,a.cur,state):eur(saldoHoy)),
           (deltaMes!=null&&Math.abs(deltaMes)>=.005 || projected!=null || stale) && React.createElement("div",{className:"v4-account-balance-meta"},
             deltaMes!=null&&Math.abs(deltaMes)>=.005 && React.createElement("span",{className:"v4-account-delta"+(deltaMes<0?" down":"")},
               tf(deltaMes<0?"ac_delta_month_down":"ac_delta_month",{x:eur(Math.abs(deltaMes))})),
             projected!=null && React.createElement("span",null,tf("ac_eom",{x:eur(projected)})),
             stale && React.createElement("span",{className:"v4-account-stale"},tf("st_stale",{day:staleDay}))),
-          history.length>=2
+          !missingFx&&history.length>=2
             ? React.createElement(React.Fragment,null,
                 React.createElement("div",{className:"v4-account-spark","aria-label":t("ac_spark_from")+" · "+t("ac_spark_to")},
                   spark.map(function(v,i){
@@ -11759,7 +11777,7 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
           React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:7}},
             roles.map(function(r){
               const on=rolActual===r[0];
-              return React.createElement("button",{key:r[0],type:"button",className:"v4-ficha-op"+(on?" on":""),
+              return React.createElement("button",{key:r[0],type:"button",className:"v4-ficha-op"+(on?" on":""),disabled:missingFx,
                 /* `onRole` = `pickRole` del padre: no solo `applyAccountRole`. Un EXTRA de gasto
                    diario vive en `settings.expenseBanks`, y sin ese camino la ficha mentiría al
                    tocar «Recibos» (dejaría el banco contando igual). */
@@ -11914,8 +11932,8 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
     const rows=(state.accounts||[]).map(function(a){
       return {key:a.accountOrderKey||("acc:"+a.id),value:+Number(shownAcc(a)).toFixed(2)};
     }).concat((state.obAccounts||[]).map(function(o){
-      return {key:"ob:"+o.key,value:+Number(toEurAmt(o.value||0,o.cur||"EUR",state)).toFixed(2)};
-    })).filter(function(r){ return r.key&&Number.isFinite(r.value); });
+      return {key:"ob:"+o.key,value:toEurAmt(o.value||0,o.cur||"EUR",state)};
+    })).filter(function(r){ return r.key&&r.value!=null&&Number.isFinite(r.value); });
     const current=state.accountBalanceHistory||{};
     const needs=rows.some(function(r){
       const list=current[r.key]||[], last=list[list.length-1];
@@ -12120,7 +12138,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
       const dragging=!!(dragAcc&&dragAcc.from===rowKey);
       const dragOver=!!(dragAcc&&dragAcc.to===rowKey&&dragAcc.from!==rowKey);
       return React.createElement("button",{className:"v4-mov"+(dragging?" dragging":"")+(dragOver?" drag-over":""),key:rowKey,type:"button",
-        "data-account-key":rowKey,"data-ob-key":o.key,"aria-label":disp+" · "+eur(toEurAmt(o.value||0, o.cur||"EUR", state)),
+        "data-account-key":rowKey,"data-ob-key":o.key,"aria-label":disp+" · "+fxAmountText(o.value||0,o.cur||"EUR",state),
         title:t("drag_hint"),onClick:function(){ if(Date.now()<suppressSheetRef.current) return; setSheetAcc(rowKey); }},
         React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:o.ent||"",size:44})),
         React.createElement("div",{className:"nm"},
@@ -12128,7 +12146,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
           React.createElement("div",{className:"meta"}, entOf(o.ent).label,
             o.stale ? badge(t("pt_ob_badge")+" · "+t(o.staleKind==="expired"?"bp_st_expired":"pt_ob_stale"),"#E2A05F") : badge(t("pt_ob_badge"),"#7FB5E8"))
         ),
-        React.createElement("div",{className:"am num"}, eur(toEurAmt(o.value||0, o.cur||"EUR", state)))
+        React.createElement("div",{className:"am num",style:toEurAmt(o.value,o.cur,state)==null?{maxWidth:"52%",whiteSpace:"normal",textAlign:"right",overflowWrap:"anywhere",flex:"0 1 auto"}:null}, fxAmountText(o.value||0,o.cur||"EUR",state))
       );
     };
     // «Gasto diario» sigue admitiendo VARIOS bancos (v4.6.3). Modelo por debajo: UNA cuenta
@@ -12156,10 +12174,11 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
       const o=sheetRow.item, custom=(state.obLabels||{})[o.key];
       return Object.assign({},o,{
         id:sheetRow.key, name:(custom!=null&&custom!=="")?custom:niceObName(o),
-        value:toEurAmt(o.value||0,o.cur||"EUR",state), _obKey:o.key, accountOrderKey:sheetRow.key
+        value:toEurAmt(o.value||0,o.cur||"EUR",state), _nativeValue:o.value, _obKey:o.key, accountOrderKey:sheetRow.key
       });
     })() : (sheetRow&&sheetRow.item)||null;
     const pickSheetRole=function(a,r){
+      if(a&&a._obKey&&a.value==null) return;
       if(!a||!a._obKey){ if(a) pickRole(a,r); return; }
       const nid=uid();
       set(function(s){ return promoteObAccount(s,totals,a._obKey,r,nid); });
@@ -12171,6 +12190,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
        dos, que es como lo usa el resto de la app. */
     return React.createElement("div",null,
       parte!=="bienes" && React.createElement("div",{className:"v4-card-list",ref:bindListDrag},
+        React.createElement(FxNotice,{missing:(state.obAccounts||[]).filter(function(o){ return toEurAmt(o.value,o.cur,state)==null; }).length}),
         orderedAccountRows.map(function(row){
           return row.kind==="account" ? accRow(row.item,row.key) : obRow(row.item,row.key);
         }),
@@ -12226,11 +12246,11 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
               React.createElement("span",{style:{flex:"0 0 auto",fontWeight:700}},entOf(o.ent).label),
               React.createElement("input",{className:"af-in",style:{flex:1,fontSize:13,padding:"7px 10px"},value:custom!=null?custom:disp,placeholder:disp,
                 onChange:function(e){ const v=e.target.value; set(function(s){ const ob=Object.assign({},s.obLabels); ob[o.key]=v; return Object.assign({},s,{obLabels:ob}); }); }}),
-              React.createElement("span",{className:"am num",style:{flex:"0 0 auto",color:"var(--muted)",fontSize:14}}, eur(toEurAmt(o.value||0, o.cur||"EUR", state)))
+              React.createElement("span",{className:"am num",style:{flex:"0 0 auto",color:"var(--muted)",fontSize:14}}, fxAmountText(o.value||0,o.cur||"EUR",state))
             ),
             o.ent && React.createElement("div",{className:"rolechips",style:{padding:"8px 0 2px"}},
               [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]].map(function(rr){
-                return React.createElement("button",{key:rr[0],className:"rchip",onClick:function(){
+                return React.createElement("button",{key:rr[0],className:"rchip",disabled:toEurAmt(o.value,o.cur,state)==null,onClick:function(){
                   const nid=uid();
                   set(function(s){ return promoteObAccount(s, totals, o.key, rr[0], nid); });
                   accEd.setDraft(function(d){ const nd=Object.assign({},d); nd[nid]=+toEurAmt(o.value||0, o.cur||"EUR", state).toFixed(2); return nd; });
@@ -12332,14 +12352,14 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
                   ? React.createElement("span",{className:"day-badge",style:{marginLeft:6,background:"#E2A05F22",color:"#E2A05F"}}, t("pt_ob_badge")+" · "+t(o.staleKind==="expired"?"bp_st_expired":"pt_ob_stale"))
                   : React.createElement("span",{className:"day-badge",style:{marginLeft:6,background:"#7FB5E822",color:"var(--blue)"}}, t("pt_ob_badge"))),
             React.createElement("div",{className:"rsub"}, entOf(o.ent).label))),
-        React.createElement("div",{className:"rval num"}, eur(toEurAmt(o.value||0, o.cur||"EUR", state)))
+        React.createElement("div",{className:"rval num"}, fxAmountText(o.value||0,o.cur||"EUR",state))
         ),
         // ROL también para las cuentas OB (bug pareja 2026-07-11: sin rol no podían recibir
         // gastos fijos ni diarios — al elegir uno, la cuenta se «promociona» a cuenta con rol,
         // sale de esta lista y aparece arriba con las manuales; el banco la sigue re-anclando).
         accEd.editing && o.ent && React.createElement("div",{className:"rolechips"},
           [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]].map(function(rr){
-            return React.createElement("button",{key:rr[0],className:"rchip",onClick:function(){
+            return React.createElement("button",{key:rr[0],className:"rchip",disabled:toEurAmt(o.value,o.cur,state)==null,onClick:function(){
               const nid=uid();
               set(function(s){ return promoteObAccount(s, totals, o.key, rr[0], nid); });
               // siembra el borrador del editor con el saldo real: sin esto la fila nueva salía vacía
@@ -12348,14 +12368,15 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
           })
         )
       ); }),
-      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("pt_total_liquid")),React.createElement("span",{className:"num"},eur(accSum)))
+      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("pt_total_liquid")),React.createElement("span",{className:"num"},eur(accSum))),
+      React.createElement(FxNotice,{missing:totals.fxMissing})
     )},
       // (el desglose de efectivo de TR se quitó 2026-07-06: los movimientos ya viven en Gastos)
       {id:"inv",label:t("pt_investments"),el:
     React.createElement(CollapsibleCard,{title:t("pt_investments"),sub:t("pt_byBroker"),dot:"#7FB5E8",storageKey:"w_inv",help:t("h_ptinv")},
       // Solo brókers con posiciones (los 3 fijos confundían a usuarios nuevos — feedback 2026-07-10)
       ["revolut","trade_republic","myinvestor"].filter(g=>state.investments.some(i=>i.ent===g)).map(g=>{
-        const v=state.investments.filter(i=>i.ent===g).reduce((a,i)=>a+invValueEur(i, state),0);
+        const v=state.investments.filter(i=>i.ent===g).reduce((a,i)=>a+(invValueEur(i, state)||0),0);
         return React.createElement("div",{className:"row",key:g},
           React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g,size:38}),React.createElement("div",{className:"rname"},entOf(g).label)),
           React.createElement("div",{className:"rval num"},eur(v)));
@@ -12733,6 +12754,7 @@ function promoteObAccount(s, totals, key, role, id){
   if(!o || !o.ent) return s;
   const now=new Date();
   const bal=toEurAmt(o.value||0, o.cur||"EUR", s);
+  if(bal==null) return s;
   const base=+((bal - monthNetForAccount(s, o.ent, now.getFullYear(), now.getMonth()+1, now.getDate())).toFixed(2));
   const name=((s.obLabels||{})[o.key]) || niceObName(o);
   /* Conserva la clave de orden de la fila OB: elegir un rol no debe mandar de golpe la cuenta al
@@ -13661,7 +13683,8 @@ function applyInvestBuy(state, ent, amountEur){
   if(!acc) return null;
   const inv=(state.investments||[]).find(function(i){ return i.id===acc.rewardInv; });
   if(!inv) return null;
-  const cInv = inv.cur==="USD" ? amountEur/(state.fx||1) : amountEur;   // a la moneda de la inversión
+  const cInv = fromEurAmt(amountEur,inv.cur||"EUR",state);
+  if(cInv==null) return null;   // a la moneda de la inversión
   const boughtShares = (inv.shares>0 && inv.value>0) ? +(cInv/(inv.value/inv.shares)).toFixed(6) : 0;
   const newInv=Object.assign({},inv,{
     shares: +(((inv.shares||0)+boughtShares)).toFixed(6),
@@ -18738,7 +18761,7 @@ function WhatsNew({onClose, showToast, set, state}){
    hacía Ajustes interminable en el móvil — feedback 2026-08-05: «ponlo en una pantalla nueva,
    hay un montón de divisas». El buscador filtra por código o nombre (p.ej. «lira», «try», «corona»)
    y afecta a las DOS listas de chips a la vez, porque comparten el mismo catálogo. No inventa
-   tipos: reutiliza toEurAmt/fromEurAmt y los `fxRates` que ya trae Ajustes → Dinero. */
+   tipos: usa los `fxRates` que ya trae Ajustes → Dinero y redondea solo al mostrar el resultado. */
 function CurConverterPanel({state, onClose, refreshFx}){
   useBackClose(true, onClose);   // gesto atrás del móvil: cierra esta pantalla
   const [amt,setAmt]=useState("1");
@@ -18771,11 +18794,12 @@ function CurConverterPanel({state, onClose, refreshFx}){
   const raw=parseFloat(String(amt).replace(",","."))||0;
   const needFrom=from!=="EUR" && !(tbl[from]>0);
   const needTo=to!=="EUR" && !(tbl[to]>0);
-  const eurMid=(!needFrom && raw>0)?toEurAmt(raw, from, state):null;
-  const out=(!needTo && eurMid!=null)?fromEurAmt(eurMid, to, state):null;
+  // Redondear EUR a mitad de camino perdería unidades pequeñas de IDR/JPY/KRW.
+  const converted=(!needFrom&&!needTo&&raw>0)?raw*fxRateOf(from,state)/fxRateOf(to,state):null;
+  const out=Number.isFinite(converted)?converted:null;
   const rateTxt=(function(){
     if(needFrom||needTo||!(raw>0)||out==null) return null;
-    const one=fromEurAmt(toEurAmt(1, from, state), to, state);
+    const one=fxRateOf(from,state)/fxRateOf(to,state);
     if(!(one>0)) return null;
     return "1 "+(CUR_SYM[from]||from)+" = "+NF.format(one)+" "+(CUR_SYM[to]||to);
   })();
@@ -21209,6 +21233,7 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
     React.createElement("h1",{className:"v4-title serif"}, t("v4_cartera_title")),
     React.createElement("div",{className:"v4-card v4-card-hero rise",style:{animationDelay:".05s"}},
       React.createElement("div",{className:"v4-micro"}, heroLab),
+      React.createElement(FxNotice,{missing:totals.fxMissing}),
       React.createElement("div",{className:"serif num cartera-hero-amt",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6}},
         ph.ent, React.createElement("span",{style:{fontSize:22,color:"var(--muted)"}},","+ph.dec+" "+ph.sym)),
       React.createElement("div",{className:"v4-stackbar",style:{marginTop:16}},
@@ -21564,9 +21589,9 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
       React.createElement("button",{type:"button",className:"v4-chip"+(cat===chipIA?" on":""),"data-testid":"ap-ia-chip",
         onClick:function(){ pickCat(chipIA); }},"✨ "+catName(chipIA)))
   );
-  const fxHint=entryCur!=="EUR" ? tf("f_fx_eq",{
+  const fxHint=entryCur!=="EUR" ? (toEurAmt(amt,entryCur,state)==null?t("fx_no_rate"):tf("f_fx_eq",{
     x:NF.format(toEurAmt(amt,entryCur,state))+" €",date:fmtIsoCorto(state.fxDate||date)
-  }) : null;
+  })) : null;
   const ctaAmount=NF.format(amt)+(entrySym.length>1?" ":"")+entrySym;
   const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
@@ -22660,7 +22685,7 @@ function App(){
   // que enseñar un número inventado (regla de la casa: nunca inventar un tipo de cambio).
   (function(){
     const c=(state.settings&&state.settings.currency)||"EUR";
-    const r=c==="EUR"?1:fxTableOf(state)[c];
+    const r=fxRateOf(c,state);
     if(c!=="EUR" && r>0){ DISP.sym=CUR_SYM[c]||c; DISP.k=1/r; }
     else { DISP.sym="€"; DISP.k=1; }
   })();
@@ -23017,8 +23042,8 @@ function App(){
         const patch={};
         if(po.shares!=null) patch.shares=po.shares;
         // el bróker da € (TR/MI); si la posición se muestra en $, se convierte con el cambio del BCE
-        if(po.value!=null) patch.value = i.cur==="EUR" ? po.value : fromEurAmt(po.value, i.cur, s);
-        if(po.cost!=null)  patch.cost  = i.cur==="EUR" ? po.cost  : fromEurAmt(po.cost,  i.cur, s);
+        if(po.value!=null){ const native=fromEurAmt(po.value,i.cur||"EUR",s); if(native!=null) patch.value=native; }
+        if(po.cost!=null){ const native=fromEurAmt(po.cost,i.cur||"EUR",s); if(native!=null) patch.cost=native; }
         if(po.isin && !i.isin) patch.isin=po.isin;
         return Object.assign({},i,patch);
       });
@@ -24060,10 +24085,10 @@ function App(){
       });
     };
     // cuentas extra de Open Banking (2ª cuenta de un banco, compartidas…): saldo puro, suma al líquido
-    const obLiquid=(state.obAccounts||[]).reduce((a,o)=> a + toEurAmt(o.value||0, o.cur||"EUR", state), 0);
+    const obLiquid=(state.obAccounts||[]).reduce((a,o)=> a + (toEurAmt(o.value||0, o.cur||"EUR", state)||0), 0);
     const liquid=state.accounts.reduce((a,i)=> a + dynBal(i), 0) + obLiquid;
-    const investedBase=state.investments.reduce((a,i)=>a+invValueEur(i, state),0);
-    const investedCost=state.investments.reduce((a,i)=>a+invCostEur(i, state),0);
+    const investedBase=state.investments.reduce((a,i)=>a+(invValueEur(i, state)||0),0);
+    const investedCost=state.investments.reduce((a,i)=>a+(invCostEur(i, state)||0),0);
     const invested=investedBase + roundupThisMonth + savebackThisMonth + monthlyInvestThisMonth;
     const assetsTotal=state.assets.reduce((a,i)=>a+i.value,0);
     const debtTotal=state.debts.reduce((a,d)=>a+debtBalance(d),0);   // saldo proyectado (baja solo cada mes)
@@ -24132,7 +24157,7 @@ function App(){
     /* DEPENDENCIAS: ojo al tocar este bloque — la lista de abajo tiene que incluir TODO
        `state.loQueSea` que se lea aquí dentro (incluidos los que leen las funciones auxiliares:
        monthNetForAccount → fixed/debts/oneoffs/flows; toEurAmt/invValueEur → fx y fxRates). */
-    return {liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
+    return {fxMissing:fxMissingOf(state),liquid,invested,investedCost,assetsTotal,debtTotal,activos,netWorth,thisMonthSpent,spentByBank,injTR,fijosMensual,ahorroMensual,cargosMes,fijosEsteMes,liquidTrasFijos,curMonth,curYear,today,sinProgramar,bankBal,chargesByBank,pendingByBank,paidThisMonth,pendingThisMonth,mainBank,mainBal,mainCharges,mainPending,bankAlerts,incomeInByBank,transferOutByBank,pendingIncome,pendingTransferOut,projectedByBank,mainIncome,mainTransferOut,mainProjected,minByBank,minDayByBank,mainMin,mainMinDay,roundupThisMonth,savebackThisMonth,monthlyInvestThisMonth,trRewardsTotal,paidNetByBank};
   // Antes esto dependía de `[state]` entero. Como `set()` sella `_savedAt` en CADA cambio, el
   // objeto de estado es nuevo siempre → el memo NUNCA acertaba y este cálculo (que recorre gastos,
   // fijos, deudas, flujos y simula el mes día a día) se rehacía al abrir una ficha, al escribir en
@@ -24159,23 +24184,23 @@ function App(){
   // ⚠ 2026-08-05: api.frankfurter.app hace 301 → .dev; la CSP solo tenía .app, así que en el
   // WebView el fetch moría en el redirect (mismo patrón que release-assets de GitHub). El dólar
   // «funcionaba» por el state.fx legacy; lira/libra/… daban «Sin tipo de cambio».
-  // La lista sale de CUR_LIST para no desfasar selector y BCE.
+  // Traemos el catálogo completo del proveedor actual, sin descartar tipos por un selector corto.
   const refreshFx=function(){
-    const to=CUR_LIST.filter(function(c){ return c!=="EUR"; }).join(",");
-    const url="https://api.frankfurter.dev/v1/latest?from=EUR&to="+encodeURIComponent(to);
+    const url="https://api.frankfurter.dev/v1/latest?from=EUR";
     return fetch(url).then(function(r){ if(!r||!r.ok) return null; return r.json(); }).then(function(d){
       const rates=d&&d.rates;
       if(!rates) return null;
       const fxRates={};
-      for(const c in rates){ if(rates[c]>0) fxRates[c]=+(1/rates[c]).toFixed(6); }   // XXX→EUR
+      for(const c in rates){ if(Number.isFinite(Number(rates[c]))&&rates[c]>0) fxRates[c]=+(1/rates[c]).toFixed(12); }   // XXX→EUR
       const usd=fxRates.USD;
       const fxDate=d.date||null;
       set(function(s){
         const prev=fxTableOf(s);
         let changed=false;
-        for(const k in fxRates){ if(Math.abs((prev[k]||0)-fxRates[k])>=0.000001){ changed=true; break; } }
+        for(const k in fxRates){ if(Math.abs((prev[k]||0)-fxRates[k])>=0.000000000001){ changed=true; break; } }
+        if(!Object.keys(fxRates).length) return s;
         if(!changed && (usd==null || Math.abs((s.fx||0)-(usd||0))<0.0001) && s.fxDate===fxDate) return s;
-        const patch={fxRates:fxRates};
+        const patch={fxRates:Object.assign({},prev,fxRates)};
         if(usd>0) patch.fx=+(usd.toFixed(4));
         if(fxDate) patch.fxDate=fxDate;
         return Object.assign({},s,patch);
@@ -24480,7 +24505,7 @@ function App(){
   // Snapshot diario del total invertido (€) para el gráfico de evolución (#6). Se actualiza si cambia valor/coste hoy.
   const invSnapRef=useRef("");
   useEffect(function(){
-    if(!(totals.invested>0)) return;
+    if(!(totals.invested>0)||totals.fxMissing>0) return;
     const today=new Date().toISOString().slice(0,10);
     const v=+totals.invested.toFixed(2);
     const c=+(totals.investedCost||0).toFixed(2);
@@ -24491,7 +24516,7 @@ function App(){
       const h=recordInvSnapshot(s.invHistory, today, v, c);
       return Object.assign({},s,{invHistory:h});
     });
-  },[totals.invested, totals.investedCost]);
+  },[totals.invested, totals.investedCost, totals.fxMissing]);
 
   // GAMIFICACIÓN: detecta logros nuevos y subidas de nivel → toast/confeti (1ª vez siembra sin avisar).
   useEffect(function(){

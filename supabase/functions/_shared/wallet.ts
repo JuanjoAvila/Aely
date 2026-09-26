@@ -43,6 +43,7 @@ const SIMBOLOS: Record<string, string> = {
 export const DIVISAS = [
   "EUR", "USD", "GBP", "CHF", "JPY", "CAD", "AUD", "CNY", "MXN",
   "SEK", "NOK", "DKK", "PLN", "BRL", "INR", "TRY",
+  "CZK", "HKD", "HUF", "IDR", "ILS", "ISK", "KRW", "MYR", "NZD", "PHP", "RON", "SGD", "THB", "ZAR",
 ];
 
 /**
@@ -125,9 +126,10 @@ export function parseWallet(titulo: string, texto: string, limpiar: (s: string) 
  */
 // deno-lint-ignore no-explicit-any
 export function aEuros(importe: number, divisa: string, data: any): number | null {
-  const cur = String(divisa || "EUR").toUpperCase();
-  if (cur === "EUR") return +Number(importe).toFixed(2);
-  const r = Number(data?.fxRates?.[cur]);
-  if (!(r > 0)) return null;
+  const cur = String(divisa || "EUR").trim().toUpperCase();
+  if (cur === "EUR") return importe != null && Number.isFinite(Number(importe)) ? +Number(importe).toFixed(2) : null;
+  const rate = Number(data?.fxRates?.[cur]);
+  const r = Number.isFinite(rate) && rate > 0 ? rate : (cur === "USD" ? Number(data?.fx) : NaN);
+  if (!Number.isFinite(r) || !(r > 0) || importe == null || !Number.isFinite(Number(importe) * r)) return null;
   return +(Number(importe) * r).toFixed(2);
 }

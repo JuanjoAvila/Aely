@@ -510,3 +510,5 @@ Reglas:
 > En un worktree no hace falta instalar otra copia de Playwright: `scripts/run-tests.mjs`
 > reutiliza el CLI de `node_modules` del checkout compartido. Evita `npx playwright`, porque una
 > versión distinta a la que carga la configuración hace fallar todos los specs antes de correr.
+
+FIN-06: `tests/fx-multi.test.mjs` cruza cliente/Wallet, catálogo y desconocidos. `e2e/divisas-sin-cambio.spec.mjs` está en CROSSCUTTING y abre Cartera/Inversiones/Apuntar en es/en/ca con fixtures sintéticos; comprueba sumas parciales, originales, costes, roles, historial y offline.

@@ -72,7 +72,8 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
     });
   };
   const banco=entOf(a.ent).label||a.aspsp||"🏦";
-  const saldoHoy=Number(saldoMostrado(a))||0;
+  const missingFx=!!a._obKey&&a.value==null;
+  const saldoHoy=missingFx?null:(Number(saldoMostrado(a))||0);
   const gastosCuenta=(state.expenses||[]).filter(function(e){ return expenseBankOf(e)===a.ent; })
     .sort(function(x,y){ return dateMs(y.date)-dateMs(x.date); });
   const histKey=a.accountOrderKey||(a._obKey?("ob:"+a._obKey):("acc:"+a.id));
@@ -87,10 +88,10 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
   const sparkMin=Math.min.apply(null,spark), sparkMax=Math.max.apply(null,spark), sparkSpan=sparkMax-sparkMin;
   const hoy=new Date(), inicioMesKey=hoy.getFullYear()+"-"+String(hoy.getMonth()+1).padStart(2,"0")+"-01";
   const monthPoint=allHistory.find(function(p){ return p.day===inicioMesKey; });
-  const deltaMes=monthPoint?saldoHoy-Number(monthPoint.value):null;
+  const deltaMes=!missingFx&&monthPoint?saldoHoy-Number(monthPoint.value):null;
   const cuentasMismaEnt=(state.accounts||[]).filter(function(x){ return x.ent===a.ent; }).length+
     (state.obAccounts||[]).filter(function(x){ return x.ent===a.ent; }).length;
-  const projected=cuentasMismaEnt===1&&totals.projectedByBank&&Number.isFinite(totals.projectedByBank[a.ent])
+  const projected=!missingFx&&cuentasMismaEnt===1&&totals.projectedByBank&&Number.isFinite(totals.projectedByBank[a.ent])
     ? totals.projectedByBank[a.ent] : null;
   const issue=(state.bankIssues||[]).find(function(is){
     if(is.ent&&is.ent===a.ent) return true;
@@ -140,13 +141,13 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
           placeholder:t("pt_name_ph"),onChange:function(e){ guardaNombre(e.target.value); }}),
         React.createElement("div",{className:"v4-account-balance"},
           React.createElement("div",{className:"v4-micro"}, t("ac_balance_today")),
-          React.createElement("div",{className:"v4-account-amount serif num"}, eur(saldoHoy)),
+          React.createElement("div",{className:"v4-account-amount serif num",style:missingFx?{whiteSpace:"normal",fontSize:22,letterSpacing:0,overflowWrap:"anywhere"}:null}, missingFx?fxAmountText(a._nativeValue,a.cur,state):eur(saldoHoy)),
           (deltaMes!=null&&Math.abs(deltaMes)>=.005 || projected!=null || stale) && React.createElement("div",{className:"v4-account-balance-meta"},
             deltaMes!=null&&Math.abs(deltaMes)>=.005 && React.createElement("span",{className:"v4-account-delta"+(deltaMes<0?" down":"")},
               tf(deltaMes<0?"ac_delta_month_down":"ac_delta_month",{x:eur(Math.abs(deltaMes))})),
             projected!=null && React.createElement("span",null,tf("ac_eom",{x:eur(projected)})),
             stale && React.createElement("span",{className:"v4-account-stale"},tf("st_stale",{day:staleDay}))),
-          history.length>=2
+          !missingFx&&history.length>=2
             ? React.createElement(React.Fragment,null,
                 React.createElement("div",{className:"v4-account-spark","aria-label":t("ac_spark_from")+" · "+t("ac_spark_to")},
                   spark.map(function(v,i){
@@ -175,7 +176,7 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
           React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:7}},
             roles.map(function(r){
               const on=rolActual===r[0];
-              return React.createElement("button",{key:r[0],type:"button",className:"v4-ficha-op"+(on?" on":""),
+              return React.createElement("button",{key:r[0],type:"button",className:"v4-ficha-op"+(on?" on":""),disabled:missingFx,
                 /* `onRole` = `pickRole` del padre: no solo `applyAccountRole`. Un EXTRA de gasto
                    diario vive en `settings.expenseBanks`, y sin ese camino la ficha mentiría al
                    tocar «Recibos» (dejaría el banco contando igual). */
@@ -330,8 +331,8 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
     const rows=(state.accounts||[]).map(function(a){
       return {key:a.accountOrderKey||("acc:"+a.id),value:+Number(shownAcc(a)).toFixed(2)};
     }).concat((state.obAccounts||[]).map(function(o){
-      return {key:"ob:"+o.key,value:+Number(toEurAmt(o.value||0,o.cur||"EUR",state)).toFixed(2)};
-    })).filter(function(r){ return r.key&&Number.isFinite(r.value); });
+      return {key:"ob:"+o.key,value:toEurAmt(o.value||0,o.cur||"EUR",state)};
+    })).filter(function(r){ return r.key&&r.value!=null&&Number.isFinite(r.value); });
     const current=state.accountBalanceHistory||{};
     const needs=rows.some(function(r){
       const list=current[r.key]||[], last=list[list.length-1];
@@ -536,7 +537,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
       const dragging=!!(dragAcc&&dragAcc.from===rowKey);
       const dragOver=!!(dragAcc&&dragAcc.to===rowKey&&dragAcc.from!==rowKey);
       return React.createElement("button",{className:"v4-mov"+(dragging?" dragging":"")+(dragOver?" drag-over":""),key:rowKey,type:"button",
-        "data-account-key":rowKey,"data-ob-key":o.key,"aria-label":disp+" · "+eur(toEurAmt(o.value||0, o.cur||"EUR", state)),
+        "data-account-key":rowKey,"data-ob-key":o.key,"aria-label":disp+" · "+fxAmountText(o.value||0,o.cur||"EUR",state),
         title:t("drag_hint"),onClick:function(){ if(Date.now()<suppressSheetRef.current) return; setSheetAcc(rowKey); }},
         React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:o.ent||"",size:44})),
         React.createElement("div",{className:"nm"},
@@ -544,7 +545,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
           React.createElement("div",{className:"meta"}, entOf(o.ent).label,
             o.stale ? badge(t("pt_ob_badge")+" · "+t(o.staleKind==="expired"?"bp_st_expired":"pt_ob_stale"),"#E2A05F") : badge(t("pt_ob_badge"),"#7FB5E8"))
         ),
-        React.createElement("div",{className:"am num"}, eur(toEurAmt(o.value||0, o.cur||"EUR", state)))
+        React.createElement("div",{className:"am num",style:toEurAmt(o.value,o.cur,state)==null?{maxWidth:"52%",whiteSpace:"normal",textAlign:"right",overflowWrap:"anywhere",flex:"0 1 auto"}:null}, fxAmountText(o.value||0,o.cur||"EUR",state))
       );
     };
     // «Gasto diario» sigue admitiendo VARIOS bancos (v4.6.3). Modelo por debajo: UNA cuenta
@@ -572,10 +573,11 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
       const o=sheetRow.item, custom=(state.obLabels||{})[o.key];
       return Object.assign({},o,{
         id:sheetRow.key, name:(custom!=null&&custom!=="")?custom:niceObName(o),
-        value:toEurAmt(o.value||0,o.cur||"EUR",state), _obKey:o.key, accountOrderKey:sheetRow.key
+        value:toEurAmt(o.value||0,o.cur||"EUR",state), _nativeValue:o.value, _obKey:o.key, accountOrderKey:sheetRow.key
       });
     })() : (sheetRow&&sheetRow.item)||null;
     const pickSheetRole=function(a,r){
+      if(a&&a._obKey&&a.value==null) return;
       if(!a||!a._obKey){ if(a) pickRole(a,r); return; }
       const nid=uid();
       set(function(s){ return promoteObAccount(s,totals,a._obKey,r,nid); });
@@ -587,6 +589,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
        dos, que es como lo usa el resto de la app. */
     return React.createElement("div",null,
       parte!=="bienes" && React.createElement("div",{className:"v4-card-list",ref:bindListDrag},
+        React.createElement(FxNotice,{missing:(state.obAccounts||[]).filter(function(o){ return toEurAmt(o.value,o.cur,state)==null; }).length}),
         orderedAccountRows.map(function(row){
           return row.kind==="account" ? accRow(row.item,row.key) : obRow(row.item,row.key);
         }),
@@ -642,11 +645,11 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
               React.createElement("span",{style:{flex:"0 0 auto",fontWeight:700}},entOf(o.ent).label),
               React.createElement("input",{className:"af-in",style:{flex:1,fontSize:13,padding:"7px 10px"},value:custom!=null?custom:disp,placeholder:disp,
                 onChange:function(e){ const v=e.target.value; set(function(s){ const ob=Object.assign({},s.obLabels); ob[o.key]=v; return Object.assign({},s,{obLabels:ob}); }); }}),
-              React.createElement("span",{className:"am num",style:{flex:"0 0 auto",color:"var(--muted)",fontSize:14}}, eur(toEurAmt(o.value||0, o.cur||"EUR", state)))
+              React.createElement("span",{className:"am num",style:{flex:"0 0 auto",color:"var(--muted)",fontSize:14}}, fxAmountText(o.value||0,o.cur||"EUR",state))
             ),
             o.ent && React.createElement("div",{className:"rolechips",style:{padding:"8px 0 2px"}},
               [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]].map(function(rr){
-                return React.createElement("button",{key:rr[0],className:"rchip",onClick:function(){
+                return React.createElement("button",{key:rr[0],className:"rchip",disabled:toEurAmt(o.value,o.cur,state)==null,onClick:function(){
                   const nid=uid();
                   set(function(s){ return promoteObAccount(s, totals, o.key, rr[0], nid); });
                   accEd.setDraft(function(d){ const nd=Object.assign({},d); nd[nid]=+toEurAmt(o.value||0, o.cur||"EUR", state).toFixed(2); return nd; });
@@ -748,14 +751,14 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
                   ? React.createElement("span",{className:"day-badge",style:{marginLeft:6,background:"#E2A05F22",color:"#E2A05F"}}, t("pt_ob_badge")+" · "+t(o.staleKind==="expired"?"bp_st_expired":"pt_ob_stale"))
                   : React.createElement("span",{className:"day-badge",style:{marginLeft:6,background:"#7FB5E822",color:"var(--blue)"}}, t("pt_ob_badge"))),
             React.createElement("div",{className:"rsub"}, entOf(o.ent).label))),
-        React.createElement("div",{className:"rval num"}, eur(toEurAmt(o.value||0, o.cur||"EUR", state)))
+        React.createElement("div",{className:"rval num"}, fxAmountText(o.value||0,o.cur||"EUR",state))
         ),
         // ROL también para las cuentas OB (bug pareja 2026-07-11: sin rol no podían recibir
         // gastos fijos ni diarios — al elegir uno, la cuenta se «promociona» a cuenta con rol,
         // sale de esta lista y aparece arriba con las manuales; el banco la sigue re-anclando).
         accEd.editing && o.ent && React.createElement("div",{className:"rolechips"},
           [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]].map(function(rr){
-            return React.createElement("button",{key:rr[0],className:"rchip",onClick:function(){
+            return React.createElement("button",{key:rr[0],className:"rchip",disabled:toEurAmt(o.value,o.cur,state)==null,onClick:function(){
               const nid=uid();
               set(function(s){ return promoteObAccount(s, totals, o.key, rr[0], nid); });
               // siembra el borrador del editor con el saldo real: sin esto la fila nueva salía vacía
@@ -764,14 +767,15 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
           })
         )
       ); }),
-      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("pt_total_liquid")),React.createElement("span",{className:"num"},eur(accSum)))
+      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("pt_total_liquid")),React.createElement("span",{className:"num"},eur(accSum))),
+      React.createElement(FxNotice,{missing:totals.fxMissing})
     )},
       // (el desglose de efectivo de TR se quitó 2026-07-06: los movimientos ya viven en Gastos)
       {id:"inv",label:t("pt_investments"),el:
     React.createElement(CollapsibleCard,{title:t("pt_investments"),sub:t("pt_byBroker"),dot:"#7FB5E8",storageKey:"w_inv",help:t("h_ptinv")},
       // Solo brókers con posiciones (los 3 fijos confundían a usuarios nuevos — feedback 2026-07-10)
       ["revolut","trade_republic","myinvestor"].filter(g=>state.investments.some(i=>i.ent===g)).map(g=>{
-        const v=state.investments.filter(i=>i.ent===g).reduce((a,i)=>a+invValueEur(i, state),0);
+        const v=state.investments.filter(i=>i.ent===g).reduce((a,i)=>a+(invValueEur(i, state)||0),0);
         return React.createElement("div",{className:"row",key:g},
           React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g,size:38}),React.createElement("div",{className:"rname"},entOf(g).label)),
           React.createElement("div",{className:"rval num"},eur(v)));

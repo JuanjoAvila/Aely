@@ -279,6 +279,8 @@ const LANG = {
     st_cur_convert_hint:"Tipos del BCE (referencia). El resultado usa el cambio del día.",
     st_cur_convert_search_ph:"🔎 Buscar moneda…", st_cur_convert_search_none:"Ninguna moneda con ese nombre.",
     currency_hint:"Cambia cómo se ven los importes en toda la app (pantallas, totales, gráficos). Al apuntar un gasto eliges la moneda ahí mismo, aparte.",
+    fx_unconverted:"Sin conversión", fx_total_incomplete:"Total incompleto: faltan tipos de cambio. Los importes sin convertir no se incluyen en euros.",
+    cur_czk:"Corona checa", cur_hkd:"Dólar de Hong Kong", cur_huf:"Forinto húngaro", cur_idr:"Rupia indonesia", cur_ils:"Séquel israelí", cur_isk:"Corona islandesa", cur_krw:"Won surcoreano", cur_myr:"Ringgit malasio", cur_nzd:"Dólar neozelandés", cur_php:"Peso filipino", cur_ron:"Leu rumano", cur_sgd:"Dólar de Singapur", cur_thb:"Baht tailandés", cur_zar:"Rand sudafricano",
     fx_waiting:"⏳ Trayendo el tipo de cambio…", fx_no_rate:"✕ Sin tipo de cambio para esa moneda. Prueba con conexión.",
     ap_cur_lbl:"Moneda del apunte", ap_fx_hint:"Se convierte a euros al guardar (tipo del BCE).",
     cur_jpy:"¥ Yen", cur_cad:"C$ Dólar canadiense", cur_aud:"A$ Dólar australiano", cur_cny:"¥ Yuan", cur_mxn:"$ Peso mexicano", cur_sek:"kr Corona sueca", cur_nok:"kr Corona noruega", cur_dkk:"kr Corona danesa", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupia", cur_try:"₺ Lira turca",
@@ -544,6 +546,8 @@ const LANG = {
     st_cur_convert_hint:"ECB reference rates. The result uses today's rate.",
     st_cur_convert_search_ph:"🔎 Search currency…", st_cur_convert_search_none:"No currency with that name.",
     currency_hint:"Changes how amounts look across the app (screens, totals, charts). When you log an expense you pick the currency there, separately.",
+    fx_unconverted:"Not converted", fx_total_incomplete:"Incomplete total: exchange rates are missing. Unconverted amounts are not included in euros.",
+    cur_czk:"Czech koruna", cur_hkd:"Hong Kong dollar", cur_huf:"Hungarian forint", cur_idr:"Indonesian rupiah", cur_ils:"Israeli shekel", cur_isk:"Icelandic krona", cur_krw:"South Korean won", cur_myr:"Malaysian ringgit", cur_nzd:"New Zealand dollar", cur_php:"Philippine peso", cur_ron:"Romanian leu", cur_sgd:"Singapore dollar", cur_thb:"Thai baht", cur_zar:"South African rand",
     fx_waiting:"⏳ Fetching the exchange rate…", fx_no_rate:"✕ No exchange rate for that currency. Try again online.",
     ap_cur_lbl:"Expense currency", ap_fx_hint:"Converted to euros on save (ECB rate).",
     cur_jpy:"¥ Yen", cur_cad:"C$ Canadian dollar", cur_aud:"A$ Australian dollar", cur_cny:"¥ Yuan", cur_mxn:"$ Mexican peso", cur_sek:"kr Swedish krona", cur_nok:"kr Norwegian krone", cur_dkk:"kr Danish krone", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupee", cur_try:"₺ Turkish lira",
@@ -809,6 +813,8 @@ const LANG = {
     st_cur_convert_hint:"Tipus del BCE (referència). El resultat usa el canvi del dia.",
     st_cur_convert_search_ph:"🔎 Cerca una moneda…", st_cur_convert_search_none:"Cap moneda amb aquest nom.",
     currency_hint:"Canvia com es veuen els imports a tota l'app (pantalles, totals, gràfics). En apuntar una despesa tries la moneda allà mateix, a part.",
+    fx_unconverted:"Sense conversió", fx_total_incomplete:"Total incomplet: falten tipus de canvi. Els imports sense convertir no s’inclouen en euros.",
+    cur_czk:"Corona txeca", cur_hkd:"Dòlar de Hong Kong", cur_huf:"Fòrint hongarès", cur_idr:"Rupia indonèsia", cur_ils:"Xéquel israelià", cur_isk:"Corona islandesa", cur_krw:"Won sud-coreà", cur_myr:"Ringgit malaisi", cur_nzd:"Dòlar neozelandès", cur_php:"Peso filipí", cur_ron:"Leu romanès", cur_sgd:"Dòlar de Singapur", cur_thb:"Baht tailandès", cur_zar:"Rand sud-africà",
     fx_waiting:"⏳ Portant el tipus de canvi…", fx_no_rate:"✕ Sense tipus de canvi per a aquesta moneda. Prova amb connexió.",
     ap_cur_lbl:"Moneda de l'apunt", ap_fx_hint:"Es converteix a euros en desar (tipus del BCE).",
     cur_jpy:"¥ Ien", cur_cad:"C$ Dòlar canadenc", cur_aud:"A$ Dòlar australià", cur_cny:"¥ Iuan", cur_mxn:"$ Peso mexicà", cur_sek:"kr Corona sueca", cur_nok:"kr Corona noruega", cur_dkk:"kr Corona danesa", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rúpia", cur_try:"₺ Lira turca",
@@ -3410,7 +3416,7 @@ const DATA = {
 // Estado VACÍO para usuarios nuevos (no heredan la cartera de ejemplo). Pasan por el onboarding.
 function buildEmpty(){
   return {
-    fx: 0.92, budget: 0, monthStartNet: 0, history: [],
+    fx: null, budget: 0, monthStartNet: 0, history: [],
     accounts: [], investments: [], assets: [], debts: [], fixed: [], flows: [], oneoffs: [], aportaciones: [],
     expenses: [], goals: [], shared: [], catOverrides: {}, obAccounts: [], obLabels: {}, verNotes: [],
     tourSeen: false,   // usuario nuevo → tour de bienvenida tras el onboarding

@@ -2,7 +2,10 @@
 import assert from "node:assert/strict";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
+import fs from "node:fs";
+import { transformSync } from "esbuild";
 const ctx = loadPureLogicFromFile();
+const wallet = await import("data:text/javascript;base64,"+Buffer.from(transformSync(fs.readFileSync("supabase/functions/_shared/wallet.ts","utf8"),{loader:"ts",format:"esm"}).code).toString("base64"));
 
 function t(name, fn) {
   try {
@@ -33,7 +36,7 @@ t("toEurAmt: GBP con fxRates", () => {
 });
 
 t("toEurAmt: divisa desconocida no inventa tipo", () => {
-  assert.equal(ctx.toEurAmt(100, "JPY", {}), 100);
+  assert.equal(ctx.toEurAmt(100, "JPY", {}), null);
 });
 
 t("fromEurAmt: USD con fx legacy", () => {
@@ -69,3 +72,35 @@ t("conversor cruzado: TRY → USD vía EUR (sin inventar)", () => {
 });
 
 console.log("\nfx-multi: OK");
+
+for(const state of [{}, {fx:0.92,fxRates:{}}, {fx:0.9,fxRates:{USD:0.85,TRY:0.018261,GBP:1.15}}, {fx:0.92,fxRates:{USD:Infinity,TRY:0,JPY:-1}}]){
+  for(const cur of ["EUR","USD","TRY","XYZ"," usd ","JPY"]){
+    for(const amount of [0,100,1520,76.085,-76.085,null,NaN,Infinity]){
+      assert.equal(ctx.toEurAmt(amount,cur,state),wallet.aEuros(amount,cur,state),JSON.stringify({amount,cur,state}));
+    }
+  }
+}
+t("no se fabrica USD y la inversa propaga lo desconocido",()=>{
+  assert.equal(ctx.toEurAmt(100,"USD",{}),null);
+  assert.equal(ctx.fromEurAmt(100,"XYZ",{}),null);
+  assert.equal(ctx.fromEurAmt(null,"EUR",{}),null);
+  assert.equal(ctx.buildEmpty().fx,null);
+});
+t("catálogo BCE idéntico en cliente y Wallet, 30 divisas",()=>{
+  const source=fs.readFileSync("src/modules/00-core.js","utf8");
+  const currencies=JSON.parse(source.match(/const CUR_LIST = (\[[^;]+\]);/)[1]);
+  assert.deepEqual(currencies.sort(),wallet.DIVISAS.slice().sort());
+  assert.equal(currencies.length,30);
+  for(const cur of currencies){
+    assert.equal(ctx.toEurAmt(123.45,cur,{fxRates:{[cur]:0.123456}}),wallet.aEuros(123.45,cur,{fxRates:{[cur]:0.123456}}));
+  }
+});
+t("desconocidos no alteran suma ni se promocionan a un saldo en euros",()=>{
+  const state={accounts:[],obAccounts:[{key:"fx",ent:"revolut",value:500,cur:"XYZ"}],investments:[{value:100,cost:80,cur:"EUR"},{value:500,cost:400,cur:"XYZ"}]};
+  assert.equal(ctx.fxMissingOf(state),2);
+  assert.equal(state.investments.reduce((n,i)=>n+(ctx.invValueEur(i,state)||0),0),100);
+  assert.equal(ctx.invCostEur(state.investments[1],state),null);
+  assert.equal(ctx.promoteObAccount(state,{},"fx","diario","new"),state);
+  assert.equal(ctx.toEurAmt(1520,"TRY",{fxRates:{TRY:0.018261}}),27.76);
+});
+console.log("paridad FIN-06: OK (EUR, USD respaldo, TRY, desconocida y entradas inválidas)");

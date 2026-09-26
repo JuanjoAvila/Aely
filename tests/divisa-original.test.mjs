@@ -61,19 +61,9 @@ t("media pareja no cuela: sin divisa no hay importe original", () => {
   assert.equal(soloDivisa.origAmount, undefined);
 });
 
-/* La conversión en sí ya la cubre `fx-multi`. Lo que se fija aquí es una TRAMPA que conviene tener
-   escrita, porque el comentario del código dice lo contrario de lo que hace:
-
-   `toEurAmt()` acaba en `return n; // divisa desconocida: no inventar tipo`. Devolver el número tal
-   cual NO es «no inventar»: es inventar el tipo 1:1. Sin tipo de la lira, 1.520 ₺ salen como
-   1.520 €. Quien protege de verdad es el botón de guardar (`14-v4-screens.js`), que se niega a
-   apuntar y avisa con `fx_no_rate` — la regla de la casa es «sin tipo NO guarda».
-
-   Se deja escrito para que quien escriba una conversión NUEVA (por ejemplo en el servidor, para las
-   notis de Wallet) sepa que no puede apoyarse en este fallback: tiene que poner su propio freno. */
-t("ojo: sin tipo, toEurAmt devuelve el número crudo (el freno está en el botón de guardar)", () => {
-  assert.equal(ctx.toEurAmt(1520, "TRY", { fxRates: {} }), 1520);
-  assert.equal(ctx.toEurAmt(1520, "TRY", { fxRates: { TRY: 0.018261 } }) < 30, true);
+t("sin tipo la cifra original no pasa por euros", () => {
+  assert.equal(ctx.toEurAmt(1520, "TRY", { fxRates: {} }), null);
+  assert.equal(ctx.toEurAmt(1520, "TRY", { fxRates: { TRY: 0.018261 } }), 27.76);
 });
 
 console.log("  ok");
