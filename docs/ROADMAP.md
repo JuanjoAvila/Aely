@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-26 · **v4.26.51** FIN-06 en producción: originales/ISO, total incompleto y 30 divisas. Entrega exclusiva publicada/verificada por main 2ea992b2, Promote 36251080004 y Pages 36251710852 verdes. Beta 4.26.51.1. APK de producción 4.26.32/code 48 intacta. FIN-05 y selector quedan en beta; backend sin desplegar.
+> Estado a 2026-09-26 · **v4.26.52** FIN-07 aprobado por el usuario y candidato exclusivo a producción 4.26.52 desde main e9ba4558; solo descarga cloud completa, sin cambios de identidad ni datos reales. Beta 4.26.52.1 aprobada. FIN-05 y selector conservan su código y checklists pendientes en beta. APK estable 4.26.32/code 48 intacta; sin backend ni APK nuevos. Publicación aún no acreditada.
 > Publicación: el promote sigue el deploy de su commit y coteja el sello de Pages antes de cerrar; la suite lenta de 4.26.47 ya no se confunde con un fallo.
 > Anterior: **v4.26.46** — cambiar el día de un recibo conserva una sola ocurrencia y la fecha bancaria real.
 > Anterior: **v4.26.44** — la ficha de un recibo confirma el guardado antes de cerrarse y un doble toque solo puede persistir una vez.
@@ -232,7 +232,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.51** FIN-06 en producción por promoción exclusiva; beta 4.26.51.1. |
+| Web / OTA (`VERSION`) | **4.26.52** · candidato exclusivo FIN-07; producción previa 4.26.51; beta 4.26.52.1 aprobada. |
 | APK (`versionName` / `versionCode`) | Repo/publicada: **4.26.32 / 48**. El asset firmado existe y la beta puede ofrecer el gesto Atrás nativo. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **48** / 4.26.32 |

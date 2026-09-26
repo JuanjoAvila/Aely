@@ -81,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.51** FIN-06 en producción: originales/ISO y totales incompletos sin cambio; 30 divisas y caché offline. Entrega exclusiva publicada y verificada: código main 2ea992b2, Promote 36251080004 y Pages 36251710852 verdes; sellos HTML/SW y bundle cotejados. Beta 4.26.51.1; APK de producción 4.26.32/code 48, sin cambio nativo. Solo FIN-06; FIN-05 y selector siguen pendientes en beta. Servidor preparado, sin desplegar. [Relevo](docs/briefs/fin06-divisas-2026-09-26.md).
+Estado actual: **v4.26.52** FIN-07 aprobado por el usuario y candidato exclusivo a producción 4.26.52 desde main e9ba4558; solo descarga cloud completa, sin cambios de identidad ni datos reales. Beta 4.26.52.1 aprobada. FIN-05 y selector conservan su código y checklists pendientes en beta. APK estable 4.26.32/code 48 intacta; sin backend ni APK nuevos. Publicación aún no acreditada.
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.

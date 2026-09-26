@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.26.52",
+    "d": "26 sep 2026",
+    "t": {
+      "es": "Histórico completo desde la nube",
+      "en": "Complete history from the cloud",
+      "ca": "Historial complet des del núvol"
+    },
+    "items": {
+      "es": [
+        "Los movimientos antiguos siguen descargándose aunque el historial sea largo. Si se interrumpe la conexión, se conserva lo guardado y se puede volver a intentar."
+      ],
+      "en": [
+        "Older transactions keep downloading even with a long history. If the connection is interrupted, saved transactions remain and you can retry."
+      ],
+      "ca": [
+        "Els moviments antics es continuen descarregant encara que l’historial sigui llarg. Si s’interromp la connexió, es conserva el que s’ha desat i es pot tornar a intentar."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.51",
     "d": "26 sep 2026",
     "t": {

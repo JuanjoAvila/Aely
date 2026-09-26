@@ -1,151 +1,138 @@
-#!/usr/bin/env node
-/**
- * FIN-07 — EL HISTÓRICO ENTERO, Y QUE UNA DESCARGA A MEDIAS NO BORRE NADA.
- *
- * Su queja del 10/9: «solo baja el histórico de Revolut un poquito y de Trade Republic».
- * No era el importador. `pullExpenses` traía como mucho **2.000 filas con un `.limit()` a secas**, y
- * `syncCloudExpenses` REEMPLAZA los gastos de origen `supabase` por lo que acaba de llegar. Con más
- * de 2.000 gastos en la nube —lo normal tras importar el histórico de un banco— cada sincronización
- * BORRABA de la app los más viejos. Estaba así también en producción (4.18.8), o sea que le pasaba
- * a toda la familia, no solo a él.
- *
- * Se comprueban las dos mitades, las dos contra el código de verdad del módulo:
- *   1. que se pagina por clave hasta el final, con orden estable;
- *   2. que si la descarga se queda corta, la ausencia NO se toma por un borrado.
- *
- * La segunda es la que da miedo. Perder gastos suyos es el fallo caro de esta app y ya pasó una vez;
- * la regla desde la contención 4.18.6 es que nunca se borra por ausencia.
- */
+import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import fs from "node:fs";
+import vm from "node:vm";
+import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
-const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const core = readFileSync(join(root, "src/modules/00-core.js"), "utf8");
-const main = readFileSync(join(root, "src/modules/11-app-main.js"), "utf8");
+const core=fs.readFileSync(new URL("../src/modules/00-core.js",import.meta.url),"utf8");
+const uuid=n=>"00000000-0000-4000-8000-"+n.toString(16).padStart(12,"0");
+function rows(n){ return Array.from({length:n},(_,i)=>({id:uuid(i+1),fecha:"2020-01-01T12:00:00Z",importe:i+1,
+  comercio:"Movimiento "+i,cat:"otros",source:i%3===0?"ob-hist:sabadell#dup":"manual:sabadell",
+  nota:"Concepto "+i,nota_edit:i%2===0,no_card:true,importe_orig:i+1,divisa:"USD",ob_name:"Banco "+i})); }
 
-let fallos = 0;
-async function t(name, fn) {
-  try { await fn(); console.log(`  \u2713 ${name}`); }
-  catch (e) { fallos++; console.error(`  \u2717 ${name}\n      ${e.message}`); }
+// Ejecuta cloud.pullExpenses real; el doble interpreta la consulta, sin copiar el paginador.
+function client(table,{cap=1000,before=()=>{},response}={}){
+  const queries=[];
+  const sb={from(name){
+    assert.equal(name,"expenses");
+    const q={orders:[],limit:Infinity,lt:null,or:null};
+    const chain={select(){return chain;},order(k,o){q.orders.push([k,o]);return chain;},
+      limit(n){q.limit=n;return chain;},lt(k,v){q.lt=[k,v];return chain;},or(v){q.or=v;return chain;},
+      then(resolve,reject){
+        try{
+          queries.push(q); before(table,queries.length,q);
+          if(response){const r=response(queries.length,q);if(r){resolve(r);return;}}
+          let data=table.slice();
+          for(const [k,o] of q.orders.slice().reverse()) data.sort((a,b)=>(a[k]<b[k]?-1:a[k]>b[k]?1:0)*(o.ascending?1:-1));
+          if(q.lt) data=data.filter(r=>r[q.lt[0]]<q.lt[1]);
+          if(q.or){const m=q.or.match(/^fecha\.lt\.(.+),and\(fecha\.eq\.(.+),id\.lt\.(.+)\)$/);assert.ok(m);data=data.filter(r=>r.fecha<m[1]||(r.fecha===m[2]&&r.id<m[3]));}
+          resolve({data:data.slice(0,Math.min(cap,q.limit)),error:null});
+        }catch(e){reject(e);}
+      }};
+    return chain;
+  }};
+  const ini=core.indexOf("async function mcPullExpensesPaged(");
+  const end=core.indexOf("\n})();",ini)+7;
+  const ctx=vm.createContext({window:{supabase:{createClient:()=>sb}},CONFIG:{SUPABASE_URL:"test",SUPABASE_ANON_KEY:"test"},t:key=>key});
+  vm.runInContext(core.slice(ini,end)+"\nglobalThis.client=cloud;",ctx);
+  return {pull:()=>ctx.client.pullExpenses(),queries};
 }
-console.log("pull-historico-entero");
+const plain=x=>JSON.parse(JSON.stringify(x));
 
-/* Se saca la función DEL FICHERO, no una copia: así el test no puede quedarse verde
-   mientras alguien cambia el original. */
-function cargaPaginador() {
-  const ini = core.indexOf("async function mcPullExpensesPaged(");
-  assert.ok(ini > 0, "no encuentro mcPullExpensesPaged en 00-core.js");
-  const fin = core.indexOf("\n}", ini);
-  const src = core.slice(ini, fin + 2);
-  return new Function(src + "; return mcPullExpensesPaged;")();
-}
-
-/* Doble de la tabla: filas ordenadas por fecha desc, id desc, y un `fetchPage` que solo sabe
-   responder a un cursor —como PostgREST—. Cuenta las consultas para poder afirmar cuántas hubo. */
-function tablaFalsa(total) {
-  const filas = [];
-  for (let i = 0; i < total; i++) {
-    // Varios gastos por día a propósito: es el caso en el que el desempate por id importa.
-    const dia = String(1 + (i % 28)).padStart(2, "0");
-    filas.push({ id: String(100000 + (total - i)), fecha: "2026-09-" + dia, importe: 1 });
+test("FIN07: 4501 filas, empates de fecha, UUID y todos los campos intactos",async()=>{
+  const data=rows(4501), c=client(data), out=await c.pull();
+  assert.deepEqual(plain(out).sort((a,b)=>a.id.localeCompare(b.id)),data);
+  assert.equal(new Set(out.map(r=>r.id)).size,data.length);
+  assert.equal(c.queries.length,6); // Incluye confirmación vacía; una página corta no prueba el final.
+  assert.deepEqual(plain(c.queries[0].orders),[["id",{ascending:false}]]);
+  assert.equal(c.queries[1].lt[0],"id");
+});
+test("FIN07: servidor recorta a 317 por respuesta, sigue hasta vacío",async()=>{
+  const data=rows(2501),c=client(data,{cap:317});
+  assert.equal((await c.pull()).length,2501);assert.equal(c.queries.length,9);
+});
+test("FIN07: sin techo de 50 páginas",async()=>{
+  const data=rows(50001),c=client(data);assert.equal((await c.pull()).length,50001);assert.equal(c.queries.length,52);
+});
+test("FIN07: salida conserva fecha DESC/id DESC y el gemelo elegido por la mezcla",async()=>{
+  const data=rows(2301);
+  data[0]={...data[0],fecha:"2020-01-01T20:00:00Z",source:"ob-hist:sabadell#dup",comercio:"Gemelo",importe:10};
+  data[2000]={...data[0],id:data[2000].id,fecha:"2020-01-01T10:00:00Z",nota:"Anterior"};
+  const expected=data.slice().sort((a,b)=>Date.parse(b.fecha)-Date.parse(a.fecha)||(a.id<b.id?1:a.id>b.id?-1:0));
+  const out=await client(data).pull();assert.deepEqual(plain(out),expected);
+  const cli=loadPureLogicFromFile();
+  assert.deepEqual(cli.mergeExpensesFromCloud([],plain(out).map(cli.expenseFromRow)),
+    cli.mergeExpensesFromCloud([],expected.map(cli.expenseFromRow)));
+});
+test("FIN07: el orden fecha conserva microsegundos y normaliza offsets equivalentes",async()=>{
+  const data=rows(4);
+  data[0].fecha="2020-01-01T12:00:00.123999+00:00";
+  data[1].fecha="2020-01-01T13:00:00.123001+01:00";
+  data[2].fecha="2020-01-01T12:00:00.123000+00:00";
+  data[3].fecha="2020-01-01T12:00:00.123+00:00";
+  const out=await client(data,{cap:2}).pull();
+  assert.deepEqual(plain(out).map(r=>r.id),[data[0].id,data[1].id,data[3].id,data[2].id]);
+});
+test("FIN07: alta concurrente y edición de fecha no saltan ninguna fila previa",async()=>{
+  const data=rows(2501), initial=plain(data), added={...data[0],id:uuid(9999)};
+  const c=client(data,{before(table,n){if(n===2){table.push(added);table[0].fecha="2030-01-01T00:00:00Z";}}});
+  const out=await c.pull();assert.equal(out.length,initial.length);
+  assert.deepEqual(new Set(out.map(r=>r.id)),new Set(initial.map(r=>r.id)));
+  const again=await c.pull();assert.equal(again.length,2502);assert.equal(again.filter(r=>r.id===added.id).length,1);
+});
+test("FIN07: alta en tramo pendiente entra una vez, alta en tramo recorrido espera reintento",async()=>{
+  const data=rows(2501).map(r=>({...r,id:uuid(parseInt(r.id.slice(-12),16)*2)}));
+  const pending={...data[0],id:uuid(3)}, passed={...data[0],id:uuid(5001)};
+  const c=client(data,{before(table,n){if(n===2)table.push(pending,passed);}});
+  const out=await c.pull();assert.equal(out.length,2502);assert.equal(out.filter(r=>r.id===pending.id).length,1);
+  assert.equal(out.filter(r=>r.id===passed.id).length,0);assert.equal((await c.pull()).length,2503);
+});
+test("FIN07: fallo intermedio no devuelve parcial; recuperación comienza de cero",async()=>{
+  const data=rows(2301);let fail=true;
+  const c=client(data,{response(n){if(n===2&&fail)return {data:null,error:new Error("offline")};}});
+  await assert.rejects(c.pull(),/offline/);fail=false;assert.deepEqual(plain(await c.pull()).sort((a,b)=>a.id.localeCompare(b.id)),data);
+});
+test("FIN07: payload ausente, no array, repetido, desordenado o ID ausente rechazan",async()=>{
+  for(const payload of [null,{},[rows(1)[0],rows(1)[0]],[...rows(2)],[{id:null}]]){
+    const c=client(rows(2),{response(){return {data:payload,error:null};}});
+    await assert.rejects(c.pull(),/exp_pull_invalid/);
   }
-  filas.sort((a, b) => (a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : (a.id < b.id ? 1 : -1)));
-  const llamadas = [];
-  const fetchPage = async (cursor) => {
-    llamadas.push(cursor);
-    let desde = 0;
-    if (cursor) {
-      desde = filas.findIndex((f) => f.fecha === cursor.fecha && f.id === cursor.id) + 1;
-      assert.ok(desde > 0, "el cursor apunta a una fila que no existe");
-    }
-    return filas.slice(desde, desde + 1000);
-  };
-  return { filas, fetchPage, llamadas };
+  const c=client(rows(2501),{response(n){if(n===2)return {data:[rows(2501).at(-1)],error:null};}});
+  await assert.rejects(c.pull(),/exp_pull_invalid/);
+});
+test("FIN07: mezcla conserva adicionales, lápidas, notas editadas y possibleDupOf sin reinterpretar identidad",async()=>{
+  const cli=loadPureLogicFromFile();
+  const remote=await client(rows(2301)).pull();
+  const incoming=remote.map(cli.expenseFromRow);
+  const local={...incoming[0],note:"Editada localmente",noteEdited:true,possibleDupOf:"gemelo-local"};
+  const extra={id:uuid(9999),date:"2019-01-01T12:00:00.000Z",amount:5,merchant:"Solo local",source:"manual"};
+  const prev=[local,extra],merged=cli.mergeExpensesFromCloud(prev,incoming);
+  assert.equal(merged.list.length,2302);assert.equal(new Set(merged.list.map(r=>r.id)).size,2302);
+  assert.equal(merged.list.find(r=>r.id===local.id).note,"Editada localmente");
+  assert.equal(merged.list.find(r=>r.id===local.id).possibleDupOf,"gemelo-local");
+  assert.equal(merged.list.find(r=>r.id===local.id).possibleDup,local.possibleDup);
+  assert.equal(merged.list.find(r=>r.id===extra.id),extra);
+  const again=cli.mergeExpensesFromCloud(merged.list,incoming);assert.equal(again.changed,false);
+  assert.ok(again.list.every((r,i)=>r===merged.list[i]));
+  const key=cli.keyOfExpense(incoming[1]);assert.ok(cli.expenseIsTombstoned(incoming[1],{[key]:1}));
+});
+
+// Ejecuta el call site de App: no basta con que el paginador rechace si el sync confirma un parcial.
+function syncHarness(pull){
+  const main=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
+  const ini=main.indexOf("const syncCloudExpenses=function(){"),end=main.indexOf("\n  };",ini)+5;
+  const cli=loadPureLogicFromFile(),local={id:uuid(9999),date:"2019-01-01T12:00:00.000Z",amount:5,merchant:"Solo local",source:"manual"};
+  const h={stateRef:{current:{expenses:[local],deleted:["lapida"]}},sets:0,uploads:0};
+  const env={...cli,...h,cloud:{pullExpenses:pull,setExpenseCat:()=>Promise.resolve()},inicioDeMesMs:()=>0,
+    subirGasto:()=>h.uploads++,fixMovInvasion:s=>s,reconcileObDupes:s=>({state:s,recat:[]}),
+    set:fn=>{h.sets++;h.stateRef.current=fn(h.stateRef.current);}};
+  const sync=new Function(...Object.keys(env),main.slice(ini,end)+";return syncCloudExpenses;")(...Object.values(env));
+  return Object.assign(h,{sync});
 }
+test("FIN07: fallo intermedio no mezcla, no backfill ni lápidas nuevas",async()=>{
+  const c=client(rows(2501),{response(n){if(n===3)return {error:new Error("offline"),data:null};}});
+  const h=syncHarness(()=>c.pull()),before=h.stateRef.current;
+  await assert.rejects(h.sync(),/offline/);
+  assert.equal(h.stateRef.current,before);assert.equal(h.sets,0);assert.equal(h.uploads,0);
 
-await (async () => {
-  const paginar = cargaPaginador();
-
-  await t("con 4.500 gastos los trae TODOS, no los 2.000 de antes", async () => {
-    const { fetchPage, llamadas } = tablaFalsa(4500);
-    const r = await paginar(fetchPage, 1000, 50);
-    assert.equal(r.rows.length, 4500, "se han quedado gastos suyos fuera");
-    assert.equal(r.capped, false, "4.500 no es un caso raro: no debe avisar de recorte");
-    assert.ok(llamadas.length >= 5, "debería haber paginado, y solo hizo " + llamadas.length);
-  });
-
-  await t("\u2605 ni repite ni se salta ninguno: cada gasto aparece una sola vez", async () => {
-    const { fetchPage } = tablaFalsa(3300);
-    const r = await paginar(fetchPage, 1000, 50);
-    const ids = new Set(r.rows.map((x) => x.id));
-    assert.equal(ids.size, 3300,
-      "hay filas repetidas o perdidas al cambiar de página. Y lo que se pierde son gastos suyos.");
-  });
-
-  await t("\u2605 el orden desempata por id: sin eso, paginar pierde y repite", () => {
-    const i = core.indexOf("async pullExpenses(){");
-    const bloque = core.slice(i, i + 1200);
-    assert.ok(/order\('fecha',\{ascending:false\}\)/.test(bloque), "falta el orden por fecha");
-    assert.ok(/order\('id',\{ascending:false\}\)/.test(bloque),
-      "sin un segundo criterio ÚNICO, dos gastos del MISMO día pueden salir en distinto orden " +
-      "entre páginas: uno se repite y otro se pierde");
-  });
-
-  await t("se pide «lo que va después», no un desplazamiento", () => {
-    const i = core.indexOf("async pullExpenses(){");
-    const bloque = core.slice(i, i + 1200);
-    assert.ok(/fecha\.lt\./.test(bloque) && /fecha\.eq\./.test(bloque),
-      "debe paginar por clave; con .range()/offset, un gasto que entre a mitad de la descarga " +
-      "corre la lista y te hace saltarte una fila");
-    assert.ok(!/\.range\(/.test(bloque), "no debe quedar paginación por desplazamiento");
-  });
-
-  await t("una página corta corta la descarga: no gasta consultas de más", async () => {
-    const { fetchPage, llamadas } = tablaFalsa(1500);
-    const r = await paginar(fetchPage, 1000, 50);
-    assert.equal(r.rows.length, 1500);
-    assert.equal(llamadas.length, 2, "con 1.500 bastan dos consultas");
-  });
-
-  await t("sin gastos no revienta y solo pregunta una vez", async () => {
-    const { fetchPage, llamadas } = tablaFalsa(0);
-    const r = await paginar(fetchPage, 1000, 50);
-    assert.equal(r.rows.length, 0);
-    assert.equal(r.capped, false);
-    assert.equal(llamadas.length, 1);
-  });
-
-  await t("si se llega al tope de seguridad, lo dice (no calla y recorta)", async () => {
-    const { fetchPage } = tablaFalsa(5000);
-    const r = await paginar(fetchPage, 1000, 3);
-    assert.equal(r.rows.length, 3000);
-    assert.equal(r.capped, true, "un recorte silencioso es justo lo que le borraba los gastos");
-  });
-})();
-
-/* ── La mitad que da miedo: qué hace la mezcla con una descarga incompleta ───── */
-
-await t("\u2605 una descarga A MEDIAS no puede borrar gastos: se añade, no se reemplaza", () => {
-  /* Antes se exigía `parcial ? prev.expenses.slice() : filter(supabase)`. Ese filtro murió
-     (expenseFromRow ya no emite "supabase") y el pull dejó de refrescar. Ahora la mezcla es
-     `mergeExpensesFromCloud`, que NUNCA borra por ausencia — parcial o no. */
-  assert.ok(main.indexOf("mergeExpensesFromCloud(prev.expenses, incoming)") > 0,
-    "syncCloudExpenses tiene que mezclar con mergeExpensesFromCloud (refresco sin borrar)");
-  assert.ok(core.indexOf("function mergeExpensesFromCloud") > 0,
-    "mergeExpensesFromCloud tiene que vivir en 00-core, no una copia en el sync");
-  assert.ok(!/prev\.expenses\.filter\(function\(e\)\{\s*return e\.source!=="supabase"/.test(main),
-    "el filtro source!==supabase está muerto y volvía a mentir: no puede volver");
 });
-
-await t("y avisa en cristiano de que no ha perdido nada", () => {
-  const i18n = readFileSync(join(root, "src/modules/01-i18n.js"), "utf8");
-  assert.ok(/exp_pull_capped:"[^"]*NO se ha borrado/.test(i18n),
-    "si se avisa de que no cupo todo, hay que decirle que no ha perdido nada: eso es lo que le " +
-    "preocupa, no el número");
-  assert.equal((i18n.match(/exp_pull_capped:/g) || []).length, 3, "falta el aviso en algún idioma");
-});
-
-if (fallos) { console.error(`pull-historico-entero: ${fallos} FALLO(S)`); process.exit(1); }
-console.log("pull-historico-entero: OK");
