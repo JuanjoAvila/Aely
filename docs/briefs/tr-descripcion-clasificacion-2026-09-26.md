@@ -28,6 +28,9 @@ El usuario autorizó «dale» después de recibir el alcance: solo bank-sync, si
 
 ## Prueba móvil pendiente y rollback
 
+El dueño indica después de publicar que ahora no puede probarlo: lo probará al pagar, junto con FIN-05. Ambas pruebas siguen pendientes; esto no constituye aprobación ni autorización para producción. Pide continuar en otra conversación con el siguiente objetivo independiente, OPS-01. FIN-08 no se declara resuelto por esta corrección de clasificación.
+
+
 Actualizar a beta 4.26.53.1. Cuando exista un cargo nuevo, sincronizar TR a demanda y mirar categoría y nota. Repetir debe conservar el histórico renombrado una sola vez. No hace falta realizar una compra para probar. Si el banco no aporta concepto útil ni MCC reconocido, queda Otros; esta corrección no reconstruye un comercio ausente. El histórico ya importado no se recategoriza. No se ha comprobado un payload real de TR ni ejecutado una sincronización bancaria del usuario.
 
 Rollback backend: desplegar solo bank-sync desde **f53e865277f676998d76844fd047357f4adc1569**, sin migraciones ([Action previa 35978144828](https://github.com/JuanjoAvila/Aely/actions/runs/35978144828)). Rollback cliente: volver al cliente beta anterior; no requiere modificar gastos históricos.
