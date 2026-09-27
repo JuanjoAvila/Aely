@@ -10,6 +10,115 @@ conservan historia; sus antiguos «todo cerrado» o «ninguna empezada» no son 
 Actualizar esta tabla al entregar: commit, pruebas, versión publicada y siguiente paso.
 Una tarea implementada, una verificada por tests y una aprobada en móvil son estados distintos.
 
+
+## Cierre del día · 27 de septiembre de 2026
+
+**Este corte prevalece sobre las fotos históricas del 9/9 y 25/9.** Se revisan documentos, PR y
+artefactos públicos; no se inspeccionan cuentas familiares, filas de dinero ni logs reales. Una
+incidencia comunicada hoy queda abierta aunque la funcionalidad tenga un arreglo antiguo publicado.
+No se implementa ninguna de las incidencias nuevas en este cierre: el encargo es registrarlas,
+priorizarlas y dejar el relevo. No se declara una sesión activa por tener una rama o PR abierta.
+
+### En curso y pendiente de aprobación real
+
+- **SEC-03 cliente:** aprobado expresamente en móvil tras beta 4.26.57.1/f2354a47. Entrega exclusiva
+  de producción en [PR49](https://github.com/JuanjoAvila/Aely/pull/49), SHA 1af182b3, Claude GO exacto;
+  [CI final36351403967](https://github.com/JuanjoAvila/Aely/actions/runs/36351403967) SUCCESS.
+  Merge exclusivo ece3a2d9 con árbol idéntico al SHA revisado; [manifiesto estable](https://juanjoavila.github.io/Aely/version.json)
+  y [Pages](https://github.com/JuanjoAvila/Aely/actions/workflows/deploy.yml) muestran la entrega activa.
+  No desplegar Edge/SQL/RLS/APK. El servidor sigue pendiente por función.
+- **Continuidad beta:** 4.26.58/2a0e2d3a conserva runtime financiero y APK51 idénticos a f2354a47;
+  mueve íntegros cinco guiones pendientes para que producción57 no los oculte. Claude GO exacto;
+  [publicación36351420037](https://github.com/JuanjoAvila/Aely/actions/runs/36351420037) SUCCESS.
+  Beta **4.26.58.1 publicada**, HTTP/ZIP/sello comprobados: huella3d91ae84731dfffa, SW2a0e2d3;
+  index normalizado y apk.json idénticos a beta57.1/f235. Cinco tandas financieras, sin pedir SEC-03 de nuevo.
+  **FIN-05, selector del banco y TR siguen sin aprobación de pago.** No mezclar beta a main.
+- **OPS-01 A / Wallet-divisas:** activación técnica terminada: ingest49 ACTIVE desde1397fe28,
+  [despliegue36319915174](https://github.com/JuanjoAvila/Aely/actions/runs/36319915174) SUCCESS, siete módulos
+  activos cotejados y pruebas offline del JS descargado. Se conserva FIN-05. **Pago real de FIN-06/Wallet
+  pendiente**, no cerrado por el deploy. Evidencia en rama codex/ops01-wallet, brief ops01-wallet-2026-09-27.
+- **OPS-01 B:** [PR48](https://github.com/JuanjoAvila/Aely/pull/48) borrador; despliegue específico ya autorizado pero **bloqueado por HTTP403**,
+  al token le falta edge_functions_write. categorize16 conservó el paquete, ninguna función cambió;
+  falta resolver el permiso y repetir preflight, no una nueva autorización. FIN-04 [PR43](https://github.com/JuanjoAvila/Aely/pull/43) borrador y widget
+  [PR44](https://github.com/JuanjoAvila/Aely/pull/44) abierta: existencia de PR no equivale a trabajo activo
+  ni a funciones faltantes en la beta actual. Se conserva su contenido; no se fusionan por antigüedad.
+
+### Estado completo de los objetivos existentes
+
+La tabla resume todos los IDs del inventario anterior; OPS-06 tenía dos filas y aquí se consolida.
+Los nuevos casos INC-2709 se vinculan a esos objetivos y conservan su propia aceptación para no
+perderlos ni duplicar encargos. «Publicado» no certifica todos los criterios del objetivo amplio.
+
+| Objetivo | Estado al cierre / qué queda |
+|---|---|
+| FIN-01, FIN-02 | Correcciones publicadas según reconciliación25/9; cierre completo por cuenta/importación todavía sin acreditar. Mantener aceptación financiera y prueba real, no rehacer fixes históricos por defecto. |
+| FIN-03 | Identidad de extremo a extremo pendiente: UUID/origen/ACK, carreras e índice real. Sin migración ni reparación automática. |
+| FIN-04 | Parcial; PR43 borrador. Verificar ACK/filas afectadas, edición/decisiones en dos clientes, sin buscar gemelos por parecido. |
+| FIN-05 | Implementado en beta/Android51 con guardianes; **pago con app cerrada y reentrada pendiente**, selector independiente pendiente. |
+| FIN-06 | Cliente aprobado/publicado4.26.51; Wallet-divisas de ingest activado y comprobado en revisión49 por OPS-01 A. **Validación por pago real sigue pendiente** según cierre de A; no se da por cerrado el objetivo completo. |
+| FIN-07 | Cerrado y publicado4.26.52: paginación cloud. No demuestra que el proveedor haya enviado todos los cargos CaixaBank. |
+| FIN-08 | Investigación/contrato de reparación histórica abiertos. El trabajo TR anterior no cerró este objetivo; sin reparar datos reales. |
+| OPS-01 | Auditoría y control manual C terminados/integrados; A ingest49 activado y comprobado, validación financiera móvil abierta. B categorize autorizado pero bloqueado403 por permiso del token, PR48 borrador. La igualdad completa repo/servidor sigue requiriendo pruebas por función. |
+| OPS-02 | Visor de copias cerrado/aprobado/publicado4.26.56. **Recuperación compartida financiera abierta**, dependiente FIN-03/08 y SQL/RLS/ACK. |
+| SEC-01 | Inventario histórico parcial; aceptación por endpoint, cuerpos inválidos, tamaños/auth y evidencia servidor pendientes. Los recuentos9/9 no son un inventario vivo nuevo. |
+| SEC-02 | Límites/replay pendientes de auditoría y contratos por coste/usuario, sin descartar pagos legítimos. |
+| SEC-03 | Cliente aprobado y entrega exclusiva fusionada en main/ece3a2d9; privacidad Edge/gateway y puesta en servicio por función pendientes. |
+| OPS-03 | Beta con varios probadores y permisos/veredictos independientes pendiente. |
+| OPS-04 | Métricas agregadas pendientes de confirmar; instrumentación ya existe. |
+| OPS-05 | Higiene de ramas/PR/restos pendiente; no borrar sin autorización. Foto PR actual arriba. |
+| OPS-06 | Validación intensiva antes de Play Store pendiente: rendimiento sostenido, botones/gestos/carreras/offline, seguridad y dispositivos reales. El lag actual requiere caso propio antes de esa ronda final. |
+| BRAND-01 | Identidad publicada parcialmente; aceptación completa web/nativa y nombre final verificable pendiente. No iniciar renombre. |
+| UX-01 | **Reabierto por feedback actual:** lag sostenido y gestos; INC-2709-03/09. Medir escenario y degradación en móvil. |
+| UX-02 | Diseño/perfil con aceptación amplia pendiente; casillas vacías gigantes INC-2709-10. |
+| UX-03 | Síntoma nativo de arranque pendiente; distinguirlo de esqueletos Inicio/red lenta INC-2709-01. |
+| UX-04, UX-05 | Cerrados según reconciliación25/9; no reconstruir mensaje/acceso de bancos ni doble filtro sin caso nuevo. |
+| UX-06 | Pulido publicado; **regresiones actuales abiertas** INC-2709-01/07/08/10/11/13 y recortes de las fotos. |
+| UX-07 | Temas publicados; **Cyberpunk reabierto** por línea que atraviesa el botón +, INC-2709-12. |
+| PRO-01 | Meta financiada fuera del gasto corriente pendiente de alcance/aceptación. |
+| PRO-02 | Proyección existente; coherencia Inicio/Gastos/ciclo reabierta por INC-2709-05. |
+| PRO-03 | Recordatorios existentes; falta acreditar aviso con insuficiencia proyectada, no crear otro sistema. |
+| PRO-04 | Exportación informe PDF pendiente; importar PDF no equivale a exportarlo. |
+| PRO-05 | Push de nueva versión con app cerrada pendiente; watcher/notificación local no lo demuestra. |
+| PRO-06 | MyInvestor y fiabilidad de inversiones sincronizadas pendientes; no confundir con cambios UX de cartera INC-2709-08. |
+| PRO-07 | Pensiones/ahorro pendiente de alcance y soporte de proveedor. |
+| PRO-08 | Hogar implementado parcialmente; validación/diseño con dos usuarios pendiente. |
+| PRO-09 | Ayuda local publicada/aprobada según rondas25/9; Edge remota apagada y pendiente de coste/consentimiento. Distancia del botón Preguntar reabierta INC-2709-14. |
+| TEC-01 | Refactor financiero/adaptadores aplazado. |
+| TEC-02 | Limpieza i18n aparcada deliberadamente; preservar usos dinámicos. |
+| DEC-01 | Marca/monetización/Play Store pendientes de decisión; Play siempre después de correcciones y validación completa. |
+| DEC-02 | Ideas opcionales sin compromiso de implementación. |
+| REC-GUARDADO-01 y Atrás alta Recibos | Cerrados/publicados4.26.48 y4.26.47. La ola ausente en otras puertas de Plan es una regresión nueva, no invalida automáticamente la aceptación del alta de Recibos. |
+
+### Las 14 incidencias comunicadas hoy
+
+Fuente: relato directo del dueño del27/9 y tres capturas privadas adjuntas. No se copian capturas,
+identidades, empleador, importes familiares ni extractos al repo público. Evidencia visual significa
+que se ve el síntoma; **no que se haya reproducido su causa ni corregido**. Las prioridades son de
+triaje, no un orden de implementación autorizado.
+
+| Nº / ID | Prioridad y relación | Caso abierto y aceptación necesaria |
+|---|---|---|
+| 1 · INC-2709-01 | P1 · UX-01/03/06 | Con poca conexión la app se ralentiza y reaparecen dos barras grises al inicio de Inicio que tardan en desaparecer. Regresión de arreglo anterior, causa pendiente. Arranque/frente y uso con red lenta/sin red deben mostrar datos locales útiles sin bloqueo ni esqueletos persistentes. Medir tiempo/frames en móvil y CPU×6. |
+| 2 · INC-2709-02 | P1 · Deudas/UX-06 | Completar una deuda no avisa y no ofrece archivarla/quitarla, acumulando ruido. Confirmación clara y acceso a archivo/remoción con semántica revisada; conservar pagos/histórico y evitar dobles escrituras. Probar completar, volver a abrir y encontrar el histórico. |
+| 3 · INC-2709-03 | P1 · UX-01 | En Plan→Gestionar y al entrar en una categoría falta la ola nativa Android. Auditar cada puerta, distinguir alta Recibos ya aprobada; APK/dispositivo real, seguir dedo, cancelación, volver un nivel sin perder campos ni cerrar de más. |
+| 4 · INC-2709-04 | **P0 · crash/finanzas** | Abrir categoría «Cuotas de deuda» crashea siempre según el dueño. Reproducción roja de ruta real, stack sanitizado/código/versión y fixture mínimo; E2E DOM de abrir/cerrar/importes/histórico sin crash. No inferir causa desde el relato. |
+| 5 · INC-2709-05 | **P0 · FIN/PRO-02/UX-06** | Capturas Inicio/Gastos/ciclo de otro usuario muestran conceptos y cifras incompatibles: Inicio llama gastado a la cifra que Gastos etiqueta balance, porcentaje0 y mensaje de primer mes con actividad visible; nómina prevista aún futura mientras ciclo reconoce cobro bancario. Correlacionar periodo/cuenta/calendario/ciclo, sin asumir que falte la fila de ingreso. Reproducir es/en/ca con datos sintéticos, una base/ventana coherente y nómina real conciliada una sola vez. Además se observan botones de suscripciones recortados; clasificación de compras recurrentes como suscripción es un indicio por comprobar, no fallo financiero demostrado. |
+| 6 · INC-2709-06 | **P0 · FIN-03/07/OPS-01** | Cargos CaixaBank de otro usuario ausentes aun tras sincronizar a demanda. **Reabre el historial Caixa con un caso actual**, separado del Sabadell confirmado25/9 y de paginación cloud FIN-07 cerrada. Trazar proveedor→Edge→almacenamiento→pull→filtros privados, identidad y páginas, sin importar/reparar/borrar ni sincronizar automáticamente. Cierre con todos los cargos de referencia una vez en la vista correcta y correspondencia activa Edge probada. |
+| 7 · INC-2709-07 | P2 · UX-06 | Bienes parece bloque inicial: no permite añadir/quitar/tocar y el editor resulta insuficiente. Auditar entradas y acciones actuales, navegación y edición real; alta/edición/archivo o borrado según contrato explícito, sin modificar cartera real para probar. E2E de lista/acciones y móvil. |
+| 8 · INC-2709-08 | P2 · UX-06/PRO-06 | Cartera sigue mostrando edición manual y explicación larga: edición debe vivir en «Ver todas tus inversiones». Ordenar bloques con pulsación mantenida como cuentas; al pulsar, desplegar inversiones escalonadas y fluidas. Auditar puertas antes de retirar UI, persistir orden y accesibilidad/reducir movimiento; prueba de DOM y A/B de frames en móvil. |
+| 9 · INC-2709-09 | P1 · UX-01/OPS-06 | Tras usar un rato reaparece lag muy fuerte. **Regresión actual, no cerrada por benchmarks cortos anteriores.** Guion prolongado real con scroll/cambio de pestañas/hojas, frames>32ms y pendiente de heap/listeners/timers/nodos; CPU×6 y A/B contra base. Acreditar mejora sin aumentar trabajo ni escrituras del histórico. |
+| 10 · INC-2709-10 | P2 · UX-02/06 | Casillas vacías gigantes en Ajustes del perfil. Capturar qué campos/ruta/tamaño de letra; estado vacío compacto y útil, sin ocultar opciones ni valores. DOM en idiomas, móvil, teclado y letra grande. |
+| 11 · INC-2709-11 | P2 · UX-06 | Anillo de porcentaje de Inicio se recorta como cuadrado, aunque sutil. Captura1 aporta contorno a revisar; fixture0/parcial/completo, escalas/texto grande y temas. Ningún clip rectangular del círculo. |
+| 12 · INC-2709-12 | P2 · UX-07 | Línea Cyberpunk atraviesa el botón +. Visible en capturas. Conservar identidad del tema sin cruzar el FAB, en todas las pestañas, safe area y tamaños. |
+| 13 · INC-2709-13 | P2 · UX-01/06 | Durante la ocultación de la barra/botón + el círculo se recorta y el corte se nota. Reproducir scroll con inercia Android, capturas intermedias/frame a frame, cancelación y reaparición; contorno completo y animación fluida también con movimiento reducido. Una imagen fija no prueba la animación. |
+| 14 · INC-2709-14 | P2 · PRO-09/UX-06 | En Pregúntame el botón Preguntar queda demasiado separado del borde inferior. Verificar Android con/sin teclado, safe area y tamaño de letra; espacio proporcionado y CTA alcanzable, sin tapar contenido ni enviar preguntas reales como test. |
+
+**Primera atención al retomar:** crash de cuotas (4), coherencia dinero/nómina (5) y cargos Caixa (6).
+Después bloqueo por red/lag sostenido (1/9) y deuda/gestos (2/3); pulido restante separado. No se
+abre una implementación hoy ni se agrupan reparaciones financieras con animaciones. Falta para cada
+caso: versión/canal/APK afectados, reproducción propia, fix acotado, guardián apropiado, review,
+beta y veredicto móvil. Las capturas no muestran la versión, así que no se asigna un SHA por intuición.
+
 ## Reconciliación vigente · 25 de septiembre de 2026
 
 **La foto detallada que empieza en «Base y límites de la revisión» es del 9/9 y conserva su
