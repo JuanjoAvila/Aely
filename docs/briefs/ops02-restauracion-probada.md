@@ -1,10 +1,45 @@
 # OPS-02 — vista aislada de copia, 27/9/2026
 
-## Promoción exclusiva aprobada
+## Producción exclusiva verificada
 
-El dueño aprobó el visor y autorizó producción el 27/9: «aprobado, súbelo». Candidata 4.26.56 preparada sobre main f5e6b514, integrando solo OPS-02; publicación pendiente. FIN-05, selector y TR permanecen en beta. APK estable 4.26.32/code 48 intacta. La autorización no incluye recuperación real, reparación histórica ni backend.
+El dueño aprobó el visor y autorizó producción el 27/9: «aprobado, súbelo».
+Candidata exclusiva **e91debd81a69003cc0c1319f15ef8c1d5ec1e9c1** sobre main
+f5e6b514, revisada GO por Claude en checkout propio: 23 validador y **18/18** visor/persistencia
+de main (11+7; los dos casos FIN-05 de beta quedan fuera). Hunks OPS-02 idénticos a beta;
+fuentes de widget/App/cloud/motor, Android, Supabase y workflows de main sin cambios.
+Historial conservado: notas 4.26.56 seguidas de 4.26.52, sin anunciar tandas no aprobadas.
 
-La evidencia siguiente describe la entrega beta anterior; su mención a móvil/producción pendientes queda superada exclusivamente por esta aprobación.
+Codex ejecutó **446 funcionales directos**, cero fallos/flakies, una captura opcional omitida;
+**7/7 rendimiento**, **23/23 validador**. Runner Node completo: solo falla memoria-espejo
+por memoria local ajena; no se regenera para fabricar verde. Deno ausente localmente.
+Merge **426131959a75e5af8923009646caf20fd5b8e430**: árbol Git
+**1ec31778c6ec2a22306da412ac71dd9d1de9217e**, idéntico a e91debd8; sintaxis PASS.
+[Promote exclusivo 36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892)
+y [Pages workflow_dispatch 36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830)
+corresponden a esta entrega: Promote espera el deploy de su SHA antes de dar éxito.
+
+Cotejo público **2026-09-27T19:41:12.228Z**:
+
+| Evidencia | Resultado |
+|---|---|
+| Manifiesto/bundle/HTML/SW | HTTP 200; producción **4.26.56**. |
+| ZIP | 866369 bytes; SHA256 `e918c44d6c238a3a04a77ea0cbbdc8ed7a811e1cfe0239c6bd774cb6a7f0d6b3`. |
+| HTML del ZIP y HTTP | Idénticos, SHA256 `bcf06c67e8e6dd2cf72510f30711c9ddcf841af50821d7455ef09c054973ab55`; APP_VERSION 4.26.56 y seis scripts vm.Script PASS. |
+| SW del ZIP y HTTP | Idénticos; `4.26.56-2026-09-27-4261319`. |
+| Validador/comparador | Idéntico al minificado del bundle completo revisado; SHA256 `fe4b6fa3bc1b7fb578661739a667cd20f444c4442731cff1463997e93b74de08`. |
+| Panel/visor | Idéntico al revisado; SHA256 `11ddb018f483eeae08ac775236e8cd97df5963b097b6a311e9b8263df6fb9f76`. |
+| APK estable del ZIP y HTTP | Idénticos, **4.26.32 / 48**. No APK ni backend nuevos. |
+
+**FIN-05, selector y TR siguen pendientes en beta 4.26.56.1**; no se promovió beta entera.
+El visor está aprobado; la recuperación financiera compartida, SQL/RLS real y FIN-03/08
+permanecen abiertos. No se restauraron copias reales ni se consultaron datos financieros como prueba.
+El cierre documental posterior no modifica fuentes, artefactos, versión, tests ni workflows;
+la evidencia de ejecución/publicación corresponde al merge indicado, no se atribuye a un SHA de docs.
+
+## Evidencia histórica de beta (anterior a la aprobación móvil)
+
+Las menciones siguientes a móvil/producción pendientes describen el cierre beta anterior
+y quedan superadas por la autorización y publicación exclusivas documentadas arriba.
 
 **Visor aprobado e implementado; publicado exclusivamente en beta 4.26.56.1.** Rama aislada
 `codex/ops02-restauracion`, base beta `f7b66aef5fc35b8e3b3b17327c46309a421f22a7`.

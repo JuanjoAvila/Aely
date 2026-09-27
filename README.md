@@ -86,6 +86,8 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 Estado actual: **v4.26.57** · SEC-03 preparado en rama aislada, sin publicación. Producción verificada **4.26.56** (OPS-02), beta pendiente **4.26.56.1**, APK estable **4.26.32/code 48** intacta. [Matriz y límites SEC-03](docs/briefs/sec03-privacidad-logs.md).
 
+Producción verificada: **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](docs/briefs/ops02-restauracion-probada.md).
+
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.
 
