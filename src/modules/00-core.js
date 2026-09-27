@@ -126,14 +126,13 @@ function mcLogCode(err){
   return "unavailable";
 }
 function mcLogText(raw){
-  return String(raw||"").replace(/https?:\/\/\S+/gi,"[enlace omitido]")
-    .replace(/\b[A-Z]{2}\s*\d{2}(?:[ -]?[A-Z0-9]){11,30}\b/gi,"[IBAN omitido]")
-    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,"[correo omitido]")
-    .replace(/(?:\+\d{1,3}[ -]?)?(?:\d[ ()-]?){9,15}/g,"[teléfono omitido]")
-    .replace(/\b(?:bearer\s+\S+|(?:token|password|passwd|secret|authorization|api[_-]?key|nota|concepto|iban)\s*[:=]\s*[^\n,;]+)/gi,"[dato omitido]")
-    .replace(/\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g,"[token omitido]")
-    .replace(/\b[a-f0-9]{32,}\b/gi,"[token omitido]")
-    .replace(/(?:[€$£]\s*[-+]?\d[\d., ]*|[-+]?\d[\d.,]*\s*(?:EUR|USD|GBP|CHF|JPY|TRY|euros?|€|\$|£))(?!\w)/gi,"[importe omitido]")
+  const omit=typeof t==="function"?t("log_private"):"[redacted]";
+  return String(raw||"").replace(/https?:\/\/\S+/gi,omit)
+    .replace(/\b[A-Z]{2}\s*\d{2}(?:[ -]?[A-Z0-9]){11,30}\b/gi,omit)
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,omit)
+    .replace(/(?:\+\d{1,3}(?:[ ()-]?\d){7,14}(?!\d)|\b[67]\d{2}(?:[ -]?\d{3}){2}\b)/g,omit)
+    .replace(/\b(?:bearer\s+\S+|(?:token|password|passwd|secret|authorization|api[_-]?key)\s*[:=]\s*(?:bearer\s+)?(?:"[^"]*"|'[^']*'|[^\s,;]+))/gi,omit)
+    .replace(/\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g,omit)
     .slice(0,2000);
 }
 function mcLogEvent(kind,message,detail){

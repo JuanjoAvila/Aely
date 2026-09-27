@@ -11,7 +11,7 @@ const read=p=>fromRef?execFileSync("git",["show",sourceRef+":"+p],{cwd:new URL("
 const core=read("src/modules/00-core.js");
 const markers=["ES9121000418450200051332","sec03@example.invalid","+34 612 345 678","sec03_secret_credential","SEC03_NOTA_BANCARIA","9876.54"];
 const sensitive=markers.join(" ");
-const clean=x=>{const s=JSON.stringify(x);for(const m of markers)assert.ok(!s.includes(m),"marcador sintético filtrado: "+markers.indexOf(m));};
+const clean=(x,allowed=[])=>{const s=JSON.stringify(x);for(const m of markers.filter((_,i)=>!allowed.includes(i)))assert.ok(!s.includes(m),"marcador sintético filtrado: "+markers.indexOf(m));};
 const error=()=>Object.assign(new Error("EB 503 "+sensitive),{code:"23505",stack:"Error "+sensitive+"\n at https://app.invalid/index.html?token=sec03_secret_credential:40:2"});
 function client(){
   const rows=[],captures=[],logs=[];let options;
@@ -41,10 +41,10 @@ await t("uso/perf/ping conservan vocabulario cerrado y no envían correo",async(
  const x=client();await x.c.cloud.logUso("tab_inicio");await x.c.cloud.logPerf("sync_bancos",1250);await x.c.cloud.logEvent("ping","app abierta");await x.c.cloud.logUso(sensitive);await x.c.cloud.logEvent("use",sensitive);clean(x.rows);assert.equal(x.rows.length,3);assert.equal(x.rows[0].email,null);assert.equal(x.rows[1].message,"sync_bancos 1.5s");
 });
 await t("feedback explícito redacta patrones sensibles antes del insert y no oculta el fallo",async()=>{
- const x=client();await x.c.cloud.feedback("No abre Plan; IBAN "+markers[0]+" correo "+markers[1]+" teléfono "+markers[2]+" token=sec03_secret_credential nota=SEC03_NOTA_BANCARIA importe 9876.54 EUR");clean(x.rows);assert.match(x.rows[0].message,/No abre Plan/);
+ const x=client();await x.c.cloud.feedback("No abre Plan; IBAN "+markers[0]+" correo "+markers[1]+" teléfono "+markers[2]+" token=sec03_secret_credential nota=SEC03_NOTA_BANCARIA importe 9876.54 EUR");clean(x.rows,[4,5]);assert.match(x.rows[0].message,/No abre Plan/);
 });
 await t("beta conserva veredicto/tanda; elimina campos extra y redacta notas",async()=>{
- const x=client();await x.c.cloud.betaReport({verdict:"rejected",version:"4.26.52",tanda:"sec03",probados:2,fallos:1,sinProbar:3,noProbable:1,heredados:2,summary:"RECHAZADA token=sec03_secret_credential",detalle:[{item:"Abrir Plan",nota:"nota=SEC03_NOTA_BANCARIA importe 9876.54 EUR"}],credentials:sensitive,bank:{note:sensitive}});clean(x.rows);const d=JSON.parse(x.rows[0].detail);assert.equal(d.verdict,"rejected");assert.equal(d.tanda,"sec03");assert.equal(d.credentials,undefined);assert.equal(d.bank,undefined);assert.equal(d.heredados,2);assert.equal(d.probados,2);assert.equal(d.fallos,1);assert.equal(d.sinProbar,3);assert.equal(d.noProbable,1);
+ const x=client();await x.c.cloud.betaReport({verdict:"rejected",version:"4.26.52",tanda:"sec03",probados:2,fallos:1,sinProbar:3,noProbable:1,heredados:2,summary:"RECHAZADA token=sec03_secret_credential",detalle:[{item:"Abrir Plan",nota:"nota=SEC03_NOTA_BANCARIA importe 9876.54 EUR"}],credentials:sensitive,bank:{note:sensitive}});clean(x.rows,[4,5]);const d=JSON.parse(x.rows[0].detail);assert.equal(d.verdict,"rejected");assert.equal(d.tanda,"sec03");assert.equal(d.credentials,undefined);assert.equal(d.bank,undefined);assert.equal(d.heredados,2);assert.equal(d.probados,2);assert.equal(d.fallos,1);assert.equal(d.sinProbar,3);assert.equal(d.noProbable,1);
 });
 await t("Sentry beforeSend descarta todos los contenedores libres y conserva posición/código",()=>{
  const x=client();x.c.mcInitSentry();const o=x.options();const ev={event_id:"a".repeat(32),release:"mi-cartera@4.26.52",environment:"web",message:sensitive,user:{email:sensitive},request:{url:"https://app.invalid/?token="+sensitive,headers:{Authorization:sensitive}},extra:{note:sensitive},contexts:{bank:sensitive},tags:{name:sensitive},breadcrumbs:[{message:sensitive}],exception:{values:[{type:"TypeError",value:"23505 "+sensitive,stacktrace:{frames:[{filename:"https://app.invalid/index.html?token="+sensitive,function:sensitive,lineno:40,colno:2,vars:{note:sensitive},pre_context:[sensitive]}]}}]}};
@@ -105,9 +105,9 @@ await t("consola de idiomas/notas: errores de lectura no muestran contenidos",as
  const lang=read("src/modules/01-i18n.js");vm.runInContext(lang.slice(lang.indexOf("function ensureLangPack("),lang.indexOf("/** Idioma guardado")),x.c);assert.equal(await x.c.ensureLangPack("en"),"es");
  const notes=read("src/modules/10-app-components.js");const a=notes.indexOf("function ensureReleaseNotes()");const b=notes.indexOf("function ",a+10);x.c.RELEASE_NOTES=[];x.c._rnLoad=null;x.c.releaseNotesUrl=()=>"synthetic";x.c.mcVerBase=()=>"4.26.52";x.c.localStorage={getItem:()=>null};vm.runInContext(notes.slice(a,b),x.c);await x.c.ensureReleaseNotes();clean(logs);assert.equal(logs.length,2);
 });
-await t("feedback redacta formatos usuales de IBAN, importe y credencial",async()=>{
+await t("feedback conserva importes deliberados y redacta IBAN/credenciales",async()=>{
  const x=client();for(const text of ["Importe 9876.54 €","Importe €9876.54","IBAN ES91 2100 0418 4502 0005 1332","Bearer sec03_secret_credential","token: sec03_secret_credential"]){await x.c.cloud.feedback(text);}
- clean(x.rows);assert.ok(!JSON.stringify(x.rows).includes("1332"));
+ clean(x.rows,[5]);assert.ok(!JSON.stringify(x.rows).includes("1332"));assert.match(x.rows[0].message,/9876.54 €/);assert.match(x.rows[1].message,/€9876.54/);
 });
 
 
@@ -118,6 +118,13 @@ await t("SDK Sentry auto-hospedado: sobre real sin contenido sensible",async()=>
  assert.equal(S.SDK_VERSION,"9.47.1");
  S.init({...options,dsn:"https://synthetic@telemetry.invalid/1",transport:()=>({send:async envelope=>{envelopes.push(envelope);return {};},flush:async()=>true})});
  S.setUser({email:markers[1]});S.setContext("bank",{note:sensitive});S.setExtra("token",sensitive);S.addBreadcrumb({message:sensitive});S.captureException(error());await S.flush(2000);assert.equal(envelopes.length,1);clean(envelopes);await S.close(2000);
+});
+
+
+await t("contexto explícito de soporte conserva fecha, hora, importe, SHA y nota",async()=>{
+ const x=client();const sha="a1b2c3d4".repeat(5);const text="falla desde 2026-09-27 10:30; Gastado subió 5,45 € al pagar; SHA "+sha+"; nota=SEC03_NOTA_BANCARIA; token=sec03_secret_credential";
+ await x.c.cloud.feedback(text);await x.c.cloud.betaReport({verdict:"rejected",version:"4.26.57",tanda:"sec03",summary:text,detalle:[{item:"Abrir Plan",nota:text}]});clean(x.rows,[4]);
+ for(const row of x.rows){assert.match(row.message,/2026-09-27 10:30/);assert.match(row.message,/5,45 €/);assert.ok(row.message.includes(sha));assert.ok(row.message.includes("SEC03_NOTA_BANCARIA"));}
 });
 
 console.log("logs-privacidad: "+(failed?failed+" fallo(s)":"OK"));process.exitCode=failed?1:0;
