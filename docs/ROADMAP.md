@@ -2,7 +2,7 @@
 
 > Estado a 2026-09-26 · **v4.26.52** FIN-07 aprobado y publicado exclusivamente en producción **4.26.52**, main 8cd41f09. Claude PASS 126b8e84; Promote 36257644323 y Pages 36258292782 verdes, 435 E2E + 7 rendimiento en Pages (uno omitido). Manifiesto, HTML/SW y ZIP HTTP cotejados. Beta 4.26.52.1 conserva FIN-05 y selector pendientes; APK estable 4.26.32/code 48 intacta. Sin backend ni APK nuevos.
 > OPS-01 C: control manual de una función, sin despliegue global y SQL opt-in; entrega de tooling aislada desde main. Estado exacto, pruebas y revisión en [brief C](briefs/ops01-control-2026-09-27.md). FIN-06 aún requiere pago real; FIN-05, selector y compra TR siguen pendientes.
-> OPS-01 B: paquete aislado de categorize16, solo retirar Bizum como finalidad; histórico y forma de pago intactos. Preparado, **sin activar**, pendiente del OK final. Cierre, pruebas, review/CI y rollback en [brief B](briefs/ops01-categorize-2026-09-27.md).
+> OPS-01 B: paquete aislado de categorize16, solo retirar Bizum como finalidad; histórico y forma de pago intactos. Preparado, **sin activar**: OK final concedido, intento bloqueado por HTTP 403 (`edge_functions_write`); servidor verificado intacto. Cierre, pruebas, review/CI y rollback en [brief B](briefs/ops01-categorize-2026-09-27.md).
 > Publicación: el promote sigue el deploy de su commit y coteja el sello de Pages antes de cerrar; la suite lenta de 4.26.47 ya no se confunde con un fallo.
 > Anterior: **v4.26.46** — cambiar el día de un recibo conserva una sola ocurrencia y la fecha bancaria real.
 > Anterior: **v4.26.44** — la ficha de un recibo confirma el guardado antes de cerrarse y un doble toque solo puede persistir una vez.

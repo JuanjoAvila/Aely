@@ -1,6 +1,8 @@
 # Sugerencia de categoría (KW + IA)
 
 OPS-01 B (27/9): el servidor sigue en categorize16, que todavía admite Bizum como finalidad.
+El intento autorizado del paquete revisado fue rechazado (HTTP 403: falta `edge_functions_write`);
+descarga posterior y metadatos confirmaron que ninguna función cambió.
 El cliente ya rechaza esa sugerencia y conserva Bizum como forma de pago/histórico. El cierre
 aislado corregido y su rollback están preparados, **sin desplegar**; estado, SHA y comando
 exclusivo en el [brief B](briefs/ops01-categorize-2026-09-27.md). No recategorizar movimientos

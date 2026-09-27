@@ -1,8 +1,8 @@
 ## [4.26.52] — 2026-09-26
 
-### OPS-01 B · paquete exclusivo categorize (preparado, sin activación)
+### OPS-01 B · paquete exclusivo categorize (autorizado, bloqueado por permisos)
 - Categorize16 activo aún ofrece Bizum como finalidad; el cliente ya lo rechaza desde 4.26.42. Cierre propio descargado y cotejado byte a byte con 6f61bfc6. Paquete congelado retira únicamente ALLOWED/HINTS/KW, conservando CORS, limitador, autenticación y resto de módulos. Evita enviar clasificarConMotivo de main o fuentes ajenas a categorize.
-- Preparación local reproducible de candidato y rollback con hashes, una sola función, JWT conservado y SDK existente fijado a su versión activa. Handler completo probado con fetch/DB simulados; test registrado en runner y mapa. No cambia forma de pago, consentimiento ni histórico; sin despliegue, SQL, APK ni OTA. Activación pendiente del OK final del dueño; comando y límites en docs/briefs/ops01-categorize-2026-09-27.md.
+- Preparación local reproducible de candidato y rollback con hashes, una sola función, JWT conservado y SDK existente fijado a su versión activa. Handler completo probado con fetch/DB simulados; test registrado en runner y mapa. No cambia forma de pago, consentimiento ni histórico; sin activación efectiva, SQL, APK ni OTA. El dueño autorizó el SHA dacbead9; el intento exclusivo recibió HTTP 403 por falta de edge_functions_write. La descarga posterior mantiene categorize16 y su hash anterior, y ninguna función cambió. Comando, recibo y límites en docs/briefs/ops01-categorize-2026-09-27.md.
 
 ### OPS-01 C · control de despliegues (tooling, sin versión nueva)
 - El workflow Supabase deja de dispararse por push: únicamente manual, función obligatoria por env y validación de formato/entrypoint antes de cualquier SQL. Se elimina el despliegue global; integrar fuentes pendientes no activa el servidor compartido.

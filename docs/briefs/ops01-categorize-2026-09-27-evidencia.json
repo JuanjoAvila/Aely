@@ -1,5 +1,5 @@
 {
-  "scope": "OPS-01 B; solo categorize; sin activación",
+  "scope": "OPS-01 B; solo categorize; activación autorizada, bloqueada por permiso del token",
   "baseMain": "f5e6b514a00b767a07e7ef8d58cf158fe75e93b9",
   "remoteBeta": "5d5b8d0f0d8ea12b5521009d3fef9b54f6fd85e9",
   "auditSha": "8f6830e67d1e24c6940457d00397c2114110f23d",
@@ -141,17 +141,58 @@
         "operator and local CLI route must be explicit",
         "remote packaging remains unverified before owner-authorized deployment"
       ]
+    },
+    {
+      "author": "Claude real via existing file channel",
+      "sha": "dacbead9e6d68eb4d622d161be85eab821bf408d",
+      "verdict": "PASS",
+      "messageId": "20260927T1127Z-claude-ops01-b-pass-dacbead9"
     }
   ],
   "deployment": {
     "function": "categorize",
     "migrations": "no",
     "performed": false,
-    "requiresOwnerApproval": true,
+    "requiresOwnerApproval": false,
     "transportChanged": false,
     "historicalCategoriesChanged": false,
     "rollback": "four baseline sources in manifest; separate project; categorize only; migrations=no",
-    "operator": "Codex in local PC session after explicit owner approval, existing CLI/token; no Actions deploy run"
+    "operator": "Codex in local PC session after explicit owner approval, existing CLI/token; no Actions deploy run",
+    "ownerApproval": "autorizo; 2026-09-27; solo categorize, migraciones=no",
+    "approvedSha": "dacbead9e6d68eb4d622d161be85eab821bf408d",
+    "attempt": {
+      "approvedSha": "dacbead9e6d68eb4d622d161be85eab821bf408d",
+      "preflightAt": "2026-09-27T12:44:56.151Z",
+      "before": {
+        "version": 16,
+        "status": "ACTIVE",
+        "verify_jwt": true,
+        "bytes": 331619,
+        "bundleSha256": "270f6598b948a114ab64b4e426f562574081bd10845f6c52d19d277af956ae65"
+      },
+      "deploymentStartedAt": "2026-09-27T12:45:26.113Z",
+      "cliExitCode": 1,
+      "deploymentFinishedAt": "2026-09-27T12:45:26.964Z",
+      "command": "supabase functions deploy categorize --workdir <isolated-candidate> --project-ref <existing-project> --use-api",
+      "after": {
+        "observedAt": "2026-09-27T12:46:01.329Z",
+        "version": 16,
+        "status": "ACTIVE",
+        "verify_jwt": true,
+        "bytes": 331619,
+        "bundleSha256": "270f6598b948a114ab64b4e426f562574081bd10845f6c52d19d277af956ae65",
+        "changedFunctions": []
+      },
+      "result": "blocked",
+      "error": {
+        "httpStatus": 403,
+        "missingPermissions": [
+          "edge_functions_write"
+        ]
+      },
+      "activeUnchanged": true
+    },
+    "status": "blocked: existing token lacks edge_functions_write"
   },
   "pending": [
     "FIN-06 real payment",
@@ -174,5 +215,21 @@
     }
   },
   "implementationSha": "b65c7fa90e8259ce105cb56026715de72523c367",
-  "pullRequest": "https://github.com/JuanjoAvila/Aely/pull/48"
+  "pullRequest": "https://github.com/JuanjoAvila/Aely/pull/48",
+  "ciFinal": {
+    "runId": 36315794165,
+    "url": "https://github.com/JuanjoAvila/Aely/actions/runs/36315794165",
+    "headSha": "dacbead9e6d68eb4d622d161be85eab821bf408d",
+    "status": "completed",
+    "conclusion": "success",
+    "e2e": {
+      "passed": 435,
+      "skipped": 1,
+      "flaky": 0
+    },
+    "performance": {
+      "passed": 7
+    },
+    "denoFilesPassed": 4
+  }
 }

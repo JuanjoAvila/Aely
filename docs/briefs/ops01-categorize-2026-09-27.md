@@ -1,6 +1,7 @@
 # OPS-01 B · Bizum como forma de pago · 2026-09-27
 
-Estado: candidato y rollback preparados; código revisado y CI completo verde; sin activación.
+Estado: candidato y rollback preparados; código revisado y CI completo verde. Activación autorizada
+por el dueño el 27/9, pero bloqueada por HTTP 403 del token existente; categorize16 permanece intacta.
 Solo `categorize`, migraciones=`no`. Entrega en [PR #48, borrador](https://github.com/JuanjoAvila/Aely/pull/48).
 SHA de implementación fijo para preparar/activar:
 `b65c7fa90e8259ce105cb56026715de72523c367`, rama `codex/ops01-categorize`.
@@ -8,6 +9,30 @@ Las actualizaciones posteriores de este brief/evidencia solo registran verificac
 Base main remota verificada: `f5e6b514a00b767a07e7ef8d58cf158fe75e93b9`; beta
 `5d5b8d0f0d8ea12b5521009d3fef9b54f6fd85e9` queda fuera. La auditoría
 `8f6830e67d1e24c6940457d00397c2114110f23d` permanece intacta.
+
+## Intento autorizado y bloqueo de permisos
+
+El dueño respondió «autorizo» para activar exclusivamente `categorize`, migraciones=`no`,
+desde el SHA final revisado `dacbead9e6d68eb4d622d161be85eab821bf408d`. Claude real emitió
+PASS a ese SHA y [CI 36315794165](https://github.com/JuanjoAvila/Aely/actions/runs/36315794165)
+terminó SUCCESS: 435 E2E, 1 omitido, 7 de rendimiento y 4 archivos Deno.
+
+Preflight a las 12:44:56 UTC: categorize16 seguía ACTIVE, JWT=true, con el hash baseline.
+A las 12:45:26 UTC se ejecutó una sola vez el comando exclusivo descrito abajo, desde un
+paquete vacío regenerado del SHA aprobado y con las cuatro fuentes verificadas. La CLI 2.117.0
+terminó con código 1: HTTP 403, `Missing required permission(s): edge_functions_write`.
+No se obtuvo confirmación de activación.
+
+La lectura posterior de gestión a las 12:46:01 UTC confirmó categorize16, ACTIVE, JWT=true,
+331619 bytes y el mismo SHA-256 `270f6598b948a114ab64b4e426f562574081bd10845f6c52d19d277af956ae65`.
+La lista de funciones y sus id/version/status/verify_jwt/updated_at permanecen iguales.
+No hubo SQL ni invocación del handler remoto; no se accedió a tablas ni se llamó al LLM.
+No se cambió una credencial ni se recurrió al workflow global.
+
+Para reanudar falta que el token de gestión existente disponga de `edge_functions_write`.
+La autorización del dueño ya está concedida; repetir el preflight antes del siguiente intento.
+Las pruebas posteriores sobre fuentes nuevas siguen pendientes porque el servidor no cambió.
+El recibo saneado está en la evidencia JSON; no confundir el intento fallido con publicación.
 
 ## Fuente activa y delta
 
@@ -48,10 +73,10 @@ La salida solo contiene `supabase/config.toml`, `functions/categorize/index.ts`,
 y los tres módulos compartidos anteriores. No contiene SQL, otras funciones ni credenciales.
 Las rutas deben estar vacías; la herramienta rechaza una salida ocupada.
 
-**No ejecutado. Requiere el OK explícito final del dueño**, porque Supabase sirve producción y
-beta a la vez. Lo ejecutaría Codex en la sesión local de este PC, con la CLI existente y el token
+**Intentado con el OK explícito final del dueño, pero rechazado por falta de permiso del token**,
+porque Supabase sirve producción y beta a la vez. Lo ejecutó Codex en la sesión local de este PC, con la CLI existente y el token
 existente fuera del repo; no se crea ni cambia una credencial. Esta ruta no deja un run Actions:
-se registra recibo saneado de SHA, comando, hora, versión, hashes y comprobación posterior.
+se ha registrado recibo saneado de SHA, comando, hora, versión, hashes y comprobación posterior.
 Con el SHA revisado y los hashes del candidato confirmados, el único comando
 de activación de B sería, usando el proyecto autorizado en la variable de entorno:
 
@@ -136,7 +161,7 @@ chequeo independiente del import map por Deno; el límite remoto sigue descrito.
 head SHA b65c7fa9 completo. Build, unitarios, privacidad y cuatro archivos Deno PASS;
 **435 E2E pasados, 1 omitido, 7 de rendimiento pasados**, sin reintentos inestables reportados.
 El chequeo automatizado del HEAD documental posterior se consulta en la PR #48; no se confunde
-ese commit de evidencia con una nueva implementación. Sin merge a main/beta ni publicación.
+ese commit de evidencia con una nueva implementación. Sin merge a main/beta ni activación efectiva; el intento posterior autorizado fue rechazado por permisos.
 
 La evidencia JSON conserva recibo de Claude con hash del mensaje, fuente activa, hashes de
 paquetes y límites. El SHA documental final y su review se identifican en la entrega/PR;
