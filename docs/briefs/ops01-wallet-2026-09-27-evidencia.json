@@ -82,7 +82,18 @@
       "7 passed (38.5s)",
       "── Duración total: 598.7 s · etapas más lentas ──"
     ],
-    "versionHistoryGateOmitted": false
+    "versionHistoryGate": {
+      "reported": "PASS: no queda código publicable sin subir de versión",
+      "checkoutFetchDepth": 1,
+      "fullHistoryLocal": "FAIL por ingest/index.ts restaurado sin bump VERSION",
+      "limit": "El checkout superficial no acredita el guardián con historia completa; no imprimió un mensaje de omisión."
+    },
+    "denoFiles": [
+      "ingest/ingest.test.ts",
+      "_shared/crypto.test.ts",
+      "_shared/enablebanking.test.ts",
+      "delete-account/delete-account.test.ts"
+    ]
   },
   "review": {
     "actor": "Claude real",
