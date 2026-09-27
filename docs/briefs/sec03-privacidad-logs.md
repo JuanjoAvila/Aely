@@ -1,6 +1,6 @@
 # SEC-03 · privacidad de logs
 
-Estado: correcciones locales preparadas; sin publicación, sin despliegue Edge y sin consultas a datos reales. Claude revisó 312b90579af501fd903ebe8dabaa78a4e0961873 y ejecutó sus guardianes: NO-GO por pérdida de contexto explícito y límite de base Edge. Corrección preparada con regresión; Su regresión queda corregida. La revisión exacta definitiva y el CI se vinculan al SHA/PR que se entregue; no equivalen a publicación. No equivale a certificar toda la app ni el servidor activo.
+Estado: SEC-03 cliente publicada y aprobada en beta 4.26.57.1/f2354a47. Revisión Claude GO exacta y CI/publicación 36349262562 SUCCESS. Publicación exclusiva de producción preparada en PR49; FIN-05, selector y TR se conservan en otra rama beta y siguen pendientes de pago. Supabase/SQL/RLS/APK sin despliegue.
 
 ## Base y aislamiento
 
@@ -52,7 +52,7 @@ No se encontraron ni copiaron secretos reales en la investigación. No se hace r
 
 Cambian diagnósticos y se oculta el correo en Actividad administrativa; el ahorro de breadcrumbs/tracing reduce detalle de soporte. Preparar beta aislada y guion: abrir Inicio/Actividad, confirmar uso/perf/rutas, provocar únicamente fallos sintéticos en un perfil de pruebas, enviar feedback sintético y un rechazo de tanda; comprobar conservación del veredicto y ausencia de patrones. No usar compras, extractos, credenciales ni sincronizaciones reales para esta comprobación.
 
-La publicación cliente, el veredicto móvil y la aprobación de producción son etapas posteriores. Edge queda como propuesta local por función: bank-sync, bank-callback, ingest y los consumidores de ratelimit. **No desplegar ingest de esta rama tal cual**: Claude señala que su fuente activa ingest49 corresponde a 1397fe28/beta e incluye FIN-05/Wallet ausentes en main. SEC-03 no ha verificado esa afirmación contra el servidor activo. Antes de publicar el servidor, revalidar el módulo activo, portar solo el delta de logIngestError sobre esa fuente y ejecutar sus guardianes; no reemplazarla por main ni arrastrar/sacar cambios financieros sin autorización. Este hallazgo es un límite de preparación, no una autorización de despliegue. No usar despliegue global, migraciones, SQL ni APK. Una OTA cliente no aplica los cambios Edge. No afirmar fuente local como código activo. Revisión Claude 5.5 Opus debe referirse al SHA final y repetir guardianes propios; CI y SHA se registrarán al cerrar.
+El cliente se publicó en beta 4.26.57.1 y recibió aprobación móvil expresa para SEC-03. La publicación exclusiva de producción se prepara en esta rama. Edge queda como propuesta local por función: bank-sync, bank-callback, ingest y los consumidores de ratelimit. **No desplegar ingest de esta rama tal cual**: Claude señala que su fuente activa ingest49 corresponde a 1397fe28/beta e incluye FIN-05/Wallet ausentes en main. SEC-03 no ha verificado esa afirmación contra el servidor activo. Antes de publicar el servidor, revalidar el módulo activo, portar solo el delta de logIngestError sobre esa fuente y ejecutar sus guardianes; no reemplazarla por main ni arrastrar/sacar cambios financieros sin autorización. Este hallazgo es un límite de preparación, no una autorización de despliegue. No usar despliegue global, migraciones, SQL ni APK. Una OTA cliente no aplica los cambios Edge. No afirmar fuente local como código activo. Revisión Claude 5.5 Opus debe referirse al SHA final y repetir guardianes propios; CI y SHA se registrarán al cerrar.
 
 ## Revisión independiente inicial
 
@@ -60,7 +60,7 @@ Claude 5.5 Opus: mensaje inmutable 20260927T1931Z-claude-sec03-312b9057, sobre S
 
 ## Guion móvil y canal
 
-Candidata 4.26.57, todavía sin beta publicada. No reemplazar la beta con FIN-05/selector/TR pendientes: requiere una preparación/publicación aislada posterior. Abrir Inicio/Perfil/Ajustes y cerrar; en banco de pruebas guardar una nota ficticia con fecha/hora/importe y comprobar contexto local. No sincronizar bancos ni provocar compras. Este guion solo valida UX/Android: el banco de pruebas anula las escrituras cloud, por lo que no demuestra el transporte de logs. Los marcadores al transporte se prueban mediante mocks capturados en Node/Chromium. OTA cliente no aplica Edge; APK48 intacta. Producción requiere OK nuevo específico.
+Cliente SEC-03 aprobado tras beta 4.26.57.1. No reemplazar la beta con FIN-05/selector/TR pendientes: requiere una preparación/publicación aislada posterior. Abrir Inicio/Perfil/Ajustes y cerrar; en banco de pruebas guardar una nota ficticia con fecha/hora/importe y comprobar contexto local. No sincronizar bancos ni provocar compras. Este guion solo valida UX/Android: el banco de pruebas anula las escrituras cloud, por lo que no demuestra el transporte de logs. Los marcadores al transporte se prueban mediante mocks capturados en Node/Chromium. OTA cliente no aplica Edge; APK48 intacta. La aprobación expresa «listo aprobada» autoriza producción exclusivamente para SEC-03, sin cerrar el pago financiero.
 
 ## Evidencia local de la candidata
 
@@ -71,3 +71,12 @@ Candidata 4.26.57, todavía sin beta publicada. No reemplazar la beta con FIN-05
 - Suite Node completa local se ejecuta en el runner; el espejo de memoria heredado está desfasado y queda fuera de alcance. No se incorpora ni regenera para ocultar ese fallo. CI completo remoto y revisión Claude deben consultarse por SHA exacto en los checks/mensajes de la PR entregada; no se infieren del verde de OPS-02.
 
 El cierre documental OPS-02 de main 5e16f62df94ef90d8af2417956c63f12caea90e5 se incorpora íntegro (seis documentos), resolviendo README/ROADMAP para distinguir candidata SEC-03 4.26.57 y producción OPS-02 4.26.56. Código/artefacto cliente y Edge de SEC-03 no cambian por esta integración.
+
+
+## Aprobación exclusiva del cliente y conservación de beta
+
+El dueño aprobó SEC-03 («listo aprobada») después de la publicación beta 4.26.57.1, SHA f2354a47, GO Claude exacto y workflow 36349262562 SUCCESS en todos sus pasos. El delta funcional de los siete módulos compartidos es idéntico al de esta candidata aislada 741cc5c6, cuya CI completa 36346085770 pasó. No se promociona la beta entera: PR49 incorpora solo SEC-03 a main y conserva APK48 estable. FIN-05, selector, TR y la prueba con pago real NO se aprueban.
+
+Se prepara previamente beta de continuidad 4.26.58 en la rama codex/sec03-beta-integracion, corte 69ea3f7e. Sus cinco tandas pendientes mantienen los guiones originales, módulos/Android/APK idénticos a f2354a47. Al comparar beta58 con producción57, el panel conserva las pruebas financieras sin volver a pedir SEC-03; comprobación real de DOM añadida a revisar-beta y pasada localmente. El cambio de base es necesario porque betaChecklist filtra por versiones: beta57/prod57 ocultaría todas las tandas aunque siguiera conteniendo cambios no aprobados. Los registros anteriores se conservan. Publicación beta por dispatch propio, sin mover origin/beta ni disparar Supabase.
+
+La lectura pública del manifiesto/ZIP/SW y la evidencia del merge/Pages se registrarán en el cierre; un Action verde no certifica la huella. Backend permanece sin publicación por función y sin inspección de datos/logs reales.
