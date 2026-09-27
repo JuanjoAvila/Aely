@@ -11,7 +11,7 @@ sesión del móvil se gastó la mitad trabajando sobre una rama equivocada.
 
 ## 1. Lo primero, siempre
 
-OPS-02: visor beta 4.26.56.1 aprobado por el dueño el 27/9. Candidata exclusiva 4.26.56 sobre main, sin FIN-05/selector/TR; publicación pendiente. [Contrato y evidencia](docs/briefs/ops02-restauracion-probada.md). Recuperación compartida abierta.
+OPS-02: visor aprobado y publicado exclusivamente en producción 4.26.56, merge 42613195; Promote 36343752892 y Pages 36344438830. HTTP/ZIP/HTML/SW cotejados. FIN-05, selector y TR permanecen pendientes en beta 4.26.56.1; APK estable intacta. [Contrato y evidencia](docs/briefs/ops02-restauracion-probada.md). Recuperación compartida abierta.
 
 ```bash
 git fetch --all --prune && git log --oneline -5 refs/heads/beta && cat VERSION

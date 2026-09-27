@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-27 · **v4.26.56** candidata exclusiva de OPS-02 aprobada por el dueño el 27/9: visor aislado de copias. Preparada sobre main f5e6b514, publicación pendiente. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](briefs/ops02-restauracion-probada.md).
+> Estado a 2026-09-27 · **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](briefs/ops02-restauracion-probada.md).
 > OPS-01 C: control manual de una función, sin despliegue global y SQL opt-in; entrega de tooling aislada desde main. Estado exacto, pruebas y revisión en [brief C](briefs/ops01-control-2026-09-27.md). FIN-06 aún requiere pago real; FIN-05, selector y compra TR siguen pendientes.
 > Publicación: el promote sigue el deploy de su commit y coteja el sello de Pages antes de cerrar; la suite lenta de 4.26.47 ya no se confunde con un fallo.
 > Anterior: **v4.26.46** — cambiar el día de un recibo conserva una sola ocurrencia y la fecha bancaria real.
@@ -233,7 +233,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.56** candidata exclusiva de OPS-02 aprobada; producción actual 4.26.52, beta 4.26.56.1 conserva otras tandas pendientes. |
+| Web / OTA (`VERSION`) | **4.26.56** OPS-02 exclusivo publicado/verificado; merge 42613195 y Pages 36344438830. Beta 4.26.56.1 conserva pendientes FIN-05/selector/TR. |
 | APK (`versionName` / `versionCode`) | Repo/publicada: **4.26.32 / 48**. El asset firmado existe y la beta puede ofrecer el gesto Atrás nativo. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **48** / 4.26.32 |
@@ -305,7 +305,7 @@ existe se deja anotado con su prueba: si mañana alguien vuelve a proponerlo, aq
 | Lógica financiera independiente de React | **A medias.** La lógica pura se extrae y se testea sin React (`scripts/load-pure-logic.mjs`, 15 suites), pero convive en el mismo fichero que la UI. | Separar de verdad los servicios (cartera, movimientos, dividendos, precios) a módulos sin un solo `React.createElement`, y que la UI solo los llame. Sin prisa: es refactor, no arreglo. |
 | Módulos por dominio, no por número | **No.** `src/modules/` va numerado por orden de ensamblado (`00-core`, `06-sync-brokers`, `10-app-components`…). | Reagrupar por dominio cuando duela — hoy 15 ficheros se siguen; el riesgo real es `10`/`11`, que son los que crecen sin parar. |
 | Importadores PDF/CSV | **CSV, XLSX, DOCX y PDF de texto soportado ya existen.** Pruebas `import-docx-pdf` unitarias y E2E. Los PDF escaneados no tienen OCR. | No reconstruir el lector. La integridad del histórico sigue en FIN-02/03/07 de [BACKLOG.md](BACKLOG.md). |
-| Sistema de backups | **Copia diaria y visor aislado de solo lectura, OPS-02 aprobado (candidata 4.26.56).** Ajustes → Copia de seguridad → Copias automáticas. | Recuperación compartida e identidad/SQL/RLS siguen abiertas. [Contrato](briefs/ops02-restauracion-probada.md). |
+| Sistema de backups | **Copia diaria y visor aislado de solo lectura, OPS-02 aprobado y publicado en producción 4.26.56.** Ajustes → Copia de seguridad → Copias automáticas. | Recuperación compartida e identidad/SQL/RLS siguen abiertas. [Contrato](briefs/ops02-restauracion-probada.md). |
 | Sincronización bancaria con adapters | **A medias.** Cada banco/bróker tiene su módulo, pero sin interfaz común. | Interfaz única (conectar / sincronizar / desconectar / estado) para que añadir un banco no toque la UI. Enlaza con Enable Banking. |
 | Play Store, cobrar, gestor fiscal | Ya estaba en el plan (ver «Solo si lo pides» y la nota de freemium). | Antes de cobrar un euro: **hablar con un gestor**. La consulta es barata comparada con regularizar tarde. |
 | Más tests de lógica financiera | Lógica y Deno aprobados, 164 E2E Chromium en la auditoría 4.19.14. Recuento vivo en runner/mapa. | Seguir sumando al tocar dinero; los casos pendientes concretos están en [BACKLOG.md](BACKLOG.md). |
