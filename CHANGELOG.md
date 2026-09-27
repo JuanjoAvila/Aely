@@ -1,4 +1,4 @@
-## [4.26.57] — 2026-09-27 · SEC-03 preparado, sin publicación
+## [4.26.57] — 2026-09-27 · SEC-03 cliente aprobado; entrega exclusiva
 
 - Frontera app_events por esquema/clases cerradas y email:null; no transmite claves de gastos ni mensajes/objetos libres de proveedor. user_id necesario para RLS permanece.
 - Sentry reconstruye el sobre, conserva tipo/código/posición y omite contexto libre, URL, usuario y breadcrumbs. Cola/capturas limpias antes del SDK; tracing y sesiones automáticas desactivados.
