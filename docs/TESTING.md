@@ -1,5 +1,11 @@
 # Testing — Aely
 
+OPS-01 B: `node tests/categorize-handler.test.mjs` ejecuta el handler completo del paquete
+aislado de categorize, CORS y rateLimit con fetch/BD simulados; 15 grupos sin LLM remoto.
+Registrado en runner y mapa Supabase. Protege las tres retiradas de Bizum, catálogo/contratos,
+autenticación y rollback. Preparación, hashes y límites en el
+[brief B](briefs/ops01-categorize-2026-09-27.md). La suite no despliega ni recategoriza histórico.
+
 REC-GUARDADO-01 (4.26.48): `e2e/plan-gestionar.spec.mjs`, ya registrado para el módulo 14 en
 `scripts/relevant-tests.mjs`, recorre el alta real de recibo, cargo puntual e ingreso en
 es/en/ca. Exige una confirmación visible con tipo y nombre tras cerrar la hoja y una sola fila

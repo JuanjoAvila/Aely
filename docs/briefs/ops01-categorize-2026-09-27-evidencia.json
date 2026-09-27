@@ -1,0 +1,92 @@
+{
+  "scope": "OPS-01 B; solo categorize; sin activación",
+  "baseMain": "f5e6b514a00b767a07e7ef8d58cf158fe75e93b9",
+  "remoteBeta": "5d5b8d0f0d8ea12b5521009d3fef9b54f6fd85e9",
+  "auditSha": "8f6830e67d1e24c6940457d00397c2114110f23d",
+  "active": {
+    "observedAt": "2026-09-27T10:59:12.030Z",
+    "slug": "categorize",
+    "status": "ACTIVE",
+    "version": 16,
+    "verify_jwt": true,
+    "updatedAt": "2026-09-13T16:15:55.702Z",
+    "bytes": 331619,
+    "bundleSha256": "270f6598b948a114ab64b4e426f562574081bd10845f6c52d19d277af956ae65",
+    "ownSourcesMatchCommit": "6f61bfc690f53e849b22b659dd0fe607b1a90043",
+    "verifiedSourceMaps": 4,
+    "externalResolved": "https://esm.sh/@supabase/supabase-js@2.116.0"
+  },
+  "package": {
+    "function": "categorize",
+    "migrations": "no",
+    "baselineCommit": "6f61bfc690f53e849b22b659dd0fe607b1a90043",
+    "baselineVersion": 16,
+    "baselineBundleSha256": "270f6598b948a114ab64b4e426f562574081bd10845f6c52d19d277af956ae65",
+    "verify_jwt": true,
+    "dependency": "https://esm.sh/@supabase/supabase-js@2.116.0",
+    "files": {
+      "categorize/index.ts": {
+        "baselineSha256": "7521d259f784a099c884347f24249e086d6f925227febfd64ba24e77ea385574",
+        "candidateSha256": "37c02d28076c18d5368aa31618f46e5069b1b327a87dde388a79e613e96ae31f"
+      },
+      "_shared/ingest_logic.ts": {
+        "baselineSha256": "75253ac6eba211ec4765e0f16f01d968987485681dc795b06ce2f82b0b62f0b3",
+        "candidateSha256": "d5c8336c0926f4318a8a3635361d061e38b39166ab57942035482aa8f8e5e03d"
+      },
+      "_shared/cors.ts": {
+        "baselineSha256": "8d98ed71c1b68d4e3c46310c9994bbafa4a5ea6321e62de22dc483ef85d988a6",
+        "candidateSha256": "8d98ed71c1b68d4e3c46310c9994bbafa4a5ea6321e62de22dc483ef85d988a6"
+      },
+      "_shared/ratelimit.ts": {
+        "baselineSha256": "cb77b1f18d076b6111301f00d8bd937b38ac38c9a71d9df041e482c19ea85b0d",
+        "candidateSha256": "cb77b1f18d076b6111301f00d8bd937b38ac38c9a71d9df041e482c19ea85b0d"
+      }
+    }
+  },
+  "tests": {
+    "categorizeHandler": {
+      "groups": 15,
+      "result": "PASS",
+      "network": "mocked fetch only",
+      "database": "auth/rpc simulated; table access forbidden"
+    },
+    "independentAuditPatch": "git apply with core.autocrlf=false; all candidate sources equal",
+    "build": "PASS; generated files unchanged",
+    "npmTest": {
+      "result": "FAIL",
+      "onlyFailedStep": "memoria-espejo",
+      "preexistingOutdated": [
+        "MEMORY.md",
+        "mi-cartera-deploy.md",
+        "promote-4-19-106-como-se-hizo.md",
+        "traspaso-2026-09-24-manana.md"
+      ],
+      "deno": "not installed; omitted",
+      "e2e": "not started due to unit failure"
+    },
+    "checks": [
+      "docs-frescura PASS",
+      "relevant-tests PASS",
+      "test:syntax PASS",
+      "guard-privacy PASS",
+      "git diff --check PASS"
+    ]
+  },
+  "ci": null,
+  "reviews": [],
+  "deployment": {
+    "function": "categorize",
+    "migrations": "no",
+    "performed": false,
+    "requiresOwnerApproval": true,
+    "transportChanged": false,
+    "historicalCategoriesChanged": false,
+    "rollback": "four baseline sources in manifest; separate project; categorize only; migrations=no"
+  },
+  "pending": [
+    "FIN-06 real payment",
+    "FIN-05 mobile payment",
+    "widget bank selector verdict",
+    "TR real purchase"
+  ]
+}

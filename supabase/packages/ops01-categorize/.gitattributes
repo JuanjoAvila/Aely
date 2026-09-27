@@ -1,0 +1,4 @@
+# Los hashes describen bytes reales del servidor, también al clonar en Windows.
+baseline/** text eol=lf
+# Un diff unificado usa un espacio como prefijo de sus líneas de contexto vacías.
+change.patch text eol=lf whitespace=-blank-at-eol

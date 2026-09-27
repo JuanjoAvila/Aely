@@ -34,7 +34,9 @@ mi-cartera/
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions, despliegue manual de Supabase y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
+│   └── packages/ops01-categorize/ # Cierre aislado B y rollback; sin activación automática
 ├── scripts/
+│   ├── prepare-categorize-package.mjs # Prepara solo categorize con fuentes/hashes congelados
 │   ├── build-app.mjs       # Ensambla src/ → public/index.html
 │   ├── run-tests.mjs       # build + unit + Deno + E2E; tiempos por etapa en test-results/
 │   └── stamp-version.mjs
