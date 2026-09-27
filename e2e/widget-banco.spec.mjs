@@ -20,6 +20,49 @@ async function settings(page) {
   return panel;
 }
 
+test("FIN-05: app y widget excluyen lápidas conservadas al reabrir después de un pago", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-09-27T10:00:00Z") });
+  const expenses = [
+    { id: "live", date: "2026-09-02T10:00:00Z", amount: 181, merchant: "Compra ficticia", category: "super", source: "macrodroid" },
+    { id: "gone-out", date: "2026-09-03T10:00:00Z", amount: 3, merchant: "Borrado ficticio", category: "bares", source: "ob:trade_republic" },
+    { id: "gone-in", date: "2026-09-04T10:00:00Z", amount: -15, merchant: "Ingreso borrado", category: "ingreso", source: "ob:trade_republic" },
+  ];
+  const deleted = expenses.slice(1).map(e => e.date.slice(0, 10) + "|" + e.amount + "|" + e.merchant);
+  await seedLoggedInDashboard(page, { __seedOnce: true, budget: 1000, expenses, deleted,
+    accounts: [{ id: "tr", ent: "trade_republic", role: "diario", spendFrom: true, value: 2000 }],
+    settings: { autoPrices: false, gTotalMode: "net" } });
+  await bridge(page);
+  await page.goto("/");
+  await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.budgetLeft)).toBe(819);
+  await dismissNews(page);
+  await expect(page.locator('.page-live .v4-mov').filter({ hasText: "Compra ficticia" })).toHaveCount(1);
+  await expect(page.locator('.page-live .v4-mov').filter({ hasText: /Borrado ficticio|Ingreso borrado/ })).toHaveCount(0);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  const bar = page.locator('.v4-gastos-progress[role="progressbar"]');
+  await expect(bar).toHaveAttribute("aria-valuenow", "181");
+  await expect(page.locator('[data-expense-id="live"]')).toBeVisible();
+  await expect(page.locator('[data-expense-id="gone-out"]')).toHaveCount(0);
+  await expect(page.locator('[data-expense-id="gone-in"]')).toHaveCount(0);
+  const beforeCash = await page.evaluate(() => ({ cash: window.__widgetSnapshot.cash, safe: window.__widgetSnapshot.safeLiq }));
+  // El pago entra con la app cerrada; las filas antiguas permanecen para probar la contabilidad.
+  await page.evaluate(() => {
+    const rows = JSON.parse(localStorage.getItem("micartera_v3_exp"));
+    rows.push({ id: "pay", date: "2026-09-27T10:00:00Z", amount: 5.45,
+      merchant: "Pago ficticio", category: "super", source: "macrodroid" });
+    localStorage.setItem("micartera_v3_exp", JSON.stringify(rows));
+  });
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.budgetLeft)).toBe(813.55);
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(bar).toHaveAttribute("aria-valuenow", "186.45");
+  const afterCash = await page.evaluate(() => ({ cash: window.__widgetSnapshot.cash, safe: window.__widgetSnapshot.safeLiq }));
+  expect(afterCash.cash).toBeCloseTo(beforeCash.cash - 5.45, 2);
+  expect(afterCash.safe).toBeCloseTo(beforeCash.safe - 5.45, 2);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3")).deleted)).toEqual(deleted);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3_exp")).length)).toBe(4);
+});
+
 test("elegir otro banco actualiza el widget aunque tenga el mismo saldo y persiste", async ({ page }) => {
   const accounts = [
     { id: "caixa", ent: "caixabank", role: "diario", spendFrom: true, value: 500 },

@@ -18,6 +18,26 @@ const javac = fs.existsSync(path.join(jdk || "", process.platform === "win32" ? 
     ? path.join(androidJdk, "javac.exe") : "javac";
 const java = javac.endsWith("javac.exe") ? javac.replace(/javac\.exe$/, "java.exe")
   : javac.endsWith("javac") && javac !== "javac" ? javac.replace(/javac$/, "java") : "java";
+// Las cifras que recibe Java proceden de ambas implementaciones, con lápidas conservadas.
+const finApp = loadPureLogicFromFile();
+const finTs = fs.readFileSync(path.join(root, "supabase/functions/_shared/presupuesto.ts"), "utf8");
+const finServer = await import("data:text/javascript;base64," + Buffer.from(transformSync(finTs, { loader: "ts", format: "esm" }).code).toString("base64"));
+const finNow = Date.parse("2026-09-27T12:00:00Z"), finPeriod = finServer.inicioDeMesMs(finNow);
+const finRows = [
+  { id: "live", fecha: "2026-09-02T10:00:00Z", importe: 181, cat: "super", source: "macrodroid", comercio: "Compra ficticia" },
+  { id: "gone-out", fecha: "2026-09-03T10:00:00Z", importe: 3, cat: "bares", source: "ob:trade_republic", comercio: "Borrado ficticio" },
+  { id: "gone-in", fecha: "2026-09-04T10:00:00Z", importe: -15, cat: "ingreso", source: "ob:trade_republic", comercio: "Ingreso borrado" },
+];
+const finState = { budget: 1000, accounts: [{ ent: "trade_republic", role: "diario" }],
+  settings: { gTotalMode: "net" }, reservaLog: [], expenses: finRows.map(finApp.expenseFromRow) };
+finState.deleted = finState.expenses.slice(1).map(finApp.keyOfExpense);
+const finBefore = finApp.monthBudgetStats(finState, finNow);
+const finPay = { id: "pay", fecha: "2026-09-27T10:00:00Z", importe: 5.45, cat: "super", source: "macrodroid", comercio: "Pago ficticio" };
+const finAfterApp = finApp.monthBudgetStats({ ...finState, expenses: finState.expenses.concat(finApp.expenseFromRow(finPay)) }, finNow);
+const finAfterServer = finServer.statsDelMes(finServer.filasComoLaApp(finRows.concat(finPay), finState.deleted), finState, finPeriod);
+assert.equal(finBefore.shown, 181);
+assert.equal(finAfterApp.shown, finAfterServer.shown);
+assert.equal(finAfterApp.remaining, 813.55);
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "aely-widget-arbitraje-"));
 try {
   const src = path.join(dir, "WidgetSnapshotArbiterTest.java");
@@ -112,7 +132,18 @@ public class WidgetSnapshotArbiterTest {
     long uncertain=WidgetSnapshotArbiter.begin(dup);
     ing(dup,uncertain,sep,sep,100,"possibleDup",40,100,60,10,false,false);
     eq(dup.cash(),200); eq(dup.spent,40);
-    System.out.println("  ✓ orden inverso, reentrada, día/mes, banco y possibleDup");
+    WidgetSnapshotArbiter.State fin=new WidgetSnapshotArbiter.State();
+    WidgetSnapshotArbiter.app(fin,${finPeriod}L,${finBefore.shown},1000,${finBefore.remaining.toFixed(2)},900.0,2000.0,"trade_republic","Cuenta","","");
+    long purchase=WidgetSnapshotArbiter.begin(fin);
+    ing(fin,purchase,${finPeriod}L,${finPeriod}L,700,"pay",${finAfterServer.shown},1000,${1000-finAfterServer.against},5.45,true,true);
+    eq(fin.spent,${finAfterApp.shown}); eq(fin.budgetLeft,${finAfterApp.remaining});
+    eq(fin.cash(),1994.55); eq(fin.safeLiq(),894.55); eq(fin.afford(),813.55);
+    // Reentrada antes y después del ACK: conserva el pago una sola vez.
+    WidgetSnapshotArbiter.app(fin,${finPeriod}L,${finBefore.shown},1000,${finBefore.remaining.toFixed(2)},900.0,2000.0,"trade_republic","Cuenta","","");
+    eq(fin.spent,${finAfterApp.shown}); eq(fin.cash(),1994.55);
+    WidgetSnapshotArbiter.app(fin,${finPeriod}L,${finAfterApp.shown},1000,${finAfterApp.remaining},894.55,1994.55,"trade_republic","Cuenta","|pay|","");
+    eq(fin.spent,${finAfterApp.shown}); eq(fin.cash(),1994.55); eq(fin.safeLiq(),894.55);
+    System.out.println("  ✓ orden inverso, reentrada, día/mes, banco, possibleDup y pago con lápidas");
   }
 }`);
   for (const [cmd, args] of [

@@ -442,6 +442,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const src=expensesDef||[];
     for(let i=0;i<src.length;i++){
       const e=src[i];
+      // La lápida puede venir de otro dispositivo sin retirar aún esta fila local.
+      if(expenseIsTombstoned(e,expenseDeletedSet(state))) continue;
       if(!inBounds(dateMs(e.date),bounds)) continue;
       // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
       if(catSet && !catSet.has(e.category) && !(e.debtId && catSet.has("debt:"+e.debtId))) continue;
@@ -460,7 +462,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     return sortExpensesForDisplay(out,state);
     // `state.settings`/`state.accounts` van en las dependencias porque `expenseBucket` los lee
     // (qué bancos son de gasto diario): cambiar eso tiene que re-filtrar la lista.
-  },[expensesDef,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts]);
+  },[expensesDef,state.deleted,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts]);
 
   /* El asa reclama el dedo desde el principio: dejar que la fila entera fuera arrastrable
      convertiría un scroll normal en cambios de orden accidentales. El destino se resuelve contra
@@ -502,12 +504,12 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       last:new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),
       month:monthLong(now.getMonth())
     };
-  },[state.expenses,state.budget,state.reservaLog,state.accounts,state.settings]);
+  },[state.expenses,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings]);
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
     return categorySpentByMonth(state);
-  },[state.expenses,state.categoryBudgets,state.accounts,state.settings]);
+  },[state.expenses,state.deleted,state.categoryBudgets,state.accounts,state.settings]);
   /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
      —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
   const catsOpen=!(state.settings && state.settings.gastosCatsOff);

@@ -29,7 +29,7 @@ const read = (p) => fs.readFileSync(path.join(root, p), "utf8");
 
 const srcTs = read("supabase/functions/_shared/presupuesto.ts");
 const js = transformSync(srcTs, { loader: "ts", format: "esm" }).code;
-const { statsDelMes, inicioDeMesMs } = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
+const { statsDelMes, inicioDeMesMs, filasComoLaApp } = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
 const cli = loadPureLogicFromFile();
 
 function t(name, fn) {
@@ -106,7 +106,68 @@ t("gastar de más no deja «puedes gastar» en negativo", () => {
   assert.ok(srv.against > srv.budget, "y el escenario sí se pasa de presupuesto");
 });
 
+t("FIN-05: las mismas lápidas y filas dan el mismo presupuesto antes y después del pago", () => {
+  const rows = [
+    { id: "live", fecha: d(2), importe: 181, cat: "super", source: "macrodroid", comercio: "Compra ficticia" },
+    { id: "gone-out", fecha: d(3), importe: 3, cat: "bares", source: "ob:trade_republic", comercio: "Borrado ficticio" },
+    { id: "gone-in", fecha: d(4), importe: -15, cat: "ingreso", source: "ob:trade_republic", comercio: "Ingreso borrado" },
+    { id: "gone-neutral", fecha: d(5), importe: -250, cat: "traspaso", source: "ob:trade_republic", comercio: "Traspaso borrado" },
+    { id: "pending", fecha: d(6), importe: 22, cat: "otros", source: "ob:trade_republic#dup", comercio: "Candidato ficticio" },
+  ];
+  const data = escenario([], { settings: { gTotalMode: "net" } });
+  data.expenses = rows.map((r) => cli.expenseFromRow(r));
+  data.deleted = data.expenses.slice(1, 4).map((e) => cli.keyOfExpense(e));
+  const original = JSON.stringify(data), expensesRef = data.expenses, deletedRef = data.deleted;
+  const before = cli.monthBudgetStats(data, nowMs);
+  // El helper servidor filtra lápidas antes de stats; no se borra ninguna fila del fixture.
+  const visible = filasComoLaApp(rows, data.deleted);
+  const beforeServer = statsDelMes(visible, data, desdeMs);
+  assert.equal(before.remaining, beforeServer.budget - beforeServer.against);
+  assert.equal(before.remaining, 819);
+  for (const e of data.expenses.slice(1, 4)) assert.equal(cli.expenseCountsBudget(e, data), false);
+  assert.equal(cli.expenseCountsBudget(data.expenses[4], data), false);
+  const pay = { id: "pay", fecha: d(7), importe: 5.45, cat: "super", source: "macrodroid", comercio: "Pago ficticio" };
+  const after = cli.monthBudgetStats({ ...data, expenses: data.expenses.concat(cli.expenseFromRow(pay)) }, nowMs);
+  const afterServer = statsDelMes(visible.concat(pay), data, desdeMs);
+  assert.equal(c(after.remaining), 813.55);
+  assert.equal(c(after.remaining), afterServer.budget - afterServer.against);
+  assert.equal(c(before.remaining - after.remaining), 5.45);
+  assert.equal(data.expenses, expensesRef);
+  assert.equal(data.deleted, deletedRef);
+  assert.equal(JSON.stringify(data), original);
+});
+
 /* ── 2. Guardián: los dos escritores mantienen todo lo que se pinta ─────────────────────── */
+t("lápidas manuales respetan UUID, compatibilidad antigua y deshacer por copia", () => {
+  const a = { id: "manual-a", date: d(2), amount: 10, merchant: "Manual ficticio", category: "super", source: "manual" };
+  const b = { ...a, id: "manual-b" };
+  const data = escenario([]);
+  data.deleted = [cli.keyOfExpense(a)];
+  assert.equal(cli.expenseCountsBudget(a, data), false);
+  assert.equal(cli.expenseCountsBudget(b, data), true);
+  assert.equal(cli.expenseCountsBudget(a, { ...data, deleted: [] }), true);
+  assert.equal(cli.expenseCountsBudget(a, data), false);
+  assert.equal(cli.expenseCountsBudget(b, { ...data, deleted: data.deleted.concat(cli.keyOfExpense(b)) }), false);
+  assert.equal(cli.expenseCountsBudget(b, data), true);
+  const legacy = { ...data, deleted: [cli.keyOfExpenseLegacy(a)] };
+  assert.equal(cli.expenseCountsBudget(a, legacy), false);
+  assert.equal(cli.expenseCountsBudget(b, legacy), false);
+  assert.equal(cli.expenseCountsBudget(a, { ...data, deleted: null }), true);
+  assert.equal(cli.expenseCountsBudget(a, { ...data, deleted: undefined }), true);
+});
+
+t("las lápidas de presupuesto no alteran los insumos ni las bases del saldo", () => {
+  const data = escenario([{ day: 2, importe: 181, cat: "super", source: "macrodroid" },
+    { day: 3, importe: -250, cat: "traspaso", source: "ob:trade_republic" }]);
+  data.accounts[0].spendFrom = true;
+  data.accounts[0].value = 2000;
+  const baseline = cli.insumosSaldoGasto(data);
+  const withDeleted = { ...data, deleted: data.expenses.map(cli.keyOfExpense) };
+  assert.deepEqual(cli.insumosSaldoGasto(withDeleted), baseline);
+  assert.equal(withDeleted.accounts, data.accounts);
+  assert.equal(cli.monthBudgetStats(withDeleted, nowMs).spent, 0);
+  assert.equal(cli.monthBudgetStats(data, nowMs).spent, 181);
+});
 
 const widget = read("android/app/src/main/java/com/micartera/app/MiCarteraWidget.java");
 const plugin = read("android/app/src/main/java/com/micartera/app/MiCarteraPlugin.java");

@@ -5773,6 +5773,18 @@ function sameEntList(a,b){
    Vista de Gastos: por defecto se filtra a los marcados como gasto diario (`expenseBankEnts`);
    «Todos los bancos» enseña el extracto entero. Contabilidad: solo los marcados. A mano (sin
    ent) sí cuenta. Pedido 2026-08-17: Revolut+TR marcados → los dos se ven y cuentan. */
+const expenseDeletedSets=new WeakMap();
+function expenseDeletedSet(s){
+  const deleted=s&&s.deleted;
+  if(!Array.isArray(deleted)||!deleted.length) return null;
+  let delSet=expenseDeletedSets.get(deleted);
+  if(!delSet){
+    delSet=Object.create(null);
+    deleted.forEach(function(k){ delSet[k]=1; });
+    expenseDeletedSets.set(deleted,delSet);
+  }
+  return delSet;
+}
 function expenseCountsCash(e, s){
   if(!e) return false;
   // Posible repetido: no mueve saldo ni presupuesto hasta que él diga «son distintos».
@@ -5788,6 +5800,10 @@ function expenseCountsCash(e, s){
 /* Igual que cash, pero sin neutras (inversión/traspaso): es lo que pinta el presupuesto. */
 function expenseCountsBudget(e, s){
   if(!e || CAT_NEUTRAS[e.category]) return false;
+  // El servidor excluye lápidas; contarlas aquí hacía saltar el gasto del widget al pagar
+  // con la app cerrada (27/9/2026). No se altera cash: sus bases pueden estar ya ancladas
+  // incluyendo estas filas. Las lápidas cambian por copia; el índice evita N recorridos.
+  if(expenseIsTombstoned(e,expenseDeletedSet(s))) return false;
   return expenseCountsCash(e, s);
 }
 /* EN QUÉ CAJÓN VA CADA MOVIMIENTO (2026-08-17).
@@ -8189,7 +8205,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   };
 
   const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,4);
-  const recent=(state.expenses||[]).slice().sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); }).slice(0,3);
+  const recent=(state.expenses||[]).filter(function(e){ return !expenseIsTombstoned(e,expenseDeletedSet(state)); }).sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); }).slice(0,3);
   const p=eurParts(shownNet);
   const ringPct=Math.max(0,Math.min(1,ratio));
   /* P6 — EL ANILLO SE DIBUJA, NO APARECE YA LLENO.
@@ -8877,6 +8893,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const src=expensesDef||[];
     for(let i=0;i<src.length;i++){
       const e=src[i];
+      // La lápida puede venir de otro dispositivo sin retirar aún esta fila local.
+      if(expenseIsTombstoned(e,expenseDeletedSet(state))) continue;
       if(!inBounds(dateMs(e.date),bounds)) continue;
       // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
       if(catSet && !catSet.has(e.category) && !(e.debtId && catSet.has("debt:"+e.debtId))) continue;
@@ -8895,7 +8913,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     return sortExpensesForDisplay(out,state);
     // `state.settings`/`state.accounts` van en las dependencias porque `expenseBucket` los lee
     // (qué bancos son de gasto diario): cambiar eso tiene que re-filtrar la lista.
-  },[expensesDef,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts]);
+  },[expensesDef,state.deleted,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts]);
 
   /* El asa reclama el dedo desde el principio: dejar que la fila entera fuera arrastrable
      convertiría un scroll normal en cambios de orden accidentales. El destino se resuelve contra
@@ -8937,12 +8955,12 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       last:new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),
       month:monthLong(now.getMonth())
     };
-  },[state.expenses,state.budget,state.reservaLog,state.accounts,state.settings]);
+  },[state.expenses,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings]);
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
     return categorySpentByMonth(state);
-  },[state.expenses,state.categoryBudgets,state.accounts,state.settings]);
+  },[state.expenses,state.deleted,state.categoryBudgets,state.accounts,state.settings]);
   /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
      —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
   const catsOpen=!(state.settings && state.settings.gastosCatsOff);
@@ -24226,7 +24244,7 @@ function App(){
   /* Una sola racha compartida por Inicio y el detector de logros. Con históricos grandes,
      calcularla otra vez dentro de cada pantalla triplicaba el recorrido al terminar un sync. */
   const budgetStreak=useMemo(function(){ return underBudgetStreak(state); },
-    [state.expenses,state.budgetByMonth,state.accounts,state.reservaLog,
+    [state.expenses,state.deleted,state.budgetByMonth,state.accounts,state.reservaLog,
      state.settings&&state.settings.expenseBanks,state.settings&&state.settings.gTotalMode,budgetMonth]);
 
   const [pricing,setPricing]=useState(false);
@@ -24547,7 +24565,7 @@ function App(){
       const nat=natPlugin();
       if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely",body:msg}).catch(function(){}); }catch(e){} }
     });
-  },[state.onboarded,locked,state.expenses,state.budget,state.reservaLog,state.accounts,state.settings]);
+  },[state.onboarded,locked,state.expenses,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings]);
   // Snapshot diario del total invertido (€) para el gráfico de evolución (#6). Se actualiza si cambia valor/coste hoy.
   const invSnapRef=useRef("");
   useEffect(function(){

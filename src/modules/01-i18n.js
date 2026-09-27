@@ -2926,6 +2926,18 @@ function sameEntList(a,b){
    Vista de Gastos: por defecto se filtra a los marcados como gasto diario (`expenseBankEnts`);
    «Todos los bancos» enseña el extracto entero. Contabilidad: solo los marcados. A mano (sin
    ent) sí cuenta. Pedido 2026-08-17: Revolut+TR marcados → los dos se ven y cuentan. */
+const expenseDeletedSets=new WeakMap();
+function expenseDeletedSet(s){
+  const deleted=s&&s.deleted;
+  if(!Array.isArray(deleted)||!deleted.length) return null;
+  let delSet=expenseDeletedSets.get(deleted);
+  if(!delSet){
+    delSet=Object.create(null);
+    deleted.forEach(function(k){ delSet[k]=1; });
+    expenseDeletedSets.set(deleted,delSet);
+  }
+  return delSet;
+}
 function expenseCountsCash(e, s){
   if(!e) return false;
   // Posible repetido: no mueve saldo ni presupuesto hasta que él diga «son distintos».
@@ -2941,6 +2953,10 @@ function expenseCountsCash(e, s){
 /* Igual que cash, pero sin neutras (inversión/traspaso): es lo que pinta el presupuesto. */
 function expenseCountsBudget(e, s){
   if(!e || CAT_NEUTRAS[e.category]) return false;
+  // El servidor excluye lápidas; contarlas aquí hacía saltar el gasto del widget al pagar
+  // con la app cerrada (27/9/2026). No se altera cash: sus bases pueden estar ya ancladas
+  // incluyendo estas filas. Las lápidas cambian por copia; el índice evita N recorridos.
+  if(expenseIsTombstoned(e,expenseDeletedSet(s))) return false;
   return expenseCountsCash(e, s);
 }
 /* EN QUÉ CAJÓN VA CADA MOVIMIENTO (2026-08-17).

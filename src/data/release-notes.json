@@ -1,5 +1,24 @@
 [
   {
+    "v": "4.26.54",
+    "d": "27 sep 2026",
+    "t": {"es":"Gastos borrados fuera del presupuesto", "en":"Deleted expenses excluded from the budget", "ca":"Despeses esborrades fora del pressupost"},
+    "items": {
+      "es": ["Los movimientos borrados dejan de contar en el gasto y el presupuesto, también cuando aún quedan guardados en el dispositivo. Así se evita un salto del gasto al recibir una compra con la app cerrada."],
+      "en": ["Deleted transactions no longer count towards spending and the budget, even when still stored on the device. This prevents spending from jumping when a purchase arrives with the app closed."],
+      "ca": ["Els moviments esborrats deixen de comptar a la despesa i el pressupost, també quan encara queden desats al dispositiu. Així s’evita un salt de la despesa en rebre una compra amb l’app tancada."]
+    },
+    "tandas": [{
+      "id": "fin05-pago-cerrada",
+      "t": {"es":"Gasto del widget tras una compra", "en":"Widget spending after a purchase", "ca":"Despesa del widget després d’una compra"},
+      "items": {
+        "es": ["1. Abre la app actualizada y anota el Gastado del widget. En la próxima compra habitual, deja la app cerrada y conserva la notificación. El Gastado debe aumentar solo por esa compra, con el redondeo habitual.", "2. Al volver a abrir la app, el gasto y el saldo del widget deben mantenerse sin descontar la compra otra vez. Si falla, conserva las notificaciones y comunica las cifras antes y después."],
+        "en": ["1. Open the updated app and note the widget’s Spent amount. For the next normal purchase, leave the app closed and keep the notification. Spent should rise only by that purchase, with normal rounding.", "2. Reopening the app should preserve widget spending and cash without deducting the purchase again. If it fails, keep notifications and report before and after figures."],
+        "ca": ["1. Obre l’app actualitzada i anota la Despesa del widget. En la pròxima compra habitual, deixa l’app tancada i conserva la notificació. La Despesa ha d’augmentar només per aquella compra, amb l’arrodoniment habitual.", "2. En tornar a obrir l’app, la despesa i el saldo del widget s’han de mantenir sense descomptar la compra una altra vegada. Si falla, conserva les notificacions i comunica les xifres d’abans i després."]
+      }
+    }]
+  },
+  {
     "v": "4.26.53",
     "d": "26 sep 2026",
     "t": {"es":"Más información al clasificar gastos", "en":"More information for expense categories", "ca":"Més informació per classificar despeses"},

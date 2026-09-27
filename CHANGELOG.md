@@ -1,3 +1,11 @@
+## [4.26.54] — 2026-09-27
+
+### FIN-05 · excluir lápidas del cálculo local, igual que ingest
+- La captura autorizada del móvil encontró filas conservadas localmente y marcadas en `deleted` tanto local como remotamente. El servidor las excluía antes de calcular presupuesto; el cliente las sumaba. Un pago con app cerrada reemplazaba el presupuesto local por el correcto del servidor y aparentaba un cargo extra. El journal contenía una sola contribución del pago; no se atribuye otro descuento de efectivo.
+- `expenseCountsBudget` consulta `expenseIsTombstoned` existente, incluidos ingresos, manteniendo neutras y `possibleDup`. WeakMap por referencia de `deleted`, actualizada por copia; memos de presupuesto/categorías/racha/avisos incluyen esa dependencia. Gastos e Inicio ocultan filas borradas sin podar arrays ni cambiar copias de seguridad. `expenseCountsCash` y los insumos/bases de saldo permanecen idénticos: excluir contribuciones de un anclaje histórico sin reanclaje movería dinero. No se migra ni recategoriza.
+- Guardián ficticio en widget-coherente falla antes (831 frente a819) y pasa después:819→813.55 con pago5.45, mismos datos que helper servidor. UUID manual, lápidas antiguas y deshacer cubiertos. E2E abre Gastos, verifica DOM y snapshot nativo simulado antes/después de reentrada sin mutar lápidas. Suite y revisión exacta pendientes en el brief.
+- Solo cliente OTA; APK beta4.26.49/code50 ya instalada contiene el nativo FIN-05. Sin cambios/despliegue Edge, SQL de escritura, APK nueva ni promoción. FIN-05 permanece abierto hasta repetir pago real con la candidata. Evidencia: docs/briefs/fin05-pago-cerrada-2026-09-27.md.
+
 ## [4.26.53] — 2026-09-26
 
 ### TR · clasificar entradas nuevas sin cambiar la identidad bancaria

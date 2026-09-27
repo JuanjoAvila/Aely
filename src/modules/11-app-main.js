@@ -1874,7 +1874,7 @@ function App(){
   /* Una sola racha compartida por Inicio y el detector de logros. Con históricos grandes,
      calcularla otra vez dentro de cada pantalla triplicaba el recorrido al terminar un sync. */
   const budgetStreak=useMemo(function(){ return underBudgetStreak(state); },
-    [state.expenses,state.budgetByMonth,state.accounts,state.reservaLog,
+    [state.expenses,state.deleted,state.budgetByMonth,state.accounts,state.reservaLog,
      state.settings&&state.settings.expenseBanks,state.settings&&state.settings.gTotalMode,budgetMonth]);
 
   const [pricing,setPricing]=useState(false);
@@ -2195,7 +2195,7 @@ function App(){
       const nat=natPlugin();
       if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely",body:msg}).catch(function(){}); }catch(e){} }
     });
-  },[state.onboarded,locked,state.expenses,state.budget,state.reservaLog,state.accounts,state.settings]);
+  },[state.onboarded,locked,state.expenses,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings]);
   // Snapshot diario del total invertido (€) para el gráfico de evolución (#6). Se actualiza si cambia valor/coste hoy.
   const invSnapRef=useRef("");
   useEffect(function(){

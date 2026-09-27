@@ -138,7 +138,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   };
 
   const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,4);
-  const recent=(state.expenses||[]).slice().sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); }).slice(0,3);
+  const recent=(state.expenses||[]).filter(function(e){ return !expenseIsTombstoned(e,expenseDeletedSet(state)); }).sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); }).slice(0,3);
   const p=eurParts(shownNet);
   const ringPct=Math.max(0,Math.min(1,ratio));
   /* P6 — EL ANILLO SE DIBUJA, NO APARECE YA LLENO.
