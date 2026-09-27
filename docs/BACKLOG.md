@@ -62,10 +62,10 @@ perderlos ni duplicar encargos. «Publicado» no certifica todos los criterios d
 | OPS-02 | Visor de copias cerrado/aprobado/publicado4.26.56. **Recuperación compartida financiera abierta**, dependiente FIN-03/08 y SQL/RLS/ACK. |
 | SEC-01 | Inventario histórico parcial; aceptación por endpoint, cuerpos inválidos, tamaños/auth y evidencia servidor pendientes. Los recuentos9/9 no son un inventario vivo nuevo. |
 | SEC-02 | Límites/replay pendientes de auditoría y contratos por coste/usuario, sin descartar pagos legítimos. |
-| SEC-03 | Cliente aprobado y entrega exclusiva fusionada en main/ece3a2d9; privacidad Edge/gateway y puesta en servicio por función pendientes. |
+| SEC-03 | Cliente aprobado y entrega exclusiva fusionada en main/ece3a2d9; privacidad Edge/gateway y puesta en servicio por función pendientes. **Historia pública:** Claude comunica cifras financieras antiguas en commits6fcc3e0e/05a8fb4f, contenido vivo limpio; no se transcriben ni se reauditan datos aquí. Retirada mediante reescritura de historial requiere decisión expresa, no force-push automático. |
 | OPS-03 | Beta con varios probadores y permisos/veredictos independientes pendiente. |
 | OPS-04 | Métricas agregadas pendientes de confirmar; instrumentación ya existe. |
-| OPS-05 | Higiene de ramas/PR/restos pendiente; no borrar sin autorización. Foto PR actual arriba. |
+| OPS-05 | Higiene de ramas/PR/restos pendiente; no borrar sin autorización. **memoria-espejo falla localmente por desfase preexistente**: notas/espejo aún sin integrar, señalado también por Claude. Resolver en objetivo propio sin incorporar cambios ajenos para ocultar el fallo. Foto PR actual arriba. |
 | OPS-06 | Validación intensiva antes de Play Store pendiente: rendimiento sostenido, botones/gestos/carreras/offline, seguridad y dispositivos reales. El lag actual requiere caso propio antes de esa ronda final. |
 | BRAND-01 | Identidad publicada parcialmente; aceptación completa web/nativa y nombre final verificable pendiente. No iniciar renombre. |
 | UX-01 | **Reabierto por feedback actual:** lag sostenido y gestos; INC-2709-03/09. Medir escenario y degradación en móvil. |
