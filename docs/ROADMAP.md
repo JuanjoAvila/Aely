@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-27 · **v4.26.55** candidata: recuperar el widget persistido sin perder pagos pendientes. Requiere APK51, aún no publicada. Beta web4.26.54.1 verificada; producción4.26.52. FIN-05 abierto hasta instalación y pago real. [Evidencia](briefs/fin05-pago-cerrada-2026-09-27.md).
+> Estado a 2026-09-27 · **v4.26.55** publicada como beta **4.26.55.1**: recuperación del widget persistido sin perder pagos pendientes. APK51 verificado e instalado; widget recuperado y Gastado/Disponible estables al reabrir; saldo entre fotos y pago real pendientes. Action36327745655 verde, bundle cotejado. Producción4.26.52, sin promoción. [Evidencia](briefs/fin05-pago-cerrada-2026-09-27.md).
 > Publicación: el promote sigue el deploy de su commit y coteja el sello de Pages antes de cerrar; la suite lenta de 4.26.47 ya no se confunde con un fallo.
 > Anterior: **v4.26.46** — cambiar el día de un recibo conserva una sola ocurrencia y la fecha bancaria real.
 > Anterior: **v4.26.44** — la ficha de un recibo confirma el guardado antes de cerrarse y un doble toque solo puede persistir una vez.
@@ -232,10 +232,10 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.55** candidata; publicada beta4.26.54.1/SHA05a8fb4f, producción4.26.52. |
-| APK (`versionName` / `versionCode`) | Candidata: **4.26.55 / 51**, firmada en local, sin publicación/instalación. Beta publicada4.26.49/50; estable4.26.32/48. |
+| Web / OTA (`VERSION`) | **4.26.55** publicada como beta **4.26.55.1**, fuente b5f1365f, huella745df9a3596608b8; producción4.26.52. |
+| APK (`versionName` / `versionCode`) | Beta prerelease **4.26.55 / 51**, firmada, publicada e instalada. Reentrada/pago real pendientes. Estable4.26.32/48. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
-| `public/apk.json` | Candidato **51 / 4.26.55**, no publicado; remoto beta50/4.26.49 y estable48/4.26.32. |
+| `public/apk.json` | **51 / 4.26.55**, asset real cotejado; estable permanece48/4.26.32. |
 
 ## Pendiente / limitaciones conocidas
 

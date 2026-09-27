@@ -1,6 +1,6 @@
 # Arquitectura — Aely
 
-## Persistencia del widget (4.26.55 candidata)
+## Persistencia del widget (4.26.55)
 
 El journal conserva eventos no cubiertos por la foto cloud. El parser tolera indentación del XML únicamente en líneas vacías e identificadores; vuelve a evaluar journalFull tras una foto de app, sin descartar entradas dañadas ni deltas desconocidos. La serialización nueva usa separadores entre eventos sin salto final. El tamaño restante sigue limitado; una recuperación necesita APK51, no OTA.
 
@@ -8,7 +8,7 @@ El journal conserva eventos no cubiertos por la foto cloud. El parser tolera ind
 
 `expenseCountsBudget` excluye filas cubiertas por `deleted` mediante `expenseIsTombstoned`; presupuesto y categorías heredan el criterio del servidor antes de `statsDelMes`. Gastos y últimos movimientos de Inicio las ocultan sin podar arrays ni borrar por ausencia. Copias de seguridad conservan el histórico crudo. No cambia identidad ni decisiones de duplicados. UUID manual y claves antiguas siguen vigentes. WeakMap indexa cada array `deleted`; los escritores lo reemplazan por copia y los memos de presupuesto dependen de él.
 
-`expenseCountsCash` y `insumosSaldoGasto` conservan su comportamiento: no se trasladan las lápidas de presupuesto a los anclajes de saldo. Una base histórica puede haberse despejado incluyendo esa contribución; retirarla sin reanclaje verificable movería efectivo. Este arreglo del Gastado no migra bases ni pretende resolver la contabilidad de una lápida en una cuenta calculada. En el dispositivo capturado, saldo y liquidez no presentan un descuento adicional; FIN-05 sigue pendiente de repetir pago real.
+`expenseCountsCash` y `insumosSaldoGasto` conservan su comportamiento: no se trasladan las lápidas de presupuesto a los anclajes de saldo. Una base histórica puede haberse despejado incluyendo esa contribución; retirarla sin reanclaje verificable movería efectivo. Este arreglo del Gastado no migra bases ni pretende resolver la contabilidad de una lápida en una cuenta calculada. Tras instalar APK51, el widget recupera sus cifras y Gastado/Disponible se mantienen al reabrir. El saldo mostrado difiere de la captura anterior a abrir la app: su coherencia entre ambas fotos no queda validada. FIN-05 sigue pendiente de repetir pago real.
 
 ## Clasificación bancaria opcional (beta 4.26.53.1)
 

@@ -81,7 +81,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-> Estado actual: **v4.26.55** candidata — recuperación del widget persistido. Requiere APK51; beta web4.26.54.1 publicada, producción4.26.52. FIN-05 abierto hasta instalación beta y pago real. [Evidencia](docs/briefs/fin05-pago-cerrada-2026-09-27.md).
+> Estado actual: **v4.26.55** publicada como beta **4.26.55.1** — presupuesto coherente y recuperación del widget persistido. APK51 verificado e instalado en el móvil de pruebas; widget recuperado y Gastado/Disponible estables al reabrir; saldo entre fotos y compra real pendientes. Action36327745655 verde, fuente b5f1365f. Producción4.26.52. [Evidencia](docs/briefs/fin05-pago-cerrada-2026-09-27.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.
