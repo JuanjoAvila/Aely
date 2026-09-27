@@ -2091,7 +2091,7 @@ function ensureReleaseNotes(){
     })
     .catch(function(e){
       _rnLoad=null;
-      try{ console.warn("release-notes", e&&e.message||e); }catch(err){}
+      try{ console.warn("release-notes", mcLogCode(e)); }catch(err){}
       try{
         var base=mcVerBase(CONFIG.APP_VERSION);
         var raw=localStorage.getItem("_rnHead_"+base);
@@ -3204,7 +3204,7 @@ class ErrorBoundary extends React.Component{
   constructor(props){ super(props); this.state={err:null}; }
   static getDerivedStateFromError(err){ return {err:err}; }
   componentDidCatch(err,info){
-    try{ console.error("App crash:",err,info); }catch(e){}
+    try{ console.error("App crash:",mcLogCode(err)); }catch(e){}
     // telemetría solo-admin: el crash viaja a app_events para poder ayudar en remoto
     try{ cloud.logEvent('error','CRASH: '+((err&&err.message)||String(err)), ((err&&err.stack)||'')+(info&&info.componentStack?'\n'+info.componentStack.slice(0,600):'')); }catch(e){}
     mcCaptureError(err, {componentStack: info&&info.componentStack});

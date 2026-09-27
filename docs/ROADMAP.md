@@ -1,8 +1,8 @@
 # Roadmap — Aely
 
-OPS-02 (27/9): visor aislado publicado en beta 4.26.56.1; móvil y recuperación compartida abiertos. [Contrato y evidencia](briefs/ops02-restauracion-probada.md).
+OPS-02 (27/9): visor aprobado y publicado exclusivamente en producción 4.26.56; beta conserva FIN-05/selector/TR y su prueba de pago pendiente. [Contrato y evidencia](briefs/ops02-restauracion-probada.md).
 
-> Estado a 2026-09-27 · **v4.26.56** publicada solo en beta **4.26.56.1**: visor de copias sin reemplazo financiero, veredicto móvil pendiente. Producción 4.26.52. APK 51 sin cambios; FIN-05 conserva prueba de compra real pendiente. [OPS-02](briefs/ops02-restauracion-probada.md).
+> Estado a 2026-09-27 · **v4.26.57** candidata SEC-03 integrada sobre beta 3dfe0a28, todavía sin publicar ni desplegar Edge. Producción 4.26.56 OPS-02. FIN-05, selector, clasificación TR y APK beta 51 intactos; el pago real sigue pendiente. [SEC-03](briefs/sec03-privacidad-logs.md).
 > Publicación: el promote sigue el deploy de su commit y coteja el sello de Pages antes de cerrar; la suite lenta de 4.26.47 ya no se confunde con un fallo.
 > Anterior: **v4.26.46** — cambiar el día de un recibo conserva una sola ocurrencia y la fecha bancaria real.
 > Anterior: **v4.26.44** — la ficha de un recibo confirma el guardado antes de cerrarse y un doble toque solo puede persistir una vez.
@@ -234,7 +234,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.56**; beta efectiva **4.26.56.1**; producción 4.26.52. |
+| Web / OTA (`VERSION`) | **4.26.57** candidata integrada SEC-03; beta publicada 4.26.56.1 con FIN-05/selector/TR, producción 4.26.56. |
 | APK (`versionName` / `versionCode`) | Beta prerelease **4.26.55 / 51**, firmada, publicada e instalada. Reentrada/pago real pendientes. Estable4.26.32/48. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **51 / 4.26.55**, asset real cotejado; estable permanece48/4.26.32. |

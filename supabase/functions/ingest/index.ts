@@ -429,10 +429,18 @@ async function logIngestError(supabase: any, userId: string | null, message: str
   try {
     const uid = userId || Deno.env.get("INGEST_USER_ID");
     if (!uid) return;
+    // Incluso code/currency vienen de otra frontera: solo admitimos valores de su contrato.
+    const safe: Record<string, string | number> = {};
+    if (typeof detail.tokenLength === "number" && Number.isFinite(detail.tokenLength)) safe.tokenLength = Math.max(0, Math.min(4096, Math.round(detail.tokenLength)));
+    if (["23505", "23503", "23502", "42501", "42703", "42P01", "PGRST204", "race_check", "dup_delete", "release"].includes(String(detail.code))) safe.code = String(detail.code);
+    if (["wallet", "tr"].includes(String(detail.source))) safe.source = String(detail.source);
+    if (typeof detail.currency === "string" && /^[A-Z]{3}$/.test(detail.currency)) safe.currency = detail.currency;
+    const label = message.startsWith("sin tipo de cambio para ") ? "sin tipo de cambio" : message;
+    const messages = ["token inválido (lector nativo con token no registrado)", "sin tipo de cambio", "faltan las columnas de divisa (migración 0020): apuntado solo en euros", "no se pudo guardar el gasto", "no se pudo cerrar la comprobación anti-duplicado: queda pendiente y fuera de las cifras", "se detectó el aviso duplicado pero no se pudo retirar: queda fuera de las cifras", "no se pudo confirmar el gasto: queda pendiente y fuera de las cifras"];
     await supabase.from("app_events").insert({
       user_id: uid, email: null, kind: "error",
-      message: ("INGEST: " + message).slice(0, 500),
-      detail: Object.keys(detail).length ? JSON.stringify(detail).slice(0, 1000) : null,
+      message: "INGEST: " + (messages.includes(label) ? label : "error"),
+      detail: Object.keys(safe).length ? JSON.stringify(safe).slice(0, 1000) : null,
       app_version: "edge", platform: "android",
     });
   } catch (_) { /* opcional */ }

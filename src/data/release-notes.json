@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.57",
+    "d": "2026-09-27",
+    "t": {
+      "es": "Diagnósticos más privados",
+      "en": "More private diagnostics",
+      "ca": "Diagnòstics més privats"
+    },
+    "items": {
+      "es": [
+        "Los informes automáticos de problemas evitan incluir datos de la cartera. Los comentarios enviados a propósito conservan las fechas, importes y explicaciones útiles para resolverlos."
+      ],
+      "en": [
+        "Automatic problem reports avoid including portfolio data. Comments sent deliberately retain dates, amounts and explanations useful for resolving them."
+      ],
+      "ca": [
+        "Els informes automàtics de problemes eviten incloure dades de la cartera. Els comentaris enviats expressament conserven les dates, imports i explicacions útils per resoldre’ls."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "sec03-privacidad",
+        "t": {
+          "es": "Diagnósticos más privados",
+          "en": "More private diagnostics",
+          "ca": "Diagnòstics més privats"
+        },
+        "items": {
+          "es": [
+            "1. Abre Inicio, Perfil y Ajustes sin sincronizar bancos. Comprueba que se abren y cierran como siempre.",
+            "2. En el banco de pruebas, escribe una nota ficticia con fecha, hora e importe. Comprueba que conserva el contexto al guardarla localmente; este modo no envía registros al servidor."
+          ],
+          "en": [
+            "1. Open Home, Profile and Settings without syncing banks. Check they open and close as usual.",
+            "2. In test mode, write a fictional note with a date, time and amount. Check the context remains when saved locally; this mode sends no records to the server."
+          ],
+          "ca": [
+            "1. Obre Inici, Perfil i Configuració sense sincronitzar bancs. Comprova que s’obren i es tanquen com sempre.",
+            "2. Al banc de proves, escriu una nota fictícia amb data, hora i import. Comprova que conserva el context en desar-la localment; aquest mode no envia registres al servidor."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.56",
     "d": "2026-09-27",
     "t": {
@@ -18,30 +62,7 @@
         "Les còpies s’obren en una vista de només lectura per comparar moviments i altres dades sense substituir la cartera. Les còpies malmeses es rebutgen abans d’obrir-se."
       ]
     },
-    "tandas": [
-      {
-        "id": "ops02-copias-comparar",
-        "t": {
-          "es": "Copias de seguridad para comparar",
-          "en": "Compare your backups",
-          "ca": "Còpies de seguretat per comparar"
-        },
-        "items": {
-          "es": [
-            "1. Abre Ajustes → Copia de seguridad → Copias automáticas y pulsa Ver copia. Comprueba los movimientos distintos y abre uno para comparar sus campos.",
-            "2. Vuelve a las copias y a Ajustes. Comprueba que la cartera conserva sus datos y que no se ofrece aplicar ni sustituir la copia."
-          ],
-          "en": [
-            "1. Open Settings → Backup → Automatic backups and tap View backup. Check changed transactions and open one to compare its fields.",
-            "2. Return to backups and Settings. Check that the portfolio retains its data and there is no option to apply or replace the backup."
-          ],
-          "ca": [
-            "1. Obre Configuració → Còpia de seguretat → Còpies automàtiques i prem Veure còpia. Comprova els moviments diferents i obre’n un per comparar els camps.",
-            "2. Torna a les còpies i a Configuració. Comprova que la cartera conserva les dades i que no s’ofereix aplicar ni substituir la còpia."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.55",

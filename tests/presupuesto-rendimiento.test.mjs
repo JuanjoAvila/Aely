@@ -93,7 +93,8 @@ const PRESUPUESTO = {
   // OPS-02 4.26.56: visor aislado, validador y comparación por UUID/campo; 1.242.123 B
   // minificados / 337.533 B gzip medidos. +12 KB solo al crudo; descarga sigue en 332 KB.
   // Quedan ~2 KB crudos para el sellado de beta, sin aflojar el presupuesto del móvil.
-  minificado: 1215 * 1024,
+  // SEC-03 sobre beta: +6 KiB crudos para los filtros necesarios, sin ampliar gzip.
+  minificado: 1221 * 1024,
   gzip: 332 * 1024,         // 12/9: 330,03 con suministros; aire mínimo a propósito
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };

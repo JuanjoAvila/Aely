@@ -83,7 +83,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-> Estado actual: **v4.26.56** publicada exclusivamente en beta **4.26.56.1**: visor aislado de copias. Producción 4.26.52; APK 51 sin cambios. Veredicto móvil de OPS-02 pendiente. FIN-05 conserva la compra real pendiente. [Evidencia OPS-02](docs/briefs/ops02-restauracion-probada.md).
+> Estado actual: **v4.26.57** candidata SEC-03 integrada sobre beta 4.26.56.1, todavía sin publicar. FIN-05, selector y TR se conservan para su validación pendiente con pago real. Producción 4.26.56 OPS-02; APK beta 51 intacta. [Matriz SEC-03](docs/briefs/sec03-privacidad-logs.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.

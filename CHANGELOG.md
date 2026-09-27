@@ -1,3 +1,9 @@
+## [4.26.57] — 2026-09-27
+
+- SEC-03: limitar errores automáticos por operación/código y reconstruir sobres Sentry sin contenedores libres; eliminar correo de app_events. Feedback y veredictos explícitos conservan fecha/hora/importe/SHA y redactan patrones sensibles. user_id sigue para propiedad/RLS.
+- Integración sobre beta 3dfe0a28: FIN-05, selector del widget, clasificación TR, Android/APK y guiones de pago permanecen. Solo se portan cambios de logging; Edge no se despliega. Candidata aislada 741cc5c6 con GO Claude y CI 36346085770; integración pendiente de revisión/CI propios antes de beta.
+- Guardián permanente 21 casos con mocks, SDK instalado/vendor reales y E2E de Actividad. No datos reales ni garantía de anonimato semántico; matriz y límites en docs/briefs/sec03-privacidad-logs.md.
+
 ## [4.26.56] — 2026-09-27
 
 - OPS-02: sustituir el reemplazo conectado de copias por un visor en memoria de solo lectura. Abrir/cerrar no llama a set de App ni mcSaveRaw; la copia no entra en push/backfill. Validación de listas, filas, identificadores, fechas, importes y datos JSON antes de mostrar. Comparación por UUID exacto y por todos los campos; legado y UUID ambiguos sin emparejar, sumas de registros separadas y paginado.

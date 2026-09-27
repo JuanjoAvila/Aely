@@ -86,6 +86,7 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/10-app-components.js", specs: [
     "e2e/backup-restauracion.spec.mjs",
+    "e2e/logs-privacidad.spec.mjs",
     "e2e/help-assistant.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs",
     "e2e/inicio-offline.spec.mjs",
