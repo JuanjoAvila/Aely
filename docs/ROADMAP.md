@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-27 · **v4.26.54** candidata local: excluir movimientos borrados del gasto/presupuesto de Gastos/widget, igual que el servidor, conservando los anclajes de saldo. [Evidencia FIN-05](briefs/fin05-pago-cerrada-2026-09-27.md). Sin publicar todavía; beta anterior4.26.53.1, producción4.26.52. APK beta4.26.49/code50, estable4.26.32/code48. FIN-05 requiere repetir pago real; selector y prueba móvil TR pendientes. Sin backend ni APK nuevos.
+> Estado a 2026-09-27 · **v4.26.54** publicada como beta **4.26.54.1**: excluir movimientos borrados del gasto/presupuesto de Gastos/widget, igual que el servidor, conservando los anclajes de saldo. [Evidencia FIN-05](briefs/fin05-pago-cerrada-2026-09-27.md). Action36325573154 verde y paquete OTA cotejado; producción4.26.52. APK beta4.26.49/code50, estable4.26.32/code48. FIN-05 requiere repetir pago real; selector y prueba móvil TR pendientes. Sin backend ni APK nuevos.
 > Publicación: el promote sigue el deploy de su commit y coteja el sello de Pages antes de cerrar; la suite lenta de 4.26.47 ya no se confunde con un fallo.
 > Anterior: **v4.26.46** — cambiar el día de un recibo conserva una sola ocurrencia y la fecha bancaria real.
 > Anterior: **v4.26.44** — la ficha de un recibo confirma el guardado antes de cerrarse y un doble toque solo puede persistir una vez.
@@ -232,7 +232,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.54** candidata local sin publicar; beta anterior4.26.53.1, producción4.26.52. Pago real FIN-05 pendiente. |
+| Web / OTA (`VERSION`) | **4.26.54** publicada como beta **4.26.54.1**, SHA05a8fb4f/huella7e74ac9db58ec8c4; producción4.26.52. Pago real FIN-05 pendiente. |
 | APK (`versionName` / `versionCode`) | Beta prerelease: **4.26.49 / 50**, firmada y publicada, sin prueba móvil. Estable: 4.26.32 / 48. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **50** / 4.26.49 en esta rama beta; estable sigue en 48 / 4.26.32. |
