@@ -266,3 +266,7 @@ Lo montamos cuando llegue ese momento; para ti solo (single user) lo de ahora va
 ### Banco del widget (4.26.50)
 
 Ajustes → Banco del widget elige `settings.widgetBank` (entidad bancaria), sin modificar roles ni `expenseBanks`. El envío existente usa el saldo agregado y liquidez mínima de ese banco; si ya no existe, vuelve a la cuenta diaria. No cambia Java ni requiere otra APK sobre 4.26.49/code 50. Con varias cuentas del mismo banco, el selector muestra una opción y suma las cuentas del estado principal, como el cálculo bancario actual.
+
+### Recuperación del registro del widget (4.26.55 candidata, APK51)
+
+El registro nativo se escribe sin salto final y tolera indentación XML al releerse. La foto de la app reevalúa un bloqueo previo, conserva eventos aún no confirmados y sus deltas; las entradas dañadas o contribuciones desconocidas no se descartan. Actualizar el APK es obligatorio: la OTA4.26.54.1 corrige presupuesto pero no este parser Java. Instalación y pago real pendientes; no borrar preferencias para forzar una cifra.

@@ -32,17 +32,25 @@ final class WidgetSnapshotArbiter {
     static boolean app(State s, long periodStart, double spent, double budget, Double budgetLeft,
                     Double safeLiq, Double cash, String cashEnt, String cashLabel,
                     String coveredEvents, String deletedKeys) {
-        if (s.periodStart == periodStart && s.journalFull) return false;
+        // El XML de preferencias puede añadir indentación al salto final del journal. Una foto
+        // de la app permite releerlo y recuperar ese bloqueo sin perder eventos no confirmados.
         StringBuilder keep = new StringBuilder(), ids = new StringBuilder();
         double shown = 0, against = 0, cashPart = 0, spendPart = 0;
         boolean unknown = false;
         if (s.periodStart == periodStart) {
             for (String line : s.journal.split("\\n")) {
-                if (line.isEmpty()) continue;
+                if (line.trim().isEmpty()) continue;
                 String[] p = entry(line);
                 if (p.length != 7) { s.journalFull = true; return false; }
+                p[0] = p[0].trim();
+                if (p[0].isEmpty()) { s.journalFull = true; return false; }
                 if (has(coveredEvents, p[0]) || has(deletedKeys, p[6])) continue;
-                keep.append(line).append('\n'); ids.append('|').append(p[0]).append('|');
+                if (keep.length() > 0) keep.append('\n');
+                for (int i = 0; i < p.length; i++) {
+                    if (i > 0) keep.append('\t');
+                    keep.append(p[i]);
+                }
+                ids.append('|').append(p[0]).append('|');
                 try {
                     double amount = Double.parseDouble(p[3]);
                     double sd = Double.parseDouble(p[1]), ad = Double.parseDouble(p[2]);
@@ -55,6 +63,7 @@ final class WidgetSnapshotArbiter {
                 } catch (NumberFormatException bad) { s.journalFull = true; return false; }
             }
         }
+        if (keep.length() > JOURNAL_MAX) { s.journalFull = true; return false; }
         s.appFence = s.issued;
         s.periodStart = periodStart;
         s.spent = spent + shown;
@@ -109,13 +118,15 @@ final class WidgetSnapshotArbiter {
         if (newEvent) {
             String line = event + "\t" + shownDelta + "\t" + againstDelta + "\t" + amount
                     + "\t" + (counts ? "1" : "0") + "\t" + (cashCounts ? "1" : "0")
-                    + "\t" + (expenseKey != null ? expenseKey : "") + "\n";
-            if (s.journal.length() + line.length() > JOURNAL_MAX) {
+                    + "\t" + (expenseKey != null ? expenseKey : "");
+            int separator = s.journal.isEmpty() ? 0 : 1;
+            if (s.journal.length() + separator + line.length() > JOURNAL_MAX) {
                 s.journalFull = true;
                 return true;
             }
             s.events += "|" + event + "|";
-            s.journal += line;
+            // Sin salto final: el serializador Android no debe convertir indentación en datos.
+            s.journal += (separator == 0 ? "" : "\n") + line;
             if ("trade_republic".equals(s.cashEnt) && amount != 0) {
                 if (cashCounts) s.cashDelta += amount;
                 if (counts) s.spendDelta += amount;

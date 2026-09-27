@@ -1,6 +1,6 @@
 # FIN-05 · pago con app cerrada · 27/9
 
-**Abierto: causa capturada y corrección cliente publicada en beta4.26.54.1; pendiente repetir pago real.** El síntoma se refiere a «Gastado». La secuencia previa narrada no quedó capturada. Los fixtures de las pruebas son datos ficticios y no describen una cartera real.
+**Abierto: cliente publicado en beta4.26.54.1; recuperación nativa candidata4.26.55/APK51; pendiente instalación y pago real.** El síntoma se refiere a «Gastado». La secuencia previa narrada no quedó capturada. Los fixtures de las pruebas son datos ficticios y no describen una cartera real.
 
 ## Aislamiento y dispositivo
 
@@ -41,3 +41,13 @@ Salud posterior: beta4.26.54.1, Pages4.26.52, APK estable4.26.32/code48; URLs de
 ## Validación móvil pendiente
 
 Comprobación directa del móvil a las16:36: Ajustes muestra web4.26.54.1, app4.26.49(50), canalbeta; la cifra de Inicio coincide con la evidencia capturada. Tras abrir y volver a Inicio Android, el widget muestra — y Abre la app para actualizar. No se presenta como widget preparado ni como validación de pago. El render nativo usa ese aviso cuando journalFull o unknownPending están activos; sin lectura actual de preferencias no se atribuye cuál ni la causa. No se borran preferencias ni journal para forzar una cifra. Pendiente recuperar una cifra válida del widget antes de repetir pago. Próxima comprobación: anotar Gastado/saldo del widget; cerrar app. Próxima compra habitual: conservar notificación/hora/cifras antes/después. Gastado debe variar solo por el pago con redondeo entero; reabrir no debe descontar otra vez. FIN-05 abierto hasta ese veredicto. Producción requiere aprobación final explícita.
+
+## Recuperación nativa candidata4.26.55
+
+Tras la relectura del registro persistido se reproduce una línea final de indentación que no tiene los siete campos de un evento. El parser la interpretaba como daño y journalFull impedía toda recuperación en el mismo mes. El comportamiento de indentación tras un texto terminado en salto de línea está documentado en [FastXmlSerializer de AOSP](https://android.googlesource.com/platform/frameworks/base/+/a029ea1/core/java/com/android/internal/util/FastXmlSerializer.java). El fixture Java reproduce el bloqueo antes del cambio. La lectura actual de flags del APK original no está disponible; no se borra estado para comprobar la hipótesis.
+
+Corrección acotada: app reevalúa el registro aun si journalFull era true; ignora solamente líneas vacías/espacios y normaliza el identificador del evento. Conserva todos los eventos no cubiertos por ACK o lápida y vuelve a calcular sus contribuciones. Serializa sin salto final. Una línea realmente dañada conserva bloqueo/registro/foto anterior; NaN sin cubrir conserva unknownPending; límite de tamaño se aplica después de retirar eventos cubiertos, sin descartar pendientes. Sin reconstruir anclajes, borrar datos ni inventar deltas.
+
+Guardián widget-arbitraje, ya registrado en el runner: rojo antes y verde después con relectura de indentación, bloqueo previo recuperable, pago pendiente conservado, ACK posterior sin doble descuento, evento con prefijo de espacios, registro dañado protegido y NaN pendiente hasta ACK. Solo modifica Java, guardián y metadatos/notas de versión; no backend. APK51 debe construirse sin WEB_DEBUG/DEBUGGABLE y verificarse con la firma original. Manifest APK local es candidato: el asset aún no está publicado y no se envía a beta hasta verificar el asset real. No equivale a validación de compra real.
+
+Límite de recuperación: una contribución NaN antigua cuya fila ya no aparece en el pull y no puede vincularse a una lápida sigue sin una resolución demostrable. Conserva unknownPending y el widget sin cifra hasta un ACK verificable o cambio de mes. No se descarta a ciegas para hacer desaparecer el aviso.

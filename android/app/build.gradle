@@ -29,11 +29,10 @@ android {
         applicationId "com.micartera.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        /* Cada APK publicada debe superar la ya instalada. 50 añade el árbitro del widget de
-           FIN-05 y supera la beta nativa 49; Android no ofrece una build
-           con código menor o igual y una OTA no puede cambiar este puente nativo. */
-        versionCode 50
-        versionName "4.26.49"
+        /* 51 recupera el widget tras releer su registro persistido. Este parser vive en Java;
+           una OTA no puede reparar la APK 50 ya instalada. */
+        versionCode 51
+        versionName "4.26.55"
         /* ⚠ INGEST_URL VACÍA POR DEFECTO — solo la APK `.debug` la lleva (14/9/2026, OPS-06).
            Estaba aquí, en defaultConfig, así que valía TAMBIÉN para release: la APK que publica
            `release:apk` en un repo PÚBLICO llevaba dentro la URL de ingest con el token del dueño.

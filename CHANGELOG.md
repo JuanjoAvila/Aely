@@ -1,3 +1,8 @@
+## [4.26.55] — 2026-09-27
+
+- FIN-05: recuperar el registro persistido tras la indentación del XML. Ignorar solo líneas vacías y normalizar el identificador del evento; volver a evaluar el bloqueo sin perder pagos pendientes. Nuevos registros sin salto final. Las entradas realmente dañadas, los deltas desconocidos y el exceso de tamaño restante siguen protegidos.
+- Guardián Java existente: rojo antes; verde con persistencia, ACK y pago único. APK51 candidata, sin depuración; revisión exacta y prueba real pendientes.
+
 ## [4.26.54] — 2026-09-27
 
 ### FIN-05 · excluir lápidas del cálculo local, igual que ingest

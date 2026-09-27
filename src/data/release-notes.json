@@ -1,5 +1,46 @@
 [
   {
+    "v": "4.26.55",
+    "d": "27 sep 2026",
+    "t": {
+      "es": "El widget recupera sus cifras al abrir la app",
+      "en": "Opening the app restores widget figures",
+      "ca": "El widget recupera les xifres en obrir l’app"
+    },
+    "items": {
+      "es": [
+        "El widget vuelve a mostrar sus cifras al abrir la app después de reiniciarse. Los pagos pendientes se conservan y no se descuentan otra vez. Requiere actualizar la app Android."
+      ],
+      "en": [
+        "Opening the app after a restart restores widget figures. Pending payments are preserved without deducting them again. Requires the Android app update."
+      ],
+      "ca": [
+        "El widget torna a mostrar les xifres en obrir l’app després de reiniciar-se. Els pagaments pendents es conserven i no es descompten una altra vegada. Cal actualitzar l’app Android."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "fin05-widget-reentrada",
+        "t": {
+          "es": "Widget después de reabrir",
+          "en": "Widget after reopening",
+          "ca": "Widget després de tornar a obrir"
+        },
+        "items": {
+          "es": [
+            "1. Instala la actualización Android, abre Aely y comprueba las cifras del widget. En la próxima compra habitual con la app cerrada, el gasto debe variar solo por el pago. Reabrir no debe descontarlo otra vez. Conserva la notificación y las cifras antes y después."
+          ],
+          "en": [
+            "1. Install the Android update, open Aely and check widget figures. For the next normal purchase with the app closed, spending should change only by the payment. Reopening should not deduct it again. Keep the notification and before and after figures."
+          ],
+          "ca": [
+            "1. Instal·la l’actualització Android, obre Aely i comprova les xifres del widget. En la pròxima compra habitual amb l’app tancada, la despesa ha de variar només pel pagament. Tornar a obrir no l’ha de descomptar una altra vegada. Conserva la notificació i les xifres d’abans i després."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.54",
     "d": "27 sep 2026",
     "t": {"es":"Gastos borrados fuera del presupuesto", "en":"Deleted expenses excluded from the budget", "ca":"Despeses esborrades fora del pressupost"},

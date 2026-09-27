@@ -1,6 +1,6 @@
 {
-  "versionCode": 50,
-  "versionName": "4.26.49",
-  "url": "https://github.com/JuanjoAvila/Aely/releases/download/v4.26.49/Aely-4.26.49.apk",
-  "notes": "APK 4.26.49 (50): el widget mantiene las cifras al apuntar gastos con la app cerrada."
+  "versionCode": 51,
+  "versionName": "4.26.55",
+  "url": "https://github.com/JuanjoAvila/Aely/releases/download/v4.26.55/Aely-4.26.55.apk",
+  "notes": "APK 4.26.55 (51): el widget recupera sus cifras al volver a abrir la app."
 }
