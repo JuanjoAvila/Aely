@@ -1,10 +1,10 @@
 # SEC-03 · privacidad de logs
 
-Estado: correcciones locales preparadas; sin publicación, sin despliegue Edge y sin consultas a datos reales. Claude revisó 312b90579af501fd903ebe8dabaa78a4e0961873 y ejecutó sus guardianes: NO-GO por pérdida de contexto explícito y límite de base Edge. Corrección preparada con regresión; nueva revisión exacta y CI pendientes. No equivale a certificar toda la app ni el servidor activo.
+Estado: correcciones locales preparadas; sin publicación, sin despliegue Edge y sin consultas a datos reales. Claude revisó 312b90579af501fd903ebe8dabaa78a4e0961873 y ejecutó sus guardianes: NO-GO por pérdida de contexto explícito y límite de base Edge. Corrección preparada con regresión; Su regresión queda corregida. La revisión exacta definitiva y el CI se vinculan al SHA/PR que se entregue; no equivalen a publicación. No equivale a certificar toda la app ni el servidor activo.
 
 ## Base y aislamiento
 
-Base comprobada al iniciar: main f5e6b514a00b767a07e7ef8d58cf158fe75e93b9, fuente 4.26.52. Rama propia codex/sec03-privacidad en worktree gestionado. Beta 3dfe0a28 / 4.26.56.1 contiene trabajo financiero pendiente que no se incorpora. OPS-02 está publicando su visor exclusivo; SEC-03 no toca beta ni metadatos mientras esa publicación siga abierta. La raíz conserva sus cambios ajenos.
+Base comprobada al iniciar: main f5e6b514a00b767a07e7ef8d58cf158fe75e93b9, fuente 4.26.52. Rama propia codex/sec03-privacidad en worktree gestionado. Beta 3dfe0a28 / 4.26.56.1 contiene trabajo financiero pendiente que no se incorpora. OPS-02 terminó: Promote 36343752892 y Pages 36344438830 success; manifiesto público 4.26.56 comprobado. Rebase final sobre main 426131959a75e5af8923009646caf20fd5b8e430. Se conserva el test/mapeo OPS-02 al resolver los conflictos y se regeneran artefactos. Fuente candidata 4.26.57, sin publicar beta ni producción. La raíz conserva sus cambios ajenos.
 
 ## Matriz por productor, campo y destino
 
@@ -46,7 +46,7 @@ No se encontraron ni copiaron secretos reales en la investigación. No se hace r
 - node tests/logs-privacidad.test.mjs --source-ref f5e6b514a00b767a07e7ef8d58cf158fe75e93b9: reproducción contra la fuente base sin modificar el checkout. Primera matriz de 20 casos: 18 fallan y 2 pasan en la base. Con la regresión de contexto de Claude: 21 casos, 19 rojos/2 verdes en base; 21/21 verdes corregidos.
 - node tests/logs-privacidad.test.mjs: guardián permanente registrado como logs-privacidad en steps de scripts/run-tests.mjs.
 - Guardianes vecinos: security, seguridad-hogar-eventos, bank-sync-paging, edge-sintaxis, relevant-tests, build y check-syntax.
-- Suite Node completa sin navegadores mientras OPS-02 los usa. Desfase previo memoria-espejo fuera de alcance; no regenerar ni incorporar cambios ajenos para taparlo.
+- Suite Node completa y E2E después de terminar OPS-02. Desfase previo memoria-espejo fuera de alcance; no regenerar ni incorporar cambios ajenos para taparlo.
 
 ## Entrega y publicación
 
@@ -56,4 +56,16 @@ La publicación cliente, el veredicto móvil y la aprobación de producción son
 
 ## Revisión independiente inicial
 
-Claude 5.5 Opus: mensaje inmutable 20260927T1931Z-claude-sec03-312b9057, sobre SHA 312b90579af501fd903ebe8dabaa78a4e0961873; build, logs-privacidad, security, seguridad-hogar-eventos, bank-sync-paging, check-syntax, edge-sintaxis e i18n-keys ejecutados en checkout propio con EXIT 0. Su NO-GO reprodujo pérdida de fecha/hora, importe y SHA en texto explícito. Se retira esa redacción indiscriminada, manteniendo credenciales/IBAN/correo/teléfono/URL y JWT. Test de contexto añadido. Revisión del SHA final pendiente.
+Claude 5.5 Opus: mensaje inmutable 20260927T1931Z-claude-sec03-312b9057, sobre SHA 312b90579af501fd903ebe8dabaa78a4e0961873; build, logs-privacidad, security, seguridad-hogar-eventos, bank-sync-paging, check-syntax, edge-sintaxis e i18n-keys ejecutados en checkout propio con EXIT 0. Su NO-GO reprodujo pérdida de fecha/hora, importe y SHA en texto explícito. Se retira esa redacción indiscriminada, manteniendo credenciales/IBAN/correo/teléfono/URL y JWT. Test de contexto añadido. La revisión definitiva debe referirse al commit final que se entregue, incluyendo el rebase y los metadatos.
+
+## Guion móvil y canal
+
+Candidata 4.26.57, todavía sin beta publicada. No reemplazar la beta con FIN-05/selector/TR pendientes: requiere una preparación/publicación aislada posterior. Abrir Inicio/Perfil/Ajustes y cerrar; en banco de pruebas guardar una nota ficticia con fecha/hora/importe y comprobar contexto local. No sincronizar bancos ni provocar compras. Este guion solo valida UX/Android: el banco de pruebas anula las escrituras cloud, por lo que no demuestra el transporte de logs. Los marcadores al transporte se prueban mediante mocks capturados en Node/Chromium. OTA cliente no aplica Edge; APK48 intacta. Producción requiere OK nuevo específico.
+
+## Evidencia local de la candidata
+
+- Guardián SEC-03: **21/21**, incluido contexto explícito y envelopes completos (segmento/transacción del scope) de ambos SDK. Base f5e6b514: **19 fallos y 2 pases**, EXIT 1.
+- Chromium instalado existente, puerto por worktree, fixtures sintéticos: **42/42** en logs-privacidad, revisar-beta y backup-restauracion. ActivityPanel real muestra operación/código/texto útil sin correo ni marcadores automáticos. No se inicia navegador en paralelo con OPS-02.
+- build, check-syntax, i18n-keys/bundle, security, seguridad-hogar-eventos, bank-sync-paging, edge-sintaxis y relevant-tests pasan. Ambos guardianes/mapas OPS-02 conservados. Histórico de notas anterior preservado sin reformat; comparación de JSON anterior/candidata excluyendo solo la nueva cabeza idéntica.
+- Medido sobre OPS-02: 1.243.669 bytes minificados / 338.534 gzip. Límite crudo 1212→1218 KiB (+6 para frontera necesaria, sin limpieza ajena); gzip 332 KiB y tres ficheros bloqueantes intactos.
+- Suite Node completa local se ejecuta en el runner; el espejo de memoria heredado está desfasado y queda fuera de alcance. No se incorpora ni regenera para ocultar ese fallo. CI completo remoto y revisión Claude deben consultarse por SHA exacto en los checks/mensajes de la PR entregada; no se infieren del verde de OPS-02.

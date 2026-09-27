@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-27 · **v4.26.56** candidata exclusiva de OPS-02 aprobada por el dueño el 27/9: visor aislado de copias. Preparada sobre main f5e6b514, publicación pendiente. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](briefs/ops02-restauracion-probada.md).
+> Estado a 2026-09-27 · **v4.26.57** SEC-03 preparado en rama aislada, sin publicación ni despliegue Edge. Producción verificada **4.26.56** (OPS-02), main 42613195; beta 4.26.56.1 con pendientes financieros intacta. APK estable 4.26.32/code 48. [Matriz SEC-03](briefs/sec03-privacidad-logs.md): guardianes sintéticos, revisión por SHA y límites de textos explícitos/gateway/servidor.
 > OPS-01 C: control manual de una función, sin despliegue global y SQL opt-in; entrega de tooling aislada desde main. Estado exacto, pruebas y revisión en [brief C](briefs/ops01-control-2026-09-27.md). FIN-06 aún requiere pago real; FIN-05, selector y compra TR siguen pendientes.
 > Publicación: el promote sigue el deploy de su commit y coteja el sello de Pages antes de cerrar; la suite lenta de 4.26.47 ya no se confunde con un fallo.
 > Anterior: **v4.26.46** — cambiar el día de un recibo conserva una sola ocurrencia y la fecha bancaria real.
@@ -233,7 +233,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.56** candidata exclusiva de OPS-02 aprobada; producción actual 4.26.52, beta 4.26.56.1 conserva otras tandas pendientes. |
+| Web / OTA (`VERSION`) | **4.26.57** candidata exclusiva de OPS-02 aprobada; producción actual 4.26.52, beta 4.26.56.1 conserva otras tandas pendientes. |
 | APK (`versionName` / `versionCode`) | Repo/publicada: **4.26.32 / 48**. El asset firmado existe y la beta puede ofrecer el gesto Atrás nativo. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **48** / 4.26.32 |
