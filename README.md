@@ -1,5 +1,8 @@
 # Aely
 
+OPS-02 (27/9): ensayo sintético de copias y siguiente pull ejecutado; la restauración actual
+no garantiza una foto estable ni idéntica en otro cliente. [Resultados y propuesta](docs/briefs/ops02-restauracion-probada.md).
+
 PWA de finanzas personales: patrimonio neto, gastos variables, costes fijos, inversiones (multi-bróker) y deudas. Móvil-first, instalable, con sincronización automática de gastos vía notificaciones del banco.
 
 > Proyecto personal de [Juanjo]. Hecho por ilusión y aprendizaje.
@@ -30,7 +33,7 @@ mi-cartera/
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
-├── e2e/                    # Playwright (68 specs: arranque, listas, bancos, ahorro, brókers, perfil, CSV, CSP, rendimiento, beta…)
+├── e2e/                    # Playwright: pantallas, persistencia, restauración y sincronización sintética
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions

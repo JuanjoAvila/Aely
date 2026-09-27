@@ -180,6 +180,17 @@ vigila que el trabajo no crezca con el histórico; esto vigila lo que hay que ba
 
 ## Flujo de datos
 
+### Restauración de copias (OPS-02, ensayo del 27/9/2026)
+
+`AutoBackupsPanel` sustituye las dos mitades locales mediante `mcSaveRaw` y `set` de App.
+No escribe directamente `expenses`, pero el cambio dispara el push debounced de `app_state`
+(cuentas, presupuesto y lápidas; sin gastos ni `bankTx`). El siguiente `syncCloudExpenses`
+añade/refresca filas remotas y hace backfill de gastos locales ausentes. Puede volver a subir un
+UUID borrado después de la copia: no es una restauración exacta ni exclusivamente local.
+`possibleDupOf`/`extId` locales no se recuperan desde la tabla en un segundo cliente.
+Validación de copia insuficiente: `accounts` truthy no garantiza arrays/filas válidos.
+[Resultados, límites del doble y propuesta todavía no aplicada](briefs/ops02-restauracion-probada.md).
+
 El widget recibe `monthBudgetStats` desde la app al cambiar sus cifras. Al volver a primer plano,
 `visibilitychange` o `App.appStateChange` disparan primero la lectura de gastos de Supabase y
 solo tras completarla se envía el snapshot local: el estado anterior a la notificación no puede

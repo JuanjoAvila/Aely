@@ -1,5 +1,8 @@
 # Roadmap — Aely
 
+OPS-02 (27/9): ensayo de restauración ejecutado, sin cambios de app/publicación; recuperación
+compartida abierta. [Casos reproducibles y propuesta por decidir](briefs/ops02-restauracion-probada.md).
+
 > Estado a 2026-09-27 · **v4.26.55** publicada como beta **4.26.55.1**: recuperación del widget persistido sin perder pagos pendientes. APK51 verificado e instalado; widget recuperado y Gastado/Disponible estables al reabrir; saldo entre fotos y pago real pendientes. Action36327745655 verde, bundle cotejado. Producción4.26.52, sin promoción. [Evidencia](briefs/fin05-pago-cerrada-2026-09-27.md).
 > Publicación: el promote sigue el deploy de su commit y coteja el sello de Pages antes de cerrar; la suite lenta de 4.26.47 ya no se confunde con un fallo.
 > Anterior: **v4.26.46** — cambiar el día de un recibo conserva una sola ocurrencia y la fecha bancaria real.

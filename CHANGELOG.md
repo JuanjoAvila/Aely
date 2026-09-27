@@ -1,5 +1,11 @@
 ## [4.26.55] — 2026-09-27
 
+- OPS-02, pruebas/documentación sin cambio de versión: caracterizar restauración, push/pull,
+  decisiones de duplicado, lápidas, reinicio, segundo cliente, cancelación, corrupción y falta
+  de red con datos ficticios. El push de `app_state` y el backfill refutan la afirmación antigua
+  de restauración puramente local. Diez casos registrados en E2E_MAP; propuesta de recuperación
+  aislada todavía no aplicada. No Supabase real, beta, OTA ni APK nuevos.
+
 - FIN-05: recuperar el registro persistido tras la indentación del XML. Ignorar solo líneas vacías y normalizar el identificador del evento; volver a evaluar el bloqueo sin perder pagos pendientes. Nuevos registros sin salto final. Las entradas realmente dañadas, los deltas desconocidos y el exceso de tamaño restante siguen protegidos.
 - Guardián Java existente: rojo antes; verde con persistencia, ACK y pago único. Claude REAL PASS al SHA exacto b5f1365f y rojo/verde reproducido en su checkout. CI36327745655 verde: guardianes y cuatro ficheros Deno PASS;444 E2E directos,1 flaky que pasa al reintentar (pulido-numpad inglés),1 omitido;7 rendimiento PASS. APK51 firmado sin depuración, publicado como prerelease beta e instalado conservando datos. Bundle4.26.55.1 cotejado; widget recuperado y Gastado/Disponible estables al reabrir; saldo entre fotos y pago real pendientes. No producción/Edge.
 
