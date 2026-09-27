@@ -1,6 +1,10 @@
 # OPS-01 B · Bizum como forma de pago · 2026-09-27
 
-Estado: candidato local preparado; sin activación. Solo `categorize`, migraciones=`no`.
+Estado: candidato y rollback preparados; código revisado y CI completo verde; sin activación.
+Solo `categorize`, migraciones=`no`. Entrega en [PR #48, borrador](https://github.com/JuanjoAvila/Aely/pull/48).
+SHA de implementación fijo para preparar/activar:
+`b65c7fa90e8259ce105cb56026715de72523c367`, rama `codex/ops01-categorize`.
+Las actualizaciones posteriores de este brief/evidencia solo registran verificación, no cambian el paquete.
 Base main remota verificada: `f5e6b514a00b767a07e7ef8d58cf158fe75e93b9`; beta
 `5d5b8d0f0d8ea12b5521009d3fef9b54f6fd85e9` queda fuera. La auditoría
 `8f6830e67d1e24c6940457d00397c2114110f23d` permanece intacta.
@@ -45,12 +49,25 @@ y los tres módulos compartidos anteriores. No contiene SQL, otras funciones ni 
 Las rutas deben estar vacías; la herramienta rechaza una salida ocupada.
 
 **No ejecutado. Requiere el OK explícito final del dueño**, porque Supabase sirve producción y
-beta a la vez. Con el SHA revisado y los hashes del candidato confirmados, el único comando
+beta a la vez. Lo ejecutaría Codex en la sesión local de este PC, con la CLI existente y el token
+existente fuera del repo; no se crea ni cambia una credencial. Esta ruta no deja un run Actions:
+se registra recibo saneado de SHA, comando, hora, versión, hashes y comprobación posterior.
+Con el SHA revisado y los hashes del candidato confirmados, el único comando
 de activación de B sería, usando el proyecto autorizado en la variable de entorno:
 
 ```bash
 supabase functions deploy categorize --workdir /ruta/categorize-candidate --project-ref "$SUPABASE_PROJECT_REF" --use-api
 ```
+
+En PowerShell, la CLI ya localizada se invoca mediante su ruta en `$supabaseCli`; el equivalente es:
+
+```powershell
+& $supabaseCli functions deploy categorize --workdir $candidateDir --project-ref $env:SUPABASE_PROJECT_REF --use-api
+```
+
+Estas variables se resuelven en la sesión local antes del comando; las rutas y credenciales
+privadas no se guardan en el repo público. No se autoriza omitir `categorize` ni añadir `--prune`
+o `--no-verify-jwt`.
 
 El entrypoint es `/ruta/categorize-candidate/supabase/functions/categorize/index.ts`; config
 mantiene `verify_jwt=true` e import map propio. Migraciones=`no`: el comando no hace `link`,
@@ -86,13 +103,44 @@ deshace datos reales. No enviar ingest ni el árbol completo.
   pago intacta. Ninguna tabla real ni LLM remoto.
 - Paquetes físicos candidato/rollback preparados y hash verificado; una sola función, JWT=true,
   sin migraciones; salida ocupada rechazada. Registro en `steps` y `STEPS_SUPABASE`.
+  ZIP locales en `tmp/ops01-b-artifacts/` (ignorados por Git; artefactos de entrega):
+  candidato 17106 bytes, SHA-256 `35beecffe373e9bf55f2da1075addff51624062c0e723ef78f9efe393821d229`;
+  rollback 17163 bytes, SHA-256 `cf043f06e761d58ea83a6b4540f28d40d1a2a16dbf0593694a264bc4e10cebcc`.
+  Cada ZIP contiene seis archivos y se verificaron los cuatro hashes de fuentes por lectura del ZIP.
 - `npm test` local: unitarios ejecutados; único fallo `memoria-espejo` por desfase local
   preexistente de cuatro documentos. No se arregla memoria ni se incluye trabajo ajeno.
-  Deno no instalado: omitido. E2E no arrancó porque el runner bloquea tras un fallo unitario.
-  Esto no es un verde completo local; la suite completa se comprobará en CI de la entrega.
+  Deno no estaba en PATH: omitido por ese runner. E2E no arrancó porque el runner bloquea tras un fallo unitario.
+  Esto no es un verde completo local. La suite completa de implementación se confirmó en CI.
+- Después se localizó Deno existente 2.9.0 fuera de PATH: los cuatro archivos Deno pasaron
+  independientemente (15+2+6+3 pruebas), y `deno check --no-lock --import-map <mapa-candidato>
+  <entrypoint-candidato>` PASS valida tipos e import map sin ejecutar el handler. No instalación.
+  Supabase CLI existente 2.117.0 confirmó los flags `functions deploy --workdir --use-api`.
+  `status --workdir <paquete>` llegó al chequeo Docker y falló por Docker ausente, sin arrancar
+  servicios: no se presenta como un deploy ensayado ni como validación del empaquetado remoto.
+- Los cuatro baselines se descargaron también en lectura de GitHub público al SHA 6f61bfc6:
+  HTTP200 y hashes idénticos. El paquete no publica código privado del servidor.
 - `npm run salud`: HTTP confirmó OTA estable 4.26.52, beta 4.26.53.1 y APK estable 4.26.32/code48.
   Edge y app_events omitidos sin credenciales en este checkout. El cierre activo de categorize
   se demuestra con la descarga de gestión anterior, no con el mensaje general de salud.
+
+## Revisión y CI del código candidato
+
+Claude real emitió **PASS a `b65c7fa90e8259ce105cb56026715de72523c367`**, mensaje
+`20260927T1113Z-claude-ops01-b-pass-b65c7fa9`. Cotejó los cuatro blobs originales contra 6f61bfc6,
+el cierre completo, las tres retiradas, hashes y paquete físico con JWT=true, y ejecutó los 15
+grupos del handler. No sustituye la aprobación del dueño ni verifica el empaquetado remoto.
+Sus dos observaciones no bloqueantes quedaron atendidas con operador/comando explícitos y
+chequeo independiente del import map por Deno; el límite remoto sigue descrito.
+
+[Tests 36315042484](https://github.com/JuanjoAvila/Aely/actions/runs/36315042484): **SUCCESS**,
+head SHA b65c7fa9 completo. Build, unitarios, privacidad y cuatro archivos Deno PASS;
+**435 E2E pasados, 1 omitido, 7 de rendimiento pasados**, sin reintentos inestables reportados.
+El chequeo automatizado del HEAD documental posterior se consulta en la PR #48; no se confunde
+ese commit de evidencia con una nueva implementación. Sin merge a main/beta ni publicación.
+
+La evidencia JSON conserva recibo de Claude con hash del mensaje, fuente activa, hashes de
+paquetes y límites. El SHA documental final y su review se identifican en la entrega/PR;
+no se reescribe el código para registrar un recibo de su propia revisión.
 
 No se activa una versión de app: las notas de Bizum y el rechazo del cliente ya se publicaron
 en 4.26.42. Se prepara la alineación del servidor con ese contrato existente, sin nuevo bump,

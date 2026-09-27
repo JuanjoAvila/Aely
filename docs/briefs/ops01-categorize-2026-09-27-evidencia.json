@@ -14,7 +14,10 @@
     "bundleSha256": "270f6598b948a114ab64b4e426f562574081bd10845f6c52d19d277af956ae65",
     "ownSourcesMatchCommit": "6f61bfc690f53e849b22b659dd0fe607b1a90043",
     "verifiedSourceMaps": 4,
-    "externalResolved": "https://esm.sh/@supabase/supabase-js@2.116.0"
+    "externalResolved": "https://esm.sh/@supabase/supabase-js@2.116.0",
+    "recheckedAt": "2026-09-27T11:20:11.379Z",
+    "recheckBundleSha256": "270f6598b948a114ab64b4e426f562574081bd10845f6c52d19d277af956ae65",
+    "publicSourceVerified": true
   },
   "package": {
     "function": "categorize",
@@ -70,10 +73,76 @@
       "test:syntax PASS",
       "guard-privacy PASS",
       "git diff --check PASS"
-    ]
+    ],
+    "denoIndependent": {
+      "runtime": "Deno 2.9.0 existing outside PATH",
+      "passed": [
+        {
+          "file": "ingest.test.ts",
+          "tests": 15
+        },
+        {
+          "file": "crypto.test.ts",
+          "tests": 2
+        },
+        {
+          "file": "enablebanking.test.ts",
+          "tests": 6
+        },
+        {
+          "file": "delete-account.test.ts",
+          "tests": 3
+        }
+      ],
+      "candidateCheck": "PASS; no-lock, candidate import map, complete handler entrypoint; not invoked",
+      "rollbackCheck": "PASS; no-lock, rollback import map, complete handler entrypoint; not invoked"
+    },
+    "cli": {
+      "version": "2.117.0 existing",
+      "flags": "functions deploy --workdir --use-api supported by actual help",
+      "status": "config read then failed at Docker health: Docker/Podman unavailable; no service started; no deployment rehearsal"
+    },
+    "privacyNewArtifacts": "PASS; package/evidence compared for token/JWT/IBAN/email/private path/project ref; four sources also hash equal to public GitHub"
   },
-  "ci": null,
-  "reviews": [],
+  "ci": {
+    "runId": 36315042484,
+    "url": "https://github.com/JuanjoAvila/Aely/actions/runs/36315042484",
+    "headSha": "b65c7fa90e8259ce105cb56026715de72523c367",
+    "status": "completed",
+    "conclusion": "success",
+    "e2e": {
+      "passed": 435,
+      "skipped": 1,
+      "flaky": 0
+    },
+    "performance": {
+      "passed": 7
+    },
+    "denoFilesPassed": 4,
+    "buildUnitsPrivacy": "PASS",
+    "scope": "code candidate; subsequent evidence commit only changes two brief/evidence files; final head checks visible on PR"
+  },
+  "reviews": [
+    {
+      "author": "Claude real via existing file channel",
+      "sha": "b65c7fa90e8259ce105cb56026715de72523c367",
+      "verdict": "PASS",
+      "messageId": "20260927T1113Z-claude-ops01-b-pass-b65c7fa9",
+      "messageSha256": "3a23fcf74e350187ad6fdd0a2d500dee495cff97a32658c009e10bb966932754",
+      "independentEvidence": [
+        "four baseline blobs equal public commit 6f61bfc6",
+        "full own module closure",
+        "physical package six files, JWT=true",
+        "three removed category entries only",
+        "15 handler test groups PASS",
+        "no normal functions/workflow/client changes"
+      ],
+      "notes": [
+        "operator and local CLI route must be explicit",
+        "remote packaging remains unverified before owner-authorized deployment"
+      ]
+    }
+  ],
   "deployment": {
     "function": "categorize",
     "migrations": "no",
@@ -81,12 +150,29 @@
     "requiresOwnerApproval": true,
     "transportChanged": false,
     "historicalCategoriesChanged": false,
-    "rollback": "four baseline sources in manifest; separate project; categorize only; migrations=no"
+    "rollback": "four baseline sources in manifest; separate project; categorize only; migrations=no",
+    "operator": "Codex in local PC session after explicit owner approval, existing CLI/token; no Actions deploy run"
   },
   "pending": [
     "FIN-06 real payment",
     "FIN-05 mobile payment",
     "widget bank selector verdict",
     "TR real purchase"
-  ]
+  ],
+  "artifacts": {
+    "candidate": {
+      "path": "tmp/ops01-b-artifacts/categorize-candidate.zip",
+      "bytes": 17106,
+      "sha256": "35beecffe373e9bf55f2da1075addff51624062c0e723ef78f9efe393821d229",
+      "verified": "six ZIP entries; four own source hashes equal manifest"
+    },
+    "rollback": {
+      "path": "tmp/ops01-b-artifacts/categorize-rollback.zip",
+      "bytes": 17163,
+      "sha256": "cf043f06e761d58ea83a6b4540f28d40d1a2a16dbf0593694a264bc4e10cebcc",
+      "verified": "six ZIP entries; four own source hashes equal manifest"
+    }
+  },
+  "implementationSha": "b65c7fa90e8259ce105cb56026715de72523c367",
+  "pullRequest": "https://github.com/JuanjoAvila/Aely/pull/48"
 }
