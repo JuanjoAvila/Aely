@@ -1,0 +1,27 @@
+{
+  "function": "categorize",
+  "migrations": "no",
+  "baselineCommit": "6f61bfc690f53e849b22b659dd0fe607b1a90043",
+  "baselineVersion": 16,
+  "baselineBundleSha256": "270f6598b948a114ab64b4e426f562574081bd10845f6c52d19d277af956ae65",
+  "verify_jwt": true,
+  "dependency": "https://esm.sh/@supabase/supabase-js@2.116.0",
+  "files": {
+    "categorize/index.ts": {
+      "baselineSha256": "7521d259f784a099c884347f24249e086d6f925227febfd64ba24e77ea385574",
+      "candidateSha256": "37c02d28076c18d5368aa31618f46e5069b1b327a87dde388a79e613e96ae31f"
+    },
+    "_shared/ingest_logic.ts": {
+      "baselineSha256": "75253ac6eba211ec4765e0f16f01d968987485681dc795b06ce2f82b0b62f0b3",
+      "candidateSha256": "d5c8336c0926f4318a8a3635361d061e38b39166ab57942035482aa8f8e5e03d"
+    },
+    "_shared/cors.ts": {
+      "baselineSha256": "8d98ed71c1b68d4e3c46310c9994bbafa4a5ea6321e62de22dc483ef85d988a6",
+      "candidateSha256": "8d98ed71c1b68d4e3c46310c9994bbafa4a5ea6321e62de22dc483ef85d988a6"
+    },
+    "_shared/ratelimit.ts": {
+      "baselineSha256": "cb77b1f18d076b6111301f00d8bd937b38ac38c9a71d9df041e482c19ea85b0d",
+      "candidateSha256": "cb77b1f18d076b6111301f00d8bd937b38ac38c9a71d9df041e482c19ea85b0d"
+    }
+  }
+}

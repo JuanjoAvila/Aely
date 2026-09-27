@@ -1,5 +1,12 @@
 # Setup Supabase — Fase 1 (Aely)
 
+OPS-01 B prepara un cierre aislado de `categorize16` con solo las tres retiradas de Bizum.
+Su activación ya fue autorizada por el dueño, pero el intento recibió HTTP 403: al token existente
+le falta `edge_functions_write`. El servidor sigue intacto. Se usa CLI con `--workdir` del paquete revisado,
+una única función `categorize` y migraciones=`no`; no usar el workflow desde la raíz para este
+cierre. El [brief B](briefs/ops01-categorize-2026-09-27.md) detalla preparación, comprobación de
+fuentes activas y rollback. El servidor es compartido por producción y beta.
+
 ## Bank-sync 4.25.0: desplegado y comprobado
 
 La corrección del paginado de `bank-sync` quedó comprobada el 24/9/2026 con datos reales de

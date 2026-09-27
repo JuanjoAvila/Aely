@@ -1,0 +1,235 @@
+{
+  "scope": "OPS-01 B; solo categorize; activación autorizada, bloqueada por permiso del token",
+  "baseMain": "f5e6b514a00b767a07e7ef8d58cf158fe75e93b9",
+  "remoteBeta": "5d5b8d0f0d8ea12b5521009d3fef9b54f6fd85e9",
+  "auditSha": "8f6830e67d1e24c6940457d00397c2114110f23d",
+  "active": {
+    "observedAt": "2026-09-27T10:59:12.030Z",
+    "slug": "categorize",
+    "status": "ACTIVE",
+    "version": 16,
+    "verify_jwt": true,
+    "updatedAt": "2026-09-13T16:15:55.702Z",
+    "bytes": 331619,
+    "bundleSha256": "270f6598b948a114ab64b4e426f562574081bd10845f6c52d19d277af956ae65",
+    "ownSourcesMatchCommit": "6f61bfc690f53e849b22b659dd0fe607b1a90043",
+    "verifiedSourceMaps": 4,
+    "externalResolved": "https://esm.sh/@supabase/supabase-js@2.116.0",
+    "recheckedAt": "2026-09-27T11:20:11.379Z",
+    "recheckBundleSha256": "270f6598b948a114ab64b4e426f562574081bd10845f6c52d19d277af956ae65",
+    "publicSourceVerified": true
+  },
+  "package": {
+    "function": "categorize",
+    "migrations": "no",
+    "baselineCommit": "6f61bfc690f53e849b22b659dd0fe607b1a90043",
+    "baselineVersion": 16,
+    "baselineBundleSha256": "270f6598b948a114ab64b4e426f562574081bd10845f6c52d19d277af956ae65",
+    "verify_jwt": true,
+    "dependency": "https://esm.sh/@supabase/supabase-js@2.116.0",
+    "files": {
+      "categorize/index.ts": {
+        "baselineSha256": "7521d259f784a099c884347f24249e086d6f925227febfd64ba24e77ea385574",
+        "candidateSha256": "37c02d28076c18d5368aa31618f46e5069b1b327a87dde388a79e613e96ae31f"
+      },
+      "_shared/ingest_logic.ts": {
+        "baselineSha256": "75253ac6eba211ec4765e0f16f01d968987485681dc795b06ce2f82b0b62f0b3",
+        "candidateSha256": "d5c8336c0926f4318a8a3635361d061e38b39166ab57942035482aa8f8e5e03d"
+      },
+      "_shared/cors.ts": {
+        "baselineSha256": "8d98ed71c1b68d4e3c46310c9994bbafa4a5ea6321e62de22dc483ef85d988a6",
+        "candidateSha256": "8d98ed71c1b68d4e3c46310c9994bbafa4a5ea6321e62de22dc483ef85d988a6"
+      },
+      "_shared/ratelimit.ts": {
+        "baselineSha256": "cb77b1f18d076b6111301f00d8bd937b38ac38c9a71d9df041e482c19ea85b0d",
+        "candidateSha256": "cb77b1f18d076b6111301f00d8bd937b38ac38c9a71d9df041e482c19ea85b0d"
+      }
+    }
+  },
+  "tests": {
+    "categorizeHandler": {
+      "groups": 15,
+      "result": "PASS",
+      "network": "mocked fetch only",
+      "database": "auth/rpc simulated; table access forbidden"
+    },
+    "independentAuditPatch": "git apply with core.autocrlf=false; all candidate sources equal",
+    "build": "PASS; generated files unchanged",
+    "npmTest": {
+      "result": "FAIL",
+      "onlyFailedStep": "memoria-espejo",
+      "preexistingOutdated": [
+        "MEMORY.md",
+        "mi-cartera-deploy.md",
+        "promote-4-19-106-como-se-hizo.md",
+        "traspaso-2026-09-24-manana.md"
+      ],
+      "deno": "not installed; omitted",
+      "e2e": "not started due to unit failure"
+    },
+    "checks": [
+      "docs-frescura PASS",
+      "relevant-tests PASS",
+      "test:syntax PASS",
+      "guard-privacy PASS",
+      "git diff --check PASS"
+    ],
+    "denoIndependent": {
+      "runtime": "Deno 2.9.0 existing outside PATH",
+      "passed": [
+        {
+          "file": "ingest.test.ts",
+          "tests": 15
+        },
+        {
+          "file": "crypto.test.ts",
+          "tests": 2
+        },
+        {
+          "file": "enablebanking.test.ts",
+          "tests": 6
+        },
+        {
+          "file": "delete-account.test.ts",
+          "tests": 3
+        }
+      ],
+      "candidateCheck": "PASS; no-lock, candidate import map, complete handler entrypoint; not invoked",
+      "rollbackCheck": "PASS; no-lock, rollback import map, complete handler entrypoint; not invoked"
+    },
+    "cli": {
+      "version": "2.117.0 existing",
+      "flags": "functions deploy --workdir --use-api supported by actual help",
+      "status": "config read then failed at Docker health: Docker/Podman unavailable; no service started; no deployment rehearsal"
+    },
+    "privacyNewArtifacts": "PASS; package/evidence compared for token/JWT/IBAN/email/private path/project ref; four sources also hash equal to public GitHub"
+  },
+  "ci": {
+    "runId": 36315042484,
+    "url": "https://github.com/JuanjoAvila/Aely/actions/runs/36315042484",
+    "headSha": "b65c7fa90e8259ce105cb56026715de72523c367",
+    "status": "completed",
+    "conclusion": "success",
+    "e2e": {
+      "passed": 435,
+      "skipped": 1,
+      "flaky": 0
+    },
+    "performance": {
+      "passed": 7
+    },
+    "denoFilesPassed": 4,
+    "buildUnitsPrivacy": "PASS",
+    "scope": "code candidate; subsequent evidence commit only changes two brief/evidence files; final head checks visible on PR"
+  },
+  "reviews": [
+    {
+      "author": "Claude real via existing file channel",
+      "sha": "b65c7fa90e8259ce105cb56026715de72523c367",
+      "verdict": "PASS",
+      "messageId": "20260927T1113Z-claude-ops01-b-pass-b65c7fa9",
+      "messageSha256": "3a23fcf74e350187ad6fdd0a2d500dee495cff97a32658c009e10bb966932754",
+      "independentEvidence": [
+        "four baseline blobs equal public commit 6f61bfc6",
+        "full own module closure",
+        "physical package six files, JWT=true",
+        "three removed category entries only",
+        "15 handler test groups PASS",
+        "no normal functions/workflow/client changes"
+      ],
+      "notes": [
+        "operator and local CLI route must be explicit",
+        "remote packaging remains unverified before owner-authorized deployment"
+      ]
+    },
+    {
+      "author": "Claude real via existing file channel",
+      "sha": "dacbead9e6d68eb4d622d161be85eab821bf408d",
+      "verdict": "PASS",
+      "messageId": "20260927T1127Z-claude-ops01-b-pass-dacbead9"
+    }
+  ],
+  "deployment": {
+    "function": "categorize",
+    "migrations": "no",
+    "performed": false,
+    "requiresOwnerApproval": false,
+    "transportChanged": false,
+    "historicalCategoriesChanged": false,
+    "rollback": "four baseline sources in manifest; separate project; categorize only; migrations=no",
+    "operator": "Codex in local PC session after explicit owner approval, existing CLI/token; no Actions deploy run",
+    "ownerApproval": "autorizo; 2026-09-27; solo categorize, migraciones=no",
+    "approvedSha": "dacbead9e6d68eb4d622d161be85eab821bf408d",
+    "attempt": {
+      "approvedSha": "dacbead9e6d68eb4d622d161be85eab821bf408d",
+      "preflightAt": "2026-09-27T12:44:56.151Z",
+      "before": {
+        "version": 16,
+        "status": "ACTIVE",
+        "verify_jwt": true,
+        "bytes": 331619,
+        "bundleSha256": "270f6598b948a114ab64b4e426f562574081bd10845f6c52d19d277af956ae65"
+      },
+      "deploymentStartedAt": "2026-09-27T12:45:26.113Z",
+      "cliExitCode": 1,
+      "deploymentFinishedAt": "2026-09-27T12:45:26.964Z",
+      "command": "supabase functions deploy categorize --workdir <isolated-candidate> --project-ref <existing-project> --use-api",
+      "after": {
+        "observedAt": "2026-09-27T12:46:01.329Z",
+        "version": 16,
+        "status": "ACTIVE",
+        "verify_jwt": true,
+        "bytes": 331619,
+        "bundleSha256": "270f6598b948a114ab64b4e426f562574081bd10845f6c52d19d277af956ae65",
+        "changedFunctions": []
+      },
+      "result": "blocked",
+      "error": {
+        "httpStatus": 403,
+        "missingPermissions": [
+          "edge_functions_write"
+        ]
+      },
+      "activeUnchanged": true
+    },
+    "status": "blocked: existing token lacks edge_functions_write"
+  },
+  "pending": [
+    "FIN-06 real payment",
+    "FIN-05 mobile payment",
+    "widget bank selector verdict",
+    "TR real purchase"
+  ],
+  "artifacts": {
+    "candidate": {
+      "path": "tmp/ops01-b-artifacts/categorize-candidate.zip",
+      "bytes": 17106,
+      "sha256": "35beecffe373e9bf55f2da1075addff51624062c0e723ef78f9efe393821d229",
+      "verified": "six ZIP entries; four own source hashes equal manifest"
+    },
+    "rollback": {
+      "path": "tmp/ops01-b-artifacts/categorize-rollback.zip",
+      "bytes": 17163,
+      "sha256": "cf043f06e761d58ea83a6b4540f28d40d1a2a16dbf0593694a264bc4e10cebcc",
+      "verified": "six ZIP entries; four own source hashes equal manifest"
+    }
+  },
+  "implementationSha": "b65c7fa90e8259ce105cb56026715de72523c367",
+  "pullRequest": "https://github.com/JuanjoAvila/Aely/pull/48",
+  "ciFinal": {
+    "runId": 36315794165,
+    "url": "https://github.com/JuanjoAvila/Aely/actions/runs/36315794165",
+    "headSha": "dacbead9e6d68eb4d622d161be85eab821bf408d",
+    "status": "completed",
+    "conclusion": "success",
+    "e2e": {
+      "passed": 435,
+      "skipped": 1,
+      "flaky": 0
+    },
+    "performance": {
+      "passed": 7
+    },
+    "denoFilesPassed": 4
+  }
+}
