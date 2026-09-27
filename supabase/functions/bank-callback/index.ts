@@ -9,7 +9,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ebApi, ebConfig, makeJWT } from "../_shared/enablebanking.ts";
 import { encryptSessionId } from "../_shared/token_store.ts";
-import { CallbackFallo, codigoCallback, codigoNolink, recortar } from "../_shared/entrada.ts";
+import { CallbackFallo, codigoCallback, codigoNolink } from "../_shared/entrada.ts";
 
 const APP_URL = Deno.env.get("APP_URL") || "https://juanjoavila.github.io/Aely/";
 
@@ -32,17 +32,15 @@ Deno.serve(async (req) => {
   const fromApp = !!state && state.endsWith(".app");
   const ebError = url.searchParams.get("error");
   const hasErrorDescription = url.searchParams.has("error_description");
-  const ebErrorCode = String(ebError || "").replace(/[^a-z0-9_.-]/gi, "").slice(0, 60);
-  const callbackShape = `code:${code ? "sí" : "no"} state:${state ? "sí" : "no"} error:${ebErrorCode || (hasErrorDescription ? "descripción" : "no")}`;
   /* SEC-01 (14/9): a la URL de vuelta SOLO sale un código de `_shared/entrada.ts`. Antes salía el
      texto del error con la query dentro, y quien fabricara el enlace ponía su mensaje en Aely. El
-     detalle se queda aquí: en app_events del usuario del `state` (si se sabe) y en el log. */
+     diagnóstico se limita también aquí a códigos cerrados y presencia de code/state. */
   // deno-lint-ignore no-explicit-any
   let admin: any = null;
   let userId: string | null = null;
   try {
-    if (ebError || hasErrorDescription) throw new CallbackFallo("eb_error", "banco devolvió error · " + callbackShape);
-    if (!code || !state) throw new CallbackFallo("sin_code", "faltan code/state · " + callbackShape);
+    if (ebError || hasErrorDescription) throw new CallbackFallo("eb_error");
+    if (!code || !state) throw new CallbackFallo("sin_code");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
@@ -108,8 +106,7 @@ Deno.serve(async (req) => {
     let accts = buildAccts(collect(session));
     // Fallback: el POST no trajo cuentas usables pero sí hay session_id → pídelas con GET.
     // Algunos bancos (p.ej. Revolut) rellenan las cuentas con un pequeño retardo tras autorizar,
-    // así que reintentamos el GET un par de veces con espera. Guardamos el resultado para el diagnóstico.
-    let getDiag = "skip";
+    // así que reintentamos el GET un par de veces con espera.
     if (!accts.length && sessionId) {
       const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
       for (let attempt = 0; attempt < 3 && !accts.length; attempt++) {
@@ -117,9 +114,6 @@ Deno.serve(async (req) => {
         try {
           const full = await ebApi(jwt, `/sessions/${sessionId}`);
           accts = buildAccts(collect(full));
-          const ga = Array.isArray(full?.accounts) ? full.accounts.length : -1;
-          const gd = Array.isArray(full?.accounts_data) ? full.accounts_data.length : -1;
-          getDiag = `a${ga}/d${gd}@${attempt}`;
         } catch (ge) {
           getDiag = "err:" + String((ge as Error)?.message || ge).slice(0, 50);
           break;   // un error (404/permiso) no se va a arreglar reintentando
@@ -151,29 +145,22 @@ Deno.serve(async (req) => {
         if (fromApp) return backToApp(false, nolink);
         return Response.redirect(`${APP_URL}?bank=error&msg=${encodeURIComponent(nolink)}`, 302);
       }
-      // Caso raro y distinto (ni siquiera hubo sesión): solo forma y recuentos. `access.accounts`
-      // puede incluir IBAN; serializarlo en app_events convertiría un fallo OAuth en una fuga.
-      const nAcc = Array.isArray(session.accounts) ? session.accounts.length : -1;
-      const nData = Array.isArray(session.accounts_data) ? session.accounts_data.length : -1;
-      const status = session.status || session.session_status || "?";
-      const accessAccounts = Array.isArray(session?.access?.accounts) ? session.access.accounts.length : -1;
-      const hasAccess = !!(session.access && typeof session.access === "object");
-      const detail = `sin cuenta · POST a${nAcc}/d${nData} st:${status} · GET ${getDiag} · access:${hasAccess ? "sí" : "no"}/a${accessAccounts}`;
-      throw new CallbackFallo("sin_cuenta", detail);
+      throw new CallbackFallo("sin_cuenta");
     }
 
     if (fromApp) return backToApp(true);
     return Response.redirect(`${APP_URL}?bank=ok`, 302);
   } catch (e) {
     const msg = codigoCallback(e);
-    const detalle = e instanceof CallbackFallo ? e.detalle : String((e as Error)?.message || e);
-    console.error("bank-callback " + msg + ": " + recortar(detalle, 500));
+    // Ni la query OAuth ni el mensaje de BD/proveedor son necesarios para distinguir la ruta.
+    const detalle = JSON.stringify({ code: msg, codePresent: !!code, statePresent: !!state, bankError: !!(ebError || hasErrorDescription) });
+    console.error("bank-callback " + msg + ": " + detalle);
     if (admin && userId) {
       try {
         await admin.from("app_events").insert({
           user_id: userId, email: null, kind: "error",
           message: "BANK-CALLBACK: " + msg,
-          detail: recortar(detalle, 2000),
+          detail: detalle,
           app_version: "edge", platform: fromApp ? "android" : "web",
         });
       } catch (_) { /* diagnóstico opcional */ }

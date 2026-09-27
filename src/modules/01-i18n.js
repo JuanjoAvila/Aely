@@ -864,7 +864,7 @@ function ensureLangPack(lang){
     })
     .catch(function(e){
       _langPackLoads[lang]=null;
-      try{ console.warn("i18n", lang, e&&e.message||e); }catch(err){}
+      try{ console.warn("i18n", lang==="en"?"en":"ca", mcLogCode(e)); }catch(err){}
       return "es";
     });
   return _langPackLoads[lang];

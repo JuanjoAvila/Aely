@@ -186,3 +186,7 @@ Mantén el Apps Script activo hasta confirmar que entran gastos por Supabase; lu
 - Pantalla de login más cuidada (ahora usa el prompt nativo del navegador) e importación de los gastos históricos del Google Sheet.
 
 FIN-06 (4.26.51): `_shared/wallet.ts` preparado con 30 ISO y paridad de céntimos/legacy USD con cliente. Sin cambio sigue devolviendo null; ingest no guarda euros inventados. El cambio del servidor está probado en repo pero NO desplegado al backend compartido: cualquier deploy de ingest requiere autorización específica. No hay migración de esquema ni de movimientos.
+
+## SEC-03 · logs (propuesta sin desplegar)
+
+Cambios locales en bank-sync, bank-callback, ingest y _shared/ratelimit minimizan campos libres antes de app_events/consola. No se han aplicado al servidor ni se han consultado tablas/logs reales. La [matriz SEC-03](briefs/sec03-privacidad-logs.md) distingue mocks, fuente local y evidencia viva pendiente; un despliegue por función y el logging de plataforma son etapas independientes. No requiere migración ni cambio de RLS.

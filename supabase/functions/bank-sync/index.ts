@@ -19,6 +19,12 @@ import { withCors } from "../_shared/cors.ts";
 /* El cliente recibe un código estable, pero soporte necesita distinguir un 401 de un 503 sin
    guardar el texto crudo del proveedor: ese mensaje puede traer referencias o datos bancarios.
    Solo se conserva una clase cerrada y el banco; nunca uid de cuenta, URL ni payload. */
+// El nombre del enlace es un campo libre de BD: no basta recortarlo para hacerlo público.
+function obLogBank(raw: unknown): string {
+  const names = ["CaixaBank", "Banco de Sabadell", "Revolut", "BBVA", "Santander", "Bankinter", "ING", "MyInvestor"];
+  return names.find((name) => name.toLowerCase() === String(raw || "").toLowerCase()) || "banco";
+}
+
 function obReadFailureCode(err: unknown) {
   const msg = String((err as Error)?.message || err || "");
   const status = msg.match(/\bEB\s+(\d{3})\b/i);
@@ -33,7 +39,7 @@ async function logObReadFailure(admin: any, userId: string, aspsp: string, err: 
   try {
     await admin.from("app_events").insert({
       user_id: userId, email: null, kind: "error",
-      message: `OB histórico (${String(aspsp || "banco").slice(0, 80)}): lectura no disponible`,
+      message: `OB histórico (${obLogBank(aspsp)}): lectura no disponible`,
       detail: JSON.stringify({ code: obReadFailureCode(err) }),
       app_version: "edge", platform: "server",
     });
@@ -51,7 +57,7 @@ async function logObHistoryResult(admin: any, userId: string, aspsp: string, dat
     const status = partial ? (count ? "partial" : "error") : (count ? "ok" : "empty");
     await admin.from("app_events").insert({
       user_id: userId, email: null, kind: "performance",
-      message: `OB histórico (${String(aspsp || "banco").slice(0, 80)}): ${status}`,
+      message: `OB histórico (${obLogBank(aspsp)}): ${status}`,
       detail: JSON.stringify({ status, accounts: (accounts || []).length, count, partial, elapsedMs: Math.max(0, Math.round(elapsedMs)), dateFrom }),
       app_version: "edge", platform: "server",
     });

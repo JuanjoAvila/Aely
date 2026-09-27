@@ -113,6 +113,97 @@ function gestureAxis(ddx,ddy){
   return null;
 }
 
+// SEC-03: un error puede contener el movimiento completo o una credencial. Soporte conserva
+// clases cerradas; el texto libre solo se admite en el feedback que el usuario decide enviar.
+function mcLogCode(err){
+  const msg=String((err&&(err.code||err.message))||err||"");
+  const sql=msg.match(/\b(23505|23503|23502|42501|42703|42P01|PGRST116|PGRST204|PGRST301)\b/);
+  if(sql) return sql[1];
+  const http=msg.match(/\b(?:EB|HTTP)\s+([45]\d{2})\b/i);
+  if(http) return "http_"+http[1];
+  if(/timeout|abort/i.test(msg)) return "timeout";
+  if(/network|fetch/i.test(msg)) return "network";
+  return "unavailable";
+}
+function mcLogText(raw){
+  return String(raw||"").replace(/https?:\/\/\S+/gi,"[enlace omitido]")
+    .replace(/\b[A-Z]{2}\s*\d{2}(?:[ -]?[A-Z0-9]){11,30}\b/gi,"[IBAN omitido]")
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,"[correo omitido]")
+    .replace(/(?:\+\d{1,3}[ -]?)?(?:\d[ ()-]?){9,15}/g,"[teléfono omitido]")
+    .replace(/\b(?:bearer\s+\S+|(?:token|password|passwd|secret|authorization|api[_-]?key|nota|concepto|iban)\s*[:=]\s*[^\n,;]+)/gi,"[dato omitido]")
+    .replace(/\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g,"[token omitido]")
+    .replace(/\b[a-f0-9]{32,}\b/gi,"[token omitido]")
+    .replace(/(?:[€$£]\s*[-+]?\d[\d., ]*|[-+]?\d[\d.,]*\s*(?:EUR|USD|GBP|CHF|JPY|TRY|euros?|€|\$|£))(?!\w)/gi,"[importe omitido]")
+    .slice(0,2000);
+}
+function mcLogEvent(kind,message,detail){
+  const m=String(message||"");
+  if(kind==="use") return USO_OK.indexOf(m)>=0?{message:m,detail:null}:null;
+  if(kind==="perf"){
+    const match=m.match(/^([a-z_]+) (\d+(?:\.\d)?)s$/);
+    return match&&USO_OK.indexOf(match[1])>=0&&Number(match[2])<=86400?{message:m,detail:null}:null;
+  }
+  if(kind==="ping") return m==="app abierta"?{message:m,detail:null}:null;
+  if(kind==="hist"){
+    let p; try{ p=JSON.parse(detail); }catch(e){ return null; }
+    const out={};
+    ["bankReported","bankPayload","llegan","nuevos","dups","coincideDayAmt","skippedAllow","skippedBad","skippedExt","skippedUniq","acctAtCap","expensesN"].forEach(function(k){ if(Number.isSafeInteger(p[k])&&p[k]>=0&&p[k]<=1000000) out[k]=p[k]; });
+    ["truncExplicit","uiMinAfterFrom","pullCappedLikely"].forEach(function(k){ if(typeof p[k]==="boolean") out[k]=p[k]; });
+    ["minDate","dateFrom"].forEach(function(k){ if(typeof p[k]==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(p[k])) out[k]=p[k]; });
+    return {message:"hist_read",detail:JSON.stringify(out)};
+  }
+  if(kind!=="error") return null;
+  const routes=[[/^addExpense\b/,"addExpense"],[/^deleteExpense\b/,"deleteExpense"],[/^setExpenseDup\b/,"setExpenseDup"],[/^setExpenseDeuda\b/,"setExpenseDeuda"],[/^MI:/,"myinvestor"],[/^TR sync:/,"tr_sync"],[/^bankConnect\b/,"bank_connect"],[/^OB /,"ob_balance"],[/^bankSync sin pull/,"bank_sync_pull"],[/^CRASH:/,"render_crash"],[/^TOAST:/,"toast"],[/^Promise:/,"unhandled_promise"],[/^canal /,"channel_update"],[/^OTA /,"ota_update"],[/^APK /,"apk_update"],[/^import hoja:/,"import_sheet"]];
+  let route="unhandled_error";
+  routes.some(function(r){ if(r[0].test(m)){ route=r[1]; return true; } return false; });
+  return {message:route,detail:JSON.stringify({code:mcLogCode(detail||m)})};
+}
+function mcSentryEvent(ev){
+  if(!ev) return null;
+  // Se reconstruye el sobre: una lista negra dejaba escapar breadcrumbs, contextos, URLs y vars.
+  const out={platform:"javascript",level:"error",release:"mi-cartera@"+CONFIG.APP_VERSION,environment:(typeof _mcNative!=="undefined"&&_mcNative)?"android":"web"};
+  if(/^[a-f0-9]{32}$/.test(ev.event_id||"")) out.event_id=ev.event_id;
+  const types=["Error","TypeError","RangeError","ReferenceError","SyntaxError","URIError","EvalError"];
+  const values=ev.exception&&ev.exception.values;
+  out.exception={values:(Array.isArray(values)?values.slice(0,4):[{}]).map(function(v){
+    const e={type:types.indexOf(v.type)>=0?v.type:"Error",value:mcLogCode(v.value)};
+    if(v.stacktrace&&Array.isArray(v.stacktrace.frames)){
+      e.stacktrace={frames:v.stacktrace.frames.slice(-40).map(function(f){
+        const frame={};
+        if(/(?:^|\/)index\.html(?:[?#]|$)/.test(String(f.filename||""))) frame.filename="index.html";
+        if(Number.isSafeInteger(f.lineno)&&f.lineno>0&&f.lineno<1000000) frame.lineno=f.lineno;
+        if(Number.isSafeInteger(f.colno)&&f.colno>0&&f.colno<1000000) frame.colno=f.colno;
+        return frame;
+      })};
+    }
+    return e;
+  })};
+  return out;
+}
+function mcSafeError(err){
+  const e=new Error(mcLogCode(err));
+  const types=["Error","TypeError","RangeError","ReferenceError","SyntaxError","URIError","EvalError"];
+  e.name=err&&types.indexOf(err.name)>=0?err.name:"Error";
+  // Solo posiciones en el bundle; la primera línea del stack vuelve a contener el mensaje crudo.
+  e.stack=e.name+": "+e.message;
+  String(err&&err.stack||"").split("\n").slice(1,41).forEach(function(line){
+    const pos=line.match(/(?:^|\/)index\.html(?:[?#][^\s]*)?:(\d+):(\d+)\)?$/);
+    if(pos) e.stack+="\n    at index.html:"+pos[1]+":"+pos[2];
+  });
+  return e;
+}
+function mcBetaLog(p){
+  p=p||{}; const out={};
+  ["summary","tanda","tandaTitulo"].forEach(function(k){ if(typeof p[k]==="string") out[k]=mcLogText(p[k]).slice(0,500); });
+  ["version","notas"].forEach(function(k){ if(/^\d+\.\d+\.\d+(?:\.\d+)?$/.test(p[k]||"")) out[k]=p[k]; });
+  if(/^(?:approved|rejected)$/.test(p.verdict||"")) out.verdict=p.verdict;
+  if(/^\d{1,6}$/.test(p.apk||"")) out.apk=p.apk;
+  ["probados","fallos","sinProbar","noProbable","heredados"].forEach(function(k){ if(Number.isSafeInteger(p[k])&&p[k]>=0&&p[k]<=1000) out[k]=p[k]; });
+  if(Array.isArray(p.noProbables)) out.noProbables=p.noProbables.slice(0,30).map(function(x){ return mcLogText(x).slice(0,140); });
+  if(Array.isArray(p.detalle)) out.detalle=p.detalle.slice(0,30).map(function(x){ return {item:mcLogText(x&&x.item).slice(0,140),nota:mcLogText(x&&x.nota).slice(0,300)}; });
+  return out;
+}
+
 var _mcSentryReady=false;
 var _mcSentryQueue=[];
 function mcInitSentry(){
@@ -122,20 +213,17 @@ function mcInitSentry(){
       dsn: CONFIG.SENTRY_DSN,
       release: "mi-cartera@"+CONFIG.APP_VERSION,
       environment: (typeof _mcNative!=="undefined"&&_mcNative) ? "android" : "web",
-      tracesSampleRate: 0.05,
-      // No mandar cuerpos/URL con posibles cifras de la cartera (privacidad).
-      beforeSend: function(ev){
-        try{
-          if(ev&&ev.request){ delete ev.request.data; delete ev.request.cookies; if(ev.request.headers){ delete ev.request.headers.Authorization; delete ev.request.headers.authorization; } }
-          if(ev&&ev.extra){ ["state","expenses","accounts","investments","budget"].forEach(function(k){ delete ev.extra[k]; }); }
-        }catch(e){}
-        return ev;
-      }
+      tracesSampleRate: 0,
+      sendDefaultPii: false,
+      autoSessionTracking: false,
+      beforeBreadcrumb: function(){ return null; },
+      beforeSendTransaction: function(){ return null; },
+      beforeSend: mcSentryEvent
     });
     _mcSentryReady=true;
     while(_mcSentryQueue.length){
       var q=_mcSentryQueue.shift();
-      try{ Sentry.captureException(q.err, q.ctx?{extra:q.ctx}:undefined); }catch(e){}
+      try{ Sentry.captureException(q.err); }catch(e){}
     }
   }catch(e){}
 }
@@ -156,9 +244,10 @@ function mcLoadSentryDeferred(){
 function mcCaptureError(err, ctx){
   try{
     if(!CONFIG.SENTRY_DSN) return;
-    if(typeof Sentry!=="undefined"&&_mcSentryReady){ Sentry.captureException(err, ctx?{extra:ctx}:undefined); return; }
+    const safe=mcSafeError(err);
+    if(typeof Sentry!=="undefined"&&_mcSentryReady){ Sentry.captureException(safe); return; }
     // Cola corta: un error justo al abrir no se pierde si Sentry aún está bajando.
-    if(_mcSentryQueue.length<8) _mcSentryQueue.push({err:err,ctx:ctx});
+    if(_mcSentryQueue.length<8) _mcSentryQueue.push({err:safe});
   }catch(e){}
 }
 
@@ -1202,18 +1291,20 @@ const cloud = (function(){
     async logEvent(kind, message, detail){
       try{
         if(!sb) return;
+        const safe=mcLogEvent(kind,message,detail);
+        if(!safe) return;
         this._evSent=this._evSent||{}; this._evN=this._evN||0;
-        const key=kind+"|"+String(message).slice(0,120);
+        const key=kind+"|"+safe.message+"|"+(safe.detail||"");
         if(this._evSent[key] || this._evN>=20) return;
         this._evSent[key]=1; this._evN++;
         const {data:{session}}=await sb.auth.getSession();
         if(!session) return;
         await sb.from('app_events').insert({
           user_id:session.user.id,
-          email:session.user.email||null,
+          email:null,
           kind:kind||'error',
-          message:String(message||"").slice(0,500),
-          detail:detail?String(detail).slice(0,2000):null,
+          message:safe.message.slice(0,500),
+          detail:safe.detail?String(safe.detail).slice(0,2000):null,
           app_version:CONFIG.APP_VERSION,
           platform:(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())?'android':'web'
         });
@@ -1256,10 +1347,10 @@ const cloud = (function(){
       if(!sb) throw new Error("sin nube");
       const {data:{session}}=await sb.auth.getSession();
       if(!session) throw new Error("sin sesión");
-      const s=String(text||"");
+      const s=mcLogText(text);
       const {error}=await sb.from('app_events').insert({
         user_id:session.user.id,
-        email:session.user.email||null,
+        email:null,
         kind:'feedback',
         message:s.slice(0,500),
         detail:s.length>500?s.slice(0,2000):null,
@@ -1276,10 +1367,10 @@ const cloud = (function(){
       if(!sb) throw new Error("sin nube");
       const {data:{session}}=await sb.auth.getSession();
       if(!session) throw new Error("sin sesión");
-      const p=payload||{};
+      const p=mcBetaLog(payload);
       const {error}=await sb.from('app_events').insert({
         user_id:session.user.id,
-        email:session.user.email||null,
+        email:null,
         kind:'beta',
         message:String(p.summary||"").slice(0,500),
         detail:JSON.stringify(p).slice(0,2000),
@@ -1406,7 +1497,7 @@ function expenseIsTombstoned(e, delSet){
   return false;
 }
 function _errCloudMsg(err){
-  return String((err&&(err.message||err.code||err.error_description))||err||"?").slice(0,300);
+  return mcLogCode(err);
 }
 function subirGasto(e, donde){
   if(!cloud.enabled()) return Promise.resolve();

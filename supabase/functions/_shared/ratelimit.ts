@@ -19,6 +19,12 @@ export interface RateVerdict {
   checked: boolean; // false = el limitador no pudo comprobar nada (se deja pasar)
 }
 
+// El error de Postgres puede incluir el bucket o datos de una fila; solo viaja SQLSTATE.
+function rateLogCode(err: unknown): string {
+  const code = String((err as { code?: unknown })?.code || "");
+  return ["23505", "42501", "42703", "42P01", "PGRST204"].includes(code) ? code : "unavailable";
+}
+
 export async function rateLimit(
   supa: Supa,
   bucket: string,
@@ -32,12 +38,12 @@ export async function rateLimit(
       p_window_secs: windowSecs,
     });
     if (error) {
-      console.error("rate-limit no disponible (se deja pasar):", error.message);
+      console.error("rate-limit no disponible (se deja pasar):", rateLogCode(error));
       return { ok: true, checked: false };
     }
     return { ok: data !== false, checked: true };
   } catch (e) {
-    console.error("rate-limit excepción (se deja pasar):", String((e as Error)?.message || e));
+    console.error("rate-limit excepción (se deja pasar):", rateLogCode(e));
     return { ok: true, checked: false };
   }
 }

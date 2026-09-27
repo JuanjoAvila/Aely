@@ -343,3 +343,7 @@ escribir `Access-Control-Allow-Origin: "*"`.
 - Feedback de uso real.
 
 FIN-06: FX puro devuelve null sin tipo (nunca 1:1). Las sumas vivas omiten conversiones desconocidas con aviso de total incompleto; el original permanece en cuentas OB/inversiones. No se ancla ni registra histórico EUR incompleto. Frankfurter v1 descarga todo el catálogo BCE y conserva tipos guardados para offline; USD de respaldo procede de state.fx, sin valor ficticio para estados nuevos. Movimientos persistidos siguen en EUR y no se migran.
+
+## SEC-03: frontera de diagnósticos
+
+Preparación local, sin despliegue: los errores automáticos se reducen antes del transporte a operación y clase cerrada; app_events ya no añade el correo de sesión. El sobre Sentry se reconstruye por lista permitida (tipo/código/posición/versión/plataforma), sin contextos, breadcrumbs, tracing ni URL de petición. Feedback y notas de beta explícitos redactan patrones sensibles y filtran campos, con límites semánticos. user_id sigue siendo necesario para RLS: no es telemetría anónima. Matriz, pruebas y límites Edge/gateway en [SEC-03](briefs/sec03-privacidad-logs.md).
