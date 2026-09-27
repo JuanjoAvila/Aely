@@ -1,5 +1,7 @@
 # Aely
 
+OPS-02: Ajustes → Copia de seguridad → Copias automáticas → Ver copia permite comparar sin sustituir la cartera.
+
 PWA de finanzas personales: patrimonio neto, gastos variables, costes fijos, inversiones (multi-bróker) y deudas. Móvil-first, instalable, con sincronización automática de gastos vía notificaciones del banco.
 
 > Proyecto personal de [Juanjo]. Hecho por ilusión y aprendizaje.
@@ -31,6 +33,7 @@ mi-cartera/
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
 ├── e2e/                    # Playwright (68 specs: arranque, listas, bancos, ahorro, brókers, perfil, CSV, CSP, rendimiento, beta…)
+├── e2e/                    # Playwright: pantallas, persistencia y copias aisladas
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions, despliegue manual de Supabase y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
@@ -81,7 +84,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.52** FIN-07 aprobado y publicado exclusivamente en producción **4.26.52**, main 8cd41f09. Claude PASS 126b8e84; Promote 36257644323 y Pages 36258292782 verdes, 435 E2E + 7 rendimiento en Pages (uno omitido). Manifiesto, HTML/SW y ZIP HTTP cotejados. Beta 4.26.52.1 conserva FIN-05 y selector pendientes; APK estable 4.26.32/code 48 intacta. Sin backend ni APK nuevos.
+Estado actual: **v4.26.56** candidata exclusiva de OPS-02 aprobada por el dueño el 27/9: visor aislado de copias. Preparada sobre main f5e6b514, publicación pendiente. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](docs/briefs/ops02-restauracion-probada.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.
