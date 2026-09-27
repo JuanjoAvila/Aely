@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.57",
+    "d": "2026-09-27",
+    "t": {
+      "es": "Diagnósticos más privados",
+      "en": "More private diagnostics",
+      "ca": "Diagnòstics més privats"
+    },
+    "items": {
+      "es": [
+        "Los informes automáticos de problemas evitan incluir datos de la cartera. Los comentarios enviados a propósito conservan las fechas, importes y explicaciones útiles para resolverlos."
+      ],
+      "en": [
+        "Automatic problem reports avoid including portfolio data. Comments sent deliberately retain dates, amounts and explanations useful for resolving them."
+      ],
+      "ca": [
+        "Els informes automàtics de problemes eviten incloure dades de la cartera. Els comentaris enviats expressament conserven les dates, imports i explicacions útils per resoldre’ls."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "sec03-privacidad",
+        "t": {
+          "es": "Diagnósticos más privados",
+          "en": "More private diagnostics",
+          "ca": "Diagnòstics més privats"
+        },
+        "items": {
+          "es": [
+            "1. Abre Inicio, Perfil y Ajustes sin sincronizar bancos. Comprueba que se abren y cierran como siempre.",
+            "2. En el banco de pruebas, escribe una nota ficticia con fecha, hora e importe. Comprueba que conserva el contexto al guardarla localmente; este modo no envía registros al servidor."
+          ],
+          "en": [
+            "1. Open Home, Profile and Settings without syncing banks. Check they open and close as usual.",
+            "2. In test mode, write a fictional note with a date, time and amount. Check the context remains when saved locally; this mode sends no records to the server."
+          ],
+          "ca": [
+            "1. Obre Inici, Perfil i Configuració sense sincronitzar bancs. Comprova que s’obren i es tanquen com sempre.",
+            "2. Al banc de proves, escriu una nota fictícia amb data, hora i import. Comprova que conserva el context en desar-la localment; aquest mode no envia registres al servidor."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.56",
     "d": "2026-09-27",
     "t": {

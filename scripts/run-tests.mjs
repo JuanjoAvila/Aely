@@ -35,6 +35,7 @@ if (plan.build !== false) {
 
 const steps = [
   ["backup-snapshot", ["node", "tests/backup-snapshot.test.mjs"]],
+  ["logs-privacidad", ["node", "tests/logs-privacidad.test.mjs"]],
   ["supabase-workflow", ["node", "tests/supabase-workflow.test.mjs"]],
   ["help-assistant", ["node", "tests/help-assistant.test.mjs"]],
   ["guard-privacy", ["node", "scripts/guard-privacy.mjs"]],

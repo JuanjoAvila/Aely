@@ -1,3 +1,11 @@
+## [4.26.57] — 2026-09-27 · SEC-03 cliente aprobado; entrega exclusiva
+
+- Frontera app_events por esquema/clases cerradas y email:null; no transmite claves de gastos ni mensajes/objetos libres de proveedor. user_id necesario para RLS permanece.
+- Sentry reconstruye el sobre, conserva tipo/código/posición y omite contexto libre, URL, usuario y breadcrumbs. Cola/capturas limpias antes del SDK; tracing y sesiones automáticas desactivados.
+- Feedback y partes de beta explícitos redactan patrones de identidad/credenciales, filtrando campos extra. Se preservan fechas/horas/importes/SHA/notas: Claude reprodujo su pérdida en la primera candidata y la regresión protege ese contexto. No se promete redacción semántica completa.
+- Loggers locales Edge minimizados; **sin despliegue**. ingest requiere portar exclusivamente su delta sobre la fuente activa revalidada: no publicar la fuente main sobre FIN-05/Wallet activos.
+- Guardián Node registrado, SDK real instalado/vendor, inventario de destinos y regresión DOM de Actividad. Matriz y límites: docs/briefs/sec03-privacidad-logs.md. Base final main 42613195 / OPS-02 4.26.56 publicada; beta pendiente intacta.
+
 ## [4.26.56] — 2026-09-27
 
 - OPS-02: sustituir el reemplazo conectado de copias por un visor en memoria de solo lectura. Abrir/cerrar no llama a set de App ni mcSaveRaw; la copia no entra en push/backfill. Validación de listas, filas, identificadores, fechas, importes y datos JSON antes de mostrar. Comparación por UUID exacto y por todos los campos; legado y UUID ambiguos sin emparejar, sumas de registros separadas y paginado.

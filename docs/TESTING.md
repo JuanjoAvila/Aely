@@ -521,3 +521,9 @@ FIN-06: `tests/fx-multi.test.mjs` cruza cliente/Wallet, catálogo y desconocidos
 ## FIN-07 · histórico cloud completo
 
 `pull-historico-entero` (runner unitario) ejecuta el paginador y `cloud.pullExpenses` reales con tabla sintética: 4501/50001 filas, respuesta corta, empates, ediciones de fecha, altas concurrentes, errores, reintentos, progreso y campos. Ejecuta también el sync de App para comprobar ausencia de mezcla/backfill/ACK tras error y descarte de lectura vieja. `cloud-historico-completo.spec.mjs` (CROSSCUTTING) abre Gastos y busca la fila antigua entre 2501; comprueba guardado partido, vuelta a primer plano sin reescritura y recuperación de fallo. No usa cartera real ni acredita un snapshot servidor o la latencia de RLS real.
+
+## Guardián SEC-03
+
+node tests/logs-privacidad.test.mjs ejecuta productores cliente, callback/loggers Edge y ambos SDK Sentry con marcadores sintéticos y transportes en memoria. Está registrado en steps del runner. --source-ref SHA repite los mismos contratos contra una fuente Git previa sin mutar el checkout. Incluye inventario de destinos explícitos; no certifica gateway, RLS ni servidor activo. Matriz y límites en [SEC-03](briefs/sec03-privacidad-logs.md).
+
+La regresión e2e/logs-privacidad.spec.mjs está en el mapa de 10-app-components: abre Actividad real, captura inserts simulados y comprueba códigos/texto útil sin correo ni marcadores automáticos.

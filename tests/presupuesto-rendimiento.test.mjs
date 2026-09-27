@@ -81,7 +81,9 @@ const PRESUPUESTO = {
      Candidato aislado sobre main, sin FIN-05 ni selector. Medido: 1.228.080 bytes minificados, gzip 333.214 bytes. Se añaden 4 KB
      solo al crudo (1200 KB); límite gzip 332 KB intacto. */
   // OPS-02: visor aislado y validación agregan código; se conserva el tope gzip de 332 KB.
-  minificado: 1212 * 1024,
+  // SEC-03: frontera de privacidad sobre OPS-02 publicado: 1.243.669 bytes min y 338.534 gzip.
+  // +6 KiB crudos para código necesario (1215 KiB medidos); gzip sigue en 332 KiB, sin margen nuevo.
+  minificado: 1218 * 1024,
   gzip: 332 * 1024,         // 12/9: 330,03 con suministros; aire mínimo a propósito
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
