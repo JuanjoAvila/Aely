@@ -1,6 +1,6 @@
 # SEC-03 · privacidad de logs
 
-Estado: integración SEC-03 preparada sobre beta 3dfe0a28, sin publicación todavía. Se conserva FIN-05, selector y clasificación TR, con sus pruebas móviles/pago pendientes. La candidata anterior aislada 741cc5c6 tuvo GO Claude y CI completo SUCCESS 36346085770; esta integración requiere revisión y pruebas propias. Supabase/SQL/RLS/APK permanecen sin desplegar.
+Estado: SEC-03 cliente publicada en beta 4.26.57.1 (f2354a47), Claude GO exacto y CI/publicación 36349262562 SUCCESS. Aprobación móvil expresa recibida para SEC-03; producción exclusiva en preparación. Beta de continuidad 4.26.58 conserva FIN-05, selector, TR y APK51, con pago pendiente. Supabase/SQL/RLS/APK sin despliegue.
 
 ## Base y aislamiento
 
@@ -79,3 +79,10 @@ El dueño revoca la opción de una beta solo SEC-03 al precisar que FIN-05/selec
 Verificación local de la integración: 21/21 guardianes SEC-03; 50/50 E2E (Actividad, widget/selector, clasificación bancaria/TR, copias y revisión beta). En los siete módulos compartidos la secuencia de líneas añadidas/eliminadas coincide exactamente con el delta SEC-03 revisado sobre main. Android/APK, Wallet y los módulos financieros no afectados son idénticos a beta; notas/tandas anteriores iguales por comparación estructural completa. Sintaxis, guiones beta y presupuesto pasan (1218 KiB minificados/332 KiB gzip; tope crudo 1221, gzip 332 intacto). El pago real permanece abierto. La suite Node se repite tras un fallo transitorio de acceso en i18n-bundle, que ya pasó al repetirlo; memoria-espejo sigue fuera de alcance.
 
 Claude dio GO exacto a bd86d666 tras auditoría y ejecución propia de guardianes y 19 E2E (Actividad, widget y copias). Se aplica su nota no bloqueante: retirar únicamente ops02-copias-comparar, ya aprobada y publicada en producción 4.26.56, del panel. Las tandas/guiones financieros y el pago pendiente permanecen idénticos a beta; las comparaciones anteriores se refieren al corte bd86d666. Revisión del delta y CI de publicación se registrarán por el SHA final.
+
+
+## Aprobación y continuidad tras publicación exclusiva
+
+La aprobación «listo aprobada» se limita a SEC-03. No se mezcla la rama beta a main: la candidata aislada PR49 contiene exclusivamente SEC-03 y conserva APK48 estable. La beta publicada f2354a47 tiene el mismo delta de logging y conserva las funciones financieras. El workflow de publicación 36349262562 terminó SUCCESS con todos sus pasos, incluida subida de assets; el título público de release es Beta 4.26.57.1. La lectura directa del manifiesto/ZIP se completa antes del cierre; no se infiere huella del verde.
+
+Antes de producción se prepara base beta 4.26.58: el panel filtra notas por versión de producción, por lo que beta57/prod57 ocultaría todas las tandas, sin que eso pruebe pago o aprobación. Se trasladan a la nueva cabeza, sin cambiar sus cuerpos, fin05-widget-reentrada, fin05-pago-cerrada, tr-descripcion-clasificacion, widget-banco y widget-app-cerrada. SEC-03 aprobada no se traslada. Las cinco tandas trasladadas se retiran de sus entradas antiguas para no duplicar pruebas en la ventana viva; sus guiones nuevos son idénticos. Código financiero y Android/APK son idénticos a f2354a47. Los registros anteriores no se borran; esta compilación conserva el pago pendiente y requiere su propio veredicto financiero. Esta beta se publica por workflow_dispatch de rama propia, sin mover origin/beta ni activar Supabase.

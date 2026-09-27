@@ -873,3 +873,18 @@ test("la marca caduca: si vuelve al día siguiente entra en su app, no en el pan
     return betaDebeReabrirse();
   })).toBe(true);
 });
+
+
+/* La publicación exclusiva de SEC-03 no aprueba las pruebas de pago que siguen en beta. */
+test("continuidad SEC-03: producción 4.26.57 deja visibles las cinco tandas financieras", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.58.1"; });
+  const panel = await conProduccionEn(page, "4.26.57");
+  await expect(panel.locator(".beta-tanda")).toHaveCount(5);
+  for (const title of ["Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada"]) {
+    await expect(panel.locator(".beta-tanda-t").filter({ hasText: title })).toHaveCount(1);
+  }
+  await expect(panel).not.toContainText("Diagnósticos más privados");
+  await expect(panel).not.toContainText("✅ aprobada");
+  await expect(panel).toContainText("En la próxima compra habitual");
+});

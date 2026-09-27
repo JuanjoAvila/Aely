@@ -1,3 +1,8 @@
+## [4.26.58] — 2026-09-27
+
+- Conservación de beta al publicar SEC-03 sola: nueva base posterior a producción 4.26.57 y cinco tandas financieras pendientes con sus guiones originales. betaChecklist filtra por versión de producción; sin este corte desaparecerían del panel aunque el código siguiera presente. No se modifica lógica financiera, Android/APK ni se aprueba el pago.
+- SEC-03 cliente publicada previamente en beta 4.26.57.1, SHA f2354a47, revisión Claude GO y CI/publicación 36349262562 SUCCESS. Aprobación móvil expresa recibida solo para SEC-03. Backend, SQL/RLS y APK sin despliegue.
+
 ## [4.26.57] — 2026-09-27
 
 - SEC-03: limitar errores automáticos por operación/código y reconstruir sobres Sentry sin contenedores libres; eliminar correo de app_events. Feedback y veredictos explícitos conservan fecha/hora/importe/SHA y redactan patrones sensibles. user_id sigue para propiedad/RLS.
