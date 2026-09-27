@@ -59,7 +59,8 @@
     "atmDual": "2 PASS",
     "widgetArbitraje": "PASS; presupuesto candidato y Java FIN-05 existente; arnés temporal eliminado",
     "npmTest": "FAIL únicamente memoria-espejo preexistente; Deno omitido; E2E no lanzados",
-    "salud": "HTTP stable 4.26.52/beta 4.26.53.1; Edge/app_events omitidos"
+    "salud": "HTTP stable 4.26.52/beta 4.26.53.1; Edge/app_events omitidos",
+    "postCommitDocsFrescura": "FAIL con historia completa: restauración de ingest/index.ts ya activo desde be59 se considera código publicable sin bump VERSION. Paquete Edge inerte; no apto para merge/release web tal cual."
   },
   "deployment": {
     "sourceSha": "1397fe280b827daffb9969177a0907495ea65c32",
@@ -80,7 +81,8 @@
       "435 passed (9.1m)",
       "7 passed (38.5s)",
       "── Duración total: 598.7 s · etapas más lentas ──"
-    ]
+    ],
+    "versionHistoryGateOmitted": false
   },
   "review": {
     "actor": "Claude real",
