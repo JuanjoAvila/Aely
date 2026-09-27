@@ -1,5 +1,9 @@
 ## [4.26.52] — 2026-09-26
 
+### OPS-01 C · control de despliegues (tooling, sin versión nueva)
+- El workflow Supabase deja de dispararse por push: únicamente manual, función obligatoria por env y validación de formato/entrypoint antes de cualquier SQL. Se elimina el despliegue global; integrar fuentes pendientes no activa el servidor compartido.
+- Migraciones mantienen no por defecto y selección explícita; se documentan los límites históricos de --include-all y continue-on-error sin cambiar SQL. Guardián Bash con CLI simulado registrado en el runner. Sin código de funciones, datos, deploy, APK ni promoción de beta. Evidencia: docs/briefs/ops01-control-2026-09-27.md.
+
 ### FIN-07 · completitud cloud sin borrado por ausencia
 - Base beta d237478e: ya había keyset fecha/id, no limit(2000) simple. Reproducción ejecutada: servidor cap=317 devolvía solo 317 de 2501; 50001 filas quedaban en 50000; una fecha editada durante el pull saltaba una fila previa.
 - Cursor por UUID id DESC, estable frente a ediciones de fecha; sin offset, count previo ni techo de páginas. Solo página vacía confirma fin; formato/progreso inválido o error rechaza todo antes de mezcla, backfill y coveredEvents. Orden final fecha DESC/id DESC, conservando microsegundos, mantiene elección de gemelos y ACK de FIN-05.

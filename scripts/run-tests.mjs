@@ -34,6 +34,7 @@ if (plan.build !== false) {
 }
 
 const steps = [
+  ["supabase-workflow", ["node", "tests/supabase-workflow.test.mjs"]],
   ["help-assistant", ["node", "tests/help-assistant.test.mjs"]],
   ["guard-privacy", ["node", "scripts/guard-privacy.mjs"]],
   ["check-syntax", ["node", "scripts/check-syntax.mjs"]],

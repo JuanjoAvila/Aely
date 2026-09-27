@@ -32,7 +32,7 @@ mi-cartera/
 │   └── privacy.html
 ├── e2e/                    # Playwright (68 specs: arranque, listas, bancos, ahorro, brókers, perfil, CSV, CSP, rendimiento, beta…)
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
-│                           #  sintaxis de las Edge Functions y presupuesto de rendimiento)
+│                           #  sintaxis de las Edge Functions, despliegue manual de Supabase y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
 ├── scripts/
 │   ├── build-app.mjs       # Ensambla src/ → public/index.html

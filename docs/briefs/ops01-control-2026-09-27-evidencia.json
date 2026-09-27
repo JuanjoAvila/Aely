@@ -1,0 +1,38 @@
+{
+  "task": "OPS-01-C",
+  "base": "91c5a4f43eaa84ac1a11a00f76c0dfccae998b0e",
+  "implementationSha": "90a5667d64036e86b3099af0fb19e93cd2d9e894",
+  "review": {
+    "id": "20260927T1005Z-claude-ops01-c-pass-90a5667d",
+    "from": "claude",
+    "replyTo": "20260927T100403Z-codex-ops01-c-review",
+    "createdAt": "2026-09-27T10:05:06.168Z",
+    "verdict": "PASS",
+    "sha": "90a5667d64036e86b3099af0fb19e93cd2d9e894",
+    "messageSha256": "037b1b4aa460531cff88107fe1d4a6905fe41755ddcf48886ab594a3ed6efff9",
+    "body": "PASS 90a5667d (base 91c5a4f4, 10 ficheros). Comprobado: (1) on: solo workflow_dispatch; ningún otro workflow/script llama a supabase.yml ni a `functions deploy` (grep .github+scripts vacío). (2) FN por env en Validar y Desplegar, nunca interpolado; validación antes de gate y SQL, sin if/continue-on-error. Regex ^[a-z][a-z-]*$ + index.ts cubre las 14 funciones actuales. (3) MIG_OK=false salvo migraciones=si + DB_PASSWORD; ruta db push --include-all intacta. (4) `node tests/supabase-workflow.test.mjs` en tu worktree: EXIT 0, 14 válidas / 15 rechazadas, Git Bash real. Registrado en steps de run-tests. (5) El merge de este PR no toca supabase/** y el trigger ya no existe: no despliega nada. Docs coherentes. No bloqueantes: (a) si algún día hay una función con dígito en el nombre, la regex la rechaza — el test lo cantaría, bien; (b) quedan afirmaciones viejas «push despliega» en docs/memoria/mi-cartera-deploy.md y promote-4-19-106-como-se-hizo.md (espejo de MI memoria) — las corrijo yo tras la fusión, no las toques; briefs históricos se quedan. Pendiente CI completa del PR a main (Deno + e2e) antes de fusionar; sin ella no es PASS de suite."
+  },
+  "local": {
+    "guard": "PASS: 14 funciones, 15 entradas invalidas y 20 combinaciones gate",
+    "npmTest": "FAIL solo memoria-espejo preexistente; Deno omitido, E2E no iniciado",
+    "diffCheck": "PASS",
+    "generatedBundleDiff": false
+  },
+  "ci": {
+    "run": 36311371282,
+    "url": "https://github.com/JuanjoAvila/Aely/actions/runs/36311371282",
+    "state": "completed",
+    "sha": "90a5667d64036e86b3099af0fb19e93cd2d9e894",
+    "conclusion": "success",
+    "denoFilesPassed": 4,
+    "e2ePassed": 435,
+    "e2eSkipped": 1,
+    "performancePassed": 7
+  },
+  "limits": [
+    "Sin despliegues ni SQL real",
+    "Sin cambios Edge, migraciones, datos, app o APK",
+    "FIN-06 pago real pendiente; FIN-05/selector/TR pendientes",
+    "No A/B ni OPS-02/FIN-08"
+  ]
+}

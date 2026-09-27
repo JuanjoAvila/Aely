@@ -1,16 +1,14 @@
 name: Deploy Supabase
 
-# Despliega las Edge Functions (y aplica migraciones si das la contraseña de BD)
-# cada vez que cambian los archivos de supabase/. Reemplaza el deploy manual del Apps Script.
+# Supabase es compartido por ambos canales: integrar fuentes no autoriza activarlas.
+# Despliegue manual de una sola función; migraciones solo con selección explícita.
 on:
-  push:
-    branches: [main]
-    paths: ["supabase/**"]
   workflow_dispatch:
     inputs:
       funcion:
-        description: "Una sola función (p.ej. ingest). Vacío = TODAS las 13."
-        required: false
+        description: "Una sola función autorizada (p.ej. ingest)."
+        required: true
+        type: string
         default: ""
       migraciones:
         description: "Aplicar TAMBIÉN las migraciones de la base de datos"
@@ -26,6 +24,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Se valida antes del gate y del SQL: una entrada inválida nunca debe tocar la BD.
+      - name: Validar función
+        env:
+          FN: ${{ inputs.funcion }}
+        shell: bash
+        run: |
+          if [[ ! "$FN" =~ ^[a-z][a-z-]*$ ]] || [ ! -f "supabase/functions/$FN/index.ts" ]; then
+            echo "Función no válida"; exit 1
+          fi
+
       # Si aún no has configurado el token, salta el deploy sin marcar el job en rojo.
       - name: Comprobar configuración
         id: gate
@@ -33,6 +41,8 @@ jobs:
           TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           REF: ${{ vars.SUPABASE_PROJECT_REF }}
           DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          MIGRACIONES: ${{ inputs.migraciones }}
+        shell: bash
         run: |
           if [ -z "$TOKEN" ] || [ -z "$REF" ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
@@ -40,10 +50,9 @@ jobs:
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
-          # Las migraciones tocan la BASE DE DATOS, no solo las funciones. Al lanzarlo a mano hay
-          # que pedirlas a propósito (input `migraciones`); el disparo por push sigue como estaba.
-          MIG_OK=true
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.migraciones }}" != "si" ]; then MIG_OK=false; fi
+          # El registro histórico diverge: las migraciones se piden a propósito.
+          MIG_OK=false
+          if [ "$MIGRACIONES" = "si" ]; then MIG_OK=true; fi
           if [ -n "$DB_PASSWORD" ] && [ "$MIG_OK" = "true" ]; then echo "migrate=true" >> "$GITHUB_OUTPUT"; else echo "migrate=false" >> "$GITHUB_OUTPUT"; fi
 
       - name: Instalar Supabase CLI
@@ -52,12 +61,9 @@ jobs:
         with:
           version: latest
 
-      # Migraciones: solo si das la contraseña de la BD como secret (si no, aplícalas a mano una vez en el SQL Editor).
-      # continue-on-error: el deploy de funciones es lo crítico; una migración ya aplicada a mano no debe bloquearlo.
-      # --include-all (2026-07-18): hay migraciones aplicadas a mano que no constan en el registro
-      # remoto (p.ej. las dos «0012») y sin el flag `db push` abortaba EN SILENCIO — así se quedó
-      # la 0015 del Hogar sin aplicar. Todas las migraciones del repo son idempotentes
-      # (if not exists / or replace / drop if exists / on conflict), así que re-pasarlas es seguro.
+      # Requiere migraciones=si y contraseña. --include-all conserva la ruta histórica;
+      # el registro remoto puede diferir del repo: revisar el SQL antes de autorizarlo.
+      # continue-on-error permite seguir con la función; verde no acredita éxito del SQL.
       - name: Aplicar migraciones
         if: steps.gate.outputs.skip != 'true' && steps.gate.outputs.migrate == 'true'
         continue-on-error: true
@@ -72,14 +78,9 @@ jobs:
         if: steps.gate.outputs.skip != 'true'
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          FN: ${{ inputs.funcion }}
+        shell: bash
         run: |
-          # Desplegar las TRECE de golpe para arreglar una es como se rompen las otras doce
-          # (docs/briefs/plan-despliegue-edge-2026-09-10.md). Con `funcion` se manda solo esa.
-          FN="${{ github.event.inputs.funcion }}"
-          if [ -n "$FN" ]; then
-            echo "Desplegando SOLO $FN"
-            supabase functions deploy "$FN" --project-ref "${{ vars.SUPABASE_PROJECT_REF }}"
-          else
-            echo "Desplegando TODAS las funciones"
-            supabase functions deploy --project-ref "${{ vars.SUPABASE_PROJECT_REF }}"
-          fi
+          # Una única función evita activar otras que aún no están publicadas.
+          echo "Desplegando SOLO $FN"
+          supabase functions deploy "$FN" --project-ref "${{ vars.SUPABASE_PROJECT_REF }}"
