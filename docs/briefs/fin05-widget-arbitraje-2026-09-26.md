@@ -1,6 +1,6 @@
 # FIN-05: relevo de beta 4.26.49.1 y APK 4.26.49
 
-> **Superado el 27/9:** el dueño ya ha realizado un pago real con la app cerrada y ha observado una caída excesiva del widget. FIN-05 sigue abierto por fallo móvil; la espera «no tiene nada que pagar» es histórica. [Investigación actual y límites](fin05-pago-cerrada-2026-09-27.md). No atribuir causa ni instalación de APK50 a los PASS de este relevo.
+> **Superado el 27/9:** el dueño ya ha realizado un pago real con la app cerrada y ha observado una subida excesiva de «Gastado». FIN-05 sigue abierto por fallo móvil; la espera «no tiene nada que pagar» es histórica. [Captura, corrección candidata y límites](fin05-pago-cerrada-2026-09-27.md). La instalación de APK50 y la causa se verificaron después; no derivan de los PASS de este relevo.
 
 - Base: `main` en `95070a37`. Rama aislada: `codex/fin05-widget-arbitraje`.
 - Código revisado: `e1168c6de3dcb5c39726eb3d619fb3b59cad3581`. Claude respondió PASS por el canal compartido tras tres rondas; la última fue sobre ese SHA. El árbol quedó limpio tras la revisión.
