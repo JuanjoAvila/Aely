@@ -91,7 +91,7 @@ await t("feedback/beta fallan explícitamente si el insert falla; sin sesión no
 await t("SDK Sentry instalado: sobre final capturado con transporte en memoria",async()=>{
  const S=await import("@sentry/browser");const x=client();x.c.mcInitSentry();const envelopes=[];
  S.init({...x.options(),dsn:"https://synthetic@telemetry.invalid/1",transport:()=>({send:async envelope=>{envelopes.push(envelope);return {};},flush:async()=>true})});
- S.setUser({email:markers[1],id:sensitive});S.setContext("bank",{note:sensitive});S.setExtra("note",sensitive);S.setTag("token",sensitive);S.addBreadcrumb({message:sensitive});S.captureException(error());await S.flush(2000);assert.equal(envelopes.length,1);clean(envelopes);const ev=envelopes[0][1].find(([header])=>header.type==="event")[1];assert.ok(ev.exception.values.length);assert.equal(ev.user,undefined);await S.close(2000);
+ S.setUser({email:markers[1],id:sensitive,segment:sensitive});S.getCurrentScope().setTransactionName(sensitive);S.setContext("bank",{note:sensitive});S.setExtra("note",sensitive);S.setTag("token",sensitive);S.addBreadcrumb({message:sensitive});S.captureException(error());await S.flush(2000);assert.equal(envelopes.length,1);clean(envelopes);const ev=envelopes[0][1].find(([header])=>header.type==="event")[1];assert.ok(ev.exception.values.length);assert.equal(ev.user,undefined);await S.close(2000);
 });
 await t("inventario de destinos completo: toda nueva ruta obliga a actualizar la matriz",()=>{
  const inventory={"src/modules/00-core.js":[4,2,0],"src/modules/01-i18n.js":[0,0,1],"src/modules/10-app-components.js":[0,0,2],"supabase/functions/bank-sync/index.ts":[2,0,0],"supabase/functions/bank-callback/index.ts":[1,0,1],"supabase/functions/ingest/index.ts":[2,0,0],"supabase/functions/_shared/ratelimit.ts":[0,0,2]};
@@ -117,7 +117,7 @@ await t("SDK Sentry auto-hospedado: sobre real sin contenido sensible",async()=>
  vm.runInContext(read("public/vendor/sentry.bundle.min.js"),x.c);const S=x.c.Sentry;
  assert.equal(S.SDK_VERSION,"9.47.1");
  S.init({...options,dsn:"https://synthetic@telemetry.invalid/1",transport:()=>({send:async envelope=>{envelopes.push(envelope);return {};},flush:async()=>true})});
- S.setUser({email:markers[1]});S.setContext("bank",{note:sensitive});S.setExtra("token",sensitive);S.addBreadcrumb({message:sensitive});S.captureException(error());await S.flush(2000);assert.equal(envelopes.length,1);clean(envelopes);await S.close(2000);
+ S.setUser({email:markers[1],id:sensitive,segment:sensitive});S.getCurrentScope().setTransactionName(sensitive);S.setContext("bank",{note:sensitive});S.setExtra("token",sensitive);S.addBreadcrumb({message:sensitive});S.captureException(error());await S.flush(2000);assert.equal(envelopes.length,1);clean(envelopes);await S.close(2000);
 });
 
 
