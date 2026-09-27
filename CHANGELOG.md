@@ -1,5 +1,9 @@
 ## [4.26.52] — 2026-09-26
 
+### OPS-01 A · activación Wallet en ingest (27/9, sin nueva release web)
+- Tras autorización explícita, se activa únicamente ingest desde el SHA revisado 1397fe280b827daffb9969177a0907495ea65c32, migraciones=no; Deploy 36319915174 SUCCESS y SQL omitido. El servidor pasa de ingest48 a ingest49.
+- El cierre descargado conserva FIN-05 y los otros seis módulos; solo Wallet incorpora ISO adicionales, respaldo USD válido y null ante tasa/importe inválidos. Se verifican fuentes y JS emitidos, 14 dependencias emitidas iguales y metadatos de otras funciones sin cambio; handler y guardianes offline pasan sobre el paquete activo. FIN-06 pago real pendiente. Sin merge/main/beta ni OTA/APK. Evidencia: docs/briefs/ops01-wallet-2026-09-27.md.
+
 ### OPS-01 C · control de despliegues (tooling, sin versión nueva)
 - El workflow Supabase deja de dispararse por push: únicamente manual, función obligatoria por env y validación de formato/entrypoint antes de cualquier SQL. Se elimina el despliegue global; integrar fuentes pendientes no activa el servidor compartido.
 - Migraciones mantienen no por defecto y selección explícita; se documentan los límites históricos de --include-all y continue-on-error sin cambiar SQL. Guardián Bash con CLI simulado registrado en el runner. Sin código de funciones, datos, deploy, APK ni promoción de beta. Evidencia: docs/briefs/ops01-control-2026-09-27.md.
@@ -15,7 +19,6 @@
 
 ## [4.26.51] — 2026-09-26
 
-- OPS-01 A: paquete Edge inerte restaura el cierre activo de ingest48 (FIN-05) y aplica únicamente Wallet FIN-06 frente a ese cierre. Sin despliegue/SQL ni nueva release web; pruebas del handler y FX ampliadas. Activación y pago real pendientes.
 
 ### FIN-06 · divisas sin tipo, entrega independiente
 - Reproducción sobre 9520bdaa: cliente 500 XYZ → 500 €, servidor null; TRY 1520 → 27.756719999999998 frente a 27.76; USD legacy → 92 frente a null. El fallback 1:1 falseaba patrimonio y podía anclar costes persistentes.
