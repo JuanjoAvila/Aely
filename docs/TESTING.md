@@ -163,7 +163,7 @@ Desde la 4.9.1 esto lo vigila `tests/docs-frescura.test.mjs`: si quedan cambios 
 
 ### Dos guardas más, de la 4.10.0
 
-- **`tests/edge-sintaxis.test.mjs`** — las Edge Functions se despliegan solas al pushear, en un
+- **`tests/edge-sintaxis.test.mjs`** — las Edge Functions se despliegan manualmente con autorización, en un
   workflow DISTINTO al de Pages: un paréntesis de más no lo ve nadie hasta que el usuario ya cree
   que está publicado. Y `deno check` se omite en silencio si Deno no está instalado. Esto las pasa
   por el parser de esbuild (que ya es dependencia del repo) y además falla si alguna vuelve a poner
@@ -177,6 +177,8 @@ Desde la 4.9.1 esto lo vigila `tests/docs-frescura.test.mjs`: si quedan cambios 
   orden guardado tras recargar, y garantiza que las fechas originales no cambian.
 - **`e2e/plan-ahorro.spec.mjs`** — abre Plan → Metas, comprueba que el ahorro mensual se guarda
   y persiste sin crear movimientos, que Cancelar no escribe y que una cifra larga cabe a 320 px.
+
+- **`tests/supabase-workflow.test.mjs`** — protege el único evento manual, función obligatoria por env, rechazo de entradas inválidas antes de SQL, despliegue de una sola función y migraciones opt-in. Ejecuta los bloques Bash reales con CLI simulado; no usa red ni credenciales. Windows requiere Git Bash (se descubre desde Git; también `BASH_PATH`); Linux usa `bash`. Registrado en `npm test`.
 
 ## Flujo local (CMD o PowerShell)
 
