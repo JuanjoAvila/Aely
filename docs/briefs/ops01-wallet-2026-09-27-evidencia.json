@@ -1,5 +1,5 @@
 {
-  "scope": "OPS-01 A; paquete inerte; ingest únicamente; migraciones=no",
+  "scope": "OPS-01 A; ingest activado con autorización explícita; migraciones=no",
   "checkedAt": "2026-09-27T10:59:59.878Z",
   "baseMain": "f5e6b514a00b767a07e7ef8d58cf158fe75e93b9",
   "baseBeta": "5d5b8d0f0d8ea12b5521009d3fef9b54f6fd85e9",
@@ -67,7 +67,8 @@
     "ref": "ops01-wallet-1397fe28",
     "function": "ingest",
     "migrations": "no",
-    "explicitOwnerApprovalPending": true
+    "explicitOwnerApprovalPending": false,
+    "authorization": "El dueño respondió autorizo al despliegue único ingest/migraciones=no del SHA revisado"
   },
   "ci": {
     "conclusion": "success",
@@ -130,5 +131,146 @@
       "bytes": 34492,
       "sha256": "1fbd7c02c984d4bd2e5e920fa09bebb0a5d372685336a82150644dbbf18a730c"
     }
-  ]
+  ],
+  "activation": {
+    "runId": "36319915174",
+    "url": "https://github.com/JuanjoAvila/Aely/actions/runs/36319915174",
+    "sourceSha": "1397fe280b827daffb9969177a0907495ea65c32",
+    "ref": "ops01-wallet-1397fe28",
+    "function": "ingest",
+    "migrations": "no",
+    "migrationStep": "skipped",
+    "deployStep": "success",
+    "before": {
+      "checkedAt": "2026-09-27T12:42:45.117Z",
+      "metadata": {
+        "slug": "ingest",
+        "status": "ACTIVE",
+        "version": 48,
+        "updated_at": 1790375097610,
+        "verify_jwt": false,
+        "ezbr_sha256": "741fe810b6e5454391223ffb2330e70fc30d3c094aad4247cb22b06fa598e49f"
+      },
+      "bytes": 433859,
+      "sha256": "d02d6a03e3b1a22e5ce6508be6dedee37dece022c920376cb3393b076ce17030"
+    },
+    "after": {
+      "checkedAt": "2026-09-27T12:44:40.041Z",
+      "metadata": {
+        "slug": "ingest",
+        "status": "ACTIVE",
+        "version": 49,
+        "updated_at": 1790513001023,
+        "verify_jwt": false,
+        "ezbr_sha256": "d6808cfb0d5d04919dbf9fecd650d9291cb156d8284928887014b2d812ba6747"
+      },
+      "bytes": 434884,
+      "sha256": "977971c65c83ef81e8c79f3519b821748f52421e32281c23d51be955c63c0cc7"
+    },
+    "verification": {
+      "phase": "after",
+      "eszipFormat": "ESZIP2.3",
+      "checksumAlgorithm": "checked per section where configured",
+      "ownModules": [
+        {
+          "relative": "ingest/index.ts",
+          "originalSha256": "1fc1bcd7acdd6ab801c4a381e2384d1e94f5b1478e2fc83cfbbd0036920cce20",
+          "emittedSha256": "30d32bb2bcb2d83849f7261022de5b6470236c121963ed482a2c9315289b6d9d",
+          "matchesExpected": true
+        },
+        {
+          "relative": "_shared/ingest_logic.ts",
+          "originalSha256": "ae948b8d042c814a57ed542a89ab65264be53f1aa9cadf8f5ebff356fb595273",
+          "emittedSha256": "598c5025b47dfa62ff6ee1c83e4e629806a833c62d43020a44b347085e6da329",
+          "matchesExpected": true
+        },
+        {
+          "relative": "_shared/wallet.ts",
+          "originalSha256": "d544b3ccf08d64314cb5c6300f714e73520a37092cacc705474bb87d9905a556",
+          "emittedSha256": "a0f215692724dcd5b983ea8c1605ba8233dc395751633767312420f237cbe87e",
+          "matchesExpected": true
+        },
+        {
+          "relative": "_shared/ingest_identity.ts",
+          "originalSha256": "709e62a263e606528114df16bf036c4d194888496ed64910744bbe08ab6825af",
+          "emittedSha256": "503741f5395f467b0a453c86c0c86484bb5a29ee9e43d4538d60f3d0e2043886",
+          "matchesExpected": true
+        },
+        {
+          "relative": "_shared/ratelimit.ts",
+          "originalSha256": "cb77b1f18d076b6111301f00d8bd937b38ac38c9a71d9df041e482c19ea85b0d",
+          "emittedSha256": "b493716762a2ca0e37898adc53493a30ed9d3f74f4511e848f746c0f3252df40",
+          "matchesExpected": true
+        },
+        {
+          "relative": "_shared/presupuesto.ts",
+          "originalSha256": "26a5d0c7c7bea905d14a9dcf499fede9a86ebda4917c63bd88fef90ba8489df1",
+          "emittedSha256": "308761e108ee37b26cbdf1127a60359c26f68abd00fb859bf950f42f17f6a7f9",
+          "matchesExpected": true
+        },
+        {
+          "relative": "_shared/entrada.ts",
+          "originalSha256": "dbe7eb539017d435bf4207dbb74cae644e034ac4c66dbdef79af9f357d1bf00f",
+          "emittedSha256": "73c919e80cffbc29fb2fdb7675a9c7dc4dd6ef0f17ba7070818fd4de2c65fdab",
+          "matchesExpected": true
+        }
+      ],
+      "allExpectedOwnSourcesMatch": true,
+      "onlyIngestMetadataChanged": true,
+      "active": {
+        "slug": "ingest",
+        "status": "ACTIVE",
+        "version": 49,
+        "updated_at": 1790513001023,
+        "verify_jwt": false,
+        "ezbr_sha256": "d6808cfb0d5d04919dbf9fecd650d9291cb156d8284928887014b2d812ba6747"
+      }
+    },
+    "offlineTests": {
+      "offline": true,
+      "businessNetworkDisabled": true,
+      "suites": [
+        {
+          "name": "wallet-notis",
+          "source": "JavaScript emitido descargado de ingest49",
+          "exitCode": 0,
+          "passedGroups": 12
+        },
+        {
+          "name": "ingest-handler",
+          "source": "JavaScript emitido descargado de ingest49",
+          "exitCode": 0,
+          "passedGroups": 13
+        },
+        {
+          "name": "presupuesto-servidor",
+          "source": "JavaScript emitido descargado de ingest49",
+          "exitCode": 0,
+          "passedGroups": 18
+        },
+        {
+          "name": "atm-dual",
+          "source": "JavaScript emitido descargado de ingest49",
+          "exitCode": 0,
+          "passedGroups": 2
+        },
+        {
+          "name": "widget-arbitraje",
+          "source": "presupuesto emitido ingest49 y Java FIN-05 preservado; sin modificar Android",
+          "exitCode": 0
+        }
+      ]
+    },
+    "externalEmittedModules": {
+      "beforeCount": 14,
+      "afterCount": 14,
+      "changedCount": 0
+    },
+    "limits": [
+      "No prueba de pago real",
+      "FIN-05/selector/TR mantienen validaciones móviles pendientes",
+      "No merge main/beta ni publicación web/APK",
+      "No consulta ni escritura de filas reales durante verificación; negocio normal de ingest no se desactiva"
+    ]
+  }
 }

@@ -188,4 +188,4 @@ Mantén el Apps Script activo hasta confirmar que entran gastos por Supabase; lu
 FIN-06 (4.26.51): `_shared/wallet.ts` preparado con 30 ISO y paridad de céntimos/legacy USD con cliente. Sin cambio sigue devolviendo null; ingest no guarda euros inventados. El cambio del servidor está probado en repo pero NO desplegado al backend compartido: cualquier deploy de ingest requiere autorización específica. No hay migración de esquema ni de movimientos.
 
 
-OPS-01 A (27/9): [paquete Wallet/ingest con cierre FIN-05](briefs/ops01-wallet-2026-09-27.md). Preparación inerte; activación solo de ingest, migraciones=no, pendiente del OK final. FIN-06 pago real pendiente. Pruebas Wallet/handler ampliadas en sus suites ya registradas.
+OPS-01 A (27/9): [paquete Wallet/ingest con cierre FIN-05](briefs/ops01-wallet-2026-09-27.md). Ingest49 activado con OK explícito el 27/9, solo ingest y migraciones=no; cierre activo y pruebas offline verificados. FIN-06 pago real pendiente. Pruebas Wallet/handler ampliadas en sus suites ya registradas.

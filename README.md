@@ -102,4 +102,4 @@ Notas rápidas del rediseño v4 (para no perderse):
 - **Canal beta y banco de pruebas** (solo `is_admin`): Ajustes → Dev → Pruebas — [docs/TESTING.md](docs/TESTING.md).
 
 
-OPS-01 A (27/9): [paquete Wallet/ingest con cierre FIN-05](docs/briefs/ops01-wallet-2026-09-27.md). Preparación inerte; activación solo de ingest, migraciones=no, pendiente del OK final. FIN-06 pago real pendiente. Pruebas Wallet/handler ampliadas en sus suites ya registradas.
+OPS-01 A (27/9): [paquete Wallet/ingest con cierre FIN-05](docs/briefs/ops01-wallet-2026-09-27.md). Ingest49 activado con OK explícito el 27/9, solo ingest y migraciones=no; cierre activo y pruebas offline verificados. FIN-06 pago real pendiente. Pruebas Wallet/handler ampliadas en sus suites ya registradas.
