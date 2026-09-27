@@ -25,7 +25,9 @@ priorizarlas y dejar el relevo. No se declara una sesión activa por tener una r
   de producción en [PR49](https://github.com/JuanjoAvila/Aely/pull/49), SHA 1af182b3, Claude GO exacto;
   [CI final36351403967](https://github.com/JuanjoAvila/Aely/actions/runs/36351403967) SUCCESS.
   Merge exclusivo ece3a2d9 con árbol idéntico al SHA revisado; [manifiesto estable](https://juanjoavila.github.io/Aely/version.json)
-  y [Pages](https://github.com/JuanjoAvila/Aely/actions/workflows/deploy.yml) muestran la entrega activa.
+  y [Pages36352234935](https://github.com/JuanjoAvila/Aely/actions/runs/36352234935) muestran la entrega activa.
+  **Producción4.26.57 verificada por HTTP el27/9,21:47 UTC**, CI main36352234924 y Pages SUCCESS,
+  SW4.26.57-2026-09-27-ece3a2d; ZIP/HTML/SW/apk.json idénticos, APK48 intacta.
   No desplegar Edge/SQL/RLS/APK. El servidor sigue pendiente por función.
 - **Continuidad beta:** 4.26.58/2a0e2d3a conserva runtime financiero y APK51 idénticos a f2354a47;
   mueve íntegros cinco guiones pendientes para que producción57 no los oculte. Claude GO exacto;
@@ -62,7 +64,7 @@ perderlos ni duplicar encargos. «Publicado» no certifica todos los criterios d
 | OPS-02 | Visor de copias cerrado/aprobado/publicado4.26.56. **Recuperación compartida financiera abierta**, dependiente FIN-03/08 y SQL/RLS/ACK. |
 | SEC-01 | Inventario histórico parcial; aceptación por endpoint, cuerpos inválidos, tamaños/auth y evidencia servidor pendientes. Los recuentos9/9 no son un inventario vivo nuevo. |
 | SEC-02 | Límites/replay pendientes de auditoría y contratos por coste/usuario, sin descartar pagos legítimos. |
-| SEC-03 | Cliente aprobado y entrega exclusiva fusionada en main/ece3a2d9; privacidad Edge/gateway y puesta en servicio por función pendientes. **Historia pública:** Claude comunica cifras financieras antiguas en commits6fcc3e0e/05a8fb4f, contenido vivo limpio; no se transcriben ni se reauditan datos aquí. Retirada mediante reescritura de historial requiere decisión expresa, no force-push automático. |
+| SEC-03 | **Cliente cerrado/aprobado/publicado4.26.57**, main/ece3a2d9, CI/Pages y HTTP/ZIP/SW verificados; privacidad Edge/gateway y puesta en servicio por función pendientes. **Historia pública:** Claude comunica cifras financieras antiguas en commits6fcc3e0e/05a8fb4f, contenido vivo limpio; no se transcriben ni se reauditan datos aquí. Retirada mediante reescritura de historial requiere decisión expresa, no force-push automático. |
 | OPS-03 | Beta con varios probadores y permisos/veredictos independientes pendiente. |
 | OPS-04 | Métricas agregadas pendientes de confirmar; instrumentación ya existe. |
 | OPS-05 | Higiene de ramas/PR/restos pendiente; no borrar sin autorización. **memoria-espejo falla localmente por desfase preexistente**: notas/espejo aún sin integrar, señalado también por Claude. Resolver en objetivo propio sin incorporar cambios ajenos para ocultar el fallo. Foto PR actual arriba. |

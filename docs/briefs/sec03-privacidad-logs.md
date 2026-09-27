@@ -1,6 +1,6 @@
 # SEC-03 · privacidad de logs
 
-Estado: SEC-03 cliente publicada y aprobada en beta 4.26.57.1/f2354a47. Revisión Claude GO exacta y CI/publicación 36349262562 SUCCESS. Entrega exclusiva cliente 4.26.57 mediante PR49; FIN-05, selector y TR se conservan en otra rama beta y siguen pendientes de pago. Supabase/SQL/RLS/APK sin despliegue.
+Estado: cliente SEC-03 aprobado y publicado exclusivamente en producción4.26.57/main ece3a2d9. CI main36352234924 y Pages36352234935 SUCCESS, manifiesto/ZIP/HTML/SW cotejados21:47 UTC. Beta4.26.58.1/2a0e2d3a conserva FIN-05/selector/TR/APK51 pendientes de pago. SEC-03 Edge/SQL/RLS/APK sin despliegue.
 
 ## Base y aislamiento
 
@@ -83,3 +83,14 @@ El ZIP beta 4.26.57.1 se descarga y coteja: huella e931e9cf9044dda3 igual al man
 
 
 El intento de continuidad 69ea3f7e (36350958006) falló el guardián notas-sin-duplicados antes del sello/empaquetado/subida; no alteró assets. Se corrigió trasladando, en lugar de duplicar, las cinco tandas a58; guiones íntegros y resto de notas idénticos por comparación estructural. Build, guardián de duplicados/tandas/docs y los 31 E2E revisar-beta pasan en 2a0e2d3a, incluido DOM con producción57. La fuente 4.26.58 no aprueba ninguna tanda financiera.
+
+
+## Cierre de publicación del cliente · 27/9,21:47 UTC
+
+El dueño aprobó SEC-03 tras beta57.1. Revisión Claude GO exacta1af182b3 y CI36351403967 SUCCESS. PR49 se fusiona exclusivamente en main/ece3a2d9ad2b64b124afd8967497f97e1db443b5; árbolidéntico al revisado y sin promoción de las funciones financieras pendientes. CI main [36352234924](https://github.com/JuanjoAvila/Aely/actions/runs/36352234924) y Pages [36352234935](https://github.com/JuanjoAvila/Aely/actions/runs/36352234935) SUCCESS.
+
+Manifiesto estable y APP_VERSION4.26.57, SW4.26.57-2026-09-27-ece3a2d. ZIP SHA256 556b51d313db350398adabf4be63743c224f7548b91f5a8e5ee6949e9221e871. index.html/sw.js/apk.json del ZIP son idénticos a sus respuestas HTTP, sintaxis del monolito minificado comprobada y fronteras mcLogEvent/mcLogCode/mcLogText/mcSentryEvent presentes. APK estable48 intacta. Esto acredita cliente servido, no configuración Sentry en servidor ni anonimato global. No se consulta dinero ni logs familiares.
+
+Antes del merge se publicó beta4.26.58.1/2a0e2d3a, Claude GO exacto y workflow [36351420037](https://github.com/JuanjoAvila/Aely/actions/runs/36351420037) SUCCESS. Huella3d91ae84731dfffa coincide con manifiesto, APP_VERSION58.1 y SW2a0e2d3; index normalizado y APK51 byteidénticos a beta57.1/f235. Cinco guiones financieros trasladados íntegros, sin duplicados, visibles frente a prod57. FIN-05/06, selector y TR siguen pendientes de sus pruebas reales; SEC-03 no concede aprobación por asociación.
+
+El cierre del día solicitado registra14 incidencias y todos los objetivos anteriores en BACKLOG, sin implementar arreglos adicionales ni reescribir historial público. El commit documental posterior solo cambia .md y no modifica ningún artefacto cliente/Edge/Android.
