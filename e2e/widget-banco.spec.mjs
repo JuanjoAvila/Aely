@@ -35,8 +35,10 @@ test("FIN-05: app y widget excluyen lápidas conservadas al reabrir después de 
   await page.goto("/");
   await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.budgetLeft)).toBe(819);
   await dismissNews(page);
-  await expect(page.locator('.page-live .v4-mov').filter({ hasText: "Compra ficticia" })).toHaveCount(1);
-  await expect(page.locator('.page-live .v4-mov').filter({ hasText: /Borrado ficticio|Ingreso borrado/ })).toHaveCount(0);
+  // page-live también monta Gastos como vecino: comprobar Inicio, no ambas listas juntas.
+  const inicio = page.locator('.page').filter({ has: page.locator('.v4-inicio-head') });
+  await expect(inicio.locator('.v4-mov').filter({ hasText: "Compra ficticia" })).toHaveCount(1);
+  await expect(inicio.locator('.v4-mov').filter({ hasText: /Borrado ficticio|Ingreso borrado/ })).toHaveCount(0);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   const bar = page.locator('.v4-gastos-progress[role="progressbar"]');
   await expect(bar).toHaveAttribute("aria-valuenow", "181");

@@ -30,6 +30,8 @@ Claude REAL analizó base5d5b8d0f sin atribuir causa única desde código; revis
 
 Con la copia capturada del estado y la corrección, añadir la única fila nueva visible de la nube produce delta5.45 y la misma cifra que el widget capturado. Verificado sin escrituras ni nuevos pulls. Sondas, build diagnóstica, copia del APK y copias temporales con sesiones retiradas; evidencia nativa privada mínima fuera del repo. APK original sin DEBUGGABLE verificada tras restauración.
 
+Primer CI beta del SHA6fcc3e0e, Action36324412504: publicación bloqueada, sin assets nuevos. Guardianes de lógica y cuatro ficheros Deno PASS; rendimiento7PASS; funcional442PASS,2flaky que pasan al reintentar,1omitido,1fallo. El fallo es el selector nuevo `.page-live .v4-mov`: page-live incluye vecinos montados, así que contaba la compra una vez en Inicio y otra en Gastos. Se acota por la cabecera de Inicio sin cambiar app/bundle. Verificación local posterior con configuraciónCI y dos repeticiones:14/14PASS. Las dos flaky ajenas no se retocan en este objetivo. Pendiente CI del selector corregido y publicación.
+
 ## Validación móvil pendiente
 
 Publicar beta solo tras verificación/revisión. Abrir candidata, comprobar versión efectiva y anotar Gastado/saldo del widget; cerrar app. Próxima compra habitual: conservar notificación/hora/cifras antes/después. Gastado debe variar solo por el pago con redondeo entero; reabrir no debe descontar otra vez. FIN-05 abierto hasta ese veredicto. Producción requiere aprobación final explícita.
