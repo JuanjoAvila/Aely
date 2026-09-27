@@ -1,7 +1,6 @@
 # Aely
 
-OPS-02 (27/9): ensayo sintético de copias y siguiente pull ejecutado; la restauración actual
-no garantiza una foto estable ni idéntica en otro cliente. [Resultados y propuesta](docs/briefs/ops02-restauracion-probada.md).
+OPS-02 (27/9): Copias automáticas abre una vista de solo lectura para comparar movimientos y otros datos, sin sustituir la cartera. [Contrato y evidencia](docs/briefs/ops02-restauracion-probada.md).
 
 PWA de finanzas personales: patrimonio neto, gastos variables, costes fijos, inversiones (multi-bróker) y deudas. Móvil-first, instalable, con sincronización automática de gastos vía notificaciones del banco.
 
@@ -33,7 +32,7 @@ mi-cartera/
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
-├── e2e/                    # Playwright: pantallas, persistencia, restauración y sincronización sintética
+├── e2e/                    # Playwright: pantallas, persistencia, copias aisladas y sincronización sintética
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
@@ -84,7 +83,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-> Estado actual: **v4.26.55** publicada como beta **4.26.55.1** — presupuesto coherente y recuperación del widget persistido. APK51 verificado e instalado en el móvil de pruebas; widget recuperado y Gastado/Disponible estables al reabrir; saldo entre fotos y compra real pendientes. Action36327745655 verde, fuente b5f1365f. Producción4.26.52. [Evidencia](docs/briefs/fin05-pago-cerrada-2026-09-27.md).
+> Estado actual: **v4.26.56** candidata, sin publicar: visor aislado de copias. Beta publicada 4.26.55.1; producción 4.26.52; APK 51 sin cambios. FIN-05 conserva la compra real pendiente. [Evidencia OPS-02](docs/briefs/ops02-restauracion-probada.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.

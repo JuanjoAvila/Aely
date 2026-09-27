@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.56",
+    "d": "2026-09-27",
+    "t": {
+      "es": "Copias de seguridad para comparar",
+      "en": "Compare your backups",
+      "ca": "Còpies de seguretat per comparar"
+    },
+    "items": {
+      "es": [
+        "Las copias se abren en una vista de solo lectura para comparar movimientos y otros datos sin sustituir la cartera. Las copias dañadas se rechazan antes de abrirse."
+      ],
+      "en": [
+        "Backups open in a read-only view to compare transactions and other data without replacing your portfolio. Damaged backups are rejected before opening."
+      ],
+      "ca": [
+        "Les còpies s’obren en una vista de només lectura per comparar moviments i altres dades sense substituir la cartera. Les còpies malmeses es rebutgen abans d’obrir-se."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "ops02-copias-comparar",
+        "t": {
+          "es": "Copias de seguridad para comparar",
+          "en": "Compare your backups",
+          "ca": "Còpies de seguretat per comparar"
+        },
+        "items": {
+          "es": [
+            "1. Abre Ajustes → Copia de seguridad → Copias automáticas y pulsa Ver copia. Comprueba los movimientos distintos y abre uno para comparar sus campos.",
+            "2. Vuelve a las copias y a Ajustes. Comprueba que la cartera conserva sus datos y que no se ofrece aplicar ni sustituir la copia."
+          ],
+          "en": [
+            "1. Open Settings → Backup → Automatic backups and tap View backup. Check changed transactions and open one to compare its fields.",
+            "2. Return to backups and Settings. Check that the portfolio retains its data and there is no option to apply or replace the backup."
+          ],
+          "ca": [
+            "1. Obre Configuració → Còpia de seguretat → Còpies automàtiques i prem Veure còpia. Comprova els moviments diferents i obre’n un per comparar els camps.",
+            "2. Torna a les còpies i a Configuració. Comprova que la cartera conserva les dades i que no s’ofereix aplicar ni substituir la còpia."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.55",
     "d": "27 sep 2026",
     "t": {

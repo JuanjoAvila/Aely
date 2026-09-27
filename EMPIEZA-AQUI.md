@@ -12,8 +12,8 @@ sesión del móvil se gastó la mitad trabajando sobre una rama equivocada.
 ## 1. Lo primero, siempre
 
 OPS-02: [ensayo de restauración del 27/9](docs/briefs/ops02-restauracion-probada.md).
-No asumir que restaurar solo cambia el móvil: el push posterior modifica `app_state` y el
-pull/backfill puede resucitar filas de la copia. No usar la cartera real para repetir el ensayo.
+Candidato4.26.56 sustituye el reemplazo conectado por una vista aislada. La recuperación
+compartida sigue pendiente; repetir las pruebas solo con datos sintéticos.
 
 ```bash
 git fetch --all --prune && git log --oneline -5 refs/heads/beta && cat VERSION

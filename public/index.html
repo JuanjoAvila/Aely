@@ -4478,6 +4478,102 @@ function validCloudState(s){
   return ["accounts","investments","debts","fixed"].every(function(k){ return Array.isArray(s[k]); });
 }
 
+/* La copia se inspecciona sin normalizarla: corregirla al abrir ocultaría datos dañados y
+   haría pasar por recuperación una identidad inventada (ensayo OPS-02, 2026-09-27). */
+function validateBackupSnapshot(s){
+  const object=function(v){ return v!=null && typeof v==="object" && !Array.isArray(v); };
+  const bad=function(reason){ return {ok:false,reason:reason}; };
+  if(!object(s)) return bad("root");
+  const required=["accounts","investments","debts","fixed","expenses"];
+  for(const key of required){ if(!Array.isArray(s[key])) return bad("arrays"); }
+  const arrays=required.concat(["assets","goals","flows","oneoffs","aportaciones","shared","obAccounts"]);
+  for(const key of arrays){
+    if(s[key]==null && required.indexOf(key)<0) continue;
+    if(!Array.isArray(s[key]) || s[key].some(function(v){ return !object(v); })) return bad("rows");
+  }
+  if(s.settings!=null && !object(s.settings)) return bad("settings");
+  if(s.deleted!=null && (!Array.isArray(s.deleted) || s.deleted.some(function(k){ return typeof k!=="string"; }))) return bad("deleted");
+  const seen=Object.create(null);
+  for(const e of s.expenses){
+    if(isExpenseUuid(e.id)){
+      if(seen[e.id]) return bad("duplicate_id");
+      seen[e.id]=true;
+    }
+    if(typeof e.amount!=="number" || !Number.isFinite(e.amount)) return bad("amount");
+    // La app conserva también fechas d/m/a y milisegundos. No convertirlas ni usar
+    // dateMs: su fallback a hoy haría pasar una fecha ilegible por una fecha conocida.
+    const rawDate=typeof e.date==="string"?e.date.trim():e.date;
+    const ms=typeof rawDate==="number"?new Date(rawDate).getTime():typeof rawDate==="string" && rawDate?_pdMs(rawDate):NaN;
+    if(!Number.isFinite(ms)) return bad("date");
+    const iso=typeof rawDate==="string" && rawDate.match(/^(\d{4})-(\d{2})-(\d{2})(?:T|$)/);
+    const human=typeof rawDate==="string" && rawDate.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+    if(iso || human){
+      let y=+(iso?iso[1]:human[3]); if(human && y<100) y+=2000;
+      const m=+(iso?iso[2]:human[2]), d=+(iso?iso[3]:human[1]);
+      const check=new Date(0); check.setUTCHours(0,0,0,0); check.setUTCFullYear(y,m-1,d);
+      if(check.getUTCFullYear()!==y || check.getUTCMonth()!==m-1 || check.getUTCDate()!==d) return bad("date");
+    }
+    // Metadatos antiguos se muestran crudos, nunca se aplican: no impedir inspeccionarlos.
+    // Sin UUID válido se conserva la fila separada, sin inventar una identidad.
+    if(e.origAmount!=null && (typeof e.origAmount!=="number" || !Number.isFinite(e.origAmount))) return bad("amount");
+  }
+  // Un objeto recibido de JSON no tiene ciclos ni NaN; esto protege también llamadas locales.
+  const json=function(v,depth){
+    if(depth>40) return false;
+    if(v===null || typeof v==="string" || typeof v==="boolean") return true;
+    if(typeof v==="number") return Number.isFinite(v);
+    if(typeof v!=="object") return false;
+    return Object.keys(v).every(function(k){ return json(v[k],depth+1); });
+  };
+  if(!json(s,0)) return bad("json");
+  return {ok:true};
+}
+function backupFieldValue(v){
+  if(v===undefined) return undefined;
+  const sorted=function(x){
+    if(Array.isArray(x)) return x.map(sorted);
+    if(x && typeof x==="object"){
+      const out=Object.create(null); Object.keys(x).sort().forEach(function(k){ out[k]=sorted(x[k]); }); return out;
+    }
+    return x;
+  };
+  return JSON.stringify(sorted(v));
+}
+function backupChangedFields(a,b,ignored){
+  const keys=Array.from(new Set(Object.keys(a||{}).concat(Object.keys(b||{})))).sort();
+  return keys.filter(function(k){ return (!ignored || ignored.indexOf(k)<0) && backupFieldValue(a&&a[k])!==backupFieldValue(b&&b[k]); });
+}
+function compareBackupExpenses(copy,current){
+  const list=[], byId=Object.create(null), counts={same:0,changed:0,copyOnly:0,currentOnly:0,legacy:0};
+  const currentCounts=Object.create(null);
+  (current||[]).forEach(function(e){ if(e && isExpenseUuid(e.id)){ currentCounts[e.id]=(currentCounts[e.id]||0)+1; byId[e.id]=e; } });
+  const matched=Object.create(null);
+  const add=function(status,a,b,fields){ counts[status]++; list.push({status:status,copy:a||null,current:b||null,fields:fields||[]}); };
+  (copy||[]).forEach(function(e){
+    // Un UUID duplicado en la cartera actual también es ambiguo: no escoger una fila a ciegas.
+    if(!isExpenseUuid(e.id) || currentCounts[e.id]>1){ add("legacy",e,null); return; }
+    const other=byId[e.id];
+    if(!other){ add("copyOnly",e,null); return; }
+    matched[e.id]=true;
+    const fields=backupChangedFields(e,other);
+    add(fields.length?"changed":"same",e,other,fields);
+  });
+  (current||[]).forEach(function(e){
+    if(!e) return;
+    if(!isExpenseUuid(e.id) || currentCounts[e.id]>1){ add("legacy",null,e); return; }
+    if(!matched[e.id]) add("currentOnly",null,e);
+  });
+  const sum=function(rows){
+    let n=0;
+    for(const e of rows||[]){
+      if(!e || typeof e.amount!=="number" || !Number.isFinite(e.amount)) return null;
+      n+=e.amount; if(!Number.isFinite(n)) return null;
+    }
+    return n;
+  };
+  return {list:list,counts:counts,copySum:sum(copy),currentSum:sum(current)};
+}
+
 /* Para el push FRECUENTE a la nube (cada ~1,2s): los gastos viven en su tabla `expenses`
    (fuente de verdad), así que NO los duplicamos en el JSONB de app_state → se mantiene ligero
    aunque haya miles de gastos. El backup diario sí guarda el estado completo. */
@@ -5411,7 +5507,7 @@ Object.assign(LANG.es,{
   au_forgot:"¿Olvidaste tu contraseña?", au_reset_title:"Recuperar contraseña", au_reset_send:"Enviar email de recuperación", au_reset_sent:"📩 Si el email existe, te hemos enviado un enlace para cambiarla.", au_need_email:"Pon tu email", au_newpass_title:"Nueva contraseña", au_newpass_save:"Guardar contraseña", au_pass_changed:"✓ Contraseña actualizada", au_pass_short:"Mínimo 6 caracteres", au_back:"← Volver",
   au_need:"Pon email y contraseña", au_signedin:"✓ Sesión iniciada", au_created:"✓ Cuenta creada", au_signedout:"Sesión cerrada", au_bio_dis:"Huella desactivada", au_bio_en:"✓ Huella activada",
   st_budget_saved:"✓ Presupuesto guardado", st_backup_dl:"✓ Backup descargado", st_imported:"✓ Datos importados", st_badfile:"El archivo no parece un backup válido", st_confirm_import:"¿Restaurar esta copia de seguridad?", st_confirm_import_sub:"Reemplazará TODOS tus datos actuales por los del archivo. Esto no se puede deshacer.", st_confirm_import_ok:"Restaurar",
-  bk_auto_title:"Copias automáticas", bk_auto_hint:"Cada día se guarda una copia completa de tus datos en la nube (se conservan los últimos 30 días). Si algo se descuadra —una importación que salió mal, un banco que se lió—, puedes volver a cómo estaba ese día.", bk_auto_none:"Aún no hay copias guardadas (la primera se hace sola en cuanto abras la app un día entero).", bk_auto_confirm:"¿Restaurar la copia del {day}?",
+  bk_auto_title:"Copias automáticas", bk_auto_hint:"Las copias diarias se guardan en la nube durante 30 días. Puedes abrirlas y compararlas sin cambiar tu cartera.", bk_auto_none:"Aún no hay copias guardadas.", bk_auto_confirm:"¿Restaurar la copia del {day}?",
 });
 
 
@@ -6660,6 +6756,73 @@ function loadState(){
   applyA11y(init);
   return init;
 }
+
+
+Object.assign(LANG.es,{
+  "bk_view": "Ver copia",
+  "bk_back_copies": "Volver a las copias",
+  "bk_preview_title": "Copia del {day}",
+  "bk_preview_hint": "Solo lectura. Puedes comparar esta copia con tu cartera actual. Abrirla o cerrarla no sustituye datos ni los envía a la nube.",
+  "bk_copy": "Copia",
+  "bk_current": "Cartera actual",
+  "bk_counts": "Movimientos: {copy} en la copia · {current} en la cartera",
+  "bk_sums": "Suma de importes guardados: {copy} en la copia · {current} en la cartera",
+  "bk_sums_hint": "Control de registros sin conversión de moneda: no es tu saldo ni cuánto puedes gastar. Igual suma no significa iguales movimientos.",
+  "bk_movements": "Comparar movimientos",
+  "bk_identity_hint": "Solo se comparan filas con el mismo identificador único. Los registros antiguos o ambiguos se muestran separados; el parecido no demuestra que sean el mismo pago.",
+  "bk_empty": "No hay diferencias en esta selección.",
+  "bk_more": "Mostrar más",
+  "bk_other_data": "Otros datos que difieren",
+  "bk_recovery_limit": "Esta vista no aplica una restauración. Recuperar datos en la cartera compartida requiere revisar las decisiones y los cambios posteriores a la copia.",
+  "bk_row_id": "Identificador: {id}",
+  "bk_unnamed": "Sin nombre guardado",
+  "bk_status_all": "Todos",
+  "bk_status_changed": "Campos distintos",
+  "bk_status_copyOnly": "Solo en la copia",
+  "bk_status_currentOnly": "Solo en la cartera",
+  "bk_status_same": "Iguales",
+  "bk_status_legacy": "Sin correspondencia segura",
+  "bk_invalid_reason": "No se puede abrir la copia: {reason}",
+  "bk_invalid_root": "el contenido no es un objeto válido",
+  "bk_invalid_arrays": "faltan listas de datos o su formato es incorrecto",
+  "bk_invalid_rows": "hay registros con formato incorrecto",
+  "bk_invalid_settings": "los ajustes tienen un formato incorrecto",
+  "bk_invalid_deleted": "la lista de borrados tiene un formato incorrecto",
+  "bk_invalid_duplicate_id": "hay identificadores repetidos",
+  "bk_invalid_amount": "hay importes inválidos",
+  "bk_invalid_date": "hay fechas inválidas",
+  "bk_invalid_json": "hay datos no compatibles con una copia",
+  "bk_field_id": "Identificador",
+  "bk_field_date": "Fecha",
+  "bk_field_merchant": "Comercio",
+  "bk_field_amount": "Importe guardado",
+  "bk_field_category": "Categoría",
+  "bk_field_note": "Nota",
+  "bk_field_noteEdited": "Nota editada",
+  "bk_field_possibleDup": "Posible repetido",
+  "bk_field_possibleDupOf": "Referencia al otro movimiento",
+  "bk_field_source": "Origen",
+  "bk_field_ent": "Banco",
+  "bk_field_noCard": "Sin tarjeta",
+  "bk_field_origAmount": "Importe original",
+  "bk_field_origCur": "Moneda original",
+  "bk_field_obName": "Nombre del banco",
+  "bk_field_extId": "Referencia de origen",
+  "bk_field_debtId": "Deuda vinculada",
+  "bk_field_accounts": "Cuentas",
+  "bk_field_investments": "Inversiones",
+  "bk_field_assets": "Bienes",
+  "bk_field_debts": "Deudas",
+  "bk_field_fixed": "Recibos",
+  "bk_field_goals": "Metas",
+  "bk_field_settings": "Ajustes",
+  "bk_field_deleted": "Borrados recordados",
+  "bk_field_bankTx": "Movimientos de bancos",
+  "bk_field_budget": "Presupuesto"
+});
+
+
+
 
 /* ============================================================
    ICONOS
@@ -18627,41 +18790,37 @@ function FeedbackPanel({state, set, showToast, onClose}){
   ));
 }
 
-/* ============================================================
-   🕐 COPIAS AUTOMÁTICAS — restaurar un día de `state_backups` (2026-07-31).
-   La copia diaria YA SE ESCRIBÍA sola (backupState, 11-app-main.js) desde hace tiempo, pero era
-   de solo escritura: nadie podía MIRARLA ni restaurarla desde la app. Se echó en falta de verdad
-   con un desastre real de importación (cuenta a -9k una semana entera, reconectando el banco una
-   y otra vez sin arreglarlo): con esto habría sido un «Restaurar ayer» y listo, en vez de limpiar
-   a mano gasto a gasto. Reutiliza el MISMO camino que ya prueba `doImport` del JSON manual
-   (mcSaveRaw + set + askConfirm de dos pasos): restaurar un día es la misma operación peligrosa
-   que restaurar un fichero, solo que el fichero lo trae la nube en vez de tu disco.
-   ============================================================ */
-function AutoBackupsPanel({state, set, showToast, uid, onClose}){
-  useBackClose(true, onClose);
+/* El reemplazo conectado resucitaba borrados en el siguiente pull (OPS-02, 2026-09-27).
+   El visor mantiene la copia en este componente: nunca llama al set de App ni al guardado. */
+function AutoBackupsPanel({state, showToast, uid, onClose}){
+  const [preview,setPreview]=useState(null);
+  const mounted=useRef(true);
+  useBackClose(true, function(){ if(preview) setPreview(null); else onClose(); });
   const [days,setDays]=useState(null);     // null = cargando
   const [busy,setBusy]=useState("");
   useEffect(function(){
+    mounted.current=true;
     cloud.listBackupDays(uid).then(function(rows){ setDays(rows||[]); })
       .catch(function(e){ setDays([]); showToast("⚠ "+((e&&e.message)||e)); });
+    return function(){ mounted.current=false; };
   },[uid]);
-  const restore=function(day){
-    askConfirm({ title:tf("bk_auto_confirm",{day:day}), sub:t("st_confirm_import_sub"), ok:t("st_confirm_import_ok"), danger:true })
-      .then(function(yes){
-        if(!yes) return;
-        setBusy(day);
-        cloud.getBackup(uid, day).then(function(data){
-          if(!data || !data.accounts){ showToast("✕ "+t("st_badfile")); return; }
-          mcSaveRaw(mcStateKey(), data); set(function(){ return data; });
-          showToast(t("st_imported")); onClose();
-        }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); }).finally(function(){ setBusy(""); });
-      });
+  const inspect=function(day){
+    setBusy(day);
+    cloud.getBackup(uid, day).then(function(data){
+      if(!mounted.current) return;
+      const check=validateBackupSnapshot(data);
+      if(!check.ok){ showToast("✕ "+tf("bk_invalid_reason",{reason:t("bk_invalid_"+check.reason)})); return; }
+      setPreview({day:day,data:data});
+    }).catch(function(e){ if(mounted.current) showToast("⚠ "+((e&&e.message)||e)); })
+      .finally(function(){ if(mounted.current) setBusy(""); });
   };
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
   const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const dayRow={display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,padding:"12px 14px",borderRadius:12,border:"1px solid var(--line)",marginBottom:8};
   const fmtDay=function(d){ try{ return new Date(d+"T12:00:00").toLocaleDateString(loc(),{weekday:"short",day:"2-digit",month:"short"}); }catch(e){ return d; } };
+  if(preview) return React.createElement("div",{className:"bk-preview",style:wrap},
+    React.createElement(BackupRecoveryPreview,{snapshot:preview.data,current:state,day:preview.day,onClose:function(){ setPreview(null); }}));
   return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
     React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("st_back_settings")),
     React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 4px"}}, t("bk_auto_title")),
@@ -18671,10 +18830,61 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
     days!==null && days.map(function(d){
       return React.createElement("div",{key:d,style:dayRow},
         React.createElement("div",{style:{fontWeight:700,fontSize:14,textTransform:"capitalize"}}, fmtDay(d)),
-        React.createElement("button",{className:"btn btn-ghost",disabled:!!busy,onClick:function(){ restore(d); }}, busy===d?"…":t("st_confirm_import_ok"))
+        React.createElement("button",{className:"btn btn-ghost",disabled:!!busy,onClick:function(){ inspect(d); }}, busy===d?"…":t("bk_view"))
       );
     })
   ));
+}
+
+function BackupRecoveryPreview({snapshot,current,day,onClose}){
+  const [filter,setFilter]=useState("changed"), [limit,setLimit]=useState(30), [detail,setDetail]=useState(null);
+  const compared=useMemo(function(){ return compareBackupExpenses(snapshot.expenses,current.expenses); },[snapshot.expenses,current.expenses]);
+  const stateFields=useMemo(function(){
+    // Los sellos de transporte no son una diferencia financiera de la copia.
+    return backupChangedFields(snapshot,current,["expenses","_savedAt","lastSync","lastPriceSync","lastBackup"]);
+  },[snapshot,current]);
+  const rows=compared.list.filter(function(r){ return filter==="all" || r.status===filter; });
+  const label=function(k){ return LANG.es["bk_field_"+k] ? t("bk_field_"+k) : k; };
+  const value=function(v){ const raw=backupFieldValue(v); return raw===undefined ? "—" : raw; };
+  const sumValue=function(n){ return n==null?"—":n.toLocaleString(loc(),{maximumFractionDigits:2}); };
+  const textStyle={fontSize:12,whiteSpace:"pre-wrap",overflowWrap:"anywhere",margin:0};
+  const cardStyle={padding:12,border:"1px solid var(--line)",borderRadius:12,marginBottom:10};
+  const pair=function(k,a,b){ return React.createElement("div",{key:k,style:cardStyle},
+    React.createElement("div",{style:{fontWeight:700,marginBottom:6}},label(k)),
+    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"minmax(0,1fr) minmax(0,1fr)",gap:10}},
+      React.createElement("div",null,React.createElement("div",{style:{fontSize:11,color:"var(--muted)"}},t("bk_copy")),React.createElement("pre",{style:textStyle},value(a))),
+      React.createElement("div",null,React.createElement("div",{style:{fontSize:11,color:"var(--muted)"}},t("bk_current")),React.createElement("pre",{style:textStyle},value(b)))));
+  };
+  return React.createElement("div",{style:{maxWidth:480,margin:"0 auto"}},
+    React.createElement("button",{className:"btn btn-ghost bk-close",onClick:onClose},"‹ "+t("bk_back_copies")),
+    React.createElement("h2",{className:"serif",style:{fontSize:25}},tf("bk_preview_title",{day:day})),
+    React.createElement("div",{className:"hint",style:{marginBottom:14}},t("bk_preview_hint")),
+    React.createElement("div",{className:"bk-counts",style:cardStyle},
+      tf("bk_counts",{copy:snapshot.expenses.length,current:(current.expenses||[]).length}),
+      React.createElement("div",{style:{fontSize:12,marginTop:6}},tf("bk_sums",{copy:sumValue(compared.copySum),current:sumValue(compared.currentSum)})),
+      React.createElement("div",{className:"hint",style:{marginTop:6}},t("bk_sums_hint"))),
+    React.createElement("h3",null,t("bk_movements")),
+    React.createElement("div",{style:{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}},
+      ["all","changed","copyOnly","currentOnly","same","legacy"].map(function(k){
+        return React.createElement("button",{key:k,className:"chip"+(filter===k?" active":""), "aria-pressed":filter===k,onClick:function(){ setFilter(k); setLimit(30); setDetail(null); }},
+          t("bk_status_"+k)+" · "+(k==="all"?compared.list.length:compared.counts[k]));
+      })),
+    React.createElement("div",{className:"hint",style:{marginBottom:10}},t("bk_identity_hint")),
+    rows.length===0 && React.createElement("div",{className:"hint"},t("bk_empty")),
+    rows.slice(0,limit).map(function(r,i){ const e=r.copy||r.current; return React.createElement("div",{key:r.status+":"+e.id+":"+i,className:"bk-expense",style:cardStyle},
+      React.createElement("button",{className:"btn btn-ghost",style:{textAlign:"left",width:"100%",whiteSpace:"normal",overflowWrap:"anywhere"},onClick:function(){ setDetail(detail===r?null:r); }},
+        (typeof e.merchant==="string" && e.merchant?e.merchant:t("bk_unnamed"))+" · "+t("bk_status_"+r.status)),
+      React.createElement("div",{style:textStyle},tf("bk_row_id",{id:typeof e.id==="string"?e.id:value(e.id)})),
+      detail===r && React.createElement("div",{className:"bk-expense-fields"},
+        (r.fields.length?r.fields:Object.keys(e).sort()).map(function(k){ return pair(k,r.copy?r.copy[k]:undefined,r.current?r.current[k]:undefined); }))
+    ); }),
+    rows.length>limit && React.createElement("button",{className:"btn btn-ghost",onClick:function(){setLimit(limit+30);}},t("bk_more")),
+    React.createElement("h3",null,t("bk_other_data")),
+    stateFields.length===0 ? React.createElement("div",{className:"hint"},t("bk_empty")) :
+      stateFields.map(function(k){ return React.createElement("details",{key:k,className:"bk-state-field",style:cardStyle},
+        React.createElement("summary",null,label(k)),pair(k,snapshot[k],current[k])); }),
+    React.createElement("div",{className:"hint",style:{marginTop:14}},t("bk_recovery_limit"))
+  );
 }
 
 /* ============================================================
@@ -19605,7 +19815,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         return ents.length?ents:null;
       })()
     }), document.body),
-    autoBackOpen && ReactDOM.createPortal(React.createElement(AutoBackupsPanel,{state:state,set:set,showToast:showToast,uid:uid,onClose:function(){ setAutoBackOpen(false); }}), document.body),
+    autoBackOpen && ReactDOM.createPortal(React.createElement(AutoBackupsPanel,{state:state,showToast:showToast,uid:uid,onClose:function(){ setAutoBackOpen(false); }}), document.body),
     actOpen && ReactDOM.createPortal(React.createElement(ActivityPanel,{events:events,onReload:loadEvents,onClose:function(){ setActOpen(false); }}), document.body),
     privOpen && ReactDOM.createPortal(React.createElement(PrivacyPanel,{onClose:function(){ setPrivOpen(false); }}), document.body),
     convOpen && ReactDOM.createPortal(React.createElement(CurConverterPanel,{state:state,refreshFx:refreshFx,onClose:function(){ setConvOpen(false); }}), document.body),

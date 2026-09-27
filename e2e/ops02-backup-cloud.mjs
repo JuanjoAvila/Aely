@@ -13,7 +13,7 @@ export function backupCloud() {
       calls.push(clone(q));
       if (offline) return { data:null, error:{ message:"OPS02 sin red sintética" } };
       const rows = db[q.table] || (db[q.table] = []);
-      const matches = r => q.filters.every(([op,k,v]) => op === "eq" ? r[k] === v : r[k] < v);
+      const matches = r => q.filters.every(([op,k,v]) => op === "eq" ? r[k] === v : op === "in" ? v.includes(r[k]) : r[k] < v);
       let data;
       if (q.op === "read") data = rows.filter(matches);
       else if (q.op === "delete") {
@@ -24,7 +24,8 @@ export function backupCloud() {
         data = [];
         for (const value of Array.isArray(q.payload) ? q.payload : [q.payload]) {
           const keys = (q.options?.onConflict || "id").split(",");
-          const previous = rows.find(r => keys.every(k => r[k] === value[k]) || (value.id && r.id === value.id));
+          const previous = rows.find(r => keys.every(k => r[k] === value[k]));
+          if(!previous && value.id && rows.some(r=>r.id===value.id)) return {data:null,error:{code:"23505",message:"OPS02 conflicto de clave primaria"}};
           if (previous && q.options?.ignoreDuplicates) continue;
           if (previous) { Object.assign(previous, clone(value)); data.push(previous); }
           else { const added = clone(value); rows.push(added); data.push(added); }
@@ -83,6 +84,7 @@ export async function client(page, server, overrides = {}) {
       const c = {
         select:()=>c, order:(k,o)=>{q.orders.push([k,o]);return c;},
         eq:(k,v)=>{q.filters.push(["eq",k,v]);return c;}, lt:(k,v)=>{q.filters.push(["lt",k,v]);return c;},
+        in:(k,v)=>{q.filters.push(["in",k,v]);return c;},
         limit:n=>{q.limit=n;return c;},
         update:p=>{q.op="update";q.payload=p;return c;},
         upsert:(p,o)=>{q.op="upsert";q.payload=p;q.options=o;return c;},
@@ -108,15 +110,13 @@ export async function client(page, server, overrides = {}) {
 }
 export async function openBackups(page) {
   await page.evaluate(()=>window.dispatchEvent(new CustomEvent("mc-open-settings")));
-  await page.getByRole("button",{name:/Copia de seguridad/,exact:false}).click();
-  await page.getByRole("button",{name:/Copias automáticas/}).click();
-  await expect(page.getByRole("button",{name:"Restaurar",exact:true})).toBeVisible();
+  await page.getByRole("button",{name:"🗄️ "+await page.evaluate(()=>t("backup"))+" ›",exact:true}).click();
+  await page.getByRole("button",{name:await page.evaluate(()=>t("bk_auto_title"))}).click();
+  await expect(page.getByRole("button",{name:await page.evaluate(()=>t("bk_view")),exact:true})).toBeVisible();
 }
-export async function restore(page, yes = true) {
-  await page.getByRole("button",{name:"Restaurar",exact:true}).click();
-  const dialog = page.getByRole("dialog");
-  await expect(dialog).toBeVisible();
-  await dialog.getByRole("button",{name:yes?"Restaurar":"Cancelar",exact:true}).click();
+export async function viewCopy(page) {
+  await page.getByRole("button",{name:await page.evaluate(()=>t("bk_view")),exact:true}).click();
+  await expect(page.locator(".bk-preview")).toBeVisible();
 }
 export async function pull(page, server) {
   const before = server.calls.filter(q=>q.table==="expenses" && q.op==="read").length;

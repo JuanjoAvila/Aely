@@ -180,16 +180,17 @@ vigila que el trabajo no crezca con el histórico; esto vigila lo que hay que ba
 
 ## Flujo de datos
 
-### Restauración de copias (OPS-02, ensayo del 27/9/2026)
+### Consulta de copias (OPS-02, candidato4.26.56)
 
-`AutoBackupsPanel` sustituye las dos mitades locales mediante `mcSaveRaw` y `set` de App.
-No escribe directamente `expenses`, pero el cambio dispara el push debounced de `app_state`
-(cuentas, presupuesto y lápidas; sin gastos ni `bankTx`). El siguiente `syncCloudExpenses`
-añade/refresca filas remotas y hace backfill de gastos locales ausentes. Puede volver a subir un
-UUID borrado después de la copia: no es una restauración exacta ni exclusivamente local.
-`possibleDupOf`/`extId` locales no se recuperan desde la tabla en un segundo cliente.
-Validación de copia insuficiente: `accounts` truthy no garantiza arrays/filas válidos.
-[Resultados, límites del doble y propuesta todavía no aplicada](briefs/ops02-restauracion-probada.md).
+`AutoBackupsPanel` valida la copia y la mantiene en su estado React propio. El visor compara
+UUID/campos e importes guardados con la cartera actual y pagina los registros. No llama al
+`set` de App, `mcSaveRaw` ni a escritores cloud; el pull ordinario de App continúa sobre la
+cartera activa, sin mezclar la copia. Legado/UUID repetidos de la cartera actual quedan sin
+correspondencia segura. Copia corrupta rechazada antes de abrir.
+La recuperación compartida permanece desactivada: el antiguo reemplazo conectado, reproducido
+en la base `f7b66aef`, modificaba `app_state` y podía resucitar borrados por backfill. El diseño
+de una aplicación financiera requiere identidad/revisión/ACK y autorización propios.
+[Ensayo histórico, aceptación del visor y límites](briefs/ops02-restauracion-probada.md).
 
 El widget recibe `monthBudgetStats` desde la app al cambiar sus cifras. Al volver a primer plano,
 `visibilitychange` o `App.appStateChange` disparan primero la lectura de gastos de Supabase y

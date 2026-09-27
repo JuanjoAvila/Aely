@@ -1,8 +1,10 @@
-OPS-02 (27/9): `e2e/backup-restauracion.spec.mjs` (diez casos) usa el doble mutable compartido
-`e2e/ops02-backup-cloud.mjs`, con red externa bloqueada, y ejecuta App/cloud reales. Comprueba
-ambas mitades, campos/UUID/sumas independientes, push/backfill, decisiones desde Gastos,
-lápidas, reinicio/B, corrupción y fallos de transporte. Registrado para el módulo 10; 00/11
-exigen suite completa. [Guion, resultados y límites](briefs/ops02-restauracion-probada.md).
+OPS-02 (candidata 4.26.56): `tests/backup-snapshot.test.mjs` contiene 23 guardianes del
+validador/comparador, registrado en run-tests. `e2e/backup-restauracion.spec.mjs` contiene once
+casos DOM del visor aislado, ambas claves intactas, cero escrituras financieras atribuibles,
+UUID/campos/sumas, pull/reinicio/B, corrupción, transporte y tres idiomas. El doble mutable
+`e2e/ops02-backup-cloud.mjs` ejecuta App/cloud reales con red externa bloqueada; no demuestra
+SQL/RLS. La caracterización anterior vive en SHA `bc2fa093`. Registrado para módulo 10;
+00/11 exigen suite completa. [Contrato, resultados y límites](briefs/ops02-restauracion-probada.md).
 
 Widget banco (4.26.50): `e2e/widget-banco.spec.mjs` abre Ajustes y cambia el banco con saldo idéntico, verifica el payload nativo y persistencia tras recarga, suma de cuentas sin opciones repetidas y retirada del banco elegido. Registrado para el módulo 10; el módulo 11 obliga a suite completa.
 

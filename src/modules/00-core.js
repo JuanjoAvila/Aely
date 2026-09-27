@@ -2115,6 +2115,102 @@ function validCloudState(s){
   return ["accounts","investments","debts","fixed"].every(function(k){ return Array.isArray(s[k]); });
 }
 
+/* La copia se inspecciona sin normalizarla: corregirla al abrir ocultaría datos dañados y
+   haría pasar por recuperación una identidad inventada (ensayo OPS-02, 2026-09-27). */
+function validateBackupSnapshot(s){
+  const object=function(v){ return v!=null && typeof v==="object" && !Array.isArray(v); };
+  const bad=function(reason){ return {ok:false,reason:reason}; };
+  if(!object(s)) return bad("root");
+  const required=["accounts","investments","debts","fixed","expenses"];
+  for(const key of required){ if(!Array.isArray(s[key])) return bad("arrays"); }
+  const arrays=required.concat(["assets","goals","flows","oneoffs","aportaciones","shared","obAccounts"]);
+  for(const key of arrays){
+    if(s[key]==null && required.indexOf(key)<0) continue;
+    if(!Array.isArray(s[key]) || s[key].some(function(v){ return !object(v); })) return bad("rows");
+  }
+  if(s.settings!=null && !object(s.settings)) return bad("settings");
+  if(s.deleted!=null && (!Array.isArray(s.deleted) || s.deleted.some(function(k){ return typeof k!=="string"; }))) return bad("deleted");
+  const seen=Object.create(null);
+  for(const e of s.expenses){
+    if(isExpenseUuid(e.id)){
+      if(seen[e.id]) return bad("duplicate_id");
+      seen[e.id]=true;
+    }
+    if(typeof e.amount!=="number" || !Number.isFinite(e.amount)) return bad("amount");
+    // La app conserva también fechas d/m/a y milisegundos. No convertirlas ni usar
+    // dateMs: su fallback a hoy haría pasar una fecha ilegible por una fecha conocida.
+    const rawDate=typeof e.date==="string"?e.date.trim():e.date;
+    const ms=typeof rawDate==="number"?new Date(rawDate).getTime():typeof rawDate==="string" && rawDate?_pdMs(rawDate):NaN;
+    if(!Number.isFinite(ms)) return bad("date");
+    const iso=typeof rawDate==="string" && rawDate.match(/^(\d{4})-(\d{2})-(\d{2})(?:T|$)/);
+    const human=typeof rawDate==="string" && rawDate.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+    if(iso || human){
+      let y=+(iso?iso[1]:human[3]); if(human && y<100) y+=2000;
+      const m=+(iso?iso[2]:human[2]), d=+(iso?iso[3]:human[1]);
+      const check=new Date(0); check.setUTCHours(0,0,0,0); check.setUTCFullYear(y,m-1,d);
+      if(check.getUTCFullYear()!==y || check.getUTCMonth()!==m-1 || check.getUTCDate()!==d) return bad("date");
+    }
+    // Metadatos antiguos se muestran crudos, nunca se aplican: no impedir inspeccionarlos.
+    // Sin UUID válido se conserva la fila separada, sin inventar una identidad.
+    if(e.origAmount!=null && (typeof e.origAmount!=="number" || !Number.isFinite(e.origAmount))) return bad("amount");
+  }
+  // Un objeto recibido de JSON no tiene ciclos ni NaN; esto protege también llamadas locales.
+  const json=function(v,depth){
+    if(depth>40) return false;
+    if(v===null || typeof v==="string" || typeof v==="boolean") return true;
+    if(typeof v==="number") return Number.isFinite(v);
+    if(typeof v!=="object") return false;
+    return Object.keys(v).every(function(k){ return json(v[k],depth+1); });
+  };
+  if(!json(s,0)) return bad("json");
+  return {ok:true};
+}
+function backupFieldValue(v){
+  if(v===undefined) return undefined;
+  const sorted=function(x){
+    if(Array.isArray(x)) return x.map(sorted);
+    if(x && typeof x==="object"){
+      const out=Object.create(null); Object.keys(x).sort().forEach(function(k){ out[k]=sorted(x[k]); }); return out;
+    }
+    return x;
+  };
+  return JSON.stringify(sorted(v));
+}
+function backupChangedFields(a,b,ignored){
+  const keys=Array.from(new Set(Object.keys(a||{}).concat(Object.keys(b||{})))).sort();
+  return keys.filter(function(k){ return (!ignored || ignored.indexOf(k)<0) && backupFieldValue(a&&a[k])!==backupFieldValue(b&&b[k]); });
+}
+function compareBackupExpenses(copy,current){
+  const list=[], byId=Object.create(null), counts={same:0,changed:0,copyOnly:0,currentOnly:0,legacy:0};
+  const currentCounts=Object.create(null);
+  (current||[]).forEach(function(e){ if(e && isExpenseUuid(e.id)){ currentCounts[e.id]=(currentCounts[e.id]||0)+1; byId[e.id]=e; } });
+  const matched=Object.create(null);
+  const add=function(status,a,b,fields){ counts[status]++; list.push({status:status,copy:a||null,current:b||null,fields:fields||[]}); };
+  (copy||[]).forEach(function(e){
+    // Un UUID duplicado en la cartera actual también es ambiguo: no escoger una fila a ciegas.
+    if(!isExpenseUuid(e.id) || currentCounts[e.id]>1){ add("legacy",e,null); return; }
+    const other=byId[e.id];
+    if(!other){ add("copyOnly",e,null); return; }
+    matched[e.id]=true;
+    const fields=backupChangedFields(e,other);
+    add(fields.length?"changed":"same",e,other,fields);
+  });
+  (current||[]).forEach(function(e){
+    if(!e) return;
+    if(!isExpenseUuid(e.id) || currentCounts[e.id]>1){ add("legacy",null,e); return; }
+    if(!matched[e.id]) add("currentOnly",null,e);
+  });
+  const sum=function(rows){
+    let n=0;
+    for(const e of rows||[]){
+      if(!e || typeof e.amount!=="number" || !Number.isFinite(e.amount)) return null;
+      n+=e.amount; if(!Number.isFinite(n)) return null;
+    }
+    return n;
+  };
+  return {list:list,counts:counts,copySum:sum(copy),currentSum:sum(current)};
+}
+
 /* Para el push FRECUENTE a la nube (cada ~1,2s): los gastos viven en su tabla `expenses`
    (fuente de verdad), así que NO los duplicamos en el JSONB de app_state → se mantiene ligero
    aunque haya miles de gastos. El backup diario sí guarda el estado completo. */

@@ -1,11 +1,60 @@
-# OPS-02 — restauración y siguiente pull, ensayo del 27/9/2026
+# OPS-02 — vista aislada de copia, 27/9/2026
 
-**Ensayo ejecutado; contrato de recuperación pendiente de decisión.** Base remota verificada:
-`origin/beta f7b66aef5fc35b8e3b3b17327c46309a421f22a7`. Rama aislada
-`codex/ops02-restauracion`. Este cambio añade pruebas/documentación, no modifica la app,
-no publica versión ni restaura datos reales. FIN-03/08 y la compra real de FIN-05 siguen separados.
+**Implementación aprobada por el dueño y candidata web 4.26.56.** Rama aislada
+`codex/ops02-restauracion`, base beta `f7b66aef5fc35b8e3b3b17327c46309a421f22a7`.
+La revisión exacta final, publicación beta y veredicto móvil se registrarán al verificarse.
+Suite funcional local: 455 PASS directos, un omitido preexistente; las modificaciones posteriores
+solo afectan al visor y se verifican de nuevo con sus once casos más nueve de persistencia.
+El runner Node de la candidata pasa todos los pasos salvo `memoria-espejo` (deuda local ajena);
+Deno no está instalado. Repetición final: once casos de visor + nueve de persistencia,
+20/20 sin reintento. Rendimiento ejecutado solo después: 7/7. Validador/comparador: 23/23.
+La revisión de Claude señaló compatibilidad de metadatos; se preservan crudos y sin aplicar.
+No se consultaron copias financieras reales; veredicto móvil y SQL/RLS siguen pendientes.
+No hay autorización de producción, restauración real, backend ni reparación FIN-03/08.
 
-## Qué demuestra ahora el código
+## Contrato implementado
+
+Ajustes → Copia de seguridad → Copias automáticas → **Ver copia** descarga y valida la copia.
+El visor conserva la instantánea únicamente en su estado React. No usa el setter de App,
+`mcSaveRaw`, ni escrituras cloud. Cerrar o reiniciar descarta el visor. Las sincronizaciones
+ordinarias siguen actualizando la cartera activa; la copia permanece separada y no participa
+en el backfill. No se implementa exportación ni aplicación de recuperación en esta entrega.
+
+El validador rechaza formas inválidas, UUID repetidos, importes no finitos, fechas imposibles y
+valores incompatibles con JSON, antes de montar la vista. Conserva los campos originales.
+Los IDs ausentes/numéricos, fechas humanas/milisegundos admitidos por la app y los metadatos
+de versiones antiguas se conservan sin coerción;
+los movimientos sin UUID válido se muestran separados. La comparación de movimientos usa UUID exacto, distingue solo copia / solo actual / mismos /
+cambiados y muestra diferencias de campos. IDs legados o ambiguos no se emparejan por parecido.
+Los recuentos y sumas de importes guardados se muestran separados (dos decimales como máximo al pintar); una suma actual inválida es «—». No son
+saldos ni conversión de divisas. Cuentas, lápidas y otros campos cambiados se pueden inspeccionar.
+
+## Guardianes y aceptación de la candidata
+
+- `tests/backup-snapshot.test.mjs`: 23 casos puros, registrado en `run-tests`.
+- `e2e/backup-restauracion.spec.mjs`: once casos DOM de aislamiento, ambas claves locales,
+  escrituras financieras, campos/UUID/sumas, legado, pull/reinicio/B, metadatos antiguos sin coerción, tres corrupciones,
+  fallo de transporte, cierre durante descarga y textos inglés/catalán (español en los demás).
+- Doble mutable compartido `e2e/ops02-backup-cloud.mjs`: App y cloud reales, datos sintéticos,
+  toda red externa bloqueada. Corrige el límite señalado por Claude: upsert con PK igual y
+  conflicto distinto devuelve 23505; soporta filtro `.in()`. No demuestra SQL/RLS reales.
+- No migración, nuevas dependencias ni modificación de identidad, sincronización, Edge o APK.
+
+**Prueba móvil pendiente:** abrir una copia, comprobar diferencias y volver a la cartera;
+confirmar que no se ofrece sustituir ni aplicar datos. Después, cerrar y volver a abrir Ajustes.
+No usar una copia real para restaurar. Un verde automático no reemplaza este veredicto.
+
+**Rollback:** cerrar y descartar el visor. Si falla, desactivar su apertura en otra beta;
+no reintroducir el reemplazo conectado inseguro. No hay datos ni migración que revertir.
+
+## Caracterización histórica, anterior al visor
+
+El commit `bc2fa093bc1ce3dee7c3e215d2d318ea87376f65` conserva los diez ensayos originales;
+Claude dio GO sobre ese SHA y repitió 19/19 con persistencia. Lo que sigue documenta **la base
+anterior** y explica por qué se sustituyó el reemplazo conectado. Su propuesta fue aprobada;
+el diff histórico no es el código final. Los resultados de restauración no describen el visor.
+
+## Qué demostraba el código anterior
 
 La afirmación del 9/9 «restaurar NO toca la nube» era demasiado amplia. El callback de
 `AutoBackupsPanel` no escribe la tabla de gastos, pero cambia el estado de App. Esto activa
@@ -99,7 +148,7 @@ Otro guardián compara dos filas distintas de importe 10: suma igual, UUID/campo
 Estas sumas son controles sobre filas, no una afirmación de Disponible/widget/FX ni un cálculo
 de presupuesto completo. El test adjunta JSON sintético de cada etapa en `test-results` (ignorado).
 
-## Propuesta concreta para decidir antes de programar
+## Propuesta histórica aprobada
 
 Recomendación: sustituir el actual reemplazo conectado por **abrir la copia en una vista aislada
 de recuperación**, validarla y compararla con la cartera actual. Ninguna fila ausente de una copia
@@ -121,7 +170,7 @@ Primera entrega acotada, cliente web, sin backend ni cambios de identidad:
    operaciones por UUID, decisiones persistidas, ACK y tratamiento de operaciones posteriores.
    No restaurar con DELETE masivo + upsert ni sobrescribir `app_state` sin comparar revisiones.
 
-### Diff de contrato propuesto (NO aplicado)
+### Diff orientativo histórico (sustituido por la implementación)
 
 Esta es la sustitución revisable del punto que hoy cambia la cartera; no es un parche publicable
 hasta implementar y probar el validador y el visor indicados:
@@ -159,7 +208,7 @@ Antes de publicar conservar el SHA previo. Si hay defecto, desactivar apertura d
 siguiente beta; no volver a ofrecer silenciosamente el reemplazo conectado inseguro. No hay
 migración que revertir. Una futura recuperación cloud requerirá su propio rollback y autorización.
 
-## Estado de entrega y límites
+## Estado de la caracterización y límites históricos
 
 La caracterización tiene diez casos; se verificó además la suite de persistencia (nueve casos).
 La decisión same se comprobó también aisladamente desde la UI real tras sustituir el primer
@@ -172,6 +221,6 @@ La revisión independiente del SHA exacto se solicita por el canal de archivos d
 No afirmar suite completa, CI remoto, beta ni prueba móvil por un ensayo local.
 
 OTA/APK: no necesarias para estos tests/docs; comportamiento publicado sin cambios.
-Próximo paso único: decidir el contrato de vista aislada anterior. OPS-02 tiene el ensayo terminado,
+El paso siguiente de aquella fase era decidir la vista aislada, ahora aprobada e implementada. OPS-02 tiene el ensayo terminado,
 pero la recuperación fiable compartida permanece abierta. No se convierte este informe en una
 orden de restauración real ni de reparación FIN-08.
