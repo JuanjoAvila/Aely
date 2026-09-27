@@ -60,5 +60,62 @@
     "widgetArbitraje": "PASS; presupuesto candidato y Java FIN-05 existente; arnés temporal eliminado",
     "npmTest": "FAIL únicamente memoria-espejo preexistente; Deno omitido; E2E no lanzados",
     "salud": "HTTP stable 4.26.52/beta 4.26.53.1; Edge/app_events omitidos"
-  }
+  },
+  "deployment": {
+    "sourceSha": "1397fe280b827daffb9969177a0907495ea65c32",
+    "ref": "ops01-wallet-1397fe28",
+    "function": "ingest",
+    "migrations": "no",
+    "explicitOwnerApprovalPending": true
+  },
+  "ci": {
+    "conclusion": "success",
+    "headSha": "1397fe280b827daffb9969177a0907495ea65c32",
+    "status": "completed",
+    "url": "https://github.com/JuanjoAvila/Aely/actions/runs/36314532090",
+    "runId": "36314532090",
+    "summaries": [
+      "── ingest-deno ──",
+      "1 skipped",
+      "435 passed (9.1m)",
+      "7 passed (38.5s)",
+      "── Duración total: 598.7 s · etapas más lentas ──"
+    ]
+  },
+  "review": {
+    "actor": "Claude real",
+    "id": "20260927T1105Z-claude-ops01-a-pass-1397fe28",
+    "sha": "1397fe280b827daffb9969177a0907495ea65c32",
+    "verdict": "PASS",
+    "originalMessageSha256": "c958dcb6b2ec6d373729a65fa03bfb02763e694be06ef5ded71927a8ad931d94",
+    "independentChecks": [
+      "15 blobs contra baseline: solo Wallet difiere",
+      "ingest index exacto FIN-05",
+      "wallet-notis",
+      "ingest-handler",
+      "supabase-workflow",
+      "edge-sintaxis",
+      "entrada-edge",
+      "ingest-classify",
+      "ingest-identity",
+      "apk-sin-token-ingest"
+    ],
+    "limits": "Claude no volvió a descargar ESZIP; cotejo activo proviene del GET actual de Codex. Deno/E2E acreditados por CI."
+  },
+  "packages": [
+    {
+      "kind": "candidate",
+      "sourceSha": "1397fe280b827daffb9969177a0907495ea65c32",
+      "file": "ops01-ingest-wallet-candidate.zip",
+      "bytes": 34625,
+      "sha256": "24a4fb9241de0d1510a63385e4e31a2113eab01a6ff2cca2a5762a03b440f68a"
+    },
+    {
+      "kind": "rollback",
+      "sourceSha": "be59e27c979ddbd8cc89f5c72558abadbd498246",
+      "file": "ops01-ingest-wallet-rollback.zip",
+      "bytes": 34492,
+      "sha256": "1fbd7c02c984d4bd2e5e920fa09bebb0a5d372685336a82150644dbbf18a730c"
+    }
+  ]
 }
