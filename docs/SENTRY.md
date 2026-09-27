@@ -20,7 +20,7 @@ Cuando la app **petardea en el móvil de alguien** (pantalla blanca, crash raro)
 - mensaje del error
 - versión de la app
 - móvil / navegador
-- diagnósticos mínimos, sujetos a la frontera y límites de SEC-03 (cliente publicado y aprobado en beta; producción exclusiva en preparación, Edge sin desplegar)
+- diagnósticos mínimos, sujetos a la frontera y límites de SEC-03 (cliente publicado y aprobado en beta; entrega exclusiva cliente 4.26.57, Edge sin desplegar)
 
 Es la “caja negra” en producción. Playwright prueba antes de publicar; Sentry avisa cuando falla en la calle.
 

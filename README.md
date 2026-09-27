@@ -84,7 +84,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.57** · SEC-03 cliente aprobada tras beta 4.26.57.1/f2354a47, publicación exclusiva en preparación. Producción actual **4.26.56**; beta de continuidad 4.26.58 conserva FIN-05/selector/TR pendientes de pago. APK estable **4.26.32/code 48** intacta. [Matriz y límites SEC-03](docs/briefs/sec03-privacidad-logs.md).
+Estado actual: **v4.26.57** · SEC-03 cliente aprobada, entrega exclusiva mediante [PR49](https://github.com/JuanjoAvila/Aely/pull/49). FIN-05/selector/TR conservados en la beta de continuidad 4.26.58 y pendientes de pago; APK estable **4.26.32/code 48** intacta. [Versión de producción verificable](https://juanjoavila.github.io/Aely/version.json) · [Matriz SEC-03](docs/briefs/sec03-privacidad-logs.md).
 
 Producción verificada: **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](docs/briefs/ops02-restauracion-probada.md).
 
