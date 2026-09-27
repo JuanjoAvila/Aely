@@ -1,5 +1,7 @@
 # FIN-05: relevo de beta 4.26.49.1 y APK 4.26.49
 
+> **Superado el 27/9:** el dueño ya ha realizado un pago real con la app cerrada y ha observado una caída excesiva del widget. FIN-05 sigue abierto por fallo móvil; la espera «no tiene nada que pagar» es histórica. [Investigación actual y límites](fin05-pago-cerrada-2026-09-27.md). No atribuir causa ni instalación de APK50 a los PASS de este relevo.
+
 - Base: `main` en `95070a37`. Rama aislada: `codex/fin05-widget-arbitraje`.
 - Código revisado: `e1168c6de3dcb5c39726eb3d619fb3b59cad3581`. Claude respondió PASS por el canal compartido tras tres rondas; la última fue sobre ese SHA. El árbol quedó limpio tras la revisión.
 - Publicación original de FIN-05 a 26/9: `beta` publicada en `be59e27c` como [4.26.49.1](https://github.com/JuanjoAvila/Aely/releases/tag/beta); [Action 36195486950](https://github.com/JuanjoAvila/Aely/actions/runs/36195486950) verde (423 E2E, 7 E2E de rendimiento, 1 omitida). Manifiestos beta y assets OTA/APK públicos responden HTTP 200. `main` y Pages estables siguen en 4.26.48; APK estable 4.26.32/code 48. `public/apk.json` y `android/app/build.gradle` de beta están alineados en 4.26.49/code 50. El asset firmado existe en [release prerelease v4.26.49](https://github.com/JuanjoAvila/Aely/releases/tag/v4.26.49), anclado a `0f1ee105`; todavía no hay prueba de instalación en el móvil.
