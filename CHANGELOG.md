@@ -1,3 +1,10 @@
+## [4.26.56] — 2026-09-27
+
+- OPS-02: sustituir el reemplazo conectado de copias por un visor en memoria de solo lectura. Abrir/cerrar no llama a set de App ni mcSaveRaw; la copia no entra en push/backfill. Validación de listas, filas, identificadores, fechas, importes y datos JSON antes de mostrar. Comparación por UUID exacto y por todos los campos; legado y UUID ambiguos sin emparejar, sumas de registros separadas y paginado.
+- Compatibilidad del visor: metadatos antiguos se inspeccionan crudos; IDs ausentes/numéricos quedan sin correspondencia, nunca se inventa UUID. Sumas presentadas con hasta dos decimales, sin conversión.
+- Textos es/en/ca y guardianes registrados de aislamiento local/cloud, pull con visor abierto, segundo cliente, corrupción, cierre durante descarga, offline e idiomas. Recuperación financiera compartida fuera de alcance. Beta 4.26.56.1 revisada por Claude al SHA 978420fc, CI 36341481895 y ZIP cotejados. El dueño aprobó OPS-02 y producción el 27/9. Candidata exclusiva sobre main f5e6b514; pruebas/revisión/publicación de esta base pendientes. No incluye FIN-05, selector ni TR, conserva APK estable 4.26.32/code 48. Tope crudo 1212 KB y gzip 332 KB; medido 1210/329 KB.
+
+
 ## [4.26.52] — 2026-09-26
 
 ### OPS-01 C · control de despliegues (tooling, sin versión nueva)

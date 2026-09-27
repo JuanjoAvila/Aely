@@ -1920,41 +1920,37 @@ function FeedbackPanel({state, set, showToast, onClose}){
   ));
 }
 
-/* ============================================================
-   🕐 COPIAS AUTOMÁTICAS — restaurar un día de `state_backups` (2026-07-31).
-   La copia diaria YA SE ESCRIBÍA sola (backupState, 11-app-main.js) desde hace tiempo, pero era
-   de solo escritura: nadie podía MIRARLA ni restaurarla desde la app. Se echó en falta de verdad
-   con un desastre real de importación (cuenta a -9k una semana entera, reconectando el banco una
-   y otra vez sin arreglarlo): con esto habría sido un «Restaurar ayer» y listo, en vez de limpiar
-   a mano gasto a gasto. Reutiliza el MISMO camino que ya prueba `doImport` del JSON manual
-   (mcSaveRaw + set + askConfirm de dos pasos): restaurar un día es la misma operación peligrosa
-   que restaurar un fichero, solo que el fichero lo trae la nube en vez de tu disco.
-   ============================================================ */
-function AutoBackupsPanel({state, set, showToast, uid, onClose}){
-  useBackClose(true, onClose);
+/* El reemplazo conectado resucitaba borrados en el siguiente pull (OPS-02, 2026-09-27).
+   El visor mantiene la copia en este componente: nunca llama al set de App ni al guardado. */
+function AutoBackupsPanel({state, showToast, uid, onClose}){
+  const [preview,setPreview]=useState(null);
+  const mounted=useRef(true);
+  useBackClose(true, function(){ if(preview) setPreview(null); else onClose(); });
   const [days,setDays]=useState(null);     // null = cargando
   const [busy,setBusy]=useState("");
   useEffect(function(){
+    mounted.current=true;
     cloud.listBackupDays(uid).then(function(rows){ setDays(rows||[]); })
       .catch(function(e){ setDays([]); showToast("⚠ "+((e&&e.message)||e)); });
+    return function(){ mounted.current=false; };
   },[uid]);
-  const restore=function(day){
-    askConfirm({ title:tf("bk_auto_confirm",{day:day}), sub:t("st_confirm_import_sub"), ok:t("st_confirm_import_ok"), danger:true })
-      .then(function(yes){
-        if(!yes) return;
-        setBusy(day);
-        cloud.getBackup(uid, day).then(function(data){
-          if(!data || !data.accounts){ showToast("✕ "+t("st_badfile")); return; }
-          mcSaveRaw(mcStateKey(), data); set(function(){ return data; });
-          showToast(t("st_imported")); onClose();
-        }).catch(function(e){ showToast("⚠ "+((e&&e.message)||e)); }).finally(function(){ setBusy(""); });
-      });
+  const inspect=function(day){
+    setBusy(day);
+    cloud.getBackup(uid, day).then(function(data){
+      if(!mounted.current) return;
+      const check=validateBackupSnapshot(data);
+      if(!check.ok){ showToast("✕ "+tf("bk_invalid_reason",{reason:t("bk_invalid_"+check.reason)})); return; }
+      setPreview({day:day,data:data});
+    }).catch(function(e){ if(mounted.current) showToast("⚠ "+((e&&e.message)||e)); })
+      .finally(function(){ if(mounted.current) setBusy(""); });
   };
   const wrap={position:"fixed",inset:0,zIndex:96,overflowY:"auto",background:"var(--bg)",color:"var(--text)",padding:"calc(var(--safe-top) + 18px) 18px calc(var(--safe-bottom) + 28px)",fontFamily:"'Manrope',sans-serif"};
   const inner={maxWidth:480,margin:"0 auto"};
   const back={background:"none",border:"none",color:"var(--blue)",fontSize:15,fontWeight:700,cursor:"pointer",padding:"6px 0",marginBottom:6};
   const dayRow={display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,padding:"12px 14px",borderRadius:12,border:"1px solid var(--line)",marginBottom:8};
   const fmtDay=function(d){ try{ return new Date(d+"T12:00:00").toLocaleDateString(loc(),{weekday:"short",day:"2-digit",month:"short"}); }catch(e){ return d; } };
+  if(preview) return React.createElement("div",{className:"bk-preview",style:wrap},
+    React.createElement(BackupRecoveryPreview,{snapshot:preview.data,current:state,day:preview.day,onClose:function(){ setPreview(null); }}));
   return React.createElement("div",{style:wrap}, React.createElement("div",{style:inner},
     React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("st_back_settings")),
     React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 4px"}}, t("bk_auto_title")),
@@ -1964,10 +1960,61 @@ function AutoBackupsPanel({state, set, showToast, uid, onClose}){
     days!==null && days.map(function(d){
       return React.createElement("div",{key:d,style:dayRow},
         React.createElement("div",{style:{fontWeight:700,fontSize:14,textTransform:"capitalize"}}, fmtDay(d)),
-        React.createElement("button",{className:"btn btn-ghost",disabled:!!busy,onClick:function(){ restore(d); }}, busy===d?"…":t("st_confirm_import_ok"))
+        React.createElement("button",{className:"btn btn-ghost",disabled:!!busy,onClick:function(){ inspect(d); }}, busy===d?"…":t("bk_view"))
       );
     })
   ));
+}
+
+function BackupRecoveryPreview({snapshot,current,day,onClose}){
+  const [filter,setFilter]=useState("changed"), [limit,setLimit]=useState(30), [detail,setDetail]=useState(null);
+  const compared=useMemo(function(){ return compareBackupExpenses(snapshot.expenses,current.expenses); },[snapshot.expenses,current.expenses]);
+  const stateFields=useMemo(function(){
+    // Los sellos de transporte no son una diferencia financiera de la copia.
+    return backupChangedFields(snapshot,current,["expenses","_savedAt","lastSync","lastPriceSync","lastBackup"]);
+  },[snapshot,current]);
+  const rows=compared.list.filter(function(r){ return filter==="all" || r.status===filter; });
+  const label=function(k){ return LANG.es["bk_field_"+k] ? t("bk_field_"+k) : k; };
+  const value=function(v){ const raw=backupFieldValue(v); return raw===undefined ? "—" : raw; };
+  const sumValue=function(n){ return n==null?"—":n.toLocaleString(loc(),{maximumFractionDigits:2}); };
+  const textStyle={fontSize:12,whiteSpace:"pre-wrap",overflowWrap:"anywhere",margin:0};
+  const cardStyle={padding:12,border:"1px solid var(--line)",borderRadius:12,marginBottom:10};
+  const pair=function(k,a,b){ return React.createElement("div",{key:k,style:cardStyle},
+    React.createElement("div",{style:{fontWeight:700,marginBottom:6}},label(k)),
+    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"minmax(0,1fr) minmax(0,1fr)",gap:10}},
+      React.createElement("div",null,React.createElement("div",{style:{fontSize:11,color:"var(--muted)"}},t("bk_copy")),React.createElement("pre",{style:textStyle},value(a))),
+      React.createElement("div",null,React.createElement("div",{style:{fontSize:11,color:"var(--muted)"}},t("bk_current")),React.createElement("pre",{style:textStyle},value(b)))));
+  };
+  return React.createElement("div",{style:{maxWidth:480,margin:"0 auto"}},
+    React.createElement("button",{className:"btn btn-ghost bk-close",onClick:onClose},"‹ "+t("bk_back_copies")),
+    React.createElement("h2",{className:"serif",style:{fontSize:25}},tf("bk_preview_title",{day:day})),
+    React.createElement("div",{className:"hint",style:{marginBottom:14}},t("bk_preview_hint")),
+    React.createElement("div",{className:"bk-counts",style:cardStyle},
+      tf("bk_counts",{copy:snapshot.expenses.length,current:(current.expenses||[]).length}),
+      React.createElement("div",{style:{fontSize:12,marginTop:6}},tf("bk_sums",{copy:sumValue(compared.copySum),current:sumValue(compared.currentSum)})),
+      React.createElement("div",{className:"hint",style:{marginTop:6}},t("bk_sums_hint"))),
+    React.createElement("h3",null,t("bk_movements")),
+    React.createElement("div",{style:{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}},
+      ["all","changed","copyOnly","currentOnly","same","legacy"].map(function(k){
+        return React.createElement("button",{key:k,className:"chip"+(filter===k?" active":""), "aria-pressed":filter===k,onClick:function(){ setFilter(k); setLimit(30); setDetail(null); }},
+          t("bk_status_"+k)+" · "+(k==="all"?compared.list.length:compared.counts[k]));
+      })),
+    React.createElement("div",{className:"hint",style:{marginBottom:10}},t("bk_identity_hint")),
+    rows.length===0 && React.createElement("div",{className:"hint"},t("bk_empty")),
+    rows.slice(0,limit).map(function(r,i){ const e=r.copy||r.current; return React.createElement("div",{key:r.status+":"+e.id+":"+i,className:"bk-expense",style:cardStyle},
+      React.createElement("button",{className:"btn btn-ghost",style:{textAlign:"left",width:"100%",whiteSpace:"normal",overflowWrap:"anywhere"},onClick:function(){ setDetail(detail===r?null:r); }},
+        (typeof e.merchant==="string" && e.merchant?e.merchant:t("bk_unnamed"))+" · "+t("bk_status_"+r.status)),
+      React.createElement("div",{style:textStyle},tf("bk_row_id",{id:typeof e.id==="string"?e.id:value(e.id)})),
+      detail===r && React.createElement("div",{className:"bk-expense-fields"},
+        (r.fields.length?r.fields:Object.keys(e).sort()).map(function(k){ return pair(k,r.copy?r.copy[k]:undefined,r.current?r.current[k]:undefined); }))
+    ); }),
+    rows.length>limit && React.createElement("button",{className:"btn btn-ghost",onClick:function(){setLimit(limit+30);}},t("bk_more")),
+    React.createElement("h3",null,t("bk_other_data")),
+    stateFields.length===0 ? React.createElement("div",{className:"hint"},t("bk_empty")) :
+      stateFields.map(function(k){ return React.createElement("details",{key:k,className:"bk-state-field",style:cardStyle},
+        React.createElement("summary",null,label(k)),pair(k,snapshot[k],current[k])); }),
+    React.createElement("div",{className:"hint",style:{marginTop:14}},t("bk_recovery_limit"))
+  );
 }
 
 /* ============================================================
@@ -2892,7 +2939,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         return ents.length?ents:null;
       })()
     }), document.body),
-    autoBackOpen && ReactDOM.createPortal(React.createElement(AutoBackupsPanel,{state:state,set:set,showToast:showToast,uid:uid,onClose:function(){ setAutoBackOpen(false); }}), document.body),
+    autoBackOpen && ReactDOM.createPortal(React.createElement(AutoBackupsPanel,{state:state,showToast:showToast,uid:uid,onClose:function(){ setAutoBackOpen(false); }}), document.body),
     actOpen && ReactDOM.createPortal(React.createElement(ActivityPanel,{events:events,onReload:loadEvents,onClose:function(){ setActOpen(false); }}), document.body),
     privOpen && ReactDOM.createPortal(React.createElement(PrivacyPanel,{onClose:function(){ setPrivOpen(false); }}), document.body),
     convOpen && ReactDOM.createPortal(React.createElement(CurConverterPanel,{state:state,refreshFx:refreshFx,onClose:function(){ setConvOpen(false); }}), document.body),

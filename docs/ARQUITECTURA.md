@@ -164,6 +164,12 @@ vigila que el trabajo no crezca con el histórico; esto vigila lo que hay que ba
 
 ## Flujo de datos
 
+### Consulta de copias (OPS-02)
+
+AutoBackupsPanel valida y conserva la copia en estado React propio. Compara UUID/campos e importes guardados con la cartera activa; no usa el setter de App, mcSaveRaw ni escritores cloud. El pull ordinario sigue sobre la cartera activa; la copia no participa en backfill. Cerrar/reiniciar descarta el visor. Legado o UUID ambiguos quedan separados.
+
+La recuperación compartida permanece desactivada: el reemplazo conectado anterior podía modificar app_state y resucitar borrados por backfill. Recuperar exige identidad/revisión/ACK y autorización propios. [Ensayo y límites](briefs/ops02-restauracion-probada.md).
+
 El widget recibe `monthBudgetStats` desde la app al cambiar sus cifras y al volver a primer plano,
 tanto por `visibilitychange` como por `App.appStateChange` de Capacitor. Son señales distintas en
 Android; escuchar solo la primera podía dejar el último total escrito por ingest aunque la app

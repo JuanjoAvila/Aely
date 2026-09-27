@@ -1,3 +1,5 @@
+OPS-02 (4.26.56): 23 unitarios en backup-snapshot.test.mjs y once E2E DOM en backup-restauracion.spec.mjs, registrados en runner/mapa. Ejecutan App/cloud contra ops02-backup-cloud.mjs con datos sintéticos y red externa bloqueada. Aislamiento de ambas claves, cero escrituras atribuibles, UUID/campos/sumas, pull/reinicio/B, corrupción, transporte y es/en/ca; no demuestran SQL/RLS real. [Contrato](briefs/ops02-restauracion-probada.md).
+
 # Testing — Aely
 
 REC-GUARDADO-01 (4.26.48): `e2e/plan-gestionar.spec.mjs`, ya registrado para el módulo 14 en

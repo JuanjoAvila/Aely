@@ -80,7 +80,8 @@ const PRESUPUESTO = {
      26/9 (FIN-06 aprobado): catálogo de 30 divisas, originales/avisos y guardas null.
      Candidato aislado sobre main, sin FIN-05 ni selector. Medido: 1.228.080 bytes minificados, gzip 333.214 bytes. Se añaden 4 KB
      solo al crudo (1200 KB); límite gzip 332 KB intacto. */
-  minificado: 1200 * 1024,
+  // OPS-02: visor aislado y validación agregan código; se conserva el tope gzip de 332 KB.
+  minificado: 1212 * 1024,
   gzip: 332 * 1024,         // 12/9: 330,03 con suministros; aire mínimo a propósito
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
