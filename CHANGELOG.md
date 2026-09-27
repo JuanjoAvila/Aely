@@ -15,6 +15,8 @@
 
 ## [4.26.51] — 2026-09-26
 
+- OPS-01 A: paquete Edge inerte restaura el cierre activo de ingest48 (FIN-05) y aplica únicamente Wallet FIN-06 frente a ese cierre. Sin despliegue/SQL ni nueva release web; pruebas del handler y FX ampliadas. Activación y pago real pendientes.
+
 ### FIN-06 · divisas sin tipo, entrega independiente
 - Reproducción sobre 9520bdaa: cliente 500 XYZ → 500 €, servidor null; TRY 1520 → 27.756719999999998 frente a 27.76; USD legacy → 92 frente a null. El fallback 1:1 falseaba patrimonio y podía anclar costes persistentes.
 - `toEurAmt` y `aEuros` devuelven null sin tipo y redondean a céntimos; USD usa únicamente un respaldo guardado. Se retira 0.92 del estado vacío nuevo, sin migrar estados existentes. `fromEurAmt` propaga el desconocido.

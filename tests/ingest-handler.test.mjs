@@ -39,7 +39,7 @@ function fakeDb(opts = {}) {
       delete() { q.op = "delete"; return api; },
       insert(row) { q.op = "insert"; q.row = row; return api; },
       maybeSingle: async () => {
-        if (name === "app_state") return { data: { data: { accounts: [{ ent: "trade_republic", role: "diario" }], settings: {} } } };
+        if (name === "app_state") return { data: { data: { accounts: [{ ent: "trade_republic", role: "diario" }], settings: {}, ...(opts.state || {}) } } };
         return { data: null };
       },
       then(resolve, reject) { return Promise.resolve(run()).then(resolve, reject); },
@@ -280,6 +280,37 @@ await t("ON CONFLICT sin fila devuelta se responde skipped, nunca 'gasto apuntad
   const r = await post(env, { fuente: "tr", titulo: "Trade Republic", texto: "Has gastado 4,00 € en Cafe",
     fecha: String(Date.parse("2026-09-17T15:10:00+02:00")), evento: "v1_empty" });
   assert.equal(r.data.skipped, true); assert.equal(r.data.ack, undefined); assert.equal(env.rows.length, 0);
+});
+
+// El handler entero conserva el original y el arbitraje mensual con la BD simulada.
+await t("FIN-06 Wallet con tasa, respaldo y sin tasa", async () => {
+  for (const [currency, state, expected] of [
+    ["EUR", {}, 10], ["USD", { fx: .9 }, 9], ["USD", { fx: .9, fxRates: { USD: .8 } }, 8],
+    ["USD", { fx: .9, fxRates: { USD: 0 } }, 9],
+    ["HKD", { fxRates: { HKD: .12 } }, 1.2], ["HKD", { fx: .9 }, null],
+  ]) {
+    const env = fakeDb({ state });
+    const r = await post(env, { fuente: "wallet", titulo: "Cafe fixture",
+      texto: "10,00 " + currency + " con Trade Republic Visa Card",
+      fecha: String(Date.now()), evento: "v1_fx_" + currency });
+    if (expected === null) { assert.equal(env.rows.length, 0); assert.equal(r.data.skipped, true); }
+    else {
+      assert.equal(env.rows.length, 1); assert.equal(env.rows[0].importe, expected);
+      if (currency === "EUR") { assert.equal(env.rows[0].importe_orig, undefined); assert.equal(env.rows[0].divisa, undefined); }
+      else { assert.equal(env.rows[0].importe_orig, 10); assert.equal(env.rows[0].divisa, currency); }
+      assert.equal(r.data.month.shownDelta, expected);
+      assert.equal(r.data.month.againstDelta, expected);
+      assert.ok(r.data.month.periodStart); assert.ok(r.data.month.readAt);
+    }
+  }
+});
+await t("ATM neutral conserva FIN-05 y no descuenta presupuesto", async () => {
+  const env = fakeDb();
+  const r = await post(env, { fuente: "tr", titulo: "Trade Republic",
+    texto: "Has retirado 20,00 € en ATM WITHDRAWAL", fecha: String(Date.now()), evento: "v1_atm_fin06" });
+  assert.equal(env.rows.length, 1); assert.equal(env.rows[0].cat, "traspaso");
+  assert.equal(r.data.month.shownDelta, 0); assert.equal(r.data.month.againstDelta, 0);
+  assert.ok(r.data.month.periodStart); assert.ok(r.data.month.readAt);
 });
 
 if (failures) process.exitCode = 1;

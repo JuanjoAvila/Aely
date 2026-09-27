@@ -126,4 +126,29 @@ t("SIN TIPO NO SE CONVIERTE — ni se inventa un 1:1", () => {
   assert.equal(aEuros(1520, "XYZ", { fxRates: { TRY: 0.018261 } }), null);
 });
 
+
+// FIN-06: el cambio se decide con tasas válidas; ausencia nunca significa EUR 1:1.
+t("FIN-06 tasas, ISO, valores inválidos y redondeo", () => {
+  assert.equal(aEuros(10, "EUR", {}), 10);
+  assert.equal(aEuros(10, " usd ", { fx: .9 }), 9);
+  assert.equal(aEuros(10, "USD", { fx: .9, fxRates: { USD: .8 } }), 8);
+  for (const rate of [null, NaN, Infinity, 0, -1]) {
+    assert.equal(aEuros(10, "USD", { fx: .9, fxRates: { USD: rate } }), 9);
+    assert.equal(aEuros(10, "HKD", { fx: .9, fxRates: { HKD: rate } }), null);
+  }
+  assert.equal(aEuros(10, " hKd ", { fxRates: { HKD: .12 } }), 1.2);
+  assert.equal(aEuros(10, "HKD", { fx: .9 }), null);
+  assert.equal(aEuros(10, "USD", {}), null);
+  assert.equal(aEuros(12.3456, "EUR", {}), 12.35);
+  assert.equal(aEuros(12.3456, "HKD", { fxRates: { HKD: .12 } }), 1.48);
+  for (const amount of [null, undefined, NaN, Infinity, -Infinity])
+    for (const currency of ["EUR", "USD", "HKD"])
+      assert.equal(aEuros(amount, currency, { fx: .9, fxRates: { HKD: .12 } }), null);
+  assert.equal(aEuros(Number.MAX_VALUE, "HKD", { fxRates: { HKD: 10 } }), null);
+  for (const iso of ["CZK", "HKD", "HUF", "IDR", "ILS", "ISK", "KRW", "MYR", "NZD", "PHP", "RON", "SGD", "THB", "ZAR"]) {
+    const parsed = extraerImporteDivisa("10,00 " + iso);
+    assert.equal(parsed.divisa, iso); assert.equal(parsed.importe, 10);
+  }
+});
+
 console.log("  ok");

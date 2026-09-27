@@ -1,0 +1,64 @@
+{
+  "scope": "OPS-01 A; paquete inerte; ingest únicamente; migraciones=no",
+  "checkedAt": "2026-09-27T10:59:59.878Z",
+  "baseMain": "f5e6b514a00b767a07e7ef8d58cf158fe75e93b9",
+  "baseBeta": "5d5b8d0f0d8ea12b5521009d3fef9b54f6fd85e9",
+  "baselineSourceSha": "be59e27c979ddbd8cc89f5c72558abadbd498246",
+  "active": {
+    "slug": "ingest",
+    "version": 48,
+    "status": "ACTIVE",
+    "downloadSha256": "d02d6a03e3b1a22e5ce6508be6dedee37dece022c920376cb3393b076ce17030",
+    "bytes": 433859,
+    "ezbr_sha256": "741fe810b6e5454391223ffb2330e70fc30d3c094aad4247cb22b06fa598e49f"
+  },
+  "freshDownloadEqualsAudit": true,
+  "normalization": "CRLF -> LF; hashes de fuente conservan salto final",
+  "files": [
+    {
+      "relative": "ingest/index.ts",
+      "baselineSha256": "1fc1bcd7acdd6ab801c4a381e2384d1e94f5b1478e2fc83cfbbd0036920cce20",
+      "candidateSha256": "1fc1bcd7acdd6ab801c4a381e2384d1e94f5b1478e2fc83cfbbd0036920cce20"
+    },
+    {
+      "relative": "_shared/ingest_logic.ts",
+      "baselineSha256": "ae948b8d042c814a57ed542a89ab65264be53f1aa9cadf8f5ebff356fb595273",
+      "candidateSha256": "ae948b8d042c814a57ed542a89ab65264be53f1aa9cadf8f5ebff356fb595273"
+    },
+    {
+      "relative": "_shared/wallet.ts",
+      "baselineSha256": "3f6811d3e7b3c893ca7af2248a202f606725ac40980bd3772b5631f8fe7a673e",
+      "candidateSha256": "d544b3ccf08d64314cb5c6300f714e73520a37092cacc705474bb87d9905a556"
+    },
+    {
+      "relative": "_shared/ingest_identity.ts",
+      "baselineSha256": "709e62a263e606528114df16bf036c4d194888496ed64910744bbe08ab6825af",
+      "candidateSha256": "709e62a263e606528114df16bf036c4d194888496ed64910744bbe08ab6825af"
+    },
+    {
+      "relative": "_shared/ratelimit.ts",
+      "baselineSha256": "cb77b1f18d076b6111301f00d8bd937b38ac38c9a71d9df041e482c19ea85b0d",
+      "candidateSha256": "cb77b1f18d076b6111301f00d8bd937b38ac38c9a71d9df041e482c19ea85b0d"
+    },
+    {
+      "relative": "_shared/presupuesto.ts",
+      "baselineSha256": "26a5d0c7c7bea905d14a9dcf499fede9a86ebda4917c63bd88fef90ba8489df1",
+      "candidateSha256": "26a5d0c7c7bea905d14a9dcf499fede9a86ebda4917c63bd88fef90ba8489df1"
+    },
+    {
+      "relative": "_shared/entrada.ts",
+      "baselineSha256": "dbe7eb539017d435bf4207dbb74cae644e034ac4c66dbdef79af9f357d1bf00f",
+      "candidateSha256": "dbe7eb539017d435bf4207dbb74cae644e034ac4c66dbdef79af9f357d1bf00f"
+    }
+  ],
+  "local": {
+    "walletNotis": "12 grupos PASS",
+    "ingestHandler": "13 grupos PASS; FX seis escenarios y ATM",
+    "presupuestoServidor": "18 PASS",
+    "widgetCoherente": "11 PASS",
+    "atmDual": "2 PASS",
+    "widgetArbitraje": "PASS; presupuesto candidato y Java FIN-05 existente; arnés temporal eliminado",
+    "npmTest": "FAIL únicamente memoria-espejo preexistente; Deno omitido; E2E no lanzados",
+    "salud": "HTTP stable 4.26.52/beta 4.26.53.1; Edge/app_events omitidos"
+  }
+}

@@ -332,7 +332,7 @@ Deno.serve(async (req) => {
   //    nativo lo usa para refrescar el WIDGET y lanzar la notificación aunque la
   //    app esté cerrada. Mismas reglas que la app (al_over > al_80 > al_big).
   let alert: Record<string, unknown> | null = null;
-  let month: Record<string, number> | null = null;
+  let month: Record<string, number | string> | null = null;
   try {
     const { data: st } = await supabase.from("app_state").select("data").eq("user_id", userId).maybeSingle();
     const now = new Date(fecha);
@@ -341,13 +341,22 @@ Deno.serve(async (req) => {
     const desde = new Date(desdeMs).toISOString();
     // `cat` y `source` hacen falta para contar como cuenta la app: sin ellos esto sumaba TODO
     // —los recibos del banco de fijos y las inversiones— y el aviso salía por las nubes.
-    const { data: rows } = await supabase
-      .from("expenses").select("importe,cat,source,fecha,comercio")
+    // El orden corresponde al INICIO de la lectura: una consulta lenta puede acabar después
+    // de otra más nueva aunque su snapshot sea anterior.
+    const readAt = Date.now();
+    const { data: rows, error: rowsError } = await supabase
+      .from("expenses").select("id,importe,cat,source,fecha,comercio")
       .eq("user_id", userId).gte("fecha", desde);
+    if (rowsError) throw rowsError;
+    // La lectura absoluta puede responder después de otra más nueva. El nativo compara este
+    // instante de lectura, no la llegada de la respuesta ni la fecha del movimiento.
     // Igual que la app al pintar Gastos: lápidas + una fila por día|importe|comercio.
     // Sin esto el widget suma gastos que él ya borró y notis gemelas (bug 907 vs 709, 2026-08-17).
     const visibles = filasComoLaApp(rows || [], st?.data?.deleted);
     const stats = statsDelMes(visibles, st?.data, desdeMs);
+    // Si la app envía un snapshot mientras esta respuesta sigue en vuelo, el nativo necesita
+    // la contribución de ESTA fila, no un absoluto que quizá preceda a ese snapshot.
+    const sinEsta = statsDelMes(visibles.filter((r) => String(r.id) !== String(ackId)), st?.data, desdeMs);
     const budget = stats.budget;
     const after = stats.against;
     // Y si el gasto recién apuntado NO cuenta para el presupuesto —banco de recibos, inversión,
@@ -367,14 +376,22 @@ Deno.serve(async (req) => {
     // reimplementa `safeLiq` en el servidor: sería la tercera copia de la misma regla, y de esa
     // duplicación ya salieron los dos últimos bugs de presupuesto.
     month = {
+      periodStart: desdeMs,
+      readAt,
+      eventKey: eventKey || "",
+      expenseKey: encodeURIComponent(fecha.slice(0, 10) + "|" + importe + "|" + comercio),
       spent: stats.shown,
+      shownDelta: +(stats.shown - sinEsta.shown).toFixed(2),
       budget,
       against: after,
       // −1 = «no hay dato», y así el nativo distingue esto de un `budgetLeft` de 0 € de verdad.
       // Importa porque la APK puede llegar antes que el despliegue de esta función: sin sentinela,
       // un widget nuevo contra un ingest viejo leería 0 y pintaría «Puedes gastar 0 €».
       budgetLeft: budget > 0 ? +Math.max(0, budget - after).toFixed(2) : -1,
+      againstDelta: +(stats.against - sinEsta.against).toFixed(2),
       counts: mueveElPresupuesto ? 1 : 0,
+      // Una inversión/traspaso no gasta presupuesto, pero sí sale del efectivo de TR.
+      cashCounts: 1,
     };
     if (tipo === "gasto" && budget > 0 && mueveElPresupuesto) {
       const before = after - importe;

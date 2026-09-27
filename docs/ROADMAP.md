@@ -373,3 +373,6 @@ Muestra gasto del mes vs presupuesto + saldo de la cuenta diaria.
 4. Play Store: **siempre lo último**. Si se añade algo, va antes. Sideload/APK GitHub no esperan.
 
 Ver [CHANGELOG.md](../CHANGELOG.md) · [ARQUITECTURA.md](ARQUITECTURA.md) · [AMENAZAS.md](AMENAZAS.md) · [ADR](adr/) · [TESTING.md](TESTING.md) · [SENTRY.md](SENTRY.md) · [HOGAR.md](HOGAR.md) · [CATEGORIZE.md](CATEGORIZE.md) · [AGENTS.md](../AGENTS.md)
+
+
+OPS-01 A (27/9): [paquete Wallet/ingest con cierre FIN-05](briefs/ops01-wallet-2026-09-27.md). Preparación inerte; activación solo de ingest, migraciones=no, pendiente del OK final. FIN-06 pago real pendiente. Pruebas Wallet/handler ampliadas en sus suites ya registradas.

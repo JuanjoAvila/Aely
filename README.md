@@ -100,3 +100,6 @@ Notas rápidas del rediseño v4 (para no perderse):
 - **Tus recibos v4.1:** Plan → Recibos → Gestionar —o Ajustes → Dinero— abre una pantalla propia con buscador, grupos, iconos por tipo, fichas y alta por pasos; el gesto Atrás acompaña también cada paso del alta, la ficha confirma antes de cerrar y las altas muestran tipo y nombre al guardar. La comparación con el banco vive en Ajustes → Mis bancos.
 - **Updates:** transporte en `12-boot.js`, estado de UI en `useUpdates()` (`10-app-components.js`).
 - **Canal beta y banco de pruebas** (solo `is_admin`): Ajustes → Dev → Pruebas — [docs/TESTING.md](docs/TESTING.md).
+
+
+OPS-01 A (27/9): [paquete Wallet/ingest con cierre FIN-05](docs/briefs/ops01-wallet-2026-09-27.md). Preparación inerte; activación solo de ingest, migraciones=no, pendiente del OK final. FIN-06 pago real pendiente. Pruebas Wallet/handler ampliadas en sus suites ya registradas.
