@@ -1,6 +1,6 @@
 # Aely
 
-OPS-02 (27/9): Copias automáticas abre una vista de solo lectura para comparar movimientos y otros datos, sin sustituir la cartera. [Contrato y evidencia](docs/briefs/ops02-restauracion-probada.md).
+OPS-02 (27/9): Copias automáticas permite abrir una vista de solo lectura para comparar movimientos y otros datos, sin sustituir la cartera. [Contrato y evidencia](docs/briefs/ops02-restauracion-probada.md).
 
 PWA de finanzas personales: patrimonio neto, gastos variables, costes fijos, inversiones (multi-bróker) y deudas. Móvil-first, instalable, con sincronización automática de gastos vía notificaciones del banco.
 
@@ -83,7 +83,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-> Estado actual: **v4.26.56** candidata, sin publicar: visor aislado de copias. Beta publicada 4.26.55.1; producción 4.26.52; APK 51 sin cambios. FIN-05 conserva la compra real pendiente. [Evidencia OPS-02](docs/briefs/ops02-restauracion-probada.md).
+> Estado actual: **v4.26.56** publicada exclusivamente en beta **4.26.56.1**: visor aislado de copias. Producción 4.26.52; APK 51 sin cambios. Veredicto móvil de OPS-02 pendiente. FIN-05 conserva la compra real pendiente. [Evidencia OPS-02](docs/briefs/ops02-restauracion-probada.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.

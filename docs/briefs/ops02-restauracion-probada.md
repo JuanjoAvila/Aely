@@ -1,8 +1,14 @@
 # OPS-02 — vista aislada de copia, 27/9/2026
 
-**Implementación aprobada por el dueño y candidata web 4.26.56.** Rama aislada
+**Visor aprobado e implementado; publicado exclusivamente en beta 4.26.56.1.** Rama aislada
 `codex/ops02-restauracion`, base beta `f7b66aef5fc35b8e3b3b17327c46309a421f22a7`.
-La revisión exacta final, publicación beta y veredicto móvil se registrarán al verificarse.
+**Código revisado:** `978420fcd8c909582ec6de409e23a83aa8cbc012`. Claude GO sobre ese SHA,
+build limpio, 23/23 unitarios y 20/20 visor/persistencia en checkout propio; sintaxis, idiomas y
+frescura PASS. Mensaje local privado `20260927T1839Z-claude-ops02-go-978420fc`.
+[CI beta 36341481895](https://github.com/JuanjoAvila/Aely/actions/runs/36341481895) **SUCCESS**
+sobre el SHA revisado: suite completa Node, cuatro archivos Deno, 456 E2E funcionales directos
+y siete de rendimiento; cero flakies, un omitido de capturas opcionales (`MC_TIROS`).
+**Veredicto móvil pendiente; no producción ni recuperación financiera aplicada.**
 Suite funcional local: 455 PASS directos, un omitido preexistente; las modificaciones posteriores
 solo afectan al visor y se verifican de nuevo con sus once casos más nueve de persistencia.
 El runner Node de la candidata pasa todos los pasos salvo `memoria-espejo` (deuda local ajena);
@@ -11,6 +17,26 @@ Deno no está instalado. Repetición final: once casos de visor + nueve de persi
 La revisión de Claude señaló compatibilidad de metadatos; se preservan crudos y sin aplicar.
 No se consultaron copias financieras reales; veredicto móvil y SQL/RLS siguen pendientes.
 No hay autorización de producción, restauración real, backend ni reparación FIN-03/08.
+
+## Publicación cotejada el 27/9
+
+| Evidencia | Resultado |
+|---|---|
+| Manifiesto beta / bundle anunciado | HTTP 200 ambos; versión `4.26.56.1`, canal `beta`, huella `5a1c27fbf9e68e34`. |
+| ZIP descargado | 870.903 bytes; SHA256 `2eb189866858dc5bcc71b8b1f5668ffad4a6dca6dc35664e62d9525cb89fbfc3`. |
+| HTML activo | `APP_VERSION:4.26.56.1`; seis scripts inline pasan `vm.Script`. |
+| SW activo | `4.26.56.1-2026-09-27-978420f`. |
+| Validador/comparador activos | Bloque minificado idéntico al local, SHA256 `fe4b6fa3bc1b7fb578661739a667cd20f444c4442731cff1463997e93b74de08`. |
+| Panel/visor activos | Bloque minificado dentro del bundle completo idéntico al local, SHA256 `11ddb018f483eeae08ac775236e8cd97df5963b097b6a311e9b8263df6fb9f76`. |
+| Notas publicadas | Primera entrada `4.26.56`, es/en/ca y guion beta propio. |
+| APK | Manifiesto del ZIP `4.26.55 / 51`, sin cambios nativos; entrega web/OTA. |
+| Producción | Manifiesto HTTP 200 sigue `4.26.52`; main sigue `f5e6b514a00b767a07e7ef8d58cf158fe75e93b9`. |
+
+La comparación usa la transformación del bundle completo con esbuild 0.25.5 y
+`minifyIdentifiers:false`, igual que CI. No se confunde el cambio de alias local de un parámetro
+al minificar el bloque aislado con un cambio del código publicado. Pruebas/logs/ZIP sintéticos o
+públicos quedan solo en `test-results` ignorado, no en el repo. Sin consulta a Supabase real,
+restauración, migración ni deploy Edge. La prueba del dueño sigue abierta.
 
 ## Contrato implementado
 
@@ -78,7 +104,8 @@ Fuentes ejecutadas sin extraer/reimplementar lógica de App:
 
 ## Cómo repetir
 
-Con las dependencias existentes del proyecto y Chromium instalado:
+Para repetir la caracterización histórica, usar otro checkout aislado del SHA `bc2fa093`;
+el spec vigente prueba el visor. Con las dependencias existentes y Chromium instalado:
 
 ```text
 npm run build
@@ -217,7 +244,7 @@ su único fallo fue `memoria-espejo`, por documentos locales ajenos ya desfasado
 el espejo ni se incorporó trabajo ajeno para fabricar un verde. Ese fallo impide al runner lanzar
 E2E; los 19 casos se ejecutan por CLI directo. Deno omitido expresamente; no hay cambios Edge.
 Sintaxis, privacidad, frescura de documentación, mapa, identidad y mezcla PASS.
-La revisión independiente del SHA exacto se solicita por el canal de archivos de Claude.
+Caracterización revisada GO al SHA `bc2fa093` por Claude (19/19 con persistencia en su checkout).
 No afirmar suite completa, CI remoto, beta ni prueba móvil por un ensayo local.
 
 OTA/APK: no necesarias para estos tests/docs; comportamiento publicado sin cambios.

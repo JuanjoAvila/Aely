@@ -12,7 +12,7 @@ sesión del móvil se gastó la mitad trabajando sobre una rama equivocada.
 ## 1. Lo primero, siempre
 
 OPS-02: [ensayo de restauración del 27/9](docs/briefs/ops02-restauracion-probada.md).
-Candidato4.26.56 sustituye el reemplazo conectado por una vista aislada. La recuperación
+Beta 4.26.56.1 sustituye el reemplazo conectado por una vista aislada. Claude GO al SHA `978420fc`, CI verde y bundle cotejado; móvil pendiente. La recuperación
 compartida sigue pendiente; repetir las pruebas solo con datos sintéticos.
 
 ```bash

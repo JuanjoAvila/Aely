@@ -1,8 +1,8 @@
 # Roadmap — Aely
 
-OPS-02 (27/9): visor aislado implementado como candidato 4.26.56, sin publicar; recuperación compartida abierta. [Contrato y evidencia](briefs/ops02-restauracion-probada.md).
+OPS-02 (27/9): visor aislado publicado en beta 4.26.56.1; móvil y recuperación compartida abiertos. [Contrato y evidencia](briefs/ops02-restauracion-probada.md).
 
-> Estado a 2026-09-27 · **v4.26.56** candidata sin publicar: visor de copias sin reemplazo financiero. Beta efectiva 4.26.55.1; producción 4.26.52. APK 51 sin cambios; FIN-05 conserva prueba de compra real pendiente. [OPS-02](briefs/ops02-restauracion-probada.md).
+> Estado a 2026-09-27 · **v4.26.56** publicada solo en beta **4.26.56.1**: visor de copias sin reemplazo financiero, veredicto móvil pendiente. Producción 4.26.52. APK 51 sin cambios; FIN-05 conserva prueba de compra real pendiente. [OPS-02](briefs/ops02-restauracion-probada.md).
 > Publicación: el promote sigue el deploy de su commit y coteja el sello de Pages antes de cerrar; la suite lenta de 4.26.47 ya no se confunde con un fallo.
 > Anterior: **v4.26.46** — cambiar el día de un recibo conserva una sola ocurrencia y la fecha bancaria real.
 > Anterior: **v4.26.44** — la ficha de un recibo confirma el guardado antes de cerrarse y un doble toque solo puede persistir una vez.
@@ -234,7 +234,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.56** candidata sin publicar; beta efectiva 4.26.55.1; producción 4.26.52. |
+| Web / OTA (`VERSION`) | **4.26.56**; beta efectiva **4.26.56.1**; producción 4.26.52. |
 | APK (`versionName` / `versionCode`) | Beta prerelease **4.26.55 / 51**, firmada, publicada e instalada. Reentrada/pago real pendientes. Estable4.26.32/48. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **51 / 4.26.55**, asset real cotejado; estable permanece48/4.26.32. |
@@ -306,7 +306,7 @@ existe se deja anotado con su prueba: si mañana alguien vuelve a proponerlo, aq
 | Lógica financiera independiente de React | **A medias.** La lógica pura se extrae y se testea sin React (`scripts/load-pure-logic.mjs`, 15 suites), pero convive en el mismo fichero que la UI. | Separar de verdad los servicios (cartera, movimientos, dividendos, precios) a módulos sin un solo `React.createElement`, y que la UI solo los llame. Sin prisa: es refactor, no arreglo. |
 | Módulos por dominio, no por número | **No.** `src/modules/` va numerado por orden de ensamblado (`00-core`, `06-sync-brokers`, `10-app-components`…). | Reagrupar por dominio cuando duela — hoy 15 ficheros se siguen; el riesgo real es `10`/`11`, que son los que crecen sin parar. |
 | Importadores PDF/CSV | **CSV, XLSX, DOCX y PDF de texto soportado ya existen.** Pruebas `import-docx-pdf` unitarias y E2E. Los PDF escaneados no tienen OCR. | No reconstruir el lector. La integridad del histórico sigue en FIN-02/03/07 de [BACKLOG.md](BACKLOG.md). |
-| Sistema de backups | **Copia diaria y visor aislado de solo lectura (candidata 4.26.56).** Ajustes → Copia de seguridad → Copias automáticas. | Recuperación compartida por identidad y SQL/RLS real siguen abiertas: OPS-02 de [BACKLOG.md](BACKLOG.md). |
+| Sistema de backups | **Copia diaria y visor aislado de solo lectura (beta 4.26.56.1; móvil pendiente).** Ajustes → Copia de seguridad → Copias automáticas. | Recuperación compartida por identidad y SQL/RLS real siguen abiertas: OPS-02 de [BACKLOG.md](BACKLOG.md). |
 | Sincronización bancaria con adapters | **A medias.** Cada banco/bróker tiene su módulo, pero sin interfaz común. | Interfaz única (conectar / sincronizar / desconectar / estado) para que añadir un banco no toque la UI. Enlaza con Enable Banking. |
 | Play Store, cobrar, gestor fiscal | Ya estaba en el plan (ver «Solo si lo pides» y la nota de freemium). | Antes de cobrar un euro: **hablar con un gestor**. La consulta es barata comparada con regularizar tarde. |
 | Más tests de lógica financiera | Lógica y Deno aprobados, 164 E2E Chromium en la auditoría 4.19.14. Recuento vivo en runner/mapa. | Seguir sumando al tocar dinero; los casos pendientes concretos están en [BACKLOG.md](BACKLOG.md). |

@@ -1,4 +1,4 @@
-OPS-02 (candidata 4.26.56): `tests/backup-snapshot.test.mjs` contiene 23 guardianes del
+OPS-02 (beta 4.26.56.1): `tests/backup-snapshot.test.mjs` contiene 23 guardianes del
 validador/comparador, registrado en run-tests. `e2e/backup-restauracion.spec.mjs` contiene once
 casos DOM del visor aislado, ambas claves intactas, cero escrituras financieras atribuibles,
 UUID/campos/sumas, pull/reinicio/B, corrupción, transporte y tres idiomas. El doble mutable
