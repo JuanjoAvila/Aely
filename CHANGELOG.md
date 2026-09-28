@@ -1,3 +1,13 @@
+## [4.26.60] — 2026-09-28 · continuidad de beta tras INC-2709-04
+
+- Se conservan sin cambiar los cinco guiones financieros de 4.26.58 y se trasladan a 4.26.60. Así siguen visibles si la corrección aislada 4.26.59 se publica por separado; `betaChecklist` solo muestra versiones mayores que producción. Ninguna aprobación anterior se reutiliza para FIN-05, selector ni TR.
+- Se integra exclusivamente la corrección de la ficha de cuota y su E2E sobre el bundle beta vigente; Android/APK51, Edge, SQL y datos reales intactos.
+
+## [4.26.59] — 2026-09-28 · INC-2709-04, ficha de cuota
+
+- Con `debt.months` numérico, `BillsItemSheet` llamaba `.slice()` al plazo y provocaba el crash al abrir la ficha. Solo `fixed.months` es lista; se inicializa el editor de meses de recibo únicamente para un array de recibo.
+- E2E real rojo antes y verde después con plazo 24: abrir/cerrar, importe y pago previo visible una vez en Gastos; sin modificar la deuda ni el histórico.
+
 ## [4.26.58] — 2026-09-27
 
 - Conservación de beta al publicar SEC-03 sola: nueva base posterior a producción 4.26.57 y cinco tandas financieras pendientes con sus guiones originales. betaChecklist filtra por versión de producción; sin este corte desaparecerían del panel aunque el código siguiera presente. No se modifica lógica financiera, Android/APK ni se aprueba el pago.

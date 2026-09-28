@@ -1,8 +1,9 @@
 # Roadmap — Aely
 
-OPS-02 (27/9): visor aprobado y publicado exclusivamente en producción 4.26.56; beta conserva FIN-05/selector/TR y su prueba de pago pendiente. [Contrato y evidencia](briefs/ops02-restauracion-probada.md).
-
-> Estado a 2026-09-27 · **v4.26.58** beta de continuidad preparada con FIN-05, selector, TR y APK51 intactos, pago real pendiente. SEC-03 beta 4.26.57.1 aprobada; publicación exclusiva 4.26.57 en preparación, producción todavía 4.26.56. [SEC-03](briefs/sec03-privacidad-logs.md).
+> Estado a 2026-09-28 · **v4.26.60** candidata beta: INC-2709-04 corrige la ficha de cuotas con plazo numérico. La tanda aislada 4.26.59 necesita prueba móvil antes de producción; FIN-05/selector/TR/APK51 se conservan en beta sin aprobación nueva. Producción 4.26.57, APK48 estable; Edge sin desplegar. [Versión de producción](https://juanjoavila.github.io/Aely/version.json).
+> Corte anterior verificado (27/9,19:41 UTC): **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](briefs/ops02-restauracion-probada.md).
+> Cierre del día: [backlog completo y14 incidencias](BACKLOG.md#cierre-del-día--27-de-septiembre-de-2026), con crash de cuotas, coherencia Inicio/Gastos/nómina y cargos CaixaBank como primeras prioridades. Ninguna se implementa en este cierre.
+> OPS-01 C: control manual de una función, sin despliegue global y SQL opt-in; entrega de tooling aislada desde main. Estado exacto, pruebas y revisión en [brief C](briefs/ops01-control-2026-09-27.md). A ingest49 quedó activado y cotejado; FIN-06/Wallet aún requiere pago real. B categorize está autorizado pero bloqueado403 por permiso del token; FIN-05, selector y compra TR siguen pendientes.
 > Publicación: el promote sigue el deploy de su commit y coteja el sello de Pages antes de cerrar; la suite lenta de 4.26.47 ya no se confunde con un fallo.
 > Anterior: **v4.26.46** — cambiar el día de un recibo conserva una sola ocurrencia y la fecha bancaria real.
 > Anterior: **v4.26.44** — la ficha de un recibo confirma el guardado antes de cerrarse y un doble toque solo puede persistir una vez.
@@ -234,10 +235,10 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.58** beta de continuidad preparada; publicada 4.26.57.1 aprobada solo para SEC-03, producción 4.26.56. |
-| APK (`versionName` / `versionCode`) | Beta prerelease **4.26.55 / 51**, firmada, publicada e instalada. Reentrada/pago real pendientes. Estable4.26.32/48. |
+| Web / OTA (`VERSION`) | **4.26.60** candidata beta INC-2709-04 y continuidad de cinco tandas financieras. Estable 4.26.57: [manifiesto](https://juanjoavila.github.io/Aely/version.json). |
+| APK (`versionName` / `versionCode`) | Repo/publicada: **4.26.32 / 48**. El asset firmado existe y la beta puede ofrecer el gesto Atrás nativo. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
-| `public/apk.json` | **51 / 4.26.55**, asset real cotejado; estable permanece48/4.26.32. |
+| `public/apk.json` | **48** / 4.26.32 |
 
 ## Pendiente / limitaciones conocidas
 
@@ -306,7 +307,7 @@ existe se deja anotado con su prueba: si mañana alguien vuelve a proponerlo, aq
 | Lógica financiera independiente de React | **A medias.** La lógica pura se extrae y se testea sin React (`scripts/load-pure-logic.mjs`, 15 suites), pero convive en el mismo fichero que la UI. | Separar de verdad los servicios (cartera, movimientos, dividendos, precios) a módulos sin un solo `React.createElement`, y que la UI solo los llame. Sin prisa: es refactor, no arreglo. |
 | Módulos por dominio, no por número | **No.** `src/modules/` va numerado por orden de ensamblado (`00-core`, `06-sync-brokers`, `10-app-components`…). | Reagrupar por dominio cuando duela — hoy 15 ficheros se siguen; el riesgo real es `10`/`11`, que son los que crecen sin parar. |
 | Importadores PDF/CSV | **CSV, XLSX, DOCX y PDF de texto soportado ya existen.** Pruebas `import-docx-pdf` unitarias y E2E. Los PDF escaneados no tienen OCR. | No reconstruir el lector. La integridad del histórico sigue en FIN-02/03/07 de [BACKLOG.md](BACKLOG.md). |
-| Sistema de backups | **Copia diaria y visor aislado de solo lectura (beta 4.26.56.1; móvil pendiente).** Ajustes → Copia de seguridad → Copias automáticas. | Recuperación compartida por identidad y SQL/RLS real siguen abiertas: OPS-02 de [BACKLOG.md](BACKLOG.md). |
+| Sistema de backups | **Copia diaria y visor aislado de solo lectura, OPS-02 aprobado y publicado en producción 4.26.56.** Ajustes → Copia de seguridad → Copias automáticas. | Recuperación compartida e identidad/SQL/RLS siguen abiertas. [Contrato](briefs/ops02-restauracion-probada.md). |
 | Sincronización bancaria con adapters | **A medias.** Cada banco/bróker tiene su módulo, pero sin interfaz común. | Interfaz única (conectar / sincronizar / desconectar / estado) para que añadir un banco no toque la UI. Enlaza con Enable Banking. |
 | Play Store, cobrar, gestor fiscal | Ya estaba en el plan (ver «Solo si lo pides» y la nota de freemium). | Antes de cobrar un euro: **hablar con un gestor**. La consulta es barata comparada con regularizar tarde. |
 | Más tests de lógica financiera | Lógica y Deno aprobados, 164 E2E Chromium en la auditoría 4.19.14. Recuento vivo en runner/mapa. | Seguir sumando al tocar dinero; los casos pendientes concretos están en [BACKLOG.md](BACKLOG.md). |

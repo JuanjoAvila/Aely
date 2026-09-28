@@ -1,6 +1,6 @@
 # Aely
 
-OPS-02 (27/9): Copias automáticas permite abrir una vista de solo lectura para comparar movimientos y otros datos, sin sustituir la cartera. [Contrato y evidencia](docs/briefs/ops02-restauracion-probada.md).
+OPS-02: Ajustes → Copia de seguridad → Copias automáticas → Ver copia permite comparar sin sustituir la cartera.
 
 PWA de finanzas personales: patrimonio neto, gastos variables, costes fijos, inversiones (multi-bróker) y deudas. Móvil-first, instalable, con sincronización automática de gastos vía notificaciones del banco.
 
@@ -32,9 +32,10 @@ mi-cartera/
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
-├── e2e/                    # Playwright: pantallas, persistencia, copias aisladas y sincronización sintética
+├── e2e/                    # Playwright (68 specs: arranque, listas, bancos, ahorro, brókers, perfil, CSV, CSP, rendimiento, beta…)
+├── e2e/                    # Playwright: pantallas, persistencia y copias aisladas
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
-│                           #  sintaxis de las Edge Functions y presupuesto de rendimiento)
+│                           #  sintaxis de las Edge Functions, despliegue manual de Supabase y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
 ├── scripts/
 │   ├── build-app.mjs       # Ensambla src/ → public/index.html
@@ -83,7 +84,9 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-> Estado actual: **v4.26.58** beta de continuidad preparada para conservar FIN-05, selector y TR pendientes de pago cuando SEC-03 4.26.57 se publique por separado. SEC-03 aprobada en móvil tras beta 4.26.57.1; producción aún 4.26.56. APK beta 51 intacta. [Matriz SEC-03](docs/briefs/sec03-privacidad-logs.md).
+Estado actual: **v4.26.60** · beta candidata con el arreglo de «Cuotas de deuda» y cinco pruebas financieras conservadas. Producción sigue en 4.26.57; FIN-05/selector/TR siguen pendientes de pago real. APK estable **4.26.32/code 48** intacta. [Versión de producción verificable](https://juanjoavila.github.io/Aely/version.json).
+
+Producción verificada: **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](docs/briefs/ops02-restauracion-probada.md).
 
 Trabajo pendiente, prioridades y criterios de cierre para el equipo: [docs/BACKLOG.md](docs/BACKLOG.md).
 Incluye el cruce con las listas antiguas para no repetir tareas ya hechas ni dar por cerrada toda la ronda.
@@ -102,3 +105,5 @@ Notas rápidas del rediseño v4 (para no perderse):
 - **Tus recibos v4.1:** Plan → Recibos → Gestionar —o Ajustes → Dinero— abre una pantalla propia con buscador, grupos, iconos por tipo, fichas y alta por pasos; el gesto Atrás acompaña también cada paso del alta, la ficha confirma antes de cerrar y las altas muestran tipo y nombre al guardar. La comparación con el banco vive en Ajustes → Mis bancos.
 - **Updates:** transporte en `12-boot.js`, estado de UI en `useUpdates()` (`10-app-components.js`).
 - **Canal beta y banco de pruebas** (solo `is_admin`): Ajustes → Dev → Pruebas — [docs/TESTING.md](docs/TESTING.md).
+
+El guardián tests/logs-privacidad.test.mjs verifica las fronteras de diagnóstico con marcadores sintéticos. Cobertura y límites, incluyendo servidor sin desplegar, en [SEC-03](docs/briefs/sec03-privacidad-logs.md).
