@@ -478,11 +478,17 @@ function App(){
           const localNewer=!freshLogin && (prev._savedAt||0) > (cloudState._savedAt||0);
           const baseObj = localNewer ? Object.assign({},prev,{expenses:merged.list})
                                      : Object.assign({},prev,cloudState,{expenses:merged.list});
+          // El extracto local no pertenece a la nube: al cambiar de usuario podría confirmar
+          // una nómina ajena. Los eventos de arranque/refresco compiten con getSession y no
+          // prueban por sí solos que haya otro titular (feedback 27/9).
+          if(opts&&opts.dropTx) baseObj.bankTx=[];
           // Usuario que ya tenía cartera en la nube: no repetir onboarding en otro dispositivo.
           if(freshLogin && (cloudState.accounts||[]).length) baseObj.onboarded=true;
           if(freshLogin && ((cloudState.accounts||[]).length || (cloudState.monthStartNet||0)>0)) baseObj.setupHint=false;
           // Call site 2/3 de fixMovInvasion (syncFromCloud). Contención dentro de la fn, no aquí.
-          return seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR(baseObj))))));
+          const seeded=seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR(baseObj))))));
+          const now=new Date();
+          return reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate());
         });
       } else if(cloudState){
         // llegó algo pero con forma inválida (corrupto/parcial) → NO machacar lo local; resube lo bueno
@@ -584,7 +590,9 @@ function App(){
         // (2026-07-24): si no, el histórico viejo —el que se consulta— seguiría sin explicar nada.
         const withNotes=enrichNotesFromBankTx(baseExp, txs);
         const withExp=(withNotes!==(invState.expenses||[])) ? Object.assign({},invState,{expenses:withNotes}) : invState;
-        const r=applyBankBalances(withExp, links);
+        const now=new Date(), withTx=Object.assign({},withExp,{bankTx:txs});
+        const anchored=reconcileEarlyIncomeAnchors(withTx,now.getFullYear(),now.getMonth()+1,now.getDate());
+        const r=applyBankBalances(anchored, links);
         return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks) });
       });
       // sube las importadas a la tabla expenses (best-effort; el estado local ya las tiene)
@@ -884,10 +892,14 @@ function App(){
       const prev=sessionRef.current;
       const changed=(!prev&&s)||(prev&&!s)||(prev&&s&&prev.user.id!==s.user.id);
       sessionRef.current=s; setSession(s);
+      // Cerrar sesión rompe la asociación implícita del extracto local con el titular. El
+      // próximo login no debe heredar sus apuntes, aunque no exista cartera en la nube.
+      if(!s&&ev==="SIGNED_OUT") set(function(p){ return Object.assign({},p,{bankTx:[]}); });
       // Vuelta del email de recuperación: abre el panel para poner contraseña nueva.
       if(ev==="PASSWORD_RECOVERY"){ setRecovery(true); setShowAuth(true); }
       // changed = pasó de sin-sesión a con-sesión (o cambió de usuario) → es un LOGIN → la nube manda.
-      if(changed && s) syncFromCloud(s, {freshLogin:!prev});
+      if(changed && s) syncFromCloud(s, {freshLogin:true,
+        dropTx:!!(prev&&prev.user.id!==s.user.id)});
     });
   },[]);
 

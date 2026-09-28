@@ -4,6 +4,11 @@ import assert from "node:assert/strict";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
 const c = loadPureLogicFromFile();
+let reloj=new Date("2026-09-10T12:00:00+02:00");
+c.Date=class extends Date {
+  constructor(...args){ super(...(args.length?args:[reloj.getTime()])); }
+  static now(){ return reloj.getTime(); }
+};
 
 function base(overrides) {
   return Object.assign({
@@ -25,6 +30,57 @@ function base(overrides) {
 }
 
 console.log("plan-charges");
+
+{
+  const antiguo=base({fixed:[],debts:[],oneoffs:[],
+    accounts:[{id:"sb",ent:"sabadell",role:"fijos",value:3000},{id:"rv",ent:"revolut",role:"fijos",value:700}],
+    flows:[{id:"nom",kind:"income",name:"Nómina",amount:2000,to:"sabadell",day:15}],
+    bankTx:[{id:"salary",ent:"sabadell",date:"2026-09-08",amount:-2000,merchant:"Empresa",status:"BOOK"}],
+    expenses:[]});
+  const mostrado=function(s,ent){ const a=s.accounts.find(function(x){ return x.ent===ent; });
+    const i=c.insumosSaldoGasto(s); return c.saldoCuentaMostrada(a,{
+      injTR:i.injTR,spentByBank:i.spentByBank,paidNetByBank:i.paidNetByBank,
+      roundup:i.roundup,monthlyInvest:i.monthlyInvest}); };
+  assert.equal(c.monthNetForAccount(antiguo,"sabadell",2026,9,10),0);
+  assert.equal(c.monthNetForAccount(antiguo,"sabadell",2026,9,15),2000);
+  const nuevo=c.reconcileEarlyIncomeAnchors(antiguo,2026,9,10);
+  assert.equal(nuevo.flows[0].paidDay,8,"solo se persiste el día confirmado");
+  assert.equal(nuevo.accounts[0].value,1000,"la base se ajusta al adelantar la ocurrencia");
+  assert.equal(mostrado(nuevo,"sabadell"),mostrado(antiguo,"sabadell"),"instalar no mueve el saldo mostrado");
+  assert.equal(mostrado(nuevo,"revolut"),700,"otro banco no cambia");
+  assert.equal(c.monthNetForAccount(nuevo,"sabadell",2026,9,10),2000);
+  assert.equal(c.monthNetForAccount(nuevo,"sabadell",2026,9,15),2000,"el día previsto no suma otra nómina");
+  assert.equal(c.reconcileEarlyIncomeAnchors(nuevo,2026,9,10),nuevo,"repetir la conciliación no reancla dos veces");
+  const dosCuentas=Object.assign({},antiguo,{accounts:[
+    {id:"sb-1",ent:"sabadell",role:"fijos",value:3000},
+    {id:"sb-2",ent:"sabadell",role:"fijos",value:700}]});
+  assert.equal(c.reconcileEarlyIncomeAnchors(dosCuentas,2026,9,10),dosCuentas,
+    "un extracto sin cuenta de destino no mueve dos saldos del mismo banco");
+  const duplicado=Object.assign({},nuevo,{bankTx:antiguo.bankTx.concat([Object.assign({},antiguo.bankTx[0],{id:"salary-2"})])});
+  const ambiguo=c.reconcileEarlyIncomeAnchors(duplicado,2026,9,10);
+  assert.equal(ambiguo.flows[0].paidYm,undefined,"otro abono compatible retira la atribución anterior");
+  assert.equal(mostrado(ambiguo,"sabadell"),3000,"la ambigüedad posterior tampoco mueve el saldo");
+  let editado;
+  c.patchFlowById(function(updater){ editado=updater(nuevo); },"nom",{amount:2500});
+  assert.equal(editado.flows[0].paidYm,undefined,"cambiar el importe invalida la atribución bancaria");
+  assert.equal(mostrado(editado,"sabadell"),3000,"editar el ingreso no mueve el saldo actual");
+  assert.equal(c.monthNetForAccount(editado,"sabadell",2026,9,10),0);
+  const segundo=Object.assign({},nuevo,{bankTx:[]});
+  assert.equal(c.monthNetForAccount(segundo,"sabadell",2026,9,15),2000,"el segundo móvil conserva el día sin extracto");
+  assert.equal(c.planChargesMonth(segundo,9,2026,10).incomePending.length,0,"sin banco local no revive la previsión");
+  reloj=new Date("2026-09-15T12:00:00+02:00");
+  assert.equal(mostrado(segundo,"sabadell"),3000,"el saldo no salta al llegar el día planificado");
+  const tarde=base({fixed:[],debts:[],oneoffs:[],accounts:[{id:"sb",ent:"sabadell",role:"fijos",value:1000}],
+    flows:antiguo.flows,bankTx:antiguo.bankTx,expenses:[]});
+  const alActualizarTarde=c.reconcileEarlyIncomeAnchors(tarde,2026,9,15);
+  assert.equal(alActualizarTarde.accounts[0].value,1000,"una base ya anclada tras el día 15 no se reajusta");
+  assert.equal(mostrado(alActualizarTarde,"sabadell"),mostrado(tarde,"sabadell"));
+  const sinFeed=Object.assign({},antiguo,{bankTx:[]});
+  assert.equal(c.reconcileEarlyIncomeAnchors(sinFeed,2026,9,10),sinFeed,"un sync fallido sin prueba no inventa el abono");
+  reloj=new Date("2026-09-10T12:00:00+02:00");
+  const dudoso=Object.assign({},antiguo,{bankTx:antiguo.bankTx.concat([Object.assign({},antiguo.bankTx[0],{id:"otro"})])});
+  assert.equal(c.reconcileEarlyIncomeAnchors(dudoso,2026,9,10),dudoso,"dos abonos compatibles no alteran el saldo");
+}
 
 {
   const p = c.planChargesMonth(base(), 9, 2026, 10);

@@ -57,6 +57,90 @@ test("un abono bancario adelantado ancla el ciclo y deja de preverse otra nómin
   await expect(page.locator(".v4-cycle-box")).toContainText("Empresa");
 });
 
+test("la nómina del día 8 no salta el saldo de la cuenta al llegar el día 15", async ({ page }) => {
+  await openPlan(page, {
+    __seedOnce:true, hasBankLink:true,
+    accounts:[{id:"sb",ent:"sabadell",name:"Sabadell",value:3000,role:"fijos",bankIban:"ES00"}],
+    fixed:[],debts:[],oneoffs:[],expenses:[],
+    flows:[{id:"nom",kind:"income",name:"Nómina",amount:2000,to:"sabadell",day:15}],
+    bankTx:[{id:"salary",ent:"sabadell",date:"2026-09-08",amount:-2000,merchant:"Empresa",status:"BOOK"}],
+  });
+  await expect(page.locator('.v4-screen > [data-seg="recibos"]')).not.toContainText("Lo que aún entrará");
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  const cuenta=page.locator('.v4-card-list button.v4-mov').filter({hasText:"Sabadell"}).first();
+  await expect(cuenta).toContainText(/3\.?000,00/);
+  await expect.poll(() => page.evaluate(() => {
+    const s=JSON.parse(localStorage.getItem("micartera_v3")||"{}");
+    return [s.flows?.[0]?.paidDay,s.accounts?.[0]?.value];
+  })).toEqual([8,1000]);
+  const persisted=await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3")||"{}"));
+  const secondContext=await page.context().browser().newContext({viewport:{width:375,height:812},baseURL:new URL(page.url()).origin});
+  try {
+    const second=await secondContext.newPage();
+    await second.clock.install({time:new Date("2026-09-15T12:00:00Z")});
+    await seedLoggedInDashboard(second,Object.assign({},persisted,{bankTx:[]}));
+    await second.goto("/");
+    await expect(second.locator(".botnav")).toBeVisible();
+    await second.waitForFunction(() => !document.getElementById("mc-load"));
+    await dismissNews(second);
+    await second.locator('.botnav-tab[data-tour="cartera"]').click();
+    await expect(second.locator('.v4-card-list button.v4-mov').filter({hasText:"Sabadell"}).first()).toContainText(/3\.?000,00/);
+  } finally { await secondContext.close(); }
+});
+
+for(const authEvent of ["INITIAL_SESSION","TOKEN_REFRESHED"]){
+test(authEvent+" adelantado conserva el extracto local al adoptar la nube", async ({ page }) => {
+  await page.clock.install({time:RELOJ});
+  const accounts=[{id:"sb",ent:"sabadell",name:"Sabadell",value:3000,role:"fijos"}];
+  const flows=[{id:"nom",kind:"income",name:"Nómina",amount:2000,to:"sabadell",day:15}];
+  const cloudState={accounts,investments:[],debts:[],fixed:[],flows,expenses:[],budget:777,_savedAt:1};
+  await seedLoggedInDashboard(page,{
+    __sessionDelayMs:200,__authEvent:authEvent,
+    __cloudRows:{app_state:[{data:cloudState,updated_at:"2026-09-10T00:00:00Z"}]},
+    accounts,flows,_savedAt:2,
+    bankTx:[{id:"salary",ent:"sabadell",date:"2026-09-08",amount:-2000,merchant:"Empresa",status:"BOOK"}],
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => {
+    const s=JSON.parse(localStorage.getItem("micartera_v3")||"{}");
+    return [s.budget,s.flows?.[0]?.paidDay,s.bankTx?.length,s.accounts?.[0]?.value];
+  })).toEqual([777,8,1,1000]);
+});
+}
+
+test("cerrar sesión borra el extracto que no debe heredar otro usuario", async ({ page }) => {
+  await page.clock.install({time:RELOJ});
+  await seedLoggedInDashboard(page,{
+    __authEvent:"SIGNED_OUT",__authEventDelayMs:300,
+    bankTx:[{id:"salary",ent:"sabadell",date:"2026-09-08",amount:-2000,merchant:"Empresa",status:"BOOK"}],
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible();
+  await page.waitForTimeout(400);
+  await expect.poll(() => page.evaluate(() =>
+    JSON.parse(localStorage.getItem("micartera_v3")||"{}").bankTx?.length)).toBe(0);
+});
+
+test("cambio de usuario descarta el extracto antes de adoptar su cartera", async ({ page }) => {
+  await page.clock.install({time:RELOJ});
+  const cloudState={accounts:[{id:"sb",ent:"sabadell",value:3000,role:"fijos"}],
+    investments:[],debts:[],fixed:[],flows:[{id:"nom",kind:"income",name:"Nómina",amount:2000,to:"sabadell",day:15}],
+    expenses:[],budget:777,_savedAt:1};
+  await seedLoggedInDashboard(page,{
+    __authEvent:"SIGNED_IN",__authEventUserId:"other-user",__authEventDelayMs:300,
+    __cloudRows:{app_state:[{data:cloudState,updated_at:"2026-09-10T00:00:00Z"}]},
+    _savedAt:2,bankTx:[{id:"salary",ent:"sabadell",date:"2026-09-08",amount:-2000,merchant:"Empresa",status:"BOOK"}],
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible();
+  await page.waitForTimeout(400);
+  await expect.poll(() => page.evaluate(() => {
+    const s=JSON.parse(localStorage.getItem("micartera_v3")||"{}");
+    return [s.budget,s.bankTx?.length,s.flows?.[0]?.paidDay||null];
+  })).toEqual([777,0,null]);
+});
+
 test("pagado y pendiente se separan sin anillo ni mensaje diagnóstico", async ({ page }) => {
   await openPlan(page, {
     fixed: [
