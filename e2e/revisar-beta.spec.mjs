@@ -875,13 +875,13 @@ test("la marca caduca: si vuelve al día siguiente entra en su app, no en el pan
 });
 
 
-/* La publicación exclusiva de SEC-03 no aprueba las pruebas de pago que siguen en beta. */
-test("continuidad SEC-03: producción 4.26.57 deja visibles las cinco tandas financieras", async ({ page }) => {
+/* SEC-03 ya está en producción; sus cinco pruebas de pago siguen en beta junto al arreglo de cuotas. */
+test("continuidad SEC-03: producción 4.26.57 deja visibles las cinco tandas financieras y cuotas", async ({ page }) => {
   await abrirRevisionBeta(page);
-  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.58.1"; });
+  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.60.1"; });
   const panel = await conProduccionEn(page, "4.26.57");
-  await expect(panel.locator(".beta-tanda")).toHaveCount(5);
-  for (const title of ["Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada"]) {
+  await expect(panel.locator(".beta-tanda")).toHaveCount(6);
+  for (const title of ["Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada", "Abrir cuotas de deuda"]) {
     await expect(panel.locator(".beta-tanda-t").filter({ hasText: title })).toHaveCount(1);
   }
   await expect(panel).not.toContainText("Diagnósticos más privados");
