@@ -8,6 +8,9 @@ sesión del móvil se gastó la mitad trabajando sobre una rama equivocada.
 > con prioridades, encargos para Claude/Cursor, criterios de cierre y lo ya terminado.
 > El panel de beta no contiene todo el backlog. El relevo de madrugada del 9/9 quedó superado
 > por la auditoría posterior: efectivo e histórico conservan fallos abiertos.
+> El flujo autónomo acordado el 28/9 y el prompt que debe recibir cada chat nuevo están en
+> [docs/PROMPT-FLUJO-CONTINUO.md](docs/PROMPT-FLUJO-CONTINUO.md). Al entrar se comprueban
+> primero las tandas aprobadas; al cerrar se abre el siguiente chat sin esperar un «dale».
 
 ## 1. Lo primero, siempre
 

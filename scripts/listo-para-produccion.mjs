@@ -8,9 +8,9 @@
  * es justo donde se cuelan los errores: se sube algo que él rechazó, o se le deja meses en beta
  * algo que aprobó el primer día.
  *
- * Esto NO promociona nada: solo LEE y dice la verdad. La promoción sigue siendo un clic suyo en
- * Actions → «Promocionar beta a producción», que es donde tiene que estar (ver AGENTS §9: no
- * metemos un token de escritura de GitHub en la app para ahorrar un clic).
+ * Esto NO promociona nada: solo LEE y orienta. Desde el 28/9 el dueño permite que un chat
+ * promocione por Actions las tandas que él haya aprobado, tras verificar la candidata exacta
+ * (docs/PROMPT-FLUJO-CONTINUO.md). No se mete un token de escritura de GitHub en la app.
  *
  * CÓMO SE SUBE UNA TANDA SUELTA, que es lo que él quiere:
  *   El workflow ya sabe hacerlo, pero SOLO si esa tanda vive en su propia rama `tanda/<id>`.

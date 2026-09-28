@@ -439,6 +439,11 @@ Cada tanda tiene en el panel **su propio contador y su propio botón**. Un fallo
 bloquea a las demás — que es todo el motivo de que existan. Cada veredicto se manda por separado y
 lleva su `id`, así que `node scripts/errores.mjs --kind=beta` enseña una línea por tanda.
 
+Desde el 28/9, el dueño autoriza que cada chat nuevo compruebe estos veredictos y publique de
+forma autónoma **solo** las tandas aprobadas, después de preparar y verificar la candidata exacta.
+El proceso está en [PROMPT-FLUJO-CONTINUO.md](PROMPT-FLUJO-CONTINUO.md). Una tanda sin veredicto
+identificable o con validación por pago real pendiente continúa en beta.
+
 ### Una tanda aprobada Y SUBIDA se QUITA de `tandas`, no se marca como hecha
 
 Regla suya, textual (2026-08-01): **«si sube algo en prod, se quita de beta para probar porque ya

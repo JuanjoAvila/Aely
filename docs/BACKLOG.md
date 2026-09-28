@@ -10,6 +10,10 @@ conservan historia; sus antiguos «todo cerrado» o «ninguna empezada» no son 
 Actualizar esta tabla al entregar: commit, pruebas, versión publicada y siguiente paso.
 Una tarea implementada, una verificada por tests y una aprobada en móvil son estados distintos.
 
+Desde el 28/9, [el flujo continuo](PROMPT-FLUJO-CONTINUO.md) abre automáticamente un chat nuevo
+al cerrar cada objetivo. El chat entrante comprueba primero aprobaciones explícitas de beta para
+promover solo esas tandas; si no hay ninguna publicable, toma un objetivo pendiente de este índice.
+
 
 ## Cierre del día · 27 de septiembre de 2026
 
