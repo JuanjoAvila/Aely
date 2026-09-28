@@ -1,5 +1,30 @@
 [
   {
+    "v": "4.26.59",
+    "d": "2026-09-28",
+    "t": {
+      "es": "Cuotas de deuda accesibles",
+      "en": "Debt payments open again",
+      "ca": "Quotes de deute accessibles"
+    },
+    "items": {
+      "es": ["Las cuotas de deuda vuelven a abrirse desde Plan sin cerrar la app."],
+      "en": ["Debt payments open again from Plan without closing the app."],
+      "ca": ["Les quotes de deute es tornen a obrir des de Pla sense tancar l’app."]
+    },
+    "tandas": [
+      {
+        "id": "cuotas-deuda-crash-28sep",
+        "t": {"es":"Abrir cuotas de deuda","en":"Open debt payments","ca":"Obrir quotes de deute"},
+        "items": {
+          "es": ["1. En Plan → Gestionar → Cuotas de deuda, abre una cuota con plazo y vuelve atrás. La ficha debe mostrar el importe y no cerrar la app.","2. Comprueba que el plazo de la deuda y sus pagos anteriores siguen visibles."],
+          "en": ["1. In Plan → Manage → Debt payments, open a payment with a term and go back. The detail should show the amount without closing the app.","2. Check that the debt term and earlier payments remain visible."],
+          "ca": ["1. A Pla → Gestionar → Quotes de deute, obre una quota amb termini i torna enrere. La fitxa ha de mostrar l’import sense tancar l’app.","2. Comprova que el termini del deute i els pagaments anteriors continuen visibles."]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.57",
     "d": "2026-09-27",
     "t": {
