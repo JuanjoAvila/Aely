@@ -1,5 +1,92 @@
 [
   {
+    "v": "4.26.65",
+    "d": "2026-09-28",
+    "t": {
+      "es": "Mi ciclo muestra el balance de ingresos",
+      "en": "My cycle shows your income balance",
+      "ca": "El meu cicle mostra el balanç d’ingressos"
+    },
+    "items": {
+      "es": [
+        "El balance de «Mi ciclo» cuenta todos los ingresos recibidos durante el ciclo, como Bizums, devoluciones y alquileres. Si pagas una cena de 100 € y te devuelven 80 €, quedan 20 € gastados del presupuesto.",
+        "La nómina que abre el ciclo y los traspasos entre tus cuentas quedan fuera. Si ingresas más de lo que gastas, aumenta el margen disponible. El mes natural y el widget conservan sus cifras."
+      ],
+      "en": [
+        "The “My cycle” balance counts all income received during the cycle, including Bizum payments, refunds, and rent. If you pay €100 for dinner and get €80 back, €20 counts against the budget.",
+        "The pay that starts the cycle and transfers between your accounts stay out. Income above spending increases money left. Calendar months and the widget keep their figures."
+      ],
+      "ca": [
+        "El balanç d’«El meu cicle» compta tots els ingressos rebuts durant el cicle, com Bizums, devolucions i lloguers. Si pagues un sopar de 100 € i et tornen 80 €, queden 20 € gastats del pressupost.",
+        "La nòmina que obre el cicle i els traspassos entre els teus comptes queden fora. Si ingresses més del que gastes, augmenta el marge disponible. Els mesos naturals i el giny conserven les seves xifres."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.64",
+    "d": "2026-09-28",
+    "t": {
+      "es": "El presupuesto puede seguir el día de cobro",
+      "en": "Your budget can follow payday",
+      "ca": "El pressupost pot seguir el dia de cobrament"
+    },
+    "items": {
+      "es": [
+        "En Ajustes → Dinero puedes elegir que el presupuesto empiece con la nómina registrada. Gastos abrirá en «Mi ciclo» y lo gastado antes de cobrar dejará de restar de ese ciclo."
+      ],
+      "en": [
+        "In Settings → Money you can start the budget when your pay is recorded. Spending opens in “My cycle”, and purchases before payday stop counting against that cycle."
+      ],
+      "ca": [
+        "A Ajustos → Diners pots fer que el pressupost comenci amb la nòmina registrada. Despeses s’obre a «El meu cicle» i el que s’ha gastat abans de cobrar deixa de restar d’aquell cicle."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.62",
+    "d": "2026-09-28",
+    "t": {
+      "es": "El saldo sigue la nómina cuando llega antes",
+      "en": "Balances follow an early salary payment",
+      "ca": "El saldo segueix la nòmina quan arriba abans"
+    },
+    "items": {
+      "es": [
+        "Si el banco confirma una nómina antes del día previsto, el saldo de la cuenta se mantiene al actualizar la app y no vuelve a subir cuando llega ese día."
+      ],
+      "en": [
+        "When the bank confirms a salary before its planned date, the account balance stays steady after updating and does not rise again on that date."
+      ],
+      "ca": [
+        "Si el banc confirma una nòmina abans del dia previst, el saldo del compte es manté en actualitzar l’app i no torna a pujar quan arriba aquell dia."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.61",
+    "d": "2026-09-28",
+    "t": {
+      "es": "La nómina confirmada deja de figurar como pendiente",
+      "en": "Confirmed pay no longer appears as pending",
+      "ca": "La nòmina confirmada deixa de figurar com a pendent"
+    },
+    "items": {
+      "es": [
+        "Una nómina que el banco ya ha confirmado deja de aparecer como ingreso futuro cuando se puede reconocer con seguridad."
+      ],
+      "en": [
+        "A salary already confirmed by the bank stops appearing as future income when it can be identified reliably."
+      ],
+      "ca": [
+        "Una nòmina ja confirmada pel banc deixa d’aparèixer com a ingrés futur quan es pot reconèixer amb seguretat."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.59",
     "d": "2026-09-28",
     "t": {

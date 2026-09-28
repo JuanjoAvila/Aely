@@ -73,6 +73,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   const bud=monthBudgetStats(state);
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
   const spentAgainst=Math.max(0, bud.against);
+  const hasMonthActivity=bud.spent>0.005 || bud.income>0.005;
   const ratio=budAmt>0 ? spentAgainst/budAmt : 0;
   const dim=new Date(tt.curYear, tt.curMonth, 0).getDate();
   const elapsed=Math.max(1, tt.today||1);
@@ -81,12 +82,15 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   const dailyAllow=rem/leftDays;
   const pace=spentAgainst/elapsed;
   const projected=spentAgainst+pace*leftDays;
-  const overTrack=projected>budAmt+0.5;
-  // Sin gasto aún, «Vas muy bien» suena a vacío (feedback 11/9, modo recién instalada).
-  let stCls="st", stHead=spentAgainst>0.005 ? t("st_good_h") : t("st_start_h");
+  // Sin fecha fiable del próximo cobro no proyectamos un «€/día hasta fin de mes» que
+  // mezclaría el ciclo de ella con el calendario (feedback pareja 28/9).
+  const overTrack=!bud.cycle && projected>budAmt+0.5;
+  // El neto puede ser negativo con compras reales: ese 0 % de uso no significa mes vacío.
+  // El texto de Inicio vuelve al que el dueño usaba antes de la tanda rechazada (28/9).
+  let stCls="st", stHead=hasMonthActivity ? t("st_good_h") : t(bud.cycle?"v4_cycle_start_h":"st_start_h");
   if(ratio>1 || overTrack&&ratio>0.85){ stCls="st bad"; stHead=t("st_over_h"); }
   else if(ratio>0.8 || !overTrack&&ratio>0.8){ stCls="st warn"; stHead=t("st_tight_h"); }
-  else if(ratio<=0.8 && !overTrack){ stCls="st"; stHead=spentAgainst>0.005 ? t("st_good_h") : t("st_start_h"); }
+  else if(ratio<=0.8 && !overTrack){ stCls="st"; stHead=hasMonthActivity ? t("st_good_h") : t(bud.cycle?"v4_cycle_start_h":"st_start_h"); }
 
   // Próximos cargos: misma regla que Plan›Recibos (día del mes + isPaidIn). Antes usaba
   // f.day crudo y mostraba recibos ya cobrados (luz/seguros) — feedback 2026-07-17.
@@ -109,7 +113,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     (state.flows||[]).forEach(function(f){
       if(!(f.amount>0) || f.kind==="transfer") return;
       if(!flowOccursIn(f,cm,tt.curYear)) return;
-      if(flowPaid(f,tt.curYear,cm,today)) return;
+      if(flowPaidIn(state,f,tt.curYear,cm,today)) return;
       const day=flowDay(f,tt.curYear,cm)||1;
       rows.push({day:day, name:f.name||t("cat_ingreso"), sub:entOf(f.ent||f.account||"").label||"", amount:f.amount, pos:true});
     });
@@ -243,20 +247,20 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
           pct:ringDraw?ringPct:0,
           tone:stCls.indexOf("bad")>=0?"bad":(stCls.indexOf("warn")>=0?"warn":"ok"),
           label:Math.round(ringPct*100)+"%",
-          sub:t("v4_of_month"),
+          sub:t(bud.cycle?"v4_of_cycle":"v4_of_month"),
           animate:true
         }),
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:stCls}, stHead),
           React.createElement("div",{className:"ph"},
-            tf("v4_budget_spent",{spent:eur0(bud.shown),budget:eur0(budAmt)}),
+            tf("v4_budget_spent",{spent:eur0(bud.spent),budget:eur0(budAmt)}),
             " ",
-            rem>=0 ? tf("v4_budget_daily",{x:eur0(Math.max(0,dailyAllow))}) : t("st_over_l")
+            rem>=0 ? (!bud.cycle?tf("v4_budget_daily",{x:eur0(Math.max(0,dailyAllow))}):null) : t("st_over_l")
           )
         )
       ),
       React.createElement("div",{className:"v4-budget-foot"},
-        (function(){
+        !bud.cycle && (function(){
           const n=budgetStreak?budgetStreak.current:0;
           return React.createElement("span",{"data-testid":"dash-budget-streak"},n>0?tf("v4_streak",{n:n}):t("v4_streak_zero"));
         })(),

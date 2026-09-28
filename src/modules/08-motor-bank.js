@@ -11,6 +11,86 @@ function entFromAspsp(name){
   }
   return null;
 }
+/* Un ingreso previsto puede entrar antes de su día editable. El saldo del banco ya lo incluye:
+   volver a proyectarlo sumaría la misma nómina dos veces (feedback 27/9). Solo adelantamos el
+   estado con UN abono confirmado en ese banco y mes; otro ingreso similar queda pendiente. */
+function flowEarlyBankMatches(s,f,y,m,today){
+  if(!f||f.kind!=="income"||!(Number(f.amount)>0)) return [];
+  const planned=flowDay(f,y,m);
+  if(planned==null) return [];
+  const bank=f.to||"sabadell", ym=y+"-"+String(m).padStart(2,"0"), amount=Number(f.amount);
+  // El extracto va por entidad, no por cuenta. Dos cuentas de recibos del mismo banco
+  // comparten hoy paidNet y no permiten reanclar una nómina sin atribuirla a ambas.
+  if((s.accounts||[]).filter(function(a){ return a.ent===bank && accFixed(a); }).length>1) return [];
+  return (s.bankTx||[]).filter(function(tx){
+    if(!tx||tx.ent!==bank||!(Number(tx.amount)<0)||String(tx.date||"").slice(0,7)!==ym) return false;
+    if(String(tx.status||"").toUpperCase()!=="BOOK") return false;
+    const day=recDay(tx.date);
+    if(day==null||day>today||day>=planned||planned-day>7) return false;
+    const actual=-Number(tx.amount);
+    return recNameMatch(f.name,tx.merchant) ? recAmtClose(amount,actual) : Math.abs(amount-actual)<=0.01;
+  });
+}
+function flowEarlyBankTx(s,f,y,m,today){
+  const matches=flowEarlyBankMatches(s,f,y,m,today);
+  if(matches.length!==1) return false;
+  const tx=matches[0], actual=-Number(tx.amount), bank=f.to||"sabadell";
+  return (s.flows||[]).some(function(other){
+    if(!other||other===f||!(Number(other.amount)>0)) return false;
+    const sameBank=other.kind==="income"?(other.to||"sabadell")===bank
+      :other.kind==="transfer"&&other.to===bank;
+    return sameBank&&flowOccursIn(other,m,y)&&recAmtClose(Number(other.amount),actual);
+  }) ? false : tx;
+}
+function flowBankPaid(s,f,y,m,today){ return !!flowEarlyBankTx(s,f,y,m,today); }
+function flowConfirmedDay(f,y,m){
+  return f&&f.paidYm===y*12+m && f.paidDay!=null
+    && f.paidBank===(f.to||"sabadell") && f.paidAmount===Number(f.amount)
+    ? f.paidDay : null;
+}
+function flowPaidIn(s,f,y,m,today){
+  const confirmed=flowConfirmedDay(f,y,m);
+  return flowPaid(f,y,m,today) || confirmed!=null&&confirmed<=today
+    || flowBankPaid(s,f,y,m,today);
+}
+/* El saldo guardado se calculó con la fecha PREVISTA. Al guardar una confirmación anterior,
+   desplazamos la base exactamente lo que cambia el saldo pintado: instalar la actualización o
+   recibir la misma cartera en otro móvil no debe añadir 2.000 € de golpe (feedback 27/9).
+   Solo guarda la fecha mínima confirmada; el extracto bancario no viaja a la nube. */
+function keepShownAcrossFlows(s,flows){
+  if(flows===(s.flows||[])) return s;
+  const before=insumosSaldoGasto(s), marked=Object.assign({},s,{flows:flows});
+  const after=insumosSaldoGasto(marked);
+  const inputs=function(x){ return {injTR:x.injTR,spentByBank:x.spentByBank,
+    paidNetByBank:x.paidNetByBank,roundup:x.roundup,monthlyInvest:x.monthlyInvest}; };
+  const oldInput=inputs(before), newInput=inputs(after);
+  const accounts=(s.accounts||[]).map(function(a){
+    const oldShown=saldoCuentaMostrada(a,oldInput), newShown=saldoCuentaMostrada(a,newInput);
+    const diff=+((oldShown-newShown).toFixed(2));
+    return Math.abs(diff)>0.005 ? Object.assign({},a,{value:+((a.value||0)+diff).toFixed(2)}) : a;
+  });
+  return Object.assign({},marked,{accounts:accounts});
+}
+function reconcileEarlyIncomeAnchors(s,y,m,today){
+  if(!s || !(s.bankTx||[]).length) return s;
+  const flows=(s.flows||[]).map(function(f){
+    if(!flowOccursIn(f,m,y)) return f;
+    if(flowConfirmedDay(f,y,m)!=null){
+      // Un segundo abono compatible vuelve ambigua la atribución inicial; no se borra por
+      // ausencia de feed, que puede ser parcial o fallar en otro móvil.
+      if(flowEarlyBankMatches(s,f,y,m,today).length<2) return f;
+      const n=Object.assign({},f);
+      delete n.paidYm; delete n.paidDay; delete n.paidBank; delete n.paidAmount;
+      return n;
+    }
+    const tx=flowEarlyBankTx(s,f,y,m,today);
+    if(!tx) return f;
+    return Object.assign({},f,{paidYm:y*12+m,paidDay:recDay(tx.date),
+      paidBank:f.to||"sabadell",paidAmount:Number(f.amount)});
+  });
+  if(flows.every(function(f,i){ return f===(s.flows||[])[i]; })) return s;
+  return keepShownAcrossFlows(s,flows);
+}
 /* UNA sola fuente de cargos del mes para Plan / Pregúntame / segmented (audit Claude 17/9).
    Recibos = fixed + deudas (+ balloon) + oneoffs. Traspasos e ingresos van aparte y NUNCA
    suman a «por pagar». Sin tocar totals de 11: solo clasifica con helpers ya existentes. */
@@ -50,7 +130,7 @@ function planChargesMonth(s,m,y,t){
   (s.flows||[]).forEach(function(f){
     if(!flowOccursIn(f,m,y)) return;
     var d=flowDay(f,y,m);
-    var p=d!=null&&d<=t;
+    var p=flowPaidIn(s,f,y,m,t);
     var a=+(f.amount||0);
     if(!(a>0)) return;
     if(f.kind==="income"){
@@ -409,7 +489,7 @@ function bankPendingEvents(state, bank, y, m, today){
   (state.fixed||[]).forEach(function(e){ if(occursIn(e,m)&&accOf(e)===bank&&!isPaidIn(e,m,today,y)) evs.push({day:dayIn(e,m)||0, amt:-occAmountIn(e,m)}); });
   (state.debts||[]).forEach(function(d){ if(debtActive(d)&&(d.account||"sabadell")===bank&&!isDebtPaidThisMonth(d,today)){ evs.push({day:debtChargeDay(d), amt:-(d.monthly||0)}); const bl=debtBalloonIn(d,y,m); if(bl>0) evs.push({day:debtChargeDay(d), amt:-bl}); } });
   (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.account||"sabadell")===bank&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({day:o.day||0, amt:-o.amount}); });
-  (state.flows||[]).forEach(function(f){ if(!flowOccursIn(f,m,y)||flowPaid(f,y,m,today))return; const dd=flowDay(f,y,m); if(f.kind==="income"&&(f.to||"sabadell")===bank) evs.push({day:dd||99, amt:f.amount}); else if(f.kind==="transfer"&&(f.from||"sabadell")===bank) evs.push({day:dd||0, amt:-f.amount}); });
+  (state.flows||[]).forEach(function(f){ if(!flowOccursIn(f,m,y)||flowPaidIn(state,f,y,m,today))return; const dd=flowDay(f,y,m); if(f.kind==="income"&&(f.to||"sabadell")===bank) evs.push({day:dd||99, amt:f.amount}); else if(f.kind==="transfer"&&(f.from||"sabadell")===bank) evs.push({day:dd||0, amt:-f.amount}); });
   return evs;
 }
 // Recorre los eventos por día desde un saldo inicial y devuelve el punto MÍNIMO (peor momento) y el final.
@@ -946,30 +1026,54 @@ function budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode){
   return {spent:spent, income:income, balance:balance, mode:mode, budget:budget, reserved:reserved,
     remaining:remaining, against:against, shown:shown};
 }
-/* Misma cifra en Gastos, Resumen y el widget (2026-08-05). `totals.thisMonthSpent` suma TODO
+// El presupuesto cambia de ventana solo con la preferencia activada y un cobro real.
+// Los informes con fecha explícita conservan sus meses naturales ya cerrados.
+function budgetPeriodOf(state, nowMs){
+  const now=nowMs!=null?nowMs:Date.now();
+  const payday=nowMs==null && state.settings&&state.settings.budgetCycle
+    ? budgetPaydayOf(state, now) : null;
+  const tomorrow=new Date(now); tomorrow.setHours(24,0,0,0);
+  return {startMs:payday?payday.start.getTime():inicioDeMesMs(now), cycle:payday,
+    todayEndMs:payday?tomorrow.getTime():Infinity};
+}
+/* Misma cifra en Gastos e Inicio; el widget pide mes explícito (2026-09-28).
+   `totals.thisMonthSpent` suma TODO
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
-   que pinta la cabecera de Gastos (gasto bruto o |balance| según gTotalMode). */
+   que pinta la cabecera de Gastos (balance en el ciclo; gasto bruto o balance según gTotalMode en el mes). */
 function monthBudgetStats(state, nowMs, hastaMs){
-  const startMs=inicioDeMesMs(nowMs!=null?nowMs:Date.now());
-  // hastaMs opcional (informe del mes cerrado): sin él, comportamiento idéntico al de siempre
-  // — desde el día 1 en adelante. Con él, acota [startMs, hastaMs) para que un gasto del mes
-  // nuevo no se cuele (brief INFORME-MES / criterio 3).
-  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
+  const period=budgetPeriodOf(state,nowMs);
+  const startMs=period.startMs;
+  // `hastaMs` acota un informe cerrado; solo el ciclo actual termina mañana para que un
+  // apunte futuro no gaste hoy. El mes natural conserva la misma cifra que el widget.
+  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : period.todayEndMs;
   let spent=0, income=0;
+  const delSet=period.cycle?expenseDeletedSet(state):null;
   (state.expenses||[]).forEach(function(e){
+    // La nómina abre el ciclo; en modo balance no añade otro presupuesto encima del elegido.
+    if(period.cycle && e===period.cycle.inc) return;
     const ms=dateMs(e.date);
     if(ms<startMs) return;
     if(ms>=endMs) return;
-    // Solo bancos de gasto diario (+ a mano). El resto se ve en la lista pero no mueve la cifra.
+    // Los ingresos reales del ciclo pueden llegar a otro banco: cuentan para el
+    // balance elegido por el dueño, incluso si superan las compras del período.
+    if(period.cycle && e.amount<0){
+      if(CAT_NEUTRAS[e.category] || e.possibleDup || expenseIsTombstoned(e,delSet)) return;
+      income+=Math.abs(e.amount);
+      return;
+    }
+    // El gasto conserva la selección de bancos diarios; el mes natural y el widget no cambian.
     if(!expenseCountsBudget(e, state)) return;
     if(e.amount>0) spent+=e.amount;
     else if(e.amount<0) income+=Math.abs(e.amount);
   });
   const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs);
   const budgetRaw=typeof state.budget==="number" ? state.budget : 0;
-  const mode=(state.settings&&state.settings.gTotalMode)||"split";
-  return budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode);
+  // El ciclo usa el neto aunque el mes natural prefiera gasto bruto: si adelantas una cena,
+  // los Bizums recibidos devuelven margen al límite elegido (feedback 28/9).
+  const mode=period.cycle?"net":((state.settings&&state.settings.gTotalMode)||"split");
+  return Object.assign(budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode),
+    {periodStart:startMs,cycle:!!period.cycle});
 }
 
 /* Desglose del mes por categoría (brief PRESUPUESTO-POR-CATEGORIA). Misma ventana y misma
@@ -978,8 +1082,9 @@ function monthBudgetStats(state, nowMs, hastaMs){
    en CAT) no se enseña ni suma. Sin gastos pero con límite → fila a 0, para que no parezca
    que se ha borrado el tope. */
 function categorySpentByMonth(state, nowMs, hastaMs){
-  const startMs=inicioDeMesMs(nowMs!=null?nowMs:Date.now());
-  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
+  const period=budgetPeriodOf(state,nowMs);
+  const startMs=period.startMs;
+  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : period.todayEndMs;
   const byCat={};
   (state.expenses||[]).forEach(function(e){
     const ms=dateMs(e.date);
@@ -2214,17 +2319,21 @@ function addFixedItem(set, item){
 }
 function patchFlowById(set, id, patch){
   set(function(s){
-    return Object.assign({},s,{flows:(s.flows||[]).map(function(f){
+    const flows=(s.flows||[]).map(function(f){
       if(f.id!==id) return f;
       const n=Object.assign({},f,patch);
       if(n.when){ delete n.day; }
       else { delete n.when; }
+      if(n.amount!==f.amount || n.to!==f.to || n.kind!==f.kind || n.once!==f.once){
+        delete n.paidYm; delete n.paidDay; delete n.paidBank; delete n.paidAmount;
+      }
       return n;
-    })});
+    });
+    return keepShownAcrossFlows(s,flows);
   });
 }
 function removeFlowById(set, id){
-  set(function(s){ return Object.assign({},s,{flows:(s.flows||[]).filter(function(f){ return f.id!==id; })}); });
+  set(function(s){ return keepShownAcrossFlows(s,(s.flows||[]).filter(function(f){ return f.id!==id; })); });
 }
 function addFlowItem(set, item){
   set(function(s){ return Object.assign({},s,{flows:(s.flows||[]).concat([item])}); });
@@ -2326,8 +2435,8 @@ function Fijos({state, set, totals}){
   const fTo=(f)=> draftF["to_"+f.id]!=null?draftF["to_"+f.id]:(f.to||"sabadell");
   const fFrom=(f)=> draftF["fr_"+f.id]!=null?draftF["fr_"+f.id]:(f.from||"sabadell");
   const startEditF=()=>{ const d={}; flows.forEach(f=>{ d[f.id]=f.amount; d["dy_"+f.id]=f.day||""; d["wh_"+f.id]=f.when||""; d["to_"+f.id]=f.to||"sabadell"; d["fr_"+f.id]=f.from||"sabadell"; }); setDraftF(d); setEditingF(true); };
-  const saveEditF=()=>{ set(s=>Object.assign({},s,{flows:(s.flows||[]).map(f=>{ const wh=fWhen(f); const o=Object.assign({},f,{amount:parseFloat(String(fAmt(f)).replace(',','.'))||0}); if(wh){ o.when=wh; delete o.day; } else { o.when=undefined; delete o.when; o.day=cleanDay(fDay(f)); } if(f.kind==="income"){ o.to=fTo(f); delete o.from; } else { o.from=fFrom(f); o.to=fTo(f); } return o; })})); setEditingF(false); };
-  const delFlow=(id)=> set(s=>Object.assign({},s,{flows:(s.flows||[]).filter(f=>f.id!==id)}));
+  const saveEditF=()=>{ set(s=>keepShownAcrossFlows(s,(s.flows||[]).map(f=>{ const wh=fWhen(f); const o=Object.assign({},f,{amount:parseFloat(String(fAmt(f)).replace(',','.'))||0}); if(wh){ o.when=wh; delete o.day; } else { delete o.when; o.day=cleanDay(fDay(f)); } if(f.kind==="income"){ o.to=fTo(f); delete o.from; } else { o.from=fFrom(f); o.to=fTo(f); } if(o.amount!==f.amount||o.to!==f.to){ delete o.paidYm; delete o.paidDay; delete o.paidBank; delete o.paidAmount; } return o; }))); setEditingF(false); };
+  const delFlow=(id)=> set(s=>keepShownAcrossFlows(s,(s.flows||[]).filter(f=>f.id!==id)));
   const addFlow=()=>{ const amt=parseFloat(String(formF.amount).replace(',','.'))||0; if(amt===0) return; const it={id:uid(),kind:formF.kind,name:formF.name||(formF.kind==="income"?"Ingreso":"Transferencia"),amount:amt}; if(formF.when){ it.when=formF.when; } else { const dd=cleanDay(formF.day); if(dd) it.day=dd; } if(formF.kind==="income"){ it.to=formF.to||"sabadell"; } else { it.from=formF.from||"sabadell"; it.to=formF.to||"trade_republic"; } if(formF.once){ it.once={y:parseInt(formF.year,10)||new Date().getFullYear(), m:parseInt(formF.month,10)||(new Date().getMonth()+1)}; } set(s=>Object.assign({},s,{flows:(s.flows||[]).concat([it])})); setFormF({kind:"income",name:"",amount:"",day:"",when:"",to:"sabadell",from:"sabadell",once:false,month:new Date().getMonth()+1,year:new Date().getFullYear()}); setAddingF(false); };
   const whenLabel=(f)=> f.when==="last"?t("fj_when_last"):f.when==="first"?t("fj_when_first"):(f.day?tf("fj_day_n",{d:f.day}):null);
 
@@ -2359,7 +2468,7 @@ function Fijos({state, set, totals}){
     key:f.id, name:f.name, flow:true, kind:f.kind,
     amount: f.kind==="income" ? -(f.amount||0) : (f.amount||0),   // ingreso = entra (verde +) · transfer = sale
     bank: f.kind==="income" ? (f.to||"sabadell") : (f.from||"sabadell"),
-    day: flowDay(f,yr,mo), paid: mo===cm&&yr===cy ? flowPaid(f,yr,mo,today) : false
+    day: flowDay(f,yr,mo), paid: mo===cm&&yr===cy ? flowPaidIn(state,f,yr,mo,today) : false
   }));
   const thisM=chargesOf(cm,cy).concat(flowsOf(cm,cy)).sort(byDay);
   const nextM=chargesOf(nm,ny);

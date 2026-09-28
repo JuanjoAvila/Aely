@@ -1,6 +1,8 @@
 # Aely
 
 OPS-02: Ajustes → Copia de seguridad → Copias automáticas → Ver copia permite comparar sin sustituir la cartera.
+Inicio vuelve a mostrar «Has gastado» como antes del cambio de Balance; Plan deja de prever un ingreso que el banco ya identifica claramente.
+En Ajustes → Dinero, «Presupuesto por ciclo de cobro» permite reiniciar el presupuesto con la nómina registrada; Gastos abre en «Mi ciclo». El widget Android mantiene el mes natural.
 
 PWA de finanzas personales: patrimonio neto, gastos variables, costes fijos, inversiones (multi-bróker) y deudas. Móvil-first, instalable, con sincronización automática de gastos vía notificaciones del banco.
 
@@ -84,7 +86,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.59** · candidata aislada para abrir las cuotas de deuda con plazo desde Plan. Producción sigue en 4.26.57; FIN-05/selector/TR siguen en beta y pendientes de pago. APK estable **4.26.32/code 48** intacta. [Versión de producción verificable](https://juanjoavila.github.io/Aely/version.json).
+Estado actual: **v4.26.65** candidata web aprobada: Inicio y Gastos distinguen gasto y balance, el saldo reconoce una nómina adelantada y «Mi ciclo» puede empezar con el cobro real y contar los ingresos posteriores, incluido el alquiler. Producción verificada antes de esta entrega: **4.26.59**. APK estable **4.26.32/code 48**; la APK 51 de beta no se publica por esta entrega. [Versión estable verificable](https://juanjoavila.github.io/Aely/version.json).
 
 Producción verificada: **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](docs/briefs/ops02-restauracion-probada.md).
 
