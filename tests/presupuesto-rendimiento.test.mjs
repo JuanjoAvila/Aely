@@ -97,11 +97,15 @@ const PRESUPUESTO = {
   // INC-2709-05 saldo: marcador, reanclaje y ambigüedad posterior miden 1.251.083 B
   // crudos, 779 B sobre el límite anterior; gzip 340.797 B permanece bajo 333 KiB.
   // Se añade 1 KiB solo al crudo para preservar el saldo al actualizar y en otro móvil.
-  minificado: 1222 * 1024,
+  // Ciclo 4.26.63: ventana opcional del presupuesto, ajuste reversible y textos en tres
+  // idiomas, más la exclusión de transferencias/Bizum señalada por Claude, miden
+  // 1.254.924 B minificados y 341.990 B gzip, incluyendo la nómina en concepto bancario.
+  // Se añaden 4/1 KiB frente a 4.26.62; quedan 500/26 B de margen medido.
+  minificado: 1226 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
-  gzip: 333 * 1024,
+  gzip: 334 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.64",
+    "d": "2026-09-28",
+    "t": {
+      "es": "El presupuesto puede seguir el día de cobro",
+      "en": "Your budget can follow payday",
+      "ca": "El pressupost pot seguir el dia de cobrament"
+    },
+    "items": {
+      "es": [
+        "En Ajustes → Dinero puedes elegir que el presupuesto empiece con la nómina registrada. Gastos abrirá en «Mi ciclo» y lo gastado antes de cobrar dejará de restar de ese ciclo.",
+        "La tarjeta de Inicio recupera la frase de gasto que ya conocías."
+      ],
+      "en": [
+        "In Settings → Money you can start the budget when your pay is recorded. Spending opens in “My cycle”, and purchases before payday stop counting against that cycle.",
+        "The Home budget card brings back its familiar spending text."
+      ],
+      "ca": [
+        "A Ajustos → Diners pots fer que el pressupost comenci amb la nòmina registrada. Despeses s’obre a «El meu cicle» i el que s’ha gastat abans de cobrar deixa de restar d’aquell cicle.",
+        "La targeta d’Inici recupera el text de despesa que ja coneixies."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "presupuesto-ciclo-cobro-28sep",
+        "t": {
+          "es": "Presupuesto por día de cobro",
+          "en": "Budget by payday",
+          "ca": "Pressupost per dia de cobrament"
+        },
+        "items": {
+          "es": [
+            "1. En Ajustes → Dinero, activa «Presupuesto por ciclo de cobro». Abre Gastos: «Mi ciclo» debe estar seleccionado y debe mostrar qué cobro lo inicia.",
+            "2. Antes del próximo cobro, apunta cuánto has gastado. Cuando el banco registre la nómina y sincronices, ese gasto anterior debe salir del presupuesto del ciclo nuevo. Comprueba que la nómina mostrada es la correcta y que un traspaso o Bizum posterior no cambia el inicio.",
+            "3. El día 1 siguiente, el presupuesto no debe volver a empezar. Desactiva el ajuste si quieres recuperar el mes natural. El widget Android sigue mostrando el mes natural."
+          ],
+          "en": [
+            "1. In Settings → Money, turn on “Budget by pay cycle”. Open Spending: “My cycle” should be selected and show which payment starts it.",
+            "2. Before the next payment, note your spending. Once the bank records your pay and you sync, earlier spending should leave the new cycle’s budget. Check that the displayed pay is right and a later transfer or Bizum does not move the start.",
+            "3. On the following 1st, the budget should not restart again. Turn the setting off to return to calendar months. The Android widget still shows calendar months."
+          ],
+          "ca": [
+            "1. A Ajustos → Diners, activa «Pressupost per cicle de cobrament». Obre Despeses: «El meu cicle» ha d’estar seleccionat i mostrar quin cobrament l’inicia.",
+            "2. Abans del cobrament següent, anota la despesa acumulada. Quan el banc registri la nòmina i sincronitzis, la despesa anterior ha de deixar de restar del pressupost del nou cicle. Comprova que la nòmina mostrada és la correcta i que un traspàs o Bizum posterior no mou l'inici.",
+            "3. El dia 1 següent, el pressupost no ha de tornar a començar. Desactiva l’ajust per recuperar el mes natural. El giny Android continua mostrant mesos naturals."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.63",
     "d": "2026-09-28",
     "t": {
@@ -29,9 +79,15 @@
       "ca": "El saldo segueix la nòmina quan arriba abans"
     },
     "items": {
-      "es": ["Si el banco confirma una nómina antes del día previsto, el saldo de la cuenta se mantiene al actualizar la app y no vuelve a subir cuando llega ese día."],
-      "en": ["When the bank confirms a salary before its planned date, the account balance stays steady after updating and does not rise again on that date."],
-      "ca": ["Si el banc confirma una nòmina abans del dia previst, el saldo del compte es manté en actualitzar l’app i no torna a pujar quan arriba aquell dia."]
+      "es": [
+        "Si el banco confirma una nómina antes del día previsto, el saldo de la cuenta se mantiene al actualizar la app y no vuelve a subir cuando llega ese día."
+      ],
+      "en": [
+        "When the bank confirms a salary before its planned date, the account balance stays steady after updating and does not rise again on that date."
+      ],
+      "ca": [
+        "Si el banc confirma una nòmina abans del dia previst, el saldo del compte es manté en actualitzar l’app i no torna a pujar quan arriba aquell dia."
+      ]
     },
     "tandas": [
       {
@@ -90,15 +146,15 @@
         },
         "items": {
           "es": [
-            "1. En Ajustes → Total de Gastos, elige Balance. En Inicio debe verse en una frase breve y sin signo negativo: a favor si ingresaste más de lo gastado, en contra si gastaste más. El anillo vuelve a decir «del mes». En Gastos comprueba los importes reales de compras e ingresos.",
+            "1. En Inicio vuelve a verse «Has gastado» con la suma real de las compras y el anillo dice «del mes». Si usas Balance en Gastos, esa cifra allí puede ser distinta: es el resultado de ingresos menos gastos. Comprueba ambas con tus movimientos.",
             "2. Si una nómina llegó antes del día previsto, sincroniza ese banco a demanda y mira Plan → Recibos. Si el abono coincide de forma clara, no debe aparecer otra vez en «Lo que aún entrará» ni elevar la proyección. Comprueba Mi ciclo en Gastos."
           ],
           "en": [
-            "1. In Settings → Expenses total, choose Balance. Home should show a short sentence without a minus sign: ahead when income exceeds spending, behind when spending is higher. The ring says “of month” again. Check the actual spending and income amounts in Spending.",
+            "1. Home shows “You’ve spent” with the actual purchase total again, and the ring says “of month”. If Spending is set to Balance, its figure can differ: it combines income and spending. Check both against your transactions.",
             "2. If a salary arrived before its planned day, sync that bank on demand and open Plan → Bills. When the credit matches clearly, it should not appear again under future income or raise the forecast. Check My cycle in Spending."
           ],
           "ca": [
-            "1. A Ajustos → Total de Despeses, tria Balanç. A Inici s’ha de veure una frase breu i sense signe negatiu: a favor si els ingressos superen les despeses, en contra si les despeses són més altes. L’anell torna a dir «del mes». Comprova els imports reals a Despeses.",
+            "1. A Inici es torna a veure «Has gastat» amb la suma real de les compres i l’anell diu «del mes». Si uses Balanç a Despeses, la xifra pot ser diferent: combina ingressos i despeses. Comprova-les amb els moviments.",
             "2. Si una nòmina ha arribat abans del dia previst, sincronitza aquest banc a demanda i obre Pla → Rebuts. Si l’abonament coincideix clarament, no ha de tornar a aparèixer entre els ingressos futurs ni augmentar la previsió. Comprova El meu cicle a Despeses."
           ]
         }

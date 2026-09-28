@@ -1,9 +1,17 @@
+## [4.26.64] — 2026-09-28 · presupuesto opcional por cobro real e Inicio restaurado
+
+- Tras el rechazo explícito de «Balance en contra», Inicio recupera la frase de gasto y la proyección mensual anteriores a 1e2b9692; «Has gastado» usa las compras reales (`bud.spent`) para no volver a llamar gasto al balance neto; el anillo sigue diciendo «del mes» o «del ciclo» según el ajuste. El cálculo del ciclo no se modifica.
+
+- Ajustes → Dinero guarda `settings.budgetCycle` por perfil. Al activarlo, Gastos abre en «Mi ciclo» y `monthBudgetStats`/categorías siguen un ingreso de al menos 200 € identificado como nómina por el nombre o el concepto bancario, o por un flujo de ingreso periódico del mismo banco, mes, nombre e importe. Un traspaso, inversión o Bizum posterior no mueve el inicio. Sin nómina reconocida en 45 días, la interfaz indica esa ausencia y usa el mes natural. Apagarlo devuelve el comportamiento anterior sin modificar movimientos ni presupuesto guardado; el filtro informativo «Mi ciclo» sin ajuste conserva su ancla previa.
+- La nómina que abre el período no infla el dinero disponible en modo Balance. Un ingreso fechado mañana no adelanta el reinicio; los movimientos futuros no cuentan como gasto del ciclo hoy. El modo mensual conserva su ventana anterior sin corte superior, idéntica a la del widget. El 1 del mes no reinicia un ciclo abierto el 26. Los informes de meses cerrados conservan ventanas naturales explícitas. Inicio evita proyectar euros diarios hasta una fecha de cobro desconocida y los avisos de umbral usan el inicio del ciclo como clave para no duplicarse al cruzar el día 1.
+- El widget Android y su servidor `ingest` continúan calculando meses naturales; el cliente les envía expresamente la foto mensual y el ajuste explica esa diferencia. No se cambia Edge, Android, SQL ni histórico. Pruebas puras y E2E cubren 600 € antes del día 26, reinicio con cobro, paso por el día 1, ajuste activado/desactivado y filtro inicial. Pendiente veredicto móvil en beta.
+
 ## [4.26.63] — 2026-09-28 · Balance breve en Inicio tras rechazo móvil
 
 - El dueño rechazó el punto visual de la tanda inicio-gastos-ciclo-28sep en beta 4.26.62.1: el cálculo cuadraba, pero la tarjeta de Inicio ponía un balance negativo, una frase extensa y «uso neto del mes» en el anillo. El mismo balance sigue calculándose como ingresos menos gastos; solo cambia su presentación.
 - Inicio enseña «Balance a favor/en contra» con valor absoluto y céntimos, sin ocultar el sentido de la cifra ni llamarla gasto. El anillo recupera «del mes». La actividad real continúa evitando el falso «Aquí empieza el mes» cuando ya hubo movimientos. Gastos, Plan, widget, presupuestos y filas financieras no cambian.
 - En modo Balance la tarjeta omite la proyección diaria para que el mensaje quede en una sola frase; con balance en contra usa una cabecera neutra en lugar de «Vas muy bien».
-- e2e/presupuesto-fluido.spec.mjs comprueba superávit en es/en/ca y déficit sin signo, el texto del anillo y las cantidades de Gastos. Se conserva la misma tanda rechazada en el panel con su primer punto actualizado para que el dueño pueda revalidarla sin duplicarla. Candidata local: faltan revisión, CI, publicación beta y prueba móvil.
+- e2e/presupuesto-fluido.spec.mjs comprueba superávit en es/en/ca y déficit sin signo, el texto del anillo y las cantidades de Gastos. Se conserva la misma tanda rechazada en el panel con su primer punto actualizado para que el dueño pueda revalidarla sin duplicarla. Revisión, CI y publicación beta completadas; prueba móvil pendiente.
 
 ## [4.26.62] — 2026-09-28 · INC-2709-05, anclaje de nómina adelantada
 

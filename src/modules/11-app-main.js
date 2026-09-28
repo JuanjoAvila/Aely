@@ -1978,8 +1978,9 @@ function App(){
     try{ nat.setIngestUrl({url:url}).catch(function(){}); }catch(e){}
   },[state.settings&&state.settings.trIngest, state.settings&&state.settings.ingestToken]);
   // App Android: alimenta el widget de pantalla de inicio (gasto del mes + saldo de la cuenta diaria).
-  // Misma cifra que Gastos/Resumen (`monthBudgetStats`), no `thisMonthSpent` (neutras/ingresos).
-  const budW=monthBudgetStats(state);
+  // El widget y `ingest` solo admiten mes natural. Mandar su propia cifra mensual evita
+  // mezclar un inicio de ciclo con el `periodStart` del día 1 (feedback pareja 28/9).
+  const budW=monthBudgetStats(state,Date.now());
   const trAccW=widgetBankOf(state);
   const widgetCash=trAccW ? Math.round((totals.bankBal[trAccW.ent]||0)*100)/100 : null;
   // El límite combina presupuesto global y liquidez del banco elegido. Se mandan las piezas
@@ -2194,7 +2195,9 @@ function App(){
     const bud=bs.budget!=null?bs.budget:0; if(!(bud>0)) return;
     const spent=Math.max(0, bs.against||0);
     const pct=spent/bud*100;
-    const ym=new Date().toISOString().slice(0,7);
+    // Sin ciclo se conserva la clave histórica de aviso; al cobrar, el inicio real
+    // abre otra tanda de avisos aunque siga siendo el mismo mes del calendario.
+    const ym=bs.cycle?String(bs.periodStart):new Date().toISOString().slice(0,7);
     let fired=false;
     [100,95,80,50].forEach(function(th){
       if(pct<th) return;

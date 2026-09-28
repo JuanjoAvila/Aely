@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-28 · **v4.26.63** preparada en rama aislada, sin publicar: presentación breve del Balance en Inicio tras el rechazo móvil; las cifras y el widget no cambian. La OTA beta verificada sigue en **4.26.62.1**. El dueño aprobó cinco tandas financieras y el saldo con nómina adelantada; Inicio/Gastos queda rechazado hasta revalidar esta corrección. Producción **4.26.59**. Mi ciclo tiene GO de Claude en 891ca8e3, pero su versión 4.26.63 todavía no se ha integrado ni publicado. [Evidencia](briefs/inc-2709-05-inicio-gastos.md).
+> Estado a 2026-09-28 · **v4.26.64** preparada en rama aislada: presupuesto opcional por cobro real, filtro «Mi ciclo» inicial y texto de Inicio restaurado. Beta activa **4.26.63.1**; pendiente nueva prueba móvil. Cinco tandas financieras y saldo de nómina aprobados. Producción **4.26.59**. [Evidencia](briefs/inc-2709-05-inicio-gastos.md).
 > Corte anterior verificado (27/9,19:41 UTC): **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](briefs/ops02-restauracion-probada.md).
 > Cierre del día: [backlog completo y14 incidencias](BACKLOG.md#cierre-del-día--27-de-septiembre-de-2026), con crash de cuotas, coherencia Inicio/Gastos/nómina y cargos CaixaBank como primeras prioridades. Ninguna se implementa en este cierre.
 > OPS-01 C: control manual de una función, sin despliegue global y SQL opt-in; entrega de tooling aislada desde main. Estado exacto, pruebas y revisión en [brief C](briefs/ops01-control-2026-09-27.md). A ingest49 quedó activado y cotejado; FIN-06/Wallet aún requiere pago real. B categorize está autorizado pero bloqueado403 por permiso del token; FIN-05, selector y compra TR siguen pendientes.
@@ -235,7 +235,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.63** preparada sin publicar para la presentación de Balance; beta activa **4.26.62.1**. Cinco tandas financieras y saldo de nómina aprobados; Inicio/Gastos rechazado hasta revalidar. Estable **4.26.59**: [manifiesto](https://juanjoavila.github.io/Aely/version.json). |
+| Web / OTA (`VERSION`) | **4.26.64** preparada sin publicar para Mi ciclo; beta activa **4.26.63.1** con la tarjeta de Inicio pendiente de restauración y revalidación. Cinco tandas financieras y saldo de nómina aprobados. Estable **4.26.59**: [manifiesto](https://juanjoavila.github.io/Aely/version.json). |
 | APK (`versionName` / `versionCode`) | Repo/beta: **4.26.55 / 51**; estable: **4.26.32 / 48**. No se publica APK nueva con este cambio web. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **51** / 4.26.55 en beta; **48** / 4.26.32 en Pages estable. |

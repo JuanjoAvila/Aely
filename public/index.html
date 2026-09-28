@@ -4830,7 +4830,7 @@ const LANG = {
     help_cue_history:"Para meses anteriores, usa Importar histórico y revisa cada movimiento.",
     help_cue_categories:"Abre el movimiento en Gastos y cambia la categoría; Aely la recordará.",
     help_cue_receipts:"En Recibos ves lo pendiente del mes y lo ya cobrado.",
-    help_cue_budget_left:"Te quedan {x} de {b} este mes.",
+    help_cue_budget_left:"Te quedan {x} de {b} en tu presupuesto actual.",
     help_remote_try:"Probar con más ayuda",
     help_remote_status_on:"OpenAI solo se usa si la guía local no basta y tú pides más ayuda. No cambia el resto de respuestas.",
     help_consent_no:"No, gracias",
@@ -4843,8 +4843,8 @@ const LANG = {
     help_cue_next_bills_amount:"Te quedan recibos por {x} este mes.",
     help_cue_next_bills_one:"Te queda 1 recibo por {x} este mes.",
     help_cue_end_unknown:"Todavía no puedo calcular cómo acabas el mes.",
-    help_cue_budget_over:"Este mes te has pasado {x} del presupuesto.",
-    help_cue_budget_none:"Aún no hay un presupuesto del mes. Puedes ver el gasto en Gastos.",
+    help_cue_budget_over:"Te has pasado {x} del presupuesto actual.",
+    help_cue_budget_none:"Aún no hay un presupuesto. Puedes ver el gasto en Gastos.",
     help_cue_next_bills:"Te quedan {n} recibos por {x} este mes.",
     help_cue_next_bills_none:"No veo recibos pendientes este mes.",
     help_cue_end_ok:"Con lo que falta por pagar, en {bank} acabarías el mes con unos {x}.",
@@ -4863,8 +4863,8 @@ const LANG = {
     tab_dash:"Inicio", tab_gastos:"Gastos", tab_plan:"Plan", tab_cartera:"Cartera", tab_fijos:"Fijos", tab_inv:"Inversiones", tab_patri:"Patrimonio", tab_debt:"Deudas", tab_compartido:"Compartido",
     tab_metas:"Metas", tab_logros:"Logros",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
-    v4_money_total:"Tu dinero en total", v4_of_month:"del mes",
-    v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_ahead:"Balance a favor: {x}.", v4_budget_behind:"Balance en contra: {x}.", v4_budget_even:"Balance: {x}.", v4_budget_month_h:"Así va el mes", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.",
+    v4_money_total:"Tu dinero en total", v4_of_month:"del mes", v4_of_cycle:"del ciclo", v4_cycle_start_h:"Aquí empieza tu ciclo",
+    v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.",
     v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Tu primer mes empieza hoy", v4_hist_empty:"Tu histórico empieza hoy", v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_empty:"Nada pendiente este mes. Los recibos aparecen aquí.",
     v4_your_goals:"Tus metas", v4_recent:"Últimos movimientos", v4_recent_empty:"Aún no hay movimientos. Apunta el primero con +.",
@@ -4888,12 +4888,12 @@ const LANG = {
     v4s_row_from:"sale de {bank}", v4s_row_debt:"la cuota de {name}", v4s_row_income:"te entra en {bank}", v4s_row_to:"lo que pasas a {bank}", v4s_row_invest:"lo que apartas para invertir en {bank}",
     v4_pendiente:"Pendiente", v4_ya_pagado:"Ya pagado", v4_gestionar:"Gestionar",
     v4_ver_mas:"Ver más · {n}", v4_ver_menos:"Ver menos",
-    v4_gastos_title:"Tus gastos", v4_gastos_spent_in:"Gastado en {month}", v4_gastos_net_in:"Balance en {month}", v4_gastos_of:"de {x}", v4_gastos_left:"quedan {x}", v4_gastos_today_mark:"hoy · día {d}", v4_period_more:"Más…",
+    v4_gastos_title:"Tus gastos", v4_gastos_spent_in:"Gastado en {month}", v4_gastos_net_in:"Balance en {month}", v4_gastos_spent_cycle:"Gastado desde el cobro", v4_gastos_net_cycle:"Balance desde el cobro", v4_gastos_of:"de {x}", v4_gastos_left:"quedan {x}", v4_gastos_today_mark:"hoy · día {d}", v4_period_more:"Más…",
     v4_gastos_inc_line:"Ingresos {x} · balance {bal}", v4_gastos_split_line:"Gastos {spent} · ingresos {income}",
     v4_gastos_lbl_spent:"Gastos", v4_gastos_lbl_income:"Ingresos", v4_gastos_lbl_balance:"Balance",
     v4_gastos_cats:"Por categoría · toca una para ponerle un límite", v4_gastos_cat_limit:"límite {x}",
     v4_gastos_cats_hide:"Ocultar", v4_gastos_cats_show:"Ver", v4_gastos_cats_n:"{n} categorías este mes",
-    v4_gastos_cats_n1:"1 categoría este mes",
+    v4_gastos_cats_n1:"1 categoría este mes", v4_gastos_cats_cycle_n:"{n} categorías este ciclo", v4_gastos_cats_cycle_n1:"1 categoría este ciclo",
     g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Solo para verlo: no cambia tu presupuesto ni te bloquea. Vacío o 0 = quitar el límite.",
     g_cat_budget_clear:"Quitar límite",
     v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
@@ -5466,13 +5466,14 @@ Object.assign(LANG.es,{
   g_filters_clear:"Limpiar", g_filters_done:"Listo",
   ai_cat_btn:"✨ Sugerir categoría", ai_cat_busy:"Pensando…", ai_cat_ok:"✓ Categoría: {c}", ai_cat_none:"No hay sugerencia clara — elige a mano", ai_cat_off:"Activa «Sugerir categoría (IA)» en Ajustes → Notificaciones",
   g_cycle_from:"Del {d} (cobro de {x}) a hoy",
+  g_cycle_budget_hint:"Este cobro abre el ciclo; no aumenta el límite que elegiste para gastar.",
   g_cycle_none_t:"Sin nómina detectada",
-  g_cycle_none:"Para ajustar «Mi ciclo» hace falta tu nómina. Apúntala como 💰 ingreso (con +) y el filtro irá de cobro a cobro.",
+  g_cycle_none:"Apunta la nómina como 💰 ingreso y escribe «Nómina» en el concepto. Hasta reconocerla, el presupuesto sigue el mes natural.",
   g_search:"Buscar comercio o categoría…",
   sub_title:"🔁 Suscripciones detectadas", sub_sub:"{n} · ~{y}/año", sub_inactive:"· inactiva", sub_months:"{n} meses", sub_peryear:"~{y}/año", sub_permonth:"/mes", sub_tofixed:"pasar a Gastos fijos", sub_infixed:"ya en Fijos", sub_tofixed_done:"✓ «{n}» añadido a Gastos fijos ({b}). Si quieres que el cargo salga de ahí de verdad, cambia la tarjeta en la web de la suscripción.", sub_dismiss:"No es una suscripción", sub_dismissed_ok:"Descartada · no volverá a salir aquí",
   sub_hint:"Cargos al mismo comercio en ≥3 meses con importe parecido. Revisa si alguna ya no la usas.",
   g_totalfilt:"Gastos del período", g_n_one:"gasto", g_n_many:"gastos", g_inc_one:"ingreso", g_inc_many:"ingresos", g_balance:"Balance", g_lbl_spent:"Gastos", g_lbl_income:"Ingresos",
-  g_totalnet:"Balance del período", st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"El total de gastos arriba; debajo, los ingresos y el balance (ingresos − gastos) en una línea.", st_gview_net:"Balance", st_gview_net_d:"Manda el balance (ingresos − gastos del período); debajo, gastos e ingresos en pequeño. Verde si te queda dinero, rojo si gastaste de más.",
+  g_totalnet:"Balance del período", st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"El total de gastos arriba; debajo, los ingresos y el balance (ingresos − gastos) en una línea.", st_gview_net:"Balance", st_gview_net_d:"Manda el balance (ingresos − gastos del período); debajo, gastos e ingresos en pequeño. Verde si te queda dinero, rojo si gastaste de más.", st_budget_cycle:"Presupuesto por ciclo de cobro", st_budget_cycle_d:"Empieza al registrar una nómina reconocible. Gastos abre en Mi ciclo. Sin nómina detectada, sigue el mes natural. El widget Android sigue el mes natural.",
   sv_title:"Ahorro mensual", sv_note:"Planifica lo que apartas cada mes para calcular cuándo llegas a tus metas. No mueve dinero real ni crea movimientos.", sv_saved:"Ahorro mensual guardado", sv_name_aria:"Concepto de la aportación", sv_amount_aria:"Importe al mes", sv_bank_aria:"Banco o bróker", sv_del_aria:"Quitar esta aportación", sv_add:"Añadir aportación", sv_name_ph:"Concepto (ej. MSCI World)", sv_edit_hint:"Cambia importe, nombre o banco; ✕ borra. Solo ajusta la cifra de «Ahorro/mes»: no mueve dinero de verdad.", sv_empty:"Aún no has apuntado aportaciones. Toca «Editar» para añadir lo que apartas cada mes.",
   sec_order:"⇅ Ordenar secciones", bp_role_nodata:"Este banco está conectado pero no ha traído ninguna cuenta con saldo utilizable. Prueba «Actualizar saldo» y, si sigue igual, «Reconectar».",
   g_sync:"Sincronizar", g_syncing:"Sincronizando…", g_add:"Apuntar",
@@ -8404,14 +8405,15 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   const dailyAllow=rem/leftDays;
   const pace=spentAgainst/elapsed;
   const projected=spentAgainst+pace*leftDays;
-  const overTrack=projected>budAmt+0.5;
+  // Sin fecha fiable del próximo cobro no proyectamos un «€/día hasta fin de mes» que
+  // mezclaría el ciclo de ella con el calendario (feedback pareja 28/9).
+  const overTrack=!bud.cycle && projected>budAmt+0.5;
   // El neto puede ser negativo con compras reales: ese 0 % de uso no significa mes vacío.
-  // «Vas muy bien» junto a «en contra» sonaba contradictorio (revisión 28/9).
-  const activeHead=bud.mode==="net"&&bud.balance< -0.005?"v4_budget_month_h":"st_good_h";
-  let stCls="st", stHead=hasMonthActivity ? t(activeHead) : t("st_start_h");
+  // El texto de Inicio vuelve al que el dueño usaba antes de la tanda rechazada (28/9).
+  let stCls="st", stHead=hasMonthActivity ? t("st_good_h") : t(bud.cycle?"v4_cycle_start_h":"st_start_h");
   if(ratio>1 || overTrack&&ratio>0.85){ stCls="st bad"; stHead=t("st_over_h"); }
   else if(ratio>0.8 || !overTrack&&ratio>0.8){ stCls="st warn"; stHead=t("st_tight_h"); }
-  else if(ratio<=0.8 && !overTrack){ stCls="st"; stHead=hasMonthActivity ? t(activeHead) : t("st_start_h"); }
+  else if(ratio<=0.8 && !overTrack){ stCls="st"; stHead=hasMonthActivity ? t("st_good_h") : t(bud.cycle?"v4_cycle_start_h":"st_start_h"); }
 
   // Próximos cargos: misma regla que Plan›Recibos (día del mes + isPaidIn). Antes usaba
   // f.day crudo y mostraba recibos ya cobrados (luz/seguros) — feedback 2026-07-17.
@@ -8568,24 +8570,20 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
           pct:ringDraw?ringPct:0,
           tone:stCls.indexOf("bad")>=0?"bad":(stCls.indexOf("warn")>=0?"warn":"ok"),
           label:Math.round(ringPct*100)+"%",
-          sub:t("v4_of_month"),
+          sub:t(bud.cycle?"v4_of_cycle":"v4_of_month"),
           animate:true
         }),
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:stCls}, stHead),
           React.createElement("div",{className:"ph"},
-            bud.mode==="net"
-              // El número conserva el sentido del balance sin enseñar un menos como gasto
-              // ni repetir la frase larga rechazada en el móvil (feedback 28/9).
-              ? tf(bud.balance>0.005?"v4_budget_ahead":(bud.balance< -0.005?"v4_budget_behind":"v4_budget_even"),{x:eur(Math.abs(bud.balance))})
-              : tf("v4_budget_spent",{spent:eur0(bud.spent),budget:eur0(budAmt)}),
-            bud.mode==="net"?null:" ",
-            bud.mode==="net"?null:(rem>=0 ? tf("v4_budget_daily",{x:eur0(Math.max(0,dailyAllow))}) : t("st_over_l"))
+            tf("v4_budget_spent",{spent:eur0(bud.spent),budget:eur0(budAmt)}),
+            " ",
+            rem>=0 ? (!bud.cycle?tf("v4_budget_daily",{x:eur0(Math.max(0,dailyAllow))}):null) : t("st_over_l")
           )
         )
       ),
       React.createElement("div",{className:"v4-budget-foot"},
-        (function(){
+        !bud.cycle && (function(){
           const n=budgetStreak?budgetStreak.current:0;
           return React.createElement("span",{"data-testid":"dash-budget-streak"},n>0?tf("v4_streak",{n:n}):t("v4_streak_zero"));
         })(),
@@ -8721,13 +8719,42 @@ const DATE_PRESETS=[
 // «Mi ciclo» (petición pareja 2026-07-11): su nómina no cae en día fijo (23, 24…), así que el mes
 // natural le descuadra el ahorro. El ciclo se ancla al ÚLTIMO COBRO REAL apuntado: el ingreso
 // más reciente ≥200 € de los últimos 45 días (los bizums pequeños no cuentan). Sin cobro → mes.
-function lastPaydayOf(expenses){
-  const cut=Date.now()-45*86400000;
-  const cands=(expenses||[]).filter(function(e){ return e.amount<=-200 && dateMs(e.date)>=cut; })
-    .sort(function(a,b){ return dateMs(b.date)-dateMs(a.date); });
-  if(!cands[0]) return null;
-  const d=parseDate(cands[0].date);
-  return { start:new Date(d.getFullYear(),d.getMonth(),d.getDate()), inc:cands[0] };   // desde las 00:00 del día del cobro
+function lastPaydayOf(expenses, nowMs, delSet, eligible){
+  const now=nowMs!=null?nowMs:Date.now();
+  const todayEnd=new Date(now); todayEnd.setHours(23,59,59,999);
+  const cut=now-45*86400000;
+  // El banco guarda muchas fechas a las 12:00; cobrar hoy por la mañana ya abre el ciclo.
+  // Un apunte fechado mañana no puede adelantar ese reinicio. Se recorre sin ordenar/copiar
+  // el histórico porque Inicio consulta el presupuesto en cada render.
+  let best=null, bestMs=-Infinity;
+  (expenses||[]).forEach(function(e){
+    // Un posible duplicado no confirma que haya entrado dinero; no puede reiniciar el límite.
+    if(!e || e.possibleDup || !(e.amount<=-200) || eligible && !eligible(e)) return;
+    if(expenseIsTombstoned(e,delSet)) return;
+    if(!isFinite(new Date(e.date).getTime())) return;
+    const ms=dateMs(e.date);
+    if(ms>=cut && ms<=todayEnd.getTime() && ms>bestMs){ best=e; bestMs=ms; }
+  });
+  if(!best) return null;
+  const d=parseDate(best.date);
+  return { start:new Date(d.getFullYear(),d.getMonth(),d.getDate()), inc:best };   // desde las 00:00 del día del cobro
+}
+// Al usar «Mi ciclo» como presupuesto, un traspaso o un Bizum grande no puede fingir
+// que se ha cobrado la nómina. El filtro informativo antiguo conserva su ancla histórica;
+// el límite solo se reinicia con un ingreso identificado por nombre o flujo periódico.
+function budgetPaydayOf(state, nowMs, expenses){
+  const flows=(state.flows||[]).filter(function(f){ return f&&f.kind==="income"&&!f.once&&Number(f.amount)>=200; });
+  return lastPaydayOf(expenses||state.expenses, nowMs, expenseDeletedSet(state), function(e){
+    if(CAT_NEUTRAS[e.category] || e.category==="bizum") return false;
+    // Algunos bancos ponen la empresa como comercio y «NÓMINA» solo en el concepto.
+    const name=recNorm([e.merchant,e.note,e.concept].join(" "));
+    if(/\b(nomina|salario|sueldo|salary|payroll|haberes)\b/.test(name)) return true;
+    const bank=expenseBankOf(e);
+    if(!bank) return false;
+    const d=parseDate(e.date), month=d.getMonth()+1, year=d.getFullYear();
+    return flows.some(function(f){ return (f.to||"sabadell")===bank && flowOccursIn(f,month,year)
+      && recAmtClose(Number(f.amount),Math.abs(e.amount)) && recNameMatch(f.name,e.merchant); });
+  });
 }
 /* Límites del período EN MILISEGUNDOS, calculados UNA vez. Antes `inPreset` se llamaba por gasto y
    se construía dentro tres o cuatro `new Date()` (startOfMonth, el mes pasado…): con un histórico
@@ -8792,7 +8819,14 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
      ese destino solo durante la navegación: el estado inicial lo consume y el evento cubre el
      caso en que la pestaña ya estaba viva. No se guarda en preferencias. */
   const bankPending=typeof window!=="undefined"&&window.__mcExpBank||"";
-  const [preset,setPreset]=useState(bankPending?"all":"month");
+  const cycleEnabled=!!(state.settings&&state.settings.budgetCycle);
+  const [preset,setPreset]=useState(bankPending?"all":(cycleEnabled?"cycle":"month"));
+  const cycleEnabledPrev=useRef(cycleEnabled);
+  useEffect(function(){
+    if(cycleEnabledPrev.current===cycleEnabled) return;
+    cycleEnabledPrev.current=cycleEnabled;
+    setPreset(cycleEnabled?"cycle":"month");
+  },[cycleEnabled]);
   // Tras importar una hoja: salta a "Todo" — lo importado suele traer fechas fuera del mes en
   // curso, y "Este mes" las tapaba en silencio (feedback 2026-08-01).
   useEffect(function(){ if(forceAllTs) setPreset("all"); },[forceAllTs]);
@@ -9113,15 +9147,15 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     sincroniza(upd); showToast(t("g_edited"));
   };
 
-  const cycle=useMemo(()=>lastPaydayOf(expensesDef),[expensesDef]);
+  const todayKey=new Date().toDateString();
+  const cycle=useMemo(()=>cycleEnabled?budgetPaydayOf(state,null,expensesDef)
+    :lastPaydayOf(expensesDef,null,expenseDeletedSet(state)),
+    [expensesDef,state.deleted,state.flows,cycleEnabled,todayKey]);
   // Bancos presentes en el período (o configurados como gasto) → chips de filtro.
   // "_manual" = apuntados a mano / sin banco conocido (no mezclar con OB).
   // Chips de banco: baratos y SIEMPRE visibles (no dependen de heavyOk → sin flash).
-  // `todayKey` en las dependencias a propósito: los límites de «Este mes» / «Últimos 3 meses» se
-  // calculan con la fecha de HOY, y la app se queda abierta días en el móvil. Sin esto, cruzar la
-  // medianoche (o el cambio de mes) dejaría el filtro anclado al día en que se abrió y «Este mes»
-  // enseñaría el mes pasado. Antes no pasaba porque el cálculo se rehacía en cada render.
-  const todayKey=new Date().toDateString();
+  // `todayKey` invalida ciclo, filtros y cabecera cuando la app queda abierta al cruzar el día;
+  // así el 26 o el día 1 no conserva cifras del período anterior en un memo.
   const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,todayKey]);
   const diarioEnts=useMemo(function(){ return expenseBankEnts(state); },[state.accounts, state.settings]);
   const diarioPrev=useRef(diarioEnts.slice());
@@ -9201,9 +9235,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     dragExpenseRef.current=null; setDragExpense(null);
   },[set]);
 
-  // La cabecera es siempre el mes natural: los filtros sirven para explorar, pero no deben hacer
-  // que el presupuesto parezca cambiar al mirar otro período o una categoría.
-  // Cifras = `monthBudgetStats` (misma fuente que Resumen y el widget).
+  // El filtro solo explora la lista: la cabecera sigue el período de presupuesto elegido en
+  // Ajustes, no cambia al tocar categorías ni al mirar otro rango (feedback pareja 28/9).
+  // Cifras = `monthBudgetStats` (misma fuente que Inicio; el widget sigue por mes natural).
   // `accounts` + `settings` van en deps: monthBudgetStats → expenseCountsBudget → expenseBankEnts
   // lee rol diario y expenseBanks. Sin ellos, quitar un banco de gasto diario dejaba la cabecera
   // alta hasta que un sync cambiaba `expenses` (B09-A / feedback familia 2026-09-06).
@@ -9215,14 +9249,14 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
       day:now.getDate(),
       last:new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),
-      month:monthLong(now.getMonth())
+      month:monthLong(now.getMonth()), cycle:bs.cycle, periodStart:bs.periodStart
     };
-  },[state.expenses,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings]);
+  },[state.expenses,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,todayKey]);
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
     return categorySpentByMonth(state);
-  },[state.expenses,state.deleted,state.categoryBudgets,state.accounts,state.settings]);
+  },[state.expenses,state.deleted,state.categoryBudgets,state.accounts,state.settings,todayKey]);
   /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
      —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
   const catsOpen=!(state.settings && state.settings.gastosCatsOff);
@@ -9420,9 +9454,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       React.createElement("div",{className:"v4-gastos-summary-top"},
         React.createElement("div",{className:"v4-gastos-summary-main"},
           React.createElement("div",{className:"v4-gastos-summary-label"},
-            monthSummary.mode==="net"
-              ? tf("v4_gastos_net_in",{month:monthSummary.month})
-              : tf("v4_gastos_spent_in",{month:monthSummary.month})),
+            monthSummary.cycle
+              ? t(monthSummary.mode==="net"?"v4_gastos_net_cycle":"v4_gastos_spent_cycle")
+              : tf(monthSummary.mode==="net"?"v4_gastos_net_in":"v4_gastos_spent_in",{month:monthSummary.month})),
           // Importe en blanco, sin signo, € al lado (como el patrimonio). El rojo/menos
           // confundía el «balance» con una alarma (feedback 2026-07-17).
           (function(){
@@ -9461,9 +9495,11 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         React.createElement("i",{style:{width:monthSummary.budget==null?"0%":Math.min(100,monthSummary.spent/monthSummary.budget*100)+"%"}})
       ),
       React.createElement("div",{className:"v4-gastos-progress-marks"},
-        React.createElement("span","1 "+monthSummary.month),
+        React.createElement("span",monthSummary.cycle
+          ? new Date(monthSummary.periodStart).toLocaleDateString(loc(),{day:"2-digit",month:"short"})
+          : "1 "+monthSummary.month),
         React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
-        React.createElement("span",monthSummary.last+" "+monthSummary.month)
+        !monthSummary.cycle && React.createElement("span",monthSummary.last+" "+monthSummary.month)
       ),
       /* SE PUEDE OCULTAR (petición de su pareja, 10/9, y con razón).
          Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria
@@ -9480,7 +9516,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
           "aria-expanded":catsOpen,"aria-controls":"gastos-cats-body",onClick:toggleCats},
           React.createElement("span",{className:"v4-gastos-cats-t"},
             catsOpen ? t("v4_gastos_cats")
-                     : (catBreakdown.length===1 ? t("v4_gastos_cats_n1") : tf("v4_gastos_cats_n",{n:catBreakdown.length}))),
+                     : (catBreakdown.length===1 ? t(monthSummary.cycle?"v4_gastos_cats_cycle_n1":"v4_gastos_cats_n1")
+                       : tf(monthSummary.cycle?"v4_gastos_cats_cycle_n":"v4_gastos_cats_n",{n:catBreakdown.length}))),
           React.createElement("span",{className:"v4-gastos-cats-fold"},
             (catsOpen?"▾ ":"▸ ")+t(catsOpen?"v4_gastos_cats_hide":"v4_gastos_cats_show"))),
         React.createElement("div",{id:"gastos-cats-body",className:"v4-gastos-cats-body"+(catsOpen?" abierto":""),"aria-hidden":!catsOpen},
@@ -9528,7 +9565,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         cycle
           ? React.createElement(React.Fragment,null,
               React.createElement("strong",null,"📅 "+t("g_cycle")),
-              tf("g_cycle_from",{d:cycle.start.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'}), x:"+"+eur0(Math.abs(cycle.inc.amount))+((cycle.inc.merchant&&cycle.inc.merchant!=="Ingreso")?" · "+cycle.inc.merchant:"")}))
+              tf("g_cycle_from",{d:cycle.start.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'}), x:"+"+eur0(Math.abs(cycle.inc.amount))+((cycle.inc.merchant&&cycle.inc.merchant!=="Ingreso")?" · "+cycle.inc.merchant:"")}),
+              cycleEnabled && React.createElement("div",{style:{marginTop:6}},t("g_cycle_budget_hint")))
           : React.createElement(React.Fragment,null,
               React.createElement("strong",null,t("g_cycle_none_t")),
               t("g_cycle_none"))
@@ -13858,18 +13896,31 @@ function budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode){
   return {spent:spent, income:income, balance:balance, mode:mode, budget:budget, reserved:reserved,
     remaining:remaining, against:against, shown:shown};
 }
-/* Misma cifra en Gastos, Resumen y el widget (2026-08-05). `totals.thisMonthSpent` suma TODO
+// El presupuesto cambia de ventana solo con la preferencia activada y un cobro real.
+// Los informes con fecha explícita conservan sus meses naturales ya cerrados.
+function budgetPeriodOf(state, nowMs){
+  const now=nowMs!=null?nowMs:Date.now();
+  const payday=nowMs==null && state.settings&&state.settings.budgetCycle
+    ? budgetPaydayOf(state, now) : null;
+  const tomorrow=new Date(now); tomorrow.setHours(24,0,0,0);
+  return {startMs:payday?payday.start.getTime():inicioDeMesMs(now), cycle:payday,
+    todayEndMs:payday?tomorrow.getTime():Infinity};
+}
+/* Misma cifra en Gastos e Inicio; el widget pide mes explícito (2026-09-28).
+   `totals.thisMonthSpent` suma TODO
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
    que pinta la cabecera de Gastos (gasto bruto o |balance| según gTotalMode). */
 function monthBudgetStats(state, nowMs, hastaMs){
-  const startMs=inicioDeMesMs(nowMs!=null?nowMs:Date.now());
-  // hastaMs opcional (informe del mes cerrado): sin él, comportamiento idéntico al de siempre
-  // — desde el día 1 en adelante. Con él, acota [startMs, hastaMs) para que un gasto del mes
-  // nuevo no se cuele (brief INFORME-MES / criterio 3).
-  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
+  const period=budgetPeriodOf(state,nowMs);
+  const startMs=period.startMs;
+  // `hastaMs` acota un informe cerrado; solo el ciclo actual termina mañana para que un
+  // apunte futuro no gaste hoy. El mes natural conserva la misma cifra que el widget.
+  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : period.todayEndMs;
   let spent=0, income=0;
   (state.expenses||[]).forEach(function(e){
+    // La nómina abre el ciclo; en modo balance no añade otro presupuesto encima del elegido.
+    if(period.cycle && e===period.cycle.inc) return;
     const ms=dateMs(e.date);
     if(ms<startMs) return;
     if(ms>=endMs) return;
@@ -13881,7 +13932,8 @@ function monthBudgetStats(state, nowMs, hastaMs){
   const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs);
   const budgetRaw=typeof state.budget==="number" ? state.budget : 0;
   const mode=(state.settings&&state.settings.gTotalMode)||"split";
-  return budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode);
+  return Object.assign(budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode),
+    {periodStart:startMs,cycle:!!period.cycle});
 }
 
 /* Desglose del mes por categoría (brief PRESUPUESTO-POR-CATEGORIA). Misma ventana y misma
@@ -13890,8 +13942,9 @@ function monthBudgetStats(state, nowMs, hastaMs){
    en CAT) no se enseña ni suma. Sin gastos pero con límite → fila a 0, para que no parezca
    que se ha borrado el tope. */
 function categorySpentByMonth(state, nowMs, hastaMs){
-  const startMs=inicioDeMesMs(nowMs!=null?nowMs:Date.now());
-  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
+  const period=budgetPeriodOf(state,nowMs);
+  const startMs=period.startMs;
+  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : period.todayEndMs;
   const byCat={};
   (state.expenses||[]).forEach(function(e){
     const ms=dateMs(e.date);
@@ -15903,7 +15956,7 @@ function ReservaRules({state, set}){
 // aunque solo mueva cifras dentro de la app, es DINERO DE VERDAD para quien lo mira.
 function ReservaDetect({state, set, showToast}){
   const dismissed=(state.reservaDismissed)||[];
-  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses); },[state.expenses]);
+  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted]);
   const rules=(state.settings&&state.settings.reservaRules)||[];
   if(!cycle || !cycle.inc || !rules.length) return null;
   const income=cycle.inc;
@@ -19631,7 +19684,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     React.createElement("div",{className:"v4-set-sec"}, t("v4_set_money")),
     // Dinero: moneda de visualización (ahora SÍ convierte) + comparativa + cómo se ve el total
     // de gastos. Presupuesto y bancos de gasto diario viven en Resumen / Cartera (2026-08-05).
-    grp("money","💱",t("v4_set_money"),"moneda divisa currency euro dolar lira try conversor convertir comparar dinero plan recibos bills rebuts",t("cur_"+curCur.toLowerCase()),
+    grp("money","💱",t("v4_set_money"),"moneda divisa currency euro dolar lira try conversor convertir comparar dinero plan recibos bills rebuts presupuesto nòmina nómina salario cobro ciclo payday budget",t("cur_"+curCur.toLowerCase()),
       row("cur","💱",t("currency"),t("cur_"+curCur.toLowerCase()),function(){ toggleExp("cur"); }),
       expand==="cur" && React.createElement("div",{className:"set-exp"},
         React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap",marginTop:8}},
@@ -19686,6 +19739,12 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
           )
         );
       })(),
+      // Su mes de gasto puede empezar con el cobro real, no con el día 1. La elección queda
+      // en su perfil y se puede deshacer sin tocar los movimientos (feedback pareja 28/9).
+      row("budgetcycle","📅",t("st_budget_cycle"),t(state.settings&&state.settings.budgetCycle?"g_cycle":"g_month"),function(){
+        setS({budgetCycle:!(state.settings&&state.settings.budgetCycle)});
+      },sw(!!(state.settings&&state.settings.budgetCycle))),
+      React.createElement("div",{className:"hint",style:{margin:"2px 12px 10px"}},t("st_budget_cycle_d")),
       // Estas dos puertas salieron de la ficha de Inversiones: son preferencias/simulaciones,
       // no parte del saldo. Aquí siguen accesibles sin montar el panel financiero antiguo.
       row("invauto","↻",t("inv_autoprices"),null,function(){
@@ -24743,8 +24802,9 @@ function App(){
     try{ nat.setIngestUrl({url:url}).catch(function(){}); }catch(e){}
   },[state.settings&&state.settings.trIngest, state.settings&&state.settings.ingestToken]);
   // App Android: alimenta el widget de pantalla de inicio (gasto del mes + saldo de la cuenta diaria).
-  // Misma cifra que Gastos/Resumen (`monthBudgetStats`), no `thisMonthSpent` (neutras/ingresos).
-  const budW=monthBudgetStats(state);
+  // El widget y `ingest` solo admiten mes natural. Mandar su propia cifra mensual evita
+  // mezclar un inicio de ciclo con el `periodStart` del día 1 (feedback pareja 28/9).
+  const budW=monthBudgetStats(state,Date.now());
   const trAccW=widgetBankOf(state);
   const widgetCash=trAccW ? Math.round((totals.bankBal[trAccW.ent]||0)*100)/100 : null;
   // El límite combina presupuesto global y liquidez del banco elegido. Se mandan las piezas
@@ -24959,7 +25019,9 @@ function App(){
     const bud=bs.budget!=null?bs.budget:0; if(!(bud>0)) return;
     const spent=Math.max(0, bs.against||0);
     const pct=spent/bud*100;
-    const ym=new Date().toISOString().slice(0,7);
+    // Sin ciclo se conserva la clave histórica de aviso; al cobrar, el inicio real
+    // abre otra tanda de avisos aunque siga siendo el mismo mes del calendario.
+    const ym=bs.cycle?String(bs.periodStart):new Date().toISOString().slice(0,7);
     let fired=false;
     [100,95,80,50].forEach(function(th){
       if(pct<th) return;

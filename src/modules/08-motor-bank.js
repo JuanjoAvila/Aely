@@ -1044,18 +1044,31 @@ function budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode){
   return {spent:spent, income:income, balance:balance, mode:mode, budget:budget, reserved:reserved,
     remaining:remaining, against:against, shown:shown};
 }
-/* Misma cifra en Gastos, Resumen y el widget (2026-08-05). `totals.thisMonthSpent` suma TODO
+// El presupuesto cambia de ventana solo con la preferencia activada y un cobro real.
+// Los informes con fecha explícita conservan sus meses naturales ya cerrados.
+function budgetPeriodOf(state, nowMs){
+  const now=nowMs!=null?nowMs:Date.now();
+  const payday=nowMs==null && state.settings&&state.settings.budgetCycle
+    ? budgetPaydayOf(state, now) : null;
+  const tomorrow=new Date(now); tomorrow.setHours(24,0,0,0);
+  return {startMs:payday?payday.start.getTime():inicioDeMesMs(now), cycle:payday,
+    todayEndMs:payday?tomorrow.getTime():Infinity};
+}
+/* Misma cifra en Gastos e Inicio; el widget pide mes explícito (2026-09-28).
+   `totals.thisMonthSpent` suma TODO
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
    que pinta la cabecera de Gastos (gasto bruto o |balance| según gTotalMode). */
 function monthBudgetStats(state, nowMs, hastaMs){
-  const startMs=inicioDeMesMs(nowMs!=null?nowMs:Date.now());
-  // hastaMs opcional (informe del mes cerrado): sin él, comportamiento idéntico al de siempre
-  // — desde el día 1 en adelante. Con él, acota [startMs, hastaMs) para que un gasto del mes
-  // nuevo no se cuele (brief INFORME-MES / criterio 3).
-  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
+  const period=budgetPeriodOf(state,nowMs);
+  const startMs=period.startMs;
+  // `hastaMs` acota un informe cerrado; solo el ciclo actual termina mañana para que un
+  // apunte futuro no gaste hoy. El mes natural conserva la misma cifra que el widget.
+  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : period.todayEndMs;
   let spent=0, income=0;
   (state.expenses||[]).forEach(function(e){
+    // La nómina abre el ciclo; en modo balance no añade otro presupuesto encima del elegido.
+    if(period.cycle && e===period.cycle.inc) return;
     const ms=dateMs(e.date);
     if(ms<startMs) return;
     if(ms>=endMs) return;
@@ -1067,7 +1080,8 @@ function monthBudgetStats(state, nowMs, hastaMs){
   const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs);
   const budgetRaw=typeof state.budget==="number" ? state.budget : 0;
   const mode=(state.settings&&state.settings.gTotalMode)||"split";
-  return budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode);
+  return Object.assign(budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode),
+    {periodStart:startMs,cycle:!!period.cycle});
 }
 
 /* Desglose del mes por categoría (brief PRESUPUESTO-POR-CATEGORIA). Misma ventana y misma
@@ -1076,8 +1090,9 @@ function monthBudgetStats(state, nowMs, hastaMs){
    en CAT) no se enseña ni suma. Sin gastos pero con límite → fila a 0, para que no parezca
    que se ha borrado el tope. */
 function categorySpentByMonth(state, nowMs, hastaMs){
-  const startMs=inicioDeMesMs(nowMs!=null?nowMs:Date.now());
-  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : Infinity;
+  const period=budgetPeriodOf(state,nowMs);
+  const startMs=period.startMs;
+  const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : period.todayEndMs;
   const byCat={};
   (state.expenses||[]).forEach(function(e){
     const ms=dateMs(e.date);
