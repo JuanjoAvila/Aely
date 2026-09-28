@@ -49,11 +49,20 @@ console.log("plan-charges");
   assert.equal(c.bankPendingEvents(state,"sabadell",2026,9,21).length,0,
     "el simulador tampoco suma de nuevo el abono ya incluido en el saldo");
   assert.equal(c.planChargesMonth(Object.assign({},state,{bankTx:[
-    {id:"other-bank",ent:"revolut",date:"2026-09-20",amount:-2000,merchant:"Empresa"},
+    {id:"other-bank",ent:"revolut",date:"2026-09-20",amount:-2000,merchant:"Empresa",status:"BOOK"},
   ]}),9,2026,21).incomePending.length,1,"otro banco no confirma esta nómina");
   assert.equal(c.planChargesMonth(Object.assign({},state,{bankTx:[
-    {id:"other-amount",ent:"sabadell",date:"2026-09-20",amount:-1200,merchant:"Empresa"},
+    {id:"other-amount",ent:"sabadell",date:"2026-09-20",amount:-1200,merchant:"Empresa",status:"BOOK"},
   ]}),9,2026,21).incomePending.length,1,"otro importe no confirma esta nómina");
+  assert.equal(c.planChargesMonth(Object.assign({},state,{bankTx:[
+    {id:"old-month",ent:"sabadell",date:"2026-08-20",amount:-2000,merchant:"Empresa",status:"BOOK"},
+  ]}),9,2026,21).incomePending.length,1,"un abono del mes anterior no confirma la nómina actual");
+  assert.equal(c.planChargesMonth(Object.assign({},state,{bankTx:[
+    {id:"future",ent:"sabadell",date:"2026-09-22",amount:-2000,merchant:"Empresa",status:"BOOK"},
+  ]}),9,2026,21).incomePending.length,1,"un abono posterior a hoy aún no está cobrado");
+  assert.equal(c.planChargesMonth(Object.assign({},state,{bankTx:state.bankTx.concat([
+    {id:"second",ent:"sabadell",date:"2026-09-20",amount:-2000,merchant:"Empresa",status:"BOOK"},
+  ])}),9,2026,21).incomePending.length,1,"dos abonos bancarios compatibles no se atribuyen a uno solo");
   assert.equal(c.planChargesMonth(Object.assign({},state,{bankTx:[
     {id:"pending",ent:"sabadell",date:"2026-09-20",amount:-2000,merchant:"Empresa",status:"PDNG"},
   ]}),9,2026,21).incomePending.length,1,"un movimiento bancario pendiente no confirma el cobro");
