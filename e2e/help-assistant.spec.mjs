@@ -30,6 +30,8 @@ test("responde offline con la cifra local y no consulta ningún servicio",async(
 });
 
 test("cuenta todos los recibos pendientes y excluye nómina y traspasos",async({page})=>{
+  // El día 28 deja de ser pendiente el primer recibo; fijamos el calendario para probar ambos.
+  await page.clock.install({time:new Date("2026-09-15T12:00:00+02:00")});
   const {dialog}=await openHelp(page,{
     fixed:[
       {id:"f1",name:"Luz",amount:40,freq:"mes",day:28,account:"sabadell"},
@@ -167,6 +169,8 @@ test("el saldo de Sabadell coincide con la fila de Cartera",async({page})=>{
 });
 
 test("los recibos pendientes cuadran con la cifra de Plan → Recibos",async({page})=>{
+  // Ambos recibos deben seguir pendientes al comparar la ayuda con Plan.
+  await page.clock.install({time:new Date("2026-09-15T12:00:00+02:00")});
   const {dialog}=await openHelp(page,{
     accounts:[{id:"sb",ent:"sabadell",name:"Sabadell",value:1000,role:"fijos"}],
     fixed:[
