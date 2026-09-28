@@ -73,6 +73,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   const bud=monthBudgetStats(state);
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
   const spentAgainst=Math.max(0, bud.against);
+  const hasMonthActivity=bud.spent>0.005 || bud.income>0.005;
   const ratio=budAmt>0 ? spentAgainst/budAmt : 0;
   const dim=new Date(tt.curYear, tt.curMonth, 0).getDate();
   const elapsed=Math.max(1, tt.today||1);
@@ -82,11 +83,11 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   const pace=spentAgainst/elapsed;
   const projected=spentAgainst+pace*leftDays;
   const overTrack=projected>budAmt+0.5;
-  // Sin gasto aún, «Vas muy bien» suena a vacío (feedback 11/9, modo recién instalada).
-  let stCls="st", stHead=spentAgainst>0.005 ? t("st_good_h") : t("st_start_h");
+  // El neto puede ser negativo con compras reales: ese 0 % de uso no significa mes vacío.
+  let stCls="st", stHead=hasMonthActivity ? t(bud.mode==="net"&&bud.balance>0.005?"v4_budget_net_h":"st_good_h") : t("st_start_h");
   if(ratio>1 || overTrack&&ratio>0.85){ stCls="st bad"; stHead=t("st_over_h"); }
   else if(ratio>0.8 || !overTrack&&ratio>0.8){ stCls="st warn"; stHead=t("st_tight_h"); }
-  else if(ratio<=0.8 && !overTrack){ stCls="st"; stHead=spentAgainst>0.005 ? t("st_good_h") : t("st_start_h"); }
+  else if(ratio<=0.8 && !overTrack){ stCls="st"; stHead=hasMonthActivity ? t(bud.mode==="net"&&bud.balance>0.005?"v4_budget_net_h":"st_good_h") : t("st_start_h"); }
 
   // Próximos cargos: misma regla que Plan›Recibos (día del mes + isPaidIn). Antes usaba
   // f.day crudo y mostraba recibos ya cobrados (luz/seguros) — feedback 2026-07-17.
@@ -109,7 +110,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     (state.flows||[]).forEach(function(f){
       if(!(f.amount>0) || f.kind==="transfer") return;
       if(!flowOccursIn(f,cm,tt.curYear)) return;
-      if(flowPaid(f,tt.curYear,cm,today)) return;
+      if(flowPaidIn(state,f,tt.curYear,cm,today)) return;
       const day=flowDay(f,tt.curYear,cm)||1;
       rows.push({day:day, name:f.name||t("cat_ingreso"), sub:entOf(f.ent||f.account||"").label||"", amount:f.amount, pos:true});
     });
@@ -243,13 +244,15 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
           pct:ringDraw?ringPct:0,
           tone:stCls.indexOf("bad")>=0?"bad":(stCls.indexOf("warn")>=0?"warn":"ok"),
           label:Math.round(ringPct*100)+"%",
-          sub:t("v4_of_month"),
+          sub:t(bud.mode==="net"?"v4_net_of_month":"v4_of_month"),
           animate:true
         }),
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:stCls}, stHead),
           React.createElement("div",{className:"ph"},
-            tf("v4_budget_spent",{spent:eur0(bud.shown),budget:eur0(budAmt)}),
+            bud.mode==="net"
+              ? tf("v4_budget_net",{balance:(bud.balance>0.005?"+":"")+eur0(bud.balance),spent:eur0(bud.spent),budget:eur0(budAmt)})
+              : tf("v4_budget_spent",{spent:eur0(bud.spent),budget:eur0(budAmt)}),
             " ",
             rem>=0 ? tf("v4_budget_daily",{x:eur0(Math.max(0,dailyAllow))}) : t("st_over_l")
           )

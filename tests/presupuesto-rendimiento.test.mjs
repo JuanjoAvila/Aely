@@ -95,7 +95,10 @@ const PRESUPUESTO = {
   // Quedan ~2 KB crudos para el sellado de beta, sin aflojar el presupuesto del móvil.
   // SEC-03 sobre beta: +6 KiB crudos para los filtros necesarios, sin ampliar gzip.
   minificado: 1221 * 1024,
-  gzip: 332 * 1024,         // 12/9: 330,03 con suministros; aire mínimo a propósito
+  // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
+  // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
+  // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
+  gzip: 333 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

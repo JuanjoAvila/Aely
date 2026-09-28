@@ -1,5 +1,11 @@
 # Arquitectura — Aely
 
+## Inicio, Gastos y abonos adelantados (beta 4.26.61)
+
+`monthBudgetStats` conserva la misma ventana de mes natural y la misma selección de bancos para Inicio, Gastos y widget. En modo Balance, `shown` es el valor absoluto de ingresos menos gastos; solo la cabecera de Gastos lo presenta como balance. Inicio usa `balance` con signo y `spent` para que un superávit nunca se anuncie como dinero gastado. El anillo sigue midiendo `against` neto, limitado a cero si los ingresos superan las compras, y lo dice en su subtítulo. La actividad del mes depende de movimientos, no de que el neto sea positivo.
+
+`flowPaidIn` conserva la regla de calendario y, para ingresos programados todavía futuros, consulta únicamente el `bankTx` local ya descargado. Un abono único `BOOK` del banco y mes previstos, con importe compatible y cercano al día planificado se retira de las listas y proyecciones pendientes; un parecido ambiguo sigue previsto. `lastPaydayOf` ancla Mi ciclo al apunte real de `expenses`, sin convertirlo en identidad de una nómina. No hay sincronización nueva ni cambio de anclajes, datos históricos o backend. Si el feed no existe o el importe cambió sin nombre reconocible, no se infiere el cobro. `monthNetForAccount` aún usa el calendario para el saldo de cuentas: una nómina temprana puede hacer saltar ese saldo en su fecha prevista. Cambiarlo exige reanclar sin mover saldos persistidos y resolver la ausencia de `bankTx` en otro dispositivo; queda abierto en INC-2709-05.
+
 ## Persistencia del widget (4.26.55)
 
 El journal conserva eventos no cubiertos por la foto cloud. El parser tolera indentación del XML únicamente en líneas vacías e identificadores; vuelve a evaluar journalFull tras una foto de app, sin descartar entradas dañadas ni deltas desconocidos. La serialización nueva usa separadores entre eventos sin salto final. El tamaño restante sigue limitado; una recuperación necesita APK51, no OTA.

@@ -39,6 +39,36 @@ console.log("plan-charges");
 }
 
 {
+  const state=base({
+    fixed:[], debts:[], oneoffs:[],
+    flows:[{id:"nom",kind:"income",name:"Nómina",amount:2000,to:"sabadell",day:25}],
+    bankTx:[{id:"bank-income",ent:"sabadell",date:"2026-09-20",amount:-2000,merchant:"Empresa",status:"BOOK"}],
+  });
+  assert.equal(c.planChargesMonth(state,9,2026,21).incomePending.length,0,
+    "un abono bancario inequívoco anterior al día previsto no vuelve a figurar como nómina futura");
+  assert.equal(c.bankPendingEvents(state,"sabadell",2026,9,21).length,0,
+    "el simulador tampoco suma de nuevo el abono ya incluido en el saldo");
+  assert.equal(c.planChargesMonth(Object.assign({},state,{bankTx:[
+    {id:"other-bank",ent:"revolut",date:"2026-09-20",amount:-2000,merchant:"Empresa"},
+  ]}),9,2026,21).incomePending.length,1,"otro banco no confirma esta nómina");
+  assert.equal(c.planChargesMonth(Object.assign({},state,{bankTx:[
+    {id:"other-amount",ent:"sabadell",date:"2026-09-20",amount:-1200,merchant:"Empresa"},
+  ]}),9,2026,21).incomePending.length,1,"otro importe no confirma esta nómina");
+  assert.equal(c.planChargesMonth(Object.assign({},state,{bankTx:[
+    {id:"pending",ent:"sabadell",date:"2026-09-20",amount:-2000,merchant:"Empresa",status:"PDNG"},
+  ]}),9,2026,21).incomePending.length,1,"un movimiento bancario pendiente no confirma el cobro");
+  assert.equal(c.planChargesMonth(Object.assign({},state,{bankTx:[
+    {id:"unknown",ent:"sabadell",date:"2026-09-20",amount:-2000,merchant:"Empresa"},
+  ]}),9,2026,21).incomePending.length,1,"sin estado contabilizado no se confirma el cobro");
+  assert.equal(c.planChargesMonth(Object.assign({},state,{flows:[
+    {id:"nom",kind:"income",name:"Nómina",amount:2000,to:"sabadell"},
+  ]}),9,2026,21).incomePending.length,1,"sin día previsto no se atribuye un abono por parecido");
+  assert.equal(c.planChargesMonth(Object.assign({},state,{flows:state.flows.concat([
+    {id:"other-flow",kind:"income",name:"Otra entrada",amount:2000,to:"sabadell",day:26},
+  ])}),9,2026,21).incomePending.length,2,"dos ingresos modelados compatibles quedan sin atribuir");
+}
+
+{
   const p = c.planChargesMonth(base(), 9, 2026, 30);
   assert.equal(p.pendingBills.length, 0);
   assert.equal(p.paidBills.length, 3);

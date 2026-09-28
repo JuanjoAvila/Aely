@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.61",
+    "d": "2026-09-28",
+    "t": {
+      "es": "Inicio y Plan muestran el mes con más claridad",
+      "en": "A clearer month in Home and Plan",
+      "ca": "Un mes més clar a Inici i Pla"
+    },
+    "items": {
+      "es": [
+        "Inicio distingue los gastos del balance del mes. Una nómina que el banco ya ha confirmado deja de aparecer como ingreso futuro cuando se puede reconocer con seguridad."
+      ],
+      "en": [
+        "Home separates spending from the monthly balance. A salary already confirmed by the bank stops appearing as future income when it can be identified reliably."
+      ],
+      "ca": [
+        "Inici separa les despeses del balanç del mes. Una nòmina ja confirmada pel banc deixa d’aparèixer com a ingrés futur quan es pot reconèixer amb seguretat."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inicio-gastos-ciclo-28sep",
+        "t": {
+          "es": "Inicio, Gastos y nómina",
+          "en": "Home, Spending and salary",
+          "ca": "Inici, Despeses i nòmina"
+        },
+        "items": {
+          "es": [
+            "1. En Ajustes → Total de Gastos, elige Balance. En Inicio compara el balance y los gastos del mes con Gastos: deben tener el mismo significado, incluso si hay más ingresos que compras. El anillo indica uso neto y no debe decir que el mes acaba de empezar si ya hay movimientos.",
+            "2. Si una nómina llegó antes del día previsto, sincroniza ese banco a demanda y mira Plan → Recibos. Si el abono coincide de forma clara, no debe aparecer otra vez en «Lo que aún entrará» ni elevar la proyección. Comprueba Mi ciclo en Gastos."
+          ],
+          "en": [
+            "1. In Settings → Expenses total, choose Balance. Compare this month's balance and spending in Home and Spending: each figure should mean the same thing, even when income exceeds purchases. The ring shows net use and should not say the month has just begun when there is activity.",
+            "2. If a salary arrived before its planned day, sync that bank on demand and open Plan → Bills. When the credit matches clearly, it should not appear again under future income or raise the forecast. Check My cycle in Spending."
+          ],
+          "ca": [
+            "1. A Ajustos → Total de Despeses, tria Balanç. Compara el balanç i les despeses del mes a Inici i Despeses: cada xifra ha de voler dir el mateix, fins i tot quan hi ha més ingressos que compres. L’anell mostra l’ús net i no ha de dir que el mes acaba de començar si ja hi ha moviments.",
+            "2. Si una nòmina ha arribat abans del dia previst, sincronitza aquest banc a demanda i obre Pla → Rebuts. Si l’abonament coincideix clarament, no ha de tornar a aparèixer entre els ingressos futurs ni augmentar la previsió. Comprova El meu cicle a Despeses."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.60",
     "d": "2026-09-28",
     "t": {

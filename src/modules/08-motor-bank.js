@@ -11,6 +11,32 @@ function entFromAspsp(name){
   }
   return null;
 }
+/* Un ingreso previsto puede entrar antes de su día editable. El saldo del banco ya lo incluye:
+   volver a proyectarlo sumaría la misma nómina dos veces (feedback 27/9). Solo adelantamos el
+   estado con UN abono confirmado en ese banco y mes; otro ingreso similar queda pendiente. */
+function flowBankPaid(s,f,y,m,today){
+  if(!f||f.kind!=="income"||!(Number(f.amount)>0)) return false;
+  const planned=flowDay(f,y,m);
+  if(planned==null||planned<=today) return false;
+  const bank=f.to||"sabadell", ym=y+"-"+String(m).padStart(2,"0"), amount=Number(f.amount);
+  const matches=(s.bankTx||[]).filter(function(tx){
+    if(!tx||tx.ent!==bank||!(Number(tx.amount)<0)||String(tx.date||"").slice(0,7)!==ym) return false;
+    if(String(tx.status||"").toUpperCase()!=="BOOK") return false;
+    const day=recDay(tx.date);
+    if(day==null||day>today||Math.abs(planned-day)>7) return false;
+    const actual=-Number(tx.amount);
+    return recNameMatch(f.name,tx.merchant) ? recAmtClose(amount,actual) : Math.abs(amount-actual)<=0.01;
+  });
+  if(matches.length!==1) return false;
+  const tx=matches[0], actual=-Number(tx.amount);
+  return !(s.flows||[]).some(function(other){
+    if(!other||other===f||!(Number(other.amount)>0)) return false;
+    const sameBank=other.kind==="income"?(other.to||"sabadell")===bank
+      :other.kind==="transfer"&&other.to===bank;
+    return sameBank&&flowOccursIn(other,m,y)&&recAmtClose(Number(other.amount),actual);
+  });
+}
+function flowPaidIn(s,f,y,m,today){ return flowPaid(f,y,m,today)||flowBankPaid(s,f,y,m,today); }
 /* UNA sola fuente de cargos del mes para Plan / Pregúntame / segmented (audit Claude 17/9).
    Recibos = fixed + deudas (+ balloon) + oneoffs. Traspasos e ingresos van aparte y NUNCA
    suman a «por pagar». Sin tocar totals de 11: solo clasifica con helpers ya existentes. */
@@ -50,7 +76,7 @@ function planChargesMonth(s,m,y,t){
   (s.flows||[]).forEach(function(f){
     if(!flowOccursIn(f,m,y)) return;
     var d=flowDay(f,y,m);
-    var p=d!=null&&d<=t;
+    var p=flowPaidIn(s,f,y,m,t);
     var a=+(f.amount||0);
     if(!(a>0)) return;
     if(f.kind==="income"){
@@ -409,7 +435,7 @@ function bankPendingEvents(state, bank, y, m, today){
   (state.fixed||[]).forEach(function(e){ if(occursIn(e,m)&&accOf(e)===bank&&!isPaidIn(e,m,today,y)) evs.push({day:dayIn(e,m)||0, amt:-occAmountIn(e,m)}); });
   (state.debts||[]).forEach(function(d){ if(debtActive(d)&&(d.account||"sabadell")===bank&&!isDebtPaidThisMonth(d,today)){ evs.push({day:debtChargeDay(d), amt:-(d.monthly||0)}); const bl=debtBalloonIn(d,y,m); if(bl>0) evs.push({day:debtChargeDay(d), amt:-bl}); } });
   (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.account||"sabadell")===bank&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({day:o.day||0, amt:-o.amount}); });
-  (state.flows||[]).forEach(function(f){ if(!flowOccursIn(f,m,y)||flowPaid(f,y,m,today))return; const dd=flowDay(f,y,m); if(f.kind==="income"&&(f.to||"sabadell")===bank) evs.push({day:dd||99, amt:f.amount}); else if(f.kind==="transfer"&&(f.from||"sabadell")===bank) evs.push({day:dd||0, amt:-f.amount}); });
+  (state.flows||[]).forEach(function(f){ if(!flowOccursIn(f,m,y)||flowPaidIn(state,f,y,m,today))return; const dd=flowDay(f,y,m); if(f.kind==="income"&&(f.to||"sabadell")===bank) evs.push({day:dd||99, amt:f.amount}); else if(f.kind==="transfer"&&(f.from||"sabadell")===bank) evs.push({day:dd||0, amt:-f.amount}); });
   return evs;
 }
 // Recorre los eventos por día desde un saldo inicial y devuelve el punto MÍNIMO (peor momento) y el final.
@@ -2379,7 +2405,7 @@ function Fijos({state, set, totals}){
     key:f.id, name:f.name, flow:true, kind:f.kind,
     amount: f.kind==="income" ? -(f.amount||0) : (f.amount||0),   // ingreso = entra (verde +) · transfer = sale
     bank: f.kind==="income" ? (f.to||"sabadell") : (f.from||"sabadell"),
-    day: flowDay(f,yr,mo), paid: mo===cm&&yr===cy ? flowPaid(f,yr,mo,today) : false
+    day: flowDay(f,yr,mo), paid: mo===cm&&yr===cy ? flowPaidIn(state,f,yr,mo,today) : false
   }));
   const thisM=chargesOf(cm,cy).concat(flowsOf(cm,cy)).sort(byDay);
   const nextM=chargesOf(nm,ny);

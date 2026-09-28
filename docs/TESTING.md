@@ -10,6 +10,8 @@ Widget banco (4.26.50): `e2e/widget-banco.spec.mjs` abre Ajustes y cambia el ban
 
 # Testing — Aely
 
+INC-2709-05 (candidata 4.26.61): `e2e/presupuesto-fluido.spec.mjs` contrasta Inicio y Gastos con ingresos mayores que compras en es/en/ca, comprobando que el balance conserva signo y que se muestra el gasto real. `e2e/plan-cover.spec.mjs` abre Plan y Mi ciclo con un abono `BOOK` adelantado; `tests/plan-charges.test.mjs` mantiene prevista la nómina cuando el banco, importe, estado o atribución no son inequívocos. `e2e/revisar-beta.spec.mjs` exige la séptima tanda sin ocultar las seis anteriores. No sustituye la prueba móvil ni valida el anclaje de la cuenta al cruzar el día programado; véase [INC-2709-05](briefs/inc-2709-05-inicio-gastos.md).
+
 TR clasificación (candidato 4.26.53): `tests/bank-merchant-category.test.mjs` ejecuta mapper TS real, diario e histórico con datos ficticios; cubre MCC conocidos/desconocidos, concepto separado de código bancario (Card transaction no es Action), transferencias/recibos excluidos, decisiones personales Otros, ingresos/aportes/cajero, identidad, lápidas y no recategorización. Registrado en run-tests. `e2e/bank-merchant-category.spec.mjs` usa respuesta del mapper real, dispara sincronización explícita, abre Gastos y comprueba categorías/notas, histórico renombrado y repetición. Registrado en CROSSCUTTING. No demuestra que TR real entregue MCC/concepto; falta comprobarlo tras despliegue autorizado.
 
 REC-GUARDADO-01 (4.26.48): `e2e/plan-gestionar.spec.mjs`, ya registrado para el módulo 14 en

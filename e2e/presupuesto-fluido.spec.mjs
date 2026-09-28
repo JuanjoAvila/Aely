@@ -8,6 +8,37 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
 test.use({ viewport:{width:375,height:812}, hasTouch:true });
 
+for(const caso of [
+  {lang:"es", balance:"Balance", spent:"Gastos", start:"Aquí empieza el mes"},
+  {lang:"en", balance:"Balance", spent:"Spent", start:"Your month starts here"},
+  {lang:"ca", balance:"Balanç", spent:"Despeses", start:"Aquí comença el mes"},
+]) test(`Inicio distingue balance y gasto real con ingresos mayores (${caso.lang})`,async({page})=>{
+  await page.clock.install({time:new Date("2026-09-15T12:00:00Z")});
+  await seedLoggedInDashboard(page,{
+    budget:1000,
+    settings:{autoPrices:false,theme:"green",lang:caso.lang,gTotalMode:"net"},
+    accounts:[{id:"tr",ent:"trade_republic",name:"Efectivo",value:1000,role:"diario",spendFrom:true}],
+    expenses:[
+      {id:"g",date:"2026-09-14T12:00:00Z",amount:300,merchant:"Compra",category:"super",ent:"trade_republic"},
+      {id:"i",date:"2026-09-14T12:00:00Z",amount:-1000,merchant:"Ingreso",category:"ingreso",ent:"trade_republic"},
+    ],
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({timeout:30_000});
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  const dash=page.locator(".v4-budget");
+  await expect(dash).toContainText(caso.balance);
+  await expect(dash).toContainText(/700/);
+  await expect(dash).toContainText(caso.spent);
+  await expect(dash).toContainText(/300/);
+  await expect(dash).not.toContainText(caso.start);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  const gastos=page.locator(".v4-gastos-summary");
+  await expect(gastos).toContainText(/700/);
+  await expect(gastos).toContainText(/300/);
+});
+
 async function abrir(page, reduced){
   if(reduced) await page.emulateMedia({ reducedMotion:"reduce" });
   await seedLoggedInDashboard(page,{__seedOnce:true,budget:500,expenses:[],accounts:[]});

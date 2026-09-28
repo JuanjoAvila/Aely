@@ -44,6 +44,19 @@ test("portada compacta: solo lo pendiente; traspaso no suma y nómina va en «en
   await expect(recibos).toContainText("Nómina");
 });
 
+test("un abono bancario adelantado ancla el ciclo y deja de preverse otra nómina", async ({ page }) => {
+  await openPlan(page, {
+    fixed:[], debts:[], oneoffs:[],
+    flows:[{id:"nom",kind:"income",name:"Nómina",amount:2000,to:"sabadell",day:15}],
+    bankTx:[{id:"bank-income",ent:"sabadell",date:"2026-09-08",amount:-2000,merchant:"Empresa",status:"BOOK"}],
+    expenses:[{id:"income",ent:"sabadell",date:"2026-09-08T12:00:00Z",amount:-2000,merchant:"Empresa",category:"ingreso",source:"ob"}],
+  });
+  await expect(page.locator('.v4-screen > [data-seg="recibos"]')).not.toContainText("Lo que aún entrará");
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await page.getByRole("button",{name:"Mi ciclo"}).click();
+  await expect(page.locator(".v4-cycle-box")).toContainText("Empresa");
+});
+
 test("pagado y pendiente se separan sin anillo ni mensaje diagnóstico", async ({ page }) => {
   await openPlan(page, {
     fixed: [
