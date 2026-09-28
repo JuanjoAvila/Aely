@@ -1058,7 +1058,7 @@ function budgetPeriodOf(state, nowMs){
    `totals.thisMonthSpent` suma TODO
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
-   que pinta la cabecera de Gastos (gasto bruto o |balance| según gTotalMode). */
+   que pinta la cabecera de Gastos (balance en el ciclo; gasto bruto o balance según gTotalMode en el mes). */
 function monthBudgetStats(state, nowMs, hastaMs){
   const period=budgetPeriodOf(state,nowMs);
   const startMs=period.startMs;
@@ -1066,20 +1066,30 @@ function monthBudgetStats(state, nowMs, hastaMs){
   // apunte futuro no gaste hoy. El mes natural conserva la misma cifra que el widget.
   const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : period.todayEndMs;
   let spent=0, income=0;
+  const delSet=period.cycle?expenseDeletedSet(state):null;
   (state.expenses||[]).forEach(function(e){
     // La nómina abre el ciclo; en modo balance no añade otro presupuesto encima del elegido.
     if(period.cycle && e===period.cycle.inc) return;
     const ms=dateMs(e.date);
     if(ms<startMs) return;
     if(ms>=endMs) return;
-    // Solo bancos de gasto diario (+ a mano). El resto se ve en la lista pero no mueve la cifra.
+    // Los ingresos reales del ciclo pueden llegar a otro banco: cuentan para el
+    // balance elegido por el dueño, incluso si superan las compras del período.
+    if(period.cycle && e.amount<0){
+      if(CAT_NEUTRAS[e.category] || e.possibleDup || expenseIsTombstoned(e,delSet)) return;
+      income+=Math.abs(e.amount);
+      return;
+    }
+    // El gasto conserva la selección de bancos diarios; el mes natural y el widget no cambian.
     if(!expenseCountsBudget(e, state)) return;
     if(e.amount>0) spent+=e.amount;
     else if(e.amount<0) income+=Math.abs(e.amount);
   });
   const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs);
   const budgetRaw=typeof state.budget==="number" ? state.budget : 0;
-  const mode=(state.settings&&state.settings.gTotalMode)||"split";
+  // El ciclo usa el neto aunque el mes natural prefiera gasto bruto: si adelantas una cena,
+  // los Bizums recibidos devuelven margen al límite elegido (feedback 28/9).
+  const mode=period.cycle?"net":((state.settings&&state.settings.gTotalMode)||"split");
   return Object.assign(budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode),
     {periodStart:startMs,cycle:!!period.cycle});
 }

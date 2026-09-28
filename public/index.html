@@ -5466,14 +5466,14 @@ Object.assign(LANG.es,{
   g_filters_clear:"Limpiar", g_filters_done:"Listo",
   ai_cat_btn:"✨ Sugerir categoría", ai_cat_busy:"Pensando…", ai_cat_ok:"✓ Categoría: {c}", ai_cat_none:"No hay sugerencia clara — elige a mano", ai_cat_off:"Activa «Sugerir categoría (IA)» en Ajustes → Notificaciones",
   g_cycle_from:"Del {d} (cobro de {x}) a hoy",
-  g_cycle_budget_hint:"Este cobro abre el ciclo; no aumenta el límite que elegiste para gastar.",
+  g_cycle_budget_hint:"La nómina abre el ciclo. Los ingresos posteriores, incluidos Bizums y alquileres, aumentan el margen; traspasos no.",
   g_cycle_none_t:"Sin nómina detectada",
   g_cycle_none:"Apunta la nómina como 💰 ingreso y escribe «Nómina» en el concepto. Hasta reconocerla, el presupuesto sigue el mes natural.",
   g_search:"Buscar comercio o categoría…",
   sub_title:"🔁 Suscripciones detectadas", sub_sub:"{n} · ~{y}/año", sub_inactive:"· inactiva", sub_months:"{n} meses", sub_peryear:"~{y}/año", sub_permonth:"/mes", sub_tofixed:"pasar a Gastos fijos", sub_infixed:"ya en Fijos", sub_tofixed_done:"✓ «{n}» añadido a Gastos fijos ({b}). Si quieres que el cargo salga de ahí de verdad, cambia la tarjeta en la web de la suscripción.", sub_dismiss:"No es una suscripción", sub_dismissed_ok:"Descartada · no volverá a salir aquí",
   sub_hint:"Cargos al mismo comercio en ≥3 meses con importe parecido. Revisa si alguna ya no la usas.",
   g_totalfilt:"Gastos del período", g_n_one:"gasto", g_n_many:"gastos", g_inc_one:"ingreso", g_inc_many:"ingresos", g_balance:"Balance", g_lbl_spent:"Gastos", g_lbl_income:"Ingresos",
-  g_totalnet:"Balance del período", st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"El total de gastos arriba; debajo, los ingresos y el balance (ingresos − gastos) en una línea.", st_gview_net:"Balance", st_gview_net_d:"Manda el balance (ingresos − gastos del período); debajo, gastos e ingresos en pequeño. Verde si te queda dinero, rojo si gastaste de más.", st_budget_cycle:"Presupuesto por ciclo de cobro", st_budget_cycle_d:"Empieza al registrar una nómina reconocible. Gastos abre en Mi ciclo. Sin nómina detectada, sigue el mes natural. El widget Android sigue el mes natural.",
+  g_totalnet:"Balance del período", st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"El total de gastos arriba; debajo, los ingresos y el balance (ingresos − gastos) en una línea.", st_gview_net:"Balance", st_gview_net_d:"Manda el balance (ingresos − gastos del período); debajo, gastos e ingresos en pequeño. Verde si te queda dinero, rojo si gastaste de más.", st_budget_cycle:"Presupuesto por ciclo de cobro", st_budget_cycle_d:"Con una nómina reconocida, Gastos abre en Mi ciclo y cuenta gastos e ingresos. Sin nómina, mes natural. El widget Android sigue por mes natural.",
   sv_title:"Ahorro mensual", sv_note:"Planifica lo que apartas cada mes para calcular cuándo llegas a tus metas. No mueve dinero real ni crea movimientos.", sv_saved:"Ahorro mensual guardado", sv_name_aria:"Concepto de la aportación", sv_amount_aria:"Importe al mes", sv_bank_aria:"Banco o bróker", sv_del_aria:"Quitar esta aportación", sv_add:"Añadir aportación", sv_name_ph:"Concepto (ej. MSCI World)", sv_edit_hint:"Cambia importe, nombre o banco; ✕ borra. Solo ajusta la cifra de «Ahorro/mes»: no mueve dinero de verdad.", sv_empty:"Aún no has apuntado aportaciones. Toca «Editar» para añadir lo que apartas cada mes.",
   sec_order:"⇅ Ordenar secciones", bp_role_nodata:"Este banco está conectado pero no ha traído ninguna cuenta con saldo utilizable. Prueba «Actualizar saldo» y, si sigue igual, «Reconectar».",
   g_sync:"Sincronizar", g_syncing:"Sincronizando…", g_add:"Apuntar",
@@ -9245,7 +9245,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const now=new Date();
     const bs=monthBudgetStats(state);
     return {
-      spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode,
+      spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against,
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
       day:now.getDate(),
       last:new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),
@@ -9491,8 +9491,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
           React.createElement("div",{className:"v4-gastos-summary-left"},tf("v4_gastos_left",{x:monthSummary.remaining==null?"—":eur(monthSummary.remaining)}))
         )
       ),
-      React.createElement("div",{className:"v4-gastos-progress",role:"progressbar","aria-valuemin":0,"aria-valuemax":monthSummary.budget||0,"aria-valuenow":monthSummary.spent},
-        React.createElement("i",{style:{width:monthSummary.budget==null?"0%":Math.min(100,monthSummary.spent/monthSummary.budget*100)+"%"}})
+      React.createElement("div",{className:"v4-gastos-progress",role:"progressbar","aria-valuemin":0,"aria-valuemax":monthSummary.budget||0,"aria-valuenow":Math.max(0,monthSummary.against)},
+        React.createElement("i",{style:{width:monthSummary.budget==null?"0%":Math.min(100,Math.max(0,monthSummary.against)/monthSummary.budget*100)+"%"}})
       ),
       React.createElement("div",{className:"v4-gastos-progress-marks"},
         React.createElement("span",monthSummary.cycle
@@ -13910,7 +13910,7 @@ function budgetPeriodOf(state, nowMs){
    `totals.thisMonthSpent` suma TODO
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
-   que pinta la cabecera de Gastos (gasto bruto o |balance| según gTotalMode). */
+   que pinta la cabecera de Gastos (balance en el ciclo; gasto bruto o balance según gTotalMode en el mes). */
 function monthBudgetStats(state, nowMs, hastaMs){
   const period=budgetPeriodOf(state,nowMs);
   const startMs=period.startMs;
@@ -13918,20 +13918,30 @@ function monthBudgetStats(state, nowMs, hastaMs){
   // apunte futuro no gaste hoy. El mes natural conserva la misma cifra que el widget.
   const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : period.todayEndMs;
   let spent=0, income=0;
+  const delSet=period.cycle?expenseDeletedSet(state):null;
   (state.expenses||[]).forEach(function(e){
     // La nómina abre el ciclo; en modo balance no añade otro presupuesto encima del elegido.
     if(period.cycle && e===period.cycle.inc) return;
     const ms=dateMs(e.date);
     if(ms<startMs) return;
     if(ms>=endMs) return;
-    // Solo bancos de gasto diario (+ a mano). El resto se ve en la lista pero no mueve la cifra.
+    // Los ingresos reales del ciclo pueden llegar a otro banco: cuentan para el
+    // balance elegido por el dueño, incluso si superan las compras del período.
+    if(period.cycle && e.amount<0){
+      if(CAT_NEUTRAS[e.category] || e.possibleDup || expenseIsTombstoned(e,delSet)) return;
+      income+=Math.abs(e.amount);
+      return;
+    }
+    // El gasto conserva la selección de bancos diarios; el mes natural y el widget no cambian.
     if(!expenseCountsBudget(e, state)) return;
     if(e.amount>0) spent+=e.amount;
     else if(e.amount<0) income+=Math.abs(e.amount);
   });
   const reserved=reservedSince(state, startMs, endMs===Infinity?undefined:endMs);
   const budgetRaw=typeof state.budget==="number" ? state.budget : 0;
-  const mode=(state.settings&&state.settings.gTotalMode)||"split";
+  // El ciclo usa el neto aunque el mes natural prefiera gasto bruto: si adelantas una cena,
+  // los Bizums recibidos devuelven margen al límite elegido (feedback 28/9).
+  const mode=period.cycle?"net":((state.settings&&state.settings.gTotalMode)||"split");
   return Object.assign(budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode),
     {periodStart:startMs,cycle:!!period.cycle});
 }
