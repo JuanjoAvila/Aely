@@ -1,218 +1,6 @@
 [
   {
-    "v": "4.26.65",
-    "d": "2026-09-28",
-    "t": {
-      "es": "Mi ciclo muestra el balance de ingresos",
-      "en": "My cycle shows your income balance",
-      "ca": "El meu cicle mostra el balanç d’ingressos"
-    },
-    "items": {
-      "es": [
-        "El balance de «Mi ciclo» cuenta todos los ingresos recibidos durante el ciclo, como Bizums, devoluciones y alquileres. Si pagas una cena de 100 € y te devuelven 80 €, quedan 20 € gastados del presupuesto.",
-        "La nómina que abre el ciclo y los traspasos entre tus cuentas quedan fuera. Si ingresas más de lo que gastas, aumenta el margen disponible. El mes natural y el widget conservan sus cifras."
-      ],
-      "en": [
-        "The “My cycle” balance counts all income received during the cycle, including Bizum payments, refunds, and rent. If you pay €100 for dinner and get €80 back, €20 counts against the budget.",
-        "The pay that starts the cycle and transfers between your accounts stay out. Income above spending increases money left. Calendar months and the widget keep their figures."
-      ],
-      "ca": [
-        "El balanç d’«El meu cicle» compta tots els ingressos rebuts durant el cicle, com Bizums, devolucions i lloguers. Si pagues un sopar de 100 € i et tornen 80 €, queden 20 € gastats del pressupost.",
-        "La nòmina que obre el cicle i els traspassos entre els teus comptes queden fora. Si ingresses més del que gastes, augmenta el marge disponible. Els mesos naturals i el giny conserven les seves xifres."
-      ]
-    },
-    "tandas": [
-      {
-        "id": "ciclo-balance-ingresos-28sep",
-        "t": {
-          "es": "Balance de ingresos en Mi ciclo",
-          "en": "Income balance in My cycle",
-          "ca": "Balanç d’ingressos a El meu cicle"
-        },
-        "items": {
-          "es": [
-            "1. En Ajustes → Dinero, activa el ciclo y abre Gastos. Comprueba que «Mi ciclo» muestra Gastos e Ingresos y el dinero restante.",
-            "2. Si pagas 100 € y recibes un Bizum de 80 € después de la nómina, el balance debe ser 20 € y deben quedar 80 € más que antes del Bizum. Si el Bizum llega a otro banco, también debe contar. Un alquiler cobrado en el ciclo debe aumentar el margen.",
-            "3. Comprueba que la nómina que abrió el ciclo y un traspaso propio no aumentan el dinero disponible. El mes natural y el widget deben seguir como antes."
-          ],
-          "en": [
-            "1. In Settings → Money, enable the cycle and open Spending. Check that “My cycle” shows Spending, Income, and money left.",
-            "2. If you pay €100 and receive an €80 reimbursement after payday, the balance should be €20, with €80 more left than before. It should count even if it arrives in another bank. Rent received during the cycle should also increase money left.",
-            "3. Check that the pay starting the cycle and your own transfers do not increase money left. Calendar months and the widget should remain as before."
-          ],
-          "ca": [
-            "1. A Ajustos → Diners, activa el cicle i obre Despeses. Comprova que «El meu cicle» mostra Despeses, Ingressos i diners restants.",
-            "2. Si pagues 100 € i reps un Bizum de 80 € després de la nòmina, el balanç ha de ser de 20 € i han de quedar 80 € més que abans. També ha de comptar si arriba a un altre banc. Un lloguer cobrat durant el cicle també ha d’augmentar el marge.",
-            "3. Comprova que la nòmina que obre el cicle i un traspàs propi no augmenten els diners disponibles. Els mesos naturals i el giny han de seguir com abans."
-          ]
-        }
-      }
-    ]
-  },
-  {
-    "v": "4.26.64",
-    "d": "2026-09-28",
-    "t": {
-      "es": "El presupuesto puede seguir el día de cobro",
-      "en": "Your budget can follow payday",
-      "ca": "El pressupost pot seguir el dia de cobrament"
-    },
-    "items": {
-      "es": [
-        "En Ajustes → Dinero puedes elegir que el presupuesto empiece con la nómina registrada. Gastos abrirá en «Mi ciclo» y lo gastado antes de cobrar dejará de restar de ese ciclo.",
-        "La tarjeta de Inicio recupera la frase de gasto que ya conocías."
-      ],
-      "en": [
-        "In Settings → Money you can start the budget when your pay is recorded. Spending opens in “My cycle”, and purchases before payday stop counting against that cycle.",
-        "The Home budget card brings back its familiar spending text."
-      ],
-      "ca": [
-        "A Ajustos → Diners pots fer que el pressupost comenci amb la nòmina registrada. Despeses s’obre a «El meu cicle» i el que s’ha gastat abans de cobrar deixa de restar d’aquell cicle.",
-        "La targeta d’Inici recupera el text de despesa que ja coneixies."
-      ]
-    },
-    "tandas": [
-      {
-        "id": "presupuesto-ciclo-cobro-28sep",
-        "t": {
-          "es": "Presupuesto por día de cobro",
-          "en": "Budget by payday",
-          "ca": "Pressupost per dia de cobrament"
-        },
-        "items": {
-          "es": [
-            "1. En Ajustes → Dinero, activa «Presupuesto por ciclo de cobro». Abre Gastos: «Mi ciclo» debe estar seleccionado y debe mostrar qué cobro lo inicia.",
-            "2. Antes del próximo cobro, apunta cuánto has gastado. Cuando el banco registre la nómina y sincronices, ese gasto anterior debe salir del presupuesto del ciclo nuevo. Comprueba que la nómina mostrada es la correcta y que un traspaso o Bizum posterior no cambia el inicio.",
-            "3. El día 1 siguiente, el presupuesto no debe volver a empezar. Desactiva el ajuste si quieres recuperar el mes natural. El widget Android sigue mostrando el mes natural."
-          ],
-          "en": [
-            "1. In Settings → Money, turn on “Budget by pay cycle”. Open Spending: “My cycle” should be selected and show which payment starts it.",
-            "2. Before the next payment, note your spending. Once the bank records your pay and you sync, earlier spending should leave the new cycle’s budget. Check that the displayed pay is right and a later transfer or Bizum does not move the start.",
-            "3. On the following 1st, the budget should not restart again. Turn the setting off to return to calendar months. The Android widget still shows calendar months."
-          ],
-          "ca": [
-            "1. A Ajustos → Diners, activa «Pressupost per cicle de cobrament». Obre Despeses: «El meu cicle» ha d’estar seleccionat i mostrar quin cobrament l’inicia.",
-            "2. Abans del cobrament següent, anota la despesa acumulada. Quan el banc registri la nòmina i sincronitzis, la despesa anterior ha de deixar de restar del pressupost del nou cicle. Comprova que la nòmina mostrada és la correcta i que un traspàs o Bizum posterior no mou l'inici.",
-            "3. El dia 1 següent, el pressupost no ha de tornar a començar. Desactiva l’ajust per recuperar el mes natural. El giny Android continua mostrant mesos naturals."
-          ]
-        }
-      }
-    ]
-  },
-  {
-    "v": "4.26.63",
-    "d": "2026-09-28",
-    "t": {
-      "es": "Balance más claro en Inicio",
-      "en": "A clearer balance in Home",
-      "ca": "Balanç més clar a Inici"
-    },
-    "items": {
-      "es": [
-        "Al elegir Balance, Inicio muestra el resultado en una frase breve y el anillo vuelve a decir «del mes»."
-      ],
-      "en": [
-        "When Balance is selected, Home shows the result in a short sentence and the ring says “of month” again."
-      ],
-      "ca": [
-        "En triar Balanç, Inici mostra el resultat en una frase breu i l’anell torna a dir «del mes»."
-      ]
-    },
-    "tandas": []
-  },
-  {
-    "v": "4.26.62",
-    "d": "2026-09-28",
-    "t": {
-      "es": "El saldo sigue la nómina cuando llega antes",
-      "en": "Balances follow an early salary payment",
-      "ca": "El saldo segueix la nòmina quan arriba abans"
-    },
-    "items": {
-      "es": [
-        "Si el banco confirma una nómina antes del día previsto, el saldo de la cuenta se mantiene al actualizar la app y no vuelve a subir cuando llega ese día."
-      ],
-      "en": [
-        "When the bank confirms a salary before its planned date, the account balance stays steady after updating and does not rise again on that date."
-      ],
-      "ca": [
-        "Si el banc confirma una nòmina abans del dia previst, el saldo del compte es manté en actualitzar l’app i no torna a pujar quan arriba aquell dia."
-      ]
-    },
-    "tandas": [
-      {
-        "id": "saldo-nomina-adelantada-28sep",
-        "t": {
-          "es": "Saldo con nómina adelantada",
-          "en": "Balance with an early salary",
-          "ca": "Saldo amb nòmina avançada"
-        },
-        "items": {
-          "es": [
-            "1. Anota el saldo de la cuenta de la nómina en Cartera antes de actualizar. Después de actualizar, debe seguir igual si no ha habido otros movimientos.",
-            "2. Cuando una nómina llegue antes del día previsto, sincroniza ese banco y comprueba el saldo y Plan. La nómina no debe figurar pendiente ni volver a sumarse el día previsto. Si falla la sincronización, el saldo guardado debe permanecer visible.",
-            "3. Durante esta prueba, sincroniza el banco solo desde este dispositivo; espera a terminar antes de hacerlo desde otro móvil u ordenador."
-          ],
-          "en": [
-            "1. Note the salary account balance in Portfolio before updating. After updating, it should stay the same if there were no other transactions.",
-            "2. When a salary arrives before its planned date, sync that bank and check the balance and Plan. The salary should not remain pending or be added again on its planned date. If syncing fails, the saved balance should remain visible.",
-            "3. During this check, sync the bank only from this device; wait until you finish before syncing from another phone or computer."
-          ],
-          "ca": [
-            "1. Anota el saldo del compte de la nòmina a Cartera abans d’actualitzar. Després d’actualitzar, ha de ser el mateix si no hi ha hagut altres moviments.",
-            "2. Quan una nòmina arribi abans del dia previst, sincronitza aquest banc i comprova el saldo i Pla. La nòmina no ha de quedar pendent ni sumar-se de nou el dia previst. Si falla la sincronització, el saldo desat ha de continuar visible.",
-            "3. Durant aquesta prova, sincronitza el banc només des d’aquest dispositiu; espera a acabar abans de fer-ho des d’un altre mòbil o ordinador."
-          ]
-        }
-      }
-    ]
-  },
-  {
-    "v": "4.26.61",
-    "d": "2026-09-28",
-    "t": {
-      "es": "Inicio y Plan muestran el mes con más claridad",
-      "en": "A clearer month in Home and Plan",
-      "ca": "Un mes més clar a Inici i Pla"
-    },
-    "items": {
-      "es": [
-        "Inicio distingue los gastos del balance del mes. Una nómina que el banco ya ha confirmado deja de aparecer como ingreso futuro cuando se puede reconocer con seguridad."
-      ],
-      "en": [
-        "Home separates spending from the monthly balance. A salary already confirmed by the bank stops appearing as future income when it can be identified reliably."
-      ],
-      "ca": [
-        "Inici separa les despeses del balanç del mes. Una nòmina ja confirmada pel banc deixa d’aparèixer com a ingrés futur quan es pot reconèixer amb seguretat."
-      ]
-    },
-    "tandas": [
-      {
-        "id": "inicio-gastos-ciclo-28sep",
-        "t": {
-          "es": "Inicio, Gastos y nómina",
-          "en": "Home, Spending and salary",
-          "ca": "Inici, Despeses i nòmina"
-        },
-        "items": {
-          "es": [
-            "1. En Inicio vuelve a verse «Has gastado» con la suma real de las compras y el anillo dice «del mes». Si usas Balance en Gastos, esa cifra allí puede ser distinta: es el resultado de ingresos menos gastos. Comprueba ambas con tus movimientos.",
-            "2. Si una nómina llegó antes del día previsto, sincroniza ese banco a demanda y mira Plan → Recibos. Si el abono coincide de forma clara, no debe aparecer otra vez en «Lo que aún entrará» ni elevar la proyección. Comprueba Mi ciclo en Gastos."
-          ],
-          "en": [
-            "1. Home shows “You’ve spent” with the actual purchase total again, and the ring says “of month”. If Spending is set to Balance, its figure can differ: it combines income and spending. Check both against your transactions.",
-            "2. If a salary arrived before its planned day, sync that bank on demand and open Plan → Bills. When the credit matches clearly, it should not appear again under future income or raise the forecast. Check My cycle in Spending."
-          ],
-          "ca": [
-            "1. A Inici es torna a veure «Has gastat» amb la suma real de les compres i l’anell diu «del mes». Si uses Balanç a Despeses, la xifra pot ser diferent: combina ingressos i despeses. Comprova-les amb els moviments.",
-            "2. Si una nòmina ha arribat abans del dia previst, sincronitza aquest banc a demanda i obre Pla → Rebuts. Si l’abonament coincideix clarament, no ha de tornar a aparèixer entre els ingressos futurs ni augmentar la previsió. Comprova El meu cicle a Despeses."
-          ]
-        }
-      }
-    ]
-  },
-  {
-    "v": "4.26.60",
+    "v": "4.26.66",
     "d": "2026-09-28",
     "t": {
       "es": "El widget y los gastos bancarios",
@@ -344,6 +132,114 @@
     ]
   },
   {
+    "v": "4.26.65",
+    "d": "2026-09-28",
+    "t": {
+      "es": "Mi ciclo muestra el balance de ingresos",
+      "en": "My cycle shows your income balance",
+      "ca": "El meu cicle mostra el balanç d’ingressos"
+    },
+    "items": {
+      "es": [
+        "El balance de «Mi ciclo» cuenta todos los ingresos recibidos durante el ciclo, como Bizums, devoluciones y alquileres. Si pagas una cena de 100 € y te devuelven 80 €, quedan 20 € gastados del presupuesto.",
+        "La nómina que abre el ciclo y los traspasos entre tus cuentas quedan fuera. Si ingresas más de lo que gastas, aumenta el margen disponible. El mes natural y el widget conservan sus cifras."
+      ],
+      "en": [
+        "The “My cycle” balance counts all income received during the cycle, including Bizum payments, refunds, and rent. If you pay €100 for dinner and get €80 back, €20 counts against the budget.",
+        "The pay that starts the cycle and transfers between your accounts stay out. Income above spending increases money left. Calendar months and the widget keep their figures."
+      ],
+      "ca": [
+        "El balanç d’«El meu cicle» compta tots els ingressos rebuts durant el cicle, com Bizums, devolucions i lloguers. Si pagues un sopar de 100 € i et tornen 80 €, queden 20 € gastats del pressupost.",
+        "La nòmina que obre el cicle i els traspassos entre els teus comptes queden fora. Si ingresses més del que gastes, augmenta el marge disponible. Els mesos naturals i el giny conserven les seves xifres."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.64",
+    "d": "2026-09-28",
+    "t": {
+      "es": "El presupuesto puede seguir el día de cobro",
+      "en": "Your budget can follow payday",
+      "ca": "El pressupost pot seguir el dia de cobrament"
+    },
+    "items": {
+      "es": [
+        "En Ajustes → Dinero puedes elegir que el presupuesto empiece con la nómina registrada. Gastos abrirá en «Mi ciclo» y lo gastado antes de cobrar dejará de restar de ese ciclo."
+      ],
+      "en": [
+        "In Settings → Money you can start the budget when your pay is recorded. Spending opens in “My cycle”, and purchases before payday stop counting against that cycle."
+      ],
+      "ca": [
+        "A Ajustos → Diners pots fer que el pressupost comenci amb la nòmina registrada. Despeses s’obre a «El meu cicle» i el que s’ha gastat abans de cobrar deixa de restar d’aquell cicle."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.62",
+    "d": "2026-09-28",
+    "t": {
+      "es": "El saldo sigue la nómina cuando llega antes",
+      "en": "Balances follow an early salary payment",
+      "ca": "El saldo segueix la nòmina quan arriba abans"
+    },
+    "items": {
+      "es": [
+        "Si el banco confirma una nómina antes del día previsto, el saldo de la cuenta se mantiene al actualizar la app y no vuelve a subir cuando llega ese día."
+      ],
+      "en": [
+        "When the bank confirms a salary before its planned date, the account balance stays steady after updating and does not rise again on that date."
+      ],
+      "ca": [
+        "Si el banc confirma una nòmina abans del dia previst, el saldo del compte es manté en actualitzar l’app i no torna a pujar quan arriba aquell dia."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.61",
+    "d": "2026-09-28",
+    "t": {
+      "es": "La nómina confirmada deja de figurar como pendiente",
+      "en": "Confirmed pay no longer appears as pending",
+      "ca": "La nòmina confirmada deixa de figurar com a pendent"
+    },
+    "items": {
+      "es": [
+        "Una nómina que el banco ya ha confirmado deja de aparecer como ingreso futuro cuando se puede reconocer con seguridad."
+      ],
+      "en": [
+        "A salary already confirmed by the bank stops appearing as future income when it can be identified reliably."
+      ],
+      "ca": [
+        "Una nòmina ja confirmada pel banc deixa d’aparèixer com a ingrés futur quan es pot reconèixer amb seguretat."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.60",
+    "d": "2026-09-28",
+    "t": {
+      "es": "El widget y los gastos bancarios",
+      "en": "Widget and bank expenses",
+      "ca": "El widget i les despeses bancàries"
+    },
+    "items": {
+      "es": [
+        "El widget conserva el banco elegido y sus cifras al volver a la app. Los gastos bancarios pueden usar la información del comercio para su categoría."
+      ],
+      "en": [
+        "The widget keeps the selected bank and its figures when returning to the app. Bank expenses can use merchant information for their category."
+      ],
+      "ca": [
+        "El widget conserva el banc triat i les xifres en tornar a l’app. Les despeses bancàries poden fer servir la informació del comerç per a la categoria."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.59",
     "d": "2026-09-28",
     "t": {
@@ -362,30 +258,7 @@
         "Les quotes de deute es tornen a obrir des de Pla sense tancar l’app."
       ]
     },
-    "tandas": [
-      {
-        "id": "cuotas-deuda-crash-28sep",
-        "t": {
-          "es": "Abrir cuotas de deuda",
-          "en": "Open debt payments",
-          "ca": "Obrir quotes de deute"
-        },
-        "items": {
-          "es": [
-            "1. En Plan → Gestionar → Cuotas de deuda, abre una cuota con plazo y vuelve atrás. La ficha debe mostrar el importe y no cerrar la app.",
-            "2. Comprueba que el plazo de la deuda y sus pagos anteriores siguen visibles."
-          ],
-          "en": [
-            "1. In Plan → Manage → Debt payments, open a payment with a term and go back. The detail should show the amount without closing the app.",
-            "2. Check that the debt term and earlier payments remain visible."
-          ],
-          "ca": [
-            "1. A Pla → Gestionar → Quotes de deute, obre una quota amb termini i torna enrere. La fitxa ha de mostrar l’import sense tancar l’app.",
-            "2. Comprova que el termini del deute i els pagaments anteriors continuen visibles."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.58",

@@ -1,3 +1,7 @@
+## [4.26.66] — 2026-09-28 · continuidad de las tandas nativas tras la promoción web
+
+- El dueño aprobó las nueve tandas visibles en beta. La candidata web selectiva de PR #58 publica por separado Inicio/Gastos, saldo de nómina adelantada y las dos partes de Mi ciclo; la corrección de Cuotas ya está en producción 4.26.59. Se vacían esas checklists en 4.26.59–65 y se trasladan sin cambiar pasos las cinco del widget/Trade Republic a esta versión, para que sigan visibles cuando Pages alcance 4.26.65. El código financiero y nativo de beta no cambia. La APK51, Edge, SQL y migraciones no se publican en esta operación.
+
 ## [4.26.65] — 2026-09-28 · Mi ciclo cuenta todos los ingresos del período
 
 - `monthBudgetStats` usa el balance neto para el ciclo activo aunque el modo del mes natural sea Gastos: una cena de 100 € y un Bizum recibido de 80 € dejan 20 € contra el límite y recuperan 80 € de margen. La nómina ancla queda fuera; también categorías neutras, lápidas, posibles duplicados y apuntes futuros. Otros ingresos reales, incluido alquiler y trabajo extra, aumentan el margen según la decisión explícita del dueño. Si llega otra nómina reconocida, abre un ciclo nuevo. Ingresos de cualquier banco cuentan aunque los gastos sigan limitados a bancos diarios; una devolución de fijos también aumenta el balance del ciclo. Los gastos por categoría conservan el bruto.
