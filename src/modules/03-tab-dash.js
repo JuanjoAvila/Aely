@@ -82,14 +82,15 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   const dailyAllow=rem/leftDays;
   const pace=spentAgainst/elapsed;
   const projected=spentAgainst+pace*leftDays;
-  const overTrack=projected>budAmt+0.5;
+  // Sin fecha fiable del próximo cobro no proyectamos un «€/día hasta fin de mes» que
+  // mezclaría el ciclo de ella con el calendario (feedback pareja 28/9).
+  const overTrack=!bud.cycle && projected>budAmt+0.5;
   // El neto puede ser negativo con compras reales: ese 0 % de uso no significa mes vacío.
-  // «Vas muy bien» junto a «en contra» sonaba contradictorio (revisión 28/9).
-  const activeHead=bud.mode==="net"&&bud.balance< -0.005?"v4_budget_month_h":"st_good_h";
-  let stCls="st", stHead=hasMonthActivity ? t(activeHead) : t("st_start_h");
+  // El texto de Inicio vuelve al que el dueño usaba antes de la tanda rechazada (28/9).
+  let stCls="st", stHead=hasMonthActivity ? t("st_good_h") : t(bud.cycle?"v4_cycle_start_h":"st_start_h");
   if(ratio>1 || overTrack&&ratio>0.85){ stCls="st bad"; stHead=t("st_over_h"); }
   else if(ratio>0.8 || !overTrack&&ratio>0.8){ stCls="st warn"; stHead=t("st_tight_h"); }
-  else if(ratio<=0.8 && !overTrack){ stCls="st"; stHead=hasMonthActivity ? t(activeHead) : t("st_start_h"); }
+  else if(ratio<=0.8 && !overTrack){ stCls="st"; stHead=hasMonthActivity ? t("st_good_h") : t(bud.cycle?"v4_cycle_start_h":"st_start_h"); }
 
   // Próximos cargos: misma regla que Plan›Recibos (día del mes + isPaidIn). Antes usaba
   // f.day crudo y mostraba recibos ya cobrados (luz/seguros) — feedback 2026-07-17.
@@ -246,24 +247,20 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
           pct:ringDraw?ringPct:0,
           tone:stCls.indexOf("bad")>=0?"bad":(stCls.indexOf("warn")>=0?"warn":"ok"),
           label:Math.round(ringPct*100)+"%",
-          sub:t("v4_of_month"),
+          sub:t(bud.cycle?"v4_of_cycle":"v4_of_month"),
           animate:true
         }),
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:stCls}, stHead),
           React.createElement("div",{className:"ph"},
-            bud.mode==="net"
-              // El número conserva el sentido del balance sin enseñar un menos como gasto
-              // ni repetir la frase larga rechazada en el móvil (feedback 28/9).
-              ? tf(bud.balance>0.005?"v4_budget_ahead":(bud.balance< -0.005?"v4_budget_behind":"v4_budget_even"),{x:eur(Math.abs(bud.balance))})
-              : tf("v4_budget_spent",{spent:eur0(bud.spent),budget:eur0(budAmt)}),
-            bud.mode==="net"?null:" ",
-            bud.mode==="net"?null:(rem>=0 ? tf("v4_budget_daily",{x:eur0(Math.max(0,dailyAllow))}) : t("st_over_l"))
+            tf("v4_budget_spent",{spent:eur0(bud.spent),budget:eur0(budAmt)}),
+            " ",
+            rem>=0 ? (!bud.cycle?tf("v4_budget_daily",{x:eur0(Math.max(0,dailyAllow))}):null) : t("st_over_l")
           )
         )
       ),
       React.createElement("div",{className:"v4-budget-foot"},
-        (function(){
+        !bud.cycle && (function(){
           const n=budgetStreak?budgetStreak.current:0;
           return React.createElement("span",{"data-testid":"dash-budget-streak"},n>0?tf("v4_streak",{n:n}):t("v4_streak_zero"));
         })(),

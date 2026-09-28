@@ -11,9 +11,9 @@ sesión del móvil se gastó la mitad trabajando sobre una rama equivocada.
 
 ## 1. Lo primero, siempre
 
-Candidatas locales separadas: la corrección visual de Inicio 4.26.63 está en codex/inicio-balance-compacto, tras el rechazo móvil del punto 1. Mi ciclo por cobro real sigue en codex/ciclo-presupuesto-nomina, SHA 891ca8e3 con GO de Claude condicionado a CI; también lleva el número 4.26.63 y deberá integrarse con un bump posterior, nunca publicarse con la misma versión. Ninguna de las dos candidatas está en beta.
+Candidata local **4.26.64** en codex/ciclo-presupuesto-nomina: presupuesto opcional por cobro real y Gastos → Mi ciclo inicial. Se integra sobre beta **4.26.63.1** y restaura el texto anterior de Inicio tras el rechazo explícito de «Balance en contra». Requiere revisión del SHA integrado, CI, publicación beta y prueba móvil; el GO anterior de Claude a 891ca8e3 no avala la integración nueva. El widget Android/ingest sigue por mes natural.
 
-Corte 28/9: la OTA beta comprobada es 4.26.62.1. Claude confirmó en lectura de app_events que el dueño aprobó las cinco tandas financieras y el saldo con nómina adelantada tras probar el pago real; rechazó Inicio/Gastos por el negativo, el texto largo y la etiqueta del anillo, no por cálculo. La candidata 4.26.63 corrige esa presentación y requiere revisión, CI, publicación beta y nueva prueba móvil. Producción sigue en 4.26.59 con Cuotas. Promover solo una tanda inequívocamente aprobada y separable; el rechazo de Inicio sigue abierto.
+Corte 28/9: beta **4.26.63.1** verificada; el dueño aprobó cinco tandas financieras y saldo con nómina adelantada, y rechazó el texto visual anterior de Inicio. La corrección de Inicio vuelve al texto anterior y requiere beta/revalidación; producción sigue en **4.26.59**. Promover solo tandas aprobadas y separables.
 
 OPS-02: [ensayo de restauración del 27/9](docs/briefs/ops02-restauracion-probada.md).
 Beta 4.26.56.1 sustituye el reemplazo conectado por una vista aislada. Claude GO al SHA `978420fc`, CI verde y bundle cotejado; móvil pendiente. La recuperación

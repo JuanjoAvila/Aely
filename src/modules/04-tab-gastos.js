@@ -8,13 +8,42 @@ const DATE_PRESETS=[
 // «Mi ciclo» (petición pareja 2026-07-11): su nómina no cae en día fijo (23, 24…), así que el mes
 // natural le descuadra el ahorro. El ciclo se ancla al ÚLTIMO COBRO REAL apuntado: el ingreso
 // más reciente ≥200 € de los últimos 45 días (los bizums pequeños no cuentan). Sin cobro → mes.
-function lastPaydayOf(expenses){
-  const cut=Date.now()-45*86400000;
-  const cands=(expenses||[]).filter(function(e){ return e.amount<=-200 && dateMs(e.date)>=cut; })
-    .sort(function(a,b){ return dateMs(b.date)-dateMs(a.date); });
-  if(!cands[0]) return null;
-  const d=parseDate(cands[0].date);
-  return { start:new Date(d.getFullYear(),d.getMonth(),d.getDate()), inc:cands[0] };   // desde las 00:00 del día del cobro
+function lastPaydayOf(expenses, nowMs, delSet, eligible){
+  const now=nowMs!=null?nowMs:Date.now();
+  const todayEnd=new Date(now); todayEnd.setHours(23,59,59,999);
+  const cut=now-45*86400000;
+  // El banco guarda muchas fechas a las 12:00; cobrar hoy por la mañana ya abre el ciclo.
+  // Un apunte fechado mañana no puede adelantar ese reinicio. Se recorre sin ordenar/copiar
+  // el histórico porque Inicio consulta el presupuesto en cada render.
+  let best=null, bestMs=-Infinity;
+  (expenses||[]).forEach(function(e){
+    // Un posible duplicado no confirma que haya entrado dinero; no puede reiniciar el límite.
+    if(!e || e.possibleDup || !(e.amount<=-200) || eligible && !eligible(e)) return;
+    if(expenseIsTombstoned(e,delSet)) return;
+    if(!isFinite(new Date(e.date).getTime())) return;
+    const ms=dateMs(e.date);
+    if(ms>=cut && ms<=todayEnd.getTime() && ms>bestMs){ best=e; bestMs=ms; }
+  });
+  if(!best) return null;
+  const d=parseDate(best.date);
+  return { start:new Date(d.getFullYear(),d.getMonth(),d.getDate()), inc:best };   // desde las 00:00 del día del cobro
+}
+// Al usar «Mi ciclo» como presupuesto, un traspaso o un Bizum grande no puede fingir
+// que se ha cobrado la nómina. El filtro informativo antiguo conserva su ancla histórica;
+// el límite solo se reinicia con un ingreso identificado por nombre o flujo periódico.
+function budgetPaydayOf(state, nowMs, expenses){
+  const flows=(state.flows||[]).filter(function(f){ return f&&f.kind==="income"&&!f.once&&Number(f.amount)>=200; });
+  return lastPaydayOf(expenses||state.expenses, nowMs, expenseDeletedSet(state), function(e){
+    if(CAT_NEUTRAS[e.category] || e.category==="bizum") return false;
+    // Algunos bancos ponen la empresa como comercio y «NÓMINA» solo en el concepto.
+    const name=recNorm([e.merchant,e.note,e.concept].join(" "));
+    if(/\b(nomina|salario|sueldo|salary|payroll|haberes)\b/.test(name)) return true;
+    const bank=expenseBankOf(e);
+    if(!bank) return false;
+    const d=parseDate(e.date), month=d.getMonth()+1, year=d.getFullYear();
+    return flows.some(function(f){ return (f.to||"sabadell")===bank && flowOccursIn(f,month,year)
+      && recAmtClose(Number(f.amount),Math.abs(e.amount)) && recNameMatch(f.name,e.merchant); });
+  });
 }
 /* Límites del período EN MILISEGUNDOS, calculados UNA vez. Antes `inPreset` se llamaba por gasto y
    se construía dentro tres o cuatro `new Date()` (startOfMonth, el mes pasado…): con un histórico
@@ -79,7 +108,14 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
      ese destino solo durante la navegación: el estado inicial lo consume y el evento cubre el
      caso en que la pestaña ya estaba viva. No se guarda en preferencias. */
   const bankPending=typeof window!=="undefined"&&window.__mcExpBank||"";
-  const [preset,setPreset]=useState(bankPending?"all":"month");
+  const cycleEnabled=!!(state.settings&&state.settings.budgetCycle);
+  const [preset,setPreset]=useState(bankPending?"all":(cycleEnabled?"cycle":"month"));
+  const cycleEnabledPrev=useRef(cycleEnabled);
+  useEffect(function(){
+    if(cycleEnabledPrev.current===cycleEnabled) return;
+    cycleEnabledPrev.current=cycleEnabled;
+    setPreset(cycleEnabled?"cycle":"month");
+  },[cycleEnabled]);
   // Tras importar una hoja: salta a "Todo" — lo importado suele traer fechas fuera del mes en
   // curso, y "Este mes" las tapaba en silencio (feedback 2026-08-01).
   useEffect(function(){ if(forceAllTs) setPreset("all"); },[forceAllTs]);
@@ -400,15 +436,15 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     sincroniza(upd); showToast(t("g_edited"));
   };
 
-  const cycle=useMemo(()=>lastPaydayOf(expensesDef),[expensesDef]);
+  const todayKey=new Date().toDateString();
+  const cycle=useMemo(()=>cycleEnabled?budgetPaydayOf(state,null,expensesDef)
+    :lastPaydayOf(expensesDef,null,expenseDeletedSet(state)),
+    [expensesDef,state.deleted,state.flows,cycleEnabled,todayKey]);
   // Bancos presentes en el período (o configurados como gasto) → chips de filtro.
   // "_manual" = apuntados a mano / sin banco conocido (no mezclar con OB).
   // Chips de banco: baratos y SIEMPRE visibles (no dependen de heavyOk → sin flash).
-  // `todayKey` en las dependencias a propósito: los límites de «Este mes» / «Últimos 3 meses» se
-  // calculan con la fecha de HOY, y la app se queda abierta días en el móvil. Sin esto, cruzar la
-  // medianoche (o el cambio de mes) dejaría el filtro anclado al día en que se abrió y «Este mes»
-  // enseñaría el mes pasado. Antes no pasaba porque el cálculo se rehacía en cada render.
-  const todayKey=new Date().toDateString();
+  // `todayKey` invalida ciclo, filtros y cabecera cuando la app queda abierta al cruzar el día;
+  // así el 26 o el día 1 no conserva cifras del período anterior en un memo.
   const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,todayKey]);
   const diarioEnts=useMemo(function(){ return expenseBankEnts(state); },[state.accounts, state.settings]);
   const diarioPrev=useRef(diarioEnts.slice());
@@ -488,9 +524,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     dragExpenseRef.current=null; setDragExpense(null);
   },[set]);
 
-  // La cabecera es siempre el mes natural: los filtros sirven para explorar, pero no deben hacer
-  // que el presupuesto parezca cambiar al mirar otro período o una categoría.
-  // Cifras = `monthBudgetStats` (misma fuente que Resumen y el widget).
+  // El filtro solo explora la lista: la cabecera sigue el período de presupuesto elegido en
+  // Ajustes, no cambia al tocar categorías ni al mirar otro rango (feedback pareja 28/9).
+  // Cifras = `monthBudgetStats` (misma fuente que Inicio; el widget sigue por mes natural).
   // `accounts` + `settings` van en deps: monthBudgetStats → expenseCountsBudget → expenseBankEnts
   // lee rol diario y expenseBanks. Sin ellos, quitar un banco de gasto diario dejaba la cabecera
   // alta hasta que un sync cambiaba `expenses` (B09-A / feedback familia 2026-09-06).
@@ -502,14 +538,14 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
       day:now.getDate(),
       last:new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),
-      month:monthLong(now.getMonth())
+      month:monthLong(now.getMonth()), cycle:bs.cycle, periodStart:bs.periodStart
     };
-  },[state.expenses,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings]);
+  },[state.expenses,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,todayKey]);
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
     return categorySpentByMonth(state);
-  },[state.expenses,state.deleted,state.categoryBudgets,state.accounts,state.settings]);
+  },[state.expenses,state.deleted,state.categoryBudgets,state.accounts,state.settings,todayKey]);
   /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
      —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
   const catsOpen=!(state.settings && state.settings.gastosCatsOff);
@@ -707,9 +743,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       React.createElement("div",{className:"v4-gastos-summary-top"},
         React.createElement("div",{className:"v4-gastos-summary-main"},
           React.createElement("div",{className:"v4-gastos-summary-label"},
-            monthSummary.mode==="net"
-              ? tf("v4_gastos_net_in",{month:monthSummary.month})
-              : tf("v4_gastos_spent_in",{month:monthSummary.month})),
+            monthSummary.cycle
+              ? t(monthSummary.mode==="net"?"v4_gastos_net_cycle":"v4_gastos_spent_cycle")
+              : tf(monthSummary.mode==="net"?"v4_gastos_net_in":"v4_gastos_spent_in",{month:monthSummary.month})),
           // Importe en blanco, sin signo, € al lado (como el patrimonio). El rojo/menos
           // confundía el «balance» con una alarma (feedback 2026-07-17).
           (function(){
@@ -748,9 +784,11 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         React.createElement("i",{style:{width:monthSummary.budget==null?"0%":Math.min(100,monthSummary.spent/monthSummary.budget*100)+"%"}})
       ),
       React.createElement("div",{className:"v4-gastos-progress-marks"},
-        React.createElement("span","1 "+monthSummary.month),
+        React.createElement("span",monthSummary.cycle
+          ? new Date(monthSummary.periodStart).toLocaleDateString(loc(),{day:"2-digit",month:"short"})
+          : "1 "+monthSummary.month),
         React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
-        React.createElement("span",monthSummary.last+" "+monthSummary.month)
+        !monthSummary.cycle && React.createElement("span",monthSummary.last+" "+monthSummary.month)
       ),
       /* SE PUEDE OCULTAR (petición de su pareja, 10/9, y con razón).
          Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria
@@ -767,7 +805,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
           "aria-expanded":catsOpen,"aria-controls":"gastos-cats-body",onClick:toggleCats},
           React.createElement("span",{className:"v4-gastos-cats-t"},
             catsOpen ? t("v4_gastos_cats")
-                     : (catBreakdown.length===1 ? t("v4_gastos_cats_n1") : tf("v4_gastos_cats_n",{n:catBreakdown.length}))),
+                     : (catBreakdown.length===1 ? t(monthSummary.cycle?"v4_gastos_cats_cycle_n1":"v4_gastos_cats_n1")
+                       : tf(monthSummary.cycle?"v4_gastos_cats_cycle_n":"v4_gastos_cats_n",{n:catBreakdown.length}))),
           React.createElement("span",{className:"v4-gastos-cats-fold"},
             (catsOpen?"▾ ":"▸ ")+t(catsOpen?"v4_gastos_cats_hide":"v4_gastos_cats_show"))),
         React.createElement("div",{id:"gastos-cats-body",className:"v4-gastos-cats-body"+(catsOpen?" abierto":""),"aria-hidden":!catsOpen},
@@ -815,7 +854,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         cycle
           ? React.createElement(React.Fragment,null,
               React.createElement("strong",null,"📅 "+t("g_cycle")),
-              tf("g_cycle_from",{d:cycle.start.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'}), x:"+"+eur0(Math.abs(cycle.inc.amount))+((cycle.inc.merchant&&cycle.inc.merchant!=="Ingreso")?" · "+cycle.inc.merchant:"")}))
+              tf("g_cycle_from",{d:cycle.start.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'}), x:"+"+eur0(Math.abs(cycle.inc.amount))+((cycle.inc.merchant&&cycle.inc.merchant!=="Ingreso")?" · "+cycle.inc.merchant:"")}),
+              cycleEnabled && React.createElement("div",{style:{marginTop:6}},t("g_cycle_budget_hint")))
           : React.createElement(React.Fragment,null,
               React.createElement("strong",null,t("g_cycle_none_t")),
               t("g_cycle_none"))

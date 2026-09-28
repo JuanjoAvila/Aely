@@ -9,10 +9,10 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 test.use({ viewport:{width:375,height:812}, hasTouch:true });
 
 for(const caso of [
-  {lang:"es", ahead:"Balance a favor", month:"del mes", spent:"Gastos", start:"Aquí empieza el mes"},
-  {lang:"en", ahead:"Balance ahead", month:"of month", spent:"Spent", start:"Your month starts here"},
-  {lang:"ca", ahead:"Balanç a favor", month:"del mes", spent:"Despeses", start:"Aquí comença el mes"},
-]) test(`Inicio distingue balance y gasto real con ingresos mayores (${caso.lang})`,async({page})=>{
+  {lang:"es", ahead:"Has gastado 300 € de tus 1000 €.", month:"del mes", start:"Aquí empieza el mes"},
+  {lang:"en", ahead:"You've spent 300 € of your 1000 €.", month:"of month", start:"Your month starts here"},
+  {lang:"ca", ahead:"Has gastat 300 € dels teus 1000 €.", month:"del mes", start:"Aquí comença el mes"},
+]) test(`Inicio conserva la frase de gasto con ingresos mayores (${caso.lang})`,async({page})=>{
   await page.clock.install({time:new Date("2026-09-15T12:00:00Z")});
   await seedLoggedInDashboard(page,{
     budget:1000,
@@ -30,9 +30,8 @@ for(const caso of [
   const dash=page.locator(".v4-budget");
   await expect(dash.locator(".v4-ring")).toContainText(caso.month);
   await expect(dash.locator(".v4-budget-txt .ph")).toContainText(caso.ahead);
-  await expect(dash).toContainText(/700/);
-  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText(caso.spent);
-  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText(/Puedes gastar|You can spend|Pots gastar/);
+  await expect(dash).toContainText(/300/);
+  await expect(dash.locator(".v4-budget-txt .ph")).toContainText(/Puedes gastar|You can spend|Pots gastar/);
   await expect(dash).not.toContainText(caso.start);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   const gastos=page.locator(".v4-gastos-summary");
@@ -40,7 +39,7 @@ for(const caso of [
   await expect(gastos).toContainText(/300/);
 });
 
-test("Inicio muestra el balance desfavorable sin signo negativo ni frase larga",async({page})=>{
+test("Inicio conserva la frase de gasto también con balance desfavorable",async({page})=>{
   await page.clock.install({time:new Date("2026-09-15T12:00:00Z")});
   await seedLoggedInDashboard(page,{
     budget:1000,settings:{autoPrices:false,theme:"green",lang:"es",gTotalMode:"net"},
@@ -56,11 +55,76 @@ test("Inicio muestra el balance desfavorable sin signo negativo ni frase larga",
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
   await expect(dash.locator(".v4-ring")).toContainText("del mes");
-  await expect(dash.locator(".v4-budget-txt .ph")).toContainText("Balance en contra: 200");
-  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText(/[−-]\s*200/);
-  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("Gastos");
-  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("Puedes gastar");
-  await expect(dash.locator(".v4-budget-txt .st")).toContainText("Así va el mes");
+  await expect(dash.locator(".v4-budget-txt .ph")).toContainText("Has gastado 300");
+  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText(/[−-]\s*300/);
+  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("Balance en contra");
+  await expect(dash.locator(".v4-budget-txt .ph")).toContainText("Puedes gastar");
+  await expect(dash.locator(".v4-budget-txt .st")).toContainText("Vas muy bien");
+});
+
+test("el cobro del 26 reinicia el presupuesto opcional y Mi ciclo abre por defecto",async({page})=>{
+  await page.clock.install({time:new Date("2026-09-25T12:00:00Z")});
+  await seedLoggedInDashboard(page,{
+    __seedOnce:true,budget:1000,
+    settings:{autoPrices:false,theme:"green",lang:"es",gTotalMode:"net",budgetCycle:true},
+    expenses:[
+      {id:"agosto",date:"2026-08-26T12:00:00Z",amount:-2000,merchant:"Nómina",category:"ingreso"},
+      {id:"previos",date:"2026-09-20T12:00:00Z",amount:600,merchant:"Compras",category:"super"},
+      {id:"septiembre",date:"2026-09-26T12:00:00Z",amount:-2000,merchant:"Nómina",category:"ingreso"},
+      {id:"traspaso",date:"2026-09-27T12:00:00Z",amount:-500,merchant:"Movimiento",category:"traspaso"},
+      {id:"bizum",date:"2026-09-27T14:00:00Z",amount:-250,merchant:"Bizum recibido",category:"ingreso"},
+    ],
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({timeout:30_000});
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  const ajustesIniciales=page.locator(".settings-push.open").filter({has:page.getByRole("heading",{name:/Ajustes/i})});
+  if(await ajustesIniciales.count()) await ajustesIniciales.locator(".settings-push-h .back").click();
+  await expect(page.locator(".v4-budget")).toContainText(/600/);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator(".v4-period-btn.on")).toHaveText("Mi ciclo");
+  await expect(page.locator(".v4-cycle-box")).toContainText(/26\/0?8/);
+  await expect(page.locator(".v4-gastos-summary")).toContainText(/600/);
+  await page.clock.pauseAt(new Date("2026-09-26T08:00:00Z"));
+  await page.clock.resume();
+  await page.reload();
+  await expect(page.locator(".botnav")).toBeVisible();
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator(".v4-period-btn.on")).toHaveText("Mi ciclo");
+  await expect(page.locator(".v4-cycle-box")).toContainText(/26\/0?9/);
+  await expect(page.locator(".v4-gastos-summary")).toContainText(/1\.?000/);
+  await expect(page.locator(".v4-gastos-summary")).not.toContainText(/600/);
+  await page.locator('.botnav-tab[data-tour="inicio"]').click();
+  await expect(page.locator(".v4-budget")).toContainText("Aquí empieza tu ciclo");
+  await page.clock.pauseAt(new Date("2026-09-28T10:00:00Z"));
+  await page.clock.resume();
+  await page.reload();
+  await expect(page.locator(".botnav")).toBeVisible();
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator(".v4-cycle-box")).toContainText(/26\/0?9/);
+  await page.locator('.botnav-tab[data-tour="inicio"]').click();
+  await page.locator(".v4-avatar").click();
+  await page.getByRole("button",{name:/Ir a Ajustes/i}).click();
+  const ajustes=page.locator(".settings-push.open");
+  await ajustes.getByRole("button",{name:/Dinero/}).first().click();
+  await ajustes.getByRole("button",{name:/Presupuesto por ciclo de cobro/}).click();
+  await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")||"{}").settings?.budgetCycle)).toBe(false);
+});
+
+test("sin activar el ciclo Gastos abre en Este mes",async({page})=>{
+  await page.clock.install({time:new Date("2026-09-26T12:00:00Z")});
+  await seedLoggedInDashboard(page,{settings:{autoPrices:false,theme:"green",lang:"es",budgetCycle:false}});
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({timeout:30_000});
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator(".v4-period-btn.on")).toHaveText("Este mes");
 });
 
 async function abrir(page, reduced){
