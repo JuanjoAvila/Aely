@@ -1,5 +1,46 @@
 [
   {
+    "v": "4.26.67",
+    "d": "2026-09-28",
+    "t": {
+      "es": "Inicio aclara el presupuesto del ciclo",
+      "en": "Home clarifies the cycle budget",
+      "ca": "Inici aclareix el pressupost del cicle"
+    },
+    "items": {
+      "es": [
+        "Con el presupuesto por ciclo de cobro activado, Inicio muestra el gasto tras contar los ingresos recibidos y cuánto queda. La tarjeta mensual también indica que el mes está en curso."
+      ],
+      "en": [
+        "With the pay cycle budget enabled, Home shows spending after income received and how much remains. The monthly card also says the month is in progress."
+      ],
+      "ca": [
+        "Amb el pressupost per cicle de cobrament activat, Inici mostra la despesa després dels ingressos rebuts i quant queda. La targeta mensual també indica que el mes és en curs."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2809-01-inicio-ciclo",
+        "t": {
+          "es": "Inicio y Mi ciclo",
+          "en": "Home and My cycle",
+          "ca": "Inici i El meu cicle"
+        },
+        "items": {
+          "es": [
+            "1. Activa Presupuesto por ciclo de cobro en Ajustes → Dinero. Compara el balance y lo que queda en Gastos con Inicio: el porcentaje, el gasto neto y el disponible deben cuadrar. Desactiva el ajuste: Inicio debe mostrar el gasto mensual y decir «Mes en curso»."
+          ],
+          "en": [
+            "1. Enable Budget by pay cycle in Settings → Money. Compare the balance and amount left in Spending with Home: the percentage, net spending and amount left should agree. Turn the setting off: Home should show monthly spending and say “Month in progress”."
+          ],
+          "ca": [
+            "1. Activa Pressupost per cicle de cobrament a Ajustos → Diners. Compara el balanç i el que queda a Despeses amb Inici: el percentatge, la despesa neta i el disponible han de quadrar. Desactiva l’ajust: Inici ha de mostrar la despesa mensual i dir «Mes en curs»."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.66",
     "d": "2026-09-28",
     "t": {
