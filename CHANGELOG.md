@@ -1,3 +1,10 @@
+## [4.26.63] — 2026-09-28 · Balance breve en Inicio tras rechazo móvil
+
+- El dueño rechazó el punto visual de la tanda inicio-gastos-ciclo-28sep en beta 4.26.62.1: el cálculo cuadraba, pero la tarjeta de Inicio ponía un balance negativo, una frase extensa y «uso neto del mes» en el anillo. El mismo balance sigue calculándose como ingresos menos gastos; solo cambia su presentación.
+- Inicio enseña «Balance a favor/en contra» con valor absoluto y céntimos, sin ocultar el sentido de la cifra ni llamarla gasto. El anillo recupera «del mes». La actividad real continúa evitando el falso «Aquí empieza el mes» cuando ya hubo movimientos. Gastos, Plan, widget, presupuestos y filas financieras no cambian.
+- En modo Balance la tarjeta omite la proyección diaria para que el mensaje quede en una sola frase; con balance en contra usa una cabecera neutra en lugar de «Vas muy bien».
+- e2e/presupuesto-fluido.spec.mjs comprueba superávit en es/en/ca y déficit sin signo, el texto del anillo y las cantidades de Gastos. Se conserva la misma tanda rechazada en el panel con su primer punto actualizado para que el dueño pueda revalidarla sin duplicarla. Candidata local: faltan revisión, CI, publicación beta y prueba móvil.
+
 ## [4.26.62] — 2026-09-28 · INC-2709-05, anclaje de nómina adelantada
 
 - `bankTx` confirmaba en Plan una nómina llegada antes, pero `monthNetForAccount` aún la sumaba en su día previsto. El saldo anclado antes de ese día subía de nuevo al cruzarlo. Se conserva un marcador mínimo `paidYm/paidDay/paidBank/paidAmount` solo ante un abono único `BOOK` atribuible al flujo; viaja con `flows` mientras `bankTx` sigue local. El día editable continúa definiendo los meses siguientes.

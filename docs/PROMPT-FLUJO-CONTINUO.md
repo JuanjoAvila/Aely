@@ -27,8 +27,8 @@ monitor periódico; el relevo ocurre al cerrar cada tarea.
 > manifiesto, bundle y service worker activos. La autorización del dueño de hoy permite ejecutar
 > esa promoción sin pedir otro «dale», siempre que cada tanda concreta ya tenga su OK. Quita del
 > panel solo las tandas efectivamente publicadas y conserva las pendientes en beta. Nunca mezcles
-> por comodidad toda la beta, especialmente FIN-05, selector y Trade Republic mientras falte su
-> validación por pago real. Si una tanda aprobada está mezclada o no es separable con seguridad,
+> por comodidad toda la beta: el pago real aprobado el 28/9 no autoriza incluir la tanda de Inicio
+> rechazada. Si una tanda aprobada está mezclada o no es separable con seguridad,
 > documenta el bloqueo y pasa a una tarea independiente; no fuerces un cherry-pick incierto.
 >
 > Si no hay aprobación nueva verificable, elige **un** objetivo pendiente de mayor prioridad de
