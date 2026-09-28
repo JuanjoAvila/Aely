@@ -60,6 +60,8 @@ test("★ P4: Inicio recién instalado ofrece recibos y metas en vez de quedarse
 });
 
 test("con recibos y metas de verdad, las tarjetas fantasma desaparecen", async ({ page }) => {
+  // El recibo del día 28 sigue pendiente en la fecha fija del escenario.
+  await page.clock.install({ time: new Date("2026-09-15T12:00:00+02:00") });
   await inicio(page, {
     history: [100, 200], budget: 500,
     fixed: [{ id: "f1", name: "Luz", amount: 40, freq: "mes", day: 28, account: "sabadell" }],
