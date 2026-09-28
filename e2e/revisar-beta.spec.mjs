@@ -875,15 +875,16 @@ test("la marca caduca: si vuelve al día siguiente entra en su app, no en el pan
 });
 
 
-/* SEC-03 ya está en producción; las rondas financieras conservan su aprobación separada. */
-test("continuidad SEC-03: producción 4.26.57 deja visibles las cinco tandas financieras, cuotas e Inicio", async ({ page }) => {
+/* Cuotas ya está en producción; las dos partes de INC-2709-05 y las financieras siguen separadas. */
+test("producción 4.26.59 deja visibles cinco tandas financieras, Inicio y el saldo", async ({ page }) => {
   await abrirRevisionBeta(page);
-  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.61.1"; });
-  const panel = await conProduccionEn(page, "4.26.57");
+  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.62.1"; });
+  const panel = await conProduccionEn(page, "4.26.59");
   await expect(panel.locator(".beta-tanda")).toHaveCount(7);
-  for (const title of ["Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada", "Abrir cuotas de deuda", "Inicio, Gastos y nómina"]) {
+  for (const title of ["Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada", "Inicio, Gastos y nómina", "Saldo con nómina adelantada"]) {
     await expect(panel.locator(".beta-tanda-t").filter({ hasText: title })).toHaveCount(1);
   }
+  await expect(panel).not.toContainText("Abrir cuotas de deuda");
   await expect(panel).not.toContainText("Diagnósticos más privados");
   await expect(panel).not.toContainText("✅ aprobada");
   await expect(panel).toContainText("En la próxima compra habitual");

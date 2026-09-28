@@ -94,7 +94,10 @@ const PRESUPUESTO = {
   // minificados / 337.533 B gzip medidos. +12 KB solo al crudo; descarga sigue en 332 KB.
   // Quedan ~2 KB crudos para el sellado de beta, sin aflojar el presupuesto del móvil.
   // SEC-03 sobre beta: +6 KiB crudos para los filtros necesarios, sin ampliar gzip.
-  minificado: 1221 * 1024,
+  // INC-2709-05 saldo: marcador, reanclaje y ambigüedad posterior miden 1.251.083 B
+  // crudos, 779 B sobre el límite anterior; gzip 340.797 B permanece bajo 333 KiB.
+  // Se añade 1 KiB solo al crudo para preservar el saldo al actualizar y en otro móvil.
+  minificado: 1222 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

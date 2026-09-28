@@ -1,5 +1,46 @@
 [
   {
+    "v": "4.26.62",
+    "d": "2026-09-28",
+    "t": {
+      "es": "El saldo sigue la nómina cuando llega antes",
+      "en": "Balances follow an early salary payment",
+      "ca": "El saldo segueix la nòmina quan arriba abans"
+    },
+    "items": {
+      "es": ["Si el banco confirma una nómina antes del día previsto, el saldo de la cuenta se mantiene al actualizar la app y no vuelve a subir cuando llega ese día."],
+      "en": ["When the bank confirms a salary before its planned date, the account balance stays steady after updating and does not rise again on that date."],
+      "ca": ["Si el banc confirma una nòmina abans del dia previst, el saldo del compte es manté en actualitzar l’app i no torna a pujar quan arriba aquell dia."]
+    },
+    "tandas": [
+      {
+        "id": "saldo-nomina-adelantada-28sep",
+        "t": {
+          "es": "Saldo con nómina adelantada",
+          "en": "Balance with an early salary",
+          "ca": "Saldo amb nòmina avançada"
+        },
+        "items": {
+          "es": [
+            "1. Anota el saldo de la cuenta de la nómina en Cartera antes de actualizar. Después de actualizar, debe seguir igual si no ha habido otros movimientos.",
+            "2. Cuando una nómina llegue antes del día previsto, sincroniza ese banco y comprueba el saldo y Plan. La nómina no debe figurar pendiente ni volver a sumarse el día previsto. Si falla la sincronización, el saldo guardado debe permanecer visible.",
+            "3. Durante esta prueba, sincroniza el banco solo desde este dispositivo; espera a terminar antes de hacerlo desde otro móvil u ordenador."
+          ],
+          "en": [
+            "1. Note the salary account balance in Portfolio before updating. After updating, it should stay the same if there were no other transactions.",
+            "2. When a salary arrives before its planned date, sync that bank and check the balance and Plan. The salary should not remain pending or be added again on its planned date. If syncing fails, the saved balance should remain visible.",
+            "3. During this check, sync the bank only from this device; wait until you finish before syncing from another phone or computer."
+          ],
+          "ca": [
+            "1. Anota el saldo del compte de la nòmina a Cartera abans d’actualitzar. Després d’actualitzar, ha de ser el mateix si no hi ha hagut altres moviments.",
+            "2. Quan una nòmina arribi abans del dia previst, sincronitza aquest banc i comprova el saldo i Pla. La nòmina no ha de quedar pendent ni sumar-se de nou el dia previst. Si falla la sincronització, el saldo desat ha de continuar visible.",
+            "3. Durant aquesta prova, sincronitza el banc només des d’aquest dispositiu; espera a acabar abans de fer-ho des d’un altre mòbil o ordinador."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.61",
     "d": "2026-09-28",
     "t": {
