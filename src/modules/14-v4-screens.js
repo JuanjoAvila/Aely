@@ -738,7 +738,9 @@ function BillsItemSheet({row, set, banks, simple, onClose, onRemove}){
   const [name,setName]=React.useState(item.name||"");
   const [amount,setAmount]=React.useState("");
   const [freq,setFreq]=React.useState(item.freq||"mes");
-  const [months,setMonths]=React.useState((item.months||[]).slice());
+  // En deudas, months es el plazo NUMÉRICO; solo los recibos guardan meses como lista
+  // (crash real al abrir una cuota, 2026-09-27).
+  const [months,setMonths]=React.useState(row.kind==="fixed"&&Array.isArray(item.months)?item.months.slice():[]);
   const [day,setDay]=React.useState(item.day?String(item.day):"");
   const [when,setWhen]=React.useState(item.when||"");
   const [account,setAccount]=React.useState(row.bank||banks[0]||"sabadell");

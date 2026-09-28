@@ -1,3 +1,8 @@
+## [4.26.59] — 2026-09-28 · INC-2709-04, ficha de cuota
+
+- Crash reproducido en la ruta real Plan → Gestionar → Cuotas de deuda → ficha con `months:24`: `BillsItemSheet` llamaba `.slice()` al plazo numérico de la deuda, confundido con `fixed.months` (lista de meses de recibo). Las trazas sanitizadas del móvil mostraban el mismo TypeError en 4.26.48.1 y 4.26.52.1.
+- La ficha inicializa la lista de meses solo para recibos con array; no transforma ni escribe el plazo de la deuda. E2E rojo antes y verde después: abrir/cerrar, importe, plazo y pago histórico visible una sola vez en Gastos. Sin backend, migración, filas reales ni APK.
+
 ## [4.26.57] — 2026-09-27 · SEC-03 cliente aprobado; entrega exclusiva
 
 - Frontera app_events por esquema/clases cerradas y email:null; no transmite claves de gastos ni mensajes/objetos libres de proveedor. user_id necesario para RLS permanece.

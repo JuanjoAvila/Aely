@@ -785,6 +785,34 @@ test("fuera del modo sencillo las cuotas dicen dónde se cambian", async ({ page
   await expect(fila(page, "Préstamo coche")).toContainText(/en Deudas/);
 });
 
+test("una deuda con plazo numérico abre su cuota sin perder importe ni plazo", async ({ page }) => {
+  const deuda={ id:"plazo", name:"Préstamo de prueba", monthly:100, value:2400,
+    original:2400, anchor:2400, months:24, account:"sabadell", day:10 };
+  const pago={ id:"pago-plazo", date:new Date(anoActual,mesActual-1,10,12).toISOString(),
+    amount:100, merchant:"Cuota de prueba", category:"deudas", debtId:"plazo", ent:"sabadell", source:"ob" };
+  const crashes=[];
+  page.on("pageerror",function(err){ crashes.push(err.message); });
+  await appLista(page,{ fixed:[], debts:[deuda], flows:[], oneoffs:[], expenses:[pago],
+    settings:{expenseBanks:["sabadell"]} });
+  await abreTusRecibos(page);
+  await grupo(page,"Cuotas de deuda").click();
+  await expect(fila(page,"Préstamo de prueba")).toContainText("100,00");
+  await fila(page,"Préstamo de prueba").click();
+  await expect(ficha(page)).toBeVisible();
+  await expect(ficha(page)).toContainText("100,00");
+  await ficha(page).locator('[data-act="back"]').click();
+  await expect(ficha(page)).toHaveCount(0);
+  await expect(fila(page,"Préstamo de prueba")).toBeVisible();
+  expect(crashes).toEqual([]);
+  expect((await estado(page)).debts[0].months).toBe(24);
+  await hub(page).locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
+  await hub(page).locator(':scope > .v4-bills-hub > .settings-push-h .back').click();
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  const filaPago=page.locator(".v4-gastos-list-body button.v4-mov").filter({hasText:"Cuota de prueba"});
+  await expect(filaPago).toHaveCount(1);
+  await expect(filaPago).toContainText("Préstamo de prueba");
+});
+
 test("quitar un recibo tiene Deshacer y vuelve con el MISMO id", async ({ page }) => {
   await appLista(page);
   await abreTusRecibos(page);
