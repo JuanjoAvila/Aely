@@ -1,7 +1,7 @@
 # Aely
 
 OPS-02: Ajustes → Copia de seguridad → Copias automáticas → Ver copia permite comparar sin sustituir la cartera.
-Inicio distingue el gasto del balance cuando se elige «Balance» en Ajustes → Total de Gastos; Plan deja de prever un ingreso que el banco ya identifica claramente.
+Inicio muestra el balance con una frase breve y sin signo negativo cuando se elige «Balance» en Ajustes → Total de Gastos; Plan deja de prever un ingreso que el banco ya identifica claramente.
 
 PWA de finanzas personales: patrimonio neto, gastos variables, costes fijos, inversiones (multi-bróker) y deudas. Móvil-first, instalable, con sincronización automática de gastos vía notificaciones del banco.
 
@@ -85,7 +85,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.62**, OTA beta verificada **4.26.62.1**: el saldo de una cuenta conserva su cifra cuando se reconoce una nómina adelantada y no la suma otra vez el día previsto. Claude dio GO al SHA `448f9617`; CI completa y publicación beta pasaron. Esta tanda, la anterior de Inicio/Gastos y las cinco financieras siguen sin veredicto móvil. Cuotas, aprobada por separado, está publicada en producción **4.26.59**; APK estable **4.26.32/code 48** y beta **4.26.55/code 51**. [Evidencia](docs/briefs/inc-2709-05-inicio-gastos.md).
+Estado actual: **v4.26.63** preparada en rama aislada, sin publicar: Inicio vuelve a mostrar un balance breve y el anillo dice «del mes». La OTA beta comprobada es **4.26.62.1**. El dueño aprobó las cinco tandas financieras y el saldo de nómina; rechazó la presentación de Inicio, que requiere revalidación. Producción sigue en **4.26.59**; APK estable **4.26.32/code 48** y beta **4.26.55/code 51**. [Evidencia](docs/briefs/inc-2709-05-inicio-gastos.md).
 
 Producción verificada: **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](docs/briefs/ops02-restauracion-probada.md).
 

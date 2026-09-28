@@ -9,9 +9,9 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 test.use({ viewport:{width:375,height:812}, hasTouch:true });
 
 for(const caso of [
-  {lang:"es", balance:"Balance", spent:"Gastos", start:"Aquí empieza el mes"},
-  {lang:"en", balance:"Balance", spent:"Spent", start:"Your month starts here"},
-  {lang:"ca", balance:"Balanç", spent:"Despeses", start:"Aquí comença el mes"},
+  {lang:"es", ahead:"Balance a favor", month:"del mes", spent:"Gastos", start:"Aquí empieza el mes"},
+  {lang:"en", ahead:"Balance ahead", month:"of month", spent:"Spent", start:"Your month starts here"},
+  {lang:"ca", ahead:"Balanç a favor", month:"del mes", spent:"Despeses", start:"Aquí comença el mes"},
 ]) test(`Inicio distingue balance y gasto real con ingresos mayores (${caso.lang})`,async({page})=>{
   await page.clock.install({time:new Date("2026-09-15T12:00:00Z")});
   await seedLoggedInDashboard(page,{
@@ -28,15 +28,39 @@ for(const caso of [
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
-  await expect(dash).toContainText(caso.balance);
+  await expect(dash.locator(".v4-ring")).toContainText(caso.month);
+  await expect(dash.locator(".v4-budget-txt .ph")).toContainText(caso.ahead);
   await expect(dash).toContainText(/700/);
-  await expect(dash).toContainText(caso.spent);
-  await expect(dash).toContainText(/300/);
+  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText(caso.spent);
+  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText(/Puedes gastar|You can spend|Pots gastar/);
   await expect(dash).not.toContainText(caso.start);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   const gastos=page.locator(".v4-gastos-summary");
   await expect(gastos).toContainText(/700/);
   await expect(gastos).toContainText(/300/);
+});
+
+test("Inicio muestra el balance desfavorable sin signo negativo ni frase larga",async({page})=>{
+  await page.clock.install({time:new Date("2026-09-15T12:00:00Z")});
+  await seedLoggedInDashboard(page,{
+    budget:1000,settings:{autoPrices:false,theme:"green",lang:"es",gTotalMode:"net"},
+    accounts:[{id:"tr",ent:"trade_republic",name:"Efectivo",value:1000,role:"diario",spendFrom:true}],
+    expenses:[
+      {id:"g",date:"2026-09-14T12:00:00Z",amount:300,merchant:"Compra",category:"super",ent:"trade_republic"},
+      {id:"i",date:"2026-09-14T12:00:00Z",amount:-100,merchant:"Ingreso",category:"ingreso",ent:"trade_republic"},
+    ],
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({timeout:30_000});
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  const dash=page.locator(".v4-budget");
+  await expect(dash.locator(".v4-ring")).toContainText("del mes");
+  await expect(dash.locator(".v4-budget-txt .ph")).toContainText("Balance en contra: 200");
+  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText(/[−-]\s*200/);
+  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("Gastos");
+  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("Puedes gastar");
+  await expect(dash.locator(".v4-budget-txt .st")).toContainText("Así va el mes");
 });
 
 async function abrir(page, reduced){

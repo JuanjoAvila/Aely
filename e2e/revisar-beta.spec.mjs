@@ -878,7 +878,7 @@ test("la marca caduca: si vuelve al día siguiente entra en su app, no en el pan
 /* Cuotas ya está en producción; las dos partes de INC-2709-05 y las financieras siguen separadas. */
 test("producción 4.26.59 deja visibles cinco tandas financieras, Inicio y el saldo", async ({ page }) => {
   await abrirRevisionBeta(page);
-  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.62.1"; });
+  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.63.1"; });
   const panel = await conProduccionEn(page, "4.26.59");
   await expect(panel.locator(".beta-tanda")).toHaveCount(7);
   for (const title of ["Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada", "Inicio, Gastos y nómina", "Saldo con nómina adelantada"]) {

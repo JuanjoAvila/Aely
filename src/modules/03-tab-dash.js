@@ -84,10 +84,12 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   const projected=spentAgainst+pace*leftDays;
   const overTrack=projected>budAmt+0.5;
   // El neto puede ser negativo con compras reales: ese 0 % de uso no significa mes vacío.
-  let stCls="st", stHead=hasMonthActivity ? t(bud.mode==="net"&&bud.balance>0.005?"v4_budget_net_h":"st_good_h") : t("st_start_h");
+  // «Vas muy bien» junto a «en contra» sonaba contradictorio (revisión 28/9).
+  const activeHead=bud.mode==="net"&&bud.balance< -0.005?"v4_budget_month_h":"st_good_h";
+  let stCls="st", stHead=hasMonthActivity ? t(activeHead) : t("st_start_h");
   if(ratio>1 || overTrack&&ratio>0.85){ stCls="st bad"; stHead=t("st_over_h"); }
   else if(ratio>0.8 || !overTrack&&ratio>0.8){ stCls="st warn"; stHead=t("st_tight_h"); }
-  else if(ratio<=0.8 && !overTrack){ stCls="st"; stHead=hasMonthActivity ? t(bud.mode==="net"&&bud.balance>0.005?"v4_budget_net_h":"st_good_h") : t("st_start_h"); }
+  else if(ratio<=0.8 && !overTrack){ stCls="st"; stHead=hasMonthActivity ? t(activeHead) : t("st_start_h"); }
 
   // Próximos cargos: misma regla que Plan›Recibos (día del mes + isPaidIn). Antes usaba
   // f.day crudo y mostraba recibos ya cobrados (luz/seguros) — feedback 2026-07-17.
@@ -244,17 +246,19 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
           pct:ringDraw?ringPct:0,
           tone:stCls.indexOf("bad")>=0?"bad":(stCls.indexOf("warn")>=0?"warn":"ok"),
           label:Math.round(ringPct*100)+"%",
-          sub:t(bud.mode==="net"?"v4_net_of_month":"v4_of_month"),
+          sub:t("v4_of_month"),
           animate:true
         }),
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:stCls}, stHead),
           React.createElement("div",{className:"ph"},
             bud.mode==="net"
-              ? tf("v4_budget_net",{balance:(bud.balance>0.005?"+":"")+eur0(bud.balance),spent:eur0(bud.spent),budget:eur0(budAmt)})
+              // El número conserva el sentido del balance sin enseñar un menos como gasto
+              // ni repetir la frase larga rechazada en el móvil (feedback 28/9).
+              ? tf(bud.balance>0.005?"v4_budget_ahead":(bud.balance< -0.005?"v4_budget_behind":"v4_budget_even"),{x:eur(Math.abs(bud.balance))})
               : tf("v4_budget_spent",{spent:eur0(bud.spent),budget:eur0(budAmt)}),
-            " ",
-            rem>=0 ? tf("v4_budget_daily",{x:eur0(Math.max(0,dailyAllow))}) : t("st_over_l")
+            bud.mode==="net"?null:" ",
+            bud.mode==="net"?null:(rem>=0 ? tf("v4_budget_daily",{x:eur0(Math.max(0,dailyAllow))}) : t("st_over_l"))
           )
         )
       ),

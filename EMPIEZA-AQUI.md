@@ -11,7 +11,9 @@ sesión del móvil se gastó la mitad trabajando sobre una rama equivocada.
 
 ## 1. Lo primero, siempre
 
-Corte 28/9: beta **4.26.62.1** publicada desde merge `2e68f7ba` con [INC-2709-05](docs/briefs/inc-2709-05-inicio-gastos.md). Inicio/Gastos y el anclaje de una nómina adelantada tienen GO Claude sobre sus SHA, CI completa y publicación beta verdes; **prueba móvil y aprobación separada siguen pendientes**. La segunda tanda solo se atribuye con abono BOOK único; no sincronizar el mismo banco desde un cliente antiguo durante la prueba. `npm run listo` confirmó aprobación móvil solo para **Cuotas** (`cuotas-deuda-crash-28sep`), probada en 4.26.60.1; las otras seis no estaban aprobadas en aquella lectura. La [promoción aislada 36406246524](https://github.com/JuanjoAvila/Aely/actions/runs/36406246524) terminó SUCCESS y Pages sigue sirviendo **4.26.59** desde merge `b72e3264`; manifest/ZIP/SW cotejados. La beta entera no se mezcló.
+Candidatas locales separadas: la corrección visual de Inicio 4.26.63 está en codex/inicio-balance-compacto, tras el rechazo móvil del punto 1. Mi ciclo por cobro real sigue en codex/ciclo-presupuesto-nomina, SHA 891ca8e3 con GO de Claude condicionado a CI; también lleva el número 4.26.63 y deberá integrarse con un bump posterior, nunca publicarse con la misma versión. Ninguna de las dos candidatas está en beta.
+
+Corte 28/9: la OTA beta comprobada es 4.26.62.1. Claude confirmó en lectura de app_events que el dueño aprobó las cinco tandas financieras y el saldo con nómina adelantada tras probar el pago real; rechazó Inicio/Gastos por el negativo, el texto largo y la etiqueta del anillo, no por cálculo. La candidata 4.26.63 corrige esa presentación y requiere revisión, CI, publicación beta y nueva prueba móvil. Producción sigue en 4.26.59 con Cuotas. Promover solo una tanda inequívocamente aprobada y separable; el rechazo de Inicio sigue abierto.
 
 OPS-02: [ensayo de restauración del 27/9](docs/briefs/ops02-restauracion-probada.md).
 Beta 4.26.56.1 sustituye el reemplazo conectado por una vista aislada. Claude GO al SHA `978420fc`, CI verde y bundle cotejado; móvil pendiente. La recuperación

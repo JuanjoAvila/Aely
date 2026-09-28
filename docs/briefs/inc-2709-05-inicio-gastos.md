@@ -1,6 +1,6 @@
 # INC-2709-05 · lectura del mes y nómina adelantada
 
-**Estado:** Inicio/Gastos publicado en beta 4.26.61.1 (`92af41ff`) y anclaje de saldo en beta 4.26.62.1 (merge `2e68f7ba`, fuente revisada `448f9617`). Claude GO, CI completa y ZIP/SW verificados para el anclaje. **Prueba y aprobación móvil de ambas tandas pendientes.**
+**Estado:** Beta 4.26.62.1 publicada y cotejada. El dueño aprobó el anclaje de saldo y las cinco tandas financieras, incluido el pago real/widget; rechazó el punto visual de Inicio/Gastos por el negativo, la frase larga y la etiqueta del anillo (28/9 13:59:44 UTC, APK51). Corrección 4.26.63 preparada en rama aislada, aún sin CI, revisión ni nueva prueba móvil. Mi ciclo sigue separado en 891ca8e3, con GO de Claude sujeto a CI y sin publicación.
 
 ## Evidencia reproducible
 
