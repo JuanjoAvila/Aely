@@ -11,6 +11,8 @@ sesión del móvil se gastó la mitad trabajando sobre una rama equivocada.
 
 ## 1. Lo primero, siempre
 
+Corte 28/9: beta **4.26.61.1** publicada desde `92af41ff` con [INC-2709-05](docs/briefs/inc-2709-05-inicio-gastos.md). Inicio/Gastos y la previsión de nómina tienen pruebas y GO Claude; el saldo anclado al día programado sigue abierto y no hay veredicto móvil verificado de esta tanda. Las seis tandas previas siguen separadas; producción continúa en 4.26.57. Antes de promover nada, volver a ejecutar `npm run listo` y comprobar el veredicto exacto; la lectura de Supabase agotó tiempo justo después de esta publicación.
+
 OPS-02: [ensayo de restauración del 27/9](docs/briefs/ops02-restauracion-probada.md).
 Beta 4.26.56.1 sustituye el reemplazo conectado por una vista aislada. Claude GO al SHA `978420fc`, CI verde y bundle cotejado; móvil pendiente. La recuperación
 compartida sigue pendiente; repetir las pruebas solo con datos sintéticos.
