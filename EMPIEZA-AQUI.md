@@ -11,9 +11,9 @@ sesión del móvil se gastó la mitad trabajando sobre una rama equivocada.
 
 ## 1. Lo primero, siempre
 
-Candidata local **4.26.64** en codex/ciclo-presupuesto-nomina: presupuesto opcional por cobro real y Gastos → Mi ciclo inicial. Se integra sobre beta **4.26.63.1** y restaura el texto anterior de Inicio tras el rechazo explícito de «Balance en contra». Requiere revisión del SHA integrado, CI, publicación beta y prueba móvil; el GO anterior de Claude a 891ca8e3 no avala la integración nueva. El widget Android/ingest sigue por mes natural.
+Versión **4.26.65**: Mi ciclo usa gastos menos todos los ingresos reales tras la nómina, incluso si un Bizum llega a otro banco. La nómina ancla, traspasos, inversiones, lápidas, posibles duplicados y apuntes futuros no inflan el margen. Mes natural e informes cerrados siguen igual; el widget Android/ingest sigue por mes natural. Revisar el SHA exacto, CI, beta y prueba móvil antes de considerar esta tanda cerrada.
 
-Corte 28/9: beta **4.26.63.1** verificada; el dueño aprobó cinco tandas financieras y saldo con nómina adelantada, y rechazó el texto visual anterior de Inicio. La corrección de Inicio vuelve al texto anterior y requiere beta/revalidación; producción sigue en **4.26.59**. Promover solo tandas aprobadas y separables.
+Corte 28/9: beta **4.26.64.1** verificada y aprobada por el dueño salvo este balance de ingresos de Mi ciclo; producción sigue en **4.26.59**. Promover solo tandas aprobadas y separables.
 
 OPS-02: [ensayo de restauración del 27/9](docs/briefs/ops02-restauracion-probada.md).
 Beta 4.26.56.1 sustituye el reemplazo conectado por una vista aislada. Claude GO al SHA `978420fc`, CI verde y bundle cotejado; móvil pendiente. La recuperación

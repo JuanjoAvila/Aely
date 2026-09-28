@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.65",
+    "d": "2026-09-28",
+    "t": {
+      "es": "Mi ciclo muestra el balance de ingresos",
+      "en": "My cycle shows your income balance",
+      "ca": "El meu cicle mostra el balanç d’ingressos"
+    },
+    "items": {
+      "es": [
+        "El balance de «Mi ciclo» cuenta todos los ingresos recibidos durante el ciclo, como Bizums, devoluciones y alquileres. Si pagas una cena de 100 € y te devuelven 80 €, quedan 20 € gastados del presupuesto.",
+        "La nómina que abre el ciclo y los traspasos entre tus cuentas quedan fuera. Si ingresas más de lo que gastas, aumenta el margen disponible. El mes natural y el widget conservan sus cifras."
+      ],
+      "en": [
+        "The “My cycle” balance counts all income received during the cycle, including Bizum payments, refunds, and rent. If you pay €100 for dinner and get €80 back, €20 counts against the budget.",
+        "The pay that starts the cycle and transfers between your accounts stay out. Income above spending increases money left. Calendar months and the widget keep their figures."
+      ],
+      "ca": [
+        "El balanç d’«El meu cicle» compta tots els ingressos rebuts durant el cicle, com Bizums, devolucions i lloguers. Si pagues un sopar de 100 € i et tornen 80 €, queden 20 € gastats del pressupost.",
+        "La nòmina que obre el cicle i els traspassos entre els teus comptes queden fora. Si ingresses més del que gastes, augmenta el marge disponible. Els mesos naturals i el giny conserven les seves xifres."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "ciclo-balance-ingresos-28sep",
+        "t": {
+          "es": "Balance de ingresos en Mi ciclo",
+          "en": "Income balance in My cycle",
+          "ca": "Balanç d’ingressos a El meu cicle"
+        },
+        "items": {
+          "es": [
+            "1. En Ajustes → Dinero, activa el ciclo y abre Gastos. Comprueba que «Mi ciclo» muestra Gastos e Ingresos y el dinero restante.",
+            "2. Si pagas 100 € y recibes un Bizum de 80 € después de la nómina, el balance debe ser 20 € y deben quedar 80 € más que antes del Bizum. Si el Bizum llega a otro banco, también debe contar. Un alquiler cobrado en el ciclo debe aumentar el margen.",
+            "3. Comprueba que la nómina que abrió el ciclo y un traspaso propio no aumentan el dinero disponible. El mes natural y el widget deben seguir como antes."
+          ],
+          "en": [
+            "1. In Settings → Money, enable the cycle and open Spending. Check that “My cycle” shows Spending, Income, and money left.",
+            "2. If you pay €100 and receive an €80 reimbursement after payday, the balance should be €20, with €80 more left than before. It should count even if it arrives in another bank. Rent received during the cycle should also increase money left.",
+            "3. Check that the pay starting the cycle and your own transfers do not increase money left. Calendar months and the widget should remain as before."
+          ],
+          "ca": [
+            "1. A Ajustos → Diners, activa el cicle i obre Despeses. Comprova que «El meu cicle» mostra Despeses, Ingressos i diners restants.",
+            "2. Si pagues 100 € i reps un Bizum de 80 € després de la nòmina, el balanç ha de ser de 20 € i han de quedar 80 € més que abans. També ha de comptar si arriba a un altre banc. Un lloguer cobrat durant el cicle també ha d’augmentar el marge.",
+            "3. Comprova que la nòmina que obre el cicle i un traspàs propi no augmenten els diners disponibles. Els mesos naturals i el giny han de seguir com abans."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.64",
     "d": "2026-09-28",
     "t": {

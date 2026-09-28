@@ -1,3 +1,8 @@
+## [4.26.65] — 2026-09-28 · Mi ciclo cuenta todos los ingresos del período
+
+- `monthBudgetStats` usa el balance neto para el ciclo activo aunque el modo del mes natural sea Gastos: una cena de 100 € y un Bizum recibido de 80 € dejan 20 € contra el límite y recuperan 80 € de margen. La nómina ancla queda fuera; también categorías neutras, lápidas, posibles duplicados y apuntes futuros. Otros ingresos reales, incluido alquiler y trabajo extra, aumentan el margen según la decisión explícita del dueño. Si llega otra nómina reconocida, abre un ciclo nuevo. Ingresos de cualquier banco cuentan aunque los gastos sigan limitados a bancos diarios; una devolución de fijos también aumenta el balance del ciclo. Los gastos por categoría conservan el bruto.
+- La barra de Gastos mide el mismo neto que el dinero restante. Inicio conserva su frase de gasto bruto aprobada; el modo mensual, informes cerrados y widget Android conservan sus reglas y bancos. Ajustes explica el alcance en es/en/ca. Regresión pura y E2E con 100/80, otro banco, alquiler, segunda nómina, devolución de fijos y modo mensual bruto. La fuente final mide 341.971 B gzip, 45 B bajo el límite vigente de 334 KiB. Requiere revisión del SHA y comprobación móvil en beta.
+
 ## [4.26.64] — 2026-09-28 · presupuesto opcional por cobro real e Inicio restaurado
 
 - Tras el rechazo explícito de «Balance en contra», Inicio recupera la frase de gasto y la proyección mensual anteriores a 1e2b9692; «Has gastado» usa las compras reales (`bud.spent`) para no volver a llamar gasto al balance neto; el anillo sigue diciendo «del mes» o «del ciclo» según el ajuste. El cálculo del ciclo no se modifica.

@@ -112,6 +112,58 @@ t("el ciclo activado reinicia el presupuesto con el cobro real, no el día 1", (
   }finally{ ctx.Date=RealDate; }
 });
 
+t("el ciclo descuenta Bizums recibidos del balance sin sumar la nómina", () => {
+  const RealDate=ctx.Date;
+  const s={budget:1000,settings:{budgetCycle:true,gTotalMode:"split",expenseBanks:["sabadell"]},expenses:[
+    {id:"previo",date:"2026-09-25T12:00:00Z",amount:-60,merchant:"Bizum anterior",category:"ingreso",ent:"sabadell"},
+    {id:"nomina",date:"2026-09-26T12:00:00Z",amount:-2000,merchant:"Nómina",category:"ingreso",ent:"sabadell"},
+    {id:"cena",date:"2026-09-27T12:00:00Z",amount:100,merchant:"Cena",category:"restaurantes",ent:"sabadell"},
+    {id:"amigos",date:"2026-09-27T14:00:00Z",amount:-80,merchant:"Bizum recibido",category:"ingreso",ent:"revolut"},
+    {id:"otro",date:"2026-09-27T14:30:00Z",amount:40,merchant:"Compra desde ahorros",category:"otros",ent:"revolut"},
+    {id:"traspaso",date:"2026-09-27T15:00:00Z",amount:-200,merchant:"Traspaso propio",category:"traspaso",ent:"sabadell"},
+    {id:"duplicado",date:"2026-09-27T16:00:00Z",amount:-20,merchant:"Bizum recibido",category:"ingreso",ent:"sabadell",possibleDup:true},
+    {id:"futuro",date:"2026-09-29T12:00:00Z",amount:-50,merchant:"Devolución",category:"ingreso",ent:"sabadell"},
+  ]};
+  try{
+    ctx.Date=class extends RealDate { static now(){ return Date.parse("2026-09-28T10:00:00Z"); } };
+    const bs=ctx.monthBudgetStats(s);
+    assert.equal(bs.cycle,true);
+    assert.equal(bs.mode,"net","Mi ciclo muestra balance aunque el mes natural use gasto bruto");
+    assert.equal(bs.spent,100);
+    assert.equal(bs.income,80,"el Bizum cuenta; nómina ancla, traspaso, duplicado, anterior y futuro no");
+    assert.equal(bs.balance,-20);
+    assert.equal(bs.against,20);
+    assert.equal(bs.shown,20);
+    assert.equal(bs.remaining,980);
+    const refunded={...s,expenses:s.expenses.concat({id:"compraDevuelta",date:"2026-09-27T17:00:00Z",amount:-10,merchant:"Devolución compra",category:"ingreso",ent:"sabadell"})};
+    const withRefund=ctx.monthBudgetStats(refunded);
+    assert.equal(withRefund.income,90,"una devolución del banco diario compensa la compra");
+    assert.equal(withRefund.remaining,990);
+    assert.equal(ctx.categorySpentByMonth(s).reduce((sum,x)=>sum+x.spent,0),100);
+    const month=ctx.monthBudgetStats(s,ctx.Date.now());
+    assert.equal(month.mode,"split","la foto mensual del widget conserva su ajuste");
+    assert.equal(month.against,100);
+    const over={...s,expenses:s.expenses.map(x=>x.id==="amigos"?{...x,amount:-180}:x)};
+    const capped=ctx.monthBudgetStats(over);
+    assert.equal(capped.income,180);
+    assert.equal(capped.balance,80);
+    assert.equal(capped.against,-80);
+    assert.equal(capped.remaining,1080,"los ingresos netos pueden aumentar el margen por decisión del dueño");
+    const extras={...s,expenses:s.expenses.concat([
+      {id:"alquiler",date:"2026-09-27T15:00:00Z",amount:-700,merchant:"Alquiler cobrado",category:"ingreso",ent:"sabadell"},
+      {id:"trabajoExtra",date:"2026-09-27T15:30:00Z",amount:-1500,merchant:"Trabajo extra",category:"ingreso",ent:"sabadell"},
+      {id:"luz",date:"2026-09-27T16:00:00Z",amount:60,merchant:"Luz",category:"hogar",ent:"caixa"},
+      {id:"luzDevuelta",date:"2026-09-27T16:30:00Z",amount:-60,merchant:"Devolución Luz",category:"ingreso",ent:"caixa"},
+      {id:"dudoso",date:"2026-09-27T17:00:00Z",amount:-500,merchant:"Ingreso dudoso",category:"ingreso",ent:"sabadell",possibleDup:true},
+    ])};
+    const all=ctx.monthBudgetStats(extras);
+    assert.equal(all.spent,100,"la cuenta de fijos no carga gasto diario");
+    assert.equal(all.income,2340,"todos los ingresos reales suman, de cualquier banco");
+    assert.equal(all.balance,2240);
+    assert.equal(all.remaining,3240);
+  }finally{ ctx.Date=RealDate; }
+});
+
 t("desactivado conserva el mes natural y un cobro futuro no adelanta el ciclo", () => {
   const RealDate=ctx.Date;
   const s={budget:1000,settings:{budgetCycle:true},expenses:[
