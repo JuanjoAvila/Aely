@@ -83,8 +83,11 @@ const PRESUPUESTO = {
   // OPS-02: visor aislado y validación agregan código; se conserva el tope gzip de 332 KB.
   // SEC-03: frontera de privacidad sobre OPS-02 publicado: 1.243.669 bytes min y 338.534 gzip.
   // +6 KiB crudos para código necesario (1215 KiB medidos); gzip sigue en 332 KiB, sin margen nuevo.
-  minificado: 1218 * 1024,
-  gzip: 332 * 1024,         // 12/9: 330,03 con suministros; aire mínimo a propósito
+  // 28/9: las cuatro tandas web aprobadas añaden ciclo de cobro, conciliación de nómina y
+  // textos en tres idiomas. Candidata aislada sin APK/Edge: 1.251.769 B crudos y 341.039 B
+  // gzip medidos; se amplía 5/2 KiB, dejando menos de 1 KiB libre en cada límite.
+  minificado: 1223 * 1024,
+  gzip: 334 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

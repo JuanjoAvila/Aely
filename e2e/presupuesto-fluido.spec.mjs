@@ -8,6 +8,182 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
 test.use({ viewport:{width:375,height:812}, hasTouch:true });
 
+for(const caso of [
+  {lang:"es", ahead:"Has gastado 300 € de tus 1000 €.", month:"del mes", start:"Aquí empieza el mes"},
+  {lang:"en", ahead:"You've spent 300 € of your 1000 €.", month:"of month", start:"Your month starts here"},
+  {lang:"ca", ahead:"Has gastat 300 € dels teus 1000 €.", month:"del mes", start:"Aquí comença el mes"},
+]) test(`Inicio conserva la frase de gasto con ingresos mayores (${caso.lang})`,async({page})=>{
+  await page.clock.install({time:new Date("2026-09-15T12:00:00Z")});
+  await seedLoggedInDashboard(page,{
+    budget:1000,
+    settings:{autoPrices:false,theme:"green",lang:caso.lang,gTotalMode:"net"},
+    accounts:[{id:"tr",ent:"trade_republic",name:"Efectivo",value:1000,role:"diario",spendFrom:true}],
+    expenses:[
+      {id:"g",date:"2026-09-14T12:00:00Z",amount:300,merchant:"Compra",category:"super",ent:"trade_republic"},
+      {id:"i",date:"2026-09-14T12:00:00Z",amount:-1000,merchant:"Ingreso",category:"ingreso",ent:"trade_republic"},
+    ],
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({timeout:30_000});
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  const dash=page.locator(".v4-budget");
+  await expect(dash.locator(".v4-ring")).toContainText(caso.month);
+  await expect(dash.locator(".v4-budget-txt .ph")).toContainText(caso.ahead);
+  await expect(dash).toContainText(/300/);
+  await expect(dash.locator(".v4-budget-txt .ph")).toContainText(/Puedes gastar|You can spend|Pots gastar/);
+  await expect(dash).not.toContainText(caso.start);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  const gastos=page.locator(".v4-gastos-summary");
+  await expect(gastos).toContainText(/700/);
+  await expect(gastos).toContainText(/300/);
+});
+
+test("Inicio conserva la frase de gasto también con balance desfavorable",async({page})=>{
+  await page.clock.install({time:new Date("2026-09-15T12:00:00Z")});
+  await seedLoggedInDashboard(page,{
+    budget:1000,settings:{autoPrices:false,theme:"green",lang:"es",gTotalMode:"net"},
+    accounts:[{id:"tr",ent:"trade_republic",name:"Efectivo",value:1000,role:"diario",spendFrom:true}],
+    expenses:[
+      {id:"g",date:"2026-09-14T12:00:00Z",amount:300,merchant:"Compra",category:"super",ent:"trade_republic"},
+      {id:"i",date:"2026-09-14T12:00:00Z",amount:-100,merchant:"Ingreso",category:"ingreso",ent:"trade_republic"},
+    ],
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({timeout:30_000});
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  const dash=page.locator(".v4-budget");
+  await expect(dash.locator(".v4-ring")).toContainText("del mes");
+  await expect(dash.locator(".v4-budget-txt .ph")).toContainText("Has gastado 300");
+  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText(/[−-]\s*300/);
+  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("Balance en contra");
+  await expect(dash.locator(".v4-budget-txt .ph")).toContainText("Puedes gastar");
+  await expect(dash.locator(".v4-budget-txt .st")).toContainText("Vas muy bien");
+});
+
+test("el cobro del 26 reinicia el presupuesto opcional y Mi ciclo abre por defecto",async({page})=>{
+  await page.clock.install({time:new Date("2026-09-25T12:00:00Z")});
+  await seedLoggedInDashboard(page,{
+    __seedOnce:true,budget:1000,
+    settings:{autoPrices:false,theme:"green",lang:"es",gTotalMode:"net",budgetCycle:true},
+    expenses:[
+      {id:"agosto",date:"2026-08-26T12:00:00Z",amount:-2000,merchant:"Nómina",category:"ingreso"},
+      {id:"previos",date:"2026-09-20T12:00:00Z",amount:600,merchant:"Compras",category:"super"},
+      {id:"septiembre",date:"2026-09-26T12:00:00Z",amount:-2000,merchant:"Nómina",category:"ingreso"},
+      {id:"traspaso",date:"2026-09-27T12:00:00Z",amount:-500,merchant:"Movimiento",category:"traspaso"},
+      {id:"bizum",date:"2026-09-27T14:00:00Z",amount:-250,merchant:"Bizum recibido",category:"ingreso"},
+    ],
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({timeout:30_000});
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  const ajustesIniciales=page.locator(".settings-push.open").filter({has:page.getByRole("heading",{name:/Ajustes/i})});
+  if(await ajustesIniciales.count()) await ajustesIniciales.locator(".settings-push-h .back").click();
+  await expect(page.locator(".v4-budget")).toContainText(/600/);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator(".v4-period-btn.on")).toHaveText("Mi ciclo");
+  await expect(page.locator(".v4-cycle-box")).toContainText(/26\/0?8/);
+  await expect(page.locator(".v4-gastos-summary")).toContainText(/600/);
+  await page.clock.pauseAt(new Date("2026-09-26T08:00:00Z"));
+  await page.clock.resume();
+  await page.reload();
+  await expect(page.locator(".botnav")).toBeVisible();
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator(".v4-period-btn.on")).toHaveText("Mi ciclo");
+  await expect(page.locator(".v4-cycle-box")).toContainText(/26\/0?9/);
+  await expect(page.locator(".v4-gastos-summary")).toContainText(/1\.?000/);
+  await expect(page.locator(".v4-gastos-summary")).not.toContainText(/600/);
+  await page.locator('.botnav-tab[data-tour="inicio"]').click();
+  await expect(page.locator(".v4-budget")).toContainText("Aquí empieza tu ciclo");
+  await page.clock.pauseAt(new Date("2026-09-28T10:00:00Z"));
+  await page.clock.resume();
+  await page.reload();
+  await expect(page.locator(".botnav")).toBeVisible();
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator(".v4-cycle-box")).toContainText(/26\/0?9/);
+  await page.locator('.botnav-tab[data-tour="inicio"]').click();
+  await page.locator(".v4-avatar").click();
+  await page.getByRole("button",{name:/Ir a Ajustes/i}).click();
+  const ajustes=page.locator(".settings-push.open");
+  await ajustes.getByRole("button",{name:/Dinero/}).first().click();
+  await ajustes.getByRole("button",{name:/Presupuesto por ciclo de cobro/}).click();
+  await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")||"{}").settings?.budgetCycle)).toBe(false);
+});
+
+test("Mi ciclo muestra la cena neta de los Bizums recibidos aunque el modo mensual sea Gastos",async({page})=>{
+  await page.clock.install({time:new Date("2026-09-28T12:00:00Z")});
+  await seedLoggedInDashboard(page,{
+    budget:1000,settings:{autoPrices:false,theme:"green",lang:"es",gTotalMode:"split",budgetCycle:true,expenseBanks:["sabadell"]},
+    accounts:[{id:"sb",ent:"sabadell",name:"Diaria",value:1000,role:"diario",spendFrom:true}],
+    expenses:[
+      {id:"nomina",date:"2026-09-26T12:00:00Z",amount:-2000,merchant:"Nómina",category:"ingreso",ent:"sabadell"},
+      {id:"cena",date:"2026-09-27T12:00:00Z",amount:100,merchant:"Cena",category:"restaurantes",ent:"sabadell"},
+      {id:"amigos",date:"2026-09-27T14:00:00Z",amount:-80,merchant:"Bizum recibido",category:"ingreso",ent:"revolut"},
+    ],
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({timeout:30_000});
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  const ajustes=page.locator(".settings-push.open").filter({has:page.getByRole("heading",{name:/Ajustes/i})});
+  if(await ajustes.count()) await ajustes.locator(".settings-push-h .back").click();
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator(".v4-period-btn.on")).toHaveText("Mi ciclo");
+  const summary=page.locator(".v4-gastos-summary");
+  await expect(summary.locator(".v4-gastos-summary-label")).toHaveText("Balance desde el cobro");
+  await expect(summary.locator(".v4-gastos-summary-amount")).toContainText("20");
+  await expect(summary.locator(".v4-gastos-summary-sub")).toContainText("Gastos");
+  await expect(summary.locator(".v4-gastos-summary-sub")).toContainText("100");
+  await expect(summary.locator(".v4-gastos-summary-sub")).toContainText("Ingresos");
+  await expect(summary.locator(".v4-gastos-summary-sub")).toContainText("80");
+  await expect(summary.locator(".v4-gastos-summary-left")).toContainText("980");
+  await expect(summary.locator(".v4-gastos-progress")).toHaveAttribute("aria-valuenow","20");
+});
+
+test("Mi ciclo incluye el alquiler recibido y puede dejar más margen que el límite inicial",async({page})=>{
+  await page.clock.install({time:new Date("2026-09-28T12:00:00Z")});
+  await seedLoggedInDashboard(page,{
+    budget:1000,settings:{autoPrices:false,theme:"green",lang:"es",gTotalMode:"split",budgetCycle:true,expenseBanks:["sabadell"]},
+    accounts:[{id:"sb",ent:"sabadell",name:"Diaria",value:1000,role:"diario",spendFrom:true}],
+    expenses:[
+      {id:"nomina",date:"2026-09-26T12:00:00Z",amount:-2000,merchant:"Nómina",category:"ingreso",ent:"sabadell"},
+      {id:"cena",date:"2026-09-27T12:00:00Z",amount:100,merchant:"Cena",category:"restaurantes",ent:"sabadell"},
+      {id:"amigos",date:"2026-09-27T14:00:00Z",amount:-80,merchant:"Bizum recibido",category:"ingreso",ent:"revolut"},
+      {id:"alquiler",date:"2026-09-27T15:00:00Z",amount:-700,merchant:"Alquiler cobrado",category:"ingreso",ent:"revolut"},
+    ],
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({timeout:30_000});
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  const ajustes=page.locator(".settings-push.open").filter({has:page.getByRole("heading",{name:/Ajustes/i})});
+  if(await ajustes.count()) await ajustes.locator(".settings-push-h .back").click();
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  const summary=page.locator(".v4-gastos-summary");
+  await expect(page.locator(".v4-period-btn.on")).toHaveText("Mi ciclo");
+  await expect(summary.locator(".v4-gastos-summary-amount")).toContainText("680");
+  await expect(summary.locator(".v4-gastos-summary-sub")).toContainText("780");
+  await expect(summary.locator(".v4-gastos-summary-left")).toContainText("1680");
+  await expect(summary.locator(".v4-gastos-progress")).toHaveAttribute("aria-valuenow","0");
+});
+
+test("sin activar el ciclo Gastos abre en Este mes",async({page})=>{
+  await page.clock.install({time:new Date("2026-09-26T12:00:00Z")});
+  await seedLoggedInDashboard(page,{settings:{autoPrices:false,theme:"green",lang:"es",budgetCycle:false}});
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({timeout:30_000});
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator(".v4-period-btn.on")).toHaveText("Este mes");
+});
+
 async function abrir(page, reduced){
   if(reduced) await page.emulateMedia({ reducedMotion:"reduce" });
   await seedLoggedInDashboard(page,{__seedOnce:true,budget:500,expenses:[],accounts:[]});

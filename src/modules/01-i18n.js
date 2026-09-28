@@ -56,7 +56,7 @@ const LANG = {
     help_cue_history:"Para meses anteriores, usa Importar histórico y revisa cada movimiento.",
     help_cue_categories:"Abre el movimiento en Gastos y cambia la categoría; Aely la recordará.",
     help_cue_receipts:"En Recibos ves lo pendiente del mes y lo ya cobrado.",
-    help_cue_budget_left:"Te quedan {x} de {b} este mes.",
+    help_cue_budget_left:"Te quedan {x} de {b} en tu presupuesto actual.",
     help_remote_try:"Probar con más ayuda",
     help_remote_status_on:"OpenAI solo se usa si la guía local no basta y tú pides más ayuda. No cambia el resto de respuestas.",
     help_consent_no:"No, gracias",
@@ -69,8 +69,8 @@ const LANG = {
     help_cue_next_bills_amount:"Te quedan recibos por {x} este mes.",
     help_cue_next_bills_one:"Te queda 1 recibo por {x} este mes.",
     help_cue_end_unknown:"Todavía no puedo calcular cómo acabas el mes.",
-    help_cue_budget_over:"Este mes te has pasado {x} del presupuesto.",
-    help_cue_budget_none:"Aún no hay un presupuesto del mes. Puedes ver el gasto en Gastos.",
+    help_cue_budget_over:"Te has pasado {x} del presupuesto actual.",
+    help_cue_budget_none:"Aún no hay un presupuesto. Puedes ver el gasto en Gastos.",
     help_cue_next_bills:"Te quedan {n} recibos por {x} este mes.",
     help_cue_next_bills_none:"No veo recibos pendientes este mes.",
     help_cue_end_ok:"Con lo que falta por pagar, en {bank} acabarías el mes con unos {x}.",
@@ -89,7 +89,7 @@ const LANG = {
     tab_dash:"Inicio", tab_gastos:"Gastos", tab_plan:"Plan", tab_cartera:"Cartera", tab_fijos:"Fijos", tab_inv:"Inversiones", tab_patri:"Patrimonio", tab_debt:"Deudas", tab_compartido:"Compartido",
     tab_metas:"Metas", tab_logros:"Logros",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
-    v4_money_total:"Tu dinero en total", v4_of_month:"del mes",
+    v4_money_total:"Tu dinero en total", v4_of_month:"del mes", v4_of_cycle:"del ciclo", v4_cycle_start_h:"Aquí empieza tu ciclo",
     v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.",
     v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Tu primer mes empieza hoy", v4_hist_empty:"Tu histórico empieza hoy", v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_empty:"Nada pendiente este mes. Los recibos aparecen aquí.",
@@ -114,12 +114,12 @@ const LANG = {
     v4s_row_from:"sale de {bank}", v4s_row_debt:"la cuota de {name}", v4s_row_income:"te entra en {bank}", v4s_row_to:"lo que pasas a {bank}", v4s_row_invest:"lo que apartas para invertir en {bank}",
     v4_pendiente:"Pendiente", v4_ya_pagado:"Ya pagado", v4_gestionar:"Gestionar",
     v4_ver_mas:"Ver más · {n}", v4_ver_menos:"Ver menos",
-    v4_gastos_title:"Tus gastos", v4_gastos_spent_in:"Gastado en {month}", v4_gastos_net_in:"Balance en {month}", v4_gastos_of:"de {x}", v4_gastos_left:"quedan {x}", v4_gastos_today_mark:"hoy · día {d}", v4_period_more:"Más…",
+    v4_gastos_title:"Tus gastos", v4_gastos_spent_in:"Gastado en {month}", v4_gastos_net_in:"Balance en {month}", v4_gastos_spent_cycle:"Gastado desde el cobro", v4_gastos_net_cycle:"Balance desde el cobro", v4_gastos_of:"de {x}", v4_gastos_left:"quedan {x}", v4_gastos_today_mark:"hoy · día {d}", v4_period_more:"Más…",
     v4_gastos_inc_line:"Ingresos {x} · balance {bal}", v4_gastos_split_line:"Gastos {spent} · ingresos {income}",
     v4_gastos_lbl_spent:"Gastos", v4_gastos_lbl_income:"Ingresos", v4_gastos_lbl_balance:"Balance",
     v4_gastos_cats:"Por categoría · toca una para ponerle un límite", v4_gastos_cat_limit:"límite {x}",
     v4_gastos_cats_hide:"Ocultar", v4_gastos_cats_show:"Ver", v4_gastos_cats_n:"{n} categorías este mes",
-    v4_gastos_cats_n1:"1 categoría este mes",
+    v4_gastos_cats_n1:"1 categoría este mes", v4_gastos_cats_cycle_n:"{n} categorías este ciclo", v4_gastos_cats_cycle_n1:"1 categoría este ciclo",
     g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Solo para verlo: no cambia tu presupuesto ni te bloquea. Vacío o 0 = quitar el límite.",
     g_cat_budget_clear:"Quitar límite",
     v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
@@ -337,7 +337,7 @@ const LANG = {
     help_cue_history:"For earlier months, use Import history and review each transaction.",
     help_cue_categories:"Open the transaction in Spending and change the category; Aely will remember it.",
     help_cue_receipts:"In Bills you see what is still due this month and what is already paid.",
-    help_cue_budget_left:"You have {x} left of {b} this month.",
+    help_cue_budget_left:"You have {x} left of {b} in your current budget.",
     help_remote_try:"Try with more help",
     help_remote_status_on:"OpenAI is only used when the local guide is unsure and you ask for more help. It does not change other answers.",
     help_consent_no:"No thanks",
@@ -350,8 +350,8 @@ const LANG = {
     help_cue_next_bills_amount:"You still have bills for {x} this month.",
     help_cue_next_bills_one:"You still have 1 bill for {x} this month.",
     help_cue_end_unknown:"I cannot yet tell how the month will end.",
-    help_cue_budget_over:"This month you are {x} over budget.",
-    help_cue_budget_none:"There is no monthly budget yet. You can still check spending in Spending.",
+    help_cue_budget_over:"You are {x} over your current budget.",
+    help_cue_budget_none:"There is no budget yet. You can still check spending in Spending.",
     help_cue_next_bills:"You still have {n} bills for {x} this month.",
     help_cue_next_bills_none:"I do not see any pending bills this month.",
     help_cue_end_ok:"With what is still due, {bank} would end the month around {x}.",
@@ -370,7 +370,7 @@ const LANG = {
     tab_dash:"Home", tab_gastos:"Spending", tab_plan:"Plan", tab_cartera:"Portfolio", tab_fijos:"Fixed", tab_inv:"Investments", tab_patri:"Net worth", tab_debt:"Debts", tab_compartido:"Shared",
     tab_metas:"Goals", tab_logros:"Achievements",
     v4_hola:"Hi, {n}", v4_hola_anon:"Hi",
-    v4_money_total:"All your money", v4_of_month:"of month",
+    v4_money_total:"All your money", v4_of_month:"of month", v4_of_cycle:"of cycle", v4_cycle_start_h:"Your cycle starts here",
     v4_budget_spent:"You've spent {spent} of your {budget}.", v4_budget_daily:"You can spend {x}/day until month end.",
     v4_streak:"{n} months on track", v4_streak_zero:"Your first month starts today", v4_hist_empty:"Your history starts today", v4_nobud_t:"Set a monthly budget", v4_nobud_p:"It is half the app: without a monthly cap there is no way to know what you have left. You can change it whenever you want.", v4_nobud_cta:"Set a budget", v4_noup_t:"No bills yet", v4_noup_p:"Connect your bank and this month's bills show up on their own, with day and amount.", v4_noup_cta:"Connect your bank", v4_nogoal_t:"Set your first goal", v4_nogoal_p:"A trip, a safety net, anything: the app tells you how much is missing and when you get there.", v4_nogoal_cta:"Create a goal", v4_see_gastos:"See spending ›", v4_see_plan:"See plan ›",
     v4_upcoming:"Upcoming", v4_upcoming_empty:"Nothing pending this month. Bills show up here.",
@@ -395,12 +395,12 @@ const LANG = {
     v4s_row_from:"from {bank}", v4s_row_debt:"the {name} installment", v4s_row_income:"into {bank}", v4s_row_to:"moving to {bank}", v4s_row_invest:"setting aside to invest in {bank}",
     v4_pendiente:"Pending", v4_ya_pagado:"Already paid", v4_gestionar:"Manage",
     v4_ver_mas:"See more · {n}", v4_ver_menos:"See less",
-    v4_gastos_title:"Your spending", v4_gastos_spent_in:"Spent in {month}", v4_gastos_net_in:"Balance in {month}", v4_gastos_of:"of {x}", v4_gastos_left:"{x} left", v4_gastos_today_mark:"today · day {d}", v4_period_more:"More…",
+    v4_gastos_title:"Your spending", v4_gastos_spent_in:"Spent in {month}", v4_gastos_net_in:"Balance in {month}", v4_gastos_spent_cycle:"Spent since payday", v4_gastos_net_cycle:"Balance since payday", v4_gastos_of:"of {x}", v4_gastos_left:"{x} left", v4_gastos_today_mark:"today · day {d}", v4_period_more:"More…",
     v4_gastos_inc_line:"Income {x} · balance {bal}", v4_gastos_split_line:"Spent {spent} · income {income}",
     v4_gastos_lbl_spent:"Spent", v4_gastos_lbl_income:"Income", v4_gastos_lbl_balance:"Balance",
     v4_gastos_cats:"By category · tap one to set a cap", v4_gastos_cat_limit:"limit {x}",
     v4_gastos_cats_hide:"Hide", v4_gastos_cats_show:"Show", v4_gastos_cats_n:"{n} categories this month",
-    v4_gastos_cats_n1:"1 category this month",
+    v4_gastos_cats_n1:"1 category this month", v4_gastos_cats_cycle_n:"{n} categories this cycle", v4_gastos_cats_cycle_n1:"1 category this cycle",
     g_cat_budget_title:"Limit for {cat}", g_cat_budget_sub:"Just to see it: it does not change your budget or block you. Empty or 0 removes the limit.",
     g_cat_budget_clear:"Remove limit",
     v4_cartera_title:"Your portfolio", v4_cuentas:"Your accounts", v4_connect_accounts:"Connect accounts", v4_inversiones:"Your investments", v4_inv_positions:"{n} positions",
@@ -605,7 +605,7 @@ const LANG = {
     help_cue_history:"Per a mesos anteriors, fes servir Importar històric i revisa cada moviment.",
     help_cue_categories:"Obre el moviment a Despeses i canvia la categoria; Aely la recordarà.",
     help_cue_receipts:"A Rebuts veus el pendent del mes i el que ja s’ha cobrat.",
-    help_cue_budget_left:"Et queden {x} de {b} aquest mes.",
+    help_cue_budget_left:"Et queden {x} de {b} al pressupost actual.",
     help_remote_try:"Provar amb més ajuda",
     help_remote_status_on:"OpenAI només s’usa si la guia local no basta i tu demanes més ajuda. No canvia la resta de respostes.",
     help_consent_no:"No, gràcies",
@@ -618,8 +618,8 @@ const LANG = {
     help_cue_next_bills_amount:"Et queden rebuts per {x} aquest mes.",
     help_cue_next_bills_one:"Et queda 1 rebut per {x} aquest mes.",
     help_cue_end_unknown:"Encara no puc calcular com acabaràs el mes.",
-    help_cue_budget_over:"Aquest mes t’has passat {x} del pressupost.",
-    help_cue_budget_none:"Encara no hi ha pressupost del mes. Pots veure la despesa a Despeses.",
+    help_cue_budget_over:"T’has passat {x} del pressupost actual.",
+    help_cue_budget_none:"Encara no hi ha pressupost. Pots veure la despesa a Despeses.",
     help_cue_next_bills:"Et queden {n} rebuts per {x} aquest mes.",
     help_cue_next_bills_none:"No veig rebuts pendents aquest mes.",
     help_cue_end_ok:"Amb el que falta per pagar, a {bank} acabaries el mes amb uns {x}.",
@@ -638,7 +638,7 @@ const LANG = {
     tab_dash:"Inici", tab_gastos:"Despeses", tab_plan:"Pla", tab_cartera:"Cartera", tab_fijos:"Fixes", tab_inv:"Inversions", tab_patri:"Patrimoni", tab_debt:"Deutes", tab_compartido:"Compartit",
     tab_metas:"Metes", tab_logros:"Assoliments",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
-    v4_money_total:"Els teus diners en total", v4_of_month:"del mes",
+    v4_money_total:"Els teus diners en total", v4_of_month:"del mes", v4_of_cycle:"del cicle", v4_cycle_start_h:"Aquí comença el teu cicle",
     v4_budget_spent:"Has gastat {spent} dels teus {budget}.", v4_budget_daily:"Pots gastar {x}/dia fins a fi de mes.",
     v4_streak:"{n} mesos sense passar-te", v4_streak_zero:"El teu primer mes comença avui", v4_hist_empty:"El teu històric comença avui", v4_nobud_t:"Posa-li un pressupost", v4_nobud_p:"És la meitat de l'app: sense un límit al mes no es pot saber quant et queda. El pots canviar quan vulguis.", v4_nobud_cta:"Posa-li un pressupost", v4_noup_t:"Encara no hi ha rebuts", v4_noup_p:"Connecta el teu banc i els rebuts del mes apareixen sols, amb el seu dia i el seu import.", v4_noup_cta:"Connecta el teu banc", v4_nogoal_t:"Posa't el teu primer objectiu", v4_nogoal_p:"Un viatge, un coixí, el que sigui: l'app et diu quant falta i quan hi arribes.", v4_nogoal_cta:"Crear un objectiu", v4_see_gastos:"Veure despeses ›", v4_see_plan:"Veure pla ›",
     v4_upcoming:"Pròxims càrrecs", v4_upcoming_empty:"Res pendent aquest mes. Els rebuts surten aquí.",
@@ -663,12 +663,12 @@ const LANG = {
     v4s_row_from:"surt de {bank}", v4s_row_debt:"la quota de {name}", v4s_row_income:"t'entra a {bank}", v4s_row_to:"el que passes a {bank}", v4s_row_invest:"el que apartes per invertir a {bank}",
     v4_pendiente:"Pendent", v4_ya_pagado:"Ja pagat", v4_gestionar:"Gestionar",
     v4_ver_mas:"Veure més · {n}", v4_ver_menos:"Veure menys",
-    v4_gastos_title:"Les teves despeses", v4_gastos_spent_in:"Gastat al {month}", v4_gastos_net_in:"Balanç al {month}", v4_gastos_of:"de {x}", v4_gastos_left:"queden {x}", v4_gastos_today_mark:"avui · dia {d}", v4_period_more:"Més…",
+    v4_gastos_title:"Les teves despeses", v4_gastos_spent_in:"Gastat al {month}", v4_gastos_net_in:"Balanç al {month}", v4_gastos_spent_cycle:"Gastat des del cobrament", v4_gastos_net_cycle:"Balanç des del cobrament", v4_gastos_of:"de {x}", v4_gastos_left:"queden {x}", v4_gastos_today_mark:"avui · dia {d}", v4_period_more:"Més…",
     v4_gastos_inc_line:"Ingressos {x} · balanç {bal}", v4_gastos_split_line:"Despeses {spent} · ingressos {income}",
     v4_gastos_lbl_spent:"Despeses", v4_gastos_lbl_income:"Ingressos", v4_gastos_lbl_balance:"Balanç",
     v4_gastos_cats:"Per categoria · toca'n una per posar-li un límit", v4_gastos_cat_limit:"límit {x}",
     v4_gastos_cats_hide:"Amagar", v4_gastos_cats_show:"Veure", v4_gastos_cats_n:"{n} categories aquest mes",
-    v4_gastos_cats_n1:"1 categoria aquest mes",
+    v4_gastos_cats_n1:"1 categoria aquest mes", v4_gastos_cats_cycle_n:"{n} categories aquest cicle", v4_gastos_cats_cycle_n1:"1 categoria aquest cicle",
     g_cat_budget_title:"Límit a {cat}", g_cat_budget_sub:"Només per veure’l: no canvia el pressupost ni et bloqueja. Buit o 0 = treure el límit.",
     g_cat_budget_clear:"Treure límit",
     v4_cartera_title:"La teva cartera", v4_cuentas:"Els teus comptes", v4_connect_accounts:"Connectar comptes", v4_inversiones:"Les teves inversions", v4_inv_positions:"{n} posicions",
@@ -1751,13 +1751,14 @@ Object.assign(LANG.es,{
   g_filters_clear:"Limpiar", g_filters_done:"Listo",
   ai_cat_btn:"✨ Sugerir categoría", ai_cat_busy:"Pensando…", ai_cat_ok:"✓ Categoría: {c}", ai_cat_none:"No hay sugerencia clara — elige a mano", ai_cat_off:"Activa «Sugerir categoría (IA)» en Ajustes → Notificaciones",
   g_cycle_from:"Del {d} (cobro de {x}) a hoy",
+  g_cycle_budget_hint:"La nómina abre el ciclo. Los ingresos posteriores, incluidos Bizums y alquileres, aumentan el margen; traspasos no.",
   g_cycle_none_t:"Sin nómina detectada",
-  g_cycle_none:"Para ajustar «Mi ciclo» hace falta tu nómina. Apúntala como 💰 ingreso (con +) y el filtro irá de cobro a cobro.",
+  g_cycle_none:"Apunta la nómina como 💰 ingreso y escribe «Nómina» en el concepto. Hasta reconocerla, el presupuesto sigue el mes natural.",
   g_search:"Buscar comercio o categoría…",
   sub_title:"🔁 Suscripciones detectadas", sub_sub:"{n} · ~{y}/año", sub_inactive:"· inactiva", sub_months:"{n} meses", sub_peryear:"~{y}/año", sub_permonth:"/mes", sub_tofixed:"pasar a Gastos fijos", sub_infixed:"ya en Fijos", sub_tofixed_done:"✓ «{n}» añadido a Gastos fijos ({b}). Si quieres que el cargo salga de ahí de verdad, cambia la tarjeta en la web de la suscripción.", sub_dismiss:"No es una suscripción", sub_dismissed_ok:"Descartada · no volverá a salir aquí",
   sub_hint:"Cargos al mismo comercio en ≥3 meses con importe parecido. Revisa si alguna ya no la usas.",
   g_totalfilt:"Gastos del período", g_n_one:"gasto", g_n_many:"gastos", g_inc_one:"ingreso", g_inc_many:"ingresos", g_balance:"Balance", g_lbl_spent:"Gastos", g_lbl_income:"Ingresos",
-  g_totalnet:"Balance del período", st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"El total de gastos arriba; debajo, los ingresos y el balance (ingresos − gastos) en una línea.", st_gview_net:"Balance", st_gview_net_d:"Manda el balance (ingresos − gastos del período); debajo, gastos e ingresos en pequeño. Verde si te queda dinero, rojo si gastaste de más.",
+  g_totalnet:"Balance del período", st_gview:"Total de Gastos", st_gview_split:"Gastos e ingresos", st_gview_split_d:"El total de gastos arriba; debajo, los ingresos y el balance (ingresos − gastos) en una línea.", st_gview_net:"Balance", st_gview_net_d:"Manda el balance (ingresos − gastos del período); debajo, gastos e ingresos en pequeño. Verde si te queda dinero, rojo si gastaste de más.", st_budget_cycle:"Presupuesto por ciclo de cobro", st_budget_cycle_d:"Con una nómina reconocida, Gastos abre en Mi ciclo y cuenta gastos e ingresos. Sin nómina, mes natural. El widget Android sigue por mes natural.",
   sv_title:"Ahorro mensual", sv_note:"Planifica lo que apartas cada mes para calcular cuándo llegas a tus metas. No mueve dinero real ni crea movimientos.", sv_saved:"Ahorro mensual guardado", sv_name_aria:"Concepto de la aportación", sv_amount_aria:"Importe al mes", sv_bank_aria:"Banco o bróker", sv_del_aria:"Quitar esta aportación", sv_add:"Añadir aportación", sv_name_ph:"Concepto (ej. MSCI World)", sv_edit_hint:"Cambia importe, nombre o banco; ✕ borra. Solo ajusta la cifra de «Ahorro/mes»: no mueve dinero de verdad.", sv_empty:"Aún no has apuntado aportaciones. Toca «Editar» para añadir lo que apartas cada mes.",
   sec_order:"⇅ Ordenar secciones", bp_role_nodata:"Este banco está conectado pero no ha traído ninguna cuenta con saldo utilizable. Prueba «Actualizar saldo» y, si sigue igual, «Reconectar».",
   g_sync:"Sincronizar", g_syncing:"Sincronizando…", g_add:"Apuntar",
@@ -1852,13 +1853,14 @@ Object.assign(LANG.en,{
   g_filters_clear:"Clear", g_filters_done:"Done",
   ai_cat_btn:"✨ Suggest category", ai_cat_busy:"Thinking…", ai_cat_ok:"✓ Category: {c}", ai_cat_none:"No clear suggestion — pick by hand", ai_cat_off:"Turn on “Suggest category (AI)” in Settings → Notifications",
   g_cycle_from:"From {d} (payday, {x}) to today",
+  g_cycle_budget_hint:"Pay starts the cycle. Later income, including Bizum payments and rent, raises money left; transfers do not.",
   g_cycle_none_t:"No payday detected",
-  g_cycle_none:"“My cycle” needs your salary. Log it as a 💰 income (with +) and the filter will run payday to payday.",
+  g_cycle_none:"Log your pay as a 💰 income and put “Salary” in its description. Until it is recognized, your budget follows calendar months.",
   g_search:"Search merchant or category…",
   sub_title:"🔁 Detected subscriptions", sub_sub:"{n} · ~{y}/yr", sub_inactive:"· inactive", sub_months:"{n} months", sub_peryear:"~{y}/yr", sub_permonth:"/mo", sub_tofixed:"move to Fixed expenses", sub_infixed:"already in Fixed", sub_tofixed_done:"✓ \"{n}\" added to Fixed expenses ({b}). To have it truly charged there, change the card on the subscription's site.", sub_dismiss:"Not a subscription", sub_dismissed_ok:"Dismissed · won't show up here again",
   sub_hint:"Charges to the same merchant in ≥3 months with similar amounts. Check if you still use them.",
   g_totalfilt:"Spending", g_n_one:"expense", g_n_many:"expenses", g_inc_one:"income", g_inc_many:"incomes", g_balance:"Net", g_lbl_spent:"Spent", g_lbl_income:"Income",
-  g_totalnet:"Net balance", st_gview:"Expenses total", st_gview_split:"Spending & income", st_gview_split_d:"Total spent on top; income and net balance (income − spending) below, on one line.", st_gview_net:"Balance", st_gview_net_d:"The balance leads (income − spending for the period); spending and income shown small below. Green if money is left, red if you overspent.",
+  g_totalnet:"Net balance", st_gview:"Expenses total", st_gview_split:"Spending & income", st_gview_split_d:"Total spent on top; income and net balance (income − spending) below, on one line.", st_gview_net:"Balance", st_gview_net_d:"The balance leads (income − spending for the period); spending and income shown small below. Green if money is left, red if you overspent.", st_budget_cycle:"Budget by pay cycle", st_budget_cycle_d:"With recognized pay, Spending opens in My cycle and counts spending and income. Without pay, calendar months apply. The Android widget stays monthly.",
   sv_title:"Monthly saving", sv_note:"Plan what you set aside each month to estimate when you reach your goals. It does not move real money or create transactions.", sv_saved:"Monthly saving saved", sv_name_aria:"Contribution name", sv_amount_aria:"Amount per month", sv_bank_aria:"Bank or broker", sv_del_aria:"Remove this contribution", sv_add:"Add contribution", sv_name_ph:"Name (e.g. MSCI World)", sv_edit_hint:"Change amount, name or bank; ✕ deletes. It only adjusts the «Savings/month» figure: no real money moves.", sv_empty:"No contributions yet. Tap «Edit» to add what you set aside each month.",
   sec_order:"⇅ Reorder sections", bp_role_nodata:"This bank is connected but returned no account with a usable balance. Try «Refresh balance» and, if it persists, «Reconnect».",
   g_sync:"Sync", g_syncing:"Syncing…", g_add:"Add",
@@ -1952,13 +1954,14 @@ Object.assign(LANG.ca,{
   g_filters_clear:"Netejar", g_filters_done:"Fet",
   ai_cat_btn:"✨ Suggerir categoria", ai_cat_busy:"Pensant…", ai_cat_ok:"✓ Categoria: {c}", ai_cat_none:"No hi ha suggeriment clar — tria a mà", ai_cat_off:"Activa «Suggerir categoria (IA)» a Ajustos → Notificacions",
   g_cycle_from:"Del {d} (cobrament de {x}) a avui",
+  g_cycle_budget_hint:"La nòmina obre el cicle. Els ingressos posteriors, inclosos Bizums i lloguers, augmenten el marge; traspassos no.",
   g_cycle_none_t:"Sense nòmina detectada",
-  g_cycle_none:"Per ajustar «El meu cicle» cal la nòmina. Apunta-la com a 💰 ingrés (amb +) i el filtre anirà de cobrament a cobrament.",
+  g_cycle_none:"Apunta la nòmina com a 💰 ingrés i escriu «Nòmina» al concepte. Fins que es reconegui, el pressupost segueix el mes natural.",
   g_search:"Cerca comerç o categoria…",
   sub_title:"🔁 Subscripcions detectades", sub_sub:"{n} · ~{y}/any", sub_inactive:"· inactiva", sub_months:"{n} mesos", sub_peryear:"~{y}/any", sub_permonth:"/mes", sub_tofixed:"passar a Despeses fixes", sub_infixed:"ja a Fixes", sub_tofixed_done:"✓ «{n}» afegit a Despeses fixes ({b}). Perquè el càrrec surti d'allà de debò, canvia la targeta al web de la subscripció.", sub_dismiss:"No és una subscripció", sub_dismissed_ok:"Descartada · no tornarà a sortir aquí",
   sub_hint:"Càrrecs al mateix comerç en ≥3 mesos amb import semblant. Revisa si ja no n'uses alguna.",
   g_totalfilt:"Despeses del període", g_n_one:"despesa", g_n_many:"despeses", g_inc_one:"ingrés", g_inc_many:"ingressos", g_balance:"Balanç", g_lbl_spent:"Despeses", g_lbl_income:"Ingressos",
-  g_totalnet:"Balanç del període", st_gview:"Total de Despeses", st_gview_split:"Despeses i ingressos", st_gview_split_d:"El total de despeses a dalt; a sota, els ingressos i el balanç (ingressos − despeses) en una línia.", st_gview_net:"Balanç", st_gview_net_d:"Mana el balanç (ingressos − despeses del període); a sota, despeses i ingressos en petit. Verd si et queden diners, vermell si has gastat de més.",
+  g_totalnet:"Balanç del període", st_gview:"Total de Despeses", st_gview_split:"Despeses i ingressos", st_gview_split_d:"El total de despeses a dalt; a sota, els ingressos i el balanç (ingressos − despeses) en una línia.", st_gview_net:"Balanç", st_gview_net_d:"Mana el balanç (ingressos − despeses del període); a sota, despeses i ingressos en petit. Verd si et queden diners, vermell si has gastat de més.", st_budget_cycle:"Pressupost per cicle de cobrament", st_budget_cycle_d:"Amb una nòmina reconeguda, Despeses s'obre a El meu cicle i compta despeses i ingressos. Sense nòmina, mes natural. El giny Android continua mensual.",
   sv_title:"Estalvi mensual", sv_note:"Planifica el que apartes cada mes per calcular quan arribes a les teves metes. No mou diners reals ni crea moviments.", sv_saved:"Estalvi mensual desat", sv_name_aria:"Concepte de l’aportació", sv_amount_aria:"Import al mes", sv_bank_aria:"Banc o bròker", sv_del_aria:"Treu aquesta aportació", sv_add:"Afegeix aportació", sv_name_ph:"Concepte (p. ex. MSCI World)", sv_edit_hint:"Canvia import, nom o banc; ✕ esborra. Només ajusta la xifra d'«Estalvi/mes»: no mou diners de veritat.", sv_empty:"Encara no has apuntat aportacions. Toca «Edita» per afegir el que apartes cada mes.",
   sec_order:"⇅ Ordena les seccions", bp_role_nodata:"Aquest banc està connectat però no ha portat cap compte amb saldo utilitzable. Prova «Actualitza el saldo» i, si continua igual, «Reconnecta».",
   g_sync:"Sincronitza", g_syncing:"Sincronitzant…", g_add:"Apunta",
@@ -2917,6 +2920,19 @@ function sameEntList(a,b){
    Vista de Gastos: por defecto se filtra a los marcados como gasto diario (`expenseBankEnts`);
    «Todos los bancos» enseña el extracto entero. Contabilidad: solo los marcados. A mano (sin
    ent) sí cuenta. Pedido 2026-08-17: Revolut+TR marcados → los dos se ven y cuentan. */
+// Reutilizar la misma lista de lápidas evita reconstruirla por cada ingreso del ciclo.
+const expenseDeletedSets=new WeakMap();
+function expenseDeletedSet(s){
+  const deleted=s&&s.deleted;
+  if(!Array.isArray(deleted)||!deleted.length) return null;
+  let delSet=expenseDeletedSets.get(deleted);
+  if(!delSet){
+    delSet=Object.create(null);
+    deleted.forEach(function(k){ delSet[k]=1; });
+    expenseDeletedSets.set(deleted,delSet);
+  }
+  return delSet;
+}
 function expenseCountsCash(e, s){
   if(!e) return false;
   // Posible repetido: no mueve saldo ni presupuesto hasta que él diga «son distintos».
@@ -2932,6 +2948,8 @@ function expenseCountsCash(e, s){
 /* Igual que cash, pero sin neutras (inversión/traspaso): es lo que pinta el presupuesto. */
 function expenseCountsBudget(e, s){
   if(!e || CAT_NEUTRAS[e.category]) return false;
+  // Una lápida ya ocultó esa fila; el saldo conserva sus anclajes históricos aparte.
+  if(expenseIsTombstoned(e,expenseDeletedSet(s))) return false;
   return expenseCountsCash(e, s);
 }
 /* EN QUÉ CAJÓN VA CADA MOVIMIENTO (2026-08-17).
@@ -3775,8 +3793,9 @@ function loadState(){
     // apertura fría — feedback 2026-07-16.
     var writeBack=!(saved._dataVer>=6) || !saved._dynBalAnchored;
     // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
-    const s = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
-    if(writeBack) mcSaveRaw(mcStateKey(), s);
+    const seeded = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
+    const now=new Date(), s=reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate());
+    if(writeBack || s!==seeded) mcSaveRaw(mcStateKey(), s);
     applyTheme(s.settings&&s.settings.theme);
     applyA11y(s);
     return s;

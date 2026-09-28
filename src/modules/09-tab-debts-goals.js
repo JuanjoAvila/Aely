@@ -292,7 +292,7 @@ function ReservaRules({state, set}){
 // aunque solo mueva cifras dentro de la app, es DINERO DE VERDAD para quien lo mira.
 function ReservaDetect({state, set, showToast}){
   const dismissed=(state.reservaDismissed)||[];
-  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses); },[state.expenses]);
+  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted]);
   const rules=(state.settings&&state.settings.reservaRules)||[];
   if(!cycle || !cycle.inc || !rules.length) return null;
   const income=cycle.inc;

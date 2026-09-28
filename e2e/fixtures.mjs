@@ -26,6 +26,14 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
     delete overrides.__cloudDelays;
     const cloudErrors = overrides.__cloudErrors || {};
     delete overrides.__cloudErrors;
+    const sessionDelay = overrides.__sessionDelayMs || 0;
+    delete overrides.__sessionDelayMs;
+    const authEvent = overrides.__authEvent || "INITIAL_SESSION";
+    delete overrides.__authEvent;
+    const authEventDelay = overrides.__authEventDelayMs || 0;
+    delete overrides.__authEventDelayMs;
+    const authEventUserId = overrides.__authEventUserId || null;
+    delete overrides.__authEventUserId;
     const mockClient = () => {
       /* Una cadena POR consulta (15/9): con una sola compartida, un `from("bank_links")` que
          arrancaba entre el `from("expenses")` y su `await` le cambiaba la tabla a la otra. */
@@ -73,9 +81,13 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       };
       return {
         auth: {
-          getSession: async () => ({ data: { session } }),
+          getSession: async () => {
+            if(sessionDelay) await new Promise((r) => setTimeout(r,sessionDelay));
+            return { data: { session } };
+          },
           onAuthStateChange: (cb) => {
-            setTimeout(() => cb("INITIAL_SESSION", session), 0);
+            setTimeout(() => cb(authEvent,authEvent==="SIGNED_OUT"?null:
+              authEventUserId?{user:{id:authEventUserId,email:"other@test.local"}}:session), authEventDelay);
             return { data: { subscription: { unsubscribe: () => {} } } };
           },
           signOut: async () => {},

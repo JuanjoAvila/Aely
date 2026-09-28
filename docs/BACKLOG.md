@@ -1,5 +1,9 @@
 # Backlog operativo — Aely
 
+## Promoción selectiva aprobada · 28 de septiembre de 2026
+
+El dueño aprobó expresamente las tandas pendientes tras la prueba de pago y el ajuste de Inicio. La candidata web 4.26.65 integra Inicio/Gastos, nómina adelantada y las dos tandas de «Mi ciclo» desde `main`; conserva APK48 y el workflow manual de Supabase. Las cinco tandas que requieren APK51 o un receptor nativo permanecen en beta hasta una entrega propia. El alcance, las pruebas, las fuentes y los límites están en [el acta de promoción](briefs/promocion-aprobadas-2026-09-28.md). Cuotas de deuda ya se publicó como 4.26.59. El siguiente objetivo independiente prioritario es INC-2709-06, cargos CaixaBank ausentes, sujeto a verificar el estado vivo antes de actuar.
+
 Inventario original actualizado el **16 de septiembre de 2026** a petición del dueño: dejar trabajo
 concreto para Claude y Cursor durante la tarde/noche. La reconciliación vigente está debajo.
 **El backlog completo NO está terminado.** El panel de
