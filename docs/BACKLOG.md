@@ -14,15 +14,19 @@ Desde el 28/9, [el flujo continuo](PROMPT-FLUJO-CONTINUO.md) abre automáticamen
 al cerrar cada objetivo. El chat entrante comprueba primero aprobaciones explícitas de beta para
 promover solo esas tandas; si no hay ninguna publicable, toma un objetivo pendiente de este índice.
 
-## Tanda en preparación · 28 de septiembre de 2026
+## Tanda beta publicada · 28 de septiembre de 2026
 
 - **INC-2709-04:** causa reproducida con `debt.months:24` al abrir la ficha de Cuotas de deuda;
   la traza sanitizada previa del móvil muestra el mismo TypeError en `BillsItemSheet`. E2E de ruta
   real rojo antes, verde después; 40/40 E2E de Gestionar y cuotas en la candidata aislada.
-  [Evidencia y límites](briefs/inc-2709-04-cuotas.md). Rama selectiva
-  `tanda/cuotas-deuda-crash-28sep` desde main, commit `9ce964ed`; beta candidata 4.26.60 en
-  integración, pendiente de revisión, CI, publicación y prueba móvil. La reparación no valida
-  FIN-05, selector ni TR, que conservan sus cinco guiones sin aprobación nueva.
+  [Evidencia y límites](briefs/inc-2709-04-cuotas.md). [PR51](https://github.com/JuanjoAvila/Aely/pull/51)
+  selectivo desde main en `2670d6c1`, Claude GO y [CI36391332458](https://github.com/JuanjoAvila/Aely/actions/runs/36391332458)
+  SUCCESS. Beta `4.26.60.1` publicada desde `6b298387`, Claude GO,
+  [CI36392613985](https://github.com/JuanjoAvila/Aely/actions/runs/36392613985) y
+  [publicación36393734712](https://github.com/JuanjoAvila/Aely/actions/runs/36393734712) SUCCESS;
+  manifiesto/ZIP/SW verificados, producción sigue en `4.26.57`. **Pendiente prueba y aprobación
+  en el móvil**; no promover el PR todavía. FIN-05, selector y TR conservan cinco guiones sin
+  aprobación nueva.
 
 
 ## Cierre del día · 27 de septiembre de 2026
@@ -49,6 +53,9 @@ priorizarlas y dejar el relevo. No se declara una sesión activa por tener una r
   Beta **4.26.58.1 publicada**, HTTP/ZIP/sello comprobados: huella3d91ae84731dfffa, SW2a0e2d3;
   index normalizado y apk.json idénticos a beta57.1/f235. Cinco tandas financieras, sin pedir SEC-03 de nuevo.
   **FIN-05, selector del banco y TR siguen sin aprobación de pago.** No mezclar beta a main.
+- **Beta actual 4.26.60.1:** `6b298387`, huella `f0f9aa14a8668980`, SW
+  `4.26.60.1-2026-09-28-6b29838`; conserva las cinco tandas financieras y añade una de Cuotas.
+  `apk.json` anuncia la misma APK 4.26.55 (51); no se ha publicado APK nueva.
 - **OPS-01 A / Wallet-divisas:** activación técnica terminada: ingest49 ACTIVE desde1397fe28,
   [despliegue36319915174](https://github.com/JuanjoAvila/Aely/actions/runs/36319915174) SUCCESS, siete módulos
   activos cotejados y pruebas offline del JS descargado. Se conserva FIN-05. **Pago real de FIN-06/Wallet
@@ -117,8 +124,8 @@ triaje, no un orden de implementación autorizado.
 | 1 · INC-2709-01 | P1 · UX-01/03/06 | Con poca conexión la app se ralentiza y reaparecen dos barras grises al inicio de Inicio que tardan en desaparecer. Regresión de arreglo anterior, causa pendiente. Arranque/frente y uso con red lenta/sin red deben mostrar datos locales útiles sin bloqueo ni esqueletos persistentes. Medir tiempo/frames en móvil y CPU×6. |
 | 2 · INC-2709-02 | P1 · Deudas/UX-06 | Completar una deuda no avisa y no ofrece archivarla/quitarla, acumulando ruido. Confirmación clara y acceso a archivo/remoción con semántica revisada; conservar pagos/histórico y evitar dobles escrituras. Probar completar, volver a abrir y encontrar el histórico. |
 | 3 · INC-2709-03 | P1 · UX-01 | En Plan→Gestionar y al entrar en una categoría falta la ola nativa Android. Auditar cada puerta, distinguir alta Recibos ya aprobada; APK/dispositivo real, seguir dedo, cancelación, volver un nivel sin perder campos ni cerrar de más. |
-| 4 · INC-2709-04 | **P0 · crash/finanzas · candidata beta** | Reproducido en la ficha con plazo numérico; arreglo y E2E aislados en `9ce964ed`. Pendiente de beta publicada y prueba móvil en la versión 4.26.60; después puede aprobarse y promoverse sola como 4.26.59. [Evidencia](briefs/inc-2709-04-cuotas.md). |
-| 5 · INC-2709-05 | **P0 · FIN/PRO-02/UX-06** | Capturas Inicio/Gastos/ciclo de otro usuario muestran conceptos y cifras incompatibles: Inicio llama gastado a la cifra que Gastos etiqueta balance, porcentaje0 y mensaje de primer mes con actividad visible; nómina prevista aún futura mientras ciclo reconoce cobro bancario. Correlacionar periodo/cuenta/calendario/ciclo, sin asumir que falte la fila de ingreso. Reproducir es/en/ca con datos sintéticos, una base/ventana coherente y nómina real conciliada una sola vez. Además se observan botones de suscripciones recortados; clasificación de compras recurrentes como suscripción es un indicio por comprobar, no fallo financiero demostrado. |
+| 4 · INC-2709-04 | **P0 · crash/finanzas · beta publicada** | Reproducido en la ficha con plazo numérico; arreglo y E2E selectivos en `2670d6c1`, PR51 draft y CI verde. Beta `4.26.60.1` activa desde `6b298387`, manifiesto/ZIP/SW cotejados. **Falta prueba móvil y aprobación explícita** antes de promover solo esta tanda como 4.26.59. [Evidencia](briefs/inc-2709-04-cuotas.md). |
+| 5 · INC-2709-05 | **P0 · FIN/PRO-02/UX-06** | Capturas Inicio/Gastos/ciclo de otro usuario muestran conceptos y cifras incompatibles: Inicio llama gastado a la cifra que Gastos etiqueta balance, porcentaje0 y mensaje de primer mes con actividad visible; nómina prevista aún futura mientras ciclo reconoce cobro bancario. Correlacionar periodo/cuenta/calendario/ciclo, sin asumir que falte la fila de ingreso. Reproducir es/en/ca con datos sintéticos, una base/ventana coherente y nómina real conciliada una sola vez. Observación separada al estabilizar CI el 28/9: un recibo del día actual deja de figurar pendiente por calendario; verificar si el cargo bancario existe antes de interpretar «pagado», sin cambiar esta regla por arrastre. Además se observan botones de suscripciones recortados; clasificación de compras recurrentes como suscripción es un indicio por comprobar, no fallo financiero demostrado. |
 | 6 · INC-2709-06 | **P0 · FIN-03/07/OPS-01** | Cargos CaixaBank de otro usuario ausentes aun tras sincronizar a demanda. **Reabre el historial Caixa con un caso actual**, separado del Sabadell confirmado25/9 y de paginación cloud FIN-07 cerrada. Trazar proveedor→Edge→almacenamiento→pull→filtros privados, identidad y páginas, sin importar/reparar/borrar ni sincronizar automáticamente. Cierre con todos los cargos de referencia una vez en la vista correcta y correspondencia activa Edge probada. |
 | 7 · INC-2709-07 | P2 · UX-06 | Bienes parece bloque inicial: no permite añadir/quitar/tocar y el editor resulta insuficiente. Auditar entradas y acciones actuales, navegación y edición real; alta/edición/archivo o borrado según contrato explícito, sin modificar cartera real para probar. E2E de lista/acciones y móvil. |
 | 8 · INC-2709-08 | P2 · UX-06/PRO-06 | Cartera sigue mostrando edición manual y explicación larga: edición debe vivir en «Ver todas tus inversiones». Ordenar bloques con pulsación mantenida como cuentas; al pulsar, desplegar inversiones escalonadas y fluidas. Auditar puertas antes de retirar UI, persistir orden y accesibilidad/reducir movimiento; prueba de DOM y A/B de frames en móvil. |

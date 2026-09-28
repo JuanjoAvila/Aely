@@ -8,11 +8,11 @@
 
 ## Corrección y pruebas
 
-- Rama selectiva desde main `tanda/cuotas-deuda-crash-28sep`, commit `9ce964ed0961886d08f28153c6b871a9072371a2`. La ficha crea el borrador de meses solo para recibos con lista; no transforma ni escribe la deuda.
+- Rama selectiva desde main `tanda/cuotas-deuda-crash-28sep`, código `9ce964ed0961886d08f28153c6b871a9072371a2`, SHA final del [PR51](https://github.com/JuanjoAvila/Aely/pull/51) `2670d6c1f7c68a3cb8153fd4e5192be24cccb83e` tras estabilizar tres E2E de recibos dependientes de la fecha. La ficha crea el borrador de meses solo para recibos con lista; no transforma ni escribe la deuda.
 - El E2E abre y cierra la ficha, lee el importe, conserva las 24 cuotas y encuentra el pago previo una sola vez en Gastos. Pasó tras el cambio; `plan-gestionar` + `gastos-deudas`: 40/40 en Chromium. Sintaxis, frescura documental, idiomas y tandas sin duplicados pasan.
-- `npm test` local llega a los guardianes financieros, pero termina con `memoria-espejo` fallido por desfase externo del checkout; Deno no está instalado localmente. CI de la candidata tendrá que confirmar la suite que corresponda al SHA publicado.
+- `npm test` local llega a los guardianes financieros, pero termina con `memoria-espejo` fallido por desfase externo del checkout; Deno no está instalado localmente. Las suites completas de [PR51](https://github.com/JuanjoAvila/Aely/actions/runs/36391332458) y [beta](https://github.com/JuanjoAvila/Aely/actions/runs/36392613985) terminaron SUCCESS. Claude revisó ambos SHAs finales con GO. El E2E de continuidad del panel beta comprueba seis tandas: las cinco financieras y la de Cuotas.
 
 ## Publicación y límite
 
-- Producción verificada antes de la tanda: 4.26.57. Beta efectiva antes de la tanda: 4.26.58.1, con cinco guiones financieros sin aprobación nueva. La candidata beta 4.26.60 conserva esos cinco guiones íntegros en su entrada y añade solo el del crash en 4.26.59; tras promover esta última, los cinco quedan visibles porque 4.26.60 sigue por encima de producción.
-- Pendiente: revisión real de Claude del SHA integrado, CI y cotejo del manifiesto/bundle beta, y veredicto en el móvil sobre la ficha. No se tocan datos familiares, Android/APK, Edge, SQL ni historial.
+- Beta `4.26.60.1` publicada en [Action36393734712](https://github.com/JuanjoAvila/Aely/actions/runs/36393734712) desde `6b29838723d0aa0ef72bec17f26f52944c9025cb`. Manifiesto HTTP y ZIP: huella `f0f9aa14a8668980`; `APP_VERSION` interna `4.26.60.1`, SW `4.26.60.1-2026-09-28-6b29838`. ZIP: cinco guiones financieros intactos en 4.26.60 y uno del crash en 4.26.59; `apk.json` anuncia la misma APK 4.26.55 (51). Producción HTTP sigue en 4.26.57.
+- Pendiente: prueba y aprobación explícita del dueño en el móvil de la ficha de Cuotas; después podrá promoverse solo la tanda 4.26.59. FIN-05, selector y TR siguen pendientes. No se tocaron datos familiares, Android/APK, Edge, SQL ni historial.
