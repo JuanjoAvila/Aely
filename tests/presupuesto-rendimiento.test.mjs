@@ -105,7 +105,10 @@ const PRESUPUESTO = {
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
-  gzip: 334 * 1024,
+  // INC-2809-01: la frase que explica gasto neto y disponible en Mi ciclo, con su
+  // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
+  // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
+  gzip: 335 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

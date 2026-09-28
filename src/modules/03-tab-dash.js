@@ -89,8 +89,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   // El texto de Inicio vuelve al que el dueño usaba antes de la tanda rechazada (28/9).
   let stCls="st", stHead=hasMonthActivity ? t("st_good_h") : t(bud.cycle?"v4_cycle_start_h":"st_start_h");
   if(ratio>1 || overTrack&&ratio>0.85){ stCls="st bad"; stHead=t("st_over_h"); }
-  else if(ratio>0.8 || !overTrack&&ratio>0.8){ stCls="st warn"; stHead=t("st_tight_h"); }
-  else if(ratio<=0.8 && !overTrack){ stCls="st"; stHead=hasMonthActivity ? t("st_good_h") : t(bud.cycle?"v4_cycle_start_h":"st_start_h"); }
+  else if(ratio>0.8){ stCls="st warn"; stHead=t("st_tight_h"); }
 
   // Próximos cargos: misma regla que Plan›Recibos (día del mes + isPaidIn). Antes usaba
   // f.day crudo y mostraba recibos ya cobrados (luz/seguros) — feedback 2026-07-17.
@@ -253,14 +252,20 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:stCls}, stHead),
           React.createElement("div",{className:"ph"},
-            tf("v4_budget_spent",{spent:eur0(bud.spent),budget:eur0(budAmt)}),
+            // El anillo y «quedan» usan gasto menos ingresos; en ciclo decir «has gastado»
+            // con el bruto contradecía ambos aunque Gastos cuadrase (feedback 28/9).
+            bud.cycle
+              ? tf("v4_cycle_net",{used:eur(bud.against),budget:eur(budAmt)})
+              : tf("v4_budget_spent",{spent:eur0(bud.spent),budget:eur0(budAmt)}),
             " ",
-            rem>=0 ? (!bud.cycle?tf("v4_budget_daily",{x:eur0(Math.max(0,dailyAllow))}):null) : t("st_over_l")
+            bud.cycle
+              ? tf(rem>=0?"v4_cycle_left":"v4_cycle_over",{x:eur(Math.abs(rem))})
+              : rem>=0 ? tf("v4_budget_daily",{x:eur0(Math.max(0,dailyAllow))}) : t("st_over_l")
           )
         )
       ),
       React.createElement("div",{className:"v4-budget-foot"},
-        !bud.cycle && (function(){
+        bud.cycle ? React.createElement("span",null,t("g_cycle")) : (function(){
           const n=budgetStreak?budgetStreak.current:0;
           return React.createElement("span",{"data-testid":"dash-budget-streak"},n>0?tf("v4_streak",{n:n}):t("v4_streak_zero"));
         })(),

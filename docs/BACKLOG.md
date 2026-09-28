@@ -14,6 +14,11 @@ Desde el 28/9, [el flujo continuo](PROMPT-FLUJO-CONTINUO.md) abre automáticamen
 al cerrar cada objetivo. El chat entrante comprueba primero aprobaciones explícitas de beta para
 promover solo esas tandas; si no hay ninguna publicable, toma un objetivo pendiente de este índice.
 
+## Incidencias comunicadas · 28 de septiembre de 2026
+
+- **INC-2809-01 · P0 · Inicio / Mi ciclo.** En Inicio el anillo del ciclo usaba gasto neto y la frase decía gasto bruto; la racha cero también afirmaba «Tu primer mes empieza hoy» con actividad visible. La candidata web 4.26.67 unifica gasto neto, porcentaje y disponible, y cambia el pie a «Mes en curso». [Diagnóstico y pruebas sintéticas](briefs/inc-2809-01-inicio-ciclo.md). Pendientes CI, beta servida y veredicto móvil; producción sigue en 4.26.65. No se incorpora dato privado ni se modifica el widget.
+- **INC-2809-02 · P2 · aviso explicativo de Mi ciclo.** La explicación persistente en Gastos ocupa demasiado espacio. Permitir ocultarla y recuperarla con ayuda visible, conservando la preferencia. Es otro objetivo; no se implementa en INC-2809-01.
+
 ## Tanda beta y promoción aislada · 28 de septiembre de 2026
 
 - **INC-2709-04:** causa reproducida con `debt.months:24` al abrir la ficha de Cuotas de deuda;
