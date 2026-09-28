@@ -86,7 +86,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.65** candidata web aprobada: Inicio y Gastos distinguen gasto y balance, el saldo reconoce una nómina adelantada y «Mi ciclo» puede empezar con el cobro real y contar los ingresos posteriores, incluido el alquiler. Producción verificada antes de esta entrega: **4.26.59**. APK estable **4.26.32/code 48**; la APK 51 de beta no se publica por esta entrega. [Versión estable verificable](https://juanjoavila.github.io/Aely/version.json).
+Estado actual: **v4.26.65** publicada en web: el saldo reconoce una nómina adelantada y «Mi ciclo» puede empezar con el cobro real y contar los ingresos posteriores. El 28/9 se comunicó una incoherencia nueva entre el texto de Inicio y el balance de Gastos con «Mi ciclo» activo ([INC-2809-01](docs/BACKLOG.md)); está pendiente de corregir y probar. APK estable **4.26.32/code 48**; la APK 51 de beta sigue fuera de producción. [Versión estable verificable](https://juanjoavila.github.io/Aely/version.json).
 
 Producción verificada: **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](docs/briefs/ops02-restauracion-probada.md).
 
