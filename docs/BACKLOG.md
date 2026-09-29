@@ -1,8 +1,8 @@
 # Backlog operativo — Aely
 
-## INC-2809-01 · promoción selectiva autorizada · 29 de septiembre de 2026
+## INC-2809-01 · promoción selectiva publicada · 29 de septiembre de 2026
 
-El dueño aprobó expresamente la corrección de Inicio/Mi ciclo de la beta 4.26.67.1 (`383c0120`, [Action 36481177084](https://github.com/JuanjoAvila/Aely/actions/runs/36481177084) SUCCESS). La promoción web 4.26.66 se reconstruye desde main 4.26.65 e incluye solo `inc-2809-01-inicio-ciclo`; [brief y evidencia](briefs/inc-2809-01-inicio-ciclo.md). Las cinco tandas ligadas a APK51 conservan su entrega propia y el panel de beta. INC-2809-02, la explicación persistente de Mi ciclo, será el siguiente objetivo independiente tras verificar esta publicación.
+El dueño aprobó expresamente la corrección de Inicio/Mi ciclo de la beta 4.26.67.1 (`383c0120`, [Action 36481177084](https://github.com/JuanjoAvila/Aely/actions/runs/36481177084) SUCCESS). La promoción web 4.26.66 se reconstruyó desde main 4.26.65 e incluyó solo `inc-2809-01-inicio-ciclo`; PR #61, CI completa, Claude GO, Pages y el ZIP servido confirman la publicación. [Brief y evidencia](briefs/inc-2809-01-inicio-ciclo.md). Las cinco tandas ligadas a APK51 conservan su entrega propia y el panel de beta. INC-2809-02, la explicación persistente de Mi ciclo, es el siguiente objetivo independiente.
 
 ## Promoción selectiva aprobada · 28 de septiembre de 2026
 
@@ -10,7 +10,7 @@ El dueño aprobó expresamente las tandas pendientes tras la prueba de pago y el
 
 ## Nueva incidencia comunicada · 28 de septiembre de 2026
 
-- **INC-2809-01 · P0 · Inicio / Mi ciclo / cifras de dinero.** La corrección muestra en Inicio el mismo neto y margen que Gastos y reemplaza el falso «Tu primer mes empieza hoy» por «Mes en curso». Beta 4.26.67.1 publicada y aprobada expresamente; candidata web 4.26.66 selectiva en preparación. [Evidencia](briefs/inc-2809-01-inicio-ciclo.md). No se altera mes natural, widget ni APK.
+- **INC-2809-01 · cerrado en web 4.26.66.** Inicio muestra el mismo neto y margen que Gastos y reemplaza el falso «Tu primer mes empieza hoy» por «Mes en curso». Beta 4.26.67.1 fue aprobada expresamente; producción web 4.26.66 está publicada y cotejada. [Evidencia](briefs/inc-2809-01-inicio-ciclo.md). No se altera mes natural, widget ni APK.
 - **INC-2809-02 · P2 · aviso explicativo de Mi ciclo.** La tarjeta explicativa debajo del selector de periodo en Gastos ocupa gran parte de la pantalla en cada visita. Permitir ocultarla después de leerla y recuperarla mediante una ayuda visible; conservar la preferencia al volver a entrar sin ocultar la selección activa ni los datos necesarios para entender el periodo. Probar apertura, cierre, reapertura y persistencia con DOM real y en los tres idiomas. Es una tarea de interfaz separada de la corrección financiera INC-2809-01.
 
 Inventario original actualizado el **16 de septiembre de 2026** a petición del dueño: dejar trabajo

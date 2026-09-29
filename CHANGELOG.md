@@ -1,6 +1,6 @@
 ## [4.26.66] — 2026-09-29 · INC-2809-01, cifras coherentes en Inicio
 
-- Promoción selectiva de `inc-2809-01-inicio-ciclo`, aprobada expresamente tras beta 4.26.67.1. La candidata nace de main 4.26.65; incorpora solo la presentación de Inicio y sus pruebas. Conserva APK48, Edge, SQL y el workflow manual de Supabase.
+- Promoción selectiva de `inc-2809-01-inicio-ciclo`, aprobada expresamente tras beta 4.26.67.1 y publicada desde PR #61 como web 4.26.66. La candidata nació de main 4.26.65; incorporó solo la presentación de Inicio y sus pruebas. Conserva APK48, Edge, SQL y el workflow manual de Supabase. CI main y Pages terminaron correctamente; el ZIP servido coincide con HTML, SW, notas y APK de Pages.
 - En ciclo, la frase de Inicio usa `bud.against` (gasto menos ingresos recibidos), igual que el anillo y el disponible de Gastos. Expresa neto y margen con céntimos; en mes natural conserva el gasto bruto y la proyección diaria. Una racha de cero meses cerrados deja de afirmar que hoy es el primer día.
 - El brief de la incidencia registra SHAs, pruebas, revisión y artefactos servidos. Las cinco tandas ligadas a APK51 permanecen en beta con aceptación independiente.
 
