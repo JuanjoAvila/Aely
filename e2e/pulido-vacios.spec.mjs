@@ -73,7 +73,7 @@ test("con recibos y metas de verdad, las tarjetas fantasma desaparecen", async (
 test("★ P5: la racha a cero se dice en positivo, no «0 meses sin pasarte»", async ({ page }) => {
   await inicio(page, { history: [], budget: 500, streak: 0 });
   await expect(page.getByText(/0 meses sin pasarte/i)).toHaveCount(0);
-  await expect(page.getByText(/Tu primer mes empieza hoy/i)).toBeVisible();
+  await expect(page.getByText(/Mes en curso/i)).toBeVisible();
 });
 
 test("tres presupuestos mensuales cerrados crean racha sin llama", async ({ page }) => {

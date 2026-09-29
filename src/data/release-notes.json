@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.26.66",
+    "d": "2026-09-29",
+    "t": {
+      "es": "Inicio aclara el presupuesto del ciclo",
+      "en": "Home clarifies the cycle budget",
+      "ca": "Inici aclareix el pressupost del cicle"
+    },
+    "items": {
+      "es": [
+        "Con el presupuesto por ciclo de cobro activado, Inicio muestra el gasto tras contar los ingresos recibidos y cuánto queda. La tarjeta mensual también indica que el mes está en curso."
+      ],
+      "en": [
+        "With the pay cycle budget enabled, Home shows spending after income received and how much remains. The monthly card also says the month is in progress."
+      ],
+      "ca": [
+        "Amb el pressupost per cicle de cobrament activat, Inici mostra la despesa després dels ingressos rebuts i quant queda. La targeta mensual també indica que el mes és en curs."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.65",
     "d": "2026-09-28",
     "t": {

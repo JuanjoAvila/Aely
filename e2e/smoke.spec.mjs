@@ -28,6 +28,6 @@ test("Inicio no inventa una ganancia mensual ni hereda la racha antigua", async 
   await expect(page.locator('[data-tour="hero"]')).toBeVisible({timeout:15_000});
   await expect(page.locator('[data-tour="hero"] .v4-pill')).toHaveCount(0);
   const streak=page.getByTestId("dash-budget-streak");
-  await expect(streak).toHaveText("Tu primer mes empieza hoy");
+  await expect(streak).toHaveText("Mes en curso");
   await expect(streak).not.toContainText("🔥");
 });

@@ -33,10 +33,76 @@ for(const caso of [
   await expect(dash).toContainText(/300/);
   await expect(dash.locator(".v4-budget-txt .ph")).toContainText(/Puedes gastar|You can spend|Pots gastar/);
   await expect(dash).not.toContainText(caso.start);
+  await expect(page.locator("[data-testid='dash-budget-streak']")).toHaveText({es:"Mes en curso",en:"Month in progress",ca:"Mes en curs"}[caso.lang]);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   const gastos=page.locator(".v4-gastos-summary");
   await expect(gastos).toContainText(/700/);
   await expect(gastos).toContainText(/300/);
+});
+
+for(const caso of [
+  {lang:"es",cycle:"del ciclo",net:"Gasto neto desde el cobro: 980,00 € de tus 1000,00 €.",left:"Te quedan 20,00 €.",period:"Mi ciclo"},
+  {lang:"en",cycle:"of cycle",net:"Net spending since payday: 980,00 € of your 1000,00 €.",left:"20,00 € left.",period:"My cycle"},
+  {lang:"ca",cycle:"del cicle",net:"Despesa neta des del cobrament: 980,00 € dels teus 1000,00 €.",left:"Et queden 20,00 €.",period:"El meu cicle"},
+]) test(`Inicio y Gastos dan el mismo neto y margen en Mi ciclo (${caso.lang})`,async({page})=>{
+  await page.clock.install({time:new Date("2026-09-28T12:00:00Z")});
+  await seedLoggedInDashboard(page,{
+    budget:1000,
+    settings:{autoPrices:false,theme:"green",lang:caso.lang,gTotalMode:"split",budgetCycle:true,expenseBanks:["sabadell"]},
+    accounts:[{id:"sb",ent:"sabadell",name:"Diaria",value:1000,role:"diario",spendFrom:true}],
+    expenses:[
+      {id:"antes",date:"2026-09-20T12:00:00Z",amount:200,merchant:"Compra anterior",category:"super",ent:"sabadell"},
+      {id:"nomina",date:"2026-09-26T12:00:00Z",amount:-2000,merchant:"Nómina",category:"ingreso",ent:"sabadell"},
+      {id:"gasto",date:"2026-09-27T12:00:00Z",amount:1450,merchant:"Compra",category:"super",ent:"sabadell"},
+      {id:"ingreso",date:"2026-09-27T14:00:00Z",amount:-470,merchant:"Ingreso recibido",category:"ingreso",ent:"revolut"},
+    ],
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({timeout:30_000});
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  const dash=page.locator(".v4-budget");
+  await expect(dash.locator(".v4-ring")).toContainText("98%");
+  await expect(dash.locator(".v4-ring")).toContainText(caso.cycle);
+  await expect(dash.locator(".v4-budget-txt .ph")).toHaveText(caso.net+" "+caso.left);
+  await expect(page.locator(".v4-budget-foot")).toContainText(caso.period);
+  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("1450,00");
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator(".v4-period-btn.on")).toHaveText(caso.period);
+  const gastos=page.locator(".v4-gastos-summary");
+  await expect(gastos.locator(".v4-gastos-summary-amount")).toContainText("980,00");
+  await expect(gastos.locator(".v4-gastos-summary-sub")).toContainText("1450,00");
+  await expect(gastos.locator(".v4-gastos-summary-sub")).toContainText("470,00");
+  await expect(gastos.locator(".v4-gastos-summary-left")).toContainText("20,00");
+  await expect(gastos.locator(".v4-gastos-progress")).toHaveAttribute("aria-valuenow","980");
+});
+
+for(const caso of [
+  {income:780,net:"-680,00 €",left:"Te quedan 1680,00 €.",pct:"0%",remaining:"1680,00",progress:"0"},
+  {income:50,net:"1150,00 €",left:"Te faltan 150,00 €.",pct:"100%",remaining:"-150,00",progress:"1150"},
+]) test(`Mi ciclo explica el margen con ingreso ${caso.income}`,async({page})=>{
+  await page.clock.install({time:new Date("2026-09-28T12:00:00Z")});
+  await seedLoggedInDashboard(page,{
+    budget:1000,settings:{autoPrices:false,theme:"green",lang:"es",budgetCycle:true},
+    accounts:[{id:"sb",ent:"sabadell",name:"Diaria",value:1000,role:"diario",spendFrom:true}],
+    expenses:[
+      {id:"nomina",date:"2026-09-26T12:00:00Z",amount:-2000,merchant:"Nómina",category:"ingreso",ent:"sabadell"},
+      {id:"gasto",date:"2026-09-27T12:00:00Z",amount:caso.income===780?100:1200,merchant:"Compra",category:"super",ent:"sabadell"},
+      {id:"ingreso",date:"2026-09-27T14:00:00Z",amount:-caso.income,merchant:"Ingreso recibido",category:"ingreso",ent:"revolut"},
+    ],
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({timeout:30_000});
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  const dash=page.locator(".v4-budget");
+  await expect(dash.locator(".v4-ring")).toContainText(caso.pct);
+  await expect(dash.locator(".v4-budget-txt .ph")).toContainText(caso.net);
+  await expect(dash.locator(".v4-budget-txt .ph")).toContainText(caso.left);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  const gastos=page.locator(".v4-gastos-summary");
+  await expect(gastos.locator(".v4-gastos-summary-left")).toContainText(caso.remaining);
+  await expect(gastos.locator(".v4-gastos-progress")).toHaveAttribute("aria-valuenow",caso.progress);
 });
 
 test("Inicio conserva la frase de gasto también con balance desfavorable",async({page})=>{
