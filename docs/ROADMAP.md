@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-29 · **v4.26.68** preparada para beta con ayuda plegable de Mi ciclo (INC-2809-02); web estable **4.26.66**. Las cinco tandas nativas siguen en beta; APK51/Edge/SQL/migraciones no se publican por arrastre. [Evidencia anterior](briefs/inc-2809-01-inicio-ciclo.md).
+> Estado a 2026-09-29 · **v4.26.68** publicada en beta (`4.26.68.1` cotejada) con ayuda plegable de Mi ciclo (INC-2809-02), pendiente de prueba móvil; web estable **4.26.66**. Las cinco tandas nativas siguen en beta; APK51/Edge/SQL/migraciones no se publican por arrastre. [Evidencia](briefs/inc-2809-02-ayuda-ciclo.md).
 > Corte anterior verificado (27/9,19:41 UTC): **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](briefs/ops02-restauracion-probada.md).
 > Cierre del día: [backlog completo y14 incidencias](BACKLOG.md#cierre-del-día--27-de-septiembre-de-2026), con crash de cuotas, coherencia Inicio/Gastos/nómina y cargos CaixaBank como primeras prioridades. Ninguna se implementa en este cierre.
 > OPS-01 C: control manual de una función, sin despliegue global y SQL opt-in; entrega de tooling aislada desde main. Estado exacto, pruebas y revisión en [brief C](briefs/ops01-control-2026-09-27.md). A ingest49 quedó activado y cotejado; FIN-06/Wallet aún requiere pago real. B categorize está autorizado pero bloqueado403 por permiso del token; FIN-05, selector y compra TR siguen pendientes.
@@ -235,7 +235,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.68** preparada para beta; estable **4.26.66** verificada el 29/9. [Manifiesto](https://juanjoavila.github.io/Aely/version.json). |
+| Web / OTA (`VERSION`) | **4.26.68** publicada en beta (`4.26.68.1` cotejada); estable **4.26.66** verificada el 29/9. [Manifiesto](https://juanjoavila.github.io/Aely/version.json). |
 | APK (`versionName` / `versionCode`) | Repo/beta: **4.26.55 / 51**; estable: **4.26.32 / 48**. No se publica APK nueva con este cambio web. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **51** / 4.26.55 en beta; **48** / 4.26.32 en Pages estable. |
