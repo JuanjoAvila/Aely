@@ -84,6 +84,34 @@ test("★ red lenta: skel no se queda; hero aparece aunque supabase aborte tarde
   await expect(page.locator("[data-tour=hero]")).toBeVisible({ timeout: 5_000 });
 });
 
+test("★ red débil: tras el splash no reaparecen barras grises mientras la sesión tarda", async ({ page }) => {
+  await watchPostSplashSkeleton(page);
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Emulation.setCPUThrottlingRate", { rate: 6 });
+  await seedLoggedInDashboard(page, {
+    __sessionDelayMs: 6_000,
+    __authEventDelayMs: 6_000,
+    __cloudRows: { app_state: [{
+      data: {
+        _dataVer: 6, onboarded: true, tourSeen: true, budget: 500, monthStartNet: 1200,
+        accounts: [{ id: "e2e", ent: "sabadell", name: "Cuenta", value: 1200 }],
+        investments: [], assets: [], debts: [], fixed: [], flows: [], oneoffs: [], goals: [],
+        history: [], settings: { autoPrices: false, theme: "green" }, expenses: [],
+        _savedAt: Date.now() + 600_000,
+      },
+      updated_at: new Date().toISOString(),
+    }] },
+    expenses: [{ id: "e1", date: "2026-09-14", amount: 12.5, merchant: "Cafe", category: "bares", source: "manual" }],
+  });
+  await page.goto("/");
+  await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
+  await expect(page.locator("[data-tour=hero]")).toBeVisible({ timeout: 5_000 });
+  expect(await page.evaluate(() => window.__sawOfflineSkeleton),
+    "el estado local ya existe; no debe esperar otra vez tras el splash").toBe(false);
+  await expect(page.locator("[data-tour=hero-amt]")).toContainText("1000,00", { timeout: 4_000 });
+  await expect(page.locator("[data-tour=hero-amt]")).toContainText("1200,00", { timeout: 10_000 });
+});
+
 test("★ onLine false al montar: tras el splash Inicio ya nace relleno", async ({ page }) => {
   await blockBootReadyEvent(page);
   await watchPostSplashSkeleton(page);

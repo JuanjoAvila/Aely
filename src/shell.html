@@ -2433,7 +2433,12 @@ function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmoun
     var r=document.getElementById("root");
     // `>0` porque el splash ya NO vive dentro de #root: en cuanto React monta, hay algo.
     var pintado=!!(r && r.childElementCount>0), pasado=Date.now()-t0;
-    if(pintado && pasado>MINIMO && (window.__mcBootReady===true || pasado>ESPERA_NUBE)){ clearInterval(t); quitar(); return; }
+    if(pintado && pasado>MINIMO && (window.__mcBootReady===true || pasado>ESPERA_NUBE)){
+      // Si venció la espera, Inicio debe pintar lo local al levantar ESTA cortina. Antes
+      // empezaba otro tope de 2 s y reaparecían las barras grises con red débil (29/9).
+      if(window.__mcBootReady!==true) window.__mcSplashTimedOut=true;
+      clearInterval(t); quitar(); return;
+    }
     /* Si a los 8 s React NI SIQUIERA ha pintado, algo va mal de verdad. Antes se paraba el
        vigilante y el splash se quedaba puesto para siempre, sin decir nada ni dejar salida:
        una app «colgada en Cargando…» de la que no se puede ni salir. Ahora se ofrece recargar. */

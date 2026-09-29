@@ -8342,13 +8342,13 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   const [budgetOpen,setBudgetOpen]=useState(false);
   /* Barra de letra FUERA de Ajustes (11/9): la quería a mano mientras usa la app, no enterrada
      en dos sitios de settings. Vive en Inicio, junto al avatar. */
-  /* Puertas de arranque: el count-up y los esqueletos NO pueden vivir detrás del splash ni
-     adelantarse a la nube (B2/B4 — misma lección: animar a puerta cerrada es peor que no animar). */
+  /* Puertas de arranque: el count-up no puede vivir detrás del splash. Si venció la espera
+     de nube de esa cortina, no se empieza otra espera que oculte los datos locales (29/9). */
   const [splashGone,setSplashGone]=useState(function(){
     try{ return !!(window.__mcSplashGone) || !document.getElementById("mc-load"); }catch(e){ return true; }
   });
   const [bootReady,setBootReady]=useState(function(){
-    try{ return !!window.__mcBootReady || navigator.onLine===false; }catch(e){ return true; }
+    try{ return !!window.__mcBootReady || !!window.__mcSplashTimedOut || navigator.onLine===false; }catch(e){ return true; }
   });
   useEffect(function(){
     if(splashGone) return undefined;
@@ -8362,6 +8362,10 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     window.addEventListener("mc-boot-ready", on);
     // Por si el evento se emitió entre el useState inicial y este effect.
     try{ if(window.__mcBootReady) setBootReady(true); }catch(e){}
+    if(window.__mcSplashTimedOut){
+      setBootReady(true);
+      return function(){ window.removeEventListener("mc-boot-ready", on); };
+    }
     /* Offline-first de verdad (16/9): el estado local ya está cargado de forma síncrona. Esperar
        medio segundo a una nube que sabemos ausente pintaba Inicio vacío tras el splash. */
     var offline=false;
@@ -8380,7 +8384,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     return function(){ window.removeEventListener("mc-boot-ready", on); clearTimeout(tope); };
   },[bootReady, splashGone]);
   const shownNet=useCountUp(tt.netWorth||0, splashGone);
-  const showSkel=splashGone && !bootReady;
+  const showSkel=splashGone && !bootReady && !window.__mcSplashTimedOut;
 
   const nameGuess=(function(){
     try{
@@ -26887,7 +26891,12 @@ mcScheduleIdle(function(){ mcLoadSentryDeferred(); }, 1800);
     var r=document.getElementById("root");
     // `>0` porque el splash ya NO vive dentro de #root: en cuanto React monta, hay algo.
     var pintado=!!(r && r.childElementCount>0), pasado=Date.now()-t0;
-    if(pintado && pasado>MINIMO && (window.__mcBootReady===true || pasado>ESPERA_NUBE)){ clearInterval(t); quitar(); return; }
+    if(pintado && pasado>MINIMO && (window.__mcBootReady===true || pasado>ESPERA_NUBE)){
+      // Si venció la espera, Inicio debe pintar lo local al levantar ESTA cortina. Antes
+      // empezaba otro tope de 2 s y reaparecían las barras grises con red débil (29/9).
+      if(window.__mcBootReady!==true) window.__mcSplashTimedOut=true;
+      clearInterval(t); quitar(); return;
+    }
     /* Si a los 8 s React NI SIQUIERA ha pintado, algo va mal de verdad. Antes se paraba el
        vigilante y el splash se quedaba puesto para siempre, sin decir nada ni dejar salida:
        una app «colgada en Cargando…» de la que no se puede ni salir. Ahora se ofrece recargar. */

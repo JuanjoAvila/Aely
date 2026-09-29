@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.69",
+    "d": "2026-09-29",
+    "t": {
+      "es": "Inicio aparece sin una segunda espera",
+      "en": "Home appears without a second wait",
+      "ca": "Inici apareix sense una segona espera"
+    },
+    "items": {
+      "es": [
+        "Con poca conexión, Inicio muestra los datos guardados al terminar el logo sin volver a cubrirlos con barras grises."
+      ],
+      "en": [
+        "With a weak connection, Home shows saved data when the logo closes instead of covering it with grey bars again."
+      ],
+      "ca": [
+        "Amb poca connexió, Inici mostra les dades desades quan acaba el logotip sense tornar-les a tapar amb barres grises."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2709-01-arranque-red",
+        "t": {
+          "es": "Arranque con poca conexión",
+          "en": "Starting with a weak connection",
+          "ca": "Arrencada amb poca connexió"
+        },
+        "items": {
+          "es": [
+            "1. Con conexión débil, cierra y abre la app: al terminar el logo, Inicio debe mostrar tus datos guardados sin dos barras grises ni una segunda espera.",
+            "2. Repite sin conexión y vuelve a abrir con red: Inicio debe seguir siendo usable y actualizarse cuando lleguen los datos nuevos."
+          ],
+          "en": [
+            "1. With a weak connection, close and reopen the app: when the logo closes, Home should show saved data without two grey bars or a second wait.",
+            "2. Repeat offline, then reopen online: Home should remain usable and update when new data arrives."
+          ],
+          "ca": [
+            "1. Amb poca connexió, tanca i torna a obrir l’aplicació: quan acaba el logotip, Inici ha de mostrar les dades desades sense dues barres grises ni una segona espera.",
+            "2. Repeteix-ho sense connexió i torna a obrir amb xarxa: Inici ha de continuar sent usable i actualitzar-se quan arribin dades noves."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.68",
     "d": "2026-09-29",
     "t": {
