@@ -65,7 +65,8 @@ test("la amortización total marca la deuda una vez y no crea un movimiento",asy
   const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")));
   expect(saved.debts).toHaveLength(1);
   expect(saved.debts[0].settledAt).toBeTruthy();
-  expect(saved.expenses||[]).toHaveLength(0);
+  const expenses=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3_exp")||"[]"));
+  expect(expenses).toHaveLength(0);
 });
 
 test("una deuda con cuotas vinculadas no se puede borrar y conserva su nombre",async({page})=>{
