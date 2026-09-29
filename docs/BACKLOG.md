@@ -1,5 +1,9 @@
 # Backlog operativo — Aely
 
+## INC-2709-02 · candidata beta 4.26.70 · 29 de septiembre de 2026
+
+La deuda cuyo saldo proyectado llega a cero ahora pide confirmar la liquidación; una vez confirmada se puede archivar sin borrar su objeto ni las cuotas vinculadas. El archivo permite volver a mostrarla. La amortización total introducida por la persona confirma en la misma escritura. El borrado físico de una deuda con pagos vinculados queda bloqueado. [Acta y límite financiero](briefs/inc-2709-02-deudas-archivo.md). E2E sintéticos de DOM 6/6; pendiente CI beta, artefacto servido y prueba móvil. El objetivo independiente siguiente se decidirá al cerrar tras revalidar aprobaciones; el widget/periodo, 0 % del mes natural y retirada CaixaBank del 29/9 siguen abiertos.
+
 ## INC-2709-01 · beta 4.26.69.1 publicada, prueba móvil pendiente · 29 de septiembre de 2026
 
 Con sesión lenta sintética y CPU ×6 se reprodujo una segunda espera tras el splash: barras grises visibles durante unos 775 ms. La corrección comparte el límite del splash y muestra el estado local al terminarlo; [PR #67](https://github.com/JuanjoAvila/Aely/pull/67) integrada como `26972970`, [Action 36617933780](https://github.com/JuanjoAvila/Aely/actions/runs/36617933780) SUCCESS y beta `4.26.69.1`/ZIP/SW cotejados. [Acta](briefs/inc-2709-01-arranque-red.md). No altera importes ni sincronización. Falta aceptación del dueño en Android con red débil/offline y recarga; no llevar a producción por el verde del E2E.

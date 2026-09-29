@@ -12,6 +12,8 @@ Widget banco (4.26.50): `e2e/widget-banco.spec.mjs` abre Ajustes y cambia el ban
 
 # Testing — Aely
 
+INC-2709-02 (candidata 4.26.70): `e2e/deudas-archivo.spec.mjs` está registrado para `09-tab-debts-goals.js` en `E2E_MAP`. Con deudas y cuotas sintéticas abre Plan → Deudas, exige que un saldo proyectado cero pida confirmación, comprueba cancelación, liquidación, archivo, recarga, cuota antigua visible en Gastos y vuelta a mostrar. También cubre la amortización total sin crear gasto, borrado bloqueado con cuota vinculada, saldo positivo corregido desde otro dispositivo e inglés/catalán; 6/6 locales. `i18n-keys` comprueba las nuevas claves en es/en/ca. El archivo conserva `debtId`; no se interpreta una proyección como pago real ni se prueba con movimientos familiares.
+
 INC-2809-02 (4.26.68): `e2e/gastos-ayuda-ciclo.spec.mjs`, registrado con `04-tab-gastos.js` en
 `E2E_MAP`, abre Gastos en es/en/ca y comprueba que la ayuda de Mi ciclo se pliega, conserva visible
 el cobro, persiste tras salir y recargar y vuelve a abrirse. También cubre el aviso sin nómina y

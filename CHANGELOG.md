@@ -1,3 +1,10 @@
+## [4.26.70] — 2026-09-29 · INC-2709-02, confirmar y archivar deudas terminadas
+
+- `debtBalance` es una proyección lineal: llegar a cero no acredita que el banco haya cobrado la última cuota. Deudas enseña «saldo estimado: 0» y pide confirmación explícita antes de marcarla liquidada. Una amortización total introducida por la persona sí deja esa confirmación en la misma escritura. No se crean movimientos ni se cambia la fórmula del saldo.
+- La deuda confirmada se puede archivar para quitarla de la lista activa. `archivedAt` conserva su objeto e `id`, por lo que las cuotas enlazadas siguen encontrando el nombre en Gastos y el filtro. El archivo se abre desde la propia pantalla y permite volver a mostrar la deuda; un saldo positivo editado después quita la marca de liquidación. El borrado físico de una deuda con `debtId` en un gasto queda bloqueado para no dejar cuotas huérfanas.
+- `e2e/deudas-archivo.spec.mjs` recorre confirmación, cancelación, archivo, recarga, cuota histórica en Gastos, reapertura y amortización total. Se registra en el mapa de beta. No se tocan APK, Edge, SQL, migraciones ni datos reales; falta el veredicto móvil antes de producción.
+- El bundle minificado mide 1.260.159 B y gzip 343.257 B; para incluir la confirmación y sus textos es/en/ca se amplían los topes medidos en 5/1 KiB, con 1.409/807 B de margen antes del sellado beta.
+
 ## [4.26.69] — 2026-09-29 · INC-2709-01, un solo límite de espera al arrancar
 
 - Con sesión y red lentas, el splash agotaba sus 1.800 ms y dejaba ver Inicio, pero el componente empezaba entonces otro límite de 2.000 ms para `mc-boot-ready`. En Chromium con CPU ×6 y sesión retrasada 6 s, el E2E nuevo vio las barras tras el splash durante 775 ms y el hero no apareció hasta los 3.325 ms. El splash señala ahora que agotó su espera y Dashboard muestra el estado local al salir de ella; la lectura tardía de la nube sigue actualizando el estado. En el mismo escenario, hero y fin del splash coincidieron a los 2.560 ms, sin barras visibles; frames >32 ms: 9 antes, 7 después en una pasada orientativa, sin atribuir causalidad al pequeño cambio de recuento.

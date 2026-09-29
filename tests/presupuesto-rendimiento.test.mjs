@@ -104,14 +104,18 @@ const PRESUPUESTO = {
   // INC-2809-02: resumen del cobro siempre visible, ayuda reversible por perfil y sus textos
   // miden 1.256.096 B minificados, 672 B sobre el tope; +1 KiB crudo. Gzip mide 342.346 B
   // y sigue bajo 335 KiB. El incremento evita esconder el ancla del periodo al plegar.
-  minificado: 1227 * 1024,
+  // INC-2709-02: confirmar un saldo proyectado, conservar cuotas al archivar y recuperar
+  // la ficha añaden 1.260.159 B minificados, 3.711 B sobre el tope anterior. +5 KiB
+  // deja margen para el sello beta sin recortar los textos de tres idiomas.
+  minificado: 1232 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
   // INC-2809-01: la frase que explica gasto neto y disponible en Mi ciclo, con su
   // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
   // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
-  gzip: 335 * 1024,
+  // La misma candidata mide 343.257 B gzip, 217 B sobre 335 KiB: +1 KiB medido.
+  gzip: 336 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

@@ -11,13 +11,9 @@ sesión del móvil se gastó la mitad trabajando sobre una rama equivocada.
 
 ## 1. Lo primero, siempre
 
-Versión **4.26.65**: Mi ciclo usa gastos menos todos los ingresos reales tras la nómina, incluso si un Bizum llega a otro banco. La nómina ancla, traspasos, inversiones, lápidas, posibles duplicados y apuntes futuros no inflan el margen. Mes natural e informes cerrados siguen igual; el widget Android/ingest sigue por mes natural. Revisar el SHA exacto, CI, beta y prueba móvil antes de considerar esta tanda cerrada.
+El corte operativo está en [BACKLOG](docs/BACKLOG.md), [ROADMAP](docs/ROADMAP.md) y el acta más reciente de `docs/briefs/`. Al entrar, actualiza `origin/beta` y `origin/main`, ejecuta `npm run listo` sobre fuente beta efectiva y coteja PR, Actions, manifiestos, ZIP, HTML, SW y APK servidos. Una CI verde o una release publicada no acreditan el veredicto móvil. Si falta `SUPABASE_SERVICE_ROLE_KEY`, `listo` no puede leer aprobaciones y ninguna tanda nueva se presume aprobada.
 
-Corte 28/9: beta **4.26.64.1** verificada y aprobada por el dueño salvo este balance de ingresos de Mi ciclo; producción sigue en **4.26.59**. Promover solo tandas aprobadas y separables.
-
-OPS-02: [ensayo de restauración del 27/9](docs/briefs/ops02-restauracion-probada.md).
-Beta 4.26.56.1 sustituye el reemplazo conectado por una vista aislada. Claude GO al SHA `978420fc`, CI verde y bundle cotejado; móvil pendiente. La recuperación
-compartida sigue pendiente; repetir las pruebas solo con datos sintéticos.
+Corte 29/9 al preparar INC-2709-02: beta `4.26.69.1`/`50e77f83` y producción web `4.26.66`/`c2b02ed8`; APK estable 4.26.32/code 48 y beta 4.26.55/code 51. INC-2709-01 e INC-2809-02 esperan prueba móvil propia, al igual que las cinco tandas nativas. La candidata de archivo de deudas 4.26.70 se entrega por separado; comprobar [su acta](docs/briefs/inc-2709-02-deudas-archivo.md) antes de afirmar que ya está servida. El estado público puede haber cambiado desde este corte.
 
 ```bash
 git fetch --all --prune && git log --oneline -5 refs/heads/beta && cat VERSION
@@ -26,6 +22,8 @@ git fetch --all --prune && git log --oneline -5 refs/heads/beta && cat VERSION
 **El trabajo vivo está en `beta`, no en `main`.** `main` es lo que usan su padre y su pareja, y
 suele ir una versión por detrás. Si cortas una rama de `main` estás trabajando sobre código viejo:
 tus arreglos ya pueden estar hechos, y tu bump de versión le BAJARÍA la versión a la gente.
+
+**Deudas (INC-2709-02):** `debtBalance` llega a cero por calendario, aunque nadie haya confirmado la última cuota. No se debe convertir ese 0 proyectado en pago bancario ni borrar la deuda al archivarla: su `id` sigue dando nombre a las cuotas antiguas de Gastos. La confirmación y el archivo viven en Plan → Deudas; el estado y las pruebas están en `docs/briefs/inc-2709-02-deudas-archivo.md`.
 
 ## 2. Las siete trampas que más caro salen
 

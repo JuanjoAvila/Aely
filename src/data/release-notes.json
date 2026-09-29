@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.70",
+    "d": "2026-09-29",
+    "t": {
+      "es": "Las deudas terminadas se pueden archivar",
+      "en": "Finished debts can be archived",
+      "ca": "Els deutes liquidats es poden arxivar"
+    },
+    "items": {
+      "es": [
+        "Cuando una deuda llega a cero, puedes confirmar que está liquidada y archivarla. Sigue disponible con sus cuotas en Deudas archivadas."
+      ],
+      "en": [
+        "When a debt reaches zero, you can confirm it is settled and archive it. It remains available with its payments under Archived debts."
+      ],
+      "ca": [
+        "Quan un deute arriba a zero, pots confirmar que està liquidat i arxivar-lo. Continua disponible amb les quotes a Deutes arxivats."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2709-02-deudas-archivo",
+        "t": {
+          "es": "Deudas terminadas",
+          "en": "Finished debts",
+          "ca": "Deutes liquidats"
+        },
+        "items": {
+          "es": [
+            "1. En Plan → Deudas, confirma una deuda con saldo estimado a cero y archívala.",
+            "2. Abre Deudas archivadas, vuelve a mostrarla y busca su cuota antigua en Gastos."
+          ],
+          "en": [
+            "1. In Plan → Debts, confirm a debt with an estimated zero balance and archive it.",
+            "2. Open Archived debts, show it again and find its old payment in Expenses."
+          ],
+          "ca": [
+            "1. A Pla → Deutes, confirma un deute amb saldo estimat zero i arxiva-lo.",
+            "2. Obre Deutes arxivats, torna a mostrar-lo i busca la quota antiga a Despeses."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.69",
     "d": "2026-09-29",
     "t": {
