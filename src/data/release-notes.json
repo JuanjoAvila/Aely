@@ -1,5 +1,28 @@
 [
   {
+    "v": "4.26.68",
+    "d": "2026-09-29",
+    "t": {
+      "es": "La ayuda de Mi ciclo se recoge",
+      "en": "My cycle help can be tucked away",
+      "ca": "L'ajuda d'El meu cicle es pot plegar"
+    },
+    "items": {
+      "es": ["En Gastos puedes ocultar la explicación de Mi ciclo y volver a abrirla con Ayuda. La fecha del cobro sigue a la vista y la elección se recuerda."],
+      "en": ["In Expenses, you can hide the My cycle explanation and reopen it with Help. The payday date stays visible and your choice is remembered."],
+      "ca": ["A Despeses pots amagar l'explicació d'El meu cicle i tornar-la a obrir amb Ajuda. La data del cobrament continua visible i la tria es recorda."]
+    },
+    "tandas": [{
+      "id": "inc-2809-02-ayuda-ciclo",
+      "t": {"es":"Ayuda de Mi ciclo", "en":"My cycle help", "ca":"Ajuda d'El meu cicle"},
+      "items": {
+        "es": ["1. En Gastos → Mi ciclo, oculta la explicación. La fecha del cobro o la ausencia de nómina debe seguir visible.", "2. Sal y vuelve a Gastos, y reinicia la app: la ayuda debe seguir plegada. Toca Ayuda para releerla."],
+        "en": ["1. In Expenses → My cycle, hide the explanation. The payday date or missing pay notice should remain visible.", "2. Leave and return to Expenses, then restart the app: help should remain folded. Tap Help to read it again."],
+        "ca": ["1. A Despeses → El meu cicle, amaga l'explicació. La data del cobrament o l'absència de nòmina ha de continuar visible.", "2. Surt i torna a Despeses i reinicia l'app: l'ajuda ha de continuar plegada. Toca Ajuda per tornar-la a llegir."]
+      }
+    }]
+  },
+  {
     "v": "4.26.67",
     "d": "2026-09-28",
     "t": {

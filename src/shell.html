@@ -1795,7 +1795,12 @@
   .app-shell.settings-dim.dragging{transition:none;}
   /* margen inferior 14px: el cartelito chocaba con los chips de categorías (feedback 2026-07-18) */
   .v4-cycle-box{margin:10px 2px 14px;padding:14px 16px;border-radius:16px;background:rgba(95,208,138,.08);border:1px solid rgba(95,208,138,.22);font-size:13.5px;line-height:1.5;color:var(--muted);}
-  .v4-cycle-box strong{display:block;color:var(--text);font-weight:800;font-size:14px;margin-bottom:6px;}
+  .v4-cycle-box.compacto{padding:9px 12px;}
+  .v4-cycle-head{display:flex;align-items:flex-start;gap:8px;}
+  .v4-cycle-main{flex:1;min-width:0;}
+  .v4-cycle-box strong{display:block;color:var(--text);font-weight:800;font-size:14px;margin-bottom:4px;}
+  .v4-cycle-head .v4-chip{flex:0 0 auto;min-height:30px;padding:4px 10px;font-size:12px;}
+  .v4-cycle-explanation{margin-top:6px;}
   .v4-gastos-summary-amount.pos{color:var(--mint);}
   .v4-gastos-summary-amount.neg{color:var(--coral);}
   .v4-chips.meta-chips{flex-wrap:wrap;gap:8px;margin-bottom:12px;}

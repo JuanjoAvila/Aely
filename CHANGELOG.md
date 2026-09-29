@@ -1,3 +1,8 @@
+## [4.26.68] — 2026-09-29 · INC-2809-02, ayuda plegable de Mi ciclo
+
+- En Gastos la tarjeta de Mi ciclo ocupaba altura en cada visita. `settings.gastosCycleHelpOff` conserva por perfil la elección de plegar el texto; el resumen con cobro y fecha, o la ausencia de nómina y el uso del mes natural, permanece visible. El botón Ayuda/Ocultar permite reabrirla sin cambiar el periodo seleccionado. El filtro informativo sin presupuesto por ciclo tiene su propia explicación para que el control nunca abra un área vacía.
+- Textos es/en/ca y E2E de DOM real cubren apertura, cierre, vuelta a Gastos, recarga, reapertura, falta de nómina y filtro sin presupuesto. El HTML minificado mide 1.256.096 B (+672 B sobre el tope previo); se amplía 1 KiB el límite crudo y gzip permanece en 342.346 B bajo 335 KiB. No se modifican cálculo financiero, filas, APK, Edge, SQL ni las cinco tandas nativas pendientes. Publicación beta y prueba móvil pendientes al preparar esta versión.
+
 ## [4.26.67] — 2026-09-28 · INC-2809-01, Inicio explica el neto de Mi ciclo
 
 - Tras la aprobación de beta 4.26.67.1, PR #61 publicó la corrección web selectiva como 4.26.66. Se retira solo `inc-2809-01-inicio-ciclo` de la cola del panel y se trasladan intactas las cinco tandas pendientes a la nota 4.26.67: la comparación del panel descarta las notas con versión igual a producción. La nota para la familia permanece en Novedades.
