@@ -1,5 +1,9 @@
 # Backlog operativo — Aely
 
+## INC-2809-02 · beta publicada, prueba móvil pendiente · 29 de septiembre de 2026
+
+La explicación de Mi ciclo en Gastos se puede plegar y recuperar con Ayuda, sin esconder el cobro ni la ausencia de nómina. La preferencia queda en el perfil. [PR #64](https://github.com/JuanjoAvila/Aely/pull/64) fusionada en beta `17aeacc0`, [Action 36612627888](https://github.com/JuanjoAvila/Aely/actions/runs/36612627888) SUCCESS y beta `4.26.68.1`/ZIP/SW cotejados. El E2E de DOM real pasó en es/en/ca; [acta y límites](briefs/inc-2809-02-ayuda-ciclo.md). Falta el veredicto móvil de `inc-2809-02-ayuda-ciclo`; producción permanece en web 4.26.66. Las cinco tandas nativas no reciben aprobación por esta publicación. Siguiente chat: revalidar aprobaciones; si no hay nueva tanda publicable, abordar un objetivo independiente como INC-2709-06.
+
 Inventario original actualizado el **16 de septiembre de 2026** a petición del dueño: dejar trabajo
 concreto para Claude y Cursor durante la tarde/noche. La reconciliación vigente está debajo.
 **El backlog completo NO está terminado.** El panel de
@@ -17,7 +21,7 @@ promover solo esas tandas; si no hay ninguna publicable, toma un objetivo pendie
 ## Incidencias comunicadas · 28 de septiembre de 2026
 
 - **INC-2809-01 · cerrado en web 4.26.66.** La beta 4.26.67.1 fue aprobada; PR #61, CI completa, Claude GO y Pages verificaron la promoción selectiva. Inicio muestra gasto neto, porcentaje y disponible coherentes con Gastos; la racha cero dice «Mes en curso». La tanda se retira del panel beta sin tocar widget ni APK. [Evidencia](briefs/inc-2809-01-inicio-ciclo.md).
-- **INC-2809-02 · P2 · aviso explicativo de Mi ciclo.** La explicación persistente en Gastos ocupa demasiado espacio. Permitir ocultarla y recuperarla con ayuda visible, conservando la preferencia. Es otro objetivo; no se implementa en INC-2809-01.
+- **INC-2809-02 · P2 · beta 4.26.68.1 publicada, prueba móvil pendiente.** La explicación de Mi ciclo en Gastos se pliega y se recupera con Ayuda; el cobro o su ausencia siguen visibles y la preferencia persiste. E2E en tres idiomas y CI beta completos. [Acta](briefs/inc-2809-02-ayuda-ciclo.md). No se declara aprobada ni publicada en producción.
 
 ## Tanda beta y promoción aislada · 28 de septiembre de 2026
 
