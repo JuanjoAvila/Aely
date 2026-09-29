@@ -1,3 +1,8 @@
+## [4.26.69] — 2026-09-29 · INC-2709-01, un solo límite de espera al arrancar
+
+- Con sesión y red lentas, el splash agotaba sus 1.800 ms y dejaba ver Inicio, pero el componente empezaba entonces otro límite de 2.000 ms para `mc-boot-ready`. En Chromium con CPU ×6 y sesión retrasada 6 s, el E2E nuevo vio las barras tras el splash durante 775 ms y el hero no apareció hasta los 3.325 ms. El splash señala ahora que agotó su espera y Dashboard muestra el estado local al salir de ella; la lectura tardía de la nube sigue actualizando el estado. En el mismo escenario, hero y fin del splash coincidieron a los 2.560 ms, sin barras visibles; frames >32 ms: 9 antes, 7 después en una pasada orientativa, sin atribuir causalidad al pequeño cambio de recuento.
+- La regresión `e2e/inicio-offline.spec.mjs` ejercita el DOM con CPU ×6 y sesión/autenticación tardías, además de los casos sin red y sin evento de arranque. No se modifican cálculos, escritura, sincronización bancaria, APK ni servidor. Queda por probar en el móvil real la conexión débil, la recarga y que una respuesta tardía actualice la vista sin saltos engañosos.
+
 ## [4.26.68] — 2026-09-29 · INC-2809-02, ayuda plegable de Mi ciclo
 
 - En Gastos la tarjeta de Mi ciclo ocupaba altura en cada visita. `settings.gastosCycleHelpOff` conserva por perfil la elección de plegar el texto; el resumen con cobro y fecha, o la ausencia de nómina y el uso del mes natural, permanece visible. El botón Ayuda/Ocultar permite reabrirla sin cambiar el periodo seleccionado. El filtro informativo sin presupuesto por ciclo tiene su propia explicación para que el control nunca abra un área vacía.

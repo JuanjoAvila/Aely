@@ -1,5 +1,9 @@
 # Backlog operativo — Aely
 
+## INC-2709-01 · corrección local en 4.26.69, prueba beta y móvil pendientes · 29 de septiembre de 2026
+
+Con sesión lenta sintética y CPU ×6 se reprodujo una segunda espera tras el splash: dos barras grises visibles durante unos 775 ms. La candidata comparte el límite del splash y muestra el estado local al terminarlo; [acta](briefs/inc-2709-01-arranque-red.md). No altera importes ni sincronización. Falta CI, publicación beta y aceptación del dueño en Android con red débil/offline y recarga; no llevar a producción por el verde del E2E.
+
 ## INC-2809-02 · beta publicada, prueba móvil pendiente · 29 de septiembre de 2026
 
 La explicación de Mi ciclo en Gastos se puede plegar y recuperar con Ayuda, sin esconder el cobro ni la ausencia de nómina. La preferencia queda en el perfil. [PR #64](https://github.com/JuanjoAvila/Aely/pull/64) fusionada en beta `17aeacc0`, [Action 36612627888](https://github.com/JuanjoAvila/Aely/actions/runs/36612627888) SUCCESS y beta `4.26.68.1`/ZIP/SW cotejados. El E2E de DOM real pasó en es/en/ca; [acta y límites](briefs/inc-2809-02-ayuda-ciclo.md). Falta el veredicto móvil de `inc-2809-02-ayuda-ciclo`; producción permanece en web 4.26.66. Las cinco tandas nativas no reciben aprobación por esta publicación. INC-2709-06 tiene [diagnóstico sintético y límite de atribución](briefs/inc-2709-06-caixa-ausentes.md); sigue abierto. Siguiente chat: revalidar aprobaciones; si no hay nueva tanda publicable, abordar INC-2709-01 de forma independiente.

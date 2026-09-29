@@ -11,13 +11,13 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   const [budgetOpen,setBudgetOpen]=useState(false);
   /* Barra de letra FUERA de Ajustes (11/9): la quería a mano mientras usa la app, no enterrada
      en dos sitios de settings. Vive en Inicio, junto al avatar. */
-  /* Puertas de arranque: el count-up y los esqueletos NO pueden vivir detrás del splash ni
-     adelantarse a la nube (B2/B4 — misma lección: animar a puerta cerrada es peor que no animar). */
+  /* Puertas de arranque: el count-up no puede vivir detrás del splash. Si venció la espera
+     de nube de esa cortina, no se empieza otra espera que oculte los datos locales (29/9). */
   const [splashGone,setSplashGone]=useState(function(){
     try{ return !!(window.__mcSplashGone) || !document.getElementById("mc-load"); }catch(e){ return true; }
   });
   const [bootReady,setBootReady]=useState(function(){
-    try{ return !!window.__mcBootReady || navigator.onLine===false; }catch(e){ return true; }
+    try{ return !!window.__mcBootReady || !!window.__mcSplashTimedOut || navigator.onLine===false; }catch(e){ return true; }
   });
   useEffect(function(){
     if(splashGone) return undefined;
@@ -31,6 +31,10 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     window.addEventListener("mc-boot-ready", on);
     // Por si el evento se emitió entre el useState inicial y este effect.
     try{ if(window.__mcBootReady) setBootReady(true); }catch(e){}
+    if(window.__mcSplashTimedOut){
+      setBootReady(true);
+      return function(){ window.removeEventListener("mc-boot-ready", on); };
+    }
     /* Offline-first de verdad (16/9): el estado local ya está cargado de forma síncrona. Esperar
        medio segundo a una nube que sabemos ausente pintaba Inicio vacío tras el splash. */
     var offline=false;
@@ -49,7 +53,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     return function(){ window.removeEventListener("mc-boot-ready", on); clearTimeout(tope); };
   },[bootReady, splashGone]);
   const shownNet=useCountUp(tt.netWorth||0, splashGone);
-  const showSkel=splashGone && !bootReady;
+  const showSkel=splashGone && !bootReady && !window.__mcSplashTimedOut;
 
   const nameGuess=(function(){
     try{

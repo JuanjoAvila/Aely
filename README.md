@@ -3,6 +3,7 @@
 OPS-02: Ajustes → Copia de seguridad → Copias automáticas → Ver copia permite comparar sin sustituir la cartera.
 Inicio muestra el gasto bruto en el mes natural; con presupuesto por ciclo y nómina reconocida muestra el gasto neto tras los ingresos recibidos y el margen que queda. Plan deja de prever un ingreso que el banco ya identifica claramente.
 En Ajustes → Dinero, «Presupuesto por ciclo de cobro» permite reiniciar el presupuesto con la nómina registrada; Gastos abre en «Mi ciclo». Su explicación se puede plegar y recuperar con Ayuda sin ocultar la fecha del cobro. El widget Android mantiene el mes natural.
+Con poca conexión, Inicio muestra los datos guardados cuando termina el logo, sin otra espera de barras grises.
 
 PWA de finanzas personales: patrimonio neto, gastos variables, costes fijos, inversiones (multi-bróker) y deudas. Móvil-first, instalable, con sincronización automática de gastos vía notificaciones del banco.
 
@@ -85,7 +86,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.68** publicada en beta (`4.26.68.1` cotejada); pendiente de prueba móvil. La corrección de Inicio con «Mi ciclo» está publicada en producción web **4.26.66**; las cinco tandas del widget y Trade Republic conservan su prueba propia en beta. [Manifiesto estable](https://juanjoavila.github.io/Aely/version.json) · [manifiesto beta](https://github.com/JuanjoAvila/Aely/releases/download/beta/version.json). APK estable **4.26.32/code 48** y beta **4.26.55/code 51**.
+Estado actual: **v4.26.69** preparada en rama aislada para beta; producción web **4.26.66** y beta servida **4.26.68.1** cotejadas antes de este cambio. INC-2809-02 y las cinco tandas nativas conservan su prueba móvil pendiente. [Manifiesto estable](https://juanjoavila.github.io/Aely/version.json) · [manifiesto beta](https://github.com/JuanjoAvila/Aely/releases/download/beta/version.json). APK estable **4.26.32/code 48** y beta **4.26.55/code 51**.
 
 Producción verificada: **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](docs/briefs/ops02-restauracion-probada.md).
 
