@@ -20,47 +20,6 @@
     },
     "tandas": [
       {
-        "id": "inc-2809-01-inicio-ciclo",
-        "t": {
-          "es": "Inicio y Mi ciclo",
-          "en": "Home and My cycle",
-          "ca": "Inici i El meu cicle"
-        },
-        "items": {
-          "es": [
-            "1. Activa Presupuesto por ciclo de cobro en Ajustes → Dinero. Compara el balance y lo que queda en Gastos con Inicio: el porcentaje, el gasto neto y el disponible deben cuadrar. Desactiva el ajuste: Inicio debe mostrar el gasto mensual y decir «Mes en curso»."
-          ],
-          "en": [
-            "1. Enable Budget by pay cycle in Settings → Money. Compare the balance and amount left in Spending with Home: the percentage, net spending and amount left should agree. Turn the setting off: Home should show monthly spending and say “Month in progress”."
-          ],
-          "ca": [
-            "1. Activa Pressupost per cicle de cobrament a Ajustos → Diners. Compara el balanç i el que queda a Despeses amb Inici: el percentatge, la despesa neta i el disponible han de quadrar. Desactiva l’ajust: Inici ha de mostrar la despesa mensual i dir «Mes en curs»."
-          ]
-        }
-      }
-    ]
-  },
-  {
-    "v": "4.26.66",
-    "d": "2026-09-28",
-    "t": {
-      "es": "El widget y los gastos bancarios",
-      "en": "Widget and bank expenses",
-      "ca": "El widget i les despeses bancàries"
-    },
-    "items": {
-      "es": [
-        "El widget conserva el banco elegido y sus cifras al volver a la app. Los gastos bancarios pueden usar la información del comercio para su categoría."
-      ],
-      "en": [
-        "The widget keeps the selected bank and its figures when returning to the app. Bank expenses can use merchant information for their category."
-      ],
-      "ca": [
-        "El widget conserva el banc triat i les xifres en tornar a l’app. Les despeses bancàries poden fer servir la informació del comerç per a la categoria."
-      ]
-    },
-    "tandas": [
-      {
         "id": "fin05-widget-reentrada",
         "t": {
           "es": "Widget después de reabrir",
@@ -171,6 +130,27 @@
         }
       }
     ]
+  },
+  {
+    "v": "4.26.66",
+    "d": "2026-09-28",
+    "t": {
+      "es": "El widget y los gastos bancarios",
+      "en": "Widget and bank expenses",
+      "ca": "El widget i les despeses bancàries"
+    },
+    "items": {
+      "es": [
+        "El widget conserva el banco elegido y sus cifras al volver a la app. Los gastos bancarios pueden usar la información del comercio para su categoría."
+      ],
+      "en": [
+        "The widget keeps the selected bank and its figures when returning to the app. Bank expenses can use merchant information for their category."
+      ],
+      "ca": [
+        "El widget conserva el banc triat i les xifres en tornar a l’app. Les despeses bancàries poden fer servir la informació del comerç per a la categoria."
+      ]
+    },
+    "tandas": []
   },
   {
     "v": "4.26.65",
