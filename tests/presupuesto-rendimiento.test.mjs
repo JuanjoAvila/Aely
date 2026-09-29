@@ -101,7 +101,10 @@ const PRESUPUESTO = {
   // idiomas, más la exclusión de transferencias/Bizum señalada por Claude, miden
   // 1.254.924 B minificados y 341.990 B gzip, incluyendo la nómina en concepto bancario.
   // Se añaden 4/1 KiB frente a 4.26.62; quedan 500/26 B de margen medido.
-  minificado: 1226 * 1024,
+  // INC-2809-02: resumen del cobro siempre visible, ayuda reversible por perfil y sus textos
+  // miden 1.256.096 B minificados, 672 B sobre el tope; +1 KiB crudo. Gzip mide 342.346 B
+  // y sigue bajo 335 KiB. El incremento evita esconder el ancla del periodo al plegar.
+  minificado: 1227 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

@@ -549,6 +549,16 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
      —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
   const catsOpen=!(state.settings && state.settings.gastosCatsOff);
+  // La fecha del cobro sigue a la vista al plegar la explicación; ocultarla dejaba «Mi ciclo»
+  // sin una referencia comprobable y la tarjeta larga volvía a ocupar la pantalla (28/9).
+  const cycleHelpOpen=!(state.settings && state.settings.gastosCycleHelpOff);
+  const toggleCycleHelp=useCallback(function(){
+    set(function(s){
+      const st=Object.assign({}, s.settings||{});
+      if(st.gastosCycleHelpOff) delete st.gastosCycleHelpOff; else st.gastosCycleHelpOff=true;
+      return Object.assign({}, s, { settings:st });
+    });
+  },[set]);
   const toggleCats=useCallback(function(){
     set(function(s){
       const st=Object.assign({}, s.settings||{});
@@ -850,15 +860,18 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       ),
       // «Mi ciclo»: enseña QUÉ cobro ancla el ciclo (si el detectado no es el bueno, se corrige
       // apuntando la nómina real como ingreso, o usando Rango…).
-      preset==="cycle" && React.createElement("div",{className:"v4-cycle-box"},
-        cycle
-          ? React.createElement(React.Fragment,null,
-              React.createElement("strong",null,"📅 "+t("g_cycle")),
-              tf("g_cycle_from",{d:cycle.start.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'}), x:"+"+eur0(Math.abs(cycle.inc.amount))+((cycle.inc.merchant&&cycle.inc.merchant!=="Ingreso")?" · "+cycle.inc.merchant:"")}),
-              cycleEnabled && React.createElement("div",{style:{marginTop:6}},t("g_cycle_budget_hint")))
-          : React.createElement(React.Fragment,null,
-              React.createElement("strong",null,t("g_cycle_none_t")),
-              t("g_cycle_none"))
+      preset==="cycle" && React.createElement("div",{className:"v4-cycle-box"+(cycleHelpOpen?"":" compacto"),"data-testid":"gastos-cycle-help"},
+        React.createElement("div",{className:"v4-cycle-head"},
+          React.createElement("div",{className:"v4-cycle-main"},
+            React.createElement("strong",null,cycle?"📅 "+t("g_cycle"):t("g_cycle_none_t")),
+            React.createElement("div",null,cycle
+              ? tf("g_cycle_from",{d:cycle.start.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'}), x:"+"+eur0(Math.abs(cycle.inc.amount))+((cycle.inc.merchant&&cycle.inc.merchant!=="Ingreso")?" · "+cycle.inc.merchant:"")})
+              : t("g_cycle_fallback"))),
+          React.createElement("button",{type:"button",className:"v4-chip",onClick:toggleCycleHelp,
+            "aria-expanded":cycleHelpOpen,"aria-controls":cycleHelpOpen?"gastos-cycle-explanation":undefined},
+            t(cycleHelpOpen?"g_cycle_help_hide":"g_cycle_help_show"))),
+        cycleHelpOpen && React.createElement("div",{id:"gastos-cycle-explanation",className:"v4-cycle-explanation"},
+          cycle ? t(cycleEnabled?"g_cycle_budget_hint":"g_cycle_filter_hint") : t("g_cycle_none"))
       ),
       preset==="custom" && React.createElement("div",null,
         React.createElement("div",Object.assign({className:"range"},stopSwipe),
