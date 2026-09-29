@@ -4864,8 +4864,8 @@ const LANG = {
     tab_metas:"Metas", tab_logros:"Logros",
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
     v4_money_total:"Tu dinero en total", v4_of_month:"del mes", v4_of_cycle:"del ciclo", v4_cycle_start_h:"Aquí empieza tu ciclo",
-    v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.",
-    v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Tu primer mes empieza hoy", v4_hist_empty:"Tu histórico empieza hoy", v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
+    v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.", v4_cycle_net:"Gasto neto desde el cobro: {used} de tus {budget}.", v4_cycle_left:"Te quedan {x}.", v4_cycle_over:"Te faltan {x}.",
+    v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Mes en curso", v4_hist_empty:"Tu histórico empieza hoy", v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_empty:"Nada pendiente este mes. Los recibos aparecen aquí.",
     v4_your_goals:"Tus metas", v4_recent:"Últimos movimientos", v4_recent_empty:"Aún no hay movimientos. Apunta el primero con +.",
     v4_all:"Todos ›", v4_plan_title:"Tu plan del mes", v4_plan_recibos:"Recibos", v4_plan_deudas:"Deudas", v4_plan_metas:"Metas",
@@ -8399,8 +8399,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   // El texto de Inicio vuelve al que el dueño usaba antes de la tanda rechazada (28/9).
   let stCls="st", stHead=hasMonthActivity ? t("st_good_h") : t(bud.cycle?"v4_cycle_start_h":"st_start_h");
   if(ratio>1 || overTrack&&ratio>0.85){ stCls="st bad"; stHead=t("st_over_h"); }
-  else if(ratio>0.8 || !overTrack&&ratio>0.8){ stCls="st warn"; stHead=t("st_tight_h"); }
-  else if(ratio<=0.8 && !overTrack){ stCls="st"; stHead=hasMonthActivity ? t("st_good_h") : t(bud.cycle?"v4_cycle_start_h":"st_start_h"); }
+  else if(ratio>0.8){ stCls="st warn"; stHead=t("st_tight_h"); }
 
   // Próximos cargos: misma regla que Plan›Recibos (día del mes + isPaidIn). Antes usaba
   // f.day crudo y mostraba recibos ya cobrados (luz/seguros) — feedback 2026-07-17.
@@ -8563,14 +8562,20 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:stCls}, stHead),
           React.createElement("div",{className:"ph"},
-            tf("v4_budget_spent",{spent:eur0(bud.spent),budget:eur0(budAmt)}),
+            // El anillo y «quedan» usan gasto menos ingresos; en ciclo decir «has gastado»
+            // con el bruto contradecía ambos aunque Gastos cuadrase (feedback 28/9).
+            bud.cycle
+              ? tf("v4_cycle_net",{used:eur(bud.against),budget:eur(budAmt)})
+              : tf("v4_budget_spent",{spent:eur0(bud.spent),budget:eur0(budAmt)}),
             " ",
-            rem>=0 ? (!bud.cycle?tf("v4_budget_daily",{x:eur0(Math.max(0,dailyAllow))}):null) : t("st_over_l")
+            bud.cycle
+              ? tf(rem>=0?"v4_cycle_left":"v4_cycle_over",{x:eur(Math.abs(rem))})
+              : rem>=0 ? tf("v4_budget_daily",{x:eur0(Math.max(0,dailyAllow))}) : t("st_over_l")
           )
         )
       ),
       React.createElement("div",{className:"v4-budget-foot"},
-        !bud.cycle && (function(){
+        bud.cycle ? React.createElement("span",null,t("g_cycle")) : (function(){
           const n=budgetStreak?budgetStreak.current:0;
           return React.createElement("span",{"data-testid":"dash-budget-streak"},n>0?tf("v4_streak",{n:n}):t("v4_streak_zero"));
         })(),

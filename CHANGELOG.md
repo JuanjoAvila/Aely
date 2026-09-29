@@ -1,3 +1,9 @@
+## [4.26.66] — 2026-09-29 · INC-2809-01, cifras coherentes en Inicio
+
+- Promoción selectiva de `inc-2809-01-inicio-ciclo`, aprobada expresamente tras beta 4.26.67.1. La candidata nace de main 4.26.65; incorpora solo la presentación de Inicio y sus pruebas. Conserva APK48, Edge, SQL y el workflow manual de Supabase.
+- En ciclo, la frase de Inicio usa `bud.against` (gasto menos ingresos recibidos), igual que el anillo y el disponible de Gastos. Expresa neto y margen con céntimos; en mes natural conserva el gasto bruto y la proyección diaria. Una racha de cero meses cerrados deja de afirmar que hoy es el primer día.
+- El brief de la incidencia registra SHAs, pruebas, revisión y artefactos servidos. Las cinco tandas ligadas a APK51 permanecen en beta con aceptación independiente.
+
 ## [4.26.65] — 2026-09-28 · Mi ciclo cuenta todos los ingresos del período
 
 - El dueño aprobó el 28/9 las nueve tandas pendientes, incluida la corrección visual de Inicio y el pago real del widget. Esta entrega reconstruye desde `main` las cuatro tandas exclusivamente web (Inicio/Gastos, saldo de nómina adelantada y las dos de Mi ciclo). Las otras cinco conservan una entrega nativa propia: mantener APK48 y el workflow manual de Supabase evita anunciar APK51 o reactivar despliegues automáticos/migraciones por un merge de beta. La tanda de Cuotas ya está en producción 4.26.59. [Matriz y límites](docs/briefs/promocion-aprobadas-2026-09-28.md).
