@@ -1,5 +1,23 @@
 # Backlog operativo — Aely
 
+## Dos reportes de producción · 29 de septiembre de 2026
+
+Fuente: relato directo del dueño sobre su widget y la cuenta de su pareja en producción. Son
+observaciones, no causas reproducidas; faltan versión web/APK, texto exacto del aviso y un caso
+sanitizado. No consultar ni copiar movimientos familiares al repo público. Registrar y ordenar
+estos seguimientos sin implementar ni cambiar datos reales en esta tanda.
+
+| ID / prioridad provisional | Síntoma y comprobación pendiente | Criterio de cierre |
+|---|---|---|
+| **INC-2909-01 · P1 · widget y periodo/modo** | Al activar «Mi ciclo», el widget sigue enseñando las cifras anteriores. El cliente actual envía al widget el mes natural aunque Inicio y Gastos usen el ciclo; comprobar además la elección «Gastos e ingresos» frente a «Balance» y cada vía que actualiza el widget (app abierta, reentrada y app cerrada). Relacionado con FIN-05, pero es una aceptación distinta. | El widget indica qué periodo y magnitud enseña y coincide con la selección activa y las cifras de la app para ese mismo periodo, también al cambiar de modo o de mes. Verificar Android real y la ruta nativa/ingest antes de darlo por cerrado; si el contrato exige APK o servidor nuevos, tratarlos como entregas propias. |
+| **INC-2909-02 · P1 · 0 % al salir de Mi ciclo** | En la cuenta de la pareja, Mi ciclo parece correcto; al desactivarlo, el anillo/barra de Inicio cae a **0 %** pese a haber compras del mes. Es un caso nuevo tras INC-2809-01: revisar periodo natural, modo «Gastos e ingresos»/«Balance», presupuesto, filtros/bancos y gasto bruto frente a neto; no deducir la causa del relato. | Con gastos computables del mes, cambiar ciclo sí/no no presenta 0 % por error de estado o por compensación de ingresos. Si se agotó el presupuesto, comunicar el límite/exceso de forma coherente; si falta un dato necesario, mostrarlo como desconocido y explicarlo. Reproducción con dos perfiles sintéticos y DOM real, sin tocar la cuenta familiar. |
+| **INC-2909-03 · P1 · retirada CaixaBank sin salida clara** | Una retirada de efectivo importada de CaixaBank apareció como gasto y, al intentar corregirla, la pareja recibió un aviso relativo al banco y no logró cambiar su clasificación. La app prevé que un cajero sea traspaso neutro y ofrece pasar el efectivo a la cuenta Efectivo, pero hay que identificar la fila, el control pulsado y el texto exacto del aviso: no está demostrado que el selector de categoría fuera el que se bloqueó. | Poder reconocer o corregir explícitamente la retirada como movimiento neutro y, si procede, reflejar el efectivo una sola vez, conservando importe, origen bancario e identidad. Distinguir en la UI qué campo fija el banco y cuál puede corregir la persona. Probar importación, edición, sincronización posterior y dos dispositivos; sin recategorizar el histórico en masa. |
+| **UX-2909-04 · P1 · datos sin sincronizar y duplicado manual** | La pareja vio un resultado negativo sin saber qué hacer. Había apuntado la nómina manualmente; al sincronizar los bancos al día siguiente apareció el ingreso bancario y también gastos que faltaban antes de la sincronización. Borrar el apunte manual resolvió ese caso, pero la experiencia no explicó la antigüedad de los datos ni la posible duplicidad. La sincronización bancaria es deliberadamente a demanda. | Hacer visible cuándo se actualizó cada banco y cuándo una cifra depende de datos pendientes; dar una acción de sincronizar y una explicación contextual del negativo. Al llegar un ingreso bancario que pueda coincidir con uno manual, ofrecer revisión sin sumar dos veces ni borrar por parecido automáticamente. Validar el recorrido con una persona que no conozca la app, con datos sintéticos y sin introducir sincronización automática. |
+
+Orden provisional: primero la cifra engañosa del 0 % y la retirada que cuenta como gasto;
+después coherencia del widget y claridad de sincronización/duplicados. Reordenar por evidencia
+de reproducción e impacto real, sin dar por resuelto ningún punto por la corrección de otro.
+
 ## INC-2809-01 · promoción selectiva publicada · 29 de septiembre de 2026
 
 El dueño aprobó expresamente la corrección de Inicio/Mi ciclo de la beta 4.26.67.1 (`383c0120`, [Action 36481177084](https://github.com/JuanjoAvila/Aely/actions/runs/36481177084) SUCCESS). La promoción web 4.26.66 se reconstruyó desde main 4.26.65 e incluyó solo `inc-2809-01-inicio-ciclo`; PR #61, CI completa, Claude GO, Pages y el ZIP servido confirman la publicación. [Brief y evidencia](briefs/inc-2809-01-inicio-ciclo.md). Las cinco tandas ligadas a APK51 conservan su entrega propia y el panel de beta. INC-2809-02, la explicación persistente de Mi ciclo, es el siguiente objetivo independiente.
