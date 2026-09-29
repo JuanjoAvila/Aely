@@ -16,7 +16,7 @@ promover solo esas tandas; si no hay ninguna publicable, toma un objetivo pendie
 
 ## Incidencias comunicadas · 28 de septiembre de 2026
 
-- **INC-2809-01 · P0 · Inicio / Mi ciclo.** En Inicio el anillo del ciclo usaba gasto neto y la frase decía gasto bruto; la racha cero también afirmaba «Tu primer mes empieza hoy» con actividad visible. La candidata web 4.26.67 unifica gasto neto, porcentaje y disponible, y cambia el pie a «Mes en curso». [Diagnóstico y pruebas sintéticas](briefs/inc-2809-01-inicio-ciclo.md). Pendientes CI, beta servida y veredicto móvil; producción sigue en 4.26.65. No se incorpora dato privado ni se modifica el widget.
+- **INC-2809-01 · cerrado en web 4.26.66.** La beta 4.26.67.1 fue aprobada; PR #61, CI completa, Claude GO y Pages verificaron la promoción selectiva. Inicio muestra gasto neto, porcentaje y disponible coherentes con Gastos; la racha cero dice «Mes en curso». La tanda se retira del panel beta sin tocar widget ni APK. [Evidencia](briefs/inc-2809-01-inicio-ciclo.md).
 - **INC-2809-02 · P2 · aviso explicativo de Mi ciclo.** La explicación persistente en Gastos ocupa demasiado espacio. Permitir ocultarla y recuperarla con ayuda visible, conservando la preferencia. Es otro objetivo; no se implementa en INC-2809-01.
 
 ## Tanda beta y promoción aislada · 28 de septiembre de 2026

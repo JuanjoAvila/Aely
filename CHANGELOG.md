@@ -1,5 +1,7 @@
 ## [4.26.67] — 2026-09-28 · INC-2809-01, Inicio explica el neto de Mi ciclo
 
+- Tras la aprobación de beta 4.26.67.1, PR #61 publicó la corrección web selectiva como 4.26.66. Se retira solo `inc-2809-01-inicio-ciclo` de la cola del panel y se trasladan intactas las cinco tandas pendientes a la nota 4.26.67: la comparación del panel descarta las notas con versión igual a producción. La nota para la familia permanece en Novedades.
+
 - Inicio mezclaba `bud.spent` en «Has gastado» con el anillo y el disponible calculados desde `bud.against = spent − income`. Un ingreso posterior al cobro permitía que Gastos mostrase margen mientras Inicio decía que se habían gastado más euros que el presupuesto. En ciclo, la tarjeta etiqueta ahora el gasto neto, muestra su valor y el disponible con céntimos, y conserva el anillo ligado al mismo `against`; si se supera el límite informa de cuánto falta. El mes natural mantiene su frase de gasto bruto y su proyección diaria; el widget no cambia.
 - Una racha de cero meses cerrados no demuestra que sea el primer mes: el pie pasa a «Mes en curso». El ciclo muestra «Mi ciclo» en la misma posición. E2E sintético abre Inicio y Gastos en es/en/ca con gasto, nómina, ingreso posterior de otro banco y actividad anterior al ciclo, más casos de ingreso superior al gasto y de exceso del presupuesto. El bundle medido ocupa 342.031 B gzip, 15 B sobre el tope previo; se amplía el límite 1 KiB con 1.009 B de margen. No se incorporan capturas ni importes privados.
 
