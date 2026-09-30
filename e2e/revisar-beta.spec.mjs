@@ -875,15 +875,16 @@ test("la marca caduca: si vuelve al día siguiente entra en su app, no en el pan
 });
 
 
-/* INC-2809-01 ya está en producción; sus pasos no deben volver a bloquear la beta nativa. */
-test("producción 4.26.66 deja visibles solo cinco tandas nativas", async ({ page }) => {
+/* Tras promocionar solo Deudas, las otras pruebas deben seguir visibles en la beta. */
+test("producción 4.26.67 conserva las siete tandas pendientes", async ({ page }) => {
   await abrirRevisionBeta(page);
-  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.67.2"; });
-  const panel = await conProduccionEn(page, "4.26.66");
-  await expect(panel.locator(".beta-tanda")).toHaveCount(5);
-  for (const title of ["Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada"]) {
+  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.70.2"; });
+  const panel = await conProduccionEn(page, "4.26.67");
+  await expect(panel.locator(".beta-tanda")).toHaveCount(7);
+  for (const title of ["Arranque con poca conexión", "Ayuda de Mi ciclo", "Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada"]) {
     await expect(panel.locator(".beta-tanda-t").filter({ hasText: title })).toHaveCount(1);
   }
+  await expect(panel).not.toContainText("Deudas terminadas");
   await expect(panel).not.toContainText("Abrir cuotas de deuda");
   await expect(panel).not.toContainText("Diagnósticos más privados");
   await expect(panel).not.toContainText("Inicio, Gastos y nómina");
