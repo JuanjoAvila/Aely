@@ -1,5 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
+
+test.beforeEach(async ({ page }, testInfo) => {
+  if (!testInfo.annotations.some(a => a.type === "own-clock")) await installFixtureClock(page);
+});
 
 /* PULIDO v4 — EL PRIMER MINUTO DE ALGUIEN QUE ACABA DE INSTALAR (P1, P2, P3).
  *
@@ -59,7 +63,7 @@ test("★ P4: Inicio recién instalado ofrece recibos y metas en vez de quedarse
   await expect(metas.getByRole("button")).toBeEnabled();
 });
 
-test("con recibos y metas de verdad, las tarjetas fantasma desaparecen", async ({ page }) => {
+test("con recibos y metas de verdad, las tarjetas fantasma desaparecen", { annotation: { type: "own-clock", description: "Fecha y avances explícitos del escenario" } }, async ({ page }) => {
   // El recibo del día 28 sigue pendiente en la fecha fija del escenario.
   await page.clock.install({ time: new Date("2026-09-15T12:00:00+02:00") });
   await inicio(page, {
@@ -77,7 +81,7 @@ test("★ P5: la racha a cero se dice en positivo, no «0 meses sin pasarte»", 
 });
 
 test("tres presupuestos mensuales cerrados crean racha sin llama", async ({ page }) => {
-  const now=new Date(), budgetByMonth={}, expenses=[];
+  const now=new Date(FIXTURE_NOW), budgetByMonth={}, expenses=[];
   for(let back=1;back<=3;back++){
     const d=new Date(now.getFullYear(),now.getMonth()-back,1);
     const ym=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");

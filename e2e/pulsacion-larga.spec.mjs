@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
+
+test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
 /* MANTENER PULSADO NO PUEDE DEJAR NADA «MARCADO»
  *
@@ -19,7 +21,7 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 test.use({ hasTouch: true, isMobile: true, viewport: { width: 412, height: 900 } });
 
 async function enGastos(page) {
-  const day = new Date().toISOString().slice(0, 10);
+  const day = new Date(FIXTURE_NOW).toISOString().slice(0, 10);
   await seedLoggedInDashboard(page, { budget: 1000, __seedOnce: true, expenses: [
     { id: "g1", date: day + "T18:00:00.000Z", amount: 12.5, merchant: "Mercadona", category: "super", source: "manual" },
     { id: "g2", date: day + "T08:00:00.000Z", amount: 2.4, merchant: "Maquina cafe", category: "bares", source: "manual" },

@@ -317,6 +317,10 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
   // «Lo que aún saldrá» = recibos + traspasos pendientes. Ingresos NUNCA aquí (NO-GO 17/9).
   const pending=pack.pendingBills.concat(pack.transfersPending);
   const paid=pack.paidBills;
+  // La factura variable acredita su bruto real, pero no permite inventar la parte propia
+  // de un compartido: conservar la previsión y nombrarla separada del cargo bancario.
+  const changedPaid=function(x){ return x.paid&&x.paidAmount>0&&Math.abs(x.paidAmount-x.plannedBankAmount)>=0.005; };
+  const hasChangedPaid=paid.some(changedPaid);
   const incomePend=pack.incomePending||[];
   // Atrás real (history) pliega el «Ya has pagado»; Escape del e2e no basta (Claude 1845Z).
   useBackClose(!!paidExpanded, function(){ setPaidExpanded(false); });
@@ -325,6 +329,9 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
     else try{ window.dispatchEvent(new CustomEvent("mc-open-bills")); }catch(e){}
   };
   const rowSub=function(x){
+    // El recibo conserva el banco previsto; el cargo confirmado puede haber salido de otro.
+    var bank=x.paid&&x.paidBank?x.paidBank:x.bank;
+    if(x.overdue) return entOf(x.bank).label+" · "+t("v4_charge_unconfirmed");
     if(simple){
       if(x.kind==="income") return tf("v4s_row_income",{bank:entOf(x.bank).label});
       if(x.kind==="transfer"){
@@ -333,14 +340,15 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
         return inv?tf("v4s_row_invest",{bank:entOf(toEnt).label}):tf("v4s_row_to",{bank:entOf(toEnt||x.bank).label});
       }
       if(x.kind==="debt"||x.kind==="balloon") return tf("v4s_row_debt",{name:x.name});
-      return tf("v4s_row_from",{bank:entOf(x.bank).label});
+      return tf("v4s_row_from",{bank:entOf(bank).label})+(changedPaid(x)?" · "+tf("v4_charge_actual",{x:eur(x.paidAmount)}):"");
     }
     var tag=x.kind==="income"?t("fj_income_tag"):(x.kind==="transfer"?t("fj_transfer_tag"):(x.kind==="debt"||x.kind==="balloon"?t("fj_debt_tag"):t("fj_fixed_tag")));
-    return tag+(x.bank?" · "+entOf(x.bank).label:"");
+    return tag+(bank?" · "+entOf(bank).label:"")+(changedPaid(x)?" · "+tf("v4_charge_actual",{x:eur(x.paidAmount)}):"");
   };
   const row=function(x){
     const income=!!x.income || (x.amount<0);
-    const amt=Math.abs(x.amount);
+    const amt=Math.abs(x.amount),amountLabel=changedPaid(x)?React.createElement(React.Fragment,null,
+      React.createElement("small",{style:{display:"block",fontSize:10,color:"var(--muted)",fontWeight:400}},tf("v4_charge_expected",{x:""}).trim()),eur(amt)):eur(amt);
     const cls=simple?("v4-mov"+(x.paid?" v4-paid":"")):("v4-charge"+(x.paid?" v4-paid":""));
     if(simple){
       return React.createElement("div",{className:cls,key:x.id},
@@ -349,7 +357,7 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
           React.createElement("div",{className:"nm-title"}, x.paid?"✓ "+x.name:x.name),
           React.createElement("div",{className:"meta"}, rowSub(x))
         ),
-        React.createElement("div",{className:"am"+(income?" pos":"")}, (income?"+":"")+eur(amt))
+        React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",amountLabel)
       );
     }
     return React.createElement("div",{className:cls,key:x.id},
@@ -361,12 +369,13 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
         React.createElement("div",null, x.paid?"✓ "+x.name:x.name),
         React.createElement("div",{className:"sub"}, rowSub(x))
       ),
-      React.createElement("div",{className:"am"+(income?" pos":"")}, (income?"+":"")+eur(amt))
+      React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",amountLabel)
     );
   };
+  const paidTotalLabel=hasChangedPaid?tf("v4_charge_expected",{x:eur0(pack.paidBillsTotal)}):eur0(pack.paidBillsTotal);
   const paidLabel=pack.paidBills.length===1
-    ? tf("v4_paid_fold_one",{n:1,amount:eur0(pack.paidBillsTotal)})
-    : tf("v4_paid_fold",{n:pack.paidBills.length,amount:eur0(pack.paidBillsTotal)});
+    ? tf("v4_paid_fold_one",{n:1,amount:paidTotalLabel})
+    : tf("v4_paid_fold",{n:pack.paidBills.length,amount:paidTotalLabel});
   return React.createElement(React.Fragment,null,
     !simple && React.createElement("div",{className:"v4-card v4-card-hero rise"},
       React.createElement("div",{className:"v4-micro"}, tf("v4_plan_left",{month:monthLong(month-1)})),
@@ -405,7 +414,7 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
       incomePend.map(row)
     ),
     !simple && React.createElement("div",{className:"v4-section"},
-      React.createElement("div",{className:"v4-section-h"},t("v4_ya_pagado")+" · "+eur(pack.paidBillsTotal)),
+      React.createElement("div",{className:"v4-section-h"},t("v4_ya_pagado")+" · "+(hasChangedPaid?tf("v4_charge_expected",{x:eur(pack.paidBillsTotal)}):eur(pack.paidBillsTotal))),
       (paidExpanded?paid:paid.slice(0,3)).map(row),
       paid.length>3 && React.createElement("button",{type:"button",className:"v4-link-mini",onClick:function(){ setPaidExpanded(function(v){ return !v; }); }},
         paidExpanded?t("v4_ver_menos"):tf("v4_ver_mas",{n:paid.length-3}))

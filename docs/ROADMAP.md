@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-30 · **v4.26.67** candidata selectiva de INC-2709-02 aprobada: confirmar la liquidación y archivar una deuda sin perder cuotas. [Acta](briefs/inc-2709-02-prod.md). Producción servida **4.26.66** hasta verificar la candidata; beta **4.26.70.1** mantiene las demás tandas, incluida APK51. APK estable **4.26.32/code 48**.
+> Estado a 2026-09-30 · **v4.26.68** candidata separable tras rechazo INC-3009-01: vínculo explícito desde Gastos y prueba durable sin modificar dinero. Inicio y Plan comparten la evidencia; Plan distingue cargo bruto y previsión propia si difieren. Producción activa **4.26.67**, última beta cotejada **4.26.73.1**, tras corrección original rechazada. APK48 estable/APK51 beta; nueva candidata sin publicar ni aceptación móvil. OPS-3009-03 delegado a Claude y FIN-3009-04 solo en backlog. [Acta](briefs/inc-3009-01-cargos.md).
 > Corte anterior verificado (27/9,19:41 UTC): **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](briefs/ops02-restauracion-probada.md).
 > Cierre del día: [backlog completo y14 incidencias](BACKLOG.md#cierre-del-día--27-de-septiembre-de-2026), con crash de cuotas, coherencia Inicio/Gastos/nómina y cargos CaixaBank como primeras prioridades. Ninguna se implementa en este cierre.
 > OPS-01 C: control manual de una función, sin despliegue global y SQL opt-in; entrega de tooling aislada desde main. Estado exacto, pruebas y revisión en [brief C](briefs/ops01-control-2026-09-27.md). A ingest49 quedó activado y cotejado; FIN-06/Wallet aún requiere pago real. B categorize está autorizado pero bloqueado403 por permiso del token; FIN-05, selector y compra TR siguen pendientes.
@@ -235,7 +235,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.67** candidata selectiva de Deudas; producción servida **4.26.66** y beta **4.26.70.1** al prepararla. [Manifiesto](https://juanjoavila.github.io/Aely/version.json). |
+| Web / OTA (`VERSION`) | **4.26.68** candidata INC-3009-01; producción activa **4.26.67**, beta activa **4.26.70.2** antes de integrar. |
 | Beta web / OTA | **4.26.70.1** publicada desde `9b0cc935`: Deudas aprobada, INC-2709-01, INC-2809-02 y cinco tandas nativas conservan su prueba propia. [Action 36624037785](https://github.com/JuanjoAvila/Aely/actions/runs/36624037785). |
 | APK (`versionName` / `versionCode`) | Estable: **4.26.32 / 48**. La APK **4.26.55 / 51** sigue en beta y requiere entrega propia. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
