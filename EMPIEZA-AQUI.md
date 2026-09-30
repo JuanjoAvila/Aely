@@ -11,9 +11,9 @@ sesión del móvil se gastó la mitad trabajando sobre una rama equivocada.
 
 ## 1. Lo primero, siempre
 
-Corte 30/9: producción web 4.26.67 [publicada y cotejada](docs/briefs/inc-2709-02-prod.md) tras el OK exclusivo de `inc-2709-02-deudas-archivo`; beta 4.26.70.2 conserva siete pruebas pendientes. APK estable 48 y beta 51, sin promoción nativa. El usuario notificó además tres fallos independientes: widget sin «Mi ciclo», gas del 25/9 todavía en «Próximos cargos» el día 30 y nómina de Sabadell visible antes de cobrarla. Revalidar ramas, manifiestos, ZIP, SW, Actions y el estado de cada fallo; no dar por correcto un ingreso ni un cargo por la fecha prevista. El [backlog](docs/BACKLOG.md) conserva las prioridades y el límite de cada tanda.
+Corte 30/9: producción web 4.26.67 [publicada y cotejada](docs/briefs/inc-2709-02-prod.md) tras el OK exclusivo de `inc-2709-02-deudas-archivo`; beta 4.26.71.1 conserva las siete pruebas anteriores y añade la del gas. APK estable 48 y beta 51, sin promoción nativa. El usuario notificó además tres fallos independientes: widget sin «Mi ciclo», gas del 25/9 todavía en «Próximos cargos» el día 30 y nómina de Sabadell visible antes de cobrarla. Revalidar ramas, manifiestos, ZIP, SW, Actions y el estado de cada fallo; no dar por correcto un ingreso ni un cargo por la fecha prevista. El [backlog](docs/BACKLOG.md) conserva las prioridades y el límite de cada tanda.
 
-INC-3009-01: corrección sintética en versión fuente beta 4.26.71, pendiente de publicación y prueba móvil. [Acta](docs/briefs/inc-3009-01-cargos.md).
+INC-3009-01: beta 4.26.71.1 publicada y cotejada, CI 36764259812 SUCCESS sobre 79b981ad; pendiente de prueba y aprobación móvil. PR76 permanece en borrador. Siguiente objetivo recomendado: INC-2909-02, 0 % al salir de Mi ciclo, tras volver a comprobar aprobaciones. [Acta](docs/briefs/inc-3009-01-cargos.md).
 
 El corte operativo está en [BACKLOG](docs/BACKLOG.md), [ROADMAP](docs/ROADMAP.md) y el acta más reciente de `docs/briefs/`. Al entrar, actualiza `origin/beta` y `origin/main`, ejecuta `npm run listo` sobre fuente beta efectiva y coteja PR, Actions, manifiestos, ZIP, HTML, SW y APK servidos. Una CI verde o una release publicada no acreditan el veredicto móvil. Si falta `SUPABASE_SERVICE_ROLE_KEY`, `listo` no puede leer aprobaciones y ninguna tanda nueva se presume aprobada.
 

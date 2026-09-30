@@ -1,5 +1,17 @@
 # INC-3009-01 · gas en Próximos cargos · 30/9/2026
 
+## Canal activo y siguiente paso
+
+**Beta 4.26.71.1 publicada y cotejada**, [PR77](https://github.com/JuanjoAvila/Aely/pull/77), merge `79b981ad6a80da941494e8027a8f93e29a1da2fe`, árbol idéntico a la integración `fd1921e4aa667860fec1bd078d3a0100f0854e32`. [Action beta 36764259812](https://github.com/JuanjoAvila/Aely/actions/runs/36764259812) SUCCESS: unitarios, Deno, **500 E2E aprobados y uno omitido**, más **7 de rendimiento**. La candidata separable `1e2395b9afb63eff1a89e6f03b6f3444cdb17e19` tiene [CI 36762809092](https://github.com/JuanjoAvila/Aely/actions/runs/36762809092) SUCCESS: 479 aprobados, tres aprobados al reintentar y uno omitido, más 7 de rendimiento. [PR76](https://github.com/JuanjoAvila/Aely/pull/76) sigue en borrador: no fusionar sin OK específico del dueño.
+
+HTTP beta anuncia 4.26.71.1, huella `bba29bcbdd912837`, coincidente con la huella normalizada de todos los ficheros del ZIP; SHA-256 del ZIP `a6d5da1a52f449048694c49623826a34efaaaf64a18556fe8a7fca0c927204e3`. El HTML está sellado 4.26.71.1 y contiene `fixedPaymentState`; SW `4.26.71.1-2026-09-30-79b981a`. Primera nota 4.26.71 y exactamente **ocho tandas** por encima de producción: gas, arranque/red, ayuda de Mi ciclo y las cinco nativas previas. APK del ZIP y manifiesto beta iguales: 4.26.55/code51. No APK nueva.
+
+Producción permanece en main `12884f48107b82ffc8592c51180f2074a8546139`, web 4.26.67, APK 4.26.32/code48. ZIP servido SHA-256 `4cc6e0ba97a2c9e7c23ece6affbfa23677fae920bc9413532631121f0e547b6d`; HTML/SW HTTP idénticos a los del ZIP, SW `4.26.67-2026-09-30-12884f4`. Este es el corte actual, distinto del primer despliegue de Deudas porque hubo commits documentales posteriores con nuevo sello. No contiene `fixedPaymentState`. No se modificó main, Edge, SQL, datos reales ni puente legacy.
+
+La regresión sintética está corregida; **el caso financiero real permanece pendiente de verificación móvil**. Guion en la tanda `inc-3009-01-cargos`: comprobar el gas en Inicio y Plan, y conservar «Sin pago acreditado» si la app carece de evidencia suficiente. Falta GO independiente de Claude; no se atribuye revisión ni trabajo activo. Local: 103 E2E de integración, motor, sintaxis, idiomas, documentación y tamaño; el runner completo solo falla en memoria-espejo preexistente y omite Deno local, cubierto en CI. Ensayo adicional compartido: bruto bancario ficticio 42 € acredita parte modelada 21 € y Plan cuenta 21 €.
+
+Al relevar: primero revalidar aprobaciones por ID/versión/contenido. Si surge un OK inequívoco, dedicar ese chat solo a la promoción selectiva; revalidar main y preparar la versión exacta porque PR76 no incluye los demás pendientes. Sin aprobación nueva, siguiente objetivo independiente recomendado **INC-2909-02**, 0 % al salir de Mi ciclo, con datos sintéticos y DOM es/en/ca. Widget/nativo y nómina anticipada conservan sus encargos separados.
+
 ## Estado y alcance
 
 Candidata separable desde main `12884f48107b82ffc8592c51180f2074a8546139`, versión fuente 4.26.68. Todavía sin publicación beta al escribir esta sección. Producción HTTP 4.26.67 y beta 4.26.70.2 revalidadas; APK48 estable/APK51 beta. `npm run listo` sobre fuente beta no puede leer veredictos porque falta `SUPABASE_SERVICE_ROLE_KEY`; no consta otra aprobación nueva. No se repite Deudas/PR71.
@@ -13,7 +25,7 @@ El dueño declara pagado el gas del 25/9 que seguía visible el 30/9. Su captura
 - Pago acreditado: fuera de Inicio, en Ya pagado de Plan. Sin acreditar: próximo si hoy/futuro, vencido si su fecha pasó, con «Sin pago acreditado». Sin día: —. No se inventa pago por calendario. Editar el recibo usa esa misma lectura antes de guardar confirmación.
 - No cambia `isPaidIn`, `monthNetForAccount`, bases de cuenta, gastos ni proyecciones monetarias del calendario. La sección de Plan clasifica evidencia de fijos; deudas, puntuales e ingresos conservan su contrato anterior, fuera de este objetivo. La conciliación advisory histórica sigue existiendo y no constituye por sí sola la evidencia estricta de estas tarjetas.
 
-## Pruebas y límites
+## Pruebas y límites de la candidata
 
 `tests/fixed-payment-state.test.mjs` registrado en `steps`: casos adversarios, mensual/schedule, persistencia, edición con PDNG y cero mutación. `e2e/inicio-cargos.spec.mjs` mapeado a Inicio/Plan: pago, vencido sin evidencia, PDNG y recarga en es/en/ca. Se actualizan fixtures de Plan que presentaban pago solo por pasar el día; preservan sus objetivos con confirmación explícita. No hay backend, SQL, migración, APK ni modificación del puente legacy.
 
