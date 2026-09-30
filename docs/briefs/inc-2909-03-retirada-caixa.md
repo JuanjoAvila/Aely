@@ -51,9 +51,21 @@ la oferta retirada. No se despliegan Edge, SQL, migraciones, APK ni datos famili
 
 ## Pruebas y límites
 
-`tests/retirada-bancaria.test.mjs`: 23 casos con método cloud real, incluidos ACK, UPDATE cero,
+`tests/retirada-bancaria.test.mjs`: 26 casos con método cloud real, incluidos ACK, UPDATE cero,
 sesión, UUID divergente, CAS de categoría y campos bancarios, reintento tras commit, dos clientes,
 recarga, doble importación y pull anterior/posterior. Registrado en el runner.
+QA adicional de saldo mostrado (1/10): tres casos, roles `fijos`/`diario`/`ambos`, parten de
+base bancaria 500 € y saldo CLBD 420 € con una retirada BOOK de 80 € ya existente. Ejecutan
+`applyBankBalances`, `insumosSaldoGasto` y `saldoCuentaMostrada`, la fórmula real de Cartera,
+antes y después del ACK: presupuesto 80→0 y banco 420→420, nunca 500 €. Una segunda lectura
+del mismo saldo, importación duplicada y pull independiente de B conservan ese resultado,
+UUID, importe, origen y transacción BOOK. Efectivo permanece en cero y no nace otra cuenta OB:
+sin registro explícito de efectivo no se inventan los 80 € en patrimonio.
+Los campos reales comprobados son `bankIban`, `balSaldo`, `balTipo`, `bankTx` y `obAccounts`;
+`bankTxSnapshot` y `_balanceAsOf` no existen en esta fuente ni en Recibos `74d85bc3`, confirmado
+por coordinación. No se usan propiedades ignoradas como prueba. Esta ampliación cambia solo
+test/documentación, no el runtime `259a0393`. Retirada26, rol-cuenta-sin-salto10 y saldo-por-banco9
+pasan en Node; el nuevo guardián de saldo no se ha ejecutado aún en DOM integrado.
 `e2e/retirada-bancaria.spec.mjs` se registra bajo Gastos: confirmación/cancelación, DOM es/en/ca,
 presupuesto 80→0, origen conservado, recarga, dispositivo B con almacenamiento independiente y
 sincronización a demanda, más errores y timeout. Supabase es un doble; no acredita permisos reales.

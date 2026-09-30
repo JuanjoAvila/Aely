@@ -105,4 +105,46 @@ await check("doble importación bancaria conserva la retirada corregida y sus sa
   assert.equal(ctx.importObExpenses(marked,[tx,tx]),null);
   assert.equal(marked.accounts,imported.accounts);
 });
+for(const role of ["fijos","diario","ambos"])await check(`magnitud bancaria ${role}: ACK 80→0 de presupuesto conserva banco 420 antes/después y tras sync B`,async()=>{
+  const now=new Date(), day=now.toISOString().slice(0,10);
+  const e={...expense,date:now.toISOString(),extId:"withdrawal-book-fixture",noCard:true};
+  const tx={ent:"caixabank",id:e.extId,date:day,amount:80,merchant:e.merchant,card:false,status:"BOOK"};
+  const input={...state(),budget:500,fixed:[],debts:[],oneoffs:[],flows:[],goals:[],obAccounts:[],bankTx:[tx],
+    expenses:[e],accounts:[{id:"cb",ent:"caixabank",value:500,bankIban:"fixture-iban",role,spendFrom:role!=="fijos",inject:0},
+      {id:"cash",ent:"efectivo",value:0,role:"fijos"}]};
+  const links=[{ok:true,aspsp:"CaixaBank",accounts:[{ok:true,uid:"fixture-account",iban:"fixture-iban",
+    balances:[{type:"CLBD",amount:420,currency:"EUR"}],transactions:[tx]}]}];
+  const shown=s=>{
+    const ins=ctx.insumosSaldoGasto(s);
+    return ctx.saldoCuentaMostrada(s.accounts.find(a=>a.id==="cb"),{
+      injTR:ins.injTR,spentByBank:ins.spentByBank,paidNetByBank:ins.paidNetByBank,
+      roundup:ins.roundup,monthlyInvest:ins.monthlyInvest});
+  };
+  const before=ctx.applyBankBalances(input,links).state;
+  assert.equal(before.accounts[0].balSaldo,420,"saldo crudo CLBD ya incluye retirada BOOK de 80");
+  assert.equal(before.accounts[0].balTipo,"CLBD");
+  assert.equal(shown(before),420,"se ejecuta la misma fórmula que pinta Cartera");
+  assert.equal(ctx.monthBudgetStats(before).spent,80);
+  const c=client({row:{...row,fecha:e.date}}), ack=await run(c,e);
+  const marked=ctx.applyRecognizedWithdrawal(before,e,Date.now());
+  assert.equal(ctx.monthBudgetStats(marked).spent,0);
+  assert.equal(ctx.monthBudgetStats(marked).against,0);
+  assert.equal(shown(marked),420,"neutra de presupuesto sigue siendo salida del banco; nunca 500");
+  assert.equal(marked.accounts,before.accounts,"el ACK no cambia base, rastro ni sobre");
+  assert.equal(marked.bankTx,before.bankTx,"la evidencia BOOK se conserva");
+  assert.equal(marked.obAccounts,before.obAccounts,"no crea una cuenta bancaria extra");
+  assert.equal(marked.accounts[1].value,0,"sin registro explícito el efectivo sigue en cero");
+  assert.equal(ctx.insumosSaldoGasto(marked).spentByBank.caixabank,ctx.insumosSaldoGasto(before).spentByBank.caixabank);
+  const repeated=ctx.applyBankBalances(marked,links).state;
+  assert.equal(shown(repeated),420,"mismo saldo bancario después de sync no introduce otros 80");
+  assert.equal(repeated.accounts[0].value,before.accounts[0].value);
+  assert.equal(ctx.importObExpenses(repeated,[tx,tx]),null);
+  const b=structuredClone(before);
+  const merge=ctx.mergeExpensesFromCloud(b.expenses,[ctx.expenseFromRow(ack)],Date.now()+1);
+  const syncedB=ctx.applyBankBalances({...b,expenses:merge.list},links).state;
+  assert.equal(merge.list.length,1);assert.equal(merge.list[0].id,e.id);
+  assert.equal(ctx.monthBudgetStats(syncedB).spent,0);assert.equal(shown(syncedB),420);
+  assert.equal(syncedB.accounts[0].value,before.accounts[0].value);
+  assert.equal(syncedB.accounts[1].value,0,"no se suma efectivo por el pull de B");
+});
 console.log(`retirada-bancaria: ${cases} casos OK`);
