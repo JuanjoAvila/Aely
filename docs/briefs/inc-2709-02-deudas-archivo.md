@@ -23,3 +23,7 @@ Producción HTTP y ZIP seguían en web 4.26.66, HTML 4.26.66, SW `4.26.66-2026-0
 ## Aceptación comunicada por el dueño
 
 El 29/9, el dueño comunicó en este chat que **ya aprobó esta tanda**. No se pudo consultar el registro remoto de veredictos porque `npm run listo` carece de `SUPABASE_SERVICE_ROLE_KEY` en este worktree; la aprobación explícita en el chat se registra como tal, sin atribuirle una prueba móvil concreta que no quedó descrita aquí. La promoción selectiva de `inc-2709-02-deudas-archivo` a producción queda pendiente al cerrar la jornada: exige aislar solo esta tanda y comprobar el resultado servido. INC-2709-01, INC-2809-02 y las cinco tandas nativas conservan sus propios veredictos.
+
+## Continuidad del panel beta al promover solo Deudas
+
+El 30/9 se preparó una candidata de producción `4.26.67` desde `main` que incluye únicamente el cambio de Deudas. Como `betaChecklist` solo muestra versiones mayores que producción, dejar las cinco pruebas nativas en la nota beta `4.26.67` las ocultaría sin haberlas aprobado. En la beta, se retiró la tanda aprobada de `4.26.70` y se movieron esas cinco pruebas a `4.26.68`, junto a la ayuda de Mi ciclo; las notas `4.26.70` y `4.26.67` conservan `tandas:[]` para impedir que reaparezcan como una prueba general. La prueba `beta-tandas-vacias` simula producción `4.26.67` y exige que permanezcan las siete tandas ajenas a Deudas. Este movimiento no promociona código adicional ni acredita el resultado de las otras pruebas.
