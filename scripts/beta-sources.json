@@ -1,0 +1,783 @@
+{
+  "inc-3009-01-cargos": {
+    "historial": [
+      "4.26.71/inc-3009-01-cargos"
+    ],
+    "web": [
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function fixedPaymentState(",
+        "to": "function pendingBillsSummary("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function recNorm(",
+        "to": "function categoryOfBankTx("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function patchFixedById(",
+        "to": "function removeFixedById("
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const overdue=[];",
+        "to": "  const upcoming="
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const upcoming=",
+        "to": "  // 🎉 Deudas"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "    !showSkel && upcoming.length===0",
+        "to": "    !showSkel && upcoming.length>0"
+      }
+    ]
+  },
+  "beta-panel-veredictos": {
+    "web": [
+      {
+        "file": "src/modules/10-app-components.js",
+        "from": "function betaHuella(",
+        "to": "function ActivityPanel("
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "from": "            beta && (function(){",
+        "to": "            (function(){\n              // La bandera CRUDA:"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function mcBetaLog(",
+        "to": "var _mcSentryReady="
+      },
+      {
+        "file": "src/modules/12-boot.js",
+        "from": "var _mcProdVerCache=null;",
+        "to": "/* CAMBIAR DE CANAL NO ES"
+      },
+      "scripts/beta-revisions.mjs"
+    ]
+  },
+  "fin05-widget-reentrada": {
+    "web": [
+      {
+        "file": "src/modules/00-core.js",
+        "from": "const CONFIG = {",
+        "to": "function mcScheduleIdle("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "const CAT_NEUTRAS =",
+        "to": "const catOf ="
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function isEfectivoEnt(",
+        "to": "function fxTableOf("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function isManualExpenseSource(",
+        "to": "function _errCloudMsg("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function cleanNote(",
+        "to": "function gastoDelMesPorBanco("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function gastoDelMesPorBanco(",
+        "to": "function ensureEfectivoAccount("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function expenseFromRow(",
+        "to": "function validCloudState("
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "var _pdCache=new Map();",
+        "to": "function applyAccountRole("
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "function accFixed(",
+        "to": "const uid="
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "const FREQ_M =",
+        "to": "const GOAL_EMOJIS="
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "from": "function chargeMonths("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function flowEarlyBankMatches(",
+        "to": "/* UNA sola fuente de cargos del mes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function bankPendingEvents(",
+        "to": "function recNorm("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function recNorm(",
+        "to": "const REC_GRACE="
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function reservedSince(",
+        "to": "function categorySpentByMonth("
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "function lastPaydayOf(",
+        "to": "function presetBoundsMs("
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const totals=useMemo(()=>{",
+        "to": "    const obLiquid="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "    const bankBal={};",
+        "to": "    const sinProgramar="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  },[state.accounts,state.expenses,state.bankTx,state.investments",
+        "to": "  const budgetMonth="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // App Android: alimenta el widget de pantalla de inicio",
+        "to": "  // Tour de bienvenida:"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "async function mcPullExpensesPaged(",
+        "to": "const cloud ="
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "    async pullExpenses(){",
+        "to": "    async addExpense("
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "function fixMovInvasion(",
+        "to": "function seedFlows("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function reconcileObDupes(",
+        "to": "function esGemeloCashback("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function esGemeloCashback(",
+        "to": "function histParesCashback("
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const wR=useRef(false)",
+        "to": "  const syncFromCloud=function("
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  useEffect(function(){\n    if(!uid) return;\n    const onVis=function(){",
+        "to": "  // APK alpha22:"
+      }
+    ],
+    "native": [
+      "android/app/src/main/java/com/micartera/app/WidgetSnapshotArbiter.java",
+      "android/app/src/main/java/com/micartera/app/MiCarteraPlugin.java",
+      "android/app/src/main/java/com/micartera/app/MiCarteraWidget.java"
+    ],
+    "auditoria": {
+      "sha": "17aeacc03f595412c044d276c900707cbbd008c8",
+      "version": "4.26.68.1",
+      "revisiones": {
+        "web": "d27d622918f5ad197d56b51bd6cd2bd14f2659698ee60e8df732f3ff170a4282",
+        "native": "8db7c86ba63459fb188c411dfacaa6156f64f5b30eca1af3d9538b49538b3e95"
+      }
+    }
+  },
+  "fin05-pago-cerrada": {
+    "web": [
+      {
+        "file": "src/modules/00-core.js",
+        "from": "const CONFIG = {",
+        "to": "function mcScheduleIdle("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "const CAT_NEUTRAS =",
+        "to": "const catOf ="
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function isEfectivoEnt(",
+        "to": "function fxTableOf("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function isManualExpenseSource(",
+        "to": "function _errCloudMsg("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function cleanNote(",
+        "to": "function gastoDelMesPorBanco("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function gastoDelMesPorBanco(",
+        "to": "function ensureEfectivoAccount("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function expenseFromRow(",
+        "to": "function validCloudState("
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "var _pdCache=new Map();",
+        "to": "function applyAccountRole("
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "function accFixed(",
+        "to": "const uid="
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "const FREQ_M =",
+        "to": "const GOAL_EMOJIS="
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "from": "function chargeMonths("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function flowEarlyBankMatches(",
+        "to": "/* UNA sola fuente de cargos del mes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function bankPendingEvents(",
+        "to": "function recNorm("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function recNorm(",
+        "to": "const REC_GRACE="
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function reservedSince(",
+        "to": "function categorySpentByMonth("
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "function lastPaydayOf(",
+        "to": "function presetBoundsMs("
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const totals=useMemo(()=>{",
+        "to": "    const obLiquid="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "    const bankBal={};",
+        "to": "    const sinProgramar="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  },[state.accounts,state.expenses,state.bankTx,state.investments",
+        "to": "  const budgetMonth="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // App Android: alimenta el widget de pantalla de inicio",
+        "to": "  // Tour de bienvenida:"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "async function mcPullExpensesPaged(",
+        "to": "const cloud ="
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "    async pullExpenses(){",
+        "to": "    async addExpense("
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "function fixMovInvasion(",
+        "to": "function seedFlows("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function reconcileObDupes(",
+        "to": "function esGemeloCashback("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function esGemeloCashback(",
+        "to": "function histParesCashback("
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const wR=useRef(false)",
+        "to": "  const syncFromCloud=function("
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  useEffect(function(){\n    if(!uid) return;\n    const onVis=function(){",
+        "to": "  // APK alpha22:"
+      }
+    ],
+    "native": [
+      "android/app/src/main/java/com/micartera/app/WidgetSnapshotArbiter.java",
+      "android/app/src/main/java/com/micartera/app/MiCarteraPlugin.java",
+      "android/app/src/main/java/com/micartera/app/TrExpenseListener.java",
+      "android/app/src/main/java/com/micartera/app/MiCarteraWidget.java"
+    ],
+    "edge": [
+      "supabase/functions/ingest/index.ts",
+      "supabase/functions/_shared/ingest_logic.ts",
+      "supabase/functions/_shared/wallet.ts"
+    ],
+    "auditoria": {
+      "sha": "17aeacc03f595412c044d276c900707cbbd008c8",
+      "version": "4.26.68.1",
+      "revisiones": {
+        "web": "d27d622918f5ad197d56b51bd6cd2bd14f2659698ee60e8df732f3ff170a4282",
+        "native": "2076258ee38657c4cbfd3abb52a19cdf931f496f4d0593b1ff0bbaaa0416ed1a",
+        "edge": "8758af5c07c075262fb3481623748a2353e436d0d1ce3a71334bfaa9627b21d1"
+      }
+    }
+  },
+  "tr-descripcion-clasificacion": {
+    "web": [
+      {
+        "file": "src/modules/00-core.js",
+        "from": "const CATEGORIES = [",
+        "to": "const ENT = {"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function isManualExpenseSource(",
+        "to": "function _errCloudMsg("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function cleanNote(",
+        "to": "function gastoDelMesPorBanco("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function expenseFromRow(",
+        "to": "function mergeExpenses("
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "var _pdCache=new Map();",
+        "to": "function relDay("
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "const startOfMonth=",
+        "to": "const mk="
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "function accRole(",
+        "to": "function sameEntList("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function categoryOfBankTx(",
+        "to": "const CUOTA_DIAS="
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function recNorm(",
+        "to": "const REC_GRACE="
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "const DUP_DIAS_MS=",
+        "to": "function bankReadWarnings("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function histFlattenHistoryLinks(",
+        "to": "function histCanUndo("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function enrichNotesFromBankTx(",
+        "to": "function MonthPicker("
+      }
+    ],
+    "native": [
+      "android/app/src/main/java/com/micartera/app/TrExpenseListener.java"
+    ],
+    "edge": [
+      "supabase/functions/bank-sync/index.ts",
+      "supabase/functions/_shared/enablebanking.ts"
+    ],
+    "auditoria": {
+      "sha": "17aeacc03f595412c044d276c900707cbbd008c8",
+      "version": "4.26.68.1",
+      "revisiones": {
+        "web": "e26f0b5f1b03a6bf8480a9b7a25d91b69401001056c01ab2fe77e08cc3a14df7",
+        "native": "b82b941e4c7a1daf42a390ada1b353e052e0fab2716182f7e4b91c9f434b62f6",
+        "edge": "487b4776e900de6766e78b54109af4053b3b172d3428f45252cf7ff4591d3015"
+      }
+    }
+  },
+  "widget-banco": {
+    "web": [
+      {
+        "file": "src/modules/00-core.js",
+        "from": "const CONFIG = {",
+        "to": "function mcScheduleIdle("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "const CAT_NEUTRAS =",
+        "to": "const catOf ="
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function isEfectivoEnt(",
+        "to": "function fxTableOf("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function isManualExpenseSource(",
+        "to": "function _errCloudMsg("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function cleanNote(",
+        "to": "function gastoDelMesPorBanco("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function gastoDelMesPorBanco(",
+        "to": "function ensureEfectivoAccount("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function expenseFromRow(",
+        "to": "function validCloudState("
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "var _pdCache=new Map();",
+        "to": "function applyAccountRole("
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "function accFixed(",
+        "to": "const uid="
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "const FREQ_M =",
+        "to": "const GOAL_EMOJIS="
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "from": "function chargeMonths("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function flowEarlyBankMatches(",
+        "to": "/* UNA sola fuente de cargos del mes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function bankPendingEvents(",
+        "to": "function recNorm("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function recNorm(",
+        "to": "const REC_GRACE="
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function reservedSince(",
+        "to": "function categorySpentByMonth("
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "function lastPaydayOf(",
+        "to": "function presetBoundsMs("
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const totals=useMemo(()=>{",
+        "to": "    const obLiquid="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "    const bankBal={};",
+        "to": "    const sinProgramar="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  },[state.accounts,state.expenses,state.bankTx,state.investments",
+        "to": "  const budgetMonth="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // App Android: alimenta el widget de pantalla de inicio",
+        "to": "  // Tour de bienvenida:"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "from": "    natPlugin() && grp(\"widget\",\"💳\",t(\"st_widget_bank\"),",
+        "to": "    natPlugin() && grp(\"updates\",\"⬇️\","
+      }
+    ],
+    "native": [
+      "android/app/src/main/java/com/micartera/app/MiCarteraPlugin.java",
+      "android/app/src/main/java/com/micartera/app/MiCarteraWidget.java"
+    ],
+    "auditoria": {
+      "sha": "17aeacc03f595412c044d276c900707cbbd008c8",
+      "version": "4.26.68.1",
+      "revisiones": {
+        "web": "2137193d58dcb1ec2d6fe0a3c943d3252a86b6fe72204fac4b89e7506d8671f0",
+        "native": "9bdf23d38cad812c2c93973a70b30f8a7a8c0d5d845b08844a0f8adee81ee894"
+      }
+    }
+  },
+  "widget-app-cerrada": {
+    "web": [
+      {
+        "file": "src/modules/00-core.js",
+        "from": "const CONFIG = {",
+        "to": "function mcScheduleIdle("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "const CAT_NEUTRAS =",
+        "to": "const catOf ="
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function isEfectivoEnt(",
+        "to": "function fxTableOf("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function isManualExpenseSource(",
+        "to": "function _errCloudMsg("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function cleanNote(",
+        "to": "function gastoDelMesPorBanco("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function gastoDelMesPorBanco(",
+        "to": "function ensureEfectivoAccount("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function expenseFromRow(",
+        "to": "function validCloudState("
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "var _pdCache=new Map();",
+        "to": "function applyAccountRole("
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "function accFixed(",
+        "to": "const uid="
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "const FREQ_M =",
+        "to": "const GOAL_EMOJIS="
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "from": "function chargeMonths("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function flowEarlyBankMatches(",
+        "to": "/* UNA sola fuente de cargos del mes"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function bankPendingEvents(",
+        "to": "function recNorm("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function recNorm(",
+        "to": "const REC_GRACE="
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function reservedSince(",
+        "to": "function categorySpentByMonth("
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "function lastPaydayOf(",
+        "to": "function presetBoundsMs("
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const totals=useMemo(()=>{",
+        "to": "    const obLiquid="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "    const bankBal={};",
+        "to": "    const sinProgramar="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  },[state.accounts,state.expenses,state.bankTx,state.investments",
+        "to": "  const budgetMonth="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // App Android: alimenta el widget de pantalla de inicio",
+        "to": "  // Tour de bienvenida:"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "async function mcPullExpensesPaged(",
+        "to": "const cloud ="
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "    async pullExpenses(){",
+        "to": "    async addExpense("
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "function fixMovInvasion(",
+        "to": "function seedFlows("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function reconcileObDupes(",
+        "to": "function esGemeloCashback("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function esGemeloCashback(",
+        "to": "function histParesCashback("
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const wR=useRef(false)",
+        "to": "  const syncFromCloud=function("
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  useEffect(function(){\n    if(!uid) return;\n    const onVis=function(){",
+        "to": "  // APK alpha22:"
+      }
+    ],
+    "native": [
+      "android/app/src/main/java/com/micartera/app/WidgetSnapshotArbiter.java",
+      "android/app/src/main/java/com/micartera/app/MiCarteraPlugin.java",
+      "android/app/src/main/java/com/micartera/app/TrExpenseListener.java",
+      "android/app/src/main/java/com/micartera/app/MiCarteraWidget.java"
+    ],
+    "edge": [
+      "supabase/functions/ingest/index.ts",
+      "supabase/functions/_shared/ingest_logic.ts",
+      "supabase/functions/_shared/wallet.ts"
+    ],
+    "auditoria": {
+      "sha": "17aeacc03f595412c044d276c900707cbbd008c8",
+      "version": "4.26.68.1",
+      "revisiones": {
+        "web": "d27d622918f5ad197d56b51bd6cd2bd14f2659698ee60e8df732f3ff170a4282",
+        "native": "2076258ee38657c4cbfd3abb52a19cdf931f496f4d0593b1ff0bbaaa0416ed1a",
+        "edge": "8758af5c07c075262fb3481623748a2353e436d0d1ce3a71334bfaa9627b21d1"
+      }
+    }
+  },
+  "inc-2709-01-arranque-red": {
+    "web": [
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const [splashGone,setSplashGone]",
+        "to": "  const nameGuess="
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  var t0=Date.now(), MINIMO=520",
+        "to": "})();</script>"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function mcBootReady(){",
+        "to": "/* EJE DE UN GESTO:"
+      }
+    ],
+    "auditoria": {
+      "sha": "26972970d216f272b0d555d7d8548bb99afd6ba5",
+      "version": "4.26.69.1",
+      "revisiones": {
+        "web": "4e9d7540e4550fb07fa1fab49e271d0f7a096799994a39f7a9e7ff833c116749"
+      }
+    }
+  },
+  "inc-2809-02-ayuda-ciclo": {
+    "web": [
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "  const cycleHelpOpen=",
+        "to": "  const toggleCats="
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "      preset===\"cycle\" && React.createElement(\"div\",{className:\"v4-cycle-box\"",
+        "to": "      preset===\"custom\" &&"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-cycle-box{",
+        "to": "  .v4-cycle-box strong{"
+      }
+    ],
+    "auditoria": {
+      "sha": "17aeacc03f595412c044d276c900707cbbd008c8",
+      "version": "4.26.68.1",
+      "revisiones": {
+        "web": "7332880ccdad86a6fa2302c07769fe7f542b157c7ceec1a82276b3bace9ca9a9"
+      }
+    }
+  }
+}

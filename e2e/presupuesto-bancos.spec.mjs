@@ -7,10 +7,12 @@
  * en pantalla: un sync fallido lo pisa.
  */
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
+
+test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
 function monthIso(day) {
-  const n = new Date();
+  const n = new Date(FIXTURE_NOW);
   return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), day, 12, 0, 0)).toISOString();
 }
 
@@ -79,7 +81,7 @@ test("Mis bancos ya no enseña el bloque de gasto diario; vive en Cartera", asyn
 });
 
 test("activar EXTRA en Cartera 40→60 sella el 50%; desactivar no borra filas", async ({ page }) => {
-  const ym = new Date().toISOString().slice(0, 7);
+  const ym = new Date(FIXTURE_NOW).toISOString().slice(0, 7);
   await abrirCarteraEditar(page, {
     accounts: [
       { id: "a", ent: "sabadell", name: "Sabadell", value: 500, role: "diario", spendFrom: true },
@@ -110,7 +112,7 @@ test("activar EXTRA en Cartera 40→60 sella el 50%; desactivar no borra filas",
 });
 
 async function cruzarUmbral(page, fromSpent, addSpent, bnKey) {
-  const ym = new Date().toISOString().slice(0, 7);
+  const ym = new Date(FIXTURE_NOW).toISOString().slice(0, 7);
   await abrirCarteraEditar(page, {
     accounts: [
       { id: "a", ent: "sabadell", name: "Sabadell", value: 500, role: "diario", spendFrom: true },

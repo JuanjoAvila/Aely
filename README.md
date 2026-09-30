@@ -32,6 +32,7 @@ mi-cartera/
 │   ├── build-order.json    #     Orden de ensamblado de módulos
 │   └── modules/            #     17 ficheros JS (core, i18n, motor, app, boot, v4, ayuda…)
 ├── public/                 # Artefacto desplegable (generado + estáticos)
+│   ├── beta-delivery.json # Recibo generado del código web ensamblado
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
@@ -41,6 +42,8 @@ mi-cartera/
 │                           #  sintaxis de las Edge Functions, despliegue manual de Supabase y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
 ├── scripts/
+│   ├── beta-sources.json # Alcances auditados de revisiones beta
+│   ├── beta-revisions.mjs # Identidad por fuente; contratos en tests/beta-sources.test.mjs
 │   ├── build-app.mjs       # Ensambla src/ → public/index.html
 │   ├── run-tests.mjs       # build + unit + Deno + E2E; tiempos por etapa en test-results/
 │   └── stamp-version.mjs

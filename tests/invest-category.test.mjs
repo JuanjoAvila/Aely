@@ -15,8 +15,11 @@
  *      movimiento real (`source:"ob"`) — el dato real gana, no se suma encima.
  */
 import assert from "node:assert/strict";
+import { mock } from "node:test";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
+// El mes de estas filas no debe depender de la hora UTC de CI al abrir mes en Madrid.
+mock.timers.enable({ apis: ["Date"], now: new Date("2026-09-15T12:00:00Z") });
 const ctx = loadPureLogicFromFile();
 
 function t(name, fn) {
