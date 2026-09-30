@@ -18,30 +18,7 @@
         "Quan un deute arriba a zero, pots confirmar que està liquidat i arxivar-lo. Continua disponible amb les quotes a Deutes arxivats."
       ]
     },
-    "tandas": [
-      {
-        "id": "inc-2709-02-deudas-archivo",
-        "t": {
-          "es": "Deudas terminadas",
-          "en": "Finished debts",
-          "ca": "Deutes liquidats"
-        },
-        "items": {
-          "es": [
-            "1. En Plan → Deudas, confirma una deuda con saldo estimado a cero y archívala.",
-            "2. Abre Deudas archivadas, vuelve a mostrarla y busca su cuota antigua en Gastos."
-          ],
-          "en": [
-            "1. In Plan → Debts, confirm a debt with an estimated zero balance and archive it.",
-            "2. Open Archived debts, show it again and find its old payment in Expenses."
-          ],
-          "ca": [
-            "1. A Pla → Deutes, confirma un deute amb saldo estimat zero i arxiva-lo.",
-            "2. Obre Deutes arxivats, torna a mostrar-lo i busca la quota antiga a Despeses."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.69",
@@ -108,28 +85,7 @@
         "en": ["1. In Expenses → My cycle, hide the explanation. The payday date or missing pay notice should remain visible.", "2. Leave and return to Expenses, then restart the app: help should remain folded. Tap Help to read it again."],
         "ca": ["1. A Despeses → El meu cicle, amaga l'explicació. La data del cobrament o l'absència de nòmina ha de continuar visible.", "2. Surt i torna a Despeses i reinicia l'app: l'ajuda ha de continuar plegada. Toca Ajuda per tornar-la a llegir."]
       }
-    }]
-  },
-  {
-    "v": "4.26.67",
-    "d": "2026-09-28",
-    "t": {
-      "es": "Inicio aclara el presupuesto del ciclo",
-      "en": "Home clarifies the cycle budget",
-      "ca": "Inici aclareix el pressupost del cicle"
     },
-    "items": {
-      "es": [
-        "Con el presupuesto por ciclo de cobro activado, Inicio muestra el gasto tras contar los ingresos recibidos y cuánto queda. La tarjeta mensual también indica que el mes está en curso."
-      ],
-      "en": [
-        "With the pay cycle budget enabled, Home shows spending after income received and how much remains. The monthly card also says the month is in progress."
-      ],
-      "ca": [
-        "Amb el pressupost per cicle de cobrament activat, Inici mostra la despesa després dels ingressos rebuts i quant queda. La targeta mensual també indica que el mes és en curs."
-      ]
-    },
-    "tandas": [
       {
         "id": "fin05-widget-reentrada",
         "t": {
@@ -241,6 +197,27 @@
         }
       }
     ]
+  },
+  {
+    "v": "4.26.67",
+    "d": "2026-09-28",
+    "t": {
+      "es": "Inicio aclara el presupuesto del ciclo",
+      "en": "Home clarifies the cycle budget",
+      "ca": "Inici aclareix el pressupost del cicle"
+    },
+    "items": {
+      "es": [
+        "Con el presupuesto por ciclo de cobro activado, Inicio muestra el gasto tras contar los ingresos recibidos y cuánto queda. La tarjeta mensual también indica que el mes está en curso."
+      ],
+      "en": [
+        "With the pay cycle budget enabled, Home shows spending after income received and how much remains. The monthly card also says the month is in progress."
+      ],
+      "ca": [
+        "Amb el pressupost per cicle de cobrament activat, Inici mostra la despesa després dels ingressos rebuts i quant queda. La targeta mensual també indica que el mes és en curs."
+      ]
+    },
+    "tandas": []
   },
   {
     "v": "4.26.66",
