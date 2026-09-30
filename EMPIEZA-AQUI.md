@@ -11,7 +11,9 @@ sesión del móvil se gastó la mitad trabajando sobre una rama equivocada.
 
 ## 1. Lo primero, siempre
 
-INC-2909-02: integración local fuente4.26.73 desdebeta96b9210b, candidata separable PR80/74abbd78. Claude emitió NO-GO45d94d21 por lectores desalineados; los tres están corregidos y la segunda revisión sigue pendiente. Últimos canales verificados: beta4.26.71.1 y producción4.26.67. Recibos fue rechazado; la reparación y auditoría de aprobaciones están en un chat separado. Las cinco nativas tienen OK histórico con id anterior, pero APK51 no está en producción: no borrar ni promover por apariencia de duplicado.
+INC-2909-01: fuente4.26.76 provisional cliente/nativo en revisión, sin publicar. PR87/26c2fd08 NO-GO: APK51 legado/v2 APK propia y desconocidos hasta ACK/lápida. Ingest/SQL intactos; backend separado NO-GO. Coordinador asigna versión/liberación; APK candidataClaude no prueba reparación. [Acta](docs/briefs/inc-2909-01-widget.md).
+
+INC-2909-02: beta4.26.73.1 publicada y cotejada30/9a20:55UTC, PR82/mergea03a2a06/CI36774395712SUCCESS. Candidata separable PR80/3912aa11GOClaude yCI36773669265SUCCESS; integración71b6e552GOClaude,529E2Epass/1skip local y522funcionales+7rendimiento enCI. [Acta](docs/briefs/inc-2909-02-inicio-natural.md). FaltaOKmóvil; producción4.26.67/APK48intacta. Recibos fue rechazado: reparar en chat propio; Claude implementa panelPR83. Hay un coordinador nocturno activo autorizado por eldueño, no duplicarlo.
 
 Corte 30/9: producción web 4.26.67 [publicada y cotejada](docs/briefs/inc-2709-02-prod.md) tras el OK exclusivo de `inc-2709-02-deudas-archivo`; beta 4.26.71.1 conserva las siete pruebas anteriores y añade la del gas. APK estable 48 y beta 51, sin promoción nativa. El usuario notificó además tres fallos independientes: widget sin «Mi ciclo», gas del 25/9 todavía en «Próximos cargos» el día 30 y nómina de Sabadell visible antes de cobrarla. Revalidar ramas, manifiestos, ZIP, SW, Actions y el estado de cada fallo; no dar por correcto un ingreso ni un cargo por la fecha prevista. El [backlog](docs/BACKLOG.md) conserva las prioridades y el límite de cada tanda.
 

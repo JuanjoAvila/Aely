@@ -270,3 +270,11 @@ Ajustes → Banco del widget elige `settings.widgetBank` (entidad bancaria), sin
 ### Recuperación del registro del widget (4.26.55, APK51)
 
 El registro nativo se escribe sin salto final y tolera indentación XML al releerse. La foto de la app reevalúa un bloqueo previo, conserva eventos aún no confirmados y sus deltas; las entradas dañadas o contribuciones desconocidas no se descartan. Actualizar el APK es obligatorio: la OTA4.26.54.1 corrige presupuesto pero no este parser Java. APK51 instalada en el móvil de pruebas; widget recuperado y Gastado/Disponible estables al reabrir; saldo entre fotos y pago real pendientes. No borrar preferencias para forzar una cifra.
+
+### Widget: contrato v2 propio (INC-2909-01, sin publicar)
+
+Negocia widgetContract antes de enviar. APK51 conserva legado. V2 declara periodo/magnitud/idioma: ciclo no futuro≤45d, cruce del día1 no lo caduca. Textos es/en/ca identifican gasto/gasto neto.
+
+Si el puente no responde en 3 s, widgetWaiting oculta cifras y el cliente reintenta tras 3 s; el timeout nunca concede legacy. Este receptor nuevo rechaza payload sin contrato v2 antes de tocar la foto. Solo una foto v2 válida limpia negotiating. Cobertura por filas realmente recibidas: incluye eventos anteriores relevantes para saldo; la fecha sola no retira desconocidos. APK local 51641d80 obsoleta por NO-GO, no instalar.
+
+Nativo exige scope financiero idéntico. Sin evidencia conserva identidad unknownJournal hasta ACK/lápida de app; reentrada/cambio de periodo no limpia aviso. Ingest legacy intacto. Compilación Android verificada; sin APK final/instalación/publicación. Coordinador asigna versión; candidata Claude previa no acredita reparación. [Acta](briefs/inc-2909-01-widget.md).

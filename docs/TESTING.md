@@ -12,7 +12,13 @@ SQL/RLS. La caracterización anterior vive en SHA `bc2fa093`. Registrado para m�
 
 Widget banco (4.26.50): `e2e/widget-banco.spec.mjs` abre Ajustes y cambia el banco con saldo idéntico, verifica el payload nativo y persistencia tras recarga, suma de cuentas sin opciones repetidas y retirada del banco elegido. Registrado para el módulo 10; el módulo 11 obliga a suite completa.
 
+INC-2909-01 (cliente provisional): `widget-banco.spec.mjs` amplía el DOM a 31 casos: negociación antes del envío, payload legado exacto, periodo/magnitud v2, neto negativo, reservas, ingresos de otro banco y cambio de mes; matriz mes/ciclo × net/split × es/en/ca. `widget-coherente` y `widget-arbitraje`, ya registrados, ejecutan el contrato y Java real con respuestas incompatibles, alcance cambiado y eventos sin ACK persistidos. No acredita APK instalada ni ingest desplegado. [Evidencia y alcance parcial](briefs/inc-2909-01-widget.md).
+
 # Testing — Aely
+
+Revisión INC-2909-01 del 1/10: el guardián Java ejecuta la cobertura real del pull al cruzar el día 1 y reproduce 160 € frente a 130 € antes de corregir. El efecto real de negociación se ejecuta con reloj controlado: aviso sin cifras, retry y contrato v2 sin degradación. `widget-banco` añade cobertura remota del ciclo y puente colgado, 34 casos; el resultado DOM nuevo se registra en el brief. La APK local anterior queda obsoleta por NO-GO.
+
+`pull-historico-entero` conserva la prueba real de respuestas invertidas: tras el cambio de cobertura valida las filas del pull vigente y el ACK calculado al enviar; una lectura vieja no pisa ninguna de las dos. 12/12 PASS, sin relajar la prueba de paginación ni la de error intermedio.
 
 INC-3009-01: `fixed-payment-state` está registrado en el runner y prueba pago BOOK, calendario, estados pendientes/ausentes, fechas futuras, varios candidatos, bancos, bruto compartido, importes por ocurrencia, confirmación persistida y ausencia de mutaciones. `inicio-cargos.spec.mjs`, mapeado a Inicio y Plan, reproduce con datos ficticios el gas confirmado que seguía visible, distingue vencido sin acreditación, PDNG y recarga en es/en/ca. Las fixtures de pago de Plan declaran confirmación explícita; un día pasado no acredita un pago. Las proyecciones de saldo conservan su contrato anterior. [Límites](briefs/inc-3009-01-cargos.md).
 

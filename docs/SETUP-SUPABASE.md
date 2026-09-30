@@ -84,6 +84,10 @@ que genera el lector instalado. Para el histórico de CaixaBank se despliega ade
 después el cliente web que invoca un banco por petición. No afirmar que está resuelto con datos
 reales hasta probar CaixaBank seleccionada en solitario.
 
+**INC-2909-01, revisión30/9:** cliente/nativo conserva ingest intacto. APK51 legado. V2 exige ventana/alcance idénticos; ingest activo sin evidencia pide abrir app.
+
+Delta PR87/53561b09 separado y sin desplegar: fuente exacta reproduce futuro sin acotar, ancla ausente y selección desactivada ignorada. No copiar a main/desplegar por arrastre. Futuro ingest requiere handler real, compatibilidad APK51, ancla compartida sin exigir feed local de otro dispositivo y alcance calculado, no eco de cadena. Una función con autorización específica, sin SQL/migraciones. [Acta](briefs/inc-2909-01-widget.md).
+
 ### Telemetría financiera de las Edge
 
 Los eventos de soporte de `bank-sync` son deliberadamente cerrados: banco, estado, número de

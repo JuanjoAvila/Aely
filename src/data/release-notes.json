@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.76",
+    "d": "2026-09-30",
+    "t": {
+      "es": "El widget dice qué periodo enseña",
+      "en": "The widget says which period it shows",
+      "ca": "El widget diu quin període mostra"
+    },
+    "items": {
+      "es": [
+        "Con la nueva app de Android, el widget muestra el mes o Mi ciclo y la misma cifra que Inicio, también en inglés y catalán.",
+        "Si un pago aún no está confirmado en la cifra del widget, pide abrir la app para actualizar."
+      ],
+      "en": [
+        "With the new Android app, the widget shows the month or My cycle and the same figure as Home, also in English and Catalan.",
+        "If a payment is not yet confirmed in the widget figure, it asks you to open the app to update."
+      ],
+      "ca": [
+        "Amb la nova app d’Android, el widget mostra el mes o El meu cicle i la mateixa xifra que Inici, també en anglès i català.",
+        "Si un pagament encara no està confirmat a la xifra del widget, demana obrir l’app per actualitzar."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2909-01-widget-periodo",
+        "t": {
+          "es": "Widget: mes o Mi ciclo",
+          "en": "Widget: month or My cycle",
+          "ca": "Widget: mes o El meu cicle"
+        },
+        "items": {
+          "es": [
+            "1. Instala la nueva app Android. Sin Mi ciclo, abre la app: widget ESTE MES y gastado de Inicio. La app Android anterior conserva sus cifras anteriores.",
+            "2. Instala la app de Android nueva, activa Mi ciclo y abre la app: el widget debe decir «MI CICLO» y la misma cifra que Inicio. Con la app en inglés o catalán, el widget también.",
+            "3. Cierra la app y paga con Trade Republic: el widget debe pedir abrir la app hasta confirmar el pago. Al reabrir y recibirlo, coincide con Inicio sin contarlo dos veces."
+          ],
+          "en": [
+            "1. Install the new Android app. With My cycle off, open the app: widget THIS MONTH and spending on Home. The previous Android app keeps its previous figures.",
+            "2. Install the new Android app, turn on My cycle and open the app: the widget must say “MY CYCLE” and the same figure as Home. With the app in English or Catalan, so must the widget.",
+            "3. Close the app and pay with Trade Republic: the widget must ask you to open the app until payment is confirmed. After reopening and receiving it, it matches Home without counting it twice."
+          ],
+          "ca": [
+            "1. Instal·la la nova app Android. Sense El meu cicle, obre l’app: widget AQUEST MES i gastat d’Inici. L’app Android anterior conserva les xifres anteriors.",
+            "2. Instal·la la nova app d'Android, activa El meu cicle i obre l'app: el widget ha de dir «EL MEU CICLE» i la mateixa xifra que Inici. Amb l'app en anglès o català, el widget també.",
+            "3. Tanca l’app i paga amb Trade Republic: el widget ha de demanar obrir l’app fins a confirmar el pagament. En reobrir i rebre’l, coincideix amb Inici sense comptar-lo dues vegades."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.73",
     "d": "2026-09-30",
     "t": {

@@ -1,5 +1,13 @@
 # Arquitectura — Aely
 
+## Contrato del widget (INC-2909-01)
+
+APK51 conserva monthBudgetStats(state, now)/ingest activo: shown sigue Gastos. Solo web en bruto alternaría cifras al cerrar/reabrir. Mi ciclo requiere APK propia.
+
+V2 negocia antes de enviar; dashboardBudgetStats da gasto bruto mensual o gasto neto con signo del ciclo, nunca Balance. Payload declara periodo/magnitud/idioma/scope (ventana/ancla/presupuesto reservado/bancos). Nativo exige respuesta v2 de misma ventana/alcance; legacy o sin evidencia pide abrir app, sin importes ficticios. unknownJournal conserva identidad hasta ACK/lápida; cambiar bancos/periodo no es cobertura. widgetPeriod prepara contrato futuro sin activar ingest. [Acta](briefs/inc-2909-01-widget.md).
+
+Revisión widget del 1/10: la cobertura se construye al enviar desde las filas del último pull completo; v2 acredita el ciclo y las identidades anteriores recibidas que pueden mover saldo, excluyendo futuras. Legacy conserva su filtro mensual. Una lectura vieja no sustituye esas filas. Sin ACK/lápida el evento sigue desconocido aunque cambie la ventana. El puente colgado mantiene contrato desconocido, avisa y reintenta; el receptor nuevo rechaza payload legacy y solo limpia el aviso con foto v2 válida.
+
 ## Presupuesto de Inicio mensual (INC-2909-02)
 
 `dashboardBudgetStats` pide modo bruto al argumento opcional `budgetMode` de `monthBudgetStats`, sin otro recorrido del histórico ni cambiar `gTotalMode`. En mes natural, frase, anillo, margen, Pregúntame, avisos y reto describen las mismas compras y el límite tras reservas. El ciclo reconocido conserva neto, incluso negativo; Gastos, widget e informes mantienen sus propias llamadas y modos. No modifica saldos ni escrituras.

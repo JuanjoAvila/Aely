@@ -1,3 +1,12 @@
+## [4.26.76] — 2026-09-30 · INC-2909-01, contrato propio del widget (provisional)
+
+- PR87/26c2fd08 NO-GO independiente: APK51 bruto frente neto legado de ingest activo; pago desconocido se limpiaba sin ACK. Guardianes rojos y verdes Node/Java reales.
+- APK51 mantiene payload completo. V2 recibe magnitud Inicio (gasto bruto mensual/gasto neto del ciclo, nunca Balance), periodo/idioma. Negocia antes del primer envío.
+- NO-GO Claude 51641d80: cobertura mensual duplicaba el pago 29/9 al reabrir 2/10 dentro del ciclo. Guardián Java rojo 160≠130 y verde 130; v2 acredita filas reales de ciclo/histórico sin futuras. Puente colgado: aviso, retry y receptor v2 rechaza degradación. APK local anterior obsoleta.
+- Alcance financiero incluye ventana/ancla/magnitud/presupuesto reservado/bancos. Respuesta sin evidencia no pisa foto. unknownJournal persiste identidad hasta ACK/lápida, entre periodos; cambiar alcance invalida deltas conservando eventos.
+- Ingest/SQL intactos; backend PR87 separado NO-GO por futuro/ancla ausente/selección desactivada. App cerrada v2 pide abrir app; OTA no incorpora Java.
+- Guardianes registrados y DOM es/en/ca ampliado; compilación Android correcta. APK final/CI/publicación dependen de coordinador. [Acta](docs/briefs/inc-2909-01-widget.md).
+
 ## [4.26.73] — 2026-09-30 · INC-2909-02, presupuesto mensual coherente en Inicio
 
 - Candidata separable desde main `12884f48`. Reproducción DOM en es/en/ca: al desactivar Mi ciclo en un perfil con modo Balance, 600 € de compras y 900 € de presupuesto tras reservas daban 0 % por restar la nómina. El texto seguía diciendo «Has gastado 600». El perfil con modo Gastos ya daba 67 %.
