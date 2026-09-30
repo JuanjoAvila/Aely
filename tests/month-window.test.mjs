@@ -101,7 +101,9 @@ t("borde 23:30: misma ventana y misma cifra", () => {
 
 t("ingest ya no usa Date.UTC para la ventana", () => {
   const ingest = fs.readFileSync(path.join(root, "supabase/functions/ingest/index.ts"), "utf8");
-  assert.match(ingest, /inicioDeMesMs\(/);
+  // Desde INC-2909-01 E2 la ventana la da `ventanaDelWidget`, que cae al mes de Madrid.
+  assert.match(ingest, /ventanaDelWidget\(/);
+  assert.equal(srv.ventanaDelWidget({}, SEP1_0030).desdeMs, cli.inicioDeMesMs(SEP1_0030), "sin ciclo guardado, el mes de la app");
   assert.doesNotMatch(
     ingest,
     /Date\.UTC\(\s*now\.getUTCFullYear\(\)/,

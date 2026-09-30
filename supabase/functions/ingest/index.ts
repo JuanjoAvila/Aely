@@ -37,7 +37,7 @@ import {
 import { aEuros, parseWallet } from "../_shared/wallet.ts";
 import { claveEvento, esGemeloIngest, tieneGemeloAnterior } from "../_shared/ingest_identity.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
-import { bancosDeGastoDiario, cuentaParaPresupuesto, filasComoLaApp, inicioDeMesMs, statsDelMes } from "../_shared/presupuesto.ts";
+import { bancosDeGastoDiario, cuentaParaPresupuesto, filasComoLaApp, statsDelCiclo, statsDelMes, ventanaDelWidget } from "../_shared/presupuesto.ts";
 // Comparación del token en tiempo constante (2026-07-24) y topes de entrada (SEC-01, 14/9): en _shared.
 import {
   INGEST_MAX_BODY, INGEST_MAX_COMERCIO, INGEST_MAX_NOTA, INGEST_MAX_TEXTO, recortar, timingSafeEqual,
@@ -336,8 +336,10 @@ Deno.serve(async (req) => {
   try {
     const { data: st } = await supabase.from("app_state").select("data").eq("user_id", userId).maybeSingle();
     const now = new Date(fecha);
-    // Misma ventana que la app (Europe/Madrid), no Date.UTC — B09-B 2026-09-07.
-    const desdeMs = inicioDeMesMs(now);
+    // Misma ventana que la app (Europe/Madrid), no Date.UTC — B09-B 2026-09-07. Con Mi ciclo,
+    // la que dejó la app en app_state; si no hay o caducó, mes natural (INC-2909-01 E2).
+    const ventana = ventanaDelWidget(st?.data, now.getTime());
+    const desdeMs = ventana.desdeMs;
     const desde = new Date(desdeMs).toISOString();
     // `cat` y `source` hacen falta para contar como cuenta la app: sin ellos esto sumaba TODO
     // —los recibos del banco de fijos y las inversiones— y el aviso salía por las nubes.
@@ -353,10 +355,15 @@ Deno.serve(async (req) => {
     // Igual que la app al pintar Gastos: lápidas + una fila por día|importe|comercio.
     // Sin esto el widget suma gastos que él ya borró y notis gemelas (bug 907 vs 709, 2026-08-17).
     const visibles = filasComoLaApp(rows || [], st?.data?.deleted);
-    const stats = statsDelMes(visibles, st?.data, desdeMs);
+    // Lo que compara Inicio: gasto bruto en el mes, neto desde el cobro en el ciclo. Es lo que
+    // dicen los textos del widget y la base de los avisos de la app (INC-2909-01 / INC-2909-02).
+    const cuenta = (filas: typeof visibles) => ventana.kind === "ciclo"
+      ? statsDelCiclo(filas, st?.data, desdeMs, ventana.ancla)
+      : statsDelMes(filas, st?.data, desdeMs, ventana.modo);
+    const stats = cuenta(visibles);
     // Si la app envía un snapshot mientras esta respuesta sigue en vuelo, el nativo necesita
     // la contribución de ESTA fila, no un absoluto que quizá preceda a ese snapshot.
-    const sinEsta = statsDelMes(visibles.filter((r) => String(r.id) !== String(ackId)), st?.data, desdeMs);
+    const sinEsta = cuenta(visibles.filter((r) => String(r.id) !== String(ackId)));
     const budget = stats.budget;
     const after = stats.against;
     // Y si el gasto recién apuntado NO cuenta para el presupuesto —banco de recibos, inversión,
@@ -377,11 +384,15 @@ Deno.serve(async (req) => {
     // duplicación ya salieron los dos últimos bugs de presupuesto.
     month = {
       periodStart: desdeMs,
+      // Un widget v2 solo acepta respuestas v2 de su misma ventana (`WidgetPeriod.acceptServer`).
+      contract: 2,
+      periodKind: ventana.kind,
       readAt,
       eventKey: eventKey || "",
       expenseKey: encodeURIComponent(fecha.slice(0, 10) + "|" + importe + "|" + comercio),
-      spent: stats.shown,
-      shownDelta: +(stats.shown - sinEsta.shown).toFixed(2),
+      // La cifra del widget es la de Inicio: en el ciclo, el neto con su signo (no |neto|).
+      spent: stats.against,
+      shownDelta: +(stats.against - sinEsta.against).toFixed(2),
       budget,
       against: after,
       // −1 = «no hay dato», y así el nativo distingue esto de un `budgetLeft` de 0 € de verdad.

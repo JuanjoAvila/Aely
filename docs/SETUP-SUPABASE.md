@@ -84,6 +84,16 @@ que genera el lector instalado. Para el histórico de CaixaBank se despliega ade
 después el cliente web que invoca un banco por petición. No afirmar que está resuelto con datos
 reales hasta probar CaixaBank seleccionada en solitario.
 
+**INC-2909-01 (widget, 30/9):** `ingest` manda al widget lo que pinta Inicio, en vez de la cifra
+de Gastos en modo Balance:
+- sin ciclo guardado, gasto bruto del mes (`statsDelMes(…, "split")`);
+- con `app_state.widgetPeriod` válido (≤ 45 días), el neto desde el cobro sin la nómina ancla (`statsDelCiclo`).
+
+Responde `contract:2` y `periodKind`. Sin migraciones ni secretos.
+
+Orden: **Edge `ingest` → web 4.26.76 → APK 52**; al revés, con la app cerrada la APK 51 volvería al
+balance y la 52 diría «Abre la app». Rollback: redesplegar el SHA anterior de `ingest`.
+
 ### Telemetría financiera de las Edge
 
 Los eventos de soporte de `bank-sync` son deliberadamente cerrados: banco, estado, número de

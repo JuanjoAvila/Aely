@@ -226,15 +226,72 @@ export type StatsMes = {
   reserved: number;
 };
 
+/** Mismo tope que `lastPaydayOf` en la app y `WidgetPeriod.CICLO_MAX_MS` en Android. */
+export const CICLO_MAX_MS = 45 * 86400000;
+
+/**
+ * LA VENTANA DEL WIDGET LA DECIDE LA APP (INC-2909-01 E2). Reconocer la nómina aquí sería la
+ * tercera copia de `budgetPaydayOf`, y de las copias salieron los últimos bugs de presupuesto. La
+ * app guarda en `app_state.widgetPeriod` el inicio del ciclo que pinta Inicio; el servidor lo
+ * sigue mientras siga dentro de plazo y, si no, vuelve al mes natural. Como Inicio: neto en el
+ * ciclo y gasto bruto en el mes.
+ */
+// deno-lint-ignore no-explicit-any
+export function ventanaDelWidget(data: any, nowMs: number): { desdeMs: number; kind: string; modo: string; ancla: string } {
+  const w = data?.widgetPeriod;
+  const start = Number(w?.start);
+  if (w?.v === 2 && w?.kind === "ciclo" && start > 0 && start <= nowMs && nowMs - start <= CICLO_MAX_MS) {
+    return { desdeMs: start, kind: "ciclo", modo: "net", ancla: typeof w.anchor === "string" ? w.anchor : "" };
+  }
+  return { desdeMs: inicioDeMesMs(new Date(nowMs)), kind: "mes", modo: "split", ancla: "" };
+}
+
+/**
+ * El ciclo como lo cuenta Inicio (`monthBudgetStats` con `period.cycle`): la nómina que lo abre no
+ * suma (si no, el ciclo empezaría con 2.000 € de margen extra), y los ingresos cuentan vengan del
+ * banco que vengan salvo neutros o posibles repetidos. `ancla` es la clave de esa nómina tal y
+ * como la guarda la app (`keyOfExpense` = `claveComoLaApp`).
+ * Límite: no corta en «mañana» como la app; un apunte manual con fecha futura contaría aquí.
+ */
+// deno-lint-ignore no-explicit-any
+export function statsDelCiclo(filas: FilaGasto[], data: any, desdeMs: number, ancla: string): StatsMes {
+  const ents = bancosDeGastoDiario(data);
+  let spent = 0, income = 0;
+  for (const f of filas || []) {
+    if (ancla && claveComoLaApp(f) === ancla) continue;
+    if (!(new Date(String(f.fecha)).getTime() >= desdeMs)) continue;
+    const n = Number(f.importe) || 0;
+    if (n < 0) {
+      if (CAT_NEUTRAS[String(f.cat || "")] || esPosibleRepetido(f.source)) continue;
+      income += Math.abs(n);
+      continue;
+    }
+    if (n > 0 && cuentaParaPresupuesto(f, ents)) spent += n;
+  }
+  const reserved = reservadoDesde(data, desdeMs);
+  const bruto = Number(data?.budget) || 0;
+  const budget = bruto > 0 ? Math.max(0, +(bruto - reserved).toFixed(2)) : 0;
+  return {
+    spent: +spent.toFixed(2),
+    income: +income.toFixed(2),
+    against: +(spent - income).toFixed(2),
+    shown: +Math.abs(income - spent).toFixed(2),
+    budget,
+    reserved: +reserved.toFixed(2),
+  };
+}
+
 /**
  * La cuenta entera. `filas` son las del mes que ya vienen filtradas por fecha desde la consulta.
  *
  * `gTotalMode` decide qué se compara contra el presupuesto, igual que en el cliente:
  *   · "net"   → gasto MENOS ingresos (es como lo tiene él: por eso ve 234 € y no 413 €)
  *   · resto   → gasto bruto
+ * `modoForzado` pisa esa preferencia: el widget pide "split" porque sus textos dicen «gastado
+ * este mes» y en Balance recibía la diferencia con la nómina como si fuera gasto (INC-2909-01).
  */
 // deno-lint-ignore no-explicit-any
-export function statsDelMes(filas: FilaGasto[], data: any, desdeMs: number): StatsMes {
+export function statsDelMes(filas: FilaGasto[], data: any, desdeMs: number, modoForzado?: string): StatsMes {
   const ents = bancosDeGastoDiario(data);
   let spent = 0, income = 0;
   for (const f of filas || []) {
@@ -245,7 +302,7 @@ export function statsDelMes(filas: FilaGasto[], data: any, desdeMs: number): Sta
   const reserved = reservadoDesde(data, desdeMs);
   const bruto = Number(data?.budget) || 0;
   const budget = bruto > 0 ? Math.max(0, +(bruto - reserved).toFixed(2)) : 0;
-  const modo = data?.settings?.gTotalMode || "split";
+  const modo = modoForzado || data?.settings?.gTotalMode || "split";
   const against = modo === "net" ? spent - income : spent;
   // `shown` es lo que el widget debe enseñar: la MISMA cifra que la cabecera de Gastos. Solo se
   // separa de `against` cuando en modo neto los ingresos superan al gasto (ahí la app pinta el

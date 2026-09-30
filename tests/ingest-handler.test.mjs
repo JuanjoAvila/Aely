@@ -39,7 +39,7 @@ function fakeDb(opts = {}) {
       delete() { q.op = "delete"; return api; },
       insert(row) { q.op = "insert"; q.row = row; return api; },
       maybeSingle: async () => {
-        if (name === "app_state") return { data: { data: { accounts: [{ ent: "trade_republic", role: "diario" }], settings: {} } } };
+        if (name === "app_state") return { data: { data: opts.appState || { accounts: [{ ent: "trade_republic", role: "diario" }], settings: {} } } };
         return { data: null };
       },
       then(resolve, reject) { return Promise.resolve(run()).then(resolve, reject); },
@@ -117,7 +117,7 @@ function makeHandler(db) {
     "Deno", "createClient", "categorizar", "clasificarConMotivo", "extraerComercio",
     "extraerConcepto", "extraerImporte", "extraerPersona", "limpiarTexto", "aEuros", "parseWallet",
     "claveEvento", "esGemeloIngest", "tieneGemeloAnterior", "bucketKey", "callerIp", "rateLimit",
-    "bancosDeGastoDiario", "cuentaParaPresupuesto", "filasComoLaApp", "inicioDeMesMs", "statsDelMes",
+    "bancosDeGastoDiario", "cuentaParaPresupuesto", "filasComoLaApp", "inicioDeMesMs", "statsDelMes", "ventanaDelWidget", "statsDelCiclo",
     "INGEST_MAX_BODY", "INGEST_MAX_COMERCIO", "INGEST_MAX_NOTA", "INGEST_MAX_TEXTO", "recortar", "timingSafeEqual",
   ];
   new Function(...names, handlerJs)(
@@ -127,7 +127,7 @@ function makeHandler(db) {
     identity.tieneGemeloAnterior,
     async () => "bucket", () => "127.0.0.1", async () => ({ ok: true }),
     budget.bancosDeGastoDiario, budget.cuentaParaPresupuesto, budget.filasComoLaApp,
-    budget.inicioDeMesMs, budget.statsDelMes,
+    budget.inicioDeMesMs, budget.statsDelMes, budget.ventanaDelWidget, budget.statsDelCiclo,
     entrada.INGEST_MAX_BODY, entrada.INGEST_MAX_COMERCIO, entrada.INGEST_MAX_NOTA,
     entrada.INGEST_MAX_TEXTO, entrada.recortar, entrada.timingSafeEqual,
   );
@@ -164,6 +164,56 @@ await t("retry del mismo evento 35 min después: una fila y segundo ACK silencio
   assert.equal(a.data.month?.expenseKey, "2026-09-17%7C9.95%7CPans%20%26%20Company");
   assert.equal(b.data.skipped, true); assert.equal(b.data.ack, a.data.ack);
   assert.equal(env.rows.length, 1);
+});
+
+// INC-2909-01: en modo Balance el widget recibía |ingresos − gasto| como «gastado este mes».
+await t("con Gastos en Balance y nómina cobrada, el widget recibe el gasto bruto del mes", async () => {
+  const env = fakeDb({
+    appState: { accounts: [{ ent: "trade_republic", role: "diario" }], budget: 1000, reservaLog: [],
+      settings: { gTotalMode: "net", expenseBanks: ["trade_republic"] } },
+    rows: [
+      { id: "nomina", user_id: "user", fecha: "2026-09-05T10:00:00.000Z", importe: -1800, comercio: "Nómina ficticia", source: "ob:trade_republic", cat: "ingreso" },
+      { id: "super", user_id: "user", fecha: "2026-09-06T10:00:00.000Z", importe: 300, comercio: "Súper ficticio", source: "macrodroid", cat: "super" },
+    ],
+  });
+  const r = await post(env, { fuente: "tr", titulo: "Trade Republic", texto: "Has gastado 20,00 € en Bar ficticio",
+    fecha: String(Date.parse("2026-09-17T14:24:00+02:00")), evento: "v1_net" });
+  assert.equal(r.data.month?.spent, 320, "300 + 20; la nómina no es gasto (antes 1.480)");
+  assert.equal(r.data.month?.budgetLeft, 680);
+  assert.equal(r.data.month?.shownDelta, 20);
+  assert.equal(r.data.month?.contract, 2);
+  assert.equal(r.data.month?.periodKind, "mes");
+});
+
+// E2: con Mi ciclo, el servidor sigue la ventana que la app guardó y cuenta como Inicio (neto).
+const cicloState = (start) => ({ accounts: [{ ent: "trade_republic", role: "diario" }], budget: 1000, reservaLog: [],
+  settings: { gTotalMode: "split", expenseBanks: ["trade_republic"], budgetCycle: true },
+  // `anchor` = la nómina que abre el ciclo, con la clave que usa la app (`keyOfExpense`).
+  widgetPeriod: { v: 2, kind: "ciclo", start, anchor: "2026-09-05|-1800|Nómina ficticia" } });
+const cicloRows = [
+  { id: "antes", user_id: "user", fecha: "2026-09-03T10:00:00.000Z", importe: 400, comercio: "Compra anterior", source: "macrodroid", cat: "super" },
+  { id: "nomina", user_id: "user", fecha: "2026-09-05T10:00:00.000Z", importe: -1800, comercio: "Nómina ficticia", source: "ob:trade_republic", cat: "ingreso" },
+  { id: "super", user_id: "user", fecha: "2026-09-06T10:00:00.000Z", importe: 300, comercio: "Súper ficticio", source: "macrodroid", cat: "super" },
+];
+await t("E2: con Mi ciclo el widget recibe el neto desde el cobro, en la ventana de la app", async () => {
+  const start = Date.parse("2026-09-04T22:00:00.000Z");   // 5/9 00:00 en Madrid
+  const env = fakeDb({ appState: cicloState(start), rows: cicloRows });
+  const r = await post(env, { fuente: "tr", titulo: "Trade Republic", texto: "Has gastado 20,00 € en Bar ficticio",
+    fecha: String(Date.parse("2026-09-17T14:24:00+02:00")), evento: "v2_ciclo" });
+  assert.equal(r.data.month?.periodKind, "ciclo");
+  assert.equal(r.data.month?.periodStart, start);
+  assert.equal(r.data.month?.spent, 320, "300 + 20; la nómina abre el ciclo y no suma, la compra del día 3 es del anterior");
+  assert.equal(r.data.month?.budgetLeft, 680);
+  assert.equal(r.data.month?.shownDelta, 20);
+  assert.equal(r.data.month?.contract, 2);
+});
+
+await t("E2: un ciclo guardado hace más de 45 días vuelve al mes natural en bruto", async () => {
+  const env = fakeDb({ appState: cicloState(Date.parse("2026-07-20T22:00:00.000Z")), rows: cicloRows });
+  const r = await post(env, { fuente: "tr", titulo: "Trade Republic", texto: "Has gastado 20,00 € en Bar ficticio",
+    fecha: String(Date.parse("2026-09-17T14:24:00+02:00")), evento: "v2_caducado" });
+  assert.equal(r.data.month?.periodKind, "mes");
+  assert.equal(r.data.month?.spent, 720, "400 + 300 + 20 del mes natural");
 });
 
 await t("si falla la lectura mensual, conserva el gasto y no fabrica un total cero", async () => {
