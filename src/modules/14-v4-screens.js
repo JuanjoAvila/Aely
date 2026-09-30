@@ -325,6 +325,7 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
     else try{ window.dispatchEvent(new CustomEvent("mc-open-bills")); }catch(e){}
   };
   const rowSub=function(x){
+    if(x.overdue) return entOf(x.bank).label+" · "+t("v4_charge_unconfirmed");
     if(simple){
       if(x.kind==="income") return tf("v4s_row_income",{bank:entOf(x.bank).label});
       if(x.kind==="transfer"){

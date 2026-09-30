@@ -1,5 +1,9 @@
 # Backlog operativo — Aely
 
+## INC-3009-01 · corrección separable preparada · 30 de septiembre de 2026
+
+Reproducido en DOM con un gas ficticio y cargo BOOK: Inicio ignoraba la evidencia bancaria si el fijo arrastraba `wait`. La candidata desde main `12884f48` distingue pago acreditado, próximo y vencido sin acreditación; Plan comparte esa lectura para los fijos. Tests de motor y DOM es/en/ca registrados. [Acta](briefs/inc-3009-01-cargos.md). **Sin publicación beta todavía en este corte**, sin aprobación móvil y sin cierre del caso real. No altera saldos guardados ni movimientos, APK, Edge o SQL. Widget y nómina siguen como objetivos independientes.
+
 ## INC-2709-02 · promoción selectiva web 4.26.67 publicada · 30 de septiembre de 2026
 
 El dueño aprobó en chat la tanda `inc-2709-02-deudas-archivo` de beta 4.26.70.1. [PR #71](https://github.com/JuanjoAvila/Aely/pull/71) la promovió exclusivamente a `main` como web 4.26.67 (`df30b76f`). La [Action de Pages 36754554318](https://github.com/JuanjoAvila/Aely/actions/runs/36754554318) terminó SUCCESS; manifiesto, ZIP, HTML y SW de producción concuerdan. [Acta selectiva](briefs/inc-2709-02-prod.md). La APK estable sigue en 4.26.32/code 48; no se desplegó Edge, SQL ni migración. Las otras siete tandas siguen visibles en beta sin atribuirles aprobación.

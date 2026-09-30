@@ -1,3 +1,9 @@
+## [4.26.68] — 2026-09-30 · INC-3009-01, evidencia de pago frente a calendario
+
+- Inicio ignoraba la conciliación y retenía un gas confirmado con wait. fixedPaymentState comparte la lectura con Plan: BOOK, entidad, mes, fecha no futura, nombre e importe compatibles; un único cargo y un único recibo/cuenta compatibles. Una confirmación paidYm/paidDay ya persistida sigue disponible sin extracto local.
+- Pasar el día no acredita pago: los fijos vencidos sin evidencia se muestran aparte en Inicio y pendientes en Plan, en es/en/ca. Una fecha ausente se muestra como —. Editar el día solo persiste confirmación si la misma lectura la acredita. No cambia saldo guardado ni histórico; la proyección monetaria del motor conserva su contrato de calendario.
+- Tanda separable desde main 12884f48; las siete pruebas de beta y APK51 no pertenecen a esta candidata. Se necesitan aprobación móvil y promoción selectiva antes de main. Unitario fixed-payment-state y DOM inicio-cargos registrados en runner/mapa; las fixtures de pago antiguas ahora declaran evidencia en vez de asumirla por fecha.
+
 ## [4.26.67] — 2026-09-30 · INC-2709-02, liquidación y archivo de deudas
 
 - Candidata de promoción exclusiva desde producción 4.26.66 de la tanda `inc-2709-02-deudas-archivo`, aprobada por el dueño el 29/9 tras beta 4.26.70.1. Se trasladan solo `09-tab-debts-goals.js`, sus textos es/en/ca y la cobertura de DOM; Android, Edge, SQL, APK y el resto de beta quedan fuera.

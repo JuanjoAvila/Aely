@@ -89,8 +89,11 @@ const PRESUPUESTO = {
   // INC-2709-02 selectiva: confirmar el saldo, archivar sin borrar cuotas y traducir el
   // recorrido deja 1.255.759 B minificados, 3.407 B sobre el tope anterior; +4 KiB crudos.
   // Gzip mide 341.953 B y sigue bajo 334 KiB (63 B de margen), sin ampliar su límite.
-  minificado: 1227 * 1024,
-  gzip: 334 * 1024,
+  // INC-3009-01: la evidencia BOOK, rechazo de atribuciones ambiguas y sección de vencidos
+  // requieren ~2 KiB minificados / ~1 KiB gzip frente a Deudas (solo quedaban 63 B gzip).
+  // +3/2 KiB para ese contrato financiero y el sellado, sin dependencias ni peticiones nuevas.
+  minificado: 1230 * 1024,
+  gzip: 336 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
