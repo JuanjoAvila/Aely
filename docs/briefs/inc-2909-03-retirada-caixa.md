@@ -3,6 +3,13 @@
 Base `a03a2a06` (Inicio beta 4.26.73). Fuente sin bump final: el coordinador serializa Recibos74,
 panel75, nómina y widget antes de esta entrega. No publicada, no aprobada en móvil.
 
+Fuente de implementación `259a0393c088586a083d69c90f19294a565f5072`,
+[PR88 en borrador](https://github.com/JuanjoAvila/Aely/pull/88), rama `codex/inc-2909-03-retirada`.
+Revisión de Claude solicitada sobre ese SHA; GO todavía no recibido. La PR contra beta no dispara
+el workflow Tests de main ni publica beta. Después de commit, `docs-frescura` falla únicamente
+«no hay código publicable sin subir VERSION»: el bump sigue aplazado expresamente hasta integración.
+No presentar ese rojo como suite verde ni publicar esta fuente73 sobre la beta actual.
+
 ## Qué se reprodujo
 
 Con una salida ficticia de CaixaBank de 80 €, categoría Otros y UUID estable, la ficha bloquea
