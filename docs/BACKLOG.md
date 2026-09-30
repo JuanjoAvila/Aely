@@ -1,5 +1,9 @@
 # Backlog operativo — Aely
 
+## INC-2909-02 · implementación beta4.26.73.1 verificada · 30 de septiembre de2026
+
+Salir de Mi ciclo conserva el gasto bruto mensual de Inicio y sus lectores del presupuesto. PR82/mergea03a2a06; CI completa SUCCESS, ZIP/huella/HTML/SW/APK cotejados. Candidata separable PR80/3912aa11GOClaude yCIverde, pendiente de prueba y aprobación móvil específica; no se atribuye cierre del caso real ni promoción. [Acta](briefs/inc-2909-02-inicio-natural.md). El coordinador nocturno dirige el backlog autorizado; recibos y panel se mantienen en sus propios chats.
+
 ## INC-3009-01 · beta 4.26.71.1 publicada · 30 de septiembre de 2026
 
 Reproducido en DOM con gas ficticio y cargo BOOK: Inicio ignoraba la evidencia bancaria si el fijo arrastraba `wait`. Corregido y publicado solo en **beta 4.26.71.1**, merge `79b981ad`, [PR77](https://github.com/JuanjoAvila/Aely/pull/77), [CI 36764259812](https://github.com/JuanjoAvila/Aely/actions/runs/36764259812) SUCCESS con 500 E2E, uno omitido y 7 de rendimiento. Manifiesto, huella `bba29bcbdd912837`, ZIP, HTML y SW cotejados; exactamente ocho tandas, las siete anteriores intactas. [Acta y hashes](briefs/inc-3009-01-cargos.md). **Pendiente de aprobación y comprobación real en móvil**, sin cierre financiero ni GO de Claude. Candidata separable `1e2395b9`, PR76 borrador, CI completa verde; no fusionar a main todavía. Producción permanece 4.26.67/APK48, beta conserva APK51. No altera cuentas guardadas, movimientos, Edge o SQL. El sucesor comprobará aprobaciones primero; sin nueva aprobación, INC-2909-02 (0 % al salir de Mi ciclo) es el siguiente objetivo independiente recomendado. Widget y nómina siguen separados.
