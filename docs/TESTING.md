@@ -36,6 +36,11 @@ y mide por CDP que el primer fotograma del cajón avance menos de 12 px; tambié
 termine abriéndose. `revisar-beta.spec.mjs` exige solo el veredicto de Ajustes después de la
 aprobación y publicación de temas, sin resucitar los 28 pasos antiguos. No requiere APK nueva.
 
+Pregúntame (INC-2709-14): `e2e/help-preguntar-borde.spec.mjs` mide que entre Preguntar y el borde
+inferior de la hoja solo quede el padding del compositor (10 px + zona segura; 10 px con teclado), en
+es/en/ca, letra normal y enorme, zona segura 0 y 34 px. El teclado se simula con un `visualViewport` más
+bajo, que es lo que lee el componente; el teclado real de Android se prueba en el móvil. No envía preguntas.
+
 Apariencia 4.26.10: `e2e/apariencia-temas.spec.mjs` pinta Cyberpunk de verdad y comprueba que el
 dinero conserva verde/rojo y que el tema persiste tras recargar. También cubre que «Reducir
 animaciones» apaga todo lo que se mueve y las temáticas Otoño y Primavera (tinte, ambientación y

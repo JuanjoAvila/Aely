@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.80",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Preguntar, más a mano",
+      "en": "Ask, closer to hand",
+      "ca": "Preguntar, més a mà"
+    },
+    "items": {
+      "es": [
+        "En Pregúntame, el botón Preguntar queda pegado al borde inferior en lugar de flotar con un hueco debajo, también con el teclado abierto."
+      ],
+      "en": [
+        "In Ask me, the Ask button now sits at the bottom edge instead of floating over a gap, also with the keyboard open."
+      ],
+      "ca": [
+        "A Pregunta'm, el botó Preguntar queda enganxat a la vora inferior en lloc de surar amb un buit a sota, també amb el teclat obert."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2709-14-preguntar",
+        "t": {
+          "es": "Botón Preguntar",
+          "en": "Ask button",
+          "ca": "Botó Preguntar"
+        },
+        "items": {
+          "es": [
+            "1. Abre Pregúntame sin escribir nada: el botón Preguntar debe quedar cerca del borde inferior, sin un hueco vacío debajo.",
+            "2. Toca la caja para escribir: con el teclado abierto, Preguntar queda justo encima del teclado y se puede pulsar. No hace falta enviar ninguna pregunta."
+          ],
+          "en": [
+            "1. Open Ask me without typing: the Ask button must sit near the bottom edge, with no empty gap below it.",
+            "2. Tap the text box: with the keyboard open, Ask sits just above the keyboard and can be tapped. There is no need to send a question."
+          ],
+          "ca": [
+            "1. Obre Pregunta'm sense escriure res: el botó Preguntar ha de quedar a prop de la vora inferior, sense cap buit a sota.",
+            "2. Toca la caixa per escriure: amb el teclat obert, Preguntar queda just damunt del teclat i es pot prémer. No cal enviar cap pregunta."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.67",
     "d": "2026-09-30",
     "t": {
