@@ -85,6 +85,15 @@ t("★ gas 4.26.71 añade solo su tanda y conserva las siete anteriores", () => 
   ].sort());
 });
 
+t("★ nómina 4.26.72 añade solo su tanda y conserva las ocho anteriores", () => {
+  const pack=cli.betaChecklist("4.26.72.1", "4.26.67");
+  const ids=Array.from(pack.tandas,(g)=>String(g.id).split("/").at(-1));
+  assert.deepEqual(ids.sort(),[
+    "inc-3009-nomina-anticipada", "inc-3009-01-cargos", "inc-2709-01-arranque-red", "inc-2809-02-ayuda-ciclo",
+    "fin05-widget-reentrada", "fin05-pago-cerrada", "tr-descripcion-clasificacion", "widget-banco", "widget-app-cerrada",
+  ].sort());
+});
+
 t("★ una tanda corregida varias veces solo aparece en su versión más nueva", () => {
   const prev = cli.RELEASE_NOTES;
   try {

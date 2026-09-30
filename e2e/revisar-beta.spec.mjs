@@ -905,3 +905,12 @@ test("INC-3009-01 añade una prueba sin retirar las siete pendientes", async ({ 
   }
   await expect(panel).not.toContainText("Deudas terminadas");
 });
+
+test("INC-3009-NOMINA añade su prueba sin retirar las ocho pendientes", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.72.1"; });
+  const panel = await conProduccionEn(page, "4.26.67");
+  await expect(panel.locator(".beta-tanda")).toHaveCount(9);
+  await expect(panel.locator(".beta-tanda-t").filter({hasText:"Nómina pendiente"})).toHaveCount(1);
+  await expect(panel.locator(".beta-tanda-t").filter({hasText:"Recibos pagados y vencidos"})).toHaveCount(1);
+});

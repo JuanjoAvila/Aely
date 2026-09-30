@@ -120,4 +120,32 @@ t("sin comercio, un ingreso se titula «Ingreso» y no «Compra»", () => {
   assert.equal(add[0].merchant, "Ingreso");
 });
 
+// 30/9: una nómina de Sabadell se vio como movimiento normal antes de cobrarla y arrancó
+// «Mi ciclo». El banco la mandaba como PDNG; solo el BOOK acredita que el dinero está.
+t("un ingreso PENDIENTE (PDNG) no se apunta ni ancla «Mi ciclo»", () => {
+  const conFlujo = Object.assign({}, estado, {
+    flows: [{ id: "n1", kind: "income", name: "Nomina", amount: 1800, to: "sabadell", day: 28 }],
+  });
+  ["PDNG", "pdng", "HOLD", "SCHD", "CNCL", "RJCT", "INFO"].forEach(function (st) {
+    const add = ctx.importObExpenses(conFlujo, [tx({ ent: "sabadell", amount: -1800, merchant: "NOMINA EMPRESA SL", id: "p-" + st, status: st })]);
+    assert.equal(add, null, st + " no es dinero cobrado");
+  });
+  assert.equal(ctx.budgetPaydayOf(conFlujo, Date.now(), []), null, "sin cobro real el ciclo no arranca");
+});
+
+t("...y el mismo abono ya contabilizado (BOOK) sí entra y ancla el ciclo", () => {
+  const conFlujo = Object.assign({}, estado, {
+    flows: [{ id: "n1", kind: "income", name: "Nomina", amount: 1800, to: "sabadell", day: 28 }],
+  });
+  const add = ctx.importObExpenses(conFlujo, [tx({ ent: "sabadell", amount: -1800, merchant: "NOMINA EMPRESA SL", id: "b1", status: "BOOK" })]);
+  assert.ok(add && add.length === 1);
+  const ancla = ctx.budgetPaydayOf(conFlujo, Date.now(), add);
+  assert.ok(ancla && ancla.inc === add[0], "el cobro contabilizado abre el ciclo");
+});
+
+t("un banco que no informa el estado sigue apuntando el ingreso (sin regresión)", () => {
+  const add = ctx.importObExpenses(estado, [tx({ ent: "sabadell", amount: -700, merchant: "TRANSFERENCIA", id: "s0", status: "" })]);
+  assert.ok(add && add.length === 1);
+});
+
 console.log("\nob-ingresos: OK");

@@ -1,3 +1,9 @@
+## [4.26.72] — 2026-09-30 · INC-3009-NOMINA-ANTICIPADA, un abono pendiente no es un cobro
+
+- Enable Banking devuelve BOOK y PDNG juntos (`fetchBankTransactions` no filtra por estado) y `mapTransaction` ya traía `status`, pero `importObExpenses` lo ignoraba: un abono PDNG de Sabadell entraba como ingreso `ob` normal, sin marca, y `budgetPaydayOf`/`lastPaydayOf` (≥200 €, fecha ≤ hoy, nombre de nómina o flujo compatible) anclaba Mi ciclo a un dinero que no estaba en la cuenta. Al sincronizarse a la nube, el resto de dispositivos heredaba el mismo ancla.
+- Ahora los ingresos con estado PDNG/HOLD/SCHD/CNCL/RJCT/INFO no se importan; entran cuando llegan como BOOK. Sin estado se mantiene el comportamiento anterior (bancos que no lo informan). `flowEarlyBankMatches` y `fixedPaymentState` ya exigían BOOK: la regla queda igual en las tres lecturas.
+- Límites: no toca cargos pendientes ni borra filas ya importadas. Si el PDNG ya entró y el BOOK llega con otro `entry_reference` y otra fecha, puede quedar la nómina dos veces y hay que borrar una a mano. Unitario en `ob-ingresos` (cae sin el arreglo). Sin Edge, SQL, APK ni workflows.
+
 ## [4.26.71] — 2026-09-30 · INC-3009-01, evidencia de pago frente a calendario
 
 - Inicio ignoraba la conciliación y retenía un gas confirmado con wait. fixedPaymentState comparte la lectura con Plan: BOOK, entidad, mes, fecha no futura, nombre e importe compatibles; un único cargo y un único recibo/cuenta compatibles. Una confirmación paidYm/paidDay ya persistida sigue disponible sin extracto local.

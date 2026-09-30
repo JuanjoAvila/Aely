@@ -15,6 +15,8 @@ Corte 30/9: producción web 4.26.67 [publicada y cotejada](docs/briefs/inc-2709-
 
 INC-3009-01: corrección sintética en versión fuente beta 4.26.71, pendiente de publicación y prueba móvil. [Acta](docs/briefs/inc-3009-01-cargos.md).
 
+INC-3009-NOMINA: en 4.26.72 los abonos que el banco da como pendientes (PDNG) no se importan ni anclan Mi ciclo; pendiente de prueba móvil el próximo día de nómina. [Acta](docs/briefs/inc-3009-nomina-anticipada.md).
+
 El corte operativo está en [BACKLOG](docs/BACKLOG.md), [ROADMAP](docs/ROADMAP.md) y el acta más reciente de `docs/briefs/`. Al entrar, actualiza `origin/beta` y `origin/main`, ejecuta `npm run listo` sobre fuente beta efectiva y coteja PR, Actions, manifiestos, ZIP, HTML, SW y APK servidos. Una CI verde o una release publicada no acreditan el veredicto móvil. Si falta `SUPABASE_SERVICE_ROLE_KEY`, `listo` no puede leer aprobaciones y ninguna tanda nueva se presume aprobada.
 
 Corte 29/9, 20:19 UTC: beta `4.26.70.1`/merge `9b0cc935`/huella `4495e50005bdc9eb` y producción web `4.26.66`/`c2b02ed8`; APK estable 4.26.32/code 48 y beta 4.26.55/code 51. Después, el dueño comunicó en chat que aprobó INC-2709-02; su promoción selectiva queda pendiente al cerrar la jornada. INC-2709-01, INC-2809-02 y las cinco tandas nativas conservan sus veredictos propios. [Acta de deudas](docs/briefs/inc-2709-02-deudas-archivo.md) con CI, ZIP, HTML, SW y límite financiero. Hay además un [encargo de auditar «Pruebas» beta](docs/BACKLOG.md#pruebas-beta--auditar-acumulación-antes-de-limpiar--29-de-septiembre-de-2026). El estado público puede haber cambiado desde este corte.
