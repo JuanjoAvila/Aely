@@ -107,7 +107,9 @@ const PRESUPUESTO = {
   // INC-2709-02: confirmar un saldo proyectado, conservar cuotas al archivar y recuperar
   // la ficha añaden 1.260.159 B minificados, 3.711 B sobre el tope anterior. +5 KiB
   // deja margen para el sello beta sin recortar los textos de tres idiomas.
-  minificado: 1232 * 1024,
+  // INC-3009-01: lectura estricta BOOK y tarjeta de vencidos añaden ~2 KiB sobre Deudas.
+  // +3 KiB solo al crudo para el código necesario y el sello; gzip sigue en 336 KiB.
+  minificado: 1235 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

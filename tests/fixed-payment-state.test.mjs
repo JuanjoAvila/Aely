@@ -1,0 +1,38 @@
+import assert from "node:assert/strict";
+import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
+const c=loadPureLogicFromFile();
+c.Date=class extends Date { constructor(...args){ super(...(args.length?args:[new Date("2026-09-30T12:00:00+02:00").getTime()])); } };
+const fixed={id:"gas",name:"Gas ficticio",amount:42,freq:"mes",day:25,account:"sabadell",wait:2026*12+9};
+const tx={id:"gas-bank",ent:"sabadell",date:"2026-09-25",amount:42,merchant:"Gas ficticio",status:"BOOK"};
+const base={accounts:[{id:"sb",ent:"sabadell",role:"fijos",value:800}],fixed:[fixed],bankTx:[tx],debts:[],oneoffs:[],expenses:[]};
+const check=(overrides={},f=fixed,m=9,y=2026,t=30)=>c.fixedPaymentState(Object.assign({},base,overrides),f,y,m,t);
+assert.equal(check().paid,true,"el pago BOOK vence a wait");
+assert.equal(check().day,25);
+assert.equal(check({bankTx:[]}).overdue,true,"pasar el día no acredita pago");
+assert.equal(check({bankTx:[]},Object.assign({},fixed,{wait:undefined})).paid,false);
+for(const patch of [{status:"PDNG"},{status:""},{status:undefined},{date:"2026-10-25"},{date:"2026-08-25"},{date:"2026-09-31"},{ent:"revolut"},{amount:-42},{amount:99},{merchant:"Compra distinta"},{possibleDup:true}]){
+  assert.equal(check({bankTx:[Object.assign({},tx,patch)]}).paid,false,JSON.stringify(patch));
+}
+assert.equal(check({bankTx:[Object.assign({},tx,{date:"2026-09-29"})]},fixed,9,2026,28).paid,false,"fecha bancaria futura");
+assert.equal(check({bankTx:[tx,Object.assign({},tx,{id:"other"})]}).paid,false,"dos pagos compatibles son ambiguos");
+assert.equal(check({fixed:[fixed,Object.assign({},fixed,{id:"other"})]}).paid,false,"dos recibos compatibles son ambiguos");
+assert.equal(check({oneoffs:[{id:"other",name:fixed.name,amount:42,account:"sabadell",month:9,year:2026,day:25}]}).paid,false,"un puntual también puede reclamar el cargo");
+assert.equal(check({accounts:base.accounts.concat([{id:"sb2",ent:"sabadell",role:"fijos"}])}).paid,false,"sin identidad de cuenta no se atribuye a dos cuentas del banco");
+assert.equal(check({bankTx:[]},Object.assign({},fixed,{day:31})).overdue,false);
+assert.equal(check({bankTx:[]},Object.assign({},fixed,{day:null})).day,null,"sin fecha no inventa día 1");
+const schedule=Object.assign({},fixed,{freq:"año",schedule:[{m:9,day:25,amt:51}]});
+assert.equal(check({fixed:[schedule],bankTx:[Object.assign({},tx,{amount:51})]},schedule).paid,true,"importe del calendario");
+const persisted=Object.assign({},fixed,{paidYm:2026*12+9,paidDay:25});
+assert.equal(check({bankTx:[]},persisted).paid,true,"confirmación persistida sin extracto local");
+assert.equal(check({bankTx:[]},persisted,10).paid,false,"no arrastra confirmación al mes siguiente");
+assert.equal(check({bankTx:[]},Object.assign({},persisted,{paidDay:31})).paid,false,"confirmación futura no es pago de hoy");
+assert.equal(check({bankTx:[]},Object.assign({},persisted,{paidDay:undefined})).paid,false,"el mes solo no acredita una fecha");
+const saved=JSON.stringify(base);
+check();
+assert.equal(JSON.stringify(base),saved,"la lectura no cambia saldos, fijos ni movimientos");
+let edited;
+c.patchFixedById(updater=>{ edited=updater(Object.assign({},base,{bankTx:[Object.assign({},tx,{status:"PDNG"})]})); },"gas",{day:25});
+assert.equal(edited.fixed[0].paidYm,undefined,"editar con cargo PDNG no persiste una confirmación falsa");
+assert.equal(JSON.stringify(edited.expenses),JSON.stringify(base.expenses));
+assert.equal(JSON.stringify(edited.accounts),JSON.stringify(base.accounts));
+console.log("fixed-payment-state: OK");

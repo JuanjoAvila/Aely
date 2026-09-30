@@ -372,7 +372,7 @@ test("cambiar el día de un recibo cobrado conserva su fecha real", async ({ pag
     ],
     fixed: [{ id: "luz", name: "Iberdrola luz", amount: 120, freq: "mes", day: 24, account: "sabadell" }],
     debts: [], flows: [], oneoffs: [], expenses: gastos,
-    bankTx: [{ id: "tx-luz-sep", ent: "sabadell", date: "2026-09-24", amount: 120, merchant: "IBERDROLA LUZ" }],
+    bankTx: [{ id: "tx-luz-sep", ent: "sabadell", date: "2026-09-24", amount: 120, merchant: "IBERDROLA LUZ", status: "BOOK" }],
     settings: { expenseBanks: ["revolut"] },
   });
   await page.locator('.botnav-tab[data-tour="plan"]').click();
@@ -523,10 +523,10 @@ test("cambiar Pepegas del 20 al 25 a la una no reutiliza el extracto de ayer", a
       fixed:s.fixed.filter(function(x){ return x.id==="pepegas"; }).length,pending:plan.pendingBills.filter(function(x){ return x.id==="fixed_pepegas"; }).length,
       paid:plan.paidBills.filter(function(x){ return x.id==="fixed_pepegas"; }).length,net:monthNetForAccount(s,"sabadell",2026,9,25)};
   });
-  expect(despues).toEqual(Object.assign({},antes,{fixed:1,pending:0,paid:1,net:-12.5}));
+  expect(despues).toEqual(Object.assign({},antes,{fixed:1,pending:1,paid:0,net:-12.5}));
   const pepegas=recibos.locator(".v4-charge").filter({hasText:"Pepegas"});
   await expect(pepegas).toHaveCount(1);
-  await expect(pepegas).toHaveClass(/v4-paid/);
+  await expect(pepegas).not.toHaveClass(/v4-paid/);
   await expect(pepegas.locator(".d")).toHaveText("25");
 });
 

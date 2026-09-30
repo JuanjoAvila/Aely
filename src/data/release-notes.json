@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.71",
+    "d": "2026-09-30",
+    "t": {
+      "es": "Los recibos vencidos se distinguen de los próximos",
+      "en": "Overdue bills are separate from upcoming bills",
+      "ca": "Els rebuts vençuts es distingeixen dels pròxims"
+    },
+    "items": {
+      "es": [
+        "Los recibos con pago acreditado dejan de aparecer en Inicio. Si la fecha ya pasó y falta la confirmación, aparecen como vencidos sin darlos por pagados."
+      ],
+      "en": [
+        "Bills with confirmed payment leave Home. If the date has passed and confirmation is missing, they appear as overdue without being marked paid."
+      ],
+      "ca": [
+        "Els rebuts amb pagament acreditat deixen de sortir a Inici. Si la data ja ha passat i falta la confirmació, apareixen com a vençuts sense donar-los per pagats."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-3009-01-cargos",
+        "t": {
+          "es": "Recibos pagados y vencidos",
+          "en": "Paid and overdue bills",
+          "ca": "Rebuts pagats i vençuts"
+        },
+        "items": {
+          "es": [
+            "1. Comprueba en Inicio que el gas ya cobrado no siga como próximo cargo. Si falta el movimiento confirmado, debe decir «Sin pago acreditado».",
+            "2. Abre Ver plan y comprueba que el mismo recibo conserve su estado al volver a entrar. Los próximos recibos no deben figurar pagados por llegar su fecha."
+          ],
+          "en": [
+            "1. Check Home: gas already charged must not remain upcoming. If the confirmed transaction is missing, it must say “Payment unconfirmed”.",
+            "2. Open View plan and check the same bill keeps its state when you return. Upcoming bills must not be marked paid just because their date arrives."
+          ],
+          "ca": [
+            "1. Comprova a Inici que el gas ja cobrat no continuï com a pròxim càrrec. Si falta el moviment confirmat, ha de dir «Sense pagament acreditat».",
+            "2. Obre Veure pla i comprova que el mateix rebut conservi el seu estat en tornar-hi. Els pròxims rebuts no han de figurar pagats per arribar la seva data."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.70",
     "d": "2026-09-29",
     "t": {

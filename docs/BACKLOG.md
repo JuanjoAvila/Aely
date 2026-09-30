@@ -1,5 +1,9 @@
 # Backlog operativo — Aely
 
+## INC-3009-01 · integración beta preparada · 30 de septiembre de 2026
+
+Reproducido en DOM con un gas ficticio y cargo BOOK: Inicio ignoraba la evidencia bancaria si el fijo arrastraba `wait`. La candidata desde main `12884f48` distingue pago acreditado, próximo y vencido sin acreditación; Plan comparte esa lectura para los fijos. Tests de motor y DOM es/en/ca registrados. [Acta](briefs/inc-3009-01-cargos.md). **Sin publicación beta todavía en este corte**, sin aprobación móvil y sin cierre del caso real. No altera saldos guardados ni movimientos, APK, Edge o SQL. Widget y nómina siguen como objetivos independientes.
+
 ## INC-2709-02 · beta 4.26.70.1 aprobada en chat, promoción pendiente · 29 de septiembre de 2026
 
 La deuda cuyo saldo proyectado llega a cero ahora pide confirmar la liquidación; una vez confirmada se puede archivar sin borrar su objeto ni las cuotas vinculadas. El archivo permite volver a mostrarla. La amortización total introducida por la persona confirma en la misma escritura. El borrado físico de una deuda con pagos vinculados queda bloqueado. [PR #69](https://github.com/JuanjoAvila/Aely/pull/69) integrada en beta `9b0cc935`; [Action 36624037785](https://github.com/JuanjoAvila/Aely/actions/runs/36624037785) SUCCESS con 488 E2E y 7 de rendimiento. Manifiesto/ZIP/HTML/SW `4.26.70.1` cotejados; [acta y límite financiero](briefs/inc-2709-02-deudas-archivo.md). El dueño comunicó aquí el 29/9 que ya aprobó `inc-2709-02-deudas-archivo`; la promoción exclusiva queda pendiente al cerrar la jornada. Producción continúa en web 4.26.66/APK48. El widget/periodo, 0 % del mes natural y retirada CaixaBank del 29/9 siguen abiertos.

@@ -94,17 +94,48 @@ function reconcileEarlyIncomeAnchors(s,y,m,today){
 /* UNA sola fuente de cargos del mes para Plan / Pregúntame / segmented (audit Claude 17/9).
    Recibos = fixed + deudas (+ balloon) + oneoffs. Traspasos e ingresos van aparte y NUNCA
    suman a «por pagar». Sin tocar totals de 11: solo clasifica con helpers ya existentes. */
+/* El calendario sirve para proyectar saldos, pero no acredita un pago. Inicio y Plan
+   separan esa previsión del cargo BOOK: ni `wait` ni pasar el día deben ocultarlo o
+   inventarlo (gas vencido, feedback 30/9). La lectura no reancla cuentas ni escribe fijos. */
+function fixedPaymentState(s,e,y,m,today){
+  var day=dayIn(e,m),ym=y+"-"+String(m).padStart(2,"0");
+  var target=typeof e.bankAmount==="number"&&e.bankAmount>0?e.bankAmount:occAmountIn(e,m);
+  var bank=accOf(e),matches=(s.bankTx||[]).filter(function(tx){
+    if(!tx||tx.ent!==bank||tx.possibleDup||String(tx.status||"").toUpperCase()!=="BOOK") return false;
+    var ds=String(tx.date||"").slice(0,10),d=recDay(ds);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)||ds.slice(0,7)!==ym||d==null||d>today||d>new Date(y,m,0).getDate()) return false;
+    return Number(tx.amount)>0&&recNameMatch(e.name,tx.merchant)&&recAmtClose(target,Number(tx.amount));
+  });
+  var paidDay=e.paidYm===y*12+m&&Number(e.paidDay);
+  var persisted=paidDay>=1&&paidDay<=today&&paidDay<=new Date(y,m,0).getDate();
+  var tx=matches.length===1?matches[0]:null;
+  if(tx){
+    // El feed solo identifica entidad. Sin cuenta o con dos recibos compatibles no elegimos
+    // por orden del array; un cargo puede pertenecer a otro fijo, cuota o puntual.
+    var contenders=(s.fixed||[]).filter(function(f){ return occursIn(f,m); }).map(function(f){
+      return {name:f.name,bank:accOf(f),amount:f.bankAmount>0?f.bankAmount:occAmountIn(f,m)};
+    }).concat((s.debts||[]).filter(debtActive).map(function(d){
+      return {name:d.name,bank:d.account||"sabadell",amount:d.bankAmount>0?d.bankAmount:(d.monthly||0)+debtBalloonIn(d,y,m)};
+    }), (s.oneoffs||[]).filter(function(o){ return oneoffOccurs(o,y,m); }).map(function(o){
+      return {name:o.name,bank:o.account||"sabadell",amount:o.bankAmount>0?o.bankAmount:o.amount};
+    }));
+    var accounts=(s.accounts||[]).filter(function(a){ return a.ent===bank&&accFixed(a); });
+    if(accounts.length!==1||contenders.filter(function(f){
+      return f.bank===bank&&recNameMatch(f.name,tx.merchant)&&recAmtClose(f.amount,Number(tx.amount));
+    }).length!==1) tx=null;
+  }
+  var paid=!!persisted||!!tx;
+  return {paid:paid,day:paid?(persisted?paidDay:recDay(tx.date)):day,
+    overdue:!paid&&day!=null&&day<today};
+}
 function planChargesMonth(s,m,y,t){
   s=s||{};
   var r=[];
-  // La primera beta solo guardaba el mes pagado. Recuperar la fecha real del banco permite que
-  // ese estado ya existente deje de enseñar un cobro futuro sin obligar a editarlo otra vez.
-  var q=reconcileBank(s,y,m,t).paidAt;
   (s.fixed||[]).forEach(function(e){
     var a=occAmountIn(e,m);
     if(!(a>0)||!occursIn(e,m)) return;
-    var d=dayIn(e,m),bd=q[e.id],pd=e.paidYm===y*12+m&&e.paidDay||bd;
-    r.push({id:"fixed_"+e.id,name:e.name,amount:a,day:pd||d,bank:accOf(e),paid:!!bd||isPaidIn(e,m,t,y)});
+    var status=fixedPaymentState(s,e,y,m,t);
+    r.push({id:"fixed_"+e.id,name:e.name,amount:a,day:status.day,bank:accOf(e),paid:status.paid,overdue:status.overdue});
   });
   (s.debts||[]).forEach(function(d){
     if(!debtActive(d)) return;
@@ -2314,7 +2345,8 @@ function patchFixedById(set, id, p){
     const n=Object.assign({},s,{fixed:fx});
     if(it&&(("day" in p)||("amount" in p)||("account" in p))){
       const d=new Date(),y=d.getFullYear(),m=d.getMonth()+1,t=d.getDate();
-      const ym=y*12+m,rec=reconcileBank(n,y,m,t),pd=rec.paidAt[id];
+      if(("amount" in p)||("account" in p)){ delete it.paidYm; delete it.paidDay; }
+      const ym=y*12+m,rec=reconcileBank(n,y,m,t),status=fixedPaymentState(n,it,y,m,t),pd=status.paid&&status.day;
       if(pd){
         it.paidYm=ym;
         it.paidDay=pd;

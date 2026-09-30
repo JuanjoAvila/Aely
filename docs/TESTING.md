@@ -12,6 +12,8 @@ Widget banco (4.26.50): `e2e/widget-banco.spec.mjs` abre Ajustes y cambia el ban
 
 # Testing — Aely
 
+INC-3009-01: `fixed-payment-state` está registrado en el runner y prueba pago BOOK, calendario, estados pendientes/ausentes, fechas futuras, varios candidatos, bancos, bruto compartido, importes por ocurrencia, confirmación persistida y ausencia de mutaciones. `inicio-cargos.spec.mjs`, mapeado a Inicio y Plan, reproduce con datos ficticios el gas confirmado que seguía visible, distingue vencido sin acreditación, PDNG y recarga en es/en/ca. Las fixtures de pago de Plan declaran confirmación explícita; un día pasado no acredita un pago. Las proyecciones de saldo conservan su contrato anterior. [Límites](briefs/inc-3009-01-cargos.md).
+
 INC-2709-02 (beta 4.26.70.1): `e2e/deudas-archivo.spec.mjs` está registrado para `09-tab-debts-goals.js` en `E2E_MAP`. Con deudas y cuotas sintéticas abre Plan → Deudas, exige que un saldo proyectado cero pida confirmación, comprueba cancelación, liquidación, archivo, recarga, cuota antigua visible en Gastos y vuelta a mostrar. También cubre la amortización total sin crear gasto, borrado bloqueado con cuota vinculada, saldo positivo corregido desde otro dispositivo e inglés/catalán; 6/6 locales y [suite beta 36624037785](https://github.com/JuanjoAvila/Aely/actions/runs/36624037785) SUCCESS con 488 E2E funcionales y 7 de rendimiento. `i18n-keys` comprueba las nuevas claves en es/en/ca. El archivo conserva `debtId`; no se interpreta una proyección como pago real ni se prueba con movimientos familiares.
 
 INC-2809-02 (4.26.68): `e2e/gastos-ayuda-ciclo.spec.mjs`, registrado con `04-tab-gastos.js` en
