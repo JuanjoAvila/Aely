@@ -1977,10 +1977,30 @@ function App(){
     const url=CONFIG.SUPABASE_URL+"/functions/v1/ingest?token="+encodeURIComponent(tok);
     try{ nat.setIngestUrl({url:url}).catch(function(){}); }catch(e){}
   },[state.settings&&state.settings.trIngest, state.settings&&state.settings.ingestToken]);
-  // App Android: alimenta el widget de pantalla de inicio (gasto del mes + saldo de la cuenta diaria).
-  // El widget y `ingest` solo admiten mes natural. Mandar su propia cifra mensual evita
-  // mezclar un inicio de ciclo con el `periodStart` del día 1 (feedback pareja 28/9).
-  const budW=monthBudgetStats(state,Date.now());
+  // App Android: alimenta el widget de pantalla de inicio (gasto + saldo de la cuenta diaria).
+  // La APK 51 solo sabe de mes natural y de «gastado este mes» (textos fijos): recibe el gasto
+  // bruto del mes (feedback pareja 28/9). Un widget v2 declara `widgetContract` y pinta la ventana
+  // y la cifra de Inicio —ciclo desde el cobro en neto o mes en bruto— en su idioma (INC-2909-01).
+  const [widgetV2,setWidgetV2]=useState(false);
+  useEffect(function(){
+    const nat=natPlugin();
+    if(!nat || !nat.widgetContract) return;
+    let vivo=true;
+    // La APK 51 no tiene el método: la llamada falla y se sigue con el mes natural.
+    Promise.resolve().then(function(){ return nat.widgetContract(); })
+      .then(function(r){ if(vivo && r && r.v>=2) setWidgetV2(true); }).catch(function(){});
+    return function(){ vivo=false; };
+  },[]);
+  const budW=widgetV2?dashboardBudgetStats(state):widgetBudgetStats(state,Date.now());
+  // Con la app cerrada `ingest` no reconoce la nómina: sigue la ventana que deja aquí la app.
+  useEffect(function(){
+    if(!widgetV2) return;
+    // La nómina que abre el ciclo no cuenta en su neto: `ingest` la reconoce por esta clave.
+    const pd=budW.cycle?budgetPaydayOf(state,Date.now()):null;
+    const kind=budW.cycle?"ciclo":"mes", start=budW.periodStart, anchor=pd?keyOfExpense(pd.inc):"", w=state.widgetPeriod;
+    if(w && w.v===2 && w.kind===kind && w.start===start && (w.anchor||"")===anchor) return;
+    set(function(s){ return Object.assign({},s,{widgetPeriod:{v:2,kind:kind,start:start,anchor:anchor}}); });
+  },[widgetV2,budW.cycle,budW.periodStart,state.widgetPeriod]);
   const trAccW=widgetBankOf(state);
   const widgetCash=trAccW ? Math.round((totals.bankBal[trAccW.ent]||0)*100)/100 : null;
   // El límite combina presupuesto global y liquidez del banco elegido. Se mandan las piezas
@@ -2001,12 +2021,14 @@ function App(){
     if(!nat || !nat.updateWidget) return;
     if(cloud.enabled() && (!uid || !wR.current)) return;
     const data={
-      periodStart:inicioDeMesMs(Date.now()),
+      periodStart:budW.periodStart,
       coveredEvents:wC.current,
       deletedKeys:"|"+(state.deleted||[]).map(encodeURIComponent).join("|")+"|",
-      spent:Math.round((budW.shown||0)*100)/100,
+      // En el ciclo, el neto con signo, como Inicio; `shown` sería |neto| (la cabecera de Gastos).
+      spent:Math.round(((budW.cycle?budW.against:budW.shown)||0)*100)/100,
       budget:budW.budget!=null?budW.budget:(state.budget||0)
     };
+    if(widgetV2){ data.contract=2; data.periodKind=budW.cycle?"ciclo":"mes"; data.magnitude=budW.cycle?"neto":"gasto"; data.lang=CURLANG; }
     if(widgetCash!=null){ data.cash=widgetCash; data.cashEnt=trAccW.ent; data.cashLabel=entOf(trAccW.ent).label; }
     if(widgetBudgetLeft!=null) data.budgetLeft=widgetBudgetLeft;
     if(widgetSafeLiq!=null) data.safeLiq=widgetSafeLiq;
@@ -2039,7 +2061,7 @@ function App(){
       // addListener puede resolver después del cleanup: liberar también ese handle tardío.
       if(sub) sub.then(function(h){ if(h&&h.remove) return h.remove(); }).catch(function(){});
     };
-  },[budW.shown,budW.budget,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid]);
+  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,widgetV2,CURLANG,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){
     // No arrancar el tour encima del login (showAuth) ni con el cajón abierto: causaba el caos

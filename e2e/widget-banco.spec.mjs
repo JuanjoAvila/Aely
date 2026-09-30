@@ -150,3 +150,106 @@ test("automático conserva Efectivo como cuenta diaria incluso con una elección
   await expect(again.getByRole("combobox", { name: "Banco del widget" })).toHaveValue("");
   await expect(again.getByRole("option", { name: "Efectivo", exact: true })).toHaveCount(0);
 });
+
+/* INC-2909-01 (30/9): «el widget solo enseña Balance». Sus textos (APK) dicen «ESTE MES» y
+   «gastado»; en modo Balance recibía |ingresos − gasto| y la nómina se pintaba como gasto.
+   El widget manda ahora el gasto bruto del mes natural, igual que Inicio fuera de Mi ciclo. */
+const INICIO = [
+  { lang: "es", spent: "Has gastado" },
+  { lang: "en", spent: "You've spent" },
+  { lang: "ca", spent: "Has gastat" },
+];
+const MES_CON_NOMINA = [
+  { id: "nomina", date: "2026-09-05T10:00:00Z", amount: -2000, merchant: "Nómina ficticia", category: "ingreso", ent: "trade_republic" },
+  { id: "super", date: "2026-09-06T10:00:00Z", amount: 600, merchant: "Súper ficticio", category: "super", ent: "trade_republic" },
+];
+for (const caso of INICIO) {
+  test(`widget y Inicio dicen el mismo gasto del mes en modo Balance (${caso.lang})`, async ({ page }) => {
+    await page.clock.install({ time: new Date("2026-09-27T10:00:00Z") });
+    await seedLoggedInDashboard(page, { __seedOnce: true, budget: 1000, expenses: MES_CON_NOMINA,
+      accounts: [{ id: "tr", ent: "trade_republic", role: "diario", spendFrom: true, value: 2000 }],
+      settings: { autoPrices: false, lang: caso.lang, gTotalMode: "net", budgetCycle: false } });
+    await bridge(page);
+    await page.goto("/");
+    await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(600);
+    expect(await page.evaluate(() => window.__widgetSnapshot.budgetLeft)).toBe(400);
+    await page.waitForFunction(() => !document.getElementById("mc-load"));
+    await dismissNews(page);
+    await expect(page.locator(".v4-budget .ph")).toContainText(caso.spent + " 600");
+  });
+}
+
+test("con Mi ciclo activo el widget sigue en su mes natural, que es lo que dicen sus textos", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-09-27T10:00:00Z") });
+  await seedLoggedInDashboard(page, { __seedOnce: true, budget: 1000,
+    expenses: [{ id: "antes", date: "2026-09-02T10:00:00Z", amount: 250, merchant: "Compra anterior", category: "super", ent: "trade_republic" }]
+      .concat(MES_CON_NOMINA.map((e) => Object.assign({}, e, { merchant: e.id === "nomina" ? "NOMINA EMPRESA" : e.merchant }))),
+    accounts: [{ id: "tr", ent: "trade_republic", role: "diario", spendFrom: true, value: 2000 }],
+    settings: { autoPrices: false, gTotalMode: "net", budgetCycle: true, expenseBanks: ["trade_republic"] } });
+  await bridge(page);
+  await page.goto("/");
+  await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(850);
+  const snap = await page.evaluate(() => ({ start: window.__widgetSnapshot.periodStart, month: inicioDeMesMs(Date.now()) }));
+  expect(snap.start).toBe(snap.month);
+});
+
+/* INC-2909-01 E2: un widget que declara el contrato v2 recibe la ventana y la cifra de Inicio:
+   el ciclo desde el cobro en neto (sin la nómina que lo abre) o el mes en bruto, y su idioma.
+   La app deja además la ventana en app_state para que `ingest` la siga con la app cerrada. */
+async function bridgeV2(page) {
+  await page.addInitScript(() => {
+    window.Capacitor = { isNativePlatform: () => false, Plugins: {
+      MiCartera: new Proxy({ updateWidget: async data => { window.__widgetSnapshot = data; },
+        widgetContract: async () => ({ v: 2 }),
+        addListener: async () => ({ remove() {} }) },
+      { get: (target, key) => target[key] || (() => Promise.resolve({})) }),
+    } };
+  });
+}
+const CICLO = [
+  { id: "antes", date: "2026-09-02T10:00:00Z", amount: 250, merchant: "Compra anterior", category: "super", ent: "trade_republic" },
+  { id: "nomina", date: "2026-09-05T10:00:00Z", amount: -2000, merchant: "NOMINA EMPRESA", category: "ingreso", ent: "trade_republic" },
+  { id: "super", date: "2026-09-06T10:00:00Z", amount: 600, merchant: "Súper ficticio", category: "super", ent: "trade_republic" },
+  { id: "bizum", date: "2026-09-07T10:00:00Z", amount: -100, merchant: "Bizum recibido", category: "ingreso", ent: "trade_republic" },
+];
+for (const caso of [{ lang: "es" }, { lang: "en" }, { lang: "ca" }]) {
+  test(`E2: widget v2 con Mi ciclo recibe la ventana y el neto de Inicio (${caso.lang})`, async ({ page }) => {
+    await page.clock.install({ time: new Date("2026-09-27T10:00:00Z") });
+    await seedLoggedInDashboard(page, { __seedOnce: true, budget: 1000, expenses: CICLO,
+      accounts: [{ id: "tr", ent: "trade_republic", role: "diario", spendFrom: true, value: 2000 }],
+      settings: { autoPrices: false, lang: caso.lang, gTotalMode: "net", budgetCycle: true, expenseBanks: ["trade_republic"] } });
+    await bridgeV2(page);
+    await page.goto("/");
+    await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.periodKind)).toBe("ciclo");
+    const snap = await page.evaluate(() => window.__widgetSnapshot);
+    expect(snap.contract).toBe(2);
+    expect(snap.magnitude).toBe("neto");
+    expect(snap.lang).toBe(caso.lang);
+    expect(snap.spent).toBe(500);            // 600 − 100; la nómina abre el ciclo y la compra del día 2 es del anterior
+    expect(snap.budgetLeft).toBe(500);
+    expect(snap.periodStart).toBe(await page.evaluate(() => new Date(2026, 8, 5).getTime()));
+    // `ingest` seguirá esta ventana con la app cerrada, sin sumar la nómina.
+    await expect.poll(() => page.evaluate(() => {
+      const s = JSON.parse(localStorage.getItem("micartera_v3") || "{}");
+      return s.widgetPeriod && s.widgetPeriod.kind + "|" + s.widgetPeriod.anchor;
+    })).toBe("ciclo|2026-09-05|-2000|NOMINA EMPRESA");
+    await page.waitForFunction(() => !document.getElementById("mc-load"));
+    await dismissNews(page);
+    await expect(page.locator(".v4-budget .ph")).toContainText("500");
+  });
+}
+
+test("E2: widget v2 sin Mi ciclo recibe el mes en bruto; un nativo antiguo sigue en contrato 1", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-09-27T10:00:00Z") });
+  await seedLoggedInDashboard(page, { __seedOnce: true, budget: 1000, expenses: CICLO,
+    accounts: [{ id: "tr", ent: "trade_republic", role: "diario", spendFrom: true, value: 2000 }],
+    settings: { autoPrices: false, gTotalMode: "net", budgetCycle: false, expenseBanks: ["trade_republic"] } });
+  await bridgeV2(page);
+  await page.goto("/");
+  await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.contract)).toBe(2);
+  const snap = await page.evaluate(() => window.__widgetSnapshot);
+  expect(snap.periodKind).toBe("mes");
+  expect(snap.magnitude).toBe("gasto");
+  expect(snap.spent).toBe(850);
+  expect(snap.periodStart).toBe(await page.evaluate(() => inicioDeMesMs(Date.now())));
+});

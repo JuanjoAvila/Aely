@@ -1,3 +1,29 @@
+## [4.26.76] — 2026-09-30 · INC-2909-01, el widget enseña la ventana y la cifra de Inicio
+
+**E2 (contrato v2: web + APK 52 + `ingest`, nada publicado):**
+
+- **Nativo** (`WidgetPeriod.java`, Java puro): acepta un `periodStart` de ciclo (≤ ahora, ≤ 45 días, el tope de `lastPaydayOf`) solo con `contract ≥ 2`; `current`/`stale` hacen que un ciclo que cruza el día 1 no caduque y uno de más de 45 días sí. Título y textos en es/en/ca («AELY · MI CICLO / MY CYCLE / EL MEU CICLE», «gastado/neto este mes/ciclo»). La APK 51 y los contratos viejos siguen en castellano y mes natural.
+- **Árbitro:** `acceptServer` rechaza con un widget v2 cualquier respuesta de `ingest` que no sea v2 de la misma ventana. Si ese pago falta en la foto de la app (`pendingUnknown`), el widget pinta «—» y «Abre la app para actualizar» en vez de mezclar un número de otra regla; la siguiente foto de la app lo limpia. Cambiar de mes a ciclo reinicia el journal (otra ventana).
+- **Plugin:** `widgetContract()` → `{v:2}`. En la APK 51 la llamada falla y la web sigue en E1.
+- **Web:** con v2, `budW = dashboardBudgetStats` (la de Inicio); `spent` = neto con signo en el ciclo (`against`, no `|neto|`) y bruto en el mes; manda `contract`, `periodKind`, `magnitude` y `lang`. Guarda `state.widgetPeriod = {v:2, kind, start, anchor}` en app_state; `anchor` es la `keyOfExpense` de la nómina que abre el ciclo.
+- **`ingest`:** `ventanaDelWidget(data, now)` sigue `widgetPeriod` mientras siga dentro de plazo; si no, mes natural. `statsDelCiclo` replica el ciclo de Inicio: sin la nómina ancla, ingresos de cualquier banco salvo neutros o `#dup`, y compras de los bancos de gasto. Responde `contract:2`, `periodKind`, `spent = against` y `shownDelta = againstDelta`. El servidor no reconoce nóminas: sin `widgetPeriod` válido, mes natural. Límite: no corta en «mañana» como la app, así que un apunte manual con fecha futura contaría ahí.
+- **Orden:** Edge `ingest` → web → APK 52. Con APK 52 y `ingest` antiguo, el widget con la app cerrada dice «Abre la app» en vez de mezclar; no hay cifra falsa, pero tampoco suma.
+- **Pruebas:**
+  - `widget-arbitraje`, Java real: ciclo que cruza el mes, caducidad a 45 días, `acceptServer` con servidor viejo, textos es/en/ca y `pendingUnknown`.
+  - `widget-coherente`: app = servidor en el ciclo con la ancla (120; sin ancla sería −1.680).
+  - `ingest-handler`, handler real: ciclo 320 y `contract` 2; ciclo caducado vuelve al mes, 720.
+  - `month-window`: la ventana sigue saliendo de `inicioDeMesMs`.
+  - e2e `widget-banco` con nativo v2 en es/en/ca: pendiente de turno de Chromium.
+  - `compileReleaseJavaWithJavac` y `assembleRelease` 52/4.26.76 (local, sin commitear el bump) verificados con aapt y apksigner (`CN=Mi Cartera`).
+
+**E1:**
+
+- El APK pinta «AELY · ESTE MES», «gastado este mes» y «de X este mes · te quedan Y» (textos fijos, `MiCarteraWidget.build`), pero web (`budW.shown`) e `ingest` (`statsDelMes().shown`) le mandaban la cifra de la cabecera de Gastos: en Balance, |ingresos − gasto|. Con la nómina dentro, un superávit se pintaba como gasto y «te quedan»/«Puedes gastar» salían del neto. Es lo que el dueño llamó «el widget solo enseña Balance».
+- `widgetBudgetStats` (08) = `monthBudgetStats(state, now, undefined, "split")`: mes natural y gasto bruto en cualquier modo, el mismo que Inicio fuera de Mi ciclo tras INC-2909-02. `statsDelMes` gana `modoForzado` e `ingest` pide `"split"`, así que `spent`, `budgetLeft`, deltas y avisos del servidor usan el mismo bruto. Sin modo forzado, el servidor conserva la regla de Gastos.
+- ⚠ ORDEN: `ingest` es Edge y NO está desplegada. Si la web sale antes, con la app cerrada una compra de TR devolvería el balance al widget hasta reabrir. Desplegar `ingest` (una función, con OK expreso) antes de publicar esta web, o publicarlas juntas.
+- Con la APK 51, Mi ciclo no llega al widget: descarta cualquier `periodStart` que no sea el día 1 (`saveApp`), así que con el ciclo activo sigue en mes natural y lo dice («ESTE MES»). Lo resuelve E2, arriba.
+- Pruebas: `widget-coherente` (app = servidor en Balance con nómina; ciclo no cambia la ventana del widget), `ingest-handler` con el handler real (320 € y no 1.480 €; cae sin `"split"`), e2e `widget-banco` en es/en/ca (payload = «Has gastado» de Inicio; caen 4/4 con el cálculo anterior).
+
 ## [4.26.73] — 2026-09-30 · INC-2909-02, presupuesto mensual coherente en Inicio
 
 - Candidata separable desde main `12884f48`. Reproducción DOM en es/en/ca: al desactivar Mi ciclo en un perfil con modo Balance, 600 € de compras y 900 € de presupuesto tras reservas daban 0 % por restar la nómina. El texto seguía diciendo «Has gastado 600». El perfil con modo Gastos ya daba 67 %.

@@ -29,7 +29,7 @@ const read = (p) => fs.readFileSync(path.join(root, p), "utf8");
 
 const srcTs = read("supabase/functions/_shared/presupuesto.ts");
 const js = transformSync(srcTs, { loader: "ts", format: "esm" }).code;
-const { statsDelMes, inicioDeMesMs, filasComoLaApp } = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
+const { statsDelMes, statsDelCiclo, inicioDeMesMs, filasComoLaApp, ventanaDelWidget } = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
 const cli = loadPureLogicFromFile();
 
 function t(name, fn) {
@@ -104,6 +104,60 @@ t("gastar de más no deja «puedes gastar» en negativo", () => {
   const srvLeft = Math.max(0, srv.budget - srv.against);
   assert.equal(srvLeft, 0);
   assert.ok(srv.against > srv.budget, "y el escenario sí se pasa de presupuesto");
+});
+
+/* INC-2909-01 (30/9): «el widget solo enseña Balance». Sus textos dicen «gastado este mes», pero
+   en modo Balance recibía |ingresos − gasto|: con la nómina dentro, un saldo a favor salía como
+   gasto y «te quedan» se inflaba. Los dos escritores del widget mandan ahora el gasto bruto. */
+t("★ en modo Balance con nómina, app y servidor mandan al widget el gasto bruto, no el balance", () => {
+  const movs = MOVS.concat([{ day: 3, importe: -1800, cat: "ingreso", source: "ob:trade_republic" }]);
+  const data = escenario(movs);
+  const srv = statsDelMes(movs.map(paraServidor), data, desdeMs, "split");
+  const app = cli.widgetBudgetStats(data, nowMs);
+  assert.equal(c(app.shown), 500, "300 + 200 gastados; la nómina no es gasto");
+  assert.equal(c(srv.shown), c(app.shown));
+  assert.equal(c(Math.max(0, srv.budget - srv.against)), c(Math.max(0, app.remaining)));
+  assert.equal(c(app.remaining), 500);
+  // La cabecera de Gastos en Balance sigue con su contrato: el widget ya no la copia.
+  assert.equal(c(cli.monthBudgetStats(data, nowMs).shown), 1300);
+  assert.equal(c(statsDelMes(movs.map(paraServidor), data, desdeMs).shown), 1300, "sin modo forzado, el servidor conserva la regla de Gastos");
+});
+
+t("★ el widget va por mes natural aunque Mi ciclo esté activo (sus textos dicen «ESTE MES»)", () => {
+  const movs = MOVS.concat([{ day: 3, importe: -1800, cat: "ingreso", source: "ob:trade_republic" }]);
+  const data = escenario(movs, { settings: { budgetCycle: true } });
+  assert.equal(cli.widgetBudgetStats(data, nowMs).periodStart, desdeMs);
+  assert.equal(cli.widgetBudgetStats(data, nowMs).cycle, false);
+});
+
+/* E2: con Mi ciclo, la app guarda en app_state la ventana que pinta Inicio y `ingest` la sigue.
+   Mismas filas → mismo neto y mismo margen en los dos lados, sin que el servidor reconozca nóminas. */
+t("★ E2: con la ventana del ciclo que guarda la app, servidor y app dan la cifra de Inicio", () => {
+  const movs = [
+    { day: 2, importe: 300, cat: "super", source: "macrodroid" },
+    { day: 3, importe: -1800, cat: "ingreso", source: "ob:trade_republic", merchant: "NOMINA EMPRESA" },
+    { day: 4, importe: 120, cat: "bares", source: "macrodroid" },
+  ];
+  const data = escenario(movs, { settings: { budgetCycle: true, gTotalMode: "split" } });
+  data.expenses.forEach((e, i) => { if (movs[i].merchant) e.merchant = movs[i].merchant; });
+  const RealDate = cli.Date;
+  try {
+    cli.Date = class extends RealDate { static now() { return nowMs; } };
+    const app = cli.dashboardBudgetStats(data);
+    assert.equal(app.cycle, true, "la nómina abre el ciclo");
+    const anchor = cli.keyOfExpense(cli.budgetPaydayOf(data, nowMs).inc);
+    const v = ventanaDelWidget({ widgetPeriod: { v: 2, kind: "ciclo", start: app.periodStart, anchor } }, nowMs);
+    assert.equal(v.kind, "ciclo"); assert.equal(v.desdeMs, app.periodStart); assert.equal(v.ancla, anchor);
+    const filas = movs.map((m) => Object.assign(paraServidor(m), { fecha: d(m.day), comercio: m.merchant || "" }));
+    const srv = statsDelCiclo(filas, data, v.desdeMs, v.ancla);
+    assert.equal(c(srv.against), c(app.against));
+    assert.equal(c(srv.budget - srv.against), c(app.remaining));
+    assert.equal(c(app.against), 120, "la nómina abre el ciclo y no suma; la compra del día 2 es del anterior");
+    // Sin la clave ancla el servidor sumaría la nómina: 2.000 € de margen de más.
+    assert.equal(c(statsDelCiclo(filas, data, v.desdeMs, "").against), -1680);
+  } finally { cli.Date = RealDate; }
+  // Sin ventana guardada (APK 51 o web antigua), el servidor sigue en mes natural.
+  assert.equal(ventanaDelWidget({}, nowMs).kind, "mes");
 });
 
 t("FIN-05: las mismas lápidas y filas dan el mismo presupuesto antes y después del pago", () => {

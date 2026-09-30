@@ -1125,6 +1125,10 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode){
     {periodStart:startMs,cycle:!!period.cycle});
 }
 
+// El widget pone «ESTE MES» y «gastado» (textos del APK): su contrato es el gasto bruto del
+// mes natural en cualquier modo. En Balance le llegaba |ingresos−gasto| como gasto y una nómina
+// se pintaba como gastada (INC-2909-01). `ingest` hace la misma cuenta con la app cerrada.
+function widgetBudgetStats(state,nowMs){ return monthBudgetStats(state,nowMs,undefined,"split"); }
 // Inicio dice «Has gastado» en el mes natural: una nómina no puede borrar ese uso del
 // presupuesto (INC-2909-02). Gastos/Balance y el widget conservan su contrato propio.
 function dashboardBudgetStats(state){

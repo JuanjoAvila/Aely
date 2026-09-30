@@ -1,5 +1,16 @@
 # Arquitectura — Aely
 
+## Contrato del widget (INC-2909-01)
+
+El widget Android tiene textos fijos: «AELY · ESTE MES», «gastado este mes» y «de X este mes · te quedan Y». Sus dos escritores le mandan exactamente eso: gasto bruto del mes natural (Europe/Madrid) y lo que queda del presupuesto tras reservas.
+
+- **App abierta**: `widgetBudgetStats` = `monthBudgetStats(…, "split")`.
+- **App cerrada**: `ingest` → `statsDelMes(…, "split")`.
+
+La preferencia de Gastos (Balance) no cambia lo que recibe el widget; la cabecera de Gastos conserva `shown` con su signo y su modo. Con la APK 51 Mi ciclo no llega al widget (rechaza `periodStart` distinto del día 1).
+
+**Contrato v2 (APK ≥ 52, `widgetContract`):** el widget pinta la ventana y la cifra de Inicio (`dashboardBudgetStats`) —ciclo desde el cobro en neto o mes en bruto— con textos es/en/ca (`WidgetPeriod`). La app guarda `widgetPeriod = {v:2, kind, start, anchor}` en app_state y `ingest` la sigue (`ventanaDelWidget` + `statsDelCiclo`), sin reconocer nóminas en el servidor. Un widget v2 solo acepta respuestas v2 de su ventana; si no, «Abre la app», nunca una cifra de otra regla.
+
 ## Presupuesto de Inicio mensual (INC-2909-02)
 
 `dashboardBudgetStats` pide modo bruto al argumento opcional `budgetMode` de `monthBudgetStats`, sin otro recorrido del histórico ni cambiar `gTotalMode`. En mes natural, frase, anillo, margen, Pregúntame, avisos y reto describen las mismas compras y el límite tras reservas. El ciclo reconocido conserva neto, incluso negativo; Gastos, widget e informes mantienen sus propias llamadas y modos. No modifica saldos ni escrituras.

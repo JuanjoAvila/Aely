@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.76",
+    "d": "2026-09-30",
+    "t": {
+      "es": "El widget dice qué periodo enseña",
+      "en": "The widget says which period it shows",
+      "ca": "El widget diu quin període mostra"
+    },
+    "items": {
+      "es": [
+        "El widget enseña lo gastado este mes aunque Gastos esté en Balance: una nómina ya no aparece como gasto ni infla lo que te queda.",
+        "Con la nueva versión de la app de Android, el widget sigue Mi ciclo igual que Inicio, lo dice en su título y habla tu idioma."
+      ],
+      "en": [
+        "The widget shows this month's spending even when Expenses is set to Balance: pay no longer shows up as spending or inflates what you have left.",
+        "With the new Android app, the widget follows My cycle just like Home, says so in its title and speaks your language."
+      ],
+      "ca": [
+        "El widget mostra el que has gastat aquest mes encara que Despeses estigui en Balanç: una nòmina ja no surt com a despesa ni infla el que et queda.",
+        "Amb la nova versió de l'app d'Android, el widget segueix El meu cicle igual que Inici, ho diu al títol i parla el teu idioma."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2909-01-widget-periodo",
+        "t": {
+          "es": "Widget: mes o Mi ciclo",
+          "en": "Widget: month or My cycle",
+          "ca": "Widget: mes o El meu cicle"
+        },
+        "items": {
+          "es": [
+            "1. Con Gastos en Balance y Mi ciclo desactivado, abre la app: el widget debe decir «ESTE MES» y el mismo gastado que «Has gastado» en Inicio, aunque la nómina ya esté cobrada.",
+            "2. Instala la app de Android nueva, activa Mi ciclo y abre la app: el widget debe decir «MI CICLO» y la misma cifra que Inicio. Con la app en inglés o catalán, el widget también.",
+            "3. Cierra la app y paga algo con Trade Republic: el widget debe sumar esa compra o decir «Abre la app para actualizar»; nunca volver a una cifra de otro periodo."
+          ],
+          "en": [
+            "1. With Expenses on Balance and My cycle off, open the app: the widget must say “THIS MONTH” and the same spent amount as “You've spent” on Home, even after pay has arrived.",
+            "2. Install the new Android app, turn on My cycle and open the app: the widget must say “MY CYCLE” and the same figure as Home. With the app in English or Catalan, so must the widget.",
+            "3. Close the app and pay with Trade Republic: the widget must add that purchase or say “Open the app to update”; never go back to a figure from another period."
+          ],
+          "ca": [
+            "1. Amb Despeses en Balanç i El meu cicle desactivat, obre l'app: el widget ha de dir «AQUEST MES» i el mateix gastat que «Has gastat» a Inici, encara que la nòmina ja s'hagi cobrat.",
+            "2. Instal·la la nova app d'Android, activa El meu cicle i obre l'app: el widget ha de dir «EL MEU CICLE» i la mateixa xifra que Inici. Amb l'app en anglès o català, el widget també.",
+            "3. Tanca l'app i paga alguna cosa amb Trade Republic: el widget ha de sumar la compra o dir «Obre l'app per actualitzar»; mai tornar a una xifra d'un altre període."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.73",
     "d": "2026-09-30",
     "t": {

@@ -117,7 +117,9 @@ const PRESUPUESTO = {
   // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
   // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
   // La misma candidata mide 343.257 B gzip, 217 B sobre 335 KiB: +1 KiB medido.
-  gzip: 336 * 1024,
+  // INC-2909-01 E2 (30/9): el widget v2 recibe ventana, magnitud e idioma y la app guarda la
+  // ventana para `ingest`. Mide 344.240 B gzip, 176 sobre 336 KiB: +1 KiB medido.
+  gzip: 337 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

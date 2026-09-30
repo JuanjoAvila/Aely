@@ -11,6 +11,12 @@ sesión del móvil se gastó la mitad trabajando sobre una rama equivocada.
 
 ## 1. Lo primero, siempre
 
+INC-2909-01 (4.26.76 provisional, sin publicar):
+- **E1:** con la APK 51, el widget recibe gasto bruto del mes natural.
+- **E2:** con la APK 52 (contrato v2), recibe la ventana y la cifra de Inicio, incluido Mi ciclo, en su idioma, y `ingest` sigue `app_state.widgetPeriod`.
+- **Orden:** `ingest` → web → APK 52. Sin `ingest` nuevo, con la app cerrada: APK 51 vuelve al balance y APK 52 dice «Abre la app».
+- [Acta](docs/briefs/inc-2909-01-widget.md).
+
 INC-2909-02: integración local fuente4.26.73 desdebeta96b9210b, candidata separable PR80/74abbd78. Claude emitió NO-GO45d94d21 por lectores desalineados; los tres están corregidos y la segunda revisión sigue pendiente. Últimos canales verificados: beta4.26.71.1 y producción4.26.67. Recibos fue rechazado; la reparación y auditoría de aprobaciones están en un chat separado. Las cinco nativas tienen OK histórico con id anterior, pero APK51 no está en producción: no borrar ni promover por apariencia de duplicado.
 
 Corte 30/9: producción web 4.26.67 [publicada y cotejada](docs/briefs/inc-2709-02-prod.md) tras el OK exclusivo de `inc-2709-02-deudas-archivo`; beta 4.26.71.1 conserva las siete pruebas anteriores y añade la del gas. APK estable 48 y beta 51, sin promoción nativa. El usuario notificó además tres fallos independientes: widget sin «Mi ciclo», gas del 25/9 todavía en «Próximos cargos» el día 30 y nómina de Sabadell visible antes de cobrarla. Revalidar ramas, manifiestos, ZIP, SW, Actions y el estado de cada fallo; no dar por correcto un ingreso ni un cargo por la fecha prevista. El [backlog](docs/BACKLOG.md) conserva las prioridades y el límite de cada tanda.
