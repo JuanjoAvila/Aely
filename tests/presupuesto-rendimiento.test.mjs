@@ -86,7 +86,10 @@ const PRESUPUESTO = {
   // 28/9: las cuatro tandas web aprobadas añaden ciclo de cobro, conciliación de nómina y
   // textos en tres idiomas. Candidata aislada sin APK/Edge: 1.251.769 B crudos y 341.039 B
   // gzip medidos; se amplía 5/2 KiB, dejando menos de 1 KiB libre en cada límite.
-  minificado: 1223 * 1024,
+  // INC-2709-02 selectiva: confirmar el saldo, archivar sin borrar cuotas y traducir el
+  // recorrido deja 1.255.759 B minificados, 3.407 B sobre el tope anterior; +4 KiB crudos.
+  // Gzip mide 341.953 B y sigue bajo 334 KiB (63 B de margen), sin ampliar su límite.
+  minificado: 1227 * 1024,
   gzip: 334 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };

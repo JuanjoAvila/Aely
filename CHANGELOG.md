@@ -1,3 +1,9 @@
+## [4.26.67] — 2026-09-30 · INC-2709-02, liquidación y archivo de deudas
+
+- Candidata de promoción exclusiva desde producción 4.26.66 de la tanda `inc-2709-02-deudas-archivo`, aprobada por el dueño el 29/9 tras beta 4.26.70.1. Se trasladan solo `09-tab-debts-goals.js`, sus textos es/en/ca y la cobertura de DOM; Android, Edge, SQL, APK y el resto de beta quedan fuera.
+- `debtBalance` a cero es una proyección, no prueba bancaria: Plan → Deudas pide confirmación explícita antes de permitir el archivo. Una amortización total que escribe la persona confirma en la misma actualización. `archivedAt` oculta la tarjeta sin borrar su `id`, por lo que Gastos conserva las cuotas históricas; un saldo positivo corregido reaparece. El borrado físico se bloquea con pagos vinculados y la amortización rechaza un diálogo obsoleto.
+- La nota pública de 4.26.67 tiene `tandas:[]` porque esta tanda ya recibió aprobación. Los guiones aún pendientes de beta se preservan por encima de la nueva versión estable; su publicación y cualquier retirada adicional requieren veredicto propio.
+
 ## [4.26.66] — 2026-09-29 · INC-2809-01, cifras coherentes en Inicio
 
 - Promoción selectiva de `inc-2809-01-inicio-ciclo`, aprobada expresamente tras beta 4.26.67.1 y publicada desde PR #61 como web 4.26.66. La candidata nació de main 4.26.65; incorporó solo la presentación de Inicio y sus pruebas. Conserva APK48, Edge, SQL y el workflow manual de Supabase. CI main y Pages terminaron correctamente; el ZIP servido coincide con HTML, SW, notas y APK de Pages.
