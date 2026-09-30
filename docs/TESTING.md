@@ -2,6 +2,8 @@ OPS-02 (4.26.56): 23 unitarios en backup-snapshot.test.mjs y once E2E DOM en bac
 
 # Testing — Aely
 
+INC-2909-02: `inicio-mes-natural.spec.mjs`, registrado para Inicio en `E2E_MAP`, abre Ajustes y alterna el ciclo en dos perfiles sintéticos con modos Gastos/Balance en es/en/ca. Protege frase, porcentaje, margen diario, recarga, reservas y exclusiones; diferencia límite agotado/exceso, reserva completa y ausencia de presupuesto/actividad. `month-budget-stats` protege `dashboardBudgetStats` y exige que no cambie el balance mensual legítimo, el neto del ciclo ni el estado. [Contrato](briefs/inc-2909-02-inicio-natural.md). Falta verificar el caso familiar en móvil.
+
 INC-2709-02 (candidata selectiva 4.26.67): `e2e/deudas-archivo.spec.mjs` está mapeado a `09-tab-debts-goals.js` y abre Plan → Deudas con cuotas ficticias. Comprueba que el cero proyectado requiere confirmación, que archivar mantiene la cuota en Gastos y que recarga, vuelta a mostrar, amortización total, borrado bloqueado, saldo positivo corregido e inglés/catalán conservan el contrato. La beta de origen 4.26.70.1 pasó 488 E2E y 7 de rendimiento en [Action 36624037785](https://github.com/JuanjoAvila/Aely/actions/runs/36624037785); la candidata selectiva debe pasar sus propios tests y CI sobre el SHA final. Ninguna prueba sintética acredita que el banco haya cobrado una cuota real.
 
 REC-GUARDADO-01 (4.26.48): `e2e/plan-gestionar.spec.mjs`, ya registrado para el módulo 14 en

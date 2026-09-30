@@ -101,8 +101,8 @@ function helpSnap(state, totals){
   state=state||{}; totals=totals||{};
   var budAmt=0, spent=0, rem=0;
   try{
-    if(typeof monthBudgetStats==="function"){
-      var bud=monthBudgetStats(state);
+    if(typeof dashboardBudgetStats==="function"){
+      var bud=dashboardBudgetStats(state);
       budAmt=bud.budget!=null?bud.budget:(state.budget||0);
       spent=Math.max(0, bud.against||0);
       rem=bud.remaining!=null?bud.remaining:(budAmt-spent);
