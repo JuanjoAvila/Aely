@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
+
+test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
 /* QUÉ CUENTA Y QUÉ NO, en Gastos (petición suya al volver del crucero, 2026-08-17).
    Sus palabras: «en gastos que salga de manera clasificada los gastos que no cuentan porque hay
@@ -13,7 +15,7 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
    Esto es render + filtro, o sea justo lo que `npm test` no ve (AGENTS.md §7): la función de
    cajones puede estar perfecta y aun así no pintarse. Por eso abre Gastos de verdad. */
 
-const d = (n) => new Date(Date.now() - n * 86400000).toISOString();
+const d = (n) => new Date(FIXTURE_NOW - n * 86400000).toISOString();
 
 const accounts = [
   { id: "tr", ent: "trade_republic", name: "Efectivo", value: 6300, role: "diario", spendFrom: true },

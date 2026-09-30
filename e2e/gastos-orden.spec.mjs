@@ -1,11 +1,13 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
+
+test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
 /* El orden manual no suplanta una hora que el banco no dio: guarda solo una lista de ids por
    fecha. Esta prueba usa dos horas distintas para demostrar que el orden elegido gana dentro del
    día y que sobrevive a cerrar/abrir, sin modificar `date`. */
 test("Gastos: se arrastran dentro del mismo día y el orden persiste", async ({ page }) => {
-  const day=new Date().toISOString().slice(0,10);
+  const day=new Date(FIXTURE_NOW).toISOString().slice(0,10);
   const expenses=[
     {id:"nuevo",date:day+"T18:00:00.000Z",amount:12,merchant:"Segundo",category:"super",source:"manual"},
     {id:"viejo",date:day+"T08:00:00.000Z",amount:7,merchant:"Primero",category:"bares",source:"manual"},

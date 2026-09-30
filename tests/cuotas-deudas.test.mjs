@@ -12,6 +12,7 @@
  * además, por Open Banking como «Movimiento». Los escenarios de abajo son ESOS (sin datos suyos).
  */
 import assert from "node:assert/strict";
+import { mock } from "node:test";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,6 +23,9 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const srvSrc = fs.readFileSync(path.join(root, "supabase/functions/_shared/presupuesto.ts"), "utf8");
 const srvJs = transformSync(srvSrc, { loader: "ts", format: "esm" }).code;
 const srv = await import("data:text/javascript;base64," + Buffer.from(srvJs).toString("base64"));
+// Al cruzar medianoche de Madrid, CI UTC sembraba otro mes que la app. Cuotas
+// debe medir la clasificación con el mismo reloj; month-window vigila la frontera.
+mock.timers.enable({ apis: ["Date"], now: new Date("2026-09-15T12:00:00Z") });
 const cli = loadPureLogicFromFile();
 
 function t(name, fn) {

@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
+
+test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
 /* GUARDADO PARTIDO del estado (2026-07-24) — la causa gorda del «cuanto más la uso, más lenta va».
  *
@@ -15,7 +17,7 @@ test("widget se refresca al volver por el evento nativo sin visibilitychange", a
   await seedLoggedInDashboard(page, {
     budget: 100,
     accounts: [{ id: "a", ent: "sabadell", role: "diario", spendFrom: true, value: 1000 }],
-    expenses: [{ id: "a", date: new Date().toISOString(), amount: 40, merchant: "Compra", category: "otros", source: "manual", ent: "sabadell" }],
+    expenses: [{ id: "a", date: new Date(FIXTURE_NOW).toISOString(), amount: 40, merchant: "Compra", category: "otros", source: "manual", ent: "sabadell" }],
     settings: { autoPrices: false, theme: "green", expenseBanks: ["sabadell"] },
   });
   await page.addInitScript(() => {
@@ -53,7 +55,7 @@ test("widget se refresca al volver por el evento nativo sin visibilitychange", a
 });
 
 test("nube conserva inversión y traspaso al pintar Inicio y Gastos", async ({ page }) => {
-  const fecha = new Date().toISOString();
+  const fecha = new Date(FIXTURE_NOW).toISOString();
   await seedLoggedInDashboard(page, {
     budget: 500, _fixMovInvasion2: true,
     accounts: [{ id: "a", ent: "sabadell", role: "diario", spendFrom: true, value: 1000 }],
@@ -77,7 +79,7 @@ test("nube conserva inversión y traspaso al pintar Inicio y Gastos", async ({ p
 function gastos(n) {
   const out = [];
   for (let i = 0; i < n; i++) {
-    out.push({ id: "g" + i, date: new Date(Date.now() - i * 3600_000).toISOString(), amount: 10 + i, merchant: "Comercio " + i, category: "super", source: "manual" });
+    out.push({ id: "g" + i, date: new Date(FIXTURE_NOW - i * 3600_000).toISOString(), amount: 10 + i, merchant: "Comercio " + i, category: "super", source: "manual" });
   }
   return out;
 }

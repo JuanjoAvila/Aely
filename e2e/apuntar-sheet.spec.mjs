@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard } from "./fixtures.mjs";
+import { seedLoggedInDashboard, installFixtureClock } from "./fixtures.mjs";
+
+test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
 // Táctil real (CDP): el sheet del «+» debe poder cerrarse tirando hacia abajo, igual que la
 // ficha de editar gasto (petición 2026-07-18). Y desde 4.2.0 lleva chips de banco.
