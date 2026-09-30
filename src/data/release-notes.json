@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.72",
+    "d": "2026-09-30",
+    "t": {
+      "es": "La nómina cuenta cuando se cobra",
+      "en": "Pay counts once it is received",
+      "ca": "La nòmina compta quan es cobra"
+    },
+    "items": {
+      "es": [
+        "Un ingreso que el banco todavía tiene pendiente ya no aparece como cobrado ni arranca Mi ciclo. Se apunta en cuanto el banco lo confirma."
+      ],
+      "en": [
+        "Income the bank still shows as pending no longer appears as received or starts My cycle. It is added as soon as the bank confirms it."
+      ],
+      "ca": [
+        "Un ingrés que el banc encara té pendent ja no apareix com a cobrat ni arrenca El meu cicle. S'apunta tan bon punt el banc el confirma."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-3009-nomina-anticipada",
+        "t": {
+          "es": "Nómina pendiente",
+          "en": "Pending pay",
+          "ca": "Nòmina pendent"
+        },
+        "items": {
+          "es": [
+            "1. El próximo día de nómina, antes de que el banco la dé por cobrada, abre Gastos: no debe salir como ingreso y Mi ciclo debe seguir en el ciclo anterior.",
+            "2. Cuando el banco la confirme, sincroniza: debe entrar una sola vez y Mi ciclo debe empezar ese día."
+          ],
+          "en": [
+            "1. On the next payday, before the bank marks it as received, open Expenses: it must not show as income and My cycle must stay on the previous cycle.",
+            "2. Once the bank confirms it, sync: it must appear only once and My cycle must start that day."
+          ],
+          "ca": [
+            "1. El pròxim dia de nòmina, abans que el banc la doni per cobrada, obre Despeses: no ha de sortir com a ingrés i El meu cicle ha de continuar al cicle anterior.",
+            "2. Quan el banc la confirmi, sincronitza: ha d'entrar un sol cop i El meu cicle ha de començar aquell dia."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.71",
     "d": "2026-09-30",
     "t": {

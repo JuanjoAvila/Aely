@@ -707,6 +707,8 @@ function flattenBankTx(links){
    En bancos fuera de gasto diario: también cualquier cargo (misma exclusión de modelados).
 
    INGRESOS: de cualquier banco (para «Mi ciclo»). Idempotente por ext_id + dedup. */
+// Estados de Enable Banking en los que el dinero todavía no está (o ya no estará) en la cuenta.
+const OB_NO_COBRADO=/^(PDNG|HOLD|SCHD|CNCL|RJCT|INFO)$/;
 function importObExpenses(s, txs){
   if(!txs || !txs.length) return null;
   const ents=expenseBankEnts(s);
@@ -795,6 +797,10 @@ function importObExpenses(s, txs){
   txs.forEach(function(tx){
     const esIngreso = tx.amount<0;
     if(esIngreso){
+      // Un abono PDNG es dinero anunciado, no cobrado: apuntarlo arrancaba «Mi ciclo» con una
+      // nómina que aún no estaba en la cuenta (feedback 30/9). Entra cuando llegue como BOOK.
+      // Sin estado (bancos que no lo informan) se sigue apuntando, como siempre.
+      if(OB_NO_COBRADO.test(String(tx.status||"").toUpperCase())) return;
       if(!tx.date || parseDate(tx.date)<som) return;
       if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
