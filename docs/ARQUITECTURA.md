@@ -1,5 +1,9 @@
 # Arquitectura — Aely
 
+## Liquidación y archivo de deudas (4.26.67)
+
+`debtBalance` proyecta el saldo con `value`, `asOf` y la amortización mensual; un 0 calculado no prueba el pago bancario. `settledAt` solo se fija tras confirmación explícita en Plan → Deudas o una amortización total introducida por la persona. `archivedAt` se admite únicamente con saldo cero y liquidación confirmada; oculta la tarjeta de la lista activa, pero conserva la deuda y su `id` en `state.debts`. Gastos y sus filtros siguen resolviendo los movimientos con `debtId` contra esa colección completa. Mostrar de nuevo una deuda archivada no la convierte en pendiente: para corregir un saldo real positivo se edita, y esa edición limpia la marca de liquidación. El borrado físico se bloquea si alguna fila de gasto está vinculada. No se crean pagos ni se reescribe el histórico.
+
 ## Presupuesto por cobro real (4.26.65)
 
 `settings.budgetCycle` es opt-in y viaja con `app_state`. `budgetPaydayOf` exige un ingreso registrado de al menos 200 € en los últimos 45 días, identificable por nombre, nota/concepto bancario de nómina o por un flujo periódico de ingreso que casa por banco, mes, nombre e importe. Excluye categorías neutras, Bizum legado, fechas futuras, posibles duplicados y descartados; así un traspaso posterior no reinicia el límite. Ese cobro abre la ventana actual de `monthBudgetStats` y `categorySpentByMonth`; al cruzar el día 1 no se reinicia. La propia fila que abre el ciclo se excluye de los ingresos del presupuesto, pues en modo Balance sumarla al margen permitiría gastar por encima del límite elegido. Si falta nómina reconocida, se muestra «Sin nómina detectada» y se usa el mes natural. Gastos abre en «Mi ciclo» mientras el ajuste esté activo; una entrada desde la ficha de banco conserva su filtro específico. Sin ajuste, el filtro informativo «Mi ciclo» conserva `lastPaydayOf` y los informes con fecha explícita siguen siendo mensuales.

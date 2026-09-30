@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.26.67",
+    "d": "2026-09-30",
+    "t": {
+      "es": "Las deudas terminadas se pueden archivar",
+      "en": "Finished debts can be archived",
+      "ca": "Els deutes liquidats es poden arxivar"
+    },
+    "items": {
+      "es": [
+        "Cuando una deuda llega a cero, puedes confirmar que está liquidada y archivarla. Sigue disponible con sus cuotas en Deudas archivadas."
+      ],
+      "en": [
+        "When a debt reaches zero, you can confirm it is settled and archive it. It remains available with its payments under Archived debts."
+      ],
+      "ca": [
+        "Quan un deute arriba a zero, pots confirmar que està liquidat i arxivar-lo. Continua disponible amb les quotes a Deutes arxivats."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.66",
     "d": "2026-09-29",
     "t": {

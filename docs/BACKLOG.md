@@ -1,5 +1,9 @@
 # Backlog operativo — Aely
 
+## INC-2709-02 · promoción selectiva 4.26.67 en preparación · 30 de septiembre de 2026
+
+El dueño aprobó en chat la tanda `inc-2709-02-deudas-archivo` de beta 4.26.70.1. La candidata desde main 4.26.66 incorpora solo confirmación, archivo y recuperación de la deuda con cuotas históricas, más traducciones, pruebas y notas. [Acta selectiva](briefs/inc-2709-02-prod.md). Producción, APK, Edge y SQL no se dan por cambiados hasta cotejar CI y artefactos servidos. Las otras tandas de beta mantienen sus veredictos; al publicar, retirar del panel solo la de Deudas.
+
 ## Dos reportes de producción · 29 de septiembre de 2026
 
 Fuente: relato directo del dueño sobre su widget y la cuenta de su pareja en producción. Son
@@ -136,7 +140,7 @@ triaje, no un orden de implementación autorizado.
 | Nº / ID | Prioridad y relación | Caso abierto y aceptación necesaria |
 |---|---|---|
 | 1 · INC-2709-01 | P1 · UX-01/03/06 | Con poca conexión la app se ralentiza y reaparecen dos barras grises al inicio de Inicio que tardan en desaparecer. Regresión de arreglo anterior, causa pendiente. Arranque/frente y uso con red lenta/sin red deben mostrar datos locales útiles sin bloqueo ni esqueletos persistentes. Medir tiempo/frames en móvil y CPU×6. |
-| 2 · INC-2709-02 | P1 · Deudas/UX-06 | Completar una deuda no avisa y no ofrece archivarla/quitarla, acumulando ruido. Confirmación clara y acceso a archivo/remoción con semántica revisada; conservar pagos/histórico y evitar dobles escrituras. Probar completar, volver a abrir y encontrar el histórico. |
+| 2 · INC-2709-02 | **P1 · beta aprobada, promoción selectiva en preparación** · Deudas/UX-06 | [Confirmación y archivo](briefs/inc-2709-02-prod.md) aprobados por el dueño el 29/9. Publicar solo esta tanda desde main, conservar `debtId` y las cuotas antiguas, verificar Pages y retirar únicamente su guion de «Pruebas». |
 | 3 · INC-2709-03 | P1 · UX-01 | En Plan→Gestionar y al entrar en una categoría falta la ola nativa Android. Auditar cada puerta, distinguir alta Recibos ya aprobada; APK/dispositivo real, seguir dedo, cancelación, volver un nivel sin perder campos ni cerrar de más. |
 | 4 · INC-2709-04 | **P0 · crash/finanzas** | Abrir categoría «Cuotas de deuda» crashea siempre según el dueño. Reproducción roja de ruta real, stack sanitizado/código/versión y fixture mínimo; E2E DOM de abrir/cerrar/importes/histórico sin crash. No inferir causa desde el relato. |
 | 5 · INC-2709-05 | **P0 · FIN/PRO-02/UX-06** | Capturas Inicio/Gastos/ciclo de otro usuario muestran conceptos y cifras incompatibles: Inicio llama gastado a la cifra que Gastos etiqueta balance, porcentaje0 y mensaje de primer mes con actividad visible; nómina prevista aún futura mientras ciclo reconoce cobro bancario. Correlacionar periodo/cuenta/calendario/ciclo, sin asumir que falte la fila de ingreso. Reproducir es/en/ca con datos sintéticos, una base/ventana coherente y nómina real conciliada una sola vez. Además se observan botones de suscripciones recortados; clasificación de compras recurrentes como suscripción es un indicio por comprobar, no fallo financiero demostrado. |

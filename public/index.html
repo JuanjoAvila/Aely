@@ -5575,6 +5575,8 @@ Object.assign(LANG.es,{
   db_err_amount:"⚠ Falta el importe total de la deuda", db_err_quota:"⚠ Pon la cuota/mes o el plazo en meses", db_err_paid:"⚠ Has pagado tantas cuotas como el plazo: esa deuda ya está liquidada", db_added:"✓ Deuda añadida",
   db_paid_ph:"Cuotas ya pagadas", db_paid_hint:"¿Ya la tienes empezada? Pon cuántas cuotas llevas pagadas y el pendiente se calcula solo.",
   db_amortize:"Amortizar", db_amortize_prompt:"¿Cuánto amortizas de «{name}»?", db_amortize_sub:"Pendiente ahora: {x}. Lo que pongas baja el saldo y acorta el plazo, manteniendo la misma cuota.", db_amortized:"✓ Amortizado {x} · pendiente {y}", db_amortize_full:"🎉 ¡Deuda liquidada!",
+  db_est_zero:"Saldo estimado: 0 €. Confirma si el banco ya la ha liquidado.", db_settle_q:"¿«{name}» ya está liquidada?", db_settle_sub:"Confirma el saldo real. Esta acción no crea pagos ni cambia los movimientos guardados.", db_settle_ok:"Marcar liquidada", db_settled:"✓ Liquidada. Puedes archivarla sin perder sus pagos.",
+  db_archive:"Archivar deuda", db_archived:"Deuda archivada", db_archive_title:"Deudas archivadas ({n})", db_archive_hint:"Siguen guardadas para consultar los pagos vinculados.", db_unarchive:"Volver a mostrar", db_delete_q:"¿Eliminar «{name}»?", db_delete_sub:"Solo se puede eliminar si no tiene pagos vinculados.", db_delete_linked:"Esta deuda tiene pagos vinculados y no se puede eliminar. Consérvala en la lista o archívala al liquidarla.",
   da_title:"¿Cuándo amortizar?", da_sub:"simula y decide con números",
   da_rate:"Interés anual (TAE %)", da_rate_hint:"Ponle el interés a la deuda (sale en tu contrato o en la app del banco) y te digo cuánto te ahorras amortizando. Si es una financiación sin intereses, pon 0.",
   da_amount:"¿Cuánto amortizarías?",
@@ -15714,13 +15716,21 @@ function Debts({state, set, showToast}){
   // Con plazo: asOf NO se toca (re-anclarlo resetearía debtPaidCount y el «Quedan n/tot» volvería
   // al plazo completo); en su lugar se ajusta value para que el pendiente sea lo tecleado y se
   // recalculan las cuotas que quedan con la misma amortización (como amortize()).
-  const ed=useEditable(state.debts,it=>set(s=>Object.assign({},s,{debts:it})), { display:d=>Math.round(debtBalance(d)*100)/100, extra:(d,typed)=>{
+  // Una corrección de saldo desde otro dispositivo nunca debe dejar una obligación activa oculta.
+  const visibleDebts=state.debts.filter(function(d){ return !d.archivedAt || debtBalance(d)>0.005; });
+  const archivedDebts=state.debts.filter(function(d){ return !!d.archivedAt && debtBalance(d)<=0.005; });
+  const [showArchive,setShowArchive]=useState(false);
+  const ed=useEditable(visibleDebts,it=>set(function(s){
+    const byId=new Map(it.map(function(d){ return [d.id,d]; }));
+    return Object.assign({},s,{debts:s.debts.map(function(d){ return byId.get(d.id)||d; })});
+  }), { display:d=>Math.round(debtBalance(d)*100)/100, extra:(d,typed)=>{
     const am=debtAmort(d);
-    if(d.months==null || !(am>0)) return {asOf:ymNow()};
+    const opened=typed>0.005?{settledAt:null,archivedAt:null}:{};
+    if(d.months==null || !(am>0)) return Object.assign({asOf:ymNow()},opened);
     const paid=debtPaidCount(d);
     const viaM=Math.max(0,typed-(d.balloon||0));
     const left=viaM>0?Math.ceil(viaM/am):((d.balloon>0&&typed>0.005)?1:0);
-    return { value:+(typed+am*paid).toFixed(2), months:paid+left };
+    return Object.assign({ value:+(typed+am*paid).toFixed(2), months:paid+left },opened);
   } });
   const [adding,setAdding]=useState(false);
   const [form,setForm]=useState({name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""});
@@ -15751,7 +15761,47 @@ function Debts({state, set, showToast}){
     setForm({name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""}); setAdding(false);
     showToast(t("db_added"));
   };
-  const delDebt=(id)=> set(s=>Object.assign({},s,{debts:s.debts.filter(d=>d.id!==id)}));
+  const delDebt=(d)=>{
+    // Una cuota ya vinculada necesita su deuda para conservar nombre e identidad en Gastos.
+    if((state.expenses||[]).some(function(e){ return e.debtId===d.id; })){ showToast(t("db_delete_linked")); return; }
+    askConfirm({title:tf("db_delete_q",{name:d.name}),sub:t("db_delete_sub"),ok:t("db_delete"),danger:true})
+      .then(function(yes){ if(!yes) return; set(function(s){
+        if((s.expenses||[]).some(function(e){ return e.debtId===d.id; })) return s;
+        return Object.assign({},s,{debts:s.debts.filter(function(x){ return x.id!==d.id; })});
+      }); });
+  };
+  const confirmSettled=(d)=>{
+    askConfirm({title:tf("db_settle_q",{name:d.name}),sub:t("db_settle_sub"),ok:t("db_settle_ok")})
+      .then(function(yes){ if(!yes) return; set(function(s){
+        let changed=false;
+        const debts=s.debts.map(function(x){
+          if(x.id!==d.id || x.settledAt || debtBalance(x)>0.005) return x;
+          changed=true; return Object.assign({},x,{settledAt:new Date().toISOString()});
+        });
+        return changed?Object.assign({},s,{debts:debts}):s;
+      }); showToast(t("db_settled")); });
+  };
+  const archiveDebt=(d)=>{
+    set(function(s){
+      let changed=false;
+      const debts=s.debts.map(function(x){
+        if(x.id!==d.id || !x.settledAt || x.archivedAt || debtBalance(x)>0.005) return x;
+        changed=true; return Object.assign({},x,{archivedAt:new Date().toISOString()});
+      });
+      return changed?Object.assign({},s,{debts:debts}):s;
+    });
+    showToast(t("db_archived"));
+  };
+  const unarchiveDebt=(d)=>{
+    set(function(s){
+      let changed=false;
+      const debts=s.debts.map(function(x){
+        if(x.id!==d.id || !x.archivedAt) return x;
+        changed=true; return Object.assign({},x,{archivedAt:null});
+      });
+      return changed?Object.assign({},s,{debts:debts}):s;
+    });
+  };
   // amortización anticipada: baja el pendiente y acorta el plazo (misma cuota, menos meses).
   // doAmort es la operación; amortize solo pregunta el importe. El asesor (#11) llama a doAmort.
   const doAmort=(d,rawAmt)=>{
@@ -15759,13 +15809,24 @@ function Debts({state, set, showToast}){
     const amt=Math.min(rawAmt||0, bal);
     if(amt<=0) return;
     const nb=+(bal-amt).toFixed(2);
-    set(s=>Object.assign({},s,{debts:s.debts.map(x=>{
-      if(x.id!==d.id) return x;
-      const o=Object.assign({},x,{value:+(x.value-amt).toFixed(2)});   // el ancla no se toca: el pendiente baja justo lo amortizado
-      if(nb<=0.005){ if(x.months!=null) o.months=debtPaidCount(x); delete o.balloon; }
-      else if(x.months!=null){ const am=debtAmort(x); if(am>0){ const viaM=Math.max(0,nb-(x.balloon||0)); o.months=debtPaidCount(x)+(viaM>0?Math.ceil(viaM/am):(x.balloon>0?1:0)); } }
-      return o;
-    })}));
+    set(function(s){
+      let changed=false;
+      const debts=s.debts.map(function(x){
+        if(x.id!==d.id) return x;
+        const current=debtBalance(x);
+        // Un diálogo viejo o dos toques seguidos no pueden amortizar dos veces el mismo importe.
+        if(current<=0.005 || Math.abs(current-bal)>0.005) return x;
+        const applied=Math.min(amt,current), remaining=+(current-applied).toFixed(2);
+        const o=Object.assign({},x,{value:+(x.value-applied).toFixed(2)});   // el ancla no se toca: el pendiente baja justo lo amortizado
+        if(remaining<=0.005){
+          if(x.months!=null) o.months=debtPaidCount(x);
+          delete o.balloon;
+          o.settledAt=new Date().toISOString();
+        }else if(x.months!=null){ const am=debtAmort(x); if(am>0){ const viaM=Math.max(0,remaining-(x.balloon||0)); o.months=debtPaidCount(x)+(viaM>0?Math.ceil(viaM/am):(x.balloon>0?1:0)); } }
+        changed=true; return o;
+      });
+      return changed?Object.assign({},s,{debts:debts}):s;
+    });
     showToast(nb<=0.005?t("db_amortize_full"):tf("db_amortized",{x:eur(amt),y:eur(nb)}));
   };
   const amortize=(d)=>{
@@ -15812,7 +15873,7 @@ function Debts({state, set, showToast}){
       React.createElement("div",{className:"serif num",style:{fontSize:40,fontWeight:550,letterSpacing:"-1px",lineHeight:1.05,marginTop:6,color:"var(--coral)"}},eur(total)),
       React.createElement("div",{style:{marginTop:12,fontSize:13.5,color:"var(--muted)",lineHeight:1.45}},tf("v4_debts_sub",{x:eur0(monthly)}))
     ),
-    state.debts.map(function(d){
+    visibleDebts.map(function(d){
       const bal=debtBalance(d);
       const paid=Math.max(0,(d.original||bal)-bal);
       const pct=Math.min(100,(paid/(d.original||1))*100);
@@ -15841,9 +15902,19 @@ function Debts({state, set, showToast}){
           d.balloon>0?tf("db_balloon_line",{x:eur0(d.balloon)}):"",
           d.downPayment>0?(d.balloon>0?" · ":"")+tf("db_down_line",{x:eur0(d.downPayment)}):""),
         !ed.editing && bal>0.005 && React.createElement("button",{className:"v4-debt-amort",onClick:function(){ amortize(d); }},t("v4_amort_now")),
-        ed.editing && React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10,color:"var(--coral)"},onClick:function(){ delDebt(d.id); }},t("db_delete"))
+        !ed.editing && bal<=0.005 && React.createElement("div",{className:"hint",style:{marginTop:10}},t(d.settledAt?"db_settled":"db_est_zero")),
+        !ed.editing && bal<=0.005 && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:8},onClick:function(){ d.settledAt?archiveDebt(d):confirmSettled(d); }},t(d.settledAt?"db_archive":"db_settle_ok")),
+        ed.editing && React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10,color:"var(--coral)"},onClick:function(){ delDebt(d); }},t("db_delete"))
       );
     }),
+    archivedDebts.length>0 && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:10},"aria-expanded":showArchive,onClick:function(){ setShowArchive(!showArchive); }},tf("db_archive_title",{n:archivedDebts.length})),
+    showArchive && archivedDebts.length>0 && React.createElement("div",{className:"v4-card",style:{marginTop:8}},
+      React.createElement("div",{className:"hint"},t("db_archive_hint")),
+      archivedDebts.map(function(d){ return React.createElement("div",{className:"row",key:d.id,"data-archived-debt":d.id},
+        React.createElement("span",null,d.name),
+        React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){ unarchiveDebt(d); }},t("db_unarchive"))
+      ); })
+    ),
     React.createElement("button",{className:"btn btn-block "+(ed.editing?"btn-primary":"btn-ghost"),style:{marginTop:8},onClick:function(){ ed.editing?ed.save():ed.start(); }}, ed.editing?t("db_savechanges"):t("db_editbalances")),
     React.createElement("div",{className:"v4-tip"},
       React.createElement(AmortAdvisor,{state:state,set:set,onAmort:doAmort})
