@@ -88,7 +88,9 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.73**, beta **4.26.73.1** publicada y cotejada el30/9 a20:55UTC: consumo y margen de Inicio, Pregúntame, avisos y reto coherentes al salir de Mi ciclo. CI completa SUCCESS, nueve tandas conservadas. Producción **4.26.67**, APK48 estable/APK51 beta. Pendiente prueba móvil de Inicio; recibos rechazados y panel tienen tareas propias. [Evidencia](docs/briefs/inc-2909-02-inicio-natural.md).
+Estado actual: **v4.26.74**, integración beta de la corrección de recibos sobre Inicio73 y su acta/e6d00dde. Gastos permite confirmar el pago completo con factura variable, otro nombre o banco, conserva la prueba sin extracto local y permite deshacer. Nueva integración todavía sin publicar ni aceptación móvil. Producción **4.26.67**, última beta cotejada **4.26.73.1**, APK48 estable/APK51 beta. Se conservan todas las tandas anteriores. [Contrato y evidencia](docs/briefs/inc-3009-01-cargos.md).
+
+Inicio73 quedó publicado y cotejado el30/9 a20:55UTC con CI completa SUCCESS; su prueba móvil sigue pendiente. [Acta conservada](docs/briefs/inc-2909-02-inicio-natural.md).
 
 Corte anterior verificado (27/9): **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conservaba FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](docs/briefs/ops02-restauracion-probada.md).
 
@@ -106,6 +108,7 @@ Notas rápidas del rediseño v4 (para no perderse):
 - **Open Banking se sincroniza a demanda** (botón en Cartera), no al abrir la app.
 - **Orden manual de movimientos:** en Gastos, arrastra el asa de una fila para colocarla dentro del mismo día; la fecha real no cambia.
 - **Ficha de gasto v4.1 (en desarrollo):** Apuntar y Modificar comparten importe, concepto, banco/efectivo/fecha, categorías y teclado; los movimientos del banco mantienen bloqueados importe y cuenta.
+- **Confirmar un cargo (integración beta):** Gastos → ficha → Paga un recibo muestra pendientes del mes, también si la factura o divisa varió. El diálogo enseña cargo real e importe/banco previstos: confirma solo el pago completo o cancela si es parcial. Puedes deshacer. Ya pagado muestra el banco real y separa Cargo y Previsto si difieren; la parte propia de un compartido conserva su previsión. No cambian clasificación ni saldo del cargo.
 - **Tus recibos v4.1:** Plan → Recibos → Gestionar —o Ajustes → Dinero— abre una pantalla propia con buscador, grupos, iconos por tipo, fichas y alta por pasos; el gesto Atrás acompaña también cada paso del alta, la ficha confirma antes de cerrar y las altas muestran tipo y nombre al guardar. La comparación con el banco vive en Ajustes → Mis bancos.
 - **Updates:** transporte en `12-boot.js`, estado de UI en `useUpdates()` (`10-app-components.js`).
 - **Canal beta y banco de pruebas** (solo `is_admin`): Ajustes → Dev → Pruebas — [docs/TESTING.md](docs/TESTING.md).

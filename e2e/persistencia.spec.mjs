@@ -1,5 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
+
+test.beforeEach(async ({ page }, testInfo) => {
+  if (!testInfo.annotations.some(a => a.type === "own-clock")) await installFixtureClock(page);
+});
 
 /* GUARDADO PARTIDO del estado (2026-07-24) — la causa gorda del «cuanto más la uso, más lenta va».
  *
@@ -16,7 +20,7 @@ test("widget se refresca al volver por el evento nativo sin visibilitychange", a
     budget: 100,
     deleted: ["x|1|y"],
     accounts: [{ id: "a", ent: "sabadell", role: "diario", spendFrom: true, value: 1000 }],
-    expenses: [{ id: "a", date: new Date().toISOString(), amount: 40, merchant: "Compra", category: "otros", source: "manual", ent: "sabadell" }],
+    expenses: [{ id: "a", date: new Date(FIXTURE_NOW).toISOString(), amount: 40, merchant: "Compra", category: "otros", source: "manual", ent: "sabadell" }],
     settings: { autoPrices: false, theme: "green", expenseBanks: ["sabadell"] },
   });
   await page.addInitScript(() => {
@@ -57,44 +61,48 @@ test("widget se refresca al volver por el evento nativo sin visibilitychange", a
   await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("Has gastado 40 €");
 });
 
-test("al cambiar de mes en segundo plano, Inicio y el push nativo dejan el gasto anterior", async ({ page }) => {
-  await page.clock.install({ time: new Date("2026-09-30T21:30:00Z") });
-  await seedLoggedInDashboard(page, {
-    budget: 100,
-    accounts: [{ id: "a", ent: "trade_republic", role: "diario", spendFrom: true, value: 200 }],
-    expenses: [{ id: "a", date: "2026-09-30T12:00:00Z", amount: 40,
-      merchant: "Compra", category: "otros", source: "macrodroid" }],
-    settings: { autoPrices: false, theme: "green", expenseBanks: ["trade_republic"] },
+test.describe("medianoche local", () => {
+  // Este caso cruza Madrid mientras UTC sigue en septiembre; no depende de la máquina de CI.
+  test.use({ timezoneId: "Europe/Madrid" });
+  test("al cambiar de mes en segundo plano, Inicio y el push nativo dejan el gasto anterior", { annotation: { type: "own-clock", description: "Fecha y avances explícitos del escenario" } }, async ({ page }) => {
+    await page.clock.install({ time: new Date("2026-09-30T21:30:00Z") });
+    await seedLoggedInDashboard(page, {
+      budget: 100,
+      accounts: [{ id: "a", ent: "trade_republic", role: "diario", spendFrom: true, value: 200 }],
+      expenses: [{ id: "a", date: "2026-09-30T12:00:00Z", amount: 40,
+        merchant: "Compra", category: "otros", source: "macrodroid" }],
+      settings: { autoPrices: false, theme: "green", expenseBanks: ["trade_republic"] },
+    });
+    await page.addInitScript(() => {
+      window.__nativeListeners = {};
+      const addListener = (name, cb) => {
+        (window.__nativeListeners[name] ||= []).push(cb);
+        return Promise.resolve({ remove() {} });
+      };
+      window.Capacitor = { isNativePlatform: () => false, Plugins: {
+        App: { addListener },
+        MiCartera: new Proxy({ addListener, updateWidget: async data => { window.__widgetSnapshot = data; } },
+          { get: (target, key) => target[key] || (() => Promise.resolve({})) }),
+      } };
+    });
+    await page.goto("/");
+    await dismissNews(page);
+    const title = page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph");
+    await expect(title).toContainText("Has gastado 40 €");
+    await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(40);
+    const oldPeriod = await page.evaluate(() => window.__widgetSnapshot.periodStart);
+    // UTC sigue en 30/9: solo Europe/Madrid ha pasado a octubre.
+    await page.clock.setFixedTime(new Date("2026-09-30T22:05:00Z"));
+    await page.evaluate(() => { for (const cb of window.__nativeListeners.appStateChange || []) cb({ isActive: true }); });
+    await expect(title).toContainText("Has gastado 0 €");
+    await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(0);
+    expect(await page.evaluate(() => window.__widgetSnapshot.periodStart)).toBeGreaterThan(oldPeriod);
+    expect(await page.evaluate(() => window.__widgetSnapshot.budgetLeft)).toBe(100);
   });
-  await page.addInitScript(() => {
-    window.__nativeListeners = {};
-    const addListener = (name, cb) => {
-      (window.__nativeListeners[name] ||= []).push(cb);
-      return Promise.resolve({ remove() {} });
-    };
-    window.Capacitor = { isNativePlatform: () => false, Plugins: {
-      App: { addListener },
-      MiCartera: new Proxy({ addListener, updateWidget: async data => { window.__widgetSnapshot = data; } },
-        { get: (target, key) => target[key] || (() => Promise.resolve({})) }),
-    } };
-  });
-  await page.goto("/");
-  await dismissNews(page);
-  const title = page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph");
-  await expect(title).toContainText("Has gastado 40 €");
-  await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(40);
-  const oldPeriod = await page.evaluate(() => window.__widgetSnapshot.periodStart);
-  // UTC sigue en 30/9: solo Europe/Madrid ha pasado a octubre.
-  await page.clock.setFixedTime(new Date("2026-09-30T22:05:00Z"));
-  await page.evaluate(() => { for (const cb of window.__nativeListeners.appStateChange || []) cb({ isActive: true }); });
-  await expect(title).toContainText("Has gastado 0 €");
-  await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(0);
-  expect(await page.evaluate(() => window.__widgetSnapshot.periodStart)).toBeGreaterThan(oldPeriod);
-  expect(await page.evaluate(() => window.__widgetSnapshot.budgetLeft)).toBe(100);
 });
 
 test("reentrada espera el gasto nuevo de la nube antes de sobrescribir el widget", async ({ page }) => {
-  const fecha = new Date().toISOString();
+  const fecha = new Date(FIXTURE_NOW).toISOString();
   await seedLoggedInDashboard(page, {
     budget: 100,
     accounts: [{ id: "a", ent: "trade_republic", role: "diario", spendFrom: true, value: 200 }],
@@ -156,7 +164,7 @@ test("reentrada espera el gasto nuevo de la nube antes de sobrescribir el widget
 });
 
 test("nube conserva inversión y traspaso al pintar Inicio y Gastos", async ({ page }) => {
-  const fecha = new Date().toISOString();
+  const fecha = new Date(FIXTURE_NOW).toISOString();
   await seedLoggedInDashboard(page, {
     budget: 500, _fixMovInvasion2: true,
     accounts: [{ id: "a", ent: "sabadell", role: "diario", spendFrom: true, value: 1000 }],
@@ -180,7 +188,7 @@ test("nube conserva inversión y traspaso al pintar Inicio y Gastos", async ({ p
 function gastos(n) {
   const out = [];
   for (let i = 0; i < n; i++) {
-    out.push({ id: "g" + i, date: new Date(Date.now() - i * 3600_000).toISOString(), amount: 10 + i, merchant: "Comercio " + i, category: "super", source: "manual" });
+    out.push({ id: "g" + i, date: new Date(FIXTURE_NOW - i * 3600_000).toISOString(), amount: 10 + i, merchant: "Comercio " + i, category: "super", source: "manual" });
   }
   return out;
 }

@@ -12,8 +12,11 @@
     y Sabadell sin ninguno (el que no puede moverse ni de casualidad). Con un solo banco, una
     implementación que restara a todo el mundo pasaría igual de bien. */
 import assert from "node:assert/strict";
+import { mock } from "node:test";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
+// El redondeo se prueba en el mismo mes que las filas; el reloj de CI no debe vaciarlo.
+mock.timers.enable({ apis: ["Date"], now: new Date("2026-09-15T12:00:00Z") });
 const ctx = loadPureLogicFromFile();
 
 function t(name, fn) {

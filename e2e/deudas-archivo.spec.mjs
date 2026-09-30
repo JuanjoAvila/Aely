@@ -1,7 +1,9 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
 
-const today=new Date();
+test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
+
+const today=new Date(FIXTURE_NOW);
 const expense={id:"cuota-guardada",date:new Date(today.getFullYear(),today.getMonth(),Math.max(1,today.getDate()-1),12).toISOString(),
   amount:80,merchant:"Cuota ejemplo",category:"deudas",debtId:"d-archivada",source:"manual",ent:"sabadell"};
 const debt={id:"d-archivada",name:"Préstamo ejemplo",value:0,original:800,monthly:80,account:"sabadell"};

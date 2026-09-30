@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.74",
+    "d": "2026-09-30",
+    "t": {
+      "es": "Confirmar el recibo que paga un cargo",
+      "en": "Confirm which bill a charge pays",
+      "ca": "Confirmar el rebut que paga un càrrec"
+    },
+    "items": {
+      "es": [
+        "Desde la ficha de un gasto se puede vincular el cargo al recibo que paga, aunque el banco lo llame de otra manera. La confirmación se conserva al volver a entrar y se puede deshacer.",
+        "Si una factura cambia de importe, Plan distingue el cargo cobrado del importe previsto."
+      ],
+      "en": [
+        "Link a charge to the bill it pays from the expense details, even when the bank uses another name. Confirmation survives reopening and can be undone.",
+        "When a bill amount changes, Plan distinguishes the actual charge from the expected amount."
+      ],
+      "ca": [
+        "Des de la fitxa d'una despesa es pot vincular el càrrec al rebut que paga, encara que el banc l'anomeni d'una altra manera. La confirmació es conserva en tornar-hi i es pot desfer.",
+        "Si una factura canvia d'import, Pla distingeix el càrrec cobrat de l'import previst."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-3009-01-cargos",
+        "t": {
+          "es": "Recibos pagados y vencidos",
+          "en": "Paid and overdue bills",
+          "ca": "Rebuts pagats i vençuts"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, abre un cargo que ya pagó un recibo y toca Paga un recibo, también si la factura o divisa varió. Comprueba cargo real e importe/banco previstos. Confirma solo el pago completo; cancela si es parcial y comprueba que sigue sin confirmar.",
+            "2. Comprueba Inicio y Plan: el recibo confirmado deja de estar pendiente, también al reabrir. Si varía el importe, Plan distingue Cargo y Previsto. El cargo sigue una sola vez en Gastos y saldo/presupuesto se conservan.",
+            "3. Deshaz el vínculo desde la ficha y comprueba que vuelve Sin pago acreditado. Un cargo ajeno del mismo importe no debe pagar automáticamente otro recibo."
+          ],
+          "en": [
+            "1. In Expenses, open a charge that paid a bill and tap Pays a bill, including a variable bill or currency amount. Check the actual charge and expected amount/bank. Confirm only full payment; cancel a partial payment and check it stays unconfirmed.",
+            "2. Check Home and Plan: the confirmed bill is no longer pending, including after reopening. If the amount changes, Plan distinguishes Charge and Expected. The charge remains once in Expenses and balance/budget stay unchanged.",
+            "3. Undo the link from the details and check Payment unconfirmed returns. An unrelated charge of the same amount must not automatically pay another bill."
+          ],
+          "ca": [
+            "1. A Despeses, obre un càrrec que ja va pagar un rebut i toca Paga un rebut, també si la factura o divisa va variar. Comprova càrrec real i import/banc previstos. Confirma només el pagament complet; cancel·la si és parcial i comprova que continua sense confirmar.",
+            "2. Comprova Inici i Pla: el rebut confirmat deixa d'estar pendent, també en reobrir. Si varia l'import, Pla distingeix Càrrec i Previst. El càrrec continua una sola vegada a Despeses i es conserven saldo/pressupost.",
+            "3. Desfés el vincle des de la fitxa i comprova que torna Sense pagament acreditat. Un càrrec aliè del mateix import no ha de pagar automàticament un altre rebut."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.73",
     "d": "2026-09-30",
     "t": {
@@ -62,30 +112,7 @@
         "Els rebuts amb pagament acreditat deixen de sortir a Inici. Si la data ja ha passat i falta la confirmació, apareixen com a vençuts sense donar-los per pagats."
       ]
     },
-    "tandas": [
-      {
-        "id": "inc-3009-01-cargos",
-        "t": {
-          "es": "Recibos pagados y vencidos",
-          "en": "Paid and overdue bills",
-          "ca": "Rebuts pagats i vençuts"
-        },
-        "items": {
-          "es": [
-            "1. Comprueba en Inicio que el gas ya cobrado no siga como próximo cargo. Si falta el movimiento confirmado, debe decir «Sin pago acreditado».",
-            "2. Abre Ver plan y comprueba que el mismo recibo conserve su estado al volver a entrar. Los próximos recibos no deben figurar pagados por llegar su fecha."
-          ],
-          "en": [
-            "1. Check Home: gas already charged must not remain upcoming. If the confirmed transaction is missing, it must say “Payment unconfirmed”.",
-            "2. Open View plan and check the same bill keeps its state when you return. Upcoming bills must not be marked paid just because their date arrives."
-          ],
-          "ca": [
-            "1. Comprova a Inici que el gas ja cobrat no continuï com a pròxim càrrec. Si falta el moviment confirmat, ha de dir «Sense pagament acreditat».",
-            "2. Obre Veure pla i comprova que el mateix rebut conservi el seu estat en tornar-hi. Els pròxims rebuts no han de figurar pagats per arribar la seva data."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.70",
