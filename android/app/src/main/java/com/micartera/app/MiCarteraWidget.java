@@ -59,16 +59,7 @@ public class MiCarteraWidget extends AppWidgetProvider {
      * aún no cubre la última lectura de la app. Una inversión puede bajar el efectivo de TR sin
      * consumir presupuesto, por eso las dos contribuciones se guardan separadas (FIN-05).
      */
-    static long monthStart(long when) {
-        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Europe/Madrid"));
-        c.setTimeInMillis(when);
-        c.set(Calendar.DAY_OF_MONTH, 1);
-        c.set(Calendar.HOUR_OF_DAY, 0);
-        c.set(Calendar.MINUTE, 0);
-        c.set(Calendar.SECOND, 0);
-        c.set(Calendar.MILLISECOND, 0);
-        return c.getTimeInMillis();
-    }
+    static long monthStart(long when) { return WidgetPeriod.monthStart(when); }
 
     private static WidgetSnapshotArbiter.State read(SharedPreferences p) {
         WidgetSnapshotArbiter.State s = new WidgetSnapshotArbiter.State();
@@ -129,12 +120,15 @@ public class MiCarteraWidget extends AppWidgetProvider {
     static synchronized void saveApp(Context ctx, long periodStart, double spent, double budget,
                                       Double budgetLeft, Double safeLiq, Double cash,
                                       String cashEnt, String cashLabel,
-                                      String coveredEvents, String deletedKeys) {
+                                      String coveredEvents, String deletedKeys,
+                                      int contract, String kind, String magnitude, String lang) {
         // El callback de reentrada puede ejecutar el push viejo antes de que React recalcule
         // el mes nuevo. No sellarlo con la hora de hoy como si sus cifras fueran de hoy.
-        if (periodStart != monthStart(System.currentTimeMillis())) return;
+        if (!WidgetPeriod.acceptApp(contract, kind, periodStart, System.currentTimeMillis())) return;
         SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         WidgetSnapshotArbiter.State s = read(p);
+        // Cambiar de mes a ciclo (o al revés) es otra ventana: el journal de la anterior no vale.
+        if (!sameWindow(p, contract, kind)) s.periodStart = 0;
         if (!WidgetSnapshotArbiter.app(s, periodStart, spent, budget, budgetLeft, safeLiq, cash,
                 cashEnt, cashLabel, coveredEvents, deletedKeys)) {
             if (s.journalFull) {
@@ -145,17 +139,40 @@ public class MiCarteraWidget extends AppWidgetProvider {
         }
         SharedPreferences.Editor ed = p.edit();
         write(ed, s);
+        ed.putInt("contract", contract >= WidgetPeriod.CONTRACT ? contract : 0)
+          .putString("periodKind", WidgetPeriod.CICLO.equals(kind) ? WidgetPeriod.CICLO : WidgetPeriod.MES)
+          .putString("magnitude", magnitude != null ? magnitude : "")
+          .putString("lang", lang != null ? lang : "");
         ed.commit();
         refreshAll(ctx);
+    }
+
+    private static boolean sameWindow(SharedPreferences p, int contract, String kind) {
+        String k = WidgetPeriod.CICLO.equals(kind) && contract >= WidgetPeriod.CONTRACT ? WidgetPeriod.CICLO : WidgetPeriod.MES;
+        String stored = p.getInt("contract", 0) >= WidgetPeriod.CONTRACT ? p.getString("periodKind", WidgetPeriod.MES) : WidgetPeriod.MES;
+        return k.equals(stored);
     }
 
     static synchronized void saveMonth(Context ctx, long ticket, long periodStart, long readAt,
                           String event, String expenseKey, double spent, double budget, double budgetLeft,
                           double shownDelta, double againstDelta, double importe,
-                          boolean counts, boolean cashCounts) {
+                          boolean counts, boolean cashCounts, int respContract, String respKind) {
         SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         WidgetSnapshotArbiter.State s = read(p);
-        if (!WidgetSnapshotArbiter.ingest(s, ticket, monthStart(System.currentTimeMillis()),
+        long now = System.currentTimeMillis();
+        int contract = p.getInt("contract", 0);
+        String kind = p.getString("periodKind", WidgetPeriod.MES);
+        if (!WidgetPeriod.acceptServer(contract, kind, s.periodStart, respContract, respKind, periodStart, now)) {
+            // Un servidor de otra ventana o de la regla vieja no puede pisar la foto de la app.
+            // Pero hubo un pago que la foto no incluye: se dice «abre la app», no se finge al día.
+            if (contract >= WidgetPeriod.CONTRACT
+                    && WidgetSnapshotArbiter.pendingUnknown(s, event, expenseKey)) {
+                p.edit().putBoolean("unknownPending", true).commit();
+                refreshAll(ctx);
+            }
+            return;
+        }
+        if (!WidgetSnapshotArbiter.ingest(s, ticket, WidgetPeriod.current(contract, kind, s.periodStart, now),
                 periodStart, readAt, event, expenseKey, spent, budget, budgetLeft, shownDelta, againstDelta,
                 importe, counts, cashCounts)) return;
         SharedPreferences.Editor ed = p.edit();
@@ -209,8 +226,11 @@ public class MiCarteraWidget extends AppWidgetProvider {
            «—» sin disponible ni saldo en vez de inventar un cero. En cuanto la app empuje el
            dato real del mes nuevo, esto se sustituye solo. */
         boolean sinDato = p.getBoolean("journalFull", false) || p.getBoolean("unknownPending", false);
-        boolean mesDistinto = p.getLong("periodStart", 0) > 0
-                ? p.getLong("periodStart", 0) != monthStart(System.currentTimeMillis()) : false;
+        // Con Mi ciclo la ventana no acaba el día 1: caduca cuando el cobro queda fuera de plazo.
+        int contract = p.getInt("contract", 0);
+        String kind = p.getString("periodKind", WidgetPeriod.MES);
+        String[] t = WidgetPeriod.labels(contract, p.getString("lang", ""), kind, p.getString("magnitude", ""));
+        boolean mesDistinto = WidgetPeriod.stale(contract, kind, p.getLong("periodStart", 0), System.currentTimeMillis());
         if (!mesDistinto && p.getLong("periodStart", 0) == 0 && updated > 0) {
             Calendar cUpd = Calendar.getInstance(); cUpd.setTimeInMillis(updated);
             Calendar cNow = Calendar.getInstance();
@@ -220,6 +240,7 @@ public class MiCarteraWidget extends AppWidgetProvider {
         if (mesDistinto || sinDato) { hasAfford = false; hasCash = false; }
 
         RemoteViews rv = new RemoteViews(ctx.getPackageName(), R.layout.widget_micartera);
+        rv.setTextViewText(R.id.w_title, t[WidgetPeriod.TITULO]);
         rv.setTextViewText(R.id.w_amount, mesDistinto || sinDato ? "—" : eur0(spent));
         rv.setTextColor(R.id.w_amount, (budget > 0 && spent > budget) ? CORAL : MINT);
 
@@ -227,24 +248,24 @@ public class MiCarteraWidget extends AppWidgetProvider {
         // en rojo. Es la cifra que el usuario quería ver, no solo lo ya gastado (feedback 2026-07-18).
         if (hasAfford) {
             rv.setViewVisibility(R.id.w_afford, View.VISIBLE);
-            rv.setTextViewText(R.id.w_afford, "✅ Puedes gastar " + eur0(afford));
+            rv.setTextViewText(R.id.w_afford, t[WidgetPeriod.PUEDES] + eur0(afford));
             rv.setTextColor(R.id.w_afford, afford > 0 ? MINT : CORAL);
         } else {
             rv.setViewVisibility(R.id.w_afford, View.GONE);
         }
 
         if (mesDistinto || sinDato) {
-            rv.setTextViewText(R.id.w_sub, mesDistinto ? "Sin datos de este mes" : "Abre la app para actualizar");
+            rv.setTextViewText(R.id.w_sub, mesDistinto ? t[WidgetPeriod.SIN_DATOS] : t[WidgetPeriod.ABRE_APP]);
             rv.setViewVisibility(R.id.w_bar, View.GONE);
         } else if (budget > 0) {
             double left = budget - spent;
-            rv.setTextViewText(R.id.w_sub, left >= 0
-                    ? "de " + eur0(budget) + " este mes · te quedan " + eur0(left)
-                    : "de " + eur0(budget) + " este mes · " + eur0(-left) + " de más 🚨");
-            rv.setProgressBar(R.id.w_bar, 100, (int) Math.min(100, Math.round(spent / budget * 100)), false);
+            rv.setTextViewText(R.id.w_sub, (left >= 0 ? t[WidgetPeriod.QUEDAN] : t[WidgetPeriod.EXCESO])
+                    .replace("{b}", eur0(budget)).replace("{l}", eur0(left)).replace("{x}", eur0(-left)));
+            // En el ciclo el neto puede ser negativo (cobraste más de lo que gastaste): barra a 0.
+            rv.setProgressBar(R.id.w_bar, 100, (int) Math.max(0, Math.min(100, Math.round(spent / budget * 100))), false);
             rv.setViewVisibility(R.id.w_bar, View.VISIBLE);
         } else {
-            rv.setTextViewText(R.id.w_sub, "gastado este mes");
+            rv.setTextViewText(R.id.w_sub, t[WidgetPeriod.SIN_PRESUPUESTO]);
             rv.setViewVisibility(R.id.w_bar, View.GONE);
         }
 
@@ -254,7 +275,7 @@ public class MiCarteraWidget extends AppWidgetProvider {
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(updated);
             String hm = String.format(Locale.ROOT, "%02d:%02d", c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
-            foot = foot.isEmpty() ? ("actualizado " + hm) : (foot + " · " + hm);
+            foot = foot.isEmpty() ? (t[WidgetPeriod.ACTUALIZADO] + hm) : (foot + " · " + hm);
         }
         rv.setTextViewText(R.id.w_foot, foot);
         rv.setTextColor(R.id.w_foot, MUTED);

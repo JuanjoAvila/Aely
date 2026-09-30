@@ -22,6 +22,12 @@ final class WidgetSnapshotArbiter {
 
     static long begin(State s) { return ++s.issued; }
 
+    /** ¿Este pago falta en la foto de la app? Si ya lo cubre o se borró, no hay nada pendiente. */
+    static boolean pendingUnknown(State s, String event, String expenseKey) {
+        return event != null && !event.isEmpty() && !has(s.coveredEvents, event)
+                && !has(s.events, event) && !has(s.deletedKeys, expenseKey);
+    }
+
     private static boolean has(String list, String event) {
         return list != null && event != null && !event.isEmpty() && list.contains("|" + event + "|");
     }

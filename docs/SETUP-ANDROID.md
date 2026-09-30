@@ -270,3 +270,14 @@ Ajustes → Banco del widget elige `settings.widgetBank` (entidad bancaria), sin
 ### Recuperación del registro del widget (4.26.55, APK51)
 
 El registro nativo se escribe sin salto final y tolera indentación XML al releerse. La foto de la app reevalúa un bloqueo previo, conserva eventos aún no confirmados y sus deltas; las entradas dañadas o contribuciones desconocidas no se descartan. Actualizar el APK es obligatorio: la OTA4.26.54.1 corrige presupuesto pero no este parser Java. APK51 instalada en el móvil de pruebas; widget recuperado y Gastado/Disponible estables al reabrir; saldo entre fotos y pago real pendientes. No borrar preferencias para forzar una cifra.
+
+### Widget: ventana y cifra de Inicio (INC-2909-01, contrato v2, APK 52 candidata)
+
+`WidgetPeriod.java` (Java puro, lo prueba `tests/widget-arbitraje.test.mjs` con javac):
+
+- **Foto de la app:** acepta un `periodStart` de ciclo (≤ 45 días) solo con `contract ≥ 2`; un ciclo que cruza el día 1 no caduca.
+- **Textos:** título y textos en es/en/ca.
+- **Respuestas del servidor:** el widget v2 rechaza las de `ingest` que no sean v2 de su ventana. Si el pago no está en la foto de la app, pinta «Abre la app para actualizar».
+- **Plugin:** `widgetContract()` devuelve `{v:2}`; la web solo manda el ciclo si lo recibe.
+
+La candidata 52 / 4.26.76 se compiló en local con `apk:prep` + `assembleRelease`, cambiando `build.gradle` solo durante la compilación: el repo sigue en 51 porque `apk.json` no puede anunciar una APK sin publicar. Publicarla es `npm run release:apk` con el número que diga el coordinador, **después** de desplegar `ingest`.

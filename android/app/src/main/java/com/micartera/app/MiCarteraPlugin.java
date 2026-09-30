@@ -176,11 +176,23 @@ public class MiCarteraPlugin extends Plugin {
         Double safeLiq = call.getDouble("safeLiq");
         String label = call.getString("cashLabel");
         Double period = call.getDouble("periodStart");
+        Integer contract = call.getInt("contract");
         MiCarteraWidget.saveApp(ctx, period != null ? period.longValue() : MiCarteraWidget.monthStart(System.currentTimeMillis()),
                 spent != null ? spent : 0, budget != null ? budget : 0,
                 budgetLeft, safeLiq, cash, call.getString("cashEnt"), label,
-                call.getString("coveredEvents"), call.getString("deletedKeys"));
+                call.getString("coveredEvents"), call.getString("deletedKeys"),
+                contract != null ? contract : 0, call.getString("periodKind"),
+                call.getString("magnitude"), call.getString("lang"));
         call.resolve();
+    }
+
+    /* La web solo manda el ciclo a un widget que sabe pintarlo: la APK 51 no tiene este método,
+       la llamada falla y la web sigue con el mes natural (INC-2909-01 E2). */
+    @PluginMethod
+    public void widgetContract(PluginCall call) {
+        JSObject r = new JSObject();
+        r.put("v", WidgetPeriod.CONTRACT);
+        call.resolve(r);
     }
 
     @PluginMethod
