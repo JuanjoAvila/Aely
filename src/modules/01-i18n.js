@@ -3391,8 +3391,8 @@ function gamifOf(state, totals, budgetStreak){
   const nextMin = (lvl+1<GM_LEVELS.length) ? GM_LEVELS[lvl+1] : null;
   const base=GM_LEVELS[lvl];
   const lvlProg = nextMin!=null ? Math.min(100,Math.max(0,(savedScore-base)/(nextMin-base)*100)) : 100;
-  // Misma cifra que Resumen/Gastos (no thisMonthSpent: mete neutras e ingresos).
-  const bs=monthBudgetStats(state);
+  // El reto debe comparar el mismo consumo y límite que Inicio, también al salir del ciclo.
+  const bs=dashboardBudgetStats(state);
   const budget=bs.budget!=null?bs.budget:(state.budget||0);
   const spent=Math.max(0, bs.against||0);
   const ruCur=+(((tt.roundupThisMonth||0)+(tt.savebackThisMonth||0))).toFixed(2);

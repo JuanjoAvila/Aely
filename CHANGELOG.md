@@ -1,3 +1,12 @@
+## [4.26.73] — 2026-09-30 · INC-2909-02, presupuesto mensual coherente en Inicio
+
+- Candidata separable desde main `12884f48`. Reproducción DOM en es/en/ca: al desactivar Mi ciclo en un perfil con modo Balance, 600 € de compras y 900 € de presupuesto tras reservas daban 0 % por restar la nómina. El texto seguía diciendo «Has gastado 600». El perfil con modo Gastos ya daba 67 %.
+- `dashboardBudgetStats` reutiliza las filas, bancos, neutras, duplicados y reservas de `monthBudgetStats`, pero en Inicio mensual deriva consumo y margen del bruto que anuncia la tarjeta. Mi ciclo conserva su neto, incluidos ingresos mayores que compras. Gastos/Balance, widget, saldos y movimientos conservan el contrato anterior; no se cambia la preferencia al renderizar. Presupuesto totalmente reservado con compras muestra uso completo y exceso, no 0 %.
+- Pregúntame, avisos de umbral y reto de presupuesto consumen la misma cifra que Inicio; revisión NO-GO de Claude sobre `45d94d21` detectó estos tres lectores desalineados. Se ejecutan el snapshot, el reto y el efecto real de avisos con importes sintéticos, incluyendo agotamiento, idempotencia y reinicio del ciclo.
+- Contrato financiero en `month-budget-stats`; `inicio-mes-natural.spec.mjs` registrado para Inicio: dos perfiles sintéticos, cambio real en Ajustes, recarga, es/en/ca, reservas, bancos excluidos, neutras, duplicados, límites y estados vacíos. Pendiente de aprobación móvil específica; no se atribuye cierre del caso real ni GO del nuevo SHA. Sin APK, Edge, SQL o datos reales.
+
+- Integración beta desde96b9210b: conserva recibos y las siete tandas anteriores; PR78/nómina no se integra. No publica producción ni APK.
+
 ## [4.26.71] — 2026-09-30 · INC-3009-01, evidencia de pago frente a calendario
 
 - Inicio ignoraba la conciliación y retenía un gas confirmado con wait. fixedPaymentState comparte la lectura con Plan: BOOK, entidad, mes, fecha no futura, nombre e importe compatibles; un único cargo y un único recibo/cuenta compatibles. Una confirmación paidYm/paidDay ya persistida sigue disponible sin extracto local.

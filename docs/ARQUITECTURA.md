@@ -1,5 +1,9 @@
 # Arquitectura — Aely
 
+## Presupuesto de Inicio mensual (INC-2909-02)
+
+`dashboardBudgetStats` pide modo bruto al argumento opcional `budgetMode` de `monthBudgetStats`, sin otro recorrido del histórico ni cambiar `gTotalMode`. En mes natural, frase, anillo, margen, Pregúntame, avisos y reto describen las mismas compras y el límite tras reservas. El ciclo reconocido conserva neto, incluso negativo; Gastos, widget e informes mantienen sus propias llamadas y modos. No modifica saldos ni escrituras.
+
 ## Presupuesto por cobro real (4.26.65)
 
 `settings.budgetCycle` es opt-in y viaja con `app_state`. `budgetPaydayOf` exige un ingreso registrado de al menos 200 € en los últimos 45 días, identificable por nombre, nota/concepto bancario de nómina o por un flujo periódico de ingreso que casa por banco, mes, nombre e importe. Excluye categorías neutras, Bizum legado, fechas futuras, posibles duplicados y descartados; así un traspaso posterior no reinicia el límite. Ese cobro abre la ventana actual de `monthBudgetStats` y `categorySpentByMonth`; al cruzar el día 1 no se reinicia. La propia fila que abre el ciclo se excluye de los ingresos del presupuesto, pues en modo Balance sumarla al margen permitiría gastar por encima del límite elegido. Si falta nómina reconocida, se muestra «Sin nómina detectada» y se usa el mes natural. Gastos abre en «Mi ciclo» mientras el ajuste esté activo; una entrada desde la ficha de banco conserva su filtro específico. Sin ajuste, el filtro informativo «Mi ciclo» conserva `lastPaydayOf` y los informes con fecha explícita siguen siendo mensuales.

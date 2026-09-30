@@ -73,12 +73,12 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     return ((parts[0]||"M").charAt(0)+(parts[1]||parts[0]||"C").charAt(0)).toUpperCase();
   })();
 
-  // Misma cifra que la cabecera de Gastos / widget (no `thisMonthSpent`, que mete neutras).
-  const bud=monthBudgetStats(state);
+  // Mismas filas computables; bruto mensual o neto del ciclo, según lo que dice la tarjeta.
+  const bud=dashboardBudgetStats(state);
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
   const spentAgainst=Math.max(0, bud.against);
   const hasMonthActivity=bud.spent>0.005 || bud.income>0.005;
-  const ratio=budAmt>0 ? spentAgainst/budAmt : 0;
+  const ratio=budAmt>0 ? spentAgainst/budAmt : spentAgainst>0 ? Infinity : 0;
   const dim=new Date(tt.curYear, tt.curMonth, 0).getDate();
   const elapsed=Math.max(1, tt.today||1);
   const leftDays=Math.max(1, dim-elapsed);
@@ -89,8 +89,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   // Sin fecha fiable del próximo cobro no proyectamos un «€/día hasta fin de mes» que
   // mezclaría el ciclo de ella con el calendario (feedback pareja 28/9).
   const overTrack=!bud.cycle && projected>budAmt+0.5;
-  // El neto puede ser negativo con compras reales: ese 0 % de uso no significa mes vacío.
-  // El texto de Inicio vuelve al que el dueño usaba antes de la tanda rechazada (28/9).
+  // En ciclo, un neto negativo con compras reales no significa un período vacío.
   let stCls="st", stHead=hasMonthActivity ? t("st_good_h") : t(bud.cycle?"v4_cycle_start_h":"st_start_h");
   if(ratio>1 || overTrack&&ratio>0.85){ stCls="st bad"; stHead=t("st_over_h"); }
   else if(ratio>0.8){ stCls="st warn"; stHead=t("st_tight_h"); }
@@ -258,8 +257,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:stCls}, stHead),
           React.createElement("div",{className:"ph"},
-            // El anillo y «quedan» usan gasto menos ingresos; en ciclo decir «has gastado»
-            // con el bruto contradecía ambos aunque Gastos cuadrase (feedback 28/9).
+            // Texto, anillo y margen comparten bruto mensual o neto desde el cobro.
             bud.cycle
               ? tf("v4_cycle_net",{used:eur(bud.against),budget:eur(budAmt)})
               : tf("v4_budget_spent",{spent:eur0(bud.spent),budget:eur0(budAmt)}),

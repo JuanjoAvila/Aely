@@ -905,3 +905,15 @@ test("INC-3009-01 añade una prueba sin retirar las siete pendientes", async ({ 
   }
   await expect(panel).not.toContainText("Deudas terminadas");
 });
+
+test("INC-2909-02 conserva los ocho veredictos previos y no resucita tandas publicadas", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.73.1"; });
+  const panel = await conProduccionEn(page, "4.26.67");
+  await expect(panel.locator(".beta-tanda")).toHaveCount(9);
+  for(const title of ["Presupuesto mensual de Inicio", "Recibos pagados y vencidos", "Arranque con poca conexión", "Ayuda de Mi ciclo", "Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada"]){
+    await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(1);
+  }
+  await expect(panel).not.toContainText("Deudas terminadas");
+  await expect(panel).not.toContainText("Inicio y Mi ciclo");
+});

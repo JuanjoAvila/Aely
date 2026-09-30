@@ -1090,7 +1090,7 @@ function budgetPeriodOf(state, nowMs){
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
    que pinta la cabecera de Gastos (balance en el ciclo; gasto bruto o balance según gTotalMode en el mes). */
-function monthBudgetStats(state, nowMs, hastaMs){
+function monthBudgetStats(state, nowMs, hastaMs, budgetMode){
   const period=budgetPeriodOf(state,nowMs);
   const startMs=period.startMs;
   // `hastaMs` acota un informe cerrado; solo el ciclo actual termina mañana para que un
@@ -1120,9 +1120,15 @@ function monthBudgetStats(state, nowMs, hastaMs){
   const budgetRaw=typeof state.budget==="number" ? state.budget : 0;
   // El ciclo usa el neto aunque el mes natural prefiera gasto bruto: si adelantas una cena,
   // los Bizums recibidos devuelven margen al límite elegido (feedback 28/9).
-  const mode=period.cycle?"net":((state.settings&&state.settings.gTotalMode)||"split");
+  const mode=period.cycle?"net":(budgetMode||(state.settings&&state.settings.gTotalMode)||"split");
   return Object.assign(budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode),
     {periodStart:startMs,cycle:!!period.cycle});
+}
+
+// Inicio dice «Has gastado» en el mes natural: una nómina no puede borrar ese uso del
+// presupuesto (INC-2909-02). Gastos/Balance y el widget conservan su contrato propio.
+function dashboardBudgetStats(state){
+  return monthBudgetStats(state,null,null,"split");
 }
 
 /* Desglose del mes por categoría (brief PRESUPUESTO-POR-CATEGORIA). Misma ventana y misma
