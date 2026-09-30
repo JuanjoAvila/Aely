@@ -88,7 +88,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.71** preparada para beta de INC-3009-01: Inicio separa recibos próximos y vencidos sin pago acreditado; Plan comparte la lectura de fijos. Producción verificada **4.26.67** y beta activa **4.26.70.2** antes de publicar. Siete tandas anteriores conservadas más esta nueva. APK48 estable/APK51 beta. [Acta](docs/briefs/inc-3009-01-cargos.md). Sin aprobación móvil todavía.
+Estado actual: **v4.26.71**, beta **4.26.71.1** publicada de INC-3009-01: recibos confirmados fuera de Inicio, vencidos sin acreditación separados y Plan con la misma lectura de fijos. Producción **4.26.67**, APK48 estable/APK51 beta. CI completa y ZIP/SW cotejados; ocho tandas pendientes, incluida la del gas. [Acta](docs/briefs/inc-3009-01-cargos.md). Falta aprobación y comprobación del dueño en móvil.
 
 Corte anterior verificado (27/9): **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conservaba FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](docs/briefs/ops02-restauracion-probada.md).
 
