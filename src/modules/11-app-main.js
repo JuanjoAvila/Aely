@@ -2182,16 +2182,16 @@ function App(){
   // Avisos de presupuesto al cruzar 50/80/95/100% (petición 2026-07-18). Una noti por umbral
   // y mes; si al abrir ya vas por el 97%, solo suena el umbral MÁS ALTO (los demás se sellan
   // en silencio para no disparar tres de golpe). Suena también como toast en la app.
-  // Misma cifra que Resumen/Gastos (`monthBudgetStats`): sin neutras ni reservas, no
-  // `thisMonthSpent` (feedback «el presupuesto no cuadra» — 2026-08-05).
-  // accounts + settings enteros en deps: monthBudgetStats → expenseBankEnts (B09-A2 /
+  // Misma cifra que Inicio: desactivar Mi ciclo no debe borrar el gasto mensual
+  // de los avisos aunque Gastos esté en Balance (feedback 2026-09-30).
+  // accounts + settings enteros en deps: dashboardBudgetStats → expenseBankEnts (B09-A2 /
   // 2026-09-07). Sin ellos, quitar/añadir un banco de gasto diario no reevaluaba el % y
   // podía dejar selladas (o sin disparar) las banderas _bn* del mes.
   // settings entero también re-corre al cambiar expenseOrder (arrastre 4.19.0): inofensivo
   // porque _bn* son idempotentes y `seen` impide repetir el toast/noti.
   useEffect(function(){
     if(state.onboarded===false||locked) return;
-    const bs=monthBudgetStats(state);
+    const bs=dashboardBudgetStats(state);
     const bud=bs.budget!=null?bs.budget:0; if(!(bud>0)) return;
     const spent=Math.max(0, bs.against||0);
     const pct=spent/bud*100;

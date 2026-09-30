@@ -11,6 +11,8 @@ sesión del móvil se gastó la mitad trabajando sobre una rama equivocada.
 
 ## 1. Lo primero, siempre
 
+INC-2909-02: integración local fuente4.26.73 desdebeta96b9210b, candidata separable PR80/74abbd78. Claude emitió NO-GO45d94d21 por lectores desalineados; los tres están corregidos y la segunda revisión sigue pendiente. Últimos canales verificados: beta4.26.71.1 y producción4.26.67. Recibos fue rechazado; la reparación y auditoría de aprobaciones están en un chat separado. Las cinco nativas tienen OK histórico con id anterior, pero APK51 no está en producción: no borrar ni promover por apariencia de duplicado.
+
 Corte 30/9: producción web 4.26.67 [publicada y cotejada](docs/briefs/inc-2709-02-prod.md) tras el OK exclusivo de `inc-2709-02-deudas-archivo`; beta 4.26.71.1 conserva las siete pruebas anteriores y añade la del gas. APK estable 48 y beta 51, sin promoción nativa. El usuario notificó además tres fallos independientes: widget sin «Mi ciclo», gas del 25/9 todavía en «Próximos cargos» el día 30 y nómina de Sabadell visible antes de cobrarla. Revalidar ramas, manifiestos, ZIP, SW, Actions y el estado de cada fallo; no dar por correcto un ingreso ni un cargo por la fecha prevista. El [backlog](docs/BACKLOG.md) conserva las prioridades y el límite de cada tanda.
 
 INC-3009-01: beta 4.26.71.1 publicada y cotejada, CI 36764259812 SUCCESS sobre 79b981ad; pendiente de prueba y aprobación móvil. PR76 permanece en borrador. Siguiente objetivo recomendado: INC-2909-02, 0 % al salir de Mi ciclo, tras volver a comprobar aprobaciones. [Acta](docs/briefs/inc-3009-01-cargos.md).

@@ -8,6 +8,22 @@ monitor periódico; el relevo ocurre al cerrar cada tarea.
 
 ## Prompt para cada chat nuevo
 
+**Entrada obligatoria también por rechazos y coordinación (aclaración del dueño, 30/9):**
+leer el buzón local real de Claude al iniciar y en los puntos de espera, contestar a sus resultados
+o bloqueos y trasladar al repo lo que afecte al trabajo. El buzón compartido vive en
+`.claude/canal-equipo/messages/{claude,codex}` del checkout principal y está ignorado por Git;
+escribir solo mensajes propios, nunca modificar fuente compartida ni atribuir estado a otro agente.
+No iniciar un monitor periódico nuevo para mantener el relevo.
+
+Comprobar **rechazos además de aprobaciones**. El rechazo más reciente de una misma tanda
+invalida cualquier OK anterior: leer su motivo y reproducirlo antes de ofrecer otra candidata.
+La ausencia de errores o de acceso al secreto no borra un rechazo. Una corrección sintética/CI
+no cambia el veredicto del dueño. Si `npm run listo` no puede leerlo, registrar esa limitación,
+conservar todo rechazo comunicado directamente en chat y no presumir que la tanda está aprobada.
+Priorizar un rechazo financiero reproducible sobre nuevos retoques y pasarlo al sucesor como
+objetivo propio si el chat actual ya tiene otra tarea. Revalidar siempre ID, versión, fecha y texto;
+no reutilizar una aprobación de contenido anterior.
+
 > Continúa Aely/MiCartera de forma autónoma. El dueño autorizó el 28/9/2026 un relevo automático
 > entre chats y la publicación **selectiva** de las tandas que él haya aprobado en su móvil o
 > expresamente en el chat. Lee completos `AGENTS.md`, `EMPIEZA-AQUI.md`,
@@ -27,8 +43,8 @@ monitor periódico; el relevo ocurre al cerrar cada tarea.
 > manifiesto, bundle y service worker activos. La autorización del dueño de hoy permite ejecutar
 > esa promoción sin pedir otro «dale», siempre que cada tanda concreta ya tenga su OK. Quita del
 > panel solo las tandas efectivamente publicadas y conserva las pendientes en beta. Nunca mezcles
-> por comodidad toda la beta: el pago real aprobado el 28/9 no autoriza incluir la tanda de Inicio
-> rechazada. Si una tanda aprobada está mezclada o no es separable con seguridad,
+> por comodidad toda la beta, especialmente FIN-05, selector y Trade Republic mientras falte su
+> validación por pago real. Si una tanda aprobada está mezclada o no es separable con seguridad,
 > documenta el bloqueo y pasa a una tarea independiente; no fuerces un cherry-pick incierto.
 >
 > Si no hay aprobación nueva verificable, elige **un** objetivo pendiente de mayor prioridad de

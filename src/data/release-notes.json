@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.73",
+    "d": "2026-09-30",
+    "t": {
+      "es": "Inicio conserva el gasto del mes",
+      "en": "Home keeps monthly spending visible",
+      "ca": "Inici conserva la despesa del mes"
+    },
+    "items": {
+      "es": [
+        "Al salir de Mi ciclo, el porcentaje y el margen de Inicio corresponden a las compras del mes, aunque haya ingresos mayores."
+      ],
+      "en": [
+        "When leaving My cycle, the Home percentage and remaining budget reflect monthly purchases, even when income is higher."
+      ],
+      "ca": [
+        "En sortir d'El meu cicle, el percentatge i el marge d'Inici corresponen a les compres del mes, encara que hi hagi ingressos més grans."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2909-02-inicio-natural",
+        "t": {
+          "es": "Presupuesto mensual de Inicio",
+          "en": "Monthly Home budget",
+          "ca": "Pressupost mensual d'Inici"
+        },
+        "items": {
+          "es": [
+            "1. En Ajustes → Dinero, desactiva Presupuesto por ciclo de cobro. Con compras del mes, Inicio debe mostrar un porcentaje que corresponda a Has gastado; una nómina mayor no debe dejarlo en 0 %.",
+            "2. Vuelve a activar el ciclo: Inicio debe recuperar el gasto neto y el margen desde el cobro. Comprueba ambos modos de Gastos y que la elección persiste al cerrar y abrir."
+          ],
+          "en": [
+            "1. In Settings → Money, turn off Budget by pay cycle. With purchases this month, Home should show a percentage matching spending; higher pay should not reduce it to 0%.",
+            "2. Turn the cycle back on: Home should recover net spending and remaining budget since payday. Check both Spending modes and that the choice survives closing and reopening."
+          ],
+          "ca": [
+            "1. A Ajustos → Diners, desactiva Pressupost per cicle de cobrament. Amb compres del mes, Inici ha de mostrar un percentatge coherent amb la despesa; una nòmina més gran no l'ha de deixar al 0 %.",
+            "2. Torna a activar el cicle: Inici ha de recuperar la despesa neta i el marge des del cobrament. Comprova els dos modes de Despeses i que la tria es conserva en tancar i obrir."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.71",
     "d": "2026-09-30",
     "t": {
@@ -117,19 +161,39 @@
       "ca": "L'ajuda d'El meu cicle es pot plegar"
     },
     "items": {
-      "es": ["En Gastos puedes ocultar la explicación de Mi ciclo y volver a abrirla con Ayuda. La fecha del cobro sigue a la vista y la elección se recuerda."],
-      "en": ["In Expenses, you can hide the My cycle explanation and reopen it with Help. The payday date stays visible and your choice is remembered."],
-      "ca": ["A Despeses pots amagar l'explicació d'El meu cicle i tornar-la a obrir amb Ajuda. La data del cobrament continua visible i la tria es recorda."]
+      "es": [
+        "En Gastos puedes ocultar la explicación de Mi ciclo y volver a abrirla con Ayuda. La fecha del cobro sigue a la vista y la elección se recuerda."
+      ],
+      "en": [
+        "In Expenses, you can hide the My cycle explanation and reopen it with Help. The payday date stays visible and your choice is remembered."
+      ],
+      "ca": [
+        "A Despeses pots amagar l'explicació d'El meu cicle i tornar-la a obrir amb Ajuda. La data del cobrament continua visible i la tria es recorda."
+      ]
     },
-    "tandas": [{
-      "id": "inc-2809-02-ayuda-ciclo",
-      "t": {"es":"Ayuda de Mi ciclo", "en":"My cycle help", "ca":"Ajuda d'El meu cicle"},
-      "items": {
-        "es": ["1. En Gastos → Mi ciclo, oculta la explicación. La fecha del cobro o la ausencia de nómina debe seguir visible.", "2. Sal y vuelve a Gastos, y reinicia la app: la ayuda debe seguir plegada. Toca Ayuda para releerla."],
-        "en": ["1. In Expenses → My cycle, hide the explanation. The payday date or missing pay notice should remain visible.", "2. Leave and return to Expenses, then restart the app: help should remain folded. Tap Help to read it again."],
-        "ca": ["1. A Despeses → El meu cicle, amaga l'explicació. La data del cobrament o l'absència de nòmina ha de continuar visible.", "2. Surt i torna a Despeses i reinicia l'app: l'ajuda ha de continuar plegada. Toca Ajuda per tornar-la a llegir."]
-      }
-    },
+    "tandas": [
+      {
+        "id": "inc-2809-02-ayuda-ciclo",
+        "t": {
+          "es": "Ayuda de Mi ciclo",
+          "en": "My cycle help",
+          "ca": "Ajuda d'El meu cicle"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos → Mi ciclo, oculta la explicación. La fecha del cobro o la ausencia de nómina debe seguir visible.",
+            "2. Sal y vuelve a Gastos, y reinicia la app: la ayuda debe seguir plegada. Toca Ayuda para releerla."
+          ],
+          "en": [
+            "1. In Expenses → My cycle, hide the explanation. The payday date or missing pay notice should remain visible.",
+            "2. Leave and return to Expenses, then restart the app: help should remain folded. Tap Help to read it again."
+          ],
+          "ca": [
+            "1. A Despeses → El meu cicle, amaga l'explicació. La data del cobrament o l'absència de nòmina ha de continuar visible.",
+            "2. Surt i torna a Despeses i reinicia l'app: l'ajuda ha de continuar plegada. Toca Ajuda per tornar-la a llegir."
+          ]
+        }
+      },
       {
         "id": "fin05-widget-reentrada",
         "t": {

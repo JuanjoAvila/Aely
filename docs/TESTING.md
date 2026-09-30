@@ -1,3 +1,5 @@
+INC-2909-02: `inicio-mes-natural.spec.mjs`, mapeado a Inicio, prueba es/en/ca, ajuste real, recarga, bruto mensual, neto del ciclo, reservas, bancos y límites. `month-budget-stats` ejecuta Pregúntame y reto con las mismas compras; `budget-notis-deps` ejecuta el efecto real: agotamiento, no repetición y reinicio al cobrar. Prueba móvil pendiente; CI y publicación se registran en el [brief](briefs/inc-2909-02-inicio-natural.md).
+
 INC-2709-01 (beta 4.26.69.1): `e2e/inicio-offline.spec.mjs` retrasa sesión y evento de autenticación seis segundos con CPU ×6 y estado local sintético. Antes de corregir, el caso nuevo fallaba al detectar barras grises tras el splash; ahora exige el hero visible sin ese intervalo y que la nube tardía actualice la cifra. Los casos previos cubren offline conocido, evento `mc-boot-ready` ausente y nube lenta. [Action 36617933780](https://github.com/JuanjoAvila/Aely/actions/runs/36617933780) pasó la suite completa; la prueba en Android con red débil sigue pendiente y es necesaria para aceptar la tanda.
 
 OPS-02 (beta 4.26.56.1): `tests/backup-snapshot.test.mjs` contiene 23 guardianes del
