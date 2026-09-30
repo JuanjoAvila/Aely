@@ -3473,6 +3473,28 @@ const cloud = (function(){
       const {error}=await expenseCloudEq(sb.from('expenses').update(upd), session.user.id, e);
       if(error) throw error;
     },
+    // Un UPDATE sin filas no confirma una retirada: FIN-04 permite UUID locales divergentes.
+    // No buscar gemelos por parecido ni tocar importe, origen o saldo para salvar esa identidad.
+    async confirmExpenseWithdrawal(e){
+      if(!sb || !isExpenseUuid(e&&e.id) || !canRecognizeWithdrawal(e)) throw new Error("withdrawal unavailable");
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) throw new Error("session unavailable");
+      const cols="id,source,cat,fecha,importe,comercio";
+      const read=await sb.from('expenses').select(cols).eq('user_id',session.user.id).eq('id',e.id).maybeSingle();
+      if(read.error) throw read.error;
+      const row=read.data;
+      if(!withdrawalRowMatches(e,row)) throw new Error("withdrawal identity changed");
+      if(row.cat==="traspaso") return row;
+      if(row.cat!==e.category) throw new Error("withdrawal category changed");
+      const result=await sb.from('expenses').update({cat:"traspaso"})
+        .eq('user_id',session.user.id).eq('id',e.id).eq('source',row.source).eq('cat',row.cat)
+        .eq('fecha',row.fecha).eq('importe',row.importe).eq('comercio',row.comercio).select(cols);
+      if(result.error) throw result.error;
+      const ack=result.data;
+      if(!Array.isArray(ack) || ack.length!==1 || ack[0].cat!=="traspaso" || !withdrawalRowMatches(e,ack[0]))
+        throw new Error("withdrawal unconfirmed");
+      return ack[0];
+    },
     // Cuota de deuda marcada por `marcarCuotasDeDeuda` (4.21.0): categoría y, si es de Open
     // Banking, la marca en `source`. La de la noti (`macrodroid`) conserva su source: un
     // `macrodroid~…` lo leería el servidor como «a mano» y lo SUMARÍA; ahí basta `cat:deudas`.
@@ -3891,7 +3913,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","setExpenseDeuda","deleteExpense","deleteExpensesByIds",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","deleteExpense","deleteExpensesByIds",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -4286,6 +4308,30 @@ function applyEntradaEfectivo(state, amount){
   });
   return Object.assign({}, st, { accounts:accounts });
 }
+// La persona reconoce esta salida concreta; no inferirlo del nombre ni recategorizar historia.
+function canRecognizeWithdrawal(e){
+  return !!(e && (e.source==="ob"||e.source==="ob-hist") && e.ent && e.ent!=="efectivo"
+    && Number.isFinite(e.amount) && e.amount>0 && !e.possibleDup && !e.debtId
+    && e.category!=="deudas" && e.category!=="inversion");
+}
+function withdrawalRowMatches(e, row){
+  return !!(row && row.id===e.id && row.source===expenseSourceForCloud(e)
+    && Number(row.importe)===e.amount && Date.parse(row.fecha)===Date.parse(e.date)
+    && row.comercio===e.merchant);
+}
+function applyRecognizedWithdrawal(state, expense, confirmedAt){
+  const rows=state.expenses||[];
+  const matches=rows.filter(function(e){ return e.id===expense.id; });
+  if(matches.length!==1 || !canRecognizeWithdrawal(matches[0])) return state;
+  const current=matches[0];
+  if(current.amount!==expense.amount || current.date!==expense.date || current.merchant!==expense.merchant
+     || expenseSourceForCloud(current)!==expenseSourceForCloud(expense)
+     || (current.category!==expense.category && current.category!=="traspaso")) return state;
+  if(current.category==="traspaso") return state;
+  // Solo blinda lecturas arrancadas antes del ACK, sin vetar una corrección posterior del móvil B.
+  return Object.assign({},state,{expenses:rows.map(function(e){ return e===current
+    ? Object.assign({},e,{category:"traspaso",withdrawalConfirmedAt:confirmedAt}) : e; })});
+}
 /* EFECTIVO REAL DE TRADE REPUBLIC (availableCash) → base guardada de su cuenta.
    Lo usan los DOS botones que hablan con el puente nativo: la tarjeta de TR y el sincronizador
    general. Antes cada uno tenía un contrato distinto: la tarjeta aplicaba `cash` y el general lo
@@ -4495,7 +4541,7 @@ function mergeExpenses(prevList, incoming){
    añadía claves nuevas — categoría/importe/nota de una fila ya vista nunca se actualizaban.
    Caso medido: Aigües en nube=`energia` y el móvil seguía en `viajes` tras «Ya estás al día».
    Reglas: no pisar `cat` de un apunte manual; no pisar `note` si él la editó; nunca borrar. */
-function refreshExpenseFromCloud(local, incoming){
+function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(!local||!incoming) return local||incoming;
   const manual=isManualExpenseSource(local.source);
   let out=local;
@@ -4510,7 +4556,8 @@ function refreshExpenseFromCloud(local, incoming){
   // Una cuota ya marcada no vuelve a «otros» porque la nube aún no se haya enterado (4.21.0): la
   // subida puede ir por detrás del pull, y la fila de la noti ni siquiera lleva la marca en `source`.
   const cuotaLocal=local.debtId && local.category==="deudas";
-  if(!manual && !cuotaLocal && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
+  const withdrawalRecent=readStartedAt!=null && local.withdrawalConfirmedAt>=readStartedAt;
+  if(!manual && !cuotaLocal && !withdrawalRecent && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
   if(incoming.amount!=null && isFinite(incoming.amount)) put("amount", incoming.amount);
   if(incoming.merchant!=null && incoming.merchant!=="") put("merchant", incoming.merchant);
   if(Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
@@ -4546,7 +4593,7 @@ function refreshExpenseFromCloud(local, incoming){
 }
 /* Mezcla el pull con lo local: refresca campos de claves ya vistas y solo AÑADE las nuevas.
    Nunca elimina una clave que solo exista en local (contención 4.18.6 / FIN-07). */
-function mergeExpensesFromCloud(prevList, incoming){
+function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
   const byKey={}; const order=[];
   (prevList||[]).forEach(function(e){
     const k=keyOfExpense(e);
@@ -4559,7 +4606,7 @@ function mergeExpensesFromCloud(prevList, incoming){
     seen[k]=1;
     const loc=byKey[k];
     if(!loc){ byKey[k]=inc; order.push(k); changed=true; nuevos++; return; }
-    const merged=refreshExpenseFromCloud(loc, inc);
+    const merged=refreshExpenseFromCloud(loc, inc, readStartedAt);
     if(merged!==loc){ byKey[k]=merged; changed=true; }
   });
   const list=order.map(function(k){ return byKey[k]; });
@@ -4964,7 +5011,17 @@ const LANG = {
     f_note_row:"Nota", f_note_none:"Sin nota", f_debt_row:"Es la cuota de una deuda", f_income_row:"Es un ingreso, no un gasto", f_no:"No",
     f_from_bank:"Lo trajo una notificación de {bank}", f_from_bank_sub:"{date} · «{raw}» · el banco fija el importe y la cuenta",
     f_trace_missing:"— texto original no disponible",
-    f_locked_toast:"El importe lo manda el banco. Si está mal, cámbialo desde la app del banco.",
+    f_locked_toast:"El banco fija el importe, la cuenta y si entra o sale dinero. La categoría sí se puede corregir aquí.",
+    f_withdraw_fields:"La categoría se puede corregir sin cambiar el importe ni la cuenta del banco.",
+    f_withdraw_action:"Es una retirada de efectivo",
+    f_withdraw_title:"¿Es una retirada de efectivo?",
+    f_withdraw_sub:"Estos {x} pasarán a Traspaso y dejarán de contar como gasto. El importe y el origen bancario se conservan. No se sumará dinero al efectivo.",
+    f_withdraw_ok:"Marcar como traspaso",
+    f_withdraw_pending:"Confirmando la retirada…",
+    f_withdraw_done:"Traspaso: no cuenta como gasto.",
+    f_withdraw_unconfirmed:"Retirada sin confirmar",
+    f_withdraw_error:"No se ha confirmado el cambio. Sincroniza los movimientos y revisa la categoría antes de intentarlo otra vez.",
+    f_withdraw_cash_limit:"Esta retirada no suma dinero a Efectivo: aún no se puede confirmar una única suma entre móviles. Los apuntes manuales de efectivo siguen disponibles en Cartera.",
     f_fx_eq:"= {x} con el cambio del {date}", f_undo_deleted:"Gasto borrado", f_undo:"Deshacer",
     v4_exp_cat:"Categoría", v4_exp_type:"Tipo",
     // Concepto del movimiento (petición del padre 2026-07-24: «solo salía el título y tenía que
@@ -5372,10 +5429,6 @@ Object.assign(LANG.es,{
   ef_in_done:"✓ Efectivo sumado",
   ef_need_bank:"Necesitas otra cuenta para anotar de dónde salió.",
   ef_neg_warn:"El sobre queda en negativo ({x}). ¿Olvidaste apuntar un saque del cajero?",
-  ef_atm_offer_title:"¿Han entrado {x} en tu efectivo?",
-  ef_atm_offer_sub:"El banco ha detectado una retirada. Si el dinero está en tu cartera, súmalo. Si se lo diste a alguien, di que no.",
-  ef_atm_offer_yes:"Sí, sumar al efectivo",
-  ef_atm_offer_no:"No",
 
   ob2_claim:"Tu dinero claro y sin trabajo: gastos que se apuntan solos, tus bancos conectados y tus inversiones al día.",
   ob2_f1_t:"Gastos sin teclear", ob2_f1_d:"Apunta un gasto en dos toques… o deja que entren solos con tu tarjeta de Trade Republic.",
@@ -9002,9 +9055,38 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(same) showToast(t("g_dup_same"));
     else showToast(t("g_dup_diff"));
   };
+  const withdrawalPending=useRef({});
+  const [withdrawalStatus,setWithdrawalStatus]=useState(null);
+  const recognizeWithdrawal=function(ex){
+    if(!canRecognizeWithdrawal(ex) || ex.category==="traspaso" || withdrawalPending.current[ex.id]) return;
+    withdrawalPending.current[ex.id]=true;
+    askConfirm({title:t("f_withdraw_title"),sub:tf("f_withdraw_sub",{x:eur(ex.amount)}),ok:t("f_withdraw_ok")})
+      .then(async function(yes){
+        if(!yes) return;
+        setWithdrawalStatus({id:ex.id,status:"pending"});
+        let timer;
+        try{
+          if(!mcSandbox()) await Promise.race([cloud.confirmExpenseWithdrawal(ex),new Promise(function(_,reject){
+            timer=setTimeout(function(){ reject(new Error("withdrawal timeout")); },10000);
+          })]);
+          let applied=false;
+          ReactDOM.flushSync(function(){ set(function(s){ const next=applyRecognizedWithdrawal(s,ex,Date.now());
+            applied=next!==s || (s.expenses||[]).some(function(e){ return e.id===ex.id && e.category==="traspaso"
+              && withdrawalRowMatches(ex,{id:e.id,source:expenseSourceForCloud(e),fecha:e.date,importe:e.amount,comercio:e.merchant}); });
+            return next; }); });
+          setWithdrawalStatus({id:ex.id,status:applied?"done":"error"});
+          showToast(t(applied?"f_withdraw_done":"f_withdraw_error"));
+        }catch(err){
+          setWithdrawalStatus({id:ex.id,status:"error"});
+          showToast(t("f_withdraw_error"));
+        }finally{ clearTimeout(timer); }
+      }).finally(function(){ delete withdrawalPending.current[ex.id]; });
+  };
   // Recategorizar un gasto a mano: actualiza ESTE, recuerda el comercio (catOverrides) para los
   // futuros y arregla otros gastos del mismo comercio que estuvieran en "Otros".
   const setCat=function(ex,newCat){
+    if(withdrawalPending.current[ex.id]) return;
+    if(newCat==="traspaso" && canRecognizeWithdrawal(ex)){ recognizeWithdrawal(ex); return; }
     const mkey=catKey(ex.merchant);
     // "Movimiento" es el hueco que deja un banco que no manda NINGÚN dato (Trade Republic por
     // Open Banking, ver `mapTransaction` en enablebanking.ts) — no es un comercio de verdad, así
@@ -9711,7 +9793,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         setDetailId(null); setEditExp(null);
       },
       setCat:setCat, setCuota:setCuota, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
-      resolveDup:resolveDup,
+      resolveDup:resolveDup, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
     undoDelete && ReactDOM.createPortal(
@@ -9922,7 +10004,7 @@ function PeriodMoreSheet({open, onClose, preset, setPreset}){
 }
 
 /* Sheet detalle/edición de un movimiento. Layout alineado con Apuntar/Cartera (feedback 2026-07-17). */
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -9991,8 +10073,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const meta=[
     {id:"bank",testId:"exp-bank",label:bk?entOf(bk).label:t("ap_bank_none"),lead:bk?React.createElement(Mono,{ent:bk,size:18}):React.createElement("span",null,"🏦"),
       on:bankOpen,locked:auto,onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }},
-    {id:"cash",testId:"exp-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bk==="efectivo",locked:auto,
-      onClick:function(){ setBank(exp,bk==="efectivo"?null:"efectivo"); }},
+    {id:"cash",testId:"exp-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bk==="efectivo",
+      onClick:function(){ if(auto){ showToast(t("f_withdraw_cash_limit")); return; } setBank(exp,bk==="efectivo"?null:"efectivo"); }},
     {id:"date",testId:"exp-date",label:fmtIsoCorto(dateIso),lead:React.createElement("span",null,"📅"),on:calOpen,
       onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }}
   ];
@@ -10008,7 +10090,16 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
       bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
-    trace,duplicate);
+    trace,duplicate,
+    canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
+      React.createElement("div",null,t("f_withdraw_fields")),
+      exp.category!=="traspaso" && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-withdrawal",
+        disabled:withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="pending",
+        onClick:function(){ recognizeWithdrawal(exp); }},t("f_withdraw_action")),
+      exp.category==="traspaso" && React.createElement("div",{"data-testid":"exp-withdrawal-neutral"},t("f_withdraw_done")),
+      React.createElement("div",null,t("f_withdraw_cash_limit")),
+      withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done" && React.createElement("div",{role:"status"},
+        t(withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_error"))));
   const debtOptions=(state.debts||[]).filter(function(d){ return d&&d.id; });
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
     React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="note"?null:"note"); }},
@@ -10043,7 +10134,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   };
   const footer=React.createElement("div",{className:"v4-ficha-foot"},
     React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
-    React.createElement("span",{className:"v4-ficha-saved"},t("f_autosaved")),
+    React.createElement("span",{className:"v4-ficha-saved"},t(withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
+      ? (withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_unconfirmed") : "f_autosaved")),
     React.createElement("button",{type:"button",className:"v4-ficha-done",onClick:done},t("done")));
   const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
@@ -23386,6 +23478,7 @@ function App(){
 
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
   const syncCloudExpenses=function(){
+    const readStartedAt=Date.now();
     const ps=++wS.current;
     wR.current=false;
     const pull=cloud.pullExpenses().then(function(rows){
@@ -23425,7 +23518,7 @@ function App(){
       set(function(prev){
         // Refrescar una sola vez conserva el guardado partido: no reescribir el histórico
         // por página ni cuando las filas recibidas son iguales a las que ya había.
-        const merged=mergeExpensesFromCloud(prev.expenses, incoming);
+        const merged=mergeExpensesFromCloud(prev.expenses, incoming, readStartedAt);
         const next=merged.list;
         const igual=!merged.changed && next.length===(prev.expenses||[]).length
           && next.every(function(e,i){ return e===(prev.expenses||[])[i]; });
@@ -23589,31 +23682,9 @@ function App(){
       // Si has pulsado tú «↻ Sincronizar bancos», esto se junta con el resultado de abajo: dos
       // avisos seguidos por una sola acción tuya eran ruido (feedback 2026-07-26).
       if(obAdded.length && !opts.manual) showToast(tf("ob_imported",{n:obAdded.length}));
-      // Cajero / ATM: ofrecer la otra mitad al efectivo (nunca automático).
-      (function offerAtmCash(){
-        const atms=(obAdded||[]).filter(function(e){
-          return e && e.category==="traspaso" && e.amount>0 && isAtmWithdrawal(e.merchant||e.obName||"");
-        });
-        if(!atms.length || typeof askConfirm!=="function") return;
-        let i=0;
-        const next=function(){
-          if(i>=atms.length) return;
-          const e=atms[i++];
-          askConfirm({
-            title:tf("ef_atm_offer_title",{x:eur(e.amount)}),
-            sub:t("ef_atm_offer_sub"),
-            ok:t("ef_atm_offer_yes"),
-            cancel:t("ef_atm_offer_no")
-          }).then(function(yes){
-            if(yes){
-              set(function(s){ return applyEntradaEfectivo(s, e.amount); });
-              showToast(t("ef_in_done"));
-            }
-            next();
-          });
-        };
-        setTimeout(next, 400);
-      })();
+      // INC-2909-03: tabla y saldo de efectivo no tienen una confirmación atómica compartida.
+      // Ofrecer +€ desde cada importación podía sumarlos otra vez en otro móvil; la ficha explica
+      // el límite. Los apuntes manuales de efectivo conservan su recorrido propio.
       // Resultado por banco (servidor tolerante a fallos): aplica los que funcionaron y avisa SOLO
       // del que falló. ok===false explícito → fallo (respuestas antiguas sin 'ok' se tratan como ok).
       const bankLabelOf=function(l){ const e=entFromAspsp(l&&l.aspsp); return e?entOf(e).label:((l&&l.aspsp)||"🏦"); };

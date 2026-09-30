@@ -1,5 +1,15 @@
 # Arquitectura — Aely
 
+## Reconocer una retirada importada (candidata INC-2909-03)
+
+`confirmExpenseWithdrawal` confirma `cat:traspaso` por UUID del usuario, atributos y `source` exactos,
+con comparación de la categoría previa y RETURNING de una sola fila. No usa el fallback por terna;
+sin ACK no hay cambio local. El sello local `withdrawalConfirmedAt` protege únicamente pulls iniciados
+antes del ACK; `syncCloudExpenses` pasa el instante de inicio a la mezcla. No se amplía FIN-04 ni se
+remapea identidad. La oferta de sumar una retirada importada a efectivo se retira mientras falte un
+registro atómico entre tabla y cuenta: una importación nunca incrementa por esta puerta `accounts.value`.
+Los apuntes manuales de efectivo siguen disponibles. [Contrato y límites](briefs/inc-2909-03-retirada-caixa.md).
+
 ## Presupuesto de Inicio mensual (INC-2909-02)
 
 `dashboardBudgetStats` pide modo bruto al argumento opcional `budgetMode` de `monthBudgetStats`, sin otro recorrido del histórico ni cambiar `gTotalMode`. En mes natural, frase, anillo, margen, Pregúntame, avisos y reto describen las mismas compras y el límite tras reservas. El ciclo reconocido conserva neto, incluso negativo; Gastos, widget e informes mantienen sus propias llamadas y modos. No modifica saldos ni escrituras.

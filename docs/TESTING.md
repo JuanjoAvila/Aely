@@ -259,6 +259,12 @@ node tests/presupuesto-rendimiento.test.mjs   # cuánto pesa lo que se envía al
 
 ## Capas
 
+INC-2909-03, candidata: `tests/retirada-bancaria.test.mjs` ejecuta ACK/CAS/identidad, recarga,
+doble importación y pulls anteriores/posteriores; `e2e/retirada-bancaria.spec.mjs` abre la ficha real
+en es/en/ca, cancela/confirma, prueba errores y comprueba otro almacenamiento tras sync a demanda.
+Registrados en runner/mapa de Gastos. Las respuestas cloud son sintéticas; no prueban RLS real ni
+suma de efectivo compartida. [Estado de candidata](briefs/inc-2909-03-retirada-caixa.md).
+
 | Capa | Qué cubre | Dónde |
 |------|-----------|--------|
 | **build-app** | Ensambla `src/modules/` → `public/index.html` | `scripts/build-app.mjs` |

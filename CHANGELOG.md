@@ -7,6 +7,23 @@
 
 - Integración beta desde96b9210b: conserva recibos y las siete tandas anteriores; PR78/nómina no se integra. No publica producción ni APK.
 
+### Candidata aislada INC-2909-03 (sin bump final ni publicación)
+
+- Banco/Efectivo/tipo importados compartían un aviso de importe; categoría Traspaso sí estaba
+  disponible. El UPDATE de categoría resolvía sin sesión o con cero filas y la UI ocultaba errores.
+  La nueva acción reconoce solo la salida confirmada por UUID/origen/atributos, compara la categoría
+  y exige ACK de una fila. No aprende comercio ni toca importe, origen, cuentas o identidad.
+- Las lecturas anteriores al ACK no revierten esa categoría local; las posteriores admiten
+  decisiones de otro cliente. La suma de efectivo al importar se contiene porque carecía de
+  idempotencia atómica compartida. El control explica la no operación; efectivo manual se conserva.
+- 23 casos Node y 11 DOM enfocados (es/en/ca, cancelación, ACK, recarga, B independiente con sync,
+  fallos y efectivo manual). El doble debe paginar con cursor real: se detectó y corrigió una
+  respuesta repetida del fixture, sin alterar producto para acomodarla. RLS/backend reales,
+  identidad divergente FIN-04 y suma de efectivo compartida siguen fuera del cierre.
+- Delta aislado medido +5.062 B min / +1.212 B gzip frente a Inicio73; el cliente mide
+  1.268.327/345.157 B. Topes locales +5/2 KiB para confirmación y textos, sin dependencias ni
+  bloqueantes nuevos; integración debe medir su árbol completo. [Contrato](docs/briefs/inc-2909-03-retirada-caixa.md).
+
 ## [4.26.71] — 2026-09-30 · INC-3009-01, evidencia de pago frente a calendario
 
 - Inicio ignoraba la conciliación y retenía un gas confirmado con wait. fixedPaymentState comparte la lectura con Plan: BOOK, entidad, mes, fecha no futura, nombre e importe compatibles; un único cargo y un único recibo/cuenta compatibles. Una confirmación paidYm/paidDay ya persistida sigue disponible sin extracto local.

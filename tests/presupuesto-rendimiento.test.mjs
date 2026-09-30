@@ -109,7 +109,11 @@ const PRESUPUESTO = {
   // deja margen para el sello beta sin recortar los textos de tres idiomas.
   // INC-3009-01: lectura estricta BOOK y tarjeta de vencidos añaden ~2 KiB sobre Deudas.
   // +3 KiB solo al crudo para el código necesario y el sello; gzip sigue en 336 KiB.
-  minificado: 1235 * 1024,
+  // INC-2909-03 aislado sobre Inicio73: ACK por identidad, confirmación y no operación
+  // de efectivo importado miden 1.268.327 B / 345.157 B gzip (+5.062/+1.212 B vs base).
+  // Tras retirar solo los textos de la oferta anulada, +5 KiB crudos y +2 KiB gzip cubren
+  // este cliente sin recortar guardas ni idiomas. Revalidar topes al integrar Recibos/panel.
+  minificado: 1240 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -117,7 +121,7 @@ const PRESUPUESTO = {
   // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
   // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
   // La misma candidata mide 343.257 B gzip, 217 B sobre 335 KiB: +1 KiB medido.
-  gzip: 336 * 1024,
+  gzip: 338 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

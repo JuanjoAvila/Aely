@@ -1,5 +1,9 @@
 # Roadmap — Aely
 
+INC-2909-03: candidata aislada sin bump final ni publicación. Gastos → ficha permite reconocer una
+retirada neutra solo tras confirmar la escritura; el efectivo importado queda como no operación
+explicada mientras falte garantía única entre móviles. [Pruebas y límites](briefs/inc-2909-03-retirada-caixa.md).
+
 > Estado a 2026-09-30 · **v4.26.73** integración beta preparada de INC-2909-02: consumo y margen de Inicio y sus lectores usan gasto bruto mensual; ciclo conserva neto. Sin publicación ni OK móvil. Última beta verificada **4.26.71.1** y producción **4.26.67**; APK48 estable/APK51 beta. Ocho tandas previas conservadas. [Contrato y límites](briefs/inc-2909-02-inicio-natural.md).
 > Anterior: **v4.26.68** — ayuda plegable de Mi ciclo en beta, pendiente de prueba móvil.
 > Corte anterior verificado (27/9,19:41 UTC): **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conservaba FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](briefs/ops02-restauracion-probada.md).

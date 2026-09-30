@@ -1,5 +1,10 @@
 # Backlog operativo — Aely
 
+INC-2909-03: candidata aislada preparada desde Inicio73, sin bump final, publicación ni OK móvil.
+Reproducción de puertas banco/Efectivo/tipo y categoría Traspaso, ACK por identidad exacta y no
+operación de efectivo importado explicada. FIN-04/RLS y suma compartida siguen limitados.
+[Contrato, pruebas y coordinación](briefs/inc-2909-03-retirada-caixa.md).
+
 ## INC-3009-01 · beta 4.26.71.1 publicada · 30 de septiembre de 2026
 
 Reproducido en DOM con gas ficticio y cargo BOOK: Inicio ignoraba la evidencia bancaria si el fijo arrastraba `wait`. Corregido y publicado solo en **beta 4.26.71.1**, merge `79b981ad`, [PR77](https://github.com/JuanjoAvila/Aely/pull/77), [CI 36764259812](https://github.com/JuanjoAvila/Aely/actions/runs/36764259812) SUCCESS con 500 E2E, uno omitido y 7 de rendimiento. Manifiesto, huella `bba29bcbdd912837`, ZIP, HTML y SW cotejados; exactamente ocho tandas, las siete anteriores intactas. [Acta y hashes](briefs/inc-3009-01-cargos.md). **Pendiente de aprobación y comprobación real en móvil**, sin cierre financiero ni GO de Claude. Candidata separable `1e2395b9`, PR76 borrador, CI completa verde; no fusionar a main todavía. Producción permanece 4.26.67/APK48, beta conserva APK51. No altera cuentas guardadas, movimientos, Edge o SQL. El sucesor comprobará aprobaciones primero; sin nueva aprobación, INC-2909-02 (0 % al salir de Mi ciclo) es el siguiente objetivo independiente recomendado. Widget y nómina siguen separados.

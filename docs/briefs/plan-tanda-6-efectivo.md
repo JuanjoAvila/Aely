@@ -1,5 +1,11 @@
 # Tanda 6 — Controlar el dinero en efectivo
 
+Actualización candidata INC-2909-03 (30/9): la oferta de sumar una retirada importada se contiene
+mientras no haya confirmación atómica única entre dispositivos. La ficha permite reconocerla como
+Traspaso con ACK y explica que no suma efectivo. Los apuntes manuales se conservan. Esta candidata
+no está publicada y prevalece sobre la oferta diseñada abajo al revisar su árbol de código.
+[Contrato y pruebas](inc-2909-03-retirada-caixa.md).
+
 > Diseño de una página, como pedía el plan. Cursor implementa la v1.
 > Claude Code (Opus), 2026-08-18, leído contra `beta` 4.18.3.
 
