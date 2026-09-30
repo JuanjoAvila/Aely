@@ -188,7 +188,12 @@ test("no se puede aprobar con cosas sin probar ni con fallos marcados", async ({
  * Por eso aquí se FIJA la versión de producción con un doble, en vez de depender de la red: así
  * el caso se prueba igual en el portátil que en CI. */
 async function conProduccionEn(page, version) {
-  await page.evaluate((v) => { window._mcProdVersion = () => Promise.resolve(v); }, version);
+  // La app pide versión web y APK estable a la vez. Salvo que el test fije la APK, se da por
+  // entregada: si no, las tandas nativas reales se colarían en las rondas sintéticas.
+  await page.evaluate((v) => {
+    window._mcProdVersion = () => Promise.resolve(v);
+    if (window._mcProdApk === undefined) window._mcProdApk = 9999;
+  }, version);
   const host = "e2e-beta-prod-" + Math.random().toString(36).slice(2, 7);
   await page.evaluate((id) => {
     const h = document.createElement("div");
@@ -566,10 +571,12 @@ test("panel: ronda multi-versión pinta tandas, marks por índice y aprobar una 
   await expect(tandas.nth(1).getByRole("button", { name: /Aprobar esta tanda/i })).toBeVisible();
   await expect(tandas.nth(1)).not.toContainText(/✅ aprobada/i);
   const sent = await page.evaluate(() => store.get("_betaReview_" + CONFIG.APP_VERSION + "_v"));
-  expect(sent).toEqual({ "9.9.2/nueva": "approved" });
   const reports = await page.evaluate(() => window.__betaReports);
   expect(reports).toHaveLength(1);
   expect(reports[0].tanda).toBe("9.9.2/nueva");
+  // Desde 4.26.75 el parte guarda también la huella: es lo que lo casa si la tanda cambia de versión.
+  expect(reports[0].huella).toMatch(/^[0-9a-f]{8}$/);
+  expect(sent).toEqual({ "9.9.2/nueva": "approved", _h: 1, ["h:" + reports[0].huella]: "approved" });
   expect(reports[0].verdict).toBe("approved");
   // Aprobar encoge solo esa tanda; abrir/cerrar no cambia sus marcas ni manda otro parte.
   const toggle = tandas.nth(0).locator(".beta-tanda-toggle");
@@ -904,4 +911,43 @@ test("INC-3009-01 añade una prueba sin retirar las siete pendientes", async ({ 
     await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(1);
   }
   await expect(panel).not.toContainText("Deudas terminadas");
+});
+
+/* 30/9: aprobó las cinco nativas tres veces porque cada promoción web las movía de versión.
+   Su móvil guarda el parte como «4.26.67/id»; en 4.26.68 el panel debe reconocerlo. */
+const NATIVAS = ["Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada"];
+async function sembrarAprobadasEn4267(page) {
+  await page.evaluate(() => {
+    CONFIG.APP_VERSION = "4.26.71.1";
+    const n = RELEASE_NOTES.find((x) => x.v === "4.26.68");
+    const partes = {}, marcas = {};
+    n.tandas.filter((g) => g.apk).forEach((g) => {
+      partes["4.26.67/" + g.id] = "approved";
+      rnItems(g, "es").forEach((it) => { marcas[it] = "ok"; });
+    });
+    store.set("_betaReview_4.26.68.1_v", partes);
+    store.set("_betaReviewOk", marcas);
+  });
+}
+
+test("las nativas trasladadas de 4.26.67 a 4.26.68 conservan su aprobación", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  await sembrarAprobadasEn4267(page);
+  await page.evaluate(() => { window._mcProdApk = 48; });
+  const panel = await conProduccionEn(page, "4.26.67");
+  for (const title of NATIVAS) {
+    const fila = panel.locator(".beta-tanda").filter({ has: page.locator(".beta-tanda-t", { hasText: title }) });
+    await expect(fila.locator(".beta-tanda-n")).toContainText("aprobada");
+  }
+  const recibos = panel.locator(".beta-tanda").filter({ has: page.locator(".beta-tanda-t", { hasText: "Recibos pagados y vencidos" }) });
+  await expect(recibos.locator(".beta-tanda-n")).not.toContainText("aprobada");
+});
+
+test("producción web por delante no retira las nativas mientras la APK estable no las lleve", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.71.1"; window._mcProdApk = 48; });
+  const panel = await conProduccionEn(page, "4.26.69");
+  for (const title of NATIVAS) await expect(panel.locator(".beta-tanda-t").filter({ hasText: title })).toHaveCount(1);
+  await expect(panel.locator(".beta-tanda-t").filter({ hasText: "Ayuda de Mi ciclo" })).toHaveCount(0);
+  await expect(panel.locator(".beta-tanda-t").filter({ hasText: "Recibos pagados y vencidos" })).toHaveCount(1);
 });

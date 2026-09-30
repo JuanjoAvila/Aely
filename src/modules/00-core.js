@@ -196,6 +196,7 @@ function mcBetaLog(p){
   ["summary","tanda","tandaTitulo"].forEach(function(k){ if(typeof p[k]==="string") out[k]=mcLogText(p[k]).slice(0,500); });
   ["version","notas"].forEach(function(k){ if(/^\d+\.\d+\.\d+(?:\.\d+)?$/.test(p[k]||"")) out[k]=p[k]; });
   if(/^(?:approved|rejected)$/.test(p.verdict||"")) out.verdict=p.verdict;
+  if(/^[0-9a-f]{8}$/.test(p.huella||"")) out.huella=p.huella;
   if(/^\d{1,6}$/.test(p.apk||"")) out.apk=p.apk;
   ["probados","fallos","sinProbar","noProbable","heredados"].forEach(function(k){ if(Number.isSafeInteger(p[k])&&p[k]>=0&&p[k]<=1000) out[k]=p[k]; });
   if(Array.isArray(p.noProbables)) out.noProbables=p.noProbables.slice(0,30).map(function(x){ return mcLogText(x).slice(0,140); });

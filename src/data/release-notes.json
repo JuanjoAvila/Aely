@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.75",
+    "d": "2026-09-30",
+    "t": {
+      "es": "Las pruebas aprobadas no se vuelven a pedir",
+      "en": "Approved checks are not requested again",
+      "ca": "Les proves aprovades no es tornen a demanar"
+    },
+    "items": {
+      "es": [
+        "Una prueba ya aprobada conserva su resultado aunque cambie el número de versión, y lo que depende de la app de Android sigue pendiente hasta que esa app llega a todos."
+      ],
+      "en": [
+        "An approved check keeps its result even if the version number changes, and anything that depends on the Android app stays pending until that app reaches everyone."
+      ],
+      "ca": [
+        "Una prova ja aprovada conserva el resultat encara que canviï el número de versió, i el que depèn de l'app d'Android continua pendent fins que aquesta app arriba a tothom."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "beta-panel-veredictos",
+        "t": {
+          "es": "Pruebas ya aprobadas",
+          "en": "Already approved checks",
+          "ca": "Proves ja aprovades"
+        },
+        "items": {
+          "es": [
+            "1. Abre Pruebas: las cinco del widget y Trade Republic que aprobaste el 29/9 deben salir como aprobadas, sin pedirte probarlas otra vez.",
+            "2. Recibos pagados y vencidos debe seguir como rechazada y el resto sin cambios."
+          ],
+          "en": [
+            "1. Open Checks: the five widget and Trade Republic checks approved on 29/9 must show as approved, without asking you to test them again.",
+            "2. Paid and overdue bills must stay rejected and the rest unchanged."
+          ],
+          "ca": [
+            "1. Obre Proves: les cinc del widget i Trade Republic que vas aprovar el 29/9 han de sortir com a aprovades, sense demanar-te provar-les un altre cop.",
+            "2. Rebuts pagats i vençuts ha de continuar rebutjada i la resta sense canvis."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.71",
     "d": "2026-09-30",
     "t": {
@@ -132,6 +176,9 @@
     },
       {
         "id": "fin05-widget-reentrada",
+        "apk": 51,
+        "desde": ["4.26.67/fin05-widget-reentrada"],
+        "huella": "217d10b1",
         "t": {
           "es": "Widget después de reabrir",
           "en": "Widget after reopening",
@@ -151,6 +198,9 @@
       },
       {
         "id": "fin05-pago-cerrada",
+        "apk": 51,
+        "desde": ["4.26.67/fin05-pago-cerrada"],
+        "huella": "eddacdf9",
         "t": {
           "es": "Gasto del widget tras una compra",
           "en": "Widget spending after a purchase",
@@ -173,6 +223,9 @@
       },
       {
         "id": "tr-descripcion-clasificacion",
+        "apk": 51,
+        "desde": ["4.26.67/tr-descripcion-clasificacion"],
+        "huella": "05c57324",
         "t": {
           "es": "Clasificación de gastos bancarios",
           "en": "Bank expense categories",
@@ -195,6 +248,9 @@
       },
       {
         "id": "widget-banco",
+        "apk": 51,
+        "desde": ["4.26.67/widget-banco"],
+        "huella": "708813c8",
         "t": {
           "es": "Banco del widget",
           "en": "Widget bank",
@@ -217,6 +273,9 @@
       },
       {
         "id": "widget-app-cerrada",
+        "apk": 51,
+        "desde": ["4.26.67/widget-app-cerrada"],
+        "huella": "be8ed58c",
         "t": {
           "es": "Widget con la app cerrada",
           "en": "Widget while the app is closed",

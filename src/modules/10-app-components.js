@@ -1108,7 +1108,31 @@ function mcIsNewer(a,b){
   }
   return false;
 }
-function betaChecklist(version, prodVersion){
+/* IDENTIDAD DE UNA TANDA = SU CONTENIDO, NO SU NÚMERO (30/9). Al promocionar web, las tandas
+   nativas se movían de versión (4.26.60 → 66 → 67 → 68) con el mismo texto, y el veredicto,
+   guardado como «versión/id», dejaba de casar: aprobó las cinco del widget TRES veces. La huella
+   junta id, título, pasos y `rev`. Mover no la cambia; corregir el guion o subir `rev` (cambio de
+   código con el mismo guion) sí, y exige veredicto nuevo. Castellano: es lo que ven panel y CLI. */
+function betaHuella(id,t,items,rev){
+  var s=id+"|"+JSON.stringify([t,items,rev||1]), h=0x811c9dc5;
+  for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
+  return ("0000000"+h.toString(16)).slice(-8);
+}
+/* El veredicto MÁS RECIENTE que aplica a esta revisión (`rows` de nuevo a viejo): el último
+   rechazo veta las aprobaciones de antes. Con huella solo vale la misma revisión; los partes
+   anteriores a la huella casan por id o por `desde`, alias auditados en release-notes. */
+function betaVerdictFor(g, rows){
+  var ids=[g.id].concat(g.desde||[]);
+  for(var i=0;i<(rows||[]).length;i++){
+    var r=rows[i];
+    // Un `null` más reciente es «cambié de opinión»: retira lo anterior, no se salta.
+    if(r&&(r.huella ? r.huella===g.huella : ids.indexOf(r.tanda)>=0)) return r.verdict?r:null;
+  }
+  return null;
+}
+// Una tanda con `apk` sigue pendiente de ENTREGA hasta que la APK estable la lleve. Sin dato, pendiente.
+function betaSinEntregar(g, prodApk){ return !!g.apk && !(prodApk>=g.apk); }
+function betaChecklist(version, prodVersion, prodApk){
   var base=mcVerBase(version);
   if(typeof RELEASE_NOTES==="undefined"||!RELEASE_NOTES.length) return { v:base, t:"", items:[], tandas:[] };
   /* RONDA ENTERA (2026-09-07). El panel cogía SOLO las notas de la versión que corre: en
@@ -1141,8 +1165,10 @@ function betaChecklist(version, prodVersion){
     round=one?[one]:[];
   }else{
     var prod=mcVerBase(prodVersion);
+    // Producción web no entrega lo nativo: una tanda de APK sobrevive a que la web la adelante.
     round=RELEASE_NOTES.filter(function(n){
-      return n&&n.v && mcIsNewer(n.v, prod) && !mcIsNewer(n.v, base);
+      return n&&n.v && !mcIsNewer(n.v, base) && (mcIsNewer(n.v, prod)
+        || betaTandas(n).some(function(g){ return betaSinEntregar(g,prodApk); }));
     });
   }
   /* PRODUCCION AL DIA SIGNIFICA CERO PENDIENTES (feedback 2026-09-16).
@@ -1167,13 +1193,14 @@ function betaChecklist(version, prodVersion){
          varias veces exactamente el mismo trabajo. RELEASE_NOTES va de nueva a antigua. */
       var rawId=String(g.id);
       if(conProd&&vistas[rawId]) return;
+      if(conProd&&!mcIsNewer(notes.v, mcVerBase(prodVersion))&&!betaSinEntregar(g,prodApk)) return;
       vistas[rawId]=true;
       /* Con ronda multi-versión el id lleva la versión: dos tandas «id-fila» de bases distintas
          no se pisan en el veredicto. Sin prod (una sola versión) se conserva el id corto de
          siempre para no resetear lo ya enviado en esta compilación. */
       var id=conProd?(notes.v+"/"+rawId):rawId;
       var t=conProd?("v"+notes.v+(g.t?" · "+g.t:"")):g.t;
-      tandas.push({ id:id, t:t, items:g.items });
+      tandas.push({ id:id, t:t, items:g.items, huella:g.huella, desde:g.desde, apk:g.apk });
       planos=planos.concat(g.items);
     });
   });
@@ -1201,10 +1228,13 @@ function betaChecklist(version, prodVersion){
 function betaTandas(notes){
   if(notes && notes.tandas){
     return notes.tandas.map(function(g){
-      return { id:String(g.id), t:rnT(g.t,"es"), items:rnItems(g,"es") };
+      var id=String(g.id), t=rnT(g.t,"es"), items=rnItems(g,"es"), h=betaHuella(id,t,items,g.rev);
+      // `desde` solo vale mientras la huella fijada al escribirlo siga siendo la del contenido.
+      return { id:id, t:t, items:items, huella:h, apk:g.apk||0, desde:g.huella===h&&g.desde||[] };
     });
   }
-  return [{ id:"todo", t:"", items:rnItems(notes,"es") }];
+  var items=rnItems(notes,"es");
+  return [{ id:"todo", t:"", items:items, huella:betaHuella("todo","",items), apk:0, desde:[] }];
 }
 /* CUENTA COMPARTIDA DE LA REVISIÓN — la MISMA lógica que usa el panel para heredar ✓/✗ entre
    compilaciones, extraída para que la fila de Ajustes cuente exactamente lo mismo que el panel
@@ -1252,12 +1282,18 @@ function betaSavedVerdicts(pack, storeKey){
     }
   }catch(e){}
   keys.sort(function(a,b){ return mcIsNewer(a.slice(12,-2),b.slice(12,-2))?1:mcIsNewer(b.slice(12,-2),a.slice(12,-2))?-1:0; });
-  keys.forEach(function(k){
+  // De nueva a vieja. Un parte con huella (`_h`) solo cuenta por ella: sus ids no dicen qué revisión juzgó.
+  const rows=[];
+  keys.reverse().forEach(function(k){
     const old=store.get(k)||{};
-    (pack.tandas||[]).forEach(function(g){
-      const id=g.id.indexOf("/")>=0?g.id:pack.v+"/"+g.id;
-      if(Object.prototype.hasOwnProperty.call(old,id)) sent[g.id]=old[id];
+    Object.keys(old).forEach(function(x){
+      if(old._h){ if(x.indexOf("h:")===0) rows.push({huella:x.slice(2),verdict:old[x]}); }
+      else rows.push({tanda:x,verdict:old[x]});
     });
+  });
+  (pack.tandas||[]).forEach(function(g){
+    const r=betaVerdictFor({id:g.id,huella:g.huella,desde:(g.desde||[]).concat([pack.v+"/"+g.id])},rows);
+    if(r) sent[g.id]=r.verdict;
   });
   (pack.tandas||[]).forEach(function(g){
     if(sent[g.id]!=="approved" || !g.items.length || !g.items.every(function(it){ return marks[it]==="ok"||marks[it]==="na"; })) delete sent[g.id];
@@ -1379,7 +1415,7 @@ function BetaReviewPanel({onClose, showToast}){
     ensureReleaseNotes().then(function(){ if(alive) setNotesReady(true); });
     return function(){ alive=false; };
   },[]);
-  const pack=notesReady?betaChecklist(CONFIG.APP_VERSION, prod):{ v:mcVerBase(CONFIG.APP_VERSION), t:"", items:[], tandas:[] };
+  const pack=notesReady?betaChecklist(CONFIG.APP_VERSION, prod, window._mcProdApk):{ v:mcVerBase(CONFIG.APP_VERSION), t:"", items:[], tandas:[] };
   const yaEnProd=(!prod||!/^\d+\.\d+\.\d+$/.test(mcVerBase(CONFIG.APP_VERSION)))
     ? null
     : (!mcIsNewer(mcVerBase(CONFIG.APP_VERSION), prod) ? prod : false);
@@ -1553,7 +1589,7 @@ function BetaReviewPanel({onClose, showToast}){
     var out=[], i=0;
     (pack.tandas||[]).forEach(function(g){
       var idx=g.items.map(function(){ return i++; });
-      out.push({ id:g.id, t:g.t, items:g.items, idx:idx });
+      out.push({ id:g.id, t:g.t, items:g.items, idx:idx, huella:g.huella });
     });
     return out;
   })();
@@ -1600,7 +1636,7 @@ function BetaReviewPanel({onClose, showToast}){
     const etiq=g.t?(" ["+g.id+"] "+g.t):"";
     const payload={
       verdict:verdict, version:CONFIG.APP_VERSION, apk:apkCode, notas:pack.v,
-      tanda:g.id, tandaTitulo:g.t||null,
+      tanda:g.id, tandaTitulo:g.t||null, huella:g.huella,
       probados:c.ok, fallos:c.ko, sinProbar:c.pend, noProbable:c.na, heredados:heredados.current,
       noProbables:g.idx.map(function(i,j){ return marks[i]==="na" ? g.items[j].slice(0,140) : null; }).filter(Boolean),
       detalle:fallos,
@@ -1611,7 +1647,7 @@ function BetaReviewPanel({onClose, showToast}){
     cloud.betaReport(payload)
       .then(function(){
         setSent(function(p){
-          const n=Object.assign({},p); n[g.id]=verdict;
+          const n=Object.assign({},p); n[g.id]=verdict; n["h:"+g.huella]=verdict; n._h=1;
           store.set(storeKey+"_v",n);   // sobrevive a cerrar la app: probar lleva días
           /* 15/9: si ya no quedan tandas sin veredicto en esta compilación, no reabrir Ajustes. */
           var ids=grupos.length ? grupos.map(function(x){ return x.id; }) : ["todo"];
@@ -1766,7 +1802,7 @@ function BetaReviewPanel({onClose, showToast}){
                 ? "Queda registrado con su nombre («"+g.id+"»), así que quien la suba sabe exactamente qué subir."
                 : "Queda registrado con lo que falla. Esta tanda no sube; las demás pueden seguir su camino."),
             React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:10},
-              onClick:function(){ setSent(function(p){ const n=Object.assign({},p); n[g.id]=null; store.set(storeKey+"_v",n); return n; }); }},
+              onClick:function(){ setSent(function(p){ const n=Object.assign({},p); n[g.id]=null; n["h:"+g.huella]=null; n._h=1; store.set(storeKey+"_v",n); return n; }); }},
               "↺ Cambiar de opinión"))
         : React.createElement(React.Fragment,null,
             c.ko>0 && React.createElement("button",{type:"button",className:"v4-danger",style:{marginTop:6},disabled:busy,
@@ -2893,7 +2929,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
             // «Code review» pero probando la app: la checklist sale de las notas de esta versión.
             // Solo tiene sentido estando en beta — en estable no hay nada que aprobar.
             beta && (function(){
-              const pack=betaChecklist(CONFIG.APP_VERSION, prodVer);
+              const pack=betaChecklist(CONFIG.APP_VERSION, prodVer, window._mcProdApk);
               const c=betaMarksCount(pack);
               // Con la versión ya subida a producción la fila deja de cantar «3/8» — ese contador
               // se leía como trabajo pendiente cada vez que abría Ajustes, y no lo era (2026-07-28).

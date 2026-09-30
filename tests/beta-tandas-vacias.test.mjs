@@ -60,10 +60,16 @@ t("con tandas declaradas, salen esas y ninguna «todo»", () => {
   assert.equal(out[0].id, "una");
 });
 
-t("★ producción al día → cero tandas, sin fallback a versiones antiguas", () => {
-  const pack = cli.betaChecklist(VERSION_ACTUAL, VERSION_ACTUAL);
+t("★ producción al día (web y APK) → cero tandas, sin fallback a versiones antiguas", () => {
+  const pack = cli.betaChecklist(VERSION_ACTUAL, VERSION_ACTUAL, 9999);
   assert.equal(pack.tandas.length, 0);
   assert.equal(pack.items.length, 0);
+});
+
+// 30/9: la web al día no entrega lo nativo; solo quedan las tandas con `apk` sin APK estable.
+t("★ web al día con APK estable atrasada → solo quedan las tandas nativas", () => {
+  const pack = cli.betaChecklist(VERSION_ACTUAL, VERSION_ACTUAL, 48);
+  assert.ok(pack.tandas.every((g) => g.apk > 48), "ninguna tanda web vuelve al panel");
 });
 
 t("★ al subir solo Deudas, el panel conserva las siete pruebas pendientes", () => {

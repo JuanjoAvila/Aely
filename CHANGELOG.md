@@ -1,3 +1,11 @@
+## [4.26.75] — 2026-09-30 · BETA-PANEL-VEREDICTOS, el veredicto sigue a la tanda y no a su número
+
+- Las cinco tandas nativas (widget/TR) se aprobaron tres veces (28/9, 29/9 13:38 y 18:51 UTC): cada promoción web las movía de versión (4.26.60 → 66 → 67 → 68) con el mismo texto, y panel y `listo` casaban el parte por `versión/id` exacto. Tras el último traslado volvían a «sin probar».
+- `betaHuella` = FNV-1a de id + título + pasos (castellano) + `rev`. Mover la tanda no la cambia; tocar el guion o subir `rev` (cambio de código con el mismo guion) sí. El parte nuevo lleva `huella` (y `mcBetaLog` la deja pasar solo con 8 hex). `betaVerdictFor` devuelve el parte más reciente que aplica: con huella, solo la misma revisión; sin huella (partes antiguos), id exacto o alias `desde`. El último rechazo veta la aprobación anterior. Panel (`betaSavedVerdicts`) y `listo` usan la misma función.
+- Alias `desde:["4.26.67/<id>"]` en las cinco nativas, con la `huella` fijada: si el guion cambia, el alias muere solo y el test `beta-veredictos` falla hasta retirarlo. Comprobado en git que el texto es idéntico desde 4.26.49/50/53/54/55 hasta 4.26.68.
+- Entrega: una tanda con `apk` sigue en la ronda hasta que la APK estable (Pages `apk.json`) llegue a ese `versionCode`, aunque la web de producción la adelante. Sin dato, sigue pendiente. `_mcProdVersion` pide `version.json` y `apk.json` en paralelo; `listo` muestra «aprobada, pendiente de entrega».
+- Presupuesto: +474 B gzip medidos (344.373 B, 309 sobre 336 KiB) → 337 KiB; +1 KiB crudo para el sello. Sin Edge, SQL, APK ni workflows.
+
 ## [4.26.71] — 2026-09-30 · INC-3009-01, evidencia de pago frente a calendario
 
 - Inicio ignoraba la conciliación y retenía un gas confirmado con wait. fixedPaymentState comparte la lectura con Plan: BOOK, entidad, mes, fecha no futura, nombre e importe compatibles; un único cargo y un único recibo/cuenta compatibles. Una confirmación paidYm/paidDay ya persistida sigue disponible sin extracto local.

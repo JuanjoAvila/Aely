@@ -464,6 +464,15 @@ Reglas:
   índice global que sale de ahí. Si alguien vuelve a usar `items` como checklist, el panel enseña
   un punto y guarda su ✓ bajo el texto de otro, sin avisar (pasó en la 4.13.0: 21 puntos en tandas
   contra 14 en Novedades). Lo vigila `e2e/revisar-beta.spec.mjs`.
+- **El veredicto va por la huella de la tanda** (id + título + pasos + `rev`, desde 4.26.75), no
+  por `versión/id`. Trasladar una tanda de versión sin tocarla conserva su veredicto. **Si cambias
+  el código de una tanda sin tocar su guion, sube `"rev"`**: si no, hereda la aprobación de la
+  revisión anterior. El parte más reciente manda (un rechazo veta la aprobación de antes).
+  Partes anteriores a la huella: solo por id exacto o por un alias `"desde":["X.Y.Z/id"]` con
+  `"huella"` fijada, que el test `beta-veredictos` comprueba. Motivo: el 30/9 aprobó tres veces las
+  cinco tandas del widget porque cada promoción web las movía de número.
+- **`"apk": N`** en una tanda = solo se entrega con la APK estable ≥ N. Sigue en el panel aunque la
+  web de producción la adelante, y sale al llegar esa APK a Pages.
 
 ### Cómo se aprueba
 
