@@ -108,7 +108,7 @@ export const E2E_MAP = [
     "e2e/apuntar-sheet.spec.mjs", "e2e/apuntar-sugerencia.spec.mjs", "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/cartera-orden-hogar.spec.mjs",
     "e2e/efectivo-apuntar.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/plan-gestionar.spec.mjs",
-    "e2e/plan-cover.spec.mjs",
+    "e2e/plan-cover.spec.mjs", "e2e/perfil-filas-vacias.spec.mjs",
   ] },
   { file: "src/modules/15-import-hoja.js", specs: ["e2e/import-hoja.spec.mjs", "e2e/import-docx-pdf.spec.mjs"] },
 ];

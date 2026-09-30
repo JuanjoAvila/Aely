@@ -1,3 +1,9 @@
+## [4.26.81] — 2026-10-01 · INC-2709-10, perfil sin casillas gigantes
+
+- Las filas vacías del perfil marcaban su valor con la clase `empty` a secas, que es también la del estado vacío GLOBAL (`.empty{text-align:center;padding:34px 20px}` en `shell.html`). Cada «Añadir» heredaba 68 px de padding vertical y quedaba centrado. Medido el 30/9 a 393×800, idéntico en es/en/ca: fila vacía de 127 px (143 con letra grande, 160 con enorme) contra ~58 de una rellena, y el perfil vacío en 1.787 px frente a 1.107 relleno.
+- El modificador pasa a `pr-val-empty` (componente y CSS). Mismas filas, mismas etiquetas, mismo «Añadir» en gris y mismo diálogo al tocar: no se oculta ningún campo.
+- Prueba: `e2e/perfil-filas-vacias.spec.mjs` con perfil de un solo campo ficticio relleno. Comprueba que cada fila ✎ vacía mide lo que la rellena (±4 px) y al menos 44 px, que «Añadir» va a la izquierda y que el toque abre su diálogo sin guardar. Cubre es/en/ca con letra normal, grande y enorme.
+
 ## [4.26.67] — 2026-09-30 · INC-2709-02, liquidación y archivo de deudas
 
 - Candidata de promoción exclusiva desde producción 4.26.66 de la tanda `inc-2709-02-deudas-archivo`, aprobada por el dueño el 29/9 tras beta 4.26.70.1. Se trasladan solo `09-tab-debts-goals.js`, sus textos es/en/ca y la cobertura de DOM; Android, Edge, SQL, APK y el resto de beta quedan fuera.

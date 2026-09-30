@@ -14,6 +14,8 @@ sesión del móvil se gastó la mitad trabajando sobre una rama equivocada.
 
 ## 1. Lo primero, siempre
 
+INC-2709-10 (4.26.81 provisional, desde main, sin publicar): en el perfil, `.pr-val.empty` heredaba la clase GLOBAL `.empty` (padding 34 px y centrado) y cada dato sin rellenar medía 127 px. Ojo al nombrar modificadores: `empty` ya está cogido. [Acta](docs/briefs/inc-2709-10-perfil.md).
+
 Corte 30/9: producción web 4.26.67 [publicada y cotejada](docs/briefs/inc-2709-02-prod.md) tras el OK exclusivo de `inc-2709-02-deudas-archivo`; beta 4.26.70.2 conserva siete pruebas pendientes. APK estable 48 y beta 51, sin promoción nativa. El usuario notificó además tres fallos independientes: widget sin «Mi ciclo», gas del 25/9 todavía en «Próximos cargos» el día 30 y nómina de Sabadell visible antes de cobrarla. Revalidar ramas, manifiestos, ZIP, SW, Actions y el estado de cada fallo; no dar por correcto un ingreso ni un cargo por la fecha prevista. El [backlog](docs/BACKLOG.md) conserva las prioridades y el límite de cada tanda.
 
 
