@@ -144,7 +144,7 @@ test("cambio de usuario descarta el extracto antes de adoptar su cartera", async
 test("pagado y pendiente se separan sin anillo ni mensaje diagnóstico", async ({ page }) => {
   await openPlan(page, {
     fixed: [
-      { id: "a", name: "Mini", amount: 1, freq: "mes", day: 2, account: "sabadell" },
+      { id: "a", name: "Mini", amount: 1, freq: "mes", day: 2, paidYm: 2026*12+9, paidDay: 2, account: "sabadell" },
       { id: "b", name: "Gordo", amount: 999, freq: "mes", day: 28, account: "sabadell" },
     ],
   });
@@ -227,7 +227,7 @@ test("todo pagado → 0 pendiente y lista pagada, sin NaN ni diagnóstico", asyn
   await page.clock.install({ time: new Date("2026-09-30T12:00:00Z") });
   await seedLoggedInDashboard(page, {
     accounts: accountsFijos,
-    fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 5, account: "sabadell" }],
+    fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 5, paidYm: 2026*12+9, paidDay: 5, account: "sabadell" }],
     budget: 500,
   });
   await page.goto("/");
@@ -260,7 +260,7 @@ test("modo sencillo: todo pagado conserva una frase honesta y el saldo conocido"
   await page.clock.install({ time: new Date("2026-09-30T12:00:00Z") });
   await seedLoggedInDashboard(page, {
     accounts: accountsFijos,
-    fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 5, account: "sabadell" }],
+    fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 5, paidYm: 2026*12+9, paidDay: 5, account: "sabadell" }],
     settings: { autoPrices: false, theme: "green", lang: "es", simpleMode: true },
     budget: 500,
   });
@@ -277,7 +277,7 @@ test("modo sencillo: cuenta borrada no inventa un saldo de 0 €", async ({ page
   await page.clock.install({ time: new Date("2026-09-30T12:00:00Z") });
   await seedLoggedInDashboard(page, {
     accounts: accountsFijos,
-    fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 5, account: "banco_fantasma" }],
+    fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 5, paidYm: 2026*12+9, paidDay: 5, account: "banco_fantasma" }],
     settings: { autoPrices: false, theme: "green", lang: "es", simpleMode: true },
     budget: 500,
   });
@@ -293,7 +293,7 @@ test("modo sencillo: saldo negativo conocido nunca recibe el titular verde", asy
   await page.clock.install({ time: new Date("2026-09-30T12:00:00Z") });
   await seedLoggedInDashboard(page, {
     accounts: [{ id: "sb", ent: "sabadell", name: "Sabadell", value: -80, role: "fijos" }],
-    fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 5, account: "sabadell" }],
+    fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 5, paidYm: 2026*12+9, paidDay: 5, account: "sabadell" }],
     settings: { autoPrices: false, theme: "green", lang: "es", simpleMode: true },
     budget: 500,
   });
@@ -323,7 +323,7 @@ test("Ya pagado es compacto y Ver más enseña solo recibos", async ({ page }) =
   await seedLoggedInDashboard(page, {
     accounts: accountsFijos,
     fixed: [
-      { id: "luz", name: "Luz", amount: 40, freq: "mes", day: 5, account: "sabadell" },
+      { id: "luz", name: "Luz", amount: 40, freq: "mes", day: 5, paidYm: 2026*12+9, paidDay: 5, account: "sabadell" },
       { id: "agua", name: "Agua", amount: 20, freq: "mes", day: 28, account: "sabadell" },
     ],
     flows: [{ id: "nom", kind: "income", name: "Nómina", amount: 2000, to: "sabadell", day: 1 }],

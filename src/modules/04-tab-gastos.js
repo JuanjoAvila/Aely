@@ -334,6 +334,21 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(subir && cloud.enabled()) cloud.setExpenseDeuda(subir).catch(function(){});
     if(showToast) showToast(tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
   };
+  const setReceipt=function(ex,fixedId){
+    const ds=String(ex.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
+    const today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
+    const f=(state.fixed||[]).find(function(x){ return x.id===fixedId; });
+    const expected={identity:fixedPaymentIdentity(expenseBankOf(ex),ex),model:f&&fixedPaymentModel(f,m)};
+    const save=function(){
+      // El diálogo es asíncrono: otra sincronización puede sustituir el cargo o editar el recibo.
+      set(function(s){ return linkFixedPayment(s,ex.id,fixedId,y,m,today,expected); });
+    };
+    if(fixedId==null){ save(); return; }
+    if(!f) return;
+    askConfirm({title:tf("f_receipt_confirm",{name:f.name}),
+      sub:tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))}),
+      ok:t("f_receipt_yes")}).then(function(yes){ if(yes) save(); });
+  };
   // Marca/desmarca un gasto como "no tarjeta" (bizum/transferencia) para que no cuente el round-up TR.
   const setCardFlag=function(ex,noCard){
     set(function(s){ return Object.assign({},s,{expenses:s.expenses.map(function(e){ return e.id===ex.id?Object.assign({},e,{noCard:noCard?true:undefined}):e; })}); });
@@ -428,10 +443,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
        borra en vez de arrastrarlo. Un dato viejo al lado de uno nuevo no es media verdad, es una
        mentira — y en el detalle se leerían juntos como si fueran el mismo pago. */
     if(signed!==orig.amount){ delete upd.origAmount; delete upd.origCur; }
-    set(function(s){ return Object.assign({},s,{
+    set(function(s){ return rekeyFixedPaymentExpense(Object.assign({},s,{
       expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; }),
       deleted:pushDeleted(s.deleted, keyOfE(orig))
-    }); });
+    }),orig,upd); });
     if(cloud.enabled()){ borrarGastoNube(orig, "gastos-editar"); subirGasto(upd, "gastos-editar"); }
     sincroniza(upd); showToast(t("g_edited"));
   };
@@ -951,7 +966,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         if(!skipSave && ex && editExp) saveEdit(ex);
         setDetailId(null); setEditExp(null);
       },
-      setCat:setCat, setCuota:setCuota, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
+      setCat:setCat, setCuota:setCuota, setReceipt:setReceipt, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
       resolveDup:resolveDup,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
@@ -1163,7 +1178,7 @@ function PeriodMoreSheet({open, onClose, preset, setPreset}){
 }
 
 /* Sheet detalle/edición de un movimiento. Layout alineado con Apuntar/Cartera (feedback 2026-07-17). */
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -1251,7 +1266,27 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
     trace,duplicate);
   const debtOptions=(state.debts||[]).filter(function(d){ return d&&d.id; });
+  const receiptDate=String(exp.date||"").slice(0,10),receiptYear=Number(receiptDate.slice(0,4)),receiptMonth=Number(receiptDate.slice(5,7)),receiptNow=new Date();
+  const receiptToday=receiptYear===receiptNow.getFullYear()&&receiptMonth===receiptNow.getMonth()+1?receiptNow.getDate():new Date(receiptYear,receiptMonth,0).getDate();
+  const receiptLinked=(state.fixed||[]).find(function(f){
+    const p=fixedPaymentProof(state,f,receiptYear,receiptMonth,receiptToday);
+    return p&&p.kind==="expense"&&(p.key===fixedExpenseKey(exp)||p.expenseId&&p.expenseId===exp.id||p.identity===fixedPaymentIdentity(expenseBankOf(exp),exp));
+  });
+  const receiptOptions=(state.fixed||[]).filter(function(f){
+    return fixedExpenseEligible(state,exp,f,receiptYear,receiptMonth,receiptToday)&&
+      (!fixedPaymentState(state,f,receiptYear,receiptMonth,receiptToday).paid||(receiptLinked&&receiptLinked.id===f.id));
+  });
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
+    !isIncome&&!exp.possibleDup&&!CAT_NEUTRAS[exp.category]&&(state.fixed||[]).length>0&&React.createElement(React.Fragment,null,
+      React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-receipt",onClick:function(){ setAdjustOpen(adjustOpen==="receipt"?null:"receipt"); }},
+        React.createElement("span",null,t("f_receipt_row")),React.createElement("span",{className:"value"},receiptLinked?receiptLinked.name:t("f_no")),React.createElement("span",{className:"chev"},"›")),
+      adjustOpen==="receipt"&&React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-receipt-options"},
+        React.createElement("div",{className:"hint"},t("f_receipt_hint")),
+        React.createElement("div",{className:"v4-chips wrap"},
+          receiptLinked&&React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-receipt-unlink",onClick:function(){ setReceipt(exp,null); }},t("f_receipt_unlink")),
+          !receiptLinked&&receiptOptions.map(function(f){ return React.createElement("button",{key:f.id,type:"button",className:"v4-chip","data-testid":"exp-receipt-"+f.id,
+            onClick:function(){ setReceipt(exp,f.id); }},f.name+" · "+eur(occAmountIn(f,receiptMonth))); })),
+        !receiptLinked&&!receiptOptions.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")))),
     React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="note"?null:"note"); }},
       React.createElement("span",null,t("f_note_row")),React.createElement("span",{className:"value"},editExp.note||t("f_note_none")),React.createElement("span",{className:"chev"},"›")),
     adjustOpen==="note" && React.createElement("div",{className:"v4-ficha-adjust-open"},

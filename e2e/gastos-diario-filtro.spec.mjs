@@ -1,10 +1,12 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
+
+test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
 /* Contrato confirmado por él el 16/9: Gastos arranca mostrando TODOS los bancos marcados como
  * gasto diario. «Todos los bancos» sigue disponible como ampliación explícita del histórico. */
 
-const d = (n) => new Date(Date.now() - n * 86400000).toISOString();
+const d = (n) => new Date(FIXTURE_NOW - n * 86400000).toISOString();
 
 const accounts = [
   { id: "tr", ent: "trade_republic", name: "Efectivo", value: 6300, role: "diario", spendFrom: true },

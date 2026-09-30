@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.68",
+    "d": "2026-09-30",
+    "t": {
+      "es": "Confirmar el recibo que paga un cargo",
+      "en": "Confirm which bill a charge pays",
+      "ca": "Confirmar el rebut que paga un càrrec"
+    },
+    "items": {
+      "es": [
+        "Desde la ficha de un gasto se puede vincular el cargo al recibo que paga, aunque el banco lo llame de otra manera. La confirmación se conserva al volver a entrar y se puede deshacer.",
+        "Si una factura cambia de importe, Plan distingue el cargo cobrado del importe previsto."
+      ],
+      "en": [
+        "Link a charge to the bill it pays from the expense details, even when the bank uses another name. Confirmation survives reopening and can be undone.",
+        "When a bill amount changes, Plan distinguishes the actual charge from the expected amount."
+      ],
+      "ca": [
+        "Des de la fitxa d'una despesa es pot vincular el càrrec al rebut que paga, encara que el banc l'anomeni d'una altra manera. La confirmació es conserva en tornar-hi i es pot desfer.",
+        "Si una factura canvia d'import, Pla distingeix el càrrec cobrat de l'import previst."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-3009-01-cargos",
+        "t": {
+          "es": "Recibos pagados y vencidos",
+          "en": "Paid and overdue bills",
+          "ca": "Rebuts pagats i vençuts"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, abre un cargo que ya pagó un recibo y toca Paga un recibo, también si la factura o divisa varió. Comprueba cargo real e importe/banco previstos. Confirma solo el pago completo; cancela si es parcial y comprueba que sigue sin confirmar.",
+            "2. Comprueba Inicio y Plan: el recibo confirmado deja de estar pendiente, también al reabrir. Si varía el importe, Plan distingue Cargo y Previsto. El cargo sigue una sola vez en Gastos y saldo/presupuesto se conservan.",
+            "3. Deshaz el vínculo desde la ficha y comprueba que vuelve Sin pago acreditado. Un cargo ajeno del mismo importe no debe pagar automáticamente otro recibo."
+          ],
+          "en": [
+            "1. In Expenses, open a charge that paid a bill and tap Pays a bill, including a variable bill or currency amount. Check the actual charge and expected amount/bank. Confirm only full payment; cancel a partial payment and check it stays unconfirmed.",
+            "2. Check Home and Plan: the confirmed bill is no longer pending, including after reopening. If the amount changes, Plan distinguishes Charge and Expected. The charge remains once in Expenses and balance/budget stay unchanged.",
+            "3. Undo the link from the details and check Payment unconfirmed returns. An unrelated charge of the same amount must not automatically pay another bill."
+          ],
+          "ca": [
+            "1. A Despeses, obre un càrrec que ja va pagar un rebut i toca Paga un rebut, també si la factura o divisa va variar. Comprova càrrec real i import/banc previstos. Confirma només el pagament complet; cancel·la si és parcial i comprova que continua sense confirmar.",
+            "2. Comprova Inici i Pla: el rebut confirmat deixa d'estar pendent, també en reobrir. Si varia l'import, Pla distingeix Càrrec i Previst. El càrrec continua una sola vegada a Despeses i es conserven saldo/pressupost.",
+            "3. Desfés el vincle des de la fitxa i comprova que torna Sense pagament acreditat. Un càrrec aliè del mateix import no ha de pagar automàticament un altre rebut."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.67",
     "d": "2026-09-30",
     "t": {
@@ -137,18 +187,37 @@
       "ca": "Quotes de deute accessibles"
     },
     "items": {
-      "es": ["Las cuotas de deuda vuelven a abrirse desde Plan sin cerrar la app."],
-      "en": ["Debt payments open again from Plan without closing the app."],
-      "ca": ["Les quotes de deute es tornen a obrir des de Pla sense tancar l’app."]
+      "es": [
+        "Las cuotas de deuda vuelven a abrirse desde Plan sin cerrar la app."
+      ],
+      "en": [
+        "Debt payments open again from Plan without closing the app."
+      ],
+      "ca": [
+        "Les quotes de deute es tornen a obrir des de Pla sense tancar l’app."
+      ]
     },
     "tandas": [
       {
         "id": "cuotas-deuda-crash-28sep",
-        "t": {"es":"Abrir cuotas de deuda","en":"Open debt payments","ca":"Obrir quotes de deute"},
+        "t": {
+          "es": "Abrir cuotas de deuda",
+          "en": "Open debt payments",
+          "ca": "Obrir quotes de deute"
+        },
         "items": {
-          "es": ["1. En Plan → Gestionar → Cuotas de deuda, abre una cuota con plazo y vuelve atrás. La ficha debe mostrar el importe y no cerrar la app.","2. Comprueba que el plazo de la deuda y sus pagos anteriores siguen visibles."],
-          "en": ["1. In Plan → Manage → Debt payments, open a payment with a term and go back. The detail should show the amount without closing the app.","2. Check that the debt term and earlier payments remain visible."],
-          "ca": ["1. A Pla → Gestionar → Quotes de deute, obre una quota amb termini i torna enrere. La fitxa ha de mostrar l’import sense tancar l’app.","2. Comprova que el termini del deute i els pagaments anteriors continuen visibles."]
+          "es": [
+            "1. En Plan → Gestionar → Cuotas de deuda, abre una cuota con plazo y vuelve atrás. La ficha debe mostrar el importe y no cerrar la app.",
+            "2. Comprueba que el plazo de la deuda y sus pagos anteriores siguen visibles."
+          ],
+          "en": [
+            "1. In Plan → Manage → Debt payments, open a payment with a term and go back. The detail should show the amount without closing the app.",
+            "2. Check that the debt term and earlier payments remain visible."
+          ],
+          "ca": [
+            "1. A Pla → Gestionar → Quotes de deute, obre una quota amb termini i torna enrere. La fitxa ha de mostrar l’import sense tancar l’app.",
+            "2. Comprova que el termini del deute i els pagaments anteriors continuen visibles."
+          ]
         }
       }
     ]
@@ -321,9 +390,15 @@
       "ca": "Rebuts confirma el que acabes d'afegir"
     },
     "items": {
-      "es": ["Al añadir un recibo, un cargo puntual o un ingreso, aparece una confirmación con su nombre para saber qué se ha guardado."],
-      "en": ["After adding a bill, a one-off charge or an income, a confirmation shows its name so you know what was saved."],
-      "ca": ["En afegir un rebut, un càrrec puntual o un ingrés, apareix una confirmació amb el nom perquè sàpigues què s'ha desat."]
+      "es": [
+        "Al añadir un recibo, un cargo puntual o un ingreso, aparece una confirmación con su nombre para saber qué se ha guardado."
+      ],
+      "en": [
+        "After adding a bill, a one-off charge or an income, a confirmation shows its name so you know what was saved."
+      ],
+      "ca": [
+        "En afegir un rebut, un càrrec puntual o un ingrés, apareix una confirmació amb el nom perquè sàpigues què s'ha desat."
+      ]
     },
     "tandas": [
       {
@@ -334,9 +409,21 @@
           "ca": "Confirmació en afegir a Rebuts"
         },
         "items": {
-          "es": ["1. Plan → Recibos → Gestionar → +: añade un recibo con nombre e importe. Al cerrarse el formulario, comprueba que el aviso diga «Recibo añadido» y muestre ese nombre.", "2. En «Cargos de una sola vez», añade un cargo y comprueba «Cargo puntual añadido» con su nombre.", "3. En «Lo que entra y lo que mueves», añade un ingreso y comprueba «Ingreso añadido» con su nombre. Cada alta debe aparecer una sola vez en su grupo."],
-          "en": ["1. Plan → Bills → Manage → +: add a bill with a name and amount. When the form closes, check that the confirmation says “Bill added” and shows its name.", "2. Under “One-off charges”, add a charge and check “One-off charge added” with its name.", "3. Under “What comes in and what you move”, add an income and check “Income added” with its name. Each item should appear only once in its group."],
-          "ca": ["1. Pla → Rebuts → Gestionar → +: afegeix un rebut amb nom i import. Quan es tanqui el formulari, comprova que la confirmació digui «Rebut afegit» i mostri el nom.", "2. A «Càrrecs d'una sola vegada», afegeix un càrrec i comprova «Càrrec puntual afegit» amb el nom.", "3. A «El que entra i el que mous», afegeix un ingrés i comprova «Ingrés afegit» amb el nom. Cada alta ha d'aparèixer una sola vegada al grup."]
+          "es": [
+            "1. Plan → Recibos → Gestionar → +: añade un recibo con nombre e importe. Al cerrarse el formulario, comprueba que el aviso diga «Recibo añadido» y muestre ese nombre.",
+            "2. En «Cargos de una sola vez», añade un cargo y comprueba «Cargo puntual añadido» con su nombre.",
+            "3. En «Lo que entra y lo que mueves», añade un ingreso y comprueba «Ingreso añadido» con su nombre. Cada alta debe aparecer una sola vez en su grupo."
+          ],
+          "en": [
+            "1. Plan → Bills → Manage → +: add a bill with a name and amount. When the form closes, check that the confirmation says “Bill added” and shows its name.",
+            "2. Under “One-off charges”, add a charge and check “One-off charge added” with its name.",
+            "3. Under “What comes in and what you move”, add an income and check “Income added” with its name. Each item should appear only once in its group."
+          ],
+          "ca": [
+            "1. Pla → Rebuts → Gestionar → +: afegeix un rebut amb nom i import. Quan es tanqui el formulari, comprova que la confirmació digui «Rebut afegit» i mostri el nom.",
+            "2. A «Càrrecs d'una sola vegada», afegeix un càrrec i comprova «Càrrec puntual afegit» amb el nom.",
+            "3. A «El que entra i el que mous», afegeix un ingrés i comprova «Ingrés afegit» amb el nom. Cada alta ha d'aparèixer una sola vegada al grup."
+          ]
         }
       }
     ]
@@ -350,9 +437,15 @@
       "ca": "Torna pas a pas en afegir un rebut"
     },
     "items": {
-      "es": ["Al añadir un recibo, un cargo puntual o un ingreso, el gesto Atrás acompaña al dedo y vuelve al paso anterior sin perder lo escrito."],
-      "en": ["When adding a bill, a one-off charge or an income, the Back gesture follows your finger and returns to the previous step without losing what you entered."],
-      "ca": ["En afegir un rebut, un càrrec puntual o un ingrés, el gest Enrere segueix el dit i torna al pas anterior sense perdre el que has escrit."]
+      "es": [
+        "Al añadir un recibo, un cargo puntual o un ingreso, el gesto Atrás acompaña al dedo y vuelve al paso anterior sin perder lo escrito."
+      ],
+      "en": [
+        "When adding a bill, a one-off charge or an income, the Back gesture follows your finger and returns to the previous step without losing what you entered."
+      ],
+      "ca": [
+        "En afegir un rebut, un càrrec puntual o un ingrés, el gest Enrere segueix el dit i torna al pas anterior sense perdre el que has escrit."
+      ]
     },
     "tandas": [
       {
@@ -1903,9 +1996,18 @@
       "ca": "El pressupost s'edita amb més calma"
     },
     "items": {
-      "es": ["El editor del presupuesto mensual se abre y se cierra de forma más suave.", "La cifra ocupa menos espacio para que se lea bien también en pantallas estrechas."],
-      "en": ["The monthly budget editor now opens and closes more smoothly.", "The amount takes up less room, so it remains easy to read on narrow screens."],
-      "ca": ["L'editor del pressupost mensual ara s'obre i es tanca de manera més suau.", "La xifra ocupa menys espai perquè també es llegeixi bé en pantalles estretes."]
+      "es": [
+        "El editor del presupuesto mensual se abre y se cierra de forma más suave.",
+        "La cifra ocupa menos espacio para que se lea bien también en pantallas estrechas."
+      ],
+      "en": [
+        "The monthly budget editor now opens and closes more smoothly.",
+        "The amount takes up less room, so it remains easy to read on narrow screens."
+      ],
+      "ca": [
+        "L'editor del pressupost mensual ara s'obre i es tanca de manera més suau.",
+        "La xifra ocupa menys espai perquè també es llegeixi bé en pantalles estretes."
+      ]
     },
     "tandas": []
   },
@@ -1918,9 +2020,18 @@
       "ca": "L'estalvi mensual torna a ser a Metes"
     },
     "items": {
-      "es": ["Plan → Metas vuelve a enseñar cuánto apartas al mes y permite editar, añadir o quitar aportaciones.", "Es una planificación para calcular cuándo alcanzas tus metas: no crea movimientos ni cambia saldos reales."],
-      "en": ["Plan → Goals once again shows how much you set aside each month and lets you edit, add or remove contributions.", "It is a plan for estimating when you reach your goals: it does not create transactions or change real balances."],
-      "ca": ["Pla → Metes torna a mostrar quant apartes cada mes i permet editar, afegir o treure aportacions.", "És una planificació per calcular quan arribes a les metes: no crea moviments ni canvia saldos reals."]
+      "es": [
+        "Plan → Metas vuelve a enseñar cuánto apartas al mes y permite editar, añadir o quitar aportaciones.",
+        "Es una planificación para calcular cuándo alcanzas tus metas: no crea movimientos ni cambia saldos reales."
+      ],
+      "en": [
+        "Plan → Goals once again shows how much you set aside each month and lets you edit, add or remove contributions.",
+        "It is a plan for estimating when you reach your goals: it does not create transactions or change real balances."
+      ],
+      "ca": [
+        "Pla → Metes torna a mostrar quant apartes cada mes i permet editar, afegir o treure aportacions.",
+        "És una planificació per calcular quan arribes a les metes: no crea moviments ni canvia saldos reals."
+      ]
     },
     "tandas": []
   },
@@ -2042,11 +2153,27 @@
     "tandas": [
       {
         "id": "ola-fondo-sin-caja",
-        "t": {"es":"Ola con la barra oculta","en":"Wave with the bar hidden","ca":"Ona amb la barra amagada"},
+        "t": {
+          "es": "Ola con la barra oculta",
+          "en": "Wave with the bar hidden",
+          "ca": "Ona amb la barra amagada"
+        },
         "items": {
-          "es":["1. En cualquier pestaña larga, baja hasta ocultar la barra y continúa hasta el fondo real.","2. Sigue empujando hacia el fondo dos veces, también dejando que el pulgar haga una ligera diagonal: la ola debe salir desde el primer gesto.","3. La barra debe seguir oculta y reaparecer solo al subir por el contenido."],
-          "en":["1. In any long tab, scroll until the bar hides and continue to the real bottom.","2. Keep pushing towards the bottom twice, also allowing a slight diagonal thumb movement: the wave should appear from the first gesture.","3. The bar must stay hidden and return only when scrolling up through content."],
-          "ca":["1. En qualsevol pestanya llarga, baixa fins que la barra s'amagui i continua fins al fons real.","2. Continua empenyent cap al fons dues vegades, també deixant que el polze faci una diagonal lleu: l'ona ha de sortir des del primer gest.","3. La barra ha de continuar amagada i reaparèixer només en pujar pel contingut."]
+          "es": [
+            "1. En cualquier pestaña larga, baja hasta ocultar la barra y continúa hasta el fondo real.",
+            "2. Sigue empujando hacia el fondo dos veces, también dejando que el pulgar haga una ligera diagonal: la ola debe salir desde el primer gesto.",
+            "3. La barra debe seguir oculta y reaparecer solo al subir por el contenido."
+          ],
+          "en": [
+            "1. In any long tab, scroll until the bar hides and continue to the real bottom.",
+            "2. Keep pushing towards the bottom twice, also allowing a slight diagonal thumb movement: the wave should appear from the first gesture.",
+            "3. The bar must stay hidden and return only when scrolling up through content."
+          ],
+          "ca": [
+            "1. En qualsevol pestanya llarga, baixa fins que la barra s'amagui i continua fins al fons real.",
+            "2. Continua empenyent cap al fons dues vegades, també deixant que el polze faci una diagonal lleu: l'ona ha de sortir des del primer gest.",
+            "3. La barra ha de continuar amagada i reaparèixer només en pujar pel contingut."
+          ]
         }
       }
     ]
@@ -2085,29 +2212,77 @@
     "tandas": [
       {
         "id": "ola-host-react",
-        "t": {"es":"Ola y barra al final","en":"Wave and bar at the bottom","ca":"Ona i barra al final"},
+        "t": {
+          "es": "Ola y barra al final",
+          "en": "Wave and bar at the bottom",
+          "ca": "Ona i barra al final"
+        },
         "items": {
-          "es":["1. Oculta la barra bajando y llega al final de cualquier pestaña larga.","2. Tira hacia abajo una vez y repite: la ola nativa debe aparecer en ambos gestos sin sacar la barra.","3. Sube por el contenido: solo entonces debe reaparecer la barra."],
-          "en":["1. Hide the bar by scrolling down and reach the bottom of any long tab.","2. Pull down once and repeat: the native wave should appear on both gestures without bringing the bar back.","3. Scroll up through the content: only then should the bar return."],
-          "ca":["1. Amaga la barra baixant i arriba al final de qualsevol pestanya llarga.","2. Estira cap avall una vegada i repeteix: l'ona nativa ha d'aparèixer en tots dos gestos sense fer sortir la barra.","3. Puja pel contingut: només llavors ha de reaparèixer la barra."]
+          "es": [
+            "1. Oculta la barra bajando y llega al final de cualquier pestaña larga.",
+            "2. Tira hacia abajo una vez y repite: la ola nativa debe aparecer en ambos gestos sin sacar la barra.",
+            "3. Sube por el contenido: solo entonces debe reaparecer la barra."
+          ],
+          "en": [
+            "1. Hide the bar by scrolling down and reach the bottom of any long tab.",
+            "2. Pull down once and repeat: the native wave should appear on both gestures without bringing the bar back.",
+            "3. Scroll up through the content: only then should the bar return."
+          ],
+          "ca": [
+            "1. Amaga la barra baixant i arriba al final de qualsevol pestanya llarga.",
+            "2. Estira cap avall una vegada i repeteix: l'ona nativa ha d'aparèixer en tots dos gestos sense fer sortir la barra.",
+            "3. Puja pel contingut: només llavors ha de reaparèixer la barra."
+          ]
         }
       },
       {
         "id": "historico-serial-selectivo",
-        "t": {"es":"Histórico de CaixaBank y Sabadell","en":"CaixaBank and Sabadell history","ca":"Històric de CaixaBank i Sabadell"},
+        "t": {
+          "es": "Histórico de CaixaBank y Sabadell",
+          "en": "CaixaBank and Sabadell history",
+          "ca": "Històric de CaixaBank i Sabadell"
+        },
         "items": {
-          "es":["1. No repitas la búsqueda mientras el aviso indique límite temporal; deja pasar seis horas desde el último 429.","2. En Importar histórico, comprueba que de entrada solo están marcados los bancos de gasto diario y elige CaixaBank o Sabadell antes de buscar.","3. Deben aparecer sus movimientos e importes; un límite temporal debe decir que no hace falta reconectar."],
-          "en":["1. Do not repeat the search while the temporary-limit notice is active; allow six hours after the last 429.","2. In Import history, check that only daily-spending banks are initially selected, then choose CaixaBank or Sabadell before searching.","3. Their transactions and amounts should appear; a temporary limit must say that reconnecting is unnecessary."],
-          "ca":["1. No repeteixis la cerca mentre l'avís indiqui límit temporal; deixa passar sis hores des de l'últim 429.","2. A Importar històric, comprova que d'entrada només hi ha marcats els bancs de despesa diària i tria CaixaBank o Sabadell abans de cercar.","3. Han d'aparèixer els moviments i imports; un límit temporal ha de dir que no cal reconnectar."]
+          "es": [
+            "1. No repitas la búsqueda mientras el aviso indique límite temporal; deja pasar seis horas desde el último 429.",
+            "2. En Importar histórico, comprueba que de entrada solo están marcados los bancos de gasto diario y elige CaixaBank o Sabadell antes de buscar.",
+            "3. Deben aparecer sus movimientos e importes; un límite temporal debe decir que no hace falta reconectar."
+          ],
+          "en": [
+            "1. Do not repeat the search while the temporary-limit notice is active; allow six hours after the last 429.",
+            "2. In Import history, check that only daily-spending banks are initially selected, then choose CaixaBank or Sabadell before searching.",
+            "3. Their transactions and amounts should appear; a temporary limit must say that reconnecting is unnecessary."
+          ],
+          "ca": [
+            "1. No repeteixis la cerca mentre l'avís indiqui límit temporal; deixa passar sis hores des de l'últim 429.",
+            "2. A Importar històric, comprova que d'entrada només hi ha marcats els bancs de despesa diària i tria CaixaBank o Sabadell abans de cercar.",
+            "3. Han d'aparèixer els moviments i imports; un límit temporal ha de dir que no cal reconnectar."
+          ]
         }
       },
       {
         "id": "resumen-sync-legible",
-        "t": {"es":"Resumen de sincronización legible","en":"Readable sync summary","ca":"Resum de sincronització llegible"},
+        "t": {
+          "es": "Resumen de sincronización legible",
+          "en": "Readable sync summary",
+          "ca": "Resum de sincronització llegible"
+        },
         "items": {
-          "es":["1. Pulsa una vez Sincronizar bancos.","2. El resultado debe abrir una hoja con una fila por banco o bróker, sin tapar la pantalla con un bloque de texto.","3. Un banco limitado debe quedar como «sin actualizar», nunca como «caducado»."],
-          "en":["1. Tap Sync banks once.","2. The result should open a sheet with one row per bank or broker, without covering the screen with a block of text.","3. A rate-limited bank should be shown as ‘not updated’, never ‘expired’."],
-          "ca":["1. Prem una vegada Sincronitza bancs.","2. El resultat ha d'obrir un full amb una fila per banc o bróker, sense tapar la pantalla amb un bloc de text.","3. Un banc limitat ha de quedar com a «sense actualitzar», mai com a «caducat»." ]
+          "es": [
+            "1. Pulsa una vez Sincronizar bancos.",
+            "2. El resultado debe abrir una hoja con una fila por banco o bróker, sin tapar la pantalla con un bloque de texto.",
+            "3. Un banco limitado debe quedar como «sin actualizar», nunca como «caducado»."
+          ],
+          "en": [
+            "1. Tap Sync banks once.",
+            "2. The result should open a sheet with one row per bank or broker, without covering the screen with a block of text.",
+            "3. A rate-limited bank should be shown as ‘not updated’, never ‘expired’."
+          ],
+          "ca": [
+            "1. Prem una vegada Sincronitza bancs.",
+            "2. El resultat ha d'obrir un full amb una fila per banc o bróker, sense tapar la pantalla amb un bloc de text.",
+            "3. Un banc limitat ha de quedar com a «sense actualitzar», mai com a «caducat»."
+          ]
         }
       }
     ]

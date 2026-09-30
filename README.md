@@ -87,7 +87,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.67** candidata web de INC-2709-02, aprobada en beta y preparada exclusivamente desde producción 4.26.66. La beta **4.26.70.1** conserva las otras tandas pendientes; producción sirve aún **4.26.66** hasta verificar esta candidata. APK estable **4.26.32/code 48** y beta **4.26.55/code 51**. [Acta selectiva](docs/briefs/inc-2709-02-prod.md) · [manifiesto estable](https://juanjoavila.github.io/Aely/version.json) · [manifiesto beta](https://github.com/JuanjoAvila/Aely/releases/download/beta/version.json).
+Estado actual: **v4.26.68** candidata separable tras el rechazo de INC-3009-01: Gastos permite confirmar qué recibo paga un cargo y deshacer el vínculo; Inicio y Plan comparten la evidencia, que sobrevive sin extracto local. Producción verificada **4.26.67**, última beta cotejada **4.26.73.1**, tras la primera corrección rechazada. APK estable **4.26.32/code 48** y beta **4.26.55/code 51**. [Acta](docs/briefs/inc-3009-01-cargos.md). La nueva corrección todavía no está publicada ni aprobada en móvil.
 
 Corte anterior verificado: **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](docs/briefs/ops02-restauracion-probada.md).
 
@@ -106,6 +106,7 @@ Notas rápidas del rediseño v4 (para no perderse):
 - **Orden manual de movimientos:** en Gastos, arrastra el asa de una fila para colocarla dentro del mismo día; la fecha real no cambia.
 - **Ficha de gasto v4.1 (en desarrollo):** Apuntar y Modificar comparten importe, concepto, banco/efectivo/fecha, categorías y teclado; los movimientos del banco mantienen bloqueados importe y cuenta.
 - **Tus recibos v4.1:** Plan → Recibos → Gestionar —o Ajustes → Dinero— abre una pantalla propia con buscador, grupos, iconos por tipo, fichas y alta por pasos; el gesto Atrás acompaña también cada paso del alta, la ficha confirma antes de cerrar y las altas muestran tipo y nombre al guardar. La comparación con el banco vive en Ajustes → Mis bancos.
+- **Confirmar un cargo de recibo (candidata):** Gastos → ficha → Paga un recibo muestra los recibos pendientes del mes, también con factura variable o divisa. El diálogo muestra cargo real e importe/banco previstos y exige confirmar pago completo; si es parcial se cancela. Se puede deshacer. Plan separa Cargo y Previsto si difieren, conservando la parte propia prevista del compartido. La prueba cambia el estado en Inicio/Plan; dinero y clasificación se conservan.
 - **Updates:** transporte en `12-boot.js`, estado de UI en `useUpdates()` (`10-app-components.js`).
 - **Canal beta y banco de pruebas** (solo `is_admin`): Ajustes → Dev → Pruebas — [docs/TESTING.md](docs/TESTING.md).
 

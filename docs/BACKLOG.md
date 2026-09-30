@@ -1,5 +1,19 @@
 # Backlog operativo — Aely
 
+## Rechazo de recibos y solicitudes separadas · 30 de septiembre de 2026
+
+**INC-3009-01 permanece rechazada.** El dueño informa de cargos visibles en Gastos que siguen sin pago acreditado en Recibos, aunque el gas ya desaparece. Claude reprodujo con datos sintéticos nombres bancarios distintos, pérdida de bankTx entre dispositivos y pago desde otra entidad/notificación. La candidata original de PR76 no se promociona. Este chat prepara el vínculo explícito cargo→recibo y evidencia durable que no intervenga en saldos; no acredita identidad por importe solo ni modifica dinero real. Pruebas y publicación se registrarán en el brief de la incidencia; implementación y aceptación móvil son distintas.
+
+| ID / prioridad | Solicitud nueva y estado | Criterio de cierre |
+|---|---|---|
+| **OPS-3009-03 · P2 · reconciliar panel después de producción** | Encargado a Claude por petición directa del dueño el 30/9 (BETA-PANEL-VEREDICTOS), en rama/worktree propios; este chat no duplica su implementación. El dueño señala «Arranque con poca conexión», «Ayuda de Mi ciclo», «Widget después de reabrir», «Gasto del widget tras una compra», «Clasificación de gastos bancarios», «Banco del widget» y «Widget con la app cerrada». Deudas ya se retiró. El corte HTTP es web estable 4.26.67/APK48 y beta 4.26.71.1/APK51. Claude recuperó aprobaciones de las dos web (29/9) y de las cinco nativas en 4.26.68.1/APK51 con IDs versionados 4.26.67: reubicar guiones en 4.26.68 dejó esos OK sin correspondencia. No están demostradas en producción por aparecer aprobadas. | Reconciliar ID, versión, texto y último veredicto con entrega web/nativa exacta. Publicar solo alcance aprobado y separable; retirar solo lo efectivamente entregado. Conservar pruebas pendientes o rechazadas. No borrar a ciegas ni promocionar beta entera. Revisar el resumen de Claude 20260930T2135Z y las fuentes de veredicto en el buzón local, sin copiar información familiar. |
+| **FIN-3009-04 · P2 · reservar cuotas obligatorias para deudas** | Evolutivo solicitado, solo documentación. Reservar para deudas como para metas: calcular cuotas obligatorias del mes y descontarlas del dinero disponible para gastar. No se implementa con recibos. | Definir mes natural/ciclo, cuotas parciales o variables y datos faltantes; una cuota pagada no vuelve a descontarse. Todos los lectores de disponible comparten la misma magnitud. Sin importe fiable: — con motivo. Pruebas sintéticas motor/DOM es/en/ca; widget, Android y pago real conservan contratos y aceptación propios. |
+
+
+## INC-3009-01 · corrección separable preparada · 30 de septiembre de 2026
+
+Reproducido en DOM con un gas ficticio y cargo BOOK: Inicio ignoraba la evidencia bancaria si el fijo arrastraba `wait`. La candidata desde main `12884f48` distingue pago acreditado, próximo y vencido sin acreditación; Plan comparte esa lectura para los fijos. Tests de motor y DOM es/en/ca registrados. [Acta](briefs/inc-3009-01-cargos.md). **Sin publicación beta todavía en este corte**, sin aprobación móvil y sin cierre del caso real. No altera saldos guardados ni movimientos, APK, Edge o SQL. Widget y nómina siguen como objetivos independientes.
+
 ## INC-2709-02 · promoción selectiva web 4.26.67 publicada · 30 de septiembre de 2026
 
 El dueño aprobó en chat la tanda `inc-2709-02-deudas-archivo` de beta 4.26.70.1. [PR #71](https://github.com/JuanjoAvila/Aely/pull/71) la promovió exclusivamente a `main` como web 4.26.67 (`df30b76f`). La [Action de Pages 36754554318](https://github.com/JuanjoAvila/Aely/actions/runs/36754554318) terminó SUCCESS; manifiesto, ZIP, HTML y SW de producción concuerdan. [Acta selectiva](briefs/inc-2709-02-prod.md). La APK estable sigue en 4.26.32/code 48; no se desplegó Edge, SQL ni migración. Las otras siete tandas siguen visibles en beta sin atribuirles aprobación.

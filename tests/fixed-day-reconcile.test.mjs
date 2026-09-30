@@ -24,7 +24,7 @@ function estado(day) {
     ],
     debts: [], oneoffs: [], flows: [], investments: [], assets: [],
     bankTx: [
-      { id: "tx-luz-sep", ent: "sabadell", date: "2026-09-24", amount: 120, merchant: "IBERDROLA LUZ" },
+      { id: "tx-luz-sep", ent: "sabadell", date: "2026-09-24", amount: 120, merchant: "IBERDROLA LUZ", status: "BOOK" },
     ],
     expenses: [
       { id: "hist-ago", ent: "sabadell", date: "2026-08-20T12:00:00.000Z", amount: 120, merchant: "Iberdrola agosto" },
@@ -144,7 +144,7 @@ console.log("fixed-day-reconcile");
   assert.equal(despues.fixed.length, 1, "la edición no duplica el fijo");
 
   const cobrado = Object.assign({}, despues, { bankTx: [
-    { id: "tx-luz-sep-25", ent: "sabadell", date: "2026-09-25", amount: 120, merchant: "IBERDROLA LUZ" },
+    { id: "tx-luz-sep-25", ent: "sabadell", date: "2026-09-25", amount: 120, merchant: "IBERDROLA LUZ", status: "BOOK" },
   ] });
   const pagado = c.planChargesMonth(cobrado, 9, 2026, 25);
   assert.equal(pagado.pendingBills.filter((x) => x.id === "fixed_luz").length, 0,
@@ -172,7 +172,7 @@ console.log("fixed-day-reconcile");
   c.patchFixedById((updater) => { despues = updater(feedViejo); }, "luz", { day: 25 });
   assert.equal(despues.fixed[0].wait,undefined,
     "un feed del mismo día pero con más de 30 minutos tampoco demuestra que el cargo falte");
-  assert.equal(c.planChargesMonth(despues,9,2026,25).paidBills.length,1);
+  assert.equal(c.planChargesMonth(despues,9,2026,25).paidBills.length,0);
 }
 
 {
@@ -192,10 +192,10 @@ console.log("fixed-day-reconcile");
   assert.equal(despues.fixed[0].wait,undefined,
     "a la una de la madrugada el extracto de ayer no puede negar un cobro de hoy");
   const plan=c.planChargesMonth(despues,9,2026,25);
-  assert.equal(plan.pendingBills.filter((x)=>x.id==="fixed_luz").length,0,
-    "Pepegas no reaparece pendiente por reutilizar movimientos antiguos");
-  assert.equal(plan.paidBills.filter((x)=>x.id==="fixed_luz").length,1,
-    "el recibo del día 25 cuenta una sola vez como ocurrido");
+  assert.equal(plan.pendingBills.filter((x)=>x.id==="fixed_luz").length,1,
+    "sin pago acreditado Pepegas queda pendiente aunque la proyección de saldo siga el calendario");
+  assert.equal(plan.paidBills.filter((x)=>x.id==="fixed_luz").length,0,
+    "el día previsto no acredita el pago del recibo");
   assert.equal(c.monthNetForAccount(despues,"sabadell",2026,9,25),-12.5);
   assert.equal(saldoMostrado(despues,"sabadell"),saldoAntes,
     "cambiar el día con un feed nocturno obsoleto no suma dinero a Sabadell");
@@ -213,8 +213,8 @@ console.log("fixed-day-reconcile");
   c.patchFixedById((updater) => { despues = updater(soloCalendario); }, "luz", { day: 25 });
   assert.equal(despues.fixed[0].wait, undefined,
     "sin feed que cubra el día no se inventa que el banco aún no ha cobrado");
-  assert.equal(c.planChargesMonth(despues, 9, 2026, 25).paidBills.length, 1,
-    "quien usa solo calendario conserva la regla de día ya ocurrido");
+  assert.equal(c.planChargesMonth(despues, 9, 2026, 25).paidBills.length, 0,
+    "el calendario sin feed no presenta un pago como acreditado");
   assert.equal(JSON.stringify(despues.accounts), JSON.stringify(soloCalendario.accounts));
 }
 

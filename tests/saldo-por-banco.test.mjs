@@ -2,8 +2,11 @@
 /** Cada banco descuenta lo suyo. Un gasto de Revolut no puede bajar Trade Republic.
     Reproduce el 257,17 € medido el 2026-08-18 (brief bug-saldo-cruzado-gasto-diario). */
 import assert from "node:assert/strict";
+import { mock } from "node:test";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
+// El reanclaje necesita filas del mismo mes que la app, también en CI UTC al cruzar Madrid.
+mock.timers.enable({ apis: ["Date"], now: new Date("2026-09-15T12:00:00Z") });
 const ctx = loadPureLogicFromFile();
 
 function t(name, fn) {
