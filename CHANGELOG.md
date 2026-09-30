@@ -1,3 +1,9 @@
+## [4.26.79] — 2026-09-30 · INC-2709-12, la corriente de Cyberpunk ya no cruza el +
+
+- La «corriente» de neón (`html[data-theme="cyber"] .botnav::after`, 1 px en `top:-1px`, `position:absolute`) es el último elemento posicionado del contexto de `.botnav`. El + sobresale 26 px por encima de la barra (`margin-top:-26px`) y en Cyberpunk era `position:relative` sin `z-index`: en orden de pintado la línea iba después y lo atravesaba. El `border-top` normal no, porque se pinta con el fondo, debajo de los hijos.
+- `z-index:1` en el + de Cyberpunk: la línea pasa por detrás del botón y sigue recorriendo el resto del filo. No cambia colores, gestos, barra ni animaciones; «Reducir animaciones» sigue igual; una temática por encima de Cyberpunk conserva la regla.
+- Prueba: `e2e/cyber-fab.spec.mjs` congela la línea y compara la franja del + con y sin ella; 4 pestañas, 320/393/430 px, letra enorme, zona segura y un ocultar/reaparecer sintético de la barra (no prueba el scroll real ni la inercia). Pendiente del turno de Chromium, en rojo sobre la base y en verde con el cambio.
+
 ## [4.26.67] — 2026-09-30 · INC-2709-02, liquidación y archivo de deudas
 
 - Candidata de promoción exclusiva desde producción 4.26.66 de la tanda `inc-2709-02-deudas-archivo`, aprobada por el dueño el 29/9 tras beta 4.26.70.1. Se trasladan solo `09-tab-debts-goals.js`, sus textos es/en/ca y la cobertura de DOM; Android, Edge, SQL, APK y el resto de beta quedan fuera.

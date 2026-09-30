@@ -334,7 +334,8 @@
     animation:cyberflick .7s steps(1,end) both;}
   @keyframes cyberflick{0%{opacity:0;}12%{opacity:1;}20%{opacity:.35;}28%{opacity:1;}44%{opacity:.6;}52%,100%{opacity:1;}}
   html[data-theme="cyber"] .card{border-top-color:color-mix(in srgb, var(--cyber-mag) 42%, var(--line-soft));}
-  html[data-theme="cyber"] .botnav-fab{position:relative;background:linear-gradient(160deg,var(--cyber-mag),var(--cyber-cyan));color:#07030D;}
+  /* z-index: el + sobresale de la barra y la corriente (`.botnav::after`) lo cruzaba (INC-2709-12). */
+  html[data-theme="cyber"] .botnav-fab{position:relative;z-index:1;background:linear-gradient(160deg,var(--cyber-mag),var(--cyber-cyan));color:#07030D;}
   html[data-theme="cyber"] .botnav-fab::after{content:"";position:absolute;inset:-5px;border-radius:50%;
     border:1.5px solid rgba(60,231,255,.55);pointer-events:none;opacity:0;animation:fabaro 3.8s ease-in-out infinite;}
   html[data-theme="cyber"] .botnav-ind span{background:var(--cyber-mag);}

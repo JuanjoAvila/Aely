@@ -36,6 +36,10 @@ y mide por CDP que el primer fotograma del cajón avance menos de 12 px; tambié
 termine abriéndose. `revisar-beta.spec.mjs` exige solo el veredicto de Ajustes después de la
 aprobación y publicación de temas, sin resucitar los 28 pasos antiguos. No requiere APK nueva.
 
+Cyberpunk y el + (INC-2709-12): `e2e/cyber-fab.spec.mjs` congela la corriente de neón de la barra y
+compara la franja del + con y sin ella (4 pestañas, 320/393/430 px, letra enorme, zona segura y un
+ocultar/reaparecer sintético de la barra, que no prueba el scroll real ni la inercia).
+
 Apariencia 4.26.10: `e2e/apariencia-temas.spec.mjs` pinta Cyberpunk de verdad y comprueba que el
 dinero conserva verde/rojo y que el tema persiste tras recargar. También cubre que «Reducir
 animaciones» apaga todo lo que se mueve y las temáticas Otoño y Primavera (tinte, ambientación y
