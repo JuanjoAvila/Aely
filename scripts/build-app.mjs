@@ -19,6 +19,7 @@ import {
   contarReleaseNotesEnJs,
 } from "./release-notes-max.mjs";
 import { extraerIdiomasDelBundle } from "./i18n-bundle.mjs";
+import { betaNotes, betaDelivery } from "./beta-revisions.mjs";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const order = JSON.parse(fs.readFileSync(path.join(root, "src", "build-order.json"), "utf8"));
@@ -41,7 +42,7 @@ if (dsn) {
   js = js.replace(/SENTRY_DSN:\s*""/, `SENTRY_DSN: ${JSON.stringify(dsn)}`);
 }
 
-const allNotes = leerReleaseNotesJson();
+const allNotes = betaNotes(leerReleaseNotesJson());
 const rnMax = leerReleaseNotesMax(js);
 /* El pack del index va VACÍO a propósito: con la ronda 4.19.x entera en slim el gzip
    seguía a 322 KB (>320). El histórico completo baja aparte (release-notes.json) y la
@@ -52,6 +53,7 @@ console.log(`  · RELEASE_NOTES: ${allNotes.length} en JSON · ${contarReleaseNo
 
 const pubNotes = path.join(root, "public", "release-notes.json");
 fs.writeFileSync(pubNotes, JSON.stringify(allNotes));
+fs.writeFileSync(path.join(root, "public/beta-delivery.json"), JSON.stringify(betaDelivery(allNotes)));
 console.log(`  · public/release-notes.json (${(fs.statSync(pubNotes).size / 1024).toFixed(0)} KB, ${allNotes.length} versiones)`);
 
 /* A/B idiomas (4.19.103): en/ca fuera del index → public/i18n/*.json. La fuente sigue

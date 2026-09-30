@@ -153,3 +153,6 @@ Detalle y checklist en `docs/ROADMAP.md` y `docs/TESTING.md`. **No promocionar s
 La cola post-rechazo se contrasta con `npm run listo` y [docs/BACKLOG.md](docs/BACKLOG.md).
 `docs/memoria/mi-cartera-backlog.md` conserva historia: no asumir que sus rechazos o pendientes
 son actuales. El header del ROADMAP puede ir por detrás del último veredicto.
+
+
+Bootstrap del recibo beta (OPS-3009-03, tooling): el build genera public/beta-delivery.json con SHA-256 por alcance web de scripts/beta-sources.json. En CI, sourceSha identifica GITHUB_SHA; en local queda null. No acredita APK ni funciones Edge. La producción 4.26.67 conserva íntegros HTML, idiomas y notas: los alcances de funciones ausentes se omiten y su panel conserva el comportamiento actual. Una tanda moderna (desde 4.26.68) sin alcance, con bloque ausente o ambiguo aborta; un alcance inactivo ausente no certifica entrega. Los alias futuros requieren comparación del guion y de cada superficie con el Git aprobado; añadir dependencias obliga a revisar el registry. El recibo solo acredita la fuente ensamblada, y su entrega exige verificar Pages.

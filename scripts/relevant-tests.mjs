@@ -38,6 +38,10 @@ export const CORE = [
   "src/shell.html",
   "playwright.config.mjs",
   "scripts/run-tests.mjs",
+  "scripts/beta-revisions.mjs",
+  "scripts/beta-sources.json",
+  "scripts/build-app.mjs",
+  "scripts/load-pure-logic.mjs",
 ];
 
 /**

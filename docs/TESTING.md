@@ -534,3 +534,6 @@ FIN-06: `tests/fx-multi.test.mjs` cruza cliente/Wallet, catálogo y desconocidos
 node tests/logs-privacidad.test.mjs ejecuta productores cliente, callback/loggers Edge y ambos SDK Sentry con marcadores sintéticos y transportes en memoria. Está registrado en steps del runner. --source-ref SHA repite los mismos contratos contra una fuente Git previa sin mutar el checkout. Incluye inventario de destinos explícitos; no certifica gateway, RLS ni servidor activo. Matriz y límites en [SEC-03](briefs/sec03-privacidad-logs.md).
 
 La regresión e2e/logs-privacidad.spec.mjs está en el mapa de 10-app-components: abre Actividad real, captura inserts simulados y comprueba códigos/texto útil sin correo ni marcadores automáticos.
+
+
+OPS-3009-03 bootstrap: tests/beta-sources.test.mjs está registrado en run-tests.mjs. Comprueba alcance obligatorio moderno, normalización CRLF, cambio real de fuente, omisión de código ausente y rechazo de marcadores ambiguos; nunca fabrica recibos APK/Edge. beta-revisions, beta-sources, build-app y load-pure-logic pertenecen a CORE: modificarlos exige suite completa en CI. La comparación A/B local del build debe conservar byte a byte public/index.html, public/i18n/en.json, public/i18n/ca.json y public/release-notes.json contra main, sin subir VERSION ni alterar fuentes de la app.
