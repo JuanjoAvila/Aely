@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import vm from "node:vm";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
 const ctx = loadPureLogicFromFile();
+const helpCtx=vm.createContext({React:ctx.React,dashboardBudgetStats:s=>ctx.dashboardBudgetStats(s)});
+vm.runInContext(fs.readFileSync("src/modules/16-help-assistant.js","utf8"),helpCtx);
 
 function t(name, fn) {
   try {
@@ -15,6 +19,50 @@ function t(name, fn) {
 }
 
 console.log("month-budget-stats");
+
+t("Inicio mensual usa bruto sin alterar Balance ni filas al desactivar Mi ciclo",()=>{
+  const RealDate=ctx.Date;
+  const s={budget:1000,settings:{budgetCycle:true,gTotalMode:"net",expenseBanks:["sabadell"]},
+    accounts:[{ent:"sabadell",role:"diario",spendFrom:true},{ent:"revolut",role:"ahorro"}],
+    expenses:[
+      {date:"2026-09-20T12:00:00Z",amount:500,category:"super",ent:"sabadell"},
+      {date:"2026-09-26T12:00:00Z",amount:-2000,merchant:"Nómina",category:"ingreso",ent:"sabadell"},
+      {date:"2026-09-27T12:00:00Z",amount:100,category:"super",ent:"sabadell"},
+      {date:"2026-09-27T14:00:00Z",amount:-80,merchant:"Bizum",category:"ingreso",ent:"sabadell"},
+      {date:"2026-09-27T15:00:00Z",amount:900,category:"super",ent:"revolut"},
+      {date:"2026-09-27T16:00:00Z",amount:300,category:"traspaso",ent:"sabadell"},
+      {date:"2026-09-27T17:00:00Z",amount:250,category:"super",ent:"sabadell",possibleDup:true},
+    ],reservaLog:[{date:"2026-09-21T12:00:00Z",amount:100}]};
+  try{
+    ctx.Date=class extends RealDate { static now(){ return Date.parse("2026-09-28T12:00:00Z"); } };
+    const cycle=ctx.dashboardBudgetStats(s);
+    assert.equal(cycle.against,20); assert.equal(cycle.remaining,980);
+    assert.equal(helpCtx.helpSnap(s,{}).remaining,980);
+    assert.equal(ctx.gamifOf(s,{}).budgetReto.margin,980);
+    s.settings.budgetCycle=false;
+    const before=JSON.stringify(s), dash=ctx.dashboardBudgetStats(s), month=ctx.monthBudgetStats(s);
+    assert.equal(dash.against,600); assert.equal(dash.budget,900); assert.equal(dash.remaining,300);
+    assert.equal(dash.mode,"split"); assert.equal(month.balance,1480); assert.equal(month.against,-1480);
+    const snap=helpCtx.helpSnap(s,{}), reto=ctx.gamifOf(s,{}).budgetReto;
+    assert.equal(snap.remaining,300,"Pregúntame conserva el margen mensual visible en Inicio");
+    assert.equal(snap.spent,600); assert.equal(snap.budget,900);
+    assert.equal(reto.margin,300); assert.equal(reto.spent,600); assert.equal(reto.budget,900);
+    assert.equal(JSON.stringify(s),before,"pintar Inicio no escribe ni modifica ajustes o filas");
+    for(const budget of [0,500,600]){
+      const b=ctx.dashboardBudgetStats({...s,budget,reservaLog:[]});
+      assert.equal(b.budget,budget||null); assert.equal(b.remaining,budget?budget-600:null);
+    }
+    const reserved=ctx.dashboardBudgetStats({...s,reservaLog:[{date:"2026-09-21T12:00:00Z",amount:1000}]});
+    assert.equal(reserved.budget,0); assert.equal(reserved.remaining,-600);
+    const over={...s,budget:500,reservaLog:[]};
+    assert.equal(helpCtx.helpSnap(over,{}).remaining,-100);
+    assert.equal(ctx.gamifOf(over,{}).budgetReto.done,false,"la nómina no da por cumplido un reto mensual excedido");
+    s.settings.budgetCycle=true;
+    s.expenses.push({date:"2026-09-27T18:00:00Z",amount:-200,category:"ingreso",ent:"sabadell"});
+    const credit=ctx.dashboardBudgetStats(s);
+    assert.equal(credit.against,-180); assert.equal(credit.remaining,1180,"un neto legítimo sigue ampliando margen en ciclo");
+  }finally{ctx.Date=RealDate;}
+});
 
 const nowMs = Date.now();
 const ym = new Intl.DateTimeFormat("en-CA", {

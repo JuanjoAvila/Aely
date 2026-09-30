@@ -1,5 +1,19 @@
 # Backlog operativo — Aely
 
+## INC-2909-02 · reproducción y candidata separable · 30 de septiembre de 2026
+
+**Feedback posterior en este chat: `inc-3009-01-cargos` rechazada.** El dueño confirma que
+el gas ya desapareció, pero dos recibos de septiembre siguen como no pagados aunque sus cargos
+se ven en Gastos. El relato no prueba qué fila corresponde a cada modelo; no se copian datos
+familiares ni se marca pago por calendario. PR76 sigue sin promocionar. Diagnóstico sintético
+solicitado a Claude por mensaje `20260930T200629Z-codex-gas-rechazado-nuevo-caso`: verificar
+persistencia de evidencia BOOK/importada, renovación de bankTx, nombre/importe y estados de pago.
+Este rechazo sustituye el anterior estado «pendiente»: solo el dueño puede aprobar un nuevo arreglo.
+Tras cerrar INC-2909-02, el sucesor debe atender este rechazo como objetivo propio y leer antes
+el resultado de Claude. Nómina PR78 permanece separada y aún sin revisión de código.
+
+La rama `tanda/inc-2909-02-inicio-natural` parte de main `12884f48`, fuente 4.26.68. Reproduce en DOM es/en/ca el 0 % al salir del ciclo con modo Balance: la frase usa 600 € brutos mientras el anillo compensaba con la nómina. Se alinea solo Inicio mensual con su gasto bruto y margen; Mi ciclo y Gastos/Balance conservan sus netos legítimos. Dos perfiles ficticios, reservas, exclusiones, cambio real y recarga, sin tocar datos familiares. [Contrato y evidencia](briefs/inc-2909-02-inicio-natural.md). Candidata aún no publicada ni aprobada; CI y publicación beta pendientes. `npm run listo` sobre beta efectiva no lee veredictos por falta de secreto. Gas PR76, nómina PR78 y widget permanecen separados.
+
 ## INC-2709-02 · promoción selectiva web 4.26.67 publicada · 30 de septiembre de 2026
 
 El dueño aprobó en chat la tanda `inc-2709-02-deudas-archivo` de beta 4.26.70.1. [PR #71](https://github.com/JuanjoAvila/Aely/pull/71) la promovió exclusivamente a `main` como web 4.26.67 (`df30b76f`). La [Action de Pages 36754554318](https://github.com/JuanjoAvila/Aely/actions/runs/36754554318) terminó SUCCESS; manifiesto, ZIP, HTML y SW de producción concuerdan. [Acta selectiva](briefs/inc-2709-02-prod.md). La APK estable sigue en 4.26.32/code 48; no se desplegó Edge, SQL ni migración. Las otras siete tandas siguen visibles en beta sin atribuirles aprobación.

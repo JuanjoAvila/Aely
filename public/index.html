@@ -6391,8 +6391,8 @@ function gamifOf(state, totals, budgetStreak){
   const nextMin = (lvl+1<GM_LEVELS.length) ? GM_LEVELS[lvl+1] : null;
   const base=GM_LEVELS[lvl];
   const lvlProg = nextMin!=null ? Math.min(100,Math.max(0,(savedScore-base)/(nextMin-base)*100)) : 100;
-  // Misma cifra que Resumen/Gastos (no thisMonthSpent: mete neutras e ingresos).
-  const bs=monthBudgetStats(state);
+  // El reto debe comparar el mismo consumo y límite que Inicio, también al salir del ciclo.
+  const bs=dashboardBudgetStats(state);
   const budget=bs.budget!=null?bs.budget:(state.budget||0);
   const spent=Math.max(0, bs.against||0);
   const ruCur=+(((tt.roundupThisMonth||0)+(tt.savebackThisMonth||0))).toFixed(2);
@@ -8381,12 +8381,12 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     return ((parts[0]||"M").charAt(0)+(parts[1]||parts[0]||"C").charAt(0)).toUpperCase();
   })();
 
-  // Misma cifra que la cabecera de Gastos / widget (no `thisMonthSpent`, que mete neutras).
-  const bud=monthBudgetStats(state);
+  // Mismas filas computables; bruto mensual o neto del ciclo, según lo que dice la tarjeta.
+  const bud=dashboardBudgetStats(state);
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
   const spentAgainst=Math.max(0, bud.against);
   const hasMonthActivity=bud.spent>0.005 || bud.income>0.005;
-  const ratio=budAmt>0 ? spentAgainst/budAmt : 0;
+  const ratio=budAmt>0 ? spentAgainst/budAmt : spentAgainst>0 ? Infinity : 0;
   const dim=new Date(tt.curYear, tt.curMonth, 0).getDate();
   const elapsed=Math.max(1, tt.today||1);
   const leftDays=Math.max(1, dim-elapsed);
@@ -8397,8 +8397,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   // Sin fecha fiable del próximo cobro no proyectamos un «€/día hasta fin de mes» que
   // mezclaría el ciclo de ella con el calendario (feedback pareja 28/9).
   const overTrack=!bud.cycle && projected>budAmt+0.5;
-  // El neto puede ser negativo con compras reales: ese 0 % de uso no significa mes vacío.
-  // El texto de Inicio vuelve al que el dueño usaba antes de la tanda rechazada (28/9).
+  // En ciclo, un neto negativo con compras reales no significa un período vacío.
   let stCls="st", stHead=hasMonthActivity ? t("st_good_h") : t(bud.cycle?"v4_cycle_start_h":"st_start_h");
   if(ratio>1 || overTrack&&ratio>0.85){ stCls="st bad"; stHead=t("st_over_h"); }
   else if(ratio>0.8){ stCls="st warn"; stHead=t("st_tight_h"); }
@@ -8564,8 +8563,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:stCls}, stHead),
           React.createElement("div",{className:"ph"},
-            // El anillo y «quedan» usan gasto menos ingresos; en ciclo decir «has gastado»
-            // con el bruto contradecía ambos aunque Gastos cuadrase (feedback 28/9).
+            // Texto, anillo y margen comparten bruto mensual o neto desde el cobro.
             bud.cycle
               ? tf("v4_cycle_net",{used:eur(bud.against),budget:eur(budAmt)})
               : tf("v4_budget_spent",{spent:eur0(bud.spent),budget:eur0(budAmt)}),
@@ -13885,7 +13883,7 @@ function budgetPeriodOf(state, nowMs){
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
    que pinta la cabecera de Gastos (balance en el ciclo; gasto bruto o balance según gTotalMode en el mes). */
-function monthBudgetStats(state, nowMs, hastaMs){
+function monthBudgetStats(state, nowMs, hastaMs, budgetMode){
   const period=budgetPeriodOf(state,nowMs);
   const startMs=period.startMs;
   // `hastaMs` acota un informe cerrado; solo el ciclo actual termina mañana para que un
@@ -13915,9 +13913,15 @@ function monthBudgetStats(state, nowMs, hastaMs){
   const budgetRaw=typeof state.budget==="number" ? state.budget : 0;
   // El ciclo usa el neto aunque el mes natural prefiera gasto bruto: si adelantas una cena,
   // los Bizums recibidos devuelven margen al límite elegido (feedback 28/9).
-  const mode=period.cycle?"net":((state.settings&&state.settings.gTotalMode)||"split");
+  const mode=period.cycle?"net":(budgetMode||(state.settings&&state.settings.gTotalMode)||"split");
   return Object.assign(budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode),
     {periodStart:startMs,cycle:!!period.cycle});
+}
+
+// Inicio dice «Has gastado» en el mes natural: una nómina no puede borrar ese uso del
+// presupuesto (INC-2909-02). Gastos/Balance y el widget conservan su contrato propio.
+function dashboardBudgetStats(state){
+  return monthBudgetStats(state,null,null,"split");
 }
 
 /* Desglose del mes por categoría (brief PRESUPUESTO-POR-CATEGORIA). Misma ventana y misma
@@ -22411,8 +22415,8 @@ function helpSnap(state, totals){
   state=state||{}; totals=totals||{};
   var budAmt=0, spent=0, rem=0;
   try{
-    if(typeof monthBudgetStats==="function"){
-      var bud=monthBudgetStats(state);
+    if(typeof dashboardBudgetStats==="function"){
+      var bud=dashboardBudgetStats(state);
       budAmt=bud.budget!=null?bud.budget:(state.budget||0);
       spent=Math.max(0, bud.against||0);
       rem=bud.remaining!=null?bud.remaining:(budAmt-spent);
@@ -25038,16 +25042,16 @@ function App(){
   // Avisos de presupuesto al cruzar 50/80/95/100% (petición 2026-07-18). Una noti por umbral
   // y mes; si al abrir ya vas por el 97%, solo suena el umbral MÁS ALTO (los demás se sellan
   // en silencio para no disparar tres de golpe). Suena también como toast en la app.
-  // Misma cifra que Resumen/Gastos (`monthBudgetStats`): sin neutras ni reservas, no
-  // `thisMonthSpent` (feedback «el presupuesto no cuadra» — 2026-08-05).
-  // accounts + settings enteros en deps: monthBudgetStats → expenseBankEnts (B09-A2 /
+  // Misma cifra que Inicio: desactivar Mi ciclo no debe borrar el gasto mensual
+  // de los avisos aunque Gastos esté en Balance (feedback 2026-09-30).
+  // accounts + settings enteros en deps: dashboardBudgetStats → expenseBankEnts (B09-A2 /
   // 2026-09-07). Sin ellos, quitar/añadir un banco de gasto diario no reevaluaba el % y
   // podía dejar selladas (o sin disparar) las banderas _bn* del mes.
   // settings entero también re-corre al cambiar expenseOrder (arrastre 4.19.0): inofensivo
   // porque _bn* son idempotentes y `seen` impide repetir el toast/noti.
   useEffect(function(){
     if(state.onboarded===false||locked) return;
-    const bs=monthBudgetStats(state);
+    const bs=dashboardBudgetStats(state);
     const bud=bs.budget!=null?bs.budget:0; if(!(bud>0)) return;
     const spent=Math.max(0, bs.against||0);
     const pct=spent/bud*100;

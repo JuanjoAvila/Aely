@@ -1,5 +1,9 @@
 # Arquitectura — Aely
 
+## Presupuesto de Inicio mensual (INC-2909-02)
+
+`dashboardBudgetStats` reutiliza `monthBudgetStats` sin otro recorrido del histórico. En mes natural, deriva consumo y margen con `budgetStatsFromAmounts` en modo bruto: la frase «Has gastado», el porcentaje y la proyección diaria describen las mismas compras computables y el presupuesto tras reservas. Pregúntame, los avisos de umbral y el reto de presupuesto leen este mismo contrato para conservar la cifra visible en Inicio. No modifica `gTotalMode`: Gastos puede presentar su balance mensual legítimo. Con ciclo reconocido conserva el neto completo anterior. No cambia saldos, widget, escrituras ni ventanas del motor común. Si el límite tras reservas es cero y hay compras, Inicio comunica exceso con anillo lleno; sin presupuesto configurado mantiene la invitación a configurarlo.
+
 ## Liquidación y archivo de deudas (4.26.67)
 
 `debtBalance` proyecta el saldo con `value`, `asOf` y la amortización mensual; un 0 calculado no prueba el pago bancario. `settledAt` solo se fija tras confirmación explícita en Plan → Deudas o una amortización total introducida por la persona. `archivedAt` se admite únicamente con saldo cero y liquidación confirmada; oculta la tarjeta de la lista activa, pero conserva la deuda y su `id` en `state.debts`. Gastos y sus filtros siguen resolviendo los movimientos con `debtId` contra esa colección completa. Mostrar de nuevo una deuda archivada no la convierte en pendiente: para corregir un saldo real positivo se edita, y esa edición limpia la marca de liquidación. El borrado físico se bloquea si alguna fila de gasto está vinculada. No se crean pagos ni se reescribe el histórico.
