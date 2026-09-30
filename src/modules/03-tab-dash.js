@@ -95,8 +95,9 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   if(ratio>1 || overTrack&&ratio>0.85){ stCls="st bad"; stHead=t("st_over_h"); }
   else if(ratio>0.8){ stCls="st warn"; stHead=t("st_tight_h"); }
 
-  // Próximos cargos: misma regla que Plan›Recibos (día del mes + isPaidIn). Antes usaba
-  // f.day crudo y mostraba recibos ya cobrados (luz/seguros) — feedback 2026-07-17.
+  const overdue=[];
+  // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los
+  // vencidos aparte y retira el gas confirmado aunque arrastre `wait` (feedback 30/9).
   const upcoming=(function(){
     const today=tt.today||new Date().getDate();
     const cm=tt.curMonth;
@@ -104,9 +105,10 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     (state.fixed||[]).forEach(function(f){
       const amount=occAmountIn(f,cm);
       if(!(amount>0) || !occursIn(f,cm)) return;
-      if(isPaidIn(f,cm,today)) return;
-      const day=dayIn(f,cm)||1;
-      rows.push({day:day, name:f.name||t("fj_fixed"), sub:(entOf(accOf(f)).label||""), amount:amount, pos:false});
+      const status=fixedPaymentState(state,f,tt.curYear,cm,today);
+      if(status.paid) return;
+      const row={day:status.day, name:f.name||t("fj_fixed"), sub:(entOf(accOf(f)).label||""), amount:amount, pos:false};
+      (status.overdue?overdue:rows).push(row);
     });
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d) || !(d.monthly>0)) return;
@@ -120,7 +122,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
       const day=flowDay(f,tt.curYear,cm)||1;
       rows.push({day:day, name:f.name||t("cat_ingreso"), sub:entOf(f.ent||f.account||"").label||"", amount:f.amount, pos:true});
     });
-    rows.sort(function(a,b){ return a.day-b.day; });
+    rows.sort(function(a,b){ return (a.day==null?99:a.day)-(b.day==null?99:b.day); });
     return rows.slice(0,3);
   })();
 
@@ -298,7 +300,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
 
     // Estado vacio en vez de esconder la seccion (P4, spec §27): un Inicio recien instalado se
     // quedaba en hero + «Ultimos movimientos» vacio y no se veia que la app hace mas cosas.
-    !showSkel && upcoming.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".15s"}},
+    !showSkel && upcoming.length===0 && overdue.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".15s"}},
       React.createElement("div",{className:"v4-section-h"}, React.createElement("span",null, t("v4_upcoming"))),
       React.createElement("div",{className:"v4-empty"},
         React.createElement("div",{className:"em"}, "🧾"),
@@ -321,7 +323,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
         upcoming.map(function(u,i){
               return React.createElement("div",{key:i,className:"v4-charge"},
                 React.createElement("div",{className:"dt"},
-                  React.createElement("div",{className:"d"}, String(u.day).padStart(2,"0")),
+                  React.createElement("div",{className:"d"}, u.day==null?"—":String(u.day).padStart(2,"0")),
                   React.createElement("div",{className:"m"}, monthName.slice(0,3))
                 ),
                 React.createElement("div",{style:{flex:1,minWidth:0}},
@@ -332,6 +334,19 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
               );
             })
       )
+    ),
+
+    !showSkel && overdue.length>0 && React.createElement("div",{className:"v4-section rise"},
+      React.createElement("div",{className:"v4-section-h"},
+        React.createElement("span",null,t("v4_charges_overdue")),
+        React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }},t("v4_see_plan"))),
+      React.createElement("div",{className:"v4-card",style:{padding:"6px 16px"}},
+        overdue.sort(function(a,b){ return a.day-b.day; }).slice(0,3).map(function(u,i){
+          return React.createElement("div",{key:i,className:"v4-charge"},
+            React.createElement("div",{className:"dt"},React.createElement("div",{className:"d"},String(u.day).padStart(2,"0")),React.createElement("div",{className:"m"},monthName.slice(0,3))),
+            React.createElement("div",{style:{flex:1,minWidth:0}},React.createElement("div",{className:"nm"},u.name),React.createElement("div",{className:"sub"},u.sub+" · "+t("v4_charge_unconfirmed"))),
+            React.createElement("div",{className:"am num"},eur(u.amount)));
+        }))
     ),
 
     !showSkel && goals.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},

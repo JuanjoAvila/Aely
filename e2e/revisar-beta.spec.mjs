@@ -894,3 +894,14 @@ test("producción 4.26.67 conserva las siete tandas pendientes", async ({ page }
   await expect(panel).not.toContainText("Inicio y Mi ciclo");
   await expect(panel).toContainText("En la próxima compra habitual");
 });
+
+test("INC-3009-01 añade una prueba sin retirar las siete pendientes", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.71.1"; });
+  const panel = await conProduccionEn(page, "4.26.67");
+  await expect(panel.locator(".beta-tanda")).toHaveCount(8);
+  for(const title of ["Recibos pagados y vencidos", "Arranque con poca conexión", "Ayuda de Mi ciclo", "Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada"]){
+    await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(1);
+  }
+  await expect(panel).not.toContainText("Deudas terminadas");
+});

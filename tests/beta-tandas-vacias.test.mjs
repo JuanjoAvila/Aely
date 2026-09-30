@@ -67,13 +67,22 @@ t("★ producción al día → cero tandas, sin fallback a versiones antiguas", 
 });
 
 t("★ al subir solo Deudas, el panel conserva las siete pruebas pendientes", () => {
-  const pack = cli.betaChecklist(VERSION_ACTUAL, "4.26.67");
+  const pack = cli.betaChecklist("4.26.70.2", "4.26.67");
   const ids = Array.from(pack.tandas, (g) => String(g.id).split("/").at(-1));
   assert.deepEqual(ids.sort(), [
     "inc-2709-01-arranque-red", "inc-2809-02-ayuda-ciclo", "fin05-widget-reentrada",
     "fin05-pago-cerrada", "tr-descripcion-clasificacion", "widget-banco", "widget-app-cerrada",
   ].sort());
   assert.equal(ids.includes("inc-2709-02-deudas-archivo"), false);
+});
+
+t("★ gas 4.26.71 añade solo su tanda y conserva las siete anteriores", () => {
+  const pack=cli.betaChecklist("4.26.71.1", "4.26.67");
+  const ids=Array.from(pack.tandas,(g)=>String(g.id).split("/").at(-1));
+  assert.deepEqual(ids.sort(),[
+    "inc-3009-01-cargos", "inc-2709-01-arranque-red", "inc-2809-02-ayuda-ciclo", "fin05-widget-reentrada",
+    "fin05-pago-cerrada", "tr-descripcion-clasificacion", "widget-banco", "widget-app-cerrada",
+  ].sort());
 });
 
 t("★ una tanda corregida varias veces solo aparece en su versión más nueva", () => {

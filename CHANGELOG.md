@@ -1,3 +1,9 @@
+## [4.26.71] — 2026-09-30 · INC-3009-01, evidencia de pago frente a calendario
+
+- Inicio ignoraba la conciliación y retenía un gas confirmado con wait. fixedPaymentState comparte la lectura con Plan: BOOK, entidad, mes, fecha no futura, nombre e importe compatibles; un único cargo y un único recibo/cuenta compatibles. Una confirmación paidYm/paidDay ya persistida sigue disponible sin extracto local.
+- Pasar el día no acredita pago: los fijos vencidos sin evidencia se muestran aparte en Inicio y pendientes en Plan, en es/en/ca. Una fecha ausente se muestra como —. Editar el día solo persiste confirmación si la misma lectura la acredita. No cambia saldo guardado ni histórico; la proyección monetaria del motor conserva su contrato de calendario.
+- Tanda separable desde main 12884f48; las siete pruebas de beta y APK51 no pertenecen a esta candidata. Se necesitan aprobación móvil y promoción selectiva antes de main. Unitario fixed-payment-state y DOM inicio-cargos registrados en runner/mapa; las fixtures de pago antiguas ahora declaran evidencia en vez de asumirla por fecha.
+
 ## [4.26.70] — 2026-09-29 · INC-2709-02, confirmar y archivar deudas terminadas
 
 - `debtBalance` es una proyección lineal: llegar a cero no acredita que el banco haya cobrado la última cuota. Deudas enseña «saldo estimado: 0» y pide confirmación explícita antes de marcarla liquidada. Una amortización total introducida por la persona sí deja esa confirmación en la misma escritura. No se crean movimientos ni se cambia la fórmula del saldo.
