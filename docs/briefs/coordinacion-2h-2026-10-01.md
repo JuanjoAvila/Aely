@@ -4,7 +4,17 @@ Petición humana de 1/10/2026: conservar la coordinación y el objetivo, trabaja
 
 Prioridad inmediata nueva: corregir que las tandas aprobadas vuelven a aparecer pendientes al implementar otra entrega. El propietario del panel ya recibió el encargo completo: reproducir sobre beta80.1, corregir, registrar tests y preparar PR. Criterio DOM: aprobar A, añadir B sin cambiar A, actualizar/reiniciar y comprobar A aprobada/plegada y solo B pendiente. Conservar rechazo/revocación posterior y reabrir exclusivamente la tanda cuyo alcance funcional o guion haya cambiado realmente. Auditar scopes, digests, recibo, identidad, bootstrap y migración con datos sintéticos; no borrar veredictos ni fabricar aprobaciones. No repetir todas las validaciones por un cambio ajeno, versión o sello global.
 
-## Tramo activo: 1 de octubre, 12:31:13–14:31:13 UTC
+## Tramo activo: 1 de octubre, 14:35:18–16:35:18 UTC
+
+Coordinador único `01a0f7e3-ecc5-7f20-a40d-c71a043343a7`. Objetivo propio creado desde reloj UTC: inicio `2026-10-01T14:35:18Z`, plazo `2026-10-01T16:35:18Z` (16:35:18–18:35:18 Madrid). Transferencia expresa recibida del saliente; lease34 owner null y coordinator actual, mismo heartbeat ACTIVE y target actual, reanclado al inicio y plazo propios. Arranque cotejado antes de retirada del saliente. No existe otro sucesor ni se crea antes del plazo.
+
+Fuente final conjunta `415553174bf86998c363d5f6c32e3f3160a4aaf3`, [PR104](https://github.com/JuanjoAvila/Aely/pull/104) borrador a beta; mismas fuentes Panel02bd y CLI f284. Worktree existente reutilizado. Delta415 respecto a ac9: únicamente CHANGELOG, entradaCLI trasladada de80 a81. SHA256 del HTML oficial `00c2caf225ff98e545c1d57946fdbc22b938cd31d5e40640f1344bf91e822a97` repetido por este coordinador e idéntico al DOM finalPanel; runtime/scopes/notas/Android/APK/Edge/SQL sin delta contra02bd. Worktree limpio, docs-frescura y privacidad PASS.
+
+[CI36877009268](https://github.com/JuanjoAvila/Aely/actions/runs/36877009268) headSha415 exacto IN_PROGRESS al corte14:43UTC; CIac9/36876124078 CANCELLED. Revisión final solicitada al mismo revisor y a la instancia existente de Claude mediante mensaje canónico `20261001T144100Z-codex-validaciones81-review-415`. Pendientes GO exactos y suite completa. Sin merge ni publicación81 hasta ambos gates y posterior cotejo servido. Limitaciones locales Deno/memoria no se convierten en PASS.
+
+Remote cotejado: beta955765a9 y main12884f48 sin cambios. Producción/APK/Edge/SQL/dinero real conservan gates humanos. Las tres respuestas humanas del saliente se cotejaron directamente; coordinación, mensajes, beta terminada y un único relevo autorizados. La lectura mínima solo permite exactamente un administrador y sus veredictos beta. No se muestran credenciales ni se leen finanzas.
+
+## Tramo anterior: 1 de octubre, 12:31:13–14:31:13 UTC
 
 ### Corte de integración 14:28 UTC — sustituye pendientes anteriores
 
