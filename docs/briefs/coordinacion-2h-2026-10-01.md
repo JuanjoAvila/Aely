@@ -6,6 +6,22 @@ Prioridad inmediata nueva: corregir que las tandas aprobadas vuelven a aparecer 
 
 ## Tramo activo: 1 de octubre, 14:35:18–16:35:18 UTC
 
+### Corte 15:23 UTC — candidata retenida por CI
+
+CI36877009268/415 terminóFAILURE. Único FAILED logs-privacidad: fixture del caso consola deidiomas/notas extraeensureReleaseNotes sin el nuevohelper betaNotesVerified; ReferenceError ypromesa sintética rechazada. Tailacredita4/4 specsDenoPASS,2611,4s total deNode/Deno. Chromiumgeneral no se ejecutó. GOde fuente415 no equivale aCIverde. Beta permanece80.1; no merge ni entrega81.
+
+PropietarioPanel tiene reservaexclusiva tests/logs-privacidad.test.mjs para corregir fixture en suworktree, con commit separable solo test/docsnecesarios. Sin runtime/bump/deps niChromium ni publicación. Debe representar helpersreales y conservar todas las aserciones deprivacidad. Coordinador aplicará delta a mismaPR104/integración415, obtendrá extensiónGO exacta y lanzará CI completa por nuevoSHA. Revisor yClaude informados, sin duplicarfuente. Lectura mínimareal de admin/veredictos intentada15:18, indeterminada porred: no se infiere nuevaaprobación ni se sustituyen los veredictos acreditados del saliente.
+
+
+### Corte 15:09 UTC — revisión final exacta cerrada
+
+Claude emitió GO de fuente para415553174bf86998c363d5f6c32e3f3160a4aaf3 (cubre02bd/ac9/f284) en mensaje20261001T150356Z-claude-validaciones81-go-41555317. Cinco tandas ajenas conservan código idéntico y diez prueban compatibilidad desdeGit; soloPanel reabre por cambio real de código/guion. Sondas36 de miembros,7 mutantescliente/6cazados y4scripts/4cazados. Sus tests Node enUTC/Madrid verdes; no acreditóDOM/Deno/CI/móvil. El revisor independiente tambiénGO exacto415. CI36877009268 sigue encurso, sin publicación81.
+
+Observaciones no bloqueantes: añadir contratoNode que derive huellasCompatibles desdebetaTandas real (prefijo mutado sobrevive Node; DOM real ya prueba continuidad), evaluación indirecta por cadenas ensetTimeout/Interval ausente de fuente actual y no detectada porparser, mantener lista compatibilityShas al añadir cada entrega futura. No se inventan equivalencias a compilaciones cuyo código no sea igual a una fuente auditada. Getter/spread abortan conservadoramente. Tamaño sin margen amplio: no crecer sin nuevaevidencia.
+
+Cotejo del HTML aclarado: GitLFsha2568e4dddfbf48375cbc43fb1ddfa134921318409e4ebf4b12b14dd134bd1eaf522; worktreeCRLFsha25600c2caf225ff98e545c1d57946fdbc22b938cd31d5e40640f1344bf91e822a97. Igualdad bytea byte trasCRLF→LF medida,27434saltos. Ninguna cifra es elZIPservido ni minificado; minlocalc55fb898 sigue evidencia aparte. Árbol previsto delmerge sobrebeta955 =126d6ab6f2faf13ef4ddbc0e4b0edff206796ccc, idéntico altree415.
+
+
 ### Corte 14:56 UTC
 
 GO técnico exacto del revisor para415553174bf86998c363d5f6c32e3f3160a4aaf3: 982 mutantes de funciones,305 de datos,17CLI y catálogo/veredictos/rondas/frescura PASS. Claude aún sin respuesta final; último sondeo acreditado13:55:30UTC, solicitud final propia publicada14:41. No se infiere actividad del watcher ni GO de una prerevisión. CI36877009268 continúa ejecutando build/unit/Deno/E2E; sin publicación81.
