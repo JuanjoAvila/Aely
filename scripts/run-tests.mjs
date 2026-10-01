@@ -48,6 +48,7 @@ const steps = [
   ["release-notes-max", ["node", "tests/release-notes-max.test.mjs"]],
   ["beta-tandas-vacias", ["node", "tests/beta-tandas-vacias.test.mjs"]],
   ["beta-veredictos", ["node", "tests/beta-veredictos.test.mjs"]],
+  ["listo-actor", ["node", "tests/listo-actor.test.mjs"]],
   ["beta-sources", ["node", "tests/beta-sources.test.mjs"]],
   ["novedades-idiomas", ["node", "tests/novedades-idiomas.test.mjs"]],
   ["categorias-dual", ["node", "tests/categorias-dual.test.mjs"]],

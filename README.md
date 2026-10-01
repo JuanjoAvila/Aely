@@ -40,6 +40,7 @@ mi-cartera/
 ├── scripts/beta-source-code.mjs # Guardia de funciones/datos transitivos y delimitación por sintaxis, sin dependencias
 ├── scripts/beta-sources.json # Alcances explícitos de revisión; beta-revisions.mjs genera digests/recibo
 ├── tests/beta-veredictos.test.mjs # Contrato compartido del panel y listo; beta-sources protege el ensamblado
+├── tests/listo-actor.test.mjs # CLI real sin red: actor Dev autorizado y fallo cerrado si no se acredita
 ├── src/                    # 👈 Fuente editable (v3.108+)
 │   ├── shell.html          #     HTML shell (React, CSS, vendors)
 │   ├── build-order.json    #     Orden de ensamblado de módulos
