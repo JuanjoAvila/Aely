@@ -1560,7 +1560,9 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
     return React.createElement("button",{type:"button",className:"profile-row",onClick:onEdit},
       React.createElement("div",{className:"pr-body"},
         React.createElement("div",{className:"pr-lab"}, lab),
-        React.createElement("div",{className:"pr-val"+(empty?" empty":"")}, empty?t("pf_add"):value)
+        // Ni "empty" a secas: es la clase GLOBAL de estado vacío (padding 34px y centrado) y
+        // convertía cada «Añadir» en una caja de 127 px — el perfil vacío medía 1.787 px (INC-2709-10).
+        React.createElement("div",{className:"pr-val"+(empty?" pr-val-empty":"")}, empty?t("pf_add"):value)
       ),
       React.createElement("span",{className:"pr-edit","aria-hidden":"true"}, "✎")
     );

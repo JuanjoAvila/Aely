@@ -49,7 +49,7 @@ export const CORE = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
-  {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs"]},
+  {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/help-assistant.spec.mjs",
     "e2e/inicio-cargos.spec.mjs",
     "e2e/pulido-vacios.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs",
@@ -113,7 +113,7 @@ export const E2E_MAP = [
     "e2e/apuntar-sheet.spec.mjs", "e2e/apuntar-sugerencia.spec.mjs", "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/cartera-orden-hogar.spec.mjs",
     "e2e/efectivo-apuntar.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/plan-gestionar.spec.mjs",
-    "e2e/plan-cover.spec.mjs",
+    "e2e/plan-cover.spec.mjs", "e2e/perfil-filas-vacias.spec.mjs",
   ] },
   { file: "src/modules/15-import-hoja.js", specs: ["e2e/import-hoja.spec.mjs", "e2e/import-docx-pdf.spec.mjs"] },
 ];
@@ -134,6 +134,8 @@ export const CROSSCUTTING = [
   /* Temas y temáticas (UX-07) son CSS global de `shell.html` y selección en Ajustes:
      cualquier pestaña puede romper su contraste, no una pantalla concreta. */
   "e2e/apariencia-temas.spec.mjs",
+  // INC-2709-12: el + de Cyberpunk por encima de la corriente de la barra, en todas las pestañas.
+  "e2e/cyber-fab.spec.mjs",
   "e2e/rebote-barra-inferior.spec.mjs",
   /* Hermano del de arriba, y hace falta que sean DOS. Aquél mueve el scroll con `scrollTop` por
      JS, que es el camino que nunca se rompió: se quedó verde mientras ella no se escondía con el

@@ -1,5 +1,99 @@
 [
   {
+    "v": "4.26.77",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Tres retoques de pantalla",
+      "en": "Three visual touch-ups",
+      "ca": "Tres retocs de pantalla"
+    },
+    "items": {
+      "es": [
+        "Con el tema Cyberpunk, la línea de neón de la barra inferior ya no atraviesa el botón +; sigue recorriendo el resto de la barra.",
+        "En Pregúntame, el botón Preguntar queda pegado al borde inferior en lugar de flotar con un hueco debajo, también con el teclado abierto.",
+        "En tu perfil, los datos que aún no has rellenado ocupan una línea normal con «Añadir», en vez de una casilla enorme cada uno."
+      ],
+      "en": [
+        "With the Cyberpunk theme, the neon line on the bottom bar no longer crosses the + button; it still runs along the rest of the bar.",
+        "In Ask me, the Ask button now sits at the bottom edge instead of floating over a gap, also with the keyboard open.",
+        "In your profile, details you haven't filled in yet take up a normal line with “Add” instead of a huge box each."
+      ],
+      "ca": [
+        "Amb el tema Cyberpunk, la línia de neó de la barra inferior ja no travessa el botó +; continua recorrent la resta de la barra.",
+        "A Pregunta'm, el botó Preguntar queda enganxat a la vora inferior en lloc de surar amb un buit a sota, també amb el teclat obert.",
+        "Al teu perfil, les dades que encara no has omplert ocupen una línia normal amb «Afegeix», en lloc d'una casella enorme cadascuna."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2709-12-cyber-fab",
+        "t": {
+          "es": "Botón + en Cyberpunk",
+          "en": "+ button in Cyberpunk",
+          "ca": "Botó + a Cyberpunk"
+        },
+        "items": {
+          "es": [
+            "1. Con el tema Cyberpunk, mira el botón + en cada pestaña mientras pasa la línea de neón por la barra: la línea no debe cruzar el botón.",
+            "2. Baja en una lista para que se esconda la barra y vuelve a subir: el botón + sigue limpio y se puede pulsar."
+          ],
+          "en": [
+            "1. With the Cyberpunk theme, watch the + button on each tab while the neon line runs along the bar: the line must not cross the button.",
+            "2. Scroll down a list so the bar hides, then scroll back up: the + button stays clean and can be tapped."
+          ],
+          "ca": [
+            "1. Amb el tema Cyberpunk, mira el botó + a cada pestanya mentre la línia de neó recorre la barra: la línia no ha de travessar el botó.",
+            "2. Baixa en una llista perquè s'amagui la barra i torna a pujar: el botó + continua net i es pot prémer."
+          ]
+        }
+      },
+      {
+        "id": "inc-2709-14-preguntar",
+        "t": {
+          "es": "Botón Preguntar",
+          "en": "Ask button",
+          "ca": "Botó Preguntar"
+        },
+        "items": {
+          "es": [
+            "1. Abre Pregúntame sin escribir nada: el botón Preguntar debe quedar cerca del borde inferior, sin un hueco vacío debajo.",
+            "2. Toca la caja para escribir: con el teclado abierto, Preguntar queda justo encima del teclado y se puede pulsar. No hace falta enviar ninguna pregunta."
+          ],
+          "en": [
+            "1. Open Ask me without typing: the Ask button must sit near the bottom edge, with no empty gap below it.",
+            "2. Tap the text box: with the keyboard open, Ask sits just above the keyboard and can be tapped. There is no need to send a question."
+          ],
+          "ca": [
+            "1. Obre Pregunta'm sense escriure res: el botó Preguntar ha de quedar a prop de la vora inferior, sense cap buit a sota.",
+            "2. Toca la caixa per escriure: amb el teclat obert, Preguntar queda just damunt del teclat i es pot prémer. No cal enviar cap pregunta."
+          ]
+        }
+      },
+      {
+        "id": "inc-2709-10-perfil",
+        "t": {
+          "es": "Perfil sin casillas gigantes",
+          "en": "Profile without giant boxes",
+          "ca": "Perfil sense caselles gegants"
+        },
+        "items": {
+          "es": [
+            "1. Toca tu avatar en Inicio para abrir el perfil: los datos sin rellenar se ven como una línea más, con «Añadir» a la izquierda, del mismo alto que los rellenos.",
+            "2. Toca uno de ellos: se abre el cuadro para escribirlo, como siempre. No hace falta guardar nada."
+          ],
+          "en": [
+            "1. Tap your avatar on Home to open your profile: empty details look like any other line, with “Add” on the left, the same height as the filled ones.",
+            "2. Tap one of them: the box to type it opens, as always. There is no need to save anything."
+          ],
+          "ca": [
+            "1. Toca el teu avatar a Inici per obrir el perfil: les dades sense omplir es veuen com una línia més, amb «Afegeix» a l'esquerra, de la mateixa alçada que les omplertes.",
+            "2. Toca'n una: s'obre el quadre per escriure-la, com sempre. No cal desar res."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.76",
     "d": "2026-10-01",
     "t": {
