@@ -4,7 +4,15 @@ Petición humana de 1/10/2026: conservar la coordinación y el objetivo, trabaja
 
 Prioridad inmediata nueva: corregir que las tandas aprobadas vuelven a aparecer pendientes al implementar otra entrega. El propietario del panel ya recibió el encargo completo: reproducir sobre beta80.1, corregir, registrar tests y preparar PR. Criterio DOM: aprobar A, añadir B sin cambiar A, actualizar/reiniciar y comprobar A aprobada/plegada y solo B pendiente. Conservar rechazo/revocación posterior y reabrir exclusivamente la tanda cuyo alcance funcional o guion haya cambiado realmente. Auditar scopes, digests, recibo, identidad, bootstrap y migración con datos sintéticos; no borrar veredictos ni fabricar aprobaciones. No repetir todas las validaciones por un cambio ajeno, versión o sello global.
 
-## Tramo activo: 1 de octubre, 14:35:18–16:35:18 UTC
+## Tramo activo: 1 de octubre, 16:36:01–18:36:01 UTC
+
+Único sucesor `01a0f852-65e3-7a63-a109-d477e561bb08`, chat «Aely · relevo de validaciones beta». Creado después del plazo saliente; reloj y objetivo propios acreditados, arranque verificado. Coordinador del lease35 y target del mismo heartbeat relevo-aely-cada-2-horas ya transferidos a este ID, ACTIVE y reanclado a plazo18:36:01UTC (20:36:01Madrid). El saliente se retira tras comprobar transferencia; no hay otro sucesor.
+
+CandidataPR104/9a6 sigue retenida por CI36885083225 FAILURE. Panel01a0f419 acaba de acreditar **67/67 DOM de la suite afectada PASS**, cero omitidos/flaky y7/7 focales; delta tres archivos de pruebas/docs, sin runtime/versiones/APK/backend. Conserva HTML00c2caf225ff98e545c1d57946fdbc22b938cd31d5e40640f1344bf91e822a97. Commit separable en preparación: aún no asumir nuevoSHA, GO ni CIverde. Revisor01a0f549 espera delta exacto, diagnósticoNode:7fixturesantiguas, sinregresionruntime reproducida.
+
+**Liberación expresa del Panel lease35 y servidor4578 cerrado recibida al corte16:38UTC**. El archivo aún conserva ownerPanel porque la transferencia mantuvo la reserva real; SOLO el nuevo coordinador debe reflejar la liberación tras cotejar este mensaje y el estado. No abrir navegador hasta actualizar lease conforme a su regla. No interrumpir entrega del commit ni duplicar chats. Próximo paso: recoger commitPanel, injertar delta enMISMAPR104/worktree, renovar reviews porSHA y CIcompleta. Beta80.1, producción67 y APKbeta52/estable48 sin cambios. Autorizaciones humanas/límites y fuentes detallados en tramo anterior.
+
+## Tramo cerrado: 1 de octubre, 14:35:18–16:35:18 UTC
 
 Corte de estado 16:24 UTC. Coordinador único `01a0f7e3-ecc5-7f20-a40d-c71a043343a7`; objetivo propio desde reloj UTC, plazo propio 16:35:18 UTC (18:35:18 Madrid). Transferencia expresa recibida del saliente. Lease35 owner Panel01a0f419-3825-7550-be70-37e4e0cb320e, coordinator actual. Reserva exclusiva para reproducir/corregir CI; no transferir como libre ni abrir otro Chromium. Mismo heartbeat `relevo-aely-cada-2-horas` ACTIVE y target actual. No existe otro sucesor; se crea exactamente uno al cumplir el plazo.
 
