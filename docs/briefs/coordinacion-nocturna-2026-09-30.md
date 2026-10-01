@@ -4,7 +4,19 @@ Objetivo autorizado: nuevas tandas terminadas, revisadas y realmente servidas en
 
 Coordinador: `01a0f415-fb1c-7f73-81b5-1d9caee29d30`, rama `codex/noche-3009-registro`. Continuidad: un heartbeat `aely-coordinaci-n-nocturna-del-backlog`, cada 15 minutos, fin `20261001T060000Z`; se verificó su destino. El PC tiene suspensión automática desactivada tanto en corriente como en batería; no se cambió el plan energético.
 
-## Corte vigente · 1/10 04:24 Madrid
+## Corte vigente · 1/10 por la mañana
+
+La ventana nocturna terminó a las 08:00 Madrid. Los implementadores agotaron cuota hacia las 05:00 Madrid; los disparos siguientes del heartbeat no acreditan trabajo adicional. El coordinador reanudó después del corte y verificó los artefactos reales. Hay tres cambios nocturnos publicados técnicamente: Inicio73, Recibos74 y Panel75. **Panel75 sigue rechazado como solución por el usuario**: comunica que continúan las siete tandas que ya había señalado. No contar publicación/CI como resolución de esa reclamación ni como aceptación móvil.
+
+HTTP: beta **4.26.75.1**, huella normalizada **20d068e03569117b**, ZIP SHA-256 **768c36bb71a9dcc890f3386f5d628aa94b8c998a6a454c88024fb980530a7502**, HTML 1.278.314 bytes con sello 4.26.75.1 y SW `4.26.75.1-2026-10-01-ca7b97d4`. El manifiesto y la huella recalculada coinciden; `beta-delivery.json` identifica el merge `ca7b97d438e01f60091a3818fdca734740ec8a9e`. `apk.json` del ZIP y del canal son iguales: beta 4.26.55/code51. [CI de publicación 36807213148](https://github.com/JuanjoAvila/Aely/actions/runs/36807213148) SUCCESS. Candidata PR94 `569d792234abe76a5597b278c4be8cd0796cb5d7`, CI36805802277 SUCCESS y 48/48 DOM locales. GO de fuente independiente del coordinador sobre e975c4a2; Claude agotó cuota sin GO nuevo. No confundirlo con un GO de Claude.
+
+Estable: web **4.26.67**, ZIP **4cc6e0ba97a2c9e7c23ece6affbfa23677fae920bc9413532631121f0e547b6d**, HTML/SW/apk.json de Pages iguales al ZIP; SW `4.26.67-2026-09-30-12884f4`, APK 4.26.32/code48. No existe `beta-delivery.json` en su ZIP y el HTTP responde404. Esa ausencia impide probar entrega mediante el recibo nuevo, pero **no demuestra que las siete filas reportadas sobren**. El HTML servido no contiene `__mcSplashTimedOut`, `gastosCycleHelpOff` ni `gastos-cycle-explanation`: los dos cambios web siguen ausentes. Los cinco nativos quedaron expresamente fuera de la promoción web28/9. [Auditoría reabierta y reporte original](pruebas-beta-reclamacion-2026-10-01.md).
+
+Pendientes sin entrega: Nómina PR96 `8941adfc` tiene CI36806617191 FAILURE por cuatro expectativas del panel (557 DOM y7 rendimiento pasan); no publicada. Retirada `aff910b9` local necesita cuatro casos DOM de carrera tardía y CI exacta. Widget/APK52 sin build ni subida, además de integración/size/gates pendientes. Cyberpunk/Preguntar/Perfil tienen fuentes locales y comprobaciones de integración, sin publicación. Bootstrap mainPR92 retenida. No se fusionan nuevas tandas financieras para resolver una reclamación del panel.
+
+Para probar las entregas de la noche: Inicio → cambiar entre mes natural y Mi ciclo; Recibos → vincular un cargo confirmado en Gastos, comprobar Plan, reabrir y deshacer. El recibo real sigue requiriendo comprobación del usuario. Panel → comprobar conservación del último veredicto de la misma revisión; la reclamación sobre las siete filas se audita en su propio chat. El nuevo encargo humano posterior al corte autoriza esa auditoría/corrección, no prolonga todas las implementaciones nocturnas.
+
+## Corte histórico · 1/10 04:24 Madrid
 
 **Dos tandas nuevas realmente servidas: Inicio73 y Recibos74.** Beta4.26.74.1/huella b0901f80ab92c94b, ZIP SHA256 2b48dbcd77be6c7e9753879510bb73d230e79cf355ce8be57272b97ba5f0f3f6, SW4.26.74.1-2026-10-01-9ecd6a17 y APK4.26.55/code51 cotejados por HTTP. CI36796405875 SUCCESS:538 DOM/1 omisión previa y7 rendimiento. Cierre documental PR95 merge b93d421b, CI36798204601 SUCCESS, huella igual sin OTA nueva. Main4.26.67/APK48 intacta.
 
