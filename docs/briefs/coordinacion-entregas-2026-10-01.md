@@ -1,5 +1,11 @@
 # Coordinación de entregas preparadas · 1/10/2026
 
+**Cierre técnico: beta4.26.80.1 y APK52/4.26.80 disponibles y cotejados.** Panel76 y UI77 se entregaron antes; Nómina78, Retirada79 y Widget80 se entregan juntas en80, con guiones independientes. Fuente aprobada22396f9a, mergebeta955765a9 con árbol idéntico. CI y publicador SUCCESS. Main/Pages estable siguen4.26.67, APK48/4.26.32, sin cambios antes/después. No se instalaron APK ni se desplegaron Edge/SQL.
+
+Esto cierra implementación, revisión y disponibilidad técnica de las candidatas preparadas. **Permanecen pendientes** la aceptación móvil del panel/teclado/gestos, la nómina/PDNG bancaria real, Retirada contra PostgREST/dos dispositivos y FIN05 pago real/reentrada. Widget52 cubre Inicio/presupuesto; Balance/modos de Gastos y backend v2 requieren su propio objetivo. Una entrega técnica no constituye esos veredictos ni autoriza promoción a producción.
+
+El resto del documento conserva el historial de gates; sus pendientes anteriores quedan sustituidos por este cierre y la evidencia final del último apartado.
+
 Objetivo nuevo: terminar, revisar por SHA, publicar y cotejar en beta Panel, Cyberpunk/Preguntar/Perfil, nómina, retirada y widget/APK beta52. El cierre nocturno no continúa ni impone su plazo vencido. Un coordinador controla versiones, merges, publicación y Chromium; no se abren objetivos nuevos mientras queden estas candidatas.
 
 El relevo completo está en `relevo-coordinacion-2026-10-01.md`, rama `codex/noche-3009-registro`, commit `d5c43596`. Este registro no prueba una publicación ni un OK móvil. No se consultan movimientos familiares, ni se promociona beta completa, APK estable, Edge o SQL.
@@ -73,3 +79,13 @@ El apk.json52 final apunta a un asset de **beta**. Una futura promoción a main 
 APK remoto final602882554 sustituye al preasset:6.512.773B/digest4abfa5b1 completo indicado arriba, descarga completa de la URL y apksigner v1/v2/certificado/JSON52 verificados. Metadatos REST cotejados independientemente; no se volvió a escribir tras confirmar identidad/digest. CI36840523060 **SUCCESS** exacta223:639DOM PASS, una captura opcional omitida,7rendimiento PASS, build/unitarios/Deno y privacidad PASS. Sin flaky registrado. Duración del runner1237,9s; pruebas completas y privacidad terminaron09:27:27UTC.
 
 PR101 fusionada únicamente en beta como `955765a9ec0ad96d20140a8f12da00c9fa04985c`. Fetch explícito de `refs/heads/beta` (hay etiqueta homónima): árbol `c5aab1d9e3397aca08d3bc9fcf6214c7e93dc309` idéntico a223. [Publicador36843848043](https://github.com/JuanjoAvila/Aely/actions/runs/36843848043) en curso por955 exacto. Las consultas genéricas de rama devolvieron runs históricos; se identificó por commit exacto. Beta80 servida y estabilidad después todavía pendientes; referencia confirmada77.1. Ninguna fuente78/79 se publicó aisladamente.
+
+## Evidencia final de entrega80
+
+[Publicador36843848043](https://github.com/JuanjoAvila/Aely/actions/runs/36843848043) **SUCCESS** por955. Release `Beta 4.26.80.1`, prerelease; manifiesto version80.1, huella `50b3327daf00a8d0`, ZIP900838B/36ficheros, SHA256 `fdfe03827279cfd7c0ce3c551e2c31bcbe07e33e13fb70e59c4caafe993c51b9`. Cotejo independiente del ZIP descargado: HTML80.1, SW `4.26.80.1-2026-10-01-955765a9`, recibosource955 completo, primera nota80 y huella normalizada idéntica. HTML servido 1.290.046B / gzip nivel9 349.122B, bajo1260/343KiB, con márgenes194/2110B. No se atribuye el sello de fábricaAPK80-local al workerOTA80.1.
+
+APK final602882554 conservado después del publicador:6.512.773B/hash4abfa5b1 completo anterior, download independiente porID y descargaURL/firma acreditadas. Paquete80/code52, JSON52 dentro del APK. `apk.json` independiente602943533:258B/SHA256 `a1fd91c12f942b05fcb42b7ea51efa08daa6f904f64ba1ad3e5cb9de3223124f`, mismo contenido y hash que dentro del ZIP. Descarga pública con `?ts=` igual al cliente confirma52/4.26.80/[URLbeta real](https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.80-beta-52.apk). Los timeouts se resolvieron por lecturas alternativas; no se inventaron archivos ni se usó fallback estable.
+
+Después de publicar: `ls-remote refs/heads/main` sigue12884f48 completo indicado arriba. Pages `version.json` y `apk.json` conservan **bytes y valores idénticos** a los anteriores:67 y48/4.26.32, hashesdad4ca77 y121395d0 completos anteriores. Ningún push a main, APK estable, Edge, SQL, migración, banco real o dispositivo. PR99 fue cerrada automáticamente como merged al integrar sus commits en80; PR100 es fuente de la misma entrega, no otra candidata para publicar79.
+
+El registro se conserva en su rama propia para evitar un reseal de beta por documentación. El helper de cotejo de un uso se retira al cerrar; los JSON/ZIP/binarios de evidencia quedan ignorados. No se borran ramas ni worktrees de otras sesiones. No hay nuevo objetivo de producto dentro de este chat.
