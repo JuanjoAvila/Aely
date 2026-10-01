@@ -2312,6 +2312,11 @@
         "file": "src/shell.html",
         "from": "    --safe-top:env(safe-area-inset-top,0px);",
         "to": "\n"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "          React.createElement(\"div\",{className:\"botnav-fab-slot\"},",
+        "to": "          React.createElement(\"button\",{className:\"botnav-tab\"+(tab===2"
       }
     ]
   },
@@ -2341,6 +2346,11 @@
         "file": "src/modules/16-help-assistant.js",
         "from": "  const sheetStyle=kbPad?",
         "to": "\"data-help-kb\":kbPad?\"1\":\"0\"},"
+      },
+      {
+        "file": "src/modules/16-help-assistant.js",
+        "from": "        remoteNotice && React.createElement(\"div\",{className:\"hint aely-help-remote-note\"",
+        "to": "function HelpHost(){"
       }
     ]
   },

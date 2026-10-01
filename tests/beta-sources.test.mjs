@@ -21,6 +21,10 @@ test("las tres correcciones UI vigilan también sus reglas y lectores",()=>{
     ["inc-2709-10-perfil","src/modules/14-v4-screens.js","phone:p.phone||\"\"","phone:\"\""],
     ["inc-2709-10-perfil","src/modules/14-v4-screens.js","empty?\" pr-val-empty\":\"\"","empty?\" empty\":\"\""],
     ["inc-2709-10-perfil","src/shell.html",".profile-row .pr-val.pr-val-empty{",".profile-row .pr-val.empty{"],
+    // El CSS vigilado no pinta nada si el elemento deja de llevar la clase: el vínculo está
+    // en el render, y renombrarla ahí no movía el digest (NO-GO del revisor a 4c97b43d).
+    ["inc-2709-12-cyber-fab","src/modules/11-app-main.js","{className:\"botnav-fab\",","{className:\"botnav-mas\","],
+    ["inc-2709-14-preguntar","src/modules/16-help-assistant.js","{className:\"aely-help-composer\",","{className:\"aely-help-caja\","],
   ];
   for(const [id,file,from,to] of cases){
     assert.ok(read(file).includes(from),id+": mutante debe cambiar fuente real");

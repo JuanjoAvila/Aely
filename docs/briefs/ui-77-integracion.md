@@ -56,3 +56,20 @@ Las cifras de Node, alcances y tamaño de esta lista se midieron sobre la base 7
 - Tamaño medido: 1.278.374 B minificado / 347.957 B gzip 9. Margen: 602 B y 203 B bajo los topes vigentes (1249 KiB / 340 KiB). Hay que volver a medir tras rebasar sobre la 76.
 
 Teclado Android e inercia reales solo se acreditan en móvil.
+
+## Sobre la fuente del panel76 · Claude · 2026-10-01
+
+Base `351053b9` (PR97). Su CI terminó en rojo por un único caso de fixture de `revisar-beta` (esperaba 2 tandas y recibió 12) que repara su autor; no es de esta integración y aquí no se toca. El padre publicado de la 76 todavía no existe: esta candidata no lo afirma.
+
+- Frente a la preparación sobre la 75, `src`, `e2e`, `scripts` y `tests` solo difieren en lo que trae el propio panel76.
+- Node completo en UTC sin etapa de navegador: todo verde salvo `memoria-espejo` (memoria local de la máquina).
+- DOM con lease25, un worker, UTC: 42/42 en una pasada, sin reintentos (Cyberpunk 4, Preguntar 15, Perfil 9, `profile-anim` 4, `listas-render` 10).
+- Tamaño: 1.279.476 B minificado / 348.261 B gzip 9; +94 / +11 B sobre el panel76 sin sellar (1.279.382 / 348.250). Márgenes 524 B y 923 B bajo los topes de la 76 (1250 / 341 KiB), sin tocarlos.
+
+### Reparación de alcances (NO-GO del revisor a `4c97b43d`)
+
+Renombrar `className:"botnav-fab"` en `11-app-main.js` o `className:"aely-help-composer"` en `16-help-assistant.js` rompe el vínculo con el CSS corregido y no movía la huella de su tanda. Se añaden dos mutantes al guardián y, con ellos en rojo por ese motivo exacto («cambio UI sin vigilar», primero Cyberpunk y después Preguntar), dos bloques al registro: el hueco del botón en la barra y el compositor de Pregúntame hasta el final de su componente. El ancla del compositor empieza en la línea anterior a propósito: si incluyera el nombre de la clase, el mutante haría abortar el lector en vez de cambiar la huella. Guardián 15/15 con diez mutantes de UI; cierre transitivo: 0 dependencias de 00/01/08 en las tres tandas, 629 en total y 0 sin vigilar. Sin cambio de runtime ni de expectativas.
+
+Huellas web: Cyberpunk `0f112133480508f63ebc5946b48143afb55192091176fb02e87bed8e1bb4c150`; Preguntar `fb692532c9fcf7980773f4c2a86fe4f3976c4ef71bcadc54007f08595acb227b`; Perfil `17d05a5f6af319668c361a293e6566f7183555ccab581f907329bf61e6f08d25` (igual que en la preparación: su alcance no cambia).
+
+Límites: escritorio con Chromium y teclado simulado por `visualViewport`. No acredita teclado Android real ni la inercia que esconde la barra; eso solo se ve en el móvil.
