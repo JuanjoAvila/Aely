@@ -29,7 +29,12 @@ No cambia:
   - Congela la línea visible (sin animación, entera y opaca) y compara la franja del + en la fila de la línea con la misma captura con la línea oculta. Tienen que ser idénticas.
   - Cubre las 4 pestañas a 320/393/430 px, letra enorme, zona segura inferior de 34 px y que el centro del + reciba el toque.
   - El ocultar/reaparecer de la barra es **sintético** (clase añadida y quitada a mano): comprueba la pila en los dos estados, no el scroll real ni la inercia. El cambio no toca la animación; los gestos siguen cubiertos por sus guardias de siempre.
-  - **Pendiente de turno de Chromium**, tanto la ejecución roja en la base como la verde con el arreglo.
+  - **Rojo** (lease 5, 30/9 22:20:57 UTC), `shell.html` de main 12884f48: 4/4 caen por la comparación
+    de píxeles (inicio ×3 y «tras esconderse y volver»).
+  - **Verde** (22:21:08–22:21:50 UTC) sobre la candidata: 4/4, y 8/8 con `--repeat-each=2`.
+  - Una primera pasada verde dio 2/4 por culpa del test: a 320 px el + asoma solo 6 px y el recorte
+    fijo de 30 px cogía píxeles de fuera del círculo. El recorte sale ahora de la cuerda del círculo en
+    la fila de la línea, y se espera a que la franja esté quieta antes de comparar.
 
 ## Límites
 
