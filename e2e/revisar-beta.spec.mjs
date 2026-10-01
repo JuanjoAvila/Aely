@@ -56,6 +56,8 @@ async function seedImplicitChecklist(page, opts) {
       const arr = Array.isArray(notes.items[lang]) ? notes.items[lang] : (notes.items[lang] = []);
       while (arr.length < minItems) arr.push("punto sintético e2e " + arr.length);
     });
+    // Esta fixture prueba el formato implícito: la ronda moderna ajena no debe sustituirlo.
+    RELEASE_NOTES=[notes];
     window._mcProdVersion = function () { return Promise.resolve(null); };
   }, { ver: ver || null, minItems });
 }
@@ -329,28 +331,12 @@ test("✓, «no lo puedo probar» Y los ✗ con su comentario se heredan entre c
      acababa de escribir a mano — el panel no sabe si la compilación nueva ha tocado ese punto, así
      que resetear la cruz es apostar SU trabajo a que sí. */
   await abrirRevisionBeta(page);
-  /* Un hotfix corto (p. ej. 4.16.1 con 2 viñetas) no llega a 3 puntos: el escenario de herencia
-     necesita tres. Rellenamos la nota en memoria SOLO para este test — no toca el bundle real. */
+  await seedImplicitChecklist(page,{minItems:3});
   await page.evaluate(() => {
-    const base = mcVerBase(CONFIG.APP_VERSION);
-    const notes = (RELEASE_NOTES || []).find(function(n){ return n.v === base; }) || RELEASE_NOTES[0];
-    // La checklist prioriza tandas sobre items: usar aquí la tanda implícita permite sembrar
-    // tres puntos incluso cuando la versión real trae una tanda explícita de solo dos.
-    // Desde 4.19.7 la implícita se pide BORRANDO la propiedad, no poniéndola a []: un array
-    // vacío significa «aprobadas todas, nada que probar» y aquí dejaría la checklist a cero.
-    if (notes) delete notes.tandas;
-    if (notes && notes.items) {
-      ["es", "en", "ca"].forEach(function(lang) {
-        const arr = notes.items[lang];
-        if (!Array.isArray(arr)) return;
-        while (arr.length < 3) arr.push("punto sintético e2e " + arr.length);
-      });
-    }
-    const items = betaChecklist(CONFIG.APP_VERSION).items;
-    store.set("_betaReviewOk", { [items[0]]: "ok", [items[1]]: "na", [items[2]]: "ko" });
-    store.set("_betaReviewNotas", { [items[2]]: "sigue pasando igual" });
-    try { localStorage.removeItem("_betaReview_" + CONFIG.APP_VERSION); } catch (e) {}
-    try { localStorage.removeItem("_betaReview_" + CONFIG.APP_VERSION + "_n"); } catch (e) {}
+    const items=betaChecklist(CONFIG.APP_VERSION).items;
+    store.set("_betaReviewOk",{[items[0]]:"ok",[items[1]]:"na",[items[2]]:"ko"});
+    store.set("_betaReviewNotas",{[items[2]]:"sigue pasando igual"});
+    CONFIG.APP_VERSION=mcVerBase(CONFIG.APP_VERSION)+".8";
   });
 
   await page.evaluate(() => {
@@ -1016,7 +1002,7 @@ for(const lang of ["es","en","ca"]) {
     await abrirRevisionBeta(page,lang);
     await sembrarAprobadasEn4267(page);
     await page.evaluate(async lang => {
-      await ensureLangPack(lang); CURLANG=lang; CONFIG.APP_VERSION="4.26.76.1";
+      await ensureLangPack(lang); CURLANG=lang; CONFIG.APP_VERSION=RELEASE_NOTES[0].v+".1";
       window._mcProdApk=48; window._mcProdEntregas=null;window._mcProdApkRevisiones=null;
       window._mcProdVersion=function(){ return new Promise(resolve=>{ window.__resolveDelivery=resolve; }); };
     },lang);
@@ -1036,8 +1022,11 @@ for(const lang of ["es","en","ca"]) {
       });
       window._mcProdApk=52;window.__resolveDelivery("4.26.67");
     });
-    await expect(panel.locator(".beta-tanda")).toHaveCount(3);
-    for(const title of ["Pruebas y entrega","Recibos pagados y vencidos","Presupuesto mensual de Inicio"])
+    // Panel76 se trasladó a81; los recibos de las siete antiguas no entregan las nueve nuevas.
+    const remaining=["beta-panel-veredictos","inc-2909-01-widget-periodo","inc-2909-03-retirada","inc-3009-nomina-anticipada","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2709-10-perfil","inc-3009-01-cargos","inc-2909-02-inicio-natural"];
+    await expect(panel.locator(".beta-tanda")).toHaveCount(remaining.length);
+    expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,"4.26.67",52).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(remaining.slice().sort());
+    for(const title of ["Las comprobaciones conservan su resultado","Widget: mes o Mi ciclo","Retiradas y presupuesto","Nómina sin adelantar el cobro","Botón + en Cyberpunk","Botón Preguntar","Perfil sin casillas gigantes","Recibos pagados y vencidos","Presupuesto mensual de Inicio"])
       await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(1);
     for(const title of NATIVAS.concat(["Arranque con poca conexión","Ayuda de Mi ciclo"]))
       await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(0);
