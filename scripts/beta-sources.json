@@ -2290,5 +2290,85 @@
         "data": "CATEGORIES"
       }
     ]
+  },
+  "inc-2709-12-cyber-fab": {
+    "web": [
+      {
+        "file": "src/shell.html",
+        "from": "  /* z-index: el + sobresale de la barra y la corriente",
+        "to": "  /* Temáticas de temporada"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .botnav{position:absolute",
+        "to": "  .botnav.botnav-hidden{"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .botnav-fab-slot{",
+        "to": "  .botnav-fab:active{"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "    --safe-top:env(safe-area-inset-top,0px);",
+        "to": "\n"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "          React.createElement(\"div\",{className:\"botnav-fab-slot\"},",
+        "to": "          React.createElement(\"button\",{className:\"botnav-tab\"+(tab===2"
+      }
+    ]
+  },
+  "inc-2709-14-preguntar": {
+    "web": [
+      {
+        "file": "src/shell.html",
+        "from": ".aely-help-back{z-index:12000;}",
+        "to": ".aely-help-q{"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-sheet:has(>.v4-sheet-body){",
+        "to": "  .v4-sheet-body{"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "    --safe-top:env(safe-area-inset-top,0px);",
+        "to": "\n"
+      },
+      {
+        "file": "src/modules/16-help-assistant.js",
+        "from": "  /* El teclado móvil reduce visualViewport",
+        "to": "  },[]);"
+      },
+      {
+        "file": "src/modules/16-help-assistant.js",
+        "from": "  const sheetStyle=kbPad?",
+        "to": "\"data-help-kb\":kbPad?\"1\":\"0\"},"
+      },
+      {
+        "file": "src/modules/16-help-assistant.js",
+        "from": "        remoteNotice && React.createElement(\"div\",{className:\"hint aely-help-remote-note\"",
+        "to": "function HelpHost(){"
+      }
+    ]
+  },
+  "inc-2709-10-perfil": {
+    "web": [
+      {
+        "file": "src/shell.html",
+        "from": "  .profile-row{display:flex",
+        "to": "  /* Sin scale/filter en shell"
+      },
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "function": "profileOf"
+      },
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "function": "ProfilePanel"
+      }
+    ]
   }
 }

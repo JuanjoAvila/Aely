@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-10-01 · **v4.26.76** corrección local del panel: entrega exacta independiente del número de versión, deduplicación antes de retirar y motivos visibles por tanda. Beta publicada **4.26.75.1**/ca7b97d4; producción **4.26.67**, APK48 estable/APK51 beta. CI exacta, publicación76 y prueba móvil pendientes. [Auditoría](briefs/ops-0110-panel-entrega.md).
+> Estado a 2026-10-01 · **v4.26.77** candidata: tres tandas de pantalla (Cyberpunk, Preguntar, Perfil) con guiones independientes es/en/ca y alcances separados, sobre la fuente del panel76. Sin publicación hasta CI exacta y gate del coordinador. [Acta](briefs/ui-77-integracion.md).
+> Anterior · **v4.26.76** corrección local del panel: entrega exacta independiente del número de versión, deduplicación antes de retirar y motivos visibles por tanda. Beta publicada **4.26.75.1**/ca7b97d4; producción **4.26.67**, APK48 estable/APK51 beta. CI exacta, publicación76 y prueba móvil pendientes. [Auditoría](briefs/ops-0110-panel-entrega.md).
 > Inicio73 publicado y cotejado a20:55UTC, CI completa SUCCESS y prueba móvil pendiente. [Acta conservada](briefs/inc-2909-02-inicio-natural.md).
 > Anterior: **v4.26.68** — ayuda plegable de Mi ciclo en beta, pendiente de prueba móvil.
 > Corte anterior verificado (27/9,19:41 UTC): **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conservaba FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](briefs/ops02-restauracion-probada.md).
@@ -237,7 +238,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.76** candidata local; beta publicada **4.26.75.1**/ca7b97d4, producción **4.26.67**. |
+| Web / OTA (`VERSION`) | **4.26.77** candidata local (sobre la 76, también candidata); beta publicada **4.26.75.1**/ca7b97d4, producción **4.26.67**. |
 | APK (`versionName` / `versionCode`) | Repo/beta: **4.26.55 / 51**; estable: **4.26.32 / 48**. No se publica APK nueva con este cambio web. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **51** / 4.26.55 en beta; **48** / 4.26.32 en Pages estable. |
