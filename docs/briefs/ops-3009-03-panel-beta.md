@@ -47,3 +47,11 @@ Node completo final126,9s:26 contratos de veredictos y14 guardianes de fuentes v
 Ampliación histórica calculada de nuevo por Git real: TR17aeacc0 codigo900092316d5df0b190fb66b8f04490063a6f817519046ecfad61393e492e0cde; ayuda17aeacc0 codigo3e97e637144a7f84fce4846d2eb13c3836d54deb1d27a3e4aadbb8bd10723e11; arranque269729 codigo0ff7d998ea1e1084c074447210b3f4c568f896c8516a74c8640da7197bb2600c. Los tres igualan el código actual; src conserva intactas las siete referencias originales. Informe test-results/panel75-data-audit.json. Historial verificable contra Git, ausencia/repin coherente siguen abortando.
 
 HTML/runtime financiero, e2e, Android/Supabase y apk.json idénticos5532/7b. La build regenera solo digests y metadata externos. Min1.278.280B/gzip9347.946B sin incremento. El DOM48/48 de lease15 pertenece al metadata anterior; liberado. DOM de los metadatos de constantes pendiente en CI completa exacta, sin volver a usar lease15 ni afirmar prueba local nueva. Fuente corregida requiere revisión exacta nueva de Claude y gate del coordinador; sin merge ni publicación.
+
+## Fixture de producción asíncrona tras CIe975
+
+DOM local final de metadatos:lease16,48/48PASS30,5s UTC/unworker/es-en-ca,0failed/flaky/skips sobree975c4a2. Informe test-results/panel75-data-dom.json; lease16 liberado explícitamente. CI36804139697 sobreeseSHA terminóFAILURE: Node/Deno pasan;551DOM+7perf pasan,1captura opcional omitida; único caso rojo revisar-beta:640 esperaba2tandas y veía11 antes de resolver el efecto de producción.
+
+La fixture conserva el esperado2, espera toHaveCount y retrasa250ms el doble para reproducir la transición del primer render. Solo e2e/documentación cambian; fuente/public/Android/Supabase siguenidénticose975. Sin repetir Node completo porque su código no cambia; CI nueva exacta corre todos los guardianes. La comprobación de lease impidió arrancar después de cambiar root al17Retirada. Pasada local corregida pendientelease18; gate de publicación espera esePASS yCIverde.
+
+Claude no pudo revisar e975 por cuota (mensaje20261001T022121Z, sin GO/NO-GO nuevo). Root concedeGOFUENTEe975 tras auditorías independientes de funciones/datos y forja coherente/noGit/HEAD, referencia real aceptada; no es GOClaude. El nuevo SHA de fixture exige cotejo independiente de su diff y CI exacta antes de merge. No hay publicación autorizada todavía.

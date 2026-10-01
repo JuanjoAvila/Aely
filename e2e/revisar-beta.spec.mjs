@@ -187,11 +187,11 @@ test("no se puede aprobar con cosas sin probar ni con fallos marcados", async ({
  *
  * Por eso aquí se FIJA la versión de producción con un doble, en vez de depender de la red: así
  * el caso se prueba igual en el portátil que en CI. */
-async function conProduccionEn(page, version) {
+async function conProduccionEn(page, version, delayMs = 0) {
   // La app pide versión web y APK estable a la vez. Salvo que el test fije la APK, se da por
   // entregada: si no, las tandas nativas reales se colarían en las rondas sintéticas.
-  await page.evaluate((v) => {
-    window._mcProdVersion = () => Promise.resolve(v);
+  await page.evaluate(({ v, delayMs }) => {
+    window._mcProdVersion = () => delayMs ? new Promise(resolve => setTimeout(() => resolve(v), delayMs)) : Promise.resolve(v);
     if (window._mcProdApk === undefined) window._mcProdApk = 9999;
     if (window._mcProdEntregas === undefined) {
       window._mcProdEntregas = { web:{}, edge:{} };
@@ -201,7 +201,7 @@ async function conProduccionEn(page, version) {
         if (window._mcProdApk >= g.apk) { window._mcProdApkRevisiones[g.id]=g.native; window._mcProdEntregas.edge[g.id]=g.edge; }
       }));
     }
-  }, version);
+  }, { v: version, delayMs });
   const host = "e2e-beta-prod-" + Math.random().toString(36).slice(2, 7);
   await page.evaluate((id) => {
     const h = document.createElement("div");
@@ -642,12 +642,12 @@ test("un fallo en una tanda NO bloquea aprobar las otras", async ({ page }) => {
   // Compilación de la ronda VIVA (RELEASE_NOTES[0]), no un número clavado de una ronda ya cerrada.
   await page.evaluate(() => { CONFIG.APP_VERSION = RELEASE_NOTES[0].v + ".7"; });
   const prev = await conTandasDePrueba(page);
-  const panel = await conProduccionEn(page, prev);
+  // El primer render aún no conoce prod: CI contaba la ronda real antes del efecto.
+  const panel = await conProduccionEn(page, prev, 250);
   await expect(panel).toBeVisible();
 
   const tandas = panel.locator(".beta-tanda");
-  const n = await tandas.count();
-  expect(n, "esta prueba siembra 2 tandas").toBe(2);
+  await expect(tandas, "la producción asíncrona deja solo las dos tandas sembradas").toHaveCount(2);
 
   const primera = tandas.nth(0), segunda = tandas.nth(1);
 
