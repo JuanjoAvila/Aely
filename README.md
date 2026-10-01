@@ -7,6 +7,8 @@ Inicio muestra el gasto bruto en el mes natural; con presupuesto por ciclo y nó
 En Ajustes → Dinero, «Presupuesto por ciclo de cobro» permite reiniciar el presupuesto con la nómina registrada; Gastos abre en «Mi ciclo». Su explicación se puede plegar y recuperar con Ayuda sin ocultar la fecha del cobro. El widget Android mantiene el mes natural.
 Con poca conexión, Inicio muestra los datos guardados cuando termina el logo, sin otra espera de barras grises.
 
+Los ingresos bancarios pendientes o futuros esperan al día del cobro para entrar como nómina y abrir Mi ciclo.
+
 PWA de finanzas personales: patrimonio neto, gastos variables, costes fijos, inversiones (multi-bróker) y deudas. Móvil-first, instalable, con sincronización automática de gastos vía notificaciones del banco.
 
 En Plan → Deudas, un saldo estimado a cero pide confirmar la liquidación. Después puedes archivar la deuda y volver a mostrarla desde Deudas archivadas; sus cuotas siguen en Gastos.
@@ -93,7 +95,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.75**, integración local del panel sobre Recibos74/9ecd6a17. Tres revisiones idénticas conservan aprobaciones; cuatro cambios financieros web conservan historial y requieren nueva revisión. Publicación75, revisión exacta y prueba móvil pendientes. Producción **4.26.67**, beta cotejada **4.26.74.1**/9ecd6a17, APK48 estable/APK51 beta. [Contrato y evidencia](docs/briefs/ops-3009-03-panel-beta.md).
+Estado actual: **v4.26.76**, candidata local de Nómina sobre Panel75; publicación76, revisión exacta y prueba móvil pendientes. La base75 conserva su integración: panel sobre Recibos74/9ecd6a17. Ayuda y arranque conservan sus aprobaciones; TR cambia en web por la guardia de nómina y conserva su historial sin reutilizar el OK anterior. Las cuatro tandas widget mantienen la situación de75. Base75 final569d7922 incorporada, fixture corregida y funciones/datos de Nómina verificados; PR draft y CI76 autorizadas, publicación retenida. Producción **4.26.67**, beta cotejada **4.26.74.1**/9ecd6a17, APK48 estable/APK51 beta. [Contrato y evidencia](docs/briefs/ops-3009-03-panel-beta.md).
 
 Inicio73 quedó publicado y cotejado el30/9 a20:55UTC con CI completa SUCCESS; su prueba móvil sigue pendiente. [Acta conservada](docs/briefs/inc-2909-02-inicio-natural.md).
 

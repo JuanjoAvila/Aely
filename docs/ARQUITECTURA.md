@@ -1,5 +1,16 @@
 # Arquitectura — Aely
 
+## Ingresos bancarios pendientes y futuros (INC-3009-02)
+
+`importObExpenses` admite abonos con estado normalizado BOOK o ausente y fecha bancaria
+YYYY-MM-DD válida no posterior a hoy Madrid (`madridYmdParts`). Rechaza antes de seen/keys,
+permitiendo que el mismo abono futuro entre al llegar su día. PDNG y estados desconocidos no
+crean ingresos; sin estado conserva compatibilidad, sin confirmar por ello el flujo adelantado.
+No altera cargos, saldos API ni filas históricas. El calendario de ancla/periodo local del ciclo
+queda fuera y puede diferir del día Madrid en UTC. Lista blanca conserva riesgo OTHR documentado;
+no añade telemetría financiera. [Acta](briefs/inc-3009-nomina-anticipada.md).
+
+
 ## Presupuesto de Inicio mensual (INC-2909-02)
 
 `dashboardBudgetStats` pide modo bruto al argumento opcional `budgetMode` de `monthBudgetStats`, sin otro recorrido del histórico ni cambiar `gTotalMode`. En mes natural, frase, anillo, margen, Pregúntame, avisos y reto describen las mismas compras y el límite tras reservas. El ciclo reconocido conserva neto, incluso negativo; Gastos, widget e informes mantienen sus propias llamadas y modos. No modifica saldos ni escrituras.

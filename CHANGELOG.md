@@ -1,3 +1,9 @@
+## [4.26.76] — 2026-10-01 · INC-3009-02, nómina pendiente y futura
+
+- Integra solo la guardia revisada de importObExpenses sobre Panel75 final569d7922 (fuente e975c4a2), con Recibos74 e Inicio73 intactos. BOOK o estado ausente y fecha válida ya alcanzada en Madrid; rechazo antes de identidad permite PDNG→BOOK o futuro→hoy sin duplicar. No toca calendario global, filas antiguas, Android, Edge ni SQL.
+- Nómina declara alcance moderno de importador/identidad/fecha Madrid, saldo, ancla, presupuesto y sync real, validado con la guardia de funciones y datos de75:187 funciones y50 datos propios;817/260 en conjunto. TR añade madridYmdParts y su caché al alcance actual sin modificar la baseline histórica auditada. El alcance TR ya incluía importObExpenses y cambia legítimamente en web: mantiene historia, codigoDesde y revisionesDesde anteriores sin repinarlos, pero requiere revisión nueva. Ayuda y arranque conservan código y OK; las cuatro tandas widget conservan su situación de75.
+- 21 contratos por zona y DOM es/en/ca registrados en runner/mapa; comprobar integración exacta y móvil antes de publicar. El DOM conserva bruto de Inicio73 y neto de Gastos en mes natural. No atribuir los18 DOM antiguos a este injerto. [Acta](docs/briefs/inc-3009-nomina-anticipada.md).
+
 ## [4.26.75] — 2026-10-01 · OPS-3009-03, revisión y entrega exactas del panel
 
 - Integra el panel revisado483e8874 sobre el merge real de Recibos74 9ecd6a17, con su fuente idéntica a a004d16e. Conserva íntegros Inicio73, recibos, relojes de escenario ya revisados e historial anterior. No publica main, APK, Edge ni SQL.
