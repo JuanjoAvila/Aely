@@ -1106,6 +1106,33 @@ const cloud = (function(){
       const {error}=await expenseCloudEq(sb.from('expenses').update(upd), session.user.id, e);
       if(error) throw error;
     },
+    // Un UPDATE sin filas no confirma una retirada: FIN-04 permite UUID locales divergentes.
+    // No buscar gemelos por parecido ni tocar importe, origen o saldo para salvar esa identidad.
+    async confirmExpenseWithdrawal(e, readState){
+      const ready=function(){ const s=typeof readState==="function"&&readState(); return !!s&&canRecognizeWithdrawal(e,s); };
+      if(!sb || !isExpenseUuid(e&&e.id) || !ready()) throw new Error("withdrawal unavailable");
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) throw new Error("session unavailable");
+      const cols="id,source,cat,fecha,importe,comercio";
+      const read=await sb.from('expenses').select(cols).eq('user_id',session.user.id).eq('id',e.id).maybeSingle();
+      if(read.error) throw read.error;
+      const row=read.data;
+      if(!withdrawalRowMatches(e,row)) throw new Error("withdrawal identity changed");
+      // El vínculo puede llegar mientras se consulta la fila: no neutralizar un pago compartido.
+      if(!ready()) throw new Error("withdrawal unavailable");
+      if(row.cat==="traspaso") return row;
+      if(row.cat!==e.category) throw new Error("withdrawal category changed");
+      const result=await sb.from('expenses').update({cat:"traspaso"})
+        .eq('user_id',session.user.id).eq('id',e.id).eq('source',row.source).eq('cat',row.cat)
+        .eq('fecha',row.fecha).eq('importe',row.importe).eq('comercio',row.comercio).select(cols);
+      if(result.error) throw result.error;
+      const ack=result.data;
+      if(!Array.isArray(ack) || ack.length!==1 || ack[0].cat!=="traspaso" || !withdrawalRowMatches(e,ack[0]))
+        throw new Error("withdrawal unconfirmed");
+      // El UPDATE ya ocurrió: un vínculo llegado durante el envío no convierte su ACK en error.
+      // Esta marca es solo del retorno, nunca de la tabla; permite conciliar únicamente ese envío.
+      return Object.assign({},ack[0],{withdrawalUpdated:true});
+    },
     // Cuota de deuda marcada por `marcarCuotasDeDeuda` (4.21.0): categoría y, si es de Open
     // Banking, la marca en `source`. La de la noti (`macrodroid`) conserva su source: un
     // `macrodroid~…` lo leería el servidor como «a mano» y lo SUMARÍA; ahí basta `cat:deudas`.
@@ -1524,7 +1551,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","setExpenseDeuda","deleteExpense","deleteExpensesByIds",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","deleteExpense","deleteExpensesByIds",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -1919,6 +1946,65 @@ function applyEntradaEfectivo(state, amount){
   });
   return Object.assign({}, st, { accounts:accounts });
 }
+// La persona reconoce esta salida concreta; no inferirlo del nombre ni recategorizar historia.
+function withdrawalReceiptLink(state,e){
+  if(!state||!e) return null;
+  const date=String(e.date||"").slice(0,10),ym=Number(date.slice(0,4))*12+Number(date.slice(5,7));
+  // Se mira el vínculo durable, aunque el feed local ya no lo acredite. B puede no tener feed;
+  // deshacer por la puerta existente elimina esta misma prueba de los metadatos compartidos.
+  return (state.fixed||[]).find(function(f){
+    const p=f.paymentProofs&&f.paymentProofs[ym];
+    return p&&p.kind==="expense"&&(p.key===fixedExpenseKey(e)||p.expenseId&&p.expenseId===e.id
+      ||p.identity===fixedPaymentIdentity(expenseBankOf(e),e));
+  })||null;
+}
+function canRecognizeWithdrawal(e,state){
+  const eligible=!!(e && (e.source==="ob"||e.source==="ob-hist") && e.ent && e.ent!=="efectivo"
+    && Number.isFinite(e.amount) && e.amount>0 && !e.possibleDup && !e.debtId
+    && e.category!=="deudas" && e.category!=="inversion");
+  if(!eligible||!state) return eligible;
+  const matches=(state.expenses||[]).filter(function(x){ return x.id===e.id; });
+  if(matches.length!==1) return false;
+  const current=matches[0];
+  return canRecognizeWithdrawal(current)&&!withdrawalReceiptLink(state,current)
+    &&(current.category===e.category||current.category==="traspaso")
+    &&withdrawalRowMatches(e,{id:current.id,source:expenseSourceForCloud(current),fecha:current.date,importe:current.amount,comercio:current.merchant});
+}
+function withdrawalRowMatches(e, row){
+  return !!(row && row.id===e.id && row.source===expenseSourceForCloud(e)
+    && Number(row.importe)===e.amount && Date.parse(row.fecha)===Date.parse(e.date)
+    && row.comercio===e.merchant);
+}
+function applyRecognizedWithdrawal(state, expense, confirmedAt){
+  const rows=state.expenses||[];
+  const matches=rows.filter(function(e){ return e.id===expense.id; });
+  if(matches.length!==1 || !canRecognizeWithdrawal(matches[0],state)) return state;
+  const current=matches[0];
+  if(current.amount!==expense.amount || current.date!==expense.date || current.merchant!==expense.merchant
+     || expenseSourceForCloud(current)!==expenseSourceForCloud(expense)
+     || (current.category!==expense.category && current.category!=="traspaso")) return state;
+  if(current.category==="traspaso") return state;
+  // Solo blinda lecturas arrancadas antes del ACK, sin vetar una corrección posterior del móvil B.
+  return Object.assign({},state,{expenses:rows.map(function(e){ return e===current
+    ? Object.assign({},e,{category:"traspaso",withdrawalConfirmedAt:confirmedAt}) : e; })});
+}
+function reconcileConfirmedWithdrawal(state, expense, ack, confirmedAt){
+  if(!ack || ack.cat!=="traspaso" || !withdrawalRowMatches(expense,ack)) return state;
+  const matches=(state.expenses||[]).filter(function(e){ return e.id===expense.id; });
+  if(matches.length!==1) return state;
+  const current=matches[0];
+  if(!canRecognizeWithdrawal(current) || (current.category!==expense.category && current.category!=="traspaso")
+    || !withdrawalRowMatches(expense,{id:current.id,source:expenseSourceForCloud(current),fecha:current.date,importe:current.amount,comercio:current.merchant})) return state;
+  let next=state;
+  if(withdrawalReceiptLink(state,current)){
+    // Solo un UPDATE confirmado permite deshacer el vínculo que llegó durante su envío.
+    // Se sincronizan metadatos por la misma puerta de Deshacer, sin tocar dinero ni otros pagos.
+    if(ack.withdrawalUpdated!==true) return state;
+    const ds=String(current.date).slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7));
+    next=linkFixedPayment(state,current.id,null,y,m,new Date(y,m,0).getDate());
+  }
+  return applyRecognizedWithdrawal(next,expense,confirmedAt);
+}
 /* EFECTIVO REAL DE TRADE REPUBLIC (availableCash) → base guardada de su cuenta.
    Lo usan los DOS botones que hablan con el puente nativo: la tarjeta de TR y el sincronizador
    general. Antes cada uno tenía un contrato distinto: la tarjeta aplicaba `cash` y el general lo
@@ -2128,7 +2214,7 @@ function mergeExpenses(prevList, incoming){
    añadía claves nuevas — categoría/importe/nota de una fila ya vista nunca se actualizaban.
    Caso medido: Aigües en nube=`energia` y el móvil seguía en `viajes` tras «Ya estás al día».
    Reglas: no pisar `cat` de un apunte manual; no pisar `note` si él la editó; nunca borrar. */
-function refreshExpenseFromCloud(local, incoming){
+function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(!local||!incoming) return local||incoming;
   const manual=isManualExpenseSource(local.source);
   let out=local;
@@ -2143,7 +2229,8 @@ function refreshExpenseFromCloud(local, incoming){
   // Una cuota ya marcada no vuelve a «otros» porque la nube aún no se haya enterado (4.21.0): la
   // subida puede ir por detrás del pull, y la fila de la noti ni siquiera lleva la marca en `source`.
   const cuotaLocal=local.debtId && local.category==="deudas";
-  if(!manual && !cuotaLocal && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
+  const withdrawalRecent=readStartedAt!=null && local.withdrawalConfirmedAt>=readStartedAt;
+  if(!manual && !cuotaLocal && !withdrawalRecent && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
   if(incoming.amount!=null && isFinite(incoming.amount)) put("amount", incoming.amount);
   if(incoming.merchant!=null && incoming.merchant!=="") put("merchant", incoming.merchant);
   if(Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
@@ -2179,7 +2266,7 @@ function refreshExpenseFromCloud(local, incoming){
 }
 /* Mezcla el pull con lo local: refresca campos de claves ya vistas y solo AÑADE las nuevas.
    Nunca elimina una clave que solo exista en local (contención 4.18.6 / FIN-07). */
-function mergeExpensesFromCloud(prevList, incoming){
+function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
   const byKey={}; const order=[];
   (prevList||[]).forEach(function(e){
     const k=keyOfExpense(e);
@@ -2192,7 +2279,7 @@ function mergeExpensesFromCloud(prevList, incoming){
     seen[k]=1;
     const loc=byKey[k];
     if(!loc){ byKey[k]=inc; order.push(k); changed=true; nuevos++; return; }
-    const merged=refreshExpenseFromCloud(loc, inc);
+    const merged=refreshExpenseFromCloud(loc, inc, readStartedAt);
     if(merged!==loc){ byKey[k]=merged; changed=true; }
   });
   const list=order.map(function(k){ return byKey[k]; });

@@ -610,3 +610,9 @@ La fixture «un fallo en una tanda no bloquea las otras» retrasa 250ms su doble
 `beta-tandas-vacias` protege entrega exacta con versión de producción menor, deduplicación antes de retirar y límites404/APK/Edge. `revisar-beta` reproduce los siete IDs reales, conserva aprobaciones sintéticas idénticas y verifica explicación visible es/en/ca aun plegada; tras respuesta asíncrona de producción67 con recibos exactos quedan solo Panel, Recibos e Inicio no acreditados. El fixture fija el idioma en estado: cambiar solo `CURLANG` se perdía al repintar App. Historial no acredita entrega; los recibos del test enumeran solo los siete IDs.
 
 DOM final local55/55 PASS31,8s,0skip/0flaky. A/B75:1.278.280 /347.946 B frente a76.1 sellada1.279.388 /348.256 B (minificado/gzip9). Los topes mínimos1250/341 KiB dejan612/928 B; no se añaden dependencias ni se recorta validación. Últimos veredictos remotos y entrega Edge requieren acceso independiente: la simulación no los acredita. [Acta](briefs/ops-0110-panel-entrega.md).
+
+INC-2909-03, candidata: `tests/retirada-bancaria.test.mjs` ejecuta ACK/CAS/identidad, recarga,
+doble importación y pulls anteriores/posteriores; `e2e/retirada-bancaria.spec.mjs` abre la ficha real
+en es/en/ca, cancela/confirma, prueba errores y comprueba otro almacenamiento tras sync a demanda.
+Registrados en runner/mapa de Gastos. Las respuestas cloud son sintéticas; no prueban RLS real ni
+suma de efectivo compartida. [Estado de candidata](briefs/inc-2909-03-retirada-caixa.md).

@@ -446,3 +446,29 @@ Al renombrar un cargo bancario con nombre original estable, el editor retira la 
 `beta-source-code.mjs` delimita declaraciones con vm.Script y contempla funciones, const/flechas, datos de nivel superior y sus dependencias transitivas de lógica00/01/08. Ignora comentarios, textos, regex y propiedades; distingue lecturas en ternarios y recoge varias variables de una declaración. Una plantilla interpolada no admitida aborta. Los guardianes mutan cuerpos y valores de cada dependencia; una ancla que desaparece debe abortar build. Se incluyen zona horaria/cachés de mes, REC_GRACE, categorías/reglas, CONFIG, lápidas, divisa y formato numérico. Solo datos de textos/idiomas se excluyen con motivo explícito en benignData; benignCalls conserva sus excepciones de traducción/transporte/telemetría. El recorrido de identificadores es conservador y no es un análisis general de llamadas dinámicas, aliases/métodos o variables de otros módulos; los alcances requieren revisión al editar lectores.
 
 TR y ayuda conservan fuente idéntica tras ampliar cobertura; sus hashes ampliados se calculan desde17aeacc03f595412c044d276c900707cbbd008c8. Arranque se compara desde26972970d216f272b0d555d7d8548bb99afd6ba5. `auditoria.ampliada` identifica ese commit, huella original y digest de las superficies ampliadas. El builder verifica identidad del commit y correspondencia con codigoDesde/revisionesDesde originales, conserva esos datos en referenciaAnterior y compara con el digest histórico ampliado. src conserva intactas las siete referencias originales; un helper nuevo que difiere del commit histórico exige revisión nueva, aunque versión y guion sean iguales. No se pincha el baseline a HEAD. El builder vuelve a leer Git histórico y calcula el digest del descriptor almacenado en auditoria.ampliada.scope: rechaza incluso metadata forjada de forma coherente con un helper de HEAD. Si falta el commit/archivo histórico, aborta; Tests descarga fetch-depth:0. Una ampliación futura conserva el descriptor anterior hasta que se audita otro desde el mismo commit.
+
+## Reconocer una retirada importada (candidata INC-2909-03)
+
+`confirmExpenseWithdrawal` confirma `cat:traspaso` por UUID del usuario, atributos y `source` exactos,
+con comparación de la categoría previa y RETURNING de una sola fila. No usa el fallback por terna;
+sin ACK no hay cambio local. El sello local `withdrawalConfirmedAt` protege únicamente pulls iniciados
+antes del ACK; `syncCloudExpenses` pasa el instante de inicio a la mezcla. No se amplía FIN-04 ni se
+remapea identidad. La oferta de sumar una retirada importada a efectivo se retira mientras falte un
+registro atómico entre tabla y cuenta: una importación nunca incrementa por esta puerta `accounts.value`.
+Los apuntes manuales de efectivo siguen disponibles. [Contrato y límites](briefs/inc-2909-03-retirada-caixa.md).
+
+`withdrawalReceiptLink` lee la prueba durable expense del mes por key/UUID/identidad bancaria,
+sin exigir que este móvil tenga feed válido. Esa misma lectura deja visible Deshacer vínculo;
+la retirada exige quitarlo primero mediante `linkFixedPayment`. El método cloud exige un lector
+del estado actual y revalida antes de escribir. Tras UPDATE devuelve solo el ACK válido, con
+una marca efímera `withdrawalUpdated` que no se escribe en la tabla. Rechazar ese ACK porque
+llegó un vínculo dejaba la fila remota neutra y paid=false en A tras pull, pero paid=true en B
+sin feed. `reconcileConfirmedWithdrawal` vuelve a comprobar UUID/atributos/categoría local y,
+solo con ese UPDATE confirmado, deshace la prueba expense coincidente por el helper existente
+antes de aplicar la retirada. No borra otros cargos/meses, paidYm/paidDay, cuentas ni importes.
+La ficha informa de que el recibo queda pendiente y se compartirá al sincronizar. Un ACK de
+lectura, ausente, inválido o denegado no permite deshacer pruebas. Ambas puertas de Paga un
+recibo esperan mientras la retirada está pendiente. `linkFixedPayment(null)` elimina la prueba,
+no crea una lápida: sincroniza metadatos mediante el CAS existente de app_state. No hay
+transacción entre expenses y app_state ni garantía de atomicidad entre clientes; un timeout con
+commit remoto sin ACK y la concurrencia posterior siguen requiriendo conciliación separada.
