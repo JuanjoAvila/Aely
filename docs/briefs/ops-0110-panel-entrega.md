@@ -42,3 +42,15 @@ Un único `betaEstadoEntrega` alimenta filtro y explicación. La fila visible, i
 - A/B75:1.278.280 B min /347.946 B gzip9. Candidato antes de sello:1.279.382 /348.250; +1.102 /304 B, supera topes por406/90 B. Coordinador autoriza ampliación mínima a1250/341 KiB. Medida sellada76.1:1.279.388 /348.256 B; márgenes612 /928 B respecto a1250 /341 KiB. El sello usa el SHA de base para medir antes del commit, sin atribuirlo a una publicación. Sin dependencias/CDN ni recortar contratos.
 
 No se inicia otro objetivo en este chat. Publicación de las cinco tandas nativas y cotejo Edge/pago real continúan pendientes fuera de este cambio.
+
+## CI351 y corrección aislada de fixture
+
+CI [36829164352](https://github.com/JuanjoAvila/Aely/actions/runs/36829164352) sobre351053b9 terminó FAILURE: Node/Deno verdes,554DOM PASS,1captura opcional skip y1fallo reproducido también en retry; rendimiento7/7 PASS. Privacidad no llegó a su paso por el fallo previo (guard local PASS).
+
+El fallo es `panel: ronda multi-versión pinta tandas, marks por índice y aprobar una no pisa las otras`: esperaba2 y encontró12. El escenario añadía sus dos tandas legado9.9 al histórico real. Si producción termina con recibo nulo, el contrato corregido conserva las diez modernas reales aunque el número sea9.9.0. El doble dependía del tiempo de una petición externa; el verde local no bastaba.
+
+Corrección exclusiva de fixture: reemplazar el histórico del escenario por sus dos tandas sintéticas, manteniendo todas las expectativas de índices/IDs/progreso/veredictos/retiro y count2. Reproducción Node con la fuente351 y recibo nulo:12antes,2después; IDs9.9.2/nueva y9.9.1/vieja. No cambia ningún runtime ni fuente empaquetada. El coordinador concede lease26 tras liberación25: tres DOM focales PASS en5,6s,0skip/0flaky/0retry, recibo nulo explícito y un worker. Lease26 liberado explícitamente al finalizar. NuevaCI exacta pendiente; no se publica por el GO previo.
+
+El informe local conserva `configFile` y `rootDir` del worktree propio, servidor `node server.mjs ../../public` en4488 y `reuseExistingServer:false`; las filas nuevas de entrega verificadas no existen en beta75. No se reutilizó un servidor ajeno. La dependencia de red era de la fixture de producción: `conProduccionEn` fabrica recibos del escenario solo cuando `_mcProdEntregas===undefined`; una respuesta real404 lo deja ennull y conserva las modernas. El resultado local dependía de cuándo llegaba ese dato. El DOM focal registra en los tres casos HTML servido200 con SHA256 `325ad574175ef57c8281ead064c1e9862642e1cf3d4ac4e99b94d3a8bab9ff93`, igual al `public/index.html` propio, recibo nulo explícito y `reuseExistingServer:false`; no repite55.
+
+El auxiliar existente `conTandasDePrueba`, usado en otros dos casos de marcas con expectativa2, tenía la misma mezcla de dos tandas legado y nueve modernas sin recibo (11). También aísla su nota, conservando la versión anterior calculada y todas sus expectativas. Reproducción Node11→2 con recibo nulo. No se cambian los escenarios de siete IDs reales/404 ni sus expectativas. Esta limpieza de la misma clase evita otro resultado dependiente de red en la siguiente CI.

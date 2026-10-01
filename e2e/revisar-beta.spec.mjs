@@ -538,14 +538,16 @@ test("panel: ronda multi-versión pinta tandas, marks por índice y aprobar una 
   await abrirRevisionBeta(page);
   await page.evaluate(() => {
     CONFIG.APP_VERSION = "9.9.2.7";
-    RELEASE_NOTES.unshift(
+    // Este escenario aísla marcas y veredictos de dos tandas legado. Las modernas reales
+    // no desaparecen por poner producción9.9.0 si su recibo llega nulo (CI351,1/10).
+    RELEASE_NOTES = [
       { v: "9.9.2", d: "e2e", t: { es: "Nueva", en: "New", ca: "Nova" },
         tandas: [{ id: "nueva", t: "Tanda nueva e2e", items: { es: ["Punto N1 e2e", "Punto N2 e2e"], en: ["Punto N1 e2e", "Punto N2 e2e"], ca: ["Punto N1 e2e", "Punto N2 e2e"] } }],
         items: { es: ["fam 9.9.2"], en: ["fam 9.9.2"], ca: ["fam 9.9.2"] } },
       { v: "9.9.1", d: "e2e", t: { es: "Vieja", en: "Old", ca: "Vella" },
         tandas: [{ id: "vieja", t: "Tanda vieja e2e", items: { es: ["Punto V1 e2e", "Punto V2 e2e"], en: ["Punto V1 e2e", "Punto V2 e2e"], ca: ["Punto V1 e2e", "Punto V2 e2e"] } }],
         items: { es: ["fam 9.9.1"], en: ["fam 9.9.1"], ca: ["fam 9.9.1"] } },
-    );
+    ];
     window.__betaReports = [];
     cloud.betaReport = function (p) { window.__betaReports.push(p); return Promise.resolve(); };
     try { localStorage.removeItem("_betaReview_" + CONFIG.APP_VERSION); } catch (e) {}
@@ -614,10 +616,9 @@ test("panel: ronda multi-versión pinta tandas, marks por índice y aprobar una 
   await expect(changed.locator(".beta-tanda").first().getByRole("button", {name:/Aprobar esta tanda/})).toBeEnabled();
 });
 
-/** Siembra dos tandas de mentira en la entrada de RELEASE_NOTES que resuelve la versión en curso.
- *  Devuelve la versión numérica inmediatamente anterior (para pasar como prod): así la ronda del
- *  panel es solo esa entrada. No vale mirar la fila siguiente del JSON: las notas estables 4.25
- *  se intercalan con beta 4.26 y dejaban entrar toda la ronda real (fallo CI 2026-09-24). */
+/** Los escenarios de marcas aíslan sus dos tandas legado: una producción mayor no acredita
+ *  las modernas ajenas y el tiempo de su recibo no puede decidir el resultado de este test.
+ *  La versión anterior se calcula antes de aislar, conservando el escenario multiversión. */
 async function conTandasDePrueba(page) {
   return page.evaluate(() => {
     const base = typeof mcVerBase === "function"
@@ -633,6 +634,8 @@ async function conTandasDePrueba(page) {
       if (!x || !x.v || !mcIsNewer(base, x.v)) return best;
       return !best || mcIsNewer(x.v, best) ? x.v : best;
     }, "");
+    // Los dos escenarios de marcas tampoco dependen de entregas ajenas ni de su respuesta de red.
+    RELEASE_NOTES = [n];
     return prev || "0.0.1";
   });
 }
