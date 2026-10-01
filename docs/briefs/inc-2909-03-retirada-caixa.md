@@ -1,5 +1,24 @@
 # INC-2909-03 · retirada bancaria · candidata aislada
 
+## Lease30 · reparación de fixtures verificada, runtime intacto
+
+Guardia181 con c988 PASS completa: origen, cuenta locked, importe antes/después igual,
+aviso bancario completo exacto, scroll y touchcancel sin trasladar la ficha.
+Inversiones549 reproduce geometría caducada: bbox y596,5/h44 e hit previo=true;
+touchstart real cae en BUTTON, campo ya y467,5 por scroll/foco en dos rAF del editor.
+Fixture mínimo espera foco antes de medir y exige que touchstart real tenga inv-name.
+Conserva límite<2px al editar y los controles de arrastrar/cancelar/cerrar/scroll.
+
+GREEN fixture nuevo1/1; RED mutante solo respuestaHTML elimina input del selector
+protector de useEdgePageClose: touchstart sí cae en input, expectativa<2px falla407,68px.
+Ningún src/public/runtime alterado. Sondas y copias temporales retiradas.
+GREEN final30:2/2 PASS,1worker,8,8s, datos sintéticos, servidor propio4265 y HTML
+sha2564eb19e7af5e7e672dc39484b3e214f681a6ef714f04ac0a0acdbe58cf28b235e intacto.
+Reporte ignorado test-results/retirada-lease30-final.json; mutante retirada-lease30-mutante.json.
+Lease30 LIBERADO explícitamente; servidor4265 detenido. Sin repetir Node/mutantes financieros.
+CI80 conjunta sigue siendo gate de publicación; CI79 FAILURE queda registrada, no se maquilla.
+
+
 ## Cierre de CI79 · corrección mínima del guardián heredado
 
 Fuente runtime `d45fb8b17cda1a1d628d34bbe9ea660ec7f38a18`, PR100 borrador sobre78.
