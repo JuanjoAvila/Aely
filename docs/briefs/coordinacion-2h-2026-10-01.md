@@ -6,7 +6,7 @@ Prioridad inmediata nueva: corregir que las tandas aprobadas vuelven a aparecer 
 
 ## Tramo activo: 1 de octubre, 14:35:18–16:35:18 UTC
 
-Corte de estado 16:18 UTC. Coordinador único `01a0f7e3-ecc5-7f20-a40d-c71a043343a7`; objetivo propio desde reloj UTC, plazo propio 16:35:18 UTC (18:35:18 Madrid). Transferencia expresa recibida del saliente. Lease34 owner null, coordinator actual; ningún Chromium local abierto. Mismo heartbeat `relevo-aely-cada-2-horas` ACTIVE y target actual. No existe otro sucesor; se crea exactamente uno al cumplir el plazo.
+Corte de estado 16:24 UTC. Coordinador único `01a0f7e3-ecc5-7f20-a40d-c71a043343a7`; objetivo propio desde reloj UTC, plazo propio 16:35:18 UTC (18:35:18 Madrid). Transferencia expresa recibida del saliente. Lease35 owner Panel01a0f419-3825-7550-be70-37e4e0cb320e, coordinator actual. Reserva exclusiva para reproducir/corregir CI; no transferir como libre ni abrir otro Chromium. Mismo heartbeat `relevo-aely-cada-2-horas` ACTIVE y target actual. No existe otro sucesor; se crea exactamente uno al cumplir el plazo.
 
 ### Candidata y revisión
 
@@ -18,7 +18,9 @@ Fuente final conjunta **`9a6f6dfa010b1fd4ab3ccf002877d6ce59a86624`**, [PR104](ht
 
 ### CI y publicación
 
-[CI36885083225](https://github.com/JuanjoAvila/Aely/actions/runs/36885083225), headSha9a6 exacto, **IN_PROGRESS** en Tests(build + unit + Deno + E2E), inicio15:33:21UTC; último cotejo16:16UTC. Publicación beta retenida hasta SUCCESS completo. Después fusionar solo PR104 a beta por SHA exacto, seguir publisher de ese merge y cotejar manifiestos/ZIP/HTML/SW/recibo/notas/apk.json reales. No afirmar entrega81 antes de ese cotejo.
+[CI36885083225](https://github.com/JuanjoAvila/Aely/actions/runs/36885083225), headSha9a6 exacto, **FAILURE** a16:20:53UTC. Chromium641PASS/7FAIL/1skip y rendimiento7PASS. Siete fallos: inicio-offline:166 cabeza cacheada; revisar-beta:324 herencia estados/comentarios; :714/739 betaMarksCount; :1015 entrega exacta es/en/ca (expected3 received2 en1039). Node/Deno alcanzaron el navegador; no atribuir suite completa verde. PropietarioPanel `01a0f419-3825-7550-be70-37e4e0cb320e` reactivado para reproducción/corrección terminada sobre fuente conjunta en su worktree existente, lease35 exclusivo. Revisor `01a0f549-1713-7352-bed4-df36e036f760` activo con lectura/Node, sin editar ni Chromium. Ambos arranques acreditados16:23UTC. Claude informado; GO9a6 de fuente no sustituye CI verde. Sin nueva fuente final todavía.
+
+Publicación beta retenida. Continuar esos mismos chats, no duplicar tareas ni cambiar sus archivos mientras corrigen. Al entregar delta: integrar en mismaPR104/worktree, revisar SHA final, obtener nuevos GO exactos y CI completa. Después fusionar solo104 a beta y cotejar publisher/artefactos servidos. Relevo puede transferir coordinator con ownerPanel conservado; liberación solo expresa del propietario.
 
 CI415/36877009268 terminóFAILURE: único FAILED logs-privacidad, porque fixture extraía ensureReleaseNotes sin betaNotesVerified. Deno4/4 PASS remoto; Chromium general no llegó a correr. Corregido por delta9a6. CIac9/36876124078 cancelada y sustituida. GO de fuente no convierte esas pasadas en verdes.
 
