@@ -7,6 +7,8 @@
 
 ## [4.26.80] — 2026-10-01 · Widget v2 sobre Nómina/Retirada
 
+- Tooling CLI, candidata separable sin publicación: `listo` acredita un único actor con el rol Dev de `profiles`, filtra `app_events` antes del límite y descarta filas ajenas también al reconstruir los partes. La service role veía todos los usuarios: un OK ajeno posterior podía sustituir un rechazo propio con la misma huella. Un `null` explícito propio retira el OK anterior, sin confundirlo con una decisión ausente/inválida. Sin identidad acreditada el resultado es indeterminado, salida 2. Pruebas del CLI real sin red registradas; no cambia el panel, la versión, las huellas ni la entrega web/Android/Edge.
+
 - Injerto acotado821 sobre parent79/d45fb8b1: conserva guardia de abonos BOOK/fecha, merge con readStartedAt y conciliación durable de recibos/retirada. Java idéntico821; ACK del último pull completo, desconocidos hasta identidad/lápida y negociación sin degradar.
 - Periodo/idioma y magnitud de Inicio: bruto mensual o neto con signo del ciclo, sin Balance. APK51 conserva legado; código52/versionName80 y manifiesto52 apuntan al preasset beta real verificado, sin entrega final todavía.
 - Preserva Panel76/UI77 y los tres guiones Nómina78/Retirada79/Widget80. Alcance/data/functions completos, hashes históricos sin repin. Novedades79items[3] simplifica solo el condicional de vínculo tardío, respaldado por cuatro DOM de ACK/rechazo.

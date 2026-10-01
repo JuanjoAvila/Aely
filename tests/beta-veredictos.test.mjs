@@ -134,7 +134,8 @@ t("CLI real: revocación remota, rechazo histórico exacto y entrega desconocida
     process.argv=[process.execPath,'fixture','--json'];
     globalThis.fetch=async url => {
       const u=String(url);
-      if(u.includes('/rest/v1/')) return Response.json(${JSON.stringify(rows)});
+      if(u.includes('/rest/v1/profiles')) return Response.json([{user_id:'00000000-0000-4000-8000-000000000001',is_admin:true}],{headers:{'content-range':'0-0/1'}});
+      if(u.includes('/rest/v1/app_events')) return Response.json(${JSON.stringify(rows)}.map(r=>({...r,user_id:'00000000-0000-4000-8000-000000000001'})));
       if(u.endsWith('beta-delivery.json')) return new Response('',{status:404});
       if(u.endsWith('apk.json')) return Response.json({versionCode:48});
       return Response.json({version:u.includes('/beta/')?'4.26.75.1':'4.26.67'});
