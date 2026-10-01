@@ -1,14 +1,16 @@
 import { test, expect } from "@playwright/test";
 import fs from "node:fs";
 import { transformSync } from "esbuild";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
+
+test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
 // Respuesta generada por el mapper real y petición explícita al sincronizador del navegador.
 // Un test que siembre directamente la categoría no vería si flattenBankTx tira las pistas.
 const src=fs.readFileSync(new URL("../supabase/functions/_shared/enablebanking.ts",import.meta.url),"utf8");
 const E=await import("data:text/javascript;base64,"+Buffer.from(transformSync(src,{loader:"ts",format:"esm"}).code).toString("base64"));
 test("TR: Movimiento se clasifica por información bancaria y conserva el histórico renombrado",async({page})=>{
-  const date=new Date().toISOString().slice(0,10);
+  const date=new Date(FIXTURE_NOW).toISOString().slice(0,10);
   const raw=(amount,extra={})=>E.mapTransaction({booking_date:date,transaction_amount:{amount:String(amount)},credit_debit_indicator:"DBIT",creditor:{name:"Movimiento"},bank_transaction_code:{description:"Card payment"},...extra});
   const transactions=[raw(12.5,{merchant_category_code:"5411"}),raw(7.25,{remittance_information:["Panadería ficticia"]}),raw(18.09,{merchant_category_code:"5411",remittance_information:["Mercadona"]}),raw(9.01),raw(24.76,{remittance_information:["Transferencia pago alquiler día 5"]})];
   await seedLoggedInDashboard(page,{

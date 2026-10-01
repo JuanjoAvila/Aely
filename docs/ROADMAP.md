@@ -1,6 +1,7 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-30 · **v4.26.73**, beta **4.26.73.1** publicada y cotejada a20:55UTC, CI completa SUCCESS sobrea03a2a06. INC2909-02 usa gasto bruto mensual y conserva neto del ciclo; ocho tandas anteriores más la nueva de Inicio. Producción **4.26.67**, APK48 estable/APK51 beta. Prueba móvil pendiente. [Evidencia](briefs/inc-2909-02-inicio-natural.md).
+> Estado a 2026-09-30 · **v4.26.74** integración beta preparada sobre Inicio73 y su acta/e6d00dde: confirmación explícita del pago completo aunque varíe factura/divisa, prueba durable y banco real en Ya pagado. Plan distingue cargo bruto y previsión propia cuando difieren. Todas las tandas previas conservadas. Todavía sin publicar ni aprobación móvil; producción **4.26.67**, última beta cotejada **4.26.73.1**, APK48 estable/APK51 beta. [Evidencia](briefs/inc-3009-01-cargos.md).
+> Inicio73 publicado y cotejado a20:55UTC, CI completa SUCCESS y prueba móvil pendiente. [Acta conservada](briefs/inc-2909-02-inicio-natural.md).
 > Anterior: **v4.26.68** — ayuda plegable de Mi ciclo en beta, pendiente de prueba móvil.
 > Corte anterior verificado (27/9,19:41 UTC): **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conservaba FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](briefs/ops02-restauracion-probada.md).
 > Cierre del día: [backlog completo y14 incidencias](BACKLOG.md#cierre-del-día--27-de-septiembre-de-2026), con crash de cuotas, coherencia Inicio/Gastos/nómina y cargos CaixaBank como primeras prioridades. Ninguna se implementa en este cierre.
@@ -236,7 +237,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.73**; beta verificada **4.26.73.1**, producción activa **4.26.67**. |
+| Web / OTA (`VERSION`) | **4.26.74** integración; beta verificada **4.26.73.1**, producción activa **4.26.67**. |
 | APK (`versionName` / `versionCode`) | Repo/beta: **4.26.55 / 51**; estable: **4.26.32 / 48**. No se publica APK nueva con este cambio web. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **51** / 4.26.55 en beta; **48** / 4.26.32 en Pages estable. |

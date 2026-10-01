@@ -1,11 +1,13 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
+
+test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
 /* LAS CUOTAS DE TUS DEUDAS, FILTRABLES EN GASTOS (4.21.0). La marca interna no es una categoría
    de consumo: la fila nombra la deuda y el filtro la separa de las categorías reales. La pasada
    que las marca está en `tests/cuotas-deudas`; aquí se protege lo que ve el usuario. */
 
-const hoy = new Date();
+const hoy = new Date(FIXTURE_NOW);
 const dia = hoy.getDate();
 const iso = (d) => new Date(hoy.getFullYear(), hoy.getMonth(), d, 12).toISOString();
 

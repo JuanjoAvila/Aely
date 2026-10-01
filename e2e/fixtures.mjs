@@ -1,3 +1,20 @@
+// Las suites de listas relativas necesitan el mismo mes en Node y en la página.
+// Las pruebas con reloj explícito omiten este helper mediante la anotación own-clock.
+export const FIXTURE_NOW = Date.parse("2026-09-26T12:00:00Z");
+export async function installFixtureClock(page) {
+  await page.addInitScript((epoch) => {
+    const NativeDate = Date, offset = epoch - NativeDate.now();
+    function FixtureDate(...args) {
+      const values = args.length ? args : [NativeDate.now() + offset];
+      return new.target ? Reflect.construct(NativeDate, values, new.target) : new NativeDate(NativeDate.now() + offset).toString();
+    }
+    Object.setPrototypeOf(FixtureDate, NativeDate);
+    FixtureDate.prototype = NativeDate.prototype;
+    FixtureDate.now = () => NativeDate.now() + offset;
+    window.Date = FixtureDate;
+  }, FIXTURE_NOW);
+}
+
 /** Estado mínimo onboarded + sesión Supabase simulada (sin red).
  *  `overrides` se mezcla sobre el estado base (p.ej. {investments:[...]}) para que cada test
  *  no tenga que repetir el objeto entero. */

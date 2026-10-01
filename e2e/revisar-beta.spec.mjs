@@ -895,25 +895,39 @@ test("producción 4.26.67 conserva las siete tandas pendientes", async ({ page }
   await expect(panel).toContainText("En la próxima compra habitual");
 });
 
-test("INC-3009-01 añade una prueba sin retirar las siete pendientes", async ({ page }) => {
+test("guion de recibos71 retirado en favor de74 conserva las siete pendientes", async ({ page }) => {
   await abrirRevisionBeta(page);
   await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.71.1"; });
   const panel = await conProduccionEn(page, "4.26.67");
-  await expect(panel.locator(".beta-tanda")).toHaveCount(8);
-  for(const title of ["Recibos pagados y vencidos", "Arranque con poca conexión", "Ayuda de Mi ciclo", "Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada"]){
+  await expect(panel.locator(".beta-tanda")).toHaveCount(7);
+  await expect(panel).not.toContainText("Recibos pagados y vencidos");
+  for(const title of ["Arranque con poca conexión", "Ayuda de Mi ciclo", "Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada"]){
     await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(1);
   }
   await expect(panel).not.toContainText("Deudas terminadas");
 });
 
-test("INC-2909-02 conserva los ocho veredictos previos y no resucita tandas publicadas", async ({ page }) => {
+test("Inicio73 conserva sus pruebas tras trasladar el guion de recibos a74", async ({ page }) => {
   await abrirRevisionBeta(page);
   await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.73.1"; });
   const panel = await conProduccionEn(page, "4.26.67");
-  await expect(panel.locator(".beta-tanda")).toHaveCount(9);
-  for(const title of ["Presupuesto mensual de Inicio", "Recibos pagados y vencidos", "Arranque con poca conexión", "Ayuda de Mi ciclo", "Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada"]){
+  await expect(panel.locator(".beta-tanda")).toHaveCount(8);
+  for(const title of ["Presupuesto mensual de Inicio", "Arranque con poca conexión", "Ayuda de Mi ciclo", "Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada"]){
     await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(1);
   }
   await expect(panel).not.toContainText("Deudas terminadas");
   await expect(panel).not.toContainText("Inicio y Mi ciclo");
+});
+test("corrección74 conserva todas las tandas y muestra una sola prueba de recibos", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.74.1"; });
+  const panel=await conProduccionEn(page,"4.26.67");
+  await expect(panel.locator(".beta-tanda")).toHaveCount(9);
+  const gas=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:"Recibos pagados y vencidos"})});
+  await expect(gas).toHaveCount(1);
+  await expect(gas).toContainText("Paga un recibo");
+  await expect(panel).toContainText("Presupuesto mensual de Inicio");
+  for(const title of ["Arranque con poca conexión","Ayuda de Mi ciclo","Widget después de reabrir","Gasto del widget tras una compra","Clasificación de gastos bancarios","Banco del widget","Widget con la app cerrada"]){
+    await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(1);
+  }
 });
