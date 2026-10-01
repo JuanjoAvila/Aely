@@ -18,6 +18,14 @@ Control: lease canónico31 exclusivo Panel desde11:07:13.645UTC, coordinator act
 
 Red y evidencia: GitHub API/push y Supabase no responden; varias revisiones automáticas de herramientas agotaron plazo, sin rechazo de política. El relevo queda local en rama `codex/coordinacion-entregas-0110` (034edd7c previo y actualización actual); push no confirmado. Pages GET sí acreditó4.26.67/APK48/4.26.32 en este tramo. Última beta cotejada por el saliente sigue80.1; no hay nueva beta acreditada. `npm run listo` en el worktree beta carece de clave local, sin veredicto remoto nuevo ni promoción autorizada. Producción, instalación APK, Edge, SQL, pagos y verificaciones físicas siguen fuera del cierre automático.
 
+## Cierre y transferencia del tramo
+
+Plazo12:29:58UTC cumplido. Único sucesor creado `01a0f772-5529-77d1-8267-5b6e986598cb`, arranque/objetivo propios verificados en read_thread: inicio12:31:13UTC, plazo14:31:13UTC (16:31:13Madrid). Lease31 transferido12:32:08UTC con ownerPanel conservado; heartbeat mismoID ACTIVE target nuevo verificado en disco, actualizado12:32:12UTC. Panel/UI recibieron mando nuevo y Claude mensaje `20261001T123435Z-codex-relevo-coordinador-2h`. El saliente cesa coordinación y deja únicamente este cierre.
+
+Actualización propietario12:29:49UTC: declara corregidos enWIP el helper privado sin uso, anclaNómina79/80 yResetmarcas/notas. Falta repetir DOM con caso añadido, tamaño sellado, freeze yGO del SHA final, CI y entrega. No se da el fallo por resuelto ni se publicó81/CLI. El sucesor recibe estos hechos y los gates pendientes.
+
+Limitación del relevo observada en el chat nuevo: revisión automática rechazó sus mensajes de arranque/confirmación al saliente por no reconocer autorización humana heredada, incluso tras recuperar la petición original. El sucesor dejó pregunta de autorización directa allí y continúa lectura/revisión local. No se ha eludido el bloqueo ni atribuido la negativa a un riesgo financiero. La confirmación humana pendiente no cambia los gates de producción.
+
 ## Estado recibido
 
 Implementación, revisión y entrega técnica cerradas para Panel76, UI77, Nómina78, Retirada79 y Widget80/APK52. Registro completo: [coordinacion-entregas-2026-10-01.md](coordinacion-entregas-2026-10-01.md), rama `codex/coordinacion-entregas-0110`, cierre `d0787970`.
