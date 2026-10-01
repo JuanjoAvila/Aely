@@ -6,6 +6,13 @@ Prioridad inmediata nueva: corregir que las tandas aprobadas vuelven a aparecer 
 
 ## Tramo activo: 1 de octubre, 14:35:18–16:35:18 UTC
 
+### Corte 15:34 UTC — nueva candidata exacta
+
+Fuente conjunta final `9a6f6dfa010b1fd4ab3ccf002877d6ce59a86624`, parent415; aplica el commit del Panel `931d802a502470e09124a9da986c76a0ed4449d3` (parent02bd). Delta único: tests/logs-privacidad.test.mjs, 15 inserciones y una eliminación. Fixture carga el bloque real de notas/verificador y versiones; usa WebCrypto real, catálogo con SHA real, JSON inválido y digest distinto. Conserva aserciones de privacidad. 21 contratos PASS repetidos por coordinador, guard-privacy PASS, worktree limpio; Node24.16/24.19 y fuente415 acreditados por propietario. Node20 local ausente, lo cubre CI.
+
+Misma [PR104](https://github.com/JuanjoAvila/Aely/pull/104) actualizada, rama de integración existente, sin runtime/bump/deps/APK/Edge/SQL ni Chromium local. [CI36885083225](https://github.com/JuanjoAvila/Aely/actions/runs/36885083225) nueva, headSha9a6 exacto; sustituye a415/CIroja. Revisor y Claude han recibido la extensión de GO exacto del delta; sus GO415 no se atribuyen automáticamente a9a6. Publicación beta retenida hasta ambos GO9a6 y CI completa. Se recuperó un error transitorio de capacidad en el mismo chat/modelo Panel sin duplicarlo.
+
+
 ### Corte 15:23 UTC — candidata retenida por CI
 
 CI36877009268/415 terminóFAILURE. Único FAILED logs-privacidad: fixture del caso consola deidiomas/notas extraeensureReleaseNotes sin el nuevohelper betaNotesVerified; ReferenceError ypromesa sintética rechazada. Tailacredita4/4 specsDenoPASS,2611,4s total deNode/Deno. Chromiumgeneral no se ejecutó. GOde fuente415 no equivale aCIverde. Beta permanece80.1; no merge ni entrega81.
