@@ -28,6 +28,16 @@ Lease36 reservado exclusivamente aPanel por coordinador actual, tras cotejar35ow
 
 Consulta mínima autorizada del administrador/veredictos completada: se acredita exactamente un administrador, sin mostrarUID/credencial ni leer finanzas. Último parte observado10:13:34UTC/80.1, mismo conjunto reciente de Nómina/Retirada/Widget y tresUI ya conocido; no nuevos posteriores. Solo metadata no acredita equivalencia ni producción. Manifiesto beta asset602943535 leído17:09UTC:4.26.80.1/src50b3327daf00a8d0; noZIP82publicado. Consulta branchmain fallóTCP; no afirmar refresco remoto nuevo de main.
 
+### Corte18:02 UTC: DOM cerrado, guardián Node pendiente
+
+Panel acredita los tres DOM nuevos en es/en/ca: catálogo mixto de17 bloques con checklist actual única, marcas y comentario conservados al llegar producción y16 al declarar la nota vacía. Suite afectada completa70/70 PASS en137,10s,0 fallos/omitidos/flaky; once guardianes rápidos verdes. HTML local y servido por el banco de pruebas: b86879be3b818ed08077222310de95d7d0ebf3f78cc6ab30f48cee58166dbc80. No es el HTML servido por la release beta.
+
+A/B sellado local: +78B minificados/+24B gzip frente a450, con413/348B de margen en los límites actuales. Las quince huellas web ajenas al Panel yAPK80/code52 permanecen idénticas. No extrapolar este tamaño aZIP publicado. Guardián de alcances Node aún en curso; candidata82 sin commit final, GO ni nuevaCI.
+
+Liberación expresa delease36 recibida: Chromium/servidor4578 cerrados, puerto sin listener y auxiliares retirados. Coordinador reflejóownerNULL; no nueva reserva. Main cotejada de nuevo porAPI a17:36:12884f48107b82ffc8592c51180f2074a8546139. Manifiesto beta sigue80.1 en último refresco propio17:09; no publicación nueva. CI450/36894097072 seguía in_progress en el corteAPI17:36; detalle falló porTCP después, no inferir resultado ni GO.
+
+Antes de integrar: esperar commit terminado del mismoPanel, cotejar parent/delta/árbol y generatedHTML, repetir sintaxis/mapa/frescura/privacidad, dos reviews porSHA final y nuevaCI completa. Revisor idle trasNO-GO; Claude único existente será llamado por el nuevoSHA. Su sonda local _claude-repro-implicita.mjs sigue en el buzón; pedir a su propietario retirarla al cerrar la revisión, conservar el contrato permanente. No borrar ramas/worktrees. A18:36:01UTC transferir al único sucesor el mismolease/heartbeat sin cortar pruebas o publisher.
+
 ## Tramo cerrado: 1 de octubre, 14:35:18–16:35:18 UTC
 
 Corte de estado 16:24 UTC. Coordinador único `01a0f7e3-ecc5-7f20-a40d-c71a043343a7`; objetivo propio desde reloj UTC, plazo propio 16:35:18 UTC (18:35:18 Madrid). Transferencia expresa recibida del saliente. Lease35 owner Panel01a0f419-3825-7550-be70-37e4e0cb320e, coordinator actual. Reserva exclusiva para reproducir/corregir CI; no transferir como libre ni abrir otro Chromium. Mismo heartbeat `relevo-aely-cada-2-horas` ACTIVE y target actual. No existe otro sucesor; se crea exactamente uno al cumplir el plazo.
