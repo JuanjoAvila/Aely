@@ -1,5 +1,7 @@
 # Aely
 
+En Ajustes → Revisar la beta, el resultado sigue a la comprobación y su código. Un cambio requiere nueva revisión y conserva el historial; la aprobación y la entrega se muestran por separado.
+
 OPS-02: Ajustes → Copia de seguridad → Copias automáticas → Ver copia permite comparar sin sustituir la cartera.
 Inicio muestra el gasto bruto en el mes natural; con presupuesto por ciclo y nómina reconocida muestra el gasto neto tras los ingresos recibidos y el margen que queda. Plan deja de prever un ingreso que el banco ya identifica claramente.
 En Ajustes → Dinero, «Presupuesto por ciclo de cobro» permite reiniciar el presupuesto con la nómina registrada; Gastos abre en «Mi ciclo». Su explicación se puede plegar y recuperar con Ayuda sin ocultar la fecha del cobro. El widget Android mantiene el mes natural.
@@ -29,6 +31,9 @@ En Plan → Deudas, un saldo estimado a cero pide confirmar la liquidación. Des
 
 ```
 mi-cartera/
+├── scripts/beta-source-code.mjs # Guardia de funciones/datos transitivos y delimitación por sintaxis, sin dependencias
+├── scripts/beta-sources.json # Alcances explícitos de revisión; beta-revisions.mjs genera digests/recibo
+├── tests/beta-veredictos.test.mjs # Contrato compartido del panel y listo; beta-sources protege el ensamblado
 ├── src/                    # 👈 Fuente editable (v3.108+)
 │   ├── shell.html          #     HTML shell (React, CSS, vendors)
 │   ├── build-order.json    #     Orden de ensamblado de módulos
@@ -88,7 +93,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.74**, integración beta de la corrección de recibos sobre Inicio73 y su acta/e6d00dde. Gastos permite confirmar el pago completo con factura variable, otro nombre o banco, conserva la prueba sin extracto local y permite deshacer. Nueva integración todavía sin publicar ni aceptación móvil. Producción **4.26.67**, última beta cotejada **4.26.73.1**, APK48 estable/APK51 beta. Se conservan todas las tandas anteriores. [Contrato y evidencia](docs/briefs/inc-3009-01-cargos.md).
+Estado actual: **v4.26.75**, integración local del panel sobre Recibos74/9ecd6a17. Tres revisiones idénticas conservan aprobaciones; cuatro cambios financieros web conservan historial y requieren nueva revisión. Publicación75, revisión exacta y prueba móvil pendientes. Producción **4.26.67**, beta cotejada **4.26.74.1**/9ecd6a17, APK48 estable/APK51 beta. [Contrato y evidencia](docs/briefs/ops-3009-03-panel-beta.md).
 
 Inicio73 quedó publicado y cotejado el30/9 a20:55UTC con CI completa SUCCESS; su prueba móvil sigue pendiente. [Acta conservada](docs/briefs/inc-2909-02-inicio-natural.md).
 

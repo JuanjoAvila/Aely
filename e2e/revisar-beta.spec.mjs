@@ -187,8 +187,21 @@ test("no se puede aprobar con cosas sin probar ni con fallos marcados", async ({
  *
  * Por eso aquí se FIJA la versión de producción con un doble, en vez de depender de la red: así
  * el caso se prueba igual en el portátil que en CI. */
-async function conProduccionEn(page, version) {
-  await page.evaluate((v) => { window._mcProdVersion = () => Promise.resolve(v); }, version);
+async function conProduccionEn(page, version, delayMs = 0) {
+  // La app pide versión web y APK estable a la vez. Salvo que el test fije la APK, se da por
+  // entregada: si no, las tandas nativas reales se colarían en las rondas sintéticas.
+  await page.evaluate(({ v, delayMs }) => {
+    window._mcProdVersion = () => delayMs ? new Promise(resolve => setTimeout(() => resolve(v), delayMs)) : Promise.resolve(v);
+    if (window._mcProdApk === undefined) window._mcProdApk = 9999;
+    if (window._mcProdEntregas === undefined) {
+      window._mcProdEntregas = { web:{}, edge:{} };
+      window._mcProdApkRevisiones = {};
+      RELEASE_NOTES.filter(n => !mcIsNewer(n.v,v)).forEach(n => (n.tandas||[]).forEach(g => {
+        window._mcProdEntregas.web[g.id]=g.web;
+        if (window._mcProdApk >= g.apk) { window._mcProdApkRevisiones[g.id]=g.native; window._mcProdEntregas.edge[g.id]=g.edge; }
+      }));
+    }
+  }, { v: version, delayMs });
   const host = "e2e-beta-prod-" + Math.random().toString(36).slice(2, 7);
   await page.evaluate((id) => {
     const h = document.createElement("div");
@@ -566,10 +579,14 @@ test("panel: ronda multi-versión pinta tandas, marks por índice y aprobar una 
   await expect(tandas.nth(1).getByRole("button", { name: /Aprobar esta tanda/i })).toBeVisible();
   await expect(tandas.nth(1)).not.toContainText(/✅ aprobada/i);
   const sent = await page.evaluate(() => store.get("_betaReview_" + CONFIG.APP_VERSION + "_v"));
-  expect(sent).toEqual({ "9.9.2/nueva": "approved" });
   const reports = await page.evaluate(() => window.__betaReports);
   expect(reports).toHaveLength(1);
   expect(reports[0].tanda).toBe("9.9.2/nueva");
+  // Desde 4.26.75 el parte guarda también la huella: es lo que lo casa si la tanda cambia de versión.
+  expect(reports[0].huella).toMatch(/^[0-9a-f]{8}$/);
+  expect(sent["9.9.2/nueva"]).toBe("approved");
+  expect(sent._h).toBe(1);
+  expect(sent["h:" + reports[0].huella]).toMatchObject({verdict:"approved",at:expect.any(Number)});
   expect(reports[0].verdict).toBe("approved");
   // Aprobar encoge solo esa tanda; abrir/cerrar no cambia sus marcas ni manda otro parte.
   const toggle = tandas.nth(0).locator(".beta-tanda-toggle");
@@ -589,6 +606,7 @@ test("panel: ronda multi-versión pinta tandas, marks por índice y aprobar una 
   await expect(first.locator(".beta-tanda-toggle")).toHaveAttribute("aria-expanded", "false");
   await first.locator(".beta-tanda-toggle").click();
   await first.getByRole("button", { name:/Cambiar de opinión/ }).click();
+  expect(await page.evaluate(() => window.__betaReports.at(-1).verdict)).toBe("revoked");
   await expect(first.getByRole("button", { name:/Aprobar esta tanda/ })).toBeEnabled();
   await expect(again.locator(".beta-tanda").nth(1).getByRole("button", { name:/Aprobar esta tanda/ })).toBeDisabled();
   await page.evaluate(() => { document.querySelector(".beta-review").remove(); CONFIG.APP_VERSION="9.9.2.9"; });
@@ -624,12 +642,12 @@ test("un fallo en una tanda NO bloquea aprobar las otras", async ({ page }) => {
   // Compilación de la ronda VIVA (RELEASE_NOTES[0]), no un número clavado de una ronda ya cerrada.
   await page.evaluate(() => { CONFIG.APP_VERSION = RELEASE_NOTES[0].v + ".7"; });
   const prev = await conTandasDePrueba(page);
-  const panel = await conProduccionEn(page, prev);
+  // El primer render aún no conoce prod: CI contaba la ronda real antes del efecto.
+  const panel = await conProduccionEn(page, prev, 250);
   await expect(panel).toBeVisible();
 
   const tandas = panel.locator(".beta-tanda");
-  const n = await tandas.count();
-  expect(n, "esta prueba siembra 2 tandas").toBe(2);
+  await expect(tandas, "la producción asíncrona deja solo las dos tandas sembradas").toHaveCount(2);
 
   const primera = tandas.nth(0), segunda = tandas.nth(1);
 
@@ -930,4 +948,117 @@ test("corrección74 conserva todas las tandas y muestra una sola prueba de recib
   for(const title of ["Arranque con poca conexión","Ayuda de Mi ciclo","Widget después de reabrir","Gasto del widget tras una compra","Clasificación de gastos bancarios","Banco del widget","Widget con la app cerrada"]){
     await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(1);
   }
+});
+
+/* 30/9: aprobó las cinco nativas tres veces porque cada promoción web las movía de versión.
+   Su móvil guarda el parte como «4.26.67/id»; en 4.26.68 el panel debe reconocerlo. */
+const NATIVAS = ["Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada"];
+
+async function panelRevisionExacta(page, lang, scenario) {
+  await abrirRevisionBeta(page);
+  await page.evaluate(async ({lang,scenario}) => {
+    await ensureLangPack(lang); CURLANG=lang;
+    CONFIG.APP_VERSION="9.9.3.1";
+    const g={id:"revision", t:"Revisión sintética", items:{es:["1. Comprobar A","2. Comprobar B"]},
+      codigo:"a".repeat(64),web:"b".repeat(64),native:"c".repeat(64),apk:51};
+    const old=betaHuella(g.id,g.t,g.items.es,1,g.codigo);
+    if(scenario==="changed") { g.codigoDesde=g.codigo; g.revisionesDesde={web:g.web,native:g.native}; g.native="e".repeat(64); g.codigo="d".repeat(64); }
+    RELEASE_NOTES=[{v:"9.9.3",t:"Escenario",tandas:[g],items:{es:[]}}];
+    window._mcProdApk=9999;
+    window._mcProdEntregas={web:{revision:g.web}};
+    window._mcProdApkRevisiones={revision:"otra-revision"};
+    const verdict=scenario==="rejected"?"rejected":"approved";
+    store.set("_betaReview_9.9.2.1_v",{_h:1,["h:"+old]:{verdict,at:100}});
+    store.set("_betaReviewOk",{"1. Comprobar A":"ok","2. Comprobar B":"ok"});
+    store.set("_betaMarksHuella",{"1. Comprobar A":old,"2. Comprobar B":old});
+    window.__betaReports=[];
+    cloud.betaReport=p => { window.__betaReports.push(mcBetaLog(p)); return Promise.resolve(); };
+  },{lang,scenario});
+  return conProduccionEn(page,"9.9.9");
+}
+
+for(const lang of ["es","en","ca"]) {
+  test(`revisión exacta: tres fuentes idénticas conservan OK y cuatro cambios web piden nueva revisión (${lang})`, async ({page}) => {
+    await abrirRevisionBeta(page);
+    await sembrarAprobadasEn4267(page);
+    await page.evaluate(async lang => { await ensureLangPack(lang); CURLANG=lang; window._mcProdApk=48; },lang);
+    const panel=await conProduccionEn(page,"4.26.67");
+    for(const title of ["Clasificación de gastos bancarios","Arranque con poca conexión","Ayuda de Mi ciclo"]) {
+      const fila=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:title})});
+      await expect(fila.locator(".beta-tanda-n")).toContainText("aprobada");
+      await expect(fila.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/})).toHaveCount(0);
+    }
+    for(const title of NATIVAS.filter(x=>x!=="Clasificación de gastos bancarios")) {
+      const fila=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:title})});
+      await expect(fila.locator(".beta-tanda-n")).toHaveText(/^0\/\d+$/);
+      await expect(fila.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/})).toContainText("web");
+      await expect(fila.getByRole("button",{name:/Aprobar esta tanda/})).toBeDisabled();
+    }
+  });
+  test(`revisión exacta: rechazo trasladado sigue vetando con producción mayor (${lang})`, async ({page}) => {
+    const panel=await panelRevisionExacta(page,lang,"rejected");
+    await expect(panel.locator(".beta-tanda")).toHaveCount(1);
+    await expect(panel.locator(".beta-tanda-n")).toContainText("rechazada");
+    await expect(panel).not.toContainText("ya pasó por aquí");
+  });
+  test(`revisión exacta: código nuevo exige puntos y veredicto nuevos (${lang})`, async ({page}) => {
+    const panel=await panelRevisionExacta(page,lang,"changed");
+    await expect(panel.locator(".beta-tanda-n")).toHaveText("0/2");
+    await expect(panel.getByRole("button",{name:/Aprobar esta tanda/})).toBeDisabled();
+    await expect(panel).not.toContainText("✅ aprobada");
+    await expect(panel.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/})).toContainText("Android");
+  });
+  test(`revisión exacta: retirar se registra en servidor y conserva OK si falla (${lang})`, async ({page}) => {
+    const panel=await panelRevisionExacta(page,lang,"approved");
+    await panel.locator(".beta-tanda-toggle").click();
+    await page.evaluate(() => { cloud.betaReport=() => Promise.reject(new Error("fallo sintético")); });
+    await panel.getByRole("button",{name:/Cambiar de opinión/}).click();
+    await expect(panel.locator(".beta-tanda-n")).toContainText("aprobada");
+    await page.evaluate(() => { cloud.betaReport=p => { window.__betaReports.push(mcBetaLog(p)); return Promise.resolve(); }; });
+    await panel.getByRole("button",{name:/Cambiar de opinión/}).click();
+    await expect(panel.getByRole("button",{name:/Aprobar esta tanda/})).toBeEnabled();
+    const part=await page.evaluate(() => window.__betaReports.at(-1));
+    expect(part.verdict).toBe("revoked");
+    expect(part.huella).toMatch(/^[0-9a-f]{8}:[0-9a-f]{64}$/);
+    await panel.getByRole("button",{name:/Empezar la revisión de cero/}).click();
+    expect(await page.evaluate(h => store.get("_betaReview_9.9.3.1_v")["h:"+h].verdict,part.huella)).toBe("revoked");
+    expect(await page.evaluate(() => betaVerdictFor(betaChecklist(CONFIG.APP_VERSION,"9.9.9",9999).tandas[0],
+      [window.__betaReports.at(-1),{huella:window.__betaReports.at(-1).huella,verdict:"approved"}]))).toBeNull();
+  });
+}
+async function sembrarAprobadasEn4267(page) {
+  await page.evaluate(() => {
+    CONFIG.APP_VERSION = "4.26.71.1";
+    const pack = betaChecklist(CONFIG.APP_VERSION,"4.26.67",48);
+    const partes = {}, marcas = {};
+    pack.tandas.filter((g) => g.historial.length).forEach((g) => {
+      partes[g.historial[0]] = "approved";
+      rnItems(g, "es").forEach((it) => { marcas[it] = "ok"; });
+    });
+    store.set("_betaReview_4.26.68.1_v", partes);
+    store.set("_betaReviewOk", marcas);
+  });
+}
+
+test("las nativas conservan el historial y solo TR conserva la aprobación idéntica", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  await sembrarAprobadasEn4267(page);
+  await page.evaluate(() => { CONFIG.APP_VERSION="4.26.75.1"; window._mcProdApk = 48; window._mcProdEntregas=null; });
+  const panel = await conProduccionEn(page, "4.26.67");
+  for (const title of NATIVAS) {
+    const fila = panel.locator(".beta-tanda").filter({ has: page.locator(".beta-tanda-t", { hasText: title }) });
+    if(title==="Clasificación de gastos bancarios") await expect(fila.locator(".beta-tanda-n")).toContainText("aprobada");
+    else await expect(fila.locator(".beta-tanda-n")).toHaveText(/^0\/\d+$/);
+  }
+  const recibos = panel.locator(".beta-tanda").filter({ has: page.locator(".beta-tanda-t", { hasText: "Recibos pagados y vencidos" }) });
+  await expect(recibos.locator(".beta-tanda-n")).not.toContainText("aprobada");
+});
+
+test("producción web por delante no retira las nativas mientras la APK estable no las lleve", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.71.1"; window._mcProdApk = 48; window._mcProdEntregas=null; });
+  const panel = await conProduccionEn(page, "4.26.69");
+  for (const title of NATIVAS) await expect(panel.locator(".beta-tanda-t").filter({ hasText: title })).toHaveCount(1);
+  await expect(panel.locator(".beta-tanda-t").filter({ hasText: "Ayuda de Mi ciclo" })).toHaveCount(1);
+  await expect(panel.locator(".beta-tanda-t").filter({ hasText: "Recibos pagados y vencidos" })).toHaveCount(0);
 });

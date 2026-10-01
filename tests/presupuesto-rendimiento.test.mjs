@@ -112,7 +112,10 @@ const PRESUPUESTO = {
   // y el sello beta; sin nuevas dependencias ni peticiones bloqueantes.
   // Rekey del editor y bruto real separado de previsión personal: +1 KiB medido,
   // sin cambiar el calendario ni inferir un coste propio a partir del cargo compartido.
-  minificado: 1246 * 1024,
+  // Panel75 sobre Recibos74: 1.278.280 B min y 347.946 B gzip frente a
+  // 1.275.031 / 346.752 B de la base. +3 KiB crudos conserva el historial y
+  // las identidades por superficie; el gzip sigue bajo 340 KiB sin ampliación.
+  minificado: 1249 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

@@ -96,7 +96,20 @@ async function versionDeProduccion() {
   return null;
 }
 const prod = await versionDeProduccion();
-const pack = cli.betaChecklist(VERSION, prod || "");
+// La APK estable decide si una tanda nativa ya se entregó (misma regla que el panel).
+async function apkDeProduccion() {
+  try {
+    const r = await fetch("https://juanjoavila.github.io/Aely/apk.json", { redirect: "follow" });
+    if (r.ok) { const j = await r.json(); cli.window._mcProdApkRevisiones=j&&j.revisiones||null; if (j && j.versionCode > 0) return Number(j.versionCode); }
+  } catch { /* sin red: las tandas nativas siguen pendientes */ }
+  return null;
+}
+const prodApk = await apkDeProduccion();
+try {
+  const r = await fetch("https://juanjoavila.github.io/Aely/beta-delivery.json", { redirect: "follow" });
+  cli.window._mcProdEntregas = r.ok ? await r.json() : null;
+} catch { cli.window._mcProdEntregas = null; }
+const pack = cli.betaChecklist(VERSION, prod || "", prodApk);
 const tandas = pack.tandas || [];
 
 /* ---- Sus veredictos: el ÚLTIMO de cada tanda manda ---- */
@@ -114,19 +127,21 @@ if (!res.ok) {
 }
 const rows = await res.json();
 
-// `detail` puede venir como objeto o como texto; y el más reciente gana porque la lista va desc.
-const veredicto = {};
+// `detail` puede venir como objeto o como texto. La lista va de nuevo a viejo y `betaVerdictFor`
+// se queda con el primero que aplica a la revisión actual (huella, id o alias `desde`).
+const partes = [];
 for (const r of rows) {
   let d = r.detail;
   if (typeof d === "string") { try { d = JSON.parse(d); } catch { d = null; } }
   if (!d || !d.tanda || !d.verdict) continue;
-  if (veredicto[d.tanda]) continue;            // ya teníamos uno más nuevo
-  veredicto[d.tanda] = {
+  partes.push({
+    tanda: d.tanda,
+    huella: d.huella || null,
     verdict: d.verdict,
     version: d.version || r.app_version || "",
     cuando: r.created_at,
     fallos: Number(d.fallos) || 0,
-  };
+  });
 }
 
 /* ---- ¿Se puede subir esa tanda SOLA? Solo si tiene su rama ---- */
@@ -138,8 +153,12 @@ const ramas = new Set(
 const idCorto = (id) => String(id).indexOf("/") >= 0 ? String(id).split("/").slice(1).join("/") : String(id);
 
 const filas = tandas.map((g) => {
-  const v = veredicto[g.id] || null;
+  const v = cli.betaVerdictFor(g, partes);
   const corto = idCorto(g.id);
+  // Historia exacta declarada en notas: mostrar el rechazo previo no lo aplica a otra revisión
+  // ni convierte un código corregido en aprobado. Nunca se casan partes por sufijo.
+  const idsHistoricos = [g.id].concat(g.historial || [], cli.RELEASE_NOTES.flatMap(n => (n.tandas || []).filter(x => x.id === corto).map(x => n.v + "/" + x.id)));
+  const rechazoAnterior = partes.find(p => p.verdict === "rejected" && idsHistoricos.includes(p.tanda));
   return {
     id: g.id,
     corto,
@@ -147,18 +166,23 @@ const filas = tandas.map((g) => {
     estado: v ? v.verdict : "sin probar",
     cuando: v ? v.cuando : null,
     version: v ? v.version : null,
+    heredado: v && v.tanda !== g.id ? v.tanda : null,
+    apk: g.apk || null,
+    entregaPendiente: cli.betaSinEntregar(g, prodApk),
+    superficies: [g.native ? "APK" : null, g.edge ? "Edge" : null].filter(Boolean),
+    rechazoAnterior: rechazoAnterior ? { tanda:rechazoAnterior.tanda, cuando:rechazoAnterior.cuando, version:rechazoAnterior.version } : null,
     rama: ramas.has(corto) ? `tanda/${corto}` : null,
   };
 });
 
 if (flag("json")) {
-  console.log(JSON.stringify({ version: VERSION, produccion: prod, tandas: filas }, null, 2));
+  console.log(JSON.stringify({ version: VERSION, produccion: prod, apkProduccion: prodApk, tandas: filas }, null, 2));
   process.exit(0);
 }
 
 const ico = { approved: "✅", rejected: "⛔", "sin probar": "⬜" };
 console.log("\n📦  LISTO PARA PRODUCCIÓN\n");
-console.log(`  en su móvil ${VERSION_CANAL || VERSION_REPO + " (del repo: sin red para leer el canal)"} · producción ${prod || "(sin red)"}`);
+console.log(`  en su móvil ${VERSION_CANAL || VERSION_REPO + " (del repo: sin red para leer el canal)"} · producción ${prod || "(sin red)"} · APK estable ${prodApk || "(sin red)"}`);
 if (VERSION_CANAL && VERSION_CANAL.indexOf(VERSION_REPO) !== 0) {
   console.log(`  ⚠ aquí hay ${VERSION_REPO} sin publicar: sus tandas todavía no le han llegado.`);
 }
@@ -173,15 +197,18 @@ for (const f of filas) {
   const cuando = f.cuando ? new Date(f.cuando).toLocaleString("es-ES", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
   console.log(`  ${ico[f.estado] || "·"} ${f.titulo || f.id}`);
   console.log(`      ${f.id}${cuando ? "  ·  " + cuando : ""}${f.version ? "  ·  probada en " + f.version : ""}`);
+  if (f.heredado) console.log(`      ↳ veredicto de ${f.heredado}, mismo contenido`);
+  if (f.estado === "sin probar" && f.rechazoAnterior) console.log(`      ⛔ rechazo histórico de ${f.rechazoAnterior.tanda}; esta revisión requiere veredicto nuevo`);
+  if (f.entregaPendiente && f.estado === "approved") console.log(`      ⏳ aprobada, pendiente de entrega exacta${f.superficies.length ? ": " + f.superficies.join(" + ") : " web"}`);
   if (f.estado === "approved") {
-    console.log(f.rama
+    console.log(f.superficies.length ? `      ⚠ requiere entrega acreditada de ${f.superficies.join(" y ")}; la rama web no entrega esas superficies` : f.rama
       ? `      ↑ se puede subir sola:  rama ${f.rama}`
       : `      ⚠ aprobada pero SIN rama propia: no se puede subir sola (está mezclada en beta)`);
   }
 }
 
 const aprobadas = filas.filter((f) => f.estado === "approved");
-const conRama = aprobadas.filter((f) => f.rama);
+const conRama = aprobadas.filter((f) => f.rama && !f.superficies.length);
 const sinRama = aprobadas.filter((f) => !f.rama);
 const pendientes = filas.filter((f) => f.estado !== "approved");
 
@@ -198,7 +225,7 @@ if (sinRama.length) {
   sinRama.forEach((f) => console.log(`    · ${f.corto}`));
   console.log("    Suben cuando suba la ronda entera, o sea cuando no quede nada pendiente.\n");
 }
-if (!pendientes.length) {
+if (!pendientes.length && !filas.some(f => f.superficies.length)) {
   console.log("  ✔ NO QUEDA NADA PENDIENTE: la ronda entera está aprobada.");
   console.log("    Actions → «Promocionar beta a producción», deja «tandas» vacío y confirma SUBIR.\n");
 } else {

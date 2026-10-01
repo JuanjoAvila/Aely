@@ -46,6 +46,8 @@ const steps = [
   ["aely-logo-unico", ["node", "tests/aely-logo-unico.test.mjs"]],
   ["release-notes-max", ["node", "tests/release-notes-max.test.mjs"]],
   ["beta-tandas-vacias", ["node", "tests/beta-tandas-vacias.test.mjs"]],
+  ["beta-veredictos", ["node", "tests/beta-veredictos.test.mjs"]],
+  ["beta-sources", ["node", "tests/beta-sources.test.mjs"]],
   ["novedades-idiomas", ["node", "tests/novedades-idiomas.test.mjs"]],
   ["categorias-dual", ["node", "tests/categorias-dual.test.mjs"]],
   ["suministros-legacy", ["node", "tests/suministros-legacy.test.mjs"]],
