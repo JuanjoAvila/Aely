@@ -4,6 +4,12 @@ Petición humana de 1/10/2026: conservar la coordinación y el objetivo, trabaja
 
 Prioridad inmediata nueva: corregir que las tandas aprobadas vuelven a aparecer pendientes al implementar otra entrega. El propietario del panel ya recibió el encargo completo: reproducir sobre beta80.1, corregir, registrar tests y preparar PR. Criterio DOM: aprobar A, añadir B sin cambiar A, actualizar/reiniciar y comprobar A aprobada/plegada y solo B pendiente. Conservar rechazo/revocación posterior y reabrir exclusivamente la tanda cuyo alcance funcional o guion haya cambiado realmente. Auditar scopes, digests, recibo, identidad, bootstrap y migración con datos sintéticos; no borrar veredictos ni fabricar aprobaciones. No repetir todas las validaciones por un cambio ajeno, versión o sello global.
 
+## Tramo activo: 1 de octubre, 10:29:58–12:29:58 UTC
+
+Coordinador único `01a0f702-cf78-7210-953b-b0561bd0c13f`, inicio `2026-10-01T10:29:58Z`, plazo `2026-10-01T12:29:58Z` (12:29:58–14:29:58 Madrid). Objetivo propio creado y transferencia confirmada por el saliente `01a0f653-42f0-7ed0-80a8-29ed5837b446`; este ha cesado. Lease canónico 30 con coordinator nuevo y owner=null al recibirlo. Única automatización `relevo-aely-cada-2-horas`, ACTIVE, dirigida a este coordinador; creación 10:29:30.801 UTC, por lo que un aviso adelantado requiere esperar hasta el plazo exacto, sin aplazar la rotación otras dos horas.
+
+Panel `01a0f419-3825-7550-be70-37e4e0cb320e` implementa la regresión en aislamiento desde fuente `955765a9`; no se duplica. Revisor UI `01a0f549-1713-7352-bed4-df36e036f760` recibe revisión independiente del contrato y negativos sin Chromium. Claude recibe por el canal existente el encargo `20261001T103700Z-codex-validaciones81-pre-review`: matriz y revisión independiente por SHA, sin duplicar implementación. La versión 81 de ese identificador es provisional; no acredita reserva ni publicación. Ningún arreglo está todavía entregado. Publicación, versión final y Chromium quedan serializados por el coordinador.
+
 ## Estado recibido
 
 Implementación, revisión y entrega técnica cerradas para Panel76, UI77, Nómina78, Retirada79 y Widget80/APK52. Registro completo: [coordinacion-entregas-2026-10-01.md](coordinacion-entregas-2026-10-01.md), rama `codex/coordinacion-entregas-0110`, cierre `d0787970`.
