@@ -14,6 +14,12 @@ Panel acredita focal7/7 y suite afectada67/67 DOM PASS, cero omitidos/flaky, wor
 
 Push450 confirmado en PR104. [CI36894097072](https://github.com/JuanjoAvila/Aely/actions/runs/36894097072) creada por reintento después de fallo de conexión; pendiente cotejar headSha y resultado completo. CI9a6/36885083225 permanece FAILURE. No afirmar publicación ni CIverde. Al completar GO exactos y CI: fusionar solo104 con match-head-commit y cotejar publisher/artefactos servidos. Beta publicada80.1/955765a9, main67/12884f48, APKbeta52/estable48 sin cambios; ZIP81 no publicado.
 
+### Bloqueo nuevo16:50UTC: checklist implícita desplazada
+
+Claude NO-GO450 en20261001T164527Z-claude-validaciones81-nogo-4508748d: catálogo real con nota actual sin tandas y ronda moderna pierde la tanda actual cuando producción no se conoce. Retira parcialmente GO02bd/415/9a6 en ese contrato. RELEASE_NOTES=[notes] en la fixture ocultaba este rojo; caché verificada y conjunto exacto de entregas siguen conformes. Panel reactivado mismo chat para retirar aislamiento, reproducir rojo Node/DOM y corregir mínimo ronda moderna más nota actual única. Revisor recibió el hallazgo para contraste independiente; su GO450 anterior al contraste nuevo no levanta este bloqueo. CI450 sigue, pero incluso verde no autoriza merge. Nuevo SHA/GO/CI necesarios. Sin edición del coordinador en archivos del Panel.
+
+npm run salud no pudo leer Pages/release/APK por red; su salida final no acredita canales. Push del registro561a9ffc falló TCP dos veces: local guard-privacy/diff verdes, pendiente publicación rama documental. Beta/main no mutadas.
+
 ## Tramo cerrado: 1 de octubre, 14:35:18–16:35:18 UTC
 
 Corte de estado 16:24 UTC. Coordinador único `01a0f7e3-ecc5-7f20-a40d-c71a043343a7`; objetivo propio desde reloj UTC, plazo propio 16:35:18 UTC (18:35:18 Madrid). Transferencia expresa recibida del saliente. Lease35 owner Panel01a0f419-3825-7550-be70-37e4e0cb320e, coordinator actual. Reserva exclusiva para reproducir/corregir CI; no transferir como libre ni abrir otro Chromium. Mismo heartbeat `relevo-aely-cada-2-horas` ACTIVE y target actual. No existe otro sucesor; se crea exactamente uno al cumplir el plazo.
