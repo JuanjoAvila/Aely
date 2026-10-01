@@ -32,6 +32,17 @@ const finState = { budget: 1000, accounts: [{ ent: "trade_republic", role: "diar
   settings: { gTotalMode: "net" }, reservaLog: [], expenses: finRows.map(finApp.expenseFromRow) };
 finState.deleted = finState.expenses.slice(1).map(finApp.keyOfExpense);
 const finBefore = finApp.monthBudgetStats(finState, finNow);
+// Se ejecuta el bloque real de cobertura del pull: una foto del 2/10 debe acreditar el pago
+// del 29/9 si el ciclo sigue abierto, sin convertir una fila futura en un ACK (NO-GO Claude).
+const ackNow=Date.parse("2026-10-02T12:00:00Z"), ackStart=Date.parse("2026-09-26T00:00:00+02:00");
+const ackRows=[{id:"row29",fecha:"2026-09-29T10:00:00Z",source:"macrodroid",ingest_event_id:"tr:ev29"},
+  {id:"future",fecha:"2026-10-03T10:00:00Z",source:"macrodroid",ingest_event_id:"future"}];
+const mainSource=fs.readFileSync(path.join(root,"src/modules/11-app-main.js"),"utf8");
+const ackBlock=mainSource.match(/if\(ps!==wS.current\) return wP.current;([\s\S]*?)\/\/ FIN-07/)[1];
+const ackRef={current:""};
+new Function("rows","wC","inicioDeMesMs","Date",ackBlock)(ackRows,ackRef,finApp.inicioDeMesMs,{now:()=>ackNow,parse:Date.parse});
+const cycleAck=Array.isArray(ackRef.current)?finApp.widgetCoveredEvents(ackRef.current,ackStart,ackNow,true):ackRef.current;
+assert.ok(!cycleAck.includes("future"),"una fila futura no acredita recepción efectiva del pago");
 const finPay = { id: "pay", fecha: "2026-09-27T10:00:00Z", importe: 5.45, cat: "super", source: "macrodroid", comercio: "Pago ficticio" };
 const finAfterApp = finApp.monthBudgetStats({ ...finState, expenses: finState.expenses.concat(finApp.expenseFromRow(finPay)) }, finNow);
 const finAfterServer = finServer.statsDelMes(finServer.filasComoLaApp(finRows.concat(finPay), finState.deleted), finState, finPeriod);
@@ -181,12 +192,82 @@ public class WidgetSnapshotArbiterTest {
     ok(oversized.journalFull); eq(oversized.spent,40);
     ok(WidgetSnapshotArbiter.app(oversized,sep,50,100,50.0,140.0,190.0,"trade_republic","Cuenta","|"+largeEvent+"|",""));
     ok(!oversized.journalFull); ok(oversized.journal.isEmpty()); eq(oversized.cash(),190);
+    // INC-2909-01 E2: la ventana del widget (mes natural o ciclo desde el cobro).
+    long day=86400000L, cobro=sep+25*day, oct3=oct+2*day;
+    ok(!WidgetPeriod.clientV2(0)); ok(!WidgetPeriod.clientV2(1)); ok(WidgetPeriod.clientV2(2));
+    WidgetSnapshotArbiter.State crossing=base(cobro,"trade_republic");
+    ok(WidgetSnapshotArbiter.app(crossing,cobro,100,1000,900.0,900.0,1000.0,"trade_republic","Cuenta","",""));
+    ok(ing(crossing,WidgetSnapshotArbiter.begin(crossing),cobro,cobro,100,"tr:ev29",130,1000,870,30,true,true));
+    ok(WidgetSnapshotArbiter.app(crossing,cobro,130,1000,870.0,870.0,970.0,"trade_republic","Cuenta",${JSON.stringify(cycleAck)},""));
+    eq(crossing.spent,130); eq(crossing.cash(),970); ok(crossing.journal.isEmpty());
+    WidgetSnapshotArbiter.State absent=base(cobro,"trade_republic");
+    ok(WidgetSnapshotArbiter.pendingUnknown(absent,"tr:ev29","row29"));
+    ok(WidgetSnapshotArbiter.app(absent,cobro,100,1000,900.0,900.0,1000.0,"trade_republic","Cuenta","",""));
+    ok(absent.unknownPending); // sin ACK el mismo ciclo sigue incierto al cruzar el día 1
+    ok(WidgetSnapshotArbiter.app(absent,cobro,130,1000,870.0,870.0,970.0,"trade_republic","Cuenta",${JSON.stringify(cycleAck)},""));
+    ok(!absent.unknownPending); eq(absent.spent,130);
+    // Un evento anterior sigue afectando al saldo: se retira por recepción real, no por fecha.
+    WidgetSnapshotArbiter.State previous=base(sep,"trade_republic");
+    ok(WidgetSnapshotArbiter.pendingUnknown(previous,"tr:ev29","row29"));
+    ok(WidgetSnapshotArbiter.app(previous,oct,0,1000,1000.0,870.0,970.0,"trade_republic","Cuenta",${JSON.stringify(cycleAck)},""));
+    ok(!previous.unknownPending); eq(previous.spent,0); eq(previous.cash(),970);
+    ok(WidgetPeriod.monthStart(sep+10*day)==sep); ok(WidgetPeriod.monthStart(oct3)==oct);
+    ok(WidgetPeriod.acceptApp(0,"",sep,sep+10*day));
+    ok(!WidgetPeriod.acceptApp(0,"ciclo",cobro,oct3));     // APK/web antigua: nunca un ciclo
+    ok(WidgetPeriod.acceptApp(2,"ciclo",cobro,oct3));      // el ciclo cruza el día 1
+    ok(!WidgetPeriod.acceptApp(2,"ciclo",oct3+day,oct3));  // un cobro futuro no vale
+    ok(!WidgetPeriod.acceptApp(2,"ciclo",cobro,cobro+46*day));
+    ok(WidgetPeriod.current(2,"ciclo",cobro,oct3)==cobro);
+    ok(WidgetPeriod.current(2,"ciclo",cobro,cobro+46*day)==WidgetPeriod.monthStart(cobro+46*day));
+    ok(!WidgetPeriod.stale(2,"ciclo",cobro,oct3));         // cambiar de mes no caduca el ciclo
+    ok(WidgetPeriod.stale(0,"",sep,oct3));                 // el mes natural sí
+    ok(WidgetPeriod.stale(2,"ciclo",cobro,cobro+46*day));
+    // Un servidor de otra regla o ventana no pisa un widget v2.
+    ok(WidgetPeriod.acceptServer(0,"",sep,0,"",sep,sep+10*day));
+    ok(!WidgetPeriod.acceptServer(2,"ciclo",cobro,0,"",oct,oct3));
+    ok(!WidgetPeriod.acceptServer(2,"ciclo",cobro,2,"mes",oct,oct3));
+    ok(WidgetPeriod.acceptServer(2,"ciclo",cobro,2,"ciclo",cobro,oct3));
+    ok(!WidgetPeriod.acceptServer(2,"mes",oct,0,"",oct,oct3));   // ingest viejo: regla de Gastos
+    ok(WidgetPeriod.acceptServer(2,"mes",oct,2,"mes",oct,oct3));
+    ok(!WidgetPeriod.sameScope("foto-A", "")); // ingest activo o PR87 sin alcance: no demuestra misma regla
+    ok(!WidgetPeriod.sameScope("foto-A", "foto-B"));
+    ok(!WidgetPeriod.sameScope("", ""));
+    ok(WidgetPeriod.sameScope("foto-A", "foto-A"));
+    ok(WidgetPeriod.labels(2,"es","ciclo","neto")[WidgetPeriod.TITULO].equals("AELY · MI CICLO · GASTO NETO"));
+    ok(WidgetPeriod.labels(2,"en","ciclo","neto")[WidgetPeriod.TITULO].equals("AELY · MY CYCLE · NET SPENDING"));
+    ok(WidgetPeriod.labels(2,"ca","mes","gasto")[WidgetPeriod.TITULO].equals("AELY · AQUEST MES · DESPESA"));
+    ok(WidgetPeriod.labels(2,"en","mes","gasto")[WidgetPeriod.QUEDAN].equals("of {b} this month · {l} left"));
+    ok(WidgetPeriod.labels(2,"es","ciclo","neto")[WidgetPeriod.SIN_PRESUPUESTO].equals("neto este ciclo"));
+    ok(WidgetPeriod.labels(0,"en","ciclo","neto")[WidgetPeriod.TITULO].equals("AELY · ESTE MES")); // APK/web antigua
+    WidgetSnapshotArbiter.State v2=base(cobro,"trade_republic");
+    ok(WidgetSnapshotArbiter.pendingUnknown(v2,"pago","k"));
+    ok(v2.unknownPending); // una respuesta rechazada conserva la identidad hasta ACK, no solo un booleano
+    ok(WidgetSnapshotArbiter.app(v2,cobro,40,100,60.0,150.0,200.0,"trade_republic","Cuenta","",""));
+    ok(v2.unknownPending); eq(v2.spent,40); // reabrir sin cobertura no demuestra que el pago esté incluido
+    ok(WidgetSnapshotArbiter.app(v2,cobro,50,100,50.0,140.0,190.0,"trade_republic","Cuenta","|pago|",""));
+    ok(!v2.unknownPending); eq(v2.spent,50);
+    v2.coveredEvents="|pago|"; ok(!WidgetSnapshotArbiter.pendingUnknown(v2,"pago","k"));
+    v2.coveredEvents=""; v2.deletedKeys="|k|"; ok(!WidgetSnapshotArbiter.pendingUnknown(v2,"pago","k"));
+    WidgetSnapshotArbiter.State changed=base(sep,"trade_republic");
+    ing(changed,WidgetSnapshotArbiter.begin(changed),sep,sep,100,"pending-bank",50,100,50,10,true,true);
+    ok(WidgetSnapshotArbiter.invalidateScope(changed));
+    ok(WidgetSnapshotArbiter.app(changed,sep,40,100,60.0,150.0,200.0,"sabadell","Cuenta","",""));
+    ok(changed.unknownPending); eq(changed.spent,40); eq(changed.cash(),200);
+    ok(WidgetSnapshotArbiter.app(changed,sep,50,100,50.0,140.0,190.0,"sabadell","Cuenta","|pending-bank|",""));
+    ok(!changed.unknownPending); eq(changed.spent,50);
+    WidgetSnapshotArbiter.State monthUnknown=base(sep,"trade_republic");
+    ok(WidgetSnapshotArbiter.pendingUnknown(monthUnknown,"old-event","old-key"));
+    ok(WidgetSnapshotArbiter.app(monthUnknown,oct,0,100,100.0,200.0,200.0,"trade_republic","Cuenta","",""));
+    ok(monthUnknown.unknownPending); // cambiar de periodo tampoco demuestra cobertura del saldo
+    ok(WidgetSnapshotArbiter.app(monthUnknown,oct,0,100,100.0,200.0,200.0,"trade_republic","Cuenta","","|old-key|"));
+    ok(!monthUnknown.unknownPending);
+    System.out.println("  ✓ E2: ciclo que cruza el mes, caducidad a 45 días, servidor viejo sin pisar y textos es/en/ca");
     System.out.println("  ✓ persistencia con espacios, recuperación segura, entrada dañada y delta desconocido conservados");
     System.out.println("  ✓ orden inverso, reentrada, día/mes, banco, possibleDup y pago con lápidas");
   }
 }`);
   for (const [cmd, args] of [
-    [javac, ["-d", dir, path.join(javaDir, "WidgetSnapshotArbiter.java"), src]],
+    [javac, ["-encoding", "UTF-8", "-d", dir, path.join(javaDir, "WidgetSnapshotArbiter.java"), path.join(javaDir, "WidgetPeriod.java"), src]],
     [java, ["-cp", dir, "com.micartera.app.WidgetSnapshotArbiterTest"]],
   ]) {
     const r = spawnSync(cmd, args, { cwd: root, encoding: "utf8" });

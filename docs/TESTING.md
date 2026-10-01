@@ -1,4 +1,18 @@
+Widget80 sobre79: `widget-banco.spec.mjs` ya mapeado añade es/en/ca para el pull antiguo en la frontera ACK de retirada: Inicio/widget100, sin gasto180 ni ACK inventado. Date fijo durante esa comparación vuelve a avanzar antes del splash. Quitar readStartedAt hace fallar el DOM real. `revisar-beta` prueba cinco cambios web/nativos y entrega exacta APK52; cuatro casos tardíos de `retirada-bancaria` respaldan Novedades79.13 DOM PASS en pases finales, sin repetir matriz34. Java real/109 etapas de lógica/límites en [acta](briefs/inc-2909-01-widget.md); no sustituye CI ni pago real.
+
 INC-2909-02: `inicio-mes-natural.spec.mjs`, mapeado a Inicio, prueba es/en/ca, ajuste real, recarga, bruto mensual, neto del ciclo, reservas, bancos y límites. `month-budget-stats` ejecuta Pregúntame y reto con las mismas compras; `budget-notis-deps` ejecuta el efecto real: agotamiento, no repetición y reinicio al cobrar. Prueba móvil pendiente; CI y publicación se registran en el [brief](briefs/inc-2909-02-inicio-natural.md).
+
+## INC-3009-02 · nómina pendiente/futura
+
+`ob-ingresos` continúa en steps, reloj fijo y dos subprocesos UTC/Madrid. `--zone-child` permite
+comprobar directamente otras zonas; no basta cambiar solo TZ exterior. Guardia BOOK/ausente,
+fecha válida no futura Madrid, PDNG→BOOK, UUID, manual genérico, banco+id y saldos sintéticos
+400→2200 sin duplicar1800. DOM `nomina-anticipada.spec.mjs` registrado en el mapa del motor:
+Inicio/Gastos/Cartera en es/en/ca, transportes simulados y sync App real; lease obligatorio.
+En el injerto sobre Panel75 conserva el contrato bruto de Inicio73 y neto de Gastos en mes natural.
+Los 84 contratos/18 DOM previos pertenecen a aaa95803; la nueva integración exige resultados
+propios. [Evidencia y límites](briefs/inc-3009-nomina-anticipada.md).
+
 
 INC-2709-01 (beta 4.26.69.1): `e2e/inicio-offline.spec.mjs` retrasa sesión y evento de autenticación seis segundos con CPU ×6 y estado local sintético. Antes de corregir, el caso nuevo fallaba al detectar barras grises tras el splash; ahora exige el hero visible sin ese intervalo y que la nube tardía actualice la cifra. Los casos previos cubren offline conocido, evento `mc-boot-ready` ausente y nube lenta. [Action 36617933780](https://github.com/JuanjoAvila/Aely/actions/runs/36617933780) pasó la suite completa; la prueba en Android con red débil sigue pendiente y es necesaria para aceptar la tanda.
 
@@ -579,9 +593,9 @@ INC-3009-01 tras rechazo: inicio-cargos abre el vínculo explícito en Gastos y 
 
 `scripts/beta-sources.json` declara fuentes y bloques inequívocos por tanda/superficie; `beta-revisions.mjs` normaliza CRLF y genera SHA-256. Una tanda moderna sin alcance o bloque activo ausente/ambiguo aborta build. No hay fallback global ni recibo de Android/Edge a partir de Git. `beta-delivery.json` acredita web ensamblada y sourceSha real en CI (null local). Los alcances no son un análisis automático de dependencias: deben auditarse al cambiar lectores o helpers.
 
-`betaHuella` combina guion y código; `betaVerdictFor` comparte reglas entre panel y listo. Última decisión rechazada/retirada prevalece, historial conserva decisiones anteriores, desde solo hereda código/guion iguales auditados. Tres revisiones siguen idénticas; cuatro widgets cambian realmente en web por Inicio73, sin cambios Android/Edge ni referencia histórica repinada. Aprobación y entrega exacta son distintas; sin recibo de una superficie requerida se conserva pendiente. El APK51 es legado y no acredita widget52.
+`betaHuella` combina guion y código; `betaVerdictFor` comparte reglas entre panel y listo. Última decisión rechazada/retirada prevalece, historial conserva decisiones anteriores, desde solo hereda código/guion iguales auditados. En75 tres revisiones seguían idénticas; cuatro widgets cambiaban realmente en web por Inicio73, sin cambios Android/Edge ni referencia histórica repinada. En78 la guardia de nómina cambia también el importador de TR: ayuda/arranque mantienen su OK y TR/cuatro widgets requieren nueva revisión. Aprobación y entrega exacta son distintas; sin recibo de una superficie requerida se conserva pendiente. El APK51 es legado y no acredita widget52.
 
-`tests/beta-veredictos.test.mjs` y `tests/beta-sources.test.mjs` están en run-tests; los scripts nuevos en CORE. El CLI se ejecuta con partes sintéticos y recibos ausentes. Mutantes legacy-id/drop-code/discard-rejection/local-override/ignore-receipts deben fallar. Los digests de Inicio, identidad/vínculo de Recibos y presentación en Plan cambian con una mutación relevante. `e2e/revisar-beta.spec.mjs` abre DOM real en es/en/ca, hereda tres OK y exige puntos nuevos en cuatro widgets, prueba rechazo/retirada y fallo remoto. Chromium local solo con lease canónico del coordinador.
+`tests/beta-veredictos.test.mjs` y `tests/beta-sources.test.mjs` están en run-tests; los scripts nuevos en CORE. El CLI se ejecuta con partes sintéticos y recibos ausentes. Mutantes legacy-id/drop-code/discard-rejection/local-override/ignore-receipts deben fallar. Los digests de Inicio, identidad/vínculo de Recibos y presentación en Plan cambian con una mutación relevante. `e2e/revisar-beta.spec.mjs` abre DOM real en es/en/ca: en78 hereda dos OK, exige puntos nuevos en TR y cuatro widgets y conserva el historial almacenado; prueba rechazo/retirada y fallo remoto. CI36806617191 detectó cuatro expectativas antiguas de TR, corregidas sin cambiar la app. Chromium local solo con lease canónico del coordinador.
 
 ## Ampliación auditada de cobertura (panel75)
 
@@ -598,3 +612,9 @@ La fixture «un fallo en una tanda no bloquea las otras» retrasa 250ms su doble
 `beta-tandas-vacias` protege entrega exacta con versión de producción menor, deduplicación antes de retirar y límites404/APK/Edge. `revisar-beta` reproduce los siete IDs reales, conserva aprobaciones sintéticas idénticas y verifica explicación visible es/en/ca aun plegada; tras respuesta asíncrona de producción67 con recibos exactos quedan solo Panel, Recibos e Inicio no acreditados. El fixture fija el idioma en estado: cambiar solo `CURLANG` se perdía al repintar App. Historial no acredita entrega; los recibos del test enumeran solo los siete IDs.
 
 DOM final local55/55 PASS31,8s,0skip/0flaky. A/B75:1.278.280 /347.946 B frente a76.1 sellada1.279.388 /348.256 B (minificado/gzip9). Los topes mínimos1250/341 KiB dejan612/928 B; no se añaden dependencias ni se recorta validación. Últimos veredictos remotos y entrega Edge requieren acceso independiente: la simulación no los acredita. [Acta](briefs/ops-0110-panel-entrega.md).
+
+INC-2909-03, candidata: `tests/retirada-bancaria.test.mjs` ejecuta ACK/CAS/identidad, recarga,
+doble importación y pulls anteriores/posteriores; `e2e/retirada-bancaria.spec.mjs` abre la ficha real
+en es/en/ca, cancela/confirma, prueba errores y comprueba otro almacenamiento tras sync a demanda.
+Registrados en runner/mapa de Gastos. Las respuestas cloud son sintéticas; no prueban RLS real ni
+suma de efectivo compartida. [Estado de candidata](briefs/inc-2909-03-retirada-caixa.md).

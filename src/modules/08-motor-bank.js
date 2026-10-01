@@ -902,6 +902,8 @@ function importObExpenses(s, txs){
   };
   // Cargos ya modelados ESTE mes por entidad (Fijos/deudas/puntuales), para no duplicar un recibo.
   const now=new Date(), ym=now.getMonth()+1, yy=now.getFullYear();
+  const today=madridYmdParts(now.getTime());
+  const todayKey=today.ym+"-"+String(today.d).padStart(2,"0");
   const modeledByEnt={};
   const pushModeled=function(ent,name,amount,debtId){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount,debtId:debtId||null}); };
   (s.fixed||[]).forEach(function(f){ if(occursIn(f,ym)) pushModeled(accOf(f), f.name, occAmountIn(f,ym)); });
@@ -919,6 +921,15 @@ function importObExpenses(s, txs){
   txs.forEach(function(tx){
     const esIngreso = tx.amount<0;
     if(esIngreso){
+      // Un abono pendiente o futuro no acredita dinero disponible (feedback 30/9).
+      // Admitir estados desconocidos como cobrados también inventaría un ingreso.
+      // Sin estado (bancos que no lo informan) se sigue apuntando, como siempre.
+      const status=String(tx.status||"").trim().toUpperCase();
+      if(status && status!=="BOOK") return;
+      const date=String(tx.date||""), parts=date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(!parts) return;
+      const day=new Date(Number(parts[1]),Number(parts[2])-1,Number(parts[3]),12);
+      if(dayKey(day)!==date || date>todayKey) return;
       if(!tx.date || parseDate(tx.date)<som) return;
       if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
@@ -1249,6 +1260,18 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode){
     {periodStart:startMs,cycle:!!period.cycle});
 }
 
+// V2 confirma recepción también fuera del ciclo: una fila anterior puede mover el saldo.
+// Se conserva la cobertura mensual histórica de la APK 51; v2 nunca acredita filas futuras.
+function widgetCoveredEvents(rows,start,now,history){
+  return "|"+rows.filter(function(r){ const d=dateMs(r.fecha); return (history?d<=now:d>=start) && (r.ingest_event_id||r.source==="macrodroid"); })
+    .map(function(r){ return (r.ingest_event_id||r.id)+"|"+r.id; }).join("|")+"|";
+}
+// Una respuesta de otra selección de bancos/reservas no puede reutilizar el delta de la foto
+// actual aunque el día de inicio coincida. El servidor debe devolver este alcance exacto.
+function widgetScopeOf(state,stats,anchor,bank){
+  return JSON.stringify([2,stats.periodStart,stats.cycle?"ciclo":"mes",stats.cycle?"neto":"gasto",
+    anchor||"",stats.budget,expenseBankEnts(state).slice().sort(),bank||""]);
+}
 // Inicio dice «Has gastado» en el mes natural: una nómina no puede borrar ese uso del
 // presupuesto (INC-2909-02). Gastos/Balance y el widget conservan su contrato propio.
 function dashboardBudgetStats(state){

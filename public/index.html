@@ -3480,6 +3480,33 @@ const cloud = (function(){
       const {error}=await expenseCloudEq(sb.from('expenses').update(upd), session.user.id, e);
       if(error) throw error;
     },
+    // Un UPDATE sin filas no confirma una retirada: FIN-04 permite UUID locales divergentes.
+    // No buscar gemelos por parecido ni tocar importe, origen o saldo para salvar esa identidad.
+    async confirmExpenseWithdrawal(e, readState){
+      const ready=function(){ const s=typeof readState==="function"&&readState(); return !!s&&canRecognizeWithdrawal(e,s); };
+      if(!sb || !isExpenseUuid(e&&e.id) || !ready()) throw new Error("withdrawal unavailable");
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) throw new Error("session unavailable");
+      const cols="id,source,cat,fecha,importe,comercio";
+      const read=await sb.from('expenses').select(cols).eq('user_id',session.user.id).eq('id',e.id).maybeSingle();
+      if(read.error) throw read.error;
+      const row=read.data;
+      if(!withdrawalRowMatches(e,row)) throw new Error("withdrawal identity changed");
+      // El vínculo puede llegar mientras se consulta la fila: no neutralizar un pago compartido.
+      if(!ready()) throw new Error("withdrawal unavailable");
+      if(row.cat==="traspaso") return row;
+      if(row.cat!==e.category) throw new Error("withdrawal category changed");
+      const result=await sb.from('expenses').update({cat:"traspaso"})
+        .eq('user_id',session.user.id).eq('id',e.id).eq('source',row.source).eq('cat',row.cat)
+        .eq('fecha',row.fecha).eq('importe',row.importe).eq('comercio',row.comercio).select(cols);
+      if(result.error) throw result.error;
+      const ack=result.data;
+      if(!Array.isArray(ack) || ack.length!==1 || ack[0].cat!=="traspaso" || !withdrawalRowMatches(e,ack[0]))
+        throw new Error("withdrawal unconfirmed");
+      // El UPDATE ya ocurrió: un vínculo llegado durante el envío no convierte su ACK en error.
+      // Esta marca es solo del retorno, nunca de la tabla; permite conciliar únicamente ese envío.
+      return Object.assign({},ack[0],{withdrawalUpdated:true});
+    },
     // Cuota de deuda marcada por `marcarCuotasDeDeuda` (4.21.0): categoría y, si es de Open
     // Banking, la marca en `source`. La de la noti (`macrodroid`) conserva su source: un
     // `macrodroid~…` lo leería el servidor como «a mano» y lo SUMARÍA; ahí basta `cat:deudas`.
@@ -3898,7 +3925,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","setExpenseDeuda","deleteExpense","deleteExpensesByIds",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","deleteExpense","deleteExpensesByIds",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -4293,6 +4320,65 @@ function applyEntradaEfectivo(state, amount){
   });
   return Object.assign({}, st, { accounts:accounts });
 }
+// La persona reconoce esta salida concreta; no inferirlo del nombre ni recategorizar historia.
+function withdrawalReceiptLink(state,e){
+  if(!state||!e) return null;
+  const date=String(e.date||"").slice(0,10),ym=Number(date.slice(0,4))*12+Number(date.slice(5,7));
+  // Se mira el vínculo durable, aunque el feed local ya no lo acredite. B puede no tener feed;
+  // deshacer por la puerta existente elimina esta misma prueba de los metadatos compartidos.
+  return (state.fixed||[]).find(function(f){
+    const p=f.paymentProofs&&f.paymentProofs[ym];
+    return p&&p.kind==="expense"&&(p.key===fixedExpenseKey(e)||p.expenseId&&p.expenseId===e.id
+      ||p.identity===fixedPaymentIdentity(expenseBankOf(e),e));
+  })||null;
+}
+function canRecognizeWithdrawal(e,state){
+  const eligible=!!(e && (e.source==="ob"||e.source==="ob-hist") && e.ent && e.ent!=="efectivo"
+    && Number.isFinite(e.amount) && e.amount>0 && !e.possibleDup && !e.debtId
+    && e.category!=="deudas" && e.category!=="inversion");
+  if(!eligible||!state) return eligible;
+  const matches=(state.expenses||[]).filter(function(x){ return x.id===e.id; });
+  if(matches.length!==1) return false;
+  const current=matches[0];
+  return canRecognizeWithdrawal(current)&&!withdrawalReceiptLink(state,current)
+    &&(current.category===e.category||current.category==="traspaso")
+    &&withdrawalRowMatches(e,{id:current.id,source:expenseSourceForCloud(current),fecha:current.date,importe:current.amount,comercio:current.merchant});
+}
+function withdrawalRowMatches(e, row){
+  return !!(row && row.id===e.id && row.source===expenseSourceForCloud(e)
+    && Number(row.importe)===e.amount && Date.parse(row.fecha)===Date.parse(e.date)
+    && row.comercio===e.merchant);
+}
+function applyRecognizedWithdrawal(state, expense, confirmedAt){
+  const rows=state.expenses||[];
+  const matches=rows.filter(function(e){ return e.id===expense.id; });
+  if(matches.length!==1 || !canRecognizeWithdrawal(matches[0],state)) return state;
+  const current=matches[0];
+  if(current.amount!==expense.amount || current.date!==expense.date || current.merchant!==expense.merchant
+     || expenseSourceForCloud(current)!==expenseSourceForCloud(expense)
+     || (current.category!==expense.category && current.category!=="traspaso")) return state;
+  if(current.category==="traspaso") return state;
+  // Solo blinda lecturas arrancadas antes del ACK, sin vetar una corrección posterior del móvil B.
+  return Object.assign({},state,{expenses:rows.map(function(e){ return e===current
+    ? Object.assign({},e,{category:"traspaso",withdrawalConfirmedAt:confirmedAt}) : e; })});
+}
+function reconcileConfirmedWithdrawal(state, expense, ack, confirmedAt){
+  if(!ack || ack.cat!=="traspaso" || !withdrawalRowMatches(expense,ack)) return state;
+  const matches=(state.expenses||[]).filter(function(e){ return e.id===expense.id; });
+  if(matches.length!==1) return state;
+  const current=matches[0];
+  if(!canRecognizeWithdrawal(current) || (current.category!==expense.category && current.category!=="traspaso")
+    || !withdrawalRowMatches(expense,{id:current.id,source:expenseSourceForCloud(current),fecha:current.date,importe:current.amount,comercio:current.merchant})) return state;
+  let next=state;
+  if(withdrawalReceiptLink(state,current)){
+    // Solo un UPDATE confirmado permite deshacer el vínculo que llegó durante su envío.
+    // Se sincronizan metadatos por la misma puerta de Deshacer, sin tocar dinero ni otros pagos.
+    if(ack.withdrawalUpdated!==true) return state;
+    const ds=String(current.date).slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7));
+    next=linkFixedPayment(state,current.id,null,y,m,new Date(y,m,0).getDate());
+  }
+  return applyRecognizedWithdrawal(next,expense,confirmedAt);
+}
 /* EFECTIVO REAL DE TRADE REPUBLIC (availableCash) → base guardada de su cuenta.
    Lo usan los DOS botones que hablan con el puente nativo: la tarjeta de TR y el sincronizador
    general. Antes cada uno tenía un contrato distinto: la tarjeta aplicaba `cash` y el general lo
@@ -4502,7 +4588,7 @@ function mergeExpenses(prevList, incoming){
    añadía claves nuevas — categoría/importe/nota de una fila ya vista nunca se actualizaban.
    Caso medido: Aigües en nube=`energia` y el móvil seguía en `viajes` tras «Ya estás al día».
    Reglas: no pisar `cat` de un apunte manual; no pisar `note` si él la editó; nunca borrar. */
-function refreshExpenseFromCloud(local, incoming){
+function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(!local||!incoming) return local||incoming;
   const manual=isManualExpenseSource(local.source);
   let out=local;
@@ -4517,7 +4603,8 @@ function refreshExpenseFromCloud(local, incoming){
   // Una cuota ya marcada no vuelve a «otros» porque la nube aún no se haya enterado (4.21.0): la
   // subida puede ir por detrás del pull, y la fila de la noti ni siquiera lleva la marca en `source`.
   const cuotaLocal=local.debtId && local.category==="deudas";
-  if(!manual && !cuotaLocal && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
+  const withdrawalRecent=readStartedAt!=null && local.withdrawalConfirmedAt>=readStartedAt;
+  if(!manual && !cuotaLocal && !withdrawalRecent && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
   if(incoming.amount!=null && isFinite(incoming.amount)) put("amount", incoming.amount);
   if(incoming.merchant!=null && incoming.merchant!=="") put("merchant", incoming.merchant);
   if(Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
@@ -4553,7 +4640,7 @@ function refreshExpenseFromCloud(local, incoming){
 }
 /* Mezcla el pull con lo local: refresca campos de claves ya vistas y solo AÑADE las nuevas.
    Nunca elimina una clave que solo exista en local (contención 4.18.6 / FIN-07). */
-function mergeExpensesFromCloud(prevList, incoming){
+function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
   const byKey={}; const order=[];
   (prevList||[]).forEach(function(e){
     const k=keyOfExpense(e);
@@ -4566,7 +4653,7 @@ function mergeExpensesFromCloud(prevList, incoming){
     seen[k]=1;
     const loc=byKey[k];
     if(!loc){ byKey[k]=inc; order.push(k); changed=true; nuevos++; return; }
-    const merged=refreshExpenseFromCloud(loc, inc);
+    const merged=refreshExpenseFromCloud(loc, inc, readStartedAt);
     if(merged!==loc){ byKey[k]=merged; changed=true; }
   });
   const list=order.map(function(k){ return byKey[k]; });
@@ -4979,7 +5066,20 @@ const LANG = {
     f_receipt_yes:"Confirmar pago completo", f_receipt_unlink:"Deshacer vínculo",
     f_from_bank:"Lo trajo una notificación de {bank}", f_from_bank_sub:"{date} · «{raw}» · el banco fija el importe y la cuenta",
     f_trace_missing:"— texto original no disponible",
-    f_locked_toast:"El importe lo manda el banco. Si está mal, cámbialo desde la app del banco.",
+    f_locked_toast:"El banco fija el importe, la cuenta y si entra o sale dinero. La categoría sí se puede corregir aquí.",
+    f_withdraw_fields:"La categoría se puede corregir sin cambiar el importe ni la cuenta del banco.",
+    f_withdraw_action:"Es una retirada de efectivo",
+    f_withdraw_title:"¿Es una retirada de efectivo?",
+    f_withdraw_sub:"Estos {x} pasarán a Traspaso y dejarán de contar como gasto. El importe y el origen bancario se conservan. No se sumará dinero al efectivo.",
+    f_withdraw_ok:"Marcar como traspaso",
+    f_withdraw_pending:"Confirmando la retirada…",
+    f_withdraw_done:"Traspaso: no cuenta como gasto.",
+    f_withdraw_unconfirmed:"Retirada sin confirmar",
+    f_withdraw_error:"No se ha confirmado el cambio. Sincroniza los movimientos y revisa la categoría antes de intentarlo otra vez.",
+    f_withdraw_cash_limit:"Esta retirada no suma dinero a Efectivo: aún no se puede confirmar una única suma entre móviles. Los apuntes manuales de efectivo siguen disponibles en Cartera.",
+    f_withdraw_receipt_blocked:"Para marcar esta retirada, deshaz primero el vínculo en Paga un recibo. Así se retira la confirmación también del otro móvil.",
+    f_withdraw_receipt_pending:"Espera a que termine la retirada antes de cambiar el vínculo del recibo.",
+    f_withdraw_receipt_undone:"Retirada confirmada. El vínculo que llegó durante la confirmación se ha deshecho y el recibo queda pendiente. Se compartirá al sincronizar.",
     f_fx_eq:"= {x} con el cambio del {date}", f_undo_deleted:"Gasto borrado", f_undo:"Deshacer",
     v4_exp_cat:"Categoría", v4_exp_type:"Tipo",
     // Concepto del movimiento (petición del padre 2026-07-24: «solo salía el título y tenía que
@@ -5387,10 +5487,6 @@ Object.assign(LANG.es,{
   ef_in_done:"✓ Efectivo sumado",
   ef_need_bank:"Necesitas otra cuenta para anotar de dónde salió.",
   ef_neg_warn:"El sobre queda en negativo ({x}). ¿Olvidaste apuntar un saque del cajero?",
-  ef_atm_offer_title:"¿Han entrado {x} en tu efectivo?",
-  ef_atm_offer_sub:"El banco ha detectado una retirada. Si el dinero está en tu cartera, súmalo. Si se lo diste a alguien, di que no.",
-  ef_atm_offer_yes:"Sí, sumar al efectivo",
-  ef_atm_offer_no:"No",
 
   ob2_claim:"Tu dinero claro y sin trabajo: gastos que se apuntan solos, tus bancos conectados y tus inversiones al día.",
   ob2_f1_t:"Gastos sin teclear", ob2_f1_d:"Apunta un gasto en dos toques… o deja que entren solos con tu tarjeta de Trade Republic.",
@@ -9017,9 +9113,45 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(same) showToast(t("g_dup_same"));
     else showToast(t("g_dup_diff"));
   };
+  const withdrawalPending=useRef({});
+  const withdrawalState=useRef(state); withdrawalState.current=state;
+  const [withdrawalStatus,setWithdrawalStatus]=useState(null);
+  const recognizeWithdrawal=function(ex){
+    if(!canRecognizeWithdrawal(ex) || ex.category==="traspaso" || withdrawalPending.current[ex.id]) return;
+    if(!canRecognizeWithdrawal(ex,withdrawalState.current)){
+      showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)?"f_withdraw_receipt_blocked":"f_withdraw_error")); return;
+    }
+    withdrawalPending.current[ex.id]=true;
+    askConfirm({title:t("f_withdraw_title"),sub:tf("f_withdraw_sub",{x:eur(ex.amount)}),ok:t("f_withdraw_ok")})
+      .then(async function(yes){
+        if(!yes) return;
+        setWithdrawalStatus({id:ex.id,status:"pending"});
+        let timer;
+        try{
+          if(!canRecognizeWithdrawal(ex,withdrawalState.current)) throw new Error("withdrawal unavailable");
+          let ack;const sandbox=mcSandbox();
+          if(!sandbox) ack=await Promise.race([cloud.confirmExpenseWithdrawal(ex,function(){ return withdrawalState.current; }),new Promise(function(_,reject){
+            timer=setTimeout(function(){ reject(new Error("withdrawal timeout")); },10000);
+          })]);
+          let applied=false,receiptUndone=false;
+          ReactDOM.flushSync(function(){ set(function(s){ const next=sandbox?applyRecognizedWithdrawal(s,ex,Date.now()):reconcileConfirmedWithdrawal(s,ex,ack,Date.now());
+            receiptUndone=!!withdrawalReceiptLink(s,ex)&&!withdrawalReceiptLink(next,ex);
+            applied=next!==s || canRecognizeWithdrawal(ex,s)&&(s.expenses||[]).some(function(e){ return e.id===ex.id && e.category==="traspaso"
+              && withdrawalRowMatches(ex,{id:e.id,source:expenseSourceForCloud(e),fecha:e.date,importe:e.amount,comercio:e.merchant}); });
+            return next; }); });
+          setWithdrawalStatus({id:ex.id,status:applied?"done":"error",receiptUndone:receiptUndone});
+          showToast(t(applied?(receiptUndone?"f_withdraw_receipt_undone":"f_withdraw_done"):withdrawalReceiptLink(withdrawalState.current,ex)?"f_withdraw_receipt_blocked":"f_withdraw_error"));
+        }catch(err){
+          setWithdrawalStatus({id:ex.id,status:"error"});
+          showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)?"f_withdraw_receipt_blocked":"f_withdraw_error"));
+        }finally{ clearTimeout(timer); }
+      }).finally(function(){ delete withdrawalPending.current[ex.id]; });
+  };
   // Recategorizar un gasto a mano: actualiza ESTE, recuerda el comercio (catOverrides) para los
   // futuros y arregla otros gastos del mismo comercio que estuvieran en "Otros".
   const setCat=function(ex,newCat){
+    if(withdrawalPending.current[ex.id]) return;
+    if(newCat==="traspaso" && canRecognizeWithdrawal(ex)){ recognizeWithdrawal(ex); return; }
     const mkey=catKey(ex.merchant);
     // "Movimiento" es el hueco que deja un banco que no manda NINGÚN dato (Trade Republic por
     // Open Banking, ver `mapTransaction` en enablebanking.ts) — no es un comercio de verdad, así
@@ -9094,11 +9226,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(showToast) showToast(tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
   };
   const setReceipt=function(ex,fixedId){
+    if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
     const ds=String(ex.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
     const today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
     const f=(state.fixed||[]).find(function(x){ return x.id===fixedId; });
     const expected={identity:fixedPaymentIdentity(expenseBankOf(ex),ex),model:f&&fixedPaymentModel(f,m)};
     const save=function(){
+      if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
       // El diálogo es asíncrono: otra sincronización puede sustituir el cargo o editar el recibo.
       set(function(s){ return linkFixedPayment(s,ex.id,fixedId,y,m,today,expected); });
     };
@@ -9741,7 +9875,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         setDetailId(null); setEditExp(null);
       },
       setCat:setCat, setCuota:setCuota, setReceipt:setReceipt, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
-      resolveDup:resolveDup,
+      resolveDup:resolveDup, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
     undoDelete && ReactDOM.createPortal(
@@ -9952,7 +10086,7 @@ function PeriodMoreSheet({open, onClose, preset, setPreset}){
 }
 
 /* Sheet detalle/edición de un movimiento. Layout alineado con Apuntar/Cartera (feedback 2026-07-17). */
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -10021,8 +10155,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const meta=[
     {id:"bank",testId:"exp-bank",label:bk?entOf(bk).label:t("ap_bank_none"),lead:bk?React.createElement(Mono,{ent:bk,size:18}):React.createElement("span",null,"🏦"),
       on:bankOpen,locked:auto,onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }},
-    {id:"cash",testId:"exp-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bk==="efectivo",locked:auto,
-      onClick:function(){ setBank(exp,bk==="efectivo"?null:"efectivo"); }},
+    {id:"cash",testId:"exp-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bk==="efectivo",
+      onClick:function(){ if(auto){ showToast(t("f_withdraw_cash_limit")); return; } setBank(exp,bk==="efectivo"?null:"efectivo"); }},
     {id:"date",testId:"exp-date",label:fmtIsoCorto(dateIso),lead:React.createElement("span",null,"📅"),on:calOpen,
       onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }}
   ];
@@ -10038,14 +10172,22 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
       bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
-    trace,duplicate);
+    trace,duplicate,
+    canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
+      React.createElement("div",null,t("f_withdraw_fields")),
+      exp.category!=="traspaso" && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-withdrawal",
+        disabled:!canRecognizeWithdrawal(exp,state)||withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="pending",
+        onClick:function(){ recognizeWithdrawal(exp); }},t("f_withdraw_action")),
+      exp.category==="traspaso" && React.createElement("div",{"data-testid":"exp-withdrawal-neutral"},t("f_withdraw_done")),
+      withdrawalReceiptLink(state,exp)&&React.createElement("div",{"data-testid":"exp-withdrawal-receipt-blocked"},t("f_withdraw_receipt_blocked")),
+      withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="done" && withdrawalStatus.receiptUndone && React.createElement("div",{role:"status"},t("f_withdraw_receipt_undone")),
+      React.createElement("div",null,t("f_withdraw_cash_limit")),
+      withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done" && React.createElement("div",{role:"status"},
+        t(withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_error"))));
   const debtOptions=(state.debts||[]).filter(function(d){ return d&&d.id; });
   const receiptDate=String(exp.date||"").slice(0,10),receiptYear=Number(receiptDate.slice(0,4)),receiptMonth=Number(receiptDate.slice(5,7)),receiptNow=new Date();
   const receiptToday=receiptYear===receiptNow.getFullYear()&&receiptMonth===receiptNow.getMonth()+1?receiptNow.getDate():new Date(receiptYear,receiptMonth,0).getDate();
-  const receiptLinked=(state.fixed||[]).find(function(f){
-    const p=fixedPaymentProof(state,f,receiptYear,receiptMonth,receiptToday);
-    return p&&p.kind==="expense"&&(p.key===fixedExpenseKey(exp)||p.expenseId&&p.expenseId===exp.id||p.identity===fixedPaymentIdentity(expenseBankOf(exp),exp));
-  });
+  const receiptLinked=withdrawalReceiptLink(state,exp);
   const receiptOptions=(state.fixed||[]).filter(function(f){
     return fixedExpenseEligible(state,exp,f,receiptYear,receiptMonth,receiptToday)&&
       (!fixedPaymentState(state,f,receiptYear,receiptMonth,receiptToday).paid||(receiptLinked&&receiptLinked.id===f.id));
@@ -10093,7 +10235,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   };
   const footer=React.createElement("div",{className:"v4-ficha-foot"},
     React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
-    React.createElement("span",{className:"v4-ficha-saved"},t("f_autosaved")),
+    React.createElement("span",{className:"v4-ficha-saved"},t(withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
+      ? (withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_unconfirmed") : "f_autosaved")),
     React.createElement("button",{type:"button",className:"v4-ficha-done",onClick:done},t("done")));
   const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
@@ -13850,6 +13993,8 @@ function importObExpenses(s, txs){
   };
   // Cargos ya modelados ESTE mes por entidad (Fijos/deudas/puntuales), para no duplicar un recibo.
   const now=new Date(), ym=now.getMonth()+1, yy=now.getFullYear();
+  const today=madridYmdParts(now.getTime());
+  const todayKey=today.ym+"-"+String(today.d).padStart(2,"0");
   const modeledByEnt={};
   const pushModeled=function(ent,name,amount,debtId){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount,debtId:debtId||null}); };
   (s.fixed||[]).forEach(function(f){ if(occursIn(f,ym)) pushModeled(accOf(f), f.name, occAmountIn(f,ym)); });
@@ -13867,6 +14012,15 @@ function importObExpenses(s, txs){
   txs.forEach(function(tx){
     const esIngreso = tx.amount<0;
     if(esIngreso){
+      // Un abono pendiente o futuro no acredita dinero disponible (feedback 30/9).
+      // Admitir estados desconocidos como cobrados también inventaría un ingreso.
+      // Sin estado (bancos que no lo informan) se sigue apuntando, como siempre.
+      const status=String(tx.status||"").trim().toUpperCase();
+      if(status && status!=="BOOK") return;
+      const date=String(tx.date||""), parts=date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(!parts) return;
+      const day=new Date(Number(parts[1]),Number(parts[2])-1,Number(parts[3]),12);
+      if(dayKey(day)!==date || date>todayKey) return;
       if(!tx.date || parseDate(tx.date)<som) return;
       if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
@@ -14197,6 +14351,18 @@ function monthBudgetStats(state, nowMs, hastaMs, budgetMode){
     {periodStart:startMs,cycle:!!period.cycle});
 }
 
+// V2 confirma recepción también fuera del ciclo: una fila anterior puede mover el saldo.
+// Se conserva la cobertura mensual histórica de la APK 51; v2 nunca acredita filas futuras.
+function widgetCoveredEvents(rows,start,now,history){
+  return "|"+rows.filter(function(r){ const d=dateMs(r.fecha); return (history?d<=now:d>=start) && (r.ingest_event_id||r.source==="macrodroid"); })
+    .map(function(r){ return (r.ingest_event_id||r.id)+"|"+r.id; }).join("|")+"|";
+}
+// Una respuesta de otra selección de bancos/reservas no puede reutilizar el delta de la foto
+// actual aunque el día de inicio coincida. El servidor debe devolver este alcance exacto.
+function widgetScopeOf(state,stats,anchor,bank){
+  return JSON.stringify([2,stats.periodStart,stats.cycle?"ciclo":"mes",stats.cycle?"neto":"gasto",
+    anchor||"",stats.budget,expenseBankEnts(state).slice().sort(),bank||""]);
+}
 // Inicio dice «Has gastado» en el mes natural: una nómina no puede borrar ese uso del
 // presupuesto (INC-2909-02). Gastos/Balance y el widget conservan su contrato propio.
 function dashboardBudgetStats(state){
@@ -23593,20 +23759,20 @@ function App(){
   const bankSyncing=useRef(false);          // evita syncs de banco solapados
   // Promesa → true si el pull de arranque (estado + gastos) terminó bien. La espera `runBankSync`.
   const pullOkRef=useRef(null);
-  const wR=useRef(false),wS=useRef(0),wP=useRef(null),wC=useRef("");
+  const wR=useRef(false),wS=useRef(0),wP=useRef(null),wC=useRef([]);
   const bankJustConnected=useRef(false);    // marca la vuelta de ?bank=ok para sincronizar en cuanto haya sesión
 
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
   const syncCloudExpenses=function(){
+    const readStartedAt=Date.now();
     const ps=++wS.current;
     wR.current=false;
     const pull=cloud.pullExpenses().then(function(rows){
       // Si otra lectura empezó después, este resultado puede ser una foto anterior aunque
       // haya llegado el último. No mezclarlo con el estado ni reenviarlo al widget (FIN-05).
       if(ps!==wS.current) return wP.current;
-      const m=inicioDeMesMs(Date.now());
-      wC.current="|"+rows.filter(function(r){ return Date.parse(r.fecha)>=m && (r.ingest_event_id || r.source==="macrodroid"); })
-        .map(function(r){ return (r.ingest_event_id||r.id)+"|"+r.id; }).join("|")+"|";
+      // La cobertura se forma al enviar, con la ventana vigente: el ciclo no acaba el día 1.
+      wC.current=rows;
       // FIN-07: el paginador solo resuelve al terminar; un error intermedio no mezcla ni
       // confirma páginas sueltas. La ausencia sigue sin significar borrado, incluso al terminar.
       const delSet={}; (stateRef.current.deleted||[]).forEach(function(k){ delSet[k]=1; });
@@ -23637,7 +23803,7 @@ function App(){
       set(function(prev){
         // Refrescar una sola vez conserva el guardado partido: no reescribir el histórico
         // por página ni cuando las filas recibidas son iguales a las que ya había.
-        const merged=mergeExpensesFromCloud(prev.expenses, incoming);
+        const merged=mergeExpensesFromCloud(prev.expenses, incoming, readStartedAt);
         const next=merged.list;
         const igual=!merged.changed && next.length===(prev.expenses||[]).length
           && next.every(function(e,i){ return e===(prev.expenses||[])[i]; });
@@ -23802,31 +23968,9 @@ function App(){
       // Si has pulsado tú «↻ Sincronizar bancos», esto se junta con el resultado de abajo: dos
       // avisos seguidos por una sola acción tuya eran ruido (feedback 2026-07-26).
       if(obAdded.length && !opts.manual) showToast(tf("ob_imported",{n:obAdded.length}));
-      // Cajero / ATM: ofrecer la otra mitad al efectivo (nunca automático).
-      (function offerAtmCash(){
-        const atms=(obAdded||[]).filter(function(e){
-          return e && e.category==="traspaso" && e.amount>0 && isAtmWithdrawal(e.merchant||e.obName||"");
-        });
-        if(!atms.length || typeof askConfirm!=="function") return;
-        let i=0;
-        const next=function(){
-          if(i>=atms.length) return;
-          const e=atms[i++];
-          askConfirm({
-            title:tf("ef_atm_offer_title",{x:eur(e.amount)}),
-            sub:t("ef_atm_offer_sub"),
-            ok:t("ef_atm_offer_yes"),
-            cancel:t("ef_atm_offer_no")
-          }).then(function(yes){
-            if(yes){
-              set(function(s){ return applyEntradaEfectivo(s, e.amount); });
-              showToast(t("ef_in_done"));
-            }
-            next();
-          });
-        };
-        setTimeout(next, 400);
-      })();
+      // INC-2909-03: tabla y saldo de efectivo no tienen una confirmación atómica compartida.
+      // Ofrecer +€ desde cada importación podía sumarlos otra vez en otro móvil; la ficha explica
+      // el límite. Los apuntes manuales de efectivo conservan su recorrido propio.
       // Resultado por banco (servidor tolerante a fallos): aplica los que funcionaron y avisa SOLO
       // del que falló. ok===false explícito → fallo (respuestas antiguas sin 'ok' se tratan como ok).
       const bankLabelOf=function(l){ const e=entFromAspsp(l&&l.aspsp); return e?entOf(e).label:((l&&l.aspsp)||"🏦"); };
@@ -25178,11 +25322,43 @@ function App(){
     const url=CONFIG.SUPABASE_URL+"/functions/v1/ingest?token="+encodeURIComponent(tok);
     try{ nat.setIngestUrl({url:url}).catch(function(){}); }catch(e){}
   },[state.settings&&state.settings.trIngest, state.settings&&state.settings.ingestToken]);
-  // App Android: alimenta el widget de pantalla de inicio (gasto del mes + saldo de la cuenta diaria).
-  // El widget y `ingest` solo admiten mes natural. Mandar su propia cifra mensual evita
-  // mezclar un inicio de ciclo con el `periodStart` del día 1 (feedback pareja 28/9).
-  const budW=monthBudgetStats(state,Date.now());
+  // App Android: alimenta el widget de pantalla de inicio (gasto + saldo de la cuenta diaria).
+  // La APK 51 conserva su payload mensual histórico, igual que ingest activo. Un widget v2
+  // declara `widgetContract` y pinta ventana/cifra de Inicio en su idioma (INC-2909-01).
+  const [wV2,setWV2]=useState(null);
+  useEffect(function(){
+    const nat=natPlugin();
+    if(!nat || !nat.widgetContract){ setWV2(false); return; }
+    let vivo=true,tm;
+    // La APK 51 no tiene el método: la llamada falla y se sigue con el mes natural.
+    const query=function(){
+      let expired=false;
+      tm=setTimeout(function(){
+        expired=true;
+        // Un puente colgado no demuestra legacy: la APK nueva oculta cifras hasta negociar.
+        try{ Promise.resolve(nat.widgetWaiting()).catch(function(){}); }catch(e){}
+        tm=setTimeout(query,3000);
+      },3000);
+      Promise.resolve().then(function(){ return nat.widgetContract(); })
+        .then(function(r){ if(vivo&&!expired){ clearTimeout(tm); setWV2(!!(r&&r.v>=2)); } })
+        .catch(function(){ if(vivo&&!expired){ clearTimeout(tm); setWV2(false); } });
+    };
+    query();
+    return function(){ vivo=false; clearTimeout(tm); };
+  },[]);
+  const budW=wV2?dashboardBudgetStats(state):monthBudgetStats(state,Date.now());
   const trAccW=widgetBankOf(state);
+  const wPay=wV2&&budW.cycle?budgetPaydayOf(state,Date.now()):null;
+  const wAnchor=wPay?keyOfExpense(wPay.inc):"";
+  const wScope=wV2?widgetScopeOf(state,budW,wAnchor,trAccW&&trAccW.ent):"";
+  // Se prepara el alcance compartido para la entrega propia de ingest; el activo sigue legacy.
+  useEffect(function(){
+    if(!wV2) return;
+    // La nómina que abre el ciclo no cuenta en su neto; su identidad debe viajar con la ventana.
+    const kind=budW.cycle?"ciclo":"mes", start=budW.periodStart, anchor=wAnchor, w=state.widgetPeriod;
+    if(w && w.v===2 && w.scope===wScope) return;
+    set(function(s){ return Object.assign({},s,{widgetPeriod:{v:2,kind:kind,start:start,anchor:anchor,scope:wScope}}); });
+  },[wV2,wScope,state.widgetPeriod]);
   const widgetCash=trAccW ? Math.round((totals.bankBal[trAccW.ent]||0)*100)/100 : null;
   // El límite combina presupuesto global y liquidez del banco elegido. Se mandan las piezas
   // por separado para que el nativo las actualice con la app cerrada (FIN-05).
@@ -25200,14 +25376,20 @@ function App(){
   useEffect(function(){
     const nat=natPlugin();
     if(!nat || !nat.updateWidget) return;
+    // Mientras se negocia, una foto legacy rebajaría el contrato ya guardado por la APK nueva.
+    if(wV2==null) return;
     if(cloud.enabled() && (!uid || !wR.current)) return;
     const data={
-      periodStart:inicioDeMesMs(Date.now()),
-      coveredEvents:wC.current,
+      periodStart:budW.periodStart,
+      // V2 acredita también filas anteriores recibidas: pueden afectar al saldo aunque ya no
+      // consuman esta ventana. No se confirma por fecha, ni por una foto sin identidad.
+      coveredEvents:widgetCoveredEvents(wC.current,budW.periodStart,Date.now(),!!wV2),
       deletedKeys:"|"+(state.deleted||[]).map(encodeURIComponent).join("|")+"|",
-      spent:Math.round((budW.shown||0)*100)/100,
+      // En el ciclo, el neto con signo, como Inicio; `shown` sería |neto| (la cabecera de Gastos).
+      spent:Math.round(((budW.cycle?budW.against:budW.shown)||0)*100)/100,
       budget:budW.budget!=null?budW.budget:(state.budget||0)
     };
+    if(wV2){ data.contract=2; data.periodKind=budW.cycle?"ciclo":"mes"; data.magnitude=budW.cycle?"neto":"gasto"; data.lang=CURLANG; data.scope=wScope; }
     if(widgetCash!=null){ data.cash=widgetCash; data.cashEnt=trAccW.ent; data.cashLabel=entOf(trAccW.ent).label; }
     if(widgetBudgetLeft!=null) data.budgetLeft=widgetBudgetLeft;
     if(widgetSafeLiq!=null) data.safeLiq=widgetSafeLiq;
@@ -25240,7 +25422,7 @@ function App(){
       // addListener puede resolver después del cleanup: liberar también ese handle tardío.
       if(sub) sub.then(function(h){ if(h&&h.remove) return h.remove(); }).catch(function(){});
     };
-  },[budW.shown,budW.budget,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid]);
+  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){
     // No arrancar el tour encima del login (showAuth) ni con el cajón abierto: causaba el caos

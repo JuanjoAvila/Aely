@@ -393,20 +393,20 @@ function App(){
   const bankSyncing=useRef(false);          // evita syncs de banco solapados
   // Promesa → true si el pull de arranque (estado + gastos) terminó bien. La espera `runBankSync`.
   const pullOkRef=useRef(null);
-  const wR=useRef(false),wS=useRef(0),wP=useRef(null),wC=useRef("");
+  const wR=useRef(false),wS=useRef(0),wP=useRef(null),wC=useRef([]);
   const bankJustConnected=useRef(false);    // marca la vuelta de ?bank=ok para sincronizar en cuanto haya sesión
 
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
   const syncCloudExpenses=function(){
+    const readStartedAt=Date.now();
     const ps=++wS.current;
     wR.current=false;
     const pull=cloud.pullExpenses().then(function(rows){
       // Si otra lectura empezó después, este resultado puede ser una foto anterior aunque
       // haya llegado el último. No mezclarlo con el estado ni reenviarlo al widget (FIN-05).
       if(ps!==wS.current) return wP.current;
-      const m=inicioDeMesMs(Date.now());
-      wC.current="|"+rows.filter(function(r){ return Date.parse(r.fecha)>=m && (r.ingest_event_id || r.source==="macrodroid"); })
-        .map(function(r){ return (r.ingest_event_id||r.id)+"|"+r.id; }).join("|")+"|";
+      // La cobertura se forma al enviar, con la ventana vigente: el ciclo no acaba el día 1.
+      wC.current=rows;
       // FIN-07: el paginador solo resuelve al terminar; un error intermedio no mezcla ni
       // confirma páginas sueltas. La ausencia sigue sin significar borrado, incluso al terminar.
       const delSet={}; (stateRef.current.deleted||[]).forEach(function(k){ delSet[k]=1; });
@@ -437,7 +437,7 @@ function App(){
       set(function(prev){
         // Refrescar una sola vez conserva el guardado partido: no reescribir el histórico
         // por página ni cuando las filas recibidas son iguales a las que ya había.
-        const merged=mergeExpensesFromCloud(prev.expenses, incoming);
+        const merged=mergeExpensesFromCloud(prev.expenses, incoming, readStartedAt);
         const next=merged.list;
         const igual=!merged.changed && next.length===(prev.expenses||[]).length
           && next.every(function(e,i){ return e===(prev.expenses||[])[i]; });
@@ -602,31 +602,9 @@ function App(){
       // Si has pulsado tú «↻ Sincronizar bancos», esto se junta con el resultado de abajo: dos
       // avisos seguidos por una sola acción tuya eran ruido (feedback 2026-07-26).
       if(obAdded.length && !opts.manual) showToast(tf("ob_imported",{n:obAdded.length}));
-      // Cajero / ATM: ofrecer la otra mitad al efectivo (nunca automático).
-      (function offerAtmCash(){
-        const atms=(obAdded||[]).filter(function(e){
-          return e && e.category==="traspaso" && e.amount>0 && isAtmWithdrawal(e.merchant||e.obName||"");
-        });
-        if(!atms.length || typeof askConfirm!=="function") return;
-        let i=0;
-        const next=function(){
-          if(i>=atms.length) return;
-          const e=atms[i++];
-          askConfirm({
-            title:tf("ef_atm_offer_title",{x:eur(e.amount)}),
-            sub:t("ef_atm_offer_sub"),
-            ok:t("ef_atm_offer_yes"),
-            cancel:t("ef_atm_offer_no")
-          }).then(function(yes){
-            if(yes){
-              set(function(s){ return applyEntradaEfectivo(s, e.amount); });
-              showToast(t("ef_in_done"));
-            }
-            next();
-          });
-        };
-        setTimeout(next, 400);
-      })();
+      // INC-2909-03: tabla y saldo de efectivo no tienen una confirmación atómica compartida.
+      // Ofrecer +€ desde cada importación podía sumarlos otra vez en otro móvil; la ficha explica
+      // el límite. Los apuntes manuales de efectivo conservan su recorrido propio.
       // Resultado por banco (servidor tolerante a fallos): aplica los que funcionaron y avisa SOLO
       // del que falló. ok===false explícito → fallo (respuestas antiguas sin 'ok' se tratan como ok).
       const bankLabelOf=function(l){ const e=entFromAspsp(l&&l.aspsp); return e?entOf(e).label:((l&&l.aspsp)||"🏦"); };
@@ -1978,11 +1956,43 @@ function App(){
     const url=CONFIG.SUPABASE_URL+"/functions/v1/ingest?token="+encodeURIComponent(tok);
     try{ nat.setIngestUrl({url:url}).catch(function(){}); }catch(e){}
   },[state.settings&&state.settings.trIngest, state.settings&&state.settings.ingestToken]);
-  // App Android: alimenta el widget de pantalla de inicio (gasto del mes + saldo de la cuenta diaria).
-  // El widget y `ingest` solo admiten mes natural. Mandar su propia cifra mensual evita
-  // mezclar un inicio de ciclo con el `periodStart` del día 1 (feedback pareja 28/9).
-  const budW=monthBudgetStats(state,Date.now());
+  // App Android: alimenta el widget de pantalla de inicio (gasto + saldo de la cuenta diaria).
+  // La APK 51 conserva su payload mensual histórico, igual que ingest activo. Un widget v2
+  // declara `widgetContract` y pinta ventana/cifra de Inicio en su idioma (INC-2909-01).
+  const [wV2,setWV2]=useState(null);
+  useEffect(function(){
+    const nat=natPlugin();
+    if(!nat || !nat.widgetContract){ setWV2(false); return; }
+    let vivo=true,tm;
+    // La APK 51 no tiene el método: la llamada falla y se sigue con el mes natural.
+    const query=function(){
+      let expired=false;
+      tm=setTimeout(function(){
+        expired=true;
+        // Un puente colgado no demuestra legacy: la APK nueva oculta cifras hasta negociar.
+        try{ Promise.resolve(nat.widgetWaiting()).catch(function(){}); }catch(e){}
+        tm=setTimeout(query,3000);
+      },3000);
+      Promise.resolve().then(function(){ return nat.widgetContract(); })
+        .then(function(r){ if(vivo&&!expired){ clearTimeout(tm); setWV2(!!(r&&r.v>=2)); } })
+        .catch(function(){ if(vivo&&!expired){ clearTimeout(tm); setWV2(false); } });
+    };
+    query();
+    return function(){ vivo=false; clearTimeout(tm); };
+  },[]);
+  const budW=wV2?dashboardBudgetStats(state):monthBudgetStats(state,Date.now());
   const trAccW=widgetBankOf(state);
+  const wPay=wV2&&budW.cycle?budgetPaydayOf(state,Date.now()):null;
+  const wAnchor=wPay?keyOfExpense(wPay.inc):"";
+  const wScope=wV2?widgetScopeOf(state,budW,wAnchor,trAccW&&trAccW.ent):"";
+  // Se prepara el alcance compartido para la entrega propia de ingest; el activo sigue legacy.
+  useEffect(function(){
+    if(!wV2) return;
+    // La nómina que abre el ciclo no cuenta en su neto; su identidad debe viajar con la ventana.
+    const kind=budW.cycle?"ciclo":"mes", start=budW.periodStart, anchor=wAnchor, w=state.widgetPeriod;
+    if(w && w.v===2 && w.scope===wScope) return;
+    set(function(s){ return Object.assign({},s,{widgetPeriod:{v:2,kind:kind,start:start,anchor:anchor,scope:wScope}}); });
+  },[wV2,wScope,state.widgetPeriod]);
   const widgetCash=trAccW ? Math.round((totals.bankBal[trAccW.ent]||0)*100)/100 : null;
   // El límite combina presupuesto global y liquidez del banco elegido. Se mandan las piezas
   // por separado para que el nativo las actualice con la app cerrada (FIN-05).
@@ -2000,14 +2010,20 @@ function App(){
   useEffect(function(){
     const nat=natPlugin();
     if(!nat || !nat.updateWidget) return;
+    // Mientras se negocia, una foto legacy rebajaría el contrato ya guardado por la APK nueva.
+    if(wV2==null) return;
     if(cloud.enabled() && (!uid || !wR.current)) return;
     const data={
-      periodStart:inicioDeMesMs(Date.now()),
-      coveredEvents:wC.current,
+      periodStart:budW.periodStart,
+      // V2 acredita también filas anteriores recibidas: pueden afectar al saldo aunque ya no
+      // consuman esta ventana. No se confirma por fecha, ni por una foto sin identidad.
+      coveredEvents:widgetCoveredEvents(wC.current,budW.periodStart,Date.now(),!!wV2),
       deletedKeys:"|"+(state.deleted||[]).map(encodeURIComponent).join("|")+"|",
-      spent:Math.round((budW.shown||0)*100)/100,
+      // En el ciclo, el neto con signo, como Inicio; `shown` sería |neto| (la cabecera de Gastos).
+      spent:Math.round(((budW.cycle?budW.against:budW.shown)||0)*100)/100,
       budget:budW.budget!=null?budW.budget:(state.budget||0)
     };
+    if(wV2){ data.contract=2; data.periodKind=budW.cycle?"ciclo":"mes"; data.magnitude=budW.cycle?"neto":"gasto"; data.lang=CURLANG; data.scope=wScope; }
     if(widgetCash!=null){ data.cash=widgetCash; data.cashEnt=trAccW.ent; data.cashLabel=entOf(trAccW.ent).label; }
     if(widgetBudgetLeft!=null) data.budgetLeft=widgetBudgetLeft;
     if(widgetSafeLiq!=null) data.safeLiq=widgetSafeLiq;
@@ -2040,7 +2056,7 @@ function App(){
       // addListener puede resolver después del cleanup: liberar también ese handle tardío.
       if(sub) sub.then(function(h){ if(h&&h.remove) return h.remove(); }).catch(function(){});
     };
-  },[budW.shown,budW.budget,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid]);
+  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){
     // No arrancar el tour encima del login (showAuth) ni con el cajón abierto: causaba el caos

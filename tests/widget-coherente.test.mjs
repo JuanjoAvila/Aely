@@ -44,7 +44,8 @@ function t(name, fn) {
 
 console.log("widget-coherente");
 
-const nowMs = Date.now();
+// El primer día del mes los días2/3 del fixture serían futuros y no probarían ningún ciclo.
+const nowMs = Date.parse("2026-09-27T12:00:00Z");
 const desdeMs = inicioDeMesMs(nowMs);
 const ym = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Europe/Madrid", year: "numeric", month: "2-digit",
@@ -104,6 +105,55 @@ t("gastar de más no deja «puedes gastar» en negativo", () => {
   const srvLeft = Math.max(0, srv.budget - srv.against);
   assert.equal(srvLeft, 0);
   assert.ok(srv.against > srv.budget, "y el escenario sí se pasa de presupuesto");
+});
+
+/* Sin entrega propia de ingest, cambiar el payload de APK51 haría alternar dos magnitudes
+   al cerrar/reabrir. El contrato legado se conserva incluso mientras v2 tiene otra foto. */
+t("APK51 conserva el contrato legado de ingest en Balance con nómina", () => {
+  const movs = MOVS.concat([{ day: 3, importe: -1800, cat: "ingreso", source: "ob:trade_republic" }]);
+  const data = escenario(movs);
+  const srv = statsDelMes(movs.map(paraServidor), data, desdeMs);
+  const app = cli.monthBudgetStats(data, nowMs);
+  assert.equal(c(app.shown), 1300, "se preserva la cifra histórica hasta entrega propia del contrato");
+  assert.equal(c(srv.shown), c(app.shown));
+  assert.equal(c(Math.max(0, srv.budget - srv.against)), c(Math.max(0, app.remaining)));
+  assert.equal(c(app.remaining), 2300);
+  // La cabecera de Gastos en Balance sigue con su contrato: el widget ya no la copia.
+  assert.equal(c(cli.monthBudgetStats(data, nowMs).shown), 1300);
+  assert.equal(c(statsDelMes(movs.map(paraServidor), data, desdeMs).shown), 1300, "sin modo forzado, el servidor conserva la regla de Gastos");
+});
+
+t("★ el widget va por mes natural aunque Mi ciclo esté activo (sus textos dicen «ESTE MES»)", () => {
+  const movs = MOVS.concat([{ day: 3, importe: -1800, cat: "ingreso", source: "ob:trade_republic" }]);
+  const data = escenario(movs, { settings: { budgetCycle: true } });
+  assert.equal(cli.monthBudgetStats(data, nowMs).periodStart, desdeMs);
+  assert.equal(cli.monthBudgetStats(data, nowMs).cycle, false);
+});
+
+/* La foto v2 se entrega separada del servidor. Su alcance tiene que cambiar cuando cambia
+   una regla financiera aunque el periodo sea el mismo, sin depender del idioma ni del reloj. */
+t("v2 usa el ciclo de Inicio y vincula presupuesto, ancla y bancos al alcance", () => {
+  const movs = [
+    { day: 2, importe: 300, cat: "super", source: "macrodroid" },
+    { day: 3, importe: -1800, cat: "ingreso", source: "ob:trade_republic", merchant: "NOMINA EMPRESA" },
+    { day: 4, importe: 120, cat: "bares", source: "macrodroid" },
+  ];
+  const data = escenario(movs, { settings: { budgetCycle: true, gTotalMode: "split" } });
+  data.expenses.forEach((e, i) => { if (movs[i].merchant) e.merchant = movs[i].merchant; });
+  const RealDate = cli.Date;
+  try {
+    cli.Date = class extends RealDate { static now() { return nowMs; } };
+    const app = cli.dashboardBudgetStats(data);
+    assert.equal(app.cycle, true, "la nómina abre el ciclo");
+    const anchor = cli.keyOfExpense(cli.budgetPaydayOf(data, nowMs).inc);
+    const scope = cli.widgetScopeOf(data,app,anchor,"trade_republic");
+    assert.equal(scope,cli.widgetScopeOf(data,app,anchor,"trade_republic"));
+    assert.notEqual(scope,cli.widgetScopeOf(data,app,anchor,"sabadell"));
+    assert.notEqual(scope,cli.widgetScopeOf({...data,settings:{...data.settings,expenseBanks:["sabadell"]}},app,anchor,"trade_republic"));
+    assert.notEqual(scope,cli.widgetScopeOf(data,{...app,budget:900},anchor,"trade_republic"));
+    assert.notEqual(scope,cli.widgetScopeOf(data,app,"otra-nomina","trade_republic"));
+    assert.equal(c(app.against), 120, "la nómina abre el ciclo y no suma; la compra del día 2 es del anterior");
+  } finally { cli.Date = RealDate; }
 });
 
 t("FIN-05: las mismas lápidas y filas dan el mismo presupuesto antes y después del pago", () => {
@@ -216,6 +266,13 @@ t("y la noti, con la app cerrada, mantiene TODAS las cifras vivas (el bug de ago
   assert.match(listener, /MiCarteraWidget\.saveMonth\(/);
 });
 
+t("el evento rechazado persiste entre procesos y requiere evidencia del mismo alcance",()=>{
+  assert.match(readPrefs,/s\.unknownJournal = p\.getString\("unknownJournal", ""\)/);
+  assert.match(write,/putString\("unknownJournal", s\.unknownJournal\)/);
+  assert.match(saveMonth,/WidgetPeriod\.sameScope\(p\.getString\("scope", ""\), respScope\)/);
+  assert.match(saveMonth,/write\(ed, s\)/);
+});
+
 t("no queda basura del «afford» viejo en las prefs", () => {
   assert.match(write, /remove\("afford"\)/, "hay que limpiar el afford de la versión anterior");
 });
@@ -279,4 +336,19 @@ t("reproducción: 891 gastado y «puedes gastar 324» ya no pueden convivir", ()
   assert.equal(budget - prefs.spent, afford(), "las dos líneas del widget siguen cuadrando");
 });
 
+// Ejecuta la negociación real con reloj controlado: un timeout no concede contrato antiguo.
+const negotiationSource=read("src/modules/11-app-main.js").split("const [wV2,setWV2]=useState(null);")[1]
+  .match(/useEffect\(function\(\)\{([\s\S]*?)\},\[\]\);/)[1];
+const timers=new Map(), values=[]; let timerId=0, requests=0, waiting=0;
+const cleanup=new Function("natPlugin","setWV2","setTimeout","clearTimeout",negotiationSource)(
+  ()=>({widgetContract:()=>++requests===1?new Promise(()=>{}):Promise.resolve({v:2}),widgetWaiting:()=>{waiting++;return Promise.resolve();}}),
+  v=>values.push(v),(fn)=>{timers.set(++timerId,fn);return timerId;},id=>timers.delete(id));
+const drain=async()=>{for(let i=0;i<6;i++) await Promise.resolve();};
+await drain(); const tick=()=>{const [id,fn]=timers.entries().next().value;timers.delete(id);fn();};
+tick(); await drain(); assert.deepEqual(values,[]); assert.equal(waiting,1);
+tick(); await drain(); assert.deepEqual(values,[true]); assert.equal(requests,2); cleanup();
+assert.match(saveApp,/if \(!WidgetPeriod.clientV2\(contract\)\) \{ waiting\(ctx\); return; \}/);
+assert.match(build,/p.getBoolean\("negotiating", false\)/);
+assert.match(saveApp,/putBoolean\("negotiating", false\)/);
+console.log("  ✓ puente colgado: aviso, retry y contrato v2 sin fallback que degrade la foto");
 console.log("  ok");

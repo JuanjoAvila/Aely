@@ -1,5 +1,162 @@
 [
   {
+    "v": "4.26.80",
+    "d": "2026-10-01",
+    "t": {
+      "es": "El widget dice qué periodo enseña",
+      "en": "The widget says which period it shows",
+      "ca": "El widget diu quin període mostra"
+    },
+    "items": {
+      "es": [
+        "Con la nueva app de Android, el widget muestra el mes o Mi ciclo y la misma cifra que Inicio, también en inglés y catalán.",
+        "Si un pago aún no está confirmado en la cifra del widget, pide abrir la app para actualizar."
+      ],
+      "en": [
+        "With the new Android app, the widget shows the month or My cycle and the same figure as Home, also in English and Catalan.",
+        "If a payment is not yet confirmed in the widget figure, it asks you to open the app to update."
+      ],
+      "ca": [
+        "Amb la nova app d’Android, el widget mostra el mes o El meu cicle i la mateixa xifra que Inici, també en anglès i català.",
+        "Si un pagament encara no està confirmat a la xifra del widget, demana obrir l’app per actualitzar."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2909-01-widget-periodo",
+        "t": {
+          "es": "Widget: mes o Mi ciclo",
+          "en": "Widget: month or My cycle",
+          "ca": "Widget: mes o El meu cicle"
+        },
+        "items": {
+          "es": [
+            "1. Instala la nueva app Android. Sin Mi ciclo, abre la app: widget ESTE MES y gastado de Inicio. La app Android anterior conserva sus cifras anteriores.",
+            "2. Instala la app de Android nueva, activa Mi ciclo y abre la app: el widget debe decir «MI CICLO» y la misma cifra que Inicio. Con la app en inglés o catalán, el widget también.",
+            "3. Cierra la app y paga con Trade Republic: el widget debe pedir abrir la app hasta confirmar el pago. Al reabrir y recibirlo, coincide con Inicio sin contarlo dos veces."
+          ],
+          "en": [
+            "1. Install the new Android app. With My cycle off, open the app: widget THIS MONTH and spending on Home. The previous Android app keeps its previous figures.",
+            "2. Install the new Android app, turn on My cycle and open the app: the widget must say “MY CYCLE” and the same figure as Home. With the app in English or Catalan, so must the widget.",
+            "3. Close the app and pay with Trade Republic: the widget must ask you to open the app until payment is confirmed. After reopening and receiving it, it matches Home without counting it twice."
+          ],
+          "ca": [
+            "1. Instal·la la nova app Android. Sense El meu cicle, obre l’app: widget AQUEST MES i gastat d’Inici. L’app Android anterior conserva les xifres anteriors.",
+            "2. Instal·la la nova app d'Android, activa El meu cicle i obre l'app: el widget ha de dir «EL MEU CICLE» i la mateixa xifra que Inici. Amb l'app en anglès o català, el widget també.",
+            "3. Tanca l’app i paga amb Trade Republic: el widget ha de demanar obrir l’app fins a confirmar el pagament. En reobrir i rebre’l, coincideix amb Inici sense comptar-lo dues vegades."
+          ]
+        },
+        "apk": 52
+      }
+    ]
+  },
+  {
+    "v": "4.26.79",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Corregir una retirada del banco",
+      "en": "Correct a bank withdrawal",
+      "ca": "Corregir una retirada del banc"
+    },
+    "items": {
+      "es": [
+        "Las retiradas del banco pueden marcarse como traspasos sin contar como gasto. La ficha avisa si no puede confirmar el cambio.",
+        "No se añade efectivo desde una retirada bancaria; los apuntes manuales siguen disponibles en Cartera.",
+        "Para marcar como retirada un cargo que paga un recibo, primero hay que deshacer ese vínculo desde la ficha.",
+        "Si un recibo se marca como pagado mientras se corrige una retirada, vuelve a quedar pendiente al sincronizar."
+      ],
+      "en": [
+        "Bank withdrawals can be marked as transfers without counting as spending. The detail view warns when the change cannot be confirmed.",
+        "A bank withdrawal does not add cash; manual cash entries remain available in Portfolio.",
+        "Before marking a charge that pays a bill as a withdrawal, its link must be undone from the detail view.",
+        "If a bill is marked as paid while a withdrawal is being corrected, it becomes pending again when synced."
+      ],
+      "ca": [
+        "Les retirades del banc es poden marcar com a traspassos sense comptar com a despesa. La fitxa avisa si no pot confirmar el canvi.",
+        "Una retirada bancària no afegeix efectiu; els apunts manuals continuen disponibles a Cartera.",
+        "Per marcar com a retirada un càrrec que paga un rebut, primer cal desfer aquest vincle des de la fitxa.",
+        "Si un rebut es marca com a pagat mentre es corregeix una retirada, torna a quedar pendent en sincronitzar."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2909-03-retirada",
+        "t": {
+          "es": "Retiradas y presupuesto",
+          "en": "Withdrawals and budget",
+          "ca": "Retirades i pressupost"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, abre la retirada del banco que necesitas corregir. El importe y la cuenta siguen fijados por el banco; la categoría se puede corregir. Toca Es una retirada de efectivo y cancela: nada debe cambiar.",
+            "2. Confirma la retirada: debe quedar en Traspaso y salir del gasto presupuestado. Conserva una sola fila con el mismo importe y banco. No aumenta el saldo del banco ni Efectivo; tocar Efectivo explica el límite.",
+            "3. Reabre y sincroniza los movimientos. La retirada confirmada debe seguir una sola vez y sin sumar efectivo, también en otro móvil al sincronizar.",
+            "4. Si no puede confirmar el cambio, la ficha debe avisar y no anunciar Guardado. Tras sincronizar, revisa la categoría antes de reintentar.",
+            "5. Si el movimiento está vinculado a un recibo, Retirada debe estar bloqueada y explicar el motivo. Deshaz primero el vínculo en Paga un recibo: el recibo deja de estar confirmado también en otro móvil al sincronizar; después se habilita Retirada."
+          ],
+          "en": [
+            "1. In Expenses, open the bank withdrawal you need to correct. The bank still sets its amount and account; the category can be corrected. Tap This is a cash withdrawal and cancel: nothing should change.",
+            "2. Confirm the withdrawal: it should be marked as Transfer and excluded from budget spending. Keep one row with the same amount and bank. Bank balance and Cash must not increase; tapping Cash explains the limit.",
+            "3. Reopen and sync transactions. The confirmed withdrawal should remain once without adding cash, including on another phone after syncing.",
+            "4. If the change cannot be confirmed, the detail view should warn you and must not say Saved. After syncing, check the category before trying again.",
+            "5. If the transaction is linked to a bill, Withdrawal must be blocked and explain why. First undo its link in Pays a bill: the bill becomes unconfirmed on another phone after syncing; Withdrawal is then enabled."
+          ],
+          "ca": [
+            "1. A Despeses, obre la retirada del banc que necessites corregir. El banc continua fixant l'import i el compte; la categoria es pot corregir. Toca És una retirada d'efectiu i cancel·la: no ha de canviar res.",
+            "2. Confirma la retirada: ha de quedar a Traspàs i sortir de la despesa pressupostada. Conserva una sola fila amb el mateix import i banc. No augmenta el saldo del banc ni Efectiu; tocar Efectiu explica el límit.",
+            "3. Reobre i sincronitza els moviments. La retirada confirmada ha de continuar una sola vegada i sense sumar efectiu, també en un altre mòbil en sincronitzar.",
+            "4. Si no pot confirmar el canvi, la fitxa ha d'avisar i no anunciar Desat. Després de sincronitzar, revisa la categoria abans de tornar-ho a provar.",
+            "5. Si el moviment està vinculat a un rebut, Retirada ha d’estar bloquejada i explicar el motiu. Desfés primer el vincle a Paga un rebut: el rebut deixa d’estar confirmat també en un altre mòbil en sincronitzar; després s’habilita Retirada."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.78",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Ingresos bancarios en el día del cobro",
+      "en": "Bank income on the payment date",
+      "ca": "Ingressos bancaris el dia del cobrament"
+    },
+    "items": {
+      "es": [
+        "Los ingresos bancarios pendientes o con fecha futura esperan al día del cobro."
+      ],
+      "en": [
+        "Pending bank income and future-dated credits wait until the payment date."
+      ],
+      "ca": [
+        "Els ingressos bancaris pendents o amb data futura esperen el dia del cobrament."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-3009-nomina-anticipada",
+        "t": {
+          "es": "Nómina sin adelantar el cobro",
+          "en": "Salary without an early payment",
+          "ca": "Nòmina sense avançar el cobrament"
+        },
+        "items": {
+          "es": [
+            "1. Antes de cobrar, sincroniza Sabadell: una nómina pendiente o con fecha futura no debe aparecer como ingreso cobrado ni abrir Mi ciclo.",
+            "2. Cuando el banco confirme el cobro, sincroniza de nuevo: comprueba una sola nómina en Gastos y el saldo real en Cartera. Repite la sincronización y reabre para comprobar que no se duplica."
+          ],
+          "en": [
+            "1. Before payday, sync Sabadell: a pending salary or future-dated credit must not appear as received income or start My cycle.",
+            "2. When the bank confirms payment, sync again: check one salary entry in Expenses and the actual balance in Portfolio. Sync again and reopen to check it is not duplicated."
+          ],
+          "ca": [
+            "1. Abans de cobrar, sincronitza Sabadell: una nòmina pendent o amb data futura no ha d'aparèixer com a ingrés cobrat ni obrir El meu cicle.",
+            "2. Quan el banc confirmi el cobrament, sincronitza de nou: comprova una sola nòmina a Despeses i el saldo real a Cartera. Repeteix la sincronització i reobre per comprovar que no es duplica."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.77",
     "d": "2026-10-01",
     "t": {
@@ -420,7 +577,7 @@
             "1. Instal·la l’actualització Android, obre Aely i comprova les xifres del widget. En la pròxima compra habitual amb l’app tancada, la despesa ha de variar només pel pagament. Tornar a obrir no l’ha de descomptar una altra vegada. Conserva la notificació i les xifres d’abans i després."
           ]
         },
-        "apk": 51,
+        "apk": 52,
         "historial": [
           "4.26.67/fin05-widget-reentrada"
         ],
@@ -452,7 +609,7 @@
             "2. En tornar a obrir l’app, la despesa i el saldo del widget s’han de mantenir sense descomptar la compra una altra vegada. Si falla, conserva les notificacions i comunica les xifres d’abans i després."
           ]
         },
-        "apk": 51,
+        "apk": 52,
         "historial": [
           "4.26.67/fin05-pago-cerrada"
         ],
@@ -485,11 +642,8 @@
             "2. Un moviment antic reanomenat o classificat a mà s’ha de conservar una sola vegada, amb els canvis, després de repetir la sincronització."
           ]
         },
-        "apk": 51,
+        "apk": 52,
         "historial": [
-          "4.26.67/tr-descripcion-clasificacion"
-        ],
-        "desde": [
           "4.26.67/tr-descripcion-clasificacion"
         ],
         "huella": "05c57324",
@@ -521,7 +675,7 @@
             "2. Tanca i torna a obrir l’app: ha de conservar la tria. Compte de despesa diària recupera la tria automàtica."
           ]
         },
-        "apk": 51,
+        "apk": 52,
         "historial": [
           "4.26.67/widget-banco"
         ],
@@ -556,7 +710,7 @@
             "3. Torna a obrir l'app i compara el giny amb Inici i Despeses. Cap moviment no ha de desaparèixer ni repetir-se."
           ]
         },
-        "apk": 51,
+        "apk": 52,
         "historial": [
           "4.26.67/widget-app-cerrada"
         ],

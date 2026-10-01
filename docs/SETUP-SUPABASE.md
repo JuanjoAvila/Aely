@@ -204,3 +204,7 @@ FIN-06 (4.26.51): `_shared/wallet.ts` preparado con 30 ISO y paridad de céntimo
 Cambios locales en bank-sync, bank-callback, ingest y _shared/ratelimit minimizan campos libres antes de app_events/consola. No se han aplicado al servidor ni se han consultado tablas/logs reales. La [matriz SEC-03](briefs/sec03-privacidad-logs.md) distingue mocks, fuente local y evidencia viva pendiente; un despliegue por función y el logging de plataforma son etapas independientes. No requiere migración ni cambio de RLS.
 
 No desplegar ingest de la rama SEC-03 sin portar su delta de logger sobre la fuente activa revalidada: Claude informó una diferencia main/ingest49 (FIN-05/Wallet). La matriz registra este límite; SEC-03 no reemplaza funciones activas ni valida ese inventario con tablas/logs reales.
+
+### Widget80 conserva ingest
+
+No Edge/SQL desplegada ni modificada por el injerto. Ingest activo sigue legado; v2 oculta cifras sin evidencia compatible y pide abrir la app. DeltaPR87 sigue separado y NO-GO. Un backend futuro exige su autorización y guion real propio. [Acta](briefs/inc-2909-01-widget.md).

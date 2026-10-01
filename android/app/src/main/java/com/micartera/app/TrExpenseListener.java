@@ -477,7 +477,9 @@ public class TrExpenseListener extends NotificationListenerService {
                         month.has("shownDelta") ? month.optDouble("shownDelta", Double.NaN) : Double.NaN,
                         month.has("againstDelta") ? month.optDouble("againstDelta", Double.NaN) : Double.NaN,
                         importe,
-                        counts, cashCounts);
+                        counts, cashCounts,
+                        // `contract`/`periodKind` solo los manda un ingest v2 (INC-2909-01 E2).
+                        month.optInt("contract", 0), month.optString("periodKind", ""), month.optString("scope", ""));
             }
         } catch (Exception ignored) {}
     }

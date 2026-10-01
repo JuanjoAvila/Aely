@@ -1,3 +1,27 @@
+## [4.26.80] — 2026-10-01 · Widget v2 sobre Nómina/Retirada
+
+- Injerto acotado821 sobre parent79/d45fb8b1: conserva guardia de abonos BOOK/fecha, merge con readStartedAt y conciliación durable de recibos/retirada. Java idéntico821; ACK del último pull completo, desconocidos hasta identidad/lápida y negociación sin degradar.
+- Periodo/idioma y magnitud de Inicio: bruto mensual o neto con signo del ciclo, sin Balance. APK51 conserva legado; código52/versionName80 y manifiesto52 apuntan al preasset beta real verificado, sin entrega final todavía.
+- Preserva Panel76/UI77 y los tres guiones Nómina78/Retirada79/Widget80. Alcance/data/functions completos, hashes históricos sin repin. Novedades79items[3] simplifica solo el condicional de vínculo tardío, respaldado por cuatro DOM de ACK/rechazo.
+- 13 DOM afectados PASS en pases finales; quitar readStartedAt se caza con100→180 y fuente/bundle se restauran byte a byte. Runner109 etapas, rojos iniciales de51/52, espejo externo y tamaño;1260/343 KiB mínimos autorizados tras A/B+1.699 B min/+601 B gzip. Prebuild26a y descarga del asset602841368 PASS, firma habitual/37assets/BuildConfig. Fixtures c9887ab8/2b03894a solo tests/acta. CI/build final/reemplazo binario y cotejo servido obligatorios antes de entrega80. [Acta](docs/briefs/inc-2909-01-widget.md).
+
+## [4.26.79] — 2026-10-01 · INC-2909-03, reconocer retirada sin gasto ni efectivo importado
+
+- Fuente79 injertada sobre Nómina78 final eaf55e4af38d2277a50baa5e736a93cd09b3a627, conservando Panel76/UI77 y sus guiones. Delta financiero aff910b9 idéntico; no modifica el motor08 ni las pantallas14/shell. Entrega conjunta prevista en beta80, sin publicación intermedia79 ni nota de Retirada77.
+
+- Confirma retirada por UUID/origen/fecha/importe/comercio y CAS de categoría, con RETURNING de una fila. Bloquea cargos ya vinculados a recibos y conserva Deshacer aun sin feed válido. Traspaso genérico usa la misma puerta, sin aprender comercio ni tocar dinero.
+- Vínculo llegado tras iniciar UPDATE: solo ACK válido de ese envío permite deshacer la prueba expense coincidente con linkFixedPayment(null) y aplicar neutralidad. La marca withdrawalUpdated es efímera. Lectura ya neutra, 0ACK, fallo, otra identidad y retorno vacío no revocan pago. Revalida fila/categoría local; aviso es/en/ca de recibo pendiente y sincronización. Sin transacción entre tablas/clientes; elimina metadatos, no crea lápida.
+- 43 Node PASS con handlers y método cloud reales: banco420 intacto, presupuesto80→0, cash manual30, importes40/80 y otros pagos/meses intactos; pull y slimForCloud dejan paid=false en A/B sin feed. Retirada importada no añade efectivo; manual permanece. FIN-04/RLS y timeout con commit sin ACK siguen fuera del cierre.
+- DOM28 final:7/7 PASS con un worker y servidor propio, cuatro casos tardíos de Retirada y vínculo/deshacer de Recibos es/en/ca. Bloqueo previo y los13 DOM anteriores se conservan como evidencia de aff; Node43 más contratos de pagos, scanner943 funciones/284 datos, sintaxis, frescura, idiomas, seguridad, mapa y privacidad PASS. No acredita RLS real ni prueba móvil. [Acta](docs/briefs/inc-2909-03-retirada-caixa.md).
+
+- Tamaño A/B contra parent final78 eaf55e4a: +8.519 B minificados/+1.997 B gzip9. Guardián mínimo1259/343 KiB autorizado por coordinador; sello79.99 mide1.288.387/350.399 B, margen829/833 B. Conserva tres bloqueantes y contratos financieros/idiomas, sin nuevas dependencias.
+
+## [4.26.78] — 2026-10-01 · INC-3009-02, ingresos pendientes y futuros
+
+- Candidata sobre UI77 finalca7734fd; CI exacta y publicación pendientes. Conserva Panel76/UI77; no mezcla los metadatos76 de PR96. Runtime de importObExpenses idéntico al revisado5c2146c3: BOOK o estado ausente y fecha válida ya alcanzada en Madrid, antes de identidad. Sin reparación histórica, cambios de calendario, APK, Edge ni SQL.
+- Una tanda Nómina es/en/ca y alcance explícito del importador, identidad, fecha Madrid, saldo, ancla, presupuesto y sync. TR cambia realmente en web y exige nueva revisión, conservando referencias/historial; ayuda y arranque conservan el OK idéntico. No se repinan baselines Git.
+- Porta cuatro fixtures reparadas del panel y conserva las explicaciones y escenarios nuevos de Panel76;4/4 DOM en4,6s bajo lease27 con hashHTMLpropio y contratos Node afectados verdes. Minificador real A/B77→78:+452 B crudos/+156 B gzip9; sello78.99 deja132/777 B bajo1250/341 KiB sin ampliarlos. DOM/CI anteriores quedan asociados a su SHA y no acreditan78. [Acta](docs/briefs/inc-3009-nomina-anticipada.md).
+
 ## [4.26.77] — 2026-10-01 · tres correcciones de pantalla en tandas separadas (INC-2709-12, -14 y -10)
 
 - **Cyberpunk (INC-2709-12).** La corriente de la barra inferior es un `::after` de `.botnav` y el `+` sobresale 26 px por encima de la barra sin contexto de apilamiento propio, así que la línea se pintaba encima del botón. `.botnav-fab` pasa a `position:relative;z-index:1` solo en ese tema; la corriente sigue recorriendo el resto de la barra.

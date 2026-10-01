@@ -1,5 +1,7 @@
 # Backlog operativo — Aely
 
+Widget80 sobre79/d45fb8b1; runtime821/ACK/guiones intactos. Prebuild52/name80 y descarga de assetbeta602841368 verificados; manifiesto52 local real. CI/build final/reemplazo APK/entrega80 pendientes; no main/Edge/SQL/install. [Acta](briefs/inc-2909-01-widget.md).
+
 ## INC-2909-02 · implementación beta4.26.73.1 verificada · 30 de septiembre de2026
 
 Salir de Mi ciclo conserva el gasto bruto mensual de Inicio y sus lectores del presupuesto. PR82/mergea03a2a06; CI completa SUCCESS, ZIP/huella/HTML/SW/APK cotejados. Candidata separable PR80/3912aa11GOClaude yCIverde, pendiente de prueba y aprobación móvil específica; no se atribuye cierre del caso real ni promoción. [Acta](briefs/inc-2909-02-inicio-natural.md). El coordinador nocturno dirige el backlog autorizado; recibos y panel se mantienen en sus propios chats.
@@ -38,7 +40,7 @@ El dueño adjuntó una captura de Inicio: la tarjeta de Mi ciclo aparece, y «Pr
 | ID / prioridad provisional | Síntoma y comprobación pendiente | Criterio de cierre |
 |---|---|---|
 | **INC-3009-01 · P1 · gas ya pagado en Próximos cargos** | El 30/9 sigue apareciendo como próximo un cargo de gas con fecha 25/9 que el dueño declara pagado. Distinguir fecha planificada, movimiento bancario confirmado y posible conciliación fallida; comprobar además que un cargo vencido sin prueba de pago no se etiquete como futuro ni se marque pagado por suposición. | Con un pago bancario que corresponde al fijo, «Próximos cargos» deja de ofrecerlo como pendiente; sin pago acreditado, el estado y la fecha se muestran de forma veraz. Reproducir con datos ficticios y DOM real. |
-| **INC-3009-02 · P1 · nómina Sabadell anticipada** | El dueño informa de una nómina añadida en Sabadell normal antes de recibirla. Aclarar si es previsión, movimiento pendiente o apunte confirmado y qué magnitud alteró (cuenta, ingresos, Mi ciclo). Claude recibió un encargo de diagnóstico independiente el 30/9; su respuesta todavía no se ha recibido. | Ninguna previsión o movimiento pendiente se suma como nómina cobrada ni cambia el saldo efectivo; solo la entrada bancaria confirmada se cuenta una vez, sin inventar fecha o importe. Reproducción sintética en UI y motor, sin consultar ni corregir datos bancarios reales. |
+| **INC-3009-02 · P1 · nómina Sabadell anticipada** | El dueño informa de una nómina añadida en Sabadell normal antes de recibirla. Aclarar si es previsión, movimiento pendiente o apunte confirmado y qué magnitud alteró (cuenta, ingresos, Mi ciclo). Guardia revisada5c2146c3: BOOK o estado ausente, fecha válida no futura en Madrid y rechazo antes de deduplicación. Nómina78 candidata sobre UI77 finalca7734fd: cuatro fixtures DOM4/4 y contratos afectados verdes; CI exacta, publicación y prueba móvil pendientes. PR96/número76 antiguos retenidos. [Acta](briefs/inc-3009-nomina-anticipada.md). | Ninguna previsión o movimiento pendiente se suma como nómina cobrada ni cambia el saldo efectivo; solo la entrada bancaria confirmada se cuenta una vez, sin inventar fecha o importe. Reproducción sintética en UI y motor, sin consultar ni corregir datos bancarios reales. |
 
 La siguiente tarea autónoma tratará **un solo** fallo financiero y volverá a cotejar aprobaciones beta antes de escogerlo. Mantener el widget como objetivo nativo separado y la nómina coordinada con el diagnóstico de Claude.
 
@@ -466,3 +468,8 @@ CI y versión realmente publicada**, o bloqueo concreto y trabajo que queda. Sin
 en el repo público. Implementado no significa probado en Android ni desplegado en Supabase.
 Antes de pedir aprobación móvil: versión exacta, pasos cortos, resultado esperado, límites y
 OTA frente a APK. Solo el dueño cambia el veredicto y decide producción.
+
+INC-2909-03: candidata79 injertada sobre Nómina78 final eaf55e4a, sin publicación ni OK móvil; entrega conjunta prevista en beta80.
+Reproducción de puertas banco/Efectivo/tipo y categoría Traspaso, ACK por identidad exacta y no
+operación de efectivo importado explicada. FIN-04/RLS y suma compartida siguen limitados.
+[Contrato, pruebas y coordinación](briefs/inc-2909-03-retirada-caixa.md).
