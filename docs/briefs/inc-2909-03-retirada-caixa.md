@@ -1,4 +1,39 @@
-# INC-2909-03 · retirada bancaria · candidata aislada
+# INC-2909-03 · retirada bancaria · implementación entregada en beta80
+
+## Cierre técnico · Retirada79 entregada en beta4.26.80.1
+
+Implementación cerrada el1/10 dentro de la entrega conjunta80: Nómina78, Retirada79 y
+Widget80 conservan guiones independientes. No hubo betas78/79 servidas.
+Fuente final `22396f9a0951c0f5a61eb8d59d7e65bb0385edf3`; merge beta
+`955765a9ec0ad96d20140a8f12da00c9fa04985c`, árbol idéntico
+`c5aab1d9e3397aca08d3bc9fcf6214c7e93dc309`, comprobado en Git.
+[CI36840523060](https://github.com/JuanjoAvila/Aely/actions/runs/36840523060) SUCCESS
+exacta223:639DOM/7rendimiento,1captura opcional omitida; build/Node/Deno/privacidad PASS.
+[Publicador36843848043](https://github.com/JuanjoAvila/Aely/actions/runs/36843848043)
+SUCCESS según el acta de entrega del coordinador, cotejada en su rama propia.
+
+Cotejo servido documentado por coordinador: huella50b3327daf00a8d0, ZIP900838B/36ficheros,
+SHA256fdfe03827279cfd7c0ce3c551e2c31bcbe07e33e13fb70e59c4caafe993c51b9;
+HTML80.1, SW80.1/source955, recibo y notas coinciden. apk.json52 coincide dentro/fuera.
+APKfinal602882554,6.512.773B,SHA2564abfa5b19d8d46bc10239162c20f8a5aa74020d343607fff421ccf61d9ade4d3,
+firma acreditada por coordinador. Esta tarea no instaló ni probó esa APK en dispositivo.
+Main12884f48, Pages67 y APK48 conservados; sin promoción, Edge, SQL ni objetivo nuevo.
+
+Comprobación propia por fuente223: guion79 idéntico es/en/ca y recibo de Retirada coincide
+con web `0d5c14de25f4608ef48a9b98bfc117c95948d5ca168a14700e989b9bc1723f91`.
+Código final `60885360dedcb6f9d41996b2870a20c6787028ce419556360d2540fcda957de5`.
+La integración80 cambia la revisión respecto de la fuente aislada79; se evalúa este código
+final, sin reutilizar aprobación de otra revisión. CI verde no aprueba una tanda.
+
+Pendientes conservados: prueba bancaria real/RLS/identidad remota FIN-04, prueba móvil
+de las puertas y sincronización entre dispositivos, pago real y veredicto propio del usuario.
+Sin transacción entre expenses/app_state: timeout tras commit sin ACK y concurrencia posterior
+no quedan resueltos por estos tests. La oferta de sumar efectivo importado permanece retirada;
+los apuntes manuales siguen disponibles. Cierre de implementación, no cierre de esos límites.
+
+Evidencia anterior se conserva debajo, incluida CI79 roja y reparación GREEN/RED de fixtures.
+Esta anotación se guarda solo en la rama propia para evitar reseñar/republicar beta.
+
 
 ## Lease30 · reparación de fixtures verificada, runtime intacto
 
