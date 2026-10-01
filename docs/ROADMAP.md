@@ -1,5 +1,6 @@
 # Roadmap — Aely
 
+> Estado a 2026-10-01 · **v4.26.78** candidata: guardia de nómina sobre UI77 finalca7734fd, conserva Panel76 y las tres tandas UI77. Cuatro fixtures DOM4/4 y guardianes afectados verdes; CI exacta, publicación y prueba móvil pendientes. [Acta](briefs/inc-3009-nomina-anticipada.md).
 > Estado a 2026-10-01 · **v4.26.77** candidata: tres tandas de pantalla (Cyberpunk, Preguntar, Perfil) con guiones independientes es/en/ca y alcances separados, sobre la fuente del panel76. Sin publicación hasta CI exacta y gate del coordinador. [Acta](briefs/ui-77-integracion.md).
 > Anterior · **v4.26.76** corrección local del panel: entrega exacta independiente del número de versión, deduplicación antes de retirar y motivos visibles por tanda. Beta publicada **4.26.75.1**/ca7b97d4; producción **4.26.67**, APK48 estable/APK51 beta. CI exacta, publicación76 y prueba móvil pendientes. [Auditoría](briefs/ops-0110-panel-entrega.md).
 > Inicio73 publicado y cotejado a20:55UTC, CI completa SUCCESS y prueba móvil pendiente. [Acta conservada](briefs/inc-2909-02-inicio-natural.md).
@@ -238,7 +239,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.77** candidata local (sobre la 76, también candidata); beta publicada **4.26.75.1**/ca7b97d4, producción **4.26.67**. |
+| Web / OTA (`VERSION`) | **4.26.78** candidata sobre UI77 finalca7734fd (76/77 aún sin publicación acreditada en esta acta); beta publicada **4.26.75.1**/ca7b97d4, producción **4.26.67**. |
 | APK (`versionName` / `versionCode`) | Repo/beta: **4.26.55 / 51**; estable: **4.26.32 / 48**. No se publica APK nueva con este cambio web. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **51** / 4.26.55 en beta; **48** / 4.26.32 en Pages estable. |

@@ -61,7 +61,7 @@ function conStore(values, fn) {
 }
 
 console.log("beta-veredictos");
-const changedIds=["fin05-widget-reentrada","fin05-pago-cerrada","widget-banco","widget-app-cerrada"];
+const changedIds=["tr-descripcion-clasificacion","fin05-widget-reentrada","fin05-pago-cerrada","widget-banco","widget-app-cerrada"];
 const readSource=f => fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
 const registered=JSON.parse(readSource("scripts/beta-sources.json"));
 const approvedIds=["fin05-widget-reentrada", "fin05-pago-cerrada", "tr-descripcion-clasificacion", "widget-banco", "widget-app-cerrada", "inc-2709-01-arranque-red", "inc-2809-02-ayuda-ciclo"];
@@ -147,7 +147,7 @@ t("CLI real: revocación remota, rechazo histórico exacto y entrega desconocida
   assert.equal(actual.estado,'sin probar');
   assert.equal(actual.rechazoAnterior.tanda,'4.26.71/inc-3009-01-cargos');
   assert.equal(actual.entregaPendiente,true);
-  assert.equal(data.tandas.filter(x=>x.estado==="approved").length,3,"solo las tres revisiones idénticas conservan el OK aunque falten recibos de entrega");
+  assert.equal(data.tandas.filter(x=>x.estado==="approved").length,2,"solo las dos revisiones idénticas conservan el OK aunque falten recibos de entrega");
 });
 
 t("el rechazo local sobrevive al traslado y veta el OK más antiguo", () => {
@@ -266,7 +266,7 @@ t("★ el veredicto no saca nada del panel: aprobar no es publicar", () => {
   assert.deepEqual(ids(pack).sort(), ["9.9.3/nativa", "9.9.3/web-vieja", "9.9.4/web-nueva"]);
 });
 
-t("★ tres fuentes idénticas conservan OK; cuatro cambios web conservan historia y exigen nueva revisión", () => {
+t("★ dos fuentes idénticas conservan OK; cinco cambios web conservan historia y exigen nueva revisión", () => {
   const pack=cli.betaChecklist("4.26.75.1","4.26.67",48);
   for(const id of approvedIds) {
     const g=pack.tandas.find(x=>String(x.id).split("/").pop()===id);

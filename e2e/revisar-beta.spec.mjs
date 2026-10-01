@@ -981,24 +981,24 @@ async function panelRevisionExacta(page, lang, scenario) {
 }
 
 for(const lang of ["es","en","ca"]) {
-  test(`revisión exacta: tres fuentes idénticas conservan OK y cuatro cambios web piden nueva revisión (${lang})`, async ({page}) => {
+  test(`revisión exacta: dos fuentes idénticas conservan OK y cinco cambios web piden nueva revisión (${lang})`, async ({page}) => {
     await abrirRevisionBeta(page,lang);
     await sembrarAprobadasEn4267(page);
     await page.evaluate(async lang => { await ensureLangPack(lang); CURLANG=lang; CONFIG.APP_VERSION="4.26.76.1"; window._mcProdApk=48; window._mcProdEntregas=null; window._mcProdApkRevisiones=null; },lang);
     const panel=await conProduccionEn(page,"4.26.67");
     const before=await page.evaluate(()=>store.get("_betaReview_4.26.68.1_v"));
     const copy={es:{approved:"No necesitas aprobarla otra vez",unknown:"Entrega sin confirmar: web",native:"Pendiente de publicar: app Android"},en:{approved:"You do not need to approve it again",unknown:"Delivery unconfirmed: web",native:"Awaiting publication: Android app"},ca:{approved:"No cal que l’aprovis de nou",unknown:"Entrega sense confirmar: web",native:"Pendent de publicar: app Android"}}[lang];
-    for(const title of ["Clasificación de gastos bancarios","Arranque con poca conexión","Ayuda de Mi ciclo"]) {
+    for(const title of ["Arranque con poca conexión","Ayuda de Mi ciclo"]) {
       const fila=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:title})});
       await expect(fila.locator(".beta-tanda-n")).toContainText("aprobada");
       await expect(fila.locator(".beta-tanda-estado")).toBeVisible();
       await expect(fila.locator(".beta-tanda-estado")).toContainText(copy.approved);
       await expect(fila.locator(".beta-tanda-entrega")).toBeVisible();
       await expect(fila.locator(".beta-tanda-entrega")).toContainText(copy.unknown);
-      if(title==="Clasificación de gastos bancarios") await expect(fila.locator(".beta-tanda-entrega")).toContainText(copy.native);
       await expect(fila.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/})).toHaveCount(0);
     }
-    for(const title of NATIVAS.filter(x=>x!=="Clasificación de gastos bancarios")) {
+    // La guardia de nómina cambia el importador de TR; su OK anterior sigue en el historial.
+    for(const title of NATIVAS) {
       const fila=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:title})});
       await expect(fila.locator(".beta-tanda-n")).toHaveText(/^0\/\d+$/);
       await expect(fila.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/})).toContainText("web");
@@ -1084,16 +1084,19 @@ async function sembrarAprobadasEn4267(page) {
   });
 }
 
-test("las nativas conservan el historial y solo TR conserva la aprobación idéntica", async ({ page }) => {
+test("las nativas conservan el historial y sus cinco cambios web exigen revisión nueva", async ({ page }) => {
   await abrirRevisionBeta(page);
   await sembrarAprobadasEn4267(page);
+  const historial=await page.evaluate(() => store.get("_betaReview_4.26.68.1_v"));
   await page.evaluate(() => { CONFIG.APP_VERSION="4.26.75.1"; window._mcProdApk = 48; window._mcProdEntregas=null; });
   const panel = await conProduccionEn(page, "4.26.67");
   for (const title of NATIVAS) {
     const fila = panel.locator(".beta-tanda").filter({ has: page.locator(".beta-tanda-t", { hasText: title }) });
-    if(title==="Clasificación de gastos bancarios") await expect(fila.locator(".beta-tanda-n")).toContainText("aprobada");
-    else await expect(fila.locator(".beta-tanda-n")).toHaveText(/^0\/\d+$/);
+    await expect(fila.locator(".beta-tanda-n")).toHaveText(/^0\/\d+$/);
+    await expect(fila.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/})).toContainText("web");
+    await expect(fila.getByRole("button",{name:/Aprobar esta tanda/})).toBeDisabled();
   }
+  expect(await page.evaluate(() => store.get("_betaReview_4.26.68.1_v"))).toEqual(historial);
   const recibos = panel.locator(".beta-tanda").filter({ has: page.locator(".beta-tanda-t", { hasText: "Recibos pagados y vencidos" }) });
   await expect(recibos.locator(".beta-tanda-n")).not.toContainText("aprobada");
 });

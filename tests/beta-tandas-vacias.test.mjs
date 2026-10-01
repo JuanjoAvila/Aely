@@ -104,6 +104,16 @@ t("★ guion rechazado de gas71 trasladado a74 conserva las siete anteriores", (
   ].sort());
 });
 
+t("★ nómina78 conserva las trece tandas de Panel76/UI77 y añade una comprobación", () => {
+  cli.window._mcProdEntregas=null; cli.window._mcProdApkRevisiones=null;
+  const prior=cli.betaChecklist("4.26.77.1","4.26.67",48);
+  const next=cli.betaChecklist("4.26.78.1","4.26.67",48);
+  const ids=(pack)=>Array.from(pack.tandas,(g)=>String(g.id).split("/").at(-1));
+  assert.equal(prior.tandas.length,13);
+  assert.deepEqual(ids(next).sort(),ids(prior).concat(["inc-3009-nomina-anticipada"]).sort());
+  assert.equal(next.tandas.filter((g)=>String(g.id).endsWith("/inc-3009-nomina-anticipada")).length,1);
+});
+
 t("★ una tanda corregida varias veces solo aparece en su versión más nueva", () => {
   const prev = cli.RELEASE_NOTES;
   try {

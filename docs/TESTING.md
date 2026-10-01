@@ -1,5 +1,17 @@
 INC-2909-02: `inicio-mes-natural.spec.mjs`, mapeado a Inicio, prueba es/en/ca, ajuste real, recarga, bruto mensual, neto del ciclo, reservas, bancos y límites. `month-budget-stats` ejecuta Pregúntame y reto con las mismas compras; `budget-notis-deps` ejecuta el efecto real: agotamiento, no repetición y reinicio al cobrar. Prueba móvil pendiente; CI y publicación se registran en el [brief](briefs/inc-2909-02-inicio-natural.md).
 
+## INC-3009-02 · nómina pendiente/futura
+
+`ob-ingresos` continúa en steps, reloj fijo y dos subprocesos UTC/Madrid. `--zone-child` permite
+comprobar directamente otras zonas; no basta cambiar solo TZ exterior. Guardia BOOK/ausente,
+fecha válida no futura Madrid, PDNG→BOOK, UUID, manual genérico, banco+id y saldos sintéticos
+400→2200 sin duplicar1800. DOM `nomina-anticipada.spec.mjs` registrado en el mapa del motor:
+Inicio/Gastos/Cartera en es/en/ca, transportes simulados y sync App real; lease obligatorio.
+En el injerto sobre Panel75 conserva el contrato bruto de Inicio73 y neto de Gastos en mes natural.
+Los 84 contratos/18 DOM previos pertenecen a aaa95803; la nueva integración exige resultados
+propios. [Evidencia y límites](briefs/inc-3009-nomina-anticipada.md).
+
+
 INC-2709-01 (beta 4.26.69.1): `e2e/inicio-offline.spec.mjs` retrasa sesión y evento de autenticación seis segundos con CPU ×6 y estado local sintético. Antes de corregir, el caso nuevo fallaba al detectar barras grises tras el splash; ahora exige el hero visible sin ese intervalo y que la nube tardía actualice la cifra. Los casos previos cubren offline conocido, evento `mc-boot-ready` ausente y nube lenta. [Action 36617933780](https://github.com/JuanjoAvila/Aely/actions/runs/36617933780) pasó la suite completa; la prueba en Android con red débil sigue pendiente y es necesaria para aceptar la tanda.
 
 OPS-02 (beta 4.26.56.1): `tests/backup-snapshot.test.mjs` contiene 23 guardianes del
@@ -579,9 +591,9 @@ INC-3009-01 tras rechazo: inicio-cargos abre el vínculo explícito en Gastos y 
 
 `scripts/beta-sources.json` declara fuentes y bloques inequívocos por tanda/superficie; `beta-revisions.mjs` normaliza CRLF y genera SHA-256. Una tanda moderna sin alcance o bloque activo ausente/ambiguo aborta build. No hay fallback global ni recibo de Android/Edge a partir de Git. `beta-delivery.json` acredita web ensamblada y sourceSha real en CI (null local). Los alcances no son un análisis automático de dependencias: deben auditarse al cambiar lectores o helpers.
 
-`betaHuella` combina guion y código; `betaVerdictFor` comparte reglas entre panel y listo. Última decisión rechazada/retirada prevalece, historial conserva decisiones anteriores, desde solo hereda código/guion iguales auditados. Tres revisiones siguen idénticas; cuatro widgets cambian realmente en web por Inicio73, sin cambios Android/Edge ni referencia histórica repinada. Aprobación y entrega exacta son distintas; sin recibo de una superficie requerida se conserva pendiente. El APK51 es legado y no acredita widget52.
+`betaHuella` combina guion y código; `betaVerdictFor` comparte reglas entre panel y listo. Última decisión rechazada/retirada prevalece, historial conserva decisiones anteriores, desde solo hereda código/guion iguales auditados. En75 tres revisiones seguían idénticas; cuatro widgets cambiaban realmente en web por Inicio73, sin cambios Android/Edge ni referencia histórica repinada. En78 la guardia de nómina cambia también el importador de TR: ayuda/arranque mantienen su OK y TR/cuatro widgets requieren nueva revisión. Aprobación y entrega exacta son distintas; sin recibo de una superficie requerida se conserva pendiente. El APK51 es legado y no acredita widget52.
 
-`tests/beta-veredictos.test.mjs` y `tests/beta-sources.test.mjs` están en run-tests; los scripts nuevos en CORE. El CLI se ejecuta con partes sintéticos y recibos ausentes. Mutantes legacy-id/drop-code/discard-rejection/local-override/ignore-receipts deben fallar. Los digests de Inicio, identidad/vínculo de Recibos y presentación en Plan cambian con una mutación relevante. `e2e/revisar-beta.spec.mjs` abre DOM real en es/en/ca, hereda tres OK y exige puntos nuevos en cuatro widgets, prueba rechazo/retirada y fallo remoto. Chromium local solo con lease canónico del coordinador.
+`tests/beta-veredictos.test.mjs` y `tests/beta-sources.test.mjs` están en run-tests; los scripts nuevos en CORE. El CLI se ejecuta con partes sintéticos y recibos ausentes. Mutantes legacy-id/drop-code/discard-rejection/local-override/ignore-receipts deben fallar. Los digests de Inicio, identidad/vínculo de Recibos y presentación en Plan cambian con una mutación relevante. `e2e/revisar-beta.spec.mjs` abre DOM real en es/en/ca: en78 hereda dos OK, exige puntos nuevos en TR y cuatro widgets y conserva el historial almacenado; prueba rechazo/retirada y fallo remoto. CI36806617191 detectó cuatro expectativas antiguas de TR, corregidas sin cambiar la app. Chromium local solo con lease canónico del coordinador.
 
 ## Ampliación auditada de cobertura (panel75)
 

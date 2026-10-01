@@ -1,3 +1,9 @@
+## [4.26.78] — 2026-10-01 · INC-3009-02, ingresos pendientes y futuros
+
+- Candidata sobre UI77 finalca7734fd; CI exacta y publicación pendientes. Conserva Panel76/UI77; no mezcla los metadatos76 de PR96. Runtime de importObExpenses idéntico al revisado5c2146c3: BOOK o estado ausente y fecha válida ya alcanzada en Madrid, antes de identidad. Sin reparación histórica, cambios de calendario, APK, Edge ni SQL.
+- Una tanda Nómina es/en/ca y alcance explícito del importador, identidad, fecha Madrid, saldo, ancla, presupuesto y sync. TR cambia realmente en web y exige nueva revisión, conservando referencias/historial; ayuda y arranque conservan el OK idéntico. No se repinan baselines Git.
+- Porta cuatro fixtures reparadas del panel y conserva las explicaciones y escenarios nuevos de Panel76;4/4 DOM en4,6s bajo lease27 con hashHTMLpropio y contratos Node afectados verdes. Minificador real A/B77→78:+452 B crudos/+156 B gzip9; sello78.99 deja132/777 B bajo1250/341 KiB sin ampliarlos. DOM/CI anteriores quedan asociados a su SHA y no acreditan78. [Acta](docs/briefs/inc-3009-nomina-anticipada.md).
+
 ## [4.26.77] — 2026-10-01 · tres correcciones de pantalla en tandas separadas (INC-2709-12, -14 y -10)
 
 - **Cyberpunk (INC-2709-12).** La corriente de la barra inferior es un `::after` de `.botnav` y el `+` sobresale 26 px por encima de la barra sin contexto de apilamiento propio, así que la línea se pintaba encima del botón. `.botnav-fab` pasa a `position:relative;z-index:1` solo en ese tema; la corriente sigue recorriendo el resto de la barra.

@@ -162,4 +162,32 @@ test("zona horaria y días de gracia nuevos invalidan dinero sin repinar histori
   assert.notEqual(changed.codigo,original.codigo);assert.equal(changed.codigoDesde,original.codigoDesde);
   const before=betaRevision("inc-3009-01-cargos",read),after=betaRevision("inc-3009-01-cargos",f=>read(f).replace("const REC_GRACE=3;","const REC_GRACE=4;"));assert.notEqual(before.web,after.web);
 });
+test("la revisión de nómina incluye guardia, fecha, identidad, saldo y lectores reales",()=>{
+  const id="inc-3009-nomina-anticipada", original=betaRevision(id);
+  for(const [file,from,to] of [
+    ["08-motor-bank.js",'function pickBankBalanceInfo(','function pickBankBalanceInfo( /* prioridad saldo */'],
+    ["08-motor-bank.js",'function entFromAspsp(','function entFromAspsp( /* identidad banco */'],
+    ["00-core.js",'const NOTE_MAX=','const NOTE_MAX= /* regla nota */'],
+    ["00-core.js",'const CAT_NEUTRAS =','const CAT_NEUTRAS = /* gasto neutro */'],
+    ["08-motor-bank.js",'const CUOTA_DIAS=','const CUOTA_DIAS= /* ventana cuota */'],
+    ["08-motor-bank.js",'const CUOTA_MESES=','const CUOTA_MESES= /* ventana histórico */'],
+    ["00-core.js",'const dayKey=','const dayKey= /* fecha */'],
+    ["00-core.js",'const INGRESO_CAT =','const INGRESO_CAT = /* categoría */'],
+    ["08-motor-bank.js",'if(status && status!=="BOOK") return;','if(false) return;'],
+    ["08-motor-bank.js",'date>todayKey','false'],
+    ["08-motor-bank.js",'timeZone:"Europe/Madrid"','timeZone:"UTC"'],
+    ["08-motor-bank.js",'if(tx.id) e.extId=tx.id;','if(false) e.extId=tx.id;'],
+    ["08-motor-bank.js",'function applyBankBalances(s, links){','function applyBankBalances(s, links){ /* cambio saldo */'],
+    ["04-tab-gastos.js",'function lastPaydayOf(','function lastPaydayOf( /* cambio ancla */'],
+    ["01-i18n.js",'function insumosSaldoGasto(','function insumosSaldoGasto( /* cambio saldo */'],
+    ["11-app-main.js",'const add=importObExpenses(prev, txs);','const add=null;'],
+    ["11-app-main.js",'  const totals=useMemo(()=>{','  const totals=useMemo(()=>{ /* lector saldo */'],
+    ["07-tab-patri-fijos.js",'function Wealth(','function Wealth( /* cuentas visibles */'],
+    ["04-tab-gastos.js",'const MovRow=React.memo(','const MovRow=React.memo( /* fila visible */'],
+  ]){
+    assert.ok(read("src/modules/"+file).includes(from),from+" existe");
+    assert.notEqual(betaRevision(id,f=>f.endsWith(file)?read(f).replaceAll(from,to):read(f)).codigo,original.codigo,from);
+  }
+  assert.equal(betaRevision(id,f=>f==="src/modules/10-app-components.js"?read(f)+"\n// texto ajeno":read(f)).codigo,original.codigo);
+});
 process.exitCode=failed?1:0;
