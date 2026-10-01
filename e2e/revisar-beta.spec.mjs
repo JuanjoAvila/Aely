@@ -11,8 +11,8 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
  * Supabase de los tests devuelve null → la sección Dev no se pinta. Por eso aquí se monta el panel
  * directamente: lo que hay que probar es la REGLA de aprobación, no el menú que lleva a ella. */
 
-async function abrirRevisionBeta(page) {
-  await seedLoggedInDashboard(page);
+async function abrirRevisionBeta(page, lang) {
+  await seedLoggedInDashboard(page, lang?{settings:{autoPrices:false,theme:"green",lang:lang}}:{});
   await page.addInitScript(() => { localStorage.setItem("_mcChannel", "beta"); });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
@@ -979,13 +979,20 @@ async function panelRevisionExacta(page, lang, scenario) {
 
 for(const lang of ["es","en","ca"]) {
   test(`revisión exacta: tres fuentes idénticas conservan OK y cuatro cambios web piden nueva revisión (${lang})`, async ({page}) => {
-    await abrirRevisionBeta(page);
+    await abrirRevisionBeta(page,lang);
     await sembrarAprobadasEn4267(page);
-    await page.evaluate(async lang => { await ensureLangPack(lang); CURLANG=lang; window._mcProdApk=48; },lang);
+    await page.evaluate(async lang => { await ensureLangPack(lang); CURLANG=lang; CONFIG.APP_VERSION="4.26.76.1"; window._mcProdApk=48; window._mcProdEntregas=null; window._mcProdApkRevisiones=null; },lang);
     const panel=await conProduccionEn(page,"4.26.67");
+    const before=await page.evaluate(()=>store.get("_betaReview_4.26.68.1_v"));
+    const copy={es:{approved:"No necesitas aprobarla otra vez",unknown:"Entrega sin confirmar: web",native:"Pendiente de publicar: app Android"},en:{approved:"You do not need to approve it again",unknown:"Delivery unconfirmed: web",native:"Awaiting publication: Android app"},ca:{approved:"No cal que l’aprovis de nou",unknown:"Entrega sense confirmar: web",native:"Pendent de publicar: app Android"}}[lang];
     for(const title of ["Clasificación de gastos bancarios","Arranque con poca conexión","Ayuda de Mi ciclo"]) {
       const fila=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:title})});
       await expect(fila.locator(".beta-tanda-n")).toContainText("aprobada");
+      await expect(fila.locator(".beta-tanda-estado")).toBeVisible();
+      await expect(fila.locator(".beta-tanda-estado")).toContainText(copy.approved);
+      await expect(fila.locator(".beta-tanda-entrega")).toBeVisible();
+      await expect(fila.locator(".beta-tanda-entrega")).toContainText(copy.unknown);
+      if(title==="Clasificación de gastos bancarios") await expect(fila.locator(".beta-tanda-entrega")).toContainText(copy.native);
       await expect(fila.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/})).toHaveCount(0);
     }
     for(const title of NATIVAS.filter(x=>x!=="Clasificación de gastos bancarios")) {
@@ -993,7 +1000,41 @@ for(const lang of ["es","en","ca"]) {
       await expect(fila.locator(".beta-tanda-n")).toHaveText(/^0\/\d+$/);
       await expect(fila.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/})).toContainText("web");
       await expect(fila.getByRole("button",{name:/Aprobar esta tanda/})).toBeDisabled();
+      await expect(fila.locator(".beta-tanda-entrega")).toContainText(copy.native);
+      await expect(fila.locator(".beta-tanda-entrega")).toContainText(copy.unknown);
     }
+    expect(await page.evaluate(()=>store.get("_betaReview_4.26.68.1_v"))).toEqual(before);
+  });
+  test(`entrega exacta: producción menor retira las siete tandas reales al llegar sus recibos (${lang})`, async ({page}) => {
+    await abrirRevisionBeta(page,lang);
+    await sembrarAprobadasEn4267(page);
+    await page.evaluate(async lang => {
+      await ensureLangPack(lang); CURLANG=lang; CONFIG.APP_VERSION="4.26.76.1";
+      window._mcProdApk=48; window._mcProdEntregas=null;window._mcProdApkRevisiones=null;
+      window._mcProdVersion=function(){ return new Promise(resolve=>{ window.__resolveDelivery=resolve; }); };
+    },lang);
+    const before=await page.evaluate(()=>store.get("_betaReview_4.26.68.1_v"));
+    await page.evaluate(()=>{
+      const h=document.createElement("div");h.id="e2e-beta-entrega";document.body.appendChild(h);
+      ReactDOM.createRoot(h).render(React.createElement(BetaReviewPanel,{onClose:function(){},showToast:function(){}}));
+    });
+    const panel=page.locator("#e2e-beta-entrega .beta-review");
+    await page.waitForFunction(()=>typeof window.__resolveDelivery==="function");
+    await page.evaluate(()=>{
+      window._mcProdEntregas={web:{},edge:{}};window._mcProdApkRevisiones={};
+      betaChecklist(CONFIG.APP_VERSION,"4.26.67",48).tandas.filter(g=>["inc-2709-01-arranque-red","inc-2809-02-ayuda-ciclo","fin05-widget-reentrada","fin05-pago-cerrada","tr-descripcion-clasificacion","widget-banco","widget-app-cerrada"].includes(g.id.split("/").pop())).forEach(g=>{
+        const id=g.id.split("/").pop();window._mcProdEntregas.web[id]=g.web;
+        if(g.native) window._mcProdApkRevisiones[id]=g.native;
+        if(g.edge) window._mcProdEntregas.edge[id]=g.edge;
+      });
+      window._mcProdApk=51;window.__resolveDelivery("4.26.67");
+    });
+    await expect(panel.locator(".beta-tanda")).toHaveCount(3);
+    for(const title of ["Pruebas y entrega","Recibos pagados y vencidos","Presupuesto mensual de Inicio"])
+      await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(1);
+    for(const title of NATIVAS.concat(["Arranque con poca conexión","Ayuda de Mi ciclo"]))
+      await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(0);
+    expect(await page.evaluate(()=>store.get("_betaReview_4.26.68.1_v"))).toEqual(before);
   });
   test(`revisión exacta: rechazo trasladado sigue vetando con producción mayor (${lang})`, async ({page}) => {
     const panel=await panelRevisionExacta(page,lang,"rejected");

@@ -1,3 +1,11 @@
+## [4.26.76] — 2026-10-01 · OPS-0110, revisión y entrega separadas en Pruebas
+
+- Reclamación de las siete tandas: cotejo de ZIP beta75 y producción67, más acta selectiva28/9. Arranque y ayuda actuales ausentes de la web estable; cinco tandas nativas retenidas para APK51, con estable48. Falta recibo de entregas en producción; no se inventa uno ni se oculta por antigüedad.
+- Una tanda moderna completamente acreditada se retira incluso si su nota tiene versión posterior a producción. Deduplicación antes de filtrar impide resucitar una revisión antigua del mismo ID. Legado sin código conserva su regla por versión; 404, APK antigua o Edge no acreditado conservan la tanda.
+- Un único helper alimenta filtro y motivos visibles: aprobación idéntica conservada, código cambiado, publicación pendiente o entrega sin confirmar por superficie. Texto es/en/ca visible aun plegada; aprobar no publica. Sin cambios del motor financiero, arranque, nativo, Edge, SQL ni referencias históricas.
+- RED contra ZIP público75 y Node; GREEN acotado con siete IDs reales, aprobación sintética preservada y respuesta asíncrona de producción67. Los últimos veredictos remotos no se pudieron leer: falta clave de servicio local. CI, publicación76 y prueba móvil siguen pendientes en el acta.
+- Tamaño y límite mínimos medidos contra75 en el acta; +1 KiB crudo y gzip autorizados por el coordinador, sin dependencias ni recortar validación.
+
 ## [4.26.75] — 2026-10-01 · OPS-3009-03, revisión y entrega exactas del panel
 
 - Integra el panel revisado483e8874 sobre el merge real de Recibos74 9ecd6a17, con su fuente idéntica a a004d16e. Conserva íntegros Inicio73, recibos, relojes de escenario ya revisados e historial anterior. No publica main, APK, Edge ni SQL.

@@ -115,7 +115,9 @@ const PRESUPUESTO = {
   // Panel75 sobre Recibos74: 1.278.280 B min y 347.946 B gzip frente a
   // 1.275.031 / 346.752 B de la base. +3 KiB crudos conserva el historial y
   // las identidades por superficie; el gzip sigue bajo 340 KiB sin ampliación.
-  minificado: 1249 * 1024,
+  // Panel76: motivos por superficie y filtrado selectivo, 1.279.382 / 348.250 B antes del sello.
+  // Excede por406/90 B: +1 KiB mínimo en ambos topes, sin recortar los contratos.
+  minificado: 1250 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -123,7 +125,7 @@ const PRESUPUESTO = {
   // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
   // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
   // La misma candidata mide 343.257 B gzip, 217 B sobre 335 KiB: +1 KiB medido.
-  gzip: 340 * 1024,
+  gzip: 341 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

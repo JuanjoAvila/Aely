@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.76",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Comprobaciones y publicación",
+      "en": "Checks and publication",
+      "ca": "Comprovacions i publicació"
+    },
+    "items": {
+      "es": [
+        "La revisión distingue las mejoras que falta probar de las que falta publicar. Las entregadas desaparecen de la lista."
+      ],
+      "en": [
+        "The review distinguishes improvements awaiting checks from those awaiting publication. Delivered improvements leave the list."
+      ],
+      "ca": [
+        "La revisió distingeix les millores pendents de provar de les pendents de publicar. Les entregades desapareixen de la llista."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "beta-panel-veredictos",
+        "t": {
+          "es": "Pruebas y entrega",
+          "en": "Checks and delivery",
+          "ca": "Proves i entrega"
+        },
+        "items": {
+          "es": [
+            "1. Abre Pruebas: una tanda aprobada explica por qué sigue pendiente de entrega, incluso plegada. No vuelve a pedir aprobación si su código es idéntico.",
+            "2. Si cambia el código, indica que necesita nuevas pruebas y conserva el historial. Una entrega exacta la retira aunque la versión de producción sea menor; sin pruebas de entrega permanece."
+          ],
+          "en": [
+            "1. Open Checks: an approved batch explains why delivery is still pending, even while collapsed. It does not request approval again for identical code.",
+            "2. Changed code requires new checks and keeps history. Exact delivery removes the batch even if production has a lower version; without delivery evidence it stays."
+          ],
+          "ca": [
+            "1. Obre Proves: una tanda aprovada explica per què continua pendent d’entrega, fins i tot plegada. No torna a demanar aprovació si el codi és idèntic.",
+            "2. Si canvia el codi, indica que necessita proves noves i conserva l’historial. Una entrega exacta la retira encara que la versió de producció sigui menor; sense proves d’entrega es manté."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.75",
     "d": "2026-10-01",
     "t": {
@@ -18,30 +62,7 @@
         "Les comprovacions conserven el resultat en canviar de versió. Si canvia allò que es comprova, es demana revisar-ho de nou i el resultat anterior queda desat."
       ]
     },
-    "tandas": [
-      {
-        "id": "beta-panel-veredictos",
-        "t": {
-          "es": "Pruebas ya aprobadas",
-          "en": "Already approved checks",
-          "ca": "Proves ja aprovades"
-        },
-        "items": {
-          "es": [
-            "1. Abre Pruebas: trasladar una tanda sin cambiar su código conserva el resultado. Si cambió el código, pide pruebas nuevas y explica el motivo.",
-            "2. El rechazo anterior de Recibos sigue en el historial y no aprueba su corrección. Cambiar de opinión retira el veredicto también del servidor; una versión superior no demuestra entrega."
-          ],
-          "en": [
-            "1. Open Checks: moving a batch without changing its code keeps its result. Changed code requires new checks and explains why.",
-            "2. The previous bill rejection stays in history and does not approve its fix. Changing your mind also withdraws the server verdict; a higher version does not prove delivery."
-          ],
-          "ca": [
-            "1. Obre Proves: traslladar una tanda sense canviar-ne el codi conserva el resultat. Si ha canviat el codi, demana proves noves i explica el motiu.",
-            "2. El rebuig anterior de Rebuts queda a l’historial i no aprova la correcció. Canviar d’opinió retira el veredicte també del servidor; una versió superior no demostra el lliurament."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.74",

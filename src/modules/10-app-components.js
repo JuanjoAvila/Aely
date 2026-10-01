@@ -1130,15 +1130,20 @@ function betaVerdictFor(g, rows){
   }
   return null;
 }
-// Una tanda con `apk` sigue pendiente de ENTREGA hasta que la APK estable la lleve. Sin dato, pendiente.
-function betaSinEntregar(g, prodApk){
+// El veredicto no acredita entrega: sin recibo se explica la duda, no se oculta la tanda.
+function betaEstadoEntrega(g, prodApk){
+  var id=String(g.id).split("/").pop(), d=window._mcProdEntregas||{}, a=window._mcProdApkRevisiones||{}, out={};
   if(g.codigo){
-    var id=String(g.id).split("/").pop(), d=window._mcProdEntregas||{}, a=window._mcProdApkRevisiones||{};
-    return !g.web || !d.web || d.web[id]!==g.web || (!!g.apk&&!g.native) || (!!g.native&&(!(prodApk>=g.apk)||a[id]!==g.native))
-      || (!!g.edge&&(!d.edge||d.edge[id]!==g.edge));
-  }
-  return !!g.apk && !(prodApk>=g.apk);
+    ["web","edge"].forEach(function(s){
+      if(s==="edge"&&!g.edge) return;
+      if(!g[s]||!d[s]||d[s][id]!==g[s]) out[s]=d[s]&&d[s][id]?"pending":"unknown";
+    });
+    if((g.apk&&!g.native)||(g.native&&(!(prodApk>=g.apk)||a[id]!==g.native)))
+      out.native=prodApk>0&&prodApk<g.apk||a[id]&&a[id]!==g.native?"pending":"unknown";
+  }else if(g.apk&&!(prodApk>=g.apk)) out.native=prodApk>0?"pending":"unknown";
+  return out;
 }
+function betaSinEntregar(g, prodApk){ return Object.keys(betaEstadoEntrega(g,prodApk)).length>0; }
 function betaChecklist(version, prodVersion, prodApk){
   var base=mcVerBase(version);
   if(typeof RELEASE_NOTES==="undefined"||!RELEASE_NOTES.length) return { v:base, t:"", items:[], tandas:[] };
@@ -1172,10 +1177,10 @@ function betaChecklist(version, prodVersion, prodApk){
     round=one?[one]:[];
   }else{
     var prod=mcVerBase(prodVersion);
-    // Producción web no entrega lo nativo: una tanda de APK sobrevive a que la web la adelante.
+    // Las modernas se filtran por recibo después de deduplicar; una entrega nueva no resucita una revisión antigua.
     round=RELEASE_NOTES.filter(function(n){
       return n&&n.v && !mcIsNewer(n.v, base) && (mcIsNewer(n.v, prod)
-        || betaTandas(n).some(function(g){ return betaSinEntregar(g,prodApk); }));
+        || betaTandas(n).some(function(g){ return g.codigo||betaSinEntregar(g,prodApk); }));
     });
   }
   /* PRODUCCION AL DIA SIGNIFICA CERO PENDIENTES (feedback 2026-09-16).
@@ -1200,8 +1205,8 @@ function betaChecklist(version, prodVersion, prodApk){
          varias veces exactamente el mismo trabajo. RELEASE_NOTES va de nueva a antigua. */
       var rawId=String(g.id);
       if(conProd&&vistas[rawId]) return;
-      if(conProd&&!mcIsNewer(notes.v, mcVerBase(prodVersion))&&!betaSinEntregar(g,prodApk)) return;
       vistas[rawId]=true;
+      if(conProd&&(g.codigo||!mcIsNewer(notes.v, mcVerBase(prodVersion)))&&!betaSinEntregar(g,prodApk)) return;
       /* Con ronda multi-versión el id lleva la versión: dos tandas «id-fila» de bases distintas
          no se pisan en el veredicto. Sin prod (una sola versión) se conserva el id corto de
          siempre para no resetear lo ya enviado en esta compilación. */
@@ -1669,7 +1674,7 @@ function BetaReviewPanel({onClose, showToast}){
     React.createElement("div",{style:{color:"var(--muted-2)",fontSize:12,lineHeight:1.5,marginBottom:14}},
       yaEnProd
         ? "Esta versión ya está en producción, así que no hay nada pendiente ni hace falta aprobarla otra vez."
-        : "Pruébalo con calma: esto se guarda y puedes seguir otro día. Tu padre y tu pareja siguen en la versión estable hasta que lo apruebes."),
+        : t("beta_review_intro")),
     // YA ESTÁ EN PRODUCCIÓN → no se pide veredicto (2026-07-28). Promocionar ES aprobar: pedirle
     // que apruebe otra vez lo que él mismo subió hace horas es ruido, y encima ruido que parece
     // trabajo pendiente cada vez que abre Ajustes.
@@ -1711,6 +1716,9 @@ function BetaReviewPanel({onClose, showToast}){
       const c=cuenta(g.idx);
       const v=sent[g.id];
       const listo=c.pend===0 && c.ko===0;
+      const entrega=betaEstadoEntrega(g,window._mcProdApk);
+      const superficies=function(estado){ return Object.keys(entrega).filter(function(s){ return entrega[s]===estado; }).map(function(s){ return s==="native"?t("beta_android_app"):s==="edge"?t("beta_server"):s; }).join(", "); };
+      const pendientes=superficies("pending"), inciertas=superficies("unknown");
       /* Con veredicto —APROBADA O RECHAZADA— la tanda se encoge a su cabecera. Antes solo se
          encogían las aprobadas y él lo dijo con todas las letras (2026-09-10): «las que se
          aprueban se encogen, las que se rechazan también se deberían poder encoger». Tenía razón
@@ -1725,8 +1733,11 @@ function BetaReviewPanel({onClose, showToast}){
           React.createElement("span",{className:"beta-tanda-n"+(v==="approved"?" ok":v==="rejected"?" ko":"")},
             v==="approved" ? "✅ aprobada" : v==="rejected" ? "⛔ rechazada" : (c.ok+c.ko+c.na)+"/"+g.idx.length),
           React.createElement("span",{className:"beta-tanda-fold"},(open?"▾ ":"▸ ")+t(open?"beta_collapse":"beta_expand"))),
+        v==="approved" && React.createElement("div",{className:"hint beta-tanda-estado"},t("beta_approved_pending")),
+        !v && (g.cambio||[]).length>0 && React.createElement("div",{className:"hint beta-tanda-estado"},tf("beta_revision_changed",{x:g.cambio.map(function(s){ return s==="native"?"Android":s==="edge"?t("beta_server"):s; }).join(", ")})),
+        (pendientes||inciertas) && React.createElement("div",{className:"hint beta-tanda-entrega"},
+          [pendientes?tf("beta_delivery_pending",{x:pendientes}):"",inciertas?tf("beta_delivery_unknown",{x:inciertas}):""].filter(Boolean).join(" ")),
         React.createElement("div",{id:"beta-body-"+g.id,hidden:!open},
-        (g.cambio||[]).length>0 && React.createElement("div",{className:"hint"},tf("beta_revision_changed",{x:g.cambio.map(function(s){ return s==="native"?"Android":s==="edge"?t("beta_server"):s; }).join(", ")})),
         g.idx.map(function(i,j){
           const it=g.items[j], m=marks[i];
           const borde=m==="ko"?"var(--coral)":m==="ok"?"var(--mint)":m==="na"?"var(--muted-2)":"var(--line-soft)";
@@ -1780,16 +1791,8 @@ function BetaReviewPanel({onClose, showToast}){
         : v ? React.createElement("div",{className:"beta-veredicto",style:{borderColor:v==="approved"?"var(--mint)":"var(--coral)"}},
             React.createElement("div",{style:{fontWeight:800,fontSize:14,marginBottom:5}},
               v==="approved" ? "✅ Aprobada" : "⛔ Rechazada"),
-            React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",lineHeight:1.5}},
-              /* El texto NO promete trocear la subida (2026-08-01). Antes decía «poniendo las
-                 tandas que quieras en «tandas»», y eso solo funciona si cada tanda nació en su
-                 rama `tanda/<id>`: si la ronda se commiteó mezclada —la 4.13.0, sin ir más
-                 lejos—, el workflow PARA y él se queda mirando un error después de haber
-                 aprobado. Aquí se dice lo que sí es verdad siempre: queda registrado con su
-                 nombre. Cómo se sube es del otro lado (docs/TESTING.md). */
-              v==="approved"
-                ? "Queda registrado con su nombre («"+g.id+"»), así que quien la suba sabe exactamente qué subir."
-                : "Queda registrado con lo que falla. Esta tanda no sube; las demás pueden seguir su camino."),
+            v==="rejected" && React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",lineHeight:1.5}},
+              "Queda registrado con lo que falla. Esta tanda no sube; las demás pueden seguir su camino."),
             React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:10},
               disabled:busy,onClick:function(){ enviar(g,"revoked"); }},
               "↺ Cambiar de opinión"))
