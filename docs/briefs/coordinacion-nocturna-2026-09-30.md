@@ -4,6 +4,20 @@ Objetivo autorizado: nuevas tandas terminadas, revisadas y realmente servidas en
 
 Coordinador: `01a0f415-fb1c-7f73-81b5-1d9caee29d30`, rama `codex/noche-3009-registro`. Continuidad: un heartbeat `aely-coordinaci-n-nocturna-del-backlog`, cada 15 minutos, fin `20261001T060000Z`; se verificó su destino. El PC tiene suspensión automática desactivada tanto en corriente como en batería; no se cambió el plan energético.
 
+## Corte vigente · 1/10 04:24 Madrid
+
+**Dos tandas nuevas realmente servidas: Inicio73 y Recibos74.** Beta4.26.74.1/huella b0901f80ab92c94b, ZIP SHA256 2b48dbcd77be6c7e9753879510bb73d230e79cf355ce8be57272b97ba5f0f3f6, SW4.26.74.1-2026-10-01-9ecd6a17 y APK4.26.55/code51 cotejados por HTTP. CI36796405875 SUCCESS:538 DOM/1 omisión previa y7 rendimiento. Cierre documental PR95 merge b93d421b, CI36798204601 SUCCESS, huella igual sin OTA nueva. Main4.26.67/APK48 intacta.
+
+| Objetivo preparado | Evidencia y gate vigente |
+|---|---|
+| Panel75 PR94 e975c4a2c779bf33a6d814785b1595559917c9e6 | Sustituye5532 vetada por constantes ausentes.26 contratos y14 guardianes;629 mutaciones de funciones y209 de datos, pruebas semánticas MC_TZ/REC_GRACE. Historial ampliado verificado contra Git, tres referencias actuales iguales y cuatro widgets realmente cambiados. Node completo: solo fallo local externo memoria-espejo; Deno ausente local. CI36804139697 en curso; revisión Claude exacta solicitada y lease16 para48DOM. Sin GO ni publicación todavía. |
+| Nómina76 | Runtime5c2146c3 con revisión independiente,18DOM/84 contratos en cuatro zonas. Preparación sobre parent75 final autorizada; push y publicación esperan gates. Calendario/ancla local anteriores y filas ya importadas siguen como límites. |
+| Retirada77 | Se reprodujo RED de interacción con Recibos74: A pierde pago tras neutralizar, B sin feed conserva proof. Reparación local63d677fd/acta005ba0cb bloquea cargo vinculado hasta deshacer,36Node verdes,13DOM preparados. Carrera posterior al inicioUPDATE puede afectar remoto: revisión concreta requerida; sin GO nuevo ni publicación. |
+| Widget78/APK52 | Runtime821733fc revisado,34DOM y Java real; injerto preparado sobre74, sin build/subida autorizada todavía. Plan beta-only con firma/versión/sello/asset verificables. Balance y pago cerrado real siguen abiertos; sin Edge/SQL. |
+| Cyberpunk/Preguntar/Perfil | Tres fuentes terminadas1c6793f3/7122afe2/8236a769, RED→GREEN propios y cadena local preparada. No servidas aún; esperan base final y verificación de integración. |
+
+Bootstrap main PR92 retenida. Ninguna fuente vetada se publica; SHAs y cifras de los cortes siguientes son históricos. Ventana autorizada termina08:00Madrid/06:00UTC. El lease16 reemplaza15, liberado explícitamente; solo root concede turno. No se cuentan candidatos ni APK locales como entregas.
+
 ## Registro de entregas y propietarios
 
 | Tarea | Propietario / chat | Fuente / SHA / PR | Estado verificable al 30/9 22:57 Madrid |
@@ -56,7 +70,7 @@ Las liberaciones se leen directamente del chat/brief cuando auto-review rechaza 
 
 **Siguientes preparadas localmente:** Nómina76 injerto d5d0cf59, retirada77 y widget78 en revisión de injerto; SDK/aapt/apksigner/JBR/Gradle/firma existentes disponibles, WEBDEBUG desactivado, ninguna build/subida nueva. UI local79→80→81 en commits36b6e54b/315560b8/f9bbe115 sobre74, acta31e1a4c3; código aplica sin conflicto, scopes distintos comprobados y documentaciónDOM vieja corregida. Solo basefinal/medicióncombinada/CI/GO/gate pueden convertirlas en publicación. Se mantienen ocho objetivos, sin abrir más mientras se entregan los terminados.
 
-## Corte vigente · 1/10 02:58 Madrid
+## Corte histórico · 1/10 02:58 Madrid
 
 Beta técnica servida sigue **4.26.74.1** con Recibos; producción **4.26.67/APK48**. Acta Recibos [PR95](https://github.com/JuanjoAvila/Aely/pull/95) integrada solo documentación: merge `b93d421b9e91598f137ae5767cabfc24ab81a47d`,00:50:50UTC; [CI documental36798204601 SUCCESS](https://github.com/JuanjoAvila/Aely/actions/runs/36798204601).
 
