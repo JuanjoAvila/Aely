@@ -25,6 +25,21 @@ Base main al arranque `12884f48107b82ffc8592c51180f2074a8546139`: web4.26.67, AP
 
 No se autoriza por arrastre main, Edge/SQL/RLS, migraciones, reparación de filas ni APK estable. No se consultan datos familiares para fabricar aceptación. `listo` puede carecer de service key local. Node memoria-espejo previo y Deno local ausente se reportan separados del CI final. Chromium: revisión panel tiene el turno enfocado al 22:57; Recibos solicita repetición DOM breve tras su corrección. Rendimiento solo un trabajador y sin otra suite concurrente.
 
+## Corte vigente · 1/10 02:27 Madrid
+
+Beta servida sigue **4.26.73.1**. Main sigue **4.26.67/APK48**. Las candidatas siguientes todavía no cuentan como entrega.
+
+- **Recibos74:** PR84 `a004d16e12a4d8e2bd10462ee54d7a2f3f3f797c`, [CI36793269908 SUCCESS](https://github.com/JuanjoAvila/Aely/actions/runs/36793269908):538 DOM,7 rendimiento,1 skip previo; Node/Deno/privacidad verdes. Frente a3e131175 solo fixture bancaria y tres documentos; src/public idénticos al GO anterior. Caso bancario localUTC1/1 PASS758ms; turno12 liberado explícitamente. Se solicita GO exacto nuevo antes del gate de merge/publicación. Conservado el rojo anterior por fechaNode/browser en meses distintos.
+- **Panel75:** fuente483e8874, GO Claude exacto,25 contratos de veredicto/5 builder/13 DOM y cinco mutantes. Preparación local sobre74 permitida; siete aprobaciones históricas se conservan, cuatro requieren revisar el cambio real del bloque financiero de Inicio; tres conservan alcance idéntico. Ningún digest se repina para esconderlo.
+- **Bootstrap de entregas:** PR92 `2f045a1e21e55b612b4483e63e9633f7ccf79235`, [CI36790590843 SUCCESS](https://github.com/JuanjoAvila/Aely/actions/runs/36790590843):473 DOM+7 rendimiento/1 skip previo. GO nuevo solicitado. **Publicación main retenida**: el despliegue cambia sello/SW/huella aunque el HTML probado sea igual. No es prerrequisito para beta75 y no se atribuyen recibos de entrega a producción.
+- **Nómina:** runtime5c2146c3, GO exactoaaa95803,18 DOM y84 contratosNode en cuatro zonas. Preparación local para futura76; guardia nuevaMadrid, calendario/ancla local anterior y filas históricas siguen como límites. No reparación masiva ni publicación de la fuente72 vieja.
+- **Retirada:** runtime259a0393 con GO, HEAD11a7e3df añade solo pruebas/evidencia.26 Node y19 de saldo/rol;11 DOM con B independiente. Verificación real de magnitudes: presupuesto80→0, banco420→420, efectivo0. No inventar +80 efectivo ni neutralizar por estado optimista sinACK. Fuente77 provisional hasta base final.
+- **Widget:** PR90 `821733fc7d65c895e288dba74d4ed412d01b3285`, GO Claude exacto23:18:28UTC,34 DOM y Java real100+30→130 trasACK de ciclo. Edge fuera; legado APK51 preservado y timeout honesto. Plan de APK beta52 preparado, ninguna build/subida nueva. Balance/modos y pago real con app cerrada no están cerrados. Fuente78 provisional.
+- **Cyberpunk/Preguntar:** cambios CSS aislados1c6793f3/7122afe2;4RED/4GREEN+8repetición y15RED/15GREEN respectivamente. Fuentes79/80 provisionales, sin entrega ni pruebas de inercia/teclado Android real. No consultas reales enviadas.
+- **Perfil:** causa medida18 DOM: colisión de pr-val.empty con padding global empty. Candidata3d093889 cambia modificador específico, mantiene todas las filas y acciones. Lease13 concedido tras liberación12 paraRED/GREEN es/en/ca y tamaños; fuente81 provisional, sin publicación.
+
+Las liberaciones se leen directamente del chat/brief cuando auto-review rechaza el aviso de un trabajador. No se desvía una acción rechazada por otro canal ni se repiten solicitudes al dueño dormido. Solo el coordinador concede publicación y turno local; CI remoto no comparte Chromium local.
+
 ## Parte de las 08:00
 
 Pendiente: enumerar exclusivamente nuevas tandas con CI final y manifiesto/ZIP/huella/HTML/SW/APK cotejados, instrucciones breves, versiones activas y límites de prueba móvil. Ninguna se da por publicada en este corte inicial.
