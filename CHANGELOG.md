@@ -1,3 +1,9 @@
+## [4.26.80] — 2026-10-01 · INC-2709-14, Preguntar pegado al borde
+
+- La hoja de ayuda es `.v4-sheet.aely-help-sheet` con un hijo `.v4-sheet-body`, así que le aplicaba `.v4-sheet:has(>.v4-sheet-body){padding-bottom:calc(52px + var(--safe-bottom))}` (especificidad 0,2,0). Su `.aely-help-sheet{padding-bottom:0}` (0,1,0) perdía. Bajo el compositor, que ya reserva `10px + zona segura`, quedaban 52 px + otra zona segura; con el teclado (el componente pone `marginBottom:kbPad`), ese hueco quedaba encima del teclado.
+- `.v4-sheet.aely-help-sheet` gana y deja el padding a 0. El compositor usa `var(--safe-bottom)` como el resto de la app y, con `data-help-kb="1"` (lo pone el componente al detectar el teclado), no suma la zona segura. Solo afecta a esta hoja.
+- Prueba: `e2e/help-preguntar-borde.spec.mjs`, que mide el hueco entre Preguntar y el borde inferior de la hoja. Tiene que ser exactamente el padding del compositor: 10 px + zona segura sin teclado y 10 px con él. Cubre es/en/ca, letra normal y enorme, zona segura 0 y 34 px, y teclado simulado con un `visualViewport` más bajo (la vía real del componente). No envía preguntas. El teclado real de Android queda pendiente del móvil. Pendiente del turno de Chromium, en rojo sobre la base y en verde con el cambio.
+
 ## [4.26.67] — 2026-09-30 · INC-2709-02, liquidación y archivo de deudas
 
 - Candidata de promoción exclusiva desde producción 4.26.66 de la tanda `inc-2709-02-deudas-archivo`, aprobada por el dueño el 29/9 tras beta 4.26.70.1. Se trasladan solo `09-tab-debts-goals.js`, sus textos es/en/ca y la cobertura de DOM; Android, Edge, SQL, APK y el resto de beta quedan fuera.
