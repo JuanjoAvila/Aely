@@ -87,7 +87,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.67** candidata web de INC-2709-02, aprobada en beta y preparada exclusivamente desde producción 4.26.66. La beta **4.26.70.1** conserva las otras tandas pendientes; producción sirve aún **4.26.66** hasta verificar esta candidata. APK estable **4.26.32/code 48** y beta **4.26.55/code 51**. [Acta selectiva](docs/briefs/inc-2709-02-prod.md) · [manifiesto estable](https://juanjoavila.github.io/Aely/version.json) · [manifiesto beta](https://github.com/JuanjoAvila/Aely/releases/download/beta/version.json).
+Estado actual: **v4.26.81** candidata (número provisional, sin publicar) desde main: en el perfil, los datos sin rellenar vuelven a ocupar una línea normal en vez de una casilla gigante ([acta](docs/briefs/inc-2709-10-perfil.md)). Producción web **4.26.67**, beta **4.26.73.1**. APK estable **4.26.32/code 48** y beta **4.26.55/code 51**. [Acta selectiva](docs/briefs/inc-2709-02-prod.md) · [manifiesto estable](https://juanjoavila.github.io/Aely/version.json) · [manifiesto beta](https://github.com/JuanjoAvila/Aely/releases/download/beta/version.json).
 
 Corte anterior verificado: **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](docs/briefs/ops02-restauracion-probada.md).
 

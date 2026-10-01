@@ -36,6 +36,11 @@ y mide por CDP que el primer fotograma del cajón avance menos de 12 px; tambié
 termine abriéndose. `revisar-beta.spec.mjs` exige solo el veredicto de Ajustes después de la
 aprobación y publicación de temas, sin resucitar los 28 pasos antiguos. No requiere APK nueva.
 
+Perfil (INC-2709-10): `e2e/perfil-filas-vacias.spec.mjs` abre el perfil con un solo campo ficticio
+relleno y mide que cada fila vacía («Añadir») tenga el alto de la rellena (±4 px, mínimo 44 px) y el
+texto a la izquierda, en es/en/ca y letra normal, grande y enorme. Toca una fila vacía y comprueba que
+abre su diálogo; no guarda nada.
+
 Apariencia 4.26.10: `e2e/apariencia-temas.spec.mjs` pinta Cyberpunk de verdad y comprueba que el
 dinero conserva verde/rojo y que el tema persiste tras recargar. También cubre que «Reducir
 animaciones» apaga todo lo que se mueve y las temáticas Otoño y Primavera (tinte, ambientación y

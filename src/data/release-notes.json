@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.81",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Perfil más compacto",
+      "en": "A tidier profile",
+      "ca": "Perfil més compacte"
+    },
+    "items": {
+      "es": [
+        "En tu perfil, los datos que aún no has rellenado ocupan una línea normal con «Añadir», en vez de una casilla enorme cada uno."
+      ],
+      "en": [
+        "In your profile, details you haven't filled in yet take up a normal line with “Add” instead of a huge box each."
+      ],
+      "ca": [
+        "Al teu perfil, les dades que encara no has omplert ocupen una línia normal amb «Afegeix», en lloc d'una casella enorme cadascuna."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2709-10-perfil",
+        "t": {
+          "es": "Perfil sin casillas gigantes",
+          "en": "Profile without giant boxes",
+          "ca": "Perfil sense caselles gegants"
+        },
+        "items": {
+          "es": [
+            "1. Toca tu avatar en Inicio para abrir el perfil: los datos sin rellenar se ven como una línea más, con «Añadir» a la izquierda, del mismo alto que los rellenos.",
+            "2. Toca uno de ellos: se abre el cuadro para escribirlo, como siempre. No hace falta guardar nada."
+          ],
+          "en": [
+            "1. Tap your avatar on Home to open your profile: empty details look like any other line, with “Add” on the left, the same height as the filled ones.",
+            "2. Tap one of them: the box to type it opens, as always. There is no need to save anything."
+          ],
+          "ca": [
+            "1. Toca el teu avatar a Inici per obrir el perfil: les dades sense omplir es veuen com una línia més, amb «Afegeix» a l'esquerra, de la mateixa alçada que les omplertes.",
+            "2. Toca'n una: s'obre el quadre per escriure-la, com sempre. No cal desar res."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.67",
     "d": "2026-09-30",
     "t": {
