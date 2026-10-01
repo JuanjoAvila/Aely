@@ -6,6 +6,13 @@ Prioridad inmediata nueva: corregir que las tandas aprobadas vuelven a aparecer 
 
 ## Tramo activo: 1 de octubre, 14:35:18–16:35:18 UTC
 
+### Corte 14:56 UTC
+
+GO técnico exacto del revisor para415553174bf86998c363d5f6c32e3f3160a4aaf3: 982 mutantes de funciones,305 de datos,17CLI y catálogo/veredictos/rondas/frescura PASS. Claude aún sin respuesta final; último sondeo acreditado13:55:30UTC, solicitud final propia publicada14:41. No se infiere actividad del watcher ni GO de una prerevisión. CI36877009268 continúa ejecutando build/unit/Deno/E2E; sin publicación81.
+
+Manifiestos beta realmente leídos por assetID: version.json602943535 =4.26.80.1/huella50b3327daf00a8d0; apk.json602943533 =code52/name4.26.80 y URLbeta52. Metadatos release: bundle602943532,900838B, actualizado09:57:55UTC. Pages HTTP200 web4.26.67 y APK48/4.26.32. Transporte directo tuvo errores DNS/conexión; reintento porAPI produjo cuerpos exactos, sin atribuir caída aGitHub. ZIP nuevo81 aún inexistente.
+
+
 Coordinador único `01a0f7e3-ecc5-7f20-a40d-c71a043343a7`. Objetivo propio creado desde reloj UTC: inicio `2026-10-01T14:35:18Z`, plazo `2026-10-01T16:35:18Z` (16:35:18–18:35:18 Madrid). Transferencia expresa recibida del saliente; lease34 owner null y coordinator actual, mismo heartbeat ACTIVE y target actual, reanclado al inicio y plazo propios. Arranque cotejado antes de retirada del saliente. No existe otro sucesor ni se crea antes del plazo.
 
 Fuente final conjunta `415553174bf86998c363d5f6c32e3f3160a4aaf3`, [PR104](https://github.com/JuanjoAvila/Aely/pull/104) borrador a beta; mismas fuentes Panel02bd y CLI f284. Worktree existente reutilizado. Delta415 respecto a ac9: únicamente CHANGELOG, entradaCLI trasladada de80 a81. SHA256 del HTML oficial `00c2caf225ff98e545c1d57946fdbc22b938cd31d5e40640f1344bf91e822a97` repetido por este coordinador e idéntico al DOM finalPanel; runtime/scopes/notas/Android/APK/Edge/SQL sin delta contra02bd. Worktree limpio, docs-frescura y privacidad PASS.
