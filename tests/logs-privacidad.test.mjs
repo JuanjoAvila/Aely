@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
+import { createHash, webcrypto } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { transformSync } from "esbuild";
 
@@ -103,7 +104,20 @@ await t("inventario de destinos completo: toda nueva ruta obliga a actualizar la
 await t("consola de idiomas/notas: errores de lectura no muestran contenidos",async()=>{
  const x=client();const logs=[];x.c.console.warn=(...a)=>logs.push(a);x.c.fetch=async()=>{throw error();};x.c._langPackLoads={};x.c.langPackReady=()=>false;x.c.langPackUrl=()=>"synthetic";x.c.LANG={};
  const lang=read("src/modules/01-i18n.js");vm.runInContext(lang.slice(lang.indexOf("function ensureLangPack("),lang.indexOf("/** Idioma guardado")),x.c);assert.equal(await x.c.ensureLangPack("en"),"es");
- const notes=read("src/modules/10-app-components.js");const a=notes.indexOf("function ensureReleaseNotes()");const b=notes.indexOf("function ",a+10);x.c.RELEASE_NOTES=[];x.c._rnLoad=null;x.c.releaseNotesUrl=()=>"synthetic";x.c.mcVerBase=()=>"4.26.52";x.c.localStorage={getItem:()=>null};vm.runInContext(notes.slice(a,b),x.c);await x.c.ensureReleaseNotes();clean(logs);assert.equal(logs.length,2);
+ const notes=read("src/modules/10-app-components.js"),a=notes.indexOf("var RELEASE_NOTES_MAX="),b=notes.indexOf("/* Panel de Novedades.",a),versions=notes.indexOf("function mcVerBase("),versionsEnd=notes.indexOf("/* IDENTIDAD DE UNA TANDA",versions);
+ assert.ok(a>=0&&b>a&&versions>=0&&versionsEnd>versions,"bloques reales de notas y versiones delimitados");
+ // Extraer solo ensureReleaseNotes dejaba su verificador fuera y la petición rechazada sin catch.
+ // WebCrypto real y un catálogo con digest conocido impiden que la fixture acepte todo a ciegas.
+ const cache=new Map();Object.assign(x.c,{crypto:webcrypto,TextEncoder,URL,document:{querySelector:()=>null,baseURI:"https://app.invalid/"},location:{href:"https://app.invalid/"},
+  localStorage:{get length(){return cache.size;},key:i=>[...cache.keys()][i],getItem:k=>cache.get(k)||null,setItem:(k,v)=>cache.set(k,v),removeItem:k=>cache.delete(k)}});
+ vm.runInContext(notes.slice(versions,versionsEnd)+notes.slice(a,b),x.c);
+ assert.equal((await x.c.ensureReleaseNotes()).length,0);clean(logs);assert.equal(logs.length,2);
+ const exact=[{v:"4.26.52",t:sensitive,items:[sensitive],tandas:[]}];x.c._rnSha=createHash("sha256").update(JSON.stringify(exact)).digest("hex");
+ x.c.fetch=async()=>({ok:true,json:async()=>exact});assert.equal(await x.c.ensureReleaseNotes(),exact);clean(logs);assert.equal(logs.length,2);
+ x.c.RELEASE_NOTES=[];x.c._rnLoad=null;x.c.fetch=async()=>({ok:true,json:async()=>{throw error();}});
+ assert.equal((await x.c.ensureReleaseNotes()).length,0);clean(logs);assert.equal(logs.length,3);
+ x.c.fetch=async()=>({ok:true,json:async()=>[{...exact[0],t:sensitive+" catálogo distinto"}]});
+ assert.equal((await x.c.ensureReleaseNotes()).length,0);clean(logs);assert.equal(logs.length,4);
 });
 await t("feedback conserva importes deliberados y redacta IBAN/credenciales",async()=>{
  const x=client();for(const text of ["Importe 9876.54 €","Importe €9876.54","IBAN ES91 2100 0418 4502 0005 1332","Bearer sec03_secret_credential","token: sec03_secret_credential"]){await x.c.cloud.feedback(text);}
