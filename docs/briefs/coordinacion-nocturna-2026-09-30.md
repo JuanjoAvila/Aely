@@ -25,7 +25,7 @@ Base main al arranque `12884f48107b82ffc8592c51180f2074a8546139`: web4.26.67, AP
 
 No se autoriza por arrastre main, Edge/SQL/RLS, migraciones, reparación de filas ni APK estable. No se consultan datos familiares para fabricar aceptación. `listo` puede carecer de service key local. Node memoria-espejo previo y Deno local ausente se reportan separados del CI final. Chromium: revisión panel tiene el turno enfocado al 22:57; Recibos solicita repetición DOM breve tras su corrección. Rendimiento solo un trabajador y sin otra suite concurrente.
 
-## Corte vigente · 1/10 02:27 Madrid
+## Corte histórico · 1/10 02:27 Madrid
 
 Beta servida sigue **4.26.73.1**. Main sigue **4.26.67/APK48**. Las candidatas siguientes todavía no cuentan como entrega.
 
@@ -45,6 +45,16 @@ Claude confirma GO exacto de a004d16e y2f045a1e en respuesta del1/10 00:27:30UTC
 Perfil final [PR93 draft](https://github.com/JuanjoAvila/Aely/pull/93) `8236a769ba6d4c3ee05db2260c2de6a0d0c9ddaa`:9/9RED poraltura127–128 contra59–61px y23/23GREEN con perfiles/listas; idiomas y tres tamaños. El spec separa por contenido y mide offsetHeight para evitar depender de clase nueva o mitad de animación. Root revisa CSS/componente y da GO de fuente; falta integración final/CI/entrega. Lease13 liberado explícitamente.
 
 Las liberaciones se leen directamente del chat/brief cuando auto-review rechaza el aviso de un trabajador. No se desvía una acción rechazada por otro canal ni se repiten solicitudes al dueño dormido. Solo el coordinador concede publicación y turno local; CI remoto no comparte Chromium local.
+
+## Corte vigente · 1/10 02:45 Madrid
+
+**Recibos servido y liberado:** beta **4.26.74.1**, [CI36796405875 SUCCESS](https://github.com/JuanjoAvila/Aely/actions/runs/36796405875) sobre merge9ecd6a17:538 DOM/1 skip previo y7/7 rendimiento,751,8s total. Cotejo independiente HTTP del coordinador: manifiesto/ZIP/selloHTML ySW/apk.json canal yZIP coincidentes; huella `b0901f80ab92c94b`, ZIP SHA-256 `2b48dbcd77be6c7e9753879510bb73d230e79cf355ce8be57272b97ba5f0f3f6`, SW `4.26.74.1-2026-10-01-9ecd6a17`, HTML1.275.065bytes. APK4.26.55/code51. No aceptación del recibo real ni promoción main.
+
+**Estable intacta:** HTTP confirma4.26.67/huella42876f59c00cc086/ZIP4cc6e0ba97a2c9e7c23ece6affbfa23677fae920bc9413532631121f0e547b6d; HTML/SW iguales al ZIP, APK4.26.32/code48. Bootstrap92 sigue retenida.
+
+**Panel75 congelado:** `1f95edaba3e83dc9e77d6c0ffdfd71127f204d86` sobre merge real9ecd6a17;26 contratos+5 builder, cinco mutantes rechazados semánticamente.48DOM únicos comprobados:46/48 primera pasada; dos escenarios de fixture corregidos y2/2PASS, sin skip/flaky, lease14 liberado explícitamente. Fuente financiera03/04/07/08/14, Android, Supabase yapk.json idénticos a74, verificados por root. Min1.278.280/gzip347.946 medidos; capraw1249KiB(+3 documentado),gzip340 sin bump. Push/candidataCI autorizados, nuevoGO exacto solicitado; no merge75 todavía.
+
+**Siguientes preparadas localmente:** Nómina76 injerto d5d0cf59, retirada77 y widget78 en revisión de injerto; SDK/aapt/apksigner/JBR/Gradle/firma existentes disponibles, WEBDEBUG desactivado, ninguna build/subida nueva. UI local79→80→81 en commits36b6e54b/315560b8/f9bbe115 sobre74, acta31e1a4c3; código aplica sin conflicto, scopes distintos comprobados y documentaciónDOM vieja corregida. Solo basefinal/medicióncombinada/CI/GO/gate pueden convertirlas en publicación. Se mantienen ocho objetivos, sin abrir más mientras se entregan los terminados.
 
 ## Parte de las 08:00
 
