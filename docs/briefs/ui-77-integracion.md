@@ -1,6 +1,6 @@
 # Integración UI · candidata 4.26.77 (Cyberpunk, Preguntar, Perfil)
 
-Estado a 2026-10-01: implementación en `claude/ui-77-integracion` (propietario: Claude, por encargo del coordinador `20261001T071201Z`), una sola versión **4.26.77** con tres tandas separadas. Montada sobre la fuente del panel76 `351053b9` (PR97, todavía sin publicar: si esa fuente cambia, hay que revisar el delta). Sin push a beta, sin publicación y sin prueba móvil. Los números 79/80/81 de más abajo y de las actas de origen eran reservas provisionales: no existen como entrega.
+Estado a 2026-10-01: implementación en `claude/ui-77-integracion` (propietario: Claude, por encargo del coordinador `20261001T071201Z`), una sola versión **4.26.77** con tres tandas separadas. Montada sobre la fuente del panel76 `2a0f2737` (PR97, todavía sin publicar: si esa fuente cambia, hay que revisar el delta). Sin push a beta, sin publicación y sin prueba móvil. Los números 79/80/81 de más abajo y de las actas de origen eran reservas provisionales: no existen como entrega.
 
 Qué cambia respecto a la preparación de Codex (`7f7010d0` + `8906a9f5`, injertados tal cual): las notas provisionales de `ui-79-81-notas.json` pasan a una entrada real 4.26.77 de `src/data/release-notes.json` con sus tres guiones (el fichero provisional se borra); VERSION/package/lock, CHANGELOG, README, ROADMAP, TESTING y EMPIEZA-AQUI alineados; y se absorbe la corrección de fixture cromática de `e2e/cyber-fab.spec.mjs` que quedó sin commit en el worktree 53d9, junto con su acta del lease21. Runtime idéntico a `31e1a4c3` en `src/shell.html`, `14-v4-screens.js` y `16-help-assistant.js` (diff vacío).
 
@@ -73,3 +73,7 @@ Renombrar `className:"botnav-fab"` en `11-app-main.js` o `className:"aely-help-c
 Huellas web: Cyberpunk `0f112133480508f63ebc5946b48143afb55192091176fb02e87bed8e1bb4c150`; Preguntar `fb692532c9fcf7980773f4c2a86fe4f3976c4ef71bcadc54007f08595acb227b`; Perfil `17d05a5f6af319668c361a293e6566f7183555ccab581f907329bf61e6f08d25` (igual que en la preparación: su alcance no cambia).
 
 Límites: escritorio con Chromium y teclado simulado por `visualViewport`. No acredita teclado Android real ni la inercia que esconde la barra; eso solo se ve en el móvil.
+
+### Rebase sobre `2a0f2737`
+
+El panel76 reparó su fixture (`2a0f2737`, hijo de `351053b9`: solo `e2e/revisar-beta.spec.mjs` y su acta). Los dos commits de esta integración se rebasaron encima sin conflictos; frente a `890b261a`, que es el SHA con GO del revisor, el árbol solo difiere en esos dos ficheros del panel. Runtime, alcances, huellas y tamaño no cambian, así que no se repiten el DOM ni los mutantes; sí la suite Node y la CI sobre el SHA nuevo. La 76 sigue sin publicar.
