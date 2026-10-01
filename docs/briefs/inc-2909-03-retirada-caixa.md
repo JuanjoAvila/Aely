@@ -1,5 +1,22 @@
 # INC-2909-03 · retirada bancaria · candidata aislada
 
+## Cierre de CI79 · corrección mínima del guardián heredado
+
+Fuente runtime `d45fb8b17cda1a1d628d34bbe9ea660ec7f38a18`, PR100 borrador sobre78.
+CI36834862549 FAILURE: todos los Node/Deno sin fallo, los17 DOM de Retirada PASS,
+607DOM PASS,1FAILED,1FLAKY aprobado al reintentar,1SKIP;7rendimiento PASS.
+Fallo estable en gastos-cajones:195, expectativa antigua «El importe lo manda el banco»
+frente al aviso nuevo completo f_locked_toast. Corrección exclusiva del test: exige
+texto completo y mantiene todos los controles de importe/cuenta/gestos, sin relajar runtime.
+La prueba de Inversiones de gesto fue flaky por hit-test del campo, pasó en retry; no
+se modifica esa pantalla ni su guardián. Privacidad remota no ejecutada por el fallo anterior;
+privacidad local PASS. No se declara CI verde ni autorización móvil/publicación.
+
+Coordinador debe incorporar este delta de test a Widget80 antes de su CI completa final.
+No hace falta repetir mutantes/Node de fuente intacta; el runtime y HTML no cambian.
+Lease28 sigue liberado y no se arranca Chromium sin concesión nueva.
+
+
 ## Corte79 sobre fuente78 final · 1 de octubre, DOM28 verde
 
 Parent exacto `eaf55e4af38d2277a50baa5e736a93cd09b3a627`; rama `codex/inc-2909-03-graft78-79`.
