@@ -38,6 +38,12 @@ Beta servida sigue **4.26.73.1**. Main sigue **4.26.67/APK48**. Las candidatas s
 - **Cyberpunk/Preguntar:** cambios CSS aislados1c6793f3/7122afe2;4RED/4GREEN+8repetición y15RED/15GREEN respectivamente. Fuentes79/80 provisionales, sin entrega ni pruebas de inercia/teclado Android real. No consultas reales enviadas.
 - **Perfil:** causa medida18 DOM: colisión de pr-val.empty con padding global empty. Candidata3d093889 cambia modificador específico, mantiene todas las filas y acciones. Lease13 concedido tras liberación12 paraRED/GREEN es/en/ca y tamaños; fuente81 provisional, sin publicación.
 
+### Avance · 02:32 Madrid
+
+Claude confirma GO exacto de a004d16e y2f045a1e en respuesta del1/10 00:27:30UTC. El coordinador marca PR84 lista y fusiona con match-head exacto: merge `9ecd6a172e1c451016e6b4e102fa7b8e8bdc5359`,00:29:02UTC; [publicación beta36796405875](https://github.com/JuanjoAvila/Aely/actions/runs/36796405875) todavía en curso con CORE completo. **Aún no se atribuye beta74 al canal servido.** Main92 retenida.
+
+Perfil final [PR93 draft](https://github.com/JuanjoAvila/Aely/pull/93) `8236a769ba6d4c3ee05db2260c2de6a0d0c9ddaa`:9/9RED poraltura127–128 contra59–61px y23/23GREEN con perfiles/listas; idiomas y tres tamaños. El spec separa por contenido y mide offsetHeight para evitar depender de clase nueva o mitad de animación. Root revisa CSS/componente y da GO de fuente; falta integración final/CI/entrega. Lease13 liberado explícitamente.
+
 Las liberaciones se leen directamente del chat/brief cuando auto-review rechaza el aviso de un trabajador. No se desvía una acción rechazada por otro canal ni se repiten solicitudes al dueño dormido. Solo el coordinador concede publicación y turno local; CI remoto no comparte Chromium local.
 
 ## Parte de las 08:00
