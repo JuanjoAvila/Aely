@@ -28,7 +28,9 @@ Solo toca la hoja de ayuda:
 - **Sin teclado:** la hoja no tiene padding inferior y el hueco entre Preguntar y el borde de la hoja es exactamente el padding del compositor (10 px + zona segura). Cubre es/en/ca × letra normal y enorme × zona segura 0 y 34 px.
 - **Con teclado:** se simula con un `visualViewport` 300 px más bajo, que es la vía que lee el componente, así que `kbPad`, `marginBottom` y `data-help-kb` los pone el propio componente. La hoja se apoya en el teclado, el hueco es de 10 px y la hoja no se sale por arriba. Cubre es/en/ca.
 - No envía preguntas ni toca el asistente remoto.
-- **Pendiente de turno de Chromium**, en rojo sobre la base y en verde con el arreglo.
+- **Rojo** (lease 7, 30/9 22:32:03–22:32:37 UTC), `shell.html` de main 12884f48: 15/15 caen. La hoja
+  trae 52 px de padding inferior (86 con zona segura de 34; 65,6/108,5 con letra enorme).
+- **Verde** (22:32:46–22:33:14 UTC) sobre 7122afe2: 15/15.
 
 ## Límites
 
