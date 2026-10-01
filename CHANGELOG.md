@@ -1,5 +1,7 @@
 ## [4.26.81] — 2026-10-01 · Conservar comprobaciones entre entregas
 
+- CLI integrado en esta candidata: `listo` acredita un único actor con el rol Dev de `profiles`, filtra `app_events` antes del límite y descarta filas ajenas también al reconstruir los partes. La service role veía todos los usuarios: un OK ajeno posterior podía sustituir un rechazo propio con la misma huella. Un `null` explícito propio retira el OK anterior, sin confundirlo con una decisión ausente/inválida. Sin identidad acreditada el resultado es indeterminado, salida 2. Pruebas del CLI real sin red registradas; no cambia el panel, la versión, las huellas ni la entrega web/Android/Edge.
+
 - Veredictos independientes del progreso auxiliar; ledger por huella/índice separa textos repetidos. Reset vacía comentarios y marcas scoped; la retirada/rechazo más reciente permanece.
 - Identidad web por unión de unidades y métodos cloud alcanzados, conservando initializer y código literal. Separación del ACK exclusivo de widget en Listener TR. Equivalencias75→80 recalculadas desde SHAs fijos sin repin ni aliases manuales; Nómina78 no se presume equivalente a cambios financieros79.
 - El bundle exige el SHA-256 exacto del catálogo, incluso ante respuesta exitosa antigua del SW. Caché mínima por compilación completa e identidad, acotada a una sola antes de guardar; sin catálogo verificado muestra comprobaciones sin confirmar. Panel y Novedades ofrecen reintento explícito. Aprobación y recibos de entrega siguen separados, con mínimo nativo y límites de evidencia. Notas/guion es/en/ca; APK80/code52 intacta.
@@ -7,7 +9,6 @@
 
 ## [4.26.80] — 2026-10-01 · Widget v2 sobre Nómina/Retirada
 
-- Tooling CLI, candidata separable sin publicación: `listo` acredita un único actor con el rol Dev de `profiles`, filtra `app_events` antes del límite y descarta filas ajenas también al reconstruir los partes. La service role veía todos los usuarios: un OK ajeno posterior podía sustituir un rechazo propio con la misma huella. Un `null` explícito propio retira el OK anterior, sin confundirlo con una decisión ausente/inválida. Sin identidad acreditada el resultado es indeterminado, salida 2. Pruebas del CLI real sin red registradas; no cambia el panel, la versión, las huellas ni la entrega web/Android/Edge.
 
 - Injerto acotado821 sobre parent79/d45fb8b1: conserva guardia de abonos BOOK/fecha, merge con readStartedAt y conciliación durable de recibos/retirada. Java idéntico821; ACK del último pull completo, desconocidos hasta identidad/lápida y negociación sin degradar.
 - Periodo/idioma y magnitud de Inicio: bruto mensual o neto con signo del ciclo, sin Balance. APK51 conserva legado; código52/versionName80 y manifiesto52 apuntan al preasset beta real verificado, sin entrega final todavía.
