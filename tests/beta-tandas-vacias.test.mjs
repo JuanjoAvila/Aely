@@ -36,6 +36,15 @@ function t(name, fn) {
 
 console.log("beta-tandas-vacias");
 
+function entregasHasta(version, apk) {
+  cli.window._mcProdEntregas={web:{},edge:{}};
+  cli.window._mcProdApkRevisiones={};
+  for(const n of cli.RELEASE_NOTES) if(!cli.mcIsNewer(n.v,version)) for(const g of n.tandas||[]) {
+    cli.window._mcProdEntregas.web[g.id]=g.web;
+    if(apk>=g.apk) { cli.window._mcProdEntregas.edge[g.id]=g.edge; cli.window._mcProdApkRevisiones[g.id]=g.native; }
+  }
+}
+
 t("array VACÍO → cero tandas (la aprobada no vuelve)", () => {
   const notas = { v: "9.9.9", t: { es: "X" }, tandas: [], items: { es: ["punto suelto"] } };
   assert.deepEqual(cli.betaTandas(notas), []);
@@ -60,10 +69,18 @@ t("con tandas declaradas, salen esas y ninguna «todo»", () => {
   assert.equal(out[0].id, "una");
 });
 
-t("★ producción al día → cero tandas, sin fallback a versiones antiguas", () => {
-  const pack = cli.betaChecklist(VERSION_ACTUAL, VERSION_ACTUAL);
+t("★ producción al día (web y APK) → cero tandas, sin fallback a versiones antiguas", () => {
+  entregasHasta(VERSION_ACTUAL,9999);
+  const pack = cli.betaChecklist(VERSION_ACTUAL, VERSION_ACTUAL, 9999);
   assert.equal(pack.tandas.length, 0);
   assert.equal(pack.items.length, 0);
+});
+
+// 30/9: la web al día no entrega lo nativo; solo quedan las tandas con `apk` sin APK estable.
+t("★ web al día con APK estable atrasada → solo quedan las tandas nativas", () => {
+  entregasHasta(VERSION_ACTUAL,48);
+  const pack = cli.betaChecklist(VERSION_ACTUAL, VERSION_ACTUAL, 48);
+  assert.ok(pack.tandas.every((g) => g.apk > 48), "ninguna tanda web vuelve al panel");
 });
 
 t("★ al subir solo Deudas, el panel conserva las siete pruebas pendientes", () => {

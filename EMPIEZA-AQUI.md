@@ -157,3 +157,7 @@ Detalle y checklist en `docs/ROADMAP.md` y `docs/TESTING.md`. **No promocionar s
 La cola post-rechazo se contrasta con `npm run listo` y [docs/BACKLOG.md](docs/BACKLOG.md).
 `docs/memoria/mi-cartera-backlog.md` conserva historia: no asumir que sus rechazos o pendientes
 son actuales. El header del ROADMAP puede ir por detrás del último veredicto.
+
+## Integración aislada del panel75 (1/10/2026)
+
+Base real Recibos74 9ecd6a172e1c451016e6b4e102fa7b8e8bdc5359. No reutilizar GO483e8874 como aprobación del nuevo SHA integrado. Mantener siete referencias históricas: tres códigos idénticos conservan OK, cuatro cambios web de Inicio73 necesitan revisión nueva. No repinar ni recortar dependencias financieras para conservar aprobaciones.75 sigue local; el coordinador autoriza publicación tras verificar74 servida y concede Chromium por lease canónico. Bootstrap main PR92/2f045a1e conserva gate propio; ninguna entrega exacta puede inventarse. [Brief](docs/briefs/ops-3009-03-panel-beta.md).

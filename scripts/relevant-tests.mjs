@@ -30,6 +30,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 /** Tocar uno de estos = suite e2e entera. Son el suelo compartido: un cambio aquí no se puede
  *  acotar a una pantalla sin mentir. */
 export const CORE = [
+  "scripts/beta-source-code.mjs", "scripts/beta-revisions.mjs", "scripts/beta-sources.json", "scripts/build-app.mjs", "scripts/load-pure-logic.mjs",
   "src/modules/00-core.js",
   "src/modules/01-i18n.js",
   "src/modules/02-ui-shared.js",

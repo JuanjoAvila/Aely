@@ -112,10 +112,15 @@ function mcFetchManifest(name){
 var _mcProdVerCache=null;
 window._mcProdVersion=function(){
   if(_mcProdVerCache) return _mcProdVerCache;
-  _mcProdVerCache=mcGetJson(_mcOtaBASE+"version.json?ts="+Date.now())
-    .then(function(r){ return r.ok?r.json():null; })
-    .then(function(v){ return (v&&v.version)?String(v.version):null; })
-    .catch(function(){ return null; });
+  var pide=function(f){ return mcGetJson(_mcOtaBASE+f+"?ts="+Date.now())
+    .then(function(r){ return r.ok?r.json():null; }).catch(function(){ return null; }); };
+  // La APK estable decide si una tanda nativa ya se entregó; la web sola no la lleva (30/9).
+  _mcProdVerCache=Promise.all([pide("version.json"),pide("apk.json"),pide("beta-delivery.json")]).then(function(r){
+    window._mcProdApk=r[1]&&r[1].versionCode>0?r[1].versionCode:null;
+    window._mcProdApkRevisiones=r[1]&&r[1].revisiones||null;
+    window._mcProdEntregas=r[2];
+    return (r[0]&&r[0].version)?String(r[0].version):null;
+  });
   return _mcProdVerCache;
 };
 

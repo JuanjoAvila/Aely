@@ -7,6 +7,7 @@ let CURLANG = "es";
 const LANGS = [["es","Español"],["en","English"],["ca","Català"]];
 const LANG = {
   es:{
+    beta_revoked:"↺ Veredicto retirado", beta_server:"servidor", beta_revision_changed:"El código cambió ({x}). El resultado anterior sigue guardado; prueba esta revisión.", beta_reset_verdicts:"Para empezar de cero, retira antes cada veredicto con «Cambiar de opinión».",
     log_private:"[dato privado omitido]",
     help_ai_matched:"La IA ha encontrado estas guías de Aely.",
     help_create_cash:"Crear el efectivo",
@@ -293,6 +294,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Dólar canadiense", cur_aud:"A$ Dólar australiano", cur_cny:"¥ Yuan", cur_mxn:"$ Peso mexicano", cur_sek:"kr Corona sueca", cur_nok:"kr Corona noruega", cur_dkk:"kr Corona danesa", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupia", cur_try:"₺ Lira turca",
   },
   en:{
+    beta_revoked:"↺ Verdict withdrawn", beta_server:"server", beta_revision_changed:"The code changed ({x}). The previous result stays in history; this revision needs new checks.", beta_reset_verdicts:"To start over, first withdraw each verdict with “Change my mind”.",
     log_private:"[private data omitted]",
     help_ai_matched:"AI found these Aely guides.",
 
@@ -567,6 +569,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Canadian dollar", cur_aud:"A$ Australian dollar", cur_cny:"¥ Yuan", cur_mxn:"$ Mexican peso", cur_sek:"kr Swedish krona", cur_nok:"kr Norwegian krone", cur_dkk:"kr Danish krone", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupee", cur_try:"₺ Turkish lira",
   },
   ca:{
+    beta_revoked:"↺ Veredicte retirat", beta_server:"servidor", beta_revision_changed:"El codi ha canviat ({x}). El resultat anterior queda a l’historial; aquesta revisió necessita proves noves.", beta_reset_verdicts:"Per començar de zero, retira abans cada veredicte amb «Canviar d’opinió».",
     log_private:"[dada privada omesa]",
     help_ai_matched:"La IA ha trobat aquestes guies d’Aely.",
 
