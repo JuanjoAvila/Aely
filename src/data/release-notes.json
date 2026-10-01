@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.76",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Ingresos bancarios en el día del cobro",
+      "en": "Bank income on the payment date",
+      "ca": "Ingressos bancaris el dia del cobrament"
+    },
+    "items": {
+      "es": [
+        "Los ingresos bancarios pendientes o con fecha futura esperan al día del cobro."
+      ],
+      "en": [
+        "Pending bank income and future-dated credits wait until the payment date."
+      ],
+      "ca": [
+        "Els ingressos bancaris pendents o amb data futura esperen el dia del cobrament."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-3009-nomina-anticipada",
+        "t": {
+          "es": "Nómina sin adelantar el cobro",
+          "en": "Salary without an early payment",
+          "ca": "Nòmina sense avançar el cobrament"
+        },
+        "items": {
+          "es": [
+            "1. Antes de cobrar, sincroniza Sabadell: una nómina pendiente o con fecha futura no debe aparecer como ingreso cobrado ni abrir Mi ciclo.",
+            "2. Cuando el banco confirme el cobro, sincroniza de nuevo: comprueba una sola nómina en Gastos y el saldo real en Cartera. Repite la sincronización y reabre para comprobar que no se duplica."
+          ],
+          "en": [
+            "1. Before payday, sync Sabadell: a pending salary or future-dated credit must not appear as received income or start My cycle.",
+            "2. When the bank confirms payment, sync again: check one salary entry in Expenses and the actual balance in Portfolio. Sync again and reopen to check it is not duplicated."
+          ],
+          "ca": [
+            "1. Abans de cobrar, sincronitza Sabadell: una nòmina pendent o amb data futura no ha d'aparèixer com a ingrés cobrat ni obrir El meu cicle.",
+            "2. Quan el banc confirmi el cobrament, sincronitza de nou: comprova una sola nòmina a Despeses i el saldo real a Cartera. Repeteix la sincronització i reobre per comprovar que no es duplica."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.75",
     "d": "2026-10-01",
     "t": {
@@ -372,9 +416,6 @@
         },
         "apk": 51,
         "historial": [
-          "4.26.67/tr-descripcion-clasificacion"
-        ],
-        "desde": [
           "4.26.67/tr-descripcion-clasificacion"
         ],
         "huella": "05c57324",
