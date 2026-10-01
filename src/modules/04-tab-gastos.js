@@ -258,9 +258,45 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(same) showToast(t("g_dup_same"));
     else showToast(t("g_dup_diff"));
   };
+  const withdrawalPending=useRef({});
+  const withdrawalState=useRef(state); withdrawalState.current=state;
+  const [withdrawalStatus,setWithdrawalStatus]=useState(null);
+  const recognizeWithdrawal=function(ex){
+    if(!canRecognizeWithdrawal(ex) || ex.category==="traspaso" || withdrawalPending.current[ex.id]) return;
+    if(!canRecognizeWithdrawal(ex,withdrawalState.current)){
+      showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)?"f_withdraw_receipt_blocked":"f_withdraw_error")); return;
+    }
+    withdrawalPending.current[ex.id]=true;
+    askConfirm({title:t("f_withdraw_title"),sub:tf("f_withdraw_sub",{x:eur(ex.amount)}),ok:t("f_withdraw_ok")})
+      .then(async function(yes){
+        if(!yes) return;
+        setWithdrawalStatus({id:ex.id,status:"pending"});
+        let timer;
+        try{
+          if(!canRecognizeWithdrawal(ex,withdrawalState.current)) throw new Error("withdrawal unavailable");
+          let ack;const sandbox=mcSandbox();
+          if(!sandbox) ack=await Promise.race([cloud.confirmExpenseWithdrawal(ex,function(){ return withdrawalState.current; }),new Promise(function(_,reject){
+            timer=setTimeout(function(){ reject(new Error("withdrawal timeout")); },10000);
+          })]);
+          let applied=false,receiptUndone=false;
+          ReactDOM.flushSync(function(){ set(function(s){ const next=sandbox?applyRecognizedWithdrawal(s,ex,Date.now()):reconcileConfirmedWithdrawal(s,ex,ack,Date.now());
+            receiptUndone=!!withdrawalReceiptLink(s,ex)&&!withdrawalReceiptLink(next,ex);
+            applied=next!==s || canRecognizeWithdrawal(ex,s)&&(s.expenses||[]).some(function(e){ return e.id===ex.id && e.category==="traspaso"
+              && withdrawalRowMatches(ex,{id:e.id,source:expenseSourceForCloud(e),fecha:e.date,importe:e.amount,comercio:e.merchant}); });
+            return next; }); });
+          setWithdrawalStatus({id:ex.id,status:applied?"done":"error",receiptUndone:receiptUndone});
+          showToast(t(applied?(receiptUndone?"f_withdraw_receipt_undone":"f_withdraw_done"):withdrawalReceiptLink(withdrawalState.current,ex)?"f_withdraw_receipt_blocked":"f_withdraw_error"));
+        }catch(err){
+          setWithdrawalStatus({id:ex.id,status:"error"});
+          showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)?"f_withdraw_receipt_blocked":"f_withdraw_error"));
+        }finally{ clearTimeout(timer); }
+      }).finally(function(){ delete withdrawalPending.current[ex.id]; });
+  };
   // Recategorizar un gasto a mano: actualiza ESTE, recuerda el comercio (catOverrides) para los
   // futuros y arregla otros gastos del mismo comercio que estuvieran en "Otros".
   const setCat=function(ex,newCat){
+    if(withdrawalPending.current[ex.id]) return;
+    if(newCat==="traspaso" && canRecognizeWithdrawal(ex)){ recognizeWithdrawal(ex); return; }
     const mkey=catKey(ex.merchant);
     // "Movimiento" es el hueco que deja un banco que no manda NINGÚN dato (Trade Republic por
     // Open Banking, ver `mapTransaction` en enablebanking.ts) — no es un comercio de verdad, así
@@ -335,11 +371,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(showToast) showToast(tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
   };
   const setReceipt=function(ex,fixedId){
+    if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
     const ds=String(ex.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
     const today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
     const f=(state.fixed||[]).find(function(x){ return x.id===fixedId; });
     const expected={identity:fixedPaymentIdentity(expenseBankOf(ex),ex),model:f&&fixedPaymentModel(f,m)};
     const save=function(){
+      if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
       // El diálogo es asíncrono: otra sincronización puede sustituir el cargo o editar el recibo.
       set(function(s){ return linkFixedPayment(s,ex.id,fixedId,y,m,today,expected); });
     };
@@ -982,7 +1020,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         setDetailId(null); setEditExp(null);
       },
       setCat:setCat, setCuota:setCuota, setReceipt:setReceipt, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
-      resolveDup:resolveDup,
+      resolveDup:resolveDup, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
     undoDelete && ReactDOM.createPortal(
@@ -1193,7 +1231,7 @@ function PeriodMoreSheet({open, onClose, preset, setPreset}){
 }
 
 /* Sheet detalle/edición de un movimiento. Layout alineado con Apuntar/Cartera (feedback 2026-07-17). */
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -1262,8 +1300,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const meta=[
     {id:"bank",testId:"exp-bank",label:bk?entOf(bk).label:t("ap_bank_none"),lead:bk?React.createElement(Mono,{ent:bk,size:18}):React.createElement("span",null,"🏦"),
       on:bankOpen,locked:auto,onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }},
-    {id:"cash",testId:"exp-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bk==="efectivo",locked:auto,
-      onClick:function(){ setBank(exp,bk==="efectivo"?null:"efectivo"); }},
+    {id:"cash",testId:"exp-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bk==="efectivo",
+      onClick:function(){ if(auto){ showToast(t("f_withdraw_cash_limit")); return; } setBank(exp,bk==="efectivo"?null:"efectivo"); }},
     {id:"date",testId:"exp-date",label:fmtIsoCorto(dateIso),lead:React.createElement("span",null,"📅"),on:calOpen,
       onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }}
   ];
@@ -1279,14 +1317,22 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
       bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
-    trace,duplicate);
+    trace,duplicate,
+    canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
+      React.createElement("div",null,t("f_withdraw_fields")),
+      exp.category!=="traspaso" && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-withdrawal",
+        disabled:!canRecognizeWithdrawal(exp,state)||withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="pending",
+        onClick:function(){ recognizeWithdrawal(exp); }},t("f_withdraw_action")),
+      exp.category==="traspaso" && React.createElement("div",{"data-testid":"exp-withdrawal-neutral"},t("f_withdraw_done")),
+      withdrawalReceiptLink(state,exp)&&React.createElement("div",{"data-testid":"exp-withdrawal-receipt-blocked"},t("f_withdraw_receipt_blocked")),
+      withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="done" && withdrawalStatus.receiptUndone && React.createElement("div",{role:"status"},t("f_withdraw_receipt_undone")),
+      React.createElement("div",null,t("f_withdraw_cash_limit")),
+      withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done" && React.createElement("div",{role:"status"},
+        t(withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_error"))));
   const debtOptions=(state.debts||[]).filter(function(d){ return d&&d.id; });
   const receiptDate=String(exp.date||"").slice(0,10),receiptYear=Number(receiptDate.slice(0,4)),receiptMonth=Number(receiptDate.slice(5,7)),receiptNow=new Date();
   const receiptToday=receiptYear===receiptNow.getFullYear()&&receiptMonth===receiptNow.getMonth()+1?receiptNow.getDate():new Date(receiptYear,receiptMonth,0).getDate();
-  const receiptLinked=(state.fixed||[]).find(function(f){
-    const p=fixedPaymentProof(state,f,receiptYear,receiptMonth,receiptToday);
-    return p&&p.kind==="expense"&&(p.key===fixedExpenseKey(exp)||p.expenseId&&p.expenseId===exp.id||p.identity===fixedPaymentIdentity(expenseBankOf(exp),exp));
-  });
+  const receiptLinked=withdrawalReceiptLink(state,exp);
   const receiptOptions=(state.fixed||[]).filter(function(f){
     return fixedExpenseEligible(state,exp,f,receiptYear,receiptMonth,receiptToday)&&
       (!fixedPaymentState(state,f,receiptYear,receiptMonth,receiptToday).paid||(receiptLinked&&receiptLinked.id===f.id));
@@ -1334,7 +1380,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   };
   const footer=React.createElement("div",{className:"v4-ficha-foot"},
     React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
-    React.createElement("span",{className:"v4-ficha-saved"},t("f_autosaved")),
+    React.createElement("span",{className:"v4-ficha-saved"},t(withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
+      ? (withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_unconfirmed") : "f_autosaved")),
     React.createElement("button",{type:"button",className:"v4-ficha-done",onClick:done},t("done")));
   const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},

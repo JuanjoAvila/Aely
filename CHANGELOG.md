@@ -1,3 +1,14 @@
+## [4.26.79] — 2026-10-01 · INC-2909-03, reconocer retirada sin gasto ni efectivo importado
+
+- Fuente79 injertada sobre Nómina78 final eaf55e4af38d2277a50baa5e736a93cd09b3a627, conservando Panel76/UI77 y sus guiones. Delta financiero aff910b9 idéntico; no modifica el motor08 ni las pantallas14/shell. Entrega conjunta prevista en beta80, sin publicación intermedia79 ni nota de Retirada77.
+
+- Confirma retirada por UUID/origen/fecha/importe/comercio y CAS de categoría, con RETURNING de una fila. Bloquea cargos ya vinculados a recibos y conserva Deshacer aun sin feed válido. Traspaso genérico usa la misma puerta, sin aprender comercio ni tocar dinero.
+- Vínculo llegado tras iniciar UPDATE: solo ACK válido de ese envío permite deshacer la prueba expense coincidente con linkFixedPayment(null) y aplicar neutralidad. La marca withdrawalUpdated es efímera. Lectura ya neutra, 0ACK, fallo, otra identidad y retorno vacío no revocan pago. Revalida fila/categoría local; aviso es/en/ca de recibo pendiente y sincronización. Sin transacción entre tablas/clientes; elimina metadatos, no crea lápida.
+- 43 Node PASS con handlers y método cloud reales: banco420 intacto, presupuesto80→0, cash manual30, importes40/80 y otros pagos/meses intactos; pull y slimForCloud dejan paid=false en A/B sin feed. Retirada importada no añade efectivo; manual permanece. FIN-04/RLS y timeout con commit sin ACK siguen fuera del cierre.
+- DOM28 final:7/7 PASS con un worker y servidor propio, cuatro casos tardíos de Retirada y vínculo/deshacer de Recibos es/en/ca. Bloqueo previo y los13 DOM anteriores se conservan como evidencia de aff; Node43 más contratos de pagos, scanner943 funciones/284 datos, sintaxis, frescura, idiomas, seguridad, mapa y privacidad PASS. No acredita RLS real ni prueba móvil. [Acta](docs/briefs/inc-2909-03-retirada-caixa.md).
+
+- Tamaño A/B contra parent final78 eaf55e4a: +8.519 B minificados/+1.997 B gzip9. Guardián mínimo1259/343 KiB autorizado por coordinador; sello79.99 mide1.288.387/350.399 B, margen829/833 B. Conserva tres bloqueantes y contratos financieros/idiomas, sin nuevas dependencias.
+
 ## [4.26.78] — 2026-10-01 · INC-3009-02, ingresos pendientes y futuros
 
 - Candidata sobre UI77 finalca7734fd; CI exacta y publicación pendientes. Conserva Panel76/UI77; no mezcla los metadatos76 de PR96. Runtime de importObExpenses idéntico al revisado5c2146c3: BOOK o estado ausente y fecha válida ya alcanzada en Madrid, antes de identidad. Sin reparación histórica, cambios de calendario, APK, Edge ni SQL.

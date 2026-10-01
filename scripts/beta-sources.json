@@ -288,6 +288,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "canRecognizeWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalRowMatches"
       }
     ]
   },
@@ -390,6 +402,46 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "canRecognizeWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
       }
     ]
   },
@@ -677,6 +729,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "canRecognizeWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
       }
     ],
     "native": [
@@ -977,6 +1049,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "canRecognizeWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
       }
     ],
     "native": [
@@ -1577,6 +1669,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "canRecognizeWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
       }
     ],
     "native": [
@@ -1876,6 +1988,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "canRecognizeWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
       }
     ],
     "native": [
@@ -2992,6 +3124,520 @@
       {
         "file": "src/modules/00-core.js",
         "function": "deudaSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingDivisaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingObNameCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "canRecognizeWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "applyRecognizedWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "reconcileConfirmedWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      }
+    ]
+  },
+  "inc-2909-03-retirada": {
+    "web": [
+      {
+        "file": "src/modules/00-core.js",
+        "from": "    async confirmExpenseWithdrawal(",
+        "to": "    async setExpenseDeuda("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "\"confirmExpenseWithdrawal\"",
+        "to": "\"setExpenseDeuda\""
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function isExpenseUuid(",
+        "to": "function mcExpenseId("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function expenseSourceForCloud(",
+        "to": "/* ---------- Token aleatorio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function withdrawalReceiptLink(",
+        "to": "/* EFECTIVO REAL DE TRADE REPUBLIC"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function refreshExpenseFromCloud(",
+        "to": "function validCloudState("
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "const CAT_NEUTRAS =",
+        "to": "const catOf ="
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function gastoDelMesPorBanco(",
+        "to": "/* ============================================================\n   ¿QUÉ MARCA"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "from": "function saldoCuentaGasto(",
+        "to": "function ensureEfectivoAccount("
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "function expenseCountsCash(",
+        "to": "/* EN QUÉ CAJÓN"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "function insumosSaldoGasto(",
+        "to": "function applyAccountRole("
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    f_trace_missing:\"— texto original no disponible\",",
+        "to": "    f_fx_eq:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    f_trace_missing:\"— original text unavailable\",",
+        "to": "    f_fx_eq:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    f_trace_missing:\"— text original no disponible\",",
+        "to": "    f_fx_eq:"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function applyBankBalances(",
+        "to": "function bankPendingEvents("
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "from": "function monthBudgetStats(",
+        "to": "function dashboardBudgetStats("
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "  const withdrawalPending=useRef({});",
+        "to": "    const mkey=catKey(ex.merchant);"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "      setCat:setCat, setCuota:setCuota,",
+        "to": "      showToast:showToast, aiBusy:"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "function ExpenseDetailSheet(",
+        "to": "  /* UNA SOLA CONDICIÓN"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "    {id:\"cash\",testId:\"exp-efectivo\"",
+        "to": "    {id:\"date\",testId:\"exp-date\""
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "    canRecognizeWithdrawal(exp) &&",
+        "to": "  const debtOptions="
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "  const footer=React.createElement(\"div\",{className:\"v4-ficha-foot\"},",
+        "to": "  const main=ReactDOM.createPortal("
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const syncCloudExpenses=function(){",
+        "to": "  const syncFromCloud=function("
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "      if(obAdded.length && !opts.manual)",
+        "to": "      // Resultado por banco"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "  const setReceipt=function(",
+        "to": "  // Marca/desmarca un gasto"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "  const receiptLinked=",
+        "to": "  const receiptOptions="
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "deudaSufijo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "linkFixedPayment"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isEfectivoEnt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseBankEnts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseDeletedSet"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "startOfMonth"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "parseDate"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "nominaYaEntro"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accInject"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "roundupOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accFixed"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "pickBankBalanceInfo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "mkObAcct"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetPeriodOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "dateMs"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservedSince"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetStatsFromAmounts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "inicioDeMesMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "subirGasto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileObDupes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "fixMovInvasion"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "entOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseEligible"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "_pdMs"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "lastWorkingDay"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "isCardSpend"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "spareOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_errCloudMsg"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "findCashbackTwin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reverseInvestBuy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategory"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFeedClear"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "esGemeloCashback"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "cloud"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "expenseDeletedSets"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "ENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcNotaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USO_OK"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "MC_TZ"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesTz"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_OVERRIDES"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcDivisaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcObNameCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MERCHANT_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_PALABRA"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_INICIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPullExpensesPaged"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withNotaFallback"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudEq"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingNotaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLogEvent"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcBetaLog"
       },
       {
         "file": "src/modules/00-core.js",

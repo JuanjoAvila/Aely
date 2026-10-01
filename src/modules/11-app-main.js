@@ -398,6 +398,7 @@ function App(){
 
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
   const syncCloudExpenses=function(){
+    const readStartedAt=Date.now();
     const ps=++wS.current;
     wR.current=false;
     const pull=cloud.pullExpenses().then(function(rows){
@@ -437,7 +438,7 @@ function App(){
       set(function(prev){
         // Refrescar una sola vez conserva el guardado partido: no reescribir el histórico
         // por página ni cuando las filas recibidas son iguales a las que ya había.
-        const merged=mergeExpensesFromCloud(prev.expenses, incoming);
+        const merged=mergeExpensesFromCloud(prev.expenses, incoming, readStartedAt);
         const next=merged.list;
         const igual=!merged.changed && next.length===(prev.expenses||[]).length
           && next.every(function(e,i){ return e===(prev.expenses||[])[i]; });
@@ -602,31 +603,9 @@ function App(){
       // Si has pulsado tú «↻ Sincronizar bancos», esto se junta con el resultado de abajo: dos
       // avisos seguidos por una sola acción tuya eran ruido (feedback 2026-07-26).
       if(obAdded.length && !opts.manual) showToast(tf("ob_imported",{n:obAdded.length}));
-      // Cajero / ATM: ofrecer la otra mitad al efectivo (nunca automático).
-      (function offerAtmCash(){
-        const atms=(obAdded||[]).filter(function(e){
-          return e && e.category==="traspaso" && e.amount>0 && isAtmWithdrawal(e.merchant||e.obName||"");
-        });
-        if(!atms.length || typeof askConfirm!=="function") return;
-        let i=0;
-        const next=function(){
-          if(i>=atms.length) return;
-          const e=atms[i++];
-          askConfirm({
-            title:tf("ef_atm_offer_title",{x:eur(e.amount)}),
-            sub:t("ef_atm_offer_sub"),
-            ok:t("ef_atm_offer_yes"),
-            cancel:t("ef_atm_offer_no")
-          }).then(function(yes){
-            if(yes){
-              set(function(s){ return applyEntradaEfectivo(s, e.amount); });
-              showToast(t("ef_in_done"));
-            }
-            next();
-          });
-        };
-        setTimeout(next, 400);
-      })();
+      // INC-2909-03: tabla y saldo de efectivo no tienen una confirmación atómica compartida.
+      // Ofrecer +€ desde cada importación podía sumarlos otra vez en otro móvil; la ficha explica
+      // el límite. Los apuntes manuales de efectivo conservan su recorrido propio.
       // Resultado por banco (servidor tolerante a fallos): aplica los que funcionaron y avisa SOLO
       // del que falló. ok===false explícito → fallo (respuestas antiguas sin 'ok' se tratan como ok).
       const bankLabelOf=function(l){ const e=entFromAspsp(l&&l.aspsp); return e?entOf(e).label:((l&&l.aspsp)||"🏦"); };

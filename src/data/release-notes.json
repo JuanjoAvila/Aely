@@ -1,5 +1,67 @@
 [
   {
+    "v": "4.26.79",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Corregir una retirada del banco",
+      "en": "Correct a bank withdrawal",
+      "ca": "Corregir una retirada del banc"
+    },
+    "items": {
+      "es": [
+        "Las retiradas del banco pueden marcarse como traspasos sin contar como gasto. La ficha avisa si no puede confirmar el cambio.",
+        "No se añade efectivo desde una retirada bancaria; los apuntes manuales siguen disponibles en Cartera.",
+        "Para marcar como retirada un cargo que paga un recibo, primero hay que deshacer ese vínculo desde la ficha.",
+        "Si un vínculo de recibo llega durante la confirmación de una retirada, se deshace y el recibo queda pendiente. El cambio se comparte al sincronizar."
+      ],
+      "en": [
+        "Bank withdrawals can be marked as transfers without counting as spending. The detail view warns when the change cannot be confirmed.",
+        "A bank withdrawal does not add cash; manual cash entries remain available in Portfolio.",
+        "Before marking a charge that pays a bill as a withdrawal, its link must be undone from the detail view.",
+        "If a bill link arrives while a withdrawal is being confirmed, it is undone and the bill becomes pending. The change is shared on sync."
+      ],
+      "ca": [
+        "Les retirades del banc es poden marcar com a traspassos sense comptar com a despesa. La fitxa avisa si no pot confirmar el canvi.",
+        "Una retirada bancària no afegeix efectiu; els apunts manuals continuen disponibles a Cartera.",
+        "Per marcar com a retirada un càrrec que paga un rebut, primer cal desfer aquest vincle des de la fitxa.",
+        "Si un vincle de rebut arriba durant la confirmació d’una retirada, es desfà i el rebut queda pendent. El canvi es comparteix en sincronitzar."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2909-03-retirada",
+        "t": {
+          "es": "Retiradas y presupuesto",
+          "en": "Withdrawals and budget",
+          "ca": "Retirades i pressupost"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, abre la retirada del banco que necesitas corregir. El importe y la cuenta siguen fijados por el banco; la categoría se puede corregir. Toca Es una retirada de efectivo y cancela: nada debe cambiar.",
+            "2. Confirma la retirada: debe quedar en Traspaso y salir del gasto presupuestado. Conserva una sola fila con el mismo importe y banco. No aumenta el saldo del banco ni Efectivo; tocar Efectivo explica el límite.",
+            "3. Reabre y sincroniza los movimientos. La retirada confirmada debe seguir una sola vez y sin sumar efectivo, también en otro móvil al sincronizar.",
+            "4. Si no puede confirmar el cambio, la ficha debe avisar y no anunciar Guardado. Tras sincronizar, revisa la categoría antes de reintentar.",
+            "5. Si el movimiento está vinculado a un recibo, Retirada debe estar bloqueada y explicar el motivo. Deshaz primero el vínculo en Paga un recibo: el recibo deja de estar confirmado también en otro móvil al sincronizar; después se habilita Retirada."
+          ],
+          "en": [
+            "1. In Expenses, open the bank withdrawal you need to correct. The bank still sets its amount and account; the category can be corrected. Tap This is a cash withdrawal and cancel: nothing should change.",
+            "2. Confirm the withdrawal: it should be marked as Transfer and excluded from budget spending. Keep one row with the same amount and bank. Bank balance and Cash must not increase; tapping Cash explains the limit.",
+            "3. Reopen and sync transactions. The confirmed withdrawal should remain once without adding cash, including on another phone after syncing.",
+            "4. If the change cannot be confirmed, the detail view should warn you and must not say Saved. After syncing, check the category before trying again.",
+            "5. If the transaction is linked to a bill, Withdrawal must be blocked and explain why. First undo its link in Pays a bill: the bill becomes unconfirmed on another phone after syncing; Withdrawal is then enabled."
+          ],
+          "ca": [
+            "1. A Despeses, obre la retirada del banc que necessites corregir. El banc continua fixant l'import i el compte; la categoria es pot corregir. Toca És una retirada d'efectiu i cancel·la: no ha de canviar res.",
+            "2. Confirma la retirada: ha de quedar a Traspàs i sortir de la despesa pressupostada. Conserva una sola fila amb el mateix import i banc. No augmenta el saldo del banc ni Efectiu; tocar Efectiu explica el límit.",
+            "3. Reobre i sincronitza els moviments. La retirada confirmada ha de continuar una sola vegada i sense sumar efectiu, també en un altre mòbil en sincronitzar.",
+            "4. Si no pot confirmar el canvi, la fitxa ha d'avisar i no anunciar Desat. Després de sincronitzar, revisa la categoria abans de tornar-ho a provar.",
+            "5. Si el moviment està vinculat a un rebut, Retirada ha d’estar bloquejada i explicar el motiu. Desfés primer el vincle a Paga un rebut: el rebut deixa d’estar confirmat també en un altre mòbil en sincronitzar; després s’habilita Retirada."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.78",
     "d": "2026-10-01",
     "t": {

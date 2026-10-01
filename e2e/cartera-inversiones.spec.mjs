@@ -583,6 +583,9 @@ test("Inversiones v4: la pantalla entra como página y el gesto desde cualquier 
   await page.locator('[data-inv-add-origin="global"]').click();
   const add=page.locator("[data-inv-manual-add]");
   const name=add.locator('[data-field="inv-name"]');
+  // El editor hace scroll y foco en dos frames: medir antes dejaba coordenadas viejas
+  // que pasaban el hit-test y aterrizaban en un botón (CI79, 1/10).
+  await expect(name).toBeFocused();
   const field=await name.boundingBox();
   expect(field).not.toBeNull();
   const hit=await page.evaluate(function(p){
@@ -590,7 +593,14 @@ test("Inversiones v4: la pantalla entra como página y el gesto desde cualquier 
     return !!(el&&el.closest&&el.closest('[data-field="inv-name"]'));
   },{x:field.x+20,y:field.y+field.height/2});
   expect(hit,"el toque de prueba debe caer dentro del campo").toBe(true);
+  await page.evaluate(function(){
+    window.__invFieldTouch=false;
+    document.addEventListener("touchstart",function(e){
+      window.__invFieldTouch=!!(e.target.closest&&e.target.closest('[data-field="inv-name"]'));
+    },{capture:true,once:true});
+  });
   await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: field.x+20, y: field.y+field.height/2 }] });
+  expect(await page.evaluate(function(){ return window.__invFieldTouch; }),"el touchstart real debe aterrizar en el campo").toBe(true);
   await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: field.x+90, y: field.y+field.height/2 }] });
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
   await expect.poll(() => screen.evaluate((el) => Math.abs(new DOMMatrix(getComputedStyle(el).transform).m41))).toBeLessThan(2);

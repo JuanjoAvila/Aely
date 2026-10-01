@@ -466,3 +466,8 @@ CI y versión realmente publicada**, o bloqueo concreto y trabajo que queda. Sin
 en el repo público. Implementado no significa probado en Android ni desplegado en Supabase.
 Antes de pedir aprobación móvil: versión exacta, pasos cortos, resultado esperado, límites y
 OTA frente a APK. Solo el dueño cambia el veredicto y decide producción.
+
+INC-2909-03: candidata79 injertada sobre Nómina78 final eaf55e4a, sin publicación ni OK móvil; entrega conjunta prevista en beta80.
+Reproducción de puertas banco/Efectivo/tipo y categoría Traspaso, ACK por identidad exacta y no
+operación de efectivo importado explicada. FIN-04/RLS y suma compartida siguen limitados.
+[Contrato, pruebas y coordinación](briefs/inc-2909-03-retirada-caixa.md).

@@ -192,7 +192,7 @@ test("ficha v4.1: un movimiento automático enseña su origen y bloquea importe 
 
   const before = await sheet.locator(".v4-ficha-amount").innerText();
   await sheet.locator(".v4-keys").getByRole("button", { name: "9", exact: true }).click();
-  await expect(page.locator(".toast")).toContainText("El importe lo manda el banco");
+  await expect(page.locator(".toast")).toHaveText("El banco fija el importe, la cuenta y si entra o sale dinero. La categoría sí se puede corregir aquí.");
   await expect(sheet.locator(".v4-ficha-amount")).toHaveText(before);
 
   // Regresión del vídeo 17/9: quien scrollea es el body interior. Una bajada cuando ya está
