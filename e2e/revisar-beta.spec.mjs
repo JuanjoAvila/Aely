@@ -56,8 +56,6 @@ async function seedImplicitChecklist(page, opts) {
       const arr = Array.isArray(notes.items[lang]) ? notes.items[lang] : (notes.items[lang] = []);
       while (arr.length < minItems) arr.push("punto sintético e2e " + arr.length);
     });
-    // Esta fixture prueba el formato implícito: la ronda moderna ajena no debe sustituirlo.
-    RELEASE_NOTES=[notes];
     window._mcProdVersion = function () { return Promise.resolve(null); };
   }, { ver: ver || null, minItems });
 }
@@ -1022,7 +1020,7 @@ for(const lang of ["es","en","ca"]) {
       });
       window._mcProdApk=52;window.__resolveDelivery("4.26.67");
     });
-    // Panel76 se trasladó a81; los recibos de las siete antiguas no entregan las nueve nuevas.
+    // Panel76 se trasladó a82; los recibos de las siete antiguas no entregan las nueve nuevas.
     const remaining=["beta-panel-veredictos","inc-2909-01-widget-periodo","inc-2909-03-retirada","inc-3009-nomina-anticipada","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2709-10-perfil","inc-3009-01-cargos","inc-2909-02-inicio-natural"];
     await expect(panel.locator(".beta-tanda")).toHaveCount(remaining.length);
     expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,"4.26.67",52).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(remaining.slice().sort());
@@ -1226,3 +1224,38 @@ for(const lang of ["es","en","ca"])for(const mode of ["texto repetido","sin marc
 }
 
 });
+
+for(const lang of ["es","en","ca"]) {
+  test(`ronda mixta: conserva la checklist actual, modernas y comentarios con producción desconocida (${lang})`,async({page})=>{
+    await abrirRevisionBeta(page,lang);
+    const expected=await page.evaluate(async lang=>{
+      await ensureLangPack(lang);CURLANG=lang;
+      const ids=betaChecklist(RELEASE_NOTES[0].v+".1",null,48).tandas.map(g=>g.id.split("/").pop()).sort();
+      RELEASE_NOTES.unshift({v:"4.26.99",t:{es:"Actual implícita",en:"Current implicit",ca:"Actual implícita"},items:{es:["1. A","2. B","3. C"],en:["1. A","2. B","3. C"],ca:["1. A","2. B","3. C"]}});
+      CONFIG.APP_VERSION="4.26.99.1";window._mcProdApk=48;window._mcProdEntregas=null;window._mcProdApkRevisiones=null;
+      window._mcProdVersion=()=>new Promise(resolve=>{window.__resolveMixed=resolve;});
+      const host=document.createElement("div");host.id="e2e-mixed";document.body.appendChild(host);
+      window.__mixedRoot=ReactDOM.createRoot(host);window.__mixedRoot.render(React.createElement(BetaReviewPanel,{onClose:function(){},showToast:function(){}}));
+      return ids;
+    },lang);
+    expect(expected).toHaveLength(16);
+    const panel=page.locator("#e2e-mixed .beta-review"),row=panel.locator(".beta-tanda").filter({has:page.getByText("1. A",{exact:true})});
+    await expect(panel.locator(".beta-tanda")).toHaveCount(17);await expect(row).toHaveCount(1);
+    await expect(row.locator(".beta-item")).toHaveCount(3);await expect(row.locator(".beta-tanda-n")).toHaveText("0/3");
+    expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,null,48).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(expected.concat(["todo"]).sort());
+    await row.locator(".beta-item").nth(0).getByRole("button",{name:/Va bien/}).click();
+    await row.locator(".beta-item").nth(1).getByRole("button",{name:/No lo puedo probar/}).click();
+    await row.locator(".beta-item").nth(2).getByRole("button",{name:/Falla/}).click();
+    await row.locator("input").fill("Comentario sintético de la ronda mixta");
+    await expect(row.locator(".beta-tanda-n")).toHaveText("3/3");
+    await expect(row.getByRole("button",{name:/Reportar/})).toBeEnabled();await expect(row.getByRole("button",{name:/Aprobar esta/})).toBeDisabled();
+    await page.waitForFunction(()=>typeof window.__resolveMixed==="function");await page.evaluate(()=>window.__resolveMixed("4.26.67"));
+    await expect(panel.locator(".beta-tanda")).toHaveCount(17);await expect(row).toHaveCount(1);
+    await expect(row.locator(".beta-tanda-n")).toHaveText("3/3");await expect(row.locator("input")).toHaveValue("Comentario sintético de la ronda mixta");
+    expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,"4.26.67",48).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(expected.concat(["todo"]).sort());
+    // Una nota familiar sin puntos explícitos no vuelve a crear la revisión que acabamos de marcar.
+    await page.evaluate(()=>{window.__mixedRoot.unmount();RELEASE_NOTES[0].tandas=[];window._mcProdVersion=()=>Promise.resolve(null);window.__mixedRoot=ReactDOM.createRoot(document.getElementById("e2e-mixed"));window.__mixedRoot.render(React.createElement(BetaReviewPanel,{onClose:function(){},showToast:function(){}}));});
+    await expect(panel.locator(".beta-tanda")).toHaveCount(16);await expect(row).toHaveCount(0);
+    expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,null,48).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(expected);
+  });
+}

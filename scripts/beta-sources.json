@@ -676,7 +676,8 @@
     ],
     "unidades": true,
     "historial": [
-      "4.26.76/beta-panel-veredictos"
+      "4.26.76/beta-panel-veredictos",
+      "4.26.81/beta-panel-veredictos"
     ]
   },
   "fin05-widget-reentrada": {

@@ -1150,8 +1150,8 @@ function betaChecklist(version, prodVersion, prodApk){
   /* RONDA ENTERA (2026-09-07). El panel cogía SOLO las notas de la versión que corre: en
      4.19.1.2 enseñaba «Solo ese movimiento» y dejaba fuera todo lo de 4.19.0 (posible repetido,
      IA, orden…) que YA estaba en el móvil. Con `prodVersion` se juntan las tandas de todas las
-     versiones > producción y ≤ la que corre. Sin prod (aún preguntando / sin red): se queda el
-     comportamiento de siempre —una sola versión—; en la duda, menos, no de más. */
+     versiones > producción y ≤ la que corre. Sin prod se conservan las modernas pendientes
+     y la nota actual con puntos, también cuando usa la checklist implícita. */
   var round;
   /* Un bundle sin sellar usa `dev`: no se puede compararlo con producción ni vaciar su cabeza
      cacheada offline como si ya hubiera sido promocionado. La regla de ronda solo vale cuando
@@ -1159,8 +1159,8 @@ function betaChecklist(version, prodVersion, prodApk){
   var conProd=prodVersion!=null&&prodVersion!==""&&/^\d+\.\d+\.\d+$/.test(base)
     &&/^\d+\.\d+\.\d+$/.test(mcVerBase(prodVersion));
   /* UNA VERSION SIN NADA QUE PROBAR NO PUEDE VACIARLE EL PANEL (2026-09-12).
-     Sin `prodVersion` (aun preguntando, o sin red) la ronda es UNA sola version. El dia que la
-     que corre es fontaneria —guardianes, un arreglo de despliegue— declara `tandas:[]` a
+     El dia que la versión que corre es fontaneria —guardianes, un arreglo de despliegue—
+     declara `tandas:[]` a
      proposito. Si se coge `n.v===base` a pelo, `betaTandas` devuelve CERO y el panel se queda
      vacio con media ronda sin juzgar detras (medido en review de 4.19.86: checklist(V,null)→0).
      Se prefiere la entrada de esa base SOLO si tiene algo que probar; si no, la mas nueva que
@@ -1178,7 +1178,8 @@ function betaChecklist(version, prodVersion, prodApk){
     // puede quitar A al añadir B ni cambiar su decisión. El legado mantiene su fallback.
     round=RELEASE_NOTES.filter(function(n){ return n&&n.tandas&&n.tandas.some(function(g){ return !!g.codigo; })
       && (!/^\d+\.\d+\.\d+$/.test(base)||!mcIsNewer(n.v,base)); });
-    if(!round.length)round=one?[one]:[];
+    // La ronda moderna no sustituye los puntos propios de una versión sin tandas.
+    if(one&&round.indexOf(one)<0)round.unshift(one);
   }else{
     var prod=mcVerBase(prodVersion);
     // Las modernas se filtran por recibo después de deduplicar; una entrega nueva no resucita una revisión antigua.
@@ -1212,7 +1213,7 @@ function betaChecklist(version, prodVersion, prodApk){
       vistas[rawId]=true;
       if(conProd&&(g.codigo||!mcIsNewer(notes.v, mcVerBase(prodVersion)))&&!betaSinEntregar(g,prodApk)) return;
       /* Con ronda multi-versión el id lleva la versión: dos tandas «id-fila» de bases distintas
-         no se pisan en el veredicto. Sin prod (una sola versión) se conserva el id corto de
+         no se pisan en el veredicto. Sin prod se conserva el id corto de
          siempre para no resetear lo ya enviado en esta compilación. */
       var id=conProd?(notes.v+"/"+rawId):rawId;
       var t=conProd?("v"+notes.v+(g.t?" · "+g.t:"")):g.t;

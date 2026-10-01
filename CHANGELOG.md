@@ -1,3 +1,8 @@
+## [4.26.82] — 2026-10-01 · Conservar la checklist actual en una ronda mixta
+
+- La revisión independiente de450 detectó que, sin versión de producción, una ronda moderna ocultaba los puntos implícitos de la versión actual. betaChecklist une ambas fuentes sin duplicar la cabeza moderna ni reincorporar notas con tandas:[]; las identidades y recibos siguen gobernando aprobaciones y entrega.
+- El test anterior aislaba artificialmente el catálogo legado y ocultaba la regresión: se elimina ese aislamiento, se añaden contratos mixtos y DOM es/en/ca sobre las dieciséis tandas reales. La81 nunca se publicó;82 identifica este cambio de runtime posterior al último bump y conserva el único guion Panel, su historia y APK80/code52. CI y revisión exactas pendientes.
+
 ## [4.26.81] — 2026-10-01 · Conservar comprobaciones entre entregas
 
 - CLI integrado en esta candidata: `listo` acredita un único actor con el rol Dev de `profiles`, filtra `app_events` antes del límite y descarta filas ajenas también al reconstruir los partes. La service role veía todos los usuarios: un OK ajeno posterior podía sustituir un rechazo propio con la misma huella. Un `null` explícito propio retira el OK anterior, sin confundirlo con una decisión ausente/inválida. Sin identidad acreditada el resultado es indeterminado, salida 2. Pruebas del CLI real sin red registradas; no cambia el panel, la versión, las huellas ni la entrega web/Android/Edge.

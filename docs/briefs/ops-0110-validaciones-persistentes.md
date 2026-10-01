@@ -1,6 +1,6 @@
 # OPS-0110 · Aprobaciones persistentes entre entregas
 
-Candidata **4.26.81**, base beta80 `955765a9ec0ad96d20140a8f12da00c9fa04985c`. Un objetivo: una entrega ajena no vuelve a pedir lo ya aprobado. Sin publicación propia, cambios financieros, Edge/SQL ni APK nueva. Android y `apk.json` conservan80/code52.
+Candidata **4.26.82**, base beta80 `955765a9ec0ad96d20140a8f12da00c9fa04985c`. Un objetivo: una entrega ajena no vuelve a pedir lo ya aprobado. Sin publicación propia, cambios financieros, Edge/SQL ni APK nueva. Android y `apk.json` conservan80/code52.
 
 ## Defectos y contrato
 
@@ -40,3 +40,19 @@ Prerrevisión135530Z: se limita la caché a una compilación, purgando solo `_rn
 ## Integración CLI para revisión exacta
 
 La candidata conjunta conserva fuente Panel02bdff20 y CLI f284b4ea como dos padres. El injerto CLI afecta únicamente scripts/listo-para-produccion, registro de tests, su guardián y documentación. La fixture del CLI en beta-veredictos acredita profiles.user_id/is_admin antes de filtrar eventos; los nuevos casos del Panel se conservan. No cambia runtime, scopes, notas familiares, Android, apk.json, Edge ni SQL respecto al Panel congelado. La entrada técnica CLI queda en81, sin atribuirla a80 ya servida. GO exacto, CI completa y cotejo servido pendientes; no es publicación.
+
+## Corrección tras NO-GO450 · candidata82
+
+Claude detectó que una nota actual sin tandas perdía sus puntos al convivir con una ronda moderna y producción desconocida. La fixture aislada de755/450 ocultaba ese fallo: los67 DOM anteriores no acreditan este contrato. Se elimina el aislamiento y betaChecklist incorpora la nota actual una sola vez; tandas:[] sigue excluida y la cabeza moderna no se duplica. El contrato Node falló0≠1 antes y pasó después.
+
+La81 no se publicó.82 es necesaria porque esta corrección de runtime llega después del último bump de VERSION, como exige docs-frescura; no se reescribe el historial ni se relaja el guardián. El guion Panel se mueve81→82 sin modificar sus puntos, conserva referencias76/81 y sigue siendo único entre las dieciséis tandas. Android80/code52 intacta. DOM mixto es/en/ca, A/B sellado, CI exacta nueva y revisión independiente pendientes; CI450 es anterior a esta corrección.
+
+### Evidencia final de82 sobre450
+
+Node beta-veredictos31 PASS, incluyendo la regresión mixta RED antes (0≠1), unión sin duplicados y nota explícitamente vacía. Once guardianes afectados PASS: sintaxis real del HTML, tandas vacías, notas únicas, idiomas/claves/bundle, catálogo verificado/caché, frescura documental, mapa de tests, seguridad, privacidad y presupuesto. La fuente final se coteja además con el guardián de alcances; revisión independiente y CI exacta siguen pendientes.
+
+Lease36: suite afectada inicio-offline+revisar-beta **70/70 PASS**,0 omitidos,0 flaky,0 reintentos,137,10s; tres casos mixtos es/en/ca muestran17 bloques sin/con producción, conservan marcas/comentario y dejan16 al declarar tandas:[]. Se conserva el catálogo real en los casos legados. HTML servido y local SHA256 b86879be3b818ed08077222310de95d7d0ebf3f78cc6ab30f48cee58166dbc80. Servidor4578 cerrado, puerto libre y auxiliares retirados antes de liberar36 expresamente. Datos sintéticos.
+
+A/B con scripts stamp-version/minify-html reales: parent450 sellado81.1 **1.292.821/351.884 B** min/gzip9 (SHA a025bbc3bcdbf82f4b035ce27c55d2f101b470e852bd3729d41b0bbc9ccfe179); candidata82.1 **1.292.899/351.908 B** (SHA302fb3312e0eab2791abe42355db8c1ffd87ade0bdc1024206bfcae503dc08e4). Delta+78/+24 B, márgenes413/348 B en1263/344 KiB sin subir topes. Las quince huellas web ajenas al Panel son idénticas a450, todos los dieciséis IDs se mantienen; gradle y apk.json idénticos80/code52. Informes locales test-results/dom36-full.json y panel82-size.json; no son artefactos servidos en beta.
+
+Guardián final beta-sources PASS sobre82:982 dependencias de funciones y305 datos mutados; closure, miembros dinámicos, aliases históricos y rechazo de repin acreditados. No se cambia el presupuesto ni se atribuye GO a las revisiones anteriores. CI exacta y revisión independiente del nuevo SHA pendientes.

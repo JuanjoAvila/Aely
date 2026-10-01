@@ -120,6 +120,8 @@ t("★ el snapshot80 conserva trece tandas y81 traslada el panel sin perder hist
   const panels=cli.betaChecklist(VERSION_ACTUAL,"4.26.67",48).tandas.filter(g=>String(g.id).endsWith("/beta-panel-veredictos"));
   assert.equal(panels.length,1);
   assert.ok(panels[0].historial.includes("4.26.76/beta-panel-veredictos"));
+  assert.ok(panels[0].historial.includes("4.26.81/beta-panel-veredictos"));
+  assert.deepEqual(Array.from(cli.RELEASE_NOTES.find(n=>n.v==="4.26.81").tandas),[]);
   assert.deepEqual(Array.from(cli.RELEASE_NOTES.find(n=>n.v==="4.26.76").tandas),[]);
 });
 

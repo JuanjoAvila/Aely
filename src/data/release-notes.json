@@ -1,24 +1,24 @@
 [
   {
-    "v": "4.26.81",
+    "v": "4.26.82",
     "d": "2026-10-01",
     "t": {
-      "es": "Las comprobaciones conservan su resultado",
-      "en": "Checks retain their results",
-      "ca": "Les comprovacions conserven el resultat"
+      "es": "Las comprobaciones siguen visibles",
+      "en": "Checks stay visible",
+      "ca": "Les comprovacions continuen visibles"
     },
     "items": {
       "es": [
-        "Las comprobaciones aprobadas conservan su resultado al actualizar y volver a abrir.",
-        "Cada comprobación guarda sus comentarios por separado, también cuando se repite el mismo texto."
+        "Las comprobaciones pendientes siguen visibles cuando no se puede consultar la versión publicada.",
+        "Los resultados y comentarios de cada comprobación se conservan."
       ],
       "en": [
-        "Approved checks retain their results after an update and reopening.",
-        "Each check keeps its own comments, even when the same text appears elsewhere."
+        "Pending checks stay visible when the published version cannot be checked.",
+        "Each check retains its results and comments."
       ],
       "ca": [
-        "Les comprovacions aprovades conserven el resultat en actualitzar i tornar a obrir.",
-        "Cada comprovació desa els seus comentaris per separat, també quan es repeteix el mateix text."
+        "Les comprovacions pendents continuen visibles quan no es pot consultar la versió publicada.",
+        "Cada comprovació conserva els resultats i comentaris."
       ]
     },
     "tandas": [
@@ -45,10 +45,35 @@
           ]
         },
         "historial": [
-          "4.26.76/beta-panel-veredictos"
+          "4.26.76/beta-panel-veredictos",
+          "4.26.81/beta-panel-veredictos"
         ]
       }
     ]
+  },
+  {
+    "v": "4.26.81",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Las comprobaciones conservan su resultado",
+      "en": "Checks retain their results",
+      "ca": "Les comprovacions conserven el resultat"
+    },
+    "items": {
+      "es": [
+        "Las comprobaciones aprobadas conservan su resultado al actualizar y volver a abrir.",
+        "Cada comprobación guarda sus comentarios por separado, también cuando se repite el mismo texto."
+      ],
+      "en": [
+        "Approved checks retain their results after an update and reopening.",
+        "Each check keeps its own comments, even when the same text appears elsewhere."
+      ],
+      "ca": [
+        "Les comprovacions aprovades conserven el resultat en actualitzar i tornar a obrir.",
+        "Cada comprovació desa els seus comentaris per separat, també quan es repeteix el mateix text."
+      ]
+    },
+    "tandas": []
   },
   {
     "v": "4.26.80",

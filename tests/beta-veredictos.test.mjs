@@ -61,6 +61,39 @@ function conStore(values, fn) {
 }
 
 console.log("beta-veredictos");
+t("ronda mixta conserva una vez la checklist implícita actual con o sin producción",()=>{
+  const catalog=cli.RELEASE_NOTES,points=["1. Comprobar A","2. Comprobar B","3. Comprobar C"];
+  const implicit={v:"4.26.99",t:{es:"Actual implícita",en:"Current implicit",ca:"Actual implícita"},items:{es:points,en:points,ca:points}};
+  conNotas([implicit,...catalog],()=>{
+    const offline=cli.betaChecklist("4.26.99.1",null,48),online=cli.betaChecklist("4.26.99.1","4.26.67",48);
+    for(const pack of [offline,online]){
+      const own=pack.tandas.filter(g=>g.id.split("/").pop()==="todo");
+      assert.equal(own.length,1,"la versión que corre sigue pendiente una sola vez");
+      assert.deepEqual(Array.from(own[0].items),points);
+      assert.equal(new Set(pack.tandas.map(g=>g.id.split("/").pop())).size,pack.tandas.length,"no duplica revisiones modernas");
+    }
+    assert.deepEqual(Array.from(offline.tandas,g=>g.id.split("/").pop()).sort(),Array.from(online.tandas,g=>g.id.split("/").pop()).sort(),"producción desconocida no borra una tanda actual");
+    assert.equal(offline.items.length,online.items.length);
+  });
+});
+
+t("ronda mixta no resucita una nota actual con tandas vacías",()=>{
+  const catalog=cli.RELEASE_NOTES,empty={v:"4.26.99",t:{es:"Sin puntos"},items:{es:["Nota familiar"]},tandas:[]};
+  const expected=Array.from(cli.betaChecklist("4.26.99.1",null,48).tandas,g=>g.id.split("/").pop()).sort();
+  conNotas([empty,...catalog],()=>{
+    for(const production of [null,"4.26.67"]){
+      const actual=cli.betaChecklist("4.26.99.1",production,48);
+      assert.deepEqual(Array.from(actual.tandas,g=>g.id.split("/").pop()).sort(),expected);
+      assert.equal(actual.tandas.filter(g=>g.id.split("/").pop()==="todo").length,0);
+    }
+  });
+});
+
+t("ronda moderna no duplica su propia cabeza al conservar el fallback",()=>{
+  const current=cli.RELEASE_NOTES[0],pack=cli.betaChecklist(current.v+".1",null,48);
+  for(const g of current.tandas)assert.equal(pack.tandas.filter(row=>row.id.split("/").pop()===g.id).length,1);
+});
+
 const changedIds=["tr-descripcion-clasificacion","fin05-widget-reentrada","fin05-pago-cerrada","widget-banco","widget-app-cerrada"];
 const readSource=f => fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
 const registered=JSON.parse(readSource("scripts/beta-sources.json"));
