@@ -1,6 +1,6 @@
 {
-  "versionCode": 51,
-  "versionName": "4.26.55",
-  "url": "https://github.com/JuanjoAvila/Aely/releases/download/v4.26.55/Aely-4.26.55.apk",
-  "notes": "APK 4.26.55 (51): el widget recupera sus cifras al volver a abrir la app."
+  "versionCode": 52,
+  "versionName": "4.26.80",
+  "url": "https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.80-beta-52.apk",
+  "notes": "El widget sigue el mes o Mi ciclo de Inicio y pide abrir la app cuando falta confirmar un pago."
 }

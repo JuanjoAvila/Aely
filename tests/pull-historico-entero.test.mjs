@@ -141,6 +141,10 @@ test("FIN07: sync nuevo termina antes, el viejo no pisa ni ACK ni histórico",as
   const old=h.sync(),latest=h.sync();pending[1]([{...rows(1)[0],source:"macrodroid",ingest_event_id:"nuevo"}]);
   await latest;const before=h.stateRef.current,ack=h.wC.current;
   pending[0]([{...rows(2)[1],source:"macrodroid",ingest_event_id:"viejo"}]);await old;
-  assert.equal(h.stateRef.current,before);assert.equal(h.wC.current,ack);assert.ok(ack.includes("nuevo"));
-  assert.ok(!ack.includes("viejo"));assert.equal(h.wR.current,true);assert.equal(h.sets,1);
+  assert.equal(h.stateRef.current,before);assert.equal(h.wC.current,ack);
+  // La cobertura se calcula ahora al enviar (mes/ciclo); una lectura tardía tampoco puede
+  // cambiar las filas acreditadas ni sembrar el ACK viejo (NO-GO widget al cruzar el día 1).
+  const covered=loadPureLogicFromFile().widgetCoveredEvents(ack,0,Date.now(),true);
+  assert.ok(covered.includes("nuevo"));assert.ok(!covered.includes("viejo"));
+  assert.equal(h.wR.current,true);assert.equal(h.sets,1);
 });

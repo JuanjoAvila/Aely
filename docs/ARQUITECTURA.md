@@ -1,5 +1,9 @@
 # Arquitectura — Aely
 
+## Widget80 sobre guardias de nómina y retirada
+
+V2 sigue dashboardBudgetStats de Inicio, declara ventana/ancla/magnitud/reservas/bancos/idioma y solo confirma eventos recibidos del último pull completo. Java conserva desconocidos hasta ACK/lápida; no inventa delta con ingestlegacy ni degrada contrato por timeout. El injerto mantiene readStartedAt/merge de79 y su conciliación de recibos, así como importación de ingresos BOOK no futuros de78. Source821 se mantiene equivalente; los cambios de esas primitivas se revisan con scopes transitorios de funciones/datos de79. APK52 exclusiva beta, no despliegue Edge/SQL. [Acta](briefs/inc-2909-01-widget.md).
+
 ## Ingresos bancarios pendientes y futuros (INC-3009-02)
 
 `importObExpenses` admite abonos con estado normalizado BOOK o ausente y fecha bancaria
@@ -13,7 +17,7 @@ no añade telemetría financiera. [Acta](briefs/inc-3009-nomina-anticipada.md).
 
 ## Presupuesto de Inicio mensual (INC-2909-02)
 
-`dashboardBudgetStats` pide modo bruto al argumento opcional `budgetMode` de `monthBudgetStats`, sin otro recorrido del histórico ni cambiar `gTotalMode`. En mes natural, frase, anillo, margen, Pregúntame, avisos y reto describen las mismas compras y el límite tras reservas. El ciclo reconocido conserva neto, incluso negativo; Gastos, widget e informes mantienen sus propias llamadas y modos. No modifica saldos ni escrituras.
+`dashboardBudgetStats` pide modo bruto al argumento opcional `budgetMode` de `monthBudgetStats`, sin otro recorrido del histórico ni cambiar `gTotalMode`. En mes natural, frase, anillo, margen, Pregúntame, avisos y reto describen las mismas compras y el límite tras reservas. El ciclo reconocido conserva neto, incluso negativo; Gastos e informes mantienen sus propias llamadas y modos. El widget v2 sigue Inicio desde APK52; APK51 conserva su payload legado. No modifica saldos ni escrituras.
 
 ## Presupuesto por cobro real (4.26.65)
 

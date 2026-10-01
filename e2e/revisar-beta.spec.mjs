@@ -981,7 +981,7 @@ async function panelRevisionExacta(page, lang, scenario) {
 }
 
 for(const lang of ["es","en","ca"]) {
-  test(`revisión exacta: dos fuentes idénticas conservan OK y cinco cambios web piden nueva revisión (${lang})`, async ({page}) => {
+  test(`revisión exacta: dos fuentes idénticas conservan OK y cinco cambios web/nativos piden nueva revisión (${lang})`, async ({page}) => {
     await abrirRevisionBeta(page,lang);
     await sembrarAprobadasEn4267(page);
     await page.evaluate(async lang => { await ensureLangPack(lang); CURLANG=lang; CONFIG.APP_VERSION="4.26.76.1"; window._mcProdApk=48; window._mcProdEntregas=null; window._mcProdApkRevisiones=null; },lang);
@@ -1002,6 +1002,7 @@ for(const lang of ["es","en","ca"]) {
       const fila=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:title})});
       await expect(fila.locator(".beta-tanda-n")).toHaveText(/^0\/\d+$/);
       await expect(fila.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/})).toContainText("web");
+      await expect(fila.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/})).toContainText("Android");
       await expect(fila.getByRole("button",{name:/Aprobar esta tanda/})).toBeDisabled();
       await expect(fila.locator(".beta-tanda-entrega")).toContainText(copy.native);
       await expect(fila.locator(".beta-tanda-entrega")).toContainText(copy.unknown);
@@ -1030,7 +1031,7 @@ for(const lang of ["es","en","ca"]) {
         if(g.native) window._mcProdApkRevisiones[id]=g.native;
         if(g.edge) window._mcProdEntregas.edge[id]=g.edge;
       });
-      window._mcProdApk=51;window.__resolveDelivery("4.26.67");
+      window._mcProdApk=52;window.__resolveDelivery("4.26.67");
     });
     await expect(panel.locator(".beta-tanda")).toHaveCount(3);
     for(const title of ["Pruebas y entrega","Recibos pagados y vencidos","Presupuesto mensual de Inicio"])

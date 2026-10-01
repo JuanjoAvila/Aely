@@ -120,7 +120,10 @@ const PRESUPUESTO = {
   // Retirada79 sobre Nómina78 eaf55e4a: +8.519 B minificados y +1.997 B gzip;
   // sello79.99 mide 1.288.387 / 350.399 B. +9/+2 KiB mínimos conservan ACK,
   // identidad y conciliación del recibo; quedan 829/833 B sin recortar idiomas.
-  minificado: 1259 * 1024,
+  // Widget80 sobre Retirada79: +1.699 B minificados en A/B sin sello (1.290.012 B),
+  // 796 B sobre1259 KiB. +1 KiB mínimo; gzip350.981 B cabe en343 KiB.
+  // Revalidar sello beta y manifiesto52 final sin recortar ACK ni textos.
+  minificado: 1260 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

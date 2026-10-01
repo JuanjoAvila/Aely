@@ -1,5 +1,7 @@
 # Backlog operativo — Aely
 
+Widget80 sobre79/d45fb8b1; runtime821/ACK/guiones intactos. Prebuild52/name80 y descarga de assetbeta602841368 verificados; manifiesto52 local real. CI/build final/reemplazo APK/entrega80 pendientes; no main/Edge/SQL/install. [Acta](briefs/inc-2909-01-widget.md).
+
 ## INC-2909-02 · implementación beta4.26.73.1 verificada · 30 de septiembre de2026
 
 Salir de Mi ciclo conserva el gasto bruto mensual de Inicio y sus lectores del presupuesto. PR82/mergea03a2a06; CI completa SUCCESS, ZIP/huella/HTML/SW/APK cotejados. Candidata separable PR80/3912aa11GOClaude yCIverde, pendiente de prueba y aprobación móvil específica; no se atribuye cierre del caso real ni promoción. [Acta](briefs/inc-2909-02-inicio-natural.md). El coordinador nocturno dirige el backlog autorizado; recibos y panel se mantienen en sus propios chats.

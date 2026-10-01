@@ -1,3 +1,5 @@
+Widget80 sobre79: `widget-banco.spec.mjs` ya mapeado añade es/en/ca para el pull antiguo en la frontera ACK de retirada: Inicio/widget100, sin gasto180 ni ACK inventado. Date fijo durante esa comparación vuelve a avanzar antes del splash. Quitar readStartedAt hace fallar el DOM real. `revisar-beta` prueba cinco cambios web/nativos y entrega exacta APK52; cuatro casos tardíos de `retirada-bancaria` respaldan Novedades79.13 DOM PASS en pases finales, sin repetir matriz34. Java real/109 etapas de lógica/límites en [acta](briefs/inc-2909-01-widget.md); no sustituye CI ni pago real.
+
 INC-2909-02: `inicio-mes-natural.spec.mjs`, mapeado a Inicio, prueba es/en/ca, ajuste real, recarga, bruto mensual, neto del ciclo, reservas, bancos y límites. `month-budget-stats` ejecuta Pregúntame y reto con las mismas compras; `budget-notis-deps` ejecuta el efecto real: agotamiento, no repetición y reinicio al cobrar. Prueba móvil pendiente; CI y publicación se registran en el [brief](briefs/inc-2909-02-inicio-natural.md).
 
 ## INC-3009-02 · nómina pendiente/futura

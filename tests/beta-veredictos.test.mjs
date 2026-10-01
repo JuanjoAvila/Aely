@@ -266,7 +266,7 @@ t("★ el veredicto no saca nada del panel: aprobar no es publicar", () => {
   assert.deepEqual(ids(pack).sort(), ["9.9.3/nativa", "9.9.3/web-vieja", "9.9.4/web-nueva"]);
 });
 
-t("★ dos fuentes idénticas conservan OK; cinco cambios web conservan historia y exigen nueva revisión", () => {
+t("★ dos fuentes idénticas conservan OK; cinco cambios web/nativos conservan historia sin aprobar código nuevo", () => {
   const pack=cli.betaChecklist("4.26.75.1","4.26.67",48);
   for(const id of approvedIds) {
     const g=pack.tandas.find(x=>String(x.id).split("/").pop()===id);
@@ -275,10 +275,12 @@ t("★ dos fuentes idénticas conservan OK; cinco cambios web conservan historia
     const part=cli.betaVerdictFor(g,[{tanda:g.historial[0],verdict:"approved"}]);
     if(changedIds.includes(id)) {
       assert.equal(part,null,id+" no reutiliza la aprobación anterior");
-      assert.deepEqual(Array.from(g.cambio),["web"]);
+      assert.deepEqual(Array.from(g.cambio),["web","native"]);
       assert.equal(g.desde.length,0);
       assert.notEqual(g.codigo,JSON.parse(readSource("src/data/release-notes.json")).flatMap(n=>n.tandas||[]).find(x=>x.id===id&&x.codigoDesde).codigoDesde);
-      for(const surface of ["native","edge"]) if(g[surface]) assert.equal(g[surface],registered[id].auditoria.revisiones[surface]);
+      assert.notEqual(g.native,registered[id].auditoria.revisiones.native);
+      if(g.edge) assert.equal(g.edge,registered[id].auditoria.revisiones.edge);
+      assert.equal(g.apk,52);
     } else {
       assert.equal(part.verdict,"approved",id);
       assert.equal(g.cambio.length,0);

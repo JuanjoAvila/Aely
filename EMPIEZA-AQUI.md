@@ -1,5 +1,7 @@
 # Empieza aquí
 
+Widget80 sobre79/d45fb8b1; runtime821/ACK/guiones intactos. Prebuild52/name80 y descarga de assetbeta602841368 verificados; manifiesto52 local real. CI/build final/reemplazo APK/entrega80 pendientes; no main/Edge/SQL/install. [Acta](docs/briefs/inc-2909-01-widget.md).
+
 Nómina78 candidata en rama aislada sobre UI77 finalca7734fd. Runtime5c2146c3 conservado, cuatro fixtures DOM4/4 y guardianes afectados verdes; CI exacta y publicación retenidas por el coordinador. PR96/número76 antiguos retenidos. Lease27 liberado tras su prueba focal. [Acta y rebase](docs/briefs/inc-3009-nomina-anticipada.md).
 
 Integración UI en una sola candidata 4.26.77 con tres tandas (Cyberpunk, Preguntar, Perfil): los números 79/80/81 que aparecen en sus actas de origen eran reservas provisionales y no son entregas. Las tres fuentes conservan su runtime exacto, van montadas sobre la fuente del panel76 y esperan CI exacta y gate. Node, scopes, tamaño y DOM propios se registran en [acta](docs/briefs/ui-77-integracion.md). No lanzar Chromium sin lease canónico.

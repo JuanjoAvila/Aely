@@ -190,4 +190,40 @@ test("la revisión de nómina incluye guardia, fecha, identidad, saldo y lectore
   }
   assert.equal(betaRevision(id,f=>f==="src/modules/10-app-components.js"?read(f)+"\n// texto ajeno":read(f)).codigo,original.codigo);
 });
+test("Widget80 exige helpers v2 y vigila ACK, alcance y ventana",()=>{
+  const id="inc-2909-01-widget-periodo",functions=logicFunctions(read,["src/modules/00-core.js","src/modules/01-i18n.js","src/modules/08-motor-bank.js","src/modules/04-tab-gastos.js"]),before=betaRevision(id,read);
+  for(const name of ["widgetCoveredEvents","widgetScopeOf","dashboardBudgetStats","budgetPaydayOf","dateMs","inicioDeMesMs","expenseBankEnts"]){
+    const fn=functions.get(name);assert.ok(fn,"helper vigente "+name);
+    const after=betaRevision(id,f=>f===fn.file?mutateLogic(read(f),fn):read(f));
+    assert.notEqual(after.web,before.web,name);
+  }
+  assert.throws(()=>betaRevision(id,f=>read(f).replace("function widgetCoveredEvents(","function coberturaAusente(")),/Bloque beta/);
+});
+test("Widget80 vigila datos de dinero y todos sus cinco archivos Java",()=>{
+  const id="inc-2909-01-widget-periodo",scope=JSON.parse(read("scripts/beta-sources.json"))[id],before=betaRevision(id,read),data=logicData(read);
+  assert.equal(scope.native.length,5);
+  for(const file of scope.native){
+    const after=betaRevision(id,f=>f===file?read(f).replace("package com.micartera.app;","package com.micartera.fixture;"):read(f));
+    assert.notEqual(after.native,before.native,file);
+  }
+  for(const name of ["MC_TZ","CAT_NEUTRAS","REC_GRACE","ENT"]){
+    const value=data.get(name);assert.ok(value,name);
+    const after=betaRevision(id,f=>f===value.file?mutateData(read(f),value):read(f));
+    assert.notEqual(after.web,before.web,name);
+  }
+  const period=scope.native.find(f=>f.endsWith("WidgetPeriod.java"));
+  assert.notEqual(betaRevision(id,f=>f===period?read(f).replace("CONTRACT = 2","CONTRACT = 1"):read(f)).native,before.native);
+});
+test("Widget80 nuevo no repina historia ni fabrica entrega nativa",()=>{
+  const id="inc-2909-01-widget-periodo",scopes=JSON.parse(read("scripts/beta-sources.json")),notes=JSON.parse(read("src/data/release-notes.json"));
+  assert.equal(scopes[id].auditoria,undefined);
+  const raw=notes.flatMap(n=>n.tandas||[]).find(g=>g.id===id);
+  assert.equal(raw.codigoDesde,undefined);assert.equal(raw.desde,undefined);
+  const built=betaNotes(notes).flatMap(n=>n.tandas||[]).find(g=>g.id===id);
+  assert.ok(built.web&&built.native);assert.equal(built.edge,undefined);
+  const delivery=betaDelivery(notes);
+  assert.equal(delivery.web[id],built.web);assert.equal(delivery.native,undefined);assert.equal(delivery.edge,undefined);
+  assert.throws(()=>betaNotes(notes,f=>f.endsWith("WidgetPeriod.java")?(()=>{throw new Error("Java ausente");})():read(f)),/Java ausente/);
+  assert.equal(scopes["tr-descripcion-clasificacion"].auditoria.ampliada.sha,"17aeacc03f595412c044d276c900707cbbd008c8");
+});
 process.exitCode=failed?1:0;

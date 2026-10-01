@@ -7,7 +7,7 @@ final class WidgetSnapshotArbiter {
         double spent, budget, budgetLeft, baseSafeLiq, baseCash, spendDelta, cashDelta;
         boolean hasBudgetLeft, hasSafeLiq, hasCash;
         String cashEnt = "", cashLabel = "", events = "", journal = "";
-        String coveredEvents = "", deletedKeys = "";
+        String coveredEvents = "", deletedKeys = "", unknownJournal = "";
         boolean journalFull, unknownPending;
 
         double safeLiq() { return Math.max(0, hasCash
@@ -22,12 +22,41 @@ final class WidgetSnapshotArbiter {
 
     static long begin(State s) { return ++s.issued; }
 
+    /** ¿Este pago falta en la foto de la app? Si ya lo cubre o se borró, no hay nada pendiente. */
+    static boolean pendingUnknown(State s, String event, String expenseKey) {
+        if (event == null || event.isEmpty() || has(s.coveredEvents, event)
+                || has(s.events, event) || has(s.deletedKeys, expenseKey)) return false;
+        // No conocemos ningún delta de una respuesta incompatible. Solo conservamos identidad;
+        // una foto de la app sin ACK no es prueba de que ya incluya ese pago (revisión 30/9).
+        String line = event + "\t" + (expenseKey != null ? expenseKey : "");
+        if (!s.unknownJournal.contains(line + "\n")) {
+            if (s.unknownJournal.length() + line.length() + 1 > JOURNAL_MAX) s.journalFull = true;
+            else s.unknownJournal += line + "\n";
+        }
+        s.unknownPending = true;
+        return true;
+    }
+
     private static boolean has(String list, String event) {
         return list != null && event != null && !event.isEmpty() && list.contains("|" + event + "|");
     }
 
     private static final int JOURNAL_MAX = 262144;
     private static String[] entry(String line) { return line.split("\\t", -1); }
+
+    /** Los deltas de otra selección no se trasladan; su identidad sigue esperando cobertura. */
+    static boolean invalidateScope(State s) {
+        for (String line : s.journal.split("\\n")) {
+            if (line.trim().isEmpty()) continue;
+            String[] p = entry(line);
+            if (p.length != 7) { s.journalFull = true; return false; }
+            String unknown = p[0].trim() + "\t" + p[6] + "\n";
+            if (!s.unknownJournal.contains(unknown)) s.unknownJournal += unknown;
+        }
+        if (s.unknownJournal.length() > JOURNAL_MAX) { s.journalFull = true; return false; }
+        s.periodStart = 0;
+        return true;
+    }
 
     static boolean app(State s, long periodStart, double spent, double budget, Double budgetLeft,
                     Double safeLiq, Double cash, String cashEnt, String cashLabel,
@@ -36,7 +65,15 @@ final class WidgetSnapshotArbiter {
         // de la app permite releerlo y recuperar ese bloqueo sin perder eventos no confirmados.
         StringBuilder keep = new StringBuilder(), ids = new StringBuilder();
         double shown = 0, against = 0, cashPart = 0, spendPart = 0;
-        boolean unknown = false;
+        StringBuilder unknownKeep = new StringBuilder();
+        for (String line : s.unknownJournal.split("\\n")) {
+            if (line.isEmpty()) continue;
+            String[] p = entry(line);
+            if (p.length != 2) { s.journalFull = true; return false; }
+            if (!has(coveredEvents, p[0]) && !has(deletedKeys, p[1])) unknownKeep.append(line).append('\n');
+        }
+        if (unknownKeep.length() > JOURNAL_MAX) { s.journalFull = true; return false; }
+        boolean unknown = unknownKeep.length() > 0;
         if (s.periodStart == periodStart) {
             for (String line : s.journal.split("\\n")) {
                 if (line.trim().isEmpty()) continue;
@@ -81,6 +118,7 @@ final class WidgetSnapshotArbiter {
         s.cashDelta = cashPart;
         s.events = ids.toString();
         s.journal = keep.toString();
+        s.unknownJournal = unknownKeep.toString();
         s.journalFull = false;
         s.unknownPending = unknown;
         s.coveredEvents = coveredEvents != null ? coveredEvents : "";

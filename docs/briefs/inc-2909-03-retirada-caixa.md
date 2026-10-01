@@ -1,5 +1,41 @@
 # INC-2909-03 · retirada bancaria · candidata aislada
 
+## Lease30 · reparación de fixtures verificada, runtime intacto
+
+Guardia181 con c988 PASS completa: origen, cuenta locked, importe antes/después igual,
+aviso bancario completo exacto, scroll y touchcancel sin trasladar la ficha.
+Inversiones549 reproduce geometría caducada: bbox y596,5/h44 e hit previo=true;
+touchstart real cae en BUTTON, campo ya y467,5 por scroll/foco en dos rAF del editor.
+Fixture mínimo espera foco antes de medir y exige que touchstart real tenga inv-name.
+Conserva límite<2px al editar y los controles de arrastrar/cancelar/cerrar/scroll.
+
+GREEN fixture nuevo1/1; RED mutante solo respuestaHTML elimina input del selector
+protector de useEdgePageClose: touchstart sí cae en input, expectativa<2px falla407,68px.
+Ningún src/public/runtime alterado. Sondas y copias temporales retiradas.
+GREEN final30:2/2 PASS,1worker,8,8s, datos sintéticos, servidor propio4265 y HTML
+sha2564eb19e7af5e7e672dc39484b3e214f681a6ef714f04ac0a0acdbe58cf28b235e intacto.
+Reporte ignorado test-results/retirada-lease30-final.json; mutante retirada-lease30-mutante.json.
+Lease30 LIBERADO explícitamente; servidor4265 detenido. Sin repetir Node/mutantes financieros.
+CI80 conjunta sigue siendo gate de publicación; CI79 FAILURE queda registrada, no se maquilla.
+
+
+## Cierre de CI79 · corrección mínima del guardián heredado
+
+Fuente runtime `d45fb8b17cda1a1d628d34bbe9ea660ec7f38a18`, PR100 borrador sobre78.
+CI36834862549 FAILURE: todos los Node/Deno sin fallo, los17 DOM de Retirada PASS,
+607DOM PASS,1FAILED,1FLAKY aprobado al reintentar,1SKIP;7rendimiento PASS.
+Fallo estable en gastos-cajones:195, expectativa antigua «El importe lo manda el banco»
+frente al aviso nuevo completo f_locked_toast. Corrección exclusiva del test: exige
+texto completo y mantiene todos los controles de importe/cuenta/gestos, sin relajar runtime.
+La prueba de Inversiones de gesto fue flaky por hit-test del campo, pasó en retry; no
+se modifica esa pantalla ni su guardián. Privacidad remota no ejecutada por el fallo anterior;
+privacidad local PASS. No se declara CI verde ni autorización móvil/publicación.
+
+Coordinador debe incorporar este delta de test a Widget80 antes de su CI completa final.
+No hace falta repetir mutantes/Node de fuente intacta; el runtime y HTML no cambian.
+Lease28 sigue liberado y no se arranca Chromium sin concesión nueva.
+
+
 ## Corte79 sobre fuente78 final · 1 de octubre, DOM28 verde
 
 Parent exacto `eaf55e4af38d2277a50baa5e736a93cd09b3a627`; rama `codex/inc-2909-03-graft78-79`.

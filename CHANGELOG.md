@@ -1,3 +1,10 @@
+## [4.26.80] — 2026-10-01 · Widget v2 sobre Nómina/Retirada
+
+- Injerto acotado821 sobre parent79/d45fb8b1: conserva guardia de abonos BOOK/fecha, merge con readStartedAt y conciliación durable de recibos/retirada. Java idéntico821; ACK del último pull completo, desconocidos hasta identidad/lápida y negociación sin degradar.
+- Periodo/idioma y magnitud de Inicio: bruto mensual o neto con signo del ciclo, sin Balance. APK51 conserva legado; código52/versionName80 y manifiesto52 apuntan al preasset beta real verificado, sin entrega final todavía.
+- Preserva Panel76/UI77 y los tres guiones Nómina78/Retirada79/Widget80. Alcance/data/functions completos, hashes históricos sin repin. Novedades79items[3] simplifica solo el condicional de vínculo tardío, respaldado por cuatro DOM de ACK/rechazo.
+- 13 DOM afectados PASS en pases finales; quitar readStartedAt se caza con100→180 y fuente/bundle se restauran byte a byte. Runner109 etapas, rojos iniciales de51/52, espejo externo y tamaño;1260/343 KiB mínimos autorizados tras A/B+1.699 B min/+601 B gzip. Prebuild26a y descarga del asset602841368 PASS, firma habitual/37assets/BuildConfig. Fixtures c9887ab8/2b03894a solo tests/acta. CI/build final/reemplazo binario y cotejo servido obligatorios antes de entrega80. [Acta](docs/briefs/inc-2909-01-widget.md).
+
 ## [4.26.79] — 2026-10-01 · INC-2909-03, reconocer retirada sin gasto ni efectivo importado
 
 - Fuente79 injertada sobre Nómina78 final eaf55e4af38d2277a50baa5e736a93cd09b3a627, conservando Panel76/UI77 y sus guiones. Delta financiero aff910b9 idéntico; no modifica el motor08 ni las pantallas14/shell. Entrega conjunta prevista en beta80, sin publicación intermedia79 ni nota de Retirada77.
