@@ -8,7 +8,8 @@ const LANGS = [["es","Español"],["en","English"],["ca","Català"]];
 const LANG = {
   es:{
     beta_review_intro:"Revisa lo nuevo. Aprobar una tanda no la publica; su entrega se comprueba aparte.",
-    beta_android_app:"app Android", beta_approved_pending:"Aprobada. No necesitas aprobarla otra vez; falta confirmar su entrega.", beta_delivery_pending:"Pendiente de publicar: {x}.", beta_delivery_unknown:"Entrega sin confirmar: {x}.",
+    notes_unavailable:"No se han podido comprobar las novedades. Conecta y vuelve a intentarlo.",
+    beta_notes_unavailable:"Comprobaciones sin confirmar. Conecta y vuelve a abrir para cargar las de esta versión.", beta_android_app:"app Android", beta_approved_pending:"Aprobada. No necesitas aprobarla otra vez; falta confirmar su entrega.", beta_delivery_pending:"Pendiente de publicar: {x}.", beta_delivery_unknown:"Entrega sin confirmar: {x}.",
     beta_revoked:"↺ Veredicto retirado", beta_server:"servidor", beta_revision_changed:"El código cambió ({x}). El resultado anterior sigue guardado; prueba esta revisión.", beta_reset_verdicts:"Para empezar de cero, retira antes cada veredicto con «Cambiar de opinión».",
     log_private:"[dato privado omitido]",
     help_ai_matched:"La IA ha encontrado estas guías de Aely.",
@@ -310,7 +311,8 @@ const LANG = {
   },
   en:{
     beta_review_intro:"Review new changes. Approving a batch does not publish it; delivery is checked separately.",
-    beta_android_app:"Android app", beta_approved_pending:"Approved. You do not need to approve it again; delivery still needs confirmation.", beta_delivery_pending:"Awaiting publication: {x}.", beta_delivery_unknown:"Delivery unconfirmed: {x}.",
+    notes_unavailable:"The updates could not be verified. Connect and try again.",
+    beta_notes_unavailable:"Checks are unconfirmed. Connect and reopen to load the checks for this version.", beta_android_app:"Android app", beta_approved_pending:"Approved. You do not need to approve it again; delivery still needs confirmation.", beta_delivery_pending:"Awaiting publication: {x}.", beta_delivery_unknown:"Delivery unconfirmed: {x}.",
     beta_revoked:"↺ Verdict withdrawn", beta_server:"server", beta_revision_changed:"The code changed ({x}). The previous result stays in history; this revision needs new checks.", beta_reset_verdicts:"To start over, first withdraw each verdict with “Change my mind”.",
     log_private:"[private data omitted]",
     help_ai_matched:"AI found these Aely guides.",
@@ -600,7 +602,8 @@ const LANG = {
   },
   ca:{
     beta_review_intro:"Revisa els canvis nous. Aprovar una tanda no la publica; l’entrega es comprova a part.",
-    beta_android_app:"app Android", beta_approved_pending:"Aprovada. No cal que l’aprovis de nou; falta confirmar-ne l’entrega.", beta_delivery_pending:"Pendent de publicar: {x}.", beta_delivery_unknown:"Entrega sense confirmar: {x}.",
+    notes_unavailable:"No s’han pogut comprovar les novetats. Connecta i torna-ho a provar.",
+    beta_notes_unavailable:"Comprovacions sense confirmar. Connecta i torna a obrir per carregar les d’aquesta versió.", beta_android_app:"app Android", beta_approved_pending:"Aprovada. No cal que l’aprovis de nou; falta confirmar-ne l’entrega.", beta_delivery_pending:"Pendent de publicar: {x}.", beta_delivery_unknown:"Entrega sense confirmar: {x}.",
     beta_revoked:"↺ Veredicte retirat", beta_server:"servidor", beta_revision_changed:"El codi ha canviat ({x}). El resultat anterior queda a l’historial; aquesta revisió necessita proves noves.", beta_reset_verdicts:"Per començar de zero, retira abans cada veredicte amb «Canviar d’opinió».",
     log_private:"[dada privada omesa]",
     help_ai_matched:"La IA ha trobat aquestes guies d’Aely.",

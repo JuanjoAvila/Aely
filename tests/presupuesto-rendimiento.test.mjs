@@ -123,7 +123,10 @@ const PRESUPUESTO = {
   // Widget80 sobre Retirada79: +1.699 B minificados en A/B sin sello (1.290.012 B),
   // 796 B sobre1259 KiB. +1 KiB mínimo; gzip350.981 B cabe en343 KiB.
   // Revalidar sello beta y manifiesto52 final sin recortar ACK ni textos.
-  minificado: 1260 * 1024,
+  // Persistencia81: A/B real sellado contra955, mismo minificador/host:
+  // 1.289.951/350.970 B →1.292.888/351.900 B (+2.937/+930).
+  // Mínimos1263/344 KiB: márgenes424/356 B; sujeto a revisión de candidata.
+  minificado: 1263 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -131,7 +134,7 @@ const PRESUPUESTO = {
   // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
   // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
   // La misma candidata mide 343.257 B gzip, 217 B sobre 335 KiB: +1 KiB medido.
-  gzip: 343 * 1024,
+  gzip: 344 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

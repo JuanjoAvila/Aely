@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import {logicFunctions,scopeDependencies,mutateLogic,logicCalls,benignCalls,logicData,logicReads,scopeDataDependencies,mutateData,benignData} from "../scripts/beta-source-code.mjs";
-import { betaRevision, betaNotes, betaDelivery, betaHistorical } from "../scripts/beta-revisions.mjs";
+import {logicFunctions,scopeDependencies,mutateLogic,logicCalls,benignCalls,logicData,logicReads,scopeText,scopeDataDependencies,mutateData,benignData,codeMask,objectMembers} from "../scripts/beta-source-code.mjs";
+import { betaRevision, betaNotes, betaDelivery, betaHistorical, betaCompatible } from "../scripts/beta-revisions.mjs";
 
 const read=f=>fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
 const empty=[{v:"4.26.67",tandas:[]}];
@@ -80,7 +80,7 @@ test("el lector ignora comentarios/textos/regex y detecta las funciones flecha",
   const functions=logicFunctions(()=>text,["fixture"]);
   assert.equal(functions.size,2);
   assert.deepEqual([...logicCalls('helper(1); /* saldo(0) */ "saldo(2)"; /saldo(3)/; const s="saldo(4)";',functions)],["helper"]);
-  assert.ok(mutateLogic(text,functions.get("helper")).includes("=> /* dependencia mutada */"));
+  assert.ok(mutateLogic(text,functions.get("helper")).includes("=>(null&&("));
 });
 
 test("referencias ampliadas rechazan HEAD/sha ajeno y mantienen el original",()=>{
@@ -186,7 +186,13 @@ test("la revisión de nómina incluye guardia, fecha, identidad, saldo y lectore
     ["04-tab-gastos.js",'const MovRow=React.memo(','const MovRow=React.memo( /* fila visible */'],
   ]){
     assert.ok(read("src/modules/"+file).includes(from),from+" existe");
-    assert.notEqual(betaRevision(id,f=>f.endsWith(file)?read(f).replaceAll(from,to):read(f)).codigo,original.codigo,from);
+    let changed=read("src/modules/"+file);
+    if(to.includes("/*")){
+      const fns=logicFunctions(read,["src/modules/"+file]),fn=[...fns.values()].find(x=>x.text.startsWith(from));
+      const values=logicData(read,["src/modules/"+file]),value=[...values.values()].find(x=>x.text.includes(from));
+      changed=fn?mutateLogic(changed,fn):value?mutateData(changed,value):changed.replace(from,from+(from.endsWith("{")?'throw new Error("mutante");':"null||"));
+    }else changed=changed.replaceAll(from,to);
+    assert.notEqual(betaRevision(id,f=>f.endsWith(file)?changed:read(f)).codigo,original.codigo,from);
   }
   assert.equal(betaRevision(id,f=>f==="src/modules/10-app-components.js"?read(f)+"\n// texto ajeno":read(f)).codigo,original.codigo);
 });
@@ -225,5 +231,100 @@ test("Widget80 nuevo no repina historia ni fabrica entrega nativa",()=>{
   assert.equal(delivery.web[id],built.web);assert.equal(delivery.native,undefined);assert.equal(delivery.edge,undefined);
   assert.throws(()=>betaNotes(notes,f=>f.endsWith("WidgetPeriod.java")?(()=>{throw new Error("Java ausente");})():read(f)),/Java ausente/);
   assert.equal(scopes["tr-descripcion-clasificacion"].auditoria.ampliada.sha,"17aeacc03f595412c044d276c900707cbbd008c8");
+});
+
+test("una entrega ajena no cambia funciones, métodos ni ficheros vecinos de una tanda",()=>{
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),panel="beta-panel-veredictos",nomina="inc-3009-nomina-anticipada",inicio="inc-2909-02-inicio-natural";
+  const unrelated=f=>read(f).replace("function categorySpentByMonth(","function ajenaBeta(){ return 27; }\nfunction categorySpentByMonth(")
+    .replace("    enabled(){ return !!sb; },","    ajenaBeta(){ return 27; },\n    enabled(){ return !!sb; },")
+    .replace("name:sp.name, amount:useAmt","name:sp.name, amount:useAmt+1");
+  for(const id of [panel,nomina,inicio])assert.equal(betaRevision(id,unrelated).codigo,betaRevision(id).codigo,id);
+  const scope=structuredClone(scopes[inicio]);
+  const fn=scope.web.find(s=>s.function==="reservedSince");
+  scope.web.push({...fn});
+  Object.assign(fn,{from:"function reservedSince(",to:"function widgetCoveredEvents("});delete fn.function;
+  assert.equal(betaRevision(inicio,read,undefined,scope).codigo,betaRevision(inicio).codigo,"reanclar y duplicar cobertura no crea revisión");
+});
+test("los métodos realmente leídos quedan dentro del alcance y sus cambios lo invalidan",()=>{
+  const scopes=JSON.parse(read("scripts/beta-sources.json"));
+  for(const [id,scope]of Object.entries(scopes)){
+    const cloud=scope.web.find(s=>s.data==="cloud"&&s.members);if(!cloud)continue;
+    const texts=scope.web.filter(s=>s!==cloud).map(s=>scopeText(s,read)).concat(scopeDependencies(scope,read).map(fn=>fn.text));
+    const used=new Set(texts.flatMap(text=>[...codeMask(text).matchAll(/\bcloud\.([\w$]+)/g)].map(m=>m[1])));
+    for(const name of used)assert.ok(cloud.members.includes(name),id+": método no vigilado "+name);
+    for(const name of cloud.members){
+      const from=new RegExp("(\\b(?:async\\s+)?"+name+"\\([^)]*\\)\\s*\\{)");
+      const changed=betaRevision(id,f=>f===cloud.file?read(f).replace(from,'$1 throw new Error("método mutado"); '):read(f));
+      assert.notEqual(changed.web,betaRevision(id).web,id+": "+name);
+    }
+  }
+});
+test("la identidad conserva ASI, literales y descendientes CSS",()=>{
+  for(const [file,a,b]of [["src/modules/fixture.js","function f(){ return 1; }","function f(){ return 2; }"],["src/modules/fixture.js","async function f(){}","async\nfunction f(){}"],["src/modules/fixture.js","a\n++b","a++\nb"],["src/modules/fixture.js","function f(){ return 1; }","function f(){ return\n1; }"],["src/shell.html",".profile-row .pr-val{color:red}",".profile-row.pr-val{color:red}"]]){
+    const scope={web:[file],unidades:true};
+    assert.notEqual(betaRevision("fixture",()=>a,undefined,scope).web,betaRevision("fixture",()=>b,undefined,scope).web);
+  }
+});
+test("la compatibilidad requiere la misma fuente histórica y no acepta aliases escritos a mano",()=>{
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),notes=JSON.parse(read("src/data/release-notes.json")),id="inc-2909-02-inicio-natural",g=notes.flatMap(n=>n.tandas||[]).find(g=>g.id===id);
+  const current=betaRevision(id),compatible=betaCompatible(g,current,scopes[id]);
+  assert.ok(compatible.codigosCompatibles.length>=1);assert.equal(compatible.compatibilidadGit[0].sha,"955765a9ec0ad96d20140a8f12da00c9fa04985c");
+  const saved=structuredClone(compatible);compatible.codigosCompatibles[0]="f".repeat(64);
+  assert.deepEqual(betaCompatible(g,current,scopes[id]),saved,"la caché no comparte metadata mutable");
+  assert.throws(()=>betaCompatible(g,current,scopes[id],()=>{throw new Error("historia de prueba ausente");}),/historia de prueba ausente/,"un lector personalizado nunca usa la caché Git");
+  const changed=betaRevision(id,f=>read(f).replace('const REC_GRACE=3;','const REC_GRACE=4;'));
+  assert.deepEqual(betaCompatible(g,changed,scopes[id]),{});
+  const injected=[{v:"4.26.99",tandas:[{...g,items:{es:["guion cambiado"]},codigosCompatibles:[current.codigo],compatibilidadSha:"f".repeat(40)}]}];
+  assert.equal(betaNotes(injected)[0].tandas[0].codigosCompatibles,undefined);
+});
+
+test("un helper privado ajeno no reabre; closure y efectos de inicialización sí",()=>{
+  const id="beta-panel-veredictos",base=betaRevision(id),prefix="const cloud = (function(){";
+  const unused=f=>read(f).replace(prefix,prefix+'\n  function _betaUnusedCloudHelper(){ return 123; }');
+  assert.equal(betaRevision(id,unused).web,base.web);
+  assert.equal(betaRevision(id,f=>unused(f).replace("return 123;","return {n:123};")).web,base.web);
+  assert.equal(betaRevision(id,f=>unused(f).replace("_betaUnusedCloudHelper()","_betaUnusedCloudHelper({n=2}={})")).web,base.web);
+  const used=f=>unused(f).replace("async betaReport(payload){","async betaReport(payload){ _betaUnusedCloudHelper();");
+  assert.notEqual(betaRevision(id,used).web,base.web);
+  const first=betaRevision(id,used);
+  assert.notEqual(betaRevision(id,f=>used(f).replace("return 123;","return 456;")).web,first.web);
+  assert.notEqual(betaRevision(id,f=>unused(f).replace("  let sb = null;","  let sb = null; _betaUnusedCloudHelper();")).web,base.web);
+  assert.notEqual(betaRevision(id,f=>read(f).replace("  let sb = null;","  let sb = 7;")).web,base.web);
+  const calls=f=>used(f).replace("return 123;","return this.enabled();");
+  assert.notEqual(betaRevision(id,f=>calls(f).replace("enabled(){ return !!sb; }","enabled(){ return false; }")).web,betaRevision(id,calls).web);
+
+});
+
+test("TR separa el ACK de widget y conserva ingestión y elegibilidad",()=>{
+  const id="tr-descripcion-clasificacion",widget="inc-2909-01-widget-periodo",before=betaRevision(id),other=betaRevision(widget);
+  const changed=f=>read(f).replace('month.optInt("contract", 0)','month.optInt("contract", 7)');
+  assert.equal(betaRevision(id,changed).native,before.native);
+  assert.notEqual(betaRevision(widget,changed).native,other.native);
+  const native="android/app/src/main/java/com/micartera/app/TrExpenseListener.java";
+  assert.ok(JSON.parse(read("scripts/beta-sources.json"))[widget].native.includes(native),"el ACK excluido en TR sigue cubierto por el widget entero");
+  assert.notEqual(betaRevision(id,f=>f===native?read(f).replace('package com.micartera.app;','package com.micartera.fixture;'):read(f)).native,before.native);
+  for(const [from,to]of [['if (text.isEmpty()) return;','if (true) return;'],['.put("titulo", title)','.put("titulo", "")'],['.put("evento", evento)','.put("evento", "")']]){
+    assert.ok(read(native).includes(from));
+    assert.notEqual(betaRevision(id,f=>f===native?read(f).replace(from,to):read(f)).native,before.native,from);
+  }
+  assert.throws(()=>betaRevision(id,f=>f===native?read(f).replace('JSONObject month = r.optJSONObject("month");','JSONObject noMonth = r.optJSONObject("month");'):read(f)),/Exclusión beta/);
+});
+
+test("miembros dinámicos abortan sin ocultar aliases, opcionales ni sintaxis no delimitable",()=>{
+  const fixture=body=>'const fixture=(function(){ return { principal(){ '+body+' }, otro(){ return 1; } }; })();';
+  for(const owner of ["this","fixture"])for(const body of ['const self='+owner+'; return self.otro();','const {otro}='+owner+'; return otro();','return '+owner+'?.otro();','return '+owner+'[key]();','return callback('+owner+');']){
+    assert.throws(()=>objectMembers(fixture(body),["principal"]),/dinámico sin alcance/,body);
+  }
+  for(const owner of ["this","fixture"]){
+    const before=objectMembers(fixture('return '+owner+'.otro();'),["principal"]).text;
+    assert.notEqual(objectMembers(fixture('return '+owner+'.otro();').replace('return 1;','return 2;'),["principal"]).text,before);
+  }
+  assert.ok(objectMembers(fixture('this._evSent=this._evSent||{}; this._evN=this._evN||0;'),["principal"]).text);
+  for(const extra of ['get extra(){return 3;},','...extra,'])assert.throws(()=>objectMembers(fixture('return 7;').replace('principal(){',extra+'principal(){'),["principal"]),/Miembro beta no inequívoco/);
+  for(const body of ['return eval("this.otro()");','return Function("return this.otro()");','const run=Function; return run("return fixture.otro()");','return (()=>0).constructor("return fixture.otro()");'])assert.throws(()=>objectMembers(fixture(body),["principal"]),/Evaluación beta dinámica/,body);
+  const privateEval=fixture('return hidden();').replace('return { principal(){','function hidden(){ return eval("fixture.otro()"); } return { principal(){');
+  assert.throws(()=>objectMembers(privateEval,["principal"]),/Evaluación beta dinámica/);
+  assert.throws(()=>objectMembers(fixture('return 7;').replace('return { principal(){','eval("fixture.otro()"); return { principal(){'),["principal"]),/Evaluación beta dinámica/);
+
 });
 process.exitCode=failed?1:0;

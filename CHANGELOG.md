@@ -1,3 +1,10 @@
+## [4.26.81] — 2026-10-01 · Conservar comprobaciones entre entregas
+
+- Veredictos independientes del progreso auxiliar; ledger por huella/índice separa textos repetidos. Reset vacía comentarios y marcas scoped; la retirada/rechazo más reciente permanece.
+- Identidad web por unión de unidades y métodos cloud alcanzados, conservando initializer y código literal. Separación del ACK exclusivo de widget en Listener TR. Equivalencias75→80 recalculadas desde SHAs fijos sin repin ni aliases manuales; Nómina78 no se presume equivalente a cambios financieros79.
+- El bundle exige el SHA-256 exacto del catálogo, incluso ante respuesta exitosa antigua del SW. Caché mínima por compilación completa e identidad, acotada a una sola antes de guardar; sin catálogo verificado muestra comprobaciones sin confirmar. Panel y Novedades ofrecen reintento explícito. Aprobación y recibos de entrega siguen separados, con mínimo nativo y límites de evidencia. Notas/guion es/en/ca; APK80/code52 intacta.
+- 9 DOM es/en/ca PASS (A+B, reinicio, sin marcas/red, rechazo/retirada, reset); catálogo viejo exitoso rechazado incluso con la misma versión base y cálculo financiero nuevo. Guardianes982 funciones/305 datos, veredictos28 y demás etapas Node PASS salvo espejo externo; Deno ausente.1263/344 KiB mínimos medidos y aceptados técnicamente. Candidata sin publicar: revisión Claude exacta y CI pendientes. [Acta y límites](docs/briefs/ops-0110-validaciones-persistentes.md).
+
 ## [4.26.80] — 2026-10-01 · Widget v2 sobre Nómina/Retirada
 
 - Injerto acotado821 sobre parent79/d45fb8b1: conserva guardia de abonos BOOK/fecha, merge con readStartedAt y conciliación durable de recibos/retirada. Java idéntico821; ACK del último pull completo, desconocidos hasta identidad/lápida y negociación sin degradar.

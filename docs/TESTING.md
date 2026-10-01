@@ -618,3 +618,19 @@ doble importación y pulls anteriores/posteriores; `e2e/retirada-bancaria.spec.m
 en es/en/ca, cancela/confirma, prueba errores y comprueba otro almacenamiento tras sync a demanda.
 Registrados en runner/mapa de Gastos. Las respuestas cloud son sintéticas; no prueban RLS real ni
 suma de efectivo compartida. [Estado de candidata](briefs/inc-2909-03-retirada-caixa.md).
+
+## Persistencia entre entregas (candidata81)
+
+La identidad web por unidades evita reabrir una tanda por una declaración vecina, otro método cloud o descriptores duplicados/reanclados. Cloud mantiene initializer con efectos y helpers privados alcanzados; los métodos seleccionados, cierre transitivo, literales, ASI y CSS siguen vigilados. El Listener TR excluye solo el ACK mensual de widget y Widget mantiene los cinco Java completos. Los negativos ajenos y positivos de initializer/helper/método/nativo viven en beta-sources, registrado en run-tests.
+
+La compatibilidad recalcula el alcance actual sobre fuentes Git fijas75→80 y exige igualdad de todas las superficies y del guion. Nunca hereda por id ni acepta aliases manuales.79/78 son candidatos, no entregas servidas; Nómina79/80 equivalentes,78 distinto por cambios de fusión/timestamp. Los veredictos más recientes, incluido null/revoked/rejected, prevalecen sin depender de marcas auxiliares. Recibos equivalentes requieren esta misma prueba, y el mínimo de APK sigue obligatorio.
+
+revisar-beta añade nueve DOM es/en/ca: A aprobada, compilación B ajena, reload/arranque frío, textos repetidos, marcas borradas, petición de notas abortada, rechazo/retirada posterior, cambio financiero real y reset con comentarios. Los hashes proceden de dos fuentes modificadas, no de códigos sintéticos igualados a mano. El Service Worker se bloquea solo en estos fixtures para no reemplazar la compilación B simulada con el HTML original. El mismo spec permanece en CROSSCUTTING; Chromium local requiere lease canónico.
+
+Cierre conservador81: alias, destructuring, callback u opcional de this/nombre del objeto abortan antes de generar recibos; this._evSent/_evN continúan admitidos. Getter/spread no delimitables también abortan. Las declaraciones de función privadas sin uso, incluido return de objeto y parámetros destructurados, no reabren; las usadas y sus métodos transitivos sí. El ACK excluido enTR debe continuar cubierto por Widget completo. El guion Panel76 vive ahora una vez en81 con historial76; notas-sin-duplicados conserva su guarda y el contador histórico13 usa el snapshot fijo955.
+
+El catálogo del fixture lleva el SHA-256 real de cada compilación aislada. Los casos sin red prueban también respuesta HTTP correcta con catálogo viejo tras REC_GRACE3→4 y sufijo2.1→2.2: cero tandas, mensaje sin confirmar, ningún envelope nuevo guardado e historial intacto. release-notes-max comprueba que el sello del HTML coincide con el JSON generado. Evaluación dinámica (eval/Function/constructor), también desde helpers privados o el initializer, aborta la delimitación conservadora.
+
+Sin WebCrypto no se acepta descarga ni se rescata una caché previamente verificada; el guardián del loader comprueba ambos caminos.
+
+El último cierre añade cuota simulada para dos cachés antiguas: purga previa, una sola nueva y claves de dinero/veredictos intactas. Los casos es/en/ca sin red prueban reintento visible de Novedades y Panel sin recargar, recepción del catálogo válido y una sola caché.

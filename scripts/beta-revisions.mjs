@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import {execFileSync} from "node:child_process";
-import { scopeText } from "./beta-source-code.mjs";
+import { scopeText, scopeIdentity } from "./beta-source-code.mjs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
@@ -20,8 +20,9 @@ export function betaRevision(id, read = f => fs.readFileSync(path.join(root, f),
       const file = typeof source === "string" ? source : source.file;
       if (!/^(src\/|android\/|supabase\/|scripts\/)/.test(file) || file.includes("..")) throw new Error("Alcance beta inválido: " + file);
       const text=scopeText(source,reader);
-      hash.update(JSON.stringify(source) + "\0" + text + "\0");
+      if(!scope.unidades||surface!=="web")hash.update(JSON.stringify(source) + "\0" + text + "\0");
     }
+    if(scope.unidades&&surface==="web")hash.update(JSON.stringify(scopeIdentity(scope[surface],reader)));
     result[surface] = hash.digest("hex");
   }
   result.codigo = crypto.createHash("sha256").update(JSON.stringify(result)).digest("hex");
@@ -67,11 +68,47 @@ export function betaHistorical(g,scope,history=historicalSource){
   return {referenciaAnterior:{sha:audit.sha,huella:g.huella,codigoDesde:g.codigoDesde,revisionesDesde:g.revisionesDesde},
     codigoDesde:expanded.codigo,revisionesDesde:expanded.revisiones};
 }
+const compatibilityShas=[
+  "955765a9ec0ad96d20140a8f12da00c9fa04985c",
+  "d45fb8b17cda1a1d628d34bbe9ea660ec7f38a18",
+  "eaf55e4af38d2277a50baa5e736a93cd09b3a627",
+  "6468ac051c1020151c40e90145dcc9f514790b60",
+  "1624fd19f11b18a1675c2255e8ffd6fde5ea3dc2",
+  "ca7b97d438e01f60091a3818fdca734740ec8a9e"
+];
+const compatibleCache=new Map();
+export function betaCompatible(g,current,scope,history=historicalSource){
+  // No se hereda por id: cada identidad vieja se recalcula en su fuente fija de Git
+  // y solo casa si todas las unidades actuales, guion y superficies siguen idénticas.
+  if(!scope.unidades)return {};
+  // Las notas repiten tandas: el mismo alcance/código/guion contra SHAs inmutables
+  // no necesita releer y recorrer seis fuentes. Lectores de prueba no usan esta caché.
+  const key=history===historicalSource?JSON.stringify([g.id,g.t,g.items,g.rev||1,current.codigo,scope]):null;
+  if(key&&compatibleCache.has(key))return structuredClone(compatibleCache.get(key));
+  const codes=[],evidence=[];
+  for(const sha of compatibilityShas){
+    const oldScopes=JSON.parse(history(sha,"scripts/beta-sources.json"));
+    const oldNotes=JSON.parse(history(sha,"src/data/release-notes.json"));
+    const original=oldNotes.flatMap(n=>n.tandas||[]).find(x=>x.id===g.id&&
+      JSON.stringify([x.t,x.items,x.rev||1])===JSON.stringify([g.t,g.items,g.rev||1]));
+    if(!original||!oldScopes[g.id])continue;
+    let baseline;
+    try{baseline=betaRevision(g.id,f=>history(sha,f),["web","native","edge"],scope);}
+    catch(error){if(error.code==="BETA_SCOPE_ABSENT")continue;throw error;}
+    if(baseline.codigo!==current.codigo)continue;
+    const old=betaRevision(g.id,f=>history(sha,f),["web","native","edge"],oldScopes[g.id]);
+    if(!codes.includes(old.codigo)){codes.push(old.codigo);evidence.push({sha:sha,codigo:old.codigo,...Object.fromEntries(Object.entries(old).filter(([k])=>["web","native","edge"].includes(k)))});}
+  }
+  const result=codes.length?{codigosCompatibles:codes,compatibilidadGit:evidence}:{};
+  if(key){compatibleCache.set(key,result);if(compatibleCache.size>256)compatibleCache.delete(compatibleCache.keys().next().value);}
+  return structuredClone(result);
+}
 export function betaNotes(notes,read,scopes=registry) {
   // Hasta67 conserva el histórico cerrado. La comparación ampliada de aprobaciones
   // añade metadata auditada sin reescribir sus referencias originales en src.
-  return notes.map(n=>({...n,...(n.tandas&&betaModern(n.v)?{tandas:n.tandas.map(g=>({...g,
-    ...betaRevision(g.id,read,["web","native","edge"],scopes[g.id]),...betaHistorical(g,scopes[g.id])}))}:{})}));
+  return notes.map(n=>({...n,...(n.tandas&&betaModern(n.v)?{tandas:n.tandas.map(({codigosCompatibles,compatibilidadGit,compatibilidadSha,...g})=>({...g,
+    ...betaRevision(g.id,read,["web","native","edge"],scopes[g.id]),...betaHistorical(g,scopes[g.id]),
+    ...betaCompatible(g,betaRevision(g.id,read,["web","native","edge"],scopes[g.id]),scopes[g.id])}))}:{})}));
 }
 
 export function betaDelivery(notes, read) {

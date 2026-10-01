@@ -6,18 +6,91 @@
     "web": [
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function fixedPaymentModel(",
-        "to": "function pendingBillsSummary("
+        "function": "fixedPaymentModel"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function recNorm(",
-        "to": "function categoryOfBankTx("
+        "function": "fixedPaymentDate"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function patchFixedById(",
-        "to": "function removeFixedById("
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFeedClear"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseEligible"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "linkFixedPayment"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileFixedPaymentProofs"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "rekeyFixedPaymentExpense"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "planChargesMonth"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recSane"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "REC_GRACE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileBank"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "patchFixedById"
       },
       {
         "file": "src/modules/03-tab-dash.js",
@@ -36,13 +109,27 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function isManualExpenseSource(",
-        "to": "function _errCloudMsg("
+        "function": "isManualExpenseSource"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function expenseNote(",
-        "to": "function gastoDelMesPorBanco("
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -51,17 +138,167 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "function accFixed(",
-        "to": "const uid="
+        "function": "accFixed"
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "const FREQ_M =",
-        "to": "const GOAL_EMOJIS="
+        "function": "accInject"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "reconcileTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "FREQ_M"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "spareOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "isCardSpend"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "roundupOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RU_MULTS"
       },
       {
         "file": "src/modules/07-tab-patri-fijos.js",
-        "from": "function chargeMonths("
+        "function": "chargeMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmountIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "accOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "cleanDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtChargeDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isDebtPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "needsMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "hasSchedule"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "firstWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "lastWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowPaid"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOccursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOncePast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffOccurs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffPast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymAbs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymNow"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtAmort"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtPaidCount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalloonIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalance"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtActive"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtLeft"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "monthNetForAccount"
       },
       {
         "file": "src/modules/04-tab-gastos.js",
@@ -80,13 +317,11 @@
       },
       {
         "file": "src/modules/14-v4-screens.js",
-        "from": "function PlanBills(",
-        "to": "/* §2 variante A:"
+        "function": "PlanBills"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const CAT_NEUTRAS =",
-        "to": "const catOf ="
+        "data": "CAT_NEUTRAS"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -174,8 +409,7 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const NOTE_MAX=",
-        "to": "function cleanNote("
+        "data": "NOTE_MAX"
       },
       {
         "file": "src/modules/00-core.js",
@@ -183,7 +417,13 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "cloud"
+        "data": "cloud",
+        "members": [
+          "addExpense",
+          "deleteExpense",
+          "enabled",
+          "logEvent"
+        ]
       },
       {
         "file": "src/modules/00-core.js",
@@ -243,10 +483,6 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "mcPullExpensesPaged"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "expenseSourceForCloud"
       },
       {
@@ -271,10 +507,6 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "mcBetaLog"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "deudaSufijo"
       },
       {
@@ -292,23 +524,95 @@
       {
         "file": "src/modules/00-core.js",
         "function": "withdrawalReceiptLink"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "canRecognizeWithdrawal"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withdrawalRowMatches"
       }
-    ]
+    ],
+    "unidades": true
   },
   "beta-panel-veredictos": {
     "web": [
       {
         "file": "src/modules/10-app-components.js",
-        "from": "function betaHuella(",
-        "to": "function ActivityPanel("
+        "function": "betaHuella"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaVerdictFor"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaEstadoEntrega"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaSinEntregar"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaChecklist"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaTandas"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaScopedMarks"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaRememberMarks"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaStoredMarks"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaMarksCount"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaSavedVerdicts"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "useProdVersion"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "data": "BETA_ABIERTO_KEY"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "data": "BETA_SCROLL_KEY"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "data": "BETA_REABIERTO_KEY"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "data": "BETA_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaDebeReabrirse"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaMarcarReabierto"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaMarcarAbierto"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaOlvidarVuelta"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "BetaReviewPanel"
       },
       {
         "file": "src/modules/10-app-components.js",
@@ -317,8 +621,7 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function mcBetaLog(",
-        "to": "var _mcSentryReady="
+        "function": "mcBetaLog"
       },
       {
         "file": "src/modules/12-boot.js",
@@ -337,103 +640,62 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "cloud"
+        "data": "cloud",
+        "members": [
+          "betaReport"
+        ]
       },
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
       },
       {
-        "file": "src/modules/00-core.js",
-        "data": "_mcNotaCols"
+        "file": "src/modules/10-app-components.js",
+        "function": "ensureReleaseNotes"
       },
       {
-        "file": "src/modules/00-core.js",
-        "data": "USO_OK"
+        "file": "src/modules/10-app-components.js",
+        "function": "releaseNotesUrl"
       },
       {
-        "file": "src/modules/00-core.js",
-        "data": "_mcDivisaCols"
+        "file": "src/modules/10-app-components.js",
+        "function": "betaNotesVerified"
       },
       {
-        "file": "src/modules/00-core.js",
-        "data": "_mcObNameCol"
+        "file": "src/modules/10-app-components.js",
+        "data": "_rnSha"
       },
       {
-        "file": "src/modules/00-core.js",
-        "function": "mcPullExpensesPaged"
+        "file": "src/modules/10-app-components.js",
+        "function": "ReleaseNotesRetry"
       },
       {
-        "file": "src/modules/00-core.js",
-        "function": "expenseSourceForCloud"
-      },
+        "file": "src/modules/10-app-components.js",
+        "function": "WhatsNew"
+      }
+    ],
+    "unidades": true,
+    "historial": [
+      "4.26.76/beta-panel-veredictos"
+    ]
+  },
+  "fin05-widget-reentrada": {
+    "web": [
       {
         "file": "src/modules/00-core.js",
-        "function": "isExpenseUuid"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withNotaFallback"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "expenseCloudEq"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "_isMissingNotaCol"
+        "data": "CONFIG"
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "mcLogEvent"
+        "data": "CAT_NEUTRAS"
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "deudaSufijo"
+        "function": "isEfectivoEnt"
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "_isMissingDivisaCol"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "_isMissingObNameCol"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "expenseCloudKeys"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "canRecognizeWithdrawal"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withdrawalRowMatches"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withdrawalReceiptLink"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedExpenseKey"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentIdentity"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "expenseBankOf"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "keyOfExpense"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "partirEntDeuda"
+        "function": "isManualExpenseSource"
       },
       {
         "file": "src/modules/00-core.js",
@@ -441,46 +703,79 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "isManualExpenseSource"
-      }
-    ]
-  },
-  "fin05-widget-reentrada": {
-    "web": [
-      {
-        "file": "src/modules/00-core.js",
-        "from": "const CONFIG = {",
-        "to": "function mcScheduleIdle("
+        "function": "keyOfExpense"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const CAT_NEUTRAS =",
-        "to": "const catOf ="
+        "function": "expenseIsTombstoned"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function isEfectivoEnt(",
-        "to": "function fxTableOf("
+        "function": "cleanNote"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function isManualExpenseSource(",
-        "to": "function _errCloudMsg("
+        "function": "expenseNote"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function cleanNote(",
-        "to": "function gastoDelMesPorBanco("
+        "function": "expenseBankOf"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function gastoDelMesPorBanco(",
-        "to": "function ensureEfectivoAccount("
+        "function": "gastoDelMesPorBanco"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function expenseFromRow(",
-        "to": "function validCloudState("
+        "function": "palabrasDeNombre"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "PALABRAS_DE_FONDO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TICKERS_INVERSION"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MARCAS_INVERSION"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "categoriaDeInversion"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "marcaDeInversion"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "valueDesdeSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaMostrada"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseFromRow"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeExpenses"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "refreshExpenseFromCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeExpensesFromCloud"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -489,42 +784,239 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "function accFixed(",
-        "to": "const uid="
+        "function": "accFixed"
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "const FREQ_M =",
-        "to": "const GOAL_EMOJIS="
+        "function": "accInject"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "reconcileTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "FREQ_M"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "spareOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "isCardSpend"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "roundupOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RU_MULTS"
       },
       {
         "file": "src/modules/07-tab-patri-fijos.js",
-        "from": "function chargeMonths("
+        "function": "chargeMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmountIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "accOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "cleanDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtChargeDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isDebtPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "needsMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "hasSchedule"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "firstWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "lastWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowPaid"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOccursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOncePast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffOccurs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffPast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymAbs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymNow"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtAmort"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtPaidCount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalloonIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalance"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtActive"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtLeft"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "monthNetForAccount"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function flowEarlyBankMatches(",
-        "to": "/* UNA sola fuente de cargos del mes"
+        "function": "flowEarlyBankMatches"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function bankPendingEvents(",
-        "to": "function recNorm("
+        "function": "flowEarlyBankTx"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function recNorm(",
-        "to": "const REC_GRACE="
+        "function": "flowBankPaid"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function reservedSince(",
-        "to": "function categorySpentByMonth("
+        "function": "flowConfirmedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowPaidIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "keepShownAcrossFlows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileEarlyIncomeAnchors"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankPendingEvents"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "minWalk"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recSane"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservedSince"
       },
       {
         "file": "src/modules/04-tab-gastos.js",
-        "from": "function lastPaydayOf(",
-        "to": "function presetBoundsMs("
+        "function": "lastPaydayOf"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "budgetPaydayOf"
       },
       {
         "file": "src/modules/11-app-main.js",
@@ -548,8 +1040,7 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "async function mcPullExpensesPaged(",
-        "to": "const cloud ="
+        "function": "mcPullExpensesPaged"
       },
       {
         "file": "src/modules/00-core.js",
@@ -558,18 +1049,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "function fixMovInvasion(",
-        "to": "function seedFlows("
+        "function": "fixMovInvasion"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function reconcileObDupes(",
-        "to": "function esGemeloCashback("
+        "function": "reconcileObDupes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function esGemeloCashback(",
-        "to": "function histParesCashback("
+        "function": "esGemeloCashback"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "findCashbackTwin"
       },
       {
         "file": "src/modules/11-app-main.js",
@@ -627,12 +1119,18 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const NOTE_MAX=",
-        "to": "function cleanNote("
+        "data": "NOTE_MAX"
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "cloud"
+        "data": "cloud",
+        "members": [
+          "addExpense",
+          "enabled",
+          "logEvent",
+          "pullExpenses",
+          "setExpenseCat"
+        ]
       },
       {
         "file": "src/modules/00-core.js",
@@ -712,10 +1210,6 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "mcBetaLog"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "deudaSufijo"
       },
       {
@@ -731,24 +1225,28 @@
         "function": "expenseCloudKeys"
       },
       {
-        "file": "src/modules/00-core.js",
-        "function": "canRecognizeWithdrawal"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withdrawalRowMatches"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withdrawalReceiptLink"
+        "file": "src/modules/08-motor-bank.js",
+        "function": "dashboardBudgetStats"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedExpenseKey"
+        "function": "monthBudgetStats"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentIdentity"
+        "function": "widgetScopeOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "widgetCoveredEvents"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetPeriodOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetStatsFromAmounts"
       }
     ],
     "native": [
@@ -765,44 +1263,106 @@
         "web": "d27d622918f5ad197d56b51bd6cd2bd14f2659698ee60e8df732f3ff170a4282",
         "native": "8db7c86ba63459fb188c411dfacaa6156f64f5b30eca1af3d9538b49538b3e95"
       }
-    }
+    },
+    "unidades": true
   },
   "fin05-pago-cerrada": {
     "web": [
       {
         "file": "src/modules/00-core.js",
-        "from": "const CONFIG = {",
-        "to": "function mcScheduleIdle("
+        "data": "CONFIG"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const CAT_NEUTRAS =",
-        "to": "const catOf ="
+        "data": "CAT_NEUTRAS"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function isEfectivoEnt(",
-        "to": "function fxTableOf("
+        "function": "isEfectivoEnt"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function isManualExpenseSource(",
-        "to": "function _errCloudMsg("
+        "function": "isManualExpenseSource"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function cleanNote(",
-        "to": "function gastoDelMesPorBanco("
+        "function": "keyOfExpenseLegacy"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function gastoDelMesPorBanco(",
-        "to": "function ensureEfectivoAccount("
+        "function": "keyOfExpense"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function expenseFromRow(",
-        "to": "function validCloudState("
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "cleanNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gastoDelMesPorBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "palabrasDeNombre"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "PALABRAS_DE_FONDO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TICKERS_INVERSION"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MARCAS_INVERSION"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "categoriaDeInversion"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "marcaDeInversion"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "valueDesdeSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaMostrada"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseFromRow"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeExpenses"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "refreshExpenseFromCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeExpensesFromCloud"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -811,42 +1371,239 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "function accFixed(",
-        "to": "const uid="
+        "function": "accFixed"
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "const FREQ_M =",
-        "to": "const GOAL_EMOJIS="
+        "function": "accInject"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "reconcileTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "FREQ_M"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "spareOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "isCardSpend"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "roundupOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RU_MULTS"
       },
       {
         "file": "src/modules/07-tab-patri-fijos.js",
-        "from": "function chargeMonths("
+        "function": "chargeMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmountIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "accOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "cleanDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtChargeDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isDebtPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "needsMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "hasSchedule"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "firstWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "lastWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowPaid"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOccursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOncePast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffOccurs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffPast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymAbs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymNow"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtAmort"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtPaidCount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalloonIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalance"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtActive"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtLeft"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "monthNetForAccount"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function flowEarlyBankMatches(",
-        "to": "/* UNA sola fuente de cargos del mes"
+        "function": "flowEarlyBankMatches"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function bankPendingEvents(",
-        "to": "function recNorm("
+        "function": "flowEarlyBankTx"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function recNorm(",
-        "to": "const REC_GRACE="
+        "function": "flowBankPaid"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function reservedSince(",
-        "to": "function categorySpentByMonth("
+        "function": "flowConfirmedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowPaidIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "keepShownAcrossFlows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileEarlyIncomeAnchors"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankPendingEvents"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "minWalk"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recSane"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservedSince"
       },
       {
         "file": "src/modules/04-tab-gastos.js",
-        "from": "function lastPaydayOf(",
-        "to": "function presetBoundsMs("
+        "function": "lastPaydayOf"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "budgetPaydayOf"
       },
       {
         "file": "src/modules/11-app-main.js",
@@ -870,8 +1627,7 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "async function mcPullExpensesPaged(",
-        "to": "const cloud ="
+        "function": "mcPullExpensesPaged"
       },
       {
         "file": "src/modules/00-core.js",
@@ -880,18 +1636,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "function fixMovInvasion(",
-        "to": "function seedFlows("
+        "function": "fixMovInvasion"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function reconcileObDupes(",
-        "to": "function esGemeloCashback("
+        "function": "reconcileObDupes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function esGemeloCashback(",
-        "to": "function histParesCashback("
+        "function": "esGemeloCashback"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "findCashbackTwin"
       },
       {
         "file": "src/modules/11-app-main.js",
@@ -949,12 +1706,18 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const NOTE_MAX=",
-        "to": "function cleanNote("
+        "data": "NOTE_MAX"
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "cloud"
+        "data": "cloud",
+        "members": [
+          "addExpense",
+          "enabled",
+          "logEvent",
+          "pullExpenses",
+          "setExpenseCat"
+        ]
       },
       {
         "file": "src/modules/00-core.js",
@@ -1034,10 +1797,6 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "mcBetaLog"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "deudaSufijo"
       },
       {
@@ -1053,24 +1812,28 @@
         "function": "expenseCloudKeys"
       },
       {
-        "file": "src/modules/00-core.js",
-        "function": "canRecognizeWithdrawal"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withdrawalRowMatches"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withdrawalReceiptLink"
+        "file": "src/modules/08-motor-bank.js",
+        "function": "dashboardBudgetStats"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedExpenseKey"
+        "function": "monthBudgetStats"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentIdentity"
+        "function": "widgetScopeOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "widgetCoveredEvents"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetPeriodOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetStatsFromAmounts"
       }
     ],
     "native": [
@@ -1093,39 +1856,162 @@
         "native": "2076258ee38657c4cbfd3abb52a19cdf931f496f4d0593b1ff0bbaaa0416ed1a",
         "edge": "8758af5c07c075262fb3481623748a2353e436d0d1ce3a71334bfaa9627b21d1"
       }
-    }
+    },
+    "unidades": true
   },
   "tr-descripcion-clasificacion": {
     "web": [
       {
         "file": "src/modules/00-core.js",
-        "from": "const CATEGORIES = [",
-        "to": "const ENT = {"
+        "data": "CATEGORIES"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function isManualExpenseSource(",
-        "to": "function _errCloudMsg("
+        "data": "CAT"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function cleanNote(",
-        "to": "function gastoDelMesPorBanco("
+        "data": "XC"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function expenseFromRow(",
-        "to": "function mergeExpenses("
+        "data": "INGRESO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INVERSION_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TRASPASO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DEUDA_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catName"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "freqLabel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MERCHANT_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USO_OK"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "dayKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "diaDeGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_PALABRA"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_INICIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "sugerenciaApuntar"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "categoryOfNewMerchant"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "resolveCategory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "cleanNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseFromRow"
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "var _pdCache=new Map();",
-        "to": "function relDay("
+        "data": "_pdCache"
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "const startOfMonth=",
-        "to": "const mk="
+        "function": "_pdMs"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "parseDate"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "dateMs"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "startOfMonth"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -1134,28 +2020,111 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function categoryOfBankTx(",
-        "to": "const CUOTA_DIAS="
+        "function": "categoryOfBankTx"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function recNorm(",
-        "to": "const REC_GRACE="
+        "function": "flattenBankTx"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "const DUP_DIAS_MS=",
-        "to": "function bankReadWarnings("
+        "function": "importObExpenses"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function histFlattenHistoryLinks(",
-        "to": "function histCanUndo("
+        "function": "recNorm"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function enrichNotesFromBankTx(",
-        "to": "function MonthPicker("
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recSane"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histCandDupKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histCandExisting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histCandCercanos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histFlattenHistoryLinks"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDupProbe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histMatchesModeled"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histSignSuspectByBank"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histCuotasDeDeuda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histClassifyCandidates"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histFijosFromSelection"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histKeepAmbiguity"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histBuildCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histApplyBatchAck"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histUndoBatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "enrichNotesFromBankTx"
       },
       {
         "file": "src/modules/00-core.js",
@@ -1215,18 +2184,19 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const NOTE_MAX=",
-        "to": "function cleanNote("
+        "data": "NOTE_MAX"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const CAT_NEUTRAS =",
-        "to": "const catOf ="
+        "data": "CAT_NEUTRAS"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "const CUOTA_DIAS=",
-        "to": "function cuotaCargoCercano("
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_MESES"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -1250,7 +2220,15 @@
       }
     ],
     "native": [
-      "android/app/src/main/java/com/micartera/app/TrExpenseListener.java"
+      {
+        "file": "android/app/src/main/java/com/micartera/app/TrExpenseListener.java",
+        "exclude": [
+          {
+            "from": "            JSONObject month = r.optJSONObject(\"month\");",
+            "to": "        } catch (Exception ignored) {}\n    }\n}"
+          }
+        ]
+      }
     ],
     "edge": [
       "supabase/functions/bank-sync/index.ts",
@@ -1428,44 +2406,106 @@
           ]
         }
       }
-    }
+    },
+    "unidades": true
   },
   "widget-banco": {
     "web": [
       {
         "file": "src/modules/00-core.js",
-        "from": "const CONFIG = {",
-        "to": "function mcScheduleIdle("
+        "data": "CONFIG"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const CAT_NEUTRAS =",
-        "to": "const catOf ="
+        "data": "CAT_NEUTRAS"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function isEfectivoEnt(",
-        "to": "function fxTableOf("
+        "function": "isEfectivoEnt"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function isManualExpenseSource(",
-        "to": "function _errCloudMsg("
+        "function": "isManualExpenseSource"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function cleanNote(",
-        "to": "function gastoDelMesPorBanco("
+        "function": "keyOfExpenseLegacy"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function gastoDelMesPorBanco(",
-        "to": "function ensureEfectivoAccount("
+        "function": "keyOfExpense"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function expenseFromRow(",
-        "to": "function validCloudState("
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "cleanNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gastoDelMesPorBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "palabrasDeNombre"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "PALABRAS_DE_FONDO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TICKERS_INVERSION"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MARCAS_INVERSION"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "categoriaDeInversion"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "marcaDeInversion"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "valueDesdeSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaMostrada"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseFromRow"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeExpenses"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "refreshExpenseFromCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeExpensesFromCloud"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -1474,42 +2514,239 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "function accFixed(",
-        "to": "const uid="
+        "function": "accFixed"
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "const FREQ_M =",
-        "to": "const GOAL_EMOJIS="
+        "function": "accInject"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "reconcileTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "FREQ_M"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "spareOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "isCardSpend"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "roundupOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RU_MULTS"
       },
       {
         "file": "src/modules/07-tab-patri-fijos.js",
-        "from": "function chargeMonths("
+        "function": "chargeMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmountIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "accOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "cleanDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtChargeDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isDebtPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "needsMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "hasSchedule"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "firstWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "lastWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowPaid"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOccursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOncePast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffOccurs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffPast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymAbs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymNow"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtAmort"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtPaidCount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalloonIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalance"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtActive"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtLeft"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "monthNetForAccount"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function flowEarlyBankMatches(",
-        "to": "/* UNA sola fuente de cargos del mes"
+        "function": "flowEarlyBankMatches"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function bankPendingEvents(",
-        "to": "function recNorm("
+        "function": "flowEarlyBankTx"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function recNorm(",
-        "to": "const REC_GRACE="
+        "function": "flowBankPaid"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function reservedSince(",
-        "to": "function categorySpentByMonth("
+        "function": "flowConfirmedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowPaidIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "keepShownAcrossFlows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileEarlyIncomeAnchors"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankPendingEvents"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "minWalk"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recSane"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservedSince"
       },
       {
         "file": "src/modules/04-tab-gastos.js",
-        "from": "function lastPaydayOf(",
-        "to": "function presetBoundsMs("
+        "function": "lastPaydayOf"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "budgetPaydayOf"
       },
       {
         "file": "src/modules/11-app-main.js",
@@ -1566,12 +2803,14 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const NOTE_MAX=",
-        "to": "function cleanNote("
+        "data": "NOTE_MAX"
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "cloud"
+        "data": "cloud",
+        "members": [
+          "enabled"
+        ]
       },
       {
         "file": "src/modules/00-core.js",
@@ -1607,91 +2846,31 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "_mcNotaCols"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "USO_OK"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "data": "CATEGORIES"
       },
       {
-        "file": "src/modules/00-core.js",
-        "data": "_mcDivisaCols"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "data": "_mcObNameCol"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "mcPullExpensesPaged"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "expenseSourceForCloud"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "isExpenseUuid"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withNotaFallback"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "expenseCloudEq"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "_isMissingNotaCol"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "mcLogEvent"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "mcBetaLog"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "deudaSufijo"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "_isMissingDivisaCol"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "_isMissingObNameCol"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "expenseCloudKeys"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "canRecognizeWithdrawal"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withdrawalRowMatches"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withdrawalReceiptLink"
+        "file": "src/modules/08-motor-bank.js",
+        "function": "dashboardBudgetStats"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedExpenseKey"
+        "function": "monthBudgetStats"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentIdentity"
+        "function": "widgetScopeOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "widgetCoveredEvents"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetPeriodOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetStatsFromAmounts"
       }
     ],
     "native": [
@@ -1708,44 +2887,106 @@
         "web": "2137193d58dcb1ec2d6fe0a3c943d3252a86b6fe72204fac4b89e7506d8671f0",
         "native": "9bdf23d38cad812c2c93973a70b30f8a7a8c0d5d845b08844a0f8adee81ee894"
       }
-    }
+    },
+    "unidades": true
   },
   "widget-app-cerrada": {
     "web": [
       {
         "file": "src/modules/00-core.js",
-        "from": "const CONFIG = {",
-        "to": "function mcScheduleIdle("
+        "data": "CONFIG"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const CAT_NEUTRAS =",
-        "to": "const catOf ="
+        "data": "CAT_NEUTRAS"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function isEfectivoEnt(",
-        "to": "function fxTableOf("
+        "function": "isEfectivoEnt"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function isManualExpenseSource(",
-        "to": "function _errCloudMsg("
+        "function": "isManualExpenseSource"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function cleanNote(",
-        "to": "function gastoDelMesPorBanco("
+        "function": "keyOfExpenseLegacy"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function gastoDelMesPorBanco(",
-        "to": "function ensureEfectivoAccount("
+        "function": "keyOfExpense"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function expenseFromRow(",
-        "to": "function validCloudState("
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "cleanNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gastoDelMesPorBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "palabrasDeNombre"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "PALABRAS_DE_FONDO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TICKERS_INVERSION"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MARCAS_INVERSION"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "categoriaDeInversion"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "marcaDeInversion"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "valueDesdeSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaMostrada"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseFromRow"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeExpenses"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "refreshExpenseFromCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeExpensesFromCloud"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -1754,42 +2995,239 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "function accFixed(",
-        "to": "const uid="
+        "function": "accFixed"
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "const FREQ_M =",
-        "to": "const GOAL_EMOJIS="
+        "function": "accInject"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "reconcileTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "FREQ_M"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "spareOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "isCardSpend"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "roundupOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RU_MULTS"
       },
       {
         "file": "src/modules/07-tab-patri-fijos.js",
-        "from": "function chargeMonths("
+        "function": "chargeMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmountIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "accOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "cleanDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtChargeDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isDebtPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "needsMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "hasSchedule"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "firstWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "lastWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowPaid"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOccursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOncePast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffOccurs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffPast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymAbs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymNow"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtAmort"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtPaidCount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalloonIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalance"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtActive"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtLeft"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "monthNetForAccount"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function flowEarlyBankMatches(",
-        "to": "/* UNA sola fuente de cargos del mes"
+        "function": "flowEarlyBankMatches"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function bankPendingEvents(",
-        "to": "function recNorm("
+        "function": "flowEarlyBankTx"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function recNorm(",
-        "to": "const REC_GRACE="
+        "function": "flowBankPaid"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function reservedSince(",
-        "to": "function categorySpentByMonth("
+        "function": "flowConfirmedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowPaidIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "keepShownAcrossFlows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileEarlyIncomeAnchors"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankPendingEvents"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "minWalk"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recSane"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservedSince"
       },
       {
         "file": "src/modules/04-tab-gastos.js",
-        "from": "function lastPaydayOf(",
-        "to": "function presetBoundsMs("
+        "function": "lastPaydayOf"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "budgetPaydayOf"
       },
       {
         "file": "src/modules/11-app-main.js",
@@ -1813,8 +3251,7 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "async function mcPullExpensesPaged(",
-        "to": "const cloud ="
+        "function": "mcPullExpensesPaged"
       },
       {
         "file": "src/modules/00-core.js",
@@ -1823,18 +3260,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "function fixMovInvasion(",
-        "to": "function seedFlows("
+        "function": "fixMovInvasion"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function reconcileObDupes(",
-        "to": "function esGemeloCashback("
+        "function": "reconcileObDupes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function esGemeloCashback(",
-        "to": "function histParesCashback("
+        "function": "esGemeloCashback"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "findCashbackTwin"
       },
       {
         "file": "src/modules/11-app-main.js",
@@ -1892,12 +3330,18 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const NOTE_MAX=",
-        "to": "function cleanNote("
+        "data": "NOTE_MAX"
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "cloud"
+        "data": "cloud",
+        "members": [
+          "addExpense",
+          "enabled",
+          "logEvent",
+          "pullExpenses",
+          "setExpenseCat"
+        ]
       },
       {
         "file": "src/modules/00-core.js",
@@ -1977,10 +3421,6 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "mcBetaLog"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "deudaSufijo"
       },
       {
@@ -1996,24 +3436,28 @@
         "function": "expenseCloudKeys"
       },
       {
-        "file": "src/modules/00-core.js",
-        "function": "canRecognizeWithdrawal"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withdrawalRowMatches"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withdrawalReceiptLink"
+        "file": "src/modules/08-motor-bank.js",
+        "function": "dashboardBudgetStats"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedExpenseKey"
+        "function": "monthBudgetStats"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentIdentity"
+        "function": "widgetScopeOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "widgetCoveredEvents"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetPeriodOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetStatsFromAmounts"
       }
     ],
     "native": [
@@ -2036,7 +3480,8 @@
         "native": "2076258ee38657c4cbfd3abb52a19cdf931f496f4d0593b1ff0bbaaa0416ed1a",
         "edge": "8758af5c07c075262fb3481623748a2353e436d0d1ce3a71334bfaa9627b21d1"
       }
-    }
+    },
+    "unidades": true
   },
   "inc-2709-01-arranque-red": {
     "web": [
@@ -2180,38 +3625,99 @@
     "web": [
       {
         "file": "src/modules/00-core.js",
-        "from": "const CONFIG = {",
-        "to": "function mcScheduleIdle("
+        "data": "CONFIG"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const CAT_NEUTRAS =",
-        "to": "const catOf ="
+        "data": "CAT_NEUTRAS"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function isEfectivoEnt(",
-        "to": "function fxTableOf("
+        "function": "isEfectivoEnt"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function isManualExpenseSource(",
-        "to": "function _errCloudMsg("
+        "function": "isManualExpenseSource"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function cleanNote(",
-        "to": "function gastoDelMesPorBanco("
+        "function": "keyOfExpenseLegacy"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function gastoDelMesPorBanco(",
-        "to": "function ensureEfectivoAccount("
+        "function": "keyOfExpense"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function expenseFromRow(",
-        "to": "function validCloudState("
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "cleanNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gastoDelMesPorBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "palabrasDeNombre"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "PALABRAS_DE_FONDO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TICKERS_INVERSION"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MARCAS_INVERSION"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "categoriaDeInversion"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "marcaDeInversion"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "valueDesdeSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaMostrada"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseFromRow"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeExpenses"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "refreshExpenseFromCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeExpensesFromCloud"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -2220,42 +3726,239 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "function accFixed(",
-        "to": "const uid="
+        "function": "accFixed"
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "const FREQ_M =",
-        "to": "const GOAL_EMOJIS="
+        "function": "accInject"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "reconcileTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "FREQ_M"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "spareOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "isCardSpend"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "roundupOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RU_MULTS"
       },
       {
         "file": "src/modules/07-tab-patri-fijos.js",
-        "from": "function chargeMonths("
+        "function": "chargeMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmountIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "accOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "cleanDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtChargeDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isDebtPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "needsMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "hasSchedule"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "firstWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "lastWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowPaid"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOccursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOncePast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffOccurs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffPast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymAbs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymNow"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtAmort"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtPaidCount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalloonIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalance"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtActive"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtLeft"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "monthNetForAccount"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function flowEarlyBankMatches(",
-        "to": "/* UNA sola fuente de cargos del mes"
+        "function": "flowEarlyBankMatches"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function bankPendingEvents(",
-        "to": "function recNorm("
+        "function": "flowEarlyBankTx"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function recNorm(",
-        "to": "const REC_GRACE="
+        "function": "flowBankPaid"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function reservedSince(",
-        "to": "function categorySpentByMonth("
+        "function": "flowConfirmedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowPaidIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "keepShownAcrossFlows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileEarlyIncomeAnchors"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankPendingEvents"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "minWalk"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recSane"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservedSince"
       },
       {
         "file": "src/modules/04-tab-gastos.js",
-        "from": "function lastPaydayOf(",
-        "to": "function presetBoundsMs("
+        "function": "lastPaydayOf"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "budgetPaydayOf"
       },
       {
         "file": "src/modules/03-tab-dash.js",
@@ -2274,13 +3977,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "function budgetYmKey(",
-        "to": "const DATA ="
+        "function": "budgetYmKey"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "ensureBudgetMonthSnap"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "underBudgetStreak"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gamifOf"
       },
       {
         "file": "src/modules/16-help-assistant.js",
-        "from": "function helpSnap(",
-        "to": "function helpOpenDetail("
+        "function": "helpSnap"
       },
       {
         "file": "src/modules/11-app-main.js",
@@ -2373,8 +4086,7 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const NOTE_MAX=",
-        "to": "function cleanNote("
+        "data": "NOTE_MAX"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -2435,8 +4147,25 @@
       {
         "file": "src/modules/00-core.js",
         "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "dashboardBudgetStats"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetStatsFromAmounts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "monthBudgetStats"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetPeriodOf"
       }
-    ]
+    ],
+    "unidades": true
   },
   "inc-2709-12-cyber-fab": {
     "web": [
@@ -2522,38 +4251,107 @@
     "web": [
       {
         "file": "src/modules/00-core.js",
-        "from": "const CONFIG = {",
-        "to": "function mcScheduleIdle("
+        "data": "CONFIG"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const INGRESO_CAT =",
-        "to": "const catOf ="
+        "data": "INGRESO_CAT"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function isEfectivoEnt(",
-        "to": "function fxTableOf("
+        "data": "INVERSION_CAT"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function isManualExpenseSource(",
-        "to": "function _errCloudMsg("
+        "data": "TRASPASO_CAT"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function cleanNote(",
-        "to": "function gastoDelMesPorBanco("
+        "data": "DEUDA_CAT"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function gastoDelMesPorBanco(",
-        "to": "function ensureEfectivoAccount("
+        "data": "CAT_NEUTRAS"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function expenseFromRow(",
-        "to": "function validCloudState("
+        "function": "isEfectivoEnt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "cleanNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gastoDelMesPorBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "palabrasDeNombre"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "PALABRAS_DE_FONDO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TICKERS_INVERSION"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MARCAS_INVERSION"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "categoriaDeInversion"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "marcaDeInversion"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "valueDesdeSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaMostrada"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseFromRow"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeExpenses"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -2562,36 +4360,272 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "function accFixed(",
-        "to": "const uid="
+        "function": "accFixed"
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "const FREQ_M =",
-        "to": "const GOAL_EMOJIS="
-      },
-      "src/modules/07-tab-patri-fijos.js",
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "from": "function flowEarlyBankMatches(",
-        "to": "/* UNA sola fuente de cargos del mes"
+        "function": "accInject"
       },
       {
-        "file": "src/modules/08-motor-bank.js",
-        "from": "function bankPendingEvents(",
-        "to": "function recNorm("
+        "file": "src/modules/01-i18n.js",
+        "function": "reconcileTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "FREQ_M"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "spareOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "isCardSpend"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "roundupOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RU_MULTS"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "AccountSheet"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "Wealth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "data": "FREQ_LABEL"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "data": "FREQ_OPTS"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "data": "MONTHS_ES"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "chargeMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmountIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "accOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "cleanDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtChargeDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isDebtPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "needsMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "hasSchedule"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "firstWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "lastWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowPaid"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOccursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOncePast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffOccurs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffPast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymAbs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymNow"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtAmort"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtPaidCount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalloonIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalance"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtActive"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtLeft"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "monthNetForAccount"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function recNorm(",
-        "to": "const REC_GRACE="
+        "function": "flowEarlyBankMatches"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function reservedSince(",
-        "to": "function categorySpentByMonth("
+        "function": "flowEarlyBankTx"
       },
-      "src/modules/04-tab-gastos.js",
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowBankPaid"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowConfirmedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowPaidIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "keepShownAcrossFlows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileEarlyIncomeAnchors"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankPendingEvents"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "minWalk"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recSane"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservedSince"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "lastPaydayOf"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "budgetPaydayOf"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "presetBoundsMs"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "inBounds"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "data": "MovRow"
+      },
       {
         "file": "src/modules/03-tab-dash.js",
         "from": "  const bud=dashboardBudgetStats(state);",
@@ -2609,13 +4643,23 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "function budgetYmKey(",
-        "to": "const DATA ="
+        "function": "budgetYmKey"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "ensureBudgetMonthSnap"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "underBudgetStreak"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "gamifOf"
       },
       {
         "file": "src/modules/16-help-assistant.js",
-        "from": "function helpSnap(",
-        "to": "function helpOpenDetail("
+        "function": "helpSnap"
       },
       {
         "file": "src/modules/11-app-main.js",
@@ -2624,43 +4668,123 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function pickBankBalanceInfo(",
-        "to": "function flattenBankTx("
+        "function": "pickBankBalanceInfo"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function flattenBankTx(",
-        "to": "const CUOTA_DIAS="
+        "function": "pickBankBalance"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "var _mcMadridYmdFmt=null;",
-        "to": "function closedMonthWindow("
+        "function": "mkObAcct"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "const DUP_DIAS_MS=",
-        "to": "function bankReadWarnings("
-      },
-      {
-        "file": "src/modules/11-app-main.js",
-        "from": "  const syncFromCloud=function(",
-        "to": "  // APK alpha22:"
+        "function": "niceObName"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function esTraspasoPropio(",
-        "to": "function reconcileObDupes("
+        "function": "promoteObAccount"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "applyBankBalances"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankPendingEvents"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "minWalk"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recSane"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "REC_GRACE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileBank"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "categoryOfBankTx"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flattenBankTx"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "importObExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histCandDupKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histCandExisting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histCandCercanos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "esTraspasoPropio"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const dayKey=",
-        "to": "function diaDeGasto("
+        "function": "dayKey"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function entFromAspsp(",
-        "to": "function flowEarlyBankMatches("
+        "function": "entFromAspsp"
       },
       {
         "file": "src/modules/11-app-main.js",
@@ -3015,22 +5139,131 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const CATEGORIES =",
-        "to": "const ENT = {"
+        "data": "CATEGORIES"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const NOTE_MAX=",
-        "to": "function cleanNote("
+        "data": "CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "XC"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INGRESO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INVERSION_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TRASPASO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DEUDA_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catName"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "freqLabel"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MERCHANT_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USO_OK"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "dayKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "diaDeGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_PALABRA"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_INICIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "sugerenciaApuntar"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "categoryOfNewMerchant"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "resolveCategory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NOTE_MAX"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "const CUOTA_DIAS=",
-        "to": "function cuotaCargoCercano("
+        "data": "CUOTA_DIAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_MESES"
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "cloud"
+        "data": "cloud",
+        "members": [
+          "addExpense",
+          "bankLinks",
+          "bankSync",
+          "deleteExpense",
+          "enabled",
+          "logEvent",
+          "pullExpenses",
+          "pullState",
+          "pushState",
+          "setExpenseCat"
+        ]
       },
       {
         "file": "src/modules/00-core.js",
@@ -3098,10 +5331,6 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "mcPullExpensesPaged"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "expenseSourceForCloud"
       },
       {
@@ -3126,10 +5355,6 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "mcBetaLog"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "deudaSufijo"
       },
       {
@@ -3146,27 +5371,7 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "canRecognizeWithdrawal"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withdrawalReceiptLink"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "mcSandbox"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "applyRecognizedWithdrawal"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "reconcileConfirmedWithdrawal"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withdrawalRowMatches"
       },
       {
         "file": "src/modules/00-core.js",
@@ -3175,8 +5380,82 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "  const todayKey=new Date().toDateString();",
+        "to": "  // Bancos presentes en el período"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "  const bounds=useMemo(",
+        "to": "  const diarioEnts="
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "  const filtered=useMemo(",
+        "to": "  /* El asa reclama"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "  const monthSummary=useMemo(",
+        "to": "  // Desglose por categoría:"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "dashboardBudgetStats"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetStatsFromAmounts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetPeriodOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "monthBudgetStats"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const syncFromCloud=function(",
+        "to": "  // CAPA 2 — Open Banking:"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const runBankSync=function(",
+        "to": "  /* ── Auto-refresh de brókers"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const syncCloudExpenses=function(",
+        "to": "      if(ps!==wS.current) return wP.current;",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "refreshExpenseFromCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeExpensesFromCloud"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "      // FIN-07: el paginador solo resuelve",
+        "to": "  // Al iniciar sesión: adopta el estado"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPullExpensesPaged"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileObDupes"
       }
-    ]
+    ],
+    "unidades": true
   },
   "inc-2909-03-retirada": {
     "web": [
@@ -3192,48 +5471,71 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function isExpenseUuid(",
-        "to": "function mcExpenseId("
+        "function": "isExpenseUuid"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function expenseSourceForCloud(",
-        "to": "/* ---------- Token aleatorio"
+        "function": "expenseSourceForCloud"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function withdrawalReceiptLink(",
-        "to": "/* EFECTIVO REAL DE TRADE REPUBLIC"
+        "function": "withdrawalReceiptLink"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function refreshExpenseFromCloud(",
-        "to": "function validCloudState("
+        "function": "canRecognizeWithdrawal"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const CAT_NEUTRAS =",
-        "to": "const catOf ="
+        "function": "withdrawalRowMatches"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function gastoDelMesPorBanco(",
-        "to": "/* ============================================================\n   ¿QUÉ MARCA"
+        "function": "applyRecognizedWithdrawal"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function saldoCuentaGasto(",
-        "to": "function ensureEfectivoAccount("
+        "function": "reconcileConfirmedWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "refreshExpenseFromCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeExpensesFromCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gastoDelMesPorBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "valueDesdeSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaMostrada"
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "function expenseCountsCash(",
-        "to": "/* EN QUÉ CAJÓN"
+        "function": "expenseCountsCash"
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "function insumosSaldoGasto(",
-        "to": "function applyAccountRole("
+        "function": "expenseCountsBudget"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "insumosSaldoGasto"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -3252,13 +5554,19 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function applyBankBalances(",
-        "to": "function bankPendingEvents("
+        "function": "applyBankBalances"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function monthBudgetStats(",
-        "to": "function dashboardBudgetStats("
+        "function": "monthBudgetStats"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "widgetCoveredEvents"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "widgetScopeOf"
       },
       {
         "file": "src/modules/04-tab-gastos.js",
@@ -3548,7 +5856,15 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "cloud"
+        "data": "cloud",
+        "members": [
+          "addExpense",
+          "confirmExpenseWithdrawal",
+          "enabled",
+          "logEvent",
+          "pullExpenses",
+          "setExpenseCat"
+        ]
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -3644,10 +5960,6 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "mcBetaLog"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "_isMissingDivisaCol"
       },
       {
@@ -3658,44 +5970,106 @@
         "file": "src/modules/00-core.js",
         "function": "expenseCloudKeys"
       }
-    ]
+    ],
+    "unidades": true
   },
   "inc-2909-01-widget-periodo": {
     "web": [
       {
         "file": "src/modules/00-core.js",
-        "from": "const CONFIG = {",
-        "to": "function mcScheduleIdle("
+        "data": "CONFIG"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const CAT_NEUTRAS =",
-        "to": "const catOf ="
+        "data": "CAT_NEUTRAS"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function isEfectivoEnt(",
-        "to": "function fxTableOf("
+        "function": "isEfectivoEnt"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function isManualExpenseSource(",
-        "to": "function _errCloudMsg("
+        "function": "isManualExpenseSource"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function cleanNote(",
-        "to": "function gastoDelMesPorBanco("
+        "function": "keyOfExpenseLegacy"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function gastoDelMesPorBanco(",
-        "to": "function ensureEfectivoAccount("
+        "function": "keyOfExpense"
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "function expenseFromRow(",
-        "to": "function validCloudState("
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "cleanNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gastoDelMesPorBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "palabrasDeNombre"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "PALABRAS_DE_FONDO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TICKERS_INVERSION"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MARCAS_INVERSION"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "categoriaDeInversion"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "marcaDeInversion"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "valueDesdeSaldo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaMostrada"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseFromRow"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeExpenses"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "refreshExpenseFromCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeExpensesFromCloud"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -3704,42 +6078,239 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "function accFixed(",
-        "to": "const uid="
+        "function": "accFixed"
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "const FREQ_M =",
-        "to": "const GOAL_EMOJIS="
+        "function": "accInject"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "reconcileTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "FREQ_M"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "spareOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "isCardSpend"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "roundupOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RU_MULTS"
       },
       {
         "file": "src/modules/07-tab-patri-fijos.js",
-        "from": "function chargeMonths("
+        "function": "chargeMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmountIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "accOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "cleanDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtChargeDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isDebtPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "needsMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "hasSchedule"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "firstWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "lastWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowPaid"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOccursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOncePast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffOccurs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffPast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymAbs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymNow"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtAmort"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtPaidCount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalloonIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalance"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtActive"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtLeft"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "monthNetForAccount"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function flowEarlyBankMatches(",
-        "to": "/* UNA sola fuente de cargos del mes"
+        "function": "flowEarlyBankMatches"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function bankPendingEvents(",
-        "to": "function recNorm("
+        "function": "flowEarlyBankTx"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function recNorm(",
-        "to": "const REC_GRACE="
+        "function": "flowBankPaid"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function reservedSince(",
-        "to": "function categorySpentByMonth("
+        "function": "flowConfirmedDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowPaidIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "keepShownAcrossFlows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileEarlyIncomeAnchors"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankPendingEvents"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "minWalk"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recSane"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservedSince"
       },
       {
         "file": "src/modules/04-tab-gastos.js",
-        "from": "function lastPaydayOf(",
-        "to": "function presetBoundsMs("
+        "function": "lastPaydayOf"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "budgetPaydayOf"
       },
       {
         "file": "src/modules/11-app-main.js",
@@ -3763,8 +6334,7 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "async function mcPullExpensesPaged(",
-        "to": "const cloud ="
+        "function": "mcPullExpensesPaged"
       },
       {
         "file": "src/modules/00-core.js",
@@ -3773,18 +6343,19 @@
       },
       {
         "file": "src/modules/01-i18n.js",
-        "from": "function fixMovInvasion(",
-        "to": "function seedFlows("
+        "function": "fixMovInvasion"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function reconcileObDupes(",
-        "to": "function esGemeloCashback("
+        "function": "reconcileObDupes"
       },
       {
         "file": "src/modules/08-motor-bank.js",
-        "from": "function esGemeloCashback(",
-        "to": "function histParesCashback("
+        "function": "esGemeloCashback"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "findCashbackTwin"
       },
       {
         "file": "src/modules/11-app-main.js",
@@ -3842,12 +6413,18 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "from": "const NOTE_MAX=",
-        "to": "function cleanNote("
+        "data": "NOTE_MAX"
       },
       {
         "file": "src/modules/00-core.js",
-        "data": "cloud"
+        "data": "cloud",
+        "members": [
+          "addExpense",
+          "enabled",
+          "logEvent",
+          "pullExpenses",
+          "setExpenseCat"
+        ]
       },
       {
         "file": "src/modules/00-core.js",
@@ -3927,10 +6504,6 @@
       },
       {
         "file": "src/modules/00-core.js",
-        "function": "mcBetaLog"
-      },
-      {
-        "file": "src/modules/00-core.js",
         "function": "deudaSufijo"
       },
       {
@@ -3946,32 +6519,28 @@
         "function": "expenseCloudKeys"
       },
       {
-        "file": "src/modules/00-core.js",
-        "function": "canRecognizeWithdrawal"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withdrawalRowMatches"
-      },
-      {
-        "file": "src/modules/00-core.js",
-        "function": "withdrawalReceiptLink"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedExpenseKey"
-      },
-      {
-        "file": "src/modules/08-motor-bank.js",
-        "function": "fixedPaymentIdentity"
-      },
-      {
         "file": "src/modules/08-motor-bank.js",
         "function": "widgetCoveredEvents"
       },
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "widgetScopeOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "dashboardBudgetStats"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "monthBudgetStats"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetPeriodOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetStatsFromAmounts"
       }
     ],
     "native": [
@@ -3980,6 +6549,7 @@
       "android/app/src/main/java/com/micartera/app/TrExpenseListener.java",
       "android/app/src/main/java/com/micartera/app/MiCarteraWidget.java",
       "android/app/src/main/java/com/micartera/app/WidgetPeriod.java"
-    ]
+    ],
+    "unidades": true
   }
 }

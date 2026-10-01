@@ -7,6 +7,8 @@
  * - La ronda tip vs prod sigue teniendo todas las tandas en el JSON.
  */
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
+import vm from "node:vm";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -38,6 +40,9 @@ const all = leerReleaseNotesJson();
 assert.ok(all.length >= maxSrc, "JSON debe tener al menos N notas (ahora " + all.length + ")");
 assert.ok(fs.existsSync(pubJson), "falta public/release-notes.json — corre npm run build");
 const pub = JSON.parse(fs.readFileSync(pubJson, "utf8"));
+const catalogSha=crypto.createHash("sha256").update(JSON.stringify(pub)).digest("hex");
+assert.ok(built.includes('var _rnSha="'+catalogSha+'";'), "el catálogo debe corresponder exactamente al bundle generado");
+assert.ok(mod.includes('var _rnSha="";'), "la identidad se genera al ensamblar, fuera de CONFIG");
 assert.equal(pub.length, all.length, "public/release-notes.json debe ser copia del src/data");
 
 const nBundle = contarReleaseNotesEnJs(built);
@@ -128,3 +133,34 @@ if (sample) {
 
 console.log("  ok maxUI=" + maxSrc + " json=" + all.length + " index=" + nBundle + " ronda=" + fullIds.length);
 console.log("release-notes-max: OK");
+
+// Un HTTP correcto puede traer la foto anterior del SW; el hash debe decidir antes de guardar.
+const loader=built.slice(built.indexOf("var RELEASE_NOTES_MAX="),built.indexOf("function WhatsNew("));
+async function loadCatalog({catalog=pub,offline=false,cache,entries=[],maxChars=Infinity,webCrypto=crypto.webcrypto}={}){
+  const saved=new Map([...entries,...(cache?[["_rnBetaRound_"+tip+".1",cache]]:[])]);
+  const ctx=vm.createContext({crypto:webCrypto||undefined,TextEncoder,URL,CONFIG:{APP_VERSION:tip+".1"},
+    location:{href:"http://localhost/"},document:{baseURI:"http://localhost/",querySelector:()=>null},
+    console:{warn(){}},mcLogCode:()=>"synthetic",mcVerBase:v=>String(v).split(".").slice(0,3).join("."),
+    mcIsNewer:(a,b)=>{const x=a.split(".").map(Number),y=b.split(".").map(Number);for(let i=0;i<3;i++){if(x[i]!==y[i])return x[i]>y[i];}return false;},
+    localStorage:{get length(){return saved.size;},key:i=>[...saved.keys()][i],removeItem:k=>saved.delete(k),getItem:k=>saved.get(k)||null,setItem:(k,v)=>{const next=new Map(saved);next.set(k,v);if([...next].reduce((n,[a,b])=>n+a.length+b.length,0)>maxChars)throw new Error("QuotaExceededError");saved.set(k,v);}},
+    fetch:()=>offline?Promise.reject(new Error("offline")):Promise.resolve({ok:true,json:()=>Promise.resolve(catalog)})});
+  vm.runInContext(loader,ctx);return {notes:await ctx.ensureReleaseNotes(),saved};
+}
+const fresh=await loadCatalog(),envelope=fresh.saved.get("_rnBetaRound_"+tip+".1");
+assert.equal(fresh.notes.length,pub.length,"catálogo exacto aceptado");
+assert.equal(JSON.parse(envelope).sha,catalogSha,"solo guarda la identidad verificada");
+assert.ok((await loadCatalog({offline:true,cache:envelope})).notes.length,"caché verificada de esa compilación recuperable");
+const stale=structuredClone(pub);stale[0].t={es:"Catálogo anterior sintético",en:"Synthetic previous catalog",ca:"Catàleg anterior sintètic"};
+const old=await loadCatalog({catalog:stale});
+assert.equal(old.notes.length,0,"HTTP exitoso antiguo no acredita el catálogo actual");
+assert.equal(old.saved.size,0,"no guarda catálogo antiguo con identidad nueva");
+const wrong=JSON.stringify({...JSON.parse(envelope),sha:"0".repeat(64)});
+assert.equal((await loadCatalog({offline:true,cache:wrong})).notes.length,0,"envelope de identidad antigua no se rescata");
+assert.equal((await loadCatalog({webCrypto:null})).notes.length,0,"sin WebCrypto no acepta catálogo descargado");
+assert.equal((await loadCatalog({webCrypto:null,cache:envelope,offline:true})).notes.length,0,"sin WebCrypto tampoco rescata caché previa");
+console.log("  catálogo sellado: fresco, offline exacto, SW viejo, envelope antiguo y sin WebCrypto PASS");
+
+const bounded=await loadCatalog({maxChars:2*envelope.length+500,entries:[["_rnBetaRound_old.1",envelope],["_rnBetaRound_old.2",envelope],["micartera_v3","synthetic financial state"],["micartera_v3_exp","synthetic expenses"],["_betaReview_previous_v","synthetic verdict"]]});
+assert.deepEqual([...bounded.saved.keys()].filter(k=>k.startsWith("_rnBetaRound_")),["_rnBetaRound_"+tip+".1"],"solo una compilación cacheada");
+for(const [key,value]of [["micartera_v3","synthetic financial state"],["micartera_v3_exp","synthetic expenses"],["_betaReview_previous_v","synthetic verdict"]])assert.equal(bounded.saved.get(key),value,"la purga conserva "+key);
+console.log("  caché acotada: dos versiones antiguas retiradas, dinero y veredictos intactos PASS");
