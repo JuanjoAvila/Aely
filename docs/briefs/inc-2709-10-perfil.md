@@ -38,4 +38,10 @@ tocar; «Añadir» sigue en gris. No se oculta ni se agrupa ningún campo.
 - «Añadir» está alineado a la izquierda;
 - el toque abre su diálogo, sin guardar nada.
 
-Rojo sobre main y verde sobre la rama: pendientes de lease.
+Las filas se distinguen por contenido (el único campo relleno), no por clase, para que el rojo
+falle por la altura. Se mide `offsetHeight`, porque el panel se abre escalando y a mitad de
+animación el rect mide la miniatura.
+
+- **Rojo** (lease 13, 1/10 00:26–00:27 UTC), spec sobre main 12884f48: 9/9 fallan por la altura —
+  fila vacía 127–128 px contra rellena 59–61 (+4 de margen).
+- **Verde** sobre la rama: 9/9, más `profile-anim` y `listas-render` como vecinos → 23/23.

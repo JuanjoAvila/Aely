@@ -9,11 +9,13 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
+const TELEFONO = "600 000 000";   // ficticio
+
 for (const lang of ["es", "en", "ca"]) for (const textSize of ["normal", "big", "huge"]) {
   test(`Perfil: las filas vacías miden como las rellenas (${lang}, ${textSize})`, async ({ page }) => {
     await page.setViewportSize({ width: 393, height: 800 });
     await seedLoggedInDashboard(page, { __seedOnce: true, budget: 1000, expenses: [],
-      settings: { autoPrices: false, lang, textSize, profile: { phone: "600 000 000" } } });
+      settings: { autoPrices: false, lang, textSize, profile: { phone: TELEFONO } } });
     await page.goto("/");
     await expect(page.locator(".botnav")).toBeVisible({ timeout: 30_000 });
     await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
@@ -22,18 +24,21 @@ for (const lang of ["es", "en", "ca"]) for (const textSize of ["normal", "big", 
     const panel = page.locator(".profile-pull");
     await expect(panel).toHaveClass(/open/, { timeout: 5_000 });
 
-    const m = await panel.evaluate((el) => {
+    const m = await panel.evaluate((el, TELEFONO) => {
       const filas = [...el.querySelectorAll(".profile-row")].filter((r) => r.querySelector(".pr-edit")?.textContent === "✎");
-      const vacias = filas.filter((r) => r.querySelector(".pr-val-empty"));
-      const llenas = filas.filter((r) => !r.querySelector(".pr-val-empty"));
-      const h = (r) => r.getBoundingClientRect().height;
+      // Por CONTENIDO y no por clase: la clase es justo lo que cambia, y el rojo sobre main tiene que
+      // fallar por la altura, no por no encontrar las filas.
+      const llenas = filas.filter((r) => r.textContent.includes(TELEFONO));
+      const vacias = filas.filter((r) => !r.textContent.includes(TELEFONO));
+      // offsetHeight y no getBoundingClientRect: el panel se abre escalando desde el avatar y a mitad
+      // de animación el rect mide la miniatura.
+      const h = (r) => r.offsetHeight;
       return {
         vacias: vacias.map(h), llenas: llenas.map(h),
         alineado: vacias.map((r) => getComputedStyle(r.querySelector(".pr-val")).textAlign),
-        zoom: (el.getBoundingClientRect().width / el.offsetWidth) || 1,
       };
-    });
-    expect(m.llenas.length).toBeGreaterThan(0);
+    }, TELEFONO);
+    expect(m.llenas.length).toBe(1);
     expect(m.vacias.length).toBeGreaterThanOrEqual(9);
     const ref = Math.max(...m.llenas);
     for (const h of m.vacias) {
@@ -43,7 +48,7 @@ for (const lang of ["es", "en", "ca"]) for (const textSize of ["normal", "big", 
     for (const a of m.alineado) expect(["left", "start"]).toContain(a);
 
     // El toque sigue siendo el de siempre: abre el diálogo del campo; se cancela sin guardar.
-    await page.locator(".profile-row:has(.pr-val-empty)").first().click();
+    await panel.locator(".profile-row", { hasText: lang === "es" ? "Añadir" : lang === "en" ? "Add" : "Afegeix" }).first().click();
     await expect(page.locator(".ask-in").first()).toBeVisible({ timeout: 3_000 });
   });
 }
