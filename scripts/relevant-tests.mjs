@@ -128,6 +128,8 @@ export const CROSSCUTTING = [
   /* Temas y temáticas (UX-07) son CSS global de `shell.html` y selección en Ajustes:
      cualquier pestaña puede romper su contraste, no una pantalla concreta. */
   "e2e/apariencia-temas.spec.mjs",
+  // INC-2709-12: el + de Cyberpunk por encima de la corriente de la barra, en todas las pestañas.
+  "e2e/cyber-fab.spec.mjs",
   "e2e/rebote-barra-inferior.spec.mjs",
   /* Hermano del de arriba, y hace falta que sean DOS. Aquél mueve el scroll con `scrollTop` por
      JS, que es el camino que nunca se rompió: se quedó verde mientras ella no se escondía con el

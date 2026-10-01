@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.79",
+    "d": "2026-09-30",
+    "t": {
+      "es": "Cyberpunk sin línea sobre el botón +",
+      "en": "Cyberpunk without a line across the + button",
+      "ca": "Cyberpunk sense línia sobre el botó +"
+    },
+    "items": {
+      "es": [
+        "Con el tema Cyberpunk, la línea de neón de la barra inferior ya no atraviesa el botón +; sigue recorriendo el resto de la barra."
+      ],
+      "en": [
+        "With the Cyberpunk theme, the neon line on the bottom bar no longer crosses the + button; it still runs along the rest of the bar."
+      ],
+      "ca": [
+        "Amb el tema Cyberpunk, la línia de neó de la barra inferior ja no travessa el botó +; continua recorrent la resta de la barra."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2709-12-cyber-fab",
+        "t": {
+          "es": "Botón + en Cyberpunk",
+          "en": "+ button in Cyberpunk",
+          "ca": "Botó + a Cyberpunk"
+        },
+        "items": {
+          "es": [
+            "1. Con el tema Cyberpunk, mira el botón + en cada pestaña mientras pasa la línea de neón por la barra: la línea no debe cruzar el botón.",
+            "2. Baja en una lista para que se esconda la barra y vuelve a subir: el botón + sigue limpio y se puede pulsar."
+          ],
+          "en": [
+            "1. With the Cyberpunk theme, watch the + button on each tab while the neon line runs along the bar: the line must not cross the button.",
+            "2. Scroll down a list so the bar hides, then scroll back up: the + button stays clean and can be tapped."
+          ],
+          "ca": [
+            "1. Amb el tema Cyberpunk, mira el botó + a cada pestanya mentre la línia de neó recorre la barra: la línia no ha de travessar el botó.",
+            "2. Baixa en una llista perquè s'amagui la barra i torna a pujar: el botó + continua net i es pot prémer."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.67",
     "d": "2026-09-30",
     "t": {
