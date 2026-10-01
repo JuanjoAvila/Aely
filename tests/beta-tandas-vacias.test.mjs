@@ -84,7 +84,8 @@ t("★ web al día con APK estable atrasada → solo quedan las tandas nativas",
 });
 
 t("★ al subir solo Deudas, el panel conserva las siete pruebas pendientes", () => {
-  const pack = cli.betaChecklist("4.26.70.2", "4.26.67");
+  cli.window._mcProdEntregas=null; cli.window._mcProdApkRevisiones=null;
+  const pack = cli.betaChecklist("4.26.70.2", "4.26.67",48);
   const ids = Array.from(pack.tandas, (g) => String(g.id).split("/").at(-1));
   assert.deepEqual(ids.sort(), [
     "inc-2709-01-arranque-red", "inc-2809-02-ayuda-ciclo", "fin05-widget-reentrada",
@@ -94,7 +95,8 @@ t("★ al subir solo Deudas, el panel conserva las siete pruebas pendientes", ()
 });
 
 t("★ guion rechazado de gas71 trasladado a74 conserva las siete anteriores", () => {
-  const pack=cli.betaChecklist("4.26.71.1", "4.26.67");
+  cli.window._mcProdEntregas=null; cli.window._mcProdApkRevisiones=null;
+  const pack=cli.betaChecklist("4.26.71.1", "4.26.67",48);
   const ids=Array.from(pack.tandas,(g)=>String(g.id).split("/").at(-1));
   assert.deepEqual(ids.sort(),[
     "inc-2709-01-arranque-red", "inc-2809-02-ayuda-ciclo", "fin05-widget-reentrada",
@@ -203,6 +205,39 @@ t("cada punto del panel dice qué hacer, no solo qué debería pasar", () => {
   });
   assert.equal(flojos.length, 0,
     "estos puntos no van numerados como pasos:\n      " + flojos.join("\n      "));
+});
+
+// Una entrega selectiva acredita código, aunque su nota siga en una versión posterior.
+t("entrega exacta retira una tanda moderna aunque producción tenga un número menor", () => {
+  const c=loadPureLogicFromFile(), g={id:"entregada",t:"Entrega",items:{es:["1. Probar"]},codigo:"c".repeat(64),web:"a".repeat(64)};
+  c.RELEASE_NOTES=[{v:"4.26.75",tandas:[g]}];
+  c.window._mcProdEntregas={web:{entregada:g.web}};
+  assert.equal(c.betaSinEntregar(g,48),false);
+  assert.equal(c.betaChecklist("4.26.75.1","4.26.67",48).tandas.length,0);
+});
+t("la última revisión entregada no resucita otra antigua del mismo id", () => {
+  const c=loadPureLogicFromFile(), g={id:"entregada",t:"Entrega",items:{es:["1. Probar"]},codigo:"c".repeat(64),web:"a".repeat(64)};
+  c.RELEASE_NOTES=[{v:"4.26.75",tandas:[g]},{v:"4.26.68",tandas:[Object.assign({},g,{web:"b".repeat(64)})]}];
+  c.window._mcProdEntregas={web:{entregada:g.web}};
+  assert.equal(c.betaChecklist("4.26.75.1","4.26.67",48).tandas.length,0);
+  c.RELEASE_NOTES.reverse(); c.RELEASE_NOTES[0].v="4.26.75";c.RELEASE_NOTES[1].v="4.26.68";
+  const out=c.betaChecklist("4.26.75.1","4.26.67",48).tandas;
+  assert.equal(out.length,1);assert.equal(out[0].web,"b".repeat(64));
+});
+t("404, APK antigua o Edge sin acreditar conservan la tanda moderna; legacy sigue por versión", () => {
+  const c=loadPureLogicFromFile(), g={id:"entregada",t:"Entrega",items:{es:["1. Probar"]},codigo:"c".repeat(64),web:"a".repeat(64),native:"b".repeat(64),edge:"d".repeat(64),apk:51};
+  c.RELEASE_NOTES=[{v:"4.26.75",tandas:[g]}];
+  c.window._mcProdEntregas=null;
+  assert.equal(c.betaChecklist("4.26.75.1","4.26.67",48).tandas.length,1);
+  c.window._mcProdEntregas={web:{entregada:g.web},edge:{entregada:g.edge}};c.window._mcProdApkRevisiones={entregada:g.native};
+  assert.equal(c.betaChecklist("4.26.75.1","4.26.67",48).tandas.length,1);
+  c.window._mcProdEntregas.edge={};
+  assert.equal(c.betaChecklist("4.26.75.1","4.26.67",51).tandas.length,1);
+  c.window._mcProdEntregas.edge.entregada=g.edge;
+  assert.equal(c.betaChecklist("4.26.75.1","4.26.67",51).tandas.length,0);
+  c.RELEASE_NOTES=[{v:"4.26.75",tandas:[{id:"legacy",t:"Antigua",items:{es:["1. Probar"]}}]}];
+  assert.equal(c.betaChecklist("4.26.75.1","4.26.67",48).tandas.length,1);
+  assert.equal(c.betaChecklist("4.26.75.1","4.26.75",48).tandas.length,0);
 });
 
 console.log(failed ? `\n${failed} fallo(s)` : "\nbeta-tandas-vacias: OK");

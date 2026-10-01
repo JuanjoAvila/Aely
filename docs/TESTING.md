@@ -184,8 +184,11 @@ el siguiente bump. **Antes de activar el canal beta, comprueba que la release `b
    fallos marcados** — si esa puerta se abre, el botón no significa nada. El progreso se guarda por versión,
    porque probar lleva días.
    Una corrección que continúa en otra versión conserva el mismo `tanda.id`: el panel mantiene solo la más
-   nueva. Cuando producción alcanza la beta, la ronda pasa a cero y «Revisar esta beta» desaparece; nunca se
-   usa una nota antigua como fallback en ese caso.
+   nueva antes de comprobar su entrega. Desde76 las tandas modernas desaparecen solo al acreditar todas sus
+   superficies exactas (web, Android y servidor que correspondan), aunque el número de producción sea menor.
+   Sin recibo permanecen con «Entrega sin confirmar»; APK estable antigua indica publicación Android pendiente.
+   La aprobación idéntica se conserva y no se pide otra vez; un cambio de código exige pruebas nuevas. Las
+   tandas antiguas sin identidad de código conservan la regla por versión. No se usa una nota antigua como fallback.
 4. Cuando esté aprobado, desde el PC: **Actions → «Promote beta» → Run workflow**, escribiendo `SUBIR`.
    Vuelve a pasar la suite y mergea `beta` → `main`, que es lo que ven todos.
 
@@ -587,3 +590,9 @@ TR y ayuda conservan fuente idéntica tras ampliar cobertura; sus hashes ampliad
 `beta-sources` añade guardianes de fuente histórica inválida, pin HEAD/SHA ajeno, digest incoherente, helper TR mutado frente a su referencia y léxico con definiciones ficticias en comentarios. La guardia se ejecuta en run-tests y el helper está en CORE. Las menciones migrate()/buildEmpty() de01:3436-3437 son comentarios dentro del alcance de Inicio y no se tratan como llamadas.
 
 La fixture «un fallo en una tanda no bloquea las otras» retrasa 250ms su doble de producción y espera toHaveCount(2): el primer render aún muestra la ronda real antes del efecto asíncrono (CI36804139697 recibía11 al leer count inmediatamente). Se conserva la aserción de dos tandas, sin modificar la app ni aceptar la ronda extra.
+
+### Panel76: entrega selectiva y motivos
+
+`beta-tandas-vacias` protege entrega exacta con versión de producción menor, deduplicación antes de retirar y límites404/APK/Edge. `revisar-beta` reproduce los siete IDs reales, conserva aprobaciones sintéticas idénticas y verifica explicación visible es/en/ca aun plegada; tras respuesta asíncrona de producción67 con recibos exactos quedan solo Panel, Recibos e Inicio no acreditados. El fixture fija el idioma en estado: cambiar solo `CURLANG` se perdía al repintar App. Historial no acredita entrega; los recibos del test enumeran solo los siete IDs.
+
+DOM final local55/55 PASS31,8s,0skip/0flaky. A/B75:1.278.280 /347.946 B frente a76.1 sellada1.279.388 /348.256 B (minificado/gzip9). Los topes mínimos1250/341 KiB dejan612/928 B; no se añaden dependencias ni se recorta validación. Últimos veredictos remotos y entrega Edge requieren acceso independiente: la simulación no los acredita. [Acta](briefs/ops-0110-panel-entrega.md).
