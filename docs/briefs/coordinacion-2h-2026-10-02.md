@@ -1,0 +1,35 @@
+# Coordinación Aely · 2 de octubre de 2026
+
+Petición humana nueva: reanudar coordinación intensa con Claude y chats internos, tareas implementables, tests y PR en worktrees aislados. Tramo propio **15:00:19–17:00:19 UTC (17:00:19–19:00:19 Madrid)**, coordinador único `01a0fd20-755d-7221-a408-de8548a090cc`. Al vencer: exactamente un sucesor con reloj/objetivo propios y transferencia del mismo lease/heartbeat. Máximo un reintento por timeout; después bloqueo breve, sin bucles. La parada humana detiene la cadena.
+
+No producción, APK nuevo, instalación, Edge, SQL, migraciones ni pagos reales sin gate específico. No borrar ramas/worktrees sin preguntar. Capturas y datos privados permanecen fuera del repo; síntomas son observaciones, causas requieren reproducción sintética.
+
+## Fuente y gates de la entrega pendiente
+
+[PR104](https://github.com/JuanjoAvila/Aely/pull/104), draft a beta, candidata `3467bbd4fddcd213f862bedddac971c827099f3d`, parent4508748d, árbol7cb252097836d5e3ba81d93c445f97a6dfd9512a, fuente4.26.82. Catálogo mixto: checklist actual implícita conservada junto a moderna, vacía explícita excluida, moderna única, marcas/comentario persisten llegada producción. Fuente Panel06a833a0 integrada; registro1/10 corte18:02 quedó antiguo.
+
+Revisor independiente `01a0f549-1713-7352-bed4-df36e036f760` GO exacto3467 cotejado hoy:31Node/matriz17tandas y15huellas ajenas intactas; APK/CLI conservados. Evidencia DOM anterior del mismo árbol:70/70 es/en/ca, sin fallos/omitidos/flaky,11guardianes y982funciones305datos. HTML localb86879be3b818ed08077222310de95d7d0ebf3f78cc6ab30f48cee58166dbc80; no confundir con servido. Claude único ACK revisión exacta3467 lectura/Node recibido hoy, GO pendiente.
+
+[CI37024477236](https://github.com/JuanjoAvila/Aely/actions/runs/37024477236) creada y headSha3467 verificado: EN CURSO. CI450/36894097072 terminó SUCCESS pero no sirve para3467. Sin merge hasta GOClaude+GOrevisor exactos y CI completa; después merge exclusivo con match-head-commit, publisher y cotejo manifiesto/ZIP/HTML/SW/notas/tandas/APK. No inferir aprobación móvil.
+
+Referencias remotas verificadas hoy: beta955765a9ec0ad96d20140a8f12da00c9fa04985c, main12884f48107b82ffc8592c51180f2074a8546139. Pages version.json4.26.67 porHTTP. Assets beta version.json602943535/bundle602943532/apk602943533 conservan fecha1/10. La beta publicada anterior es80.1; se cotejará su manifiesto y artefacto al integrar82. No APK nuevo.
+
+## Cinco encargos separados
+
+| ID / prioridad | Síntoma y reproducción sintética requerida | Propietario / estado | Pruebas y aceptación |
+|---|---|---|---|
+| INC-0210-01 / P0 dinero | Plan conserva cuota como pendiente mañana pese a cargo BOOK vinculado debtId hoy; Gastos dice que cuenta en Plan. | Agente Plan `root/plan_cuota`, rama `codex/inc-0210-01-plan-cuota`, base3467, versión83 reservada. RojoNode reproducido; fix19/19Node, DOM pendiente. | Abrir Plan es/en/ca, retirar cuota de pendiente y evento proyectado sin descontar dos veces saldo; préstamo distinto, duplicado/ambiguo, PDNG, mes/ciclo/reinicio. No marcado manual para esconder bug. |
+| INC-0210-02 / P1 clasificación | Comercio de comida corregido a Restaurante vuelve a Recibo al día siguiente. Alias ambiguo; no asumir aseguradora=comida. | Claude único: tras revisión82 implementará en worktree propio desde3467, versión86 reservada, ACK recibido. | Corrección manual+nuevo equivalente+sync/reinicio; elección persistente y precedencia manual/identity/enrich; seguros legítimos intactos, sin recategorizar histórico a ciegas. Node y DOM real, tests/PR. |
+| INC-0210-03 / P1 periodo | Filtro mes/rango en Gastos mantiene categorías del ciclo actual. | Agente Periodo `root/gastos_periodo`, rama `codex/inc-0210-03-gastos-periodo`, base3467, versión84 reservada; implementación/contrato en curso. | Categorías distintas por meses/rangos, ventana única categorías/lista/totales/desglose, preservar Mi ciclo. No presupuesto histórico/acumulado inventado; desconocido con motivo. DOM es/en/ca. |
+| INC-0210-04 / P1 intermitente | Widget Mi ciclo/gasto neto mostró guion y abre app tras pagar; no reproducible aún por usuario. | Chat existente `01a0e2e4-7f13-7e72-88ab-4f8f63cb5fd3` reactivado con ACK/arranque; worktree propio, versión87 si fix visible. | Snapshot/ACK/invalidation/identity/finmes/foreground/publicación vacía, guardas Java/Node sintéticas; no perder snapshot válida ni inventar desconocidos. Causa y confirmación física separadas, sin APK/install. |
+| FEATURE-0210-01 / P2 | Gasolina separada de Transporte y Taxi distinguible. Taxi no existe en catálogo3467. | Agente Feature `root/gasolina_taxi`, rama `codex/feature-0210-01-gasolina-taxi`, base3467, versión85 reservada. | CAT/idiomas/iconos/selector/filtros/presupuestos; clasificación solo altas y MCC válido con elección manual prioritaria, no recategorizar histórico ni Repsol de toda operación. Negativos energía/UberEats/seguros. Espejo servidor solo fuente, sin deploy. DOM sintético es/en/ca. |
+
+Versiones reservadas no son publicadas. Entrega de cada propietario: commit/PRdraft separable, rojo/verde, tests registrados, revisión por SHA, CI apropiada y límites reales. Integración/merge/publicación seriales por coordinador; ninguno publica por su cuenta. Si cambian dependencias reales de huellas, listar IDs afectados, nunca repinar/recortar para aparentar aprobaciones preservadas.
+
+## Coordinación operativa
+
+Lease canónico36 estaba libre tras liberación expresa1/10; coordinator transferido conservando owner real. Lease37 reservado exclusivamente Plan para DOM12+regresión; solo coordinador escribe y liberación expresa tras cerrar browser/servidor. ColaPlan→Periodo→Feature→Claude; Widget avanza Node/Java sinChromium. CI remota no ocupa Chromium local.
+
+Automation única `relevo-aely-cada-2-horas`: la anterior no existía; creación ACTIVE confirmada y TOML cotejado hoy, target este chat, cada2h en minuto00/segundo19. Se transfiere ese mismo ID al sucesor. Silencio con estado inalterado/no accionable; notificar cambios relevantes, fallo, cierre o acción humana.
+
+El checkout compartido antiguo/sucio permanece ajeno. Registro documental usa rama existente `codex/coordinacion-entregas-0110`, sin pushdocbeta/main que resele artifacts. No se incorporan archivos de memoria ni trabajo ajeno.

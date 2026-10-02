@@ -1,3 +1,5 @@
+> Corte histórico del1/10. Estado vigente y nueva petición humana: [coordinación2/10](coordinacion-2h-2026-10-02.md). No usar estas CI/leases como gates actuales.
+
 # Coordinación Aely en tramos de dos horas
 
 Petición humana de 1/10/2026: conservar la coordinación y el objetivo, trabajar dos horas por chat y abrir un único sucesor de otras dos horas, sucesivamente. Cada sucesor recibe este relevo actualizado, sin copiar el historial entero. Esta petición sustituye la duración anterior. Se continúa hasta que el usuario lo detenga; el tiempo nunca constituye aprobación de producto.

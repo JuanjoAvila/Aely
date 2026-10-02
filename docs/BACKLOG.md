@@ -1,5 +1,9 @@
 # Backlog operativo — Aely
 
+## Cinco reportes nuevos · 2 de octubre de 2026
+
+Plan/cuota contabilizada (INC-0210-01), elección de Restaurante persistente (INC-0210-02), categorías por periodo (INC-0210-03), widget con dato desconocido intermitente (INC-0210-04) y Gasolina/Taxi (FEATURE-0210-01). Trabajo autorizado en paralelo aislado; sin producción/APK/Edge/SQL ni datos reales. Propietarios, reproducción, pruebas y estado verificable en [registro del tramo2/10](briefs/coordinacion-2h-2026-10-02.md). Implementación/PR/CI no acreditan aprobación móvil ni publicación.
+
 ## INC-2709-02 · promoción selectiva web 4.26.67 publicada · 30 de septiembre de 2026
 
 El dueño aprobó en chat la tanda `inc-2709-02-deudas-archivo` de beta 4.26.70.1. [PR #71](https://github.com/JuanjoAvila/Aely/pull/71) la promovió exclusivamente a `main` como web 4.26.67 (`df30b76f`). La [Action de Pages 36754554318](https://github.com/JuanjoAvila/Aely/actions/runs/36754554318) terminó SUCCESS; manifiesto, ZIP, HTML y SW de producción concuerdan. [Acta selectiva](briefs/inc-2709-02-prod.md). La APK estable sigue en 4.26.32/code 48; no se desplegó Edge, SQL ni migración. Las otras siete tandas siguen visibles en beta sin atribuirles aprobación.
