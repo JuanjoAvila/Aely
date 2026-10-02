@@ -117,6 +117,8 @@ export function isAtmWithdrawal(comercio: string): boolean {
 function mobilityCategoryOfNewMerchant(comercio: string, cat: string): string {
   const c = norm(comercio);
   if (cat !== "transporte" && cat !== "otros" && !(cat === "super" && /\bcarrefour gas\b/.test(c))) return cat;
+  if (/\buber[^a-z0-9]*eats\b/.test(c)) return "bares";
+  if (/\b(recarga|recarrega|carga|carrega)\b.*electric|electric.*\b(recarga|recarrega|carga|carrega)\b|\bev charging\b|\bcharging station\b/.test(c)) return "transporte";
   if (/\brepsol\b/.test(c)) {
     if (/\bluz\b|electric|energia/.test(c)) return "luz";
     if (/\bgas natural\b|\bfactura gas\b/.test(c)) return "gas";

@@ -17,7 +17,9 @@ const cases=[
   ["Gasolinera Norte","gasolina"], ["Repsol carburante","gasolina"], ["CEPSA diesel","gasolina"],
   ["Ballenoil","gasolina"], ["Plenergy","gasolina"], ["Carrefour Gas","gasolina"],
   ["Taxi Barcelona","taxi"], ["Cabify","taxi"], ["Uber trip","taxi"], ["Free Now","taxi"],
-  ["Uber Eats","bares"], ["Restaurante Repsol","bares"], ["Repsol Luz","luz"],
+  ["Uber Eats","bares"], ["UBER *EATS","bares"], ["Uber-Eats","bares"], ["UberEats","bares"],
+  ["Repsol recarga electrica","transporte"], ["Repsol carga electrica","transporte"],
+  ["Repsol recàrrega elèctrica","transporte"], ["Repsol EV charging","transporte"], ["Restaurante Repsol","bares"], ["Repsol Luz","luz"],
   ["Repsol factura gas natural","gas"], ["Repsol","transporte"], ["Shell","transporte"],
   ["BP","otros"], ["Metro TMB","transporte"], ["Recarga electrica","transporte"],
   ["Mapfre Seguros","recibos"], ["Boltwood","transporte"], ["Gasolinerama","otros"],
@@ -36,6 +38,25 @@ t("MCC de tarjeta reconoce combustible/taxi sin inferirlo del nombre",()=>{
   assert.equal(ctx.categoryOfBankTx({merchant:"Repsol Luz",mcc:"5541",card:true}),"luz");
   assert.equal(ctx.categoryOfBankTx({merchant:"Uber Eats",mcc:"4121",card:true}),"bares");
   assert.equal(ctx.categoryOfBankTx({merchant:"Movimiento",concept:"Uber Eats",mcc:"4121",card:true}),"bares");
+});
+t("MCC combinado conserva finalidad reconocida y comportamiento anterior",()=>{
+ const strong=[["Metro TMB","transporte"],["Recarga electrica","transporte"],["Repsol recarga electrica","transporte"],["Diesel jeans","transporte"],["UBER *EATS","bares"],["Repsol Luz","luz"],["Repsol factura gas natural","gas"]];
+ for(const [merchant,cat] of strong)for(const mcc of ["5541","5542","4121","5411","5812"]){
+  assert.equal(ctx.categoryOfBankTx({merchant,mcc,card:true}),cat,merchant+" + "+mcc);
+ }
+ for(const merchant of ["Repsol","CEPSA","Shell"]){
+  assert.equal(ctx.categoryOfBankTx({merchant,mcc:"5411",card:true}),"transporte");
+  assert.equal(ctx.categoryOfBankTx({merchant,mcc:"5812",card:true}),"transporte");
+  assert.equal(ctx.categoryOfBankTx({merchant,mcc:"5542",card:true}),"gasolina");
+ }
+ for(const [merchant,concept,cat] of [["Repsol","Repsol recarga electrica","transporte"],["Repsol","Metro TMB","transporte"],["Repsol","UBER *EATS","bares"],["Repsol","Repsol","gasolina"],["Comercio sin detalle","Recarga electrica","transporte"]]){
+  assert.equal(ctx.categoryOfBankTx({merchant,concept,mcc:"5542",card:true}),cat,merchant+" / "+concept);
+ }
+ vm.runInContext('USER_OVERRIDES={"metro tmb":"compras","repsol":"otros","repsol recarga electrica":"gasolina","uber *eats":"taxi"}',ctx);
+ for(const [merchant,cat] of [["Metro TMB","compras"],["Repsol","otros"],["Repsol recarga electrica","gasolina"],["UBER *EATS","taxi"]])for(const mcc of ["5541","5542","4121","5411"]){
+  assert.equal(ctx.categoryOfBankTx({merchant,mcc,card:true}),cat,merchant+" manual + "+mcc);
+ }
+ vm.runInContext("USER_OVERRIDES={}",ctx);
 });
 t("la elección personal gana a keywords y MCC incluso si es Otros",()=>{
   vm.runInContext('USER_OVERRIDES={"repsol":"otros","taxi barcelona":"transporte","gasolinera norte":"compras"}',ctx);

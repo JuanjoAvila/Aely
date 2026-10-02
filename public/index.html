@@ -2899,6 +2899,8 @@ function categoryOfNewMerchant(merchant){
 function mobilityCategoryOfNewMerchant(merchant,cat){
   const c=catKey(merchant);
   if(cat!=="transporte" && cat!=="otros" && !(cat==="super" && /\bcarrefour gas\b/.test(c))) return cat;
+  if(/\buber[^a-z0-9]*eats\b/.test(c)) return "bares";
+  if(/\b(recarga|recarrega|carga|carrega)\b.*electric|electric.*\b(recarga|recarrega|carga|carrega)\b|\bev charging\b|\bcharging station\b/.test(c)) return "transporte";
   if(/\brepsol\b/.test(c)){
     if(/\bluz\b|electric|energia/.test(c)) return "luz";
     if(/\bgas natural\b|\bfactura gas\b/.test(c)) return "gas";
@@ -13888,16 +13890,16 @@ function reconcileBank(state, y, m, today){
 
 function categoryOfBankTx(tx){
   const m=tx.merchant||"", cat=categoryOfNewMerchant(m);
-  // El MCC completa comercios genéricos o Transporte ambiguo: no pisa decisiones ni retiradas.
-  // Tabla acotada a correspondencias claras del manual Visa (abril 2026); el resto queda en Otros.
-  // El override, incluso Otros, manda también cuando el MCC identifica combustible o taxi.
-  if((cat!=="otros" && !(cat==="transporte" && tx.card && !USER_OVERRIDES[catKey(m)])) || USER_OVERRIDES[catKey(m)]==="otros") return cat;
+  // Los MCC nuevos solo completan marcas energéticas ambiguas; los anteriores no cambian.
+  // Finalidad reconocida y overrides, incluso Otros, mandan antes del dato de tarjeta.
+  const energyBrand=/^(repsol|cepsa|shell|bp|galp)$/;
+  const mobilityMcc=tx.card && /^(5541|5542|4121)$/.test(String(tx.mcc||""));
+  if((cat!=="otros" && !(cat==="transporte" && mobilityMcc && energyBrand.test(catKey(m)) && !USER_OVERRIDES[catKey(m)])) || USER_OVERRIDES[catKey(m)]==="otros") return cat;
   const note=String(tx.concept||"");
-  // «Pago alquiler día 5» no identifica una tienda: nunca se clasifica por texto libre de
-  // transferencias/recibos. El nombre OB sigue intacto para dedup y lápidas de TR sin id.
-  if(tx.card && /^(movimiento|movement|transaction)?$/i.test(m.trim()) && !/transfer|bizum|recibo|alquiler|n[oó]mina|devoluci|refund/i.test(note)){
+  // El concepto de una transferencia/recibo no identifica una compra de tarjeta.
+  if(tx.card && (/^(movimiento|movement|transaction)?$/i.test(m.trim()) || mobilityMcc) && !/transfer|bizum|recibo|alquiler|n[oó]mina|devoluci|refund/i.test(note)){
     const c=categoryOfNewMerchant(note);
-    if(c!=="otros" || USER_OVERRIDES[catKey(note)]==="otros") return c;
+    if((c!=="otros" && !(mobilityMcc && c==="transporte" && energyBrand.test(catKey(note)) && !USER_OVERRIDES[catKey(note)])) || USER_OVERRIDES[catKey(note)]==="otros") return c;
   }
   switch(tx.mcc){
     case "5541": case "5542": return tx.card?"gasolina":cat;
@@ -19700,7 +19702,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="440b184e0807cb82191c04e4e5420ae186dd0d12cac3d6b6b9d2825f532ef2fb";
+var _rnSha="b44343ec5b56cbd282a98f6314b270dbebd5daffae83c7b16fb7bc6693b0cf65";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

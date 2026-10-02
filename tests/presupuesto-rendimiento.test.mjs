@@ -127,9 +127,9 @@ const PRESUPUESTO = {
   // 1.289.951/350.970 B →1.292.888/351.900 B (+2.937/+930).
   // Mínimos1263/344 KiB: márgenes424/356 B; sujeto a revisión de candidata.
   // FEATURE-0210-01: A/B sellado 85.99 frente a 3467, mismo host/minificador:
-  // 1.292.833/351.893 → 1.293.930/352.258 B (+1.097/+365), tres bloqueantes.
-  // Coordinador autoriza mínimos 1264/345 KiB; catálogo/idiomas sin recortes, márgenes 406/1022 B.
-  minificado: 1264 * 1024,
+  // 1.292.833/351.893 → 1.294.402/352.423 B (+1.569/+530), tres bloqueantes.
+  // Coordinador autoriza mínimos 1265/345 KiB; catálogo/idiomas sin recortes, márgenes 958/857 B.
+  minificado: 1265 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

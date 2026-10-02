@@ -43,9 +43,11 @@ for(const lang of ["es","en","ca"]){
     await entry(page,"Repsol Luz","luz",8);
     await entry(page,"Uber Eats","bares",12);
     await entry(page,"Repsol","transporte",7);
-    await expect.poll(()=>page.evaluate(()=>mcLoadRaw("micartera_v3").expenses.length)).toBe(6);
+    await entry(page,"Repsol recarga electrica","transporte",6);
+    await entry(page,"UBER *EATS","bares",9);
+    await expect.poll(()=>page.evaluate(()=>mcLoadRaw("micartera_v3").expenses.length)).toBe(8);
     const saved=await page.evaluate(()=>mcLoadRaw("micartera_v3").expenses.map(e=>[e.merchant,e.category,e.amount]));
-    expect(saved).toEqual(expect.arrayContaining([["Gasolinera Norte","gasolina",30],["Taxi Barcelona","taxi",10],["Repsol Luz","luz",8],["Uber Eats","bares",12],["Repsol","transporte",7],["Gasolinera elegida como taxi","taxi",5]]));
+    expect(saved).toEqual(expect.arrayContaining([["Gasolinera Norte","gasolina",30],["Taxi Barcelona","taxi",10],["Repsol Luz","luz",8],["Uber Eats","bares",12],["Repsol","transporte",7],["Repsol recarga electrica","transporte",6],["UBER *EATS","bares",9],["Gasolinera elegida como taxi","taxi",5]]));
     await page.reload(); await dismissNews(page);
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     await expect(page.locator('.v4-gastos-cat[data-cat="gasolina"]')).toContainText(labels[lang].gasolina);
