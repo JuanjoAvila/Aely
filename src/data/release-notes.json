@@ -1,5 +1,56 @@
 [
   {
+    "v": "4.26.85",
+    "d": "2026-10-02",
+    "t": {
+      "es": "Gasolina y taxi por separado",
+      "en": "Fuel and taxi separately",
+      "ca": "Benzina i taxi per separat"
+    },
+    "items": {
+      "es": [
+        "Gasolina y Taxi tienen categorías propias para apuntar, filtrar y fijar límites.",
+        "Los gastos ya guardados conservan su categoría."
+      ],
+      "en": [
+        "Fuel and Taxi have their own categories for recording, filtering and setting limits.",
+        "Previously saved expenses retain their categories."
+      ],
+      "ca": [
+        "Benzina i Taxi tenen categories pròpies per apuntar, filtrar i fixar límits.",
+        "Les despeses ja desades conserven la categoria."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "feature-0210-01-gasolina-taxi",
+        "rev": 1,
+        "t": {
+          "es": "Gasolina y Taxi",
+          "en": "Fuel and Taxi",
+          "ca": "Benzina i Taxi"
+        },
+        "items": {
+          "es": [
+            "1. En Apuntar, abre todas las categorías y comprueba Gasolina y Taxi con sus iconos. Apunta un gasto en cada una.",
+            "2. En Gastos, filtra cada categoría y comprueba sus movimientos e importes. Pon un límite a cada una y comprueba que Transporte conserva el suyo.",
+            "3. Vuelve a abrir la app: las categorías y los límites siguen guardados. Los gastos antiguos no han cambiado de categoría."
+          ],
+          "en": [
+            "1. In Record, open all categories and check Fuel and Taxi with their icons. Record an expense in each.",
+            "2. In Expenses, filter each category and check its entries and amounts. Set a limit for each and check that Transport retains its own.",
+            "3. Reopen the app: categories and limits remain saved. Old expenses have not changed category."
+          ],
+          "ca": [
+            "1. A Apuntar, obre totes les categories i comprova Benzina i Taxi amb les icones. Apunta una despesa a cadascuna.",
+            "2. A Despeses, filtra cada categoria i comprova els moviments i imports. Posa un límit a cadascuna i comprova que Transport conserva el seu.",
+            "3. Torna a obrir l’app: les categories i els límits continuen desats. Les despeses antigues no han canviat de categoria."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.82",
     "d": "2026-10-01",
     "t": {

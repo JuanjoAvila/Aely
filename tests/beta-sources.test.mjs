@@ -266,7 +266,7 @@ test("la identidad conserva ASI, literales y descendientes CSS",()=>{
   }
 });
 test("la compatibilidad requiere la misma fuente histórica y no acepta aliases escritos a mano",()=>{
-  const scopes=JSON.parse(read("scripts/beta-sources.json")),notes=JSON.parse(read("src/data/release-notes.json")),id="inc-2909-02-inicio-natural",g=notes.flatMap(n=>n.tandas||[]).find(g=>g.id===id);
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),notes=JSON.parse(read("src/data/release-notes.json")),id="inc-3009-01-cargos",g=notes.flatMap(n=>n.tandas||[]).find(g=>g.id===id);
   const current=betaRevision(id),compatible=betaCompatible(g,current,scopes[id]);
   assert.ok(compatible.codigosCompatibles.length>=1);assert.equal(compatible.compatibilidadGit[0].sha,"955765a9ec0ad96d20140a8f12da00c9fa04985c");
   const saved=structuredClone(compatible);compatible.codigosCompatibles[0]="f".repeat(64);

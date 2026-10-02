@@ -1,3 +1,8 @@
+## [4.26.85] — 2026-10-02 · Gasolina y Taxi independientes
+
+- FEATURE-0210-01: catálogo, iconos e idiomas separan Gasolina/Taxi de Transporte; selector, filtros y límites usan los mismos IDs. autoCategory conserva sus reglas históricas: la división ocurre solo en altas nuevas y respeta la elección personal, incluso Otros. Sin migración ni reparto automático de límites anteriores.
+- Carburante explícito y MCC de tarjeta5541/5542 identifican Gasolina;4121 identifica Taxi. Un nombre energético ambiguo no convierte Repsol Luz/Gas ni Uber Eats en combustible/taxi. Espejo y catálogo Edge preparados solo en fuente, sin despliegue; selector y presupuesto web funcionan sin él. [Acta y pruebas](docs/briefs/feature-0210-01-gasolina-taxi.md).
+
 ## [4.26.82] — 2026-10-01 · Conservar la checklist actual en una ronda mixta
 
 - La revisión independiente de450 detectó que, sin versión de producción, una ronda moderna ocultaba los puntos implícitos de la versión actual. betaChecklist une ambas fuentes sin duplicar la cabeza moderna ni reincorporar notas con tandas:[]; las identidades y recibos siguen gobernando aprobaciones y entrega.
