@@ -51,6 +51,7 @@ export const CORE = [
 export const E2E_MAP = [
   {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/help-assistant.spec.mjs",
+    "e2e/plan-cuota-contabilizada.spec.mjs",
     "e2e/inicio-cargos.spec.mjs",
     "e2e/pulido-vacios.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs",
     "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs", "e2e/inicio-mes-natural.spec.mjs"] },
@@ -80,6 +81,7 @@ export const E2E_MAP = [
     "e2e/plan-cover.spec.mjs",
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
+    "e2e/plan-cuota-contabilizada.spec.mjs",
     "e2e/listas-render.spec.mjs", "e2e/bancos-acordeon.spec.mjs", "e2e/bancos-reconnect.spec.mjs",
     "e2e/bancos-historico-filtro.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs",
     "e2e/bancos-lista-fresca.spec.mjs",

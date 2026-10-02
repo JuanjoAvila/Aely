@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.83",
+    "d": "2026-10-02",
+    "t": {
+      "es": "Las cuotas cobradas dejan de estar pendientes",
+      "en": "Charged instalments stop being pending",
+      "ca": "Les quotes cobrades deixen d’estar pendents"
+    },
+    "items": {
+      "es": [
+        "Una cuota de préstamo ya vinculada y contabilizada aparece como pagada aunque llegue antes del día previsto.",
+        "El importe pendiente y la previsión del mes dejan de contar esa cuota otra vez."
+      ],
+      "en": [
+        "A linked and booked loan instalment appears as paid even when charged before its expected date.",
+        "The pending amount and monthly forecast stop counting that instalment again."
+      ],
+      "ca": [
+        "Una quota de préstec ja vinculada i comptabilitzada apareix com a pagada encara que arribi abans del dia previst.",
+        "L’import pendent i la previsió del mes deixen de comptar aquesta quota una altra vegada."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0210-01-plan-cuota",
+        "t": {
+          "es": "Las cuotas cobradas dejan de estar pendientes",
+          "en": "Charged instalments stop being pending",
+          "ca": "Les quotes cobrades deixen d’estar pendents"
+        },
+        "items": {
+          "es": [
+            "1. Comprueba una cuota ya vinculada en Gastos y cargada antes de su vencimiento: en Plan debe estar pagada y desaparecer del pendiente, también al reabrir.",
+            "2. Comprueba que otra deuda similar sigue pendiente y que el saldo actual no recibe un segundo descuento."
+          ],
+          "en": [
+            "1. Check an instalment already linked in Expenses and charged before its due date: in Plan it should be paid and no longer pending, also after reopening.",
+            "2. Check that another similar debt stays pending and the current balance is not charged twice."
+          ],
+          "ca": [
+            "1. Comprova una quota ja vinculada a Despeses i cobrada abans del venciment: a Pla ha d’estar pagada i desaparèixer del pendent, també en reobrir.",
+            "2. Comprova que un altre deute semblant segueix pendent i que el saldo actual no rep un segon descompte."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.82",
     "d": "2026-10-01",
     "t": {

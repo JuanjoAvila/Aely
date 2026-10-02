@@ -1801,7 +1801,7 @@ function App(){
       if(paid){ paidThisMonth+=amt; }
       else { pendingThisMonth+=amt; pendingByBank[bank]=(pendingByBank[bank]||0)+amt; } };
     state.fixed.forEach(e=>{ if(occursIn(e,curMonth)) acc(occAmountIn(e,curMonth),accOf(e),isPaidIn(e,curMonth,today)); });
-    state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today)); });
+    state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
     // --- CASH-FLOW: ingresos (nómina) y transferencias recurrentes PENDIENTES este mes ---
     // El saldo del banco ya refleja lo que ya ocurrió (día pasado); solo proyectamos lo pendiente.
@@ -1824,7 +1824,7 @@ function App(){
     const evsByBank={};
     const pushEv=(bank,day,amt)=>{ (evsByBank[bank]=evsByBank[bank]||[]).push({day:day,amt:amt}); };
     state.fixed.forEach(e=>{ if(occursIn(e,curMonth)&&!isPaidIn(e,curMonth,today)) pushEv(accOf(e), dayIn(e,curMonth)||0, -occAmountIn(e,curMonth)); });
-    state.debts.forEach(d=>{ if(debtActive(d)&&!isDebtPaidThisMonth(d,today)){ pushEv(d.account||"sabadell", debtChargeDay(d), -d.monthly); const bl=debtBalloonIn(d,curYear,curMonth); if(bl>0) pushEv(d.account||"sabadell", debtChargeDay(d), -bl); } });
+    state.debts.forEach(d=>{ if(debtActive(d)&&!isDebtPaidThisMonth(d,today,state,curYear,curMonth)){ pushEv(d.account||"sabadell", debtChargeDay(d), -d.monthly); const bl=debtBalloonIn(d,curYear,curMonth); if(bl>0) pushEv(d.account||"sabadell", debtChargeDay(d), -bl); } });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth)&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) pushEv(o.account||"sabadell", o.day||0, -o.amount); });
     (state.flows||[]).forEach(f=>{ if(!flowOccursIn(f,curMonth,curYear)||flowPaidIn(state,f,curYear,curMonth,today))return; const dd=flowDay(f,curYear,curMonth); if(f.kind==="income") pushEv(f.to||"sabadell", dd||99, f.amount); else if(f.kind==="transfer") pushEv(f.from||"sabadell", dd||0, -f.amount); });
     const minByBank={}, minDayByBank={};
@@ -1854,7 +1854,7 @@ function App(){
   // el buscador, al salir un toast… Con las porciones reales solo se recalcula cuando cambia el
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.bankTx,state.investments,state.assets,state.debts,state.fixed,
-     state.flows,state.oneoffs,state.aportaciones,state.obAccounts,
+     state.flows,state.oneoffs,state.deleted,state.aportaciones,state.obAccounts,
      state.trRewardsTotal,state.fx,state.fxRates,calendarDay]);
 
   const budgetMonth=budgetYmKey();
@@ -2137,7 +2137,7 @@ function App(){
     const nat=natPlugin();
     if(!nat||!nat.showNotification) return;
     const today=totals.today||new Date().getDate();
-    const cm=totals.curMonth;
+    const cm=totals.curMonth,cy=totals.curYear;
     const minAmt=Math.max(80, (totals.fijosMensual||0)*0.12);
     const cal=alertCalendarOf();
     const ym=cal.ym;
@@ -2162,7 +2162,7 @@ function App(){
       // cuotas de deuda (hipoteca, financiaciones…): también avisan la víspera
       (state.debts||[]).forEach(function(d){
         if(!debtActive(d) || !(d.monthly>0)) return;
-        if(isDebtPaidThisMonth(d,today)) return;
+        if(isDebtPaidThisMonth(d,today,state,cy,cm)) return;
         if(debtChargeDay(d)-today!==1) return;
         notify("_rc1_debt_"+d.id+"_"+ym, t("rc_title_tmrw"), tf("rc_body_tmrw",{name:d.name||"?",x:eur(d.monthly)}));
       });
@@ -2178,7 +2178,7 @@ function App(){
         }).catch(run);
       }catch(e){ run(); }
     } else run();
-  },[state.onboarded,locked,showAuth,state.fixed,state.debts,totals.today,totals.curMonth]);
+  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.expenses,state.bankTx,state.deleted,totals.today,totals.curMonth,totals.curYear]);
 
   // Empuja el calendario de recibos del mes al NATIVO (APK ≥29): AlertCheckWorker avisa la
   // víspera aunque la app esté CERRADA. Intercambio de sellos para no avisar dos veces:

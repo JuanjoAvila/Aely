@@ -12,7 +12,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     : [{id:"recibos",lab:t("v4_plan_recibos")},{id:"deudas",lab:t("v4_plan_deudas")},{id:"metas",lab:t("v4_plan_metas")}];
   const charges=useMemo(function(){
     return planChargesMonth(state, totals.curMonth, totals.curYear, totals.today);
-  },[state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,totals.curMonth,totals.curYear,totals.today]);
+  },[state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,totals.curMonth,totals.curYear,totals.today]);
   const pick=useMemo(function(){
     return planCoverPickBank(totals, charges.pendingByBank, charges.pendingBills, charges.paidBills);
   },[totals.minByBank,totals.minDayByBank,totals.mainBank,charges.pendingByBank,charges.pendingBills,charges.paidBills]);
@@ -339,7 +339,7 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
         var inv=toEnt&&((state.investments||[]).some(function(i){ return i.ent===toEnt; })||(state.accounts||[]).some(function(a){ return a.ent===toEnt&&a.role==="extra"; }));
         return inv?tf("v4s_row_invest",{bank:entOf(toEnt).label}):tf("v4s_row_to",{bank:entOf(toEnt||x.bank).label});
       }
-      if(x.kind==="debt"||x.kind==="balloon") return tf("v4s_row_debt",{name:x.name});
+      if(x.kind==="debt"||x.kind==="balloon") return tf("v4s_row_debt",{name:x.name})+(x.paidBank&&x.paidBank!==x.bank?" · "+entOf(x.paidBank).label:"");
       return tf("v4s_row_from",{bank:entOf(bank).label})+(changedPaid(x)?" · "+tf("v4_charge_actual",{x:eur(x.paidAmount)}):"");
     }
     var tag=x.kind==="income"?t("fj_income_tag"):(x.kind==="transfer"?t("fj_transfer_tag"):(x.kind==="debt"||x.kind==="balloon"?t("fj_debt_tag"):t("fj_fixed_tag")));

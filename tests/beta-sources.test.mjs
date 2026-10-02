@@ -266,13 +266,18 @@ test("la identidad conserva ASI, literales y descendientes CSS",()=>{
   }
 });
 test("la compatibilidad requiere la misma fuente histórica y no acepta aliases escritos a mano",()=>{
-  const scopes=JSON.parse(read("scripts/beta-sources.json")),notes=JSON.parse(read("src/data/release-notes.json")),id="inc-2909-02-inicio-natural",g=notes.flatMap(n=>n.tandas||[]).find(g=>g.id===id);
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),notes=JSON.parse(read("src/data/release-notes.json")),id="inc-2909-03-retirada",g=notes.flatMap(n=>n.tandas||[]).find(g=>g.id===id);
+  // La cuota83 cambia lectores de dinero reales: no deben heredar el OK histórico por id.
+  for(const changedId of ["fin05-pago-cerrada","fin05-widget-reentrada","inc-2909-01-widget-periodo","inc-2909-02-inicio-natural","inc-3009-01-cargos","inc-3009-nomina-anticipada","widget-app-cerrada","widget-banco"]){
+    const item=notes.flatMap(n=>n.tandas||[]).find(x=>x.id===changedId);
+    assert.deepEqual(betaCompatible(item,betaRevision(changedId),scopes[changedId]),{},changedId+": cambio financiero no equivale a la fuente anterior");
+  }
   const current=betaRevision(id),compatible=betaCompatible(g,current,scopes[id]);
   assert.ok(compatible.codigosCompatibles.length>=1);assert.equal(compatible.compatibilidadGit[0].sha,"955765a9ec0ad96d20140a8f12da00c9fa04985c");
   const saved=structuredClone(compatible);compatible.codigosCompatibles[0]="f".repeat(64);
   assert.deepEqual(betaCompatible(g,current,scopes[id]),saved,"la caché no comparte metadata mutable");
   assert.throws(()=>betaCompatible(g,current,scopes[id],()=>{throw new Error("historia de prueba ausente");}),/historia de prueba ausente/,"un lector personalizado nunca usa la caché Git");
-  const changed=betaRevision(id,f=>read(f).replace('const REC_GRACE=3;','const REC_GRACE=4;'));
+  const changed=betaRevision(id,f=>read(f).replace('var p=e.paymentProofs&&e.paymentProofs[y*12+m];','var p=null;'));
   assert.deepEqual(betaCompatible(g,changed,scopes[id]),{});
   const injected=[{v:"4.26.99",tandas:[{...g,items:{es:["guion cambiado"]},codigosCompatibles:[current.codigo],compatibilidadSha:"f".repeat(40)}]}];
   assert.equal(betaNotes(injected)[0].tandas[0].codigosCompatibles,undefined);
@@ -326,5 +331,16 @@ test("miembros dinámicos abortan sin ocultar aliases, opcionales ni sintaxis no
   assert.throws(()=>objectMembers(privateEval,["principal"]),/Evaluación beta dinámica/);
   assert.throws(()=>objectMembers(fixture('return 7;').replace('return { principal(){','eval("fixture.otro()"); return { principal(){'),["principal"]),/Evaluación beta dinámica/);
 
+});
+test("Cuota83 vigila prueba, identidad, lápidas, feed y ventana del mes",()=>{
+  const id="inc-0210-01-plan-cuota",before=betaRevision(id,read),functions=logicFunctions(read),data=logicData(read);
+  for(const name of ["debtPaymentState","expenseDeletedSet","expenseIsTombstoned","fixedPaymentIdentity","fixedPaymentFeedClear","cuotaCargoCercano"]){
+    const fn=functions.get(name);assert.ok(fn,name);
+    assert.notEqual(betaRevision(id,f=>f===fn.file?mutateLogic(read(f),fn):read(f)).web,before.web,name);
+  }
+  for(const name of ["CUOTA_ALIAS_DIAS","expenseDeletedSets","_pdCache"]){
+    const value=data.get(name);assert.ok(value,name);
+    assert.notEqual(betaRevision(id,f=>f===value.file?mutateData(read(f),value):read(f)).web,before.web,name);
+  }
 });
 process.exitCode=failed?1:0;

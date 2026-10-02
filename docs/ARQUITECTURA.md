@@ -486,3 +486,5 @@ _betaReviewMarks guarda por huella {marks:{indice:estado},notes:{indice:comentar
 Al aceptar un catálogo verificado se purgan únicamente otras claves `_rnBetaRound_*` antes de escribir la actual, para liberar cuota compartida con los datos financieros. Panel y Novedades muestran un reintento explícito si no hay notas verificadas; vuelven a aplicar el mismo SHA-256 y mantienen desconocido hasta recuperar el catálogo.
 
 Sin versión de producción, betaChecklist conserva todas las tandas modernas hasta la versión actual y añade una sola vez la nota actual con puntos implícitos. Una nota con tandas:[] no aporta puntos; la cabeza moderna ya incluida no se duplica. No altera las huellas ni acredita entrega por número de versión.
+
+INC-0210-01: el estado visual de una cuota y sus eventos futuros consumen debtPaymentState (vínculo explícito del gasto, cargo válido y único, mes de vencimiento cercano). El saldo actual y el principal siguen usando sus anclas/fórmulas anteriores; reconocer un cargo ya incluido por el banco no vuelve a descontarlo. No hay nuevo emparejamiento por nombre ni escritura en el histórico.
