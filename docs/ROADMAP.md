@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-10-02 · **v4.26.83** candidata: cuota vinculada contabilizada retirada del pendiente de Plan y de la proyección. Sobre candidata82, sin publicar; revisión, CI y entrega pendientes. APK80/code52 intacta. [Acta](briefs/inc-0210-01-plan-cuota.md).
+> Estado a 2026-10-02 · **v4.26.84** candidata conjunta: Plan reconoce cuotas vinculadas contabilizadas y Gastos comparte fechas entre lista, resumen y categorías. Base3467bbd4; integración local sin publicar, CI/revisión/móvil pendientes. [Plan](briefs/inc-0210-01-plan-cuota.md) · [Gastos](briefs/inc-0210-03-gastos-periodo.md).
 
 > Snapshot anterior de preparación · **v4.26.80** candidata sobre79/d45fb8b1 con guiones intactos. Prebuild52 verificado, asset beta real descargado/cotejado y manifiesto52 local. CI exacta, build final con52 y entrega80 pendientes. [Acta](briefs/inc-2909-01-widget.md).
 
@@ -245,10 +245,10 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.83** candidata sobre82/3467; sin publicar. |
-| APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base80; esta candidata81 no genera APK. Cotejo servido en gate de entrega. |
+| Web / OTA (`VERSION`) | **4.26.84** candidata conjunta de Plan y Gastos sobre3467bbd4; sin publicar. |
+| APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base80; esta candidata no genera APK. Cotejo servido en gate de entrega. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
-| `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a955; esta candidata81 no reemplaza binario ni manifiesto. |
+| `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a955; esta candidata no reemplaza binario ni manifiesto. |
 
 ## Pendiente / limitaciones conocidas
 

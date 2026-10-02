@@ -1,3 +1,8 @@
+## [4.26.84] — 2026-10-02 · Gastos comparte el periodo seleccionado
+
+- INC-0210-03: lista, cabecera y categorías usan una misma ventana explícita; el motor admite esa ventana sin duplicar reglas de dinero. Mes natural y Mi ciclo conservan sus magnitudes y filtros exploratorios. Los límites mensuales actuales no se presentan como presupuesto histórico o acumulado: se indica ausencia de registro, sin barras engañosas.
+- Fechas de rango desde medianoche local hasta final del día; ciclo excluye apuntes futuros. Pruebas sintéticas de motor y DOM es/en/ca registradas. Candidata separable sobre3467bbd4, sin publicación ni aceptación móvil. APK/servidor intactos. Las huellas alcanzadas por el cambio real del motor se recalculan sin repinar referencias. [Acta](docs/briefs/inc-0210-03-gastos-periodo.md).
+
 ## [4.26.83] — 2026-10-02 · INC-0210-01, cuota contabilizada antes del vencimiento
 
 - Plan, Inicio y los eventos pendientes de la proyección consumen el cargo de Gastos ya vinculado a la deuda en lugar de esperar solo al día previsto. debtPaymentState valida mes de vencimiento más cercano, identidad única, igualdad de importe en céntimos EUR, fecha no futura, ausencia de lápida y de PDNG/duplicados en el feed. Dos cargos vinculados compatibles no se eligen por orden. Se conserva recAmtClose para la clasificación: un cargo59 no acredita aquí una cuota60.

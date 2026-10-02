@@ -129,7 +129,14 @@ const PRESUPUESTO = {
   // INC-0210-01: A/B sellado82.99→83.99 final mide1.292.900/351.909→1.294.831/352.341 B
   // min/gzip (+1.931/+432 B). Mínimos1265/345 KiB autorizados; no se recortan idiomas
   // ni el contrato de cuotas. Margen529/939 B tras guardas centesimales y pago final.
-  minificado: 1265 * 1024,
+
+  // INC-0210-03: ventana compartida y presupuesto histórico indeterminado, sin duplicar motor.
+  // A/B sellado82.99→84.99: 1.292.833/351.893→1.294.456/352.299 B (+1.623/+406).
+  // Mínimos +2/+1 KiB autorizados por coordinador; quedan904/981 B y3 bloqueantes iguales.
+  // La integración conjunta exige su A/B propio; no acumular topes por arrastre.
+  // Integración Plan83+Gastos84 sellada84.99: 1.296.387 B min / 352.741 B gzip;
+  // +3.554/+848 B frente82.99. Mínimo1267 deja1.021 B; gzip345 conserva539 B.
+  minificado: 1267 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

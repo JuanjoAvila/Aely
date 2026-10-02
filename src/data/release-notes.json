@@ -1,5 +1,56 @@
 [
   {
+    "v": "4.26.84",
+    "d": "2026-10-02",
+    "t": {
+      "es": "Gastos del periodo elegido",
+      "en": "Spending for the selected period",
+      "ca": "Despeses del període escollit"
+    },
+    "items": {
+      "es": [
+        "Al elegir otras fechas en Gastos, las categorías y las cifras muestran ese mismo periodo.",
+        "Mi ciclo conserva el balance desde el cobro. Los periodos sin presupuesto registrado lo indican."
+      ],
+      "en": [
+        "When choosing other dates in Spending, categories and figures show the same period.",
+        "My cycle keeps the balance since payday. Periods without a recorded budget say so."
+      ],
+      "ca": [
+        "En triar altres dates a Despeses, les categories i les xifres mostren el mateix període.",
+        "El meu cicle conserva el balanç des del cobrament. Els períodes sense pressupost registrat ho indiquen."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0210-03-gastos-periodo",
+        "rev": 1,
+        "t": {
+          "es": "Gastos y categorías del mismo periodo",
+          "en": "Spending and categories for the same period",
+          "ca": "Despeses i categories del mateix període"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos elige Mes pasado o un rango: las categorías e importes deben corresponder a esas fechas, sin conservar las del ciclo actual.",
+            "2. Vuelve a Este mes y Mi ciclo: el resumen, el desglose y las fechas deben coincidir. Buscar un movimiento no modifica el presupuesto.",
+            "3. En periodos anteriores o de varios meses, el presupuesto y el margen aparecen como — con una explicación."
+          ],
+          "en": [
+            "1. In Spending choose Last month or a range: categories and amounts must match those dates instead of keeping the current cycle.",
+            "2. Return to This month and My cycle: summary, breakdown and dates must agree. Searching for a transaction does not change the budget.",
+            "3. For earlier periods or several months, budget and margin show — with an explanation."
+          ],
+          "ca": [
+            "1. A Despeses tria Mes passat o un rang: les categories i imports han de correspondre a aquelles dates, sense conservar els del cicle actual.",
+            "2. Torna a Aquest mes i El meu cicle: resum, desglossament i dates han de coincidir. Cercar un moviment no modifica el pressupost.",
+            "3. En períodes anteriors o de diversos mesos, el pressupost i el marge apareixen com a — amb una explicació."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.83",
     "d": "2026-10-02",
     "t": {

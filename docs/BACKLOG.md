@@ -2,6 +2,10 @@
 
 INC-0210-01 · candidata83 separable sobre3467bbd4: la cuota contabilizada y vinculada antes del vencimiento deja de figurar pendiente en Plan/Inicio y eventos futuros, sin descontarla otra vez del saldo. Datos sintéticos; revisión/CI/integración/aceptación móvil pendientes. Sin publicación, APK, Edge, SQL o pagos reales. [Acta](briefs/inc-0210-01-plan-cuota.md).
 
+## INC-0210-03 · P1 · categorías y cifras de Gastos por periodo · 2/10/2026
+
+Propietario: Codex, rama aislada codex/inc-0210-03-gastos-periodo desde3467bbd4. Síntoma comunicado: elegir mes/fechas deja las categorías del ciclo actual. Motor y DOM sintéticos cubren mes anterior, rango, meses acumulados y retorno a Mi ciclo. Estado: candidata84 con rojo/verde DOM y guardianes locales acreditados; CI y revisión exactas en el PR/relevo. Sin publicar ni aprobación móvil. [Pruebas y límites](briefs/inc-0210-03-gastos-periodo.md).
+
 Candidata Validaciones82 tras NO-GO450: conservar aprobación/progreso y la checklist actual junto a las rondas modernas si producción no responde. Sobre beta80/source955765a9;81 no publicada. APK80/52 intacta; DOM mixto70/70, contratos Node y A/B acreditados; revisión independiente y CI exacta pendientes. No integrar/publicar una solución parcial. [Acta](briefs/ops-0110-validaciones-persistentes.md).
 
 Snapshot previo de preparación80 (no estado de la candidata81): Widget80 sobre79/d45fb8b1; runtime821/ACK/guiones intactos. Prebuild52/name80 y descarga de assetbeta602841368 verificados; manifiesto52 local real. CI/build final/reemplazo APK/entrega80 pendientes; no main/Edge/SQL/install. [Acta](briefs/inc-2909-01-widget.md).

@@ -1,4 +1,4 @@
-La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres correcciones de pantalla.78/79 son snapshots de integración, no versiones publicadas por separado. Esta candidata81 conserva sus cambios; prueba móvil pendiente. [Actas](docs/briefs/ops-0110-validaciones-persistentes.md).
+La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres correcciones de pantalla.78/79 son snapshots de integración, no versiones publicadas por separado. Esta candidata conserva sus cambios; prueba móvil pendiente. [Actas](docs/briefs/ops-0110-validaciones-persistentes.md).
 
 # Aely
 
@@ -98,7 +98,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.83** candidata de cuota contabilizada antes del vencimiento. Sobre candidata82, sin publicar; revisión/CI/beta y aceptación móvil pendientes. APK80/code52 intacta. [Acta](docs/briefs/inc-0210-01-plan-cuota.md).
+Estado actual: **v4.26.84** candidata conjunta de cuota contabilizada y Gastos por periodo, sobre3467bbd4. Sin publicar; revisión de integración y CI exactas pendientes, aceptación móvil pendiente. APK80/code52 conservada. [Plan](docs/briefs/inc-0210-01-plan-cuota.md) · [Gastos](docs/briefs/inc-0210-03-gastos-periodo.md).
 
 Estado anterior de Retirada: **v4.26.79**, candidata de Retirada sobre Nómina78 eaf55e4a para la entrega conjunta beta80; pendiente de CI exacta y publicación ([acta](docs/briefs/inc-2909-03-retirada-caixa.md)). Anterior **v4.26.78**, candidata de Nómina sobre UI77 finalca7734fd; pendiente de CI exacta y publicación ([acta](docs/briefs/inc-3009-nomina-anticipada.md)). Anterior **v4.26.77**, candidata con tres tandas de pantalla (Cyberpunk, Preguntar, Perfil) sobre el panel76; sin publicar ni probar en móvil ([acta](docs/briefs/ui-77-integracion.md)). Del panel76, corrección local: revisión y entrega separadas por tanda; una entrega exacta la retira aunque producción tenga un número menor. Beta publicada **4.26.75.1**/ca7b97d4, producción **4.26.67**; APK48 estable/APK51 beta. CI exacta, publicación76 y prueba móvil pendientes. [Auditoría y evidencia](docs/briefs/ops-0110-panel-entrega.md).
 
