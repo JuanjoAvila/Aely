@@ -1020,11 +1020,11 @@ for(const lang of ["es","en","ca"]) {
       });
       window._mcProdApk=52;window.__resolveDelivery("4.26.67");
     });
-    // Panel76 se trasladó a82; los recibos de las siete antiguas no entregan las nueve nuevas.
-    const remaining=["beta-panel-veredictos","inc-2909-01-widget-periodo","inc-2909-03-retirada","inc-3009-nomina-anticipada","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2709-10-perfil","inc-3009-01-cargos","inc-2909-02-inicio-natural"];
+    // Panel76 se trasladó a82; los recibos de las siete antiguas no entregan las diez nuevas.
+    const remaining=["inc-0210-01-plan-cuota","beta-panel-veredictos","inc-2909-01-widget-periodo","inc-2909-03-retirada","inc-3009-nomina-anticipada","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2709-10-perfil","inc-3009-01-cargos","inc-2909-02-inicio-natural"];
     await expect(panel.locator(".beta-tanda")).toHaveCount(remaining.length);
     expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,"4.26.67",52).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(remaining.slice().sort());
-    for(const title of ["Las comprobaciones conservan su resultado","Widget: mes o Mi ciclo","Retiradas y presupuesto","Nómina sin adelantar el cobro","Botón + en Cyberpunk","Botón Preguntar","Perfil sin casillas gigantes","Recibos pagados y vencidos","Presupuesto mensual de Inicio"])
+    for(const title of ["Las cuotas cobradas dejan de estar pendientes","Las comprobaciones conservan su resultado","Widget: mes o Mi ciclo","Retiradas y presupuesto","Nómina sin adelantar el cobro","Botón + en Cyberpunk","Botón Preguntar","Perfil sin casillas gigantes","Recibos pagados y vencidos","Presupuesto mensual de Inicio"])
       await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(1);
     for(const title of NATIVAS.concat(["Arranque con poca conexión","Ayuda de Mi ciclo"]))
       await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(0);
@@ -1238,9 +1238,9 @@ for(const lang of ["es","en","ca"]) {
       window.__mixedRoot=ReactDOM.createRoot(host);window.__mixedRoot.render(React.createElement(BetaReviewPanel,{onClose:function(){},showToast:function(){}}));
       return ids;
     },lang);
-    expect(expected).toHaveLength(16);
+    expect(expected).toEqual(["beta-panel-veredictos","fin05-pago-cerrada","fin05-widget-reentrada","inc-0210-01-plan-cuota","inc-2709-01-arranque-red","inc-2709-10-perfil","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2809-02-ayuda-ciclo","inc-2909-01-widget-periodo","inc-2909-02-inicio-natural","inc-2909-03-retirada","inc-3009-01-cargos","inc-3009-nomina-anticipada","tr-descripcion-clasificacion","widget-app-cerrada","widget-banco"].sort());
     const panel=page.locator("#e2e-mixed .beta-review"),row=panel.locator(".beta-tanda").filter({has:page.getByText("1. A",{exact:true})});
-    await expect(panel.locator(".beta-tanda")).toHaveCount(17);await expect(row).toHaveCount(1);
+    await expect(panel.locator(".beta-tanda")).toHaveCount(expected.length+1);await expect(row).toHaveCount(1);
     await expect(row.locator(".beta-item")).toHaveCount(3);await expect(row.locator(".beta-tanda-n")).toHaveText("0/3");
     expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,null,48).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(expected.concat(["todo"]).sort());
     await row.locator(".beta-item").nth(0).getByRole("button",{name:/Va bien/}).click();
@@ -1250,12 +1250,12 @@ for(const lang of ["es","en","ca"]) {
     await expect(row.locator(".beta-tanda-n")).toHaveText("3/3");
     await expect(row.getByRole("button",{name:/Reportar/})).toBeEnabled();await expect(row.getByRole("button",{name:/Aprobar esta/})).toBeDisabled();
     await page.waitForFunction(()=>typeof window.__resolveMixed==="function");await page.evaluate(()=>window.__resolveMixed("4.26.67"));
-    await expect(panel.locator(".beta-tanda")).toHaveCount(17);await expect(row).toHaveCount(1);
+    await expect(panel.locator(".beta-tanda")).toHaveCount(expected.length+1);await expect(row).toHaveCount(1);
     await expect(row.locator(".beta-tanda-n")).toHaveText("3/3");await expect(row.locator("input")).toHaveValue("Comentario sintético de la ronda mixta");
     expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,"4.26.67",48).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(expected.concat(["todo"]).sort());
     // Una nota familiar sin puntos explícitos no vuelve a crear la revisión que acabamos de marcar.
     await page.evaluate(()=>{window.__mixedRoot.unmount();RELEASE_NOTES[0].tandas=[];window._mcProdVersion=()=>Promise.resolve(null);window.__mixedRoot=ReactDOM.createRoot(document.getElementById("e2e-mixed"));window.__mixedRoot.render(React.createElement(BetaReviewPanel,{onClose:function(){},showToast:function(){}}));});
-    await expect(panel.locator(".beta-tanda")).toHaveCount(16);await expect(row).toHaveCount(0);
+    await expect(panel.locator(".beta-tanda")).toHaveCount(expected.length);await expect(row).toHaveCount(0);
     expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,null,48).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(expected);
   });
 }

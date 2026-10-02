@@ -1,3 +1,10 @@
+## [4.26.83] — 2026-10-02 · INC-0210-01, cuota contabilizada antes del vencimiento
+
+- Plan, Inicio y los eventos pendientes de la proyección consumen el cargo de Gastos ya vinculado a la deuda en lugar de esperar solo al día previsto. debtPaymentState valida mes de vencimiento más cercano, identidad única, igualdad de importe en céntimos EUR, fecha no futura, ausencia de lápida y de PDNG/duplicados en el feed. Dos cargos vinculados compatibles no se eligen por orden. Se conserva recAmtClose para la clasificación: un cargo59 no acredita aquí una cuota60.
+- La prueba decimal de cuota más pago final descubrió que el parámetro t numérico de planChargesMonth ocultaba el traductor global t y lanzaba TypeError al rotular el pago final. Se renombra solo el parámetro a today, sin alterar sus importes ni el calendario; el recorrido real desglosa0,1+0,2 sin duplicar el cargo0,3.
+- Se conserva la fórmula del saldo actual, el principal proyectado y las anclas: introducir un nuevo descuento en monthNetForAccount al instalar contaría otra vez un cargo ya incluido por el banco. El contrato solo retira su evento futuro y mueve la cuota del pendiente al pagado. No enlaza movimientos por nombre ni cambia la clasificación automática.
+- Regresión Node con rojo contra3467 y DOM es/en/ca registrados en runner/mapa. Candidata83 sin publicar, sin APK/Edge/SQL ni datos reales. [Acta](docs/briefs/inc-0210-01-plan-cuota.md).
+
 ## [4.26.82] — 2026-10-01 · Conservar la checklist actual en una ronda mixta
 
 - La revisión independiente de450 detectó que, sin versión de producción, una ronda moderna ocultaba los puntos implícitos de la versión actual. betaChecklist une ambas fuentes sin duplicar la cabeza moderna ni reincorporar notas con tandas:[]; las identidades y recibos siguen gobernando aprobaciones y entrega.

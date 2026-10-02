@@ -34,6 +34,7 @@ if (plan.build !== false) {
 }
 
 const steps = [
+  ["debt-payment-state", ["node", "tests/debt-payment-state.test.mjs"]],
   ["retirada-bancaria", ["node", "tests/retirada-bancaria.test.mjs"]],
   ["backup-snapshot", ["node", "tests/backup-snapshot.test.mjs"]],
   ["bank-merchant-category", ["node", "tests/bank-merchant-category.test.mjs"]],

@@ -111,7 +111,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     });
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d) || !(d.monthly>0)) return;
-      if(isDebtPaidThisMonth(d,today)) return;
+      if(isDebtPaidThisMonth(d,today,state,tt.curYear,cm)) return;
       rows.push({day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:d.monthly, pos:false});
     });
     (state.flows||[]).forEach(function(f){
