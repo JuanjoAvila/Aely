@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { execFileSync } from "node:child_process";
 import {logicFunctions,scopeDependencies,mutateLogic,logicCalls,benignCalls,logicData,logicReads,scopeText,scopeDataDependencies,mutateData,benignData,codeMask,objectMembers} from "../scripts/beta-source-code.mjs";
 import { betaRevision, betaNotes, betaDelivery, betaHistorical, betaCompatible } from "../scripts/beta-revisions.mjs";
 
@@ -10,6 +11,19 @@ const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
 let failed=0;
 function test(name,fn){ try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
+
+test("Gastos84 vigila la ventana elegida y los lectores reales del dinero",()=>{
+  const id="inc-0210-03-gastos-periodo",before=betaRevision(id,read).web;
+  for(const [file,from,to] of [
+    ["src/modules/04-tab-gastos.js","cycle:preset===\"cycle\"?cycle:null","cycle:null"],
+    ["src/modules/04-tab-gastos.js","bounds.to+1","bounds.to"],
+    ["src/modules/08-motor-bank.js","selectedPeriod||budgetPeriodOf(state,nowMs)","budgetPeriodOf(state,nowMs)"],
+    ["src/modules/08-motor-bank.js","const byCat={};","const byCat={super:999};"],
+  ]){
+    assert.ok(read(file).includes(from),"mutante debe tocar fuente real");
+    assert.notEqual(betaRevision(id,f=>f===file?read(f).replace(from,to):read(f)).web,before,from);
+  }
+});
 
 test("las tres correcciones UI vigilan también sus reglas y lectores",()=>{
   const cases=[
@@ -267,12 +281,19 @@ test("la identidad conserva ASI, literales y descendientes CSS",()=>{
 });
 test("la compatibilidad requiere la misma fuente histórica y no acepta aliases escritos a mano",()=>{
   const scopes=JSON.parse(read("scripts/beta-sources.json")),notes=JSON.parse(read("src/data/release-notes.json")),id="inc-2909-02-inicio-natural",g=notes.flatMap(n=>n.tandas||[]).find(g=>g.id===id);
-  const current=betaRevision(id),compatible=betaCompatible(g,current,scopes[id]);
+  // Gastos84 amplía el contrato del motor: no se fuerza compatibilidad de la fuente cambiada.
+  // El caso equivalente se acredita contra la fuente Git fija que realmente la conserva.
+  const files=new Map(),baseline=f=>{
+    if(!files.has(f)) files.set(f,execFileSync("git",["show","955765a9ec0ad96d20140a8f12da00c9fa04985c:"+f],{encoding:"utf8",maxBuffer:8e6}));
+    return files.get(f);
+  };
+  const current=betaRevision(id,baseline),compatible=betaCompatible(g,current,scopes[id]);
   assert.ok(compatible.codigosCompatibles.length>=1);assert.equal(compatible.compatibilidadGit[0].sha,"955765a9ec0ad96d20140a8f12da00c9fa04985c");
   const saved=structuredClone(compatible);compatible.codigosCompatibles[0]="f".repeat(64);
   assert.deepEqual(betaCompatible(g,current,scopes[id]),saved,"la caché no comparte metadata mutable");
   assert.throws(()=>betaCompatible(g,current,scopes[id],()=>{throw new Error("historia de prueba ausente");}),/historia de prueba ausente/,"un lector personalizado nunca usa la caché Git");
-  const changed=betaRevision(id,f=>read(f).replace('const REC_GRACE=3;','const REC_GRACE=4;'));
+  assert.deepEqual(betaCompatible(g,betaRevision(id),scopes[id]),{},"el contrato nuevo no hereda aprobación por id");
+  const changed=betaRevision(id,f=>baseline(f).replace('const REC_GRACE=3;','const REC_GRACE=4;'));
   assert.deepEqual(betaCompatible(g,changed,scopes[id]),{});
   const injected=[{v:"4.26.99",tandas:[{...g,items:{es:["guion cambiado"]},codigosCompatibles:[current.codigo],compatibilidadSha:"f".repeat(40)}]}];
   assert.equal(betaNotes(injected)[0].tandas[0].codigosCompatibles,undefined);

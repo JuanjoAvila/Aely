@@ -1,3 +1,8 @@
+## [4.26.84] — 2026-10-02 · Gastos comparte el periodo seleccionado
+
+- INC-0210-03: lista, cabecera y categorías usan una misma ventana explícita; el motor admite esa ventana sin duplicar reglas de dinero. Mes natural y Mi ciclo conservan sus magnitudes y filtros exploratorios. Los límites mensuales actuales no se presentan como presupuesto histórico o acumulado: se indica ausencia de registro, sin barras engañosas.
+- Fechas de rango desde medianoche local hasta final del día; ciclo excluye apuntes futuros. Pruebas sintéticas de motor y DOM es/en/ca registradas. Candidata separable sobre3467bbd4, sin publicación ni aceptación móvil. APK/servidor intactos. Las huellas alcanzadas por el cambio real del motor se recalculan sin repinar referencias. [Acta](docs/briefs/inc-0210-03-gastos-periodo.md).
+
 ## [4.26.82] — 2026-10-01 · Conservar la checklist actual en una ronda mixta
 
 - La revisión independiente de450 detectó que, sin versión de producción, una ronda moderna ocultaba los puntos implícitos de la versión actual. betaChecklist une ambas fuentes sin duplicar la cabeza moderna ni reincorporar notas con tandas:[]; las identidades y recibos siguen gobernando aprobaciones y entrega.

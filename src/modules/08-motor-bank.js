@@ -1225,8 +1225,9 @@ function budgetPeriodOf(state, nowMs){
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
    que pinta la cabecera de Gastos (balance en el ciclo; gasto bruto o balance según gTotalMode en el mes). */
-function monthBudgetStats(state, nowMs, hastaMs, budgetMode){
-  const period=budgetPeriodOf(state,nowMs);
+function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
+  // Gastos puede explorar otras fechas; los lectores sin ventana explícita conservan su contrato.
+  const period=selectedPeriod||budgetPeriodOf(state,nowMs);
   const startMs=period.startMs;
   // `hastaMs` acota un informe cerrado; solo el ciclo actual termina mañana para que un
   // apunte futuro no gaste hoy. El mes natural conserva la misma cifra que el widget.
@@ -1283,8 +1284,8 @@ function dashboardBudgetStats(state){
    cuadrar al céntimo con la cabecera. Neutras fuera. Un límite huérfano (id que ya no está
    en CAT) no se enseña ni suma. Sin gastos pero con límite → fila a 0, para que no parezca
    que se ha borrado el tope. */
-function categorySpentByMonth(state, nowMs, hastaMs){
-  const period=budgetPeriodOf(state,nowMs);
+function categorySpentByMonth(state, nowMs, hastaMs, selectedPeriod){
+  const period=selectedPeriod||budgetPeriodOf(state,nowMs);
   const startMs=period.startMs;
   const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : period.todayEndMs;
   const byCat={};

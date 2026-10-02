@@ -126,7 +126,11 @@ const PRESUPUESTO = {
   // Persistencia81: A/B real sellado contra955, mismo minificador/host:
   // 1.289.951/350.970 B →1.292.888/351.900 B (+2.937/+930).
   // Mínimos1263/344 KiB: márgenes424/356 B; sujeto a revisión de candidata.
-  minificado: 1263 * 1024,
+  // INC-0210-03: ventana compartida y presupuesto histórico indeterminado, sin duplicar motor.
+  // A/B sellado82.99→84.99: 1.292.833/351.893→1.294.456/352.299 B (+1.623/+406).
+  // Mínimos +2/+1 KiB autorizados por coordinador; quedan904/981 B y3 bloqueantes iguales.
+  // La integración conjunta exige su A/B propio; no acumular topes por arrastre.
+  minificado: 1265 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -134,7 +138,7 @@ const PRESUPUESTO = {
   // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
   // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
   // La misma candidata mide 343.257 B gzip, 217 B sobre 335 KiB: +1 KiB medido.
-  gzip: 344 * 1024,
+  gzip: 345 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
