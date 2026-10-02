@@ -261,7 +261,33 @@ public class WidgetSnapshotArbiterTest {
     ok(monthUnknown.unknownPending); // cambiar de periodo tampoco demuestra cobertura del saldo
     ok(WidgetSnapshotArbiter.app(monthUnknown,oct,0,100,100.0,200.0,200.0,"trade_republic","Cuenta","","|old-key|"));
     ok(!monthUnknown.unknownPending);
+    // INC-0210-04: el aviso observado bajo Mi ciclo puede ser una protección deliberada.
+    // Una respuesta mensual/legacy no acredita el neto del ciclo, aunque el día 1 ya haya pasado.
+    WidgetSnapshotArbiter.State intermittent=base(cobro,"trade_republic");
+    ok(!WidgetPeriod.stale(2,"ciclo",cobro,oct3));
+    ok(!WidgetPeriod.acceptServer(2,"ciclo",cobro,0,"",oct,oct3));
+    double lastSpent=intermittent.spent, lastCash=intermittent.cash();
+    ok(WidgetSnapshotArbiter.pendingUnknown(intermittent,"tr:fictional-pay","fictional-row"));
+    ok(intermittent.unknownPending); eq(intermittent.spent,lastSpent); eq(intermittent.cash(),lastCash);
+    ok(intermittent.unknownJournal.contains("tr:fictional-pay\\tfictional-row\\n"));
+    String once=intermittent.unknownJournal;
+    ok(WidgetSnapshotArbiter.pendingUnknown(intermittent,"tr:fictional-pay","fictional-row"));
+    ok(intermittent.unknownJournal.equals(once)); // reintentar no duplica la identidad
+    ok(WidgetPeriod.labels(2,"es","ciclo","neto")[WidgetPeriod.ABRE_APP].equals("Abre la app para actualizar"));
+    ok(WidgetSnapshotArbiter.app(intermittent,cobro,40,100,60.0,150.0,200.0,
+        "trade_republic","Cuenta","",""));
+    ok(intermittent.unknownPending); // abrir sin ACK no convierte una cifra vieja en actual
+    ok(WidgetSnapshotArbiter.app(intermittent,cobro,50,100,50.0,140.0,190.0,
+        "trade_republic","Cuenta","|tr:fictional-pay|",""));
+    ok(!intermittent.unknownPending); eq(intermittent.spent,50); eq(intermittent.cash(),190);
+    WidgetSnapshotArbiter.State compatible=base(cobro,"trade_republic");
+    ok(WidgetPeriod.acceptServer(2,"ciclo",cobro,2,"ciclo",cobro,oct3));
+    ok(WidgetPeriod.sameScope("scope-fixture","scope-fixture"));
+    ok(ing(compatible,WidgetSnapshotArbiter.begin(compatible),cobro,cobro,100,
+        "tr:compatible-pay",50,100,50,10,true,true));
+    ok(!compatible.unknownPending); eq(compatible.spent,50);
     System.out.println("  ✓ E2: ciclo que cruza el mes, caducidad a 45 días, servidor viejo sin pisar y textos es/en/ca");
+    System.out.println("  ✓ INC-0210-04: respuesta incompatible conserva foto, oculta cifra hasta ACK y contrato compatible no bloquea");
     System.out.println("  ✓ persistencia con espacios, recuperación segura, entrada dañada y delta desconocido conservados");
     System.out.println("  ✓ orden inverso, reentrada, día/mes, banco, possibleDup y pago con lápidas");
   }
