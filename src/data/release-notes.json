@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.86",
+    "d": "2026-10-02",
+    "t": {
+      "es": "Las categorías que eliges se quedan",
+      "en": "The categories you choose stay put",
+      "ca": "Les categories que tries es mantenen"
+    },
+    "items": {
+      "es": [
+        "Si cambias la categoría de un movimiento, ya no vuelve a la anterior al sincronizar ni al reabrir la app.",
+        "Los siguientes pagos en ese mismo comercio entran con la categoría que elegiste."
+      ],
+      "en": [
+        "When you change a transaction's category, it no longer reverts after syncing or reopening the app.",
+        "Later payments at that same merchant arrive with the category you chose."
+      ],
+      "ca": [
+        "Si canvies la categoria d'un moviment, ja no torna a l'anterior en sincronitzar ni en reobrir l'app.",
+        "Els pagaments següents en aquell mateix comerç entren amb la categoria que vas triar."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0210-02-categoria-elegida",
+        "t": {
+          "es": "La categoría elegida no se deshace",
+          "en": "The chosen category is not undone",
+          "ca": "La categoria triada no es desfà"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, abre un pago con tarjeta que esté en una categoría equivocada y cámbiasela. Cierra la app del todo y vuelve a abrirla: debe seguir en la categoría que elegiste.",
+            "2. Cuando llegue otro pago de ese mismo comercio, debe entrar ya con esa categoría.",
+            "3. Los movimientos de otros comercios, aunque tengan un nombre parecido, no deben cambiar de categoría."
+          ],
+          "en": [
+            "1. In Expenses, open a card payment that is in the wrong category and change it. Fully close the app and reopen it: it should still be in the category you chose.",
+            "2. When another payment from that same merchant arrives, it should come in with that category.",
+            "3. Transactions from other merchants, even with a similar name, should not change category."
+          ],
+          "ca": [
+            "1. A Despeses, obre un pagament amb targeta que estigui en una categoria equivocada i canvia-la. Tanca l'app del tot i torna-la a obrir: ha de continuar en la categoria que vas triar.",
+            "2. Quan arribi un altre pagament d'aquell mateix comerç, ha d'entrar ja amb aquesta categoria.",
+            "3. Els moviments d'altres comerços, encara que tinguin un nom semblant, no han de canviar de categoria."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.82",
     "d": "2026-10-01",
     "t": {

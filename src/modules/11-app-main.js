@@ -437,7 +437,8 @@ function App(){
       set(function(prev){
         // Refrescar una sola vez conserva el guardado partido: no reescribir el histórico
         // por página ni cuando las filas recibidas son iguales a las que ya había.
-        const merged=mergeExpensesFromCloud(prev.expenses, incoming, readStartedAt);
+        const kept=keepCategoryChoices(prev.expenses, incoming, readStartedAt);
+        const merged=mergeExpensesFromCloud(kept.prev, kept.incoming, readStartedAt);
         const next=merged.list;
         const igual=!merged.changed && next.length===(prev.expenses||[]).length
           && next.every(function(e,i){ return e===(prev.expenses||[])[i]; });
@@ -445,9 +446,16 @@ function App(){
         const base=Object.assign({},prev,{expenses: igual?prev.expenses:next, lastSync:Date.now()});
         const rec=reconcileObDupes(fixMovInvasion(base));
         // reconcileObDupes: solo recat (cashback); nunca DELETE automático por similitud.
-        if(rec.recat.length){
+        // kept.recat: su categoría elegida, con la identidad de la fila de la NUBE (el id local
+        // puede ser otro y el UPDATE no tocaría nada).
+        if(rec.recat.length || kept.recat.length){
           setTimeout(function(){
             rec.recat.forEach(function(r){ cloud.setExpenseCat(r.expense, r.cat).catch(function(){}); });
+            kept.recat.forEach(function(r){
+              cloud.setExpenseCat(r.expense, r.cat).then(function(n){
+                if(n>0) set(function(p){ const l=ackCategoryWrite(p.expenses, r.expense, r.cat, Date.now()); return l===p.expenses?p:Object.assign({},p,{expenses:l}); });
+              }).catch(function(){});
+            });
           },0);
         }
         return rec.state;

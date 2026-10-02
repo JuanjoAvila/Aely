@@ -250,6 +250,21 @@ es Europe/Madrid; si cambia sin una lectura nueva, el widget muestra «—» has
 Al convertir `expenses` con `expenseFromRow`, las categorías especiales `ingreso`, `inversion`
 y `traspaso` se conservan aunque no pertenezcan al catálogo ordinario de categorías.
 
+La categoría elegida a mano no la deshace un pull (4.26.86). Antes de mezclar,
+`keepCategoryChoices` mira la procedencia local de la fila: `catStale` son las categorías que
+la tabla puede devolver todavía y `catAckAt` la hora en que `cloud.setExpenseCat` confirmó que
+escribió al menos una fila. Sin confirmación se conserva lo local y se reintenta con el id de la
+fila de la nube. Con confirmación, una lectura empezada después es la verdad, diga lo que diga.
+Ninguno de los dos campos viaja a la nube.
+
+Las equivalencias futuras son `catRules` (en `app_state`): comercio exacto + banco + con o sin
+tarjeta → categoría e instante en que se enseñó; vale para fechas posteriores a ese instante. Solo las aplica el pull, y solo a filas que el
+dispositivo ve por primera vez. `catOverrides` sigue siendo lo que usan las palabras clave al
+importar. Como `app_state` es último-en-escribir-gana, una regla recién creada puede no haber
+llegado a otro dispositivo, o perderse si este sube un estado más viejo: allí la fila entra con la
+categoría del servidor hasta que la tabla reciba la corrección. El servidor sigue categorizando
+por palabra clave.
+
 ```
 [Notificación TR en Android]
         │  Lector nativo Aely
