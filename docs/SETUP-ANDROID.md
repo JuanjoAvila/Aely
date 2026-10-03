@@ -1,3 +1,5 @@
+Promoción3/10: fuente web aprobada86/49a preparada sobre main12884; APK estable32/code48 y workflow Supabase manual conservados. Java/TS son fuente, no entrega APK/Edge. CI/publicación pendiente; no inventar recibos nativos. [Acta](briefs/promocion-web-aprobadas-2026-10-03.md). Extras humanos pendientes en [inventario](briefs/inc-0310-extras-sincronizacion-asistente-gastos.md).
+
 # App nativa Android (Capacitor) — reemplazo de MacroDroid
 
 Objetivo: empaquetar la PWA como app Android y añadir un **servicio nativo** que lee la
@@ -187,6 +189,16 @@ la misma compra de forma distinta. La identidad se forma con origen, paquete, cl
 y debe publicarse solo después de aplicar la migración 0025 y desplegar la Edge `ingest`; de otro
 modo el móvil conserva la deduplicación anterior aunque reciba la OTA.
 
+FIN-05 añade arbitraje de los dos escritores del widget en Java. Cada POST reserva un ticket;
+`ingest` devuelve el mes, el instante de lectura y la contribución del evento. Un snapshot de
+la app acompaña su snapshot con los IDs vistos y las lápidas; el nativo reaplica los eventos
+que aún no han llegado al pull y retira los ya cubiertos o borrados. Una respuesta pendiente
+añade su contribución sin imponer un total antiguo. El saldo de TR
+resta cada evento confirmado una vez, incluso si es una inversión que no gasta presupuesto.
+La liquidez segura distingue lo ya planificado de la caída real del saldo. Este contrato requiere **APK
+nueva**: una OTA no cambia `MiCarteraWidget` ni `TrExpenseListener`. Si falla la lectura mensual,
+el gasto queda guardado pero el widget conserva el último dato conocido hasta el siguiente pull.
+
 ## 7. Distribuir (para que la usen otros)
 
 - En Android Studio: **Build → Generate Signed Bundle / APK** → crea un keystore (guárdalo bien) → genera el APK firmado.
@@ -252,3 +264,15 @@ en el Kotlin. Para que cada persona reciba SUS gastos:
 - `ingest` pasaría a `verify_jwt = true` y derivaría el `user_id` del token, en vez de usar `INGEST_USER_ID`.
 
 Lo montamos cuando llegue ese momento; para ti solo (single user) lo de ahora vale.
+
+### Banco del widget (4.26.50)
+
+Ajustes → Banco del widget elige `settings.widgetBank` (entidad bancaria), sin modificar roles ni `expenseBanks`. El envío existente usa el saldo agregado y liquidez mínima de ese banco; si ya no existe, vuelve a la cuenta diaria. No cambia Java ni requiere otra APK sobre 4.26.49/code 50. Con varias cuentas del mismo banco, el selector muestra una opción y suma las cuentas del estado principal, como el cálculo bancario actual.
+
+### Recuperación del registro del widget (4.26.55, APK51)
+
+El registro nativo se escribe sin salto final y tolera indentación XML al releerse. La foto de la app reevalúa un bloqueo previo, conserva eventos aún no confirmados y sus deltas; las entradas dañadas o contribuciones desconocidas no se descartan. Actualizar el APK es obligatorio: la OTA4.26.54.1 corrige presupuesto pero no este parser Java. APK51 instalada en el móvil de pruebas; widget recuperado y Gastado/Disponible estables al reabrir; saldo entre fotos y pago real pendientes. No borrar preferencias para forzar una cifra.
+
+### Widget80 / APK52: preasset real, entrega final pendiente
+
+Runtime821 sobre79, gradle52/versionName4.26.80; widgetContract2, cifra/periodo de Inicio en es/en/ca, scope exacto y unknownJournal hasta ACK/lápida. Prebuild26a verificado y asset beta602841368 descargado/cotejado; public/apk.json52 local apunta a URL real. Exige CI/build final del SHA con52 y reemplazo/cotejo binario antes de entregar. APK78 histórica no acredita80. No editar ingest ni instalar. [Plan](briefs/inc-2909-01-apk-beta-plan.md).

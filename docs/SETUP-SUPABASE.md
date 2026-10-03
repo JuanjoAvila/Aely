@@ -1,4 +1,12 @@
+Promoción3/10: fuente web aprobada86/49a preparada sobre main12884; APK estable32/code48 y workflow Supabase manual conservados. Java/TS son fuente, no entrega APK/Edge. CI/publicación pendiente; no inventar recibos nativos. [Acta](briefs/promocion-web-aprobadas-2026-10-03.md). Extras humanos pendientes en [inventario](briefs/inc-0310-extras-sincronizacion-asistente-gastos.md).
+
 # Setup Supabase — Fase 1 (Aely)
+
+FEATURE-0210-01: ingest_logic y ALLOWED/HINTS de categorize incorporan Gasolina/Taxi solo en fuente de la candidata85. No se ha desplegado ninguna función ni se ha consultado el hash/BD de Supabase vivo; el clasificador anterior puede seguir dando Transporte hasta un gate de despliegue específico. El catálogo/selector/filtros/límites y altas manuales/MCC web funcionan sin despliegue; las notificaciones clasificadas por el servidor anterior aún pueden entrar como Transporte. La migración0001 define expenses.cat como text sin whitelist y las migraciones registradas no la restringen; no requiere SQL nueva. Tests sintéticos ejecutan alta cloud/pull con ambos IDs, presupuesto.ts del SHA3467 y retry/ACK/conflicto de ingest con clasificador de ese baseline: preservan elección manual y cuentan categorías diarias. Esto prueba fuente/contratos, no estado vivo ni captura Wallet nueva.
+
+## bank-sync desplegado para beta 4.26.53.1: concepto y MCC opcionales
+
+El cambio en `_shared/enablebanking.ts` añade concept separado de la descripción bancaria y MCC opcional normalizado; mantiene signo, identidad, merchant, note y contrato anterior. Lo consume bank-sync en diario e histórico. No exige migraciones, secretos, nuevas llamadas al proveedor ni cambios en ingest. Desplegado con autorización explícita el 26/9/2026: únicamente bank-sync, migraciones=no, [Action 36271682736](https://github.com/JuanjoAvila/Aely/actions/runs/36271682736), SHA 7839acb769fb9175434a1b652be3917faab02261. La etapa de migraciones fue omitida; el log confirma solo bank-sync. Servicio compartido con producción, cliente publicado solo en beta. El despliegue previo comprobado fue Action 35978144828, SHA f53e865277f676998d76844fd047357f4adc1569. Comparados bank-sync, enablebanking y cors (sus imports locales) contra ese SHA, solo cambia la adición de estos campos. Rollback por ese SHA. No usar despliegue general. Cliente antiguo ignora los campos; cliente nuevo conserva la clasificación previa sin ellos. No se promete que TR real entregue datos útiles.
 
 ## Bank-sync 4.25.0: desplegado y comprobado
 
@@ -159,6 +167,16 @@ El proyecto Supabase es compartido: `beta` no tiene una Edge separada. Por eso u
 lanzar expresamente `supabase.yml` con autorización. No se debe presentar una prueba móvil de servidor como activa
 antes de ese despliegue.
 
+FIN-05 amplía la respuesta mensual de `ingest` con `periodStart` (inicio del mes en
+Europe/Madrid), `readAt` (instante anterior al SELECT), `eventKey` (identidad persistida),
+`shownDelta`/`againstDelta` (contribución de esa fila), `expenseKey` (clave de lápida),
+`counts` (presupuesto) y `cashCounts`
+(efectivo de TR). Si el SELECT falla, `month` es `null`: una compra confirmada no autoriza
+fabricar un total cero. El 26/9 se desplegó expresamente solo `ingest` desde `beta` en
+`be59e27c` ([Action 36196554737](https://github.com/JuanjoAvila/Aely/actions/runs/36196554737));
+no se ejecutaron migraciones nuevas. Aún falta verificar por separado la revisión activa que
+responde y probar el circuito completo con la APK nueva en el móvil.
+
 ## Paso 6 — Repuntar MacroDroid (cuando esté probado) 👤
 
 Cambia la URL del POST de MacroDroid del Apps Script a:
@@ -187,8 +205,18 @@ Mantén el Apps Script activo hasta confirmar que entran gastos por Supabase; lu
 
 FIN-06 (4.26.51): `_shared/wallet.ts` preparado con 30 ISO y paridad de céntimos/legacy USD con cliente. Sin cambio sigue devolviendo null; ingest no guarda euros inventados. El cambio del servidor está probado en repo pero NO desplegado al backend compartido: cualquier deploy de ingest requiere autorización específica. No hay migración de esquema ni de movimientos.
 
+## Identidad autorizada para `npm run listo`
+
+El CLI de revisión utiliza la configuración existente de Dev en `profiles` (`user_id`, `is_admin`), creada por `0016_profiles_and_privacy.sql`. Con la clave service role de `.env.local` lee únicamente esos campos de los perfiles administradores y exige una sola identidad con total exacto acreditado. Después consulta `app_events` con `user_id` igual a esa identidad; no basta con coincidir por tanda o huella.
+
+Si falta el perfil, hay varios administradores, el formato/total es inválido o la consulta falla, el CLI sale con código 2 y veredictos indeterminados. No elige una cuenta por defecto, no utiliza correos como selector y no copia identidades al repo. La configuración real sigue pendiente de verificación donde se disponga de la clave; esta corrección no crea perfiles, cambia roles, aplica SQL ni despliega funciones.
+
 ## SEC-03 · logs (propuesta sin desplegar)
 
 Cambios locales en bank-sync, bank-callback, ingest y _shared/ratelimit minimizan campos libres antes de app_events/consola. No se han aplicado al servidor ni se han consultado tablas/logs reales. La [matriz SEC-03](briefs/sec03-privacidad-logs.md) distingue mocks, fuente local y evidencia viva pendiente; un despliegue por función y el logging de plataforma son etapas independientes. No requiere migración ni cambio de RLS.
 
 No desplegar ingest de la rama SEC-03 sin portar su delta de logger sobre la fuente activa revalidada: Claude informó una diferencia main/ingest49 (FIN-05/Wallet). La matriz registra este límite; SEC-03 no reemplaza funciones activas ni valida ese inventario con tablas/logs reales.
+
+### Widget80 conserva ingest
+
+No Edge/SQL desplegada ni modificada por el injerto. Ingest activo sigue legado; v2 oculta cifras sin evidencia compatible y pide abrir la app. DeltaPR87 sigue separado y NO-GO. Un backend futuro exige su autorización y guion real propio. [Acta](briefs/inc-2909-01-widget.md).

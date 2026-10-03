@@ -1,7 +1,21 @@
 # Roadmap — Aely
 
-> Estado a 2026-09-30 · **v4.26.67** candidata selectiva de INC-2709-02 aprobada: confirmar la liquidación y archivar una deuda sin perder cuotas. [Acta](briefs/inc-2709-02-prod.md). Producción servida **4.26.66** hasta verificar la candidata; beta **4.26.70.1** mantiene las demás tandas, incluida APK51. APK estable **4.26.32/code 48**.
-> Corte anterior verificado (27/9,19:41 UTC): **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conserva FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](briefs/ops02-restauracion-probada.md).
+> Estado a 2026-10-03 · **v4.26.86** candidata de producción web aprobada desde beta86/49a, sobre main12884. APK estable32/code48; sin despliegue Edge ni nuevaAPK. CI/publicación reales pendientes. [Acta](briefs/promocion-web-aprobadas-2026-10-03.md).
+
+> Snapshot anterior · **v4.26.85** conjunta: Plan reconoce cuotas vinculadas contabilizadas, Gastos comparte fechas entre lista/resumen/categorías y Gasolina/Taxi se pueden elegir por separado. Base3467bbd4; integración local sin publicar, CI/revisión/móvil pendientes. [Plan](briefs/inc-0210-01-plan-cuota.md) · [Gastos](briefs/inc-0210-03-gastos-periodo.md).
+
+> Snapshot anterior · **v4.26.82** candidata: decisiones y progreso por huella, alcance por unidades y equivalencias históricas auditadas. Base beta80/source955765a9; APK80/code52 conservada. Revisión, CI exacta y entrega pendientes. [Acta](briefs/ops-0110-validaciones-persistentes.md).
+
+> Snapshot anterior de preparación · **v4.26.80** candidata sobre79/d45fb8b1 con guiones intactos. Prebuild52 verificado, asset beta real descargado/cotejado y manifiesto52 local. CI exacta, build final con52 y entrega80 pendientes. [Acta](briefs/inc-2909-01-widget.md).
+
+> Estado a 2026-10-01 · **v4.26.79** candidata de Retirada sobre Nómina78 eaf55e4a, conserva Panel76/UI77. Entrega prevista junto a Nómina y Widget en beta80; CI exacta, publicación y prueba móvil pendientes. [Acta](briefs/inc-2909-03-retirada-caixa.md).
+
+> Estado a 2026-10-01 · **v4.26.78** candidata: guardia de nómina sobre UI77 finalca7734fd, conserva Panel76 y las tres tandas UI77. Cuatro fixtures DOM4/4 y guardianes afectados verdes; CI exacta, publicación y prueba móvil pendientes. [Acta](briefs/inc-3009-nomina-anticipada.md).
+> Estado a 2026-10-01 · **v4.26.77** candidata: tres tandas de pantalla (Cyberpunk, Preguntar, Perfil) con guiones independientes es/en/ca y alcances separados, sobre la fuente del panel76. Sin publicación hasta CI exacta y gate del coordinador. [Acta](briefs/ui-77-integracion.md).
+> Anterior · **v4.26.76** corrección local del panel: entrega exacta independiente del número de versión, deduplicación antes de retirar y motivos visibles por tanda. Beta publicada **4.26.75.1**/ca7b97d4; producción **4.26.67**, APK48 estable/APK51 beta. CI exacta, publicación76 y prueba móvil pendientes. [Auditoría](briefs/ops-0110-panel-entrega.md).
+> Inicio73 publicado y cotejado a20:55UTC, CI completa SUCCESS y prueba móvil pendiente. [Acta conservada](briefs/inc-2909-02-inicio-natural.md).
+> Anterior: **v4.26.68** — ayuda plegable de Mi ciclo en beta, pendiente de prueba móvil.
+> Corte anterior verificado (27/9,19:41 UTC): **v4.26.56** OPS-02 aprobado y publicado exclusivamente en producción; merge `426131959a75e5af8923009646caf20fd5b8e430`, idéntico a la candidata revisada `e91debd8`. Promote [36343752892](https://github.com/JuanjoAvila/Aely/actions/runs/36343752892), Pages [36344438830](https://github.com/JuanjoAvila/Aely/actions/runs/36344438830); HTTP/ZIP/HTML/SW cotejados el 27/9 a las 19:41 UTC. Beta 4.26.56.1 conservaba FIN-05, selector y TR pendientes; APK estable 4.26.32/code 48 intacta. [Evidencia](briefs/ops02-restauracion-probada.md).
 > Cierre del día: [backlog completo y14 incidencias](BACKLOG.md#cierre-del-día--27-de-septiembre-de-2026), con crash de cuotas, coherencia Inicio/Gastos/nómina y cargos CaixaBank como primeras prioridades. Ninguna se implementa en este cierre.
 > OPS-01 C: control manual de una función, sin despliegue global y SQL opt-in; entrega de tooling aislada desde main. Estado exacto, pruebas y revisión en [brief C](briefs/ops01-control-2026-09-27.md). A ingest49 quedó activado y cotejado; FIN-06/Wallet aún requiere pago real. B categorize está autorizado pero bloqueado403 por permiso del token; FIN-05, selector y compra TR siguen pendientes.
 > Publicación: el promote sigue el deploy de su commit y coteja el sello de Pages antes de cerrar; la suite lenta de 4.26.47 ya no se confunde con un fallo.
@@ -235,11 +249,10 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.67** candidata selectiva de Deudas; producción servida **4.26.66** y beta **4.26.70.1** al prepararla. [Manifiesto](https://juanjoavila.github.io/Aely/version.json). |
-| Beta web / OTA | **4.26.70.1** publicada desde `9b0cc935`: Deudas aprobada, INC-2709-01, INC-2809-02 y cinco tandas nativas conservan su prueba propia. [Action 36624037785](https://github.com/JuanjoAvila/Aely/actions/runs/36624037785). |
-| APK (`versionName` / `versionCode`) | Estable: **4.26.32 / 48**. La APK **4.26.55 / 51** sigue en beta y requiere entrega propia. |
+| Web / OTA (`VERSION`) | **4.26.86** candidata de producción web, sin publicar aún. |
+| APK (`versionName` / `versionCode`) | **4.26.32 / 48** estable de main conservada byte a byte; esta promoción solo entrega web. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
-| `public/apk.json` | **48** / 4.26.32 en producción web. |
+| `public/apk.json` | **48 / 4.26.32** estable conservado; no se ofrece una APK nueva. |
 
 ## Pendiente / limitaciones conocidas
 

@@ -30,6 +30,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 /** Tocar uno de estos = suite e2e entera. Son el suelo compartido: un cambio aquí no se puede
  *  acotar a una pantalla sin mentir. */
 export const CORE = [
+  "scripts/beta-source-code.mjs", "scripts/beta-revisions.mjs", "scripts/beta-sources.json", "scripts/build-app.mjs", "scripts/load-pure-logic.mjs",
   "src/modules/00-core.js",
   "src/modules/01-i18n.js",
   "src/modules/02-ui-shared.js",
@@ -48,15 +49,21 @@ export const CORE = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
-  {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs"]},
+  {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/help-assistant.spec.mjs",
+    "e2e/plan-cuota-contabilizada.spec.mjs",
+    "e2e/inicio-cargos.spec.mjs",
     "e2e/pulido-vacios.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs",
-    "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs"] },
+    "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs", "e2e/inicio-mes-natural.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: [
+    "e2e/inicio-cargos.spec.mjs",
+    "e2e/retirada-bancaria.spec.mjs",
     "e2e/gastos-cajones.spec.mjs", "e2e/gastos-concepto.spec.mjs", "e2e/apuntar-sheet.spec.mjs",
+    "e2e/categoria-elegida.spec.mjs",
     "e2e/gastos-diario-filtro.spec.mjs", "e2e/gastos-cabecera-bancos.spec.mjs", "e2e/gastos-orden.spec.mjs",
-    "e2e/gastos-categorias-presupuesto.spec.mjs", "e2e/gastos-suelta-filas.spec.mjs",
+    "e2e/gastos-categorias-presupuesto.spec.mjs", "e2e/gastos-periodo-categorias.spec.mjs", "e2e/gastos-suelta-filas.spec.mjs",
     "e2e/gastos-deudas.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/presupuesto-fluido.spec.mjs",
+    "e2e/gastos-ayuda-ciclo.spec.mjs",
   ] },
   { file: "src/modules/05-dialogs-inv.js", specs: [
     "e2e/help-assistant.spec.mjs",
@@ -67,6 +74,7 @@ export const E2E_MAP = [
     "e2e/tr-aviso.spec.mjs",
   ] },
   { file: "src/modules/08-motor-bank.js", specs: [
+    "e2e/nomina-anticipada.spec.mjs",
     "e2e/help-assistant.spec.mjs",
     "e2e/hist-pagos-mensuales.spec.mjs", "e2e/bancos-historico-filtro.spec.mjs",
     "e2e/bancos-quitar-pending.spec.mjs", "e2e/gastos-deudas.spec.mjs",
@@ -74,6 +82,7 @@ export const E2E_MAP = [
     "e2e/plan-cover.spec.mjs",
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
+    "e2e/plan-cuota-contabilizada.spec.mjs",
     "e2e/listas-render.spec.mjs", "e2e/bancos-acordeon.spec.mjs", "e2e/bancos-reconnect.spec.mjs",
     "e2e/bancos-historico-filtro.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs",
     "e2e/bancos-lista-fresca.spec.mjs",
@@ -92,7 +101,7 @@ export const E2E_MAP = [
     "e2e/inicio-offline.spec.mjs",
     "e2e/modo-inicial.spec.mjs", "e2e/sin-candados.spec.mjs",
     "e2e/profile-anim.spec.mjs", "e2e/perfil-simetria.spec.mjs", "e2e/delete-account.spec.mjs",
-    "e2e/revisar-beta.spec.mjs", "e2e/beta-panel-reopen.spec.mjs", "e2e/ajustes-versiones.spec.mjs", "e2e/ajustes-importaciones.spec.mjs",
+    "e2e/revisar-beta.spec.mjs", "e2e/beta-panel-reopen.spec.mjs", "e2e/ajustes-versiones.spec.mjs", "e2e/widget-banco.spec.mjs", "e2e/ajustes-importaciones.spec.mjs",
     "e2e/tour-tutorial.spec.mjs", "e2e/modo-pruebas.spec.mjs", "e2e/tr-aviso.spec.mjs",
     "e2e/presupuesto-bancos.spec.mjs", "e2e/quitar-banco.spec.mjs",
     "e2e/bancos-quitar-pending.spec.mjs",
@@ -103,12 +112,13 @@ export const E2E_MAP = [
   { file: "src/modules/12-boot.js", specs: ["e2e/splash.spec.mjs", "e2e/smoke.spec.mjs", "e2e/csp.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: [
+    "e2e/inicio-cargos.spec.mjs",
     "e2e/help-assistant.spec.mjs",
     "e2e/pulido-apuntar.spec.mjs", "e2e/pulido-numpad.spec.mjs",
     "e2e/apuntar-sheet.spec.mjs", "e2e/apuntar-sugerencia.spec.mjs", "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/cartera-orden-hogar.spec.mjs",
     "e2e/efectivo-apuntar.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/plan-gestionar.spec.mjs",
-    "e2e/plan-cover.spec.mjs",
+    "e2e/plan-cover.spec.mjs", "e2e/perfil-filas-vacias.spec.mjs",
   ] },
   { file: "src/modules/15-import-hoja.js", specs: ["e2e/import-hoja.spec.mjs", "e2e/import-docx-pdf.spec.mjs"] },
 ];
@@ -116,6 +126,8 @@ export const E2E_MAP = [
 /** Specs que no son de una pantalla: persistencia, swipes, frames. Si se toca CUALQUIER
  *  módulo de src (no el núcleo: ese ya dispara todo), van con el recorte. */
 export const CROSSCUTTING = [
+  "e2e/bank-merchant-category.spec.mjs",
+  "e2e/gasolina-taxi.spec.mjs",
   "e2e/divisas-sin-cambio.spec.mjs",
   "e2e/fixtures-news.spec.mjs",
   "e2e/persistencia.spec.mjs",
@@ -128,6 +140,8 @@ export const CROSSCUTTING = [
   /* Temas y temáticas (UX-07) son CSS global de `shell.html` y selección en Ajustes:
      cualquier pestaña puede romper su contraste, no una pantalla concreta. */
   "e2e/apariencia-temas.spec.mjs",
+  // INC-2709-12: el + de Cyberpunk por encima de la corriente de la barra, en todas las pestañas.
+  "e2e/cyber-fab.spec.mjs",
   "e2e/rebote-barra-inferior.spec.mjs",
   /* Hermano del de arriba, y hace falta que sean DOS. Aquél mueve el scroll con `scrollTop` por
      JS, que es el camino que nunca se rompió: se quedó verde mientras ella no se escondía con el
@@ -150,9 +164,9 @@ export const CROSSCUTTING = [
 ];
 
 const STEPS_DOCS = ["guard-privacy", "docs-frescura", "memoria-espejo"];
-const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente", "ingest-identity", "ingest-handler"];
+const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente", "widget-arbitraje", "ingest-identity", "ingest-handler"];
 const STEPS_SUPABASE = [
-  "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente",
+  "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente", "widget-arbitraje",
   "month-window", "wallet-notis", "ingest-classify", "ingest-identity", "ingest-handler", "divisa-original", "presupuesto-rendimiento",
   "grants-migraciones", "entrada-edge", "bank-sync-paging", "tr-open-banking",
 ];

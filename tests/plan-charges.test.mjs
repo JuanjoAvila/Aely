@@ -135,8 +135,9 @@ console.log("plan-charges");
 
 {
   const p = c.planChargesMonth(base(), 9, 2026, 30);
-  assert.equal(p.pendingBills.length, 0);
-  assert.equal(p.paidBills.length, 3);
+  assert.equal(p.pendingBills.length, 1,"un fijo vencido sin evidencia bancaria no se presenta como pagado");
+  assert.equal(p.pendingBills[0].overdue,true);
+  assert.equal(p.paidBills.length, 2,"cuotas y puntuales conservan su proyección fuera de INC-3009-01");
   assert.equal(p.transfersPending.length, 0);
 }
 

@@ -9,7 +9,9 @@
  * deslizar recorre las cuatro pestañas y que la que entra acaba con contenido REAL, que es
  * render puro y por tanto justo lo que `npm test` no ve (§8 de AGENTS.md). */
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
+
+test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 
 /** El splash (#mc-load) es hermano de #root y tapa la pantalla entera: `.botnav` puede estar ya
  *  en el DOM con el splash todavía encima, y entonces el toque no llega ni a `.viewport`. */
@@ -103,8 +105,8 @@ test("la pestaña que entra se pinta de verdad, no llega en blanco", async ({ pa
   // Con datos, para que lo que se pinta sea una lista derivada del estado y no un hueco vacío.
   await seedLoggedInDashboard(page, {
     expenses: [
-      { id: "m1", date: new Date().toISOString(), amount: 12.5, merchant: "Mercadona", category: "super", source: "manual" },
-      { id: "m2", date: new Date().toISOString(), amount: 3.2, merchant: "Bar Paco", category: "bares", source: "manual" },
+      { id: "m1", date: new Date(FIXTURE_NOW).toISOString(), amount: 12.5, merchant: "Mercadona", category: "super", source: "manual" },
+      { id: "m2", date: new Date(FIXTURE_NOW).toISOString(), amount: 3.2, merchant: "Bar Paco", category: "bares", source: "manual" },
     ],
   });
   await page.goto("/");
@@ -184,7 +186,7 @@ test("al deslizar, la barra deja de desenfocar; al parar, vuelve", async ({ page
 test("un gesto que el navegador cancela no deja la app bloqueada", async ({ page }) => {
   await seedLoggedInDashboard(page, {
     expenses: Array.from({ length: 40 }, (_, i) => ({
-      id: "m" + i, date: new Date(Date.now() - i * 36e5).toISOString(),
+      id: "m" + i, date: new Date(FIXTURE_NOW - i * 36e5).toISOString(),
       amount: 5 + i, merchant: "Comercio " + i, category: "super", source: "manual",
     })),
   });

@@ -18,6 +18,7 @@
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import {execFileSync} from "node:child_process";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
 const cli = loadPureLogicFromFile();
@@ -35,6 +36,15 @@ function t(name, fn) {
 }
 
 console.log("beta-tandas-vacias");
+
+function entregasHasta(version, apk) {
+  cli.window._mcProdEntregas={web:{},edge:{}};
+  cli.window._mcProdApkRevisiones={};
+  for(const n of cli.RELEASE_NOTES) if(!cli.mcIsNewer(n.v,version)) for(const g of n.tandas||[]) {
+    cli.window._mcProdEntregas.web[g.id]=g.web;
+    if(apk>=g.apk) { cli.window._mcProdEntregas.edge[g.id]=g.edge; cli.window._mcProdApkRevisiones[g.id]=g.native; }
+  }
+}
 
 t("array VACÍO → cero tandas (la aprobada no vuelve)", () => {
   const notas = { v: "9.9.9", t: { es: "X" }, tandas: [], items: { es: ["punto suelto"] } };
@@ -60,10 +70,59 @@ t("con tandas declaradas, salen esas y ninguna «todo»", () => {
   assert.equal(out[0].id, "una");
 });
 
-t("★ producción al día → cero tandas, sin fallback a versiones antiguas", () => {
-  const pack = cli.betaChecklist(VERSION_ACTUAL, VERSION_ACTUAL);
+t("★ producción al día (web y APK) → cero tandas, sin fallback a versiones antiguas", () => {
+  entregasHasta(VERSION_ACTUAL,9999);
+  const pack = cli.betaChecklist(VERSION_ACTUAL, VERSION_ACTUAL, 9999);
   assert.equal(pack.tandas.length, 0);
   assert.equal(pack.items.length, 0);
+});
+
+// 30/9: la web al día no entrega lo nativo; solo quedan las tandas con `apk` sin APK estable.
+t("★ web al día con APK estable atrasada → solo quedan las tandas nativas", () => {
+  entregasHasta(VERSION_ACTUAL,48);
+  const pack = cli.betaChecklist(VERSION_ACTUAL, VERSION_ACTUAL, 48);
+  assert.ok(pack.tandas.every((g) => g.apk > 48), "ninguna tanda web vuelve al panel");
+});
+
+t("★ al subir solo Deudas, el panel conserva las siete pruebas pendientes", () => {
+  cli.window._mcProdEntregas=null; cli.window._mcProdApkRevisiones=null;
+  const pack = cli.betaChecklist("4.26.70.2", "4.26.67",48);
+  const ids = Array.from(pack.tandas, (g) => String(g.id).split("/").at(-1));
+  assert.deepEqual(ids.sort(), [
+    "inc-2709-01-arranque-red", "inc-2809-02-ayuda-ciclo", "fin05-widget-reentrada",
+    "fin05-pago-cerrada", "tr-descripcion-clasificacion", "widget-banco", "widget-app-cerrada",
+  ].sort());
+  assert.equal(ids.includes("inc-2709-02-deudas-archivo"), false);
+});
+
+t("★ guion rechazado de gas71 trasladado a74 conserva las siete anteriores", () => {
+  cli.window._mcProdEntregas=null; cli.window._mcProdApkRevisiones=null;
+  const pack=cli.betaChecklist("4.26.71.1", "4.26.67",48);
+  const ids=Array.from(pack.tandas,(g)=>String(g.id).split("/").at(-1));
+  assert.deepEqual(ids.sort(),[
+    "inc-2709-01-arranque-red", "inc-2809-02-ayuda-ciclo", "fin05-widget-reentrada",
+    "fin05-pago-cerrada", "tr-descripcion-clasificacion", "widget-banco", "widget-app-cerrada",
+  ].sort());
+});
+
+t("★ el snapshot80 conserva trece tandas y81 traslada el panel sin perder historia", () => {
+  cli.window._mcProdEntregas=null; cli.window._mcProdApkRevisiones=null;
+  const current=cli.RELEASE_NOTES;
+  try{
+    // La historia se prueba con su fuente fija: el traslado81 no debe reescribir el fixture77.
+    cli.RELEASE_NOTES=JSON.parse(execFileSync("git",["show","955765a9ec0ad96d20140a8f12da00c9fa04985c:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
+    const prior=cli.betaChecklist("4.26.77.1","4.26.67",48),next=cli.betaChecklist("4.26.78.1","4.26.67",48);
+    const ids=pack=>Array.from(pack.tandas,g=>String(g.id).split("/").at(-1));
+    assert.equal(prior.tandas.length,13);
+    assert.deepEqual(ids(next).sort(),ids(prior).concat(["inc-3009-nomina-anticipada"]).sort());
+    assert.equal(next.tandas.filter(g=>String(g.id).endsWith("/inc-3009-nomina-anticipada")).length,1);
+  }finally{cli.RELEASE_NOTES=current;}
+  const panels=cli.betaChecklist(VERSION_ACTUAL,"4.26.67",48).tandas.filter(g=>String(g.id).endsWith("/beta-panel-veredictos"));
+  assert.equal(panels.length,1);
+  assert.ok(panels[0].historial.includes("4.26.76/beta-panel-veredictos"));
+  assert.ok(panels[0].historial.includes("4.26.81/beta-panel-veredictos"));
+  assert.deepEqual(Array.from(cli.RELEASE_NOTES.find(n=>n.v==="4.26.81").tandas),[]);
+  assert.deepEqual(Array.from(cli.RELEASE_NOTES.find(n=>n.v==="4.26.76").tandas),[]);
 });
 
 t("★ una tanda corregida varias veces solo aparece en su versión más nueva", () => {
@@ -167,6 +226,39 @@ t("cada punto del panel dice qué hacer, no solo qué debería pasar", () => {
   });
   assert.equal(flojos.length, 0,
     "estos puntos no van numerados como pasos:\n      " + flojos.join("\n      "));
+});
+
+// Una entrega selectiva acredita código, aunque su nota siga en una versión posterior.
+t("entrega exacta retira una tanda moderna aunque producción tenga un número menor", () => {
+  const c=loadPureLogicFromFile(), g={id:"entregada",t:"Entrega",items:{es:["1. Probar"]},codigo:"c".repeat(64),web:"a".repeat(64)};
+  c.RELEASE_NOTES=[{v:"4.26.75",tandas:[g]}];
+  c.window._mcProdEntregas={web:{entregada:g.web}};
+  assert.equal(c.betaSinEntregar(g,48),false);
+  assert.equal(c.betaChecklist("4.26.75.1","4.26.67",48).tandas.length,0);
+});
+t("la última revisión entregada no resucita otra antigua del mismo id", () => {
+  const c=loadPureLogicFromFile(), g={id:"entregada",t:"Entrega",items:{es:["1. Probar"]},codigo:"c".repeat(64),web:"a".repeat(64)};
+  c.RELEASE_NOTES=[{v:"4.26.75",tandas:[g]},{v:"4.26.68",tandas:[Object.assign({},g,{web:"b".repeat(64)})]}];
+  c.window._mcProdEntregas={web:{entregada:g.web}};
+  assert.equal(c.betaChecklist("4.26.75.1","4.26.67",48).tandas.length,0);
+  c.RELEASE_NOTES.reverse(); c.RELEASE_NOTES[0].v="4.26.75";c.RELEASE_NOTES[1].v="4.26.68";
+  const out=c.betaChecklist("4.26.75.1","4.26.67",48).tandas;
+  assert.equal(out.length,1);assert.equal(out[0].web,"b".repeat(64));
+});
+t("404, APK antigua o Edge sin acreditar conservan la tanda moderna; legacy sigue por versión", () => {
+  const c=loadPureLogicFromFile(), g={id:"entregada",t:"Entrega",items:{es:["1. Probar"]},codigo:"c".repeat(64),web:"a".repeat(64),native:"b".repeat(64),edge:"d".repeat(64),apk:51};
+  c.RELEASE_NOTES=[{v:"4.26.75",tandas:[g]}];
+  c.window._mcProdEntregas=null;
+  assert.equal(c.betaChecklist("4.26.75.1","4.26.67",48).tandas.length,1);
+  c.window._mcProdEntregas={web:{entregada:g.web},edge:{entregada:g.edge}};c.window._mcProdApkRevisiones={entregada:g.native};
+  assert.equal(c.betaChecklist("4.26.75.1","4.26.67",48).tandas.length,1);
+  c.window._mcProdEntregas.edge={};
+  assert.equal(c.betaChecklist("4.26.75.1","4.26.67",51).tandas.length,1);
+  c.window._mcProdEntregas.edge.entregada=g.edge;
+  assert.equal(c.betaChecklist("4.26.75.1","4.26.67",51).tandas.length,0);
+  c.RELEASE_NOTES=[{v:"4.26.75",tandas:[{id:"legacy",t:"Antigua",items:{es:["1. Probar"]}}]}];
+  assert.equal(c.betaChecklist("4.26.75.1","4.26.67",48).tandas.length,1);
+  assert.equal(c.betaChecklist("4.26.75.1","4.26.75",48).tandas.length,0);
 });
 
 console.log(failed ? `\n${failed} fallo(s)` : "\nbeta-tandas-vacias: OK");

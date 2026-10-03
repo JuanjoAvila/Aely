@@ -1,3 +1,20 @@
+// Las suites de listas relativas necesitan el mismo mes en Node y en la página.
+// Las pruebas con reloj explícito omiten este helper mediante la anotación own-clock.
+export const FIXTURE_NOW = Date.parse("2026-09-26T12:00:00Z");
+export async function installFixtureClock(page) {
+  await page.addInitScript((epoch) => {
+    const NativeDate = Date, offset = epoch - NativeDate.now();
+    function FixtureDate(...args) {
+      const values = args.length ? args : [NativeDate.now() + offset];
+      return new.target ? Reflect.construct(NativeDate, values, new.target) : new NativeDate(NativeDate.now() + offset).toString();
+    }
+    Object.setPrototypeOf(FixtureDate, NativeDate);
+    FixtureDate.prototype = NativeDate.prototype;
+    FixtureDate.now = () => NativeDate.now() + offset;
+    window.Date = FixtureDate;
+  }, FIXTURE_NOW);
+}
+
 /** Estado mínimo onboarded + sesión Supabase simulada (sin red).
  *  `overrides` se mezcla sobre el estado base (p.ej. {investments:[...]}) para que cada test
  *  no tenga que repetir el objeto entero. */
@@ -13,6 +30,8 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
     // y se saca antes de mezclarlo para no sembrarlo como si fuera un campo de la cartera.
     const cloudRows = overrides.__cloudRows || {};
     delete overrides.__cloudRows;
+    // Permite que una prueba simule una notificación recibida mientras la app está cerrada.
+    window.__e2eCloudRows = cloudRows;
     // Respuestas de `supabase.functions.invoke(nombre, …)` por nombre de función Edge (p.ej.
     // "bank-sync", que sirve tanto el sync diario como el histórico). Solo datos JSON —nada de
     // funciones— porque `overrides` viaja serializado a `page.addInitScript`. Sin entrada para
@@ -24,6 +43,7 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
     // que tarda o que falla es justo cuando un móvil con el estado viejo repetía movimientos.
     const cloudDelays = overrides.__cloudDelays || {};
     delete overrides.__cloudDelays;
+    window.__e2eCloudDelays = cloudDelays;
     const cloudErrors = overrides.__cloudErrors || {};
     delete overrides.__cloudErrors;
     const sessionDelay = overrides.__sessionDelayMs || 0;
@@ -62,7 +82,7 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
       };
       chain.then = (resolve) => {
         const t = tabla;
-        const delay = cloudDelays[t];
+        const delay = Array.isArray(cloudDelays[t]) ? cloudDelays[t].shift() : cloudDelays[t];
         let data=Array.isArray(cloudRows[t]) ? cloudRows[t].slice() : [];
         if(t==="expenses" && read){
           // FIN-07: el doble debe respetar la consulta o repetiría la primera página sin fin.

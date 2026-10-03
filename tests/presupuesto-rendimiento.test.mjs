@@ -77,20 +77,83 @@ const PRESUPUESTO = {
      25/9 (4.26.47): la hoja de alta de Recibos rearma la ola nativa en cada paso y conserva
      la posición al volver. Medido: 1.223.845 bytes minificados, 165 sobre el tope anterior.
      Se añade solo 1 KB al límite crudo; gzip permanece en 332 KB.
-     26/9 (FIN-06 aprobado): catálogo de 30 divisas, originales/avisos y guardas null.
-     Candidato aislado sobre main, sin FIN-05 ni selector. Medido: 1.228.080 bytes minificados, gzip 333.214 bytes. Se añaden 4 KB
-     solo al crudo (1200 KB); límite gzip 332 KB intacto. */
-  // OPS-02: visor aislado y validación agregan código; se conserva el tope gzip de 332 KB.
-  // SEC-03: frontera de privacidad sobre OPS-02 publicado: 1.243.669 bytes min y 338.534 gzip.
-  // +6 KiB crudos para código necesario (1215 KiB medidos); gzip sigue en 332 KiB, sin margen nuevo.
-  // 28/9: las cuatro tandas web aprobadas añaden ciclo de cobro, conciliación de nómina y
-  // textos en tres idiomas. Candidata aislada sin APK/Edge: 1.251.769 B crudos y 341.039 B
-  // gzip medidos; se amplía 5/2 KiB, dejando menos de 1 KiB libre en cada límite.
-  // INC-2709-02 selectiva: confirmar el saldo, archivar sin borrar cuotas y traducir el
-  // recorrido deja 1.255.759 B minificados, 3.407 B sobre el tope anterior; +4 KiB crudos.
-  // Gzip mide 341.953 B y sigue bajo 334 KiB (63 B de margen), sin ampliar su límite.
-  minificado: 1227 * 1024,
-  gzip: 334 * 1024,
+     25/9 (4.26.49, FIN-05): el guardo de reentrada espera el pull y recalcula el mes al volver.
+     Medido: 1.225.533 bytes minificados, 829 sobre el tope; gzip sigue en 325 KB. Se añade
+     1 KB al crudo para este código de coherencia, sin mover el límite de descarga gzip.
+     26/9 (4.26.50): selector persistente del banco del widget y textos de ayuda. Medido:
+     1.226.948 bytes minificados (1.220 sobre el límite), gzip 325 KB. Se añaden 2 KB
+     solo al crudo para este selector; el límite de descarga gzip permanece intacto.
+     26/9 (4.26.51, FIN-06): catálogo BCE completo y consumidores que conservan originales,
+     excluyen euros desconocidos y marcan totales parciales. Medido: 1.230.055 bytes crudos,
+     +3.107 sobre 4.26.50; gzip 333.795 bytes (326 KB), sin mover su límite de 332 KB.
+     Se añaden solo 3 KB al tope crudo para estos controles y las 14 monedas adicionales. */
+  // TR 4.26.53: concepto separado del código bancario y MCC suman el clasificador seguro.
+  // El candidato anterior medía 1.230.845 B: solo 3 B de margen, insuficiente al sellar versión.
+  // Se añade 1 KB solo al crudo; el límite de descarga gzip permanece en 332 KB.
+  // OPS-02 4.26.56: visor aislado, validador y comparación por UUID/campo; 1.242.123 B
+  // minificados / 337.533 B gzip medidos. +12 KB solo al crudo; descarga sigue en 332 KB.
+  // Quedan ~2 KB crudos para el sellado de beta, sin aflojar el presupuesto del móvil.
+  // SEC-03 sobre beta: +6 KiB crudos para los filtros necesarios, sin ampliar gzip.
+  // INC-2709-05 saldo: marcador, reanclaje y ambigüedad posterior miden 1.251.083 B
+  // crudos, 779 B sobre el límite anterior; gzip 340.797 B permanece bajo 333 KiB.
+  // Se añade 1 KiB solo al crudo para preservar el saldo al actualizar y en otro móvil.
+  // Ciclo 4.26.63: ventana opcional del presupuesto, ajuste reversible y textos en tres
+  // idiomas, más la exclusión de transferencias/Bizum señalada por Claude, miden
+  // 1.254.924 B minificados y 341.990 B gzip, incluyendo la nómina en concepto bancario.
+  // Se añaden 4/1 KiB frente a 4.26.62; quedan 500/26 B de margen medido.
+  // INC-2809-02: resumen del cobro siempre visible, ayuda reversible por perfil y sus textos
+  // miden 1.256.096 B minificados, 672 B sobre el tope; +1 KiB crudo. Gzip mide 342.346 B
+  // y sigue bajo 335 KiB. El incremento evita esconder el ancla del periodo al plegar.
+  // INC-2709-02: confirmar un saldo proyectado, conservar cuotas al archivar y recuperar
+  // la ficha añaden 1.260.159 B minificados, 3.711 B sobre el tope anterior. +5 KiB
+  // deja margen para el sello beta sin recortar los textos de tres idiomas.
+  // Corrección de recibos sobre Inicio73: 1.275.031 B min / 347.850 B gzip medidos.
+  // Vínculo explícito, prueba durable, banco real y textos: +10/4 KiB para ese contrato
+  // y el sello beta; sin nuevas dependencias ni peticiones bloqueantes.
+  // Rekey del editor y bruto real separado de previsión personal: +1 KiB medido,
+  // sin cambiar el calendario ni inferir un coste propio a partir del cargo compartido.
+  // Panel75 sobre Recibos74: 1.278.280 B min y 347.946 B gzip frente a
+  // 1.275.031 / 346.752 B de la base. +3 KiB crudos conserva el historial y
+  // las identidades por superficie; el gzip sigue bajo 340 KiB sin ampliación.
+  // Panel76: motivos por superficie y filtrado selectivo, 1.279.382 / 348.250 B antes del sello.
+  // Excede por406/90 B: +1 KiB mínimo en ambos topes, sin recortar los contratos.
+  // Retirada79 sobre Nómina78 eaf55e4a: +8.519 B minificados y +1.997 B gzip;
+  // sello79.99 mide 1.288.387 / 350.399 B. +9/+2 KiB mínimos conservan ACK,
+  // identidad y conciliación del recibo; quedan 829/833 B sin recortar idiomas.
+  // Widget80 sobre Retirada79: +1.699 B minificados en A/B sin sello (1.290.012 B),
+  // 796 B sobre1259 KiB. +1 KiB mínimo; gzip350.981 B cabe en343 KiB.
+  // Revalidar sello beta y manifiesto52 final sin recortar ACK ni textos.
+  // Persistencia81: A/B real sellado contra955, mismo minificador/host:
+  // 1.289.951/350.970 B →1.292.888/351.900 B (+2.937/+930).
+  // Mínimos1263/344 KiB: márgenes424/356 B; sujeto a revisión de candidata.
+  // INC-0210-01: A/B sellado82.99→83.99 final mide1.292.900/351.909→1.294.831/352.341 B
+  // min/gzip (+1.931/+432 B). Mínimos1265/345 KiB autorizados; no se recortan idiomas
+  // ni el contrato de cuotas. Margen529/939 B tras guardas centesimales y pago final.
+
+  // INC-0210-03: ventana compartida y presupuesto histórico indeterminado, sin duplicar motor.
+  // A/B sellado82.99→84.99: 1.292.833/351.893→1.294.456/352.299 B (+1.623/+406).
+  // Mínimos +2/+1 KiB autorizados por coordinador; quedan904/981 B y3 bloqueantes iguales.
+  // La integración conjunta exige su A/B propio; no acumular topes por arrastre.
+  // Integración Plan83+Gastos84 sellada84.99: 1.296.387 B min / 352.741 B gzip;
+  // +3.554/+848 B frente82.99. Mínimo1267 deja1.021 B; gzip345 conserva539 B.
+  // Integración Plan83+Gastos84+Gasolina85, mismo host y sello85.99: 1.297.889 B min /
+  // 353.265 B gzip; frente84.99 suma1.569/541 B. Catálogo85+84+83 e idiomas intactos.
+  // Mínimo1268 deja543 B; gzip345 dejaría solo15 B, insuficientes para el sello real de
+  // Actions con run más largo. Se decide346 para dejar1.039 B, sin recortar historia.
+  // Integración Categoría86 sobre la beta 85 (cdfb2f2c), mismo host y minificador, sellos
+  // 85.99→86.99: 1.297.925/353.252 B → 1.301.888/354.552 B (+3.963/+1.300). Es el código de la protección
+  // de la categoría elegida (confirmación de escritura y reglas por comercio+banco+tarjeta) y
+  // su nota en tres idiomas; no se recorta historia ni idiomas. Mínimos 1272/347 KiB autorizados
+  // por el coordinador: márgenes 640/776 B con sello; 3 bloqueantes iguales.
+  minificado: 1272 * 1024,
+  // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
+  // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
+  // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
+  // INC-2809-01: la frase que explica gasto neto y disponible en Mi ciclo, con su
+  // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
+  // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
+  // La misma candidata mide 343.257 B gzip, 217 B sobre 335 KiB: +1 KiB medido.
+  gzip: 347 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

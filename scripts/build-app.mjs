@@ -9,6 +9,7 @@
  * y al montar el panel de beta. Así bajar RELEASE_NOTES_MAX no le vacía la checklist.
  */
 import fs from "node:fs";
+import crypto from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -19,6 +20,7 @@ import {
   contarReleaseNotesEnJs,
 } from "./release-notes-max.mjs";
 import { extraerIdiomasDelBundle } from "./i18n-bundle.mjs";
+import { betaNotes, betaDelivery } from "./beta-revisions.mjs";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const order = JSON.parse(fs.readFileSync(path.join(root, "src", "build-order.json"), "utf8"));
@@ -41,7 +43,7 @@ if (dsn) {
   js = js.replace(/SENTRY_DSN:\s*""/, `SENTRY_DSN: ${JSON.stringify(dsn)}`);
 }
 
-const allNotes = leerReleaseNotesJson();
+const allNotes = betaNotes(leerReleaseNotesJson());
 const rnMax = leerReleaseNotesMax(js);
 /* El pack del index va VACÍO a propósito: con la ronda 4.19.x entera en slim el gzip
    seguía a 322 KB (>320). El histórico completo baja aparte (release-notes.json) y la
@@ -51,7 +53,12 @@ js = inyectarReleaseNotesEnJs(js, packed);
 console.log(`  · RELEASE_NOTES: ${allNotes.length} en JSON · ${contarReleaseNotesEnJs(js)} en index (max UI ${rnMax})`);
 
 const pubNotes = path.join(root, "public", "release-notes.json");
-fs.writeFileSync(pubNotes, JSON.stringify(allNotes));
+const notesJson=JSON.stringify(allNotes),notesSha=crypto.createHash("sha256").update(notesJson).digest("hex");
+const shaMarker='var _rnSha="";';
+if(!js.includes(shaMarker)||js.indexOf(shaMarker)!==js.lastIndexOf(shaMarker))throw new Error("Sello de catálogo ausente o ambiguo");
+js=js.replace(shaMarker,'var _rnSha="'+notesSha+'";');
+fs.writeFileSync(pubNotes, notesJson);
+fs.writeFileSync(path.join(root, "public/beta-delivery.json"), JSON.stringify(betaDelivery(allNotes)));
 console.log(`  · public/release-notes.json (${(fs.statSync(pubNotes).size / 1024).toFixed(0)} KB, ${allNotes.length} versiones)`);
 
 /* A/B idiomas (4.19.103): en/ca fuera del index → public/i18n/*.json. La fuente sigue

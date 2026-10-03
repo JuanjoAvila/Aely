@@ -6,6 +6,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import { betaNotes } from "./beta-revisions.mjs";
 import { fileURLToPath } from "node:url";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -105,12 +106,10 @@ export function loadPureLogicFromFile() {
   const html = fs.readFileSync(path.join(root, "public", "index.html"), "utf8");
   const sandbox = loadPureLogic(html);
   // NOTAS-BUNDLE: el index ya no lleva el histórico; los tests / `npm run listo` lo leen del JSON.
-  try {
-    const notesPath = path.join(root, "src", "data", "release-notes.json");
-    if (fs.existsSync(notesPath)) {
-      const notes = JSON.parse(fs.readFileSync(notesPath, "utf8"));
-      if (Array.isArray(notes) && notes.length) sandbox.RELEASE_NOTES = notes;
-    }
-  } catch (e) { /* sin JSON: se queda lo que inyectó el build */ }
+  const notesPath = path.join(root, "src", "data", "release-notes.json");
+  if (fs.existsSync(notesPath)) {
+    const notes = betaNotes(JSON.parse(fs.readFileSync(notesPath, "utf8")));
+    if (Array.isArray(notes) && notes.length) sandbox.RELEASE_NOTES = notes;
+  }
   return sandbox;
 }

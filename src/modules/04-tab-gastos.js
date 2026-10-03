@@ -51,19 +51,29 @@ function budgetPaydayOf(state, nowMs, expenses){
    lag que crecía con el uso (feedback 2026-07-24). Devuelve {from,to} con Infinity de comodín. */
 function presetBoundsMs(preset,range,cycleStart){
   const now=new Date();
-  if(preset==="month") return {from:startOfMonth().getTime(), to:Infinity};
-  if(preset==="cycle") return {from:(cycleStart||startOfMonth()).getTime(), to:Infinity};
+  const monthEnd=new Date(now.getFullYear(),now.getMonth()+1,1).getTime()-1;
+  if(preset==="month") return {from:startOfMonth().getTime(), to:monthEnd};
+  if(preset==="cycle"){
+    const tomorrow=new Date(now); tomorrow.setHours(24,0,0,0);
+    return {from:(cycleStart||startOfMonth()).getTime(), to:cycleStart?tomorrow.getTime()-1:monthEnd};
+  }
   if(preset==="last") return {from:startOfMonth(new Date(now.getFullYear(),now.getMonth()-1,1)).getTime(), to:startOfMonth().getTime()-1};
-  if(preset==="3m") return {from:new Date(now.getFullYear(),now.getMonth()-2,1).getTime(), to:Infinity};
+  if(preset==="3m") return {from:new Date(now.getFullYear(),now.getMonth()-2,1).getTime(), to:monthEnd};
   if(preset==="custom"){
     let from=-Infinity, to=Infinity;
-    if(range&&range.from){ const f=new Date(range.from); if(!isNaN(f.getTime())) from=f.getTime(); }
-    if(range&&range.to){ const tt=new Date(range.to); if(!isNaN(tt.getTime())){ tt.setHours(23,59,59,999); to=tt.getTime(); } }
+    if(range&&range.from){ const f=new Date(range.from+"T00:00:00"); if(!isNaN(f.getTime())) from=f.getTime(); }
+    if(range&&range.to){ const tt=new Date(range.to+"T00:00:00"); if(!isNaN(tt.getTime())){ tt.setHours(23,59,59,999); to=tt.getTime(); } }
     return {from:from, to:to};
   }
   return {from:-Infinity, to:Infinity};   // "all" y cualquier preset desconocido
 }
 function inBounds(ms,b){ return ms>=b.from && ms<=b.to; }
+// La elección de fechas debe mover juntas lista y cifras; el presupuesto de Inicio y
+// sus lectores conserva su propia ventana (reporte 2/10/2026).
+function gastosPeriodOf(preset,bounds,cycle){
+  return {startMs:bounds.from,todayEndMs:bounds.to===Infinity?Infinity:bounds.to+1,
+    cycle:preset==="cycle"?cycle:null};
+}
 // Fila de una suscripción detectada. Importe EDITABLE antes de «pasar a Fijos» (petición
 // 2026-08-03: recibos que se repiten cada mes pero varían de importe —luz, gas— para no dejarlos
 // con el de este mes y tener que corregirlo a mano el que viene) + botón para descartarla del
@@ -258,9 +268,45 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(same) showToast(t("g_dup_same"));
     else showToast(t("g_dup_diff"));
   };
+  const withdrawalPending=useRef({});
+  const withdrawalState=useRef(state); withdrawalState.current=state;
+  const [withdrawalStatus,setWithdrawalStatus]=useState(null);
+  const recognizeWithdrawal=function(ex){
+    if(!canRecognizeWithdrawal(ex) || ex.category==="traspaso" || withdrawalPending.current[ex.id]) return;
+    if(!canRecognizeWithdrawal(ex,withdrawalState.current)){
+      showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)?"f_withdraw_receipt_blocked":"f_withdraw_error")); return;
+    }
+    withdrawalPending.current[ex.id]=true;
+    askConfirm({title:t("f_withdraw_title"),sub:tf("f_withdraw_sub",{x:eur(ex.amount)}),ok:t("f_withdraw_ok")})
+      .then(async function(yes){
+        if(!yes) return;
+        setWithdrawalStatus({id:ex.id,status:"pending"});
+        let timer;
+        try{
+          if(!canRecognizeWithdrawal(ex,withdrawalState.current)) throw new Error("withdrawal unavailable");
+          let ack;const sandbox=mcSandbox();
+          if(!sandbox) ack=await Promise.race([cloud.confirmExpenseWithdrawal(ex,function(){ return withdrawalState.current; }),new Promise(function(_,reject){
+            timer=setTimeout(function(){ reject(new Error("withdrawal timeout")); },10000);
+          })]);
+          let applied=false,receiptUndone=false;
+          ReactDOM.flushSync(function(){ set(function(s){ const next=sandbox?applyRecognizedWithdrawal(s,ex,Date.now()):reconcileConfirmedWithdrawal(s,ex,ack,Date.now());
+            receiptUndone=!!withdrawalReceiptLink(s,ex)&&!withdrawalReceiptLink(next,ex);
+            applied=next!==s || canRecognizeWithdrawal(ex,s)&&(s.expenses||[]).some(function(e){ return e.id===ex.id && e.category==="traspaso"
+              && withdrawalRowMatches(ex,{id:e.id,source:expenseSourceForCloud(e),fecha:e.date,importe:e.amount,comercio:e.merchant}); });
+            return next; }); });
+          setWithdrawalStatus({id:ex.id,status:applied?"done":"error",receiptUndone:receiptUndone});
+          showToast(t(applied?(receiptUndone?"f_withdraw_receipt_undone":"f_withdraw_done"):withdrawalReceiptLink(withdrawalState.current,ex)?"f_withdraw_receipt_blocked":"f_withdraw_error"));
+        }catch(err){
+          setWithdrawalStatus({id:ex.id,status:"error"});
+          showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)?"f_withdraw_receipt_blocked":"f_withdraw_error"));
+        }finally{ clearTimeout(timer); }
+      }).finally(function(){ delete withdrawalPending.current[ex.id]; });
+  };
   // Recategorizar un gasto a mano: actualiza ESTE, recuerda el comercio (catOverrides) para los
   // futuros y arregla otros gastos del mismo comercio que estuvieran en "Otros".
   const setCat=function(ex,newCat){
+    if(withdrawalPending.current[ex.id]) return;
+    if(newCat==="traspaso" && canRecognizeWithdrawal(ex)){ recognizeWithdrawal(ex); return; }
     const mkey=catKey(ex.merchant);
     // "Movimiento" es el hueco que deja un banco que no manda NINGÚN dato (Trade Republic por
     // Open Banking, ver `mapTransaction` en enablebanking.ts) — no es un comercio de verdad, así
@@ -274,6 +320,17 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     set(function(s){
       const ov=Object.assign({}, s.catOverrides||{}); if(learnable) ov[mkey]=newCat;
       USER_OVERRIDES=Object.assign({},ov);
+      // La equivalencia vale desde AHORA, no desde la fecha del gasto corregido: corregir uno
+      // del mes pasado no autoriza a recategorizar lo que baje con fecha de ayer. Y solo en su
+      // mismo banco y forma de pago. Repetir la elección no mueve el instante.
+      let rules=s.catRules||{};
+      if(learnable && CAT[newCat] && !isManualExpenseSource(ex.source)){
+        const rk=catRuleKey(ex), had=rules[rk];
+        if(!had || had.cat!==newCat || !Number.isFinite(had.at)){
+          rules=Object.assign({},rules); rules[rk]={ cat:newCat, at:Date.now() };
+        }
+      }
+      USER_CAT_RULES=Object.assign({},rules);
       // El cashback/round-up ENTRA al efectivo y días después SALE hacia el fondo: dos apuntes del
       // banco para un solo movimiento de dinero. Al marcar la salida como Inversión, su entrada
       // gemela va con ella — si no, sigue contando como ingreso del mes (2026-08-04, queja suya:
@@ -291,6 +348,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         if(!isTarget && !isTwin && !isSibling) return e;
         const wasInv=e.category==="inversion", willBeInv=newCat==="inversion";
         const upd=Object.assign({},e,{category:newCat});
+        // Lo que la nube aún puede devolver hasta que se entere (ver `keepCategoryChoices`).
+        const stale=catStaleAfter(e,newCat);
+        if(stale && stale.length) upd.catStale=stale; else delete upd.catStale;
+        delete upd.catAckAt;   // decisión nueva: aún nadie la ha confirmado
         // Sacarla de «Deudas» es decir «esto no es la cuota»: pierde la marca (4.21.0).
         if(isTarget && upd.debtId && newCat!=="deudas") delete upd.debtId;
         // El gemelo solo cambia de categoría: el dinero ya lo compra su pareja, comprarlo dos veces
@@ -308,10 +369,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       // Durable en la tabla: sin esto el siguiente pull —que reemplaza los gastos de la nube con
       // lo que hay en `expenses`— devolvía la categoría vieja (2026-08-04).
       if(cloud.enabled()){
-        cloud.setExpenseCat(ex,newCat).catch(function(){});
+        cloud.setExpenseCat(ex,newCat).then(function(n){
+          // Solo una escritura confirmada deja de protegerse (cero filas no es un error en Supabase).
+          if(n>0) set(function(p){ const l=ackCategoryWrite(p.expenses, ex, newCat, Date.now()); return l===p.expenses?p:Object.assign({},p,{expenses:l}); });
+        }).catch(function(){});
         if(twinId){ const tw=s.expenses.find(function(e){ return e.id===twinId; }); if(tw) cloud.setExpenseCat(tw,newCat).catch(function(){}); }
       }
-      const fuera={expenses:exps,catOverrides:ov};
+      const fuera={expenses:exps,catOverrides:ov,catRules:rules};
       // «Esto no es la cuota»: lápida para que `marcarCuotasDeDeuda` no la vuelva a meter (4.21.0).
       if((ex.debtId||ex.category==="deudas") && newCat!=="deudas"){
         const k=keyOfExpense(ex), prevNo=s.cuotaNo||[];
@@ -333,6 +397,23 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     set(function(s){ const r=marcarCuotaAMano(s, ex.id, debtId); if(!r) return s; subir=r.e; return r.state; });
     if(subir && cloud.enabled()) cloud.setExpenseDeuda(subir).catch(function(){});
     if(showToast) showToast(tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
+  };
+  const setReceipt=function(ex,fixedId){
+    if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
+    const ds=String(ex.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
+    const today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
+    const f=(state.fixed||[]).find(function(x){ return x.id===fixedId; });
+    const expected={identity:fixedPaymentIdentity(expenseBankOf(ex),ex),model:f&&fixedPaymentModel(f,m)};
+    const save=function(){
+      if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
+      // El diálogo es asíncrono: otra sincronización puede sustituir el cargo o editar el recibo.
+      set(function(s){ return linkFixedPayment(s,ex.id,fixedId,y,m,today,expected); });
+    };
+    if(fixedId==null){ save(); return; }
+    if(!f) return;
+    askConfirm({title:tf("f_receipt_confirm",{name:f.name}),
+      sub:tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))}),
+      ok:t("f_receipt_yes")}).then(function(yes){ if(yes) save(); });
   };
   // Marca/desmarca un gasto como "no tarjeta" (bizum/transferencia) para que no cuente el round-up TR.
   const setCardFlag=function(ex,noCard){
@@ -428,10 +509,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
        borra en vez de arrastrarlo. Un dato viejo al lado de uno nuevo no es media verdad, es una
        mentira — y en el detalle se leerían juntos como si fueran el mismo pago. */
     if(signed!==orig.amount){ delete upd.origAmount; delete upd.origCur; }
-    set(function(s){ return Object.assign({},s,{
+    set(function(s){ return rekeyFixedPaymentExpense(Object.assign({},s,{
       expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; }),
       deleted:pushDeleted(s.deleted, keyOfE(orig))
-    }); });
+    }),orig,upd); });
     if(cloud.enabled()){ borrarGastoNube(orig, "gastos-editar"); subirGasto(upd, "gastos-editar"); }
     sincroniza(upd); showToast(t("g_edited"));
   };
@@ -446,6 +527,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // `todayKey` invalida ciclo, filtros y cabecera cuando la app queda abierta al cruzar el día;
   // así el 26 o el día 1 no conserva cifras del período anterior en un memo.
   const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,todayKey]);
+  const selectedPeriod=useMemo(function(){ return gastosPeriodOf(preset,bounds,cycle); },[preset,bounds,cycle]);
   const diarioEnts=useMemo(function(){ return expenseBankEnts(state); },[state.accounts, state.settings]);
   const diarioPrev=useRef(diarioEnts.slice());
   const diarioKey=diarioEnts.slice().sort().join("|");
@@ -478,6 +560,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const src=expensesDef||[];
     for(let i=0;i<src.length;i++){
       const e=src[i];
+      // La lápida puede venir de otro dispositivo sin retirar aún esta fila local.
+      if(expenseIsTombstoned(e,expenseDeletedSet(state))) continue;
       if(!inBounds(dateMs(e.date),bounds)) continue;
       // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
       if(catSet && !catSet.has(e.category) && !(e.debtId && catSet.has("debt:"+e.debtId))) continue;
@@ -496,7 +580,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     return sortExpensesForDisplay(out,state);
     // `state.settings`/`state.accounts` van en las dependencias porque `expenseBucket` los lee
     // (qué bancos son de gasto diario): cambiar eso tiene que re-filtrar la lista.
-  },[expensesDef,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts]);
+  },[expensesDef,state.deleted,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts]);
 
   /* El asa reclama el dedo desde el principio: dejar que la fila entera fuera arrastrable
      convertiría un scroll normal en cambios de orden accidentales. El destino se resuelve contra
@@ -522,31 +606,48 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     dragExpenseRef.current=null; setDragExpense(null);
   },[set]);
 
-  // El filtro solo explora la lista: la cabecera sigue el período de presupuesto elegido en
-  // Ajustes, no cambia al tocar categorías ni al mirar otro rango (feedback pareja 28/9).
-  // Cifras = `monthBudgetStats` (misma fuente que Inicio; el widget sigue por mes natural).
+  // Las fechas elegidas mueven cabecera y categorías junto a la lista (reporte 2/10).
+  // Buscar o filtrar bancos/categorías sigue explorando movimientos sin redefinir el límite.
   // `accounts` + `settings` van en deps: monthBudgetStats → expenseCountsBudget → expenseBankEnts
   // lee rol diario y expenseBanks. Sin ellos, quitar un banco de gasto diario dejaba la cabecera
   // alta hasta que un sync cambiaba `expenses` (B09-A / feedback familia 2026-09-06).
+  const budgetApplies=preset==="month"||preset==="cycle";
   const monthSummary=useMemo(function(){
     const now=new Date();
-    const bs=monthBudgetStats(state);
+    const bs=monthBudgetStats(Object.assign({},state,{expenses:expensesDef}),null,null,null,selectedPeriod);
+    // No existe una foto histórica del límite ni un presupuesto acumulado para varios meses.
+    // Enseñar el límite actual como margen del pasado inventaría dinero disponible.
+    if(!budgetApplies){ bs.budget=null; bs.remaining=null; }
+    const periodLabel=preset==="custom"
+      ? (range.from?fmtIsoCorto(range.from):t("g_all"))+" → "+(range.to?fmtIsoCorto(range.to):t("g_all"))
+      : t("g_"+preset);
     return {
       spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against,
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
       day:now.getDate(),
-      last:new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),
-      month:monthLong(now.getMonth()), cycle:bs.cycle, periodStart:bs.periodStart
+      month:monthLong(now.getMonth()), cycle:!!selectedPeriod.cycle,
+      periodLabel:periodLabel, budgetApplies:budgetApplies
     };
-  },[state.expenses,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,todayKey]);
+  },[expensesDef,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,selectedPeriod,preset,range,budgetApplies,todayKey]);
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
-    return categorySpentByMonth(state);
-  },[state.expenses,state.deleted,state.categoryBudgets,state.accounts,state.settings,todayKey]);
+    const rows=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,selectedPeriod);
+    return budgetApplies?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
+  },[expensesDef,state.deleted,state.categoryBudgets,state.accounts,state.settings,selectedPeriod,budgetApplies,todayKey]);
   /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
      —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
   const catsOpen=!(state.settings && state.settings.gastosCatsOff);
+  // La fecha del cobro sigue a la vista al plegar la explicación; ocultarla dejaba «Mi ciclo»
+  // sin una referencia comprobable y la tarjeta larga volvía a ocupar la pantalla (28/9).
+  const cycleHelpOpen=!(state.settings && state.settings.gastosCycleHelpOff);
+  const toggleCycleHelp=useCallback(function(){
+    set(function(s){
+      const st=Object.assign({}, s.settings||{});
+      if(st.gastosCycleHelpOff) delete st.gastosCycleHelpOff; else st.gastosCycleHelpOff=true;
+      return Object.assign({}, s, { settings:st });
+    });
+  },[set]);
   const toggleCats=useCallback(function(){
     set(function(s){
       const st=Object.assign({}, s.settings||{});
@@ -743,7 +844,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
           React.createElement("div",{className:"v4-gastos-summary-label"},
             monthSummary.cycle
               ? t(monthSummary.mode==="net"?"v4_gastos_net_cycle":"v4_gastos_spent_cycle")
-              : tf(monthSummary.mode==="net"?"v4_gastos_net_in":"v4_gastos_spent_in",{month:monthSummary.month})),
+              : preset==="month"
+                ? tf(monthSummary.mode==="net"?"v4_gastos_net_in":"v4_gastos_spent_in",{month:monthSummary.month})
+                : tf(monthSummary.mode==="net"?"v4_gastos_net_period":"v4_gastos_spent_period",{period:monthSummary.periodLabel})),
           // Importe en blanco, sin signo, € al lado (como el patrimonio). El rojo/menos
           // confundía el «balance» con una alarma (feedback 2026-07-17).
           (function(){
@@ -775,18 +878,18 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         ),
         React.createElement("div",{className:"v4-gastos-summary-budget"},
           React.createElement("div",null,tf("v4_gastos_of",{x:monthSummary.budget==null?"—":eur(monthSummary.budget)})),
-          React.createElement("div",{className:"v4-gastos-summary-left"},tf("v4_gastos_left",{x:monthSummary.remaining==null?"—":eur(monthSummary.remaining)}))
+          React.createElement("div",{className:"v4-gastos-summary-left"},tf("v4_gastos_left",{x:monthSummary.remaining==null?"—":eur(monthSummary.remaining)})),
+          !monthSummary.budgetApplies && React.createElement("div",{className:"hint"},t("v4_gastos_budget_period_unknown"))
         )
       ),
-      React.createElement("div",{className:"v4-gastos-progress",role:"progressbar","aria-valuemin":0,"aria-valuemax":monthSummary.budget||0,"aria-valuenow":Math.max(0,monthSummary.against)},
+      monthSummary.budgetApplies && React.createElement("div",{className:"v4-gastos-progress",role:"progressbar","aria-valuemin":0,"aria-valuemax":monthSummary.budget||0,"aria-valuenow":Math.max(0,monthSummary.against)},
         React.createElement("i",{style:{width:monthSummary.budget==null?"0%":Math.min(100,Math.max(0,monthSummary.against)/monthSummary.budget*100)+"%"}})
       ),
       React.createElement("div",{className:"v4-gastos-progress-marks"},
-        React.createElement("span",monthSummary.cycle
-          ? new Date(monthSummary.periodStart).toLocaleDateString(loc(),{day:"2-digit",month:"short"})
-          : "1 "+monthSummary.month),
-        React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
-        !monthSummary.cycle && React.createElement("span",monthSummary.last+" "+monthSummary.month)
+        React.createElement("span",isFinite(bounds.from)
+          ? new Date(bounds.from).toLocaleDateString(loc(),{day:"2-digit",month:"short"}) : t("g_all")),
+        monthSummary.budgetApplies && React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
+        !monthSummary.cycle && isFinite(bounds.to) && React.createElement("span",new Date(bounds.to).toLocaleDateString(loc(),{day:"2-digit",month:"short"}))
       ),
       /* SE PUEDE OCULTAR (petición de su pareja, 10/9, y con razón).
          Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria
@@ -803,8 +906,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
           "aria-expanded":catsOpen,"aria-controls":"gastos-cats-body",onClick:toggleCats},
           React.createElement("span",{className:"v4-gastos-cats-t"},
             catsOpen ? t("v4_gastos_cats")
-                     : (catBreakdown.length===1 ? t(monthSummary.cycle?"v4_gastos_cats_cycle_n1":"v4_gastos_cats_n1")
-                       : tf(monthSummary.cycle?"v4_gastos_cats_cycle_n":"v4_gastos_cats_n",{n:catBreakdown.length}))),
+                     : tf(catBreakdown.length===1?"v4_gastos_cats_period_n1":"v4_gastos_cats_period_n",{n:catBreakdown.length,period:monthSummary.periodLabel})),
           React.createElement("span",{className:"v4-gastos-cats-fold"},
             (catsOpen?"▾ ":"▸ ")+t(catsOpen?"v4_gastos_cats_hide":"v4_gastos_cats_show"))),
         React.createElement("div",{id:"gastos-cats-body",className:"v4-gastos-cats-body"+(catsOpen?" abierto":""),"aria-hidden":!catsOpen},
@@ -848,15 +950,18 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       ),
       // «Mi ciclo»: enseña QUÉ cobro ancla el ciclo (si el detectado no es el bueno, se corrige
       // apuntando la nómina real como ingreso, o usando Rango…).
-      preset==="cycle" && React.createElement("div",{className:"v4-cycle-box"},
-        cycle
-          ? React.createElement(React.Fragment,null,
-              React.createElement("strong",null,"📅 "+t("g_cycle")),
-              tf("g_cycle_from",{d:cycle.start.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'}), x:"+"+eur0(Math.abs(cycle.inc.amount))+((cycle.inc.merchant&&cycle.inc.merchant!=="Ingreso")?" · "+cycle.inc.merchant:"")}),
-              cycleEnabled && React.createElement("div",{style:{marginTop:6}},t("g_cycle_budget_hint")))
-          : React.createElement(React.Fragment,null,
-              React.createElement("strong",null,t("g_cycle_none_t")),
-              t("g_cycle_none"))
+      preset==="cycle" && React.createElement("div",{className:"v4-cycle-box"+(cycleHelpOpen?"":" compacto"),"data-testid":"gastos-cycle-help"},
+        React.createElement("div",{className:"v4-cycle-head"},
+          React.createElement("div",{className:"v4-cycle-main"},
+            React.createElement("strong",null,cycle?"📅 "+t("g_cycle"):t("g_cycle_none_t")),
+            React.createElement("div",null,cycle
+              ? tf("g_cycle_from",{d:cycle.start.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'}), x:"+"+eur0(Math.abs(cycle.inc.amount))+((cycle.inc.merchant&&cycle.inc.merchant!=="Ingreso")?" · "+cycle.inc.merchant:"")})
+              : t("g_cycle_fallback"))),
+          React.createElement("button",{type:"button",className:"v4-chip",onClick:toggleCycleHelp,
+            "aria-expanded":cycleHelpOpen,"aria-controls":cycleHelpOpen?"gastos-cycle-explanation":undefined},
+            t(cycleHelpOpen?"g_cycle_help_hide":"g_cycle_help_show"))),
+        cycleHelpOpen && React.createElement("div",{id:"gastos-cycle-explanation",className:"v4-cycle-explanation"},
+          cycle ? t(cycleEnabled?"g_cycle_budget_hint":"g_cycle_filter_hint") : t("g_cycle_none"))
       ),
       preset==="custom" && React.createElement("div",null,
         React.createElement("div",Object.assign({className:"range"},stopSwipe),
@@ -951,8 +1056,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         if(!skipSave && ex && editExp) saveEdit(ex);
         setDetailId(null); setEditExp(null);
       },
-      setCat:setCat, setCuota:setCuota, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
-      resolveDup:resolveDup,
+      setCat:setCat, setCuota:setCuota, setReceipt:setReceipt, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
+      resolveDup:resolveDup, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
     undoDelete && ReactDOM.createPortal(
@@ -1163,7 +1268,7 @@ function PeriodMoreSheet({open, onClose, preset, setPreset}){
 }
 
 /* Sheet detalle/edición de un movimiento. Layout alineado con Apuntar/Cartera (feedback 2026-07-17). */
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -1232,8 +1337,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const meta=[
     {id:"bank",testId:"exp-bank",label:bk?entOf(bk).label:t("ap_bank_none"),lead:bk?React.createElement(Mono,{ent:bk,size:18}):React.createElement("span",null,"🏦"),
       on:bankOpen,locked:auto,onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }},
-    {id:"cash",testId:"exp-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bk==="efectivo",locked:auto,
-      onClick:function(){ setBank(exp,bk==="efectivo"?null:"efectivo"); }},
+    {id:"cash",testId:"exp-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bk==="efectivo",
+      onClick:function(){ if(auto){ showToast(t("f_withdraw_cash_limit")); return; } setBank(exp,bk==="efectivo"?null:"efectivo"); }},
     {id:"date",testId:"exp-date",label:fmtIsoCorto(dateIso),lead:React.createElement("span",null,"📅"),on:calOpen,
       onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }}
   ];
@@ -1249,9 +1354,37 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
       bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
-    trace,duplicate);
+    trace,duplicate,
+    canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
+      React.createElement("div",null,t("f_withdraw_fields")),
+      exp.category!=="traspaso" && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-withdrawal",
+        disabled:!canRecognizeWithdrawal(exp,state)||withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="pending",
+        onClick:function(){ recognizeWithdrawal(exp); }},t("f_withdraw_action")),
+      exp.category==="traspaso" && React.createElement("div",{"data-testid":"exp-withdrawal-neutral"},t("f_withdraw_done")),
+      withdrawalReceiptLink(state,exp)&&React.createElement("div",{"data-testid":"exp-withdrawal-receipt-blocked"},t("f_withdraw_receipt_blocked")),
+      withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="done" && withdrawalStatus.receiptUndone && React.createElement("div",{role:"status"},t("f_withdraw_receipt_undone")),
+      React.createElement("div",null,t("f_withdraw_cash_limit")),
+      withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done" && React.createElement("div",{role:"status"},
+        t(withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_error"))));
   const debtOptions=(state.debts||[]).filter(function(d){ return d&&d.id; });
+  const receiptDate=String(exp.date||"").slice(0,10),receiptYear=Number(receiptDate.slice(0,4)),receiptMonth=Number(receiptDate.slice(5,7)),receiptNow=new Date();
+  const receiptToday=receiptYear===receiptNow.getFullYear()&&receiptMonth===receiptNow.getMonth()+1?receiptNow.getDate():new Date(receiptYear,receiptMonth,0).getDate();
+  const receiptLinked=withdrawalReceiptLink(state,exp);
+  const receiptOptions=(state.fixed||[]).filter(function(f){
+    return fixedExpenseEligible(state,exp,f,receiptYear,receiptMonth,receiptToday)&&
+      (!fixedPaymentState(state,f,receiptYear,receiptMonth,receiptToday).paid||(receiptLinked&&receiptLinked.id===f.id));
+  });
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
+    !isIncome&&!exp.possibleDup&&!CAT_NEUTRAS[exp.category]&&(state.fixed||[]).length>0&&React.createElement(React.Fragment,null,
+      React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-receipt",onClick:function(){ setAdjustOpen(adjustOpen==="receipt"?null:"receipt"); }},
+        React.createElement("span",null,t("f_receipt_row")),React.createElement("span",{className:"value"},receiptLinked?receiptLinked.name:t("f_no")),React.createElement("span",{className:"chev"},"›")),
+      adjustOpen==="receipt"&&React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-receipt-options"},
+        React.createElement("div",{className:"hint"},t("f_receipt_hint")),
+        React.createElement("div",{className:"v4-chips wrap"},
+          receiptLinked&&React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-receipt-unlink",onClick:function(){ setReceipt(exp,null); }},t("f_receipt_unlink")),
+          !receiptLinked&&receiptOptions.map(function(f){ return React.createElement("button",{key:f.id,type:"button",className:"v4-chip","data-testid":"exp-receipt-"+f.id,
+            onClick:function(){ setReceipt(exp,f.id); }},f.name+" · "+eur(occAmountIn(f,receiptMonth))); })),
+        !receiptLinked&&!receiptOptions.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")))),
     React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="note"?null:"note"); }},
       React.createElement("span",null,t("f_note_row")),React.createElement("span",{className:"value"},editExp.note||t("f_note_none")),React.createElement("span",{className:"chev"},"›")),
     adjustOpen==="note" && React.createElement("div",{className:"v4-ficha-adjust-open"},
@@ -1284,7 +1417,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   };
   const footer=React.createElement("div",{className:"v4-ficha-foot"},
     React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
-    React.createElement("span",{className:"v4-ficha-saved"},t("f_autosaved")),
+    React.createElement("span",{className:"v4-ficha-saved"},t(withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
+      ? (withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_unconfirmed") : "f_autosaved")),
     React.createElement("button",{type:"button",className:"v4-ficha-done",onClick:done},t("done")));
   const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},

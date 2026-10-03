@@ -1,5 +1,985 @@
 [
   {
+    "v": "4.26.86",
+    "d": "2026-10-02",
+    "t": {
+      "es": "Las categorías que eliges se quedan",
+      "en": "The categories you choose stay put",
+      "ca": "Les categories que tries es mantenen"
+    },
+    "items": {
+      "es": [
+        "Si cambias la categoría de un movimiento, ya no vuelve a la anterior al sincronizar ni al reabrir la app.",
+        "Los siguientes pagos en ese mismo comercio entran con la categoría que elegiste."
+      ],
+      "en": [
+        "When you change a transaction's category, it no longer reverts after syncing or reopening the app.",
+        "Later payments at that same merchant arrive with the category you chose."
+      ],
+      "ca": [
+        "Si canvies la categoria d'un moviment, ja no torna a l'anterior en sincronitzar ni en reobrir l'app.",
+        "Els pagaments següents en aquell mateix comerç entren amb la categoria que vas triar."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0210-02-categoria-elegida",
+        "t": {
+          "es": "La categoría elegida no se deshace",
+          "en": "The chosen category is not undone",
+          "ca": "La categoria triada no es desfà"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, abre un pago con tarjeta que esté en una categoría equivocada y cámbiasela. Cierra la app del todo y vuelve a abrirla: debe seguir en la categoría que elegiste.",
+            "2. Cuando llegue otro pago de ese mismo comercio, debe entrar ya con esa categoría.",
+            "3. Los movimientos de otros comercios, aunque tengan un nombre parecido, no deben cambiar de categoría."
+          ],
+          "en": [
+            "1. In Expenses, open a card payment that is in the wrong category and change it. Fully close the app and reopen it: it should still be in the category you chose.",
+            "2. When another payment from that same merchant arrives, it should come in with that category.",
+            "3. Transactions from other merchants, even with a similar name, should not change category."
+          ],
+          "ca": [
+            "1. A Despeses, obre un pagament amb targeta que estigui en una categoria equivocada i canvia-la. Tanca l'app del tot i torna-la a obrir: ha de continuar en la categoria que vas triar.",
+            "2. Quan arribi un altre pagament d'aquell mateix comerç, ha d'entrar ja amb aquesta categoria.",
+            "3. Els moviments d'altres comerços, encara que tinguin un nom semblant, no han de canviar de categoria."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.85",
+    "d": "2026-10-02",
+    "t": {
+      "es": "Gasolina y taxi por separado",
+      "en": "Fuel and taxi separately",
+      "ca": "Benzina i taxi per separat"
+    },
+    "items": {
+      "es": [
+        "Gasolina y Taxi tienen categorías propias para apuntar, filtrar y fijar límites.",
+        "Los gastos ya guardados conservan su categoría.",
+        "Las cuotas adelantadas se reconocen cuando el cargo está confirmado, sin confundirlo con un apunte manual."
+      ],
+      "en": [
+        "Fuel and Taxi have their own categories for recording, filtering and setting limits.",
+        "Previously saved expenses retain their categories.",
+        "Early instalments are recognised when the charge is confirmed, without mistaking a manual entry for payment."
+      ],
+      "ca": [
+        "Benzina i Taxi tenen categories pròpies per apuntar, filtrar i fixar límits.",
+        "Les despeses ja desades conserven la categoria.",
+        "Les quotes avançades es reconeixen quan el càrrec està confirmat, sense confondre un apunt manual amb el pagament."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "feature-0210-01-gasolina-taxi",
+        "rev": 1,
+        "t": {
+          "es": "Gasolina y Taxi",
+          "en": "Fuel and Taxi",
+          "ca": "Benzina i Taxi"
+        },
+        "items": {
+          "es": [
+            "1. En Apuntar, abre todas las categorías y comprueba Gasolina y Taxi con sus iconos. Apunta un gasto en cada una.",
+            "2. En Gastos, filtra cada categoría y comprueba sus movimientos e importes. Pon un límite a cada una y comprueba que Transporte conserva el suyo.",
+            "3. Vuelve a abrir la app: las categorías y los límites siguen guardados. Los gastos antiguos no han cambiado de categoría."
+          ],
+          "en": [
+            "1. In Record, open all categories and check Fuel and Taxi with their icons. Record an expense in each.",
+            "2. In Expenses, filter each category and check its entries and amounts. Set a limit for each and check that Transport retains its own.",
+            "3. Reopen the app: categories and limits remain saved. Old expenses have not changed category."
+          ],
+          "ca": [
+            "1. A Apuntar, obre totes les categories i comprova Benzina i Taxi amb les icones. Apunta una despesa a cadascuna.",
+            "2. A Despeses, filtra cada categoria i comprova els moviments i imports. Posa un límit a cadascuna i comprova que Transport conserva el seu.",
+            "3. Torna a obrir l’app: les categories i els límits continuen desats. Les despeses antigues no han canviat de categoria."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.84",
+    "d": "2026-10-02",
+    "t": {
+      "es": "Gastos del periodo elegido",
+      "en": "Spending for the selected period",
+      "ca": "Despeses del període escollit"
+    },
+    "items": {
+      "es": [
+        "Al elegir otras fechas en Gastos, las categorías y las cifras muestran ese mismo periodo.",
+        "Mi ciclo conserva el balance desde el cobro. Los periodos sin presupuesto registrado lo indican."
+      ],
+      "en": [
+        "When choosing other dates in Spending, categories and figures show the same period.",
+        "My cycle keeps the balance since payday. Periods without a recorded budget say so."
+      ],
+      "ca": [
+        "En triar altres dates a Despeses, les categories i les xifres mostren el mateix període.",
+        "El meu cicle conserva el balanç des del cobrament. Els períodes sense pressupost registrat ho indiquen."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0210-03-gastos-periodo",
+        "rev": 1,
+        "t": {
+          "es": "Gastos y categorías del mismo periodo",
+          "en": "Spending and categories for the same period",
+          "ca": "Despeses i categories del mateix període"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos elige Mes pasado o un rango: las categorías e importes deben corresponder a esas fechas, sin conservar las del ciclo actual.",
+            "2. Vuelve a Este mes y Mi ciclo: el resumen, el desglose y las fechas deben coincidir. Buscar un movimiento no modifica el presupuesto.",
+            "3. En periodos anteriores o de varios meses, el presupuesto y el margen aparecen como — con una explicación."
+          ],
+          "en": [
+            "1. In Spending choose Last month or a range: categories and amounts must match those dates instead of keeping the current cycle.",
+            "2. Return to This month and My cycle: summary, breakdown and dates must agree. Searching for a transaction does not change the budget.",
+            "3. For earlier periods or several months, budget and margin show — with an explanation."
+          ],
+          "ca": [
+            "1. A Despeses tria Mes passat o un rang: les categories i imports han de correspondre a aquelles dates, sense conservar els del cicle actual.",
+            "2. Torna a Aquest mes i El meu cicle: resum, desglossament i dates han de coincidir. Cercar un moviment no modifica el pressupost.",
+            "3. En períodes anteriors o de diversos mesos, el pressupost i el marge apareixen com a — amb una explicació."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.83",
+    "d": "2026-10-02",
+    "t": {
+      "es": "Las cuotas cobradas dejan de estar pendientes",
+      "en": "Charged instalments stop being pending",
+      "ca": "Les quotes cobrades deixen d’estar pendents"
+    },
+    "items": {
+      "es": [
+        "Una cuota de préstamo ya vinculada y contabilizada aparece como pagada aunque llegue antes del día previsto.",
+        "El importe pendiente y la previsión del mes dejan de contar esa cuota otra vez."
+      ],
+      "en": [
+        "A linked and booked loan instalment appears as paid even when charged before its expected date.",
+        "The pending amount and monthly forecast stop counting that instalment again."
+      ],
+      "ca": [
+        "Una quota de préstec ja vinculada i comptabilitzada apareix com a pagada encara que arribi abans del dia previst.",
+        "L’import pendent i la previsió del mes deixen de comptar aquesta quota una altra vegada."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0210-01-plan-cuota",
+        "t": {
+          "es": "Las cuotas cobradas dejan de estar pendientes",
+          "en": "Charged instalments stop being pending",
+          "ca": "Les quotes cobrades deixen d’estar pendents"
+        },
+        "items": {
+          "es": [
+            "1. Comprueba una cuota ya vinculada en Gastos y cargada antes de su vencimiento: en Plan debe estar pagada y desaparecer del pendiente, también al reabrir.",
+            "2. Comprueba que otra deuda similar sigue pendiente y que el saldo actual no recibe un segundo descuento."
+          ],
+          "en": [
+            "1. Check an instalment already linked in Expenses and charged before its due date: in Plan it should be paid and no longer pending, also after reopening.",
+            "2. Check that another similar debt stays pending and the current balance is not charged twice."
+          ],
+          "ca": [
+            "1. Comprova una quota ja vinculada a Despeses i cobrada abans del venciment: a Pla ha d’estar pagada i desaparèixer del pendent, també en reobrir.",
+            "2. Comprova que un altre deute semblant segueix pendent i que el saldo actual no rep un segon descompte."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.82",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Las comprobaciones siguen visibles",
+      "en": "Checks stay visible",
+      "ca": "Les comprovacions continuen visibles"
+    },
+    "items": {
+      "es": [
+        "Las comprobaciones pendientes siguen visibles cuando no se puede consultar la versión publicada.",
+        "Los resultados y comentarios de cada comprobación se conservan."
+      ],
+      "en": [
+        "Pending checks stay visible when the published version cannot be checked.",
+        "Each check retains its results and comments."
+      ],
+      "ca": [
+        "Les comprovacions pendents continuen visibles quan no es pot consultar la versió publicada.",
+        "Cada comprovació conserva els resultats i comentaris."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "beta-panel-veredictos",
+        "rev": 2,
+        "t": {
+          "es": "Las comprobaciones conservan su resultado",
+          "en": "Checks retain their results",
+          "ca": "Les comprovacions conserven el resultat"
+        },
+        "items": {
+          "es": [
+            "1. Aprueba una tanda comprobada. Tras una actualización ajena y al reabrir, debe seguir aprobada y plegada; solo lo nuevo queda pendiente.",
+            "2. En otra tanda, marca un fallo y escribe un comentario. Reinicia la revisión de cero y reabre: sus marcas y comentarios deben estar vacíos. Un rechazo o una retirada posteriores siguen mandando."
+          ],
+          "en": [
+            "1. Approve a tested batch. After an unrelated update and reopening, it should remain approved and folded; only new work stays pending.",
+            "2. In another batch, mark a failure and write a comment. Start the review from scratch and reopen: its marks and comments should be empty. Later rejection or revocation still takes precedence."
+          ],
+          "ca": [
+            "1. Aprova una tanda comprovada. Després d’una actualització aliena i en reobrir, ha de seguir aprovada i plegada; només queda pendent el que és nou.",
+            "2. En una altra tanda, marca un error i escriu un comentari. Reinicia la revisió de zero i reobre: les marques i els comentaris han d’estar buits. Un rebuig o una retirada posteriors continuen manant."
+          ]
+        },
+        "historial": [
+          "4.26.76/beta-panel-veredictos",
+          "4.26.81/beta-panel-veredictos"
+        ]
+      }
+    ]
+  },
+  {
+    "v": "4.26.81",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Las comprobaciones conservan su resultado",
+      "en": "Checks retain their results",
+      "ca": "Les comprovacions conserven el resultat"
+    },
+    "items": {
+      "es": [
+        "Las comprobaciones aprobadas conservan su resultado al actualizar y volver a abrir.",
+        "Cada comprobación guarda sus comentarios por separado, también cuando se repite el mismo texto."
+      ],
+      "en": [
+        "Approved checks retain their results after an update and reopening.",
+        "Each check keeps its own comments, even when the same text appears elsewhere."
+      ],
+      "ca": [
+        "Les comprovacions aprovades conserven el resultat en actualitzar i tornar a obrir.",
+        "Cada comprovació desa els seus comentaris per separat, també quan es repeteix el mateix text."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.80",
+    "d": "2026-10-01",
+    "t": {
+      "es": "El widget dice qué periodo enseña",
+      "en": "The widget says which period it shows",
+      "ca": "El widget diu quin període mostra"
+    },
+    "items": {
+      "es": [
+        "Con la nueva app de Android, el widget muestra el mes o Mi ciclo y la misma cifra que Inicio, también en inglés y catalán.",
+        "Si un pago aún no está confirmado en la cifra del widget, pide abrir la app para actualizar."
+      ],
+      "en": [
+        "With the new Android app, the widget shows the month or My cycle and the same figure as Home, also in English and Catalan.",
+        "If a payment is not yet confirmed in the widget figure, it asks you to open the app to update."
+      ],
+      "ca": [
+        "Amb la nova app d’Android, el widget mostra el mes o El meu cicle i la mateixa xifra que Inici, també en anglès i català.",
+        "Si un pagament encara no està confirmat a la xifra del widget, demana obrir l’app per actualitzar."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2909-01-widget-periodo",
+        "t": {
+          "es": "Widget: mes o Mi ciclo",
+          "en": "Widget: month or My cycle",
+          "ca": "Widget: mes o El meu cicle"
+        },
+        "items": {
+          "es": [
+            "1. Instala la nueva app Android. Sin Mi ciclo, abre la app: widget ESTE MES y gastado de Inicio. La app Android anterior conserva sus cifras anteriores.",
+            "2. Instala la app de Android nueva, activa Mi ciclo y abre la app: el widget debe decir «MI CICLO» y la misma cifra que Inicio. Con la app en inglés o catalán, el widget también.",
+            "3. Cierra la app y paga con Trade Republic: el widget debe pedir abrir la app hasta confirmar el pago. Al reabrir y recibirlo, coincide con Inicio sin contarlo dos veces."
+          ],
+          "en": [
+            "1. Install the new Android app. With My cycle off, open the app: widget THIS MONTH and spending on Home. The previous Android app keeps its previous figures.",
+            "2. Install the new Android app, turn on My cycle and open the app: the widget must say “MY CYCLE” and the same figure as Home. With the app in English or Catalan, so must the widget.",
+            "3. Close the app and pay with Trade Republic: the widget must ask you to open the app until payment is confirmed. After reopening and receiving it, it matches Home without counting it twice."
+          ],
+          "ca": [
+            "1. Instal·la la nova app Android. Sense El meu cicle, obre l’app: widget AQUEST MES i gastat d’Inici. L’app Android anterior conserva les xifres anteriors.",
+            "2. Instal·la la nova app d'Android, activa El meu cicle i obre l'app: el widget ha de dir «EL MEU CICLE» i la mateixa xifra que Inici. Amb l'app en anglès o català, el widget també.",
+            "3. Tanca l’app i paga amb Trade Republic: el widget ha de demanar obrir l’app fins a confirmar el pagament. En reobrir i rebre’l, coincideix amb Inici sense comptar-lo dues vegades."
+          ]
+        },
+        "apk": 52
+      }
+    ]
+  },
+  {
+    "v": "4.26.79",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Corregir una retirada del banco",
+      "en": "Correct a bank withdrawal",
+      "ca": "Corregir una retirada del banc"
+    },
+    "items": {
+      "es": [
+        "Las retiradas del banco pueden marcarse como traspasos sin contar como gasto. La ficha avisa si no puede confirmar el cambio.",
+        "No se añade efectivo desde una retirada bancaria; los apuntes manuales siguen disponibles en Cartera.",
+        "Para marcar como retirada un cargo que paga un recibo, primero hay que deshacer ese vínculo desde la ficha.",
+        "Si un recibo se marca como pagado mientras se corrige una retirada, vuelve a quedar pendiente al sincronizar."
+      ],
+      "en": [
+        "Bank withdrawals can be marked as transfers without counting as spending. The detail view warns when the change cannot be confirmed.",
+        "A bank withdrawal does not add cash; manual cash entries remain available in Portfolio.",
+        "Before marking a charge that pays a bill as a withdrawal, its link must be undone from the detail view.",
+        "If a bill is marked as paid while a withdrawal is being corrected, it becomes pending again when synced."
+      ],
+      "ca": [
+        "Les retirades del banc es poden marcar com a traspassos sense comptar com a despesa. La fitxa avisa si no pot confirmar el canvi.",
+        "Una retirada bancària no afegeix efectiu; els apunts manuals continuen disponibles a Cartera.",
+        "Per marcar com a retirada un càrrec que paga un rebut, primer cal desfer aquest vincle des de la fitxa.",
+        "Si un rebut es marca com a pagat mentre es corregeix una retirada, torna a quedar pendent en sincronitzar."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2909-03-retirada",
+        "t": {
+          "es": "Retiradas y presupuesto",
+          "en": "Withdrawals and budget",
+          "ca": "Retirades i pressupost"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, abre la retirada del banco que necesitas corregir. El importe y la cuenta siguen fijados por el banco; la categoría se puede corregir. Toca Es una retirada de efectivo y cancela: nada debe cambiar.",
+            "2. Confirma la retirada: debe quedar en Traspaso y salir del gasto presupuestado. Conserva una sola fila con el mismo importe y banco. No aumenta el saldo del banco ni Efectivo; tocar Efectivo explica el límite.",
+            "3. Reabre y sincroniza los movimientos. La retirada confirmada debe seguir una sola vez y sin sumar efectivo, también en otro móvil al sincronizar.",
+            "4. Si no puede confirmar el cambio, la ficha debe avisar y no anunciar Guardado. Tras sincronizar, revisa la categoría antes de reintentar.",
+            "5. Si el movimiento está vinculado a un recibo, Retirada debe estar bloqueada y explicar el motivo. Deshaz primero el vínculo en Paga un recibo: el recibo deja de estar confirmado también en otro móvil al sincronizar; después se habilita Retirada."
+          ],
+          "en": [
+            "1. In Expenses, open the bank withdrawal you need to correct. The bank still sets its amount and account; the category can be corrected. Tap This is a cash withdrawal and cancel: nothing should change.",
+            "2. Confirm the withdrawal: it should be marked as Transfer and excluded from budget spending. Keep one row with the same amount and bank. Bank balance and Cash must not increase; tapping Cash explains the limit.",
+            "3. Reopen and sync transactions. The confirmed withdrawal should remain once without adding cash, including on another phone after syncing.",
+            "4. If the change cannot be confirmed, the detail view should warn you and must not say Saved. After syncing, check the category before trying again.",
+            "5. If the transaction is linked to a bill, Withdrawal must be blocked and explain why. First undo its link in Pays a bill: the bill becomes unconfirmed on another phone after syncing; Withdrawal is then enabled."
+          ],
+          "ca": [
+            "1. A Despeses, obre la retirada del banc que necessites corregir. El banc continua fixant l'import i el compte; la categoria es pot corregir. Toca És una retirada d'efectiu i cancel·la: no ha de canviar res.",
+            "2. Confirma la retirada: ha de quedar a Traspàs i sortir de la despesa pressupostada. Conserva una sola fila amb el mateix import i banc. No augmenta el saldo del banc ni Efectiu; tocar Efectiu explica el límit.",
+            "3. Reobre i sincronitza els moviments. La retirada confirmada ha de continuar una sola vegada i sense sumar efectiu, també en un altre mòbil en sincronitzar.",
+            "4. Si no pot confirmar el canvi, la fitxa ha d'avisar i no anunciar Desat. Després de sincronitzar, revisa la categoria abans de tornar-ho a provar.",
+            "5. Si el moviment està vinculat a un rebut, Retirada ha d’estar bloquejada i explicar el motiu. Desfés primer el vincle a Paga un rebut: el rebut deixa d’estar confirmat també en un altre mòbil en sincronitzar; després s’habilita Retirada."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.78",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Ingresos bancarios en el día del cobro",
+      "en": "Bank income on the payment date",
+      "ca": "Ingressos bancaris el dia del cobrament"
+    },
+    "items": {
+      "es": [
+        "Los ingresos bancarios pendientes o con fecha futura esperan al día del cobro."
+      ],
+      "en": [
+        "Pending bank income and future-dated credits wait until the payment date."
+      ],
+      "ca": [
+        "Els ingressos bancaris pendents o amb data futura esperen el dia del cobrament."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-3009-nomina-anticipada",
+        "t": {
+          "es": "Nómina sin adelantar el cobro",
+          "en": "Salary without an early payment",
+          "ca": "Nòmina sense avançar el cobrament"
+        },
+        "items": {
+          "es": [
+            "1. Antes de cobrar, sincroniza Sabadell: una nómina pendiente o con fecha futura no debe aparecer como ingreso cobrado ni abrir Mi ciclo.",
+            "2. Cuando el banco confirme el cobro, sincroniza de nuevo: comprueba una sola nómina en Gastos y el saldo real en Cartera. Repite la sincronización y reabre para comprobar que no se duplica."
+          ],
+          "en": [
+            "1. Before payday, sync Sabadell: a pending salary or future-dated credit must not appear as received income or start My cycle.",
+            "2. When the bank confirms payment, sync again: check one salary entry in Expenses and the actual balance in Portfolio. Sync again and reopen to check it is not duplicated."
+          ],
+          "ca": [
+            "1. Abans de cobrar, sincronitza Sabadell: una nòmina pendent o amb data futura no ha d'aparèixer com a ingrés cobrat ni obrir El meu cicle.",
+            "2. Quan el banc confirmi el cobrament, sincronitza de nou: comprova una sola nòmina a Despeses i el saldo real a Cartera. Repeteix la sincronització i reobre per comprovar que no es duplica."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.77",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Tres retoques de pantalla",
+      "en": "Three visual touch-ups",
+      "ca": "Tres retocs de pantalla"
+    },
+    "items": {
+      "es": [
+        "Con el tema Cyberpunk, la línea de neón de la barra inferior ya no atraviesa el botón +; sigue recorriendo el resto de la barra.",
+        "En Pregúntame, el botón Preguntar queda pegado al borde inferior en lugar de flotar con un hueco debajo, también con el teclado abierto.",
+        "En tu perfil, los datos que aún no has rellenado ocupan una línea normal con «Añadir», en vez de una casilla enorme cada uno."
+      ],
+      "en": [
+        "With the Cyberpunk theme, the neon line on the bottom bar no longer crosses the + button; it still runs along the rest of the bar.",
+        "In Ask me, the Ask button now sits at the bottom edge instead of floating over a gap, also with the keyboard open.",
+        "In your profile, details you haven't filled in yet take up a normal line with “Add” instead of a huge box each."
+      ],
+      "ca": [
+        "Amb el tema Cyberpunk, la línia de neó de la barra inferior ja no travessa el botó +; continua recorrent la resta de la barra.",
+        "A Pregunta'm, el botó Preguntar queda enganxat a la vora inferior en lloc de surar amb un buit a sota, també amb el teclat obert.",
+        "Al teu perfil, les dades que encara no has omplert ocupen una línia normal amb «Afegeix», en lloc d'una casella enorme cadascuna."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2709-12-cyber-fab",
+        "t": {
+          "es": "Botón + en Cyberpunk",
+          "en": "+ button in Cyberpunk",
+          "ca": "Botó + a Cyberpunk"
+        },
+        "items": {
+          "es": [
+            "1. Con el tema Cyberpunk, mira el botón + en cada pestaña mientras pasa la línea de neón por la barra: la línea no debe cruzar el botón.",
+            "2. Baja en una lista para que se esconda la barra y vuelve a subir: el botón + sigue limpio y se puede pulsar."
+          ],
+          "en": [
+            "1. With the Cyberpunk theme, watch the + button on each tab while the neon line runs along the bar: the line must not cross the button.",
+            "2. Scroll down a list so the bar hides, then scroll back up: the + button stays clean and can be tapped."
+          ],
+          "ca": [
+            "1. Amb el tema Cyberpunk, mira el botó + a cada pestanya mentre la línia de neó recorre la barra: la línia no ha de travessar el botó.",
+            "2. Baixa en una llista perquè s'amagui la barra i torna a pujar: el botó + continua net i es pot prémer."
+          ]
+        }
+      },
+      {
+        "id": "inc-2709-14-preguntar",
+        "t": {
+          "es": "Botón Preguntar",
+          "en": "Ask button",
+          "ca": "Botó Preguntar"
+        },
+        "items": {
+          "es": [
+            "1. Abre Pregúntame sin escribir nada: el botón Preguntar debe quedar cerca del borde inferior, sin un hueco vacío debajo.",
+            "2. Toca la caja para escribir: con el teclado abierto, Preguntar queda justo encima del teclado y se puede pulsar. No hace falta enviar ninguna pregunta."
+          ],
+          "en": [
+            "1. Open Ask me without typing: the Ask button must sit near the bottom edge, with no empty gap below it.",
+            "2. Tap the text box: with the keyboard open, Ask sits just above the keyboard and can be tapped. There is no need to send a question."
+          ],
+          "ca": [
+            "1. Obre Pregunta'm sense escriure res: el botó Preguntar ha de quedar a prop de la vora inferior, sense cap buit a sota.",
+            "2. Toca la caixa per escriure: amb el teclat obert, Preguntar queda just damunt del teclat i es pot prémer. No cal enviar cap pregunta."
+          ]
+        }
+      },
+      {
+        "id": "inc-2709-10-perfil",
+        "t": {
+          "es": "Perfil sin casillas gigantes",
+          "en": "Profile without giant boxes",
+          "ca": "Perfil sense caselles gegants"
+        },
+        "items": {
+          "es": [
+            "1. Toca tu avatar en Inicio para abrir el perfil: los datos sin rellenar se ven como una línea más, con «Añadir» a la izquierda, del mismo alto que los rellenos.",
+            "2. Toca uno de ellos: se abre el cuadro para escribirlo, como siempre. No hace falta guardar nada."
+          ],
+          "en": [
+            "1. Tap your avatar on Home to open your profile: empty details look like any other line, with “Add” on the left, the same height as the filled ones.",
+            "2. Tap one of them: the box to type it opens, as always. There is no need to save anything."
+          ],
+          "ca": [
+            "1. Toca el teu avatar a Inici per obrir el perfil: les dades sense omplir es veuen com una línia més, amb «Afegeix» a l'esquerra, de la mateixa alçada que les omplertes.",
+            "2. Toca'n una: s'obre el quadre per escriure-la, com sempre. No cal desar res."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.76",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Comprobaciones y publicación",
+      "en": "Checks and publication",
+      "ca": "Comprovacions i publicació"
+    },
+    "items": {
+      "es": [
+        "La revisión distingue las mejoras que falta probar de las que falta publicar. Las entregadas desaparecen de la lista."
+      ],
+      "en": [
+        "The review distinguishes improvements awaiting checks from those awaiting publication. Delivered improvements leave the list."
+      ],
+      "ca": [
+        "La revisió distingeix les millores pendents de provar de les pendents de publicar. Les entregades desapareixen de la llista."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.75",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Las comprobaciones conservan su resultado",
+      "en": "Checks keep their results",
+      "ca": "Les comprovacions conserven el resultat"
+    },
+    "items": {
+      "es": [
+        "Las comprobaciones conservan su resultado al cambiar de versión. Si cambia lo que se comprueba, se pide revisarlo de nuevo y el resultado anterior queda guardado."
+      ],
+      "en": [
+        "Checks keep their results when the version changes. If what is being checked changes, a new review is requested and the previous result stays saved."
+      ],
+      "ca": [
+        "Les comprovacions conserven el resultat en canviar de versió. Si canvia allò que es comprova, es demana revisar-ho de nou i el resultat anterior queda desat."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.74",
+    "d": "2026-09-30",
+    "t": {
+      "es": "Confirmar el recibo que paga un cargo",
+      "en": "Confirm which bill a charge pays",
+      "ca": "Confirmar el rebut que paga un càrrec"
+    },
+    "items": {
+      "es": [
+        "Desde la ficha de un gasto se puede vincular el cargo al recibo que paga, aunque el banco lo llame de otra manera. La confirmación se conserva al volver a entrar y se puede deshacer.",
+        "Si una factura cambia de importe, Plan distingue el cargo cobrado del importe previsto."
+      ],
+      "en": [
+        "Link a charge to the bill it pays from the expense details, even when the bank uses another name. Confirmation survives reopening and can be undone.",
+        "When a bill amount changes, Plan distinguishes the actual charge from the expected amount."
+      ],
+      "ca": [
+        "Des de la fitxa d'una despesa es pot vincular el càrrec al rebut que paga, encara que el banc l'anomeni d'una altra manera. La confirmació es conserva en tornar-hi i es pot desfer.",
+        "Si una factura canvia d'import, Pla distingeix el càrrec cobrat de l'import previst."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-3009-01-cargos",
+        "t": {
+          "es": "Recibos pagados y vencidos",
+          "en": "Paid and overdue bills",
+          "ca": "Rebuts pagats i vençuts"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, abre un cargo que ya pagó un recibo y toca Paga un recibo, también si la factura o divisa varió. Comprueba cargo real e importe/banco previstos. Confirma solo el pago completo; cancela si es parcial y comprueba que sigue sin confirmar.",
+            "2. Comprueba Inicio y Plan: el recibo confirmado deja de estar pendiente, también al reabrir. Si varía el importe, Plan distingue Cargo y Previsto. El cargo sigue una sola vez en Gastos y saldo/presupuesto se conservan.",
+            "3. Deshaz el vínculo desde la ficha y comprueba que vuelve Sin pago acreditado. Un cargo ajeno del mismo importe no debe pagar automáticamente otro recibo."
+          ],
+          "en": [
+            "1. In Expenses, open a charge that paid a bill and tap Pays a bill, including a variable bill or currency amount. Check the actual charge and expected amount/bank. Confirm only full payment; cancel a partial payment and check it stays unconfirmed.",
+            "2. Check Home and Plan: the confirmed bill is no longer pending, including after reopening. If the amount changes, Plan distinguishes Charge and Expected. The charge remains once in Expenses and balance/budget stay unchanged.",
+            "3. Undo the link from the details and check Payment unconfirmed returns. An unrelated charge of the same amount must not automatically pay another bill."
+          ],
+          "ca": [
+            "1. A Despeses, obre un càrrec que ja va pagar un rebut i toca Paga un rebut, també si la factura o divisa va variar. Comprova càrrec real i import/banc previstos. Confirma només el pagament complet; cancel·la si és parcial i comprova que continua sense confirmar.",
+            "2. Comprova Inici i Pla: el rebut confirmat deixa d'estar pendent, també en reobrir. Si varia l'import, Pla distingeix Càrrec i Previst. El càrrec continua una sola vegada a Despeses i es conserven saldo/pressupost.",
+            "3. Desfés el vincle des de la fitxa i comprova que torna Sense pagament acreditat. Un càrrec aliè del mateix import no ha de pagar automàticament un altre rebut."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.73",
+    "d": "2026-09-30",
+    "t": {
+      "es": "Inicio conserva el gasto del mes",
+      "en": "Home keeps monthly spending visible",
+      "ca": "Inici conserva la despesa del mes"
+    },
+    "items": {
+      "es": [
+        "Al salir de Mi ciclo, el porcentaje y el margen de Inicio corresponden a las compras del mes, aunque haya ingresos mayores."
+      ],
+      "en": [
+        "When leaving My cycle, the Home percentage and remaining budget reflect monthly purchases, even when income is higher."
+      ],
+      "ca": [
+        "En sortir d'El meu cicle, el percentatge i el marge d'Inici corresponen a les compres del mes, encara que hi hagi ingressos més grans."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2909-02-inicio-natural",
+        "t": {
+          "es": "Presupuesto mensual de Inicio",
+          "en": "Monthly Home budget",
+          "ca": "Pressupost mensual d'Inici"
+        },
+        "items": {
+          "es": [
+            "1. En Ajustes → Dinero, desactiva Presupuesto por ciclo de cobro. Con compras del mes, Inicio debe mostrar un porcentaje que corresponda a Has gastado; una nómina mayor no debe dejarlo en 0 %.",
+            "2. Vuelve a activar el ciclo: Inicio debe recuperar el gasto neto y el margen desde el cobro. Comprueba ambos modos de Gastos y que la elección persiste al cerrar y abrir."
+          ],
+          "en": [
+            "1. In Settings → Money, turn off Budget by pay cycle. With purchases this month, Home should show a percentage matching spending; higher pay should not reduce it to 0%.",
+            "2. Turn the cycle back on: Home should recover net spending and remaining budget since payday. Check both Spending modes and that the choice survives closing and reopening."
+          ],
+          "ca": [
+            "1. A Ajustos → Diners, desactiva Pressupost per cicle de cobrament. Amb compres del mes, Inici ha de mostrar un percentatge coherent amb la despesa; una nòmina més gran no l'ha de deixar al 0 %.",
+            "2. Torna a activar el cicle: Inici ha de recuperar la despesa neta i el marge des del cobrament. Comprova els dos modes de Despeses i que la tria es conserva en tancar i obrir."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.71",
+    "d": "2026-09-30",
+    "t": {
+      "es": "Los recibos vencidos se distinguen de los próximos",
+      "en": "Overdue bills are separate from upcoming bills",
+      "ca": "Els rebuts vençuts es distingeixen dels pròxims"
+    },
+    "items": {
+      "es": [
+        "Los recibos con pago acreditado dejan de aparecer en Inicio. Si la fecha ya pasó y falta la confirmación, aparecen como vencidos sin darlos por pagados."
+      ],
+      "en": [
+        "Bills with confirmed payment leave Home. If the date has passed and confirmation is missing, they appear as overdue without being marked paid."
+      ],
+      "ca": [
+        "Els rebuts amb pagament acreditat deixen de sortir a Inici. Si la data ja ha passat i falta la confirmació, apareixen com a vençuts sense donar-los per pagats."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.70",
+    "d": "2026-09-29",
+    "t": {
+      "es": "Las deudas terminadas se pueden archivar",
+      "en": "Finished debts can be archived",
+      "ca": "Els deutes liquidats es poden arxivar"
+    },
+    "items": {
+      "es": [
+        "Cuando una deuda llega a cero, puedes confirmar que está liquidada y archivarla. Sigue disponible con sus cuotas en Deudas archivadas."
+      ],
+      "en": [
+        "When a debt reaches zero, you can confirm it is settled and archive it. It remains available with its payments under Archived debts."
+      ],
+      "ca": [
+        "Quan un deute arriba a zero, pots confirmar que està liquidat i arxivar-lo. Continua disponible amb les quotes a Deutes arxivats."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.69",
+    "d": "2026-09-29",
+    "t": {
+      "es": "Inicio aparece sin una segunda espera",
+      "en": "Home appears without a second wait",
+      "ca": "Inici apareix sense una segona espera"
+    },
+    "items": {
+      "es": [
+        "Con poca conexión, Inicio muestra los datos guardados al terminar el logo sin volver a cubrirlos con barras grises."
+      ],
+      "en": [
+        "With a weak connection, Home shows saved data when the logo closes instead of covering it with grey bars again."
+      ],
+      "ca": [
+        "Amb poca connexió, Inici mostra les dades desades quan acaba el logotip sense tornar-les a tapar amb barres grises."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2709-01-arranque-red",
+        "t": {
+          "es": "Arranque con poca conexión",
+          "en": "Starting with a weak connection",
+          "ca": "Arrencada amb poca connexió"
+        },
+        "items": {
+          "es": [
+            "1. Con conexión débil, cierra y abre la app: al terminar el logo, Inicio debe mostrar tus datos guardados sin dos barras grises ni una segunda espera.",
+            "2. Repite sin conexión y vuelve a abrir con red: Inicio debe seguir siendo usable y actualizarse cuando lleguen los datos nuevos."
+          ],
+          "en": [
+            "1. With a weak connection, close and reopen the app: when the logo closes, Home should show saved data without two grey bars or a second wait.",
+            "2. Repeat offline, then reopen online: Home should remain usable and update when new data arrives."
+          ],
+          "ca": [
+            "1. Amb poca connexió, tanca i torna a obrir l’aplicació: quan acaba el logotip, Inici ha de mostrar les dades desades sense dues barres grises ni una segona espera.",
+            "2. Repeteix-ho sense connexió i torna a obrir amb xarxa: Inici ha de continuar sent usable i actualitzar-se quan arribin dades noves."
+          ]
+        },
+        "historial": [
+          "4.26.69/inc-2709-01-arranque-red"
+        ],
+        "desde": [
+          "4.26.69/inc-2709-01-arranque-red"
+        ],
+        "huella": "73559744",
+        "codigoDesde": "0ff7d998ea1e1084c074447210b3f4c568f896c8516a74c8640da7197bb2600c",
+        "revisionesDesde": {
+          "web": "4e9d7540e4550fb07fa1fab49e271d0f7a096799994a39f7a9e7ff833c116749"
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.68",
+    "d": "2026-09-29",
+    "t": {
+      "es": "La ayuda de Mi ciclo se recoge",
+      "en": "My cycle help can be tucked away",
+      "ca": "L'ajuda d'El meu cicle es pot plegar"
+    },
+    "items": {
+      "es": [
+        "En Gastos puedes ocultar la explicación de Mi ciclo y volver a abrirla con Ayuda. La fecha del cobro sigue a la vista y la elección se recuerda."
+      ],
+      "en": [
+        "In Expenses, you can hide the My cycle explanation and reopen it with Help. The payday date stays visible and your choice is remembered."
+      ],
+      "ca": [
+        "A Despeses pots amagar l'explicació d'El meu cicle i tornar-la a obrir amb Ajuda. La data del cobrament continua visible i la tria es recorda."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2809-02-ayuda-ciclo",
+        "t": {
+          "es": "Ayuda de Mi ciclo",
+          "en": "My cycle help",
+          "ca": "Ajuda d'El meu cicle"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos → Mi ciclo, oculta la explicación. La fecha del cobro o la ausencia de nómina debe seguir visible.",
+            "2. Sal y vuelve a Gastos, y reinicia la app: la ayuda debe seguir plegada. Toca Ayuda para releerla."
+          ],
+          "en": [
+            "1. In Expenses → My cycle, hide the explanation. The payday date or missing pay notice should remain visible.",
+            "2. Leave and return to Expenses, then restart the app: help should remain folded. Tap Help to read it again."
+          ],
+          "ca": [
+            "1. A Despeses → El meu cicle, amaga l'explicació. La data del cobrament o l'absència de nòmina ha de continuar visible.",
+            "2. Surt i torna a Despeses i reinicia l'app: l'ajuda ha de continuar plegada. Toca Ajuda per tornar-la a llegir."
+          ]
+        },
+        "historial": [
+          "4.26.68/inc-2809-02-ayuda-ciclo"
+        ],
+        "desde": [
+          "4.26.68/inc-2809-02-ayuda-ciclo"
+        ],
+        "huella": "c10490c6",
+        "codigoDesde": "4cc0c6a3e336a19de386b977ba1cdacd193342936fc846f98745fb19311b2282",
+        "revisionesDesde": {
+          "web": "7332880ccdad86a6fa2302c07769fe7f542b157c7ceec1a82276b3bace9ca9a9"
+        }
+      },
+      {
+        "id": "fin05-widget-reentrada",
+        "t": {
+          "es": "Widget después de reabrir",
+          "en": "Widget after reopening",
+          "ca": "Widget després de tornar a obrir"
+        },
+        "items": {
+          "es": [
+            "1. Instala la actualización Android, abre Aely y comprueba las cifras del widget. En la próxima compra habitual con la app cerrada, el gasto debe variar solo por el pago. Reabrir no debe descontarlo otra vez. Conserva la notificación y las cifras antes y después."
+          ],
+          "en": [
+            "1. Install the Android update, open Aely and check widget figures. For the next normal purchase with the app closed, spending should change only by the payment. Reopening should not deduct it again. Keep the notification and before and after figures."
+          ],
+          "ca": [
+            "1. Instal·la l’actualització Android, obre Aely i comprova les xifres del widget. En la pròxima compra habitual amb l’app tancada, la despesa ha de variar només pel pagament. Tornar a obrir no l’ha de descomptar una altra vegada. Conserva la notificació i les xifres d’abans i després."
+          ]
+        },
+        "apk": 52,
+        "historial": [
+          "4.26.67/fin05-widget-reentrada"
+        ],
+        "huella": "217d10b1",
+        "codigoDesde": "a4b57113557c041a78c6994ff4dce9ef57bfa6e176d671ca3ac8629083fff8d4",
+        "revisionesDesde": {
+          "web": "d27d622918f5ad197d56b51bd6cd2bd14f2659698ee60e8df732f3ff170a4282",
+          "native": "8db7c86ba63459fb188c411dfacaa6156f64f5b30eca1af3d9538b49538b3e95"
+        }
+      },
+      {
+        "id": "fin05-pago-cerrada",
+        "t": {
+          "es": "Gasto del widget tras una compra",
+          "en": "Widget spending after a purchase",
+          "ca": "Despesa del widget després d’una compra"
+        },
+        "items": {
+          "es": [
+            "1. Abre la app actualizada y anota el Gastado del widget. En la próxima compra habitual, deja la app cerrada y conserva la notificación. El Gastado debe aumentar solo por esa compra, con el redondeo habitual.",
+            "2. Al volver a abrir la app, el gasto y el saldo del widget deben mantenerse sin descontar la compra otra vez. Si falla, conserva las notificaciones y comunica las cifras antes y después."
+          ],
+          "en": [
+            "1. Open the updated app and note the widget’s Spent amount. For the next normal purchase, leave the app closed and keep the notification. Spent should rise only by that purchase, with normal rounding.",
+            "2. Reopening the app should preserve widget spending and cash without deducting the purchase again. If it fails, keep notifications and report before and after figures."
+          ],
+          "ca": [
+            "1. Obre l’app actualitzada i anota la Despesa del widget. En la pròxima compra habitual, deixa l’app tancada i conserva la notificació. La Despesa ha d’augmentar només per aquella compra, amb l’arrodoniment habitual.",
+            "2. En tornar a obrir l’app, la despesa i el saldo del widget s’han de mantenir sense descomptar la compra una altra vegada. Si falla, conserva les notificacions i comunica les xifres d’abans i després."
+          ]
+        },
+        "apk": 52,
+        "historial": [
+          "4.26.67/fin05-pago-cerrada"
+        ],
+        "huella": "eddacdf9",
+        "codigoDesde": "1fb49b496295abfb53e3115cf68c4d90c4c19f63aab20907dd5242a3437ae770",
+        "revisionesDesde": {
+          "web": "d27d622918f5ad197d56b51bd6cd2bd14f2659698ee60e8df732f3ff170a4282",
+          "native": "2076258ee38657c4cbfd3abb52a19cdf931f496f4d0593b1ff0bbaaa0416ed1a",
+          "edge": "8758af5c07c075262fb3481623748a2353e436d0d1ce3a71334bfaa9627b21d1"
+        }
+      },
+      {
+        "id": "tr-descripcion-clasificacion",
+        "t": {
+          "es": "Clasificación de gastos bancarios",
+          "en": "Bank expense categories",
+          "ca": "Classificació de despeses bancàries"
+        },
+        "items": {
+          "es": [
+            "1. Cuando haya un cargo nuevo, sincroniza Trade Republic a demanda y revisa su categoría y nota en Gastos. Si llega información útil del comercio, puede clasificarse aunque el título sea «Movimiento»; sin ella seguirá en Otros. No hace falta comprar nada.",
+            "2. Un movimiento antiguo renombrado o clasificado a mano debe conservarse una sola vez, con sus cambios, después de repetir la sincronización."
+          ],
+          "en": [
+            "1. When a new charge exists, sync Trade Republic on demand and check its category and note in Expenses. Useful merchant information can supply a category even with a generic title; without it the category remains Other. No purchase is needed.",
+            "2. An older transaction renamed or categorised manually should remain once, with its changes, after syncing again."
+          ],
+          "ca": [
+            "1. Quan hi hagi un càrrec nou, sincronitza Trade Republic a demanda i revisa’n la categoria i la nota a Despeses. Si arriba informació útil del comerç, es pot classificar encara que el títol sigui «Moviment»; sense informació continuarà a Altres. No cal comprar res.",
+            "2. Un moviment antic reanomenat o classificat a mà s’ha de conservar una sola vegada, amb els canvis, després de repetir la sincronització."
+          ]
+        },
+        "apk": 52,
+        "historial": [
+          "4.26.67/tr-descripcion-clasificacion"
+        ],
+        "huella": "05c57324",
+        "codigoDesde": "dc0f124ef9404d036e4589d4e54a881332bc8a8c33a66e5a56b95d8bc426b589",
+        "revisionesDesde": {
+          "web": "e26f0b5f1b03a6bf8480a9b7a25d91b69401001056c01ab2fe77e08cc3a14df7",
+          "native": "b82b941e4c7a1daf42a390ada1b353e052e0fab2716182f7e4b91c9f434b62f6",
+          "edge": "487b4776e900de6766e78b54109af4053b3b172d3428f45252cf7ff4591d3015"
+        }
+      },
+      {
+        "id": "widget-banco",
+        "t": {
+          "es": "Banco del widget",
+          "en": "Widget bank",
+          "ca": "Banc del giny"
+        },
+        "items": {
+          "es": [
+            "1. Abre Ajustes → Banco del widget y elige otro banco. Comprueba el nombre, saldo y «Puedes gastar» en el widget.",
+            "2. Cierra y vuelve a abrir la app: debe conservar la elección. «Cuenta de gasto diario» recupera la elección automática."
+          ],
+          "en": [
+            "1. Open Settings → Widget bank and choose another bank. Check the name, balance and spending limit in the widget.",
+            "2. Close and reopen the app: your choice should remain. Daily spending account restores automatic selection."
+          ],
+          "ca": [
+            "1. Obre Ajustos → Banc del widget i tria un altre banc. Comprova el nom, el saldo i «Pots gastar» al giny.",
+            "2. Tanca i torna a obrir l’app: ha de conservar la tria. Compte de despesa diària recupera la tria automàtica."
+          ]
+        },
+        "apk": 52,
+        "historial": [
+          "4.26.67/widget-banco"
+        ],
+        "huella": "708813c8",
+        "codigoDesde": "6ead0af13a53977317f28bc463c2f15b5fe1d05702ee776d3243833a52e86d6b",
+        "revisionesDesde": {
+          "web": "2137193d58dcb1ec2d6fe0a3c943d3252a86b6fe72204fac4b89e7506d8671f0",
+          "native": "9bdf23d38cad812c2c93973a70b30f8a7a8c0d5d845b08844a0f8adee81ee894"
+        }
+      },
+      {
+        "id": "widget-app-cerrada",
+        "t": {
+          "es": "Widget con la app cerrada",
+          "en": "Widget while the app is closed",
+          "ca": "Giny amb l'app tancada"
+        },
+        "items": {
+          "es": [
+            "1. Con la nueva APK instalada, abre la app y compara el gasto del mes, el saldo y «Puedes gastar» con el widget.",
+            "2. Cierra la app y espera a recibir dos movimientos reales de Trade Republic. Comprueba que el widget incorpora ambos sin retroceder a una cifra anterior.",
+            "3. Vuelve a abrir la app y compara de nuevo el widget con Inicio y Gastos. Ningún movimiento debe desaparecer ni repetirse."
+          ],
+          "en": [
+            "1. With the new APK installed, open the app and compare monthly spending, balance and 'You can spend' with the widget.",
+            "2. Close the app and wait for two real Trade Republic transactions. Check that the widget includes both without returning to an earlier figure.",
+            "3. Reopen the app and compare the widget with Home and Spending again. No transaction should disappear or appear twice."
+          ],
+          "ca": [
+            "1. Amb l'APK nova instal·lada, obre l'app i compara la despesa del mes, el saldo i «Pots gastar» amb el giny.",
+            "2. Tanca l'app i espera dos moviments reals de Trade Republic. Comprova que el giny incorpora tots dos sense tornar a una xifra anterior.",
+            "3. Torna a obrir l'app i compara el giny amb Inici i Despeses. Cap moviment no ha de desaparèixer ni repetir-se."
+          ]
+        },
+        "apk": 52,
+        "historial": [
+          "4.26.67/widget-app-cerrada"
+        ],
+        "huella": "be8ed58c",
+        "codigoDesde": "1fb49b496295abfb53e3115cf68c4d90c4c19f63aab20907dd5242a3437ae770",
+        "revisionesDesde": {
+          "web": "d27d622918f5ad197d56b51bd6cd2bd14f2659698ee60e8df732f3ff170a4282",
+          "native": "2076258ee38657c4cbfd3abb52a19cdf931f496f4d0593b1ff0bbaaa0416ed1a",
+          "edge": "8758af5c07c075262fb3481623748a2353e436d0d1ce3a71334bfaa9627b21d1"
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.67",
     "d": "2026-09-30",
     "t": {
@@ -129,6 +1109,27 @@
     "tandas": []
   },
   {
+    "v": "4.26.60",
+    "d": "2026-09-28",
+    "t": {
+      "es": "El widget y los gastos bancarios",
+      "en": "Widget and bank expenses",
+      "ca": "El widget i les despeses bancàries"
+    },
+    "items": {
+      "es": [
+        "El widget conserva el banco elegido y sus cifras al volver a la app. Los gastos bancarios pueden usar la información del comercio para su categoría."
+      ],
+      "en": [
+        "The widget keeps the selected bank and its figures when returning to the app. Bank expenses can use merchant information for their category."
+      ],
+      "ca": [
+        "El widget conserva el banc triat i les xifres en tornar a l’app. Les despeses bancàries poden fer servir la informació del comerç per a la categoria."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.59",
     "d": "2026-09-28",
     "t": {
@@ -137,21 +1138,38 @@
       "ca": "Quotes de deute accessibles"
     },
     "items": {
-      "es": ["Las cuotas de deuda vuelven a abrirse desde Plan sin cerrar la app."],
-      "en": ["Debt payments open again from Plan without closing the app."],
-      "ca": ["Les quotes de deute es tornen a obrir des de Pla sense tancar l’app."]
+      "es": [
+        "Las cuotas de deuda vuelven a abrirse desde Plan sin cerrar la app."
+      ],
+      "en": [
+        "Debt payments open again from Plan without closing the app."
+      ],
+      "ca": [
+        "Les quotes de deute es tornen a obrir des de Pla sense tancar l’app."
+      ]
     },
-    "tandas": [
-      {
-        "id": "cuotas-deuda-crash-28sep",
-        "t": {"es":"Abrir cuotas de deuda","en":"Open debt payments","ca":"Obrir quotes de deute"},
-        "items": {
-          "es": ["1. En Plan → Gestionar → Cuotas de deuda, abre una cuota con plazo y vuelve atrás. La ficha debe mostrar el importe y no cerrar la app.","2. Comprueba que el plazo de la deuda y sus pagos anteriores siguen visibles."],
-          "en": ["1. In Plan → Manage → Debt payments, open a payment with a term and go back. The detail should show the amount without closing the app.","2. Check that the debt term and earlier payments remain visible."],
-          "ca": ["1. A Pla → Gestionar → Quotes de deute, obre una quota amb termini i torna enrere. La fitxa ha de mostrar l’import sense tancar l’app.","2. Comprova que el termini del deute i els pagaments anteriors continuen visibles."]
-        }
-      }
-    ]
+    "tandas": []
+  },
+  {
+    "v": "4.26.58",
+    "d": "2026-09-27",
+    "t": {
+      "es": "El widget y los gastos bancarios",
+      "en": "Widget and bank expenses",
+      "ca": "El widget i les despeses bancàries"
+    },
+    "items": {
+      "es": [
+        "El widget conserva el banco elegido y sus cifras al volver a la app. Los gastos bancarios pueden usar la información del comercio para su categoría."
+      ],
+      "en": [
+        "The widget keeps the selected bank and its figures when returning to the app. Bank expenses can use merchant information for their category."
+      ],
+      "ca": [
+        "El widget conserva el banc triat i les xifres en tornar a l’app. Les despeses bancàries poden fer servir la informació del comerç per a la categoria."
+      ]
+    },
+    "tandas": []
   },
   {
     "v": "4.26.57",
@@ -216,30 +1234,70 @@
         "Les còpies s’obren en una vista de només lectura per comparar moviments i altres dades sense substituir la cartera. Les còpies malmeses es rebutgen abans d’obrir-se."
       ]
     },
-    "tandas": [
-      {
-        "id": "ops02-copias-comparar",
-        "t": {
-          "es": "Copias de seguridad para comparar",
-          "en": "Compare your backups",
-          "ca": "Còpies de seguretat per comparar"
-        },
-        "items": {
-          "es": [
-            "1. Abre Ajustes → Copia de seguridad → Copias automáticas y pulsa Ver copia. Comprueba los movimientos distintos y abre uno para comparar sus campos.",
-            "2. Vuelve a las copias y a Ajustes. Comprueba que la cartera conserva sus datos y que no se ofrece aplicar ni sustituir la copia."
-          ],
-          "en": [
-            "1. Open Settings → Backup → Automatic backups and tap View backup. Check changed transactions and open one to compare its fields.",
-            "2. Return to backups and Settings. Check that the portfolio retains its data and there is no option to apply or replace the backup."
-          ],
-          "ca": [
-            "1. Obre Configuració → Còpia de seguretat → Còpies automàtiques i prem Veure còpia. Comprova els moviments diferents i obre’n un per comparar els camps.",
-            "2. Torna a les còpies i a Configuració. Comprova que la cartera conserva les dades i que no s’ofereix aplicar ni substituir la còpia."
-          ]
-        }
-      }
-    ]
+    "tandas": []
+  },
+  {
+    "v": "4.26.55",
+    "d": "27 sep 2026",
+    "t": {
+      "es": "El widget recupera sus cifras al abrir la app",
+      "en": "Opening the app restores widget figures",
+      "ca": "El widget recupera les xifres en obrir l’app"
+    },
+    "items": {
+      "es": [
+        "El widget vuelve a mostrar sus cifras al abrir la app después de reiniciarse. Los pagos pendientes se conservan y no se descuentan otra vez. Requiere actualizar la app Android."
+      ],
+      "en": [
+        "Opening the app after a restart restores widget figures. Pending payments are preserved without deducting them again. Requires the Android app update."
+      ],
+      "ca": [
+        "El widget torna a mostrar les xifres en obrir l’app després de reiniciar-se. Els pagaments pendents es conserven i no es descompten una altra vegada. Cal actualitzar l’app Android."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.54",
+    "d": "27 sep 2026",
+    "t": {
+      "es": "Gastos borrados fuera del presupuesto",
+      "en": "Deleted expenses excluded from the budget",
+      "ca": "Despeses esborrades fora del pressupost"
+    },
+    "items": {
+      "es": [
+        "Los movimientos borrados dejan de contar en el gasto y el presupuesto, también cuando aún quedan guardados en el dispositivo. Así se evita un salto del gasto al recibir una compra con la app cerrada."
+      ],
+      "en": [
+        "Deleted transactions no longer count towards spending and the budget, even when still stored on the device. This prevents spending from jumping when a purchase arrives with the app closed."
+      ],
+      "ca": [
+        "Els moviments esborrats deixen de comptar a la despesa i el pressupost, també quan encara queden desats al dispositiu. Així s’evita un salt de la despesa en rebre una compra amb l’app tancada."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.53",
+    "d": "26 sep 2026",
+    "t": {
+      "es": "Más información al clasificar gastos",
+      "en": "More information for expense categories",
+      "ca": "Més informació per classificar despeses"
+    },
+    "items": {
+      "es": [
+        "Los gastos nuevos con tarjeta pueden clasificarse por el concepto o el tipo de comercio que envía el banco, aunque tengan un título genérico. Se conservan las categorías elegidas a mano."
+      ],
+      "en": [
+        "New card expenses can use the description or merchant type supplied by the bank for their category, even with a generic title. Manually chosen categories are preserved."
+      ],
+      "ca": [
+        "Les despeses noves amb targeta es poden classificar pel concepte o el tipus de comerç que envia el banc, encara que tinguin un títol genèric. Es conserven les categories triades a mà."
+      ]
+    },
+    "tandas": []
   },
   {
     "v": "4.26.52",
@@ -260,7 +1318,33 @@
         "Els moviments antics es continuen descarregant encara que l’historial sigui llarg. Si s’interromp la connexió, es conserva el que s’ha desat i es pot tornar a intentar."
       ]
     },
-    "tandas": []
+    "tandas": [
+      {
+        "id": "fin07-historico-cloud",
+        "t": {
+          "es": "Histórico completo desde la nube",
+          "en": "Complete history from the cloud",
+          "ca": "Historial complet des del núvol"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, abre Más → Todo y busca un movimiento antiguo que ya estuviera guardado en la nube. Debe conservar importe, banco y nota. No hace falta importar ni comprar nada.",
+            "2. Vuelve a abrir la app y repite la búsqueda: el movimiento sigue una sola vez. Los posibles repetidos mantienen su aviso.",
+            "3. Sin conexión, el histórico guardado sigue visible. Al recuperar conexión y volver a la app, se puede descargar de nuevo sin perder movimientos."
+          ],
+          "en": [
+            "1. In Expenses, open More → All and search for an older transaction already saved in the cloud. It should keep its amount, bank and note. No import or purchase is needed.",
+            "2. Reopen the app and repeat the search: the transaction appears once. Possible duplicates keep their warning.",
+            "3. Offline, saved history remains visible. Restore the connection and return to the app to download again without losing transactions."
+          ],
+          "ca": [
+            "1. A Despeses, obre Més → Tot i cerca un moviment antic que ja estigués desat al núvol. Ha de conservar import, banc i nota. No cal importar ni comprar res.",
+            "2. Torna a obrir l’app i repeteix la cerca: el moviment continua una sola vegada. Els possibles repetits mantenen l’avís.",
+            "3. Sense connexió, l’historial desat continua visible. En recuperar la connexió i tornar a l’app, es pot descarregar de nou sense perdre moviments."
+          ]
+        }
+      }
+    ]
   },
   {
     "v": "4.26.51",
@@ -313,6 +1397,51 @@
     ]
   },
   {
+    "v": "4.26.50",
+    "d": "26 sep 2026",
+    "t": {
+      "es": "Elige el banco del widget",
+      "en": "Choose the widget bank",
+      "ca": "Tria el banc del giny"
+    },
+    "items": {
+      "es": [
+        "En Ajustes puedes elegir qué banco muestra el widget junto a su saldo y cuánto puedes gastar. La elección se recuerda sin cambiar las cuentas ni el presupuesto."
+      ],
+      "en": [
+        "In Settings you can choose which bank the widget shows alongside its balance and how much you can spend. Your choice is remembered without changing your accounts or budget."
+      ],
+      "ca": [
+        "A Ajustos pots triar quin banc mostra el giny juntament amb el saldo i quant pots gastar. La tria es recorda sense canviar els comptes ni el pressupost."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.49",
+    "d": "25 sep 2026",
+    "t": {
+      "es": "El widget muestra el gasto del mes con más fiabilidad",
+      "en": "The widget shows this month's spending more reliably",
+      "ca": "El giny mostra la despesa del mes amb més fiabilitat"
+    },
+    "items": {
+      "es": [
+        "Al recibir varios movimientos o volver a abrir la app, el widget mantiene el gasto, el saldo y lo que puedes gastar en sintonía con la cartera.",
+        "Al empezar un mes nuevo, espera a tener cifras de ese mes antes de mostrarlas."
+      ],
+      "en": [
+        "When several transactions arrive or you reopen the app, the widget keeps spending, balance and what you can spend in step with your accounts.",
+        "At the start of a new month, it waits for that month's figures before showing them."
+      ],
+      "ca": [
+        "Quan arriben diversos moviments o tornes a obrir l'app, el giny manté la despesa, el saldo i el que pots gastar d'acord amb els comptes.",
+        "Quan comença un mes nou, espera a tenir-ne les xifres abans de mostrar-les."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.48",
     "d": "25 sep 2026",
     "t": {
@@ -321,9 +1450,15 @@
       "ca": "Rebuts confirma el que acabes d'afegir"
     },
     "items": {
-      "es": ["Al añadir un recibo, un cargo puntual o un ingreso, aparece una confirmación con su nombre para saber qué se ha guardado."],
-      "en": ["After adding a bill, a one-off charge or an income, a confirmation shows its name so you know what was saved."],
-      "ca": ["En afegir un rebut, un càrrec puntual o un ingrés, apareix una confirmació amb el nom perquè sàpigues què s'ha desat."]
+      "es": [
+        "Al añadir un recibo, un cargo puntual o un ingreso, aparece una confirmación con su nombre para saber qué se ha guardado."
+      ],
+      "en": [
+        "After adding a bill, a one-off charge or an income, a confirmation shows its name so you know what was saved."
+      ],
+      "ca": [
+        "En afegir un rebut, un càrrec puntual o un ingrés, apareix una confirmació amb el nom perquè sàpigues què s'ha desat."
+      ]
     },
     "tandas": [
       {
@@ -334,9 +1469,21 @@
           "ca": "Confirmació en afegir a Rebuts"
         },
         "items": {
-          "es": ["1. Plan → Recibos → Gestionar → +: añade un recibo con nombre e importe. Al cerrarse el formulario, comprueba que el aviso diga «Recibo añadido» y muestre ese nombre.", "2. En «Cargos de una sola vez», añade un cargo y comprueba «Cargo puntual añadido» con su nombre.", "3. En «Lo que entra y lo que mueves», añade un ingreso y comprueba «Ingreso añadido» con su nombre. Cada alta debe aparecer una sola vez en su grupo."],
-          "en": ["1. Plan → Bills → Manage → +: add a bill with a name and amount. When the form closes, check that the confirmation says “Bill added” and shows its name.", "2. Under “One-off charges”, add a charge and check “One-off charge added” with its name.", "3. Under “What comes in and what you move”, add an income and check “Income added” with its name. Each item should appear only once in its group."],
-          "ca": ["1. Pla → Rebuts → Gestionar → +: afegeix un rebut amb nom i import. Quan es tanqui el formulari, comprova que la confirmació digui «Rebut afegit» i mostri el nom.", "2. A «Càrrecs d'una sola vegada», afegeix un càrrec i comprova «Càrrec puntual afegit» amb el nom.", "3. A «El que entra i el que mous», afegeix un ingrés i comprova «Ingrés afegit» amb el nom. Cada alta ha d'aparèixer una sola vegada al grup."]
+          "es": [
+            "1. Plan → Recibos → Gestionar → +: añade un recibo con nombre e importe. Al cerrarse el formulario, comprueba que el aviso diga «Recibo añadido» y muestre ese nombre.",
+            "2. En «Cargos de una sola vez», añade un cargo y comprueba «Cargo puntual añadido» con su nombre.",
+            "3. En «Lo que entra y lo que mueves», añade un ingreso y comprueba «Ingreso añadido» con su nombre. Cada alta debe aparecer una sola vez en su grupo."
+          ],
+          "en": [
+            "1. Plan → Bills → Manage → +: add a bill with a name and amount. When the form closes, check that the confirmation says “Bill added” and shows its name.",
+            "2. Under “One-off charges”, add a charge and check “One-off charge added” with its name.",
+            "3. Under “What comes in and what you move”, add an income and check “Income added” with its name. Each item should appear only once in its group."
+          ],
+          "ca": [
+            "1. Pla → Rebuts → Gestionar → +: afegeix un rebut amb nom i import. Quan es tanqui el formulari, comprova que la confirmació digui «Rebut afegit» i mostri el nom.",
+            "2. A «Càrrecs d'una sola vegada», afegeix un càrrec i comprova «Càrrec puntual afegit» amb el nom.",
+            "3. A «El que entra i el que mous», afegeix un ingrés i comprova «Ingrés afegit» amb el nom. Cada alta ha d'aparèixer una sola vegada al grup."
+          ]
         }
       }
     ]
@@ -350,9 +1497,15 @@
       "ca": "Torna pas a pas en afegir un rebut"
     },
     "items": {
-      "es": ["Al añadir un recibo, un cargo puntual o un ingreso, el gesto Atrás acompaña al dedo y vuelve al paso anterior sin perder lo escrito."],
-      "en": ["When adding a bill, a one-off charge or an income, the Back gesture follows your finger and returns to the previous step without losing what you entered."],
-      "ca": ["En afegir un rebut, un càrrec puntual o un ingrés, el gest Enrere segueix el dit i torna al pas anterior sense perdre el que has escrit."]
+      "es": [
+        "Al añadir un recibo, un cargo puntual o un ingreso, el gesto Atrás acompaña al dedo y vuelve al paso anterior sin perder lo escrito."
+      ],
+      "en": [
+        "When adding a bill, a one-off charge or an income, the Back gesture follows your finger and returns to the previous step without losing what you entered."
+      ],
+      "ca": [
+        "En afegir un rebut, un càrrec puntual o un ingrés, el gest Enrere segueix el dit i torna al pas anterior sense perdre el que has escrit."
+      ]
     },
     "tandas": [
       {
@@ -1903,9 +3056,18 @@
       "ca": "El pressupost s'edita amb més calma"
     },
     "items": {
-      "es": ["El editor del presupuesto mensual se abre y se cierra de forma más suave.", "La cifra ocupa menos espacio para que se lea bien también en pantallas estrechas."],
-      "en": ["The monthly budget editor now opens and closes more smoothly.", "The amount takes up less room, so it remains easy to read on narrow screens."],
-      "ca": ["L'editor del pressupost mensual ara s'obre i es tanca de manera més suau.", "La xifra ocupa menys espai perquè també es llegeixi bé en pantalles estretes."]
+      "es": [
+        "El editor del presupuesto mensual se abre y se cierra de forma más suave.",
+        "La cifra ocupa menos espacio para que se lea bien también en pantallas estrechas."
+      ],
+      "en": [
+        "The monthly budget editor now opens and closes more smoothly.",
+        "The amount takes up less room, so it remains easy to read on narrow screens."
+      ],
+      "ca": [
+        "L'editor del pressupost mensual ara s'obre i es tanca de manera més suau.",
+        "La xifra ocupa menys espai perquè també es llegeixi bé en pantalles estretes."
+      ]
     },
     "tandas": []
   },
@@ -1918,9 +3080,18 @@
       "ca": "L'estalvi mensual torna a ser a Metes"
     },
     "items": {
-      "es": ["Plan → Metas vuelve a enseñar cuánto apartas al mes y permite editar, añadir o quitar aportaciones.", "Es una planificación para calcular cuándo alcanzas tus metas: no crea movimientos ni cambia saldos reales."],
-      "en": ["Plan → Goals once again shows how much you set aside each month and lets you edit, add or remove contributions.", "It is a plan for estimating when you reach your goals: it does not create transactions or change real balances."],
-      "ca": ["Pla → Metes torna a mostrar quant apartes cada mes i permet editar, afegir o treure aportacions.", "És una planificació per calcular quan arribes a les metes: no crea moviments ni canvia saldos reals."]
+      "es": [
+        "Plan → Metas vuelve a enseñar cuánto apartas al mes y permite editar, añadir o quitar aportaciones.",
+        "Es una planificación para calcular cuándo alcanzas tus metas: no crea movimientos ni cambia saldos reales."
+      ],
+      "en": [
+        "Plan → Goals once again shows how much you set aside each month and lets you edit, add or remove contributions.",
+        "It is a plan for estimating when you reach your goals: it does not create transactions or change real balances."
+      ],
+      "ca": [
+        "Pla → Metes torna a mostrar quant apartes cada mes i permet editar, afegir o treure aportacions.",
+        "És una planificació per calcular quan arribes a les metes: no crea moviments ni canvia saldos reals."
+      ]
     },
     "tandas": []
   },
@@ -2042,11 +3213,27 @@
     "tandas": [
       {
         "id": "ola-fondo-sin-caja",
-        "t": {"es":"Ola con la barra oculta","en":"Wave with the bar hidden","ca":"Ona amb la barra amagada"},
+        "t": {
+          "es": "Ola con la barra oculta",
+          "en": "Wave with the bar hidden",
+          "ca": "Ona amb la barra amagada"
+        },
         "items": {
-          "es":["1. En cualquier pestaña larga, baja hasta ocultar la barra y continúa hasta el fondo real.","2. Sigue empujando hacia el fondo dos veces, también dejando que el pulgar haga una ligera diagonal: la ola debe salir desde el primer gesto.","3. La barra debe seguir oculta y reaparecer solo al subir por el contenido."],
-          "en":["1. In any long tab, scroll until the bar hides and continue to the real bottom.","2. Keep pushing towards the bottom twice, also allowing a slight diagonal thumb movement: the wave should appear from the first gesture.","3. The bar must stay hidden and return only when scrolling up through content."],
-          "ca":["1. En qualsevol pestanya llarga, baixa fins que la barra s'amagui i continua fins al fons real.","2. Continua empenyent cap al fons dues vegades, també deixant que el polze faci una diagonal lleu: l'ona ha de sortir des del primer gest.","3. La barra ha de continuar amagada i reaparèixer només en pujar pel contingut."]
+          "es": [
+            "1. En cualquier pestaña larga, baja hasta ocultar la barra y continúa hasta el fondo real.",
+            "2. Sigue empujando hacia el fondo dos veces, también dejando que el pulgar haga una ligera diagonal: la ola debe salir desde el primer gesto.",
+            "3. La barra debe seguir oculta y reaparecer solo al subir por el contenido."
+          ],
+          "en": [
+            "1. In any long tab, scroll until the bar hides and continue to the real bottom.",
+            "2. Keep pushing towards the bottom twice, also allowing a slight diagonal thumb movement: the wave should appear from the first gesture.",
+            "3. The bar must stay hidden and return only when scrolling up through content."
+          ],
+          "ca": [
+            "1. En qualsevol pestanya llarga, baixa fins que la barra s'amagui i continua fins al fons real.",
+            "2. Continua empenyent cap al fons dues vegades, també deixant que el polze faci una diagonal lleu: l'ona ha de sortir des del primer gest.",
+            "3. La barra ha de continuar amagada i reaparèixer només en pujar pel contingut."
+          ]
         }
       }
     ]
@@ -2085,29 +3272,77 @@
     "tandas": [
       {
         "id": "ola-host-react",
-        "t": {"es":"Ola y barra al final","en":"Wave and bar at the bottom","ca":"Ona i barra al final"},
+        "t": {
+          "es": "Ola y barra al final",
+          "en": "Wave and bar at the bottom",
+          "ca": "Ona i barra al final"
+        },
         "items": {
-          "es":["1. Oculta la barra bajando y llega al final de cualquier pestaña larga.","2. Tira hacia abajo una vez y repite: la ola nativa debe aparecer en ambos gestos sin sacar la barra.","3. Sube por el contenido: solo entonces debe reaparecer la barra."],
-          "en":["1. Hide the bar by scrolling down and reach the bottom of any long tab.","2. Pull down once and repeat: the native wave should appear on both gestures without bringing the bar back.","3. Scroll up through the content: only then should the bar return."],
-          "ca":["1. Amaga la barra baixant i arriba al final de qualsevol pestanya llarga.","2. Estira cap avall una vegada i repeteix: l'ona nativa ha d'aparèixer en tots dos gestos sense fer sortir la barra.","3. Puja pel contingut: només llavors ha de reaparèixer la barra."]
+          "es": [
+            "1. Oculta la barra bajando y llega al final de cualquier pestaña larga.",
+            "2. Tira hacia abajo una vez y repite: la ola nativa debe aparecer en ambos gestos sin sacar la barra.",
+            "3. Sube por el contenido: solo entonces debe reaparecer la barra."
+          ],
+          "en": [
+            "1. Hide the bar by scrolling down and reach the bottom of any long tab.",
+            "2. Pull down once and repeat: the native wave should appear on both gestures without bringing the bar back.",
+            "3. Scroll up through the content: only then should the bar return."
+          ],
+          "ca": [
+            "1. Amaga la barra baixant i arriba al final de qualsevol pestanya llarga.",
+            "2. Estira cap avall una vegada i repeteix: l'ona nativa ha d'aparèixer en tots dos gestos sense fer sortir la barra.",
+            "3. Puja pel contingut: només llavors ha de reaparèixer la barra."
+          ]
         }
       },
       {
         "id": "historico-serial-selectivo",
-        "t": {"es":"Histórico de CaixaBank y Sabadell","en":"CaixaBank and Sabadell history","ca":"Històric de CaixaBank i Sabadell"},
+        "t": {
+          "es": "Histórico de CaixaBank y Sabadell",
+          "en": "CaixaBank and Sabadell history",
+          "ca": "Històric de CaixaBank i Sabadell"
+        },
         "items": {
-          "es":["1. No repitas la búsqueda mientras el aviso indique límite temporal; deja pasar seis horas desde el último 429.","2. En Importar histórico, comprueba que de entrada solo están marcados los bancos de gasto diario y elige CaixaBank o Sabadell antes de buscar.","3. Deben aparecer sus movimientos e importes; un límite temporal debe decir que no hace falta reconectar."],
-          "en":["1. Do not repeat the search while the temporary-limit notice is active; allow six hours after the last 429.","2. In Import history, check that only daily-spending banks are initially selected, then choose CaixaBank or Sabadell before searching.","3. Their transactions and amounts should appear; a temporary limit must say that reconnecting is unnecessary."],
-          "ca":["1. No repeteixis la cerca mentre l'avís indiqui límit temporal; deixa passar sis hores des de l'últim 429.","2. A Importar històric, comprova que d'entrada només hi ha marcats els bancs de despesa diària i tria CaixaBank o Sabadell abans de cercar.","3. Han d'aparèixer els moviments i imports; un límit temporal ha de dir que no cal reconnectar."]
+          "es": [
+            "1. No repitas la búsqueda mientras el aviso indique límite temporal; deja pasar seis horas desde el último 429.",
+            "2. En Importar histórico, comprueba que de entrada solo están marcados los bancos de gasto diario y elige CaixaBank o Sabadell antes de buscar.",
+            "3. Deben aparecer sus movimientos e importes; un límite temporal debe decir que no hace falta reconectar."
+          ],
+          "en": [
+            "1. Do not repeat the search while the temporary-limit notice is active; allow six hours after the last 429.",
+            "2. In Import history, check that only daily-spending banks are initially selected, then choose CaixaBank or Sabadell before searching.",
+            "3. Their transactions and amounts should appear; a temporary limit must say that reconnecting is unnecessary."
+          ],
+          "ca": [
+            "1. No repeteixis la cerca mentre l'avís indiqui límit temporal; deixa passar sis hores des de l'últim 429.",
+            "2. A Importar històric, comprova que d'entrada només hi ha marcats els bancs de despesa diària i tria CaixaBank o Sabadell abans de cercar.",
+            "3. Han d'aparèixer els moviments i imports; un límit temporal ha de dir que no cal reconnectar."
+          ]
         }
       },
       {
         "id": "resumen-sync-legible",
-        "t": {"es":"Resumen de sincronización legible","en":"Readable sync summary","ca":"Resum de sincronització llegible"},
+        "t": {
+          "es": "Resumen de sincronización legible",
+          "en": "Readable sync summary",
+          "ca": "Resum de sincronització llegible"
+        },
         "items": {
-          "es":["1. Pulsa una vez Sincronizar bancos.","2. El resultado debe abrir una hoja con una fila por banco o bróker, sin tapar la pantalla con un bloque de texto.","3. Un banco limitado debe quedar como «sin actualizar», nunca como «caducado»."],
-          "en":["1. Tap Sync banks once.","2. The result should open a sheet with one row per bank or broker, without covering the screen with a block of text.","3. A rate-limited bank should be shown as ‘not updated’, never ‘expired’."],
-          "ca":["1. Prem una vegada Sincronitza bancs.","2. El resultat ha d'obrir un full amb una fila per banc o bróker, sense tapar la pantalla amb un bloc de text.","3. Un banc limitat ha de quedar com a «sense actualitzar», mai com a «caducat»." ]
+          "es": [
+            "1. Pulsa una vez Sincronizar bancos.",
+            "2. El resultado debe abrir una hoja con una fila por banco o bróker, sin tapar la pantalla con un bloque de texto.",
+            "3. Un banco limitado debe quedar como «sin actualizar», nunca como «caducado»."
+          ],
+          "en": [
+            "1. Tap Sync banks once.",
+            "2. The result should open a sheet with one row per bank or broker, without covering the screen with a block of text.",
+            "3. A rate-limited bank should be shown as ‘not updated’, never ‘expired’."
+          ],
+          "ca": [
+            "1. Prem una vegada Sincronitza bancs.",
+            "2. El resultat ha d'obrir un full amb una fila per banc o bróker, sense tapar la pantalla amb un bloc de text.",
+            "3. Un banc limitat ha de quedar com a «sense actualitzar», mai com a «caducat»."
+          ]
         }
       }
     ]

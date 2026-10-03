@@ -10,7 +10,7 @@ async function setup(page,{fail=false,invalid=false,lang="es"}={}){
   await seedLoggedInDashboard(page,{__seedOnce:true,expenses:[local],
     accounts:[{id:"s",ent:"sabadell",name:"Sabadell",value:500,role:"diario",spendFrom:true}],
     settings:{autoPrices:false,lang,theme:"green",expenseBanks:["sabadell"]},__cloudRows:{expenses:rows}});
-  await page.addInitScript(({fail,invalid,rows})=>{
+  await page.addInitScript(({fail,invalid})=>{
     const seed=JSON.parse(localStorage.getItem("micartera_v3"));
     localStorage.setItem("micartera_v3_exp",JSON.stringify(seed.expenses));
     delete seed.expenses;localStorage.setItem("micartera_v3",JSON.stringify(seed));
@@ -35,7 +35,7 @@ async function setup(page,{fail=false,invalid=false,lang="es"}={}){
             if(!read)return then(resolve);
             window.__fin07.queries.push(cursor);
             if(window.__fin07.fail&&cursor){resolve({data:null,error:{message:"offline página 2"}});return;}
-            if(window.__fin07.invalid&&cursor){resolve({data:rows.slice(-317).reverse(),error:null});return;}
+            if(window.__fin07.invalid&&cursor){resolve({data:window.__e2eCloudRows.expenses.slice(-317).reverse(),error:null});return;}
             return then(resolve);
           };
           return chain;
@@ -43,7 +43,7 @@ async function setup(page,{fail=false,invalid=false,lang="es"}={}){
         return sb;
       };
     }});
-  },{fail,invalid,rows});
+  },{fail,invalid});
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible();
   await dismissNews(page);

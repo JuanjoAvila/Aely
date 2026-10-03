@@ -11,13 +11,13 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   const [budgetOpen,setBudgetOpen]=useState(false);
   /* Barra de letra FUERA de Ajustes (11/9): la quería a mano mientras usa la app, no enterrada
      en dos sitios de settings. Vive en Inicio, junto al avatar. */
-  /* Puertas de arranque: el count-up y los esqueletos NO pueden vivir detrás del splash ni
-     adelantarse a la nube (B2/B4 — misma lección: animar a puerta cerrada es peor que no animar). */
+  /* Puertas de arranque: el count-up no puede vivir detrás del splash. Si venció la espera
+     de nube de esa cortina, no se empieza otra espera que oculte los datos locales (29/9). */
   const [splashGone,setSplashGone]=useState(function(){
     try{ return !!(window.__mcSplashGone) || !document.getElementById("mc-load"); }catch(e){ return true; }
   });
   const [bootReady,setBootReady]=useState(function(){
-    try{ return !!window.__mcBootReady || navigator.onLine===false; }catch(e){ return true; }
+    try{ return !!window.__mcBootReady || !!window.__mcSplashTimedOut || navigator.onLine===false; }catch(e){ return true; }
   });
   useEffect(function(){
     if(splashGone) return undefined;
@@ -31,6 +31,10 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     window.addEventListener("mc-boot-ready", on);
     // Por si el evento se emitió entre el useState inicial y este effect.
     try{ if(window.__mcBootReady) setBootReady(true); }catch(e){}
+    if(window.__mcSplashTimedOut){
+      setBootReady(true);
+      return function(){ window.removeEventListener("mc-boot-ready", on); };
+    }
     /* Offline-first de verdad (16/9): el estado local ya está cargado de forma síncrona. Esperar
        medio segundo a una nube que sabemos ausente pintaba Inicio vacío tras el splash. */
     var offline=false;
@@ -49,7 +53,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     return function(){ window.removeEventListener("mc-boot-ready", on); clearTimeout(tope); };
   },[bootReady, splashGone]);
   const shownNet=useCountUp(tt.netWorth||0, splashGone);
-  const showSkel=splashGone && !bootReady;
+  const showSkel=splashGone && !bootReady && !window.__mcSplashTimedOut;
 
   const nameGuess=(function(){
     try{
@@ -69,12 +73,12 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     return ((parts[0]||"M").charAt(0)+(parts[1]||parts[0]||"C").charAt(0)).toUpperCase();
   })();
 
-  // Misma cifra que la cabecera de Gastos / widget (no `thisMonthSpent`, que mete neutras).
-  const bud=monthBudgetStats(state);
+  // Mismas filas computables; bruto mensual o neto del ciclo, según lo que dice la tarjeta.
+  const bud=dashboardBudgetStats(state);
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
   const spentAgainst=Math.max(0, bud.against);
   const hasMonthActivity=bud.spent>0.005 || bud.income>0.005;
-  const ratio=budAmt>0 ? spentAgainst/budAmt : 0;
+  const ratio=budAmt>0 ? spentAgainst/budAmt : spentAgainst>0 ? Infinity : 0;
   const dim=new Date(tt.curYear, tt.curMonth, 0).getDate();
   const elapsed=Math.max(1, tt.today||1);
   const leftDays=Math.max(1, dim-elapsed);
@@ -85,14 +89,14 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   // Sin fecha fiable del próximo cobro no proyectamos un «€/día hasta fin de mes» que
   // mezclaría el ciclo de ella con el calendario (feedback pareja 28/9).
   const overTrack=!bud.cycle && projected>budAmt+0.5;
-  // El neto puede ser negativo con compras reales: ese 0 % de uso no significa mes vacío.
-  // El texto de Inicio vuelve al que el dueño usaba antes de la tanda rechazada (28/9).
+  // En ciclo, un neto negativo con compras reales no significa un período vacío.
   let stCls="st", stHead=hasMonthActivity ? t("st_good_h") : t(bud.cycle?"v4_cycle_start_h":"st_start_h");
   if(ratio>1 || overTrack&&ratio>0.85){ stCls="st bad"; stHead=t("st_over_h"); }
   else if(ratio>0.8){ stCls="st warn"; stHead=t("st_tight_h"); }
 
-  // Próximos cargos: misma regla que Plan›Recibos (día del mes + isPaidIn). Antes usaba
-  // f.day crudo y mostraba recibos ya cobrados (luz/seguros) — feedback 2026-07-17.
+  const overdue=[];
+  // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los
+  // vencidos aparte y retira el gas confirmado aunque arrastre `wait` (feedback 30/9).
   const upcoming=(function(){
     const today=tt.today||new Date().getDate();
     const cm=tt.curMonth;
@@ -100,13 +104,14 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     (state.fixed||[]).forEach(function(f){
       const amount=occAmountIn(f,cm);
       if(!(amount>0) || !occursIn(f,cm)) return;
-      if(isPaidIn(f,cm,today)) return;
-      const day=dayIn(f,cm)||1;
-      rows.push({day:day, name:f.name||t("fj_fixed"), sub:(entOf(accOf(f)).label||""), amount:amount, pos:false});
+      const status=fixedPaymentState(state,f,tt.curYear,cm,today);
+      if(status.paid) return;
+      const row={day:status.day, name:f.name||t("fj_fixed"), sub:(entOf(accOf(f)).label||""), amount:amount, pos:false};
+      (status.overdue?overdue:rows).push(row);
     });
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d) || !(d.monthly>0)) return;
-      if(isDebtPaidThisMonth(d,today)) return;
+      if(isDebtPaidThisMonth(d,today,state,tt.curYear,cm)) return;
       rows.push({day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:d.monthly, pos:false});
     });
     (state.flows||[]).forEach(function(f){
@@ -116,7 +121,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
       const day=flowDay(f,tt.curYear,cm)||1;
       rows.push({day:day, name:f.name||t("cat_ingreso"), sub:entOf(f.ent||f.account||"").label||"", amount:f.amount, pos:true});
     });
-    rows.sort(function(a,b){ return a.day-b.day; });
+    rows.sort(function(a,b){ return (a.day==null?99:a.day)-(b.day==null?99:b.day); });
     return rows.slice(0,3);
   })();
 
@@ -141,7 +146,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   };
 
   const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,4);
-  const recent=(state.expenses||[]).slice().sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); }).slice(0,3);
+  const recent=(state.expenses||[]).filter(function(e){ return !expenseIsTombstoned(e,expenseDeletedSet(state)); }).sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); }).slice(0,3);
   const p=eurParts(shownNet);
   const ringPct=Math.max(0,Math.min(1,ratio));
   /* P6 — EL ANILLO SE DIBUJA, NO APARECE YA LLENO.
@@ -252,8 +257,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:stCls}, stHead),
           React.createElement("div",{className:"ph"},
-            // El anillo y «quedan» usan gasto menos ingresos; en ciclo decir «has gastado»
-            // con el bruto contradecía ambos aunque Gastos cuadrase (feedback 28/9).
+            // Texto, anillo y margen comparten bruto mensual o neto desde el cobro.
             bud.cycle
               ? tf("v4_cycle_net",{used:eur(bud.against),budget:eur(budAmt)})
               : tf("v4_budget_spent",{spent:eur0(bud.spent),budget:eur0(budAmt)}),
@@ -294,7 +298,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
 
     // Estado vacio en vez de esconder la seccion (P4, spec §27): un Inicio recien instalado se
     // quedaba en hero + «Ultimos movimientos» vacio y no se veia que la app hace mas cosas.
-    !showSkel && upcoming.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".15s"}},
+    !showSkel && upcoming.length===0 && overdue.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".15s"}},
       React.createElement("div",{className:"v4-section-h"}, React.createElement("span",null, t("v4_upcoming"))),
       React.createElement("div",{className:"v4-empty"},
         React.createElement("div",{className:"em"}, "🧾"),
@@ -317,7 +321,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
         upcoming.map(function(u,i){
               return React.createElement("div",{key:i,className:"v4-charge"},
                 React.createElement("div",{className:"dt"},
-                  React.createElement("div",{className:"d"}, String(u.day).padStart(2,"0")),
+                  React.createElement("div",{className:"d"}, u.day==null?"—":String(u.day).padStart(2,"0")),
                   React.createElement("div",{className:"m"}, monthName.slice(0,3))
                 ),
                 React.createElement("div",{style:{flex:1,minWidth:0}},
@@ -328,6 +332,19 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
               );
             })
       )
+    ),
+
+    !showSkel && overdue.length>0 && React.createElement("div",{className:"v4-section rise"},
+      React.createElement("div",{className:"v4-section-h"},
+        React.createElement("span",null,t("v4_charges_overdue")),
+        React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }},t("v4_see_plan"))),
+      React.createElement("div",{className:"v4-card",style:{padding:"6px 16px"}},
+        overdue.sort(function(a,b){ return a.day-b.day; }).slice(0,3).map(function(u,i){
+          return React.createElement("div",{key:i,className:"v4-charge"},
+            React.createElement("div",{className:"dt"},React.createElement("div",{className:"d"},String(u.day).padStart(2,"0")),React.createElement("div",{className:"m"},monthName.slice(0,3))),
+            React.createElement("div",{style:{flex:1,minWidth:0}},React.createElement("div",{className:"nm"},u.name),React.createElement("div",{className:"sub"},u.sub+" · "+t("v4_charge_unconfirmed"))),
+            React.createElement("div",{className:"am num"},eur(u.amount)));
+        }))
     ),
 
     !showSkel && goals.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},

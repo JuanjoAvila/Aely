@@ -1108,14 +1108,50 @@ function mcIsNewer(a,b){
   }
   return false;
 }
-function betaChecklist(version, prodVersion){
+/* IDENTIDAD DE UNA TANDA = SU CONTENIDO, NO SU NÚMERO (30/9). Al promocionar web, las tandas
+   nativas se movían de versión (4.26.60 → 66 → 67 → 68) con el mismo texto, y el veredicto,
+   guardado como «versión/id», dejaba de casar: aprobó las cinco del widget TRES veces. La huella
+   junta id, título, pasos, `rev` y el digest automático de sus fuentes. Cambiar código invalida
+   el OK aunque se olvide `rev`; los alias antiguos requieren una auditoría fijada al digest. */
+function betaHuella(id,t,items,rev,codigo){
+  var s=id+"|"+JSON.stringify([t,items,rev||1]), h=0x811c9dc5;
+  for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
+  return ("0000000"+h.toString(16)).slice(-8)+(codigo?":"+codigo:"");
+}
+/* El veredicto MÁS RECIENTE que aplica a esta revisión (`rows` de nuevo a viejo): el último
+   rechazo veta las aprobaciones de antes. Con huella solo vale la misma revisión; los partes
+   anteriores a la huella casan por id o por `desde`, alias auditados en release-notes. */
+function betaVerdictFor(g, rows){
+  var ids=(g.codigo||g.rev>1?[]:[g.id]).concat(g.desde||[]);
+  for(var i=0;i<(rows||[]).length;i++){
+    var r=rows[i];
+    // Un `null` más reciente es «cambié de opinión»: retira lo anterior, no se salta.
+    if(r&&(r.huella ? (r.huella===g.huella||(g.huellasCompatibles||[]).indexOf(r.huella)>=0) : ids.indexOf(r.tanda)>=0)) return /^(approved|rejected)$/.test(r.verdict||"")?r:null;
+  }
+  return null;
+}
+// El veredicto no acredita entrega: sin recibo se explica la duda, no se oculta la tanda.
+function betaEstadoEntrega(g, prodApk){
+  var id=String(g.id).split("/").pop(), d=window._mcProdEntregas||{}, a=window._mcProdApkRevisiones||{}, out={};
+  if(g.codigo){
+    ["web","edge"].forEach(function(s){
+      if(s==="edge"&&!g.edge) return;
+      if(!g[s]||!d[s]||(d[s][id]!==g[s]&&(g.revisionesCompatibles||[]).every(function(r){ return r[s]!==d[s][id]; }))) out[s]=d[s]&&d[s][id]?"pending":"unknown";
+    });
+    if((g.apk&&!g.native)||(g.native&&(!(prodApk>=g.apk)||(a[id]!==g.native&&(g.revisionesCompatibles||[]).every(function(r){ return r.native!==a[id]; })))))
+      out.native=prodApk>0&&prodApk<g.apk||a[id]&&(a[id]!==g.native&&(g.revisionesCompatibles||[]).every(function(r){ return r.native!==a[id]; }))?"pending":"unknown";
+  }else if(g.apk&&!(prodApk>=g.apk)) out.native=prodApk>0?"pending":"unknown";
+  return out;
+}
+function betaSinEntregar(g, prodApk){ return Object.keys(betaEstadoEntrega(g,prodApk)).length>0; }
+function betaChecklist(version, prodVersion, prodApk){
   var base=mcVerBase(version);
   if(typeof RELEASE_NOTES==="undefined"||!RELEASE_NOTES.length) return { v:base, t:"", items:[], tandas:[] };
   /* RONDA ENTERA (2026-09-07). El panel cogía SOLO las notas de la versión que corre: en
      4.19.1.2 enseñaba «Solo ese movimiento» y dejaba fuera todo lo de 4.19.0 (posible repetido,
      IA, orden…) que YA estaba en el móvil. Con `prodVersion` se juntan las tandas de todas las
-     versiones > producción y ≤ la que corre. Sin prod (aún preguntando / sin red): se queda el
-     comportamiento de siempre —una sola versión—; en la duda, menos, no de más. */
+     versiones > producción y ≤ la que corre. Sin prod se conservan las modernas pendientes
+     y la nota actual con puntos, también cuando usa la checklist implícita. */
   var round;
   /* Un bundle sin sellar usa `dev`: no se puede compararlo con producción ni vaciar su cabeza
      cacheada offline como si ya hubiera sido promocionado. La regla de ronda solo vale cuando
@@ -1123,8 +1159,8 @@ function betaChecklist(version, prodVersion){
   var conProd=prodVersion!=null&&prodVersion!==""&&/^\d+\.\d+\.\d+$/.test(base)
     &&/^\d+\.\d+\.\d+$/.test(mcVerBase(prodVersion));
   /* UNA VERSION SIN NADA QUE PROBAR NO PUEDE VACIARLE EL PANEL (2026-09-12).
-     Sin `prodVersion` (aun preguntando, o sin red) la ronda es UNA sola version. El dia que la
-     que corre es fontaneria —guardianes, un arreglo de despliegue— declara `tandas:[]` a
+     El dia que la versión que corre es fontaneria —guardianes, un arreglo de despliegue—
+     declara `tandas:[]` a
      proposito. Si se coge `n.v===base` a pelo, `betaTandas` devuelve CERO y el panel se queda
      vacio con media ronda sin juzgar detras (medido en review de 4.19.86: checklist(V,null)→0).
      Se prefiere la entrada de esa base SOLO si tiene algo que probar; si no, la mas nueva que
@@ -1138,11 +1174,18 @@ function betaChecklist(version, prodVersion){
       || RELEASE_NOTES.filter(conAlgoQueProbar)[0]
       || RELEASE_NOTES.filter(function(n){ return n.v===base; })[0]
       || RELEASE_NOTES[0];
-    round=one?[one]:[];
+    // Sin red también conserva las tandas modernas anteriores: perder producción no
+    // puede quitar A al añadir B ni cambiar su decisión. El legado mantiene su fallback.
+    round=RELEASE_NOTES.filter(function(n){ return n&&n.tandas&&n.tandas.some(function(g){ return !!g.codigo; })
+      && (!/^\d+\.\d+\.\d+$/.test(base)||!mcIsNewer(n.v,base)); });
+    // La ronda moderna no sustituye los puntos propios de una versión sin tandas.
+    if(one&&round.indexOf(one)<0)round.unshift(one);
   }else{
     var prod=mcVerBase(prodVersion);
+    // Las modernas se filtran por recibo después de deduplicar; una entrega nueva no resucita una revisión antigua.
     round=RELEASE_NOTES.filter(function(n){
-      return n&&n.v && mcIsNewer(n.v, prod) && !mcIsNewer(n.v, base);
+      return n&&n.v && !mcIsNewer(n.v, base) && (mcIsNewer(n.v, prod)
+        || betaTandas(n).some(function(g){ return g.codigo||betaSinEntregar(g,prodApk); }));
     });
   }
   /* PRODUCCION AL DIA SIGNIFICA CERO PENDIENTES (feedback 2026-09-16).
@@ -1166,14 +1209,15 @@ function betaChecklist(version, prodVersion){
          ronda, solo se prueba la mas nueva: repetirla con otro numero era obligarle a aprobar
          varias veces exactamente el mismo trabajo. RELEASE_NOTES va de nueva a antigua. */
       var rawId=String(g.id);
-      if(conProd&&vistas[rawId]) return;
+      if(vistas[rawId]) return;
       vistas[rawId]=true;
+      if(conProd&&(g.codigo||!mcIsNewer(notes.v, mcVerBase(prodVersion)))&&!betaSinEntregar(g,prodApk)) return;
       /* Con ronda multi-versión el id lleva la versión: dos tandas «id-fila» de bases distintas
-         no se pisan en el veredicto. Sin prod (una sola versión) se conserva el id corto de
+         no se pisan en el veredicto. Sin prod se conserva el id corto de
          siempre para no resetear lo ya enviado en esta compilación. */
       var id=conProd?(notes.v+"/"+rawId):rawId;
       var t=conProd?("v"+notes.v+(g.t?" · "+g.t:"")):g.t;
-      tandas.push({ id:id, t:t, items:g.items });
+      tandas.push(Object.assign({},g,{ id:id, t:t }));
       planos=planos.concat(g.items);
     });
   });
@@ -1201,21 +1245,45 @@ function betaChecklist(version, prodVersion){
 function betaTandas(notes){
   if(notes && notes.tandas){
     return notes.tandas.map(function(g){
-      return { id:String(g.id), t:rnT(g.t,"es"), items:rnItems(g,"es") };
+      var id=String(g.id), t=rnT(g.t,"es"), items=rnItems(g,"es"), h=betaHuella(id,t,items,g.rev,g.codigo);
+      // `desde` solo vale mientras la huella fijada al escribirlo siga siendo la del contenido.
+      var alias=g.huella===h.slice(0,8)&&(!g.codigo||g.codigoDesde===g.codigo);
+      return { id:id, t:t, items:items, huella:h, rev:g.rev||1, codigo:g.codigo, web:g.web, native:g.native, edge:g.edge,
+        revisionesCompatibles:g.compatibilidadGit||[],
+        huellasCompatibles:(g.codigosCompatibles||[]).map(function(c){ return h.slice(0,8)+":"+c; }),
+        apk:g.apk||0, historial:g.historial||[], cambio:g.revisionesDesde?Object.keys(g.revisionesDesde).filter(function(s){ return g[s]!==g.revisionesDesde[s]; }):g.codigoDesde&&g.codigoDesde!==g.codigo?["—"]:[], desde:alias&&g.desde||[] };
     });
   }
-  return [{ id:"todo", t:"", items:rnItems(notes,"es") }];
+  var items=rnItems(notes,"es");
+  return [{ id:"todo", t:"", items:items, huella:betaHuella("todo","",items), apk:0, desde:[] }];
 }
-/* CUENTA COMPARTIDA DE LA REVISIÓN — la MISMA lógica que usa el panel para heredar ✓/✗ entre
-   compilaciones, extraída para que la fila de Ajustes cuente exactamente lo mismo que el panel
-   (2026-08-01, bug suyo: «me sale revisar esta beta 0/26 cuando ya he aceptado o rechazado
-   cosas»). La fila llevaba TODO ESTE TIEMPO leyendo `_betaReview_`+pack.v —la versión BASE, tipo
-   "4.13.0"— mientras el panel SIEMPRE ha guardado (y sigue guardando) por la COMPILACIÓN exacta,
-   `_betaReview_`+CONFIG.APP_VERSION, tipo "4.13.0.11". Esa clave base no la escribe nadie, así
-   que la fila leía aire y enseñaba 0 pasara lo que pasara. Con `_betaReviewOk` (que sí es la
-   fuente de verdad persistente, por TEXTO del punto) la fila cuenta lo mismo que ve el panel al
-   abrirse. Ver `heredarOk` dentro de `BetaReviewPanel` — es la misma lógica de rescate. */
-function betaMarksCount(pack){
+/* Ajustes y el panel cuentan el mismo progreso por huella e índice. El texto puede repetirse
+   entre tandas: solo se rescata el formato antiguo cuando su propietario coincide. */
+function betaScopedMarks(pack,values,indexed,kind,byIndex){
+  var ids=store.get("_betaMarksHuella")||{}, scoped=store.get("_betaReviewMarks")||{}, out={}, i=0;
+  (pack.tandas||[]).forEach(function(g){
+    var saved=scoped[g.huella];
+    (g.huellasCompatibles||[]).some(function(h){ if(saved)return true; saved=scoped[h]; return !!saved; });
+    g.items.forEach(function(it,j){
+      var key=indexed?i:it, target=byIndex?i:key, own=saved&&saved[kind||"marks"];
+      if(saved){ if(own&&own[j]!==undefined)out[target]=own[j]; }
+      else if(values[key]!==undefined && (!g.codigo || ids[it]===g.huella || (g.huellasCompatibles||[]).indexOf(ids[it])>=0 || (g.desde||[]).length)) out[target]=values[key];
+      i++;
+    });
+  });
+  return out;
+}
+function betaRememberMarks(pack,marks,notes){
+  // Dos tandas pueden decir «volver a abrir»: el texto no identifica quién lo probó.
+  var saved=store.get("_betaReviewMarks")||{},i=0;
+  (pack.tandas||[]).forEach(function(g){
+    var row={marks:{},notes:{}};
+    g.items.forEach(function(it,j){ if(marks[i]!==undefined)row.marks[j]=marks[i]; if(notes&&notes[i])row.notes[j]=notes[i]; i++; });
+    saved[g.huella]=row;
+  });
+  store.set("_betaReviewMarks",saved);
+}
+function betaStoredMarks(pack,byIndex){
   var okKey="_betaReviewOk";
   var prev=store.get(okKey);
   if(!prev){
@@ -1230,20 +1298,22 @@ function betaMarksCount(pack){
       }
     }catch(e){}
   }
-  // Lo marcado en ESTA compilación manda sobre lo heredado (mismo criterio que el panel).
-  var propias=store.get("_betaReview_"+CONFIG.APP_VERSION)||{};
+  return betaScopedMarks(pack,prev,false,"marks",byIndex);
+}
+function betaMarksCount(pack){
+  var prev=betaStoredMarks(pack,true);
+  var propias=betaScopedMarks(pack,store.get("_betaReview_"+CONFIG.APP_VERSION)||{},true);
   var n=0;
   pack.items.forEach(function(it,i){
-    var v=propias[i]!==undefined ? propias[i] : prev[it];
+    var v=propias[i]!==undefined ? propias[i] : prev[i];
     if(v==="ok"||v==="na"||v==="ko") n++;
   });
   return { n:n, tot:pack.items.length };
 }
-function betaSavedVerdicts(pack, storeKey){
+function betaSavedVerdicts(pack){
   const sent={};
-  const marks=store.get("_betaReviewOk")||{};
-  // Recuperar el último parte por tanda entre compilaciones. Solo heredar una aprobación
-  // si TODOS sus textos siguen marcados: cambiar el guion exige una revisión nueva.
+  // El parte enviado no depende del progreso auxiliar: perder marcas no retira un OK.
+  // La huella exige el mismo guion/código, y una decisión posterior veta la anterior.
   const keys=[];
   try{
     for(let i=0;i<localStorage.length;i++){
@@ -1252,20 +1322,25 @@ function betaSavedVerdicts(pack, storeKey){
     }
   }catch(e){}
   keys.sort(function(a,b){ return mcIsNewer(a.slice(12,-2),b.slice(12,-2))?1:mcIsNewer(b.slice(12,-2),a.slice(12,-2))?-1:0; });
-  keys.forEach(function(k){
+  // De nueva a vieja. Un parte con huella (`_h`) solo cuenta por ella: sus ids no dicen qué revisión juzgó.
+  const rows=[];
+  keys.reverse().forEach(function(k){
     const old=store.get(k)||{};
-    (pack.tandas||[]).forEach(function(g){
-      const id=g.id.indexOf("/")>=0?g.id:pack.v+"/"+g.id;
-      if(Object.prototype.hasOwnProperty.call(old,id)) sent[g.id]=old[id];
+    Object.keys(old).forEach(function(x){
+      if(old._h){ if(x.indexOf("h:")===0) rows.push({huella:x.slice(2),verdict:old[x]&&old[x].verdict!==undefined?old[x].verdict:old[x],at:old[x]&&old[x].at||0}); }
+      else rows.push({tanda:x,verdict:old[x]});
     });
   });
+  rows.sort(function(a,b){ return (b.at||0)-(a.at||0); });
   (pack.tandas||[]).forEach(function(g){
-    if(sent[g.id]!=="approved" || !g.items.length || !g.items.every(function(it){ return marks[it]==="ok"||marks[it]==="na"; })) delete sent[g.id];
+    const r=betaVerdictFor(Object.assign({},g,{desde:(g.desde||[]).concat(!g.codigo&&g.rev===1?[pack.v+"/"+g.id]:[])}),rows);
+    if(r) sent[g.id]=r.verdict;
   });
-  return Object.assign(sent,store.get(storeKey+"_v")||{});
+  // Un veredicto ya enviado acredita la decisión, aunque falte su progreso auxiliar.
+  // Guion/código se comparan por huella; la última retirada o rechazo sigue mandando.
+  return sent;
 }
-/* Versión que sirve Pages AHORA (cruda). `null` mientras pregunta o si falla la red.
-   Sacada de `useYaEnProd` para que el panel de beta pueda armar la ronda entera (2026-09-07). */
+/* `null` conserva las pruebas si falta evidencia de la entrega servida en Pages. */
 function useProdVersion(){
   const [prod,setProd]=useState(null);
   useEffect(function(){
@@ -1275,28 +1350,6 @@ function useProdVersion(){
     return function(){ vivo=false; };
   },[]);
   return prod;
-}
-/* ¿LO QUE LLEVO PUESTO YA ESTÁ EN PRODUCCIÓN? (petición suya 2026-07-28)
-   «Ponme que cuando suba algo a prod, la beta no haya nada para aprobar porque lógicamente ya lo
-   hice para que subiera prod». Y es verdad: promocionar ES la aprobación. Pero el panel solo
-   miraba la versión que corre en el móvil, así que después de subir la 4.12.1 a producción
-   seguía enseñando su checklist entera como si faltara por probar.
-
-   Se compara la base de lo que corre (4.12.1.3 → 4.12.1) contra lo que sirve Pages. Si producción
-   ya va por ahí o más allá, esto está aprobado por definición. `null` mientras se pregunta o si
-   la red falla: en la duda se sigue preguntando, que es el lado seguro. */
-function useYaEnProd(){
-  const prod=useProdVersion();
-  if(!prod||!window._mcNewerVer) return null;
-  const base=mcVerBase(CONFIG.APP_VERSION);
-  /* UNA VERSIÓN QUE NO SE PUEDE COMPARAR NO DA NADA POR APROBADO (2026-07-28, cazado en CI).
-     `_mcNewerVer` compara con `parseInt`, y `parseInt("dev")` es `NaN`, que PIERDE todas las
-     comparaciones: sin este guardo, un bundle sin sellar (`APP_VERSION:"dev"` — el que hay en el
-     repo hasta que `stamp-version` corre) contestaba «ya está en producción» y escondía el
-     veredicto entero. Es exactamente la misma trampa del NaN que en la 4.9.2 dejó un móvil sin
-     recibir una actualización nunca más. En la duda, se sigue preguntando. */
-  if(!/^\d+\.\d+\.\d+$/.test(base)) return null;
-  return !window._mcNewerVer(base, prod) ? prod : false;
 }
 /* VOLVER AL MISMO SITIO DESPUÉS DE PROBAR (2026-09-10 → 15/9).
    La otra mitad de su queja, y la que no se ve leyendo el panel: para probar un punto TIENE que
@@ -1373,91 +1426,33 @@ function BetaReviewPanel({onClose, showToast}){
     if(gestoReal.current) betaMarcarAbierto();
   };
   const prod=useProdVersion();
-  const [notesReady,setNotesReady]=useState(!!(RELEASE_NOTES&&RELEASE_NOTES.length));
+  const [notesReady,setNotesReady]=useState(RELEASE_NOTES&&RELEASE_NOTES.length?1:0);
   useEffect(function(){
     var alive=true;
-    ensureReleaseNotes().then(function(){ if(alive) setNotesReady(true); });
+    ensureReleaseNotes().then(function(){ if(alive) setNotesReady(function(n){ return n+1; }); });
     return function(){ alive=false; };
   },[]);
-  const pack=notesReady?betaChecklist(CONFIG.APP_VERSION, prod):{ v:mcVerBase(CONFIG.APP_VERSION), t:"", items:[], tandas:[] };
-  const yaEnProd=(!prod||!/^\d+\.\d+\.\d+$/.test(mcVerBase(CONFIG.APP_VERSION)))
+  const pack=notesReady?betaChecklist(CONFIG.APP_VERSION, prod, window._mcProdApk):{ v:mcVerBase(CONFIG.APP_VERSION), t:"", items:[], tandas:[] };
+  const yaEnProd=(!notesReady||!RELEASE_NOTES.length||!prod||!/^\d+\.\d+\.\d+$/.test(mcVerBase(CONFIG.APP_VERSION)))
     ? null
-    : (!mcIsNewer(mcVerBase(CONFIG.APP_VERSION), prod) ? prod : false);
-  // La clave va por la COMPILACIÓN (4.12.0.17), no por la versión base (4.12.0). Petición suya
-  // 2026-07-26: «cuando me subas una nueva versión con el fix de eso, que se resetee y se ponga
-  // vacío». Con la clave por versión base, la beta siguiente heredaba las cruces y los comentarios
-  // de la anterior — o sea, el arreglo llegaba ya marcado como fallo. Cada beta empieza en blanco,
-  // y dentro de la misma beta el progreso se conserva aunque cierres la app (que era el motivo de
-  // guardarlo, porque probar lleva días).
+    : (!pack.tandas.length && !mcIsNewer(mcVerBase(CONFIG.APP_VERSION), prod) ? prod : false);
+  // La clave por compilación conserva el formato antiguo; la herencia se decide por huella.
+  // Repetir un texto en otra tanda no debe apropiarse de su marca o de su comentario.
   const storeKey="_betaReview_"+CONFIG.APP_VERSION;
-  /* LO QUE YA DIO POR BUENO NO SE VUELVE A PREGUNTAR (petición suya 2026-07-26, por la noche:
-     «si algo funciona CREO que no debería reventar con otra compilación»). El reseteo por
-     compilación arreglaba una cosa y rompía otra: las cruces sí tienen que volver a preguntarse
-     —son justo lo que se acaba de arreglar—, pero los ✓ también se borraban, y volver a probar
-     siete puntos que ya iban bien es lo que hacía que no se acordara de nada («los pillo en
-     momentos diferentes»).
-
-     Así que los ✓ y los «no lo puedo probar» se guardan APARTE, en una lista que NO lleva el
-     número de compilación, y que casa por el TEXTO del punto y no por su posición. Eso importa:
-     · si reescribimos la nota, ha cambiado lo que se prueba → vuelve a preguntarse;
-     · si la nota es idéntica, es literalmente lo mismo que ya probó → viene marcado;
-     · y si se reordenan las notas, no se cruzan los cables (con índices, sí).
-
-     ⚠ Y LOS ✗ TAMBIÉN SE HEREDAN, CON SU COMENTARIO (2026-08-01). Antes NO, con este argumento:
-     «las cruces son justo lo que se acaba de arreglar, así que vuelven a preguntarse». El
-     argumento es falso: el panel no tiene ni idea de si la compilación nueva ha tocado ese punto
-     o no. Y el precio de equivocarse lo paga él SIEMPRE — la 4.13.0 sacó cinco compilaciones en
-     tres días y cada una le borraba los tres fallos que acababa de escribir a mano, con sus
-     notas. Sus palabras: «ya he repetido los mensajes 3 veces, estoy hasta los cojones».
-     Ahora un ✗ heredado vuelve marcado, con su texto, y con un aviso de que viene de la
-     compilación anterior: si el arreglo ha llegado, lo pone en ✓ de un toque; si no, ya está
-     escrito y puede rechazar sin volver a teclear. Perder trabajo suyo es el fallo caro; que una
-     cruz sobreviva de más se arregla con un dedo. */
   const okKey="_betaReviewOk";
-  const notaKey="_betaReviewNotas";   // {texto del punto: comentario} — sobrevive a la compilación
-  const heredarOk=function(){
-    var prev=store.get(okKey);
-    /* RESCATE DE LO YA APROBADO (2026-07-26 noche). La lista aparte se estrena en esta versión,
-       así que la primera vez está vacía y lo que él aprobó en las betas anteriores se habría
-       perdido igual — que es exactamente lo que notó al abrir la siguiente: «siguen saliendo las
-       que aprobé». Se rescata de las claves por compilación que ya están guardadas en el móvil.
-       Van por índice, y aquí el índice VALE: solo se leen las de la misma versión base, y las
-       notas de una versión base no cambian de orden entre compilaciones. */
-    if(!prev){
-      prev={};
-      try{
-        var pre="_betaReview_"+mcVerBase(CONFIG.APP_VERSION);
-        for(var i=0;i<localStorage.length;i++){
-          var k=localStorage.key(i);
-          if(!k||k.indexOf(pre)!==0||k.slice(-2)==="_n") continue;
-          var vieja=store.get(k)||{};
-          pack.items.forEach(function(it,j){ if(vieja[j]==="ok"||vieja[j]==="na") prev[it]=vieja[j]; });
-        }
-      }catch(e){}
-      store.set(okKey,prev);
-    }
-    var m={};
-    pack.items.forEach(function(it,i){ var v=prev[it]; if(v==="ok"||v==="na"||v==="ko") m[i]=v; });
-    return m;
-  };
-  /* Los comentarios de los ✗ heredados, por el mismo camino y con la misma clave (el TEXTO del
-     punto). Van aparte de `okKey` para no cambiarle la forma a lo que ya está guardado en su
-     móvil: allí los valores son "ok"/"na"/"ko" y aquí son strings largos. */
-  const heredarNotas=function(){
-    var prev=store.get(notaKey)||{};
-    var n={};
-    pack.items.forEach(function(it,i){ if(prev[it]) n[i]=prev[it]; });
-    return n;
-  };
+  const notaKey="_betaReviewNotas";   // Formato antiguo para rescate compatible, no identifica la tanda.
+  const heredarOk=function(){ return betaStoredMarks(pack,true); };
+  // El ledger por huella/índice manda; el legado solo se lee si el alcance sigue compatible.
+  const heredarNotas=function(){ return betaScopedMarks(pack,store.get(notaKey)||{},false,"notes",true); };
   // {i: "ok" | "ko" | "na"} + notas de los que fallan. Lo heredado va DEBAJO de lo marcado en esta
   // compilación: si ya has tocado algo aquí, manda lo tuyo. (Con `||` en vez de mezcla, haber
   // marcado una sola casilla en esta beta apagaba la herencia entera.)
-  const [marks,setMarks]=useState(function(){ return Object.assign(heredarOk(), store.get(storeKey)||{}); });
-  const [notes,setNotes]=useState(function(){ return Object.assign(heredarNotas(), store.get(storeKey+"_n")||{}); });
+  const [marks,setMarks]=useState(function(){ return Object.assign(heredarOk(), betaScopedMarks(pack,store.get(storeKey)||{},true)); });
+  const [notes,setNotes]=useState(function(){ return Object.assign(heredarNotas(), betaScopedMarks(pack,store.get(storeKey+"_n")||{},true,"notes")); });
   const [busy,setBusy]=useState(false);
   // Veredicto POR TANDA: {idTanda: "approved"|"rejected"}. Antes era uno solo para toda la beta,
   // y con varias cosas en vuelo eso obliga a esperar a la más lenta para subir la más rápida.
-  const [sent,setSent]=useState(function(){ return betaSavedVerdicts(pack,storeKey); });
+  const [sent,setSent]=useState(function(){ return betaSavedVerdicts(pack); });
   // Lo aprobado ocupa solo su cabecera; abrirlo para consultar nunca cambia el veredicto.
   const [expanded,setExpanded]=useState({});
   /* UNO A UNO DENTRO DE LA TANDA (petición suya 2026-09-10, y no era una petición de estilo:
@@ -1474,9 +1469,9 @@ function BetaReviewPanel({onClose, showToast}){
   // Pages responde después de montar el panel. Al llegar las tandas antiguas, recuperar
   // también sus marcas y partes; el primer useState solo conocía la versión más reciente.
   useEffect(function(){
-    setMarks(Object.assign(heredarOk(),store.get(storeKey)||{}));
-    setNotes(Object.assign(heredarNotas(),store.get(storeKey+"_n")||{}));
-    setSent(betaSavedVerdicts(pack,storeKey));
+    setMarks(Object.assign(heredarOk(),betaScopedMarks(pack,store.get(storeKey)||{},true)));
+    setNotes(Object.assign(heredarNotas(),betaScopedMarks(pack,store.get(storeKey+"_n")||{},true,"notes")));
+    setSent(betaSavedVerdicts(pack));
   },[JSON.stringify(pack.tandas)]);
   /* Devolverlo a la MISMA altura, y solo una vez. Va atado a que las tandas estén pintadas y no
      al montaje: las notas viejas llegan de Pages después, y restaurar antes deja el scroll a
@@ -1498,15 +1493,19 @@ function BetaReviewPanel({onClose, showToast}){
     return {buenos:buenos, ko:ko, nKo:Object.keys(ko).length}; })());
   const heredados=useRef(heredadas.current.buenos);
   const save=function(m,n){ store.set(storeKey,m); if(n) store.set(storeKey+"_n",n); };
-  const recordarOk=function(m){
+  const recordarOk=function(m,n){
     var prev=store.get(okKey)||{};
+    var ids=store.get("_betaMarksHuella")||{}, i=0;
+    pack.tandas.forEach(function(g){ g.items.forEach(function(it){ if(m[i]) ids[it]=g.huella; else delete ids[it]; i++; }); });
+    store.set("_betaMarksHuella",ids);
     pack.items.forEach(function(it,i){
       if(m[i]==="ok"||m[i]==="na"||m[i]==="ko") prev[it]=m[i]; else delete prev[it];
     });
     store.set(okKey,prev);
+    betaRememberMarks(pack,m,n===undefined?notes:n);
   };
-  // El comentario de un ✗ se guarda por TEXTO en cuanto se escribe, no al enviar el veredicto:
-  // si Android mata la app a media frase (pasa), lo escrito sigue ahí en la compilación siguiente.
+  // También se mantiene el formato antiguo; setNote guarda primero la nota con su huella.
+  // Guardar al escribir evita perder la frase si Android mata la app antes de enviarla.
   const recordarNota=function(i,txt){
     var prev=store.get(notaKey)||{};
     var it=pack.items[i]; if(it==null) return;
@@ -1542,18 +1541,16 @@ function BetaReviewPanel({onClose, showToast}){
   };
   const setNote=function(i,txt){
     betaMarcarAbierto();   // escribir nota = interacción real (15/9)
-    setNotes(function(p){ const n=Object.assign({},p); n[i]=txt; store.set(storeKey+"_n",n); recordarNota(i,txt); return n; });
+    setNotes(function(p){ const n=Object.assign({},p); n[i]=txt; store.set(storeKey+"_n",n); betaRememberMarks(pack,marks,n); recordarNota(i,txt); return n; });
   };
 
-  /* Las tandas comparten la numeración GLOBAL de los puntos (`marks` va por índice), así que
-     cada tanda solo necesita saber qué índices son suyos. Se hace así y no con claves por tanda
-     porque el guardado y la herencia de ✓ entre compilaciones ya van por ese índice y por el
-     TEXTO del punto: cambiarlo habría tirado a la basura todo lo que ya tiene probado. */
+  // La vista usa índices globales. El guardado los convierte a índices de cada tanda:
+  // mover otra fila o repetir su texto no mezcla las comprobaciones ya hechas.
   const grupos=(function(){
     var out=[], i=0;
     (pack.tandas||[]).forEach(function(g){
       var idx=g.items.map(function(){ return i++; });
-      out.push({ id:g.id, t:g.t, items:g.items, idx:idx });
+      out.push(Object.assign({},g,{idx:idx}));
     });
     return out;
   })();
@@ -1600,19 +1597,24 @@ function BetaReviewPanel({onClose, showToast}){
     const etiq=g.t?(" ["+g.id+"] "+g.t):"";
     const payload={
       verdict:verdict, version:CONFIG.APP_VERSION, apk:apkCode, notas:pack.v,
-      tanda:g.id, tandaTitulo:g.t||null,
+      tanda:g.id, tandaTitulo:g.t||null, huella:g.huella,
       probados:c.ok, fallos:c.ko, sinProbar:c.pend, noProbable:c.na, heredados:heredados.current,
       noProbables:g.idx.map(function(i,j){ return marks[i]==="na" ? g.items[j].slice(0,140) : null; }).filter(Boolean),
       detalle:fallos,
-      summary:(verdict==="approved" ? "✅ APROBADA " : "⛔ RECHAZADA ")+conApk+etiq+
+      summary:(verdict==="approved" ? "✅ APROBADA " : verdict==="revoked"?"↺ RETIRADA ":"⛔ RECHAZADA ")+conApk+etiq+
         " · "+c.ok+" ok / "+c.ko+" fallo(s) / "+c.pend+" sin probar"+(c.na?" / "+c.na+" no probable(s)":"")+
         (fallos.length? " · "+fallos.map(function(f){ return f.nota||f.item; }).join(" | ") : "")
     };
     cloud.betaReport(payload)
       .then(function(){
         setSent(function(p){
-          const n=Object.assign({},p); n[g.id]=verdict;
-          store.set(storeKey+"_v",n);   // sobrevive a cerrar la app: probar lleva días
+          const n=Object.assign({},p); n[g.id]=verdict==="revoked"?null:verdict;
+          const saved=Object.assign({},store.get(storeKey+"_v")||{},n);
+          grupos.forEach(function(x){
+            if(!saved["h:"+x.huella] && /^(approved|rejected)$/.test(p[x.id]||"")) saved["h:"+x.huella]={verdict:p[x.id],at:0};
+          });
+          saved["h:"+g.huella]={verdict:verdict,at:Date.now()}; saved._h=1;
+          store.set(storeKey+"_v",saved);   // no retirar el OK local si el servidor rechaza la retirada
           /* 15/9: si ya no quedan tandas sin veredicto en esta compilación, no reabrir Ajustes. */
           var ids=grupos.length ? grupos.map(function(x){ return x.id; }) : ["todo"];
           var todas=ids.every(function(id){ return n[id]==="approved"||n[id]==="rejected"; });
@@ -1621,8 +1623,8 @@ function BetaReviewPanel({onClose, showToast}){
         });
         // Encoger SIEMPRE al enviar, apruebe o rechace. Dejar la rechazada abierta era lo que le
         // obligaba a bajar por encima de una tanda ya juzgada para llegar a la siguiente.
-        setExpanded(function(p){ return Object.assign({},p,{[g.id]:false}); });
-        showToast(verdict==="approved"?"✅ Aprobada · queda registrado":"⛔ Enviado · no se sube");
+        setExpanded(function(p){ return Object.assign({},p,{[g.id]:verdict==="revoked"}); });
+        showToast(verdict==="approved"?"✅ Aprobada · queda registrado":verdict==="revoked"?t("beta_revoked"):"⛔ Enviado · no se sube");
       })
       .catch(function(e){ showToast("✕ No se pudo enviar: "+((e&&e.message)||e)); })
       .finally(function(){ setBusy(false); });
@@ -1645,7 +1647,7 @@ function BetaReviewPanel({onClose, showToast}){
     React.createElement("div",{style:{color:"var(--muted-2)",fontSize:12,lineHeight:1.5,marginBottom:14}},
       yaEnProd
         ? "Esta versión ya está en producción, así que no hay nada pendiente ni hace falta aprobarla otra vez."
-        : "Pruébalo con calma: esto se guarda y puedes seguir otro día. Tu padre y tu pareja siguen en la versión estable hasta que lo apruebes."),
+        : t("beta_review_intro")),
     // YA ESTÁ EN PRODUCCIÓN → no se pide veredicto (2026-07-28). Promocionar ES aprobar: pedirle
     // que apruebe otra vez lo que él mismo subió hace horas es ruido, y encima ruido que parece
     // trabajo pendiente cada vez que abre Ajustes.
@@ -1674,9 +1676,12 @@ function BetaReviewPanel({onClose, showToast}){
        8/9): si la versión declara `tandas` es que las aprobó TODAS —el caso normal a partir de
        ahora—; si no declara ninguna es una versión suelta sin checklist. */
     !yaEnProd && pack.items.length===0 && React.createElement("div",{style:{fontSize:13,color:"var(--muted)"}},
+      !(RELEASE_NOTES&&RELEASE_NOTES.length) ? t("beta_notes_unavailable") :
       pack.tandas.length===0 && (RELEASE_NOTES||[]).some(function(n){ return n && n.tandas; })
         ? "✅ No queda nada por probar: has aprobado todas las tandas de esta ronda."
         : "Esta versión no trae notas, así que no hay checklist. Prueba lo que hayas tocado."),
+
+    !RELEASE_NOTES.length && React.createElement(ReleaseNotesRetry,{onReady:function(){ setNotesReady(function(n){ return n+1; }); }}),
 
     /* UNA SECCIÓN POR TANDA, cada una con su veredicto (petición suya 2026-07-29).
        El punto de todo esto: que una tanda lista pueda subir HOY sin esperar a la que todavía
@@ -1687,6 +1692,9 @@ function BetaReviewPanel({onClose, showToast}){
       const c=cuenta(g.idx);
       const v=sent[g.id];
       const listo=c.pend===0 && c.ko===0;
+      const entrega=betaEstadoEntrega(g,window._mcProdApk);
+      const superficies=function(estado){ return Object.keys(entrega).filter(function(s){ return entrega[s]===estado; }).map(function(s){ return s==="native"?t("beta_android_app"):s==="edge"?t("beta_server"):s; }).join(", "); };
+      const pendientes=superficies("pending"), inciertas=superficies("unknown");
       /* Con veredicto —APROBADA O RECHAZADA— la tanda se encoge a su cabecera. Antes solo se
          encogían las aprobadas y él lo dijo con todas las letras (2026-09-10): «las que se
          aprueban se encogen, las que se rechazan también se deberían poder encoger». Tenía razón
@@ -1701,6 +1709,10 @@ function BetaReviewPanel({onClose, showToast}){
           React.createElement("span",{className:"beta-tanda-n"+(v==="approved"?" ok":v==="rejected"?" ko":"")},
             v==="approved" ? "✅ aprobada" : v==="rejected" ? "⛔ rechazada" : (c.ok+c.ko+c.na)+"/"+g.idx.length),
           React.createElement("span",{className:"beta-tanda-fold"},(open?"▾ ":"▸ ")+t(open?"beta_collapse":"beta_expand"))),
+        v==="approved" && React.createElement("div",{className:"hint beta-tanda-estado"},t("beta_approved_pending")),
+        !v && (g.cambio||[]).length>0 && React.createElement("div",{className:"hint beta-tanda-estado"},tf("beta_revision_changed",{x:g.cambio.map(function(s){ return s==="native"?"Android":s==="edge"?t("beta_server"):s; }).join(", ")})),
+        (pendientes||inciertas) && React.createElement("div",{className:"hint beta-tanda-entrega"},
+          [pendientes?tf("beta_delivery_pending",{x:pendientes}):"",inciertas?tf("beta_delivery_unknown",{x:inciertas}):""].filter(Boolean).join(" ")),
         React.createElement("div",{id:"beta-body-"+g.id,hidden:!open},
         g.idx.map(function(i,j){
           const it=g.items[j], m=marks[i];
@@ -1755,18 +1767,10 @@ function BetaReviewPanel({onClose, showToast}){
         : v ? React.createElement("div",{className:"beta-veredicto",style:{borderColor:v==="approved"?"var(--mint)":"var(--coral)"}},
             React.createElement("div",{style:{fontWeight:800,fontSize:14,marginBottom:5}},
               v==="approved" ? "✅ Aprobada" : "⛔ Rechazada"),
-            React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",lineHeight:1.5}},
-              /* El texto NO promete trocear la subida (2026-08-01). Antes decía «poniendo las
-                 tandas que quieras en «tandas»», y eso solo funciona si cada tanda nació en su
-                 rama `tanda/<id>`: si la ronda se commiteó mezclada —la 4.13.0, sin ir más
-                 lejos—, el workflow PARA y él se queda mirando un error después de haber
-                 aprobado. Aquí se dice lo que sí es verdad siempre: queda registrado con su
-                 nombre. Cómo se sube es del otro lado (docs/TESTING.md). */
-              v==="approved"
-                ? "Queda registrado con su nombre («"+g.id+"»), así que quien la suba sabe exactamente qué subir."
-                : "Queda registrado con lo que falla. Esta tanda no sube; las demás pueden seguir su camino."),
+            v==="rejected" && React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",lineHeight:1.5}},
+              "Queda registrado con lo que falla. Esta tanda no sube; las demás pueden seguir su camino."),
             React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:10},
-              onClick:function(){ setSent(function(p){ const n=Object.assign({},p); n[g.id]=null; store.set(storeKey+"_v",n); return n; }); }},
+              disabled:busy,onClick:function(){ enviar(g,"revoked"); }},
               "↺ Cambiar de opinión"))
         : React.createElement(React.Fragment,null,
             c.ko>0 && React.createElement("button",{type:"button",className:"v4-danger",style:{marginTop:6},disabled:busy,
@@ -1782,13 +1786,17 @@ function BetaReviewPanel({onClose, showToast}){
     }),
 
     React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:14},
+      disabled:busy||grupos.some(function(g){ return sent[g.id]==="approved"||sent[g.id]==="rejected"; }),
       onClick:function(){
         const reset={}; grupos.forEach(function(g){ reset[g.id]=null; });
-        store.del(storeKey); store.del(storeKey+"_n"); store.set(storeKey+"_v",reset);
-        recordarOk({}); pack.items.forEach(function(_,i){ recordarNota(i,""); });
+        // Reiniciar los puntos no borra la retirada: si desaparece, un OK antiguo vuelve a casar.
+        store.del(storeKey); store.del(storeKey+"_n");
+        recordarOk({},{}); pack.items.forEach(function(_,i){ recordarNota(i,""); });
         setMarks({}); setNotes({}); setSent(reset); setExpanded({}); setItemOpen({});
       }},
-      "↺ Empezar la revisión de cero")
+      "↺ Empezar la revisión de cero"),
+    grupos.some(function(g){ return sent[g.id]==="approved"||sent[g.id]==="rejected"; }) &&
+      React.createElement("div",{className:"hint",style:{marginTop:8}},t("beta_reset_verdicts"))
   ));
 }
 
@@ -2062,6 +2070,14 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
+var _rnSha="";
+function betaNotesVerified(arr){
+  // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
+  return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
+    if(Array.from(new Uint8Array(buf),function(x){ return x.toString(16).padStart(2,"0"); }).join("")!==_rnSha) throw new Error("release-notes distinto del bundle");
+    return arr;
+  });
+}
 function releaseNotesUrl(){
   try{
     var base=document.querySelector('base');
@@ -2077,28 +2093,37 @@ function ensureReleaseNotes(){
   if(_rnLoad) return _rnLoad;
   _rnLoad=fetch(releaseNotesUrl(),{credentials:"same-origin"})
     .then(function(r){ if(!r||!r.ok) throw new Error("release-notes HTTP "+(r&&r.status)); return r.json(); })
+    .then(betaNotesVerified)
     .then(function(arr){
       if(!Array.isArray(arr)||!arr.length) throw new Error("release-notes vacío");
       RELEASE_NOTES=arr;
-      /* Solo la cabeza de ESTA versión (15/9): si el SW falla en avión, el panel no se queda
-         vacío. No guardamos el histórico entero — cuota de localStorage. */
+      // Sin red siguen visibles las tandas anteriores de esta entrega. Solo se guarda
+      // una entrada por tanda moderna, no el histórico completo que consumiría la cuota.
+      // La compilación exacta impide aprobar código nuevo con notas cacheadas de otra.
       try{
         var base=mcVerBase(CONFIG.APP_VERSION);
         var head=arr.filter(function(n){ return n&&n.v===base; })[0]||arr[0];
-        if(head&&head.v) localStorage.setItem("_rnHead_"+base, JSON.stringify(head));
+        if(head&&head.v===base){
+          var seen={};
+          var round=arr.filter(function(n){ return n&&Array.isArray(n.tandas)&&!mcIsNewer("4.26.68",n.v)&&!mcIsNewer(n.v,base); })
+            .map(function(n){ return Object.assign({},n,{tandas:n.tandas.filter(function(g){ if(!g||!g.id||seen[g.id]) return false; seen[g.id]=true; return true; })}); })
+            .filter(function(n){ return n.v===base||n.tandas.length; });
+          var key="_rnBetaRound_"+CONFIG.APP_VERSION;
+          // La caché comparte cuota con el dinero: una compilación sustituye a la anterior.
+          for(var i=localStorage.length-1;i>=0;i--){ var k=localStorage.key(i); if(k.indexOf("_rnBetaRound_")===0&&k!==key) localStorage.removeItem(k); }
+          localStorage.setItem(key,JSON.stringify({sha:_rnSha,notes:round}));
+        }
       }catch(e){}
       return RELEASE_NOTES;
     })
     .catch(function(e){
       _rnLoad=null;
       try{ console.warn("release-notes", mcLogCode(e)); }catch(err){}
+      if(typeof crypto==="undefined"||!crypto.subtle) return RELEASE_NOTES||[];
       try{
         var base=mcVerBase(CONFIG.APP_VERSION);
-        var raw=localStorage.getItem("_rnHead_"+base);
-        if(raw){
-          var one=JSON.parse(raw);
-          if(one&&one.v){ RELEASE_NOTES=[one]; return RELEASE_NOTES; }
-        }
+        var cached=JSON.parse(localStorage.getItem("_rnBetaRound_"+CONFIG.APP_VERSION)||"null");
+        if(cached&&cached.sha===_rnSha&&Array.isArray(cached.notes)&&cached.notes.length&&cached.notes[0].v===base){ RELEASE_NOTES=cached.notes; return RELEASE_NOTES; }
       }catch(err2){}
       return RELEASE_NOTES||[];
     });
@@ -2107,6 +2132,9 @@ function ensureReleaseNotes(){
 
 /* Panel de Novedades. Se usa desde App (popup automático al estrenar versión) y desde
    Ajustes (histórico). Portal a body: sobrevive al transform del cajón de Ajustes. */
+function ReleaseNotesRetry({onReady}){
+  return React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){ ensureReleaseNotes().then(onReady); }},t("help_try_again"));
+}
 function WhatsNew({onClose, showToast, set, state}){
   useBackClose(true, onClose);
   const [notes,setNotes]=useState(function(){ return (RELEASE_NOTES||[]).slice(); });
@@ -2130,7 +2158,9 @@ function WhatsNew({onClose, showToast, set, state}){
   return ReactDOM.createPortal(React.createElement("div",{className:"wn-panel"}, React.createElement("div",{className:"wn-inner"},
     React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 2px"}}, "✨ "+t("wn_title")),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}}, t("wn_sub")),
-    !notes.length && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,marginBottom:12}}, "…"),
+    !notes.length && React.createElement(React.Fragment,null,
+      React.createElement("div",{className:"hint"},t("notes_unavailable")),
+      React.createElement(ReleaseNotesRetry,{onReady:function(arr){ setNotes(arr.slice()); if(arr.length)setOpenV(arr[0].v); }})),
     list.map(function(r){
       /* En beta la versión que corre lleva sufijo de compilación (4.11.0.8) y las notas van por
          versión base (4.11.0), así que comparar a pelo no casaba NUNCA: ninguna entrada salía
@@ -2329,10 +2359,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   },[]);
   const [autoBackOpen,setAutoBackOpen]=useState(false);  // copias automáticas diarias (state_backups)
   const prodVer=useProdVersion();                // Pages ahora (cruda); null mientras pregunta
-  // Misma regla que useYaEnProd, sin segundo fetch (compartimos prodVer con betaChecklist).
-  const yaEnProd=(!prodVer||!/^\d+\.\d+\.\d+$/.test(mcVerBase(CONFIG.APP_VERSION)))
-    ? null
-    : (!mcIsNewer(mcVerBase(CONFIG.APP_VERSION), prodVer) ? prodVer : false);
   const loadEvents=function(){
     cloud.adminEvents(200).then(function(rows){
       setEvents(rows||[]);
@@ -2743,6 +2769,12 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     ),
     newsOpen && React.createElement(WhatsNew,{onClose:function(){ setNewsOpen(false); },showToast:showToast,set:set,state:state}),
     fbOpen && ReactDOM.createPortal(React.createElement(FeedbackPanel,{state:state,set:set,showToast:showToast,onClose:function(){ setFbOpen(false); }}), document.body),
+    natPlugin() && grp("widget","💳",t("st_widget_bank"),"widget banco bank cuenta tarjeta puedes gastar",null,
+      React.createElement("select",{className:"af-in","aria-label":t("st_widget_bank"),value:widgetBankAccounts(state).some(function(a){ return a.ent===(state.settings||{}).widgetBank; })?(state.settings||{}).widgetBank:"",onChange:function(e){ setS({widgetBank:e.target.value}); }},
+        [""].concat(Array.from(new Set(widgetBankAccounts(state).map(function(a){ return a.ent; })))).map(function(e){ return React.createElement("option",{key:e,value:e},e?entOf(e).label:t("st_widget_auto")); })
+      ),
+      React.createElement("div",{className:"hint",style:{padding:12}},t("st_widget_bank_hint"))
+    ),
     natPlugin() && grp("updates","⬇️",t("st_updates"),"actualizar update version apk buscar widget",
       apkVer ? tf("st_ver_both",{w:CONFIG.APP_VERSION,a:apkVer}) : tf("st_ver_web",{v:CONFIG.APP_VERSION}),
       row("upd","⬇️",t("st_update"),
@@ -2887,11 +2919,11 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
             // «Code review» pero probando la app: la checklist sale de las notas de esta versión.
             // Solo tiene sentido estando en beta — en estable no hay nada que aprobar.
             beta && (function(){
-              const pack=betaChecklist(CONFIG.APP_VERSION, prodVer);
+              const pack=betaChecklist(CONFIG.APP_VERSION, prodVer, window._mcProdApk);
               const c=betaMarksCount(pack);
               // Con la versión ya subida a producción la fila deja de cantar «3/8» — ese contador
               // se leía como trabajo pendiente cada vez que abría Ajustes, y no lo era (2026-07-28).
-              if(yaEnProd||!pack.tandas.length) return null;
+              if(!pack.tandas.length) return null;
               return row("betarev","🔍","Revisar esta beta", c.tot?(c.n+"/"+c.tot):null, function(){ betaMarcarAbierto(); setBetaOpen(true); });
             })(),
             (function(){
