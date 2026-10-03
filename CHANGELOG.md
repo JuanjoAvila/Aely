@@ -1,3 +1,9 @@
+## [4.26.89] — 2026-10-03 · Recuperación del widget tras reinicio
+
+- INC-0210-04: reproducida en Java real la falsa corrupción de `unknownJournal` cuando una versión anterior deja un salto final y el XML añade indentación. `app()` omitía solo líneas vacías, activaba `journalFull` y rechazaba incluso una foto con el ACK exacto. Ahora ignora líneas blancas, normaliza solo la identidad y conserva campos/separadores; los dos escritores de este registro dejan de emitir saltos finales. Entradas inválidas y excesos siguen bloqueando sin modificar cifras.
+- Prueba roja antes del arreglo y verde después; guardianes de ACK crudo/canónico, reintento, reinicio, alcance, lápida y daño real. `widget-offline`, registrado en el runner, ejecuta POST/cola/hash reales con HTTP y preferencias sintéticos: caída de red sola no activa el bloqueo, cola/reintento y recreación del listener conservan identidad. No prueba Android físico ni JSON/SharedPreferences reales.
+- Cambio exclusivamente nativo, sin alterar puente, renderer ni backend. Reserva89 del coordinador; manifiesto y Gradle siguen identificando APK80/code52 real. El bump de compilación Android se hará al preparar una APK autorizada; no se inventa un asset89. No APK construida/instalada/publicada ni despliegue web/Edge/SQL. La captura original y la correlación offline siguen sin atribución física; FIN-05 continúa abierto. [Acta](docs/briefs/inc-0210-04-widget-intermitente.md).
+
 ## [4.26.82] — 2026-10-01 · Conservar la checklist actual en una ronda mixta
 
 - La revisión independiente de450 detectó que, sin versión de producción, una ronda moderna ocultaba los puntos implícitos de la versión actual. betaChecklist une ambas fuentes sin duplicar la cabeza moderna ni reincorporar notas con tandas:[]; las identidades y recibos siguen gobernando aprobaciones y entrega.

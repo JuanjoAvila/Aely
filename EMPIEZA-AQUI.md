@@ -1,5 +1,7 @@
 # Empieza aquí
 
+INC-0210-04/89 candidata aislada: reproducida y corregida falsa corrupción del registro pendiente por indentación XML tras reinicio. La pérdida de red sola no activa ese bloqueo en el transporte ensayado; no atribuir la captura original a esta causa sin evidencia física. ACK exacto obligatorio, FIN-05 abierto. APK80/code52 conserva su identidad real; no preparar/publicar APK ni desplegar por arrastre. [Acta](docs/briefs/inc-0210-04-widget-intermitente.md).
+
 Candidata Validaciones82 tras NO-GO450: conservar aprobación/progreso y la checklist actual junto a las rondas modernas si producción no responde. Sobre beta80/source955765a9;81 no publicada. APK80/52 intacta; DOM mixto70/70, contratos Node y A/B acreditados; revisión independiente y CI exacta pendientes. No integrar/publicar una solución parcial. [Acta](docs/briefs/ops-0110-validaciones-persistentes.md).
 
 Snapshot previo de preparación80 (no estado de la candidata81): Widget80 sobre79/d45fb8b1; runtime821/ACK/guiones intactos. Prebuild52/name80 y descarga de assetbeta602841368 verificados; manifiesto52 local real. CI/build final/reemplazo APK/entrega80 pendientes; no main/Edge/SQL/install. [Acta](docs/briefs/inc-2909-01-widget.md).
