@@ -1,3 +1,8 @@
+## [4.26.90] — 2026-10-03 · Gastos sin presupuesto de otro periodo
+
+- El resumen mostraba límite/restante desconocidos y una explicación en Mes pasado, Rango, Últimos3meses yTodo. La columna ahora se renderiza solo cuando budgetApplies es verdadero; el flex existente asigna todo el ancho al importe sin CSS nueva ni cálculos financieros nuevos. Mes/ciclo conservan sus lectores, límite y progreso.
+- gastos-periodo-categorias, ya registrado en el mapa, exige ausencia de columna/restante/aviso y ancho completo en es/en/ca; conserva categorías, filas,110/34/178 y975/940. Alcance nuevo derivado del contrato de periodos más CSS del resumen; identidades anteriores se recalculan sin aliases. DOM, revisión y CI pendientes. [Acta](docs/briefs/inc-0310-gastos-sin-limite.md).
+
 ## [4.26.89] — 2026-10-03 · Resultados por bróker (INC-0310)
 
 - El éxito genérico TR/MyInvestor atribuía la actualización a ambos tras responder solo uno y desaparecía si el otro caducaba. runBrokerSync conserva resultados por proveedor y muestra todos los éxitos, caducidades y fallos temporales en el resumen único. Un error de consulta myinvestorStatus ya no equivale a no tener enlace.

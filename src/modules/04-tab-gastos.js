@@ -876,10 +876,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
                 (monthSummary.balance>=0?"+":"−")+eur(Math.abs(monthSummary.balance))));
           })()
         ),
-        React.createElement("div",{className:"v4-gastos-summary-budget"},
+        // Fuera de mes/ciclo el límite no corresponde al periodo; el resumen aprovecha todo el ancho.
+        monthSummary.budgetApplies && React.createElement("div",{className:"v4-gastos-summary-budget"},
           React.createElement("div",null,tf("v4_gastos_of",{x:monthSummary.budget==null?"—":eur(monthSummary.budget)})),
-          React.createElement("div",{className:"v4-gastos-summary-left"},tf("v4_gastos_left",{x:monthSummary.remaining==null?"—":eur(monthSummary.remaining)})),
-          !monthSummary.budgetApplies && React.createElement("div",{className:"hint"},t("v4_gastos_budget_period_unknown"))
+          React.createElement("div",{className:"v4-gastos-summary-left"},tf("v4_gastos_left",{x:monthSummary.remaining==null?"—":eur(monthSummary.remaining)}))
         )
       ),
       monthSummary.budgetApplies && React.createElement("div",{className:"v4-gastos-progress",role:"progressbar","aria-valuemin":0,"aria-valuemax":monthSummary.budget||0,"aria-valuenow":Math.max(0,monthSummary.against)},

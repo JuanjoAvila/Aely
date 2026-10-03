@@ -1,3 +1,5 @@
+Candidata90 local: Gastos oculta presupuesto fuera de mes/ciclo y usa todo el ancho, sin cambiar dinero. Fuente Brókers89 incluida pero CI/publicación89 pendientes; beta88.1 y producción86 acreditadas. DOM/revisión/CI90 pendientes; no inferir aprobación. [Acta](docs/briefs/inc-0310-gastos-sin-limite.md).
+
 # Empieza aquí
 
 FEATURE-0210-01 candidata aislada85: no mover keywords nuevas a autoCategory, porque seedFlows reevalúa Otros antiguos. La división Gasolina/Taxi vive solo en categoryOfNewMerchant y MCC de altas bancarias. Fuente Edge preparada pero sin desplegar; la web no necesita Edge para elegir/filtrar/fijar límites. [Acta](docs/briefs/feature-0210-01-gasolina-taxi.md).

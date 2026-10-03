@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-10-03 · **v4.26.89** candidata local: resultados separados por bróker. Movilidad88 entregada beta88.1/ba206, 209notas y22recibos verificados. La89 no está publicada. APK80/code52 conservada, sin entrega89. [Acta](briefs/inc-0310-broker-resultados.md).
+> Estado a 2026-10-03 · **v4.26.90** candidata local: Gastos sin columna de presupuesto fuera de mes/ciclo; cifras y periodos intactos. Sobre fuente Brókers89 todavía pendiente de CI/publicación. Beta88.1 y producción86 acreditadas; sin aceptación móvil90. [Acta](briefs/inc-0310-gastos-sin-limite.md).
 
 > Snapshot anterior a 2026-10-03 · **v4.26.86** candidata: la categoría elegida a mano sobrevive al pull y al reinicio, y los pagos siguientes del mismo comercio la heredan. Solo cliente; integrada sobre la beta 85 (`cdfb2f2c`). DOM conjunto, CI exacta y móvil pendientes. [Acta](briefs/inc-0210-02-categoria-elegida.md).
 
@@ -251,7 +251,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.89** resultados independientes por bróker; candidata local sin publicación, APK80/code52 conservada. |
+| Web / OTA (`VERSION`) | **4.26.90** candidata local Gastos sin límite ajeno; sin publicación90, APK80/code52 conservada. |
 | APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base; Metas87 no genera APK. Cotejo servido en gate de entrega. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a3467; Metas87 no reemplaza binario ni manifiesto. |
