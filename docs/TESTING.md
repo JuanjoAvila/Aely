@@ -666,3 +666,5 @@ La unión sobre beta86 conserva los veinte alcances previos y añade Metas87: la
 Integración88 sobre039d incorpora motor movilidad45, ingest-handler y DOM9 es/en/ca; runner y CROSSCUTTING registrados. Revalidar alcance transitivo actual, Gasolina40, BOOK85, categoría86, Metas87 y catálogo mixto22. Pruebas/publicación de la integración todavía pendientes.
 
 Brókers89: broker-sync-outcomes.test.mjs, registrado en run-tests, ejecuta runBrokerSync real con transportes ficticios: proveedor único, ambos, fallos parciales/estado/caducidad, throttle, ocupación y ausencia de enlaces. sync-resumen.spec.mjs abre Cartera y el resumen real en es/en/ca; conserva el caso bancario mixto y comprueba identidad de cada fila y ausencia de sync TR al abrir. No prueba cuentas reales.
+
+Las pruebas históricas del panel beta ysu ronda offline bloquean consultas a la producción real antes del arranque. Cada escenario fija versión/recibos sintéticos; una publicación externa no debe retirar sus tandas ni cambiar aprobaciones durante la aserción. Las pruebas de sincronización comprueban el proveedor que respondió, además de las cifras visibles.
