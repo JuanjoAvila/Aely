@@ -18,6 +18,7 @@
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import {execFileSync} from "node:child_process";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
 const cli = loadPureLogicFromFile();
@@ -104,14 +105,24 @@ t("★ guion rechazado de gas71 trasladado a74 conserva las siete anteriores", (
   ].sort());
 });
 
-t("★ nómina78 conserva las trece tandas de Panel76/UI77 y añade una comprobación", () => {
+t("★ el snapshot80 conserva trece tandas y81 traslada el panel sin perder historia", () => {
   cli.window._mcProdEntregas=null; cli.window._mcProdApkRevisiones=null;
-  const prior=cli.betaChecklist("4.26.77.1","4.26.67",48);
-  const next=cli.betaChecklist("4.26.78.1","4.26.67",48);
-  const ids=(pack)=>Array.from(pack.tandas,(g)=>String(g.id).split("/").at(-1));
-  assert.equal(prior.tandas.length,13);
-  assert.deepEqual(ids(next).sort(),ids(prior).concat(["inc-3009-nomina-anticipada"]).sort());
-  assert.equal(next.tandas.filter((g)=>String(g.id).endsWith("/inc-3009-nomina-anticipada")).length,1);
+  const current=cli.RELEASE_NOTES;
+  try{
+    // La historia se prueba con su fuente fija: el traslado81 no debe reescribir el fixture77.
+    cli.RELEASE_NOTES=JSON.parse(execFileSync("git",["show","955765a9ec0ad96d20140a8f12da00c9fa04985c:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
+    const prior=cli.betaChecklist("4.26.77.1","4.26.67",48),next=cli.betaChecklist("4.26.78.1","4.26.67",48);
+    const ids=pack=>Array.from(pack.tandas,g=>String(g.id).split("/").at(-1));
+    assert.equal(prior.tandas.length,13);
+    assert.deepEqual(ids(next).sort(),ids(prior).concat(["inc-3009-nomina-anticipada"]).sort());
+    assert.equal(next.tandas.filter(g=>String(g.id).endsWith("/inc-3009-nomina-anticipada")).length,1);
+  }finally{cli.RELEASE_NOTES=current;}
+  const panels=cli.betaChecklist(VERSION_ACTUAL,"4.26.67",48).tandas.filter(g=>String(g.id).endsWith("/beta-panel-veredictos"));
+  assert.equal(panels.length,1);
+  assert.ok(panels[0].historial.includes("4.26.76/beta-panel-veredictos"));
+  assert.ok(panels[0].historial.includes("4.26.81/beta-panel-veredictos"));
+  assert.deepEqual(Array.from(cli.RELEASE_NOTES.find(n=>n.v==="4.26.81").tandas),[]);
+  assert.deepEqual(Array.from(cli.RELEASE_NOTES.find(n=>n.v==="4.26.76").tandas),[]);
 });
 
 t("★ una tanda corregida varias veces solo aparece en su versión más nueva", () => {

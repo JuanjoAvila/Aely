@@ -199,6 +199,12 @@ Mantén el Apps Script activo hasta confirmar que entran gastos por Supabase; lu
 
 FIN-06 (4.26.51): `_shared/wallet.ts` preparado con 30 ISO y paridad de céntimos/legacy USD con cliente. Sin cambio sigue devolviendo null; ingest no guarda euros inventados. El cambio del servidor está probado en repo pero NO desplegado al backend compartido: cualquier deploy de ingest requiere autorización específica. No hay migración de esquema ni de movimientos.
 
+## Identidad autorizada para `npm run listo`
+
+El CLI de revisión utiliza la configuración existente de Dev en `profiles` (`user_id`, `is_admin`), creada por `0016_profiles_and_privacy.sql`. Con la clave service role de `.env.local` lee únicamente esos campos de los perfiles administradores y exige una sola identidad con total exacto acreditado. Después consulta `app_events` con `user_id` igual a esa identidad; no basta con coincidir por tanda o huella.
+
+Si falta el perfil, hay varios administradores, el formato/total es inválido o la consulta falla, el CLI sale con código 2 y veredictos indeterminados. No elige una cuenta por defecto, no utiliza correos como selector y no copia identidades al repo. La configuración real sigue pendiente de verificación donde se disponga de la clave; esta corrección no crea perfiles, cambia roles, aplica SQL ni despliega funciones.
+
 ## SEC-03 · logs (propuesta sin desplegar)
 
 Cambios locales en bank-sync, bank-callback, ingest y _shared/ratelimit minimizan campos libres antes de app_events/consola. No se han aplicado al servidor ni se han consultado tablas/logs reales. La [matriz SEC-03](briefs/sec03-privacidad-logs.md) distingue mocks, fuente local y evidencia viva pendiente; un despliegue por función y el logging de plataforma son etapas independientes. No requiere migración ni cambio de RLS.

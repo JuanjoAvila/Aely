@@ -26,7 +26,7 @@ const mutation = process.argv.find(x => x.startsWith("--mutation="))?.split("=")
 const mutations = {
   "legacy-id": ['var ids=(g.codigo||g.rev>1?[]:[g.id]).concat(g.desde||[]);','var ids=[g.id].concat(g.desde||[]);'],
   "drop-code": ['+(codigo?":"+codigo:"")',''],
-  "discard-rejection": ['if(sent[g.id]==="approved" &&','if(sent[g.id]!=="approved" ||'],
+  "discard-rejection": ['if(r) sent[g.id]=r.verdict;','if(r && r.verdict!=="rejected") sent[g.id]=r.verdict;'],
   "local-override": ['return sent;','return Object.assign(sent,store.get("_betaReview_"+pack.v+".1_v")||{});'],
   "ignore-receipts": ['if(g.codigo){','if(false){'],
 };
@@ -61,6 +61,39 @@ function conStore(values, fn) {
 }
 
 console.log("beta-veredictos");
+t("ronda mixta conserva una vez la checklist implícita actual con o sin producción",()=>{
+  const catalog=cli.RELEASE_NOTES,points=["1. Comprobar A","2. Comprobar B","3. Comprobar C"];
+  const implicit={v:"4.26.99",t:{es:"Actual implícita",en:"Current implicit",ca:"Actual implícita"},items:{es:points,en:points,ca:points}};
+  conNotas([implicit,...catalog],()=>{
+    const offline=cli.betaChecklist("4.26.99.1",null,48),online=cli.betaChecklist("4.26.99.1","4.26.67",48);
+    for(const pack of [offline,online]){
+      const own=pack.tandas.filter(g=>g.id.split("/").pop()==="todo");
+      assert.equal(own.length,1,"la versión que corre sigue pendiente una sola vez");
+      assert.deepEqual(Array.from(own[0].items),points);
+      assert.equal(new Set(pack.tandas.map(g=>g.id.split("/").pop())).size,pack.tandas.length,"no duplica revisiones modernas");
+    }
+    assert.deepEqual(Array.from(offline.tandas,g=>g.id.split("/").pop()).sort(),Array.from(online.tandas,g=>g.id.split("/").pop()).sort(),"producción desconocida no borra una tanda actual");
+    assert.equal(offline.items.length,online.items.length);
+  });
+});
+
+t("ronda mixta no resucita una nota actual con tandas vacías",()=>{
+  const catalog=cli.RELEASE_NOTES,empty={v:"4.26.99",t:{es:"Sin puntos"},items:{es:["Nota familiar"]},tandas:[]};
+  const expected=Array.from(cli.betaChecklist("4.26.99.1",null,48).tandas,g=>g.id.split("/").pop()).sort();
+  conNotas([empty,...catalog],()=>{
+    for(const production of [null,"4.26.67"]){
+      const actual=cli.betaChecklist("4.26.99.1",production,48);
+      assert.deepEqual(Array.from(actual.tandas,g=>g.id.split("/").pop()).sort(),expected);
+      assert.equal(actual.tandas.filter(g=>g.id.split("/").pop()==="todo").length,0);
+    }
+  });
+});
+
+t("ronda moderna no duplica su propia cabeza al conservar el fallback",()=>{
+  const current=cli.RELEASE_NOTES[0],pack=cli.betaChecklist(current.v+".1",null,48);
+  for(const g of current.tandas)assert.equal(pack.tandas.filter(row=>row.id.split("/").pop()===g.id).length,1);
+});
+
 const changedIds=["tr-descripcion-clasificacion","fin05-widget-reentrada","fin05-pago-cerrada","widget-banco","widget-app-cerrada"];
 const readSource=f => fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
 const registered=JSON.parse(readSource("scripts/beta-sources.json"));
@@ -99,7 +132,7 @@ t("versión superior y APK superior no prueban la entrega de esa revisión", () 
 t("una traducción ajena no cambia el widget; un helper financiero sí", () => {
   const g=betaRevision("widget-app-cerrada",readSource);
   const label=betaRevision("widget-app-cerrada",f => readSource(f).replace('beta_revoked:"↺ Veredicto retirado"','beta_revoked:"Otro texto"'));
-  const money=betaRevision("widget-app-cerrada",f => readSource(f).replace('function expenseCountsBudget(e, s){','function expenseCountsBudget(e, s){ /* nueva regla */'));
+  const money=betaRevision("widget-app-cerrada",f => readSource(f).replace('function expenseCountsBudget(e, s){','function expenseCountsBudget(e, s){ throw new Error("regla mutada");'));
   assert.equal(g.codigo,label.codigo);
   assert.notEqual(g.codigo,money.codigo);
   assert.throws(() => betaRevision("widget-app-cerrada",f => f.endsWith("01-i18n.js") ? "bloque ausente" : readSource(f)),/Bloque beta/);
@@ -134,7 +167,8 @@ t("CLI real: revocación remota, rechazo histórico exacto y entrega desconocida
     process.argv=[process.execPath,'fixture','--json'];
     globalThis.fetch=async url => {
       const u=String(url);
-      if(u.includes('/rest/v1/')) return Response.json(${JSON.stringify(rows)});
+      if(u.includes('/rest/v1/profiles')) return Response.json([{user_id:'00000000-0000-4000-8000-000000000001',is_admin:true}],{headers:{'content-range':'0-0/1'}});
+      if(u.includes('/rest/v1/app_events')) return Response.json(${JSON.stringify(rows)}.map(r=>({...r,user_id:'00000000-0000-4000-8000-000000000001'})));
       if(u.endsWith('beta-delivery.json')) return new Response('',{status:404});
       if(u.endsWith('apk.json')) return Response.json({versionCode:48});
       return Response.json({version:u.includes('/beta/')?'4.26.75.1':'4.26.67'});
@@ -307,7 +341,7 @@ t("cambiar web, Android o Edge invalida el alias y señala solo la superficie af
   // Referencia sintética vigente para aislar cada mutación; el repo conserva la aprobación antigua.
   const current=betaRevision(historical.id,readSource);
   const source=Object.assign({},historical,{desde:["9.9.1/"+historical.id],codigoDesde:current.codigo,revisionesDesde:Object.fromEntries(Object.entries(current).filter(([key])=>["web","native","edge"].includes(key)))});
-  const edits={web:['src/modules/01-i18n.js','function expenseCountsBudget(e, s){','function expenseCountsBudget(e, s){ /* cambio */'],native:['android/app/src/main/java/com/micartera/app/TrExpenseListener.java',null,null],edge:['supabase/functions/_shared/wallet.ts',null,null]};
+  const edits={web:['src/modules/01-i18n.js','function expenseCountsBudget(e, s){','function expenseCountsBudget(e, s){ throw new Error("mutante");'],native:['android/app/src/main/java/com/micartera/app/TrExpenseListener.java',null,null],edge:['supabase/functions/_shared/wallet.ts',null,null]};
   for(const surface of Object.keys(edits)) {
     const [file,from,to]=edits[surface];
     const revision=betaRevision(source.id,f=>f!==file?readSource(f):from?readSource(f).replace(from,to):readSource(f)+'\n// cambio');
@@ -329,7 +363,7 @@ t("los helpers de Inicio y el vínculo/representación de Recibos forman parte d
   for(const [id,file,marker] of cases) {
     assert.equal(readSource(file).split(marker).length,2,"mutación única: "+marker);
     const before=betaRevision(id,readSource);
-    const after=betaRevision(id,f=>f===file?readSource(f).replace(marker,marker+" /* mutación */"):readSource(f));
+    const after=betaRevision(id,f=>f===file?readSource(f).replace(marker,marker+(marker.endsWith("=")?"0||":marker.endsWith("{")?"throw new Error(\"mutante\");":"__mutante,")):readSource(f));
     assert.notEqual(before.web,after.web,id+" cambia por "+marker);
   }
 });
@@ -339,5 +373,22 @@ t("el parte al servidor conserva la huella y descarta basura", () => {
   assert.equal(cli.mcBetaLog({ verdict: "approved", huella: "<script>" }).huella, undefined);
 });
 
+t("un veredicto vigente no depende de marcas auxiliares ni del texto de otra tanda",()=>{
+  const a=cli.betaTandas({tandas:[tanda("a",{codigo:"a".repeat(64)})]})[0],b=cli.betaTandas({tandas:[tanda("b",{codigo:"b".repeat(64),items:{es:a.items}})]})[0];
+  const values={"_betaReview_9.9.2.1_v":{_h:1,["h:"+a.huella]:{verdict:"approved",at:1}},_betaReviewMarks:{[a.huella]:{marks:{0:"ok"},notes:{}},[b.huella]:{marks:{0:"ko"},notes:{0:"B falla"}}},_betaMarksHuella:{[a.items[0]]:b.huella},_betaReviewOk:{[a.items[0]]:"ko"}};
+  conStore(values,()=>{
+    assert.equal(cli.betaSavedVerdicts({tandas:[a,b],items:a.items.concat(b.items)})[a.id],"approved");
+    assert.deepEqual({...cli.betaScopedMarks({tandas:[a,b]}, {},true)},{0:"ok",1:"ko"});
+    delete values._betaReviewMarks;delete values._betaMarksHuella;delete values._betaReviewOk;
+    assert.equal(cli.betaSavedVerdicts({tandas:[a],items:a.items})[a.id],"approved");
+  });
+});
+t("compatibilidad auditada respeta la última retirada/rechazo y no salta a un OK anterior",()=>{
+  const a=cli.betaTandas({tandas:[tanda("a",{codigo:"a".repeat(64),codigosCompatibles:["b".repeat(64)]})]})[0],old=a.huellasCompatibles[0];
+  for(const verdict of ["rejected","revoked",null]){
+    const rows=[{huella:old,verdict:verdict},{huella:a.huella,verdict:"approved"}];
+    assert.equal(cli.betaVerdictFor(a,rows)?.verdict||null,verdict==="rejected"?"rejected":null);
+  }
+});
 if (failed) { console.error(`\nbeta-veredictos: ${failed} fallo(s)`); process.exit(1); }
 console.log("\nbeta-veredictos: OK");

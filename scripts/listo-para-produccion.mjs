@@ -61,6 +61,32 @@ if (!KEY) {
   process.exit(1);
 }
 
+/* La service_role ve eventos de todos: la huella no acredita quién dio el OK (1/10).
+   Dev usa profiles.is_admin. Sin un único titular verificable no elegimos entre cuentas. */
+async function reviewerAutorizado() {
+  const q = new URLSearchParams({ select:"user_id,is_admin", is_admin:"eq.true", limit:"2" });
+  const r = await fetch(`${BASE}/rest/v1/profiles?${q}`, {
+    headers: { apikey:KEY, Authorization:`Bearer ${KEY}`, Prefer:"count=exact" },
+  });
+  if (!r.ok) throw new Error("no se pudo consultar el rol Dev");
+  const profiles = await r.json();
+  // El total evita escoger la primera fila si el servidor recorta la respuesta.
+  if (!Array.isArray(profiles) || profiles.length !== 1 || r.headers.get("content-range") !== "0-0/1")
+    throw new Error("se necesita exactamente un perfil administrador acreditado");
+  const p = profiles[0];
+  if (!p || p.is_admin !== true || typeof p.user_id !== "string" || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(p.user_id))
+    throw new Error("el perfil administrador no contiene una identidad válida");
+  return p.user_id.toLowerCase();
+}
+let reviewer;
+try { reviewer = await reviewerAutorizado(); }
+catch {
+  const motivo = "Identidad autorizada indeterminada: no se acredita un único perfil Dev válido. No se evalúan veredictos.";
+  if (flag("json")) console.log(JSON.stringify({ veredictos:"indeterminado", motivo, tandas:[] }, null, 2));
+  console.error(motivo);
+  process.exit(2);
+}
+
 const git = (a) => {
   try { return execFileSync("git", a, { cwd: root, encoding: "utf8" }).trim(); }
   catch { return null; }
@@ -114,8 +140,9 @@ const tandas = pack.tandas || [];
 
 /* ---- Sus veredictos: el ÚLTIMO de cada tanda manda ---- */
 const qs = new URLSearchParams();
-qs.set("select", "created_at,kind,app_version,message,detail");
+qs.set("select", "user_id,created_at,kind,app_version,message,detail");
 qs.set("kind", "eq.beta");
+qs.set("user_id", "eq." + reviewer);
 qs.set("order", "created_at.desc");
 qs.set("limit", val("limit", "200"));
 const res = await fetch(`${BASE}/rest/v1/app_events?${qs}`, {
@@ -131,9 +158,13 @@ const rows = await res.json();
 // se queda con el primero que aplica a la revisión actual (huella, id o alias `desde`).
 const partes = [];
 for (const r of rows) {
+  // Defensa local además del filtro remoto; no aceptar un parte ajeno ni sin autor.
+  if (!r || typeof r.user_id !== "string" || r.user_id.toLowerCase() !== reviewer) continue;
   let d = r.detail;
   if (typeof d === "string") { try { d = JSON.parse(d); } catch { d = null; } }
-  if (!d || !d.tanda || !d.verdict) continue;
+  // Un null explícito retira el OK anterior; no equivale a un parte sin decisión válida.
+  if (!d || !d.tanda || !Object.hasOwn(d,"verdict")) continue;
+  if (d.verdict !== null && !["approved","rejected","revoked"].includes(d.verdict)) continue;
   partes.push({
     tanda: d.tanda,
     huella: d.huella || null,

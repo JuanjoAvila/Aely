@@ -476,3 +476,13 @@ recibo esperan mientras la retirada está pendiente. `linkFixedPayment(null)` el
 no crea una lápida: sincroniza metadatos mediante el CAS existente de app_state. No hay
 transacción entre expenses y app_state ni garantía de atomicidad entre clientes; un timeout con
 commit remoto sin ACK y la concurrencia posterior siguen requiriendo conciliación separada.
+
+## Revisión de comprobaciones: persistencia81
+
+_betaReviewMarks guarda por huella {marks:{indice:estado},notes:{indice:comentario}}. El lector migra marcas antiguas solo si su propietario/alias auditado coincide; un texto repetido no identifica una tanda. Los veredictos enviados tienen historial separado: eliminar marcas no invalida un OK vigente, y una decisión posterior veta la anterior. Empezar de cero vacía progreso/comentarios scoped sin eliminar una retirada guardada.
+
+`build-app` incorpora `_rnSha`, SHA-256 del catálogo JSON completo, en una variable propia del panel fuera de CONFIG. `ensureReleaseNotes` exige que WebCrypto confirme esa identidad antes de aceptar o guardar las notas; una respuesta exitosa antigua del Service Worker tampoco vale. `_rnBetaRound_` usa la compilación completa (incluido el sufijo) y guarda `{sha,notes}` con una entrada por tanda moderna. Solo recupera ese envelope cuando su identidad coincide con el bundle actual. No rescata `_rnHead_` sin verificación. Sin WebCrypto, catálogo válido ni caché de esa compilación muestra comprobaciones sin confirmar, conservando el historial de decisiones. No acredita entrega ni aprobación. La identidad de las tandas y sus equivalencias se generan desde unidades y SHAs Git auditados; Android/Edge requieren sus recibos propios.
+
+Al aceptar un catálogo verificado se purgan únicamente otras claves `_rnBetaRound_*` antes de escribir la actual, para liberar cuota compartida con los datos financieros. Panel y Novedades muestran un reintento explícito si no hay notas verificadas; vuelven a aplicar el mismo SHA-256 y mantienen desconocido hasta recuperar el catálogo.
+
+Sin versión de producción, betaChecklist conserva todas las tandas modernas hasta la versión actual y añade una sola vez la nota actual con puntos implícitos. Una nota con tandas:[] no aporta puntos; la cabeza moderna ya incluida no se duplica. No altera las huellas ni acredita entrega por número de versión.

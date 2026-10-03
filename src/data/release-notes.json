@@ -1,5 +1,81 @@
 [
   {
+    "v": "4.26.82",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Las comprobaciones siguen visibles",
+      "en": "Checks stay visible",
+      "ca": "Les comprovacions continuen visibles"
+    },
+    "items": {
+      "es": [
+        "Las comprobaciones pendientes siguen visibles cuando no se puede consultar la versión publicada.",
+        "Los resultados y comentarios de cada comprobación se conservan."
+      ],
+      "en": [
+        "Pending checks stay visible when the published version cannot be checked.",
+        "Each check retains its results and comments."
+      ],
+      "ca": [
+        "Les comprovacions pendents continuen visibles quan no es pot consultar la versió publicada.",
+        "Cada comprovació conserva els resultats i comentaris."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "beta-panel-veredictos",
+        "rev": 2,
+        "t": {
+          "es": "Las comprobaciones conservan su resultado",
+          "en": "Checks retain their results",
+          "ca": "Les comprovacions conserven el resultat"
+        },
+        "items": {
+          "es": [
+            "1. Aprueba una tanda comprobada. Tras una actualización ajena y al reabrir, debe seguir aprobada y plegada; solo lo nuevo queda pendiente.",
+            "2. En otra tanda, marca un fallo y escribe un comentario. Reinicia la revisión de cero y reabre: sus marcas y comentarios deben estar vacíos. Un rechazo o una retirada posteriores siguen mandando."
+          ],
+          "en": [
+            "1. Approve a tested batch. After an unrelated update and reopening, it should remain approved and folded; only new work stays pending.",
+            "2. In another batch, mark a failure and write a comment. Start the review from scratch and reopen: its marks and comments should be empty. Later rejection or revocation still takes precedence."
+          ],
+          "ca": [
+            "1. Aprova una tanda comprovada. Després d’una actualització aliena i en reobrir, ha de seguir aprovada i plegada; només queda pendent el que és nou.",
+            "2. En una altra tanda, marca un error i escriu un comentari. Reinicia la revisió de zero i reobre: les marques i els comentaris han d’estar buits. Un rebuig o una retirada posteriors continuen manant."
+          ]
+        },
+        "historial": [
+          "4.26.76/beta-panel-veredictos",
+          "4.26.81/beta-panel-veredictos"
+        ]
+      }
+    ]
+  },
+  {
+    "v": "4.26.81",
+    "d": "2026-10-01",
+    "t": {
+      "es": "Las comprobaciones conservan su resultado",
+      "en": "Checks retain their results",
+      "ca": "Les comprovacions conserven el resultat"
+    },
+    "items": {
+      "es": [
+        "Las comprobaciones aprobadas conservan su resultado al actualizar y volver a abrir.",
+        "Cada comprobación guarda sus comentarios por separado, también cuando se repite el mismo texto."
+      ],
+      "en": [
+        "Approved checks retain their results after an update and reopening.",
+        "Each check keeps its own comments, even when the same text appears elsewhere."
+      ],
+      "ca": [
+        "Les comprovacions aprovades conserven el resultat en actualitzar i tornar a obrir.",
+        "Cada comprovació desa els seus comentaris per separat, també quan es repeteix el mateix text."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.80",
     "d": "2026-10-01",
     "t": {
@@ -269,30 +345,7 @@
         "La revisió distingeix les millores pendents de provar de les pendents de publicar. Les entregades desapareixen de la llista."
       ]
     },
-    "tandas": [
-      {
-        "id": "beta-panel-veredictos",
-        "t": {
-          "es": "Pruebas y entrega",
-          "en": "Checks and delivery",
-          "ca": "Proves i entrega"
-        },
-        "items": {
-          "es": [
-            "1. Abre Pruebas: una tanda aprobada explica por qué sigue pendiente de entrega, incluso plegada. No vuelve a pedir aprobación si su código es idéntico.",
-            "2. Si cambia el código, indica que necesita nuevas pruebas y conserva el historial. Una entrega exacta la retira aunque la versión de producción sea menor; sin pruebas de entrega permanece."
-          ],
-          "en": [
-            "1. Open Checks: an approved batch explains why delivery is still pending, even while collapsed. It does not request approval again for identical code.",
-            "2. Changed code requires new checks and keeps history. Exact delivery removes the batch even if production has a lower version; without delivery evidence it stays."
-          ],
-          "ca": [
-            "1. Obre Proves: una tanda aprovada explica per què continua pendent d’entrega, fins i tot plegada. No torna a demanar aprovació si el codi és idèntic.",
-            "2. Si canvia el codi, indica que necessita proves noves i conserva l’historial. Una entrega exacta la retira encara que la versió de producció sigui menor; sense proves d’entrega es manté."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.75",

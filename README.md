@@ -1,16 +1,14 @@
-Retirada 4.26.79 candidata de integración sobre Nómina78 eaf55e4a: una retirada confirmada deja de contar como gasto y conserva el saldo bancario; CI y entrega conjunta beta80 pendientes. [Acta y límites](docs/briefs/inc-2909-03-retirada-caixa.md).
+La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres correcciones de pantalla.78/79 son snapshots de integración, no versiones publicadas por separado. Esta candidata81 conserva sus cambios; prueba móvil pendiente. [Actas](docs/briefs/ops-0110-validaciones-persistentes.md).
 
 # Aely
 
-Nómina 4.26.78 candidata sobre UI77 finalca7734fd: los abonos pendientes o con fecha futura no se registran como cobrados. CI exacta, publicación y prueba móvil pendientes; [alcance y límites](docs/briefs/inc-3009-nomina-anticipada.md).
 
-Tres retoques de pantalla (4.26.77, candidata a beta): Cyberpunk conserva limpio el botón +, Pregúntame ajusta el espacio bajo Preguntar y el perfil conserva filas vacías de altura normal y sus acciones. Publicación y prueba móvil pendientes; [evidencia y límites](docs/briefs/ui-77-integracion.md).
 
-En Ajustes → Revisar la beta, el resultado sigue a la comprobación y su código. Un cambio requiere nueva revisión y conserva el historial; la aprobación y la entrega se muestran por separado.
+En Ajustes → Revisar la beta, una comprobación aprobada conserva su resultado tras actualizar y reabrir. Cada tanda guarda sus marcas y comentarios por separado; un cambio real de código o guion requiere nueva revisión. La aprobación y la entrega se muestran por separado.
 
 OPS-02: Ajustes → Copia de seguridad → Copias automáticas → Ver copia permite comparar sin sustituir la cartera.
 Inicio muestra el gasto bruto en el mes natural; con presupuesto por ciclo y nómina reconocida muestra el gasto neto tras los ingresos recibidos y el margen que queda. Plan deja de prever un ingreso que el banco ya identifica claramente.
-En Ajustes → Dinero, «Presupuesto por ciclo de cobro» permite reiniciar el presupuesto con la nómina registrada; Gastos abre en «Mi ciclo». Su explicación se puede plegar y recuperar con Ayuda sin ocultar la fecha del cobro. El widget Android mantiene el mes natural.
+En Ajustes → Dinero, «Presupuesto por ciclo de cobro» permite reiniciar el presupuesto con la nómina registrada; Gastos abre en «Mi ciclo». Su explicación se puede plegar y recuperar con Ayuda sin ocultar la fecha del cobro. Con la app Android nueva, el widget sigue la ventana de Inicio; la app anterior conserva el mes natural.
 Con poca conexión, Inicio muestra los datos guardados cuando termina el logo, sin otra espera de barras grises.
 
 PWA de finanzas personales: patrimonio neto, gastos variables, costes fijos, inversiones (multi-bróker) y deudas. Móvil-first, instalable, con sincronización automática de gastos vía notificaciones del banco.
@@ -40,6 +38,7 @@ mi-cartera/
 ├── scripts/beta-source-code.mjs # Guardia de funciones/datos transitivos y delimitación por sintaxis, sin dependencias
 ├── scripts/beta-sources.json # Alcances explícitos de revisión; beta-revisions.mjs genera digests/recibo
 ├── tests/beta-veredictos.test.mjs # Contrato compartido del panel y listo; beta-sources protege el ensamblado
+├── tests/listo-actor.test.mjs # CLI real sin red: actor Dev autorizado y fallo cerrado si no se acredita
 ├── src/                    # 👈 Fuente editable (v3.108+)
 │   ├── shell.html          #     HTML shell (React, CSS, vendors)
 │   ├── build-order.json    #     Orden de ensamblado de módulos
@@ -99,7 +98,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.80** candidata con Widget/Nómina/Retirada y sus guiones. APK52 preliminar verificada y asset beta real; manifiesto52 local. CI, build final con52 y publicación80 pendientes. [Acta](docs/briefs/inc-2909-01-widget.md).
+Estado actual: **v4.26.82** candidata de persistencia de comprobaciones sobre beta80/source955765a9. APK80/code52 conservada. Revisión independiente, CI exacta, publicación y prueba móvil pendientes. [Acta](docs/briefs/ops-0110-validaciones-persistentes.md).
 
 Estado anterior de Retirada: **v4.26.79**, candidata de Retirada sobre Nómina78 eaf55e4a para la entrega conjunta beta80; pendiente de CI exacta y publicación ([acta](docs/briefs/inc-2909-03-retirada-caixa.md)). Anterior **v4.26.78**, candidata de Nómina sobre UI77 finalca7734fd; pendiente de CI exacta y publicación ([acta](docs/briefs/inc-3009-nomina-anticipada.md)). Anterior **v4.26.77**, candidata con tres tandas de pantalla (Cyberpunk, Preguntar, Perfil) sobre el panel76; sin publicar ni probar en móvil ([acta](docs/briefs/ui-77-integracion.md)). Del panel76, corrección local: revisión y entrega separadas por tanda; una entrega exacta la retira aunque producción tenga un número menor. Beta publicada **4.26.75.1**/ca7b97d4, producción **4.26.67**; APK48 estable/APK51 beta. CI exacta, publicación76 y prueba móvil pendientes. [Auditoría y evidencia](docs/briefs/ops-0110-panel-entrega.md).
 
