@@ -25,6 +25,12 @@ El alcance nuevo incluye catálogo, tres traducciones, clasificador, MCC, altas,
 - Suite Node general: 112 etapas / 1.840.965 ms, CLI1 por el primer beta-sources (corregido y repetido entero, CLI0) y memoria-espejo local desfasado. Deno no instalado: etapa omitida; no se acredita suite Deno local. Motor focal final repetido tras ampliar la edición cloud: 45 PASS; Gasolina/Taxi: 40 PASS. Sintaxis (siete scripts), privacidad, docs-frescura y relevant-tests finales CLI0. La CI exacta se solicita sobre el SHA del PR; estas comprobaciones locales no se presentan como suite global verde.
 - Fuente de implementación: c35a92a9, sobre b51b095d. HTML ensamblado comprobado por HTTP y disco: SHA-256 `1c3debb8f41bdd4d46580ad0f09b23ff35ad37b10aad564181875d21de46d284`. Resultado final JSON y cierre de procesos conservados en test-results; listener4488=0/Chromium propio=0 y liberación expresa al coordinador tras terminar. Sin nuevo arranque tras liberar.
 
+## CI y corrección del fixture de entrega
+
+PR borrador108 a beta. CI37113688343 sobre 7c25bc6f terminó FAILURE: únicamente dos positivos de beta-tandas-vacias. El fixture entregasHasta ligaba Edge a `apk>=g.apk`; la tanda web/Edge nueva carece de requisito APK y no recibía Edge en «todo entregado». Reproducción local exacta: dos rojos; corregido solo el fixture para simular recibos independientes. Se añade negativo con TODO el catálogo real: quitar los recibos Edge conserva pendientes todas sus tandas, aunque web/APK estén acreditadas; restaurarlos deja cero. Focal completo beta-tandas-vacias CLI0, sin estrechar catálogo, repinar historia ni tocar el runtime para ocultar pendientes.
+
+La CI inicial sí ejecutó el fullguard completo PASS (1.134/372), motor45/Gasolina40/ingest-handler y los cuatro ficheros Deno PASS. No llegó a DOM general ni a privacidad final por el fallo Node. La corrección de fixture/docs conserva exactamente fuentes, alcances, huellas, HTML y tamaño de la candidata ya probada en los 78 DOM. Requiere nuevo SHA, docs-frescura POSTCOMMIT y CI nueva; al guardar esta acta esa CI todavía no tiene veredicto.
+
 `npm run salud` local confirma VERSION/paquete y APK80/code52 alineados; red/sandbox impidieron consultar Pages/release/APK y Supabase carece de credenciales. Sus refs locales no acreditan canales activos. La reserva88 y la coordinación de ese chat fueron autorizadas expresamente; solo el coordinador escribe el lease.
 
 ## Integración posterior
