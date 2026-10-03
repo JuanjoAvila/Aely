@@ -1,3 +1,5 @@
+FEATURE-0310-01: multas/zona_azul/peajes son categorías diarias explícitas del catálogo, guardadas sin alias. La división automática vive solo en categoryOfNewMerchant y su espejo ingest para altas nuevas; autoCategory/migrate/seedFlows conservan las reglas anteriores y el histórico. Catálogo común para Apuntar, ficha, filtros y límites; cloud transporta IDs y expenseFromRow respeta valores reconocidos. Servidor preparado en fuente, sin deploy ni SQL nueva. [Contrato](briefs/feature-0310-01-movilidad.md).
+
 # Arquitectura — Aely
 
 ## Widget80 sobre guardias de nómina y retirada

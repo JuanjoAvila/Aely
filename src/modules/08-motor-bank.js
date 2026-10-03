@@ -779,17 +779,20 @@ function reconcileBank(state, y, m, today){
 
 function categoryOfBankTx(tx){
   const m=tx.merchant||"", cat=categoryOfNewMerchant(m);
-  // El MCC solo completa comercios sin categoría: no pisa aprendizaje manual ni retiradas.
-  // Tabla acotada a correspondencias claras del manual Visa (abril 2026); el resto queda en Otros.
-  if(cat!=="otros" || USER_OVERRIDES[catKey(m)]==="otros") return cat;
+  // Los MCC nuevos solo completan marcas energéticas ambiguas; los anteriores no cambian.
+  // Finalidad reconocida y overrides, incluso Otros, mandan antes del dato de tarjeta.
+  const energyBrand=/^(repsol|cepsa|shell|bp|galp)$/;
+  const mobilityMcc=tx.card && /^(5541|5542|4121)$/.test(String(tx.mcc||""));
+  if((cat!=="otros" && !(cat==="transporte" && mobilityMcc && energyBrand.test(catKey(m)) && !USER_OVERRIDES[catKey(m)])) || USER_OVERRIDES[catKey(m)]==="otros") return cat;
   const note=String(tx.concept||"");
-  // «Pago alquiler día 5» no identifica una tienda: nunca se clasifica por texto libre de
-  // transferencias/recibos. El nombre OB sigue intacto para dedup y lápidas de TR sin id.
-  if(tx.card && /^(movimiento|movement|transaction)?$/i.test(m.trim()) && !/transfer|bizum|recibo|alquiler|n[oó]mina|devoluci|refund/i.test(note)){
+  // El concepto de una transferencia/recibo no identifica una compra de tarjeta.
+  if(tx.card && (/^(movimiento|movement|transaction)?$/i.test(m.trim()) || mobilityMcc) && !/transfer|bizum|recibo|alquiler|n[oó]mina|devoluci|refund/i.test(note)){
     const c=categoryOfNewMerchant(note);
-    if(c!=="otros" || USER_OVERRIDES[catKey(note)]==="otros") return c;
+    if((c!=="otros" && !(mobilityMcc && c==="transporte" && energyBrand.test(catKey(note)) && !USER_OVERRIDES[catKey(note)])) || USER_OVERRIDES[catKey(note)]==="otros") return c;
   }
   switch(tx.mcc){
+    case "5541": case "5542": return tx.card?"gasolina":cat;
+    case "4121": return tx.card?"taxi":cat;
     case "5411": return "super";
     case "5462": return "pan";
     case "5812": case "5813": case "5814": return "bares";

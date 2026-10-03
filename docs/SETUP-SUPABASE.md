@@ -1,4 +1,8 @@
+FEATURE-0310-01 (candidata88): ingest_logic y ALLOWED/HINTS de categorize añaden multas/zona_azul/peajes solo en fuente, sin desplegar. expenses.cat conserva text sin whitelist; no hay SQL nueva. Selector/ficha/filtros/límites y altas web funcionan sin despliegue. Notificaciones clasificadas por un servidor anterior pueden seguir como tasas/parking/transporte. El presupuesto del baseline y cloud addExpense/expenseFromRow conservan IDs explícitos en pruebas sintéticas; retry/ACK/conflicto no pisarán una elección. No certifica función o RLS activas. [Acta](briefs/feature-0310-01-movilidad.md).
+
 # Setup Supabase — Fase 1 (Aely)
+
+FEATURE-0210-01: ingest_logic y ALLOWED/HINTS de categorize incorporan Gasolina/Taxi solo en fuente de la candidata85. No se ha desplegado ninguna función ni se ha consultado el hash/BD de Supabase vivo; el clasificador anterior puede seguir dando Transporte hasta un gate de despliegue específico. El catálogo/selector/filtros/límites y altas manuales/MCC web funcionan sin despliegue; las notificaciones clasificadas por el servidor anterior aún pueden entrar como Transporte. La migración0001 define expenses.cat como text sin whitelist y las migraciones registradas no la restringen; no requiere SQL nueva. Tests sintéticos ejecutan alta cloud/pull con ambos IDs, presupuesto.ts del SHA3467 y retry/ACK/conflicto de ingest con clasificador de ese baseline: preservan elección manual y cuentan categorías diarias. Esto prueba fuente/contratos, no estado vivo ni captura Wallet nueva.
 
 ## bank-sync desplegado para beta 4.26.53.1: concepto y MCC opcionales
 

@@ -309,11 +309,15 @@ t("★ dos fuentes idénticas conservan OK; cinco cambios web/nativos conservan 
     const part=cli.betaVerdictFor(g,[{tanda:g.historial[0],verdict:"approved"}]);
     if(changedIds.includes(id)) {
       assert.equal(part,null,id+" no reutiliza la aprobación anterior");
-      assert.deepEqual(Array.from(g.cambio),["web","native"]);
+      const edgeChanged=["fin05-pago-cerrada","widget-app-cerrada"].includes(id);
+      assert.deepEqual(Array.from(g.cambio),edgeChanged?["web","native","edge"]:["web","native"]);
       assert.equal(g.desde.length,0);
       assert.notEqual(g.codigo,JSON.parse(readSource("src/data/release-notes.json")).flatMap(n=>n.tandas||[]).find(x=>x.id===id&&x.codigoDesde).codigoDesde);
       assert.notEqual(g.native,registered[id].auditoria.revisiones.native);
-      if(g.edge) assert.equal(g.edge,registered[id].auditoria.revisiones.edge);
+      if(g.edge){
+        if(edgeChanged) assert.notEqual(g.edge,registered[id].auditoria.revisiones.edge);
+        else assert.equal(g.edge,registered[id].auditoria.revisiones.edge);
+      }
       assert.equal(g.apk,52);
     } else {
       assert.equal(part.verdict,"approved",id);
