@@ -12,6 +12,25 @@ let failed=0;
 function test(name,fn){ try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
+// El mensaje promete lo que el transporte y los lectores financieros aplicaron realmente.
+test("brókers89 vigila resultados, errores, mapeo y textos de cada idioma",()=>{
+  const id="inc-0310-broker-resultados",source=f=>read(f).replace(/\r\n/g,"\n"),before=betaRevision(id,source).web;
+  for(const [file,from,to] of [
+    ["src/modules/11-app-main.js",'updatedB.push("Trade Republic")','updatedB.push("MyInvestor")'],
+    ["src/modules/11-app-main.js",'updatedB.forEach(function(bank)','[].forEach(function(bank)'],
+    ["src/modules/00-core.js",'if(error) throw error;\n      return data||null;','if(error) return null;\n      return data||null;'],
+    ["src/modules/05-dialogs-inv.js",'function brokerSuggest(pos, investments){','function brokerSuggest(pos, investments){ throw new Error("mutante");'],
+  ]){
+    assert.ok(source(file).includes(from),"el mutante debe tocar la fuente real");
+    assert.notEqual(betaRevision(id,f=>f===file?source(f).replace(from,to):source(f)).web,before,from);
+  }
+  const file="src/modules/01-i18n.js";
+  for(const phrase of ["📈 {b} al día","📈 {b} up to date","📈 {b} al dia"]){
+    assert.ok(source(file).includes(phrase));
+    assert.notEqual(betaRevision(id,f=>f===file?source(f).replace(phrase,phrase+" · mutante"):source(f)).web,before,phrase);
+  }
+});
+
 test("Gastos84 vigila la ventana elegida y los lectores reales del dinero",()=>{
   const id="inc-0210-03-gastos-periodo",before=betaRevision(id,read).web;
   for(const [file,from,to] of [

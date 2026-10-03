@@ -791,7 +791,7 @@ function App(){
     brokerSyncing.current=true;
     const jobs=[];
     const st=stateRef.current||{};
-    let touched=0; const expiredB=[],soft=[]; let tried=0;
+    const updatedB=[],expiredB=[],soft=[]; let tried=0;
     // Estado de TR: se consulta también en automático (solo status, sin sync) para que el
     // banner de Cartera no se quede mirando un "conectado" viejo tras matar la app.
     const bridge=(typeof trBridge==="function") ? trBridge() : null;
@@ -804,7 +804,7 @@ function App(){
              es el «sale conectado pero no te avisa ni nada» (rechazo tr-reactivo, 8/9): se dice. */
           if(!res||!res.ok||!Array.isArray(res.positions)){ soft.push("Trade Republic"); return; }
           signalTrAlive({manual:opts.manual});
-          applyBrokerPositions(res.positions, "lastTrSync", res.cash); touched++;
+          applyBrokerPositions(res.positions, "lastTrSync", res.cash); updatedB.push("Trade Republic");
         }); };
         if(!(r&&r.connected)){
           /* `connected=false` no es una prueba de caducidad: APK vieja, flag perdido o puente en
@@ -816,36 +816,37 @@ function App(){
         signalTrAlive({manual:opts.manual});
         if(!opts.manual || !bridge.sync) return;   // sync TR solo a demanda
         return syncTr();
-      }).catch(function(){}));
+      }).catch(function(){ if(opts.manual) soft.push("Trade Republic"); }));
     }
     // MyInvestor — Edge Function (funciona en web y en app)
     if(cloud.enabled() && sessionRef.current && (opts.manual || Date.now()-(st.lastMiSync||0) >= BROKER_SYNC_THROTTLE)){
       jobs.push(cloud.myinvestorStatus().then(function(r){
         if(r&&r.status==="expired"){
-          if(opts.inv){ tried++; expiredB.push("MyInvestor"); }
+          if(opts.manual){ tried++; expiredB.push("MyInvestor"); }
           return;
         }
         if(!(r && r.status==="active")) return;
         tried++;
         return cloud.myinvestorSync().then(function(res){
           if(res&&res.authExpired){ expiredB.push("MyInvestor"); return; }
-          if(!res || !res.ok || !Array.isArray(res.positions)){ if(opts.inv) soft.push("MyInvestor"); return; }
-          applyBrokerPositions(res.positions, "lastMiSync"); touched++;
+          if(!res || !res.ok || !Array.isArray(res.positions)){ if(opts.manual) soft.push("MyInvestor"); return; }
+          applyBrokerPositions(res.positions, "lastMiSync"); updatedB.push("MyInvestor");
         });
-      }).catch(function(){ if(opts.inv) soft.push("MyInvestor"); }));
+      }).catch(function(){ if(opts.manual) soft.push("MyInvestor"); }));
     }
     return Promise.all(jobs).catch(function(){}).then(function(){
       brokerSyncing.current=false;
       if(opts.manual){
         if(expiredB.length){
-          avisaSync(opts, tf("v4_sync_broker_exp",{b:expiredB[0]}));
+          expiredB.forEach(function(bank){ avisaSync(opts, tf("v4_sync_broker_exp",{b:bank})); });
           // TR: deja Cartera delante para que el banner se vea (mismo patrón que OB).
-          if(expiredB[0]==="Trade Republic"){
+          if(expiredB.indexOf("Trade Republic")>=0){
             const ci=tabOrderOf(stateRef.current).indexOf("cartera");
             if(ci>=0) setTab(ci);
           }
         }
-        else if(touched) avisaSync(opts, t("v4_sync_brokers_ok"));
+        // Un fallo parcial no borra lo actualizado ni permite dar por al día al otro bróker.
+        updatedB.forEach(function(bank){ avisaSync(opts, tf("v4_sync_broker_ok",{b:bank})); });
         soft.forEach(function(bank){ if(expiredB.indexOf(bank)<0) avisaSync(opts, "⚠ "+tf("bank_syncsoft",{bank:bank})); });
       }
       // Contrato compacto por presupuesto: b=ocupado, n=intentos; syncInv añade msgs=avisos.

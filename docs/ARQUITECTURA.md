@@ -512,3 +512,7 @@ Borrar una regla confirmada elimina su configuración y añade asientos de reser
 
 
 Movilidad88 conserva el histórico y todos los contratos87; catálogo diario añade multas/zona_azul/peajes solo para altas inequívocas. Los lectores financieros siguen los mismos IDs y gastos diarios; no añade sync automático.
+
+### Resultados de brókers (4.26.89, candidata)
+
+El resumen manual conserva por separado éxito, caducidad y fallo temporal de Trade Republic y MyInvestor. Un éxito parcial se presenta aunque el otro falle; una consulta MyInvestor fallida no se interpreta como ausencia de enlace. TR continúa a demanda y MyInvestor conserva el throttle automático. No cambia la aplicación de posiciones ni se despliega servidor.

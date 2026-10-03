@@ -8975,5 +8975,143 @@
       "supabase/functions/categorize/index.ts"
     ],
     "unidades": true
+  },
+  "inc-0310-broker-resultados": {
+    "web": [
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const avisaSync=function(opts,m){",
+        "to": "  const runBankSync=function(opts){"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const BROKER_SYNC_THROTTLE=",
+        "to": "  // Detecta sesión al cargar y escucha cambios"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "SyncReportSheet"
+      },
+      {
+        "file": "src/modules/06-sync-brokers.js",
+        "function": "trBridge"
+      },
+      {
+        "file": "src/modules/06-sync-brokers.js",
+        "function": "trPhoneSaved"
+      },
+      {
+        "file": "src/modules/06-sync-brokers.js",
+        "function": "markTrConnected"
+      },
+      {
+        "file": "src/modules/06-sync-brokers.js",
+        "function": "trSignalStatus"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "cloud",
+        "members": [
+          "enabled",
+          "myinvestorStatus",
+          "myinvestorSync"
+        ]
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "listaAvisosSync"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fromEurAmt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "applyTrCash"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxRateOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "valueDesdeSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "uid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxTableOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/05-dialogs-inv.js",
+        "function": "brokerSuggest"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "useBackClose"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackInitOnce"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackStack"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcIgnorePop"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackInit"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_sync_banks:\"Sincronizar bancos\", v4_sync_banks_done:\"✓ Bancos sincronizados\",",
+        "to": "    ap_bank:\"Banco\", ap_bank_none:\"Sin banco\", ap_date:\"Fecha\","
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_sync_banks:\"Sync banks\", v4_sync_banks_done:\"✓ Banks synced\",",
+        "to": "    ap_bank:\"Bank\", ap_bank_none:\"No bank\", ap_date:\"Date\","
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_sync_banks:\"Sincronitza els bancs\", v4_sync_banks_done:\"✓ Bancs sincronitzats\",",
+        "to": "    ap_bank:\"Banc\", ap_bank_none:\"Sense banc\", ap_date:\"Data\","
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  bank_syncfail:\"No pude leer el saldo ahora. No reconectes: vuelve a intentarlo más tarde\", bank_sync_sin_nube:\"No he podido bajar tus datos de la nube, así que no he mirado el banco (para no repetir movimientos). Prueba en un momento\", bank_none:\"No tienes ningún banco conectado\",",
+        "to": "  bank_expired_re:\"permiso caducado · reconéctate\","
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  bank_syncfail:\"I couldn't read the bank balance now. Do not reconnect; try again later\", bank_sync_sin_nube:\"I couldn't fetch your data from the cloud, so I didn't check the bank (to avoid repeating transactions). Try again in a moment\", bank_none:\"No bank connected\",",
+        "to": "  bank_expired_re:\"consent expired · reconnect\","
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  bank_syncfail:\"No he pogut llegir el saldo ara. No reconnectis; torna-ho a provar més tard\", bank_sync_sin_nube:\"No he pogut baixar les teves dades del núvol, així que no he mirat el banc (per no repetir moviments). Prova-ho d'aquí a un moment\", bank_none:\"No tens cap banc connectat\",",
+        "to": "  bank_expired_re:\"permís caducat · reconnecta't\","
+      }
+    ],
+    "unidades": true
   }
 }

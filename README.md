@@ -102,7 +102,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.88** candidata88 integrada desde beta039d: añade Multas, Zona azul y Peajes sin alterar histórico, BOOK85, categoría elegida86 o liberación de Metas87. Fuente mínima PR108/2205; revisión/CI/publicación propia pendientes. APK80/code52 conservada; no Edge nueva. [Acta](docs/briefs/feature-0310-01-movilidad.md).
+Estado actual: **v4.26.89** candidata local: resultados separados de Trade Republic/MyInvestor y éxitos parciales visibles. Movilidad88 entregada beta88.1 desde ba206; paquete,209notas y22recibos verificados. APK80/code52 y demanda TR conservadas; sin aceptación móvil ni publicación89. [Acta](docs/briefs/inc-0310-broker-resultados.md).
 
 Estado anterior de Categoría: **v4.26.86** candidata: la categoría elegida a mano no se deshace al sincronizar ([acta](docs/briefs/inc-0210-02-categoria-elegida.md)); integrada sobre la beta 85 (`cdfb2f2c`), sin publicar.
 

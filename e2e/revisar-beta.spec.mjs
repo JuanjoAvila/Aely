@@ -15,6 +15,8 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
  * directamente: lo que hay que probar es la REGLA de aprobación, no el menú que lleva a ella. */
 
 async function abrirRevisionBeta(page, lang) {
+  // La producción real no puede pisar los recibos sintéticos de una prueba histórica.
+  await page.route("https://juanjoavila.github.io/Aely/**",route=>route.abort());
   await seedLoggedInDashboard(page, lang?{settings:{autoPrices:false,theme:"green",lang:lang}}:{});
   await page.addInitScript(() => { localStorage.setItem("_mcChannel", "beta"); });
   await page.goto("/");
@@ -22,6 +24,8 @@ async function abrirRevisionBeta(page, lang) {
   await dismissNews(page);
   // NOTAS-BUNDLE: el histórico ya no va en el index; sin esto betaChecklist sale vacío.
   await page.waitForFunction(() => Array.isArray(window.RELEASE_NOTES) && window.RELEASE_NOTES.length > 0, null, { timeout: 10_000 });
+  // Incluso una consulta abortada puede borrar la APK del mock al resolver más tarde.
+  await page.evaluate(async()=>{ if(_mcProdVerCache) await _mcProdVerCache; });
 }
 
 /* Tras promote a prod con nota única, TODAS las entradas llevan `tandas:[]` → panel a 0
@@ -1026,8 +1030,8 @@ for(const lang of ["es","en","ca"]) {
       });
       window._mcProdApk=52;window.__resolveDelivery("4.26.67");
     });
-    // Panel76 se trasladó a82; los recibos de las siete antiguas no entregan las catorce nuevas.
-    const remaining=["feature-0310-01-movilidad","inc-0310-01-meta-regla","inc-0210-02-categoria-elegida","feature-0210-01-gasolina-taxi","inc-0210-03-gastos-periodo","inc-0210-01-plan-cuota","beta-panel-veredictos","inc-2909-01-widget-periodo","inc-2909-03-retirada","inc-3009-nomina-anticipada","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2709-10-perfil","inc-3009-01-cargos","inc-2909-02-inicio-natural"];
+    // Los recibos de las siete antiguas no entregan las tandas posteriores.
+    const remaining=["inc-0310-broker-resultados","feature-0310-01-movilidad","inc-0310-01-meta-regla","inc-0210-02-categoria-elegida","feature-0210-01-gasolina-taxi","inc-0210-03-gastos-periodo","inc-0210-01-plan-cuota","beta-panel-veredictos","inc-2909-01-widget-periodo","inc-2909-03-retirada","inc-3009-nomina-anticipada","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2709-10-perfil","inc-3009-01-cargos","inc-2909-02-inicio-natural"];
     await expect(panel.locator(".beta-tanda")).toHaveCount(remaining.length);
     expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,"4.26.67",52).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(remaining.slice().sort());
     for(const title of ["Borrar una regla libera su reserva","La categoría elegida no se deshace","Gastos y categorías del mismo periodo","Las cuotas cobradas dejan de estar pendientes","Las comprobaciones conservan su resultado","Widget: mes o Mi ciclo","Retiradas y presupuesto","Nómina sin adelantar el cobro","Botón + en Cyberpunk","Botón Preguntar","Perfil sin casillas gigantes","Recibos pagados y vencidos","Presupuesto mensual de Inicio"])
@@ -1244,7 +1248,7 @@ for(const lang of ["es","en","ca"]) {
       window.__mixedRoot=ReactDOM.createRoot(host);window.__mixedRoot.render(React.createElement(BetaReviewPanel,{onClose:function(){},showToast:function(){}}));
       return ids;
     },lang);
-    expect(expected).toEqual(["feature-0310-01-movilidad","inc-0310-01-meta-regla","inc-0210-02-categoria-elegida","feature-0210-01-gasolina-taxi","beta-panel-veredictos","fin05-pago-cerrada","fin05-widget-reentrada","inc-0210-01-plan-cuota","inc-0210-03-gastos-periodo","inc-2709-01-arranque-red","inc-2709-10-perfil","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2809-02-ayuda-ciclo","inc-2909-01-widget-periodo","inc-2909-02-inicio-natural","inc-2909-03-retirada","inc-3009-01-cargos","inc-3009-nomina-anticipada","tr-descripcion-clasificacion","widget-app-cerrada","widget-banco"].sort());
+    expect(expected).toEqual(["inc-0310-broker-resultados","feature-0310-01-movilidad","inc-0310-01-meta-regla","inc-0210-02-categoria-elegida","feature-0210-01-gasolina-taxi","beta-panel-veredictos","fin05-pago-cerrada","fin05-widget-reentrada","inc-0210-01-plan-cuota","inc-0210-03-gastos-periodo","inc-2709-01-arranque-red","inc-2709-10-perfil","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2809-02-ayuda-ciclo","inc-2909-01-widget-periodo","inc-2909-02-inicio-natural","inc-2909-03-retirada","inc-3009-01-cargos","inc-3009-nomina-anticipada","tr-descripcion-clasificacion","widget-app-cerrada","widget-banco"].sort());
     const panel=page.locator("#e2e-mixed .beta-review"),row=panel.locator(".beta-tanda").filter({has:page.getByText("1. A",{exact:true})});
     await expect(panel.locator(".beta-tanda")).toHaveCount(expected.length+1);await expect(row).toHaveCount(1);
     await expect(row.locator(".beta-item")).toHaveCount(3);await expect(row.locator(".beta-tanda-n")).toHaveText("0/3");

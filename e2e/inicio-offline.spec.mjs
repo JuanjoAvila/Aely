@@ -161,6 +161,8 @@ test.describe("ronda cacheada del panel de beta",()=>{
     const notes=[{v:base,d:"e2e",t:{es:"Offline",en:"Offline",ca:"Offline"},items:{es:[],en:[],ca:[]},tandas:[{id:"inc-2709-01-arranque-red",t:title,items:{es:[title],en:[title],ca:[title]},...revision}]}];
     const json=JSON.stringify(notes),sha=crypto.createHash("sha256").update(json).digest("hex"),html=fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8");
     let offline=false,compilation=version,aborts=0;
+    // El escenario offline conserva su ronda; una entrega real ajena no puede retirarla.
+    await page.route("https://juanjoavila.github.io/Aely/**",route=>route.abort());
     await seedLoggedInDashboard(page,{__seedOnce:true,__seenVersion:base,expenses:[{id:"e1",date:"2026-09-14",amount:12.5,merchant:"Cafe",category:"bares",source:"manual"}]});
     await page.addInitScript(()=>{localStorage.setItem("_mcChannel","beta");localStorage.setItem("_seenVersion","9.9.1");});
     await page.route("**/",route=>route.fulfill({contentType:"text/html",body:html.replace('APP_VERSION: "dev"','APP_VERSION: "'+compilation+'"').replace(/var _rnSha="[0-9a-f]{64}";/,'var _rnSha="'+sha+'";')}));
