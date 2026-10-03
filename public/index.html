@@ -2698,6 +2698,9 @@ const MERCHANT_OVERRIDES = {};
 // Overrides PERSONALES del usuario (comercio→categoría), que aprende al recategorizar a mano.
 // Se puebla desde state.catOverrides al cargar. Tiene prioridad sobre las keywords.
 let USER_OVERRIDES = {};
+// Reglas de equivalencia que él ha enseñado: comercio+banco+tarjeta → {cat, at}. Se pueblan
+// desde state.catRules; las usa solo el pull (ver `keepCategoryChoices`), no las keywords.
+let USER_CAT_RULES = {};
 function catKey(merchant){ return (merchant||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim(); }
 /* EL VOCABULARIO CERRADO DE LAS MÉTRICAS DE USO (ver `cloud.logUso`, más abajo).
    Todo lo que se puede medir está en esta lista y en ningún otro sitio. Es a propósito: con una
@@ -3477,8 +3480,12 @@ const cloud = (function(){
       // Sacar una cuota de «Deudas» a mano le quita también la marca en la nube; si no, el
       // siguiente pull le devolvería el `debtId` (4.21.0).
       if(e&&e.debtId&&cat!=="deudas") upd.source=expenseSourceForCloud(Object.assign({},e,{debtId:undefined}));
-      const {error}=await expenseCloudEq(sb.from('expenses').update(upd), session.user.id, e);
+      // Devuelve cuántas filas cambió: un UPDATE por id que no casa no da error, y sin ese número
+      // la app daba por subida una categoría que la tabla nunca recibió (2026-10-02).
+      const q=expenseCloudEq(sb.from('expenses').update(upd), session.user.id, e);
+      const {data,error}=await (typeof q.select==="function" ? q.select("id") : q);
       if(error) throw error;
+      return Array.isArray(data) ? data.length : 0;
     },
     // Un UPDATE sin filas no confirma una retirada: FIN-04 permite UUID locales divergentes.
     // No buscar gemelos por parecido ni tocar importe, origen o saldo para salvar esa identidad.
@@ -4658,6 +4665,111 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
   });
   const list=order.map(function(k){ return byKey[k]; });
   return { list:list, changed:changed, nuevos:nuevos };
+}
+
+/* LA CATEGORÍA QUE ÉL ELIGIÓ NO LA DESHACE UN PULL (2026-10-02).
+   Corregía a Restaurantes un comedor cuyo nombre lleva el de una aseguradora y cada día volvía a
+   Recibos, por dos caminos: (1) la nube seguía con la categoría vieja —el UPDATE va por id y puede
+   no tocar ninguna fila sin dar error— y `refreshExpenseFromCloud` pisa la de toda fila no manual;
+   (2) el cargo del día siguiente lo categoriza el servidor por palabra clave, sin conocer lo
+   aprendido, y `resolveCategory` acepta lo que venga.
+   No se arregla con una regla de aseguradoras: el alias es ambiguo y un seguro de verdad tiene
+   que seguir en Recibos. Se respeta SU decisión, y solo donde la tomó:
+     · `catStale` (solo local) guarda las categorías que la nube aún puede devolver mientras la
+       subida no esté CONFIRMADA. Sin confirmar, manda lo local y se reintenta con la identidad
+       de la fila de la nube. Confirmada (`catAckAt`), cualquier lectura empezada después es la
+       verdad, aunque diga la categoría vieja: es que la cambió en otro móvil.
+     · una regla por comercio exacto + banco + con/sin tarjeta (`catRules`): un recibo domiciliado
+       con el mismo nombre en otro banco no es el mismo sitio. La fila que este móvil ve por
+       primera vez, con fecha POSTERIOR al instante en que lo enseñó, nace con lo aprendido.
+       Lo anterior no se toca, tampoco en un móvil recién instalado ni al corregir un gasto
+       antiguo; una fecha sin hora del mismo día cae antes y se queda como venga.
+   Va ANTES de `mergeExpensesFromCloud` y solo prepara sus entradas: devuelve las mismas
+   referencias si no hay nada que proteger, para no reescribir el histórico en cada pull. */
+function catRuleKey(e){ return catKey(e&&e.merchant)+"|"+((e&&e.ent)||"")+"|"+((e&&e.noCard)?"0":"1"); }
+function catStaleAfter(e, newCat){
+  if(!e || e.category===newCat || isManualExpenseSource(e.source)) return e&&e.catStale;
+  const prev=(e.catStale||[]).filter(function(c){ return c!==newCat; });
+  return prev.indexOf(e.category)<0 ? prev.concat([e.category]) : prev;
+}
+// La nube confirmó que escribió `cat` en esa fila: desde `at`, lo que lea de ella es verdad.
+function ackCategoryWrite(list, row, cat, at){
+  const k=keyOfExpense(row);
+  let out=list;
+  (list||[]).forEach(function(e,i){
+    if(!e.catStale || e.category!==cat || e.catAckAt!=null || keyOfExpense(e)!==k) return;
+    if(out===list) out=list.slice();
+    out[i]=Object.assign({},e,{catAckAt:at});
+  });
+  return out;
+}
+function keepCategoryChoices(prevList, incoming, readStartedAt){
+  const out={ prev:prevList, incoming:incoming, recat:[] };
+  const stale={}; let hayStale=false;
+  (prevList||[]).forEach(function(e,i){ if(e && e.catStale){ stale[keyOfExpense(e)]=i; hayStale=true; } });
+  let minAt=Infinity;
+  for(const k in USER_CAT_RULES){ const at=USER_CAT_RULES[k]&&USER_CAT_RULES[k].at; if(Number.isFinite(at) && at<minAt) minAt=at; }
+  if(!hayStale && minAt===Infinity) return out;
+  // `expenseFromRow` emite siempre ISO en UTC: comparar texto descarta el histórico sin parsear.
+  const minIso=minAt===Infinity ? "" : new Date(minAt).toISOString();
+  let prevKeys=null;
+  const esNueva=function(k){
+    if(!prevKeys){ prevKeys={}; (prevList||[]).forEach(function(e){ prevKeys[keyOfExpense(e)]=1; }); }
+    return !prevKeys[k];
+  };
+  const swap=function(i, row){ if(out.incoming===incoming) out.incoming=incoming.slice(); out.incoming[i]=row; };
+  const soltar=function(at, loc){
+    if(out.prev===prevList) out.prev=prevList.slice();
+    const libre=Object.assign({},loc); delete libre.catStale; delete libre.catAckAt;
+    out.prev[at]=libre;
+  };
+  (incoming||[]).forEach(function(inc, i){
+    if(hayStale){
+      const at=stale[keyOfExpense(inc)];
+      if(at!=null){
+        const loc=out.prev[at];
+        if(!loc.catStale) return;   // misma clave repetida en el pull: ya se resolvió arriba
+        if(loc.catAckAt!=null){
+          // Lectura empezada antes de la confirmación (o sin hora): puede ser una foto vieja.
+          if(readStartedAt!=null && loc.catAckAt<readStartedAt) soltar(at, loc);
+          else if(inc.category!==loc.category) swap(i, Object.assign({},inc,{category:loc.category}));
+        }else if(inc.category!==loc.category && loc.catStale.indexOf(inc.category)>=0){
+          swap(i, Object.assign({},inc,{category:loc.category}));
+          out.recat.push({ expense:inc, cat:loc.category });
+        }else{
+          // La nube ya dice lo mismo, o decidió otra cosa en otro móvil: deja de proteger.
+          soltar(at, loc);
+        }
+        return;
+      }
+    }
+    if(minAt===Infinity || !CAT[inc.category] || isManualExpenseSource(inc.source)) return;
+    if(!(inc.date>minIso)) return;
+    // Fecha ilegible = no se sabe si es posterior: no se toca (`dateMs` la daría por hoy).
+    const ms=Date.parse(inc.date);
+    const rule=USER_CAT_RULES[catRuleKey(inc)];
+    if(!rule || rule.cat===inc.category || !CAT[rule.cat] || !(ms>rule.at)) return;
+    if(!esNueva(keyOfExpense(inc))) return;
+    swap(i, Object.assign({},inc,{category:rule.cat, catStale:[inc.category]}));
+    out.recat.push({ expense:inc, cat:rule.cat });
+  });
+  return out;
+}
+/* Lo aprendido ANTES de existir las reglas no trae ni fecha ni contexto. No se inventan: se
+   deducen de las filas que él ya tiene corregidas (mismo comercio, categoría = la aprendida) y
+   valen desde hoy. Sin ninguna fila que lo pruebe no hay regla, y la próxima corrección la crea.
+   Una vez, y solo con gastos cargados: llegan en un segundo viaje (ver `fixMovInvasion`). */
+function seedCatRules(s){
+  if(!s || s._catRulesSeed || !Array.isArray(s.expenses) || !s.expenses.length) return s;
+  const ov=s.catOverrides||{}, rules=Object.assign({}, s.catRules||{}), ahora=Date.now();
+  if(Object.keys(ov).length){
+    s.expenses.forEach(function(e){
+      if(!e || isManualExpenseSource(e.source)) return;
+      const cat=ov[catKey(e.merchant)], k=catRuleKey(e);
+      if(cat && cat===e.category && CAT[cat] && !rules[k]) rules[k]={ cat:cat, at:ahora };
+    });
+  }
+  return Object.assign({}, s, { catRules:rules, _catRulesSeed:true });
 }
 
 /* ¿El estado bajado de la nube tiene forma válida? Evita machacar lo local con algo corrupto/parcial.
@@ -6604,7 +6716,7 @@ function buildEmpty(){
   return {
     fx: null, budget: 0, monthStartNet: 0, history: [],
     accounts: [], investments: [], assets: [], debts: [], fixed: [], flows: [], oneoffs: [], aportaciones: [],
-    expenses: [], goals: [], shared: [], catOverrides: {}, obAccounts: [], obLabels: {}, verNotes: [],
+    expenses: [], goals: [], shared: [], catOverrides: {}, catRules: {}, obAccounts: [], obLabels: {}, verNotes: [],
     tourSeen: false,   // usuario nuevo → tour de bienvenida tras el onboarding
     setupHint: true,   // tarjeta «primeros pasos» en el Resumen hasta que la cierren
     settings: { autoPrices:false },
@@ -6830,6 +6942,10 @@ function seedFlows(s){
   if(!s.catOverrides) s.catOverrides = {};
   if(!s.categoryBudgets) s.categoryBudgets = {};   // límites €/mes por categoría (§5)
   USER_OVERRIDES = Object.assign({}, s.catOverrides);    // overrides personales (comercio→cat) activos
+  // Equivalencias que él ha enseñado; las anteriores a las reglas se deducen una vez de lo ya
+  // corregido (ver `seedCatRules`, 00-core.js).
+  s=seedCatRules(s);
+  USER_CAT_RULES = Object.assign({}, s.catRules||{});
   /* «energia» YA NO EXISTE: se partió en agua / luz / gas (2026-09-12, petición suya — el recibo
      del agua salía con un rayo al lado). Una fila local con esa categoría se quedaría sin entrada
      en `CAT` y se pintaría en blanco, así que se remapea aquí, UNA vez.
@@ -9166,6 +9282,17 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     set(function(s){
       const ov=Object.assign({}, s.catOverrides||{}); if(learnable) ov[mkey]=newCat;
       USER_OVERRIDES=Object.assign({},ov);
+      // La equivalencia vale desde AHORA, no desde la fecha del gasto corregido: corregir uno
+      // del mes pasado no autoriza a recategorizar lo que baje con fecha de ayer. Y solo en su
+      // mismo banco y forma de pago. Repetir la elección no mueve el instante.
+      let rules=s.catRules||{};
+      if(learnable && CAT[newCat] && !isManualExpenseSource(ex.source)){
+        const rk=catRuleKey(ex), had=rules[rk];
+        if(!had || had.cat!==newCat || !Number.isFinite(had.at)){
+          rules=Object.assign({},rules); rules[rk]={ cat:newCat, at:Date.now() };
+        }
+      }
+      USER_CAT_RULES=Object.assign({},rules);
       // El cashback/round-up ENTRA al efectivo y días después SALE hacia el fondo: dos apuntes del
       // banco para un solo movimiento de dinero. Al marcar la salida como Inversión, su entrada
       // gemela va con ella — si no, sigue contando como ingreso del mes (2026-08-04, queja suya:
@@ -9183,6 +9310,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         if(!isTarget && !isTwin && !isSibling) return e;
         const wasInv=e.category==="inversion", willBeInv=newCat==="inversion";
         const upd=Object.assign({},e,{category:newCat});
+        // Lo que la nube aún puede devolver hasta que se entere (ver `keepCategoryChoices`).
+        const stale=catStaleAfter(e,newCat);
+        if(stale && stale.length) upd.catStale=stale; else delete upd.catStale;
+        delete upd.catAckAt;   // decisión nueva: aún nadie la ha confirmado
         // Sacarla de «Deudas» es decir «esto no es la cuota»: pierde la marca (4.21.0).
         if(isTarget && upd.debtId && newCat!=="deudas") delete upd.debtId;
         // El gemelo solo cambia de categoría: el dinero ya lo compra su pareja, comprarlo dos veces
@@ -9200,10 +9331,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       // Durable en la tabla: sin esto el siguiente pull —que reemplaza los gastos de la nube con
       // lo que hay en `expenses`— devolvía la categoría vieja (2026-08-04).
       if(cloud.enabled()){
-        cloud.setExpenseCat(ex,newCat).catch(function(){});
+        cloud.setExpenseCat(ex,newCat).then(function(n){
+          // Solo una escritura confirmada deja de protegerse (cero filas no es un error en Supabase).
+          if(n>0) set(function(p){ const l=ackCategoryWrite(p.expenses, ex, newCat, Date.now()); return l===p.expenses?p:Object.assign({},p,{expenses:l}); });
+        }).catch(function(){});
         if(twinId){ const tw=s.expenses.find(function(e){ return e.id===twinId; }); if(tw) cloud.setExpenseCat(tw,newCat).catch(function(){}); }
       }
-      const fuera={expenses:exps,catOverrides:ov};
+      const fuera={expenses:exps,catOverrides:ov,catRules:rules};
       // «Esto no es la cuota»: lápida para que `marcarCuotasDeDeuda` no la vuelva a meter (4.21.0).
       if((ex.debtId||ex.category==="deudas") && newCat!=="deudas"){
         const k=keyOfExpense(ex), prevNo=s.cuotaNo||[];
@@ -19680,7 +19814,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="09a410789a241f17960cc5502abe2cd90ba53d7a4b28ef58f23761913234ff5f";
+var _rnSha="8f5df9652ccad057db10a0a269a9f6e3a6af92a03c9228fd9a1e4c27cc513352";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -23802,7 +23936,8 @@ function App(){
       set(function(prev){
         // Refrescar una sola vez conserva el guardado partido: no reescribir el histórico
         // por página ni cuando las filas recibidas son iguales a las que ya había.
-        const merged=mergeExpensesFromCloud(prev.expenses, incoming, readStartedAt);
+        const kept=keepCategoryChoices(prev.expenses, incoming, readStartedAt);
+        const merged=mergeExpensesFromCloud(kept.prev, kept.incoming, readStartedAt);
         const next=merged.list;
         const igual=!merged.changed && next.length===(prev.expenses||[]).length
           && next.every(function(e,i){ return e===(prev.expenses||[])[i]; });
@@ -23810,9 +23945,16 @@ function App(){
         const base=Object.assign({},prev,{expenses: igual?prev.expenses:next, lastSync:Date.now()});
         const rec=reconcileObDupes(fixMovInvasion(base));
         // reconcileObDupes: solo recat (cashback); nunca DELETE automático por similitud.
-        if(rec.recat.length){
+        // kept.recat: su categoría elegida, con la identidad de la fila de la NUBE (el id local
+        // puede ser otro y el UPDATE no tocaría nada).
+        if(rec.recat.length || kept.recat.length){
           setTimeout(function(){
             rec.recat.forEach(function(r){ cloud.setExpenseCat(r.expense, r.cat).catch(function(){}); });
+            kept.recat.forEach(function(r){
+              cloud.setExpenseCat(r.expense, r.cat).then(function(n){
+                if(n>0) set(function(p){ const l=ackCategoryWrite(p.expenses, r.expense, r.cat, Date.now()); return l===p.expenses?p:Object.assign({},p,{expenses:l}); });
+              }).catch(function(){});
+            });
           },0);
         }
         return rec.state;

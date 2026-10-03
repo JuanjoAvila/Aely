@@ -3524,7 +3524,7 @@ function buildEmpty(){
   return {
     fx: null, budget: 0, monthStartNet: 0, history: [],
     accounts: [], investments: [], assets: [], debts: [], fixed: [], flows: [], oneoffs: [], aportaciones: [],
-    expenses: [], goals: [], shared: [], catOverrides: {}, obAccounts: [], obLabels: {}, verNotes: [],
+    expenses: [], goals: [], shared: [], catOverrides: {}, catRules: {}, obAccounts: [], obLabels: {}, verNotes: [],
     tourSeen: false,   // usuario nuevo → tour de bienvenida tras el onboarding
     setupHint: true,   // tarjeta «primeros pasos» en el Resumen hasta que la cierren
     settings: { autoPrices:false },
@@ -3750,6 +3750,10 @@ function seedFlows(s){
   if(!s.catOverrides) s.catOverrides = {};
   if(!s.categoryBudgets) s.categoryBudgets = {};   // límites €/mes por categoría (§5)
   USER_OVERRIDES = Object.assign({}, s.catOverrides);    // overrides personales (comercio→cat) activos
+  // Equivalencias que él ha enseñado; las anteriores a las reglas se deducen una vez de lo ya
+  // corregido (ver `seedCatRules`, 00-core.js).
+  s=seedCatRules(s);
+  USER_CAT_RULES = Object.assign({}, s.catRules||{});
   /* «energia» YA NO EXISTE: se partió en agua / luz / gas (2026-09-12, petición suya — el recibo
      del agua salía con un rayo al lado). Una fila local con esa categoría se quedaría sin entrada
      en `CAT` y se pintaría en blanco, así que se remapea aquí, UNA vez.

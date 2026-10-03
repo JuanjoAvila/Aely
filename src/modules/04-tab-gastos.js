@@ -310,6 +310,17 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     set(function(s){
       const ov=Object.assign({}, s.catOverrides||{}); if(learnable) ov[mkey]=newCat;
       USER_OVERRIDES=Object.assign({},ov);
+      // La equivalencia vale desde AHORA, no desde la fecha del gasto corregido: corregir uno
+      // del mes pasado no autoriza a recategorizar lo que baje con fecha de ayer. Y solo en su
+      // mismo banco y forma de pago. Repetir la elección no mueve el instante.
+      let rules=s.catRules||{};
+      if(learnable && CAT[newCat] && !isManualExpenseSource(ex.source)){
+        const rk=catRuleKey(ex), had=rules[rk];
+        if(!had || had.cat!==newCat || !Number.isFinite(had.at)){
+          rules=Object.assign({},rules); rules[rk]={ cat:newCat, at:Date.now() };
+        }
+      }
+      USER_CAT_RULES=Object.assign({},rules);
       // El cashback/round-up ENTRA al efectivo y días después SALE hacia el fondo: dos apuntes del
       // banco para un solo movimiento de dinero. Al marcar la salida como Inversión, su entrada
       // gemela va con ella — si no, sigue contando como ingreso del mes (2026-08-04, queja suya:
@@ -327,6 +338,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         if(!isTarget && !isTwin && !isSibling) return e;
         const wasInv=e.category==="inversion", willBeInv=newCat==="inversion";
         const upd=Object.assign({},e,{category:newCat});
+        // Lo que la nube aún puede devolver hasta que se entere (ver `keepCategoryChoices`).
+        const stale=catStaleAfter(e,newCat);
+        if(stale && stale.length) upd.catStale=stale; else delete upd.catStale;
+        delete upd.catAckAt;   // decisión nueva: aún nadie la ha confirmado
         // Sacarla de «Deudas» es decir «esto no es la cuota»: pierde la marca (4.21.0).
         if(isTarget && upd.debtId && newCat!=="deudas") delete upd.debtId;
         // El gemelo solo cambia de categoría: el dinero ya lo compra su pareja, comprarlo dos veces
@@ -344,10 +359,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       // Durable en la tabla: sin esto el siguiente pull —que reemplaza los gastos de la nube con
       // lo que hay en `expenses`— devolvía la categoría vieja (2026-08-04).
       if(cloud.enabled()){
-        cloud.setExpenseCat(ex,newCat).catch(function(){});
+        cloud.setExpenseCat(ex,newCat).then(function(n){
+          // Solo una escritura confirmada deja de protegerse (cero filas no es un error en Supabase).
+          if(n>0) set(function(p){ const l=ackCategoryWrite(p.expenses, ex, newCat, Date.now()); return l===p.expenses?p:Object.assign({},p,{expenses:l}); });
+        }).catch(function(){});
         if(twinId){ const tw=s.expenses.find(function(e){ return e.id===twinId; }); if(tw) cloud.setExpenseCat(tw,newCat).catch(function(){}); }
       }
-      const fuera={expenses:exps,catOverrides:ov};
+      const fuera={expenses:exps,catOverrides:ov,catRules:rules};
       // «Esto no es la cuota»: lápida para que `marcarCuotasDeDeuda` no la vuelva a meter (4.21.0).
       if((ex.debtId||ex.category==="deudas") && newCat!=="deudas"){
         const k=keyOfExpense(ex), prevNo=s.cuotaNo||[];

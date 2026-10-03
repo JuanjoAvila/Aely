@@ -1,6 +1,8 @@
 # Roadmap — Aely
 
-> Estado a 2026-10-01 · **v4.26.82** candidata: decisiones y progreso por huella, alcance por unidades y equivalencias históricas auditadas. Base beta80/source955765a9; APK80/code52 conservada. Revisión, CI exacta y entrega pendientes. [Acta](briefs/ops-0110-validaciones-persistentes.md).
+> Estado a 2026-10-02 · **v4.26.86** candidata: la categoría elegida a mano sobrevive al pull y al reinicio, y los pagos siguientes del mismo comercio la heredan. Solo cliente; sobre Validaciones82/3467bbd4. Revisión, DOM y CI pendientes. [Acta](briefs/inc-0210-02-categoria-elegida.md).
+
+> Snapshot anterior · **v4.26.82** candidata: decisiones y progreso por huella, alcance por unidades y equivalencias históricas auditadas. Base beta80/source955765a9; APK80/code52 conservada. Revisión, CI exacta y entrega pendientes. [Acta](briefs/ops-0110-validaciones-persistentes.md).
 
 > Snapshot anterior de preparación · **v4.26.80** candidata sobre79/d45fb8b1 con guiones intactos. Prebuild52 verificado, asset beta real descargado/cotejado y manifiesto52 local. CI exacta, build final con52 y entrega80 pendientes. [Acta](briefs/inc-2909-01-widget.md).
 
@@ -245,7 +247,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.82** candidata sobre beta80/source955765a9; sin publicar. |
+| Web / OTA (`VERSION`) | **4.26.86** candidata sobre Validaciones82/3467bbd4; sin publicar. |
 | APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base80; esta candidata81 no genera APK. Cotejo servido en gate de entrega. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a955; esta candidata81 no reemplaza binario ni manifiesto. |

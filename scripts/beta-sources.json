@@ -1248,6 +1248,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "budgetStatsFromAmounts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keepCategoryChoices"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ackCategoryWrite"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catRuleKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_CAT_RULES"
       }
     ],
     "native": [
@@ -1835,6 +1855,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "budgetStatsFromAmounts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keepCategoryChoices"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ackCategoryWrite"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catRuleKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_CAT_RULES"
       }
     ],
     "native": [
@@ -3459,6 +3499,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "budgetStatsFromAmounts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keepCategoryChoices"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ackCategoryWrite"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catRuleKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_CAT_RULES"
       }
     ],
     "native": [
@@ -5454,6 +5514,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reconcileObDupes"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "seedCatRules"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keepCategoryChoices"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ackCategoryWrite"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catRuleKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_CAT_RULES"
       }
     ],
     "unidades": true
@@ -5970,6 +6050,34 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keepCategoryChoices"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ackCategoryWrite"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catRuleKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_CAT_RULES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CATEGORIES"
       }
     ],
     "unidades": true
@@ -6542,6 +6650,26 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "budgetStatsFromAmounts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keepCategoryChoices"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ackCategoryWrite"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catRuleKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_CAT_RULES"
       }
     ],
     "native": [
@@ -6550,6 +6678,250 @@
       "android/app/src/main/java/com/micartera/app/TrExpenseListener.java",
       "android/app/src/main/java/com/micartera/app/MiCarteraWidget.java",
       "android/app/src/main/java/com/micartera/app/WidgetPeriod.java"
+    ],
+    "unidades": true
+  },
+  "inc-0210-02-categoria-elegida": {
+    "web": [
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_CAT_RULES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catRuleKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catStaleAfter"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ackCategoryWrite"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keepCategoryChoices"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "seedCatRules"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "cloud",
+        "members": [
+          "enabled",
+          "setExpenseCat"
+        ]
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "  const setCat=function(ex,newCat){",
+        "to": "  const setCuota=function(ex,debtId){"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "        const kept=keepCategoryChoices(prev.expenses, incoming, readStartedAt);",
+        "to": "        return rec.state;"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  // Equivalencias que él ha enseñado; las anteriores a las reglas se deducen una vez de lo ya",
+        "to": "  /* «energia» YA NO EXISTE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseSourceForCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudEq"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "canRecognizeWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "findCashbackTwin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "applyInvestBuy"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reverseInvestBuy"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catName"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeExpensesFromCloud"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileObDupes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "fixMovInvasion"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "deudaSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalRowMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "esGemeloCashback"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fromEurAmt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "refreshExpenseFromCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "dateMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxRateOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "_pdMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxTableOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INGRESO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INVERSION_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TRASPASO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DEUDA_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MERCHANT_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_PALABRA"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_INICIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_pdCache"
+      }
     ],
     "unidades": true
   }
