@@ -54,6 +54,9 @@ for(const lang of ["es","en","ca"]){
 
     await page.locator(".v4-periods").getByRole("button",{name:w.month,exact:true}).click();
     await check(page,{super:25},25);
+    await page.locator('.v4-gastos-cats-h').click();
+    await expect(page.locator('.v4-gastos-cats-t')).toHaveText({es:"1 categoría · Este mes",en:"1 category · This month",ca:"1 categoria · Aquest mes"}[lang]);
+    await page.locator('.v4-gastos-cats-h').click();
     await expect(rows(page)).toHaveCount(2);
     await expect(page.locator('.v4-gastos-summary-left')).toContainText("975,00");
     await expect(page.locator('.v4-gastos-cat[data-cat="super"] [role="progressbar"]')).toHaveAttribute("aria-valuenow","25");

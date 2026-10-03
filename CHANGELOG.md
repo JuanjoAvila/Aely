@@ -1,3 +1,12 @@
+## [4.26.85] — 2026-10-02 · Gasolina y Taxi independientes
+
+- Revisión3/10: una cuota vinculada manualmente o por notificación solo deja de estar pendiente antes del vencimiento con un BOOK único de esa identidad; el origen OB conserva su prueba bancaria. Caso rojo: proyección800 en lugar de740 sin pago incluido. Se conserva principal/saldo y se añaden negativos/positivos de motor y DOM es/en/ca. Gastos recupera el singular y retira cuatro claves reemplazadas tras comprobar todos sus usos.
+
+- Integración conjunta con Plan83 y Gastos84, conservando las tres notas y alcances actuales por unión de lectores reales. Referencias históricas intactas; TR cambia con el clasificador nuevo y no hereda aprobación. [Acta conjunta y gates](docs/briefs/inc-0210-integracion-plan-gastos-gasolina.md).
+
+- FEATURE-0210-01: catálogo, iconos e idiomas separan Gasolina/Taxi de Transporte; selector, filtros y límites usan los mismos IDs. autoCategory conserva sus reglas históricas: la división ocurre solo en altas nuevas y respeta la elección personal, incluso Otros. Sin migración ni reparto automático de límites anteriores.
+- Carburante explícito y MCC de tarjeta5541/5542 identifican Gasolina;4121 identifica Taxi. Un nombre energético ambiguo no convierte Repsol Luz/Gas ni Uber Eats en combustible/taxi. Espejo y catálogo Edge preparados solo en fuente, sin despliegue; selector y presupuesto web funcionan sin él. [Acta y pruebas](docs/briefs/feature-0210-01-gasolina-taxi.md).
+
 ## [4.26.84] — 2026-10-02 · Gastos comparte el periodo seleccionado
 
 - INC-0210-03: lista, cabecera y categorías usan una misma ventana explícita; el motor admite esa ventana sin duplicar reglas de dinero. Mes natural y Mi ciclo conservan sus magnitudes y filtros exploratorios. Los límites mensuales actuales no se presentan como presupuesto histórico o acumulado: se indica ausencia de registro, sin barras engañosas.

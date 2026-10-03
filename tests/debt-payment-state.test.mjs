@@ -76,4 +76,17 @@ test("vínculo explícito con otro banco conserva el banco real",()=>{
   const p=c.planChargesMonth(state({expenses:[{...expense,ent:"trade_republic"}]}),m,y,2);
   assert.equal(p.pendingBillsTotal,0);assert.equal(p.paidBills[0].paidBank,"trade_republic");
 });
+for(const source of ["manual","manual:sabadell","macrodroid",undefined]){
+  test("sin BOOK, un cargo "+String(source)+" no acredita saldo bancario",()=>{
+    const s=state({expenses:[{...expense,source}]});
+    assert.equal(pending(s).length,1);assert.equal(c.bankPendingEvents(s,"sabadell",y,m,2).length,1);
+    assert.equal(c.minWalk(800,c.bankPendingEvents(s,"sabadell",y,m,2)).end,740);
+    assert.equal(c.monthNetForAccount(s,"sabadell",y,m,2),0);
+  });
+  test("BOOK único acredita un cargo "+String(source)+" sin otro débito",()=>{
+    const s=state({expenses:[{...expense,source}],bankTx:[{...expense,status:"BOOK"}]});
+    assert.equal(pending(s).length,0);assert.equal(c.bankPendingEvents(s,"sabadell",y,m,2).length,0);
+    assert.equal(c.minWalk(800,c.bankPendingEvents(s,"sabadell",y,m,2)).end,800);
+  });
+}
 console.log("debt-payment-state: "+total+" PASS");

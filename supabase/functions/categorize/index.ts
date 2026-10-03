@@ -17,7 +17,7 @@ import { rateLimit } from "../_shared/ratelimit.ts";
 // `categories` aborta si falta alguna.
 const ALLOWED = [
   "super", "pan", "bares", "cine", "padel", "heladeria", "ia", "ocio", "gaming", "viajes",
-  "transporte", "parking", "agua", "luz", "gas", "tasas", "recibos", "compras", "educacion",
+  "transporte", "gasolina", "taxi", "parking", "agua", "luz", "gas", "tasas", "recibos", "compras", "educacion",
   "salud", "pelu", "mascotas", "hogar", "regalos", "joyeria", "otros",
 ] as const;
 
@@ -25,7 +25,9 @@ const HINTS =
   "super=supermercado; pan=panadería; bares=restaurantes y comida a domicilio; " +
   "cine=cines y entradas; padel=pádel; heladeria=helados; " +
   "ia=herramientas de inteligencia artificial (ChatGPT, Claude, Cursor); ocio=streaming, gym, ocio (Netflix, Movistar Plus, Spotify); gaming=videojuegos (Steam); " +
-  "viajes=hoteles, vuelos, cruceros; transporte=metro, taxi, gasolina; parking=aparcamiento; " +
+  "viajes=hoteles, vuelos, cruceros; transporte=metro, tren, bus, peajes y recarga eléctrica; " +
+  "gasolina=carburante y gasolineras; taxi=taxi y viajes con conductor, no comida a domicilio; parking=aparcamiento; " +
+  "Una marca como Repsol sola no prueba carburante: conserva transporte si no hay indicio de gasolina, luz o gas; " +
   /* Tres categorías donde antes había una. A la IA se le dice explícitamente qué hacer con las
      comercializadoras que venden luz Y gas, porque si no se inventa una de las dos: van a `luz`,
      igual que en las palabras clave del cliente y del servidor. */

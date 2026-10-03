@@ -1,5 +1,7 @@
 # Backlog operativo — Aely
 
+FEATURE-0210-01 (2/10): petición humana de distinguir carburante/taxi del transporte general; Taxi no existía en el catálogo. Propietario: Codex, rama aislada codex/feature-0210-01-gasolina-taxi, candidata85 sobre3467. Catálogo y clasificación solo de altas nuevas, histórico/límites previos intactos, DOM sintético es/en/ca y guardianes registrados. Sin publicar: revisión/CI/beta y veredicto móvil pendientes; Edge fuente preparada sin deploy. [Acta](briefs/feature-0210-01-gasolina-taxi.md).
+
 INC-0210-01 · candidata83 separable sobre3467bbd4: la cuota contabilizada y vinculada antes del vencimiento deja de figurar pendiente en Plan/Inicio y eventos futuros, sin descontarla otra vez del saldo. Datos sintéticos; revisión/CI/integración/aceptación móvil pendientes. Sin publicación, APK, Edge, SQL o pagos reales. [Acta](briefs/inc-0210-01-plan-cuota.md).
 
 ## INC-0210-03 · P1 · categorías y cifras de Gastos por periodo · 2/10/2026

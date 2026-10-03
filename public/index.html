@@ -2638,6 +2638,8 @@ const CATEGORIES = [
   { id:"gaming",     name:"Videojuegos",         color:"#7B8CDE", icon:"🎮" },
   { id:"viajes",     name:"Viajes",              color:"#5B8DEF", icon:"✈️" },
   { id:"transporte", name:"Transporte",          color:"#7FB5E8", icon:"🚇" },
+  { id:"gasolina",   name:"Gasolina",            color:"#E8945F", icon:"⛽" },
+  { id:"taxi",       name:"Taxi",                color:"#E6C36A", icon:"🚕" },
   { id:"parking",    name:"Parking",             color:"#8AA0B8", icon:"🅿️" },
   /* AGUA, LUZ Y GAS POR SEPARADO (2026-09-12). Antes era una sola, «Luz, gas y agua», con un ⚡
      de icono. Suyo: *«sale un símbolo de rayito en Aigües de Barcelona que no encaja para nada…
@@ -2888,7 +2890,24 @@ function sugerenciaApuntar(o){
 }
 function categoryOfNewMerchant(merchant){
   if(isAtmWithdrawal(merchant)) return "traspaso";
-  return autoCategory(merchant||"");
+  const cat=autoCategory(merchant);
+  if(USER_OVERRIDES[catKey(merchant)] && !CAT_NEUTRAS[USER_OVERRIDES[catKey(merchant)]]) return cat;
+  return mobilityCategoryOfNewMerchant(merchant,cat);
+}
+// Solo altas nuevas: autoCategory también se usa para leer/migrar «Otros» antiguos.
+// Una marca energética sola no prueba carburante; comida y suministros conservan su finalidad.
+function mobilityCategoryOfNewMerchant(merchant,cat){
+  const c=catKey(merchant);
+  if(cat!=="transporte" && cat!=="otros" && !(cat==="super" && /\bcarrefour gas\b/.test(c))) return cat;
+  if(/\buber[^a-z0-9]*eats\b/.test(c)) return "bares";
+  if(/\b(recarga|recarrega|carga|carrega)\b.*electric|electric.*\b(recarga|recarrega|carga|carrega)\b|\bev charging\b|\bcharging station\b/.test(c)) return "transporte";
+  if(/\brepsol\b/.test(c)){
+    if(/\bluz\b|electric|energia/.test(c)) return "luz";
+    if(/\bgas natural\b|\bfactura gas\b/.test(c)) return "gas";
+  }
+  if(/\b(gasolina|gasolinera|gasoleo|carburante|fuel|petrol|benzina|ballenoil|plenergy|petrocat)\b|\bestacion de servicio\b|\bcarrefour gas\b|\b(repsol|cepsa|shell|bp|galp)\b.*\bdiesel\b/.test(c)) return "gasolina";
+  if(/\b(taxi|cabify|uber|moove|bolt|free ?now|ambitus)\b/.test(c)) return "taxi";
+  return cat;
 }
 function isAtmWithdrawal(merchant){
   const c=(merchant||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
@@ -4997,10 +5016,9 @@ const LANG = {
     v4_gastos_inc_line:"Ingresos {x} · balance {bal}", v4_gastos_split_line:"Gastos {spent} · ingresos {income}",
     v4_gastos_lbl_spent:"Gastos", v4_gastos_lbl_income:"Ingresos", v4_gastos_lbl_balance:"Balance",
     v4_gastos_cats:"Por categoría · toca una para ponerle un límite", v4_gastos_cat_limit:"límite {x}",
-    v4_gastos_spent_period:"Gastado · {period}", v4_gastos_net_period:"Balance · {period}", v4_gastos_cats_period_n:"{n} categorías · {period}",
+    v4_gastos_spent_period:"Gastado · {period}", v4_gastos_net_period:"Balance · {period}", v4_gastos_cats_period_n:"{n} categorías · {period}", v4_gastos_cats_period_n1:"{n} categoría · {period}",
     v4_gastos_budget_period_unknown:"El límite es para el mes o ciclo actual; este periodo no tiene un presupuesto registrado.",
-    v4_gastos_cats_hide:"Ocultar", v4_gastos_cats_show:"Ver", v4_gastos_cats_n:"{n} categorías este mes",
-    v4_gastos_cats_n1:"1 categoría este mes", v4_gastos_cats_cycle_n:"{n} categorías este ciclo", v4_gastos_cats_cycle_n1:"1 categoría este ciclo",
+    v4_gastos_cats_hide:"Ocultar", v4_gastos_cats_show:"Ver",
     g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Solo para verlo: no cambia tu presupuesto ni te bloquea. Vacío o 0 = quitar el límite.",
     g_cat_budget_clear:"Quitar límite",
     v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
@@ -5607,7 +5625,7 @@ Object.assign(LANG.es,{
   g_empty_t:"No hay gastos aquí", g_empty_d:"Cambia el filtro, sincroniza o apunta uno.", g_loadmore:"Cargando más…",
   g_empty_period_t:"Aún no hay gastos en este período", g_empty_period_d:"Es normal si acaba de empezar el mes o tu ciclo — irán apareciendo según sincronices o apuntes alguno.",
   g_today:"Hoy", g_yesterday:"Ayer", g_invalid:"Pon un importe válido", g_saved_g:"✓ Gasto apuntado", g_saved_i:"✓ Ingreso apuntado", g_deleted:"Eliminado", g_changecat:"Cambiar categoría",
-  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Cuota",
+  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_gasolina:"Gasolina", cat_taxi:"Taxi", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Cuota",
   freq_mes:"mensual", freq_bimestral:"bimestral", freq_trimestral:"trimestral", freq_semestral:"semestral", "freq_año":"anual",
   // Fijos
   fj_monthly:"Gasto fijo mensual", fj_peryear:"{x}/año", fj_top_a:"Tu mayor gasto fijo es ", fj_top_b:" ({x}/mes)",
@@ -9746,7 +9764,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
           "aria-expanded":catsOpen,"aria-controls":"gastos-cats-body",onClick:toggleCats},
           React.createElement("span",{className:"v4-gastos-cats-t"},
             catsOpen ? t("v4_gastos_cats")
-                     : tf("v4_gastos_cats_period_n",{n:catBreakdown.length,period:monthSummary.periodLabel})),
+                     : tf(catBreakdown.length===1?"v4_gastos_cats_period_n1":"v4_gastos_cats_period_n",{n:catBreakdown.length,period:monthSummary.periodLabel})),
           React.createElement("span",{className:"v4-gastos-cats-fold"},
             (catsOpen?"▾ ":"▸ ")+t(catsOpen?"v4_gastos_cats_hide":"v4_gastos_cats_show"))),
         React.createElement("div",{id:"gastos-cats-body",className:"v4-gastos-cats-body"+(catsOpen?" abierto":""),"aria-hidden":!catsOpen},
@@ -13388,6 +13406,9 @@ function debtPaymentState(s,d,y,m,today){
     var charge=cuotaCargoCercano(d,ms);
     if(charge.key!==y+"-"+m||charge.dias>CUOTA_ALIAS_DIAS) return false;
     var identity=fixedPaymentIdentity(bank,x);
+    // Vincular un apunte manual o una notificación no prueba que el saldo ya incluya el
+    // pago: sin origen bancario hace falta un BOOK único (NO-GO de revisión, 3/10/2026).
+    if(x.source!=="ob"&&(s.bankTx||[]).filter(function(tx){ return fixedPaymentIdentity(tx.ent,tx)===identity; }).length!==1) return false;
     return fixedPaymentFeedClear(s,identity)&&(s.expenses||[]).filter(function(other){
       return fixedPaymentIdentity(expenseBankOf(other),other)===identity;
     }).length===1;
@@ -13924,17 +13945,20 @@ function reconcileBank(state, y, m, today){
 
 function categoryOfBankTx(tx){
   const m=tx.merchant||"", cat=categoryOfNewMerchant(m);
-  // El MCC solo completa comercios sin categoría: no pisa aprendizaje manual ni retiradas.
-  // Tabla acotada a correspondencias claras del manual Visa (abril 2026); el resto queda en Otros.
-  if(cat!=="otros" || USER_OVERRIDES[catKey(m)]==="otros") return cat;
+  // Los MCC nuevos solo completan marcas energéticas ambiguas; los anteriores no cambian.
+  // Finalidad reconocida y overrides, incluso Otros, mandan antes del dato de tarjeta.
+  const energyBrand=/^(repsol|cepsa|shell|bp|galp)$/;
+  const mobilityMcc=tx.card && /^(5541|5542|4121)$/.test(String(tx.mcc||""));
+  if((cat!=="otros" && !(cat==="transporte" && mobilityMcc && energyBrand.test(catKey(m)) && !USER_OVERRIDES[catKey(m)])) || USER_OVERRIDES[catKey(m)]==="otros") return cat;
   const note=String(tx.concept||"");
-  // «Pago alquiler día 5» no identifica una tienda: nunca se clasifica por texto libre de
-  // transferencias/recibos. El nombre OB sigue intacto para dedup y lápidas de TR sin id.
-  if(tx.card && /^(movimiento|movement|transaction)?$/i.test(m.trim()) && !/transfer|bizum|recibo|alquiler|n[oó]mina|devoluci|refund/i.test(note)){
+  // El concepto de una transferencia/recibo no identifica una compra de tarjeta.
+  if(tx.card && (/^(movimiento|movement|transaction)?$/i.test(m.trim()) || mobilityMcc) && !/transfer|bizum|recibo|alquiler|n[oó]mina|devoluci|refund/i.test(note)){
     const c=categoryOfNewMerchant(note);
-    if(c!=="otros" || USER_OVERRIDES[catKey(note)]==="otros") return c;
+    if((c!=="otros" && !(mobilityMcc && c==="transporte" && energyBrand.test(catKey(note)) && !USER_OVERRIDES[catKey(note)])) || USER_OVERRIDES[catKey(note)]==="otros") return c;
   }
   switch(tx.mcc){
+    case "5541": case "5542": return tx.card?"gasolina":cat;
+    case "4121": return tx.card?"taxi":cat;
     case "5411": return "super";
     case "5462": return "pan";
     case "5812": case "5813": case "5814": return "bares";
@@ -19734,7 +19758,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="123b2f5b95ff73e9290be6431f388557b72cab8f97c742cfbfc4935d09d80cdc";
+var _rnSha="43003f4cda26ce8b2ad7528bc3516276509b5f6ea0fe74adead46055adafd277";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

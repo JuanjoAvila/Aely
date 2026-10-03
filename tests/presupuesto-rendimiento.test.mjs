@@ -136,7 +136,11 @@ const PRESUPUESTO = {
   // La integración conjunta exige su A/B propio; no acumular topes por arrastre.
   // Integración Plan83+Gastos84 sellada84.99: 1.296.387 B min / 352.741 B gzip;
   // +3.554/+848 B frente82.99. Mínimo1267 deja1.021 B; gzip345 conserva539 B.
-  minificado: 1267 * 1024,
+  // Integración Plan83+Gastos84+Gasolina85, mismo host y sello85.99: 1.297.889 B min /
+  // 353.265 B gzip; frente84.99 suma1.569/541 B. Catálogo85+84+83 e idiomas intactos.
+  // Mínimo1268 deja543 B; gzip345 dejaría solo15 B, insuficientes para el sello real de
+  // Actions con run más largo. Se decide346 para dejar1.039 B, sin recortar historia.
+  minificado: 1268 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -144,7 +148,7 @@ const PRESUPUESTO = {
   // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
   // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
   // La misma candidata mide 343.257 B gzip, 217 B sobre 335 KiB: +1 KiB medido.
-  gzip: 345 * 1024,
+  gzip: 346 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

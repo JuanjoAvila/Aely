@@ -34,3 +34,9 @@ A/B de copias sintéticas con el mismo minificador y sello: base82.99,1.292.900 
 Leases37 y40 cerrados expresamente: Chromium/servidor propios terminados, CLI0, puerto4452 ECONNREFUSED e inventario scoped sin procesos. Las copias A/B se eliminaron tras comprobar sus rutas; métricas/JSON quedan como evidencia local ignorada. No hay sondas en el árbol versionado.
 
 No hay producción, beta publicada, APK nueva/instalación, cambios de backend ni datos privados en esta entrega. No se borran ramas/worktrees.
+
+## Corrección de integración · 3/10/2026
+
+La revisión independiente retiró el GO de8587 y dac44322 para el contrato de saldo: un vínculo manual o de notificación sin BOOK podía retirar la previsión antes del vencimiento sin débito en el saldo. La unión85 corrige debtPaymentState para exigir origen bancario ob o BOOK único de identidad exacta, manteniendo el rechazo PDNG/duplicados del feed. La ampliación Node cubre manual, manual:sabadell, macrodroid y source ausente, con negativos sin feed y positivos BOOK:40/40 PASS. La ampliación DOM39 debe acreditar los mismos estados en los tres idiomas sobre la candidata final. Los resultados anteriores documentan su SHA; no acreditan esta corrección ni la publicación.
+
+Unión85 corregida: DOM113 PASS incluye39 casosPlan ampliados; CLI0/fail0/skip0/retry0/flaky0, HTML0cb976b3, informe y duración en el acta de integración. Node40 y guardián1188/384PASS. SHA final/revisión exacta/CI nueva siguen gates; resultados locales no acreditan el dispositivo familiar.

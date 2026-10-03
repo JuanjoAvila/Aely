@@ -1,5 +1,7 @@
 # Empieza aquí
 
+FEATURE-0210-01 candidata aislada85: no mover keywords nuevas a autoCategory, porque seedFlows reevalúa Otros antiguos. La división Gasolina/Taxi vive solo en categoryOfNewMerchant y MCC de altas bancarias. Fuente Edge preparada pero sin desplegar; la web no necesita Edge para elegir/filtrar/fijar límites. [Acta](docs/briefs/feature-0210-01-gasolina-taxi.md).
+
 INC-0210-01 candidata83: cuota vinculada contabilizada antes del vencimiento retirada del pendiente de Plan/Inicio y eventos futuros; saldo/anclas intactos. Base3467/candidata82, sin publicar. Pruebas sintéticas; revisión, CI, beta y móvil pendientes. [Acta](docs/briefs/inc-0210-01-plan-cuota.md).
 
 Candidata Validaciones82 tras NO-GO450: conservar aprobación/progreso y la checklist actual junto a las rondas modernas si producción no responde. Sobre beta80/source955765a9;81 no publicada. APK80/52 intacta; DOM mixto70/70, contratos Node y A/B acreditados; revisión independiente y CI exacta pendientes. No integrar/publicar una solución parcial. [Acta](docs/briefs/ops-0110-validaciones-persistentes.md).

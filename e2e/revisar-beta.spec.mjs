@@ -1003,7 +1003,10 @@ for(const lang of ["es","en","ca"]) {
     await page.evaluate(async()=>{ if(_mcProdVerCache) await _mcProdVerCache; });
     await sembrarAprobadasEn4267(page);
     await page.evaluate(async lang => {
-      await ensureLangPack(lang); CURLANG=lang; CONFIG.APP_VERSION=RELEASE_NOTES[0].v+".1";
+      await ensureLangPack(lang);
+      // Una lectura del panel de arranque aún pendiente no debe pisar después los recibos del mock.
+      if(_mcProdVerCache) await _mcProdVerCache;
+      CURLANG=lang; CONFIG.APP_VERSION=RELEASE_NOTES[0].v+".1";
       window._mcProdApk=48; window._mcProdEntregas=null;window._mcProdApkRevisiones=null;
       window._mcProdVersion=function(){ return new Promise(resolve=>{ window.__resolveDelivery=resolve; }); };
     },lang);
@@ -1023,8 +1026,8 @@ for(const lang of ["es","en","ca"]) {
       });
       window._mcProdApk=52;window.__resolveDelivery("4.26.67");
     });
-    // Panel76 se trasladó a82; los recibos de las siete antiguas no entregan las once nuevas.
-    const remaining=["inc-0210-03-gastos-periodo","inc-0210-01-plan-cuota","beta-panel-veredictos","inc-2909-01-widget-periodo","inc-2909-03-retirada","inc-3009-nomina-anticipada","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2709-10-perfil","inc-3009-01-cargos","inc-2909-02-inicio-natural"];
+    // Panel76 se trasladó a82; los recibos de las siete antiguas no entregan las doce nuevas.
+    const remaining=["feature-0210-01-gasolina-taxi","inc-0210-03-gastos-periodo","inc-0210-01-plan-cuota","beta-panel-veredictos","inc-2909-01-widget-periodo","inc-2909-03-retirada","inc-3009-nomina-anticipada","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2709-10-perfil","inc-3009-01-cargos","inc-2909-02-inicio-natural"];
     await expect(panel.locator(".beta-tanda")).toHaveCount(remaining.length);
     expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,"4.26.67",52).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(remaining.slice().sort());
     for(const title of ["Gastos y categorías del mismo periodo","Las cuotas cobradas dejan de estar pendientes","Las comprobaciones conservan su resultado","Widget: mes o Mi ciclo","Retiradas y presupuesto","Nómina sin adelantar el cobro","Botón + en Cyberpunk","Botón Preguntar","Perfil sin casillas gigantes","Recibos pagados y vencidos","Presupuesto mensual de Inicio"])
@@ -1241,7 +1244,7 @@ for(const lang of ["es","en","ca"]) {
       window.__mixedRoot=ReactDOM.createRoot(host);window.__mixedRoot.render(React.createElement(BetaReviewPanel,{onClose:function(){},showToast:function(){}}));
       return ids;
     },lang);
-    expect(expected).toEqual(["beta-panel-veredictos","fin05-pago-cerrada","fin05-widget-reentrada","inc-0210-01-plan-cuota","inc-0210-03-gastos-periodo","inc-2709-01-arranque-red","inc-2709-10-perfil","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2809-02-ayuda-ciclo","inc-2909-01-widget-periodo","inc-2909-02-inicio-natural","inc-2909-03-retirada","inc-3009-01-cargos","inc-3009-nomina-anticipada","tr-descripcion-clasificacion","widget-app-cerrada","widget-banco"].sort());
+    expect(expected).toEqual(["feature-0210-01-gasolina-taxi","beta-panel-veredictos","fin05-pago-cerrada","fin05-widget-reentrada","inc-0210-01-plan-cuota","inc-0210-03-gastos-periodo","inc-2709-01-arranque-red","inc-2709-10-perfil","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2809-02-ayuda-ciclo","inc-2909-01-widget-periodo","inc-2909-02-inicio-natural","inc-2909-03-retirada","inc-3009-01-cargos","inc-3009-nomina-anticipada","tr-descripcion-clasificacion","widget-app-cerrada","widget-banco"].sort());
     const panel=page.locator("#e2e-mixed .beta-review"),row=panel.locator(".beta-tanda").filter({has:page.getByText("1. A",{exact:true})});
     await expect(panel.locator(".beta-tanda")).toHaveCount(expected.length+1);await expect(row).toHaveCount(1);
     await expect(row.locator(".beta-item")).toHaveCount(3);await expect(row.locator(".beta-tanda-n")).toHaveText("0/3");

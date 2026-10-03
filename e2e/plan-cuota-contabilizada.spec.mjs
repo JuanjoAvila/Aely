@@ -15,6 +15,23 @@ const bills=page=>page.locator('div[data-seg="recibos"]');
 const pending=page=>bills(page).locator('.v4-charge:not(.v4-paid)');
 const paid=page=>bills(page).locator('.v4-charge.v4-paid');
 for(const lang of ["es","en","ca"]){
+  for(const source of ["manual","macrodroid"]){
+    test(lang+": cuota vinculada "+source+" sin BOOK conserva pendiente y proyección",async({page})=>{
+      await open(page,lang,{expenses:[{...cargo,source}]});
+      await page.locator('.botnav-tab[data-tour="plan"]').click();
+      await expect(pending(page)).toHaveCount(1);await expect(paid(page)).toHaveCount(0);
+      await expect(bills(page).locator('.v4-card-hero .serif.num')).toHaveText(await page.evaluate(()=>eur(60)));
+      expect(await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return minWalk(800,bankPendingEvents(s,"sabadell",2026,10,2)).end;})).toBe(740);
+      await page.reload();await dismissNews(page);
+      await expect(pending(page)).toHaveCount(1);await expect(paid(page)).toHaveCount(0);
+    });
+  }
+  test(lang+": BOOK único acredita notificación vinculada sin repetir el pago",async({page})=>{
+    await open(page,lang,{expenses:[{...cargo,source:"macrodroid"}],bankTx:[{...cargo,status:"BOOK"}]});
+    await page.locator('.botnav-tab[data-tour="plan"]').click();
+    await expect(pending(page)).toHaveCount(0);await expect(paid(page)).toHaveCount(1);
+    expect(await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return minWalk(800,bankPendingEvents(s,"sabadell",2026,10,2)).end;})).toBe(800);
+  });
   test(lang+": cuota más pago final decimal se pinta pagada sin repetir el cargo",async({page})=>{
     await open(page,lang,{debts:[{...debt,monthly:0.1,balloon:0.2,months:1}],expenses:[{...cargo,amount:0.3}]});
     await page.locator('.botnav-tab[data-tour="plan"]').click();
