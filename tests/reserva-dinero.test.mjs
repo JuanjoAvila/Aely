@@ -12,9 +12,12 @@
  *      restarlo del presupuesto (ver `reservedSince`, que usa `monthSummary` en 04-tab-gastos.js).
  */
 import assert from "node:assert/strict";
-import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
+import { execFileSync } from "node:child_process";
+import { loadPureLogic, loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
-const ctx = loadPureLogicFromFile();
+const sourceRef = process.argv[process.argv.indexOf("--source-ref") + 1];
+const baseline = process.argv.includes("--source-ref");
+const ctx = baseline ? loadPureLogic(execFileSync("git", ["show", sourceRef + ":public/index.html"], {encoding:"utf8",maxBuffer:10*1024*1024})) : loadPureLogicFromFile();
 
 function t(name, fn) {
   try {
@@ -44,6 +47,29 @@ const estado = () => ({
   },
   reservaLog: [],
 });
+
+// Ejecuta el botón del componente real, también sobre fuente Git anterior: la reproducción
+// debe fallar por el descuento residual, no por la ausencia del helper nuevo.
+async function borrarPorComponente(s, confirm){
+  ctx.React.createElement=(type,props,...children)=>({type,props:props||{},children:children.flat(Infinity)});
+  ctx.askConfirm=()=>Promise.resolve(confirm);
+  const tree=ctx.ReservaRules({state:s,set:update=>{s=update(s);}});
+  const buttons=[];
+  const walk=n=>{if(!n||typeof n!=="object")return; if(n.type==="button"&&n.children.includes("✕"))buttons.push(n); (n.children||[]).forEach(walk);};
+  walk(tree); buttons[0].props.onClick();
+  await new Promise(resolve=>setImmediate(resolve));
+  return s;
+}
+
+{
+  const income={date:"2026-08-03",amount:-1620,merchant:"NOMINA"}, s=estado();
+  const applied=ctx.applyReserva(s,income,ctx.reservaPlanFor(s,1620).plan);
+  const removed=await borrarPorComponente(applied,true);
+  t("el botón real de borrar libera el descuento de su regla",()=>assert.equal(ctx.reservedSince(removed,Date.parse("2026-08-01")),500));
+  if(baseline) process.exit(0);
+  const canceled=await borrarPorComponente(applied,false);
+  t("cancelar el diálogo real no modifica ninguna asignación",()=>assert.strictEqual(canceled,applied));
+}
 
 t("reparto fijo: suma exacta de las reglas válidas, ignora meta borrada y meta cumplida", () => {
   const plan = ctx.reservaPlanFor(estado(), 1620);
@@ -121,6 +147,86 @@ t("reservedSince suma solo lo aplicado desde la fecha dada (para restar del pres
   ];
   const fromMs = new Date(2026, 7, 1).getTime(); // 1 ago 2026
   assert.equal(ctx.reservedSince(s, fromMs), 500, "solo cuenta lo reservado DESDE el inicio del período");
+});
+
+t("borrar una regla libera solo su reserva sin borrar aportaciones ni repetir nómina", () => {
+  const s = estado();
+  s.expenses = [{ id: "salary", date: "2026-08-03", amount: -1620, merchant: "NOMINA", status: "BOOK" }];
+  s.aportaciones = [{ id: "manual", amount: 25 }];
+  s.accounts = [{ id: "bank", value: 2000 }];
+  const income = s.expenses[0], start = Date.parse("2026-08-01");
+  const applied = ctx.applyReserva(s, income, ctx.reservaPlanFor(s, 1620).plan, "trade_republic");
+  const removed = ctx.removeReservaRule(applied, "r2");
+  assert.equal(ctx.reservedSince(removed, start), 70);
+  assert.equal(removed.settings.reservaRules.some(r => r.id === "r2"), false);
+  assert.strictEqual(removed.goals, applied.goals, "el ahorro aportado sigue siendo histórico");
+  assert.strictEqual(removed.expenses, applied.expenses);
+  assert.strictEqual(removed.accounts, applied.accounts);
+  assert.strictEqual(removed.aportaciones, applied.aportaciones);
+  assert.deepEqual(removed.reservaLog.slice(0, 2), applied.reservaLog);
+  assert.strictEqual(ctx.removeReservaRule(removed, "r2"), removed, "doble confirmación inocua");
+  assert.strictEqual(ctx.applyReserva(removed, income, ctx.reservaPlanFor(removed, 1620).plan), removed);
+  const next = ctx.removeReservaRule(removed, "r1");
+  assert.equal(ctx.reservedSince(next, start), 0);
+  assert.equal(ctx.reservaAlreadyApplied(next, income), true);
+});
+
+t("regla sin ejecución y desconocida no modifican el registro", () => {
+  const s = estado(), removed = ctx.removeReservaRule(s, "r3");
+  assert.strictEqual(removed.reservaLog, s.reservaLog);
+  assert.strictEqual(removed.goals, s.goals);
+  assert.strictEqual(ctx.removeReservaRule(s, "no-existe"), s);
+});
+
+t("una configuración reaparecida no vuelve a liberar el mismo asiento", () => {
+  const s=estado();
+  s.reservaLog=[{id:"assignment-a",ruleId:"r1",amount:70,date:"2026-08-03",incomeKey:"salary-a"}];
+  const once=ctx.removeReservaRule(s,"r1");
+  const revived={...once,settings:{...once.settings,reservaRules:s.settings.reservaRules}};
+  const twice=ctx.removeReservaRule(revived,"r1");
+  assert.equal(ctx.reservedSince(twice,Date.parse("2026-08-01")),0);
+  assert.equal(twice.reservaLog.filter(x=>x.releaseOf==="assignment-a").length,1);
+});
+
+t("una liberación parcial conserva el pendiente sin otra compensación", () => {
+  const s=estado(), original={id:"assignment-a",ruleId:"r1",amount:70,date:"2026-08-03",incomeKey:"salary-a"};
+  s.reservaLog=[original,{...original,id:"partial",amount:-20,releaseOf:original.id}];
+  const removed=ctx.removeReservaRule(s,"r1");
+  assert.strictEqual(removed.reservaLog,s.reservaLog);
+  assert.equal(ctx.reservedSince(removed,Date.parse("2026-08-01")),50);
+});
+
+t("identidades duplicadas o desconocidas no fabrican liberaciones", () => {
+  const original={id:"assignment-a",ruleId:"r1",amount:70,date:"2026-08-03",incomeKey:"salary-a"};
+  for(const log of [
+    [original,{...original}],
+    [{...original,id:undefined}],
+    [{...original,incomeKey:undefined}],
+    [{...original,date:"desconocida"}],
+    [{...original,date:null}],
+    [original,{...original,id:"other",amount:-20,releaseOf:undefined}],
+    [original,{...original,id:"other",amount:-20,releaseOf:"no-existe"}],
+    [original,{...original,id:"other",amount:"70"}]
+  ]){
+    const s=estado();s.reservaLog=log;
+    const removed=ctx.removeReservaRule(s,"r1");
+    assert.strictEqual(removed.reservaLog,s.reservaLog);
+    assert.strictEqual(removed.goals,s.goals);
+  }
+});
+
+t("liberar conserva fechas, céntimos, otras reglas y reservas manuales tras serializar", () => {
+  const s = estado();
+  s.reservaLog = [
+    { id: "old", ruleId: "r1", amount: 10.01, date: "2026-07-15", incomeKey: "july" },
+    { id: "new", ruleId: "r1", amount: 20.02, date: "2026-08-03", incomeKey: "aug" },
+    { id: "other", ruleId: "r2", amount: 30.03, date: "2026-08-03" },
+    { id: "manual", amount: 5.05, date: "2026-08-03" },
+  ];
+  const removed = JSON.parse(JSON.stringify(ctx.removeReservaRule(s, "r1")));
+  assert.equal(ctx.reservedSince(removed, Date.parse("2026-07-01"), Date.parse("2026-08-01")), 0);
+  assert.equal(+ctx.reservedSince(removed, Date.parse("2026-08-01")).toFixed(2), 35.08);
+  assert.deepEqual(removed.reservaLog.slice(0, 4), s.reservaLog);
 });
 
 console.log("\nreserva-dinero: OK");

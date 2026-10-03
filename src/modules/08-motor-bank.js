@@ -1165,6 +1165,36 @@ function reservaAlreadyApplied(state, income){
   const k=reservaKeyOf(income);
   return (state.reservaLog||[]).some(function(x){ return x.incomeKey===k; });
 }
+// Borrar la configuración no liberaba el presupuesto ya apartado (INC-0310-01). El asiento
+// inverso conserva la aportación, su fecha y la identidad de nómina, también para lectores
+// antiguos de nube/widget que suman el mismo registro. No es un movimiento bancario.
+function removeReservaRule(state, ruleId){
+  const rules=(state.settings&&state.settings.reservaRules)||[];
+  if(!rules.some(function(r){ return r.id===ruleId; })) return state;
+  const log=state.reservaLog||[];
+  const ids=Object.create(null), released=Object.create(null), originals=Object.create(null);
+  log.forEach(function(x){
+    if(!x) return;
+    if(typeof x.id==="string" && x.id) ids[x.id]=(ids[x.id]||0)+1;
+    if(typeof x.releaseOf==="string" && x.releaseOf) released[x.releaseOf]=true;
+    if(x.ruleId===ruleId&&typeof x.id==="string"&&x.id&&typeof x.amount==="number"&&x.amount>0) originals[x.id]=true;
+  });
+  // Una configuración puede reaparecer sin perder el log. La identidad del asiento manda:
+  // ni duplicados ni liberaciones parciales se vuelven a compensar (revisión INC-0310-01).
+  // Sin vínculo comprobable en un descuento anterior, no sabemos qué sigue reservado.
+  const unknown=log.some(function(x){ return x&&x.ruleId===ruleId&&
+    (typeof x.amount!=="number" || !isFinite(x.amount) || (x.amount<0 && !originals[x.releaseOf])); });
+  const releases=log.filter(function(x){ return !unknown&&x&&x.ruleId===ruleId&&
+    typeof x.id==="string"&&x.id&&ids[x.id]===1&&!released[x.id]&&!x.releaseOf&&
+    typeof x.amount==="number"&&isFinite(x.amount)&&x.amount>0&&
+    typeof x.incomeKey==="string"&&x.incomeKey&&x.date!=null&&isFinite(new Date(x.date).getTime()); }).map(function(x){
+    return Object.assign({},x,{id:uid(),amount:-x.amount,releaseOf:x.id,releasedAt:new Date().toISOString()});
+  });
+  return Object.assign({},state,{
+    settings:Object.assign({},state.settings,{reservaRules:rules.filter(function(r){ return r.id!==ruleId; })}),
+    reservaLog:releases.length?log.concat(releases):state.reservaLog
+  });
+}
 // Aplica el reparto: suma cada meta (mismo efecto que "Aportar a una meta") y deja el registro que
 // hace que se descuente del presupuesto. Función PURA — devuelve el nuevo estado sin mutar `state`.
 function applyReserva(state, income, plan, bankEnt){

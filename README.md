@@ -98,7 +98,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.82** candidata de persistencia de comprobaciones sobre beta80/source955765a9. APK80/code52 conservada. Revisión independiente, CI exacta, publicación y prueba móvil pendientes. [Acta](docs/briefs/ops-0110-validaciones-persistentes.md).
+Estado actual: **v4.26.87** candidata INC-0310-01 sobre 3467bbd4: borrar regla libera su reserva, conservando aportaciones e historial. APK80/code52 conservada. Evidencia local y límites en el acta; revisión, CI exacta, publicación y prueba móvil pendientes. [Acta](docs/briefs/inc-0310-01-meta-regla.md).
 
 Estado anterior de Retirada: **v4.26.79**, candidata de Retirada sobre Nómina78 eaf55e4a para la entrega conjunta beta80; pendiente de CI exacta y publicación ([acta](docs/briefs/inc-2909-03-retirada-caixa.md)). Anterior **v4.26.78**, candidata de Nómina sobre UI77 finalca7734fd; pendiente de CI exacta y publicación ([acta](docs/briefs/inc-3009-nomina-anticipada.md)). Anterior **v4.26.77**, candidata con tres tandas de pantalla (Cyberpunk, Preguntar, Perfil) sobre el panel76; sin publicar ni probar en móvil ([acta](docs/briefs/ui-77-integracion.md)). Del panel76, corrección local: revisión y entrega separadas por tanda; una entrega exacta la retira aunque producción tenga un número menor. Beta publicada **4.26.75.1**/ca7b97d4, producción **4.26.67**; APK48 estable/APK51 beta. CI exacta, publicación76 y prueba móvil pendientes. [Auditoría y evidencia](docs/briefs/ops-0110-panel-entrega.md).
 
@@ -126,3 +126,5 @@ Notas rápidas del rediseño v4 (para no perderse):
 - **Canal beta y banco de pruebas** (solo `is_admin`): Ajustes → Dev → Pruebas; cada tanda distingue revisión y entrega, incluso plegada — [docs/TESTING.md](docs/TESTING.md).
 
 El guardián tests/logs-privacidad.test.mjs verifica las fronteras de diagnóstico con marcadores sintéticos. Cobertura y límites, incluyendo servidor sin desplegar, en [SEC-03](docs/briefs/sec03-privacidad-logs.md).
+
+Plan → Metas: borrar una regla de nómina pide confirmación y libera su reserva del presupuesto, conservando las aportaciones e historial. Candidata INC-0310-01 aún sin publicación; pruebas DOM en `e2e/metas-borrar-regla.spec.mjs`, mapeadas a Metas, Gastos, Inicio y motor. [Contrato y estado](docs/briefs/inc-0310-01-meta-regla.md).

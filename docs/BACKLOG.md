@@ -1,5 +1,9 @@
 # Backlog operativo — Aely
 
+## INC-0310-01 · P1 · borrar regla de Meta conserva descuento · 3/10/2026
+
+Síntoma humano vinculado a PRO-01 y al contrato de flujo/FIN-01, sin duplicar esos objetivos: tras aplicar el reparto de una nómina, borrar la regla dejaba el descuento en Gastos. La magnitud afectada es el presupuesto disponible, no el gasto bruto ni otro cobro. Corrección candidata aislada sobre `3467bbd4`: liberar solo el descuento comprobable de la regla confirmada, conservar aportación/historial, otras reglas y nómina única. `c88d9627` rechazado por doble liberación si reaparece la configuración; la corrección exige identidad única y sin liberación previa. Parciales/ambiguos conservan el pendiente. Motor y DOM sintético es/en/ca registrados; pruebas, revisión, PR draft y CI exactos en [el acta](briefs/inc-0310-01-meta-regla.md). Sin publicación ni aceptación móvil. **Pendiente separado:** identificar y proponer reparación verificable de reservas huérfanas de reglas borradas por la versión antigua; esta corrección prospectiva no resuelve esas capturas históricas. PRO-01 y FIN-01 mantienen sus alcances generales.
+
 Candidata Validaciones82 tras NO-GO450: conservar aprobación/progreso y la checklist actual junto a las rondas modernas si producción no responde. Sobre beta80/source955765a9;81 no publicada. APK80/52 intacta; DOM mixto70/70, contratos Node y A/B acreditados; revisión independiente y CI exacta pendientes. No integrar/publicar una solución parcial. [Acta](briefs/ops-0110-validaciones-persistentes.md).
 
 Snapshot previo de preparación80 (no estado de la candidata81): Widget80 sobre79/d45fb8b1; runtime821/ACK/guiones intactos. Prebuild52/name80 y descarga de assetbeta602841368 verificados; manifiesto52 local real. CI/build final/reemplazo APK/entrega80 pendientes; no main/Edge/SQL/install. [Acta](briefs/inc-2909-01-widget.md).

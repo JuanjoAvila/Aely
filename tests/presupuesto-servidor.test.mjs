@@ -42,6 +42,36 @@ function t(name, fn) {
 
 console.log("presupuesto-servidor");
 
+t("borrar regla libera el mismo presupuesto cliente/servidor sin alterar el dinero", () => {
+  const date = new Date().toISOString(), start = inicioDeMesMs();
+  const rows = [{ id:"salary", fecha:date, importe:-2000, comercio:"NOMINA", cat:"ingreso" },
+    { id:"buy", fecha:date, importe:100, comercio:"Compra", cat:"super" }];
+  for(const mode of ["split", "net"]){
+    const data={budget:1000,accounts:[],expenses:rows.map(cli.expenseFromRow),
+      goals:[{id:"g",saved:25,target:5000}],settings:{gTotalMode:mode,reservaRules:[{id:"r",goalId:"g",kind:"fixed",value:200}]}};
+    const income=data.expenses[0];
+    const applied=cli.applyReserva(data,income,cli.reservaPlanFor(data,2000).plan);
+    assert.equal(cli.monthBudgetStats(applied).budget,800);
+    assert.equal(statsDelMes(rows,applied,start).budget,800);
+    const removed=cli.removeReservaRule(applied,"r");
+    assert.equal(cli.monthBudgetStats(removed).budget,1000);
+    assert.equal(statsDelMes(rows,removed,start).budget,1000);
+    assert.equal(cli.monthBudgetStats(removed).shown,cli.monthBudgetStats(applied).shown);
+    assert.equal(reservadoDesde(removed,start),0);
+    assert.strictEqual(removed.goals,applied.goals);
+    assert.strictEqual(removed.expenses,applied.expenses);
+    const revived={...removed,settings:applied.settings};
+    const twice=cli.removeReservaRule(revived,"r");
+    assert.equal(cli.monthBudgetStats(twice).budget,1000);
+    assert.equal(statsDelMes(rows,twice,start).budget,1000);
+    assert.equal(reservadoDesde(twice,start),0);
+    const partial={...applied,reservaLog:applied.reservaLog.concat([{...applied.reservaLog[0],id:"partial",amount:-50,releaseOf:applied.reservaLog[0].id}])};
+    const pending=cli.removeReservaRule(partial,"r");
+    assert.equal(cli.monthBudgetStats(pending).budget,850);
+    assert.equal(statsDelMes(rows,pending,start).budget,850);
+  }
+});
+
 t("las categorías neutras sobreviven al pull real y no inflan el presupuesto", () => {
   const fecha = new Date().toISOString();
   const rows = [

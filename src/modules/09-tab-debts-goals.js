@@ -324,18 +324,21 @@ function ReservaRules({state, set}){
     setRules(rules.concat([r]));
     setForm(blank); setAdding(false);
   };
-  const delRule=function(id){ setRules(rules.filter(function(r){ return r.id!==id; })); };
+  const delRule=function(id){
+    askConfirm({title:t("rr_delete_q"),sub:t("rr_delete_sub"),ok:t("rr_delete"),danger:true})
+      .then(function(ok){ if(!ok) return; set(function(s){ return removeReservaRule(s,id); }); });
+  };
   const goalName=function(id){ const g=(state.goals||[]).find(function(x){ return x.id===id; }); return g?((g.emoji||"🎯")+" "+g.name):t("rr_goal_gone"); };
   if(!goals.length && !rules.length) return null;   // sin metas activas no hay nada que configurar
   return React.createElement(CollapsibleCard,{title:t("rr_title"),sub:rules.length?tf("rr_sub",{n:rules.length}):t("rr_sub_empty"),dot:"#5FD08A",storageKey:"g_reserva_rules",help:t("h_reserva")},
     rules.length===0 && React.createElement("div",{className:"hint"}, t("rr_none")),
     rules.map(function(r){
-      return React.createElement("div",{key:r.id,className:"sub-row"},
+      return React.createElement("div",{key:r.id,className:"sub-row","data-reserva-rule":r.id},
         React.createElement("div",{className:"sub-mid"},
           React.createElement("div",{className:"sub-name"}, r.name||goalName(r.goalId)),
           React.createElement("div",{className:"sub-meta"}, (r.kind==="pct"?tf("rr_row_pct",{v:r.value}):tf("rr_row_fixed",{v:eur0(r.value)}))+" → "+goalName(r.goalId))
         ),
-        React.createElement("button",{className:"chip",style:{fontSize:11.5,padding:"3px 10px"},onClick:function(){ delRule(r.id); }}, "✕")
+        React.createElement("button",{className:"chip","aria-label":t("rr_delete"),style:{fontSize:11.5,padding:"3px 10px"},onClick:function(){ delRule(r.id); }}, "✕")
       );
     }),
     goals.length>0 && (adding
@@ -371,7 +374,7 @@ function ReservaDetect({state, set, showToast}){
   if(!plan.plan.length) return null;
   const dailyEnt=(state.accounts||[]).find(function(a){ return accDaily(a); });
   const apply=function(){
-    set(function(s){ return applyReserva(s, income, plan.plan, dailyEnt&&dailyEnt.ent); });
+    set(function(s){ return applyReserva(s, income, reservaPlanFor(s,income.amount).plan, dailyEnt&&dailyEnt.ent); });
     if(showToast) showToast(t("rr_applied_ok"));
   };
   const dismiss=function(){ set(function(s){ return Object.assign({},s,{reservaDismissed:(s.reservaDismissed||[]).concat([key])}); }); };
