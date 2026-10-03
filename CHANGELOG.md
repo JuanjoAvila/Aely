@@ -1,3 +1,8 @@
+## [4.26.89] — 2026-10-03 · Resultados por bróker (INC-0310)
+
+- El éxito genérico TR/MyInvestor atribuía la actualización a ambos tras responder solo uno y desaparecía si el otro caducaba. runBrokerSync conserva resultados por proveedor y muestra todos los éxitos, caducidades y fallos temporales en el resumen único. Un error de consulta myinvestorStatus ya no equivale a no tener enlace.
+- TR sigue solo a demanda; MyInvestor conserva su throttle automático, el contrato compacto b/n y los actualizadores financieros. Tests registrados: quince casos de lógica y DOM es/en/ca dentro de sync-resumen. Reproducción, alcance y gates: [acta](docs/briefs/inc-0310-broker-resultados.md). No acredita sincronización bancaria real, pago ausente, APK ni Edge.
+
 ## [4.26.88] — 2026-10-03 · Multas, Zona azul y Peajes independientes
 
 - FEATURE-0310-01 amplía Gasolina/Taxi85 con IDs estables multas/zona_azul/peajes, iconos existentes y nombres es/en/ca. Apuntar, ficha, filtros, desglose y límites comparten catálogo; las categorías y límites antiguos permanecen, sin migración ni reclasificación histórica.

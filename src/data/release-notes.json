@@ -1,5 +1,53 @@
 [
   {
+    "v": "4.26.89",
+    "d": "2026-10-03",
+    "t": {
+      "es": "Cada bróker cuenta su resultado",
+      "en": "Each broker reports its result",
+      "ca": "Cada bróker explica el resultat"
+    },
+    "items": {
+      "es": [
+        "Al actualizar, Trade Republic y MyInvestor indican por separado si se han actualizado, no han respondido o necesitan reconectar.",
+        "Si uno falla, sigue apareciendo lo que el otro sí ha actualizado."
+      ],
+      "en": [
+        "When updating, Trade Republic and MyInvestor separately report whether they updated, did not respond or need reconnecting.",
+        "If one fails, the other broker’s successful update still appears."
+      ],
+      "ca": [
+        "En actualitzar, Trade Republic i MyInvestor indiquen per separat si s’han actualitzat, no han respost o cal reconnectar.",
+        "Si un falla, continua apareixent el que l’altre sí que ha actualitzat."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0310-broker-resultados",
+        "rev": 1,
+        "t": {
+          "es": "Resultados de Trade Republic y MyInvestor",
+          "en": "Trade Republic and MyInvestor results",
+          "ca": "Resultats de Trade Republic i MyInvestor"
+        },
+        "items": {
+          "es": [
+            "1. Con solo un bróker conectado, pulsa Sincronizar bancos en Cartera: el resultado debe nombrar únicamente al actualizado.",
+            "2. Con ambos, comprueba las dos filas. Si uno no responde o caduca, deben aparecer su aviso y el éxito del otro. Abrir la app no sincroniza posiciones de Trade Republic."
+          ],
+          "en": [
+            "1. With only one broker connected, tap Sync banks in Portfolio: the result should name only the broker updated.",
+            "2. With both, check both rows. If one does not respond or expires, its warning and the other’s success should appear. Opening the app does not sync Trade Republic positions."
+          ],
+          "ca": [
+            "1. Amb només un bróker connectat, prem Sincronitza els bancs a Cartera: el resultat ha d’anomenar només el que s’ha actualitzat.",
+            "2. Amb tots dos, comprova les dues files. Si un no respon o caduca, han d’aparèixer l’avís i l’èxit de l’altre. Obrir l’app no sincronitza posicions de Trade Republic."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.88",
     "d": "2026-10-03",
     "t": {

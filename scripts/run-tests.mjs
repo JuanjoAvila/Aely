@@ -138,6 +138,7 @@ const steps = [
   ["hist-fecha-que-baila", ["node", "tests/hist-fecha-que-baila.test.mjs"]],
   ["hist-uniq-por-banco", ["node", "tests/hist-uniq-por-banco.test.mjs"]],
   ["sync-manual-un-aviso", ["node", "tests/sync-manual-un-aviso.test.mjs"]],
+  ["broker-sync-outcomes", ["node", "tests/broker-sync-outcomes.test.mjs"]],
   ["cartel-reconectar", ["node", "tests/cartel-reconectar.test.mjs"]],
   ["bank-callback-msg", ["node", "tests/bank-callback-msg.test.mjs"]],
   ["categorize-limitador", ["node", "tests/categorize-limitador.test.mjs"]],

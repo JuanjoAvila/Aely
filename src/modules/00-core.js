@@ -1328,7 +1328,8 @@ const cloud = (function(){
       // Solo columnas NO sensibles (grant a nivel de columna; los tokens no se exponen).
       // device_id: para reutilizar el mismo móvil al reconectar (menos captchas).
       const {data,error}=await sb.from('myinvestor_links').select('status,last_sync,updated_at,device_id').eq('user_id',session.user.id).maybeSingle();
-      if(error) return null;
+      // Sin fila no hay enlace; un fallo al consultarlo no permite callar el resultado manual.
+      if(error) throw error;
       return data||null;
     },
     // --- ingest MULTIUSUARIO (0008_ingest_tokens): cada persona apunta SUS gastos de TR en SU
