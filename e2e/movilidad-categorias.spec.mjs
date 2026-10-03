@@ -43,7 +43,7 @@ for(const lang of ["es","en","ca"]){
     await record(page,"Uber Eats","bares",12);await record(page,"Repsol Luz","luz",9);await record(page,"Metro TMB","transporte",7);
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     const rows=page.locator(".v4-gastos-list-body button.v4-mov");await expect(rows).toHaveCount(9);
-    for(const [cat,merchant] of entries)await expect(rows.filter({hasText:merchant}).locator(".nm-cat")).toContainText(labels[lang][cat]);
+    for(const [cat,merchant] of entries)await expect(rows.filter({has:page.locator(".nm-title").filter({hasText:new RegExp("^"+merchant+"$")})}).locator(".nm-cat")).toContainText(labels[lang][cat]);
     const saved=await page.evaluate(()=>mcLoadRaw("micartera_v3").expenses.map(e=>[e.merchant,e.category,e.amount]));
     expect(saved).toEqual(expect.arrayContaining([["Zona azul elegida como multa","multas",5],["Peaje elegido como zona azul","zona_azul",2],["Multa elegida como peaje","peajes",3]]));
   });
@@ -74,7 +74,7 @@ for(const lang of ["es","en","ca"]){
     }
     // La ficha y Apuntar usan el mismo catálogo; corregir solo esta fila no cambia otras.
     await page.locator(".v4-gastos-list-body button.v4-mov").click();
-    await page.locator('.v4-ficha-cat-title button').filter({hasText:/Todas|All|Totes/}).click();
+    await page.locator('.v4-exp-sheet .v4-ficha-cat-title button').click();
     await page.locator('[data-testid="expense-all-cat-zona_azul"]').click();
     await expect.poll(()=>page.evaluate(()=>mcLoadRaw("micartera_v3").expenses.find(e=>e.id==="peajes").category)).toBe("zona_azul");
     // El SW sirve el mismo artefacto offline; esperar control impide confundir una caída de red con la app.
