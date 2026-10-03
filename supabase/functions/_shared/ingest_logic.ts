@@ -113,6 +113,20 @@ export function isAtmWithdrawal(comercio: string): boolean {
   if (/\batm\b/.test(c)) return true;
   return false;
 }
+// Espejo de altas nuevas del cliente: no modifica ninguna fila ni migra el histórico.
+function mobilityCategoryOfNewMerchant(comercio: string, cat: string): string {
+  const c = norm(comercio);
+  if (cat !== "transporte" && cat !== "otros" && !(cat === "super" && /\bcarrefour gas\b/.test(c))) return cat;
+  if (/\buber[^a-z0-9]*eats\b/.test(c)) return "bares";
+  if (/\b(recarga|recarrega|carga|carrega)\b.*electric|electric.*\b(recarga|recarrega|carga|carrega)\b|\bev charging\b|\bcharging station\b/.test(c)) return "transporte";
+  if (/\brepsol\b/.test(c)) {
+    if (/\bluz\b|electric|energia/.test(c)) return "luz";
+    if (/\bgas natural\b|\bfactura gas\b/.test(c)) return "gas";
+  }
+  if (/\b(gasolina|gasolinera|gasoleo|carburante|fuel|petrol|benzina|ballenoil|plenergy|petrocat)\b|\bestacion de servicio\b|\bcarrefour gas\b|\b(repsol|cepsa|shell|bp|galp)\b.*\bdiesel\b/.test(c)) return "gasolina";
+  if (/\b(taxi|cabify|uber|moove|bolt|free ?now|ambitus)\b/.test(c)) return "taxi";
+  return cat;
+}
 export function categorizar(comercio: string): string {
   const c = norm(comercio);
   if (isAtmWithdrawal(comercio)) return "traspaso";
@@ -134,9 +148,9 @@ export function categorizar(comercio: string): string {
     return false;
   };
   for (const [cat, kws] of Object.entries(CATEGORIAS)) {
-    for (const kw of kws) if (hit(c, kw)) return cat;
+    for (const kw of kws) if (hit(c, kw)) return mobilityCategoryOfNewMerchant(comercio, cat);
   }
-  return "otros";
+  return mobilityCategoryOfNewMerchant(comercio, "otros");
 }
 
 export type Tipo = "gasto" | "gasto_nocard" | "ingreso" | "ignorado";

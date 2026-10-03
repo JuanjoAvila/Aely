@@ -2638,6 +2638,8 @@ const CATEGORIES = [
   { id:"gaming",     name:"Videojuegos",         color:"#7B8CDE", icon:"🎮" },
   { id:"viajes",     name:"Viajes",              color:"#5B8DEF", icon:"✈️" },
   { id:"transporte", name:"Transporte",          color:"#7FB5E8", icon:"🚇" },
+  { id:"gasolina",   name:"Gasolina",            color:"#E8945F", icon:"⛽" },
+  { id:"taxi",       name:"Taxi",                color:"#E6C36A", icon:"🚕" },
   { id:"parking",    name:"Parking",             color:"#8AA0B8", icon:"🅿️" },
   /* AGUA, LUZ Y GAS POR SEPARADO (2026-09-12). Antes era una sola, «Luz, gas y agua», con un ⚡
      de icono. Suyo: *«sale un símbolo de rayito en Aigües de Barcelona que no encaja para nada…
@@ -2888,7 +2890,24 @@ function sugerenciaApuntar(o){
 }
 function categoryOfNewMerchant(merchant){
   if(isAtmWithdrawal(merchant)) return "traspaso";
-  return autoCategory(merchant||"");
+  const cat=autoCategory(merchant);
+  if(USER_OVERRIDES[catKey(merchant)] && !CAT_NEUTRAS[USER_OVERRIDES[catKey(merchant)]]) return cat;
+  return mobilityCategoryOfNewMerchant(merchant,cat);
+}
+// Solo altas nuevas: autoCategory también se usa para leer/migrar «Otros» antiguos.
+// Una marca energética sola no prueba carburante; comida y suministros conservan su finalidad.
+function mobilityCategoryOfNewMerchant(merchant,cat){
+  const c=catKey(merchant);
+  if(cat!=="transporte" && cat!=="otros" && !(cat==="super" && /\bcarrefour gas\b/.test(c))) return cat;
+  if(/\buber[^a-z0-9]*eats\b/.test(c)) return "bares";
+  if(/\b(recarga|recarrega|carga|carrega)\b.*electric|electric.*\b(recarga|recarrega|carga|carrega)\b|\bev charging\b|\bcharging station\b/.test(c)) return "transporte";
+  if(/\brepsol\b/.test(c)){
+    if(/\bluz\b|electric|energia/.test(c)) return "luz";
+    if(/\bgas natural\b|\bfactura gas\b/.test(c)) return "gas";
+  }
+  if(/\b(gasolina|gasolinera|gasoleo|carburante|fuel|petrol|benzina|ballenoil|plenergy|petrocat)\b|\bestacion de servicio\b|\bcarrefour gas\b|\b(repsol|cepsa|shell|bp|galp)\b.*\bdiesel\b/.test(c)) return "gasolina";
+  if(/\b(taxi|cabify|uber|moove|bolt|free ?now|ambitus)\b/.test(c)) return "taxi";
+  return cat;
 }
 function isAtmWithdrawal(merchant){
   const c=(merchant||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
@@ -4997,8 +5016,9 @@ const LANG = {
     v4_gastos_inc_line:"Ingresos {x} · balance {bal}", v4_gastos_split_line:"Gastos {spent} · ingresos {income}",
     v4_gastos_lbl_spent:"Gastos", v4_gastos_lbl_income:"Ingresos", v4_gastos_lbl_balance:"Balance",
     v4_gastos_cats:"Por categoría · toca una para ponerle un límite", v4_gastos_cat_limit:"límite {x}",
-    v4_gastos_cats_hide:"Ocultar", v4_gastos_cats_show:"Ver", v4_gastos_cats_n:"{n} categorías este mes",
-    v4_gastos_cats_n1:"1 categoría este mes", v4_gastos_cats_cycle_n:"{n} categorías este ciclo", v4_gastos_cats_cycle_n1:"1 categoría este ciclo",
+    v4_gastos_spent_period:"Gastado · {period}", v4_gastos_net_period:"Balance · {period}", v4_gastos_cats_period_n:"{n} categorías · {period}", v4_gastos_cats_period_n1:"{n} categoría · {period}",
+    v4_gastos_budget_period_unknown:"El límite es para el mes o ciclo actual; este periodo no tiene un presupuesto registrado.",
+    v4_gastos_cats_hide:"Ocultar", v4_gastos_cats_show:"Ver",
     g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Solo para verlo: no cambia tu presupuesto ni te bloquea. Vacío o 0 = quitar el límite.",
     g_cat_budget_clear:"Quitar límite",
     v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
@@ -5605,7 +5625,7 @@ Object.assign(LANG.es,{
   g_empty_t:"No hay gastos aquí", g_empty_d:"Cambia el filtro, sincroniza o apunta uno.", g_loadmore:"Cargando más…",
   g_empty_period_t:"Aún no hay gastos en este período", g_empty_period_d:"Es normal si acaba de empezar el mes o tu ciclo — irán apareciendo según sincronices o apuntes alguno.",
   g_today:"Hoy", g_yesterday:"Ayer", g_invalid:"Pon un importe válido", g_saved_g:"✓ Gasto apuntado", g_saved_i:"✓ Ingreso apuntado", g_deleted:"Eliminado", g_changecat:"Cambiar categoría",
-  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Cuota",
+  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_gasolina:"Gasolina", cat_taxi:"Taxi", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Cuota",
   freq_mes:"mensual", freq_bimestral:"bimestral", freq_trimestral:"trimestral", freq_semestral:"semestral", "freq_año":"anual",
   // Fijos
   fj_monthly:"Gasto fijo mensual", fj_peryear:"{x}/año", fj_top_a:"Tu mayor gasto fijo es ", fj_top_b:" ({x}/mes)",
@@ -8557,7 +8577,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     });
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d) || !(d.monthly>0)) return;
-      if(isDebtPaidThisMonth(d,today)) return;
+      if(isDebtPaidThisMonth(d,today,state,tt.curYear,cm)) return;
       rows.push({day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:d.monthly, pos:false});
     });
     (state.flows||[]).forEach(function(f){
@@ -8907,19 +8927,29 @@ function budgetPaydayOf(state, nowMs, expenses){
    lag que crecía con el uso (feedback 2026-07-24). Devuelve {from,to} con Infinity de comodín. */
 function presetBoundsMs(preset,range,cycleStart){
   const now=new Date();
-  if(preset==="month") return {from:startOfMonth().getTime(), to:Infinity};
-  if(preset==="cycle") return {from:(cycleStart||startOfMonth()).getTime(), to:Infinity};
+  const monthEnd=new Date(now.getFullYear(),now.getMonth()+1,1).getTime()-1;
+  if(preset==="month") return {from:startOfMonth().getTime(), to:monthEnd};
+  if(preset==="cycle"){
+    const tomorrow=new Date(now); tomorrow.setHours(24,0,0,0);
+    return {from:(cycleStart||startOfMonth()).getTime(), to:cycleStart?tomorrow.getTime()-1:monthEnd};
+  }
   if(preset==="last") return {from:startOfMonth(new Date(now.getFullYear(),now.getMonth()-1,1)).getTime(), to:startOfMonth().getTime()-1};
-  if(preset==="3m") return {from:new Date(now.getFullYear(),now.getMonth()-2,1).getTime(), to:Infinity};
+  if(preset==="3m") return {from:new Date(now.getFullYear(),now.getMonth()-2,1).getTime(), to:monthEnd};
   if(preset==="custom"){
     let from=-Infinity, to=Infinity;
-    if(range&&range.from){ const f=new Date(range.from); if(!isNaN(f.getTime())) from=f.getTime(); }
-    if(range&&range.to){ const tt=new Date(range.to); if(!isNaN(tt.getTime())){ tt.setHours(23,59,59,999); to=tt.getTime(); } }
+    if(range&&range.from){ const f=new Date(range.from+"T00:00:00"); if(!isNaN(f.getTime())) from=f.getTime(); }
+    if(range&&range.to){ const tt=new Date(range.to+"T00:00:00"); if(!isNaN(tt.getTime())){ tt.setHours(23,59,59,999); to=tt.getTime(); } }
     return {from:from, to:to};
   }
   return {from:-Infinity, to:Infinity};   // "all" y cualquier preset desconocido
 }
 function inBounds(ms,b){ return ms>=b.from && ms<=b.to; }
+// La elección de fechas debe mover juntas lista y cifras; el presupuesto de Inicio y
+// sus lectores conserva su propia ventana (reporte 2/10/2026).
+function gastosPeriodOf(preset,bounds,cycle){
+  return {startMs:bounds.from,todayEndMs:bounds.to===Infinity?Infinity:bounds.to+1,
+    cycle:preset==="cycle"?cycle:null};
+}
 // Fila de una suscripción detectada. Importe EDITABLE antes de «pasar a Fijos» (petición
 // 2026-08-03: recibos que se repiten cada mes pero varían de importe —luz, gas— para no dejarlos
 // con el de este mes y tener que corregirlo a mano el que viene) + botón para descartarla del
@@ -9355,6 +9385,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // `todayKey` invalida ciclo, filtros y cabecera cuando la app queda abierta al cruzar el día;
   // así el 26 o el día 1 no conserva cifras del período anterior en un memo.
   const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,todayKey]);
+  const selectedPeriod=useMemo(function(){ return gastosPeriodOf(preset,bounds,cycle); },[preset,bounds,cycle]);
   const diarioEnts=useMemo(function(){ return expenseBankEnts(state); },[state.accounts, state.settings]);
   const diarioPrev=useRef(diarioEnts.slice());
   const diarioKey=diarioEnts.slice().sort().join("|");
@@ -9433,28 +9464,35 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     dragExpenseRef.current=null; setDragExpense(null);
   },[set]);
 
-  // El filtro solo explora la lista: la cabecera sigue el período de presupuesto elegido en
-  // Ajustes, no cambia al tocar categorías ni al mirar otro rango (feedback pareja 28/9).
-  // Cifras = `monthBudgetStats` (misma fuente que Inicio; el widget sigue por mes natural).
+  // Las fechas elegidas mueven cabecera y categorías junto a la lista (reporte 2/10).
+  // Buscar o filtrar bancos/categorías sigue explorando movimientos sin redefinir el límite.
   // `accounts` + `settings` van en deps: monthBudgetStats → expenseCountsBudget → expenseBankEnts
   // lee rol diario y expenseBanks. Sin ellos, quitar un banco de gasto diario dejaba la cabecera
   // alta hasta que un sync cambiaba `expenses` (B09-A / feedback familia 2026-09-06).
+  const budgetApplies=preset==="month"||preset==="cycle";
   const monthSummary=useMemo(function(){
     const now=new Date();
-    const bs=monthBudgetStats(state);
+    const bs=monthBudgetStats(Object.assign({},state,{expenses:expensesDef}),null,null,null,selectedPeriod);
+    // No existe una foto histórica del límite ni un presupuesto acumulado para varios meses.
+    // Enseñar el límite actual como margen del pasado inventaría dinero disponible.
+    if(!budgetApplies){ bs.budget=null; bs.remaining=null; }
+    const periodLabel=preset==="custom"
+      ? (range.from?fmtIsoCorto(range.from):t("g_all"))+" → "+(range.to?fmtIsoCorto(range.to):t("g_all"))
+      : t("g_"+preset);
     return {
       spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against,
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
       day:now.getDate(),
-      last:new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),
-      month:monthLong(now.getMonth()), cycle:bs.cycle, periodStart:bs.periodStart
+      month:monthLong(now.getMonth()), cycle:!!selectedPeriod.cycle,
+      periodLabel:periodLabel, budgetApplies:budgetApplies
     };
-  },[state.expenses,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,todayKey]);
+  },[expensesDef,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,selectedPeriod,preset,range,budgetApplies,todayKey]);
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
-    return categorySpentByMonth(state);
-  },[state.expenses,state.deleted,state.categoryBudgets,state.accounts,state.settings,todayKey]);
+    const rows=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,selectedPeriod);
+    return budgetApplies?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
+  },[expensesDef,state.deleted,state.categoryBudgets,state.accounts,state.settings,selectedPeriod,budgetApplies,todayKey]);
   /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
      —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
   const catsOpen=!(state.settings && state.settings.gastosCatsOff);
@@ -9664,7 +9702,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
           React.createElement("div",{className:"v4-gastos-summary-label"},
             monthSummary.cycle
               ? t(monthSummary.mode==="net"?"v4_gastos_net_cycle":"v4_gastos_spent_cycle")
-              : tf(monthSummary.mode==="net"?"v4_gastos_net_in":"v4_gastos_spent_in",{month:monthSummary.month})),
+              : preset==="month"
+                ? tf(monthSummary.mode==="net"?"v4_gastos_net_in":"v4_gastos_spent_in",{month:monthSummary.month})
+                : tf(monthSummary.mode==="net"?"v4_gastos_net_period":"v4_gastos_spent_period",{period:monthSummary.periodLabel})),
           // Importe en blanco, sin signo, € al lado (como el patrimonio). El rojo/menos
           // confundía el «balance» con una alarma (feedback 2026-07-17).
           (function(){
@@ -9696,18 +9736,18 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         ),
         React.createElement("div",{className:"v4-gastos-summary-budget"},
           React.createElement("div",null,tf("v4_gastos_of",{x:monthSummary.budget==null?"—":eur(monthSummary.budget)})),
-          React.createElement("div",{className:"v4-gastos-summary-left"},tf("v4_gastos_left",{x:monthSummary.remaining==null?"—":eur(monthSummary.remaining)}))
+          React.createElement("div",{className:"v4-gastos-summary-left"},tf("v4_gastos_left",{x:monthSummary.remaining==null?"—":eur(monthSummary.remaining)})),
+          !monthSummary.budgetApplies && React.createElement("div",{className:"hint"},t("v4_gastos_budget_period_unknown"))
         )
       ),
-      React.createElement("div",{className:"v4-gastos-progress",role:"progressbar","aria-valuemin":0,"aria-valuemax":monthSummary.budget||0,"aria-valuenow":Math.max(0,monthSummary.against)},
+      monthSummary.budgetApplies && React.createElement("div",{className:"v4-gastos-progress",role:"progressbar","aria-valuemin":0,"aria-valuemax":monthSummary.budget||0,"aria-valuenow":Math.max(0,monthSummary.against)},
         React.createElement("i",{style:{width:monthSummary.budget==null?"0%":Math.min(100,Math.max(0,monthSummary.against)/monthSummary.budget*100)+"%"}})
       ),
       React.createElement("div",{className:"v4-gastos-progress-marks"},
-        React.createElement("span",monthSummary.cycle
-          ? new Date(monthSummary.periodStart).toLocaleDateString(loc(),{day:"2-digit",month:"short"})
-          : "1 "+monthSummary.month),
-        React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
-        !monthSummary.cycle && React.createElement("span",monthSummary.last+" "+monthSummary.month)
+        React.createElement("span",isFinite(bounds.from)
+          ? new Date(bounds.from).toLocaleDateString(loc(),{day:"2-digit",month:"short"}) : t("g_all")),
+        monthSummary.budgetApplies && React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
+        !monthSummary.cycle && isFinite(bounds.to) && React.createElement("span",new Date(bounds.to).toLocaleDateString(loc(),{day:"2-digit",month:"short"}))
       ),
       /* SE PUEDE OCULTAR (petición de su pareja, 10/9, y con razón).
          Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria
@@ -9724,8 +9764,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
           "aria-expanded":catsOpen,"aria-controls":"gastos-cats-body",onClick:toggleCats},
           React.createElement("span",{className:"v4-gastos-cats-t"},
             catsOpen ? t("v4_gastos_cats")
-                     : (catBreakdown.length===1 ? t(monthSummary.cycle?"v4_gastos_cats_cycle_n1":"v4_gastos_cats_n1")
-                       : tf(monthSummary.cycle?"v4_gastos_cats_cycle_n":"v4_gastos_cats_n",{n:catBreakdown.length}))),
+                     : tf(catBreakdown.length===1?"v4_gastos_cats_period_n1":"v4_gastos_cats_period_n",{n:catBreakdown.length,period:monthSummary.periodLabel})),
           React.createElement("span",{className:"v4-gastos-cats-fold"},
             (catsOpen?"▾ ":"▸ ")+t(catsOpen?"v4_gastos_cats_hide":"v4_gastos_cats_show"))),
         React.createElement("div",{id:"gastos-cats-body",className:"v4-gastos-cats-body"+(catsOpen?" abierto":""),"aria-hidden":!catsOpen},
@@ -13020,7 +13059,7 @@ const dayOf=(e)=> (e&&e.day)||null;
 // Deudas sin día explícito: día 1 (entran en el motor de líquido como los fijos; antes quedaban
 // fuera hasta cerrar mes — bug #2 «deuda no dinámica»).
 function debtChargeDay(d){ const dd=dayOf(d); return (dd!=null && dd>0) ? dd : 1; }
-function isDebtPaidThisMonth(d,today){ return debtChargeDay(d)<=today; }
+function isDebtPaidThisMonth(d,today,s,y,m){ return s&&debtPaymentState(s,d,y,m,today).paid || debtChargeDay(d)<=today; }
 // ¿ya se cobró en el mes m? (su día ya pasó o ES HOY). Solo tiene sentido para el mes actual.
 // `<=`: lo programado para HOY cuenta como hecho. Clave para no duplicar la nómina/cargos del día
 // con el saldo real del banco (que ya los refleja) → si no, fin de mes los sumaría por segunda vez.
@@ -13344,13 +13383,50 @@ function fixedPaymentState(s,e,y,m,today){
     overdue:!paid&&day!=null&&day<today,bankTx:tx,paidBank:paid?(proof?proof.bank:tx?tx.ent:bank):null,
     paidAmount:proof?Number(proof.amount):tx?Number(tx.amount):null};
 }
-function planChargesMonth(s,m,y,t){
+/* Una cuota vinculada ya contabilizada puede adelantarse al vencimiento. El vínculo identifica
+   la deuda; el cargo cercano identifica SU mes, también al cruzar el día 1. No reanclamos el
+   saldo ni el principal: el banco ya incluye el pago (feedback 2/10/2026). */
+function debtPaymentState(s,d,y,m,today){
+  var day=cleanDay(dayOf(d)),target=(Number(d.monthly)||0)+debtBalloonIn(d,y,m);
+  var unique=!!d.id&&(s.debts||[]).filter(function(other){ return other.id===d.id; }).length===1;
+  var deleted=expenseDeletedSet(s),end=new Date(y,m-1,today,23,59,59).getTime();
+  var rows=(s.expenses||[]).filter(function(x){
+    if(!unique||day==null) return false;
+    // amount ya está normalizado a EUR; origCur solo conserva el rastro bancario. Un
+    // esquema externo que aún rotule amount con otra moneda no acredita euros.
+    if(x&&(x.cur||x.currency)&&String(x.cur||x.currency).toUpperCase()!=="EUR") return false;
+    // La previsión muestra la cuota acordada: un cargo parecido no acredita ese importe.
+    // Se comparan céntimos EUR, sin heredar la tolerancia del clasificador de movimientos.
+    if(!x||x.debtId!==d.id||x.category!=="deudas"||x.possibleDup||!isFinite(Number(x.amount))||!(Number(x.amount)>0)||Math.round(target*100)!==Math.round(Number(x.amount)*100)) return false;
+    if(x.status&&String(x.status).toUpperCase()!=="BOOK") return false;
+    var ds=String(x.date||"").slice(0,10),ms=dateMs(ds),bank=expenseBankOf(x);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)||!isFinite(ms)||ms>end||!bank||expenseIsTombstoned(x,deleted)) return false;
+    var parts=ds.split("-").map(Number);
+    if(parts[1]<1||parts[1]>12||parts[2]<1||parts[2]>new Date(parts[0],parts[1],0).getDate()) return false;
+    var charge=cuotaCargoCercano(d,ms);
+    if(charge.key!==y+"-"+m||charge.dias>CUOTA_ALIAS_DIAS) return false;
+    var identity=fixedPaymentIdentity(bank,x);
+    // Vincular un apunte manual o una notificación no prueba que el saldo ya incluya el
+    // pago: sin origen bancario hace falta un BOOK único (NO-GO de revisión, 3/10/2026).
+    if(x.source!=="ob"&&(s.bankTx||[]).filter(function(tx){ return fixedPaymentIdentity(tx.ent,tx)===identity; }).length!==1) return false;
+    return fixedPaymentFeedClear(s,identity)&&(s.expenses||[]).filter(function(other){
+      return fixedPaymentIdentity(expenseBankOf(other),other)===identity;
+    }).length===1;
+  });
+  var x=rows.length===1?rows[0]:null;
+  // La fila de Plan rotula el mes de vencimiento: un cargo del mes anterior no puede
+  // aparecer allí con una fecha futura ficticia (por ejemplo, «31 de octubre»).
+  var sameMonth=x&&String(x.date).slice(0,7)===y+"-"+String(m).padStart(2,"0");
+  return {paid:!!x||day!=null&&day<=today,day:sameMonth?recDay(x.date):day,
+    paidBank:x?expenseBankOf(x):null,paidAmount:x?Number(x.amount):null,expense:x};
+}
+function planChargesMonth(s,m,y,today){
   s=s||{};
   var r=[];
   (s.fixed||[]).forEach(function(e){
     var a=occAmountIn(e,m);
     if(!(a>0)||!occursIn(e,m)) return;
-    var status=fixedPaymentState(s,e,y,m,t);
+    var status=fixedPaymentState(s,e,y,m,today);
     r.push({id:"fixed_"+e.id,name:e.name,amount:a,day:status.day,bank:accOf(e),paid:status.paid,paidBank:status.paidBank,paidAmount:status.paidAmount,plannedBankAmount:e.bankAmount>0?Number(e.bankAmount):a,overdue:status.overdue});
   });
   (s.debts||[]).forEach(function(d){
@@ -13358,26 +13434,24 @@ function planChargesMonth(s,m,y,t){
     var b=d.account||"sabadell";
     // Sin day: pendiente con día desconocido. NO usar debtChargeDay/isDebtPaidThisMonth
     // (ese fallback a día 1 marcaba la cuota como ya pagada desde el día 1 — NO-GO 17/9).
-    var dr=dayOf(d);
-    var dy=(dr!=null&&dr>0&&isFinite(dr))?Number(dr):null;
-    var p=dy!=null&&dy<=t;
+    var status=debtPaymentState(s,d,y,m,today),dy=status.day,p=status.paid;
     var a=Number(d.monthly)||0;
-    if(a>0) r.push({id:"debt_"+d.id,name:d.name,amount:a,day:dy,bank:b,paid:p,kind:"debt"});
+    if(a>0) r.push({id:"debt_"+d.id,name:d.name,amount:a,day:dy,bank:b,paid:p,paidBank:status.paidBank,kind:"debt"});
     var bl=debtBalloonIn(d,y,m);
-    if(bl>0) r.push({id:"balloon_"+d.id,name:d.name+" "+t("db_balloon_tag"),amount:bl,day:dy,bank:b,paid:p,kind:"balloon"});
+    if(bl>0) r.push({id:"balloon_"+d.id,name:d.name+" "+t("db_balloon_tag"),amount:bl,day:dy,bank:b,paid:p,paidBank:status.paidBank,kind:"balloon"});
   });
   (s.oneoffs||[]).forEach(function(o){
     if(!oneoffOccurs(o,y,m)) return;
     var a=Number(o.amount)||0;
     if(!(a>0)) return;
     var d=o.day!=null?Number(o.day):null;
-    var p=d!=null&&d<=t;
+    var p=d!=null&&d<=today;
     r.push({id:"oneoff_"+o.id,name:o.name||o.merchant||"",amount:a,day:d,bank:o.account||"sabadell",paid:p,kind:"oneoff"});
   });
   (s.flows||[]).forEach(function(f){
     if(!flowOccursIn(f,m,y)) return;
     var d=flowDay(f,y,m);
-    var p=flowPaidIn(s,f,y,m,t);
+    var p=flowPaidIn(s,f,y,m,today);
     var a=+(f.amount||0);
     if(!(a>0)) return;
     if(f.kind==="income"){
@@ -13734,7 +13808,7 @@ function applyBankBalances(s, links){
 function bankPendingEvents(state, bank, y, m, today){
   const evs=[];
   (state.fixed||[]).forEach(function(e){ if(occursIn(e,m)&&accOf(e)===bank&&!isPaidIn(e,m,today,y)) evs.push({day:dayIn(e,m)||0, amt:-occAmountIn(e,m)}); });
-  (state.debts||[]).forEach(function(d){ if(debtActive(d)&&(d.account||"sabadell")===bank&&!isDebtPaidThisMonth(d,today)){ evs.push({day:debtChargeDay(d), amt:-(d.monthly||0)}); const bl=debtBalloonIn(d,y,m); if(bl>0) evs.push({day:debtChargeDay(d), amt:-bl}); } });
+  (state.debts||[]).forEach(function(d){ if(debtActive(d)&&(d.account||"sabadell")===bank&&!isDebtPaidThisMonth(d,today,state,y,m)){ evs.push({day:debtChargeDay(d), amt:-(d.monthly||0)}); const bl=debtBalloonIn(d,y,m); if(bl>0) evs.push({day:debtChargeDay(d), amt:-bl}); } });
   (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.account||"sabadell")===bank&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({day:o.day||0, amt:-o.amount}); });
   (state.flows||[]).forEach(function(f){ if(!flowOccursIn(f,m,y)||flowPaidIn(state,f,y,m,today))return; const dd=flowDay(f,y,m); if(f.kind==="income"&&(f.to||"sabadell")===bank) evs.push({day:dd||99, amt:f.amount}); else if(f.kind==="transfer"&&(f.from||"sabadell")===bank) evs.push({day:dd||0, amt:-f.amount}); });
   return evs;
@@ -13871,17 +13945,20 @@ function reconcileBank(state, y, m, today){
 
 function categoryOfBankTx(tx){
   const m=tx.merchant||"", cat=categoryOfNewMerchant(m);
-  // El MCC solo completa comercios sin categoría: no pisa aprendizaje manual ni retiradas.
-  // Tabla acotada a correspondencias claras del manual Visa (abril 2026); el resto queda en Otros.
-  if(cat!=="otros" || USER_OVERRIDES[catKey(m)]==="otros") return cat;
+  // Los MCC nuevos solo completan marcas energéticas ambiguas; los anteriores no cambian.
+  // Finalidad reconocida y overrides, incluso Otros, mandan antes del dato de tarjeta.
+  const energyBrand=/^(repsol|cepsa|shell|bp|galp)$/;
+  const mobilityMcc=tx.card && /^(5541|5542|4121)$/.test(String(tx.mcc||""));
+  if((cat!=="otros" && !(cat==="transporte" && mobilityMcc && energyBrand.test(catKey(m)) && !USER_OVERRIDES[catKey(m)])) || USER_OVERRIDES[catKey(m)]==="otros") return cat;
   const note=String(tx.concept||"");
-  // «Pago alquiler día 5» no identifica una tienda: nunca se clasifica por texto libre de
-  // transferencias/recibos. El nombre OB sigue intacto para dedup y lápidas de TR sin id.
-  if(tx.card && /^(movimiento|movement|transaction)?$/i.test(m.trim()) && !/transfer|bizum|recibo|alquiler|n[oó]mina|devoluci|refund/i.test(note)){
+  // El concepto de una transferencia/recibo no identifica una compra de tarjeta.
+  if(tx.card && (/^(movimiento|movement|transaction)?$/i.test(m.trim()) || mobilityMcc) && !/transfer|bizum|recibo|alquiler|n[oó]mina|devoluci|refund/i.test(note)){
     const c=categoryOfNewMerchant(note);
-    if(c!=="otros" || USER_OVERRIDES[catKey(note)]==="otros") return c;
+    if((c!=="otros" && !(mobilityMcc && c==="transporte" && energyBrand.test(catKey(note)) && !USER_OVERRIDES[catKey(note)])) || USER_OVERRIDES[catKey(note)]==="otros") return c;
   }
   switch(tx.mcc){
+    case "5541": case "5542": return tx.card?"gasolina":cat;
+    case "4121": return tx.card?"taxi":cat;
     case "5411": return "super";
     case "5462": return "pan";
     case "5812": case "5813": case "5814": return "bares";
@@ -14317,8 +14394,9 @@ function budgetPeriodOf(state, nowMs){
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
    que pinta la cabecera de Gastos (balance en el ciclo; gasto bruto o balance según gTotalMode en el mes). */
-function monthBudgetStats(state, nowMs, hastaMs, budgetMode){
-  const period=budgetPeriodOf(state,nowMs);
+function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
+  // Gastos puede explorar otras fechas; los lectores sin ventana explícita conservan su contrato.
+  const period=selectedPeriod||budgetPeriodOf(state,nowMs);
   const startMs=period.startMs;
   // `hastaMs` acota un informe cerrado; solo el ciclo actual termina mañana para que un
   // apunte futuro no gaste hoy. El mes natural conserva la misma cifra que el widget.
@@ -14375,8 +14453,8 @@ function dashboardBudgetStats(state){
    cuadrar al céntimo con la cabecera. Neutras fuera. Un límite huérfano (id que ya no está
    en CAT) no se enseña ni suma. Sin gastos pero con límite → fila a 0, para que no parezca
    que se ha borrado el tope. */
-function categorySpentByMonth(state, nowMs, hastaMs){
-  const period=budgetPeriodOf(state,nowMs);
+function categorySpentByMonth(state, nowMs, hastaMs, selectedPeriod){
+  const period=selectedPeriod||budgetPeriodOf(state,nowMs);
   const startMs=period.startMs;
   const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : period.todayEndMs;
   const byCat={};
@@ -15756,7 +15834,7 @@ function Fijos({state, set, totals}){
   const oneoffs=state.oneoffs||[];
   const chargesOf=(mo,yr)=>{ const items=[];
     state.fixed.forEach(e=>{ if(occursIn(e,mo)&&occAmountIn(e,mo)!==0) items.push({key:e.id,name:e.name,amount:occAmountIn(e,mo),bank:accOf(e),day:dayIn(e,mo),paid:mo===cm&&yr===cy&&isPaidIn(e,mo,today,yr)}); });
-    state.debts.forEach(d=>{ if(debtActive(d)){ items.push({key:d.id,name:d.name,amount:d.monthly,debt:true,bank:d.account||"sabadell",day:debtChargeDay(d),paid:mo===cm&&isDebtPaidThisMonth(d,today)}); const bl=debtBalloonIn(d,yr,mo); if(bl>0) items.push({key:d.id+"_balloon",name:d.name+" "+t("db_balloon_tag"),amount:bl,debt:true,bank:d.account||"sabadell",day:debtChargeDay(d),paid:mo===cm&&isDebtPaidThisMonth(d,today)}); } });
+    state.debts.forEach(d=>{ if(debtActive(d)){ items.push({key:d.id,name:d.name,amount:d.monthly,debt:true,bank:d.account||"sabadell",day:debtChargeDay(d),paid:mo===cm&&isDebtPaidThisMonth(d,today,state,yr,mo)}); const bl=debtBalloonIn(d,yr,mo); if(bl>0) items.push({key:d.id+"_balloon",name:d.name+" "+t("db_balloon_tag"),amount:bl,debt:true,bank:d.account||"sabadell",day:debtChargeDay(d),paid:mo===cm&&isDebtPaidThisMonth(d,today,state,yr,mo)}); } });
     oneoffs.forEach(o=>{ if(oneoffOccurs(o,yr,mo)&&(o.amount||0)!==0) items.push({key:o.id,name:o.name,amount:o.amount,oneoff:true,bank:o.account||"sabadell",day:o.day||null,paid:mo===cm&&yr===cy&&isPaidThisMonth(o,today)}); });
     return items; };
   const byDay=(a,b)=> ((a.day||99)-(b.day||99)) || (b.amount-a.amount);   // por DÍA; sin día, al final
@@ -19680,7 +19758,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="09a410789a241f17960cc5502abe2cd90ba53d7a4b28ef58f23761913234ff5f";
+var _rnSha="43003f4cda26ce8b2ad7528bc3516276509b5f6ea0fe74adead46055adafd277";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -21160,7 +21238,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     : [{id:"recibos",lab:t("v4_plan_recibos")},{id:"deudas",lab:t("v4_plan_deudas")},{id:"metas",lab:t("v4_plan_metas")}];
   const charges=useMemo(function(){
     return planChargesMonth(state, totals.curMonth, totals.curYear, totals.today);
-  },[state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,totals.curMonth,totals.curYear,totals.today]);
+  },[state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,totals.curMonth,totals.curYear,totals.today]);
   const pick=useMemo(function(){
     return planCoverPickBank(totals, charges.pendingByBank, charges.pendingBills, charges.paidBills);
   },[totals.minByBank,totals.minDayByBank,totals.mainBank,charges.pendingByBank,charges.pendingBills,charges.paidBills]);
@@ -21487,7 +21565,7 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
         var inv=toEnt&&((state.investments||[]).some(function(i){ return i.ent===toEnt; })||(state.accounts||[]).some(function(a){ return a.ent===toEnt&&a.role==="extra"; }));
         return inv?tf("v4s_row_invest",{bank:entOf(toEnt).label}):tf("v4s_row_to",{bank:entOf(toEnt||x.bank).label});
       }
-      if(x.kind==="debt"||x.kind==="balloon") return tf("v4s_row_debt",{name:x.name});
+      if(x.kind==="debt"||x.kind==="balloon") return tf("v4s_row_debt",{name:x.name})+(x.paidBank&&x.paidBank!==x.bank?" · "+entOf(x.paidBank).label:"");
       return tf("v4s_row_from",{bank:entOf(bank).label})+(changedPaid(x)?" · "+tf("v4_charge_actual",{x:eur(x.paidAmount)}):"");
     }
     var tag=x.kind==="income"?t("fj_income_tag"):(x.kind==="transfer"?t("fj_transfer_tag"):(x.kind==="debt"||x.kind==="balloon"?t("fj_debt_tag"):t("fj_fixed_tag")));
@@ -25166,7 +25244,7 @@ function App(){
       if(paid){ paidThisMonth+=amt; }
       else { pendingThisMonth+=amt; pendingByBank[bank]=(pendingByBank[bank]||0)+amt; } };
     state.fixed.forEach(e=>{ if(occursIn(e,curMonth)) acc(occAmountIn(e,curMonth),accOf(e),isPaidIn(e,curMonth,today)); });
-    state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today)); });
+    state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
     // --- CASH-FLOW: ingresos (nómina) y transferencias recurrentes PENDIENTES este mes ---
     // El saldo del banco ya refleja lo que ya ocurrió (día pasado); solo proyectamos lo pendiente.
@@ -25189,7 +25267,7 @@ function App(){
     const evsByBank={};
     const pushEv=(bank,day,amt)=>{ (evsByBank[bank]=evsByBank[bank]||[]).push({day:day,amt:amt}); };
     state.fixed.forEach(e=>{ if(occursIn(e,curMonth)&&!isPaidIn(e,curMonth,today)) pushEv(accOf(e), dayIn(e,curMonth)||0, -occAmountIn(e,curMonth)); });
-    state.debts.forEach(d=>{ if(debtActive(d)&&!isDebtPaidThisMonth(d,today)){ pushEv(d.account||"sabadell", debtChargeDay(d), -d.monthly); const bl=debtBalloonIn(d,curYear,curMonth); if(bl>0) pushEv(d.account||"sabadell", debtChargeDay(d), -bl); } });
+    state.debts.forEach(d=>{ if(debtActive(d)&&!isDebtPaidThisMonth(d,today,state,curYear,curMonth)){ pushEv(d.account||"sabadell", debtChargeDay(d), -d.monthly); const bl=debtBalloonIn(d,curYear,curMonth); if(bl>0) pushEv(d.account||"sabadell", debtChargeDay(d), -bl); } });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth)&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) pushEv(o.account||"sabadell", o.day||0, -o.amount); });
     (state.flows||[]).forEach(f=>{ if(!flowOccursIn(f,curMonth,curYear)||flowPaidIn(state,f,curYear,curMonth,today))return; const dd=flowDay(f,curYear,curMonth); if(f.kind==="income") pushEv(f.to||"sabadell", dd||99, f.amount); else if(f.kind==="transfer") pushEv(f.from||"sabadell", dd||0, -f.amount); });
     const minByBank={}, minDayByBank={};
@@ -25219,7 +25297,7 @@ function App(){
   // el buscador, al salir un toast… Con las porciones reales solo se recalcula cuando cambia el
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.bankTx,state.investments,state.assets,state.debts,state.fixed,
-     state.flows,state.oneoffs,state.aportaciones,state.obAccounts,
+     state.flows,state.oneoffs,state.deleted,state.aportaciones,state.obAccounts,
      state.trRewardsTotal,state.fx,state.fxRates,calendarDay]);
 
   const budgetMonth=budgetYmKey();
@@ -25502,7 +25580,7 @@ function App(){
     const nat=natPlugin();
     if(!nat||!nat.showNotification) return;
     const today=totals.today||new Date().getDate();
-    const cm=totals.curMonth;
+    const cm=totals.curMonth,cy=totals.curYear;
     const minAmt=Math.max(80, (totals.fijosMensual||0)*0.12);
     const cal=alertCalendarOf();
     const ym=cal.ym;
@@ -25527,7 +25605,7 @@ function App(){
       // cuotas de deuda (hipoteca, financiaciones…): también avisan la víspera
       (state.debts||[]).forEach(function(d){
         if(!debtActive(d) || !(d.monthly>0)) return;
-        if(isDebtPaidThisMonth(d,today)) return;
+        if(isDebtPaidThisMonth(d,today,state,cy,cm)) return;
         if(debtChargeDay(d)-today!==1) return;
         notify("_rc1_debt_"+d.id+"_"+ym, t("rc_title_tmrw"), tf("rc_body_tmrw",{name:d.name||"?",x:eur(d.monthly)}));
       });
@@ -25543,7 +25621,7 @@ function App(){
         }).catch(run);
       }catch(e){ run(); }
     } else run();
-  },[state.onboarded,locked,showAuth,state.fixed,state.debts,totals.today,totals.curMonth]);
+  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.expenses,state.bankTx,state.deleted,totals.today,totals.curMonth,totals.curYear]);
 
   // Empuja el calendario de recibos del mes al NATIVO (APK ≥29): AlertCheckWorker avisa la
   // víspera aunque la app esté CERRADA. Intercambio de sellos para no avisar dos veces:

@@ -1,5 +1,157 @@
 [
   {
+    "v": "4.26.85",
+    "d": "2026-10-02",
+    "t": {
+      "es": "Gasolina y taxi por separado",
+      "en": "Fuel and taxi separately",
+      "ca": "Benzina i taxi per separat"
+    },
+    "items": {
+      "es": [
+        "Gasolina y Taxi tienen categorías propias para apuntar, filtrar y fijar límites.",
+        "Los gastos ya guardados conservan su categoría.",
+        "Las cuotas adelantadas se reconocen cuando el cargo está confirmado, sin confundirlo con un apunte manual."
+      ],
+      "en": [
+        "Fuel and Taxi have their own categories for recording, filtering and setting limits.",
+        "Previously saved expenses retain their categories.",
+        "Early instalments are recognised when the charge is confirmed, without mistaking a manual entry for payment."
+      ],
+      "ca": [
+        "Benzina i Taxi tenen categories pròpies per apuntar, filtrar i fixar límits.",
+        "Les despeses ja desades conserven la categoria.",
+        "Les quotes avançades es reconeixen quan el càrrec està confirmat, sense confondre un apunt manual amb el pagament."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "feature-0210-01-gasolina-taxi",
+        "rev": 1,
+        "t": {
+          "es": "Gasolina y Taxi",
+          "en": "Fuel and Taxi",
+          "ca": "Benzina i Taxi"
+        },
+        "items": {
+          "es": [
+            "1. En Apuntar, abre todas las categorías y comprueba Gasolina y Taxi con sus iconos. Apunta un gasto en cada una.",
+            "2. En Gastos, filtra cada categoría y comprueba sus movimientos e importes. Pon un límite a cada una y comprueba que Transporte conserva el suyo.",
+            "3. Vuelve a abrir la app: las categorías y los límites siguen guardados. Los gastos antiguos no han cambiado de categoría."
+          ],
+          "en": [
+            "1. In Record, open all categories and check Fuel and Taxi with their icons. Record an expense in each.",
+            "2. In Expenses, filter each category and check its entries and amounts. Set a limit for each and check that Transport retains its own.",
+            "3. Reopen the app: categories and limits remain saved. Old expenses have not changed category."
+          ],
+          "ca": [
+            "1. A Apuntar, obre totes les categories i comprova Benzina i Taxi amb les icones. Apunta una despesa a cadascuna.",
+            "2. A Despeses, filtra cada categoria i comprova els moviments i imports. Posa un límit a cadascuna i comprova que Transport conserva el seu.",
+            "3. Torna a obrir l’app: les categories i els límits continuen desats. Les despeses antigues no han canviat de categoria."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.84",
+    "d": "2026-10-02",
+    "t": {
+      "es": "Gastos del periodo elegido",
+      "en": "Spending for the selected period",
+      "ca": "Despeses del període escollit"
+    },
+    "items": {
+      "es": [
+        "Al elegir otras fechas en Gastos, las categorías y las cifras muestran ese mismo periodo.",
+        "Mi ciclo conserva el balance desde el cobro. Los periodos sin presupuesto registrado lo indican."
+      ],
+      "en": [
+        "When choosing other dates in Spending, categories and figures show the same period.",
+        "My cycle keeps the balance since payday. Periods without a recorded budget say so."
+      ],
+      "ca": [
+        "En triar altres dates a Despeses, les categories i les xifres mostren el mateix període.",
+        "El meu cicle conserva el balanç des del cobrament. Els períodes sense pressupost registrat ho indiquen."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0210-03-gastos-periodo",
+        "rev": 1,
+        "t": {
+          "es": "Gastos y categorías del mismo periodo",
+          "en": "Spending and categories for the same period",
+          "ca": "Despeses i categories del mateix període"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos elige Mes pasado o un rango: las categorías e importes deben corresponder a esas fechas, sin conservar las del ciclo actual.",
+            "2. Vuelve a Este mes y Mi ciclo: el resumen, el desglose y las fechas deben coincidir. Buscar un movimiento no modifica el presupuesto.",
+            "3. En periodos anteriores o de varios meses, el presupuesto y el margen aparecen como — con una explicación."
+          ],
+          "en": [
+            "1. In Spending choose Last month or a range: categories and amounts must match those dates instead of keeping the current cycle.",
+            "2. Return to This month and My cycle: summary, breakdown and dates must agree. Searching for a transaction does not change the budget.",
+            "3. For earlier periods or several months, budget and margin show — with an explanation."
+          ],
+          "ca": [
+            "1. A Despeses tria Mes passat o un rang: les categories i imports han de correspondre a aquelles dates, sense conservar els del cicle actual.",
+            "2. Torna a Aquest mes i El meu cicle: resum, desglossament i dates han de coincidir. Cercar un moviment no modifica el pressupost.",
+            "3. En períodes anteriors o de diversos mesos, el pressupost i el marge apareixen com a — amb una explicació."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.83",
+    "d": "2026-10-02",
+    "t": {
+      "es": "Las cuotas cobradas dejan de estar pendientes",
+      "en": "Charged instalments stop being pending",
+      "ca": "Les quotes cobrades deixen d’estar pendents"
+    },
+    "items": {
+      "es": [
+        "Una cuota de préstamo ya vinculada y contabilizada aparece como pagada aunque llegue antes del día previsto.",
+        "El importe pendiente y la previsión del mes dejan de contar esa cuota otra vez."
+      ],
+      "en": [
+        "A linked and booked loan instalment appears as paid even when charged before its expected date.",
+        "The pending amount and monthly forecast stop counting that instalment again."
+      ],
+      "ca": [
+        "Una quota de préstec ja vinculada i comptabilitzada apareix com a pagada encara que arribi abans del dia previst.",
+        "L’import pendent i la previsió del mes deixen de comptar aquesta quota una altra vegada."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0210-01-plan-cuota",
+        "t": {
+          "es": "Las cuotas cobradas dejan de estar pendientes",
+          "en": "Charged instalments stop being pending",
+          "ca": "Les quotes cobrades deixen d’estar pendents"
+        },
+        "items": {
+          "es": [
+            "1. Comprueba una cuota ya vinculada en Gastos y cargada antes de su vencimiento: en Plan debe estar pagada y desaparecer del pendiente, también al reabrir.",
+            "2. Comprueba que otra deuda similar sigue pendiente y que el saldo actual no recibe un segundo descuento."
+          ],
+          "en": [
+            "1. Check an instalment already linked in Expenses and charged before its due date: in Plan it should be paid and no longer pending, also after reopening.",
+            "2. Check that another similar debt stays pending and the current balance is not charged twice."
+          ],
+          "ca": [
+            "1. Comprova una quota ja vinculada a Despeses i cobrada abans del venciment: a Pla ha d’estar pagada i desaparèixer del pendent, també en reobrir.",
+            "2. Comprova que un altre deute semblant segueix pendent i que el saldo actual no rep un segon descompte."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.82",
     "d": "2026-10-01",
     "t": {

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import {execFileSync} from "node:child_process";
 import {logicFunctions,scopeDependencies,mutateLogic,logicCalls,benignCalls,logicData,logicReads,scopeText,scopeDataDependencies,mutateData,benignData,codeMask,objectMembers} from "../scripts/beta-source-code.mjs";
 import { betaRevision, betaNotes, betaDelivery, betaHistorical, betaCompatible } from "../scripts/beta-revisions.mjs";
 
@@ -10,6 +11,19 @@ const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
 let failed=0;
 function test(name,fn){ try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
+
+test("Gastos84 vigila la ventana elegida y los lectores reales del dinero",()=>{
+  const id="inc-0210-03-gastos-periodo",before=betaRevision(id,read).web;
+  for(const [file,from,to] of [
+    ["src/modules/04-tab-gastos.js","cycle:preset===\"cycle\"?cycle:null","cycle:null"],
+    ["src/modules/04-tab-gastos.js","bounds.to+1","bounds.to"],
+    ["src/modules/08-motor-bank.js","selectedPeriod||budgetPeriodOf(state,nowMs)","budgetPeriodOf(state,nowMs)"],
+    ["src/modules/08-motor-bank.js","const byCat={};","const byCat={super:999};"],
+  ]){
+    assert.ok(read(file).includes(from),"mutante debe tocar fuente real");
+    assert.notEqual(betaRevision(id,f=>f===file?read(f).replace(from,to):read(f)).web,before,from);
+  }
+});
 
 test("las tres correcciones UI vigilan también sus reglas y lectores",()=>{
   const cases=[
@@ -266,14 +280,26 @@ test("la identidad conserva ASI, literales y descendientes CSS",()=>{
   }
 });
 test("la compatibilidad requiere la misma fuente histórica y no acepta aliases escritos a mano",()=>{
-  const scopes=JSON.parse(read("scripts/beta-sources.json")),notes=JSON.parse(read("src/data/release-notes.json")),id="inc-2909-02-inicio-natural",g=notes.flatMap(n=>n.tandas||[]).find(g=>g.id===id);
-  const current=betaRevision(id),compatible=betaCompatible(g,current,scopes[id]);
-  assert.ok(compatible.codigosCompatibles.length>=1);assert.equal(compatible.compatibilidadGit[0].sha,"955765a9ec0ad96d20140a8f12da00c9fa04985c");
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),notes=JSON.parse(read("src/data/release-notes.json")),id="tr-descripcion-clasificacion",g=notes.flatMap(n=>n.tandas||[]).find(g=>g.id===id);
+  // La integración cambia estos lectores reales; el id no acredita una aprobación anterior.
+  for(const changedId of ["fin05-pago-cerrada","fin05-widget-reentrada","inc-2909-01-widget-periodo","inc-2909-02-inicio-natural","inc-2909-03-retirada","inc-3009-01-cargos","inc-3009-nomina-anticipada","widget-app-cerrada","widget-banco","tr-descripcion-clasificacion"]){
+    const item=notes.flatMap(n=>n.tandas||[]).find(x=>x.id===changedId);
+    assert.deepEqual(betaCompatible(item,betaRevision(changedId),scopes[changedId]),{},changedId+": contrato cambiado");
+  }
+  // Gasolina cambia TR: el positivo usa su fuente fija anterior, mientras los diez lectores
+  // actuales de arriba deben rechazar la aprobación histórica. No se repina el catálogo.
+  const sha="955765a9ec0ad96d20140a8f12da00c9fa04985c",history=(ref,file)=>execFileSync("git",["show",ref+":"+file],{encoding:"utf8",maxBuffer:8*1024*1024});
+  const fixedRead=file=>history(sha,file),fixedScope=JSON.parse(history("8587e4b6b80f6d7010f8154b9f1877fb2f0563c1","scripts/beta-sources.json"))[id];
+  const current=betaRevision(id,fixedRead,["web","native","edge"],fixedScope),compatible=betaCompatible(g,current,fixedScope);
+  assert.ok(compatible.codigosCompatibles.length>=1);assert.equal(compatible.compatibilidadGit[0].sha,sha);
   const saved=structuredClone(compatible);compatible.codigosCompatibles[0]="f".repeat(64);
-  assert.deepEqual(betaCompatible(g,current,scopes[id]),saved,"la caché no comparte metadata mutable");
-  assert.throws(()=>betaCompatible(g,current,scopes[id],()=>{throw new Error("historia de prueba ausente");}),/historia de prueba ausente/,"un lector personalizado nunca usa la caché Git");
-  const changed=betaRevision(id,f=>read(f).replace('const REC_GRACE=3;','const REC_GRACE=4;'));
-  assert.deepEqual(betaCompatible(g,changed,scopes[id]),{});
+  assert.deepEqual(betaCompatible(g,current,fixedScope),saved,"la caché no comparte metadata mutable");
+  assert.throws(()=>betaCompatible(g,current,fixedScope,()=>{throw new Error("historia de prueba ausente");}),/historia de prueba ausente/,"un lector personalizado nunca usa la caché Git");
+  const native="android/app/src/main/java/com/micartera/app/TrExpenseListener.java";
+  assert.ok(fixedRead(native).includes("package com.micartera.app;"));
+  const changed=betaRevision(id,f=>f===native?fixedRead(f).replace("package com.micartera.app;","package com.micartera.fixture;"):fixedRead(f),["web","native","edge"],fixedScope);
+  assert.notEqual(changed.codigo,current.codigo,"el mutante cambia fuente realmente vigilada");
+  assert.deepEqual(betaCompatible(g,changed,fixedScope),{});
   const injected=[{v:"4.26.99",tandas:[{...g,items:{es:["guion cambiado"]},codigosCompatibles:[current.codigo],compatibilidadSha:"f".repeat(40)}]}];
   assert.equal(betaNotes(injected)[0].tandas[0].codigosCompatibles,undefined);
 });
@@ -326,5 +352,16 @@ test("miembros dinámicos abortan sin ocultar aliases, opcionales ni sintaxis no
   assert.throws(()=>objectMembers(privateEval,["principal"]),/Evaluación beta dinámica/);
   assert.throws(()=>objectMembers(fixture('return 7;').replace('return { principal(){','eval("fixture.otro()"); return { principal(){'),["principal"]),/Evaluación beta dinámica/);
 
+});
+test("Cuota83 vigila prueba, identidad, lápidas, feed y ventana del mes",()=>{
+  const id="inc-0210-01-plan-cuota",before=betaRevision(id,read),functions=logicFunctions(read),data=logicData(read);
+  for(const name of ["debtPaymentState","expenseDeletedSet","expenseIsTombstoned","fixedPaymentIdentity","fixedPaymentFeedClear","cuotaCargoCercano"]){
+    const fn=functions.get(name);assert.ok(fn,name);
+    assert.notEqual(betaRevision(id,f=>f===fn.file?mutateLogic(read(f),fn):read(f)).web,before.web,name);
+  }
+  for(const name of ["CUOTA_ALIAS_DIAS","expenseDeletedSets","_pdCache"]){
+    const value=data.get(name);assert.ok(value,name);
+    assert.notEqual(betaRevision(id,f=>f===value.file?mutateData(read(f),value):read(f)).web,before.web,name);
+  }
 });
 process.exitCode=failed?1:0;

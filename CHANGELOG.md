@@ -1,3 +1,24 @@
+## [4.26.85] — 2026-10-02 · Gasolina y Taxi independientes
+
+- Revisión3/10: una cuota vinculada manualmente o por notificación solo deja de estar pendiente antes del vencimiento con un BOOK único de esa identidad; el origen OB conserva su prueba bancaria. Caso rojo: proyección800 en lugar de740 sin pago incluido. Se conserva principal/saldo y se añaden negativos/positivos de motor y DOM es/en/ca. Gastos recupera el singular y retira cuatro claves reemplazadas tras comprobar todos sus usos.
+
+- Integración conjunta con Plan83 y Gastos84, conservando las tres notas y alcances actuales por unión de lectores reales. Referencias históricas intactas; TR cambia con el clasificador nuevo y no hereda aprobación. [Acta conjunta y gates](docs/briefs/inc-0210-integracion-plan-gastos-gasolina.md).
+
+- FEATURE-0210-01: catálogo, iconos e idiomas separan Gasolina/Taxi de Transporte; selector, filtros y límites usan los mismos IDs. autoCategory conserva sus reglas históricas: la división ocurre solo en altas nuevas y respeta la elección personal, incluso Otros. Sin migración ni reparto automático de límites anteriores.
+- Carburante explícito y MCC de tarjeta5541/5542 identifican Gasolina;4121 identifica Taxi. Un nombre energético ambiguo no convierte Repsol Luz/Gas ni Uber Eats en combustible/taxi. Espejo y catálogo Edge preparados solo en fuente, sin despliegue; selector y presupuesto web funcionan sin él. [Acta y pruebas](docs/briefs/feature-0210-01-gasolina-taxi.md).
+
+## [4.26.84] — 2026-10-02 · Gastos comparte el periodo seleccionado
+
+- INC-0210-03: lista, cabecera y categorías usan una misma ventana explícita; el motor admite esa ventana sin duplicar reglas de dinero. Mes natural y Mi ciclo conservan sus magnitudes y filtros exploratorios. Los límites mensuales actuales no se presentan como presupuesto histórico o acumulado: se indica ausencia de registro, sin barras engañosas.
+- Fechas de rango desde medianoche local hasta final del día; ciclo excluye apuntes futuros. Pruebas sintéticas de motor y DOM es/en/ca registradas. Candidata separable sobre3467bbd4, sin publicación ni aceptación móvil. APK/servidor intactos. Las huellas alcanzadas por el cambio real del motor se recalculan sin repinar referencias. [Acta](docs/briefs/inc-0210-03-gastos-periodo.md).
+
+## [4.26.83] — 2026-10-02 · INC-0210-01, cuota contabilizada antes del vencimiento
+
+- Plan, Inicio y los eventos pendientes de la proyección consumen el cargo de Gastos ya vinculado a la deuda en lugar de esperar solo al día previsto. debtPaymentState valida mes de vencimiento más cercano, identidad única, igualdad de importe en céntimos EUR, fecha no futura, ausencia de lápida y de PDNG/duplicados en el feed. Dos cargos vinculados compatibles no se eligen por orden. Se conserva recAmtClose para la clasificación: un cargo59 no acredita aquí una cuota60.
+- La prueba decimal de cuota más pago final descubrió que el parámetro t numérico de planChargesMonth ocultaba el traductor global t y lanzaba TypeError al rotular el pago final. Se renombra solo el parámetro a today, sin alterar sus importes ni el calendario; el recorrido real desglosa0,1+0,2 sin duplicar el cargo0,3.
+- Se conserva la fórmula del saldo actual, el principal proyectado y las anclas: introducir un nuevo descuento en monthNetForAccount al instalar contaría otra vez un cargo ya incluido por el banco. El contrato solo retira su evento futuro y mueve la cuota del pendiente al pagado. No enlaza movimientos por nombre ni cambia la clasificación automática.
+- Regresión Node con rojo contra3467 y DOM es/en/ca registrados en runner/mapa. Candidata83 sin publicar, sin APK/Edge/SQL ni datos reales. [Acta](docs/briefs/inc-0210-01-plan-cuota.md).
+
 ## [4.26.82] — 2026-10-01 · Conservar la checklist actual en una ronda mixta
 
 - La revisión independiente de450 detectó que, sin versión de producción, una ronda moderna ocultaba los puntos implícitos de la versión actual. betaChecklist une ambas fuentes sin duplicar la cabeza moderna ni reincorporar notas con tandas:[]; las identidades y recibos siguen gobernando aprobaciones y entrega.

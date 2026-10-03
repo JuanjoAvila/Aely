@@ -51,19 +51,29 @@ function budgetPaydayOf(state, nowMs, expenses){
    lag que crecía con el uso (feedback 2026-07-24). Devuelve {from,to} con Infinity de comodín. */
 function presetBoundsMs(preset,range,cycleStart){
   const now=new Date();
-  if(preset==="month") return {from:startOfMonth().getTime(), to:Infinity};
-  if(preset==="cycle") return {from:(cycleStart||startOfMonth()).getTime(), to:Infinity};
+  const monthEnd=new Date(now.getFullYear(),now.getMonth()+1,1).getTime()-1;
+  if(preset==="month") return {from:startOfMonth().getTime(), to:monthEnd};
+  if(preset==="cycle"){
+    const tomorrow=new Date(now); tomorrow.setHours(24,0,0,0);
+    return {from:(cycleStart||startOfMonth()).getTime(), to:cycleStart?tomorrow.getTime()-1:monthEnd};
+  }
   if(preset==="last") return {from:startOfMonth(new Date(now.getFullYear(),now.getMonth()-1,1)).getTime(), to:startOfMonth().getTime()-1};
-  if(preset==="3m") return {from:new Date(now.getFullYear(),now.getMonth()-2,1).getTime(), to:Infinity};
+  if(preset==="3m") return {from:new Date(now.getFullYear(),now.getMonth()-2,1).getTime(), to:monthEnd};
   if(preset==="custom"){
     let from=-Infinity, to=Infinity;
-    if(range&&range.from){ const f=new Date(range.from); if(!isNaN(f.getTime())) from=f.getTime(); }
-    if(range&&range.to){ const tt=new Date(range.to); if(!isNaN(tt.getTime())){ tt.setHours(23,59,59,999); to=tt.getTime(); } }
+    if(range&&range.from){ const f=new Date(range.from+"T00:00:00"); if(!isNaN(f.getTime())) from=f.getTime(); }
+    if(range&&range.to){ const tt=new Date(range.to+"T00:00:00"); if(!isNaN(tt.getTime())){ tt.setHours(23,59,59,999); to=tt.getTime(); } }
     return {from:from, to:to};
   }
   return {from:-Infinity, to:Infinity};   // "all" y cualquier preset desconocido
 }
 function inBounds(ms,b){ return ms>=b.from && ms<=b.to; }
+// La elección de fechas debe mover juntas lista y cifras; el presupuesto de Inicio y
+// sus lectores conserva su propia ventana (reporte 2/10/2026).
+function gastosPeriodOf(preset,bounds,cycle){
+  return {startMs:bounds.from,todayEndMs:bounds.to===Infinity?Infinity:bounds.to+1,
+    cycle:preset==="cycle"?cycle:null};
+}
 // Fila de una suscripción detectada. Importe EDITABLE antes de «pasar a Fijos» (petición
 // 2026-08-03: recibos que se repiten cada mes pero varían de importe —luz, gas— para no dejarlos
 // con el de este mes y tener que corregirlo a mano el que viene) + botón para descartarla del
@@ -499,6 +509,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // `todayKey` invalida ciclo, filtros y cabecera cuando la app queda abierta al cruzar el día;
   // así el 26 o el día 1 no conserva cifras del período anterior en un memo.
   const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,todayKey]);
+  const selectedPeriod=useMemo(function(){ return gastosPeriodOf(preset,bounds,cycle); },[preset,bounds,cycle]);
   const diarioEnts=useMemo(function(){ return expenseBankEnts(state); },[state.accounts, state.settings]);
   const diarioPrev=useRef(diarioEnts.slice());
   const diarioKey=diarioEnts.slice().sort().join("|");
@@ -577,28 +588,35 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     dragExpenseRef.current=null; setDragExpense(null);
   },[set]);
 
-  // El filtro solo explora la lista: la cabecera sigue el período de presupuesto elegido en
-  // Ajustes, no cambia al tocar categorías ni al mirar otro rango (feedback pareja 28/9).
-  // Cifras = `monthBudgetStats` (misma fuente que Inicio; el widget sigue por mes natural).
+  // Las fechas elegidas mueven cabecera y categorías junto a la lista (reporte 2/10).
+  // Buscar o filtrar bancos/categorías sigue explorando movimientos sin redefinir el límite.
   // `accounts` + `settings` van en deps: monthBudgetStats → expenseCountsBudget → expenseBankEnts
   // lee rol diario y expenseBanks. Sin ellos, quitar un banco de gasto diario dejaba la cabecera
   // alta hasta que un sync cambiaba `expenses` (B09-A / feedback familia 2026-09-06).
+  const budgetApplies=preset==="month"||preset==="cycle";
   const monthSummary=useMemo(function(){
     const now=new Date();
-    const bs=monthBudgetStats(state);
+    const bs=monthBudgetStats(Object.assign({},state,{expenses:expensesDef}),null,null,null,selectedPeriod);
+    // No existe una foto histórica del límite ni un presupuesto acumulado para varios meses.
+    // Enseñar el límite actual como margen del pasado inventaría dinero disponible.
+    if(!budgetApplies){ bs.budget=null; bs.remaining=null; }
+    const periodLabel=preset==="custom"
+      ? (range.from?fmtIsoCorto(range.from):t("g_all"))+" → "+(range.to?fmtIsoCorto(range.to):t("g_all"))
+      : t("g_"+preset);
     return {
       spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against,
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
       day:now.getDate(),
-      last:new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),
-      month:monthLong(now.getMonth()), cycle:bs.cycle, periodStart:bs.periodStart
+      month:monthLong(now.getMonth()), cycle:!!selectedPeriod.cycle,
+      periodLabel:periodLabel, budgetApplies:budgetApplies
     };
-  },[state.expenses,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,todayKey]);
+  },[expensesDef,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,selectedPeriod,preset,range,budgetApplies,todayKey]);
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
-    return categorySpentByMonth(state);
-  },[state.expenses,state.deleted,state.categoryBudgets,state.accounts,state.settings,todayKey]);
+    const rows=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,selectedPeriod);
+    return budgetApplies?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
+  },[expensesDef,state.deleted,state.categoryBudgets,state.accounts,state.settings,selectedPeriod,budgetApplies,todayKey]);
   /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
      —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
   const catsOpen=!(state.settings && state.settings.gastosCatsOff);
@@ -808,7 +826,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
           React.createElement("div",{className:"v4-gastos-summary-label"},
             monthSummary.cycle
               ? t(monthSummary.mode==="net"?"v4_gastos_net_cycle":"v4_gastos_spent_cycle")
-              : tf(monthSummary.mode==="net"?"v4_gastos_net_in":"v4_gastos_spent_in",{month:monthSummary.month})),
+              : preset==="month"
+                ? tf(monthSummary.mode==="net"?"v4_gastos_net_in":"v4_gastos_spent_in",{month:monthSummary.month})
+                : tf(monthSummary.mode==="net"?"v4_gastos_net_period":"v4_gastos_spent_period",{period:monthSummary.periodLabel})),
           // Importe en blanco, sin signo, € al lado (como el patrimonio). El rojo/menos
           // confundía el «balance» con una alarma (feedback 2026-07-17).
           (function(){
@@ -840,18 +860,18 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         ),
         React.createElement("div",{className:"v4-gastos-summary-budget"},
           React.createElement("div",null,tf("v4_gastos_of",{x:monthSummary.budget==null?"—":eur(monthSummary.budget)})),
-          React.createElement("div",{className:"v4-gastos-summary-left"},tf("v4_gastos_left",{x:monthSummary.remaining==null?"—":eur(monthSummary.remaining)}))
+          React.createElement("div",{className:"v4-gastos-summary-left"},tf("v4_gastos_left",{x:monthSummary.remaining==null?"—":eur(monthSummary.remaining)})),
+          !monthSummary.budgetApplies && React.createElement("div",{className:"hint"},t("v4_gastos_budget_period_unknown"))
         )
       ),
-      React.createElement("div",{className:"v4-gastos-progress",role:"progressbar","aria-valuemin":0,"aria-valuemax":monthSummary.budget||0,"aria-valuenow":Math.max(0,monthSummary.against)},
+      monthSummary.budgetApplies && React.createElement("div",{className:"v4-gastos-progress",role:"progressbar","aria-valuemin":0,"aria-valuemax":monthSummary.budget||0,"aria-valuenow":Math.max(0,monthSummary.against)},
         React.createElement("i",{style:{width:monthSummary.budget==null?"0%":Math.min(100,Math.max(0,monthSummary.against)/monthSummary.budget*100)+"%"}})
       ),
       React.createElement("div",{className:"v4-gastos-progress-marks"},
-        React.createElement("span",monthSummary.cycle
-          ? new Date(monthSummary.periodStart).toLocaleDateString(loc(),{day:"2-digit",month:"short"})
-          : "1 "+monthSummary.month),
-        React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
-        !monthSummary.cycle && React.createElement("span",monthSummary.last+" "+monthSummary.month)
+        React.createElement("span",isFinite(bounds.from)
+          ? new Date(bounds.from).toLocaleDateString(loc(),{day:"2-digit",month:"short"}) : t("g_all")),
+        monthSummary.budgetApplies && React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
+        !monthSummary.cycle && isFinite(bounds.to) && React.createElement("span",new Date(bounds.to).toLocaleDateString(loc(),{day:"2-digit",month:"short"}))
       ),
       /* SE PUEDE OCULTAR (petición de su pareja, 10/9, y con razón).
          Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria
@@ -868,8 +888,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
           "aria-expanded":catsOpen,"aria-controls":"gastos-cats-body",onClick:toggleCats},
           React.createElement("span",{className:"v4-gastos-cats-t"},
             catsOpen ? t("v4_gastos_cats")
-                     : (catBreakdown.length===1 ? t(monthSummary.cycle?"v4_gastos_cats_cycle_n1":"v4_gastos_cats_n1")
-                       : tf(monthSummary.cycle?"v4_gastos_cats_cycle_n":"v4_gastos_cats_n",{n:catBreakdown.length}))),
+                     : tf(catBreakdown.length===1?"v4_gastos_cats_period_n1":"v4_gastos_cats_period_n",{n:catBreakdown.length,period:monthSummary.periodLabel})),
           React.createElement("span",{className:"v4-gastos-cats-fold"},
             (catsOpen?"▾ ":"▸ ")+t(catsOpen?"v4_gastos_cats_hide":"v4_gastos_cats_show"))),
         React.createElement("div",{id:"gastos-cats-body",className:"v4-gastos-cats-body"+(catsOpen?" abierto":""),"aria-hidden":!catsOpen},

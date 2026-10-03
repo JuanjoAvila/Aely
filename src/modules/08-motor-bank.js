@@ -252,13 +252,50 @@ function fixedPaymentState(s,e,y,m,today){
     overdue:!paid&&day!=null&&day<today,bankTx:tx,paidBank:paid?(proof?proof.bank:tx?tx.ent:bank):null,
     paidAmount:proof?Number(proof.amount):tx?Number(tx.amount):null};
 }
-function planChargesMonth(s,m,y,t){
+/* Una cuota vinculada ya contabilizada puede adelantarse al vencimiento. El vínculo identifica
+   la deuda; el cargo cercano identifica SU mes, también al cruzar el día 1. No reanclamos el
+   saldo ni el principal: el banco ya incluye el pago (feedback 2/10/2026). */
+function debtPaymentState(s,d,y,m,today){
+  var day=cleanDay(dayOf(d)),target=(Number(d.monthly)||0)+debtBalloonIn(d,y,m);
+  var unique=!!d.id&&(s.debts||[]).filter(function(other){ return other.id===d.id; }).length===1;
+  var deleted=expenseDeletedSet(s),end=new Date(y,m-1,today,23,59,59).getTime();
+  var rows=(s.expenses||[]).filter(function(x){
+    if(!unique||day==null) return false;
+    // amount ya está normalizado a EUR; origCur solo conserva el rastro bancario. Un
+    // esquema externo que aún rotule amount con otra moneda no acredita euros.
+    if(x&&(x.cur||x.currency)&&String(x.cur||x.currency).toUpperCase()!=="EUR") return false;
+    // La previsión muestra la cuota acordada: un cargo parecido no acredita ese importe.
+    // Se comparan céntimos EUR, sin heredar la tolerancia del clasificador de movimientos.
+    if(!x||x.debtId!==d.id||x.category!=="deudas"||x.possibleDup||!isFinite(Number(x.amount))||!(Number(x.amount)>0)||Math.round(target*100)!==Math.round(Number(x.amount)*100)) return false;
+    if(x.status&&String(x.status).toUpperCase()!=="BOOK") return false;
+    var ds=String(x.date||"").slice(0,10),ms=dateMs(ds),bank=expenseBankOf(x);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)||!isFinite(ms)||ms>end||!bank||expenseIsTombstoned(x,deleted)) return false;
+    var parts=ds.split("-").map(Number);
+    if(parts[1]<1||parts[1]>12||parts[2]<1||parts[2]>new Date(parts[0],parts[1],0).getDate()) return false;
+    var charge=cuotaCargoCercano(d,ms);
+    if(charge.key!==y+"-"+m||charge.dias>CUOTA_ALIAS_DIAS) return false;
+    var identity=fixedPaymentIdentity(bank,x);
+    // Vincular un apunte manual o una notificación no prueba que el saldo ya incluya el
+    // pago: sin origen bancario hace falta un BOOK único (NO-GO de revisión, 3/10/2026).
+    if(x.source!=="ob"&&(s.bankTx||[]).filter(function(tx){ return fixedPaymentIdentity(tx.ent,tx)===identity; }).length!==1) return false;
+    return fixedPaymentFeedClear(s,identity)&&(s.expenses||[]).filter(function(other){
+      return fixedPaymentIdentity(expenseBankOf(other),other)===identity;
+    }).length===1;
+  });
+  var x=rows.length===1?rows[0]:null;
+  // La fila de Plan rotula el mes de vencimiento: un cargo del mes anterior no puede
+  // aparecer allí con una fecha futura ficticia (por ejemplo, «31 de octubre»).
+  var sameMonth=x&&String(x.date).slice(0,7)===y+"-"+String(m).padStart(2,"0");
+  return {paid:!!x||day!=null&&day<=today,day:sameMonth?recDay(x.date):day,
+    paidBank:x?expenseBankOf(x):null,paidAmount:x?Number(x.amount):null,expense:x};
+}
+function planChargesMonth(s,m,y,today){
   s=s||{};
   var r=[];
   (s.fixed||[]).forEach(function(e){
     var a=occAmountIn(e,m);
     if(!(a>0)||!occursIn(e,m)) return;
-    var status=fixedPaymentState(s,e,y,m,t);
+    var status=fixedPaymentState(s,e,y,m,today);
     r.push({id:"fixed_"+e.id,name:e.name,amount:a,day:status.day,bank:accOf(e),paid:status.paid,paidBank:status.paidBank,paidAmount:status.paidAmount,plannedBankAmount:e.bankAmount>0?Number(e.bankAmount):a,overdue:status.overdue});
   });
   (s.debts||[]).forEach(function(d){
@@ -266,26 +303,24 @@ function planChargesMonth(s,m,y,t){
     var b=d.account||"sabadell";
     // Sin day: pendiente con día desconocido. NO usar debtChargeDay/isDebtPaidThisMonth
     // (ese fallback a día 1 marcaba la cuota como ya pagada desde el día 1 — NO-GO 17/9).
-    var dr=dayOf(d);
-    var dy=(dr!=null&&dr>0&&isFinite(dr))?Number(dr):null;
-    var p=dy!=null&&dy<=t;
+    var status=debtPaymentState(s,d,y,m,today),dy=status.day,p=status.paid;
     var a=Number(d.monthly)||0;
-    if(a>0) r.push({id:"debt_"+d.id,name:d.name,amount:a,day:dy,bank:b,paid:p,kind:"debt"});
+    if(a>0) r.push({id:"debt_"+d.id,name:d.name,amount:a,day:dy,bank:b,paid:p,paidBank:status.paidBank,kind:"debt"});
     var bl=debtBalloonIn(d,y,m);
-    if(bl>0) r.push({id:"balloon_"+d.id,name:d.name+" "+t("db_balloon_tag"),amount:bl,day:dy,bank:b,paid:p,kind:"balloon"});
+    if(bl>0) r.push({id:"balloon_"+d.id,name:d.name+" "+t("db_balloon_tag"),amount:bl,day:dy,bank:b,paid:p,paidBank:status.paidBank,kind:"balloon"});
   });
   (s.oneoffs||[]).forEach(function(o){
     if(!oneoffOccurs(o,y,m)) return;
     var a=Number(o.amount)||0;
     if(!(a>0)) return;
     var d=o.day!=null?Number(o.day):null;
-    var p=d!=null&&d<=t;
+    var p=d!=null&&d<=today;
     r.push({id:"oneoff_"+o.id,name:o.name||o.merchant||"",amount:a,day:d,bank:o.account||"sabadell",paid:p,kind:"oneoff"});
   });
   (s.flows||[]).forEach(function(f){
     if(!flowOccursIn(f,m,y)) return;
     var d=flowDay(f,y,m);
-    var p=flowPaidIn(s,f,y,m,t);
+    var p=flowPaidIn(s,f,y,m,today);
     var a=+(f.amount||0);
     if(!(a>0)) return;
     if(f.kind==="income"){
@@ -642,7 +677,7 @@ function applyBankBalances(s, links){
 function bankPendingEvents(state, bank, y, m, today){
   const evs=[];
   (state.fixed||[]).forEach(function(e){ if(occursIn(e,m)&&accOf(e)===bank&&!isPaidIn(e,m,today,y)) evs.push({day:dayIn(e,m)||0, amt:-occAmountIn(e,m)}); });
-  (state.debts||[]).forEach(function(d){ if(debtActive(d)&&(d.account||"sabadell")===bank&&!isDebtPaidThisMonth(d,today)){ evs.push({day:debtChargeDay(d), amt:-(d.monthly||0)}); const bl=debtBalloonIn(d,y,m); if(bl>0) evs.push({day:debtChargeDay(d), amt:-bl}); } });
+  (state.debts||[]).forEach(function(d){ if(debtActive(d)&&(d.account||"sabadell")===bank&&!isDebtPaidThisMonth(d,today,state,y,m)){ evs.push({day:debtChargeDay(d), amt:-(d.monthly||0)}); const bl=debtBalloonIn(d,y,m); if(bl>0) evs.push({day:debtChargeDay(d), amt:-bl}); } });
   (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.account||"sabadell")===bank&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({day:o.day||0, amt:-o.amount}); });
   (state.flows||[]).forEach(function(f){ if(!flowOccursIn(f,m,y)||flowPaidIn(state,f,y,m,today))return; const dd=flowDay(f,y,m); if(f.kind==="income"&&(f.to||"sabadell")===bank) evs.push({day:dd||99, amt:f.amount}); else if(f.kind==="transfer"&&(f.from||"sabadell")===bank) evs.push({day:dd||0, amt:-f.amount}); });
   return evs;
@@ -779,17 +814,20 @@ function reconcileBank(state, y, m, today){
 
 function categoryOfBankTx(tx){
   const m=tx.merchant||"", cat=categoryOfNewMerchant(m);
-  // El MCC solo completa comercios sin categoría: no pisa aprendizaje manual ni retiradas.
-  // Tabla acotada a correspondencias claras del manual Visa (abril 2026); el resto queda en Otros.
-  if(cat!=="otros" || USER_OVERRIDES[catKey(m)]==="otros") return cat;
+  // Los MCC nuevos solo completan marcas energéticas ambiguas; los anteriores no cambian.
+  // Finalidad reconocida y overrides, incluso Otros, mandan antes del dato de tarjeta.
+  const energyBrand=/^(repsol|cepsa|shell|bp|galp)$/;
+  const mobilityMcc=tx.card && /^(5541|5542|4121)$/.test(String(tx.mcc||""));
+  if((cat!=="otros" && !(cat==="transporte" && mobilityMcc && energyBrand.test(catKey(m)) && !USER_OVERRIDES[catKey(m)])) || USER_OVERRIDES[catKey(m)]==="otros") return cat;
   const note=String(tx.concept||"");
-  // «Pago alquiler día 5» no identifica una tienda: nunca se clasifica por texto libre de
-  // transferencias/recibos. El nombre OB sigue intacto para dedup y lápidas de TR sin id.
-  if(tx.card && /^(movimiento|movement|transaction)?$/i.test(m.trim()) && !/transfer|bizum|recibo|alquiler|n[oó]mina|devoluci|refund/i.test(note)){
+  // El concepto de una transferencia/recibo no identifica una compra de tarjeta.
+  if(tx.card && (/^(movimiento|movement|transaction)?$/i.test(m.trim()) || mobilityMcc) && !/transfer|bizum|recibo|alquiler|n[oó]mina|devoluci|refund/i.test(note)){
     const c=categoryOfNewMerchant(note);
-    if(c!=="otros" || USER_OVERRIDES[catKey(note)]==="otros") return c;
+    if((c!=="otros" && !(mobilityMcc && c==="transporte" && energyBrand.test(catKey(note)) && !USER_OVERRIDES[catKey(note)])) || USER_OVERRIDES[catKey(note)]==="otros") return c;
   }
   switch(tx.mcc){
+    case "5541": case "5542": return tx.card?"gasolina":cat;
+    case "4121": return tx.card?"taxi":cat;
     case "5411": return "super";
     case "5462": return "pan";
     case "5812": case "5813": case "5814": return "bares";
@@ -1225,8 +1263,9 @@ function budgetPeriodOf(state, nowMs){
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
    que pinta la cabecera de Gastos (balance en el ciclo; gasto bruto o balance según gTotalMode en el mes). */
-function monthBudgetStats(state, nowMs, hastaMs, budgetMode){
-  const period=budgetPeriodOf(state,nowMs);
+function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
+  // Gastos puede explorar otras fechas; los lectores sin ventana explícita conservan su contrato.
+  const period=selectedPeriod||budgetPeriodOf(state,nowMs);
   const startMs=period.startMs;
   // `hastaMs` acota un informe cerrado; solo el ciclo actual termina mañana para que un
   // apunte futuro no gaste hoy. El mes natural conserva la misma cifra que el widget.
@@ -1283,8 +1322,8 @@ function dashboardBudgetStats(state){
    cuadrar al céntimo con la cabecera. Neutras fuera. Un límite huérfano (id que ya no está
    en CAT) no se enseña ni suma. Sin gastos pero con límite → fila a 0, para que no parezca
    que se ha borrado el tope. */
-function categorySpentByMonth(state, nowMs, hastaMs){
-  const period=budgetPeriodOf(state,nowMs);
+function categorySpentByMonth(state, nowMs, hastaMs, selectedPeriod){
+  const period=selectedPeriod||budgetPeriodOf(state,nowMs);
   const startMs=period.startMs;
   const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : period.todayEndMs;
   const byCat={};
@@ -2664,7 +2703,7 @@ function Fijos({state, set, totals}){
   const oneoffs=state.oneoffs||[];
   const chargesOf=(mo,yr)=>{ const items=[];
     state.fixed.forEach(e=>{ if(occursIn(e,mo)&&occAmountIn(e,mo)!==0) items.push({key:e.id,name:e.name,amount:occAmountIn(e,mo),bank:accOf(e),day:dayIn(e,mo),paid:mo===cm&&yr===cy&&isPaidIn(e,mo,today,yr)}); });
-    state.debts.forEach(d=>{ if(debtActive(d)){ items.push({key:d.id,name:d.name,amount:d.monthly,debt:true,bank:d.account||"sabadell",day:debtChargeDay(d),paid:mo===cm&&isDebtPaidThisMonth(d,today)}); const bl=debtBalloonIn(d,yr,mo); if(bl>0) items.push({key:d.id+"_balloon",name:d.name+" "+t("db_balloon_tag"),amount:bl,debt:true,bank:d.account||"sabadell",day:debtChargeDay(d),paid:mo===cm&&isDebtPaidThisMonth(d,today)}); } });
+    state.debts.forEach(d=>{ if(debtActive(d)){ items.push({key:d.id,name:d.name,amount:d.monthly,debt:true,bank:d.account||"sabadell",day:debtChargeDay(d),paid:mo===cm&&isDebtPaidThisMonth(d,today,state,yr,mo)}); const bl=debtBalloonIn(d,yr,mo); if(bl>0) items.push({key:d.id+"_balloon",name:d.name+" "+t("db_balloon_tag"),amount:bl,debt:true,bank:d.account||"sabadell",day:debtChargeDay(d),paid:mo===cm&&isDebtPaidThisMonth(d,today,state,yr,mo)}); } });
     oneoffs.forEach(o=>{ if(oneoffOccurs(o,yr,mo)&&(o.amount||0)!==0) items.push({key:o.id,name:o.name,amount:o.amount,oneoff:true,bank:o.account||"sabadell",day:o.day||null,paid:mo===cm&&yr===cy&&isPaidThisMonth(o,today)}); });
     return items; };
   const byDay=(a,b)=> ((a.day||99)-(b.day||99)) || (b.amount-a.amount);   // por DÍA; sin día, al final
