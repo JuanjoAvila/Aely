@@ -15,9 +15,13 @@
  * Selectores: los del núcleo de Cursor (`487864ad`): `[data-bills-manage]`, `.v4-bills-*`. Los
  * grupos y las filas se buscan por su TEXTO dentro de su contenedor, que es lo que ve él. */
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
 
-const hoy = new Date();
+test.beforeEach(async ({ page }, testInfo) => {
+  if (!testInfo.annotations.some(a => a.type === "own-clock")) await installFixtureClock(page);
+});
+
+const hoy = new Date(FIXTURE_NOW);
 const mesActual = hoy.getMonth() + 1;
 const anoActual = hoy.getFullYear();
 const ymHoy = `${anoActual}-${String(mesActual).padStart(2, "0")}`;
@@ -359,7 +363,7 @@ test("renombrar no aplana el importe por mes, los meses ni el día hábil", asyn
   });
 });
 
-test("cambiar el día de un recibo cobrado conserva su fecha real", async ({ page }) => {
+test("cambiar el día de un recibo cobrado conserva su fecha real", { annotation: { type: "own-clock", description: "Fecha y avances explícitos del escenario" } }, async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-24T12:00:00+02:00") });
   const gastos = [
     { id: "hist-ago", ent: "sabadell", date: "2026-08-20T12:00:00.000Z", amount: 120, merchant: "Iberdrola agosto" },
@@ -372,7 +376,7 @@ test("cambiar el día de un recibo cobrado conserva su fecha real", async ({ pag
     ],
     fixed: [{ id: "luz", name: "Iberdrola luz", amount: 120, freq: "mes", day: 24, account: "sabadell" }],
     debts: [], flows: [], oneoffs: [], expenses: gastos,
-    bankTx: [{ id: "tx-luz-sep", ent: "sabadell", date: "2026-09-24", amount: 120, merchant: "IBERDROLA LUZ" }],
+    bankTx: [{ id: "tx-luz-sep", ent: "sabadell", date: "2026-09-24", amount: 120, merchant: "IBERDROLA LUZ", status: "BOOK" }],
     settings: { expenseBanks: ["revolut"] },
   });
   await page.locator('.botnav-tab[data-tour="plan"]').click();
@@ -417,7 +421,7 @@ test("cambiar el día de un recibo cobrado conserva su fecha real", async ({ pag
   await expect(recibos.locator(".v4-charge").filter({hasText:"Iberdrola luz"}).locator(".m")).toHaveText(/sep/i);
 });
 
-test("cambiar al día de hoy un recibo aún no cobrado lo mantiene pendiente", async ({ page }) => {
+test("cambiar al día de hoy un recibo aún no cobrado lo mantiene pendiente", { annotation: { type: "own-clock", description: "Fecha y avances explícitos del escenario" } }, async ({ page }) => {
   await page.clock.install({ time: new Date(2026,8,25,12,0) });
   const gastos = [
     { id: "hist-ago", ent: "sabadell", date: "2026-08-20T12:00:00.000Z", amount: 120, merchant: "Iberdrola agosto" },
@@ -474,7 +478,7 @@ test("cambiar al día de hoy un recibo aún no cobrado lo mantiene pendiente", a
   await expect(luz.locator(".d")).toHaveText("25");
 });
 
-test("cambiar Pepegas del 20 al 25 a la una no reutiliza el extracto de ayer", async ({ page }) => {
+test("cambiar Pepegas del 20 al 25 a la una no reutiliza el extracto de ayer", { annotation: { type: "own-clock", description: "Fecha y avances explícitos del escenario" } }, async ({ page }) => {
   await page.clock.install({ time: new Date(2026,8,25,1,6) });
   const gastos = [
     { id: "hist-ago", ent: "sabadell", date: "2026-08-20T12:00:00.000Z", amount: 12.5, merchant: "Pepegas agosto" },
@@ -523,10 +527,10 @@ test("cambiar Pepegas del 20 al 25 a la una no reutiliza el extracto de ayer", a
       fixed:s.fixed.filter(function(x){ return x.id==="pepegas"; }).length,pending:plan.pendingBills.filter(function(x){ return x.id==="fixed_pepegas"; }).length,
       paid:plan.paidBills.filter(function(x){ return x.id==="fixed_pepegas"; }).length,net:monthNetForAccount(s,"sabadell",2026,9,25)};
   });
-  expect(despues).toEqual(Object.assign({},antes,{fixed:1,pending:0,paid:1,net:-12.5}));
+  expect(despues).toEqual(Object.assign({},antes,{fixed:1,pending:1,paid:0,net:-12.5}));
   const pepegas=recibos.locator(".v4-charge").filter({hasText:"Pepegas"});
   await expect(pepegas).toHaveCount(1);
-  await expect(pepegas).toHaveClass(/v4-paid/);
+  await expect(pepegas).not.toHaveClass(/v4-paid/);
   await expect(pepegas.locator(".d")).toHaveText("25");
 });
 

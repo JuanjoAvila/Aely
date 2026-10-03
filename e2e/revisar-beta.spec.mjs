@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import crypto from "node:crypto";
+import { betaRevision } from "../scripts/beta-revisions.mjs";
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
@@ -11,8 +14,8 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
  * Supabase de los tests devuelve null → la sección Dev no se pinta. Por eso aquí se monta el panel
  * directamente: lo que hay que probar es la REGLA de aprobación, no el menú que lleva a ella. */
 
-async function abrirRevisionBeta(page) {
-  await seedLoggedInDashboard(page);
+async function abrirRevisionBeta(page, lang) {
+  await seedLoggedInDashboard(page, lang?{settings:{autoPrices:false,theme:"green",lang:lang}}:{});
   await page.addInitScript(() => { localStorage.setItem("_mcChannel", "beta"); });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
@@ -187,8 +190,21 @@ test("no se puede aprobar con cosas sin probar ni con fallos marcados", async ({
  *
  * Por eso aquí se FIJA la versión de producción con un doble, en vez de depender de la red: así
  * el caso se prueba igual en el portátil que en CI. */
-async function conProduccionEn(page, version) {
-  await page.evaluate((v) => { window._mcProdVersion = () => Promise.resolve(v); }, version);
+async function conProduccionEn(page, version, delayMs = 0) {
+  // La app pide versión web y APK estable a la vez. Salvo que el test fije la APK, se da por
+  // entregada: si no, las tandas nativas reales se colarían en las rondas sintéticas.
+  await page.evaluate(({ v, delayMs }) => {
+    window._mcProdVersion = () => delayMs ? new Promise(resolve => setTimeout(() => resolve(v), delayMs)) : Promise.resolve(v);
+    if (window._mcProdApk === undefined) window._mcProdApk = 9999;
+    if (window._mcProdEntregas === undefined) {
+      window._mcProdEntregas = { web:{}, edge:{} };
+      window._mcProdApkRevisiones = {};
+      RELEASE_NOTES.filter(n => !mcIsNewer(n.v,v)).forEach(n => (n.tandas||[]).forEach(g => {
+        window._mcProdEntregas.web[g.id]=g.web;
+        if (window._mcProdApk >= g.apk) { window._mcProdApkRevisiones[g.id]=g.native; window._mcProdEntregas.edge[g.id]=g.edge; }
+      }));
+    }
+  }, { v: version, delayMs });
   const host = "e2e-beta-prod-" + Math.random().toString(36).slice(2, 7);
   await page.evaluate((id) => {
     const h = document.createElement("div");
@@ -313,28 +329,12 @@ test("✓, «no lo puedo probar» Y los ✗ con su comentario se heredan entre c
      acababa de escribir a mano — el panel no sabe si la compilación nueva ha tocado ese punto, así
      que resetear la cruz es apostar SU trabajo a que sí. */
   await abrirRevisionBeta(page);
-  /* Un hotfix corto (p. ej. 4.16.1 con 2 viñetas) no llega a 3 puntos: el escenario de herencia
-     necesita tres. Rellenamos la nota en memoria SOLO para este test — no toca el bundle real. */
+  await seedImplicitChecklist(page,{minItems:3});
   await page.evaluate(() => {
-    const base = mcVerBase(CONFIG.APP_VERSION);
-    const notes = (RELEASE_NOTES || []).find(function(n){ return n.v === base; }) || RELEASE_NOTES[0];
-    // La checklist prioriza tandas sobre items: usar aquí la tanda implícita permite sembrar
-    // tres puntos incluso cuando la versión real trae una tanda explícita de solo dos.
-    // Desde 4.19.7 la implícita se pide BORRANDO la propiedad, no poniéndola a []: un array
-    // vacío significa «aprobadas todas, nada que probar» y aquí dejaría la checklist a cero.
-    if (notes) delete notes.tandas;
-    if (notes && notes.items) {
-      ["es", "en", "ca"].forEach(function(lang) {
-        const arr = notes.items[lang];
-        if (!Array.isArray(arr)) return;
-        while (arr.length < 3) arr.push("punto sintético e2e " + arr.length);
-      });
-    }
-    const items = betaChecklist(CONFIG.APP_VERSION).items;
-    store.set("_betaReviewOk", { [items[0]]: "ok", [items[1]]: "na", [items[2]]: "ko" });
-    store.set("_betaReviewNotas", { [items[2]]: "sigue pasando igual" });
-    try { localStorage.removeItem("_betaReview_" + CONFIG.APP_VERSION); } catch (e) {}
-    try { localStorage.removeItem("_betaReview_" + CONFIG.APP_VERSION + "_n"); } catch (e) {}
+    const items=betaChecklist(CONFIG.APP_VERSION).items;
+    store.set("_betaReviewOk",{[items[0]]:"ok",[items[1]]:"na",[items[2]]:"ko"});
+    store.set("_betaReviewNotas",{[items[2]]:"sigue pasando igual"});
+    CONFIG.APP_VERSION=mcVerBase(CONFIG.APP_VERSION)+".8";
   });
 
   await page.evaluate(() => {
@@ -525,14 +525,16 @@ test("panel: ronda multi-versión pinta tandas, marks por índice y aprobar una 
   await abrirRevisionBeta(page);
   await page.evaluate(() => {
     CONFIG.APP_VERSION = "9.9.2.7";
-    RELEASE_NOTES.unshift(
+    // Este escenario aísla marcas y veredictos de dos tandas legado. Las modernas reales
+    // no desaparecen por poner producción9.9.0 si su recibo llega nulo (CI351,1/10).
+    RELEASE_NOTES = [
       { v: "9.9.2", d: "e2e", t: { es: "Nueva", en: "New", ca: "Nova" },
         tandas: [{ id: "nueva", t: "Tanda nueva e2e", items: { es: ["Punto N1 e2e", "Punto N2 e2e"], en: ["Punto N1 e2e", "Punto N2 e2e"], ca: ["Punto N1 e2e", "Punto N2 e2e"] } }],
         items: { es: ["fam 9.9.2"], en: ["fam 9.9.2"], ca: ["fam 9.9.2"] } },
       { v: "9.9.1", d: "e2e", t: { es: "Vieja", en: "Old", ca: "Vella" },
         tandas: [{ id: "vieja", t: "Tanda vieja e2e", items: { es: ["Punto V1 e2e", "Punto V2 e2e"], en: ["Punto V1 e2e", "Punto V2 e2e"], ca: ["Punto V1 e2e", "Punto V2 e2e"] } }],
         items: { es: ["fam 9.9.1"], en: ["fam 9.9.1"], ca: ["fam 9.9.1"] } },
-    );
+    ];
     window.__betaReports = [];
     cloud.betaReport = function (p) { window.__betaReports.push(p); return Promise.resolve(); };
     try { localStorage.removeItem("_betaReview_" + CONFIG.APP_VERSION); } catch (e) {}
@@ -566,10 +568,14 @@ test("panel: ronda multi-versión pinta tandas, marks por índice y aprobar una 
   await expect(tandas.nth(1).getByRole("button", { name: /Aprobar esta tanda/i })).toBeVisible();
   await expect(tandas.nth(1)).not.toContainText(/✅ aprobada/i);
   const sent = await page.evaluate(() => store.get("_betaReview_" + CONFIG.APP_VERSION + "_v"));
-  expect(sent).toEqual({ "9.9.2/nueva": "approved" });
   const reports = await page.evaluate(() => window.__betaReports);
   expect(reports).toHaveLength(1);
   expect(reports[0].tanda).toBe("9.9.2/nueva");
+  // Desde 4.26.75 el parte guarda también la huella: es lo que lo casa si la tanda cambia de versión.
+  expect(reports[0].huella).toMatch(/^[0-9a-f]{8}$/);
+  expect(sent["9.9.2/nueva"]).toBe("approved");
+  expect(sent._h).toBe(1);
+  expect(sent["h:" + reports[0].huella]).toMatchObject({verdict:"approved",at:expect.any(Number)});
   expect(reports[0].verdict).toBe("approved");
   // Aprobar encoge solo esa tanda; abrir/cerrar no cambia sus marcas ni manda otro parte.
   const toggle = tandas.nth(0).locator(".beta-tanda-toggle");
@@ -589,6 +595,7 @@ test("panel: ronda multi-versión pinta tandas, marks por índice y aprobar una 
   await expect(first.locator(".beta-tanda-toggle")).toHaveAttribute("aria-expanded", "false");
   await first.locator(".beta-tanda-toggle").click();
   await first.getByRole("button", { name:/Cambiar de opinión/ }).click();
+  expect(await page.evaluate(() => window.__betaReports.at(-1).verdict)).toBe("revoked");
   await expect(first.getByRole("button", { name:/Aprobar esta tanda/ })).toBeEnabled();
   await expect(again.locator(".beta-tanda").nth(1).getByRole("button", { name:/Aprobar esta tanda/ })).toBeDisabled();
   await page.evaluate(() => { document.querySelector(".beta-review").remove(); CONFIG.APP_VERSION="9.9.2.9"; });
@@ -596,10 +603,9 @@ test("panel: ronda multi-versión pinta tandas, marks por índice y aprobar una 
   await expect(changed.locator(".beta-tanda").first().getByRole("button", {name:/Aprobar esta tanda/})).toBeEnabled();
 });
 
-/** Siembra dos tandas de mentira en la entrada de RELEASE_NOTES que resuelve la versión en curso.
- *  Devuelve la versión numérica inmediatamente anterior (para pasar como prod): así la ronda del
- *  panel es solo esa entrada. No vale mirar la fila siguiente del JSON: las notas estables 4.25
- *  se intercalan con beta 4.26 y dejaban entrar toda la ronda real (fallo CI 2026-09-24). */
+/** Los escenarios de marcas aíslan sus dos tandas legado: una producción mayor no acredita
+ *  las modernas ajenas y el tiempo de su recibo no puede decidir el resultado de este test.
+ *  La versión anterior se calcula antes de aislar, conservando el escenario multiversión. */
 async function conTandasDePrueba(page) {
   return page.evaluate(() => {
     const base = typeof mcVerBase === "function"
@@ -615,6 +621,8 @@ async function conTandasDePrueba(page) {
       if (!x || !x.v || !mcIsNewer(base, x.v)) return best;
       return !best || mcIsNewer(x.v, best) ? x.v : best;
     }, "");
+    // Los dos escenarios de marcas tampoco dependen de entregas ajenas ni de su respuesta de red.
+    RELEASE_NOTES = [n];
     return prev || "0.0.1";
   });
 }
@@ -624,12 +632,12 @@ test("un fallo en una tanda NO bloquea aprobar las otras", async ({ page }) => {
   // Compilación de la ronda VIVA (RELEASE_NOTES[0]), no un número clavado de una ronda ya cerrada.
   await page.evaluate(() => { CONFIG.APP_VERSION = RELEASE_NOTES[0].v + ".7"; });
   const prev = await conTandasDePrueba(page);
-  const panel = await conProduccionEn(page, prev);
+  // El primer render aún no conoce prod: CI contaba la ronda real antes del efecto.
+  const panel = await conProduccionEn(page, prev, 250);
   await expect(panel).toBeVisible();
 
   const tandas = panel.locator(".beta-tanda");
-  const n = await tandas.count();
-  expect(n, "esta prueba siembra 2 tandas").toBe(2);
+  await expect(tandas, "la producción asíncrona deja solo las dos tandas sembradas").toHaveCount(2);
 
   const primera = tandas.nth(0), segunda = tandas.nth(1);
 
@@ -873,3 +881,387 @@ test("la marca caduca: si vuelve al día siguiente entra en su app, no en el pan
     return betaDebeReabrirse();
   })).toBe(true);
 });
+
+
+/* Tras promocionar solo Deudas, las otras pruebas deben seguir visibles en la beta. */
+test("producción 4.26.67 conserva las siete tandas pendientes", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.70.2"; });
+  const panel = await conProduccionEn(page, "4.26.67");
+  await expect(panel.locator(".beta-tanda")).toHaveCount(7);
+  for (const title of ["Arranque con poca conexión", "Ayuda de Mi ciclo", "Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada"]) {
+    await expect(panel.locator(".beta-tanda-t").filter({ hasText: title })).toHaveCount(1);
+  }
+  await expect(panel).not.toContainText("Deudas terminadas");
+  await expect(panel).not.toContainText("Abrir cuotas de deuda");
+  await expect(panel).not.toContainText("Diagnósticos más privados");
+  await expect(panel).not.toContainText("Inicio, Gastos y nómina");
+  await expect(panel).not.toContainText("Saldo con nómina adelantada");
+  await expect(panel).not.toContainText("Presupuesto por día de cobro");
+  await expect(panel).not.toContainText("Balance de ingresos en Mi ciclo");
+  await expect(panel).not.toContainText("Inicio y Mi ciclo");
+  await expect(panel).toContainText("En la próxima compra habitual");
+});
+
+test("guion de recibos71 retirado en favor de74 conserva las siete pendientes", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.71.1"; });
+  const panel = await conProduccionEn(page, "4.26.67");
+  await expect(panel.locator(".beta-tanda")).toHaveCount(7);
+  await expect(panel).not.toContainText("Recibos pagados y vencidos");
+  for(const title of ["Arranque con poca conexión", "Ayuda de Mi ciclo", "Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada"]){
+    await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(1);
+  }
+  await expect(panel).not.toContainText("Deudas terminadas");
+});
+
+test("Inicio73 conserva sus pruebas tras trasladar el guion de recibos a74", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.73.1"; });
+  const panel = await conProduccionEn(page, "4.26.67");
+  await expect(panel.locator(".beta-tanda")).toHaveCount(8);
+  for(const title of ["Presupuesto mensual de Inicio", "Arranque con poca conexión", "Ayuda de Mi ciclo", "Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada"]){
+    await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(1);
+  }
+  await expect(panel).not.toContainText("Deudas terminadas");
+  await expect(panel).not.toContainText("Inicio y Mi ciclo");
+});
+test("corrección74 conserva todas las tandas y muestra una sola prueba de recibos", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.74.1"; });
+  const panel=await conProduccionEn(page,"4.26.67");
+  await expect(panel.locator(".beta-tanda")).toHaveCount(9);
+  const gas=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:"Recibos pagados y vencidos"})});
+  await expect(gas).toHaveCount(1);
+  await expect(gas).toContainText("Paga un recibo");
+  await expect(panel).toContainText("Presupuesto mensual de Inicio");
+  for(const title of ["Arranque con poca conexión","Ayuda de Mi ciclo","Widget después de reabrir","Gasto del widget tras una compra","Clasificación de gastos bancarios","Banco del widget","Widget con la app cerrada"]){
+    await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(1);
+  }
+});
+
+/* 30/9: aprobó las cinco nativas tres veces porque cada promoción web las movía de versión.
+   Su móvil guarda el parte como «4.26.67/id»; en 4.26.68 el panel debe reconocerlo. */
+const NATIVAS = ["Widget después de reabrir", "Gasto del widget tras una compra", "Clasificación de gastos bancarios", "Banco del widget", "Widget con la app cerrada"];
+
+async function panelRevisionExacta(page, lang, scenario) {
+  await abrirRevisionBeta(page);
+  await page.evaluate(async ({lang,scenario}) => {
+    await ensureLangPack(lang); CURLANG=lang;
+    CONFIG.APP_VERSION="9.9.3.1";
+    const g={id:"revision", t:"Revisión sintética", items:{es:["1. Comprobar A","2. Comprobar B"]},
+      codigo:"a".repeat(64),web:"b".repeat(64),native:"c".repeat(64),apk:51};
+    const old=betaHuella(g.id,g.t,g.items.es,1,g.codigo);
+    if(scenario==="changed") { g.codigoDesde=g.codigo; g.revisionesDesde={web:g.web,native:g.native}; g.native="e".repeat(64); g.codigo="d".repeat(64); }
+    RELEASE_NOTES=[{v:"9.9.3",t:"Escenario",tandas:[g],items:{es:[]}}];
+    window._mcProdApk=9999;
+    window._mcProdEntregas={web:{revision:g.web}};
+    window._mcProdApkRevisiones={revision:"otra-revision"};
+    const verdict=scenario==="rejected"?"rejected":"approved";
+    store.set("_betaReview_9.9.2.1_v",{_h:1,["h:"+old]:{verdict,at:100}});
+    store.set("_betaReviewOk",{"1. Comprobar A":"ok","2. Comprobar B":"ok"});
+    store.set("_betaMarksHuella",{"1. Comprobar A":old,"2. Comprobar B":old});
+    window.__betaReports=[];
+    cloud.betaReport=p => { window.__betaReports.push(mcBetaLog(p)); return Promise.resolve(); };
+  },{lang,scenario});
+  return conProduccionEn(page,"9.9.9");
+}
+
+for(const lang of ["es","en","ca"]) {
+  test(`revisión exacta: dos fuentes idénticas conservan OK y cinco cambios web/nativos piden nueva revisión (${lang})`, async ({page}) => {
+    await abrirRevisionBeta(page,lang);
+    await sembrarAprobadasEn4267(page);
+    await page.evaluate(async lang => { await ensureLangPack(lang); CURLANG=lang; CONFIG.APP_VERSION="4.26.76.1"; window._mcProdApk=48; window._mcProdEntregas=null; window._mcProdApkRevisiones=null; },lang);
+    const panel=await conProduccionEn(page,"4.26.67");
+    const before=await page.evaluate(()=>store.get("_betaReview_4.26.68.1_v"));
+    const copy={es:{approved:"No necesitas aprobarla otra vez",unknown:"Entrega sin confirmar: web",native:"Pendiente de publicar: app Android"},en:{approved:"You do not need to approve it again",unknown:"Delivery unconfirmed: web",native:"Awaiting publication: Android app"},ca:{approved:"No cal que l’aprovis de nou",unknown:"Entrega sense confirmar: web",native:"Pendent de publicar: app Android"}}[lang];
+    for(const title of ["Arranque con poca conexión","Ayuda de Mi ciclo"]) {
+      const fila=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:title})});
+      await expect(fila.locator(".beta-tanda-n")).toContainText("aprobada");
+      await expect(fila.locator(".beta-tanda-estado")).toBeVisible();
+      await expect(fila.locator(".beta-tanda-estado")).toContainText(copy.approved);
+      await expect(fila.locator(".beta-tanda-entrega")).toBeVisible();
+      await expect(fila.locator(".beta-tanda-entrega")).toContainText(copy.unknown);
+      await expect(fila.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/})).toHaveCount(0);
+    }
+    // La guardia de nómina cambia el importador de TR; su OK anterior sigue en el historial.
+    for(const title of NATIVAS) {
+      const fila=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:title})});
+      await expect(fila.locator(".beta-tanda-n")).toHaveText(/^0\/\d+$/);
+      await expect(fila.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/})).toContainText("web");
+      await expect(fila.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/})).toContainText("Android");
+      await expect(fila.getByRole("button",{name:/Aprobar esta tanda/})).toBeDisabled();
+      await expect(fila.locator(".beta-tanda-entrega")).toContainText(copy.native);
+      await expect(fila.locator(".beta-tanda-entrega")).toContainText(copy.unknown);
+    }
+    expect(await page.evaluate(()=>store.get("_betaReview_4.26.68.1_v"))).toEqual(before);
+  });
+  test(`entrega exacta: producción menor retira las siete tandas reales al llegar sus recibos (${lang})`, async ({page}) => {
+    // El recibo sintético no puede competir con una consulta real que arrancó al abrir la app.
+    await page.route("https://juanjoavila.github.io/Aely/**",route=>route.abort());
+    await abrirRevisionBeta(page,lang);
+    await page.evaluate(async()=>{ if(_mcProdVerCache) await _mcProdVerCache; });
+    await sembrarAprobadasEn4267(page);
+    await page.evaluate(async lang => {
+      await ensureLangPack(lang);
+      // Una lectura del panel de arranque aún pendiente no debe pisar después los recibos del mock.
+      if(_mcProdVerCache) await _mcProdVerCache;
+      CURLANG=lang; CONFIG.APP_VERSION=RELEASE_NOTES[0].v+".1";
+      window._mcProdApk=48; window._mcProdEntregas=null;window._mcProdApkRevisiones=null;
+      window._mcProdVersion=function(){ return new Promise(resolve=>{ window.__resolveDelivery=resolve; }); };
+    },lang);
+    const before=await page.evaluate(()=>store.get("_betaReview_4.26.68.1_v"));
+    await page.evaluate(()=>{
+      const h=document.createElement("div");h.id="e2e-beta-entrega";document.body.appendChild(h);
+      ReactDOM.createRoot(h).render(React.createElement(BetaReviewPanel,{onClose:function(){},showToast:function(){}}));
+    });
+    const panel=page.locator("#e2e-beta-entrega .beta-review");
+    await page.waitForFunction(()=>typeof window.__resolveDelivery==="function");
+    await page.evaluate(()=>{
+      window._mcProdEntregas={web:{},edge:{}};window._mcProdApkRevisiones={};
+      betaChecklist(CONFIG.APP_VERSION,"4.26.67",48).tandas.filter(g=>["inc-2709-01-arranque-red","inc-2809-02-ayuda-ciclo","fin05-widget-reentrada","fin05-pago-cerrada","tr-descripcion-clasificacion","widget-banco","widget-app-cerrada"].includes(g.id.split("/").pop())).forEach(g=>{
+        const id=g.id.split("/").pop();window._mcProdEntregas.web[id]=g.web;
+        if(g.native) window._mcProdApkRevisiones[id]=g.native;
+        if(g.edge) window._mcProdEntregas.edge[id]=g.edge;
+      });
+      window._mcProdApk=52;window.__resolveDelivery("4.26.67");
+    });
+    // Panel76 se trasladó a82; los recibos de las siete antiguas no entregan las trece nuevas.
+    const remaining=["inc-0210-02-categoria-elegida","feature-0210-01-gasolina-taxi","inc-0210-03-gastos-periodo","inc-0210-01-plan-cuota","beta-panel-veredictos","inc-2909-01-widget-periodo","inc-2909-03-retirada","inc-3009-nomina-anticipada","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2709-10-perfil","inc-3009-01-cargos","inc-2909-02-inicio-natural"];
+    await expect(panel.locator(".beta-tanda")).toHaveCount(remaining.length);
+    expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,"4.26.67",52).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(remaining.slice().sort());
+    for(const title of ["La categoría elegida no se deshace","Gastos y categorías del mismo periodo","Las cuotas cobradas dejan de estar pendientes","Las comprobaciones conservan su resultado","Widget: mes o Mi ciclo","Retiradas y presupuesto","Nómina sin adelantar el cobro","Botón + en Cyberpunk","Botón Preguntar","Perfil sin casillas gigantes","Recibos pagados y vencidos","Presupuesto mensual de Inicio"])
+      await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(1);
+    for(const title of NATIVAS.concat(["Arranque con poca conexión","Ayuda de Mi ciclo"]))
+      await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(0);
+    expect(await page.evaluate(()=>store.get("_betaReview_4.26.68.1_v"))).toEqual(before);
+  });
+  test(`revisión exacta: rechazo trasladado sigue vetando con producción mayor (${lang})`, async ({page}) => {
+    const panel=await panelRevisionExacta(page,lang,"rejected");
+    await expect(panel.locator(".beta-tanda")).toHaveCount(1);
+    await expect(panel.locator(".beta-tanda-n")).toContainText("rechazada");
+    await expect(panel).not.toContainText("ya pasó por aquí");
+  });
+  test(`revisión exacta: código nuevo exige puntos y veredicto nuevos (${lang})`, async ({page}) => {
+    const panel=await panelRevisionExacta(page,lang,"changed");
+    await expect(panel.locator(".beta-tanda-n")).toHaveText("0/2");
+    await expect(panel.getByRole("button",{name:/Aprobar esta tanda/})).toBeDisabled();
+    await expect(panel).not.toContainText("✅ aprobada");
+    await expect(panel.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/})).toContainText("Android");
+  });
+  test(`revisión exacta: retirar se registra en servidor y conserva OK si falla (${lang})`, async ({page}) => {
+    const panel=await panelRevisionExacta(page,lang,"approved");
+    await panel.locator(".beta-tanda-toggle").click();
+    await page.evaluate(() => { cloud.betaReport=() => Promise.reject(new Error("fallo sintético")); });
+    await panel.getByRole("button",{name:/Cambiar de opinión/}).click();
+    await expect(panel.locator(".beta-tanda-n")).toContainText("aprobada");
+    await page.evaluate(() => { cloud.betaReport=p => { window.__betaReports.push(mcBetaLog(p)); return Promise.resolve(); }; });
+    await panel.getByRole("button",{name:/Cambiar de opinión/}).click();
+    await expect(panel.getByRole("button",{name:/Aprobar esta tanda/})).toBeEnabled();
+    const part=await page.evaluate(() => window.__betaReports.at(-1));
+    expect(part.verdict).toBe("revoked");
+    expect(part.huella).toMatch(/^[0-9a-f]{8}:[0-9a-f]{64}$/);
+    await panel.getByRole("button",{name:/Empezar la revisión de cero/}).click();
+    expect(await page.evaluate(h => store.get("_betaReview_9.9.3.1_v")["h:"+h].verdict,part.huella)).toBe("revoked");
+    expect(await page.evaluate(() => betaVerdictFor(betaChecklist(CONFIG.APP_VERSION,"9.9.9",9999).tandas[0],
+      [window.__betaReports.at(-1),{huella:window.__betaReports.at(-1).huella,verdict:"approved"}]))).toBeNull();
+  });
+}
+async function sembrarAprobadasEn4267(page) {
+  await page.evaluate(() => {
+    CONFIG.APP_VERSION = "4.26.71.1";
+    const pack = betaChecklist(CONFIG.APP_VERSION,"4.26.67",48);
+    const partes = {}, marcas = {};
+    pack.tandas.filter((g) => g.historial.length).forEach((g) => {
+      partes[g.historial[0]] = "approved";
+      rnItems(g, "es").forEach((it) => { marcas[it] = "ok"; });
+    });
+    store.set("_betaReview_4.26.68.1_v", partes);
+    store.set("_betaReviewOk", marcas);
+  });
+}
+
+test("las nativas conservan el historial y sus cinco cambios web exigen revisión nueva", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  await sembrarAprobadasEn4267(page);
+  const historial=await page.evaluate(() => store.get("_betaReview_4.26.68.1_v"));
+  await page.evaluate(() => { CONFIG.APP_VERSION="4.26.75.1"; window._mcProdApk = 48; window._mcProdEntregas=null; });
+  const panel = await conProduccionEn(page, "4.26.67");
+  for (const title of NATIVAS) {
+    const fila = panel.locator(".beta-tanda").filter({ has: page.locator(".beta-tanda-t", { hasText: title }) });
+    await expect(fila.locator(".beta-tanda-n")).toHaveText(/^0\/\d+$/);
+    await expect(fila.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/})).toContainText("web");
+    await expect(fila.getByRole("button",{name:/Aprobar esta tanda/})).toBeDisabled();
+  }
+  expect(await page.evaluate(() => store.get("_betaReview_4.26.68.1_v"))).toEqual(historial);
+  const recibos = panel.locator(".beta-tanda").filter({ has: page.locator(".beta-tanda-t", { hasText: "Recibos pagados y vencidos" }) });
+  await expect(recibos.locator(".beta-tanda-n")).not.toContainText("aprobada");
+});
+
+test("producción web por delante no retira las nativas mientras la APK estable no las lleve", async ({ page }) => {
+  await abrirRevisionBeta(page);
+  await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.71.1"; window._mcProdApk = 48; window._mcProdEntregas=null; });
+  const panel = await conProduccionEn(page, "4.26.69");
+  for (const title of NATIVAS) await expect(panel.locator(".beta-tanda-t").filter({ hasText: title })).toHaveCount(1);
+  await expect(panel.locator(".beta-tanda-t").filter({ hasText: "Ayuda de Mi ciclo" })).toHaveCount(1);
+  await expect(panel.locator(".beta-tanda-t").filter({ hasText: "Recibos pagados y vencidos" })).toHaveCount(0);
+});
+
+// R1/R2: una publicación completa y un arranque nuevo, conservando localStorage real.
+// Los digests proceden de fuentes modificadas, no de un código inventado igual para A.
+test.describe("persistencia81 con compilaciones aisladas",()=>{
+  test.use({serviceWorkers:"block"});
+for(const lang of ["es","en","ca"])for(const mode of ["texto repetido","sin marcas","sin red"]){
+  test("persistencia81 "+lang+" · A aprobada, B ajena, actualizar y reiniciar · "+mode,async({page})=>{
+    const read=f=>fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
+    const unrelated=text=>text.replace("function widgetCoveredEvents(","function betaAjena81(){ return 27; }\nfunction widgetCoveredEvents(")
+      .replace("    enabled(){ return !!sb; },","    betaAjena81(){ return 27; },\n    enabled(){ return !!sb; },")
+      .replace("name:sp.name, amount:useAmt","name:sp.name, amount:useAmt+1");
+    const changed=f=>unrelated(read(f));
+    const id="inc-2909-02-inicio-natural",aBefore=betaRevision(id,read),aAfter=betaRevision(id,changed);
+    expect(aAfter.codigo,"una entrega ajena mantiene las unidades de A").toBe(aBefore.codigo);
+    const aRealChange=betaRevision(id,f=>changed(f).replace("const REC_GRACE=3;","const REC_GRACE=4;"));
+    expect(aRealChange.codigo).not.toBe(aBefore.codigo);
+    const bCode=betaRevision("ajena81",changed,undefined,{web:[{file:"src/modules/00-core.js",data:"cloud",members:["betaAjena81"]}],unidades:true});
+    const shared="Volver a abrir y comprobar el resultado sintético";
+    const a={id:id,t:{es:"A · comprobación anterior",en:"A · previous check",ca:"A · comprovació anterior"},items:{es:[shared],en:[shared],ca:[shared]},...aBefore};
+    const b={id:"ajena81",t:{es:"B · entrega ajena",en:"B · unrelated delivery",ca:"B · entrega aliena"},items:{es:[shared],en:[shared],ca:[shared]},...bCode};
+    const note=(v,tandas)=>({v:v,t:{es:"Ronda sintética",en:"Synthetic round",ca:"Ronda sintètica"},items:{es:[],en:[],ca:[]},tandas:tandas});
+    const html=read("public/index.html");let phase=0, notesOffline=false, notesStale=false;
+    const catalogFor=stage=>stage===0?[note("9.9.1",[a])]:[note("9.9.2",[b]),note("9.9.1",[{...a,...(stage===2?aRealChange:aAfter)}])];
+    const catalogSha=stage=>crypto.createHash("sha256").update(JSON.stringify(catalogFor(stage))).digest("hex");
+    await seedLoggedInDashboard(page,{__seedOnce:true,__seenVersion:"99.99.99",settings:{autoPrices:false,theme:"green",lang:lang}});
+    await page.addInitScript(()=>{localStorage.setItem("_mcChannel","beta");localStorage.setItem("_seenVersion","99.99.99");});
+    await page.addInitScript(()=>{ if(localStorage.getItem("__betaNoCrypto")==="1"){const c=window.crypto;Object.defineProperty(window,"crypto",{value:{getRandomValues:c.getRandomValues.bind(c),randomUUID:c.randomUUID&&c.randomUUID.bind(c)},configurable:true});} });
+    await page.route("**/release-notes.json*",route=>notesOffline?route.abort():route.fulfill({contentType:"application/json",body:JSON.stringify(catalogFor(notesStale?1:phase))}));
+    await page.route("**/",route=>route.fulfill({contentType:"text/html",body:(phase?unrelated(html):html).replace(/var _rnSha="[0-9a-f]{64}";/,'var _rnSha="'+catalogSha(phase)+'";').replace("const REC_GRACE=3;",phase===2?"const REC_GRACE=4;":"const REC_GRACE=3;").replace('<head>','<head><script>localStorage.setItem("_seenVersion","9.9.'+(phase?"2":"1")+'");window.__e2eNewsSeenVersion="9.9.'+(phase?"2":"1")+'";</script>').replace('APP_VERSION: "dev"','APP_VERSION: "9.9.'+(phase?"2":"1")+'.'+(phase===2?"2":"1")+'"')}));
+    const mount=async()=>{
+      await expect(page.locator(".botnav")).toBeVisible({timeout:15_000});await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);await expect(page.locator(".wn-panel")).toHaveCount(0);
+      const head=await page.evaluate(()=>ensureReleaseNotes().then(arr=>({v:arr[0]&&arr[0].v,url:releaseNotesUrl(),version:CONFIG.APP_VERSION})));
+      expect(head).toMatchObject({v:phase?"9.9.2":"9.9.1",version:phase===2?"9.9.2.2":phase?"9.9.2.1":"9.9.1.1"});
+      await page.evaluate(()=>{window._mcProdEntregas=null;window._mcProdApkRevisiones=null;window._mcProdApk=0;window.__betaReports=[];cloud.betaReport=p=>{window.__betaReports.push(p);return Promise.resolve();};});
+      return conProduccionEn(page,mode==="sin red"?null:"9.9.0");
+    };
+    await page.goto("/");let panel=await mount();
+    let rowA=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:"A ·"})});
+    await rowA.getByRole("button",{name:/Va bien/}).click();await rowA.getByRole("button",{name:/Aprobar esta tanda/}).click();
+    await expect(rowA.locator(".beta-tanda-n")).toContainText("aprobada");
+    const oldVerdict=await page.evaluate(()=>store.get("_betaReview_"+CONFIG.APP_VERSION+"_v"));
+    if(mode==="sin marcas")await page.evaluate(()=>["_betaReviewMarks","_betaReviewOk","_betaMarksHuella"].forEach(k=>store.del(k)));
+    phase=1;await page.reload();panel=await mount();
+    rowA=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:"A ·"})});
+    const rowB=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:"B ·"})});
+    await expect(panel.locator(".beta-tanda")).toHaveCount(2);
+    await expect(rowA.locator(".beta-tanda-toggle")).toHaveAttribute("aria-expanded","false");
+    await expect(rowA.locator(".beta-tanda-n")).toContainText("aprobada");
+    await expect(rowB.locator(".beta-tanda-toggle")).toHaveAttribute("aria-expanded","true");
+    await expect(rowB.getByRole("button",{name:/Aprobar esta tanda/})).toBeDisabled();
+    await expect(rowA.locator(".beta-tanda-entrega")).toContainText(/Entrega sin confirmar|Delivery unconfirmed|Entrega sense confirmar/);
+    await rowB.getByRole("button",{name:/Falla/}).click();await rowB.locator("input").fill("Fallo sintético exclusivo de B");
+    if(mode==="sin red")notesOffline=true;
+    await page.reload();panel=await mount();
+    rowA=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:"A ·"})});
+    await expect(rowA.locator(".beta-tanda-n")).toContainText("aprobada");
+    await expect(rowA.locator(".beta-tanda-toggle")).toHaveAttribute("aria-expanded","false");
+    await expect(panel.locator(".beta-tanda").filter({hasText:"B ·"}).locator("input")).toHaveValue("Fallo sintético exclusivo de B");
+    expect(await page.evaluate(()=>store.get("_betaReview_9.9.1.1_v"))).toEqual(oldVerdict);
+    if(mode==="sin red"){
+      // Sin WebCrypto ni siquiera una caché antes válida acredita la compilación.
+      await page.evaluate(()=>localStorage.setItem("__betaNoCrypto","1"));await page.reload();
+      await expect(page.locator(".botnav")).toBeVisible();await page.waitForFunction(()=>!document.getElementById("mc-load"));
+      expect(await page.evaluate(()=>ensureReleaseNotes().then(arr=>arr.length))).toBe(0);
+      panel=await conProduccionEn(page,null);
+      await expect(panel).toContainText(/Comprobaciones sin confirmar|Checks are unconfirmed|Comprovacions sense confirmar/);
+      await expect(panel.locator(".beta-tanda")).toHaveCount(0);
+      expect(await page.evaluate(()=>store.get("_betaReview_9.9.1.1_v"))).toEqual(oldVerdict);
+      await page.evaluate(()=>localStorage.removeItem("__betaNoCrypto"));await page.reload();panel=await mount();
+      rowA=panel.locator(".beta-tanda").filter({hasText:"A ·"});
+    }
+    await rowA.locator(".beta-tanda-toggle").click();await rowA.getByRole("button",{name:/Cambiar de opinión/}).click();
+    await expect(rowA.getByRole("button",{name:/Aprobar esta tanda/})).toBeVisible();
+    await page.reload();panel=await mount();
+    rowA=panel.locator(".beta-tanda").filter({hasText:"A ·"});await expect(rowA.locator(".beta-tanda-n")).not.toContainText("aprobada");
+    // Un rechazo posterior tampoco puede desaparecer al reiniciar.
+    const item=rowA.locator(".beta-item").first();if(await item.getByRole("button",{name:/Falla/}).count()===0)await item.click();
+    await item.getByRole("button",{name:/Falla/}).click();await rowA.getByRole("button",{name:/Reportar/}).click();
+    await page.reload();panel=await mount();rowA=panel.locator(".beta-tanda").filter({hasText:"A ·"});
+    await expect(rowA.locator(".beta-tanda-n")).toContainText("rechazada");
+    phase=2;
+    if(mode==="sin red"){
+      notesOffline=true;await page.reload();
+      await expect(page.locator(".botnav")).toBeVisible();await page.waitForFunction(()=>!document.getElementById("mc-load"));
+      expect(await page.evaluate(()=>ensureReleaseNotes().then(arr=>arr.length))).toBe(0);
+      panel=await conProduccionEn(page,null);
+      await expect(panel).toContainText(/Comprobaciones sin confirmar|Checks are unconfirmed|Comprovacions sense confirmar/);
+      await expect(panel.locator(".beta-tanda")).toHaveCount(0);
+      expect(await page.evaluate(()=>store.get("_betaReview_9.9.1.1_v"))).toEqual(oldVerdict);
+      // El SW puede responder bien con notas antiguas: la nueva compilación debe rechazarlas.
+      notesOffline=false;notesStale=true;await page.reload();
+      await expect(page.locator(".botnav")).toBeVisible();await page.waitForFunction(()=>!document.getElementById("mc-load"));
+      expect(await page.evaluate(()=>ensureReleaseNotes().then(arr=>arr.length))).toBe(0);
+      panel=await conProduccionEn(page,null);
+      await expect(panel).toContainText(/Comprobaciones sin confirmar|Checks are unconfirmed|Comprovacions sense confirmar/);
+      await expect(panel.locator(".beta-tanda")).toHaveCount(0);
+      expect(await page.evaluate(()=>localStorage.getItem("_rnBetaRound_9.9.2.2"))).toBeNull();
+      expect(await page.evaluate(()=>store.get("_betaReview_9.9.1.1_v"))).toEqual(oldVerdict);
+      // Novedades comparte la verificación y ofrece recuperación sin reiniciar la app.
+      await page.evaluate(()=>{const h=document.createElement("div");h.id="e2e-notes-retry";document.body.appendChild(h);const root=ReactDOM.createRoot(h);root.render(React.createElement(WhatsNew,{onClose:function(){ root.unmount();h.remove(); }}));});
+      const news=page.locator(".wn-panel");
+      await expect(news).toContainText(/No se han podido comprobar|could not be verified|No s’han pogut comprovar/);
+      await expect(news).not.toContainText("…");
+      notesStale=false;await news.getByRole("button",{name:/Probar otra vez|Try again|Tornar-ho a provar/}).click();
+      await expect(news).toContainText("v9.9.2.2");
+      await news.getByRole("button",{name:/Entendido|Got it|Entesos/}).click();
+      await panel.getByRole("button",{name:/Probar otra vez|Try again|Tornar-ho a provar/}).click();
+      await expect(panel.locator(".beta-tanda")).toHaveCount(2);
+      expect(await page.evaluate(()=>Object.keys(localStorage).filter(k=>k.startsWith("_rnBetaRound_")))).toEqual(["_rnBetaRound_9.9.2.2"]);
+    }
+    notesOffline=false;await page.reload();panel=await mount();rowA=panel.locator(".beta-tanda").filter({hasText:"A ·"});
+    await expect(rowA.locator(".beta-tanda-toggle")).toHaveAttribute("aria-expanded","true");
+    await expect(rowA.locator(".beta-tanda-n")).toHaveText("0/1");
+    await expect(rowA.getByRole("button",{name:/Aprobar esta tanda/})).toBeDisabled();
+    await panel.getByRole("button",{name:/Empezar la revisión de cero/}).click();
+    await page.reload();panel=await mount();
+    const resetB=panel.locator(".beta-tanda").filter({hasText:"B ·"});
+    await resetB.getByRole("button",{name:/Falla/}).click();
+    await expect(resetB.locator("input")).toHaveValue("");
+    expect(await page.evaluate(h=>store.get("_betaReviewMarks")[h].notes,await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,"9.9.0",0).tandas.find(g=>g.id.endsWith("ajena81")).huella))).toEqual({});
+  });
+}
+
+});
+
+for(const lang of ["es","en","ca"]) {
+  test(`ronda mixta: conserva la checklist actual, modernas y comentarios con producción desconocida (${lang})`,async({page})=>{
+    await abrirRevisionBeta(page,lang);
+    const expected=await page.evaluate(async lang=>{
+      await ensureLangPack(lang);CURLANG=lang;
+      const ids=betaChecklist(RELEASE_NOTES[0].v+".1",null,48).tandas.map(g=>g.id.split("/").pop()).sort();
+      RELEASE_NOTES.unshift({v:"4.26.99",t:{es:"Actual implícita",en:"Current implicit",ca:"Actual implícita"},items:{es:["1. A","2. B","3. C"],en:["1. A","2. B","3. C"],ca:["1. A","2. B","3. C"]}});
+      CONFIG.APP_VERSION="4.26.99.1";window._mcProdApk=48;window._mcProdEntregas=null;window._mcProdApkRevisiones=null;
+      window._mcProdVersion=()=>new Promise(resolve=>{window.__resolveMixed=resolve;});
+      const host=document.createElement("div");host.id="e2e-mixed";document.body.appendChild(host);
+      window.__mixedRoot=ReactDOM.createRoot(host);window.__mixedRoot.render(React.createElement(BetaReviewPanel,{onClose:function(){},showToast:function(){}}));
+      return ids;
+    },lang);
+    expect(expected).toEqual(["inc-0210-02-categoria-elegida","feature-0210-01-gasolina-taxi","beta-panel-veredictos","fin05-pago-cerrada","fin05-widget-reentrada","inc-0210-01-plan-cuota","inc-0210-03-gastos-periodo","inc-2709-01-arranque-red","inc-2709-10-perfil","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2809-02-ayuda-ciclo","inc-2909-01-widget-periodo","inc-2909-02-inicio-natural","inc-2909-03-retirada","inc-3009-01-cargos","inc-3009-nomina-anticipada","tr-descripcion-clasificacion","widget-app-cerrada","widget-banco"].sort());
+    const panel=page.locator("#e2e-mixed .beta-review"),row=panel.locator(".beta-tanda").filter({has:page.getByText("1. A",{exact:true})});
+    await expect(panel.locator(".beta-tanda")).toHaveCount(expected.length+1);await expect(row).toHaveCount(1);
+    await expect(row.locator(".beta-item")).toHaveCount(3);await expect(row.locator(".beta-tanda-n")).toHaveText("0/3");
+    expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,null,48).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(expected.concat(["todo"]).sort());
+    await row.locator(".beta-item").nth(0).getByRole("button",{name:/Va bien/}).click();
+    await row.locator(".beta-item").nth(1).getByRole("button",{name:/No lo puedo probar/}).click();
+    await row.locator(".beta-item").nth(2).getByRole("button",{name:/Falla/}).click();
+    await row.locator("input").fill("Comentario sintético de la ronda mixta");
+    await expect(row.locator(".beta-tanda-n")).toHaveText("3/3");
+    await expect(row.getByRole("button",{name:/Reportar/})).toBeEnabled();await expect(row.getByRole("button",{name:/Aprobar esta/})).toBeDisabled();
+    await page.waitForFunction(()=>typeof window.__resolveMixed==="function");await page.evaluate(()=>window.__resolveMixed("4.26.67"));
+    await expect(panel.locator(".beta-tanda")).toHaveCount(expected.length+1);await expect(row).toHaveCount(1);
+    await expect(row.locator(".beta-tanda-n")).toHaveText("3/3");await expect(row.locator("input")).toHaveValue("Comentario sintético de la ronda mixta");
+    expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,"4.26.67",48).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(expected.concat(["todo"]).sort());
+    // Una nota familiar sin puntos explícitos no vuelve a crear la revisión que acabamos de marcar.
+    await page.evaluate(()=>{window.__mixedRoot.unmount();RELEASE_NOTES[0].tandas=[];window._mcProdVersion=()=>Promise.resolve(null);window.__mixedRoot=ReactDOM.createRoot(document.getElementById("e2e-mixed"));window.__mixedRoot.render(React.createElement(BetaReviewPanel,{onClose:function(){},showToast:function(){}}));});
+    await expect(panel.locator(".beta-tanda")).toHaveCount(expected.length);await expect(row).toHaveCount(0);
+    expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,null,48).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(expected);
+  });
+}

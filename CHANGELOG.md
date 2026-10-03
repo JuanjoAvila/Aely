@@ -1,3 +1,153 @@
+## [4.26.86] — 2026-10-02 · La categoría elegida a mano no se deshace (INC-0210-02)
+
+- Promoción web selectiva de las veinte tandas aprobadas de86: fuente49a exacta y aprobaciones actuales/auditadas; excluye Metas87/Movilidad88/PR105. APK estable32/code48 y workflow Supabase manual conservados. Historia publicada66/67 preservada; checkout completo en Pages para verificar referencias históricas y cuatro suites Deno también en despliegue. [Acta](docs/briefs/promocion-web-aprobadas-2026-10-03.md).
+
+- Síntoma: un comercio de comida cuyo nombre contiene el de una aseguradora, corregido a Restaurantes, volvía a Recibos cada día. Reproducido en Node con datos ficticios por dos caminos. (1) La fila corregida: `refreshExpenseFromCloud` adopta la categoría de la nube en toda fila no manual, y la subida de la corrección filtra por id; si el id local no es el de la tabla, el UPDATE no toca ninguna fila y no da error, así que el siguiente pull devolvía la categoría vieja. (2) El cargo equivalente del día siguiente: `ingest` categoriza en servidor por palabra clave sin conocer lo aprendido y `resolveCategory` acepta cualquier categoría de nube distinta de «otros» sin mirar `USER_OVERRIDES`.
+- No se añade ninguna regla de aseguradoras ni se tocan palabras clave, MCC ni servidor: el alias es ambiguo y un seguro real debe seguir en Recibos.
+- Fila corregida: `cloud.setExpenseCat` devuelve cuántas filas escribió. `catStale` (solo local) recuerda qué categorías puede devolver aún la tabla. Sin escritura confirmada manda lo local y `keepCategoryChoices` reintenta con la identidad de la fila de la nube; cero filas o un error no confirman nada. Con la escritura confirmada (`catAckAt`), toda lectura empezada después es la verdad aunque diga la categoría anterior: es otro dispositivo que la devolvió ahí. Una lectura empezada antes de la confirmación, o sin hora, puede ser una foto vieja y no pisa.
+- Equivalencias futuras explícitas: `catRules` guarda, por comercio exacto + banco + con/sin tarjeta, la categoría y el instante en que se enseñó. Solo una fila que el dispositivo ve por primera vez, con fecha estrictamente posterior a ese instante, no manual y de categoría ordinaria, nace con lo aprendido. Corregir un gasto antiguo no autoriza nada entre su fecha y hoy, y una fecha sin hora del mismo día cae antes. El mismo nombre en otro banco o como cargo sin tarjeta no es el mismo sitio. El histórico anterior no se reescribe, tampoco en un dispositivo recién instalado; una fecha ilegible o una regla sin fecha no autorizan nada.
+- Lo aprendido antes de esta versión no trae fecha ni contexto: `seedCatRules` los deduce una vez de las filas ya corregidas y valen desde ese día. Sin fila que lo pruebe no hay regla; la siguiente corrección la crea.
+- `mergeExpensesFromCloud` y `refreshExpenseFromCloud` no cambian: la protección prepara sus entradas y devuelve las mismas referencias cuando no hay nada que proteger, porque el pull corre en cada vuelta a primer plano.
+- Cambian de huella las tandas cuyo alcance incluye `syncCloudExpenses`, `setCat`, `seedFlows` o `cloud.setExpenseCat`: es código compartido que cambia de verdad.
+- `tests/categoria-manual-persistente.test.mjs` (catorce contratos, incluidos dos dispositivos, cero filas, error y la frontera del aprendizaje) y `e2e/categoria-elegida.spec.mjs` en es/en/ca.
+- Integración 3/10: la 86 se monta sobre la beta 85 (`cdfb2f2c`) sin cambiar su runtime. `keepCategoryChoices` corre antes del pull y no toca `debtPaymentState`, la ventana de Gastos ni las categorías Gasolina/Taxi; una regla aprendida puede llevar a esas categorías nuevas igual que a cualquier otra ordinaria.
+
+## [4.26.85] — 2026-10-02 · Gasolina y Taxi independientes
+
+- Revisión3/10: una cuota vinculada manualmente o por notificación solo deja de estar pendiente antes del vencimiento con un BOOK único de esa identidad; el origen OB conserva su prueba bancaria. Caso rojo: proyección800 en lugar de740 sin pago incluido. Se conserva principal/saldo y se añaden negativos/positivos de motor y DOM es/en/ca. Gastos recupera el singular y retira cuatro claves reemplazadas tras comprobar todos sus usos.
+
+- Integración conjunta con Plan83 y Gastos84, conservando las tres notas y alcances actuales por unión de lectores reales. Referencias históricas intactas; TR cambia con el clasificador nuevo y no hereda aprobación. [Acta conjunta y gates](docs/briefs/inc-0210-integracion-plan-gastos-gasolina.md).
+
+- FEATURE-0210-01: catálogo, iconos e idiomas separan Gasolina/Taxi de Transporte; selector, filtros y límites usan los mismos IDs. autoCategory conserva sus reglas históricas: la división ocurre solo en altas nuevas y respeta la elección personal, incluso Otros. Sin migración ni reparto automático de límites anteriores.
+- Carburante explícito y MCC de tarjeta5541/5542 identifican Gasolina;4121 identifica Taxi. Un nombre energético ambiguo no convierte Repsol Luz/Gas ni Uber Eats en combustible/taxi. Espejo y catálogo Edge preparados solo en fuente, sin despliegue; selector y presupuesto web funcionan sin él. [Acta y pruebas](docs/briefs/feature-0210-01-gasolina-taxi.md).
+
+## [4.26.84] — 2026-10-02 · Gastos comparte el periodo seleccionado
+
+- INC-0210-03: lista, cabecera y categorías usan una misma ventana explícita; el motor admite esa ventana sin duplicar reglas de dinero. Mes natural y Mi ciclo conservan sus magnitudes y filtros exploratorios. Los límites mensuales actuales no se presentan como presupuesto histórico o acumulado: se indica ausencia de registro, sin barras engañosas.
+- Fechas de rango desde medianoche local hasta final del día; ciclo excluye apuntes futuros. Pruebas sintéticas de motor y DOM es/en/ca registradas. Candidata separable sobre3467bbd4, sin publicación ni aceptación móvil. APK/servidor intactos. Las huellas alcanzadas por el cambio real del motor se recalculan sin repinar referencias. [Acta](docs/briefs/inc-0210-03-gastos-periodo.md).
+
+## [4.26.83] — 2026-10-02 · INC-0210-01, cuota contabilizada antes del vencimiento
+
+- Plan, Inicio y los eventos pendientes de la proyección consumen el cargo de Gastos ya vinculado a la deuda en lugar de esperar solo al día previsto. debtPaymentState valida mes de vencimiento más cercano, identidad única, igualdad de importe en céntimos EUR, fecha no futura, ausencia de lápida y de PDNG/duplicados en el feed. Dos cargos vinculados compatibles no se eligen por orden. Se conserva recAmtClose para la clasificación: un cargo59 no acredita aquí una cuota60.
+- La prueba decimal de cuota más pago final descubrió que el parámetro t numérico de planChargesMonth ocultaba el traductor global t y lanzaba TypeError al rotular el pago final. Se renombra solo el parámetro a today, sin alterar sus importes ni el calendario; el recorrido real desglosa0,1+0,2 sin duplicar el cargo0,3.
+- Se conserva la fórmula del saldo actual, el principal proyectado y las anclas: introducir un nuevo descuento en monthNetForAccount al instalar contaría otra vez un cargo ya incluido por el banco. El contrato solo retira su evento futuro y mueve la cuota del pendiente al pagado. No enlaza movimientos por nombre ni cambia la clasificación automática.
+- Regresión Node con rojo contra3467 y DOM es/en/ca registrados en runner/mapa. Candidata83 sin publicar, sin APK/Edge/SQL ni datos reales. [Acta](docs/briefs/inc-0210-01-plan-cuota.md).
+
+## [4.26.82] — 2026-10-01 · Conservar la checklist actual en una ronda mixta
+
+- La revisión independiente de450 detectó que, sin versión de producción, una ronda moderna ocultaba los puntos implícitos de la versión actual. betaChecklist une ambas fuentes sin duplicar la cabeza moderna ni reincorporar notas con tandas:[]; las identidades y recibos siguen gobernando aprobaciones y entrega.
+- El test anterior aislaba artificialmente el catálogo legado y ocultaba la regresión: se elimina ese aislamiento, se añaden contratos mixtos y DOM es/en/ca sobre las dieciséis tandas reales. La81 nunca se publicó;82 identifica este cambio de runtime posterior al último bump y conserva el único guion Panel, su historia y APK80/code52. CI y revisión exactas pendientes.
+
+## [4.26.81] — 2026-10-01 · Conservar comprobaciones entre entregas
+
+- CLI integrado en esta candidata: `listo` acredita un único actor con el rol Dev de `profiles`, filtra `app_events` antes del límite y descarta filas ajenas también al reconstruir los partes. La service role veía todos los usuarios: un OK ajeno posterior podía sustituir un rechazo propio con la misma huella. Un `null` explícito propio retira el OK anterior, sin confundirlo con una decisión ausente/inválida. Sin identidad acreditada el resultado es indeterminado, salida 2. Pruebas del CLI real sin red registradas; no cambia el panel, la versión, las huellas ni la entrega web/Android/Edge.
+
+- Veredictos independientes del progreso auxiliar; ledger por huella/índice separa textos repetidos. Reset vacía comentarios y marcas scoped; la retirada/rechazo más reciente permanece.
+- Identidad web por unión de unidades y métodos cloud alcanzados, conservando initializer y código literal. Separación del ACK exclusivo de widget en Listener TR. Equivalencias75→80 recalculadas desde SHAs fijos sin repin ni aliases manuales; Nómina78 no se presume equivalente a cambios financieros79.
+- El bundle exige el SHA-256 exacto del catálogo, incluso ante respuesta exitosa antigua del SW. Caché mínima por compilación completa e identidad, acotada a una sola antes de guardar; sin catálogo verificado muestra comprobaciones sin confirmar. Panel y Novedades ofrecen reintento explícito. Aprobación y recibos de entrega siguen separados, con mínimo nativo y límites de evidencia. Notas/guion es/en/ca; APK80/code52 intacta.
+- 9 DOM es/en/ca PASS (A+B, reinicio, sin marcas/red, rechazo/retirada, reset); catálogo viejo exitoso rechazado incluso con la misma versión base y cálculo financiero nuevo. Guardianes982 funciones/305 datos, veredictos28 y demás etapas Node PASS salvo espejo externo; Deno ausente.1263/344 KiB mínimos medidos y aceptados técnicamente. Candidata sin publicar: revisión Claude exacta y CI pendientes. [Acta y límites](docs/briefs/ops-0110-validaciones-persistentes.md).
+
+## [4.26.80] — 2026-10-01 · Widget v2 sobre Nómina/Retirada
+
+
+- Injerto acotado821 sobre parent79/d45fb8b1: conserva guardia de abonos BOOK/fecha, merge con readStartedAt y conciliación durable de recibos/retirada. Java idéntico821; ACK del último pull completo, desconocidos hasta identidad/lápida y negociación sin degradar.
+- Periodo/idioma y magnitud de Inicio: bruto mensual o neto con signo del ciclo, sin Balance. APK51 conserva legado; código52/versionName80 y manifiesto52 apuntan al preasset beta real verificado, sin entrega final todavía.
+- Preserva Panel76/UI77 y los tres guiones Nómina78/Retirada79/Widget80. Alcance/data/functions completos, hashes históricos sin repin. Novedades79items[3] simplifica solo el condicional de vínculo tardío, respaldado por cuatro DOM de ACK/rechazo.
+- 13 DOM afectados PASS en pases finales; quitar readStartedAt se caza con100→180 y fuente/bundle se restauran byte a byte. Runner109 etapas, rojos iniciales de51/52, espejo externo y tamaño;1260/343 KiB mínimos autorizados tras A/B+1.699 B min/+601 B gzip. Prebuild26a y descarga del asset602841368 PASS, firma habitual/37assets/BuildConfig. Fixtures c9887ab8/2b03894a solo tests/acta. CI/build final/reemplazo binario y cotejo servido obligatorios antes de entrega80. [Acta](docs/briefs/inc-2909-01-widget.md).
+
+## [4.26.79] — 2026-10-01 · INC-2909-03, reconocer retirada sin gasto ni efectivo importado
+
+- Fuente79 injertada sobre Nómina78 final eaf55e4af38d2277a50baa5e736a93cd09b3a627, conservando Panel76/UI77 y sus guiones. Delta financiero aff910b9 idéntico; no modifica el motor08 ni las pantallas14/shell. Entrega conjunta prevista en beta80, sin publicación intermedia79 ni nota de Retirada77.
+
+- Confirma retirada por UUID/origen/fecha/importe/comercio y CAS de categoría, con RETURNING de una fila. Bloquea cargos ya vinculados a recibos y conserva Deshacer aun sin feed válido. Traspaso genérico usa la misma puerta, sin aprender comercio ni tocar dinero.
+- Vínculo llegado tras iniciar UPDATE: solo ACK válido de ese envío permite deshacer la prueba expense coincidente con linkFixedPayment(null) y aplicar neutralidad. La marca withdrawalUpdated es efímera. Lectura ya neutra, 0ACK, fallo, otra identidad y retorno vacío no revocan pago. Revalida fila/categoría local; aviso es/en/ca de recibo pendiente y sincronización. Sin transacción entre tablas/clientes; elimina metadatos, no crea lápida.
+- 43 Node PASS con handlers y método cloud reales: banco420 intacto, presupuesto80→0, cash manual30, importes40/80 y otros pagos/meses intactos; pull y slimForCloud dejan paid=false en A/B sin feed. Retirada importada no añade efectivo; manual permanece. FIN-04/RLS y timeout con commit sin ACK siguen fuera del cierre.
+- DOM28 final:7/7 PASS con un worker y servidor propio, cuatro casos tardíos de Retirada y vínculo/deshacer de Recibos es/en/ca. Bloqueo previo y los13 DOM anteriores se conservan como evidencia de aff; Node43 más contratos de pagos, scanner943 funciones/284 datos, sintaxis, frescura, idiomas, seguridad, mapa y privacidad PASS. No acredita RLS real ni prueba móvil. [Acta](docs/briefs/inc-2909-03-retirada-caixa.md).
+
+- Tamaño A/B contra parent final78 eaf55e4a: +8.519 B minificados/+1.997 B gzip9. Guardián mínimo1259/343 KiB autorizado por coordinador; sello79.99 mide1.288.387/350.399 B, margen829/833 B. Conserva tres bloqueantes y contratos financieros/idiomas, sin nuevas dependencias.
+
+## [4.26.78] — 2026-10-01 · INC-3009-02, ingresos pendientes y futuros
+
+- Candidata sobre UI77 finalca7734fd; CI exacta y publicación pendientes. Conserva Panel76/UI77; no mezcla los metadatos76 de PR96. Runtime de importObExpenses idéntico al revisado5c2146c3: BOOK o estado ausente y fecha válida ya alcanzada en Madrid, antes de identidad. Sin reparación histórica, cambios de calendario, APK, Edge ni SQL.
+- Una tanda Nómina es/en/ca y alcance explícito del importador, identidad, fecha Madrid, saldo, ancla, presupuesto y sync. TR cambia realmente en web y exige nueva revisión, conservando referencias/historial; ayuda y arranque conservan el OK idéntico. No se repinan baselines Git.
+- Porta cuatro fixtures reparadas del panel y conserva las explicaciones y escenarios nuevos de Panel76;4/4 DOM en4,6s bajo lease27 con hashHTMLpropio y contratos Node afectados verdes. Minificador real A/B77→78:+452 B crudos/+156 B gzip9; sello78.99 deja132/777 B bajo1250/341 KiB sin ampliarlos. DOM/CI anteriores quedan asociados a su SHA y no acreditan78. [Acta](docs/briefs/inc-3009-nomina-anticipada.md).
+
+## [4.26.77] — 2026-10-01 · tres correcciones de pantalla en tandas separadas (INC-2709-12, -14 y -10)
+
+- **Cyberpunk (INC-2709-12).** La corriente de la barra inferior es un `::after` de `.botnav` y el `+` sobresale 26 px por encima de la barra sin contexto de apilamiento propio, así que la línea se pintaba encima del botón. `.botnav-fab` pasa a `position:relative;z-index:1` solo en ese tema; la corriente sigue recorriendo el resto de la barra.
+- **Preguntar (INC-2709-14).** La hoja de Pregúntame heredaba el `padding-bottom` general de `.v4-sheet` y además sumaba la zona segura en el compositor: el botón flotaba sobre un hueco. `.v4-sheet.aely-help-sheet` deja el relleno a 0 y la zona segura la pone el compositor; con teclado (`visualViewport` reducido más de 24 px) el relleno es el alto del teclado y el margen queda en 10 px.
+- **Perfil (INC-2709-10).** Las filas sin dato usaban la clase genérica `.empty`, que en otra regla del shell es una caja de estado vacío con relleno grande: cada dato sin rellenar ocupaba una casilla enorme. Pasan a `.pr-val-empty`, propia del perfil; mismas filas y mismas acciones.
+- Una sola versión con **tres tandas** y tres guiones es/en/ca, para que cada una se apruebe o rechace por separado. Los números 79/80/81 de las actas de origen eran reservas provisionales y no se publican. Alcances explícitos por tanda en `scripts/beta-sources.json` (reglas CSS, zona segura, detector de teclado, `profileOf` y `ProfilePanel`) con diez mutantes semánticos en `tests/beta-sources.test.mjs`. Los dos últimos salen de un NO-GO del revisor: el CSS vigilado no pinta nada si el elemento deja de llevar la clase, y renombrar `botnav-fab` o `aely-help-composer` en el render no movía la huella; ahora el bloque del botón en `11-app-main.js` y el del compositor en `16-help-assistant.js` forman parte de su tanda; ninguna dependencia de 00/01/08, así que no toca importes.
+- Prueba de Cyberpunk: la igualdad exacta de PNG con/sin corriente daba rojos que cambiaban de escenario entre pasadas (57 de los 576 píxeles del recorte, a 1 nivel RGB como máximo y repartidos por sus ocho filas, con geometría idéntica): era el tramado del degradado del botón, no la línea. El banco pinta el botón con `var(--cyber-mag)` opaco y aquieta el aro, conservando forma, geometría y z-index; la comparación sigue siendo exacta, sin tolerancia. Contraste registrado: z-index `auto` 4/4 rojo, z-index 1 4/4 verde.
+- Lo que no acredita ninguna prueba de escritorio: teclado Android real e inercia real al esconder la barra. Sin cambios en motor financiero, Android, Edge, SQL ni dependencias. [Acta](docs/briefs/ui-77-integracion.md).
+
+## [4.26.76] — 2026-10-01 · OPS-0110, revisión y entrega separadas en Pruebas
+
+- Reclamación de las siete tandas: cotejo de ZIP beta75 y producción67, más acta selectiva28/9. Arranque y ayuda actuales ausentes de la web estable; cinco tandas nativas retenidas para APK51, con estable48. Falta recibo de entregas en producción; no se inventa uno ni se oculta por antigüedad.
+- Una tanda moderna completamente acreditada se retira incluso si su nota tiene versión posterior a producción. Deduplicación antes de filtrar impide resucitar una revisión antigua del mismo ID. Legado sin código conserva su regla por versión; 404, APK antigua o Edge no acreditado conservan la tanda.
+- Un único helper alimenta filtro y motivos visibles: aprobación idéntica conservada, código cambiado, publicación pendiente o entrega sin confirmar por superficie. Texto es/en/ca visible aun plegada; aprobar no publica. Sin cambios del motor financiero, arranque, nativo, Edge, SQL ni referencias históricas.
+- RED contra ZIP público75 y Node; GREEN acotado con siete IDs reales, aprobación sintética preservada y respuesta asíncrona de producción67. Los últimos veredictos remotos no se pudieron leer: falta clave de servicio local. CI, publicación76 y prueba móvil siguen pendientes en el acta.
+- Tamaño y límite mínimos medidos contra75 en el acta; +1 KiB crudo y gzip autorizados por el coordinador, sin dependencias ni recortar validación.
+
+## [4.26.75] — 2026-10-01 · OPS-3009-03, revisión y entrega exactas del panel
+
+- Integra el panel revisado483e8874 sobre el merge real de Recibos74 9ecd6a17, con su fuente idéntica a a004d16e. Conserva íntegros Inicio73, recibos, relojes de escenario ya revisados e historial anterior. No publica main, APK, Edge ni SQL.
+- NO-GO posterior a7b357fd9 detecta la clase de helpers transitivos omitidos. Alcances ampliados con funciones concretas, sin todo core/motor; guardia de cuerpos de funciones/flechas y561 llamadas, excepciones benignas razonadas. TR/ayuda mantienen OK mediante digest ampliado calculado desde su commit histórico y referenciaAnterior; src conserva las referencias originales. Mutar helper, pin HEAD, SHA ajeno o metadata incoherente impide heredar. No se cambia lógica financiera ni render.
+- NO-GO5532 de revisión independiente descubre datos financieros sin vigilar. Se extraen declaraciones concretas (incluidas cachés múltiples), se recorren lecturas e inicializadores y se mutan todos sus valores. Se cubren MC_TZ, REC_GRACE, categorías/KW, CONFIG, lápidas y también formato/divisa; whitelist de datos limitada a textos/idiomas con motivo. Referencias ampliadas recalculadas desde Git histórico, nunca HEAD; las tres coincidencias originales siguen reales. Sin cambio del motor ni HTML.
+- CI36804139697: Node/Deno verdes,551DOM+7perf verdes y un único fallo de fixture por contar11tandas antes de resolver producción. El doble añade retardo250ms y la aserción espera2tandas; no se cambia el panel ni se acomoda el conteo incorrecto. Fuente e975 tiene GO independiente del coordinador tras auditar funciones/datos/forja histórica; publicación sigue sujeta a CI exacta y gate.
+- Identidad SHA-256 por alcance explícito web/Android/Edge más guion; sin fallback global para tandas modernas. Tres revisiones mantienen sus OK auditados (TR, arranque y ayuda). Cuatro tandas de widget cambian realmente en web por monthBudgetStats/dashboardBudgetStats de Inicio73: se retira solo desde, sin repinar codigoDesde/revisionesDesde ni borrar historial; Android/Edge mantienen sus hashes anteriores.
+- Auditoría de alcance: mutar CAT_NEUTRAS no invalidaba Recibos aunque determina elegibilidad; bloque explícito y guardián rojo→verde, sin cambiar reglas financieras.
+- Recibos74 declara prueba, identidad, elegibilidad, vínculo/rekey, render de Inicio, ficha de Gastos y bruto/previsión de Plan. Inicio declara sus lectores financieros, presupuesto, ayuda, aviso y reto. Los alcances son explícitos y conservadores; cambiar o perder un bloque invalida/aborta. Mutaciones comprueban estas dependencias.
+- El último rechazo o retirada veta un OK anterior. Cambiar de opinión confirma primero el servidor; un fallo conserva el resultado. Las marcas de otra revisión no completan una nueva. El CLI usa la misma lógica que el DOM y mantiene separado el rechazo71 de la corrección74.
+- beta-delivery.json acredita solo fuente web ensamblada. Una versión o APK mayor no acredita esa revisión; falta de recibo web/Android/Edge mantiene entrega pendiente. APK51 conserva significado legado y no acredita el próximo widget52. Bootstrap main PR92 2f045a1e tiene CI verde y GO propio, pero su publicación permanece retenida.
+- Contratos Node y DOM es/en/ca registrados en runner/mapa. Tamaño local: 1.278.280 B minificado / 347.946 B gzip9, base74 1.275.031 / 346.752 B. Tope crudo +3 KiB hasta1249, gzip340 KiB sin cambio; conserva textos financieros y no añade dependencias. Verificación final y aprobación móvil pendientes en el brief.
+
+## [4.26.74] — 2026-09-30 · INC-3009-01, identidad y persistencia del pago de recibos
+
+- La CI previa de integración36790554645 detectó una fixture adicional de beta en bank-merchant-category:537 DOM pasan, pero la fila12,50 Super queda fuera del mes visible por UTC/Madrid. La prueba opta por FIXTURE_NOW y el helper Date ya verificado; conserva mapper real, sincronización explícita, nueve líneas de aserción e importes. No cambia categorización ni runtime. Verde DOM en el navegador remoto y CI exacta pendientes antes de publicar.
+- La segunda CI36784280322 pasó Node/Deno,24 casos propios y7 de rendimiento; fallaron30 DOM antiguos por fechas relativas al servidor o literales de septiembre ya fuera del mes visible. Doce suites optan por un reloj de escenario común Node/página al26/9/2026 mediodía, solo Date con offset y avance real. No se alteran temporizadores, performance, RAF, timestamps, zona global, aserciones ni importes; sus relojes explícitos de frontera se conservan. Dos rojos UTC de listas/anillo reproducidos antes de la suite103/103 verde afectada; runtime de la app idéntico al GO de Claude.
+- CI36783613129 reprodujo cuatro fixtures anteriores con mes UTC de septiembre mientras Madrid ya era octubre. Se fija el mismo reloj de escenario al15/9/2026 mediodía en cuotas-deudas, invest-category, saldo-por-banco y rol-cuenta-sin-salto (node:test). Mantienen aserciones de dinero y pasan UTC/Madrid/Nueva York/Tokio; month-window conserva fronteras. Runtime idéntico al DOM24 verde; no se cambia zona global ni calendario financiero.
+- Integra exclusivamente el delta corrector de PR81 sobre beta73: ficha Gastos con vínculo explícito del cargo al recibo, cancelar/deshacer y banco real en Ya pagado. El NO-GO de Claude reprodujo facturas variables32,40/35,10 frente a32 y divisa18,15 frente a18, excluidas por igualdad al céntimo. Ahora el diálogo muestra cargo real e importe/banco previstos y exige confirmar pago completo o cancelar parcial; no ajusta el modelo. Nombres bancarios distintos y pagos desde otra entidad requieren confirmación humana, nunca automática por importe ni tolerancia.
+- fixed.paymentProofs conserva prueba explícita y BOOK inequívoco en app_state; no escribe paidYm, cuentas, gastos, categoría o anclajes. Rechaza PDNG, duplicidad, deuda ya asignada, fechas futuras y diálogos obsoletos; invalidación por modelo/lápida/atribución ambigua. Un parcial no se acredita automáticamente; el vínculo exige afirmar pago completo. Fuente separable68, main no se publica; el rechazo anterior exige nueva aceptación móvil.
+- Los textos/items históricos de RELEASE_NOTES se conservan. La tanda rechazada71 se traslada al guion corregido74 y queda `tandas:[]` en71: el guardián notas-sin-duplicados detectó su repetición en la integración. Se conserva el rechazo como evidencia; no se inventa aprobación. Inicio73 y las siete pruebas anteriores permanecen; APK51, nómina PR78, Edge/SQL y panel75 no se integran. OPS-3009-03 delegado a Claude (PR83), FIN-3009-04 solo backlog. Integración DOM67/67 previa verde; tamaño medido1.275.031 B minificado/347.850 B gzip, límites1246/340 KiB para vínculo, persistencia y textos sin dependencias nuevas. Pruebas y límites en el brief de recibos.
+- Guardián rojo adicional: un cargo ya vinculado que se vuelve PDNG, cuota de deuda, ingreso o cambia identidad conserva indebidamente el pago. La lectura revalida cualquier fila local por clave o id; una lápida manual legacy invalida también sin fila. La ausencia de extracto en otro móvil sigue permitiendo conservar la prueba.
+- Renombrar un cargo bancario conserva `obName`/id y su identidad: la ficha y deshacer localizan también por id. Guardián rojo→verde de deshacer tras renombrar; dos filas con la misma identidad bancaria y nombres visibles distintos invalidan la prueba.
+- La matriz de mutaciones añade UUID remoto nuevo con la misma identidad, feed PDNG/duplicado que contradice la prueba explícita y pago confirmado durante el diálogo. Sin fila/feed local se conserva la prueba válida para otro móvil; con contradicción observada no se permite crear ni usarla. Deshacer usa también identidad bancaria estable.
+- El recorrido DOM del editor descubrió otra diferencia respecto a la sonda aislada: renombrar añade una lápida de la clave anterior para impedir reimportarla. `rekeyFixedPaymentExpense` traslada solo las claves/id de la prueba si la identidad bancaria permanece igual, el modelo sigue igual y el cargo es elegible y no ambiguo. Conserva banco/fecha/importe/identidad/modelo; una lápida real posterior sigue invalidando. No cambia el mecanismo de edición, dedup ni ningún importe. Una notificación sin nombre original estable que cambia nombre invalida la prueba y exige nueva confirmación explícita.
+- Plan separa el cargo bruto real del importe previsto cuando varían factura o divisa. La columna y el total del calendario se identifican como previstos, sin sustituir la parte propia del compartido ni sus proyecciones. Caso sintético42 bruto/21 propio con cargo44: muestra44 de cargo y21 previsto, sin inferir22 ni tocar saldo/gasto. Guardias motor y DOM en es/en/ca.
+
+## [4.26.73] — 2026-09-30 · INC-2909-02, presupuesto mensual coherente en Inicio
+
+- Candidata separable desde main `12884f48`. Reproducción DOM en es/en/ca: al desactivar Mi ciclo en un perfil con modo Balance, 600 € de compras y 900 € de presupuesto tras reservas daban 0 % por restar la nómina. El texto seguía diciendo «Has gastado 600». El perfil con modo Gastos ya daba 67 %.
+- `dashboardBudgetStats` reutiliza las filas, bancos, neutras, duplicados y reservas de `monthBudgetStats`, pero en Inicio mensual deriva consumo y margen del bruto que anuncia la tarjeta. Mi ciclo conserva su neto, incluidos ingresos mayores que compras. Gastos/Balance, widget, saldos y movimientos conservan el contrato anterior; no se cambia la preferencia al renderizar. Presupuesto totalmente reservado con compras muestra uso completo y exceso, no 0 %.
+- Pregúntame, avisos de umbral y reto de presupuesto consumen la misma cifra que Inicio; revisión NO-GO de Claude sobre `45d94d21` detectó estos tres lectores desalineados. Se ejecutan el snapshot, el reto y el efecto real de avisos con importes sintéticos, incluyendo agotamiento, idempotencia y reinicio del ciclo.
+- Contrato financiero en `month-budget-stats`; `inicio-mes-natural.spec.mjs` registrado para Inicio: dos perfiles sintéticos, cambio real en Ajustes, recarga, es/en/ca, reservas, bancos excluidos, neutras, duplicados, límites y estados vacíos. Pendiente de aprobación móvil específica; no se atribuye cierre del caso real ni GO del nuevo SHA. Sin APK, Edge, SQL o datos reales.
+
+- Integración beta desde96b9210b: conserva recibos y las siete tandas anteriores; PR78/nómina no se integra. No publica producción ni APK.
+
+## [4.26.71] — 2026-09-30 · INC-3009-01, evidencia de pago frente a calendario
+
+- Inicio ignoraba la conciliación y retenía un gas confirmado con wait. fixedPaymentState comparte la lectura con Plan: BOOK, entidad, mes, fecha no futura, nombre e importe compatibles; un único cargo y un único recibo/cuenta compatibles. Una confirmación paidYm/paidDay ya persistida sigue disponible sin extracto local.
+- Pasar el día no acredita pago: los fijos vencidos sin evidencia se muestran aparte en Inicio y pendientes en Plan, en es/en/ca. Una fecha ausente se muestra como —. Editar el día solo persiste confirmación si la misma lectura la acredita. No cambia saldo guardado ni histórico; la proyección monetaria del motor conserva su contrato de calendario.
+- Tanda separable desde main 12884f48; las siete pruebas de beta y APK51 no pertenecen a esta candidata. Se necesitan aprobación móvil y promoción selectiva antes de main. Unitario fixed-payment-state y DOM inicio-cargos registrados en runner/mapa; las fixtures de pago antiguas ahora declaran evidencia en vez de asumirla por fecha.
+
+## [4.26.70] — 2026-09-29 · INC-2709-02, confirmar y archivar deudas terminadas
+
+- `debtBalance` es una proyección lineal: llegar a cero no acredita que el banco haya cobrado la última cuota. Deudas enseña «saldo estimado: 0» y pide confirmación explícita antes de marcarla liquidada. Una amortización total introducida por la persona sí deja esa confirmación en la misma escritura. No se crean movimientos ni se cambia la fórmula del saldo.
+- La deuda confirmada se puede archivar para quitarla de la lista activa. `archivedAt` conserva su objeto e `id`, por lo que las cuotas enlazadas siguen encontrando el nombre en Gastos y el filtro. El archivo se abre desde la propia pantalla y permite volver a mostrar la deuda; un saldo positivo editado después quita la marca de liquidación. El borrado físico de una deuda con `debtId` en un gasto queda bloqueado para no dejar cuotas huérfanas.
+- `e2e/deudas-archivo.spec.mjs` recorre confirmación, cancelación, archivo, recarga, cuota histórica en Gastos, reapertura y amortización total. Se registra en el mapa de beta. No se tocan APK, Edge, SQL, migraciones ni datos reales; falta el veredicto móvil antes de producción.
+- El bundle minificado mide 1.260.159 B y gzip 343.257 B; para incluir la confirmación y sus textos es/en/ca se amplían los topes medidos en 5/1 KiB, con 1.409/807 B de margen antes del sellado beta.
+
+## [4.26.69] — 2026-09-29 · INC-2709-01, un solo límite de espera al arrancar
+
+- Con sesión y red lentas, el splash agotaba sus 1.800 ms y dejaba ver Inicio, pero el componente empezaba entonces otro límite de 2.000 ms para `mc-boot-ready`. En Chromium con CPU ×6 y sesión retrasada 6 s, el E2E nuevo vio las barras tras el splash durante 775 ms y el hero no apareció hasta los 3.325 ms. El splash señala ahora que agotó su espera y Dashboard muestra el estado local al salir de ella; la lectura tardía de la nube sigue actualizando el estado. En el mismo escenario, hero y fin del splash coincidieron a los 2.560 ms, sin barras visibles; frames >32 ms: 9 antes, 7 después en una pasada orientativa, sin atribuir causalidad al pequeño cambio de recuento.
+- La regresión `e2e/inicio-offline.spec.mjs` ejercita el DOM con CPU ×6 y sesión/autenticación tardías, además de los casos sin red y sin evento de arranque. No se modifican cálculos, escritura, sincronización bancaria, APK ni servidor. Queda por probar en el móvil real la conexión débil, la recarga y que una respuesta tardía actualice la vista sin saltos engañosos.
+
+## [4.26.68] — 2026-09-29 · INC-2809-02, ayuda plegable de Mi ciclo
+
+- En Gastos la tarjeta de Mi ciclo ocupaba altura en cada visita. `settings.gastosCycleHelpOff` conserva por perfil la elección de plegar el texto; el resumen con cobro y fecha, o la ausencia de nómina y el uso del mes natural, permanece visible. El botón Ayuda/Ocultar permite reabrirla sin cambiar el periodo seleccionado. El filtro informativo sin presupuesto por ciclo tiene su propia explicación para que el control nunca abra un área vacía.
+- Textos es/en/ca y E2E de DOM real cubren apertura, cierre, vuelta a Gastos, recarga, reapertura, falta de nómina y filtro sin presupuesto. El HTML minificado mide 1.256.096 B (+672 B sobre el tope previo); se amplía 1 KiB el límite crudo y gzip permanece en 342.346 B bajo 335 KiB. No se modifican cálculo financiero, filas, APK, Edge, SQL ni las cinco tandas nativas pendientes. [Beta 4.26.68.1 publicada y cotejada](docs/briefs/inc-2809-02-ayuda-ciclo.md); prueba móvil pendiente.
+
 ## [4.26.67] — 2026-09-30 · INC-2709-02, liquidación y archivo de deudas
 
 - Candidata de promoción exclusiva desde producción 4.26.66 de la tanda `inc-2709-02-deudas-archivo`, aprobada por el dueño el 29/9 tras beta 4.26.70.1. Se trasladan solo `09-tab-debts-goals.js`, sus textos es/en/ca y la cobertura de DOM; Android, Edge, SQL, APK y el resto de beta quedan fuera.
@@ -47,10 +197,20 @@
 - E2E sintético rojo antes y verde después en es/en/ca para Inicio/Gastos, y ruta Plan → Mi ciclo para abono adelantado. Test puro cubre banco/importe distinto, transacción pendiente o sin estado y atribución ambigua. La observación separada de un recibo del día actual se deja abierta: `isPaidIn` usa calendario salvo conciliación/`wait`; no hay prueba de cargo real en este objetivo.
 - Claude dio NO-GO inicial solo al guardián porque los casos de banco e importe carecían de `BOOK`; se reforzó con mes anterior, fecha futura y dos abonos. Seis mutaciones independientes fueron rojas en su checkout; GO sobre `92af41ff`. [CI completa 36401018224](https://github.com/JuanjoAvila/Aely/actions/runs/36401018224) y [publicación beta 36402405604](https://github.com/JuanjoAvila/Aely/actions/runs/36402405604) SUCCESS. HTTP `4.26.61.1`, huella `ab6d33b0b33efa6a`, ZIP con versión interna y SW `4.26.61.1-2026-09-28-92af41f`; siete tandas vigentes, APK51 HTTP 200 y producción 4.26.57 intacta. Prueba móvil y anclaje de cuenta pendientes.
 
+## [4.26.60] — 2026-09-28 · continuidad de beta tras INC-2709-04
+
+- Se conservan sin cambiar los cinco guiones financieros de 4.26.58 y se trasladan a 4.26.60. Así siguen visibles si la corrección aislada 4.26.59 se publica por separado; `betaChecklist` solo muestra versiones mayores que producción. Ninguna aprobación anterior se reutiliza para FIN-05, selector ni TR.
+- Se integra exclusivamente la corrección de la ficha de cuota y su E2E sobre el bundle beta vigente; Android/APK51, Edge, SQL y datos reales intactos.
+
 ## [4.26.59] — 2026-09-28 · INC-2709-04, ficha de cuota
 
 - Crash reproducido en la ruta real Plan → Gestionar → Cuotas de deuda → ficha con `months:24`: `BillsItemSheet` llamaba `.slice()` al plazo numérico de la deuda, confundido con `fixed.months` (lista de meses de recibo). Las trazas sanitizadas del móvil mostraban el mismo TypeError en 4.26.48.1 y 4.26.52.1.
 - La ficha inicializa la lista de meses solo para recibos con array; no transforma ni escribe el plazo de la deuda. E2E rojo antes y verde después: abrir/cerrar, importe, plazo y pago histórico visible una sola vez en Gastos. Sin backend, migración, filas reales ni APK.
+
+## [4.26.58] — 2026-09-27
+
+- Conservación de beta al publicar SEC-03 sola: nueva base posterior a producción 4.26.57 y cinco tandas financieras pendientes con sus guiones originales. betaChecklist filtra por versión de producción; sin este corte desaparecerían del panel aunque el código siguiera presente. No se modifica lógica financiera, Android/APK ni se aprueba el pago.
+- SEC-03 cliente publicada previamente en beta 4.26.57.1, SHA f2354a47, revisión Claude GO y CI/publicación 36349262562 SUCCESS. Aprobación móvil expresa recibida solo para SEC-03. Backend, SQL/RLS y APK sin despliegue.
 
 ## [4.26.57] — 2026-09-27 · SEC-03 cliente aprobado; entrega exclusiva
 
@@ -66,6 +226,35 @@
 - Compatibilidad del visor: metadatos antiguos se inspeccionan crudos; IDs ausentes/numéricos quedan sin correspondencia, nunca se inventa UUID. Sumas presentadas con hasta dos decimales, sin conversión.
 - Textos es/en/ca y guardianes registrados de aislamiento local/cloud, pull con visor abierto, segundo cliente, corrupción, cierre durante descarga, offline e idiomas. Recuperación financiera compartida fuera de alcance. Beta 4.26.56.1 revisada por Claude al SHA 978420fc, CI 36341481895 y ZIP cotejados. El dueño aprobó OPS-02 y producción el 27/9. Candidata exclusiva e91debd8 sobre main f5e6b514: Claude GO y 18/18 visor/persistencia en checkout propio. Codex 446 funcionales directos sin flakies (una captura opcional omitida), 7 rendimiento y 23 validador; Node salvo espejo local ajeno. Merge 42613195 tiene el mismo árbol, sintaxis PASS. Promote 36343752892 y Pages 36344438830; producción 4.26.56 HTTP/ZIP/HTML/SW cotejados. No incluye FIN-05, selector ni TR, conserva APK estable 4.26.32/code 48. Tope crudo 1212 KB y gzip 332 KB; medido 1210/329 KB.
 
+
+## [4.26.55] — 2026-09-27
+
+- OPS-02, pruebas/documentación sin cambio de versión: caracterizar restauración, push/pull,
+  decisiones de duplicado, lápidas, reinicio, segundo cliente, cancelación, corrupción y falta
+  de red con datos ficticios. El push de `app_state` y el backfill refutan la afirmación antigua
+  de restauración puramente local. Diez casos registrados en E2E_MAP; propuesta de recuperación
+  aislada todavía no aplicada. No Supabase real, beta, OTA ni APK nuevos.
+
+- FIN-05: recuperar el registro persistido tras la indentación del XML. Ignorar solo líneas vacías y normalizar el identificador del evento; volver a evaluar el bloqueo sin perder pagos pendientes. Nuevos registros sin salto final. Las entradas realmente dañadas, los deltas desconocidos y el exceso de tamaño restante siguen protegidos.
+- Guardián Java existente: rojo antes; verde con persistencia, ACK y pago único. Claude REAL PASS al SHA exacto b5f1365f y rojo/verde reproducido en su checkout. CI36327745655 verde: guardianes y cuatro ficheros Deno PASS;444 E2E directos,1 flaky que pasa al reintentar (pulido-numpad inglés),1 omitido;7 rendimiento PASS. APK51 firmado sin depuración, publicado como prerelease beta e instalado conservando datos. Bundle4.26.55.1 cotejado; widget recuperado y Gastado/Disponible estables al reabrir; saldo entre fotos y pago real pendientes. No producción/Edge.
+
+## [4.26.54] — 2026-09-27
+
+### FIN-05 · excluir lápidas del cálculo local, igual que ingest
+- La captura autorizada del móvil encontró filas conservadas localmente y marcadas en `deleted` tanto local como remotamente. El servidor las excluía antes de calcular presupuesto; el cliente las sumaba. Un pago con app cerrada reemplazaba el presupuesto local por el correcto del servidor y aparentaba un cargo extra. El journal contenía una sola contribución del pago; no se atribuye otro descuento de efectivo.
+- `expenseCountsBudget` consulta `expenseIsTombstoned` existente, incluidos ingresos, manteniendo neutras y `possibleDup`. WeakMap por referencia de `deleted`, actualizada por copia; memos de presupuesto/categorías/racha/avisos incluyen esa dependencia. Gastos e Inicio ocultan filas borradas sin podar arrays ni cambiar copias de seguridad. `expenseCountsCash` y los insumos/bases de saldo permanecen idénticos: excluir contribuciones de un anclaje histórico sin reanclaje movería dinero. No se migra ni recategoriza.
+- Límite explícito: una fila oculta por lápida puede seguir influyendo en el saldo calculado; esta tanda corrige Gastado/presupuesto y no reconstruye anclajes históricos.
+- Guardián ficticio en widget-coherente falla antes (831 frente a819) y pasa después:819→813.55 con pago5.45, mismos datos que helper servidor. UUID manual, lápidas antiguas y deshacer cubiertos. Java real recibe cifras app/servidor, mantiene pago único al reabrir antes/después de ACK; E2E verifica DOM/snapshot/saldo/liquidez sin mutar lápidas. 445 E2E funcionales PASS +1 omitido, 7 rendimiento PASS; npm test solo falla espejo de memoria externa previo y omite Deno no instalado. Claude REAL PASS al código5b4d1c91, rojo/verde reproducido en su checkout. Evidencia y límites en el brief.
+- Primer CI verifica también los cuatro ficheros Deno y bloquea publicación por selector E2E ambiguo: page-live incluye Gastos como vecino de Inicio y contaba dos vistas de la misma fila. Se acota a Inicio;14/14 pruebas locales repetidas con configuraciónCI PASS. Sin cambio de código/app; CI posterior36325573154 verde con unitarios y7E2E dirigidos; beta4.26.54.1 publicada y bundle cotejado. Detalle y pago real pendiente en el brief.
+- Solo cliente OTA; APK beta4.26.49/code50 ya instalada contiene el nativo FIN-05. Sin cambios/despliegue Edge, SQL de escritura, APK nueva ni promoción. FIN-05 permanece abierto hasta repetir pago real con la candidata. Evidencia: docs/briefs/fin05-pago-cerrada-2026-09-27.md.
+
+## [4.26.53] — 2026-09-26
+
+### TR · clasificar entradas nuevas sin cambiar la identidad bancaria
+- Un nombre genérico como «Movimiento» ocultaba el concepto al clasificador y `mapTransaction` descartaba el MCC opcional. El mapper conserva merchant/ext_id/signo/fechas/nota y añade `concept` solo desde remittance_information y `mcc` válido de cuatro dígitos. No inventa comercio ni consulta detalles adicionales. La descripción del código bancario no entra en concept: «Card transaction» no debe activar la tienda Action.
+- Diario e histórico conservan concept/MCC y usan el mismo clasificador solo para nuevas filas: categoría aprendida o reconocida por nombre, después concepto útil solo con tarjeta y título genérico, después MCC acotado 5411/5462/5812/5813/5814. El concepto se excluye si contiene transferencia, Bizum, recibo, alquiler, nómina o devolución/refund: texto libre como «alquiler día 5» no debe activar la marca DIA. Decisiones personales, incluidos Otros, retiradas de efectivo, aportes/deudas/modelados e ingresos conservan prioridad. Los campos no se guardan como nuevas columnas de expenses ni exigen migración.
+- Se conserva «Movimiento» como identidad/título cuando así llega: sustituirlo con el concepto rompería dedup y lápidas de TR sin ext_id. Los datos útiles siguen visibles en la nota. No se recategoriza ni renombra el histórico, no hay sync automático ni cambio de claves/ACK/duplicados.
+- Pruebas sintéticas ejecutan mapper TS real → flatten → import e histórico; DOM real sincroniza explícitamente el fixture bancario y comprueba categorías, nota, conservación del apunte renombrado y repetición. Revisión real de Claude pidió limitar texto libre y separar concepto/código bancario; aplicado y cubierto. Sin payload TR real no se garantiza que el banco entregue concepto o MCC. Ambos campos requieren despliegue aislado autorizado de bank-sync compartido con producción; cliente antiguo los ignora y cliente nuevo conserva clasificación previa con backend antiguo. Límite crudo +1 KB por el clasificador y sellado (anterior margen 3 bytes); gzip permanece en 332 KB. Sin publicación todavía.
 
 ## [4.26.52] — 2026-09-26
 
@@ -93,6 +282,56 @@
 - Cliente aprobado por el usuario el 26/9 para producción; entrega exclusiva publicada sobre main 2ea992b2 mediante tanda fin06-produccion: Promote 36251080004 y Pages 36251710852 verdes; producción HTTP 4.26.51 y sello SW 4.26.51-2026-09-26-2ea992b verificados, APK estable intacta. Cliente publicado como beta OTA 4.26.51.1 por Action 36242414362 (SHA f60df6f5), Claude PASS; 438 E2E + 7 rendimiento y Deno verdes en CI. Bundle, huella y sellos OTA/SW cotejados; La publicación de producción se verifica en el Action de Promote y Pages por SHA, no por el push. Código servidor preparado y probado, SIN despliegue de backend compartido. FIN-05 y selector conservan sus pruebas móviles pendientes; sin promoción a main.
 
 - Review real de Claude: conversor cruzado sin redondeo EUR intermedio (evita pérdida de IDR/JPY/KRW pequeños), aviso de coste solo si faltan costes y originales OB sin solapamiento ni recorte móvil; E2E de geometría y conversor.
+
+## [4.26.50] - 2026-09-26
+### Elección del banco del widget
+
+El widget tomaba siempre la primera cuenta con spendFrom, por lo que no permitía elegir
+otro banco. Ajustes guarda settings.widgetBank y el push usa su saldo y liquidez mínima
+por banco, conservando el presupuesto global y los roles. Se deduplican los bancos en
+el selector (excluye Efectivo/Familia) y se explica que las cuentas del mismo banco se suman. Si el banco desaparece,
+vuelve a la cuenta diaria, preservando incluso Efectivo como automático si ya era diario. La dependencia del banco fuerza el push incluso si dos saldos
+son iguales. No cambia Java ni Edge; usa el contrato existente y la APK 4.26.49/code 50.
+El selector añade 1.415 bytes minificados sobre FIN-05: 1.226.948 bytes medidos.
+Se amplía en 2 KB solo el presupuesto crudo; descarga gzip 325 KB, dentro del límite
+existente de 332 KB. Publicada en beta OTA 4.26.50.1 por Action 36237247665 verde, Claude PASS a f3960dd0.
+CI: 428 E2E aprobadas, 1 recuperada al reintentar pulido-numpad:92 y 1 omitida;
+7 E2E de rendimiento aprobadas y los cuatro grupos Deno verdes. Las seis pruebas
+del selector pasaron en CI. Bundle público y SHA-256 cotejados; queda prueba móvil. FIN-05 mantiene
+pendiente su veredicto móvil; main no se promociona.
+
+## [4.26.49] - 2026-09-25
+### FIN-05: arbitraje del widget entre app y notificaciones
+
+El lector nativo podía recibir dos respuestas de `ingest` en orden inverso y la más antigua
+retrasaba el gasto, el presupuesto y el disponible del widget. `WidgetSnapshotArbiter` separa
+el total absoluto del servidor, ordenado por instante de lectura, de los cambios de saldo,
+aplicados una sola vez por evento. La app envía los IDs que vio y sus lápidas; el nativo conserva
+encima de cada push la contribución de los eventos aún no vistos, sin volver a sumar los cubiertos
+ni resucitar los borrados. Un ingest aún en vuelo añade su contribución sin imponer un absoluto
+viejo. La Edge devuelve `periodStart` y `readAt` sellado antes de la lectura; un
+error al leer el mes ya no fabrica un total cero. El efectivo se mueve también con compras que
+no cuentan para presupuesto, sin restarlas dos veces de la liquidez si ya estaban planificadas.
+Al actualizar desde la APK anterior, el saldo guardado ya era neto: el lector nuevo no hereda
+su `delta` antiguo, porque lo descontaría una segunda vez con la app cerrada.
+Si el `ingest` aún desplegado carece de los deltas nuevos y responde después de un push de la
+app, el widget muestra «—» hasta que el pull cubra el evento: el contrato viejo no permite
+reconstruir esa cifra sin inventarla.
+La Edge anterior devuelve `ack` como ID de fila, mientras el `ingest_event_id` añade un prefijo
+al evento nativo: el nativo usa ese ACK cuando falta `month.eventKey`, y la app cubre ambos IDs
+para retirar siempre el asiento cuando la fila aparece.
+
+Al volver a primer plano se descarga la tabla de gastos antes de reenviar el estado local al
+widget; así la reentrada no deshace una notificación aún ausente del móvil. El día y el mes
+se recalculan al reactivar la app. Un mes nuevo sin lectura muestra «—», no 0 € inventados.
+La suite ejecuta el árbitro Java real, compara las mismas filas con la lógica de app/Edge y
+abre Inicio en navegador con una descarga de gastos retrasada. El 26/9 el dueño autorizó beta
+y despliegue expreso de `ingest`: beta OTA 4.26.49.1 pasó la Action 36195486950; la APK
+4.26.49/code 50 firmada se publicó como prerelease; la Action 36196554737 desplegó solo
+`ingest` desde `be59e27c`, sin migraciones. Falta la prueba del circuito completo en su móvil
+y verificar de forma independiente la revisión activa de la Edge. `main` no se promocionó.
+El guardo de reentrada ocupaba 829 bytes por encima del límite crudo del HTML; se subió 1 KB
+medido en `presupuesto-rendimiento`, con el límite gzip intacto.
 
 ## [4.26.48] - 2026-09-25
 ### El alta de Recibos muestra qué elemento se guardó

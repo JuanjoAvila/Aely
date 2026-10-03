@@ -1,4 +1,41 @@
+Promoción3/10: fuente web aprobada86/49a preparada sobre main12884; APK estable32/code48 y workflow Supabase manual conservados. Java/TS son fuente, no entrega APK/Edge. CI/publicación pendiente; no inventar recibos nativos. [Acta](briefs/promocion-web-aprobadas-2026-10-03.md). Extras humanos pendientes en [inventario](briefs/inc-0310-extras-sincronizacion-asistente-gastos.md).
+
 # Backlog operativo — Aely
+
+FEATURE-0210-01 (2/10): petición humana de distinguir carburante/taxi del transporte general; Taxi no existía en el catálogo. Propietario: Codex, rama aislada codex/feature-0210-01-gasolina-taxi, candidata85 sobre3467. Catálogo y clasificación solo de altas nuevas, histórico/límites previos intactos, DOM sintético es/en/ca y guardianes registrados. Sin publicar: revisión/CI/beta y veredicto móvil pendientes; Edge fuente preparada sin deploy. [Acta](briefs/feature-0210-01-gasolina-taxi.md).
+
+INC-0210-01 · candidata83 separable sobre3467bbd4: la cuota contabilizada y vinculada antes del vencimiento deja de figurar pendiente en Plan/Inicio y eventos futuros, sin descontarla otra vez del saldo. Datos sintéticos; revisión/CI/integración/aceptación móvil pendientes. Sin publicación, APK, Edge, SQL o pagos reales. [Acta](briefs/inc-0210-01-plan-cuota.md).
+
+## INC-0210-03 · P1 · categorías y cifras de Gastos por periodo · 2/10/2026
+
+Propietario: Codex, rama aislada codex/inc-0210-03-gastos-periodo desde3467bbd4. Síntoma comunicado: elegir mes/fechas deja las categorías del ciclo actual. Motor y DOM sintéticos cubren mes anterior, rango, meses acumulados y retorno a Mi ciclo. Estado: candidata84 con rojo/verde DOM y guardianes locales acreditados; CI y revisión exactas en el PR/relevo. Sin publicar ni aprobación móvil. [Pruebas y límites](briefs/inc-0210-03-gastos-periodo.md).
+
+Candidata Validaciones82 tras NO-GO450: conservar aprobación/progreso y la checklist actual junto a las rondas modernas si producción no responde. Sobre beta80/source955765a9;81 no publicada. APK80/52 intacta; DOM mixto70/70, contratos Node y A/B acreditados; revisión independiente y CI exacta pendientes. No integrar/publicar una solución parcial. [Acta](briefs/ops-0110-validaciones-persistentes.md).
+
+Snapshot previo de preparación80 (no estado de la candidata81): Widget80 sobre79/d45fb8b1; runtime821/ACK/guiones intactos. Prebuild52/name80 y descarga de assetbeta602841368 verificados; manifiesto52 local real. CI/build final/reemplazo APK/entrega80 pendientes; no main/Edge/SQL/install. [Acta](briefs/inc-2909-01-widget.md).
+
+## INC-2909-02 · implementación beta4.26.73.1 verificada · 30 de septiembre de2026
+
+Salir de Mi ciclo conserva el gasto bruto mensual de Inicio y sus lectores del presupuesto. PR82/mergea03a2a06; CI completa SUCCESS, ZIP/huella/HTML/SW/APK cotejados. Candidata separable PR80/3912aa11GOClaude yCIverde, pendiente de prueba y aprobación móvil específica; no se atribuye cierre del caso real ni promoción. [Acta](briefs/inc-2909-02-inicio-natural.md). El coordinador nocturno dirige el backlog autorizado; recibos y panel se mantienen en sus propios chats.
+
+## Rechazo de recibos y solicitudes separadas · 30 de septiembre de 2026
+
+**INC-3009-01 permanece rechazada.** El dueño informa de cargos visibles en Gastos que siguen sin pago acreditado en Recibos, aunque el gas ya desaparece. Claude reprodujo con datos sintéticos nombres bancarios distintos, pérdida de bankTx entre dispositivos y pago desde otra entidad/notificación. La candidata original de PR76 no se promociona. Este chat prepara el vínculo explícito cargo→recibo y evidencia durable que no intervenga en saldos; no acredita identidad por importe solo ni modifica dinero real. Pruebas y publicación se registrarán en el brief de la incidencia; implementación y aceptación móvil son distintas.
+
+| ID / prioridad | Solicitud nueva y estado | Criterio de cierre |
+|---|---|---|
+| **OPS-3009-03 · P2 · reconciliar panel después de producción** | Panel revisado483e8874 integrado localmente en75 sobre9ecd6a17. Tres OK idénticos se conservan; cuatro tandas de widget cambian en web por Inicio73 y conservan historia sin alias antiguo. Recibos74 conserva rechazo71 y requiere aceptación nueva. | CI/GO del SHA75, DOM es/en/ca y publicación beta pendientes; entrega exacta web/Android/Edge no demostrada por una versión mayor. Bootstrap main PR92/2f045a1e permanece retenido. [Evidencia](briefs/ops-3009-03-panel-beta.md). |
+| **FIN-3009-04 · P2 · reservar cuotas obligatorias para deudas** | Evolutivo solicitado, solo documentación. Reservar para deudas como para metas: calcular cuotas obligatorias del mes y descontarlas del dinero disponible para gastar. No se implementa con recibos. | Definir mes natural/ciclo, cuotas parciales o variables y datos faltantes; una cuota pagada no vuelve a descontarse. Todos los lectores de disponible comparten la misma magnitud. Sin importe fiable: — con motivo. Pruebas sintéticas motor/DOM es/en/ca; widget, Android y pago real conservan contratos y aceptación propios. |
+
+
+## INC-3009-01 · corrección separable preparada · 30 de septiembre de 2026
+
+Reproducido en DOM con un gas ficticio y cargo BOOK: Inicio ignoraba la evidencia bancaria si el fijo arrastraba `wait`. La candidata desde main `12884f48` distingue pago acreditado, próximo y vencido sin acreditación; Plan comparte esa lectura para los fijos. Tests de motor y DOM es/en/ca registrados. [Acta](briefs/inc-3009-01-cargos.md). **Sin publicación beta todavía en este corte**, sin aprobación móvil y sin cierre del caso real. No altera saldos guardados ni movimientos, APK, Edge o SQL. Widget y nómina siguen como objetivos independientes.
+
+
+## INC-3009-01 · beta 4.26.71.1 publicada · 30 de septiembre de 2026
+
+Reproducido en DOM con gas ficticio y cargo BOOK: Inicio ignoraba la evidencia bancaria si el fijo arrastraba `wait`. Corregido y publicado solo en **beta 4.26.71.1**, merge `79b981ad`, [PR77](https://github.com/JuanjoAvila/Aely/pull/77), [CI 36764259812](https://github.com/JuanjoAvila/Aely/actions/runs/36764259812) SUCCESS con 500 E2E, uno omitido y 7 de rendimiento. Manifiesto, huella `bba29bcbdd912837`, ZIP, HTML y SW cotejados; exactamente ocho tandas, las siete anteriores intactas. [Acta y hashes](briefs/inc-3009-01-cargos.md). **Pendiente de aprobación y comprobación real en móvil**, sin cierre financiero ni GO de Claude. Candidata separable `1e2395b9`, PR76 borrador, CI completa verde; no fusionar a main todavía. Producción permanece 4.26.67/APK48, beta conserva APK51. No altera cuentas guardadas, movimientos, Edge o SQL. El sucesor comprobará aprobaciones primero; sin nueva aprobación, INC-2909-02 (0 % al salir de Mi ciclo) es el siguiente objetivo independiente recomendado. Widget y nómina siguen separados.
 
 ## INC-2709-02 · promoción selectiva web 4.26.67 publicada · 30 de septiembre de 2026
 

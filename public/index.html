@@ -334,7 +334,8 @@
     animation:cyberflick .7s steps(1,end) both;}
   @keyframes cyberflick{0%{opacity:0;}12%{opacity:1;}20%{opacity:.35;}28%{opacity:1;}44%{opacity:.6;}52%,100%{opacity:1;}}
   html[data-theme="cyber"] .card{border-top-color:color-mix(in srgb, var(--cyber-mag) 42%, var(--line-soft));}
-  html[data-theme="cyber"] .botnav-fab{position:relative;background:linear-gradient(160deg,var(--cyber-mag),var(--cyber-cyan));color:#07030D;}
+  /* z-index: el + sobresale de la barra y la corriente (`.botnav::after`) lo cruzaba (INC-2709-12). */
+  html[data-theme="cyber"] .botnav-fab{position:relative;z-index:1;background:linear-gradient(160deg,var(--cyber-mag),var(--cyber-cyan));color:#07030D;}
   html[data-theme="cyber"] .botnav-fab::after{content:"";position:absolute;inset:-5px;border-radius:50%;
     border:1.5px solid rgba(60,231,255,.55);pointer-events:none;opacity:0;animation:fabaro 3.8s ease-in-out infinite;}
   html[data-theme="cyber"] .botnav-ind span{background:var(--cyber-mag);}
@@ -1407,7 +1408,7 @@
   .profile-row .pr-body{flex:1;min-width:0;}
   .profile-row .pr-lab{font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:2px;}
   .profile-row .pr-val{font-size:14.5px;font-weight:700;color:var(--text);line-height:1.35;word-break:break-word;}
-  .profile-row .pr-val.empty{color:var(--muted-2);font-weight:600;}
+  .profile-row .pr-val.pr-val-empty{color:var(--muted-2);font-weight:600;}
   .profile-row .pr-edit{color:var(--mint);font-size:13px;flex:0 0 auto;padding-top:2px;opacity:.9;}
   /* Sin scale/filter en shell (huecos negros + WebView). El dim es la capa aparte. */
   .app-shell.profile-dim{pointer-events:none;}
@@ -1795,7 +1796,12 @@
   .app-shell.settings-dim.dragging{transition:none;}
   /* margen inferior 14px: el cartelito chocaba con los chips de categorías (feedback 2026-07-18) */
   .v4-cycle-box{margin:10px 2px 14px;padding:14px 16px;border-radius:16px;background:rgba(95,208,138,.08);border:1px solid rgba(95,208,138,.22);font-size:13.5px;line-height:1.5;color:var(--muted);}
-  .v4-cycle-box strong{display:block;color:var(--text);font-weight:800;font-size:14px;margin-bottom:6px;}
+  .v4-cycle-box.compacto{padding:9px 12px;}
+  .v4-cycle-head{display:flex;align-items:flex-start;gap:8px;}
+  .v4-cycle-main{flex:1;min-width:0;}
+  .v4-cycle-box strong{display:block;color:var(--text);font-weight:800;font-size:14px;margin-bottom:4px;}
+  .v4-cycle-head .v4-chip{flex:0 0 auto;min-height:30px;padding:4px 10px;font-size:12px;}
+  .v4-cycle-explanation{margin-top:6px;}
   .v4-gastos-summary-amount.pos{color:var(--mint);}
   .v4-gastos-summary-amount.neg{color:var(--coral);}
   .v4-chips.meta-chips{flex-wrap:wrap;gap:8px;margin-bottom:12px;}
@@ -1996,14 +2002,19 @@
 /* Ayuda: composer fijo abajo; el teclado (visualViewport) sube la hoja, no la tapa.
    La frase NO usa .serif: con temática de temporada el subrayado decorativo la hincha. */
 .aely-help-back{z-index:12000;}
-.aely-help-sheet{max-height:min(92dvh,100%);display:flex;flex-direction:column;padding-bottom:0;}
+/* `.v4-sheet.` delante: `.v4-sheet:has(>.v4-sheet-body)` pesa más y dejaba 52 px + zona segura
+   bajo el compositor, así que «Preguntar» quedaba lejos del borde (INC-2709-14). */
+.v4-sheet.aely-help-sheet{max-height:min(92dvh,100%);display:flex;flex-direction:column;padding-bottom:0;}
 .aely-help-sheet-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 0 6px;flex:0 0 auto;}
 .aely-help-sheet-h h1{font-size:20px;margin:0;font-weight:550;}
 .aely-help-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
   overscroll-behavior-y:none;scrollbar-width:none;padding:0 0 8px;}
 .aely-help-body::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}
 .aely-help-intro{margin:0 0 8px;}
-.aely-help-composer{flex:0 0 auto;display:flex;flex-direction:column;gap:8px;padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--surface,var(--sur));}
+.aely-help-composer{flex:0 0 auto;display:flex;flex-direction:column;gap:8px;padding:10px 0 calc(10px + var(--safe-bottom));border-top:1px solid var(--line);background:var(--surface,var(--sur));}
+/* Con el teclado abierto la hoja ya se apoya encima de él (marginBottom del componente): la zona
+   segura queda tapada y sumarla dejaba otro hueco sobre el teclado. */
+.aely-help-back[data-help-kb="1"] .aely-help-composer{padding-bottom:10px;}
 .aely-help-q{width:100%;min-height:52px;max-height:96px;padding:10px 12px;resize:none;box-sizing:border-box;font-size:16px;}
 .aely-help-send{width:100%;height:44px;border-radius:12px;font-size:14px;font-weight:700;}
 .aely-help-topics{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px;}
@@ -2558,7 +2569,8 @@ function mcBetaLog(p){
   p=p||{}; const out={};
   ["summary","tanda","tandaTitulo"].forEach(function(k){ if(typeof p[k]==="string") out[k]=mcLogText(p[k]).slice(0,500); });
   ["version","notas"].forEach(function(k){ if(/^\d+\.\d+\.\d+(?:\.\d+)?$/.test(p[k]||"")) out[k]=p[k]; });
-  if(/^(?:approved|rejected)$/.test(p.verdict||"")) out.verdict=p.verdict;
+  if(/^(?:approved|rejected|revoked)$/.test(p.verdict||"")) out.verdict=p.verdict;
+  if(/^[0-9a-f]{8}(?::[0-9a-f]{64})?$/.test(p.huella||"")) out.huella=p.huella;
   if(/^\d{1,6}$/.test(p.apk||"")) out.apk=p.apk;
   ["probados","fallos","sinProbar","noProbable","heredados"].forEach(function(k){ if(Number.isSafeInteger(p[k])&&p[k]>=0&&p[k]<=1000) out[k]=p[k]; });
   if(Array.isArray(p.noProbables)) out.noProbables=p.noProbables.slice(0,30).map(function(x){ return mcLogText(x).slice(0,140); });
@@ -2626,6 +2638,8 @@ const CATEGORIES = [
   { id:"gaming",     name:"Videojuegos",         color:"#7B8CDE", icon:"🎮" },
   { id:"viajes",     name:"Viajes",              color:"#5B8DEF", icon:"✈️" },
   { id:"transporte", name:"Transporte",          color:"#7FB5E8", icon:"🚇" },
+  { id:"gasolina",   name:"Gasolina",            color:"#E8945F", icon:"⛽" },
+  { id:"taxi",       name:"Taxi",                color:"#E6C36A", icon:"🚕" },
   { id:"parking",    name:"Parking",             color:"#8AA0B8", icon:"🅿️" },
   /* AGUA, LUZ Y GAS POR SEPARADO (2026-09-12). Antes era una sola, «Luz, gas y agua», con un ⚡
      de icono. Suyo: *«sale un símbolo de rayito en Aigües de Barcelona que no encaja para nada…
@@ -2686,6 +2700,9 @@ const MERCHANT_OVERRIDES = {};
 // Overrides PERSONALES del usuario (comercio→categoría), que aprende al recategorizar a mano.
 // Se puebla desde state.catOverrides al cargar. Tiene prioridad sobre las keywords.
 let USER_OVERRIDES = {};
+// Reglas de equivalencia que él ha enseñado: comercio+banco+tarjeta → {cat, at}. Se pueblan
+// desde state.catRules; las usa solo el pull (ver `keepCategoryChoices`), no las keywords.
+let USER_CAT_RULES = {};
 function catKey(merchant){ return (merchant||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim(); }
 /* EL VOCABULARIO CERRADO DE LAS MÉTRICAS DE USO (ver `cloud.logUso`, más abajo).
    Todo lo que se puede medir está en esta lista y en ningún otro sitio. Es a propósito: con una
@@ -2876,7 +2893,24 @@ function sugerenciaApuntar(o){
 }
 function categoryOfNewMerchant(merchant){
   if(isAtmWithdrawal(merchant)) return "traspaso";
-  return autoCategory(merchant||"");
+  const cat=autoCategory(merchant);
+  if(USER_OVERRIDES[catKey(merchant)] && !CAT_NEUTRAS[USER_OVERRIDES[catKey(merchant)]]) return cat;
+  return mobilityCategoryOfNewMerchant(merchant,cat);
+}
+// Solo altas nuevas: autoCategory también se usa para leer/migrar «Otros» antiguos.
+// Una marca energética sola no prueba carburante; comida y suministros conservan su finalidad.
+function mobilityCategoryOfNewMerchant(merchant,cat){
+  const c=catKey(merchant);
+  if(cat!=="transporte" && cat!=="otros" && !(cat==="super" && /\bcarrefour gas\b/.test(c))) return cat;
+  if(/\buber[^a-z0-9]*eats\b/.test(c)) return "bares";
+  if(/\b(recarga|recarrega|carga|carrega)\b.*electric|electric.*\b(recarga|recarrega|carga|carrega)\b|\bev charging\b|\bcharging station\b/.test(c)) return "transporte";
+  if(/\brepsol\b/.test(c)){
+    if(/\bluz\b|electric|energia/.test(c)) return "luz";
+    if(/\bgas natural\b|\bfactura gas\b/.test(c)) return "gas";
+  }
+  if(/\b(gasolina|gasolinera|gasoleo|carburante|fuel|petrol|benzina|ballenoil|plenergy|petrocat)\b|\bestacion de servicio\b|\bcarrefour gas\b|\b(repsol|cepsa|shell|bp|galp)\b.*\bdiesel\b/.test(c)) return "gasolina";
+  if(/\b(taxi|cabify|uber|moove|bolt|free ?now|ambitus)\b/.test(c)) return "taxi";
+  return cat;
 }
 function isAtmWithdrawal(merchant){
   const c=(merchant||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
@@ -3465,8 +3499,39 @@ const cloud = (function(){
       // Sacar una cuota de «Deudas» a mano le quita también la marca en la nube; si no, el
       // siguiente pull le devolvería el `debtId` (4.21.0).
       if(e&&e.debtId&&cat!=="deudas") upd.source=expenseSourceForCloud(Object.assign({},e,{debtId:undefined}));
-      const {error}=await expenseCloudEq(sb.from('expenses').update(upd), session.user.id, e);
+      // Devuelve cuántas filas cambió: un UPDATE por id que no casa no da error, y sin ese número
+      // la app daba por subida una categoría que la tabla nunca recibió (2026-10-02).
+      const q=expenseCloudEq(sb.from('expenses').update(upd), session.user.id, e);
+      const {data,error}=await (typeof q.select==="function" ? q.select("id") : q);
       if(error) throw error;
+      return Array.isArray(data) ? data.length : 0;
+    },
+    // Un UPDATE sin filas no confirma una retirada: FIN-04 permite UUID locales divergentes.
+    // No buscar gemelos por parecido ni tocar importe, origen o saldo para salvar esa identidad.
+    async confirmExpenseWithdrawal(e, readState){
+      const ready=function(){ const s=typeof readState==="function"&&readState(); return !!s&&canRecognizeWithdrawal(e,s); };
+      if(!sb || !isExpenseUuid(e&&e.id) || !ready()) throw new Error("withdrawal unavailable");
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) throw new Error("session unavailable");
+      const cols="id,source,cat,fecha,importe,comercio";
+      const read=await sb.from('expenses').select(cols).eq('user_id',session.user.id).eq('id',e.id).maybeSingle();
+      if(read.error) throw read.error;
+      const row=read.data;
+      if(!withdrawalRowMatches(e,row)) throw new Error("withdrawal identity changed");
+      // El vínculo puede llegar mientras se consulta la fila: no neutralizar un pago compartido.
+      if(!ready()) throw new Error("withdrawal unavailable");
+      if(row.cat==="traspaso") return row;
+      if(row.cat!==e.category) throw new Error("withdrawal category changed");
+      const result=await sb.from('expenses').update({cat:"traspaso"})
+        .eq('user_id',session.user.id).eq('id',e.id).eq('source',row.source).eq('cat',row.cat)
+        .eq('fecha',row.fecha).eq('importe',row.importe).eq('comercio',row.comercio).select(cols);
+      if(result.error) throw result.error;
+      const ack=result.data;
+      if(!Array.isArray(ack) || ack.length!==1 || ack[0].cat!=="traspaso" || !withdrawalRowMatches(e,ack[0]))
+        throw new Error("withdrawal unconfirmed");
+      // El UPDATE ya ocurrió: un vínculo llegado durante el envío no convierte su ACK en error.
+      // Esta marca es solo del retorno, nunca de la tabla; permite conciliar únicamente ese envío.
+      return Object.assign({},ack[0],{withdrawalUpdated:true});
     },
     // Cuota de deuda marcada por `marcarCuotasDeDeuda` (4.21.0): categoría y, si es de Open
     // Banking, la marca en `source`. La de la noti (`macrodroid`) conserva su source: un
@@ -3886,7 +3951,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","setExpenseDeuda","deleteExpense","deleteExpensesByIds",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","deleteExpense","deleteExpensesByIds",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -4281,6 +4346,65 @@ function applyEntradaEfectivo(state, amount){
   });
   return Object.assign({}, st, { accounts:accounts });
 }
+// La persona reconoce esta salida concreta; no inferirlo del nombre ni recategorizar historia.
+function withdrawalReceiptLink(state,e){
+  if(!state||!e) return null;
+  const date=String(e.date||"").slice(0,10),ym=Number(date.slice(0,4))*12+Number(date.slice(5,7));
+  // Se mira el vínculo durable, aunque el feed local ya no lo acredite. B puede no tener feed;
+  // deshacer por la puerta existente elimina esta misma prueba de los metadatos compartidos.
+  return (state.fixed||[]).find(function(f){
+    const p=f.paymentProofs&&f.paymentProofs[ym];
+    return p&&p.kind==="expense"&&(p.key===fixedExpenseKey(e)||p.expenseId&&p.expenseId===e.id
+      ||p.identity===fixedPaymentIdentity(expenseBankOf(e),e));
+  })||null;
+}
+function canRecognizeWithdrawal(e,state){
+  const eligible=!!(e && (e.source==="ob"||e.source==="ob-hist") && e.ent && e.ent!=="efectivo"
+    && Number.isFinite(e.amount) && e.amount>0 && !e.possibleDup && !e.debtId
+    && e.category!=="deudas" && e.category!=="inversion");
+  if(!eligible||!state) return eligible;
+  const matches=(state.expenses||[]).filter(function(x){ return x.id===e.id; });
+  if(matches.length!==1) return false;
+  const current=matches[0];
+  return canRecognizeWithdrawal(current)&&!withdrawalReceiptLink(state,current)
+    &&(current.category===e.category||current.category==="traspaso")
+    &&withdrawalRowMatches(e,{id:current.id,source:expenseSourceForCloud(current),fecha:current.date,importe:current.amount,comercio:current.merchant});
+}
+function withdrawalRowMatches(e, row){
+  return !!(row && row.id===e.id && row.source===expenseSourceForCloud(e)
+    && Number(row.importe)===e.amount && Date.parse(row.fecha)===Date.parse(e.date)
+    && row.comercio===e.merchant);
+}
+function applyRecognizedWithdrawal(state, expense, confirmedAt){
+  const rows=state.expenses||[];
+  const matches=rows.filter(function(e){ return e.id===expense.id; });
+  if(matches.length!==1 || !canRecognizeWithdrawal(matches[0],state)) return state;
+  const current=matches[0];
+  if(current.amount!==expense.amount || current.date!==expense.date || current.merchant!==expense.merchant
+     || expenseSourceForCloud(current)!==expenseSourceForCloud(expense)
+     || (current.category!==expense.category && current.category!=="traspaso")) return state;
+  if(current.category==="traspaso") return state;
+  // Solo blinda lecturas arrancadas antes del ACK, sin vetar una corrección posterior del móvil B.
+  return Object.assign({},state,{expenses:rows.map(function(e){ return e===current
+    ? Object.assign({},e,{category:"traspaso",withdrawalConfirmedAt:confirmedAt}) : e; })});
+}
+function reconcileConfirmedWithdrawal(state, expense, ack, confirmedAt){
+  if(!ack || ack.cat!=="traspaso" || !withdrawalRowMatches(expense,ack)) return state;
+  const matches=(state.expenses||[]).filter(function(e){ return e.id===expense.id; });
+  if(matches.length!==1) return state;
+  const current=matches[0];
+  if(!canRecognizeWithdrawal(current) || (current.category!==expense.category && current.category!=="traspaso")
+    || !withdrawalRowMatches(expense,{id:current.id,source:expenseSourceForCloud(current),fecha:current.date,importe:current.amount,comercio:current.merchant})) return state;
+  let next=state;
+  if(withdrawalReceiptLink(state,current)){
+    // Solo un UPDATE confirmado permite deshacer el vínculo que llegó durante su envío.
+    // Se sincronizan metadatos por la misma puerta de Deshacer, sin tocar dinero ni otros pagos.
+    if(ack.withdrawalUpdated!==true) return state;
+    const ds=String(current.date).slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7));
+    next=linkFixedPayment(state,current.id,null,y,m,new Date(y,m,0).getDate());
+  }
+  return applyRecognizedWithdrawal(next,expense,confirmedAt);
+}
 /* EFECTIVO REAL DE TRADE REPUBLIC (availableCash) → base guardada de su cuenta.
    Lo usan los DOS botones que hablan con el puente nativo: la tarjeta de TR y el sincronizador
    general. Antes cada uno tenía un contrato distinto: la tarjeta aplicaba `cash` y el general lo
@@ -4490,7 +4614,7 @@ function mergeExpenses(prevList, incoming){
    añadía claves nuevas — categoría/importe/nota de una fila ya vista nunca se actualizaban.
    Caso medido: Aigües en nube=`energia` y el móvil seguía en `viajes` tras «Ya estás al día».
    Reglas: no pisar `cat` de un apunte manual; no pisar `note` si él la editó; nunca borrar. */
-function refreshExpenseFromCloud(local, incoming){
+function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(!local||!incoming) return local||incoming;
   const manual=isManualExpenseSource(local.source);
   let out=local;
@@ -4505,7 +4629,8 @@ function refreshExpenseFromCloud(local, incoming){
   // Una cuota ya marcada no vuelve a «otros» porque la nube aún no se haya enterado (4.21.0): la
   // subida puede ir por detrás del pull, y la fila de la noti ni siquiera lleva la marca en `source`.
   const cuotaLocal=local.debtId && local.category==="deudas";
-  if(!manual && !cuotaLocal && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
+  const withdrawalRecent=readStartedAt!=null && local.withdrawalConfirmedAt>=readStartedAt;
+  if(!manual && !cuotaLocal && !withdrawalRecent && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
   if(incoming.amount!=null && isFinite(incoming.amount)) put("amount", incoming.amount);
   if(incoming.merchant!=null && incoming.merchant!=="") put("merchant", incoming.merchant);
   if(Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
@@ -4541,7 +4666,7 @@ function refreshExpenseFromCloud(local, incoming){
 }
 /* Mezcla el pull con lo local: refresca campos de claves ya vistas y solo AÑADE las nuevas.
    Nunca elimina una clave que solo exista en local (contención 4.18.6 / FIN-07). */
-function mergeExpensesFromCloud(prevList, incoming){
+function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
   const byKey={}; const order=[];
   (prevList||[]).forEach(function(e){
     const k=keyOfExpense(e);
@@ -4554,11 +4679,116 @@ function mergeExpensesFromCloud(prevList, incoming){
     seen[k]=1;
     const loc=byKey[k];
     if(!loc){ byKey[k]=inc; order.push(k); changed=true; nuevos++; return; }
-    const merged=refreshExpenseFromCloud(loc, inc);
+    const merged=refreshExpenseFromCloud(loc, inc, readStartedAt);
     if(merged!==loc){ byKey[k]=merged; changed=true; }
   });
   const list=order.map(function(k){ return byKey[k]; });
   return { list:list, changed:changed, nuevos:nuevos };
+}
+
+/* LA CATEGORÍA QUE ÉL ELIGIÓ NO LA DESHACE UN PULL (2026-10-02).
+   Corregía a Restaurantes un comedor cuyo nombre lleva el de una aseguradora y cada día volvía a
+   Recibos, por dos caminos: (1) la nube seguía con la categoría vieja —el UPDATE va por id y puede
+   no tocar ninguna fila sin dar error— y `refreshExpenseFromCloud` pisa la de toda fila no manual;
+   (2) el cargo del día siguiente lo categoriza el servidor por palabra clave, sin conocer lo
+   aprendido, y `resolveCategory` acepta lo que venga.
+   No se arregla con una regla de aseguradoras: el alias es ambiguo y un seguro de verdad tiene
+   que seguir en Recibos. Se respeta SU decisión, y solo donde la tomó:
+     · `catStale` (solo local) guarda las categorías que la nube aún puede devolver mientras la
+       subida no esté CONFIRMADA. Sin confirmar, manda lo local y se reintenta con la identidad
+       de la fila de la nube. Confirmada (`catAckAt`), cualquier lectura empezada después es la
+       verdad, aunque diga la categoría vieja: es que la cambió en otro móvil.
+     · una regla por comercio exacto + banco + con/sin tarjeta (`catRules`): un recibo domiciliado
+       con el mismo nombre en otro banco no es el mismo sitio. La fila que este móvil ve por
+       primera vez, con fecha POSTERIOR al instante en que lo enseñó, nace con lo aprendido.
+       Lo anterior no se toca, tampoco en un móvil recién instalado ni al corregir un gasto
+       antiguo; una fecha sin hora del mismo día cae antes y se queda como venga.
+   Va ANTES de `mergeExpensesFromCloud` y solo prepara sus entradas: devuelve las mismas
+   referencias si no hay nada que proteger, para no reescribir el histórico en cada pull. */
+function catRuleKey(e){ return catKey(e&&e.merchant)+"|"+((e&&e.ent)||"")+"|"+((e&&e.noCard)?"0":"1"); }
+function catStaleAfter(e, newCat){
+  if(!e || e.category===newCat || isManualExpenseSource(e.source)) return e&&e.catStale;
+  const prev=(e.catStale||[]).filter(function(c){ return c!==newCat; });
+  return prev.indexOf(e.category)<0 ? prev.concat([e.category]) : prev;
+}
+// La nube confirmó que escribió `cat` en esa fila: desde `at`, lo que lea de ella es verdad.
+function ackCategoryWrite(list, row, cat, at){
+  const k=keyOfExpense(row);
+  let out=list;
+  (list||[]).forEach(function(e,i){
+    if(!e.catStale || e.category!==cat || e.catAckAt!=null || keyOfExpense(e)!==k) return;
+    if(out===list) out=list.slice();
+    out[i]=Object.assign({},e,{catAckAt:at});
+  });
+  return out;
+}
+function keepCategoryChoices(prevList, incoming, readStartedAt){
+  const out={ prev:prevList, incoming:incoming, recat:[] };
+  const stale={}; let hayStale=false;
+  (prevList||[]).forEach(function(e,i){ if(e && e.catStale){ stale[keyOfExpense(e)]=i; hayStale=true; } });
+  let minAt=Infinity;
+  for(const k in USER_CAT_RULES){ const at=USER_CAT_RULES[k]&&USER_CAT_RULES[k].at; if(Number.isFinite(at) && at<minAt) minAt=at; }
+  if(!hayStale && minAt===Infinity) return out;
+  // `expenseFromRow` emite siempre ISO en UTC: comparar texto descarta el histórico sin parsear.
+  const minIso=minAt===Infinity ? "" : new Date(minAt).toISOString();
+  let prevKeys=null;
+  const esNueva=function(k){
+    if(!prevKeys){ prevKeys={}; (prevList||[]).forEach(function(e){ prevKeys[keyOfExpense(e)]=1; }); }
+    return !prevKeys[k];
+  };
+  const swap=function(i, row){ if(out.incoming===incoming) out.incoming=incoming.slice(); out.incoming[i]=row; };
+  const soltar=function(at, loc){
+    if(out.prev===prevList) out.prev=prevList.slice();
+    const libre=Object.assign({},loc); delete libre.catStale; delete libre.catAckAt;
+    out.prev[at]=libre;
+  };
+  (incoming||[]).forEach(function(inc, i){
+    if(hayStale){
+      const at=stale[keyOfExpense(inc)];
+      if(at!=null){
+        const loc=out.prev[at];
+        if(!loc.catStale) return;   // misma clave repetida en el pull: ya se resolvió arriba
+        if(loc.catAckAt!=null){
+          // Lectura empezada antes de la confirmación (o sin hora): puede ser una foto vieja.
+          if(readStartedAt!=null && loc.catAckAt<readStartedAt) soltar(at, loc);
+          else if(inc.category!==loc.category) swap(i, Object.assign({},inc,{category:loc.category}));
+        }else if(inc.category!==loc.category && loc.catStale.indexOf(inc.category)>=0){
+          swap(i, Object.assign({},inc,{category:loc.category}));
+          out.recat.push({ expense:inc, cat:loc.category });
+        }else{
+          // La nube ya dice lo mismo, o decidió otra cosa en otro móvil: deja de proteger.
+          soltar(at, loc);
+        }
+        return;
+      }
+    }
+    if(minAt===Infinity || !CAT[inc.category] || isManualExpenseSource(inc.source)) return;
+    if(!(inc.date>minIso)) return;
+    // Fecha ilegible = no se sabe si es posterior: no se toca (`dateMs` la daría por hoy).
+    const ms=Date.parse(inc.date);
+    const rule=USER_CAT_RULES[catRuleKey(inc)];
+    if(!rule || rule.cat===inc.category || !CAT[rule.cat] || !(ms>rule.at)) return;
+    if(!esNueva(keyOfExpense(inc))) return;
+    swap(i, Object.assign({},inc,{category:rule.cat, catStale:[inc.category]}));
+    out.recat.push({ expense:inc, cat:rule.cat });
+  });
+  return out;
+}
+/* Lo aprendido ANTES de existir las reglas no trae ni fecha ni contexto. No se inventan: se
+   deducen de las filas que él ya tiene corregidas (mismo comercio, categoría = la aprendida) y
+   valen desde hoy. Sin ninguna fila que lo pruebe no hay regla, y la próxima corrección la crea.
+   Una vez, y solo con gastos cargados: llegan en un segundo viaje (ver `fixMovInvasion`). */
+function seedCatRules(s){
+  if(!s || s._catRulesSeed || !Array.isArray(s.expenses) || !s.expenses.length) return s;
+  const ov=s.catOverrides||{}, rules=Object.assign({}, s.catRules||{}), ahora=Date.now();
+  if(Object.keys(ov).length){
+    s.expenses.forEach(function(e){
+      if(!e || isManualExpenseSource(e.source)) return;
+      const cat=ov[catKey(e.merchant)], k=catRuleKey(e);
+      if(cat && cat===e.category && CAT[cat] && !rules[k]) rules[k]={ cat:cat, at:ahora };
+    });
+  }
+  return Object.assign({}, s, { catRules:rules, _catRulesSeed:true });
 }
 
 /* ¿El estado bajado de la nube tiene forma válida? Evita machacar lo local con algo corrupto/parcial.
@@ -4781,6 +5011,10 @@ let CURLANG = "es";
 const LANGS = [["es","Español"],["en","English"],["ca","Català"]];
 const LANG = {
   es:{
+    beta_review_intro:"Revisa lo nuevo. Aprobar una tanda no la publica; su entrega se comprueba aparte.",
+    notes_unavailable:"No se han podido comprobar las novedades. Conecta y vuelve a intentarlo.",
+    beta_notes_unavailable:"Comprobaciones sin confirmar. Conecta y vuelve a abrir para cargar las de esta versión.", beta_android_app:"app Android", beta_approved_pending:"Aprobada. No necesitas aprobarla otra vez; falta confirmar su entrega.", beta_delivery_pending:"Pendiente de publicar: {x}.", beta_delivery_unknown:"Entrega sin confirmar: {x}.",
+    beta_revoked:"↺ Veredicto retirado", beta_server:"servidor", beta_revision_changed:"El código cambió ({x}). El resultado anterior sigue guardado; prueba esta revisión.", beta_reset_verdicts:"Para empezar de cero, retira antes cada veredicto con «Cambiar de opinión».",
     log_private:"[dato privado omitido]",
     help_ai_matched:"La IA ha encontrado estas guías de Aely.",
     help_create_cash:"Crear el efectivo",
@@ -4867,6 +5101,8 @@ const LANG = {
     v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.", v4_cycle_net:"Gasto neto desde el cobro: {used} de tus {budget}.", v4_cycle_left:"Te quedan {x}.", v4_cycle_over:"Te faltan {x}.",
     v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Mes en curso", v4_hist_empty:"Tu histórico empieza hoy", v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_empty:"Nada pendiente este mes. Los recibos aparecen aquí.",
+    v4_charges_overdue:"Cargos vencidos", v4_charge_unconfirmed:"Sin pago acreditado",
+    v4_charge_actual:"Cargo {x}", v4_charge_expected:"Previsto {x}",
     v4_your_goals:"Tus metas", v4_recent:"Últimos movimientos", v4_recent_empty:"Aún no hay movimientos. Apunta el primero con +.",
     v4_all:"Todos ›", v4_plan_title:"Tu plan del mes", v4_plan_recibos:"Recibos", v4_plan_deudas:"Deudas", v4_plan_metas:"Metas",
     v4_plan_left:"Queda por pagar en {month}", v4_plan_liq:"El saldo más bajo de aquí a fin de mes será {amount}{when} en {bank}", v4_plan_liq_day:"el día {d}",
@@ -4892,8 +5128,9 @@ const LANG = {
     v4_gastos_inc_line:"Ingresos {x} · balance {bal}", v4_gastos_split_line:"Gastos {spent} · ingresos {income}",
     v4_gastos_lbl_spent:"Gastos", v4_gastos_lbl_income:"Ingresos", v4_gastos_lbl_balance:"Balance",
     v4_gastos_cats:"Por categoría · toca una para ponerle un límite", v4_gastos_cat_limit:"límite {x}",
-    v4_gastos_cats_hide:"Ocultar", v4_gastos_cats_show:"Ver", v4_gastos_cats_n:"{n} categorías este mes",
-    v4_gastos_cats_n1:"1 categoría este mes", v4_gastos_cats_cycle_n:"{n} categorías este ciclo", v4_gastos_cats_cycle_n1:"1 categoría este ciclo",
+    v4_gastos_spent_period:"Gastado · {period}", v4_gastos_net_period:"Balance · {period}", v4_gastos_cats_period_n:"{n} categorías · {period}", v4_gastos_cats_period_n1:"{n} categoría · {period}",
+    v4_gastos_budget_period_unknown:"El límite es para el mes o ciclo actual; este periodo no tiene un presupuesto registrado.",
+    v4_gastos_cats_hide:"Ocultar", v4_gastos_cats_show:"Ver",
     g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Solo para verlo: no cambia tu presupuesto ni te bloquea. Vacío o 0 = quitar el límite.",
     g_cat_budget_clear:"Quitar límite",
     v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
@@ -4956,9 +5193,26 @@ const LANG = {
     f_cat_all:"Las {n} ›", f_cat_all_title:"Todas las categorías", f_meta_cash:"Efectivo", f_meta_today:"Hoy",
     f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingreso de {x}", f_autosaved:"Se guarda al momento ✓", f_del:"Borrar gasto",
     f_note_row:"Nota", f_note_none:"Sin nota", f_debt_row:"Es la cuota de una deuda", f_income_row:"Es un ingreso, no un gasto", f_no:"No",
+    f_receipt_row:"Paga un recibo", f_receipt_hint:"Elige el recibo que paga este cargo. Se confirma para el mes del movimiento y puedes deshacerlo. El cargo conserva su importe, banco y clasificación.",
+    f_receipt_none:"No hay recibos pendientes de ese mes que puedan vincularse a este cargo.",
+    f_receipt_confirm:"Confirmar pago de {name}", f_receipt_confirm_sub:"Cargo: {merchant} · {amount} · {bank} · {date}. Previsto: {expected} · {planned}. Confirma solo si este cargo paga el recibo completo, aunque el importe haya variado. Si es parcial, cancela. El importe previsto, el saldo y el presupuesto se conservan.",
+    f_receipt_yes:"Confirmar pago completo", f_receipt_unlink:"Deshacer vínculo",
     f_from_bank:"Lo trajo una notificación de {bank}", f_from_bank_sub:"{date} · «{raw}» · el banco fija el importe y la cuenta",
     f_trace_missing:"— texto original no disponible",
-    f_locked_toast:"El importe lo manda el banco. Si está mal, cámbialo desde la app del banco.",
+    f_locked_toast:"El banco fija el importe, la cuenta y si entra o sale dinero. La categoría sí se puede corregir aquí.",
+    f_withdraw_fields:"La categoría se puede corregir sin cambiar el importe ni la cuenta del banco.",
+    f_withdraw_action:"Es una retirada de efectivo",
+    f_withdraw_title:"¿Es una retirada de efectivo?",
+    f_withdraw_sub:"Estos {x} pasarán a Traspaso y dejarán de contar como gasto. El importe y el origen bancario se conservan. No se sumará dinero al efectivo.",
+    f_withdraw_ok:"Marcar como traspaso",
+    f_withdraw_pending:"Confirmando la retirada…",
+    f_withdraw_done:"Traspaso: no cuenta como gasto.",
+    f_withdraw_unconfirmed:"Retirada sin confirmar",
+    f_withdraw_error:"No se ha confirmado el cambio. Sincroniza los movimientos y revisa la categoría antes de intentarlo otra vez.",
+    f_withdraw_cash_limit:"Esta retirada no suma dinero a Efectivo: aún no se puede confirmar una única suma entre móviles. Los apuntes manuales de efectivo siguen disponibles en Cartera.",
+    f_withdraw_receipt_blocked:"Para marcar esta retirada, deshaz primero el vínculo en Paga un recibo. Así se retira la confirmación también del otro móvil.",
+    f_withdraw_receipt_pending:"Espera a que termine la retirada antes de cambiar el vínculo del recibo.",
+    f_withdraw_receipt_undone:"Retirada confirmada. El vínculo que llegó durante la confirmación se ha deshecho y el recibo queda pendiente. Se compartirá al sincronizar.",
     f_fx_eq:"= {x} con el cambio del {date}", f_undo_deleted:"Gasto borrado", f_undo:"Deshacer",
     v4_exp_cat:"Categoría", v4_exp_type:"Tipo",
     // Concepto del movimiento (petición del padre 2026-07-24: «solo salía el título y tenía que
@@ -5366,10 +5620,6 @@ Object.assign(LANG.es,{
   ef_in_done:"✓ Efectivo sumado",
   ef_need_bank:"Necesitas otra cuenta para anotar de dónde salió.",
   ef_neg_warn:"El sobre queda en negativo ({x}). ¿Olvidaste apuntar un saque del cajero?",
-  ef_atm_offer_title:"¿Han entrado {x} en tu efectivo?",
-  ef_atm_offer_sub:"El banco ha detectado una retirada. Si el dinero está en tu cartera, súmalo. Si se lo diste a alguien, di que no.",
-  ef_atm_offer_yes:"Sí, sumar al efectivo",
-  ef_atm_offer_no:"No",
 
   ob2_claim:"Tu dinero claro y sin trabajo: gastos que se apuntan solos, tus bancos conectados y tus inversiones al día.",
   ob2_f1_t:"Gastos sin teclear", ob2_f1_d:"Apunta un gasto en dos toques… o deja que entren solos con tu tarjeta de Trade Republic.",
@@ -5467,7 +5717,10 @@ Object.assign(LANG.es,{
   ai_cat_btn:"✨ Sugerir categoría", ai_cat_busy:"Pensando…", ai_cat_ok:"✓ Categoría: {c}", ai_cat_none:"No hay sugerencia clara — elige a mano", ai_cat_off:"Activa «Sugerir categoría (IA)» en Ajustes → Notificaciones",
   g_cycle_from:"Del {d} (cobro de {x}) a hoy",
   g_cycle_budget_hint:"La nómina abre el ciclo. Los ingresos posteriores, incluidos Bizums y alquileres, aumentan el margen; traspasos no.",
+  g_cycle_filter_hint:"Este filtro va del último cobro detectado a hoy; no cambia el presupuesto mensual.",
+  g_cycle_help_show:"Ayuda", g_cycle_help_hide:"Ocultar",
   g_cycle_none_t:"Sin nómina detectada",
+  g_cycle_fallback:"El presupuesto usa el mes natural.",
   g_cycle_none:"Apunta la nómina como 💰 ingreso y escribe «Nómina» en el concepto. Hasta reconocerla, el presupuesto sigue el mes natural.",
   g_search:"Buscar comercio o categoría…",
   sub_title:"🔁 Suscripciones detectadas", sub_sub:"{n} · ~{y}/año", sub_inactive:"· inactiva", sub_months:"{n} meses", sub_peryear:"~{y}/año", sub_permonth:"/mes", sub_tofixed:"pasar a Gastos fijos", sub_infixed:"ya en Fijos", sub_tofixed_done:"✓ «{n}» añadido a Gastos fijos ({b}). Si quieres que el cargo salga de ahí de verdad, cambia la tarjeta en la web de la suscripción.", sub_dismiss:"No es una suscripción", sub_dismissed_ok:"Descartada · no volverá a salir aquí",
@@ -5484,7 +5737,7 @@ Object.assign(LANG.es,{
   g_empty_t:"No hay gastos aquí", g_empty_d:"Cambia el filtro, sincroniza o apunta uno.", g_loadmore:"Cargando más…",
   g_empty_period_t:"Aún no hay gastos en este período", g_empty_period_d:"Es normal si acaba de empezar el mes o tu ciclo — irán apareciendo según sincronices o apuntes alguno.",
   g_today:"Hoy", g_yesterday:"Ayer", g_invalid:"Pon un importe válido", g_saved_g:"✓ Gasto apuntado", g_saved_i:"✓ Ingreso apuntado", g_deleted:"Eliminado", g_changecat:"Cambiar categoría",
-  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Cuota",
+  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_gasolina:"Gasolina", cat_taxi:"Taxi", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Cuota",
   freq_mes:"mensual", freq_bimestral:"bimestral", freq_trimestral:"trimestral", freq_semestral:"semestral", "freq_año":"anual",
   // Fijos
   fj_monthly:"Gasto fijo mensual", fj_peryear:"{x}/año", fj_top_a:"Tu mayor gasto fijo es ", fj_top_b:" ({x}/mes)",
@@ -5925,6 +6178,18 @@ function nominaYaEntro(now){                                        // ¿ya pas�
    UNA cuenta diario/ambos a la vez (la UI degrada las demás a fijos). */
 function accRole(a){ return (a&&a.role) || (a&&a.spendFrom ? "diario" : "fijos"); }
 function accDaily(a){ const r=accRole(a); return r==="diario"||r==="ambos"; }   // gasto variable sale de aquí
+// El sobre y las cuentas familiares no se ofrecen como elección de banco del widget.
+function widgetBankAccounts(s){
+  return (s.accounts||[]).filter(function(a){ return a.ent && !isEfectivoEnt(a) && a.ent!=="familia"; });
+}
+// El widget elige banco sin cambiar roles ni qué compras cuentan para el presupuesto.
+function widgetBankOf(s){
+  const accounts=s.accounts||[], chosen=s.settings&&s.settings.widgetBank;
+  return widgetBankAccounts(s).find(function(a){ return a.ent===chosen; }) || accounts.find(function(a){ return a.spendFrom; }) || null;
+}
+Object.assign(LANG.es,{st_widget_bank:"Banco del widget",st_widget_auto:"Cuenta de gasto diario",st_widget_bank_hint:"El saldo y cuánto puedes gastar se calculan para este banco. Sus cuentas se suman. El presupuesto no cambia."});
+
+
 /* Bancos cuyas compras con tarjeta Open Banking entran en Gastos. Independiente del
    spendFrom único (presupuesto/round-up). Por defecto = ent de la cuenta diaria, y la cuenta
    diaria SIEMPRE entra aunque `expenseBanks` ya tenga otros bancos guardados (bug 2026-07-31:
@@ -5951,7 +6216,6 @@ function sameEntList(a,b){
    Vista de Gastos: por defecto se filtra a los marcados como gasto diario (`expenseBankEnts`);
    «Todos los bancos» enseña el extracto entero. Contabilidad: solo los marcados. A mano (sin
    ent) sí cuenta. Pedido 2026-08-17: Revolut+TR marcados → los dos se ven y cuentan. */
-// Reutilizar la misma lista de lápidas evita reconstruirla por cada ingreso del ciclo.
 const expenseDeletedSets=new WeakMap();
 function expenseDeletedSet(s){
   const deleted=s&&s.deleted;
@@ -5979,7 +6243,9 @@ function expenseCountsCash(e, s){
 /* Igual que cash, pero sin neutras (inversión/traspaso): es lo que pinta el presupuesto. */
 function expenseCountsBudget(e, s){
   if(!e || CAT_NEUTRAS[e.category]) return false;
-  // Una lápida ya ocultó esa fila; el saldo conserva sus anclajes históricos aparte.
+  // El servidor excluye lápidas; contarlas aquí hacía saltar el gasto del widget al pagar
+  // con la app cerrada (27/9/2026). No se altera cash: sus bases pueden estar ya ancladas
+  // incluyendo estas filas. Las lápidas cambian por copia; el índice evita N recorridos.
   if(expenseIsTombstoned(e,expenseDeletedSet(s))) return false;
   return expenseCountsCash(e, s);
 }
@@ -6391,8 +6657,8 @@ function gamifOf(state, totals, budgetStreak){
   const nextMin = (lvl+1<GM_LEVELS.length) ? GM_LEVELS[lvl+1] : null;
   const base=GM_LEVELS[lvl];
   const lvlProg = nextMin!=null ? Math.min(100,Math.max(0,(savedScore-base)/(nextMin-base)*100)) : 100;
-  // Misma cifra que Resumen/Gastos (no thisMonthSpent: mete neutras e ingresos).
-  const bs=monthBudgetStats(state);
+  // El reto debe comparar el mismo consumo y límite que Inicio, también al salir del ciclo.
+  const bs=dashboardBudgetStats(state);
   const budget=bs.budget!=null?bs.budget:(state.budget||0);
   const spent=Math.max(0, bs.against||0);
   const ruCur=+(((tt.roundupThisMonth||0)+(tt.savebackThisMonth||0))).toFixed(2);
@@ -6470,7 +6736,7 @@ function buildEmpty(){
   return {
     fx: null, budget: 0, monthStartNet: 0, history: [],
     accounts: [], investments: [], assets: [], debts: [], fixed: [], flows: [], oneoffs: [], aportaciones: [],
-    expenses: [], goals: [], shared: [], catOverrides: {}, obAccounts: [], obLabels: {}, verNotes: [],
+    expenses: [], goals: [], shared: [], catOverrides: {}, catRules: {}, obAccounts: [], obLabels: {}, verNotes: [],
     tourSeen: false,   // usuario nuevo → tour de bienvenida tras el onboarding
     setupHint: true,   // tarjeta «primeros pasos» en el Resumen hasta que la cierren
     settings: { autoPrices:false },
@@ -6696,6 +6962,10 @@ function seedFlows(s){
   if(!s.catOverrides) s.catOverrides = {};
   if(!s.categoryBudgets) s.categoryBudgets = {};   // límites €/mes por categoría (§5)
   USER_OVERRIDES = Object.assign({}, s.catOverrides);    // overrides personales (comercio→cat) activos
+  // Equivalencias que él ha enseñado; las anteriores a las reglas se deducen una vez de lo ya
+  // corregido (ver `seedCatRules`, 00-core.js).
+  s=seedCatRules(s);
+  USER_CAT_RULES = Object.assign({}, s.catRules||{});
   /* «energia» YA NO EXISTE: se partió en agua / luz / gas (2026-09-12, petición suya — el recibo
      del agua salía con un rayo al lado). Una fila local con esa categoría se quedaría sin entrada
      en `CAT` y se pintaría en blanco, así que se remapea aquí, UNA vez.
@@ -8323,13 +8593,13 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   const [budgetOpen,setBudgetOpen]=useState(false);
   /* Barra de letra FUERA de Ajustes (11/9): la quería a mano mientras usa la app, no enterrada
      en dos sitios de settings. Vive en Inicio, junto al avatar. */
-  /* Puertas de arranque: el count-up y los esqueletos NO pueden vivir detrás del splash ni
-     adelantarse a la nube (B2/B4 — misma lección: animar a puerta cerrada es peor que no animar). */
+  /* Puertas de arranque: el count-up no puede vivir detrás del splash. Si venció la espera
+     de nube de esa cortina, no se empieza otra espera que oculte los datos locales (29/9). */
   const [splashGone,setSplashGone]=useState(function(){
     try{ return !!(window.__mcSplashGone) || !document.getElementById("mc-load"); }catch(e){ return true; }
   });
   const [bootReady,setBootReady]=useState(function(){
-    try{ return !!window.__mcBootReady || navigator.onLine===false; }catch(e){ return true; }
+    try{ return !!window.__mcBootReady || !!window.__mcSplashTimedOut || navigator.onLine===false; }catch(e){ return true; }
   });
   useEffect(function(){
     if(splashGone) return undefined;
@@ -8343,6 +8613,10 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     window.addEventListener("mc-boot-ready", on);
     // Por si el evento se emitió entre el useState inicial y este effect.
     try{ if(window.__mcBootReady) setBootReady(true); }catch(e){}
+    if(window.__mcSplashTimedOut){
+      setBootReady(true);
+      return function(){ window.removeEventListener("mc-boot-ready", on); };
+    }
     /* Offline-first de verdad (16/9): el estado local ya está cargado de forma síncrona. Esperar
        medio segundo a una nube que sabemos ausente pintaba Inicio vacío tras el splash. */
     var offline=false;
@@ -8361,7 +8635,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     return function(){ window.removeEventListener("mc-boot-ready", on); clearTimeout(tope); };
   },[bootReady, splashGone]);
   const shownNet=useCountUp(tt.netWorth||0, splashGone);
-  const showSkel=splashGone && !bootReady;
+  const showSkel=splashGone && !bootReady && !window.__mcSplashTimedOut;
 
   const nameGuess=(function(){
     try{
@@ -8381,12 +8655,12 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     return ((parts[0]||"M").charAt(0)+(parts[1]||parts[0]||"C").charAt(0)).toUpperCase();
   })();
 
-  // Misma cifra que la cabecera de Gastos / widget (no `thisMonthSpent`, que mete neutras).
-  const bud=monthBudgetStats(state);
+  // Mismas filas computables; bruto mensual o neto del ciclo, según lo que dice la tarjeta.
+  const bud=dashboardBudgetStats(state);
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
   const spentAgainst=Math.max(0, bud.against);
   const hasMonthActivity=bud.spent>0.005 || bud.income>0.005;
-  const ratio=budAmt>0 ? spentAgainst/budAmt : 0;
+  const ratio=budAmt>0 ? spentAgainst/budAmt : spentAgainst>0 ? Infinity : 0;
   const dim=new Date(tt.curYear, tt.curMonth, 0).getDate();
   const elapsed=Math.max(1, tt.today||1);
   const leftDays=Math.max(1, dim-elapsed);
@@ -8397,14 +8671,14 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   // Sin fecha fiable del próximo cobro no proyectamos un «€/día hasta fin de mes» que
   // mezclaría el ciclo de ella con el calendario (feedback pareja 28/9).
   const overTrack=!bud.cycle && projected>budAmt+0.5;
-  // El neto puede ser negativo con compras reales: ese 0 % de uso no significa mes vacío.
-  // El texto de Inicio vuelve al que el dueño usaba antes de la tanda rechazada (28/9).
+  // En ciclo, un neto negativo con compras reales no significa un período vacío.
   let stCls="st", stHead=hasMonthActivity ? t("st_good_h") : t(bud.cycle?"v4_cycle_start_h":"st_start_h");
   if(ratio>1 || overTrack&&ratio>0.85){ stCls="st bad"; stHead=t("st_over_h"); }
   else if(ratio>0.8){ stCls="st warn"; stHead=t("st_tight_h"); }
 
-  // Próximos cargos: misma regla que Plan›Recibos (día del mes + isPaidIn). Antes usaba
-  // f.day crudo y mostraba recibos ya cobrados (luz/seguros) — feedback 2026-07-17.
+  const overdue=[];
+  // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los
+  // vencidos aparte y retira el gas confirmado aunque arrastre `wait` (feedback 30/9).
   const upcoming=(function(){
     const today=tt.today||new Date().getDate();
     const cm=tt.curMonth;
@@ -8412,13 +8686,14 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     (state.fixed||[]).forEach(function(f){
       const amount=occAmountIn(f,cm);
       if(!(amount>0) || !occursIn(f,cm)) return;
-      if(isPaidIn(f,cm,today)) return;
-      const day=dayIn(f,cm)||1;
-      rows.push({day:day, name:f.name||t("fj_fixed"), sub:(entOf(accOf(f)).label||""), amount:amount, pos:false});
+      const status=fixedPaymentState(state,f,tt.curYear,cm,today);
+      if(status.paid) return;
+      const row={day:status.day, name:f.name||t("fj_fixed"), sub:(entOf(accOf(f)).label||""), amount:amount, pos:false};
+      (status.overdue?overdue:rows).push(row);
     });
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d) || !(d.monthly>0)) return;
-      if(isDebtPaidThisMonth(d,today)) return;
+      if(isDebtPaidThisMonth(d,today,state,tt.curYear,cm)) return;
       rows.push({day:debtChargeDay(d), name:d.name, sub:t("fj_debt_tag"), amount:d.monthly, pos:false});
     });
     (state.flows||[]).forEach(function(f){
@@ -8428,7 +8703,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
       const day=flowDay(f,tt.curYear,cm)||1;
       rows.push({day:day, name:f.name||t("cat_ingreso"), sub:entOf(f.ent||f.account||"").label||"", amount:f.amount, pos:true});
     });
-    rows.sort(function(a,b){ return a.day-b.day; });
+    rows.sort(function(a,b){ return (a.day==null?99:a.day)-(b.day==null?99:b.day); });
     return rows.slice(0,3);
   })();
 
@@ -8453,7 +8728,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   };
 
   const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,4);
-  const recent=(state.expenses||[]).slice().sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); }).slice(0,3);
+  const recent=(state.expenses||[]).filter(function(e){ return !expenseIsTombstoned(e,expenseDeletedSet(state)); }).sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); }).slice(0,3);
   const p=eurParts(shownNet);
   const ringPct=Math.max(0,Math.min(1,ratio));
   /* P6 — EL ANILLO SE DIBUJA, NO APARECE YA LLENO.
@@ -8564,8 +8839,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:stCls}, stHead),
           React.createElement("div",{className:"ph"},
-            // El anillo y «quedan» usan gasto menos ingresos; en ciclo decir «has gastado»
-            // con el bruto contradecía ambos aunque Gastos cuadrase (feedback 28/9).
+            // Texto, anillo y margen comparten bruto mensual o neto desde el cobro.
             bud.cycle
               ? tf("v4_cycle_net",{used:eur(bud.against),budget:eur(budAmt)})
               : tf("v4_budget_spent",{spent:eur0(bud.spent),budget:eur0(budAmt)}),
@@ -8606,7 +8880,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
 
     // Estado vacio en vez de esconder la seccion (P4, spec §27): un Inicio recien instalado se
     // quedaba en hero + «Ultimos movimientos» vacio y no se veia que la app hace mas cosas.
-    !showSkel && upcoming.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".15s"}},
+    !showSkel && upcoming.length===0 && overdue.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".15s"}},
       React.createElement("div",{className:"v4-section-h"}, React.createElement("span",null, t("v4_upcoming"))),
       React.createElement("div",{className:"v4-empty"},
         React.createElement("div",{className:"em"}, "🧾"),
@@ -8629,7 +8903,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
         upcoming.map(function(u,i){
               return React.createElement("div",{key:i,className:"v4-charge"},
                 React.createElement("div",{className:"dt"},
-                  React.createElement("div",{className:"d"}, String(u.day).padStart(2,"0")),
+                  React.createElement("div",{className:"d"}, u.day==null?"—":String(u.day).padStart(2,"0")),
                   React.createElement("div",{className:"m"}, monthName.slice(0,3))
                 ),
                 React.createElement("div",{style:{flex:1,minWidth:0}},
@@ -8640,6 +8914,19 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
               );
             })
       )
+    ),
+
+    !showSkel && overdue.length>0 && React.createElement("div",{className:"v4-section rise"},
+      React.createElement("div",{className:"v4-section-h"},
+        React.createElement("span",null,t("v4_charges_overdue")),
+        React.createElement("button",{className:"link",onClick:function(){ if(onGoPlan) onGoPlan("recibos"); }},t("v4_see_plan"))),
+      React.createElement("div",{className:"v4-card",style:{padding:"6px 16px"}},
+        overdue.sort(function(a,b){ return a.day-b.day; }).slice(0,3).map(function(u,i){
+          return React.createElement("div",{key:i,className:"v4-charge"},
+            React.createElement("div",{className:"dt"},React.createElement("div",{className:"d"},String(u.day).padStart(2,"0")),React.createElement("div",{className:"m"},monthName.slice(0,3))),
+            React.createElement("div",{style:{flex:1,minWidth:0}},React.createElement("div",{className:"nm"},u.name),React.createElement("div",{className:"sub"},u.sub+" · "+t("v4_charge_unconfirmed"))),
+            React.createElement("div",{className:"am num"},eur(u.amount)));
+        }))
     ),
 
     !showSkel && goals.length===0 && React.createElement("div",{className:"v4-section rise",style:{animationDelay:".2s"}},
@@ -8756,19 +9043,29 @@ function budgetPaydayOf(state, nowMs, expenses){
    lag que crecía con el uso (feedback 2026-07-24). Devuelve {from,to} con Infinity de comodín. */
 function presetBoundsMs(preset,range,cycleStart){
   const now=new Date();
-  if(preset==="month") return {from:startOfMonth().getTime(), to:Infinity};
-  if(preset==="cycle") return {from:(cycleStart||startOfMonth()).getTime(), to:Infinity};
+  const monthEnd=new Date(now.getFullYear(),now.getMonth()+1,1).getTime()-1;
+  if(preset==="month") return {from:startOfMonth().getTime(), to:monthEnd};
+  if(preset==="cycle"){
+    const tomorrow=new Date(now); tomorrow.setHours(24,0,0,0);
+    return {from:(cycleStart||startOfMonth()).getTime(), to:cycleStart?tomorrow.getTime()-1:monthEnd};
+  }
   if(preset==="last") return {from:startOfMonth(new Date(now.getFullYear(),now.getMonth()-1,1)).getTime(), to:startOfMonth().getTime()-1};
-  if(preset==="3m") return {from:new Date(now.getFullYear(),now.getMonth()-2,1).getTime(), to:Infinity};
+  if(preset==="3m") return {from:new Date(now.getFullYear(),now.getMonth()-2,1).getTime(), to:monthEnd};
   if(preset==="custom"){
     let from=-Infinity, to=Infinity;
-    if(range&&range.from){ const f=new Date(range.from); if(!isNaN(f.getTime())) from=f.getTime(); }
-    if(range&&range.to){ const tt=new Date(range.to); if(!isNaN(tt.getTime())){ tt.setHours(23,59,59,999); to=tt.getTime(); } }
+    if(range&&range.from){ const f=new Date(range.from+"T00:00:00"); if(!isNaN(f.getTime())) from=f.getTime(); }
+    if(range&&range.to){ const tt=new Date(range.to+"T00:00:00"); if(!isNaN(tt.getTime())){ tt.setHours(23,59,59,999); to=tt.getTime(); } }
     return {from:from, to:to};
   }
   return {from:-Infinity, to:Infinity};   // "all" y cualquier preset desconocido
 }
 function inBounds(ms,b){ return ms>=b.from && ms<=b.to; }
+// La elección de fechas debe mover juntas lista y cifras; el presupuesto de Inicio y
+// sus lectores conserva su propia ventana (reporte 2/10/2026).
+function gastosPeriodOf(preset,bounds,cycle){
+  return {startMs:bounds.from,todayEndMs:bounds.to===Infinity?Infinity:bounds.to+1,
+    cycle:preset==="cycle"?cycle:null};
+}
 // Fila de una suscripción detectada. Importe EDITABLE antes de «pasar a Fijos» (petición
 // 2026-08-03: recibos que se repiten cada mes pero varían de importe —luz, gas— para no dejarlos
 // con el de este mes y tener que corregirlo a mano el que viene) + botón para descartarla del
@@ -8963,9 +9260,45 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(same) showToast(t("g_dup_same"));
     else showToast(t("g_dup_diff"));
   };
+  const withdrawalPending=useRef({});
+  const withdrawalState=useRef(state); withdrawalState.current=state;
+  const [withdrawalStatus,setWithdrawalStatus]=useState(null);
+  const recognizeWithdrawal=function(ex){
+    if(!canRecognizeWithdrawal(ex) || ex.category==="traspaso" || withdrawalPending.current[ex.id]) return;
+    if(!canRecognizeWithdrawal(ex,withdrawalState.current)){
+      showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)?"f_withdraw_receipt_blocked":"f_withdraw_error")); return;
+    }
+    withdrawalPending.current[ex.id]=true;
+    askConfirm({title:t("f_withdraw_title"),sub:tf("f_withdraw_sub",{x:eur(ex.amount)}),ok:t("f_withdraw_ok")})
+      .then(async function(yes){
+        if(!yes) return;
+        setWithdrawalStatus({id:ex.id,status:"pending"});
+        let timer;
+        try{
+          if(!canRecognizeWithdrawal(ex,withdrawalState.current)) throw new Error("withdrawal unavailable");
+          let ack;const sandbox=mcSandbox();
+          if(!sandbox) ack=await Promise.race([cloud.confirmExpenseWithdrawal(ex,function(){ return withdrawalState.current; }),new Promise(function(_,reject){
+            timer=setTimeout(function(){ reject(new Error("withdrawal timeout")); },10000);
+          })]);
+          let applied=false,receiptUndone=false;
+          ReactDOM.flushSync(function(){ set(function(s){ const next=sandbox?applyRecognizedWithdrawal(s,ex,Date.now()):reconcileConfirmedWithdrawal(s,ex,ack,Date.now());
+            receiptUndone=!!withdrawalReceiptLink(s,ex)&&!withdrawalReceiptLink(next,ex);
+            applied=next!==s || canRecognizeWithdrawal(ex,s)&&(s.expenses||[]).some(function(e){ return e.id===ex.id && e.category==="traspaso"
+              && withdrawalRowMatches(ex,{id:e.id,source:expenseSourceForCloud(e),fecha:e.date,importe:e.amount,comercio:e.merchant}); });
+            return next; }); });
+          setWithdrawalStatus({id:ex.id,status:applied?"done":"error",receiptUndone:receiptUndone});
+          showToast(t(applied?(receiptUndone?"f_withdraw_receipt_undone":"f_withdraw_done"):withdrawalReceiptLink(withdrawalState.current,ex)?"f_withdraw_receipt_blocked":"f_withdraw_error"));
+        }catch(err){
+          setWithdrawalStatus({id:ex.id,status:"error"});
+          showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)?"f_withdraw_receipt_blocked":"f_withdraw_error"));
+        }finally{ clearTimeout(timer); }
+      }).finally(function(){ delete withdrawalPending.current[ex.id]; });
+  };
   // Recategorizar un gasto a mano: actualiza ESTE, recuerda el comercio (catOverrides) para los
   // futuros y arregla otros gastos del mismo comercio que estuvieran en "Otros".
   const setCat=function(ex,newCat){
+    if(withdrawalPending.current[ex.id]) return;
+    if(newCat==="traspaso" && canRecognizeWithdrawal(ex)){ recognizeWithdrawal(ex); return; }
     const mkey=catKey(ex.merchant);
     // "Movimiento" es el hueco que deja un banco que no manda NINGÚN dato (Trade Republic por
     // Open Banking, ver `mapTransaction` en enablebanking.ts) — no es un comercio de verdad, así
@@ -8979,6 +9312,17 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     set(function(s){
       const ov=Object.assign({}, s.catOverrides||{}); if(learnable) ov[mkey]=newCat;
       USER_OVERRIDES=Object.assign({},ov);
+      // La equivalencia vale desde AHORA, no desde la fecha del gasto corregido: corregir uno
+      // del mes pasado no autoriza a recategorizar lo que baje con fecha de ayer. Y solo en su
+      // mismo banco y forma de pago. Repetir la elección no mueve el instante.
+      let rules=s.catRules||{};
+      if(learnable && CAT[newCat] && !isManualExpenseSource(ex.source)){
+        const rk=catRuleKey(ex), had=rules[rk];
+        if(!had || had.cat!==newCat || !Number.isFinite(had.at)){
+          rules=Object.assign({},rules); rules[rk]={ cat:newCat, at:Date.now() };
+        }
+      }
+      USER_CAT_RULES=Object.assign({},rules);
       // El cashback/round-up ENTRA al efectivo y días después SALE hacia el fondo: dos apuntes del
       // banco para un solo movimiento de dinero. Al marcar la salida como Inversión, su entrada
       // gemela va con ella — si no, sigue contando como ingreso del mes (2026-08-04, queja suya:
@@ -8996,6 +9340,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         if(!isTarget && !isTwin && !isSibling) return e;
         const wasInv=e.category==="inversion", willBeInv=newCat==="inversion";
         const upd=Object.assign({},e,{category:newCat});
+        // Lo que la nube aún puede devolver hasta que se entere (ver `keepCategoryChoices`).
+        const stale=catStaleAfter(e,newCat);
+        if(stale && stale.length) upd.catStale=stale; else delete upd.catStale;
+        delete upd.catAckAt;   // decisión nueva: aún nadie la ha confirmado
         // Sacarla de «Deudas» es decir «esto no es la cuota»: pierde la marca (4.21.0).
         if(isTarget && upd.debtId && newCat!=="deudas") delete upd.debtId;
         // El gemelo solo cambia de categoría: el dinero ya lo compra su pareja, comprarlo dos veces
@@ -9013,10 +9361,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       // Durable en la tabla: sin esto el siguiente pull —que reemplaza los gastos de la nube con
       // lo que hay en `expenses`— devolvía la categoría vieja (2026-08-04).
       if(cloud.enabled()){
-        cloud.setExpenseCat(ex,newCat).catch(function(){});
+        cloud.setExpenseCat(ex,newCat).then(function(n){
+          // Solo una escritura confirmada deja de protegerse (cero filas no es un error en Supabase).
+          if(n>0) set(function(p){ const l=ackCategoryWrite(p.expenses, ex, newCat, Date.now()); return l===p.expenses?p:Object.assign({},p,{expenses:l}); });
+        }).catch(function(){});
         if(twinId){ const tw=s.expenses.find(function(e){ return e.id===twinId; }); if(tw) cloud.setExpenseCat(tw,newCat).catch(function(){}); }
       }
-      const fuera={expenses:exps,catOverrides:ov};
+      const fuera={expenses:exps,catOverrides:ov,catRules:rules};
       // «Esto no es la cuota»: lápida para que `marcarCuotasDeDeuda` no la vuelva a meter (4.21.0).
       if((ex.debtId||ex.category==="deudas") && newCat!=="deudas"){
         const k=keyOfExpense(ex), prevNo=s.cuotaNo||[];
@@ -9038,6 +9389,23 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     set(function(s){ const r=marcarCuotaAMano(s, ex.id, debtId); if(!r) return s; subir=r.e; return r.state; });
     if(subir && cloud.enabled()) cloud.setExpenseDeuda(subir).catch(function(){});
     if(showToast) showToast(tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
+  };
+  const setReceipt=function(ex,fixedId){
+    if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
+    const ds=String(ex.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
+    const today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
+    const f=(state.fixed||[]).find(function(x){ return x.id===fixedId; });
+    const expected={identity:fixedPaymentIdentity(expenseBankOf(ex),ex),model:f&&fixedPaymentModel(f,m)};
+    const save=function(){
+      if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
+      // El diálogo es asíncrono: otra sincronización puede sustituir el cargo o editar el recibo.
+      set(function(s){ return linkFixedPayment(s,ex.id,fixedId,y,m,today,expected); });
+    };
+    if(fixedId==null){ save(); return; }
+    if(!f) return;
+    askConfirm({title:tf("f_receipt_confirm",{name:f.name}),
+      sub:tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))}),
+      ok:t("f_receipt_yes")}).then(function(yes){ if(yes) save(); });
   };
   // Marca/desmarca un gasto como "no tarjeta" (bizum/transferencia) para que no cuente el round-up TR.
   const setCardFlag=function(ex,noCard){
@@ -9133,10 +9501,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
        borra en vez de arrastrarlo. Un dato viejo al lado de uno nuevo no es media verdad, es una
        mentira — y en el detalle se leerían juntos como si fueran el mismo pago. */
     if(signed!==orig.amount){ delete upd.origAmount; delete upd.origCur; }
-    set(function(s){ return Object.assign({},s,{
+    set(function(s){ return rekeyFixedPaymentExpense(Object.assign({},s,{
       expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; }),
       deleted:pushDeleted(s.deleted, keyOfE(orig))
-    }); });
+    }),orig,upd); });
     if(cloud.enabled()){ borrarGastoNube(orig, "gastos-editar"); subirGasto(upd, "gastos-editar"); }
     sincroniza(upd); showToast(t("g_edited"));
   };
@@ -9151,6 +9519,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // `todayKey` invalida ciclo, filtros y cabecera cuando la app queda abierta al cruzar el día;
   // así el 26 o el día 1 no conserva cifras del período anterior en un memo.
   const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,todayKey]);
+  const selectedPeriod=useMemo(function(){ return gastosPeriodOf(preset,bounds,cycle); },[preset,bounds,cycle]);
   const diarioEnts=useMemo(function(){ return expenseBankEnts(state); },[state.accounts, state.settings]);
   const diarioPrev=useRef(diarioEnts.slice());
   const diarioKey=diarioEnts.slice().sort().join("|");
@@ -9183,6 +9552,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const src=expensesDef||[];
     for(let i=0;i<src.length;i++){
       const e=src[i];
+      // La lápida puede venir de otro dispositivo sin retirar aún esta fila local.
+      if(expenseIsTombstoned(e,expenseDeletedSet(state))) continue;
       if(!inBounds(dateMs(e.date),bounds)) continue;
       // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
       if(catSet && !catSet.has(e.category) && !(e.debtId && catSet.has("debt:"+e.debtId))) continue;
@@ -9201,7 +9572,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     return sortExpensesForDisplay(out,state);
     // `state.settings`/`state.accounts` van en las dependencias porque `expenseBucket` los lee
     // (qué bancos son de gasto diario): cambiar eso tiene que re-filtrar la lista.
-  },[expensesDef,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts]);
+  },[expensesDef,state.deleted,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts]);
 
   /* El asa reclama el dedo desde el principio: dejar que la fila entera fuera arrastrable
      convertiría un scroll normal en cambios de orden accidentales. El destino se resuelve contra
@@ -9227,31 +9598,48 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     dragExpenseRef.current=null; setDragExpense(null);
   },[set]);
 
-  // El filtro solo explora la lista: la cabecera sigue el período de presupuesto elegido en
-  // Ajustes, no cambia al tocar categorías ni al mirar otro rango (feedback pareja 28/9).
-  // Cifras = `monthBudgetStats` (misma fuente que Inicio; el widget sigue por mes natural).
+  // Las fechas elegidas mueven cabecera y categorías junto a la lista (reporte 2/10).
+  // Buscar o filtrar bancos/categorías sigue explorando movimientos sin redefinir el límite.
   // `accounts` + `settings` van en deps: monthBudgetStats → expenseCountsBudget → expenseBankEnts
   // lee rol diario y expenseBanks. Sin ellos, quitar un banco de gasto diario dejaba la cabecera
   // alta hasta que un sync cambiaba `expenses` (B09-A / feedback familia 2026-09-06).
+  const budgetApplies=preset==="month"||preset==="cycle";
   const monthSummary=useMemo(function(){
     const now=new Date();
-    const bs=monthBudgetStats(state);
+    const bs=monthBudgetStats(Object.assign({},state,{expenses:expensesDef}),null,null,null,selectedPeriod);
+    // No existe una foto histórica del límite ni un presupuesto acumulado para varios meses.
+    // Enseñar el límite actual como margen del pasado inventaría dinero disponible.
+    if(!budgetApplies){ bs.budget=null; bs.remaining=null; }
+    const periodLabel=preset==="custom"
+      ? (range.from?fmtIsoCorto(range.from):t("g_all"))+" → "+(range.to?fmtIsoCorto(range.to):t("g_all"))
+      : t("g_"+preset);
     return {
       spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against,
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
       day:now.getDate(),
-      last:new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),
-      month:monthLong(now.getMonth()), cycle:bs.cycle, periodStart:bs.periodStart
+      month:monthLong(now.getMonth()), cycle:!!selectedPeriod.cycle,
+      periodLabel:periodLabel, budgetApplies:budgetApplies
     };
-  },[state.expenses,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,todayKey]);
+  },[expensesDef,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,selectedPeriod,preset,range,budgetApplies,todayKey]);
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
-    return categorySpentByMonth(state);
-  },[state.expenses,state.deleted,state.categoryBudgets,state.accounts,state.settings,todayKey]);
+    const rows=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,selectedPeriod);
+    return budgetApplies?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
+  },[expensesDef,state.deleted,state.categoryBudgets,state.accounts,state.settings,selectedPeriod,budgetApplies,todayKey]);
   /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
      —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
   const catsOpen=!(state.settings && state.settings.gastosCatsOff);
+  // La fecha del cobro sigue a la vista al plegar la explicación; ocultarla dejaba «Mi ciclo»
+  // sin una referencia comprobable y la tarjeta larga volvía a ocupar la pantalla (28/9).
+  const cycleHelpOpen=!(state.settings && state.settings.gastosCycleHelpOff);
+  const toggleCycleHelp=useCallback(function(){
+    set(function(s){
+      const st=Object.assign({}, s.settings||{});
+      if(st.gastosCycleHelpOff) delete st.gastosCycleHelpOff; else st.gastosCycleHelpOff=true;
+      return Object.assign({}, s, { settings:st });
+    });
+  },[set]);
   const toggleCats=useCallback(function(){
     set(function(s){
       const st=Object.assign({}, s.settings||{});
@@ -9448,7 +9836,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
           React.createElement("div",{className:"v4-gastos-summary-label"},
             monthSummary.cycle
               ? t(monthSummary.mode==="net"?"v4_gastos_net_cycle":"v4_gastos_spent_cycle")
-              : tf(monthSummary.mode==="net"?"v4_gastos_net_in":"v4_gastos_spent_in",{month:monthSummary.month})),
+              : preset==="month"
+                ? tf(monthSummary.mode==="net"?"v4_gastos_net_in":"v4_gastos_spent_in",{month:monthSummary.month})
+                : tf(monthSummary.mode==="net"?"v4_gastos_net_period":"v4_gastos_spent_period",{period:monthSummary.periodLabel})),
           // Importe en blanco, sin signo, € al lado (como el patrimonio). El rojo/menos
           // confundía el «balance» con una alarma (feedback 2026-07-17).
           (function(){
@@ -9480,18 +9870,18 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         ),
         React.createElement("div",{className:"v4-gastos-summary-budget"},
           React.createElement("div",null,tf("v4_gastos_of",{x:monthSummary.budget==null?"—":eur(monthSummary.budget)})),
-          React.createElement("div",{className:"v4-gastos-summary-left"},tf("v4_gastos_left",{x:monthSummary.remaining==null?"—":eur(monthSummary.remaining)}))
+          React.createElement("div",{className:"v4-gastos-summary-left"},tf("v4_gastos_left",{x:monthSummary.remaining==null?"—":eur(monthSummary.remaining)})),
+          !monthSummary.budgetApplies && React.createElement("div",{className:"hint"},t("v4_gastos_budget_period_unknown"))
         )
       ),
-      React.createElement("div",{className:"v4-gastos-progress",role:"progressbar","aria-valuemin":0,"aria-valuemax":monthSummary.budget||0,"aria-valuenow":Math.max(0,monthSummary.against)},
+      monthSummary.budgetApplies && React.createElement("div",{className:"v4-gastos-progress",role:"progressbar","aria-valuemin":0,"aria-valuemax":monthSummary.budget||0,"aria-valuenow":Math.max(0,monthSummary.against)},
         React.createElement("i",{style:{width:monthSummary.budget==null?"0%":Math.min(100,Math.max(0,monthSummary.against)/monthSummary.budget*100)+"%"}})
       ),
       React.createElement("div",{className:"v4-gastos-progress-marks"},
-        React.createElement("span",monthSummary.cycle
-          ? new Date(monthSummary.periodStart).toLocaleDateString(loc(),{day:"2-digit",month:"short"})
-          : "1 "+monthSummary.month),
-        React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
-        !monthSummary.cycle && React.createElement("span",monthSummary.last+" "+monthSummary.month)
+        React.createElement("span",isFinite(bounds.from)
+          ? new Date(bounds.from).toLocaleDateString(loc(),{day:"2-digit",month:"short"}) : t("g_all")),
+        monthSummary.budgetApplies && React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
+        !monthSummary.cycle && isFinite(bounds.to) && React.createElement("span",new Date(bounds.to).toLocaleDateString(loc(),{day:"2-digit",month:"short"}))
       ),
       /* SE PUEDE OCULTAR (petición de su pareja, 10/9, y con razón).
          Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria
@@ -9508,8 +9898,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
           "aria-expanded":catsOpen,"aria-controls":"gastos-cats-body",onClick:toggleCats},
           React.createElement("span",{className:"v4-gastos-cats-t"},
             catsOpen ? t("v4_gastos_cats")
-                     : (catBreakdown.length===1 ? t(monthSummary.cycle?"v4_gastos_cats_cycle_n1":"v4_gastos_cats_n1")
-                       : tf(monthSummary.cycle?"v4_gastos_cats_cycle_n":"v4_gastos_cats_n",{n:catBreakdown.length}))),
+                     : tf(catBreakdown.length===1?"v4_gastos_cats_period_n1":"v4_gastos_cats_period_n",{n:catBreakdown.length,period:monthSummary.periodLabel})),
           React.createElement("span",{className:"v4-gastos-cats-fold"},
             (catsOpen?"▾ ":"▸ ")+t(catsOpen?"v4_gastos_cats_hide":"v4_gastos_cats_show"))),
         React.createElement("div",{id:"gastos-cats-body",className:"v4-gastos-cats-body"+(catsOpen?" abierto":""),"aria-hidden":!catsOpen},
@@ -9553,15 +9942,18 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       ),
       // «Mi ciclo»: enseña QUÉ cobro ancla el ciclo (si el detectado no es el bueno, se corrige
       // apuntando la nómina real como ingreso, o usando Rango…).
-      preset==="cycle" && React.createElement("div",{className:"v4-cycle-box"},
-        cycle
-          ? React.createElement(React.Fragment,null,
-              React.createElement("strong",null,"📅 "+t("g_cycle")),
-              tf("g_cycle_from",{d:cycle.start.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'}), x:"+"+eur0(Math.abs(cycle.inc.amount))+((cycle.inc.merchant&&cycle.inc.merchant!=="Ingreso")?" · "+cycle.inc.merchant:"")}),
-              cycleEnabled && React.createElement("div",{style:{marginTop:6}},t("g_cycle_budget_hint")))
-          : React.createElement(React.Fragment,null,
-              React.createElement("strong",null,t("g_cycle_none_t")),
-              t("g_cycle_none"))
+      preset==="cycle" && React.createElement("div",{className:"v4-cycle-box"+(cycleHelpOpen?"":" compacto"),"data-testid":"gastos-cycle-help"},
+        React.createElement("div",{className:"v4-cycle-head"},
+          React.createElement("div",{className:"v4-cycle-main"},
+            React.createElement("strong",null,cycle?"📅 "+t("g_cycle"):t("g_cycle_none_t")),
+            React.createElement("div",null,cycle
+              ? tf("g_cycle_from",{d:cycle.start.toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'}), x:"+"+eur0(Math.abs(cycle.inc.amount))+((cycle.inc.merchant&&cycle.inc.merchant!=="Ingreso")?" · "+cycle.inc.merchant:"")})
+              : t("g_cycle_fallback"))),
+          React.createElement("button",{type:"button",className:"v4-chip",onClick:toggleCycleHelp,
+            "aria-expanded":cycleHelpOpen,"aria-controls":cycleHelpOpen?"gastos-cycle-explanation":undefined},
+            t(cycleHelpOpen?"g_cycle_help_hide":"g_cycle_help_show"))),
+        cycleHelpOpen && React.createElement("div",{id:"gastos-cycle-explanation",className:"v4-cycle-explanation"},
+          cycle ? t(cycleEnabled?"g_cycle_budget_hint":"g_cycle_filter_hint") : t("g_cycle_none"))
       ),
       preset==="custom" && React.createElement("div",null,
         React.createElement("div",Object.assign({className:"range"},stopSwipe),
@@ -9656,8 +10048,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         if(!skipSave && ex && editExp) saveEdit(ex);
         setDetailId(null); setEditExp(null);
       },
-      setCat:setCat, setCuota:setCuota, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
-      resolveDup:resolveDup,
+      setCat:setCat, setCuota:setCuota, setReceipt:setReceipt, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
+      resolveDup:resolveDup, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
     undoDelete && ReactDOM.createPortal(
@@ -9868,7 +10260,7 @@ function PeriodMoreSheet({open, onClose, preset, setPreset}){
 }
 
 /* Sheet detalle/edición de un movimiento. Layout alineado con Apuntar/Cartera (feedback 2026-07-17). */
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -9937,8 +10329,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const meta=[
     {id:"bank",testId:"exp-bank",label:bk?entOf(bk).label:t("ap_bank_none"),lead:bk?React.createElement(Mono,{ent:bk,size:18}):React.createElement("span",null,"🏦"),
       on:bankOpen,locked:auto,onClick:function(){ setBankOpen(function(v){ return !v; }); setCalOpen(false); }},
-    {id:"cash",testId:"exp-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bk==="efectivo",locked:auto,
-      onClick:function(){ setBank(exp,bk==="efectivo"?null:"efectivo"); }},
+    {id:"cash",testId:"exp-efectivo",label:t("f_meta_cash"),lead:React.createElement("span",null,"💶"),on:bk==="efectivo",
+      onClick:function(){ if(auto){ showToast(t("f_withdraw_cash_limit")); return; } setBank(exp,bk==="efectivo"?null:"efectivo"); }},
     {id:"date",testId:"exp-date",label:fmtIsoCorto(dateIso),lead:React.createElement("span",null,"📅"),on:calOpen,
       onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }}
   ];
@@ -9954,9 +10346,37 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
       bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
-    trace,duplicate);
+    trace,duplicate,
+    canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
+      React.createElement("div",null,t("f_withdraw_fields")),
+      exp.category!=="traspaso" && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-withdrawal",
+        disabled:!canRecognizeWithdrawal(exp,state)||withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="pending",
+        onClick:function(){ recognizeWithdrawal(exp); }},t("f_withdraw_action")),
+      exp.category==="traspaso" && React.createElement("div",{"data-testid":"exp-withdrawal-neutral"},t("f_withdraw_done")),
+      withdrawalReceiptLink(state,exp)&&React.createElement("div",{"data-testid":"exp-withdrawal-receipt-blocked"},t("f_withdraw_receipt_blocked")),
+      withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="done" && withdrawalStatus.receiptUndone && React.createElement("div",{role:"status"},t("f_withdraw_receipt_undone")),
+      React.createElement("div",null,t("f_withdraw_cash_limit")),
+      withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done" && React.createElement("div",{role:"status"},
+        t(withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_error"))));
   const debtOptions=(state.debts||[]).filter(function(d){ return d&&d.id; });
+  const receiptDate=String(exp.date||"").slice(0,10),receiptYear=Number(receiptDate.slice(0,4)),receiptMonth=Number(receiptDate.slice(5,7)),receiptNow=new Date();
+  const receiptToday=receiptYear===receiptNow.getFullYear()&&receiptMonth===receiptNow.getMonth()+1?receiptNow.getDate():new Date(receiptYear,receiptMonth,0).getDate();
+  const receiptLinked=withdrawalReceiptLink(state,exp);
+  const receiptOptions=(state.fixed||[]).filter(function(f){
+    return fixedExpenseEligible(state,exp,f,receiptYear,receiptMonth,receiptToday)&&
+      (!fixedPaymentState(state,f,receiptYear,receiptMonth,receiptToday).paid||(receiptLinked&&receiptLinked.id===f.id));
+  });
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
+    !isIncome&&!exp.possibleDup&&!CAT_NEUTRAS[exp.category]&&(state.fixed||[]).length>0&&React.createElement(React.Fragment,null,
+      React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-receipt",onClick:function(){ setAdjustOpen(adjustOpen==="receipt"?null:"receipt"); }},
+        React.createElement("span",null,t("f_receipt_row")),React.createElement("span",{className:"value"},receiptLinked?receiptLinked.name:t("f_no")),React.createElement("span",{className:"chev"},"›")),
+      adjustOpen==="receipt"&&React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-receipt-options"},
+        React.createElement("div",{className:"hint"},t("f_receipt_hint")),
+        React.createElement("div",{className:"v4-chips wrap"},
+          receiptLinked&&React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-receipt-unlink",onClick:function(){ setReceipt(exp,null); }},t("f_receipt_unlink")),
+          !receiptLinked&&receiptOptions.map(function(f){ return React.createElement("button",{key:f.id,type:"button",className:"v4-chip","data-testid":"exp-receipt-"+f.id,
+            onClick:function(){ setReceipt(exp,f.id); }},f.name+" · "+eur(occAmountIn(f,receiptMonth))); })),
+        !receiptLinked&&!receiptOptions.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")))),
     React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="note"?null:"note"); }},
       React.createElement("span",null,t("f_note_row")),React.createElement("span",{className:"value"},editExp.note||t("f_note_none")),React.createElement("span",{className:"chev"},"›")),
     adjustOpen==="note" && React.createElement("div",{className:"v4-ficha-adjust-open"},
@@ -9989,7 +10409,8 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   };
   const footer=React.createElement("div",{className:"v4-ficha-foot"},
     React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
-    React.createElement("span",{className:"v4-ficha-saved"},t("f_autosaved")),
+    React.createElement("span",{className:"v4-ficha-saved"},t(withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
+      ? (withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_unconfirmed") : "f_autosaved")),
     React.createElement("button",{type:"button",className:"v4-ficha-done",onClick:done},t("done")));
   const main=ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
@@ -12772,7 +13193,7 @@ const dayOf=(e)=> (e&&e.day)||null;
 // Deudas sin día explícito: día 1 (entran en el motor de líquido como los fijos; antes quedaban
 // fuera hasta cerrar mes — bug #2 «deuda no dinámica»).
 function debtChargeDay(d){ const dd=dayOf(d); return (dd!=null && dd>0) ? dd : 1; }
-function isDebtPaidThisMonth(d,today){ return debtChargeDay(d)<=today; }
+function isDebtPaidThisMonth(d,today,s,y,m){ return s&&debtPaymentState(s,d,y,m,today).paid || debtChargeDay(d)<=today; }
 // ¿ya se cobró en el mes m? (su día ya pasó o ES HOY). Solo tiene sentido para el mes actual.
 // `<=`: lo programado para HOY cuenta como hecho. Clave para no duplicar la nómina/cargos del día
 // con el saldo real del banco (que ya los refleja) → si no, fin de mes los sumaría por segunda vez.
@@ -12938,43 +13359,233 @@ function reconcileEarlyIncomeAnchors(s,y,m,today){
 /* UNA sola fuente de cargos del mes para Plan / Pregúntame / segmented (audit Claude 17/9).
    Recibos = fixed + deudas (+ balloon) + oneoffs. Traspasos e ingresos van aparte y NUNCA
    suman a «por pagar». Sin tocar totals de 11: solo clasifica con helpers ya existentes. */
-function planChargesMonth(s,m,y,t){
+/* El calendario sirve para proyectar saldos, pero no acredita un pago. Inicio y Plan
+   separan esa previsión del cargo BOOK: ni `wait` ni pasar el día deben ocultarlo o
+   inventarlo (gas vencido, feedback 30/9). La lectura no reancla cuentas ni escribe fijos. */
+function fixedPaymentModel(e,m){
+  return JSON.stringify([e.name||"",accOf(e),occAmountIn(e,m),e.bankAmount>0?e.bankAmount:null]);
+}
+function fixedPaymentDate(date,y,m,today){
+  var ds=String(date||"").slice(0,10),d=recDay(ds),now=new Date();
+  return y*12+m<=now.getFullYear()*12+now.getMonth()+1&&/^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds.slice(0,7)===y+"-"+String(m).padStart(2,"0")&&d>=1&&d<=today&&d<=new Date(y,m,0).getDate();
+}
+function fixedExpenseKey(e){ return expenseBankOf(e)+"|"+keyOfExpense(e); }
+function fixedPaymentIdentity(bank,x){ return JSON.stringify([bank,String(x.date).slice(0,10),Number(x.amount),x.obName!=null?x.obName:x.merchant||""]); }
+function fixedPaymentFeedClear(s,identity){
+  var rows=(s.bankTx||[]).filter(function(tx){ return fixedPaymentIdentity(tx.ent,tx)===identity; });
+  return rows.length<=1&&!rows.some(function(tx){ return tx.possibleDup||String(tx.status||"").toUpperCase()!=="BOOK"; });
+}
+function fixedPaymentContenders(s,y,m){
+  return (s.fixed||[]).filter(function(f){ return occursIn(f,m); }).map(function(f){
+    return {name:f.name,bank:accOf(f),amount:f.bankAmount>0?f.bankAmount:occAmountIn(f,m)};
+  }).concat((s.debts||[]).filter(debtActive).map(function(d){
+    return {name:d.name,bank:d.account||"sabadell",amount:d.bankAmount>0?d.bankAmount:(d.monthly||0)+debtBalloonIn(d,y,m)};
+  }), (s.oneoffs||[]).filter(function(o){ return oneoffOccurs(o,y,m); }).map(function(o){
+    return {name:o.name,bank:o.account||"sabadell",amount:o.bankAmount>0?o.bankAmount:o.amount};
+  }));
+}
+function fixedPaymentProof(s,e,y,m,today){
+  var p=e.paymentProofs&&e.paymentProofs[y*12+m];
+  if(!p||!p.identity||!(p.amount>0)||!p.bank||!occursIn(e,m)||p.model!==fixedPaymentModel(e,m)||!fixedPaymentDate(p.date,y,m,today)) return null;
+  if(p.kind!=="expense"&&p.kind!=="book") return null;
+  if(p.kind==="expense"){
+    if(!fixedPaymentFeedClear(s,p.identity)) return null;
+    if((s.deleted||[]).indexOf(p.expenseKey)>=0||(p.expenseLegacyKey&&(s.deleted||[]).indexOf(p.expenseLegacyKey)>=0)) return null;
+    // Sin fila local la prueba viaja entre móviles; si sí está, una edición o nueva
+    // atribución de deuda no debe conservar la confirmación del cargo anterior.
+    var rows=(s.expenses||[]).filter(function(x){ return fixedExpenseKey(x)===p.key||p.expenseId&&x.id===p.expenseId||fixedPaymentIdentity(expenseBankOf(x),x)===p.identity; });
+    if(rows.length>1||rows.some(function(x){ return !fixedExpenseEligible(s,x,e,y,m,today)||fixedPaymentIdentity(expenseBankOf(x),x)!==p.identity; })) return null;
+  } else {
+    var target=e.bankAmount>0?e.bankAmount:occAmountIn(e,m);
+    if((s.bankTx||[]).some(function(tx){
+      return fixedPaymentIdentity(tx.ent,tx)===p.identity&&(tx.possibleDup||String(tx.status||"").toUpperCase()!=="BOOK");
+    })) return null;
+    if((s.accounts||[]).filter(function(a){ return a.ent===p.bank&&accFixed(a); }).length!==1||
+      fixedPaymentContenders(s,y,m).filter(function(f){ return f.bank===p.bank&&recNameMatch(f.name,p.merchant)&&recAmtClose(f.amount,p.amount); }).length!==1) return null;
+    if((s.bankTx||[]).filter(function(tx){
+      return tx.ent===p.bank&&String(tx.status||"").toUpperCase()==="BOOK"&&fixedPaymentDate(tx.date,y,m,today)&&Number(tx.amount)>0&&recNameMatch(e.name,tx.merchant)&&recAmtClose(target,Number(tx.amount));
+    }).length>1) return null;
+  }
+  // La identidad elegida viaja en app_state, incluso si este móvil no tiene extracto. No cambia
+  // paidYm: ese campo interviene en los saldos; acreditar el recibo solo cambia su estado visual.
+  if((s.fixed||[]).some(function(f){
+    var q=f.paymentProofs&&f.paymentProofs[y*12+m];
+    return f.id!==e.id&&q&&q.identity===p.identity&&q.model===fixedPaymentModel(f,m);
+  })) return null;
+  return p;
+}
+function fixedExpenseEligible(s,x,e,y,m,today){
+  var target=e.bankAmount>0?e.bankAmount:occAmountIn(e,m);
+  return !!x&&!x.possibleDup&&!x.debtId&&(!x.status||String(x.status).toUpperCase()==="BOOK")&&!!expenseBankOf(x)&&!CAT_NEUTRAS[x.category]&&x.category!=="ingreso"&&
+    Number.isFinite(Number(x.amount))&&Number.isFinite(Number(target))&&Number(x.amount)>0&&target>0&&occursIn(e,m)&&
+    fixedPaymentDate(x.date,y,m,today)&&!expenseIsTombstoned(x,expenseDeletedSet(s))&&fixedPaymentFeedClear(s,fixedPaymentIdentity(expenseBankOf(x),x))&&
+    (s.expenses||[]).filter(function(r){ return fixedPaymentIdentity(expenseBankOf(r),r)===fixedPaymentIdentity(expenseBankOf(x),x); }).length===1;
+}
+function linkFixedPayment(s,expenseId,fixedId,y,m,today,expected){
+  var x=(s.expenses||[]).find(function(r){ return r.id===expenseId; });
+  if(!x) return s;
+  if(expected&&expected.identity!==fixedPaymentIdentity(expenseBankOf(x),x)) return s;
+  var key=fixedExpenseKey(x),ym=y*12+m;
+  if(fixedId==null){
+    var changed=false,unlinked=(s.fixed||[]).map(function(e){
+      var p=e.paymentProofs&&e.paymentProofs[ym];
+      if(!p||p.kind!=="expense"||p.key!==key&&(!p.expenseId||p.expenseId!==x.id)&&p.identity!==fixedPaymentIdentity(expenseBankOf(x),x)) return e;
+      changed=true;
+      var proofs=Object.assign({},e.paymentProofs); delete proofs[ym];
+      return Object.assign({},e,{paymentProofs:proofs});
+    });
+    return changed?Object.assign({},s,{fixed:unlinked}):s;
+  }
+  var e=(s.fixed||[]).find(function(f){ return f.id===fixedId; });
+  if(!e||!fixedExpenseEligible(s,x,e,y,m,today)) return s;
+  if(expected&&expected.model!==fixedPaymentModel(e,m)) return s;
+  if(fixedPaymentState(s,e,y,m,today).paid) return s;
+  if((s.fixed||[]).some(function(f){
+    var p=fixedPaymentProof(s,f,y,m,today);
+    var tx=fixedPaymentState(s,f,y,m,today).bankTx;
+    return p&&((f.id!==fixedId&&p.identity===fixedPaymentIdentity(expenseBankOf(x),x))||(f.id===fixedId))||
+      tx&&fixedPaymentIdentity(tx.ent,tx)===fixedPaymentIdentity(expenseBankOf(x),x);
+  })) return s;
+  var p={kind:"expense",key:key,identity:fixedPaymentIdentity(expenseBankOf(x),x),expenseId:x.id,expenseKey:keyOfExpense(x),expenseLegacyKey:keyOfExpenseLegacy(x),date:String(x.date).slice(0,10),bank:expenseBankOf(x),amount:Number(x.amount),model:fixedPaymentModel(e,m)};
+  return Object.assign({},s,{fixed:(s.fixed||[]).map(function(f){
+    return f.id===fixedId?Object.assign({},f,{paymentProofs:Object.assign({},f.paymentProofs,{[ym]:p})}):f;
+  })});
+}
+function reconcileFixedPaymentProofs(s,y,m,today){
+  var changed=false,ym=y*12+m;
+  var fixed=(s.fixed||[]).map(function(e){
+    if(!occursIn(e,m)||fixedPaymentProof(s,e,y,m,today)) return e;
+    var status=fixedPaymentState(s,e,y,m,today),tx=status.bankTx;
+    if(!tx) return e;
+    changed=true;
+    var p={kind:"book",key:tx.ent+"|"+(tx.id||[tx.date,tx.amount,tx.merchant].join("|")),identity:fixedPaymentIdentity(tx.ent,tx),date:tx.date,bank:tx.ent,merchant:tx.merchant,amount:Number(tx.amount),model:fixedPaymentModel(e,m)};
+    return Object.assign({},e,{paymentProofs:Object.assign({},e.paymentProofs,{[ym]:p})});
+  });
+  return changed?Object.assign({},s,{fixed:fixed}):s;
+}
+function rekeyFixedPaymentExpense(s,old,next){
+  if(old.id!==next.id||fixedPaymentIdentity(expenseBankOf(old),old)!==fixedPaymentIdentity(expenseBankOf(next),next)) return s;
+  var changed=false,fixed=(s.fixed||[]).map(function(f){
+    var proofs=f.paymentProofs,copy=null;
+    Object.keys(proofs||{}).forEach(function(ym){
+      var p=proofs[ym];
+      if(!p||p.kind!=="expense"||p.identity!==fixedPaymentIdentity(expenseBankOf(old),old)) return;
+      var y=Math.floor((Number(ym)-1)/12),m=Number(ym)-y*12,now=new Date();
+      var today=y===now.getFullYear()&&m===now.getMonth()+1?now.getDate():new Date(y,m,0).getDate();
+      if(p.model!==fixedPaymentModel(f,m)||!fixedExpenseEligible(s,next,f,y,m,today)||(s.fixed||[]).some(function(other){
+        var q=other.paymentProofs&&other.paymentProofs[ym]; return other.id!==f.id&&q&&q.identity===p.identity;
+      })) return;
+      if(!copy) copy=Object.assign({},proofs);
+      copy[ym]=Object.assign({},p,{key:fixedExpenseKey(next),expenseId:next.id,expenseKey:keyOfExpense(next),expenseLegacyKey:keyOfExpenseLegacy(next)});
+    });
+    if(!copy) return f;
+    changed=true; return Object.assign({},f,{paymentProofs:copy});
+  });
+  // Editar el nombre retira la clave anterior para que el sync no recree la fila. La
+  // prueba debe seguir al cargo vivo sin confundir esa lápida con borrar el pago.
+  return changed?Object.assign({},s,{fixed:fixed}):s;
+}
+function fixedPaymentState(s,e,y,m,today){
+  var day=dayIn(e,m),ym=y+"-"+String(m).padStart(2,"0");
+  var target=typeof e.bankAmount==="number"&&e.bankAmount>0?e.bankAmount:occAmountIn(e,m);
+  var bank=accOf(e),matches=(s.bankTx||[]).filter(function(tx){
+    if(!tx||tx.ent!==bank||tx.possibleDup||String(tx.status||"").toUpperCase()!=="BOOK") return false;
+    var ds=String(tx.date||"").slice(0,10),d=recDay(ds);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)||ds.slice(0,7)!==ym||d==null||d>today||d>new Date(y,m,0).getDate()) return false;
+    return Number(tx.amount)>0&&recNameMatch(e.name,tx.merchant)&&recAmtClose(target,Number(tx.amount));
+  });
+  var paidDay=e.paidYm===y*12+m&&Number(e.paidDay);
+  var persisted=paidDay>=1&&paidDay<=today&&paidDay<=new Date(y,m,0).getDate();
+  var tx=matches.length===1?matches[0]:null;
+  if(tx){
+    if((s.fixed||[]).some(function(f){
+      var p=fixedPaymentProof(s,f,y,m,today);
+      return f.id!==e.id&&p&&p.identity===fixedPaymentIdentity(tx.ent,tx);
+    })) tx=null;
+  }
+  if(tx){
+    // El feed solo identifica entidad. Sin cuenta o con dos recibos compatibles no elegimos
+    // por orden del array; un cargo puede pertenecer a otro fijo, cuota o puntual.
+    var contenders=fixedPaymentContenders(s,y,m);
+    var accounts=(s.accounts||[]).filter(function(a){ return a.ent===bank&&accFixed(a); });
+    if(accounts.length!==1||contenders.filter(function(f){
+      return f.bank===bank&&recNameMatch(f.name,tx.merchant)&&recAmtClose(f.amount,Number(tx.amount));
+    }).length!==1) tx=null;
+  }
+  var proof=fixedPaymentProof(s,e,y,m,today),paid=!!proof||!!persisted||!!tx;
+  return {paid:paid,day:paid?(proof?recDay(proof.date):persisted?paidDay:recDay(tx.date)):day,
+    overdue:!paid&&day!=null&&day<today,bankTx:tx,paidBank:paid?(proof?proof.bank:tx?tx.ent:bank):null,
+    paidAmount:proof?Number(proof.amount):tx?Number(tx.amount):null};
+}
+/* Una cuota vinculada ya contabilizada puede adelantarse al vencimiento. El vínculo identifica
+   la deuda; el cargo cercano identifica SU mes, también al cruzar el día 1. No reanclamos el
+   saldo ni el principal: el banco ya incluye el pago (feedback 2/10/2026). */
+function debtPaymentState(s,d,y,m,today){
+  var day=cleanDay(dayOf(d)),target=(Number(d.monthly)||0)+debtBalloonIn(d,y,m);
+  var unique=!!d.id&&(s.debts||[]).filter(function(other){ return other.id===d.id; }).length===1;
+  var deleted=expenseDeletedSet(s),end=new Date(y,m-1,today,23,59,59).getTime();
+  var rows=(s.expenses||[]).filter(function(x){
+    if(!unique||day==null) return false;
+    // amount ya está normalizado a EUR; origCur solo conserva el rastro bancario. Un
+    // esquema externo que aún rotule amount con otra moneda no acredita euros.
+    if(x&&(x.cur||x.currency)&&String(x.cur||x.currency).toUpperCase()!=="EUR") return false;
+    // La previsión muestra la cuota acordada: un cargo parecido no acredita ese importe.
+    // Se comparan céntimos EUR, sin heredar la tolerancia del clasificador de movimientos.
+    if(!x||x.debtId!==d.id||x.category!=="deudas"||x.possibleDup||!isFinite(Number(x.amount))||!(Number(x.amount)>0)||Math.round(target*100)!==Math.round(Number(x.amount)*100)) return false;
+    if(x.status&&String(x.status).toUpperCase()!=="BOOK") return false;
+    var ds=String(x.date||"").slice(0,10),ms=dateMs(ds),bank=expenseBankOf(x);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)||!isFinite(ms)||ms>end||!bank||expenseIsTombstoned(x,deleted)) return false;
+    var parts=ds.split("-").map(Number);
+    if(parts[1]<1||parts[1]>12||parts[2]<1||parts[2]>new Date(parts[0],parts[1],0).getDate()) return false;
+    var charge=cuotaCargoCercano(d,ms);
+    if(charge.key!==y+"-"+m||charge.dias>CUOTA_ALIAS_DIAS) return false;
+    var identity=fixedPaymentIdentity(bank,x);
+    // Vincular un apunte manual o una notificación no prueba que el saldo ya incluya el
+    // pago: sin origen bancario hace falta un BOOK único (NO-GO de revisión, 3/10/2026).
+    if(x.source!=="ob"&&(s.bankTx||[]).filter(function(tx){ return fixedPaymentIdentity(tx.ent,tx)===identity; }).length!==1) return false;
+    return fixedPaymentFeedClear(s,identity)&&(s.expenses||[]).filter(function(other){
+      return fixedPaymentIdentity(expenseBankOf(other),other)===identity;
+    }).length===1;
+  });
+  var x=rows.length===1?rows[0]:null;
+  // La fila de Plan rotula el mes de vencimiento: un cargo del mes anterior no puede
+  // aparecer allí con una fecha futura ficticia (por ejemplo, «31 de octubre»).
+  var sameMonth=x&&String(x.date).slice(0,7)===y+"-"+String(m).padStart(2,"0");
+  return {paid:!!x||day!=null&&day<=today,day:sameMonth?recDay(x.date):day,
+    paidBank:x?expenseBankOf(x):null,paidAmount:x?Number(x.amount):null,expense:x};
+}
+function planChargesMonth(s,m,y,today){
   s=s||{};
   var r=[];
-  // La primera beta solo guardaba el mes pagado. Recuperar la fecha real del banco permite que
-  // ese estado ya existente deje de enseñar un cobro futuro sin obligar a editarlo otra vez.
-  var q=reconcileBank(s,y,m,t).paidAt;
   (s.fixed||[]).forEach(function(e){
     var a=occAmountIn(e,m);
     if(!(a>0)||!occursIn(e,m)) return;
-    var d=dayIn(e,m),bd=q[e.id],pd=e.paidYm===y*12+m&&e.paidDay||bd;
-    r.push({id:"fixed_"+e.id,name:e.name,amount:a,day:pd||d,bank:accOf(e),paid:!!bd||isPaidIn(e,m,t,y)});
+    var status=fixedPaymentState(s,e,y,m,today);
+    r.push({id:"fixed_"+e.id,name:e.name,amount:a,day:status.day,bank:accOf(e),paid:status.paid,paidBank:status.paidBank,paidAmount:status.paidAmount,plannedBankAmount:e.bankAmount>0?Number(e.bankAmount):a,overdue:status.overdue});
   });
   (s.debts||[]).forEach(function(d){
     if(!debtActive(d)) return;
     var b=d.account||"sabadell";
     // Sin day: pendiente con día desconocido. NO usar debtChargeDay/isDebtPaidThisMonth
     // (ese fallback a día 1 marcaba la cuota como ya pagada desde el día 1 — NO-GO 17/9).
-    var dr=dayOf(d);
-    var dy=(dr!=null&&dr>0&&isFinite(dr))?Number(dr):null;
-    var p=dy!=null&&dy<=t;
+    var status=debtPaymentState(s,d,y,m,today),dy=status.day,p=status.paid;
     var a=Number(d.monthly)||0;
-    if(a>0) r.push({id:"debt_"+d.id,name:d.name,amount:a,day:dy,bank:b,paid:p,kind:"debt"});
+    if(a>0) r.push({id:"debt_"+d.id,name:d.name,amount:a,day:dy,bank:b,paid:p,paidBank:status.paidBank,kind:"debt"});
     var bl=debtBalloonIn(d,y,m);
-    if(bl>0) r.push({id:"balloon_"+d.id,name:d.name+" "+t("db_balloon_tag"),amount:bl,day:dy,bank:b,paid:p,kind:"balloon"});
+    if(bl>0) r.push({id:"balloon_"+d.id,name:d.name+" "+t("db_balloon_tag"),amount:bl,day:dy,bank:b,paid:p,paidBank:status.paidBank,kind:"balloon"});
   });
   (s.oneoffs||[]).forEach(function(o){
     if(!oneoffOccurs(o,y,m)) return;
     var a=Number(o.amount)||0;
     if(!(a>0)) return;
     var d=o.day!=null?Number(o.day):null;
-    var p=d!=null&&d<=t;
+    var p=d!=null&&d<=today;
     r.push({id:"oneoff_"+o.id,name:o.name||o.merchant||"",amount:a,day:d,bank:o.account||"sabadell",paid:p,kind:"oneoff"});
   });
   (s.flows||[]).forEach(function(f){
     if(!flowOccursIn(f,m,y)) return;
     var d=flowDay(f,y,m);
-    var p=flowPaidIn(s,f,y,m,t);
+    var p=flowPaidIn(s,f,y,m,today);
     var a=+(f.amount||0);
     if(!(a>0)) return;
     if(f.kind==="income"){
@@ -13331,7 +13942,7 @@ function applyBankBalances(s, links){
 function bankPendingEvents(state, bank, y, m, today){
   const evs=[];
   (state.fixed||[]).forEach(function(e){ if(occursIn(e,m)&&accOf(e)===bank&&!isPaidIn(e,m,today,y)) evs.push({day:dayIn(e,m)||0, amt:-occAmountIn(e,m)}); });
-  (state.debts||[]).forEach(function(d){ if(debtActive(d)&&(d.account||"sabadell")===bank&&!isDebtPaidThisMonth(d,today)){ evs.push({day:debtChargeDay(d), amt:-(d.monthly||0)}); const bl=debtBalloonIn(d,y,m); if(bl>0) evs.push({day:debtChargeDay(d), amt:-bl}); } });
+  (state.debts||[]).forEach(function(d){ if(debtActive(d)&&(d.account||"sabadell")===bank&&!isDebtPaidThisMonth(d,today,state,y,m)){ evs.push({day:debtChargeDay(d), amt:-(d.monthly||0)}); const bl=debtBalloonIn(d,y,m); if(bl>0) evs.push({day:debtChargeDay(d), amt:-bl}); } });
   (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,y,m)&&(o.account||"sabadell")===bank&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) evs.push({day:o.day||0, amt:-o.amount}); });
   (state.flows||[]).forEach(function(f){ if(!flowOccursIn(f,m,y)||flowPaidIn(state,f,y,m,today))return; const dd=flowDay(f,y,m); if(f.kind==="income"&&(f.to||"sabadell")===bank) evs.push({day:dd||99, amt:f.amount}); else if(f.kind==="transfer"&&(f.from||"sabadell")===bank) evs.push({day:dd||0, amt:-f.amount}); });
   return evs;
@@ -13466,8 +14077,29 @@ function reconcileBank(state, y, m, today){
   return res;
 }
 
-// Aplana los movimientos de los bancos enlazados (que devuelve bank-sync) al formato
-// que usa la conciliación. Conserva todos los bancos; el import diario aplica su ventana de fechas.
+function categoryOfBankTx(tx){
+  const m=tx.merchant||"", cat=categoryOfNewMerchant(m);
+  // Los MCC nuevos solo completan marcas energéticas ambiguas; los anteriores no cambian.
+  // Finalidad reconocida y overrides, incluso Otros, mandan antes del dato de tarjeta.
+  const energyBrand=/^(repsol|cepsa|shell|bp|galp)$/;
+  const mobilityMcc=tx.card && /^(5541|5542|4121)$/.test(String(tx.mcc||""));
+  if((cat!=="otros" && !(cat==="transporte" && mobilityMcc && energyBrand.test(catKey(m)) && !USER_OVERRIDES[catKey(m)])) || USER_OVERRIDES[catKey(m)]==="otros") return cat;
+  const note=String(tx.concept||"");
+  // El concepto de una transferencia/recibo no identifica una compra de tarjeta.
+  if(tx.card && (/^(movimiento|movement|transaction)?$/i.test(m.trim()) || mobilityMcc) && !/transfer|bizum|recibo|alquiler|n[oó]mina|devoluci|refund/i.test(note)){
+    const c=categoryOfNewMerchant(note);
+    if((c!=="otros" && !(mobilityMcc && c==="transporte" && energyBrand.test(catKey(note)) && !USER_OVERRIDES[catKey(note)])) || USER_OVERRIDES[catKey(note)]==="otros") return c;
+  }
+  switch(tx.mcc){
+    case "5541": case "5542": return tx.card?"gasolina":cat;
+    case "4121": return tx.card?"taxi":cat;
+    case "5411": return "super";
+    case "5462": return "pan";
+    case "5812": case "5813": case "5814": return "bares";
+    default: return cat;
+  }
+}
+// Aplana los movimientos enlazados conservando bancos; el diario aplica su ventana de fechas.
 function flattenBankTx(links){
   const out=[];
   (links||[]).forEach(function(lk){
@@ -13483,7 +14115,7 @@ function flattenBankTx(links){
     txs.forEach(function(t){
       // `note` = concepto del extracto (remittance_information): lo que hace que el histórico se
       // entienda sin abrir la app del banco (2026-07-24).
-      out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"" });
+      out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}) });
     });
   });
   out.sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
@@ -13573,6 +14205,8 @@ function importObExpenses(s, txs){
   };
   // Cargos ya modelados ESTE mes por entidad (Fijos/deudas/puntuales), para no duplicar un recibo.
   const now=new Date(), ym=now.getMonth()+1, yy=now.getFullYear();
+  const today=madridYmdParts(now.getTime());
+  const todayKey=today.ym+"-"+String(today.d).padStart(2,"0");
   const modeledByEnt={};
   const pushModeled=function(ent,name,amount,debtId){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount,debtId:debtId||null}); };
   (s.fixed||[]).forEach(function(f){ if(occursIn(f,ym)) pushModeled(accOf(f), f.name, occAmountIn(f,ym)); });
@@ -13590,6 +14224,15 @@ function importObExpenses(s, txs){
   txs.forEach(function(tx){
     const esIngreso = tx.amount<0;
     if(esIngreso){
+      // Un abono pendiente o futuro no acredita dinero disponible (feedback 30/9).
+      // Admitir estados desconocidos como cobrados también inventaría un ingreso.
+      // Sin estado (bancos que no lo informan) se sigue apuntando, como siempre.
+      const status=String(tx.status||"").trim().toUpperCase();
+      if(status && status!=="BOOK") return;
+      const date=String(tx.date||""), parts=date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(!parts) return;
+      const day=new Date(Number(parts[1]),Number(parts[2])-1,Number(parts[3]),12);
+      if(dayKey(day)!==date || date>todayKey) return;
       if(!tx.date || parseDate(tx.date)<som) return;
       if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
@@ -13617,7 +14260,7 @@ function importObExpenses(s, txs){
     const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
     const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
       merchant:tx.merchant||"Compra", amount:tx.amount,
-      category: esAporteInv ? "inversion" : categoryOfNewMerchant(tx.merchant||""), source:"ob", ent:tx.ent };
+      category: esAporteInv ? "inversion" : categoryOfBankTx(tx), source:"ob", ent:tx.ent };
     e.obName=e.merchant;   // lo que dijo el banco: el dedup se queda con esto aunque él lo renombre
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
     if(tx.id) e.extId=tx.id;
@@ -13885,8 +14528,9 @@ function budgetPeriodOf(state, nowMs){
    (ingresos en negativo + inversión/traspaso): sirve para el efectivo de TR, NO para «has gastado
    X de tus Y». Aquí se excluyen neutras, se resta lo reservado al presupuesto, y `shown` es lo
    que pinta la cabecera de Gastos (balance en el ciclo; gasto bruto o balance según gTotalMode en el mes). */
-function monthBudgetStats(state, nowMs, hastaMs){
-  const period=budgetPeriodOf(state,nowMs);
+function monthBudgetStats(state, nowMs, hastaMs, budgetMode, selectedPeriod){
+  // Gastos puede explorar otras fechas; los lectores sin ventana explícita conservan su contrato.
+  const period=selectedPeriod||budgetPeriodOf(state,nowMs);
   const startMs=period.startMs;
   // `hastaMs` acota un informe cerrado; solo el ciclo actual termina mañana para que un
   // apunte futuro no gaste hoy. El mes natural conserva la misma cifra que el widget.
@@ -13915,9 +14559,27 @@ function monthBudgetStats(state, nowMs, hastaMs){
   const budgetRaw=typeof state.budget==="number" ? state.budget : 0;
   // El ciclo usa el neto aunque el mes natural prefiera gasto bruto: si adelantas una cena,
   // los Bizums recibidos devuelven margen al límite elegido (feedback 28/9).
-  const mode=period.cycle?"net":((state.settings&&state.settings.gTotalMode)||"split");
+  const mode=period.cycle?"net":(budgetMode||(state.settings&&state.settings.gTotalMode)||"split");
   return Object.assign(budgetStatsFromAmounts(spent,income,budgetRaw,reserved,mode),
     {periodStart:startMs,cycle:!!period.cycle});
+}
+
+// V2 confirma recepción también fuera del ciclo: una fila anterior puede mover el saldo.
+// Se conserva la cobertura mensual histórica de la APK 51; v2 nunca acredita filas futuras.
+function widgetCoveredEvents(rows,start,now,history){
+  return "|"+rows.filter(function(r){ const d=dateMs(r.fecha); return (history?d<=now:d>=start) && (r.ingest_event_id||r.source==="macrodroid"); })
+    .map(function(r){ return (r.ingest_event_id||r.id)+"|"+r.id; }).join("|")+"|";
+}
+// Una respuesta de otra selección de bancos/reservas no puede reutilizar el delta de la foto
+// actual aunque el día de inicio coincida. El servidor debe devolver este alcance exacto.
+function widgetScopeOf(state,stats,anchor,bank){
+  return JSON.stringify([2,stats.periodStart,stats.cycle?"ciclo":"mes",stats.cycle?"neto":"gasto",
+    anchor||"",stats.budget,expenseBankEnts(state).slice().sort(),bank||""]);
+}
+// Inicio dice «Has gastado» en el mes natural: una nómina no puede borrar ese uso del
+// presupuesto (INC-2909-02). Gastos/Balance y el widget conservan su contrato propio.
+function dashboardBudgetStats(state){
+  return monthBudgetStats(state,null,null,"split");
 }
 
 /* Desglose del mes por categoría (brief PRESUPUESTO-POR-CATEGORIA). Misma ventana y misma
@@ -13925,8 +14587,8 @@ function monthBudgetStats(state, nowMs, hastaMs){
    cuadrar al céntimo con la cabecera. Neutras fuera. Un límite huérfano (id que ya no está
    en CAT) no se enseña ni suma. Sin gastos pero con límite → fila a 0, para que no parezca
    que se ha borrado el tope. */
-function categorySpentByMonth(state, nowMs, hastaMs){
-  const period=budgetPeriodOf(state,nowMs);
+function categorySpentByMonth(state, nowMs, hastaMs, selectedPeriod){
+  const period=selectedPeriod||budgetPeriodOf(state,nowMs);
   const startMs=period.startMs;
   const endMs=(hastaMs!=null && isFinite(hastaMs)) ? Number(hastaMs) : period.todayEndMs;
   const byCat={};
@@ -14468,6 +15130,8 @@ function histFlattenHistoryLinks(res, expenses, allow){
       out.push({
         id:tx.ext_id||null, date:row.dt, amount:row.abs,
         merchant:row.merchant,
+        ...(tx.mcc?{mcc:tx.mcc}:{}),
+        ...(tx.concept?{concept:tx.concept}:{}),
         note:tx.note||"", card:!!tx.card, ent:row.entKey, entLabel:row.entLabel,
         stamp:slot ? histDate(row.dt,"ob-slot|"+cloudK+"|"+slot) : histDate(row.dt),
         kind:row.isIn?"in":"out"
@@ -14647,7 +15311,7 @@ function histClassifyCandidates(cands, state){
     }
     const amt=Math.abs(x.amount||0);
     const esAporte=!!(daily && daily.ent===x.ent && daily.monthlyInvest>0 && Math.abs(amt-daily.monthlyInvest)<0.01);
-    const cat=(esAporte || pares.salida[i]) ? "inversion" : (typeof categoryOfNewMerchant==="function"?categoryOfNewMerchant(x.merchant||""):(typeof autoCategory==="function"?autoCategory(x.merchant||""):"otros"));
+    const cat=(esAporte || pares.salida[i]) ? "inversion" : categoryOfBankTx(x);
     // Híbrido C: default Gasto; recibo solo si el usuario lo marca (suggestRecibo).
     return { status:"new", reason:null, match:null, defDest:"gasto", suggestRecibo:!x.card, category:cat };
   });
@@ -15138,7 +15802,8 @@ function patchFixedById(set, id, p){
     const n=Object.assign({},s,{fixed:fx});
     if(it&&(("day" in p)||("amount" in p)||("account" in p))){
       const d=new Date(),y=d.getFullYear(),m=d.getMonth()+1,t=d.getDate();
-      const ym=y*12+m,rec=reconcileBank(n,y,m,t),pd=rec.paidAt[id];
+      if(("amount" in p)||("account" in p)){ delete it.paidYm; delete it.paidDay; }
+      const ym=y*12+m,rec=reconcileBank(n,y,m,t),status=fixedPaymentState(n,it,y,m,t),pd=status.paid&&status.day;
       if(pd){
         it.paidYm=ym;
         it.paidDay=pd;
@@ -15303,7 +15968,7 @@ function Fijos({state, set, totals}){
   const oneoffs=state.oneoffs||[];
   const chargesOf=(mo,yr)=>{ const items=[];
     state.fixed.forEach(e=>{ if(occursIn(e,mo)&&occAmountIn(e,mo)!==0) items.push({key:e.id,name:e.name,amount:occAmountIn(e,mo),bank:accOf(e),day:dayIn(e,mo),paid:mo===cm&&yr===cy&&isPaidIn(e,mo,today,yr)}); });
-    state.debts.forEach(d=>{ if(debtActive(d)){ items.push({key:d.id,name:d.name,amount:d.monthly,debt:true,bank:d.account||"sabadell",day:debtChargeDay(d),paid:mo===cm&&isDebtPaidThisMonth(d,today)}); const bl=debtBalloonIn(d,yr,mo); if(bl>0) items.push({key:d.id+"_balloon",name:d.name+" "+t("db_balloon_tag"),amount:bl,debt:true,bank:d.account||"sabadell",day:debtChargeDay(d),paid:mo===cm&&isDebtPaidThisMonth(d,today)}); } });
+    state.debts.forEach(d=>{ if(debtActive(d)){ items.push({key:d.id,name:d.name,amount:d.monthly,debt:true,bank:d.account||"sabadell",day:debtChargeDay(d),paid:mo===cm&&isDebtPaidThisMonth(d,today,state,yr,mo)}); const bl=debtBalloonIn(d,yr,mo); if(bl>0) items.push({key:d.id+"_balloon",name:d.name+" "+t("db_balloon_tag"),amount:bl,debt:true,bank:d.account||"sabadell",day:debtChargeDay(d),paid:mo===cm&&isDebtPaidThisMonth(d,today,state,yr,mo)}); } });
     oneoffs.forEach(o=>{ if(oneoffOccurs(o,yr,mo)&&(o.amount||0)!==0) items.push({key:o.id,name:o.name,amount:o.amount,oneoff:true,bank:o.account||"sabadell",day:o.day||null,paid:mo===cm&&yr===cy&&isPaidThisMonth(o,today)}); });
     return items; };
   const byDay=(a,b)=> ((a.day||99)-(b.day||99)) || (b.amount-a.amount);   // por DÍA; sin día, al final
@@ -18265,14 +18930,50 @@ function mcIsNewer(a,b){
   }
   return false;
 }
-function betaChecklist(version, prodVersion){
+/* IDENTIDAD DE UNA TANDA = SU CONTENIDO, NO SU NÚMERO (30/9). Al promocionar web, las tandas
+   nativas se movían de versión (4.26.60 → 66 → 67 → 68) con el mismo texto, y el veredicto,
+   guardado como «versión/id», dejaba de casar: aprobó las cinco del widget TRES veces. La huella
+   junta id, título, pasos, `rev` y el digest automático de sus fuentes. Cambiar código invalida
+   el OK aunque se olvide `rev`; los alias antiguos requieren una auditoría fijada al digest. */
+function betaHuella(id,t,items,rev,codigo){
+  var s=id+"|"+JSON.stringify([t,items,rev||1]), h=0x811c9dc5;
+  for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
+  return ("0000000"+h.toString(16)).slice(-8)+(codigo?":"+codigo:"");
+}
+/* El veredicto MÁS RECIENTE que aplica a esta revisión (`rows` de nuevo a viejo): el último
+   rechazo veta las aprobaciones de antes. Con huella solo vale la misma revisión; los partes
+   anteriores a la huella casan por id o por `desde`, alias auditados en release-notes. */
+function betaVerdictFor(g, rows){
+  var ids=(g.codigo||g.rev>1?[]:[g.id]).concat(g.desde||[]);
+  for(var i=0;i<(rows||[]).length;i++){
+    var r=rows[i];
+    // Un `null` más reciente es «cambié de opinión»: retira lo anterior, no se salta.
+    if(r&&(r.huella ? (r.huella===g.huella||(g.huellasCompatibles||[]).indexOf(r.huella)>=0) : ids.indexOf(r.tanda)>=0)) return /^(approved|rejected)$/.test(r.verdict||"")?r:null;
+  }
+  return null;
+}
+// El veredicto no acredita entrega: sin recibo se explica la duda, no se oculta la tanda.
+function betaEstadoEntrega(g, prodApk){
+  var id=String(g.id).split("/").pop(), d=window._mcProdEntregas||{}, a=window._mcProdApkRevisiones||{}, out={};
+  if(g.codigo){
+    ["web","edge"].forEach(function(s){
+      if(s==="edge"&&!g.edge) return;
+      if(!g[s]||!d[s]||(d[s][id]!==g[s]&&(g.revisionesCompatibles||[]).every(function(r){ return r[s]!==d[s][id]; }))) out[s]=d[s]&&d[s][id]?"pending":"unknown";
+    });
+    if((g.apk&&!g.native)||(g.native&&(!(prodApk>=g.apk)||(a[id]!==g.native&&(g.revisionesCompatibles||[]).every(function(r){ return r.native!==a[id]; })))))
+      out.native=prodApk>0&&prodApk<g.apk||a[id]&&(a[id]!==g.native&&(g.revisionesCompatibles||[]).every(function(r){ return r.native!==a[id]; }))?"pending":"unknown";
+  }else if(g.apk&&!(prodApk>=g.apk)) out.native=prodApk>0?"pending":"unknown";
+  return out;
+}
+function betaSinEntregar(g, prodApk){ return Object.keys(betaEstadoEntrega(g,prodApk)).length>0; }
+function betaChecklist(version, prodVersion, prodApk){
   var base=mcVerBase(version);
   if(typeof RELEASE_NOTES==="undefined"||!RELEASE_NOTES.length) return { v:base, t:"", items:[], tandas:[] };
   /* RONDA ENTERA (2026-09-07). El panel cogía SOLO las notas de la versión que corre: en
      4.19.1.2 enseñaba «Solo ese movimiento» y dejaba fuera todo lo de 4.19.0 (posible repetido,
      IA, orden…) que YA estaba en el móvil. Con `prodVersion` se juntan las tandas de todas las
-     versiones > producción y ≤ la que corre. Sin prod (aún preguntando / sin red): se queda el
-     comportamiento de siempre —una sola versión—; en la duda, menos, no de más. */
+     versiones > producción y ≤ la que corre. Sin prod se conservan las modernas pendientes
+     y la nota actual con puntos, también cuando usa la checklist implícita. */
   var round;
   /* Un bundle sin sellar usa `dev`: no se puede compararlo con producción ni vaciar su cabeza
      cacheada offline como si ya hubiera sido promocionado. La regla de ronda solo vale cuando
@@ -18280,8 +18981,8 @@ function betaChecklist(version, prodVersion){
   var conProd=prodVersion!=null&&prodVersion!==""&&/^\d+\.\d+\.\d+$/.test(base)
     &&/^\d+\.\d+\.\d+$/.test(mcVerBase(prodVersion));
   /* UNA VERSION SIN NADA QUE PROBAR NO PUEDE VACIARLE EL PANEL (2026-09-12).
-     Sin `prodVersion` (aun preguntando, o sin red) la ronda es UNA sola version. El dia que la
-     que corre es fontaneria —guardianes, un arreglo de despliegue— declara `tandas:[]` a
+     El dia que la versión que corre es fontaneria —guardianes, un arreglo de despliegue—
+     declara `tandas:[]` a
      proposito. Si se coge `n.v===base` a pelo, `betaTandas` devuelve CERO y el panel se queda
      vacio con media ronda sin juzgar detras (medido en review de 4.19.86: checklist(V,null)→0).
      Se prefiere la entrada de esa base SOLO si tiene algo que probar; si no, la mas nueva que
@@ -18295,11 +18996,18 @@ function betaChecklist(version, prodVersion){
       || RELEASE_NOTES.filter(conAlgoQueProbar)[0]
       || RELEASE_NOTES.filter(function(n){ return n.v===base; })[0]
       || RELEASE_NOTES[0];
-    round=one?[one]:[];
+    // Sin red también conserva las tandas modernas anteriores: perder producción no
+    // puede quitar A al añadir B ni cambiar su decisión. El legado mantiene su fallback.
+    round=RELEASE_NOTES.filter(function(n){ return n&&n.tandas&&n.tandas.some(function(g){ return !!g.codigo; })
+      && (!/^\d+\.\d+\.\d+$/.test(base)||!mcIsNewer(n.v,base)); });
+    // La ronda moderna no sustituye los puntos propios de una versión sin tandas.
+    if(one&&round.indexOf(one)<0)round.unshift(one);
   }else{
     var prod=mcVerBase(prodVersion);
+    // Las modernas se filtran por recibo después de deduplicar; una entrega nueva no resucita una revisión antigua.
     round=RELEASE_NOTES.filter(function(n){
-      return n&&n.v && mcIsNewer(n.v, prod) && !mcIsNewer(n.v, base);
+      return n&&n.v && !mcIsNewer(n.v, base) && (mcIsNewer(n.v, prod)
+        || betaTandas(n).some(function(g){ return g.codigo||betaSinEntregar(g,prodApk); }));
     });
   }
   /* PRODUCCION AL DIA SIGNIFICA CERO PENDIENTES (feedback 2026-09-16).
@@ -18323,14 +19031,15 @@ function betaChecklist(version, prodVersion){
          ronda, solo se prueba la mas nueva: repetirla con otro numero era obligarle a aprobar
          varias veces exactamente el mismo trabajo. RELEASE_NOTES va de nueva a antigua. */
       var rawId=String(g.id);
-      if(conProd&&vistas[rawId]) return;
+      if(vistas[rawId]) return;
       vistas[rawId]=true;
+      if(conProd&&(g.codigo||!mcIsNewer(notes.v, mcVerBase(prodVersion)))&&!betaSinEntregar(g,prodApk)) return;
       /* Con ronda multi-versión el id lleva la versión: dos tandas «id-fila» de bases distintas
-         no se pisan en el veredicto. Sin prod (una sola versión) se conserva el id corto de
+         no se pisan en el veredicto. Sin prod se conserva el id corto de
          siempre para no resetear lo ya enviado en esta compilación. */
       var id=conProd?(notes.v+"/"+rawId):rawId;
       var t=conProd?("v"+notes.v+(g.t?" · "+g.t:"")):g.t;
-      tandas.push({ id:id, t:t, items:g.items });
+      tandas.push(Object.assign({},g,{ id:id, t:t }));
       planos=planos.concat(g.items);
     });
   });
@@ -18358,21 +19067,45 @@ function betaChecklist(version, prodVersion){
 function betaTandas(notes){
   if(notes && notes.tandas){
     return notes.tandas.map(function(g){
-      return { id:String(g.id), t:rnT(g.t,"es"), items:rnItems(g,"es") };
+      var id=String(g.id), t=rnT(g.t,"es"), items=rnItems(g,"es"), h=betaHuella(id,t,items,g.rev,g.codigo);
+      // `desde` solo vale mientras la huella fijada al escribirlo siga siendo la del contenido.
+      var alias=g.huella===h.slice(0,8)&&(!g.codigo||g.codigoDesde===g.codigo);
+      return { id:id, t:t, items:items, huella:h, rev:g.rev||1, codigo:g.codigo, web:g.web, native:g.native, edge:g.edge,
+        revisionesCompatibles:g.compatibilidadGit||[],
+        huellasCompatibles:(g.codigosCompatibles||[]).map(function(c){ return h.slice(0,8)+":"+c; }),
+        apk:g.apk||0, historial:g.historial||[], cambio:g.revisionesDesde?Object.keys(g.revisionesDesde).filter(function(s){ return g[s]!==g.revisionesDesde[s]; }):g.codigoDesde&&g.codigoDesde!==g.codigo?["—"]:[], desde:alias&&g.desde||[] };
     });
   }
-  return [{ id:"todo", t:"", items:rnItems(notes,"es") }];
+  var items=rnItems(notes,"es");
+  return [{ id:"todo", t:"", items:items, huella:betaHuella("todo","",items), apk:0, desde:[] }];
 }
-/* CUENTA COMPARTIDA DE LA REVISIÓN — la MISMA lógica que usa el panel para heredar ✓/✗ entre
-   compilaciones, extraída para que la fila de Ajustes cuente exactamente lo mismo que el panel
-   (2026-08-01, bug suyo: «me sale revisar esta beta 0/26 cuando ya he aceptado o rechazado
-   cosas»). La fila llevaba TODO ESTE TIEMPO leyendo `_betaReview_`+pack.v —la versión BASE, tipo
-   "4.13.0"— mientras el panel SIEMPRE ha guardado (y sigue guardando) por la COMPILACIÓN exacta,
-   `_betaReview_`+CONFIG.APP_VERSION, tipo "4.13.0.11". Esa clave base no la escribe nadie, así
-   que la fila leía aire y enseñaba 0 pasara lo que pasara. Con `_betaReviewOk` (que sí es la
-   fuente de verdad persistente, por TEXTO del punto) la fila cuenta lo mismo que ve el panel al
-   abrirse. Ver `heredarOk` dentro de `BetaReviewPanel` — es la misma lógica de rescate. */
-function betaMarksCount(pack){
+/* Ajustes y el panel cuentan el mismo progreso por huella e índice. El texto puede repetirse
+   entre tandas: solo se rescata el formato antiguo cuando su propietario coincide. */
+function betaScopedMarks(pack,values,indexed,kind,byIndex){
+  var ids=store.get("_betaMarksHuella")||{}, scoped=store.get("_betaReviewMarks")||{}, out={}, i=0;
+  (pack.tandas||[]).forEach(function(g){
+    var saved=scoped[g.huella];
+    (g.huellasCompatibles||[]).some(function(h){ if(saved)return true; saved=scoped[h]; return !!saved; });
+    g.items.forEach(function(it,j){
+      var key=indexed?i:it, target=byIndex?i:key, own=saved&&saved[kind||"marks"];
+      if(saved){ if(own&&own[j]!==undefined)out[target]=own[j]; }
+      else if(values[key]!==undefined && (!g.codigo || ids[it]===g.huella || (g.huellasCompatibles||[]).indexOf(ids[it])>=0 || (g.desde||[]).length)) out[target]=values[key];
+      i++;
+    });
+  });
+  return out;
+}
+function betaRememberMarks(pack,marks,notes){
+  // Dos tandas pueden decir «volver a abrir»: el texto no identifica quién lo probó.
+  var saved=store.get("_betaReviewMarks")||{},i=0;
+  (pack.tandas||[]).forEach(function(g){
+    var row={marks:{},notes:{}};
+    g.items.forEach(function(it,j){ if(marks[i]!==undefined)row.marks[j]=marks[i]; if(notes&&notes[i])row.notes[j]=notes[i]; i++; });
+    saved[g.huella]=row;
+  });
+  store.set("_betaReviewMarks",saved);
+}
+function betaStoredMarks(pack,byIndex){
   var okKey="_betaReviewOk";
   var prev=store.get(okKey);
   if(!prev){
@@ -18387,20 +19120,22 @@ function betaMarksCount(pack){
       }
     }catch(e){}
   }
-  // Lo marcado en ESTA compilación manda sobre lo heredado (mismo criterio que el panel).
-  var propias=store.get("_betaReview_"+CONFIG.APP_VERSION)||{};
+  return betaScopedMarks(pack,prev,false,"marks",byIndex);
+}
+function betaMarksCount(pack){
+  var prev=betaStoredMarks(pack,true);
+  var propias=betaScopedMarks(pack,store.get("_betaReview_"+CONFIG.APP_VERSION)||{},true);
   var n=0;
   pack.items.forEach(function(it,i){
-    var v=propias[i]!==undefined ? propias[i] : prev[it];
+    var v=propias[i]!==undefined ? propias[i] : prev[i];
     if(v==="ok"||v==="na"||v==="ko") n++;
   });
   return { n:n, tot:pack.items.length };
 }
-function betaSavedVerdicts(pack, storeKey){
+function betaSavedVerdicts(pack){
   const sent={};
-  const marks=store.get("_betaReviewOk")||{};
-  // Recuperar el último parte por tanda entre compilaciones. Solo heredar una aprobación
-  // si TODOS sus textos siguen marcados: cambiar el guion exige una revisión nueva.
+  // El parte enviado no depende del progreso auxiliar: perder marcas no retira un OK.
+  // La huella exige el mismo guion/código, y una decisión posterior veta la anterior.
   const keys=[];
   try{
     for(let i=0;i<localStorage.length;i++){
@@ -18409,20 +19144,25 @@ function betaSavedVerdicts(pack, storeKey){
     }
   }catch(e){}
   keys.sort(function(a,b){ return mcIsNewer(a.slice(12,-2),b.slice(12,-2))?1:mcIsNewer(b.slice(12,-2),a.slice(12,-2))?-1:0; });
-  keys.forEach(function(k){
+  // De nueva a vieja. Un parte con huella (`_h`) solo cuenta por ella: sus ids no dicen qué revisión juzgó.
+  const rows=[];
+  keys.reverse().forEach(function(k){
     const old=store.get(k)||{};
-    (pack.tandas||[]).forEach(function(g){
-      const id=g.id.indexOf("/")>=0?g.id:pack.v+"/"+g.id;
-      if(Object.prototype.hasOwnProperty.call(old,id)) sent[g.id]=old[id];
+    Object.keys(old).forEach(function(x){
+      if(old._h){ if(x.indexOf("h:")===0) rows.push({huella:x.slice(2),verdict:old[x]&&old[x].verdict!==undefined?old[x].verdict:old[x],at:old[x]&&old[x].at||0}); }
+      else rows.push({tanda:x,verdict:old[x]});
     });
   });
+  rows.sort(function(a,b){ return (b.at||0)-(a.at||0); });
   (pack.tandas||[]).forEach(function(g){
-    if(sent[g.id]!=="approved" || !g.items.length || !g.items.every(function(it){ return marks[it]==="ok"||marks[it]==="na"; })) delete sent[g.id];
+    const r=betaVerdictFor(Object.assign({},g,{desde:(g.desde||[]).concat(!g.codigo&&g.rev===1?[pack.v+"/"+g.id]:[])}),rows);
+    if(r) sent[g.id]=r.verdict;
   });
-  return Object.assign(sent,store.get(storeKey+"_v")||{});
+  // Un veredicto ya enviado acredita la decisión, aunque falte su progreso auxiliar.
+  // Guion/código se comparan por huella; la última retirada o rechazo sigue mandando.
+  return sent;
 }
-/* Versión que sirve Pages AHORA (cruda). `null` mientras pregunta o si falla la red.
-   Sacada de `useYaEnProd` para que el panel de beta pueda armar la ronda entera (2026-09-07). */
+/* `null` conserva las pruebas si falta evidencia de la entrega servida en Pages. */
 function useProdVersion(){
   const [prod,setProd]=useState(null);
   useEffect(function(){
@@ -18432,28 +19172,6 @@ function useProdVersion(){
     return function(){ vivo=false; };
   },[]);
   return prod;
-}
-/* ¿LO QUE LLEVO PUESTO YA ESTÁ EN PRODUCCIÓN? (petición suya 2026-07-28)
-   «Ponme que cuando suba algo a prod, la beta no haya nada para aprobar porque lógicamente ya lo
-   hice para que subiera prod». Y es verdad: promocionar ES la aprobación. Pero el panel solo
-   miraba la versión que corre en el móvil, así que después de subir la 4.12.1 a producción
-   seguía enseñando su checklist entera como si faltara por probar.
-
-   Se compara la base de lo que corre (4.12.1.3 → 4.12.1) contra lo que sirve Pages. Si producción
-   ya va por ahí o más allá, esto está aprobado por definición. `null` mientras se pregunta o si
-   la red falla: en la duda se sigue preguntando, que es el lado seguro. */
-function useYaEnProd(){
-  const prod=useProdVersion();
-  if(!prod||!window._mcNewerVer) return null;
-  const base=mcVerBase(CONFIG.APP_VERSION);
-  /* UNA VERSIÓN QUE NO SE PUEDE COMPARAR NO DA NADA POR APROBADO (2026-07-28, cazado en CI).
-     `_mcNewerVer` compara con `parseInt`, y `parseInt("dev")` es `NaN`, que PIERDE todas las
-     comparaciones: sin este guardo, un bundle sin sellar (`APP_VERSION:"dev"` — el que hay en el
-     repo hasta que `stamp-version` corre) contestaba «ya está en producción» y escondía el
-     veredicto entero. Es exactamente la misma trampa del NaN que en la 4.9.2 dejó un móvil sin
-     recibir una actualización nunca más. En la duda, se sigue preguntando. */
-  if(!/^\d+\.\d+\.\d+$/.test(base)) return null;
-  return !window._mcNewerVer(base, prod) ? prod : false;
 }
 /* VOLVER AL MISMO SITIO DESPUÉS DE PROBAR (2026-09-10 → 15/9).
    La otra mitad de su queja, y la que no se ve leyendo el panel: para probar un punto TIENE que
@@ -18530,91 +19248,33 @@ function BetaReviewPanel({onClose, showToast}){
     if(gestoReal.current) betaMarcarAbierto();
   };
   const prod=useProdVersion();
-  const [notesReady,setNotesReady]=useState(!!(RELEASE_NOTES&&RELEASE_NOTES.length));
+  const [notesReady,setNotesReady]=useState(RELEASE_NOTES&&RELEASE_NOTES.length?1:0);
   useEffect(function(){
     var alive=true;
-    ensureReleaseNotes().then(function(){ if(alive) setNotesReady(true); });
+    ensureReleaseNotes().then(function(){ if(alive) setNotesReady(function(n){ return n+1; }); });
     return function(){ alive=false; };
   },[]);
-  const pack=notesReady?betaChecklist(CONFIG.APP_VERSION, prod):{ v:mcVerBase(CONFIG.APP_VERSION), t:"", items:[], tandas:[] };
-  const yaEnProd=(!prod||!/^\d+\.\d+\.\d+$/.test(mcVerBase(CONFIG.APP_VERSION)))
+  const pack=notesReady?betaChecklist(CONFIG.APP_VERSION, prod, window._mcProdApk):{ v:mcVerBase(CONFIG.APP_VERSION), t:"", items:[], tandas:[] };
+  const yaEnProd=(!notesReady||!RELEASE_NOTES.length||!prod||!/^\d+\.\d+\.\d+$/.test(mcVerBase(CONFIG.APP_VERSION)))
     ? null
-    : (!mcIsNewer(mcVerBase(CONFIG.APP_VERSION), prod) ? prod : false);
-  // La clave va por la COMPILACIÓN (4.12.0.17), no por la versión base (4.12.0). Petición suya
-  // 2026-07-26: «cuando me subas una nueva versión con el fix de eso, que se resetee y se ponga
-  // vacío». Con la clave por versión base, la beta siguiente heredaba las cruces y los comentarios
-  // de la anterior — o sea, el arreglo llegaba ya marcado como fallo. Cada beta empieza en blanco,
-  // y dentro de la misma beta el progreso se conserva aunque cierres la app (que era el motivo de
-  // guardarlo, porque probar lleva días).
+    : (!pack.tandas.length && !mcIsNewer(mcVerBase(CONFIG.APP_VERSION), prod) ? prod : false);
+  // La clave por compilación conserva el formato antiguo; la herencia se decide por huella.
+  // Repetir un texto en otra tanda no debe apropiarse de su marca o de su comentario.
   const storeKey="_betaReview_"+CONFIG.APP_VERSION;
-  /* LO QUE YA DIO POR BUENO NO SE VUELVE A PREGUNTAR (petición suya 2026-07-26, por la noche:
-     «si algo funciona CREO que no debería reventar con otra compilación»). El reseteo por
-     compilación arreglaba una cosa y rompía otra: las cruces sí tienen que volver a preguntarse
-     —son justo lo que se acaba de arreglar—, pero los ✓ también se borraban, y volver a probar
-     siete puntos que ya iban bien es lo que hacía que no se acordara de nada («los pillo en
-     momentos diferentes»).
-
-     Así que los ✓ y los «no lo puedo probar» se guardan APARTE, en una lista que NO lleva el
-     número de compilación, y que casa por el TEXTO del punto y no por su posición. Eso importa:
-     · si reescribimos la nota, ha cambiado lo que se prueba → vuelve a preguntarse;
-     · si la nota es idéntica, es literalmente lo mismo que ya probó → viene marcado;
-     · y si se reordenan las notas, no se cruzan los cables (con índices, sí).
-
-     ⚠ Y LOS ✗ TAMBIÉN SE HEREDAN, CON SU COMENTARIO (2026-08-01). Antes NO, con este argumento:
-     «las cruces son justo lo que se acaba de arreglar, así que vuelven a preguntarse». El
-     argumento es falso: el panel no tiene ni idea de si la compilación nueva ha tocado ese punto
-     o no. Y el precio de equivocarse lo paga él SIEMPRE — la 4.13.0 sacó cinco compilaciones en
-     tres días y cada una le borraba los tres fallos que acababa de escribir a mano, con sus
-     notas. Sus palabras: «ya he repetido los mensajes 3 veces, estoy hasta los cojones».
-     Ahora un ✗ heredado vuelve marcado, con su texto, y con un aviso de que viene de la
-     compilación anterior: si el arreglo ha llegado, lo pone en ✓ de un toque; si no, ya está
-     escrito y puede rechazar sin volver a teclear. Perder trabajo suyo es el fallo caro; que una
-     cruz sobreviva de más se arregla con un dedo. */
   const okKey="_betaReviewOk";
-  const notaKey="_betaReviewNotas";   // {texto del punto: comentario} — sobrevive a la compilación
-  const heredarOk=function(){
-    var prev=store.get(okKey);
-    /* RESCATE DE LO YA APROBADO (2026-07-26 noche). La lista aparte se estrena en esta versión,
-       así que la primera vez está vacía y lo que él aprobó en las betas anteriores se habría
-       perdido igual — que es exactamente lo que notó al abrir la siguiente: «siguen saliendo las
-       que aprobé». Se rescata de las claves por compilación que ya están guardadas en el móvil.
-       Van por índice, y aquí el índice VALE: solo se leen las de la misma versión base, y las
-       notas de una versión base no cambian de orden entre compilaciones. */
-    if(!prev){
-      prev={};
-      try{
-        var pre="_betaReview_"+mcVerBase(CONFIG.APP_VERSION);
-        for(var i=0;i<localStorage.length;i++){
-          var k=localStorage.key(i);
-          if(!k||k.indexOf(pre)!==0||k.slice(-2)==="_n") continue;
-          var vieja=store.get(k)||{};
-          pack.items.forEach(function(it,j){ if(vieja[j]==="ok"||vieja[j]==="na") prev[it]=vieja[j]; });
-        }
-      }catch(e){}
-      store.set(okKey,prev);
-    }
-    var m={};
-    pack.items.forEach(function(it,i){ var v=prev[it]; if(v==="ok"||v==="na"||v==="ko") m[i]=v; });
-    return m;
-  };
-  /* Los comentarios de los ✗ heredados, por el mismo camino y con la misma clave (el TEXTO del
-     punto). Van aparte de `okKey` para no cambiarle la forma a lo que ya está guardado en su
-     móvil: allí los valores son "ok"/"na"/"ko" y aquí son strings largos. */
-  const heredarNotas=function(){
-    var prev=store.get(notaKey)||{};
-    var n={};
-    pack.items.forEach(function(it,i){ if(prev[it]) n[i]=prev[it]; });
-    return n;
-  };
+  const notaKey="_betaReviewNotas";   // Formato antiguo para rescate compatible, no identifica la tanda.
+  const heredarOk=function(){ return betaStoredMarks(pack,true); };
+  // El ledger por huella/índice manda; el legado solo se lee si el alcance sigue compatible.
+  const heredarNotas=function(){ return betaScopedMarks(pack,store.get(notaKey)||{},false,"notes",true); };
   // {i: "ok" | "ko" | "na"} + notas de los que fallan. Lo heredado va DEBAJO de lo marcado en esta
   // compilación: si ya has tocado algo aquí, manda lo tuyo. (Con `||` en vez de mezcla, haber
   // marcado una sola casilla en esta beta apagaba la herencia entera.)
-  const [marks,setMarks]=useState(function(){ return Object.assign(heredarOk(), store.get(storeKey)||{}); });
-  const [notes,setNotes]=useState(function(){ return Object.assign(heredarNotas(), store.get(storeKey+"_n")||{}); });
+  const [marks,setMarks]=useState(function(){ return Object.assign(heredarOk(), betaScopedMarks(pack,store.get(storeKey)||{},true)); });
+  const [notes,setNotes]=useState(function(){ return Object.assign(heredarNotas(), betaScopedMarks(pack,store.get(storeKey+"_n")||{},true,"notes")); });
   const [busy,setBusy]=useState(false);
   // Veredicto POR TANDA: {idTanda: "approved"|"rejected"}. Antes era uno solo para toda la beta,
   // y con varias cosas en vuelo eso obliga a esperar a la más lenta para subir la más rápida.
-  const [sent,setSent]=useState(function(){ return betaSavedVerdicts(pack,storeKey); });
+  const [sent,setSent]=useState(function(){ return betaSavedVerdicts(pack); });
   // Lo aprobado ocupa solo su cabecera; abrirlo para consultar nunca cambia el veredicto.
   const [expanded,setExpanded]=useState({});
   /* UNO A UNO DENTRO DE LA TANDA (petición suya 2026-09-10, y no era una petición de estilo:
@@ -18631,9 +19291,9 @@ function BetaReviewPanel({onClose, showToast}){
   // Pages responde después de montar el panel. Al llegar las tandas antiguas, recuperar
   // también sus marcas y partes; el primer useState solo conocía la versión más reciente.
   useEffect(function(){
-    setMarks(Object.assign(heredarOk(),store.get(storeKey)||{}));
-    setNotes(Object.assign(heredarNotas(),store.get(storeKey+"_n")||{}));
-    setSent(betaSavedVerdicts(pack,storeKey));
+    setMarks(Object.assign(heredarOk(),betaScopedMarks(pack,store.get(storeKey)||{},true)));
+    setNotes(Object.assign(heredarNotas(),betaScopedMarks(pack,store.get(storeKey+"_n")||{},true,"notes")));
+    setSent(betaSavedVerdicts(pack));
   },[JSON.stringify(pack.tandas)]);
   /* Devolverlo a la MISMA altura, y solo una vez. Va atado a que las tandas estén pintadas y no
      al montaje: las notas viejas llegan de Pages después, y restaurar antes deja el scroll a
@@ -18655,15 +19315,19 @@ function BetaReviewPanel({onClose, showToast}){
     return {buenos:buenos, ko:ko, nKo:Object.keys(ko).length}; })());
   const heredados=useRef(heredadas.current.buenos);
   const save=function(m,n){ store.set(storeKey,m); if(n) store.set(storeKey+"_n",n); };
-  const recordarOk=function(m){
+  const recordarOk=function(m,n){
     var prev=store.get(okKey)||{};
+    var ids=store.get("_betaMarksHuella")||{}, i=0;
+    pack.tandas.forEach(function(g){ g.items.forEach(function(it){ if(m[i]) ids[it]=g.huella; else delete ids[it]; i++; }); });
+    store.set("_betaMarksHuella",ids);
     pack.items.forEach(function(it,i){
       if(m[i]==="ok"||m[i]==="na"||m[i]==="ko") prev[it]=m[i]; else delete prev[it];
     });
     store.set(okKey,prev);
+    betaRememberMarks(pack,m,n===undefined?notes:n);
   };
-  // El comentario de un ✗ se guarda por TEXTO en cuanto se escribe, no al enviar el veredicto:
-  // si Android mata la app a media frase (pasa), lo escrito sigue ahí en la compilación siguiente.
+  // También se mantiene el formato antiguo; setNote guarda primero la nota con su huella.
+  // Guardar al escribir evita perder la frase si Android mata la app antes de enviarla.
   const recordarNota=function(i,txt){
     var prev=store.get(notaKey)||{};
     var it=pack.items[i]; if(it==null) return;
@@ -18699,18 +19363,16 @@ function BetaReviewPanel({onClose, showToast}){
   };
   const setNote=function(i,txt){
     betaMarcarAbierto();   // escribir nota = interacción real (15/9)
-    setNotes(function(p){ const n=Object.assign({},p); n[i]=txt; store.set(storeKey+"_n",n); recordarNota(i,txt); return n; });
+    setNotes(function(p){ const n=Object.assign({},p); n[i]=txt; store.set(storeKey+"_n",n); betaRememberMarks(pack,marks,n); recordarNota(i,txt); return n; });
   };
 
-  /* Las tandas comparten la numeración GLOBAL de los puntos (`marks` va por índice), así que
-     cada tanda solo necesita saber qué índices son suyos. Se hace así y no con claves por tanda
-     porque el guardado y la herencia de ✓ entre compilaciones ya van por ese índice y por el
-     TEXTO del punto: cambiarlo habría tirado a la basura todo lo que ya tiene probado. */
+  // La vista usa índices globales. El guardado los convierte a índices de cada tanda:
+  // mover otra fila o repetir su texto no mezcla las comprobaciones ya hechas.
   const grupos=(function(){
     var out=[], i=0;
     (pack.tandas||[]).forEach(function(g){
       var idx=g.items.map(function(){ return i++; });
-      out.push({ id:g.id, t:g.t, items:g.items, idx:idx });
+      out.push(Object.assign({},g,{idx:idx}));
     });
     return out;
   })();
@@ -18757,19 +19419,24 @@ function BetaReviewPanel({onClose, showToast}){
     const etiq=g.t?(" ["+g.id+"] "+g.t):"";
     const payload={
       verdict:verdict, version:CONFIG.APP_VERSION, apk:apkCode, notas:pack.v,
-      tanda:g.id, tandaTitulo:g.t||null,
+      tanda:g.id, tandaTitulo:g.t||null, huella:g.huella,
       probados:c.ok, fallos:c.ko, sinProbar:c.pend, noProbable:c.na, heredados:heredados.current,
       noProbables:g.idx.map(function(i,j){ return marks[i]==="na" ? g.items[j].slice(0,140) : null; }).filter(Boolean),
       detalle:fallos,
-      summary:(verdict==="approved" ? "✅ APROBADA " : "⛔ RECHAZADA ")+conApk+etiq+
+      summary:(verdict==="approved" ? "✅ APROBADA " : verdict==="revoked"?"↺ RETIRADA ":"⛔ RECHAZADA ")+conApk+etiq+
         " · "+c.ok+" ok / "+c.ko+" fallo(s) / "+c.pend+" sin probar"+(c.na?" / "+c.na+" no probable(s)":"")+
         (fallos.length? " · "+fallos.map(function(f){ return f.nota||f.item; }).join(" | ") : "")
     };
     cloud.betaReport(payload)
       .then(function(){
         setSent(function(p){
-          const n=Object.assign({},p); n[g.id]=verdict;
-          store.set(storeKey+"_v",n);   // sobrevive a cerrar la app: probar lleva días
+          const n=Object.assign({},p); n[g.id]=verdict==="revoked"?null:verdict;
+          const saved=Object.assign({},store.get(storeKey+"_v")||{},n);
+          grupos.forEach(function(x){
+            if(!saved["h:"+x.huella] && /^(approved|rejected)$/.test(p[x.id]||"")) saved["h:"+x.huella]={verdict:p[x.id],at:0};
+          });
+          saved["h:"+g.huella]={verdict:verdict,at:Date.now()}; saved._h=1;
+          store.set(storeKey+"_v",saved);   // no retirar el OK local si el servidor rechaza la retirada
           /* 15/9: si ya no quedan tandas sin veredicto en esta compilación, no reabrir Ajustes. */
           var ids=grupos.length ? grupos.map(function(x){ return x.id; }) : ["todo"];
           var todas=ids.every(function(id){ return n[id]==="approved"||n[id]==="rejected"; });
@@ -18778,8 +19445,8 @@ function BetaReviewPanel({onClose, showToast}){
         });
         // Encoger SIEMPRE al enviar, apruebe o rechace. Dejar la rechazada abierta era lo que le
         // obligaba a bajar por encima de una tanda ya juzgada para llegar a la siguiente.
-        setExpanded(function(p){ return Object.assign({},p,{[g.id]:false}); });
-        showToast(verdict==="approved"?"✅ Aprobada · queda registrado":"⛔ Enviado · no se sube");
+        setExpanded(function(p){ return Object.assign({},p,{[g.id]:verdict==="revoked"}); });
+        showToast(verdict==="approved"?"✅ Aprobada · queda registrado":verdict==="revoked"?t("beta_revoked"):"⛔ Enviado · no se sube");
       })
       .catch(function(e){ showToast("✕ No se pudo enviar: "+((e&&e.message)||e)); })
       .finally(function(){ setBusy(false); });
@@ -18802,7 +19469,7 @@ function BetaReviewPanel({onClose, showToast}){
     React.createElement("div",{style:{color:"var(--muted-2)",fontSize:12,lineHeight:1.5,marginBottom:14}},
       yaEnProd
         ? "Esta versión ya está en producción, así que no hay nada pendiente ni hace falta aprobarla otra vez."
-        : "Pruébalo con calma: esto se guarda y puedes seguir otro día. Tu padre y tu pareja siguen en la versión estable hasta que lo apruebes."),
+        : t("beta_review_intro")),
     // YA ESTÁ EN PRODUCCIÓN → no se pide veredicto (2026-07-28). Promocionar ES aprobar: pedirle
     // que apruebe otra vez lo que él mismo subió hace horas es ruido, y encima ruido que parece
     // trabajo pendiente cada vez que abre Ajustes.
@@ -18831,9 +19498,12 @@ function BetaReviewPanel({onClose, showToast}){
        8/9): si la versión declara `tandas` es que las aprobó TODAS —el caso normal a partir de
        ahora—; si no declara ninguna es una versión suelta sin checklist. */
     !yaEnProd && pack.items.length===0 && React.createElement("div",{style:{fontSize:13,color:"var(--muted)"}},
+      !(RELEASE_NOTES&&RELEASE_NOTES.length) ? t("beta_notes_unavailable") :
       pack.tandas.length===0 && (RELEASE_NOTES||[]).some(function(n){ return n && n.tandas; })
         ? "✅ No queda nada por probar: has aprobado todas las tandas de esta ronda."
         : "Esta versión no trae notas, así que no hay checklist. Prueba lo que hayas tocado."),
+
+    !RELEASE_NOTES.length && React.createElement(ReleaseNotesRetry,{onReady:function(){ setNotesReady(function(n){ return n+1; }); }}),
 
     /* UNA SECCIÓN POR TANDA, cada una con su veredicto (petición suya 2026-07-29).
        El punto de todo esto: que una tanda lista pueda subir HOY sin esperar a la que todavía
@@ -18844,6 +19514,9 @@ function BetaReviewPanel({onClose, showToast}){
       const c=cuenta(g.idx);
       const v=sent[g.id];
       const listo=c.pend===0 && c.ko===0;
+      const entrega=betaEstadoEntrega(g,window._mcProdApk);
+      const superficies=function(estado){ return Object.keys(entrega).filter(function(s){ return entrega[s]===estado; }).map(function(s){ return s==="native"?t("beta_android_app"):s==="edge"?t("beta_server"):s; }).join(", "); };
+      const pendientes=superficies("pending"), inciertas=superficies("unknown");
       /* Con veredicto —APROBADA O RECHAZADA— la tanda se encoge a su cabecera. Antes solo se
          encogían las aprobadas y él lo dijo con todas las letras (2026-09-10): «las que se
          aprueban se encogen, las que se rechazan también se deberían poder encoger». Tenía razón
@@ -18858,6 +19531,10 @@ function BetaReviewPanel({onClose, showToast}){
           React.createElement("span",{className:"beta-tanda-n"+(v==="approved"?" ok":v==="rejected"?" ko":"")},
             v==="approved" ? "✅ aprobada" : v==="rejected" ? "⛔ rechazada" : (c.ok+c.ko+c.na)+"/"+g.idx.length),
           React.createElement("span",{className:"beta-tanda-fold"},(open?"▾ ":"▸ ")+t(open?"beta_collapse":"beta_expand"))),
+        v==="approved" && React.createElement("div",{className:"hint beta-tanda-estado"},t("beta_approved_pending")),
+        !v && (g.cambio||[]).length>0 && React.createElement("div",{className:"hint beta-tanda-estado"},tf("beta_revision_changed",{x:g.cambio.map(function(s){ return s==="native"?"Android":s==="edge"?t("beta_server"):s; }).join(", ")})),
+        (pendientes||inciertas) && React.createElement("div",{className:"hint beta-tanda-entrega"},
+          [pendientes?tf("beta_delivery_pending",{x:pendientes}):"",inciertas?tf("beta_delivery_unknown",{x:inciertas}):""].filter(Boolean).join(" ")),
         React.createElement("div",{id:"beta-body-"+g.id,hidden:!open},
         g.idx.map(function(i,j){
           const it=g.items[j], m=marks[i];
@@ -18912,18 +19589,10 @@ function BetaReviewPanel({onClose, showToast}){
         : v ? React.createElement("div",{className:"beta-veredicto",style:{borderColor:v==="approved"?"var(--mint)":"var(--coral)"}},
             React.createElement("div",{style:{fontWeight:800,fontSize:14,marginBottom:5}},
               v==="approved" ? "✅ Aprobada" : "⛔ Rechazada"),
-            React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",lineHeight:1.5}},
-              /* El texto NO promete trocear la subida (2026-08-01). Antes decía «poniendo las
-                 tandas que quieras en «tandas»», y eso solo funciona si cada tanda nació en su
-                 rama `tanda/<id>`: si la ronda se commiteó mezclada —la 4.13.0, sin ir más
-                 lejos—, el workflow PARA y él se queda mirando un error después de haber
-                 aprobado. Aquí se dice lo que sí es verdad siempre: queda registrado con su
-                 nombre. Cómo se sube es del otro lado (docs/TESTING.md). */
-              v==="approved"
-                ? "Queda registrado con su nombre («"+g.id+"»), así que quien la suba sabe exactamente qué subir."
-                : "Queda registrado con lo que falla. Esta tanda no sube; las demás pueden seguir su camino."),
+            v==="rejected" && React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",lineHeight:1.5}},
+              "Queda registrado con lo que falla. Esta tanda no sube; las demás pueden seguir su camino."),
             React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:10},
-              onClick:function(){ setSent(function(p){ const n=Object.assign({},p); n[g.id]=null; store.set(storeKey+"_v",n); return n; }); }},
+              disabled:busy,onClick:function(){ enviar(g,"revoked"); }},
               "↺ Cambiar de opinión"))
         : React.createElement(React.Fragment,null,
             c.ko>0 && React.createElement("button",{type:"button",className:"v4-danger",style:{marginTop:6},disabled:busy,
@@ -18939,13 +19608,17 @@ function BetaReviewPanel({onClose, showToast}){
     }),
 
     React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:14},
+      disabled:busy||grupos.some(function(g){ return sent[g.id]==="approved"||sent[g.id]==="rejected"; }),
       onClick:function(){
         const reset={}; grupos.forEach(function(g){ reset[g.id]=null; });
-        store.del(storeKey); store.del(storeKey+"_n"); store.set(storeKey+"_v",reset);
-        recordarOk({}); pack.items.forEach(function(_,i){ recordarNota(i,""); });
+        // Reiniciar los puntos no borra la retirada: si desaparece, un OK antiguo vuelve a casar.
+        store.del(storeKey); store.del(storeKey+"_n");
+        recordarOk({},{}); pack.items.forEach(function(_,i){ recordarNota(i,""); });
         setMarks({}); setNotes({}); setSent(reset); setExpanded({}); setItemOpen({});
       }},
-      "↺ Empezar la revisión de cero")
+      "↺ Empezar la revisión de cero"),
+    grupos.some(function(g){ return sent[g.id]==="approved"||sent[g.id]==="rejected"; }) &&
+      React.createElement("div",{className:"hint",style:{marginTop:8}},t("beta_reset_verdicts"))
   ));
 }
 
@@ -19219,6 +19892,14 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
+var _rnSha="5b290b39a2e40ecd17ddd64c591438fa33def334e8809b88e9eb4ec966673ada";
+function betaNotesVerified(arr){
+  // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
+  return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
+    if(Array.from(new Uint8Array(buf),function(x){ return x.toString(16).padStart(2,"0"); }).join("")!==_rnSha) throw new Error("release-notes distinto del bundle");
+    return arr;
+  });
+}
 function releaseNotesUrl(){
   try{
     var base=document.querySelector('base');
@@ -19234,28 +19915,37 @@ function ensureReleaseNotes(){
   if(_rnLoad) return _rnLoad;
   _rnLoad=fetch(releaseNotesUrl(),{credentials:"same-origin"})
     .then(function(r){ if(!r||!r.ok) throw new Error("release-notes HTTP "+(r&&r.status)); return r.json(); })
+    .then(betaNotesVerified)
     .then(function(arr){
       if(!Array.isArray(arr)||!arr.length) throw new Error("release-notes vacío");
       RELEASE_NOTES=arr;
-      /* Solo la cabeza de ESTA versión (15/9): si el SW falla en avión, el panel no se queda
-         vacío. No guardamos el histórico entero — cuota de localStorage. */
+      // Sin red siguen visibles las tandas anteriores de esta entrega. Solo se guarda
+      // una entrada por tanda moderna, no el histórico completo que consumiría la cuota.
+      // La compilación exacta impide aprobar código nuevo con notas cacheadas de otra.
       try{
         var base=mcVerBase(CONFIG.APP_VERSION);
         var head=arr.filter(function(n){ return n&&n.v===base; })[0]||arr[0];
-        if(head&&head.v) localStorage.setItem("_rnHead_"+base, JSON.stringify(head));
+        if(head&&head.v===base){
+          var seen={};
+          var round=arr.filter(function(n){ return n&&Array.isArray(n.tandas)&&!mcIsNewer("4.26.68",n.v)&&!mcIsNewer(n.v,base); })
+            .map(function(n){ return Object.assign({},n,{tandas:n.tandas.filter(function(g){ if(!g||!g.id||seen[g.id]) return false; seen[g.id]=true; return true; })}); })
+            .filter(function(n){ return n.v===base||n.tandas.length; });
+          var key="_rnBetaRound_"+CONFIG.APP_VERSION;
+          // La caché comparte cuota con el dinero: una compilación sustituye a la anterior.
+          for(var i=localStorage.length-1;i>=0;i--){ var k=localStorage.key(i); if(k.indexOf("_rnBetaRound_")===0&&k!==key) localStorage.removeItem(k); }
+          localStorage.setItem(key,JSON.stringify({sha:_rnSha,notes:round}));
+        }
       }catch(e){}
       return RELEASE_NOTES;
     })
     .catch(function(e){
       _rnLoad=null;
       try{ console.warn("release-notes", mcLogCode(e)); }catch(err){}
+      if(typeof crypto==="undefined"||!crypto.subtle) return RELEASE_NOTES||[];
       try{
         var base=mcVerBase(CONFIG.APP_VERSION);
-        var raw=localStorage.getItem("_rnHead_"+base);
-        if(raw){
-          var one=JSON.parse(raw);
-          if(one&&one.v){ RELEASE_NOTES=[one]; return RELEASE_NOTES; }
-        }
+        var cached=JSON.parse(localStorage.getItem("_rnBetaRound_"+CONFIG.APP_VERSION)||"null");
+        if(cached&&cached.sha===_rnSha&&Array.isArray(cached.notes)&&cached.notes.length&&cached.notes[0].v===base){ RELEASE_NOTES=cached.notes; return RELEASE_NOTES; }
       }catch(err2){}
       return RELEASE_NOTES||[];
     });
@@ -19264,6 +19954,9 @@ function ensureReleaseNotes(){
 
 /* Panel de Novedades. Se usa desde App (popup automático al estrenar versión) y desde
    Ajustes (histórico). Portal a body: sobrevive al transform del cajón de Ajustes. */
+function ReleaseNotesRetry({onReady}){
+  return React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){ ensureReleaseNotes().then(onReady); }},t("help_try_again"));
+}
 function WhatsNew({onClose, showToast, set, state}){
   useBackClose(true, onClose);
   const [notes,setNotes]=useState(function(){ return (RELEASE_NOTES||[]).slice(); });
@@ -19287,7 +19980,9 @@ function WhatsNew({onClose, showToast, set, state}){
   return ReactDOM.createPortal(React.createElement("div",{className:"wn-panel"}, React.createElement("div",{className:"wn-inner"},
     React.createElement("div",{className:"serif",style:{fontSize:25,margin:"2px 0 2px"}}, "✨ "+t("wn_title")),
     React.createElement("div",{style:{color:"var(--muted)",fontSize:13,lineHeight:1.5,marginBottom:14}}, t("wn_sub")),
-    !notes.length && React.createElement("div",{style:{color:"var(--muted)",fontSize:13,marginBottom:12}}, "…"),
+    !notes.length && React.createElement(React.Fragment,null,
+      React.createElement("div",{className:"hint"},t("notes_unavailable")),
+      React.createElement(ReleaseNotesRetry,{onReady:function(arr){ setNotes(arr.slice()); if(arr.length)setOpenV(arr[0].v); }})),
     list.map(function(r){
       /* En beta la versión que corre lleva sufijo de compilación (4.11.0.8) y las notas van por
          versión base (4.11.0), así que comparar a pelo no casaba NUNCA: ninguna entrada salía
@@ -19486,10 +20181,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   },[]);
   const [autoBackOpen,setAutoBackOpen]=useState(false);  // copias automáticas diarias (state_backups)
   const prodVer=useProdVersion();                // Pages ahora (cruda); null mientras pregunta
-  // Misma regla que useYaEnProd, sin segundo fetch (compartimos prodVer con betaChecklist).
-  const yaEnProd=(!prodVer||!/^\d+\.\d+\.\d+$/.test(mcVerBase(CONFIG.APP_VERSION)))
-    ? null
-    : (!mcIsNewer(mcVerBase(CONFIG.APP_VERSION), prodVer) ? prodVer : false);
   const loadEvents=function(){
     cloud.adminEvents(200).then(function(rows){
       setEvents(rows||[]);
@@ -19900,6 +20591,12 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     ),
     newsOpen && React.createElement(WhatsNew,{onClose:function(){ setNewsOpen(false); },showToast:showToast,set:set,state:state}),
     fbOpen && ReactDOM.createPortal(React.createElement(FeedbackPanel,{state:state,set:set,showToast:showToast,onClose:function(){ setFbOpen(false); }}), document.body),
+    natPlugin() && grp("widget","💳",t("st_widget_bank"),"widget banco bank cuenta tarjeta puedes gastar",null,
+      React.createElement("select",{className:"af-in","aria-label":t("st_widget_bank"),value:widgetBankAccounts(state).some(function(a){ return a.ent===(state.settings||{}).widgetBank; })?(state.settings||{}).widgetBank:"",onChange:function(e){ setS({widgetBank:e.target.value}); }},
+        [""].concat(Array.from(new Set(widgetBankAccounts(state).map(function(a){ return a.ent; })))).map(function(e){ return React.createElement("option",{key:e,value:e},e?entOf(e).label:t("st_widget_auto")); })
+      ),
+      React.createElement("div",{className:"hint",style:{padding:12}},t("st_widget_bank_hint"))
+    ),
     natPlugin() && grp("updates","⬇️",t("st_updates"),"actualizar update version apk buscar widget",
       apkVer ? tf("st_ver_both",{w:CONFIG.APP_VERSION,a:apkVer}) : tf("st_ver_web",{v:CONFIG.APP_VERSION}),
       row("upd","⬇️",t("st_update"),
@@ -20044,11 +20741,11 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
             // «Code review» pero probando la app: la checklist sale de las notas de esta versión.
             // Solo tiene sentido estando en beta — en estable no hay nada que aprobar.
             beta && (function(){
-              const pack=betaChecklist(CONFIG.APP_VERSION, prodVer);
+              const pack=betaChecklist(CONFIG.APP_VERSION, prodVer, window._mcProdApk);
               const c=betaMarksCount(pack);
               // Con la versión ya subida a producción la fila deja de cantar «3/8» — ese contador
               // se leía como trabajo pendiente cada vez que abría Ajustes, y no lo era (2026-07-28).
-              if(yaEnProd||!pack.tandas.length) return null;
+              if(!pack.tandas.length) return null;
               return row("betarev","🔍","Revisar esta beta", c.tot?(c.n+"/"+c.tot):null, function(){ betaMarcarAbierto(); setBetaOpen(true); });
             })(),
             (function(){
@@ -20675,7 +21372,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     : [{id:"recibos",lab:t("v4_plan_recibos")},{id:"deudas",lab:t("v4_plan_deudas")},{id:"metas",lab:t("v4_plan_metas")}];
   const charges=useMemo(function(){
     return planChargesMonth(state, totals.curMonth, totals.curYear, totals.today);
-  },[state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,totals.curMonth,totals.curYear,totals.today]);
+  },[state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,totals.curMonth,totals.curYear,totals.today]);
   const pick=useMemo(function(){
     return planCoverPickBank(totals, charges.pendingByBank, charges.pendingBills, charges.paidBills);
   },[totals.minByBank,totals.minDayByBank,totals.mainBank,charges.pendingByBank,charges.pendingBills,charges.paidBills]);
@@ -20980,6 +21677,10 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
   // «Lo que aún saldrá» = recibos + traspasos pendientes. Ingresos NUNCA aquí (NO-GO 17/9).
   const pending=pack.pendingBills.concat(pack.transfersPending);
   const paid=pack.paidBills;
+  // La factura variable acredita su bruto real, pero no permite inventar la parte propia
+  // de un compartido: conservar la previsión y nombrarla separada del cargo bancario.
+  const changedPaid=function(x){ return x.paid&&x.paidAmount>0&&Math.abs(x.paidAmount-x.plannedBankAmount)>=0.005; };
+  const hasChangedPaid=paid.some(changedPaid);
   const incomePend=pack.incomePending||[];
   // Atrás real (history) pliega el «Ya has pagado»; Escape del e2e no basta (Claude 1845Z).
   useBackClose(!!paidExpanded, function(){ setPaidExpanded(false); });
@@ -20988,6 +21689,9 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
     else try{ window.dispatchEvent(new CustomEvent("mc-open-bills")); }catch(e){}
   };
   const rowSub=function(x){
+    // El recibo conserva el banco previsto; el cargo confirmado puede haber salido de otro.
+    var bank=x.paid&&x.paidBank?x.paidBank:x.bank;
+    if(x.overdue) return entOf(x.bank).label+" · "+t("v4_charge_unconfirmed");
     if(simple){
       if(x.kind==="income") return tf("v4s_row_income",{bank:entOf(x.bank).label});
       if(x.kind==="transfer"){
@@ -20995,15 +21699,16 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
         var inv=toEnt&&((state.investments||[]).some(function(i){ return i.ent===toEnt; })||(state.accounts||[]).some(function(a){ return a.ent===toEnt&&a.role==="extra"; }));
         return inv?tf("v4s_row_invest",{bank:entOf(toEnt).label}):tf("v4s_row_to",{bank:entOf(toEnt||x.bank).label});
       }
-      if(x.kind==="debt"||x.kind==="balloon") return tf("v4s_row_debt",{name:x.name});
-      return tf("v4s_row_from",{bank:entOf(x.bank).label});
+      if(x.kind==="debt"||x.kind==="balloon") return tf("v4s_row_debt",{name:x.name})+(x.paidBank&&x.paidBank!==x.bank?" · "+entOf(x.paidBank).label:"");
+      return tf("v4s_row_from",{bank:entOf(bank).label})+(changedPaid(x)?" · "+tf("v4_charge_actual",{x:eur(x.paidAmount)}):"");
     }
     var tag=x.kind==="income"?t("fj_income_tag"):(x.kind==="transfer"?t("fj_transfer_tag"):(x.kind==="debt"||x.kind==="balloon"?t("fj_debt_tag"):t("fj_fixed_tag")));
-    return tag+(x.bank?" · "+entOf(x.bank).label:"");
+    return tag+(bank?" · "+entOf(bank).label:"")+(changedPaid(x)?" · "+tf("v4_charge_actual",{x:eur(x.paidAmount)}):"");
   };
   const row=function(x){
     const income=!!x.income || (x.amount<0);
-    const amt=Math.abs(x.amount);
+    const amt=Math.abs(x.amount),amountLabel=changedPaid(x)?React.createElement(React.Fragment,null,
+      React.createElement("small",{style:{display:"block",fontSize:10,color:"var(--muted)",fontWeight:400}},tf("v4_charge_expected",{x:""}).trim()),eur(amt)):eur(amt);
     const cls=simple?("v4-mov"+(x.paid?" v4-paid":"")):("v4-charge"+(x.paid?" v4-paid":""));
     if(simple){
       return React.createElement("div",{className:cls,key:x.id},
@@ -21012,7 +21717,7 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
           React.createElement("div",{className:"nm-title"}, x.paid?"✓ "+x.name:x.name),
           React.createElement("div",{className:"meta"}, rowSub(x))
         ),
-        React.createElement("div",{className:"am"+(income?" pos":"")}, (income?"+":"")+eur(amt))
+        React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",amountLabel)
       );
     }
     return React.createElement("div",{className:cls,key:x.id},
@@ -21024,12 +21729,13 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
         React.createElement("div",null, x.paid?"✓ "+x.name:x.name),
         React.createElement("div",{className:"sub"}, rowSub(x))
       ),
-      React.createElement("div",{className:"am"+(income?" pos":"")}, (income?"+":"")+eur(amt))
+      React.createElement("div",{className:"am"+(income?" pos":"")}, income?"+":"",amountLabel)
     );
   };
+  const paidTotalLabel=hasChangedPaid?tf("v4_charge_expected",{x:eur0(pack.paidBillsTotal)}):eur0(pack.paidBillsTotal);
   const paidLabel=pack.paidBills.length===1
-    ? tf("v4_paid_fold_one",{n:1,amount:eur0(pack.paidBillsTotal)})
-    : tf("v4_paid_fold",{n:pack.paidBills.length,amount:eur0(pack.paidBillsTotal)});
+    ? tf("v4_paid_fold_one",{n:1,amount:paidTotalLabel})
+    : tf("v4_paid_fold",{n:pack.paidBills.length,amount:paidTotalLabel});
   return React.createElement(React.Fragment,null,
     !simple && React.createElement("div",{className:"v4-card v4-card-hero rise"},
       React.createElement("div",{className:"v4-micro"}, tf("v4_plan_left",{month:monthLong(month-1)})),
@@ -21068,7 +21774,7 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
       incomePend.map(row)
     ),
     !simple && React.createElement("div",{className:"v4-section"},
-      React.createElement("div",{className:"v4-section-h"},t("v4_ya_pagado")+" · "+eur(pack.paidBillsTotal)),
+      React.createElement("div",{className:"v4-section-h"},t("v4_ya_pagado")+" · "+(hasChangedPaid?tf("v4_charge_expected",{x:eur(pack.paidBillsTotal)}):eur(pack.paidBillsTotal))),
       (paidExpanded?paid:paid.slice(0,3)).map(row),
       paid.length>3 && React.createElement("button",{type:"button",className:"v4-link-mini",onClick:function(){ setPaidExpanded(function(v){ return !v; }); }},
         paidExpanded?t("v4_ver_menos"):tf("v4_ver_mas",{n:paid.length-3}))
@@ -22214,7 +22920,9 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
     return React.createElement("button",{type:"button",className:"profile-row",onClick:onEdit},
       React.createElement("div",{className:"pr-body"},
         React.createElement("div",{className:"pr-lab"}, lab),
-        React.createElement("div",{className:"pr-val"+(empty?" empty":"")}, empty?t("pf_add"):value)
+        // Ni "empty" a secas: es la clase GLOBAL de estado vacío (padding 34px y centrado) y
+        // convertía cada «Añadir» en una caja de 127 px — el perfil vacío medía 1.787 px (INC-2709-10).
+        React.createElement("div",{className:"pr-val"+(empty?" pr-val-empty":"")}, empty?t("pf_add"):value)
       ),
       React.createElement("span",{className:"pr-edit","aria-hidden":"true"}, "✎")
     );
@@ -22411,8 +23119,8 @@ function helpSnap(state, totals){
   state=state||{}; totals=totals||{};
   var budAmt=0, spent=0, rem=0;
   try{
-    if(typeof monthBudgetStats==="function"){
-      var bud=monthBudgetStats(state);
+    if(typeof dashboardBudgetStats==="function"){
+      var bud=dashboardBudgetStats(state);
       budAmt=bud.budget!=null?bud.budget:(state.budget||0);
       spent=Math.max(0, bud.against||0);
       rem=bud.remaining!=null?bud.remaining:(budAmt-spent);
@@ -23262,13 +23970,22 @@ function App(){
   const bankSyncing=useRef(false);          // evita syncs de banco solapados
   // Promesa → true si el pull de arranque (estado + gastos) terminó bien. La espera `runBankSync`.
   const pullOkRef=useRef(null);
+  const wR=useRef(false),wS=useRef(0),wP=useRef(null),wC=useRef([]);
   const bankJustConnected=useRef(false);    // marca la vuelta de ?bank=ok para sincronizar en cuanto haya sesión
 
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
   const syncCloudExpenses=function(){
-    return cloud.pullExpenses().then(function(rows){
-      // FIN-07: un error intermedio rechaza el pull antes de mezclar o subir datos locales.
-      // La ausencia sigue sin significar borrado, incluso tras descargar todas las páginas.
+    const readStartedAt=Date.now();
+    const ps=++wS.current;
+    wR.current=false;
+    const pull=cloud.pullExpenses().then(function(rows){
+      // Si otra lectura empezó después, este resultado puede ser una foto anterior aunque
+      // haya llegado el último. No mezclarlo con el estado ni reenviarlo al widget (FIN-05).
+      if(ps!==wS.current) return wP.current;
+      // La cobertura se forma al enviar, con la ventana vigente: el ciclo no acaba el día 1.
+      wC.current=rows;
+      // FIN-07: el paginador solo resuelve al terminar; un error intermedio no mezcla ni
+      // confirma páginas sueltas. La ausencia sigue sin significar borrado, incluso al terminar.
       const delSet={}; (stateRef.current.deleted||[]).forEach(function(k){ delSet[k]=1; });
       const incoming=rows.map(expenseFromRow).filter(function(e){ return e.amount!==0 && !expenseIsTombstoned(e, delSet); });
       // Backfill: sube a la tabla TODO gasto local que aún no esté en ella (no solo los manuales).
@@ -23297,7 +24014,8 @@ function App(){
       set(function(prev){
         // Refrescar una sola vez conserva el guardado partido: no reescribir el histórico
         // por página ni cuando las filas recibidas son iguales a las que ya había.
-        const merged=mergeExpensesFromCloud(prev.expenses, incoming);
+        const kept=keepCategoryChoices(prev.expenses, incoming, readStartedAt);
+        const merged=mergeExpensesFromCloud(kept.prev, kept.incoming, readStartedAt);
         const next=merged.list;
         const igual=!merged.changed && next.length===(prev.expenses||[]).length
           && next.every(function(e,i){ return e===(prev.expenses||[])[i]; });
@@ -23305,15 +24023,25 @@ function App(){
         const base=Object.assign({},prev,{expenses: igual?prev.expenses:next, lastSync:Date.now()});
         const rec=reconcileObDupes(fixMovInvasion(base));
         // reconcileObDupes: solo recat (cashback); nunca DELETE automático por similitud.
-        if(rec.recat.length){
+        // kept.recat: su categoría elegida, con la identidad de la fila de la NUBE (el id local
+        // puede ser otro y el UPDATE no tocaría nada).
+        if(rec.recat.length || kept.recat.length){
           setTimeout(function(){
             rec.recat.forEach(function(r){ cloud.setExpenseCat(r.expense, r.cat).catch(function(){}); });
+            kept.recat.forEach(function(r){
+              cloud.setExpenseCat(r.expense, r.cat).then(function(n){
+                if(n>0) set(function(p){ const l=ackCategoryWrite(p.expenses, r.expense, r.cat, Date.now()); return l===p.expenses?p:Object.assign({},p,{expenses:l}); });
+              }).catch(function(){});
+            });
           },0);
         }
         return rec.state;
       });
+      wR.current=true;
       return { total:incoming.length, nuevos:count };
     });
+    wP.current=pull;
+    return pull;
   };
 
   // Al iniciar sesión: adopta el estado de la nube (o sube el local la 1ª vez) y trae gastos.
@@ -23448,7 +24176,8 @@ function App(){
         const withNotes=enrichNotesFromBankTx(baseExp, txs);
         const withExp=(withNotes!==(invState.expenses||[])) ? Object.assign({},invState,{expenses:withNotes}) : invState;
         const now=new Date(), withTx=Object.assign({},withExp,{bankTx:txs});
-        const anchored=reconcileEarlyIncomeAnchors(withTx,now.getFullYear(),now.getMonth()+1,now.getDate());
+        const withProofs=reconcileFixedPaymentProofs(withTx,now.getFullYear(),now.getMonth()+1,now.getDate());
+        const anchored=reconcileEarlyIncomeAnchors(withProofs,now.getFullYear(),now.getMonth()+1,now.getDate());
         const r=applyBankBalances(anchored, links);
         return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks) });
       });
@@ -23458,31 +24187,9 @@ function App(){
       // Si has pulsado tú «↻ Sincronizar bancos», esto se junta con el resultado de abajo: dos
       // avisos seguidos por una sola acción tuya eran ruido (feedback 2026-07-26).
       if(obAdded.length && !opts.manual) showToast(tf("ob_imported",{n:obAdded.length}));
-      // Cajero / ATM: ofrecer la otra mitad al efectivo (nunca automático).
-      (function offerAtmCash(){
-        const atms=(obAdded||[]).filter(function(e){
-          return e && e.category==="traspaso" && e.amount>0 && isAtmWithdrawal(e.merchant||e.obName||"");
-        });
-        if(!atms.length || typeof askConfirm!=="function") return;
-        let i=0;
-        const next=function(){
-          if(i>=atms.length) return;
-          const e=atms[i++];
-          askConfirm({
-            title:tf("ef_atm_offer_title",{x:eur(e.amount)}),
-            sub:t("ef_atm_offer_sub"),
-            ok:t("ef_atm_offer_yes"),
-            cancel:t("ef_atm_offer_no")
-          }).then(function(yes){
-            if(yes){
-              set(function(s){ return applyEntradaEfectivo(s, e.amount); });
-              showToast(t("ef_in_done"));
-            }
-            next();
-          });
-        };
-        setTimeout(next, 400);
-      })();
+      // INC-2909-03: tabla y saldo de efectivo no tienen una confirmación atómica compartida.
+      // Ofrecer +€ desde cada importación podía sumarlos otra vez en otro móvil; la ficha explica
+      // el límite. Los apuntes manuales de efectivo conservan su recorrido propio.
       // Resultado por banco (servidor tolerante a fallos): aplica los que funcionaron y avisa SOLO
       // del que falló. ok===false explícito → fallo (respuestas antiguas sin 'ok' se tratan como ok).
       const bankLabelOf=function(l){ const e=entFromAspsp(l&&l.aspsp); return e?entOf(e).label:((l&&l.aspsp)||"🏦"); };
@@ -23775,11 +24482,8 @@ function App(){
     return function(){ clearTimeout(tmr); };
   },[state,uid]);
 
-  // Auto-sincroniza los gastos al volver a primer plano (abrir la app o cambiar de app y volver).
-  // THROTTLE: si acabas de sincronizar (<30s) no repetimos el pull+merge de red → evita el "lagazo"
-  // al alternar apps rápido (el sync dispara una descarga y un re-render de toda la app).
-  // Además: si hay bancos OB y ≥30 min desde lastBankSync → bankSync en idle (gastos de Caixa/etc.).
-  const lastVisSync=useRef(0);
+  // Al volver, los gastos pueden haber cambiado en la nube aunque el pull anterior sea reciente.
+  // Bancos OB siguen sin consulta automática; su cupo PSD2 no depende de esta lectura.
   /* Red doble para APKs antiguas: el nativo nuevo ya limita estas consultas, pero la OTA debe
      proteger también el móvil que aún no haya instalado ese APK. La marca vive en localStorage
      para que matar/abrir la app no reinicie el cupo. Los botones manuales no pasan por aquí. */
@@ -23803,8 +24507,9 @@ function App(){
     if(!uid) return;
     const onVis=function(){
       if(document.visibilityState!=="visible") return;
-      if(Date.now()-lastVisSync.current < 30000) return;   // ya sincronizado hace nada: no recargues
-      lastVisSync.current=Date.now();
+      setCalendarDay(madridDay());
+      // Un ingest puede escribir mientras la app está oculta incluso tras un pull reciente.
+      // Releer antes de dejar que el widget reciba el snapshot local de reentrada (FIN-05).
       syncCloudExpenses().catch(function(){});
       // (2026-07-18) Aquí había un bankSync automático al volver a primer plano. RETIRADO:
       // cada apertura disparaba una consulta PSD2 desatendida y los bancos (Caixa, Sabadell)
@@ -24613,6 +25318,13 @@ function App(){
   };
   const tabbarRef=useRef(null);
 
+  const madridDay=function(){ return new Date().toLocaleDateString("en-CA",{timeZone:MC_TZ}); };
+  const [calendarDay,setCalendarDay]=useState(madridDay);
+  useEffect(function(){
+    const onVis=function(){ if(document.visibilityState==="visible") setCalendarDay(madridDay()); };
+    document.addEventListener("visibilitychange",onVis);
+    return function(){ document.removeEventListener("visibilitychange",onVis); };
+  },[]);
   const totals=useMemo(()=>{
     // Solo lo que sale de bancos de gasto diario (y a mano): si no, un cargo de Sabadell
     // «solo para ver» restaría del efectivo de TR (2026-08-05).
@@ -24674,7 +25386,7 @@ function App(){
       if(paid){ paidThisMonth+=amt; }
       else { pendingThisMonth+=amt; pendingByBank[bank]=(pendingByBank[bank]||0)+amt; } };
     state.fixed.forEach(e=>{ if(occursIn(e,curMonth)) acc(occAmountIn(e,curMonth),accOf(e),isPaidIn(e,curMonth,today)); });
-    state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today)); });
+    state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
     // --- CASH-FLOW: ingresos (nómina) y transferencias recurrentes PENDIENTES este mes ---
     // El saldo del banco ya refleja lo que ya ocurrió (día pasado); solo proyectamos lo pendiente.
@@ -24697,7 +25409,7 @@ function App(){
     const evsByBank={};
     const pushEv=(bank,day,amt)=>{ (evsByBank[bank]=evsByBank[bank]||[]).push({day:day,amt:amt}); };
     state.fixed.forEach(e=>{ if(occursIn(e,curMonth)&&!isPaidIn(e,curMonth,today)) pushEv(accOf(e), dayIn(e,curMonth)||0, -occAmountIn(e,curMonth)); });
-    state.debts.forEach(d=>{ if(debtActive(d)&&!isDebtPaidThisMonth(d,today)){ pushEv(d.account||"sabadell", debtChargeDay(d), -d.monthly); const bl=debtBalloonIn(d,curYear,curMonth); if(bl>0) pushEv(d.account||"sabadell", debtChargeDay(d), -bl); } });
+    state.debts.forEach(d=>{ if(debtActive(d)&&!isDebtPaidThisMonth(d,today,state,curYear,curMonth)){ pushEv(d.account||"sabadell", debtChargeDay(d), -d.monthly); const bl=debtBalloonIn(d,curYear,curMonth); if(bl>0) pushEv(d.account||"sabadell", debtChargeDay(d), -bl); } });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth)&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) pushEv(o.account||"sabadell", o.day||0, -o.amount); });
     (state.flows||[]).forEach(f=>{ if(!flowOccursIn(f,curMonth,curYear)||flowPaidIn(state,f,curYear,curMonth,today))return; const dd=flowDay(f,curYear,curMonth); if(f.kind==="income") pushEv(f.to||"sabadell", dd||99, f.amount); else if(f.kind==="transfer") pushEv(f.from||"sabadell", dd||0, -f.amount); });
     const minByBank={}, minDayByBank={};
@@ -24727,8 +25439,8 @@ function App(){
   // el buscador, al salir un toast… Con las porciones reales solo se recalcula cuando cambia el
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.bankTx,state.investments,state.assets,state.debts,state.fixed,
-     state.flows,state.oneoffs,state.aportaciones,state.obAccounts,
-     state.trRewardsTotal,state.fx,state.fxRates]);
+     state.flows,state.oneoffs,state.deleted,state.aportaciones,state.obAccounts,
+     state.trRewardsTotal,state.fx,state.fxRates,calendarDay]);
 
   const budgetMonth=budgetYmKey();
   useEffect(function(){
@@ -24739,7 +25451,7 @@ function App(){
   /* Una sola racha compartida por Inicio y el detector de logros. Con históricos grandes,
      calcularla otra vez dentro de cada pantalla triplicaba el recorrido al terminar un sync. */
   const budgetStreak=useMemo(function(){ return underBudgetStreak(state); },
-    [state.expenses,state.budgetByMonth,state.accounts,state.reservaLog,
+    [state.expenses,state.deleted,state.budgetByMonth,state.accounts,state.reservaLog,
      state.settings&&state.settings.expenseBanks,state.settings&&state.settings.gTotalMode,budgetMonth]);
 
   const [pricing,setPricing]=useState(false);
@@ -24829,22 +25541,46 @@ function App(){
     const url=CONFIG.SUPABASE_URL+"/functions/v1/ingest?token="+encodeURIComponent(tok);
     try{ nat.setIngestUrl({url:url}).catch(function(){}); }catch(e){}
   },[state.settings&&state.settings.trIngest, state.settings&&state.settings.ingestToken]);
-  // App Android: alimenta el widget de pantalla de inicio (gasto del mes + saldo de la cuenta diaria).
-  // El widget y `ingest` solo admiten mes natural. Mandar su propia cifra mensual evita
-  // mezclar un inicio de ciclo con el `periodStart` del día 1 (feedback pareja 28/9).
-  const budW=monthBudgetStats(state,Date.now());
-  const trAccW=state.accounts.find(function(a){ return a.spendFrom; });
+  // App Android: alimenta el widget de pantalla de inicio (gasto + saldo de la cuenta diaria).
+  // La APK 51 conserva su payload mensual histórico, igual que ingest activo. Un widget v2
+  // declara `widgetContract` y pinta ventana/cifra de Inicio en su idioma (INC-2909-01).
+  const [wV2,setWV2]=useState(null);
+  useEffect(function(){
+    const nat=natPlugin();
+    if(!nat || !nat.widgetContract){ setWV2(false); return; }
+    let vivo=true,tm;
+    // La APK 51 no tiene el método: la llamada falla y se sigue con el mes natural.
+    const query=function(){
+      let expired=false;
+      tm=setTimeout(function(){
+        expired=true;
+        // Un puente colgado no demuestra legacy: la APK nueva oculta cifras hasta negociar.
+        try{ Promise.resolve(nat.widgetWaiting()).catch(function(){}); }catch(e){}
+        tm=setTimeout(query,3000);
+      },3000);
+      Promise.resolve().then(function(){ return nat.widgetContract(); })
+        .then(function(r){ if(vivo&&!expired){ clearTimeout(tm); setWV2(!!(r&&r.v>=2)); } })
+        .catch(function(){ if(vivo&&!expired){ clearTimeout(tm); setWV2(false); } });
+    };
+    query();
+    return function(){ vivo=false; clearTimeout(tm); };
+  },[]);
+  const budW=wV2?dashboardBudgetStats(state):monthBudgetStats(state,Date.now());
+  const trAccW=widgetBankOf(state);
+  const wPay=wV2&&budW.cycle?budgetPaydayOf(state,Date.now()):null;
+  const wAnchor=wPay?keyOfExpense(wPay.inc):"";
+  const wScope=wV2?widgetScopeOf(state,budW,wAnchor,trAccW&&trAccW.ent):"";
+  // Se prepara el alcance compartido para la entrega propia de ingest; el activo sigue legacy.
+  useEffect(function(){
+    if(!wV2) return;
+    // La nómina que abre el ciclo no cuenta en su neto; su identidad debe viajar con la ventana.
+    const kind=budW.cycle?"ciclo":"mes", start=budW.periodStart, anchor=wAnchor, w=state.widgetPeriod;
+    if(w && w.v===2 && w.scope===wScope) return;
+    set(function(s){ return Object.assign({},s,{widgetPeriod:{v:2,kind:kind,start:start,anchor:anchor,scope:wScope}}); });
+  },[wV2,wScope,state.widgetPeriod]);
   const widgetCash=trAccW ? Math.round((totals.bankBal[trAccW.ent]||0)*100)/100 : null;
-  // «Lo que te puedes permitir» (petición 2026-07-18): lo que puedes gastar SIN pasarte ni quedarte
-  // en rojo = mínimo entre lo que te deja el presupuesto y la liquidez segura de la cuenta de gasto
-  // (su peor saldo del mes; no puedes gastar lo que no tienes). Nunca negativo.
-  //
-  // Se mandan las DOS PIEZAS por separado, sin combinar (2026-08-17). Antes se empujaba el mínimo
-  // ya hecho y el widget lo guardaba tal cual; con la app cerrada, una noti de TR/Wallet
-  // actualizaba el gasto pero NO esto, así que el widget acababa diciendo «te quedan 109» y
-  // «puedes gastar 324» a la vez. Ahora la resta la hace el widget con las piezas frescas:
-  // `budgetLeft` se lo recalcula el servidor en cada noti, y `safeLiq` lo baja él restando el
-  // importe. Aquí se sigue calculando igual — esta es la referencia de la que copia el nativo.
+  // El límite combina presupuesto global y liquidez del banco elegido. Se mandan las piezas
+  // por separado para que el nativo las actualice con la app cerrada (FIN-05).
   const widgetBudgetLeft=(function(){
     const bl = budW.remaining!=null ? Math.max(0, budW.remaining)
       : ((state.budget>0) ? Math.max(0, state.budget - (totals.thisMonthSpent||0)) : null);
@@ -24859,11 +25595,21 @@ function App(){
   useEffect(function(){
     const nat=natPlugin();
     if(!nat || !nat.updateWidget) return;
+    // Mientras se negocia, una foto legacy rebajaría el contrato ya guardado por la APK nueva.
+    if(wV2==null) return;
+    if(cloud.enabled() && (!uid || !wR.current)) return;
     const data={
-      spent:Math.round((budW.shown||0)*100)/100,
+      periodStart:budW.periodStart,
+      // V2 acredita también filas anteriores recibidas: pueden afectar al saldo aunque ya no
+      // consuman esta ventana. No se confirma por fecha, ni por una foto sin identidad.
+      coveredEvents:widgetCoveredEvents(wC.current,budW.periodStart,Date.now(),!!wV2),
+      deletedKeys:"|"+(state.deleted||[]).map(encodeURIComponent).join("|")+"|",
+      // En el ciclo, el neto con signo, como Inicio; `shown` sería |neto| (la cabecera de Gastos).
+      spent:Math.round(((budW.cycle?budW.against:budW.shown)||0)*100)/100,
       budget:budW.budget!=null?budW.budget:(state.budget||0)
     };
-    if(widgetCash!=null){ data.cash=widgetCash; data.cashLabel=entOf(trAccW.ent).label; }
+    if(wV2){ data.contract=2; data.periodKind=budW.cycle?"ciclo":"mes"; data.magnitude=budW.cycle?"neto":"gasto"; data.lang=CURLANG; data.scope=wScope; }
+    if(widgetCash!=null){ data.cash=widgetCash; data.cashEnt=trAccW.ent; data.cashLabel=entOf(trAccW.ent).label; }
     if(widgetBudgetLeft!=null) data.budgetLeft=widgetBudgetLeft;
     if(widgetSafeLiq!=null) data.safeLiq=widgetSafeLiq;
     // APK 41 (la de producción) todavía lee `afford` y si no llega BORRA «Puedes gastar».
@@ -24877,7 +25623,7 @@ function App(){
     // Re-empuja al VOLVER a primer plano (feedback 2026-07-20: el widget de MIUI/HyperOS no
     // siempre coge el dato nuevo con la app cerrada). Reenvía lo último bueno para forzar el
     // re-pintado del widget aunque el estado no haya cambiado.
-    const onVis=function(){ if(document.visibilityState==="visible") push(); };
+    const onVis=function(){ if(document.visibilityState==="visible" && !cloud.enabled()) push(); };
     document.addEventListener("visibilitychange", onVis);
     // Android puede volver sin visibilitychange. Si ingest pisó el widget mientras estaba
     // cerrada y las cifras locales no cambian, las deps tampoco fuerzan otro push (B09-D).
@@ -24885,7 +25631,7 @@ function App(){
     let sub=null, disposed=false;
     if(A&&A.addListener){
       try{
-        sub=Promise.resolve(A.addListener("appStateChange", function(st){ if(!disposed&&st&&st.isActive) push(); }));
+        sub=Promise.resolve(A.addListener("appStateChange", function(st){ if(!disposed&&st&&st.isActive){ setCalendarDay(madridDay()); if(!cloud.enabled()) push(); } }));
         sub.catch(function(){});
       }catch(e){}
     }
@@ -24895,7 +25641,7 @@ function App(){
       // addListener puede resolver después del cleanup: liberar también ese handle tardío.
       if(sub) sub.then(function(h){ if(h&&h.remove) return h.remove(); }).catch(function(){});
     };
-  },[budW.shown,budW.budget,state.budget,widgetCash,widgetBudgetLeft,widgetSafeLiq]);
+  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){
     // No arrancar el tour encima del login (showAuth) ni con el cajón abierto: causaba el caos
@@ -24976,7 +25722,7 @@ function App(){
     const nat=natPlugin();
     if(!nat||!nat.showNotification) return;
     const today=totals.today||new Date().getDate();
-    const cm=totals.curMonth;
+    const cm=totals.curMonth,cy=totals.curYear;
     const minAmt=Math.max(80, (totals.fijosMensual||0)*0.12);
     const cal=alertCalendarOf();
     const ym=cal.ym;
@@ -25001,7 +25747,7 @@ function App(){
       // cuotas de deuda (hipoteca, financiaciones…): también avisan la víspera
       (state.debts||[]).forEach(function(d){
         if(!debtActive(d) || !(d.monthly>0)) return;
-        if(isDebtPaidThisMonth(d,today)) return;
+        if(isDebtPaidThisMonth(d,today,state,cy,cm)) return;
         if(debtChargeDay(d)-today!==1) return;
         notify("_rc1_debt_"+d.id+"_"+ym, t("rc_title_tmrw"), tf("rc_body_tmrw",{name:d.name||"?",x:eur(d.monthly)}));
       });
@@ -25017,7 +25763,7 @@ function App(){
         }).catch(run);
       }catch(e){ run(); }
     } else run();
-  },[state.onboarded,locked,showAuth,state.fixed,state.debts,totals.today,totals.curMonth]);
+  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.expenses,state.bankTx,state.deleted,totals.today,totals.curMonth,totals.curYear]);
 
   // Empuja el calendario de recibos del mes al NATIVO (APK ≥29): AlertCheckWorker avisa la
   // víspera aunque la app esté CERRADA. Intercambio de sellos para no avisar dos veces:
@@ -25038,16 +25784,16 @@ function App(){
   // Avisos de presupuesto al cruzar 50/80/95/100% (petición 2026-07-18). Una noti por umbral
   // y mes; si al abrir ya vas por el 97%, solo suena el umbral MÁS ALTO (los demás se sellan
   // en silencio para no disparar tres de golpe). Suena también como toast en la app.
-  // Misma cifra que Resumen/Gastos (`monthBudgetStats`): sin neutras ni reservas, no
-  // `thisMonthSpent` (feedback «el presupuesto no cuadra» — 2026-08-05).
-  // accounts + settings enteros en deps: monthBudgetStats → expenseBankEnts (B09-A2 /
+  // Misma cifra que Inicio: desactivar Mi ciclo no debe borrar el gasto mensual
+  // de los avisos aunque Gastos esté en Balance (feedback 2026-09-30).
+  // accounts + settings enteros en deps: dashboardBudgetStats → expenseBankEnts (B09-A2 /
   // 2026-09-07). Sin ellos, quitar/añadir un banco de gasto diario no reevaluaba el % y
   // podía dejar selladas (o sin disparar) las banderas _bn* del mes.
   // settings entero también re-corre al cambiar expenseOrder (arrastre 4.19.0): inofensivo
   // porque _bn* son idempotentes y `seen` impide repetir el toast/noti.
   useEffect(function(){
     if(state.onboarded===false||locked) return;
-    const bs=monthBudgetStats(state);
+    const bs=dashboardBudgetStats(state);
     const bud=bs.budget!=null?bs.budget:0; if(!(bud>0)) return;
     const spent=Math.max(0, bs.against||0);
     const pct=spent/bud*100;
@@ -25067,7 +25813,7 @@ function App(){
       const nat=natPlugin();
       if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely",body:msg}).catch(function(){}); }catch(e){} }
     });
-  },[state.onboarded,locked,state.expenses,state.budget,state.reservaLog,state.accounts,state.settings]);
+  },[state.onboarded,locked,state.expenses,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings]);
   // Snapshot diario del total invertido (€) para el gráfico de evolución (#6). Se actualiza si cambia valor/coste hoy.
   const invSnapRef=useRef("");
   useEffect(function(){
@@ -26448,10 +27194,15 @@ function mcFetchManifest(name){
 var _mcProdVerCache=null;
 window._mcProdVersion=function(){
   if(_mcProdVerCache) return _mcProdVerCache;
-  _mcProdVerCache=mcGetJson(_mcOtaBASE+"version.json?ts="+Date.now())
-    .then(function(r){ return r.ok?r.json():null; })
-    .then(function(v){ return (v&&v.version)?String(v.version):null; })
-    .catch(function(){ return null; });
+  var pide=function(f){ return mcGetJson(_mcOtaBASE+f+"?ts="+Date.now())
+    .then(function(r){ return r.ok?r.json():null; }).catch(function(){ return null; }); };
+  // La APK estable decide si una tanda nativa ya se entregó; la web sola no la lleva (30/9).
+  _mcProdVerCache=Promise.all([pide("version.json"),pide("apk.json"),pide("beta-delivery.json")]).then(function(r){
+    window._mcProdApk=r[1]&&r[1].versionCode>0?r[1].versionCode:null;
+    window._mcProdApkRevisiones=r[1]&&r[1].revisiones||null;
+    window._mcProdEntregas=r[2];
+    return (r[0]&&r[0].version)?String(r[0].version):null;
+  });
   return _mcProdVerCache;
 };
 
@@ -26883,7 +27634,12 @@ mcScheduleIdle(function(){ mcLoadSentryDeferred(); }, 1800);
     var r=document.getElementById("root");
     // `>0` porque el splash ya NO vive dentro de #root: en cuanto React monta, hay algo.
     var pintado=!!(r && r.childElementCount>0), pasado=Date.now()-t0;
-    if(pintado && pasado>MINIMO && (window.__mcBootReady===true || pasado>ESPERA_NUBE)){ clearInterval(t); quitar(); return; }
+    if(pintado && pasado>MINIMO && (window.__mcBootReady===true || pasado>ESPERA_NUBE)){
+      // Si venció la espera, Inicio debe pintar lo local al levantar ESTA cortina. Antes
+      // empezaba otro tope de 2 s y reaparecían las barras grises con red débil (29/9).
+      if(window.__mcBootReady!==true) window.__mcSplashTimedOut=true;
+      clearInterval(t); quitar(); return;
+    }
     /* Si a los 8 s React NI SIQUIERA ha pintado, algo va mal de verdad. Antes se paraba el
        vigilante y el splash se quedaba puesto para siempre, sin decir nada ni dejar salida:
        una app «colgada en Cargando…» de la que no se puede ni salir. Ahora se ofrece recargar. */

@@ -1,0 +1,31 @@
+# INC-2709-02 · liquidación y archivo de deudas · 29/9/2026
+
+## Contrato financiero
+
+`debtBalance` resta la amortización mensual desde `asOf`: su cero es una **estimación**, no prueba de cobro del banco. Antes, una deuda a cero seguía ocupando una tarjeta sin siguiente acción; «Eliminar esta deuda» podía borrar el objeto al que apuntaban cuotas históricas mediante `debtId`. No se tocó la fórmula ni se generó un gasto para fingir la última cuota.
+
+La tarjeta ahora pide confirmar que el saldo real está liquidado. La amortización total escrita por la persona cuenta como confirmación explícita y marca `settledAt` junto al cambio de saldo. El botón Archivar solo se ofrece tras la confirmación y con saldo cero; guarda `archivedAt` y conserva el objeto y su `id` en `state.debts`, para que Gastos pueda seguir mostrando el nombre y el filtro de cuotas. El archivo se abre en Plan → Deudas y permite volver a mostrar la tarjeta. Mostrarla no crea una deuda nueva; si se corrige el saldo a un valor positivo, el editor quita la marca de liquidación. Si una corrección externa deja saldo positivo con `archivedAt` antiguo, la tarjeta se muestra igualmente: no se oculta una obligación activa. Una deuda con gastos vinculados no se puede borrar físicamente desde el editor. Las operaciones de confirmar, archivar y mostrar son idempotentes en el updater de estado; un diálogo de amortización abierto sobre un saldo antiguo no aplica un segundo descuento.
+
+## Pruebas y límites
+
+`e2e/deudas-archivo.spec.mjs` abre el DOM real con deudas y cuotas ficticias. Comprueba cancelación, confirmación, archivo, cuota histórica en Gastos, recarga, vuelta a mostrar, amortización total sin gasto nuevo, bloqueo del borrado con cuota vinculada, saldo corregido en otro dispositivo y controles en inglés y catalán. **6/6** en Chromium local; con `listas-render` y `gastos-deudas`, **19/19** en la primera pasada conjunta antes del caso adicional de saldo externo. `test:syntax`, `i18n-keys`, `docs-frescura`, presupuesto de tamaño y registro de E2E pasaron. `npm test` local solo falla en `memoria-espejo` por diferencias preexistentes con la memoria externa; Deno no está instalado localmente. Las pruebas no acreditan el saldo real bancario, Android, nube ni aceptación móvil. No hay APK, Edge, SQL, migraciones ni pagos reales en esta entrega.
+
+## Estado de entrega
+
+La rama nace de `origin/beta` `50e77f83ce39077d3abb354d3cbd5598a2981955`, no de main. Al entrar, `npm run listo` no pudo leer aprobaciones porque falta `SUPABASE_SERVICE_ROLE_KEY`; PR y CI no se interpretaron como veredicto. Beta servía `4.26.69.1` y producción web `4.26.66`/APK 4.26.32 code 48. Las tandas INC-2709-01, INC-2809-02 y cinco nativas conservan su prueba propia.
+
+[PR #69](https://github.com/JuanjoAvila/Aely/pull/69) fusionada en beta como `9b0cc9351f486e1a4210b911db74576f53c2cac9` desde la candidata `fc46aa9d6c5a608f6e51215a19562a2aca0cee19`. La [suite completa 36622467629](https://github.com/JuanjoAvila/Aely/actions/runs/36622467629) terminó SUCCESS sobre `cd0ef87c` con 487 E2E, 7 pruebas de rendimiento y Deno; el único commit posterior ajustó una aserción del test para leer la clave separada de gastos y pasó 6/6 localmente. El diff del merge respecto de beta anterior no contiene Android, Edge, SQL ni `public/apk.json`.
+
+La [Action beta 36624037785](https://github.com/JuanjoAvila/Aely/actions/runs/36624037785) terminó SUCCESS sobre el merge exacto: 488 E2E funcionales, 7 de rendimiento, uno omitido y Deno ejecutado. La release pública `beta` sirve manifiesto `4.26.70.1` con huella `4495e50005bdc9eb`, idéntica a la calculada desde el ZIP descargado. SHA-256 del ZIP: `4767496aa76eaee3c275f268bec038413fcfc54187f0f9ef3cceee95ef613d68`. Dentro, HTML `APP_VERSION` 4.26.70.1, controles de liquidación y archivo, y SW `4.26.70.1-2026-09-29-9b0cc93`. Las notas conservan en orden `inc-2709-02-deudas-archivo`, `inc-2709-01-arranque-red`, `inc-2809-02-ayuda-ciclo` y las cinco tandas nativas previas. La beta anuncia APK 4.26.55/code 51; no se construyó APK nueva.
+
+Producción HTTP y ZIP seguían en web 4.26.66, HTML 4.26.66, SW `4.26.66-2026-09-29-c2b02ed` y APK 4.26.32/code 48; el ZIP estable conservó SHA-256 `77779241d66130898f9d8b8fe96ce416543f644ea1dde7a974736d6f7484c4a3` y no contiene esta tanda. El cotejo de ambos canales fue el 29/9 a las 20:19 UTC. No hubo revisión externa de Claude; se revisó el diff exacto de PR #69 y el alcance del merge.
+
+## Aceptación comunicada por el dueño
+
+El 29/9, el dueño comunicó en este chat que **ya aprobó esta tanda**. No se pudo consultar el registro remoto de veredictos porque `npm run listo` carece de `SUPABASE_SERVICE_ROLE_KEY` en este worktree; la aprobación explícita en el chat se registra como tal, sin atribuirle una prueba móvil concreta que no quedó descrita aquí. La promoción selectiva de `inc-2709-02-deudas-archivo` a producción queda pendiente al cerrar la jornada: exige aislar solo esta tanda y comprobar el resultado servido. INC-2709-01, INC-2809-02 y las cinco tandas nativas conservan sus propios veredictos.
+
+## Continuidad del panel beta al promover solo Deudas
+
+El 30/9 se preparó una candidata de producción `4.26.67` desde `main` que incluye únicamente el cambio de Deudas. Como `betaChecklist` solo muestra versiones mayores que producción, dejar las cinco pruebas nativas en la nota beta `4.26.67` las ocultaría sin haberlas aprobado. En la beta, se retiró la tanda aprobada de `4.26.70` y se movieron esas cinco pruebas a `4.26.68`, junto a la ayuda de Mi ciclo; las notas `4.26.70` y `4.26.67` conservan `tandas:[]` para impedir que reaparezcan como una prueba general. La prueba `beta-tandas-vacias` simula producción `4.26.67` y exige que permanezcan las siete tandas ajenas a Deudas. Este movimiento no promociona código adicional ni acredita el resultado de las otras pruebas.
+
+La primera Action de continuidad, `36751415139`, detectó un E2E del panel que aún fijaba la beta en `4.26.67.2` y esperaba solo las cinco tandas nativas. Al moverlas a `4.26.68`, ese supuesto dejó de representar el canal servido. Se actualizó el caso para simular beta `4.26.70.2` frente a producción `4.26.67` y exigir las siete pendientes, sin Deudas. El caso corregido pasó en Chromium local; queda pendiente repetir la Action sobre el fix antes de publicar.

@@ -122,17 +122,29 @@ function syncHarness(pull){
   const main=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
   const ini=main.indexOf("const syncCloudExpenses=function(){"),end=main.indexOf("\n  };",ini)+5;
   const cli=loadPureLogicFromFile(),local={id:uuid(9999),date:"2019-01-01T12:00:00.000Z",amount:5,merchant:"Solo local",source:"manual"};
-  const h={stateRef:{current:{expenses:[local],deleted:["lapida"]}},sets:0,uploads:0};
+  const h={wS:{current:0},wR:{current:true},wP:{current:null},wC:{current:"|anterior|"},stateRef:{current:{expenses:[local],deleted:["lapida"]}},sets:0,uploads:0};
   const env={...cli,...h,cloud:{pullExpenses:pull,setExpenseCat:()=>Promise.resolve()},inicioDeMesMs:()=>0,
     subirGasto:()=>h.uploads++,fixMovInvasion:s=>s,reconcileObDupes:s=>({state:s,recat:[]}),
     set:fn=>{h.sets++;h.stateRef.current=fn(h.stateRef.current);}};
   const sync=new Function(...Object.keys(env),main.slice(ini,end)+";return syncCloudExpenses;")(...Object.values(env));
   return Object.assign(h,{sync});
 }
-test("FIN07: fallo intermedio no mezcla, no backfill ni lápidas nuevas",async()=>{
+test("FIN07: fallo intermedio no mezcla, no backfill, no ACK de FIN05 ni lápidas nuevas",async()=>{
   const c=client(rows(2501),{response(n){if(n===3)return {error:new Error("offline"),data:null};}});
   const h=syncHarness(()=>c.pull()),before=h.stateRef.current;
   await assert.rejects(h.sync(),/offline/);
   assert.equal(h.stateRef.current,before);assert.equal(h.sets,0);assert.equal(h.uploads,0);
-
+  assert.equal(h.wC.current,"|anterior|");assert.equal(h.wR.current,false);
+});
+test("FIN07: sync nuevo termina antes, el viejo no pisa ni ACK ni histórico",async()=>{
+  const pending=[];const h=syncHarness(()=>new Promise(resolve=>pending.push(resolve)));
+  const old=h.sync(),latest=h.sync();pending[1]([{...rows(1)[0],source:"macrodroid",ingest_event_id:"nuevo"}]);
+  await latest;const before=h.stateRef.current,ack=h.wC.current;
+  pending[0]([{...rows(2)[1],source:"macrodroid",ingest_event_id:"viejo"}]);await old;
+  assert.equal(h.stateRef.current,before);assert.equal(h.wC.current,ack);
+  // La cobertura se calcula ahora al enviar (mes/ciclo); una lectura tardía tampoco puede
+  // cambiar las filas acreditadas ni sembrar el ACK viejo (NO-GO widget al cruzar el día 1).
+  const covered=loadPureLogicFromFile().widgetCoveredEvents(ack,0,Date.now(),true);
+  assert.ok(covered.includes("nuevo"));assert.ok(!covered.includes("viejo"));
+  assert.equal(h.wR.current,true);assert.equal(h.sets,1);
 });

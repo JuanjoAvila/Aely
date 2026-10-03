@@ -1,8 +1,63 @@
-OPS-02 (4.26.56): 23 unitarios en backup-snapshot.test.mjs y once E2E DOM en backup-restauracion.spec.mjs, registrados en runner/mapa. Ejecutan App/cloud contra ops02-backup-cloud.mjs con datos sintéticos y red externa bloqueada. Aislamiento de ambas claves, cero escrituras atribuibles, UUID/campos/sumas, pull/reinicio/B, corrupción, transporte y es/en/ca; no demuestran SQL/RLS real. [Contrato](briefs/ops02-restauracion-probada.md).
+Promoción3/10: fuente web aprobada86/49a preparada sobre main12884; APK estable32/code48 y workflow Supabase manual conservados. Java/TS son fuente, no entrega APK/Edge. CI/publicación pendiente; no inventar recibos nativos. [Acta](briefs/promocion-web-aprobadas-2026-10-03.md). Extras humanos pendientes en [inventario](briefs/inc-0310-extras-sincronizacion-asistente-gastos.md).
+
+Widget80 sobre79: `widget-banco.spec.mjs` ya mapeado añade es/en/ca para el pull antiguo en la frontera ACK de retirada: Inicio/widget100, sin gasto180 ni ACK inventado. Date fijo durante esa comparación vuelve a avanzar antes del splash. Quitar readStartedAt hace fallar el DOM real. `revisar-beta` prueba cinco cambios web/nativos y entrega exacta APK52; cuatro casos tardíos de `retirada-bancaria` respaldan Novedades79.13 DOM PASS en pases finales, sin repetir matriz34. Java real/109 etapas de lógica/límites en [acta](briefs/inc-2909-01-widget.md); no sustituye CI ni pago real.
+
+INC-2909-02: `inicio-mes-natural.spec.mjs`, mapeado a Inicio, prueba es/en/ca, ajuste real, recarga, bruto mensual, neto del ciclo, reservas, bancos y límites. `month-budget-stats` ejecuta Pregúntame y reto con las mismas compras; `budget-notis-deps` ejecuta el efecto real: agotamiento, no repetición y reinicio al cobrar. Prueba móvil pendiente; CI y publicación se registran en el [brief](briefs/inc-2909-02-inicio-natural.md).
+
+## INC-3009-02 · nómina pendiente/futura
+
+`ob-ingresos` continúa en steps, reloj fijo y dos subprocesos UTC/Madrid. `--zone-child` permite
+comprobar directamente otras zonas; no basta cambiar solo TZ exterior. Guardia BOOK/ausente,
+fecha válida no futura Madrid, PDNG→BOOK, UUID, manual genérico, banco+id y saldos sintéticos
+400→2200 sin duplicar1800. DOM `nomina-anticipada.spec.mjs` registrado en el mapa del motor:
+Inicio/Gastos/Cartera en es/en/ca, transportes simulados y sync App real; lease obligatorio.
+En el injerto sobre Panel75 conserva el contrato bruto de Inicio73 y neto de Gastos en mes natural.
+Los 84 contratos/18 DOM previos pertenecen a aaa95803; la nueva integración exige resultados
+propios. [Evidencia y límites](briefs/inc-3009-nomina-anticipada.md).
+
+
+INC-2709-01 (beta 4.26.69.1): `e2e/inicio-offline.spec.mjs` retrasa sesión y evento de autenticación seis segundos con CPU ×6 y estado local sintético. Antes de corregir, el caso nuevo fallaba al detectar barras grises tras el splash; ahora exige el hero visible sin ese intervalo y que la nube tardía actualice la cifra. Los casos previos cubren offline conocido, evento `mc-boot-ready` ausente y nube lenta. [Action 36617933780](https://github.com/JuanjoAvila/Aely/actions/runs/36617933780) pasó la suite completa; la prueba en Android con red débil sigue pendiente y es necesaria para aceptar la tanda.
+
+OPS-02 (beta 4.26.56.1): `tests/backup-snapshot.test.mjs` contiene 23 guardianes del
+validador/comparador, registrado en run-tests. `e2e/backup-restauracion.spec.mjs` contiene once
+casos DOM del visor aislado, ambas claves intactas, cero escrituras financieras atribuibles,
+UUID/campos/sumas, pull/reinicio/B, corrupción, transporte y tres idiomas. El doble mutable
+`e2e/ops02-backup-cloud.mjs` ejecuta App/cloud reales con red externa bloqueada; no demuestra
+SQL/RLS. La caracterización anterior vive en SHA `bc2fa093`. Registrado para módulo 10;
+00/11 exigen suite completa. [Contrato, resultados y límites](briefs/ops02-restauracion-probada.md).
+
+Widget banco (4.26.50): `e2e/widget-banco.spec.mjs` abre Ajustes y cambia el banco con saldo idéntico, verifica el payload nativo y persistencia tras recarga, suma de cuentas sin opciones repetidas y retirada del banco elegido. Registrado para el módulo 10; el módulo 11 obliga a suite completa.
 
 # Testing — Aely
 
-INC-2709-02 (candidata selectiva 4.26.67): `e2e/deudas-archivo.spec.mjs` está mapeado a `09-tab-debts-goals.js` y abre Plan → Deudas con cuotas ficticias. Comprueba que el cero proyectado requiere confirmación, que archivar mantiene la cuota en Gastos y que recarga, vuelta a mostrar, amortización total, borrado bloqueado, saldo positivo corregido e inglés/catalán conservan el contrato. La beta de origen 4.26.70.1 pasó 488 E2E y 7 de rendimiento en [Action 36624037785](https://github.com/JuanjoAvila/Aely/actions/runs/36624037785); la candidata selectiva debe pasar sus propios tests y CI sobre el SHA final. Ninguna prueba sintética acredita que el banco haya cobrado una cuota real.
+FEATURE-0210-01: gasolina-taxi está en run-tests y ejecuta cliente/TS real, clasificación nueva/legacy, overrides, MCC y migrate/seedFlows sin recategorizar histórico. e2e/gasolina-taxi.spec.mjs está en CROSSCUTTING: Apuntar y selector real, excepciones Repsol Luz/Uber Eats, filtros, límites independientes y recarga en es/en/ca con datos sintéticos. No acredita ingest/categorize activos ni prueba móvil. [Resultados](briefs/feature-0210-01-gasolina-taxi.md).
+
+Integración UI (candidata 4.26.77): `cyber-fab.spec.mjs` está en CROSSCUTTING y compara píxeles del botón con la corriente visible/oculta en cuatro pestañas y tres anchos; para que la igualdad exacta de PNG mida la corriente y no el tramado del degradado, pinta el botón con un color opaco del tema y aquieta su aro, sin tocar forma, geometría ni z-index; oculta la barra por clase, sin acreditar inercia real. `help-preguntar-borde.spec.mjs` está mapeado al módulo16 y mide el hueco en es/en/ca, letra normal/enorme, zona segura y visualViewport simulado; no envía preguntas ni acredita teclado Android. `perfil-filas-vacias.spec.mjs` está mapeado al módulo14 y compara alturas por contenido, alineación y apertura de diálogo en es/en/ca y tres tamaños. El guardián beta-sources muta reglas y lectores reales; los tres guiones viven ya en la nota 4.26.77 como tandas separadas. [Acta](briefs/ui-77-integracion.md).
+
+INC-0210-02 (4.26.86): `tests/categoria-manual-persistente.test.mjs`, en `run-tests`, usa datos ficticios. Fija que sin escritura confirmada la fila corregida no vuelve a la categoría que la nube repite y se reintenta con el id de la nube; que el `setExpenseCat` real devuelve 1, 0 o error ante un doble de tabla; que con la escritura confirmada una lectura posterior manda aunque devuelva la categoría original (segundo dispositivo) y una anterior o sin hora no pisa; que el pago equivalente posterior hereda la regla solo con el mismo comercio, banco y forma de pago; y que no se tocan el histórico, otro banco, cargos sin tarjeta, apuntes manuales, categorías especiales, fechas ilegibles ni reglas sin fecha. Sin nada que proteger exige las mismas referencias. `e2e/categoria-elegida.spec.mjs`, en `E2E_MAP` bajo Gastos, ejecuta el método real contra una tabla que responde cero filas, error y éxito, con reinicio y cambio desde otro dispositivo, en es/en/ca. No acredita la tabla real ni `ingest`.
+
+Reloj de fixtures: `cuotas-deudas`, `invest-category`, `saldo-por-banco` y `rol-cuenta-sin-salto` fijan Date al15/9/2026 mediodía con `node:test`, tanto para la app como para sus filas. CI36783613129 falló al cruzar octubre en Madrid mientras UTC seguía en septiembre; el mismo fallo se reprodujo con el motor de main12884f48. Las aserciones financieras se mantienen: cuatro suites pasan en UTC, Europe/Madrid, America/New_York y Asia/Tokyo. Los casos de frontera horaria pertenecen a `month-window`; no se cambia la zona global de CI ni el calendario de producción.
+
+CI36784280322 superó Node y Deno,24 DOM propios de recibos y7 de rendimiento, pero30 casos antiguos fallaron al quedar sus fechas fuera del mes visible. Doce suites de listas optan por `FIXTURE_NOW` y `installFixtureClock`: Node siembra26/9/2026 mediodía UTC y la página aplica solo un offset a Date que avanza con el tiempo real. Conserva temporizadores, RAF, performance y timestamps nativos; no hay zona global ni cambio del reloj de las suites ajenas. Los casos con reloj Playwright llevan anotación own-clock y omiten el helper; septiembre→octubre en persistencia declara Europe/Madrid solo en su contexto. Se mantienen todas las aserciones de dinero. Dos rojos originales UTC reproducidos (cajones sin filas y anillo vacío) antes de comprobar103 casos afectados. Resultado final en el brief.
+
+La integración3e131175 falló CI36790554645 en bank-merchant-category (537 DOM verdes,1 fallo,1 skip previo y7/7 rendimiento). Esta prueba de beta usa ahora el mismo FIXTURE_NOW en su mapper y el helper Date en la página; se conservan sus nueve líneas de aserción y los cinco movimientos. La verificación DOM se ejecutará en el navegador remoto de la CI nueva; no se modifica la categorización bancaria.
+
+INC-3009-01: `fixed-payment-state` está registrado en el runner y prueba pago BOOK, calendario, estados pendientes/ausentes, fechas futuras, varios candidatos, bancos, bruto compartido, importes por ocurrencia, confirmación persistida y ausencia de mutaciones. `inicio-cargos.spec.mjs`, mapeado a Inicio, Plan y Gastos, reproduce con datos ficticios el gas confirmado que seguía visible, distingue vencido sin acreditación, PDNG y recarga en es/en/ca. La corrección añade agua variable32,40/35,10 frente a32 y divisa18,15 frente a18: el diálogo muestra cargo real y previsto, la confirmación humana de pago completo no modifica el modelo ni vuelve a descontar. 24 DOM finales pasan, incluido renombrado real, segundo dispositivo sin feed y compartido42 bruto/21 propio con cargo44. Las fixtures de pago de Plan declaran confirmación explícita; un día pasado no acredita un pago. Las proyecciones de saldo conservan su contrato anterior. [Límites](briefs/inc-3009-01-cargos.md).
+
+INC-2709-02 (beta 4.26.70.1): `e2e/deudas-archivo.spec.mjs` está registrado para `09-tab-debts-goals.js` en `E2E_MAP`. Con deudas y cuotas sintéticas abre Plan → Deudas, exige que un saldo proyectado cero pida confirmación, comprueba cancelación, liquidación, archivo, recarga, cuota antigua visible en Gastos y vuelta a mostrar. También cubre la amortización total sin crear gasto, borrado bloqueado con cuota vinculada, saldo positivo corregido desde otro dispositivo e inglés/catalán; 6/6 locales y [suite beta 36624037785](https://github.com/JuanjoAvila/Aely/actions/runs/36624037785) SUCCESS con 488 E2E funcionales y 7 de rendimiento. `i18n-keys` comprueba las nuevas claves en es/en/ca. El archivo conserva `debtId`; no se interpreta una proyección como pago real ni se prueba con movimientos familiares.
+
+INC-2809-02 (4.26.68): `e2e/gastos-ayuda-ciclo.spec.mjs`, registrado con `04-tab-gastos.js` en
+`E2E_MAP`, abre Gastos en es/en/ca y comprueba que la ayuda de Mi ciclo se pliega, conserva visible
+el cobro, persiste tras salir y recargar y vuelve a abrirse. También cubre el aviso sin nómina y
+el filtro Mi ciclo sin presupuesto por cobro. Usa solo datos ficticios; falta la prueba móvil.
+
+Presupuesto por cobro real (candidata 4.26.64): `tests/month-budget-stats.test.mjs` fija el reloj antes y después del día 26; exige que 600 € anteriores pasen de 400 € restantes a presupuesto íntegro tras el cobro, que el día 1 siguiente no reinicie el ciclo, que la propia nómina no infle el modo Balance y que los informes explícitos sigan por mes natural. Protege además los NO-GO de Claude a `a9bc9f30` y `79333169`: traspaso, inversión o Bizum posterior no mueven el ancla; un flujo modelado no convierte cualquier transferencia en nómina; un traspaso llamado «Nómina» sigue neutro; una nómina presente solo en el concepto bancario se reconoce; un apunte futuro conserva la misma cifra mensual en Inicio y widget. Las dos mutaciones de Claude sobre emparejado de flujo y exclusión neutra desplazan el ancla al 27 y rompen las aserciones de día 26. `e2e/presupuesto-fluido.spec.mjs` abre Inicio, Gastos, Mi ciclo y Ajustes con datos ficticios, comprueba el cobro que ancla la vista pese a movimientos posteriores, el ajuste reversible y el filtro inicial de ambos modos. El widget sigue mensual con el ajuste activo; la prueba real debe verificar que el ingreso elegido para el ciclo es la nómina correcta.
+
+En 4.26.65, la regresión de `tests/month-budget-stats.test.mjs` fija cena 100 €, Bizum 80 € en otro banco, nómina ancla, traspaso, posible duplicado, apunte futuro y gasto en banco no diario: Mi ciclo debe consumir 20 € y dejar 980 € de un límite de 1.000 €; alquiler, trabajo extra y devolución de fijos sí aumentan el balance, y un Bizum mayor que la compra puede ampliar el margen por decisión del dueño. El mes natural mantiene el modo Gastos. `e2e/presupuesto-fluido.spec.mjs` comprueba en pantalla la cabecera, el desglose, el margen y la barra, tanto con 100/80 como con alquiler cobrado. La comprobación móvil debe confirmar una devolución real y que el cobro reconocido es la nómina correcta.
+
+INC-2709-05: el dueño rechazó primero el texto con signo negativo y frase larga, y después el texto «Balance en contra». La 4.26.64 restauró en Inicio la frase «Has gastado» anterior a 1e2b9692, con el gasto bruto real y mantiene «del mes» en el anillo. e2e/presupuesto-fluido.spec.mjs prueba la frase restaurada en es/en/ca, el déficit sin «Balance en contra» y los importes de Gastos. La beta 4.26.64.1 fue verificada y el dueño aprobó su aspecto. El abono adelantado de Plan conserva su guardián separado en tests/plan-charges.test.mjs.
+
+TR clasificación (candidato 4.26.53): `tests/bank-merchant-category.test.mjs` ejecuta mapper TS real, diario e histórico con datos ficticios; cubre MCC conocidos/desconocidos, concepto separado de código bancario (Card transaction no es Action), transferencias/recibos excluidos, decisiones personales Otros, ingresos/aportes/cajero, identidad, lápidas y no recategorización. Registrado en run-tests. `e2e/bank-merchant-category.spec.mjs` usa respuesta del mapper real, dispara sincronización explícita, abre Gastos y comprueba categorías/notas, histórico renombrado y repetición. Registrado en CROSSCUTTING. No demuestra que TR real entregue MCC/concepto; falta comprobarlo tras despliegue autorizado.
 
 REC-GUARDADO-01 (4.26.48): `e2e/plan-gestionar.spec.mjs`, ya registrado para el módulo 14 en
 `scripts/relevant-tests.mjs`, recorre el alta real de recibo, cargo puntual e ingreso en
@@ -115,6 +170,13 @@ Regresiones de widget/nube (4.19.6): `e2e/persistencia.spec.mjs` cubre reactivac
 Está registrado en `CROSSCUTTING`. `tests/presupuesto-servidor.test.mjs` convierte las filas con
 `expenseFromRow` antes de comparar totales: construir directamente `category:cat` no probaba el pull.
 Estas pruebas no ejecutan las preferencias Java ni sustituyen la comprobación final en el móvil.
+FIN-05 añade `tests/widget-arbitraje.test.mjs`, que compila y ejecuta el árbitro Java real con
+dos respuestas invertidas, reentrada, cambio de mes, banco distinto y `possibleDup`; cruza las
+mismas filas sintéticas entre app y servidor. `e2e/persistencia.spec.mjs` retrasa el pull para
+comprobar que la reentrada no sobrescribe el widget antes de recibir el gasto nuevo. La
+prueba también push con un evento pendiente, cobertura posterior sin doble suma y borrado con
+lápida. La compilación Android verifica el cableado nativo, pero queda por probar la APK firmada y la Edge
+real con un móvil.
 
 ## Para el dueño: los dos interruptores de Ajustes → Dev → Pruebas
 
@@ -144,8 +206,11 @@ el siguiente bump. **Antes de activar el canal beta, comprueba que la release `b
    fallos marcados** — si esa puerta se abre, el botón no significa nada. El progreso se guarda por versión,
    porque probar lleva días.
    Una corrección que continúa en otra versión conserva el mismo `tanda.id`: el panel mantiene solo la más
-   nueva. Cuando producción alcanza la beta, la ronda pasa a cero y «Revisar esta beta» desaparece; nunca se
-   usa una nota antigua como fallback en ese caso.
+   nueva antes de comprobar su entrega. Desde76 las tandas modernas desaparecen solo al acreditar todas sus
+   superficies exactas (web, Android y servidor que correspondan), aunque el número de producción sea menor.
+   Sin recibo permanecen con «Entrega sin confirmar»; APK estable antigua indica publicación Android pendiente.
+   La aprobación idéntica se conserva y no se pide otra vez; un cambio de código exige pruebas nuevas. Las
+   tandas antiguas sin identidad de código conservan la regla por versión. No se usa una nota antigua como fallback.
 4. Cuando esté aprobado, desde el PC: **Actions → «Promote beta» → Run workflow**, escribiendo `SUBIR`.
    Vuelve a pasar la suite y mergea `beta` → `main`, que es lo que ven todos.
 
@@ -534,3 +599,64 @@ FIN-06: `tests/fx-multi.test.mjs` cruza cliente/Wallet, catálogo y desconocidos
 node tests/logs-privacidad.test.mjs ejecuta productores cliente, callback/loggers Edge y ambos SDK Sentry con marcadores sintéticos y transportes en memoria. Está registrado en steps del runner. --source-ref SHA repite los mismos contratos contra una fuente Git previa sin mutar el checkout. Incluye inventario de destinos explícitos; no certifica gateway, RLS ni servidor activo. Matriz y límites en [SEC-03](briefs/sec03-privacidad-logs.md).
 
 La regresión e2e/logs-privacidad.spec.mjs está en el mapa de 10-app-components: abre Actividad real, captura inserts simulados y comprueba códigos/texto útil sin correo ni marcadores automáticos.
+
+INC-3009-01 tras rechazo: inicio-cargos abre el vínculo explícito en Gastos y comprueba cancelación, confirmación, banco real del pago, reentrada y deshacer en es/en/ca. fixed-payment-state ejecuta R1/R2/R3, unicidad y dinero inalterado. Ambos están en runner/mapa; no acreditan pagos reales.
+
+## Panel beta: identidad y entrega (OPS-3009-03, integración75)
+
+`npm run listo` acredita primero exactamente un `profiles.user_id` con `is_admin=true`, el mismo rol que abre Dev. Pide el total exacto de perfiles: una respuesta recortada, sin total, ambigua, inválida o inaccesible deja el resultado indeterminado y termina con código 2. En `--json` devuelve `veredictos:"indeterminado"` y ninguna tanda evaluada; no significa que estén aprobadas o que no queden pruebas. No se selecciona por correo ni se conserva un UID en el repo.
+
+Los eventos se filtran por ese actor en Supabase antes del límite y de nuevo en el CLI; una aprobación o rechazo ajeno no cambia la decisión ni su historial. Un `null` explícito del actor autorizado retira la aprobación previa; una decisión ausente o de valor inválido no se interpreta como retirada. `tests/listo-actor.test.mjs`, registrado en `run-tests`, ejecuta el CLI con transporte simulado sin red: rechazo propio + OK ajeno, OK propio + rechazo ajeno, retirada propia (incluido `null`), autor ausente y configuración no acreditada. `--source-ref SHA` repite esos contratos contra el script histórico de Git. Esta protección de tooling no cambia la persistencia del panel móvil ni certifica los roles del servidor real.
+
+`scripts/beta-sources.json` declara fuentes y bloques inequívocos por tanda/superficie; `beta-revisions.mjs` normaliza CRLF y genera SHA-256. Una tanda moderna sin alcance o bloque activo ausente/ambiguo aborta build. No hay fallback global ni recibo de Android/Edge a partir de Git. `beta-delivery.json` acredita web ensamblada y sourceSha real en CI (null local). Los alcances no son un análisis automático de dependencias: deben auditarse al cambiar lectores o helpers.
+
+`betaHuella` combina guion y código; `betaVerdictFor` comparte reglas entre panel y listo. Última decisión rechazada/retirada prevalece, historial conserva decisiones anteriores, desde solo hereda código/guion iguales auditados. En75 tres revisiones seguían idénticas; cuatro widgets cambiaban realmente en web por Inicio73, sin cambios Android/Edge ni referencia histórica repinada. En78 la guardia de nómina cambia también el importador de TR: ayuda/arranque mantienen su OK y TR/cuatro widgets requieren nueva revisión. Aprobación y entrega exacta son distintas; sin recibo de una superficie requerida se conserva pendiente. El APK51 es legado y no acredita widget52.
+
+`tests/beta-veredictos.test.mjs` y `tests/beta-sources.test.mjs` están en run-tests; los scripts nuevos en CORE. El CLI se ejecuta con partes sintéticos y recibos ausentes. Mutantes legacy-id/drop-code/discard-rejection/local-override/ignore-receipts deben fallar. Los digests de Inicio, identidad/vínculo de Recibos y presentación en Plan cambian con una mutación relevante. `e2e/revisar-beta.spec.mjs` abre DOM real en es/en/ca: en78 hereda dos OK, exige puntos nuevos en TR y cuatro widgets y conserva el historial almacenado; prueba rechazo/retirada y fallo remoto. CI36806617191 detectó cuatro expectativas antiguas de TR, corregidas sin cambiar la app. Chromium local solo con lease canónico del coordinador.
+
+## Ampliación auditada de cobertura (panel75)
+
+`beta-source-code.mjs` delimita declaraciones con vm.Script y contempla funciones, const/flechas, datos de nivel superior y sus dependencias transitivas de lógica00/01/08. Ignora comentarios, textos, regex y propiedades; distingue lecturas en ternarios y recoge varias variables de una declaración. Una plantilla interpolada no admitida aborta. Los guardianes mutan cuerpos y valores de cada dependencia; una ancla que desaparece debe abortar build. Se incluyen zona horaria/cachés de mes, REC_GRACE, categorías/reglas, CONFIG, lápidas, divisa y formato numérico. Solo datos de textos/idiomas se excluyen con motivo explícito en benignData; benignCalls conserva sus excepciones de traducción/transporte/telemetría. El recorrido de identificadores es conservador y no es un análisis general de llamadas dinámicas, aliases/métodos o variables de otros módulos; los alcances requieren revisión al editar lectores.
+
+TR y ayuda conservan fuente idéntica tras ampliar cobertura; sus hashes ampliados se calculan desde17aeacc03f595412c044d276c900707cbbd008c8. Arranque se compara desde26972970d216f272b0d555d7d8548bb99afd6ba5. `auditoria.ampliada` identifica ese commit, huella original y digest de las superficies ampliadas. El builder verifica identidad del commit y correspondencia con codigoDesde/revisionesDesde originales, conserva esos datos en referenciaAnterior y compara con el digest histórico ampliado. src conserva intactas las siete referencias originales; un helper nuevo que difiere del commit histórico exige revisión nueva, aunque versión y guion sean iguales. No se pincha el baseline a HEAD. El builder vuelve a leer Git histórico y calcula el digest del descriptor almacenado en auditoria.ampliada.scope: rechaza incluso metadata forjada de forma coherente con un helper de HEAD. Si falta el commit/archivo histórico, aborta; Tests descarga fetch-depth:0. Una ampliación futura conserva el descriptor anterior hasta que se audita otro desde el mismo commit.
+
+`beta-sources` añade guardianes de fuente histórica inválida, pin HEAD/SHA ajeno, digest incoherente, helper TR mutado frente a su referencia y léxico con definiciones ficticias en comentarios. La guardia se ejecuta en run-tests y el helper está en CORE. Las menciones migrate()/buildEmpty() de01:3436-3437 son comentarios dentro del alcance de Inicio y no se tratan como llamadas.
+
+La fixture «un fallo en una tanda no bloquea las otras» retrasa 250ms su doble de producción y espera toHaveCount(2): el primer render aún muestra la ronda real antes del efecto asíncrono (CI36804139697 recibía11 al leer count inmediatamente). Se conserva la aserción de dos tandas, sin modificar la app ni aceptar la ronda extra.
+
+### Panel76: entrega selectiva y motivos
+
+`beta-tandas-vacias` protege entrega exacta con versión de producción menor, deduplicación antes de retirar y límites404/APK/Edge. `revisar-beta` reproduce los siete IDs reales, conserva aprobaciones sintéticas idénticas y verifica explicación visible es/en/ca aun plegada; tras respuesta asíncrona de producción67 con recibos exactos quedan solo Panel, Recibos e Inicio no acreditados. El fixture fija el idioma en estado: cambiar solo `CURLANG` se perdía al repintar App. Historial no acredita entrega; los recibos del test enumeran solo los siete IDs.
+
+DOM final local55/55 PASS31,8s,0skip/0flaky. A/B75:1.278.280 /347.946 B frente a76.1 sellada1.279.388 /348.256 B (minificado/gzip9). Los topes mínimos1250/341 KiB dejan612/928 B; no se añaden dependencias ni se recorta validación. Últimos veredictos remotos y entrega Edge requieren acceso independiente: la simulación no los acredita. [Acta](briefs/ops-0110-panel-entrega.md).
+
+INC-2909-03, candidata: `tests/retirada-bancaria.test.mjs` ejecuta ACK/CAS/identidad, recarga,
+doble importación y pulls anteriores/posteriores; `e2e/retirada-bancaria.spec.mjs` abre la ficha real
+en es/en/ca, cancela/confirma, prueba errores y comprueba otro almacenamiento tras sync a demanda.
+Registrados en runner/mapa de Gastos. Las respuestas cloud son sintéticas; no prueban RLS real ni
+suma de efectivo compartida. [Estado de candidata](briefs/inc-2909-03-retirada-caixa.md).
+
+## Persistencia entre entregas (candidata81)
+
+La identidad web por unidades evita reabrir una tanda por una declaración vecina, otro método cloud o descriptores duplicados/reanclados. Cloud mantiene initializer con efectos y helpers privados alcanzados; los métodos seleccionados, cierre transitivo, literales, ASI y CSS siguen vigilados. El Listener TR excluye solo el ACK mensual de widget y Widget mantiene los cinco Java completos. Los negativos ajenos y positivos de initializer/helper/método/nativo viven en beta-sources, registrado en run-tests.
+
+La compatibilidad recalcula el alcance actual sobre fuentes Git fijas75→80 y exige igualdad de todas las superficies y del guion. Nunca hereda por id ni acepta aliases manuales.79/78 son candidatos, no entregas servidas; Nómina79/80 equivalentes,78 distinto por cambios de fusión/timestamp. Los veredictos más recientes, incluido null/revoked/rejected, prevalecen sin depender de marcas auxiliares. Recibos equivalentes requieren esta misma prueba, y el mínimo de APK sigue obligatorio.
+
+revisar-beta añade nueve DOM es/en/ca: A aprobada, compilación B ajena, reload/arranque frío, textos repetidos, marcas borradas, petición de notas abortada, rechazo/retirada posterior, cambio financiero real y reset con comentarios. Los hashes proceden de dos fuentes modificadas, no de códigos sintéticos igualados a mano. El Service Worker se bloquea solo en estos fixtures para no reemplazar la compilación B simulada con el HTML original. El mismo spec permanece en CROSSCUTTING; Chromium local requiere lease canónico.
+
+Cierre conservador81: alias, destructuring, callback u opcional de this/nombre del objeto abortan antes de generar recibos; this._evSent/_evN continúan admitidos. Getter/spread no delimitables también abortan. Las declaraciones de función privadas sin uso, incluido return de objeto y parámetros destructurados, no reabren; las usadas y sus métodos transitivos sí. El ACK excluido enTR debe continuar cubierto por Widget completo. El guion Panel76 vive ahora una vez en81 con historial76; notas-sin-duplicados conserva su guarda y el contador histórico13 usa el snapshot fijo955.
+
+El catálogo del fixture lleva el SHA-256 real de cada compilación aislada. Los casos sin red prueban también respuesta HTTP correcta con catálogo viejo tras REC_GRACE3→4 y sufijo2.1→2.2: cero tandas, mensaje sin confirmar, ningún envelope nuevo guardado e historial intacto. release-notes-max comprueba que el sello del HTML coincide con el JSON generado. Evaluación dinámica (eval/Function/constructor), también desde helpers privados o el initializer, aborta la delimitación conservadora.
+
+Sin WebCrypto no se acepta descarga ni se rescata una caché previamente verificada; el guardián del loader comprueba ambos caminos.
+
+El último cierre añade cuota simulada para dos cachés antiguas: purga previa, una sola nueva y claves de dinero/veredictos intactas. Los casos es/en/ca sin red prueban reintento visible de Novedades y Panel sin recargar, recepción del catálogo válido y una sola caché.
+
+Corrección de fixtures tras CI36885083225 (fuente9a6): inicio-offline descarga un catálogo sintético con SHA-256 real, exige el envelope escrito por la app y verifica su rescate sin red. Una cabeza `_rnHead_` sin verificar y otra compilación de la misma base deben quedar sin confirmar. seedImplicitChecklist conserva el catálogo real mixto; aislarlo ocultaba la regresión detectada en450. Los contratos y DOM exigen la checklist actual junto a las dieciséis tandas modernas con y sin producción; tandas:[] no crea una revisión. Las tandas modernas mantienen sus casos de huella/índice y rechazo/retirada posterior. La entrega en es/en/ca acredita únicamente las siete tandas antiguas y exige que sigan visibles las nueve posteriores, con IDs exactos y Panel82 único; no se reduce un contador para ocultar una tanda.
+
+INC-0210-01: debt-payment-state ejecuta cargo vinculado previo al vencimiento, dos préstamos, identidad ambigua, feed PDNG/BOOK, lápidas y frontera de mes sin mutar el saldo. plan-cuota-contabilizada abre Gastos/Inicio/Plan en es/en/ca, comprueba el pendiente y total, recarga, otra deuda y cargos ambiguos. Ambos están en runner/mapa; las fixtures usan datos sintéticos y no acreditan aprobación financiera en el móvil.
+
+
+INC-0210-03: gastos-periodo está en steps; gastos-periodo-categorias.spec.mjs en el mapa de Gastos. Motor usa ventanas explícitas y conserva llamadas sin ventana; DOM es/en/ca abre mes pasado, rango con calendario real, mes, ciclo y tres meses/todo. Datos sintéticos, sin afirmar aceptación móvil.
+
+Candidata84: cinco DOM de Gastos y siete del panel real pasan; la checklist mixta conserva17 IDs modernos,18 con la cabeza implícita sintética, sin ocultar el catálogo. Entrega exacta conserva10 posteriores tras acreditar las7 antiguas. El fixture de entrega espera a que termine la consulta inicial y aborta Pages externo: un recibo sintético no debe competir con una respuesta real.

@@ -1,4 +1,18 @@
+Promoción3/10: fuente web aprobada86/49a preparada sobre main12884; APK estable32/code48 y workflow Supabase manual conservados. Java/TS son fuente, no entrega APK/Edge. CI/publicación pendiente; no inventar recibos nativos. [Acta](docs/briefs/promocion-web-aprobadas-2026-10-03.md). Extras humanos pendientes en [inventario](docs/briefs/inc-0310-extras-sincronizacion-asistente-gastos.md).
+
 # Empieza aquí
+
+FEATURE-0210-01 candidata aislada85: no mover keywords nuevas a autoCategory, porque seedFlows reevalúa Otros antiguos. La división Gasolina/Taxi vive solo en categoryOfNewMerchant y MCC de altas bancarias. Fuente Edge preparada pero sin desplegar; la web no necesita Edge para elegir/filtrar/fijar límites. [Acta](docs/briefs/feature-0210-01-gasolina-taxi.md).
+
+INC-0210-01 candidata83: cuota vinculada contabilizada antes del vencimiento retirada del pendiente de Plan/Inicio y eventos futuros; saldo/anclas intactos. Base3467/candidata82, sin publicar. Pruebas sintéticas; revisión, CI, beta y móvil pendientes. [Acta](docs/briefs/inc-0210-01-plan-cuota.md).
+
+Candidata Validaciones82 tras NO-GO450: conservar aprobación/progreso y la checklist actual junto a las rondas modernas si producción no responde. Sobre beta80/source955765a9;81 no publicada. APK80/52 intacta; DOM mixto70/70, contratos Node y A/B acreditados; revisión independiente y CI exacta pendientes. No integrar/publicar una solución parcial. [Acta](docs/briefs/ops-0110-validaciones-persistentes.md).
+
+Snapshot previo de preparación80 (no estado de la candidata81): Widget80 sobre79/d45fb8b1; runtime821/ACK/guiones intactos. Prebuild52/name80 y descarga de assetbeta602841368 verificados; manifiesto52 local real. CI/build final/reemplazo APK/entrega80 pendientes; no main/Edge/SQL/install. [Acta](docs/briefs/inc-2909-01-widget.md).
+
+Nómina78 candidata en rama aislada sobre UI77 finalca7734fd. Runtime5c2146c3 conservado, cuatro fixtures DOM4/4 y guardianes afectados verdes; CI exacta y publicación retenidas por el coordinador. PR96/número76 antiguos retenidos. Lease27 liberado tras su prueba focal. [Acta y rebase](docs/briefs/inc-3009-nomina-anticipada.md).
+
+Integración UI en una sola candidata 4.26.77 con tres tandas (Cyberpunk, Preguntar, Perfil): los números 79/80/81 que aparecen en sus actas de origen eran reservas provisionales y no son entregas. Las tres fuentes conservan su runtime exacto, van montadas sobre la fuente del panel76 y esperan CI exacta y gate. Node, scopes, tamaño y DOM propios se registran en [acta](docs/briefs/ui-77-integracion.md). No lanzar Chromium sin lease canónico.
 
 Lee esto **antes de tocar nada**, seas Claude Code (PC o móvil), Cursor, o cualquier otro.
 Son cinco minutos que ahorran medio presupuesto de tokens. Está escrito porque el 26/7/2026 una
@@ -8,16 +22,20 @@ sesión del móvil se gastó la mitad trabajando sobre una rama equivocada.
 > con prioridades, encargos para Claude/Cursor, criterios de cierre y lo ya terminado.
 > El panel de beta no contiene todo el backlog. El relevo de madrugada del 9/9 quedó superado
 > por la auditoría posterior: efectivo e histórico conservan fallos abiertos.
-> El flujo autónomo acordado el 28/9 y el prompt que debe recibir cada chat nuevo están en
-> [docs/PROMPT-FLUJO-CONTINUO.md](docs/PROMPT-FLUJO-CONTINUO.md). Al entrar se comprueban
-> primero las tandas aprobadas; al cerrar se abre el siguiente chat sin esperar un «dale».
 
 ## 1. Lo primero, siempre
 
-Corte 30/9: producción web 4.26.67 [publicada y cotejada](docs/briefs/inc-2709-02-prod.md) tras el OK exclusivo de `inc-2709-02-deudas-archivo`; beta 4.26.70.2 conserva siete pruebas pendientes. APK estable 48 y beta 51, sin promoción nativa. El usuario notificó además tres fallos independientes: widget sin «Mi ciclo», gas del 25/9 todavía en «Próximos cargos» el día 30 y nómina de Sabadell visible antes de cobrarla. Revalidar ramas, manifiestos, ZIP, SW, Actions y el estado de cada fallo; no dar por correcto un ingreso ni un cargo por la fecha prevista. El [backlog](docs/BACKLOG.md) conserva las prioridades y el límite de cada tanda.
+Panel76 se prepara sobre beta75/ca7b97d4 por la reclamación de siete tandas: ninguna tiene entrega completa acreditada. El recibo ausente no prueba por sí solo un bug ni autoriza ocultarlas. [Auditoría y límites](docs/briefs/ops-0110-panel-entrega.md); no confundir aprobaciones sintéticas de tests con últimos veredictos remotos.
 
+INC-2909-02: beta4.26.73.1 publicada y cotejada30/9a20:55UTC, PR82/mergea03a2a06/CI36774395712SUCCESS. Candidata separable PR80/3912aa11GOClaude yCI36773669265SUCCESS; integración71b6e552GOClaude,529E2Epass/1skip local y522funcionales+7rendimiento enCI. [Acta](docs/briefs/inc-2909-02-inicio-natural.md). FaltaOKmóvil; producción4.26.67/APK48intacta. Recibos fue rechazado: reparar en chat propio; Claude implementa panelPR83. Hay un coordinador nocturno activo autorizado por eldueño, no duplicarlo.
 
-SEC-03: cliente4.26.57 aprobado y fusionado exclusivamente en main/ece3a2d9 (árbol1af182b3 revisado, CI36351403967 SUCCESS). Beta de continuidad4.26.58.1/2a0e2d3a publicada y cotejada: FIN-05/selector/TR/APK51 intactos, pago pendiente. Edge SEC-03 sin desplegar. OPS-02 visor ya aprobado/publicado4.26.56; recuperación compartida abierta. [Cierre y14 incidencias](docs/BACKLOG.md#cierre-del-día--27-de-septiembre-de-2026) · [Manifiesto de producción](https://juanjoavila.github.io/Aely/version.json).
+Corte 30/9: producción web 4.26.67 [publicada y cotejada](docs/briefs/inc-2709-02-prod.md) tras el OK exclusivo de `inc-2709-02-deudas-archivo`; beta 4.26.71.1 conserva las siete pruebas anteriores y añade la del gas. APK estable 48 y beta 51, sin promoción nativa. El usuario notificó además tres fallos independientes: widget sin «Mi ciclo», gas del 25/9 todavía en «Próximos cargos» el día 30 y nómina de Sabadell visible antes de cobrarla. Revalidar ramas, manifiestos, ZIP, SW, Actions y el estado de cada fallo; no dar por correcto un ingreso ni un cargo por la fecha prevista. El [backlog](docs/BACKLOG.md) conserva las prioridades y el límite de cada tanda.
+
+INC-3009-01: beta 4.26.71.1 publicada y cotejada, CI 36764259812 SUCCESS sobre 79b981ad; pendiente de prueba y aprobación móvil. PR76 permanece en borrador. Siguiente objetivo recomendado: INC-2909-02, 0 % al salir de Mi ciclo, tras volver a comprobar aprobaciones. [Acta](docs/briefs/inc-3009-01-cargos.md).
+
+El corte operativo está en [BACKLOG](docs/BACKLOG.md), [ROADMAP](docs/ROADMAP.md) y el acta más reciente de `docs/briefs/`. Al entrar, actualiza `origin/beta` y `origin/main`, ejecuta `npm run listo` sobre fuente beta efectiva y coteja PR, Actions, manifiestos, ZIP, HTML, SW y APK servidos. Una CI verde o una release publicada no acreditan el veredicto móvil. Si falta `SUPABASE_SERVICE_ROLE_KEY`, `listo` no puede leer aprobaciones y ninguna tanda nueva se presume aprobada.
+
+Corte 29/9, 20:19 UTC: beta `4.26.70.1`/merge `9b0cc935`/huella `4495e50005bdc9eb` y producción web `4.26.66`/`c2b02ed8`; APK estable 4.26.32/code 48 y beta 4.26.55/code 51. Después, el dueño comunicó en chat que aprobó INC-2709-02; su promoción selectiva queda pendiente al cerrar la jornada. INC-2709-01, INC-2809-02 y las cinco tandas nativas conservan sus veredictos propios. [Acta de deudas](docs/briefs/inc-2709-02-deudas-archivo.md) con CI, ZIP, HTML, SW y límite financiero. Hay además un [encargo de auditar «Pruebas» beta](docs/BACKLOG.md#pruebas-beta--auditar-acumulación-antes-de-limpiar--29-de-septiembre-de-2026). El estado público puede haber cambiado desde este corte.
 
 ```bash
 git fetch --all --prune && git log --oneline -5 refs/heads/beta && cat VERSION
@@ -26,6 +44,8 @@ git fetch --all --prune && git log --oneline -5 refs/heads/beta && cat VERSION
 **El trabajo vivo está en `beta`, no en `main`.** `main` es lo que usan su padre y su pareja, y
 suele ir una versión por detrás. Si cortas una rama de `main` estás trabajando sobre código viejo:
 tus arreglos ya pueden estar hechos, y tu bump de versión le BAJARÍA la versión a la gente.
+
+**Deudas (INC-2709-02):** `debtBalance` llega a cero por calendario, aunque nadie haya confirmado la última cuota. No se debe convertir ese 0 proyectado en pago bancario ni borrar la deuda al archivarla: su `id` sigue dando nombre a las cuotas antiguas de Gastos. La confirmación y el archivo viven en Plan → Deudas; el estado y las pruebas están en `docs/briefs/inc-2709-02-deudas-archivo.md`.
 
 ## 2. Las siete trampas que más caro salen
 
@@ -153,3 +173,7 @@ Detalle y checklist en `docs/ROADMAP.md` y `docs/TESTING.md`. **No promocionar s
 La cola post-rechazo se contrasta con `npm run listo` y [docs/BACKLOG.md](docs/BACKLOG.md).
 `docs/memoria/mi-cartera-backlog.md` conserva historia: no asumir que sus rechazos o pendientes
 son actuales. El header del ROADMAP puede ir por detrás del último veredicto.
+
+## Integración aislada del panel75 (1/10/2026)
+
+Base real Recibos74 9ecd6a172e1c451016e6b4e102fa7b8e8bdc5359. No reutilizar GO483e8874 como aprobación del nuevo SHA integrado. Mantener siete referencias históricas: tres códigos idénticos conservan OK, cuatro cambios web de Inicio73 necesitan revisión nueva. No repinar ni recortar dependencias financieras para conservar aprobaciones.75 sigue local; el coordinador autoriza publicación tras verificar74 servida y concede Chromium por lease canónico. Bootstrap main PR92/2f045a1e conserva gate propio; ninguna entrega exacta puede inventarse. [Brief](docs/briefs/ops-3009-03-panel-beta.md).

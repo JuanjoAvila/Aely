@@ -195,7 +195,8 @@ function mcBetaLog(p){
   p=p||{}; const out={};
   ["summary","tanda","tandaTitulo"].forEach(function(k){ if(typeof p[k]==="string") out[k]=mcLogText(p[k]).slice(0,500); });
   ["version","notas"].forEach(function(k){ if(/^\d+\.\d+\.\d+(?:\.\d+)?$/.test(p[k]||"")) out[k]=p[k]; });
-  if(/^(?:approved|rejected)$/.test(p.verdict||"")) out.verdict=p.verdict;
+  if(/^(?:approved|rejected|revoked)$/.test(p.verdict||"")) out.verdict=p.verdict;
+  if(/^[0-9a-f]{8}(?::[0-9a-f]{64})?$/.test(p.huella||"")) out.huella=p.huella;
   if(/^\d{1,6}$/.test(p.apk||"")) out.apk=p.apk;
   ["probados","fallos","sinProbar","noProbable","heredados"].forEach(function(k){ if(Number.isSafeInteger(p[k])&&p[k]>=0&&p[k]<=1000) out[k]=p[k]; });
   if(Array.isArray(p.noProbables)) out.noProbables=p.noProbables.slice(0,30).map(function(x){ return mcLogText(x).slice(0,140); });
@@ -263,6 +264,8 @@ const CATEGORIES = [
   { id:"gaming",     name:"Videojuegos",         color:"#7B8CDE", icon:"🎮" },
   { id:"viajes",     name:"Viajes",              color:"#5B8DEF", icon:"✈️" },
   { id:"transporte", name:"Transporte",          color:"#7FB5E8", icon:"🚇" },
+  { id:"gasolina",   name:"Gasolina",            color:"#E8945F", icon:"⛽" },
+  { id:"taxi",       name:"Taxi",                color:"#E6C36A", icon:"🚕" },
   { id:"parking",    name:"Parking",             color:"#8AA0B8", icon:"🅿️" },
   /* AGUA, LUZ Y GAS POR SEPARADO (2026-09-12). Antes era una sola, «Luz, gas y agua», con un ⚡
      de icono. Suyo: *«sale un símbolo de rayito en Aigües de Barcelona que no encaja para nada…
@@ -323,6 +326,9 @@ const MERCHANT_OVERRIDES = {};
 // Overrides PERSONALES del usuario (comercio→categoría), que aprende al recategorizar a mano.
 // Se puebla desde state.catOverrides al cargar. Tiene prioridad sobre las keywords.
 let USER_OVERRIDES = {};
+// Reglas de equivalencia que él ha enseñado: comercio+banco+tarjeta → {cat, at}. Se pueblan
+// desde state.catRules; las usa solo el pull (ver `keepCategoryChoices`), no las keywords.
+let USER_CAT_RULES = {};
 function catKey(merchant){ return (merchant||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim(); }
 /* EL VOCABULARIO CERRADO DE LAS MÉTRICAS DE USO (ver `cloud.logUso`, más abajo).
    Todo lo que se puede medir está en esta lista y en ningún otro sitio. Es a propósito: con una
@@ -513,7 +519,24 @@ function sugerenciaApuntar(o){
 }
 function categoryOfNewMerchant(merchant){
   if(isAtmWithdrawal(merchant)) return "traspaso";
-  return autoCategory(merchant||"");
+  const cat=autoCategory(merchant);
+  if(USER_OVERRIDES[catKey(merchant)] && !CAT_NEUTRAS[USER_OVERRIDES[catKey(merchant)]]) return cat;
+  return mobilityCategoryOfNewMerchant(merchant,cat);
+}
+// Solo altas nuevas: autoCategory también se usa para leer/migrar «Otros» antiguos.
+// Una marca energética sola no prueba carburante; comida y suministros conservan su finalidad.
+function mobilityCategoryOfNewMerchant(merchant,cat){
+  const c=catKey(merchant);
+  if(cat!=="transporte" && cat!=="otros" && !(cat==="super" && /\bcarrefour gas\b/.test(c))) return cat;
+  if(/\buber[^a-z0-9]*eats\b/.test(c)) return "bares";
+  if(/\b(recarga|recarrega|carga|carrega)\b.*electric|electric.*\b(recarga|recarrega|carga|carrega)\b|\bev charging\b|\bcharging station\b/.test(c)) return "transporte";
+  if(/\brepsol\b/.test(c)){
+    if(/\bluz\b|electric|energia/.test(c)) return "luz";
+    if(/\bgas natural\b|\bfactura gas\b/.test(c)) return "gas";
+  }
+  if(/\b(gasolina|gasolinera|gasoleo|carburante|fuel|petrol|benzina|ballenoil|plenergy|petrocat)\b|\bestacion de servicio\b|\bcarrefour gas\b|\b(repsol|cepsa|shell|bp|galp)\b.*\bdiesel\b/.test(c)) return "gasolina";
+  if(/\b(taxi|cabify|uber|moove|bolt|free ?now|ambitus)\b/.test(c)) return "taxi";
+  return cat;
 }
 function isAtmWithdrawal(merchant){
   const c=(merchant||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
@@ -1102,8 +1125,39 @@ const cloud = (function(){
       // Sacar una cuota de «Deudas» a mano le quita también la marca en la nube; si no, el
       // siguiente pull le devolvería el `debtId` (4.21.0).
       if(e&&e.debtId&&cat!=="deudas") upd.source=expenseSourceForCloud(Object.assign({},e,{debtId:undefined}));
-      const {error}=await expenseCloudEq(sb.from('expenses').update(upd), session.user.id, e);
+      // Devuelve cuántas filas cambió: un UPDATE por id que no casa no da error, y sin ese número
+      // la app daba por subida una categoría que la tabla nunca recibió (2026-10-02).
+      const q=expenseCloudEq(sb.from('expenses').update(upd), session.user.id, e);
+      const {data,error}=await (typeof q.select==="function" ? q.select("id") : q);
       if(error) throw error;
+      return Array.isArray(data) ? data.length : 0;
+    },
+    // Un UPDATE sin filas no confirma una retirada: FIN-04 permite UUID locales divergentes.
+    // No buscar gemelos por parecido ni tocar importe, origen o saldo para salvar esa identidad.
+    async confirmExpenseWithdrawal(e, readState){
+      const ready=function(){ const s=typeof readState==="function"&&readState(); return !!s&&canRecognizeWithdrawal(e,s); };
+      if(!sb || !isExpenseUuid(e&&e.id) || !ready()) throw new Error("withdrawal unavailable");
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) throw new Error("session unavailable");
+      const cols="id,source,cat,fecha,importe,comercio";
+      const read=await sb.from('expenses').select(cols).eq('user_id',session.user.id).eq('id',e.id).maybeSingle();
+      if(read.error) throw read.error;
+      const row=read.data;
+      if(!withdrawalRowMatches(e,row)) throw new Error("withdrawal identity changed");
+      // El vínculo puede llegar mientras se consulta la fila: no neutralizar un pago compartido.
+      if(!ready()) throw new Error("withdrawal unavailable");
+      if(row.cat==="traspaso") return row;
+      if(row.cat!==e.category) throw new Error("withdrawal category changed");
+      const result=await sb.from('expenses').update({cat:"traspaso"})
+        .eq('user_id',session.user.id).eq('id',e.id).eq('source',row.source).eq('cat',row.cat)
+        .eq('fecha',row.fecha).eq('importe',row.importe).eq('comercio',row.comercio).select(cols);
+      if(result.error) throw result.error;
+      const ack=result.data;
+      if(!Array.isArray(ack) || ack.length!==1 || ack[0].cat!=="traspaso" || !withdrawalRowMatches(e,ack[0]))
+        throw new Error("withdrawal unconfirmed");
+      // El UPDATE ya ocurrió: un vínculo llegado durante el envío no convierte su ACK en error.
+      // Esta marca es solo del retorno, nunca de la tabla; permite conciliar únicamente ese envío.
+      return Object.assign({},ack[0],{withdrawalUpdated:true});
     },
     // Cuota de deuda marcada por `marcarCuotasDeDeuda` (4.21.0): categoría y, si es de Open
     // Banking, la marca en `source`. La de la noti (`macrodroid`) conserva su source: un
@@ -1523,7 +1577,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","setExpenseDeuda","deleteExpense","deleteExpensesByIds",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","deleteExpense","deleteExpensesByIds",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -1918,6 +1972,65 @@ function applyEntradaEfectivo(state, amount){
   });
   return Object.assign({}, st, { accounts:accounts });
 }
+// La persona reconoce esta salida concreta; no inferirlo del nombre ni recategorizar historia.
+function withdrawalReceiptLink(state,e){
+  if(!state||!e) return null;
+  const date=String(e.date||"").slice(0,10),ym=Number(date.slice(0,4))*12+Number(date.slice(5,7));
+  // Se mira el vínculo durable, aunque el feed local ya no lo acredite. B puede no tener feed;
+  // deshacer por la puerta existente elimina esta misma prueba de los metadatos compartidos.
+  return (state.fixed||[]).find(function(f){
+    const p=f.paymentProofs&&f.paymentProofs[ym];
+    return p&&p.kind==="expense"&&(p.key===fixedExpenseKey(e)||p.expenseId&&p.expenseId===e.id
+      ||p.identity===fixedPaymentIdentity(expenseBankOf(e),e));
+  })||null;
+}
+function canRecognizeWithdrawal(e,state){
+  const eligible=!!(e && (e.source==="ob"||e.source==="ob-hist") && e.ent && e.ent!=="efectivo"
+    && Number.isFinite(e.amount) && e.amount>0 && !e.possibleDup && !e.debtId
+    && e.category!=="deudas" && e.category!=="inversion");
+  if(!eligible||!state) return eligible;
+  const matches=(state.expenses||[]).filter(function(x){ return x.id===e.id; });
+  if(matches.length!==1) return false;
+  const current=matches[0];
+  return canRecognizeWithdrawal(current)&&!withdrawalReceiptLink(state,current)
+    &&(current.category===e.category||current.category==="traspaso")
+    &&withdrawalRowMatches(e,{id:current.id,source:expenseSourceForCloud(current),fecha:current.date,importe:current.amount,comercio:current.merchant});
+}
+function withdrawalRowMatches(e, row){
+  return !!(row && row.id===e.id && row.source===expenseSourceForCloud(e)
+    && Number(row.importe)===e.amount && Date.parse(row.fecha)===Date.parse(e.date)
+    && row.comercio===e.merchant);
+}
+function applyRecognizedWithdrawal(state, expense, confirmedAt){
+  const rows=state.expenses||[];
+  const matches=rows.filter(function(e){ return e.id===expense.id; });
+  if(matches.length!==1 || !canRecognizeWithdrawal(matches[0],state)) return state;
+  const current=matches[0];
+  if(current.amount!==expense.amount || current.date!==expense.date || current.merchant!==expense.merchant
+     || expenseSourceForCloud(current)!==expenseSourceForCloud(expense)
+     || (current.category!==expense.category && current.category!=="traspaso")) return state;
+  if(current.category==="traspaso") return state;
+  // Solo blinda lecturas arrancadas antes del ACK, sin vetar una corrección posterior del móvil B.
+  return Object.assign({},state,{expenses:rows.map(function(e){ return e===current
+    ? Object.assign({},e,{category:"traspaso",withdrawalConfirmedAt:confirmedAt}) : e; })});
+}
+function reconcileConfirmedWithdrawal(state, expense, ack, confirmedAt){
+  if(!ack || ack.cat!=="traspaso" || !withdrawalRowMatches(expense,ack)) return state;
+  const matches=(state.expenses||[]).filter(function(e){ return e.id===expense.id; });
+  if(matches.length!==1) return state;
+  const current=matches[0];
+  if(!canRecognizeWithdrawal(current) || (current.category!==expense.category && current.category!=="traspaso")
+    || !withdrawalRowMatches(expense,{id:current.id,source:expenseSourceForCloud(current),fecha:current.date,importe:current.amount,comercio:current.merchant})) return state;
+  let next=state;
+  if(withdrawalReceiptLink(state,current)){
+    // Solo un UPDATE confirmado permite deshacer el vínculo que llegó durante su envío.
+    // Se sincronizan metadatos por la misma puerta de Deshacer, sin tocar dinero ni otros pagos.
+    if(ack.withdrawalUpdated!==true) return state;
+    const ds=String(current.date).slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7));
+    next=linkFixedPayment(state,current.id,null,y,m,new Date(y,m,0).getDate());
+  }
+  return applyRecognizedWithdrawal(next,expense,confirmedAt);
+}
 /* EFECTIVO REAL DE TRADE REPUBLIC (availableCash) → base guardada de su cuenta.
    Lo usan los DOS botones que hablan con el puente nativo: la tarjeta de TR y el sincronizador
    general. Antes cada uno tenía un contrato distinto: la tarjeta aplicaba `cash` y el general lo
@@ -2127,7 +2240,7 @@ function mergeExpenses(prevList, incoming){
    añadía claves nuevas — categoría/importe/nota de una fila ya vista nunca se actualizaban.
    Caso medido: Aigües en nube=`energia` y el móvil seguía en `viajes` tras «Ya estás al día».
    Reglas: no pisar `cat` de un apunte manual; no pisar `note` si él la editó; nunca borrar. */
-function refreshExpenseFromCloud(local, incoming){
+function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(!local||!incoming) return local||incoming;
   const manual=isManualExpenseSource(local.source);
   let out=local;
@@ -2142,7 +2255,8 @@ function refreshExpenseFromCloud(local, incoming){
   // Una cuota ya marcada no vuelve a «otros» porque la nube aún no se haya enterado (4.21.0): la
   // subida puede ir por detrás del pull, y la fila de la noti ni siquiera lleva la marca en `source`.
   const cuotaLocal=local.debtId && local.category==="deudas";
-  if(!manual && !cuotaLocal && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
+  const withdrawalRecent=readStartedAt!=null && local.withdrawalConfirmedAt>=readStartedAt;
+  if(!manual && !cuotaLocal && !withdrawalRecent && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
   if(incoming.amount!=null && isFinite(incoming.amount)) put("amount", incoming.amount);
   if(incoming.merchant!=null && incoming.merchant!=="") put("merchant", incoming.merchant);
   if(Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
@@ -2178,7 +2292,7 @@ function refreshExpenseFromCloud(local, incoming){
 }
 /* Mezcla el pull con lo local: refresca campos de claves ya vistas y solo AÑADE las nuevas.
    Nunca elimina una clave que solo exista en local (contención 4.18.6 / FIN-07). */
-function mergeExpensesFromCloud(prevList, incoming){
+function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
   const byKey={}; const order=[];
   (prevList||[]).forEach(function(e){
     const k=keyOfExpense(e);
@@ -2191,11 +2305,116 @@ function mergeExpensesFromCloud(prevList, incoming){
     seen[k]=1;
     const loc=byKey[k];
     if(!loc){ byKey[k]=inc; order.push(k); changed=true; nuevos++; return; }
-    const merged=refreshExpenseFromCloud(loc, inc);
+    const merged=refreshExpenseFromCloud(loc, inc, readStartedAt);
     if(merged!==loc){ byKey[k]=merged; changed=true; }
   });
   const list=order.map(function(k){ return byKey[k]; });
   return { list:list, changed:changed, nuevos:nuevos };
+}
+
+/* LA CATEGORÍA QUE ÉL ELIGIÓ NO LA DESHACE UN PULL (2026-10-02).
+   Corregía a Restaurantes un comedor cuyo nombre lleva el de una aseguradora y cada día volvía a
+   Recibos, por dos caminos: (1) la nube seguía con la categoría vieja —el UPDATE va por id y puede
+   no tocar ninguna fila sin dar error— y `refreshExpenseFromCloud` pisa la de toda fila no manual;
+   (2) el cargo del día siguiente lo categoriza el servidor por palabra clave, sin conocer lo
+   aprendido, y `resolveCategory` acepta lo que venga.
+   No se arregla con una regla de aseguradoras: el alias es ambiguo y un seguro de verdad tiene
+   que seguir en Recibos. Se respeta SU decisión, y solo donde la tomó:
+     · `catStale` (solo local) guarda las categorías que la nube aún puede devolver mientras la
+       subida no esté CONFIRMADA. Sin confirmar, manda lo local y se reintenta con la identidad
+       de la fila de la nube. Confirmada (`catAckAt`), cualquier lectura empezada después es la
+       verdad, aunque diga la categoría vieja: es que la cambió en otro móvil.
+     · una regla por comercio exacto + banco + con/sin tarjeta (`catRules`): un recibo domiciliado
+       con el mismo nombre en otro banco no es el mismo sitio. La fila que este móvil ve por
+       primera vez, con fecha POSTERIOR al instante en que lo enseñó, nace con lo aprendido.
+       Lo anterior no se toca, tampoco en un móvil recién instalado ni al corregir un gasto
+       antiguo; una fecha sin hora del mismo día cae antes y se queda como venga.
+   Va ANTES de `mergeExpensesFromCloud` y solo prepara sus entradas: devuelve las mismas
+   referencias si no hay nada que proteger, para no reescribir el histórico en cada pull. */
+function catRuleKey(e){ return catKey(e&&e.merchant)+"|"+((e&&e.ent)||"")+"|"+((e&&e.noCard)?"0":"1"); }
+function catStaleAfter(e, newCat){
+  if(!e || e.category===newCat || isManualExpenseSource(e.source)) return e&&e.catStale;
+  const prev=(e.catStale||[]).filter(function(c){ return c!==newCat; });
+  return prev.indexOf(e.category)<0 ? prev.concat([e.category]) : prev;
+}
+// La nube confirmó que escribió `cat` en esa fila: desde `at`, lo que lea de ella es verdad.
+function ackCategoryWrite(list, row, cat, at){
+  const k=keyOfExpense(row);
+  let out=list;
+  (list||[]).forEach(function(e,i){
+    if(!e.catStale || e.category!==cat || e.catAckAt!=null || keyOfExpense(e)!==k) return;
+    if(out===list) out=list.slice();
+    out[i]=Object.assign({},e,{catAckAt:at});
+  });
+  return out;
+}
+function keepCategoryChoices(prevList, incoming, readStartedAt){
+  const out={ prev:prevList, incoming:incoming, recat:[] };
+  const stale={}; let hayStale=false;
+  (prevList||[]).forEach(function(e,i){ if(e && e.catStale){ stale[keyOfExpense(e)]=i; hayStale=true; } });
+  let minAt=Infinity;
+  for(const k in USER_CAT_RULES){ const at=USER_CAT_RULES[k]&&USER_CAT_RULES[k].at; if(Number.isFinite(at) && at<minAt) minAt=at; }
+  if(!hayStale && minAt===Infinity) return out;
+  // `expenseFromRow` emite siempre ISO en UTC: comparar texto descarta el histórico sin parsear.
+  const minIso=minAt===Infinity ? "" : new Date(minAt).toISOString();
+  let prevKeys=null;
+  const esNueva=function(k){
+    if(!prevKeys){ prevKeys={}; (prevList||[]).forEach(function(e){ prevKeys[keyOfExpense(e)]=1; }); }
+    return !prevKeys[k];
+  };
+  const swap=function(i, row){ if(out.incoming===incoming) out.incoming=incoming.slice(); out.incoming[i]=row; };
+  const soltar=function(at, loc){
+    if(out.prev===prevList) out.prev=prevList.slice();
+    const libre=Object.assign({},loc); delete libre.catStale; delete libre.catAckAt;
+    out.prev[at]=libre;
+  };
+  (incoming||[]).forEach(function(inc, i){
+    if(hayStale){
+      const at=stale[keyOfExpense(inc)];
+      if(at!=null){
+        const loc=out.prev[at];
+        if(!loc.catStale) return;   // misma clave repetida en el pull: ya se resolvió arriba
+        if(loc.catAckAt!=null){
+          // Lectura empezada antes de la confirmación (o sin hora): puede ser una foto vieja.
+          if(readStartedAt!=null && loc.catAckAt<readStartedAt) soltar(at, loc);
+          else if(inc.category!==loc.category) swap(i, Object.assign({},inc,{category:loc.category}));
+        }else if(inc.category!==loc.category && loc.catStale.indexOf(inc.category)>=0){
+          swap(i, Object.assign({},inc,{category:loc.category}));
+          out.recat.push({ expense:inc, cat:loc.category });
+        }else{
+          // La nube ya dice lo mismo, o decidió otra cosa en otro móvil: deja de proteger.
+          soltar(at, loc);
+        }
+        return;
+      }
+    }
+    if(minAt===Infinity || !CAT[inc.category] || isManualExpenseSource(inc.source)) return;
+    if(!(inc.date>minIso)) return;
+    // Fecha ilegible = no se sabe si es posterior: no se toca (`dateMs` la daría por hoy).
+    const ms=Date.parse(inc.date);
+    const rule=USER_CAT_RULES[catRuleKey(inc)];
+    if(!rule || rule.cat===inc.category || !CAT[rule.cat] || !(ms>rule.at)) return;
+    if(!esNueva(keyOfExpense(inc))) return;
+    swap(i, Object.assign({},inc,{category:rule.cat, catStale:[inc.category]}));
+    out.recat.push({ expense:inc, cat:rule.cat });
+  });
+  return out;
+}
+/* Lo aprendido ANTES de existir las reglas no trae ni fecha ni contexto. No se inventan: se
+   deducen de las filas que él ya tiene corregidas (mismo comercio, categoría = la aprendida) y
+   valen desde hoy. Sin ninguna fila que lo pruebe no hay regla, y la próxima corrección la crea.
+   Una vez, y solo con gastos cargados: llegan en un segundo viaje (ver `fixMovInvasion`). */
+function seedCatRules(s){
+  if(!s || s._catRulesSeed || !Array.isArray(s.expenses) || !s.expenses.length) return s;
+  const ov=s.catOverrides||{}, rules=Object.assign({}, s.catRules||{}), ahora=Date.now();
+  if(Object.keys(ov).length){
+    s.expenses.forEach(function(e){
+      if(!e || isManualExpenseSource(e.source)) return;
+      const cat=ov[catKey(e.merchant)], k=catRuleKey(e);
+      if(cat && cat===e.category && CAT[cat] && !rules[k]) rules[k]={ cat:cat, at:ahora };
+    });
+  }
+  return Object.assign({}, s, { catRules:rules, _catRulesSeed:true });
 }
 
 /* ¿El estado bajado de la nube tiene forma válida? Evita machacar lo local con algo corrupto/parcial.

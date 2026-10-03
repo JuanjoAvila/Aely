@@ -1,8 +1,25 @@
 # Arquitectura — Aely
 
-## Liquidación y archivo de deudas (4.26.67)
+## Widget80 sobre guardias de nómina y retirada
 
-`debtBalance` proyecta el saldo con `value`, `asOf` y la amortización mensual; un 0 calculado no prueba el pago bancario. `settledAt` solo se fija tras confirmación explícita en Plan → Deudas o una amortización total introducida por la persona. `archivedAt` se admite únicamente con saldo cero y liquidación confirmada; oculta la tarjeta de la lista activa, pero conserva la deuda y su `id` en `state.debts`. Gastos y sus filtros siguen resolviendo los movimientos con `debtId` contra esa colección completa. Mostrar de nuevo una deuda archivada no la convierte en pendiente: para corregir un saldo real positivo se edita, y esa edición limpia la marca de liquidación. El borrado físico se bloquea si alguna fila de gasto está vinculada. No se crean pagos ni se reescribe el histórico.
+V2 sigue dashboardBudgetStats de Inicio, declara ventana/ancla/magnitud/reservas/bancos/idioma y solo confirma eventos recibidos del último pull completo. Java conserva desconocidos hasta ACK/lápida; no inventa delta con ingestlegacy ni degrada contrato por timeout. El injerto mantiene readStartedAt/merge de79 y su conciliación de recibos, así como importación de ingresos BOOK no futuros de78. Source821 se mantiene equivalente; los cambios de esas primitivas se revisan con scopes transitorios de funciones/datos de79. APK52 exclusiva beta, no despliegue Edge/SQL. [Acta](briefs/inc-2909-01-widget.md).
+
+## Ingresos bancarios pendientes y futuros (INC-3009-02)
+
+`importObExpenses` admite abonos con estado normalizado BOOK o ausente y fecha bancaria
+YYYY-MM-DD válida no posterior a hoy Madrid (`madridYmdParts`). Rechaza antes de seen/keys,
+permitiendo que el mismo abono futuro entre al llegar su día. PDNG y estados desconocidos no
+crean ingresos; sin estado conserva compatibilidad, sin confirmar por ello el flujo adelantado.
+No altera cargos, saldos API ni filas históricas. El calendario de ancla/periodo local del ciclo
+queda fuera y puede diferir del día Madrid en UTC. Lista blanca conserva riesgo OTHR documentado;
+no añade telemetría financiera. [Acta](briefs/inc-3009-nomina-anticipada.md).
+
+
+## Presupuesto de Inicio mensual (INC-2909-02)
+
+`dashboardBudgetStats` pide modo bruto al argumento opcional `budgetMode` de `monthBudgetStats`, sin otro recorrido del histórico ni cambiar `gTotalMode`. En mes natural, frase, anillo, margen, Pregúntame, avisos y reto describen las mismas compras y el límite tras reservas. El ciclo reconocido conserva neto, incluso negativo; Gastos e informes mantienen sus propias llamadas y modos. El widget v2 sigue Inicio desde APK52; APK51 conserva su payload legado. No modifica saldos ni escrituras.
+
+INC-0210-03, candidata84: Gastos pasa una ventana explícita opcional a `monthBudgetStats` y `categorySpentByMonth`, calculada por el mismo `presetBoundsMs` de la lista. Los demás lectores conservan su ventana anterior. Las cifras y categorías leen el mismo array diferido que las filas; búsqueda, banco y categoría siguen siendo filtros exploratorios. El rango usa medianoche/final del día locales; mes y tres meses terminan al cierre del mes seleccionado, y Mi ciclo al final de hoy. La nómina ancla y los ingresos del ciclo conservan sus reglas. Fuera del mes/ciclo actual no hay presupuesto histórico ni acumulado registrado: se muestran presupuesto/margen desconocidos con motivo y se omiten barras de límites mensuales de categoría. No modifica preferencias, datos, saldos ni el payload nativo.
 
 ## Presupuesto por cobro real (4.26.65)
 
@@ -20,6 +37,22 @@ En la 4.26.62, `monthBudgetStats` conservaba la ventana de mes natural y la mism
 
 En 4.26.62, `reconcileEarlyIncomeAnchors` conserva en el flujo solo `paidYm/paidDay/paidBank/paidAmount` tras una atribución inequívoca. `bankTx` continúa local; el marcador y las cuentas reancladas viajan juntos en `app_state`. `monthNetForAccount` emplea el día confirmado para ese mes y el planificado para los demás. La base `value` se despeja en la misma transición con la fórmula real de `saldoCuentaMostrada`, de forma que el saldo visible no cambia al actualizar. El reconocimiento se repite sin efecto al cargar, al adoptar la nube y tras una sincronización bancaria; si no hay feed válido se conserva el estado anterior. Cerrar sesión vacía `bankTx`, y un cambio efectivo de usuario lo descarta antes de adoptar su nube; `INITIAL_SESSION` y `TOKEN_REFRESHED` conservan el feed en frío porque pueden adelantarse a `getSession`. Si hay varias cuentas de recibos en la misma entidad, `bankTx` no identifica la cuenta de destino y la confirmación automática se omite: la suma anterior de `paidNet` por entidad sigue pendiente de corregir sin alterar saldos existentes. Un cliente de versión anterior no interpreta el marcador aunque comparta `accounts.value`, por lo que no se debe sincronizar el mismo banco desde clientes de distinta versión durante la prueba. Cambiar importe o banco invalida el marcador y conserva el saldo actual. No se reconstruyen meses pasados ni se atribuyen transacciones ambiguas.
 
+## Persistencia del widget (4.26.55)
+
+El journal conserva eventos no cubiertos por la foto cloud. El parser tolera indentación del XML únicamente en líneas vacías e identificadores; vuelve a evaluar journalFull tras una foto de app, sin descartar entradas dañadas ni deltas desconocidos. La serialización nueva usa separadores entre eventos sin salto final. El tamaño restante sigue limitado; una recuperación necesita APK51, no OTA.
+
+## Lápidas y contabilidad local (4.26.54)
+
+`expenseCountsBudget` excluye filas cubiertas por `deleted` mediante `expenseIsTombstoned`; presupuesto y categorías heredan el criterio del servidor antes de `statsDelMes`. Gastos y últimos movimientos de Inicio las ocultan sin podar arrays ni borrar por ausencia. Copias de seguridad conservan el histórico crudo. No cambia identidad ni decisiones de duplicados. UUID manual y claves antiguas siguen vigentes. WeakMap indexa cada array `deleted`; los escritores lo reemplazan por copia y los memos de presupuesto dependen de él.
+
+`expenseCountsCash` y `insumosSaldoGasto` conservan su comportamiento: no se trasladan las lápidas de presupuesto a los anclajes de saldo. Una base histórica puede haberse despejado incluyendo esa contribución; retirarla sin reanclaje verificable movería efectivo. Este arreglo del Gastado no migra bases ni pretende resolver la contabilidad de una lápida en una cuenta calculada. Tras instalar APK51, el widget recupera sus cifras y Gastado/Disponible se mantienen al reabrir. El saldo mostrado difiere de la captura anterior a abrir la app: su coherencia entre ambas fotos no queda validada. FIN-05 sigue pendiente de repetir pago real.
+
+## Clasificación bancaria opcional (beta 4.26.53.1)
+
+`mapTransaction` mantiene nombre/nota/identidad y transmite `concept` solo desde remittance_information más `mcc` opcional de cuatro dígitos. La descripción del código bancario sigue en note pero nunca se usa para clasificar como comercio. `flattenBankTx` y `histFlattenHistoryLinks` transmiten esos campos a `categoryOfBankTx`, usado solo al crear nuevos gastos. La categoría aprendida/reconocida por nombre gana; después concept solo con tarjeta y nombre genérico Movimiento/Movement/Transaction/vacío, excluyendo transferencia/Bizum/recibo/alquiler/nómina/devolución/refund; después MCC acotado (5411 super, 5462 pan, 5812/5813/5814 bares). Un Otros aprendido gana también; categorías neutras/modelados/ingresos conservan sus rutas. No cambia identidad, nombre persistido, dedup, lápidas, ACK ni histórico existente. Note conserva el concepto visible. Sin datos útiles, Otros. Cliente antiguo ignora ambos campos y cliente nuevo mantiene comportamiento anterior sin ellos; bank-sync compartido desplegado con autorización el 26/9/2026 (Action 36271682736, SHA 7839acb7), sin migraciones. Cliente publicado en beta 4.26.53.1, Action 36271729679/SHA f2f3839e. Sin sincronización real TR verificada; véase el brief TR para evidencia y límites.
+
+Contratos oficiales: [Enable Banking Transaction](https://enablebanking.com/docs/api/reference/#transaction) y [Visa Merchant Data Standards, abril 2026](https://usa.visa.com/dam/VCOM/download/merchants/visa-merchant-data-standards-manual.pdf). No se ha verificado que TR entregue estos campos en una conexión real.
+
 ## Descarga de gastos cloud (FIN-07, 4.26.52)
 
 `pullExpenses` recorre la tabla accesible por RLS con `id DESC` y `id < cursor`, en páginas de hasta 1000. Una página corta puede reflejar un límite de PostgREST; solo una página vacía termina. UUID es clave primaria estable; `fecha` puede editarse y no sirve de cursor. Se valida progreso estricto y se acumula en memoria, sin mezclar ni guardar por página. El resultado vuelve en fecha DESC/id DESC para conservar la prioridad previa de la mezcla y los ACK de FIN-05. Un error/payload inválido rechaza todo; `syncCloudExpenses` no actualiza estado ni coveredEvents con páginas parciales.
@@ -27,6 +60,10 @@ En 4.26.62, `reconcileEarlyIncomeAnchors` conserva en el flujo solo `paidYm/paid
 No hay snapshot común entre peticiones: filas existentes que conservan UUID y visibilidad se recorren una vez; altas en un tramo ya recorrido y ediciones posteriores a la lectura se recuperan en otro pull. Una ausencia nunca se convierte en borrado, lápida ni decisión de duplicado. `mergeExpensesFromCloud` mantiene su identidad FIN-03 y reglas de notas; una sola mezcla final conserva referencias cuando no cambia nada y el guardado partido. Con backend actual no se promete detectar filas que pierden visibilidad mientras se descarga.
 
 `flattenBankTx` ya reúne `accounts[].transactions` sin tope global y guarda el feed diario en `bankTx`. No equivale a un histórico bancario completo: Edge diario pide mes vigente con margen, y el proveedor tiene límites de 2000 filas/12 páginas/tiempo por cuenta. El import histórico separado conserva UID/cuenta y avisos de recorte. El aplanado diario conserva banco, no UID; ampliar esa identidad exige otro objetivo. Una descarga completa de expenses no elimina estos límites externos. Sin cambio ni despliegue de Edge/migraciones. El orden por PK funciona sin nuevo índice compuesto user_id/id; su coste bajo RLS queda pendiente de medición backend autorizada.
+
+## Liquidación y archivo de deudas (4.26.67)
+
+`debtBalance` proyecta el saldo con `value`, `asOf` y la amortización mensual; un 0 calculado no prueba el pago bancario. `settledAt` solo se fija tras confirmación explícita en Plan → Deudas o una amortización total introducida por la persona. `archivedAt` se admite únicamente con saldo cero y liquidación confirmada; oculta la tarjeta de la lista activa, pero conserva la deuda y su `id` en `state.debts`. Gastos y sus filtros siguen resolviendo los movimientos con `debtId` contra esa colección completa. Mostrar de nuevo una deuda archivada no la convierte en pendiente: para corregir un saldo real positivo se edita, y esa edición limpia la marca de liquidación. El borrado físico se bloquea si alguna fila de gasto está vinculada. No se crean pagos ni se reescribe el histórico.
 
 ## Ahorro mensual en Metas (4.26.25)
 
@@ -46,14 +83,20 @@ con menos margen y la respuesta local no pueden discrepar. Una deuda sin día si
 pendiente, pero nunca se convierte en una fecha visible inventada. Un saldo ausente conserva el
 estado desconocido; no se normaliza a cero.
 
-Al editar el día de un fijo, `reconcileBank` separa la fecha prevista de la ocurrencia real mediante
-`paidYm` + `paidDay`. La ausencia de pareja solo crea `wait` si el feed de esa cuenta cubre el día
-y `lastBankSync` pertenece al mismo día local y tiene menos de 30 minutos. El límite evita que un
-movimiento antiguo del mes niegue un cobro de madrugada que aún no estaba en el extracto guardado.
-No dispara una sincronización automática: con feed viejo manda el calendario; tras sincronizar,
-una coincidencia exacta gana siempre y una ausencia reciente puede mantener el recibo pendiente.
-La ausencia sigue siendo una inferencia conservadora, no una confirmación del banco: una
-domiciliación puede tardar en contabilizarse aunque la lectura sea reciente.
+Inicio y la clasificación de fijos de Plan usan `fixedPaymentState` para separar fecha prevista
+y evidencia de pago (INC-3009-01). Un cargo BOOK hasta hoy, del banco y mes, con nombre/importe
+compatibles solo acredita pago si hay un único cargo y recibo/cuenta compatible. El importe puede
+ser el bruto compartido o el de esa ocurrencia del calendario. `paidYm` + `paidDay` válido conserva
+la confirmación en otro dispositivo sin feed. No se escribe estado al renderizar. Sin evidencia,
+un fijo vencido sigue pendiente y se muestra «Sin pago acreditado»; sin día muestra —.
+
+Editar el día usa la misma lectura antes de persistir una confirmación. La conciliación advisory
+puede aportar cobertura para `wait` únicamente con feed reciente del mismo día local; esa ausencia
+no acredita un pago ni prueba impago. No dispara una sincronización bancaria automática. La
+proyección monetaria (`isPaidIn`, `monthNetForAccount`) conserva su contrato de calendario para
+no reanclar saldos por esta corrección de tarjetas. Deudas, puntuales e ingresos no cambian en
+INC-3009-01. El caso real aún exige comprobación móvil; un feed ausente, incompleto o ambiguo
+no permite identificar un recibo por suposición.
 
 `BillsManagePush`, también en `14-v4-screens.js`, es la única pantalla de gestión de recibos. Se
 abre desde Plan o desde Ajustes → Dinero. En un arranque frío, Ajustes deja la intención en
@@ -184,18 +227,45 @@ vigila que el trabajo no crezca con el histórico; esto vigila lo que hay que ba
 
 ## Flujo de datos
 
-### Consulta de copias (OPS-02)
+### Consulta de copias (OPS-02, publicada4.26.56)
 
-AutoBackupsPanel valida y conserva la copia en estado React propio. Compara UUID/campos e importes guardados con la cartera activa; no usa el setter de App, mcSaveRaw ni escritores cloud. El pull ordinario sigue sobre la cartera activa; la copia no participa en backfill. Cerrar/reiniciar descarta el visor. Legado o UUID ambiguos quedan separados.
+`AutoBackupsPanel` valida la copia y la mantiene en su estado React propio. El visor compara
+UUID/campos e importes guardados con la cartera actual y pagina los registros. No llama al
+`set` de App, `mcSaveRaw` ni a escritores cloud; el pull ordinario de App continúa sobre la
+cartera activa, sin mezclar la copia. Legado/UUID repetidos de la cartera actual quedan sin
+correspondencia segura. Copia corrupta rechazada antes de abrir.
+La recuperación compartida permanece desactivada: el antiguo reemplazo conectado, reproducido
+en la base `f7b66aef`, modificaba `app_state` y podía resucitar borrados por backfill. El diseño
+de una aplicación financiera requiere identidad/revisión/ACK y autorización propios.
+[Ensayo histórico, aceptación del visor y límites](briefs/ops02-restauracion-probada.md).
 
-La recuperación compartida permanece desactivada: el reemplazo conectado anterior podía modificar app_state y resucitar borrados por backfill. Recuperar exige identidad/revisión/ACK y autorización propios. [Ensayo y límites](briefs/ops02-restauracion-probada.md).
-
-El widget recibe `monthBudgetStats` desde la app al cambiar sus cifras y al volver a primer plano,
-tanto por `visibilitychange` como por `App.appStateChange` de Capacitor. Son señales distintas en
-Android; escuchar solo la primera podía dejar el último total escrito por ingest aunque la app
-ya mostrase otro. La reactivación solo reenvía el snapshot local, no sincroniza Open Banking.
+El widget recibe `monthBudgetStats` desde la app al cambiar sus cifras. Al volver a primer plano,
+`visibilitychange` o `App.appStateChange` disparan primero la lectura de gastos de Supabase y
+solo tras completarla se envía el snapshot local: el estado anterior a la notificación no puede
+deshacer su cifra. No se sincroniza Open Banking. En Android, `WidgetSnapshotArbiter` asigna un
+ticket a cada ingest: el absoluto mensual más reciente gana por `readAt`, cada evento mueve el
+efectivo de TR una sola vez. Cada push lleva los IDs vistos y las lápidas; el nativo reaplica
+los eventos todavía ausentes del pull y descarta los cubiertos o borrados. Los eventos aún en
+vuelo se aplican por su contribución a gasto y presupuesto; una inversión
+planificada baja el efectivo sin volver a reservarse en la liquidez segura. El período
+es Europe/Madrid; si cambia sin una lectura nueva, el widget muestra «—» hasta recibir datos.
 Al convertir `expenses` con `expenseFromRow`, las categorías especiales `ingreso`, `inversion`
 y `traspaso` se conservan aunque no pertenezcan al catálogo ordinario de categorías.
+
+La categoría elegida a mano no la deshace un pull (4.26.86). Antes de mezclar,
+`keepCategoryChoices` mira la procedencia local de la fila: `catStale` son las categorías que
+la tabla puede devolver todavía y `catAckAt` la hora en que `cloud.setExpenseCat` confirmó que
+escribió al menos una fila. Sin confirmación se conserva lo local y se reintenta con el id de la
+fila de la nube. Con confirmación, una lectura empezada después es la verdad, diga lo que diga.
+Ninguno de los dos campos viaja a la nube.
+
+Las equivalencias futuras son `catRules` (en `app_state`): comercio exacto + banco + con o sin
+tarjeta → categoría e instante en que se enseñó; vale para fechas posteriores a ese instante. Solo las aplica el pull, y solo a filas que el
+dispositivo ve por primera vez. `catOverrides` sigue siendo lo que usan las palabras clave al
+importar. Como `app_state` es último-en-escribir-gana, una regla recién creada puede no haber
+llegado a otro dispositivo, o perderse si este sube un estado más viejo: allí la fila entra con la
+categoría del servidor hasta que la tabla reciba la corrección. El servidor sigue categorizando
+por palabra clave.
 
 ```
 [Notificación TR en Android]
@@ -204,7 +274,7 @@ y `traspaso` se conservan aunque no pertenezcan al catálogo ordinario de catego
 [POST → Edge Function `ingest`]   (?token= por usuario)
         │  clasifica + categoriza (KW)
         ▼
-[Postgres: expenses]  → app al Sincronizar
+[Postgres: expenses]  → app al volver a primer plano o al Sincronizar
 
 [Notificación Caixa/Sabadell/…]
         │  bankNotif → runBankSync (sin parsear importe)
@@ -362,8 +432,76 @@ escribir `Access-Control-Allow-Origin: "*"`.
 - Play Store (Data safety + NotificationListener).
 - Feedback de uso real.
 
+### Elección del banco del widget (4.26.50)
+
+`settings.widgetBank` guarda una entidad bancaria del estado principal. `widgetBankOf` resuelve la elección y vuelve a la cuenta `spendFrom` si falta. App envía `cashEnt`, `cashLabel`, `cash` y `safeLiq` de ese banco con el presupuesto global existente. El efecto depende también de `cashEnt`: bancos con cifras iguales deben actualizar el widget. No cambia los roles, filtros de gasto, servidor ni contrato nativo; las cuentas del mismo banco se agregan. Efectivo y Familia se excluyen de la elección explícita y sus opciones. El automático conserva el spendFrom original, incluido Efectivo si era diario.
+
 FIN-06: FX puro devuelve null sin tipo (nunca 1:1). Las sumas vivas omiten conversiones desconocidas con aviso de total incompleto; el original permanece en cuentas OB/inversiones. No se ancla ni registra histórico EUR incompleto. Frankfurter v1 descarga todo el catálogo BCE y conserva tipos guardados para offline; USD de respaldo procede de state.fx, sin valor ficticio para estados nuevos. Movimientos persistidos siguen en EUR y no se migran.
 
 ## SEC-03: frontera de diagnósticos
 
 Cliente probado y aprobado en beta 4.26.57.1; entrega exclusiva cliente 4.26.57 mediante PR49, Edge sin despliegue: los errores automáticos se reducen antes del transporte a operación y clase cerrada; app_events ya no añade el correo de sesión. El sobre Sentry se reconstruye por lista permitida (tipo/código/posición/versión/plataforma), sin contextos, breadcrumbs, tracing ni URL de petición. Feedback y notas de beta explícitos redactan patrones sensibles y filtran campos, con límites semánticos. user_id sigue siendo necesario para RLS: no es telemetría anónima. Matriz, pruebas y límites Edge/gateway en [SEC-03](briefs/sec03-privacidad-logs.md).
+
+## Evidencia de pago de recibos · INC-3009-01
+
+Inicio y Plan consultan `fixedPaymentState`. El feed BOOK solo acredita un cargo del mes, no futuro, con nombre/importe/banco compatibles y atribución única. El importe sin identidad no prueba pago. En la sincronización bancaria a demanda, `reconcileFixedPaymentProofs` conserva esa evidencia en `fixed[].paymentProofs[year*12+month]`, dentro de app_state; bankTx continúa siendo local y no viaja a la nube.
+
+Gastos → ficha → «Paga un recibo» permite confirmar explícitamente un cargo con nombre u origen bancario distintos. Requiere un único movimiento positivo, no duplicado/neutro/borrado ni asignado a deuda, del mes del recibo. El previsto no es una factura: una igualdad o tolerancia de importe excluiría agua variable y divisas. El diálogo muestra importe real y previsto y exige afirmar el pago completo; si es parcial se cancela. Ninguna diferencia acredita pago automáticamente ni aprende por parecido. El vínculo se puede deshacer. La prueba conserva identidad, banco, fecha e importe del cargo y firma del modelo; cambios de nombre, cuenta o importe la invalidan, y el cargo no se reutiliza para dos recibos. Sin feed ni expenses locales, la confirmación viaja con el fijo. Una lápida, duplicidad, PDNG o asignación a deuda/ingreso observados impiden usarla; el id detecta ediciones que cambiaron su clave.
+
+`paymentProofs` solo clasifica evidencia en la UI: no escribe `paidYm`, `paidDay`, cuentas, gastos, categoría ni anclajes. Las proyecciones de saldos mantienen su contrato anterior; vincular no aplica otro descuento ni resuelve duplicidades históricas de dinero. No se añaden sincronizaciones automáticas, tablas, funciones Edge ni cambios nativos.
+
+En «Ya pagado», `paidBank` muestra el banco real del cargo confirmado. El banco previsto del recibo continúa en `bank` para su calendario y proyección: acreditar un pago desde otra entidad no cambia automáticamente los recibos futuros.
+
+Si el importe bruto real difiere del previsto, Plan muestra «Cargo» con el bruto acreditado y «Previsto» con la magnitud del calendario, también en el total. `paidAmount` y `plannedBankAmount` solo permiten nombrar esa diferencia; `amount` sigue siendo la previsión propia. Un compartido previsto de42 bruto/21 propio y cargo real44 no permite inferir22 propios. La vinculación conserva21 previsto y muestra44 de cargo por separado, sin recalcular saldo ni gasto.
+
+Al renombrar un cargo bancario con nombre original estable, el editor retira la clave vieja para que no se reimporte. `rekeyFixedPaymentExpense` sigue la nueva clave únicamente si identidad bancaria/id, modelo, elegibilidad y unicidad siguen vigentes; conserva los campos de pago y el saldo. Una lápida del cargo nuevo continúa siendo destructiva. Renombrar una notificación sin nombre original estable cambia identidad: la prueba deja de acreditar y requiere confirmación explícita nueva. Una prueba válida tras renombrar también viaja en app_state sin gastos locales; estado y gastos siguen siendo transportes separados, sin transacción distribuida nueva.
+
+## Panel beta: identidad y entrega (OPS-3009-03, integración75)
+
+`scripts/beta-sources.json` declara fuentes y bloques inequívocos por tanda/superficie; `beta-revisions.mjs` normaliza CRLF y genera SHA-256. Una tanda moderna sin alcance o bloque activo ausente/ambiguo aborta build. No hay fallback global ni recibo de Android/Edge a partir de Git. `beta-delivery.json` acredita web ensamblada y sourceSha real en CI (null local). Los alcances no son un análisis automático de dependencias: deben auditarse al cambiar lectores o helpers.
+
+`betaHuella` combina guion y código; `betaVerdictFor` comparte reglas entre panel y listo. Última decisión rechazada/retirada prevalece, historial conserva decisiones anteriores, desde solo hereda código/guion iguales auditados. Tres revisiones siguen idénticas; cuatro widgets cambian realmente en web por Inicio73, sin cambios Android/Edge ni referencia histórica repinada. Aprobación y entrega exacta son distintas; sin recibo de una superficie requerida se conserva pendiente. El APK51 es legado y no acredita widget52.
+
+## Ampliación auditada de cobertura (panel75)
+
+`beta-source-code.mjs` delimita declaraciones con vm.Script y contempla funciones, const/flechas, datos de nivel superior y sus dependencias transitivas de lógica00/01/08. Ignora comentarios, textos, regex y propiedades; distingue lecturas en ternarios y recoge varias variables de una declaración. Una plantilla interpolada no admitida aborta. Los guardianes mutan cuerpos y valores de cada dependencia; una ancla que desaparece debe abortar build. Se incluyen zona horaria/cachés de mes, REC_GRACE, categorías/reglas, CONFIG, lápidas, divisa y formato numérico. Solo datos de textos/idiomas se excluyen con motivo explícito en benignData; benignCalls conserva sus excepciones de traducción/transporte/telemetría. El recorrido de identificadores es conservador y no es un análisis general de llamadas dinámicas, aliases/métodos o variables de otros módulos; los alcances requieren revisión al editar lectores.
+
+TR y ayuda conservan fuente idéntica tras ampliar cobertura; sus hashes ampliados se calculan desde17aeacc03f595412c044d276c900707cbbd008c8. Arranque se compara desde26972970d216f272b0d555d7d8548bb99afd6ba5. `auditoria.ampliada` identifica ese commit, huella original y digest de las superficies ampliadas. El builder verifica identidad del commit y correspondencia con codigoDesde/revisionesDesde originales, conserva esos datos en referenciaAnterior y compara con el digest histórico ampliado. src conserva intactas las siete referencias originales; un helper nuevo que difiere del commit histórico exige revisión nueva, aunque versión y guion sean iguales. No se pincha el baseline a HEAD. El builder vuelve a leer Git histórico y calcula el digest del descriptor almacenado en auditoria.ampliada.scope: rechaza incluso metadata forjada de forma coherente con un helper de HEAD. Si falta el commit/archivo histórico, aborta; Tests descarga fetch-depth:0. Una ampliación futura conserva el descriptor anterior hasta que se audita otro desde el mismo commit.
+
+## Reconocer una retirada importada (candidata INC-2909-03)
+
+`confirmExpenseWithdrawal` confirma `cat:traspaso` por UUID del usuario, atributos y `source` exactos,
+con comparación de la categoría previa y RETURNING de una sola fila. No usa el fallback por terna;
+sin ACK no hay cambio local. El sello local `withdrawalConfirmedAt` protege únicamente pulls iniciados
+antes del ACK; `syncCloudExpenses` pasa el instante de inicio a la mezcla. No se amplía FIN-04 ni se
+remapea identidad. La oferta de sumar una retirada importada a efectivo se retira mientras falte un
+registro atómico entre tabla y cuenta: una importación nunca incrementa por esta puerta `accounts.value`.
+Los apuntes manuales de efectivo siguen disponibles. [Contrato y límites](briefs/inc-2909-03-retirada-caixa.md).
+
+`withdrawalReceiptLink` lee la prueba durable expense del mes por key/UUID/identidad bancaria,
+sin exigir que este móvil tenga feed válido. Esa misma lectura deja visible Deshacer vínculo;
+la retirada exige quitarlo primero mediante `linkFixedPayment`. El método cloud exige un lector
+del estado actual y revalida antes de escribir. Tras UPDATE devuelve solo el ACK válido, con
+una marca efímera `withdrawalUpdated` que no se escribe en la tabla. Rechazar ese ACK porque
+llegó un vínculo dejaba la fila remota neutra y paid=false en A tras pull, pero paid=true en B
+sin feed. `reconcileConfirmedWithdrawal` vuelve a comprobar UUID/atributos/categoría local y,
+solo con ese UPDATE confirmado, deshace la prueba expense coincidente por el helper existente
+antes de aplicar la retirada. No borra otros cargos/meses, paidYm/paidDay, cuentas ni importes.
+La ficha informa de que el recibo queda pendiente y se compartirá al sincronizar. Un ACK de
+lectura, ausente, inválido o denegado no permite deshacer pruebas. Ambas puertas de Paga un
+recibo esperan mientras la retirada está pendiente. `linkFixedPayment(null)` elimina la prueba,
+no crea una lápida: sincroniza metadatos mediante el CAS existente de app_state. No hay
+transacción entre expenses y app_state ni garantía de atomicidad entre clientes; un timeout con
+commit remoto sin ACK y la concurrencia posterior siguen requiriendo conciliación separada.
+
+## Revisión de comprobaciones: persistencia81
+
+_betaReviewMarks guarda por huella {marks:{indice:estado},notes:{indice:comentario}}. El lector migra marcas antiguas solo si su propietario/alias auditado coincide; un texto repetido no identifica una tanda. Los veredictos enviados tienen historial separado: eliminar marcas no invalida un OK vigente, y una decisión posterior veta la anterior. Empezar de cero vacía progreso/comentarios scoped sin eliminar una retirada guardada.
+
+`build-app` incorpora `_rnSha`, SHA-256 del catálogo JSON completo, en una variable propia del panel fuera de CONFIG. `ensureReleaseNotes` exige que WebCrypto confirme esa identidad antes de aceptar o guardar las notas; una respuesta exitosa antigua del Service Worker tampoco vale. `_rnBetaRound_` usa la compilación completa (incluido el sufijo) y guarda `{sha,notes}` con una entrada por tanda moderna. Solo recupera ese envelope cuando su identidad coincide con el bundle actual. No rescata `_rnHead_` sin verificación. Sin WebCrypto, catálogo válido ni caché de esa compilación muestra comprobaciones sin confirmar, conservando el historial de decisiones. No acredita entrega ni aprobación. La identidad de las tandas y sus equivalencias se generan desde unidades y SHAs Git auditados; Android/Edge requieren sus recibos propios.
+
+Al aceptar un catálogo verificado se purgan únicamente otras claves `_rnBetaRound_*` antes de escribir la actual, para liberar cuota compartida con los datos financieros. Panel y Novedades muestran un reintento explícito si no hay notas verificadas; vuelven a aplicar el mismo SHA-256 y mantienen desconocido hasta recuperar el catálogo.
+
+Sin versión de producción, betaChecklist conserva todas las tandas modernas hasta la versión actual y añade una sola vez la nota actual con puntos implícitos. Una nota con tandas:[] no aporta puntos; la cabeza moderna ya incluida no se duplica. No altera las huellas ni acredita entrega por número de versión.
+
+INC-0210-01: el estado visual de una cuota y sus eventos futuros consumen debtPaymentState (vínculo explícito del gasto, cargo válido y único, mes de vencimiento cercano). El saldo actual y el principal siguen usando sus anclas/fórmulas anteriores; reconocer un cargo ya incluido por el banco no vuelve a descontarlo. No hay nuevo emparejamiento por nombre ni escritura en el histórico.

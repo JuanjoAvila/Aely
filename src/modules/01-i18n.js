@@ -7,6 +7,10 @@ let CURLANG = "es";
 const LANGS = [["es","Español"],["en","English"],["ca","Català"]];
 const LANG = {
   es:{
+    beta_review_intro:"Revisa lo nuevo. Aprobar una tanda no la publica; su entrega se comprueba aparte.",
+    notes_unavailable:"No se han podido comprobar las novedades. Conecta y vuelve a intentarlo.",
+    beta_notes_unavailable:"Comprobaciones sin confirmar. Conecta y vuelve a abrir para cargar las de esta versión.", beta_android_app:"app Android", beta_approved_pending:"Aprobada. No necesitas aprobarla otra vez; falta confirmar su entrega.", beta_delivery_pending:"Pendiente de publicar: {x}.", beta_delivery_unknown:"Entrega sin confirmar: {x}.",
+    beta_revoked:"↺ Veredicto retirado", beta_server:"servidor", beta_revision_changed:"El código cambió ({x}). El resultado anterior sigue guardado; prueba esta revisión.", beta_reset_verdicts:"Para empezar de cero, retira antes cada veredicto con «Cambiar de opinión».",
     log_private:"[dato privado omitido]",
     help_ai_matched:"La IA ha encontrado estas guías de Aely.",
     help_create_cash:"Crear el efectivo",
@@ -93,6 +97,8 @@ const LANG = {
     v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.", v4_cycle_net:"Gasto neto desde el cobro: {used} de tus {budget}.", v4_cycle_left:"Te quedan {x}.", v4_cycle_over:"Te faltan {x}.",
     v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Mes en curso", v4_hist_empty:"Tu histórico empieza hoy", v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_empty:"Nada pendiente este mes. Los recibos aparecen aquí.",
+    v4_charges_overdue:"Cargos vencidos", v4_charge_unconfirmed:"Sin pago acreditado",
+    v4_charge_actual:"Cargo {x}", v4_charge_expected:"Previsto {x}",
     v4_your_goals:"Tus metas", v4_recent:"Últimos movimientos", v4_recent_empty:"Aún no hay movimientos. Apunta el primero con +.",
     v4_all:"Todos ›", v4_plan_title:"Tu plan del mes", v4_plan_recibos:"Recibos", v4_plan_deudas:"Deudas", v4_plan_metas:"Metas",
     v4_plan_left:"Queda por pagar en {month}", v4_plan_liq:"El saldo más bajo de aquí a fin de mes será {amount}{when} en {bank}", v4_plan_liq_day:"el día {d}",
@@ -118,8 +124,9 @@ const LANG = {
     v4_gastos_inc_line:"Ingresos {x} · balance {bal}", v4_gastos_split_line:"Gastos {spent} · ingresos {income}",
     v4_gastos_lbl_spent:"Gastos", v4_gastos_lbl_income:"Ingresos", v4_gastos_lbl_balance:"Balance",
     v4_gastos_cats:"Por categoría · toca una para ponerle un límite", v4_gastos_cat_limit:"límite {x}",
-    v4_gastos_cats_hide:"Ocultar", v4_gastos_cats_show:"Ver", v4_gastos_cats_n:"{n} categorías este mes",
-    v4_gastos_cats_n1:"1 categoría este mes", v4_gastos_cats_cycle_n:"{n} categorías este ciclo", v4_gastos_cats_cycle_n1:"1 categoría este ciclo",
+    v4_gastos_spent_period:"Gastado · {period}", v4_gastos_net_period:"Balance · {period}", v4_gastos_cats_period_n:"{n} categorías · {period}", v4_gastos_cats_period_n1:"{n} categoría · {period}",
+    v4_gastos_budget_period_unknown:"El límite es para el mes o ciclo actual; este periodo no tiene un presupuesto registrado.",
+    v4_gastos_cats_hide:"Ocultar", v4_gastos_cats_show:"Ver",
     g_cat_budget_title:"Límite en {cat}", g_cat_budget_sub:"Solo para verlo: no cambia tu presupuesto ni te bloquea. Vacío o 0 = quitar el límite.",
     g_cat_budget_clear:"Quitar límite",
     v4_cartera_title:"Tu cartera", v4_cuentas:"Tus cuentas", v4_connect_accounts:"Conectar cuentas", v4_inversiones:"Tus inversiones", v4_inv_positions:"{n} posiciones",
@@ -182,9 +189,26 @@ const LANG = {
     f_cat_all:"Las {n} ›", f_cat_all_title:"Todas las categorías", f_meta_cash:"Efectivo", f_meta_today:"Hoy",
     f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingreso de {x}", f_autosaved:"Se guarda al momento ✓", f_del:"Borrar gasto",
     f_note_row:"Nota", f_note_none:"Sin nota", f_debt_row:"Es la cuota de una deuda", f_income_row:"Es un ingreso, no un gasto", f_no:"No",
+    f_receipt_row:"Paga un recibo", f_receipt_hint:"Elige el recibo que paga este cargo. Se confirma para el mes del movimiento y puedes deshacerlo. El cargo conserva su importe, banco y clasificación.",
+    f_receipt_none:"No hay recibos pendientes de ese mes que puedan vincularse a este cargo.",
+    f_receipt_confirm:"Confirmar pago de {name}", f_receipt_confirm_sub:"Cargo: {merchant} · {amount} · {bank} · {date}. Previsto: {expected} · {planned}. Confirma solo si este cargo paga el recibo completo, aunque el importe haya variado. Si es parcial, cancela. El importe previsto, el saldo y el presupuesto se conservan.",
+    f_receipt_yes:"Confirmar pago completo", f_receipt_unlink:"Deshacer vínculo",
     f_from_bank:"Lo trajo una notificación de {bank}", f_from_bank_sub:"{date} · «{raw}» · el banco fija el importe y la cuenta",
     f_trace_missing:"— texto original no disponible",
-    f_locked_toast:"El importe lo manda el banco. Si está mal, cámbialo desde la app del banco.",
+    f_locked_toast:"El banco fija el importe, la cuenta y si entra o sale dinero. La categoría sí se puede corregir aquí.",
+    f_withdraw_fields:"La categoría se puede corregir sin cambiar el importe ni la cuenta del banco.",
+    f_withdraw_action:"Es una retirada de efectivo",
+    f_withdraw_title:"¿Es una retirada de efectivo?",
+    f_withdraw_sub:"Estos {x} pasarán a Traspaso y dejarán de contar como gasto. El importe y el origen bancario se conservan. No se sumará dinero al efectivo.",
+    f_withdraw_ok:"Marcar como traspaso",
+    f_withdraw_pending:"Confirmando la retirada…",
+    f_withdraw_done:"Traspaso: no cuenta como gasto.",
+    f_withdraw_unconfirmed:"Retirada sin confirmar",
+    f_withdraw_error:"No se ha confirmado el cambio. Sincroniza los movimientos y revisa la categoría antes de intentarlo otra vez.",
+    f_withdraw_cash_limit:"Esta retirada no suma dinero a Efectivo: aún no se puede confirmar una única suma entre móviles. Los apuntes manuales de efectivo siguen disponibles en Cartera.",
+    f_withdraw_receipt_blocked:"Para marcar esta retirada, deshaz primero el vínculo en Paga un recibo. Así se retira la confirmación también del otro móvil.",
+    f_withdraw_receipt_pending:"Espera a que termine la retirada antes de cambiar el vínculo del recibo.",
+    f_withdraw_receipt_undone:"Retirada confirmada. El vínculo que llegó durante la confirmación se ha deshecho y el recibo queda pendiente. Se compartirá al sincronizar.",
     f_fx_eq:"= {x} con el cambio del {date}", f_undo_deleted:"Gasto borrado", f_undo:"Deshacer",
     v4_exp_cat:"Categoría", v4_exp_type:"Tipo",
     // Concepto del movimiento (petición del padre 2026-07-24: «solo salía el título y tenía que
@@ -287,6 +311,10 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Dólar canadiense", cur_aud:"A$ Dólar australiano", cur_cny:"¥ Yuan", cur_mxn:"$ Peso mexicano", cur_sek:"kr Corona sueca", cur_nok:"kr Corona noruega", cur_dkk:"kr Corona danesa", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupia", cur_try:"₺ Lira turca",
   },
   en:{
+    beta_review_intro:"Review new changes. Approving a batch does not publish it; delivery is checked separately.",
+    notes_unavailable:"The updates could not be verified. Connect and try again.",
+    beta_notes_unavailable:"Checks are unconfirmed. Connect and reopen to load the checks for this version.", beta_android_app:"Android app", beta_approved_pending:"Approved. You do not need to approve it again; delivery still needs confirmation.", beta_delivery_pending:"Awaiting publication: {x}.", beta_delivery_unknown:"Delivery unconfirmed: {x}.",
+    beta_revoked:"↺ Verdict withdrawn", beta_server:"server", beta_revision_changed:"The code changed ({x}). The previous result stays in history; this revision needs new checks.", beta_reset_verdicts:"To start over, first withdraw each verdict with “Change my mind”.",
     log_private:"[private data omitted]",
     help_ai_matched:"AI found these Aely guides.",
 
@@ -374,6 +402,8 @@ const LANG = {
     v4_budget_spent:"You've spent {spent} of your {budget}.", v4_budget_daily:"You can spend {x}/day until month end.", v4_cycle_net:"Net spending since payday: {used} of your {budget}.", v4_cycle_left:"{x} left.", v4_cycle_over:"{x} over budget.",
     v4_streak:"{n} months on track", v4_streak_zero:"Month in progress", v4_hist_empty:"Your history starts today", v4_nobud_t:"Set a monthly budget", v4_nobud_p:"It is half the app: without a monthly cap there is no way to know what you have left. You can change it whenever you want.", v4_nobud_cta:"Set a budget", v4_noup_t:"No bills yet", v4_noup_p:"Connect your bank and this month's bills show up on their own, with day and amount.", v4_noup_cta:"Connect your bank", v4_nogoal_t:"Set your first goal", v4_nogoal_p:"A trip, a safety net, anything: the app tells you how much is missing and when you get there.", v4_nogoal_cta:"Create a goal", v4_see_gastos:"See spending ›", v4_see_plan:"See plan ›",
     v4_upcoming:"Upcoming", v4_upcoming_empty:"Nothing pending this month. Bills show up here.",
+    v4_charges_overdue:"Overdue charges", v4_charge_unconfirmed:"Payment unconfirmed",
+    v4_charge_actual:"Charge {x}", v4_charge_expected:"Expected {x}",
     v4_your_goals:"Your goals", v4_recent:"Latest activity", v4_recent_empty:"No activity yet. Add the first one with +.",
     v4_all:"All ›", v4_plan_title:"Your month plan", v4_plan_recibos:"Bills", v4_plan_deudas:"Debts", v4_plan_metas:"Goals",
     v4_plan_left:"Still to pay in {month}", v4_plan_liq:"Your lowest balance from now to month end will be {amount}{when} in {bank}", v4_plan_liq_day:"on day {d}",
@@ -399,8 +429,9 @@ const LANG = {
     v4_gastos_inc_line:"Income {x} · balance {bal}", v4_gastos_split_line:"Spent {spent} · income {income}",
     v4_gastos_lbl_spent:"Spent", v4_gastos_lbl_income:"Income", v4_gastos_lbl_balance:"Balance",
     v4_gastos_cats:"By category · tap one to set a cap", v4_gastos_cat_limit:"limit {x}",
-    v4_gastos_cats_hide:"Hide", v4_gastos_cats_show:"Show", v4_gastos_cats_n:"{n} categories this month",
-    v4_gastos_cats_n1:"1 category this month", v4_gastos_cats_cycle_n:"{n} categories this cycle", v4_gastos_cats_cycle_n1:"1 category this cycle",
+    v4_gastos_spent_period:"Spent · {period}", v4_gastos_net_period:"Balance · {period}", v4_gastos_cats_period_n:"{n} categories · {period}", v4_gastos_cats_period_n1:"{n} category · {period}",
+    v4_gastos_budget_period_unknown:"The limit applies to the current month or cycle; no budget is recorded for this period.",
+    v4_gastos_cats_hide:"Hide", v4_gastos_cats_show:"Show",
     g_cat_budget_title:"Limit for {cat}", g_cat_budget_sub:"Just to see it: it does not change your budget or block you. Empty or 0 removes the limit.",
     g_cat_budget_clear:"Remove limit",
     v4_cartera_title:"Your portfolio", v4_cuentas:"Your accounts", v4_connect_accounts:"Connect accounts", v4_inversiones:"Your investments", v4_inv_positions:"{n} positions",
@@ -461,9 +492,26 @@ const LANG = {
     f_cat_all:"All {n} ›", f_cat_all_title:"All categories", f_meta_cash:"Cash", f_meta_today:"Today",
     f_cta_add:"Add {x}", f_cta_add_in:"Add income of {x}", f_autosaved:"Saved as you go ✓", f_del:"Delete expense",
     f_note_row:"Note", f_note_none:"No note", f_debt_row:"It's a debt instalment", f_income_row:"It's income, not an expense", f_no:"No",
+    f_receipt_row:"Pays a bill", f_receipt_hint:"Choose the bill paid by this charge. Confirmation applies to the transaction month and can be undone. The charge keeps its amount, bank and category.",
+    f_receipt_none:"No unpaid bills for that month can be linked to this charge.",
+    f_receipt_confirm:"Confirm payment of {name}", f_receipt_confirm_sub:"Charge: {merchant} · {amount} · {bank} · {date}. Expected: {expected} · {planned}. Confirm only if this charge pays the full bill, even if the amount has changed. Cancel for a partial payment. The expected amount, balance and budget stay unchanged.",
+    f_receipt_yes:"Confirm full payment", f_receipt_unlink:"Undo link",
     f_from_bank:"This came from a {bank} notification", f_from_bank_sub:"{date} · “{raw}” · the bank sets the amount and account",
     f_trace_missing:"— original text unavailable",
-    f_locked_toast:"The bank sets this amount. If it's wrong, fix it in your bank's app.",
+    f_locked_toast:"The bank sets the amount, account and money direction. You can correct the category here.",
+    f_withdraw_fields:"You can correct the category without changing the amount or bank account.",
+    f_withdraw_action:"This is a cash withdrawal",
+    f_withdraw_title:"Is this a cash withdrawal?",
+    f_withdraw_sub:"These {x} will be marked as Transfer and stop counting as spending. The amount and bank origin stay the same. No money will be added to cash.",
+    f_withdraw_ok:"Mark as transfer",
+    f_withdraw_pending:"Confirming the withdrawal…",
+    f_withdraw_done:"Transfer: does not count as spending.",
+    f_withdraw_unconfirmed:"Withdrawal unconfirmed",
+    f_withdraw_error:"The change has not been confirmed. Sync transactions and check the category before trying again.",
+    f_withdraw_cash_limit:"This withdrawal does not add money to Cash: a single addition across phones cannot yet be confirmed. Manual cash entries remain available in Portfolio.",
+    f_withdraw_receipt_blocked:"To mark this withdrawal, first undo its link in Pays a bill. This also removes the confirmation from the other phone.",
+    f_withdraw_receipt_pending:"Wait for the withdrawal to finish before changing the bill link.",
+    f_withdraw_receipt_undone:"Withdrawal confirmed. The link that arrived during confirmation has been undone and the bill is pending. This will be shared on sync.",
     f_fx_eq:"= {x} at the rate from {date}", f_undo_deleted:"Expense deleted", f_undo:"Undo",
     v4_exp_cat:"Category", v4_exp_type:"Type",
     v4_exp_note:"Note", v4_exp_note_ph:"What it was for (e.g. Saturday dinner)",
@@ -555,6 +603,10 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Canadian dollar", cur_aud:"A$ Australian dollar", cur_cny:"¥ Yuan", cur_mxn:"$ Mexican peso", cur_sek:"kr Swedish krona", cur_nok:"kr Norwegian krone", cur_dkk:"kr Danish krone", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupee", cur_try:"₺ Turkish lira",
   },
   ca:{
+    beta_review_intro:"Revisa els canvis nous. Aprovar una tanda no la publica; l’entrega es comprova a part.",
+    notes_unavailable:"No s’han pogut comprovar les novetats. Connecta i torna-ho a provar.",
+    beta_notes_unavailable:"Comprovacions sense confirmar. Connecta i torna a obrir per carregar les d’aquesta versió.", beta_android_app:"app Android", beta_approved_pending:"Aprovada. No cal que l’aprovis de nou; falta confirmar-ne l’entrega.", beta_delivery_pending:"Pendent de publicar: {x}.", beta_delivery_unknown:"Entrega sense confirmar: {x}.",
+    beta_revoked:"↺ Veredicte retirat", beta_server:"servidor", beta_revision_changed:"El codi ha canviat ({x}). El resultat anterior queda a l’historial; aquesta revisió necessita proves noves.", beta_reset_verdicts:"Per començar de zero, retira abans cada veredicte amb «Canviar d’opinió».",
     log_private:"[dada privada omesa]",
     help_ai_matched:"La IA ha trobat aquestes guies d’Aely.",
 
@@ -642,6 +694,8 @@ const LANG = {
     v4_budget_spent:"Has gastat {spent} dels teus {budget}.", v4_budget_daily:"Pots gastar {x}/dia fins a fi de mes.", v4_cycle_net:"Despesa neta des del cobrament: {used} dels teus {budget}.", v4_cycle_left:"Et queden {x}.", v4_cycle_over:"Et falten {x}.",
     v4_streak:"{n} mesos sense passar-te", v4_streak_zero:"Mes en curs", v4_hist_empty:"El teu històric comença avui", v4_nobud_t:"Posa-li un pressupost", v4_nobud_p:"És la meitat de l'app: sense un límit al mes no es pot saber quant et queda. El pots canviar quan vulguis.", v4_nobud_cta:"Posa-li un pressupost", v4_noup_t:"Encara no hi ha rebuts", v4_noup_p:"Connecta el teu banc i els rebuts del mes apareixen sols, amb el seu dia i el seu import.", v4_noup_cta:"Connecta el teu banc", v4_nogoal_t:"Posa't el teu primer objectiu", v4_nogoal_p:"Un viatge, un coixí, el que sigui: l'app et diu quant falta i quan hi arribes.", v4_nogoal_cta:"Crear un objectiu", v4_see_gastos:"Veure despeses ›", v4_see_plan:"Veure pla ›",
     v4_upcoming:"Pròxims càrrecs", v4_upcoming_empty:"Res pendent aquest mes. Els rebuts surten aquí.",
+    v4_charges_overdue:"Càrrecs vençuts", v4_charge_unconfirmed:"Sense pagament acreditat",
+    v4_charge_actual:"Càrrec {x}", v4_charge_expected:"Previst {x}",
     v4_your_goals:"Les teves metes", v4_recent:"Últims moviments", v4_recent_empty:"Encara no hi ha moviments. Apunta el primer amb +.",
     v4_all:"Tots ›", v4_plan_title:"El teu pla del mes", v4_plan_recibos:"Rebuts", v4_plan_deudas:"Deutes", v4_plan_metas:"Metes",
     v4_plan_left:"Queda per pagar al {month}", v4_plan_liq:"El saldo més baix d'ara a final de mes serà {amount}{when} a {bank}", v4_plan_liq_day:"el dia {d}",
@@ -667,8 +721,9 @@ const LANG = {
     v4_gastos_inc_line:"Ingressos {x} · balanç {bal}", v4_gastos_split_line:"Despeses {spent} · ingressos {income}",
     v4_gastos_lbl_spent:"Despeses", v4_gastos_lbl_income:"Ingressos", v4_gastos_lbl_balance:"Balanç",
     v4_gastos_cats:"Per categoria · toca'n una per posar-li un límit", v4_gastos_cat_limit:"límit {x}",
-    v4_gastos_cats_hide:"Amagar", v4_gastos_cats_show:"Veure", v4_gastos_cats_n:"{n} categories aquest mes",
-    v4_gastos_cats_n1:"1 categoria aquest mes", v4_gastos_cats_cycle_n:"{n} categories aquest cicle", v4_gastos_cats_cycle_n1:"1 categoria aquest cicle",
+    v4_gastos_spent_period:"Gastat · {period}", v4_gastos_net_period:"Balanç · {period}", v4_gastos_cats_period_n:"{n} categories · {period}", v4_gastos_cats_period_n1:"{n} categoria · {period}",
+    v4_gastos_budget_period_unknown:"El límit és per al mes o cicle actual; aquest període no té un pressupost registrat.",
+    v4_gastos_cats_hide:"Amagar", v4_gastos_cats_show:"Veure",
     g_cat_budget_title:"Límit a {cat}", g_cat_budget_sub:"Només per veure’l: no canvia el pressupost ni et bloqueja. Buit o 0 = treure el límit.",
     g_cat_budget_clear:"Treure límit",
     v4_cartera_title:"La teva cartera", v4_cuentas:"Els teus comptes", v4_connect_accounts:"Connectar comptes", v4_inversiones:"Les teves inversions", v4_inv_positions:"{n} posicions",
@@ -729,9 +784,26 @@ const LANG = {
     f_cat_all:"Les {n} ›", f_cat_all_title:"Totes les categories", f_meta_cash:"Efectiu", f_meta_today:"Avui",
     f_cta_add:"Apuntar {x}", f_cta_add_in:"Apuntar ingrés de {x}", f_autosaved:"Es guarda al moment ✓", f_del:"Esborrar despesa",
     f_note_row:"Nota", f_note_none:"Sense nota", f_debt_row:"És la quota d'un deute", f_income_row:"És un ingrés, no una despesa", f_no:"No",
+    f_receipt_row:"Paga un rebut", f_receipt_hint:"Tria el rebut que paga aquest càrrec. Es confirma per al mes del moviment i pots desfer-ho. El càrrec conserva l'import, el banc i la classificació.",
+    f_receipt_none:"No hi ha rebuts pendents d'aquell mes que es puguin vincular a aquest càrrec.",
+    f_receipt_confirm:"Confirmar pagament de {name}", f_receipt_confirm_sub:"Càrrec: {merchant} · {amount} · {bank} · {date}. Previst: {expected} · {planned}. Confirma només si aquest càrrec paga el rebut complet, encara que l'import hagi variat. Si és parcial, cancel·la. Es conserven l'import previst, el saldo i el pressupost.",
+    f_receipt_yes:"Confirmar pagament complet", f_receipt_unlink:"Desfer vincle",
     f_from_bank:"Ho va portar una notificació de {bank}", f_from_bank_sub:"{date} · «{raw}» · el banc fixa l'import i el compte",
     f_trace_missing:"— text original no disponible",
-    f_locked_toast:"L'import el mana el banc. Si està malament, canvia'l des de l'app del banc.",
+    f_locked_toast:"El banc fixa l'import, el compte i si entren o surten diners. La categoria sí que es pot corregir aquí.",
+    f_withdraw_fields:"La categoria es pot corregir sense canviar l'import ni el compte del banc.",
+    f_withdraw_action:"És una retirada d'efectiu",
+    f_withdraw_title:"És una retirada d'efectiu?",
+    f_withdraw_sub:"Aquests {x} passaran a Traspàs i deixaran de comptar com a despesa. L'import i l'origen bancari es conserven. No se sumaran diners a l'efectiu.",
+    f_withdraw_ok:"Marcar com a traspàs",
+    f_withdraw_pending:"Confirmant la retirada…",
+    f_withdraw_done:"Traspàs: no compta com a despesa.",
+    f_withdraw_unconfirmed:"Retirada sense confirmar",
+    f_withdraw_error:"No s'ha confirmat el canvi. Sincronitza els moviments i revisa la categoria abans de tornar-ho a provar.",
+    f_withdraw_cash_limit:"Aquesta retirada no suma diners a Efectiu: encara no es pot confirmar una única suma entre mòbils. Els apunts manuals d'efectiu continuen disponibles a Cartera.",
+    f_withdraw_receipt_blocked:"Per marcar aquesta retirada, desfés primer el vincle a Paga un rebut. Així també es retira la confirmació de l’altre mòbil.",
+    f_withdraw_receipt_pending:"Espera que acabi la retirada abans de canviar el vincle del rebut.",
+    f_withdraw_receipt_undone:"Retirada confirmada. S’ha desfet el vincle que ha arribat durant la confirmació i el rebut queda pendent. Es compartirà en sincronitzar.",
     f_fx_eq:"= {x} amb el canvi del {date}", f_undo_deleted:"Despesa esborrada", f_undo:"Desfer",
     v4_exp_cat:"Categoria", v4_exp_type:"Tipus",
     v4_exp_note:"Concepte", v4_exp_note_ph:"De què era (ex. sopar de dissabte)",
@@ -1479,10 +1551,6 @@ Object.assign(LANG.es,{
   ef_in_done:"✓ Efectivo sumado",
   ef_need_bank:"Necesitas otra cuenta para anotar de dónde salió.",
   ef_neg_warn:"El sobre queda en negativo ({x}). ¿Olvidaste apuntar un saque del cajero?",
-  ef_atm_offer_title:"¿Han entrado {x} en tu efectivo?",
-  ef_atm_offer_sub:"El banco ha detectado una retirada. Si el dinero está en tu cartera, súmalo. Si se lo diste a alguien, di que no.",
-  ef_atm_offer_yes:"Sí, sumar al efectivo",
-  ef_atm_offer_no:"No",
 
   ob2_claim:"Tu dinero claro y sin trabajo: gastos que se apuntan solos, tus bancos conectados y tus inversiones al día.",
   ob2_f1_t:"Gastos sin teclear", ob2_f1_d:"Apunta un gasto en dos toques… o deja que entren solos con tu tarjeta de Trade Republic.",
@@ -1566,10 +1634,6 @@ Object.assign(LANG.en,{
   ef_in_done:"✓ Cash added",
   ef_need_bank:"You need another account to say where it came from.",
   ef_neg_warn:"The envelope goes negative ({x}). Did you forget to log an ATM withdrawal?",
-  ef_atm_offer_title:"Did {x} go into your cash?",
-  ef_atm_offer_sub:"The bank saw a withdrawal. If the money is in your wallet, add it. If you gave it away, say no.",
-  ef_atm_offer_yes:"Yes, add to cash",
-  ef_atm_offer_no:"No",
 
   ob2_claim:"Your money, clear and effortless: expenses that log themselves, your banks connected and your investments up to date.",
   ob2_f1_t:"No-typing expenses", ob2_f1_d:"Log an expense in two taps… or let them come in on their own with your Trade Republic card.",
@@ -1653,10 +1717,6 @@ Object.assign(LANG.ca,{
   ef_in_done:"✓ Efectiu sumat",
   ef_need_bank:"Cal un altre compte per dir d'on ha sortit.",
   ef_neg_warn:"El sobre queda en negatiu ({x}). Has oblidat apuntar una extracció?",
-  ef_atm_offer_title:"Han entrat {x} al teu efectiu?",
-  ef_atm_offer_sub:"El banc ha detectat una retirada. Si els diners són a la cartera, suma'ls. Si els vas donar a algú, digues que no.",
-  ef_atm_offer_yes:"Sí, sumar a l'efectiu",
-  ef_atm_offer_no:"No",
 
   ob2_claim:"Els teus diners clars i sense feina: despeses que s'apunten soles, els teus bancs connectats i les inversions al dia.",
   ob2_f1_t:"Despeses sense teclejar", ob2_f1_d:"Apunta una despesa en dos tocs… o deixa que entrin soles amb la teva targeta de Trade Republic.",
@@ -1752,7 +1812,10 @@ Object.assign(LANG.es,{
   ai_cat_btn:"✨ Sugerir categoría", ai_cat_busy:"Pensando…", ai_cat_ok:"✓ Categoría: {c}", ai_cat_none:"No hay sugerencia clara — elige a mano", ai_cat_off:"Activa «Sugerir categoría (IA)» en Ajustes → Notificaciones",
   g_cycle_from:"Del {d} (cobro de {x}) a hoy",
   g_cycle_budget_hint:"La nómina abre el ciclo. Los ingresos posteriores, incluidos Bizums y alquileres, aumentan el margen; traspasos no.",
+  g_cycle_filter_hint:"Este filtro va del último cobro detectado a hoy; no cambia el presupuesto mensual.",
+  g_cycle_help_show:"Ayuda", g_cycle_help_hide:"Ocultar",
   g_cycle_none_t:"Sin nómina detectada",
+  g_cycle_fallback:"El presupuesto usa el mes natural.",
   g_cycle_none:"Apunta la nómina como 💰 ingreso y escribe «Nómina» en el concepto. Hasta reconocerla, el presupuesto sigue el mes natural.",
   g_search:"Buscar comercio o categoría…",
   sub_title:"🔁 Suscripciones detectadas", sub_sub:"{n} · ~{y}/año", sub_inactive:"· inactiva", sub_months:"{n} meses", sub_peryear:"~{y}/año", sub_permonth:"/mes", sub_tofixed:"pasar a Gastos fijos", sub_infixed:"ya en Fijos", sub_tofixed_done:"✓ «{n}» añadido a Gastos fijos ({b}). Si quieres que el cargo salga de ahí de verdad, cambia la tarjeta en la web de la suscripción.", sub_dismiss:"No es una suscripción", sub_dismissed_ok:"Descartada · no volverá a salir aquí",
@@ -1769,7 +1832,7 @@ Object.assign(LANG.es,{
   g_empty_t:"No hay gastos aquí", g_empty_d:"Cambia el filtro, sincroniza o apunta uno.", g_loadmore:"Cargando más…",
   g_empty_period_t:"Aún no hay gastos en este período", g_empty_period_d:"Es normal si acaba de empezar el mes o tu ciclo — irán apareciendo según sincronices o apuntes alguno.",
   g_today:"Hoy", g_yesterday:"Ayer", g_invalid:"Pon un importe válido", g_saved_g:"✓ Gasto apuntado", g_saved_i:"✓ Ingreso apuntado", g_deleted:"Eliminado", g_changecat:"Cambiar categoría",
-  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Cuota",
+  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_gasolina:"Gasolina", cat_taxi:"Taxi", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Cuota",
   freq_mes:"mensual", freq_bimestral:"bimestral", freq_trimestral:"trimestral", freq_semestral:"semestral", "freq_año":"anual",
   // Fijos
   fj_monthly:"Gasto fijo mensual", fj_peryear:"{x}/año", fj_top_a:"Tu mayor gasto fijo es ", fj_top_b:" ({x}/mes)",
@@ -1854,7 +1917,10 @@ Object.assign(LANG.en,{
   ai_cat_btn:"✨ Suggest category", ai_cat_busy:"Thinking…", ai_cat_ok:"✓ Category: {c}", ai_cat_none:"No clear suggestion — pick by hand", ai_cat_off:"Turn on “Suggest category (AI)” in Settings → Notifications",
   g_cycle_from:"From {d} (payday, {x}) to today",
   g_cycle_budget_hint:"Pay starts the cycle. Later income, including Bizum payments and rent, raises money left; transfers do not.",
+  g_cycle_filter_hint:"This filter runs from the last detected payment to today; it does not change the monthly budget.",
+  g_cycle_help_show:"Help", g_cycle_help_hide:"Hide",
   g_cycle_none_t:"No payday detected",
+  g_cycle_fallback:"The budget follows the calendar month.",
   g_cycle_none:"Log your pay as a 💰 income and put “Salary” in its description. Until it is recognized, your budget follows calendar months.",
   g_search:"Search merchant or category…",
   sub_title:"🔁 Detected subscriptions", sub_sub:"{n} · ~{y}/yr", sub_inactive:"· inactive", sub_months:"{n} months", sub_peryear:"~{y}/yr", sub_permonth:"/mo", sub_tofixed:"move to Fixed expenses", sub_infixed:"already in Fixed", sub_tofixed_done:"✓ \"{n}\" added to Fixed expenses ({b}). To have it truly charged there, change the card on the subscription's site.", sub_dismiss:"Not a subscription", sub_dismissed_ok:"Dismissed · won't show up here again",
@@ -1871,7 +1937,7 @@ Object.assign(LANG.en,{
   g_empty_t:"No expenses here", g_empty_d:"Change the filter, sync or add one.", g_loadmore:"Loading more…",
   g_empty_period_t:"No expenses yet this period", g_empty_period_d:"That's normal if the month or your cycle just started — they'll show up as you sync or add one.",
   g_today:"Today", g_yesterday:"Yesterday", g_invalid:"Enter a valid amount", g_saved_g:"✓ Expense added", g_saved_i:"✓ Income added", g_deleted:"Deleted", g_changecat:"Change category",
-  cat_super:"Groceries", cat_pan:"Bakery", cat_bares:"Bars & restaurants", cat_cine:"Cinema", cat_padel:"Padel", cat_heladeria:"Ice cream", cat_ia:"Artificial intelligence", cat_ocio:"Leisure", cat_gaming:"Games", cat_viajes:"Travel", cat_transporte:"Transport", cat_parking:"Parking", cat_agua:"Water", cat_luz:"Power", cat_gas:"Gas", cat_tasas:"Taxes & fines", cat_recibos:"Bills", cat_compras:"Shopping", cat_educacion:"Education", cat_salud:"Health", cat_pelu:"Hair & beauty", cat_mascotas:"Pets", cat_hogar:"Home", cat_regalos:"Gifts", cat_joyeria:"Jewellery", cat_bizum:"Bizum", cat_otros:"Other", cat_ingreso:"Income", cat_inversion:"Investment", cat_traspaso:"Transfer", cat_deudas:"Debt payment",
+  cat_super:"Groceries", cat_pan:"Bakery", cat_bares:"Bars & restaurants", cat_cine:"Cinema", cat_padel:"Padel", cat_heladeria:"Ice cream", cat_ia:"Artificial intelligence", cat_ocio:"Leisure", cat_gaming:"Games", cat_viajes:"Travel", cat_transporte:"Transport", cat_gasolina:"Fuel", cat_taxi:"Taxi", cat_parking:"Parking", cat_agua:"Water", cat_luz:"Power", cat_gas:"Gas", cat_tasas:"Taxes & fines", cat_recibos:"Bills", cat_compras:"Shopping", cat_educacion:"Education", cat_salud:"Health", cat_pelu:"Hair & beauty", cat_mascotas:"Pets", cat_hogar:"Home", cat_regalos:"Gifts", cat_joyeria:"Jewellery", cat_bizum:"Bizum", cat_otros:"Other", cat_ingreso:"Income", cat_inversion:"Investment", cat_traspaso:"Transfer", cat_deudas:"Debt payment",
   freq_mes:"monthly", freq_bimestral:"bimonthly", freq_trimestral:"quarterly", freq_semestral:"biannual", "freq_año":"yearly",
   fj_monthly:"Monthly fixed cost", fj_peryear:"{x}/year", fj_top_a:"Your biggest fixed cost is ", fj_top_b:" ({x}/mo)",
   fj_prox:"Upcoming charges · {m}", fj_prox_sub:"{x} this month",
@@ -1955,7 +2021,10 @@ Object.assign(LANG.ca,{
   ai_cat_btn:"✨ Suggerir categoria", ai_cat_busy:"Pensant…", ai_cat_ok:"✓ Categoria: {c}", ai_cat_none:"No hi ha suggeriment clar — tria a mà", ai_cat_off:"Activa «Suggerir categoria (IA)» a Ajustos → Notificacions",
   g_cycle_from:"Del {d} (cobrament de {x}) a avui",
   g_cycle_budget_hint:"La nòmina obre el cicle. Els ingressos posteriors, inclosos Bizums i lloguers, augmenten el marge; traspassos no.",
+  g_cycle_filter_hint:"Aquest filtre va de l'últim cobrament detectat a avui; no canvia el pressupost mensual.",
+  g_cycle_help_show:"Ajuda", g_cycle_help_hide:"Amaga",
   g_cycle_none_t:"Sense nòmina detectada",
+  g_cycle_fallback:"El pressupost segueix el mes natural.",
   g_cycle_none:"Apunta la nòmina com a 💰 ingrés i escriu «Nòmina» al concepte. Fins que es reconegui, el pressupost segueix el mes natural.",
   g_search:"Cerca comerç o categoria…",
   sub_title:"🔁 Subscripcions detectades", sub_sub:"{n} · ~{y}/any", sub_inactive:"· inactiva", sub_months:"{n} mesos", sub_peryear:"~{y}/any", sub_permonth:"/mes", sub_tofixed:"passar a Despeses fixes", sub_infixed:"ja a Fixes", sub_tofixed_done:"✓ «{n}» afegit a Despeses fixes ({b}). Perquè el càrrec surti d'allà de debò, canvia la targeta al web de la subscripció.", sub_dismiss:"No és una subscripció", sub_dismissed_ok:"Descartada · no tornarà a sortir aquí",
@@ -1972,7 +2041,7 @@ Object.assign(LANG.ca,{
   g_empty_t:"No hi ha despeses aquí", g_empty_d:"Canvia el filtre, sincronitza o apunta'n una.", g_loadmore:"Carregant més…",
   g_empty_period_t:"Encara no hi ha despeses en aquest període", g_empty_period_d:"És normal si acaba de començar el mes o el teu cicle — aniran sortint a mesura que sincronitzis o n'apuntis alguna.",
   g_today:"Avui", g_yesterday:"Ahir", g_invalid:"Posa un import vàlid", g_saved_g:"✓ Despesa apuntada", g_saved_i:"✓ Ingrés apuntat", g_deleted:"Eliminat", g_changecat:"Canvia la categoria",
-  cat_super:"Supermercat", cat_pan:"Fleca", cat_bares:"Bars i restaurants", cat_cine:"Cinema", cat_padel:"Pàdel", cat_heladeria:"Gelateria", cat_ia:"Intel·ligència artificial", cat_ocio:"Oci", cat_gaming:"Videojocs", cat_viajes:"Viatges", cat_transporte:"Transport", cat_parking:"Pàrquing", cat_agua:"Aigua", cat_luz:"Llum", cat_gas:"Gas", cat_tasas:"Impostos i multes", cat_recibos:"Rebuts", cat_compras:"Compres", cat_educacion:"Educació", cat_salud:"Salut", cat_pelu:"Perruqueria", cat_mascotas:"Mascotes", cat_hogar:"Llar", cat_regalos:"Regals", cat_joyeria:"Joieria", cat_bizum:"Bizum", cat_otros:"Altres", cat_ingreso:"Ingrés", cat_inversion:"Inversió", cat_traspaso:"Traspàs", cat_deudas:"Quota de deute",
+  cat_super:"Supermercat", cat_pan:"Fleca", cat_bares:"Bars i restaurants", cat_cine:"Cinema", cat_padel:"Pàdel", cat_heladeria:"Gelateria", cat_ia:"Intel·ligència artificial", cat_ocio:"Oci", cat_gaming:"Videojocs", cat_viajes:"Viatges", cat_transporte:"Transport", cat_gasolina:"Benzina", cat_taxi:"Taxi", cat_parking:"Pàrquing", cat_agua:"Aigua", cat_luz:"Llum", cat_gas:"Gas", cat_tasas:"Impostos i multes", cat_recibos:"Rebuts", cat_compras:"Compres", cat_educacion:"Educació", cat_salud:"Salut", cat_pelu:"Perruqueria", cat_mascotas:"Mascotes", cat_hogar:"Llar", cat_regalos:"Regals", cat_joyeria:"Joieria", cat_bizum:"Bizum", cat_otros:"Altres", cat_ingreso:"Ingrés", cat_inversion:"Inversió", cat_traspaso:"Traspàs", cat_deudas:"Quota de deute",
   freq_mes:"mensual", freq_bimestral:"bimestral", freq_trimestral:"trimestral", freq_semestral:"semestral", "freq_año":"anual",
   fj_monthly:"Despesa fixa mensual", fj_peryear:"{x}/any", fj_top_a:"La teva despesa fixa més gran és ", fj_top_b:" ({x}/mes)",
   fj_prox:"Pròxims càrrecs · {m}", fj_prox_sub:"{x} aquest mes",
@@ -2900,6 +2969,18 @@ function nominaYaEntro(now){                                        // ¿ya pas�
    UNA cuenta diario/ambos a la vez (la UI degrada las demás a fijos). */
 function accRole(a){ return (a&&a.role) || (a&&a.spendFrom ? "diario" : "fijos"); }
 function accDaily(a){ const r=accRole(a); return r==="diario"||r==="ambos"; }   // gasto variable sale de aquí
+// El sobre y las cuentas familiares no se ofrecen como elección de banco del widget.
+function widgetBankAccounts(s){
+  return (s.accounts||[]).filter(function(a){ return a.ent && !isEfectivoEnt(a) && a.ent!=="familia"; });
+}
+// El widget elige banco sin cambiar roles ni qué compras cuentan para el presupuesto.
+function widgetBankOf(s){
+  const accounts=s.accounts||[], chosen=s.settings&&s.settings.widgetBank;
+  return widgetBankAccounts(s).find(function(a){ return a.ent===chosen; }) || accounts.find(function(a){ return a.spendFrom; }) || null;
+}
+Object.assign(LANG.es,{st_widget_bank:"Banco del widget",st_widget_auto:"Cuenta de gasto diario",st_widget_bank_hint:"El saldo y cuánto puedes gastar se calculan para este banco. Sus cuentas se suman. El presupuesto no cambia."});
+Object.assign(LANG.en,{st_widget_bank:"Widget bank",st_widget_auto:"Daily spending account",st_widget_bank_hint:"Choose which bank's balance and spending limit to show. Accounts at the same bank are added together. This does not change which expenses count towards your budget."});
+Object.assign(LANG.ca,{st_widget_bank:"Banc del giny",st_widget_auto:"Compte de despesa diària",st_widget_bank_hint:"Tria de quin banc mostrar el saldo i quant pots gastar. Si tens diversos comptes del mateix banc, se sumen. No canvia quines despeses compten en el pressupost."});
 /* Bancos cuyas compras con tarjeta Open Banking entran en Gastos. Independiente del
    spendFrom único (presupuesto/round-up). Por defecto = ent de la cuenta diaria, y la cuenta
    diaria SIEMPRE entra aunque `expenseBanks` ya tenga otros bancos guardados (bug 2026-07-31:
@@ -2926,7 +3007,6 @@ function sameEntList(a,b){
    Vista de Gastos: por defecto se filtra a los marcados como gasto diario (`expenseBankEnts`);
    «Todos los bancos» enseña el extracto entero. Contabilidad: solo los marcados. A mano (sin
    ent) sí cuenta. Pedido 2026-08-17: Revolut+TR marcados → los dos se ven y cuentan. */
-// Reutilizar la misma lista de lápidas evita reconstruirla por cada ingreso del ciclo.
 const expenseDeletedSets=new WeakMap();
 function expenseDeletedSet(s){
   const deleted=s&&s.deleted;
@@ -2954,7 +3034,9 @@ function expenseCountsCash(e, s){
 /* Igual que cash, pero sin neutras (inversión/traspaso): es lo que pinta el presupuesto. */
 function expenseCountsBudget(e, s){
   if(!e || CAT_NEUTRAS[e.category]) return false;
-  // Una lápida ya ocultó esa fila; el saldo conserva sus anclajes históricos aparte.
+  // El servidor excluye lápidas; contarlas aquí hacía saltar el gasto del widget al pagar
+  // con la app cerrada (27/9/2026). No se altera cash: sus bases pueden estar ya ancladas
+  // incluyendo estas filas. Las lápidas cambian por copia; el índice evita N recorridos.
   if(expenseIsTombstoned(e,expenseDeletedSet(s))) return false;
   return expenseCountsCash(e, s);
 }
@@ -3366,8 +3448,8 @@ function gamifOf(state, totals, budgetStreak){
   const nextMin = (lvl+1<GM_LEVELS.length) ? GM_LEVELS[lvl+1] : null;
   const base=GM_LEVELS[lvl];
   const lvlProg = nextMin!=null ? Math.min(100,Math.max(0,(savedScore-base)/(nextMin-base)*100)) : 100;
-  // Misma cifra que Resumen/Gastos (no thisMonthSpent: mete neutras e ingresos).
-  const bs=monthBudgetStats(state);
+  // El reto debe comparar el mismo consumo y límite que Inicio, también al salir del ciclo.
+  const bs=dashboardBudgetStats(state);
   const budget=bs.budget!=null?bs.budget:(state.budget||0);
   const spent=Math.max(0, bs.against||0);
   const ruCur=+(((tt.roundupThisMonth||0)+(tt.savebackThisMonth||0))).toFixed(2);
@@ -3445,7 +3527,7 @@ function buildEmpty(){
   return {
     fx: null, budget: 0, monthStartNet: 0, history: [],
     accounts: [], investments: [], assets: [], debts: [], fixed: [], flows: [], oneoffs: [], aportaciones: [],
-    expenses: [], goals: [], shared: [], catOverrides: {}, obAccounts: [], obLabels: {}, verNotes: [],
+    expenses: [], goals: [], shared: [], catOverrides: {}, catRules: {}, obAccounts: [], obLabels: {}, verNotes: [],
     tourSeen: false,   // usuario nuevo → tour de bienvenida tras el onboarding
     setupHint: true,   // tarjeta «primeros pasos» en el Resumen hasta que la cierren
     settings: { autoPrices:false },
@@ -3671,6 +3753,10 @@ function seedFlows(s){
   if(!s.catOverrides) s.catOverrides = {};
   if(!s.categoryBudgets) s.categoryBudgets = {};   // límites €/mes por categoría (§5)
   USER_OVERRIDES = Object.assign({}, s.catOverrides);    // overrides personales (comercio→cat) activos
+  // Equivalencias que él ha enseñado; las anteriores a las reglas se deducen una vez de lo ya
+  // corregido (ver `seedCatRules`, 00-core.js).
+  s=seedCatRules(s);
+  USER_CAT_RULES = Object.assign({}, s.catRules||{});
   /* «energia» YA NO EXISTE: se partió en agua / luz / gas (2026-09-12, petición suya — el recibo
      del agua salía con un rayo al lado). Una fila local con esa categoría se quedaría sin entrada
      en `CAT` y se pintaría en blanco, así que se remapea aquí, UNA vez.

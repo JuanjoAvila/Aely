@@ -2,6 +2,7 @@
 /** Ejecuta el handler REAL de ingest contra una BD en memoria: identidad, ACK y deduplicación. */
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { execFileSync } from "node:child_process";
 import { transformSync } from "esbuild";
 
 const root = new URL("../", import.meta.url);
@@ -58,6 +59,8 @@ function fakeDb(opts = {}) {
       if (name === "app_state") return { data: [], error: null };
       if (name !== "expenses") return { data: [], error: null };
       if (q.op === "select") {
+        if (opts.monthReadError && q.cols === "id,importe,cat,source,fecha,comercio")
+          return { data: null, error: { message: "lectura mensual fallida" } };
         const usesEvent = q.cols.includes("ingest_event_id") || q.filters.some(([, k]) => k === "ingest_event_id");
         if (usesEvent) {
           if (opts.columnMissing) return { data: null, error: { message: "column ingest_event_id does not exist" } };
@@ -105,7 +108,7 @@ function fakeDb(opts = {}) {
   return { db: { from: table }, rows, events };
 }
 
-function makeHandler(db) {
+function makeHandler(db, classifier=logic) {
   let handler;
   const Deno = { serve: (f) => { handler = f; }, env: { get: (k) => ({
     SUPABASE_URL: "https://db.invalid", SUPABASE_SERVICE_ROLE_KEY: "role",
@@ -119,7 +122,7 @@ function makeHandler(db) {
     "INGEST_MAX_BODY", "INGEST_MAX_COMERCIO", "INGEST_MAX_NOTA", "INGEST_MAX_TEXTO", "recortar", "timingSafeEqual",
   ];
   new Function(...names, handlerJs)(
-    Deno, () => db, logic.categorizar, logic.clasificarConMotivo, logic.extraerComercio,
+    Deno, () => db, classifier.categorizar, classifier.clasificarConMotivo, logic.extraerComercio,
     logic.extraerConcepto, logic.extraerImporte, logic.extraerPersona, logic.limpiarTexto,
     wallet.aEuros, wallet.parseWallet, identity.claveEvento, identity.esGemeloIngest,
     identity.tieneGemeloAnterior,
@@ -132,8 +135,8 @@ function makeHandler(db) {
   return handler;
 }
 
-async function post(env, body) {
-  const res = await makeHandler(env.db)(new Request("https://app.invalid/ingest", {
+async function post(env, body, classifier=logic) {
+  const res = await makeHandler(env.db, classifier)(new Request("https://app.invalid/ingest", {
     method: "POST", headers: { "x-ingest-token": "token", "content-type": "application/json" },
     body: JSON.stringify(body),
   }));
@@ -153,8 +156,22 @@ await t("retry del mismo evento 35 min después: una fila y segundo ACK silencio
     fecha: String(Date.parse("2026-09-17T14:24:00+02:00")), evento: "v1_same" };
   const a = await post(env, body), b = await post(env, body);
   assert.equal(a.data.skipped, undefined); assert.ok(a.data.ack);
+  assert.ok(a.data.month?.periodStart > 0 && a.data.month?.readAt > 0,
+    "la respuesta lleva período y fecha de lectura para arbitrar el widget");
+  assert.equal(a.data.month?.cashCounts, 1, "un gasto confirmado mueve el efectivo de TR");
+  assert.equal(a.data.month?.eventKey, "tr:trade_republic:v1_same");
+  assert.equal(a.data.month?.shownDelta, 9.95);
+  assert.equal(a.data.month?.againstDelta, 9.95);
+  assert.equal(a.data.month?.expenseKey, "2026-09-17%7C9.95%7CPans%20%26%20Company");
   assert.equal(b.data.skipped, true); assert.equal(b.data.ack, a.data.ack);
   assert.equal(env.rows.length, 1);
+});
+
+await t("si falla la lectura mensual, conserva el gasto y no fabrica un total cero", async () => {
+  const env = fakeDb({ monthReadError: true });
+  const r = await post(env, { fuente: "tr", titulo: "Trade Republic", texto: "Has gastado 9,95 € en Pans & Company",
+    fecha: String(Date.parse("2026-09-17T14:24:00+02:00")), evento: "v1_read_fail" });
+  assert.equal(r.status, 200); assert.equal(env.rows.length, 1); assert.equal(r.data.month, null);
 });
 
 await t("carrera SELECT/UNIQUE 23505 recupera el ACK y no confirma otra fila", async () => {
@@ -282,5 +299,19 @@ await t("ON CONFLICT sin fila devuelta se responde skipped, nunca 'gasto apuntad
   assert.equal(r.data.skipped, true); assert.equal(r.data.ack, undefined); assert.equal(env.rows.length, 0);
 });
 
+
+// El clasificador del candidato base representa el contrato anterior; no afirma qué hash vive en Supabase.
+const priorClassifierSrc=execFileSync("git",["show","3467bbd4fddcd213f862bedddac971c827099f3d:supabase/functions/_shared/ingest_logic.ts"],{encoding:"utf8"});
+const priorClassifier=await import("data:text/javascript;base64,"+Buffer.from(transformSync(priorClassifierSrc,{loader:"ts",format:"esm"}).code).toString("base64"));
+await t("ingest con clasificador anterior respeta gasolina/taxi manual en retry y conflicto",async()=>{
+ for(const cat of ["gasolina","taxi"]){
+  const fecha="2026-09-17T12:24:00.000Z",comercio=cat==="gasolina"?"Repsol":"Taxi Barcelona",body={fuente:"tr",titulo:"Trade Republic",texto:"Has gastado 10,00 € en "+comercio,fecha:String(Date.parse(fecha)),evento:"v1_manual_"+cat};
+  assert.equal(priorClassifier.categorizar(comercio),"transporte");
+  const env=fakeDb({rows:[{id:"manual-"+cat,user_id:"user",fecha,importe:10,comercio,cat,source:"macrodroid",ingest_event_id:identity.claveEvento(body.evento,"tr",body.texto)}]});
+  const retry=await post(env,body,priorClassifier);assert.equal(retry.data.ack,"manual-"+cat);assert.equal(env.rows.length,1);assert.equal(env.rows[0].cat,cat);
+  const manual=fakeDb({rows:[{id:"alta-"+cat,user_id:"user",fecha,importe:10,comercio,cat,source:"manual:trade_republic"}]});
+  const conflict=await post(manual,body,priorClassifier);assert.equal(conflict.data.skipped,true);assert.equal(manual.rows.length,1);assert.equal(manual.rows[0].cat,cat);
+ }
+});
 if (failures) process.exitCode = 1;
 else console.log("  ok");

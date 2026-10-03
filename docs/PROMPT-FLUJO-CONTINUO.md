@@ -8,6 +8,22 @@ monitor periódico; el relevo ocurre al cerrar cada tarea.
 
 ## Prompt para cada chat nuevo
 
+**Entrada obligatoria también por rechazos y coordinación (aclaración del dueño, 30/9):**
+leer el buzón local real de Claude al iniciar y en los puntos de espera, contestar a sus resultados
+o bloqueos y trasladar al repo lo que afecte al trabajo. El buzón compartido vive en
+`.claude/canal-equipo/messages/{claude,codex}` del checkout principal y está ignorado por Git;
+escribir solo mensajes propios, nunca modificar fuente compartida ni atribuir estado a otro agente.
+No iniciar un monitor periódico nuevo para mantener el relevo.
+
+Comprobar **rechazos además de aprobaciones**. El rechazo más reciente de una misma tanda
+invalida cualquier OK anterior: leer su motivo y reproducirlo antes de ofrecer otra candidata.
+La ausencia de errores o de acceso al secreto no borra un rechazo. Una corrección sintética/CI
+no cambia el veredicto del dueño. Si `npm run listo` no puede leerlo, registrar esa limitación,
+conservar todo rechazo comunicado directamente en chat y no presumir que la tanda está aprobada.
+Priorizar un rechazo financiero reproducible sobre nuevos retoques y pasarlo al sucesor como
+objetivo propio si el chat actual ya tiene otra tarea. Revalidar siempre ID, versión, fecha y texto;
+no reutilizar una aprobación de contenido anterior.
+
 > Continúa Aely/MiCartera de forma autónoma. El dueño autorizó el 28/9/2026 un relevo automático
 > entre chats y la publicación **selectiva** de las tandas que él haya aprobado en su móvil o
 > expresamente en el chat. Lee completos `AGENTS.md`, `EMPIEZA-AQUI.md`,

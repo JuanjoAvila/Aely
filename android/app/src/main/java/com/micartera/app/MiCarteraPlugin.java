@@ -164,7 +164,6 @@ public class MiCarteraPlugin extends Plugin {
     @PluginMethod
     public void updateWidget(PluginCall call) {
         Context ctx = getContext();
-        SharedPreferences.Editor ed = ctx.getSharedPreferences(MiCarteraWidget.PREFS, Context.MODE_PRIVATE).edit();
         Double spent = call.getDouble("spent");
         Double budget = call.getDouble("budget");
         Double cash = call.getDouble("cash");
@@ -175,17 +174,30 @@ public class MiCarteraPlugin extends Plugin {
         // vive la fórmula. `safeLiq` sale de simular el mes día a día: eso solo lo sabe la app.
         Double budgetLeft = call.getDouble("budgetLeft");
         Double safeLiq = call.getDouble("safeLiq");
-        ed.putFloat("spent", spent != null ? spent.floatValue() : 0f);
-        ed.putFloat("budget", budget != null ? budget.floatValue() : 0f);
-        if (cash != null) ed.putFloat("cash", cash.floatValue()); else ed.remove("cash");
-        if (budgetLeft != null) ed.putFloat("budgetLeft", budgetLeft.floatValue()); else ed.remove("budgetLeft");
-        if (safeLiq != null) ed.putFloat("safeLiq", safeLiq.floatValue()); else ed.remove("safeLiq");
-        ed.remove("afford");   // resto de la versión anterior: ya no se lee, que no quede basura
         String label = call.getString("cashLabel");
-        ed.putString("cashLabel", label != null ? label : "");
-        ed.putLong("updated", System.currentTimeMillis());
-        ed.apply();
-        MiCarteraWidget.refreshAll(ctx);
+        Double period = call.getDouble("periodStart");
+        Integer contract = call.getInt("contract");
+        MiCarteraWidget.saveApp(ctx, period != null ? period.longValue() : MiCarteraWidget.monthStart(System.currentTimeMillis()),
+                spent != null ? spent : 0, budget != null ? budget : 0,
+                budgetLeft, safeLiq, cash, call.getString("cashEnt"), label,
+                call.getString("coveredEvents"), call.getString("deletedKeys"),
+                contract != null ? contract : 0, call.getString("periodKind"),
+                call.getString("magnitude"), call.getString("lang"), call.getString("scope"));
+        call.resolve();
+    }
+
+    /* La web solo manda el ciclo a un widget que sabe pintarlo: la APK 51 no tiene este método,
+       la llamada falla y la web sigue con el mes natural (INC-2909-01 E2). */
+    @PluginMethod
+    public void widgetContract(PluginCall call) {
+        JSObject r = new JSObject();
+        r.put("v", WidgetPeriod.CONTRACT);
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void widgetWaiting(PluginCall call) {
+        MiCarteraWidget.waiting(getContext());
         call.resolve();
     }
 

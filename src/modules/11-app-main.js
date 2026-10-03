@@ -393,13 +393,22 @@ function App(){
   const bankSyncing=useRef(false);          // evita syncs de banco solapados
   // Promesa → true si el pull de arranque (estado + gastos) terminó bien. La espera `runBankSync`.
   const pullOkRef=useRef(null);
+  const wR=useRef(false),wS=useRef(0),wP=useRef(null),wC=useRef([]);
   const bankJustConnected=useRef(false);    // marca la vuelta de ?bank=ok para sincronizar en cuanto haya sesión
 
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
   const syncCloudExpenses=function(){
-    return cloud.pullExpenses().then(function(rows){
-      // FIN-07: un error intermedio rechaza el pull antes de mezclar o subir datos locales.
-      // La ausencia sigue sin significar borrado, incluso tras descargar todas las páginas.
+    const readStartedAt=Date.now();
+    const ps=++wS.current;
+    wR.current=false;
+    const pull=cloud.pullExpenses().then(function(rows){
+      // Si otra lectura empezó después, este resultado puede ser una foto anterior aunque
+      // haya llegado el último. No mezclarlo con el estado ni reenviarlo al widget (FIN-05).
+      if(ps!==wS.current) return wP.current;
+      // La cobertura se forma al enviar, con la ventana vigente: el ciclo no acaba el día 1.
+      wC.current=rows;
+      // FIN-07: el paginador solo resuelve al terminar; un error intermedio no mezcla ni
+      // confirma páginas sueltas. La ausencia sigue sin significar borrado, incluso al terminar.
       const delSet={}; (stateRef.current.deleted||[]).forEach(function(k){ delSet[k]=1; });
       const incoming=rows.map(expenseFromRow).filter(function(e){ return e.amount!==0 && !expenseIsTombstoned(e, delSet); });
       // Backfill: sube a la tabla TODO gasto local que aún no esté en ella (no solo los manuales).
@@ -428,7 +437,8 @@ function App(){
       set(function(prev){
         // Refrescar una sola vez conserva el guardado partido: no reescribir el histórico
         // por página ni cuando las filas recibidas son iguales a las que ya había.
-        const merged=mergeExpensesFromCloud(prev.expenses, incoming);
+        const kept=keepCategoryChoices(prev.expenses, incoming, readStartedAt);
+        const merged=mergeExpensesFromCloud(kept.prev, kept.incoming, readStartedAt);
         const next=merged.list;
         const igual=!merged.changed && next.length===(prev.expenses||[]).length
           && next.every(function(e,i){ return e===(prev.expenses||[])[i]; });
@@ -436,15 +446,25 @@ function App(){
         const base=Object.assign({},prev,{expenses: igual?prev.expenses:next, lastSync:Date.now()});
         const rec=reconcileObDupes(fixMovInvasion(base));
         // reconcileObDupes: solo recat (cashback); nunca DELETE automático por similitud.
-        if(rec.recat.length){
+        // kept.recat: su categoría elegida, con la identidad de la fila de la NUBE (el id local
+        // puede ser otro y el UPDATE no tocaría nada).
+        if(rec.recat.length || kept.recat.length){
           setTimeout(function(){
             rec.recat.forEach(function(r){ cloud.setExpenseCat(r.expense, r.cat).catch(function(){}); });
+            kept.recat.forEach(function(r){
+              cloud.setExpenseCat(r.expense, r.cat).then(function(n){
+                if(n>0) set(function(p){ const l=ackCategoryWrite(p.expenses, r.expense, r.cat, Date.now()); return l===p.expenses?p:Object.assign({},p,{expenses:l}); });
+              }).catch(function(){});
+            });
           },0);
         }
         return rec.state;
       });
+      wR.current=true;
       return { total:incoming.length, nuevos:count };
     });
+    wP.current=pull;
+    return pull;
   };
 
   // Al iniciar sesión: adopta el estado de la nube (o sube el local la 1ª vez) y trae gastos.
@@ -579,7 +599,8 @@ function App(){
         const withNotes=enrichNotesFromBankTx(baseExp, txs);
         const withExp=(withNotes!==(invState.expenses||[])) ? Object.assign({},invState,{expenses:withNotes}) : invState;
         const now=new Date(), withTx=Object.assign({},withExp,{bankTx:txs});
-        const anchored=reconcileEarlyIncomeAnchors(withTx,now.getFullYear(),now.getMonth()+1,now.getDate());
+        const withProofs=reconcileFixedPaymentProofs(withTx,now.getFullYear(),now.getMonth()+1,now.getDate());
+        const anchored=reconcileEarlyIncomeAnchors(withProofs,now.getFullYear(),now.getMonth()+1,now.getDate());
         const r=applyBankBalances(anchored, links);
         return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks) });
       });
@@ -589,31 +610,9 @@ function App(){
       // Si has pulsado tú «↻ Sincronizar bancos», esto se junta con el resultado de abajo: dos
       // avisos seguidos por una sola acción tuya eran ruido (feedback 2026-07-26).
       if(obAdded.length && !opts.manual) showToast(tf("ob_imported",{n:obAdded.length}));
-      // Cajero / ATM: ofrecer la otra mitad al efectivo (nunca automático).
-      (function offerAtmCash(){
-        const atms=(obAdded||[]).filter(function(e){
-          return e && e.category==="traspaso" && e.amount>0 && isAtmWithdrawal(e.merchant||e.obName||"");
-        });
-        if(!atms.length || typeof askConfirm!=="function") return;
-        let i=0;
-        const next=function(){
-          if(i>=atms.length) return;
-          const e=atms[i++];
-          askConfirm({
-            title:tf("ef_atm_offer_title",{x:eur(e.amount)}),
-            sub:t("ef_atm_offer_sub"),
-            ok:t("ef_atm_offer_yes"),
-            cancel:t("ef_atm_offer_no")
-          }).then(function(yes){
-            if(yes){
-              set(function(s){ return applyEntradaEfectivo(s, e.amount); });
-              showToast(t("ef_in_done"));
-            }
-            next();
-          });
-        };
-        setTimeout(next, 400);
-      })();
+      // INC-2909-03: tabla y saldo de efectivo no tienen una confirmación atómica compartida.
+      // Ofrecer +€ desde cada importación podía sumarlos otra vez en otro móvil; la ficha explica
+      // el límite. Los apuntes manuales de efectivo conservan su recorrido propio.
       // Resultado por banco (servidor tolerante a fallos): aplica los que funcionaron y avisa SOLO
       // del que falló. ok===false explícito → fallo (respuestas antiguas sin 'ok' se tratan como ok).
       const bankLabelOf=function(l){ const e=entFromAspsp(l&&l.aspsp); return e?entOf(e).label:((l&&l.aspsp)||"🏦"); };
@@ -906,11 +905,8 @@ function App(){
     return function(){ clearTimeout(tmr); };
   },[state,uid]);
 
-  // Auto-sincroniza los gastos al volver a primer plano (abrir la app o cambiar de app y volver).
-  // THROTTLE: si acabas de sincronizar (<30s) no repetimos el pull+merge de red → evita el "lagazo"
-  // al alternar apps rápido (el sync dispara una descarga y un re-render de toda la app).
-  // Además: si hay bancos OB y ≥30 min desde lastBankSync → bankSync en idle (gastos de Caixa/etc.).
-  const lastVisSync=useRef(0);
+  // Al volver, los gastos pueden haber cambiado en la nube aunque el pull anterior sea reciente.
+  // Bancos OB siguen sin consulta automática; su cupo PSD2 no depende de esta lectura.
   /* Red doble para APKs antiguas: el nativo nuevo ya limita estas consultas, pero la OTA debe
      proteger también el móvil que aún no haya instalado ese APK. La marca vive en localStorage
      para que matar/abrir la app no reinicie el cupo. Los botones manuales no pasan por aquí. */
@@ -934,8 +930,9 @@ function App(){
     if(!uid) return;
     const onVis=function(){
       if(document.visibilityState!=="visible") return;
-      if(Date.now()-lastVisSync.current < 30000) return;   // ya sincronizado hace nada: no recargues
-      lastVisSync.current=Date.now();
+      setCalendarDay(madridDay());
+      // Un ingest puede escribir mientras la app está oculta incluso tras un pull reciente.
+      // Releer antes de dejar que el widget reciba el snapshot local de reentrada (FIN-05).
       syncCloudExpenses().catch(function(){});
       // (2026-07-18) Aquí había un bankSync automático al volver a primer plano. RETIRADO:
       // cada apertura disparaba una consulta PSD2 desatendida y los bancos (Caixa, Sabadell)
@@ -1744,6 +1741,13 @@ function App(){
   };
   const tabbarRef=useRef(null);
 
+  const madridDay=function(){ return new Date().toLocaleDateString("en-CA",{timeZone:MC_TZ}); };
+  const [calendarDay,setCalendarDay]=useState(madridDay);
+  useEffect(function(){
+    const onVis=function(){ if(document.visibilityState==="visible") setCalendarDay(madridDay()); };
+    document.addEventListener("visibilitychange",onVis);
+    return function(){ document.removeEventListener("visibilitychange",onVis); };
+  },[]);
   const totals=useMemo(()=>{
     // Solo lo que sale de bancos de gasto diario (y a mano): si no, un cargo de Sabadell
     // «solo para ver» restaría del efectivo de TR (2026-08-05).
@@ -1805,7 +1809,7 @@ function App(){
       if(paid){ paidThisMonth+=amt; }
       else { pendingThisMonth+=amt; pendingByBank[bank]=(pendingByBank[bank]||0)+amt; } };
     state.fixed.forEach(e=>{ if(occursIn(e,curMonth)) acc(occAmountIn(e,curMonth),accOf(e),isPaidIn(e,curMonth,today)); });
-    state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today)); });
+    state.debts.forEach(d=>{ if(debtActive(d)) acc((d.monthly||0)+debtBalloonIn(d,curYear,curMonth),d.account||"sabadell",isDebtPaidThisMonth(d,today,state,curYear,curMonth)); });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth) && (o.amount||0)!==0) acc(o.amount,o.account||"sabadell",isPaidThisMonth(o,today)); });
     // --- CASH-FLOW: ingresos (nómina) y transferencias recurrentes PENDIENTES este mes ---
     // El saldo del banco ya refleja lo que ya ocurrió (día pasado); solo proyectamos lo pendiente.
@@ -1828,7 +1832,7 @@ function App(){
     const evsByBank={};
     const pushEv=(bank,day,amt)=>{ (evsByBank[bank]=evsByBank[bank]||[]).push({day:day,amt:amt}); };
     state.fixed.forEach(e=>{ if(occursIn(e,curMonth)&&!isPaidIn(e,curMonth,today)) pushEv(accOf(e), dayIn(e,curMonth)||0, -occAmountIn(e,curMonth)); });
-    state.debts.forEach(d=>{ if(debtActive(d)&&!isDebtPaidThisMonth(d,today)){ pushEv(d.account||"sabadell", debtChargeDay(d), -d.monthly); const bl=debtBalloonIn(d,curYear,curMonth); if(bl>0) pushEv(d.account||"sabadell", debtChargeDay(d), -bl); } });
+    state.debts.forEach(d=>{ if(debtActive(d)&&!isDebtPaidThisMonth(d,today,state,curYear,curMonth)){ pushEv(d.account||"sabadell", debtChargeDay(d), -d.monthly); const bl=debtBalloonIn(d,curYear,curMonth); if(bl>0) pushEv(d.account||"sabadell", debtChargeDay(d), -bl); } });
     (state.oneoffs||[]).forEach(o=>{ if(oneoffOccurs(o,curYear,curMonth)&&(o.amount||0)!==0&&!isPaidThisMonth(o,today)) pushEv(o.account||"sabadell", o.day||0, -o.amount); });
     (state.flows||[]).forEach(f=>{ if(!flowOccursIn(f,curMonth,curYear)||flowPaidIn(state,f,curYear,curMonth,today))return; const dd=flowDay(f,curYear,curMonth); if(f.kind==="income") pushEv(f.to||"sabadell", dd||99, f.amount); else if(f.kind==="transfer") pushEv(f.from||"sabadell", dd||0, -f.amount); });
     const minByBank={}, minDayByBank={};
@@ -1858,8 +1862,8 @@ function App(){
   // el buscador, al salir un toast… Con las porciones reales solo se recalcula cuando cambia el
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.bankTx,state.investments,state.assets,state.debts,state.fixed,
-     state.flows,state.oneoffs,state.aportaciones,state.obAccounts,
-     state.trRewardsTotal,state.fx,state.fxRates]);
+     state.flows,state.oneoffs,state.deleted,state.aportaciones,state.obAccounts,
+     state.trRewardsTotal,state.fx,state.fxRates,calendarDay]);
 
   const budgetMonth=budgetYmKey();
   useEffect(function(){
@@ -1870,7 +1874,7 @@ function App(){
   /* Una sola racha compartida por Inicio y el detector de logros. Con históricos grandes,
      calcularla otra vez dentro de cada pantalla triplicaba el recorrido al terminar un sync. */
   const budgetStreak=useMemo(function(){ return underBudgetStreak(state); },
-    [state.expenses,state.budgetByMonth,state.accounts,state.reservaLog,
+    [state.expenses,state.deleted,state.budgetByMonth,state.accounts,state.reservaLog,
      state.settings&&state.settings.expenseBanks,state.settings&&state.settings.gTotalMode,budgetMonth]);
 
   const [pricing,setPricing]=useState(false);
@@ -1960,22 +1964,46 @@ function App(){
     const url=CONFIG.SUPABASE_URL+"/functions/v1/ingest?token="+encodeURIComponent(tok);
     try{ nat.setIngestUrl({url:url}).catch(function(){}); }catch(e){}
   },[state.settings&&state.settings.trIngest, state.settings&&state.settings.ingestToken]);
-  // App Android: alimenta el widget de pantalla de inicio (gasto del mes + saldo de la cuenta diaria).
-  // El widget y `ingest` solo admiten mes natural. Mandar su propia cifra mensual evita
-  // mezclar un inicio de ciclo con el `periodStart` del día 1 (feedback pareja 28/9).
-  const budW=monthBudgetStats(state,Date.now());
-  const trAccW=state.accounts.find(function(a){ return a.spendFrom; });
+  // App Android: alimenta el widget de pantalla de inicio (gasto + saldo de la cuenta diaria).
+  // La APK 51 conserva su payload mensual histórico, igual que ingest activo. Un widget v2
+  // declara `widgetContract` y pinta ventana/cifra de Inicio en su idioma (INC-2909-01).
+  const [wV2,setWV2]=useState(null);
+  useEffect(function(){
+    const nat=natPlugin();
+    if(!nat || !nat.widgetContract){ setWV2(false); return; }
+    let vivo=true,tm;
+    // La APK 51 no tiene el método: la llamada falla y se sigue con el mes natural.
+    const query=function(){
+      let expired=false;
+      tm=setTimeout(function(){
+        expired=true;
+        // Un puente colgado no demuestra legacy: la APK nueva oculta cifras hasta negociar.
+        try{ Promise.resolve(nat.widgetWaiting()).catch(function(){}); }catch(e){}
+        tm=setTimeout(query,3000);
+      },3000);
+      Promise.resolve().then(function(){ return nat.widgetContract(); })
+        .then(function(r){ if(vivo&&!expired){ clearTimeout(tm); setWV2(!!(r&&r.v>=2)); } })
+        .catch(function(){ if(vivo&&!expired){ clearTimeout(tm); setWV2(false); } });
+    };
+    query();
+    return function(){ vivo=false; clearTimeout(tm); };
+  },[]);
+  const budW=wV2?dashboardBudgetStats(state):monthBudgetStats(state,Date.now());
+  const trAccW=widgetBankOf(state);
+  const wPay=wV2&&budW.cycle?budgetPaydayOf(state,Date.now()):null;
+  const wAnchor=wPay?keyOfExpense(wPay.inc):"";
+  const wScope=wV2?widgetScopeOf(state,budW,wAnchor,trAccW&&trAccW.ent):"";
+  // Se prepara el alcance compartido para la entrega propia de ingest; el activo sigue legacy.
+  useEffect(function(){
+    if(!wV2) return;
+    // La nómina que abre el ciclo no cuenta en su neto; su identidad debe viajar con la ventana.
+    const kind=budW.cycle?"ciclo":"mes", start=budW.periodStart, anchor=wAnchor, w=state.widgetPeriod;
+    if(w && w.v===2 && w.scope===wScope) return;
+    set(function(s){ return Object.assign({},s,{widgetPeriod:{v:2,kind:kind,start:start,anchor:anchor,scope:wScope}}); });
+  },[wV2,wScope,state.widgetPeriod]);
   const widgetCash=trAccW ? Math.round((totals.bankBal[trAccW.ent]||0)*100)/100 : null;
-  // «Lo que te puedes permitir» (petición 2026-07-18): lo que puedes gastar SIN pasarte ni quedarte
-  // en rojo = mínimo entre lo que te deja el presupuesto y la liquidez segura de la cuenta de gasto
-  // (su peor saldo del mes; no puedes gastar lo que no tienes). Nunca negativo.
-  //
-  // Se mandan las DOS PIEZAS por separado, sin combinar (2026-08-17). Antes se empujaba el mínimo
-  // ya hecho y el widget lo guardaba tal cual; con la app cerrada, una noti de TR/Wallet
-  // actualizaba el gasto pero NO esto, así que el widget acababa diciendo «te quedan 109» y
-  // «puedes gastar 324» a la vez. Ahora la resta la hace el widget con las piezas frescas:
-  // `budgetLeft` se lo recalcula el servidor en cada noti, y `safeLiq` lo baja él restando el
-  // importe. Aquí se sigue calculando igual — esta es la referencia de la que copia el nativo.
+  // El límite combina presupuesto global y liquidez del banco elegido. Se mandan las piezas
+  // por separado para que el nativo las actualice con la app cerrada (FIN-05).
   const widgetBudgetLeft=(function(){
     const bl = budW.remaining!=null ? Math.max(0, budW.remaining)
       : ((state.budget>0) ? Math.max(0, state.budget - (totals.thisMonthSpent||0)) : null);
@@ -1990,11 +2018,21 @@ function App(){
   useEffect(function(){
     const nat=natPlugin();
     if(!nat || !nat.updateWidget) return;
+    // Mientras se negocia, una foto legacy rebajaría el contrato ya guardado por la APK nueva.
+    if(wV2==null) return;
+    if(cloud.enabled() && (!uid || !wR.current)) return;
     const data={
-      spent:Math.round((budW.shown||0)*100)/100,
+      periodStart:budW.periodStart,
+      // V2 acredita también filas anteriores recibidas: pueden afectar al saldo aunque ya no
+      // consuman esta ventana. No se confirma por fecha, ni por una foto sin identidad.
+      coveredEvents:widgetCoveredEvents(wC.current,budW.periodStart,Date.now(),!!wV2),
+      deletedKeys:"|"+(state.deleted||[]).map(encodeURIComponent).join("|")+"|",
+      // En el ciclo, el neto con signo, como Inicio; `shown` sería |neto| (la cabecera de Gastos).
+      spent:Math.round(((budW.cycle?budW.against:budW.shown)||0)*100)/100,
       budget:budW.budget!=null?budW.budget:(state.budget||0)
     };
-    if(widgetCash!=null){ data.cash=widgetCash; data.cashLabel=entOf(trAccW.ent).label; }
+    if(wV2){ data.contract=2; data.periodKind=budW.cycle?"ciclo":"mes"; data.magnitude=budW.cycle?"neto":"gasto"; data.lang=CURLANG; data.scope=wScope; }
+    if(widgetCash!=null){ data.cash=widgetCash; data.cashEnt=trAccW.ent; data.cashLabel=entOf(trAccW.ent).label; }
     if(widgetBudgetLeft!=null) data.budgetLeft=widgetBudgetLeft;
     if(widgetSafeLiq!=null) data.safeLiq=widgetSafeLiq;
     // APK 41 (la de producción) todavía lee `afford` y si no llega BORRA «Puedes gastar».
@@ -2008,7 +2046,7 @@ function App(){
     // Re-empuja al VOLVER a primer plano (feedback 2026-07-20: el widget de MIUI/HyperOS no
     // siempre coge el dato nuevo con la app cerrada). Reenvía lo último bueno para forzar el
     // re-pintado del widget aunque el estado no haya cambiado.
-    const onVis=function(){ if(document.visibilityState==="visible") push(); };
+    const onVis=function(){ if(document.visibilityState==="visible" && !cloud.enabled()) push(); };
     document.addEventListener("visibilitychange", onVis);
     // Android puede volver sin visibilitychange. Si ingest pisó el widget mientras estaba
     // cerrada y las cifras locales no cambian, las deps tampoco fuerzan otro push (B09-D).
@@ -2016,7 +2054,7 @@ function App(){
     let sub=null, disposed=false;
     if(A&&A.addListener){
       try{
-        sub=Promise.resolve(A.addListener("appStateChange", function(st){ if(!disposed&&st&&st.isActive) push(); }));
+        sub=Promise.resolve(A.addListener("appStateChange", function(st){ if(!disposed&&st&&st.isActive){ setCalendarDay(madridDay()); if(!cloud.enabled()) push(); } }));
         sub.catch(function(){});
       }catch(e){}
     }
@@ -2026,7 +2064,7 @@ function App(){
       // addListener puede resolver después del cleanup: liberar también ese handle tardío.
       if(sub) sub.then(function(h){ if(h&&h.remove) return h.remove(); }).catch(function(){});
     };
-  },[budW.shown,budW.budget,state.budget,widgetCash,widgetBudgetLeft,widgetSafeLiq]);
+  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){
     // No arrancar el tour encima del login (showAuth) ni con el cajón abierto: causaba el caos
@@ -2107,7 +2145,7 @@ function App(){
     const nat=natPlugin();
     if(!nat||!nat.showNotification) return;
     const today=totals.today||new Date().getDate();
-    const cm=totals.curMonth;
+    const cm=totals.curMonth,cy=totals.curYear;
     const minAmt=Math.max(80, (totals.fijosMensual||0)*0.12);
     const cal=alertCalendarOf();
     const ym=cal.ym;
@@ -2132,7 +2170,7 @@ function App(){
       // cuotas de deuda (hipoteca, financiaciones…): también avisan la víspera
       (state.debts||[]).forEach(function(d){
         if(!debtActive(d) || !(d.monthly>0)) return;
-        if(isDebtPaidThisMonth(d,today)) return;
+        if(isDebtPaidThisMonth(d,today,state,cy,cm)) return;
         if(debtChargeDay(d)-today!==1) return;
         notify("_rc1_debt_"+d.id+"_"+ym, t("rc_title_tmrw"), tf("rc_body_tmrw",{name:d.name||"?",x:eur(d.monthly)}));
       });
@@ -2148,7 +2186,7 @@ function App(){
         }).catch(run);
       }catch(e){ run(); }
     } else run();
-  },[state.onboarded,locked,showAuth,state.fixed,state.debts,totals.today,totals.curMonth]);
+  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.expenses,state.bankTx,state.deleted,totals.today,totals.curMonth,totals.curYear]);
 
   // Empuja el calendario de recibos del mes al NATIVO (APK ≥29): AlertCheckWorker avisa la
   // víspera aunque la app esté CERRADA. Intercambio de sellos para no avisar dos veces:
@@ -2169,16 +2207,16 @@ function App(){
   // Avisos de presupuesto al cruzar 50/80/95/100% (petición 2026-07-18). Una noti por umbral
   // y mes; si al abrir ya vas por el 97%, solo suena el umbral MÁS ALTO (los demás se sellan
   // en silencio para no disparar tres de golpe). Suena también como toast en la app.
-  // Misma cifra que Resumen/Gastos (`monthBudgetStats`): sin neutras ni reservas, no
-  // `thisMonthSpent` (feedback «el presupuesto no cuadra» — 2026-08-05).
-  // accounts + settings enteros en deps: monthBudgetStats → expenseBankEnts (B09-A2 /
+  // Misma cifra que Inicio: desactivar Mi ciclo no debe borrar el gasto mensual
+  // de los avisos aunque Gastos esté en Balance (feedback 2026-09-30).
+  // accounts + settings enteros en deps: dashboardBudgetStats → expenseBankEnts (B09-A2 /
   // 2026-09-07). Sin ellos, quitar/añadir un banco de gasto diario no reevaluaba el % y
   // podía dejar selladas (o sin disparar) las banderas _bn* del mes.
   // settings entero también re-corre al cambiar expenseOrder (arrastre 4.19.0): inofensivo
   // porque _bn* son idempotentes y `seen` impide repetir el toast/noti.
   useEffect(function(){
     if(state.onboarded===false||locked) return;
-    const bs=monthBudgetStats(state);
+    const bs=dashboardBudgetStats(state);
     const bud=bs.budget!=null?bs.budget:0; if(!(bud>0)) return;
     const spent=Math.max(0, bs.against||0);
     const pct=spent/bud*100;
@@ -2198,7 +2236,7 @@ function App(){
       const nat=natPlugin();
       if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely",body:msg}).catch(function(){}); }catch(e){} }
     });
-  },[state.onboarded,locked,state.expenses,state.budget,state.reservaLog,state.accounts,state.settings]);
+  },[state.onboarded,locked,state.expenses,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings]);
   // Snapshot diario del total invertido (€) para el gráfico de evolución (#6). Se actualiza si cambia valor/coste hoy.
   const invSnapRef=useRef("");
   useEffect(function(){
