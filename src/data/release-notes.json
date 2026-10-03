@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.87",
+    "d": "2026-10-03",
+    "t": {
+      "es": "Borrar una regla de ahorro",
+      "en": "Deleting a savings rule",
+      "ca": "Esborrar una regla d’estalvi"
+    },
+    "items": {
+      "es": [
+        "Al borrar una regla de ahorro, su reserva deja de reducir el presupuesto disponible. Las aportaciones de la meta se conservan."
+      ],
+      "en": [
+        "Deleting a savings rule releases its reservation from the available budget. Contributions to the goal are kept."
+      ],
+      "ca": [
+        "En esborrar una regla d’estalvi, la seva reserva deixa de reduir el pressupost disponible. Es conserven les aportacions de la meta."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0310-01-meta-regla",
+        "t": {
+          "es": "Borrar una regla libera su reserva",
+          "en": "Deleting a rule releases its reservation",
+          "ca": "Esborrar una regla allibera la reserva"
+        },
+        "items": {
+          "es": [
+            "1. Con una nómina ya cobrada, crea y aplica dos reglas de Metas. Cancela el borrado: el presupuesto debe seguir igual. Confirma después: solo se libera lo apartado por esa regla; las aportaciones y la otra regla se conservan.",
+            "2. Vuelve a Gastos e Inicio y reabre la app. Deben mantener el presupuesto corregido, sin otra nómina ni reparto. Prueba también borrar una regla sin aplicar y borrar sin conexión."
+          ],
+          "en": [
+            "1. With a paycheck already received, create and apply two Goals rules. Cancel deletion: the budget should stay unchanged. Then confirm: only the deleted rule’s reservation is released; contributions and the other rule are kept.",
+            "2. Return to Expenses and Home, then reopen the app. The corrected budget should persist, without another paycheck or split. Also try deleting an unapplied rule and deleting offline."
+          ],
+          "ca": [
+            "1. Amb una nòmina ja cobrada, crea i aplica dues regles de Metes. Cancel·la l’esborrat: el pressupost ha de seguir igual. Després confirma: només s’allibera la reserva de la regla esborrada; les aportacions i l’altra regla es conserven.",
+            "2. Torna a Despeses i Inici i reobre l’app. Han de mantenir el pressupost corregit, sense una altra nòmina ni repartiment. Prova també d’esborrar una regla sense aplicar i sense connexió."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.86",
     "d": "2026-10-02",
     "t": {

@@ -145,7 +145,11 @@ const PRESUPUESTO = {
   // de la categoría elegida (confirmación de escritura y reglas por comercio+banco+tarjeta) y
   // su nota en tres idiomas; no se recorta historia ni idiomas. Mínimos 1272/347 KiB autorizados
   // por el coordinador: márgenes 640/776 B con sello; 3 bloqueantes iguales.
-  minificado: 1272 * 1024,
+  // Unión Metas87 sobre beta86 (49a219a7), mismo host/minificador y sellos86.99→87.99:
+  // 1.301.821/354.536→1.303.649/355.027 B (+1.828/+491), con3 bloqueantes iguales.
+  // Mínimo1274 KiB crudo deja927 B; gzip347 conserva301 B sin ampliar descarga,
+  // manteniendo identidad de liberación, diálogo es/en/ca y todo el catálogo anterior.
+  minificado: 1274 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

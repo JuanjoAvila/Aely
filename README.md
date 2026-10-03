@@ -100,7 +100,9 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.86** candidata: la categoría elegida a mano no se deshace al sincronizar ([acta](docs/briefs/inc-0210-02-categoria-elegida.md)); integrada sobre la beta 85 (`cdfb2f2c`), sin publicar.
+Estado actual: **v4.26.87** candidata: borrar regla libera su reserva comprobable, conservando aportaciones e historial. Integrada sobre beta86 (`49a219a7`), sin publicación propia ni aceptación móvil. APK80/code52 conservada. [Acta](docs/briefs/inc-0310-01-meta-regla.md).
+
+Estado anterior de Categoría: **v4.26.86** candidata: la categoría elegida a mano no se deshace al sincronizar ([acta](docs/briefs/inc-0210-02-categoria-elegida.md)); integrada sobre la beta 85 (`cdfb2f2c`), sin publicar.
 
 Estado anterior de la integración 85: **v4.26.85**, conjunta de cuota contabilizada, Gastos por periodo y Gasolina/Taxi, sobre3467bbd4. Sin publicar; revisión de integración y CI exactas pendientes, aceptación móvil pendiente. APK80/code52 conservada. [Plan](docs/briefs/inc-0210-01-plan-cuota.md) · [Gastos](docs/briefs/inc-0210-03-gastos-periodo.md).
 
@@ -132,3 +134,5 @@ Notas rápidas del rediseño v4 (para no perderse):
 - **Canal beta y banco de pruebas** (solo `is_admin`): Ajustes → Dev → Pruebas; cada tanda distingue revisión y entrega, incluso plegada — [docs/TESTING.md](docs/TESTING.md).
 
 El guardián tests/logs-privacidad.test.mjs verifica las fronteras de diagnóstico con marcadores sintéticos. Cobertura y límites, incluyendo servidor sin desplegar, en [SEC-03](docs/briefs/sec03-privacidad-logs.md).
+
+Plan → Metas: borrar una regla de nómina pide confirmación y libera su reserva del presupuesto, conservando las aportaciones e historial. Candidata INC-0310-01 aún sin publicación; pruebas DOM en `e2e/metas-borrar-regla.spec.mjs`, mapeadas a Metas, Gastos, Inicio y motor. [Contrato y estado](docs/briefs/inc-0310-01-meta-regla.md).
