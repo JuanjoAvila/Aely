@@ -140,7 +140,12 @@ const PRESUPUESTO = {
   // 353.265 B gzip; frente84.99 suma1.569/541 B. Catálogo85+84+83 e idiomas intactos.
   // Mínimo1268 deja543 B; gzip345 dejaría solo15 B, insuficientes para el sello real de
   // Actions con run más largo. Se decide346 para dejar1.039 B, sin recortar historia.
-  minificado: 1268 * 1024,
+  // Integración Categoría86 sobre la beta 85 (cdfb2f2c), mismo host y minificador, sellos
+  // 85.99→86.99: 1.297.925/353.252 B → 1.301.888/354.552 B (+3.963/+1.300). Es el código de la protección
+  // de la categoría elegida (confirmación de escritura y reglas por comercio+banco+tarjeta) y
+  // su nota en tres idiomas; no se recorta historia ni idiomas. Mínimos 1272/347 KiB autorizados
+  // por el coordinador: márgenes 640/776 B con sello; 3 bloqueantes iguales.
+  minificado: 1272 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -148,7 +153,7 @@ const PRESUPUESTO = {
   // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
   // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
   // La misma candidata mide 343.257 B gzip, 217 B sobre 335 KiB: +1 KiB medido.
-  gzip: 346 * 1024,
+  gzip: 347 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

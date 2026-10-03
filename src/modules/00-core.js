@@ -326,6 +326,9 @@ const MERCHANT_OVERRIDES = {};
 // Overrides PERSONALES del usuario (comercio→categoría), que aprende al recategorizar a mano.
 // Se puebla desde state.catOverrides al cargar. Tiene prioridad sobre las keywords.
 let USER_OVERRIDES = {};
+// Reglas de equivalencia que él ha enseñado: comercio+banco+tarjeta → {cat, at}. Se pueblan
+// desde state.catRules; las usa solo el pull (ver `keepCategoryChoices`), no las keywords.
+let USER_CAT_RULES = {};
 function catKey(merchant){ return (merchant||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim(); }
 /* EL VOCABULARIO CERRADO DE LAS MÉTRICAS DE USO (ver `cloud.logUso`, más abajo).
    Todo lo que se puede medir está en esta lista y en ningún otro sitio. Es a propósito: con una
@@ -1122,8 +1125,12 @@ const cloud = (function(){
       // Sacar una cuota de «Deudas» a mano le quita también la marca en la nube; si no, el
       // siguiente pull le devolvería el `debtId` (4.21.0).
       if(e&&e.debtId&&cat!=="deudas") upd.source=expenseSourceForCloud(Object.assign({},e,{debtId:undefined}));
-      const {error}=await expenseCloudEq(sb.from('expenses').update(upd), session.user.id, e);
+      // Devuelve cuántas filas cambió: un UPDATE por id que no casa no da error, y sin ese número
+      // la app daba por subida una categoría que la tabla nunca recibió (2026-10-02).
+      const q=expenseCloudEq(sb.from('expenses').update(upd), session.user.id, e);
+      const {data,error}=await (typeof q.select==="function" ? q.select("id") : q);
       if(error) throw error;
+      return Array.isArray(data) ? data.length : 0;
     },
     // Un UPDATE sin filas no confirma una retirada: FIN-04 permite UUID locales divergentes.
     // No buscar gemelos por parecido ni tocar importe, origen o saldo para salvar esa identidad.
@@ -2303,6 +2310,111 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
   });
   const list=order.map(function(k){ return byKey[k]; });
   return { list:list, changed:changed, nuevos:nuevos };
+}
+
+/* LA CATEGORÍA QUE ÉL ELIGIÓ NO LA DESHACE UN PULL (2026-10-02).
+   Corregía a Restaurantes un comedor cuyo nombre lleva el de una aseguradora y cada día volvía a
+   Recibos, por dos caminos: (1) la nube seguía con la categoría vieja —el UPDATE va por id y puede
+   no tocar ninguna fila sin dar error— y `refreshExpenseFromCloud` pisa la de toda fila no manual;
+   (2) el cargo del día siguiente lo categoriza el servidor por palabra clave, sin conocer lo
+   aprendido, y `resolveCategory` acepta lo que venga.
+   No se arregla con una regla de aseguradoras: el alias es ambiguo y un seguro de verdad tiene
+   que seguir en Recibos. Se respeta SU decisión, y solo donde la tomó:
+     · `catStale` (solo local) guarda las categorías que la nube aún puede devolver mientras la
+       subida no esté CONFIRMADA. Sin confirmar, manda lo local y se reintenta con la identidad
+       de la fila de la nube. Confirmada (`catAckAt`), cualquier lectura empezada después es la
+       verdad, aunque diga la categoría vieja: es que la cambió en otro móvil.
+     · una regla por comercio exacto + banco + con/sin tarjeta (`catRules`): un recibo domiciliado
+       con el mismo nombre en otro banco no es el mismo sitio. La fila que este móvil ve por
+       primera vez, con fecha POSTERIOR al instante en que lo enseñó, nace con lo aprendido.
+       Lo anterior no se toca, tampoco en un móvil recién instalado ni al corregir un gasto
+       antiguo; una fecha sin hora del mismo día cae antes y se queda como venga.
+   Va ANTES de `mergeExpensesFromCloud` y solo prepara sus entradas: devuelve las mismas
+   referencias si no hay nada que proteger, para no reescribir el histórico en cada pull. */
+function catRuleKey(e){ return catKey(e&&e.merchant)+"|"+((e&&e.ent)||"")+"|"+((e&&e.noCard)?"0":"1"); }
+function catStaleAfter(e, newCat){
+  if(!e || e.category===newCat || isManualExpenseSource(e.source)) return e&&e.catStale;
+  const prev=(e.catStale||[]).filter(function(c){ return c!==newCat; });
+  return prev.indexOf(e.category)<0 ? prev.concat([e.category]) : prev;
+}
+// La nube confirmó que escribió `cat` en esa fila: desde `at`, lo que lea de ella es verdad.
+function ackCategoryWrite(list, row, cat, at){
+  const k=keyOfExpense(row);
+  let out=list;
+  (list||[]).forEach(function(e,i){
+    if(!e.catStale || e.category!==cat || e.catAckAt!=null || keyOfExpense(e)!==k) return;
+    if(out===list) out=list.slice();
+    out[i]=Object.assign({},e,{catAckAt:at});
+  });
+  return out;
+}
+function keepCategoryChoices(prevList, incoming, readStartedAt){
+  const out={ prev:prevList, incoming:incoming, recat:[] };
+  const stale={}; let hayStale=false;
+  (prevList||[]).forEach(function(e,i){ if(e && e.catStale){ stale[keyOfExpense(e)]=i; hayStale=true; } });
+  let minAt=Infinity;
+  for(const k in USER_CAT_RULES){ const at=USER_CAT_RULES[k]&&USER_CAT_RULES[k].at; if(Number.isFinite(at) && at<minAt) minAt=at; }
+  if(!hayStale && minAt===Infinity) return out;
+  // `expenseFromRow` emite siempre ISO en UTC: comparar texto descarta el histórico sin parsear.
+  const minIso=minAt===Infinity ? "" : new Date(minAt).toISOString();
+  let prevKeys=null;
+  const esNueva=function(k){
+    if(!prevKeys){ prevKeys={}; (prevList||[]).forEach(function(e){ prevKeys[keyOfExpense(e)]=1; }); }
+    return !prevKeys[k];
+  };
+  const swap=function(i, row){ if(out.incoming===incoming) out.incoming=incoming.slice(); out.incoming[i]=row; };
+  const soltar=function(at, loc){
+    if(out.prev===prevList) out.prev=prevList.slice();
+    const libre=Object.assign({},loc); delete libre.catStale; delete libre.catAckAt;
+    out.prev[at]=libre;
+  };
+  (incoming||[]).forEach(function(inc, i){
+    if(hayStale){
+      const at=stale[keyOfExpense(inc)];
+      if(at!=null){
+        const loc=out.prev[at];
+        if(!loc.catStale) return;   // misma clave repetida en el pull: ya se resolvió arriba
+        if(loc.catAckAt!=null){
+          // Lectura empezada antes de la confirmación (o sin hora): puede ser una foto vieja.
+          if(readStartedAt!=null && loc.catAckAt<readStartedAt) soltar(at, loc);
+          else if(inc.category!==loc.category) swap(i, Object.assign({},inc,{category:loc.category}));
+        }else if(inc.category!==loc.category && loc.catStale.indexOf(inc.category)>=0){
+          swap(i, Object.assign({},inc,{category:loc.category}));
+          out.recat.push({ expense:inc, cat:loc.category });
+        }else{
+          // La nube ya dice lo mismo, o decidió otra cosa en otro móvil: deja de proteger.
+          soltar(at, loc);
+        }
+        return;
+      }
+    }
+    if(minAt===Infinity || !CAT[inc.category] || isManualExpenseSource(inc.source)) return;
+    if(!(inc.date>minIso)) return;
+    // Fecha ilegible = no se sabe si es posterior: no se toca (`dateMs` la daría por hoy).
+    const ms=Date.parse(inc.date);
+    const rule=USER_CAT_RULES[catRuleKey(inc)];
+    if(!rule || rule.cat===inc.category || !CAT[rule.cat] || !(ms>rule.at)) return;
+    if(!esNueva(keyOfExpense(inc))) return;
+    swap(i, Object.assign({},inc,{category:rule.cat, catStale:[inc.category]}));
+    out.recat.push({ expense:inc, cat:rule.cat });
+  });
+  return out;
+}
+/* Lo aprendido ANTES de existir las reglas no trae ni fecha ni contexto. No se inventan: se
+   deducen de las filas que él ya tiene corregidas (mismo comercio, categoría = la aprendida) y
+   valen desde hoy. Sin ninguna fila que lo pruebe no hay regla, y la próxima corrección la crea.
+   Una vez, y solo con gastos cargados: llegan en un segundo viaje (ver `fixMovInvasion`). */
+function seedCatRules(s){
+  if(!s || s._catRulesSeed || !Array.isArray(s.expenses) || !s.expenses.length) return s;
+  const ov=s.catOverrides||{}, rules=Object.assign({}, s.catRules||{}), ahora=Date.now();
+  if(Object.keys(ov).length){
+    s.expenses.forEach(function(e){
+      if(!e || isManualExpenseSource(e.source)) return;
+      const cat=ov[catKey(e.merchant)], k=catRuleKey(e);
+      if(cat && cat===e.category && CAT[cat] && !rules[k]) rules[k]={ cat:cat, at:ahora };
+    });
+  }
+  return Object.assign({}, s, { catRules:rules, _catRulesSeed:true });
 }
 
 /* ¿El estado bajado de la nube tiene forma válida? Evita machacar lo local con algo corrupto/parcial.
