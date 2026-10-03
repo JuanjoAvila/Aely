@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-10-03 · **v4.26.87** candidata integrada sobre beta86 (`49a219a7`): liberar descuento comprobable al borrar regla de Meta; sin publicación propia ni aceptación móvil. [Acta](briefs/inc-0310-01-meta-regla.md).
+> Estado a 2026-10-03 · **v4.26.88** candidata88 integrada desde beta039d: añade Multas, Zona azul y Peajes sin alterar histórico, BOOK85, categoría elegida86 o liberación de Metas87. Fuente mínima PR108/2205; revisión/CI/publicación propia pendientes. APK80/code52 conservada; no Edge nueva. [Acta](briefs/feature-0310-01-movilidad.md).
 
 > Snapshot anterior a 2026-10-03 · **v4.26.86** candidata: la categoría elegida a mano sobrevive al pull y al reinicio, y los pagos siguientes del mismo comercio la heredan. Solo cliente; integrada sobre la beta 85 (`cdfb2f2c`). DOM conjunto, CI exacta y móvil pendientes. [Acta](briefs/inc-0210-02-categoria-elegida.md).
 
@@ -251,7 +251,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.87** candidata integrada sobre beta86 (`49a219a7`); sin publicar. |
+| Web / OTA (`VERSION`) | **4.26.88** candidata88 integrada desde beta039d: añade Multas, Zona azul y Peajes sin alterar histórico, BOOK85, categoría elegida86 o liberación de Metas87. Fuente mínima PR108/2205; revisión/CI/publicación propia pendientes. APK80/code52 conservada; no Edge nueva. |
 | APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base; Metas87 no genera APK. Cotejo servido en gate de entrega. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a3467; Metas87 no reemplaza binario ni manifiesto. |

@@ -267,6 +267,9 @@ const CATEGORIES = [
   { id:"gasolina",   name:"Gasolina",            color:"#E8945F", icon:"⛽" },
   { id:"taxi",       name:"Taxi",                color:"#E6C36A", icon:"🚕" },
   { id:"parking",    name:"Parking",             color:"#8AA0B8", icon:"🅿️" },
+  { id:"multas",     name:"Multas",              color:"#C97D5F", icon:"🚨" },
+  { id:"zona_azul",  name:"Zona azul",           color:"#8AA0B8", icon:"🅿️" },
+  { id:"peajes",     name:"Peajes",              color:"#7FB5E8", icon:"🛣️" },
   /* AGUA, LUZ Y GAS POR SEPARADO (2026-09-12). Antes era una sola, «Luz, gas y agua», con un ⚡
      de icono. Suyo: *«sale un símbolo de rayito en Aigües de Barcelona que no encaja para nada…
      Agua por un lado con su símbolo, luz por otro y gas por otro»*. Tenía razón: el recibo del
@@ -527,6 +530,13 @@ function categoryOfNewMerchant(merchant){
 // Una marca energética sola no prueba carburante; comida y suministros conservan su finalidad.
 function mobilityCategoryOfNewMerchant(merchant,cat){
   const c=catKey(merchant);
+  // La sanción manda sobre el lugar donde ocurrió; una app de parking, una administración
+  // o una autopista sin detalle no prueban estos destinos. Solo altas nuevas (petición3/10).
+  if(cat==="transporte" || cat==="otros" || cat==="tasas" || cat==="parking"){
+    if(/\bmult[ae]s?\b|\bsancio(?:n)? (?:de )?(?:trafico|transit)\b|\b(?:traffic|parking) fines?\b/.test(c)) return "multas";
+    if(/\bzona (?:azul|blava)\b|\bestacionamiento regulado\b|\baparcament regulat\b/.test(c)) return "zona_azul";
+    if(/\bpeajes?\b|\bpeatges?\b|\btoll (?:road|payment)\b/.test(c)) return "peajes";
+  }
   if(cat!=="transporte" && cat!=="otros" && !(cat==="super" && /\bcarrefour gas\b/.test(c))) return cat;
   if(/\buber[^a-z0-9]*eats\b/.test(c)) return "bares";
   if(/\b(recarga|recarrega|carga|carrega)\b.*electric|electric.*\b(recarga|recarrega|carga|carrega)\b|\bev charging\b|\bcharging station\b/.test(c)) return "transporte";

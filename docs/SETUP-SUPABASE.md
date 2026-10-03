@@ -216,3 +216,6 @@ No desplegar ingest de la rama SEC-03 sin portar su delta de logger sobre la fue
 ### Widget80 conserva ingest
 
 No Edge/SQL desplegada ni modificada por el injerto. Ingest activo sigue legado; v2 oculta cifras sin evidencia compatible y pide abrir la app. DeltaPR87 sigue separado y NO-GO. Un backend futuro exige su autorización y guion real propio. [Acta](briefs/inc-2909-01-widget.md).
+
+
+Movilidad88: espejo y ALLOWED/HINTS preparados como fuente. No despliega Edge ni SQL. Sin detalle inequívoco conserva tasas/parking/transporte; servidor anterior y requisitos Edge siguen pendientes.

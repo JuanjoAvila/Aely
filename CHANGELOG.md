@@ -1,3 +1,9 @@
+## [4.26.88] — 2026-10-03 · Multas, Zona azul y Peajes independientes
+
+- FEATURE-0310-01 amplía Gasolina/Taxi85 con IDs estables multas/zona_azul/peajes, iconos existentes y nombres es/en/ca. Apuntar, ficha, filtros, desglose y límites comparten catálogo; las categorías y límites antiguos permanecen, sin migración ni reclasificación histórica.
+- Solo las altas nuevas separan sanciones explícitas, estacionamiento regulado y peajes explícitos. Una multa tiene prioridad sobre la zona donde ocurre; una administración, app de parking o autopista sin detalle conserva categoría general. Elección manual y finalidad reconocida siguen por delante de MCC. Espejo ingest y ALLOWED/HINTS de categorize preparados en fuente sin despliegue; cloud/presupuesto no necesitan SQL nueva. [Acta](docs/briefs/feature-0310-01-movilidad.md).
+- El fixture de entrega completa separa los recibos Edge de la condición de APK: una tanda web/Edge sin nativo no quedaba acreditada en la simulación positiva. La prueba negativa retira los recibos Edge de todas las tandas reales y exige que sigan pendientes; no cambia el runtime ni acredita un servidor activo.
+
 ## [4.26.87] — 2026-10-03 · Borrar una regla libera su reserva (INC-0310-01)
 
 - Borrar en Plan → Metas quitaba únicamente `settings.reservaRules`: los asientos de `reservaLog` seguían reduciendo el presupuesto de Gastos/Inicio. Confirmación cancelable es/en/ca y actualización atómica sobre el estado vigente.

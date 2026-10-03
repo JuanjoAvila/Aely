@@ -487,3 +487,6 @@ INC-2909-03: candidata79 injertada sobre Nómina78 final eaf55e4a, sin publicaci
 Reproducción de puertas banco/Efectivo/tipo y categoría Traspaso, ACK por identidad exacta y no
 operación de efectivo importado explicada. FIN-04/RLS y suma compartida siguen limitados.
 [Contrato, pruebas y coordinación](briefs/inc-2909-03-retirada-caixa.md).
+
+
+Movilidad88 se integra en worktree propio sobre039d; no incorpora arreglos nuevos de los extras3/10 ni acredita aprobación móvil o producción.

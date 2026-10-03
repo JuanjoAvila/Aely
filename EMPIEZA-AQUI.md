@@ -175,3 +175,6 @@ son actuales. El header del ROADMAP puede ir por detrás del último veredicto.
 ## Integración aislada del panel75 (1/10/2026)
 
 Base real Recibos74 9ecd6a172e1c451016e6b4e102fa7b8e8bdc5359. No reutilizar GO483e8874 como aprobación del nuevo SHA integrado. Mantener siete referencias históricas: tres códigos idénticos conservan OK, cuatro cambios web de Inicio73 necesitan revisión nueva. No repinar ni recortar dependencias financieras para conservar aprobaciones.75 sigue local; el coordinador autoriza publicación tras verificar74 servida y concede Chromium por lease canónico. Bootstrap main PR92/2f045a1e conserva gate propio; ninguna entrega exacta puede inventarse. [Brief](docs/briefs/ops-3009-03-panel-beta.md).
+
+
+Integración88 actual: fuente mínima PR108/2205 sobrebeta039d, preservando21alcances/notas208anteriores. Fuente enverificación, sinpublicación. Producciónwebaprobada86 se prepara independientemente, no promover88 por asociación.
