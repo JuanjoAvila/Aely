@@ -79,6 +79,8 @@ const steps = [
   ["dia-local-no-utc", ["node", "tests/dia-local-no-utc.test.mjs"]],
   ["move-account", ["node", "tests/move-account.test.mjs"]],
   ["merge-expenses-cloud", ["node", "tests/merge-expenses-cloud.test.mjs"]],
+  // La categoría que él elige no la deshace un pull ni la palabra clave del servidor (INC-0210-02).
+  ["categoria-manual-persistente", ["node", "tests/categoria-manual-persistente.test.mjs"]],
   ["security", ["node", "tests/security.test.mjs"]],
   ["no-lock-icons", ["node", "tests/no-lock-icons.test.mjs"]],
   ["webdebug-guard", ["node", "tests/webdebug-guard.test.mjs"]],
