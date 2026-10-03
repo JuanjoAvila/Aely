@@ -31,6 +31,13 @@ async function check(page, expected, spent){
   for(const [id,amount] of Object.entries(expected)) await expect(page.locator('.v4-gastos-cat[data-cat="'+id+'"] .v4-gastos-cat-amt')).toHaveText(amount+" €");
   await expect(page.locator(".v4-gastos-summary-amount")).toContainText(spent+",00");
 }
+async function checkBudgetAbsent(page,w){
+  await expect(page.locator(".v4-gastos-summary-budget")).toHaveCount(0);
+  await expect(page.locator(".v4-gastos-summary-left")).toHaveCount(0);
+  await expect(page.locator(".v4-gastos-summary")).not.toContainText(w.unknown);
+  const widths=await page.locator(".v4-gastos-summary-top").evaluate(el=>({top:el.getBoundingClientRect().width,main:el.querySelector(".v4-gastos-summary-main").getBoundingClientRect().width}));
+  expect(Math.abs(widths.main-widths.top)).toBeLessThanOrEqual(1);
+}
 for(const lang of ["es","en","ca"]){
   test("Gastos periodo único: mes, ciclo, rango y todos en "+lang, async ({page})=>{
     const w=words[lang];
@@ -40,6 +47,7 @@ for(const lang of ["es","en","ca"]){
     await page.goto("/"); await dismissNews(page);
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     await check(page,{bares:40,super:25},60);
+    await expect(page.locator(".v4-gastos-summary-budget")).toHaveCount(1);
     await expect(page.locator('.v4-gastos-progress')).toHaveAttribute("aria-valuenow","60");
     await expect(page.locator('.v4-gastos-summary-left')).toContainText("940,00");
 
@@ -47,8 +55,7 @@ for(const lang of ["es","en","ca"]){
     await check(page,{compras:70,bares:40},110);
     await expect(rows(page)).toHaveCount(3);
     await expect(rows(page).filter({hasText:"Octubre compra"})).toHaveCount(0);
-    await expect(page.locator(".v4-gastos-summary-budget")).toContainText(w.unknown);
-    await expect(page.locator(".v4-gastos-summary-left")).toContainText("—");
+    await checkBudgetAbsent(page,w);
     await expect(cats(page).locator('[role="progressbar"]')).toHaveCount(0);
     await expect(page.locator(".v4-gastos-progress")).toHaveCount(0);
 
@@ -70,14 +77,22 @@ for(const lang of ["es","en","ca"]){
     await page.locator(".mc-cal-day").getByText("20",{exact:true}).click();
     await check(page,{salud:23,transporte:11},34);
     await expect(rows(page)).toHaveCount(2);
-    await expect(page.locator(".v4-gastos-summary-budget")).toContainText(w.unknown);
+    await checkBudgetAbsent(page,w);
 
     await choose(page,w,w.three);
     await check(page,{compras:70,bares:40,super:25,salud:23,transporte:11,ocio:9},178);
+    await checkBudgetAbsent(page,w);
     await choose(page,w,w.all);
     await check(page,{compras:70,bares:40,super:25,salud:23,transporte:11,ocio:9},178);
+    await checkBudgetAbsent(page,w);
     await page.locator(".v4-periods").getByRole("button",{name:w.cycle,exact:true}).click();
     await check(page,{bares:40,super:25},60);
+    // Tras explorar todo el histórico, el ciclo debe recuperar su límite y su progreso.
+    await expect(page.locator(".v4-gastos-summary-budget")).toHaveCount(1);
+    await expect(page.locator('.v4-gastos-summary-budget > div').first()).toContainText("1000,00");
+    await expect(page.locator('.v4-gastos-summary-left')).toContainText("940,00");
+    await expect(page.locator('.v4-gastos-progress')).toHaveAttribute("aria-valuemax","1000");
+    await expect(page.locator('.v4-gastos-progress')).toHaveAttribute("aria-valuenow","60");
     await page.locator('.v4-gastos-cats-h').click();
     await expect(page.locator('.v4-gastos-cats-t')).toContainText(w.cycle);
     await page.locator('input.searchbar-in[type="search"]').first().fill("Octubre compra");

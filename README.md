@@ -102,7 +102,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.89** candidata local: resultados separados de Trade Republic/MyInvestor y éxitos parciales visibles. Movilidad88 entregada beta88.1 desde ba206; paquete,209notas y22recibos verificados. APK80/code52 y demanda TR conservadas; sin aceptación móvil ni publicación89. [Acta](docs/briefs/inc-0310-broker-resultados.md).
+Estado actual: **v4.26.90** candidata local: Gastos oculta el límite de otros periodos y aprovecha todo el ancho. Incluye la fuente Brókers89, todavía pendiente de CI/publicación; beta88.1 y producción86 son las últimas entregas acreditadas. APK80/code52 conservada. [Acta](docs/briefs/inc-0310-gastos-sin-limite.md).
 
 Estado anterior de Categoría: **v4.26.86** candidata: la categoría elegida a mano no se deshace al sincronizar ([acta](docs/briefs/inc-0210-02-categoria-elegida.md)); integrada sobre la beta 85 (`cdfb2f2c`), sin publicar.
 
@@ -138,3 +138,5 @@ Notas rápidas del rediseño v4 (para no perderse):
 El guardián tests/logs-privacidad.test.mjs verifica las fronteras de diagnóstico con marcadores sintéticos. Cobertura y límites, incluyendo servidor sin desplegar, en [SEC-03](docs/briefs/sec03-privacidad-logs.md).
 
 Plan → Metas: borrar una regla de nómina pide confirmación y libera su reserva del presupuesto, conservando las aportaciones e historial. Candidata INC-0310-01 aún sin publicación; pruebas DOM en `e2e/metas-borrar-regla.spec.mjs`, mapeadas a Metas, Gastos, Inicio y motor. [Contrato y estado](docs/briefs/inc-0310-01-meta-regla.md).
+
+Gastos → Mes pasado, Rango, Últimos3meses yTodo muestran su resumen sin columna de presupuesto ajeno. Este mes y Mi ciclo conservan límite, restante y progreso; candidata local pendiente de DOM/revisión/CI.

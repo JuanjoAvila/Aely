@@ -9882,10 +9882,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
                 (monthSummary.balance>=0?"+":"−")+eur(Math.abs(monthSummary.balance))));
           })()
         ),
-        React.createElement("div",{className:"v4-gastos-summary-budget"},
+        // Fuera de mes/ciclo el límite no corresponde al periodo; el resumen aprovecha todo el ancho.
+        monthSummary.budgetApplies && React.createElement("div",{className:"v4-gastos-summary-budget"},
           React.createElement("div",null,tf("v4_gastos_of",{x:monthSummary.budget==null?"—":eur(monthSummary.budget)})),
-          React.createElement("div",{className:"v4-gastos-summary-left"},tf("v4_gastos_left",{x:monthSummary.remaining==null?"—":eur(monthSummary.remaining)})),
-          !monthSummary.budgetApplies && React.createElement("div",{className:"hint"},t("v4_gastos_budget_period_unknown"))
+          React.createElement("div",{className:"v4-gastos-summary-left"},tf("v4_gastos_left",{x:monthSummary.remaining==null?"—":eur(monthSummary.remaining)}))
         )
       ),
       monthSummary.budgetApplies && React.createElement("div",{className:"v4-gastos-progress",role:"progressbar","aria-valuemin":0,"aria-valuemax":monthSummary.budget||0,"aria-valuenow":Math.max(0,monthSummary.against)},
@@ -19939,7 +19939,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="7a9a997aee0466c72686923757c7ffaa077449b91ab7002070e2f01a7da3ca63";
+var _rnSha="47f60501cf95d52608731aef362d98bc0f2e7d3e7a11e7c2a0e8b4516a8bd714";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

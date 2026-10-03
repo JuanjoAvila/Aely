@@ -1,5 +1,53 @@
 [
   {
+    "v": "4.26.90",
+    "d": "2026-10-03",
+    "t": {
+      "es": "Gastos sin una columna vacía",
+      "en": "Expenses without an empty column",
+      "ca": "Despeses sense una columna buida"
+    },
+    "items": {
+      "es": [
+        "Al consultar otros meses, un rango de fechas o todo el histórico, el resumen ocupa el ancho completo y no muestra un presupuesto que no corresponde a ese periodo.",
+        "Este mes y Mi ciclo conservan su límite, el dinero restante y la barra de progreso."
+      ],
+      "en": [
+        "When viewing other months, a date range or the whole history, the summary uses the full width and does not show a budget that does not apply to that period.",
+        "This month and My cycle retain their limit, remaining amount and progress bar."
+      ],
+      "ca": [
+        "En consultar altres mesos, un rang de dates o tot l’històric, el resum ocupa tota l’amplada i no mostra un pressupost que no correspon a aquell període.",
+        "Aquest mes i El meu cicle conserven el límit, els diners restants i la barra de progrés."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0310-gastos-sin-limite",
+        "rev": 1,
+        "t": {
+          "es": "Gastos sin una columna vacía",
+          "en": "Expenses without an empty column",
+          "ca": "Despeses sense una columna buida"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, abre Mes pasado, Rango, Últimos 3 meses y Todo: no deben aparecer «de —», «quedan —» ni su explicación; el resumen debe ocupar todo el ancho.",
+            "2. Vuelve a Este mes y Mi ciclo: límite, restante y progreso vuelven a aparecer y las categorías y cifras siguen correspondiendo al periodo seleccionado."
+          ],
+          "en": [
+            "1. In Expenses, open Last month, Range, Last 3 months and All: there should be no “of —”, “left —” or explanation, and the summary should fill the width.",
+            "2. Return to This month and My cycle: limit, remaining amount and progress reappear, and categories and figures still match the selected period."
+          ],
+          "ca": [
+            "1. A Despeses, obre Mes passat, Rang, Últims 3 mesos i Tot: no hi ha d’haver «de —», «queden —» ni l’explicació; el resum ha d’ocupar tota l’amplada.",
+            "2. Torna a Aquest mes i El meu cicle: límit, restant i progrés tornen a aparèixer i les categories i xifres segueixen el període seleccionat."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.89",
     "d": "2026-10-03",
     "t": {

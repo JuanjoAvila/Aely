@@ -12,6 +12,22 @@ let failed=0;
 function test(name,fn){ try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
+// La revisión debe invalidarse si vuelve la columna ajena o cambia el periodo o la cifra.
+test("Gastos90 vigila columna, ancho, periodo y cifras",()=>{
+  const id="inc-0310-gastos-sin-limite",source=f=>read(f).replace(/\r\n/g,"\n"),before=betaRevision(id,source).web;
+  for(const [file,from,to] of [
+    ["src/modules/04-tab-gastos.js",'monthSummary.budgetApplies && React.createElement("div",{className:"v4-gastos-summary-budget"}', 'true && React.createElement("div",{className:"v4-gastos-summary-budget"}'],
+    ["src/modules/04-tab-gastos.js",'const budgetApplies=preset==="month"||preset==="cycle";', 'const budgetApplies=true;'],
+    ["src/modules/04-tab-gastos.js",'monthSummary.remaining==null?"—":eur(monthSummary.remaining)', 'monthSummary.remaining==null?"—":eur(0)'],
+    ["src/modules/04-tab-gastos.js",'monthSummary.against)/monthSummary.budget', '0)/monthSummary.budget'],
+    ["src/shell.html",'.v4-gastos-summary-main{flex:1 1 auto;min-width:0;}', '.v4-gastos-summary-main{flex:0 1 50%;min-width:0;}'],
+  ]){
+    assert.ok(source(file).includes(from),"el mutante debe tocar la fuente real");
+    assert.notEqual(betaRevision(id,f=>f===file?source(f).replace(from,to):source(f)).web,before,from);
+  }
+});
+if(process.argv.includes("--gastos-summary-only")) process.exit(failed?1:0);
+
 // El mensaje promete lo que el transporte y los lectores financieros aplicaron realmente.
 test("brókers89 vigila resultados, errores, mapeo y textos de cada idioma",()=>{
   const id="inc-0310-broker-resultados",source=f=>read(f).replace(/\r\n/g,"\n"),before=betaRevision(id,source).web;
