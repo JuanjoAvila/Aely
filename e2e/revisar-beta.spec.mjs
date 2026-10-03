@@ -24,6 +24,8 @@ async function abrirRevisionBeta(page, lang) {
   await dismissNews(page);
   // NOTAS-BUNDLE: el histórico ya no va en el index; sin esto betaChecklist sale vacío.
   await page.waitForFunction(() => Array.isArray(window.RELEASE_NOTES) && window.RELEASE_NOTES.length > 0, null, { timeout: 10_000 });
+  // Incluso una consulta abortada puede borrar la APK del mock al resolver más tarde.
+  await page.evaluate(async()=>{ if(_mcProdVerCache) await _mcProdVerCache; });
 }
 
 /* Tras promote a prod con nota única, TODAS las entradas llevan `tandas:[]` → panel a 0
