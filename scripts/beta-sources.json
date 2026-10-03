@@ -8135,5 +8135,193 @@
       }
     ],
     "unidades": true
+  },
+  "inc-0310-01-meta-regla": {
+    "web": [
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaKeyOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaPlanFor"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaAlreadyApplied"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "removeReservaRule"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "applyReserva"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservedSince"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetStatsFromAmounts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "monthBudgetStats"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "ReservaRules"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "ReservaDetect"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "lastPaydayOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "slimForCloud"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "uid"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetPeriodOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseDeletedSet"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "dateMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseCountsBudget"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur0"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "parseDate"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "loc"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "inicioDeMesMs"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "_pdMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseCountsCash"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseBankEnts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "expenseDeletedSets"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF0"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "MC_TZ"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesTz"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesYmFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesDiaFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesByYm"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  // INC-0310-01 es: el texto de confirmación también debe invalidar su revisión.",
+        "to": "  // INC-0310-01 es: límite para no invalidar textos ajenos al borrado."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  // INC-0310-01 en: el texto de confirmación también debe invalidar su revisión.",
+        "to": "  // INC-0310-01 en: límite para no invalidar textos ajenos al borrado."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  // INC-0310-01 ca: el texto de confirmación también debe invalidar su revisión.",
+        "to": "  // INC-0310-01 ca: límite para no invalidar textos ajenos al borrado."
+      }
+    ],
+    "unidades": true
   }
 }

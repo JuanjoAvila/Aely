@@ -25,6 +25,37 @@ test("Gastos84 vigila la ventana elegida y los lectores reales del dinero",()=>{
   }
 });
 
+// La revisión de dinero incluye lo que promete la confirmación: LANG es una excepción
+// transitiva, así que estos textos necesitan alcance propio (NO-GO de META87, 3/10/2026).
+for(const [lang,label] of [["es","Borrar regla"],["en","Delete rule"],["ca","Esborrar regla"]]){
+  for(const key of ["rr_delete","rr_delete_q","rr_delete_sub"]){
+    test("META87: texto "+key+" "+lang+" invalida su revisión",()=>{
+      const file="src/modules/01-i18n.js",text=read(file),start=text.indexOf('  rr_delete:"'+label+'"');
+      assert.ok(start>=0,"el mutante debe localizar el texto real "+lang);
+      const end=text.indexOf("\n",start),line=text.slice(start,end);
+      const changed=line.replace(new RegExp('('+key+':"[^"\\n]*)(")'),"$1 · mutante$2");
+      assert.notEqual(changed,line,"el mutante debe cambiar el texto "+key);
+      const before=betaRevision("inc-0310-01-meta-regla",read);
+      assert.notEqual(betaRevision("inc-0310-01-meta-regla",f=>f===file?text.slice(0,start)+changed+text.slice(end):read(f)).web,before.web);
+    });
+  }
+}
+test("META87: tres rangos de diálogo no incluyen textos de creación",()=>{
+  const scope=JSON.parse(read("scripts/beta-sources.json"))["inc-0310-01-meta-regla"];
+  const ranges=scope.web.filter(x=>x.from&&x.from.includes("INC-0310-01"));
+  assert.equal(ranges.length,3);
+  for(const range of ranges){
+    const text=read(range.file),block=scopeText(range,read),end=text.indexOf(range.to,text.indexOf(range.from));
+    assert.ok(block.includes("rr_delete_sub:"));
+    assert.ok(!block.includes("rr_name_ph:"));
+    const start=text.indexOf("  rr_name_ph:",end),stop=text.indexOf("\n",start),line=text.slice(start,stop);
+    const changed=line.replace(/(rr_name_ph:"[^"\n]*)(")/,"$1 · ajeno$2");
+    assert.notEqual(changed,line);
+    assert.equal(betaRevision("inc-0310-01-meta-regla",f=>f===range.file?text.slice(0,start)+changed+text.slice(stop):read(f)).web,betaRevision("inc-0310-01-meta-regla",read).web);
+  }
+});
+if(process.argv.includes("--meta-dialog-only")) process.exit(failed?1:0);
+
 test("las tres correcciones UI vigilan también sus reglas y lectores",()=>{
   const cases=[
     ["inc-2709-12-cyber-fab","src/shell.html","position:relative;z-index:1;background:linear-gradient(160deg","position:relative;z-index:0;background:linear-gradient(160deg"],

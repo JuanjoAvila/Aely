@@ -5889,6 +5889,9 @@ Object.assign(LANG.es,{
   rr_title:"Reservar dinero de tu nómina", rr_sub:"{n} regla(s)", rr_sub_empty:"sin reglas",
   rr_none:"Aún no tienes ninguna regla. Añade una para que parte de tu nómina vaya sola a una meta.",
   rr_add:"+ Añadir regla", rr_save:"Guardar regla",
+  // INC-0310-01 es: el texto de confirmación también debe invalidar su revisión.
+  rr_delete:"Borrar regla", rr_delete_q:"¿Borrar esta regla?", rr_delete_sub:"Se libera del presupuesto lo que siga reservado por esta regla y pueda comprobarse. Las aportaciones ya guardadas en la meta y su historial se conservan; no se mueve dinero.",
+  // INC-0310-01 es: límite para no invalidar textos ajenos al borrado.
   rr_name_ph:"Nombre (opcional, ej. Parking recibos)",
   rr_kind_fixed:"Importe fijo €", rr_kind_pct:"% de la nómina",
   rr_row_fixed:"{v} fijos", rr_row_pct:"{v} %",
@@ -14468,6 +14471,36 @@ function reservaAlreadyApplied(state, income){
   const k=reservaKeyOf(income);
   return (state.reservaLog||[]).some(function(x){ return x.incomeKey===k; });
 }
+// Borrar la configuración no liberaba el presupuesto ya apartado (INC-0310-01). El asiento
+// inverso conserva la aportación, su fecha y la identidad de nómina, también para lectores
+// antiguos de nube/widget que suman el mismo registro. No es un movimiento bancario.
+function removeReservaRule(state, ruleId){
+  const rules=(state.settings&&state.settings.reservaRules)||[];
+  if(!rules.some(function(r){ return r.id===ruleId; })) return state;
+  const log=state.reservaLog||[];
+  const ids=Object.create(null), released=Object.create(null), originals=Object.create(null);
+  log.forEach(function(x){
+    if(!x) return;
+    if(typeof x.id==="string" && x.id) ids[x.id]=(ids[x.id]||0)+1;
+    if(typeof x.releaseOf==="string" && x.releaseOf) released[x.releaseOf]=true;
+    if(x.ruleId===ruleId&&typeof x.id==="string"&&x.id&&typeof x.amount==="number"&&x.amount>0) originals[x.id]=true;
+  });
+  // Una configuración puede reaparecer sin perder el log. La identidad del asiento manda:
+  // ni duplicados ni liberaciones parciales se vuelven a compensar (revisión INC-0310-01).
+  // Sin vínculo comprobable en un descuento anterior, no sabemos qué sigue reservado.
+  const unknown=log.some(function(x){ return x&&x.ruleId===ruleId&&
+    (typeof x.amount!=="number" || !isFinite(x.amount) || (x.amount<0 && !originals[x.releaseOf])); });
+  const releases=log.filter(function(x){ return !unknown&&x&&x.ruleId===ruleId&&
+    typeof x.id==="string"&&x.id&&ids[x.id]===1&&!released[x.id]&&!x.releaseOf&&
+    typeof x.amount==="number"&&isFinite(x.amount)&&x.amount>0&&
+    typeof x.incomeKey==="string"&&x.incomeKey&&x.date!=null&&isFinite(new Date(x.date).getTime()); }).map(function(x){
+    return Object.assign({},x,{id:uid(),amount:-x.amount,releaseOf:x.id,releasedAt:new Date().toISOString()});
+  });
+  return Object.assign({},state,{
+    settings:Object.assign({},state.settings,{reservaRules:rules.filter(function(r){ return r.id!==ruleId; })}),
+    reservaLog:releases.length?log.concat(releases):state.reservaLog
+  });
+}
 // Aplica el reparto: suma cada meta (mismo efecto que "Aportar a una meta") y deja el registro que
 // hace que se descuente del presupuesto. Función PURA — devuelve el nuevo estado sin mutar `state`.
 function applyReserva(state, income, plan, bankEnt){
@@ -16635,18 +16668,21 @@ function ReservaRules({state, set}){
     setRules(rules.concat([r]));
     setForm(blank); setAdding(false);
   };
-  const delRule=function(id){ setRules(rules.filter(function(r){ return r.id!==id; })); };
+  const delRule=function(id){
+    askConfirm({title:t("rr_delete_q"),sub:t("rr_delete_sub"),ok:t("rr_delete"),danger:true})
+      .then(function(ok){ if(!ok) return; set(function(s){ return removeReservaRule(s,id); }); });
+  };
   const goalName=function(id){ const g=(state.goals||[]).find(function(x){ return x.id===id; }); return g?((g.emoji||"🎯")+" "+g.name):t("rr_goal_gone"); };
   if(!goals.length && !rules.length) return null;   // sin metas activas no hay nada que configurar
   return React.createElement(CollapsibleCard,{title:t("rr_title"),sub:rules.length?tf("rr_sub",{n:rules.length}):t("rr_sub_empty"),dot:"#5FD08A",storageKey:"g_reserva_rules",help:t("h_reserva")},
     rules.length===0 && React.createElement("div",{className:"hint"}, t("rr_none")),
     rules.map(function(r){
-      return React.createElement("div",{key:r.id,className:"sub-row"},
+      return React.createElement("div",{key:r.id,className:"sub-row","data-reserva-rule":r.id},
         React.createElement("div",{className:"sub-mid"},
           React.createElement("div",{className:"sub-name"}, r.name||goalName(r.goalId)),
           React.createElement("div",{className:"sub-meta"}, (r.kind==="pct"?tf("rr_row_pct",{v:r.value}):tf("rr_row_fixed",{v:eur0(r.value)}))+" → "+goalName(r.goalId))
         ),
-        React.createElement("button",{className:"chip",style:{fontSize:11.5,padding:"3px 10px"},onClick:function(){ delRule(r.id); }}, "✕")
+        React.createElement("button",{className:"chip","aria-label":t("rr_delete"),style:{fontSize:11.5,padding:"3px 10px"},onClick:function(){ delRule(r.id); }}, "✕")
       );
     }),
     goals.length>0 && (adding
@@ -16682,7 +16718,7 @@ function ReservaDetect({state, set, showToast}){
   if(!plan.plan.length) return null;
   const dailyEnt=(state.accounts||[]).find(function(a){ return accDaily(a); });
   const apply=function(){
-    set(function(s){ return applyReserva(s, income, plan.plan, dailyEnt&&dailyEnt.ent); });
+    set(function(s){ return applyReserva(s, income, reservaPlanFor(s,income.amount).plan, dailyEnt&&dailyEnt.ent); });
     if(showToast) showToast(t("rr_applied_ok"));
   };
   const dismiss=function(){ set(function(s){ return Object.assign({},s,{reservaDismissed:(s.reservaDismissed||[]).concat([key])}); }); };
@@ -19892,7 +19928,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="998b63db7394e901874528badfcbd40c6a1d0e027a13c5f62bc1181df886d13d";
+var _rnSha="7180e4107700854315c86f99572f1b1d87a142f88e1e59a95e460795a3f74eb0";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
