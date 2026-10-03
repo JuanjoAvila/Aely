@@ -1,5 +1,16 @@
 [
   {
+    "v": "4.26.89",
+    "d": "2026-10-03",
+    "t": {"es": "Recuperar las cifras del widget", "en": "Recover widget figures", "ca": "Recuperar les xifres del widget"},
+    "items": {
+      "es": ["Con la próxima actualización de Android, el widget podrá recuperar las cifras de un pago confirmado después de reiniciar. Mientras falte confirmación, seguirá pidiendo actualizar."],
+      "en": ["With the next Android update, the widget will be able to recover figures for a confirmed payment after restarting. While confirmation is missing, it will still ask to update."],
+      "ca": ["Amb la pròxima actualització d’Android, el widget podrà recuperar les xifres d’un pagament confirmat després de reiniciar. Mentre falti confirmació, continuarà demanant actualitzar."]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.82",
     "d": "2026-10-01",
     "t": {

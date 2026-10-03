@@ -640,3 +640,13 @@ Sin WebCrypto no se acepta descarga ni se rescata una caché previamente verific
 El último cierre añade cuota simulada para dos cachés antiguas: purga previa, una sola nueva y claves de dinero/veredictos intactas. Los casos es/en/ca sin red prueban reintento visible de Novedades y Panel sin recargar, recepción del catálogo válido y una sola caché.
 
 Corrección de fixtures tras CI36885083225 (fuente9a6): inicio-offline descarga un catálogo sintético con SHA-256 real, exige el envelope escrito por la app y verifica su rescate sin red. Una cabeza `_rnHead_` sin verificar y otra compilación de la misma base deben quedar sin confirmar. seedImplicitChecklist conserva el catálogo real mixto; aislarlo ocultaba la regresión detectada en450. Los contratos y DOM exigen la checklist actual junto a las dieciséis tandas modernas con y sin producción; tandas:[] no crea una revisión. Las tandas modernas mantienen sus casos de huella/índice y rechazo/retirada posterior. La entrega en es/en/ca acredita únicamente las siete tandas antiguas y exige que sigan visibles las nueve posteriores, con IDs exactos y Panel82 único; no se reduce un contador para ocultar una tanda.
+
+## INC-0210-04 · transporte y recuperación de persistencia
+
+`widget-offline` está en `steps`: compila los métodos POST/cola/hash reales del listener con
+HTTP, JSON y preferencias en memoria. Ensaya fallo de red, listener recreado, retry503/429,
+recuperación200 y rechazo401 con identidad estable. No abre Chromium ni compila una APK;
+la simulación JSON no prueba el serializador Android. `widget-arbitraje` ejecuta Java real:
+registro antiguo con salto/indentación, sin ACK, ACK crudo incorrecto, ACK canónico, daño real,
+cambio de alcance/periodo y lápidas. La regresión era roja en la fuente anterior. El renderer
+y el puente no cambian. Prueba de pago y persistencia XML en Android físico pendiente.

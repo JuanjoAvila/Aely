@@ -351,4 +351,12 @@ assert.match(saveApp,/if \(!WidgetPeriod.clientV2\(contract\)\) \{ waiting\(ctx\
 assert.match(build,/p.getBoolean\("negotiating", false\)/);
 assert.match(saveApp,/putBoolean\("negotiating", false\)/);
 console.log("  ✓ puente colgado: aviso, retry y contrato v2 sin fallback que degrade la foto");
+// INC-0210-04: el texto observado acota el diagnóstico a un bloqueo de seguridad,
+// no a la caducidad de la ventana ni a la pérdida de la última foto numérica.
+assert.match(build,/p\.getBoolean\("journalFull", false\) \|\| p\.getBoolean\("unknownPending", false\)/);
+assert.match(build,/\|\| p\.getBoolean\("negotiating", false\)/);
+assert.match(build,/mesDistinto \? t\[WidgetPeriod\.SIN_DATOS\] : t\[WidgetPeriod\.ABRE_APP\]/);
+assert.match(build,/mesDistinto \|\| sinDato \? "—" : eur0\(spent\)/);
+assert.match(saveMonth,/WidgetSnapshotArbiter\.pendingUnknown\(s, event, expenseKey\)/);
+console.log("  ✓ guion y aviso: solo bloqueo explícito; la ventana caducada usa otro texto");
 console.log("  ok");

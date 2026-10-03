@@ -475,3 +475,13 @@ INC-2909-03: candidata79 injertada sobre Nómina78 final eaf55e4a, sin publicaci
 Reproducción de puertas banco/Efectivo/tipo y categoría Traspaso, ACK por identidad exacta y no
 operación de efectivo importado explicada. FIN-04/RLS y suma compartida siguen limitados.
 [Contrato, pruebas y coordinación](briefs/inc-2909-03-retirada-caixa.md).
+
+## INC-0210-04 · widget sin cifra y sospecha offline · 3/10/2026
+
+Candidata aislada89/PR105: falsa corrupción de `unknownJournal` tras reinicio reproducida
+y corregida en Java real; confirmación exacta sigue obligatoria. La pérdida de Internet por
+sí sola no marca `unknownPending` en el transporte actual. Quedan separados el riesgo de
+foto antigua sin señalar durante un envío fallido y la ausencia de retry al mero retorno de
+Internet (solo notificación/reconexión del listener). No se atribuye la captura a esos defectos.
+Sin nueva APK ni despliegue; versión física/indicadores/ACK del caso original pendientes.
+FIN-05 sigue abierto. [Reproducción y límites](briefs/inc-0210-04-widget-intermitente.md).

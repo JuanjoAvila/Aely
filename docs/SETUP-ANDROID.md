@@ -197,6 +197,15 @@ La liquidez segura distingue lo ya planificado de la caída real del saldo. Este
 nueva**: una OTA no cambia `MiCarteraWidget` ni `TrExpenseListener`. Si falla la lectura mensual,
 el gasto queda guardado pero el widget conserva el último dato conocido hasta el siguiente pull.
 
+INC-0210-04/89 (fuente candidata, sin APK): el registro de identidades pendientes ya no acaba en
+salto de línea. Al releer preferencias antiguas, la indentación XML se omite y cada identidad
+se normaliza sin tocar su clave de gasto. No se retira `unknownPending` por abrir offline:
+solo un ACK exacto o lápida compatible lo resuelve. El daño real sigue bloqueando cifras.
+Un fallo de transporte solo reserva ticket y deja el envío en cola; no demuestra por sí solo
+un nuevo total. La cola actual reintenta con otra notificación o conexión del listener; no hay
+callback de recuperación de Internet. La APK80/code52 anunciada no incorpora este cambio;
+el bump Android y una nueva APK requieren autorización y su asset real. [Acta](briefs/inc-0210-04-widget-intermitente.md).
+
 ## 7. Distribuir (para que la usen otros)
 
 - En Android Studio: **Build → Generate Signed Bundle / APK** → crea un keystore (guárdalo bien) → genera el APK firmado.
