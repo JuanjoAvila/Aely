@@ -9,3 +9,5 @@ Node completo1694.9s, CLI1 exclusivamente memoria-espejo externo (11archivos); D
 Contra la base final ddb se conservan23descriptores y21identidades anteriores. Cambian legítimamente Gastos84 yMovilidad88 al incluir Expenses; no aliases ni aprobación heredada fabricada. Nueva web2b1720073c56addca0bf32a05bf36e7999194e2ba599a7156a6891142ca61c35/codigo3b45b0dfff95c22e103a7f461c7356f277d9a6a11e8bf658e7647d9f0adc61a4.
 
 La CI89 original37144226513 falló; fuente115 final ddb tiene GO de reparación y65DOM PASS, pero CI nueva37149680919 pendiente. Esta candidata90 necesita revisión independiente autorizada yCI de su SHA final; se integra después de115, conservando gates propios. APK80/code52, Edge ySQL sin nuevas entregas; ninguna consulta a cuentas reales ni nuevos datos financieros.
+
+Revisión independiente40f54ece: NO-GO de cierre por dos huecos del e2e;68PASS no acreditaban ausencia/ancho en Todo ni recuperación de presupuesto al volver al ciclo. Se completan esas aserciones en es/en/ca sin cambiar producto ni quitar comprobaciones. La candidata reparada necesita nuevo SHA, DOM y CI propios; el GO no se hereda.

@@ -84,8 +84,15 @@ for(const lang of ["es","en","ca"]){
     await checkBudgetAbsent(page,w);
     await choose(page,w,w.all);
     await check(page,{compras:70,bares:40,super:25,salud:23,transporte:11,ocio:9},178);
+    await checkBudgetAbsent(page,w);
     await page.locator(".v4-periods").getByRole("button",{name:w.cycle,exact:true}).click();
     await check(page,{bares:40,super:25},60);
+    // Tras explorar todo el histórico, el ciclo debe recuperar su límite y su progreso.
+    await expect(page.locator(".v4-gastos-summary-budget")).toHaveCount(1);
+    await expect(page.locator('.v4-gastos-summary-budget > div').first()).toContainText("1000,00");
+    await expect(page.locator('.v4-gastos-summary-left')).toContainText("940,00");
+    await expect(page.locator('.v4-gastos-progress')).toHaveAttribute("aria-valuemax","1000");
+    await expect(page.locator('.v4-gastos-progress')).toHaveAttribute("aria-valuenow","60");
     await page.locator('.v4-gastos-cats-h').click();
     await expect(page.locator('.v4-gastos-cats-t')).toContainText(w.cycle);
     await page.locator('input.searchbar-in[type="search"]').first().fill("Octubre compra");
