@@ -1,5 +1,56 @@
 [
   {
+    "v": "4.26.88",
+    "d": "2026-10-03",
+    "t": {
+      "es": "Multas, zona azul y peajes por separado",
+      "en": "Fines, blue zone and tolls separately",
+      "ca": "Multes, zona blava i peatges per separat"
+    },
+    "items": {
+      "es": [
+        "Multas, Zona azul y Peajes tienen categorías propias para apuntar, filtrar y fijar límites.",
+        "Los gastos ya guardados conservan su categoría y sus límites."
+      ],
+      "en": [
+        "Fines, Blue zone and Tolls have their own categories for recording, filtering and setting limits.",
+        "Previously saved expenses retain their categories and limits."
+      ],
+      "ca": [
+        "Multes, Zona blava i Peatges tenen categories pròpies per apuntar, filtrar i fixar límits.",
+        "Les despeses ja desades conserven la categoria i els límits."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "feature-0310-01-movilidad",
+        "rev": 1,
+        "t": {
+          "es": "Multas, Zona azul y Peajes",
+          "en": "Fines, Blue zone and Tolls",
+          "ca": "Multes, Zona blava i Peatges"
+        },
+        "items": {
+          "es": [
+            "1. En Apuntar, abre todas las categorías y comprueba Multas, Zona azul y Peajes con sus iconos. Apunta un gasto en cada una. Taxi y Gasolina siguen disponibles.",
+            "2. En Gastos, filtra las tres categorías y comprueba sus movimientos e importes. Pon límites independientes; Parking, Transporte e Impuestos y multas conservan los anteriores.",
+            "3. Elige una categoría a mano y cambia el concepto: debe conservarse. Reabre sin conexión y comprueba categorías, límites e histórico intactos."
+          ],
+          "en": [
+            "1. In Record, open all categories and check Fines, Blue zone and Tolls with their icons. Record an expense in each. Taxi and Fuel remain available.",
+            "2. In Expenses, filter the three categories and check their entries and amounts. Set independent limits; Parking, Transport and Taxes & fines retain their previous ones.",
+            "3. Choose a category manually and change the description: it must remain selected. Reopen offline and check categories, limits and unchanged history."
+          ],
+          "ca": [
+            "1. A Apuntar, obre totes les categories i comprova Multes, Zona blava i Peatges amb les icones. Apunta una despesa a cadascuna. Taxi i Benzina continuen disponibles.",
+            "2. A Despeses, filtra les tres categories i comprova els moviments i imports. Posa límits independents; Pàrquing, Transport i Impostos i multes conserven els anteriors.",
+            "3. Tria una categoria a mà i canvia el concepte: s’ha de conservar. Torna a obrir sense connexió i comprova categories, límits i historial intactes."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.85",
     "d": "2026-10-02",
     "t": {

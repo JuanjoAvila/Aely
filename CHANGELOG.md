@@ -1,3 +1,8 @@
+## [4.26.88] — 2026-10-03 · Multas, Zona azul y Peajes independientes
+
+- FEATURE-0310-01 amplía Gasolina/Taxi85 con IDs estables multas/zona_azul/peajes, iconos existentes y nombres es/en/ca. Apuntar, ficha, filtros, desglose y límites comparten catálogo; las categorías y límites antiguos permanecen, sin migración ni reclasificación histórica.
+- Solo las altas nuevas separan sanciones explícitas, estacionamiento regulado y peajes explícitos. Una multa tiene prioridad sobre la zona donde ocurre; una administración, app de parking o autopista sin detalle conserva categoría general. Elección manual y finalidad reconocida siguen por delante de MCC. Espejo ingest y ALLOWED/HINTS de categorize preparados en fuente sin despliegue; cloud/presupuesto no necesitan SQL nueva. [Acta](docs/briefs/feature-0310-01-movilidad.md).
+
 ## [4.26.85] — 2026-10-02 · Gasolina y Taxi independientes
 
 - FEATURE-0210-01: catálogo, iconos e idiomas separan Gasolina/Taxi de Transporte; selector, filtros y límites usan los mismos IDs. autoCategory conserva sus reglas históricas: la división ocurre solo en altas nuevas y respeta la elección personal, incluso Otros. Sin migración ni reparto automático de límites anteriores.

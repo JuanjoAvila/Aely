@@ -125,6 +125,7 @@ export const E2E_MAP = [
 export const CROSSCUTTING = [
   "e2e/bank-merchant-category.spec.mjs",
   "e2e/gasolina-taxi.spec.mjs",
+  "e2e/movilidad-categorias.spec.mjs",
   "e2e/divisas-sin-cambio.spec.mjs",
   "e2e/fixtures-news.spec.mjs",
   "e2e/persistencia.spec.mjs",

@@ -1,5 +1,7 @@
 # Empieza aquí
 
+FEATURE-0310-01 candidata88 sobre b51b095d: Multas/Zona azul/Peajes amplían Gasolina/Taxi85 sin repetirlas ni reclasificar histórico. No mover reglas nuevas a autoCategory ni repartir límites anteriores. Edge solo fuente; integración posterior con Plan/Gastos se coordina por SHA, sin Claude86/widget por asociación. [Acta](docs/briefs/feature-0310-01-movilidad.md).
+
 FEATURE-0210-01 candidata aislada85: no mover keywords nuevas a autoCategory, porque seedFlows reevalúa Otros antiguos. La división Gasolina/Taxi vive solo en categoryOfNewMerchant y MCC de altas bancarias. Fuente Edge preparada pero sin desplegar; la web no necesita Edge para elegir/filtrar/fijar límites. [Acta](docs/briefs/feature-0210-01-gasolina-taxi.md).
 
 Candidata Validaciones82 tras NO-GO450: conservar aprobación/progreso y la checklist actual junto a las rondas modernas si producción no responde. Sobre beta80/source955765a9;81 no publicada. APK80/52 intacta; DOM mixto70/70, contratos Node y A/B acreditados; revisión independiente y CI exacta pendientes. No integrar/publicar una solución parcial. [Acta](docs/briefs/ops-0110-validaciones-persistentes.md).

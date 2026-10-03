@@ -1,5 +1,7 @@
 # Backlog operativo — Aely
 
+FEATURE-0310-01 (3/10): ampliación humana de categorías reutilizando Gasolina/Taxi85 ya implementadas. Codex, rama aislada codex/feature-0310-01-movilidad, candidata88 sobre b51b095d. Multas/Zona azul/Peajes con IDs estables, es/en/ca, iconos, selector/ficha/filtros/límites y clasificación específica solo para altas; manual prioritario, histórico intacto. Motor/DOM registrados; verificación final/revisión/PR/CI/beta y móvil pendientes. Edge solo fuente, sin deploy. [Acta](briefs/feature-0310-01-movilidad.md).
+
 FEATURE-0210-01 (2/10): petición humana de distinguir carburante/taxi del transporte general; Taxi no existía en el catálogo. Propietario: Codex, rama aislada codex/feature-0210-01-gasolina-taxi, candidata85 sobre3467. Catálogo y clasificación solo de altas nuevas, histórico/límites previos intactos, DOM sintético es/en/ca y guardianes registrados. Sin publicar: revisión/CI/beta y veredicto móvil pendientes; Edge fuente preparada sin deploy. [Acta](briefs/feature-0210-01-gasolina-taxi.md).
 
 Candidata Validaciones82 tras NO-GO450: conservar aprobación/progreso y la checklist actual junto a las rondas modernas si producción no responde. Sobre beta80/source955765a9;81 no publicada. APK80/52 intacta; DOM mixto70/70, contratos Node y A/B acreditados; revisión independiente y CI exacta pendientes. No integrar/publicar una solución parcial. [Acta](briefs/ops-0110-validaciones-persistentes.md).

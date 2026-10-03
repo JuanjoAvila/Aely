@@ -105,6 +105,7 @@ const steps = [
   ["fx-multi", ["node", "tests/fx-multi.test.mjs"]],
   ["categories", ["node", "tests/categories.test.mjs"]],
   ["gasolina-taxi", ["node", "tests/gasolina-taxi.test.mjs"]],
+  ["movilidad-categorias", ["node", "tests/movilidad-categorias.test.mjs"]],
   ["revo-parse", ["node", "tests/revo-parse.test.mjs"]],
   ["revo-num", ["node", "tests/revo-num.test.mjs"]],
   ["debts", ["node", "tests/debts.test.mjs"]],

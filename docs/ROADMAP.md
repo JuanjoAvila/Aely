@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-10-02 · **v4.26.85** candidata aislada FEATURE-0210-01: Gasolina y Taxi independientes en Apuntar/Gastos/límites, con histórico intacto. Sin entrega beta, despliegue Edge ni APK nuevos. [Acta y pruebas](briefs/feature-0210-01-gasolina-taxi.md).
+> Estado a 2026-10-03 · **v4.26.88** candidata aislada FEATURE-0310-01 sobre Gasolina/Taxi85: Multas, Zona azul y Peajes en Apuntar/ficha/Gastos/límites, con histórico intacto. Sin entrega beta, despliegue Edge ni APK nuevos. [Acta](briefs/feature-0310-01-movilidad.md).
 
 > Estado a 2026-10-01 · **v4.26.82** candidata: decisiones y progreso por huella, alcance por unidades y equivalencias históricas auditadas. Base beta80/source955765a9; APK80/code52 conservada. Revisión, CI exacta y entrega pendientes. [Acta](briefs/ops-0110-validaciones-persistentes.md).
 
@@ -247,7 +247,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.85** candidata sobre beta80/source955765a9; sin publicar. |
+| Web / OTA (`VERSION`) | **4.26.88** candidata sobre b51b095d/Gasolina-Taxi85; sin publicar. |
 | APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base80; esta candidata81 no genera APK. Cotejo servido en gate de entrega. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a955; esta candidata81 no reemplaza binario ni manifiesto. |

@@ -2641,6 +2641,9 @@ const CATEGORIES = [
   { id:"gasolina",   name:"Gasolina",            color:"#E8945F", icon:"⛽" },
   { id:"taxi",       name:"Taxi",                color:"#E6C36A", icon:"🚕" },
   { id:"parking",    name:"Parking",             color:"#8AA0B8", icon:"🅿️" },
+  { id:"multas",     name:"Multas",              color:"#C97D5F", icon:"🚨" },
+  { id:"zona_azul",  name:"Zona azul",           color:"#8AA0B8", icon:"🅿️" },
+  { id:"peajes",     name:"Peajes",              color:"#7FB5E8", icon:"🛣️" },
   /* AGUA, LUZ Y GAS POR SEPARADO (2026-09-12). Antes era una sola, «Luz, gas y agua», con un ⚡
      de icono. Suyo: *«sale un símbolo de rayito en Aigües de Barcelona que no encaja para nada…
      Agua por un lado con su símbolo, luz por otro y gas por otro»*. Tenía razón: el recibo del
@@ -2898,6 +2901,13 @@ function categoryOfNewMerchant(merchant){
 // Una marca energética sola no prueba carburante; comida y suministros conservan su finalidad.
 function mobilityCategoryOfNewMerchant(merchant,cat){
   const c=catKey(merchant);
+  // La sanción manda sobre el lugar donde ocurrió; una app de parking, una administración
+  // o una autopista sin detalle no prueban estos destinos. Solo altas nuevas (petición3/10).
+  if(cat==="transporte" || cat==="otros" || cat==="tasas" || cat==="parking"){
+    if(/\bmult[ae]s?\b|\bsancio(?:n)? (?:de )?(?:trafico|transit)\b|\b(?:traffic|parking) fines?\b/.test(c)) return "multas";
+    if(/\bzona (?:azul|blava)\b|\bestacionamiento regulado\b|\baparcament regulat\b/.test(c)) return "zona_azul";
+    if(/\bpeajes?\b|\bpeatges?\b|\btoll (?:road|payment)\b/.test(c)) return "peajes";
+  }
   if(cat!=="transporte" && cat!=="otros" && !(cat==="super" && /\bcarrefour gas\b/.test(c))) return cat;
   if(/\buber[^a-z0-9]*eats\b/.test(c)) return "bares";
   if(/\b(recarga|recarrega|carga|carrega)\b.*electric|electric.*\b(recarga|recarrega|carga|carrega)\b|\bev charging\b|\bcharging station\b/.test(c)) return "transporte";
@@ -5624,7 +5634,7 @@ Object.assign(LANG.es,{
   g_empty_t:"No hay gastos aquí", g_empty_d:"Cambia el filtro, sincroniza o apunta uno.", g_loadmore:"Cargando más…",
   g_empty_period_t:"Aún no hay gastos en este período", g_empty_period_d:"Es normal si acaba de empezar el mes o tu ciclo — irán apareciendo según sincronices o apuntes alguno.",
   g_today:"Hoy", g_yesterday:"Ayer", g_invalid:"Pon un importe válido", g_saved_g:"✓ Gasto apuntado", g_saved_i:"✓ Ingreso apuntado", g_deleted:"Eliminado", g_changecat:"Cambiar categoría",
-  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_gasolina:"Gasolina", cat_taxi:"Taxi", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Cuota",
+  cat_super:"Supermercado", cat_pan:"Panadería", cat_bares:"Bares y restaurantes", cat_cine:"Cine", cat_padel:"Pádel", cat_heladeria:"Heladería", cat_ia:"Inteligencia artificial", cat_ocio:"Ocio", cat_gaming:"Videojuegos", cat_viajes:"Viajes", cat_transporte:"Transporte", cat_gasolina:"Gasolina", cat_taxi:"Taxi", cat_multas:"Multas", cat_zona_azul:"Zona azul", cat_peajes:"Peajes", cat_parking:"Parking", cat_agua:"Agua", cat_luz:"Luz", cat_gas:"Gas", cat_tasas:"Impuestos y multas", cat_recibos:"Recibos", cat_compras:"Compras", cat_educacion:"Educación", cat_salud:"Salud", cat_pelu:"Peluquería", cat_mascotas:"Mascotas", cat_hogar:"Hogar", cat_regalos:"Regalos", cat_joyeria:"Joyería", cat_bizum:"Bizum", cat_otros:"Otros", cat_ingreso:"Ingreso", cat_inversion:"Inversión", cat_traspaso:"Traspaso", cat_deudas:"Cuota",
   freq_mes:"mensual", freq_bimestral:"bimestral", freq_trimestral:"trimestral", freq_semestral:"semestral", "freq_año":"anual",
   // Fijos
   fj_monthly:"Gasto fijo mensual", fj_peryear:"{x}/año", fj_top_a:"Tu mayor gasto fijo es ", fj_top_b:" ({x}/mes)",
@@ -19702,7 +19712,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="b44343ec5b56cbd282a98f6314b270dbebd5daffae83c7b16fb7bc6693b0cf65";
+var _rnSha="4307016a6c79c9b54ec96fd8defacca087ec0b466d985650eccfcd8746595ae7";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
