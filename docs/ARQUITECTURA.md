@@ -509,3 +509,6 @@ INC-0210-01: el estado visual de una cuota y sus eventos futuros consumen debtPa
 ## Liberación de reservas de Metas (INC-0310-01)
 
 Borrar una regla confirmada elimina su configuración y añade asientos de reserva inversos con la misma fecha/identidad, `releaseOf` y fecha de liberación, solo para asignaciones comprobables con identidad única y sin liberación previa. Una configuración reaparecida no permite compensar dos veces. Liberaciones parciales o registros ambiguos conservan el pendiente para revisión separada. No borra asientos originales, ahorro aportado ni movimientos bancarios. El total del registro libera únicamente el descuento atribuido a esa regla; cliente y servidor actuales lo leen igual. La identidad de nómina permanece aplicada. Configuración y log viajan juntos por `slimForCloud` y el sync last-write-wins existente; no se promete reconciliación de escrituras simultáneas ni reparación de reglas huérfanas antiguas. [Contrato y pruebas](briefs/inc-0310-01-meta-regla.md).
+
+
+Movilidad88 conserva el histórico y todos los contratos87; catálogo diario añade multas/zona_azul/peajes solo para altas inequívocas. Los lectores financieros siguen los mismos IDs y gastos diarios; no añade sync automático.

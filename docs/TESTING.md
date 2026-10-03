@@ -661,3 +661,6 @@ El motor añade reaparición de la misma configuración, liberación parcial e i
 La confirmación cuenta con tres rangos i18n propios y acotados: `rr_delete`, `rr_delete_q`, `rr_delete_sub` en es/en/ca. `beta-sources` ejecuta nueve mutantes explícitos y comprueba que los textos ajenos de creación no invalidan esta tanda; el modo diagnóstico `--meta-dialog-only` conserva el mismo test registrado. El DOM de borrar compara título y explicación completos contra literales independientes en los tres idiomas, tanto al cancelar como al confirmar.
 
 La unión sobre beta86 conserva los veinte alcances previos y añade Metas87: las siete entregas antiguas dejan catorce tandas pendientes; el catálogo mixto incluye veintiuna modernas más una implícita. La prueba de entrega espera la consulta de producción previa del panel de novedades antes de sembrar recibos sintéticos, para evitar que su respuesta pendiente los sobrescriba.
+
+
+Integración88 sobre039d incorpora motor movilidad45, ingest-handler y DOM9 es/en/ca; runner y CROSSCUTTING registrados. Revalidar alcance transitivo actual, Gasolina40, BOOK85, categoría86, Metas87 y catálogo mixto22. Pruebas/publicación de la integración todavía pendientes.
