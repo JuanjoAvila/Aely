@@ -1,3 +1,13 @@
+## SEC-02 · `prices` (Deno, sin cuota de terceros)
+
+`supabase/functions/prices/prices.test.ts` está en `denoEnLista` de `scripts/run-tests.mjs`. Cubre
+auth 401, cuerpo 413, sleep en `finally` si Finnhub lanza, fail-open de `_shared/ratelimit.ts`, y el
+gate de la **propuesta** 30/600 con `rateLimit` real + RPC `check_rate_limit` simulada (bucket /
+limit / window, aislamiento por usuario, concurrencia, caducidad). Mutantes `limit=1` vs
+`999999` y `window=1` fallan si el mock ignora args. Rojo/verde: fixture `prices_base_fixture.ts`
+(lógica `8bb0398f`) vs candidato. La propuesta **no** está activa en live (`applyRateProposal`
+false salvo `PRICES_RATE_LIMIT=1`). [Brief](briefs/sec02-prices-limites.md).
+
 ## Carga de tests y lector de alcances (4/10)
 
 `botnav-esconder`, ya transversal, reproduce un scroll real emitido por la página oculta de Gastos después de volver a Inicio: comprueba que el evento llegó, que la pantalla activa sigue en el tope y que la barra no se oculta pasado su plazo de 550 ms. El caso era rojo sin la comprobación de página activa en `onPageScroll`; conserva los gestos táctiles de ocultar, revelar y cambiar pestañas.

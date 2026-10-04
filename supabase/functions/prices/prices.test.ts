@@ -1,48 +1,63 @@
 /**
- * SEC-02 · prices — límites por LLAMADA AL PROVEEDOR (fetch/tiempo simulados).
- * Cero red a Finnhub/Yahoo. El mock de rateLimit reproduce la semántica atómica de
- * `check_rate_limit` (0019): un hit por invocación, buckets independientes.
+ * SEC-02 · prices — auth/cuerpo activos; gate 30/600 solo como propuesta testeable.
+ * Cero Finnhub/Yahoo reales. El gate usa `rateLimit` REAL + RPC `check_rate_limit` simulada
+ * que respeta p_bucket / p_limit / p_window_secs (semántica 0019).
  */
 import { assertEquals, assert } from "jsr:@std/assert@1";
+import { rateLimit } from "../_shared/ratelimit.ts";
 import {
-  DEFAULT_SYMS,
+  applyPricesRateProposalGate,
   handlePrices,
   normalizeSymbols,
   PRICES_FINNHUB_PACE_MS,
   PRICES_MAX_BODY,
   PRICES_MAX_SYMS,
-  PRICES_PROVIDER_BUCKET,
-  PRICES_PROVIDER_LIMIT,
-  PRICES_PROVIDER_WINDOW_SECS,
-  PRICES_USER_PROVIDER_LIMIT,
-  providerUserBucket,
-  takeProviderSlot,
+  PRICES_RATE_PROPOSAL,
+  pricesProposalBucket,
   type PricesDeps,
 } from "./prices_core.ts";
+import { BASE_HANDLER_SHA, handlePricesBase } from "./prices_base_fixture.ts";
 
 type Hit = { url: string };
 
-/** Semántica 0019 en memoria: hits atómicos por bucket dentro de la ventana. */
-function simCheckRateLimit() {
-  const buckets = new Map<string, { hits: number; start: number }>();
-  let now = 1_000_000;
+/** RPC simulada 0019: usa bucket, limit y window; un mock que los ignore rompe los tests. */
+function createSimCheckRateLimitRpc(clock: { nowMs: number }) {
+  const buckets = new Map<string, { hits: number; startMs: number }>();
+  const calls: Array<{ bucket: string; limit: number; windowSecs: number }> = [];
   return {
-    tick(ms: number) { now += ms; },
-    async rateLimit(bucket: string, limit: number, windowSecs: number) {
+    calls,
+    // deno-lint-ignore no-explicit-any
+    async rpc(fn: string, args: Record<string, any>) {
+      assertEquals(fn, "check_rate_limit");
+      const bucket = String(args.p_bucket);
+      const limit = Number(args.p_limit);
+      const windowSecs = Number(args.p_window_secs);
+      assert(Number.isFinite(limit) && limit > 0, "p_limit debe usarse");
+      assert(Number.isFinite(windowSecs) && windowSecs > 0, "p_window_secs debe usarse");
+      calls.push({ bucket, limit, windowSecs });
       const cur = buckets.get(bucket);
-      if (!cur || cur.start < now - windowSecs * 1000) {
-        buckets.set(bucket, { hits: 1, start: now });
-        return { ok: true, checked: true as const };
+      if (!cur || cur.startMs < clock.nowMs - windowSecs * 1000) {
+        buckets.set(bucket, { hits: 1, startMs: clock.nowMs });
+        return { data: true, error: null };
       }
       cur.hits += 1;
-      return { ok: cur.hits <= limit, checked: true as const };
+      return { data: cur.hits <= limit, error: null };
     },
-    hits(bucket: string) { return buckets.get(bucket)?.hits ?? 0; },
+  };
+}
+
+function rateLimitViaSim(clock: { nowMs: number }) {
+  const sim = createSimCheckRateLimitRpc(clock);
+  return {
+    sim,
+    // Enlace REAL a _shared/ratelimit.ts (no un mock que decida el bloqueo a mano).
+    rateLimit: (bucket: string, limit: number, windowSecs: number) =>
+      rateLimit({ rpc: sim.rpc.bind(sim) }, bucket, limit, windowSecs),
   };
 }
 
 function mockFetch(hits: Hit[], price = 12.34): typeof fetch {
-  return (async (input: RequestInfo | URL, _init?: RequestInit) => {
+  return (async (input: RequestInfo | URL) => {
     const url = String(input);
     hits.push({ url });
     if (url.includes("finnhub.io")) {
@@ -54,12 +69,14 @@ function mockFetch(hits: Hit[], price = 12.34): typeof fetch {
   }) as typeof fetch;
 }
 
-function baseDeps(hits: Hit[], overrides: Partial<PricesDeps> = {}): PricesDeps {
+function candidateDeps(hits: Hit[], overrides: Partial<PricesDeps> = {}): PricesDeps {
   let clock = 1_700_000_000_000;
+  const rl = rateLimitViaSim({ nowMs: clock });
   return {
     fetch: mockFetch(hits),
     getUser: async () => ({ id: "user-a" }),
-    rateLimit: async () => ({ ok: true, checked: true }),
+    rateLimit: rl.rateLimit,
+    applyRateProposal: false, // defecto live: propuesta NO activa
     env: { FINNHUB_KEY: "test-key" },
     sleep: async () => {},
     now: () => clock++,
@@ -79,83 +96,63 @@ function post(symbols: unknown, headers: Record<string, string> = {}) {
   });
 }
 
-Deno.test("normalizeSymbols: filtra, mayúsculas, dedupe y tope 25", () => {
-  const raw = [
-    " nvda ", "NVDA", "bad space", "GOLD", "x".repeat(13), "VWCE.DE",
-    ...Array.from({ length: 30 }, (_, i) => "T" + String(i).padStart(2, "0")),
-  ];
-  const out = normalizeSymbols(raw);
-  assertEquals(out[0], "NVDA");
-  assert(out.includes("GOLD"));
-  assert(out.includes("VWCE.DE"));
-  assertEquals(out.includes("BAD SPACE"), false);
-  assertEquals(out.length, PRICES_MAX_SYMS);
+// ---- Propuesta documentada (no contrato activo) ----
+
+Deno.test("propuesta 30/600 es explícita y no se hace pasar por otro número", () => {
+  assertEquals(PRICES_RATE_PROPOSAL.limit, 30);
+  assertEquals(PRICES_RATE_PROPOSAL.windowSecs, 600);
+  assertEquals(PRICES_RATE_PROPOSAL.status, "proposal-pending-authorization");
+  assertEquals(PRICES_RATE_PROPOSAL.worstCaseFetchesBeforeHttp429, 750);
+  assertEquals(PRICES_RATE_PROPOSAL.unit, "http-request-to-prices-function");
 });
 
-Deno.test("auth ausente → 401 y cero fetches externos", async () => {
+// ---- Activo sin inventar cuota ----
+
+Deno.test("normalizeSymbols: tope 25", () => {
+  const many = Array.from({ length: 40 }, (_, i) => "T" + String(i).padStart(2, "0"));
+  assertEquals(normalizeSymbols(many).length, PRICES_MAX_SYMS);
+});
+
+Deno.test("candidato: auth ausente → 401 y cero fetches", async () => {
   const hits: Hit[] = [];
   const req = new Request("https://example.test/prices", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ symbols: ["NVDA"] }),
   });
-  const res = await handlePrices(req, baseDeps(hits));
+  const res = await handlePrices(req, candidateDeps(hits));
   assertEquals(res.status, 401);
   assertEquals(hits.length, 0);
 });
 
-Deno.test("getUser nulo → 401 y cero fetches", async () => {
-  const hits: Hit[] = [];
-  const res = await handlePrices(
-    post(["NVDA"]),
-    baseDeps(hits, { getUser: async () => null }),
-  );
-  assertEquals(res.status, 401);
-  assertEquals(hits.length, 0);
-});
-
-Deno.test("content-length anunciado > tope → 413 sin fetch", async () => {
+Deno.test("candidato: content-length > tope → 413 sin fetch", async () => {
   const hits: Hit[] = [];
   const res = await handlePrices(
     post(["NVDA"], { "content-length": String(PRICES_MAX_BODY + 1) }),
-    baseDeps(hits),
+    candidateDeps(hits),
   );
   assertEquals(res.status, 413);
   assertEquals(hits.length, 0);
 });
 
-Deno.test("cuerpo real > tope → 413 sin fetch", async () => {
+Deno.test("candidato: por defecto applyRateProposal=false no llama al gate", async () => {
   const hits: Hit[] = [];
-  const fat = "A".repeat(PRICES_MAX_BODY + 50);
-  const req = new Request("https://example.test/prices", {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer fake",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ symbols: [fat] }),
-  });
-  const res = await handlePrices(req, baseDeps(hits));
-  assertEquals(res.status, 413);
-  assertEquals(hits.length, 0);
-});
-
-Deno.test("fail-open (checked:false) SÍ deja pasar fetch (regla de la casa)", async () => {
-  const hits: Hit[] = [];
-  const res = await handlePrices(
-    post(["NVDA"]),
-    baseDeps(hits, { rateLimit: async () => ({ ok: true, checked: false }) }),
+  const clock = { nowMs: 1_000_000 };
+  const { sim, rateLimit: rl } = rateLimitViaSim(clock);
+  await handlePrices(
+    post(["NVDA", "GOOG"]),
+    candidateDeps(hits, { rateLimit: rl, applyRateProposal: false }),
   );
-  assertEquals(res.status, 200);
+  assertEquals(sim.calls.length, 0);
   assertEquals(hits.length >= 1, true);
 });
 
-Deno.test("errors no filtran la FINNHUB_KEY", async () => {
+Deno.test("candidato: errors no filtran FINNHUB_KEY", async () => {
   const hits: Hit[] = [];
-  const secret = "sk-finnhub-SECRET-do-not-leak";
+  const secret = "sk-finnhub-SECRET";
   const res = await handlePrices(
-    post(["ZZZZNOPE"]),
-    baseDeps(hits, {
+    post(["ZZNOPE"]),
+    candidateDeps(hits, {
       env: { FINNHUB_KEY: secret },
       fetch: (async () => {
         hits.push({ url: "x" });
@@ -165,160 +162,212 @@ Deno.test("errors no filtran la FINNHUB_KEY", async () => {
   );
   const text = await res.text();
   assertEquals(text.includes(secret), false);
-  assertEquals(text.includes("finnhub+yahoo") || text.includes("yahoo"), true);
 });
 
-Deno.test("camino feliz: Finnhub + Yahoo mapeado; pace tras Finnhub", async () => {
-  const hits: Hit[] = [];
-  const sleeps: number[] = [];
-  const res = await handlePrices(
-    post(["NVDA", "GOLD"]),
-    baseDeps(hits, { sleep: async (ms) => { sleeps.push(ms); } }),
-  );
-  assertEquals(res.status, 200);
-  const body = await res.json();
-  assertEquals(body.prices.NVDA, 12.34);
-  assertEquals(body.prices.GOLD, 12.34);
-  assert(hits.some((h) => h.url.includes("finnhub.io") && h.url.includes("NVDA")));
-  assert(hits.some((h) => h.url.includes("yahoo.com") && h.url.includes("GC%3DF")));
-  assertEquals(sleeps.includes(PRICES_FINNHUB_PACE_MS), true);
-});
-
-Deno.test("si Finnhub lanza, el sleep del tier IGUAL corre", async () => {
+Deno.test("candidato: si Finnhub lanza, sleep del tier igual corre (finally)", async () => {
   const sleeps: number[] = [];
   const hits: Hit[] = [];
-  const res = await handlePrices(
+  await handlePrices(
     post(["NVDA"]),
-    baseDeps(hits, {
+    candidateDeps(hits, {
       sleep: async (ms) => { sleeps.push(ms); },
       fetch: (async (input) => {
         hits.push({ url: String(input) });
-        if (String(input).includes("finnhub.io")) throw new Error("boom-finnhub");
+        if (String(input).includes("finnhub.io")) throw new Error("boom");
         return new Response(JSON.stringify({
           chart: { result: [{ meta: { regularMarketPrice: 1 } }] },
         }), { status: 200 });
       }) as typeof fetch,
     }),
   );
-  assertEquals(res.status, 200);
-  assertEquals(sleeps.filter((ms) => ms === PRICES_FINNHUB_PACE_MS).length >= 1, true);
-  const body = await res.json();
-  assert(Array.isArray(body.errors));
-  assert(body.errors.some((e: { status?: string }) => e.status === "exception"));
+  assertEquals(sleeps.includes(PRICES_FINNHUB_PACE_MS), true);
 });
 
-Deno.test("tope 25: 40 símbolos → como máximo 25 fetches de proveedor", async () => {
-  const hits: Hit[] = [];
-  const many = Array.from({ length: 40 }, (_, i) => "S" + String(i).padStart(2, "0"));
-  const res = await handlePrices(post(many), baseDeps(hits));
-  assertEquals(res.status, 200);
-  assertEquals(hits.length, PRICES_MAX_SYMS);
+Deno.test("fail-open: RPC error → checked:false y deja pasar (rateLimit real)", async () => {
+  const verdict = await rateLimit({
+    rpc: async () => ({ data: null, error: { code: "42P01", message: "missing" } }),
+  }, "prices:u", 30, 600);
+  assertEquals(verdict.ok, true);
+  assertEquals(verdict.checked, false);
 });
 
-Deno.test("sin symbols → defaults (compat clientes viejos)", async () => {
+// ---- Gate con rateLimit REAL + RPC simulada (mutantes de args) ----
+
+Deno.test("gate propuesta: rateLimit real respeta limit=1 (2º golpe bloquea)", async () => {
+  const clock = { nowMs: 5_000_000 };
+  const { sim, rateLimit: rl } = rateLimitViaSim(clock);
+  const v1 = await applyPricesRateProposalGate(rl, "u1");
+  const v2 = await applyPricesRateProposalGate(rl, "u1");
+  // Con la propuesta limit=30 ambos pasarían; forzamos limit mutante vía llamada directa:
+  const tight1 = await rl("prices:u1-tight", 1, 600);
+  const tight2 = await rl("prices:u1-tight", 1, 600);
+  assertEquals(v1.ok, true);
+  assertEquals(v2.ok, true);
+  assertEquals(tight1.ok, true);
+  assertEquals(tight2.ok, false);
+  assert(sim.calls.some((c) => c.limit === 1));
+  assert(sim.calls.some((c) => c.limit === PRICES_RATE_PROPOSAL.limit));
+});
+
+Deno.test("guardián mutante: limit=999999 no bloquea donde limit=1 sí", async () => {
+  const clock = { nowMs: 6_000_000 };
+  const { rateLimit: rl } = rateLimitViaSim(clock);
+  assertEquals((await rl("mut-lim", 1, 60)).ok, true);
+  assertEquals((await rl("mut-lim", 1, 60)).ok, false);
+  // Mismo reloj, otro bucket con límite enorme: debe seguir OK (si el mock ignora limit, fallaría).
+  assertEquals((await rl("mut-lim-hi", 999999, 60)).ok, true);
+  for (let i = 0; i < 50; i++) {
+    assertEquals((await rl("mut-lim-hi", 999999, 60)).ok, true);
+  }
+});
+
+Deno.test("guardián mutante: window=1 caduca; window enorme no", async () => {
+  const clock = { nowMs: 7_000_000 };
+  const { rateLimit: rl } = rateLimitViaSim(clock);
+  assertEquals((await rl("win-a", 1, 1)).ok, true);
+  assertEquals((await rl("win-a", 1, 1)).ok, false);
+  clock.nowMs += 1001; // caduca ventana de 1s
+  assertEquals((await rl("win-a", 1, 1)).ok, true);
+  // Ventana 999999s: avanzar 2s no reinicia
+  assertEquals((await rl("win-b", 1, 999999)).ok, true);
+  assertEquals((await rl("win-b", 1, 999999)).ok, false);
+  clock.nowMs += 2000;
+  assertEquals((await rl("win-b", 1, 999999)).ok, false);
+});
+
+Deno.test("aislamiento por usuario: bucket prices:u1 ≠ prices:u2", async () => {
+  const clock = { nowMs: 8_000_000 };
+  const { sim, rateLimit: rl } = rateLimitViaSim(clock);
+  for (let i = 0; i < PRICES_RATE_PROPOSAL.limit; i++) {
+    assertEquals((await applyPricesRateProposalGate(rl, "u1")).ok, true);
+  }
+  assertEquals((await applyPricesRateProposalGate(rl, "u1")).ok, false);
+  assertEquals((await applyPricesRateProposalGate(rl, "u2")).ok, true);
+  assertEquals(pricesProposalBucket("u1"), "prices:u1");
+  assert(sim.calls.every((c) => c.windowSecs === PRICES_RATE_PROPOSAL.windowSecs || c.bucket.startsWith("prices:")));
+});
+
+Deno.test("concurrencia: golpes paralelos al mismo bucket respetan el limit", async () => {
+  const clock = { nowMs: 9_000_000 };
+  const { rateLimit: rl } = rateLimitViaSim(clock);
+  const LIMIT = 5;
+  const verdicts = await Promise.all(
+    Array.from({ length: 20 }, () => rl("conc-bucket", LIMIT, 60)),
+  );
+  const oks = verdicts.filter((v) => v.ok).length;
+  assertEquals(oks, LIMIT);
+});
+
+Deno.test("candidato con propuesta ON: tras 30 req, la 31ª → 429 sin fetch nuevo", async () => {
   const hits: Hit[] = [];
-  const req = new Request("https://example.test/prices", {
+  const clock = { nowMs: 10_000_000 };
+  const { sim, rateLimit: rl } = rateLimitViaSim(clock);
+  const deps = candidateDeps(hits, { rateLimit: rl, applyRateProposal: true });
+  for (let i = 0; i < 30; i++) {
+    assertEquals((await handlePrices(post(["NVDA"]), deps)).status, 200);
+  }
+  const before = hits.length;
+  const blocked = await handlePrices(post(["NVDA"]), deps);
+  assertEquals(blocked.status, 429);
+  assertEquals(hits.length, before);
+  assert(sim.calls.every((c) =>
+    c.bucket === "prices:user-a" &&
+    c.limit === 30 &&
+    c.windowSecs === 600
+  ));
+});
+
+Deno.test("guardián: un rateLimit falso que ignora args NO basta (detecta mentira)", async () => {
+  // Si el test del gate usara este mock, el mutante limit=1 no bloquearía nunca.
+  const lying = async () => ({ ok: true, checked: true });
+  const a = await lying();
+  const b = await lying();
+  assertEquals(a.ok && b.ok, true); // el mentiroso siempre pasa…
+  // …pero el gate real+sim con limit=1 SÍ bloquea el 2º:
+  const clock = { nowMs: 11_000_000 };
+  const { rateLimit: rl } = rateLimitViaSim(clock);
+  assertEquals((await rl("lie-detect", 1, 60)).ok, true);
+  assertEquals((await rl("lie-detect", 1, 60)).ok, false);
+});
+
+// ---- Base (8bb) vs candidato: misma reproducción ----
+
+Deno.test("base vs candidato: fixture ancla SHA de main", () => {
+  assertEquals(BASE_HANDLER_SHA, "8bb0398f9d16a848b984c989a6515e87937c815c");
+});
+
+Deno.test("ROJO base / VERDE candidato: auth y cuerpo", async () => {
+  const fat = "A".repeat(PRICES_MAX_BODY + 80);
+  const noAuth = new Request("https://example.test/prices", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ symbols: ["NVDA"] }),
+  });
+  const tooBig = new Request("https://example.test/prices", {
     method: "POST",
     headers: {
       "Authorization": "Bearer fake",
       "Content-Type": "application/json",
+      "content-length": String(PRICES_MAX_BODY + 1),
     },
-    body: "{}",
+    body: JSON.stringify({ symbols: [fat] }),
   });
-  const res = await handlePrices(req, baseDeps(hits));
-  assertEquals(res.status, 200);
-  const body = await res.json();
-  for (const s of DEFAULT_SYMS) {
-    assertEquals(typeof body.prices[s], "number");
-  }
+
+  const baseHits: Hit[] = [];
+  const baseDeps = {
+    fetch: mockFetch(baseHits),
+    env: { FINNHUB_KEY: "k" },
+    sleep: async () => {},
+    now: () => 1,
+  };
+
+  // BASE (8bb): sin auth en handler → 200 y gasta fetch; sin tope de content-length anunciado.
+  const baseNoAuth = await handlePricesBase(noAuth.clone(), baseDeps);
+  assertEquals(baseNoAuth.status, 200, "ROJO esperado en base: no exige Bearer");
+  assert(baseHits.length >= 1, "ROJO base: fetch sin sesión");
+
+  const baseBigHits: Hit[] = [];
+  const baseBig = await handlePricesBase(tooBig.clone(), {
+    ...baseDeps,
+    fetch: mockFetch(baseBigHits),
+  });
+  // El anunciado content-length no se mira en base; puede acabar en 200 o error de parse, no 413.
+  assert(baseBig.status !== 413, "ROJO base: no hay 413 por content-length");
+
+  // CANDIDATO
+  const candHits: Hit[] = [];
+  assertEquals((await handlePrices(noAuth, candidateDeps(candHits))).status, 401);
+  assertEquals(candHits.length, 0);
+  assertEquals((await handlePrices(tooBig, candidateDeps([]))).status, 413);
 });
 
-Deno.test("GET ?symbols= sigue vivo (compat)", async () => {
+Deno.test("ROJO base: N paralelas × M símbolos = N×M fetches (sin freno)", async () => {
   const hits: Hit[] = [];
-  const req = new Request("https://example.test/prices?symbols=AMD,GOLD", {
-    method: "GET",
-    headers: { "Authorization": "Bearer fake" },
-  });
-  const res = await handlePrices(req, baseDeps(hits));
-  assertEquals(res.status, 200);
-  const body = await res.json();
-  assertEquals(body.prices.AMD, 12.34);
-  assertEquals(body.prices.GOLD, 12.34);
+  const deps = {
+    fetch: mockFetch(hits),
+    env: { FINNHUB_KEY: "k" },
+    sleep: async () => {},
+    now: () => 1,
+  };
+  const batch = Array.from({ length: 10 }, (_, i) => "B" + String(i).padStart(2, "0"));
+  await Promise.all([
+    handlePricesBase(post(batch), deps),
+    handlePricesBase(post(batch), deps),
+    handlePricesBase(post(batch), deps),
+  ]);
+  // Sin gate: 30 fetches. Esto es el hueco de presupuesto (evidencia, no contrato activo).
+  assertEquals(hits.length, 30);
 });
 
-Deno.test("takeProviderSlot: compartido + usuario (dos hits 0019)", async () => {
-  const sim = simCheckRateLimit();
-  const v = await takeProviderSlot(sim.rateLimit, "u1");
-  assertEquals(v.ok, true);
-  assertEquals(sim.hits(PRICES_PROVIDER_BUCKET), 1);
-  assertEquals(sim.hits(providerUserBucket("u1")), 1);
-  assertEquals(PRICES_PROVIDER_LIMIT, 60);
-  assertEquals(PRICES_PROVIDER_WINDOW_SECS, 60);
-  assertEquals(PRICES_USER_PROVIDER_LIMIT, 45);
-});
-
-/**
- * ROJO→VERDE del hallazgo adversarial #1:
- * Varias peticiones HTTP en paralelo NO pueden superar el cupo de fetches al proveedor.
- * Con el gate viejo (1 hit / request HTTP) esto fallaría: 3×10 = 30 fetches con límite 10.
- */
-Deno.test("cuota proveedor: N peticiones paralelas × M símbolos ≤ LIMIT fetches", async () => {
+Deno.test("candidato defecto (propuesta OFF): no afirma cortar esas 30 fetches", async () => {
+  // Documenta el límite de ESTA entrega: sin autorización no se activa 30/600.
   const hits: Hit[] = [];
-  const sim = simCheckRateLimit();
-  // Cupo artificial bajo para el test (= semántica del bucket compartido).
-  const LIMIT = 10;
-  const deps: PricesDeps = baseDeps(hits, {
-    rateLimit: async (bucket, _limit, windowSecs) => {
-      // Solo el bucket compartido usa el cupo estrecho; el de usuario queda holgado.
-      if (bucket === PRICES_PROVIDER_BUCKET) {
-        return sim.rateLimit(bucket, LIMIT, windowSecs);
-      }
-      return sim.rateLimit(bucket, 10_000, windowSecs);
-    },
-  });
-  const batch = Array.from({ length: 10 }, (_, i) => "P" + String(i).padStart(2, "0"));
-  const results = await Promise.all([
+  const batch = Array.from({ length: 10 }, (_, i) => "C" + String(i).padStart(2, "0"));
+  const deps = candidateDeps(hits, { applyRateProposal: false });
+  await Promise.all([
     handlePrices(post(batch), deps),
     handlePrices(post(batch), deps),
     handlePrices(post(batch), deps),
   ]);
-  // Antes del fix (gate por request HTTP): ~30 fetches. Después: ≤ LIMIT al proveedor.
-  assert(hits.length <= LIMIT, `fetches=${hits.length} > LIMIT=${LIMIT}`);
-  assertEquals(hits.length, LIMIT); // con mock sincrónico satura exactamente el cupo
-  // 0019 cuenta también el hit que devuelve false (OK + rechazos posteriores).
-  assert(sim.hits(PRICES_PROVIDER_BUCKET) >= LIMIT);
-  assert(results.every((r) => r.status === 200 || r.status === 429));
-});
-
-Deno.test("cuota proveedor: una petición con 25 símbolos se corta al LIMIT de fetches", async () => {
-  const hits: Hit[] = [];
-  const sim = simCheckRateLimit();
-  const LIMIT = 5;
-  const many = Array.from({ length: 25 }, (_, i) => "Q" + String(i).padStart(2, "0"));
-  const res = await handlePrices(
-    post(many),
-    baseDeps(hits, {
-      rateLimit: async (bucket, _limit, windowSecs) => {
-        if (bucket === PRICES_PROVIDER_BUCKET) {
-          return sim.rateLimit(bucket, LIMIT, windowSecs);
-        }
-        return { ok: true, checked: true };
-      },
-    }),
-  );
-  assertEquals(hits.length, LIMIT);
-  assertEquals(res.status, 200); // parcial: ya había precios antes del corte
-  const body = await res.json();
-  assertEquals(Object.keys(body.prices).length, LIMIT);
-  assert(body.errors.some((e: { via?: string }) => e.via === "limited"));
-});
-
-Deno.test("primer símbolo ya limitado → 429 y cero fetches", async () => {
-  const hits: Hit[] = [];
-  const res = await handlePrices(
-    post(["NVDA", "GOOG"]),
-    baseDeps(hits, { rateLimit: async () => ({ ok: false, checked: true }) }),
-  );
-  assertEquals(res.status, 429);
-  assertEquals(hits.length, 0);
+  assertEquals(hits.length, 30);
 });

@@ -1,6 +1,6 @@
 // ============================================================
 // Edge Function: prices — entrypoint.
-// La lógica testeable vive en prices_core.ts (SEC-02: límites/replay).
+// Lógica en prices_core.ts. Cuota 30/600 = PROPUESTA (apagada por defecto).
 // ============================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -28,6 +28,10 @@ function liveDeps(): PricesDeps {
       );
       return await rateLimit(admin, bucket, limit, windowSecs);
     },
+    // OFF por defecto: 30/600 es propuesta, no contrato autorizado (SEC-02 / Codex NO-GO).
+    // Un deploy futuro podría poner PRICES_RATE_LIMIT=1 tras autorización explícita;
+    // aun así cuenta peticiones HTTP, no fetches al proveedor (ver brief).
+    applyRateProposal: Deno.env.get("PRICES_RATE_LIMIT") === "1",
     env: { FINNHUB_KEY: Deno.env.get("FINNHUB_KEY") },
     sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
     now: () => Date.now(),
