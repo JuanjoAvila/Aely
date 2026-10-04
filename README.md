@@ -103,7 +103,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.93** candidata local para la cola de revisión. Beta verificada 4.26.90.5 (fuente be3081); producción 4.26.86 (d366215a). APK beta 4.26.80/code52 y estable 4.26.32/code48 conservadas. Publicación de esta candidata y prueba móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
+Estado actual: **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 
 Corte anterior (3/10, superado por la entrega de arriba): v4.26.90 era candidata local, con Brókers89 pendiente de CI/publicación y beta88.1 y producción86 como últimas entregas acreditadas.
 
