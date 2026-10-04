@@ -8,6 +8,12 @@ Histórico 3/10 (superado por el corte de arriba): Candidata90 local, con CI/pub
 
 # Empieza aquí
 
+Canal público de agentes: [issue130](https://github.com/JuanjoAvila/Aely/issues/130),
+con encargos, reservas y resultados para los bots remotos. El protocolo está en
+[COORDINACION-AGENTES](docs/COORDINACION-AGENTES.md) de la rama `codex/coordinacion`.
+Enviar mensajes en el issue no requiere commits ni cambios enmain/beta. Nunca publicar
+datos financieros, secretos, capturas privadas ni rutas delPC.
+
 FEATURE-0210-01 candidata aislada85: no mover keywords nuevas a autoCategory, porque seedFlows reevalúa Otros antiguos. La división Gasolina/Taxi vive solo en categoryOfNewMerchant y MCC de altas bancarias. Fuente Edge preparada pero sin desplegar; la web no necesita Edge para elegir/filtrar/fijar límites. [Acta](docs/briefs/feature-0210-01-gasolina-taxi.md).
 
 INC-0210-01 candidata83: cuota vinculada contabilizada antes del vencimiento retirada del pendiente de Plan/Inicio y eventos futuros; saldo/anclas intactos. Base3467/candidata82, sin publicar. Pruebas sintéticas; revisión, CI, beta y móvil pendientes. [Acta](docs/briefs/inc-0210-01-plan-cuota.md).
