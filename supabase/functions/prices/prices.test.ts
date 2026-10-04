@@ -147,7 +147,7 @@ Deno.test("candidato: por defecto applyRateProposal=false no llama al gate", asy
   assertEquals(hits.length >= 1, true);
 });
 
-Deno.test("candidato: errors no filtran FINNHUB_KEY", async () => {
+Deno.test("candidato: errors no filtran FINNHUB_KEY (rama c:0)", async () => {
   const hits: Hit[] = [];
   const secret = "sk-finnhub-SECRET";
   const res = await handlePrices(
@@ -162,6 +162,65 @@ Deno.test("candidato: errors no filtran FINNHUB_KEY", async () => {
   );
   const text = await res.text();
   assertEquals(text.includes(secret), false);
+});
+
+/**
+ * NO-GO Codex 932267aa: fetch lanza Error(String(input)) con URL+token.
+ * Base (8bb / fixture) y head con String(e) fugas; candidato saneado no.
+ */
+Deno.test("ROJO base: catch String(e) filtra URL con token Finnhub", async () => {
+  const secret = "synth-finnhub-KEY-9f3a";
+  const hits: Hit[] = [];
+  const res = await handlePricesBase(
+    post(["NVDA", "GOLD"]),
+    {
+      env: { FINNHUB_KEY: secret },
+      sleep: async () => {},
+      now: () => 1,
+      fetch: (async (input) => {
+        const url = String(input);
+        hits.push({ url });
+        if (url.includes("finnhub.io")) throw new Error(url);
+        return new Response(JSON.stringify({
+          chart: { result: [{ meta: { regularMarketPrice: 99 } }] },
+        }), { status: 200 });
+      }) as typeof fetch,
+    },
+  );
+  assertEquals(res.status, 200);
+  const text = await res.text();
+  assert(text.includes(secret), "ROJO esperado: base filtra el token vía errors[].body");
+  assert(text.includes("finnhub.io"), "ROJO esperado: base filtra la URL");
+});
+
+Deno.test("VERDE candidato: catch cerrado no filtra URL ni token; otros símbolos OK", async () => {
+  const secret = "synth-finnhub-KEY-9f3a";
+  const hits: Hit[] = [];
+  const res = await handlePrices(
+    post(["NVDA", "GOLD"]),
+    candidateDeps(hits, {
+      env: { FINNHUB_KEY: secret },
+      fetch: (async (input) => {
+        const url = String(input);
+        hits.push({ url });
+        if (url.includes("finnhub.io")) throw new Error(url);
+        return new Response(JSON.stringify({
+          chart: { result: [{ meta: { regularMarketPrice: 99 } }] },
+        }), { status: 200 });
+      }) as typeof fetch,
+    }),
+  );
+  assertEquals(res.status, 200);
+  const body = await res.json();
+  const text = JSON.stringify(body);
+  assertEquals(text.includes(secret), false);
+  assertEquals(text.includes("token="), false);
+  assertEquals(/https?:\/\//.test(text), false);
+  assert(body.errors.some((e: { sym?: string; status?: string; code?: string; body?: string }) =>
+    e.sym === "NVDA" && e.status === "exception" && e.code === "provider" && e.body == null
+  ));
+  assertEquals(body.prices.GOLD, 99); // parcialidad: Yahoo-mapeado sigue
+  assertEquals(body.prices.NVDA, undefined);
 });
 
 Deno.test("candidato: si Finnhub lanza, sleep del tier igual corre (finally)", async () => {

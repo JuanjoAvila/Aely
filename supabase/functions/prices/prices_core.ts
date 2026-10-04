@@ -202,8 +202,10 @@ export async function handlePrices(req: Request, deps: PricesDeps): Promise<Resp
       if (p == null) p = await fromYahoo(deps.fetch, sym);
       if (p) prices[sym] = p;
       else errors.push({ sym, via: key ? "finnhub+yahoo" : "yahoo (sin FINNHUB_KEY)" });
-    } catch (e) {
-      errors.push({ sym, status: "exception", body: String(e).slice(0, 150) });
+    } catch (_e) {
+      // Cerrado a propósito (NO-GO Codex 932267aa): String(e) puede llevar la URL de
+      // Finnhub con ?token=… si el fetch re-lanza el input. Solo código permitido.
+      errors.push({ sym, status: "exception", code: "provider" });
     }
   }
 

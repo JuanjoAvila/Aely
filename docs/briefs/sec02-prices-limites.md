@@ -12,6 +12,7 @@ Base de trabajo: `origin/main` `8bb0398f`.
 | Tope de cuerpo 4 KiB | **nuevo** | 413; no es cuota Finnhub |
 | Tope 25 símbolos + regex | ya estaba | |
 | Sleep 120 ms tras intento Finnhub (`finally`) | **ajustado** | solo pace del isolate |
+| Catch de proveedor | **ajustado** (post NO-GO `932267aa`) | solo `{sym,status:"exception",code:"provider"}`; **sin** `String(e)` ni URL |
 | Rate limit 30/600 | **NO activo por defecto** | ver propuesta |
 
 ## Propuesta 30/600 (NO contrato activo)
@@ -46,6 +47,7 @@ Presupuesto real (para una autorización futura, no inventado aquí como vigente
 - Gate: `rateLimit` real de `_shared/ratelimit.ts` + RPC `check_rate_limit` simulada que usa `p_bucket` / `p_limit` / `p_window_secs`.
 - Mutantes: `limit=1` vs `999999`, caducidad `window=1`, aislamiento `prices:u1`/`u2`, concurrencia.
 - Rojo/verde: fixture `prices_base_fixture.ts` (= lógica `8bb0398f`) vs `handlePrices` candidato.
+- **Fuga `errors[].body` (comprobado):** fetch simulado lanza `Error(String(input))` con URL Finnhub + clave sintética → base filtra token/URL; candidato no; `NVDA` queda en errors con `code:"provider"` y `GOLD` sigue con precio. El test antiguo con `c:0` no entraba en el `catch`.
 
 ## Fuera de alcance
 
