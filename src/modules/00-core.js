@@ -707,6 +707,23 @@ function mcLoadRaw(key){
   else if(!Array.isArray(base.expenses)) base.expenses=[];
   return base;
 }
+/* SE GUARDA LO QUE SE HA PINTADO, NO LO QUE SE CALCULÓ (INC-0410, 4/10/2026).
+   Antes `set()` apuntaba el volcado pendiente DENTRO del updater. React puede ejecutar un updater
+   sobre un estado que luego abandona —dos escrituras encoladas en el mismo instante, una urgente y
+   otra no— y reutilizar después un resultado ya calculado sin volver a llamarlo: el volcado se
+   quedaba con el estado abandonado. Visto en el alta de reglas de Metas: en pantalla la regla no
+   existía y en disco sí. Un estado que la app nunca llegó a tener no es una cartera que guardar.
+   Aquí solo se entra tras un commit: `prev` es el último estado comprometido que se vio y
+   `state` el nuevo. Devuelve si hay algo que escribir. Conserva las tres garantías de siempre:
+   una escritura como mucho cada `schedule`, el histórico de gastos solo si cambió su REFERENCIA
+   (AGENTS §7 bis) y nada al montar, porque entonces `prev===state`. */
+function mcPersistCommit(p, prev, state, schedule){
+  if(prev===state) return false;
+  p.val=state;
+  if(prev.expenses!==state.expenses) p.exp=true;
+  if(!p.t) p.t=schedule();
+  return true;
+}
 /* opts.expenses===false → guarda solo la parte ligera (lo normal).
 
    OJO con la primera vez tras actualizar: el estado viejo lleva los gastos DENTRO de la clave

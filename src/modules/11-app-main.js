@@ -184,6 +184,9 @@ function App(){
     pageEl.classList.toggle("mc-touch-own", !!own);
   };
   const onPageScroll=function(e){
+    // Las páginas premontadas se recolocan al cambiar sus datos; su scroll no puede esconder
+    // la barra ni pisar la lectura de la pantalla visible (DOM Metas, 4/10).
+    if(trackRef.current && e.currentTarget!==trackRef.current.children[tab]) return;
     lastScrollAt.current=Date.now();
     /* Mientras el dedo CAMBIA DE PESTAÑA, el momentum del scroll vertical sigue disparando
        eventos. Cada uno podía llamar a setNavHidden y re-renderizar App entera a mitad del
@@ -220,7 +223,9 @@ function App(){
     if(ultimoScrollH.current && sh!==ultimoScrollH.current){
       ultimoScrollH.current=sh;
       lastScrollY.current=y;
-      if(Math.abs(dy)<6) return;
+      // Al cambiar una regla puede variar el alto estando ya arriba: el tope debe recuperar
+      // la navegación aunque el navegador no haya desplazado el contenido (DOM Metas, 4/10).
+      if(Math.abs(dy)<6 && y>8) return;
     } else {
       ultimoScrollH.current=sh;
       lastScrollY.current=y;
@@ -311,6 +316,7 @@ function App(){
   const [syncing,setSyncing]=useState(false);
   const [syncStatus,setSyncStatus]=useState({type:"idle",msg:""});
 
+  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.
   // Persistencia DEBOUNCED (2026-07-18): antes cada set() serializaba TODO el estado a
   // localStorage en el hilo principal (varios cientos de KB) → los micro-tirones esporádicos
   // («a veces se ralentiza, cuando chuta va hiper fluida»). Ahora se escribe como mucho 1 vez
@@ -338,18 +344,21 @@ function App(){
     if(p.t){ clearTimeout(p.t); p.t=null; }
     writeNow(p);
   },[]);
+  // El updater solo calcula: ni apunta el volcado ni arma el temporizador (ver `mcPersistCommit`).
   const set=useCallback((updater)=>{ setStateRaw(prev=>{
     const next=typeof updater==="function"?updater(prev):updater;
     if(next===prev) return prev;
-    const stamped=Object.assign({},next,{_savedAt:Date.now()});
-    const p=persistRef.current;
-    p.val=stamped;
-    // Comparación por REFERENCIA: los updaters siempre construyen un array nuevo cuando tocan
-    // gastos, así que basta con esto y cuesta cero.
-    if(prev.expenses!==stamped.expenses) p.exp=true;
-    if(!p.t) p.t=setTimeout(function(){ const q=persistRef.current; q.t=null; writeNow(q); },400);
-    return stamped;
+    return Object.assign({},next,{_savedAt:Date.now()});
   }); },[]);
+  // En el propio commit (layout, no pasivo): así un `pagehide` inmediato ya vuelca este estado.
+  const committedRef=useRef(state);
+  useLayoutEffect(function(){
+    const prev=committedRef.current;
+    committedRef.current=state;
+    mcPersistCommit(persistRef.current, prev, state, function(){
+      return setTimeout(function(){ const q=persistRef.current; q.t=null; writeNow(q); },400);
+    });
+  },[state]);
   useEffect(function(){
     const onVis=function(){ if(document.visibilityState==="hidden") flushPersist(); };
     document.addEventListener("visibilitychange",onVis);
@@ -360,6 +369,7 @@ function App(){
       window.removeEventListener("pagehide",flushPersist);
     };
   },[flushPersist]);
+  // INC-0410 guardado: límite.
   /* ⚠ EL TEMPORIZADOR DEL TOAST ANTERIOR SE CANCELA (13/9, tanda «actualizo y no me dice nada»).
      Cada toast programaba su propio `setToast(null)` a 2,2 s sin tocar el de antes, así que dos
      avisos seguidos se pisaban: el temporizador del PRIMERO borraba el SEGUNDO a mitad. Los largos
@@ -393,6 +403,53 @@ function App(){
   const bankSyncing=useRef(false);          // evita syncs de banco solapados
   // Promesa → true si el pull de arranque (estado + gastos) terminó bien. La espera `runBankSync`.
   const pullOkRef=useRef(null);
+  /* Las reglas mensuales de Metas se aplican al guardarlas; esto asienta el MES EN CURSO al abrir
+     la app. Con nube, solo cuando termina bien ESE pull de estado, nunca con uno anterior: el
+     estado gana entero por `_savedAt`, y una escritura automática sobre un estado local atrasado
+     lo haría «más nuevo» que la nube y pisaría lo aportado desde otro móvil (el mismo fallo del
+     +18,09 del 15/9, ver `runBankSync`). Un pull de hace horas no prueba nada, y si falla no se
+     aporta. Límite a propósito: con la app cerrada no corre, y un mes sin abrirla no se recupera.
+     Sin nada que aplicar, `applyReservaMensual` devuelve el mismo estado y `set` no escribe. */
+  const reservaMensualAlDia=function(pull){
+    return pull.then(function(ok){ if(ok) set(function(s){ return applyReservaMensual(s); }); });
+  };
+  /* La app puede seguir viva al cambiar de mes: al volver a primer plano, SOLO si queda una
+     aportación de este mes por asentar, se baja primero el estado de la nube (el mismo
+     `syncFromCloud` del arranque, que al terminar bien asienta) y un vuelo a la vez. Con todo al
+     día no se pide nada. Sin sesión no hay pull que lo acredite: no se aporta. No toca bancos. */
+  const reservaMensualVuelo=useRef(false);
+  const reservaMensualAlVolver=function(){
+    if(document.visibilityState==="hidden" || reservaMensualVuelo.current) return;
+    if(!reservaMensualPendiente(stateRef.current)) return;
+    // Sin nube configurada no hay otro dispositivo al que pisar.
+    if(!cloud.enabled()){ set(function(s){ return applyReservaMensual(s); }); return; }
+    if(!sessionRef.current) return;
+    reservaMensualVuelo.current=true;
+    const fin=function(){ reservaMensualVuelo.current=false; };
+    syncFromCloud(sessionRef.current);
+    (pullOkRef.current||Promise.resolve(false)).then(fin,fin);
+  };
+  useEffect(function(){
+    if(!cloud.enabled()) reservaMensualAlVolver();
+    document.addEventListener("visibilitychange",reservaMensualAlVolver);
+    // Android puede volver a primer plano sin `visibilitychange`: en la app nativa el aviso fiable
+    // es el de Capacitor. Sin él, el mes nuevo no se asentaba al volver (revisión del coordinador).
+    const A=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
+    let sub=null, disposed=false;
+    if(A&&A.addListener){
+      try{
+        sub=Promise.resolve(A.addListener("appStateChange", function(st){ if(!disposed&&st&&st.isActive) reservaMensualAlVolver(); }));
+        sub.catch(function(){});
+      }catch(e){}
+    }
+    return function(){
+      disposed=true;
+      document.removeEventListener("visibilitychange",reservaMensualAlVolver);
+      // addListener puede resolver después del cleanup: liberar también ese handle tardío.
+      if(sub) sub.then(function(h){ if(h&&h.remove) return h.remove(); }).catch(function(){});
+    };
+  },[]);
+  // INC-0410 mensual: límite del asiento del mes en App.
   const wR=useRef(false),wS=useRef(0),wP=useRef(null),wC=useRef([]);
   const bankJustConnected=useRef(false);    // marca la vuelta de ?bank=ok para sincronizar en cuanto haya sesión
 
@@ -472,7 +529,11 @@ function App(){
     if(!s || !s.user) return;
     const u=s.user.id;
     const freshLogin=!!(opts&&opts.freshLogin);   // acaba de INICIAR SESIÓN (no un reconecta del mismo user)
+    // INC-0410 mensual: el asiento solo vale si ESTE pull leyó un estado válido (o aún no hay ninguno).
+    const mensualPuerta=reservaMensualPuerta();
     const pull=cloud.pullState().then(function(cloudPack){
+      mensualPuerta.lee(cloudPack);
+      // INC-0410 mensual: límite de la lectura válida.
       const cloudState=cloudPack ? cloudPack.data : null;
       if(cloudPack && cloudPack.updated_at) cloudUpdatedAtRef.current=cloudPack.updated_at;
       if(cloudState && validCloudState(cloudState)){
@@ -509,6 +570,8 @@ function App(){
         }); }   // primera vez: sube lo que ya tienes
     }).then(function(){ return syncCloudExpenses(); });
     pullOkRef.current=pull.then(function(){ return true; }, function(){ return false; });
+    reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));
+    // INC-0410 mensual: límite del pull de estado del que depende el asiento.
     pull.catch(function(e){ if(navigator.onLine!==false) showToast("✕ Nube: "+((e&&e.message)||e)); })   // si estás sin conexión, ni avisamos (es normal)
       // Pase lo que pase, el splash se va: lo que se vea a partir de aquí ya es lo definitivo
       // (o lo mejor que hay). Ver el porqué en el script del final de shell.html.

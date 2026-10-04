@@ -91,6 +91,126 @@ test("META87: tres rangos de diálogo no incluyen textos de creación",()=>{
 });
 if(process.argv.includes("--meta-dialog-only")) process.exit(failed?1:0);
 
+// El alta de reglas (INC-0410): si vuelve a leerse mal el importe, se pierde un aviso o el
+// editor deja de contar el estado del reparto, la revisión de la tanda tiene que moverse.
+test("META91 vigila el lector de importes, los avisos, el estado y los céntimos",()=>{
+  const id="inc-0310-01-meta-regla",source=f=>read(f).replace(/\r\n/g,"\n"),before=betaRevision(id,source).web;
+  for(const [file,from,to] of [
+    ["src/modules/08-motor-bank.js",'if(m[2] ? m[2].charAt(0)===mil : (seps.length===1 && mil===dec)) return null;','if(false) return null;'],
+    ["src/modules/08-motor-bank.js",'if(reservaAlreadyApplied(state,income)) return { estado:"repartido", income:income };',''],
+    ["src/modules/08-motor-bank.js",'if(!plan.plan.length) return { estado:"sinPlan", income:income };',''],
+    ["src/modules/09-tab-debts-goals.js",'if(v==null || !(v>0)){ setErr("amount"); return; }','if(v==null) return;'],
+    ["src/modules/09-tab-debts-goals.js",'if(form.kind==="pct" && v>100){ setErr("pct"); return; }',''],
+    ["src/modules/09-tab-debts-goals.js",'return Math.round((n||0)*100)%100===0 ? eur0(n) : eur(n);','return eur0(n);'],
+    ["src/modules/09-tab-debts-goals.js",'if(st.estado==="repartido") return tf("rr_st_applied",{d:d});','if(st.estado==="repartido") return "";'],
+    ["src/modules/09-tab-debts-goals.js",'if(st.estado!=="pendiente") return null;','if(st.estado==="sinReglas") return null;'],
+    ["src/modules/08-motor-bank.js",'if(cents>BigInt(Number.MAX_SAFE_INTEGER)) return null;',''],
+    ["src/modules/08-motor-bank.js",'return Math.round(n*100)===Number(cents)?n:null;','return n;'],
+    ["src/modules/08-motor-bank.js",'if(!rule || !reservaMetaActiva(state,rule.goalId)) return state;',''],
+    ["src/modules/08-motor-bank.js",'return g && g.id===goalId && !g.done;','return g && g.id===goalId;'],
+    ["src/modules/09-tab-debts-goals.js",'if(!reservaMetaActiva(state,form.goalId)){ setErr("goal"); return; }',''],
+    ["src/modules/09-tab-debts-goals.js",'if(!reservaMetaActiva(state,sent.goalId)){ setSent(null); setForm(sent.form); setErr("goal"); setAdding(true); }',''],
+    ["src/modules/09-tab-debts-goals.js",'setErr(""); setSent({id:r.id,goalId:r.goalId,form:form});','setErr(""); setForm(blank); setAdding(false);'],
+    ["src/modules/09-tab-debts-goals.js",'if(sent&&sent.id===id) setSent(null); ',''],
+    ["src/modules/09-tab-debts-goals.js",'if(!goals.length && !rules.length && !adding) return null;','if(!goals.length && !rules.length) return null;'],
+    ["src/modules/09-tab-debts-goals.js",'(goals.length>0 || adding) && (adding','goals.length>0 && (adding'],
+    ["src/modules/09-tab-debts-goals.js",'if(!sent.seen){ setSent(Object.assign({},sent,{seen:true}));','if(!sent.seen){ setSent(null);'],
+    ["src/modules/00-core.js",'const eur  = (n)=> NF.format((n||0)*DISP.k)+" "+DISP.sym;','const eur  = (n)=> NF.format(0)+" "+DISP.sym;'],
+    // Transporte mensual en App (revisión del coordinador, 4/10): aportar con el pull fallido,
+    // saltarse el pull al volver, no repasar al volver o no asentar tras el pull del arranque.
+    ["src/modules/11-app-main.js",'return pull.then(function(ok){ if(ok) set(function(s){ return applyReservaMensual(s); }); });','return pull.then(function(ok){ set(function(s){ return applyReservaMensual(s); }); });'],
+    ["src/modules/11-app-main.js",'if(Math.abs(dy)<6 && y>8) return;','if(Math.abs(dy)<6) return;'],
+    ["src/modules/11-app-main.js",'if(trackRef.current && e.currentTarget!==trackRef.current.children[tab]) return;',''],
+    ["src/modules/11-app-main.js",'    syncFromCloud(sessionRef.current);\n    (pullOkRef.current||Promise.resolve(false)).then(fin,fin);','    set(function(s){ return applyReservaMensual(s); }); fin();'],
+    ["src/modules/11-app-main.js",'    document.addEventListener("visibilitychange",reservaMensualAlVolver);\n',''],
+    ["src/modules/11-app-main.js",'    reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));\n',''],
+    // Nube con estado inválido: el pull «termina bien» tras rescatar lo local, y no debe asentar.
+    // Y la validez es de cada pull: ni saltarse la lectura ni compartirla entre invocaciones.
+    ["src/modules/11-app-main.js",'reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));','reservaMensualAlDia(pullOkRef.current);'],
+    ["src/modules/11-app-main.js",'      mensualPuerta.lee(cloudPack);\n',''],
+    ["src/modules/08-motor-bank.js",'return cloudPack.data===null || validCloudState(cloudPack.data);','return !cloudPack.data || validCloudState(cloudPack.data);'],
+    ["src/modules/08-motor-bank.js",'return cloudPack.data===null || validCloudState(cloudPack.data);','return true;'],
+    ["src/modules/08-motor-bank.js",'vale:function(ok){ return !!ok && leido; }','vale:function(ok){ return !!ok; }'],
+    ["src/modules/08-motor-bank.js",'lee:function(cloudPack){ leido=reservaMensualNubeLeida(cloudPack); },','lee:function(cloudPack){ leido=true; },'],
+    ["src/modules/11-app-main.js",'if(!disposed&&st&&st.isActive) reservaMensualAlVolver();','if(false) reservaMensualAlVolver();'],
+    ["src/modules/11-app-main.js",'if(!reservaMensualPendiente(stateRef.current)) return;',''],
+    ["src/modules/08-motor-bank.js",'function reservaMensualClave(nowMs){ return madridYmdParts(nowMs!=null?nowMs:Date.now()).ym; }','function reservaMensualClave(nowMs){ return "x"; }'],
+    ["src/modules/08-motor-bank.js",'    if(hechos[id]) return;\n',''],
+    ["src/modules/09-tab-debts-goals.js",'goalId:form.goalId,mensual:true};','goalId:form.goalId};'],
+    ["src/modules/01-i18n.js",'rr_title:"Reservar dinero de tus ingresos"','rr_title:"Reservar dinero de tu nómina"'],
+    ["src/modules/01-i18n.js",'rr_detect_t:"💰 Ingrés detectat: {x}"','rr_detect_t:"💰 Nòmina detectada: {x}"'],
+    ["src/modules/01-i18n.js",'h_reserva:"Each rule sets its amount aside','h_reserva:"Each paycheck sets its amount aside'],
+    ["src/modules/01-i18n.js",'rr_err_goal:"Elige una meta que siga activa."','rr_err_goal:"Elige una meta."'],
+    ["src/modules/01-i18n.js",'rr_err_amount:"Escribe un importe','rr_err_amount:"Escribe algo'],
+    ["src/modules/01-i18n.js",'rr_st_applied:"The income from {d} has already been split.','rr_st_applied:"The income from {d} is pending.'],
+    ["src/modules/01-i18n.js",'rr_st_none:"Ara mateix no hi ha cap ingrés detectat','rr_st_none:"Hi ha un ingrés detectat'],
+  ]){
+    assert.ok(source(file).includes(from),"el mutante debe tocar la fuente real: "+from);
+    assert.notEqual(betaRevision(id,f=>f===file?source(f).replace(from,to):source(f)).web,before,from);
+  }
+  // Y un texto de creación ajeno al alcance no la mueve.
+  const ajeno='rr_name_ph:"Nombre (opcional';
+  assert.ok(source("src/modules/01-i18n.js").includes(ajeno));
+  assert.equal(betaRevision(id,f=>f==="src/modules/01-i18n.js"?source(f).replace(ajeno,'rr_name_ph:"Otro (opcional'):source(f)).web,before);
+  // Tampoco el texto que vive pegado a la ayuda de la tarjeta, justo fuera de su rango.
+  const lineas=source("src/modules/01-i18n.js").split("\n"),i=lineas.findIndex(l=>l.includes("INC-0410 es: límite de la ayuda del reparto."));
+  assert.ok(i>0&&/^\s+[a-z_0-9]+:"/.test(lineas[i+1]),"no se encontró la clave siguiente a la ayuda");
+  const vecina=lineas[i+1].slice(0,lineas[i+1].indexOf('"')+1);
+  assert.equal(betaRevision(id,f=>f==="src/modules/01-i18n.js"?source(f).replace(vecina,vecina+"· "):source(f)).web,before,vecina);
+});
+// El guardado del estado (INC-0410): si vuelve a apuntarse dentro del updater, deja de colgar del
+// commit o cambia cuándo se reescribe el histórico, tienen que moverse TODAS las revisiones cuyo
+// código escribe estado (llama a `set`, directa o transitivamente). Solo quedan fuera las dos que
+// son geometría y hoja de ayuda: en su alcance no hay ni una llamada a `set`.
+test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado, y solo esas",()=>{
+  const source=f=>read(f).replace(/\r\n/g,"\n"),registro=JSON.parse(read("scripts/beta-sources.json"));
+  const marca="INC-0410 guardado: de aquí al límite";
+  const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
+  const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
+  assert.equal(dependientes.length,18);
+  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-2709-01-arranque-red","inc-2709-12-cyber-fab","inc-2709-14-preguntar","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
+  /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
+     coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
+     llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que
+     coincidir, en los dos sentidos, con llevar el bloque. Se buscan LLAMADAS: la declaración del
+     método `store.set(k,v){…}` no lo es, y contarla metió en el guardado al panel de revisión y
+     a tres tandas que solo leen (clasificación, arranque, cuotas), reabriéndolas por un cambio
+     ajeno. Cada tanda trajo además `store` y `_mem` con el bloque: van con él. */
+  const delGuardado=x=>(x.from&&x.from.includes(marca))
+    ||(x.file==="src/modules/00-core.js"&&(["mcPersistCommit","mcSaveRaw","mcSkipPersist","mcStateKey","mcSandbox","mcSandboxFlag"].includes(x.function)
+      ||["EXP_SUFFIX","_mcSkipPersist","STATE_KEY_TEST","STATE_KEY_REAL","_mcSandboxPinned","store","_mem"].includes(x.data)));
+  const escribe=id=>registro[id].web.some(x=>!delGuardado(x)&&/(^|[^\w.$])set\((?![\w\s,]*\)\s*\{)/.test(scopeText(x,source)));
+  for(const id of Object.keys(registro)) assert.equal(escribe(id),dependientes.includes(id),
+    id+(dependientes.includes(id)?" lleva el bloque del guardado sin llamar a set()":" llama a set() y debería depender del guardado"));
+  for(const id of dependientes) for(const fn of ["mcPersistCommit","mcSaveRaw"])
+    assert.ok(registro[id].web.some(x=>x.function===fn&&x.file==="src/modules/00-core.js"),id+" sin "+fn);
+  const antes=Object.fromEntries(Object.keys(registro).map(id=>[id,betaRevision(id,source).web]));
+  for(const [file,from,to] of [
+    // Volver a apuntar el volcado dentro del updater: el fallo original.
+    ["src/modules/11-app-main.js",'    return Object.assign({},next,{_savedAt:Date.now()});\n  }); },[]);','    const st=Object.assign({},next,{_savedAt:Date.now()}); persistRef.current.val=st; return st;\n  }); },[]);'],
+    ["src/modules/11-app-main.js",'  useLayoutEffect(function(){\n    const prev=committedRef.current;','  useEffect(function(){\n    const prev=committedRef.current;'],
+    ["src/modules/11-app-main.js",'    committedRef.current=state;\n',''],
+    ["src/modules/11-app-main.js",'q.t=null; writeNow(q); },400);','q.t=null; writeNow(q); },0);'],
+    ["src/modules/11-app-main.js",'if(typeof mcSkipPersist==="function" && mcSkipPersist()) return;',''],
+    ["src/modules/11-app-main.js",'if(document.visibilityState==="hidden") flushPersist();',''],
+    ["src/modules/00-core.js",'  if(prev===state) return false;\n',''],
+    ["src/modules/00-core.js",'  if(prev.expenses!==state.expenses) p.exp=true;','  p.exp=true;'],
+    ["src/modules/00-core.js",'  if(!p.t) p.t=schedule();','  p.t=schedule();'],
+  ]){
+    assert.ok(source(file).includes(from),"el mutante debe tocar la fuente real: "+from);
+    const leer=f=>f===file?source(f).replace(from,to):source(f);
+    for(const id of dependientes) assert.notEqual(betaRevision(id,leer).web,antes[id],id+" no se mueve con: "+from);
+    for(const id of ajenas) assert.equal(betaRevision(id,leer).web,antes[id],id+" se mueve con: "+from);
+  }
+  // El panel sí depende de SU almacenamiento: cambiar `store.set` tiene que mover sus dos tandas.
+  const almacen='  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){ _mem[k]=v; } },';
+  assert.ok(source("src/modules/00-core.js").includes(almacen),"el mutante debe tocar la fuente real: store.set");
+  for(const id of ["beta-panel-veredictos","ops-0410-panel-cola"])
+    assert.notEqual(betaRevision(id,f=>f==="src/modules/00-core.js"?source(f).replace(almacen,'  set(k,v){ _mem[k]=v; },'):source(f)).web,antes[id],id+" no se mueve al cambiar store.set");
+});
+if(process.argv.includes("--meta-alta-only")) process.exit(failed?1:0);
+
+
 test("las tres correcciones UI vigilan también sus reglas y lectores",()=>{
   const cases=[
     ["inc-2709-12-cyber-fab","src/shell.html","position:relative;z-index:1;background:linear-gradient(160deg","position:relative;z-index:0;background:linear-gradient(160deg"],

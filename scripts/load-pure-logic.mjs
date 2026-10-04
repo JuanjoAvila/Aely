@@ -26,6 +26,7 @@ export function createLogicSandbox(extra = {}) {
     Component: class {},
     useState: (init) => [typeof init === "function" ? init() : init, () => {}],
     useEffect: () => {},
+    useLayoutEffect: () => {},
     useRef: (v) => ({ current: v }),
     useMemo: (fn) => fn(),
     useCallback: (fn) => fn,

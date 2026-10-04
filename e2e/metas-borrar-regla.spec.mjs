@@ -2,9 +2,9 @@ import { test, expect, devices } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
 const textos={
-  es:{metas:"Metas",title:"Reservar dinero de tu nómina",add:"+ Añadir regla",save:"Guardar regla",apply:"Aplicar reparto",del:"Borrar regla",cancel:"Cancelar",question:"¿Borrar esta regla?",explanation:"Se libera del presupuesto lo que siga reservado por esta regla y pueda comprobarse. Las aportaciones ya guardadas en la meta y su historial se conservan; no se mueve dinero."},
-  en:{metas:"Goals",title:"Reserve money from your paycheck",add:"+ Add rule",save:"Save rule",apply:"Apply split",del:"Delete rule",cancel:"Cancel",question:"Delete this rule?",explanation:"Any remaining reservation that can be verified is released from the budget. Contributions already saved towards the goal and their history are kept; no money moves."},
-  ca:{metas:"Metes",title:"Reservar diners de la teva nòmina",add:"+ Afegir regla",save:"Desar regla",apply:"Aplicar repartiment",del:"Esborrar regla",cancel:"Cancel·la",question:"Vols esborrar aquesta regla?",explanation:"S’allibera del pressupost el que segueixi reservat per aquesta regla i es pugui comprovar. Es conserven les aportacions ja desades a la meta i el seu historial; no es mouen diners."}
+  es:{metas:"Metas",title:"Reservar dinero de tus ingresos",add:"+ Añadir regla",save:"Guardar regla",apply:"Aplicar reparto",del:"Borrar regla",cancel:"Cancelar",question:"¿Borrar esta regla?",explanation:"Se libera del presupuesto lo que siga reservado por esta regla y pueda comprobarse. Las aportaciones ya guardadas en la meta y su historial se conservan; no se mueve dinero."},
+  en:{metas:"Goals",title:"Reserve money from your income",add:"+ Add rule",save:"Save rule",apply:"Apply split",del:"Delete rule",cancel:"Cancel",question:"Delete this rule?",explanation:"Any remaining reservation that can be verified is released from the budget. Contributions already saved towards the goal and their history are kept; no money moves."},
+  ca:{metas:"Metes",title:"Reservar diners dels teus ingressos",add:"+ Afegir regla",save:"Desar regla",apply:"Aplicar repartiment",del:"Esborrar regla",cancel:"Cancel·la",question:"Vols esborrar aquesta regla?",explanation:"S’allibera del pressupost el que segueixi reservat per aquesta regla i es pugui comprovar. Es conserven les aportacions ja desades a la meta i el seu historial; no es mouen diners."}
 };
 const goals=[{id:"g1",name:"Reserva A",emoji:"🎯",target:5000,saved:125},
   {id:"g2",name:"Reserva B",emoji:"🎯",target:5000,saved:50}];
@@ -21,11 +21,16 @@ async function boot(page){
   await dismissNews(page);
 }
 async function nav(page,id){
-  // El editor queda al fondo de Metas y el scroll oculta la barra; volvemos arriba antes de tocarla.
-  await page.locator(".page").evaluateAll(pages=>pages.forEach(el=>{el.scrollTop=0;}));
+  // Las páginas ocultas también tienen cifras ya pintadas: no encadenar navegación hasta
+  // que termine la transición, ni provocar scroll en otra pestaña mientras se asienta.
+  await page.locator(".page.page-scroll-host").evaluate(el=>{el.scrollTop=0;});
+  await expect(page.locator(".botnav")).not.toHaveClass(/\bbotnav-hidden\b/);
   const button=page.locator('.botnav-tab[data-tour="'+id+'"]');
   await expect(button).toBeInViewport();
   await button.click();
+  const index=await page.locator(".botnav-tab[data-tour]").evaluateAll((buttons,id)=>buttons.findIndex(b=>b.dataset.tour===id),id);
+  await expect(button).toHaveClass(/\bactive\b/);
+  await expect(page.locator(".track > .page").nth(index)).toHaveClass(/\bpage-scroll-host\b/);
 }
 async function metas(page,t){
   await nav(page,"plan");
@@ -34,14 +39,6 @@ async function metas(page,t){
   const header=page.getByText(t.title,{exact:true});
   if(!await page.getByRole("button",{name:t.add,exact:true}).isVisible()) await header.click();
   return card;
-}
-async function add(page,t,name,value,goal){
-  await page.getByRole("button",{name:t.add,exact:true}).click();
-  const form=page.locator('.add-form').filter({has:page.getByRole("button",{name:t.save,exact:true})});
-  await form.locator("input").first().fill(name);
-  await form.locator("input").last().fill(String(value));
-  await form.locator("select").last().selectOption(goal);
-  await form.getByRole("button",{name:t.save,exact:true}).click();
 }
 async function presupuesto(page,value,mode){
   await nav(page,"gastos");
@@ -70,14 +67,14 @@ for(const lang of Object.keys(textos)) for(const mode of ["split","net"]){
     const t=textos[lang];
     await seedLoggedInDashboard(page,{__seedOnce:true,goals,expenses,budget:1000,
       accounts:[{id:"bank",ent:"sabadell",name:"Diaria",value:3000,role:"diario",spendFrom:true}],
-      settings:{autoPrices:false,theme:"green",lang,gTotalMode:mode,expenseBanks:["sabadell"],reservaRules:[]},
+      // Reglas POR INGRESO sembradas: las que crea la pantalla desde la 4.26.94 son mensuales y
+      // aportan al guardarse (su cobertura está en metas-mensual). Este caso guarda el contrato
+      // anterior, que sigue vivo para las reglas que ya existían.
+      settings:{autoPrices:false,theme:"green",lang,gTotalMode:mode,expenseBanks:["sabadell"],
+        reservaRules:[{id:"rA",name:"Regla A",kind:"fixed",value:200,goalId:"g1"},{id:"rB",name:"Regla B",kind:"fixed",value:100,goalId:"g2"}]},
       aportaciones:[{id:"manual",amount:25,name:"Manual",ent:"sabadell"}]});
     await boot(page);
-    await presupuesto(page,1000,mode);
-    await metas(page,t);
-    await add(page,t,"Regla A",200,"g1");
-    await add(page,t,"Regla B",100,"g2");
-    // Crear reglas no aplica nada: solo el botón de confirmación reparte una nómina ya existente.
+    // Tener reglas por ingreso no aplica nada: solo el botón de confirmación reparte una nómina ya existente.
     await presupuesto(page,1000,mode);
     await metas(page,t);
     await page.getByRole("button",{name:t.apply,exact:true}).click();
@@ -144,9 +141,9 @@ for(const lang of Object.keys(textos)) for(const mode of ["split","net"]){
     const t=textos[lang];
     await seedLoggedInDashboard(page,{__seedOnce:true,goals,expenses,budget:1000,
       accounts:[{id:"bank",ent:"sabadell",name:"Diaria",value:3000,role:"diario",spendFrom:true}],
-      settings:{lang,gTotalMode:mode,expenseBanks:["sabadell"],reservaRules:[]}});
+      settings:{lang,gTotalMode:mode,expenseBanks:["sabadell"],reservaRules:[{id:"rS",name:"Sin reparto",kind:"fixed",value:100,goalId:"g1"}]}});
     await boot(page);
-    await metas(page,t); await add(page,t,"Sin reparto",100,"g1");
+    await metas(page,t);
     await erase(page,t,"Sin reparto");
     await presupuesto(page,1000,mode);
     expect((await disk(page)).reservaLog||[]).toEqual([]);
