@@ -1,6 +1,6 @@
 # Backlog operativo — Aely
 
-Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. PR125 fusionado en main8bb0398f, árbol idéntico al candidato4403; Pages37229928442 sigue pendiente de terminar y cotejar. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
+Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
 
 ## INC-0410 · P1 · alta de reglas de Metas · 4/10/2026
 
