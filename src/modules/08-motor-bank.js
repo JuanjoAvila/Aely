@@ -843,15 +843,21 @@ function flattenBankTx(links){
     // En multicuenta el top-level solo contiene la PRIMERA cuenta compatible. Los movimientos
     // nuevos de una segunda cuenta estaban en `accounts[].transactions` y el cliente ni los
     // miraba: el banco figuraba sincronizado pero Gastos decía que no había nada nuevo.
-    let txs=[];
-    const accountTx=(lk.accounts||[]).filter(function(a){ return a&&Array.isArray(a.transactions); });
-    if(accountTx.length) accountTx.forEach(function(a){ txs=txs.concat(a.transactions); });
-    else txs=(lk.transactions||[]).slice();   // shape antiguo: una sola cuenta en top-level
-    txs.forEach(function(t){
+    const pushTx=function(t, acctUid){
+      if(!t) return;
       // `note` = concepto del extracto (remittance_information): lo que hace que el histórico se
       // entienda sin abrir la app del banco (2026-07-24).
-      out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}) });
+      // `acctUid` es el uid opaco que ya manda el banco. No se fabrica desde el IBAN: hace falta
+      // para no fundir un pendiente y un contabilizado de CUENTAS distintas. La idea de
+      // conservarlo está en el PR 128 (`788fa1f`); aquí no entra en la clave de la nube.
+      out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(acctUid?{acctUid:String(acctUid)}:{}), ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}) });
+    };
+    const accountTx=(lk.accounts||[]).filter(function(a){ return a&&Array.isArray(a.transactions); });
+    if(accountTx.length) accountTx.forEach(function(a){
+      const uid=a&&a.uid?String(a.uid):"";
+      (a.transactions||[]).forEach(function(t){ pushTx(t, uid); });
     });
+    else (lk.transactions||[]).forEach(function(t){ pushTx(t, ""); });   // shape antiguo: una sola cuenta en top-level
   });
   out.sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
   // El servidor ya acota por cuenta. Un tope GLOBAL de 150 dejaba fuera un banco entero
@@ -913,6 +919,81 @@ function importObExpenses(s, txs){
   /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
      sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
   const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
+  /* Dos entry_reference del mismo banco no son el mismo cargo aunque coincidan día, importe y
+     comercio (INC-2709-06, medido: import 2→1 y el histórico se quedaba el primero). La tabla
+     deduplica por fecha COMPLETA y no hay columna ext_id ni migración en este incidente: el
+     primero conserva el mediodía local (`histDate` sin sal) y el otro usa la misma sal estable
+     que el histórico (`ob-ext|banco|id`), que no cambia el día civil. Quién ocupa el mediodía
+     es el id menor aún no visto, no el que llegue antes: si no, el sync diario y el histórico
+     fabricarían dos sellos distintos y la nube guardaría el par dos veces. */
+  const obMerchant=function(tx){ return tx.merchant||(Number(tx.amount)<0?"Ingreso":"Compra"); };
+  const obScope=function(tx){ return (tx.ent||"")+"|"+String(tx.date||"").slice(0,10)+"|"+(Number(tx.amount)||0)+"|"+obMerchant(tx); };
+  const obTwin=function(tx){ return (tx.ent||"")+"|"+(tx.acctUid||"")+"|"+String(tx.date||"").slice(0,10)+"|"+(Number(tx.amount)||0)+"|"+obMerchant(tx); };
+  const identifiedTwin={};
+  txs.forEach(function(tx){
+    if(!tx||!tx.id||!tx.date||parseDate(tx.date)<som) return;
+    identifiedTwin[obTwin(tx)]=1;
+  });
+  const liveByScope={};
+  (s.expenses||[]).forEach(function(ex){
+    const sk=scopedKOf(ex);
+    (liveByScope[sk]=liveByScope[sk]||[]).push(ex);
+  });
+  const winner={};
+  txs.forEach(function(tx){
+    if(!tx||!tx.id||!tx.date||parseDate(tx.date)<som) return;
+    const bank=tx.ent||"", id=String(tx.id);
+    if(seen[bank+"|"+id]||seenLegacy[tx.id]||delSet["obid|"+bank+"|"+id]) return;
+    const sk=obScope(tx);
+    if(!winner[sk]||id<winner[sk]) winner[sk]=id;
+  });
+  const takenNoon={}, claimedNoon={};
+  const ternaBlock=function(e){
+    const sk=scopedKOf(e);
+    const live=(liveByScope[sk]||[]).filter(function(x){ return !expenseIsTombstoned(x, delSet); });
+    const dayTomb=!!(delSet[sk]||delSet[kOf(e)]);
+    if(dayTomb&&!live.length) return "all";
+    if(dayTomb) return "noon";
+    return "";
+  };
+  const reserveFecha=function(tx, e){
+    if(!tx.id) return "legacy";
+    const bank=tx.ent||"", id=String(tx.id);
+    if(seen[bank+"|"+id]||seenLegacy[tx.id]||delSet["obid|"+bank+"|"+id]) return "skip";
+    const day=String(tx.date).slice(0,10), sk=scopedKOf(e);
+    const salt=histDate(day,"ob-ext|"+bank+"|"+id);
+    const live=(liveByScope[sk]||[]).filter(function(x){ return !expenseIsTombstoned(x, delSet); });
+    if(live.some(function(x){ return String(x.extId||"")===id||x.date===salt; })) return "skip";
+    const block=ternaBlock(e);
+    if(block==="all") return "skip";
+    const canon=histDate(day);
+    const noonRow=live.filter(function(x){ return x.date===canon; })[0];
+    if(!noonRow&&!takenNoon[sk]&&block!=="noon"&&id===winner[sk]){ takenNoon[sk]=1; return canon; }
+    /* Fila vieja en el mediodía sin referencia (otro móvil, source sin `#x.`): es UNO de los
+       cargos. Se le asigna el id menor y no se inserta otra vez. El resto sí entra salado. */
+    if(noonRow&&(noonRow.extId==null||noonRow.extId==="")&&id===winner[sk]&&!claimedNoon[sk]){
+      claimedNoon[sk]=1; return "skip";
+    }
+    return salt;
+  };
+  const remember=function(e){
+    const sk=scopedKOf(e);
+    keys[sk]=1;
+    (liveByScope[sk]=liveByScope[sk]||[]).push(e);
+    if(e.extId) seen[(e.ent||"")+"|"+e.extId]=1;
+  };
+  const commitOb=function(tx, e){
+    const slot=reserveFecha(tx, e);
+    if(slot==="skip") return;
+    if(slot==="legacy"){
+      if(keys[scopedKOf(e)]||delSet[scopedKOf(e)]||delSet[kOf(e)]) return;
+    } else e.date=slot;
+    if(tx.acctUid) e.acctUid=String(tx.acctUid);
+    const gem=gemeloOtraVia(tx);
+    if(gem&&gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
+    remember(e);
+    add.push(e);
+  };
   /* POSIBLE REPETIDO, NO DESCARTE (2026-09-07). TR por OB no manda id/comercio/hora: un
      «Movimiento» sin nombre puede ser el mismo cargo que ya entró por la noti del móvil, o una
      compra distinta del mismo importe. Descartar callaba pérdidas (y, sin filtrar banco, un
@@ -957,6 +1038,10 @@ function importObExpenses(s, txs){
   };
   const add=[];
   txs.forEach(function(tx){
+    if(!tx) return;
+    /* Pendiente sin referencia y contabilizado con referencia, misma cuenta: un solo cargo.
+       Misma regla que `histFlattenHistoryLinks`. Dos BOOK con id distinto no entran aquí. */
+    if(!tx.id && identifiedTwin[obTwin(tx)]) return;
     const esIngreso = tx.amount<0;
     if(esIngreso){
       // Un abono pendiente o futuro no acredita dinero disponible (feedback 30/9).
@@ -978,12 +1063,7 @@ function importObExpenses(s, txs){
       if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
       if(tx.id) e.extId=tx.id;
       const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-      if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
-      const gemIn=gemeloOtraVia(tx);
-      if(gemIn && gemIn.id){ e.possibleDup=true; e.possibleDupOf=gemIn.id; }
-      keys[scopedKOf(e)]=1;
-      if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
-      add.push(e);
+      commitOb(tx, e);
       return;
     }
     // GASTO: entra de cualquier banco. Fijos y puntuales modelados no se duplican; las deudas se marcan.
@@ -1000,12 +1080,7 @@ function importObExpenses(s, txs){
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
     if(tx.id) e.extId=tx.id;
     const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-    if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
-    const gem=gemeloOtraVia(tx);
-    if(gem && gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
-    keys[scopedKOf(e)]=1;
-    if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
-    add.push(e);
+    commitOb(tx, e);
   });
   return add.length? add : null;
 }
@@ -2025,30 +2100,94 @@ function histFlattenHistoryLinks(res, expenses, allow){
            Es la MISMA familia que los otros dos de hoy: una clave de identidad sin banco. */
         const cloudK=entKey+"|"+kOf(dt,isIn?-abs:abs,merchant);
         let g=groups[cloudK]; if(!g){ g=groups[cloudK]={rows:[],byAcct:{}}; groupOrder.push(cloudK); }
-        const prevI=g.byAcct[acct];
-        if(prevI!=null){
-          // El pendiente y el contabilizado de UNA cuenta siguen siendo un solo cargo. Se elige
-          // el final con id; solo una cuenta distinta gana otra ranura en la nube.
+        const row={tx:tx,dt:dt,abs:abs,isIn:isIn,merchant:merchant,entKey:entKey,entLabel:entLabel};
+        const ext=tx.ext_id!=null && String(tx.ext_id)!=="" ? String(tx.ext_id) : "";
+        /* Ranuras por referencia, no por día|importe|comercio (PR 128, `788fa1f`).
+           La misma referencia es un reintento de página. Un pendiente SIN id y el contabilizado
+           CON id de la misma cuenta siguen siendo un cargo. Dos id distintos son dos cargos:
+           antes el segundo caía en skippedUniq y no llegaba a Gastos. */
+        const idSlot=ext ? (acct+"|id:"+ext) : (acct+"|weak");
+        const weakSlot=acct+"|weak";
+        const prevIdI=ext ? g.byAcct[idSlot] : null;
+        if(prevIdI!=null){
           skippedUniq++;
-          if(quality(tx)>quality(g.rows[prevI].tx)) g.rows[prevI]={tx:tx,dt:dt,abs:abs,isIn:isIn,merchant:merchant,entKey:entKey,entLabel:entLabel};
+          if(quality(tx)>quality(g.rows[prevIdI].tx)) g.rows[prevIdI]=row;
           return;
         }
-        g.byAcct[acct]=g.rows.length;
-        g.rows.push({tx:tx,dt:dt,abs:abs,isIn:isIn,merchant:merchant,entKey:entKey,entLabel:entLabel});
+        if(ext){
+          const prevWeakI=g.byAcct[weakSlot];
+          if(prevWeakI!=null){
+            skippedUniq++;
+            if(quality(tx)>quality(g.rows[prevWeakI].tx)){
+              g.rows[prevWeakI]=row;
+              g.byAcct[idSlot]=prevWeakI;
+              delete g.byAcct[weakSlot];
+            }
+            return;
+          }
+          g.byAcct[idSlot]=g.rows.length;
+          g.rows.push(row);
+          return;
+        }
+        const prevWeakI=g.byAcct[weakSlot];
+        if(prevWeakI!=null){
+          skippedUniq++;
+          if(quality(tx)>quality(g.rows[prevWeakI].tx)) g.rows[prevWeakI]=row;
+          return;
+        }
+        const prevAny=Object.keys(g.byAcct).find(function(k){ return k.indexOf(acct+"|")===0; });
+        if(prevAny!=null){
+          const prevI=g.byAcct[prevAny];
+          skippedUniq++;
+          if(quality(tx)>quality(g.rows[prevI].tx)) g.rows[prevI]=row;
+          return;
+        }
+        g.byAcct[weakSlot]=g.rows.length;
+        g.rows.push(row);
       });
     });
   });
+  /* Mediodía ya ocupado por una fila local de esa terna. Si no se mira, el histórico le
+     asignaría el mismo sello a otro entry_reference y la nube se quedaría uno de los dos. */
+  const noonBusy={};
+  (expenses||[]).forEach(function(e){
+    if(!e||!e.date) return;
+    const day=String(e.date).slice(0,10);
+    if(e.date!==histDate(day)) return;
+    const bank=expenseBankOf(e)||e.ent||"";
+    const mc=e.obName!=null?e.obName:(e.merchant||"");
+    noonBusy[bank+"|"+day+"|"+(Number(e.amount)||0)+"|"+mc]={extId:e.extId!=null&&e.extId!==""?String(e.extId):""};
+  });
   groupOrder.forEach(function(cloudK){
-    groups[cloudK].rows.forEach(function(row,slot){
+    const rows=groups[cloudK].rows;
+    let minExt=null;
+    rows.forEach(function(row){
+      const ext=row.tx.ext_id!=null && String(row.tx.ext_id)!=="" ? String(row.tx.ext_id) : "";
+      if(!ext||seen[row.entKey+"|"+ext]||seenLegacy[ext]) return;
+      if(minExt==null||ext<minExt) minExt=ext;
+    });
+    const busy=noonBusy[cloudK];
+    let gaveNoon=!!busy, consumed=false;
+    rows.forEach(function(row,slot){
       const tx=row.tx;
-      if(tx.ext_id && (seen[row.entKey+"|"+tx.ext_id]||seenLegacy[tx.ext_id])){ skippedExt++; return; }
+      const ext=tx.ext_id!=null && String(tx.ext_id)!=="" ? String(tx.ext_id) : "";
+      if(ext && (seen[row.entKey+"|"+ext]||seenLegacy[ext])){ skippedExt++; return; }
+      /* La fila del mediodía no trae referencia (source viejo, sin `#x.`). El id menor es
+         ese cargo: no se vuelve a proponer. El otro id sí, con la sal `ob-ext`. */
+      if(ext && busy && !busy.extId && !consumed && ext===minExt){ consumed=true; return; }
+      let stamp;
+      if(ext){
+        if(!gaveNoon && ext===minExt){ stamp=histDate(row.dt); gaveNoon=true; }
+        else stamp=histDate(row.dt,"ob-ext|"+row.entKey+"|"+ext);
+      } else if(!slot && !gaveNoon){ stamp=histDate(row.dt); gaveNoon=true; }
+      else stamp=histDate(row.dt,"ob-slot|"+cloudK+"|"+slot);
       out.push({
         id:tx.ext_id||null, date:row.dt, amount:row.abs,
         merchant:row.merchant,
         ...(tx.mcc?{mcc:tx.mcc}:{}),
         ...(tx.concept?{concept:tx.concept}:{}),
         note:tx.note||"", card:!!tx.card, ent:row.entKey, entLabel:row.entLabel,
-        stamp:slot ? histDate(row.dt,"ob-slot|"+cloudK+"|"+slot) : histDate(row.dt),
+        stamp:stamp,
         kind:row.isIn?"in":"out"
       });
     });
