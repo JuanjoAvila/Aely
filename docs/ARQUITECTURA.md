@@ -1,5 +1,10 @@
 # Arquitectura — Aely
 
+## Cola de revisión beta (4.26.92)
+
+El recibo web acredita código y añade el guion estrenado en `pruebas`. La cola elimina una función antigua cuando ese guion está en producción y existe su recibo web; las diferencias en dependencias siguen en la auditoría, sin resucitar automáticamente la petición antigua. Una corrección nueva tiene nota y tanda en una versión posterior a producción. APK y Edge requieren sus recibos propios. Para recibos anteriores, solo se usa el histórico servido cuando su cabecera coincide con producción; sin evidencia se mantiene pendiente. Reabrir y volver a primer plano refrescan esta consulta de artefactos públicos, sin sincronizar bancos.
+
+
 ## Widget80 sobre guardias de nómina y retirada
 
 V2 sigue dashboardBudgetStats de Inicio, declara ventana/ancla/magnitud/reservas/bancos/idioma y solo confirma eventos recibidos del último pull completo. Java conserva desconocidos hasta ACK/lápida; no inventa delta con ingestlegacy ni degrada contrato por timeout. El injerto mantiene readStartedAt/merge de79 y su conciliación de recibos, así como importación de ingresos BOOK no futuros de78. Source821 se mantiene equivalente; los cambios de esas primitivas se revisan con scopes transitorios de funciones/datos de79. APK52 exclusiva beta, no despliegue Edge/SQL. [Acta](briefs/inc-2909-01-widget.md).
@@ -505,3 +510,24 @@ Al aceptar un catálogo verificado se purgan únicamente otras claves `_rnBetaRo
 Sin versión de producción, betaChecklist conserva todas las tandas modernas hasta la versión actual y añade una sola vez la nota actual con puntos implícitos. Una nota con tandas:[] no aporta puntos; la cabeza moderna ya incluida no se duplica. No altera las huellas ni acredita entrega por número de versión.
 
 INC-0210-01: el estado visual de una cuota y sus eventos futuros consumen debtPaymentState (vínculo explícito del gasto, cargo válido y único, mes de vencimiento cercano). El saldo actual y el principal siguen usando sus anclas/fórmulas anteriores; reconocer un cargo ya incluido por el banco no vuelve a descontarlo. No hay nuevo emparejamiento por nombre ni escritura en el histórico.
+
+## Liberación de reservas de Metas (INC-0310-01)
+
+Borrar una regla confirmada elimina su configuración y añade asientos de reserva inversos con la misma fecha/identidad, `releaseOf` y fecha de liberación, solo para asignaciones comprobables con identidad única y sin liberación previa. Una configuración reaparecida no permite compensar dos veces. Liberaciones parciales o registros ambiguos conservan el pendiente para revisión separada. No borra asientos originales, ahorro aportado ni movimientos bancarios. El total del registro libera únicamente el descuento atribuido a esa regla; cliente y servidor actuales lo leen igual. La identidad de nómina permanece aplicada. Configuración y log viajan juntos por `slimForCloud` y el sync last-write-wins existente; no se promete reconciliación de escrituras simultáneas ni reparación de reglas huérfanas antiguas. [Contrato y pruebas](briefs/inc-0310-01-meta-regla.md).
+
+
+Movilidad88 conserva el histórico y todos los contratos87; catálogo diario añade multas/zona_azul/peajes solo para altas inequívocas. Los lectores financieros siguen los mismos IDs y gastos diarios; no añade sync automático.
+
+### Resultados de brókers (4.26.89, candidata)
+
+El resumen manual conserva por separado éxito, caducidad y fallo temporal de Trade Republic y MyInvestor. Un éxito parcial se presenta aunque el otro falle; una consulta MyInvestor fallida no se interpreta como ausencia de enlace. TR continúa a demanda y MyInvestor conserva el throttle automático. No cambia la aplicación de posiciones ni se despliega servidor.
+
+## Guardado del estado: solo lo comprometido (4.26.94)
+
+El estado se escribe en disco desde un `useLayoutEffect` de `App` que corre tras cada commit y llama a `mcPersistCommit` (00-core): apunta el estado recién pintado como volcado pendiente, marca el histórico de gastos solo si cambió su referencia y arma, si no lo había, el temporizador de 400 ms. `set()` solo calcula el estado siguiente y sella `_savedAt`; no apunta nada ni arma temporizadores.
+
+Antes el volcado se apuntaba dentro del updater de `set()`. React puede ejecutar un updater sobre un estado que luego abandona —dos escrituras encoladas en el mismo instante, una urgente y otra no— y después reutilizar un resultado ya calculado sin volver a llamarlo; el volcado se quedaba entonces con el estado abandonado. Se vio en el alta de reglas de Metas: en pantalla la regla no existía y en disco sí. Un estado que la app nunca llegó a tener no se guarda.
+
+Como es código común, el bloque de guardado forma parte del alcance de revisión de toda tanda cuyo código llama a `set` de App (18 de 25, decidido contra el código por `beta-sources`): cambiarlo vuelve a pedir su prueba. Una aprobación heredada por equivalencia de código deja de aplicarse cuando el código cambia; su registro histórico no se toca.
+
+Se conserva lo demás: una escritura como mucho cada 400 ms, volcado inmediato en `pagehide` y al pasar a oculto, guardado partido (`micartera_v3` y `micartera_v3_exp`), ninguna escritura al montar ni cuando un updater devuelve el mismo estado, y las salvaguardas del modo pruebas (`mcSkipPersist`, `mcRecargarSinVolcar`). Límite: una escritura pedida y aún no pintada cuando llega `pagehide` no se vuelca; antes tampoco estaba garantizado, salvo cuando React la calculaba por adelantado.

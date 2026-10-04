@@ -4,6 +4,164 @@ import { betaRevision } from "../scripts/beta-revisions.mjs";
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
+test("cola beta: una entrega mal formada permite reintentar sin bloquear la consulta",async({page})=>{
+  await abrirRevisionBeta(page);
+  await page.evaluate(()=>{
+    window._mcProdVersion=window.__e2eRealProdVersion;
+    window.__goodProof=betaPruebasEntrega;
+    betaPruebasEntrega=function(){throw new Error("recibo sintético inválido");};
+  });
+  const failed=await page.evaluate(async()=>{await window._mcProdVersion({refresh:true});return _mcProdVerPending;});
+  expect(failed).toBe(false);
+  await page.evaluate(()=>{betaPruebasEntrega=window.__goodProof;});
+  await page.unroute("https://juanjoavila.github.io/Aely/**");
+  await page.route("https://juanjoavila.github.io/Aely/**",route=>{
+    const asset=new URL(route.request().url()).pathname.split("/").pop();
+    return route.fulfill({json:asset==="version.json"?{version:"9.9.2"}:asset==="apk.json"?{versionCode:48}:{sourceSha:"a".repeat(40),web:{},pruebas:{}}});
+  });
+  expect(await page.evaluate(()=>window._mcProdVersion({refresh:true}))).toBe("9.9.2");
+  expect(await page.evaluate(()=>_mcProdVerPending)).toBe(false);
+});
+
+test("cola beta: Ajustes estable consulta una vez y beta refresca al volver",async({page})=>{
+  // El canal se fija antes del montaje de App: cambiarlo después deja sus listeners beta vivos.
+  await page.route("https://juanjoavila.github.io/Aely/**",route=>route.abort());
+  await seedLoggedInDashboard(page);
+  await page.addInitScript(()=>localStorage.setItem("_mcChannel","stable"));
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible();
+  await dismissNews(page);
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await page.evaluate(async()=>{if(_mcProdVerCache)await _mcProdVerCache;});
+  await page.evaluate(()=>{
+    window.__prodCalls=[];window.__testChannel="stable";
+    mcChannel=function(){return window.__testChannel;};
+    window._mcProdVersion=function(opts){window.__prodCalls.push(opts);return Promise.resolve("9.9.2");};
+    window.__mountProdHook=function(){const host=document.createElement("div");document.body.appendChild(host);window.__prodRoot=ReactDOM.createRoot(host);window.__prodRoot.render(React.createElement(function(){const v=useProdVersion();return React.createElement("span",{"data-prod-hook":"yes"},v);}));};
+    window.__mountProdHook();
+  });
+  await expect(page.locator('[data-prod-hook="yes"]')).toHaveText("9.9.2");
+  // App y el montaje aislado comparten transporte: importa que volver no refresque ninguno.
+  const stableCalls=await page.evaluate(()=>window.__prodCalls.length);
+  expect(await page.evaluate(()=>window.__prodCalls.every(c=>c.refresh===false))).toBe(true);
+  await page.evaluate(()=>document.dispatchEvent(new Event("visibilitychange")));
+  expect(await page.evaluate(()=>window.__prodCalls.length)).toBe(stableCalls);
+  await page.evaluate(()=>{window.__prodRoot.unmount();window.__testChannel="beta";window.__mountProdHook();});
+  await expect(page.locator('[data-prod-hook="yes"]')).toHaveText("9.9.2");
+  await expect.poll(()=>page.evaluate(()=>window.__prodCalls.length)).toBe(stableCalls+1);
+  await page.evaluate(()=>document.dispatchEvent(new Event("visibilitychange")));
+  await expect.poll(()=>page.evaluate(()=>window.__prodCalls.length)).toBe(stableCalls+2);
+  expect(await page.evaluate(()=>window.__prodCalls.slice(-2))).toEqual([{refresh:true},{refresh:true}]);
+});
+
+test("cola beta: transporte real refresca producción, rescata recibo anterior y conserva entrega offline",async({page})=>{
+  await abrirRevisionBeta(page);
+  const data=await page.evaluate(()=>{
+    window._mcProdVersion=window.__e2eRealProdVersion;window._mcProdDeliveryChecked=false;
+    const g={id:"entregada",t:{es:"Estrenada"},items:{es:["1. Función estrenada"]},codigo:"beta",web:"beta-web"};
+    CONFIG.APP_VERSION="9.9.3.1";RELEASE_NOTES=[{v:"9.9.3",t:{es:"Beta"},tandas:[{id:"nueva",t:{es:"Nueva"},items:{es:["1. Novedad"]},codigo:"nueva",web:"nueva-web"}]},{v:"9.9.1",t:{es:"Anterior"},tandas:[g]}];
+    return {notes:[{v:"9.9.2",t:{es:"Producción"},tandas:[g]}],receipt:{sourceSha:"a".repeat(40),web:{entregada:"prod-web"}}};
+  });
+  let offline=true,version="9.9.2",delivered=false,noteReads=0;
+  await page.unroute("https://juanjoavila.github.io/Aely/**");
+  await page.route("https://juanjoavila.github.io/Aely/**",async route=>{
+    if(offline)return route.fulfill({status:503,body:"offline"});
+    const asset=new URL(route.request().url()).pathname.split("/").pop();
+    let body={};
+    if(asset==="version.json")body={version};
+    if(asset==="apk.json")body={versionCode:48};
+    if(asset==="beta-delivery.json")body=delivered?{sourceSha:"b".repeat(40),web:{...data.receipt.web,nueva:"nueva-web"},pruebas:{entregada:{v:"9.9.1",contenido:JSON.stringify(["entregada","Estrenada",["1. Función estrenada"],1])},nueva:{v:"9.9.3",contenido:JSON.stringify(["nueva","Nueva",["1. Novedad"],1])}}}:data.receipt;
+    if(asset==="release-notes.json"){body=data.notes;noteReads++;}
+    return route.fulfill({json:body});
+  });
+  await page.evaluate(()=>{const host=document.createElement("div");host.id="e2e-transport";document.body.appendChild(host);ReactDOM.createRoot(host).render(React.createElement(BetaReviewPanel,{onClose:function(){},showToast:function(){}}));});
+  const panel=page.locator("#e2e-transport .beta-review");
+  await page.waitForFunction(()=>!_mcProdVerPending);
+  await expect(panel.locator(".beta-tanda")).toHaveCount(0);
+  await expect(panel).toContainText("Comprobaciones sin confirmar");
+  await expect(panel).not.toContainText("No queda nada por probar");
+  offline=false;await panel.getByRole("button",{name:"Reintentar",exact:true}).click();
+  await expect(panel.locator(".beta-tanda")).toHaveCount(1);await expect(panel).toContainText("Novedad");await expect(panel).not.toContainText("Estrenada");
+  expect(noteReads).toBeGreaterThan(0);
+  const firstReads=noteReads;
+  await page.evaluate(()=>{window.__receiptWrites=0;const original=localStorage.setItem.bind(localStorage);localStorage.setItem=function(k,v){if(k==="_betaProdDelivery")window.__receiptWrites++;return original(k,v);};});
+  expect(await page.evaluate(()=>window._mcProdVersion({refresh:true}))).toBe("9.9.2");
+  expect(await page.evaluate(()=>window.__receiptWrites)).toBe(0,"el recibo idéntico no se reescribe");
+  expect(noteReads).toBe(firstReads,"un recibo del mismo SHA reutiliza su guion sin descargar de nuevo todo el histórico");
+  offline=true;await page.evaluate(()=>document.dispatchEvent(new Event("visibilitychange")));
+  await expect(panel.locator(".beta-tanda")).toHaveCount(1);await expect(panel).not.toContainText("Estrenada");
+  delivered=true;version="9.9.3";offline=false;await page.evaluate(()=>document.dispatchEvent(new Event("visibilitychange")));
+  await expect(panel.locator(".beta-tanda")).toHaveCount(0);
+  offline=true;await page.reload();await page.waitForFunction(()=>typeof window._mcProdVersion==="function");
+  expect(await page.evaluate(()=>window._mcProdVersion({refresh:true}))).toBe("9.9.3");
+  expect(await page.evaluate(()=>window._mcProdEntregas.web.nueva)).toBe("nueva-web");
+});
+
+test("cola beta: Ajustes mantiene la entrada y oculta el contador histórico sin entrega comprobada",async({page})=>{
+  await abrirRevisionBeta(page);
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await page.evaluate(()=>{
+    window._mcProdDeliveryChecked=false;
+    localStorage.setItem("_mcAdminProfile",JSON.stringify({uid:"admin-sintetico",isAdmin:true}));
+    cloud.enabled=()=>false;
+    const host=document.createElement("div");host.id="e2e-settings-queue";host.style.cssText="position:fixed;inset:0;overflow:auto;z-index:99999;background:var(--surface)";document.body.appendChild(host);
+    const noop=function(){};
+    ReactDOM.createRoot(host).render(React.createElement(SettingsPanel,{state:mcLoadRaw(mcStateKey()),set:noop,onClose:noop,showToast:noop,uid:"admin-sintetico",onBankSync:noop,onTour:noop,totals:{},fetchPrices:noop,refreshFx:noop,goBanks:noop,goBanksFocus:noop,goGastos:noop}));
+  });
+  const row=page.locator("#e2e-settings-queue .set-row").filter({hasText:"Revisar esta beta"});
+  await expect(row).toBeVisible();await expect(row.locator(".sr-val")).toHaveText("—");
+  await row.click();
+  const panel=page.locator(".beta-review");
+  await expect(panel).toContainText("Comprobaciones sin confirmar");
+  await expect(panel.locator(".beta-tanda")).toHaveCount(0);
+  await expect(panel.getByRole("button",{name:"Reintentar",exact:true})).toBeVisible();
+});
+
+for(const lang of ["es","en","ca"])test(`cola beta: solo novedades y entregas pendientes, conserva el historial (${lang})`,async({page})=>{
+  await abrirRevisionBeta(page,lang);
+  await page.evaluate(()=>{
+    const group=(id,t,extra)=>Object.assign({id:id,t:{es:t},items:{es:["1. Probar "+t]},codigo:id,web:id+"-beta"},extra||{});
+    const old=group("vieja","Función ya en producción"), fresh=group("nueva","Novedad para probar"), native=group("nativa","APK aún en beta",{apk:51,native:"nativa-beta"});
+    RELEASE_NOTES=[{v:"9.9.3",t:{es:"Actual"},tandas:[fresh]},{v:"9.9.1",t:{es:"Anterior"},tandas:[old,native]}];
+    CONFIG.APP_VERSION="9.9.3.1";
+    const receipt={web:{vieja:"vieja-prod",nativa:"nativa-prod"},pruebas:{}};
+    [old,native].forEach(g=>{const row=betaTandas({tandas:[g]})[0];receipt.pruebas[g.id]={v:"9.9.1",contenido:JSON.stringify([row.id,row.t,row.items,row.rev])};});
+    window._mcProdEntregas=receipt;window._mcProdApk=48;window._mcProdApkRevisiones={};
+    store.set("_betaReview_9.9.1.1_v",{_h:1,"h:historica":{verdict:"approved",at:1}});
+    window._mcProdVersion=()=>Promise.resolve("9.9.2");
+    cloud.betaReport=()=>Promise.resolve();
+    const host=document.createElement("div");host.id="e2e-queue";document.body.appendChild(host);
+    window.__queueRoot=ReactDOM.createRoot(host);window.__queueRoot.render(React.createElement(BetaReviewPanel,{onClose:function(){},showToast:function(){}}));
+  });
+  const panel=page.locator("#e2e-queue .beta-review");
+  await expect(panel.locator(".beta-tanda")).toHaveCount(2);
+  await expect(panel).not.toContainText("Función ya en producción");
+  await expect(panel).toContainText("Novedad para probar");await expect(panel).toContainText("APK aún en beta");
+  const nativeRow=panel.locator(".beta-tanda").filter({hasText:"APK aún en beta"});
+  await expect(nativeRow.locator(".beta-tanda-entrega")).toContainText(/app Android|Android app/);
+  await expect(nativeRow.locator(".beta-tanda-entrega")).not.toContainText("web");
+  await expect(panel.getByRole("button",{name:/Aprobar esta tanda/})).toHaveCount(2);
+  await expect(panel.getByRole("button",{name:/Falla/})).toHaveCount(2);
+  const freshRow=panel.locator(".beta-tanda").filter({hasText:"Novedad para probar"});
+  await freshRow.getByRole("button",{name:/Falla/}).click();
+  await freshRow.locator("input").fill("Fallo sintético de la novedad");
+  await expect(freshRow.getByRole("button",{name:/Reportar/})).toBeEnabled();
+  await freshRow.getByRole("button",{name:/Reportar/}).click();
+  await expect(freshRow).toContainText(/Rechazada|Falla/);
+  expect(await page.evaluate(()=>store.get("_betaReview_9.9.1.1_v"))).toEqual({_h:1,"h:historica":{verdict:"approved",at:1}});
+  await page.evaluate(()=>{
+    const g=RELEASE_NOTES[0].tandas[0],row=betaTandas({tandas:[g]})[0];
+    window._mcProdEntregas.web.nueva=g.web;window._mcProdEntregas.pruebas.nueva={v:"9.9.3",contenido:JSON.stringify([row.id,row.t,row.items,row.rev])};
+    window._mcProdVersion=()=>Promise.resolve("9.9.3");
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+  await expect(panel.locator(".beta-tanda")).toHaveCount(1);
+  await expect(panel).not.toContainText("Novedad para probar");
+  await page.evaluate(()=>{window._mcProdApk=51;window._mcProdApkRevisiones.nativa="nativa-beta";document.dispatchEvent(new Event("visibilitychange"));});
+  await expect(panel.locator(".beta-tanda")).toHaveCount(0);
+  expect(await page.evaluate(()=>store.get("_betaReview_9.9.1.1_v"))).toEqual({_h:1,"h:historica":{verdict:"approved",at:1}});
+});
+
 /* «Code review» pero probando la app (petición 2026-07-24).
  *
  * Lo que hay que blindar es la REGLA, no la estética: no se puede aprobar una beta con cosas sin
@@ -15,6 +173,8 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
  * directamente: lo que hay que probar es la REGLA de aprobación, no el menú que lleva a ella. */
 
 async function abrirRevisionBeta(page, lang) {
+  // La producción real no puede pisar los recibos sintéticos de una prueba histórica.
+  await page.route("https://juanjoavila.github.io/Aely/**",route=>route.abort());
   await seedLoggedInDashboard(page, lang?{settings:{autoPrices:false,theme:"green",lang:lang}}:{});
   await page.addInitScript(() => { localStorage.setItem("_mcChannel", "beta"); });
   await page.goto("/");
@@ -22,6 +182,15 @@ async function abrirRevisionBeta(page, lang) {
   await dismissNews(page);
   // NOTAS-BUNDLE: el histórico ya no va en el index; sin esto betaChecklist sale vacío.
   await page.waitForFunction(() => Array.isArray(window.RELEASE_NOTES) && window.RELEASE_NOTES.length > 0, null, { timeout: 10_000 });
+  // Incluso una consulta abortada puede borrar la APK del mock al resolver más tarde.
+  await page.evaluate(async()=>{
+    if(_mcProdVerCache) await _mcProdVerCache;
+    // Estos casos aíslan la UI con transportes sintéticos; el caso de transporte real
+    // restaura la función y comprueba explícitamente la entrega sin confirmar.
+    window.__e2eRealProdVersion=window._mcProdVersion;
+    window._mcProdVersion=()=>Promise.resolve(null);
+    delete window._mcProdDeliveryChecked;
+  });
 }
 
 /* Tras promote a prod con nota única, TODAS las entradas llevan `tandas:[]` → panel a 0
@@ -194,6 +363,9 @@ async function conProduccionEn(page, version, delayMs = 0) {
   // La app pide versión web y APK estable a la vez. Salvo que el test fije la APK, se da por
   // entregada: si no, las tandas nativas reales se colarían en las rondas sintéticas.
   await page.evaluate(({ v, delayMs }) => {
+    // Este helper aísla UI e identidades con producción simulada; el caso de transporte
+    // real conserva la bandera y exige el recibo antes de mostrar cualquier tanda.
+    window._mcProdDeliveryChecked=true;
     window._mcProdVersion = () => delayMs ? new Promise(resolve => setTimeout(() => resolve(v), delayMs)) : Promise.resolve(v);
     if (window._mcProdApk === undefined) window._mcProdApk = 9999;
     if (window._mcProdEntregas === undefined) {
@@ -967,22 +1139,75 @@ async function panelRevisionExacta(page, lang, scenario) {
   return conProduccionEn(page,"9.9.9");
 }
 
+for(const lang of ["es","en","ca"]) for(const verdict of ["approved","rejected"]){
+  test(`Metas94: conserva el parte real87 sin aprobar la revisión nueva (${lang}, ${verdict})`,async({page})=>{
+    const {execFileSync}=await import("node:child_process");
+    // Leemos la revisión publicada, no una huella inventada igualada a la revisión nueva.
+    const previous=JSON.parse(execFileSync("git",["-c","safe.directory="+process.cwd(),"show","4e65fa114c4f647c95b9e97ad926faad5115e94b:public/release-notes.json"],{encoding:"utf8"}));
+    const note=previous.find(n=>n.v==="4.26.87");
+    const old=note.tandas.find(g=>g.id==="inc-0310-01-meta-regla");
+    await abrirRevisionBeta(page,lang);
+    const record=await page.evaluate(({note,old,verdict})=>{
+      CONFIG.APP_VERSION="4.26.94.1";
+      const current=RELEASE_NOTES.find(n=>n.v==="4.26.94").tandas.find(g=>g.id===old.id);
+      const fingerprint=betaHuella(old.id,rnT(old.t,"es"),rnItems(old,"es"),old.rev||1,old.codigo);
+      const record={_h:1,["h:"+fingerprint]:{verdict,at:100}};
+      store.set("_betaReview_4.26.87.1_v",record);
+      const marks={}, identities={};
+      rnItems(old,"es").forEach(it=>{marks[it]="ok";identities[it]=fingerprint;});
+      store.set("_betaReviewOk",marks);store.set("_betaMarksHuella",identities);
+      window._mcProdEntregas=null;window._mcProdApk=48;window._mcProdApkRevisiones=null;
+      const preserved=RELEASE_NOTES.find(n=>n.v==="4.26.87");
+      return {record,fingerprint,currentCode:current.codigo,oldCode:old.codigo,
+        history:current.historial,aliases:current.desde||[],oldText:preserved.t,oldItems:preserved.items};
+    },{note,old,verdict});
+    expect(record.currentCode).not.toBe(record.oldCode);
+    expect(record.history).toEqual(["4.26.87/inc-0310-01-meta-regla"]);
+    expect(record.aliases).toEqual([]);
+    expect(record.oldText).toEqual(note.t);expect(record.oldItems).toEqual(note.items);
+    const panel=await conProduccionEn(page,"4.26.86");
+    const row=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:"Reglas de Metas: descuento y aportación al guardar"})});
+    await expect(row).toHaveCount(1);
+    await expect(row.locator(".beta-tanda-n")).toHaveText("0/3");
+    await expect(row.getByRole("button",{name:/Aprobar esta tanda/})).toBeDisabled();
+    expect(await page.evaluate(()=>store.get("_betaReview_4.26.87.1_v"))).toEqual(record.record);
+  });
+}
+
 for(const lang of ["es","en","ca"]) {
-  test(`revisión exacta: dos fuentes idénticas conservan OK y cinco cambios web/nativos piden nueva revisión (${lang})`, async ({page}) => {
+  /* Hasta la 4.26.90 «Arranque con poca conexión» y «Ayuda de Mi ciclo» conservaban el OK porque su
+     código era idéntico al aprobado. La 4.26.94 cambia el guardado del estado. «Ayuda de Mi ciclo»
+     escribe estado: su web ya no es la aprobada y pide revisión nueva como las cinco nativas (la
+     decisión anterior sigue en el historial; el store de 4.26.68 no se toca). «Arranque con poca
+     conexión» no escribe estado: su código sigue siendo el aprobado y conserva el OK. */
+  test(`revisión exacta: la fuente idéntica conserva OK; un cambio solo web y cinco web/nativos piden nueva revisión (${lang})`, async ({page}) => {
     await abrirRevisionBeta(page,lang);
     await sembrarAprobadasEn4267(page);
     await page.evaluate(async lang => { await ensureLangPack(lang); CURLANG=lang; CONFIG.APP_VERSION="4.26.76.1"; window._mcProdApk=48; window._mcProdEntregas=null; window._mcProdApkRevisiones=null; },lang);
     const panel=await conProduccionEn(page,"4.26.67");
     const before=await page.evaluate(()=>store.get("_betaReview_4.26.68.1_v"));
     const copy={es:{approved:"No necesitas aprobarla otra vez",unknown:"Entrega sin confirmar: web",native:"Pendiente de publicar: app Android"},en:{approved:"You do not need to approve it again",unknown:"Delivery unconfirmed: web",native:"Awaiting publication: Android app"},ca:{approved:"No cal que l’aprovis de nou",unknown:"Entrega sense confirmar: web",native:"Pendent de publicar: app Android"}}[lang];
-    for(const title of ["Arranque con poca conexión","Ayuda de Mi ciclo"]) {
-      const fila=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:title})});
+    {
+      const fila=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:"Arranque con poca conexión"})});
       await expect(fila.locator(".beta-tanda-n")).toContainText("aprobada");
       await expect(fila.locator(".beta-tanda-estado")).toBeVisible();
       await expect(fila.locator(".beta-tanda-estado")).toContainText(copy.approved);
       await expect(fila.locator(".beta-tanda-entrega")).toBeVisible();
       await expect(fila.locator(".beta-tanda-entrega")).toContainText(copy.unknown);
       await expect(fila.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/})).toHaveCount(0);
+    }
+    for(const title of ["Ayuda de Mi ciclo"]) {
+      const fila=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:title})});
+      await expect(fila).toHaveCount(1);
+      await expect(fila.locator(".beta-tanda-n")).toHaveText(/^0\/\d+$/);
+      await expect(fila.locator(".beta-tanda-n")).not.toContainText("aprobada");
+      await expect(fila).not.toContainText(copy.approved);
+      // Solo cambió su web: Android no aparece entre lo cambiado.
+      const cambio=fila.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/});
+      await expect(cambio).toContainText("web");
+      await expect(cambio).not.toContainText("Android");
+      await expect(fila.locator(".beta-tanda-entrega")).toBeVisible();
+      await expect(fila.locator(".beta-tanda-entrega")).toContainText(copy.unknown);
     }
     // La guardia de nómina cambia el importador de TR; su OK anterior sigue en el historial.
     for(const title of NATIVAS) {
@@ -1026,11 +1251,11 @@ for(const lang of ["es","en","ca"]) {
       });
       window._mcProdApk=52;window.__resolveDelivery("4.26.67");
     });
-    // Panel76 se trasladó a82; los recibos de las siete antiguas no entregan las trece nuevas.
-    const remaining=["inc-0210-02-categoria-elegida","feature-0210-01-gasolina-taxi","inc-0210-03-gastos-periodo","inc-0210-01-plan-cuota","beta-panel-veredictos","inc-2909-01-widget-periodo","inc-2909-03-retirada","inc-3009-nomina-anticipada","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2709-10-perfil","inc-3009-01-cargos","inc-2909-02-inicio-natural"];
+    // Los recibos de las siete antiguas no entregan las tandas posteriores.
+    const remaining=["ops-0410-panel-cola","inc-0310-gastos-sin-limite","inc-0310-broker-resultados","feature-0310-01-movilidad","inc-0310-01-meta-regla","inc-0210-02-categoria-elegida","feature-0210-01-gasolina-taxi","inc-0210-03-gastos-periodo","inc-0210-01-plan-cuota","beta-panel-veredictos","inc-2909-01-widget-periodo","inc-2909-03-retirada","inc-3009-nomina-anticipada","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2709-10-perfil","inc-3009-01-cargos","inc-2909-02-inicio-natural"];
     await expect(panel.locator(".beta-tanda")).toHaveCount(remaining.length);
     expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,"4.26.67",52).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(remaining.slice().sort());
-    for(const title of ["La categoría elegida no se deshace","Gastos y categorías del mismo periodo","Las cuotas cobradas dejan de estar pendientes","Las comprobaciones conservan su resultado","Widget: mes o Mi ciclo","Retiradas y presupuesto","Nómina sin adelantar el cobro","Botón + en Cyberpunk","Botón Preguntar","Perfil sin casillas gigantes","Recibos pagados y vencidos","Presupuesto mensual de Inicio"])
+    for(const title of ["Reglas de Metas: descuento y aportación al guardar","La categoría elegida no se deshace","Gastos y categorías del mismo periodo","Las cuotas cobradas dejan de estar pendientes","Las comprobaciones conservan su resultado","Widget: mes o Mi ciclo","Retiradas y presupuesto","Nómina sin adelantar el cobro","Botón + en Cyberpunk","Botón Preguntar","Perfil sin casillas gigantes","Recibos pagados y vencidos","Presupuesto mensual de Inicio"])
       await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(1);
     for(const title of NATIVAS.concat(["Arranque con poca conexión","Ayuda de Mi ciclo"]))
       await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(0);
@@ -1139,7 +1364,7 @@ for(const lang of ["es","en","ca"])for(const mode of ["texto repetido","sin marc
       await expect(page.locator(".botnav")).toBeVisible({timeout:15_000});await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);await expect(page.locator(".wn-panel")).toHaveCount(0);
       const head=await page.evaluate(()=>ensureReleaseNotes().then(arr=>({v:arr[0]&&arr[0].v,url:releaseNotesUrl(),version:CONFIG.APP_VERSION})));
       expect(head).toMatchObject({v:phase?"9.9.2":"9.9.1",version:phase===2?"9.9.2.2":phase?"9.9.2.1":"9.9.1.1"});
-      await page.evaluate(()=>{window._mcProdEntregas=null;window._mcProdApkRevisiones=null;window._mcProdApk=0;window.__betaReports=[];cloud.betaReport=p=>{window.__betaReports.push(p);return Promise.resolve();};});
+      await page.evaluate(async()=>{if(_mcProdVerCache)await _mcProdVerCache;window._mcProdEntregas=null;window._mcProdApkRevisiones=null;window._mcProdApk=0;window.__betaReports=[];cloud.betaReport=p=>{window.__betaReports.push(p);return Promise.resolve();};});
       return conProduccionEn(page,mode==="sin red"?null:"9.9.0");
     };
     await page.goto("/");let panel=await mount();
@@ -1244,7 +1469,7 @@ for(const lang of ["es","en","ca"]) {
       window.__mixedRoot=ReactDOM.createRoot(host);window.__mixedRoot.render(React.createElement(BetaReviewPanel,{onClose:function(){},showToast:function(){}}));
       return ids;
     },lang);
-    expect(expected).toEqual(["inc-0210-02-categoria-elegida","feature-0210-01-gasolina-taxi","beta-panel-veredictos","fin05-pago-cerrada","fin05-widget-reentrada","inc-0210-01-plan-cuota","inc-0210-03-gastos-periodo","inc-2709-01-arranque-red","inc-2709-10-perfil","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2809-02-ayuda-ciclo","inc-2909-01-widget-periodo","inc-2909-02-inicio-natural","inc-2909-03-retirada","inc-3009-01-cargos","inc-3009-nomina-anticipada","tr-descripcion-clasificacion","widget-app-cerrada","widget-banco"].sort());
+    expect(expected).toEqual(["ops-0410-panel-cola","inc-0310-gastos-sin-limite","inc-0310-broker-resultados","feature-0310-01-movilidad","inc-0310-01-meta-regla","inc-0210-02-categoria-elegida","feature-0210-01-gasolina-taxi","beta-panel-veredictos","fin05-pago-cerrada","fin05-widget-reentrada","inc-0210-01-plan-cuota","inc-0210-03-gastos-periodo","inc-2709-01-arranque-red","inc-2709-10-perfil","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2809-02-ayuda-ciclo","inc-2909-01-widget-periodo","inc-2909-02-inicio-natural","inc-2909-03-retirada","inc-3009-01-cargos","inc-3009-nomina-anticipada","tr-descripcion-clasificacion","widget-app-cerrada","widget-banco"].sort());
     const panel=page.locator("#e2e-mixed .beta-review"),row=panel.locator(".beta-tanda").filter({has:page.getByText("1. A",{exact:true})});
     await expect(panel.locator(".beta-tanda")).toHaveCount(expected.length+1);await expect(row).toHaveCount(1);
     await expect(row.locator(".beta-item")).toHaveCount(3);await expect(row.locator(".beta-tanda-n")).toHaveText("0/3");

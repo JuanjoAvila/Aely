@@ -42,7 +42,10 @@ function entregasHasta(version, apk) {
   cli.window._mcProdApkRevisiones={};
   for(const n of cli.RELEASE_NOTES) if(!cli.mcIsNewer(n.v,version)) for(const g of n.tandas||[]) {
     cli.window._mcProdEntregas.web[g.id]=g.web;
-    if(apk>=g.apk) { cli.window._mcProdEntregas.edge[g.id]=g.edge; cli.window._mcProdApkRevisiones[g.id]=g.native; }
+    // Edge tiene recibo propio: ligarlo a la APK dejaba una entrega sin nativo siempre
+    // pendiente incluso al simular «todo entregado» (CI movilidad88, 3/10).
+    if(g.edge) cli.window._mcProdEntregas.edge[g.id]=g.edge;
+    if(apk>=g.apk) cli.window._mcProdApkRevisiones[g.id]=g.native;
   }
 }
 
@@ -82,6 +85,18 @@ t("★ web al día con APK estable atrasada → solo quedan las tandas nativas",
   entregasHasta(VERSION_ACTUAL,48);
   const pack = cli.betaChecklist(VERSION_ACTUAL, VERSION_ACTUAL, 48);
   assert.ok(pack.tandas.every((g) => g.apk > 48), "ninguna tanda web vuelve al panel");
+});
+
+t("★ entregar web y APK no sustituye el recibo Edge de ninguna tanda real", () => {
+  entregasHasta(VERSION_ACTUAL,9999);
+  const edgeIds=Array.from(new Set(cli.RELEASE_NOTES.flatMap((n)=>
+    !cli.mcIsNewer(n.v,VERSION_ACTUAL)?(n.tandas||[]).filter((g)=>g.edge).map((g)=>g.id):[])));
+  edgeIds.forEach((id)=>{ delete cli.window._mcProdEntregas.edge[id]; });
+  const pending=cli.betaChecklist(VERSION_ACTUAL,VERSION_ACTUAL,9999);
+  edgeIds.forEach((id)=>assert.ok(pending.tandas.some((g)=>String(g.id).endsWith("/"+id)),
+    "sin recibo Edge sigue pendiente: "+id));
+  entregasHasta(VERSION_ACTUAL,9999);
+  assert.equal(cli.betaChecklist(VERSION_ACTUAL,VERSION_ACTUAL,9999).tandas.length,0);
 });
 
 t("★ al subir solo Deudas, el panel conserva las siete pruebas pendientes", () => {

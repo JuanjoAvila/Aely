@@ -325,7 +325,8 @@ test("Inversiones v4: actualizar inversiones resincroniza el bróker aunque no h
   await expect(refresh).toBeEnabled();
   await refresh.click();
   await expect(page.locator("[data-inv-hero]")).toContainText("250");
-  await expect(page.locator(".toast")).toContainText(/Brókers al día|Brokers up to date|Brókers al dia/i);
+  await expect(page.locator(".toast")).toContainText(/MyInvestor al día|MyInvestor up to date|MyInvestor al dia/i);
+  await expect(page.locator(".toast")).not.toContainText("Trade Republic");
 });
 
 test("Inversiones v4: un bróker caducado no queda tapado por el éxito de precios", async ({ page }) => {

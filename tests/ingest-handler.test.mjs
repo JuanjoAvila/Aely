@@ -313,5 +313,15 @@ await t("ingest con clasificador anterior respeta gasolina/taxi manual en retry 
   const conflict=await post(manual,body,priorClassifier);assert.equal(conflict.data.skipped,true);assert.equal(manual.rows.length,1);assert.equal(manual.rows[0].cat,cat);
  }
 });
+await t("ingest del baseline conserva multas/zona azul/peajes elegidos en retry y conflicto",async()=>{
+ for(const [cat,comercio,oldCat] of [["multas","Multa DGT","tasas"],["zona_azul","Zona azul","parking"],["peajes","Peaje AP7","transporte"]]){
+  const fecha="2026-09-17T12:24:00.000Z",body={fuente:"tr",titulo:"Trade Republic",texto:"Has gastado 10,00 € en "+comercio,fecha:String(Date.parse(fecha)),evento:"v1_manual_"+cat};
+  assert.equal(priorClassifier.categorizar(comercio),oldCat);
+  const env=fakeDb({rows:[{id:"manual-"+cat,user_id:"user",fecha,importe:10,comercio,cat,source:"macrodroid",ingest_event_id:identity.claveEvento(body.evento,"tr",body.texto)}]});
+  const retry=await post(env,body,priorClassifier);assert.equal(retry.data.ack,"manual-"+cat);assert.equal(env.rows.length,1);assert.equal(env.rows[0].cat,cat);
+  const manual=fakeDb({rows:[{id:"alta-"+cat,user_id:"user",fecha,importe:10,comercio,cat,source:"manual:trade_republic"}]});
+  const conflict=await post(manual,body,priorClassifier);assert.equal(conflict.data.skipped,true);assert.equal(manual.rows.length,1);assert.equal(manual.rows[0].cat,cat);
+ }
+});
 if (failures) process.exitCode = 1;
 else console.log("  ok");

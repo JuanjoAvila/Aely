@@ -98,6 +98,26 @@ test("al volver a subir, la barra reaparece", async ({ page }) => {
   await expect.poll(() => escondida(page), { timeout: 2_000 }).toBe(false);
 });
 
+test("el scroll de una página inactiva no oculta la navegación de la activa",async({page})=>{
+  await seedLoggedInDashboard(page);
+  await page.goto("/");await appLista(page);
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  const gastos=page.locator(".track > .page").nth(1);
+  await expect(gastos).toHaveClass(/\bpage-scroll-host\b/);
+  // Un cambio de alto en una pantalla premontada reproduce la recolocación del navegador.
+  await gastos.evaluate(el=>{const space=document.createElement("div");space.style.height="1200px";el.appendChild(space);});
+  await page.locator('.botnav-tab[data-tour="inicio"]').click();
+  await expect(page.locator(".track > .page").nth(0)).toHaveClass(/\bpage-scroll-host\b/);
+  await page.waitForTimeout(1100);
+  await gastos.evaluate(el=>{window.__inactiveScrollSeen=0;el.addEventListener("scroll",()=>window.__inactiveScrollSeen++);el.scrollTop=100;});
+  await expect.poll(()=>page.evaluate(()=>window.__inactiveScrollSeen)).toBeGreaterThan(0);
+  await expect.poll(()=>gastos.evaluate(el=>el.scrollTop)).toBe(100);
+  // El ocultado se agenda a 550 ms: comprobar antes dejaría pasar el fallo.
+  await page.waitForTimeout(700);
+  expect((await alturaScroll(page)).y).toBe(0);
+  expect(await escondida(page)).toBe(false);
+});
+
 test("la pantalla recolocándose sola no esconde la barra", async ({ page }) => {
   await seedLoggedInDashboard(page);
   await page.goto("/");

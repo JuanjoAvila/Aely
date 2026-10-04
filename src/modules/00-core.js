@@ -267,6 +267,9 @@ const CATEGORIES = [
   { id:"gasolina",   name:"Gasolina",            color:"#E8945F", icon:"⛽" },
   { id:"taxi",       name:"Taxi",                color:"#E6C36A", icon:"🚕" },
   { id:"parking",    name:"Parking",             color:"#8AA0B8", icon:"🅿️" },
+  { id:"multas",     name:"Multas",              color:"#C97D5F", icon:"🚨" },
+  { id:"zona_azul",  name:"Zona azul",           color:"#8AA0B8", icon:"🅿️" },
+  { id:"peajes",     name:"Peajes",              color:"#7FB5E8", icon:"🛣️" },
   /* AGUA, LUZ Y GAS POR SEPARADO (2026-09-12). Antes era una sola, «Luz, gas y agua», con un ⚡
      de icono. Suyo: *«sale un símbolo de rayito en Aigües de Barcelona que no encaja para nada…
      Agua por un lado con su símbolo, luz por otro y gas por otro»*. Tenía razón: el recibo del
@@ -527,6 +530,13 @@ function categoryOfNewMerchant(merchant){
 // Una marca energética sola no prueba carburante; comida y suministros conservan su finalidad.
 function mobilityCategoryOfNewMerchant(merchant,cat){
   const c=catKey(merchant);
+  // La sanción manda sobre el lugar donde ocurrió; una app de parking, una administración
+  // o una autopista sin detalle no prueban estos destinos. Solo altas nuevas (petición3/10).
+  if(cat==="transporte" || cat==="otros" || cat==="tasas" || cat==="parking"){
+    if(/\bmult[ae]s?\b|\bsancio(?:n)? (?:de )?(?:trafico|transit)\b|\b(?:traffic|parking) fines?\b/.test(c)) return "multas";
+    if(/\bzona (?:azul|blava)\b|\bestacionamiento regulado\b|\baparcament regulat\b/.test(c)) return "zona_azul";
+    if(/\bpeajes?\b|\bpeatges?\b|\btoll (?:road|payment)\b/.test(c)) return "peajes";
+  }
   if(cat!=="transporte" && cat!=="otros" && !(cat==="super" && /\bcarrefour gas\b/.test(c))) return cat;
   if(/\buber[^a-z0-9]*eats\b/.test(c)) return "bares";
   if(/\b(recarga|recarrega|carga|carrega)\b.*electric|electric.*\b(recarga|recarrega|carga|carrega)\b|\bev charging\b|\bcharging station\b/.test(c)) return "transporte";
@@ -696,6 +706,23 @@ function mcLoadRaw(key){
   if(Array.isArray(exp)) base.expenses=exp;      // formato nuevo (partido)
   else if(!Array.isArray(base.expenses)) base.expenses=[];
   return base;
+}
+/* SE GUARDA LO QUE SE HA PINTADO, NO LO QUE SE CALCULÓ (INC-0410, 4/10/2026).
+   Antes `set()` apuntaba el volcado pendiente DENTRO del updater. React puede ejecutar un updater
+   sobre un estado que luego abandona —dos escrituras encoladas en el mismo instante, una urgente y
+   otra no— y reutilizar después un resultado ya calculado sin volver a llamarlo: el volcado se
+   quedaba con el estado abandonado. Visto en el alta de reglas de Metas: en pantalla la regla no
+   existía y en disco sí. Un estado que la app nunca llegó a tener no es una cartera que guardar.
+   Aquí solo se entra tras un commit: `prev` es el último estado comprometido que se vio y
+   `state` el nuevo. Devuelve si hay algo que escribir. Conserva las tres garantías de siempre:
+   una escritura como mucho cada `schedule`, el histórico de gastos solo si cambió su REFERENCIA
+   (AGENTS §7 bis) y nada al montar, porque entonces `prev===state`. */
+function mcPersistCommit(p, prev, state, schedule){
+  if(prev===state) return false;
+  p.val=state;
+  if(prev.expenses!==state.expenses) p.exp=true;
+  if(!p.t) p.t=schedule();
+  return true;
 }
 /* opts.expenses===false → guarda solo la parte ligera (lo normal).
 
@@ -1318,7 +1345,8 @@ const cloud = (function(){
       // Solo columnas NO sensibles (grant a nivel de columna; los tokens no se exponen).
       // device_id: para reutilizar el mismo móvil al reconectar (menos captchas).
       const {data,error}=await sb.from('myinvestor_links').select('status,last_sync,updated_at,device_id').eq('user_id',session.user.id).maybeSingle();
-      if(error) return null;
+      // Sin fila no hay enlace; un fallo al consultarlo no permite callar el resultado manual.
+      if(error) throw error;
       return data||null;
     },
     // --- ingest MULTIUSUARIO (0008_ingest_tokens): cada persona apunta SUS gastos de TR en SU

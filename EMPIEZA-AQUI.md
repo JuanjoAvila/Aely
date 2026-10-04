@@ -1,4 +1,10 @@
-Promoción3/10: fuente web aprobada86/49a preparada sobre main12884; APK estable32/code48 y workflow Supabase manual conservados. Java/TS son fuente, no entrega APK/Edge. CI/publicación pendiente; no inventar recibos nativos. [Acta](docs/briefs/promocion-web-aprobadas-2026-10-03.md). Extras humanos pendientes en [inventario](docs/briefs/inc-0310-extras-sincronizacion-asistente-gastos.md).
+Borrador 4.26.94 local (4/10), sin terminar ni publicar: en Metas, una regla nueva descuenta del presupuesto del mes y aporta a la meta al guardarla (contrato decidido por el dueño tras su rechazo de la 4.26.87), además del importe leído como se escribe y el aviso si el alta no vale. Las reglas anteriores siguen repartiendo por ingreso. El rechazo sigue abierto hasta que él lo pruebe; la pasada de pantalla, la suite completa y la revisión del commit final están pendientes: no inferir aprobación. Actas: [contrato mensual](docs/briefs/inc-0410-metas-mensual.md) · [alta de reglas](docs/briefs/inc-0410-metas-alta.md).
+
+Promoción4/10: once tandas actuales aprobadas; candidata revisada en preparación. Producción aún86/APK48 hasta verificar entrega. Prioridad: publicar lo aprobado y retirar del panel solo lo entregado. [Acta](docs/briefs/promocion-aprobadas-2026-10-04.md).
+
+Corte 4/10, 02:35 UTC: el canal beta sirve 4.26.90.2 desde la fuente `7f3da23b` ([PR117](https://github.com/JuanjoAvila/Aely/pull/117), que solo añade una guardia de tests; publicación [37168006229](https://github.com/JuanjoAvila/Aely/actions/runs/37168006229) cerrada y cotejada). Lo que se usa es lo de 4.26.90.1 (merge `4a2e3c54`, [PR116](https://github.com/JuanjoAvila/Aely/pull/116)): Gastos oculta presupuesto fuera de mes/ciclo y usa todo el ancho, sin cambiar dinero, sobre Brókers89 ya entregada como 4.26.89.1 (merge `0f825c45`, [PR115](https://github.com/JuanjoAvila/Aely/pull/115)). Producción sigue en 4.26.86 (`d366215a`), sin promoción. Este corte describe lo acreditado al escribirlo: si `beta` ha avanzado, coteja el manifiesto antes de dar nada por servido. Nadie ha aceptado 89 ni 90 en el móvil; APK beta 4.26.80/code52 sin binario nuevo; Edge/SQL sin entregas. Entrega en beta, CI verde y aprobación son tres cosas distintas. [Gastos](docs/briefs/inc-0310-gastos-sin-limite.md) · [Brókers](docs/briefs/inc-0310-broker-resultados.md).
+
+Histórico 3/10 (superado por el corte de arriba): Candidata90 local, con CI/publicación89 y DOM/revisión/CI90 pendientes; beta88.1 y producción86 eran las últimas acreditadas.
 
 # Empieza aquí
 
@@ -177,3 +183,12 @@ son actuales. El header del ROADMAP puede ir por detrás del último veredicto.
 ## Integración aislada del panel75 (1/10/2026)
 
 Base real Recibos74 9ecd6a172e1c451016e6b4e102fa7b8e8bdc5359. No reutilizar GO483e8874 como aprobación del nuevo SHA integrado. Mantener siete referencias históricas: tres códigos idénticos conservan OK, cuatro cambios web de Inicio73 necesitan revisión nueva. No repinar ni recortar dependencias financieras para conservar aprobaciones.75 sigue local; el coordinador autoriza publicación tras verificar74 servida y concede Chromium por lease canónico. Bootstrap main PR92/2f045a1e conserva gate propio; ninguna entrega exacta puede inventarse. [Brief](docs/briefs/ops-3009-03-panel-beta.md).
+
+
+Integración88 actual: fuente mínima PR108/2205 sobrebeta039d, preservando21alcances/notas208anteriores. Fuente enverificación, sinpublicación. Producciónwebaprobada86 se prepara independientemente, no promover88 por asociación.
+
+## INC-0310 resultados de brókers · candidata89
+
+WT aislado desde beta ba206, fuente y pruebas de resultados separados; [acta](docs/briefs/inc-0310-broker-resultados.md). No confundir fuente/DOM sintético con sync bancaria real ni con el pago ausente. La producción113 se fusionó con autorización humana directa solo para20webaprobadas; no promover beta completa.
+
+Autorización vigente del3/10: se permiten subidas a producción de superficies con aprobación humana acreditada para su código exacto y alcance separable. CI o revisión técnica no sustituyen el veredicto humano. No promover beta entera si contiene otras superficies; APK/Edge/SQL/migraciones y dinero real conservan sus gates propios. PR113 está fusionada en d366 con veinte web aprobadas; su entrega requiere los artefactos servidos, no solo el merge.

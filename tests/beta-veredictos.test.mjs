@@ -95,6 +95,12 @@ t("ronda moderna no duplica su propia cabeza al conservar el fallback",()=>{
 });
 
 const changedIds=["tr-descripcion-clasificacion","fin05-widget-reentrada","fin05-pago-cerrada","widget-banco","widget-app-cerrada"];
+/* Hasta la 4.26.90 «Arranque» y «Ayuda de Mi ciclo» conservaban el OK del dueño por equivalencia
+   exacta de código. La 4.26.94 cambia el guardado del estado (se escribe lo comprometido, no lo
+   calculado). «Ayuda de Mi ciclo» escribe estado: su código web ya no es el que se aprobó, se
+   retiró `desde` y pide veredicto nuevo; la aprobación sigue en el historial como hecho.
+   «Arranque» no escribe estado (auditoría del 4/10): su código es el aprobado y conserva el OK. */
+const soloWebIds=["inc-2809-02-ayuda-ciclo"];
 const readSource=f => fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
 const registered=JSON.parse(readSource("scripts/beta-sources.json"));
 const approvedIds=["fin05-widget-reentrada", "fin05-pago-cerrada", "tr-descripcion-clasificacion", "widget-banco", "widget-app-cerrada", "inc-2709-01-arranque-red", "inc-2809-02-ayuda-ciclo"];
@@ -181,7 +187,8 @@ t("CLI real: revocación remota, rechazo histórico exacto y entrega desconocida
   assert.equal(actual.estado,'sin probar');
   assert.equal(actual.rechazoAnterior.tanda,'4.26.71/inc-3009-01-cargos');
   assert.equal(actual.entregaPendiente,true);
-  assert.equal(data.tandas.filter(x=>x.estado==="approved").length,2,"solo las dos revisiones idénticas conservan el OK aunque falten recibos de entrega");
+  assert.deepEqual(data.tandas.filter(x=>x.estado==="approved").map(x=>x.corto),["inc-2709-01-arranque-red"],"solo la revisión que sigue idéntica conserva el OK; la otra cambió con el guardado de la 4.26.94");
+  for(const id of soloWebIds) assert.equal(data.tandas.find(x=>x.corto===id).estado,"sin probar",id+" pide veredicto nuevo");
 });
 
 t("el rechazo local sobrevive al traslado y veta el OK más antiguo", () => {
@@ -300,7 +307,7 @@ t("★ el veredicto no saca nada del panel: aprobar no es publicar", () => {
   assert.deepEqual(ids(pack).sort(), ["9.9.3/nativa", "9.9.3/web-vieja", "9.9.4/web-nueva"]);
 });
 
-t("★ dos fuentes idénticas conservan OK; cinco cambios web/nativos conservan historia sin aprobar código nuevo", () => {
+t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web conservan historia sin aprobar la revisión nueva", () => {
   const pack=cli.betaChecklist("4.26.75.1","4.26.67",48);
   for(const id of approvedIds) {
     const g=pack.tandas.find(x=>String(x.id).split("/").pop()===id);
@@ -319,10 +326,22 @@ t("★ dos fuentes idénticas conservan OK; cinco cambios web/nativos conservan 
         else assert.equal(g.edge,registered[id].auditoria.revisiones.edge);
       }
       assert.equal(g.apk,52);
-    } else {
+    } else if(!soloWebIds.includes(id)) {
+      assert.equal(id,"inc-2709-01-arranque-red","debería estar clasificada");
       assert.equal(part.verdict,"approved",id);
       assert.equal(g.cambio.length,0);
       assert.equal(g.codigo,registered[id].auditoria.ampliada.codigo);
+    } else {
+      // Solo cambió su web (el guardado). Android y Edge siguen siendo los auditados; aun así el
+      // OK anterior no vale para esta revisión.
+      assert.equal(part,null,id+" no reutiliza la aprobación anterior");
+      assert.deepEqual(Array.from(g.cambio),["web"]);
+      assert.equal(g.desde.length,0);
+      assert.notEqual(g.codigo,registered[id].auditoria.ampliada.codigo);
+      const fuente=JSON.parse(readSource("src/data/release-notes.json")).flatMap(n=>n.tandas||[]).find(x=>x.id===id);
+      assert.equal(fuente.desde,undefined,id+": la equivalencia se retiró del repo");
+      assert.ok(fuente.huella&&fuente.codigoDesde&&fuente.historial.length,id+": la referencia histórica se conserva");
+      if(g.native) assert.equal(g.native,registered[id].auditoria.revisiones.native);
     }
     assert.ok(registered[id].auditoria.sha,"la auditoría histórica sigue fijada");
   }
@@ -393,6 +412,32 @@ t("compatibilidad auditada respeta la última retirada/rechazo y no salta a un O
     const rows=[{huella:old,verdict:verdict},{huella:a.huella,verdict:"approved"}];
     assert.equal(cli.betaVerdictFor(a,rows)?.verdict||null,verdict==="rejected"?"rejected":null);
   }
+});
+t("la cola retira una función estrenada aunque cambie una dependencia compartida",()=>{
+  const old=cli.window._mcProdEntregas;
+  const g=cli.betaTandas({tandas:[tanda("entregada",{codigo:"nuevo",web:"nuevo-web"})]})[0];
+  cli.window._mcProdEntregas={web:{entregada:"prod-web"},pruebas:{entregada:{v:"9.9.1",contenido:JSON.stringify([g.id,g.t,Array.from(g.items),g.rev])}}};
+  try{
+    assert.equal(cli.betaSinEntregar(g,48),true,"el alcance distinto sigue visible en la auditoría de código");
+    assert.equal(cli.betaPruebaPendiente(g,48,"9.9.1","9.9.2"),false,"no obliga a probar de nuevo la función estrenada");
+    assert.equal(cli.betaPruebaPendiente(g,48,"9.9.3","9.9.2"),true,"una corrección nueva en beta conserva su prueba");
+    assert.equal(cli.betaPruebaPendiente({...g,rev:2},48,"9.9.1","9.9.2"),true,"un nuevo guion conserva su prueba");
+    assert.equal(cli.betaPruebaPendiente({...g,apk:51,native:"apk-beta"},48,"9.9.1","9.9.2"),true,"una APK pendiente sigue pendiente");
+    assert.equal(cli.betaEstadoPrueba({...g,apk:51,native:"apk-beta"},48,"9.9.1","9.9.2").web,undefined,"el aviso no inventa una web pendiente para una función estrenada");
+    assert.equal(cli.betaEstadoPrueba({...g,apk:51,native:"apk-beta"},48,"9.9.1","9.9.2").native,"pending");
+    assert.equal(cli.betaPruebaPendiente({...g,edge:"edge-beta"},48,"9.9.1","9.9.2"),true,"Edge sin entrega sigue pendiente");
+    delete cli.window._mcProdEntregas.pruebas;
+    assert.equal(cli.betaPruebaPendiente(g,48,"9.9.1","9.9.2"),true,"sin evidencia no inventa entrega");
+  }finally{cli.window._mcProdEntregas=old;}
+});
+t("recibos antiguos solo aceptan el guion de la versión servida",()=>{
+  const receipt={web:{entregada:"prod-web"}},notes=[{v:"9.9.2",tandas:[tanda("entregada")]}];
+  assert.equal(cli.betaPruebasEntrega(receipt,notes,"9.9.3"),receipt,"una nota cacheada no acredita otra entrega");
+  assert.equal(cli.betaPruebasEntrega(receipt,notes,null),receipt);
+  assert.equal(cli.betaPruebasEntrega(null,notes,"9.9.2"),null);
+  const proof=cli.betaPruebasEntrega(receipt,notes,"9.9.2");
+  assert.equal(proof.pruebas.entregada.contenido,JSON.stringify(["entregada","Tanda entregada",["1. Probar entregada"],1]));
+  assert.equal(receipt.pruebas,undefined,"no modifica el artefacto original");
 });
 if (failed) { console.error(`\nbeta-veredictos: ${failed} fallo(s)`); process.exit(1); }
 console.log("\nbeta-veredictos: OK");

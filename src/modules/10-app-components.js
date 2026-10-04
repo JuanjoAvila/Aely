@@ -1144,6 +1144,30 @@ function betaEstadoEntrega(g, prodApk){
   return out;
 }
 function betaSinEntregar(g, prodApk){ return Object.keys(betaEstadoEntrega(g,prodApk)).length>0; }
+function betaPruebasEntrega(recibo, notes, version){
+  if(!recibo||recibo.pruebas||!Array.isArray(notes)||!notes[0]||!/^\d+\.\d+\.\d+$/.test(mcVerBase(version))
+    ||mcVerBase(notes[0].v)!==mcVerBase(version)) return recibo;
+  var pruebas={};
+  notes.forEach(function(n){
+    if(!n||!n.v||!Array.isArray(n.tandas)||mcIsNewer(n.v,mcVerBase(version))) return;
+    n.tandas.forEach(function(g){
+      if(!g||!g.id||!rnItems(g,"es").length) return;
+      if(!pruebas[g.id]) pruebas[g.id]={v:n.v,contenido:JSON.stringify([String(g.id),rnT(g.t,"es"),rnItems(g,"es"),g.rev||1])};
+    });
+  });
+  return Object.assign({},recibo,{pruebas:pruebas});
+}
+function betaEstadoPrueba(g, prodApk, version, prodVersion){
+  var estado=betaEstadoEntrega(g,prodApk), id=String(g.id).split("/").pop();
+  var recibo=window._mcProdEntregas, prueba=recibo&&recibo.pruebas&&recibo.pruebas[id];
+  // Una dependencia compartida puede cambiar sin volver a estrenar la función ya entregada.
+  // Las correcciones tienen su nota nueva; el histórico de pruebas no es la cola (4/10).
+  if(!mcIsNewer(version,mcVerBase(prodVersion))&&recibo&&recibo.web&&recibo.web[id]&&prueba
+    &&!mcIsNewer(prueba.v,mcVerBase(prodVersion))
+    &&prueba.contenido===JSON.stringify([id,g.t,g.items,g.rev||1])) delete estado.web;
+  return estado;
+}
+function betaPruebaPendiente(g, prodApk, version, prodVersion){ return Object.keys(betaEstadoPrueba(g,prodApk,version,prodVersion)).length>0; }
 function betaChecklist(version, prodVersion, prodApk){
   var base=mcVerBase(version);
   if(typeof RELEASE_NOTES==="undefined"||!RELEASE_NOTES.length) return { v:base, t:"", items:[], tandas:[] };
@@ -1211,13 +1235,13 @@ function betaChecklist(version, prodVersion, prodApk){
       var rawId=String(g.id);
       if(vistas[rawId]) return;
       vistas[rawId]=true;
-      if(conProd&&(g.codigo||!mcIsNewer(notes.v, mcVerBase(prodVersion)))&&!betaSinEntregar(g,prodApk)) return;
+      if(conProd&&(g.codigo||!mcIsNewer(notes.v, mcVerBase(prodVersion)))&&!betaPruebaPendiente(g,prodApk,notes.v,prodVersion)) return;
       /* Con ronda multi-versión el id lleva la versión: dos tandas «id-fila» de bases distintas
          no se pisan en el veredicto. Sin prod se conserva el id corto de
          siempre para no resetear lo ya enviado en esta compilación. */
       var id=conProd?(notes.v+"/"+rawId):rawId;
       var t=conProd?("v"+notes.v+(g.t?" · "+g.t:"")):g.t;
-      tandas.push(Object.assign({},g,{ id:id, t:t }));
+      tandas.push(Object.assign({},g,{ id:id, t:t, entrega:betaEstadoPrueba(g,prodApk,notes.v,prodVersion) }));
       planos=planos.concat(g.items);
     });
   });
@@ -1342,12 +1366,22 @@ function betaSavedVerdicts(pack){
 }
 /* `null` conserva las pruebas si falta evidencia de la entrega servida en Pages. */
 function useProdVersion(){
-  const [prod,setProd]=useState(null);
+  const [prod,setProd]=useState(typeof _mcProdVerLast!=="undefined"&&_mcProdVerLast&&_mcProdVerLast.version||null);
+  const [revision,setRevision]=useState(0);
   useEffect(function(){
     if(!window._mcProdVersion) return;
     let vivo=true;
-    window._mcProdVersion().then(function(v){ if(vivo) setProd(v||null); });
-    return function(){ vivo=false; };
+    const refresh=function(){
+      if(document.visibilityState==="hidden") return;
+      window._mcProdVersion({refresh:mcChannel()==="beta"}).then(function(v){ if(vivo){ setProd(v||null); setRevision(function(n){ return n+1; }); } });
+    };
+    refresh();
+    // La revisión se refresca en beta; Ajustes estable conserva una consulta por sesión.
+    if(mcChannel()==="beta"){
+      document.addEventListener("visibilitychange",refresh);
+      window.addEventListener("mc-prod-refresh",refresh);
+    }
+    return function(){ vivo=false; document.removeEventListener("visibilitychange",refresh); window.removeEventListener("mc-prod-refresh",refresh); };
   },[]);
   return prod;
 }
@@ -1432,8 +1466,9 @@ function BetaReviewPanel({onClose, showToast}){
     ensureReleaseNotes().then(function(){ if(alive) setNotesReady(function(n){ return n+1; }); });
     return function(){ alive=false; };
   },[]);
-  const pack=notesReady?betaChecklist(CONFIG.APP_VERSION, prod, window._mcProdApk):{ v:mcVerBase(CONFIG.APP_VERSION), t:"", items:[], tandas:[] };
-  const yaEnProd=(!notesReady||!RELEASE_NOTES.length||!prod||!/^\d+\.\d+\.\d+$/.test(mcVerBase(CONFIG.APP_VERSION)))
+  const proofMissing=window._mcProdDeliveryChecked===false;
+  const pack=notesReady&&!proofMissing?betaChecklist(CONFIG.APP_VERSION, prod, window._mcProdApk):{ v:mcVerBase(CONFIG.APP_VERSION), t:"", items:[], tandas:[] };
+  const yaEnProd=(proofMissing||!notesReady||!RELEASE_NOTES.length||!prod||!/^\d+\.\d+\.\d+$/.test(mcVerBase(CONFIG.APP_VERSION)))
     ? null
     : (!pack.tandas.length && !mcIsNewer(mcVerBase(CONFIG.APP_VERSION), prod) ? prod : false);
   // La clave por compilación conserva el formato antiguo; la herencia se decide por huella.
@@ -1676,12 +1711,13 @@ function BetaReviewPanel({onClose, showToast}){
        8/9): si la versión declara `tandas` es que las aprobó TODAS —el caso normal a partir de
        ahora—; si no declara ninguna es una versión suelta sin checklist. */
     !yaEnProd && pack.items.length===0 && React.createElement("div",{style:{fontSize:13,color:"var(--muted)"}},
-      !(RELEASE_NOTES&&RELEASE_NOTES.length) ? t("beta_notes_unavailable") :
+      proofMissing||!(RELEASE_NOTES&&RELEASE_NOTES.length) ? t("beta_notes_unavailable") :
       pack.tandas.length===0 && (RELEASE_NOTES||[]).some(function(n){ return n && n.tandas; })
         ? "✅ No queda nada por probar: has aprobado todas las tandas de esta ronda."
         : "Esta versión no trae notas, así que no hay checklist. Prueba lo que hayas tocado."),
 
     !RELEASE_NOTES.length && React.createElement(ReleaseNotesRetry,{onReady:function(){ setNotesReady(function(n){ return n+1; }); }}),
+    proofMissing&&React.createElement("button",{className:"btn btn-ghost",onClick:function(){ window.dispatchEvent(new CustomEvent("mc-prod-refresh")); }},t("st_cur_compare_retry")),
 
     /* UNA SECCIÓN POR TANDA, cada una con su veredicto (petición suya 2026-07-29).
        El punto de todo esto: que una tanda lista pueda subir HOY sin esperar a la que todavía
@@ -1692,7 +1728,7 @@ function BetaReviewPanel({onClose, showToast}){
       const c=cuenta(g.idx);
       const v=sent[g.id];
       const listo=c.pend===0 && c.ko===0;
-      const entrega=betaEstadoEntrega(g,window._mcProdApk);
+      const entrega=g.entrega||betaEstadoEntrega(g,window._mcProdApk);
       const superficies=function(estado){ return Object.keys(entrega).filter(function(s){ return entrega[s]===estado; }).map(function(s){ return s==="native"?t("beta_android_app"):s==="edge"?t("beta_server"):s; }).join(", "); };
       const pendientes=superficies("pending"), inciertas=superficies("unknown");
       /* Con veredicto —APROBADA O RECHAZADA— la tanda se encoge a su cabecera. Antes solo se
@@ -2919,12 +2955,13 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
             // «Code review» pero probando la app: la checklist sale de las notas de esta versión.
             // Solo tiene sentido estando en beta — en estable no hay nada que aprobar.
             beta && (function(){
-              const pack=betaChecklist(CONFIG.APP_VERSION, prodVer, window._mcProdApk);
+              const missing=window._mcProdDeliveryChecked===false;
+              const pack=missing?{tandas:[],items:[]}:betaChecklist(CONFIG.APP_VERSION, prodVer, window._mcProdApk);
               const c=betaMarksCount(pack);
               // Con la versión ya subida a producción la fila deja de cantar «3/8» — ese contador
               // se leía como trabajo pendiente cada vez que abría Ajustes, y no lo era (2026-07-28).
-              if(!pack.tandas.length) return null;
-              return row("betarev","🔍","Revisar esta beta", c.tot?(c.n+"/"+c.tot):null, function(){ betaMarcarAbierto(); setBetaOpen(true); });
+              if(!missing&&!pack.tandas.length) return null;
+              return row("betarev","🔍","Revisar esta beta", missing?"—":c.tot?(c.n+"/"+c.tot):null, function(){ betaMarcarAbierto(); setBetaOpen(true); });
             })(),
             (function(){
               // La bandera CRUDA: Ajustes pinta el estado que tendrá la PRÓXIMA sesión, que es lo

@@ -1,5 +1,3 @@
-Promoción3/10: fuente web aprobada86/49a preparada sobre main12884; APK estable32/code48 y workflow Supabase manual conservados. Java/TS son fuente, no entrega APK/Edge. CI/publicación pendiente; no inventar recibos nativos. [Acta](briefs/promocion-web-aprobadas-2026-10-03.md). Extras humanos pendientes en [inventario](briefs/inc-0310-extras-sincronizacion-asistente-gastos.md).
-
 # Setup Supabase — Fase 1 (Aely)
 
 FEATURE-0210-01: ingest_logic y ALLOWED/HINTS de categorize incorporan Gasolina/Taxi solo en fuente de la candidata85. No se ha desplegado ninguna función ni se ha consultado el hash/BD de Supabase vivo; el clasificador anterior puede seguir dando Transporte hasta un gate de despliegue específico. El catálogo/selector/filtros/límites y altas manuales/MCC web funcionan sin despliegue; las notificaciones clasificadas por el servidor anterior aún pueden entrar como Transporte. La migración0001 define expenses.cat como text sin whitelist y las migraciones registradas no la restringen; no requiere SQL nueva. Tests sintéticos ejecutan alta cloud/pull con ambos IDs, presupuesto.ts del SHA3467 y retry/ACK/conflicto de ingest con clasificador de ese baseline: preservan elección manual y cuentan categorías diarias. Esto prueba fuente/contratos, no estado vivo ni captura Wallet nueva.
@@ -220,3 +218,6 @@ No desplegar ingest de la rama SEC-03 sin portar su delta de logger sobre la fue
 ### Widget80 conserva ingest
 
 No Edge/SQL desplegada ni modificada por el injerto. Ingest activo sigue legado; v2 oculta cifras sin evidencia compatible y pide abrir la app. DeltaPR87 sigue separado y NO-GO. Un backend futuro exige su autorización y guion real propio. [Acta](briefs/inc-2909-01-widget.md).
+
+
+Movilidad88: espejo y ALLOWED/HINTS preparados como fuente. No despliega Edge ni SQL. Sin detalle inequívoco conserva tasas/parking/transporte; servidor anterior y requisitos Edge siguen pendientes.

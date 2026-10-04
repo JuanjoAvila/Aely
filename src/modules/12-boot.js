@@ -105,21 +105,56 @@ function mcFetchManifest(name){
    saberlo —solo miraba la versión que lleva puesta— así que seguía pidiendo que aprobara una
    beta que él mismo había promocionado horas antes. Con esto, el panel compara y se calla.
 
-   Se cachea en memoria (no en localStorage) para no pedirlo en cada apertura del panel; una
-   sesión de app es un intervalo perfectamente razonable para este dato. Falla en silencio a
-   `null` = «no se sabe», que la UI trata como «sigue preguntando»: quedarse callado por un fallo
-   de red sería peor que preguntar de más. */
+   Se comparten las consultas en vuelo; reabrir o volver refresca la entrega. Sin red se conserva
+   la última evidencia pública comprobada para no resucitar lo estrenado. Sin evidencia previa,
+   `null` mantiene la incertidumbre. */
 var _mcProdVerCache=null;
-window._mcProdVersion=function(){
+var _mcProdVerPending=false;
+var _mcProdVerLast=null;
+try{ _mcProdVerLast=JSON.parse(localStorage.getItem("_betaProdDelivery")||"null"); }catch(e){}
+window._mcProdDeliveryChecked=!!(_mcProdVerLast&&_mcProdVerLast.entregas&&_mcProdVerLast.entregas.pruebas);
+if(_mcProdVerLast){
+  window._mcProdApk=_mcProdVerLast.apk;window._mcProdApkRevisiones=_mcProdVerLast.native;
+  window._mcProdEntregas=_mcProdVerLast.entregas;
+}
+window._mcProdVersion=function(opts){
+  // Reabrir la revisión o volver del móvil debe consultar la entrega actual, no la del arranque.
+  if(opts&&opts.refresh&&!_mcProdVerPending) _mcProdVerCache=null;
   if(_mcProdVerCache) return _mcProdVerCache;
   var pide=function(f){ return mcGetJson(_mcOtaBASE+f+"?ts="+Date.now())
     .then(function(r){ return r.ok?r.json():null; }).catch(function(){ return null; }); };
   // La APK estable decide si una tanda nativa ya se entregó; la web sola no la lleva (30/9).
+  _mcProdVerPending=true;
   _mcProdVerCache=Promise.all([pide("version.json"),pide("apk.json"),pide("beta-delivery.json")]).then(function(r){
+    if(!r[0]&&_mcProdVerLast) r=[{version:_mcProdVerLast.version},
+      {versionCode:_mcProdVerLast.apk,revisiones:_mcProdVerLast.native},_mcProdVerLast.entregas];
+    else if(r[0]&&_mcProdVerLast&&r[0].version===_mcProdVerLast.version){
+      if(!r[1]) r[1]={versionCode:_mcProdVerLast.apk,revisiones:_mcProdVerLast.native};
+      if(!r[2]) r[2]=_mcProdVerLast.entregas;
+      var known=_mcProdVerLast.entregas;
+      if(r[2]&&known&&/^[a-f0-9]{40}$/i.test(r[2].sourceSha||"")&&r[2].sourceSha===known.sourceSha&&known.pruebas)
+        r[2]=Object.assign({},r[2],{pruebas:known.pruebas});
+    }
+    // Compatibilidad con el recibo anterior: el guion servido acredita la función estrenada,
+    // mientras los recibos nativo/Edge siguen exigiendo su entrega propia.
+    return (r[2]&&!r[2].pruebas?pide("release-notes.json"):Promise.resolve(null)).then(function(notes){
+      r[2]=betaPruebasEntrega(r[2],notes,r[0]&&r[0].version);
     window._mcProdApk=r[1]&&r[1].versionCode>0?r[1].versionCode:null;
     window._mcProdApkRevisiones=r[1]&&r[1].revisiones||null;
     window._mcProdEntregas=r[2];
+    window._mcProdDeliveryChecked=!!(r[0]&&r[0].version&&r[2]&&r[2].pruebas);
+    if(r[0]&&r[0].version&&r[2]){
+      _mcProdVerLast={version:String(r[0].version),apk:window._mcProdApk,native:window._mcProdApkRevisiones,entregas:r[2]};
+      // Solo artefactos públicos: perder red no vuelve a pedir las funciones ya estrenadas.
+      try{ var stored=JSON.stringify(_mcProdVerLast); if(localStorage.getItem("_betaProdDelivery")!==stored) localStorage.setItem("_betaProdDelivery",stored); }catch(e){}
+    }
+    _mcProdVerPending=false;
     return (r[0]&&r[0].version)?String(r[0].version):null;
+    });
+  }).catch(function(){
+    // Un recibo mal formado no puede bloquear para siempre el botón de reintentar.
+    _mcProdVerPending=false;_mcProdVerCache=null;
+    return _mcProdVerLast&&_mcProdVerLast.version||null;
   });
   return _mcProdVerCache;
 };
