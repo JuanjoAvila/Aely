@@ -19242,11 +19242,14 @@ function useProdVersion(){
     let vivo=true;
     const refresh=function(){
       if(document.visibilityState==="hidden") return;
-      window._mcProdVersion({refresh:true}).then(function(v){ if(vivo){ setProd(v||null); setRevision(function(n){ return n+1; }); } });
+      window._mcProdVersion({refresh:mcChannel()==="beta"}).then(function(v){ if(vivo){ setProd(v||null); setRevision(function(n){ return n+1; }); } });
     };
     refresh();
-    document.addEventListener("visibilitychange",refresh);
-    window.addEventListener("mc-prod-refresh",refresh);
+    // La revisión se refresca en beta; Ajustes estable conserva una consulta por sesión.
+    if(mcChannel()==="beta"){
+      document.addEventListener("visibilitychange",refresh);
+      window.addEventListener("mc-prod-refresh",refresh);
+    }
     return function(){ vivo=false; document.removeEventListener("visibilitychange",refresh); window.removeEventListener("mc-prod-refresh",refresh); };
   },[]);
   return prod;
@@ -19972,7 +19975,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="9dede6c7ed8cd7876d6542650d6409bc6344adde7e96d76da15cbdfebdd90afb";
+var _rnSha="508d9e3b6600f12f30499935c138761435500da20bd8caa86f3f59646e95b5ce";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -27310,11 +27313,15 @@ window._mcProdVersion=function(opts){
     if(r[0]&&r[0].version&&r[2]){
       _mcProdVerLast={version:String(r[0].version),apk:window._mcProdApk,native:window._mcProdApkRevisiones,entregas:r[2]};
       // Solo artefactos públicos: perder red no vuelve a pedir las funciones ya estrenadas.
-      try{ localStorage.setItem("_betaProdDelivery",JSON.stringify(_mcProdVerLast)); }catch(e){}
+      try{ var stored=JSON.stringify(_mcProdVerLast); if(localStorage.getItem("_betaProdDelivery")!==stored) localStorage.setItem("_betaProdDelivery",stored); }catch(e){}
     }
     _mcProdVerPending=false;
     return (r[0]&&r[0].version)?String(r[0].version):null;
     });
+  }).catch(function(){
+    // Un recibo mal formado no puede bloquear para siempre el botón de reintentar.
+    _mcProdVerPending=false;_mcProdVerCache=null;
+    return _mcProdVerLast&&_mcProdVerLast.version||null;
   });
   return _mcProdVerCache;
 };

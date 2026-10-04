@@ -1,3 +1,9 @@
+## [4.26.93] — 2026-10-04 · Cierre de revisión del panel
+
+- Revisión independiente de Claude sobre cc3402be: refresh en cada vuelta solo en beta; estable conserva la consulta por sesión. El recibo público no se reescribe si su JSON es idéntico.
+- Un rechazo durante el procesamiento del recibo libera la consulta en vuelo y permite reintentar, conservando la última evidencia pública. Sigue la tanda ops-0410-panel-cola de92, sin añadir pasos ni cambiar decisiones.
+- Regresiones de transporte y hook en el DOM real dentro de revisar-beta, ya registrado. Publicación de93 pendiente.
+
 ## [4.26.92] — 2026-10-04 · Cola de revisión beta pendiente
 
 - Cambios compartidos regeneraban las identidades de funciones ya estrenadas: la beta90.5 reproducía16 tandas/40 puntos. La cola contrasta el guion estrenado y el recibo web, sin convertir diferencias de alcance en una nueva petición de probar la función antigua. Las correcciones nuevas conservan su nota y prueba; APK/Edge pendientes siguen requiriendo recibos propios. La auditoría de código y sus identidades no se falsean.

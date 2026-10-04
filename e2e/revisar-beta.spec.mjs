@@ -4,6 +4,56 @@ import { betaRevision } from "../scripts/beta-revisions.mjs";
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
+test("cola beta: una entrega mal formada permite reintentar sin bloquear la consulta",async({page})=>{
+  await abrirRevisionBeta(page);
+  await page.evaluate(()=>{
+    window._mcProdVersion=window.__e2eRealProdVersion;
+    window.__goodProof=betaPruebasEntrega;
+    betaPruebasEntrega=function(){throw new Error("recibo sintético inválido");};
+  });
+  const failed=await page.evaluate(async()=>{await window._mcProdVersion({refresh:true});return _mcProdVerPending;});
+  expect(failed).toBe(false);
+  await page.evaluate(()=>{betaPruebasEntrega=window.__goodProof;});
+  await page.unroute("https://juanjoavila.github.io/Aely/**");
+  await page.route("https://juanjoavila.github.io/Aely/**",route=>{
+    const asset=new URL(route.request().url()).pathname.split("/").pop();
+    return route.fulfill({json:asset==="version.json"?{version:"9.9.2"}:asset==="apk.json"?{versionCode:48}:{sourceSha:"a".repeat(40),web:{},pruebas:{}}});
+  });
+  expect(await page.evaluate(()=>window._mcProdVersion({refresh:true}))).toBe("9.9.2");
+  expect(await page.evaluate(()=>_mcProdVerPending)).toBe(false);
+});
+
+test("cola beta: Ajustes estable consulta una vez y beta refresca al volver",async({page})=>{
+  // El canal se fija antes del montaje de App: cambiarlo después deja sus listeners beta vivos.
+  await page.route("https://juanjoavila.github.io/Aely/**",route=>route.abort());
+  await seedLoggedInDashboard(page);
+  await page.addInitScript(()=>localStorage.setItem("_mcChannel","stable"));
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible();
+  await dismissNews(page);
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await page.evaluate(async()=>{if(_mcProdVerCache)await _mcProdVerCache;});
+  await page.evaluate(()=>{
+    window.__prodCalls=[];window.__testChannel="stable";
+    mcChannel=function(){return window.__testChannel;};
+    window._mcProdVersion=function(opts){window.__prodCalls.push(opts);return Promise.resolve("9.9.2");};
+    window.__mountProdHook=function(){const host=document.createElement("div");document.body.appendChild(host);window.__prodRoot=ReactDOM.createRoot(host);window.__prodRoot.render(React.createElement(function(){const v=useProdVersion();return React.createElement("span",{"data-prod-hook":"yes"},v);}));};
+    window.__mountProdHook();
+  });
+  await expect(page.locator('[data-prod-hook="yes"]')).toHaveText("9.9.2");
+  // App y el montaje aislado comparten transporte: importa que volver no refresque ninguno.
+  const stableCalls=await page.evaluate(()=>window.__prodCalls.length);
+  expect(await page.evaluate(()=>window.__prodCalls.every(c=>c.refresh===false))).toBe(true);
+  await page.evaluate(()=>document.dispatchEvent(new Event("visibilitychange")));
+  expect(await page.evaluate(()=>window.__prodCalls.length)).toBe(stableCalls);
+  await page.evaluate(()=>{window.__prodRoot.unmount();window.__testChannel="beta";window.__mountProdHook();});
+  await expect(page.locator('[data-prod-hook="yes"]')).toHaveText("9.9.2");
+  await expect.poll(()=>page.evaluate(()=>window.__prodCalls.length)).toBe(stableCalls+1);
+  await page.evaluate(()=>document.dispatchEvent(new Event("visibilitychange")));
+  await expect.poll(()=>page.evaluate(()=>window.__prodCalls.length)).toBe(stableCalls+2);
+  expect(await page.evaluate(()=>window.__prodCalls.slice(-2))).toEqual([{refresh:true},{refresh:true}]);
+});
+
 test("cola beta: transporte real refresca producción, rescata recibo anterior y conserva entrega offline",async({page})=>{
   await abrirRevisionBeta(page);
   const data=await page.evaluate(()=>{
@@ -34,7 +84,9 @@ test("cola beta: transporte real refresca producción, rescata recibo anterior y
   await expect(panel.locator(".beta-tanda")).toHaveCount(1);await expect(panel).toContainText("Novedad");await expect(panel).not.toContainText("Estrenada");
   expect(noteReads).toBeGreaterThan(0);
   const firstReads=noteReads;
+  await page.evaluate(()=>{window.__receiptWrites=0;const original=localStorage.setItem.bind(localStorage);localStorage.setItem=function(k,v){if(k==="_betaProdDelivery")window.__receiptWrites++;return original(k,v);};});
   expect(await page.evaluate(()=>window._mcProdVersion({refresh:true}))).toBe("9.9.2");
+  expect(await page.evaluate(()=>window.__receiptWrites)).toBe(0,"el recibo idéntico no se reescribe");
   expect(noteReads).toBe(firstReads,"un recibo del mismo SHA reutiliza su guion sin descargar de nuevo todo el histórico");
   offline=true;await page.evaluate(()=>document.dispatchEvent(new Event("visibilitychange")));
   await expect(panel.locator(".beta-tanda")).toHaveCount(1);await expect(panel).not.toContainText("Estrenada");

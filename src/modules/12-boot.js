@@ -146,11 +146,15 @@ window._mcProdVersion=function(opts){
     if(r[0]&&r[0].version&&r[2]){
       _mcProdVerLast={version:String(r[0].version),apk:window._mcProdApk,native:window._mcProdApkRevisiones,entregas:r[2]};
       // Solo artefactos públicos: perder red no vuelve a pedir las funciones ya estrenadas.
-      try{ localStorage.setItem("_betaProdDelivery",JSON.stringify(_mcProdVerLast)); }catch(e){}
+      try{ var stored=JSON.stringify(_mcProdVerLast); if(localStorage.getItem("_betaProdDelivery")!==stored) localStorage.setItem("_betaProdDelivery",stored); }catch(e){}
     }
     _mcProdVerPending=false;
     return (r[0]&&r[0].version)?String(r[0].version):null;
     });
+  }).catch(function(){
+    // Un recibo mal formado no puede bloquear para siempre el botón de reintentar.
+    _mcProdVerPending=false;_mcProdVerCache=null;
+    return _mcProdVerLast&&_mcProdVerLast.version||null;
   });
   return _mcProdVerCache;
 };

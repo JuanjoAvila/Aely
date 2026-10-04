@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-10-04 · **v4.26.92** candidata local de revisión beta. Cola basada en novedades y entregas pendientes; conserva el historial y consulta producción al reabrir/volver. Beta verificada 4.26.90.5 (be3081), producción 4.26.86 (d366215a); APK beta80/code52 y estable32/code48 conservadas. Publicación y prueba móvil pendientes. [Acta](briefs/ops-0410-panel-cola.md).
+> Estado a 2026-10-04 · **v4.26.93** candidata local de revisión beta. Cola basada en novedades y entregas pendientes; conserva el historial y consulta producción al reabrir/volver. Beta verificada 4.26.90.5 (be3081), producción 4.26.86 (d366215a); APK beta80/code52 y estable32/code48 conservadas. Publicación y prueba móvil pendientes. [Acta](briefs/ops-0410-panel-cola.md).
 
 > Snapshot anterior a 2026-10-03 (superado por la entrega) · v4.26.90 candidata local sobre fuente Brókers89 todavía pendiente de CI/publicación; beta88.1 y producción86 eran las últimas acreditadas.
 
@@ -253,7 +253,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.92** candidata local; beta verificada 4.26.90.5 y producción 4.26.86. |
+| Web / OTA (`VERSION`) | **4.26.93** candidata local; beta verificada 4.26.90.5 y producción 4.26.86. |
 | APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base; Metas87 no genera APK. Cotejo servido en gate de entrega. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a3467; Metas87 no reemplaza binario ni manifiesto. |

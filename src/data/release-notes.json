@@ -1,5 +1,29 @@
 [
   {
+    "v": "4.26.93",
+    "d": "2026-10-04",
+    "t": {
+      "es": "Comprobaciones más fiables",
+      "en": "More reliable checks",
+      "ca": "Comprovacions més fiables"
+    },
+    "items": {
+      "es": [
+        "La lista de comprobaciones permite volver a intentar una consulta fallida.",
+        "Los datos ya comprobados se conservan sin guardarlos otra vez cuando no han cambiado."
+      ],
+      "en": [
+        "The checklist lets you retry a failed lookup.",
+        "Verified data is preserved without saving it again when unchanged."
+      ],
+      "ca": [
+        "La llista de comprovacions permet tornar a intentar una consulta fallida.",
+        "Les dades ja comprovades es conserven sense desar-les de nou quan no han canviat."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.92",
     "d": "2026-10-04",
     "t": {

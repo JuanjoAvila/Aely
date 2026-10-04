@@ -497,3 +497,5 @@ operación de efectivo importado explicada. FIN-04/RLS y suma compartida siguen 
 
 
 Movilidad88 se integra en worktree propio sobre039d; no incorpora arreglos nuevos de los extras3/10 ni acredita aprobación móvil o producción.
+
+Corte4/10 · OPS-0410 panel: PR121 integrado solo beta, CI37198285128 pendiente; cierre93 de dos hallazgos independientes implementado y comprobado, sin añadir otra tanda. Metas mensual automática encargada a Claude en paralelo, versión>=94; no incluida ni declarada completada en este cambio.

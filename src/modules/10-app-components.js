@@ -1373,11 +1373,14 @@ function useProdVersion(){
     let vivo=true;
     const refresh=function(){
       if(document.visibilityState==="hidden") return;
-      window._mcProdVersion({refresh:true}).then(function(v){ if(vivo){ setProd(v||null); setRevision(function(n){ return n+1; }); } });
+      window._mcProdVersion({refresh:mcChannel()==="beta"}).then(function(v){ if(vivo){ setProd(v||null); setRevision(function(n){ return n+1; }); } });
     };
     refresh();
-    document.addEventListener("visibilitychange",refresh);
-    window.addEventListener("mc-prod-refresh",refresh);
+    // La revisión se refresca en beta; Ajustes estable conserva una consulta por sesión.
+    if(mcChannel()==="beta"){
+      document.addEventListener("visibilitychange",refresh);
+      window.addEventListener("mc-prod-refresh",refresh);
+    }
     return function(){ vivo=false; document.removeEventListener("visibilitychange",refresh); window.removeEventListener("mc-prod-refresh",refresh); };
   },[]);
   return prod;
