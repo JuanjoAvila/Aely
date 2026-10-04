@@ -108,8 +108,22 @@ export function loadPureLogicFromFile() {
   // NOTAS-BUNDLE: el index ya no lleva el histórico; los tests / `npm run listo` lo leen del JSON.
   const notesPath = path.join(root, "src", "data", "release-notes.json");
   if (fs.existsSync(notesPath)) {
-    const notes = betaNotes(JSON.parse(fs.readFileSync(notesPath, "utf8")));
-    if (Array.isArray(notes) && notes.length) sandbox.RELEASE_NOTES = notes;
+    // Las pruebas financieras no usan el histórico: recalcular sus identidades en cada
+    // proceso costaba segundos antes de ejecutar una sola aserción (medido4/10).
+    // Quien lo consulta sigue ejecutando la misma auditoría completa, una vez por sandbox.
+    let ready = false, notes = sandbox.RELEASE_NOTES;
+    Object.defineProperty(sandbox, "RELEASE_NOTES", {
+      configurable: true, enumerable: true,
+      get() {
+        if (!ready) {
+          const built = betaNotes(JSON.parse(fs.readFileSync(notesPath, "utf8")));
+          if (Array.isArray(built) && built.length) notes = built;
+          ready = true;
+        }
+        return notes;
+      },
+      set(value) { notes = value; ready = true; },
+    });
   }
   return sandbox;
 }

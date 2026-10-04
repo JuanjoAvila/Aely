@@ -8,7 +8,7 @@ Candidata Gasolina/Taxi: Apuntar → todas las categorías permite elegirlas por
 
 
 
-En Ajustes → Revisar la beta, una comprobación aprobada conserva su resultado tras actualizar y reabrir. Cada tanda guarda sus marcas y comentarios por separado; un cambio real de código o guion requiere nueva revisión. La aprobación y la entrega se muestran por separado.
+En Ajustes → Revisar la beta, una comprobación aprobada conserva su resultado tras actualizar y reabrir. Cada tanda guarda sus marcas y comentarios por separado; las correcciones nuevas tienen su prueba y las funciones estrenadas salen de la cola aunque cambie una dependencia compartida. La aprobación y la entrega se muestran por separado.
 
 OPS-02: Ajustes → Copia de seguridad → Copias automáticas → Ver copia permite comparar sin sustituir la cartera.
 Inicio muestra el gasto bruto en el mes natural; con presupuesto por ciclo y nómina reconocida muestra el gasto neto tras los ingresos recibidos y el margen que queda. Plan deja de prever un ingreso que el banco ya identifica claramente.
@@ -41,6 +41,7 @@ En Plan → Deudas, un saldo estimado a cero pide confirmar la liquidación. Des
 mi-cartera/
 ├── scripts/beta-source-code.mjs # Guardia de funciones/datos transitivos y delimitación por sintaxis, sin dependencias
 ├── scripts/beta-sources.json # Alcances explícitos de revisión; beta-revisions.mjs genera digests/recibo
+├── tests/pure-logic-notes.test.mjs · beta-source-parse.test.mjs # Carga diferida y cortes exactos sin debilitar auditorías
 ├── tests/beta-veredictos.test.mjs # Contrato compartido del panel y listo; beta-sources protege el ensamblado
 ├── tests/listo-actor.test.mjs # CLI real sin red: actor Dev autorizado y fallo cerrado si no se acredita
 ├── src/                    # 👈 Fuente editable (v3.108+)
@@ -102,7 +103,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.90** servida en el canal beta como 4.26.90.2 (corte 4/10, 02:35 UTC). Gastos oculta el límite de otros periodos y aprovecha todo el ancho; incluye Brókers89, entregada antes como 4.26.89.1. Cada cosa con su prueba, sin mezclarlas: **fuente** `beta` en `7f3da23b`, merge de [PR117](https://github.com/JuanjoAvila/Aely/pull/117), que solo añade una guardia de tests: lo que se usa no cambia respecto a 4.26.90.1; **canal beta servido** 4.26.90.2 desde ese mismo `7f3da23b`, publicación [37168006229](https://github.com/JuanjoAvila/Aely/actions/runs/37168006229) sin reintentos y manifiesto, ZIP, HTML, SW, notas y recibos cotejados con la fuente (Gastos se entregó primero como 4.26.90.1 desde el merge `4a2e3c54` de [PR116](https://github.com/JuanjoAvila/Aely/pull/116), publicación [37158585994](https://github.com/JuanjoAvila/Aely/actions/runs/37158585994)); **producción** sigue en 4.26.86 (`d366215a`), sin promoción; **APK** beta 4.26.80/code52 y estable 4.26.32/code48, sin binario nuevo ni prueba en dispositivo; **aceptación en el móvil** de 89 y 90: ninguna todavía; **Edge/SQL**: sin entregas nuevas. Una CI verde no es una aprobación. [Gastos](docs/briefs/inc-0310-gastos-sin-limite.md) · [Brókers](docs/briefs/inc-0310-broker-resultados.md).
+Estado actual: **v4.26.92** candidata local para la cola de revisión. Beta verificada 4.26.90.5 (fuente be3081); producción 4.26.86 (d366215a). APK beta 4.26.80/code52 y estable 4.26.32/code48 conservadas. Publicación de esta candidata y prueba móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 
 Corte anterior (3/10, superado por la entrega de arriba): v4.26.90 era candidata local, con Brókers89 pendiente de CI/publicación y beta88.1 y producción86 como últimas entregas acreditadas.
 

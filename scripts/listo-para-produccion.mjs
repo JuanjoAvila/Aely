@@ -135,6 +135,12 @@ try {
   const r = await fetch("https://juanjoavila.github.io/Aely/beta-delivery.json", { redirect: "follow" });
   cli.window._mcProdEntregas = r.ok ? await r.json() : null;
 } catch { cli.window._mcProdEntregas = null; }
+if(cli.window._mcProdEntregas&&!cli.window._mcProdEntregas.pruebas){
+  try{
+    const r=await fetch("https://juanjoavila.github.io/Aely/release-notes.json",{redirect:"follow"});
+    if(r.ok) cli.window._mcProdEntregas=cli.betaPruebasEntrega(cli.window._mcProdEntregas,await r.json(),prod);
+  }catch{ /* sin guion comprobado se conserva la entrega desconocida */ }
+}
 const pack = cli.betaChecklist(VERSION, prod || "", prodApk);
 const tandas = pack.tandas || [];
 

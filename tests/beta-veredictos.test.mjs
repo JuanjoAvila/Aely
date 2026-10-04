@@ -394,5 +394,31 @@ t("compatibilidad auditada respeta la última retirada/rechazo y no salta a un O
     assert.equal(cli.betaVerdictFor(a,rows)?.verdict||null,verdict==="rejected"?"rejected":null);
   }
 });
+t("la cola retira una función estrenada aunque cambie una dependencia compartida",()=>{
+  const old=cli.window._mcProdEntregas;
+  const g=cli.betaTandas({tandas:[tanda("entregada",{codigo:"nuevo",web:"nuevo-web"})]})[0];
+  cli.window._mcProdEntregas={web:{entregada:"prod-web"},pruebas:{entregada:{v:"9.9.1",contenido:JSON.stringify([g.id,g.t,Array.from(g.items),g.rev])}}};
+  try{
+    assert.equal(cli.betaSinEntregar(g,48),true,"el alcance distinto sigue visible en la auditoría de código");
+    assert.equal(cli.betaPruebaPendiente(g,48,"9.9.1","9.9.2"),false,"no obliga a probar de nuevo la función estrenada");
+    assert.equal(cli.betaPruebaPendiente(g,48,"9.9.3","9.9.2"),true,"una corrección nueva en beta conserva su prueba");
+    assert.equal(cli.betaPruebaPendiente({...g,rev:2},48,"9.9.1","9.9.2"),true,"un nuevo guion conserva su prueba");
+    assert.equal(cli.betaPruebaPendiente({...g,apk:51,native:"apk-beta"},48,"9.9.1","9.9.2"),true,"una APK pendiente sigue pendiente");
+    assert.equal(cli.betaEstadoPrueba({...g,apk:51,native:"apk-beta"},48,"9.9.1","9.9.2").web,undefined,"el aviso no inventa una web pendiente para una función estrenada");
+    assert.equal(cli.betaEstadoPrueba({...g,apk:51,native:"apk-beta"},48,"9.9.1","9.9.2").native,"pending");
+    assert.equal(cli.betaPruebaPendiente({...g,edge:"edge-beta"},48,"9.9.1","9.9.2"),true,"Edge sin entrega sigue pendiente");
+    delete cli.window._mcProdEntregas.pruebas;
+    assert.equal(cli.betaPruebaPendiente(g,48,"9.9.1","9.9.2"),true,"sin evidencia no inventa entrega");
+  }finally{cli.window._mcProdEntregas=old;}
+});
+t("recibos antiguos solo aceptan el guion de la versión servida",()=>{
+  const receipt={web:{entregada:"prod-web"}},notes=[{v:"9.9.2",tandas:[tanda("entregada")]}];
+  assert.equal(cli.betaPruebasEntrega(receipt,notes,"9.9.3"),receipt,"una nota cacheada no acredita otra entrega");
+  assert.equal(cli.betaPruebasEntrega(receipt,notes,null),receipt);
+  assert.equal(cli.betaPruebasEntrega(null,notes,"9.9.2"),null);
+  const proof=cli.betaPruebasEntrega(receipt,notes,"9.9.2");
+  assert.equal(proof.pruebas.entregada.contenido,JSON.stringify(["entregada","Tanda entregada",["1. Probar entregada"],1]));
+  assert.equal(receipt.pruebas,undefined,"no modifica el artefacto original");
+});
 if (failed) { console.error(`\nbeta-veredictos: ${failed} fallo(s)`); process.exit(1); }
 console.log("\nbeta-veredictos: OK");

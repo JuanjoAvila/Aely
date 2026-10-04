@@ -161,14 +161,24 @@ test.describe("ronda cacheada del panel de beta",()=>{
     const notes=[{v:base,d:"e2e",t:{es:"Offline",en:"Offline",ca:"Offline"},items:{es:[],en:[],ca:[]},tandas:[{id:"inc-2709-01-arranque-red",t:title,items:{es:[title],en:[title],ca:[title]},...revision}]}];
     const json=JSON.stringify(notes),sha=crypto.createHash("sha256").update(json).digest("hex"),html=fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8");
     let offline=false,compilation=version,aborts=0;
-    // El escenario offline conserva su ronda; una entrega real ajena no puede retirarla.
-    await page.route("https://juanjoavila.github.io/Aely/**",route=>route.abort());
+    // El escenario offline conserva su ronda y su entrega pública comprobadas.
+    // Sin este recibo inicial sería el primer arranque sin evidencia, que oculta la cola.
+    await page.route("https://juanjoavila.github.io/Aely/**",route=>{
+      if(offline)return route.abort();
+      const asset=new URL(route.request().url()).pathname.split("/").pop();
+      if(asset==="version.json")return route.fulfill({json:{version:"9.9.0"}});
+      if(asset==="apk.json")return route.fulfill({json:{versionCode:48}});
+      if(asset==="beta-delivery.json")return route.fulfill({json:{sourceSha:"a".repeat(40),web:{},pruebas:{}}});
+      return route.abort();
+    });
     await seedLoggedInDashboard(page,{__seedOnce:true,__seenVersion:base,expenses:[{id:"e1",date:"2026-09-14",amount:12.5,merchant:"Cafe",category:"bares",source:"manual"}]});
     await page.addInitScript(()=>{localStorage.setItem("_mcChannel","beta");localStorage.setItem("_seenVersion","9.9.1");});
     await page.route("**/",route=>route.fulfill({contentType:"text/html",body:html.replace('APP_VERSION: "dev"','APP_VERSION: "'+compilation+'"').replace(/var _rnSha="[0-9a-f]{64}";/,'var _rnSha="'+sha+'";')}));
     await page.route("**/release-notes.json*",route=>{if(offline){aborts++;return route.abort();}return route.fulfill({contentType:"application/json",body:json});});
     await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));
     await page.waitForFunction(()=>RELEASE_NOTES.length===1);
+    expect(await page.evaluate(()=>window._mcProdVersion({refresh:true}))).toBe("9.9.0");
+    expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("_betaProdDelivery")).entregas.pruebas)).toEqual({});
     expect(await page.evaluate(v=>JSON.parse(localStorage.getItem("_rnBetaRound_"+v)),version)).toEqual({sha:sha,notes:notes});
     await page.evaluate(b=>localStorage.setItem("_rnHead_"+b,JSON.stringify({v:b,t:"Cabeza antigua sin verificar",items:["Cabeza antigua sin verificar"]})),base);
     offline=true;await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);

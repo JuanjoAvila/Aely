@@ -44,6 +44,8 @@ const steps = [
   ["help-assistant", ["node", "tests/help-assistant.test.mjs"]],
   ["guard-privacy", ["node", "scripts/guard-privacy.mjs"]],
   ["check-syntax", ["node", "scripts/check-syntax.mjs"]],
+  ["pure-logic-notes", ["node", "tests/pure-logic-notes.test.mjs"]],
+  ["beta-source-parse", ["node", "tests/beta-source-parse.test.mjs"]],
   ["i18n-keys", ["node", "tests/i18n-keys.test.mjs"]],
   ["i18n-categorias", ["node", "tests/i18n-categorias.test.mjs"]],
   ["i18n-bundle", ["node", "tests/i18n-bundle.test.mjs"]],

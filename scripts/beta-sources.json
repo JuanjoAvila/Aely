@@ -560,6 +560,18 @@
       },
       {
         "file": "src/modules/10-app-components.js",
+        "function": "betaPruebasEntrega"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaEstadoPrueba"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaPruebaPendiente"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
         "function": "betaChecklist"
       },
       {
@@ -9697,6 +9709,166 @@
         "file": "src/shell.html",
         "from": "  .v4-gastos-summary-top{",
         "to": "  .v4-gastos-progress{"
+      }
+    ],
+    "unidades": true
+  },
+  "ops-0410-panel-cola": {
+    "web": [
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaHuella"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaVerdictFor"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaEstadoEntrega"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaSinEntregar"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaPruebasEntrega"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaEstadoPrueba"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaPruebaPendiente"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaChecklist"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaTandas"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaScopedMarks"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaRememberMarks"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaStoredMarks"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaMarksCount"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaSavedVerdicts"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "useProdVersion"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "data": "BETA_ABIERTO_KEY"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "data": "BETA_SCROLL_KEY"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "data": "BETA_REABIERTO_KEY"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "data": "BETA_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaDebeReabrirse"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaMarcarReabierto"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaMarcarAbierto"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaOlvidarVuelta"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "BetaReviewPanel"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "from": "            beta && (function(){",
+        "to": "            (function(){\n              // La bandera CRUDA:"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcBetaLog"
+      },
+      {
+        "file": "src/modules/12-boot.js",
+        "from": "var _mcProdVerCache=null;",
+        "to": "/* CAMBIAR DE CANAL NO ES"
+      },
+      "scripts/beta-revisions.mjs",
+      "scripts/beta-source-code.mjs",
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "cloud",
+        "members": [
+          "betaReport"
+        ]
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "ensureReleaseNotes"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "releaseNotesUrl"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaNotesVerified"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "data": "_rnSha"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "ReleaseNotesRetry"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "WhatsNew"
       }
     ],
     "unidades": true

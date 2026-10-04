@@ -75,7 +75,21 @@ export function logicFunctions(read, files=["src/modules/00-core.js","src/module
     const scan=codeMask(text);
     let m;while((m=re.exec(scan))){
       const name=m[1]||m[2],start=m.index;
-      const endings=/[;}](?=[ \t]*(?:\/\/[^\n]*)?(?:\n|$))/g;endings.lastIndex=start+m[0].length;let end;
+      const endings=/[;}](?=[ \t]*(?:\/\/[^\n]*)?(?:\n|$))/g;endings.lastIndex=start+m[0].length;
+      // No tiene sentido compilar miles de prefijos incompletos de App: la máscara ya
+      // distingue delimitadores de literales. VM sigue validando el corte y su sufijo.
+      // Las expresiones/arrow conservan el recorrido anterior (medición4/10).
+      if(m[1]){
+        let round=0,square=0,curly=0;
+        for(let k=start;k<scan.length;k++){
+          const c=scan[k];
+          if(c==="(")round++;else if(c===")")round--;else if(c==="[")square++;else if(c==="]")square--;
+          else if(c==="{")curly++;else if(c==="}"){
+            curly--;if(round===0&&square===0&&curly===0){endings.lastIndex=k;break;}
+          }
+        }
+      }
+      let end;
       while((end=endings.exec(text))){const piece=text.slice(start,end.index+1);try{new vm.Script(piece);if(result.has(name))throw new Error("Función duplicada "+name);const fn={name,file,start,end:end.index+1,text:piece};result.set(name,fn);own.set(name,fn);break;}catch(error){if(error.message.startsWith("Función duplicada"))throw error;}}
       if(!end)throw new Error("Función no delimitada "+file+":"+name);
     }

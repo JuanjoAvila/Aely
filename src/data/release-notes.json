@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.92",
+    "d": "2026-10-04",
+    "t": {
+      "es": "Comprobaciones al día",
+      "en": "Updated checks",
+      "ca": "Comprovacions al dia"
+    },
+    "items": {
+      "es": [
+        "La lista de comprobaciones conserva solo lo pendiente, sin repetir funciones ya disponibles.",
+        "Al volver a abrirla, la lista se actualiza y conserva los resultados anteriores."
+      ],
+      "en": [
+        "The checklist keeps only pending items, without repeating features already available.",
+        "Reopening the list refreshes it and preserves earlier results."
+      ],
+      "ca": [
+        "La llista de comprovacions conserva només el que queda pendent, sense repetir funcions ja disponibles.",
+        "En tornar-la a obrir, la llista s’actualitza i conserva els resultats anteriors."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "ops-0410-panel-cola",
+        "t": {
+          "es": "Revisión con solo lo pendiente",
+          "en": "Review of pending changes only",
+          "ca": "Revisió només del que queda pendent"
+        },
+        "items": {
+          "es": [
+            "1. Abrir Ajustes → Revisar la beta: las funciones ya estrenadas no vuelven a pedir aprobación; las novedades siguen disponibles para aprobar o rechazar.",
+            "2. Volver a abrir la revisión después de una entrega: la lista se actualiza sin borrar las decisiones anteriores."
+          ],
+          "en": [
+            "1. Open Settings → Review beta: released features no longer ask for approval; new changes remain available to approve or reject.",
+            "2. Reopen the review after a delivery: the list refreshes without deleting earlier decisions."
+          ],
+          "ca": [
+            "1. Obrir Ajustos → Revisar la beta: les funcions ja estrenades no tornen a demanar aprovació; les novetats continuen disponibles per aprovar o rebutjar.",
+            "2. Tornar a obrir la revisió després d’una entrega: la llista s’actualitza sense esborrar les decisions anteriors."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.90",
     "d": "2026-10-03",
     "t": {
