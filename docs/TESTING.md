@@ -1,3 +1,13 @@
+## Apuntar: fila visible e importe persistido (5/10)
+
+`pulido-numpad` y `efectivo-apuntar` navegan a Gastos después de guardar y comprueban una única
+fila `button[data-expense-id]` con su importe. Inicio y Gastos pueden conservar el mismo texto
+montado: un `getByText(...).first()` global podía elegir una copia oculta y hacer fallar la CI
+aunque el apunte existiera. P10 inglés comprueba además que el único gasto guardado vale 12.5,
+por lo que un parseo erróneo a 1250 sigue fallando. Efectivo conserva las aserciones de banco e
+importe persistidos. Se corrige el alcance de esos guardianes, sin cambiar el cliente ni su
+contrato financiero. Ambos specs ya pertenecen al mapa de pruebas.
+
 ## SEC-02 · `prices` (Deno, sin cuota de terceros)
 
 `supabase/functions/prices/prices.test.ts` está en `denoEnLista` de `scripts/run-tests.mjs`. Cubre

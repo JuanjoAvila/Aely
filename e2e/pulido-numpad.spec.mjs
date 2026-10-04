@@ -103,7 +103,20 @@ test("★ P10: en inglés la tecla pone «.» y escribe «.»", async ({ page })
   await sheet.locator(".v4-input").fill("P10 decimal");
   await sheet.locator(".v4-cta").click();
   await expect(page.locator(".v4-sheet")).toHaveCount(0, { timeout: 3_000 });
-  await expect(page.getByText("P10 decimal").first()).toBeVisible({ timeout: 5_000 });
+  // Inicio y Gastos pueden tener la misma fila montada: el primer texto puede ser la copia
+  // oculta. Mirar la fila real de Gastos conserva la prueba del importe y evita ese falso rojo.
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator('.botnav-tab[data-tour="gastos"]')).toHaveClass(/active/);
+  const row = page.locator('.page-scroll-host button[data-expense-id]').filter({ hasText: "P10 decimal" });
+  await expect(row).toHaveCount(1);
+  await expect(row).toBeVisible({ timeout: 5_000 });
+  await expect(row.locator(".nm-title")).toHaveText("P10 decimal");
+  await expect(row.locator(".am")).toHaveText(/^\D*12[.,]50\D*$/);
+  const rowId = await row.getAttribute("data-expense-id");
   // Si el parseo siguiera quitando los puntos (miles ES), 12.50 se guardaría como 1250.
-  await expect(page.getByText(/12[.,]50/).first()).toBeVisible();
+  await expect.poll(() => page.evaluate(() => {
+    const rows = JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]")
+      .filter((e) => e && e.merchant === "P10 decimal");
+    return { count: rows.length, amount: rows[0]?.amount, id: rows[0]?.id };
+  })).toEqual({ count: 1, amount: 12.5, id: rowId });
 });

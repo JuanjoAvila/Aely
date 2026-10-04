@@ -44,7 +44,15 @@ test("Apuntar deja elegir Efectivo y el gasto lleva ent efectivo", async ({ page
   await sheet.locator(".v4-cta").click();
   await expect(sheet).toHaveCount(0, { timeout: 5_000 });
 
-  await expect(page.getByText("Sobre e2e").first()).toBeVisible({ timeout: 5_000 });
+  // Las pestañas conservan copias montadas; elegir el primer texto puede apuntar a Inicio
+  // oculto. La fila de Gastos debe seguir existiendo y verse tras navegar de verdad.
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(page.locator('.botnav-tab[data-tour="gastos"]')).toHaveClass(/active/);
+  const row = page.locator('.page-scroll-host button[data-expense-id]').filter({ hasText: "Sobre e2e" });
+  await expect(row).toHaveCount(1);
+  await expect(row).toBeVisible({ timeout: 5_000 });
+  await expect(row.locator(".nm-title")).toHaveText("Sobre e2e");
+  await expect(row.locator(".am")).toHaveText(/^\D*12[.,]00\D*$/);
   // Persistencia debounced ~400 ms — no leer localStorage al momento del cierre.
   await page.waitForFunction(() => {
     const exps = JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]");
@@ -55,6 +63,7 @@ test("Apuntar deja elegir Efectivo y el gasto lleva ent efectivo", async ({ page
     return exps.find((e) => e && e.merchant === "Sobre e2e") || null;
   });
   expect(exp, "tiene que haber un gasto manual del sobre").toBeTruthy();
+  expect(exp.id).toBe(await row.getAttribute("data-expense-id"));
   expect(exp.ent).toBe("efectivo");
-  expect(Math.abs(exp.amount - 12)).toBeLessThan(0.01);
+  expect(exp.amount).toBe(12);
 });
