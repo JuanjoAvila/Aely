@@ -1,6 +1,10 @@
 # Roadmap — Aely
 
-> Estado a 2026-10-04 · **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (1d5dd782), CI37200314653SUCCESS y artefactos cotejados a12:30UTC; cola11 tandas/24 puntos, historial/veredictos conservados. Producción86/d366 y APK beta80/code52/estable32/code48 intactos. Prueba y aprobación móvil pendientes. [Acta](briefs/ops-0410-panel-cola.md).
+> Estado a 2026-10-04 · **v4.26.94** candidata web terminada y verificada localmente; CI y publicación beta pendientes. Cierre de 162 casos DOM es/en/ca, con dos clientes en secuencia; suite Node sobre `094a7d23` con único fallo local de `memoria-espejo`, Deno pendiente de CI. El último cierre solo cambia el reloj del fixture antiguo y documentación, con producto idéntico. El presupuesto oficial sellado cumple1287/351KiB/3bloqueantes (1317221raw/358763gzip). Corte16:02UTC: beta servida93.2/source`4e65fa11`; producción86 y APK48/52. Aceptación móvil y escrituras simultáneas LWW siguen pendientes. Actas: [contrato mensual](briefs/inc-0410-metas-mensual.md) · [alta de reglas](briefs/inc-0410-metas-alta.md).
+
+> Snapshot anterior a 2026-10-04 (12:30 UTC, panel de revisión) · **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (1d5dd782), CI37200314653SUCCESS y artefactos cotejados a12:30UTC; cola11 tandas/24 puntos, historial/veredictos conservados. Producción86/d366 y APK beta80/code52/estable32/code48 intactos. Prueba y aprobación móvil pendientes. [Acta](briefs/ops-0410-panel-cola.md).
+
+> Snapshot anterior a 2026-10-04 · v4.26.90 servida en beta como 4.26.90.2 desde la fuente `7f3da23b` ([PR117](https://github.com/JuanjoAvila/Aely/pull/117), solo guardia de tests; publicación [37168006229](https://github.com/JuanjoAvila/Aely/actions/runs/37168006229) cerrada y cotejada a las 02:35 UTC). Lo que se usa es lo de 4.26.90.1 (merge `4a2e3c54`, [PR116](https://github.com/JuanjoAvila/Aely/pull/116)): Gastos sin columna de presupuesto fuera de mes/ciclo; cifras y periodos intactos. Brókers89 se entregó antes como 4.26.89.1 (merge `0f825c45`, [PR115](https://github.com/JuanjoAvila/Aely/pull/115)). Producción sigue en 4.26.86 (`d366215a`). Sin aceptación móvil de 89 ni 90; APK80/code52 sin binario nuevo; Edge/SQL sin entregas. [Gastos](briefs/inc-0310-gastos-sin-limite.md) · [Brókers](briefs/inc-0310-broker-resultados.md).
 
 > Snapshot anterior a 2026-10-03 (superado por la entrega) · v4.26.90 candidata local sobre fuente Brókers89 todavía pendiente de CI/publicación; beta88.1 y producción86 eran las últimas acreditadas.
 
@@ -253,7 +257,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.93** candidata local; beta verificada 4.26.90.5 y producción 4.26.86. |
+| Web / OTA (`VERSION`) | **4.26.94** borrador local (reglas mensuales de Metas), sin terminar ni publicar; fuente de beta 4.26.93 (`4e65fa11`) y producción 4.26.86. Sin aceptación móvil; APK80/code52 conservada. |
 | APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base; Metas87 no genera APK. Cotejo servido en gate de entrega. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a3467; Metas87 no reemplaza binario ni manifiesto. |

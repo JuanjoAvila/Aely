@@ -154,7 +154,24 @@ const PRESUPUESTO = {
   // El primer arranque sin entrega comprobada añade un estado explícito con reintento,
   // en vez de ofrecerle el histórico como pruebas nuevas. Crudo1278; gzip348; tres bloqueantes.
   // No se recortan pasos, idiomas ni historial para ocultar las entregas pendientes.
-  minificado: 1278 * 1024,
+  // INC-0410, alta de reglas de Metas, sobre beta be3081ab; mismo host y minificador, SIN
+  // sello: 1.304.309/355.207 → 1.308.234/356.481 B min/gzip (+3.925/+1.274). La base solo
+  // dejaba 267/121 B. Es el lector estricto de importes con céntimos exactos, la comprobación
+  // de la meta al guardar y su confirmación, el estado del reparto, ocho textos en castellano
+  // y el guardado del estado desde el commit (`mcPersistCommit`), que sustituye al del updater
+  // (+225/+92 B de ese total, medido contra la versión local anterior sin él);
+  // inglés y catalán viajan en sus JSON. 3 bloqueantes iguales, sin dependencias nuevas.
+  // Esa parte no llegó a publicarse sola: viaja en la 4.26.94 junto al contrato mensual
+  // (motor por regla y mes, asiento tras el pull de estado, línea por regla y ocho textos
+  // más en castellano). Medida oficial sellada del coordinador sobre 8ff6402a, contra la
+  // 93 servida (1.308.073/356.205): 1.316.330/358.513 B, +8.257/+2.308. Topes medidos
+  // 1286/351 KiB autorizados (4/10). Después entraron el retorno nativo, la lectura
+  // estricta de la nube y una puerta por pull: correcciones de validez, sin dependencias
+  // nuevas. Medida oficial sellada sobre d8255941: 1.317.146/358.744 B (+816/+231 sobre
+  // 8ff6402a), 282 B por encima del crudo. Tope crudo a 1287 KiB (quedan 742 B); gzip
+  // sigue en 351 KiB (680 B). No se recortan guardas, notas ni idiomas para caber; un
+  // cambio posterior exige medir de nuevo.
+  minificado: 1287 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -162,7 +179,7 @@ const PRESUPUESTO = {
   // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
   // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
   // La misma candidata mide 343.257 B gzip, 217 B sobre 335 KiB: +1 KiB medido.
-  gzip: 348 * 1024,
+  gzip: 351 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

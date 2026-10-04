@@ -1139,22 +1139,75 @@ async function panelRevisionExacta(page, lang, scenario) {
   return conProduccionEn(page,"9.9.9");
 }
 
+for(const lang of ["es","en","ca"]) for(const verdict of ["approved","rejected"]){
+  test(`Metas94: conserva el parte real87 sin aprobar la revisión nueva (${lang}, ${verdict})`,async({page})=>{
+    const {execFileSync}=await import("node:child_process");
+    // Leemos la revisión publicada, no una huella inventada igualada a la revisión nueva.
+    const previous=JSON.parse(execFileSync("git",["-c","safe.directory="+process.cwd(),"show","4e65fa114c4f647c95b9e97ad926faad5115e94b:public/release-notes.json"],{encoding:"utf8"}));
+    const note=previous.find(n=>n.v==="4.26.87");
+    const old=note.tandas.find(g=>g.id==="inc-0310-01-meta-regla");
+    await abrirRevisionBeta(page,lang);
+    const record=await page.evaluate(({note,old,verdict})=>{
+      CONFIG.APP_VERSION="4.26.94.1";
+      const current=RELEASE_NOTES.find(n=>n.v==="4.26.94").tandas.find(g=>g.id===old.id);
+      const fingerprint=betaHuella(old.id,rnT(old.t,"es"),rnItems(old,"es"),old.rev||1,old.codigo);
+      const record={_h:1,["h:"+fingerprint]:{verdict,at:100}};
+      store.set("_betaReview_4.26.87.1_v",record);
+      const marks={}, identities={};
+      rnItems(old,"es").forEach(it=>{marks[it]="ok";identities[it]=fingerprint;});
+      store.set("_betaReviewOk",marks);store.set("_betaMarksHuella",identities);
+      window._mcProdEntregas=null;window._mcProdApk=48;window._mcProdApkRevisiones=null;
+      const preserved=RELEASE_NOTES.find(n=>n.v==="4.26.87");
+      return {record,fingerprint,currentCode:current.codigo,oldCode:old.codigo,
+        history:current.historial,aliases:current.desde||[],oldText:preserved.t,oldItems:preserved.items};
+    },{note,old,verdict});
+    expect(record.currentCode).not.toBe(record.oldCode);
+    expect(record.history).toEqual(["4.26.87/inc-0310-01-meta-regla"]);
+    expect(record.aliases).toEqual([]);
+    expect(record.oldText).toEqual(note.t);expect(record.oldItems).toEqual(note.items);
+    const panel=await conProduccionEn(page,"4.26.86");
+    const row=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:"Reglas de Metas: descuento y aportación al guardar"})});
+    await expect(row).toHaveCount(1);
+    await expect(row.locator(".beta-tanda-n")).toHaveText("0/3");
+    await expect(row.getByRole("button",{name:/Aprobar esta tanda/})).toBeDisabled();
+    expect(await page.evaluate(()=>store.get("_betaReview_4.26.87.1_v"))).toEqual(record.record);
+  });
+}
+
 for(const lang of ["es","en","ca"]) {
-  test(`revisión exacta: dos fuentes idénticas conservan OK y cinco cambios web/nativos piden nueva revisión (${lang})`, async ({page}) => {
+  /* Hasta la 4.26.90 «Arranque con poca conexión» y «Ayuda de Mi ciclo» conservaban el OK porque su
+     código era idéntico al aprobado. La 4.26.94 cambia el guardado del estado. «Ayuda de Mi ciclo»
+     escribe estado: su web ya no es la aprobada y pide revisión nueva como las cinco nativas (la
+     decisión anterior sigue en el historial; el store de 4.26.68 no se toca). «Arranque con poca
+     conexión» no escribe estado: su código sigue siendo el aprobado y conserva el OK. */
+  test(`revisión exacta: la fuente idéntica conserva OK; un cambio solo web y cinco web/nativos piden nueva revisión (${lang})`, async ({page}) => {
     await abrirRevisionBeta(page,lang);
     await sembrarAprobadasEn4267(page);
     await page.evaluate(async lang => { await ensureLangPack(lang); CURLANG=lang; CONFIG.APP_VERSION="4.26.76.1"; window._mcProdApk=48; window._mcProdEntregas=null; window._mcProdApkRevisiones=null; },lang);
     const panel=await conProduccionEn(page,"4.26.67");
     const before=await page.evaluate(()=>store.get("_betaReview_4.26.68.1_v"));
     const copy={es:{approved:"No necesitas aprobarla otra vez",unknown:"Entrega sin confirmar: web",native:"Pendiente de publicar: app Android"},en:{approved:"You do not need to approve it again",unknown:"Delivery unconfirmed: web",native:"Awaiting publication: Android app"},ca:{approved:"No cal que l’aprovis de nou",unknown:"Entrega sense confirmar: web",native:"Pendent de publicar: app Android"}}[lang];
-    for(const title of ["Arranque con poca conexión","Ayuda de Mi ciclo"]) {
-      const fila=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:title})});
+    {
+      const fila=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:"Arranque con poca conexión"})});
       await expect(fila.locator(".beta-tanda-n")).toContainText("aprobada");
       await expect(fila.locator(".beta-tanda-estado")).toBeVisible();
       await expect(fila.locator(".beta-tanda-estado")).toContainText(copy.approved);
       await expect(fila.locator(".beta-tanda-entrega")).toBeVisible();
       await expect(fila.locator(".beta-tanda-entrega")).toContainText(copy.unknown);
       await expect(fila.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/})).toHaveCount(0);
+    }
+    for(const title of ["Ayuda de Mi ciclo"]) {
+      const fila=panel.locator(".beta-tanda").filter({has:page.locator(".beta-tanda-t",{hasText:title})});
+      await expect(fila).toHaveCount(1);
+      await expect(fila.locator(".beta-tanda-n")).toHaveText(/^0\/\d+$/);
+      await expect(fila.locator(".beta-tanda-n")).not.toContainText("aprobada");
+      await expect(fila).not.toContainText(copy.approved);
+      // Solo cambió su web: Android no aparece entre lo cambiado.
+      const cambio=fila.locator(".hint").filter({hasText:/código cambió|code changed|codi ha canviat/});
+      await expect(cambio).toContainText("web");
+      await expect(cambio).not.toContainText("Android");
+      await expect(fila.locator(".beta-tanda-entrega")).toBeVisible();
+      await expect(fila.locator(".beta-tanda-entrega")).toContainText(copy.unknown);
     }
     // La guardia de nómina cambia el importador de TR; su OK anterior sigue en el historial.
     for(const title of NATIVAS) {
@@ -1202,7 +1255,7 @@ for(const lang of ["es","en","ca"]) {
     const remaining=["ops-0410-panel-cola","inc-0310-gastos-sin-limite","inc-0310-broker-resultados","feature-0310-01-movilidad","inc-0310-01-meta-regla","inc-0210-02-categoria-elegida","feature-0210-01-gasolina-taxi","inc-0210-03-gastos-periodo","inc-0210-01-plan-cuota","beta-panel-veredictos","inc-2909-01-widget-periodo","inc-2909-03-retirada","inc-3009-nomina-anticipada","inc-2709-12-cyber-fab","inc-2709-14-preguntar","inc-2709-10-perfil","inc-3009-01-cargos","inc-2909-02-inicio-natural"];
     await expect(panel.locator(".beta-tanda")).toHaveCount(remaining.length);
     expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,"4.26.67",52).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(remaining.slice().sort());
-    for(const title of ["Borrar una regla libera su reserva","La categoría elegida no se deshace","Gastos y categorías del mismo periodo","Las cuotas cobradas dejan de estar pendientes","Las comprobaciones conservan su resultado","Widget: mes o Mi ciclo","Retiradas y presupuesto","Nómina sin adelantar el cobro","Botón + en Cyberpunk","Botón Preguntar","Perfil sin casillas gigantes","Recibos pagados y vencidos","Presupuesto mensual de Inicio"])
+    for(const title of ["Reglas de Metas: descuento y aportación al guardar","La categoría elegida no se deshace","Gastos y categorías del mismo periodo","Las cuotas cobradas dejan de estar pendientes","Las comprobaciones conservan su resultado","Widget: mes o Mi ciclo","Retiradas y presupuesto","Nómina sin adelantar el cobro","Botón + en Cyberpunk","Botón Preguntar","Perfil sin casillas gigantes","Recibos pagados y vencidos","Presupuesto mensual de Inicio"])
       await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(1);
     for(const title of NATIVAS.concat(["Arranque con poca conexión","Ayuda de Mi ciclo"]))
       await expect(panel.locator(".beta-tanda-t").filter({hasText:title})).toHaveCount(0);

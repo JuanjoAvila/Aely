@@ -3081,6 +3081,23 @@ function mcLoadRaw(key){
   else if(!Array.isArray(base.expenses)) base.expenses=[];
   return base;
 }
+/* SE GUARDA LO QUE SE HA PINTADO, NO LO QUE SE CALCULÓ (INC-0410, 4/10/2026).
+   Antes `set()` apuntaba el volcado pendiente DENTRO del updater. React puede ejecutar un updater
+   sobre un estado que luego abandona —dos escrituras encoladas en el mismo instante, una urgente y
+   otra no— y reutilizar después un resultado ya calculado sin volver a llamarlo: el volcado se
+   quedaba con el estado abandonado. Visto en el alta de reglas de Metas: en pantalla la regla no
+   existía y en disco sí. Un estado que la app nunca llegó a tener no es una cartera que guardar.
+   Aquí solo se entra tras un commit: `prev` es el último estado comprometido que se vio y
+   `state` el nuevo. Devuelve si hay algo que escribir. Conserva las tres garantías de siempre:
+   una escritura como mucho cada `schedule`, el histórico de gastos solo si cambió su REFERENCIA
+   (AGENTS §7 bis) y nada al montar, porque entonces `prev===state`. */
+function mcPersistCommit(p, prev, state, schedule){
+  if(prev===state) return false;
+  p.val=state;
+  if(prev.expenses!==state.expenses) p.exp=true;
+  if(!p.t) p.t=schedule();
+  return true;
+}
 /* opts.expenses===false → guarda solo la parte ligera (lo normal).
 
    OJO con la primera vez tras actualizar: el estado viejo lleva los gastos DENTRO de la clave
@@ -5410,7 +5427,9 @@ Object.assign(LANG.es,{
   h_trend:"Compara lo que llevas gastado en cada categoría con tu media de los últimos meses. Flecha arriba = este mes vas por encima de lo normal.",
   h_goalw:"Tu meta de ahorro más cercana y cómo va. La frase de abajo te dice si llegas a la fecha o cuánto tendrías que apartar al mes.",
   h_subs:"Pagos que se repiten cada mes por el mismo importe (Netflix, gym…). La app los detecta sola en tus gastos: revisa si de verdad los usas.",
-  h_reserva:"Cuando detecte una nómina, te propongo repartir parte según estas reglas: cada una suma a la meta que elijas y se descuenta de tu presupuesto de gasto variable, para que lo reservado se note de verdad.",
+  // INC-0410 es: la ayuda de la tarjeta promete lo mismo que el reparto.
+  h_reserva:"Cada regla aparta su importe al guardarla y, después, cada mes al abrir la app: se descuenta de tu presupuesto mensual y se suma a la meta que elijas, para que lo reservado se note de verdad. Las reglas que ya tenías siguen repartiendo cuando se detecta un ingreso, con tu confirmación.",
+  // INC-0410 es: límite de la ayuda del reparto.
   h_cvg:"Cuánto has puesto de tu bolsillo en cada bróker y cuánto vale hoy. La diferencia es tu ganancia (o pérdida) real, en la moneda de cada uno.",
   h_bytype:"Tus inversiones agrupadas por tipo (acciones, ETF, fondo, oro…). Para ver de un vistazo si lo tienes todo en un mismo saco.",
   h_rend:"Cada posición ordenada por lo que te ha dado: verde = ganas, rojo = pierdes. Con el % sobre lo que pusiste.",
@@ -5897,20 +5916,37 @@ Object.assign(LANG.es,{
   sh_back:"Grupos", sh_delgroup:"Borrar grupo", sh_delgroup_q:"¿Borrar este grupo y sus gastos?",
   gl_empty_t:"Aún no tienes metas", gl_empty_d:"Crea tu primera meta de ahorro y mira cómo se acerca cada mes.",
   gl_widget_title:"Tu meta", wl_goal:"Meta",
-  rr_title:"Reservar dinero de tu nómina", rr_sub:"{n} regla(s)", rr_sub_empty:"sin reglas",
-  rr_none:"Aún no tienes ninguna regla. Añade una para que parte de tu nómina vaya sola a una meta.",
   rr_add:"+ Añadir regla", rr_save:"Guardar regla",
   // INC-0310-01 es: el texto de confirmación también debe invalidar su revisión.
   rr_delete:"Borrar regla", rr_delete_q:"¿Borrar esta regla?", rr_delete_sub:"Se libera del presupuesto lo que siga reservado por esta regla y pueda comprobarse. Las aportaciones ya guardadas en la meta y su historial se conservan; no se mueve dinero.",
   // INC-0310-01 es: límite para no invalidar textos ajenos al borrado.
   rr_name_ph:"Nombre (opcional, ej. Parking recibos)",
-  rr_kind_fixed:"Importe fijo €", rr_kind_pct:"% de la nómina",
+  // INC-0410 es: los avisos del alta y el estado del reparto también deben invalidar su revisión.
+  rr_title:"Reservar dinero de tus ingresos", rr_sub:"{n} regla(s)", rr_sub_empty:"sin reglas",
+  rr_none:"Aún no tienes ninguna regla. Añade una: su importe se descuenta de tu presupuesto del mes y se aporta a la meta al guardarla, y otra vez cada mes, al abrir la app.",
+  rr_kind_fixed:"Importe fijo €", rr_kind_pct:"% del ingreso",
   rr_row_fixed:"{v} fijos", rr_row_pct:"{v} %",
   rr_goal_gone:"(meta borrada)",
-  rr_detect_t:"💰 Nómina detectada: {x}", rr_detect_sub:"Cobrada el {d}. Según tus reglas, este es el reparto:",
+  rr_detect_t:"💰 Ingreso detectado: {x}", rr_detect_sub:"Recibido el {d}. Según tus reglas, este es el reparto:",
   rr_remainder:"Y te quedan {x} para gasto diario, sin tocar.",
   rr_apply:"Aplicar reparto", rr_dismiss:"Ahora no",
   rr_applied_ok:"✓ Reparto aplicado a tus metas",
+  rr_err_amount:"Escribe un importe mayor que 0, por ejemplo 1200 o 1200,50.",
+  rr_err_pct:"El porcentaje tiene que ser mayor que 0 y como máximo 100.",
+  rr_err_goal:"Elige una meta que siga activa.",
+  rr_st_pending:"Hay un ingreso del {d} pendiente de repartir: confírmalo en el aviso de arriba.",
+  rr_st_applied:"El ingreso del {d} ya se repartió. Las reglas que añadas ahora no cambian ese reparto: entran en el siguiente que se detecte.",
+  rr_st_dismissed:"Dijiste «Ahora no» al reparto del ingreso del {d}. Las reglas se aplicarán al siguiente que se detecte.",
+  rr_st_none:"Ahora mismo no hay ningún ingreso detectado para repartir. Las reglas esperan al siguiente.",
+  rr_st_noplan:"Con estas reglas no hay ningún importe que repartir. Revisa las reglas y sus metas.",
+  rr_kind_pct_m:"% del presupuesto mensual",
+  rr_row_fixed_m:"{v} cada mes", rr_row_pct_m:"{v} % del presupuesto, cada mes",
+  rr_m_ok:"Este mes: {x} descontados del presupuesto y aportados a la meta.",
+  rr_m_base:"Este mes: —. Sin presupuesto mensual no se puede calcular el porcentaje.",
+  rr_m_meta:"Este mes: —. La meta ya no está activa.",
+  rr_m_none:"Este mes: —. Aún no se ha aplicado.",
+  rr_m_hint:"Al guardar, el importe se descuenta de tu presupuesto de este mes y se aporta a la meta, sin confirmar nada más. Se repite cada mes, al abrir la app.",
+  // INC-0410 es: límite para no invalidar textos ajenos al alta de reglas.
 });
 
 
@@ -14465,7 +14501,8 @@ function reservaPlanFor(state, incomeAmount){
   let used=0;
   const plan=[];
   rules.forEach(function(r){
-    if(!r||!r.goalId) return;
+    // Las mensuales ya descuentan por periodo: repartir además el ingreso las cobraría dos veces.
+    if(!r||!r.goalId||r.mensual===true) return;
     const g=goals.find(function(x){ return x.id===r.goalId; });
     if(!g||g.done) return;
     let amt=r.kind==="pct" ? gross*(Math.max(0,r.value||0)/100) : Math.max(0,r.value||0);
@@ -14481,6 +14518,69 @@ function reservaPlanFor(state, incomeAmount){
 function reservaAlreadyApplied(state, income){
   const k=reservaKeyOf(income);
   return (state.reservaLog||[]).some(function(x){ return x.incomeKey===k; });
+}
+/* El importe de una regla NUEVA, leído tal cual se escribió (INC-0410, rechazo de la 4.26.87).
+   Antes era `parseFloat(texto.replace(',','.'))`: «1.200» se guardaba como 1,2 y la fila decía
+   «1 € fijos»; «1.200,50» y «1,200.50», lo mismo. Una regla de mil doscientos apartaba un euro.
+   Sigue el criterio de `amountOf` en el plan de ahorro (review 23/9): el separador que NO es el
+   decimal del idioma vale de miles solo si deja grupos de tres cifras. Pero aquí se valida la
+   cadena ENTERA antes de leerla, en vez de limpiar lo que sobra: «-10», «abc10», «1e3» o «1.2.3»
+   no son un importe y limpiarlos los convertía en dinero con buena pinta. Lo dudoso también se
+   rechaza —«1,200» con decimal coma puede ser mil doscientos o 1,2— porque adivinar es justo el
+   fallo que se corrige. Devuelve el número o null; no acota: eso lo decide quien llama. */
+function reservaImporteDe(raw, decimalSep){
+  const s=String(raw==null?"":raw).trim();
+  const dec=decimalSep||(typeof numPadDecSep==="function"?numPadDecSep():",");
+  let ent, frac="", m;
+  if(/^\d+$/.test(s)) ent=s;
+  else if((m=/^(\d{1,3}(?:[.,]\d{3})+)([.,]\d{1,2})?$/.exec(s))){
+    const seps=m[1].replace(/\d/g,""), mil=seps.charAt(0);
+    if(seps.split("").some(function(c){ return c!==mil; })) return null;
+    if(m[2] ? m[2].charAt(0)===mil : (seps.length===1 && mil===dec)) return null;
+    ent=m[1].split(mil).join(""); frac=m[2]?m[2].slice(1):"";
+  }
+  else if((m=/^(\d+)[.,](\d{1,2})$/.exec(s))){ ent=m[1]; frac=m[2]; }
+  else return null;
+  // Los céntimos se cuentan en entero exacto. Si no caben, o el número que los representa no
+  // vuelve a dar esos mismos céntimos, no hay importe: guardar «casi lo escrito» es inventar dinero.
+  const cents=BigInt(ent)*BigInt(100)+BigInt((frac+"00").slice(0,2));
+  if(cents>BigInt(Number.MAX_SAFE_INTEGER)) return null;
+  const n=Number(cents)/100;
+  return Math.round(n*100)===Number(cents)?n:null;
+}
+/* En qué punto está el reparto, para el aviso de cobro Y para el editor de reglas. Los dos leen
+   de aquí a propósito: con la nómina ya repartida, añadir otra regla no hacía nada visible y la
+   pantalla no decía por qué (su rechazo del 3/10). Si cada uno calculara su estado, acabarían
+   contando cosas distintas. No cambia qué ingreso cuenta ni reparte nada: solo lo nombra.
+   `cycle` es lo que devuelve `lastPaydayOf`, ya calculado por quien llama (lo memoiza). */
+function reservaEstadoDe(state, cycle){
+  // Solo las reglas por ingreso: una mensual no espera ningún cobro y no debe anunciar uno.
+  const rules=((state.settings&&state.settings.reservaRules)||[]).filter(function(r){ return !(r&&r.mensual===true); });
+  if(!rules.length) return { estado:"sinReglas" };
+  const income=cycle&&cycle.inc;
+  if(!income) return { estado:"sinCobro" };
+  if(reservaAlreadyApplied(state,income)) return { estado:"repartido", income:income };
+  if(((state.reservaDismissed)||[]).indexOf(reservaKeyOf(income))!==-1) return { estado:"descartado", income:income };
+  const plan=reservaPlanFor(state, income.amount);
+  // Hay cobro, pero el plan sale vacío. No es «pendiente», y el porqué no se sabe desde aquí
+  // (meta cumplida, borrada, o una regla antigua a 0): quien lo pinte no debe afirmar ninguno.
+  if(!plan.plan.length) return { estado:"sinPlan", income:income };
+  return { estado:"pendiente", income:income, plan:plan };
+}
+// ¿Existe esa meta y sigue sin cumplir? Es a lo único a lo que una regla NUEVA puede apuntar.
+function reservaMetaActiva(state, goalId){
+  return !!goalId && (state.goals||[]).some(function(g){ return g && g.id===goalId && !g.done; });
+}
+// Alta de una regla, sobre el estado del momento de escribir y no sobre el que vio el formulario:
+// si la meta ya no vale, no se escribe nada. No toca ni reordena las reglas que ya había.
+// Una regla mensual descuenta y aporta en esta misma escritura (ver `applyReservaMensual`).
+function addReservaRule(state, rule, nowMs){
+  if(!rule || !reservaMetaActiva(state,rule.goalId)) return state;
+  const rules=(state.settings&&state.settings.reservaRules)||[];
+  // La misma alta dos veces (doble toque, updater repetido sobre un estado ya escrito) es una.
+  if(rules.some(function(r){ return r&&r.id===rule.id; })) return state;
+  const next=Object.assign({},state,{settings:Object.assign({},state.settings,{reservaRules:rules.concat([rule])})});
+  return rule.mensual===true ? applyReservaMensual(next,nowMs) : next;
 }
 // Borrar la configuración no liberaba el presupuesto ya apartado (INC-0310-01). El asiento
 // inverso conserva la aportación, su fecha y la identidad de nómina, también para lectores
@@ -14531,6 +14631,92 @@ function applyReserva(state, income, plan, bankEnt){
   }));
   return Object.assign({},state,{goals:goals, reservaLog:log});
 }
+/* REGLA MENSUAL: descontar y aportar al guardar (decisión del dueño, 4/10; rechazo de la 4.26.87).
+   Con el reparto por ingreso, crear una regla no hacía nada hasta el siguiente cobro y pedía
+   elegirlo y confirmarlo aparte: él esperaba ver el descuento en el presupuesto del mes y la
+   aportación en la meta nada más guardar. Una regla con `mensual:true` hace las dos cosas en la
+   MISMA escritura, una vez por mes, sin ingreso de por medio.
+   · La identidad es regla + mes natural de Madrid, el mismo calendario del resto del dinero. No
+     depende de la vista del presupuesto: si colgara del inicio del periodo, pasar de «mes» a «mi
+     ciclo» o corregir el cobro que lo abre cambiaría la clave y aportaría otra vez (revisión del
+     coordinador, 4/10). Tampoco de la zona del móvil: el mismo instante da el mismo mes en todos.
+   · El id del asiento ES esa identidad: repetir el updater, recargar u otro móvil no la duplican.
+     Un asiento ya liberado al borrar la regla sigue ocupando su identidad: no se vuelve a aportar.
+   · El porcentaje es sobre el presupuesto mensual BRUTO (`state.budget`), nunca sobre lo que
+     dejó otra regla. Sin presupuesto conocido no hay base: no se aporta ni se inventa una.
+   · No crea movimientos ni toca `expenses`. Las reglas sin `mensual` conservan su contrato. */
+function reservaMensualClave(nowMs){ return madridYmdParts(nowMs!=null?nowMs:Date.now()).ym; }
+// Lo que aportaría una regla mensual ahora, o por qué no: «meta» (borrada o cumplida),
+// «base» (porcentaje sin presupuesto conocido) o «importe» (no sale un importe positivo).
+function reservaMensualImporte(state, rule){
+  if(!rule || !reservaMetaActiva(state,rule.goalId)) return { amount:null, motivo:"meta" };
+  const v=typeof rule.value==="number"&&isFinite(rule.value)?rule.value:0;
+  if(rule.kind==="pct"){
+    const base=typeof state.budget==="number"&&isFinite(state.budget)&&state.budget>0?state.budget:null;
+    if(base==null) return { amount:null, motivo:"base" };
+    const a=Math.round(base*v)/100;
+    return a>0 ? { amount:+a.toFixed(2) } : { amount:null, motivo:"importe" };
+  }
+  return v>0 ? { amount:+v.toFixed(2) } : { amount:null, motivo:"importe" };
+}
+// Aplica las reglas mensuales que aún no tienen asiento en este mes. PURA; si no hay nada que
+// aplicar devuelve el MISMO estado (ni re-render ni reescritura).
+function applyReservaMensual(state, nowMs){
+  const rules=((state.settings&&state.settings.reservaRules)||[]).filter(function(r){ return r&&r.mensual===true&&r.id; });
+  if(!rules.length) return state;
+  const now=nowMs!=null?nowMs:Date.now();
+  if(!isFinite(now)) return state;
+  const clave=reservaMensualClave(now);
+  const hechos=Object.create(null);
+  (state.reservaLog||[]).forEach(function(x){ if(x&&typeof x.id==="string") hechos[x.id]=true; });
+  let goals=state.goals||[];
+  const nuevos=[];
+  rules.forEach(function(r){
+    const id="mensual|"+r.id+"|"+clave;
+    if(hechos[id]) return;
+    const st=Object.assign({},state,{goals:goals});
+    const imp=reservaMensualImporte(st,r);
+    if(imp.amount==null) return;
+    hechos[id]=true;
+    goals=goals.map(function(g){
+      if(g.id!==r.goalId) return g;
+      const ns=+((g.saved||0)+imp.amount).toFixed(2);
+      return Object.assign({},g,{saved:ns, done:ns>=g.target, doneAt:(ns>=g.target&&!g.doneAt)?new Date(now).toISOString():g.doneAt});
+    });
+    const g0=(state.goals||[]).find(function(g){ return g.id===r.goalId; });
+    // `incomeKey` lleva la misma identidad: es lo que exige la reversión al borrar la regla y
+    // nunca coincide con la clave de un ingreso real, que empieza por su fecha.
+    nuevos.push({ id:id, ruleId:r.id, goalId:r.goalId, name:r.name||(g0&&g0.name)||"", amount:imp.amount,
+      date:new Date(now).toISOString(), incomeKey:id, mensual:clave });
+  });
+  if(!nuevos.length) return state;
+  return Object.assign({},state,{goals:goals, reservaLog:(state.reservaLog||[]).concat(nuevos)});
+}
+/* ¿El pull de estado LEYÓ de verdad la nube? Que la promesa termine bien no basta: si llega un
+   estado con forma inválida, `syncFromCloud` conserva lo local y lo resube, y eso también
+   «termina bien» sin haber leído nada fiable (revisión del coordinador, 4/10: la meta pasaba de
+   100 a 200 con la nube corrupta). Vale un estado válido, y vale que aún no exista ninguno
+   (primera cuenta: no hay otro dispositivo al que pisar). «No existe» es SOLO que no haya fila
+   o que su dato sea `null`: un `false`, un 0, un texto vacío o un dato ausente no prueban
+   nada y no son un estado. */
+function reservaMensualNubeLeida(cloudPack){
+  if(cloudPack==null) return true;
+  return cloudPack.data===null || validCloudState(cloudPack.data);
+}
+/* La validez de la lectura es de CADA pull, no de la app: dos `syncFromCloud` pueden solaparse
+   (arranque, vuelta, conflicto) y, con un dato compartido, uno inválido que termina tarde se
+   acreditaría con la lectura válida de otro que luego falló (revisión del coordinador, 4/10).
+   Cada invocación crea su puerta: solo vale si ESE pull terminó bien y ESE pull leyó. */
+function reservaMensualPuerta(){
+  let leido=false;
+  return {
+    lee:function(cloudPack){ leido=reservaMensualNubeLeida(cloudPack); },
+    vale:function(ok){ return !!ok && leido; }
+  };
+}
+// ¿Queda alguna regla mensual por asentar este mes? Lo pregunta la vuelta a primer plano ANTES de
+// pedir nada a la nube: con todo al día (o sin reglas) no hay ni consulta ni escritura.
+function reservaMensualPendiente(state, nowMs){ return applyReservaMensual(state,nowMs)!==state; }
 // Total reservado desde `fromMs` — lo que hay que restar del presupuesto del período que se esté
 // mirando, para que lo apartado se note de verdad en "lo que puedes gastar".
 function reservedSince(state, fromMs, hastaMs){
@@ -16664,6 +16850,19 @@ function Debts({state, set, showToast}){
    quería que ahorrar para una meta se notara de verdad en "lo que puede gastar", no solo en un
    bote aparte. Ver la explicación larga en `08-motor-bank.js` (reservaPlanFor/applyReserva).
    ============================================================ */
+// Los importes del reparto con sus céntimos cuando los tienen: una regla de 1.200,50 € no puede
+// leerse «1201 €» en la fila y apartar 1.200,50 al aplicar. Los redondos se quedan como estaban.
+function reservaEur(n){ return Math.round((n||0)*100)%100===0 ? eur0(n) : eur(n); }
+// La frase del editor para cada estado del reparto. La fecha es la del ingreso detectado; sin
+// ingreso no se pone ninguna. Habla de «ingreso», no de nómina: `lastPaydayOf` no distingue.
+function reservaEstadoTexto(st){
+  const d=st.income ? parseDate(st.income.date).toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'}) : "";
+  if(st.estado==="pendiente") return tf("rr_st_pending",{d:d});
+  if(st.estado==="repartido") return tf("rr_st_applied",{d:d});
+  if(st.estado==="descartado") return tf("rr_st_dismissed",{d:d});
+  if(st.estado==="sinPlan") return t("rr_st_noplan");
+  return t("rr_st_none");
+}
 // Editor de reglas: nombre opcional, importe fijo o % de la nómina, y a qué meta va.
 function ReservaRules({state, set}){
   const goals=(state.goals||[]).filter(function(g){ return !g.done; });
@@ -16671,46 +16870,92 @@ function ReservaRules({state, set}){
   const [adding,setAdding]=useState(false);
   const blank={name:"",kind:"fixed",value:"",goalId:goals[0]&&goals[0].id||""};
   const [form,setForm]=useState(blank);
-  const setRules=function(next){ set(function(s){ return Object.assign({},s,{settings:Object.assign({},s.settings,{reservaRules:next})}); }); };
+  const [err,setErr]=useState("");
+  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted]);
+  const st=reservaEstadoDe(state,cycle);
+  // La línea de cada regla mensual dice lo que ESTE mes tiene asentado, no lo que «debería».
+  const clave=reservaMensualClave();
+  const mensualTexto=function(r){
+    const id="mensual|"+r.id+"|"+clave, log=state.reservaLog||[];
+    const hecho=log.find(function(x){ return x&&x.id===id; });
+    if(hecho && !log.some(function(x){ return x&&x.releaseOf===id; })) return tf("rr_m_ok",{x:reservaEur(hecho.amount)});
+    const motivo=reservaMensualImporte(state,r).motivo;
+    return motivo==="base"?t("rr_m_base"):(motivo==="meta"?t("rr_m_meta"):t("rr_m_none"));
+  };
+  /* La última alta enviada. `addReservaRule` puede no escribirla (la meta dejó de valer entre el
+     toque y la escritura) y desde el toque no se sabe: cerrar el formulario ahí repetía el fallo
+     de siempre, una regla que no se guarda y nadie lo dice. El formulario se cierra cuando la
+     regla APARECE en el estado. Si no está y su meta ya no vale, se reabre con lo escrito y el
+     aviso — también si primero apareció y luego se retiró: React puede pintarla y quitarla al
+     aplicar una escritura anterior que aún tenía en cola, y eso no tiene plazo (en un móvil
+     cargado puede tardar). Por eso NO se olvida por tiempo: solo la sustituye otra alta, o la
+     descartan Cancelar, abrir el formulario de nuevo o borrar esa misma regla. */
+  const [sent,setSent]=useState(null);
+  const sentIn=!!sent && rules.some(function(r){ return r.id===sent.id; });
+  // En el propio commit (layout): el cierre y la recuperación no esperan al trabajo pendiente del
+  // planificador, que en un móvil cargado puede tardar justo cuando más falta hace el aviso.
+  useLayoutEffect(function(){
+    if(!sent) return;
+    if(sentIn){ if(!sent.seen){ setSent(Object.assign({},sent,{seen:true})); setAdding(false); setForm(blank); setErr(""); } return; }
+    if(!reservaMetaActiva(state,sent.goalId)){ setSent(null); setForm(sent.form); setErr("goal"); setAdding(true); }
+  },[sent,sentIn,state.goals]);
   const addRule=function(){
-    const v=parseFloat(String(form.value).replace(',','.'))||0;
-    if(v<=0 || !form.goalId) return;
-    const r={id:uid(),name:form.name||"",kind:form.kind,value:v,goalId:form.goalId};
-    setRules(rules.concat([r]));
-    setForm(blank); setAdding(false);
+    if(sent && !sent.seen) return;   // ya hay un alta en camino: un segundo toque no crea otra
+    /* Un alta que no vale se quedaba con el formulario abierto y sin una palabra (feedback 3/10).
+       La meta se comprueba AL GUARDAR: el formulario abierto puede conservar una que entretanto
+       se cumplió o se borró (otro móvil, la nube), y no se elige otra por él.
+       El tope del 100 % es solo para lo que se escribe ahora: las reglas ya guardadas no se tocan. */
+    if(!reservaMetaActiva(state,form.goalId)){ setErr("goal"); return; }
+    const v=reservaImporteDe(form.value);
+    if(v==null || !(v>0)){ setErr("amount"); return; }
+    if(form.kind==="pct" && v>100){ setErr("pct"); return; }
+    // Las reglas nuevas son mensuales: descuentan y aportan en esta misma escritura (4/10).
+    const r={id:uid(),name:form.name||"",kind:form.kind,value:v,goalId:form.goalId,mensual:true};
+    setErr(""); setSent({id:r.id,goalId:r.goalId,form:form});
+    set(function(s){ return addReservaRule(s,r); });
   };
   const delRule=function(id){
     askConfirm({title:t("rr_delete_q"),sub:t("rr_delete_sub"),ok:t("rr_delete"),danger:true})
-      .then(function(ok){ if(!ok) return; set(function(s){ return removeReservaRule(s,id); }); });
+      .then(function(ok){ if(!ok) return; if(sent&&sent.id===id) setSent(null); set(function(s){ return removeReservaRule(s,id); }); });
   };
   const goalName=function(id){ const g=(state.goals||[]).find(function(x){ return x.id===id; }); return g?((g.emoji||"🎯")+" "+g.name):t("rr_goal_gone"); };
-  if(!goals.length && !rules.length) return null;   // sin metas activas no hay nada que configurar
+  /* Sin metas activas ni reglas no hay nada que configurar… salvo que el formulario esté abierto:
+     si la ÚLTIMA meta se cumple o se borra con el borrador a medias, esconder la tarjeta era otra
+     vez la regla que no se guarda y nadie lo dice. El formulario y su aviso se quedan hasta que se
+     cancela; no se elige ni se crea otra meta por él. */
+  if(!goals.length && !rules.length && !adding) return null;
   return React.createElement(CollapsibleCard,{title:t("rr_title"),sub:rules.length?tf("rr_sub",{n:rules.length}):t("rr_sub_empty"),dot:"#5FD08A",storageKey:"g_reserva_rules",help:t("h_reserva")},
     rules.length===0 && React.createElement("div",{className:"hint"}, t("rr_none")),
     rules.map(function(r){
       return React.createElement("div",{key:r.id,className:"sub-row","data-reserva-rule":r.id},
         React.createElement("div",{className:"sub-mid"},
           React.createElement("div",{className:"sub-name"}, r.name||goalName(r.goalId)),
-          React.createElement("div",{className:"sub-meta"}, (r.kind==="pct"?tf("rr_row_pct",{v:r.value}):tf("rr_row_fixed",{v:eur0(r.value)}))+" → "+goalName(r.goalId))
+          React.createElement("div",{className:"sub-meta"}, (r.mensual===true
+            ?(r.kind==="pct"?tf("rr_row_pct_m",{v:r.value}):tf("rr_row_fixed_m",{v:reservaEur(r.value)}))
+            :(r.kind==="pct"?tf("rr_row_pct",{v:r.value}):tf("rr_row_fixed",{v:reservaEur(r.value)})))+" → "+goalName(r.goalId)),
+          r.mensual===true && React.createElement("div",{className:"sub-meta","data-reserva-mensual":r.id}, mensualTexto(r))
         ),
         React.createElement("button",{className:"chip","aria-label":t("rr_delete"),style:{fontSize:11.5,padding:"3px 10px"},onClick:function(){ delRule(r.id); }}, "✕")
       );
     }),
-    goals.length>0 && (adding
+    st.estado!=="sinReglas" && React.createElement("div",{className:"hint","data-reserva-estado":st.estado,style:{marginTop:8}}, reservaEstadoTexto(st)),
+    (goals.length>0 || adding) && (adding
       ? React.createElement("div",{className:"add-form",style:{marginTop:10}},
           React.createElement("input",{className:"af-in",placeholder:t("rr_name_ph"),value:form.name,onChange:function(e){ setForm(Object.assign({},form,{name:e.target.value})); }}),
           React.createElement("div",{className:"af-row"},
-            React.createElement("select",{className:"af-in",value:form.kind,onChange:function(e){ setForm(Object.assign({},form,{kind:e.target.value})); }},
+            React.createElement("select",{className:"af-in",value:form.kind,onChange:function(e){ setErr(""); setForm(Object.assign({},form,{kind:e.target.value})); }},
               React.createElement("option",{value:"fixed"},t("rr_kind_fixed")),
-              React.createElement("option",{value:"pct"},t("rr_kind_pct"))),
-            React.createElement("input",{className:"af-in num",inputMode:"decimal",placeholder:form.kind==="pct"?"%":"€",value:form.value,onChange:function(e){ setForm(Object.assign({},form,{value:e.target.value})); }})
+              React.createElement("option",{value:"pct"},t("rr_kind_pct_m"))),
+            React.createElement("input",{className:"af-in num",inputMode:"decimal",placeholder:form.kind==="pct"?"%":"€",value:form.value,onChange:function(e){ setErr(""); setForm(Object.assign({},form,{value:e.target.value})); }})
           ),
-          React.createElement("select",{className:"af-in",value:form.goalId,onChange:function(e){ setForm(Object.assign({},form,{goalId:e.target.value})); }},
+          React.createElement("select",{className:"af-in",value:form.goalId,onChange:function(e){ setErr(""); setForm(Object.assign({},form,{goalId:e.target.value})); }},
             goals.map(function(g){ return React.createElement("option",{key:g.id,value:g.id}, (g.emoji||"🎯")+" "+g.name); })),
+          err && React.createElement("div",{className:"hint",role:"alert",style:{color:"var(--coral)",marginTop:6}}, err==="pct"?t("rr_err_pct"):(err==="goal"?t("rr_err_goal"):t("rr_err_amount"))),
+          React.createElement("div",{className:"hint",style:{marginTop:6}}, t("rr_m_hint")),
           React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:8},onClick:addRule}, t("rr_save")),
-          React.createElement("button",{className:"btn btn-ghost btn-block",onClick:function(){ setAdding(false); setForm(blank); }}, t("gl_cancel"))
+          React.createElement("button",{className:"btn btn-ghost btn-block",onClick:function(){ setSent(null); setAdding(false); setErr(""); setForm(blank); }}, t("gl_cancel"))
         )
-      : React.createElement("button",{className:"v4-ghost-add",style:{marginTop:8},onClick:function(){ setForm(blank); setAdding(true); }}, t("rr_add"))
+      : React.createElement("button",{className:"v4-ghost-add",style:{marginTop:8},onClick:function(){ setSent(null); setForm(blank); setErr(""); setAdding(true); }}, t("rr_add"))
     )
   );
 }
@@ -16718,15 +16963,12 @@ function ReservaRules({state, set}){
 // no se ha repartido ni descartado. Nunca aplica en silencio — siempre pide confirmación, porque
 // aunque solo mueva cifras dentro de la app, es DINERO DE VERDAD para quien lo mira.
 function ReservaDetect({state, set, showToast}){
-  const dismissed=(state.reservaDismissed)||[];
   const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted]);
-  const rules=(state.settings&&state.settings.reservaRules)||[];
-  if(!cycle || !cycle.inc || !rules.length) return null;
-  const income=cycle.inc;
+  const st=reservaEstadoDe(state,cycle);
+  if(st.estado!=="pendiente") return null;
+  const income=st.income;
   const key=reservaKeyOf(income);
-  if(reservaAlreadyApplied(state,income) || dismissed.indexOf(key)!==-1) return null;
-  const plan=reservaPlanFor(state, income.amount);
-  if(!plan.plan.length) return null;
+  const plan=st.plan;
   const dailyEnt=(state.accounts||[]).find(function(a){ return accDaily(a); });
   const apply=function(){
     set(function(s){ return applyReserva(s, income, reservaPlanFor(s,income.amount).plan, dailyEnt&&dailyEnt.ent); });
@@ -16734,13 +16976,13 @@ function ReservaDetect({state, set, showToast}){
   };
   const dismiss=function(){ set(function(s){ return Object.assign({},s,{reservaDismissed:(s.reservaDismissed||[]).concat([key])}); }); };
   return React.createElement("div",{className:"v4-card rise",style:{borderColor:"var(--mint-dim)",marginBottom:14}},
-    React.createElement("div",{style:{fontWeight:800,fontSize:14.5}}, tf("rr_detect_t",{x:eur0(Math.abs(income.amount))})),
+    React.createElement("div",{style:{fontWeight:800,fontSize:14.5}}, tf("rr_detect_t",{x:reservaEur(Math.abs(income.amount))})),
     React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:4}}, tf("rr_detect_sub",{d:parseDate(income.date).toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'})})),
     React.createElement("div",{style:{marginTop:10}}, plan.plan.map(function(p){
       return React.createElement("div",{key:p.ruleId,style:{display:"flex",justifyContent:"space-between",fontSize:13,padding:"4px 0"}},
-        React.createElement("span",null, p.name), React.createElement("span",{className:"num"}, eur0(p.amount)));
+        React.createElement("span",null, p.name), React.createElement("span",{className:"num"}, reservaEur(p.amount)));
     })),
-    plan.remainder>0 && React.createElement("div",{style:{fontSize:12,color:"var(--muted-2)",marginTop:4}}, tf("rr_remainder",{x:eur0(plan.remainder)})),
+    plan.remainder>0 && React.createElement("div",{style:{fontSize:12,color:"var(--muted-2)",marginTop:4}}, tf("rr_remainder",{x:reservaEur(plan.remainder)})),
     React.createElement("div",{className:"af-row",style:{marginTop:10}},
       React.createElement("button",{className:"btn btn-primary",style:{flex:1},onClick:apply}, t("rr_apply")),
       React.createElement("button",{className:"btn btn-ghost",style:{flex:1},onClick:dismiss}, t("rr_dismiss"))
@@ -19975,7 +20217,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="508d9e3b6600f12f30499935c138761435500da20bd8caa86f3f59646e95b5ce";
+var _rnSha="964c3bf2c0cb3baf1b861de83bd89be76f1756f1b59c648d93e6c82ba0e6a611";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -23845,6 +24087,9 @@ function App(){
     pageEl.classList.toggle("mc-touch-own", !!own);
   };
   const onPageScroll=function(e){
+    // Las páginas premontadas se recolocan al cambiar sus datos; su scroll no puede esconder
+    // la barra ni pisar la lectura de la pantalla visible (DOM Metas, 4/10).
+    if(trackRef.current && e.currentTarget!==trackRef.current.children[tab]) return;
     lastScrollAt.current=Date.now();
     /* Mientras el dedo CAMBIA DE PESTAÑA, el momentum del scroll vertical sigue disparando
        eventos. Cada uno podía llamar a setNavHidden y re-renderizar App entera a mitad del
@@ -23881,7 +24126,9 @@ function App(){
     if(ultimoScrollH.current && sh!==ultimoScrollH.current){
       ultimoScrollH.current=sh;
       lastScrollY.current=y;
-      if(Math.abs(dy)<6) return;
+      // Al cambiar una regla puede variar el alto estando ya arriba: el tope debe recuperar
+      // la navegación aunque el navegador no haya desplazado el contenido (DOM Metas, 4/10).
+      if(Math.abs(dy)<6 && y>8) return;
     } else {
       ultimoScrollH.current=sh;
       lastScrollY.current=y;
@@ -23972,6 +24219,7 @@ function App(){
   const [syncing,setSyncing]=useState(false);
   const [syncStatus,setSyncStatus]=useState({type:"idle",msg:""});
 
+  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.
   // Persistencia DEBOUNCED (2026-07-18): antes cada set() serializaba TODO el estado a
   // localStorage en el hilo principal (varios cientos de KB) → los micro-tirones esporádicos
   // («a veces se ralentiza, cuando chuta va hiper fluida»). Ahora se escribe como mucho 1 vez
@@ -23999,18 +24247,21 @@ function App(){
     if(p.t){ clearTimeout(p.t); p.t=null; }
     writeNow(p);
   },[]);
+  // El updater solo calcula: ni apunta el volcado ni arma el temporizador (ver `mcPersistCommit`).
   const set=useCallback((updater)=>{ setStateRaw(prev=>{
     const next=typeof updater==="function"?updater(prev):updater;
     if(next===prev) return prev;
-    const stamped=Object.assign({},next,{_savedAt:Date.now()});
-    const p=persistRef.current;
-    p.val=stamped;
-    // Comparación por REFERENCIA: los updaters siempre construyen un array nuevo cuando tocan
-    // gastos, así que basta con esto y cuesta cero.
-    if(prev.expenses!==stamped.expenses) p.exp=true;
-    if(!p.t) p.t=setTimeout(function(){ const q=persistRef.current; q.t=null; writeNow(q); },400);
-    return stamped;
+    return Object.assign({},next,{_savedAt:Date.now()});
   }); },[]);
+  // En el propio commit (layout, no pasivo): así un `pagehide` inmediato ya vuelca este estado.
+  const committedRef=useRef(state);
+  useLayoutEffect(function(){
+    const prev=committedRef.current;
+    committedRef.current=state;
+    mcPersistCommit(persistRef.current, prev, state, function(){
+      return setTimeout(function(){ const q=persistRef.current; q.t=null; writeNow(q); },400);
+    });
+  },[state]);
   useEffect(function(){
     const onVis=function(){ if(document.visibilityState==="hidden") flushPersist(); };
     document.addEventListener("visibilitychange",onVis);
@@ -24021,6 +24272,7 @@ function App(){
       window.removeEventListener("pagehide",flushPersist);
     };
   },[flushPersist]);
+  // INC-0410 guardado: límite.
   /* ⚠ EL TEMPORIZADOR DEL TOAST ANTERIOR SE CANCELA (13/9, tanda «actualizo y no me dice nada»).
      Cada toast programaba su propio `setToast(null)` a 2,2 s sin tocar el de antes, así que dos
      avisos seguidos se pisaban: el temporizador del PRIMERO borraba el SEGUNDO a mitad. Los largos
@@ -24054,6 +24306,53 @@ function App(){
   const bankSyncing=useRef(false);          // evita syncs de banco solapados
   // Promesa → true si el pull de arranque (estado + gastos) terminó bien. La espera `runBankSync`.
   const pullOkRef=useRef(null);
+  /* Las reglas mensuales de Metas se aplican al guardarlas; esto asienta el MES EN CURSO al abrir
+     la app. Con nube, solo cuando termina bien ESE pull de estado, nunca con uno anterior: el
+     estado gana entero por `_savedAt`, y una escritura automática sobre un estado local atrasado
+     lo haría «más nuevo» que la nube y pisaría lo aportado desde otro móvil (el mismo fallo del
+     +18,09 del 15/9, ver `runBankSync`). Un pull de hace horas no prueba nada, y si falla no se
+     aporta. Límite a propósito: con la app cerrada no corre, y un mes sin abrirla no se recupera.
+     Sin nada que aplicar, `applyReservaMensual` devuelve el mismo estado y `set` no escribe. */
+  const reservaMensualAlDia=function(pull){
+    return pull.then(function(ok){ if(ok) set(function(s){ return applyReservaMensual(s); }); });
+  };
+  /* La app puede seguir viva al cambiar de mes: al volver a primer plano, SOLO si queda una
+     aportación de este mes por asentar, se baja primero el estado de la nube (el mismo
+     `syncFromCloud` del arranque, que al terminar bien asienta) y un vuelo a la vez. Con todo al
+     día no se pide nada. Sin sesión no hay pull que lo acredite: no se aporta. No toca bancos. */
+  const reservaMensualVuelo=useRef(false);
+  const reservaMensualAlVolver=function(){
+    if(document.visibilityState==="hidden" || reservaMensualVuelo.current) return;
+    if(!reservaMensualPendiente(stateRef.current)) return;
+    // Sin nube configurada no hay otro dispositivo al que pisar.
+    if(!cloud.enabled()){ set(function(s){ return applyReservaMensual(s); }); return; }
+    if(!sessionRef.current) return;
+    reservaMensualVuelo.current=true;
+    const fin=function(){ reservaMensualVuelo.current=false; };
+    syncFromCloud(sessionRef.current);
+    (pullOkRef.current||Promise.resolve(false)).then(fin,fin);
+  };
+  useEffect(function(){
+    if(!cloud.enabled()) reservaMensualAlVolver();
+    document.addEventListener("visibilitychange",reservaMensualAlVolver);
+    // Android puede volver a primer plano sin `visibilitychange`: en la app nativa el aviso fiable
+    // es el de Capacitor. Sin él, el mes nuevo no se asentaba al volver (revisión del coordinador).
+    const A=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
+    let sub=null, disposed=false;
+    if(A&&A.addListener){
+      try{
+        sub=Promise.resolve(A.addListener("appStateChange", function(st){ if(!disposed&&st&&st.isActive) reservaMensualAlVolver(); }));
+        sub.catch(function(){});
+      }catch(e){}
+    }
+    return function(){
+      disposed=true;
+      document.removeEventListener("visibilitychange",reservaMensualAlVolver);
+      // addListener puede resolver después del cleanup: liberar también ese handle tardío.
+      if(sub) sub.then(function(h){ if(h&&h.remove) return h.remove(); }).catch(function(){});
+    };
+  },[]);
+  // INC-0410 mensual: límite del asiento del mes en App.
   const wR=useRef(false),wS=useRef(0),wP=useRef(null),wC=useRef([]);
   const bankJustConnected=useRef(false);    // marca la vuelta de ?bank=ok para sincronizar en cuanto haya sesión
 
@@ -24133,7 +24432,11 @@ function App(){
     if(!s || !s.user) return;
     const u=s.user.id;
     const freshLogin=!!(opts&&opts.freshLogin);   // acaba de INICIAR SESIÓN (no un reconecta del mismo user)
+    // INC-0410 mensual: el asiento solo vale si ESTE pull leyó un estado válido (o aún no hay ninguno).
+    const mensualPuerta=reservaMensualPuerta();
     const pull=cloud.pullState().then(function(cloudPack){
+      mensualPuerta.lee(cloudPack);
+      // INC-0410 mensual: límite de la lectura válida.
       const cloudState=cloudPack ? cloudPack.data : null;
       if(cloudPack && cloudPack.updated_at) cloudUpdatedAtRef.current=cloudPack.updated_at;
       if(cloudState && validCloudState(cloudState)){
@@ -24170,6 +24473,8 @@ function App(){
         }); }   // primera vez: sube lo que ya tienes
     }).then(function(){ return syncCloudExpenses(); });
     pullOkRef.current=pull.then(function(){ return true; }, function(){ return false; });
+    reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));
+    // INC-0410 mensual: límite del pull de estado del que depende el asiento.
     pull.catch(function(e){ if(navigator.onLine!==false) showToast("✕ Nube: "+((e&&e.message)||e)); })   // si estás sin conexión, ni avisamos (es normal)
       // Pase lo que pase, el splash se va: lo que se vea a partir de aquí ya es lo definitivo
       // (o lo mejor que hay). Ver el porqué en el script del final de shell.html.

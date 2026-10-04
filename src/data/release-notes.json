@@ -1,5 +1,68 @@
 [
   {
+    "v": "4.26.94",
+    "d": "2026-10-04",
+    "t": {
+      "es": "Reglas de ahorro que apartan al guardarlas",
+      "en": "Savings rules that set money aside when saved",
+      "ca": "Regles d’estalvi que aparten en desar-les"
+    },
+    "items": {
+      "es": [
+        "Al crear una regla en Metas, su importe se descuenta de tu presupuesto del mes y se aporta a la meta en el momento, sin confirmar nada más. Se repite cada mes, al abrir la app.",
+        "El importe se guarda tal como lo escribes, también con punto de miles o céntimos: 1.200 son mil doscientos.",
+        "Si el importe o el porcentaje no valen, la app lo dice en vez de quedarse sin hacer nada.",
+        "Cada regla indica lo que ha apartado este mes, o por qué todavía no ha podido.",
+        "Después de cambiar una regla, volver arriba mantiene visible la navegación."
+      ],
+      "en": [
+        "When you create a rule in Goals, its amount is deducted from this month’s budget and added to the goal right away, with nothing else to confirm. It repeats each month, when you open the app.",
+        "The amount is saved exactly as you type it, including thousands separators and cents: 1,200 means one thousand two hundred.",
+        "If the amount or percentage isn’t valid, the app says so instead of doing nothing.",
+        "Each rule shows what it has set aside this month, or why it couldn’t yet.",
+        "After changing a rule, returning to the top keeps navigation visible."
+      ],
+      "ca": [
+        "En crear una regla a Metes, el seu import es descompta del pressupost del mes i s’aporta a l’objectiu al moment, sense confirmar res més. Es repeteix cada mes, en obrir l’app.",
+        "L’import es desa tal com l’escrius, també amb punt de milers o cèntims: 1.200 són mil dos-cents.",
+        "Si l’import o el percentatge no són vàlids, l’app ho diu en lloc de quedar-se sense fer res.",
+        "Cada regla indica el que ha apartat aquest mes, o per què encara no ha pogut.",
+        "Després de canviar una regla, tornar a dalt manté visible la navegació."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0310-01-meta-regla",
+        "rev": 3,
+        "t": {
+          "es": "Reglas de Metas: descuento y aportación al guardar",
+          "en": "Goals rules: deduction and contribution on save",
+          "ca": "Regles de Metes: descompte i aportació en desar"
+        },
+        "items": {
+          "es": [
+            "1. Con un presupuesto mensual puesto, crea una meta de prueba y añádele una regla de importe fijo, por ejemplo 100: sin confirmar nada más, la meta sube ese importe, lo que te queda del presupuesto del mes baja lo mismo y la fila de la regla dice lo apartado este mes. Cierra y abre la app: todo sigue igual, sin aportar otra vez.",
+            "2. En el formulario de una regla, prueba 0, letras o un porcentaje de 150: no se guarda nada y aparece un aviso. Escribe 1.200 y guarda: la fila debe mostrar 1200 €.",
+            "3. Borra una regla nueva: el presupuesto recupera su importe y la meta conserva lo aportado. Cancelar el borrado no cambia nada."
+          ],
+          "en": [
+            "1. With a monthly budget set, create a test goal and add a fixed-amount rule to it, for example 100: with nothing else to confirm, the goal goes up by that amount, what’s left of this month’s budget goes down by the same, and the rule’s row shows what was set aside this month. Close and reopen the app: everything stays the same, with no second contribution.",
+            "2. In a rule’s form, try 0, letters or a percentage of 150: nothing is saved and a message appears. Type 1,200 and save: the row should show 1200 €.",
+            "3. Delete a new rule: the budget gets its amount back and the goal keeps what was contributed. Cancelling the deletion changes nothing."
+          ],
+          "ca": [
+            "1. Amb un pressupost mensual posat, crea un objectiu de prova i afegeix-hi una regla d’import fix, per exemple 100: sense confirmar res més, l’objectiu puja aquest import, el que et queda del pressupost del mes baixa el mateix i la fila de la regla diu el que s’ha apartat aquest mes. Tanca i obre l’app: tot segueix igual, sense aportar una altra vegada.",
+            "2. Al formulari d’una regla, prova 0, lletres o un percentatge de 150: no es desa res i apareix un avís. Escriu 1.200 i desa: la fila ha de mostrar 1200 €.",
+            "3. Esborra una regla nova: el pressupost recupera el seu import i l’objectiu conserva el que s’hi ha aportat. Cancel·lar l’esborrat no canvia res."
+          ]
+        },
+        "historial": [
+          "4.26.87/inc-0310-01-meta-regla"
+        ]
+      }
+    ]
+  },
+  {
     "v": "4.26.93",
     "d": "2026-10-04",
     "t": {
@@ -236,30 +299,7 @@
         "En esborrar una regla d’estalvi, la seva reserva deixa de reduir el pressupost disponible. Es conserven les aportacions de la meta."
       ]
     },
-    "tandas": [
-      {
-        "id": "inc-0310-01-meta-regla",
-        "t": {
-          "es": "Borrar una regla libera su reserva",
-          "en": "Deleting a rule releases its reservation",
-          "ca": "Esborrar una regla allibera la reserva"
-        },
-        "items": {
-          "es": [
-            "1. Con una nómina ya cobrada, crea y aplica dos reglas de Metas. Cancela el borrado: el presupuesto debe seguir igual. Confirma después: solo se libera lo apartado por esa regla; las aportaciones y la otra regla se conservan.",
-            "2. Vuelve a Gastos e Inicio y reabre la app. Deben mantener el presupuesto corregido, sin otra nómina ni reparto. Prueba también borrar una regla sin aplicar y borrar sin conexión."
-          ],
-          "en": [
-            "1. With a paycheck already received, create and apply two Goals rules. Cancel deletion: the budget should stay unchanged. Then confirm: only the deleted rule’s reservation is released; contributions and the other rule are kept.",
-            "2. Return to Expenses and Home, then reopen the app. The corrected budget should persist, without another paycheck or split. Also try deleting an unapplied rule and deleting offline."
-          ],
-          "ca": [
-            "1. Amb una nòmina ja cobrada, crea i aplica dues regles de Metes. Cancel·la l’esborrat: el pressupost ha de seguir igual. Després confirma: només s’allibera la reserva de la regla esborrada; les aportacions i l’altra regla es conserven.",
-            "2. Torna a Despeses i Inici i reobre l’app. Han de mantenir el pressupost corregit, sense una altra nòmina ni repartiment. Prova també d’esborrar una regla sense aplicar i sense connexió."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.86",
@@ -1065,9 +1105,6 @@
           ]
         },
         "historial": [
-          "4.26.68/inc-2809-02-ayuda-ciclo"
-        ],
-        "desde": [
           "4.26.68/inc-2809-02-ayuda-ciclo"
         ],
         "huella": "c10490c6",
