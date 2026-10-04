@@ -1,3 +1,13 @@
+## SEC-02 · `prices` (Deno, sin cuota de terceros)
+
+`supabase/functions/prices/prices.test.ts` está en `denoEnLista` de `scripts/run-tests.mjs`. Cubre
+auth 401, cuerpo 413, sleep en `finally` si Finnhub lanza, fail-open de `_shared/ratelimit.ts`, y el
+gate de la **propuesta** 30/600 con `rateLimit` real + RPC `check_rate_limit` simulada (bucket /
+limit / window, aislamiento por usuario, concurrencia, caducidad). Mutantes `limit=1` vs
+`999999` y `window=1` fallan si el mock ignora args. Rojo/verde: fixture `prices_base_fixture.ts`
+(lógica `8bb0398f`) vs candidato. La propuesta **no** está activa en live (`applyRateProposal`
+false salvo `PRICES_RATE_LIMIT=1`). [Brief](briefs/sec02-prices-limites.md).
+
 ## Carga de tests y lector de alcances (4/10)
 
 Limpieza aprobadas4/10: revisar-beta añade tres DOM es/en/ca contra el catálogo servido actual, recibo generado y APK52: cero filas entregadas y ninguna petición de aprobarlas, sin borrar un rechazo histórico sintético. Las regresiones de las siete antiguas, Metas87→94 y ronda mixta25 cargan explícitamente el catálogo publicado4403b252; el código que ejecutan sigue siendo el actual. beta-sources, beta-veredictos y beta-tandas-vacias conservan igualmente sus escenarios históricos con esa fuente fija. No se salta ni reduce cobertura al retirar las once entregadas. Mapa y runner conservan los ficheros ya registrados. Estos escenarios históricos requieren Git y el commit4403b252 disponible: los workflows de tests/publicación usan checkout con fetch-depth0. Un clon superficial debe traer esa historia; un ensayo con git archive sin .git no sirve para ejecutar estos guardianes históricos. Para ellos usa un worktree con historia completa, conservando el archivo sin .git para los perfiles A/B que no los ejecutan.

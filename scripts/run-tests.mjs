@@ -199,6 +199,7 @@ const denoEnLista = [
   "supabase/functions/_shared/crypto.test.ts",
   "supabase/functions/_shared/enablebanking.test.ts",
   "supabase/functions/delete-account/delete-account.test.ts",
+  "supabase/functions/prices/prices.test.ts",
 ];
 const buscaDeno = (dir) => fs.readdirSync(path.join(root, dir), { withFileTypes: true })
   .flatMap((d) => d.isDirectory() ? buscaDeno(dir + "/" + d.name)
