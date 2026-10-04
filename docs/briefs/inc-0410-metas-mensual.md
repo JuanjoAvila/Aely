@@ -4,6 +4,10 @@ Borrador web 4.26.94 sobre beta 4.26.93.2 (`4e65fa11`), entrega de Claude en `co
 
 ## Qué pidió
 
+### Cierre local del coordinador, 4/10 a16:02UTC
+
+Código consolidado `094a7d23` sobre beta93.2: Node completo407.3s con único fallo local de `memoria-espejo` (Deno no instalado, sin acreditar); DOM162 terminó158PASS/4FAIL del reloj del fixture antiguo, y el cierre de ese fixture con fecha desplazada creciente y timers/RAF nativos da12PASS, conservando todas las aserciones financieras. Los otros150 casos y el código de producto son idénticos: cobertura local cerrada162, sin skip/reintento en los cierres. Dos clientes son secuenciales, no escrituras simultáneas. La regresión de página oculta fue roja en f834 y pasa con la guarda por índice activo; los siete gestos existentes siguen pasando. Claude revisó por lectura el delta final, sin ejecutar tests. El sello oficial94.99999 mide1317221raw/358763gzip, dentro de1287/351KiB y3bloqueantes; HTML/SW restaurados y sonda retirada. CI, beta y aceptación móvil pendientes.
+
 Su rechazo de la 4.26.87 decía que, al añadir una regla, no quedaba aplicada y no aparecía la base a descontar, que él compara con el presupuesto mensual. Con el reparto por ingreso eso era el funcionamiento previsto: la regla esperaba al siguiente cobro y pedía confirmarlo. El 4/10 decidió el contrato: **guardar la regla descuenta del presupuesto del mes y aporta a la meta en el momento**, sin elegir ingreso ni confirmar aparte. Ejemplo acordado, sintético: presupuesto 1000 y regla de 100 dejan 900 disponibles y la meta con 100 más.
 
 ## Qué hace

@@ -10,15 +10,27 @@ const goals=[{id:"g1",name:"Reserva A",emoji:"🎯",target:5000,saved:125},
   {id:"g2",name:"Reserva B",emoji:"🎯",target:5000,saved:50}];
 const expenses=[{id:"salary",date:"2026-09-25T12:00:00Z",amount:-2000,merchant:"NOMINA SINTETICA",category:"ingreso",ent:"sabadell",source:"ob:sabadell",status:"BOOK"},
   {id:"purchase",date:"2026-09-26T10:00:00Z",amount:100,merchant:"Compra sintetica",category:"super",ent:"sabadell"}];
-test.beforeEach(async({page})=>{
-  await page.clock.install({time:new Date("2026-09-28T12:00:00Z")});
-});
+async function fechaFinanciera(page){
+  // El periodo necesita septiembre; Date.now debe avanzar para completar la animación de tabs.
+  const desfase=Date.parse("2026-09-28T12:00:00Z")-Date.now();
+  await page.addInitScript(desfase=>{
+    const FechaReal=Date,ahora=()=>FechaReal.now()+desfase;
+    window.Date=new Proxy(FechaReal,{
+      construct:(target,args,newTarget)=>Reflect.construct(target,args.length?args:[ahora()],newTarget),
+      apply:()=>new FechaReal(ahora()).toString(),
+      get:(target,key,receiver)=>key==="now"?ahora:Reflect.get(target,key,receiver)
+    });
+  },desfase);
+}
+test.beforeEach(async({page})=>{await fechaFinanciera(page);});
 
 async function boot(page){
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({timeout:30_000});
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
+  const now=await page.evaluate(()=>Date.now());
+  await expect.poll(()=>page.evaluate(()=>Date.now())).toBeGreaterThan(now);
 }
 async function nav(page,id){
   // Las páginas ocultas también tienen cifras ya pintadas: no encadenar navegación hasta
@@ -120,7 +132,7 @@ for(const lang of Object.keys(textos)) for(const mode of ["split","net"]){
     cloudState.settings={...cloudState.settings,reservaRules:rulesBefore};
     const secondContext=await browser.newContext({...devices["Pixel 5"],baseURL:new URL(page.url()).origin});
     const second=await secondContext.newPage();
-    await second.clock.install({time:new Date("2026-09-28T12:00:00Z")});
+    await fechaFinanciera(second);
     await seedLoggedInDashboard(second,{goals:[],expenses:[],settings:{lang},
       __cloudRows:{app_state:[{data:cloudState,updated_at:new Date().toISOString()}],expenses:cloudExpenses}});
     await boot(second);
