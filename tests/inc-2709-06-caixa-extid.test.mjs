@@ -61,14 +61,17 @@ t("aplanar conserva las dos referencias y el uid opaco de cada cuenta", () => {
   assert.equal(Array.from(flat.map((x) => x.acctUid)).sort().join(","), "cx-a,cx-b");
 });
 
-t("sync diario: los dos BOOK entran, el id menor en el mediodía local y el otro salado", () => {
+t("sync diario: los dos BOOK entran, cada uno con su sello y ninguno en el mediodía", () => {
   const add = ctx.importObExpenses(estado(), par);
   assert.ok(add && add.length === 2, "tienen que entrar los dos");
   assert.equal(new Set(add.map((e) => ctx.keyOfExpense(e))).size, 2);
   const a = add.find((e) => e.extId === "cargo-A");
   const b = add.find((e) => e.extId === "cargo-B");
-  assert.equal(a.date, ctx.histDate(ymd));
+  // El mediodía no se reparte: dos clientes con una sola referencia se lo quedarían los dos.
+  assert.equal(a.date, ctx.histDate(ymd, "ob-ext|caixabank|cargo-A"));
   assert.equal(b.date, ctx.histDate(ymd, "ob-ext|caixabank|cargo-B"));
+  assert.notEqual(a.date, ctx.histDate(ymd));
+  assert.notEqual(b.date, ctx.histDate(ymd));
   assert.equal(a.date.slice(0, 10), ymd);
   assert.equal(b.date.slice(0, 10), ymd);
   assert.equal(a.acctUid, "cx-a");
@@ -108,7 +111,7 @@ t("pendiente sin id y contabilizado con id, misma cuenta: solo el BOOK", () => {
   ]);
   assert.ok(add && add.length === 1);
   assert.equal(add[0].extId, "cargo-book");
-  assert.equal(add[0].date, ctx.histDate(ymd));
+  assert.equal(add[0].date, ctx.histDate(ymd, "ob-ext|caixabank|cargo-book"));
 });
 
 t("el pull devuelve el extId y el segundo sync no duplica", () => {
@@ -132,28 +135,31 @@ t("el pull devuelve el extId y el segundo sync no duplica", () => {
 t("sin extId el source diario no cambia; #dup gana a #x", () => {
   assert.equal(ctx.expenseSourceForCloud({ source: "ob", ent: "caixabank" }), "ob:caixabank");
   assert.equal(ctx.expenseSourceForCloud({ source: "ob", ent: "caixabank", extId: "cargo-A", possibleDup: true }), "ob:caixabank#dup");
-  assert.equal(ctx.expenseSourceForCloud({ source: "ob-hist", ent: "caixabank", extId: "cargo-A" }), "ob-hist:caixabank");
+  assert.equal(ctx.expenseSourceForCloud({ source: "ob-hist", ent: "caixabank" }), "ob-hist:caixabank");
+  // El servidor desplegado no parte `#` en `ob-hist:`. La referencia viaja en `ob:` para volver en el pull.
+  assert.equal(ctx.expenseSourceForCloud({ source: "ob-hist", ent: "caixabank", extId: "cargo-A" }), "ob:caixabank#x.cargo-A");
+  assert.equal(ctx.expenseSourceForCloud({ source: "ob-hist", ent: "caixabank", extId: "cargo-A", possibleDup: true }), "ob-hist:caixabank#dup");
 });
 
-t("borrar el del mediodía no esconde al hermano ni lo resucita el sync", () => {
+t("borrar una referencia no esconde al hermano ni la resucita el sync", () => {
   const add = ctx.importObExpenses(estado(), par);
-  const noon = add.find((e) => e.date === ctx.histDate(ymd));
-  const other = add.find((e) => e !== noon);
-  const keys = ctx.expenseTombKeys(noon);
+  const gone = add.find((e) => e.extId === "cargo-A");
+  const other = add.find((e) => e.extId === "cargo-B");
+  const keys = ctx.expenseTombKeys(gone);
   const del = {};
   keys.forEach((k) => { del[k] = 1; });
-  assert.equal(ctx.expenseIsTombstoned(noon, del), true);
+  assert.equal(ctx.expenseIsTombstoned(gone, del), true);
   assert.equal(ctx.expenseIsTombstoned(other, del), false);
   assert.equal(ctx.importObExpenses(estado([other], keys), par), null);
-  assert.equal(ctx.importObExpenses(estado([], [ctx.keyOfExpenseLegacy(noon)]), par), null);
-  const legacy = ctx.keyOfExpenseLegacy(noon);
+  const legacy = ctx.keyOfExpenseLegacy(gone);
+  assert.equal(ctx.importObExpenses(estado([], [legacy]), par), null);
   assert.equal(ctx.expenseIsTombstoned(other, { [legacy]: 1 }), false);
-  // Sin `obid` no se sabe qué referencia ocupaba el mediodía. Con el hermano vivo, esa
-  // referencia puede volver salada. El borrado de ahora escribe `obid` y no vuelve (arriba).
+  // Sin `obid` no se sabe qué referencia se borró. Con el hermano vivo, esa referencia
+  // puede volver con su sello. El borrado de ahora escribe `obid` y no vuelve (arriba).
   const back = ctx.importObExpenses(estado([other], [legacy]), par);
   assert.ok(back && back.length === 1);
-  assert.equal(back[0].extId, noon.extId);
-  assert.notEqual(back[0].date, ctx.histDate(ymd));
+  assert.equal(back[0].extId, "cargo-A");
+  assert.notEqual(back[0].date, other.date);
 });
 
 t("una fila vieja sin extId ocupa el id menor y el otro entra una sola vez", () => {

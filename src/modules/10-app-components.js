@@ -505,14 +505,33 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
     });
     const fixAdds=histFijosFromSelection(cands, reciboIdx, { mkId:uid, name:t("bp_hist_recibo"), dayOf:recDay });
     // Tanda 3: batch + RETURNING id. Solo lo ACK queda en local; sin ids → aviso claro.
+    const ocuparAck=function(rows){
+      return (rows||[]).map(function(e){
+        return { fecha:e.date, importe:e.amount, comercio:e.merchant, source:expenseSourceForCloud(e), ent:e.ent, extId:e.extId };
+      });
+    };
     Promise.resolve(cloud.addExpensesBatch ? cloud.addExpensesBatch(expAdds) : { cloudIds:[], offline:true })
       .catch(function(){ return { cloudIds:[], offline:false, failed:true }; })
       .then(function(res){
         const offline=!!(res&&res.offline);
         const failed=!!(res&&res.failed);
         const ack=histApplyBatchAck(expAdds, (res&&res.cloudIds)||[], { offline:offline });
-        // Servidor llamado y 0 ids con candidatos: no persistimos en local (sin ACK).
-        const keepLocal=offline ? ack.kept : (failed ? [] : ack.kept);
+        // La terna chocó: el índice no guardó esa fila. Un segundo sello, una sola vez.
+        // Sin red o sin ACK no se reintenta: offline se queda todo en local y el fallo no.
+        if(!res || offline || failed || !ack.skipped.length || typeof obReassignSkipped!=="function" || !cloud.addExpensesBatch) return ack;
+        const retry=obReassignSkipped(ack.skipped, ocuparAck(ack.kept));
+        if(!retry.length) return ack;
+        return cloud.addExpensesBatch(retry).then(function(res2){
+          if(!res2 || res2.failed) return ack;
+          if(res2.offline) return { kept:ack.kept.concat(retry), skipped:[], cloudIds:ack.cloudIds, offline:false };
+          const ack2=histApplyBatchAck(retry, res2.cloudIds||[], { offline:false });
+          return { kept:ack.kept.concat(ack2.kept), skipped:ack2.skipped, cloudIds:ack.cloudIds.concat(ack2.cloudIds), offline:false };
+        }).catch(function(){ return ack; });
+      })
+      .then(function(ack){
+        const offline=!!(ack&&ack.offline);
+        // Un fallo de red vuelve con kept vacío (no es offline). Sin ids no se guarda en local.
+        const keepLocal=(ack&&ack.kept)||[];
         set(function(s){
           const next=Object.assign({},s);
           if(keepLocal.length) next.expenses=keepLocal.concat(s.expenses||[]);
@@ -526,7 +545,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
         if(keepLocal.filter(function(e){ return e.amount>0; }).length) parts.push(tf("bp_hist_done_g",{n:keepLocal.filter(function(e){ return e.amount>0; }).length}));
         if(keepLocal.filter(function(e){ return e.amount<0; }).length) parts.push(tf("bp_hist_done_i",{n:keepLocal.filter(function(e){ return e.amount<0; }).length}));
         if(fixAdds.length) parts.push(tf("bp_hist_done_r",{n:fixAdds.length}));
-        if(failed || (!offline && expAdds.length && !ack.cloudIds.length)){
+        if(!offline && expAdds.length && !(ack.cloudIds||[]).length){
           showToast("⚠ "+t("bp_hist_no_ack"));
         }else if(!offline && ack.skipped.length){
           showToast((parts.length?parts.join(" · ")+" · ":"")+tf("bp_hist_skip_dup",{n:ack.skipped.length}));

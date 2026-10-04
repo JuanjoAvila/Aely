@@ -1,5 +1,22 @@
 # INC-2709-06 · cargos CaixaBank ausentes
 
+## Actualización 4/10/2026 · revisión Codex de `720e5aab`, NO-GO
+
+Codex revisó `720e5aabc4622f8dbd56f8e03807c0d710c39dbf` y no lo dio por bueno. Los cuatro fallos se reprodujeron con datos inventados, en UTC y en Europe/Madrid, contra ese bundle (`node tests/inc-2709-06-identidad.test.mjs`, salida en el informe de la rama). El caso humano sigue abierto: no se ha leído el enlace, la respuesta de Edge ni las filas de ese perfil.
+
+Qué fallaba en `720e5aab`, y qué hace el cliente ahora:
+
+1. **Histórico incremental.** A ya estaba; el flatten se quedaba B, pero `histCandExisting` lo marcaba duplicado de A por día|importe|comercio y el commit creaba cero filas. Un candidato con referencia solo casa la misma referencia del mismo banco, o una fila vieja sin referencia cuyo sello es exactamente el suyo. Sin sello, una fila vieja se reclama una sola vez. B entra.
+2. **Dos clientes, cada uno con una referencia.** Los dos se quedaban el mediodía local. El `onConflict` desplegado (`user_id,fecha,importe,comercio`, `ignoreDuplicates`) ignoraba la segunda escritura y el segundo móvil la conservaba como guardada. Al releer, la nube acababa en A+A y B no estaba. Un id nuevo ya no ocupa el mediodía: su sello es `histDate(día, "ob-ext|banco|id")`, el mismo en el sync y en el histórico, ordenado por id y no por quién llegó antes. Si el índice ignora la escritura, no se deja en local; se prueba un sello libre una vez y, si tampoco entra, se quita.
+3. **El hash choca.** Con `0`, `Az` y `BY`, `histDate(Az)` y `histDate(BY)` son el mismo instante. El diario se quedaba dos de tres y el histórico emitía dos fechas iguales; el índice tiraba una. La colisión se resuelve contra las fechas ya ocupadas de esa terna (`#n`), no se supone que el hash sea único.
+4. **Ida y vuelta.** Un extId de 150 caracteres se recortaba a 120 en `source` y el siguiente sync creaba otra fila. `ob-hist` no devolvía la referencia: perder la del mediodía hacía casar A y reinsertar B. Ya no se recorta. El servidor desplegado no parte `#` en `ob-hist:` (`bancoDeSource` se queda el texto entero y el widget dejaría de contar el cargo). Por eso una fila de histórico con referencia se escribe `ob:banco#x.` —ese sí se parte— y al volver el pull es `source:"ob"` con el extId entero. `#dup` sigue en `ob-hist:banco#dup` y gana a `#x.`. `~deuda` se conserva junto a `#x.`.
+
+El índice desplegado **no impide** guardar las dos filas: caben con fechas distintas. No se inventa otra clave de servidor ni se toca `presupuesto.ts`. Lo que el índice no resuelve, y queda como límite, es el widget: `claveComoLaApp` junta por día. Con dos MERCADONA de 12,50 € y un café de 3 €, la app cuenta 28 y el widget 15,50; la diferencia es el segundo 12,50. `#dup` y la cuota `~deuda` siguen fuera de los dos. Eso no es una corrección financiera completa del par.
+
+Sigue caducado, del apartado de debajo: «la sal la ocupa el id menor» y «`ob-hist` no lleva `#x.`». El mediodía solo se reclama si ya hay una fila vieja ahí sin referencia. Una lápida de día sin filas vivas sigue bloqueando el alta. Si convive con el hermano y no hay `obid`, la referencia borrada puede volver con su sello; el borrado nuevo escribe `obid` y no vuelve.
+
+No hay SQL, migración, Edge, reparación del histórico, sincronización automática ni subida de `VERSION`. FIN-04.1 (PR #129, cerrado) no se mezcla: `cloudSourceParts` rechaza `#x.` y aquí no se usa.
+
 ## Actualización 4/10/2026 · arreglo de cliente, caso humano abierto
 
 **El caso del perfil no está cerrado.** No se ha leído el enlace, la respuesta de Edge ni las filas de ese titular. Lo que sí se reprodujo, en la base `3048399c` (el producto de `src/modules` coincide con `main` `8bb0398f`), es un defecto de identidad con datos inventados:
@@ -19,11 +36,11 @@ El PR 128 (`788fa1f`, rama `cursor/inc-2709-06-caixa-ausentes-da8c`, cerrado, ba
 | La lápida de día tapa también al hermano | Descartado. Ampliaron `expenseIsTombstoned` a cualquier origen: borrar el cargo canónico escondía al otro |
 | Paginación, ventana, BOOK/PDNG y el filtro de Gastos | No estaban en su test. Revisados aquí y no cambiados, salvo el pendiente sin id frente al contabilizado con id de la misma cuenta, que sigue siendo un solo cargo |
 
-Qué se reutiliza de ese commit, citado en el código: conservar el `uid` opaco de la cuenta (sin fabricarlo desde el IBAN) y las ranuras del histórico por referencia. La sal del segundo cargo es `histDate(día, "ob-ext|banco|id")`, la misma en el sync diario y en el histórico, y la ocupa el id menor que aún no esté guardado. El id viaja en el `source` diario como `#x.` porque el servidor ya parte `ob:` por `#`. `ob-hist` no lleva ese sufijo: allí el banco se leería mal. `#dup` gana a `#x.`.
+Qué se reutiliza de ese commit, citado en el código: conservar el `uid` opaco de la cuenta (sin fabricarlo desde el IBAN) y las ranuras del histórico por referencia. La sal es `histDate(día, "ob-ext|banco|id")`. **Caducado en la revisión de `720e5aab` (apartado de arriba):** ya no la ocupa el id menor, y una fila de histórico con referencia no se queda en `ob-hist` sin `#x.` — se escribe `ob:banco#x.` porque el servidor desplegado no parte `#` en `ob-hist:`. `#dup` sigue ganando a `#x.`.
 
 Límites, a propósito:
 
-- El widget sigue juntando el par. `claveComoLaApp` mira el día y no se despliega Edge en este incidente.
+- El widget sigue juntando el par. Medido con el guardián: dos cargos de 12,50 € y un café de 3 € dan 28 en la app y 15,50 en el widget. `claveComoLaApp` mira el día y no se despliega en este incidente. No es el total arreglado del par.
 - No se toca el índice `expenses_dedup_idx` ni FIN-03. Una lápida de día antigua, sin filas vivas de esa terna, sigue bloqueando el alta: borrar el único cargo no lo resucita. Si esa lápida convive con el hermano y no hay `obid`, no se sabe qué referencia era la del mediodía y esa referencia puede volver salada; el borrado nuevo escribe `obid` y no vuelve.
 - Borrar uno de los dos escribe también `obid|banco|extId`. Renombrar no lo hace: la fila sigue viva.
 - Si el saldo del banco falla, el sync diario sigue sin pedir movimientos. Es otro fallo, no este.

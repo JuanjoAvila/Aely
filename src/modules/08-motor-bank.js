@@ -920,12 +920,12 @@ function importObExpenses(s, txs){
      sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
   const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
   /* Dos entry_reference del mismo banco no son el mismo cargo aunque coincidan día, importe y
-     comercio (INC-2709-06, medido: import 2→1 y el histórico se quedaba el primero). La tabla
-     deduplica por fecha COMPLETA y no hay columna ext_id ni migración en este incidente: el
-     primero conserva el mediodía local (`histDate` sin sal) y el otro usa la misma sal estable
-     que el histórico (`ob-ext|banco|id`), que no cambia el día civil. Quién ocupa el mediodía
-     es el id menor aún no visto, no el que llegue antes: si no, el sync diario y el histórico
-     fabricarían dos sellos distintos y la nube guardaría el par dos veces. */
+     comercio (INC-2709-06). La tabla deduplica por fecha+importe+comercio y no hay columna
+     ext_id: cada id lleva su sello (`ob-ext|banco|id`), el mismo en el sync y en el histórico,
+     sin mirar qué otro id vio antes este cliente. El mediodía solo se reclama si ya hay una
+     fila vieja ahí sin referencia: si cada móvil le diera el mediodía al único id que ve, el
+     índice se queda uno y el otro lo da por guardado. Si el hash choca, el sello siguiente
+     se elige contra las fechas ya ocupadas de esa terna, no se supone único. */
   const obMerchant=function(tx){ return tx.merchant||(Number(tx.amount)<0?"Ingreso":"Compra"); };
   const obScope=function(tx){ return (tx.ent||"")+"|"+String(tx.date||"").slice(0,10)+"|"+(Number(tx.amount)||0)+"|"+obMerchant(tx); };
   const obTwin=function(tx){ return (tx.ent||"")+"|"+(tx.acctUid||"")+"|"+String(tx.date||"").slice(0,10)+"|"+(Number(tx.amount)||0)+"|"+obMerchant(tx); };
@@ -947,7 +947,7 @@ function importObExpenses(s, txs){
     const sk=obScope(tx);
     if(!winner[sk]||id<winner[sk]) winner[sk]=id;
   });
-  const takenNoon={}, claimedNoon={};
+  const claimedNoon={};
   const ternaBlock=function(e){
     const sk=scopedKOf(e);
     const live=(liveByScope[sk]||[]).filter(function(x){ return !expenseIsTombstoned(x, delSet); });
@@ -956,25 +956,71 @@ function importObExpenses(s, txs){
     if(dayTomb) return "noon";
     return "";
   };
+  /* Sello por id, en orden de id y no de llegada. `occ` es la terna del índice
+     (importe+comercio+fecha), incluidas las filas que este lote ya ha colocado. */
+  const occ={};
+  const markOcc=function(amount, merchant, fecha){
+    const iso=obCanonIso(fecha);
+    if(iso) occ[obIndexGroup(amount, merchant)+"|"+iso]=1;
+  };
+  (s.expenses||[]).forEach(function(ex){
+    if(!ex || expenseIsTombstoned(ex, delSet)) return;
+    markOcc(ex.amount, ex.merchant, ex.date);
+    if(ex.obName!=null && ex.obName!==ex.merchant) markOcc(ex.amount, ex.obName, ex.date);
+  });
+  const plan={};
+  const pendingIds=[];
+  txs.forEach(function(tx){
+    if(!tx||!tx.id||!tx.date||parseDate(tx.date)<som) return;
+    const bank=tx.ent||"", id=String(tx.id);
+    if(seen[bank+"|"+id]||seenLegacy[tx.id]||delSet["obid|"+bank+"|"+id]) return;
+    pendingIds.push(tx);
+  });
+  pendingIds.sort(function(a,b){
+    const ia=String(a.id), ib=String(b.id);
+    if(ia<ib) return -1;
+    if(ia>ib) return 1;
+    return String(a.ent||"").localeCompare(String(b.ent||""));
+  });
+  pendingIds.forEach(function(tx){
+    const bank=tx.ent||"", id=String(tx.id);
+    const merchant=obMerchant(tx), amount=Number(tx.amount)||0, day=String(tx.date).slice(0,10);
+    const sk=obScope(tx);
+    const probe={ date:day, amount:amount, merchant:merchant, obName:merchant, ent:tx.ent, source:"ob" };
+    const live=(liveByScope[sk]||[]).filter(function(x){ return !expenseIsTombstoned(x, delSet); });
+    if(live.some(function(x){ return String(x.extId||"")===id; })){ plan[bank+"|"+id]="skip"; return; }
+    const block=ternaBlock(probe);
+    if(block==="all"){ plan[bank+"|"+id]="skip"; return; }
+    const canon=histDate(day);
+    const noonRow=live.filter(function(x){ return obCanonIso(x.date)===obCanonIso(canon); })[0];
+    /* Fila vieja en el mediodía sin referencia: el id menor es ese cargo y no se inserta otra
+       vez. El resto entra con su sello. No se le da el mediodía a un id nuevo: dos clientes
+       con vistas parciales lo pisarían. */
+    if(noonRow&&(noonRow.extId==null||noonRow.extId==="")&&id===winner[sk]&&!claimedNoon[sk]&&block!=="noon"){
+      claimedNoon[sk]=1; plan[bank+"|"+id]="skip"; return;
+    }
+    const prefIso=obCanonIso(histDate(day, obExtSaltKey(bank, id, 0)));
+    const rival=pendingIds.some(function(o){
+      if(o===tx || (o.ent||"")!==bank || String(o.date).slice(0,10)!==day) return false;
+      if((Number(o.amount)||0)!==amount || obMerchant(o)!==merchant) return false;
+      return obCanonIso(histDate(day, obExtSaltKey(bank, String(o.id), 0)))===prefIso;
+    });
+    if(!rival && live.some(function(x){ return (x.extId==null||x.extId==="") && obCanonIso(x.date)===prefIso; })){
+      plan[bank+"|"+id]="skip"; return;
+    }
+    const g=obIndexGroup(amount, merchant);
+    const occupied={};
+    Object.keys(occ).forEach(function(k){ if(k.indexOf(g+"|")===0) occupied[k.slice(g.length+1)]=1; });
+    const stamp=obPickExtStamp(day, bank, id, occupied);
+    if(!stamp){ plan[bank+"|"+id]="skip"; return; }
+    plan[bank+"|"+id]=stamp;
+    markOcc(amount, merchant, stamp);
+  });
   const reserveFecha=function(tx, e){
     if(!tx.id) return "legacy";
-    const bank=tx.ent||"", id=String(tx.id);
-    if(seen[bank+"|"+id]||seenLegacy[tx.id]||delSet["obid|"+bank+"|"+id]) return "skip";
-    const day=String(tx.date).slice(0,10), sk=scopedKOf(e);
-    const salt=histDate(day,"ob-ext|"+bank+"|"+id);
-    const live=(liveByScope[sk]||[]).filter(function(x){ return !expenseIsTombstoned(x, delSet); });
-    if(live.some(function(x){ return String(x.extId||"")===id||x.date===salt; })) return "skip";
-    const block=ternaBlock(e);
-    if(block==="all") return "skip";
-    const canon=histDate(day);
-    const noonRow=live.filter(function(x){ return x.date===canon; })[0];
-    if(!noonRow&&!takenNoon[sk]&&block!=="noon"&&id===winner[sk]){ takenNoon[sk]=1; return canon; }
-    /* Fila vieja en el mediodía sin referencia (otro móvil, source sin `#x.`): es UNO de los
-       cargos. Se le asigna el id menor y no se inserta otra vez. El resto sí entra salado. */
-    if(noonRow&&(noonRow.extId==null||noonRow.extId==="")&&id===winner[sk]&&!claimedNoon[sk]){
-      claimedNoon[sk]=1; return "skip";
-    }
-    return salt;
+    const p=plan[(tx.ent||"")+"|"+String(tx.id)];
+    if(!p || p==="skip") return "skip";
+    return p;
   };
   const remember=function(e){
     const sk=scopedKOf(e);
@@ -1888,9 +1934,54 @@ function histCandExisting(cands, expenses){
     const k=histCandDupKey(e.date, e.amount, nombre);
     (porClave[k]=porClave[k]||[]).push(e);
   });
+  const usados=[];
+  const tomar=function(e){
+    if(!e || usados.indexOf(e)>=0) return null;
+    usados.push(e);
+    Object.keys(porClave).forEach(function(k){
+      const list=porClave[k], j=list.indexOf(e);
+      if(j>=0) list.splice(j,1);
+    });
+    return e;
+  };
   const out={};
+  /* Dos entry_reference del mismo día, importe y comercio NO son el mismo cargo
+     (INC-2709-06). Casarlos aquí marcaba el segundo como duplicado y el commit no
+     creaba fila: el histórico incremental perdía B aunque el flatten lo hubiera
+     conservado. Solo casa la misma referencia, o una fila vieja sin referencia cuyo
+     sello es exactamente el de este id. El camino sin id (TR «Movimiento») sigue
+     por día|importe|comercio, 1:1, y ya no puede reutilizar la fila que se llevó un id. */
   (cands||[]).forEach(function(x,i){
-    if(!x) return;
+    if(!x || x.id==null || x.id==="") return;
+    const signed = x.kind==="in" ? -Math.abs(x.amount) : Math.abs(x.amount);
+    const hit=(expenses||[]).find(function(e){
+      if(!e || usados.indexOf(e)>=0) return false;
+      const eb=expenseBankOf(e)||e.ent||"";
+      if(x.ent && eb && eb!==x.ent) return false;
+      if(e.extId!=null && String(e.extId)!=="") return String(e.extId)===String(x.id);
+      if(!x.stamp || obCanonIso(e.date)!==obCanonIso(x.stamp)) return false;
+      if(Math.abs((Number(e.amount)||0)-signed)>0.005) return false;
+      const nombre=e.obName!=null ? e.obName : (e.merchant||"");
+      return nombre===String(x.merchant||"") || String(e.merchant||"")===String(x.merchant||"");
+    });
+    const cogido=tomar(hit);
+    if(cogido){ out[i]=cogido; return; }
+    /* Sin sello (un candidato que no pasó por el flatten) no se sabe qué referencia
+       ocupa la fila vieja. Se reclama una, por día|importe|comercio, y nunca una fila
+       que ya trae otro id: si el sello viene y no coincide, es otro cargo. */
+    if(x.stamp) return;
+    const list=porClave[histCandDupKey(x.date, signed, x.merchant)];
+    if(!list || !list.length) return;
+    const idx=list.findIndex(function(e){
+      if(e.extId!=null && String(e.extId)!=="") return false;
+      if(sinComercioReal(x.merchant) && x.ent) return expenseBankOf(e)===x.ent;
+      return true;
+    });
+    if(idx<0) return;
+    out[i]=tomar(list[idx]);
+  });
+  (cands||[]).forEach(function(x,i){
+    if(!x || out[i] || (x.id!=null && x.id!=="")) return;
     const signed = x.kind==="in" ? -Math.abs(x.amount) : Math.abs(x.amount);
     const list=porClave[histCandDupKey(x.date, signed, x.merchant)];
     if(!list || !list.length) return;
@@ -2168,26 +2259,71 @@ function histFlattenHistoryLinks(res, expenses, allow){
     });
     const busy=noonBusy[cloudK];
     let gaveNoon=!!busy, consumed=false;
+    const emit=[];
     rows.forEach(function(row,slot){
       const tx=row.tx;
       const ext=tx.ext_id!=null && String(tx.ext_id)!=="" ? String(tx.ext_id) : "";
       if(ext && (seen[row.entKey+"|"+ext]||seenLegacy[ext])){ skippedExt++; return; }
       /* La fila del mediodía no trae referencia (source viejo, sin `#x.`). El id menor es
-         ese cargo: no se vuelve a proponer. El otro id sí, con la sal `ob-ext`. */
+         ese cargo: no se vuelve a proponer. Los demás no heredan el mediodía. */
       if(ext && busy && !busy.extId && !consumed && ext===minExt){ consumed=true; return; }
-      let stamp;
-      if(ext){
-        if(!gaveNoon && ext===minExt){ stamp=histDate(row.dt); gaveNoon=true; }
-        else stamp=histDate(row.dt,"ob-ext|"+row.entKey+"|"+ext);
-      } else if(!slot && !gaveNoon){ stamp=histDate(row.dt); gaveNoon=true; }
-      else stamp=histDate(row.dt,"ob-slot|"+cloudK+"|"+slot);
+      emit.push({row:row, slot:slot, ext:ext});
+    });
+    const occ={};
+    const mark=function(amount, merchant, fecha){
+      const iso=obCanonIso(fecha);
+      if(iso) occ[obIndexGroup(amount, merchant)+"|"+iso]=1;
+    };
+    (expenses||[]).forEach(function(ex){
+      if(!ex) return;
+      mark(ex.amount, ex.merchant, ex.date);
+      if(ex.obName!=null && ex.obName!==ex.merchant) mark(ex.amount, ex.obName, ex.date);
+    });
+    const extEmit=emit.filter(function(it){ return it.ext; }).slice().sort(function(a,b){
+      return a.ext<b.ext ? -1 : (a.ext>b.ext ? 1 : 0);
+    });
+    extEmit.forEach(function(it){
+      const signed=it.row.isIn ? -it.row.abs : it.row.abs;
+      const merchant=it.row.merchant;
+      const prefIso=obCanonIso(histDate(it.row.dt, obExtSaltKey(it.row.entKey, it.ext, 0)));
+      const rival=extEmit.some(function(o){
+        if(o===it || o.row.entKey!==it.row.entKey || o.row.dt!==it.row.dt || o.row.merchant!==merchant) return false;
+        const os=o.row.isIn ? -o.row.abs : o.row.abs;
+        if(os!==signed) return false;
+        return obCanonIso(histDate(o.row.dt, obExtSaltKey(o.row.entKey, o.ext, 0)))===prefIso;
+      });
+      if(!rival && (expenses||[]).some(function(ex){
+        if(!ex || (ex.extId!=null && ex.extId!=="")) return false;
+        if((Number(ex.amount)||0)!==signed) return false;
+        const mc=ex.obName!=null ? ex.obName : (ex.merchant||"");
+        if(mc!==merchant && (ex.merchant||"")!==merchant) return false;
+        const bank=expenseBankOf(ex)||ex.ent||"";
+        if(bank && bank!==it.row.entKey) return false;
+        return obCanonIso(ex.date)===prefIso;
+      })){ it.skip=true; return; }
+      const g=obIndexGroup(signed, merchant);
+      const occupied={};
+      Object.keys(occ).forEach(function(k){ if(k.indexOf(g+"|")===0) occupied[k.slice(g.length+1)]=1; });
+      const stamp=obPickExtStamp(it.row.dt, it.row.entKey, it.ext, occupied);
+      if(!stamp){ it.skip=true; return; }
+      it.stamp=stamp;
+      mark(signed, merchant, stamp);
+    });
+    emit.forEach(function(it){
+      if(it.ext) return;
+      if(!it.slot && !gaveNoon){ it.stamp=histDate(it.row.dt); gaveNoon=true; }
+      else it.stamp=histDate(it.row.dt,"ob-slot|"+cloudK+"|"+it.slot);
+    });
+    emit.forEach(function(it){
+      if(it.skip || !it.stamp) return;
+      const tx=it.row.tx, row=it.row;
       out.push({
         id:tx.ext_id||null, date:row.dt, amount:row.abs,
         merchant:row.merchant,
         ...(tx.mcc?{mcc:tx.mcc}:{}),
         ...(tx.concept?{concept:tx.concept}:{}),
         note:tx.note||"", card:!!tx.card, ent:row.entKey, entLabel:row.entLabel,
-        stamp:stamp,
+        stamp:it.stamp,
         kind:row.isIn?"in":"out"
       });
     });
@@ -2207,6 +2343,95 @@ function histFlattenHistoryLinks(res, expenses, allow){
    EXACTAMENTE el antiguo mediodía local: también es la red de la nube contra un sync diario o una
    importación previa que el estado local todavía no conoce. Solo una segunda fila que chocaría
    usa una hora sintética —nunca se enseña— por grupo+ranura. */
+function obCanonIso(fecha){
+  const ms=+new Date(fecha);
+  return isFinite(ms) ? new Date(ms).toISOString() : "";
+}
+function obIndexGroup(amount, merchant){
+  return (Number(amount)||0)+"|"+(merchant==null ? "" : String(merchant));
+}
+function obExtSaltKey(bank, extId, n){
+  const base="ob-ext|"+(bank||"")+"|"+String(extId==null ? "" : extId);
+  return n ? base+"#"+n : base;
+}
+/* Sello de un entry_reference. `occupied` son las fechas ISO ya usadas por la misma
+   terna importe+comercio (la clave de `expenses_dedup_idx`, sin el usuario). El hash
+   de `histDate` no es único: si choca, se prueba `#n` contra esas fechas. */
+function obPickExtStamp(day, bank, extId, occupied){
+  for(let n=0; n<=48; n++){
+    const stamp=histDate(day, obExtSaltKey(bank, extId, n));
+    const iso=obCanonIso(stamp);
+    if(iso && !(occupied && occupied[iso])) return stamp;
+  }
+  return null;
+}
+function obExtIdFromCloudSource(source){
+  const raw=String(source||"");
+  const h=raw.indexOf("#");
+  if(h<0) return "";
+  const tail=raw.slice(h+1);
+  if(tail.indexOf("x.")!==0) return "";
+  try{ return decodeURIComponent(tail.slice(2))||""; }catch(err){ return ""; }
+}
+/* Simula el índice desplegado y el upsert `onConflict user_id,fecha,importe,comercio`
+   con `ignoreDuplicates`: la segunda escritura no entra y no vuelve en el RETURNING. */
+function obApplyDedupIndex(cloudRows, incoming){
+  const seen={};
+  (cloudRows||[]).forEach(function(r){
+    if(!r) return;
+    const fecha=r.fecha!=null ? r.fecha : r.date;
+    const importe=r.importe!=null ? r.importe : r.amount;
+    const comercio=r.comercio!=null ? r.comercio : r.merchant;
+    seen[obCanonIso(fecha)+"|"+(Number(importe)||0)+"|"+(comercio||"")]=1;
+  });
+  const accepted=[], ignored=[];
+  (incoming||[]).forEach(function(e){
+    if(!e) return;
+    const k=obCanonIso(e.date)+"|"+(Number(e.amount)||0)+"|"+(e.merchant||"");
+    if(seen[k]){ ignored.push(e); return; }
+    seen[k]=1;
+    accepted.push(e);
+  });
+  return { accepted:accepted, ignored:ignored };
+}
+/* Una escritura ignorada por el índice no está guardada. Se le busca otro sello libre
+   dentro del día. Si la nube ya tiene ESA referencia, no se fabrica otra fila. */
+function obReassignSkipped(skipped, occupiedRows){
+  const occ={};
+  const have={};
+  (occupiedRows||[]).forEach(function(r){
+    if(!r) return;
+    const amount=r.importe!=null ? r.importe : r.amount;
+    const merchant=r.comercio!=null ? r.comercio : r.merchant;
+    const fecha=r.fecha!=null ? r.fecha : r.date;
+    const iso=obCanonIso(fecha);
+    if(iso) occ[obIndexGroup(amount, merchant)+"|"+iso]=1;
+    const ext=r.extId!=null && r.extId!=="" ? String(r.extId) : obExtIdFromCloudSource(r.source);
+    const bank=r.ent||"";
+    if(ext) have[(bank?bank+"|":"")+ext]=1;
+  });
+  const out=[];
+  (skipped||[]).forEach(function(e){
+    if(!e || e.extId==null || e.extId==="") return;
+    const bank=e.ent||"";
+    const id=String(e.extId);
+    if(have[bank+"|"+id] || have[id]) return;
+    const day=String(e.date||"").slice(0,10);
+    const group=obIndexGroup(e.amount, e.merchant);
+    const isoNow=obCanonIso(e.date);
+    if(isoNow) occ[group+"|"+isoNow]=1;
+    let stamp=null;
+    for(let n=0; n<=48; n++){
+      const c=histDate(day, obExtSaltKey(bank, id, n));
+      const k=group+"|"+obCanonIso(c);
+      if(!occ[k]){ stamp=c; occ[k]=1; break; }
+    }
+    if(!stamp || obCanonIso(stamp)===isoNow) return;
+    have[bank+"|"+id]=1;
+    out.push(Object.assign({}, e, {date:stamp}));
+  });
+  return out;
+}
 function histDate(d,k){
   d=String(d||"").slice(0,10); k=String(k||"");
   const legacy=new Date(d+"T12:00:00").toISOString();

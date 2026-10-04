@@ -1675,13 +1675,13 @@ function deudaSufijo(debtId){
   const id=String(debtId||"").replace(/[^A-Za-z0-9_-]/g,"");
   return id ? "~deuda."+id : "";
 }
-/* La referencia del banco no tiene columna. Viaja en el `source` diario como `#x.` porque el
+/* La referencia del banco no tiene columna. Viaja en el `source` como `#x.` porque el
    servidor ya desplegado parte `ob:` por `#` y se queda el banco (`presupuesto.ts`). `#dup`
-   gana: un posible repetido no puede llevar las dos colas. `ob-hist` NO: ese parser no parte
-   por `#` y el banco pasaría a ser `caixabank#x.…`, fuera del presupuesto. */
+   gana: un posible repetido no puede llevar las dos colas. Sin recorte: 120 caracteres
+   partían un id de 150 y el siguiente sync lo daba por nuevo (INC-2709-06). */
 function obExtCloudSuffix(e){
   if(!e || e.possibleDup || e.extId==null || e.extId==="") return "";
-  const safe=encodeURIComponent(String(e.extId)).slice(0,120);
+  const safe=encodeURIComponent(String(e.extId));
   return safe ? "#x."+safe : "";
 }
 /* Parte el tramo de banco de un `source` OB: «sabadell~deuda.x» → {ent:"sabadell", debtId:"x"}. */
@@ -1711,7 +1711,16 @@ function expenseSourceForCloud(e){
   // Lo que NO viaja es `possibleDupOf` (el gemelo): tras reinstalar, «es el mismo» sigue
   // borrando la fila OB pero ya no puede traspasarle el extId al gemelo.
   if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+deudaSufijo(e&&e.debtId)+((e&&e.possibleDup)?"#dup":obExtCloudSuffix(e));
-  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+((e&&e.possibleDup)?"#dup":"");
+  /* `ob-hist:` NO se parte por `#` en el servidor desplegado: `ob-hist:caja#x.id` se leería
+     como un banco que no está en la lista y el widget dejaría de contar el cargo. Con extId
+     se escribe `ob:` (ese sí se parte) para que la referencia vuelva en el pull. Sin extId
+     se queda `ob-hist:`. `#dup` sigue en `ob-hist` y no arrastra `#x.`. */
+  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)){
+    if(e&&e.possibleDup) return "ob-hist:"+ent+"#dup";
+    const suf=obExtCloudSuffix(e);
+    if(suf) return "ob:"+ent+deudaSufijo(e&&e.debtId)+suf;
+    return "ob-hist:"+ent;
+  }
   // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
   // anteriores; al resolver «son distintos» vuelve a su origen real `macrodroid`.
   if(s==="macrodroid"||s==="tr") return (e&&e.possibleDup)?"ob:trade_republic#dup":"macrodroid";

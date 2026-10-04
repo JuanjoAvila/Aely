@@ -101,8 +101,9 @@ t("dos BOOK con entry_reference distinta en la misma cuenta no se funden", () =>
   assert.equal(ids.join(","), "cargo-A,cargo-B");
   const a=r.out.find(x=>x.id==="cargo-A");
   const b=r.out.find(x=>x.id==="cargo-B");
-  assert.equal(a.stamp, ctx.histDate("2026-09-10"));
+  assert.equal(a.stamp, ctx.histDate("2026-09-10","ob-ext|caixabank|cargo-A"));
   assert.equal(b.stamp, ctx.histDate("2026-09-10","ob-ext|caixabank|cargo-B"));
+  assert.notEqual(a.stamp, ctx.histDate("2026-09-10"));
   assert.equal(a.stamp.slice(0,10), b.stamp.slice(0,10));
 });
 
