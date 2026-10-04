@@ -52,7 +52,7 @@ mi-cartera/
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
-├── e2e/                    # Playwright (89 specs: pantallas, persistencia, copias y ayuda de Mi ciclo)
+├── e2e/                    # Playwright (96 specs: pantallas, persistencia, copias, reglas mensuales y ayuda de Mi ciclo)
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions, despliegue manual de Supabase y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
@@ -103,7 +103,11 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
+Estado actual: **v4.26.94** borrador local sin terminar ni publicar: en Metas, una regla nueva descuenta su importe del presupuesto del mes y lo aporta a la meta al guardarla, y se repite cada mes al abrir la app (decisión del dueño del 4/10 tras su rechazo de la 4.26.87); además el importe se guarda como se escribe y un alta que no vale lo dice. El motor está probado en Node y el alta en pantalla la ejecutó el coordinador en es/en/ca sobre un commit anterior del borrador; faltan la prueba de dos dispositivos, la suite completa sobre el commit final y su revisión. Corte 4/10, 13:30 UTC: la fuente de `beta` es 4.26.93 (`4e65fa11`, solo documentación sobre `1d5dd782`; entregada según el cotejo del coordinador) y producción sigue en 4.26.86; sin aceptación móvil. Actas: [contrato mensual](docs/briefs/inc-0410-metas-mensual.md) · [alta de reglas](docs/briefs/inc-0410-metas-alta.md).
+
+Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
+
+Corte anterior (4/10, 02:35 UTC): v4.26.90 servida en el canal beta como 4.26.90.2. Gastos oculta el límite de otros periodos y aprovecha todo el ancho; incluye Brókers89, entregada antes como 4.26.89.1. Cada cosa con su prueba, sin mezclarlas: **fuente** `beta` en `7f3da23b`, merge de [PR117](https://github.com/JuanjoAvila/Aely/pull/117), que solo añade una guardia de tests: lo que se usa no cambia respecto a 4.26.90.1; **canal beta servido** 4.26.90.2 desde ese mismo `7f3da23b`, publicación [37168006229](https://github.com/JuanjoAvila/Aely/actions/runs/37168006229) sin reintentos y manifiesto, ZIP, HTML, SW, notas y recibos cotejados con la fuente (Gastos se entregó primero como 4.26.90.1 desde el merge `4a2e3c54` de [PR116](https://github.com/JuanjoAvila/Aely/pull/116), publicación [37158585994](https://github.com/JuanjoAvila/Aely/actions/runs/37158585994)); **producción** sigue en 4.26.86 (`d366215a`), sin promoción; **APK** beta 4.26.80/code52 y estable 4.26.32/code48, sin binario nuevo ni prueba en dispositivo; **aceptación en el móvil** de 89 y 90: ninguna todavía; **Edge/SQL**: sin entregas nuevas. Una CI verde no es una aprobación. [Gastos](docs/briefs/inc-0310-gastos-sin-limite.md) · [Brókers](docs/briefs/inc-0310-broker-resultados.md).
 
 Corte anterior (3/10, superado por la entrega de arriba): v4.26.90 era candidata local, con Brókers89 pendiente de CI/publicación y beta88.1 y producción86 como últimas entregas acreditadas.
 

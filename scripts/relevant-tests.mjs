@@ -54,11 +54,15 @@ export const E2E_MAP = [
     "e2e/plan-cuota-contabilizada.spec.mjs",
 
     "e2e/metas-borrar-regla.spec.mjs",
+    "e2e/metas-alta-regla.spec.mjs",
+    "e2e/metas-mensual.spec.mjs",
     "e2e/inicio-cargos.spec.mjs",
     "e2e/pulido-vacios.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs",
     "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs", "e2e/inicio-mes-natural.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: [
     "e2e/metas-borrar-regla.spec.mjs",
+    "e2e/metas-alta-regla.spec.mjs",
+    "e2e/metas-mensual.spec.mjs",
     "e2e/inicio-cargos.spec.mjs",
     "e2e/retirada-bancaria.spec.mjs",
     "e2e/gastos-cajones.spec.mjs", "e2e/gastos-concepto.spec.mjs", "e2e/apuntar-sheet.spec.mjs",
@@ -78,6 +82,8 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/08-motor-bank.js", specs: [
     "e2e/metas-borrar-regla.spec.mjs",
+    "e2e/metas-alta-regla.spec.mjs",
+    "e2e/metas-mensual.spec.mjs",
     "e2e/nomina-anticipada.spec.mjs",
     "e2e/help-assistant.spec.mjs",
     "e2e/hist-pagos-mensuales.spec.mjs", "e2e/bancos-historico-filtro.spec.mjs",
@@ -95,6 +101,8 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/09-tab-debts-goals.js", specs: [
     "e2e/metas-borrar-regla.spec.mjs",
+    "e2e/metas-alta-regla.spec.mjs",
+    "e2e/metas-mensual.spec.mjs",
     "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs", "e2e/pulido-numpad.spec.mjs",
     "e2e/plan-ahorro.spec.mjs", "e2e/deudas-archivo.spec.mjs",
   ] },

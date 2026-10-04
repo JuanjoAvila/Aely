@@ -977,7 +977,9 @@ Object.assign(LANG.es,{
   h_trend:"Compara lo que llevas gastado en cada categoría con tu media de los últimos meses. Flecha arriba = este mes vas por encima de lo normal.",
   h_goalw:"Tu meta de ahorro más cercana y cómo va. La frase de abajo te dice si llegas a la fecha o cuánto tendrías que apartar al mes.",
   h_subs:"Pagos que se repiten cada mes por el mismo importe (Netflix, gym…). La app los detecta sola en tus gastos: revisa si de verdad los usas.",
-  h_reserva:"Cuando detecte una nómina, te propongo repartir parte según estas reglas: cada una suma a la meta que elijas y se descuenta de tu presupuesto de gasto variable, para que lo reservado se note de verdad.",
+  // INC-0410 es: la ayuda de la tarjeta promete lo mismo que el reparto.
+  h_reserva:"Cada regla aparta su importe al guardarla y, después, cada mes al abrir la app: se descuenta de tu presupuesto mensual y se suma a la meta que elijas, para que lo reservado se note de verdad. Las reglas que ya tenías siguen repartiendo cuando se detecta un ingreso, con tu confirmación.",
+  // INC-0410 es: límite de la ayuda del reparto.
   h_cvg:"Cuánto has puesto de tu bolsillo en cada bróker y cuánto vale hoy. La diferencia es tu ganancia (o pérdida) real, en la moneda de cada uno.",
   h_bytype:"Tus inversiones agrupadas por tipo (acciones, ETF, fondo, oro…). Para ver de un vistazo si lo tienes todo en un mismo saco.",
   h_rend:"Cada posición ordenada por lo que te ha dado: verde = ganas, rojo = pierdes. Con el % sobre lo que pusiste.",
@@ -1021,7 +1023,9 @@ Object.assign(LANG.en,{
   h_trend:"Compares what you've spent per category with your average of recent months. Arrow up = above your normal this month.",
   h_goalw:"Your nearest savings goal and how it's going. The line below tells you if you'll make the date or how much to set aside monthly.",
   h_subs:"Payments that repeat monthly for the same amount (Netflix, gym…). The app detects them in your spending: check you still use them.",
-  h_reserva:"When I detect a paycheck, I'll suggest splitting part of it by these rules: each one adds to the goal you pick and gets deducted from your variable spending budget, so the reserved money actually feels set aside.",
+  // INC-0410 en: la ayuda de la tarjeta promete lo mismo que el reparto.
+  h_reserva:"Each rule sets its amount aside when you save it and then each month when you open the app: it's deducted from your monthly budget and added to the goal you pick, so the reserved money actually feels set aside. Rules you already had keep splitting detected income, with your confirmation.",
+  // INC-0410 en: límite de la ayuda del reparto.
   h_cvg:"How much of your own money went into each broker and what it's worth today. The difference is your real gain (or loss), in each one's currency.",
   h_bytype:"Your investments grouped by type (stocks, ETF, fund, gold…). A quick check that everything isn't in one basket.",
   h_rend:"Each position ranked by what it has made you: green = gaining, red = losing. With the % over what you put in.",
@@ -1065,7 +1069,9 @@ Object.assign(LANG.ca,{
   h_trend:"Compara el que portes gastat en cada categoria amb la teva mitjana dels últims mesos. Fletxa amunt = aquest mes vas per sobre del normal.",
   h_goalw:"La teva meta d'estalvi més propera i com va. La frase de sota et diu si arribes a la data o quant hauries d'apartar al mes.",
   h_subs:"Pagaments que es repeteixen cada mes pel mateix import (Netflix, gym…). L'app els detecta sola a les teves despeses: revisa si de debò els fas servir.",
-  h_reserva:"Quan detecti una nòmina, et proposaré repartir-ne part segons aquestes regles: cada una suma a l'objectiu que triïs i es descompta del teu pressupost de despesa variable, perquè el que reserves es noti de debò.",
+  // INC-0410 ca: la ayuda de la tarjeta promete lo mismo que el reparto.
+  h_reserva:"Cada regla aparta el seu import en desar-la i, després, cada mes en obrir l'app: es descompta del teu pressupost mensual i se suma a l'objectiu que triïs, perquè el que reserves es noti de debò. Les regles que ja tenies continuen repartint quan es detecta un ingrés, amb la teva confirmació.",
+  // INC-0410 ca: límite de la ayuda del reparto.
   h_cvg:"Quant has posat de la teva butxaca a cada bròker i quant val avui. La diferència és el teu guany (o pèrdua) real, en la moneda de cadascun.",
   h_bytype:"Les teves inversions agrupades per tipus (accions, ETF, fons, or…). Per veure d'un cop d'ull si ho tens tot al mateix sac.",
   h_rend:"Cada posició ordenada pel que t'ha donat: verd = guanyes, vermell = perds. Amb el % sobre el que hi vas posar.",
@@ -2325,20 +2331,37 @@ Object.assign(LANG.es,{
   sh_back:"Grupos", sh_delgroup:"Borrar grupo", sh_delgroup_q:"¿Borrar este grupo y sus gastos?",
   gl_empty_t:"Aún no tienes metas", gl_empty_d:"Crea tu primera meta de ahorro y mira cómo se acerca cada mes.",
   gl_widget_title:"Tu meta", wl_goal:"Meta",
-  rr_title:"Reservar dinero de tu nómina", rr_sub:"{n} regla(s)", rr_sub_empty:"sin reglas",
-  rr_none:"Aún no tienes ninguna regla. Añade una para que parte de tu nómina vaya sola a una meta.",
   rr_add:"+ Añadir regla", rr_save:"Guardar regla",
   // INC-0310-01 es: el texto de confirmación también debe invalidar su revisión.
   rr_delete:"Borrar regla", rr_delete_q:"¿Borrar esta regla?", rr_delete_sub:"Se libera del presupuesto lo que siga reservado por esta regla y pueda comprobarse. Las aportaciones ya guardadas en la meta y su historial se conservan; no se mueve dinero.",
   // INC-0310-01 es: límite para no invalidar textos ajenos al borrado.
   rr_name_ph:"Nombre (opcional, ej. Parking recibos)",
-  rr_kind_fixed:"Importe fijo €", rr_kind_pct:"% de la nómina",
+  // INC-0410 es: los avisos del alta y el estado del reparto también deben invalidar su revisión.
+  rr_title:"Reservar dinero de tus ingresos", rr_sub:"{n} regla(s)", rr_sub_empty:"sin reglas",
+  rr_none:"Aún no tienes ninguna regla. Añade una: su importe se descuenta de tu presupuesto del mes y se aporta a la meta al guardarla, y otra vez cada mes, al abrir la app.",
+  rr_kind_fixed:"Importe fijo €", rr_kind_pct:"% del ingreso",
   rr_row_fixed:"{v} fijos", rr_row_pct:"{v} %",
   rr_goal_gone:"(meta borrada)",
-  rr_detect_t:"💰 Nómina detectada: {x}", rr_detect_sub:"Cobrada el {d}. Según tus reglas, este es el reparto:",
+  rr_detect_t:"💰 Ingreso detectado: {x}", rr_detect_sub:"Recibido el {d}. Según tus reglas, este es el reparto:",
   rr_remainder:"Y te quedan {x} para gasto diario, sin tocar.",
   rr_apply:"Aplicar reparto", rr_dismiss:"Ahora no",
   rr_applied_ok:"✓ Reparto aplicado a tus metas",
+  rr_err_amount:"Escribe un importe mayor que 0, por ejemplo 1200 o 1200,50.",
+  rr_err_pct:"El porcentaje tiene que ser mayor que 0 y como máximo 100.",
+  rr_err_goal:"Elige una meta que siga activa.",
+  rr_st_pending:"Hay un ingreso del {d} pendiente de repartir: confírmalo en el aviso de arriba.",
+  rr_st_applied:"El ingreso del {d} ya se repartió. Las reglas que añadas ahora no cambian ese reparto: entran en el siguiente que se detecte.",
+  rr_st_dismissed:"Dijiste «Ahora no» al reparto del ingreso del {d}. Las reglas se aplicarán al siguiente que se detecte.",
+  rr_st_none:"Ahora mismo no hay ningún ingreso detectado para repartir. Las reglas esperan al siguiente.",
+  rr_st_noplan:"Con estas reglas no hay ningún importe que repartir. Revisa las reglas y sus metas.",
+  rr_kind_pct_m:"% del presupuesto mensual",
+  rr_row_fixed_m:"{v} cada mes", rr_row_pct_m:"{v} % del presupuesto, cada mes",
+  rr_m_ok:"Este mes: {x} descontados del presupuesto y aportados a la meta.",
+  rr_m_base:"Este mes: —. Sin presupuesto mensual no se puede calcular el porcentaje.",
+  rr_m_meta:"Este mes: —. La meta ya no está activa.",
+  rr_m_none:"Este mes: —. Aún no se ha aplicado.",
+  rr_m_hint:"Al guardar, el importe se descuenta de tu presupuesto de este mes y se aporta a la meta, sin confirmar nada más. Se repite cada mes, al abrir la app.",
+  // INC-0410 es: límite para no invalidar textos ajenos al alta de reglas.
 });
 Object.assign(LANG.en,{
   tab_metas:"Goals", tab_logros:"Achievements",
@@ -2366,20 +2389,37 @@ Object.assign(LANG.en,{
   sh_back:"Groups", sh_delgroup:"Delete group", sh_delgroup_q:"Delete this group and its expenses?",
   gl_empty_t:"No goals yet", gl_empty_d:"Create your first savings goal and watch it get closer each month.",
   gl_widget_title:"Your goal", wl_goal:"Goal",
-  rr_title:"Reserve money from your paycheck", rr_sub:"{n} rule(s)", rr_sub_empty:"no rules",
-  rr_none:"You don't have any rules yet. Add one so part of your paycheck goes to a goal on its own.",
   rr_add:"+ Add rule", rr_save:"Save rule",
   // INC-0310-01 en: el texto de confirmación también debe invalidar su revisión.
   rr_delete:"Delete rule", rr_delete_q:"Delete this rule?", rr_delete_sub:"Any remaining reservation that can be verified is released from the budget. Contributions already saved towards the goal and their history are kept; no money moves.",
   // INC-0310-01 en: límite para no invalidar textos ajenos al borrado.
   rr_name_ph:"Name (optional, e.g. Bill parking)",
-  rr_kind_fixed:"Fixed amount €", rr_kind_pct:"% of paycheck",
+  // INC-0410 en: los avisos del alta y el estado del reparto también deben invalidar su revisión.
+  rr_title:"Reserve money from your income", rr_sub:"{n} rule(s)", rr_sub_empty:"no rules",
+  rr_none:"You don't have any rules yet. Add one: its amount is deducted from this month's budget and added to the goal when you save it, and again each month, when you open the app.",
+  rr_kind_fixed:"Fixed amount €", rr_kind_pct:"% of income",
   rr_row_fixed:"{v} fixed", rr_row_pct:"{v}%",
   rr_goal_gone:"(deleted goal)",
-  rr_detect_t:"💰 Paycheck detected: {x}", rr_detect_sub:"Received on {d}. Based on your rules, here's the split:",
+  rr_detect_t:"💰 Income detected: {x}", rr_detect_sub:"Received on {d}. Based on your rules, here's the split:",
   rr_remainder:"And {x} is left for daily spending, untouched.",
   rr_apply:"Apply split", rr_dismiss:"Not now",
   rr_applied_ok:"✓ Split applied to your goals",
+  rr_err_amount:"Enter an amount above 0, for example 1200 or 1200.50.",
+  rr_err_pct:"The percentage must be above 0 and no more than 100.",
+  rr_err_goal:"Choose a goal that is still active.",
+  rr_st_pending:"There's income from {d} waiting to be split: confirm it in the notice above.",
+  rr_st_applied:"The income from {d} has already been split. Rules you add now don't change that split: they apply to the next one detected.",
+  rr_st_dismissed:"You chose “Not now” for splitting the income from {d}. Your rules will apply to the next one detected.",
+  rr_st_none:"There's no detected income to split right now. Your rules are waiting for the next one.",
+  rr_st_noplan:"These rules have no amount to split. Check the rules and their goals.",
+  rr_kind_pct_m:"% of monthly budget",
+  rr_row_fixed_m:"{v} every month", rr_row_pct_m:"{v}% of the budget, every month",
+  rr_m_ok:"This month: {x} deducted from the budget and added to the goal.",
+  rr_m_base:"This month: —. Without a monthly budget the percentage can't be worked out.",
+  rr_m_meta:"This month: —. The goal is no longer active.",
+  rr_m_none:"This month: —. Not applied yet.",
+  rr_m_hint:"When you save, the amount is deducted from this month's budget and added to the goal, with nothing else to confirm. It repeats each month, when you open the app.",
+  // INC-0410 en: límite para no invalidar textos ajenos al alta de reglas.
 });
 Object.assign(LANG.ca,{
   tab_metas:"Objectius", tab_logros:"Assoliments",
@@ -2407,20 +2447,37 @@ Object.assign(LANG.ca,{
   sh_back:"Grups", sh_delgroup:"Esborra grup", sh_delgroup_q:"Esborrar aquest grup i les seves despeses?",
   gl_empty_t:"Encara no tens objectius", gl_empty_d:"Crea el teu primer objectiu d'estalvi i mira com s'acosta cada mes.",
   gl_widget_title:"El teu objectiu", wl_goal:"Objectiu",
-  rr_title:"Reservar diners de la teva nòmina", rr_sub:"{n} regla(es)", rr_sub_empty:"sense regles",
-  rr_none:"Encara no tens cap regla. Afegeix-ne una perquè part de la teva nòmina vagi sola a un objectiu.",
   rr_add:"+ Afegir regla", rr_save:"Desar regla",
   // INC-0310-01 ca: el texto de confirmación también debe invalidar su revisión.
   rr_delete:"Esborrar regla", rr_delete_q:"Vols esborrar aquesta regla?", rr_delete_sub:"S’allibera del pressupost el que segueixi reservat per aquesta regla i es pugui comprovar. Es conserven les aportacions ja desades a la meta i el seu historial; no es mouen diners.",
   // INC-0310-01 ca: límite para no invalidar textos ajenos al borrado.
   rr_name_ph:"Nom (opcional, ex. Aparcament de rebuts)",
-  rr_kind_fixed:"Import fix €", rr_kind_pct:"% de la nòmina",
+  // INC-0410 ca: los avisos del alta y el estado del reparto también deben invalidar su revisión.
+  rr_title:"Reservar diners dels teus ingressos", rr_sub:"{n} regla(es)", rr_sub_empty:"sense regles",
+  rr_none:"Encara no tens cap regla. Afegeix-ne una: el seu import es descompta del pressupost del mes i s'aporta a l'objectiu en desar-la, i una altra vegada cada mes, en obrir l'app.",
+  rr_kind_fixed:"Import fix €", rr_kind_pct:"% de l'ingrés",
   rr_row_fixed:"{v} fixos", rr_row_pct:"{v} %",
   rr_goal_gone:"(objectiu esborrat)",
-  rr_detect_t:"💰 Nòmina detectada: {x}", rr_detect_sub:"Cobrada el {d}. Segons les teves regles, aquest és el repartiment:",
+  rr_detect_t:"💰 Ingrés detectat: {x}", rr_detect_sub:"Rebut el {d}. Segons les teves regles, aquest és el repartiment:",
   rr_remainder:"I et queden {x} per a despesa diària, sense tocar.",
   rr_apply:"Aplicar repartiment", rr_dismiss:"Ara no",
   rr_applied_ok:"✓ Repartiment aplicat als teus objectius",
+  rr_err_amount:"Escriu un import més gran que 0, per exemple 1200 o 1200,50.",
+  rr_err_pct:"El percentatge ha de ser més gran que 0 i com a màxim 100.",
+  rr_err_goal:"Tria un objectiu que encara estigui actiu.",
+  rr_st_pending:"Hi ha un ingrés del {d} pendent de repartir: confirma'l a l'avís de dalt.",
+  rr_st_applied:"L'ingrés del {d} ja es va repartir. Les regles que afegeixis ara no canvien aquest repartiment: entren en el següent que es detecti.",
+  rr_st_dismissed:"Vas dir «Ara no» al repartiment de l'ingrés del {d}. Les regles s'aplicaran al següent que es detecti.",
+  rr_st_none:"Ara mateix no hi ha cap ingrés detectat per repartir. Les regles esperen el següent.",
+  rr_st_noplan:"Amb aquestes regles no hi ha cap import per repartir. Revisa les regles i els seus objectius.",
+  rr_kind_pct_m:"% del pressupost mensual",
+  rr_row_fixed_m:"{v} cada mes", rr_row_pct_m:"{v} % del pressupost, cada mes",
+  rr_m_ok:"Aquest mes: {x} descomptats del pressupost i aportats a l'objectiu.",
+  rr_m_base:"Aquest mes: —. Sense pressupost mensual no es pot calcular el percentatge.",
+  rr_m_meta:"Aquest mes: —. L'objectiu ja no està actiu.",
+  rr_m_none:"Aquest mes: —. Encara no s'ha aplicat.",
+  rr_m_hint:"En desar, l'import es descompta del pressupost d'aquest mes i s'aporta a l'objectiu, sense confirmar res més. Es repeteix cada mes, en obrir l'app.",
+  // INC-0410 ca: límite para no invalidar textos ajenos al alta de reglas.
 });
 // --- Open Banking (Capa 2: el saldo real del banco) ---
 Object.assign(LANG.es,{
