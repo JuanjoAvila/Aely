@@ -66,7 +66,7 @@ No hay snapshot común entre peticiones: filas existentes que conservan UUID y v
 
 `flattenBankTx` ya reúne `accounts[].transactions` sin tope global y guarda el feed diario en `bankTx`. No equivale a un histórico bancario completo: Edge diario pide mes vigente con margen, y el proveedor tiene límites de 2000 filas/12 páginas/tiempo por cuenta. El import histórico separado conserva UID/cuenta y avisos de recorte. El aplanado diario conserva banco, no UID; ampliar esa identidad exige otro objetivo. Una descarga completa de expenses no elimina estos límites externos. Sin cambio ni despliegue de Edge/migraciones. El orden por PK funciona sin nuevo índice compuesto user_id/id; su coste bajo RLS queda pendiente de medición backend autorizada.
 
-## Liquidación y archivo de deudas (4.26.70)
+## Liquidación y archivo de deudas (4.26.67)
 
 `debtBalance` proyecta el saldo con `value`, `asOf` y la amortización mensual; un 0 calculado no prueba el pago bancario. `settledAt` solo se fija tras confirmación explícita en Plan → Deudas o una amortización total introducida por la persona. `archivedAt` se admite únicamente con saldo cero y liquidación confirmada; oculta la tarjeta de la lista activa, pero conserva la deuda y su `id` en `state.debts`. Gastos y sus filtros siguen resolviendo los movimientos con `debtId` contra esa colección completa. Mostrar de nuevo una deuda archivada no la convierte en pendiente: para corregir un saldo real positivo se edita, y esa edición limpia la marca de liquidación. El borrado físico se bloquea si alguna fila de gasto está vinculada. No se crean pagos ni se reescribe el histórico.
 
@@ -232,7 +232,7 @@ vigila que el trabajo no crezca con el histórico; esto vigila lo que hay que ba
 
 ## Flujo de datos
 
-### Consulta de copias (OPS-02, candidato4.26.56)
+### Consulta de copias (OPS-02, publicada4.26.56)
 
 `AutoBackupsPanel` valida la copia y la mantiene en su estado React propio. El visor compara
 UUID/campos e importes guardados con la cartera actual y pagina los registros. No llama al
@@ -445,7 +445,7 @@ FIN-06: FX puro devuelve null sin tipo (nunca 1:1). Las sumas vivas omiten conve
 
 ## SEC-03: frontera de diagnósticos
 
-Preparación local, sin despliegue: los errores automáticos se reducen antes del transporte a operación y clase cerrada; app_events ya no añade el correo de sesión. El sobre Sentry se reconstruye por lista permitida (tipo/código/posición/versión/plataforma), sin contextos, breadcrumbs, tracing ni URL de petición. Feedback y notas de beta explícitos redactan patrones sensibles y filtran campos, con límites semánticos. user_id sigue siendo necesario para RLS: no es telemetría anónima. Matriz, pruebas y límites Edge/gateway en [SEC-03](briefs/sec03-privacidad-logs.md).
+Cliente probado y aprobado en beta 4.26.57.1; entrega exclusiva cliente 4.26.57 mediante PR49, Edge sin despliegue: los errores automáticos se reducen antes del transporte a operación y clase cerrada; app_events ya no añade el correo de sesión. El sobre Sentry se reconstruye por lista permitida (tipo/código/posición/versión/plataforma), sin contextos, breadcrumbs, tracing ni URL de petición. Feedback y notas de beta explícitos redactan patrones sensibles y filtran campos, con límites semánticos. user_id sigue siendo necesario para RLS: no es telemetría anónima. Matriz, pruebas y límites Edge/gateway en [SEC-03](briefs/sec03-privacidad-logs.md).
 
 ## Evidencia de pago de recibos · INC-3009-01
 

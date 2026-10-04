@@ -1,3 +1,5 @@
+Promoción3/10: fuente web aprobada86/49a preparada sobre main12884; APK estable32/code48 y workflow Supabase manual conservados. Java/TS son fuente, no entrega APK/Edge. CI/publicación pendiente; no inventar recibos nativos. [Acta](briefs/promocion-web-aprobadas-2026-10-03.md). Extras humanos pendientes en [inventario](briefs/inc-0310-extras-sincronizacion-asistente-gastos.md).
+
 # App nativa Android (Capacitor) — reemplazo de MacroDroid
 
 Objetivo: empaquetar la PWA como app Android y añadir un **servicio nativo** que lee la

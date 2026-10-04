@@ -3,6 +3,8 @@
 Circuito oficial desde el incidente del **2026-08-06** (WEBDEBUG colado, Pages caído,
 apk.json a releases fantasma, promote encolado…). Detalle técnico en `AGENTS.md` §6.
 
+Prioridad del dueño (4/10): cerrar primero la entrega a producción de las aprobadas vigentes; después retirar esas tandas del catálogo beta conservando arrays vacíos, notas y veredictos. No estrenar otra ronda mientras se deja lo aprobado esperando sin un bloqueo concreto. El recibo web no sustituye APK ni Edge; sus entregas se acreditan por separado.
+
 ## Los 6 pasos
 
 1. **Trabaja en `beta`** (`git push origin refs/heads/beta:refs/heads/beta` — hay tag `beta`).
@@ -14,7 +16,7 @@ apk.json a releases fantasma, promote encolado…). Detalle técnico en `AGENTS.
    `version.json` y el sello del Service Worker de ese SHA en Pages. No relances el deploy por
    un promote aún en curso. Tras el promote: `npm run test:syntax` y revisa el diff `main` vs
    `beta` (`-X theirs` traga cosas).
-4. **Espera Supabase verde** (migraciones + Edge Functions) antes de cantar Wallet/ingest.
+4. **Supabase solo manual:** push/promote no activa backend. Si cambia Wallet/ingest, requiere autorización separada, referencia revisada y una función concreta en `supabase.yml`, `migraciones=no` por defecto. Verifica la fuente activa tras el despliegue. SQL conserva `continue-on-error`: el verde general no acredita migraciones.
 5. **APK nativa (si tocó Java/Kotlin/iconos o quieres APK alineada):**
    ```bash
    # versionName = VERSION, versionCode += 1 en android/app/build.gradle

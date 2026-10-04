@@ -1,5 +1,7 @@
 ## Carga de tests y lector de alcances (4/10)
 
+Limpieza aprobadas4/10: revisar-beta añade tres DOM es/en/ca contra el catálogo servido actual, recibo generado y APK52: cero filas entregadas y ninguna petición de aprobarlas, sin borrar un rechazo histórico sintético. Las regresiones de las siete antiguas, Metas87→94 y ronda mixta25 cargan explícitamente el catálogo publicado4403b252; el código que ejecutan sigue siendo el actual. beta-sources, beta-veredictos y beta-tandas-vacias conservan igualmente sus escenarios históricos con esa fuente fija. No se salta ni reduce cobertura al retirar las once entregadas. Mapa y runner conservan los ficheros ya registrados. Estos escenarios históricos requieren Git y el commit4403b252 disponible: los workflows de tests/publicación usan checkout con fetch-depth0. Un clon superficial debe traer esa historia; un ensayo con git archive sin .git no sirve para ejecutar estos guardianes históricos. Para ellos usa un worktree con historia completa, conservando el archivo sin .git para los perfiles A/B que no los ejecutan.
+
 `botnav-esconder`, ya transversal, reproduce un scroll real emitido por la página oculta de Gastos después de volver a Inicio: comprueba que el evento llegó, que la pantalla activa sigue en el tope y que la barra no se oculta pasado su plazo de 550 ms. El caso era rojo sin la comprobación de página activa en `onPageScroll`; conserva los gestos táctiles de ocultar, revelar y cambiar pestañas.
 
 El fixture antiguo `metas-borrar-regla` desplaza la fecha a septiembre conservando Date.now creciente y los RAF/timers del navegador: solo necesita el periodo de la nómina sintética, sin avanzar meses. Comprueba que el reloj avanza. Congelarlo por completo impide terminar la transición de pestañas; sustituir también RAF/performance con un reloj virtual desajustaba la navegación larga respecto a las transiciones CSS reales.
@@ -252,7 +254,7 @@ Desde la 4.9.1 esto lo vigila `tests/docs-frescura.test.mjs`: si quedan cambios 
 
 ### Dos guardas más, de la 4.10.0
 
-- **`tests/edge-sintaxis.test.mjs`** — las Edge Functions se despliegan solas al pushear, en un
+- **`tests/edge-sintaxis.test.mjs`** — las Edge Functions se despliegan manualmente con autorización, en un
   workflow DISTINTO al de Pages: un paréntesis de más no lo ve nadie hasta que el usuario ya cree
   que está publicado. Y `deno check` se omite en silencio si Deno no está instalado. Esto las pasa
   por el parser de esbuild (que ya es dependencia del repo) y además falla si alguna vuelve a poner
@@ -694,3 +696,11 @@ Gastos90: gastos-periodo-categorias.spec.mjs conserva el mapa existente y compru
 Corte de resultados 4/10 (cada ejecución acredita su SHA y nada más): **Brókers89** — CI de la fuente [37149680919](https://github.com/JuanjoAvila/Aely/actions/runs/37149680919) sin flaky (746 funcionales, 1 captura opcional omitida, 7 de rendimiento, 4 archivos Deno); su publicación [37154017094](https://github.com/JuanjoAvila/Aely/actions/runs/37154017094) pasó con 745 y **1 flaky** recuperado al reintento, y repetir después el test original en verde no borra ese flaky. **Gastos90** — CI de la fuente [37151630719](https://github.com/JuanjoAvila/Aely/actions/runs/37151630719) con 743 y **3 flaky** recuperados (los tres originales repetidos en verde, que tampoco los borra); su publicación [37158585994](https://github.com/JuanjoAvila/Aely/actions/runs/37158585994) sin flaky: 746 funcionales, 1 omitida, 7 de rendimiento, 4 archivos Deno. **PR117** (guardia `i18n-categorias`) — CI [37164666468](https://github.com/JuanjoAvila/Aely/actions/runs/37164666468) sin flaky, con la misma composición, y su publicación [37168006229](https://github.com/JuanjoAvila/Aely/actions/runs/37168006229) igual: 746 funcionales, 1 omitida, 7 de rendimiento y 4 archivos Deno, sin flaky; sirve la beta 4.26.90.2. Límites reales en local: la suite Node sale con código 1 solo por `memoria-espejo`, y Deno no está instalado, así que los tests Deno los acredita únicamente la CI. Ninguna de estas ejecuciones es una aceptación en el móvil.
 
 Las pruebas históricas del panel beta ysu ronda offline bloquean consultas a la producción real antes del arranque. Cada escenario fija versión/recibos sintéticos; una publicación externa no debe retirar sus tandas ni cambiar aprobaciones durante la aserción. Las pruebas de sincronización comprueban el proveedor que respondió, además de las cifras visibles.
+
+- **`tests/supabase-workflow.test.mjs`** — protege el único evento manual, función obligatoria por env, rechazo de entradas inválidas antes de SQL, despliegue de una sola función y migraciones opt-in. Ejecuta los bloques Bash reales con CLI simulado; no usa red ni credenciales. Windows requiere Git Bash (se descubre desde Git; también `BASH_PATH`); Linux usa `bash`. Registrado en `npm test`.
+
+
+Desde el 28/9, el dueño autoriza que cada chat nuevo compruebe estos veredictos y publique de
+forma autónoma **solo** las tandas aprobadas, después de preparar y verificar la candidata exacta.
+El proceso está en [PROMPT-FLUJO-CONTINUO.md](PROMPT-FLUJO-CONTINUO.md). Una tanda sin veredicto
+identificable o con validación por pago real pendiente continúa en beta.

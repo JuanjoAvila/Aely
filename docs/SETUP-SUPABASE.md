@@ -50,7 +50,7 @@ El código (esquema, funciones, CI) ya está en el repo dentro de `supabase/`.
 Opción rápida (recomendada la primera vez): **SQL Editor → New query**, pega el contenido de
 [`supabase/migrations/0001_init.sql`](../supabase/migrations/0001_init.sql) y dale a **Run**.
 
-(Más adelante, si configuras `SUPABASE_DB_PASSWORD` en CI, las migraciones se aplican solas con `supabase db push`.)
+(En CI, `SUPABASE_DB_PASSWORD` solo habilita migraciones si se selecciona expresamente `migraciones=si` al lanzar el workflow manual; revisar previamente el SQL.)
 
 ### Migración 0019 — límite de peticiones y caducidad del `state` (4.10.0)
 
@@ -145,22 +145,24 @@ controlado si la función no está disponible. Antes de activar el flag, revisar
 los topes y la estimación de coste en
 [`briefs/asistente-hibrido-2026-09-16.md`](briefs/asistente-hibrido-2026-09-16.md).
 
-## Paso 5 — Activar el deploy automático desde GitHub 👤
+## Paso 5 — Configurar el despliegue manual desde GitHub 👤
 
 En el repo: **Settings → Secrets and variables → Actions**:
 
 - **Secrets** → New repository secret:
   - `SUPABASE_ACCESS_TOKEN` → genera uno en https://supabase.com/dashboard/account/tokens
-  - `SUPABASE_DB_PASSWORD` *(opcional)* → la Database Password del Paso 1 (para migraciones automáticas)
+  - `SUPABASE_DB_PASSWORD` *(opcional)* → la Database Password del Paso 1 (para migraciones seleccionadas expresamente)
 - **Variables** → New repository variable:
   - `SUPABASE_PROJECT_REF` → el Project Ref del Paso 1
 
-A partir de aquí, cualquier cambio en `supabase/**` despliega las funciones solo (workflow `Deploy Supabase`).
+El workflow `Deploy Supabase` solo admite `workflow_dispatch`: ningún push, merge ni promote despliega funciones o ejecuta SQL. En Actions, seleccionar la referencia revisada y una función concreta autorizada. `funcion` es obligatorio: se rechazan vacío, rutas, metacaracteres o nombres sin `supabase/functions/<nombre>/index.ts`, antes de cualquier SQL. No existe despliegue global.
+
+`migraciones` conserva `no` por defecto. Solo `si` junto con contraseña habilita `db push --include-all`; requiere revisión y autorización separadas. La ruta histórica conserva `continue-on-error`: un Action verde no acredita éxito de las migraciones, hay que comprobar el paso y su resultado.
 Mientras no estén configurados, el workflow se salta el deploy sin fallar.
 
 El proyecto Supabase es compartido: `beta` no tiene una Edge separada. Por eso una corrección de
-`ingest` puede prepararse y revisarse en beta, pero solo se activa al promocionarla a `main` o al
-lanzar expresamente `supabase.yml`. No se debe presentar una prueba móvil de servidor como activa
+`ingest` puede prepararse y revisarse en beta, pero solo se activa al
+lanzar expresamente `supabase.yml` con autorización. No se debe presentar una prueba móvil de servidor como activa
 antes de ese despliegue.
 
 FIN-05 amplía la respuesta mensual de `ingest` con `periodStart` (inicio del mes en

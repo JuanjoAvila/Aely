@@ -1,6 +1,16 @@
 {
   "versionCode": 52,
   "versionName": "4.26.80",
-  "url": "https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.80-beta-52.apk",
-  "notes": "El widget sigue el mes o Mi ciclo de Inicio y pide abrir la app cuando falta confirmar un pago."
+  "url": "https://github.com/JuanjoAvila/Aely/releases/download/v4.26.80/Aely-4.26.80.apk",
+  "notes": "El widget sigue el mes o Mi ciclo de Inicio y pide abrir la app cuando falta confirmar un pago.",
+  "revisiones": {
+    "inc-2909-01-widget-periodo": "1004af0f2570052e7477cd305ffb7374438909c934b19d38b93c13f4ca742cfe",
+    "fin05-widget-reentrada": "c09df9a93a8b2eadca3460fd2159b928c5388254f097fc8d04caeb9ab87deb2e",
+    "fin05-pago-cerrada": "1004af0f2570052e7477cd305ffb7374438909c934b19d38b93c13f4ca742cfe",
+    "tr-descripcion-clasificacion": "75398ed0822b137f0f18e1a064b330f1d1d1f46a8cf2798757f6078f55825e8a",
+    "widget-banco": "712127ade82a2eafc8c1f08a074ef0131495ee64b616b100d049553616787198",
+    "widget-app-cerrada": "1004af0f2570052e7477cd305ffb7374438909c934b19d38b93c13f4ca742cfe"
+  },
+  "sha256": "4abfa5b19d8d46bc10239162c20f8a5aa74020d343607fff421ccf61d9ade4d3",
+  "sourceSha": "64b4e5f3543ae440812ecf76a7e3259dfc938d1b"
 }

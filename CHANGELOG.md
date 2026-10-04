@@ -1,5 +1,7 @@
 ## [4.26.94] — 2026-10-04 · Reglas mensuales de Metas: descontar y aportar al guardar
 
+- **Entrega aprobada y limpieza (4/10).** PR125 integra las once aprobadas desde beta94.1 preservando producto exacto72633, despliegue Supabase manual, Deno/checkout completo de Pages e historia66/67 de producción. APK52 publica el mismo binario aprobado y acreditado por tres DEX; ingest/categorize/bank-sync se despliegan específicamente sin SQL. La limpieza retira solo once tandas conservando arrays vacíos, familia214notas y veredictos. Regresiones antiguas usan catálogo publicado4403 contra código actual; tres DOM adicionales prueban la cola servida a0 en es/en/ca. La publicación beta espera la entrega efectiva de producción. [Acta](docs/briefs/promocion-aprobadas-2026-10-04.md).
+
 - Al aplicar una regla cambiaba el alto de Metas y `onPageScroll` podía ignorar el evento estando ya en el tope, dejando la navegación oculta. La exclusión de recolocaciones pequeñas conserva su efecto solo fuera de los primeros 8 px: arriba se recupera la barra. Otra causa reproducida en DOM: el scroll de una página premontada y oculta pisaba las referencias de la página activa y escondía su barra aunque estuviera arriba. Se ignoran esos eventos por el índice de página, sin usar `page-scroll-host`, que desaparece durante un gesto entre pestañas. El alcance de Metas incluye ese manejador y sus auxiliares, con mutantes de ambas condiciones; el e2e antiguo exige la barra visible y que cada navegación llegue a su página activa. Los partes de la revisión87 se prueban con su huella publicada, se conservan y no aprueban el código nuevo.
 
 - **Contrato nuevo, decisión del dueño (4/10).** Con el reparto por ingreso, crear una regla no hacía nada hasta el siguiente cobro y pedía confirmarlo aparte; el rechazo de la 4.26.87 decía justo eso: la regla «no queda aplicada» y no aparece la base a descontar. Las reglas nuevas llevan `mensual:true` y `addReservaRule` las aplica en la misma escritura: suma a la meta y deja un asiento en `reservaLog`, que es lo que restan Inicio, Gastos, el widget y el servidor. No crea movimientos ni toca `expenses`.
@@ -57,6 +59,8 @@
 - Motor ampliado y DOM `metas-borrar-regla` registrado para Metas, motor, Inicio y Gastos: alta, aplicación, cancelación, varias reglas, sin ejecución, offline, recarga y segundo cliente con pull sintético, bruto/neto es/en/ca. Evidencia y límites: [acta](docs/briefs/inc-0310-01-meta-regla.md). Candidata aislada, sin publicación ni aceptación móvil.
 
 ## [4.26.86] — 2026-10-02 · La categoría elegida a mano no se deshace (INC-0210-02)
+
+- Promoción web selectiva de las veinte tandas aprobadas de86: fuente49a exacta y aprobaciones actuales/auditadas; excluye Metas87/Movilidad88/PR105. APK estable32/code48 y workflow Supabase manual conservados. Historia publicada66/67 preservada; checkout completo en Pages para verificar referencias históricas y cuatro suites Deno también en despliegue. [Acta](docs/briefs/promocion-web-aprobadas-2026-10-03.md).
 
 - Síntoma: un comercio de comida cuyo nombre contiene el de una aseguradora, corregido a Restaurantes, volvía a Recibos cada día. Reproducido en Node con datos ficticios por dos caminos. (1) La fila corregida: `refreshExpenseFromCloud` adopta la categoría de la nube en toda fila no manual, y la subida de la corrección filtra por id; si el id local no es el de la tabla, el UPDATE no toca ninguna fila y no da error, así que el siguiente pull devolvía la categoría vieja. (2) El cargo equivalente del día siguiente: `ingest` categoriza en servidor por palabra clave sin conocer lo aprendido y `resolveCategory` acepta cualquier categoría de nube distinta de «otros» sin mirar `USER_OVERRIDES`.
 - No se añade ninguna regla de aseguradoras ni se tocan palabras clave, MCC ni servidor: el alias es ambiguo y un seguro real debe seguir en Recibos.
@@ -204,21 +208,23 @@
 - En Gastos la tarjeta de Mi ciclo ocupaba altura en cada visita. `settings.gastosCycleHelpOff` conserva por perfil la elección de plegar el texto; el resumen con cobro y fecha, o la ausencia de nómina y el uso del mes natural, permanece visible. El botón Ayuda/Ocultar permite reabrirla sin cambiar el periodo seleccionado. El filtro informativo sin presupuesto por ciclo tiene su propia explicación para que el control nunca abra un área vacía.
 - Textos es/en/ca y E2E de DOM real cubren apertura, cierre, vuelta a Gastos, recarga, reapertura, falta de nómina y filtro sin presupuesto. El HTML minificado mide 1.256.096 B (+672 B sobre el tope previo); se amplía 1 KiB el límite crudo y gzip permanece en 342.346 B bajo 335 KiB. No se modifican cálculo financiero, filas, APK, Edge, SQL ni las cinco tandas nativas pendientes. [Beta 4.26.68.1 publicada y cotejada](docs/briefs/inc-2809-02-ayuda-ciclo.md); prueba móvil pendiente.
 
-## [4.26.67] — 2026-09-28 · INC-2809-01, Inicio explica el neto de Mi ciclo
+## [4.26.67] — 2026-09-30 · INC-2709-02, liquidación y archivo de deudas
 
-- Tras la aprobación de beta 4.26.67.1, PR #61 publicó la corrección web selectiva como 4.26.66. Se retira solo `inc-2809-01-inicio-ciclo` de la cola del panel y se trasladan intactas las cinco tandas pendientes a la nota 4.26.67: la comparación del panel descarta las notas con versión igual a producción. La nota para la familia permanece en Novedades.
+- Candidata de promoción exclusiva desde producción 4.26.66 de la tanda `inc-2709-02-deudas-archivo`, aprobada por el dueño el 29/9 tras beta 4.26.70.1. Se trasladan solo `09-tab-debts-goals.js`, sus textos es/en/ca y la cobertura de DOM; Android, Edge, SQL, APK y el resto de beta quedan fuera.
+- `debtBalance` a cero es una proyección, no prueba bancaria: Plan → Deudas pide confirmación explícita antes de permitir el archivo. Una amortización total que escribe la persona confirma en la misma actualización. `archivedAt` oculta la tarjeta sin borrar su `id`, por lo que Gastos conserva las cuotas históricas; un saldo positivo corregido reaparece. El borrado físico se bloquea con pagos vinculados y la amortización rechaza un diálogo obsoleto.
+- La nota pública de 4.26.67 tiene `tandas:[]` porque esta tanda ya recibió aprobación. Los guiones aún pendientes de beta se preservan por encima de la nueva versión estable; su publicación y cualquier retirada adicional requieren veredicto propio.
 
-- Inicio mezclaba `bud.spent` en «Has gastado» con el anillo y el disponible calculados desde `bud.against = spent − income`. Un ingreso posterior al cobro permitía que Gastos mostrase margen mientras Inicio decía que se habían gastado más euros que el presupuesto. En ciclo, la tarjeta etiqueta ahora el gasto neto, muestra su valor y el disponible con céntimos, y conserva el anillo ligado al mismo `against`; si se supera el límite informa de cuánto falta. El mes natural mantiene su frase de gasto bruto y su proyección diaria; el widget no cambia.
-- Una racha de cero meses cerrados no demuestra que sea el primer mes: el pie pasa a «Mes en curso». El ciclo muestra «Mi ciclo» en la misma posición. E2E sintético abre Inicio y Gastos en es/en/ca con gasto, nómina, ingreso posterior de otro banco y actividad anterior al ciclo, más casos de ingreso superior al gasto y de exceso del presupuesto. El bundle medido ocupa 342.031 B gzip, 15 B sobre el tope previo; se amplía el límite 1 KiB con 1.009 B de margen. No se incorporan capturas ni importes privados.
+## [4.26.66] — 2026-09-29 · INC-2809-01, cifras coherentes en Inicio
 
-## [4.26.66] — 2026-09-28 · continuidad de las tandas nativas tras la promoción web
-
-- El dueño aprobó las nueve tandas visibles en beta. La candidata web selectiva de PR #58 publica por separado Inicio/Gastos, saldo de nómina adelantada y las dos partes de Mi ciclo; la corrección de Cuotas ya está en producción 4.26.59. Se vacían esas checklists en 4.26.59–65 y se trasladan sin cambiar pasos las cinco del widget/Trade Republic a esta versión, para que sigan visibles cuando Pages alcance 4.26.65. El código financiero y nativo de beta no cambia. La APK51, Edge, SQL y migraciones no se publican en esta operación.
+- Promoción selectiva de `inc-2809-01-inicio-ciclo`, aprobada expresamente tras beta 4.26.67.1 y publicada desde PR #61 como web 4.26.66. La candidata nació de main 4.26.65; incorporó solo la presentación de Inicio y sus pruebas. Conserva APK48, Edge, SQL y el workflow manual de Supabase. CI main y Pages terminaron correctamente; el ZIP servido coincide con HTML, SW, notas y APK de Pages.
+- En ciclo, la frase de Inicio usa `bud.against` (gasto menos ingresos recibidos), igual que el anillo y el disponible de Gastos. Expresa neto y margen con céntimos; en mes natural conserva el gasto bruto y la proyección diaria. Una racha de cero meses cerrados deja de afirmar que hoy es el primer día.
+- El brief de la incidencia registra SHAs, pruebas, revisión y artefactos servidos. Las cinco tandas ligadas a APK51 permanecen en beta con aceptación independiente.
 
 ## [4.26.65] — 2026-09-28 · Mi ciclo cuenta todos los ingresos del período
 
+- El dueño aprobó el 28/9 las nueve tandas pendientes, incluida la corrección visual de Inicio y el pago real del widget. Esta entrega reconstruye desde `main` las cuatro tandas exclusivamente web (Inicio/Gastos, saldo de nómina adelantada y las dos de Mi ciclo). Las otras cinco conservan una entrega nativa propia: mantener APK48 y el workflow manual de Supabase evita anunciar APK51 o reactivar despliegues automáticos/migraciones por un merge de beta. La tanda de Cuotas ya está en producción 4.26.59. [Matriz y límites](docs/briefs/promocion-aprobadas-2026-09-28.md).
 - `monthBudgetStats` usa el balance neto para el ciclo activo aunque el modo del mes natural sea Gastos: una cena de 100 € y un Bizum recibido de 80 € dejan 20 € contra el límite y recuperan 80 € de margen. La nómina ancla queda fuera; también categorías neutras, lápidas, posibles duplicados y apuntes futuros. Otros ingresos reales, incluido alquiler y trabajo extra, aumentan el margen según la decisión explícita del dueño. Si llega otra nómina reconocida, abre un ciclo nuevo. Ingresos de cualquier banco cuentan aunque los gastos sigan limitados a bancos diarios; una devolución de fijos también aumenta el balance del ciclo. Los gastos por categoría conservan el bruto.
-- La barra de Gastos mide el mismo neto que el dinero restante. Inicio conserva su frase de gasto bruto aprobada; el modo mensual, informes cerrados y widget Android conservan sus reglas y bancos. Ajustes explica el alcance en es/en/ca. Regresión pura y E2E con 100/80, otro banco, alquiler, segunda nómina, devolución de fijos y modo mensual bruto. La fuente final mide 341.971 B gzip, 45 B bajo el límite vigente de 334 KiB. Requiere revisión del SHA y comprobación móvil en beta.
+- La barra de Gastos mide el mismo neto que el dinero restante. Inicio conserva su frase de gasto bruto aprobada; el modo mensual, informes cerrados y widget Android conservan sus reglas y bancos. Ajustes explica el alcance en es/en/ca. Regresión pura y E2E con 100/80, otro banco, alquiler, segunda nómina, devolución de fijos y modo mensual bruto. La candidata selectiva mide 341.039 B gzip, bajo el límite de 334 KiB. La revisión y publicación del SHA integrado se registran en el acta de promoción.
 
 ## [4.26.64] — 2026-09-28 · presupuesto opcional por cobro real e Inicio restaurado
 
@@ -258,25 +264,28 @@
 
 ## [4.26.59] — 2026-09-28 · INC-2709-04, ficha de cuota
 
-- Con `debt.months` numérico, `BillsItemSheet` llamaba `.slice()` al plazo y provocaba el crash al abrir la ficha. Solo `fixed.months` es lista; se inicializa el editor de meses de recibo únicamente para un array de recibo.
-- E2E real rojo antes y verde después con plazo 24: abrir/cerrar, importe y pago previo visible una vez en Gastos; sin modificar la deuda ni el histórico.
+- Crash reproducido en la ruta real Plan → Gestionar → Cuotas de deuda → ficha con `months:24`: `BillsItemSheet` llamaba `.slice()` al plazo numérico de la deuda, confundido con `fixed.months` (lista de meses de recibo). Las trazas sanitizadas del móvil mostraban el mismo TypeError en 4.26.48.1 y 4.26.52.1.
+- La ficha inicializa la lista de meses solo para recibos con array; no transforma ni escribe el plazo de la deuda. E2E rojo antes y verde después: abrir/cerrar, importe, plazo y pago histórico visible una sola vez en Gastos. Sin backend, migración, filas reales ni APK.
 
 ## [4.26.58] — 2026-09-27
 
 - Conservación de beta al publicar SEC-03 sola: nueva base posterior a producción 4.26.57 y cinco tandas financieras pendientes con sus guiones originales. betaChecklist filtra por versión de producción; sin este corte desaparecerían del panel aunque el código siguiera presente. No se modifica lógica financiera, Android/APK ni se aprueba el pago.
 - SEC-03 cliente publicada previamente en beta 4.26.57.1, SHA f2354a47, revisión Claude GO y CI/publicación 36349262562 SUCCESS. Aprobación móvil expresa recibida solo para SEC-03. Backend, SQL/RLS y APK sin despliegue.
 
-## [4.26.57] — 2026-09-27
+## [4.26.57] — 2026-09-27 · SEC-03 cliente aprobado; entrega exclusiva
 
-- SEC-03: limitar errores automáticos por operación/código y reconstruir sobres Sentry sin contenedores libres; eliminar correo de app_events. Feedback y veredictos explícitos conservan fecha/hora/importe/SHA y redactan patrones sensibles. user_id sigue para propiedad/RLS.
-- Integración sobre beta 3dfe0a28: FIN-05, selector del widget, clasificación TR, Android/APK y guiones de pago permanecen. Solo se portan cambios de logging; Edge no se despliega. Candidata aislada 741cc5c6 con GO Claude y CI 36346085770; integración pendiente de revisión/CI propios antes de beta.
-- Guardián permanente 21 casos con mocks, SDK instalado/vendor reales y E2E de Actividad. No datos reales ni garantía de anonimato semántico; matriz y límites en docs/briefs/sec03-privacidad-logs.md.
+- Frontera app_events por esquema/clases cerradas y email:null; no transmite claves de gastos ni mensajes/objetos libres de proveedor. user_id necesario para RLS permanece.
+- Sentry reconstruye el sobre, conserva tipo/código/posición y omite contexto libre, URL, usuario y breadcrumbs. Cola/capturas limpias antes del SDK; tracing y sesiones automáticas desactivados.
+- Feedback y partes de beta explícitos redactan patrones de identidad/credenciales, filtrando campos extra. Se preservan fechas/horas/importes/SHA/notas: Claude reprodujo su pérdida en la primera candidata y la regresión protege ese contexto. No se promete redacción semántica completa.
+- Loggers locales Edge minimizados; **sin despliegue**. ingest requiere portar exclusivamente su delta sobre la fuente activa revalidada: no publicar la fuente main sobre FIN-05/Wallet activos.
+- Guardián Node registrado, SDK real instalado/vendor, inventario de destinos y regresión DOM de Actividad. Matriz y límites: docs/briefs/sec03-privacidad-logs.md. Base final main 42613195 / OPS-02 4.26.56 publicada; beta pendiente intacta.
 
 ## [4.26.56] — 2026-09-27
 
 - OPS-02: sustituir el reemplazo conectado de copias por un visor en memoria de solo lectura. Abrir/cerrar no llama a set de App ni mcSaveRaw; la copia no entra en push/backfill. Validación de listas, filas, identificadores, fechas, importes y datos JSON antes de mostrar. Comparación por UUID exacto y por todos los campos; legado y UUID ambiguos sin emparejar, sumas de registros separadas y paginado.
 - Compatibilidad del visor: metadatos antiguos se inspeccionan crudos; IDs ausentes/numéricos quedan sin correspondencia, nunca se inventa UUID. Sumas presentadas con hasta dos decimales, sin conversión.
-- Textos es/en/ca y pruebas registradas de aislamiento local/cloud, pull con visor abierto, segundo cliente, corrupción, cierre durante descarga, offline e idiomas. Recuperación financiera compartida permanece desactivada y fuera de alcance. Solo OTA web; APK51 sin cambios. Publicado solo en beta 4.26.56.1: Claude GO al SHA `978420fc`; CI 36341481895 completo verde (456 funcionales directos, 1 captura omitida, 7 rendimiento, cuatro archivos Deno). HTTP 200, huella `5a1c27fbf9e68e34` y bloques del ZIP cotejados. Móvil pendiente; producción 4.26.52 intacta. El visor añade ~10 KB minificados; se amplía solo el presupuesto crudo a 1215 KB, manteniendo descarga gzip en 332 KB (330 KB medidos).
+- Textos es/en/ca y guardianes registrados de aislamiento local/cloud, pull con visor abierto, segundo cliente, corrupción, cierre durante descarga, offline e idiomas. Recuperación financiera compartida fuera de alcance. Beta 4.26.56.1 revisada por Claude al SHA 978420fc, CI 36341481895 y ZIP cotejados. El dueño aprobó OPS-02 y producción el 27/9. Candidata exclusiva e91debd8 sobre main f5e6b514: Claude GO y 18/18 visor/persistencia en checkout propio. Codex 446 funcionales directos sin flakies (una captura opcional omitida), 7 rendimiento y 23 validador; Node salvo espejo local ajeno. Merge 42613195 tiene el mismo árbol, sintaxis PASS. Promote 36343752892 y Pages 36344438830; producción 4.26.56 HTTP/ZIP/HTML/SW cotejados. No incluye FIN-05, selector ni TR, conserva APK estable 4.26.32/code 48. Tope crudo 1212 KB y gzip 332 KB; medido 1210/329 KB.
+
 
 ## [4.26.55] — 2026-09-27
 
@@ -309,12 +318,18 @@
 
 ## [4.26.52] — 2026-09-26
 
+### OPS-01 C · control de despliegues (tooling, sin versión nueva)
+- El workflow Supabase deja de dispararse por push: únicamente manual, función obligatoria por env y validación de formato/entrypoint antes de cualquier SQL. Se elimina el despliegue global; integrar fuentes pendientes no activa el servidor compartido.
+- Migraciones mantienen no por defecto y selección explícita; se documentan los límites históricos de --include-all y continue-on-error sin cambiar SQL. Guardián Bash con CLI simulado registrado en el runner. Sin código de funciones, datos, deploy, APK ni promoción de beta. Evidencia: docs/briefs/ops01-control-2026-09-27.md.
+
 ### FIN-07 · completitud cloud sin borrado por ausencia
 - Base beta d237478e: ya había keyset fecha/id, no limit(2000) simple. Reproducción ejecutada: servidor cap=317 devolvía solo 317 de 2501; 50001 filas quedaban en 50000; una fecha editada durante el pull saltaba una fila previa.
 - Cursor por UUID id DESC, estable frente a ediciones de fecha; sin offset, count previo ni techo de páginas. Solo página vacía confirma fin; formato/progreso inválido o error rechaza todo antes de mezcla, backfill y coveredEvents. Orden final fecha DESC/id DESC, conservando microsegundos, mantiene elección de gemelos y ACK de FIN-05.
 - Consistencia por consulta, sin snapshot entre páginas: todas las filas previas con UUID y visibilidad estables se recorren una vez; altas en tramo ya recorrido y ediciones posteriores a leer una fila esperan el siguiente pull. Ausencia nunca borra ni crea lápidas; FIN-03 y merge permanecen intactos.
 - Guardado partido: acumulación en memoria y una mezcla final, con referencias previas si no cambia nada. Test del call site real cubre rechazo y arbitraje de lecturas; E2E abre Gastos y encuentra el histórico antiguo con 2501 filas, límite de 317, fallo y recuperación. Unitario registrado existente y nuevo E2E en CROSSCUTTING; fixture respeta order/limit/lt. Respuesta inválida avisa en es/en/ca sin perder lo guardado, probado en el DOM.
 - flattenBankTx ya recorre todas las cuentas y no recorta globalmente; su snapshot bankTx es el feed diario, no todo el historial del proveedor. Límites bancarios 2000/12 páginas/tiempo y procedencia de cuenta en el diario siguen como alcance separado. Sin backend, migración, APK ni cambios retrospectivos. Estado y pruebas en docs/briefs/fin07-historico-cloud-2026-09-26.md.
+
+- Aprobado y publicado exclusivamente en producción 4.26.52, merge 8cd41f09; Claude PASS 126b8e84, Promote 36257644323 y Pages 36258292782 verdes, 435 E2E + 7 rendimiento y HTTP/sellos/ZIP cotejados. FIN-05, selector, APK estable y backend no se promueven.
 
 ## [4.26.51] — 2026-09-26
 
@@ -324,7 +339,7 @@
 - Cuentas OB e inversiones conservan original/ISO con aviso, suman solo conversiones conocidas y muestran total incompleto. No promoción de cuenta OB, venta, anclaje en EUR ni snapshot de euros sin conversión. Los brókers conservan valores previos si no pueden convertir la respuesta.
 - Frankfurter v1/BCE descarga todas sus cotizaciones, conserva las guardadas para offline y ofrece las 30 monedas del catálogo actual en cliente/Wallet. Sin red en cálculos puros, dependencias nuevas ni escrituras retroactivas de movimientos. Apuntar e ingest mantienen su freno previo al guardado sin cambio.
 - Paridad y catálogo en `fx-multi`; E2E transversal `divisas-sin-cambio` protege original, sumas, ausencia de ganancias, ficha/roles, historial, costes, Apuntar y offline en es/en/ca.
-- Cliente publicado como beta OTA 4.26.51.1 por Action 36242414362 (SHA f60df6f5), Claude PASS; 438 E2E + 7 rendimiento y Deno verdes en CI. Bundle, huella y sellos OTA/SW cotejados; Tras aprobación, solo FIN-06 publicado como producción 4.26.51 (merge 2ea992b2, Promote 36251080004 y Pages 36251710852 verdes); APK estable 4.26.32/code 48 intacta. Código servidor preparado y probado, SIN despliegue de backend compartido. FIN-05 y selector conservan sus pruebas móviles pendientes; sin promoción a main.
+- Cliente aprobado por el usuario el 26/9 para producción; entrega exclusiva publicada sobre main 2ea992b2 mediante tanda fin06-produccion: Promote 36251080004 y Pages 36251710852 verdes; producción HTTP 4.26.51 y sello SW 4.26.51-2026-09-26-2ea992b verificados, APK estable intacta. Cliente publicado como beta OTA 4.26.51.1 por Action 36242414362 (SHA f60df6f5), Claude PASS; 438 E2E + 7 rendimiento y Deno verdes en CI. Bundle, huella y sellos OTA/SW cotejados; La publicación de producción se verifica en el Action de Promote y Pages por SHA, no por el push. Código servidor preparado y probado, SIN despliegue de backend compartido. FIN-05 y selector conservan sus pruebas móviles pendientes; sin promoción a main.
 
 - Review real de Claude: conversor cruzado sin redondeo EUR intermedio (evita pérdida de IDR/JPY/KRW pequeños), aviso de coste solo si faltan costes y originales OB sin solapamiento ni recorte móvil; E2E de geometría y conversor.
 

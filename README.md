@@ -1,10 +1,12 @@
 Apuntar y Gastos permiten distinguir Multas, Zona azul y Peajes. Solo los pagos nuevos con detalle inequívoco los sugieren; elegir una categoría conserva el importe y la fecha.
 
-La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres correcciones de pantalla.78/79 son snapshots de integración, no versiones publicadas por separado. Esta candidata conserva sus cambios; prueba móvil pendiente. [Actas](docs/briefs/ops-0110-validaciones-persistentes.md).
+Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](docs/briefs/promocion-aprobadas-2026-10-04.md).
+
+La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres correcciones de pantalla.78/79 son snapshots de integración, no versiones publicadas por separado. Snapshot anterior de integración: la promoción actual conserva sus cambios y cuenta con los once OK de beta94.1. [Actas](docs/briefs/ops-0110-validaciones-persistentes.md).
 
 # Aely
 
-Candidata Gasolina/Taxi: Apuntar → todas las categorías permite elegirlas por separado; Gastos comparte esos IDs en filtros y límites. Los apuntes antiguos y el límite de Transporte se conservan. [Estado sin publicar](docs/briefs/feature-0210-01-gasolina-taxi.md).
+Gasolina/Taxi: Apuntar → todas las categorías permite elegirlas por separado; Gastos comparte esos IDs en filtros y límites. Los apuntes antiguos y el límite de Transporte se conservan. [Acta histórica de preparación](docs/briefs/feature-0210-01-gasolina-taxi.md).
 
 
 
@@ -103,7 +105,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.94** candidata web terminada y verificada localmente, pendiente de CI y publicación beta. En Metas, una regla nueva descuenta del presupuesto del mes y aporta a la meta al guardarse; al volver en otro mes exige una lectura válida de la nube, sin duplicar ni sincronizar bancos automáticamente. El cierre cubre 162 casos de pantalla, incluidos dos clientes en secuencia y es/en/ca; la suite Node completa sobre `094a7d23` solo falla por `memoria-espejo` local. Deno requiere CI. El último cierre cambia únicamente el reloj del fixture antiguo y documentación; el código de producto es idéntico. Corte 4/10, 16:02 UTC: beta servida4.26.93.2/source`4e65fa11`, producción4.26.86 y APK códigos48/52; aceptación móvil pendiente. No se acreditan escrituras simultáneas entre dispositivos. Actas: [contrato mensual](docs/briefs/inc-0410-metas-mensual.md) · [alta de reglas](docs/briefs/inc-0410-metas-alta.md).
+Estado actual: **v4.26.94** aprobada desde beta4.26.94.1 e integrada en main8bb0398f. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. Metas mensuales descuentan y aportan al guardar; el cambio de mes requiere lectura válida de la nube y no sincroniza bancos automáticamente. CI37227395756 del candidato4403 completa:817DOM PASS/1visualSKIP/0flaky,7PERF PASS, cuatro Deno y todos los contratos Node. Las escrituras simultáneas LWW no se dan por acreditadas. [Acta](docs/briefs/promocion-aprobadas-2026-10-04.md).
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 

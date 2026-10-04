@@ -105,7 +105,11 @@ Action 36255068235 sobre c3e54b91 detenido durante Tests antes de publicar: se d
 - `APP_VERSION` real 4.26.52.1; Service Worker `4.26.52.1-2026-09-26-94bca13`. Paginador, aviso traducido, widgetBankOf y coveredEvents presentes; marcador antiguo de límite ausente. Notas/checklists del ZIP idénticas al JSON fuente y entradas previas conservadas.
 - APK anunciada sigue 4.26.49/code 50, URL HTTP 200; digest de apk.json idéntico al anterior `12fa66d06f0b62ec3411cd27696b4f1b8b1dbeae68f239610c1fe55a73fce2d6`. No se necesita APK nueva para FIN-07.
 - `npm run salud`: producción HTTP 4.26.51, bundle y APK HTTP 200; beta 4.26.52.1. Main remoto permanece `e9ba4558803e45bb30682368bba3d04428e76d38`; último Action Supabase permanece 36196554737/be59e27c. No hay promoción, cambios de datos reales ni nuevo despliegue backend.
-- Límite de evidencia: navegador con fixtures sintéticos, no acceso a cuentas ni bancos reales; veredicto móvil aprobado por el usuario; no se afirma una prueba manual adicional en producción. Sin garantía de snapshot global ni ampliación de límites del proveedor bancario.
+- Límite de evidencia: navegador con fixtures sintéticos, no acceso a cuentas ni bancos reales; veredicto móvil pendiente. Sin garantía de snapshot global ni ampliación de límites del proveedor bancario.
+
+## Aprobación y candidato exclusivo a producción
+
+El usuario aprobó FIN-07 el 26/9: «ya lo aprobe, listo para subir». Se prepara solo el delta FIN-07 sobre main e9ba4558. FIN-05, selector, APK estable 4.26.32/code48 y backend no se promueven. No se copia el árbol beta: hay cambios pendientes ajenos. Se resuelve el call site de App conservando el sync previo de producción, sin incorporar el árbitro FIN-05. El test de arbitraje FIN-05 permanece solo en beta; producción conserva pruebas de fallo, mezcla y guardado del histórico, junto a los cinco E2E FIN-07. Notas familiares idénticas, sin checklist aprobada pendiente en producción. Candidato exacto `126b8e8443a790d7ad07839920f4312020e3d701`: Claude PASS por mensaje real `20260926T1740Z-claude-fin07-prod-126b8e84`; 435 E2E funcionales + 7 rendimiento aislados verdes, uno omitido. 11 unitarios del histórico, sintaxis, docs-frescura y presupuesto verdes. Resto unitarios verdes salvo memoria-espejo por dos memorias externas ya desfasadas (no se modifican); Deno no instalado localmente. El E2E recibe sus propias filas y no depende del hook de FIN-05. Promote y Pages completados SUCCESS; evidencia real de producción al final.
 
 ## Producción exclusiva verificada · 26/9/2026
 

@@ -30,37 +30,7 @@
         "Després de canviar una regla, tornar a dalt manté visible la navegació."
       ]
     },
-    "tandas": [
-      {
-        "id": "inc-0310-01-meta-regla",
-        "rev": 3,
-        "t": {
-          "es": "Reglas de Metas: descuento y aportación al guardar",
-          "en": "Goals rules: deduction and contribution on save",
-          "ca": "Regles de Metes: descompte i aportació en desar"
-        },
-        "items": {
-          "es": [
-            "1. Con un presupuesto mensual puesto, crea una meta de prueba y añádele una regla de importe fijo, por ejemplo 100: sin confirmar nada más, la meta sube ese importe, lo que te queda del presupuesto del mes baja lo mismo y la fila de la regla dice lo apartado este mes. Cierra y abre la app: todo sigue igual, sin aportar otra vez.",
-            "2. En el formulario de una regla, prueba 0, letras o un porcentaje de 150: no se guarda nada y aparece un aviso. Escribe 1.200 y guarda: la fila debe mostrar 1200 €.",
-            "3. Borra una regla nueva: el presupuesto recupera su importe y la meta conserva lo aportado. Cancelar el borrado no cambia nada."
-          ],
-          "en": [
-            "1. With a monthly budget set, create a test goal and add a fixed-amount rule to it, for example 100: with nothing else to confirm, the goal goes up by that amount, what’s left of this month’s budget goes down by the same, and the rule’s row shows what was set aside this month. Close and reopen the app: everything stays the same, with no second contribution.",
-            "2. In a rule’s form, try 0, letters or a percentage of 150: nothing is saved and a message appears. Type 1,200 and save: the row should show 1200 €.",
-            "3. Delete a new rule: the budget gets its amount back and the goal keeps what was contributed. Cancelling the deletion changes nothing."
-          ],
-          "ca": [
-            "1. Amb un pressupost mensual posat, crea un objectiu de prova i afegeix-hi una regla d’import fix, per exemple 100: sense confirmar res més, l’objectiu puja aquest import, el que et queda del pressupost del mes baixa el mateix i la fila de la regla diu el que s’ha apartat aquest mes. Tanca i obre l’app: tot segueix igual, sense aportar una altra vegada.",
-            "2. Al formulari d’una regla, prova 0, lletres o un percentatge de 150: no es desa res i apareix un avís. Escriu 1.200 i desa: la fila ha de mostrar 1200 €.",
-            "3. Esborra una regla nova: el pressupost recupera el seu import i l’objectiu conserva el que s’hi ha aportat. Cancel·lar l’esborrat no canvia res."
-          ]
-        },
-        "historial": [
-          "4.26.87/inc-0310-01-meta-regla"
-        ]
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.93",
@@ -108,30 +78,7 @@
         "En tornar-la a obrir, la llista s’actualitza i conserva els resultats anteriors."
       ]
     },
-    "tandas": [
-      {
-        "id": "ops-0410-panel-cola",
-        "t": {
-          "es": "Revisión con solo lo pendiente",
-          "en": "Review of pending changes only",
-          "ca": "Revisió només del que queda pendent"
-        },
-        "items": {
-          "es": [
-            "1. Abrir Ajustes → Revisar la beta: las funciones ya estrenadas no vuelven a pedir aprobación; las novedades siguen disponibles para aprobar o rechazar.",
-            "2. Volver a abrir la revisión después de una entrega: la lista se actualiza sin borrar las decisiones anteriores."
-          ],
-          "en": [
-            "1. Open Settings → Review beta: released features no longer ask for approval; new changes remain available to approve or reject.",
-            "2. Reopen the review after a delivery: the list refreshes without deleting earlier decisions."
-          ],
-          "ca": [
-            "1. Obrir Ajustos → Revisar la beta: les funcions ja estrenades no tornen a demanar aprovació; les novetats continuen disponibles per aprovar o rebutjar.",
-            "2. Tornar a obrir la revisió després d’una entrega: la llista s’actualitza sense esborrar les decisions anteriors."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.90",
@@ -155,31 +102,7 @@
         "Aquest mes i El meu cicle conserven el límit, els diners restants i la barra de progrés."
       ]
     },
-    "tandas": [
-      {
-        "id": "inc-0310-gastos-sin-limite",
-        "rev": 1,
-        "t": {
-          "es": "Gastos sin una columna vacía",
-          "en": "Expenses without an empty column",
-          "ca": "Despeses sense una columna buida"
-        },
-        "items": {
-          "es": [
-            "1. En Gastos, abre Mes pasado, Rango, Últimos 3 meses y Todo: no deben aparecer «de —», «quedan —» ni su explicación; el resumen debe ocupar todo el ancho.",
-            "2. Vuelve a Este mes y Mi ciclo: límite, restante y progreso vuelven a aparecer y las categorías y cifras siguen correspondiendo al periodo seleccionado."
-          ],
-          "en": [
-            "1. In Expenses, open Last month, Range, Last 3 months and All: there should be no “of —”, “left —” or explanation, and the summary should fill the width.",
-            "2. Return to This month and My cycle: limit, remaining amount and progress reappear, and categories and figures still match the selected period."
-          ],
-          "ca": [
-            "1. A Despeses, obre Mes passat, Rang, Últims 3 mesos i Tot: no hi ha d’haver «de —», «queden —» ni l’explicació; el resum ha d’ocupar tota l’amplada.",
-            "2. Torna a Aquest mes i El meu cicle: límit, restant i progrés tornen a aparèixer i les categories i xifres segueixen el període seleccionat."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.89",
@@ -203,31 +126,7 @@
         "Si un falla, continua apareixent el que l’altre sí que ha actualitzat."
       ]
     },
-    "tandas": [
-      {
-        "id": "inc-0310-broker-resultados",
-        "rev": 1,
-        "t": {
-          "es": "Resultados de Trade Republic y MyInvestor",
-          "en": "Trade Republic and MyInvestor results",
-          "ca": "Resultats de Trade Republic i MyInvestor"
-        },
-        "items": {
-          "es": [
-            "1. Con solo un bróker conectado, pulsa Sincronizar bancos en Cartera: el resultado debe nombrar únicamente al actualizado.",
-            "2. Con ambos, comprueba las dos filas. Si uno no responde o caduca, deben aparecer su aviso y el éxito del otro. Abrir la app no sincroniza posiciones de Trade Republic."
-          ],
-          "en": [
-            "1. With only one broker connected, tap Sync banks in Portfolio: the result should name only the broker updated.",
-            "2. With both, check both rows. If one does not respond or expires, its warning and the other’s success should appear. Opening the app does not sync Trade Republic positions."
-          ],
-          "ca": [
-            "1. Amb només un bróker connectat, prem Sincronitza els bancs a Cartera: el resultat ha d’anomenar només el que s’ha actualitzat.",
-            "2. Amb tots dos, comprova les dues files. Si un no respon o caduca, han d’aparèixer l’avís i l’èxit de l’altre. Obrir l’app no sincronitza posicions de Trade Republic."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.88",
@@ -251,34 +150,7 @@
         "Les despeses ja desades conserven la categoria i els límits."
       ]
     },
-    "tandas": [
-      {
-        "id": "feature-0310-01-movilidad",
-        "rev": 1,
-        "t": {
-          "es": "Multas, Zona azul y Peajes",
-          "en": "Fines, Blue zone and Tolls",
-          "ca": "Multes, Zona blava i Peatges"
-        },
-        "items": {
-          "es": [
-            "1. En Apuntar, abre todas las categorías y comprueba Multas, Zona azul y Peajes con sus iconos. Apunta un gasto en cada una. Taxi y Gasolina siguen disponibles.",
-            "2. En Gastos, filtra las tres categorías y comprueba sus movimientos e importes. Pon límites independientes; Parking, Transporte e Impuestos y multas conservan los anteriores.",
-            "3. Elige una categoría a mano y cambia el concepto: debe conservarse. Reabre sin conexión y comprueba categorías, límites e histórico intactos."
-          ],
-          "en": [
-            "1. In Record, open all categories and check Fines, Blue zone and Tolls with their icons. Record an expense in each. Taxi and Fuel remain available.",
-            "2. In Expenses, filter the three categories and check their entries and amounts. Set independent limits; Parking, Transport and Taxes & fines retain their previous ones.",
-            "3. Choose a category manually and change the description: it must remain selected. Reopen offline and check categories, limits and unchanged history."
-          ],
-          "ca": [
-            "1. A Apuntar, obre totes les categories i comprova Multes, Zona blava i Peatges amb les icones. Apunta una despesa a cadascuna. Taxi i Benzina continuen disponibles.",
-            "2. A Despeses, filtra les tres categories i comprova els moviments i imports. Posa límits independents; Pàrquing, Transport i Impostos i multes conserven els anteriors.",
-            "3. Tria una categoria a mà i canvia el concepte: s’ha de conservar. Torna a obrir sense connexió i comprova categories, límits i historial intactes."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.87",
@@ -601,34 +473,7 @@
         "Si un pagament encara no està confirmat a la xifra del widget, demana obrir l’app per actualitzar."
       ]
     },
-    "tandas": [
-      {
-        "id": "inc-2909-01-widget-periodo",
-        "t": {
-          "es": "Widget: mes o Mi ciclo",
-          "en": "Widget: month or My cycle",
-          "ca": "Widget: mes o El meu cicle"
-        },
-        "items": {
-          "es": [
-            "1. Instala la nueva app Android. Sin Mi ciclo, abre la app: widget ESTE MES y gastado de Inicio. La app Android anterior conserva sus cifras anteriores.",
-            "2. Instala la app de Android nueva, activa Mi ciclo y abre la app: el widget debe decir «MI CICLO» y la misma cifra que Inicio. Con la app en inglés o catalán, el widget también.",
-            "3. Cierra la app y paga con Trade Republic: el widget debe pedir abrir la app hasta confirmar el pago. Al reabrir y recibirlo, coincide con Inicio sin contarlo dos veces."
-          ],
-          "en": [
-            "1. Install the new Android app. With My cycle off, open the app: widget THIS MONTH and spending on Home. The previous Android app keeps its previous figures.",
-            "2. Install the new Android app, turn on My cycle and open the app: the widget must say “MY CYCLE” and the same figure as Home. With the app in English or Catalan, so must the widget.",
-            "3. Close the app and pay with Trade Republic: the widget must ask you to open the app until payment is confirmed. After reopening and receiving it, it matches Home without counting it twice."
-          ],
-          "ca": [
-            "1. Instal·la la nova app Android. Sense El meu cicle, obre l’app: widget AQUEST MES i gastat d’Inici. L’app Android anterior conserva les xifres anteriors.",
-            "2. Instal·la la nova app d'Android, activa El meu cicle i obre l'app: el widget ha de dir «EL MEU CICLE» i la mateixa xifra que Inici. Amb l'app en anglès o català, el widget també.",
-            "3. Tanca l’app i paga amb Trade Republic: el widget ha de demanar obrir l’app fins a confirmar el pagament. En reobrir i rebre’l, coincideix amb Inici sense comptar-lo dues vegades."
-          ]
-        },
-        "apk": 52
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.79",
@@ -1112,175 +957,33 @@
         "revisionesDesde": {
           "web": "7332880ccdad86a6fa2302c07769fe7f542b157c7ceec1a82276b3bace9ca9a9"
         }
-      },
-      {
-        "id": "fin05-widget-reentrada",
-        "t": {
-          "es": "Widget después de reabrir",
-          "en": "Widget after reopening",
-          "ca": "Widget després de tornar a obrir"
-        },
-        "items": {
-          "es": [
-            "1. Instala la actualización Android, abre Aely y comprueba las cifras del widget. En la próxima compra habitual con la app cerrada, el gasto debe variar solo por el pago. Reabrir no debe descontarlo otra vez. Conserva la notificación y las cifras antes y después."
-          ],
-          "en": [
-            "1. Install the Android update, open Aely and check widget figures. For the next normal purchase with the app closed, spending should change only by the payment. Reopening should not deduct it again. Keep the notification and before and after figures."
-          ],
-          "ca": [
-            "1. Instal·la l’actualització Android, obre Aely i comprova les xifres del widget. En la pròxima compra habitual amb l’app tancada, la despesa ha de variar només pel pagament. Tornar a obrir no l’ha de descomptar una altra vegada. Conserva la notificació i les xifres d’abans i després."
-          ]
-        },
-        "apk": 52,
-        "historial": [
-          "4.26.67/fin05-widget-reentrada"
-        ],
-        "huella": "217d10b1",
-        "codigoDesde": "a4b57113557c041a78c6994ff4dce9ef57bfa6e176d671ca3ac8629083fff8d4",
-        "revisionesDesde": {
-          "web": "d27d622918f5ad197d56b51bd6cd2bd14f2659698ee60e8df732f3ff170a4282",
-          "native": "8db7c86ba63459fb188c411dfacaa6156f64f5b30eca1af3d9538b49538b3e95"
-        }
-      },
-      {
-        "id": "fin05-pago-cerrada",
-        "t": {
-          "es": "Gasto del widget tras una compra",
-          "en": "Widget spending after a purchase",
-          "ca": "Despesa del widget després d’una compra"
-        },
-        "items": {
-          "es": [
-            "1. Abre la app actualizada y anota el Gastado del widget. En la próxima compra habitual, deja la app cerrada y conserva la notificación. El Gastado debe aumentar solo por esa compra, con el redondeo habitual.",
-            "2. Al volver a abrir la app, el gasto y el saldo del widget deben mantenerse sin descontar la compra otra vez. Si falla, conserva las notificaciones y comunica las cifras antes y después."
-          ],
-          "en": [
-            "1. Open the updated app and note the widget’s Spent amount. For the next normal purchase, leave the app closed and keep the notification. Spent should rise only by that purchase, with normal rounding.",
-            "2. Reopening the app should preserve widget spending and cash without deducting the purchase again. If it fails, keep notifications and report before and after figures."
-          ],
-          "ca": [
-            "1. Obre l’app actualitzada i anota la Despesa del widget. En la pròxima compra habitual, deixa l’app tancada i conserva la notificació. La Despesa ha d’augmentar només per aquella compra, amb l’arrodoniment habitual.",
-            "2. En tornar a obrir l’app, la despesa i el saldo del widget s’han de mantenir sense descomptar la compra una altra vegada. Si falla, conserva les notificacions i comunica les xifres d’abans i després."
-          ]
-        },
-        "apk": 52,
-        "historial": [
-          "4.26.67/fin05-pago-cerrada"
-        ],
-        "huella": "eddacdf9",
-        "codigoDesde": "1fb49b496295abfb53e3115cf68c4d90c4c19f63aab20907dd5242a3437ae770",
-        "revisionesDesde": {
-          "web": "d27d622918f5ad197d56b51bd6cd2bd14f2659698ee60e8df732f3ff170a4282",
-          "native": "2076258ee38657c4cbfd3abb52a19cdf931f496f4d0593b1ff0bbaaa0416ed1a",
-          "edge": "8758af5c07c075262fb3481623748a2353e436d0d1ce3a71334bfaa9627b21d1"
-        }
-      },
-      {
-        "id": "tr-descripcion-clasificacion",
-        "t": {
-          "es": "Clasificación de gastos bancarios",
-          "en": "Bank expense categories",
-          "ca": "Classificació de despeses bancàries"
-        },
-        "items": {
-          "es": [
-            "1. Cuando haya un cargo nuevo, sincroniza Trade Republic a demanda y revisa su categoría y nota en Gastos. Si llega información útil del comercio, puede clasificarse aunque el título sea «Movimiento»; sin ella seguirá en Otros. No hace falta comprar nada.",
-            "2. Un movimiento antiguo renombrado o clasificado a mano debe conservarse una sola vez, con sus cambios, después de repetir la sincronización."
-          ],
-          "en": [
-            "1. When a new charge exists, sync Trade Republic on demand and check its category and note in Expenses. Useful merchant information can supply a category even with a generic title; without it the category remains Other. No purchase is needed.",
-            "2. An older transaction renamed or categorised manually should remain once, with its changes, after syncing again."
-          ],
-          "ca": [
-            "1. Quan hi hagi un càrrec nou, sincronitza Trade Republic a demanda i revisa’n la categoria i la nota a Despeses. Si arriba informació útil del comerç, es pot classificar encara que el títol sigui «Moviment»; sense informació continuarà a Altres. No cal comprar res.",
-            "2. Un moviment antic reanomenat o classificat a mà s’ha de conservar una sola vegada, amb els canvis, després de repetir la sincronització."
-          ]
-        },
-        "apk": 52,
-        "historial": [
-          "4.26.67/tr-descripcion-clasificacion"
-        ],
-        "huella": "05c57324",
-        "codigoDesde": "dc0f124ef9404d036e4589d4e54a881332bc8a8c33a66e5a56b95d8bc426b589",
-        "revisionesDesde": {
-          "web": "e26f0b5f1b03a6bf8480a9b7a25d91b69401001056c01ab2fe77e08cc3a14df7",
-          "native": "b82b941e4c7a1daf42a390ada1b353e052e0fab2716182f7e4b91c9f434b62f6",
-          "edge": "487b4776e900de6766e78b54109af4053b3b172d3428f45252cf7ff4591d3015"
-        }
-      },
-      {
-        "id": "widget-banco",
-        "t": {
-          "es": "Banco del widget",
-          "en": "Widget bank",
-          "ca": "Banc del giny"
-        },
-        "items": {
-          "es": [
-            "1. Abre Ajustes → Banco del widget y elige otro banco. Comprueba el nombre, saldo y «Puedes gastar» en el widget.",
-            "2. Cierra y vuelve a abrir la app: debe conservar la elección. «Cuenta de gasto diario» recupera la elección automática."
-          ],
-          "en": [
-            "1. Open Settings → Widget bank and choose another bank. Check the name, balance and spending limit in the widget.",
-            "2. Close and reopen the app: your choice should remain. Daily spending account restores automatic selection."
-          ],
-          "ca": [
-            "1. Obre Ajustos → Banc del widget i tria un altre banc. Comprova el nom, el saldo i «Pots gastar» al giny.",
-            "2. Tanca i torna a obrir l’app: ha de conservar la tria. Compte de despesa diària recupera la tria automàtica."
-          ]
-        },
-        "apk": 52,
-        "historial": [
-          "4.26.67/widget-banco"
-        ],
-        "huella": "708813c8",
-        "codigoDesde": "6ead0af13a53977317f28bc463c2f15b5fe1d05702ee776d3243833a52e86d6b",
-        "revisionesDesde": {
-          "web": "2137193d58dcb1ec2d6fe0a3c943d3252a86b6fe72204fac4b89e7506d8671f0",
-          "native": "9bdf23d38cad812c2c93973a70b30f8a7a8c0d5d845b08844a0f8adee81ee894"
-        }
-      },
-      {
-        "id": "widget-app-cerrada",
-        "t": {
-          "es": "Widget con la app cerrada",
-          "en": "Widget while the app is closed",
-          "ca": "Giny amb l'app tancada"
-        },
-        "items": {
-          "es": [
-            "1. Con la nueva APK instalada, abre la app y compara el gasto del mes, el saldo y «Puedes gastar» con el widget.",
-            "2. Cierra la app y espera a recibir dos movimientos reales de Trade Republic. Comprueba que el widget incorpora ambos sin retroceder a una cifra anterior.",
-            "3. Vuelve a abrir la app y compara de nuevo el widget con Inicio y Gastos. Ningún movimiento debe desaparecer ni repetirse."
-          ],
-          "en": [
-            "1. With the new APK installed, open the app and compare monthly spending, balance and 'You can spend' with the widget.",
-            "2. Close the app and wait for two real Trade Republic transactions. Check that the widget includes both without returning to an earlier figure.",
-            "3. Reopen the app and compare the widget with Home and Spending again. No transaction should disappear or appear twice."
-          ],
-          "ca": [
-            "1. Amb l'APK nova instal·lada, obre l'app i compara la despesa del mes, el saldo i «Pots gastar» amb el giny.",
-            "2. Tanca l'app i espera dos moviments reals de Trade Republic. Comprova que el giny incorpora tots dos sense tornar a una xifra anterior.",
-            "3. Torna a obrir l'app i compara el giny amb Inici i Despeses. Cap moviment no ha de desaparèixer ni repetir-se."
-          ]
-        },
-        "apk": 52,
-        "historial": [
-          "4.26.67/widget-app-cerrada"
-        ],
-        "huella": "be8ed58c",
-        "codigoDesde": "1fb49b496295abfb53e3115cf68c4d90c4c19f63aab20907dd5242a3437ae770",
-        "revisionesDesde": {
-          "web": "d27d622918f5ad197d56b51bd6cd2bd14f2659698ee60e8df732f3ff170a4282",
-          "native": "2076258ee38657c4cbfd3abb52a19cdf931f496f4d0593b1ff0bbaaa0416ed1a",
-          "edge": "8758af5c07c075262fb3481623748a2353e436d0d1ce3a71334bfaa9627b21d1"
-        }
       }
     ]
   },
   {
     "v": "4.26.67",
-    "d": "2026-09-28",
+    "d": "2026-09-30",
+    "t": {
+      "es": "Las deudas terminadas se pueden archivar",
+      "en": "Finished debts can be archived",
+      "ca": "Els deutes liquidats es poden arxivar"
+    },
+    "items": {
+      "es": [
+        "Cuando una deuda llega a cero, puedes confirmar que está liquidada y archivarla. Sigue disponible con sus cuotas en Deudas archivadas."
+      ],
+      "en": [
+        "When a debt reaches zero, you can confirm it is settled and archive it. It remains available with its payments under Archived debts."
+      ],
+      "ca": [
+        "Quan un deute arriba a zero, pots confirmar que està liquidat i arxivar-lo. Continua disponible amb les quotes a Deutes arxivats."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.66",
+    "d": "2026-09-29",
     "t": {
       "es": "Inicio aclara el presupuesto del ciclo",
       "en": "Home clarifies the cycle budget",
@@ -1295,27 +998,6 @@
       ],
       "ca": [
         "Amb el pressupost per cicle de cobrament activat, Inici mostra la despesa després dels ingressos rebuts i quant queda. La targeta mensual també indica que el mes és en curs."
-      ]
-    },
-    "tandas": []
-  },
-  {
-    "v": "4.26.66",
-    "d": "2026-09-28",
-    "t": {
-      "es": "El widget y los gastos bancarios",
-      "en": "Widget and bank expenses",
-      "ca": "El widget i les despeses bancàries"
-    },
-    "items": {
-      "es": [
-        "El widget conserva el banco elegido y sus cifras al volver a la app. Los gastos bancarios pueden usar la información del comercio para su categoría."
-      ],
-      "en": [
-        "The widget keeps the selected bank and its figures when returning to the app. Bank expenses can use merchant information for their category."
-      ],
-      "ca": [
-        "El widget conserva el banc triat i les xifres en tornar a l’app. Les despeses bancàries poden fer servir la informació del comerç per a la categoria."
       ]
     },
     "tandas": []
