@@ -100,6 +100,17 @@ t("pendiente y contabilizado dentro de una cuenta conservan solo la versión fin
   assert.equal(r.stats.skippedUniq,1);
 });
 
+t("INC-2709-06: dos BOOK con ext_id distintos en la misma cuenta no se funden", () => {
+  const res={links:[{aspsp:"CaixaBank",accounts:[{uid:"cx-corriente",transactions:[
+    tx("2026-09-10",12.50,{merchant:"MERCADONA",ext_id:"cargo-A",status:"BOOK"}),
+    tx("2026-09-10",12.50,{merchant:"MERCADONA",ext_id:"cargo-B",status:"BOOK"}),
+  ]}]}]};
+  const r=ctx.histFlattenHistoryLinks(res,[],{},{});
+  assert.equal(r.out.length,2);
+  assert.equal(r.stats.skippedUniq,0);
+  assert.equal(r.out.map((x)=>x.id).slice().sort().join("|"),"cargo-A|cargo-B");
+});
+
 t("el fallback de ingreso no cambia con el idioma", () => {
   const r=ctx.histFlattenHistoryLinks({links:[link("CaixaBank",[
     tx("2026-09-10",-12.50)

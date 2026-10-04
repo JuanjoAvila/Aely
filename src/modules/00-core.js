@@ -1567,14 +1567,20 @@ function keyOfExpenseLegacy(e){
 function keyOfExpense(e){
   const base=keyOfExpenseLegacy(e);
   if(isManualExpenseSource(e&&e.source)) return base+"|"+String((e&&e.id)||"");
+  // INC-2709-06: la tabla aún no guarda extId (FIN-03). La segunda fila con la misma terna
+  // nace con fecha salada (histDate / ob-ext); sin eso el pull fundiría las dos. No meter
+  // extId aquí: expenseFromRow no lo trae y el merge duplicaría tras el alta en nube.
+  const full=String((e&&e.date)||"");
+  if(full.length>=19 && full.slice(11,19)!=="12:00:00") return base+"|"+full;
   return base;
 }
-/* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual. */
+/* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual.
+   Las lápidas OB antiguas (terna débil) también siguen ocultando tras el desglose por extId. */
 function expenseIsTombstoned(e, delSet){
   if(!delSet) return false;
   const k=keyOfExpense(e);
   if(delSet[k]) return true;
-  if(isManualExpenseSource(e&&e.source) && delSet[keyOfExpenseLegacy(e)]) return true;
+  if(delSet[keyOfExpenseLegacy(e)]) return true;
   return false;
 }
 function _errCloudMsg(err){

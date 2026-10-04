@@ -843,15 +843,22 @@ function flattenBankTx(links){
     // En multicuenta el top-level solo contiene la PRIMERA cuenta compatible. Los movimientos
     // nuevos de una segunda cuenta estaban en `accounts[].transactions` y el cliente ni los
     // miraba: el banco figuraba sincronizado pero Gastos decía que no había nada nuevo.
-    let txs=[];
-    const accountTx=(lk.accounts||[]).filter(function(a){ return a&&Array.isArray(a.transactions); });
-    if(accountTx.length) accountTx.forEach(function(a){ txs=txs.concat(a.transactions); });
-    else txs=(lk.transactions||[]).slice();   // shape antiguo: una sola cuenta en top-level
-    txs.forEach(function(t){
+    const pushTx=function(t, acctUid){
       // `note` = concepto del extracto (remittance_information): lo que hace que el histórico se
       // entienda sin abrir la app del banco (2026-07-24).
-      out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}) });
-    });
+      // `acctUid` opaco del proveedor (INC-2709-06): no se inventa desde IBAN/nombre.
+      out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(acctUid?{acctUid:acctUid}:{}), ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}) });
+    };
+    const accountTx=(lk.accounts||[]).filter(function(a){ return a&&Array.isArray(a.transactions); });
+    if(accountTx.length){
+      accountTx.forEach(function(a){
+        const uid=a.uid!=null && String(a.uid)!=="" ? String(a.uid) : "";
+        a.transactions.forEach(function(t){ pushTx(t, uid); });
+      });
+    } else {
+      // shape antiguo: una sola cuenta en top-level
+      (lk.transactions||[]).forEach(function(t){ pushTx(t, ""); });
+    }
   });
   out.sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
   // El servidor ya acota por cuenta. Un tope GLOBAL de 150 dejaba fuera un banco entero
@@ -913,6 +920,18 @@ function importObExpenses(s, txs){
   /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
      sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
   const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
+  /* INC-2709-06: la terna banco|día|importe|comercio solo tapa reintentos SIN referencia de
+     origen (TR). Si el banco manda extId distintos, son cargos distintos aunque coincidan. */
+  const weakKeyBlocks=function(e){
+    const sk=scopedKOf(e);
+    if(delSet[sk] || delSet[kOf(e)] || delSet[keyOfExpense(e)] || delSet[keyOfExpenseLegacy(e)]) return true;
+    if(!keys[sk]) return false;
+    if(e.extId && (expenseBankOf(e)||e.ent)){
+      const bankId=(expenseBankOf(e)||e.ent)+"|"+e.extId;
+      if(!seen[bankId] && !seenLegacy[e.extId]) return false;
+    }
+    return true;
+  };
   /* POSIBLE REPETIDO, NO DESCARTE (2026-09-07). TR por OB no manda id/comercio/hora: un
      «Movimiento» sin nombre puede ser el mismo cargo que ya entró por la noti del móvil, o una
      compra distinta del mismo importe. Descartar callaba pérdidas (y, sin filtrar banco, un
@@ -970,15 +989,22 @@ function importObExpenses(s, txs){
       if(dayKey(day)!==date || date>todayKey) return;
       if(!tx.date || parseDate(tx.date)<som) return;
       if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
-      const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
+      // Misma terna ocupada por OTRA referencia: fecha salada como en histDate (índice nube).
+      const dayIn=String(tx.date).slice(0,10);
+      const skProbe=(tx.ent||"")+"|"+dayIn+"|"+tx.amount+"|"+(tx.merchant||"Ingreso");
+      const fecha= (tx.id && keys[skProbe])
+        ? histDate(dayIn, "ob-ext|"+(tx.ent||"")+"|"+tx.id)
+        : new Date(dayIn+"T12:00:00").toISOString();
+      const e={ id:mcExpenseId(), date:fecha,
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
         category: esTraspasoPropio(s, tx) ? TRASPASO_CAT.id : INGRESO_CAT.id, source:"ob", ent:tx.ent };
       e.obName=e.merchant;   // lo que dijo el banco: el dedup se queda con esto aunque él lo renombre
       // Ingresos fuera de gasto diario: se ven (Mi ciclo) pero no mueven el presupuesto «gastado».
       if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
       if(tx.id) e.extId=tx.id;
+      if(tx.acctUid) e.acctUid=tx.acctUid;
       const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-      if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
+      if(weakKeyBlocks(e)) return;
       const gemIn=gemeloOtraVia(tx);
       if(gemIn && gemIn.id){ e.possibleDup=true; e.possibleDupOf=gemIn.id; }
       keys[scopedKOf(e)]=1;
@@ -993,14 +1019,20 @@ function importObExpenses(s, txs){
     if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
     const esDiario=tx.ent===dailyEnt;
     const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
-    const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
+    const dayG=String(tx.date).slice(0,10);
+    const skProbeG=(tx.ent||"")+"|"+dayG+"|"+tx.amount+"|"+(tx.merchant||"Compra");
+    const fechaG= (tx.id && keys[skProbeG])
+      ? histDate(dayG, "ob-ext|"+(tx.ent||"")+"|"+tx.id)
+      : new Date(dayG+"T12:00:00").toISOString();
+    const e={ id:mcExpenseId(), date:fechaG,
       merchant:tx.merchant||"Compra", amount:tx.amount,
       category: esAporteInv ? "inversion" : categoryOfBankTx(tx), source:"ob", ent:tx.ent };
     e.obName=e.merchant;   // lo que dijo el banco: el dedup se queda con esto aunque él lo renombre
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
     if(tx.id) e.extId=tx.id;
+    if(tx.acctUid) e.acctUid=tx.acctUid;
     const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-    if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
+    if(weakKeyBlocks(e)) return;
     const gem=gemeloOtraVia(tx);
     if(gem && gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
     keys[scopedKOf(e)]=1;
@@ -2025,16 +2057,50 @@ function histFlattenHistoryLinks(res, expenses, allow){
            Es la MISMA familia que los otros dos de hoy: una clave de identidad sin banco. */
         const cloudK=entKey+"|"+kOf(dt,isIn?-abs:abs,merchant);
         let g=groups[cloudK]; if(!g){ g=groups[cloudK]={rows:[],byAcct:{}}; groupOrder.push(cloudK); }
-        const prevI=g.byAcct[acct];
-        if(prevI!=null){
-          // El pendiente y el contabilizado de UNA cuenta siguen siendo un solo cargo. Se elige
-          // el final con id; solo una cuenta distinta gana otra ranura en la nube.
+        const row={tx:tx,dt:dt,abs:abs,isIn:isIn,merchant:merchant,entKey:entKey,entLabel:entLabel};
+        const ext=tx.ext_id!=null && String(tx.ext_id)!=="" ? String(tx.ext_id) : "";
+        const idSlot=ext ? (acct+"|id:"+ext) : (acct+"|weak");
+        const weakSlot=acct+"|weak";
+        const prevIdI=ext ? g.byAcct[idSlot] : null;
+        if(prevIdI!=null){
+          // Misma referencia de origen: reintento / paginación. Se elige la versión final.
           skippedUniq++;
-          if(quality(tx)>quality(g.rows[prevI].tx)) g.rows[prevI]={tx:tx,dt:dt,abs:abs,isIn:isIn,merchant:merchant,entKey:entKey,entLabel:entLabel};
+          if(quality(tx)>quality(g.rows[prevIdI].tx)) g.rows[prevIdI]=row;
           return;
         }
-        g.byAcct[acct]=g.rows.length;
-        g.rows.push({tx:tx,dt:dt,abs:abs,isIn:isIn,merchant:merchant,entKey:entKey,entLabel:entLabel});
+        if(ext){
+          const prevWeakI=g.byAcct[weakSlot];
+          if(prevWeakI!=null){
+            // PDNG sin id → BOOK con id: un solo cargo (INC-2709-06 no inventa gemelos).
+            skippedUniq++;
+            if(quality(tx)>quality(g.rows[prevWeakI].tx)){
+              g.rows[prevWeakI]=row;
+              g.byAcct[idSlot]=prevWeakI;
+              delete g.byAcct[weakSlot];
+            }
+            return;
+          }
+          // Referencias distintas = cargos distintos aunque día/importe/comercio coincidan.
+          g.byAcct[idSlot]=g.rows.length;
+          g.rows.push(row);
+          return;
+        }
+        const prevWeakI=g.byAcct[weakSlot];
+        if(prevWeakI!=null){
+          skippedUniq++;
+          if(quality(tx)>quality(g.rows[prevWeakI].tx)) g.rows[prevWeakI]=row;
+          return;
+        }
+        // Sin id tras una fila ya identificada en la misma cuenta: reintento débil.
+        const prevAny=Object.keys(g.byAcct).find(function(k){ return k.indexOf(acct+"|")===0; });
+        if(prevAny!=null){
+          const prevI=g.byAcct[prevAny];
+          skippedUniq++;
+          if(quality(tx)>quality(g.rows[prevI].tx)) g.rows[prevI]=row;
+          return;
+        }
+        g.byAcct[weakSlot]=g.rows.length;
+        g.rows.push(row);
       });
     });
   });

@@ -143,6 +143,8 @@ const steps = [
   ["hist-dia-local", ["node", "tests/hist-dia-local.test.mjs"]],
   ["hist-fecha-que-baila", ["node", "tests/hist-fecha-que-baila.test.mjs"]],
   ["hist-uniq-por-banco", ["node", "tests/hist-uniq-por-banco.test.mjs"]],
+  // INC-2709-06: referencias Caixa distintas no se tiran por día|importe|comercio.
+  ["inc-2709-06-caixa-extid", ["node", "tests/inc-2709-06-caixa-extid.test.mjs"]],
   ["sync-manual-un-aviso", ["node", "tests/sync-manual-un-aviso.test.mjs"]],
   ["broker-sync-outcomes", ["node", "tests/broker-sync-outcomes.test.mjs"]],
   ["cartel-reconectar", ["node", "tests/cartel-reconectar.test.mjs"]],
