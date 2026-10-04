@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-10-04 · **v4.26.90** servida en beta como 4.26.90.1 desde el merge `4a2e3c54` ([PR116](https://github.com/JuanjoAvila/Aely/pull/116)): Gastos sin columna de presupuesto fuera de mes/ciclo; cifras y periodos intactos. Brókers89 se entregó antes como 4.26.89.1 (merge `0f825c45`, [PR115](https://github.com/JuanjoAvila/Aely/pull/115)). Producción sigue en 4.26.86 (`d366215a`). La fuente `beta` va en `7f3da23b` ([PR117](https://github.com/JuanjoAvila/Aely/pull/117), solo guardia de tests; publicación en curso en el corte de las 01:26 UTC, sin entrega nueva acreditada). Sin aceptación móvil de 89 ni 90; APK80/code52 sin binario nuevo; Edge/SQL sin entregas. [Gastos](briefs/inc-0310-gastos-sin-limite.md) · [Brókers](briefs/inc-0310-broker-resultados.md).
+> Estado a 2026-10-04 · **v4.26.90** servida en beta como 4.26.90.2 desde la fuente `7f3da23b` ([PR117](https://github.com/JuanjoAvila/Aely/pull/117), solo guardia de tests; publicación [37168006229](https://github.com/JuanjoAvila/Aely/actions/runs/37168006229) cerrada y cotejada a las 02:35 UTC). Lo que se usa es lo de 4.26.90.1 (merge `4a2e3c54`, [PR116](https://github.com/JuanjoAvila/Aely/pull/116)): Gastos sin columna de presupuesto fuera de mes/ciclo; cifras y periodos intactos. Brókers89 se entregó antes como 4.26.89.1 (merge `0f825c45`, [PR115](https://github.com/JuanjoAvila/Aely/pull/115)). Producción sigue en 4.26.86 (`d366215a`). Sin aceptación móvil de 89 ni 90; APK80/code52 sin binario nuevo; Edge/SQL sin entregas. [Gastos](briefs/inc-0310-gastos-sin-limite.md) · [Brókers](briefs/inc-0310-broker-resultados.md).
 
 > Snapshot anterior a 2026-10-03 (superado por la entrega) · v4.26.90 candidata local sobre fuente Brókers89 todavía pendiente de CI/publicación; beta88.1 y producción86 eran las últimas acreditadas.
 
@@ -253,7 +253,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.90** servida en beta como 4.26.90.1 (Gastos sin límite ajeno); producción en 4.26.86. Sin aceptación móvil; APK80/code52 conservada. |
+| Web / OTA (`VERSION`) | **4.26.90** servida en beta como 4.26.90.2 (Gastos sin límite ajeno, entregado primero como 4.26.90.1); producción en 4.26.86. Sin aceptación móvil; APK80/code52 conservada. |
 | APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base; Metas87 no genera APK. Cotejo servido en gate de entrega. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a3467; Metas87 no reemplaza binario ni manifiesto. |
