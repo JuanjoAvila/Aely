@@ -2939,7 +2939,17 @@ const MONTHS=["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
 
    Caché por cadena de la MARCA DE TIEMPO (no del objeto Date): la fecha de un movimiento no cambia
    nunca, y guardando el número en vez del Date nadie puede mutar por accidente una fecha
-   compartida entre gastos. */
+   compartida entre gastos.
+
+   Al llenarse NO se vacía ni se desaloja nada: simplemente deja de admitir cadenas nuevas (medido
+   el 4/10/2026, INC-2709-09). Antes hacía `clear()` al pasar de 5.000, y con un histórico de más
+   de 5.000 fechas distintas —cada movimiento de la nube trae su hora— la caché se vaciaba 4-5
+   veces en CADA vuelta a primer plano: cada pasada por los gastos la tiraba a mitad y la siguiente
+   volvía a parsearlo todo. 5.200 gastos, CPU x6: 80 ms por vuelta contra 45 con la caché estable.
+   Desalojar la más antigua tampoco vale: un barrido completo expulsa justo lo que va a leer
+   después y falla el 100 % igual. Con la admisión cerrada el techo de memoria es el mismo y un
+   barrido solo paga las que no cupieron. El precio: esas (las últimas en llegar) se parsean
+   siempre, que es exactamente lo que pasaba antes de existir la caché. */
 var _pdCache=new Map();
 function _pdMs(s){
   var hit=_pdCache.get(s);
@@ -2948,8 +2958,7 @@ function _pdMs(s){
   var m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
   if(m){ var y=+m[3]; if(y<100)y+=2000; ms=new Date(y,(+m[2])-1,+m[1]).getTime(); }
   else { var d=new Date(s); ms=isNaN(d.getTime())?NaN:d.getTime(); }
-  if(_pdCache.size>5000) _pdCache.clear();   // techo: la caché no puede crecer sin fin
-  _pdCache.set(s,ms);
+  if(_pdCache.size<5000) _pdCache.set(s,ms);   // techo: la caché no puede crecer sin fin
   return ms;
 }
 function parseDate(v){
