@@ -1186,7 +1186,8 @@ function reservaPlanFor(state, incomeAmount){
   let used=0;
   const plan=[];
   rules.forEach(function(r){
-    if(!r||!r.goalId) return;
+    // Las mensuales ya descuentan por periodo: repartir además el ingreso las cobraría dos veces.
+    if(!r||!r.goalId||r.mensual===true) return;
     const g=goals.find(function(x){ return x.id===r.goalId; });
     if(!g||g.done) return;
     let amt=r.kind==="pct" ? gross*(Math.max(0,r.value||0)/100) : Math.max(0,r.value||0);
@@ -1202,6 +1203,99 @@ function reservaPlanFor(state, incomeAmount){
 function reservaAlreadyApplied(state, income){
   const k=reservaKeyOf(income);
   return (state.reservaLog||[]).some(function(x){ return x.incomeKey===k; });
+}
+/* El importe de una regla NUEVA, leído tal cual se escribió (INC-0410, rechazo de la 4.26.87).
+   Antes era `parseFloat(texto.replace(',','.'))`: «1.200» se guardaba como 1,2 y la fila decía
+   «1 € fijos»; «1.200,50» y «1,200.50», lo mismo. Una regla de mil doscientos apartaba un euro.
+   Sigue el criterio de `amountOf` en el plan de ahorro (review 23/9): el separador que NO es el
+   decimal del idioma vale de miles solo si deja grupos de tres cifras. Pero aquí se valida la
+   cadena ENTERA antes de leerla, en vez de limpiar lo que sobra: «-10», «abc10», «1e3» o «1.2.3»
+   no son un importe y limpiarlos los convertía en dinero con buena pinta. Lo dudoso también se
+   rechaza —«1,200» con decimal coma puede ser mil doscientos o 1,2— porque adivinar es justo el
+   fallo que se corrige. Devuelve el número o null; no acota: eso lo decide quien llama. */
+function reservaImporteDe(raw, decimalSep){
+  const s=String(raw==null?"":raw).trim();
+  const dec=decimalSep||(typeof numPadDecSep==="function"?numPadDecSep():",");
+  let ent, frac="", m;
+  if(/^\d+$/.test(s)) ent=s;
+  else if((m=/^(\d{1,3}(?:[.,]\d{3})+)([.,]\d{1,2})?$/.exec(s))){
+    const seps=m[1].replace(/\d/g,""), mil=seps.charAt(0);
+    if(seps.split("").some(function(c){ return c!==mil; })) return null;
+    if(m[2] ? m[2].charAt(0)===mil : (seps.length===1 && mil===dec)) return null;
+    ent=m[1].split(mil).join(""); frac=m[2]?m[2].slice(1):"";
+  }
+  else if((m=/^(\d+)[.,](\d{1,2})$/.exec(s))){ ent=m[1]; frac=m[2]; }
+  else return null;
+  // Los céntimos se cuentan en entero exacto. Si no caben, o el número que los representa no
+  // vuelve a dar esos mismos céntimos, no hay importe: guardar «casi lo escrito» es inventar dinero.
+  const cents=BigInt(ent)*BigInt(100)+BigInt((frac+"00").slice(0,2));
+  if(cents>BigInt(Number.MAX_SAFE_INTEGER)) return null;
+  const n=Number(cents)/100;
+  return Math.round(n*100)===Number(cents)?n:null;
+}
+/* En qué punto está el reparto, para el aviso de cobro Y para el editor de reglas. Los dos leen
+   de aquí a propósito: con la nómina ya repartida, añadir otra regla no hacía nada visible y la
+   pantalla no decía por qué (su rechazo del 3/10). Si cada uno calculara su estado, acabarían
+   contando cosas distintas. No cambia qué ingreso cuenta ni reparte nada: solo lo nombra.
+   `cycle` es lo que devuelve `lastPaydayOf`, ya calculado por quien llama (lo memoiza). */
+function reservaEstadoDe(state, cycle){
+  // Solo las reglas por ingreso: una mensual no espera ningún cobro y no debe anunciar uno.
+  const rules=((state.settings&&state.settings.reservaRules)||[]).filter(function(r){ return !(r&&r.mensual===true); });
+  if(!rules.length) return { estado:"sinReglas" };
+  const income=cycle&&cycle.inc;
+  if(!income) return { estado:"sinCobro" };
+  if(reservaAlreadyApplied(state,income)) return { estado:"repartido", income:income };
+  if(((state.reservaDismissed)||[]).indexOf(reservaKeyOf(income))!==-1) return { estado:"descartado", income:income };
+  const plan=reservaPlanFor(state, income.amount);
+  // Hay cobro, pero el plan sale vacío. No es «pendiente», y el porqué no se sabe desde aquí
+  // (meta cumplida, borrada, o una regla antigua a 0): quien lo pinte no debe afirmar ninguno.
+  if(!plan.plan.length) return { estado:"sinPlan", income:income };
+  return { estado:"pendiente", income:income, plan:plan };
+}
+// ¿Existe esa meta y sigue sin cumplir? Es a lo único a lo que una regla NUEVA puede apuntar.
+function reservaMetaActiva(state, goalId){
+  return !!goalId && (state.goals||[]).some(function(g){ return g && g.id===goalId && !g.done; });
+}
+// Alta de una regla, sobre el estado del momento de escribir y no sobre el que vio el formulario:
+// si la meta ya no vale, no se escribe nada. No toca ni reordena las reglas que ya había.
+// Una regla mensual descuenta y aporta en esta misma escritura (ver `applyReservaMensual`).
+function addReservaRule(state, rule, nowMs){
+  if(!rule || !reservaMetaActiva(state,rule.goalId)) return state;
+  const rules=(state.settings&&state.settings.reservaRules)||[];
+  // La misma alta dos veces (doble toque, updater repetido sobre un estado ya escrito) es una.
+  if(rules.some(function(r){ return r&&r.id===rule.id; })) return state;
+  const next=Object.assign({},state,{settings:Object.assign({},state.settings,{reservaRules:rules.concat([rule])})});
+  return rule.mensual===true ? applyReservaMensual(next,nowMs) : next;
+}
+// Borrar la configuración no liberaba el presupuesto ya apartado (INC-0310-01). El asiento
+// inverso conserva la aportación, su fecha y la identidad de nómina, también para lectores
+// antiguos de nube/widget que suman el mismo registro. No es un movimiento bancario.
+function removeReservaRule(state, ruleId){
+  const rules=(state.settings&&state.settings.reservaRules)||[];
+  if(!rules.some(function(r){ return r.id===ruleId; })) return state;
+  const log=state.reservaLog||[];
+  const ids=Object.create(null), released=Object.create(null), originals=Object.create(null);
+  log.forEach(function(x){
+    if(!x) return;
+    if(typeof x.id==="string" && x.id) ids[x.id]=(ids[x.id]||0)+1;
+    if(typeof x.releaseOf==="string" && x.releaseOf) released[x.releaseOf]=true;
+    if(x.ruleId===ruleId&&typeof x.id==="string"&&x.id&&typeof x.amount==="number"&&x.amount>0) originals[x.id]=true;
+  });
+  // Una configuración puede reaparecer sin perder el log. La identidad del asiento manda:
+  // ni duplicados ni liberaciones parciales se vuelven a compensar (revisión INC-0310-01).
+  // Sin vínculo comprobable en un descuento anterior, no sabemos qué sigue reservado.
+  const unknown=log.some(function(x){ return x&&x.ruleId===ruleId&&
+    (typeof x.amount!=="number" || !isFinite(x.amount) || (x.amount<0 && !originals[x.releaseOf])); });
+  const releases=log.filter(function(x){ return !unknown&&x&&x.ruleId===ruleId&&
+    typeof x.id==="string"&&x.id&&ids[x.id]===1&&!released[x.id]&&!x.releaseOf&&
+    typeof x.amount==="number"&&isFinite(x.amount)&&x.amount>0&&
+    typeof x.incomeKey==="string"&&x.incomeKey&&x.date!=null&&isFinite(new Date(x.date).getTime()); }).map(function(x){
+    return Object.assign({},x,{id:uid(),amount:-x.amount,releaseOf:x.id,releasedAt:new Date().toISOString()});
+  });
+  return Object.assign({},state,{
+    settings:Object.assign({},state.settings,{reservaRules:rules.filter(function(r){ return r.id!==ruleId; })}),
+    reservaLog:releases.length?log.concat(releases):state.reservaLog
+  });
 }
 // Aplica el reparto: suma cada meta (mismo efecto que "Aportar a una meta") y deja el registro que
 // hace que se descuente del presupuesto. Función PURA — devuelve el nuevo estado sin mutar `state`.
@@ -1222,6 +1316,92 @@ function applyReserva(state, income, plan, bankEnt){
   }));
   return Object.assign({},state,{goals:goals, reservaLog:log});
 }
+/* REGLA MENSUAL: descontar y aportar al guardar (decisión del dueño, 4/10; rechazo de la 4.26.87).
+   Con el reparto por ingreso, crear una regla no hacía nada hasta el siguiente cobro y pedía
+   elegirlo y confirmarlo aparte: él esperaba ver el descuento en el presupuesto del mes y la
+   aportación en la meta nada más guardar. Una regla con `mensual:true` hace las dos cosas en la
+   MISMA escritura, una vez por mes, sin ingreso de por medio.
+   · La identidad es regla + mes natural de Madrid, el mismo calendario del resto del dinero. No
+     depende de la vista del presupuesto: si colgara del inicio del periodo, pasar de «mes» a «mi
+     ciclo» o corregir el cobro que lo abre cambiaría la clave y aportaría otra vez (revisión del
+     coordinador, 4/10). Tampoco de la zona del móvil: el mismo instante da el mismo mes en todos.
+   · El id del asiento ES esa identidad: repetir el updater, recargar u otro móvil no la duplican.
+     Un asiento ya liberado al borrar la regla sigue ocupando su identidad: no se vuelve a aportar.
+   · El porcentaje es sobre el presupuesto mensual BRUTO (`state.budget`), nunca sobre lo que
+     dejó otra regla. Sin presupuesto conocido no hay base: no se aporta ni se inventa una.
+   · No crea movimientos ni toca `expenses`. Las reglas sin `mensual` conservan su contrato. */
+function reservaMensualClave(nowMs){ return madridYmdParts(nowMs!=null?nowMs:Date.now()).ym; }
+// Lo que aportaría una regla mensual ahora, o por qué no: «meta» (borrada o cumplida),
+// «base» (porcentaje sin presupuesto conocido) o «importe» (no sale un importe positivo).
+function reservaMensualImporte(state, rule){
+  if(!rule || !reservaMetaActiva(state,rule.goalId)) return { amount:null, motivo:"meta" };
+  const v=typeof rule.value==="number"&&isFinite(rule.value)?rule.value:0;
+  if(rule.kind==="pct"){
+    const base=typeof state.budget==="number"&&isFinite(state.budget)&&state.budget>0?state.budget:null;
+    if(base==null) return { amount:null, motivo:"base" };
+    const a=Math.round(base*v)/100;
+    return a>0 ? { amount:+a.toFixed(2) } : { amount:null, motivo:"importe" };
+  }
+  return v>0 ? { amount:+v.toFixed(2) } : { amount:null, motivo:"importe" };
+}
+// Aplica las reglas mensuales que aún no tienen asiento en este mes. PURA; si no hay nada que
+// aplicar devuelve el MISMO estado (ni re-render ni reescritura).
+function applyReservaMensual(state, nowMs){
+  const rules=((state.settings&&state.settings.reservaRules)||[]).filter(function(r){ return r&&r.mensual===true&&r.id; });
+  if(!rules.length) return state;
+  const now=nowMs!=null?nowMs:Date.now();
+  if(!isFinite(now)) return state;
+  const clave=reservaMensualClave(now);
+  const hechos=Object.create(null);
+  (state.reservaLog||[]).forEach(function(x){ if(x&&typeof x.id==="string") hechos[x.id]=true; });
+  let goals=state.goals||[];
+  const nuevos=[];
+  rules.forEach(function(r){
+    const id="mensual|"+r.id+"|"+clave;
+    if(hechos[id]) return;
+    const st=Object.assign({},state,{goals:goals});
+    const imp=reservaMensualImporte(st,r);
+    if(imp.amount==null) return;
+    hechos[id]=true;
+    goals=goals.map(function(g){
+      if(g.id!==r.goalId) return g;
+      const ns=+((g.saved||0)+imp.amount).toFixed(2);
+      return Object.assign({},g,{saved:ns, done:ns>=g.target, doneAt:(ns>=g.target&&!g.doneAt)?new Date(now).toISOString():g.doneAt});
+    });
+    const g0=(state.goals||[]).find(function(g){ return g.id===r.goalId; });
+    // `incomeKey` lleva la misma identidad: es lo que exige la reversión al borrar la regla y
+    // nunca coincide con la clave de un ingreso real, que empieza por su fecha.
+    nuevos.push({ id:id, ruleId:r.id, goalId:r.goalId, name:r.name||(g0&&g0.name)||"", amount:imp.amount,
+      date:new Date(now).toISOString(), incomeKey:id, mensual:clave });
+  });
+  if(!nuevos.length) return state;
+  return Object.assign({},state,{goals:goals, reservaLog:(state.reservaLog||[]).concat(nuevos)});
+}
+/* ¿El pull de estado LEYÓ de verdad la nube? Que la promesa termine bien no basta: si llega un
+   estado con forma inválida, `syncFromCloud` conserva lo local y lo resube, y eso también
+   «termina bien» sin haber leído nada fiable (revisión del coordinador, 4/10: la meta pasaba de
+   100 a 200 con la nube corrupta). Vale un estado válido, y vale que aún no exista ninguno
+   (primera cuenta: no hay otro dispositivo al que pisar). «No existe» es SOLO que no haya fila
+   o que su dato sea `null`: un `false`, un 0, un texto vacío o un dato ausente no prueban
+   nada y no son un estado. */
+function reservaMensualNubeLeida(cloudPack){
+  if(cloudPack==null) return true;
+  return cloudPack.data===null || validCloudState(cloudPack.data);
+}
+/* La validez de la lectura es de CADA pull, no de la app: dos `syncFromCloud` pueden solaparse
+   (arranque, vuelta, conflicto) y, con un dato compartido, uno inválido que termina tarde se
+   acreditaría con la lectura válida de otro que luego falló (revisión del coordinador, 4/10).
+   Cada invocación crea su puerta: solo vale si ESE pull terminó bien y ESE pull leyó. */
+function reservaMensualPuerta(){
+  let leido=false;
+  return {
+    lee:function(cloudPack){ leido=reservaMensualNubeLeida(cloudPack); },
+    vale:function(ok){ return !!ok && leido; }
+  };
+}
+// ¿Queda alguna regla mensual por asentar este mes? Lo pregunta la vuelta a primer plano ANTES de
+// pedir nada a la nube: con todo al día (o sin reglas) no hay ni consulta ni escritura.
+function reservaMensualPendiente(state, nowMs){ return applyReservaMensual(state,nowMs)!==state; }
 // Total reservado desde `fromMs` — lo que hay que restar del presupuesto del período que se esté
 // mirando, para que lo apartado se note de verdad en "lo que puedes gastar".
 function reservedSince(state, fromMs, hastaMs){

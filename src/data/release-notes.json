@@ -1,5 +1,307 @@
 [
   {
+    "v": "4.26.94",
+    "d": "2026-10-04",
+    "t": {
+      "es": "Reglas de ahorro que apartan al guardarlas",
+      "en": "Savings rules that set money aside when saved",
+      "ca": "Regles d’estalvi que aparten en desar-les"
+    },
+    "items": {
+      "es": [
+        "Al crear una regla en Metas, su importe se descuenta de tu presupuesto del mes y se aporta a la meta en el momento, sin confirmar nada más. Se repite cada mes, al abrir la app.",
+        "El importe se guarda tal como lo escribes, también con punto de miles o céntimos: 1.200 son mil doscientos.",
+        "Si el importe o el porcentaje no valen, la app lo dice en vez de quedarse sin hacer nada.",
+        "Cada regla indica lo que ha apartado este mes, o por qué todavía no ha podido.",
+        "Después de cambiar una regla, volver arriba mantiene visible la navegación."
+      ],
+      "en": [
+        "When you create a rule in Goals, its amount is deducted from this month’s budget and added to the goal right away, with nothing else to confirm. It repeats each month, when you open the app.",
+        "The amount is saved exactly as you type it, including thousands separators and cents: 1,200 means one thousand two hundred.",
+        "If the amount or percentage isn’t valid, the app says so instead of doing nothing.",
+        "Each rule shows what it has set aside this month, or why it couldn’t yet.",
+        "After changing a rule, returning to the top keeps navigation visible."
+      ],
+      "ca": [
+        "En crear una regla a Metes, el seu import es descompta del pressupost del mes i s’aporta a l’objectiu al moment, sense confirmar res més. Es repeteix cada mes, en obrir l’app.",
+        "L’import es desa tal com l’escrius, també amb punt de milers o cèntims: 1.200 són mil dos-cents.",
+        "Si l’import o el percentatge no són vàlids, l’app ho diu en lloc de quedar-se sense fer res.",
+        "Cada regla indica el que ha apartat aquest mes, o per què encara no ha pogut.",
+        "Després de canviar una regla, tornar a dalt manté visible la navegació."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0310-01-meta-regla",
+        "rev": 3,
+        "t": {
+          "es": "Reglas de Metas: descuento y aportación al guardar",
+          "en": "Goals rules: deduction and contribution on save",
+          "ca": "Regles de Metes: descompte i aportació en desar"
+        },
+        "items": {
+          "es": [
+            "1. Con un presupuesto mensual puesto, crea una meta de prueba y añádele una regla de importe fijo, por ejemplo 100: sin confirmar nada más, la meta sube ese importe, lo que te queda del presupuesto del mes baja lo mismo y la fila de la regla dice lo apartado este mes. Cierra y abre la app: todo sigue igual, sin aportar otra vez.",
+            "2. En el formulario de una regla, prueba 0, letras o un porcentaje de 150: no se guarda nada y aparece un aviso. Escribe 1.200 y guarda: la fila debe mostrar 1200 €.",
+            "3. Borra una regla nueva: el presupuesto recupera su importe y la meta conserva lo aportado. Cancelar el borrado no cambia nada."
+          ],
+          "en": [
+            "1. With a monthly budget set, create a test goal and add a fixed-amount rule to it, for example 100: with nothing else to confirm, the goal goes up by that amount, what’s left of this month’s budget goes down by the same, and the rule’s row shows what was set aside this month. Close and reopen the app: everything stays the same, with no second contribution.",
+            "2. In a rule’s form, try 0, letters or a percentage of 150: nothing is saved and a message appears. Type 1,200 and save: the row should show 1200 €.",
+            "3. Delete a new rule: the budget gets its amount back and the goal keeps what was contributed. Cancelling the deletion changes nothing."
+          ],
+          "ca": [
+            "1. Amb un pressupost mensual posat, crea un objectiu de prova i afegeix-hi una regla d’import fix, per exemple 100: sense confirmar res més, l’objectiu puja aquest import, el que et queda del pressupost del mes baixa el mateix i la fila de la regla diu el que s’ha apartat aquest mes. Tanca i obre l’app: tot segueix igual, sense aportar una altra vegada.",
+            "2. Al formulari d’una regla, prova 0, lletres o un percentatge de 150: no es desa res i apareix un avís. Escriu 1.200 i desa: la fila ha de mostrar 1200 €.",
+            "3. Esborra una regla nova: el pressupost recupera el seu import i l’objectiu conserva el que s’hi ha aportat. Cancel·lar l’esborrat no canvia res."
+          ]
+        },
+        "historial": [
+          "4.26.87/inc-0310-01-meta-regla"
+        ]
+      }
+    ]
+  },
+  {
+    "v": "4.26.93",
+    "d": "2026-10-04",
+    "t": {
+      "es": "Comprobaciones más fiables",
+      "en": "More reliable checks",
+      "ca": "Comprovacions més fiables"
+    },
+    "items": {
+      "es": [
+        "La lista de comprobaciones permite volver a intentar una consulta fallida.",
+        "Los datos ya comprobados se conservan sin guardarlos otra vez cuando no han cambiado."
+      ],
+      "en": [
+        "The checklist lets you retry a failed lookup.",
+        "Verified data is preserved without saving it again when unchanged."
+      ],
+      "ca": [
+        "La llista de comprovacions permet tornar a intentar una consulta fallida.",
+        "Les dades ja comprovades es conserven sense desar-les de nou quan no han canviat."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.92",
+    "d": "2026-10-04",
+    "t": {
+      "es": "Comprobaciones al día",
+      "en": "Updated checks",
+      "ca": "Comprovacions al dia"
+    },
+    "items": {
+      "es": [
+        "La lista de comprobaciones conserva solo lo pendiente, sin repetir funciones ya disponibles.",
+        "Al volver a abrirla, la lista se actualiza y conserva los resultados anteriores."
+      ],
+      "en": [
+        "The checklist keeps only pending items, without repeating features already available.",
+        "Reopening the list refreshes it and preserves earlier results."
+      ],
+      "ca": [
+        "La llista de comprovacions conserva només el que queda pendent, sense repetir funcions ja disponibles.",
+        "En tornar-la a obrir, la llista s’actualitza i conserva els resultats anteriors."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "ops-0410-panel-cola",
+        "t": {
+          "es": "Revisión con solo lo pendiente",
+          "en": "Review of pending changes only",
+          "ca": "Revisió només del que queda pendent"
+        },
+        "items": {
+          "es": [
+            "1. Abrir Ajustes → Revisar la beta: las funciones ya estrenadas no vuelven a pedir aprobación; las novedades siguen disponibles para aprobar o rechazar.",
+            "2. Volver a abrir la revisión después de una entrega: la lista se actualiza sin borrar las decisiones anteriores."
+          ],
+          "en": [
+            "1. Open Settings → Review beta: released features no longer ask for approval; new changes remain available to approve or reject.",
+            "2. Reopen the review after a delivery: the list refreshes without deleting earlier decisions."
+          ],
+          "ca": [
+            "1. Obrir Ajustos → Revisar la beta: les funcions ja estrenades no tornen a demanar aprovació; les novetats continuen disponibles per aprovar o rebutjar.",
+            "2. Tornar a obrir la revisió després d’una entrega: la llista s’actualitza sense esborrar les decisions anteriors."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.90",
+    "d": "2026-10-03",
+    "t": {
+      "es": "Gastos sin una columna vacía",
+      "en": "Expenses without an empty column",
+      "ca": "Despeses sense una columna buida"
+    },
+    "items": {
+      "es": [
+        "Al consultar otros meses, un rango de fechas o todo el histórico, el resumen ocupa el ancho completo y no muestra un presupuesto que no corresponde a ese periodo.",
+        "Este mes y Mi ciclo conservan su límite, el dinero restante y la barra de progreso."
+      ],
+      "en": [
+        "When viewing other months, a date range or the whole history, the summary uses the full width and does not show a budget that does not apply to that period.",
+        "This month and My cycle retain their limit, remaining amount and progress bar."
+      ],
+      "ca": [
+        "En consultar altres mesos, un rang de dates o tot l’històric, el resum ocupa tota l’amplada i no mostra un pressupost que no correspon a aquell període.",
+        "Aquest mes i El meu cicle conserven el límit, els diners restants i la barra de progrés."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0310-gastos-sin-limite",
+        "rev": 1,
+        "t": {
+          "es": "Gastos sin una columna vacía",
+          "en": "Expenses without an empty column",
+          "ca": "Despeses sense una columna buida"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, abre Mes pasado, Rango, Últimos 3 meses y Todo: no deben aparecer «de —», «quedan —» ni su explicación; el resumen debe ocupar todo el ancho.",
+            "2. Vuelve a Este mes y Mi ciclo: límite, restante y progreso vuelven a aparecer y las categorías y cifras siguen correspondiendo al periodo seleccionado."
+          ],
+          "en": [
+            "1. In Expenses, open Last month, Range, Last 3 months and All: there should be no “of —”, “left —” or explanation, and the summary should fill the width.",
+            "2. Return to This month and My cycle: limit, remaining amount and progress reappear, and categories and figures still match the selected period."
+          ],
+          "ca": [
+            "1. A Despeses, obre Mes passat, Rang, Últims 3 mesos i Tot: no hi ha d’haver «de —», «queden —» ni l’explicació; el resum ha d’ocupar tota l’amplada.",
+            "2. Torna a Aquest mes i El meu cicle: límit, restant i progrés tornen a aparèixer i les categories i xifres segueixen el període seleccionat."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.89",
+    "d": "2026-10-03",
+    "t": {
+      "es": "Cada bróker cuenta su resultado",
+      "en": "Each broker reports its result",
+      "ca": "Cada bróker explica el resultat"
+    },
+    "items": {
+      "es": [
+        "Al actualizar, Trade Republic y MyInvestor indican por separado si se han actualizado, no han respondido o necesitan reconectar.",
+        "Si uno falla, sigue apareciendo lo que el otro sí ha actualizado."
+      ],
+      "en": [
+        "When updating, Trade Republic and MyInvestor separately report whether they updated, did not respond or need reconnecting.",
+        "If one fails, the other broker’s successful update still appears."
+      ],
+      "ca": [
+        "En actualitzar, Trade Republic i MyInvestor indiquen per separat si s’han actualitzat, no han respost o cal reconnectar.",
+        "Si un falla, continua apareixent el que l’altre sí que ha actualitzat."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0310-broker-resultados",
+        "rev": 1,
+        "t": {
+          "es": "Resultados de Trade Republic y MyInvestor",
+          "en": "Trade Republic and MyInvestor results",
+          "ca": "Resultats de Trade Republic i MyInvestor"
+        },
+        "items": {
+          "es": [
+            "1. Con solo un bróker conectado, pulsa Sincronizar bancos en Cartera: el resultado debe nombrar únicamente al actualizado.",
+            "2. Con ambos, comprueba las dos filas. Si uno no responde o caduca, deben aparecer su aviso y el éxito del otro. Abrir la app no sincroniza posiciones de Trade Republic."
+          ],
+          "en": [
+            "1. With only one broker connected, tap Sync banks in Portfolio: the result should name only the broker updated.",
+            "2. With both, check both rows. If one does not respond or expires, its warning and the other’s success should appear. Opening the app does not sync Trade Republic positions."
+          ],
+          "ca": [
+            "1. Amb només un bróker connectat, prem Sincronitza els bancs a Cartera: el resultat ha d’anomenar només el que s’ha actualitzat.",
+            "2. Amb tots dos, comprova les dues files. Si un no respon o caduca, han d’aparèixer l’avís i l’èxit de l’altre. Obrir l’app no sincronitza posicions de Trade Republic."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.88",
+    "d": "2026-10-03",
+    "t": {
+      "es": "Multas, zona azul y peajes por separado",
+      "en": "Fines, blue zone and tolls separately",
+      "ca": "Multes, zona blava i peatges per separat"
+    },
+    "items": {
+      "es": [
+        "Multas, Zona azul y Peajes tienen categorías propias para apuntar, filtrar y fijar límites.",
+        "Los gastos ya guardados conservan su categoría y sus límites."
+      ],
+      "en": [
+        "Fines, Blue zone and Tolls have their own categories for recording, filtering and setting limits.",
+        "Previously saved expenses retain their categories and limits."
+      ],
+      "ca": [
+        "Multes, Zona blava i Peatges tenen categories pròpies per apuntar, filtrar i fixar límits.",
+        "Les despeses ja desades conserven la categoria i els límits."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "feature-0310-01-movilidad",
+        "rev": 1,
+        "t": {
+          "es": "Multas, Zona azul y Peajes",
+          "en": "Fines, Blue zone and Tolls",
+          "ca": "Multes, Zona blava i Peatges"
+        },
+        "items": {
+          "es": [
+            "1. En Apuntar, abre todas las categorías y comprueba Multas, Zona azul y Peajes con sus iconos. Apunta un gasto en cada una. Taxi y Gasolina siguen disponibles.",
+            "2. En Gastos, filtra las tres categorías y comprueba sus movimientos e importes. Pon límites independientes; Parking, Transporte e Impuestos y multas conservan los anteriores.",
+            "3. Elige una categoría a mano y cambia el concepto: debe conservarse. Reabre sin conexión y comprueba categorías, límites e histórico intactos."
+          ],
+          "en": [
+            "1. In Record, open all categories and check Fines, Blue zone and Tolls with their icons. Record an expense in each. Taxi and Fuel remain available.",
+            "2. In Expenses, filter the three categories and check their entries and amounts. Set independent limits; Parking, Transport and Taxes & fines retain their previous ones.",
+            "3. Choose a category manually and change the description: it must remain selected. Reopen offline and check categories, limits and unchanged history."
+          ],
+          "ca": [
+            "1. A Apuntar, obre totes les categories i comprova Multes, Zona blava i Peatges amb les icones. Apunta una despesa a cadascuna. Taxi i Benzina continuen disponibles.",
+            "2. A Despeses, filtra les tres categories i comprova els moviments i imports. Posa límits independents; Pàrquing, Transport i Impostos i multes conserven els anteriors.",
+            "3. Tria una categoria a mà i canvia el concepte: s’ha de conservar. Torna a obrir sense connexió i comprova categories, límits i historial intactes."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.87",
+    "d": "2026-10-03",
+    "t": {
+      "es": "Borrar una regla de ahorro",
+      "en": "Deleting a savings rule",
+      "ca": "Esborrar una regla d’estalvi"
+    },
+    "items": {
+      "es": [
+        "Al borrar una regla de ahorro, su reserva deja de reducir el presupuesto disponible. Las aportaciones de la meta se conservan."
+      ],
+      "en": [
+        "Deleting a savings rule releases its reservation from the available budget. Contributions to the goal are kept."
+      ],
+      "ca": [
+        "En esborrar una regla d’estalvi, la seva reserva deixa de reduir el pressupost disponible. Es conserven les aportacions de la meta."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.86",
     "d": "2026-10-02",
     "t": {
@@ -803,9 +1105,6 @@
           ]
         },
         "historial": [
-          "4.26.68/inc-2809-02-ayuda-ciclo"
-        ],
-        "desde": [
           "4.26.68/inc-2809-02-ayuda-ciclo"
         ],
         "huella": "c10490c6",

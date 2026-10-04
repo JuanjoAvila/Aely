@@ -309,6 +309,19 @@ function Debts({state, set, showToast}){
    quería que ahorrar para una meta se notara de verdad en "lo que puede gastar", no solo en un
    bote aparte. Ver la explicación larga en `08-motor-bank.js` (reservaPlanFor/applyReserva).
    ============================================================ */
+// Los importes del reparto con sus céntimos cuando los tienen: una regla de 1.200,50 € no puede
+// leerse «1201 €» en la fila y apartar 1.200,50 al aplicar. Los redondos se quedan como estaban.
+function reservaEur(n){ return Math.round((n||0)*100)%100===0 ? eur0(n) : eur(n); }
+// La frase del editor para cada estado del reparto. La fecha es la del ingreso detectado; sin
+// ingreso no se pone ninguna. Habla de «ingreso», no de nómina: `lastPaydayOf` no distingue.
+function reservaEstadoTexto(st){
+  const d=st.income ? parseDate(st.income.date).toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'}) : "";
+  if(st.estado==="pendiente") return tf("rr_st_pending",{d:d});
+  if(st.estado==="repartido") return tf("rr_st_applied",{d:d});
+  if(st.estado==="descartado") return tf("rr_st_dismissed",{d:d});
+  if(st.estado==="sinPlan") return t("rr_st_noplan");
+  return t("rr_st_none");
+}
 // Editor de reglas: nombre opcional, importe fijo o % de la nómina, y a qué meta va.
 function ReservaRules({state, set}){
   const goals=(state.goals||[]).filter(function(g){ return !g.done; });
@@ -316,43 +329,92 @@ function ReservaRules({state, set}){
   const [adding,setAdding]=useState(false);
   const blank={name:"",kind:"fixed",value:"",goalId:goals[0]&&goals[0].id||""};
   const [form,setForm]=useState(blank);
-  const setRules=function(next){ set(function(s){ return Object.assign({},s,{settings:Object.assign({},s.settings,{reservaRules:next})}); }); };
-  const addRule=function(){
-    const v=parseFloat(String(form.value).replace(',','.'))||0;
-    if(v<=0 || !form.goalId) return;
-    const r={id:uid(),name:form.name||"",kind:form.kind,value:v,goalId:form.goalId};
-    setRules(rules.concat([r]));
-    setForm(blank); setAdding(false);
+  const [err,setErr]=useState("");
+  const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted]);
+  const st=reservaEstadoDe(state,cycle);
+  // La línea de cada regla mensual dice lo que ESTE mes tiene asentado, no lo que «debería».
+  const clave=reservaMensualClave();
+  const mensualTexto=function(r){
+    const id="mensual|"+r.id+"|"+clave, log=state.reservaLog||[];
+    const hecho=log.find(function(x){ return x&&x.id===id; });
+    if(hecho && !log.some(function(x){ return x&&x.releaseOf===id; })) return tf("rr_m_ok",{x:reservaEur(hecho.amount)});
+    const motivo=reservaMensualImporte(state,r).motivo;
+    return motivo==="base"?t("rr_m_base"):(motivo==="meta"?t("rr_m_meta"):t("rr_m_none"));
   };
-  const delRule=function(id){ setRules(rules.filter(function(r){ return r.id!==id; })); };
+  /* La última alta enviada. `addReservaRule` puede no escribirla (la meta dejó de valer entre el
+     toque y la escritura) y desde el toque no se sabe: cerrar el formulario ahí repetía el fallo
+     de siempre, una regla que no se guarda y nadie lo dice. El formulario se cierra cuando la
+     regla APARECE en el estado. Si no está y su meta ya no vale, se reabre con lo escrito y el
+     aviso — también si primero apareció y luego se retiró: React puede pintarla y quitarla al
+     aplicar una escritura anterior que aún tenía en cola, y eso no tiene plazo (en un móvil
+     cargado puede tardar). Por eso NO se olvida por tiempo: solo la sustituye otra alta, o la
+     descartan Cancelar, abrir el formulario de nuevo o borrar esa misma regla. */
+  const [sent,setSent]=useState(null);
+  const sentIn=!!sent && rules.some(function(r){ return r.id===sent.id; });
+  // En el propio commit (layout): el cierre y la recuperación no esperan al trabajo pendiente del
+  // planificador, que en un móvil cargado puede tardar justo cuando más falta hace el aviso.
+  useLayoutEffect(function(){
+    if(!sent) return;
+    if(sentIn){ if(!sent.seen){ setSent(Object.assign({},sent,{seen:true})); setAdding(false); setForm(blank); setErr(""); } return; }
+    if(!reservaMetaActiva(state,sent.goalId)){ setSent(null); setForm(sent.form); setErr("goal"); setAdding(true); }
+  },[sent,sentIn,state.goals]);
+  const addRule=function(){
+    if(sent && !sent.seen) return;   // ya hay un alta en camino: un segundo toque no crea otra
+    /* Un alta que no vale se quedaba con el formulario abierto y sin una palabra (feedback 3/10).
+       La meta se comprueba AL GUARDAR: el formulario abierto puede conservar una que entretanto
+       se cumplió o se borró (otro móvil, la nube), y no se elige otra por él.
+       El tope del 100 % es solo para lo que se escribe ahora: las reglas ya guardadas no se tocan. */
+    if(!reservaMetaActiva(state,form.goalId)){ setErr("goal"); return; }
+    const v=reservaImporteDe(form.value);
+    if(v==null || !(v>0)){ setErr("amount"); return; }
+    if(form.kind==="pct" && v>100){ setErr("pct"); return; }
+    // Las reglas nuevas son mensuales: descuentan y aportan en esta misma escritura (4/10).
+    const r={id:uid(),name:form.name||"",kind:form.kind,value:v,goalId:form.goalId,mensual:true};
+    setErr(""); setSent({id:r.id,goalId:r.goalId,form:form});
+    set(function(s){ return addReservaRule(s,r); });
+  };
+  const delRule=function(id){
+    askConfirm({title:t("rr_delete_q"),sub:t("rr_delete_sub"),ok:t("rr_delete"),danger:true})
+      .then(function(ok){ if(!ok) return; if(sent&&sent.id===id) setSent(null); set(function(s){ return removeReservaRule(s,id); }); });
+  };
   const goalName=function(id){ const g=(state.goals||[]).find(function(x){ return x.id===id; }); return g?((g.emoji||"🎯")+" "+g.name):t("rr_goal_gone"); };
-  if(!goals.length && !rules.length) return null;   // sin metas activas no hay nada que configurar
+  /* Sin metas activas ni reglas no hay nada que configurar… salvo que el formulario esté abierto:
+     si la ÚLTIMA meta se cumple o se borra con el borrador a medias, esconder la tarjeta era otra
+     vez la regla que no se guarda y nadie lo dice. El formulario y su aviso se quedan hasta que se
+     cancela; no se elige ni se crea otra meta por él. */
+  if(!goals.length && !rules.length && !adding) return null;
   return React.createElement(CollapsibleCard,{title:t("rr_title"),sub:rules.length?tf("rr_sub",{n:rules.length}):t("rr_sub_empty"),dot:"#5FD08A",storageKey:"g_reserva_rules",help:t("h_reserva")},
     rules.length===0 && React.createElement("div",{className:"hint"}, t("rr_none")),
     rules.map(function(r){
-      return React.createElement("div",{key:r.id,className:"sub-row"},
+      return React.createElement("div",{key:r.id,className:"sub-row","data-reserva-rule":r.id},
         React.createElement("div",{className:"sub-mid"},
           React.createElement("div",{className:"sub-name"}, r.name||goalName(r.goalId)),
-          React.createElement("div",{className:"sub-meta"}, (r.kind==="pct"?tf("rr_row_pct",{v:r.value}):tf("rr_row_fixed",{v:eur0(r.value)}))+" → "+goalName(r.goalId))
+          React.createElement("div",{className:"sub-meta"}, (r.mensual===true
+            ?(r.kind==="pct"?tf("rr_row_pct_m",{v:r.value}):tf("rr_row_fixed_m",{v:reservaEur(r.value)}))
+            :(r.kind==="pct"?tf("rr_row_pct",{v:r.value}):tf("rr_row_fixed",{v:reservaEur(r.value)})))+" → "+goalName(r.goalId)),
+          r.mensual===true && React.createElement("div",{className:"sub-meta","data-reserva-mensual":r.id}, mensualTexto(r))
         ),
-        React.createElement("button",{className:"chip",style:{fontSize:11.5,padding:"3px 10px"},onClick:function(){ delRule(r.id); }}, "✕")
+        React.createElement("button",{className:"chip","aria-label":t("rr_delete"),style:{fontSize:11.5,padding:"3px 10px"},onClick:function(){ delRule(r.id); }}, "✕")
       );
     }),
-    goals.length>0 && (adding
+    st.estado!=="sinReglas" && React.createElement("div",{className:"hint","data-reserva-estado":st.estado,style:{marginTop:8}}, reservaEstadoTexto(st)),
+    (goals.length>0 || adding) && (adding
       ? React.createElement("div",{className:"add-form",style:{marginTop:10}},
           React.createElement("input",{className:"af-in",placeholder:t("rr_name_ph"),value:form.name,onChange:function(e){ setForm(Object.assign({},form,{name:e.target.value})); }}),
           React.createElement("div",{className:"af-row"},
-            React.createElement("select",{className:"af-in",value:form.kind,onChange:function(e){ setForm(Object.assign({},form,{kind:e.target.value})); }},
+            React.createElement("select",{className:"af-in",value:form.kind,onChange:function(e){ setErr(""); setForm(Object.assign({},form,{kind:e.target.value})); }},
               React.createElement("option",{value:"fixed"},t("rr_kind_fixed")),
-              React.createElement("option",{value:"pct"},t("rr_kind_pct"))),
-            React.createElement("input",{className:"af-in num",inputMode:"decimal",placeholder:form.kind==="pct"?"%":"€",value:form.value,onChange:function(e){ setForm(Object.assign({},form,{value:e.target.value})); }})
+              React.createElement("option",{value:"pct"},t("rr_kind_pct_m"))),
+            React.createElement("input",{className:"af-in num",inputMode:"decimal",placeholder:form.kind==="pct"?"%":"€",value:form.value,onChange:function(e){ setErr(""); setForm(Object.assign({},form,{value:e.target.value})); }})
           ),
-          React.createElement("select",{className:"af-in",value:form.goalId,onChange:function(e){ setForm(Object.assign({},form,{goalId:e.target.value})); }},
+          React.createElement("select",{className:"af-in",value:form.goalId,onChange:function(e){ setErr(""); setForm(Object.assign({},form,{goalId:e.target.value})); }},
             goals.map(function(g){ return React.createElement("option",{key:g.id,value:g.id}, (g.emoji||"🎯")+" "+g.name); })),
+          err && React.createElement("div",{className:"hint",role:"alert",style:{color:"var(--coral)",marginTop:6}}, err==="pct"?t("rr_err_pct"):(err==="goal"?t("rr_err_goal"):t("rr_err_amount"))),
+          React.createElement("div",{className:"hint",style:{marginTop:6}}, t("rr_m_hint")),
           React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:8},onClick:addRule}, t("rr_save")),
-          React.createElement("button",{className:"btn btn-ghost btn-block",onClick:function(){ setAdding(false); setForm(blank); }}, t("gl_cancel"))
+          React.createElement("button",{className:"btn btn-ghost btn-block",onClick:function(){ setSent(null); setAdding(false); setErr(""); setForm(blank); }}, t("gl_cancel"))
         )
-      : React.createElement("button",{className:"v4-ghost-add",style:{marginTop:8},onClick:function(){ setForm(blank); setAdding(true); }}, t("rr_add"))
+      : React.createElement("button",{className:"v4-ghost-add",style:{marginTop:8},onClick:function(){ setSent(null); setForm(blank); setErr(""); setAdding(true); }}, t("rr_add"))
     )
   );
 }
@@ -360,29 +422,26 @@ function ReservaRules({state, set}){
 // no se ha repartido ni descartado. Nunca aplica en silencio — siempre pide confirmación, porque
 // aunque solo mueva cifras dentro de la app, es DINERO DE VERDAD para quien lo mira.
 function ReservaDetect({state, set, showToast}){
-  const dismissed=(state.reservaDismissed)||[];
   const cycle=useMemo(function(){ return lastPaydayOf(state.expenses,null,expenseDeletedSet(state)); },[state.expenses,state.deleted]);
-  const rules=(state.settings&&state.settings.reservaRules)||[];
-  if(!cycle || !cycle.inc || !rules.length) return null;
-  const income=cycle.inc;
+  const st=reservaEstadoDe(state,cycle);
+  if(st.estado!=="pendiente") return null;
+  const income=st.income;
   const key=reservaKeyOf(income);
-  if(reservaAlreadyApplied(state,income) || dismissed.indexOf(key)!==-1) return null;
-  const plan=reservaPlanFor(state, income.amount);
-  if(!plan.plan.length) return null;
+  const plan=st.plan;
   const dailyEnt=(state.accounts||[]).find(function(a){ return accDaily(a); });
   const apply=function(){
-    set(function(s){ return applyReserva(s, income, plan.plan, dailyEnt&&dailyEnt.ent); });
+    set(function(s){ return applyReserva(s, income, reservaPlanFor(s,income.amount).plan, dailyEnt&&dailyEnt.ent); });
     if(showToast) showToast(t("rr_applied_ok"));
   };
   const dismiss=function(){ set(function(s){ return Object.assign({},s,{reservaDismissed:(s.reservaDismissed||[]).concat([key])}); }); };
   return React.createElement("div",{className:"v4-card rise",style:{borderColor:"var(--mint-dim)",marginBottom:14}},
-    React.createElement("div",{style:{fontWeight:800,fontSize:14.5}}, tf("rr_detect_t",{x:eur0(Math.abs(income.amount))})),
+    React.createElement("div",{style:{fontWeight:800,fontSize:14.5}}, tf("rr_detect_t",{x:reservaEur(Math.abs(income.amount))})),
     React.createElement("div",{style:{fontSize:12.5,color:"var(--muted)",marginTop:4}}, tf("rr_detect_sub",{d:parseDate(income.date).toLocaleDateString(loc(),{day:'2-digit',month:'2-digit'})})),
     React.createElement("div",{style:{marginTop:10}}, plan.plan.map(function(p){
       return React.createElement("div",{key:p.ruleId,style:{display:"flex",justifyContent:"space-between",fontSize:13,padding:"4px 0"}},
-        React.createElement("span",null, p.name), React.createElement("span",{className:"num"}, eur0(p.amount)));
+        React.createElement("span",null, p.name), React.createElement("span",{className:"num"}, reservaEur(p.amount)));
     })),
-    plan.remainder>0 && React.createElement("div",{style:{fontSize:12,color:"var(--muted-2)",marginTop:4}}, tf("rr_remainder",{x:eur0(plan.remainder)})),
+    plan.remainder>0 && React.createElement("div",{style:{fontSize:12,color:"var(--muted-2)",marginTop:4}}, tf("rr_remainder",{x:reservaEur(plan.remainder)})),
     React.createElement("div",{className:"af-row",style:{marginTop:10}},
       React.createElement("button",{className:"btn btn-primary",style:{flex:1},onClick:apply}, t("rr_apply")),
       React.createElement("button",{className:"btn btn-ghost",style:{flex:1},onClick:dismiss}, t("rr_dismiss"))

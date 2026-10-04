@@ -116,6 +116,13 @@ export function isAtmWithdrawal(comercio: string): boolean {
 // Espejo de altas nuevas del cliente: no modifica ninguna fila ni migra el histórico.
 function mobilityCategoryOfNewMerchant(comercio: string, cat: string): string {
   const c = norm(comercio);
+  // Una sanción explícita gana al lugar; apps, administraciones y autopistas sin detalle
+  // conservan su categoría anterior. No se aplica a filas guardadas ni a migraciones.
+  if (cat === "transporte" || cat === "otros" || cat === "tasas" || cat === "parking") {
+    if (/\bmult[ae]s?\b|\bsancio(?:n)? (?:de )?(?:trafico|transit)\b|\b(?:traffic|parking) fines?\b/.test(c)) return "multas";
+    if (/\bzona (?:azul|blava)\b|\bestacionamiento regulado\b|\baparcament regulat\b/.test(c)) return "zona_azul";
+    if (/\bpeajes?\b|\bpeatges?\b|\btoll (?:road|payment)\b/.test(c)) return "peajes";
+  }
   if (cat !== "transporte" && cat !== "otros" && !(cat === "super" && /\bcarrefour gas\b/.test(c))) return cat;
   if (/\buber[^a-z0-9]*eats\b/.test(c)) return "bares";
   if (/\b(recarga|recarrega|carga|carrega)\b.*electric|electric.*\b(recarga|recarrega|carga|carrega)\b|\bev charging\b|\bcharging station\b/.test(c)) return "transporte";

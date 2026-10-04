@@ -125,5 +125,10 @@ export function betaDelivery(notes, read) {
       if(active.has(id) || error.code!=="BETA_SCOPE_ABSENT") throw error;
     }
   }
-  return { sourceSha:/^[0-9a-f]{40}$/.test(process.env.GITHUB_SHA||"")?process.env.GITHUB_SHA:null, web };
+  const pruebas={};
+  for(const n of notes)for(const g of n.tandas||[])if(!pruebas[g.id]){
+    const title=typeof g.t==="string"?g.t:(g.t&&g.t.es)||"", items=Array.isArray(g.items)?g.items:(g.items&&g.items.es)||[];
+    pruebas[g.id]={v:n.v,contenido:JSON.stringify([String(g.id),title,items,g.rev||1])};
+  }
+  return { sourceSha:/^[0-9a-f]{40}$/.test(process.env.GITHUB_SHA||"")?process.env.GITHUB_SHA:null, web, pruebas };
 }

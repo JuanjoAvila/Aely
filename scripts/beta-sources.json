@@ -536,6 +536,63 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "CUOTA_ALIAS_DIAS"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
       }
     ],
     "unidades": true
@@ -557,6 +614,18 @@
       {
         "file": "src/modules/10-app-components.js",
         "function": "betaSinEntregar"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaPruebasEntrega"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaEstadoPrueba"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaPruebaPendiente"
       },
       {
         "file": "src/modules/10-app-components.js",
@@ -1300,6 +1369,63 @@
       {
         "file": "src/modules/00-core.js",
         "data": "USER_CAT_RULES"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
       }
     ],
     "native": [
@@ -1927,6 +2053,63 @@
       {
         "file": "src/modules/00-core.js",
         "data": "USER_CAT_RULES"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
       }
     ],
     "native": [
@@ -2984,6 +3167,63 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "CUOTA_ALIAS_DIAS"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
       }
     ],
     "native": [
@@ -3611,6 +3851,63 @@
       {
         "file": "src/modules/00-core.js",
         "data": "USER_CAT_RULES"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
       }
     ],
     "native": [
@@ -3721,6 +4018,63 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DISP"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
       }
     ],
     "auditoria": {
@@ -4328,6 +4682,63 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "CUOTA_ALIAS_DIAS"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
       }
     ],
     "unidades": true
@@ -4409,6 +4820,63 @@
       {
         "file": "src/modules/14-v4-screens.js",
         "function": "ProfilePanel"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
       }
     ]
   },
@@ -5558,6 +6026,59 @@
       {
         "file": "src/modules/00-core.js",
         "data": "USER_CAT_RULES"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaMensualNubeLeida"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaMensualPuerta"
       }
     ],
     "unidades": true
@@ -6102,6 +6623,51 @@
       {
         "file": "src/modules/00-core.js",
         "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
       }
     ],
     "unidades": true
@@ -6714,6 +7280,63 @@
       {
         "file": "src/modules/00-core.js",
         "data": "USER_CAT_RULES"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
       }
     ],
     "native": [
@@ -7542,6 +8165,51 @@
       {
         "file": "src/modules/00-core.js",
         "data": "USER_CAT_RULES"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
       }
     ],
     "unidades": true
@@ -7888,6 +8556,63 @@
         "file": "src/modules/01-i18n.js",
         "from": "cat_viajes:\"Viatges\", cat_transporte:",
         "to": "cat_parking:"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
       }
     ],
     "unidades": true
@@ -8132,6 +8857,2137 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      }
+    ],
+    "unidades": true
+  },
+  "inc-0310-01-meta-regla": {
+    "web": [
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaKeyOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaPlanFor"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaAlreadyApplied"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "removeReservaRule"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "applyReserva"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservedSince"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetStatsFromAmounts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "monthBudgetStats"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "ReservaRules"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "ReservaDetect"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "lastPaydayOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "slimForCloud"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "uid"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetPeriodOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseDeletedSet"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "dateMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseCountsBudget"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur0"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "parseDate"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "loc"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "inicioDeMesMs"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "_pdMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseCountsCash"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseBankEnts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "expenseDeletedSets"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF0"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "MC_TZ"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesTz"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesYmFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesDiaFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesByYm"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  // INC-0310-01 es: el texto de confirmación también debe invalidar su revisión.",
+        "to": "  // INC-0310-01 es: límite para no invalidar textos ajenos al borrado."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  // INC-0310-01 en: el texto de confirmación también debe invalidar su revisión.",
+        "to": "  // INC-0310-01 en: límite para no invalidar textos ajenos al borrado."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  // INC-0310-01 ca: el texto de confirmación también debe invalidar su revisión.",
+        "to": "  // INC-0310-01 ca: límite para no invalidar textos ajenos al borrado."
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaImporteDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaEstadoDe"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "reservaEur"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "reservaEstadoTexto"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  // INC-0410 es: los avisos del alta y el estado del reparto también deben invalidar su revisión.",
+        "to": "  // INC-0410 es: límite para no invalidar textos ajenos al alta de reglas."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  // INC-0410 en: los avisos del alta y el estado del reparto también deben invalidar su revisión.",
+        "to": "  // INC-0410 en: límite para no invalidar textos ajenos al alta de reglas."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  // INC-0410 ca: los avisos del alta y el estado del reparto también deben invalidar su revisión.",
+        "to": "  // INC-0410 ca: límite para no invalidar textos ajenos al alta de reglas."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  // INC-0410 es: la ayuda de la tarjeta promete lo mismo que el reparto.",
+        "to": "  // INC-0410 es: límite de la ayuda del reparto."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  // INC-0410 en: la ayuda de la tarjeta promete lo mismo que el reparto.",
+        "to": "  // INC-0410 en: límite de la ayuda del reparto."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  // INC-0410 ca: la ayuda de la tarjeta promete lo mismo que el reparto.",
+        "to": "  // INC-0410 ca: límite de la ayuda del reparto."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaMetaActiva"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "addReservaRule"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaMensualClave"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaMensualImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "applyReservaMensual"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaMensualPendiente"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  /* Las reglas mensuales de Metas se aplican al guardarlas; esto asienta el MES EN CURSO al abrir",
+        "to": "  // INC-0410 mensual: límite del asiento del mes en App."
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "    pullOkRef.current=pull.then(function(){ return true; }, function(){ return false; });",
+        "to": "    // INC-0410 mensual: límite del pull de estado del que depende el asiento."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "cloud",
+        "members": [
+          "enabled",
+          "pullState"
+        ]
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaMensualNubeLeida"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "    // INC-0410 mensual: el asiento solo vale si ESTE pull leyó un estado válido (o aún no hay ninguno).",
+        "to": "      // INC-0410 mensual: límite de la lectura válida."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "validCloudState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaMensualPuerta"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const onPageScroll=function(e){",
+        "to": "  const applyNavHideRef=useRef(applyNavHide);"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const syncPageTouchAction=function(pageEl, pageIdx){",
+        "to": "  const onPageScroll=function(e){"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const revealNav=function(){",
+        "to": "  // Marca de tiempo del último scroll REAL de una página."
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const pinNavVisible=function(ms){",
+        "to": "  // clear del tope: solo API residual"
+      }
+    ],
+    "unidades": true
+  },
+  "feature-0310-01-movilidad": {
+    "web": [
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "categoryOfNewMerchant"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mobilityCategoryOfNewMerchant"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "categoryOfBankTx"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "categorySpentByMonth"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "ExpenseCategoryGrid"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "ExpenseCategorySheet"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "GastosFilterSheet"
+      },
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "function": "ApuntarSheet"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetPeriodOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "dateMs"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseCountsBudget"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catName"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "entOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isEfectivoEnt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "sugerenciaApuntar"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxTableOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "toEurAmt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcExpenseId"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "subirGasto"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "startOfMonth"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "parseDate"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseCountsCash"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "inicioDeMesMs"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "_pdMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseDeletedSet"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxRateOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_errCloudMsg"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseBankEnts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INGRESO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INVERSION_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TRASPASO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DEUDA_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "cloud",
+        "members": [
+          "addExpense",
+          "enabled",
+          "logEvent",
+          "suggestCategory",
+          "pullExpenses",
+          "setExpenseCat",
+          "setExpenseDup",
+          "confirmExpenseWithdrawal",
+          "setExpenseDeuda",
+          "setExpenseNoCard",
+          "setExpenseBank",
+          "setExpenseNote",
+          "deleteExpense"
+        ]
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "XC"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CUR_SYM"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CUR_LIST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MERCHANT_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_PALABRA"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_INICIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "ENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcNotaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USO_OK"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "MC_TZ"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesTz"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesYmFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesDiaFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesByYm"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "expenseDeletedSets"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcDivisaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcObNameCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseSourceForCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withNotaFallback"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLogEvent"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "deudaSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingNotaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingDivisaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingObNameCol"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "cat_viajes:\"Viajes\", cat_transporte:",
+        "to": "cat_parking:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "cat_viajes:\"Travel\", cat_transporte:",
+        "to": "cat_parking:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "cat_viajes:\"Viatges\", cat_transporte:",
+        "to": "cat_parking:"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "Expenses"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "ExpenseDetailSheet"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const syncCloudExpenses=function(){",
+        "to": "  const syncFromCloud=function(s, opts){"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "canRecognizeWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudEq"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPullExpensesPaged"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcOnGastosActive"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "pushDeleted"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "borrarGastoNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "resolvePossibleDup"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "applyRecognizedWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "reconcileConfirmedWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "findCashbackTwin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "applyInvestBuy"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reverseInvestBuy"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "marcarCuotaAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModel"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "linkFixedPayment"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "rekeyFixedPaymentExpense"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "sameEntList"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseBucket"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "sortExpensesForDisplay"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "moveExpenseWithinDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "monthBudgetStats"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "monthLong"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "detectSubscriptions"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "dayKey"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "loc"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur0"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "eurParts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseEligible"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentState"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeExpensesFromCloud"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileObDupes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "fixMovInvasion"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "esGemeloCashback"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fromEurAmt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentProof"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "diaDeGasto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservedSince"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetStatsFromAmounts"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "mk"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "mkOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "median"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFeedClear"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accFixed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "refreshExpenseFromCloud"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcGastosActiveCbs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcGastosActive"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DELETED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF0"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catRuleKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catStaleAfter"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ackCategoryWrite"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keepCategoryChoices"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_CAT_RULES"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      }
+    ],
+    "edge": [
+      "supabase/functions/_shared/ingest_logic.ts",
+      "supabase/functions/categorize/index.ts"
+    ],
+    "unidades": true
+  },
+  "inc-0310-broker-resultados": {
+    "web": [
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const avisaSync=function(opts,m){",
+        "to": "  const runBankSync=function(opts){"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const BROKER_SYNC_THROTTLE=",
+        "to": "  // Detecta sesión al cargar y escucha cambios"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "SyncReportSheet"
+      },
+      {
+        "file": "src/modules/06-sync-brokers.js",
+        "function": "trBridge"
+      },
+      {
+        "file": "src/modules/06-sync-brokers.js",
+        "function": "trPhoneSaved"
+      },
+      {
+        "file": "src/modules/06-sync-brokers.js",
+        "function": "markTrConnected"
+      },
+      {
+        "file": "src/modules/06-sync-brokers.js",
+        "function": "trSignalStatus"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "cloud",
+        "members": [
+          "enabled",
+          "myinvestorStatus",
+          "myinvestorSync"
+        ]
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "listaAvisosSync"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fromEurAmt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "applyTrCash"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxRateOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "valueDesdeSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "uid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxTableOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/05-dialogs-inv.js",
+        "function": "brokerSuggest"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "useBackClose"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackInitOnce"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackStack"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcIgnorePop"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackInit"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_sync_banks:\"Sincronizar bancos\", v4_sync_banks_done:\"✓ Bancos sincronizados\",",
+        "to": "    ap_bank:\"Banco\", ap_bank_none:\"Sin banco\", ap_date:\"Fecha\","
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_sync_banks:\"Sync banks\", v4_sync_banks_done:\"✓ Banks synced\",",
+        "to": "    ap_bank:\"Bank\", ap_bank_none:\"No bank\", ap_date:\"Date\","
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_sync_banks:\"Sincronitza els bancs\", v4_sync_banks_done:\"✓ Bancs sincronitzats\",",
+        "to": "    ap_bank:\"Banc\", ap_bank_none:\"Sense banc\", ap_date:\"Data\","
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  bank_syncfail:\"No pude leer el saldo ahora. No reconectes: vuelve a intentarlo más tarde\", bank_sync_sin_nube:\"No he podido bajar tus datos de la nube, así que no he mirado el banco (para no repetir movimientos). Prueba en un momento\", bank_none:\"No tienes ningún banco conectado\",",
+        "to": "  bank_expired_re:\"permiso caducado · reconéctate\","
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  bank_syncfail:\"I couldn't read the bank balance now. Do not reconnect; try again later\", bank_sync_sin_nube:\"I couldn't fetch your data from the cloud, so I didn't check the bank (to avoid repeating transactions). Try again in a moment\", bank_none:\"No bank connected\",",
+        "to": "  bank_expired_re:\"consent expired · reconnect\","
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  bank_syncfail:\"No he pogut llegir el saldo ara. No reconnectis; torna-ho a provar més tard\", bank_sync_sin_nube:\"No he pogut baixar les teves dades del núvol, així que no he mirat el banc (per no repetir moviments). Prova-ho d'aquí a un moment\", bank_none:\"No tens cap banc connectat\",",
+        "to": "  bank_expired_re:\"permís caducat · reconnecta't\","
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      }
+    ],
+    "unidades": true
+  },
+  "inc-0310-gastos-sin-limite": {
+    "web": [
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "Expenses"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "presetBoundsMs"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "gastosPeriodOf"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "budgetPaydayOf"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "lastPaydayOf"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "inBounds"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "filterSelLabel"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseBankEnts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcOnGastosActive"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "pushDeleted"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "borrarGastoNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "subirGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "resolvePossibleDup"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_errCloudMsg"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "canRecognizeWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "applyRecognizedWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "reconcileConfirmedWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseSourceForCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "findCashbackTwin"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "applyInvestBuy"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reverseInvestBuy"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaAliasKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catName"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "marcarCuotaAMano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModel"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "linkFixedPayment"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "entOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "dateMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategory"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "rekeyFixedPaymentExpense"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseDeletedSet"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "sameEntList"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseBucket"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "sortExpensesForDisplay"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "moveExpenseWithinDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "monthBudgetStats"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "monthLong"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "categorySpentByMonth"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "detectSubscriptions"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "dayKey"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "loc"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcExpenseId"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "startOfMonth"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur0"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "eurParts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "parseDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "deudaSufijo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "esGemeloCashback"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fromEurAmt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseEligible"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentProof"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "_pdMs"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseCountsCash"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "diaDeGasto"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetPeriodOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseCountsBudget"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservedSince"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetStatsFromAmounts"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "mk"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "mkOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "median"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "inicioDeMesMs"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxRateOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFeedClear"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accFixed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxTableOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "cloud",
+        "members": [
+          "addExpense",
+          "confirmExpenseWithdrawal",
+          "deleteExpense",
+          "enabled",
+          "logEvent",
+          "setExpenseBank",
+          "setExpenseCat",
+          "setExpenseDeuda",
+          "setExpenseDup",
+          "setExpenseNoCard",
+          "setExpenseNote",
+          "suggestCategory"
+        ]
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INGRESO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INVERSION_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TRASPASO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DEUDA_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcGastosActiveCbs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcGastosActive"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DELETED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "ENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MERCHANT_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_PALABRA"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_INICIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "expenseDeletedSets"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF0"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "MC_TZ"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesTz"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesYmFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesDiaFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesByYm"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcNotaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USO_OK"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcDivisaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcObNameCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withNotaFallback"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudEq"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLogEvent"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingNotaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingDivisaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingObNameCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "v4_gastos_spent_period:\"Gastado · {period}\"",
+        "to": "v4_gastos_budget_period_unknown:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "v4_gastos_spent_period:\"Spent · {period}\"",
+        "to": "v4_gastos_budget_period_unknown:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "v4_gastos_spent_period:\"Gastat · {period}\"",
+        "to": "v4_gastos_budget_period_unknown:"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catRuleKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catStaleAfter"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ackCategoryWrite"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_CAT_RULES"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-gastos-summary-top{",
+        "to": "  .v4-gastos-progress{"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      }
+    ],
+    "unidades": true
+  },
+  "ops-0410-panel-cola": {
+    "web": [
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaHuella"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaVerdictFor"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaEstadoEntrega"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaSinEntregar"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaPruebasEntrega"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaEstadoPrueba"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaPruebaPendiente"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaChecklist"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaTandas"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaScopedMarks"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaRememberMarks"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaStoredMarks"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaMarksCount"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaSavedVerdicts"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "useProdVersion"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "data": "BETA_ABIERTO_KEY"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "data": "BETA_SCROLL_KEY"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "data": "BETA_REABIERTO_KEY"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "data": "BETA_VUELTA_MS"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaDebeReabrirse"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaMarcarReabierto"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaMarcarAbierto"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaOlvidarVuelta"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "BetaReviewPanel"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "from": "            beta && (function(){",
+        "to": "            (function(){\n              // La bandera CRUDA:"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcBetaLog"
+      },
+      {
+        "file": "src/modules/12-boot.js",
+        "from": "var _mcProdVerCache=null;",
+        "to": "/* CAMBIAR DE CANAL NO ES"
+      },
+      "scripts/beta-revisions.mjs",
+      "scripts/beta-source-code.mjs",
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "cloud",
+        "members": [
+          "betaReport"
+        ]
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "ensureReleaseNotes"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "releaseNotesUrl"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaNotesVerified"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "data": "_rnSha"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "ReleaseNotesRetry"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "WhatsNew"
       }
     ],
     "unidades": true

@@ -20,7 +20,7 @@ Cuando la app **petardea en el móvil de alguien** (pantalla blanca, crash raro)
 - mensaje del error
 - versión de la app
 - móvil / navegador
-- diagnósticos mínimos, sujetos a la frontera y límites de SEC-03 (cliente publicado y aprobado en beta; entrega exclusiva cliente 4.26.57, Edge sin desplegar)
+- diagnósticos mínimos, sujetos a la frontera y límites de SEC-03 (preparación local, todavía sin publicación)
 
 Es la “caja negra” en producción. Playwright prueba antes de publicar; Sentry avisa cuando falla en la calle.
 
@@ -85,6 +85,6 @@ npm run build:sentry
 
 Ver también [TESTING.md](TESTING.md) · [PLAYWRIGHT-WIN.md](PLAYWRIGHT-WIN.md).
 
-## Frontera SEC-03 cliente aprobada
+## Frontera SEC-03 preparada
 
 Antes del transporte se reconstruye el evento por lista permitida y se elimina todo contexto libre, petición, URL, usuario, breadcrumb y variables del stack. Tipo/clase y posición en index.html permanecen. Capturas propias se limpian también antes del SDK y de la cola. Tracing y seguimiento automático de sesiones desactivados. Los dos SDK 9.47.1 se ensayan con transporte en memoria; no se envían pruebas al proyecto real de Sentry. Esto acredita código local, no DSN/servidor/configuración activa. [Matriz y límites](briefs/sec03-privacidad-logs.md).

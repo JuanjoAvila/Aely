@@ -1,6 +1,6 @@
 {
-  "versionCode": 48,
-  "versionName": "4.26.32",
-  "url": "https://github.com/JuanjoAvila/Aely/releases/download/v4.26.32/Aely-4.26.32.apk",
-  "notes": "APK 4.26.32 (48): gestos Atrás que acompañan al dedo y recibos con iconos claros."
+  "versionCode": 52,
+  "versionName": "4.26.80",
+  "url": "https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.80-beta-52.apk",
+  "notes": "El widget sigue el mes o Mi ciclo de Inicio y pide abrir la app cuando falta confirmar un pago."
 }

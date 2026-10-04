@@ -29,11 +29,10 @@ android {
         applicationId "com.micartera.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        /* Cada APK publicada debe superar la ya instalada. 47 quitó la barra nativa; 48 añade el
-           progreso predictivo de Atrás para Inversiones y Recibos. Android no ofrece una build
-           con código menor o igual y una OTA no puede cambiar este puente nativo. */
-        versionCode 48
-        versionName "4.26.32"
+        /* 52 incorpora el contrato v2 del widget y conserva identidades hasta ACK.
+           La OTA no puede cambiar estos receptores; APK exclusiva beta antes de aceptación real. */
+        versionCode 52
+        versionName "4.26.80"
         /* ⚠ INGEST_URL VACÍA POR DEFECTO — solo la APK `.debug` la lleva (14/9/2026, OPS-06).
            Estaba aquí, en defaultConfig, así que valía TAMBIÉN para release: la APK que publica
            `release:apk` en un repo PÚBLICO llevaba dentro la URL de ingest con el token del dueño.

@@ -1,3 +1,7 @@
+Apuntar y Gastos permiten distinguir Multas, Zona azul y Peajes. Solo los pagos nuevos con detalle inequívoco los sugieren; elegir una categoría conserva el importe y la fecha.
+
+Promoción4/10: once tandas actuales aprobadas; candidata revisada en preparación. Producción aún86/APK48 hasta verificar entrega. Prioridad: publicar lo aprobado y retirar del panel solo lo entregado. [Acta](docs/briefs/promocion-aprobadas-2026-10-04.md).
+
 La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres correcciones de pantalla.78/79 son snapshots de integración, no versiones publicadas por separado. Esta candidata conserva sus cambios; prueba móvil pendiente. [Actas](docs/briefs/ops-0110-validaciones-persistentes.md).
 
 # Aely
@@ -6,7 +10,7 @@ Candidata Gasolina/Taxi: Apuntar → todas las categorías permite elegirlas por
 
 
 
-En Ajustes → Revisar la beta, una comprobación aprobada conserva su resultado tras actualizar y reabrir. Cada tanda guarda sus marcas y comentarios por separado; un cambio real de código o guion requiere nueva revisión. La aprobación y la entrega se muestran por separado.
+En Ajustes → Revisar la beta, una comprobación aprobada conserva su resultado tras actualizar y reabrir. Cada tanda guarda sus marcas y comentarios por separado; las correcciones nuevas tienen su prueba y las funciones estrenadas salen de la cola aunque cambie una dependencia compartida. La aprobación y la entrega se muestran por separado.
 
 OPS-02: Ajustes → Copia de seguridad → Copias automáticas → Ver copia permite comparar sin sustituir la cartera.
 Inicio muestra el gasto bruto en el mes natural; con presupuesto por ciclo y nómina reconocida muestra el gasto neto tras los ingresos recibidos y el margen que queda. Plan deja de prever un ingreso que el banco ya identifica claramente.
@@ -39,6 +43,7 @@ En Plan → Deudas, un saldo estimado a cero pide confirmar la liquidación. Des
 mi-cartera/
 ├── scripts/beta-source-code.mjs # Guardia de funciones/datos transitivos y delimitación por sintaxis, sin dependencias
 ├── scripts/beta-sources.json # Alcances explícitos de revisión; beta-revisions.mjs genera digests/recibo
+├── tests/pure-logic-notes.test.mjs · beta-source-parse.test.mjs # Carga diferida y cortes exactos sin debilitar auditorías
 ├── tests/beta-veredictos.test.mjs # Contrato compartido del panel y listo; beta-sources protege el ensamblado
 ├── tests/listo-actor.test.mjs # CLI real sin red: actor Dev autorizado y fallo cerrado si no se acredita
 ├── src/                    # 👈 Fuente editable (v3.108+)
@@ -49,7 +54,7 @@ mi-cartera/
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
-├── e2e/                    # Playwright (89 specs: pantallas, persistencia, copias y ayuda de Mi ciclo)
+├── e2e/                    # Playwright (96 specs: pantallas, persistencia, copias, reglas mensuales y ayuda de Mi ciclo)
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions, despliegue manual de Supabase y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
@@ -100,7 +105,15 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.86** candidata de producción web aprobada desde beta86/49a, sobre main12884. APK estable4.26.32/code48 conservada; CI y entrega real pendientes. [Acta](docs/briefs/promocion-web-aprobadas-2026-10-03.md).
+Estado actual: **v4.26.94** candidata web terminada y verificada localmente, pendiente de CI y publicación beta. En Metas, una regla nueva descuenta del presupuesto del mes y aporta a la meta al guardarse; al volver en otro mes exige una lectura válida de la nube, sin duplicar ni sincronizar bancos automáticamente. El cierre cubre 162 casos de pantalla, incluidos dos clientes en secuencia y es/en/ca; la suite Node completa sobre `094a7d23` solo falla por `memoria-espejo` local. Deno requiere CI. El último cierre cambia únicamente el reloj del fixture antiguo y documentación; el código de producto es idéntico. Corte 4/10, 16:02 UTC: beta servida4.26.93.2/source`4e65fa11`, producción4.26.86 y APK códigos48/52; aceptación móvil pendiente. No se acreditan escrituras simultáneas entre dispositivos. Actas: [contrato mensual](docs/briefs/inc-0410-metas-mensual.md) · [alta de reglas](docs/briefs/inc-0410-metas-alta.md).
+
+Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
+
+Corte anterior (4/10, 02:35 UTC): v4.26.90 servida en el canal beta como 4.26.90.2. Gastos oculta el límite de otros periodos y aprovecha todo el ancho; incluye Brókers89, entregada antes como 4.26.89.1. Cada cosa con su prueba, sin mezclarlas: **fuente** `beta` en `7f3da23b`, merge de [PR117](https://github.com/JuanjoAvila/Aely/pull/117), que solo añade una guardia de tests: lo que se usa no cambia respecto a 4.26.90.1; **canal beta servido** 4.26.90.2 desde ese mismo `7f3da23b`, publicación [37168006229](https://github.com/JuanjoAvila/Aely/actions/runs/37168006229) sin reintentos y manifiesto, ZIP, HTML, SW, notas y recibos cotejados con la fuente (Gastos se entregó primero como 4.26.90.1 desde el merge `4a2e3c54` de [PR116](https://github.com/JuanjoAvila/Aely/pull/116), publicación [37158585994](https://github.com/JuanjoAvila/Aely/actions/runs/37158585994)); **producción** sigue en 4.26.86 (`d366215a`), sin promoción; **APK** beta 4.26.80/code52 y estable 4.26.32/code48, sin binario nuevo ni prueba en dispositivo; **aceptación en el móvil** de 89 y 90: ninguna todavía; **Edge/SQL**: sin entregas nuevas. Una CI verde no es una aprobación. [Gastos](docs/briefs/inc-0310-gastos-sin-limite.md) · [Brókers](docs/briefs/inc-0310-broker-resultados.md).
+
+Corte anterior (3/10, superado por la entrega de arriba): v4.26.90 era candidata local, con Brókers89 pendiente de CI/publicación y beta88.1 y producción86 como últimas entregas acreditadas.
+
+Estado anterior de Categoría: **v4.26.86** candidata: la categoría elegida a mano no se deshace al sincronizar ([acta](docs/briefs/inc-0210-02-categoria-elegida.md)); integrada sobre la beta 85 (`cdfb2f2c`), sin publicar.
 
 Estado anterior de la integración 85: **v4.26.85**, conjunta de cuota contabilizada, Gastos por periodo y Gasolina/Taxi, sobre3467bbd4. Sin publicar; revisión de integración y CI exactas pendientes, aceptación móvil pendiente. APK80/code52 conservada. [Plan](docs/briefs/inc-0210-01-plan-cuota.md) · [Gastos](docs/briefs/inc-0210-03-gastos-periodo.md).
 
@@ -132,3 +145,7 @@ Notas rápidas del rediseño v4 (para no perderse):
 - **Canal beta y banco de pruebas** (solo `is_admin`): Ajustes → Dev → Pruebas; cada tanda distingue revisión y entrega, incluso plegada — [docs/TESTING.md](docs/TESTING.md).
 
 El guardián tests/logs-privacidad.test.mjs verifica las fronteras de diagnóstico con marcadores sintéticos. Cobertura y límites, incluyendo servidor sin desplegar, en [SEC-03](docs/briefs/sec03-privacidad-logs.md).
+
+Plan → Metas: borrar una regla de nómina pide confirmación y libera su reserva del presupuesto, conservando las aportaciones e historial. Candidata INC-0310-01 aún sin publicación; pruebas DOM en `e2e/metas-borrar-regla.spec.mjs`, mapeadas a Metas, Gastos, Inicio y motor. [Contrato y estado](docs/briefs/inc-0310-01-meta-regla.md).
+
+Gastos → Mes pasado, Rango, Últimos3meses yTodo muestran su resumen sin columna de presupuesto ajeno. Este mes y Mi ciclo conservan límite, restante y progreso; candidata local pendiente de DOM/revisión/CI.
