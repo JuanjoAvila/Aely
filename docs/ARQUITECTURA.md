@@ -1,5 +1,10 @@
 # Arquitectura — Aely
 
+## Cola de revisión beta (4.26.92)
+
+El recibo web acredita código y añade el guion estrenado en `pruebas`. La cola elimina una función antigua cuando ese guion está en producción y existe su recibo web; las diferencias en dependencias siguen en la auditoría, sin resucitar automáticamente la petición antigua. Una corrección nueva tiene nota y tanda en una versión posterior a producción. APK y Edge requieren sus recibos propios. Para recibos anteriores, solo se usa el histórico servido cuando su cabecera coincide con producción; sin evidencia se mantiene pendiente. Reabrir y volver a primer plano refrescan esta consulta de artefactos públicos, sin sincronizar bancos.
+
+
 ## Widget80 sobre guardias de nómina y retirada
 
 V2 sigue dashboardBudgetStats de Inicio, declara ventana/ancla/magnitud/reservas/bancos/idioma y solo confirma eventos recibidos del último pull completo. Java conserva desconocidos hasta ACK/lápida; no inventa delta con ingestlegacy ni degrada contrato por timeout. El injerto mantiene readStartedAt/merge de79 y su conciliación de recibos, así como importación de ingresos BOOK no futuros de78. Source821 se mantiene equivalente; los cambios de esas primitivas se revisan con scopes transitorios de funciones/datos de79. APK52 exclusiva beta, no despliegue Edge/SQL. [Acta](briefs/inc-2909-01-widget.md).

@@ -149,7 +149,12 @@ const PRESUPUESTO = {
   // 1.301.821/354.536→1.303.649/355.027 B (+1.828/+491), con3 bloqueantes iguales.
   // Mínimo1274 KiB crudo deja927 B; gzip347 conserva301 B sin ampliar descarga,
   // manteniendo identidad de liberación, diálogo es/en/ca y todo el catálogo anterior.
-  minificado: 1274 * 1024,
+  // OPS-0410, A/B oficial sellado90.99999→92.99999:1.304.252/355.202→1.307.848/356.153 B.
+  // Cola de funciones estrenadas, refresco y último recibo público offline:+3.596/+951 B.
+  // El primer arranque sin entrega comprobada añade un estado explícito con reintento,
+  // en vez de ofrecerle el histórico como pruebas nuevas. Crudo1278; gzip348; tres bloqueantes.
+  // No se recortan pasos, idiomas ni historial para ocultar las entregas pendientes.
+  minificado: 1278 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -157,7 +162,7 @@ const PRESUPUESTO = {
   // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
   // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
   // La misma candidata mide 343.257 B gzip, 217 B sobre 335 KiB: +1 KiB medido.
-  gzip: 347 * 1024,
+  gzip: 348 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
