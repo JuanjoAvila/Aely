@@ -1,6 +1,6 @@
 # Roadmap — Aely
 
-> Estado a 2026-10-04 · **v4.26.93** candidata local de revisión beta. Cola basada en novedades y entregas pendientes; conserva el historial y consulta producción al reabrir/volver. Beta verificada 4.26.90.5 (be3081), producción 4.26.86 (d366215a); APK beta80/code52 y estable32/code48 conservadas. Publicación y prueba móvil pendientes. [Acta](briefs/ops-0410-panel-cola.md).
+> Estado a 2026-10-04 · **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (1d5dd782), CI37200314653SUCCESS y artefactos cotejados a12:30UTC; cola11 tandas/24 puntos, historial/veredictos conservados. Producción86/d366 y APK beta80/code52/estable32/code48 intactos. Prueba y aprobación móvil pendientes. [Acta](briefs/ops-0410-panel-cola.md).
 
 > Snapshot anterior a 2026-10-03 (superado por la entrega) · v4.26.90 candidata local sobre fuente Brókers89 todavía pendiente de CI/publicación; beta88.1 y producción86 eran las últimas acreditadas.
 

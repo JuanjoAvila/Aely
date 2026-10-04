@@ -33,3 +33,11 @@ Las dos optimizaciones del tooling forman parte de esta tanda y tienen guardiane
 Claude revisó cc3402be por lectura de código el4/10 a11:35UTC, sin tests nuevos ni DOM propios: sin bloqueo, dos ajustes. Se limita el refresh por visibilidad a beta, se evita reescribir el recibo idéntico y un error de procesamiento libera la consulta para reintentar. Se conserva la tanda92 sin pasos nuevos;93 no incluye Metas. Verificación/publicación final pendientes.
 
 Cierre93 comprobado: Node17checks afectados en345,9s PASS (build previo congelado, Deno y resto financiero sin repetir); DOM3specs80PASS/1fixtureFAIL, corregido el arranque del canal antes del montaje de App: siete casos afectados finalesPASS, sin fallo/skip/flaky. Presupuesto oficial93.99999:1.308.073B min/356.205B gzip, margen599/147B respecto1278/348KiB. El HTML de producto no cambió al corregir el fixture. CI exacta/publicación93 y aceptación humana aún pendientes.
+
+## Entrega comprobada · 4/10 a12:30UTC
+
+PR121 entregó92.1 y PR122 cerró los dos hallazgos de Claude. Fuente final77a3c36a770542f47d8f34ce3510554ea767fac3, merge beta1d5dd7824104b07c04d269f40b6f4cca02f09784 con árbol idéntico; CI37200314653SUCCESS. Primera entrega93.1: huella7df4d0ac892fb4b7, HTML/SW con el mismo sello, catálogo SHA256508d9e3b6600f12f30499935c138761435500da20bd8caa86f3f59646e95b5ce concordante con el bundle, recibo de esa fuente. ZIP minificado1.308.097B/gzip9 356.240B, dentro de1278/348KiB. El lector del bundle minificado da11 tandas/24 puntos,13 de ellos para APK/backend aún pendientes; producción86/d366, APK estable48 y beta52 intactos.
+
+CI ejecutó Node/Deno, funcional752PASS/1flaky/1visualSKIP y rendimiento7PASS. Flaky: Inversiones v4 vacío accionable pasó en el reintento; no se oculta ni se atribuye0flaky. La primera CI92 tuvo otro reintento en Recibos, también registrado. Estos resultados no sustituyen aprobación móvil ni acreditan dinero, nativo o backend reales.
+
+El cierre documental posterior conserva versión93, notas, código y guiones. Su CI usa el plan de documentación, sin repetir Deno/Chromium ni atribuirles un verde nuevo. Si el publicador vuelve a sellar por el SHA del recibo, la compilación adicional no introduce otra tanda ni solicita pasos nuevos. Los snapshots antiguos del backlog conservan historia, con cuatro entregas web86 explícitamente separadas de trabajo pendiente.
