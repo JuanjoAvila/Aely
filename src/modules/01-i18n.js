@@ -2945,7 +2945,8 @@ const MONTHS=["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
    el 4/10/2026, INC-2709-09). Antes hacía `clear()` al pasar de 5.000, y con un histórico de más
    de 5.000 fechas distintas —cada movimiento de la nube trae su hora— la caché se vaciaba 4-5
    veces en CADA vuelta a primer plano: cada pasada por los gastos la tiraba a mitad y la siguiente
-   volvía a parsearlo todo. 5.200 gastos, CPU x6: 80 ms por vuelta contra 45 con la caché estable.
+   volvía a parsearlo todo. 5.200 gastos con 5.200 fechas distintas, CPU x6: 81 ms por vuelta antes
+   y 50 después (A/B intercalado). Los mismos gastos con fecha de solo día, que caben, 41-45.
    Desalojar la más antigua tampoco vale: un barrido completo expulsa justo lo que va a leer
    después y falla el 100 % igual. Con la admisión cerrada el techo de memoria es el mismo y un
    barrido solo paga las que no cupieron. El precio: esas (las últimas en llegar) se parsean

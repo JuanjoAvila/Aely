@@ -6138,7 +6138,8 @@ const MONTHS=["enero","febrero","marzo","abril","mayo","junio","julio","agosto",
    el 4/10/2026, INC-2709-09). Antes hacía `clear()` al pasar de 5.000, y con un histórico de más
    de 5.000 fechas distintas —cada movimiento de la nube trae su hora— la caché se vaciaba 4-5
    veces en CADA vuelta a primer plano: cada pasada por los gastos la tiraba a mitad y la siguiente
-   volvía a parsearlo todo. 5.200 gastos, CPU x6: 80 ms por vuelta contra 45 con la caché estable.
+   volvía a parsearlo todo. 5.200 gastos con 5.200 fechas distintas, CPU x6: 81 ms por vuelta antes
+   y 50 después (A/B intercalado). Los mismos gastos con fecha de solo día, que caben, 41-45.
    Desalojar la más antigua tampoco vale: un barrido completo expulsa justo lo que va a leer
    después y falla el 100 % igual. Con la admisión cerrada el techo de memoria es el mismo y un
    barrido solo paga las que no cupieron. El precio: esas (las últimas en llegar) se parsean
@@ -20226,7 +20227,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="0dab6703cf2c9888cdced6671844784940a01a9f58f7a9e9c770b281ee45615a";
+var _rnSha="7ef34ae783bd375b2a4ee682280014660234dacb899673e0726fcb5a8013f8c5";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
