@@ -3,6 +3,8 @@
 Circuito oficial desde el incidente del **2026-08-06** (WEBDEBUG colado, Pages caído,
 apk.json a releases fantasma, promote encolado…). Detalle técnico en `AGENTS.md` §6.
 
+Prioridad del dueño (4/10): cerrar primero la entrega a producción de las aprobadas vigentes; después retirar esas tandas del catálogo beta conservando arrays vacíos, notas y veredictos. No estrenar otra ronda mientras se deja lo aprobado esperando sin un bloqueo concreto. El recibo web no sustituye APK ni Edge; sus entregas se acreditan por separado.
+
 ## Los 6 pasos
 
 1. **Trabaja en `beta`** (`git push origin refs/heads/beta:refs/heads/beta` — hay tag `beta`).

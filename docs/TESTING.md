@@ -1,5 +1,7 @@
 ## Carga de tests y lector de alcances (4/10)
 
+Limpieza aprobadas4/10: revisar-beta añade tres DOM es/en/ca contra el catálogo servido actual, recibo generado y APK52: cero filas entregadas y ninguna petición de aprobarlas, sin borrar un rechazo histórico sintético. Las regresiones de las siete antiguas, Metas87→94 y ronda mixta25 cargan explícitamente el catálogo publicado4403b252; el código que ejecutan sigue siendo el actual. beta-sources, beta-veredictos y beta-tandas-vacias conservan igualmente sus escenarios históricos con esa fuente fija. No se salta ni reduce cobertura al retirar las once entregadas. Mapa y runner conservan los ficheros ya registrados.
+
 `botnav-esconder`, ya transversal, reproduce un scroll real emitido por la página oculta de Gastos después de volver a Inicio: comprueba que el evento llegó, que la pantalla activa sigue en el tope y que la barra no se oculta pasado su plazo de 550 ms. El caso era rojo sin la comprobación de página activa en `onPageScroll`; conserva los gestos táctiles de ocultar, revelar y cambiar pestañas.
 
 El fixture antiguo `metas-borrar-regla` desplaza la fecha a septiembre conservando Date.now creciente y los RAF/timers del navegador: solo necesita el periodo de la nómina sintética, sin avanzar meses. Comprueba que el reloj avanza. Congelarlo por completo impide terminar la transición de pestañas; sustituir también RAF/performance con un reloj virtual desajustaba la navegación larga respecto a las transiciones CSS reales.
