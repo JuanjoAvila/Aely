@@ -3477,6 +3477,9 @@ const cloud = (function(){
     // Persiste el BANCO elegido de un gasto (va embebido en source: manual:caixabank…) para
     // que sobreviva a reinstalaciones — mismo truco que ob: (2026-07-18).
     async setExpenseBank(e, ent){
+      // UUID: leer la fila y cambiar solo el banco. Reconstruir source desde la copia local
+      // pisaba #dup o ~deuda, y un UPDATE de cero filas resolvía igual que un ACK (2026-10-04).
+      if(isExpenseUuid(e&&e.id)) return writeExpenseSourceField(sb,e,"bank",ent||null,e);
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
@@ -3489,6 +3492,9 @@ const cloud = (function(){
     // el servidor la seguía descontando del presupuesto y el siguiente pull volvía a apagarla.
     // Tocar solo el estado local no arregla nada; la fila vuelve de la nube.
     async setExpenseDup(e, isDup){
+      // Misma razón que el banco: la decisión no puede reescribir el source que otro móvil
+      // ya cambió, ni anunciar éxito si la fila no volvió (2026-10-04).
+      if(isExpenseUuid(e&&e.id)) return writeExpenseSourceField(sb,e,"dup",!!isDup,e);
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
@@ -4059,6 +4065,85 @@ function expenseSourceForCloud(e){
   // y sobrevive a reinstalaciones sin migración SQL.
   if(ent&&(s==="manual"||String(s).indexOf("manual:")===0)) return "manual:"+ent;
   return s||"manual";
+}
+/* Parte un source YA guardado. No usa el gasto local: ese puede traer un banco viejo y, al
+   decidir «son distintos», reescribiría el banco que el otro móvil acaba de confirmar. */
+function cloudSourceParts(raw){
+  if(raw==null || raw==="manual" || raw==="supabase") return {kind:"manual", bank:null, debt:null, dup:false};
+  const s=String(raw);
+  if(s==="macrodroid" || s==="tr") return {kind:"macrodroid", bank:"trade_republic", debt:null, dup:false};
+  if(/^manual:[^:#]+$/.test(s)) return {kind:"manual", bank:s.slice(7), debt:null, dup:false};
+  const ob=/^(ob|ob-hist):([^#]+)(#dup)?$/.exec(s);
+  if(!ob) return null;
+  if(ob[1]==="ob-hist") return {kind:"ob-hist", bank:ob[2], debt:null, dup:!!ob[3]};
+  const pe=partirEntDeuda(ob[2]);
+  return {kind:"ob", bank:pe.ent, debt:pe.debtId, dup:!!ob[3]};
+}
+/* Cambia UN campo sobre el source remoto. ~deuda y #dup se conservan: quitarlos al cambiar
+   el banco haría que una cuota volviera a sumar en el presupuesto. La noti de Trade Republic
+   vuelve a `macrodroid` al quitar #dup — si se deja `ob:trade_republic`, el siguiente pull la
+   disfraza de Open Banking (2026-10-04). */
+function expenseSourceField(raw, field, value, local){
+  const parts=cloudSourceParts(raw);
+  if(!parts) throw new Error("expense source unsupported");
+  if(field==="dup"){
+    const on=!!value;
+    if(parts.kind==="macrodroid") return on?"ob:trade_republic#dup":"macrodroid";
+    if(parts.kind==="manual") throw new Error("expense source unsupported");
+    if(!parts.bank) throw new Error("expense source unsupported");
+    if(parts.kind==="ob-hist") return "ob-hist:"+parts.bank+(on?"#dup":"");
+    const ls=local&&local.source;
+    if(!on && !parts.debt && parts.bank==="trade_republic" && (ls==="macrodroid"||ls==="tr")) return "macrodroid";
+    return "ob:"+parts.bank+deudaSufijo(parts.debt)+(on?"#dup":"");
+  }
+  if(field!=="bank") throw new Error("expense source unsupported");
+  if(value!=null && value!=="" && !/^[a-z0-9_-]+$/i.test(String(value))) throw new Error("expense bank invalid");
+  const bank=value?String(value):"";
+  if(parts.kind==="macrodroid") throw new Error("expense source unsupported");
+  if(parts.kind==="manual") return bank?"manual:"+bank:"manual";
+  if(!bank) throw new Error("expense bank required");
+  if(parts.kind==="ob-hist") return "ob-hist:"+bank+(parts.dup?"#dup":"");
+  return "ob:"+bank+deudaSufijo(parts.debt)+(parts.dup?"#dup":"");
+}
+function expenseSourceToken(raw, field){
+  const parts=cloudSourceParts(raw);
+  if(!parts) return undefined;
+  return field==="dup"?parts.dup:(parts.bank||"");
+}
+/* ACK solo con la fila leída o con el RETURNING del mismo id y source. Cero filas no es éxito:
+   se reintenta. Un fallo de red NO se reintenta aquí — el UPDATE ya puede haber quedado, y un
+   segundo intento pisaría una decisión más nueva. Sin columna de revisión, A→B→A sigue siendo
+   invisible: el source vuelve al valor leído y el compare-and-set casa. */
+async function writeExpenseSourceField(sb, e, field, value, local){
+  if(!sb) throw new Error("cloud unavailable");
+  if(!isExpenseUuid(e&&e.id)) throw new Error("expense identity required");
+  const auth=await sb.auth.getSession();
+  const session=auth&&auth.data&&auth.data.session;
+  if(!session||!session.user||!session.user.id) throw new Error("session unavailable");
+  const owner=session.user.id;
+  let initialValue;
+  for(let attempt=0;attempt<3;attempt++){
+    const read=await sb.from('expenses').select('id,source').eq('user_id',owner).eq('id',e.id).maybeSingle();
+    if(read.error) throw read.error;
+    const row=read.data;
+    if(!row || row.id!==e.id || !Object.prototype.hasOwnProperty.call(row,'source')) throw new Error("expense identity unconfirmed");
+    const source=expenseSourceField(row.source,field,value,local);
+    const currentValue=expenseSourceToken(row.source,field);
+    if(attempt===0) initialValue=currentValue;
+    else if(currentValue!==initialValue && source!==row.source) throw new Error("expense write conflict");
+    const fresh=await sb.auth.getSession();
+    const freshUser=fresh&&fresh.data&&fresh.data.session&&fresh.data.session.user;
+    if(!freshUser || freshUser.id!==owner) throw new Error("expense session changed");
+    if(source===row.source) return {id:row.id, source:source};
+    let q=sb.from('expenses').update({source:source}).eq('user_id',owner).eq('id',e.id);
+    q=row.source==null?q.is('source',null):q.eq('source',row.source);
+    const written=await q.select('id,source').maybeSingle();
+    if(written.error) throw written.error;
+    if(!written.data || Array.isArray(written.data)) continue;
+    if(written.data.id!==e.id || written.data.source!==source) throw new Error("expense write unconfirmed");
+    return {id:written.data.id, source:written.data.source};
+  }
+  throw new Error("expense write conflict");
 }
 /* ---------- Token aleatorio de VERDAD (256 bits) ----------
    Lo usa el token de ingest, que es lo ÚNICO que protege la función que apunta gastos en tu

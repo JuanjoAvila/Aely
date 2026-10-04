@@ -41,6 +41,10 @@ export const CORE = [
   "scripts/run-tests.mjs",
 ];
 
+/* Unitarios de dinero del núcleo. `steps: "all"` (tocar CORE) ya los lanza porque están en
+   `scripts/run-tests.mjs`; el nombre vive aquí para que una poda de steps no se los deje fuera. */
+export const CORE_UNIT_GUARDIANS = ["expense-source-ack"];
+
 /**
  * Módulo de UI → specs que lo pintan. Si añades un e2e nuevo, o un módulo nuevo, una línea aquí
  * (o en CROSSCUTTING si no es de una pantalla). El test `relevant-tests` recorre el disco y
