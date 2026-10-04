@@ -8,13 +8,13 @@
 //   Yahoo Finance sin key, también como fallback genérico.
 // Devuelve un mapa { TICKER_APP: precio }.
 //
-// SEC-02 (2026-10-04): freno por usuario con el limitador YA existente (`_shared/ratelimit.ts`
-// + RPC `check_rate_limit` de 0019). Sin él, un JWT válido podía repetir la misma petición
-// y gastar cuota de Finnhub/Yahoo a voluntad: cada request llega a 25 fetches externos.
-// Tope de cuerpo (4 KiB) antes de parsear: con 25 tickers de 12 chars sobra, y evita basura.
-// Replay de cotizaciones ≠ dedup de pagos: no se inventa caché/SQL nueva; el abuso se corta
-// con el mismo bucket de rate limit. Si hace falta caché compartida entre isolates, va como
-// propuesta aparte (ver informe SEC-02), sin deploy en esta tanda.
+// SEC-02 (2026-10-04, revisión adversarial): el freno cuenta LLAMADAS AL PROVEEDOR, no
+// peticiones HTTP a la función. Un gate «30 req / 10 min» dejaba pasar 30×25 fetches
+// concurrentes (~750) y el comentario mentía sobre la cuota ~60/min de Finnhub.
+// Ahora cada Finnhub/Yahoo pasa por `check_rate_limit` (migración 0019 ya desplegada):
+// bucket compartido del proyecto (la key es una) + techo por usuario. El sleep(120) solo
+// espacia dentro del isolate; la concurrencia la corta Postgres, no el sleep.
+// Tope de cuerpo 4 KiB. Sin SQL/caché nueva ni deploy en esta tanda.
 // ============================================================
 
 import { type RateVerdict } from "../_shared/ratelimit.ts";
@@ -31,12 +31,17 @@ export const YAHOO: Record<string, string> = {
 
 export const PRICES_MAX_BODY = 4 * 1024;
 export const PRICES_MAX_SYMS = 25;
-// Por qué 30/10 min y no un número sacado de la manga: cada petición puede disparar hasta
-// 25 llamadas a Finnhub (tier gratis ~60/min). 30 refrescos humanos en 10 min cubren abrir
-// Cartera, pulsar «Precios USD» y un import de bróker; un bucle del cliente o un JWT filtrado
-// se corta antes de vaciar la cuota compartida. Mismo contrato que categorize/help-assistant.
-export const PRICES_RATE_LIMIT = 30;
-export const PRICES_RATE_WINDOW_SECS = 600;
+
+// Cuota del proveedor (Finnhub free ≈ 60/min). UNA unidad = UN fetch externo.
+// Bucket compartido: FINNHUB_KEY es del proyecto, no del usuario.
+export const PRICES_PROVIDER_BUCKET = "prices-provider";
+export const PRICES_PROVIDER_LIMIT = 60;
+export const PRICES_PROVIDER_WINDOW_SECS = 60;
+// Techo por JWT para que un solo cliente no se coma el minuto entero del proyecto.
+export const PRICES_USER_PROVIDER_LIMIT = 45;
+export const PRICES_USER_PROVIDER_WINDOW_SECS = 60;
+export const PRICES_FINNHUB_PACE_MS = 120;
+
 export const SYM_RE = /^[A-Z0-9.=\-]{1,12}$/;
 
 // El origen permitido lo pone `withCors` en la respuesta (lista blanca, ../_shared/cors.ts).
@@ -46,6 +51,10 @@ export function normalizeSymbols(raw: unknown[]): string[] {
   return [...new Set(
     raw.map((s) => String(s).trim().toUpperCase()).filter((s) => SYM_RE.test(s)),
   )].slice(0, PRICES_MAX_SYMS);
+}
+
+export function providerUserBucket(userId: string): string {
+  return "prices-provider:" + userId;
 }
 
 export type PricesDeps = {
@@ -114,6 +123,27 @@ async function readBodyLimited(req: Request, max: number): Promise<
   return { ok: true, text: new TextDecoder().decode(all) };
 }
 
+/**
+ * Reserva 1 unidad de cuota de proveedor (semántica 0019: un hit atómico por llamada).
+ * Fail-open si el limitador no pudo comprobar (regla de ratelimit.ts).
+ */
+export async function takeProviderSlot(
+  rateLimitFn: PricesDeps["rateLimit"],
+  userId: string,
+): Promise<RateVerdict> {
+  const shared = await rateLimitFn(
+    PRICES_PROVIDER_BUCKET,
+    PRICES_PROVIDER_LIMIT,
+    PRICES_PROVIDER_WINDOW_SECS,
+  );
+  if (!shared.ok) return shared;
+  return await rateLimitFn(
+    providerUserBucket(userId),
+    PRICES_USER_PROVIDER_LIMIT,
+    PRICES_USER_PROVIDER_WINDOW_SECS,
+  );
+}
+
 /** Núcleo testeable: fetch/tiempo/auth/rateLimit inyectados (sin cuota real en CI). */
 export async function handlePrices(req: Request, deps: PricesDeps): Promise<Response> {
   if (req.method !== "POST" && req.method !== "GET") {
@@ -142,35 +172,70 @@ export async function handlePrices(req: Request, deps: PricesDeps): Promise<Resp
   }
   if (!syms.length) syms = DEFAULT_SYMS.slice();
 
-  // Freno ANTES de tocar Finnhub/Yahoo. Fail-open si el limitador no puede comprobar
-  // (regla de ratelimit.ts): no tumbar cotizaciones por un hipo de Postgres.
-  const gate = await deps.rateLimit(
-    "prices:" + user.id,
-    PRICES_RATE_LIMIT,
-    PRICES_RATE_WINDOW_SECS,
-  );
-  if (!gate.ok) return json({ ok: false, error: "limited" }, 429);
-
   const key = deps.env.FINNHUB_KEY || "";
   const prices: Record<string, number> = {};
   const errors: Array<Record<string, unknown>> = [];
+  let hitLimit = false;
 
   for (const sym of syms) {
-    try {
-      if (YAHOO[sym]) {
+    if (YAHOO[sym]) {
+      const gate = await takeProviderSlot(deps.rateLimit, user.id);
+      if (!gate.ok) {
+        hitLimit = true;
+        errors.push({ sym, via: "limited" });
+        break;
+      }
+      try {
         const p = await fromYahoo(deps.fetch, YAHOO[sym]);
         if (p) prices[sym] = p;
         else errors.push({ sym, via: "yahoo:" + YAHOO[sym] });
-        continue;
+      } catch (e) {
+        errors.push({ sym, status: "exception", body: String(e).slice(0, 150) });
       }
-      let p = key ? await fromFinnhub(deps.fetch, sym, key) : null;
-      if (p == null) p = await fromYahoo(deps.fetch, sym); // fallback: lo que Finnhub gratis no cubra
-      if (p) prices[sym] = p;
-      else errors.push({ sym, via: key ? "finnhub+yahoo" : "yahoo (sin FINNHUB_KEY)" });
-      if (key) await deps.sleep(120); // rate limit del tier gratis
-    } catch (e) {
-      errors.push({ sym, status: "exception", body: String(e).slice(0, 150) });
+      continue;
     }
+
+    let p: number | null = null;
+    if (key) {
+      const gate = await takeProviderSlot(deps.rateLimit, user.id);
+      if (!gate.ok) {
+        hitLimit = true;
+        errors.push({ sym, via: "limited" });
+        break;
+      }
+      // sleep del tier: SIEMPRE tras intentar Finnhub (también si fetch lanza).
+      // Solo espacia este isolate; la concurrencia la corta el bucket compartido.
+      try {
+        p = await fromFinnhub(deps.fetch, sym, key);
+      } catch (e) {
+        errors.push({ sym, status: "exception", body: String(e).slice(0, 150) });
+      } finally {
+        await deps.sleep(PRICES_FINNHUB_PACE_MS);
+      }
+    }
+
+    if (p == null && !errors.some((er) => er.sym === sym && er.status === "exception")) {
+      const gate = await takeProviderSlot(deps.rateLimit, user.id);
+      if (!gate.ok) {
+        hitLimit = true;
+        errors.push({ sym, via: "limited" });
+        break;
+      }
+      try {
+        p = await fromYahoo(deps.fetch, sym);
+      } catch (e) {
+        errors.push({ sym, status: "exception", body: String(e).slice(0, 150) });
+      }
+    }
+
+    if (p) prices[sym] = p;
+    else if (!errors.some((er) => er.sym === sym)) {
+      errors.push({ sym, via: key ? "finnhub+yahoo" : "yahoo (sin FINNHUB_KEY)" });
+    }
+  }
+
+  if (hitLimit && Object.keys(prices).length === 0) {
+    return json({ ok: false, error: "limited" }, 429);
   }
 
   const out: Record<string, unknown> = { ok: true, prices: prices, ts: deps.now() };
