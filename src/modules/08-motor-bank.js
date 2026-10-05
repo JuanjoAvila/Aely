@@ -919,6 +919,14 @@ function importObExpenses(s, txs){
   /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
      sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
   const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
+  /* Una fecha que no es un día del calendario no se apunta (INC-2709-06, 5/10). Las pasadas de
+     abajo solo miraban `!tx.date`: con «invalid» `histDate` lanzaba RangeError y tumbaba el lote
+     entero, y un «2026-02-30» entraba como 2 de marzo (`parseDate` de algo ilegible da HOY).
+     Las tres pasadas y el gasto usan la misma regla que ya tenía el ingreso. */
+  const diaValido=function(tx){
+    const date=String(tx&&tx.date||""), p=date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return !!p && dayKey(new Date(Number(p[1]),Number(p[2])-1,Number(p[3]),12))===date;
+  };
   /* Dos entry_reference del mismo banco no son el mismo cargo aunque coincidan día, importe y
      comercio (INC-2709-06). La tabla deduplica por fecha+importe+comercio y no hay columna
      ext_id: cada id lleva su sello (`ob-ext|banco|id`), el mismo en el sync y en el histórico,
@@ -931,7 +939,7 @@ function importObExpenses(s, txs){
   const obTwin=function(tx){ return (tx.ent||"")+"|"+(tx.acctUid||"")+"|"+String(tx.date||"").slice(0,10)+"|"+(Number(tx.amount)||0)+"|"+obMerchant(tx); };
   const identifiedTwin={};
   txs.forEach(function(tx){
-    if(!tx||!tx.id||!tx.date||parseDate(tx.date)<som) return;
+    if(!tx||!tx.id||!diaValido(tx)||parseDate(tx.date)<som) return;
     identifiedTwin[obTwin(tx)]=1;
   });
   const liveByScope={};
@@ -941,7 +949,7 @@ function importObExpenses(s, txs){
   });
   const winner={};
   txs.forEach(function(tx){
-    if(!tx||!tx.id||!tx.date||parseDate(tx.date)<som) return;
+    if(!tx||!tx.id||!diaValido(tx)||parseDate(tx.date)<som) return;
     const bank=tx.ent||"", id=String(tx.id);
     if(seen[bank+"|"+id]||seenLegacy[tx.id]||delSet["obid|"+bank+"|"+id]) return;
     const sk=obScope(tx);
@@ -971,7 +979,7 @@ function importObExpenses(s, txs){
   const plan={};
   const pendingIds=[];
   txs.forEach(function(tx){
-    if(!tx||!tx.id||!tx.date||parseDate(tx.date)<som) return;
+    if(!tx||!tx.id||!diaValido(tx)||parseDate(tx.date)<som) return;
     const bank=tx.ent||"", id=String(tx.id);
     if(seen[bank+"|"+id]||seenLegacy[tx.id]||delSet["obid|"+bank+"|"+id]) return;
     pendingIds.push(tx);
@@ -1115,7 +1123,7 @@ function importObExpenses(s, txs){
     // GASTO: entra de cualquier banco. Fijos y puntuales modelados no se duplican; las deudas se marcan.
     const mod=modeledHit(tx.ent, tx.merchant, tx.amount);
     if(mod && !mod.debtId) return;
-    if(!tx.date || parseDate(tx.date)<som) return;
+    if(!diaValido(tx) || parseDate(tx.date)<som) return;
     if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
     const esDiario=tx.ent===dailyEnt;
     const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
