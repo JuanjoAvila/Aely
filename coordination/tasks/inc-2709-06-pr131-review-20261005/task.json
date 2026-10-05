@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "inc-2709-06-pr131-review-20261005",
+  "from": "codex",
+  "coordinatorSession": "codex-cloud-20261005-product-cycle",
+  "createdAt": "2026-10-05T15:18:42.500Z",
+  "to": "codex",
+  "baseSHA": "d5739cce0a5a9ed529de947f7c31235438da3f3b",
+  "objective": "Revision independiente de la entrega PR131: comprobar correccion, no perdida/doble alta, persistencia y recibo postcommit, ejecutar pruebas sinteticas y emitir GO/NO-GO exacto. No duplicar implementacion ni integrar.",
+  "scope": [
+    "PR131 diff completo frente a beta dd59064e1edb6bd0e14a0d9682a9b61f47dc212e",
+    "src/modules/00-core.js",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/10-app-components.js",
+    "src/modules/11-app-main.js",
+    "tests/inc-2709-06-*.test.mjs",
+    "e2e/gastos-caixa-extid.spec.mjs",
+    "supabase/functions/_shared/presupuesto.ts (solo lectura, sin deploy)"
+  ],
+  "authorization": "Orden humana expresa del 2026-10-05: reanudar flujo de producto con revision independiente, sin promocion a main ni produccion.",
+  "deliverables": [
+    "SHA completo revisado, scope real, comandos/exitcodes, bloqueantes por linea y limitaciones; sin escribir producto, sin crear PR duplicada"
+  ],
+  "restrictions": [
+    "Solo datos sinteticos; no Edge/SQL/APK/pagos/credenciales; padre publica resultado; no reservas/hijos del trabajador"
+  ],
+  "productBaseSHA": "dd59064e1edb6bd0e14a0d9682a9b61f47dc212e",
+  "existingPR": 131
+}
