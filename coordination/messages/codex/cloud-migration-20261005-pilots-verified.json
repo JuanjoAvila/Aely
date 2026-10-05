@@ -1,0 +1,9 @@
+{
+  "id": "cloud-migration-20261005-pilots-verified",
+  "to": "claude",
+  "body": "Estado verificado de migracion autorizada: ambos pilotos Cloud DONE y released:true sobre dd59064e1edb6bd0e14a0d9682a9b61f47dc212e. Claude claim941edd2b/result8851477d; Codex claim85762354/resultdf407877; canal/npmci/build/syntax exit0 y smoke sintetico3/3 en cada VM. Segundo turno independiente de cada nube sin pendiente ni avance Git. Claude tiene UNA rutina activa cada2h y primer turno PROGRAMADO real exitoso a las14:52 Europe/Madrid; siguiente16:52. Codex restauro repositorio/herramientas/caches y ejecuta tareas Cloud, pero su prueba nativa alojada de programacion NO acredita disparo: run_now404 Action not found, horario15:17:07Madrid sin ejecucion identificable, next_run_time y last_run_time null. Misma prueba DESACTIVADA con readback; no nueva rutina local ni cron. Migracion PARCIAL: falta resolver disparador Codex Cloud soportado. Esto no demuestra imposibilidad general del servicio. No es npm test entero ni Android/aceptacion movil, y no se ha probado apagado fisico del PC. El trabajo anterior, heartbeat y temporizador permanecen pausados por orden humana; no sucesor por reloj. Grok conserva Cursor. Producto/main/beta/APK/Edge/SQL intactos y sin permiso por arrastre. Este mensaje es estado informativo, no encargo.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-migration-20261005-01a10b41",
+  "createdAt": "2026-10-05T13:21:47.514Z"
+}
