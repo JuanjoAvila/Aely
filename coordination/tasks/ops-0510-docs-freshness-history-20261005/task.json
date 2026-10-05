@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "id": "ops-0510-docs-freshness-history-20261005",
+  "from": "codex",
+  "coordinatorSession": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T17:37:14.844Z",
+  "to": "codex",
+  "baseSHA": "8bb0398f9d16a848b984c989a6515e87937c815c",
+  "objective": "Corregir el falso positivo de historia en docs-frescura tras promote versionado, conservando rechazo de código nuevo sin VERSION y deuda de base. Unidad tooling separada de PR134, sin ocultar CI rojo ni ampliar sus20archivos.",
+  "scope": [
+    "tests/docs-frescura.test.mjs",
+    "tests/docs-frescura-history.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/briefs/ops-docs-frescura-history.md"
+  ],
+  "authorization": "Flujo humano reanudado para diagnóstico/implementación/revisión de bloqueos reales. Incidente verificado en CI37338992164 y diagnóstico cerrado ops-0510-docs-ci-base-diagnosis-20261005. Solo tooling/tests/brief; no producto/VERSION/workflow ni integración.",
+  "required": [
+    "Copia/rama propia de base8bb exacta; AGENTS/EMPIEZA-AQUI completos. No importar historial originalPR134 ni leer memoria privada. Claim padre confirmado antes de editar.",
+    "Reproducir fixture docs-only posterior a promote con subida realVERSION: guard actual rechaza deuda histórica ya cubierta; mainbase original guard0. Documentar comandos/exitcodes.",
+    "Diseñar ancla histórica de VERSION adecuada, con ancestry comprobada y subida semántica real, no solo nombre de rama/PR delta/variableGitHub/nombrepromote. Auditar TODO cambio publicable posterior a esa ancla, incluida deuda de base y ramas nuevas en synthetic merge.",
+    "Regresiones reales en Git temporal: docs-after-versioned-promote PASS; new src without bump FAIL; src with legitimate bump PASS; docs on base containing new unversioned src FAIL; merge same-version with new src FAIL; downgrade/equalVERSION not legitimate increase; beta existing policy and missing history preserve explicit limitation. No skip por docs_only ni aprobar deuda heredada por diffPRsolo.",
+    "Añadir guardian independiente registrado runner, positivo/negativo/redcontraoriginal. Mantener todaslas otras verificaciones versiones/APK/mojibake y política beta sin cambios. No workflow/allowfailure/excepcionesporSHA.",
+    "Entregar commit/tree locales exactos, diff4archivos, comandos/exitcodes y limitaciones para revisión independiente; sin escrituras remotas, claim/result/hijos. Si falta evidencia/contrato seguro, entregar bloqueo concreto sin bypass."
+  ],
+  "limits": [
+    "Máximo2 Codex activos; no auth/red nueva/deps/SQL/Edge/móvil/APK/datos reales/VERSION/public artifacts/main/beta cambios.",
+    "PR134 mantiene NO-GO hasta revisión y CIexacta verdes; esta unidad noautoriza su merge ni altera sus20archivos."
+  ]
+}
