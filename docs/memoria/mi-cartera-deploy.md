@@ -1,3 +1,5 @@
+> Vigencia: esta memoria conserva hechos históricos. Para trabajo actual prevalecen AGENTS.md y docs/COORDINACION-AGENTES.md de codex/coordinacion. Claude local está cerrado: no reactivar vigías, buzón ni relevos locales. La rutina Cloud solo ejecuta encargos con reserva propia confirmada.
+
 <!-- GENERADO POR scripts/sync-memoria.mjs — NO EDITAR A MANO.
      Espejo de la memoria del agente (mi-cartera-deploy.md). Se regenera con `npm run memoria`.
      Pasado por el filtro de datos personales: el repo es PÚBLICO. -->
@@ -8,17 +10,16 @@ description: Cómo se despliega Mi Cartera y dónde vive la fuente única del fr
 metadata: 
   node_type: memory
   type: project
-  originSessionId: e1dc0ffc-f316-4885-bf7c-1e694f8b4d24
   modified: 2026-09-27T10:30:50.503Z
 ---
 
 Mi Cartera es una PWA estática (React vía createElement, sin build/JSX) en GitHub Pages. Repo **público** (Pages gratis lo exige) → nunca meter secretos en el cliente.
 
-**Fuente única del frontend:** `public/index.html` (artefacto único inlineado, ARQUITECTURA.md #2). GitHub Actions (`.github/workflows/deploy.yml`) despliega SOLO la carpeta `public/`. **No crear un `index.html` en la raíz**: hubo un duplicado raíz que se editaba por error y dejaba `public/` atrasado — un fix de TR no llegó al móvil hasta consolidar (v3.3.1, 2026-06-18). Edita siempre `public/index.html`.
+**Fuente editable actual:** `src/modules/*.js` y `src/shell.html`; `npm run build` genera `public/index.html` (artefacto único inlineado, ARQUITECTURA.md #2). GitHub Actions (`.github/workflows/deploy.yml`) despliega SOLO la carpeta `public/`. **No crear un `index.html` en la raíz**: hubo un duplicado raíz que se editaba por error y dejaba `public/` atrasado — un fix de TR no llegó al móvil hasta consolidar (v3.3.1, 2026-06-18). No editar `public/index.html` a mano.
 
 El **Service Worker** es **stale-while-revalidate desde v3.71.0** (antes network-first): arranque instantáneo desde caché, la versión fresca baja en segundo plano y se ve en el siguiente arranque (sin skipWaiting, sin recargas a media sesión). Su versión se sella en CI (`scripts/stamp-version.mjs` lee `VERSION`) para invalidar caché.
 
-**Pipeline CI desde v3.71.0:** deploy.yml hace stamp-version → **minify** (`scripts/minify-html.mjs`, esbuild whitespace+syntax, NUNCA minifyIdentifiers — los globales tipo `t`/`cloud` no se pueden renombrar) → sube `public/`. La fuente editable sigue siendo `public/index.html` legible. **Sin CDNs de terceros:** supabase-js auto-hospedado y pinneado en `public/vendor/supabase.min.js` (v2.110.0; actualizar = bajar de jsdelivr a mano y probar) y fuentes Manrope/Fraunces variables en `public/fonts/` (@font-face en el <style>). Todo en el SHELL del SW ⇒ offline completo. Un script en <head> aplica el tema desde localStorage ANTES del primer pintado (splash sin fogonazo).
+**Pipeline CI desde v3.71.0:** deploy.yml hace stamp-version → **minify** (`scripts/minify-html.mjs`, esbuild whitespace+syntax, NUNCA minifyIdentifiers — los globales tipo `t`/`cloud` no se pueden renombrar) → sube `public/`. El ensamblado parte de src antes del sellado y la minificación; public/index.html es generado. **Sin CDNs de terceros:** supabase-js auto-hospedado y pinneado en `public/vendor/supabase.min.js` (v2.110.0; actualizar = bajar de jsdelivr a mano y probar) y fuentes Manrope/Fraunces variables en `public/fonts/` (@font-face en el <style>). Todo en el SHELL del SW ⇒ offline completo. Un script en <head> aplica el tema desde localStorage ANTES del primer pintado (splash sin fogonazo).
 
 **Apps Script JUBILADO (2026-06-18, v3.8.0):** migrado a Supabase. Borrada la carpeta apps-script/, quitado el fallback GAS de onSync/fetchPrices y las constantes GAS_URL/FIELDS/PRICES_PARAM. La implementación de Google la archivó el usuario. Backend ahora en [[fase1-supabase]]. Versión visible en la app: CONFIG.APP_VERSION, sellada por stamp-version.mjs en CI (igual que sw.js).
 
@@ -28,4 +29,4 @@ El **Service Worker** es **stale-while-revalidate desde v3.71.0** (antes network
 
 ⚠ **`beta` es a la vez RAMA y TAG, y el tag es load-bearing.** El canal de pruebas publica los assets (`bundle.zip`, `version.json`) en una Release con la etiqueta fija `beta` (`.github/workflows/beta.yml`), porque `main` va a Pages y ahí lo ven su padre y su pareja. **No borrar el tag `beta`** aunque apunte a un commit viejo (c28a825, de la 4.7.1): el workflow lo reutiliza. La consecuencia diaria es que `git push origin beta` falla con «src refspec beta matches more than one» → **usar `git push origin refs/heads/beta:refs/heads/beta`**. Lo mismo con `git log beta` («refname 'beta' is ambiguous»): desambiguar con `refs/heads/beta`.
 
-Workflow del usuario: trabaja desde Claude Code, yo hago cambios y push a `main`, CI despliega y su app móvil (enlace a Pages) se actualiza sola. Versiona con bump X.Y.0 en `VERSION` + entrada en CHANGELOG.md (aunque el CHANGELOG se quedó sin entradas entre 3.39 y 3.68; retomado en 3.69.0). **Push DIRECTO al acabar cada tanda (pedido 2026-07-11: «cuando acabes algo, súbelo directamente para probarlo en el móvil») — ya no hace falta esperar a que lo pida.** Tras el push, verificar: `gh run watch` verde + `curl version.json` con la versión nueva. Lo que NO cambia: solo pushear trabajo TERMINADO y verificado (jsdom/tests), nunca a medias.
+Circuito actual: producto terminado y verificado a beta; producción requiere aprobación móvil expresa. Documentación, tests y tooling sin impacto visible pueden ir a main tras revisión en serie. Versiona con bump X.Y.0 en `VERSION` + entrada en CHANGELOG.md (aunque el CHANGELOG se quedó sin entradas entre 3.39 y 3.68; retomado en 3.69.0). **Push DIRECTO al acabar cada tanda (pedido 2026-07-11: «cuando acabes algo, súbelo directamente para probarlo en el móvil») — ya no hace falta esperar a que lo pida.** Tras el push, verificar: `gh run watch` verde + `curl version.json` con la versión nueva. Lo que NO cambia: solo pushear trabajo TERMINADO y verificado (jsdom/tests), nunca a medias.

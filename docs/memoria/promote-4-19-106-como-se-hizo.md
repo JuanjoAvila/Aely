@@ -1,3 +1,5 @@
+> Vigencia: esta memoria conserva hechos históricos. Para trabajo actual prevalecen AGENTS.md y docs/COORDINACION-AGENTES.md de codex/coordinacion. Claude local está cerrado: no reactivar vigías, buzón ni relevos locales. La rutina Cloud solo ejecuta encargos con reserva propia confirmada.
+
 <!-- GENERADO POR scripts/sync-memoria.mjs — NO EDITAR A MANO.
      Espejo de la memoria del agente (promote-4-19-106-como-se-hizo.md). Se regenera con `npm run memoria`.
      Pasado por el filtro de datos personales: el repo es PÚBLICO. -->
@@ -8,7 +10,6 @@ description: "Cómo se subió la ronda 4.19 a prod el 13/9 sin comerse main — 
 metadata: 
   node_type: memory
   type: project
-  originSessionId: 7fd7cd78-dc13-40b7-b03e-17cda8686805
   modified: 2026-09-27T10:30:53.417Z
 ---
 

@@ -1,3 +1,5 @@
+> Vigencia: esta memoria conserva hechos históricos. Para trabajo actual prevalecen AGENTS.md y docs/COORDINACION-AGENTES.md de codex/coordinacion. Claude local está cerrado: no reactivar vigías, buzón ni relevos locales. La rutina Cloud solo ejecuta encargos con reserva propia confirmada.
+
 <!-- GENERADO POR scripts/sync-memoria.mjs — NO EDITAR A MANO.
      Espejo de la memoria del agente (revisar-docs-frescura-tras-commit.md). Se regenera con `npm run memoria`.
      Pasado por el filtro de datos personales: el repo es PÚBLICO. -->
@@ -8,7 +10,6 @@ description: "Al revisar un SHA de Codex, correr SIEMPRE docs-frescura en el SHA
 metadata:
   node_type: memory
   type: feedback
-  originSessionId: 568e2360-a658-48ef-8b7b-0813ad1f1a86
   modified: 2026-09-28T19:19:28.553Z
 ---
 

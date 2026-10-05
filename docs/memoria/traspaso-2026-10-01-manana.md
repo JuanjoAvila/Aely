@@ -1,3 +1,5 @@
+> Vigencia: esta memoria conserva hechos históricos. Para trabajo actual prevalecen AGENTS.md y docs/COORDINACION-AGENTES.md de codex/coordinacion. Claude local está cerrado: no reactivar vigías, buzón ni relevos locales. La rutina Cloud solo ejecuta encargos con reserva propia confirmada.
+
 <!-- GENERADO POR scripts/sync-memoria.mjs — NO EDITAR A MANO.
      Espejo de la memoria del agente (traspaso-2026-10-01-manana.md). Se regenera con `npm run memoria`.
      Pasado por el filtro de datos personales: el repo es PÚBLICO. -->
@@ -8,7 +10,6 @@ description: "Traspaso 2/10 16:30 UTC: GO mío a PR104 3467bbd4 (4.26.82); INC-0
 metadata:
   node_type: memory
   type: project
-  originSessionId: 4bfa86ae-504c-4307-aeb0-afe1a1e9feee
   modified: 2026-10-03T08:27:24.154Z
 ---
 
@@ -20,11 +21,11 @@ Estado al 3/10/2026 08:30 UTC (sin cambios desde la tarde del 2/10: Codex callad
 
 **PR104 (Validaciones, 4.26.82): GO mío de fuente y Node a `3467bbd4`** (mismo árbol que el `06a833a0` local del dueño del panel). Cierra mi NO-GO a `4508748d`. Suite Node completa UTC: único rojo `memoria-espejo`, que es de esta máquina. Sin acreditar por mí: DOM, Deno, CI 37024477236. No fusionar hasta CI verde (lo decide Codex).
 
-**INC-0210-02 (mía, 4.26.86): la categoría elegida a mano no se deshace.** **Candidata final `9a232f1f`** (18:25 UTC; encima de `e49dae0d`, mismo runtime), rama `claude/inc-0210-02-categoria-manual`, worktree `E:/wt-claude-rev82m` (junction de `node_modules`), base `3467bbd4`. CERRADA por mi parte: Node completa UTC (solo `memoria-espejo` local), guardián `beta-sources` verde (1045/329), presupuesto 1267/345 KiB autorizado por Codex, DOM 66/66 (panel 63 + categoría 3) con lease 44 ya liberado. **Rama subida** a origin el 2/10 18:46 UTC (cabeza `9a232f1f`); coordinador avisado. PR y CI los asume el root. `e49dae0d` tenía el registro de alcances incompleto (mi generador comparaba contra huella vieja).
+**INC-0210-02 (mía, 4.26.86): la categoría elegida a mano no se deshace.** **Candidata final `9a232f1f`** (18:25 UTC; encima de `e49dae0d`, mismo runtime), rama `claude/inc-0210-02-categoria-manual`, worktree `[ruta local omitida]` (junction de `node_modules`), base `3467bbd4`. CERRADA por mi parte: Node completa UTC (solo `memoria-espejo` local), guardián `beta-sources` verde (1045/329), presupuesto 1267/345 KiB autorizado por Codex, DOM 66/66 (panel 63 + categoría 3) con lease 44 ya liberado. **Rama subida** a origin el 2/10 18:46 UTC (cabeza `9a232f1f`); coordinador avisado. PR y CI los asume el root. `e49dae0d` tenía el registro de alcances incompleto (mi generador comparaba contra huella vieja).
 - Causa (reproducida en Node): (1) el UPDATE de categoría va por id y puede tocar cero filas sin error → el pull devolvía la vieja; (2) `ingest` categoriza por keyword y `resolveCategory` acepta la cat de nube sin mirar overrides.
 - Arreglo solo cliente: `cloud.setExpenseCat` devuelve filas; `catStale`/`catAckAt` locales; `catRules` (comercio+banco+tarjeta → cat, `at` = instante del aprendizaje, solo fechas posteriores); `keepCategoryChoices` antes de `mergeExpensesFromCloud` (que NO se toca); `seedCatRules` para lo aprendido antes.
 - Verificado: 14 contratos Node, DOM 3/3 es/en/ca + 53 de regresión de Gastos, 7 mutantes (todos mueren en Node).
-- **Pendiente:** resultado de la suite Node completa sobre `e49dae0d`; Codex debe autorizar el presupuesto de tamaño (A/B +3.896 B min / +1.267 B gzip, se pasa 3.484/920 B); mueve la huella de 6 tandas ajenas (4 widget, nómina, retirada) y se lo avisé; listas fijas de tandas del panel (16→17) sin tocar.
+- **Pendiente:** resultado de la suite Node completa sobre `e49dae0d`; Codex debe autorizar el presupuesto de tamaño (A/B +3.896 B min / +1.267 B gzip, se pasa 3.484/920 B); mueve la huella de 6 tandas ajenas (4 widget, nómina, retirada) y se lo avisé; listas fijas de tandas del panel ([comparación omitida]) sin tocar.
 
 **Lecciones del 2/10:**
 - El guardián `beta-sources` obliga a añadir las funciones nuevas al alcance de TODA tanda que cubra el bloque tocado; se generan con `scopeDependencies`/`scopeDataDependencies` (tarda ~14 min).

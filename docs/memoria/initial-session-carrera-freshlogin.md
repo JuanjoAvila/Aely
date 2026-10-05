@@ -1,3 +1,5 @@
+> Vigencia: esta memoria conserva hechos históricos. Para trabajo actual prevalecen AGENTS.md y docs/COORDINACION-AGENTES.md de codex/coordinacion. Claude local está cerrado: no reactivar vigías, buzón ni relevos locales. La rutina Cloud solo ejecuta encargos con reserva propia confirmada.
+
 <!-- GENERADO POR scripts/sync-memoria.mjs — NO EDITAR A MANO.
      Espejo de la memoria del agente (initial-session-carrera-freshlogin.md). Se regenera con `npm run memoria`.
      Pasado por el filtro de datos personales: el repo es PÚBLICO. -->
@@ -8,7 +10,6 @@ description: "MEDIDO 28/9: en cada arranque en frío INITIAL_SESSION llega antes
 metadata:
   node_type: memory
   type: project
-  originSessionId: 568e2360-a658-48ef-8b7b-0813ad1f1a86
   modified: 2026-09-28T10:52:11.493Z
 ---
 

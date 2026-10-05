@@ -1,3 +1,5 @@
+> Vigencia: esta memoria conserva hechos históricos. Para trabajo actual prevalecen AGENTS.md y docs/COORDINACION-AGENTES.md de codex/coordinacion. Claude local está cerrado: no reactivar vigías, buzón ni relevos locales. La rutina Cloud solo ejecuta encargos con reserva propia confirmada.
+
 <!-- GENERADO POR scripts/sync-memoria.mjs — NO EDITAR A MANO.
      Espejo de la memoria del agente (buzon-hora-real-y-turno-chromium.md). Se regenera con `npm run memoria`.
      Pasado por el filtro de datos personales: el repo es PÚBLICO. -->
@@ -8,7 +10,6 @@ description: "En el buzón, ids/createdAt con la hora REAL (Date.now), nunca est
 metadata:
   node_type: memory
   type: feedback
-  originSessionId: 9b266042-4cc6-471f-aef9-fe66611936a3
   modified: 2026-09-30T21:13:44.374Z
 ---
 

@@ -1,3 +1,5 @@
+> Vigencia: esta memoria conserva hechos históricos. Para trabajo actual prevalecen AGENTS.md y docs/COORDINACION-AGENTES.md de codex/coordinacion. Claude local está cerrado: no reactivar vigías, buzón ni relevos locales. La rutina Cloud solo ejecuta encargos con reserva propia confirmada.
+
 <!-- GENERADO POR scripts/sync-memoria.mjs — NO EDITAR A MANO.
      Espejo de la memoria del agente (revisar-worktree-de-otro-agente.md). Se regenera con `npm run memoria`.
      Pasado por el filtro de datos personales: el repo es PÚBLICO. -->
@@ -8,7 +10,6 @@ description: "⚠ AL BORRAR: rmdir de la junction node_modules ANTES de git work
 metadata: 
   node_type: memory
   type: feedback
-  originSessionId: c6e7d0dd-367a-43e0-97ec-95448130655b
   modified: 2026-09-27T13:53:36.041Z
 ---
 
@@ -18,7 +19,7 @@ Receta que funcionó el 17/9 (cuatro revisiones seguidas, Plan + Inversiones):
 
 1. `git diff HEAD > .claude/canal-equipo/_copia-<agente>-<hhmm>.patch` **desde su worktree**. Vale como copia de seguridad de su trabajo y como fuente para revisar (útil de verdad: esa noche su app se quedó con el chat en blanco).
 2. `git worktree add --detach .worktrees/claude-rev-<sha>` sobre su base, y `git apply` del patch. Si ya ha commiteado, `git checkout --detach <su-HEAD>` y listo.
-3. El `node_modules`: **crear el enlace con PowerShell** (`New-Item -ItemType Junction`). Un `mklink /J` lanzado desde el Bash de Git crea un enlace roto (`node_modules -> /e/E:/Mi cartera/node_modules`) y los e2e no arrancan.
+3. El `node_modules`: **crear el enlace con PowerShell** (`New-Item -ItemType Junction`). Un `mklink /J` lanzado desde el Bash de Git crea un enlace roto (`node_modules -> /e/[ruta local omitida]`) y los e2e no arrancan.
 4. `npm run build` y mirar `git status`: si el árbol queda limpio, el bundle que traen cuadra con `src/`. Así cacé que cuatro arreglos del candado de hojas vivían SOLO en `public/index.html` (48 líneas de diff) y el siguiente build se los llevaba (ver [[mi-cartera-deploy]]).
 5. Batería acotada con `--workers=1`, y repetir lo sensible con `TZ=UTC` ([[ci-beta-corre-en-utc]], [[e2e-puerto-compartido]]).
 

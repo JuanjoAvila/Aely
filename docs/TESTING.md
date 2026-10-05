@@ -1,3 +1,7 @@
+## Exportación de memoria a un repositorio público (5/10)
+
+`tests/sync-memoria.test.mjs`, registrado en `run-tests`, ejecuta el exportador real con fuentes y destinos temporales sintéticos. Comprueba que las rutas absolutas del PC y los importes reconocibles no reaparezcan al repetir la exportación, conservando referencias técnicas y enlaces relativos; y que un documento inválido impida modificar o borrar cualquier archivo del destino. `AELY_MEMORY_SOURCE` permite seleccionar una fuente de pruebas sin leer ni modificar la memoria personal. Los filtros reconocen patrones; no sustituyen la revisión manual de contexto antes de publicar. Los procedimientos de buzón y vigía de las memorias históricas quedan subordinados al protocolo vigente de Cloud.
+
 ## Carga de tests y lector de alcances (4/10)
 
 `botnav-esconder`, ya transversal, reproduce un scroll real emitido por la página oculta de Gastos después de volver a Inicio: comprueba que el evento llegó, que la pantalla activa sigue en el tope y que la barra no se oculta pasado su plazo de 550 ms. El caso era rojo sin la comprobación de página activa en `onPageScroll`; conserva los gestos táctiles de ocultar, revelar y cambiar pestañas.

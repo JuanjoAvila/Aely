@@ -1,3 +1,5 @@
+> Vigencia: esta memoria conserva hechos históricos. Para trabajo actual prevalecen AGENTS.md y docs/COORDINACION-AGENTES.md de codex/coordinacion. Claude local está cerrado: no reactivar vigías, buzón ni relevos locales. La rutina Cloud solo ejecuta encargos con reserva propia confirmada.
+
 <!-- GENERADO POR scripts/sync-memoria.mjs — NO EDITAR A MANO.
      Espejo de la memoria del agente (relevo-automatico-cada-4h.md). Se regenera con `npm run memoria`.
      Pasado por el filtro de datos personales: el repo es PÚBLICO. -->
@@ -8,7 +10,6 @@ description: Relevo de Claude a un chat nuevo (pedido por el dueño el 3/10/2026
 metadata:
   node_type: memory
   type: project
-  originSessionId: 42eec017-f8cf-4931-9c23-fabea140208f
   modified: 2026-10-05T15:08:07.245Z
 ---
 
@@ -18,7 +19,7 @@ El 3/10/2026 el dueño pidió que Claude se renueve en un chat nuevo cada pocas 
 
 **Estado al 3/10 22:52 UTC:** la PRUEBA 2 traspasó el mando de la sesión manual a una sesión abierta por tarea programada (`aely-relevo-prueba2-20261004-0048`, un solo arranque): candidata → acreditada → liberación expresa → `active` a las 22:52:31Z, modalidad `solo-prueba`. Lo que hizo después la sesión nueva (contestar el nonce de Codex, handoff, vigía) lo cuenta ella: comprobar con `R estado` y el buzón antes de darlo por bueno. **No hay relevo siguiente programado**: hace falta GO explícito de Codex, y aún no está probado el paso programado→programado ni la continuidad de 4 h.
 
-**Dónde está todo:** `E:\Mi cartera\test-results\claude-relevo-runtime\` (ignorada por git): `PROTOCOLO.md`, `relevo.mjs`, `relevo-test.mjs`. `R` = `node "E:/Mi cartera/test-results/claude-relevo-runtime/relevo.mjs"`. Estado en `.claude/canal-equipo/state/claude-relevo.json`. Los originales en `C:\\Users\\<usuario>\.claude\scheduled-tasks\aely-relevo-vigia-claude\` quedan como copia; la tarea recurrente de ahí sigue `enabled:false`.
+**Dónde está todo:** `[ruta local omitida]` (ignorada por git): `PROTOCOLO.md`, `relevo.mjs`, `relevo-test.mjs`. `R` = `node "[ruta local omitida]"`. Estado en `.claude/canal-equipo/state/claude-relevo.json`. Los originales en `[ruta local omitida]` quedan como copia; la tarea recurrente de ahí sigue `enabled:false`.
 
 **Reglas que salieron de la revisión de Codex** (tres NO-GO antes del GO):
 - Estados `candidate → active → draining → released`; nunca se recupera por reloj ni se deduce una liberación.
@@ -28,7 +29,7 @@ El 3/10/2026 el dueño pidió que Claude se renueve en un chat nuevo cada pocas 
 - La candidata acredita sus herramientas antes de que el saliente ceda.
 
 **Lecciones de las pruebas:**
-- Una sesión programada arranca con cwd `E:\Mi cartera` y **pide permiso para leer fuera**: todo lo que necesite debe vivir dentro. También pide permiso para Bash y Monitor la primera vez; sin el dueño delante se bloquea.
+- Una sesión programada arranca con cwd `[ruta local omitida]` y **pide permiso para leer fuera**: todo lo que necesite debe vivir dentro. También pide permiso para Bash y Monitor la primera vez; sin el dueño delante se bloquea.
 - Los chats programados aparecen en **Rutinas**, no en la lista del proyecto. Pulsar «ejecutar» ahí lanza OTRA ejecución (pasó en la prueba 1): avisar al dueño de que no lo pulse.
 - `list_task_runs` marca `succeeded` un turno parado con `stop_session`; no significa éxito.
 - Desde un worktree, un hook bloquea Write/Edit sobre el checkout base: el buzón y esa carpeta se escriben con Bash + node.

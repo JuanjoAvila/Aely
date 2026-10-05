@@ -1,3 +1,5 @@
+> Vigencia: esta memoria conserva hechos históricos. Para trabajo actual prevalecen AGENTS.md y docs/COORDINACION-AGENTES.md de codex/coordinacion. Claude local está cerrado: no reactivar vigías, buzón ni relevos locales. La rutina Cloud solo ejecuta encargos con reserva propia confirmada.
+
 <!-- GENERADO POR scripts/sync-memoria.mjs — NO EDITAR A MANO.
      Espejo de la memoria del agente (feedback-autonomo-sin-pedir-permiso.md). Se regenera con `npm run memoria`.
      Pasado por el filtro de datos personales: el repo es PÚBLICO. -->
@@ -8,7 +10,6 @@ description: "El dueño exige (4/10/2026) que Claude arranque solo en cada chat 
 metadata:
   node_type: memory
   type: feedback
-  originSessionId: fc6ad39c-5ea9-4c52-ab29-bca02b9397e2
   modified: 2026-10-05T15:08:04.826Z
 ---
 

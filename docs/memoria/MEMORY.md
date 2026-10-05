@@ -1,3 +1,5 @@
+> Vigencia: esta memoria conserva hechos históricos. Para trabajo actual prevalecen AGENTS.md y docs/COORDINACION-AGENTES.md de codex/coordinacion. Claude local está cerrado: no reactivar vigías, buzón ni relevos locales. La rutina Cloud solo ejecuta encargos con reserva propia confirmada.
+
 <!-- GENERADO POR scripts/sync-memoria.mjs — NO EDITAR A MANO.
      Espejo de la memoria del agente (MEMORY.md). Se regenera con `npm run memoria`.
      Pasado por el filtro de datos personales: el repo es PÚBLICO. -->
@@ -11,11 +13,11 @@
 - [Traspaso 2/10 (histórico)](traspaso-2026-10-01-manana.md) — beta 4.26.80 + APK 52; GO mío a PR104; INC-0210-02; suite Node ENTERA antes de un GO. Lo de «rearmar vigía» ya no aplica.
 - [Cierre 29/9 noche (histórico)](traspaso-2026-09-24-manana.md) — prod 4.26.66 (PR #61, mi GO); gzip al 100 %; widget/TR en beta (APK 51).
 - [★★ Codex: 1 tarea = 1 chat (24/9)](codex-una-tarea-por-chat.md) — se fundió la cuota semanal; cada chat arranca en frío: PASS/BLOCK autocontenidos; si me lanza por CLI, al buzón.
-- [★★★ VOLCADO para su Claude PERSONAL](../../../../../E:/Mi cartera/docs/briefs/EMPIEZA-AQUI-CLAUDE-PERSONAL.md) — `docs/briefs/EMPIEZA-AQUI-CLAUDE-PERSONAL.md` en `beta`: para una sesión SIN esta memoria (arranque, `docs/memoria/`, cómo se trabaja, qué lleva Cursor).
-- [★★★ EMPIEZA AQUÍ: traspaso del 15/9 noche](../../../../../E:/Mi cartera/docs/briefs/EMPIEZA-AQUI-2026-09-16-TELETRABAJO.md) — rama `docs/traspaso-15-9-noche`: beta 4.24.3; ✅4.24.1 ✅4.24.3 ⛔4.24.2 (Ajustes pegado → 4.24.4 Cursor); luego promote + `ingest`, 4.25 + `bank-sync` (OK dado), 4.26, 4.27.
+- [★★★ VOLCADO para su Claude PERSONAL](../briefs/EMPIEZA-AQUI-CLAUDE-PERSONAL.md) — `docs/briefs/EMPIEZA-AQUI-CLAUDE-PERSONAL.md` en `beta`: para una sesión SIN esta memoria (arranque, `docs/memoria/`, cómo se trabaja, qué lleva Cursor).
+- [★★★ EMPIEZA AQUÍ: traspaso del 15/9 noche](../briefs/EMPIEZA-AQUI-2026-09-16-TELETRABAJO.md) — rama `docs/traspaso-15-9-noche`: beta 4.24.3; ✅4.24.1 ✅4.24.3 ⛔4.24.2 (Ajustes pegado → 4.24.4 Cursor); luego promote + `ingest`, 4.25 + `bank-sync` (OK dado), 4.26, 4.27.
 - [⚠ Panel beta reabre Ajustes (15/9)](panel-beta-reabre-ajustes.md) — la marca se renovaba al reabrir; ningún paso debe dejarle fuera con el panel abierto.
-- [Traspaso del 14/9 noche](../../../../../E:/Mi cartera/docs/briefs/EMPIEZA-AQUI-2026-09-15.md) — histórico: prod 4.22.3 + 0024; SEC-01.
-- [Traspaso madrugada 12/9](../../../../../E:/Mi cartera/docs/briefs/TRASPASO-2026-09-12-MADRUGADA.md) — histórico: 4.18.25→4.19.74, dos tests que no podían fallar, `npm run servidor` mintió.
+- [Traspaso del 14/9 noche](../briefs/EMPIEZA-AQUI-2026-09-15.md) — histórico: prod 4.22.3 + 0024; SEC-01.
+- [Traspaso madrugada 12/9](../briefs/TRASPASO-2026-09-12-MADRUGADA.md) — histórico: 4.18.25→4.19.74, dos tests que no podían fallar, `npm run servidor` mintió.
 - [★★ Cómo se promociona a prod](promote-4-19-106-como-se-hizo.md) — ⚠ FF o `merge -s ours`; cabeza `[skip ci]`; `deploy.yml` a mano; nota única `tandas:[]`; puente con `gh api PUT`; Edge una a una. Repetido 4.20.4, 4.21.2, 4.22.3.
 - [★★ Seguridad OPS-06](ops-06-seguridad-hallazgos.md) — token de ingest en la APK (cerrado, APK 46), Hogar (0022), app_events (0023), BD viva (0024). DEC-01: Play Store AL FINAL.
 - [★ BD viva: faltaba el grant de la 0012 (14/9)](bd-viva-grants-0024.md) — ⚠ MyInvestor no sincronizaba solo; 0024 aplicada y verificada. SQL Editor con monaco + gridcell + begin/rollback.
@@ -24,7 +26,7 @@
 - [⚠ Buzón: hora REAL y Chromium por turnos (30/9)](buzon-hora-real-y-turno-chromium.md) — `Date.now()` en ids/createdAt; e2e solo con turno del coordinador.
 - [⚠ e2e: un solo npm test a la vez EN LA MÁQUINA](e2e-puerto-compartido.md) — puerto por cwd desde 10/9, pero dos suites dan rojos de infra (`ERR_CONNECTION_REFUSED`, `ERR_NO_BUFFER_SPACE`). Avisar por el buzón antes de lanzar.
 - [⚠ Cada arranque en frío es «login» (28/9)](initial-session-carrera-freshlogin.md) — INITIAL_SESSION antes que getSession, medido 50/50; freshLogin=true en cada reinicio.
-- [★ Un móvil viejo repite movimientos (15/9)](movil-viejo-repite-movimientos.md) — el +18,09: web con estado de 3 días sincronizó antes del pull; el banco espera a la nube; NO re-marcar repetidos desde el móvil.
+- [★ Un móvil viejo repite movimientos (15/9)](movil-viejo-repite-movimientos.md) — el [importe omitido]: web con estado de 3 días sincronizó antes del pull; el banco espera a la nube; NO re-marcar repetidos desde el móvil.
 - [⚠ La CI de beta corre en UTC](ci-beta-corre-en-utc.md) — `TZ=UTC npm test` además del local.
 - [⚠ Cuotas de deuda: NO casan por nombre](cuotas-deudas-no-casan-por-nombre.md) — banco+céntimo+día ±4; `~deuda.` en source (con `#` suma); NO sacar de cash.
 - [Memoria SIEMPRE al repo](feedback-memoria-siempre-al-repo.md) — ⚠ `npm run memoria` tras escribir aquí (si no, `memoria-espejo` tumba la suite); repo PÚBLICO.
