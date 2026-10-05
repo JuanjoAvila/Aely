@@ -362,6 +362,8 @@ function App(){
       return setTimeout(function(){ const q=persistRef.current; q.t=null; writeNow(q); },400);
     });
     obHistNoticeCommit(prev, state, showToastRef.current, t, tf);
+    // El reintento del sync diario sube lo que este commit lleva, no lo que calculó un updater.
+    obDailyCommit(prev, state);
   },[state]);
   useEffect(function(){
     const onVis=function(){ if(document.visibilityState==="hidden") flushPersist(); };

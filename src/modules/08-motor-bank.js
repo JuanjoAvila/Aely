@@ -2744,36 +2744,78 @@ function obPlanRetry(skipped, kept, consulted){
 }
 /* El objeto del cierre es el de cuando se disparó el batch. Mientras tanto él ha podido
    borrar (la lápida obid sigue valiendo aunque la fecha cambie) o editar categoría, nota
-   y comercio. No se pega el objeto viejo encima del estado actual. */
-function obSettleDaily(set, plan){
+   y comercio. No se pega el objeto viejo encima del estado actual.
+   En App `set` solo encola: React puede evaluar el updater más tarde, tirarlo o repetirlo.
+   Lo que se sube sale del estado comprometido (`obDailyCommit`), no de una evaluación.
+   Antes el updater llenaba `upload` y el caller lo leía al volver de `set`, vacío: el
+   reintento de cargo-B no salía nunca y la fecha local ya no era la de la nube (INC-2709-06). */
+var obDailyWaiting=[];
+function obDailySameTerna(a, b){
+  return !!a && !!b && String(a.date||"")===String(b.date||"") &&
+    (a.merchant||"")===(b.merchant||"") && (Number(a.amount)||0)===(Number(b.amount)||0);
+}
+// null = el commit todavía no lleva el refechado. Una fila sin tocar solo puede seguir con su
+// fecha de antes si el updater aún no se aplicó: en cuanto se aplica, o se refecha o ya no era
+// la misma terna.
+function obDailyRead(state, w){
+  const byId=Object.create(null);
+  ((state&&state.expenses)||[]).forEach(function(e){ if(e&&e.id) byId[e.id]=e; });
+  const del=obDeletedLookup(state&&state.deleted);
   const upload=[];
-  if(!plan || !plan.retry || !plan.retry.length || typeof set!=="function") return upload;
-  set(function(s){
-    const cur=(s&&s.expenses)||[];
-    const byId=Object.create(null);
-    cur.forEach(function(e){ if(e&&e.id) byId[e.id]=e; });
-    const del=obDeletedLookup(s&&s.deleted);
-    const next=cur.slice();
-    let changed=false;
-    function put(id, neu){
-      for(let i=0;i<next.length;i++){
-        if(next[i]&&next[i].id===id){ next[i]=neu; return; }
+  let waiting=false;
+  w.retry.forEach(function(planned){
+    const live=byId[planned.id];
+    if(!live || obRowBuried(live, del)) return;
+    if(obDailySameTerna(live, w.before[planned.id])){ waiting=true; return; }
+    upload.push(live);
+  });
+  return waiting ? null : upload;
+}
+function obDailyCommit(prev, state){
+  if(prev===state || !obDailyWaiting.length) return 0;
+  const ready=[];
+  obDailyWaiting=obDailyWaiting.filter(function(w){
+    const up=obDailyRead(state, w);
+    if(up==null) return true;
+    ready.push([w, up]);
+    return false;
+  });
+  ready.forEach(function(p){ p[0].resolve(p[1]); });
+  return ready.length;
+}
+function obSettleDaily(set, plan, before){
+  if(!plan || !plan.retry || !plan.retry.length || typeof set!=="function") return [];
+  const retry=plan.retry.slice();
+  const byPlan=Object.create(null), prior=Object.create(null);
+  retry.forEach(function(p){ if(p&&p.id) byPlan[p.id]=p; });
+  (before||[]).forEach(function(e){ if(e&&e.id&&byPlan[e.id]) prior[e.id]=e; });
+  return new Promise(function(resolve){
+    const w={ retry:retry, before:prior, resolve:resolve };
+    obDailyWaiting.push(w);
+    // Sin cambio de fecha también se devuelve un estado nuevo: si no hay commit no hay de
+    // dónde leer lo editado, y el reintento se quedaría esperando para siempre.
+    const res=set(function(s){
+      const cur=(s&&s.expenses)||[];
+      const del=obDeletedLookup(s&&s.deleted);
+      let changed=false;
+      const next=cur.map(function(e){
+        const planned=e&&e.id&&byPlan[e.id];
+        if(!planned || obRowBuried(e, del) || !obDailySameTerna(e, prior[e.id])) return e;
+        changed=true;
+        return Object.assign({}, e, {date:planned.date});
+      });
+      return Object.assign({}, s, changed ? {expenses:next} : {});
+    });
+    // Un setter que devuelve el estado ya lo ha aplicado (herramientas síncronas): ese es el
+    // comprometido. El de App devuelve undefined y espera a su layout effect.
+    if(res && typeof res==="object" && obDailyWaiting.indexOf(w)>=0){
+      const up=obDailyRead(res, w);
+      if(up!=null){
+        obDailyWaiting=obDailyWaiting.filter(function(x){ return x!==w; });
+        resolve(up);
       }
     }
-    plan.retry.forEach(function(planned){
-      const live=byId[planned.id];
-      if(!live || obRowBuried(live, del)) return;
-      const same=(live.merchant||"")===(planned.merchant||"") && (Number(live.amount)||0)===(Number(planned.amount)||0);
-      if(!same){ upload.push(live); return; }
-      const neu=Object.assign({}, live, {date:planned.date});
-      put(live.id, neu);
-      changed=true;
-      upload.push(neu);
-    });
-    if(!changed) return s;
-    return Object.assign({}, s, {expenses:next});
   });
-  return upload;
 }
 function obChaseRounds(ack, cloud, prepare){
   let pending=(ack.skipped||[]).slice();
@@ -2793,24 +2835,30 @@ function obChaseRounds(ack, cloud, prepare){
       const plan=obPlanRetry(pending, kept, pulled);
       plan.absorb.forEach(function(e){ absorbed.push(e); });
       plan.hold.forEach(function(e){ held.push(e); });
+      const before=pending;
       pending=[];
-      const upload=prepare(plan, kept);
-      if(!upload.length) return stop();
-      return cloud.addExpensesBatch(upload).then(function(res){
-        if(!res || res.offline || res.failed){
-          upload.forEach(function(e){ held.push(e); });
-          return stop();
-        }
-        const ack2=histApplyBatchAck(upload, res.cloudIds||[], { offline:false });
-        ack2.kept.forEach(function(e){ kept.push(e); if(e&&e.id) cloudIds.push(e.id); });
-        pending=(ack2.skipped||[]).slice();
-        if(!pending.length) return stop();
-        return step();
-      }).catch(function(){
+      const prepared=prepare(plan, kept, before);
+      if(prepared && typeof prepared.then==="function") return prepared.then(send);
+      return send(prepared);
+    }).catch(function(){ return stop(); });
+  }
+  function send(upload){
+    upload=upload||[];
+    if(!upload.length) return stop();
+    return cloud.addExpensesBatch(upload).then(function(res){
+      if(!res || res.offline || res.failed){
         upload.forEach(function(e){ held.push(e); });
         return stop();
-      });
-    }).catch(function(){ return stop(); });
+      }
+      const ack2=histApplyBatchAck(upload, res.cloudIds||[], { offline:false });
+      ack2.kept.forEach(function(e){ kept.push(e); if(e&&e.id) cloudIds.push(e.id); });
+      pending=(ack2.skipped||[]).slice();
+      if(!pending.length) return stop();
+      return step();
+    }).catch(function(){
+      upload.forEach(function(e){ held.push(e); });
+      return stop();
+    });
   }
   return step();
 }
@@ -2827,7 +2875,7 @@ function persistObImport(rows, cloud, set){
     if(!res || res.offline || res.failed) return;
     const ack=histApplyBatchAck(rows, res.cloudIds||[], { offline:false });
     if(!ack.skipped.length) return;
-    return obChaseRounds(ack, cloud, function(plan){ return obSettleDaily(set, plan); });
+    return obChaseRounds(ack, cloud, function(plan, kept, before){ return obSettleDaily(set, plan, before); });
   }).catch(function(){});
 }
 function obHistRefKey(e){
