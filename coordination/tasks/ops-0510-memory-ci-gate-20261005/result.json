@@ -1,0 +1,26 @@
+{
+  "status": "done",
+  "summary": "PR134 retenida: CI exacta failure con job cancelled y sin pasos; motivo no confirmado. PR135 exacta success; no hay reviews formales en GitHub. No integrado producto ni tooling.",
+  "tests": [
+    {
+      "command": "GitHub GET actions/runs/37367989594 y jobs",
+      "exitCode": 0
+    },
+    {
+      "command": "GitHub GET actions/runs/37353779251 y pulls/134/reviews y pulls/135/reviews",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "7e5f1f396d1dc92053f1a5fabaad9a56e58cce42",
+  "limitations": [
+    "PR134 solo SQUASH tras revision independiente y CI exactos verdes.",
+    "Run37367989594 job111957743811 cancelled con steps[]: no evidencia para afirmar causa.",
+    "PR135 no se integra por asociacion. Nueva unidad: revision independiente de135 y CI exacta134 tras resolver motivo."
+  ],
+  "schema": 1,
+  "taskId": "ops-0510-memory-ci-gate-20261005",
+  "actor": "codex",
+  "sessionId": "relay-run-e9c59cbe362b1be8",
+  "createdAt": "2026-10-05T21:12:22.179Z",
+  "released": true
+}
