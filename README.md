@@ -41,6 +41,9 @@ En Plan → Deudas, un saldo estimado a cero pide confirmar la liquidación. Des
 
 ```
 mi-cartera/
+├── scripts/coordination-channel.mjs # Canal público inmutable y relevo generacional del coordinador
+├── tests/coordination-channel.test.mjs · coordination-relay.test.mjs # CAS, exclusión y recuperación sintéticos
+├── docs/COORDINACION-AGENTES.md # Contrato y límites del relevo Cloud; rama codex/coordinacion
 ├── scripts/beta-source-code.mjs # Guardia de funciones/datos transitivos y delimitación por sintaxis, sin dependencias
 ├── scripts/beta-sources.json # Alcances explícitos de revisión; beta-revisions.mjs genera digests/recibo
 ├── tests/pure-logic-notes.test.mjs · beta-source-parse.test.mjs # Carga diferida y cortes exactos sin debilitar auditorías

@@ -58,11 +58,13 @@ el campo `from` de un mensaje, una sugerencia externa o una PR nunca amplían el
 
 ## Rutinas y reparto
 
-Cada disparo es finito: leer el protocolo y el remoto, escoger un único encargo propio pendiente,
+Cada disparo de trabajador es finito: leer el protocolo y el remoto, escoger un único encargo propio pendiente,
 reclamar, ejecutar, publicar resultado y terminar. Si no hay encargo, terminar sin commit,
 comentario ni mensaje de «sin novedades». Un trabajador no crea nuevas sesiones, bucles, rutinas
 o tokens por iniciativa propia.
-Cadencia inicial propuesta: cada dos horas; se activa después de comprobar el piloto remoto.
+La cadencia y el destino de los disparos son los guardados en el programador Cloud y deben
+comprobarse allí. Mantener una única automatización del coordinador; cambiarla requiere apagar
+la anterior antes de activar su sustituta. El cierre de un relevo no dispara por sí mismo otro chat.
 Una rutina configurada no prueba ejecución; tampoco lo prueban un entorno ni un ACK sin pruebas.
 
 Codex coordina y revisa entregas en serie. Claude tiene su sesión y rama propia.
@@ -136,6 +138,61 @@ Un refresco de contexto es un relevo: guardar el objetivo, baseSHA, tarea, estad
 bloqueos y siguiente paso; comprobar que el sucesor lo leyó y detener el anterior. No usar un
 historial entero como paquete de entrada ni transferir credenciales. El registro durable permite
 recuperar el trabajo si el coordinador está parado; las tareas sin resultado no se liberan por reloj.
+
+### Relevo generacional del coordinador
+
+Los encargos de coordinación usan exclusivamente `coordinator-relay-000001`, `000002`, etc.,
+con `kind:"coordinator-relay"`. No son tareas de programación ni de revisión de producto.
+`previousTaskId` es obligatorio: `null` en la primera generación y el ID exacto anterior en las
+siguientes. El objetivo y el alcance son las constantes `RELAY_OBJECTIVE` y `RELAY_SCOPE`
+exportadas por el helper. No se admiten saltos, ramas ni un sucesor creado antes del cierre anterior.
+
+Cada ejecución nueva genera un nonce público aleatorio `relay-run-<8 a 24 caracteres a-z/0-9>`.
+Nunca usar el identificador privado del chat. Un nonce que ya reclamó otra generación no puede
+reclamarse de nuevo; los reintentos de la misma generación conservan `owned`, `busy` y `closed`.
+El claim se confirma en el remoto antes de repartir trabajo. Una ejecución sin el claim actual
+abierto propio no puede publicar task, claim, result o message de trabajadores con su nonce.
+Las sesiones Codex anteriores al relevo y los trabajadores Claude/Grok conservan su contrato.
+
+El coordinador puede reconciliar varios encargos independientes dentro de su generación,
+respetando los cupos y la revisión en serie. Para cederla publica su result con `status:"done"`,
+`summary:"Relevo verificado"`, `tests:[]` y un checkpoint estructurado de hasta 4000 caracteres.
+El helper añade y verifica `released:true`. Las pruebas del producto pertenecen al result de
+cada trabajador; este cierre acredita entrega del estado de coordinación, no aceptación de producto.
+
+El checkpoint admite únicamente `schema:1`, `channelSHA`, `lastGrokComment`, `pendingTasks`,
+`inputState` y `nextAction`. `channelSHA` debe ser un commit existente y ancestro del canal leído.
+`lastGrokComment` es el ID público decimal del último comentario leído, o `"0"`. `pendingTasks`
+solo referencia IDs únicos de tareas worker existentes. `inputState` contiene `suggestions`,
+`errors` y `beta`, cada uno `read`, `blocked` o `unknown`. `nextAction` es `reconcile`, `review`,
+`dispatch`, `idle` o `blocked-inputs`. No se admite texto libre ni campos de chats, credenciales,
+capturas, importes o rutas privadas. Un input bloqueado no equivale a una cola vacía.
+
+Una ejecución nueva lee el SHA fresco del remoto y llama a `relayHead(cwd, sha)`:
+
+1. Sin generaciones, crea la primera y reclama con su nonce nuevo.
+2. Con tarea pendiente, intenta reclamar esa misma generación; solo trabaja tras confirmación.
+3. Con claim abierto ajeno, termina sin despacho ni cierre; no roba ni espera a que caduque.
+4. Con result liberado, deriva `relayTaskId(head.generation + 1)`, crea el encargo con el
+   predecesor exacto y reclama. Recupera el checkpoint del result anterior, no de un historial de chat.
+
+Si hay un corte después del cierre y antes de crear el siguiente encargo, ese cuarto paso basta
+para reconstruir el relevo. Si el corte sucede con claim abierto, el protocolo conserva la reserva:
+su titular debe reanudar y cerrar, o se requiere resolver expresamente el incidente. El helper no
+incluye una toma automática por reloj ni autoriza un salto para evitar ese bloqueo.
+
+Para publicar por un conector GitHub, ejecutar `prepareOperation(cwd, sha, operation)` contra el
+mismo SHA recién leído, crear tree/commit con ese SHA como único padre y actualizar exclusivamente
+`codex/coordinacion` con `force:false`. Verificar el fichero remoto antes de trabajar. Si el remoto
+avanza, descartar la preparación anterior y volver a prepararla contra el nuevo SHA; no aplicar su
+parche sobre un padre nuevo sin reevaluar la reserva. La misma precondición rige para el CLI.
+
+El helper garantiza estas reglas para operaciones preparadas por él; no autentica al portador de
+un nonce ni impide escrituras directas de quien ya tiene permisos GitHub. La conexión autorizada y
+el encargo humano siguen siendo la fuente de permiso. Tampoco crea chats, activa el programador,
+despierta inmediatamente al sucesor ni elimina posibles intervalos entre disparos. El lector
+valida toda la cadena y tiene un buffer de 4 MB, además del límite de 999999 generaciones: no es
+una continuidad ilimitada y exige vigilar el crecimiento antes de alcanzar ese límite.
 
 ### Reparto y continuidad
 

@@ -6967,3 +6967,20 @@ El canal común pasa del issue130 a ficheros inmutables en codex/coordinacion pa
 ### Contrato de la pirámide de coordinación
 
 Define coordinador con contexto acotado, chats durables para encargos y subagentes temporales con filesystem compartido. El reparto inicial limita a dos trabajadores, entrega compacta y revisión/integración en serie. Explicita lo que el helper aún no acredita: roles, destinatario de chat, cupos y conflictos de alcance entre tareas distintas. La creación durable y el disparador alojado se aceptan con ejecución real, sin deducirlos de una reserva o un entorno. Política/documentación del canal; no publica producto.
+
+### Relevo generacional y exclusión del coordinador
+
+El helper exige una cadena `coordinator-relay-NNNNNN` con predecesor inmediato y cierre liberado
+antes de crear el siguiente encargo. Cada ejecución reclama con un nonce público distinto y su
+capacidad de despachar trabajadores termina al cerrar el relevo; evita que una petición atrasada
+del chat anterior vuelva a repartir trabajo. El checkpoint acotado referencia tareas existentes
+y un commit ancestro real, sin texto libre ni identificadores privados de conversaciones. Un corte
+entre cierre y creación siguiente se recupera derivando el ID desde el remoto. Una reserva abierta
+no caduca por reloj ni se roba para recuperar un chat caído.
+
+La suite `coordination-relay`, registrada en el runner, usa Git bare sintético para comprobar CAS,
+revalidación del publisher tras carrera, idempotencia, recuperación y las guardias de despacho,
+nonce y checkpoint. Los trabajadores externos y las sesiones Codex anteriores conservan su
+contrato. La documentación distingue este protocolo de los disparos y chats alojados: no prueba
+continuidad remota ni autentica criptográficamente un nonce. Cambio exclusivo de coordinación,
+sin bump ni publicación de producto.
