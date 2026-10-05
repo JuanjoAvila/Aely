@@ -667,42 +667,14 @@ function App(){
         const r=applyBankBalances(anchored, links);
         return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks) });
       });
-      // Sube las importadas. El índice desplegado ignora la terna repetida y no devuelve
-      // esa fila: dejarla en local como si estuviera guardada hace que el otro móvil, al
-      // releer, reenvíe un duplicado y pierda la referencia que chocó (INC-2709-06).
-      // null = modo pruebas (la envoltura corta la escritura): no es un rechazo del índice.
+      // Sube las importadas. El índice ignora la terna repetida y no devuelve esa fila:
+      // refechar solo con lo insertado duplica la misma referencia o, al segundo choque,
+      // borra la otra. Se lee la nube y se respeta lo que él cambie mientras tanto
+      // (INC-2709-06). null = modo pruebas: no es un rechazo del índice.
       setTimeout(function(){
-        if(!obAdded.length) return;
-        if(!cloud.enabled() || typeof cloud.addExpensesBatch!=="function"){
-          obAdded.forEach(function(e){ subirGasto(e, "ob-import"); });
-          return;
-        }
-        const ocupar=function(rows){
-          return (rows||[]).map(function(e){
-            return { fecha:e.date, importe:e.amount, comercio:e.merchant, source:expenseSourceForCloud(e), ent:e.ent, extId:e.extId };
-          });
-        };
-        cloud.addExpensesBatch(obAdded).then(function(res){
-          if(!res || res.offline) return;
-          const ack=histApplyBatchAck(obAdded, res.cloudIds||[], { offline:false });
-          if(!ack.skipped.length) return;
-          const retry=obReassignSkipped(ack.skipped, ocupar(ack.kept));
-          const drop={}; ack.skipped.forEach(function(e){ if(e&&e.id) drop[e.id]=1; });
-          set(function(s){
-            const expenses=(s.expenses||[]).filter(function(e){ return !(e&&drop[e.id]); }).concat(retry);
-            return Object.assign({}, s, { expenses:expenses });
-          });
-          if(!retry.length) return;
-          return cloud.addExpensesBatch(retry).then(function(res2){
-            if(!res2 || res2.offline) return;
-            const ack2=histApplyBatchAck(retry, res2.cloudIds||[], { offline:false });
-            if(!ack2.skipped.length) return;
-            const drop2={}; ack2.skipped.forEach(function(e){ if(e&&e.id) drop2[e.id]=1; });
-            set(function(s){
-              return Object.assign({}, s, { expenses:(s.expenses||[]).filter(function(e){ return !(e&&drop2[e.id]); }) });
-            });
-          });
-        }).catch(function(){});
+        /* OB-ACK-DAILY */
+        persistObImport(obAdded, cloud, set);
+        /* /OB-ACK-DAILY */
       }, 0);
       // En sync automática (la que dispara la noti del banco) se avisa solo de lo que ha entrado.
       // Si has pulsado tú «↻ Sincronizar bancos», esto se junta con el resultado de abajo: dos

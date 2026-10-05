@@ -1,5 +1,24 @@
 # INC-2709-06 · cargos CaixaBank ausentes
 
+## Actualización 5/10/2026 · revisión Codex de `d67edc7b`, NO-GO
+
+Codex revisó `d67edc7b5b3eea62eeb21fab3cdc4bcae0f947c3` y no lo dio por bueno. El guardián de la pasada anterior le entregaba a `obReassignSkipped` la nube entera. Los callers de `11-app-main.js` y `10-app-components.js` no hacen eso: el upsert solo devuelve los id insertados (`ack.kept`). Una escritura ignorada no trae la fila que ya ocupaba la terna. Reproducido ejecutando ese callback, con un transporte que ignora la terna y no inventa la fila remota, en UTC y en Europe/Madrid (`node tests/inc-2709-06-ack.test.mjs` contra ese commit: 6 fallos en cada zona). El caso humano sigue abierto: no se ha leído el enlace, la respuesta de Edge ni las filas de ese perfil.
+
+Qué fallaba en `d67edc7b`, y qué hace el cliente ahora:
+
+1. **La misma referencia en dos clientes.** El segundo write no devuelve id. Sin leer qué referencia ya está guardada, el reintento cambia la fecha y la nube queda A+A con dos uuid. `pullExpenses` consulta las filas de verdad. La referencia sale de `#x.` en `source` (el pull no trae columna `extId`). Si ya está esa referencia de ese banco, no se sube otra fila y no se cambia la fecha. El uuid de la nube sigue siendo el de la primera inserción.
+2. **Tercer choque Az/BY/C8.** Esos tres id comparten sello en `#0`, `#1` y `#2`. Tres clientes parciales ocupan la fecha preferida y el primer reintento; el tercero recibe cero ids y `drop2` borra C8 en local. Un segundo choque no acredita un duplicado ni autoriza tirar el dinero. Con lo que la lectura marca como ocupado se elige el primer sello libre de esa terna, y se conserva el uuid. Si no hay hueco, la fila se queda en local.
+3. **Borrado durante el ACK.** El callback concatenaba el movimiento con otra fecha. La lápida de día dejaba de casar y la fila revivía, también en la nube, aunque existiera `obid|banco|extId`. Antes de reinsertar o subir se mira si el id sigue en el estado y si esa lápida `obid` está puesta.
+4. **Edición durante el ACK.** El reintento se armaba con el objeto del cierre y pisaba categoría, nota y comercio. Se parte del objeto que hay ahora: si importe y comercio no cambiaron, solo se mueve la fecha; si cambiaron, se sube el estado actual.
+
+Offline, `null` o una excepción no acreditan guardado y no borran el local del sync diario (`null` sigue siendo el corte del modo pruebas, no un rechazo del índice). En el histórico, un fallo sigue sin dejar filas; offline las deja todas y sin ids de nube. Lo que se absorbe o se retiene en local no entra en `lastHistImport.cloudIds`: deshacer no debe borrar un uuid que no se insertó.
+
+**28 y 15,50.** `claveComoLaApp` alarga la clave de un Open Banking que ya no es el mediodía local, la misma regla que `keyOfExpense`. macrodroid sigue en el día: dos notis APOLLON del mismo cargo cuentan una. Con dos MERCADONA de 12,50 € y un café de 3 €, la app y el widget del repo cuentan 28. `#dup` y la cuota `~deuda` siguen fuera. Este PR no despliega Edge: el widget ya publicado sigue juntando por día hasta ese despliegue. Un cargo en el mediodía de Madrid (`T10:00:00.000Z` en verano) es mediodía en el móvil y no lo es en un proceso UTC; los sellos de este par no son mediodía en ninguna de las dos zonas, así que los dos cuentan en las dos zonas cuando el Edge lleve esta clave.
+
+Caducado del apartado de `720e5aab`, más abajo: «si el segundo sello tampoco entra, se quita» y «no se toca `presupuesto.ts`» / «la app cuenta 28 y el widget 15,50». Sigue en pie: el índice desplegado no se cambia, `#dup` gana a `#x.`, `~deuda` se conserva, y FIN-04.1 no se mezcla.
+
+No hay SQL, migración, despliegue de Edge, reparación del histórico, sincronización automática ni subida de `VERSION`.
+
 ## Actualización 4/10/2026 · revisión Codex de `720e5aab`, NO-GO
 
 Codex revisó `720e5aabc4622f8dbd56f8e03807c0d710c39dbf` y no lo dio por bueno. Los cuatro fallos se reprodujeron con datos inventados, en UTC y en Europe/Madrid, contra ese bundle (`node tests/inc-2709-06-identidad.test.mjs`, salida en el informe de la rama). El caso humano sigue abierto: no se ha leído el enlace, la respuesta de Edge ni las filas de ese perfil.

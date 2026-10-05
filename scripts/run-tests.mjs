@@ -145,6 +145,7 @@ const steps = [
   ["hist-uniq-por-banco", ["node", "tests/hist-uniq-por-banco.test.mjs"]],
   ["inc-2709-06-caixa-extid", ["node", "tests/inc-2709-06-caixa-extid.test.mjs"]],
   ["inc-2709-06-identidad", ["node", "tests/inc-2709-06-identidad.test.mjs"]],
+  ["inc-2709-06-ack", ["node", "tests/inc-2709-06-ack.test.mjs"]],
   ["sync-manual-un-aviso", ["node", "tests/sync-manual-un-aviso.test.mjs"]],
   ["broker-sync-outcomes", ["node", "tests/broker-sync-outcomes.test.mjs"]],
   ["cartel-reconectar", ["node", "tests/cartel-reconectar.test.mjs"]],

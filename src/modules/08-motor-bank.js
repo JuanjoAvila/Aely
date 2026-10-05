@@ -2676,6 +2676,235 @@ function histApplyBatchAck(expAdds, cloudIds, opts){
   // preexistente) no puede viajar a lastHistImport → undo → deleteExpensesByIds.
   return { kept:kept, skipped:skipped, cloudIds:kept.map(function(e){ return e.id; }), offline:false };
 }
+/* El upsert solo devuelve los id insertados. Una terna ignorada no dice qué referencia la
+   ocupa: refechar a ciegas fabrica otra fila de la misma (A+A) y, si el segundo sello también
+   choca, borrar el local tira un cargo distinto (Az/BY/C8). La lectura distingue las dos cosas.
+   Si no llega, no se refecha y no se borra: eso no acredita que esté guardado. */
+function obDeletedLookup(deleted){
+  if(!deleted) return null;
+  if(!Array.isArray(deleted)) return deleted;
+  const del=Object.create(null);
+  deleted.forEach(function(k){ if(k) del[k]=1; });
+  return del;
+}
+function obRowBuried(e, del){
+  if(!e || !del) return false;
+  if(typeof expenseIsTombstoned==="function" && expenseIsTombstoned(e, del)) return true;
+  const bank=e.ent || (typeof expenseBankOf==="function" ? expenseBankOf(e) : "") || "";
+  if(e.extId==null || e.extId==="" || !bank) return false;
+  return !!del["obid|"+bank+"|"+e.extId];
+}
+function obConsultedIndex(rows){
+  const occ=Object.create(null), have=Object.create(null);
+  (rows||[]).forEach(function(r){
+    if(!r) return;
+    const amount=r.importe!=null ? r.importe : r.amount;
+    const merchant=r.comercio!=null ? r.comercio : r.merchant;
+    const fecha=r.fecha!=null ? r.fecha : r.date;
+    const iso=obCanonIso(fecha);
+    if(iso) occ[obIndexGroup(amount, merchant)+"|"+iso]=1;
+    const ext=r.extId!=null && r.extId!=="" ? String(r.extId) : obExtIdFromCloudSource(r.source);
+    let bank=r.ent||"";
+    if(!bank && r.source && typeof expenseBankOf==="function"){
+      const b=expenseBankOf({source:r.source});
+      if(b) bank=b;
+    }
+    if(ext && bank) have[bank+"|"+ext]=1;
+  });
+  return { occ:occ, have:have };
+}
+/* `kept` son las filas que ESTE ack insertó. `consulted` es lo que devolvió pullExpenses,
+   sin inventar la fila que el índice se calló. Misma referencia → no se sube otra.
+   Otra referencia → otro sello libre, el mismo uuid. Sin hueco → se queda en local. */
+function obPlanRetry(skipped, kept, consulted){
+  const idx=obConsultedIndex((consulted||[]).concat(kept||[]));
+  const occ=idx.occ, have=idx.have;
+  const absorb=[], retry=[], hold=[];
+  (skipped||[]).forEach(function(e){
+    if(!e) return;
+    const bank=e.ent || (typeof expenseBankOf==="function" ? expenseBankOf(e) : "") || "";
+    const ext=e.extId!=null && e.extId!=="" ? String(e.extId) : "";
+    if(ext && bank && have[bank+"|"+ext]){ absorb.push(e); return; }
+    if(!ext){ hold.push(e); return; }
+    const day=String(e.date||"").slice(0,10);
+    const group=obIndexGroup(e.amount, e.merchant);
+    const isoNow=obCanonIso(e.date);
+    if(isoNow) occ[group+"|"+isoNow]=1;
+    let stamp=null;
+    for(let n=0;n<=48;n++){
+      const c=histDate(day, obExtSaltKey(bank, ext, n));
+      const k=group+"|"+obCanonIso(c);
+      if(!occ[k]){ stamp=c; occ[k]=1; break; }
+    }
+    if(!stamp || obCanonIso(stamp)===isoNow){ hold.push(e); return; }
+    have[bank+"|"+ext]=1;
+    retry.push(Object.assign({}, e, {date:stamp}));
+  });
+  return { absorb:absorb, retry:retry, hold:hold };
+}
+/* El objeto del cierre es el de cuando se disparó el batch. Mientras tanto él ha podido
+   borrar (la lápida obid sigue valiendo aunque la fecha cambie) o editar categoría, nota
+   y comercio. No se pega el objeto viejo encima del estado actual. */
+function obSettleDaily(set, plan){
+  const upload=[];
+  if(!plan || !plan.retry || !plan.retry.length || typeof set!=="function") return upload;
+  set(function(s){
+    const cur=(s&&s.expenses)||[];
+    const byId=Object.create(null);
+    cur.forEach(function(e){ if(e&&e.id) byId[e.id]=e; });
+    const del=obDeletedLookup(s&&s.deleted);
+    const next=cur.slice();
+    let changed=false;
+    function put(id, neu){
+      for(let i=0;i<next.length;i++){
+        if(next[i]&&next[i].id===id){ next[i]=neu; return; }
+      }
+    }
+    plan.retry.forEach(function(planned){
+      const live=byId[planned.id];
+      if(!live || obRowBuried(live, del)) return;
+      const same=(live.merchant||"")===(planned.merchant||"") && (Number(live.amount)||0)===(Number(planned.amount)||0);
+      if(!same){ upload.push(live); return; }
+      const neu=Object.assign({}, live, {date:planned.date});
+      put(live.id, neu);
+      changed=true;
+      upload.push(neu);
+    });
+    if(!changed) return s;
+    return Object.assign({}, s, {expenses:next});
+  });
+  return upload;
+}
+function obChaseRounds(ack, cloud, prepare){
+  let pending=(ack.skipped||[]).slice();
+  const kept=(ack.kept||[]).slice();
+  const cloudIds=(ack.cloudIds||[]).slice();
+  const absorbed=[], held=[];
+  let round=0;
+  function stop(){
+    return { kept:kept, cloudIds:cloudIds, absorbed:absorbed, held:held.concat(pending) };
+  }
+  function step(){
+    if(!pending.length || round>=8) return Promise.resolve(stop());
+    if(!cloud || typeof cloud.pullExpenses!=="function") return Promise.resolve(stop());
+    round++;
+    return Promise.resolve().then(function(){ return cloud.pullExpenses(); }).then(function(pulled){
+      if(pulled==null || !Array.isArray(pulled)) return stop();
+      const plan=obPlanRetry(pending, kept, pulled);
+      plan.absorb.forEach(function(e){ absorbed.push(e); });
+      plan.hold.forEach(function(e){ held.push(e); });
+      pending=[];
+      const upload=prepare(plan, kept);
+      if(!upload.length) return stop();
+      return cloud.addExpensesBatch(upload).then(function(res){
+        if(!res || res.offline || res.failed){
+          upload.forEach(function(e){ held.push(e); });
+          return stop();
+        }
+        const ack2=histApplyBatchAck(upload, res.cloudIds||[], { offline:false });
+        ack2.kept.forEach(function(e){ kept.push(e); if(e&&e.id) cloudIds.push(e.id); });
+        pending=(ack2.skipped||[]).slice();
+        if(!pending.length) return stop();
+        return step();
+      }).catch(function(){
+        upload.forEach(function(e){ held.push(e); });
+        return stop();
+      });
+    }).catch(function(){ return stop(); });
+  }
+  return step();
+}
+/* Diario: las filas ya están en el estado. null/offline/excepción no las quita (el modo
+   pruebas corta el batch con null y no es un rechazo del índice). */
+function persistObImport(rows, cloud, set){
+  rows=rows||[];
+  if(!rows.length) return;
+  if(!cloud || typeof cloud.enabled!=="function" || !cloud.enabled() || typeof cloud.addExpensesBatch!=="function"){
+    rows.forEach(function(e){ if(typeof subirGasto==="function") subirGasto(e, "ob-import"); });
+    return;
+  }
+  cloud.addExpensesBatch(rows).then(function(res){
+    if(!res || res.offline || res.failed) return;
+    const ack=histApplyBatchAck(rows, res.cloudIds||[], { offline:false });
+    if(!ack.skipped.length) return;
+    return obChaseRounds(ack, cloud, function(plan){ return obSettleDaily(set, plan); });
+  }).catch(function(){});
+}
+/* Histórico: lo que no entra no se acredita para deshacer, pero tampoco se tira. La misma
+   referencia se enseña en local sin un segundo uuid. Un fallo (null, red, excepción) no
+   deja filas: offline sí, todas, y sin ids de nube. */
+function persistHistImport(opts){
+  opts=opts||{};
+  const cloud=opts.cloud, expAdds=opts.expAdds||[], fixAdds=opts.fixAdds||[], batchId=opts.batchId;
+  const set=opts.set, showToast=opts.showToast, onClose=opts.onClose, setImporting=opts.setImporting;
+  const t=opts.t, tf=opts.tf;
+  const batch=(cloud && typeof cloud.addExpensesBatch==="function") ? cloud.addExpensesBatch(expAdds) : Promise.resolve({ cloudIds:[], offline:true });
+  Promise.resolve(batch)
+    .catch(function(){ return { cloudIds:[], offline:false, failed:true }; })
+    .then(function(res){
+      const offline=!!(res&&res.offline);
+      const failed=!!(res&&res.failed) || !res;
+      const ack=histApplyBatchAck(expAdds, (res&&res.cloudIds)||[], { offline:offline });
+      if(offline) return { keep:expAdds.slice(), cloudIds:[], offline:true };
+      if(failed) return { keep:[], cloudIds:[], offline:false };
+      if(!ack.skipped.length) return { keep:(ack.kept||[]).slice(), cloudIds:(ack.cloudIds||[]).slice(), offline:false };
+      // Sin lectura no hay forma de saber si es la misma referencia. No se refecha (sería
+      // otra fila) y no se tira: queda en local, sin id de nube.
+      if(!cloud || typeof cloud.pullExpenses!=="function"){
+        return { keep:(ack.kept||[]).concat(ack.skipped||[]), cloudIds:(ack.cloudIds||[]).slice(), offline:false };
+      }
+      return obChaseRounds(ack, cloud, function(plan){ return (plan.retry||[]).slice(); }).then(function(chased){
+        const seen=Object.create(null), keep=[];
+        (chased.kept||[]).concat(chased.absorbed||[]).concat(chased.held||[]).forEach(function(e){
+          if(!e || (e.id && seen[e.id])) return;
+          if(e.id) seen[e.id]=1;
+          keep.push(e);
+        });
+        return { keep:keep, cloudIds:chased.cloudIds||[], offline:false };
+      });
+    })
+    .then(function(pack){
+      pack=pack||{ keep:[], cloudIds:[], offline:false };
+      const offline=!!pack.offline;
+      let shown=[];
+      if(typeof set==="function"){
+        set(function(s){
+          const del=obDeletedLookup(s&&s.deleted);
+          shown=(pack.keep||[]).filter(function(e){ return e && !obRowBuried(e, del); });
+          const next=Object.assign({}, s);
+          if(shown.length) next.expenses=shown.concat(s.expenses||[]);
+          if(fixAdds.length) next.fixed=(s.fixed||[]).concat(fixAdds);
+          if(shown.length){
+            const vis=Object.create(null);
+            shown.forEach(function(e){ if(e.id) vis[e.id]=1; });
+            const ids=offline ? [] : (pack.cloudIds||[]).filter(function(id){ return vis[id]; });
+            next.lastHistImport={ batchId:batchId, localIds:shown.map(function(e){ return e.id; }), cloudIds:ids, at:Date.now() };
+          }
+          return next;
+        });
+      }
+      const gastos=shown.filter(function(e){ return e.amount>0; }).length;
+      const ingresos=shown.filter(function(e){ return e.amount<0; }).length;
+      const parts=[];
+      if(typeof tf==="function"){
+        if(gastos) parts.push(tf("bp_hist_done_g",{n:gastos}));
+        if(ingresos) parts.push(tf("bp_hist_done_i",{n:ingresos}));
+        if(fixAdds.length) parts.push(tf("bp_hist_done_r",{n:fixAdds.length}));
+      }
+      const cloudIds=offline ? [] : (pack.cloudIds||[]);
+      if(typeof showToast==="function" && typeof t==="function" && typeof tf==="function"){
+        if(!offline && expAdds.length && !cloudIds.length && !shown.length){
+          showToast("⚠ "+t("bp_hist_no_ack"));
+        }else if(offline && expAdds.length){
+          showToast((parts.length?parts.join(" · ")+" · ":"")+t("bp_hist_offline"));
+        }else{
+          showToast(parts.length?parts.join(" · "):tf("bp_hist_done",{n:shown.length+fixAdds.length}));
+        }
+      }
+      if(typeof setImporting==="function") setImporting(false);
+      if(typeof onClose==="function") onClose();
+    });
+}
 /* Deshacer un batch: quita filas locales del batch y lista ids de nube para borrar POR ID.
    Nunca escribe state.deleted (agujero B). cloudDeleteById solo debe llevar ids con ACK
    (insertados de verdad); el llamador no mete los que chocaron en la terna (agujero A). */

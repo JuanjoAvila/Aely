@@ -14,7 +14,8 @@
  *  4. Ida y vuelta del id: 150 caracteres, y también `ob-hist`. Perder la referencia
  *     del que ocupaba el mediodía no puede casar A y reinsertar B.
  *
- * El widget sigue juntando el par (`claveComoLaApp` mira el día y no se despliega).
+ * El widget cuenta el par igual que la app: `claveComoLaApp` alarga la clave de un OB
+ * que ya no es el mediodía local. macrodroid sigue en el día (APOLLON).
  * Ese límite se afirma aquí, no se disfraza de total arreglado. `#dup` y `~deuda` siguen
  * ganando su contrato. No hay extractos ni cuentas reales.
  */
@@ -268,7 +269,7 @@ t("el id con separadores raros vuelve entero; #dup gana y ~deuda se queda", () =
   assert.equal(bancoDeSource("ob-hist:caixabank"), "caixabank");
 });
 
-t("límite del widget: junta el par; #dup y ~deuda siguen fuera; la app cuenta los dos", () => {
+t("app y widget cuentan los dos; #dup y ~deuda siguen fuera", () => {
   const a = ctx.importObExpenses(estado(), [cargo("cargo-A"), cargo("cargo-B")]);
   assert.equal(a.length, 2);
   const cafeStamp = ctx.histDate(ymd, "ob-ext|caixabank|cafe-1");
@@ -279,21 +280,21 @@ t("límite del widget: junta el par; #dup y ~deuda siguen fuera; la app cuenta l
     { fecha: ctx.histDate(ymd), importe: 9, comercio: "DUP", cat: "otros", source: "ob:caixabank#dup" },
     { fecha: ctx.histDate(ymd), importe: 40, comercio: "CUOTA", cat: "deudas", source: "ob:caixabank~deuda.cuota1" },
   ];
-  assert.equal(claveComoLaApp(filas[0]), claveComoLaApp(filas[1]));
+  assert.notEqual(claveComoLaApp(filas[0]), claveComoLaApp(filas[1]));
   const vis = filasComoLaApp(filas, []);
-  assert.equal(vis.filter((f) => f.comercio === "MERCADONA").length, 1);
+  assert.equal(vis.filter((f) => f.comercio === "MERCADONA").length, 2);
   const ahora = Date.parse(ymd + "T22:00:00Z");
   const srv = statsDelMes(vis, {
     budget: 1000,
     accounts: [{ ent: "caixabank", role: "diario" }],
     settings: { expenseBanks: ["caixabank"], gTotalMode: "split" },
   }, inicioDeMesMs(ahora));
-  assert.equal(srv.spent, 15.5, "widget: un MERCADONA + el café; dup y cuota fuera");
   const app = ctx.monthBudgetStats(estado(a.concat([
     { id: "cafe", date: cafeStamp, amount: 3, merchant: "CAFE", category: "bares", source: "ob", ent: "caixabank" },
   ])), ahora);
   assert.equal(app.spent, 28, "la app cuenta los dos MERCADONA y el café");
-  assert.equal(+(app.spent - srv.spent).toFixed(2), 12.5);
+  assert.equal(srv.spent, 28, "widget " + srv.spent);
+  assert.equal(srv.spent, app.spent);
 });
 
 console.log(fallos ? "inc-2709-06-identidad: " + fallos + " fallo(s) (" + zona + ")" : "inc-2709-06-identidad: OK (" + zona + ")");
