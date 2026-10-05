@@ -1,5 +1,15 @@
 # INC-2709-06 · cargos CaixaBank ausentes
 
+## Actualización 5/10/2026 · la retirada con extId usa el source codificado
+
+Un verde de esta unidad **no autoriza integrar el PR #131**. Solo restaura el guardián sintético `tests/retirada-bancaria.test.mjs`. No se toca producto, `src/`, `public/`, Edge, SQL, auth ni `VERSION`. El resto del NO-GO [5989932516](https://github.com/JuanjoAvila/Aely/pull/131#issuecomment-5989932516) sigue abierto. El caso humano sigue abierto. Edge no se despliega.
+
+Qué fallaba en `20147553`. En la magnitud bancaria (roles fijos, diario y ambos) el gasto local lleva `extId` `withdrawal-book-fixture`. `expenseSourceForCloud` escribe `ob:caixabank#x.withdrawal-book-fixture` (`#x.` más `encodeURIComponent`, el mismo encoding de `obExtCloudSuffix`). La fila remota de la fixture seguía en `source:"ob:caixabank"`, el legado sin sufijo. `withdrawalRowMatches` exige ese source y `confirmExpenseWithdrawal` lanza `withdrawal identity changed` antes de cualquier UPDATE. No es un defecto de producto: una identidad incoherente se rechaza.
+
+`TZ=UTC node tests/retirada-bancaria.test.mjs` y `TZ=Europe/Madrid node tests/retirada-bancaria.test.mjs` contra esa base salen los dos con exit 1, en el primer rol (`fijos`), con ese error. Con la fixture coherente —misma fecha, UUID, importe, comercio y banco; el source remoto es el encoding real; el ACK solo cambia `cat`— el guardián pasa 49/49, exit 0, en las dos zonas. Sigue el legacy sin extId. Se añaden, sin relajar los casos de antes: extId con caracteres reservados y reintento que no repite el UPDATE; negativos de extId divergente o ausente y de banco, UUID, fecha, importe o comercio distintos (rechazo y cero UPDATE); cero filas y RLS denegada con la identidad coherente; ACK inválido que no neutraliza. La magnitud conserva `noCard`, el presupuesto 80→0, el banco en 420 y el efectivo en cero.
+
+`npm test` con `PLAYWRIGHT_CHROMIUM_PATH=/usr/bin/google-chrome` en la base `20147553`: exit 1 y 5 pasos en rojo (`retirada-bancaria`, `beta-sources`, `docs-frescura`, `presupuesto-rendimiento`, `widget-arbitraje`). Con este cambio: exit 1 y 4 pasos, los mismos menos `retirada-bancaria` (49 casos OK dentro de la suite). El runner no abre Playwright si un paso anterior falla, así que esta pasada no incluye e2e. Los otros cuatro rojos ya estaban. Esto no deja `npm test` entero en verde, ni acredita móvil, beta ni la integración del PR.
+
 ## Actualización 5/10/2026 · una fecha que no existe ya no tumba el lote ni inventa el día
 
 Un verde de esta unidad **no autoriza integrar el PR #131**. Solo cubre el rechazo de fechas inválidas en `importObExpenses`. El resto del NO-GO [5989932516](https://github.com/JuanjoAvila/Aely/pull/131#issuecomment-5989932516) sigue abierto. El caso humano sigue abierto. Edge no se despliega.
