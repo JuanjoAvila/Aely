@@ -1,0 +1,43 @@
+{
+  "status": "done",
+  "summary": "Brief de Metas reconciliado: hallazgo 7 sin suficiencia de CAS/fusión cliente (sello cliente repetido => dos escrituras aceptadas y pérdida sin conflicto); 'Qué se resuelve en cliente' separa propuestas de hechos y no afirma conservación de campos por clientes viejos; decisión 1 sin afirmar que el test asere que la meta borrada no reaparece; mutantes distinguidos (goalLog 7 rojos, deletedRules 3, deletedGoals 0). Conservados 20 escenarios/105 variantes/22 rojos y límites. Solo el brief cambia.",
+  "branch": "claude/inc-0410-metas-brief-reconcile",
+  "productSHA": "9c3806fa8e39890c3035ff9ea193e48b4fceb33e",
+  "tests": [
+    {
+      "command": "TZ=UTC node tests/metas-lww-concurrente.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=UTC LWW_ESPERADO=1 node tests/metas-lww-concurrente.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/metas-lww-concurrente.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid LWW_ESPERADO=1 node tests/metas-lww-concurrente.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --name-only 48a86279..HEAD (solo docs/briefs/inc-0410-metas-lww-concurrencia.md)",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Solo Node sintético; no npm test entero, e2e, Supabase, móvil ni producto",
+    "Sin PR ni integración; revisión de Codex pendiente",
+    "Los números de mutantes proceden del result de revisión de Codex, no reproducidos por mí"
+  ],
+  "schema": 1,
+  "taskId": "inc-0410-metas-brief-reconcile-20261005",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261005-7791aaae",
+  "createdAt": "2026-10-05T20:14:37.333Z",
+  "released": true
+}
