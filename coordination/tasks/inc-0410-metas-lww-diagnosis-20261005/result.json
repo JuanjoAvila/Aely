@@ -1,0 +1,35 @@
+{
+  "status": "done",
+  "summary": "Pérdida LWW reproducida con dos clientes sintéticos concurrentes (nube doble con la semántica de sello de pushState, syncFromCloud real). Primera pérdida: tras el conflicto de sello, syncFromCloud compara solo _savedAt del estado entero; gana la nube (descarta goals/reservaLog locales) o gana lo local (resube el estado entero y borra lo del otro). Ambos órdenes pierden una aportación completa. Corrección acotada propuesta en el acta: unión de reservaLog por id y saldo derivado del log, sin tocar expenses ni el mensual. Rama claude/inc-0410-metas-lww-diagnosis, sin cambio de producto. No se abrió PR draft (no lo pidió el dueño en esta sesión); lo decide el coordinador. Plataforma linux, Node, sin Chromium.",
+  "tests": [
+    {
+      "command": "node tests/metas-lww-concurrente.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "LWW_ESPERADO=1 node tests/metas-lww-concurrente.test.mjs (rojo esperado: contrato deseado)",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/metas-pull-transport.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "44966bdc6300994f398cc5b2ff615eaaa12921e1",
+  "limitations": [
+    "No se ejecutó npm test entero ni e2e ni Android",
+    "Doble de nube en Node: sin Supabase ni móviles reales",
+    "El test verde caracteriza la pérdida; no hay reparación",
+    "Sin PR draft"
+  ],
+  "schema": 1,
+  "taskId": "inc-0410-metas-lww-diagnosis-20261005",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261005-9491eb31",
+  "createdAt": "2026-10-05T15:37:34.192Z",
+  "released": true
+}
