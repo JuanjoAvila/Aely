@@ -6959,3 +6959,7 @@ Con esto queda **completo el motor dinámico**: calendario de fijos, día de cob
 - Sincronización de gastos con deduplicación.
 - Swipe entre las 6 pestañas con detección de eje.
 - Dashboard: patrimonio neto, sparkline, anillo de presupuesto, racha.
+
+## Infraestructura en la rama de coordinación · 2026-10-05
+
+El canal común pasa del issue130 a ficheros inmutables en codex/coordinacion para que una sesión nueva de Claude/Codex cloud pueda leer encargos, reclamar uno con push normal y cerrar expresamente. El helper usa un índice temporal: evita incluir trabajo ajeno y vuelve a evaluar la reserva después de un rechazo concurrente. Prueba con remoto bare/dos clones, mensajes concurrentes, exclusión, idempotencia, privacidad y conservación de WIP; registrada en el runner. Esto no publica una versión de la app. La activación y la continuidad remota se verifican por separado.

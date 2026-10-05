@@ -1,3 +1,7 @@
+## Agentes en nube: entrada del canal
+
+Si esta copia viene de `codex/coordinacion`, consulta primero [docs/COORDINACION-AGENTES.md](docs/COORDINACION-AGENTES.md). El producto de esta rama es una instantánea: trabaja desde el SHA completo del encargo, no desde este HEAD. La migración del 5/10 sigue en pruebas hasta los pilotos remotos y su segundo disparo; no reactives relevos locales por reloj.
+
 Borrador 4.26.94 local (4/10), sin terminar ni publicar: en Metas, una regla nueva descuenta del presupuesto del mes y aporta a la meta al guardarla (contrato decidido por el dueño tras su rechazo de la 4.26.87), además del importe leído como se escribe y el aviso si el alta no vale. Las reglas anteriores siguen repartiendo por ingreso. El rechazo sigue abierto hasta que él lo pruebe; la pasada de pantalla, la suite completa y la revisión del commit final están pendientes: no inferir aprobación. Actas: [contrato mensual](docs/briefs/inc-0410-metas-mensual.md) · [alta de reglas](docs/briefs/inc-0410-metas-alta.md).
 
 Promoción4/10: once tandas actuales aprobadas; candidata revisada en preparación. Producción aún86/APK48 hasta verificar entrega. Prioridad: publicar lo aprobado y retirar del panel solo lo entregado. [Acta](docs/briefs/promocion-aprobadas-2026-10-04.md).

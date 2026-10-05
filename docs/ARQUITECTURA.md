@@ -531,3 +531,7 @@ Antes el volcado se apuntaba dentro del updater de `set()`. React puede ejecutar
 Como es código común, el bloque de guardado forma parte del alcance de revisión de toda tanda cuyo código llama a `set` de App (18 de 25, decidido contra el código por `beta-sources`): cambiarlo vuelve a pedir su prueba. Una aprobación heredada por equivalencia de código deja de aplicarse cuando el código cambia; su registro histórico no se toca.
 
 Se conserva lo demás: una escritura como mucho cada 400 ms, volcado inmediato en `pagehide` y al pasar a oculto, guardado partido (`micartera_v3` y `micartera_v3_exp`), ninguna escritura al montar ni cuando un updater devuelve el mismo estado, y las salvaguardas del modo pruebas (`mcSkipPersist`, `mcRecargarSinVolcar`). Límite: una escritura pedida y aún no pintada cuando llega `pagehide` no se vuelca; antes tampoco estaba garantizado, salvo cuando React la calculaba por adelantado.
+
+## Canal de agentes en nube (rama de coordinación)
+
+La coordinación externa no usa el estado financiero ni la sincronización de la app. En codex/coordinacion, coordination/tasks conserva encargo, reserva y cierre inmutables; coordination/messages conserva mensajes públicos. scripts/coordination-channel.mjs publica un único fichero desde el SHA remoto con índice temporal, push normal y lectura posterior. No incorpora el checkout del llamante. El contrato de concurrencia, privacidad y separación de dispositivo real está en COORDINACION-AGENTES.md. No fusionar esta infraestructura del canal a producto para transmitir mensajes.

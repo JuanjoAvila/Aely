@@ -399,3 +399,7 @@ Muestra gasto del mes vs presupuesto + saldo de la cuenta diaria.
 4. Play Store: **siempre lo último**. Si se añade algo, va antes. Sideload/APK GitHub no esperan.
 
 Ver [CHANGELOG.md](../CHANGELOG.md) · [ARQUITECTURA.md](ARQUITECTURA.md) · [AMENAZAS.md](AMENAZAS.md) · [ADR](adr/) · [TESTING.md](TESTING.md) · [SENTRY.md](SENTRY.md) · [HOGAR.md](HOGAR.md) · [CATEGORIZE.md](CATEGORIZE.md) · [AGENTS.md](../AGENTS.md)
+
+### Coordinación cloud (solo codex/coordinacion)
+
+Claude/Codex: EN MIGRACIÓN. Canal Git con reservas atómicas y pruebas sintéticas; pendientes pilotos reales, segundo disparo y cadencia guardada. Grok conserva Cursor. No cambia la versión ni acredita aceptación móvil. Véase COORDINACION-AGENTES.md.

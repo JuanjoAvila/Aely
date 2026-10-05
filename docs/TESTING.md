@@ -1,3 +1,7 @@
+## Coordinación en nube (rama de coordinación)
+
+`node tests/coordination-channel.test.mjs` (también en steps) usa un remoto Git bare y dos clones temporales sintéticos. Fuerza dos claims sobre el mismo padre: solo uno puede publicar y el perdedor vuelve a leer busy. Comprueba dos mensajes concurrentes conservados, cierre repetido sin nuevos commits, rechazo del no titular, IDs/secretos/SHA inválidos y publicación que conserva HEAD, índice y WIP ajenos. No usa GitHub real ni Chromium ni acredita aceptación móvil.
+
 ## Carga de tests y lector de alcances (4/10)
 
 `botnav-esconder`, ya transversal, reproduce un scroll real emitido por la página oculta de Gastos después de volver a Inicio: comprueba que el evento llegó, que la pantalla activa sigue en el tope y que la barra no se oculta pasado su plazo de 550 ms. El caso era rojo sin la comprobación de página activa en `onPageScroll`; conserva los gestos táctiles de ocultar, revelar y cambiar pestañas.
