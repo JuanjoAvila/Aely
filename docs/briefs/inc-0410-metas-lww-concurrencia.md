@@ -21,7 +21,7 @@ Consecuencias que condicionan cualquier propuesta:
 4. **El registro de asientos ya fusiona bien por `id`**; lo que falla es que `syncFromCloud` sustituye el estado entero por el más reciente (`_savedAt`, reloj del cliente) y descarta `goals`, `reservaLog` y `settings.reservaRules` del otro lado.
 5. El test anterior asentaba `man|<meta>` en `reservaLog`; el producto no lo hace. Se conserva como estaba (caracteriza la misma pérdida con otra forma) y la matriz usa las operaciones fieles.
 6. Hallazgo aparte, visible en la matriz: `addToGoal` suma en coma flotante (0,10 + 0,20 = 0,30000000000000004), y la regla mensual sí redondea.
-7. `pushState` sin sello conocido hace `upsert` a ciegas; con sello es compare-and-swap. El lazo «conflicto → pull → fusionar → resubir» ya existe, así que una fusión en cliente no necesita backend nuevo para ser **correcta**.
+7. `pushState` sin sello conocido hace `upsert` a ciegas; con sello es compare-and-swap, pero el sello (`updated_at`) lo pone el cliente y ningún trigger lo impide repetirse: con sello repetido o relojes empatados el servidor acepta dos escrituras y pierde una sin conflicto. El lazo «conflicto → pull → fusionar → resubir» existe, pero **ni el CAS ni una fusión en cliente bastan por sí solos para la corrección**: sin un sello que cambie en toda escritura aceptada, el conflicto nunca salta y la fusión nunca corre.
 
 ## Propuesta (modelo en el test, no producto)
 
@@ -34,13 +34,13 @@ Consecuencias que condicionan cualquier propuesta:
 
 ## Qué se resuelve en cliente y qué no
 
-**En cliente (con el CAS que ya existe):** la fusión en `syncFromCloud` y que «Aportar», borrar regla y borrar meta escriban `goalLog`/lápidas; la apertura explícita al primer crédito; céntimos enteros. Cambio de esquema aditivo: un cliente viejo conserva los campos que no conoce al hacer `Object.assign` con la nube.
+**Propuestas en cliente (no probadas como suficientes):** la fusión en `syncFromCloud` y que «Aportar», borrar regla y borrar meta escriban `goalLog`/lápidas; la apertura explícita al primer crédito; céntimos enteros. Dependen del CAS existente, que aquí no se da por suficiente (hallazgo 7). Sobre el esquema aditivo, **no está probado** que un cliente viejo conserve con seguridad los campos que no conoce: queda por comprobar contra el código real de esos clientes.
 
 **Exige contrato backend separado (no inventado aquí):** crecimiento y compactación de `goalLog`/lápidas en una sola fila `app_state`; escrituras sin sello (`upsert`) que hoy pisan; reloj de cliente (`_savedAt`) como árbitro de los campos no aditivos; clientes viejos activos durante la transición (su `saved` sin identidad no se puede fusionar). Si el dueño no quiere ese riesgo, la alternativa es filas por aportación en el servidor.
 
 ## Decisiones del dueño pendientes
 
-1. **Borrar una meta mientras otro dispositivo aporta a ella.** El modelo hace prevalecer el borrado; la aportación queda en `goalLog` huérfana, sin sumar a nadie. Hoy una orden resucita la meta con el aporte y la otra lo pierde en silencio. El test solo asere que la meta borrada no reaparece; que la aportación quede retenida no es observable en el esquema actual.
+1. **Borrar una meta mientras otro dispositivo aporta a ella.** El modelo hace prevalecer el borrado; la aportación queda en `goalLog` huérfana, sin sumar a nadie. Hoy una orden resucita la meta con el aporte y la otra lo pierde en silencio. Los escenarios de política omiten el resultado a propósito: **no asertan** que la meta borrada no reaparezca (solo registran el desenlace observado), y que la aportación quede retenida no es observable en el esquema actual.
 2. **Editar el «ahorrado» (`saveEdit`) a la vez que otro aporta:** el modelo conserva el aporte sobre la apertura editada. Es la lectura razonable, pero es decisión de producto.
 3. Qué hacer con aportes hechos por clientes viejos durante la transición (I3).
 
@@ -63,7 +63,7 @@ Cada caso lleva clase y se distingue en la salida: `perdida` (una aportación o 
 
 ### Modelo: NO-GO explícito
 
-El modelo de la propuesta **no es una solución ni se implementa todavía**. Incumple cuatro casos de guarda (los tres dobles borrados y el reparto del mismo ingreso) y la conmutatividad con empate. Están marcados `modeloNoGo` y verdes solo en caracterización; con `LWW_ESPERADO=1` son rojo. Retirar la marca exige que el modelo los cumpla, no bajar el assert. Un mutante que quita la unión de `goalLog` o las lápidas sigue poniendo en rojo el modelo.
+El modelo de la propuesta **no es una solución ni se implementa todavía**. Incumple cuatro casos de guarda (los tres dobles borrados y el reparto del mismo ingreso) y la conmutatividad con empate. Están marcados `modeloNoGo` y verdes solo en caracterización; con `LWW_ESPERADO=1` son rojo. Retirar la marca exige que el modelo los cumpla, no bajar el assert. Mutantes del modelo, medidos por separado (no se generaliza de uno a otro): sin la unión de `goalLog` ponen en rojo 7 casos; sin lápidas de reglas (`deletedRules`), 3; sin lápidas de metas (`deletedGoals`), **ninguno**, porque la política de meta borrada no se asere (decisión 1).
 
 ## Decisiones del dueño pendientes (no elegidas aquí)
 
